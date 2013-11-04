@@ -1,0 +1,2 @@
+// memory config file for T4LS_AIOP
+reservedchar 0x21	// display '!' for invalid reads

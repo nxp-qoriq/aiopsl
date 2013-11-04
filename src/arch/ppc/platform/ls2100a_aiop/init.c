@@ -1,0 +1,83 @@
+#include "common/types.h"
+#include "common/fsl_string.h"
+#include "kernel/platform.h"
+#include "inc/sys.h"
+#include "apps.h"
+
+
+extern int dpni_drv_init(void);extern void dpni_drv_free(void);
+
+
+#define MEMORY_INFO                                                                                            \
+{   /* Region ID                    Memory partition ID          Phys. Addr.    Virt. Addr.  Size            */\
+    {E_PLATFORM_MEM_RGN_WS,         E_MEM_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
+    {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00FE0000,    0x00FE0000, (32  * KILOBYTE) },\
+    {E_PLATFORM_MEM_RGN_SHRAM,      E_MEM_INT_RAM,               0x01000000,    0x01000000, (256 * KILOBYTE) },\
+    {E_PLATFORM_MEM_RGN_DDR1,       E_MEM_1ST_DDR_NON_CACHEABLE, 0x40000000,    0x40000000, (128 * MEGABYTE) },\
+    {E_PLATFORM_MEM_RGN_CCSR,       E_MEM_INVALID,               0xfe000000,    0xfe000000, (16  * MEGABYTE) },\
+    {E_PLATFORM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x80000000,    0x80000000, (32  * MEGABYTE) },\
+}
+
+#define GLOBAL_MODULES                  \
+{                                       \
+    {dpni_drv_init, dpni_drv_free},     \
+    {NULL, NULL} /* never remove! */    \
+}
+
+
+int fill_system_parameters(t_sys_param *sys_param);
+int global_init(void);
+int global_post_init(void);
+int run_apps(void);
+
+
+int fill_system_parameters(t_sys_param *sys_param)
+{
+    struct platform_memory_info mem_info[] = MEMORY_INFO;
+
+    sys_param->partition_id = 0;
+    sys_param->partition_cores_mask = 0x3;
+    sys_param->master_cores_mask = 0x1;
+    sys_param->use_cli = 0;
+    sys_param->use_ipc = 0;
+
+    sys_param->platform_param->clock_in_freq_hz = 100000000;
+    sys_param->platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
+    sys_param->platform_param->console_type = E_PLATFORM_CONSOLE_DUART;
+    sys_param->platform_param->console_id = 0;
+    memcpy(sys_param->platform_param->mem_info,
+           mem_info,
+           sizeof(struct platform_memory_info)*ARRAY_SIZE(mem_info));
+
+    return 0;
+}
+
+int global_init(void)
+{
+    struct sys_module_desc modules[] = GLOBAL_MODULES;
+    int                    i;
+
+    for (i=0; i<ARRAY_SIZE(modules); i++)
+        if (modules[i].init)
+    	    modules[i].init();
+
+    return 0;
+}
+
+int global_post_init(void)
+{
+	/* TODO - complete!!! */
+    return 0;
+}
+
+int run_apps(void)
+{
+    struct sys_module_desc apps[] = APPS;
+    int                    i;
+
+    for (i=0; i<ARRAY_SIZE(apps); i++)
+        if (apps[i].init)
+            apps[i].init();
+
+    return 0;
+}
