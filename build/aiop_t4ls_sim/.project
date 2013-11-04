@@ -132,27 +132,27 @@
 		<link>
 			<name>aiop_sl/kernel/cmdif_client.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/cmdif_client.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/console.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/console.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/console.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/error.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/error.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/error.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/event_mgr.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/event_mgr.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/event_mgr.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/main.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/main.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/main.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng</name>
@@ -162,82 +162,82 @@
 		<link>
 			<name>aiop_sl/kernel/os.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/os.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/os.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/smp.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/smp.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/smp.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/sys.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/sys.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/sys.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/sys.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/sys.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/sys.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/sys_mem_mng.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/sys_mem_mng.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/list.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/lib/list.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/lib/list.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/memcpy.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/lib/memcpy.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/lib/memcpy.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/slab.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/lib/slab.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/lib/slab.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/slab.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/lib/slab.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/lib/slab.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/slob.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/lib/slob.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/lib/slob.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/slob.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/lib/slob.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/lib/slob.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/booke.S</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/arch/ppc/booke.S</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/booke.S</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/booke.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/arch/ppc/booke.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/booke.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/booke.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/arch/ppc/booke.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/booke.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/booke_irq.S</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/arch/ppc/booke_irq.S</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/booke_irq.S</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/booke_irq.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/arch/ppc/booke_irq.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/booke_irq.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform</name>
@@ -262,12 +262,12 @@
 		<link>
 			<name>aiop_sl/kernel/mem_mng/mem_mng.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/mem_mng/mem_mng.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/mem_mng/mem_mng.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/mem_mng.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/kernel/mem_mng/mem_mng.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/kernel/mem_mng/mem_mng.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop</name>
@@ -277,37 +277,37 @@
 		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/drivers/dplib//dpni/dpni.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/drivers/dplib//dpni/dpni.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/drivers/dplib//dpni/dpni.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/drivers/dplib//dpni/dpni.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni_drv.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/drivers/dplib/dpni/dpni_drv.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/serial/duart/duart.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/drivers/serial/duart/duart.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/drivers/serial/duart/duart.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/serial/duart/duart.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/drivers/serial/duart/duart.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/drivers/serial/duart/duart.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/init.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/arch/ppc/platform/ls2100a_aiop/init.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/platform/ls2100a_aiop/init.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/platform.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_sl/arch/ppc/platform/ls2100a_aiop/platform.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/platform/ls2100a_aiop/platform.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
