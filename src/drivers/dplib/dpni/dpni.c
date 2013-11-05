@@ -1,6 +1,7 @@
 
 #include "common\types.h"
 #include "common\fsl_malloc.h"
+#include "common\fsl_string.h"
 #include "common\fsl_cmdif.h"
 #include "dplib\fsl_ldpaa.h"
 #include "dplib\fsl_dpni.h"
@@ -602,6 +603,12 @@ struct dpni *dpni_open(void *regs, int id, uint16_t icid)
     dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, id, icid);  		
 
     return dpni;
+}
+
+int dpni_defconfig(struct dpni_cfg *cfg)
+{
+	memset(cfg, 0, sizeof(struct dpni_cfg));
+	return 0;
 }
 
 int dpni_init(struct dpni *dpni,

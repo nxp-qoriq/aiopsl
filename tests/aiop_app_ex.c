@@ -1,56 +1,35 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
+#include "common/fsl_string.h"
+#include "kernel/platform.h"
+#include "dplib/fsl_dpni.h"
 
 
 int aiop_app_init(void);
 void aiop_app_free(void);
 
-
-/* Command Portal structure */
-typedef struct t_CmdPortal {
-    uint32_t    cmdWord;
-    uint32_t    param1;     /* Parameter 1: Command number */
-    uint64_t    param2;     /* Parameter 2: Value */
-    uint64_t    param3;     /* Parameter 3: Command dependent */
-    uint64_t    param4;     /* Parameter 4: Return value */
-    uint64_t    reserved[4];
-
-} t_CmdPortal;
-
-
-static int32_t test_mc_portal_cmd1(int32_t portal_num, int32_t highPrio)
+static int init_nic(int portal_id)
 {
-    int32_t     i = 0;
-    uint32_t    MC_DMEM_ADDR_BASE = 0x80000000;
-    uint32_t    MC_PORTAL_SIZE = 0x10000;
-    t_CmdPortal *p_CmdPortal = (t_CmdPortal *)(MC_DMEM_ADDR_BASE + (portal_num * MC_PORTAL_SIZE));
-    uint64_t    expectedRetVal;
+	struct dpni_cfg			cfg;
+	struct dpni_init_params	params;
+	fsl_handle_t			dpni;
+	int 					err;
 
-    fsl_os_print("Write mc_portal_cmd1 to : 0x%08lx ... ", (uint32_t)p_CmdPortal);
+	/* obtain default configuration of the NIC */
+	dpni_defconfig(&cfg);
 
-    p_CmdPortal->param1 = 0x1;
-    p_CmdPortal->param2 = 0x0000000F0000000ALL;
-    p_CmdPortal->param3 = 0;
-    p_CmdPortal->param4 = 0;
+	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+																   (uint32_t)portal_id,
+																   E_MAPPED_MEM_TYPE_MC_PORTAL)),
+								 1,
+								 3);
 
-    if (highPrio)
-        p_CmdPortal->cmdWord = 0x00800000;
-    else
-        p_CmdPortal->cmdWord = 0x0;
-
-    do
-    {
-        i++;
-    } while (p_CmdPortal->param4 == 0);
-
-    fsl_os_print("Done\n");
-
-    /* Checking return value */
-    expectedRetVal = (highPrio ? p_CmdPortal->param2 - 1 : p_CmdPortal->param2 + 1);
-    if (p_CmdPortal->param4 != expectedRetVal)
-        return 1;
-
-    return 0;
+	memset(&params, 0, sizeof(params));
+	params.type = DPNI_TYPE_NIC;
+	err = dpni_init(dpni, &cfg, &params);
+	if (err)
+		return err;
+	return 0;
 }
 
 
@@ -60,8 +39,7 @@ int aiop_app_init(void)
 
     fsl_os_print("TEST: AIOP+MC\n");
 
-    // write mc portal 0
-    err = test_mc_portal_cmd1(0, 1);
+    err = init_nic(2);
 
     return err;
 }
