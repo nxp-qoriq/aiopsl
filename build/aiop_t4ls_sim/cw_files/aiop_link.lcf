@@ -16,7 +16,7 @@ MEMORY
     heap  :                 org = 0x01004000,   len = 0x0003C000 /* currently sit in shared SRAM */
     dp_ddr:                 org = 0x40000000,   len = 0x40000000 /* DP-DDR  */
     spintbl :               org = 0x40008000,   len = 0x00001000 /* DDR - heap */
-    pebm  :                 org = 0x80000000,   len = 0x80000000 /* PEBM */
+    pebm  :                 org = 0x50000000,   len = 0x50000000 /* PEBM */
 }
 
 SECTIONS

@@ -33,7 +33,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.SVuninitialized" value="false"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.coreIndex" value="26"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.homogeneousMulticore" value="true"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${workspace_loc:/aiop/cw_files/t4ls_aiop.tcl}"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value="${workspace_loc:/aiop/cw_files/t4ls_aiop.mem}"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.simulator" value="CCSSIM2 ISS"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
@@ -133,7 +133,7 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Connection Type CW Panel" value="CCS_Remote_Connection"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Processor Attr Name" value="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.EPPC Debugger.processor"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.RSESystemIdentifier" value="T4240LS_T4240LSSimulator_download_RSESystem_Group"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.131031132726+0200"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.131104162212+0200"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.core.settings.useLastRSESystemGenerated" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.wizardSystemNameHint" value="T4240LS_Download"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.debuggerAddress" value="127.0.0.1"/>
@@ -146,7 +146,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.gateway" value="127.0.0.1"/>
 <listAttribute key="com.freescale.cdt.debug.cw.initPathList">
-<listEntry value="${workspace_loc:/aiop/cw_files/t4ls_aiop.tcl}"/>
+<listEntry value=""/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.macAddress" value="**-**-**-**-**-**"/>
 <listAttribute key="com.freescale.cdt.debug.cw.memConfigPathList">
@@ -376,7 +376,7 @@
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_REGISTER_BOOKKEEPING" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_RESTORE_WATCHPOINTS" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_VARIABLE_BOOKKEEPING" value="false"/>
-<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
+<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
 <stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="out/aiop.elf"/>
