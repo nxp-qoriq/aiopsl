@@ -73,7 +73,7 @@ enum cmdif_status {
                               icid, ports,etc..
  @Return        Handle to instance object, or NULL for Failure.
  *//***************************************************************************/
-typedef int (open_cb_t) (fsl_handle_t    dev);
+typedef int (open_cb_t) (fsl_handle_t dev);
 
 /**************************************************************************//**
  @Description   De-init callback.
@@ -128,8 +128,8 @@ struct cmdif_module_ops {
 
  @Return        0 on success; error code, otherwise.
  *//***************************************************************************/
-int cmdif_register_module(enum fsl_os_module module,
-                          struct cmdif_module_ops *ops);
+int cmdif_register_module(enum fsl_os_module        module,
+                          struct cmdif_module_ops   *ops);
 
 /**************************************************************************//**
  @Function      cmdif_cmd_done
@@ -167,10 +167,10 @@ void cmdif_cmd_done(struct cmdif_cmd_desc *cmd, enum cmdif_status status);
  @Return        A handle to the device on success (positive value);
  NULL otherwise.
  *//***************************************************************************/
-struct cmdif_dev *cmdif_open(void *regs,
+struct cmdif_dev *cmdif_open(void               *regs,
                              enum fsl_os_module mod,
-                             uint16_t mod_id,
-                             uint16_t icid);
+                             uint16_t           mod_id,
+                             uint16_t           icid);
 
 /**************************************************************************//**
  @Function      cmdif_close
@@ -194,11 +194,11 @@ int cmdif_close(struct cmdif_dev *dev);
 
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-int cmdif_send(struct cmdif_dev *dev,
-               uint16_t cmd,
-               int size,
-               int priority,
-               struct cmdif_cmd_desc *desc);
+int cmdif_send(struct cmdif_dev         *dev,
+               uint16_t                 cmd,
+               int                      size,
+               int                      priority,
+               struct cmdif_cmd_desc    *desc);
 
 struct cmdif_cmd_desc *cmdif_get_desc(struct cmdif_dev *dev);
 
