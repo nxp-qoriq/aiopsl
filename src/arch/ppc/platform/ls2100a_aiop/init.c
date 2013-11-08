@@ -46,7 +46,7 @@ int fill_system_parameters(t_sys_param *sys_param)
 
     sys_param->platform_param->clock_in_freq_hz = 100000000;
     sys_param->platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
-    sys_param->platform_param->console_type = E_PLATFORM_CONSOLE_DUART;
+    sys_param->platform_param->console_type = E_PLATFORM_CONSOLE_NONE;
     sys_param->platform_param->console_id = 0;
     memcpy(sys_param->platform_param->mem_info,
            mem_info,
