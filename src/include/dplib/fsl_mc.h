@@ -2,6 +2,7 @@
 #define __FSL_MC_H
 
 #include "common/types.h"
+#include "common/endian.h"
 
 
 struct cmdif_cmd_desc {
@@ -31,15 +32,15 @@ struct cmdif_cmd_desc {
 
 #define MC_CMD_WRITE_PARAM(_ptr, _id, _val) ((_ptr)->param##_id = (_val))
 
-#define MC_CMD_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri) 			\
-	do { 										\
-		volatile uint64_t tmp = 0;							\
-		u64_write_field(tmp, MC_CMD_CMDID_OFFSET, MC_CMD_CMDID_SIZE, (_id));	\
+#define MC_CMD_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri)					\
+	do { 																			\
+		volatile uint64_t tmp = 0;													\
+		u64_write_field(tmp, MC_CMD_CMDID_OFFSET, MC_CMD_CMDID_SIZE, (_id));		\
 		u64_write_field(tmp, MC_CMD_AUTHID_OFFSET, MC_CMD_AUTHID_SIZE, (_auth));	\
-		u64_write_field(tmp, MC_CMD_SIZE_OFFSET, MC_CMD_SIZE_SIZE, (_size));	\
+		u64_write_field(tmp, MC_CMD_SIZE_OFFSET, MC_CMD_SIZE_SIZE, (_size));		\
 		u64_write_field(tmp, MC_CMD_STATUS_OFFSET, MC_CMD_STATUS_SIZE, (_status));	\
-		u64_write_field(tmp, MC_CMD_PRI_OFFSET, MC_CMD_PRI_SIZE, (_pri));		\
-		(_ptr)->header = tmp; \
+		u64_write_field(tmp, MC_CMD_PRI_OFFSET, MC_CMD_PRI_SIZE, (_pri));			\
+		(_ptr)->header = swap_uint64(tmp);											\
 	} while (0)
 
 /* @} */

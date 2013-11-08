@@ -2,10 +2,11 @@
 #include "common/fsl_string.h"
 #include "kernel/platform.h"
 #include "inc/sys.h"
-#include "apps.h"
 
 
 extern int dpni_drv_init(void);extern void dpni_drv_free(void);
+
+extern void build_apps_array(struct sys_module_desc *apps);
 
 
 #define MEMORY_INFO                                                                                            \
@@ -23,6 +24,8 @@ extern int dpni_drv_init(void);extern void dpni_drv_free(void);
     {dpni_drv_init, dpni_drv_free},     \
     {NULL, NULL} /* never remove! */    \
 }
+
+#define MAX_NUM_OF_APPS		10
 
 
 int fill_system_parameters(t_sys_param *sys_param);
@@ -72,10 +75,13 @@ int global_post_init(void)
 
 int run_apps(void)
 {
-    struct sys_module_desc apps[] = APPS;
+    struct sys_module_desc apps[MAX_NUM_OF_APPS];
     int                    i;
 
-    for (i=0; i<ARRAY_SIZE(apps); i++)
+    memset(apps, 0, sizeof(apps));
+    build_apps_array(apps);
+    
+    for (i=0; i<MAX_NUM_OF_APPS; i++)
         if (apps[i].init)
             apps[i].init();
 
