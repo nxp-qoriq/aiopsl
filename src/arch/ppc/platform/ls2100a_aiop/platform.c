@@ -648,12 +648,13 @@ uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
 
     t_sys_to_part_offset_map part_offset_map[] =
     {
-        /* module                           id   mappedMemType                  offset
-           ------                           --   -------------                  ------                      */
+        /* module                    id   mappedMemType                  offset
+           ------                    --   -------------                  ------                      */
         { FSL_OS_MOD_UART,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART1       },
         { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
         { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
         { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART4       },
+        { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP         },
     };
 
     SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);

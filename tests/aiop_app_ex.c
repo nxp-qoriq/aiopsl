@@ -8,6 +8,7 @@
 int aiop_app_init(void);
 void aiop_app_free(void);
 
+
 static int init_nic(int portal_id)
 {
 	struct dpni_cfg			cfg;

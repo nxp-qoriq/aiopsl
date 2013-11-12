@@ -58,7 +58,7 @@
 #define SOC_PERIPH_OFF_USB2             0x00211000
 #define SOC_PERIPH_OFF_PCIE1            0x00240000
 #define SOC_PERIPH_OFF_PCIE2            0x00250000
-#define SOC_PERIPH_OFF_SEC_GEN          0x080300000/*0x08000000*/
+#define SOC_PERIPH_OFF_SEC_GEN          0x08300000/*0x08000000*/
 #define SOC_PERIPH_OFF_SEC_JQ0          0x08301000/*0x08001000*/
 #define SOC_PERIPH_OFF_SEC_JQ1          0x08302000
 #define SOC_PERIPH_OFF_SEC_JQ2          0x08303000
@@ -72,9 +72,7 @@
 #define SOC_PERIPH_OFF_EIOP_CTLU        0x08800000/*0x08b80000*/
 #define SOC_PERIPH_OFF_EIOP_PP          0x08900000/*0x08c00000*/
 #define SOC_PERIPH_OFF_EIOP_IFP         0x08a00000/*0x08800000*/
-#define SOC_PERIPH_OFF_AIOP             0x08001000
-#define SOC_PERIPH_OFF_MCPIC            0x01040000
-#define SOC_PERIPH_OFF_MCCPM            0x00180000
+#define SOC_PERIPH_OFF_AIOP             0x00001000
 
 /* Offsets relative to QBMan portals base */
 #define SOC_PERIPH_OFF_PORTALS_CE_AREA  0x0000000        /* cache enabled area */
@@ -82,14 +80,14 @@
 /* Offsets relative to MC portals base */
 #define SOC_PERIPH_OFF_PORTALS_MC_AREA  0x0000000        /* cache enabled area */
 
-#define LS2100A_CE_PORTAL_SIZE          0x4000
-#define LS2100A_CI_PORTAL_SIZE          0x1000
+#define SOC_PERIPH_CE_PORTAL_SIZE       0x4000
+#define SOC_PERIPH_CI_PORTAL_SIZE       0x1000
 #define SOC_PERIPH_MC_PORTAL_SIZE       0x10000
 
 #define SOC_PERIPH_OFF_PORTALS_CE(_prtl) \
-    (SOC_PERIPH_OFF_PORTALS_CE_AREA + LS2100A_CE_PORTAL_SIZE * (_prtl))
+    (SOC_PERIPH_OFF_PORTALS_CE_AREA + SOC_PERIPH_CE_PORTAL_SIZE * (_prtl))
 #define SOC_PERIPH_OFF_PORTALS_CI(_prtl) \
-    (SOC_PERIPH_OFF_PORTALS_CI_AREA + LS2100A_CI_PORTAL_SIZE * (_prtl))
+    (SOC_PERIPH_OFF_PORTALS_CI_AREA + SOC_PERIPH_CI_PORTAL_SIZE * (_prtl))
 #define SOC_PERIPH_OFF_PORTALS_MC(_prtl) \
     (SOC_PERIPH_OFF_PORTALS_MC_AREA + SOC_PERIPH_MC_PORTAL_SIZE * (_prtl))
 

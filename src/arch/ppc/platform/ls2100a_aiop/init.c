@@ -1,5 +1,7 @@
 #include "common/types.h"
 #include "common/fsl_string.h"
+#include "common/io.h"
+#include "kernel/smp.h"
 #include "kernel/platform.h"
 #include "inc/sys.h"
 
@@ -12,11 +14,11 @@ extern void build_apps_array(struct sys_module_desc *apps);
 #define MEMORY_INFO                                                                                            \
 {   /* Region ID                    Memory partition ID          Phys. Addr.    Virt. Addr.  Size            */\
     {E_PLATFORM_MEM_RGN_WS,         E_MEM_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
-    {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00FE0000,    0x00FE0000, (32  * KILOBYTE) },\
+    {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00800000,    0x00800000, (32  * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_SHRAM,      E_MEM_INT_RAM,               0x01000000,    0x01000000, (256 * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_DDR1,       E_MEM_1ST_DDR_NON_CACHEABLE, 0x40000000,    0x40000000, (128 * MEGABYTE) },\
     {E_PLATFORM_MEM_RGN_CCSR,       E_MEM_INVALID,               0xfe000000,    0xfe000000, (16  * MEGABYTE) },\
-    {E_PLATFORM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x80000000,    0x80000000, (32  * MEGABYTE) },\
+    {E_PLATFORM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x08000000,    0x08000000, (32  * MEGABYTE) },\
 }
 
 #define GLOBAL_MODULES                  \
@@ -37,6 +39,12 @@ int run_apps(void);
 int fill_system_parameters(t_sys_param *sys_param)
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
+
+    { /* TODO - temporary check boot register */
+    	uintptr_t   tmp_reg = 0xfe000000 + SOC_PERIPH_OFF_AIOP;
+    	/* wait for MC command for boot */
+    	while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x90)) & (0x1 << core_get_id()))) ;
+    }
 
     sys_param->partition_id = 0;
     sys_param->partition_cores_mask = 0x3;
@@ -69,7 +77,13 @@ int global_init(void)
 
 int global_post_init(void)
 {
-	/* TODO - complete!!! */
+	uintptr_t   tmp_reg =
+	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+	                                      0,
+	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
+	/* Write AIOP boot status */
+	iowrite32be((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
+
     return 0;
 }
 

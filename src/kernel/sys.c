@@ -434,9 +434,11 @@ void sys_free(void)
 
     sys_free_platform();
 
+#if 0
     if (sys.is_partition_master[core_id])
         sys_free_cli();
     sys_barrier();
+#endif /* 0 */
 
     sys_free_multi_processing();
     sys_barrier();
@@ -445,8 +447,10 @@ void sys_free(void)
         /* Free objects management structures */
         sys_free_objects_management();
 
+#if 0
         /* Free interrupt management module */
         sys_free_interrupt_management();
+#endif /* 0 */
 
         /* Free memory management module */
         sys_free_memory_management();

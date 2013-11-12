@@ -33,6 +33,8 @@ enum fsl_os_module {
     FSL_OS_MOD_UART,
 
     FSL_OS_MOD_DPNI,
+
+    FSL_OS_MOD_CMGW,
     FSL_OS_MOD_MC_PORTAL,
 
     FSL_OS_MOD_DUMMY_LAST

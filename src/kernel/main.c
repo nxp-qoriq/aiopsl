@@ -40,6 +40,11 @@ UNUSED(argc);UNUSED(argv);
     	return err;
 */
 
+    if (is_master_core &&
+        ((err = global_post_init()) != 0))
+        return err;
+    sys_barrier();
+
     if (is_master_core)
     	fsl_os_print("Running applications\n");
     sys_barrier();
@@ -48,9 +53,8 @@ UNUSED(argc);UNUSED(argv);
     	return err;
 
     if (is_master_core)
-    	fsl_os_print("....\n");
+    	fsl_os_print("complete. freeing resources and going out ...\n");
     sys_barrier();
-    while (1) ;
 
     /* TODO - complete - free everything here!!! */
 
