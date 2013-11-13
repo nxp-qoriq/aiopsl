@@ -8,7 +8,7 @@ MEMORY
     hw_context:             org = 0x00000000,   len = 0x000000C0 /* Hardware Context         */
     tls:                    org = 0x000000C0,   len = 0x00000080 /* TLS - Task Local Storage */
     presentation:           org = 0x00000140,   len = 0x000001c0 /* Frame presentation area  */
-    stack :                 org = 0x00000300,   len = 0x00000500 /* Start location for Stack */
+    stack :                 org = 0x00000300,   len = 0x00001000 /* Start location for Stack */
     exception_handlers:     org = 0x00800000,   len = 0x00002000 /* IRAM   */
     init:                   org = 0x00802000,   len = 0x00001000
     pseudo_rom:             org = 0x00803000,   len = 0x0001D000
