@@ -162,15 +162,13 @@ void cmdif_cmd_done(struct cmdif_cmd_desc *cmd, enum cmdif_status status);
  @Param[in]     regs    TODO
  @Param[in]     mod     TODO
  @Param[in]     mod_id  TODO
- @Param[in]     icid    TODO
 
  @Return        A handle to the device on success (positive value);
  NULL otherwise.
  *//***************************************************************************/
 struct cmdif_dev *cmdif_open(void               *regs,
                              enum fsl_os_module mod,
-                             uint16_t           mod_id,
-                             uint16_t           icid);
+                             uint16_t           mod_id);
 
 /**************************************************************************//**
  @Function      cmdif_close

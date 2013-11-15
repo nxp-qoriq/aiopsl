@@ -131,6 +131,10 @@
 #define MODULE_DPSW             0x00240000
 #define MODULE_EIOP             0x00250000
 #define MODULE_DPPCD            0x00260000
+#define MODULE_CMDIF            0x00270000
+#define MODULE_DPRC             0x00280000
+#define MODULE_DPIO             0x00290000
+#define MODULE_DPSP             0x002a0000
 
 
 #endif /* __FSL_SOC_SPEC_H */

@@ -13,6 +13,22 @@
 #include "common/fsl_stdio.h"
 
 
+/**************************************************************************//**
+ @Group         gen_g  General Drivers Utilities
+
+ @Description   External routines.
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+ @Group         dump_g  Memory and Registers Dump Mechanism
+
+ @Description   Macros for dumping memory mapped structures.
+
+ @{
+*//***************************************************************************/
+
 #if (DEBUG_ERRORS > 0)
 /* Internally used macros */
 #define dump_print          fsl_os_print
@@ -194,28 +210,36 @@
     } while (0)
 #endif /* DEBUG_ERRORS > 0 */
 
+#include "common/errors.h"
 
-/**************************************************************************//**
- @Group         gen_g  General Drivers Utilities
+#if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
+/* No debug/error/event messages at all */
+#define DBG(_level, _vmsg)
 
- @Description   External routines.
+#else /* DEBUG_ERRORS > 0 */
 
- @{
-*//***************************************************************************/
+#if ((defined(DEBUG_USING_STATIC_LEVEL)) && (DEBUG_DYNAMIC_LEVEL < REPORT_LEVEL_WARNING))
+/* No need for DBG macro - debug level is higher anyway */
+#define DBG(_level, _vmsg)
+#else
+#define DBG(_level, ...) \
+do { \
+    if (_level <= DEBUG_DYNAMIC_LEVEL) { \
+        fsl_os_print("> %s " PRINT_FORMAT ": ", \
+                     dbg_level_strings[_level - 1], \
+                     PRINT_FMT_PARAMS); \
+        fsl_os_print(__VA_ARGS__); \
+        fsl_os_print("\r\n"); \
+    } \
+} while (0)
+#endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
+#endif /* (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0)) */
 
-/**************************************************************************//**
- @Group         dump_g  Memory and Registers Dump Mechanism
-
- @Description   Macros for dumping memory mapped structures.
-
- @{
-*//***************************************************************************/
-
-#define pr_debug(...) DBG(TRACE, __VA_AGRS__)
-#define pr_info(...) DBG(INFO, __VA_AGRS__)
-#define pr_warn(...) DBG(WARNING, __VA_AGRS__)
-#define pr_err(...) DBG(MAJOR, __VA_AGRS__)
-#define pr_crit(...) DBG(CRITICAL, __VA_AGRS__)
+#define pr_debug(...) do{DBG(REPORT_LEVEL_TRACE, __VA_ARGS__);}while(0)
+#define pr_info(...) do{DBG(REPORT_LEVEL_INFO, __VA_ARGS__);}while(0)
+#define pr_warn(...) do{DBG(REPORT_LEVEL_WARNING, __VA_ARGS__);}while(0)
+#define pr_err(...) do{DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__);}while(0)
+#define pr_crit(...) do{DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__);}while(0)
 
 /** @} */ /* end of dump_g group */
 /** @} */ /* end of gen_g group */

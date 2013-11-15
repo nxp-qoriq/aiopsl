@@ -22,7 +22,7 @@
 .extern booke_generic_isr /* void booke_generic_isr(unsigned long exceptNumber) */
 .extern pic_isr
 .extern booke_critical_isr
-.extern dec_intr
+.extern dec_isr
 .extern sys_bottom_half
 /* .extern __reset */
 
@@ -594,8 +594,8 @@ decrementer_intr:
     isr_prologue
 
     li      3,DECREMENTER_INTR
-    lis     4,dec_intr@h
-    ori     4,4,dec_intr@l
+    lis     4,dec_isr@h
+    ori     4,4,dec_isr@l
     mtlr    4
     blrl
 

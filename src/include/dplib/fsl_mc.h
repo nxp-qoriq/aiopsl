@@ -17,32 +17,32 @@ struct cmdif_cmd_desc {
 
 
 /**************************************************************************//**
+ @Collection    Command portal Header
+ @{
+ *//***************************************************************************/
+#define CMDIF_MC_CMDID_OFFSET	11	/**< Command offset */
+#define CMDIF_MC_CMDID_SIZE	12	/**< command size */
+#define CMDIF_MC_AUTHID_OFFSET	25	/**< Authentication offset */
+#define CMDIF_MC_AUTHID_SIZE	10	/**< Authentication size */
+#define CMDIF_MC_SIZE_OFFSET	31	/**< Size offset */
+#define CMDIF_MC_SIZE_SIZE	6	/**< Size of size */
+#define CMDIF_MC_STATUS_OFFSET	47	/**< Status offset */
+#define CMDIF_MC_STATUS_SIZE	8	/**< Status size*/
+#define CMDIF_MC_PRI_OFFSET	48	/**< Priority offset */
+#define CMDIF_MC_PRI_SIZE		1	/**< Priority size */
+/* @} */
+
+/**************************************************************************//**
  @Collection    Read/Write command portal macros
  @{
  *//***************************************************************************/
-#define CMDIF_MC_READ_CMDID(_hdr)		u64_read_field((_hdr), CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE)
-#define CMDIF_MC_READ_AUTHID(_hdr)	u64_read_field((_hdr), CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE)
-#define CMDIF_MC_READ_SIZE(_hdr)		u64_read_field((_hdr), CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE)
-#define CMDIF_MC_READ_STATUS(_hdr)	u64_read_field((_hdr), CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE)
-#define CMDIF_MC_READ_PRI(_hdr)		u64_read_field((_hdr), CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE)
+#define CMDIF_MC_READ_PARAM(_ptr, _id)	swap_uint64((_ptr)->param##_id)
 
-#define CMDIF_MC_READ_HEADER(_ptr)	((_ptr)->header)
+#define CMDIF_MC_WRITE_PARAM(_ptr, _id, _val) ((_ptr)->param##_id = swap_uint64(_val))
 
-#define CMDIF_MC_READ_PARAM(_ptr, _id)	((_ptr)->param##_id)
-
-#define CMDIF_MC_WRITE_PARAM(_ptr, _id, _val) ((_ptr)->param##_id = (_val))
-
-#define CMDIF_MC_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri)					\
-	do { 																			\
-		volatile uint64_t tmp = 0;													\
-		u64_write_field(tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));		\
-		u64_write_field(tmp, CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE, (_auth));	\
-		u64_write_field(tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));		\
-		u64_write_field(tmp, CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE, (_status));	\
-		u64_write_field(tmp, CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE, (_pri));			\
-		(_ptr)->header = swap_uint64(tmp);											\
-	} while (0)
-
+#define GPP_CMD_WRITE_PARAM(_ptr, _id, _val) \
+	((_ptr)->param##_id = swap_uint64(_val))
+#define GPP_CMD_READ_PARAM(_ptr, _id)	swap_uint64((_ptr)->param##_id)
 /* @} */
 
 

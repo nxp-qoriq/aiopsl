@@ -104,31 +104,23 @@ do                                      \
 #define ILLEGAL_BASE    (~0)
 
 #define ARENA_MASTER_PART_ID      (0)
-
-
 /* @} */
 
-/**************************************************************************//**
- @Collection    Helper macros
- @{
- *//***************************************************************************/
+
 static __inline__ uint64_t u64_read_field(uint64_t reg, int start_bit, int size)
 {
     if (size >= 64)
-        return (reg);
-    return ((reg) >> start_bit) & ((0x0000000000000001LL << size)-1);
+        return reg;
+    return (reg >> start_bit) & ((0x0000000000000001LL << size)-1);
 }
 
-static __inline__ int u64_write_field(uint64_t reg, int start_bit, int size, uint64_t val)
+static __inline__ void u64_write_field(uint64_t reg, int start_bit, int size, uint64_t val)
 {
     if (size >= 64)
-        reg = (val);
+        reg = val;
     else
         reg |= (uint64_t)(val & ((0x0000000000000001LL << size) - 1) << start_bit);
-    return 0;
 }
-/* @} */
 
 
 #endif /* __FSL_ARENA_GEN_H */
-

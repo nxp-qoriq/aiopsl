@@ -12,7 +12,6 @@
 /* cmd IDs */
 #define DPNI_CMD_OPEN				0x801 
 #define DPNI_CMD_CLOSE				0x121
-
 #define DPNI_CMD_INIT				0x123
 #define DPNI_CMD_FREE				0x124
 #define DPNI_CMD_ATTACH				0x125
@@ -25,7 +24,7 @@
 #define DPNI_CMD_SET_RX_Q_CTX		0x12C
 #define DPNI_CMD_GET_CFG			0x12D
 #define DPNI_CMD_GET_ATTR			0x12E
-
+#define DPNI_CMD_GET_QDID			0x12F
 #define DPNI_CMD_ENABLE				0x130
 #define DPNI_CMD_DISABLE			0x131
 #define DPNI_CMD_GET_STATS			0x132
@@ -52,7 +51,9 @@
 #define DPNI_CMD_ADD_FS_ENT			0x147
 #define DPNI_CMD_REMOVE_FS_ENT		0x148
 #define DPNI_CMD_CLR_FS_TBL			0x149
-
+#define DPNI_CMD_GET_TX_DATA_OFFSET		0x150
+#define DPNI_CMD_GET_PRIM_MAC 			0x151
+#define DPNI_CMD_GET_MFL			0x152
 
 /* cmd sizes */
 #define DPNI_CMD_INIT_S				(8 * 3)
@@ -67,8 +68,10 @@
 #define DPNI_CMD_SET_RX_Q_CTX_S		(8 * 4)
 #define DPNI_CMD_GET_CFG_S			(8 * 2)
 #define DPNI_CMD_GET_ATTR_S			(8 * 3)
+#define DPNI_CMD_GET_QDID_S			8
 #define DPNI_CMD_ENABLE_S			0
 #define DPNI_CMD_DISABLE_S			0
+#define DPNI_CMD_GET_TX_DATA_OFF_S	8
 #define DPNI_CMD_GET_STATS_S		0
 #define DPNI_CMD_RST_STATS_S		0
 #define DPNI_CMD_GET_LNK_STATE_S	0
@@ -93,7 +96,7 @@
 #define DPNI_CMD_ADD_FS_ENT_S		8
 #define DPNI_CMD_REMOVE_FS_ENT_S	8
 #define DPNI_CMD_CLR_FS_TBL_S		8
-
+#define DPNI_CMD_GET_MFL_S			8
 
 /* dpni_open */
 /* param 1 */
@@ -234,12 +237,15 @@
 #define DPNI_SET_RX_Q_CTX_FLOW_CTX_ADDR_O 0
 #define DPNI_SET_RX_Q_CTX_FLOW_CTX_ADDR_S 64
 
-/* dpni_get_cfg */
+/* dpni_get_qdid */
 /* param 1 */
-#define DPNI_GET_CFG_TX_QDID_O			0
-#define DPNI_GET_CFG_TX_QDID_S			16
-#define DPNI_GET_CFG_TX_DATA_O			16
-#define DPNI_GET_CFG_TX_DATA_S			16
+#define DPNI_GET_QDID_O				0
+#define DPNI_GET_QDID_S				16
+
+/* dpni_get_tx_data_offset */
+/* param 1 */
+#define DPNI_GET_TX_DATA_OFF_O			0
+#define DPNI_GET_TX_DATA_OFF_S			16
 
 /* dpni_get_attributes */
 /* param 1 */
@@ -256,6 +262,11 @@
 /* param 1 */
 #define DPNI_SET_MFL_MFL_O				0
 #define DPNI_SET_MFL_MFL_S				16
+
+/* dpni_get_mfl */
+/* param 1 */
+#define DPNI_GET_MFL_O				0
+#define DPNI_GET_MFL_S				8
 
 /* dpni_set_mtu */
 /* param 1 */

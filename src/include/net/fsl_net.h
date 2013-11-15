@@ -25,7 +25,6 @@ typedef uint16_t net_hdr_fld_ppp_t;
 #define NET_HDR_FLD_PPP_COMPRESSED                 (NET_HDR_FLD_PPP_PID << 1)
 #define NET_HDR_FLD_PPP_ALL_FIELDS                 ((NET_HDR_FLD_PPP_PID << 2) - 1)
 
-
 /**************************  PPPoE fields  ***********************************/
 typedef uint16_t net_hdr_fld_pppoe_t;
 
@@ -52,7 +51,6 @@ typedef uint16_t net_hdr_fld_pppoe_t;
 #define NET_HDR_FLD_PPPMUX_SUBFRAME_USE_PID        (NET_HDR_FLD_PPPMUX_SUBFRAME_PFF << 4)
 #define NET_HDR_FLD_PPPMUX_SUBFRAME_ALL_FIELDS     ((NET_HDR_FLD_PPPMUX_SUBFRAME_PFF << 5) - 1)
 
-
 /*************************  Ethernet fields  *********************************/
 typedef uint16_t net_hdr_fld_eth_t;
 
@@ -65,7 +63,6 @@ typedef uint16_t net_hdr_fld_eth_t;
 #define NET_HDR_FLD_ETH_ALL_FIELDS                 ((NET_HDR_FLD_ETH_DA << 6) - 1)
 
 #define NET_HDR_FLD_ETH_ADDR_SIZE                 6
-
 
 /***************************  VLAN fields  ***********************************/
 typedef uint16_t net_hdr_fld_vlan_t;
@@ -81,7 +78,6 @@ typedef uint16_t net_hdr_fld_vlan_t;
                                                          NET_HDR_FLD_VLAN_CFI | \
                                                          NET_HDR_FLD_VLAN_VID)
 
-
 /************************  IP (generic) fields  ******************************/
 typedef uint16_t net_hdr_fld_ip_t;
 
@@ -89,9 +85,13 @@ typedef uint16_t net_hdr_fld_ip_t;
 #define NET_HDR_FLD_IP_DSCP                        (NET_HDR_FLD_IP_VER << 2)
 #define NET_HDR_FLD_IP_ECN                         (NET_HDR_FLD_IP_VER << 3)
 #define NET_HDR_FLD_IP_PROTO                       (NET_HDR_FLD_IP_VER << 4)
+#define NET_HDR_FLD_IP_SRC                         (NET_HDR_FLD_IP_VER << 5)
+#define NET_HDR_FLD_IP_DST                         (NET_HDR_FLD_IP_VER << 6)
+#define NET_HDR_FLD_IP_TOS_TC                      (NET_HDR_FLD_IP_VER << 7)
+#define NET_HDR_FLD_IP_ID                          (NET_HDR_FLD_IP_VER << 8)
+#define NET_HDR_FLD_IP_ALL_FIELDS                  ((NET_HDR_FLD_IPv4_VER << 9) - 1)
 
 #define NET_HDR_FLD_IP_PROTO_SIZE                  1
-
 
 /*****************************  IPv4 fields  *********************************/
 typedef uint16_t net_hdr_fld_ipv4_t;
@@ -116,7 +116,6 @@ typedef uint16_t net_hdr_fld_ipv4_t;
 #define NET_HDR_FLD_IPv4_ADDR_SIZE                 4
 #define NET_HDR_FLD_IPv4_PROTO_SIZE                1
 
-
 /*****************************  IPv6 fields  *********************************/
 typedef uint16_t net_hdr_fld_ipv6_t;
 
@@ -127,11 +126,11 @@ typedef uint16_t net_hdr_fld_ipv6_t;
 #define NET_HDR_FLD_IPv6_NEXT_HDR                  (NET_HDR_FLD_IPv6_VER << 4)
 #define NET_HDR_FLD_IPv6_FL                        (NET_HDR_FLD_IPv6_VER << 5)
 #define NET_HDR_FLD_IPv6_HOP_LIMIT                 (NET_HDR_FLD_IPv6_VER << 6)
-#define NET_HDR_FLD_IPv6_ALL_FIELDS                ((NET_HDR_FLD_IPv6_VER << 7) - 1)
+#define NET_HDR_FLD_IPv6_ID 			   (NET_HDR_FLD_IPv6_VER << 7)
+#define NET_HDR_FLD_IPv6_ALL_FIELDS                ((NET_HDR_FLD_IPv6_VER << 8) - 1)
 
 #define NET_HDR_FLD_IPv6_ADDR_SIZE                 16
 #define NET_HDR_FLD_IPv6_NEXT_HDR_SIZE             1
-
 
 /*****************************  ICMP fields  *********************************/
 #define NET_HDR_FLD_ICMP_TYPE                      (1)
@@ -144,14 +143,12 @@ typedef uint16_t net_hdr_fld_ipv6_t;
 #define NET_HDR_FLD_ICMP_CODE_SIZE                 1
 #define NET_HDR_FLD_ICMP_TYPE_SIZE                 1
 
-
 /*****************************  IGMP fields  *********************************/
 #define NET_HDR_FLD_IGMP_VERSION                   (1)
 #define NET_HDR_FLD_IGMP_TYPE                      (NET_HDR_FLD_IGMP_VERSION << 1)
 #define NET_HDR_FLD_IGMP_CKSUM                     (NET_HDR_FLD_IGMP_VERSION << 2)
 #define NET_HDR_FLD_IGMP_DATA                      (NET_HDR_FLD_IGMP_VERSION << 3)
 #define NET_HDR_FLD_IGMP_ALL_FIELDS                ((NET_HDR_FLD_IGMP_VERSION << 4) - 1)
-
 
 /*****************************  TCP fields  **********************************/
 typedef uint16_t net_hdr_fld_tcp_t;
@@ -170,7 +167,6 @@ typedef uint16_t net_hdr_fld_tcp_t;
 #define NET_HDR_FLD_TCP_ALL_FIELDS                 ((NET_HDR_FLD_TCP_PORT_SRC << 11) - 1)
 
 #define NET_HDR_FLD_TCP_PORT_SIZE                  2
-
 
 /*****************************  UDP fields  *********************************/
 typedef uint16_t net_hdr_fld_udp_t;
@@ -206,7 +202,6 @@ typedef uint16_t net_hdr_fld_udp_encap_esp_t;
 #define NET_HDR_FLD_UDP_ENCAP_ESP_PORT_SIZE        2
 #define NET_HDR_FLD_UDP_ENCAP_ESP_SPI_SIZE         4
 
-
 /*****************************  SCTP fields  *********************************/
 typedef uint16_t net_hdr_fld_sctp_t;
 
@@ -217,7 +212,6 @@ typedef uint16_t net_hdr_fld_sctp_t;
 #define NET_HDR_FLD_SCTP_ALL_FIELDS                ((NET_HDR_FLD_SCTP_PORT_SRC << 4) - 1)
 
 #define NET_HDR_FLD_SCTP_PORT_SIZE                 2
-
 
 /*****************************  DCCP fields  *********************************/
 typedef uint16_t net_hdr_fld_dccp_t;
@@ -283,7 +277,6 @@ typedef uint16_t net_hdr_fld_dccp_t;
 #define NET_HDR_FLD_L2TPv3_SESS_COOKIE             (NET_HDR_FLD_L2TPv3_SESS_TYPE_BIT << 3)
 #define NET_HDR_FLD_L2TPv3_SESS_ALL_FIELDS         ((NET_HDR_FLD_L2TPv3_SESS_TYPE_BIT << 4) - 1)
 
-
 typedef uint16_t net_hdr_fld_llc_t;
 
 #define NET_HDR_FLD_LLC_DSAP                       (1)
@@ -294,13 +287,11 @@ typedef uint16_t net_hdr_fld_llc_t;
 #define NET_HDR_FLD_NLPID_NLPID                    (1)
 #define NET_HDR_FLD_NLPID_ALL_FIELDS               ((NET_HDR_FLD_NLPID_NLPID << 1) - 1)
 
-
 typedef uint16_t net_hdr_fld_snap_t;
 
 #define NET_HDR_FLD_SNAP_OUI                       (1)
 #define NET_HDR_FLD_SNAP_PID                       (NET_HDR_FLD_SNAP_OUI << 1)
 #define NET_HDR_FLD_SNAP_ALL_FIELDS                ((NET_HDR_FLD_SNAP_OUI << 2) - 1)
-
 
 typedef uint16_t net_hdr_fld_llc_snap_t;
 
@@ -338,12 +329,10 @@ typedef uint16_t net_hdr_fld_llc_snap_t;
 #define NET_HDR_FLD_FRAME_SIZE                     (NET_HDR_FLD_PAYLOAD_BUFFER << 5)
 #define NET_HDR_FLD_PAYLOAD_ALL_FIELDS             ((NET_HDR_FLD_PAYLOAD_BUFFER << 6) - 1)
 
-
 typedef uint16_t net_hdr_fld_gre_t;
 
 #define NET_HDR_FLD_GRE_TYPE                       (1)
 #define NET_HDR_FLD_GRE_ALL_FIELDS                 ((NET_HDR_FLD_GRE_TYPE << 1) - 1)
-
 
 typedef uint16_t net_hdr_fld_minencap_t;
 
@@ -352,13 +341,11 @@ typedef uint16_t net_hdr_fld_minencap_t;
 #define NET_HDR_FLD_MINENCAP_TYPE                  (NET_HDR_FLD_MINENCAP_SRC_IP << 2)
 #define NET_HDR_FLD_MINENCAP_ALL_FIELDS            ((NET_HDR_FLD_MINENCAP_SRC_IP << 3) - 1)
 
-
 typedef uint16_t net_hdr_fld_ipsec_ah_t;
 
 #define NET_HDR_FLD_IPSEC_AH_SPI                   (1)
 #define NET_HDR_FLD_IPSEC_AH_NH                    (NET_HDR_FLD_IPSEC_AH_SPI << 1)
 #define NET_HDR_FLD_IPSEC_AH_ALL_FIELDS            ((NET_HDR_FLD_IPSEC_AH_SPI << 2) - 1)
-
 
 typedef uint16_t net_hdr_fld_ipsec_esp_t;
 
@@ -368,18 +355,19 @@ typedef uint16_t net_hdr_fld_ipsec_esp_t;
 
 #define NET_HDR_FLD_IPSEC_ESP_SPI_SIZE             4
 
-
 typedef uint16_t net_hdr_fld_mpls_t;
 
 #define NET_HDR_FLD_MPLS_LABEL_STACK               (1)
 #define NET_HDR_FLD_MPLS_LABEL_STACK_ALL_FIELDS    ((NET_HDR_FLD_MPLS_LABEL_STACK << 1) - 1)
-
 
 typedef uint16_t net_hdr_fld_macsec_t;
 
 #define NET_HDR_FLD_MACSEC_SECTAG                  (1)
 #define NET_HDR_FLD_MACSEC_ALL_FIELDS              ((NET_HDR_FLD_MACSEC_SECTAG << 1) - 1)
 
+typedef uint16_t net_hdr_fld_gtp_t;
+
+#define NET_HDR_FLD_GTP_TEID                       (1)
 
 /*****************************************/
 /* 			Protocol options			 */
@@ -388,34 +376,39 @@ typedef uint16_t net_hdr_fld_macsec_t;
 typedef uint8_t net_hdr_option_t;
 
 /* Ethernet options */
-#define	NET_HDR_OPT_ETH_BROADCAST				1
-#define	NET_HDR_OPT_ETH_MULTICAST				2
+#define	NET_HDR_OPT_ETH_BROADCAST			1
+#define	NET_HDR_OPT_ETH_MULTICAST			2
 #define	NET_HDR_OPT_ETH_UNICAST				3
-#define	NET_HDR_OPT_ETH_BPDU					4
+#define	NET_HDR_OPT_ETH_BPDU				4
 
 /* VLAN options */
-#define	NET_HDR_OPT_VLAN_CFI					1
+#define	NET_HDR_OPT_VLAN_CFI				1
 
 /* IPv4 options */
-#define	NET_HDR_OPT_IPV4_UNICAST            	1
-#define	NET_HDR_OPT_IPV4_MULTICAST         	2
-#define	NET_HDR_OPT_IPV4_BROADCAST				3
+#define	NET_HDR_OPT_IPV4_UNICAST            		1
+#define	NET_HDR_OPT_IPV4_MULTICAST         		2
+#define	NET_HDR_OPT_IPV4_BROADCAST			3
 #define	NET_HDR_OPT_IPV4_OPTION				4
-#define	NET_HDR_OPT_IPV4_IS_FRAG				5
-#define	NET_HDR_OPT_IPV4_IS_INITIAL_FRAG		6
+#define	NET_HDR_OPT_IPV4_FRAG				5
+#define	NET_HDR_OPT_IPV4_INITIAL_FRAG			6
 
 /* IPv6 options */
-#define	NET_HDR_OPT_IPV6_UNICAST            	1
-#define	NET_HDR_OPT_IPV6_MULTICAST         	2
+#define	NET_HDR_OPT_IPV6_UNICAST            		1
+#define	NET_HDR_OPT_IPV6_MULTICAST         		2
 #define	NET_HDR_OPT_IPV6_OPTION				3
-#define	NET_HDR_OPT_IPV6_FRAG					4
+#define	NET_HDR_OPT_IPV6_FRAG				4
 #define	NET_HDR_OPT_IPV6_INITIAL_FRAG			5
 
+/* General IP options (may be used for any version) */
+#define	NET_HDR_OPT_IP_FRAG				1
+#define	NET_HDR_OPT_IP_INITIAL_FRAG			2
+#define	NET_HDR_OPT_IP_OPTION				3
+
 /* Minenc. options */
-#define	NET_HDR_OPT_MINENCAP_SRC_ADDR_PRESENT	1
+#define	NET_HDR_OPT_MINENCAP_SRC_ADDR_PRESENT		1
 
 /* GRE. options */
-#define	NET_HDR_OPT_GRE_ROUTING_PRESENT		1
+#define	NET_HDR_OPT_GRE_ROUTING_PRESENT			1
 
 /* TCP options */
 #define	NET_HDR_OPT_TCP_OPTIONS				1
@@ -425,62 +418,64 @@ typedef uint8_t net_hdr_option_t;
 /* CAPWAP options */
 #define	NET_HDR_OPT_CAPWAP_DTLS				1
 
-
 enum net_prot {
-    NET_PROT_NONE = 0,
-    NET_PROT_PAYLOAD,
-    NET_PROT_ETH,
-    NET_PROT_VLAN,
-    NET_PROT_IPv4,
-    NET_PROT_IPv6,
-    NET_PROT_IP,
-    NET_PROT_TCP,
-    NET_PROT_UDP,
-    NET_PROT_UDP_LITE,
-    NET_PROT_IPHC,
-    NET_PROT_SCTP,
-    NET_PROT_SCTP_CHUNK_DATA,
-    NET_PROT_PPPOE,
-    NET_PROT_PPP,
-    NET_PROT_PPPMUX,
-    NET_PROT_PPPMUX_SUBFRAME,
-    NET_PROT_L2TPv2,
-    NET_PROT_L2TPv3_CTRL,
-    NET_PROT_L2TPv3_SESS,
-    NET_PROT_LLC,
-    NET_PROT_LLC_SNAP,
-    NET_PROT_NLPID,
-    NET_PROT_SNAP,
-    NET_PROT_MPLS,
-    NET_PROT_IPSEC_AH,
-    NET_PROT_IPSEC_ESP,
-    NET_PROT_UDP_ENCAP_ESP, /* RFC 3948 */
-    NET_PROT_MACSEC,
-    NET_PROT_GRE,
-    NET_PROT_MINENCAP,
-    NET_PROT_DCCP,
-    NET_PROT_ICMP,
-    NET_PROT_IGMP,
-    NET_PROT_ARP,
-    NET_PROT_CAPWAP_DATA,		/* added */
-    NET_PROT_CAPWAP_CTRL,		/* added */
-    //NET_PROT_CAPWAP,
-    //NET_PROT_CAPWAP_DTLS,
-    NET_PROT_RFC2684,
-	NET_PROT_ICMPV6,   			/* added */
-	NET_PROT_FCOE,    			/* added */
-	NET_PROT_FIP,				/* added */	
-	NET_PROT_ISCSI,				/* added */
-	NET_PROT_GTP,				/* added */
-    NET_PROT_USER_DEFINED_L2,
-    NET_PROT_USER_DEFINED_L3,
-    NET_PROT_USER_DEFINED_L4,
-    NET_PROT_USER_DEFINED_L5,	/* added */
-    NET_PROT_USER_DEFINED_SHIM1,
-    NET_PROT_USER_DEFINED_SHIM2,
+	NET_PROT_NONE = 0,
+	NET_PROT_PAYLOAD,
+	NET_PROT_ETH,
+	NET_PROT_VLAN,
+	NET_PROT_IPv4,
+	NET_PROT_IPv6,
+	NET_PROT_IP,
+	NET_PROT_TCP,
+	NET_PROT_UDP,
+	NET_PROT_UDP_LITE,
+	NET_PROT_IPHC,
+	NET_PROT_SCTP,
+	NET_PROT_SCTP_CHUNK_DATA,
+	NET_PROT_PPPOE,
+	NET_PROT_PPP,
+	NET_PROT_PPPMUX,
+	NET_PROT_PPPMUX_SUBFRAME,
+	NET_PROT_L2TPv2,
+	NET_PROT_L2TPv3_CTRL,
+	NET_PROT_L2TPv3_SESS,
+	NET_PROT_LLC,
+	NET_PROT_LLC_SNAP,
+	NET_PROT_NLPID,
+	NET_PROT_SNAP,
+	NET_PROT_MPLS,
+	NET_PROT_IPSEC_AH,
+	NET_PROT_IPSEC_ESP,
+	NET_PROT_UDP_IPSEC_ESP,
+	NET_PROT_MACSEC,
+	NET_PROT_GRE,
+	NET_PROT_MINENCAP,
+	NET_PROT_DCCP,
+	NET_PROT_ICMP,
+	NET_PROT_IGMP,
+	NET_PROT_ARP,
+	NET_PROT_CAPWAP_DATA,
+	NET_PROT_CAPWAP_CTRL,
+	NET_PROT_RFC2684,
+	NET_PROT_ICMPV6,
+	NET_PROT_FCOE,
+	NET_PROT_FIP,
+	NET_PROT_ISCSI,
+	NET_PROT_GTP,
+	NET_PROT_USER_DEFINED_L2,
+	NET_PROT_USER_DEFINED_L3,
+	NET_PROT_USER_DEFINED_L4,
+	NET_PROT_USER_DEFINED_L5,
+	NET_PROT_USER_DEFINED_SHIM1,
+	NET_PROT_USER_DEFINED_SHIM2,
+	NET_PROT_USER_DEFINED_SHIM3,
+	NET_PROT_USER_DEFINED_SHIM4,
+	NET_PROT_USER_DEFINED_SHIM5,
+	NET_PROT_USER_DEFINED_SHIM6,
+	NET_PROT_USER_DEFINED_SHIM7,
+	NET_PROT_USER_DEFINED_SHIM8,
 
-    NET_PROT_DUMMY_LAST
+	NET_PROT_DUMMY_LAST
 };
-
 
 #endif /* __FSL_NET_H */

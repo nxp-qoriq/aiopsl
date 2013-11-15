@@ -172,39 +172,16 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 
 #if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
 /* No debug/error/event messages at all */
-#define DBG(_level, _vmsg)
-
 #define REPORT_ERROR(_level, _err, _vmsg)
-
 #define RETURN_ERROR(_level, _err, _vmsg) \
         return (_err)
-
 #define ERROR_CODE(_err)    (_err)
 
 #else /* DEBUG_ERRORS > 0 */
-
 extern const char *dbg_level_strings[];
 extern const char *module_strings[];
 
 char * err_type_strings (enum error_type err);
-
-
-#if ((defined(DEBUG_USING_STATIC_LEVEL)) && (DEBUG_DYNAMIC_LEVEL < REPORT_LEVEL_WARNING))
-/* No need for DBG macro - debug level is higher anyway */
-#define DBG(_level, _vmsg)
-#else
-#define DBG(_level, _vmsg) \
-    do { \
-        if (REPORT_LEVEL_##_level <= DEBUG_DYNAMIC_LEVEL) { \
-            fsl_os_print("> %s (%s) " PRINT_FORMAT ": ", \
-                     dbg_level_strings[REPORT_LEVEL_##_level - 1], \
-                     module_strings[__ERR_MODULE__ >> 16], \
-                     PRINT_FMT_PARAMS); \
-            fsl_os_print _vmsg; \
-            fsl_os_print("\r\n"); \
-        } \
-    } while (0)
-#endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
 
 #define ERROR_CODE(_err)    (_err)
 #define GET_ERROR_TYPE(_err)    (_err)

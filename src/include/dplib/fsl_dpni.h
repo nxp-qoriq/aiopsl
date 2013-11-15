@@ -29,25 +29,6 @@ struct key_params {
  @Collection	Command structures
  @{
 *//***************************************************************************/
-/*
-struct cmdif_cmd {
-	uint64_t header;
-	uint64_t param1;
-	uint64_t param2;
-	uint64_t param3;
-	uint64_t param4;
-	uint64_t param5;
-	uint64_t param6;
-	uint64_t param7;
-};
-*/
-struct cmdif_dev {
-	struct cmdif_cmd *regs;
-	int auth_id;
-
-};
-
-
 
 /**************************************************************************//**
  @Group		ldpaa_g  LDPAA API
@@ -134,18 +115,8 @@ typedef uint32_t						dpni_cfg_opt_t;
 *//***************************************************************************/
 enum dpni_type {
 	DPNI_TYPE_NI = 0,
-	DPNI_TYPE_NIC,
+	DPNI_TYPE_NIC
 };
-
-#ifdef MC
-/**************************************************************************//**
- @Description	structure representing DPNI resource manager cbs
-*//***************************************************************************/
-struct dpni_resman_cbs {
-	resource_allocate_cb		*allocate_cb;
-	resource_deallocate_cb		*deallocate_cb;
-};
-#endif /* MC */
 
 /**************************************************************************//**
  @Description	structure representing DPNI default parameters
@@ -180,8 +151,7 @@ struct dpni_init_params {
 					/**< Primary mac address */
 #ifdef MC
 	void		*qman;		/**< Handle to QMAN */
-	void		*resman_device;	/**< resman device identifier */
-	struct dpni_resman_cbs	*resman_cbs;
+        void		*device;	/**< device ID */
 	void		*secdcl;
 	void		*macsec;
 #endif /* MC */
@@ -307,34 +277,12 @@ enum dpni_link_type {
 	DPNI_LINK_TYPE_DPNI
 };
 
-#ifdef MC
-/**************************************************************************//**
- @Description	TODO
-
- @Param[in]	handle	TODO
- @Param[in]	if_id	TODO
- @Param[out]	params	TODO
- *//***************************************************************************/
-typedef int (dpni_cb_attach_link) (void			*handle,
-				   uint8_t		if_id,
-				   void			*params);
-
-/**************************************************************************//**
- @Description	TODO
-
- @Param[in]	handle	TODO
- @Param[in]	if_id	TODO
- *//***************************************************************************/
-typedef int (dpni_cb_detach_link) (void			*handle,
-				   uint8_t		if_id);
-#endif /* MC */
-
 /**************************************************************************//**
  @Description	structure representing DPNI attach parameters
 *//***************************************************************************/
 struct dpni_attach_params {
-	void			*dpio;	/**< TODO */
-	void			*dpsp;	/**< TODO */
+	uint16_t		dpio_id;	/**< TODO */
+	uint16_t		dpsp_id;	/**< TODO */
 	struct ldpaa_flow_ctx	*flc;
 	int			dan_en;/**< FQ data availability notification;
 					default for all RX/TX-conf queues */
@@ -351,36 +299,24 @@ struct dpni_attach_link_params {
 	enum dpni_link_type link_type;
 	union {
 		struct {
-			void			*phys_ni;
-		} phys;
+			uint16_t		dpmac_id;	/**< TODO */
+		} dpmac;
 		struct {
-			void			*l2sw;
+			uint16_t		dpsw_id;	/**< TODO */
 			uint8_t			if_id;
-#ifdef MC
-			dpni_cb_attach_link	*attach_cb;
-			dpni_cb_detach_link	*detach_cb;
-#endif /* MC */
-		} l2sw;
+		} dpsw;
 		struct {
-			void			*demux;
+			uint16_t		dpmux_id;	/**< TODO */
 			uint8_t			if_id;
-#ifdef MC
-			dpni_cb_attach_link	*attach_cb;
-			dpni_cb_detach_link	*detach_cb;
-#endif /* MC */
-		} demux;
+		} dpmux;
 		struct {
-			void			*lag;
-#ifdef MC
-			dpni_cb_attach_link	*attach_cb;
-			dpni_cb_detach_link	*detach_cb;
-#endif /* MC */
-		} lag;
+			uint16_t		dplag_id;	/**< TODO */
+		} dplag;
 		struct {
 			int tmp;
 		} aiop;
 		struct {
-			void			*dpni;
+			uint16_t		dpni_id;	/**< TODO */
 		} dpni;
 	} u;
 };
@@ -402,7 +338,7 @@ struct dpni_tx_queue_ctx {
 	uint64_t		user_ctx;
 				/**< will be provided in case of tx-confirmation
 				 *  or lossless condition */
-	void 			*dpio;
+	uint16_t		dpio_id;	/**< TODO */
 	int 			dan_en;
 	uint16_t		depth_limit;
 	int			cksum_gen;
@@ -425,17 +361,8 @@ struct dpni_rx_queue_ctx {
 	dpni_rx_q_mod_opt_t		options;
 	uint64_t			user_ctx;
 	struct ldpaa_flow_ctx		*flc;
-	void				*dpio;
+	uint16_t		dpio_id;	/**< TODO */
 	int				dan_en;
-};
-
-/**************************************************************************//**
- @Description	structure representing configuration parameters
-*//***************************************************************************/
-struct dpni_int_cfg
-{
-	uint16_t	tx_qdid;
-	uint16_t	tx_data_offset;
 };
 
 /**************************************************************************//**
@@ -503,13 +430,12 @@ struct dpni_fs_tbl_params
 
  @Param[in]	regs - pointer to MC portal registers address
  @Param[in]	id - dpni unique ID
- @Param[in]	icid - the software context’s icid
 
  @Return	Handle to this object
 
  @Cautions	None.
 *//***************************************************************************/
-struct dpni *dpni_open(void *regs, int id, uint16_t icid);
+struct dpni *dpni_open(void *regs, int id);
 
 /**************************************************************************//**
  @Function	dpni_close
@@ -607,82 +533,6 @@ int dpni_enable(struct dpni *dpni);
 int dpni_disable(struct dpni *dpni);
 
 /**************************************************************************//**
- @Function	dpni_set_tx_tc
-
- @Description	Set TX TC settings
-
- @Param[in]	dpni - dpni handle
- @Param[in]	tc_cfg - TC parameters
-
- @Return	'0' on Success; error code otherwise.
-
- @Cautions	None.
-*//***************************************************************************/
-int dpni_set_tx_tc(struct dpni *dpni, struct dpni_tx_tc_cfg *tc_cfg);
-
-/**************************************************************************//**
- @Function	dpni_set_rx_tc
-
- @Description	Set TX TC settings
-
- @Param[in]	dpni - dpni handle
- @Param[in]	tc_cfg - TC group parameters
-
- @Return	'0' on Success; error code otherwise.
-
- @Cautions	None.
-*//***************************************************************************/
-int dpni_set_rx_tc(struct dpni *dpni, struct dpni_rx_tc_cfg *tc_cfg);
-
-/**************************************************************************//**
- @Function	dpni_set_tx_queue_ctx
-
- @Description	Set TX queue context
-
- @Param[in]	dpni - dpni handle
- @Param[in]	tcid - traffic class id
- @Param[in]	params - queue parameters
-
- @Return	'0' on Success; error code otherwise.
-
- @Cautions	None.
-*//***************************************************************************/
-int dpni_set_tx_queue_ctx(struct dpni *dpni,
-				uint8_t	tcid,
-				struct dpni_tx_queue_ctx *params);
-
-/**************************************************************************//**
- @Function	dpni_set_rx_queue_ctx
-
- @Description	Set RX queue context
-
- @Param[in]	dpni - dpni handle
- @Param[in]	tcid - traffic class id
- @Param[in]	params - queue parameters
-
- @Return	'0' on Success; error code otherwise.
-
- @Cautions	None.
-*//***************************************************************************/
-int dpni_set_rx_queue_ctx(struct dpni *dpni,
-				uint8_t	tcid,
-				struct dpni_rx_queue_ctx *params);
-
-/**************************************************************************//**
- @Function	dpni_get_cfg
-
- @Description	Return the NI’s internal configuration
-
- @Param[in]	dpni - dpni handle
- @Param[out]	cfg - internal configuration
-
- @Return	'0' on Success; error code otherwise.
-
- @Cautions	None.
-*//***************************************************************************/
-int dpni_get_cfg(struct dpni *dpni, struct dpni_int_cfg *cfg);
-
-/**************************************************************************//**
  @Function	dpni_get_attributes
 
  @Description	Retrieve the NI’s attributes.
@@ -696,6 +546,34 @@ int dpni_get_cfg(struct dpni *dpni, struct dpni_int_cfg *cfg);
 *//***************************************************************************/
 int dpni_get_attributes(struct dpni *dpni,
                         struct dpni_attributes *attributes);
+
+/**************************************************************************//**
+ @Function	dpni_get_qdid
+
+ @Description	Get the QDID used for enqueue
+
+ @Param[in]	dpni - dpni handle
+ @Param[out]	qdid - qdid used for qneueue
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid);
+
+/**************************************************************************//**
+ @Function	dpni_get_tx_data_offset
+
+ @Description	Get the tx data offset
+
+ @Param[in]	dpni - dpni handle
+ @Param[out]	data_offset - tx data offset
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset);
 
 /**************************************************************************//**
  @Function	dpni_get_stats
@@ -752,6 +630,20 @@ int dpni_get_link_state(struct dpni *dpni);
 int dpni_set_mfl(struct dpni *dpni, uint16_t mfl);
 
 /**************************************************************************//**
+ @Function	dpni_get_mfl
+
+ @Description	Get the maximum received frame length.
+
+ @Param[in]	dpni - dpni handle
+ @Param[out]	mfl - MFL length
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_get_mfl(struct dpni *dpni, uint16_t *mfl);
+
+/**************************************************************************//**
  @Function	dpni_set_mtu
 
  @Description	Set the MTU for this interface. Will have affect on IPF and
@@ -781,9 +673,9 @@ int dpni_set_mtu(struct dpni *dpni, uint16_t mtu);
 int dpni_enable_multicast_promisc(struct dpni *dpni, int en);
 
 /**************************************************************************//**
- @Function	dpni_modify_primary_mac_addr
+ @Function	dpni_set_primary_mac_addr
 
- @Description	Modify the primary mac address
+ @Description	Set the primary mac address
 
  @Param[in]	dpni - dpni handle
  @Param[in]	addr - MAC address
@@ -792,8 +684,23 @@ int dpni_enable_multicast_promisc(struct dpni *dpni, int en);
 
  @Cautions	None.
 *//***************************************************************************/
-int dpni_modify_primary_mac_addr(struct dpni *dpni,
-                                 uint8_t addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
+int dpni_set_primary_mac_addr(struct dpni *dpni,
+                              uint8_t addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
+
+/**************************************************************************//**
+ @Function	dpni_get_primary_mac_addr
+
+ @Description	Get the primary mac address
+
+ @Param[in]	dpni - dpni handle
+ @Param[in]	addr - MAC address
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_get_primary_mac_addr(struct dpni *dpni,
+                              uint8_t addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /**************************************************************************//**
  @Function	dpni_add_mac_addr
@@ -878,6 +785,68 @@ int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vid);
  @Cautions	Allowed only following dpni_attach().
 *//***************************************************************************/
 int dpni_clear_vlan_table(struct dpni *dpni);
+
+/**************************************************************************//**
+ @Function	dpni_set_tx_tc
+
+ @Description	Set TX TC settings
+
+ @Param[in]	dpni - dpni handle
+ @Param[in]	tc_cfg - TC parameters
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_set_tx_tc(struct dpni *dpni, struct dpni_tx_tc_cfg *tc_cfg);
+
+/**************************************************************************//**
+ @Function	dpni_set_rx_tc
+
+ @Description	Set TX TC settings
+
+ @Param[in]	dpni - dpni handle
+ @Param[in]	tc_cfg - TC group parameters
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_set_rx_tc(struct dpni *dpni, struct dpni_rx_tc_cfg *tc_cfg);
+
+/**************************************************************************//**
+ @Function	dpni_set_tx_queue_ctx
+
+ @Description	Set TX queue context
+
+ @Param[in]	dpni - dpni handle
+ @Param[in]	tcid - traffic class id
+ @Param[in]	params - queue parameters
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_set_tx_queue_ctx(struct dpni *dpni,
+				uint8_t	tcid,
+				struct dpni_tx_queue_ctx *params);
+
+/**************************************************************************//**
+ @Function	dpni_set_rx_queue_ctx
+
+ @Description	Set RX queue context
+
+ @Param[in]	dpni - dpni handle
+ @Param[in]	tcid - traffic class id
+ @Param[in]	params - queue parameters
+
+ @Return	'0' on Success; error code otherwise.
+
+ @Cautions	None.
+*//***************************************************************************/
+int dpni_set_rx_queue_ctx(struct dpni *dpni,
+				uint8_t	tcid,
+				struct dpni_rx_queue_ctx *params);
 
 /**************************************************************************//**
  @Function	dpni_set_qos_table

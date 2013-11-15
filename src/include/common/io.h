@@ -44,10 +44,13 @@
 #define ioread8(_addr)              GET_UINT8(*_addr)
 #define ioread16be(_addr)           GET_UINT16(*_addr)
 #define ioread32be(_addr)           GET_UINT32(*_addr)
+#define ioread64be(_addr)           GET_UINT64(*_addr)
 
 #define iowrite8(_val, _addr)       WRITE_UINT8(*_addr, _val)
 #define iowrite16be(_val, _addr)    WRITE_UINT16(*_addr, _val)
 #define iowrite32be(_val, _addr)    WRITE_UINT32(*_addr, _val)
+#define iowrite64be(_val, _addr)    WRITE_UINT64(*_addr, _val)
+
 
 /**************************************************************************//**
  @Function      memcpy32
@@ -112,5 +115,6 @@ void * fsl_os_phys_to_virt(dma_addr_t addr);
  @Return        Physical address.
  *//***************************************************************************/
 dma_addr_t fsl_os_virt_to_phys(void *addr);
+
 
 #endif /* __FSL_IO_H */
