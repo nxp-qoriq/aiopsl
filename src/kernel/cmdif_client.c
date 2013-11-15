@@ -6,32 +6,32 @@
 #include "dplib/fsl_mc.h"
 
 
-#define MC_CMD_OPEN_SIZE	8
-#define MC_CMD_CLOSE_SIZE	0
+#define CMDIF_MC_OPEN_SIZE	8
+#define CMDIF_MC_CLOSE_SIZE	0
 
 /**************************************************************************//**
  @Collection    Command portal Header
  @{
  *//***************************************************************************/
-#define MC_CMD_CMDID_OFFSET	52	/**< Command offset */
-#define MC_CMD_CMDID_SIZE	12	/**< command size */
-#define MC_CMD_AUTHID_OFFSET	38	/**< Authentication offset */
-#define MC_CMD_AUTHID_SIZE	10	/**< Authentication size */
-#define MC_CMD_SIZE_OFFSET	32	/**< Size offset */
-#define MC_CMD_SIZE_SIZE	6	/**< Size of size */
-#define MC_CMD_STATUS_OFFSET	16	/**< Status offset */
-#define MC_CMD_STATUS_SIZE	8	/**< Status size*/
-#define MC_CMD_PRI_OFFSET	15	/**< Priority offset */
-#define MC_CMD_PRI_SIZE		1	/**< Priority size */
+#define CMDIF_MC_CMDID_OFFSET	52	/**< Command offset */
+#define CMDIF_MC_CMDID_SIZE	12	/**< command size */
+#define CMDIF_MC_AUTHID_OFFSET	38	/**< Authentication offset */
+#define CMDIF_MC_AUTHID_SIZE	10	/**< Authentication size */
+#define CMDIF_MC_SIZE_OFFSET	32	/**< Size offset */
+#define CMDIF_MC_SIZE_SIZE	6	/**< Size of size */
+#define CMDIF_MC_STATUS_OFFSET	16	/**< Status offset */
+#define CMDIF_MC_STATUS_SIZE	8	/**< Status size*/
+#define CMDIF_MC_PRI_OFFSET	15	/**< Priority offset */
+#define CMDIF_MC_PRI_SIZE		1	/**< Priority size */
 
 
-#define MC_CMD_DPNI_OPEN	0x201
-#define MC_CMD_DPSW_OPEN	0x202
-#define MC_CMD_DPIO_OPEN	0x203
-#define MC_CMD_DPSP_OPEN	0x204
-#define MC_CMD_DPRC_OPEN	0x205
+#define CMDIF_MC_DPNI_OPEN	0x201
+#define CMDIF_MC_DPSW_OPEN	0x202
+#define CMDIF_MC_DPIO_OPEN	0x203
+#define CMDIF_MC_DPSP_OPEN	0x204
+#define CMDIF_MC_DPRC_OPEN	0x205
 
-#define MC_CMD_CLOSE		0x200
+#define CMDIF_MC_CLOSE		0x200
 
 /* @} */
 
@@ -58,7 +58,7 @@ static enum cmdif_status wait_resp(struct mc_portal_regs *regs)
 
 	/* Busy waiting for MC to complete command */
 	do {
-		status = MC_CMD_READ_STATUS(regs->header);
+		status = CMDIF_MC_READ_STATUS(regs->header);
 	} while (status == CMDIF_STATUS_READY);
 
 	
@@ -110,21 +110,21 @@ struct cmdif_dev *cmdif_open(void *regs,
 
 	switch (mod) {
 	case FSL_OS_MOD_DPNI:
-		cmdid = MC_CMD_DPNI_OPEN;
+		cmdid = CMDIF_MC_DPNI_OPEN;
 		break;
 	default:
 		break;
 	}
 
 	if (cmdid != 0)
-		status = cmdif_send(dev, cmdid, MC_CMD_OPEN_SIZE,
+		status = cmdif_send(dev, cmdid, CMDIF_MC_OPEN_SIZE,
 		                    CMDIF_PRI_LOW, NULL);
 
 	if (status != CMDIF_STATUS_OK)
 		return NULL;
 
 	/* Save Authentication ID */
-	dev->auth_id = MC_CMD_READ_AUTHID(dev->regs->header);
+	dev->auth_id = CMDIF_MC_READ_AUTHID(dev->regs->header);
 	return dev;
 }
 
@@ -140,15 +140,15 @@ int cmdif_send(struct cmdif_dev *dev,
                int priority,
                struct cmdif_cmd_desc *desc)
 {
-	MC_CMD_WRITE_PARAM(dev->regs, 1, desc->param1);
-	MC_CMD_WRITE_PARAM(dev->regs, 2, desc->param2);
-	MC_CMD_WRITE_PARAM(dev->regs, 3, desc->param3);
-	MC_CMD_WRITE_PARAM(dev->regs, 4, desc->param4);
-	MC_CMD_WRITE_PARAM(dev->regs, 5, desc->param5);
-	MC_CMD_WRITE_PARAM(dev->regs, 6, desc->param6);
-	MC_CMD_WRITE_PARAM(dev->regs, 7, desc->param7);
+	CMDIF_MC_WRITE_PARAM(dev->regs, 1, desc->param1);
+	CMDIF_MC_WRITE_PARAM(dev->regs, 2, desc->param2);
+	CMDIF_MC_WRITE_PARAM(dev->regs, 3, desc->param3);
+	CMDIF_MC_WRITE_PARAM(dev->regs, 4, desc->param4);
+	CMDIF_MC_WRITE_PARAM(dev->regs, 5, desc->param5);
+	CMDIF_MC_WRITE_PARAM(dev->regs, 6, desc->param6);
+	CMDIF_MC_WRITE_PARAM(dev->regs, 7, desc->param7);
 
-	MC_CMD_WRITE_HEADER(dev->regs, cmd, dev->auth_id, size,
+	CMDIF_MC_WRITE_HEADER(dev->regs, cmd, dev->auth_id, size,
 	                    CMDIF_STATUS_READY, priority);
 	return wait_resp(dev->regs); /* blocking */
 }

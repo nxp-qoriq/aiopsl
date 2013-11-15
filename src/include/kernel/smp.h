@@ -184,9 +184,7 @@ static __inline__ void sys_lock_spinlock(struct spinlock *slock)
        First try to acquire the lock. If the lock is taken, loop until
        the lock seems to be free, and try again. */
     while (!core_test_and_set(&(slock->lock)))
-    {
         while (slock->lock != 0) ;
-    }
 
     /* Wait for all previous instructions to complete */
     core_instruction_sync();
