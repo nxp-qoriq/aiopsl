@@ -198,6 +198,15 @@ int cmdif_send(struct cmdif_dev         *dev,
                int                      priority,
                struct cmdif_cmd_desc    *desc);
 
+/**************************************************************************//**
+ @Function      cmdif_get_desc
+
+ @Description   TODO
+
+ @Param[in]     dev     A handle as it was returened from cmdif_open().
+
+ @Return        TODO
+ *//***************************************************************************/
 struct cmdif_cmd_desc *cmdif_get_desc(struct cmdif_dev *dev);
 
 /** @} *//* end of cmdif_client_g group */

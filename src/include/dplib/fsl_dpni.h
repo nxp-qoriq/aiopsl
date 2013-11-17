@@ -150,8 +150,10 @@ struct dpni_init_params {
 	uint8_t		mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 					/**< Primary mac address */
 #ifdef MC
-	void		*qman;		/**< Handle to QMAN */
-        void		*device;	/**< device ID */
+	uint16_t	id;		/**< DPNI id */
+	void		*qman;		/**< Handle to Qman */
+        void		*device;	/**< Handle to resman-device  */
+        void		*linkman;	/**< Handle to Linkman  */
 	void		*secdcl;
 	void		*macsec;
 #endif /* MC */
@@ -269,20 +271,25 @@ typedef uint32_t			dpni_rx_q_mod_opt_t;
  @Description	DPNI link types
 *//***************************************************************************/
 enum dpni_link_type {
-	DPNI_LINK_TYPE_PHYS = 0,
-	DPNI_LINK_TYPE_L2SW,
-	DPNI_LINK_TYPE_DEMUX,
-	DPNI_LINK_TYPE_LAG,
-	DPNI_LINK_TYPE_AIOP,
-	DPNI_LINK_TYPE_DPNI
+	DPNI_LINK_TYPE_DPMAC = 0,
+	DPNI_LINK_TYPE_DPSW,
+	DPNI_LINK_TYPE_DPDMUX,
+	DPNI_LINK_TYPE_DPLAG,
+	DPNI_LINK_TYPE_DPNI,
+	DPNI_LINK_TYPE_AIOP
 };
 
 /**************************************************************************//**
  @Description	structure representing DPNI attach parameters
 *//***************************************************************************/
 struct dpni_attach_params {
+#ifdef MC
+	void			*dpio;		/**< TODO */
+	void			*dpsp;		/**< TODO */
+#else /* !MC */	
 	uint16_t		dpio_id;	/**< TODO */
 	uint16_t		dpsp_id;	/**< TODO */
+#endif /* MC */
 	struct ldpaa_flow_ctx	*flc;
 	int			dan_en;/**< FQ data availability notification;
 					default for all RX/TX-conf queues */
@@ -299,24 +306,44 @@ struct dpni_attach_link_params {
 	enum dpni_link_type link_type;
 	union {
 		struct {
-			uint16_t		dpmac_id;	/**< TODO */
+#ifdef MC
+			void		*dpmac;	/**< TODO */
+#else /* !MC */	
+			uint16_t	dpmac_id;/**< TODO */
+#endif /* MC */
 		} dpmac;
 		struct {
-			uint16_t		dpsw_id;	/**< TODO */
-			uint8_t			if_id;
+#ifdef MC
+			void		*dpsw;	/**< TODO */
+#else /* !MC */	
+			uint16_t	dpsw_id;/**< TODO */
+#endif /* MC */
+			uint8_t		if_id;
 		} dpsw;
 		struct {
-			uint16_t		dpmux_id;	/**< TODO */
-			uint8_t			if_id;
-		} dpmux;
+#ifdef MC
+			void		*dpdmux;/**< TODO */
+#else /* !MC */	
+			uint16_t	dpdmux_id;/**< TODO */
+#endif /* MC */
+			uint8_t		if_id;
+		} dpdmux;
 		struct {
-			uint16_t		dplag_id;	/**< TODO */
+#ifdef MC
+			void		*dplag;/**< TODO */
+#else /* !MC */	
+			uint16_t	dplag_id;/**< TODO */
+#endif /* MC */
 		} dplag;
 		struct {
 			int tmp;
 		} aiop;
 		struct {
-			uint16_t		dpni_id;	/**< TODO */
+#ifdef MC
+			void		*dpni;/**< TODO */
+#else /* !MC */	
+			uint16_t	dpni_id;/**< TODO */
+#endif /* MC */
 		} dpni;
 	} u;
 };
@@ -338,7 +365,11 @@ struct dpni_tx_queue_ctx {
 	uint64_t		user_ctx;
 				/**< will be provided in case of tx-confirmation
 				 *  or lossless condition */
+#ifdef MC
+	void			*dpio;		/**< TODO */
+#else /* !MC */	
 	uint16_t		dpio_id;	/**< TODO */
+#endif /* MC */
 	int 			dan_en;
 	uint16_t		depth_limit;
 	int			cksum_gen;
@@ -357,12 +388,16 @@ struct dpni_rx_tc_cfg {
  @Description	structure representing DPNI RX Queue parameters
 *//***************************************************************************/
 struct dpni_rx_queue_ctx {
-	uint8_t 			queue_idx;
-	dpni_rx_q_mod_opt_t		options;
-	uint64_t			user_ctx;
-	struct ldpaa_flow_ctx		*flc;
-	uint16_t		dpio_id;	/**< TODO */
-	int				dan_en;
+	uint8_t 		queue_idx;
+	dpni_rx_q_mod_opt_t	options;
+	uint64_t		user_ctx;
+	struct ldpaa_flow_ctx	*flc;
+#ifdef MC
+	void			*dpio;
+#else /* !MC */	
+	uint16_t		dpio_id;
+#endif /* MC */
+	int			dan_en;
 };
 
 /**************************************************************************//**
@@ -535,10 +570,10 @@ int dpni_disable(struct dpni *dpni);
 /**************************************************************************//**
  @Function	dpni_get_attributes
 
- @Description	Retrieve the NI’s attributes.
+ @Description	Retrieve the object's attributes.
 
  @Param[in]	dpni - dpni handle
- @Param[out]	cfg - internal configuration
+ @Param[out]	attributes - object's attributes
 
  @Return	'0' on Success; error code otherwise.
 
