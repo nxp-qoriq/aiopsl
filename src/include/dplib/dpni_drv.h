@@ -86,8 +86,8 @@ int dpni_drv_is_up (uint16_t ni_id);
  @Return        OK on success; error code, otherwise.
 *//***************************************************************************/    
 int dpni_drv_register_rx_cb (uint16_t     ni_id,
-                                   rx_cb_t      *cb,
-                                   fsl_handle_t arg);
+                             rx_cb_t      *cb,
+                             fsl_handle_t arg);
 
 /**************************************************************************//**
  @Function      dpni_drv_send
@@ -99,7 +99,7 @@ int dpni_drv_register_rx_cb (uint16_t     ni_id,
 
  @Return        OK on success; error code, otherwise.
 *//***************************************************************************/    
-void __noreturn__ dpni_drv_send (uint16_t ni_id);
+int dpni_drv_send (uint16_t ni_id);
 
 /**************************************************************************//**
  @Function     dpni_get_num_of_ni 
@@ -112,7 +112,7 @@ void __noreturn__ dpni_drv_send (uint16_t ni_id);
 
  @Return       Number of NI_IDs in the system
 *//***************************************************************************/    
-int dpni_get_num_of_ni ( void );
+int dpni_get_num_of_ni (void);
 
 /** @} */ /* end of dpni_drv_g group */
 /** @} */ /* end of ldpaa_g group */
