@@ -10,6 +10,10 @@ int dpni_drv_init(void);
 void dpni_drv_free(void);
 
 
+struct dpni_drv {
+    
+};
+
 void receive_cb (void)
 {
     /* TODO - complete!!! */
