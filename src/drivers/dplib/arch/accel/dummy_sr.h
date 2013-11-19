@@ -8,7 +8,8 @@
 #ifndef __DUMMY_SR_H_
 #define __DUMMY_SR_H_
 
-#define DUMMY_CMD 0x00000080
+#define DUMMY_CMD1 0x00000081
+#define DUMMY_CMD2 0x00000082
 
 
 #endif /* __DUMMY_SR_H_ */
