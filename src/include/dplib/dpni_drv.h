@@ -9,11 +9,7 @@
 #define __FSL_DPNI_DRV_H
 
 #include "common/types.h"
-<<<<<<< HEAD
 //#include "net/fsl_net.h"
-=======
->>>>>>> 60d06fe53b933c84b639f04b400efc21a072fa1e
-
 
 /**************************************************************************//**
  @Group         ldpaa_g  LDPAA API
