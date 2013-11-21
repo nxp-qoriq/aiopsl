@@ -1,4 +1,5 @@
 #include "common/types.h"
+#include "dplib/dpni_drv.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 
