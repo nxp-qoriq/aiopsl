@@ -9,7 +9,10 @@
 #define __FSL_DPNI_DRV_H
 
 #include "common/types.h"
+<<<<<<< HEAD
 //#include "net/fsl_net.h"
+=======
+>>>>>>> 60d06fe53b933c84b639f04b400efc21a072fa1e
 
 
 /**************************************************************************//**
@@ -28,6 +31,11 @@
  @{
 *//***************************************************************************/
 
+#define DPNI_DRV_MAX_NUM_FLOWS		8
+
+
+typedef uint64_t	dpni_drv_app_arg_t;
+
 /**************************************************************************//**
 @Description    Application Receive callback
 
@@ -38,7 +46,7 @@
 
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (rx_cb_t) (fsl_handle_t arg);
+typedef int (rx_cb_t) (dpni_drv_app_arg_t arg);
 
 
 /**************************************************************************//**
@@ -85,9 +93,10 @@ int dpni_drv_is_up (uint16_t ni_id);
 
  @Return        OK on success; error code, otherwise.
 *//***************************************************************************/    
-int dpni_drv_register_rx_cb (uint16_t     ni_id,
-                             rx_cb_t      *cb,
-                             fsl_handle_t arg);
+int dpni_drv_register_rx_cb (uint16_t     		ni_id,
+							 uint16_t     		flow_id,
+                             rx_cb_t      		*cb,
+                             dpni_drv_app_arg_t	arg);
 
 /**************************************************************************//**
  @Function      dpni_drv_send
