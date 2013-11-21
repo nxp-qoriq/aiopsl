@@ -9,7 +9,7 @@
 #define __FSL_DPNI_DRV_H
 
 #include "common/types.h"
-#include "net.h"
+//#include "net/fsl_net.h"
 
 
 /**************************************************************************//**
