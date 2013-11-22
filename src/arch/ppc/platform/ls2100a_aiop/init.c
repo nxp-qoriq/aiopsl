@@ -40,11 +40,13 @@ int fill_system_parameters(t_sys_param *sys_param)
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
 
+#ifndef DEBUG_NO_MC
     { /* TODO - temporary check boot register */
     	uintptr_t   tmp_reg = 0x00000000 + SOC_PERIPH_OFF_MC;
     	/* wait for MC command for boot */
     	while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x08)) & 0x1)) ;
     }
+#endif /* DEBUG_NO_MC */
 
     sys_param->partition_id = 0;
     sys_param->partition_cores_mask = 0x3;

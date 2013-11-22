@@ -37,7 +37,7 @@ int aiop_app_init(void)
 {
     int err = 0;
 
-    fsl_os_print("TEST: AIOP+MC\n");
+    fsl_os_print("AIOP test: NIC\n");
 
     err = init_nic(2);
 
