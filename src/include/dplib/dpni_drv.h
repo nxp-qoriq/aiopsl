@@ -9,7 +9,7 @@
 #define __FSL_DPNI_DRV_H
 
 #include "common/types.h"
-//#include "net/fsl_net.h"
+
 
 /**************************************************************************//**
  @Group         ldpaa_g  LDPAA API
@@ -42,7 +42,7 @@ typedef uint64_t	dpni_drv_app_arg_t;
 
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (rx_cb_t) (dpni_drv_app_arg_t arg);
+typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
 
 
 /**************************************************************************//**
@@ -89,10 +89,10 @@ int dpni_drv_is_up (uint16_t ni_id);
 
  @Return        OK on success; error code, otherwise.
 *//***************************************************************************/    
-int dpni_drv_register_rx_cb (uint16_t     		ni_id,
-							 uint16_t     		flow_id,
-                             rx_cb_t      		*cb,
-                             dpni_drv_app_arg_t	arg);
+int dpni_drv_register_rx_cb (uint16_t     	ni_id,
+                             uint16_t     	flow_id,
+                             rx_cb_t      	*cb,
+                             dpni_drv_app_arg_t arg);
 
 /**************************************************************************//**
  @Function      dpni_drv_send

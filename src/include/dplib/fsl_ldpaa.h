@@ -20,38 +20,6 @@
  *//***************************************************************************/
 
 /**************************************************************************//**
- @Description	FLC for stashing
-*//****************************************************************************/
-struct ldpaa_flc_stashing {
-	uint8_t frame_annotation_size;
-	/**< Size of Frame  Annotation to be stashed */
-	uint8_t frame_data_size;
-	/**< Size of Frame Data to be stashed. */
-	uint8_t flow_context_size;
-	/**< Size of flow context to be stashed. */
-	uint64_t flow_context_addr;
-/**< 64/49 bit memory address containing the
- flow context information to be stashed;
- Must be cacheline-aligned */
-};
-
-/**************************************************************************//**
- @Description	FLC for ODP
- *//***************************************************************************/
-typedef uint64_t ldpaa_flc_odp_t;
-
-/**************************************************************************//**
- @Description   structure representing flow context
- *//***************************************************************************/
-struct ldpaa_flow_ctx {
-	int stash_en;
-	union {
-		struct ldpaa_flc_stashing stash;
-		ldpaa_flc_odp_t odp;
-	} u;
-};
-
-/**************************************************************************//**
  @Description	Frame Descriptor structure.
 
  The Frame Descriptor (FD) includes information related to the
