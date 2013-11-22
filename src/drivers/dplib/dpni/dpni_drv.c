@@ -55,8 +55,8 @@ void receive_cb (void)
 		"e_hwacceli 0x000c \n"
 	);
 
-	if (ni->rx_cbs[0])
-		ni->rx_cbs(ni->args[0]);
+	//if (ni->rx_cbs[0])
+		//ni->rx_cbs(ni->args[0]);
 	/* TODO - complete!!! */
 }
 
