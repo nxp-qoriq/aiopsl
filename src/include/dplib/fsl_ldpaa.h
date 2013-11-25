@@ -10,6 +10,7 @@
 
 
 
+#if 0
 /***********************************/
 /* Types Definitions		   */
 /***********************************/
@@ -21,6 +22,8 @@ typedef unsigned char uint8_t;		/**< unsigned char type (8 bit) */
 typedef unsigned short uint16_t;	/**< unsigned short type (16 bit) */
 typedef unsigned long uint32_t;		/**< unsigned long type (32 bit) */
 typedef unsigned long long uint64_t;	/**< unsigned long long type (64 bit)*/
+#endif
+
 
 
 
