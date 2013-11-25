@@ -8,13 +8,13 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "fsl_parser.h"
-#include "fsl_fdma.h"
-#include "header_modification.h"
-#include "fsl_ip.h"
-#include "fsl_header_modification_errors.h"
-#include "fsl_cdma.h"
-#include "fsl_ipv4_checksum.h"
+#include "dplib/fsl_parser.h"
+#include "dplib/fsl_fdma.h"
+#include "common/header_modification.h"
+#include "dplib/fsl_ip.h"
+#include "dplib/fsl_header_modification_errors.h"
+#include "dplib/fsl_cdma.h"
+#include "dplib/fsl_ipv4_checksum.h"
 
 int32_t hm_ip_header_decapsulation(uint8_t flags)
 {
