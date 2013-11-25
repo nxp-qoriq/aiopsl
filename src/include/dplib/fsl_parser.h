@@ -10,7 +10,7 @@
 #define __FSL_PARSER_H
 
 #include "general.h"
-#include "fsl_fdma.h"
+#include "dplib/fsl_fdma.h"
 
 extern uint64_t ext_prpid_pool_address;
 
