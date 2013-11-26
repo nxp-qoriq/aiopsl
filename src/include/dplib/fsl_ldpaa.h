@@ -20,6 +20,7 @@
  *//***************************************************************************/
 
 /**************************************************************************//**
+<<<<<<< HEAD
  @Collection   DPRC resource request options
  *//***************************************************************************/
 typedef uint32_t res_req_opt_t;
@@ -146,6 +147,8 @@ struct ldpaa_flow_ctx {
 
 
 /**************************************************************************//**
+=======
+>>>>>>> master
  @Description	Frame Descriptor structure.
 
  The Frame Descriptor (FD) includes information related to the

@@ -25,5 +25,7 @@
 #define ARENA_PPC_CORE
 /*#define ARENA_SMP_SUPPORT*/
 #define SIMULATOR
+#define DEBUG_NO_MC
+
 
 #endif /* __BUILD_FLAGS_H */
