@@ -143,11 +143,11 @@ enum fdma_sw_errors {
  @{
 *//***************************************************************************/
 enum fdma_st_options {
-	/** Data Segment. */
+		/** Data Segment. */
 	FDMA_ST_DATA_SEGMENT_BIT =	0x00000000,
-	/** PTA Segment. */
+		/** PTA Segment. */
 	FDMA_ST_PTA_SEGMENT_BIT =	0x00000400,
-	/** ASA Segment. */
+		/** ASA Segment. */
 	FDMA_ST_ASA_SEGMENT_BIT =	0x00000800
 };
 
@@ -161,13 +161,13 @@ enum fdma_st_options {
  @{
 *//***************************************************************************/
 enum fdma_cfa_options {
-	/** Do not copy annotations. */
+		/** Do not copy annotations. */
 	FDMA_CFA_NO_COPY_BIT =	0x00000000,
-	/** Copy ASA. */
+		/** Copy ASA. */
 	FDMA_CFA_ASA_COPY_BIT =	0x00002000,
-	/** Copy PTA. */
+		/** Copy PTA. */
 	FDMA_CFA_PTA_COPY_BIT =	0x00004000,
-	/** Copy ASA + PTA. */
+		/** Copy ASA + PTA. */
 	FDMA_CFA_COPY_BIT =	0x00006000
 };
 
@@ -181,13 +181,13 @@ enum fdma_cfa_options {
  @{
 *//***************************************************************************/
 enum fdma_split_psa_options {
-	/** Do not present segment from the split frame,
-	 * keep split working frame open. */
+		/** Do not present segment from the split frame,
+		 * keep split working frame open. */
 	FDMA_SPLIT_PSA_NO_PRESENT_BIT =	0x00000000,
-	/** Present segment from the split frame,
-	 * keep split working frame open. */
+		/** Present segment from the split frame,
+		 * keep split working frame open. */
 	FDMA_SPLIT_PSA_PRESENT_BIT =	0x00000400,
-	/** Do not present, close split working frame. */
+		/** Do not present, close split working frame. */
 	FDMA_SPLIT_PSA_CLOSE_FRAME_BIT = 0x00000800
 };
 
@@ -201,16 +201,16 @@ enum fdma_split_psa_options {
  @{
 *//***************************************************************************/
 enum fdma_enqueue_tc_options {
-	/** Return after enqueue	*/
+		/** Return after enqueue	*/
 	FDMA_EN_TC_RET_BITS =	0x0000,
-	/** Terminate: this command will trigger the Terminate task
-	 * command right after the enqueue. If the enqueue failed, the
-	 * frame will be discarded.	*/
+		/** Terminate: this command will trigger the Terminate task
+		 * command right after the enqueue. If the enqueue failed, the
+		 * frame will be discarded.	*/
 	FDMA_EN_TC_TERM_BITS = 0x0400,
-	/** Conditional Terminate: trigger the Terminate task command
-	 * only if the enqueue succeeded. If the enqueue failed, the frame
-	 * handle is not released and the command returns with an error
-	 * code.	*/
+		/** Conditional Terminate: trigger the Terminate task command
+		 * only if the enqueue succeeded. If the enqueue failed, the
+		 * frame handle is not released and the command returns with an
+		 * error code.	*/
 	FDMA_EN_TC_CONDTERM_BITS =	0x0800
 };
 
@@ -228,12 +228,12 @@ enum fdma_enqueue_tc_options {
  @{
 *//***************************************************************************/
 enum fdma_replace_sa_options {
-	/** Keep the segment open */
+		/** Keep the segment open */
 	FDMA_REPLACE_SA_OPEN_BIT =	0x0000,
-	/** Re-present the segment in workspace */
+		/** Re-present the segment in workspace */
 	FDMA_REPLACE_SA_REPRESENT_BIT =	0x0100,
-	/** Close the replaced segment to free the workspace memory
-	 * associated with the segment. */
+		/** Close the replaced segment to free the workspace memory
+		 * associated with the segment. */
 	FDMA_REPLACE_SA_CLOSE_BIT =	0x0200
 };
 
@@ -247,13 +247,15 @@ enum fdma_replace_sa_options {
  @{
 *//***************************************************************************/
 enum fdma_pta_size_type {
-	/** The frame has no PTA	*/
+		/** The frame has no PTA	*/
 	PTA_SIZE_NO_PTA = 0x0,
-	/** Only the first 32B of the PTA are valid and were presented. */
+		/** Only the first 32B of the PTA are valid and were
+		 * presented. */
 	PTA_SIZE_PTV1 = 0x1,
-	/** Only the second 32B of the PTA are valid and were presented. */
+		/** Only the second 32B of the PTA are valid and were
+		 * presented. */
 	PTA_SIZE_PTV2 = 0x2,
-	/** 64B of the PTA are valid and were presented. */
+		/** 64B of the PTA are valid and were presented. */
 	PTA_SIZE_PTV1_2 = 0x3
 };
 
@@ -1070,6 +1072,28 @@ enum fdma_pta_size_type {
 
 /* @} end of group FDMA_CHECKSUM_ERRORS */
 
+/**************************************************************************//**
+@Group		FDMA_COPY_ERRORS
+
+@Description	FDMA Errors Status returned from Calculate Checksum
+		command
+
+@{
+*//***************************************************************************/
+/** Success. */
+#define FDMA_COPY_SUCCESS						\
+		FDMA_SUCCESS
+/** Invalid DMA command arguments. */
+#define FDMA_COPY_INVALID_DMA_COMMAND_ARGS_ERR				\
+		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
+/** Workspace memory read Error. */
+#define FDMA_COPY_WORKSPACE_MEMORY_READ_ERR				\
+		FDMA_WORKSPACE_MEMORY_READ_ERR
+/** Workspace memory write Error. */
+#define FDMA_COPY_WORKSPACE_MEMORY_WRITE_ERR				\
+		FDMA_WORKSPACE_MEMORY_WRITE_ERR
+
+/* @} end of group FDMA_COPY_ERRORS */
 
 
 /* @} end of group FDMA_Commands_Errors */
@@ -1313,7 +1337,30 @@ enum fdma_pta_size_type {
 /* @} end of group FDMA_Replace_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_ICID_CONTEXT_Flags
+@Group		FDMA_Copy_Flags
+
+@Description	FDMA Copy data flags
+
+@{
+*//***************************************************************************/
+
+	/** No flags indication. */
+#define FDMA_COPY_NO_FLAGS	0x00000000
+	/** Source Memory:.
+	 * If set - Copy source memory address is in the workspace.
+	 * Otherwise - Copy source memory address is in the AIOP Shared
+	 * Memory. */
+#define FDMA_COPY_SM_BIT	0x00000100
+	/** Destination Memory:.
+	 * If set - Copy destination memory address is in the workspace.
+	 * Otherwise - Copy destination memory address is in the AIOP Shared
+	 * Memory. */
+#define FDMA_COPY_DM_BIT	0x00000200
+
+/* @} end of group FDMA_Copy_Flags */
+
+/**************************************************************************//**
+@Group		FDMA_ISOLATION_ATTRIBUTES_Flags
 
 @Description	ICID context flags
 
@@ -1327,8 +1374,7 @@ enum fdma_pta_size_type {
 	/** Privilege Level of the Stored frame flag. */
 #define FDMA_ICID_CONTEXT_PL	0x00008000
 
-/* @} end of group FDMA_ICID_CONTEXT_Flags */
-
+/* @} end of group FDMA_ISOLATION_ATTRIBUTES_Flags */
 
 
 /* @} end of group FDMA_Commands_Flags */
@@ -1516,18 +1562,17 @@ struct fdma_split_frame_params {
 };
 
 /**************************************************************************//**
-@Description	ICID Context parameters structure.
+@Description	Isolation_attributes structure.
 
 *//***************************************************************************/
-struct fdma_icid_context_params {
-		/** \link FDMA_ICID_CONTEXT_Flags icid context flags. \endlink*/
-	uint32_t flags;
+struct fdma_isolation_attributes {
+		/** \link FDMA_ISOLATION_ATTRIBUTES_Flags icid context flags
+		 * \endlink */
+	uint16_t flags;
 		/**
 		 * bits<0> : BDI of the Stored frame.
 		 * bits<1-15> : ICID of the Stored frame. */
 	uint16_t bdi_icid;
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
 };
 
 /* @} end of group FDMA_Structures */
@@ -1780,7 +1825,7 @@ int32_t fdma_store_default_frame_data(void);
 @Param[in]	frame_handle - Handle to the frame to be closed.
 @Param[in]	spid - storage profile ID used to store frame data if additional
 		buffers are required.
-@Param[out]	icid_context - Icid context structure.
+@Param[out]	isolation_attributes - Isolation attributes structure.
 
 @Return
 		- Success or Failure (e.g. FDMA error. (\ref
@@ -1794,7 +1839,7 @@ int32_t fdma_store_default_frame_data(void);
 int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
-		struct fdma_icid_context_params *icid_context);
+		struct fdma_isolation_attributes *isolation_attributes);
 
 /**************************************************************************
 @Function	fdma_close_frame
@@ -1978,7 +2023,8 @@ int32_t fdma_enqueue_default_fd_qd(
 
 		Implicit input parameters in Task Defaults: frame handle.
 
-@Param[in]	flags - \link FDMA_Discard_WF_Flags discard frame flags. \endlink
+@Param[in]	flags - \link FDMA_Discard_WF_Flags discard frame flags.
+		\endlink
 
 @Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS)).
 
@@ -1991,7 +2037,7 @@ int32_t fdma_discard_default_frame(uint32_t flags);
 @Description	Release the resources associated with a working frame.
 
 @Param[in]	frame - Frame handle to be discarded.
-@Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame /
+@Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
 
 @Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS)).
@@ -2558,6 +2604,32 @@ int32_t fdma_calculate_default_frame_checksum(
 		uint16_t offset,
 		uint16_t size,
 		uint16_t *checksum);
+
+/**************************************************************************//**
+@Function	fdma_copy_data
+
+@Description	Copy a workspace/Shared memory data to another location within
+		the workspace/Shared memory.
+
+@Param[in]	copy_size - Number of bytes to copy from source to destination.
+@Param[in]	flags - Please refer to
+		\link FDMA_Copy_Flags Copy command flags \endlink.
+@Param[in]	src - A pointer to the location in the workspace/AIOP Shared
+		memory of the source data.
+@Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
+		memory to store the copied data.
+
+@Return		Success or Failure (\ref FDMA_COPY_ERRORS)).
+
+@Cautions	If source and destination regions overlap then this is a
+		destructive copy.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_copy_data(
+		uint16_t copy_size,
+		uint32_t flags,
+		void *src,
+		void *dst);
 
 
 /** @} */ /* end of FDMA_Functions */

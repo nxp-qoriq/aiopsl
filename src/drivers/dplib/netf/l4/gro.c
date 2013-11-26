@@ -10,10 +10,19 @@
 #include "gro.h"
 
 
+	/* Shared memory global GRO parameters. */
+struct gro_global_parameters gro_global_params;
 
-/*int32_t gro_aggregate_seg(
-		uint64_t gro_ctx_addr,
-		struct gro_context_params *params,
+
+void gro_init(uint32_t timeout_flags)
+{
+	gro_global_params.timeout_flags = timeout_flags;
+}
+
+
+/*int32_t tcp_gro_aggregate_seg(
+		uint64_t tcp_gro_context_addr,
+		struct tcp_gro_context_params *params,
 		uint32_t flags)
 {
 	return 0;
@@ -21,8 +30,8 @@
 
 
 
-int32_t gro_flush_aggregation(
-		uint64_t gro_ctx_addr)
+int32_t tcp_gro_flush_aggregation(
+		uint64_t tcp_gro_context_addr)
 {
 	return 0;
 }*/

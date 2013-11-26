@@ -10,7 +10,7 @@
 #define __FSL_PARSER_H
 
 #include "general.h"
-#include "dplib/fsl_fdma.h"
+#include "fsl_fdma.h"
 
 extern uint64_t ext_prpid_pool_address;
 
@@ -1117,12 +1117,11 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 @{
 *//***************************************************************************/
-	/** 0 - Do not validate L3 checksum \n
-	     1 - Validate L3 checksum */
+/** No flags */
+#define PARSER_NO_FLAGS				0x0
+/** Validate L3 checksum flag */
 #define PARSER_VALIDATE_L3_CHECKSUM		0x10
-
-	/** 0 - Do not validate L4 checksum \n
-	     1 - Validate L4 checksum */
+/** Validate L4 checksum flag */
 #define PARSER_VALIDATE_L4_CHECKSUM		0x08
 
 /** @} */ /* end of FSL_PARSER_GEN_PARSE_RESULT_FLAGS */

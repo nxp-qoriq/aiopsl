@@ -8,15 +8,15 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_fdma.h"
-#include "common/header_modification.h"
-#include "dplib/fsl_ip.h"
-#include "dplib/fsl_header_modification_errors.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_ipv4_checksum.h"
+#include "fsl_parser.h"
+#include "fsl_fdma.h"
+#include "header_modification.h"
+#include "fsl_ip.h"
+#include "fsl_header_modification_errors.h"
+#include "fsl_cdma.h"
+#include "fsl_ipv4_checksum.h"
 
-int32_t hm_ip_header_decapsulation(uint8_t flags)
+int32_t ip_header_decapsulation(uint8_t flags)
 {
 	uint8_t inner_ip_offset, outer_ip_offset, size_to_be_removed;
 	struct ipv4hdr *inner_ipv4_ptr, *outer_ipv4_ptr;
@@ -197,7 +197,7 @@ int32_t hm_ip_header_decapsulation(uint8_t flags)
 	return SUCCESS;
 }
 
-int32_t hm_ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
+int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		uint32_t ip_src_addr, uint32_t ip_dst_addr)
 {
 	uint16_t ipv4hdr_offset;
@@ -309,7 +309,7 @@ int32_t hm_ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		return HM_NO_IP_HDR_ERROR; }
 }
 
-int32_t hm_ipv6_header_modification(uint8_t flags, uint8_t tc,
+int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 				    uint32_t flow_label, uint8_t *ip_src_addr,
 				    uint8_t *ip_dst_addr)
 {
@@ -432,7 +432,7 @@ int32_t hm_ipv6_header_modification(uint8_t flags, uint8_t tc,
 	     }
 }
 
-int32_t hm_ipv4_header_encapsulation(uint8_t flags,
+int32_t ipv4_header_encapsulation(uint8_t flags,
 		struct ipv4hdr *ipv4_header_ptr, uint8_t ipv4_header_size)
 {
 	struct ipv4hdr *inner_ipv4hdr_ptr;
@@ -614,7 +614,7 @@ int32_t hm_ipv4_header_encapsulation(uint8_t flags,
 	}
 }
 
-int32_t hm_ipv6_header_encapsulation(uint8_t flags,
+int32_t ipv6_header_encapsulation(uint8_t flags,
 		struct ipv6hdr *ipv6_header_ptr, uint8_t ipv6_header_size)
 {
 	struct ipv4hdr *inner_ipv4hdr_ptr;
@@ -789,7 +789,7 @@ int32_t hm_ipv6_header_encapsulation(uint8_t flags,
 	}
 }
 
-int32_t hm_set_nw_src(uint32_t src_addr)
+int32_t ip_set_nw_src(uint32_t src_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;
@@ -851,7 +851,7 @@ int32_t hm_set_nw_src(uint32_t src_addr)
 
 }
 
-int32_t hm_set_nw_dst(uint32_t dst_addr)
+int32_t ip_set_nw_dst(uint32_t dst_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;

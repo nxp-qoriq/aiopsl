@@ -9,17 +9,17 @@
 #include "general.h"
 
 /**************************************************************************//**
-@Group		FSL_AIOP_TCP_GSO FSL AIOP TCP GSO
+@Group		FSL_AIOP_GSO FSL AIOP GSO
 
-@Description	FSL AIOP TCP GSO
+@Description	FSL AIOP GSO
 
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	TCP_GSO_MACROS TCP GSO Macros
+@Group	GSO_MACROS GSO Macros
 
-@Description	TCP GSO Macros
+@Description	GSO Macros
 
 @{
 *//***************************************************************************/
@@ -32,10 +32,10 @@
  @{
 *//***************************************************************************/
 
-	/** GSO context size definition. */
-#define GSO_CONTEXT_SIZE	128
-	/** GSO context definition. */
-typedef uint8_t gso_ctx_t[GSO_CONTEXT_SIZE];
+	/** TCP GSO context size definition. */
+#define TCP_GSO_CONTEXT_SIZE	64
+	/** TCP GSO context definition. */
+typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 
 /** @} */ /* end of TCP_GSO_GENERAL_DEFINITIONS */
@@ -44,7 +44,7 @@ typedef uint8_t gso_ctx_t[GSO_CONTEXT_SIZE];
 /**************************************************************************//**
  @Group	TCP_GSO_FLAGS TCP GSO Flags
 
- @Description Flags for gso_context_init() function.
+ @Description Flags for tcp_gso_context_init() function.
 
  @{
 *//***************************************************************************/
@@ -57,33 +57,33 @@ typedef uint8_t gso_ctx_t[GSO_CONTEXT_SIZE];
 /**************************************************************************//**
 @Group	TCP_GSO_GENERATE_SEG_STATUS  TCP GSO Statuses
 
-@Description gso_generate_tcp_seg() return values
+@Description tcp_gso_generate_seg() return values
 
 @{
 *//***************************************************************************/
 
 	/** Segmentation process complete. The last segment was generated. */
-#define	GSO_GEN_TCP_SEG_STATUS_DONE	SUCCESS
+#define	TCP_GSO_GEN_SEG_STATUS_DONE		SUCCESS
 	/** Segmentation process did not complete.
 	 * Segment was generated and the user should call
 	 * gso_generate_tcp_seg() again to generate another segment */
-#define	GSO_GEN_TCP_SEG_STATUS_IN_PROCESS (TCP_GSO_MODULE_STATUS_ID | 0x1)
+#define	TCP_GSO_GEN_SEG_STATUS_IN_PROCESS	(TCP_GSO_MODULE_STATUS_ID | 0x1)
 
 /** @} */ /* end of TCP_GSO_GENERATE_SEG_STATUS */
 
-/** @} */ /* end of TCP_GSO_MACROS */
+/** @} */ /* end of GSO_MACROS */
 
 
 /**************************************************************************//**
-@Group		TCP_GSO_Functions TCP GSO Functions
+@Group		GSO_Functions TCP GSO Functions
 
-@Description	TCP GSO Functions
+@Description	GSO Functions
 
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	gso_generate_tcp_seg
+@Function	tcp_gso_generate_seg
 
 @Description	This function generates a single TCP segment and locates it in
 		the default frame location in the workspace.
@@ -97,43 +97,43 @@ typedef uint8_t gso_ctx_t[GSO_CONTEXT_SIZE];
 
 		This function should be called repeatedly
 		until the returned status indicates segmentation is completed
-		(\ref GSO_GEN_TCP_SEG_STATUS_DONE).
+		(\ref TCP_GSO_GEN_SEG_STATUS_DONE).
 
-@Param[in]	gso_ctx_addr - Address to the TCP GSO internal context. Must be
-		initialized by gso_context_init() prior to the first call.
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context. 
+		Must be initialized by gso_context_init() prior to the first 
+		call.
 
 @Return		Status, please refer to \ref TCP_GSO_GENERATE_SEG_STATUS or
 		\ref fdma_hw_errors or \ref fdma_sw_errors for more details.
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t gso_generate_tcp_seg(
-		gso_ctx_t gso_ctx_addr);
+int32_t tcp_gso_generate_seg(
+		tcp_gso_ctx_t tcp_gso_context_addr);
 
 /**************************************************************************//**
-@Function	gso_discard_frame_remainder
+@Function	tcp_gso_discard_frame_remainder
 
 @Description	This function discard the remainder packet being segmented in
 		case the user decides to stop the segmentation process before
-		its completion (before a \ref GSO_GEN_TCP_SEG_STATUS_DONE status
+		its completion (before a \ref TCP_GSO_GEN_SEG_STATUS_DONE status
 		is returned).
 
-@Param[in]	gso_ctx_addr - Address to the TCP GSO internal context.
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
 
-@Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS,
-		\ref fdma_hw_errors, \ref fdma_sw_errors).
+@Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
 
 @Cautions	Following this function no packet resides in the default frame
 		location in the task defaults.
 		This function should only be called after \ref
-		GSO_GEN_TCP_SEG_STATUS_IN_PROCESS status is returned from
+		TCP_GSO_GEN_SEG_STATUS_IN_PROCESS status is returned from
 		gso_generate_tcp_seg() function call.
 *//***************************************************************************/
-int32_t gso_discard_frame_remainder(
-		gso_ctx_t gso_ctx_addr);
+int32_t tcp_gso_discard_frame_remainder(
+		tcp_gso_ctx_t tcp_gso_context_addr);
 
 /**************************************************************************//**
-@Function	gso_context_init
+@Function	tcp_gso_context_init
 
 @Description	This function initializes the GSO context structure that is
 		used for the TCP GSO process of the packet.
@@ -143,23 +143,24 @@ int32_t gso_discard_frame_remainder(
 
 @Param[in]	flags - Please refer to \ref TCP_GSO_FLAGS.
 @Param[in]	mss - Maximum Segment Size.
-@Param[out]	gso_ctx_addr - Address to the TCP GSO internal context structure
-		allocated by the user. Internally used by TCP GSO functions.
+@Param[out]	tcp_gso_context_addr - Address to the TCP GSO internal context
+		structure allocated by the user. Internally used by TCP GSO
+		functions.
 
 @Return		None.
 
 @Cautions	None.
 *//***************************************************************************/
-void gso_context_init(
+void tcp_gso_context_init(
 		uint32_t flags,
 		uint16_t mss,
-		gso_ctx_t gso_ctx_addr);
+		tcp_gso_ctx_t tcp_gso_context_addr);
 
-/** @} */ /* end of TCP_GSO_Functions */
+/** @} */ /* end of GSO_Functions */
 
 
 
-/** @} */ /* end of FSL_AIOP_TCP_GSO */
+/** @} */ /* end of FSL_AIOP_GSO */
 
 
 

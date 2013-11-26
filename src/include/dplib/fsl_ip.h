@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File		fsl_ip.h
 
-@Description	This file contains the AIOP Header Modification - IP HM API
+@Description	This file contains IP functions (IP API)
 
 @Cautions	Please note that the parse results must be updated before
 		calling functions defined in this file.
@@ -10,8 +10,12 @@
 
 *//***************************************************************************/
 
-#ifndef AIOP_LIB_IP_HM_OF_H
-#define AIOP_LIB_IP_HM_OF_H
+#ifndef AIOP_LIB_IP_H
+#define AIOP_LIB_IP_H
+
+#include "fsl_ipf.h"
+#include "fsl_ipsec.h"
+#include "fsl_ipv4_checksum.h"
 
 /**************************************************************************//**
 @Group	FSL_HM FSL_AIOP_Header_Modification
@@ -143,7 +147,7 @@
 *//***************************************************************************/
 
 /*************************************************************************//**
-@Function	hm_ipv4_header_modification
+@Function	ipv4_header_modification
 
 @Description	Replace/update fields in the outer IPv4 header (if exists).
 
@@ -178,12 +182,12 @@
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t hm_ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
+int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		uint32_t ip_src_addr, uint32_t ip_dst_addr);
 
 
 /*************************************************************************//**
-@Function	hm_ipv6_header_modification
+@Function	ipv6_header_modification
 
 @Description	Replace/update fields in the outer IPv6 header (if exists).
 
@@ -216,13 +220,13 @@ int32_t hm_ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t hm_ipv6_header_modification(uint8_t flags, uint8_t tc,
+int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 				    uint32_t flow_label, uint8_t *ip_src_addr,
 				    uint8_t *ip_dst_addr);
 
 
 /*************************************************************************//**
-@Function	hm_ipv4_header_encapsulation
+@Function	ipv4_header_encapsulation
 
 @Description	This HM operation encapsulates an IP header with an outer IPv4
 		header for tunneling.
@@ -260,12 +264,12 @@ int32_t hm_ipv6_header_modification(uint8_t flags, uint8_t tc,
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t hm_ipv4_header_encapsulation(uint8_t flags,
+int32_t ipv4_header_encapsulation(uint8_t flags,
 		struct ipv4hdr *ipv4_header_ptr, uint8_t ipv4_header_size);
 
 
 /*************************************************************************//**
-@Function	hm_ipv6_header_encapsulation
+@Function	ipv6_header_encapsulation
 
 @Description	This HM operation encapsulates an IP header with an outer IPv6
 		header for tunneling. It can be applied to frames with or
@@ -300,11 +304,11 @@ int32_t hm_ipv4_header_encapsulation(uint8_t flags,
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t hm_ipv6_header_encapsulation(uint8_t flags,
+int32_t ipv6_header_encapsulation(uint8_t flags,
 		struct ipv6hdr *ipv6_header_ptr, uint8_t ipv6_header_size);
 
 /*************************************************************************//**
-@Function	hm_ip_header_decapsulation
+@Function	ip_header_decapsulation
 
 @Description	This HM operation de-capsulates an outer IP header (if exist).
 		It can be applied to frames with or without ETH header.
@@ -323,12 +327,12 @@ int32_t hm_ipv6_header_encapsulation(uint8_t flags,
 @Cautions	The parse results must be updated before calling this
 		operation.
 *//***************************************************************************/
-int32_t hm_ip_header_decapsulation(uint8_t flags);
+int32_t ip_header_decapsulation(uint8_t flags);
 
 
 
 /*************************************************************************//**
-@Function	hm_set_nw_src
+@Function	ip_set_nw_src
 
 @Description	Replace the outer IPv4 source address. The IP and UDP/TCP
 		checksums are updated automatically.
@@ -345,11 +349,11 @@ int32_t hm_ip_header_decapsulation(uint8_t flags);
 		This function assumes the original IP checksum is valid.
 
 *//***************************************************************************/
-int32_t hm_set_nw_src(uint32_t src_addr);
+int32_t ip_set_nw_src(uint32_t src_addr);
 
 
 /*************************************************************************//**
-@Function	hm_set_nw_dst
+@Function	ip_set_nw_dst
 
 @Description	Replace the outer IPv4 destination address. The IP and UDP/TCP
 		checksums are updated automatically.
@@ -366,7 +370,7 @@ int32_t hm_set_nw_src(uint32_t src_addr);
 		This function assumes the original IP checksum is valid.
 
 *//***************************************************************************/
-int32_t hm_set_nw_dst(uint32_t dst_addr);
+int32_t ip_set_nw_dst(uint32_t dst_addr);
 
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group FSL_HM */

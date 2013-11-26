@@ -158,7 +158,7 @@ int32_t __vpool_internal_release_buf (uint32_t virtual_pool_id);
 
 @Return		Status - Success or Failure. 
 			A failure status reflects CDMA module errors or Virtual Pools 
-			module errors. (\ref CDMA_ERRORS VIRTUAL_POOLS_ERRORS).
+			module errors. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
 			 
 @Cautions	The maximum legal id value is MAX_AIOP_VIRTUAL_POOLS_MEM.
 @Cautions	This function performs a task switch. ???
@@ -180,7 +180,7 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 
 @Return		Status - Success or Failure.
 			A failure status reflects CDMA module errors or Virtual Pools 
-			module errors. (\ref CDMA_ERRORS VIRTUAL_POOLS_ERRORS).
+			module errors. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
 
 @remark		This function is not considering the reference counter value,
 			and releases the buffer even if it is not zero.
@@ -203,7 +203,7 @@ int32_t vpool_release_buf(uint32_t virtual_pool_id,
 
 @Param[in]	context_address - Address of the Context buffer.
 
-@Return		Status - Success or Failure. (\ref CDMA_ERRORS VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
 
 @remark		The provided context_address must be of a valid Context buffer.
 
@@ -231,7 +231,7 @@ int32_t vpool_refcount_increment(
 
 @Return		Status - Success or Failure.
 			A failure status reflects CDMA module errors or Virtual Pools 
-			module errors. (\ref CDMA_ERRORS VIRTUAL_POOLS_ERRORS).
+			module errors. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
 
 @remark		This function is doing a reference counter decrement,
 			and only if the counter reached zero, releases the buffer.

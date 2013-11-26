@@ -15,7 +15,7 @@
 #include "fsl_header_modification_errors.h"
 #include "fsl_cdma.h"
 
-void hm_l2_header_remove()
+void l2_header_remove()
 {
 	uint8_t  first_offset, last_offset;
 	uint16_t size_to_be_removed;
@@ -60,7 +60,7 @@ void hm_l2_header_remove()
 	return;
 }
 
-int32_t hm_vlan_header_remove()
+int32_t l2_vlan_header_remove()
 {
 	uint32_t fdma_flags;
 	uint8_t  first_offset, last_offset;
@@ -106,7 +106,7 @@ int32_t hm_vlan_header_remove()
 	}
 }
 
-void hm_set_dl_src(uint8_t *src_addr)
+void l2_set_dl_src(uint8_t *src_addr)
 {
 	uint16_t eth_smac_offset;
 	uint32_t *eth_smac_ptr;
@@ -129,7 +129,7 @@ void hm_set_dl_src(uint8_t *src_addr)
 }
 
 
-void hm_set_dl_dst(uint8_t *dst_addr)
+void l2_set_dl_dst(uint8_t *dst_addr)
 {
 	uint16_t eth_dmac_offset;
 	uint32_t *eth_dmac_ptr;
@@ -151,7 +151,7 @@ void hm_set_dl_dst(uint8_t *dst_addr)
 	fdma_modify_default_segment_data(eth_dmac_offset, 6);
 }
 
-int32_t hm_set_vlan_vid(uint16_t vlan_vid)
+int32_t l2_set_vlan_vid(uint16_t vlan_vid)
 {
 	uint32_t *vlan_ptr, constructed_vlan;
 	uint8_t vlan_offset;
@@ -183,7 +183,7 @@ int32_t hm_set_vlan_vid(uint16_t vlan_vid)
 }
 
 
-int32_t hm_set_vlan_pcp(uint8_t vlan_pcp)
+int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 {
 	uint32_t *vlan_ptr, constructed_vlan;
 	uint8_t vlan_offset;
@@ -214,7 +214,7 @@ int32_t hm_set_vlan_pcp(uint8_t vlan_pcp)
 	return SUCCESS;
 }
 
-void hm_push_vlan(uint16_t ethertype)
+void l2_push_vlan(uint16_t ethertype)
 {
 	uint32_t fdma_flags;
 	uint16_t vlan_offset;
@@ -259,7 +259,7 @@ void hm_push_vlan(uint16_t ethertype)
 		return;
 }
 
-int32_t hm_pop_vlan()
+int32_t l2_pop_vlan()
 {
 	uint32_t fdma_flags;
 	uint16_t vlan_offset;

@@ -9,7 +9,6 @@
 #include "fsl_cdma.h"
 #include "fsl_ctlu.h"
 #include "ctlu.h"
-//#include "fsl_system.h"
 #include "system.h"
 #include "id_pool.h"
 
@@ -21,7 +20,7 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 
 	/* 8 Byte aligned for stqw optimization */
 	struct ctlu_table_create_input_message  tbl_crt_in_msg
-		__attribute__((aligned (8)));
+		__attribute__((aligned(8)));
 
 	struct ctlu_table_create_output_message tbl_crt_out_msg;
 	int32_t                           cdma_status;
@@ -137,7 +136,7 @@ int32_t ctlu_table_update_miss_result(uint16_t table_id,
 {
 	/* 8 Byte aligned for stqw optimization */
 	struct ctlu_table_params_replace_input_message tbl_params_in_msg
-		__attribute__((aligned (8)));
+		__attribute__((aligned(8)));
 
 	/* TODO  potential compiler issue? *//*
 	__stdw(0, 0, 0, tbl_params_in_msg.reserved);
@@ -523,7 +522,8 @@ int32_t ctlu_kcr_builder_add_protocol_based_generic_fec(
 		return CTLU_KCR_PR_OFFSET_ERR;
 	else
 		op0 = CTLU_KCR_OP0_HET_PROTOCOL |
-					CTLU_KCR_PROTOCOL_HVT | (uint8_t)pr_offset;
+			  CTLU_KCR_PROTOCOL_HVT |
+			  (uint8_t)pr_offset;
 
 	/* OP1 = Extract Offset */
 	if (extract_offset > CTLU_KCR_MAX_EXTRACT_OFFET)

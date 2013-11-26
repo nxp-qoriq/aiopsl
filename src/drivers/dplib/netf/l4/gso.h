@@ -28,7 +28,7 @@
 /**************************************************************************//**
 @Description	TCP GSO Context Internally used by GSO functions.
 *//***************************************************************************/
-struct gso_context {
+struct tcp_gso_context {
 	/** Remaining packet FD  */
 	struct ldpaa_fd rem_fd;
 	/** Flags - Please refer to \ref TCP_GSO_FLAGS */
@@ -37,8 +37,8 @@ struct gso_context {
 	uint16_t mss;
 	/** Urgent Pointer offset. */
 	uint16_t urgent_pointer;
-	/** Remaining packet handle. */
-	uint8_t	rem_packet_handle;
+	/** Remaining frame handle. */
+	uint8_t	rem_frame_handle;
 		/** First Segment indication */
 	uint8_t	first_seg;
 	/** Padding */
@@ -65,10 +65,10 @@ struct gso_context {
 *//***************************************************************************/
 
 	/** Size of GSO Context. */
-#define SIZEOF_GSO_CONTEXT 	(sizeof(struct gso_context))
+#define SIZEOF_GSO_CONTEXT	(sizeof(struct tcp_gso_context))
 	/* GSO internal struct size assertion check */
 #pragma warning_errors on
-ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, GSO_CONTEXT_SIZE);
+ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 #pragma warning_errors off
 
 /** @} */ /* end of TCP_GSO_GENERAL_INT_DEFINITIONS */

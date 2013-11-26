@@ -9,7 +9,6 @@
 #ifndef __AIOP_IPR_H
 #define __AIOP_IPR_H
 
-
 /**************************************************************************//**
 @Group		IPR_Functions Internal IPR functions
 
@@ -22,17 +21,18 @@
 @Function	ipr_init
 
 @Description	Initialize the IP Reassembly infrastructure.
-		This function should be called prior to calling any
-		IPR function.
-		This function will initialize two KeyIDs (one for IPv4 and one
-		for Ipv6).
+		This function should be called once.
+		No IPR function can be called before this function was invoked.
+		This function initializes two KeyIDs (one for IPv4 and one
+		for Ipv6) : IPsrc-IPdst-protocol-identification
 
 @Param[in]	epid - The epid configured for the use of IPR Time Out.
 		Upon IPR Time Out expiration, a task is created and uses this
 		epid for EPID lookup table.\n
-		todo - if a timer registration will be available, this epid
+		TODO - if a timer registration will be available, this epid
 		     will be changed to a timer_handle
-@Param[in]	pool_id - Pool id for context buffers allocation.\n
+@Param[in]	pool_id - Pool id for context buffers and instance params
+		allocation.\n
 		The size of each buffer should be at least 2240 bytes.\n
 		Buffers should be aligned to 64 bytes.
 
@@ -53,8 +53,7 @@ uint8_t ipr_timeout_epid;
 uint8_t ipr_key_id_ipv4;
 uint8_t ipr_key_id_ipv6;
 uint8_t ipr_pool_id;
+uint8_t ipr_tmi_id;  // ??????
 };
-
-struct ipr_global_parameters ipr_global_params;
 
 #endif /* __AIOP_IPR_H */
