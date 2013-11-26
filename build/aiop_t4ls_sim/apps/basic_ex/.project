@@ -3,8 +3,8 @@
 	<name>aiop_basic_ex</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-1-PROJECT_LOC/aiopsl">
-aiop		</project>
+		<project location="PARENT-2-PROJECT_LOC/aiopsl">
+aiop_sl		</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

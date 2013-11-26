@@ -87,15 +87,16 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enableC99.204780793" name="Enable C99 Extensions" superClass="com.freescale.ppc.toolchain.compiler.base.general.enableC99" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.210104601" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/dplib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/arch/accel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2100a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/cli&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/mem_mng&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/tasklet&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/timer&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/dpl&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/serial/duart&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src&quot;"/>
 								</option>
@@ -139,7 +140,7 @@
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
-				<externalSettings containerId="aiop;com.freescale.ppc.debug.toolchain.configuration.508235731" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
+				<externalSettings containerId="aiop_sl;com.freescale.ppc.debug.toolchain.configuration.508235731" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
 			</storageModule>
 		</cconfiguration>
 	</storageModule>
