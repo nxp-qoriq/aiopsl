@@ -25,7 +25,8 @@ void dpni_drv_free(void);
 
 
 struct dpni_drv {
-    uint8_t             id;    uint8_t             flags;	/** network interface ID */
+    //uint8_t             id;    
+    uint8_t             flags;	/** network interface ID */
     uint16_t            id;
     /** Storage profile ID */
     /* TODO - Need to store it in HW context */
@@ -40,7 +41,7 @@ struct dpni_drv {
     /** Parse Profile ID */
     uint8_t            prpid;
     /** \ref DPNI_DRV_DEFINES */
-    uint8_t             flags;
+    //uint8_t             flags;
     /** error mask for the \ref receive_cb() function FD
     * error check 0 - continue; 1 - discard */
     uint8_t             fd_err_mask;
@@ -83,7 +84,8 @@ static void osm_task_init(void)
 
 void receive_cb (void)
 {
-	struct dpni_drv *ni = (struct dpni_drv *)(PTR_TO_UINT(nis) + 10*sizeof(struct dpni_drv));    struct dpni_drv *ni = (struct dpni_drv *)(PTR_TO_UINT(nis) + 10*sizeof(struct dpni_drv));
+	//struct dpni_drv *ni = (struct dpni_drv *)(PTR_TO_UINT(nis) + 10*sizeof(struct dpni_drv));    
+	struct dpni_drv *ni = (struct dpni_drv *)(PTR_TO_UINT(nis) + 10*sizeof(struct dpni_drv));
 
 	/* TODO - temporary code for simulator */	__asm__ volatile (		"se_li r0,0x0 \n"		"se_li r2,32 \n"		"se_or r0,r2 \n"		"e_li r4,1553 \n"		"se_stw r4,0(r0) \n"		"se_li r2,36 \n"		"se_or r0,r2 \n"		"e_lis r4,0x00f0 \n"		"se_li r5,18 \n"		"se_or r4,r5 \n"		"se_stw r4,0(r0) \n"		"se_li r2,0 \n"		"e_hwacceli 0x000c \n"	);    /* TODO - temporary code for simulator */
     __asm__ volatile (
@@ -116,7 +118,8 @@ int dpni_drv_send(uint16_t ni_id)
 
 int dpni_drv_init(void)
 {
-	uintptr_t   tmp_reg;    uintptr_t   tmp_reg;
+	uintptr_t   tmp_reg;    
+	//uintptr_t   tmp_reg;
 
 	nis = fsl_os_malloc(sizeof(struct dpni_drv)*100);    nis = fsl_os_malloc(sizeof(struct dpni_drv)*100);
     if (!nis)
