@@ -75,20 +75,12 @@
 		Implicitly updated values in AIOP System global parameters:
 		ext_prpid_pool_address
 
-@Param[in]	buffer_pool_id - BMan pool ID used for the Acquire Context
-		Memory for Parser Profile ID pool.
-
-@Param[in]	buffer_size - Size of the Context memory buffer, must match the
-		size of the BMan buffer being acquired using the
-		buffer_pool_id. Must be at least 65 bytes.
-
 @Return		Status - please refer to \ref SYS_ID_POOL_CREATE_STATUS.
 
 @Cautions	Should be called only once per CTLU.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t sys_ctlu_prpid_pool_create(uint16_t buffer_pool_id,
-						uint32_t buffer_size);
+int32_t sys_ctlu_prpid_pool_create();
 
 /*************************************************************************//**
 @Function	sys_ctlu_keyid_pool_create
@@ -98,21 +90,13 @@ int32_t sys_ctlu_prpid_pool_create(uint16_t buffer_pool_id,
 		Implicitly updated values in AIOP System global parameters:
 		ext_keyid_pool_address
 
-@Param[in]	buffer_pool_id - BMan pool ID used for the Acquire Context
-		Memory for Parser Profile ID pool.
-
-@Param[in]	buffer_size - Size of the Context memory buffer, must match the
-		size of the BMan buffer being acquired using the
-		buffer_pool_id. Must be at least 257 bytes.
-
 @Return		Status - please refer to \ref SYS_ID_POOL_CREATE_STATUS.
 
 @Cautions	Should be called only once per CTLU.
 		Retries to acquire CDMA context buffer until success.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t sys_ctlu_keyid_pool_create(uint16_t buffer_pool_id,
-						uint32_t buffer_size);
+int32_t sys_ctlu_keyid_pool_create();
 
 /** @} */ /* end of SYSTEM_Functions */
 
