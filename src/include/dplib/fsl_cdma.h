@@ -30,13 +30,13 @@
 
 
 /**************************************************************************//**
- @enum CDMA_ERRORS
+ @enum cdma_errors
 
  @Description	AIOP CDMA Error codes.
 
  @{
 *//***************************************************************************/
-enum CDMA_ERRORS {
+enum cdma_errors {
 		/** Success. */
 	CDMA_SUCCESS = SUCCESS,
 		/** Failed due to buffer pool depletion. */
@@ -57,8 +57,6 @@ enum CDMA_ERRORS {
 		/** Invalid reference count operation, address is not base
 		 * address.*/
 	CDMA_REFCOUNT_INVALID_OPERATION_ERR = 0x92,
-	//	/** Write data access requested under read lock error. */
-	//CDMA_WRITE_ACCESS_UNDER_READ_LOCK_ERR = 0x93,
 		/** 0x93 invalid mutex lock request,
 		 * the task already has a mutex on this address */
 	CDMA_INVALID_MUTEX_LOCK_REQ_ERR = 0x93,
@@ -80,7 +78,7 @@ enum CDMA_ERRORS {
 	CDMA_EXTERNAL_MEMORY_WRITE_ERR = 0xA4
 };
 
-/* @} end of enum CDMA_ERRORS */
+/* @} end of enum cdma_errors */
 
 /* @} end of group CDMA_Enumerations */
 
@@ -262,7 +260,7 @@ enum CDMA_ERRORS {
 
 /* @} end of group CDMA_READ_WITH_MUTEX_STATUS */
 
-// TODO: add to the code a check if DMA failed and release the mutex
+/* TODO: add to the code a check if DMA failed and release the mutex */
 
 /**************************************************************************//**
 @Group		CDMA_WRITE_WITH_MUTEX_STATUS
@@ -295,7 +293,7 @@ enum CDMA_ERRORS {
 
 /* @} end of group CDMA_WRITE_WITH_MUTEX_STATUS */
 
-// TODO: add to the code a check if DMA failed and release the mutex
+/* TODO: add to the code a check if DMA failed and release the mutex */
 
 /**************************************************************************//**
 @Group		CDMA_REFCOUNT_INCREMENT_STATUS
@@ -368,7 +366,7 @@ enum CDMA_ERRORS {
 @Group		CDMA_REFCOUNT_DECREMENT_AND_RELEASE_STATUS
 
 @Description	CDMA status returned by the cdma_refcount_decrement_and_release
- 	 	 	 	command
+		command
 
 @{
 *//***************************************************************************/
@@ -733,7 +731,8 @@ enum CDMA_ERRORS {
 @Param[in]	context_memory - A pointer to the Workspace where to return
 		the acquired 64 bit address of the Context memory.
 
-@Return		Status - Success or Failure. (\ref CDMA_ACQUIRE_CONTEXT_MEMORY_STATUS)
+@Return		Status - Success or Failure.
+		(\ref CDMA_ACQUIRE_CONTEXT_MEMORY_STATUS)
 
 @Cautions	The maximum legal pool_id value is 0x03FF.
 @Cautions	In this function the task yields.
@@ -753,7 +752,8 @@ int32_t cdma_acquire_context_memory(
 
 @Param[in]	context_address - Address of Context memory.
 
-@Return		Status - Success or Failure. (\ref CDMA_RELEASE_CONTEXT_MEMORY_STATUS).
+@Return		Status - Success or Failure.
+		(\ref CDMA_RELEASE_CONTEXT_MEMORY_STATUS).
 
 @remark		This command should be used after task calls to
 		cdma_refcount_decrement() routine and as a result, a
@@ -862,7 +862,8 @@ int32_t cdma_mutex_lock_take(
 @Param[in]	mutex_id - A 64 bits mutex ID. Can be a pointer to the
 		internal/external memory (DDR/PEB/shared SRAM).
 
-@Return		Status - Success or Failure. (\ref CDMA_MUTEX_LOCK_RELEASE_STATUS).
+@Return		Status - Success or Failure.
+		(\ref CDMA_MUTEX_LOCK_RELEASE_STATUS).
 
 @remark		Each task can have a maximum of 4 simultaneous mutex locks
 		active.
@@ -974,7 +975,8 @@ int32_t cdma_write_with_mutex(
 
 @Param[in]	context_address - A pointer to the Context memory.
 
-@Return		Status - Success or Failure. (\ref CDMA_REFCOUNT_INCREMENT_STATUS).
+@Return		Status - Success or Failure.
+		(\ref CDMA_REFCOUNT_INCREMENT_STATUS).
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context memory.
@@ -995,7 +997,8 @@ int32_t cdma_refcount_increment(
 
 @Param[in]	context_address - A pointer to the Context memory.
 
-@Return		Status - Success or Failure. (\ref CDMA_REFCOUNT_DECREMENT_STATUS).
+@Return		Status - Success or Failure.
+		(\ref CDMA_REFCOUNT_DECREMENT_STATUS).
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context.
@@ -1018,8 +1021,8 @@ int32_t cdma_refcount_decrement(
 
 @Param[in]	context_address - A pointer to the Context address.
 
-@Return		Status - Success or Failure. 
-				(\ref CDMA_REFCOUNT_DECREMENT_AND_RELEASE_STATUS).
+@Return		Status - Success or Failure.
+		(\ref CDMA_REFCOUNT_DECREMENT_AND_RELEASE_STATUS).
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context.

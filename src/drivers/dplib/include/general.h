@@ -10,8 +10,7 @@
 #ifndef __GENERAL_H_
 #define __GENERAL_H_
 
-#include "common/types.h"
-//#include "dplib/fsl_ldpaa.h"
+
 #include "fsl_ldpaa.h"
 /*#include "fsl_aiop_parser.h"*/
 
@@ -119,9 +118,9 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** IP Fragmentation module ID */
 #define IPF_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x03000000)
 /** TCP GSO module ID */
-#define TCP_GSO_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x04000000)
+#define GSO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x04000000)
 /** TCP GRO module ID */
-#define TCP_GRO_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x05000000)
+#define GRO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x05000000)
 
 /** @} */ /* end of AIOP_Return_Status */
 
@@ -499,8 +498,8 @@ struct aiop_default_task_params {
 	uint16_t parser_starting_hxs;
 	/** Task default Parser Profile ID */
 	uint8_t parser_profile_id;
-	/** Reserved */
-	uint8_t	reserved;
+	/** Queueing Destination Priority */
+	uint8_t qd_priority;
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 

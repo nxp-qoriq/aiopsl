@@ -89,7 +89,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_l2_header_remove_command *str =
 			(struct hm_l2_header_remove_command *) asa_seg_addr;
-			hm_l2_header_remove();
+			l2_header_remove();
 			str_size = sizeof(struct hm_l2_header_remove_command);
 			break;
 		}
@@ -99,7 +99,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_vlan_remove_command *str =
 			(struct hm_vlan_remove_command *) asa_seg_addr;
-			str->status = hm_vlan_header_remove();
+			str->status = l2_vlan_header_remove();
 			str_size = sizeof(struct hm_vlan_remove_command);
 			break;
 		}
@@ -109,7 +109,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv4_modification_command *str =
 			(struct hm_ipv4_modification_command *) asa_seg_addr;
-			str->status = hm_ipv4_header_modification(str->flags,
+			str->status = ipv4_header_modification(str->flags,
 					str->tos,
 					str->id,
 					str->ip_src_addr,
@@ -123,7 +123,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv6_modification_command *str =
 			(struct hm_ipv6_modification_command *) asa_seg_addr;
-			str->status = hm_ipv6_header_modification(str->flags,
+			str->status = ipv6_header_modification(str->flags,
 					str->tc,
 					str->flow_label,
 					str->ip_src_addr,
@@ -137,7 +137,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv4_encapsulation_command *str =
 			(struct hm_ipv4_encapsulation_command *) asa_seg_addr;
-			str->status = hm_ipv4_header_encapsulation(str->flags,
+			str->status = ipv4_header_encapsulation(str->flags,
 					&str->ipv4_header_ptr,
 					str->ipv4_header_size);
 			str_size = sizeof(struct hm_ipv4_encapsulation_command);
@@ -149,7 +149,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv6_encapsulation_command *str =
 			(struct hm_ipv6_encapsulation_command *) asa_seg_addr;
-			str->status = hm_ipv6_header_encapsulation(str->flags,
+			str->status = ipv6_header_encapsulation(str->flags,
 					&str->ipv6_header_ptr,
 					str->ipv6_header_size);
 			str_size = sizeof(struct hm_ipv6_encapsulation_command);
@@ -162,7 +162,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ip_decapsulation_command *str =
 			(struct hm_ip_decapsulation_command *) asa_seg_addr;
-			str->status = hm_ip_header_decapsulation(str->flags);
+			str->status = ip_header_decapsulation(str->flags);
 			str_size = sizeof(struct hm_ip_decapsulation_command);
 			break;
 		}
@@ -172,7 +172,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_udp_modification_command *str =
 			(struct hm_udp_modification_command *) asa_seg_addr;
-			str->status = hm_udp_header_modification(str->flags,
+			str->status = l4_udp_header_modification(str->flags,
 					str->udp_src_port,
 					str->udp_dst_port);
 			str_size = sizeof(struct hm_udp_modification_command);
@@ -184,7 +184,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_tcp_modification_command *str =
 			(struct hm_tcp_modification_command *) asa_seg_addr;
-			str->status = hm_tcp_header_modification(str->flags,
+			str->status = l4_tcp_header_modification(str->flags,
 					str->tcp_src_port,
 					str->tcp_dst_port,
 					str->tcp_seq_num_delta,
@@ -231,7 +231,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_vlan_vid_command *str =
 			(struct hm_vlan_vid_command *) asa_seg_addr;
-			str->status = hm_set_vlan_vid(str->vlan_vid);
+			str->status = l2_set_vlan_vid(str->vlan_vid);
 			str_size = sizeof(struct hm_vlan_vid_command);
 			break;
 		}
@@ -241,7 +241,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_vlan_pcp_command *str =
 			(struct hm_vlan_pcp_command *) asa_seg_addr;
-			str->status = hm_set_vlan_pcp(str->vlan_pcp);
+			str->status = l2_set_vlan_pcp(str->vlan_pcp);
 			str_size = sizeof(struct hm_vlan_pcp_command);
 			break;
 		}
@@ -251,7 +251,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_set_dl_command *str =
 			(struct hm_set_dl_command *) asa_seg_addr;
-			hm_set_dl_src(str->mac_addr);
+			l2_set_dl_src(str->mac_addr);
 			str_size = sizeof(struct hm_set_dl_command);
 			break;
 		}
@@ -261,7 +261,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_set_dl_command *str =
 			(struct hm_set_dl_command *) asa_seg_addr;
-			hm_set_dl_dst(str->mac_addr);
+			l2_set_dl_dst(str->mac_addr);
 			str_size = sizeof(struct hm_set_dl_command);
 			break;
 		}
@@ -271,7 +271,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_set_nw_command *str =
 			(struct hm_set_nw_command *) asa_seg_addr;
-			str->status = hm_set_nw_src(str->ipv4_addr);
+			str->status = ip_set_nw_src(str->ipv4_addr);
 			str_size = sizeof(struct hm_set_nw_command);
 			break;
 		}
@@ -281,7 +281,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_set_nw_command *str =
 			(struct hm_set_nw_command *) asa_seg_addr;
-			str->status = hm_set_nw_dst(str->ipv4_addr);
+			str->status = ip_set_nw_dst(str->ipv4_addr);
 			str_size = sizeof(struct hm_set_nw_command);
 			break;
 		}
@@ -291,7 +291,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_set_tp_command *str =
 			(struct hm_set_tp_command *) asa_seg_addr;
-			str->status = hm_set_tp_src(str->port);
+			str->status = l4_set_tp_src(str->port);
 			str_size = sizeof(struct hm_set_tp_command);
 			break;
 		}
@@ -301,7 +301,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_set_tp_command *str =
 			(struct hm_set_tp_command *) asa_seg_addr;
-			str->status = hm_set_tp_dst(str->port);
+			str->status = l4_set_tp_dst(str->port);
 			str_size = sizeof(struct hm_set_tp_command);
 			break;
 		}
@@ -311,7 +311,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_push_vlan_command *str =
 			(struct hm_push_vlan_command *) asa_seg_addr;
-			hm_push_vlan(str->ethertype);
+			l2_push_vlan(str->ethertype);
 			str_size = sizeof(struct hm_push_vlan_command);
 			break;
 		}
@@ -321,7 +321,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_pop_vlan_command *str =
 			(struct hm_pop_vlan_command *) asa_seg_addr;
-			str->status = hm_pop_vlan();
+			str->status = l2_pop_vlan();
 			str_size = sizeof(struct hm_pop_vlan_command);
 			break;
 		}

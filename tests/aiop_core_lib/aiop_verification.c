@@ -9,7 +9,7 @@
 #include "aiop_verification.h"
 #include "fsl_fdma.h"
 
-void aiop_verification(void)
+void aiop_verification()
 {
 	/* Presentation Context */
 	struct presentation_context *PRC;
@@ -82,7 +82,7 @@ void aiop_verification(void)
 		}
 		}
 
-		if (str_size == STR_SIZE_ERR){
+		if (str_size == STR_SIZE_ERR) {
 			fdma_terminate_task();
 			return;
 		}

@@ -16,7 +16,7 @@
 #include "fsl_cdma.h"
 #include "fsl_l4_checksum.h"
 
-int32_t hm_udp_header_modification(uint8_t flags,
+int32_t l4_udp_header_modification(uint8_t flags,
 		uint16_t udp_src_port, uint16_t udp_dst_port)
 {
 	uint8_t udp_offset;
@@ -47,7 +47,7 @@ int32_t hm_udp_header_modification(uint8_t flags,
 	return SUCCESS;
 }
 
-int32_t hm_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
+int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		uint16_t tcp_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta, uint16_t tcp_mss)
 {
@@ -172,7 +172,7 @@ int32_t hm_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 }
 
 
-int32_t hm_set_tp_src(uint16_t src_port)
+int32_t l4_set_tp_src(uint16_t src_port)
 {
 	uint16_t tcphdr_offset;
 	struct   tcphdr *tcphdr_ptr;
@@ -202,7 +202,7 @@ int32_t hm_set_tp_src(uint16_t src_port)
 
 }
 
-int32_t hm_set_tp_dst(uint16_t dst_port)
+int32_t l4_set_tp_dst(uint16_t dst_port)
 {
 	uint16_t tcphdr_offset;
 	struct   tcphdr *tcphdr_ptr;

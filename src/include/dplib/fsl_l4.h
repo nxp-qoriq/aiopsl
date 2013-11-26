@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File		fsl_l4.h
 
-@Description	This file contains the AIOP Header Modification - L4 HM API
+@Description	This file contains layer 4 functions (L4 API).
 
 @Cautions	Please note that the parse results must be updated before
 		calling functions defined in this file.
@@ -10,8 +10,14 @@
 
 *//***************************************************************************/
 
-#ifndef AIOP_LIB_L4_HM_OF_H
-#define AIOP_LIB_L4_HM_OF_H
+#ifndef __FSL_LIB_L4_H
+#define __FSL_LIB_L4_H
+
+
+#include "fsl_gso.h"
+#include "fsl_gro.h"
+#include "fsl_l4_checksum.h"
+
 
 /**************************************************************************//**
 @addtogroup	FSL_HM FSL_AIOP_Header_Modification
@@ -78,7 +84,7 @@
 *//***************************************************************************/
 
 /*************************************************************************//**
-@Function	hm_udp_header_modification
+@Function	l4_udp_header_modification
 
 @Description	Replace addresses in the UDP header (if exist) of
 		a frame. It optionally can update the UDP checksum.
@@ -100,12 +106,12 @@
 @Cautions	The parse results must be updated before calling this
 		operation.
 *//***************************************************************************/
-int32_t hm_udp_header_modification(uint8_t flags,
+int32_t l4_udp_header_modification(uint8_t flags,
 		uint16_t udp_src_port, uint16_t udp_dst_port);
 
 
 /*************************************************************************//**
-@Function	hm_tcp_header_modification
+@Function	l4_tcp_header_modification
 
 @Description	Replace fields in the TCP header (if exist) of a frame.
 
@@ -136,12 +142,12 @@ int32_t hm_udp_header_modification(uint8_t flags,
 @Cautions	The parse results must be updated before
 		calling this operation.
 *//***************************************************************************/
-int32_t hm_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
+int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		uint16_t tcp_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta, uint16_t tcp_mss);
 
 /*************************************************************************//**
-@Function	hm_set_tp_src
+@Function	l4_set_tp_src
 
 @Description	Replace TCP/UDP source port. The UDP/TCP checksum is updated
 		automatically.
@@ -157,11 +163,11 @@ int32_t hm_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		operation.\n
 		This function assumes the original TCP header checksum is valid.
 *//***************************************************************************/
-int32_t hm_set_tp_src(uint16_t src_port);
+int32_t l4_set_tp_src(uint16_t src_port);
 
 
 /*************************************************************************//**
-@Function	hm_set_tp_dst
+@Function	l4_set_tp_dst
 
 @Description	Replace TCP/UDP destination port. The UDP/TCP checksum is
 		updated automatically.
@@ -178,10 +184,10 @@ int32_t hm_set_tp_src(uint16_t src_port);
 		This function assumes the original TCP header checksum is valid.
 
 *//***************************************************************************/
-int32_t hm_set_tp_dst(uint16_t dst_port);
+int32_t l4_set_tp_dst(uint16_t dst_port);
 
 
 /* @} end of group FSL_HM_L4_Functions */
 /* @} end of group FSL_HM */
 
-#endif /* AIOP_LIB_L4_HM_OF_H */
+#endif /* __FSL_LIB_L4_H */

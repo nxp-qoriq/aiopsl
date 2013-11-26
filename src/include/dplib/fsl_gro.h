@@ -9,33 +9,33 @@
 #include "general.h"
 
 /**************************************************************************//**
-@Group		FSL_AIOP_TCP_GRO FSL AIOP TCP GRO
+@Group		FSL_AIOP_GRO FSL AIOP GRO
 
-@Description	FSL AIOP TCP GRO
-
-@{
-*//***************************************************************************/
-
-/**************************************************************************//**
-@Group	TCP_GRO_MACROS TCP GRO Macros
-
-@Description	TCP GRO Macros
+@Description	FSL AIOP GRO
 
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Group	TCP_GRO_GENERAL_DEFINITIONS TCP GRO General Definitions
+@Group	GRO_MACROS GRO Macros
 
- @Description TCP GRO General Definitions.
+@Description	GRO Macros
+
+@{
+*//***************************************************************************/
+
+/**************************************************************************//**
+ @Group	GRO_GENERAL_DEFINITIONS GRO General Definitions
+
+ @Description GRO General Definitions.
 
  @{
 *//***************************************************************************/
 
-	/** GRO context size definition. */
-#define GRO_CONTEXT_SIZE	128
-	/** GRO context definition. */
-typedef uint8_t gro_ctx_t[GRO_CONTEXT_SIZE];
+	/** TCP GRO context size definition. */
+#define TCP_GRO_CONTEXT_SIZE	128
+	/** TCP GRO context definition. */
+typedef uint8_t tcp_gro_ctx_t[TCP_GRO_CONTEXT_SIZE];
 
 
 
@@ -44,55 +44,69 @@ typedef uint8_t gro_ctx_t[GRO_CONTEXT_SIZE];
 		expired.
 		The user provides this function and the GRO process invokes it.
 
-@Param[in]	handle - The handle that was deleted.
+@Param[in]	arg - Address (in HW buffers) of the argument to the callback
+		function.
 
  *//***************************************************************************/
-typedef void (t_callback_on_timeout)(uint64_t handle);
+typedef void (gro_timeout_cb_t)(uint64_t arg);
 
-/** @} */ /* end of TCP_GRO_GENERAL_DEFINITIONS */
+/** @} */ /* end of GRO_GENERAL_DEFINITIONS */
 
 /**************************************************************************//**
- @Group	TCP_GRO_FLAGS TCP GRO Flags
+ @Group	GRO_FLAGS GRO Flags
 
- @Description Flags for \ref gro_aggregate_seg() function.
+ @Description GRO Flags.
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+ @Group	TCP_GRO_AGG_FLAGS TCP GRO Aggregation Flags
+
+ @Description Flags for \ref tcp_gro_aggregate_seg() function.
 
  @{
 *//***************************************************************************/
 
 	/** GRO no flags indication. */
 #define TCP_GRO_NO_FLAGS		0x00000000
-	/** If set, extended statistics is enabled. 	*/
-#define TCP_GRO_EXTENDED_STATS_EN	0x00000001
+	/** If set, tcp_gro_aggregate_seg() is called for the first time for
+	 * this session . */
+#define TCP_GRO_NEW_SESSION		0x00000001
+	/** If set, extended statistics is enabled.	*/
+#define TCP_GRO_EXTENDED_STATS_EN	0x00000002
 	/** If set, save the segment sizes in the metadata. */
-#define TCP_GRO_METADATA_SEGMENT_SIZES	0x00000002
+#define TCP_GRO_METADATA_SEGMENT_SIZES	0x00000004
 	/** If set, calculate TCP and IP checksum. */
-#define TCP_GRO_CALCULATE_CHECKSUM	0x00000004
+#define TCP_GRO_CALCULATE_CHECKSUM	0x00000008
 
+
+/** @} */ /* end of TCP_GRO_AGG_FLAGS */
 
 /** @} */ /* end of TCP_GRO_FLAGS */
 
 /**************************************************************************//**
 @Group	TCP_GRO_AGGREGATE_STATUS  TCP GRO Aggregation Statuses
 
-@Description \ref gro_aggregate_seg() return values
+@Description \ref tcp_gro_aggregate_seg() return values
 
 @{
 *//***************************************************************************/
 
 	/** A segment was aggregated and the aggregation is not completed. */
-#define	TCP_GRO_SEG_AGG_NOT_DONE	(TCP_GRO_MODULE_STATUS_ID | 0x1)
+#define	TCP_GRO_SEG_AGG_NOT_DONE	(GRO_MODULE_STATUS_ID | 0x1)
 	/** A segment was aggregated and the aggregation is completed. */
-#define	TCP_GRO_SEG_AGG_DONE		(TCP_GRO_MODULE_STATUS_ID | 0x2)
+#define	TCP_GRO_SEG_AGG_DONE		(GRO_MODULE_STATUS_ID | 0x2)
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
-#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x3)
+#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(GRO_MODULE_STATUS_ID | 0x3)
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
 /**************************************************************************//**
 @Group	TCP_GRO_FLUSH_STATUS  TCP GRO Flush Statuses
 
-@Description \ref gro_flush_aggregation() return values
+@Description \ref tcp_gro_flush_aggregation() return values
 
 @{
 *//***************************************************************************/
@@ -100,16 +114,16 @@ typedef void (t_callback_on_timeout)(uint64_t handle);
 	/** The aggregation is flushed. */
 #define	TCP_GRO_FLUSH_AGG_DONE	SUCCESS
 	/** No aggregation exists for the session. */
-#define	TCP_GRO_FLUSH_NO_AGG	(TCP_GRO_MODULE_STATUS_ID | 0x1)
+#define	TCP_GRO_FLUSH_NO_AGG	(GRO_MODULE_STATUS_ID | 0x1)
 
 /** @} */ /* end of TCP_GRO_FLUSH_STATUS */
 
-/** @} */ /* end of TCP_GRO_MACROS */
+/** @} */ /* end of GRO_MACROS */
 
 /**************************************************************************//**
-@Group		TCP_GRO_STRUCTS TCP GRO Structures
+@Group		GRO_STRUCTS GRO Structures
 
-@Description	AIOP TCP GRO Structures
+@Description	AIOP GRO Structures
 
 @{
 *//***************************************************************************/
@@ -117,7 +131,7 @@ typedef void (t_callback_on_timeout)(uint64_t handle);
 /**************************************************************************//**
 @Description	TCP GRO statistics counters.
 *//***************************************************************************/
-struct gro_stats_cntrs {
+struct tcp_gro_stats_cntrs {
 		/** Counts the number of aggregated packets. */
 	uint32_t	agg_num_cntr;
 		/** Counts the number of aggregated segments. */
@@ -144,11 +158,11 @@ struct gro_stats_cntrs {
 /**************************************************************************//**
 @Description	TCP GRO packet metadata.
 *//***************************************************************************/
-struct gro_context_metadata {
-		/** Address (in BMAN buffers) of the segment sizes. This field
+struct tcp_gro_context_metadata {
+		/** Address (in HW buffers) of the segment sizes. This field
 		 * will be updated if \ref TCP_GRO_METADATA_SEGMENT_SIZES is
 		 * set. */
-	uint64_t seg_sizes;
+	uint64_t seg_sizes_addr;
 		/** Number of segments in the aggregation. */
 	uint16_t seg_num;
 		/** Largest segment size*/
@@ -158,56 +172,66 @@ struct gro_context_metadata {
 };
 
 /**************************************************************************//**
-@Description	TCP GRO aggregation limits.
+@Description	GRO aggregation limits.
 *//***************************************************************************/
 struct gro_context_limits {
 		/** Timeout per packet aggregation limit. */
-	uint32_t timeout_limit;
+	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit. */
 	uint16_t packet_size_limit;
 		/** Maximum aggregated segments per packet limit. */
 	uint8_t	seg_num_limit;
 		/** Padding */
-	uint8_t	pad[1];
+	uint8_t	pad[3];
 
+};
+
+/**************************************************************************//**
+@Description	GRO aggregation Timeout Parameters.
+*//***************************************************************************/
+struct gro_context_timeout_params {
+		/** Address (in HW buffers) of the callback function parameter
+		 * argument on timeout.
+		 * On timeout, GRO will call upper layer callback function with
+		 * this parameter. */
+	uint64_t gro_timeout_cb_arg;
+		/** Function to call upon Time Out occurrence.
+		 * This function takes one argument. */
+	gro_timeout_cb_t *gro_timeout_cb;
+		/** TMAN Instance ID. */
+	uint8_t tmi_id;
+		/** Padding */
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
 @Description	TCP GRO aggregation parameters.
 *//***************************************************************************/
-struct gro_context_params {
+struct tcp_gro_context_params {
 		/** TCP GRO aggregation metadata. */
-	struct gro_context_metadata metadata;
-		/** Address (in BMAN buffers) of the TCP GRO statistics counters
-		 *  (\ref gro_stats_cntrs). */
-	uint64_t statistics;
-		/** Callback function parameter on timeout.
-		 * On timeout, GRO will call upper layer callback function with
-		 * this parameter. */
-	uint64_t callback_param_on_timeout;
+	struct tcp_gro_context_metadata metadata;
+		/** TCP GRO aggregation timeout parameters. */
+	struct gro_context_timeout_params timeout_params;
 		/** Aggregated packet limits. */
 	struct gro_context_limits limits;
-		/** Function to call upon Time Out occurrence.
-		 * This function takes one argument
-		 * (\ref gro_context_params.callback_param_on_timeout). */
-	t_callback_on_timeout	*callback_on_timeout;
-		/** Padding */
-	uint8_t	pad[4];
+		/** Address (in HW buffers) of the TCP GRO statistics counters
+		 *  (\ref tcp_gro_stats_cntrs). */
+	uint64_t stats_addr;
 };
 
 
-/** @} */ /* end of TCP_GRO_STRUCTS */
+/** @} */ /* end of GRO_STRUCTS */
 
 /**************************************************************************//**
-@Group		TCP_GRO_Functions TCP GRO Functions
+@Group		GRO_FUNCTIONS TCP GRO Functions
 
-@Description	TCP GRO Functions
+@Description	GRO Functions
 
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	gro_aggregate_seg
+@Function	tcp_gro_aggregate_seg
 
 @Description	This function aggregates TCP segments to one TCP
 		packet.
@@ -218,26 +242,26 @@ struct gro_context_params {
 		Pre-condition - The segment to be aggregated should be located
 		in the default frame location in workspace.
 
-@Param[in]	gro_ctx_addr - Address (in BMAN buffers) of the TCP GRO internal
-		context. The user should allocate \ref gro_ctx_t in this
-		address.
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context. The user should allocate \ref tcp_gro_ctx_t in
+		this address.
 @Param[in]	params - Pointer to the aggregated packet metadata.
-@Param[in]	flags - Please refer to \ref TCP_GRO_FLAGS.
+@Param[in]	flags - Please refer to \ref TCP_GRO_AGG_FLAGS.
 
 @Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
-		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_hw_errors or
+		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
 		\ref TMANReturnStatus for more details.
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t gro_aggregate_seg(
-		uint64_t gro_ctx_addr,
-		struct gro_context_params *params,
+int32_t tcp_gro_aggregate_seg(
+		uint64_t tcp_gro_context_addr,
+		struct tcp_gro_context_params *params,
 		uint32_t flags);
 
 
 /**************************************************************************//**
-@Function	gro_flush_aggregation
+@Function	tcp_gro_flush_aggregation
 
 @Description	This function flush an open TCP packet
 		aggregation.
@@ -245,27 +269,27 @@ int32_t gro_aggregate_seg(
 		The aggregated packet will reside at the default frame location
 		when this function returns.
 
-@Param[in]	gro_ctx_addr - Address (in BMAN buffers) of the TCP GRO internal
-		context. The user should allocate \ref gro_ctx_t in this
-		address.
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context. The user should allocate \ref tcp_gro_ctx_t in
+		this address.
 
 @Return		Status, please refer to \ref TCP_GRO_FLUSH_STATUS,
-		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_hw_errors or
+		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
 		\ref TMANReturnStatus for more details.
 
 @Cautions	No frame should reside at the default frame location in
 		workspace before this function is called.
 *//***************************************************************************/
-int32_t gro_flush_aggregation(
-		uint64_t gro_ctx_addr);
+int32_t tcp_gro_flush_aggregation(
+		uint64_t tcp_gro_context_addr);
 
 
 
 
-/** @} */ /* end of TCP_GRO_Functions */
+/** @} */ /* end of GRO_Functions */
 
 
-/** @} */ /* end of FSL_AIOP_TCP_GRO */
+/** @} */ /* end of FSL_AIOP_GRO */
 
 
 

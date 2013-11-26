@@ -16,9 +16,9 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {E_PLATFORM_MEM_RGN_WS,         E_MEM_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00800000,    0x00800000, (32  * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_SHRAM,      E_MEM_INT_RAM,               0x01000000,    0x01000000, (256 * KILOBYTE) },\
-    {E_PLATFORM_MEM_RGN_DDR1,       E_MEM_1ST_DDR_NON_CACHEABLE, 0x40000000,    0x40000000, (128 * MEGABYTE) },\
-    {E_PLATFORM_MEM_RGN_CCSR,       E_MEM_INVALID,               0xfe000000,    0xfe000000, (16  * MEGABYTE) },\
-    {E_PLATFORM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x08000000,    0x08000000, (32  * MEGABYTE) },\
+    {E_PLATFORM_MEM_RGN_DDR1,       E_MEM_1ST_DDR_NON_CACHEABLE, 0x50000000,    0x50000000, (128 * MEGABYTE) },\
+    {E_PLATFORM_MEM_RGN_CCSR,       E_MEM_INVALID,               0x00000000,    0x00000000, (16  * MEGABYTE) },\
+    {E_PLATFORM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x08000000,    0x08000000, (2  * MEGABYTE)  },\
 }
 
 #define GLOBAL_MODULES                  \
@@ -40,11 +40,13 @@ int fill_system_parameters(t_sys_param *sys_param)
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
 
+#ifndef DEBUG_NO_MC
     { /* TODO - temporary check boot register */
-    	uintptr_t   tmp_reg = 0xfe000000 + SOC_PERIPH_OFF_AIOP;
+    	uintptr_t   tmp_reg = 0x00000000 + SOC_PERIPH_OFF_MC;
     	/* wait for MC command for boot */
-    	while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x90)) & (0x1 << core_get_id()))) ;
+    	while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x08)) & 0x1)) ;
     }
+#endif /* DEBUG_NO_MC */
 
     sys_param->partition_id = 0;
     sys_param->partition_cores_mask = 0x3;

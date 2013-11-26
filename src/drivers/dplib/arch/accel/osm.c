@@ -6,7 +6,7 @@
 
 #include "fsl_osm.h"
 #include "osm.h"
-//#include "dpni_drv.h"
+/* #include "dpni_drv.h" */
 
 __TASK uint8_t CURRENT_SCOPE_LEVEL;
 __TASK uint8_t SCOPE_MODE_LEVEL1;

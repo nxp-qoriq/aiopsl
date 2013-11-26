@@ -69,6 +69,8 @@
 #define FDMA_REPLACE_PTA_CMD		0x00005019
 	/** FDMA Checksum working frame command code */
 #define FDMA_CKS_CMD			0x0000001A
+	/** FDMA Copy data command code */
+#define FDMA_COPY_CMD			0x00000040
 
 /* FDMA Commands Structure identifiers */
 	/** FDMA Initial frame presentation Command Structure identifier */
@@ -95,7 +97,7 @@
 #define FDMA_ENQUEUE_FRAME_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
 		FDMA_ENQUEUE_FRAME_CMD)
 	/** FDMA Discard default frame Command Structure identifier */
-#define FDMA_DISCARD_DEFAULT_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | 	\
+#define FDMA_DISCARD_DEFAULT_WF_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
 		FDMA_DISCARD_DEFAULT_WF_CMD)
 	/** FDMA Discard working frame Command Structure identifier */
 #define FDMA_DISCARD_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_DISCARD_WF_CMD)
@@ -123,10 +125,13 @@
 	/** FDMA Replace working frame ASA segment Command Structure
 	 * identifier */
 #define FDMA_REPLACE_ASA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_REPLACE_ASA_CMD)
-	/** FDMA Replace working frame PTA segment Command Structure identifier*/
+	/** FDMA Replace working frame PTA segment Command Structure
+	 * identifier*/
 #define FDMA_REPLACE_PTA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_REPLACE_PTA_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_CKS_CMD)
+	/** FDMA Copy data command Structure identifier */
+#define FDMA_COPY_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_COPY_CMD)
 
 
 /** \addtogroup AIOP_Service_Routines_Verification
@@ -371,7 +376,7 @@ struct fdma_store_default_frame_command {
 		 * identifier. */
 	uint32_t opcode;
 		/** Storage profile used to store frame data if additional
-		 * buffers are required*/
+		 * buffers are required. */
 	uint8_t	spid;
 		/** Command returned status. */
 	int8_t	status;
@@ -530,11 +535,11 @@ struct fdma_discard_default_wf_command {
 		/** FDMA Discard Default Working Frame command structure
 		* identifier. */
 	uint32_t opcode;
-		/** Frame Source. Currently not supported since only FS = 0 is
+		/* Frame Source. Currently not supported since only FS = 0 is
 		* supported in rev1.
 		* - 0: discard working frame (using FRAME_HANDLE)
 		* - 1: discard Frame (using FD at FD_ADDRESS).
-	uint8_t	 FS;*/
+	uint8_t	 FS; */
 		/** Control:
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
@@ -559,7 +564,7 @@ struct fdma_discard_wf_command {
 	uint32_t opcode;
 		/** Frame handle to discard. */
 	uint16_t frame;
-		/** Frame Source. Currently not supported since only FS = 0 is
+		/* Frame Source. Currently not supported since only FS = 0 is
 		* supported in rev1.
 		* - 0: discard working frame (using FRAME_HANDLE)
 		* - 1: discard Frame (using FD at FD_ADDRESS).
@@ -1044,6 +1049,38 @@ struct fdma_checksum_command {
 	int8_t  status;
 		/** 64-bit alignment. */
 	uint8_t	pad[5];
+};
+
+/**************************************************************************//**
+@Description	FDMA Copy Data Command structure.
+
+		Includes information needed for FDMA Copy data command
+		verification.
+
+*//***************************************************************************/
+struct fdma_copy_command {
+		/** FDMA Copy Data command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location in the workspace/AIOP Shared
+		 * memory of the source data. */
+	uint32_t src;
+		/** A pointer to the location in the workspace/AIOP Shared
+		 * memory to store the copied data. */
+	uint32_t dst;
+		/** Number of bytes to copy from source to destination. */
+	uint16_t copy_size;
+		/** Source Memory:
+		- 0: Workspace.
+		- 1: AIOP Shared Memory. */
+	uint8_t SM;
+		/** Destination Memory:
+		- 0: Workspace.
+		- 1: AIOP Shared Memory. */
+	uint8_t DM;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 

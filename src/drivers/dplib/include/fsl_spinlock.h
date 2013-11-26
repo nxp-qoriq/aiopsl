@@ -79,11 +79,11 @@ void unlock_spinlock(uint8_t *spinlock);
 
 @Description	Atomic increment macro for 8 bit variable.
 
-@Param[in]	var - pointer to the variable to increment. 
-@Param[in]	value - increment value. 
+@Param[in]	var - pointer to the variable to increment.
+@Param[in]	value - increment value.
 
 @Return		None.
-			
+
 *//***************************************************************************/
 void aiop_atomic_incr8(int8_t *var, int8_t value);
 
@@ -92,11 +92,11 @@ void aiop_atomic_incr8(int8_t *var, int8_t value);
 
 @Description	Atomic increment macro for 16 bit variable.
 
-@Param[in]	var - pointer to the variable to increment. 
-@Param[in]	value - increment value. 
+@Param[in]	var - pointer to the variable to increment.
+@Param[in]	value - increment value.
 
 @Return		None.
-			
+
 *//***************************************************************************/
 void aiop_atomic_incr16(int16_t *var, int16_t value);
 
@@ -105,11 +105,11 @@ void aiop_atomic_incr16(int16_t *var, int16_t value);
 
 @Description	Atomic increment macro for 32 bit variable.
 
-@Param[in]	var - pointer to the variable to increment. 
-@Param[in]	value - increment value. 
+@Param[in]	var - pointer to the variable to increment.
+@Param[in]	value - increment value.
 
 @Return		None.
-			
+
 *//***************************************************************************/
 void aiop_atomic_incr32(int32_t *var, int32_t value);
 
@@ -118,11 +118,11 @@ void aiop_atomic_incr32(int32_t *var, int32_t value);
 
 @Description	Atomic decrement macro for 8 bit variable.
 
-@Param[in]	var - pointer to the variable to decrement. 
-@Param[in]	value - decrement value. 
+@Param[in]	var - pointer to the variable to decrement.
+@Param[in]	value - decrement value.
 
 @Return		None.
-			
+
 *//***************************************************************************/
 void aiop_atomic_decr8(int8_t *var, int8_t value);
 
@@ -131,11 +131,11 @@ void aiop_atomic_decr8(int8_t *var, int8_t value);
 
 @Description	Atomic decrement macro for 16 bit variable.
 
-@Param[in]	var - pointer to the variable to decrement. 
-@Param[in]	value - decrement value. 
+@Param[in]	var - pointer to the variable to decrement.
+@Param[in]	value - decrement value.
 
 @Return		None.
-			
+
 *//***************************************************************************/
 void aiop_atomic_decr16(int16_t *var, int16_t value);
 
@@ -144,11 +144,11 @@ void aiop_atomic_decr16(int16_t *var, int16_t value);
 
 @Description	Atomic decrement macro for 32 bit variable.
 
-@Param[in]	var - pointer to the variable to decrement. 
-@Param[in]	value - decrement value. 
+@Param[in]	var - pointer to the variable to decrement.
+@Param[in]	value - decrement value.
 
 @Return		None.
-			
+
 *//***************************************************************************/
 void aiop_atomic_decr32(int32_t *var, int32_t value);
 

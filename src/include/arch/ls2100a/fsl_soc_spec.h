@@ -66,19 +66,36 @@
 #define SOC_PERIPH_OFF_SEC_RESERVED     0x08305000
 #define SOC_PERIPH_OFF_SEC_RTIC         0x08306000
 #define SOC_PERIPH_OFF_SEC_QI           0x08307000
-#define SOC_PERIPH_OFF_QMAN             0x08318000/*0x08180000*/
-#define SOC_PERIPH_OFF_BMAN             0x0831a000/*0x08190000*/
-#define SOC_PERIPH_OFF_EIOP             0x08810000/*0x08b90000*/
-#define SOC_PERIPH_OFF_EIOP_CTLU        0x08800000/*0x08b80000*/
-#define SOC_PERIPH_OFF_EIOP_PP          0x08900000/*0x08c00000*/
-#define SOC_PERIPH_OFF_EIOP_IFP         0x08a00000/*0x08800000*/
-#define SOC_PERIPH_OFF_AIOP             0x00001000
+#ifdef SIM_USING_OLD_MEM_MAP
+#define SOC_PERIPH_OFF_QMAN             0x08318000
+#define SOC_PERIPH_OFF_BMAN             0x0831a000
+#define SOC_PERIPH_OFF_EIOP             0x08810000
+#define SOC_PERIPH_OFF_EIOP_CTLU_ING    0x08800000
+#define SOC_PERIPH_OFF_EIOP_CTLU_EG     0x08804000
+#define SOC_PERIPH_OFF_EIOP_PP          0x08900000
+#define SOC_PERIPH_OFF_EIOP_IFPS        0x08a00000
+#define SOC_PERIPH_OFF_AIOP             0x08001000
+#define SOC_PERIPH_OFF_MC               0x08002000
+#else
+#define SOC_PERIPH_OFF_QBMAN            0x08180000
+#define SOC_PERIPH_OFF_EIOP             0x08b90000
+#define SOC_PERIPH_OFF_EIOP_CTLU_ING    0x08b80000
+#define SOC_PERIPH_OFF_EIOP_CTLU_EG     0x08b84000
+#define SOC_PERIPH_OFF_EIOP_PP          0x08c00000
+#define SOC_PERIPH_OFF_EIOP_IFPS        0x08800000
+#define SOC_PERIPH_OFF_AIOP             0x08900000
+#define SOC_PERIPH_OFF_MC               0x08340000
+#endif /* SIM_USING_OLD_MEM_MAP */
+
+#define SOC_PERIPH_OFF_AIOP_CMGW        0x0
+#define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
+#define SOC_PERIPH_OFF_AIOP_ATU         0x1e000
 
 /* Offsets relative to QBMan portals base */
 #define SOC_PERIPH_OFF_PORTALS_CE_AREA  0x0000000        /* cache enabled area */
 #define SOC_PERIPH_OFF_PORTALS_CI_AREA  0x1000000        /* cache inhibited area */
 /* Offsets relative to MC portals base */
-#define SOC_PERIPH_OFF_PORTALS_MC_AREA  0x0000000        /* cache enabled area */
+#define SOC_PERIPH_OFF_PORTALS_MC_AREA  0x0000000
 
 #define SOC_PERIPH_CE_PORTAL_SIZE       0x4000
 #define SOC_PERIPH_CI_PORTAL_SIZE       0x1000
@@ -130,11 +147,12 @@
 #define MODULE_DPNI             0x00230000
 #define MODULE_DPSW             0x00240000
 #define MODULE_EIOP             0x00250000
-#define MODULE_DPPCD            0x00260000
+#define MODULE_CTLU             0x00260000
 #define MODULE_CMDIF            0x00270000
 #define MODULE_DPRC             0x00280000
 #define MODULE_DPIO             0x00290000
 #define MODULE_DPSP             0x002a0000
+#define MODULE_LINKMAN          0x002b0000
 
 
 #endif /* __FSL_SOC_SPEC_H */

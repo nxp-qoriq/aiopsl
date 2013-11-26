@@ -324,7 +324,7 @@ int32_t fdma_store_default_frame_data(void)
 int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
-		struct fdma_icid_context_params *icid_context)
+		struct fdma_isolation_attributes *isolation_attributes)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -340,9 +340,10 @@ int32_t fdma_store_frame_data(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	icid_context->bdi_icid = *((uint16_t *)HWC_ACC_OUT_ADDRESS);
-	icid_context->flags = (*((uint32_t *)HWC_ACC_OUT_ADDRESS)) &
-			FDMA_STORE_CMD_OUT_FLAGS_MASK;
+	isolation_attributes->bdi_icid = *((uint16_t *)HWC_ACC_OUT_ADDRESS);
+	isolation_attributes->flags = (*((uint16_t *)
+		(HWC_ACC_OUT_ADDRESS + FDMA_STORE_CMD_OUT_FLAGS_OFFSET)))
+		& FDMA_STORE_CMD_OUT_FLAGS_MASK;
 	return (int32_t)(res1);
 }
 
@@ -1066,6 +1067,31 @@ int32_t fdma_calculate_default_frame_checksum(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	*checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+FDMA_CHECKSUM_OFFSET));
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_copy_data(
+		uint16_t copy_size,
+		uint32_t flags,
+		void *src,
+		void *dst)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_COPY_CMD_ARG1(copy_size, flags);
+	/* store command parameters */
+	__stdw(arg1, (uint32_t)src, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = (uint32_t)dst;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 	return (int32_t)(res1);
 }

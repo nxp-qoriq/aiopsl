@@ -67,11 +67,13 @@
 #define FDMA_SR_OFFSET			0x8
 	/** Macro to get the Segment Reference bit from the presentation
 	 * context and locate it in the FDMA command correct location */
-#define PRC_GET_SR_BIT_FDMA_CMD()						\
+#define PRC_GET_SR_BIT_FDMA_CMD()					\
 	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 	 asapa_asaps) & PRC_SR_MASK) << (FDMA_SR_OFFSET-PRC_SR_BIT_OFFSET))
 	/** FDMA Store command output flags mask. */
 #define FDMA_STORE_CMD_OUT_FLAGS_MASK		0x0000FF00
+	/** FDMA Store command output flags offset. */
+#define FDMA_STORE_CMD_OUT_FLAGS_OFFSET		2
 
 /* @} end of group FDMA_Commands_Definitions */
 
@@ -131,6 +133,8 @@
 #define FDMA_REPLACE_CMD		0x00000019
 	/** FDMA Checksum working frame command code */
 #define FDMA_CKS_CMD			0x0000001A
+	/** FDMA Copy data command code */
+#define FDMA_COPY_CMD			0x00000040
 
 
 /* @} end of group FDMA_Commands_IDs */
@@ -345,6 +349,10 @@
 	/**< FDMA Checksum  working frame segment command arg2 */
 #define FDMA_CKS_CMD_ARG2(_offset, _size)				\
 	(uint32_t)((_offset << 16) | _size)
+
+/** FDMA Copy data command arg1 */
+#define FDMA_COPY_CMD_ARG1(_copy_size, _flags)				\
+	(uint32_t)((((uint32_t)_copy_size) << 16) | _flags | FDMA_COPY_CMD)
 
 
 

@@ -86,7 +86,7 @@ void fsl_os_free(void *mem);
 
 
 /**************************************************************************//**
- @Function      fsl_os_buff_accuire
+ @Function      fsl_os_buff_acquire
 
  @Description   Get a block of memory from a segment.
 
@@ -95,7 +95,7 @@ void fsl_os_free(void *mem);
 
  @Return        E_OK on success, error code otherwise.
  *//***************************************************************************/
-int fsl_os_buff_accuire(int pool_id, uint64_t *buff);
+int fsl_os_buff_acquire(int pool_id, uint64_t *buff);
 
 /**************************************************************************//**
  @Function      fsl_os_buff_release

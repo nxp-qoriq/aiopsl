@@ -22,13 +22,14 @@ static int init_nic(int portal_id)
 	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
 																   (uint32_t)portal_id,
 																   E_MAPPED_MEM_TYPE_MC_PORTAL)),
-								 1);
+								 10);
 
 	memset(&params, 0, sizeof(params));
 	params.type = DPNI_TYPE_NIC;
 	err = dpni_init(dpni, &cfg, &params);
 	if (err)
 		return err;
+
 	return 0;
 }
 
@@ -37,7 +38,7 @@ int aiop_app_init(void)
 {
     int err = 0;
 
-    fsl_os_print("TEST: AIOP+MC\n");
+    fsl_os_print("AIOP test: NIC\n");
 
     err = init_nic(2);
 

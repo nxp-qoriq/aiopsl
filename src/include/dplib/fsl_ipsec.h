@@ -35,7 +35,7 @@
 /** IPsec Tunnel Mode Flag */
 #define IPSEC_FLAG_TUNNEL_MODE		0x00000000
 
-/** IPsec Tunnel Mode Flag */
+/** IPsec Transport Mode Flag */
 #define IPSEC_FLAG_TRANSPORT_MODE	0x00000001
 
 /** @} */ /* end of IPSEC_FLAGS */
@@ -61,22 +61,16 @@ struct ipsec_params{
 	 * this API. */
 	uint64_t sec_flc_addr;
 
-	/** Flags
-	 * Please refer to \link IPSEC_FLAGS IPsec flags \endlink for more
-	 * details. */
+	/** Flags. Please refer to \ref IPSEC_FLAGS for more details. */
 	uint32_t flags;
 
 	/** Storage Profile ID of the output frame.
 	 * This Storage Profile(SP) ID should fit the SP configured in the SEC
-	 * descriptor which is located at \ref sec_descriptor_addr. */
+	 * descriptor which is located at \ref sec_flc_addr. */
 	uint16_t spid;
 
-	/** Pool ID.
-	 * Used for IPsec function buffer allocation for internal use. */
-	uint8_t  pool_id;
-
 	/** Padding */
-	uint8_t  pad;
+	uint8_t  pad[2];
 };
 
 /** @} */ /* end of FSL_IPSEC_STRUCTS */
@@ -90,7 +84,7 @@ struct ipsec_params{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	aiop_ipsec_frame_decrypt
+@Function	ipsec_frame_decrypt
 
 @Description	This function performs the decryption and the required IPsec
 		protocol changes (according to RFC4303). This function also
@@ -98,7 +92,6 @@ struct ipsec_params{
 		Both Tunnel and Transport modes are supported.
 		Tunneling of IPv4/IPv6 packets (either with (up to 64 Bytes) or
 		without Ethernet L2) within IPv4/IPv6 is supported.
-		SEC HW is used to perform the decryption and authentication.
 		The function also updates the decrypted frame parser result and
 		checks the inner UDP checksum (if available).
 
@@ -108,6 +101,9 @@ struct ipsec_params{
 @Return		TODO TBD
 
 @Cautions	In this function the task yields.
+		This function preserves the Order Scope mode of the task. If
+		the Order Scope is of mode concurrent, the Order Scope ID is
+		incremented by 1.
 		It is assumed that IPv6 ESP extension is the last IPv6
 		extension in the packet.
 		This function does not support Storage Profile with BS == 1
@@ -115,13 +111,11 @@ struct ipsec_params{
 		This function does not support input frames which are IPv6
 		jumbograms.
 *//****************************************************************************/
-int32_t aiop_ipsec_frame_decrypt(struct ipsec_params *ipsec_params,
+int32_t ipsec_frame_decrypt(struct ipsec_params *ipsec_params,
 				 uint32_t *byte_cnt);
 
-
 /**************************************************************************//**
-
-@Function	aiop_ipsec_frame_encrypt
+@Function	ipsec_frame_encrypt
 
 @Description	This function performs the encryption and the required IPsec
 		protocol changes (according to RFC4303).  This function
@@ -130,7 +124,6 @@ int32_t aiop_ipsec_frame_decrypt(struct ipsec_params *ipsec_params,
 		Both Tunnel and Transport modes are supported.
 		Tunneling of IPv4/IPv6 packets (either with (up to 64 Bytes) or
 		without Ethernet L2) within IPv4/IPv6 is supported.
-		SEC HW is used to perform the encryption and authentication.
 		The function also updates the encrypted frame parser result.
 
 @Param[in]	ipsec_params - Function's parameters.
@@ -139,12 +132,15 @@ int32_t aiop_ipsec_frame_decrypt(struct ipsec_params *ipsec_params,
 @Return		TODO TBD
 
 @Cautions	In this function the task yields.
+		This function preserves the Order Scope mode of the task. If
+		the Order Scope is of mode concurrent, the Order Scope ID is
+		incremented by 1.
 		This function does not support Storage Profile with BS == 1
 		(buffer reuse).
 		This function does not support encrypted frames which are IPv6
 		jumbograms.
 *//****************************************************************************/
-int32_t aiop_ipsec_frame_encrypt(struct ipsec_params *ipsec_params,
+int32_t ipsec_frame_encrypt(struct ipsec_params *ipsec_params,
 				 uint32_t *byte_cnt);
 
 /** @} */ /* end of FSL_IPSEC_Functions */

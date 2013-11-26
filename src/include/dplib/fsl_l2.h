@@ -28,7 +28,7 @@
 *//***************************************************************************/
 
 /*************************************************************************//**
-@Function	hm_l2_header_remove
+@Function	l2_header_remove
 
 @Description	Remove Ethernet/802.3 MAC header.
 
@@ -53,11 +53,11 @@
 		- In this function, the task yields.
 
 *//***************************************************************************/
-void hm_l2_header_remove();
+void l2_header_remove();
 
 
 /*************************************************************************//**
-@Function	aiop_vlan_header_remove
+@Function	l2_vlan_header_remove
 
 @Description	VLAN Header removal. Remove the stacked QTags if exists.
 		(Unlimited stacked QTags).
@@ -84,10 +84,10 @@ void hm_l2_header_remove();
 		In this function, the task yields
 
 *//***************************************************************************/
-int32_t hm_vlan_header_remove();
+int32_t l2_vlan_header_remove();
 
 /*************************************************************************//**
-@Function	hm_set_vlan_vid
+@Function	l2_set_vlan_vid
 
 @Description	Set the 802.1q outer VLAN id.
 
@@ -96,11 +96,11 @@ int32_t hm_vlan_header_remove();
 @Return		Success or Failure (There was no VLAN in the frame).
 
 *//***************************************************************************/
-int32_t hm_set_vlan_vid(uint16_t vlan_vid);
+int32_t l2_set_vlan_vid(uint16_t vlan_vid);
 
 
 /*************************************************************************//**
-@Function	hm_set_vlan_pcp
+@Function	l2_set_vlan_pcp
 
 @Description	Set the 802.1q priority in the outer VLAN.
 
@@ -109,11 +109,11 @@ int32_t hm_set_vlan_vid(uint16_t vlan_vid);
 @Return		Success or Failure (There was no VLAN in the frame).
 
 *//***************************************************************************/
-int32_t hm_set_vlan_pcp(uint8_t vlan_pcp);
+int32_t l2_set_vlan_pcp(uint8_t vlan_pcp);
 
 
 /*************************************************************************//**
-@Function	hm_set_dl_src
+@Function	l2_set_dl_src
 
 @Description	Replace the Ethernet source address
 
@@ -123,11 +123,11 @@ int32_t hm_set_vlan_pcp(uint8_t vlan_pcp);
 
 @Cautions	None.
 *//***************************************************************************/
-void hm_set_dl_src(uint8_t *src_addr);
+void l2_set_dl_src(uint8_t *src_addr);
 
 
 /*************************************************************************//**
-@Function	hm_set_dl_dst
+@Function	l2_set_dl_dst
 
 @Description	Replace the Ethernet destination address
 
@@ -137,10 +137,10 @@ void hm_set_dl_src(uint8_t *src_addr);
 
 @Cautions	None.
 *//***************************************************************************/
-void hm_set_dl_dst(uint8_t *dst_addr);
+void l2_set_dl_dst(uint8_t *dst_addr);
 
 /*************************************************************************//**
-@Function	hm_push_vlan
+@Function	l2_push_vlan
 
 @Description	Push a new outer VLAN tag.\n
 
@@ -167,11 +167,11 @@ void hm_set_dl_dst(uint8_t *dst_addr);
 		If there is no ethernet header, the vlan is inserted at the
 		beginning of the segment.
 *//***************************************************************************/
-void hm_push_vlan(uint16_t ethertype);
+void l2_push_vlan(uint16_t ethertype);
 
 
 /*************************************************************************//**
-@Function	hm_pop_vlan
+@Function	l2_pop_vlan
 
 @Description	Pop the outer VLAN tag.
 		The parse results are updated automatically at the end of
@@ -188,7 +188,7 @@ void hm_push_vlan(uint16_t ethertype);
 @Cautions	The parse results must be updated before calling this operation.
 		This function assumes the presence of the ethernet header.
 *//***************************************************************************/
-int32_t hm_pop_vlan();
+int32_t l2_pop_vlan();
 
 
 /* @} end of group FSL_HM_L2_Functions */

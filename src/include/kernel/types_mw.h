@@ -28,5 +28,8 @@ typedef uint64_t            dma_addr_t;
 #endif /* NULL */
 
 
+/** Task global variable definition */
+#define __TASK __declspec(section ".tdata")
+
 
 #endif /* __TYPES_MW_H */
