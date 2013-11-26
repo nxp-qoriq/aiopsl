@@ -9,7 +9,7 @@
 #include "aiop_verification.h"
 #include "fsl_fdma.h"
 
-void aiop_verification()
+void aiop_verification(void)
 {
 	/* Presentation Context */
 	struct presentation_context *PRC;
