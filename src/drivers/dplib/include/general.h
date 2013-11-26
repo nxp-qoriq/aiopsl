@@ -11,7 +11,8 @@
 #define __GENERAL_H_
 
 #include "common/types.h"
-#include "dplib/fsl_ldpaa.h"
+//#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 /*#include "fsl_aiop_parser.h"*/
 
 /**************************************************************************//**

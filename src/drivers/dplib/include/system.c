@@ -5,7 +5,8 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
-#include "fsl_system.h"
+//#include "fsl_system.h"
+#include "system.h"
 #include "id_pool.h"
 
 /* Global parameters*/

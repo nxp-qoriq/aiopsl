@@ -13,7 +13,7 @@
 #include "fsl_nat.h"
 #include "fsl_header_modification_errors.h"
 #include "fsl_parser.h"
-#include "fsl_system.h"
+#include "system.h"
 
 struct parse_profile_record verif_parse_profile;
 

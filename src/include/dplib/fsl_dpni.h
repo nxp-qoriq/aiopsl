@@ -11,7 +11,8 @@
 
 #include "common/types.h"
 #include "net/fsl_net.h"
-#include "dplib/fsl_ldpaa.h"
+//#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 
 /* TODO - should be removed and replaced by the real CTLU
  * extract_key structure */

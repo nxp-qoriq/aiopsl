@@ -9,7 +9,8 @@
 #include "fsl_cdma.h"
 #include "fsl_ctlu.h"
 #include "ctlu.h"
-#include "fsl_system.h"
+//#include "fsl_system.h"
+#include "system.h"
 #include "id_pool.h"
 
 int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
@@ -444,7 +445,7 @@ int32_t ctlu_kcr_builder_add_protocol_specific_field(enum
 
 	/* Build the FEC */
 	/* Protocol Specific FECID, mask extension indication */
-	fecid = protocol_fecid << 1;
+	fecid = (uint8_t)protocol_fecid << 1;
 
 	if (mask) {
 		if (mask->single_mask[0].mask_offset > 0xF ||
@@ -522,7 +523,7 @@ int32_t ctlu_kcr_builder_add_protocol_based_generic_fec(
 		return CTLU_KCR_PR_OFFSET_ERR;
 	else
 		op0 = CTLU_KCR_OP0_HET_PROTOCOL |
-					CTLU_KCR_PROTOCOL_HVT | pr_offset;
+					CTLU_KCR_PROTOCOL_HVT | (uint8_t)pr_offset;
 
 	/* OP1 = Extract Offset */
 	if (extract_offset > CTLU_KCR_MAX_EXTRACT_OFFET)
