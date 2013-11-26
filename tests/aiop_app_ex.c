@@ -29,6 +29,7 @@ static int init_nic(int portal_id)
 	err = dpni_init(dpni, &cfg, &params);
 	if (err)
 		return err;
+
 	return 0;
 }
 
