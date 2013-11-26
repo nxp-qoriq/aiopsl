@@ -109,8 +109,6 @@ void prepare_clear_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid);
 void recieve_get_stats_cmd(struct cmdif_cmd_desc *desc, 
 						   struct dpni_stats *stats);
 
-int dpni_modify_primary_mac_addr(struct dpni *dpni, uint8_t addr[]);
-
 
 
 #endif /* _DPNI_H */
