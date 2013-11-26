@@ -54,13 +54,13 @@
 	/** Logical true */
 #define TRUE	1
 	/** NULL pointer */
-#define NULL	((void *)0)
+//#define NULL	((void *)0)
 	/**< 0 value */
 #define ZERO	0
 	/** 1 value */
 #define ONE	1
 	/** Struct offset macro */
-#define offsetof(type, member) (int)(&((type *)0)->member)
+//#define offsetof(type, member) (int)(&((type *)0)->member)
 
 /* Address of end of TLS section */
 #define TLS_SECTION_END_ADDR	0x1f40
