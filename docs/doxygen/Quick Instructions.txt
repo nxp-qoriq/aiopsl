@@ -1,0 +1,17 @@
+1. Copy all files to be documented in doxygen to this folder
+2. load Doxyfile_cfg.txt by Doxywizard
+3. rename project name (e.g. AIOPCoreLib 8.19)
+4. Verify that grephbiz path is correct in: Expert tab -> Dot Topic -> DOT_PATH
+   (If grphviz is not installed, please install it from: http://www.graphviz.org/Download_windows.php)
+5. Run doxygen
+6. go to ./html folder
+7. double click on index.hhp
+8. File->Compile
+9. index.chm will be generated in ./html folder
+
+
+For more detailed document go to:
+http://compass.freescale.net/livelink/livelink?func=ll&objId=222129453&objAction=browse&viewType=1
+
+Doron
+b31949@freescale.com

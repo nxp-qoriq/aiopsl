@@ -1,0 +1,398 @@
+SL Code Drop v0.1  Change Log
+
+fsl_ipr.h: massive API changes
+fsl_header_modification.h: changed to fsl_l2.h fsl_ip.h fsl_l4.h fsl_nat.h + all functions names changed
+fsl_header_modification_open_flow.h: changed to fsl_l2.h fsl_ip.h fsl_l4.h fsl_nat.h + all functions names changed
+fsl_header_modification_errors.h: rename to fsl_general_errors.h
+fsl_aiop_ip_frag.h: changed name to fsl_ipf.h
+fsl_ipf.h: Removed internal structure of IPF (moved to ipf.h)
+fsl_ipf.h: Added definition of IPF_CONTEXT_SIZE and typedef ipf_ctx_t.
+fsl_ipf.h: Changed functions parameters.
+fsl_ipf.h: Changed statuses.
+fsl_ipf.h: Removed flags IPF_FIRST_FRAG, IPF_COPY_ASA and IPF_DIS_HDR_FETCH.
+fsl_ipf.h: Added FSL_IPF_SFV_MACROS. 
+fsl_ipf.h: Renamed function generate_ip_frag() to ipf_generate_frag().
+fsl_ipf.h: Added functions ipf_context_init() and ipf_discard_frame_remainder().
+ipf.h: New file, contains initial internal API for IPF.
+fsl_aiop_ipsec.h: change name to fsl_ipsec.h
+fsl_ipsec.h: Changed documentation.
+fsl_aiop_parser.h: change name to fsl_parser.h
+fsl_aiop_parser.h: Some changes in FSL_PARSER_ERROR_CODES.
+fsl_aiop_parser.h: Added define PARSER_IS_TUNNELED_IP_DEFAULT.
+fsl_aiop_parser.h: Some changes in parser_starting_hxs_code.
+fsl_aiop_parser.h: Fixed PARSER_GEN_PARSE_RES_MTYPE.
+parser.h: Fixed PARSER_GEN_PARSE_RES_MTYPE.
+aiop_parser.c : change name to parser.c.
+aiop_parser.c : fixed implementation bugs.
+fsl_aiop_system.h : change name to system.h.
+system.h: removed functions input parameters.
+aiop_system.c: change name to system.c.
+system.c.: removed functions input parameters.
+aiop_id_pool.h: change name to id_pool.h.
+aiop_fdma.c: change name to fdma.c.
+fdma.c: Add fdma_copy_data() Service Routine.
+fdma.c: Add fdma_store_frame_data() Service Routine.
+fdma.c: Add fdma_store_frame_data() Service Routine.
+fdma.c: Fix CR:ENGR00288335.
+aiop_fdma.h: change name to fdma.h.
+fdma.h: Add fdma_copy_data() Service Routine.
+fdma.h: Add fdma_store_frame_data() Service Routine.
+fdma.h: Add fdma_discard_frame() Service Routine.
+fdma.h: Fix CR:ENGR00288335.
+fsl_aiop_fdma.h: change name to fsl_fdma.h.
+fsl_fdma.h: Add fdma_copy_data() Service Routine.
+fsl_fdma.h: Add fdma_store_frame_data() Service Routine.
+fsl_fdma.h: Add fdma_discard_frame() Service Routine.
+fsl_fdma.h: Add no_flags definition to all flag groups.
+fsl_fdma.h: Update error statuses.
+aiop_general.h: change name to general.h.
+general.h: Remove parameter qd_priority from function dpni_drv_send and add it into the TLS.
+general.h: Remove err_fqid from the DPNI structure. 
+general.h: Add macros to verify a structure size does not exceed the size a user allocates for that structure.
+general.h: Removed get_number_of_cpus() and get_cpu_id() and dump_stack()
+fsl_gro.h: Add initial API for GRO.
+gro.h: Add initial internal API for GRO.
+gro.c: Add initial empty implementation for GRO.
+fsl_gso.h: Add initial API for GSO.
+gso.h: Add initial internal API for GSO.
+gso.c: Add initial implementation for GSO.
+aiop_cdma.c: change name to cdma.c.
+aiop_cdma.h: change name to cdma.h.
+fsl_aiop_cdma.h: change name to fsl_cdma.h.
+aiop_osm.c: change name to osm.c.
+aiop_osm.h: change name to osm.h.
+fsl_aiop_osm.h: change name to fsl_osm.h.
+aiop_spinlock.c: change name to spinlock.c.
+fsl_aiop_spinlock.h: change name to fsl_spinlock.h.
+aiop_spinlock.c: Add atomic increment/decrement Service Routines. 
+fsl_aiop_spinlock.h: Add atomic increment/decrement Service Routines.
+fsl_cdma.h: Update error statuses.
+fsl_aiop_checksum.h: was renamed to fsl_checksum.h
+fsl_checksum.h: was spliltted to fsl_l4_checksum.h and fsl_ipv4_checksum.h
+fsl_l4_checksum.h: new file genereted from fsl_checksum.h for the L4 checksum
+fsl_ipv4_checksum.h: new file genereted from fsl_checksum.h for the IPv4 checksum
+aiop_checksum.c: was renamed to checksum.c
+checksum.c: was spliltted to l4_checksum.c and ipv4_checksum.c
+l4_checksum.c: new file genereted from checksum.c for the L4 checksum
+ipv4_checksum.c: new file genereted from checksum.c for the IPv4 checksum
+fsl_aiop_ctlu.h: was renamed to fsl_ctlu.c
+fsl_ctlu.h: separated lookup miss result indication and lookup no match indication
+aiop_ctlu.h: was renamed to ctlu.c
+ctlu.c: Fixed CR:ENGR00288390
+ctlu.c: Added some castings
+ctlu.h: MTYPES fixes
+
+
+
+
+Doc & Tool compatibility:
+	AIOP Archdef 0.7.1
+	CTLU Archdef 0.6
+	FD_section   0.62.2
+	Parser_Block_Guide	3.40 (Maturity level 0.95)
+	AIOP_Instruction_Additions 0.60
+	Compiler Build 265
+
+
+AIOP Core Library V2.1 Change Log
+
+fsl_tman.h: rename tman_modify_timer function to tman_increase_timer_duration
+fsl_tman.h: rename max_no_of_timers variable to max_num_of_timers
+fsl_tman.h: changes due to new compiler versions
+fsl_tman.h: Updated function to support Archdef 0.71
+fsl_ste.h: Updated function to support Archdef 0.71
+fsl_aiop_header_modification.h: Update doxygen
+fsl_aiop_header_modification_errors.h: New file containing errors return status
+fsl_aiop_header_modification_open_flow.h: Update doxygen
+fsl_aiop_header_modification_open_flow.h: change API of hm_pop_vlan()
+aiop_fdma.c: Add SRs: fdma_read_asa(), fdma_read_pta().
+aiop_fdma.c: Change functions name - fdma_initial_default_frame_presentation() -> fdma_present_default_frame().
+aiop_fdma.c: Change functions name - fdma_initial_frame_presentation() -> fdma_present_frame().
+aiop_fdma.c: Change functions name - fdma_calculate_checksum() -> fdma_calculate_default_frame_checksum()
+aiop_fdma.c: Add _default_ to SRs which works on the default task values.
+aiop_fdma.c: Change all addresses names to *xx_dst and *xx_src.
+aiop_fdma.c: Change functions name - Add fdma_modify_default_segment_data() SR.
+aiop_fdma.c: Change functions name - fdma_trim_default_segment()-> fdma_trim_default_segment_presentation().
+aiop_fdma.c: Change functions name - fdma_enqueue_default_frame_fqid()-> fdma_store_and_enqueue_default_frame_fqid().
+aiop_fdma.c: Change functions name - fdma_enqueue_default_frame_qd()-> fdma_store_and_enqueue_default_frame_qd().
+fsl_aiop_fdma.h: Add SRs: fdma_read_asa(), fdma_read_pta().
+fsl_aiop_fdma.h: Change functions name - fdma_initial_default_frame_presentation() -> fdma_present_default_frame().
+fsl_aiop_fdma.h: Change functions name - fdma_initial_frame_presentation() -> fdma_present_frame().
+fsl_aiop_fdma.h: Change functions name - fdma_calculate_checksum() -> fdma_calculate_default_frame_checksum()
+fsl_aiop_fdma.h: Add _default_ to SRs which works on the default task values.
+fsl_aiop_fdma.h: Change all addresses names to *xx_dst and *xx_src.
+fsl_aiop_fdma.h: Change functions name - Add fdma_modify_default_segment_data() SR.
+fsl_aiop_fdma.h: Change functions name - fdma_trim_default_segment()-> fdma_trim_default_segment_presentation().
+fsl_aiop_fdma.h: Change functions name - fdma_enqueue_default_frame_fqid()-> fdma_store_and_enqueue_default_frame_fqid().
+fsl_aiop_fdma.h: Change functions name - fdma_enqueue_default_frame_qd()-> fdma_store_and_enqueue_default_frame_qd().
+aiop_general.h: Add ipv6 header struct.
+aiop_general.h: Add AIOP Default Task Parameters struct.
+aiop_general.c: Add declaration of AIOP Default Task Parameters.
+fsl_aiop_system.h: A new file which includes functions for Creation and Initialization of system Parser Profile ID pool and system CTLU Key ID pool.
+aiop_system.c: Add system global params: ext_prpid_pool_address and ext_keyid_pool_address
+aiop_system.c: A new file which includes functions for Creation and Initialization of system Parser Profile ID pool and system CTLU Key ID pool.
+aiop_id_pool.h: A new file which includes functions for get id and release id from/to pool.
+fsl_aiop_ctlu.h: Updated API of some KCR build functions.
+fsl_aiop_ctlu.h: Split ctlu_kcr_create_or_update() to: ctlu_kcr_create() which returns keyid instead of receiving it, and ctlu_kcr_replace() which receives keyid.
+fsl_aiop_ctlu.h: Key Composition Rule Builder Protocol FECID is now enum.
+fsl_aiop_ctlu.h: added description to reserved fields
+fsl_aiop_ctlu.h: changed ctlu_table_lookup_keyid and ctlu_table_lookup_key to ctlu_table_lookup_by_keyid and ctlu_table_lookup_by_key
+fsl_aiop_ctlu.h: changed ctlu_lookup_result[opaque0] to ctlu_lookup_result[opaque_or_reference]
+fsl_aiop_ctlu.h: changed output params in ctlu_gen_key to union ctlu_key + size from struct ctlu_rule_key *key.
+fsl_aiop_ctlu.h: changed input params in ctlu_gen_hash to union ctlu_key + size from struct ctlu_rule_key *key. 
+fsl_aiop_ctlu.h: changed input params in ctlu_table_rule_delete to union ctlu_key + size from struct ctlu_rule_key *key.
+fsl_aiop_ctlu.h: changed input params in ctlu_table_lookup_by_key to union ctlu_key + size from struct ctlu_rule_key *key.
+fsl_aiop_ctlu.h: added CTLU_KEY_LPM_IPV4_SIZE
+fsl_aiop_ctlu.h: added CTLU_KEY_LPM_IPV6_SIZE
+fsl_aiop_ctlu.h: changed API of ctlu_kcr_delete
+fsl_aiop_parser.h: Separated between error indications and other indications.
+fsl_aiop_parser.h: Added getters for Pointer in Frame.
+fsl_aiop_parser.h: Split statuses according to functions.
+fsl_aiop_parser.h: HXS coding is now enum. Also, removed IPv4, IPv6 HXS coding.
+fsl_aiop_parser.h: Split parser_profile_create_update() to: parser_profile_create() which returns prpid instead of providing it, and parser_profile_replace() which receives prpid.
+fsl_aiop_parser.h: Split parse_result_generate() to: parse_result_generate_default() which uses implicit starting HXS, and parse_result_generate() which recieves starting HXS and starting_offset.
+fsl_aiop_parser.h: Add getter for error code in parse result.
+fsl_aiop_cksum.h: added cksum_ones_complement_sum16 inline function
+fsl_aiop_cksum.h: added more documentation
+
+Doc & Tool compatibility:
+	AIOP Archdef 0.7.1
+	CTLU Archdef 0.6.9
+	AIOP_Instruction_Additions 0.60
+	Compiler Build 264
+	
+	
+AIOP Core Library V2.0 Change Log
+
+aiop_general.h: Added udp and tcp headers to general.h
+aiop_general.h: Add Getters and Setters to the presentation context area fields.
+fsl_aiop_fdma.h: Unite Command flags for a specific option to enum.
+fsl_aiop_fdma.h: Add SRs: fdma_replicate_working_frame_fqid(), fdma_replicate_working_frame_qd(),  fdma_calculate_checksum(), fdma_enqueue_fd_fqid(), fdma_enqueue_fd_qd(), fdma_concatenate_frames().
+fsl_aiop_fdma.h: Change all addresses to (void *).
+fsl_aiop_fdma.h: Improve replace commands (Replace segment, Insert segmet data, Delete segmet data) API and documentation.
+aiop_fdma.c: Change all addresses to (void *).
+aiop_fdma.c: Improve replace commands (Replace segment, Insert segmet data, Delete segmet data) API and implementation.
+aiop_fdma.c: Add SRs: fdma_replicate_working_frame_fqid(), fdma_replicate_working_frame_qd(), fdma_calculate_checksum(), fdma_enqueue_frame_fqid(), fdma_enqueue_frame_qd(), fdma_concatenate_frames().
+aiop_fdma.h: Add SRs: fdma_replicate_working_frame_fqid(), fdma_replicate_working_frame_qd(), fdma_calculate_checksum(), fdma_enqueue_frame_fqid(), fdma_enqueue_frame_qd(), fdma_concatenate_frames().
+fsl_aiop_parser.h: Added HXS codes
+fsl_aiop_parser.h: Added defines and structs for HXS configurations in parser profiles
+fsl_aiop_parser.h: Modified parser API's.
+fsl_aiop_ip_frag.h: No change.
+fsl_aiop_ipsec.h: No change.
+fsl_aiop_ctlu.h: added documentation
+fsl_aiop_ctlu.h: changed context record to application context
+fsl_aiop_ctlu.h: changed ctlu_key_em to ctlu_key_exact_match
+fsl_aiop_ctlu.h: simplified lookup result & table result
+fsl_aiop_ctlu.h: changed key in ctlu_rule_key to be in the structure (instead of referenced by the structure). 
+fsl_aiop_checksum.h: validation SRs removed due to similar functionality existence in parser SRs.
+fsl_aiop_checksum.h: updated checksum calculation SRs.
+fsl_aiop_ipr.h: add IP version in ipr_get_number_of_reassembled_frames.
+
+AIOP Core Library V1.4 Change Log
+
+fsl_aiop_ste.h: Functions names changes
+fsl_aiop_ste.h: Changes reflecting ArchDEF 0.7.
+fsl_aiop_ste.h: Removed MAX, MIN, Get functions.
+fsl_aiop_ste.h: Changed mode_bits name into flags.
+fsl_aiop_ste.h: Changed size flags according to new archdef.
+fsl_aiop_ste.h: Changed command addresses and opcode according to new archdef.
+fsl_aiop_ste.h: Added comment that external address can be also PEB and L3 cache.
+fsl_aiop_ste.h: Doxygen Fixes.
+aiop_ste.c: Function name changes
+aiop_ste.c: Change hardware accelerator call to __e_hwacceli
+aiop_ste.c: Added new compiler instructions to the STE Barrier command
+aiop_ste.c: Changes reflecting ArchDEF 0.7.
+aiop_ste.c: Removed MAX, MIN, Get functions.
+aiop_ste.c: Changed mode_bits name into flags.
+aiop_ste.c: Changed size flags according to new archdef.
+aiop_ste.c: Changed command addresses and opcode according to new archdef.
+aiop_ste.c: Added comment that external address can be also PEB and L3 cache.
+aiop_ste.c: Changed SET function to use the STE rather than the CDMA (now it returns void).
+aiop_ste.c: Fixed a bug in barrier command.
+aiop_ste.c: Changes to support compiler ver 260. 
+fsl_aiop_tman.h: Added include general.h
+fsl_aiop_tman.h: Change output parameters to be the last parameters in the function
+aiop_tman.c: Change hardware accelerator call to __e_hwacceli
+aiop_tman.c: Added new compiler instructions to the STE Barrier command
+aiop_tman.c: Clear reserve bits in the TMAN status
+aiop_tman.c: Changes to support compiler ver 260 
+aiop_general.h: Add HWC Accelerator Context definitions.
+aiop_general.h: Update PRC definitions.
+aiop_general.h: Add __TASK definition (used for task global variables).
+fsl_aiop_fdma.h: Remove commands definitions (moved to internal FDMA file).
+fsl_aiop_fdma.h: Update SRs API.
+fsl_aiop_fdma.h: Rename aiop_fdma_fetch_hw_annotation() -> fdma_read_asa().
+fsl_aiop_fdma.h: Rename aiop_fdma_fetch_sw_annotation() -> fdma_read_pta().
+fsl_aiop_fdma.h: Remove _aiop_ prefix in functions and macros.
+aiop_fdma.c: Add SR implementation.
+aiop_fdma.c: Adjust to compiler build 260.
+aiop_fdma.c: Modify addresses to pointers.
+aiop_fdma.c: Remove _aiop_ prefix in functions and macros.
+aiop_fdma.h: Added a new file. Contains internal FDMA Commands definitions.
+fsl_aiop_ipr.h: Change file name (former aiop_ipr.h).
+fsl_aiop_ipr.h: All functions were renamed name to have prefix ipr_ and change prefix modules for Doxygen.
+fsl_aiop_ipr.h: Add Copyright.
+fsl_aiop_cdma.h: Added a new file - This file contains the CDMA functions. All functions were internally reviewed.
+aiop_cdma.h: Added a new file - This file contains defines for internal use of the CDMA functions.
+aiop_cdma.c: Added a new file - This file contain the CDMA functions definitions. All functions were reviewed but not tested.
+fsl_aiop_osm.h: All funcions were renamed. from aiop_osm_function_name to osm_function_name.
+fsl_aiop_parser.h: Added Parser API functions.
+fsl_aiop_parser.h: All funcions were renamed from aiop_parser_function_name to parser_function_name.
+fsl_aiop_ctlu.h: added return status
+fsl_aiop_ctlu.h: more documentation 
+fsl_aiop_ctlu.h: added more defines
+fsl_aiop_ctlu.h: added aiop_ctlu_key_composition_create_or_update
+fsl_aiop_ctlu.h: added aiop_ctlu_key_composition_rule_query
+fsl_aiop_ctlu.h: added opaque2
+fsl_aiop_ctlu.h: added aging timestamp support
+fsl_aiop_ctlu.h: added KCR builder functions
+aiop_ctlu.h: added file
+aiop_ctlu.c: added file
+Doc & Tool compatibility:
+	AIOP_Archdef 0.7.0, exceptions: CTLU BG 0.6.7
+	AIOP_Instruction_Additions 0.51
+	Compiler build 260
+	AIOP Simulator T4LS_SIM-20130904-ENGG_BUILD  (support for FDMA, STE, TLU)
+	
+AIOP Core Library V1.3 Change Log
+
+fsl_ldpaa.h: Added new file - Add FD structure definition and type definitions.
+aiop_general.h: Remove FD structure (moved to fsl_ldpaa.h).
+aiop_general.h: Update PRC and ADC offsets.
+aiop_general.h: Add inline assembler macros for swap instructions, load and store instructions, rlXXX instructions.
+aiop_general.h: Add FD Getters and Setters initial macros.
+aiop_general.h: Remove type definitions (moved to fsl_ldpaa.h).
+aiop_general.h: Add Accelerators IDs for CTLU, CDMA, TMAN.
+aiop_general.h: Add _ to macros fields.
+aiop_general.h: Remove Accelerators commands names (moved to accelerators headers).
+aiop_general.h: Fix Doxygen + checkpatch.
+aiop_fdma.c: Optimize code.
+aiop_fdma.c: Add _fdma_ to fdma SRs.
+aiop_fdma.c: Add _ to macros fields names.
+aiop_fdma.c: Fix Doxygen + checkpatch.
+aiop_fdma.h: Add _fdma_ to FDMA function names.
+aiop_fdma.h: Update Store, Enqueue and Replace commands API.
+aiop_fdma.h: Split Enqueue command to enqueue by FQID and Queueing Destination.
+aiop_fdma.h: Fix Doxygen + checkpatch.
+aiop_fdma.h: renamed to fsl_aiop_fdma.h.
+aiop_statistics.h renamed to fsl_aiop_ste.h
+aiop_ste.h: File added. This file contain defines for internal use of the STE functions.
+fsl_aiop_ste.h: Rename all functions to comply with new AIOP API naming convention.
+fsl_aiop_ste.h: Changes in parameter order to with API conventions and for code optimization.
+aiop_ste.c: File added. This file contain the STE functions definitions.
+aiop_ste.c: Functions aiop_ste_set_8bytes_counter, aiop_ste_inc_8bytes_counter and aiop_ste_read_8bytes_counter were reviewed but not tested. all other funcion definitions were not reviewed and not tested.
+aiop_tman.h renamed to fsl_aiop_tman.h
+fsl_aiop_tman.h: Rename all functions to comply with new AIOP API naming convention.
+fsl_aiop_tman.h: Changes in parameter order to with API conventions and for code optimization.
+aiop_tman.h: File added. This file contain defines for internal use of the TMAN functions.
+aiop_tman.c: File added. This file contain the TMAN functions definitions.
+aiop_tman.c: Functions aiop_tman_create_tmi, aiop_tman_create_timer, aiop_tman_recharge_timer and aiop_tman_timer_completion_confirmation were reviewed but not tested. all other funcion definitions were not reviewed and not tested.
+fsl_aiop_ctlu.h: Removed type from aiop_ctlu_rule_key (to match HW).
+fsl_aiop_ctlu.h: Removed default lookup.
+fsl_aiop_ctlu.h: Key size paramater was added to table create.
+fsl_aiop_ctlu.h: Removed keyID from table create.
+fsl_aiop_ctlu.h: Miss rule is now inside table create parameters.
+fsl_aiop_ctlu.h: Modified type to two bytes field instead of one.
+aiop_ipsec.h: was renamed to fsl_aiop_ipsec.h
+fsl_aiop_ipsec.h: No major changes.
+aiop_gso.h was renamed to fsl_aiop_gso.h
+fsl_aiop_gso.h: No major changes.
+aiop_ip_frag.h renamed to fsl_aiop_ip_frag.h
+fsl_aiop_ip_frag.h: No major changes.
+aiop_checksum.h renamed to fsl_aiop_checksum.h
+fsl_aiop_checksum.h: No major changes.
+aiop_parser.h renamed to fsl_aiop_parser.h
+fsl_aiop_parser.h: Added Parser return values.
+fsl_aiop_parser.h: Added Frame attributes masks.
+fsl_aiop_parser.h: Added Frame attributes macros.
+fsl_aiop_parser.h: Added Get offsets macros.
+aiop_memory_operations.h: was removed and will be replaced soon by fsl_aiop_cdma.
+aiop_multi_threading.h: was removed and will be replaced soon by fsl_aiop_cdma.
+aiop_osm.h: was replaced by fsl_aiop_osm.h
+fsl_aiop_osm.h : updated the OSM API according to the AIOP e200 ISA extension document version 0.51.
+aiop_header_modification.h: renamed to fsl_aiop_header_modification.h
+aiop_header_modification_open_flow.h: renamed to fsl_aiop_header_modification_open_flow.h
+aiop_statistics.h: renamed to fsl_aiop_ste.h and added aiop_ste.c and aiop_ste.h
+fsl_aiop_checksum.h: was removed and will be replaced by functions in fsl_aiop_fdma.
+Doc & Tool compatibility:
+	AIOP_Archdef 0.6.5, exceptions: CTLU BG 0.6.6
+	AIOP_Instruction_Additions 0.31
+	CW 10.0.1
+	Compiler build 257
+	AIOP Simulator T4LS_SIM_A2_0_1
+	
+
+AIOP Core Library V1.2 Change Log
+
+fsl_aiop_tlu.h: the term "entry" was changed to "rule" to align to the CTLU spec.
+fsl_aiop_tlu.h: Restructred most of the structures.
+fsl_aiop_tlu.h: added a lot of macros.
+fsl_aiop_tlu.h: Split aiop_ctlu_gen_hash to aiop_ctlu_gen_hash_keyid and aiop_ctlu_gen_hash_key.
+fsl_aiop_tlu.h: split aiop_ctlu_create rule function to aiop_ctlu_create_or_replace and aiop_ctlu_create functions.
+fsl_aiop_tlu.h: Timer mechanism (defeatured) replaced with timestamp mechanism.
+fsl_aiop_tlu.h: Byte Counter and hit counter are supported through a combination of lookup and stats SR.
+fsl_aiop_tlu.h: Fetch/Fetch Shared are supported through a combination of lookup and CDMA SR (to be added fsl_aiop_cdma.h).
+fsl_aiop_tlu.h: Table statistics includes current number of rules (to be added)
+fsl_aiop_tlu.h: reference count functions were removed from CTLU section (to be added in fsl_aiop_cdma.h).
+fsl_aiop_tlu.h: doxygen comments.
+fsl_aiop_tlu.h: coding style.
+fsl_aiop_tlu.h: aging resolution is no longer supported per table (is now configurable in a CTLU register at initialization time)
+fsl_aiop_tlu.h: all callback epids were removed.
+fsl_aiop_tlu.h: Add/delete entry by frame functions removed (user can call gen_key + add/delete rule instead)
+aiop_gso.h: no changes
+aiop_ip_frag.h: modified parameters
+aiop_ip_frag.h: removed counters
+aiop_ip_frag.h: doxygen comments
+aiop_parser.h: added file
+aiop_ipsec.h: changed functions parameters
+aiop_checksum.h: no changes
+aiop_memory_operations.h: Doxygen updates
+aiop_multi_threading.h: Doxygen updates
+aiop_osm.h: Doxygen updates
+aiop_fdma.h: Change file name from aiop_frame_operations.h to aiop_fdma.h
+aiop_fdma.h: Update 3 SRs API (Store frame, Enqueue Working frame, Replace Frame Segment)
+aiop_fdma.h: Doxygen updates
+aiop_fdma.c: Change file name from aiop_frame_operations.c to aiop_fdma.c
+aiop_fdma.c:Implement 3 SRs (Store frame, Enqueue Working frame, Replace Frame Segment)
+aiop_fdma.c: Doxygen updates
+aiop_general.h: Update FD structure + masks and offsets
+aiop_general.h: Update ADC structure + masks and offsets
+aiop_general.h: Update PRC structure + masks and offsets
+aiop_general.h: Doxygen updates
+aiop_ipr.h: Fixed padding warning on ipr_config structure.
+aiop_ipr.h: Changed callback functions type in the ipr_config structure.
+aiop_statistics.h: Added functions aiop_set_4bytes_counter,  aiop_set_8bytes_counter.
+aiop_statistics.h: Added functions aiop_set_max_4bytes_counter,  aiop_set_max_8bytes_counter.
+aiop_statistics.h: Added functions aiop_set_min_4bytes_counter,  aiop_set_min_8bytes_counter.
+aiop_statistics.h: Added functions aiop_increment_4bytes_counter,  aiop_increment_8bytes_counter.
+aiop_statistics.h: Added functions aiop_decrement_4bytes_counter,  aiop_decrement_8bytes_counter.
+aiop_statistics.h: Added functions aiop_read_4bytes_counter,  aiop_read_8bytes_counter.
+aiop_statistics.h: Changed aiop_stat_flush function to aiop_sync_statistics.
+aiop_tman.h: Added all TMAN API functions.
+Doc & Tool compatibility:
+	AIOP_Archdef 0.6.5, exceptions: CTLU BG 0.6.5
+	AIOP_Instruction_Additions 0.31
+	CW 10.0.1
+	Compiler build 257
+	AIOP Simulator T4LS_SIM_A2_0_1
+
+AIOP Core Library V1.1 Change Log
+
+- aiop_ipr.h: Doxygen changes.
+- aiop_ipr.h: Update IPR configuration structure to comply with SRS.
+- aiop_ipr.h: Added IPR mode bits to configure IPR behavior.
+- aiop_ipr.h: Added function - aiop_number_of_reassembled_frames().
+- aiop_statistics.h: Doxygen changes (added group).
+- aiop_header_modification.h: Doxygen changes.
+- aiop_header_modification.h: Added mode bits definitions to all functions.
+- aiop_header_modification_open_flow.h: Doxygen changes.
+- aiop_header_modification_open_flow.h: changed aiop_set_dl_src function parameter type.
+- aiop_header_modification_open_flow.h: changed aiop_set_dl_dst function parameters.
+- aiop_header_modification_open_flow.h: changed aiop_set_nw_dst function parameters.
+- aiop_header_modification_open_flow.h: changed aiop_push_vlan function parameters.
+- aiop_header_modification_open_flow.h: changed aiop_pop_vlan function parameters.
+- aiop_header_modification.h: removed aiop_p_bit_marking function.
+- aiop_memory_operations.h: removed aiop_contex_presentation_dma_read. (very old and irrelevant)
+- aiop_memory_operations.h: removed aiop_contex_presentation_dma_write. (very old and irrelevant)
+- tlu.h: Doxygen tweaks
+
