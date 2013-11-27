@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File		fsl_nat.h
 
-@Description	This file contains the AIOP Header Modification - NAT HM API
+@Description	This file contains the AIOP NAT Header Modification - NAT HM API
 
 @Cautions	Please note that the parse results must be updated before
 		calling functions defined in this file.
@@ -10,8 +10,8 @@
 
 *//***************************************************************************/
 
-#ifndef AIOP_LIB_NAT_HM_OF_H
-#define AIOP_LIB_NAT_HM_OF_H
+#ifndef __FSL_NAT_H
+#define __FSL_NAT_H
 
 /**************************************************************************//**
 @addtogroup	FSL_HM FSL_AIOP_Header_Modification
@@ -34,23 +34,23 @@
 *//***************************************************************************/
 
 	/** If set, update L4 checksum (if needed).*/
-#define HM_NAT_MODIFY_MODE_L4_CHECKSUM 0x01
+#define NAT_MODIFY_MODE_L4_CHECKSUM 0x01
 	/** If set, the original IP Src address will be replaced.*/
-#define HM_NAT_MODIFY_MODE_IPSRC 0x02
+#define NAT_MODIFY_MODE_IPSRC 0x02
 	/** If set, the original IP Dst address will be replaced.*/
-#define HM_NAT_MODIFY_MODE_IPDST 0x04
+#define NAT_MODIFY_MODE_IPDST 0x04
 	/** If set, the original L4 Src port will be replaced.*/
-#define HM_NAT_MODIFY_MODE_L4SRC 0x08
+#define NAT_MODIFY_MODE_L4SRC 0x08
 	/** If set, the original L4 Dst port will be replaced.*/
-#define HM_NAT_MODIFY_MODE_L4DST 0x10
+#define NAT_MODIFY_MODE_L4DST 0x10
 	/** If set, the original acknowledgment number will be updated.
 		The tcp_seq_num_delta signed integer will be added/subtracted
 		to/from the SeqNum value.*/
-#define HM_NAT_MODIFY_MODE_TCP_SEQNUM 0x20
+#define NAT_MODIFY_MODE_TCP_SEQNUM 0x20
 	/** If set, the original acknowledgment number will be updated.
 		The tcp_seq_num_delta signed integer will be added/subtracted
 		to/from the AckNum value.*/
-#define HM_NAT_MODIFY_MODE_TCP_ACKNUM 0x40
+#define NAT_MODIFY_MODE_TCP_ACKNUM 0x40
 
 /* @} end of group HMNATModeBits */
 /* @} end of group HM_NAT_Modes */
@@ -65,7 +65,7 @@
 
 
 /*************************************************************************//**
-@Function	hm_nat_ipv4
+@Function	nat_ipv4
 
 @Description	Replace/update fields in the outer IPv4 and UDP/TCP headers
 		(if exist).
@@ -101,14 +101,14 @@
 @Cautions	The parse results must be updated before
 		calling this operation.
 *//***************************************************************************/
-int32_t hm_nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
+int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 		uint32_t ip_dst_addr, uint16_t l4_src_port,
 		uint16_t l4_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta);
 
 
 /*************************************************************************//**
-@Function	hm_nat_ipv6
+@Function	nat_ipv6
 
 @Description	Replace/update fields in the outer IPv6 and UDP/TCP headers
 		(if exist).
@@ -139,7 +139,7 @@ int32_t hm_nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 @Cautions	The parse results must be updated before
 		calling this operation.
 *//***************************************************************************/
-int32_t hm_nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
+int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 		uint32_t *ip_dst_addr, uint16_t l4_src_port,
 		uint16_t l4_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta);
@@ -148,4 +148,4 @@ int32_t hm_nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 /* @} end of group FSL_HM_NAT_Functions */
 /* @} end of group FSL_HM */
 
-#endif /* AIOP_LIB_NAT_HM_OF_H */
+#endif /* __FSL_NAT_H */

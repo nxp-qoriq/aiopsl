@@ -10,7 +10,7 @@
 #define __ID_POOL_H_
 
 #include "general.h"
-#include "fsl_cdma.h"
+#include "dplib/fsl_cdma.h"
 
 /**************************************************************************//**
 @Group	ID_POOL ID Pool (Internal)

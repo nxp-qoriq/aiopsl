@@ -8,12 +8,12 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "fsl_parser.h"
-#include "fsl_fdma.h"
-#include "fsl_l2.h"
+#include "dplib/fsl_parser.h"
+#include "dplib/fsl_fdma.h"
+#include "dplib/fsl_l2.h"
 #include "header_modification.h"
-#include "fsl_header_modification_errors.h"
-#include "fsl_cdma.h"
+#include "dplib/fsl_general_errors.h"
+#include "dplib/fsl_cdma.h"
 
 void l2_header_remove()
 {
@@ -102,7 +102,7 @@ int32_t l2_vlan_header_remove()
 
 		return SUCCESS;
 	} else {
-		return HM_NO_VLAN_ERROR;
+		return NO_VLAN_ERROR;
 	}
 }
 
@@ -159,7 +159,7 @@ int32_t l2_set_vlan_vid(uint16_t vlan_vid)
 	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT());
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT())
-		return HM_NO_VLAN_ERROR;
+		return NO_VLAN_ERROR;
 	/* Optimization: whole vlan to remove 2 add cycles */
 	vlan_ptr = (uint32_t *)(vlan_offset + PRC_GET_SEGMENT_ADDRESS());
 
@@ -167,8 +167,8 @@ int32_t l2_set_vlan_vid(uint16_t vlan_vid)
 	 * (1 cycle less - e_rlwinm r8,r8,0,0,19) */
 	/* Optimization: using constructed_vlan variable remove 1 cycle of
 	 * store to stack */
-	constructed_vlan = (vlan_vid & HM_VLAN_VID_MASK) |\
-			(*vlan_ptr & ~HM_VLAN_VID_MASK);
+	constructed_vlan = (vlan_vid & VLAN_VID_MASK) |\
+			(*vlan_ptr & ~VLAN_VID_MASK);
 
 	*vlan_ptr = constructed_vlan;
 
@@ -191,7 +191,7 @@ int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT());
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT())
-		return HM_NO_VLAN_ERROR;
+		return NO_VLAN_ERROR;
 	/* Optimization: whole vlan to remove 2 add cycles */
 	vlan_ptr = (uint32_t *)(vlan_offset + PRC_GET_SEGMENT_ADDRESS());
 
@@ -199,8 +199,8 @@ int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 	 * (1 cycle less - e_rlwinm r8,r8,0,19,15) */
 	/* Optimization: using constructed_vlan variable remove 1 cycle of
 	 * store to stack */
-	constructed_vlan = (vlan_pcp & HM_VLAN_PCP_MASK) |\
-			(*vlan_ptr & ~HM_VLAN_PCP_MASK);
+	constructed_vlan = (vlan_pcp & VLAN_PCP_MASK) |\
+			(*vlan_ptr & ~VLAN_PCP_MASK);
 
 	*vlan_ptr = constructed_vlan;
 
@@ -297,6 +297,6 @@ int32_t l2_pop_vlan()
 		return SUCCESS;
 
 	} else {
-		return HM_NO_VLAN_ERROR;
+		return NO_VLAN_ERROR;
 	}
 }

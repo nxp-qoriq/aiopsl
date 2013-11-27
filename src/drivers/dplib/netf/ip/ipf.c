@@ -5,10 +5,10 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
-#include "fsl_ipf.h"
+#include "dplib/fsl_ipf.h"
 #include "ipf.h"
-#include "fsl_parser.h"
-#include "fsl_fdma.h"
+#include "dplib/fsl_parser.h"
+#include "dplib/fsl_fdma.h"
 
 int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 {

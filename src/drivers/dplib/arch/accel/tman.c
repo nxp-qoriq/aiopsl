@@ -8,7 +8,7 @@
 
 #include "general.h"
 #include "tman.h"
-#include "fsl_tman.h"
+#include "dplib/fsl_tman.h"
 
 
 int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,

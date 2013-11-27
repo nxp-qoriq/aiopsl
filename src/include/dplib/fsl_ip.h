@@ -10,12 +10,12 @@
 
 *//***************************************************************************/
 
-#ifndef AIOP_LIB_IP_H
-#define AIOP_LIB_IP_H
+#ifndef __FSL_IP_H
+#define __FSL_IP_H
 
-#include "fsl_ipf.h"
-#include "fsl_ipsec.h"
-#include "fsl_ipv4_checksum.h"
+#include "dplib/fsl_ipf.h"
+#include "dplib/fsl_ipr.h"
+#include "dplib/fsl_ipv4_checksum.h"
 
 /**************************************************************************//**
 @Group	FSL_HM FSL_AIOP_Header_Modification
@@ -40,18 +40,18 @@
 *//***************************************************************************/
 
 	/** If set, update L4 checksum (if needed) */
-#define HM_IPV4_MODIFY_MODE_L4_CHECKSUM 0x01
+#define IPV4_MODIFY_MODE_L4_CHECKSUM 0x01
 	/** If set, Time to Live field is decremented by 1 */
-#define HM_IPV4_MODIFY_MODE_IPTTL 0x02
+#define IPV4_MODIFY_MODE_IPTTL 0x02
 	/** If set, the original IP TOS (8 bits of TOS field in the frame)
 	     will be replaced */
-#define HM_IPV4_MODIFY_MODE_IPTOS 0x04
+#define IPV4_MODIFY_MODE_IPTOS 0x04
 	/** If set, the original IP ID will be replaced */
-#define HM_IPV4_MODIFY_MODE_IPID 0x08
+#define IPV4_MODIFY_MODE_IPID 0x08
 	/** If set, the original IP Src address will be replaced */
-#define HM_IPV4_MODIFY_MODE_IPSRC 0x10
+#define IPV4_MODIFY_MODE_IPSRC 0x10
 	/** If set, the original IP Dst address will be replaced */
-#define HM_IPV4_MODIFY_MODE_IPDST 0x20
+#define IPV4_MODIFY_MODE_IPDST 0x20
 
 /* @} end of group HMIPv4ModeBits */
 
@@ -63,19 +63,19 @@
 *//***************************************************************************/
 
 	/** If set, update L4 checksum (if needed) */
-#define HM_IPV6_MODIFY_MODE_L4_CHECKSUM 0x01
+#define IPV6_MODIFY_MODE_L4_CHECKSUM 0x01
 	/** If set, Hop Limit field is decremented by 1 */
-#define HM_IPV6_MODIFY_MODE_IPHL 0x02
+#define IPV6_MODIFY_MODE_IPHL 0x02
 	/** If set, the original IP TC (8 bits of Traffic Class
 		field in the frame) will be replaced. */
-#define HM_IPV6_MODIFY_MODE_IPTC 0x04
+#define IPV6_MODIFY_MODE_IPTC 0x04
 	/** If set, the original flow label field (20bits)
 		will be replaced */
-#define HM_IPV6_MODIFY_MODE_FLOW_LABEL 0x08
+#define IPV6_MODIFY_MODE_FLOW_LABEL 0x08
 	/** If set, the original IP Src address will be replaced */
-#define HM_IPV6_MODIFY_MODE_IPSRC 0x10
+#define IPV6_MODIFY_MODE_IPSRC 0x10
 	/** If set, the original IP Dst address will be replaced */
-#define HM_IPV6_MODIFY_MODE_IPDST 0x20
+#define IPV6_MODIFY_MODE_IPDST 0x20
 
 /* @} end of group HMIPv6ModeBits */
 
@@ -87,15 +87,15 @@
 *//***************************************************************************/
 
 	/** If set, the TTL field is copied from the inner IP header. */
-#define HM_IPV4_ENCAP_MODE_TTL 0x01
+#define IPV4_ENCAP_MODE_TTL 0x01
 	/** If set, the TOS[DS] field (6 bits) is propagated from the
 		inner IP header. */
-#define HM_IPV4_ENCAP_MODE_TOS_DS 0x02
+#define IPV4_ENCAP_MODE_TOS_DS 0x02
 	/** If set, the TOS[ECN] field (2 bits) is propagated from the
 		inner IP header. */
-#define HM_IPV4_ENCAP_MODE_TOS_ECN 0x04
+#define IPV4_ENCAP_MODE_TOS_ECN 0x04
 	/** If set, the DF bit is copied from the inner IP header. */
-#define HM_IPV4_ENCAP_MODE_DF 0x08
+#define IPV4_ENCAP_MODE_DF 0x08
 
 /* @} end of group HMIPv4EncapModeBits */
 
@@ -107,13 +107,13 @@
 *//***************************************************************************/
 
 	/** If set, the Hop Limit field is copied from the inner IP header. */
-#define HM_IPV6_ENCAP_MODE_HL 0x01
+#define IPV6_ENCAP_MODE_HL 0x01
 	/** If set, the TC[DS] field (6 bits) is propagated from the
 		inner IP header. */
-#define HM_IPV6_ENCAP_MODE_TC_DSCP 0x02
+#define IPV6_ENCAP_MODE_TC_DSCP 0x02
 	/** If set, the TC[ECN] field (2 bits) is propagated from the
 		inner IP header. */
-#define HM_IPV6_ENCAP_MODE_TC_ECN 0x04
+#define IPV6_ENCAP_MODE_TC_ECN 0x04
 
 /* @} end of group HMIPv6EncapModeBits */
 
@@ -126,13 +126,13 @@
 
 	/** If set, the Hop Limit / TTL field is copied from the outer IP
 		header.*/
-#define HM_IP_DECAP_MODE_TTL_HL 0x01
+#define IP_DECAP_MODE_TTL_HL 0x01
 	/** If set, the TOS/TC[DS] field is propagated from the outer
 		IP header.*/
-#define HM_IP_DECAP_MODE_TOS_TC_DS 0x02
+#define IP_DECAP_MODE_TOS_TC_DS 0x02
 	/** If set, the TOS/TC[ECN] field is propagated from the outer
 		IP header.*/
-#define HM_IP_DECAP_MODE_TOS_TC_ECN 0x04
+#define IP_DECAP_MODE_TOS_TC_ECN 0x04
 
 /* @} end of group HMIPDecapModeBits */
 
@@ -375,4 +375,4 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group FSL_HM */
 
-#endif /* AIOP_LIB_IP_HM_OF_H */
+#endif /* __FSL_IP_H */

@@ -4,7 +4,7 @@
 @Description	This file contains the AIOP OSM Operations API implementation.
 *//***************************************************************************/
 
-#include "fsl_osm.h"
+#include "dplib/fsl_osm.h"
 #include "osm.h"
 /* #include "dpni_drv.h" */
 

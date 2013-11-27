@@ -11,8 +11,9 @@
 #define __GENERAL_H_
 
 
-#include "fsl_ldpaa.h"
-/*#include "fsl_aiop_parser.h"*/
+#include "dplib/fsl_ldpaa.h"
+#include "null.h"
+/*#include "dplib/fsl_aiop_parser.h"*/
 
 /**************************************************************************//**
  @Group		AIOP_General_Definitions
@@ -53,14 +54,10 @@
 #define FALSE	0
 	/** Logical true */
 #define TRUE	1
-	/** NULL pointer */
-//#define NULL	((void *)0)
 	/**< 0 value */
 #define ZERO	0
 	/** 1 value */
 #define ONE	1
-	/** Struct offset macro */
-//#define offsetof(type, member) (int)(&((type *)0)->member)
 
 /* Address of end of TLS section */
 #define TLS_SECTION_END_ADDR	0x1f40

@@ -111,7 +111,7 @@ struct parser_gen_parser_res_exp_verif_command {
 	enum parser_starting_hxs_code hxs;
 	uint8_t                       flags;
 	uint8_t                       offset;
-	uint8_t                       pad[1];
+	uint8_t                       pad[2];
 };
 
 uint16_t aiop_verification_parser(uint32_t asa_seg_addr);

@@ -10,8 +10,8 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#ifndef __FSL_AIOP_LIB_STATISTICS_H
-#define __FSL_AIOP_LIB_STATISTICS_H
+#ifndef __FSL_STE_H
+#define __FSL_STE_H
 
 #include "general.h"
 
@@ -281,4 +281,4 @@ void ste_barrier();
 /* @} end of group STE_functions */
 /* @} end of group STATS */
 
-#endif /* __FSL_AIOP_LIB_STATISTICS_H */
+#endif /* __FSL_STE_H */

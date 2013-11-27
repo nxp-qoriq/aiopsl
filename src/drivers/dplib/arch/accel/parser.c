@@ -5,7 +5,7 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
-#include "fsl_parser.h"
+#include "dplib/fsl_parser.h"
 #include "parser.h"
 #include "system.h"
 #include "id_pool.h"

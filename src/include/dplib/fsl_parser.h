@@ -10,7 +10,7 @@
 #define __FSL_PARSER_H
 
 #include "general.h"
-#include "fsl_fdma.h"
+#include "dplib/fsl_fdma.h"
 
 extern uint64_t ext_prpid_pool_address;
 
@@ -1154,7 +1154,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 	/** PPPoE+PPP Starting HXS coding */
 	 PARSER_PPPOE_PPP_STARTING_HXS = 0x0003,
 	/** MPLS Starting HXS coding */
-	 PARSER_MPLS_STARTING_HXS = 0x0004,	 
+	 PARSER_MPLS_STARTING_HXS = 0x0004,
 	/** ARP Starting HXS coding */
 	 PARSER_ARP_STARTING_HXS = 0x0005,
 	/** IP Starting HXS coding */

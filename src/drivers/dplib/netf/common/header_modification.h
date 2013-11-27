@@ -7,29 +7,29 @@
 
 *//***************************************************************************/
 
-#ifndef AIOP_LIB_HM_INTERNAL_H
-#define AIOP_LIB_HM_INTERNAL_H
+#ifndef __HEADER_MODIFICATION_H
+#define __HEADER_MODIFICATION_H
 
-#define HM_VLAN_VID_MASK		0x00000FFF
-#define HM_VLAN_PCP_MASK		0x0000E000
-#define HM_NO_OFFSET_FOUND		0xFF
-#define HM_IPV6_ECN_MASK		0xFFCFFFFF
-#define HM_IPV4_ECN_MASK		0xFC
-#define HM_MIN_REPRESENT_SIZE		128
-#define HM_TCP_DATA_OFFSET_SHIFT	3
-#define HM_TCP_NO_OPTION_SIZE		20
-#define HM_IPV6_ADDR_SIZE		32
+#define VLAN_VID_MASK		0x00000FFF
+#define VLAN_PCP_MASK		0x0000E000
+#define NO_OFFSET_FOUND		0xFF
+#define IPV6_ECN_MASK		0xFFCFFFFF
+#define IPV4_ECN_MASK		0xFC
+#define MIN_REPRESENT_SIZE	128
+#define TCP_DATA_OFFSET_SHIFT	3
+#define TCP_NO_OPTION_SIZE	20
+#define IPV6_ADDR_SIZE		32
 
-#define HM_IPV4_DSCP_MASK	0x03
-#define HM_IPV4_DF_MASK		0xbfff
-#define HM_IPV6_DSCP_MASK	0xF03FFFFF
+#define IPV4_DSCP_MASK		0x03
+#define IPV4_DF_MASK		0xbfff
+#define IPV6_DSCP_MASK		0xF03FFFFF
 #define ETYPE_IPV4		0x0800
 #define ETYPE_IPV6		0x86DD
 #define MPLS_LABEL_MASK		0x00001fff
 #define MPLS_LABEL_IPV4		0x00000000
 #define MPLS_LABEL_IPV6		0x00002000
-#define HM_IPV6_TC_MASK		0xf00fffff
-#define HM_IPV6_FLOW_MASK	0xfff00000
+#define IPV6_TC_MASK		0xf00fffff
+#define IPV6_FLOW_MASK		0xfff00000
 
 /** Returns a non-zero value in case TCP or UDP are found */
 #define PARSER_IS_L4_DEFAULT() \
@@ -94,7 +94,7 @@ inline void cksum_update_uint32(register uint16_t *cs_ptr,
 	register uint8_t temp2;
 	asm{
 		se_lhz	temp1, 0(cs_ptr)	/* Load CS */
-		nor	new_val,new_val,new_val	/* One's complement of the new
+		nor	new_val, new_val, new_val/* One's complement of the new
 						value. Pipeline optimization */
 		addc	temp1, temp1, old_val	/* Adding old value to CS and
 						generating carry */
@@ -102,11 +102,11 @@ inline void cksum_update_uint32(register uint16_t *cs_ptr,
 						the previous addition to CS */
 		addze	temp1, temp1		/* Add carry of the previous
 						addition to CS */
-		e_rlwinm temp2,temp1,16,0,31	/* Replace two half words
+		e_rlwinm temp2, temp1, 16, 0, 31/* Replace two half words
 						location */
-		se_add	temp2,temp1		/* Adding two half words and
+		se_add	temp2, temp1		/* Adding two half words and
 						first half word carry */
-		se_srwi	temp2,16		/* Isolate only the high 2B of
+		se_srwi	temp2, 16		/* Isolate only the high 2B of
 						the previous addition */
 		se_sth	temp2, 0(cs_ptr)	/* Store CS */
 	}
@@ -120,7 +120,7 @@ inline uint16_t cksum_accumulative_update_uint32(register uint16_t cksum,
 {
 	register uint8_t temp2;
 	asm{
-		nor	new_val,new_val,new_val	/* One's complement of the new
+		nor	new_val, new_val, new_val/* One's complement of the new
 						value. Pipeline optimization */
 		addc	cksum, cksum, old_val	/* Adding old value to CS and
 						generating carry */
@@ -128,15 +128,15 @@ inline uint16_t cksum_accumulative_update_uint32(register uint16_t cksum,
 						the previous addition to CS */
 		addze	cksum, cksum		/* Add carry of the previous
 						addition to CS */
-		e_rlwinm  temp2,cksum,16,0,31	/* Replace two half words
+		e_rlwinm  temp2, cksum, 16, 0, 31/* Replace two half words
 						location */
-		se_add	temp2,cksum		/* Adding two half words and
+		se_add	temp2, cksum		/* Adding two half words and
 						first half word carry */
-		se_srwi	temp2,16		/* Isolate only the high 2B of
+		se_srwi	temp2, 16		/* Isolate only the high 2B of
 						the previous addition */
 	}
 	return temp2;
 }
 
 
-#endif /* AIOP_LIB_HM_INTERNAL_H */
+#endif /* __HEADER_MODIFICATION_H */

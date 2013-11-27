@@ -8,7 +8,7 @@
 
 #include "general.h"
 #include "ste.h"
-#include "fsl_ste.h"
+#include "dplib/fsl_ste.h"
 
 void ste_set_32bit_counter(uint64_t counter_addr, uint32_t value)
 {

@@ -6,8 +6,8 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#ifndef __FSL_AIOP_TMAN_H
-#define __FSL_AIOP_TMAN_H
+#ifndef __FSL_TMAN_H
+#define __FSL_TMAN_H
 
 #include "general.h"
 
@@ -386,4 +386,4 @@ void tman_get_timestamp(uint64_t *timestamp);
 /* @} end of group TMAN_Functions */
 /* @} end of group TMAN */
 
-#endif /* __FSL_AIOP_TMAN_H */
+#endif /* __FSL_TMAN_H */

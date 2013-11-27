@@ -10,7 +10,7 @@
 #define __CTLU_H
 
 #include "general.h"
-#include "fsl_ctlu.h"
+#include "dplib/fsl_ctlu.h"
 
 /**************************************************************************//**
 @Group	CTLU CTLU (Internal)

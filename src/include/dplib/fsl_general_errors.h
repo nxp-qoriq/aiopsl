@@ -6,6 +6,8 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 
 *//***************************************************************************/
+#ifndef __FSL_HEADER_MODIFICATION_ERRORS_H
+#define __FSL_HEADER_MODIFICATION_ERRORS_H
 
 /**************************************************************************//**
 @addtogroup	FSL_HM FSL_AIOP_Header_Modification
@@ -21,22 +23,25 @@
 
 
 /** The frame contain only one IP header */
-#define HM_NO_IP_ENCAPSULATION_FOUND_ERROR	(HM_MODULE_STATUS_ID + 0x0100)
+#define NO_IP_ENCAPSULATION_FOUND_ERROR		(HM_MODULE_STATUS_ID + 0x0100)
 /** The frame not contain a UDP header */
-#define HM_NO_UDP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0200)
+#define NO_UDP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0200)
 /** No IP header was found.*/
-#define HM_NO_IP_HDR_ERROR			(HM_MODULE_STATUS_ID + 0x0300)
+#define NO_IP_HDR_ERROR				(HM_MODULE_STATUS_ID + 0x0300)
 /** No VLAN exists.*/
-#define HM_NO_VLAN_ERROR			(HM_MODULE_STATUS_ID + 0x0400)
+#define NO_VLAN_ERROR				(HM_MODULE_STATUS_ID + 0x0400)
 /** No TCP header was found */
-#define HM_NO_TCP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0500)
+#define NO_TCP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0500)
 /** No TCP MSS Option was found */
-#define HM_NO_TCP_MSS_FOUND_ERROR		(HM_MODULE_STATUS_ID + 0x0600)
+#define NO_TCP_MSS_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0600)
 /** No TCP or UDP headers were found */
-#define HM_NO_L4_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0700)
+#define NO_L4_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0700)
 /** No IP or L4 (TCP/UDP) headers were found */
-#define HM_NO_L4_IP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0800)
+#define NO_L4_IP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0800)
 
 
 /* @} end of group HMReturnStatus */
 /* @} end of group FSL_HM */
+
+#endif /* __FSL_HEADER_MODIFICATION_ERRORS_H */
+

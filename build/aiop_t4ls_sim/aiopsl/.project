@@ -467,16 +467,6 @@ aiop_basic_ex		</project>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/id_pool.h</locationURI>
 		</link>
 		<link>
-			<name>src/drivers/dplib/include/system.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/system.c</locationURI>
-		</link>
-		<link>
-			<name>src/drivers/dplib/include/system.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/system.h</locationURI>
-		</link>
-		<link>
 			<name>src/drivers/dplib/include/virtual_pools.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
@@ -585,6 +575,16 @@ aiop_basic_ex		</project>
 			<name>src/drivers/dplib/arch/accel/ste.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ste.h</locationURI>
+		</link>
+		<link>
+			<name>src/drivers/dplib/arch/accel/system.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/system.c</locationURI>
+		</link>
+		<link>
+			<name>src/drivers/dplib/arch/accel/system.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/system.h</locationURI>
 		</link>
 		<link>
 			<name>src/drivers/dplib/arch/accel/tman.c</name>

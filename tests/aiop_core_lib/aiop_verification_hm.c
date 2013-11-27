@@ -11,7 +11,7 @@
 #include "fsl_l2.h"
 #include "fsl_l4.h"
 #include "fsl_nat.h"
-#include "fsl_header_modification_errors.h"
+#include "fsl_general_errors.h"
 #include "fsl_parser.h"
 #include "system.h"
 
@@ -199,7 +199,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv4_nat_command *str =
 			(struct hm_ipv4_nat_command *) asa_seg_addr;
-			str->status = hm_nat_ipv4(str->flags,
+			str->status = nat_ipv4(str->flags,
 					str->ip_src_addr,
 					str->ip_dst_addr,
 					str->l4_src_port,
@@ -215,7 +215,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv6_nat_command *str =
 			(struct hm_ipv6_nat_command *) asa_seg_addr;
-			str->status = hm_nat_ipv6(str->flags,
+			str->status = nat_ipv6(str->flags,
 					str->ip_src_addr,
 					str->ip_dst_addr,
 					str->l4_src_port,

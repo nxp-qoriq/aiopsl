@@ -10,7 +10,7 @@
 #define __SYSTEM_H_
 
 #include "general.h"
-#include "fsl_cdma.h"
+#include "dplib/fsl_cdma.h"
 
 /**************************************************************************//**
 @Group	SYSTEM AIOP_System

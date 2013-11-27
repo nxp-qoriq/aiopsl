@@ -10,13 +10,13 @@
 
 *//***************************************************************************/
 
-#ifndef __FSL_LIB_L4_H
-#define __FSL_LIB_L4_H
+#ifndef __FSL_L4_H
+#define __FSL_L4_H
 
 
-#include "fsl_gso.h"
-#include "fsl_gro.h"
-#include "fsl_l4_checksum.h"
+#include "dplib/fsl_gso.h"
+#include "dplib/fsl_gro.h"
+#include "dplib/fsl_l4_checksum.h"
 
 
 /**************************************************************************//**
@@ -40,11 +40,11 @@
 *//***************************************************************************/
 
 	/** If set, update L4 checksum.*/
-#define HM_UDP_MODIFY_MODE_L4_CHECKSUM 0x01
+#define L4_UDP_MODIFY_MODE_L4_CHECKSUM 0x01
 	/** If set, the original UDP Src port will be replaced.*/
-#define HM_UDP_MODIFY_MODE_UDPSRC 0x02
+#define L4_UDP_MODIFY_MODE_UDPSRC 0x02
 	/** If set, the original UDP Dst port will be replaced.*/
-#define HM_UDP_MODIFY_MODE_UDPDST 0x04
+#define L4_UDP_MODIFY_MODE_UDPDST 0x04
 
 /* @} end of group HMUDPModeBits */
 
@@ -56,21 +56,21 @@
 *//***************************************************************************/
 
 	/** If set, update L4 checksum.*/
-#define HM_TCP_MODIFY_MODE_L4_CHECKSUM 0x01
+#define L4_TCP_MODIFY_MODE_L4_CHECKSUM 0x01
 	/** If set, the original TCP Src port will be replaced.*/
-#define HM_TCP_MODIFY_MODE_TCPSRC 0x02
+#define L4_TCP_MODIFY_MODE_TCPSRC 0x02
 	/** If set, the original TCP Dst port will be replaced.*/
-#define HM_TCP_MODIFY_MODE_TCPDST 0x04
+#define L4_TCP_MODIFY_MODE_TCPDST 0x04
 	/** If set, the original acknowledgment number will be updated.
 		The tcp_seq_num_delta signed integer will be added/subtracted
 		to/from the SeqNum value.*/
-#define HM_TCP_MODIFY_MODE_SEQNUM 0x08
+#define L4_TCP_MODIFY_MODE_SEQNUM 0x08
 	/** If set, the original acknowledgment number will be updated.
 		The tcp_seq_num_delta signed integer will be added/subtracted
 		to/from the AckNum value.*/
-#define HM_TCP_MODIFY_MODE_ACKNUM 0x10
+#define L4_TCP_MODIFY_MODE_ACKNUM 0x10
 	/** If set, the original maximum segment size will be replaced.*/
-#define HM_TCP_MODIFY_MODE_MSS 0x20
+#define L4_TCP_MODIFY_MODE_MSS 0x20
 
 /* @} end of group HMTCPModeBits */
 /* @} end of group HM_L4_Modes */
@@ -190,4 +190,4 @@ int32_t l4_set_tp_dst(uint16_t dst_port);
 /* @} end of group FSL_HM_L4_Functions */
 /* @} end of group FSL_HM */
 
-#endif /* __FSL_LIB_L4_H */
+#endif /* __FSL_L4_H */

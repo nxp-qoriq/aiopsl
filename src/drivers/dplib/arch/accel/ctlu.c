@@ -6,8 +6,8 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#include "fsl_cdma.h"
-#include "fsl_ctlu.h"
+#include "dplib/fsl_cdma.h"
+#include "dplib/fsl_ctlu.h"
 #include "ctlu.h"
 #include "system.h"
 #include "id_pool.h"

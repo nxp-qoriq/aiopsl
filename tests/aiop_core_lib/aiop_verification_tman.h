@@ -187,7 +187,6 @@ struct tman_timer_query_command {
 	int32_t		status;
 	uint32_t	timer_handle;
 	enum e_tman_query_timer state;
-	uint8_t		pad[3];
 };
 
 /**************************************************************************//**

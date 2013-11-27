@@ -10,8 +10,8 @@
 
 *//***************************************************************************/
 
-#ifndef AIOP_LIB_L2_HM_OF_H
-#define AIOP_LIB_L2_HM_OF_H
+#ifndef __FSL_L2_H
+#define __FSL_L2_H
 
 /**************************************************************************//**
 @addtogroup	FSL_HM FSL_AIOP_Header_Modification
@@ -194,4 +194,4 @@ int32_t l2_pop_vlan();
 /* @} end of group FSL_HM_L2_Functions */
 /* @} end of group FSL_HM */
 
-#endif /* AIOP_LIB_L2_HM_OF_H */
+#endif /* __FSL_L2_H */
