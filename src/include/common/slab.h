@@ -117,7 +117,7 @@ void slab_free(struct slab *slab);
 
  @Return        E_OK on success, error code otherwise.
  *//***************************************************************************/
-int slab_aquire(struct slab *slab, uint64_t *buff);
+int slab_acquire(struct slab *slab, uint64_t *buff);
 
 /**************************************************************************//**
  @Function      slab_release
