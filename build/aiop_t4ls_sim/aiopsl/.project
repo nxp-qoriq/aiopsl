@@ -157,6 +157,21 @@ aiop_basic_ex		</project>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/include/inet.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/inet.h</locationURI>
+		</link>
+		<link>
+			<name>src/include/slab.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/slab.h</locationURI>
+		</link>
+		<link>
+			<name>src/include/slob.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/slob.h</locationURI>
+		</link>
+		<link>
 			<name>src/kernel/cmdif_client.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
@@ -212,6 +227,11 @@ aiop_basic_ex		</project>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
+			<name>src/lib/inet.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/inet.c</locationURI>
+		</link>
+		<link>
 			<name>src/lib/list.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/list.c</locationURI>
@@ -240,6 +260,11 @@ aiop_basic_ex		</project>
 			<name>src/lib/slob.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/slob.h</locationURI>
+		</link>
+		<link>
+			<name>src/lib/time.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/time.c</locationURI>
 		</link>
 		<link>
 			<name>src/arch/ppc/booke.S</name>
