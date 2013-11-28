@@ -23,8 +23,12 @@ int evm_register_callback( uint8_t evm_event_id,
 	uint8_t type,  
 	evm_cb_t cb)
 {
-#pragma unused (type, app_listen_mask, cb, evm_event_id, priority)
+    UNUSED (type);
+    UNUSED (app_listen_mask);
+    UNUSED (cb);
+    UNUSED (evm_event_id);
+    UNUSED (priority);
 	/* to be done */
-	return 0;
+    return 0;
 }
 
