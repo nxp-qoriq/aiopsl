@@ -7,7 +7,7 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#include "fsl_fdma.h"
+#include "dplib/fsl_fdma.h"
 #include "fdma.h"
 
 
