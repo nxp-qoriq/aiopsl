@@ -1171,10 +1171,11 @@ void prepare_add_qos_entry_cmd(struct cmdif_cmd_desc *desc,
 			   struct key_params *params,
 			   uint8_t tcid)
 {
-#pragma unused (params, tcid)
     uint64_t cmd_param = 0;
     /* build param 1*/
     /* TODO */
+    UNUSED (params);
+    UNUSED (tcid);
 
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
@@ -1182,13 +1183,12 @@ void prepare_add_qos_entry_cmd(struct cmdif_cmd_desc *desc,
 void prepare_remove_qos_entry_cmd(struct cmdif_cmd_desc *desc, 
 				  struct key_params *params)
 {
-#pragma unused (params, desc)
 
     uint64_t cmd_param = 0;
 
     /* build param 1*/
     /* TODO */
-
+    UNUSED (params);
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
@@ -1244,10 +1244,10 @@ void prepare_add_fs_entry_cmd(struct cmdif_cmd_desc *desc,
 			  struct key_params *params,
 			  uint16_t flowid)
 {
-#pragma unused (params)
 
     uint64_t cmd_param = 0;
     /* build param 1*/
+    UNUSED (params);
     u64_write_field(cmd_param,
     				DPNI_ADD_FS_ENT_FLOWID_O, 
     				DPNI_ADD_FS_ENT_FLOWID_S,
@@ -1264,9 +1264,9 @@ void prepare_remove_fs_entry_cmd(struct cmdif_cmd_desc *desc,
 				 uint8_t tcid, 
 				 struct key_params *params)
 {
-#pragma unused (params)
     uint64_t cmd_param = 0;
     /* build param 1*/
+    UNUSED (params);
     u64_write_field(cmd_param, 
     				DPNI_REMOVE_FS_ENT_TCID_O, 
     				DPNI_REMOVE_FS_ENT_TCID_S, 
@@ -1290,6 +1290,7 @@ void prepare_clear_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
 void recieve_get_stats_cmd(struct cmdif_cmd_desc *desc,
 			   struct dpni_stats *stats)
 {
-#pragma unused (desc, stats)
+    UNUSED (desc);
+    UNUSED (stats);
     /* TODO */
 }
