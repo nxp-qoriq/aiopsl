@@ -15,7 +15,7 @@ struct dpni *dpni_open(void *regs, int id)
 {   
     struct dpni *dpni = (struct dpni *)fsl_os_malloc(sizeof(struct dpni));
     
-    dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, id);  		
+    dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, (uint16_t) id);  		
     if (dpni->dev != NULL)
     	return dpni;
     return NULL;
@@ -1171,6 +1171,7 @@ void prepare_add_qos_entry_cmd(struct cmdif_cmd_desc *desc,
 			   struct key_params *params,
 			   uint8_t tcid)
 {
+#pragma unused (params, tcid)
     uint64_t cmd_param = 0;
     /* build param 1*/
     /* TODO */
@@ -1181,6 +1182,8 @@ void prepare_add_qos_entry_cmd(struct cmdif_cmd_desc *desc,
 void prepare_remove_qos_entry_cmd(struct cmdif_cmd_desc *desc, 
 				  struct key_params *params)
 {
+#pragma unused (params, desc)
+
     uint64_t cmd_param = 0;
 
     /* build param 1*/
@@ -1241,6 +1244,8 @@ void prepare_add_fs_entry_cmd(struct cmdif_cmd_desc *desc,
 			  struct key_params *params,
 			  uint16_t flowid)
 {
+#pragma unused (params)
+
     uint64_t cmd_param = 0;
     /* build param 1*/
     u64_write_field(cmd_param,
@@ -1259,6 +1264,7 @@ void prepare_remove_fs_entry_cmd(struct cmdif_cmd_desc *desc,
 				 uint8_t tcid, 
 				 struct key_params *params)
 {
+#pragma unused (params)
     uint64_t cmd_param = 0;
     /* build param 1*/
     u64_write_field(cmd_param, 
@@ -1284,5 +1290,6 @@ void prepare_clear_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
 void recieve_get_stats_cmd(struct cmdif_cmd_desc *desc,
 			   struct dpni_stats *stats)
 {
+#pragma unused (desc, stats)
     /* TODO */
 }

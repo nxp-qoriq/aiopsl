@@ -133,6 +133,8 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module, uint8_t num
 /*****************************************************************************/
 void sys_remove_handle(enum fsl_os_module module, uint32_t id, ... )
 {
+#pragma unused (id, module)
+
     REPORT_ERROR(MAJOR, E_NOT_SUPPORTED, NO_MSG);
 }
 

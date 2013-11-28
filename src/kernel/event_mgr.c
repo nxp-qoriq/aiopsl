@@ -17,12 +17,13 @@
 #include "common/types.h"
 #include "kernel/event_mgr.h"
 
-int evm_register_cb( uint8_t evm_event_id,
+int evm_register_callback( uint8_t evm_event_id,
 	uint64_t app_listen_mask,
 	uint8_t priority,
 	uint8_t type,  
 	evm_cb_t cb)
 {
+#pragma unused (type, app_listen_mask, cb, evm_event_id, priority)
 	/* to be done */
 	return 0;
 }

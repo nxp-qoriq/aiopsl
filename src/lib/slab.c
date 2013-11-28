@@ -534,7 +534,7 @@ void slab_free(struct slab *slab)
 }
 
 /*****************************************************************************/
-int slab_accuire(struct slab *slab, uint64_t *buff)
+int slab_acquire(struct slab *slab, uint64_t *buff)
 {
     slab_t *pslab = (slab_t *)slab;
     uint8_t         *p_block;

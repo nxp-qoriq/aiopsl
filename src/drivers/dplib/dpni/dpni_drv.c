@@ -106,6 +106,8 @@ void receive_cb (void)
 
 int dpni_drv_send(uint16_t ni_id)
 {
+#pragma unused (ni_id)
+
     /* TODO - complete!!! */
     return 0;
 }

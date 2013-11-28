@@ -104,6 +104,8 @@ struct cmdif_dev *cmdif_open(void *regs,
                              enum fsl_os_module mod,
                              uint16_t mod_id)
 {
+#pragma unused (mod_id)
+
 	int err;
 	int cmdid = 0;
 	struct cmdif_dev *dev = fsl_os_malloc(sizeof(struct cmdif_dev));
