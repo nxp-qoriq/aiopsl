@@ -124,18 +124,6 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size);
 uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char *name);
 
 /**************************************************************************//**
- @brief slob_get_mem_block
-
- @Description   returns the base address of an allocated block
-				TODO: add more details:w\
-				
- @Param[in]     TODO
- 
- @Return        TODO
-*//***************************************************************************/
-uint64_t slob_get_mem_block(fsl_handle_t slob, int index);
-
-/**************************************************************************//**
  @Function      slob_get_force
 
  @Description   Force memory allocation.
