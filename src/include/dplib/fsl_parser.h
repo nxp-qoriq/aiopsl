@@ -1153,7 +1153,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 	/** PPPoE+PPP Starting HXS coding */
 	 PARSER_PPPOE_PPP_STARTING_HXS = 0x0003,
 	/** MPLS Starting HXS coding */
-	 PARSER_MPLS_STARTING_HXS = 0x0004,	 
+	 PARSER_MPLS_STARTING_HXS = 0x0004,
 	/** ARP Starting HXS coding */
 	 PARSER_ARP_STARTING_HXS = 0x0005,
 	/** IP Starting HXS coding */

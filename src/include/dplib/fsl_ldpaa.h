@@ -35,6 +35,7 @@ struct ldpaa_fd {
 	uint64_t flc; /**< Flow Context 	 */
 };
 
+#if 0
 /* FD fields Getters and Setters */
 
 #define LDPAA_FD_GET_ADDR(_fd)
@@ -135,6 +136,7 @@ struct ldpaa_fd {
 /**< Macro to get FD FLC field */
 #define LDPAA_FD_SET_FLC(_fd,_val)
 /**< Macro to set FD FLC field */
+#endif /* 0 */
 
 /** @} *//* end of ldpaa_g group */
 

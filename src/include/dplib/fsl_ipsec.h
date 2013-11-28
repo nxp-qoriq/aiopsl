@@ -19,62 +19,10 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_IPSEC_MACROS IPsec Macros
+@Description	IPSec handle Type definition
 
-@Description	Freescale AIOP IPsec Macros
-
-@{
-*//***************************************************************************/
-
-/**************************************************************************//**
-@Group		IPSEC_FLAGS IPsec Flags
-
-@Description	IPsec Flags
-
-@{
-*//***************************************************************************/
-/** IPsec Tunnel Mode Flag */
-#define IPSEC_FLAG_TUNNEL_MODE		0x00000000
-
-/** IPsec Transport Mode Flag */
-#define IPSEC_FLAG_TRANSPORT_MODE	0x00000001
-
-/** @} */ /* end of IPSEC_FLAGS */
-
-/** @} */ /* end of FSL_IPSEC_MACROS */
-
-/**************************************************************************//**
-@Group		FSL_IPSEC_STRUCTS IPsec Structures
-
-@Description	Freescale AIOP IPsec Structures
-
-@{
-*//***************************************************************************/
-
-/**************************************************************************//**
-@Description	IPSec Parameters
-*//***************************************************************************/
-struct ipsec_params{
-	/** SEC Flow Context Address in external memory.
-	 * A pointer to a 64-byte memory structure followed by a SEC shared
-	 * descriptor. This structure must be configured before calling this
-	 * function. Documentation of this structure is out of the scope of
-	 * this API. */
-	uint64_t sec_flc_addr;
-
-	/** Flags. Please refer to \ref IPSEC_FLAGS for more details. */
-	uint32_t flags;
-
-	/** Storage Profile ID of the output frame.
-	 * This Storage Profile(SP) ID should fit the SP configured in the SEC
-	 * descriptor which is located at \ref sec_flc_addr. */
-	uint16_t spid;
-
-	/** Padding */
-	uint8_t  pad[2];
-};
-
-/** @} */ /* end of FSL_IPSEC_STRUCTS */
+ *//***************************************************************************/
+typedef uint64_t ipsec_handle_t;
 
 /**************************************************************************//**
 @Group		FSL_IPSEC_Functions IPsec Functions
@@ -96,24 +44,21 @@ struct ipsec_params{
 		The function also updates the decrypted frame parser result and
 		checks the inner UDP checksum (if available).
 
-@Param[in]	ipsec_params - Function's parameters.
-@Param[out]	byte_cnt - Encrypted byte count (As supplied by SEC engine).
+@Param[in]	ipsec_handle - IPsec handle.
 
-@Return		TODO TBD
+@Return		todo (implementation dependent)
 
-@Cautions	In this function the task yields.
-		This function preserves the Order Scope mode of the task. If
+@Cautions	User should note the following:
+		 - In this function the task yields.
+		 - This function preserves the Order Scope mode of the task. If
 		the Order Scope is of mode concurrent, the Order Scope ID is
 		incremented by 1.
-		It is assumed that IPv6 ESP extension is the last IPv6
+		 - It is assumed that IPv6 ESP extension is the last IPv6
 		extension in the packet.
-		This function does not support Storage Profile with BS == 1
-		(buffer reuse).
-		This function does not support input frames which are IPv6
+		 - This function does not support input frames which are IPv6
 		jumbograms.
 *//****************************************************************************/
-int32_t ipsec_frame_decrypt(struct ipsec_params *ipsec_params,
-				 uint32_t *byte_cnt);
+int32_t ipsec_frame_decrypt(ipsec_handle_t ipsec_handle);
 
 /**************************************************************************//**
 @Function	ipsec_frame_encrypt
@@ -127,24 +72,22 @@ int32_t ipsec_frame_decrypt(struct ipsec_params *ipsec_params,
 		without Ethernet L2) within IPv4/IPv6 is supported.
 		The function also updates the encrypted frame parser result.
 
-@Param[in]	ipsec_params - Function's parameters.
-@Param[out]	byte_cnt - Encrypted byte count (As supplied by SEC engine).
+@Param[in]	ipsec_handle - IPsec handle.
 
-@Return		TODO TBD
+@Return		todo (implementation dependent)
 
-@Cautions	In this function the task yields.
-		This function preserves the Order Scope mode of the task. If
+@Cautions	User should note the following:
+		 - In this function the task yields.
+		 - This function preserves the Order Scope mode of the task. If
 		the Order Scope is of mode concurrent, the Order Scope ID is
 		incremented by 1.
-		This function does not support Storage Profile with BS == 1
-		(buffer reuse).
-		This function does not support encrypted frames which are IPv6
-		jumbograms.
+		 - This function does not support encrypted frames which are
+		IPv6 jumbograms.
 *//****************************************************************************/
-int32_t ipsec_frame_encrypt(struct ipsec_params *ipsec_params,
-				 uint32_t *byte_cnt);
+int32_t ipsec_frame_encrypt(ipsec_handle_t ipsec_handle);
 
 /** @} */ /* end of FSL_IPSEC_Functions */
+
 /** @} */ /* end of FSL_IPSEC */
 
 

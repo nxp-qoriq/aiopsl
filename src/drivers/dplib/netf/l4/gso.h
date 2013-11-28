@@ -6,7 +6,9 @@
 #ifndef __GSO_H
 #define __GSO_H
 
+#include "general.h"
 #include "dplib/fsl_gso.h"
+
 
 /**************************************************************************//**
 @Group		FSL_AIOP_TCP_GSO_INTERNAL FSL AIOP TCP GSO Internal

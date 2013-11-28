@@ -32,22 +32,6 @@
  @{
 *//***************************************************************************/
 
-/* The following 3 lines must be located at the top of the header file */
-	/** Macros to verify a structure size does not exceed the size a user
-	 * allocates for that structure.
-	 * If verification fails the following error will be presented (on
-	 * compile time):
-	 * error: "division by 0". */
-#define ASSERT_CONCAT_(a, b) a##b
-#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
-#define ASSERT_STRUCT_SIZE(_sizeof_struct, _struct_fixed_size) \
-	ASSERT_STRUCT_SIZE_(_sizeof_struct <= _struct_fixed_size)
-#define ASSERT_STRUCT_SIZE_(e) \
-	enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
-
-	/** Task global variable definition */
-#define __TASK __declspec(section ".tdata")
-
 	/** Null buffer pool ID */
 #define BPID_NULL	0x00FF
 	/** Logical false */

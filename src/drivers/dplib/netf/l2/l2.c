@@ -11,11 +11,12 @@
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_l2.h"
-#include "header_modification.h"
-#include "dplib/fsl_general_errors.h"
 #include "dplib/fsl_cdma.h"
 
-void l2_header_remove()
+#include "header_modification.h"
+
+
+void l2_header_remove(void)
 {
 	uint8_t  first_offset, last_offset;
 	uint16_t size_to_be_removed;

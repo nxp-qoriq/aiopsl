@@ -33,6 +33,16 @@
 @{
 *//***************************************************************************/
 
+/** The frame not contain a UDP header */
+#define NO_UDP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0200)
+/** No TCP header was found */
+#define NO_TCP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0500)
+/** No TCP MSS Option was found */
+#define NO_TCP_MSS_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0600)
+/** No TCP or UDP headers were found */
+#define NO_L4_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0700)
+
+
 /**************************************************************************//**
 @Group		HMUDPModeBits UDP header modification mode bits
 
@@ -40,11 +50,11 @@
 *//***************************************************************************/
 
 	/** If set, update L4 checksum.*/
-#define HM_UDP_MODIFY_MODE_L4_CHECKSUM 0x01
+#define L4_UDP_MODIFY_MODE_L4_CHECKSUM 0x01
 	/** If set, the original UDP Src port will be replaced.*/
-#define HM_UDP_MODIFY_MODE_UDPSRC 0x02
+#define L4_UDP_MODIFY_MODE_UDPSRC 0x02
 	/** If set, the original UDP Dst port will be replaced.*/
-#define HM_UDP_MODIFY_MODE_UDPDST 0x04
+#define L4_UDP_MODIFY_MODE_UDPDST 0x04
 
 /* @} end of group HMUDPModeBits */
 
@@ -56,21 +66,21 @@
 *//***************************************************************************/
 
 	/** If set, update L4 checksum.*/
-#define HM_TCP_MODIFY_MODE_L4_CHECKSUM 0x01
+#define L4_TCP_MODIFY_MODE_L4_CHECKSUM 0x01
 	/** If set, the original TCP Src port will be replaced.*/
-#define HM_TCP_MODIFY_MODE_TCPSRC 0x02
+#define L4_TCP_MODIFY_MODE_TCPSRC 0x02
 	/** If set, the original TCP Dst port will be replaced.*/
-#define HM_TCP_MODIFY_MODE_TCPDST 0x04
+#define L4_TCP_MODIFY_MODE_TCPDST 0x04
 	/** If set, the original acknowledgment number will be updated.
 		The tcp_seq_num_delta signed integer will be added/subtracted
 		to/from the SeqNum value.*/
-#define HM_TCP_MODIFY_MODE_SEQNUM 0x08
+#define L4_TCP_MODIFY_MODE_SEQNUM 0x08
 	/** If set, the original acknowledgment number will be updated.
 		The tcp_seq_num_delta signed integer will be added/subtracted
 		to/from the AckNum value.*/
-#define HM_TCP_MODIFY_MODE_ACKNUM 0x10
+#define L4_TCP_MODIFY_MODE_ACKNUM 0x10
 	/** If set, the original maximum segment size will be replaced.*/
-#define HM_TCP_MODIFY_MODE_MSS 0x20
+#define L4_TCP_MODIFY_MODE_MSS 0x20
 
 /* @} end of group HMTCPModeBits */
 /* @} end of group HM_L4_Modes */

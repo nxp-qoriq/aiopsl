@@ -6,6 +6,7 @@
 #ifndef __GRO_H
 #define __GRO_H
 
+#include "general.h"
 #include "dplib/fsl_gro.h"
 #include "dplib/fsl_fdma.h"
 

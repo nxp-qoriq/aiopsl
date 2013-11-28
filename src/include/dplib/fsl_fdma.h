@@ -10,6 +10,7 @@
 #define __FSL_FDMA_H
 
 #include "common/types.h"
+#include "common/errors.h"
 
 
 /* extern uint8_t HWC_PRC_ADDR[]; */
@@ -57,7 +58,7 @@
 *//***************************************************************************/
 enum fdma_hw_errors {
 		/** Success. */
-	FDMA_SUCCESS = SUCCESS,
+	FDMA_SUCCESS = E_OK,
 		/** Enqueue failed due to QMan enqueue rejection. */
 	FDMA_ENQUEUE_FAILED_ERR = 0x1,
 		/** Failed due to buffer pool depletion. */

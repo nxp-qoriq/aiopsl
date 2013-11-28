@@ -6,9 +6,11 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
+#include "general.h"
 #include "dplib/fsl_ipv4_checksum.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
+
 
 int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header)
 {
