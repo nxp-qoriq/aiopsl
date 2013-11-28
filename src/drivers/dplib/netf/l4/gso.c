@@ -6,9 +6,9 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#include "fsl_gso.h"
+#include "dplib/fsl_gso.h"
 #include "gso.h"
-#include "fsl_fdma.h"
+#include "dplib/fsl_fdma.h"
 
 
 int32_t tcp_gso_generate_seg(

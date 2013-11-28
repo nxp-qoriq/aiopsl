@@ -6,7 +6,7 @@
 #ifndef __IPF_H
 #define __IPF_H
 
-#include "fsl_ipf.h"
+#include "dplib/fsl_ipf.h"
 
 /**************************************************************************//**
 @Group		AIOP_IPF_INTERNAL  AIOP IPF Internal
@@ -38,13 +38,13 @@ struct ipf_context {
 	 * fragments. */
 	uint32_t frame_id;
 	/** Flags - Please refer to \ref IPF_Flags */
-	uint32_t flags;	
+	uint32_t flags;
 	/** Maximum Transmit Unit
 	 * In case \ref IPF_RESTORE_ORIGINAL_FRAGMENTS flag is set, this
 	 * parameter is ignored. */
 	uint16_t mtu;
 	/** Fragment index */
-	uint16_t frag_index;       
+	uint16_t frag_index;
 	/** Remaining frame handle*/
 	uint8_t rem_frame_handle;
 	/** First fragment indication */

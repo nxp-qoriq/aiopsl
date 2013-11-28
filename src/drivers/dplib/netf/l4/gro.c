@@ -6,7 +6,7 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#include "fsl_gro.h"
+#include "dplib/fsl_gro.h"
 #include "gro.h"
 
 

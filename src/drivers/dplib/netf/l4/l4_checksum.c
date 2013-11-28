@@ -6,10 +6,10 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
-#include "fsl_l4_checksum.h"
-/* todo fix */
-#include "fsl_ipv4_checksum.h"
-#include "fsl_parser.h"
+#include "dplib/fsl_l4_checksum.h"
+// todo fix
+#include "dplib/fsl_ipv4_checksum.h"
+#include "dplib/fsl_parser.h"
 
 int32_t cksum_calc_udp_tcp_checksum()
 {
@@ -67,7 +67,7 @@ int32_t cksum_calc_udp_tcp_checksum()
 		/* Call parser */
 		if (PARSER_STATUS_PASS !=
 		    parse_result_generate_default(0)) {
-			return
+			return 
 			L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_PARSER_FAILURE;
 		}
 

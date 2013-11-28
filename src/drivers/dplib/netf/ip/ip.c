@@ -8,13 +8,13 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "fsl_parser.h"
-#include "fsl_fdma.h"
+#include "dplib/fsl_parser.h"
+#include "dplib/fsl_fdma.h"
 #include "header_modification.h"
-#include "fsl_ip.h"
-#include "fsl_header_modification_errors.h"
-#include "fsl_cdma.h"
-#include "fsl_ipv4_checksum.h"
+#include "dplib/fsl_ip.h"
+#include "dplib/fsl_general_errors.h"
+#include "dplib/fsl_cdma.h"
+#include "dplib/fsl_ipv4_checksum.h"
 
 int32_t ip_header_decapsulation(uint8_t flags)
 {
@@ -28,7 +28,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 	inner_ip_offset = (uint8_t)(PARSER_GET_INNER_IP_OFFSET_DEFAULT());
 	/* todo need parser to define PARSER_IS_INNER_IP macro */
 	if (PARSER_IS_TUNNEL_IP_DEFAULT())
-		return HM_NO_IP_ENCAPSULATION_FOUND_ERROR;
+		return NO_IP_ENCAPSULATION_FOUND_ERROR;
 	outer_ip_offset = (uint8_t)(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 
 	if (flags) {
@@ -42,19 +42,19 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				outer_ipv4_ptr = (struct ipv4hdr *)
 				(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_DS)
+				if (flags & IP_DECAP_MODE_TOS_TC_DS)
 					inner_ipv4_ptr->tos =
 					(inner_ipv4_ptr->tos &
-							HM_IPV4_DSCP_MASK) |
+							IPV4_DSCP_MASK) |
 					(outer_ipv4_ptr->tos &
-							~HM_IPV4_DSCP_MASK);
+							~IPV4_DSCP_MASK);
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_ECN)
+				if (flags & IP_DECAP_MODE_TOS_TC_ECN)
 					inner_ipv4_ptr->tos =
 					(inner_ipv4_ptr->tos &
-							HM_IPV4_ECN_MASK) |
+							IPV4_ECN_MASK) |
 					(outer_ipv4_ptr->tos &
-							~HM_IPV4_ECN_MASK);
+							~IPV4_ECN_MASK);
 
 			/* Optimization calling cksum_calc_ipv4_header_checksum
 			 * takes more than 25 cycles (assuming inlined
@@ -66,7 +66,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				    old_field,
 				    *((uint16_t *)inner_ipv4_ptr+4));
 
-				if (flags & HM_IP_DECAP_MODE_TTL_HL) {
+				if (flags & IP_DECAP_MODE_TTL_HL) {
 					old_field =
 						*((uint16_t *)inner_ipv4_ptr+4);
 					inner_ipv4_ptr->ttl =
@@ -85,19 +85,19 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				outer_ipv6_ptr = (struct ipv6hdr *)
 				(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_DS)
+				if (flags & IP_DECAP_MODE_TOS_TC_DS)
 					inner_ipv4_ptr->tos =
 					(inner_ipv4_ptr->tos &
-							HM_IPV4_DSCP_MASK) |
+							IPV4_DSCP_MASK) |
 				(((uint8_t)(outer_ipv6_ptr->vsn_traffic_flow
-						>> 20) & ~HM_IPV4_DSCP_MASK));
+						>> 20) & ~IPV4_DSCP_MASK));
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_ECN)
+				if (flags & IP_DECAP_MODE_TOS_TC_ECN)
 					inner_ipv4_ptr->tos =
 					(inner_ipv4_ptr->tos &
-							HM_IPV4_ECN_MASK) |
+							IPV4_ECN_MASK) |
 				(((uint8_t)(outer_ipv6_ptr->vsn_traffic_flow
-						>> 20) & ~HM_IPV4_ECN_MASK));
+						>> 20) & ~IPV4_ECN_MASK));
 
 					/* Update IP CS for TOS changes. */
 					cksum_update_uint16(
@@ -105,7 +105,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 					    old_field,
 					    *((uint16_t *)inner_ipv4_ptr+4));
 
-				if (flags & HM_IP_DECAP_MODE_TTL_HL) {
+				if (flags & IP_DECAP_MODE_TTL_HL) {
 					inner_ipv4_ptr->ttl =
 						outer_ipv6_ptr->hop_limit;
 					/* Update IP CS for TTL changes. */
@@ -124,21 +124,21 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				outer_ipv4_ptr = (struct ipv4hdr *)
 				(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_DS)
+				if (flags & IP_DECAP_MODE_TOS_TC_DS)
 					inner_ipv6_ptr->vsn_traffic_flow =
 					(inner_ipv6_ptr->vsn_traffic_flow &
-						HM_IPV6_DSCP_MASK) |
+						IPV6_DSCP_MASK) |
 					(((uint32_t)outer_ipv4_ptr->tos << 20)
-							& ~HM_IPV6_DSCP_MASK);
+							& ~IPV6_DSCP_MASK);
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_ECN)
+				if (flags & IP_DECAP_MODE_TOS_TC_ECN)
 					inner_ipv6_ptr->vsn_traffic_flow =
 					(inner_ipv6_ptr->vsn_traffic_flow &
-						HM_IPV6_ECN_MASK) |
+						IPV6_ECN_MASK) |
 					(((uint32_t)outer_ipv4_ptr->tos << 20)
-							& ~HM_IPV6_ECN_MASK);
+							& ~IPV6_ECN_MASK);
 
-				if (flags & HM_IP_DECAP_MODE_TTL_HL)
+				if (flags & IP_DECAP_MODE_TTL_HL)
 					inner_ipv6_ptr->hop_limit =
 							outer_ipv4_ptr->ttl;
 			} else {
@@ -148,22 +148,22 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				outer_ipv6_ptr = (struct ipv6hdr *)
 				(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_DS)
+				if (flags & IP_DECAP_MODE_TOS_TC_DS)
 					inner_ipv6_ptr->vsn_traffic_flow =
 					(inner_ipv6_ptr->vsn_traffic_flow &
-							HM_IPV6_DSCP_MASK) |
+							IPV6_DSCP_MASK) |
 					(outer_ipv6_ptr->vsn_traffic_flow
-						& ~HM_IPV6_DSCP_MASK);
+						& ~IPV6_DSCP_MASK);
 
 
-				if (flags & HM_IP_DECAP_MODE_TOS_TC_ECN)
+				if (flags & IP_DECAP_MODE_TOS_TC_ECN)
 					inner_ipv6_ptr->vsn_traffic_flow =
 					(inner_ipv6_ptr->vsn_traffic_flow &
-							HM_IPV6_ECN_MASK) |
+							IPV6_ECN_MASK) |
 				(((uint8_t)(outer_ipv6_ptr->vsn_traffic_flow
-						>> 20) & ~HM_IPV6_ECN_MASK));
+						>> 20) & ~IPV6_ECN_MASK));
 
-				if (flags & HM_IP_DECAP_MODE_TTL_HL)
+				if (flags & IP_DECAP_MODE_TTL_HL)
 					inner_ipv6_ptr->hop_limit =
 						outer_ipv6_ptr->hop_limit;
 			}
@@ -173,7 +173,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 	/* Update the frame presentation */
 	size_to_be_removed = inner_ip_offset - outer_ip_offset;
 	inner_ip_ptr = 	(void *)(inner_ip_offset + PRC_GET_SEGMENT_ADDRESS());
-	if ((prc->seg_length - size_to_be_removed) >= HM_MIN_REPRESENT_SIZE)
+	if ((prc->seg_length - size_to_be_removed) >= MIN_REPRESENT_SIZE)
 		fdma_replace_default_segment_data(
 			(uint16_t)outer_ip_offset, /*to_offset*/
 			(uint16_t)(size_to_be_removed + 12), /*to_size*/
@@ -189,7 +189,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				inner_ip_ptr, /*from_ws_src*/
 				12, /*from_size*/
 				(void *)prc->seg_address, /*ws_dst_rs*/
-				HM_MIN_REPRESENT_SIZE, /*size_rs*/
+				MIN_REPRESENT_SIZE, /*size_rs*/
 				FDMA_REPLACE_SA_REPRESENT_BIT);
 
 	/* generate new parse information */
@@ -217,20 +217,20 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		ipv4hdr_ptr = (struct ipv4hdr *)
 				(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
-		if (flags & HM_IPV4_MODIFY_MODE_IPTTL)
+		if (flags & IPV4_MODIFY_MODE_IPTTL)
 			ipv4hdr_ptr->ttl = ipv4hdr_ptr->ttl - 1;
-		if (flags & HM_IPV4_MODIFY_MODE_IPTOS)
+		if (flags & IPV4_MODIFY_MODE_IPTOS)
 			ipv4hdr_ptr->tos = tos;
-		if (flags & HM_IPV4_MODIFY_MODE_IPID)
+		if (flags & IPV4_MODIFY_MODE_IPID)
 			ipv4hdr_ptr->id = id;
 		sum = 0;
-		if (flags & HM_IPV4_MODIFY_MODE_IPSRC) {
+		if (flags & IPV4_MODIFY_MODE_IPSRC) {
 			/* Update IP checksum */
 			cksum_update_uint32(&ipv4hdr_ptr->hdr_cksum,
 					    ipv4hdr_ptr->src_addr,
 					    ip_src_addr);
 
-			if (flags & HM_IPV4_MODIFY_MODE_L4_CHECKSUM) {
+			if (flags & IPV4_MODIFY_MODE_L4_CHECKSUM) {
 				/* Calculate delta for L4 checksum */
 				sum = cksum_accumulative_update_uint32(
 							  sum,
@@ -242,13 +242,13 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 			ipv4hdr_ptr->src_addr = ip_src_addr;
 
 		}
-		if (flags & HM_IPV4_MODIFY_MODE_IPDST) {
+		if (flags & IPV4_MODIFY_MODE_IPDST) {
 			/* Update IP checksum */
 			cksum_update_uint32(&ipv4hdr_ptr->hdr_cksum,
 					    ipv4hdr_ptr->dst_addr,
 					    ip_dst_addr);
 
-			if (flags & HM_IPV4_MODIFY_MODE_L4_CHECKSUM) {
+			if (flags & IPV4_MODIFY_MODE_L4_CHECKSUM) {
 				/* Calculate delta for L4 checksum */
 				sum = cksum_accumulative_update_uint32(
 							  sum,
@@ -306,7 +306,7 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		}
 	return SUCCESS;
 	} else {
-		return HM_NO_IP_HDR_ERROR; }
+		return NO_IP_HDR_ERROR; }
 }
 
 int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
@@ -329,9 +329,9 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 				(ipv6hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
 		l4_update = 0;
-		if ((flags & HM_IPV6_MODIFY_MODE_L4_CHECKSUM) &
-				((flags & HM_IPV6_MODIFY_MODE_IPSRC) ||
-				 (flags & HM_IPV6_MODIFY_MODE_IPDST))) {
+		if ((flags & IPV6_MODIFY_MODE_L4_CHECKSUM) &
+				((flags & IPV6_MODIFY_MODE_IPSRC) ||
+				 (flags & IPV6_MODIFY_MODE_IPDST))) {
 			/* calculate checksum on old IPsrc+IPdst */
 			fdma_calculate_default_frame_checksum(ipv6hdr_offset+8,
 							      32,
@@ -340,25 +340,25 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 		}
 
 		/* Update IP header in workspace */
-		if (flags & HM_IPV6_MODIFY_MODE_IPHL)
+		if (flags & IPV6_MODIFY_MODE_IPHL)
 			ipv6hdr_ptr->hop_limit = ipv6hdr_ptr->hop_limit - 1;
-		if (flags & HM_IPV6_MODIFY_MODE_IPTC)
+		if (flags & IPV6_MODIFY_MODE_IPTC)
 			ipv6hdr_ptr->vsn_traffic_flow =
-			(ipv6hdr_ptr->vsn_traffic_flow & HM_IPV6_TC_MASK) |
+			(ipv6hdr_ptr->vsn_traffic_flow & IPV6_TC_MASK) |
 							(((uint32_t)tc)<<20);
-		if (flags & HM_IPV6_MODIFY_MODE_FLOW_LABEL)
+		if (flags & IPV6_MODIFY_MODE_FLOW_LABEL)
 			ipv6hdr_ptr->vsn_traffic_flow =
-			(ipv6hdr_ptr->vsn_traffic_flow & HM_IPV6_FLOW_MASK)
+			(ipv6hdr_ptr->vsn_traffic_flow & IPV6_FLOW_MASK)
 						| flow_label;
 
-		if (flags & HM_IPV6_MODIFY_MODE_IPSRC) {
+		if (flags & IPV6_MODIFY_MODE_IPSRC) {
 
 			*((long long *)ipv6hdr_ptr->src_addr) =
 					*((long long *)ip_src_addr);
 			*((((long long *)ipv6hdr_ptr->src_addr)+1)) =
 					*((((long long *)ip_src_addr)+1));
 		}
-		if (flags & HM_IPV6_MODIFY_MODE_IPDST) {
+		if (flags & IPV6_MODIFY_MODE_IPDST) {
 			*((long long *)ipv6hdr_ptr->dst_addr) =
 					*((long long *)ip_dst_addr);
 			*((((long long *)ipv6hdr_ptr->dst_addr)+1)) =
@@ -428,7 +428,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 
 		return SUCCESS;
 	} else {
-		return HM_NO_IP_HDR_ERROR;
+		return NO_IP_HDR_ERROR;
 	     }
 }
 
@@ -461,21 +461,21 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		inner_ipv4hdr_ptr = (struct ipv4hdr *)
 				(inner_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
 
-		if (flags & HM_IPV4_ENCAP_MODE_TTL)
+		if (flags & IPV4_ENCAP_MODE_TTL)
 			ipv4_header_ptr->ttl = inner_ipv4hdr_ptr->ttl;
 		tos = ipv4_header_ptr->tos;
 		inner_tos = inner_ipv4hdr_ptr->tos;
-		if (flags & HM_IPV4_ENCAP_MODE_TOS_DS)
-			tos = (tos & HM_IPV4_DSCP_MASK) |
-				(inner_tos & ~HM_IPV4_DSCP_MASK);
-		if (flags & HM_IPV4_ENCAP_MODE_TOS_ECN)
-			tos = (tos & HM_IPV4_ECN_MASK) |
-				(inner_tos & ~HM_IPV4_ECN_MASK);
+		if (flags & IPV4_ENCAP_MODE_TOS_DS)
+			tos = (tos & IPV4_DSCP_MASK) |
+				(inner_tos & ~IPV4_DSCP_MASK);
+		if (flags & IPV4_ENCAP_MODE_TOS_ECN)
+			tos = (tos & IPV4_ECN_MASK) |
+				(inner_tos & ~IPV4_ECN_MASK);
 		ipv4_header_ptr->tos = tos;
-		if (flags & HM_IPV4_ENCAP_MODE_DF)
+		if (flags & IPV4_ENCAP_MODE_DF)
 			ipv4_header_ptr->flags_and_offset =
-			 (ipv4_header_ptr->flags_and_offset & HM_IPV4_DF_MASK) |
-		       (inner_ipv4hdr_ptr->flags_and_offset & ~HM_IPV4_DF_MASK);
+			 (ipv4_header_ptr->flags_and_offset & IPV4_DF_MASK) |
+		       (inner_ipv4hdr_ptr->flags_and_offset & ~IPV4_DF_MASK);
 
 		ipv4_header_ptr->total_length = inner_ipv4hdr_ptr->total_length
 						+ (uint16_t)ipv4_header_size;
@@ -525,16 +525,16 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 
 		tos = ipv4_header_ptr->tos;
 		vsn_traffic_flow = inner_ipv6hdr_ptr->vsn_traffic_flow;
-		if (flags & HM_IPV4_ENCAP_MODE_TTL)
+		if (flags & IPV4_ENCAP_MODE_TTL)
 			ipv4_header_ptr->ttl = inner_ipv6hdr_ptr->hop_limit;
-		if (flags & HM_IPV4_ENCAP_MODE_TOS_DS)
-			tos = (tos & HM_IPV4_DSCP_MASK) |
+		if (flags & IPV4_ENCAP_MODE_TOS_DS)
+			tos = (tos & IPV4_DSCP_MASK) |
 			  ((uint8_t)((vsn_traffic_flow &
-					~HM_IPV6_DSCP_MASK)>>20));
-		if (flags & HM_IPV4_ENCAP_MODE_TOS_ECN)
-			tos = (tos & HM_IPV4_ECN_MASK) |
+					~IPV6_DSCP_MASK)>>20));
+		if (flags & IPV4_ENCAP_MODE_TOS_ECN)
+			tos = (tos & IPV4_ECN_MASK) |
 			  ((uint8_t)((vsn_traffic_flow &
-					  ~HM_IPV6_ECN_MASK)>>20));
+					  ~IPV6_ECN_MASK)>>20));
 
 		ipv4_header_ptr->tos = tos;
 
@@ -610,7 +610,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 
 		return SUCCESS;
 	} else { /* no inner IP */
-		return HM_NO_IP_HDR_ERROR;
+		return NO_IP_HDR_ERROR;
 	}
 }
 
@@ -643,16 +643,16 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 
 		vsn_traffic_flow = ipv6_header_ptr->vsn_traffic_flow;
 		inner_tos = inner_ipv4hdr_ptr->tos;
-		if (flags & HM_IPV6_ENCAP_MODE_HL)
+		if (flags & IPV6_ENCAP_MODE_HL)
 			ipv6_header_ptr->hop_limit = inner_ipv4hdr_ptr->ttl;
-		if (flags & HM_IPV6_ENCAP_MODE_TC_DSCP)
+		if (flags & IPV6_ENCAP_MODE_TC_DSCP)
 			vsn_traffic_flow =
-				(vsn_traffic_flow & HM_IPV6_DSCP_MASK) |
-		(((uint32_t)(inner_tos & ~HM_IPV4_DSCP_MASK))<<22);
-		if (flags & HM_IPV6_ENCAP_MODE_TC_ECN)
+				(vsn_traffic_flow & IPV6_DSCP_MASK) |
+		(((uint32_t)(inner_tos & ~IPV4_DSCP_MASK))<<22);
+		if (flags & IPV6_ENCAP_MODE_TC_ECN)
 			vsn_traffic_flow =
-				(vsn_traffic_flow & HM_IPV6_ECN_MASK) |
-			(((uint32_t)((inner_tos & ~HM_IPV4_ECN_MASK)))<<20);
+				(vsn_traffic_flow & IPV6_ECN_MASK) |
+			(((uint32_t)((inner_tos & ~IPV4_ECN_MASK)))<<20);
 
 		ipv6_header_ptr->vsn_traffic_flow = vsn_traffic_flow;
 
@@ -734,18 +734,18 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 				(inner_ipv6_offset + PRC_GET_SEGMENT_ADDRESS());
 
 		vsn_traffic_flow = ipv6_header_ptr->vsn_traffic_flow;
-		if (flags & HM_IPV6_ENCAP_MODE_HL)
+		if (flags & IPV6_ENCAP_MODE_HL)
 			ipv6_header_ptr->hop_limit =
 						  inner_ipv6hdr_ptr->hop_limit;
-		if (flags & HM_IPV6_ENCAP_MODE_TC_DSCP)
+		if (flags & IPV6_ENCAP_MODE_TC_DSCP)
 			vsn_traffic_flow =
-				(vsn_traffic_flow & HM_IPV6_DSCP_MASK) |
+				(vsn_traffic_flow & IPV6_DSCP_MASK) |
 				(inner_ipv6hdr_ptr->vsn_traffic_flow &
-					~HM_IPV6_DSCP_MASK);
-		if (flags & HM_IPV6_ENCAP_MODE_TC_ECN)
+					~IPV6_DSCP_MASK);
+		if (flags & IPV6_ENCAP_MODE_TC_ECN)
 			vsn_traffic_flow =
-				(vsn_traffic_flow & HM_IPV6_ECN_MASK) |
-	       (inner_ipv6hdr_ptr->vsn_traffic_flow & ~HM_IPV4_ECN_MASK);
+				(vsn_traffic_flow & IPV6_ECN_MASK) |
+	       (inner_ipv6hdr_ptr->vsn_traffic_flow & ~IPV4_ECN_MASK);
 
 		ipv6_header_ptr->vsn_traffic_flow = vsn_traffic_flow;
 
@@ -785,7 +785,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 
 		return SUCCESS;
 	} else { /* no inner IP */
-		return HM_NO_IP_HDR_ERROR;
+		return NO_IP_HDR_ERROR;
 	}
 }
 
@@ -847,7 +847,7 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 			}
 	return SUCCESS;
 	} else {
-		return HM_NO_IP_HDR_ERROR; }
+		return NO_IP_HDR_ERROR; }
 
 }
 
@@ -909,7 +909,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 			}
 	return SUCCESS;
 	} else {
-		return HM_NO_IP_HDR_ERROR; }
+		return NO_IP_HDR_ERROR; }
 
 
 }
