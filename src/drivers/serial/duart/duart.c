@@ -173,7 +173,7 @@ static void intr_handler(fsl_handle_t duart)
 /************************************************************************/
 static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
 {
-#pragma unused (params)
+    UNUSED (params);
 
     t_duart_driver_param  *p_driver_param = p_uart->p_driver_param;
 
