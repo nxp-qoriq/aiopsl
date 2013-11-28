@@ -15,9 +15,11 @@ int inet_pton(
 	      void *dst
 )
 {
-	/* to be done */
-#pragma unused (af, dst, src) 
-	return 0;
+    /* to be done */
+    UNUSED (af);
+    UNUSED (dst);
+    UNUSED (src);
+    return 0;
 }
 
 const char *inet_ntop(
@@ -27,8 +29,11 @@ const char *inet_ntop(
     size_t size
 )
 {
-#pragma unused (af, dst, size, src) 
-	/* to be done */
-	return NULL;
+    UNUSED (af);
+    UNUSED (dst);
+    UNUSED (size);
+    UNUSED (src);
+    /* to be done */
+    return NULL;
 }
 
