@@ -104,7 +104,7 @@ struct cmdif_dev *cmdif_open(void *regs,
                              enum fsl_os_module mod,
                              uint16_t mod_id)
 {
-#pragma unused (mod_id)
+	UNUSED (mod_id);
 
 	int err;
 	int cmdid = 0;
