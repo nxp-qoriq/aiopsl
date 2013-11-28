@@ -322,6 +322,11 @@ aiop_basic_ex		</project>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/include/dplib/dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/dpni_drv.h</locationURI>
+		</link>
+		<link>
 			<name>src/include/dplib/fsl_cdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_cdma.h</locationURI>
@@ -337,14 +342,14 @@ aiop_basic_ex		</project>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni.h</locationURI>
 		</link>
 		<link>
-			<name>src/include/dplib/fsl_dpni_drv.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_drv.h</locationURI>
-		</link>
-		<link>
 			<name>src/include/dplib/fsl_fdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_fdma.h</locationURI>
+		</link>
+		<link>
+			<name>src/include/dplib/fsl_general_errors.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_general_errors.h</locationURI>
 		</link>
 		<link>
 			<name>src/include/dplib/fsl_gro.h</name>
@@ -355,11 +360,6 @@ aiop_basic_ex		</project>
 			<name>src/include/dplib/fsl_gso.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_gso.h</locationURI>
-		</link>
-		<link>
-			<name>src/include/dplib/fsl_header_modification_errors.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_header_modification_errors.h</locationURI>
 		</link>
 		<link>
 			<name>src/include/dplib/fsl_ip.h</name>
