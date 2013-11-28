@@ -35,7 +35,7 @@ struct dpni_drv {
     /** starting HXS */
     uint16_t            starting_hxs;
     /** Parse Profile ID */
-    uint8_t            prpid;
+    uint8_t             prpid;
     /** \ref DPNI_DRV_DEFINES */
     uint8_t             flags;
     /** error mask for the \ref receive_cb() function FD

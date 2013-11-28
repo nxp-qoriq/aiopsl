@@ -1,12 +1,12 @@
 
-#include "common\types.h"
-#include "common\fsl_string.h"
-#include "common\fsl_cmdif.h"
-#include "common\fsl_malloc.h"
-#include "common\gen.h"
-#include "dplib\fsl_dpni.h"
-#include "dplib\fsl_dpni_cmd.h"
-#include "dplib\fsl_mc.h"
+#include "common/types.h"
+#include "common/fsl_string.h"
+#include "common/fsl_cmdif.h"
+#include "common/fsl_malloc.h"
+#include "common/gen.h"
+#include "dplib/fsl_dpni.h"
+#include "dplib/fsl_dpni_cmd.h"
+#include "dplib/fsl_mc.h"
 
 #include "dpni.h"
 
@@ -15,7 +15,7 @@ struct dpni *dpni_open(void *regs, int id)
 {   
     struct dpni *dpni = (struct dpni *)fsl_os_malloc(sizeof(struct dpni));
     
-    dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, id);  		
+    dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, id);
     if (dpni->dev != NULL)
     	return dpni;
     return NULL;

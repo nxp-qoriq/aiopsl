@@ -94,16 +94,21 @@ int dpni_drv_register_rx_cb (uint16_t     	ni_id,
                              rx_cb_t      	*cb,
                              dpni_drv_app_arg_t arg);
 
-/**************************************************************************//**
- @Function      dpni_drv_send
+/*************************************************************************//**
+@Function	dpni_drv_send
 
- @Description   TODO
+@Description	Network Interface send (AIOP enqueue) function.
 
- @Param[in]     ni_id   The Network Interface ID
- @Param[imp]    skb     A pointwer to the Frame structure
+		Implicit input parameters in Task Defaults:
+		Queueing Destination Priority (qd_priority).
 
- @Return        OK on success; error code, otherwise.
-*//***************************************************************************/    
+@Param[in]	ni_id - Network Interface ID for send function.
+
+@Return		OK on success; error code, otherwise.
+            Please refer to \ref FDMA_ENQUEUE_FRAME_ERRORS.
+
+@Cautions	None
+*//***************************************************************************/
 int dpni_drv_send (uint16_t ni_id);
 
 /**************************************************************************//**
