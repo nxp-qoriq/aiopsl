@@ -1018,25 +1018,6 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
 }
 
 /*****************************************************************************/
-uint64_t slob_get_mem_block(fsl_handle_t slob, int index)
-{
-    t_MM       *p_MM = (t_MM*)slob;
-    t_mem_block *p_mem_block;
-    int         i;
-
-    ASSERT_COND(p_MM);
-
-    p_mem_block = p_MM->mem_blocks;
-    for (i=0; i < index; i++)
-        p_mem_block = p_mem_block->p_next;
-
-    if ( p_mem_block )
-        return (p_mem_block->base);
-    else
-        return (uint64_t)ILLEGAL_BASE;
-}
-
-/*****************************************************************************/
 uint64_t slob_get_base(fsl_handle_t slob)
 {
     t_MM        *p_MM = (t_MM*)slob;

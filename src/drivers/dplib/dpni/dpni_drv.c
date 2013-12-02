@@ -106,6 +106,7 @@ void receive_cb (void)
 
 int dpni_drv_send(uint16_t ni_id)
 {
+    UNUSED(ni_id);
     /* TODO - complete!!! */
     return 0;
 }

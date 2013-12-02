@@ -167,6 +167,7 @@ fsl_handle_t fsl_os_create_timer(void)
 
 void fsl_os_free_timer(fsl_handle_t tmr)
 {
+    UNUSED (tmr);
     REPORT_ERROR(MINOR, E_NOT_SUPPORTED, ("Timer!"));
 }
 
@@ -176,27 +177,37 @@ int fsl_os_start_timer(fsl_handle_t   tmr,
                        void           (*expired_cb)(fsl_handle_t),
                        fsl_handle_t   arg)
 {
+    UNUSED (arg);
+    UNUSED (expired_cb);
+    UNUSED (msecs);
+    UNUSED (periodic);
+    UNUSED (tmr);
     REPORT_ERROR(MINOR, E_NOT_SUPPORTED, ("Timer!"));
     return 0;
 }
 
 void fsl_os_stop_timer(fsl_handle_t tmr)
 {
+    UNUSED (tmr);
     REPORT_ERROR(MINOR, E_NOT_SUPPORTED, ("Timer!"));
 }
 
 void fsl_os_mod_timer(fsl_handle_t tmr, uint32_t msecs)
 {
+    UNUSED (tmr);
+    UNUSED (msecs);
     REPORT_ERROR(MINOR, E_NOT_SUPPORTED, ("Timer!"));
 }
 
 void fsl_os_udelay(uint32_t usecs)
 {
+    UNUSED (usecs);
     REPORT_ERROR(MINOR, E_NOT_SUPPORTED, ("Timer!"));
 }
 
 uint32_t fsl_os_sleep(uint32_t msecs)
 {
+    UNUSED (msecs);
     REPORT_ERROR(MINOR, E_NOT_SUPPORTED, ("Timer!"));
     return 0;
 }
