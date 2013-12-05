@@ -309,6 +309,9 @@ static int platform_init_core(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
 
+    /* special AIOP registers */
+    booke_set_CTSCSR0(0x84000000);
+
 #if 0 /* TODO - complete! */
     /*------------------------------------------------------*/
     /* Initialize MMU                                       */
@@ -654,7 +657,7 @@ uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
         { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
         { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
         { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART4       },
-        { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP         },
+        { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_CMGW    },
     };
 
     SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);

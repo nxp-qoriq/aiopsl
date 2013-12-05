@@ -1789,3 +1789,14 @@ asm_prefix(booke_get_spr_ILLEGAL):
 asm_prefix(booke_set_spr_ILLEGAL):
     mtspr   ILLEGAL,3       /* 512 */   /* Signal processing and embedded floating-point status and control register 1 */
     blr
+
+/* E200-AIOP special regs */
+.global asm_prefix(booke_get_CTSCSR0)
+asm_prefix(booke_get_CTSCSR0):
+    mfdcr   3,464
+    blr
+.global asm_prefix(booke_set_CTSCSR0)
+asm_prefix(booke_set_CTSCSR0):
+    mtdcr   464,3
+    blr
+    
