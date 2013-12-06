@@ -3,7 +3,7 @@
 
  @File          dpni_drv.h
 
- @Description   This file contains LDPAA Network Interfae API.
+ @Description   TODO
 *//***************************************************************************/
 #ifndef __FSL_DPNI_DRV_H
 #define __FSL_DPNI_DRV_H
