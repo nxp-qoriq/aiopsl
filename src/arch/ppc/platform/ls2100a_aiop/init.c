@@ -84,9 +84,6 @@ int global_post_init(void)
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
-fsl_os_print("reg=0x%08x\n",tmp_reg);
-iowrite32be(0xdeadcafe, UINT_TO_PTR(0x0));
-iowrite32be(0xdeadcafe, UINT_TO_PTR(0x100));
 iowrite32be(ioread32be(UINT_TO_PTR(0x00800000)), UINT_TO_PTR(0x01000000));
 	/* Write AIOP boot status */
 	iowrite32be((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
