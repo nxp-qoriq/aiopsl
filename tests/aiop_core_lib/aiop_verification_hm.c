@@ -61,7 +61,7 @@ void aiop_hm_init_parser()
 	/* Create the parse_profile and get an id */
 	parser_profile_create(&verif_parse_profile, &prpid);
 	default_task_params.parser_profile_id = prpid;
-	parse_result_generate(PARSER_IP_STARTING_HXS, 0, 0);
+	parse_result_generate_default(0);
 }
 uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 {

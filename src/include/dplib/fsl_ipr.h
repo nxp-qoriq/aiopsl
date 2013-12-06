@@ -17,6 +17,8 @@
 
  *//***************************************************************************/
 typedef uint64_t ipr_instance_handle_t;
+typedef uint64_t ipr_del_arg_t;
+typedef uint64_t ipr_timeout_arg_t;
 
 /**************************************************************************//**
 @Description	User callback function, called after ipr_delete_instance
@@ -24,10 +26,10 @@ typedef uint64_t ipr_instance_handle_t;
 		recourses. The user provides this function and the IPR process
 		invokes it.
 
-@Param[in]	cb_delete_arg - Argument of the callback function.
+@Param[in]	arg - Argument of the callback function.
 
  *//***************************************************************************/
-typedef void (ipr_delete_callback_t)(uint64_t cb_delete_arg);
+typedef void /*__noreturn*/ (ipr_del_cb_t) (ipr_del_arg_t arg);
 
 /**************************************************************************//**
 @Description	User callback function, called after time out expired.
@@ -37,7 +39,7 @@ typedef void (ipr_delete_callback_t)(uint64_t cb_delete_arg);
 		first fragment will be set as the default frame.
 		Otherwise, another fragment will be set as the default frame.
 
-@Param[in]	cb_timeout_arg - Argument of the callback function.
+@Param[in]	arg - Argument of the callback function.
 @Param[in]	flags - \link FSL_IPRTOCallbackFlags IPR Time Out Callback flags
 		\endlink,
 
@@ -45,7 +47,9 @@ typedef void (ipr_delete_callback_t)(uint64_t cb_delete_arg);
 		(e.g parse result).
 
  *//***************************************************************************/
-typedef void (ipr_timeout_callback_t)(uint64_t cb_timeout_arg, uint32_t flags);
+typedef void /*__noreturn*/ (ipr_timeout_cb_t) (ipr_timeout_arg_t arg,
+						uint32_t flags);
+
 
 /**************************************************************************//**
 @Description	IPR Parameters
@@ -67,15 +71,15 @@ struct ipr_params {
 	uint16_t  timeout_value_ipv4;/** reass timeout value for ipv4 */
 	uint16_t  timeout_value_ipv6;/** reass timeout value for ipv6 */
 		/** function to call upon Time Out occurrence for ipv4 */
-	ipr_timeout_callback_t *ipv4_timeout_cb;
+	ipr_timeout_cb_t *ipv4_timeout_cb;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
-	ipr_timeout_callback_t *ipv6_timeout_cb;
+	ipr_timeout_cb_t *ipv6_timeout_cb;
 	/** Argument to be passed upon invocation of the IPv6 callback
 	    function*/
-	uint64_t cb_timeout_ipv4_arg;
+	ipr_timeout_arg_t cb_timeout_ipv4_arg;
 		/** function to call upon Time Out occurrence for ipv6 */
-	uint64_t cb_timeout_ipv6_arg;
+	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
 	uint32_t  flags;
 		/** 32-bit alignment. */
@@ -343,10 +347,10 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		performed gradually.
 
 @Param[in]	ipr_instance - The IPR instance handle.
-@Param[in]	confirm_callback - The function to be used for confirmation
+@Param[in]	confirm_delete_cb - The function to be used for confirmation
 		after all resources associated to the instance have been
 		deleted.
-@Param[in]	cb_delete_arg - Argument of the confirm callback function.
+@Param[in]	delete_arg - Argument of the confirm callback function.
 
 @Return		Success or Failure.
 		Failure can be one of the following:
@@ -355,8 +359,8 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
 int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
-			    ipr_delete_callback_t *confirm_callback,
-			    uint64_t cb_delete_arg);
+			    ipr_del_cb_t *confirm_delete_cb,
+			    ipr_del_arg_t delete_arg);
 
 /**************************************************************************//**
 @Function	ipr_reassemble

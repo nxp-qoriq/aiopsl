@@ -25,9 +25,7 @@
 
 /*! \enum e_ste_cmd_type defines the statistics engine CMDTYPE field.*/
 enum e_ste_cmd_type {
-	STE_CMDTYPE_SET = 0x0,
-	STE_CMDTYPE_MAX = 0x1,
-	STE_CMDTYPE_MIN = 0x2,
+	STE_CMDTYPE_SET = 0x1,
 	STE_CMDTYPE_SYNC = 0x7,
 	STE_CMDTYPE_ADD = 0x8,
 	STE_CMDTYPE_SUB = 0x9,
