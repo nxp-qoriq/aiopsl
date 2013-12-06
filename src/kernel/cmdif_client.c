@@ -146,8 +146,12 @@ struct cmdif_dev *cmdif_open(void *regs,
 
 int cmdif_close(struct cmdif_dev *dev)
 {
+	/* TODO - review */
+	int err;
+	err = cmdif_send(dev, CMDIF_MC_CLOSE, CMDIF_MC_CLOSE_SIZE,
+			                    CMDIF_PRI_LOW, NULL);
 	fsl_os_free(dev);
-	return 0;
+	return err;
 }
 
 int cmdif_send(struct cmdif_dev *dev,

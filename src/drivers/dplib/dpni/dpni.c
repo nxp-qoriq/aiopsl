@@ -21,6 +21,12 @@ struct dpni *dpni_open(void *regs, int id)
     return NULL;
 }
 
+int dpni_close(struct dpni *dpni)
+{
+	struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+	return cmdif_close(dev);
+}
+
 int dpni_defconfig(struct dpni_cfg *cfg)
 {
 	memset(cfg, 0, sizeof(struct dpni_cfg));
