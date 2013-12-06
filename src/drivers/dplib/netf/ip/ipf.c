@@ -6,6 +6,7 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "general.h"
+#include "net/fsl_net.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
 

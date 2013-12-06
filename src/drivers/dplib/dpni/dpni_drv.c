@@ -82,6 +82,7 @@ void receive_cb (void)
 {
     struct dpni_drv *ni = (struct dpni_drv *)(PTR_TO_UINT(nis) + 10*sizeof(struct dpni_drv));
 
+#if 0
     /* TODO - temporary code for simulator */
     __asm__ volatile (
         "se_li r0,0x0 \n"
@@ -98,6 +99,7 @@ void receive_cb (void)
         "se_li r2,0 \n"
         "e_hwacceli 0x000c \n"
     );
+#endif /* 0 */
 
     if (ni->rx_cbs[0])
         ni->rx_cbs[0](ni->args[0]);

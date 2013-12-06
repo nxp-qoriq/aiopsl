@@ -8,6 +8,7 @@
 *//***************************************************************************/
 
 #include "general.h"
+#include "net/fsl_net.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_nat.h"

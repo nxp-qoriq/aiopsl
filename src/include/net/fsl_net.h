@@ -10,7 +10,75 @@
 
 #include "common/types.h"
 
+
 #define LAST_HDR_INDEX 0xFFFFFFFF
+
+
+/*****************************************************************************/
+/*                Protocol headers                                           */
+/*****************************************************************************/
+
+/**************************************************************************//**
+@Description	IPv4 structure.
+
+		Please refer to RFC 791 for more details.
+*//***************************************************************************/
+struct ipv4hdr {
+	uint8_t  vsn_and_ihl;		/**< IP version and header length */
+	uint8_t  tos;			/**< Type of service */
+	uint16_t total_length;		/**< Total length */
+	uint16_t id;			/**< Identificaiton */
+	uint16_t flags_and_offset;	/**< IP Flags and Fragment Offset */
+	uint8_t	 ttl;			/**< Time To Live */
+	uint8_t	 protocol;		/**< Next Protocol */
+	uint16_t hdr_cksum;		/**< Header Checksum */
+	uint32_t src_addr;		/**< Source Address */
+	uint32_t dst_addr;		/**< Destination Address */
+};
+
+/**************************************************************************//**
+@Description	IPv6 structure.
+
+		Please refer to RFC 2460 for more details.
+*//***************************************************************************/
+struct ipv6hdr {
+	uint32_t vsn_traffic_flow;	/**< IP ver,traffic class,flow label */
+	uint16_t payload_length;
+	uint8_t  next_header;
+	uint8_t  hop_limit;
+	uint32_t  src_addr[4];		/**< Source Address */
+	uint32_t  dst_addr[4];		/**< Destination Address */
+};
+
+/**************************************************************************//**
+@Description	UDP structure.
+
+		Please refer to RFC 768 for more details.
+*//***************************************************************************/
+struct udphdr {
+	uint16_t src_port;		/*!< Source port */
+	uint16_t dst_port;		/*!< Destination port */
+	uint16_t length;		/*!< Length */
+	uint16_t checksum;		/*!< Checksum */
+};
+
+/**************************************************************************//**
+@Description	TCP structure.
+
+		Please refer to RFC 793 for more details.
+*//***************************************************************************/
+struct tcphdr {
+	uint16_t src_port;		/*!< Source port */
+	uint16_t dst_port;		/*!< Destination port */
+	uint32_t sequence_number;	/*!< Sequence number */
+	uint32_t acknowledgment_number;	/*!< Acknowledgment number */
+	uint8_t  data_offset_reserved;	/*!< Data offset, reserved fields. */
+	uint8_t  flags;			/*!< TCP control bits */
+	uint16_t window_size;		/*!< Window size */
+	uint16_t checksum;		/*!< Checksum */
+	uint16_t urgent_pointer;	/*!< Urgent pointer */
+};
+
 
 /*****************************************************************************/
 /*                Protocol fields                                            */
@@ -75,8 +143,8 @@ typedef uint16_t net_hdr_fld_vlan_t;
 #define NET_HDR_FLD_VLAN_ALL_FIELDS                ((NET_HDR_FLD_VLAN_VPRI << 5) - 1)
 
 #define NET_HDR_FLD_VLAN_TCI                       (NET_HDR_FLD_VLAN_VPRI | \
-                                                         NET_HDR_FLD_VLAN_CFI | \
-                                                         NET_HDR_FLD_VLAN_VID)
+                                                    NET_HDR_FLD_VLAN_CFI | \
+                                                    NET_HDR_FLD_VLAN_VID)
 
 /************************  IP (generic) fields  ******************************/
 typedef uint16_t net_hdr_fld_ip_t;
@@ -369,9 +437,9 @@ typedef uint16_t net_hdr_fld_gtp_t;
 
 #define NET_HDR_FLD_GTP_TEID                       (1)
 
-/*****************************************/
-/* 			Protocol options			 */
-/*****************************************/
+/*****************************************************************************/
+/*                Protocol optnios                                           */
+/*****************************************************************************/
 
 typedef uint8_t net_hdr_option_t;
 
