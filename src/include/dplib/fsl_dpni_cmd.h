@@ -174,7 +174,10 @@
 /*param 1 */
 #define DPNI_ATTACH_LINK_OBJ_TYPE_O		0
 #define DPNI_ATTACH_LINK_OBJ_TYPE_S		3
-
+#define DPNI_ATTACH_LINK_OBJ_ID_O		16
+#define DPNI_ATTACH_LINK_OBJ_ID_S		16
+#define DPNI_ATTACH_LINK_IF_ID_O		32
+#define DPNI_ATTACH_LINK_IF_ID_S		8
 /* dpni_set_tx_tc */
 /* param 1 */
 #define DPNI_SET_TX_TC_TCID_O			16
