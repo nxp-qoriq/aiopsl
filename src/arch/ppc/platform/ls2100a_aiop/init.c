@@ -14,11 +14,11 @@ extern void build_apps_array(struct sys_module_desc *apps);
 #define MEMORY_INFO                                                                                            \
 {   /* Region ID                    Memory partition ID          Phys. Addr.    Virt. Addr.  Size            */\
     {E_PLATFORM_MEM_RGN_WS,         E_MEM_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
-    {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00fe0000,    0x00800000, (128 * KILOBYTE) },\
+    {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00fe0000,    0x00fe0000, (128 * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_SHRAM,      E_MEM_INT_RAM,               0x01000000,    0x01000000, (256 * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x08000000,    0x08000000, (64  * MEGABYTE) },\
     {E_PLATFORM_MEM_RGN_CCSR,       E_MEM_INVALID,               0x0c000000,    0x0c000000, (384 * KILOBYTE) },\
-    {E_PLATFORM_MEM_RGN_DDR1,       E_MEM_1ST_DDR_NON_CACHEABLE, 0x50000000,    0x50000000, (256 * MEGABYTE) },\
+    {E_PLATFORM_MEM_RGN_DDR1,       E_MEM_1ST_DDR_NON_CACHEABLE, 0x58000000,    0x58000000, (128 * MEGABYTE) },\
 }
 
 #define GLOBAL_MODULES                  \
