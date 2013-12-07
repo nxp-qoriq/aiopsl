@@ -14,7 +14,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 #define MEMORY_INFO                                                                                            \
 {   /* Region ID                    Memory partition ID          Phys. Addr.    Virt. Addr.  Size            */\
     {E_PLATFORM_MEM_RGN_WS,         E_MEM_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
-    {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00800000,    0x00800000, (32  * KILOBYTE) },\
+    {E_PLATFORM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00fe0000,    0x00800000, (128 * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_SHRAM,      E_MEM_INT_RAM,               0x01000000,    0x01000000, (256 * KILOBYTE) },\
     {E_PLATFORM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x08000000,    0x08000000, (64  * MEGABYTE) },\
     {E_PLATFORM_MEM_RGN_CCSR,       E_MEM_INVALID,               0x0c000000,    0x0c000000, (384 * KILOBYTE) },\
@@ -84,7 +84,6 @@ int global_post_init(void)
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
-iowrite32be(ioread32be(UINT_TO_PTR(0x00800000)), UINT_TO_PTR(0x01000000));
 	/* Write AIOP boot status */
 	iowrite32be((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
 
