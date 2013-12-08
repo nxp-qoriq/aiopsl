@@ -4,7 +4,6 @@
 #include "common/fsl_malloc.h"
 #include "common/gen.h"
 #include "arch/fsl_soc.h"
-#include "dplib/fsl_mc.h"
 
 
 #define CMDIF_MC_OPEN_SIZE	8

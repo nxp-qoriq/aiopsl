@@ -11,6 +11,7 @@
 
 #include "common/types.h"
 #include "arch/fsl_soc.h"
+#include "arch/fsl_cmdif_mc.h"
 
 
 /**************************************************************************//**
@@ -100,9 +101,9 @@ typedef int (close_cb_t) (fsl_handle_t dev);
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
 typedef int (ctrl_cb_t) (fsl_handle_t           dev,
-					     uint16_t               cmd,
-					     uint16_t               size,
-					     struct cmdif_cmd_desc  *desc);
+			 uint16_t               cmd,
+			 uint16_t               size,
+			 struct cmdif_cmd_desc  *desc);
 
 /**************************************************************************//**
  @Description   TODO
