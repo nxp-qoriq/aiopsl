@@ -110,8 +110,8 @@
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int32_t id_pool_init(int8_t *pool,
-			 int8_t length,
+inline int32_t id_pool_init(int16_t *pool,
+			 int16_t length,
 			 uint16_t buffer_pool_id,
 			 uint32_t buffer_size,
 			 uint64_t *ext_id_pool_address)
@@ -128,7 +128,7 @@ inline int32_t id_pool_init(int8_t *pool,
 	/* Initialize pool in local memory */
 	pool[0] = length - 1;
 	for (i = length; i > 1; i--)
-		pool[i-1] = (int8_t)(length - i);
+		pool[i-1] = (length - i);
 
 	/* Write pool to external memory */
 	if (cdma_write(*ext_id_pool_address, pool, length)) {
@@ -160,7 +160,7 @@ inline int32_t id_pool_init(int8_t *pool,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int32_t get_id(uint8_t *pool, uint16_t length,
+inline int32_t get_id(uint16_t *pool, uint16_t length,
 			uint64_t ext_id_pool_address, uint8_t *id)
 {
 	int index;
@@ -176,7 +176,7 @@ inline int32_t get_id(uint8_t *pool, uint16_t length,
 		index = pool[0];
 		if (index > 1) {
 			/* Pull id from the pool and update the pointer */
-			*id = pool[index];
+			*id = (uint8_t)pool[index];
 			(pool[0])--;
 			status = GET_ID_STATUS_SUCCESS;
 		} else {
@@ -217,7 +217,7 @@ inline int32_t get_id(uint8_t *pool, uint16_t length,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int32_t release_id(uint8_t id, uint8_t *pool,
+inline int32_t release_id(uint8_t id, uint16_t *pool,
 			  uint16_t length, uint64_t ext_id_pool_address)
 {
 	int index;
