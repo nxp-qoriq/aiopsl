@@ -8,6 +8,11 @@
 
 #include "dplib/fsl_gso.h"
 
+
+/** \addtogroup FSL_AIOP_GSO
+ *  @{
+ */
+
 /**************************************************************************//**
 @Group		FSL_AIOP_TCP_GSO_INTERNAL FSL AIOP TCP GSO Internal
 
@@ -75,9 +80,8 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 
 /** @} */ /* end of TCP_GSO_INTERNAL_MACROS */
 
-
 /** @} */ /* end of FSL_AIOP_TCP_GSO_INTERNAL */
 
-
+/** @} */ /* end of FSL_AIOP_GSO */
 
 #endif /* __GSO_H */
