@@ -1,5 +1,5 @@
 /**************************************************************************//**
-@File		fsl_header_modification_errors.h
+@File		fsl_general_errors.h
 
 @Description	This file contains the AIOP Header Modification Errors
 

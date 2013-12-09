@@ -10,11 +10,13 @@
 #include "general.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
-#include "header_modification.h"
 #include "dplib/fsl_ip.h"
-#include "dplib/fsl_general_errors.h"
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_ipv4_checksum.h"
+#include "dplib/fsl_general_errors.h"
+
+#include "header_modification.h"
+
 
 int32_t ip_header_decapsulation(uint8_t flags)
 {
@@ -225,11 +227,6 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 			ipv4hdr_ptr->id = id;
 		sum = 0;
 		if (flags & IPV4_MODIFY_MODE_IPSRC) {
-			/* Update IP checksum */
-			cksum_update_uint32(&ipv4hdr_ptr->hdr_cksum,
-					    ipv4hdr_ptr->src_addr,
-					    ip_src_addr);
-
 			if (flags & IPV4_MODIFY_MODE_L4_CHECKSUM) {
 				/* Calculate delta for L4 checksum */
 				sum = cksum_accumulative_update_uint32(
@@ -243,11 +240,6 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 
 		}
 		if (flags & IPV4_MODIFY_MODE_IPDST) {
-			/* Update IP checksum */
-			cksum_update_uint32(&ipv4hdr_ptr->hdr_cksum,
-					    ipv4hdr_ptr->dst_addr,
-					    ip_dst_addr);
-
 			if (flags & IPV4_MODIFY_MODE_L4_CHECKSUM) {
 				/* Calculate delta for L4 checksum */
 				sum = cksum_accumulative_update_uint32(
@@ -259,6 +251,9 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 
 			ipv4hdr_ptr->dst_addr = ip_dst_addr;
 		}
+
+		/* update IP checksum */
+		ipv4_cksum_calculate(ipv4hdr_ptr);
 
 		/* update UDP/TCP checksum */
 		if (l4_update) {

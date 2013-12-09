@@ -978,7 +978,7 @@ int32_t ctlu_kcr_builder_add_valid_field_fec(uint8_t mask,
 int32_t ctlu_kcr_create(uint8_t *kcr, uint8_t *keyid)
 {
 	int32_t status;
-	uint8_t keyid_pool[SYS_KEYID_POOL_LENGTH];
+	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];
 
 	status = get_id(keyid_pool, SYS_KEYID_POOL_LENGTH,
 		ext_keyid_pool_address, keyid);
@@ -1028,7 +1028,7 @@ int32_t ctlu_kcr_replace(uint8_t *kcr, uint8_t keyid)
 int32_t ctlu_kcr_delete(uint8_t keyid)
 {
 	int32_t status;
-	uint8_t keyid_pool[SYS_KEYID_POOL_LENGTH];
+	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];
 	uint8_t fake_kcr = 0;
 
 	/* Prepare HW context for TLU accelerator call */
