@@ -37,8 +37,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 		{
 			struct cdma_release_context_memory_command *str =
 				(struct cdma_release_context_memory_command *) asa_seg_addr;
-			str->status = (int8_t)cdma_release_context_memory(
-					str->context_address);
+			str->status = (int8_t)cdma_release_context_memory(*((uint64_t *)(str->context_memory)));
 			str_size = sizeof(struct cdma_release_context_memory_command);
 			break;
 		}	
@@ -112,7 +111,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_refcount_increment_command *str =
 				(struct cdma_refcount_increment_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_refcount_increment(
-					str->context_address);
+					*((uint64_t *)(str->context_memory)));
 			str_size = sizeof(struct cdma_refcount_increment_command);
 			break;
 		}
@@ -122,7 +121,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_refcount_decrement_command *str =
 				(struct cdma_refcount_decrement_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_refcount_decrement(
-					str->context_address);
+					*((uint64_t *)(str->context_memory)));
 			str_size = sizeof(struct cdma_refcount_decrement_command);
 			break;
 		}
@@ -132,7 +131,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_refcount_decrement_and_release_command *str =
 				(struct cdma_refcount_decrement_and_release_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_refcount_decrement_and_release(
-					str->context_address);
+					*((uint64_t *)(str->context_memory)));
 			str_size = sizeof(struct cdma_refcount_decrement_and_release_command);
 			break;
 		}
@@ -142,7 +141,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_write_lock_dma_read_and_increment_command *str =
 				(struct cdma_write_lock_dma_read_and_increment_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_write_lock_dma_read_and_increment(
-					(void *)str->ws_dst, str->context_address,
+					(void *)str->ws_dst, *((uint64_t *)(str->context_memory)),
 					str->size);
 			str_size = sizeof(struct cdma_write_lock_dma_read_and_increment_command);
 			break;
@@ -153,7 +152,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_write_release_lock_and_decrement_command *str =
 				(struct cdma_write_release_lock_and_decrement_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_write_release_lock_and_decrement(
-					str->context_address, (void *)str->ws_src,
+					*((uint64_t *)(str->context_memory)), (void *)str->ws_src,
 					str->size);
 			str_size = sizeof(struct cdma_write_release_lock_and_decrement_command);
 			break;
@@ -175,7 +174,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_access_context_memory_command *str =
 				(struct cdma_access_context_memory_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_access_context_memory(
-					str->context_address, str->flags, 
+					*((uint64_t *)(str->context_memory)), str->flags, 
 					str->offset, (void *)str->ws_address, 
 					str->dma_param, &(str->refcount_value));
 			str_size = sizeof(struct cdma_access_context_memory_command);
