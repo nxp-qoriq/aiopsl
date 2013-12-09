@@ -21,8 +21,9 @@
 #define DPNI_CMD_DETACH_LINK			0x128
 #define DPNI_CMD_SET_TX_TC  			0x129
 #define DPNI_CMD_SET_RX_TC  			0x12A
-#define DPNI_CMD_SET_TX_Q_CTX			0x12B
-#define DPNI_CMD_SET_RX_Q_CTX			0x12C
+#define DPNI_CMD_SET_TX_Q_CFG			0x12B
+#define DPNI_CMD_SET_RX_FLOW_CFG		0x12C
+#define DPNI_CMD_SET_RX_FLOW_IO			0x14A
 #define DPNI_CMD_GET_CFG			0x12D
 #define DPNI_CMD_GET_ATTR			0x12E
 #define DPNI_CMD_GET_QDID			0x12F
@@ -65,8 +66,9 @@
 #define DPNI_CMD_DETACH_LINK_S			0
 #define DPNI_CMD_SET_TX_TC_S 			8
 #define DPNI_CMD_SET_RX_TC_S 			8
-#define DPNI_CMD_SET_TX_Q_CTX_S			(8 * 3)
-#define DPNI_CMD_SET_RX_Q_CTX_S			(8 * 4)
+#define DPNI_CMD_SET_TX_Q_CFG_S			(8 * 3)
+#define DPNI_CMD_SET_RX_FLOW_CFG_S		(8 * 2)
+#define DPNI_CMD_SET_RX_FLOW_IO_S		8
 #define DPNI_CMD_GET_CFG_S			(8 * 2)
 #define DPNI_CMD_GET_ATTR_S			(8 * 3)
 #define DPNI_CMD_GET_QDID_S			8
@@ -118,7 +120,7 @@
 #define DPNI_INIT_MAC_ADDR_S			8	
 /* param 2*/
 #define DPNI_INIT_OPTIONS_O			0
-#define DPNI_INIT_OPTIONS_S			64
+#define DPNI_INIT_OPTIONS_S			32
 /*param 3*/
 #define DPNI_INIT_MAX_DIST_O			0
 #define DPNI_INIT_MAX_DIST_S			8
@@ -191,55 +193,56 @@
 #define DPNI_SET_RX_TC_TCID_O			16
 #define DPNI_SET_RX_TC_TCID_S			8
 
-/*dpni_set_tx_queue_ctx */
+/*dpni_set_tx_queue_cfg */
 /* param 1 */
-#define DPNI_SET_TX_Q_CTX_DPIO_O		0
-#define DPNI_SET_TX_Q_CTX_DPIO_S		16
-#define DPNI_SET_TX_Q_CTX_TCID_O		16
-#define DPNI_SET_TX_Q_CTX_TCID_S		8
-#define DPNI_SET_TX_Q_CTX_TX_CONF_O		24
-#define DPNI_SET_TX_Q_CTX_TX_CONF_S		7
-#define DPNI_SET_TX_Q_CTX_CKSUM_GEN_O		31
-#define DPNI_SET_TX_Q_CTX_CKSUM_GEN_S		1
-#define DPNI_SET_TX_Q_CTX_DEPTH_O		32
-#define DPNI_SET_TX_Q_CTX_DEPTH_S		16
+#define DPNI_SET_TX_Q_CFG_DPIO_O		0
+#define DPNI_SET_TX_Q_CFG_DPIO_S		16
+#define DPNI_SET_TX_Q_CFG_TCID_O		16
+#define DPNI_SET_TX_Q_CFG_TCID_S		8
+#define DPNI_SET_TX_Q_CFG_TX_CONF_O		24
+#define DPNI_SET_TX_Q_CFG_TX_CONF_S		7
+#define DPNI_SET_TX_Q_CFG_CKSUM_GEN_O		31
+#define DPNI_SET_TX_Q_CFG_CKSUM_GEN_S		1
+#define DPNI_SET_TX_Q_CFG_DEPTH_O		32
+#define DPNI_SET_TX_Q_CFG_DEPTH_S		16
+#define DPNI_SET_TX_Q_CFG_DAN_EN_O		48
+#define DPNI_SET_TX_Q_CFG_DAN_EN_S		1
+#define DPNI_SET_TX_Q_CFG_FETCH_REJ_O		49
+#define DPNI_SET_TX_Q_CFG_FETCH_REJ_S		1
 /* param 2 */
-#define DPNI_SET_TX_Q_CTX_USR_CTX_O		0
-#define DPNI_SET_TX_Q_CTX_USR_CTX_S		64
-/*param 3 */
-#define DPNI_SET_TX_Q_CTX_MOD_OPT_O		0
-#define DPNI_SET_TX_Q_CTX_MOD_OPT_S		32
-
-/* dpni_set_rx_queue_ctx */
-/* param 1 */
-#define DPNI_SET_RX_Q_CTX_DPIO_O		0
-#define DPNI_SET_RX_Q_CTX_DPIO_S		16
-#define DPNI_SET_RX_Q_CTX_TCID_O		16
-#define DPNI_SET_RX_Q_CTX_TCID_S		8
-#define DPNI_SET_RX_Q_CTX_Q_IDX_O		24
-#define DPNI_SET_RX_Q_CTX_Q_IDX_S		8
-#define DPNI_SET_RX_Q_CTX_STASH_EN_O		32
-#define DPNI_SET_RX_Q_CTX_STASH_EN_S		1
-#define DPNI_SET_RX_Q_CTX_DAN_EN_O		33
-#define DPNI_SET_RX_Q_CTX_DAN_EN_S		1
-#define DPNI_SET_RX_Q_CTX_FRM_ANNO_O		40
-#define DPNI_SET_RX_Q_CTX_FRM_ANNO_S		8
-#define DPNI_SET_RX_Q_CTX_FRM_DATA_O		48
-#define DPNI_SET_RX_Q_CTX_FRM_DATA_S		8
-#define DPNI_SET_RX_Q_CTX_FLOW_CTX_S_O		56
-#define DPNI_SET_RX_Q_CTX_FLOW_CTX_S_S		8
-/*param 2 */
-#define DPNI_SET_RX_Q_CTX_USR_CTX_O		0
-#define DPNI_SET_RX_Q_CTX_USR_CTX_S		64
+#define DPNI_SET_TX_Q_CFG_USR_CTX_O		0
+#define DPNI_SET_TX_Q_CFG_USR_CTX_S		64
 /* param 3 */
-#define DPNI_SET_RX_Q_CTX_MOD_OPT_O		0
-#define DPNI_SET_RX_Q_CTX_MOD_OPT_S		32
-/* param 4 */
-#define DPNI_SET_RX_Q_CTX_ODP_O			0
-#define DPNI_SET_RX_Q_CTX_ODP_S			64
-/* or */
-#define DPNI_SET_RX_Q_CTX_FLOW_CTX_ADDR_O	0
-#define DPNI_SET_RX_Q_CTX_FLOW_CTX_ADDR_S	64
+#define DPNI_SET_TX_Q_CFG_MOD_OPT_O		0
+#define DPNI_SET_TX_Q_CFG_MOD_OPT_S		32
+
+/* dpni_set_rx_flow_io */
+/* param 1 */
+#define DPNI_SET_RX_FLOW_IO_DPIO_O		33
+#define DPNI_SET_RX_FLOW_IO_DPIO_S		1
+#define DPNI_SET_RX_FLOW_IO_FLOWID_O		0
+#define DPNI_SET_RX_FLOW_IO_FLOWID_S		16
+#define DPNI_SET_RX_FLOW_IO_TCID_O		16
+#define DPNI_SET_RX_FLOW_IO_TCID_S		8
+#define DPNI_SET_RX_FLOW_IO_OPTIONS_O		32
+#define DPNI_SET_RX_FLOW_IO_OPTIONS_S		32
+
+
+
+/* dpni_set_rx_flow_cfg */
+/* param 1 */
+#define DPNI_SET_RX_FLOW_CFG_DAN_EN_O		33
+#define DPNI_SET_RX_FLOW_CFG_DAN_EN_S		1
+#define DPNI_SET_RX_FLOW_CFG_FLOWID_O		0
+#define DPNI_SET_RX_FLOW_CFG_FLOWID_S		16
+#define DPNI_SET_RX_FLOW_CFG_TCID_O		16
+#define DPNI_SET_RX_FLOW_CFG_TCID_S		8
+#define DPNI_SET_RX_FLOW_CFG_OPTIONS_O		32
+#define DPNI_SET_RX_FLOW_CFG_OPTIONS_S		32
+/*param 2 */
+#define DPNI_SET_RX_FLOW_CFG_USR_CTX_O		0
+#define DPNI_SET_RX_FLOW_CFG_USR_CTX_S		64
+
 
 /* dpni_get_qdid */
 /* param 1 */
