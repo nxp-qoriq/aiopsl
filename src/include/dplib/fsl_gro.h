@@ -215,7 +215,8 @@ struct tcp_gro_context_params {
 		/** Aggregated packet limits. */
 	struct gro_context_limits limits;
 		/** Address (in HW buffers) of the TCP GRO statistics counters
-		 *  (\ref tcp_gro_stats_cntrs). */
+		 *  (\ref tcp_gro_stats_cntrs). 
+		 *  The user should zero the statistics once it is allocated. */
 	uint64_t stats_addr;
 };
 
