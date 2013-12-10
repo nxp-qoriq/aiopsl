@@ -11,7 +11,6 @@
 #include "fsl_fdma.h"
 #include "fdma.h"
 
-/* Todo - __TASK uint8_t SPID; use this */
 
 uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 {
@@ -200,7 +199,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 
-		aiop_verification_replace_asa();
 		if (str->EIS) {
 			str->status = (int8_t)
 				fdma_enqueue_default_fd_fqid(
