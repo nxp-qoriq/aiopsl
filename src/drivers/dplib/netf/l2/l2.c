@@ -73,9 +73,9 @@ int32_t l2_vlan_header_remove()
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT()) {
 
-		first_offset = PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT();
-		last_offset = PARSER_GET_LAST_VLAN_OFFSET_DEFAULT();
-		size_to_be_removed = (uint16_t)(last_offset - first_offset + 4);
+		first_offset = PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT() - 2;
+		last_offset = PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT();
+		size_to_be_removed = (uint16_t)(last_offset - first_offset + 2);
 
 		fdma_flags =
 			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
@@ -156,7 +156,7 @@ int32_t l2_set_vlan_vid(uint16_t vlan_vid)
 	uint32_t *vlan_ptr, constructed_vlan;
 	uint8_t vlan_offset;
 
-	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT());
+	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT() - 2);
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT())
 		return NO_VLAN_ERROR;
@@ -188,7 +188,7 @@ int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 	uint32_t *vlan_ptr, constructed_vlan;
 	uint8_t vlan_offset;
 
-	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT());
+	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT() - 2);
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT())
 		return NO_VLAN_ERROR;
@@ -269,7 +269,7 @@ int32_t l2_pop_vlan()
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT()) {
-		vlan_offset = PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT();
+		vlan_offset = (uint16_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 2;
 
 		fdma_flags =
 			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
