@@ -936,7 +936,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 		+ PRC_GET_SEGMENT_ADDRESS())
 /** Get the pointer to last VLAN TCI
  in the default frame presented in the workspace */
-#define PARSER_GET_LAST_VLAN_POINTER_DEFAULT() \
+#define PARSER_GET_LAST_VLAN_TCI_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
 /** Get the pointer to last EtherType
