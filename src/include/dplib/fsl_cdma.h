@@ -615,12 +615,12 @@ enum cdma_errors {
 
 /* Reference count */
 		/* Increment reference count. */
-#define CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT		0x00000200
+#define CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT		 0x00000200
 		/* Decrement reference count. */
-#define CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT		0x00000600
+#define CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT		 0x00000600
 		/* Decrement reference count and release Context Memory if
 		resulting reference count is zero. */
-#define CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT		0x00000200
+#define CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL 0x00000400
 
 /* Post DMA Rel-Mutex */
 		/** Post DMA Release Mutex Lock.
