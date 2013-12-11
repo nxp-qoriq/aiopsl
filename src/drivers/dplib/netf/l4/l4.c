@@ -25,7 +25,7 @@ int32_t l4_udp_header_modification(uint8_t flags,
 	udp_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 	udp_ptr = (struct udphdr *)(udp_offset + PRC_GET_SEGMENT_ADDRESS());
 	old_header = *(uint32_t *)udp_ptr;
-	if (~PARSER_IS_UDP_DEFAULT())
+	if (!PARSER_IS_UDP_DEFAULT())
 		return NO_UDP_FOUND_ERROR;
 	PARSER_CLEAR_RUNNING_SUM();
 	if (flags & L4_UDP_MODIFY_MODE_UDPSRC)
@@ -37,8 +37,8 @@ int32_t l4_udp_header_modification(uint8_t flags,
 			cksum_calc_udp_tcp_checksum();
 		} else {
 			cksum_update_uint32(&udp_ptr->checksum,
-					*(uint32_t *)udp_ptr,
-					old_header);
+								old_header,
+								*(uint32_t *)udp_ptr);
 		}
 	}
 	/* Modify the segment */
@@ -58,7 +58,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 	tcp_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 	tcp_ptr = (struct tcphdr *)(tcp_offset + PRC_GET_SEGMENT_ADDRESS());
 	option_size = TCP_NO_OPTION_SIZE;
-	if (~PARSER_IS_TCP_DEFAULT())
+	if (!PARSER_IS_TCP_DEFAULT())
 		return NO_TCP_FOUND_ERROR;
 	PARSER_CLEAR_RUNNING_SUM();
 
@@ -185,11 +185,12 @@ int32_t l4_set_tp_src(uint16_t src_port)
 		tcphdr_ptr = (struct tcphdr *) ((uint16_t)tcphdr_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
-		tcphdr_ptr->src_port = src_port;
 
 		cksum_update_uint32(&tcphdr_ptr->checksum,
-				    tcphdr_ptr->src_port,
-				    src_port);
+							tcphdr_ptr->src_port,
+							src_port);
+
+		tcphdr_ptr->src_port = src_port;
 
 		/* update FDMA */
 		fdma_modify_default_segment_data(tcphdr_offset, 18);
@@ -215,11 +216,11 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 		tcphdr_ptr = (struct tcphdr *) ((uint16_t)tcphdr_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
-		tcphdr_ptr->dst_port = dst_port;
-
 		cksum_update_uint32(&tcphdr_ptr->checksum,
 				    tcphdr_ptr->dst_port,
 				    dst_port);
+
+		tcphdr_ptr->dst_port = dst_port;
 
 		/* update FDMA */
 		fdma_modify_default_segment_data(tcphdr_offset+2, 16);

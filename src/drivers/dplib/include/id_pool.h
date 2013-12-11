@@ -110,7 +110,7 @@
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int32_t id_pool_init(int16_t *pool,
+inline int32_t id_pool_init(uint16_t *pool,
 			 int16_t length,
 			 uint16_t buffer_pool_id,
 			 uint32_t buffer_size,
