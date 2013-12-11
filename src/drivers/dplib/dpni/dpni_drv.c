@@ -124,11 +124,12 @@ int dpni_drv_init(void)
     memset(nis, 0, sizeof(struct dpni_drv)*100);
 
     tmp_reg =
-        sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-                                          0,
-                                          E_MAPPED_MEM_TYPE_GEN_REGS);
+        (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+                                           0,
+                                           E_MAPPED_MEM_TYPE_GEN_REGS) +
+         SOC_PERIPH_OFF_AIOP_WRKS);
     /* Write EPID-table EP_PC reg */
-    iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(tmp_reg + 0x1d100));
+    iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(tmp_reg + 0x100));
 
     return 0;
 }
