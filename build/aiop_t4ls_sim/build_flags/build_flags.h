@@ -22,8 +22,8 @@
 
 #define LS2100A
 #define AIOP
-#define ARENA_PPC_CORE
-/*#define ARENA_SMP_SUPPORT*/
+#define SOC_PPC_CORE
+/*#define SYS_SMP_SUPPORT*/
 #define SIMULATOR
 #define DEBUG_NO_MC
 

@@ -92,7 +92,7 @@ static void platform_print_info(t_platform *p_platform)
     int         is_master_partition_master;    /* Master of master partition responsible
                                                for single resources initialization */
 
-    is_master_partition_master = (int)(is_master_core && (sys_get_partition_id() == ARENA_MASTER_PART_ID));
+    is_master_partition_master = (int)(is_master_core && (sys_get_partition_id() == SYS_MASTER_PART_ID));
 
     ASSERT_COND(p_platform);
 
@@ -467,7 +467,7 @@ static int platform_init_console(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == ARENA_MASTER_PART_ID)
+    if (pltfrm->partition_id == SYS_MASTER_PART_ID)
     {
         /* Master partition - register DUART console */
         err = platform_enable_console(pltfrm);
@@ -489,7 +489,7 @@ static int platform_free_console(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == ARENA_MASTER_PART_ID)
+    if (pltfrm->partition_id == SYS_MASTER_PART_ID)
         platform_disable_console(pltfrm);
 
     sys_unregister_console();
@@ -504,7 +504,7 @@ static int platform_init_private(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (sys_is_master_core() && (pltfrm->partition_id == ARENA_MASTER_PART_ID))
+    if (sys_is_master_core() && (pltfrm->partition_id == SYS_MASTER_PART_ID))
     {
 #if 0
     	/* Register Platform CLI commands */
@@ -526,7 +526,7 @@ static int platform_free_private(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (sys_is_master_core() && (pltfrm->partition_id == ARENA_MASTER_PART_ID))
+    if (sys_is_master_core() && (pltfrm->partition_id == SYS_MASTER_PART_ID))
     {
 #if 0
     	/* Unregister Platform CLI commands */

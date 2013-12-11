@@ -1,11 +1,11 @@
  /**************************************************************************//**
  @File          gen.h
 
- @Description   General ARENA Standard Definitions
+ @Description   General FSL OS Standard Definitions
 *//***************************************************************************/
 
-#ifndef __FSL_ARENA_GEN_H
-#define __FSL_ARENA_GEN_H
+#ifndef __FSL_SYS_GEN_H
+#define __FSL_SYS_GEN_H
 
 #include "common/types.h"
 
@@ -103,7 +103,7 @@ do                                      \
 
 #define ILLEGAL_BASE    (~0)
 
-#define ARENA_MASTER_PART_ID      (0)
+#define SYS_MASTER_PART_ID      (0)
 /* @} */
 
 /* The following 3 lines must be located at the top of the header file */
@@ -136,4 +136,4 @@ static __inline__ void u64_write_field(uint64_t reg, int start_bit, int size, ui
 }
 
 
-#endif /* __FSL_ARENA_GEN_H */
+#endif /* __FSL_SYS_GEN_H */
