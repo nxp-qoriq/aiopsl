@@ -87,8 +87,6 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		/* HM L2 header remove Command Verification */
 		case HM_L2_HEADER_REMOVE_CMD_STR:
 		{
-			struct hm_l2_header_remove_command *str =
-			(struct hm_l2_header_remove_command *) asa_seg_addr;
 			l2_header_remove();
 			str_size = sizeof(struct hm_l2_header_remove_command);
 			break;
