@@ -39,7 +39,7 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.input.smallData2Address.1676959471" name="Small Data 2 Address" superClass="com.freescale.ppc.toolchain.linker.base.input.smallData2Address" value="0x0" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listDwarfObjects.764117629" name="List DWARF Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listDwarfObjects" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.1694338205" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
-								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.1745692899" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__arena_start" valueType="string"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.1745692899" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__sys_start" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.codeAddress.737250550" name="Code Address" superClass="com.freescale.ppc.toolchain.linker.base.input.codeAddress" value="0x2000" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1883628272" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1241371429" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="" valueType="string"/>

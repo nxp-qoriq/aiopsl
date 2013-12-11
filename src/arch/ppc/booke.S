@@ -524,7 +524,7 @@ asm_prefix(l1icache_line_unlock):
 .global asm_prefix(booke_tlb_read5)
 .global asm_prefix(booke_tlb1_invalidate)
 
-#ifndef ARENA_64BIT_ARCH
+#ifndef SYS_64BIT_ARCH
 /* TLB entry configuration */
 /* Used by C routine MMU_TlbEntryWrite, mmu.c.
    User must pass 3 (MAS0), 4 (MAS1), 5 (MAS2), and 6 (MAS3) values. */
@@ -560,7 +560,7 @@ asm_prefix(booke_tlb_write5):
 #endif
 
 /* Used by C routine MMU_TlbEntryWrite, mmu.c.*/
-#ifdef ARENA_64BIT_ARCH
+#ifdef SYS_64BIT_ARCH
 asm_prefix(e500mc_tlb_write):
     /* configure masX registers values */
     ld          4, 0(3)
@@ -628,7 +628,7 @@ asm_prefix(e500mc_tlb_write):
 #endif
 
 /* TLB entry read */
-#ifndef ARENA_64BIT_ARCH
+#ifndef SYS_64BIT_ARCH
 /* Used by C routine MMU_TlbEntryWrite, mmu.c.
    User must pass 3 (by address) 4 (MAS0) and 5 (MAS2).
    Routine uses 3 to return an array of the required TLB entry
@@ -657,7 +657,7 @@ asm_prefix(booke_tlb_read):
     blr
 #endif
 
-#ifdef ARENA_64BIT_ARCH
+#ifdef SYS_64BIT_ARCH
 asm_prefix(booke_tlb_read5):
     /* set MAS0 and MAS2 to define the specified TLB entry */
     mtspr       MAS0, 4
