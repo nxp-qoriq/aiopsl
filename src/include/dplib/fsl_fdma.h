@@ -232,7 +232,10 @@ enum fdma_replace_sa_options {
 		/** Re-present the segment in workspace */
 	FDMA_REPLACE_SA_REPRESENT_BIT =	0x0100,
 		/** Close the replaced segment to free the workspace memory
-		 * associated with the segment. */
+		 * associated with the segment.
+		 * This option is not relevant for replacing ASA/PTA. If it as chosen 
+		 * for replacing ASA/PTA it will be treated as 
+		 * \ref FDMA_REPLACE_SA_OPEN_BIT. */
 	FDMA_REPLACE_SA_CLOSE_BIT =	0x0200
 };
 

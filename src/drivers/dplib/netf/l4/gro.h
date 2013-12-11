@@ -6,10 +6,23 @@
 #ifndef __GRO_H
 #define __GRO_H
 
-#include "general.h"
 #include "dplib/fsl_gro.h"
 #include "dplib/fsl_fdma.h"
+#include "dplib/fsl_ldpaa.h"
 
+
+/** \addtogroup FSL_AIOP_GRO
+ *  @{
+ */
+
+
+/**************************************************************************//**
+@Group		AIOP_TCP_GRO_INTERNAL AIOP TCP GRO Internal
+
+@Description	AIOP TCP GRO Internal
+
+@{
+*//***************************************************************************/
 
 /**************************************************************************//**
 @Group		TCP_GRO_INTERNAL_STRUCTS TCP GRO Internal Structures
@@ -70,14 +83,6 @@ struct gro_global_parameters {
 
 /** @} */ /* end of TCP_GRO_INTERNAL_STRUCTS */
 
-
-/**************************************************************************//**
-@Group		AIOP_TCP_GRO_INTERNAL AIOP TCP GRO Internal
-
-@Description	AIOP TCP GRO Internal
-
-@{
-*//***************************************************************************/
 
 /**************************************************************************//**
 @Group	TCP_GRO_INTERNAL_MACROS TCP GRO Internal Macros
@@ -226,7 +231,7 @@ void gro_init(uint32_t timeout_flags);
 /** @} */ /* end of AIOP_TCP_GRO_INTERNAL */
 
 
-
+/** @} */ /* end of FSL_AIOP_GRO */
 
 
 #endif /* __GRO_H */
