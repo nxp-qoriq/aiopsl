@@ -3,12 +3,13 @@
 
  @File          dpni_drv.h
 
- @Description   This file contains LDPAA Network Interfae API.
+ @Description   This file contains AIOP driver Network Interface API.
 *//***************************************************************************/
 #ifndef __FSL_DPNI_DRV_H
 #define __FSL_DPNI_DRV_H
 
 #include "common/types.h"
+#include "general.h"
 
 
 /**************************************************************************//**
@@ -38,9 +39,9 @@ typedef uint64_t	dpni_drv_app_arg_t;
                 User provides this function. Driver invokes it when it gets a
                 frame received on this interface.
 
- @Param[in]     arg     portal number.
+ @Param[in]     argument for application callback.
 
- @Return        OK on success; error code, otherwise.
+ @Return        None.
  *//***************************************************************************/
 typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
 
@@ -95,14 +96,31 @@ int dpni_drv_register_rx_cb (uint16_t     	ni_id,
                              dpni_drv_app_arg_t arg);
 
 /**************************************************************************//**
+@Group	DPNI_DRV_STATUS  DP network interface Statuses
+
+@Description \ref dpni_drv_send() possible return values
+
+@{
+*//***************************************************************************/
+
+	/** MTU was crossed for DPNI driver send function */
+#define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
+	/** NI is not enabled in DPNI driver send function */
+#define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
+
+/** @} */ /* end of DPNI_DRV_STATUS */
+
+/**************************************************************************//**
  @Function      dpni_drv_send
 
- @Description   TODO
+ @Description   @Description	Network Interface send (AIOP enqueue) function.
 
  @Param[in]     ni_id   The Network Interface ID
- @Param[imp]    skb     A pointwer to the Frame structure
+ @Param[imp]    Queueing Destination Priority (qd_priority) in the TLS.
 
  @Return        OK on success; error code, otherwise.
+		For error codes refer to \ref FDMA_ENQUEUE_FRAME_ERRORS
+		and \ref DPNI_DRV_STATUS.
 *//***************************************************************************/    
 int dpni_drv_send (uint16_t ni_id);
 

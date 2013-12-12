@@ -118,6 +118,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define GSO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x04000000)
 /** TCP GRO module ID */
 #define GRO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x05000000)
+/** DPNI driver module ID */
+#define DPNI_DRV_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x06000000)
 
 /** @} */ /* end of AIOP_Return_Status */
 
@@ -497,6 +499,8 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
+	/** parser accelerator status */
+	int32_t parser_status;
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
@@ -798,7 +802,19 @@ struct aiop_default_task_params {
 #define FD_DD_SC_DROPP_OFFSET	0x17
 	/** FD dd_sc_dropp offset */
 #define FD_FLC_DS_AS_CS_OFFSET	0x18
+/*
+ * FLC LE format:
+ * 63 ...........................................................0
+ * HASH (W)                    ,  Running sum(HW),  EPID(HW) ..
+ */
+/** FD FLC running sum */
+#define FD_FLC_RUNNING_SUM	FD_FLC_DS_AS_CS_OFFSET + 2
+	/** FD APP Index offset for DPNI driver */
+#define FD_FLC_APPIDX_OFFSET	FD_FLC_DS_AS_CS_OFFSET + 1
 
+/* TODO - FRC error code definitions */
+#define FD_FRC_ERROR_MASK          0x00ff0000
+#define FD_FRC_DPNI_MTU_ERROR_CODE 0x00010000
 
 /* Frame Descriptor (FD) Fields Shifts */
 	/** FD MEM shift */
