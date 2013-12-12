@@ -94,7 +94,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 					tcp_ptr->acknowledgment_number);
 		}
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
-			if (PARSER_IS_TCP_OPTIONS_DEFAULT())
+			if (!PARSER_IS_TCP_OPTIONS_DEFAULT())
 				return NO_TCP_MSS_FOUND_ERROR;
 			options_ptr = (uint8_t *)tcp_ptr;
 			mss_found = 0;
