@@ -837,11 +837,11 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** Get the LLC+SNAP header offset */
 #define PARSER_GET_LLC_SNAP_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->llc_snap_offset)
-/** Get the first VLAN offset */
-#define PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT() \
+/** Get the first VLAN TCI offset */
+#define PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->vlan_tci1_offset)
-/** Get the last VLAN offset */
-#define PARSER_GET_LAST_VLAN_OFFSET_DEFAULT() \
+/** Get the last VLAN TCI offset */
+#define PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->vlan_tcin_offset)
 /** Get the last EtherType offset */
 #define PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT() \
@@ -929,15 +929,15 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 #define PARSER_GET_LLC_SNAP_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_LLC_SNAP_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-/** Get the pointer to first VLAN
+/** Get the pointer to first VLAN TCI
  in the default frame presented in the workspace */
-#define PARSER_GET_FIRST_VLAN_POINTER_DEFAULT() \
-	(void *)((uint16_t)PARSER_GET_FIRST_VLAN_OFFSET_DEFAULT() \
+#define PARSER_GET_FIRST_VLAN_TCI_POINTER_DEFAULT() \
+	(void *)((uint16_t)PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-/** Get the pointer to last VLAN
+/** Get the pointer to last VLAN TCI
  in the default frame presented in the workspace */
-#define PARSER_GET_LAST_VLAN_POINTER_DEFAULT() \
-	(void *)((uint16_t)PARSER_GET_LAST_VLAN_OFFSET_DEFAULT() \
+#define PARSER_GET_LAST_VLAN_TCI_POINTER_DEFAULT() \
+	(void *)((uint16_t)PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
 /** Get the pointer to last EtherType
  in the default frame presented in the workspace*/

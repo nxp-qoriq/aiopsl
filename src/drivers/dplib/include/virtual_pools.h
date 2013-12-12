@@ -19,7 +19,6 @@
  @{
 *//***************************************************************************/
 
-static uint32_t vpool_spinlock_var; 
 
 /* Virtual Pool structure */
 struct virtual_pool_desc {
@@ -28,7 +27,8 @@ struct virtual_pool_desc {
 	int32_t allocated_bufs;
 	uint8_t spinlock;
 	uint8_t flags;
-	uint16_t bman_pool_id;
+	//uint16_t bman_pool_id;
+    uint16_t bman_array_index;
 };
 
 /* Callback functions struct */
@@ -40,15 +40,19 @@ struct callback_s {
 struct bman_pool_desc {
 	int32_t remaining;
 	uint32_t buf_size;
-	uint32_t spinlock;
+	//uint32_t spinlock;
+    uint8_t spinlock; 
+    uint8_t flags; 
+    uint16_t bman_pool_id; 
 };
 
 // TMP
 struct virtual_pools_root_desc {
-		uint64_t *virtual_pool_struct;
-		uint64_t *callback_func_struct;
+		uint64_t virtual_pool_struct;
+		uint64_t callback_func_struct;
 		uint32_t num_of_virtual_pools;
 		uint32_t flags;
+		uint32_t global_spinlock; 
 };
 
 /**************************************************************************//**
@@ -329,9 +333,9 @@ int32_t vpool_read_pool(uint32_t virtual_pool_id,
 				and references to these memory blocks are the input to this
 				function.
 
-@Param[in]	virtual_pool_struct - pointer to the virtual pools structure 
+@Param[in]	virtual_pool_struct - address of the virtual pools structure 
 			memory block. 
-@Param[in] 	callback_func_struct - pointer to the callback functions 
+@Param[in] 	callback_func_struct - address of the callback functions 
 			memory block. 
 			A NULL in this field indicates that no callback functions 
 			are available. In this case a memory block is not required. 
@@ -342,8 +346,8 @@ int32_t vpool_read_pool(uint32_t virtual_pool_id,
 			
 *//***************************************************************************/
 int32_t vpool_init(
-		uint64_t *virtual_pool_struct,
-		uint64_t *callback_func_struct,
+		uint64_t virtual_pool_struct,
+		uint64_t callback_func_struct,
 		uint32_t num_of_virtual_pools,
 		uint32_t flags
 );

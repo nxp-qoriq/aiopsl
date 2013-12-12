@@ -34,7 +34,7 @@
 /**************************************************************************//**
 @Description	TCP GRO Internal Context.
 *//***************************************************************************/
-/* Currently the struct size is 116 bytes.
+/* Currently the struct size is 120 bytes.
  * The fixed definition size is 128 bytes.
  * In case additional fields are added to the struct we can either:
  * Modify the fixed size
@@ -48,6 +48,8 @@ struct tcp_gro_context {
 	struct tcp_gro_context_params params;
 		/** Aggregated packet FD  */
 	struct ldpaa_fd agg_fd;
+		/** Aggregated packet metadata  */
+	struct tcp_gro_context_metadata metadata;
 		/** Next expected sequence number. */
 	uint32_t next_seq;
 		/** Last received acknowledgment number. */
