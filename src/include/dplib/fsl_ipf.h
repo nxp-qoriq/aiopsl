@@ -27,7 +27,7 @@
 *//***************************************************************************/
 
 	/** IPF context size definition. */
-#define IPF_CONTEXT_SIZE	48
+#define IPF_CONTEXT_SIZE	96
 	/** IPF context definition. */
 typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 

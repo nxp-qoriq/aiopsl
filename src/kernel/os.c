@@ -31,12 +31,12 @@ void fsl_os_print(char *format, ...)
     char    tmp_buf[BUF_SIZE];
 
     va_start(args, format);
-#ifdef ARENA_64BIT_ARCH
+#ifdef SYS_64BIT_ARCH
 #if defined(__GNUC__)
 extern void msr_enable_fp(void);
 msr_enable_fp();
 #endif /* defined(__GNUC__) */
-#endif /* ARENA_64BIT_ARCH */
+#endif /* SYS_64BIT_ARCH */
     vsnprintf (tmp_buf, BUF_SIZE, format, args);
     va_end(args);
 

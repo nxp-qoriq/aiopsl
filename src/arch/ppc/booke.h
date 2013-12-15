@@ -7,7 +7,7 @@
 
 
 /* Assembly syntax - different for 64 and 32-bit */
-#ifdef ARENA_64BIT_ARCH
+#ifdef SYS_64BIT_ARCH
 #define asm_prefix(_name)    .##_name
 #else
 #define asm_prefix(_name)    _name

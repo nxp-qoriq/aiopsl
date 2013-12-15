@@ -1,9 +1,9 @@
 #include "arch/cores/fsl_core_booke_regs.h"
 
 
-.extern __arena_start;
+.extern __sys_start;
 
-.global __arena_start_secondary
+.global __sys_start_secondary
 
 #if defined(__MWERKS__) && !defined(__GNUC__)
 .section .newstart,4,"x"
@@ -12,7 +12,7 @@
 #endif /* defined(__MWERKS__) && ... */
 .align 4
 
-__arena_start_secondary:
+__sys_start_secondary:
 
 1:
     /*1. Save input parameters to pass them to start later */
@@ -194,13 +194,13 @@ skip_inv:
     isync
 
     li      1, 0xff                     /* Initialize stack pointer with some value.
-                                           Final stack initialization will take place in __arena_start */
+                                           Final stack initialization will take place in __sys_start */
     mr      3, 14                      /* Put back argc, argv and envp values */
     mr      4, 15
     mr      5, 16
 
-    lis     6, __arena_start@ha          /* Jump to __arena_start */
-    addi    6, 6, __arena_start@l
+    lis     6, __sys_start@ha          /* Jump to __sys_start */
+    addi    6, 6, __sys_start@l
     mtlr    6
     blrl
 

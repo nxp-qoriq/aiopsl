@@ -784,13 +784,13 @@ perf_monitor_intr:
 /*****************************************************************************
     0x1f00 Dynamic loader for SMP
 *****************************************************************************/
-#ifdef ARENA_SECONDARY_START
+#ifdef SYS_SECONDARY_START
 .org  0x1f00
     lis     3, 0
     lis     4, 0
     lis     5, 0
-    lis     16,__arena_start_secondary@h
-    ori     16,16,__arena_start_secondary@l
+    lis     16,__sys_start_secondary@h
+    ori     16,16,__sys_start_secondary@l
     mtlr    16
     blrl
 #else
@@ -798,9 +798,9 @@ perf_monitor_intr:
     lis     3, 0
     lis     4, 0
     lis     5, 0
-    lis     16,__arena_start@h
-    ori     16,16,__arena_start@l
+    lis     16,__sys_start@h
+    ori     16,16,__sys_start@l
     mtlr    16
     blrl
-#endif /* ARENA_SECONDARY_START */
+#endif /* SYS_SECONDARY_START */
 

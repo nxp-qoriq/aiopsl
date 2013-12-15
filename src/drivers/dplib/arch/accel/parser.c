@@ -16,7 +16,7 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 {
 	struct parse_profile_create_params parse_profile_create_params;
 	int32_t status;
-	uint8_t prpid_pool[SYS_PRPID_POOL_LENGTH];
+	uint16_t prpid_pool[SYS_PRPID_POOL_LENGTH];
 
 	status = get_id(prpid_pool, SYS_PRPID_POOL_LENGTH,
 		ext_prpid_pool_address, prpid);
@@ -73,7 +73,7 @@ int32_t parser_profile_delete(uint8_t prpid)
 
 	struct parse_profile_delete_query_params parse_profile_delete_params;
 	int32_t status;
-	uint8_t prpid_pool[SYS_PRPID_POOL_LENGTH];
+	uint16_t prpid_pool[SYS_PRPID_POOL_LENGTH];
 
 	parse_profile_delete_params.reserved1 = 0;
 	parse_profile_delete_params.mtype = PARSER_PRP_DELETE_MTYPE;

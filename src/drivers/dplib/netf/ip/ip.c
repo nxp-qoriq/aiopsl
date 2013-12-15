@@ -788,6 +788,7 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;
+	uint32_t old_src_add;
 	struct   ipv4hdr *ipv4hdr_ptr;
 	struct   udphdr *udphdr_ptr;
 	struct   tcphdr *tcphdr_ptr;
@@ -805,6 +806,7 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 				    ipv4hdr_ptr->src_addr,
 				    src_addr);
 
+		old_src_add = ipv4hdr_ptr->src_addr;
 		ipv4hdr_ptr->src_addr = src_addr;
 
 		/* update FDMA */
@@ -817,8 +819,8 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 						+ PRC_GET_SEGMENT_ADDRESS());
 
 			cksum_update_uint32(&udphdr_ptr->checksum,
-					    ipv4hdr_ptr->src_addr,
-					    src_addr);
+								old_src_add,
+								src_addr);
 
 			/* update FDMA */
 			fdma_modify_default_segment_data(udp_tcp_offset + 6, 2);
@@ -831,8 +833,8 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 					+ PRC_GET_SEGMENT_ADDRESS());
 
 			cksum_update_uint32(&tcphdr_ptr->checksum,
-					    ipv4hdr_ptr->src_addr,
-					    src_addr);
+								old_src_add,
+								src_addr);
 
 			/* update FDMA */
 		       fdma_modify_default_segment_data(udp_tcp_offset + 16, 2);
@@ -850,6 +852,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;
+	uint32_t old_dst_addr;
 	struct   ipv4hdr *ipv4hdr_ptr;
 	struct   udphdr *udphdr_ptr;
 	struct   tcphdr *tcphdr_ptr;
@@ -867,6 +870,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 				    ipv4hdr_ptr->dst_addr,
 				    dst_addr);
 
+		old_dst_addr = ipv4hdr_ptr->dst_addr;
 		ipv4hdr_ptr->dst_addr = dst_addr;
 
 		/* update FDMA */
@@ -879,8 +883,8 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 						+ PRC_GET_SEGMENT_ADDRESS());
 
 			cksum_update_uint32(&udphdr_ptr->checksum,
-					    ipv4hdr_ptr->dst_addr,
-					    dst_addr);
+								old_dst_addr,
+								dst_addr);
 
 			/* update FDMA */
 			fdma_modify_default_segment_data(udp_tcp_offset + 6, 2);
@@ -893,8 +897,8 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 					+ PRC_GET_SEGMENT_ADDRESS());
 
 			cksum_update_uint32(&tcphdr_ptr->checksum,
-					    ipv4hdr_ptr->dst_addr,
-					    dst_addr);
+								old_dst_addr,
+								dst_addr);
 
 			/* update FDMA */
 		       fdma_modify_default_segment_data(udp_tcp_offset + 16, 2);
