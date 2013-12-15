@@ -118,8 +118,8 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 			struct vpool_init_cmd *str =
 				(struct vpool_init_cmd *)asa_seg_addr;
 			str->status = vpool_init(
-					(uint64_t *)str->virtual_pool_struct,
-					(uint64_t *)str->callback_func_struct,
+					str->virtual_pool_struct,
+					str->callback_func_struct,
 					str->num_of_virtual_pools,
 					str->flags
 					);
