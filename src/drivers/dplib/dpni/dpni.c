@@ -6,7 +6,7 @@
 #include "common/gen.h"
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_dpni_cmd.h"
-
+#include "common/fsl_stdio.h"
 #include "dpni.h"
 
 
@@ -686,7 +686,6 @@ void prepare_init_cmd(struct cmdif_cmd_desc	*desc,
 {
 	int i;
 	uint64_t cmd_param = 0;
-
 	/* build param 1*/
 	u64_write_field(cmd_param, 
 					DPNI_INIT_MAX_TCS_O, 
@@ -701,12 +700,12 @@ void prepare_init_cmd(struct cmdif_cmd_desc	*desc,
 					DPNI_INIT_DIST_KEY_VAR_S, 	
                     cfg->dist_key_variety);
 	for ( i = 0 ; i < NET_HDR_FLD_ETH_ADDR_SIZE ; i++ )
-	{
 		    u64_write_field(cmd_param, 
 		    		DPNI_INIT_MAC_ADDR_O + i * DPNI_INIT_MAC_ADDR_S, 
 		    		DPNI_INIT_MAC_ADDR_S, 
 		    		params->mac_addr[i]);
-	}
+
+fsl_os_print("[%d] 0x%016x\n",__LINE__, cmd_param);
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 	/* build param 2*/
     cmd_param = 0;
