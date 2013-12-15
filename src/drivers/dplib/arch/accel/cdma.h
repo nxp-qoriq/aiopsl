@@ -8,6 +8,9 @@
 #ifndef __CDMA_H_
 #define __CDMA_H_
 
+#include "common/types.h"
+#include "dplib/fsl_cdma.h"
+
 
 /* CDMA Command IDs */
 	/** CDMA Acquire Context Memory command code */

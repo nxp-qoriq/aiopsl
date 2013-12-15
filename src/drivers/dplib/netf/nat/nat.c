@@ -27,7 +27,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 	uint32_t old_header;
 	struct tcphdr *tcp_ptr;
 	struct ipv4hdr *ipv4_ptr;
-	if (~PARSER_IS_L4_DEFAULT() || ~PARSER_IS_IP_DEFAULT())
+	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_IP_DEFAULT())
 		return NO_L4_IP_FOUND_ERROR;
 
 	l4_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
@@ -87,7 +87,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 						*(uint32_t *)tcp_ptr);
 
 		if (flags & NAT_MODIFY_MODE_TCP_SEQNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				fdma_modify_default_segment_data(ipv4_offset,
 						modify_size);
 				return NO_TCP_FOUND_ERROR;
@@ -101,7 +101,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 					tcp_ptr->sequence_number);
 		}
 		if (flags & NAT_MODIFY_MODE_TCP_ACKNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				fdma_modify_default_segment_data(ipv4_offset,
 						modify_size);
 				return NO_TCP_FOUND_ERROR;
@@ -137,7 +137,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 			tcp_ptr->dst_port = l4_dst_port;
 
 		if (flags & NAT_MODIFY_MODE_TCP_SEQNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				fdma_modify_default_segment_data(ipv4_offset,
 						modify_size);
 				return NO_TCP_FOUND_ERROR;
@@ -147,7 +147,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 			tcp_ptr->sequence_number += (int32_t)tcp_seq_num_delta;
 		}
 		if (flags & NAT_MODIFY_MODE_TCP_ACKNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				fdma_modify_default_segment_data(ipv4_offset,
 						modify_size);
 				return NO_TCP_FOUND_ERROR;
@@ -172,7 +172,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 	uint32_t old_header;
 	struct tcphdr *tcp_ptr;
 	struct ipv6hdr *ipv6_ptr;
-	if (~PARSER_IS_L4_DEFAULT() || ~PARSER_IS_IP_DEFAULT())
+	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_IP_DEFAULT())
 		return NO_L4_IP_FOUND_ERROR;
 
 	l4_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
@@ -235,7 +235,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 					*(uint32_t *)tcp_ptr);
 		}
 		if (flags & NAT_MODIFY_MODE_TCP_SEQNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				/*from the IPv6 SRC addr */
 				modify_offset = ipv6_offset + 8;
 				fdma_modify_default_segment_data(modify_offset,
@@ -251,7 +251,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 					tcp_ptr->sequence_number);
 		}
 		if (flags & NAT_MODIFY_MODE_TCP_ACKNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				/*from the IPv6 SRC addr */
 				modify_offset = ipv6_offset + 8;
 				fdma_modify_default_segment_data(modify_offset,
@@ -286,7 +286,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 		}
 
 		if (flags & NAT_MODIFY_MODE_TCP_SEQNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				/*from the IPv6 SRC addr */
 				modify_offset = ipv6_offset + 8;
 				fdma_modify_default_segment_data(modify_offset,
@@ -298,7 +298,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 			tcp_ptr->sequence_number += (int32_t)tcp_seq_num_delta;
 		}
 		if (flags & NAT_MODIFY_MODE_TCP_ACKNUM) {
-			if (~PARSER_IS_TCP_DEFAULT()) {
+			if (!PARSER_IS_TCP_DEFAULT()) {
 				/*from the IPv6 SRC addr */
 				modify_offset = ipv6_offset + 8;
 				fdma_modify_default_segment_data(modify_offset,

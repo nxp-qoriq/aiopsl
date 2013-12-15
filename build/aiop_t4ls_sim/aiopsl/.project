@@ -260,6 +260,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/controllers</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -291,6 +296,11 @@
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -348,6 +358,91 @@
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/platform.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2100a_aiop/platform.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/cdma.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/cdma.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/ctlu.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ctlu.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/ctlu.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ctlu.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/fdma.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/fdma.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/osm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/osm.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/osm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/osm.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/parser.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/parser.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/ste.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ste.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/ste.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ste.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/system.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/system.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/system.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/system.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/tman.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/tman.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/tman.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/virtual_pools.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/virtual_pools.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/ip/ip.c</name>
