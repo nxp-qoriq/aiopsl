@@ -4,7 +4,7 @@
 	<comment></comment>
 	<projects>
 		<project location="PARENT-2-PROJECT_LOC/aiopsl">
-aiop_sl		</project>
+aiop		</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
