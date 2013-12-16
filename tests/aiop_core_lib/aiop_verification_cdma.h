@@ -8,7 +8,7 @@
 #ifndef __AIOP_VERIFICATION_CDMA_H_
 #define __AIOP_VERIFICATION_CDMA_H_
 
-////#include "fsl_ldpaa.h"
+#include "common/types.h"
 
 
 /* CDMA Command IDs (from CDMA section in ArchDef) */
@@ -112,7 +112,7 @@ struct cdma_acquire_context_memory_command {
 	uint8_t		pad1[2];
 		/**< 64-bit alignment. */
 	uint32_t 	context_memory;
-		/**< A pointer to the Workspace where to return
+		/**< An address to the Workspace where to return
 		the acquired 64 bit address of the Context memory. */
 	uint64_t	context_memory_addr;
 		/**< A returned pointer to the acquired 64 bit address 
@@ -135,11 +135,12 @@ struct cdma_release_context_memory_command{
 		/**< CDMA cdma_release_context_memory Command Structure identifier. */
 	uint8_t		pad1[4];
 		/**< 64-bit alignment. */
-	uint64_t	context_address;
-		/**< A pointer to the Context memory. */
+	uint32_t 	context_memory;
+		/**< An address to the Workspace where
+		the 64 bit address of the Context memory is found. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[7];
+	uint8_t		pad[3];
 		/**< 64-bit alignment. */
 };
 
@@ -288,11 +289,12 @@ struct cdma_refcount_increment_command{
 		/**< CDMA cdma_refcount_Increment Command Structure identifier. */
 	uint8_t		pad1[4];
 			/**< 64-bit alignment. */
-	uint64_t	context_address;
-		/**< A pointer to the Context memory. */
+	uint32_t 	context_memory;
+			/**< An address to the Workspace where
+		the 64 bit address of the Context memory is found. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad2[7];
+	uint8_t		pad2[3];
 		/**< 64-bit alignment. */
 };
 
@@ -306,12 +308,13 @@ struct cdma_refcount_decrement_command{
 	uint32_t 	opcode;
 		/**< CDMA cdma_refcount_decrement Command Structure identifier. */
 	uint8_t		pad1[4];
-			/**< 64-bit alignment. */
-	uint64_t	context_address;
-		/**< A pointer to the Context memory. */
+		/**< 64-bit alignment. */
+	uint32_t 	context_memory;
+		/**< An address to the Workspace where
+			the 64 bit address of the Context memory is found. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad2[7];
+	uint8_t		pad2[3];
 		/**< 64-bit alignment. */
 };
 
@@ -327,11 +330,12 @@ struct cdma_refcount_decrement_and_release_command{
 		/**< CDMA cdma_refcount_decrement_and_release Command Structure identifier. */
 	uint8_t		pad1[4];
 		/**< 64-bit alignment. */
-	uint64_t	context_address;
-		/**< A pointer to the Context memory. */
+	uint32_t 	context_memory;
+		/**< An address to the Workspace where
+			the 64 bit address of the Context memory is found. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad2[7];
+	uint8_t		pad2[3];
 		/**< 64-bit alignment. */
 };
 
@@ -347,13 +351,14 @@ struct cdma_write_lock_dma_read_and_increment_command  {
 		/**< CDMA cdma_write_lock_dma_read_and_increment Command Structure identifier. */
 	uint32_t 	ws_dst;
 		/**< A pointer to the Workspace. */
-	uint64_t	context_address;
-		/**< A pointer to the Context memory. */
+	uint32_t 	context_memory;
+		/**< An address to the Workspace where
+		the 64 bit address of the Context memory is found. */
 	uint16_t	size;
 		/**< Read data access size, in bytes. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[5];
+	uint8_t		pad[1];
 		/**< 64-bit alignment. */
 };
 
@@ -368,14 +373,15 @@ struct cdma_write_release_lock_and_decrement_command {
 	uint32_t 	opcode;
 		/**< CDMA cdma_write_release_lock_and_decrement Command Structure identifier. */
 	uint32_t 	ws_src;
-			/**< A pointer to the Workspace. */
-	uint64_t	context_address;
-		/**< A pointer to the Context memory. */
+		/**< A pointer to the Workspace. */
+	uint32_t 	context_memory;
+		/**< An address to the Workspace where
+			the 64 bit address of the Context memory is found. */
 	uint16_t	size;
 		/**< Write data access size, in bytes. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[5];
+	uint8_t		pad[1];
 		/**< 64-bit alignment. */
 };
 
@@ -413,8 +419,9 @@ struct cdma_access_context_memory_command {
 		/**< CDMA cdma_access_context_memory Command Structure identifier. */
 	uint32_t 	ws_address;
 			/**< A pointer to the Workspace. */
-	uint64_t	context_address;
-		/**< A pointer to the Context memory. */
+	uint32_t 	context_memory;
+			/**< An address to the Workspace where
+			the 64 bit address of the Context memory is found. */
 	uint32_t	flags;
 			/**< CDMA flags */
 	uint16_t	offset;
@@ -425,7 +432,7 @@ struct cdma_access_context_memory_command {
 		/**< Command returned Current value of reference count */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[5];
+	uint8_t		pad[1];
 		/**< 64-bit alignment. */
 };
 

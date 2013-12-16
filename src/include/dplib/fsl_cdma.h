@@ -10,6 +10,7 @@
 #define __FSL_CDMA_H
 
 #include "common/types.h"
+#include "common/errors.h"
 
 
 /**************************************************************************//**
@@ -39,7 +40,7 @@
 *//***************************************************************************/
 enum cdma_errors {
 		/** Success. */
-	CDMA_SUCCESS = SUCCESS,
+	CDMA_SUCCESS = E_OK,
 		/** Failed due to buffer pool depletion. */
 	CDMA_BUFFER_POOL_DEPLETION_ERR = 0x2,
 		/** Decrement reference count caused the reference count to

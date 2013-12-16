@@ -38,9 +38,7 @@ typedef uint64_t	dpni_drv_app_arg_t;
                 User provides this function. Driver invokes it when it gets a
                 frame received on this interface.
 
- @Param[in]     arg     portal number.
-
- @Return        OK on success; error code, otherwise.
+ @Param[in]     arg     argument for application callback.
  *//***************************************************************************/
 typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
 
@@ -94,21 +92,31 @@ int dpni_drv_register_rx_cb (uint16_t     	ni_id,
                              rx_cb_t      	*cb,
                              dpni_drv_app_arg_t arg);
 
-/*************************************************************************//**
-@Function	dpni_drv_send
+/**************************************************************************//**
+@Group	DPNI_DRV_STATUS  DP network interface Statuses
 
-@Description	Network Interface send (AIOP enqueue) function.
+@Description \ref dpni_drv_send() possible return values
 
-		Implicit input parameters in Task Defaults:
-		Queueing Destination Priority (qd_priority).
-
-@Param[in]	ni_id - Network Interface ID for send function.
-
-@Return		OK on success; error code, otherwise.
-            Please refer to \ref FDMA_ENQUEUE_FRAME_ERRORS.
-
-@Cautions	None
+@{
 *//***************************************************************************/
+	/** MTU was crossed for DPNI driver send function */
+#define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
+	/** NI is not enabled in DPNI driver send function */
+#define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
+/** @} */
+
+/**************************************************************************//**
+ @Function      dpni_drv_send
+
+ @Description   @Description	Network Interface send (AIOP enqueue) function.
+
+ @Param[in]     ni_id   The Network Interface ID
+ @Param[imp]    Queueing Destination Priority (qd_priority) in the TLS.
+
+ @Return        OK on success; error code, otherwise.
+		For error codes refer to \ref FDMA_ENQUEUE_FRAME_ERRORS
+		and \ref DPNI_DRV_STATUS.
+*//***************************************************************************/    
 int dpni_drv_send (uint16_t ni_id);
 
 /**************************************************************************//**

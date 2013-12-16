@@ -10,7 +10,8 @@
 #ifndef __AIOP_VERIFICATION_FDMA_H_
 #define __AIOP_VERIFICATION_FDMA_H_
 
-#include "fsl_ldpaa.h"
+#include "dplib/fsl_ldpaa.h"
+
 
 /* Accelerators IDs (from AIOP Source IDs section in ArchDef) */
 	/** Frame Presentation DMA accelerator ID */
@@ -970,8 +971,8 @@ struct fdma_replace_asa_command {
 	uint16_t seg_length_rs;
 		/** Segment Action.
 		* - 0: keep segment open
-		* - 1: represent segment
-		* - 2: close segment */
+		* - 1: represent segment 
+		* */
 	uint8_t	SA;
 		/** Command returned status. */
 	int8_t	status;
@@ -1017,7 +1018,7 @@ struct fdma_replace_pta_command {
 		/** Segment Action.
 		* - 0: keep segment open
 		* - 1: represent segment
-		* - 2: close segment */
+		* */
 	uint8_t	SA;
 		/** Command returned status. */
 	int8_t  status;

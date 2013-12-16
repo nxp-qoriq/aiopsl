@@ -6,10 +6,12 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
+#include "net/fsl_net.h"
+#include "dplib/fsl_ipv4_checksum.h"
+#include "dplib/fsl_l4_checksum.h"
+
 #include "aiop_verification.h"
 #include "aiop_verification_checksum.h"
-#include "fsl_ipv4_checksum.h"
-#include "fsl_l4_checksum.h"
 
 
 

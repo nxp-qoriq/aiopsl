@@ -37,6 +37,11 @@ int global_post_init(void);
 int run_apps(void);
 
 
+#include "general.h"
+/** Global task params */
+__TASK struct aiop_default_task_params default_task_params;
+
+
 int fill_system_parameters(t_sys_param *sys_param)
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;

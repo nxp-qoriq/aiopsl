@@ -5,11 +5,19 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
-#include "dplib/fsl_parser.h"
+#include "general.h"
+#include "common/types.h"
+#include "dplib/fsl_fdma.h"
+
 #include "parser.h"
 #include "system.h"
 #include "id_pool.h"
-#include "general.h"
+
+
+extern uint64_t ext_prpid_pool_address;
+
+extern __TASK struct aiop_default_task_params default_task_params;
+
 
 int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 				uint8_t *prpid)
