@@ -687,20 +687,20 @@ void prepare_init_cmd(struct cmdif_cmd_desc	*desc,
 	int i;
 	uint64_t cmd_param = 0;
 	/* build param 1*/
-	u64_write_field(cmd_param, 
+	u64_write_field(&cmd_param, 
 					DPNI_INIT_MAX_TCS_O, 
 					DPNI_INIT_MAX_TCS_S, 	
                     cfg->max_tcs);
-	u64_write_field(cmd_param, 
+	u64_write_field(&cmd_param, 
 					DPNI_INIT_TYPE_O,
 					DPNI_INIT_TYPE_S, 	
                     params->type);
-	u64_write_field(cmd_param, 
+	u64_write_field(&cmd_param, 
 					DPNI_INIT_DIST_KEY_VAR_O,
 					DPNI_INIT_DIST_KEY_VAR_S, 	
                     cfg->dist_key_variety);
 	for ( i = 0 ; i < NET_HDR_FLD_ETH_ADDR_SIZE ; i++ )
-		    u64_write_field(cmd_param, 
+		    u64_write_field(&cmd_param, 
 		    		DPNI_INIT_MAC_ADDR_O + i * DPNI_INIT_MAC_ADDR_S, 
 		    		DPNI_INIT_MAC_ADDR_S, 
 		    		params->mac_addr[i]);
@@ -709,7 +709,7 @@ fsl_os_print("[%d] 0x%016x\n",__LINE__, cmd_param);
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 	/* build param 2*/
     cmd_param = 0;
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_INIT_OPTIONS_O, 
     				DPNI_INIT_OPTIONS_S, 	
                     cfg->options);
@@ -718,7 +718,7 @@ fsl_os_print("[%d] 0x%016x\n",__LINE__, cmd_param);
     cmd_param = 0;
     for ( i = 0 ; i < DPNI_MAX_NUM_OF_TC ; i ++ )
     {
-	    u64_write_field(cmd_param, 
+	    u64_write_field(&cmd_param, 
 	    		DPNI_INIT_MAX_DIST_O + i * DPNI_INIT_MAX_DIST_S,
 	    		DPNI_INIT_MAX_DIST_S,
 	    		cfg->max_dist_per_tc[i]);
@@ -726,27 +726,27 @@ fsl_os_print("[%d] 0x%016x\n",__LINE__, cmd_param);
     GPP_CMD_WRITE_PARAM(desc, 3, cmd_param);
 	/* build param 4*/
     cmd_param = 0;
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_INIT_MAX_UNICST_FILTR_O, 
     				DPNI_INIT_MAX_UNICST_FILTR_S, 	
                     cfg->max_unicast_filters);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_INIT_MAX_MLTICST_FILTR_O, 
     				DPNI_INIT_MAX_MLTICST_FILTR_S, 	
                     cfg->max_multicast_filters);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_INIT_MAX_VLAN_FILTR_O, 
     				DPNI_INIT_MAX_VLAN_FILTR_S, 	
                     cfg->max_vlan_filters);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_INIT_MAX_QOS_ENTR_O, 
     				DPNI_INIT_MAX_QOS_ENTR_S, 	
                     cfg->max_qos_entries);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_INIT_MAX_QOS_KEY_SIZE_O, 
     				DPNI_INIT_MAX_QOS_KEY_SIZE_S, 	
                     cfg->max_qos_key_size);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_INIT_MAX_DIST_KEY_SIZE_O, 
     				DPNI_INIT_MAX_DIST_KEY_SIZE_S, 	
                     cfg->max_dist_key_size);
@@ -759,34 +759,34 @@ void prepare_attach_cmd(struct cmdif_cmd_desc *desc,
 	/* TODO - review - union */
     uint64_t cmd_param = 0;
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_ATTACH_DPIO_ID_O,
     				DPNI_ATTACH_DPIO_ID_S, 
                     (uint16_t)params->dpio_id);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_ATTACH_DPSP_ID_O, 
     				DPNI_ATTACH_DPSP_ID_S, 
     				(uint16_t)params->dpsp_id);
 #ifndef AIOP
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_ATTACH_STASH_EN_O, 
     				DPNI_ATTACH_STASH_EN_S,
     				params->flc->stash_en);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_ATTACH_DAN_EN_O, 
     				DPNI_ATTACH_DAN_EN_S, 
      				params->dan_en);
     if (params->flc->stash_en)
     {
-    	u64_write_field(cmd_param, 
+    	u64_write_field(&cmd_param, 
     					DPNI_ATTACH_FRAME_ANNO_O, 
     					DPNI_ATTACH_FRAME_ANNO_S, 
     					params->flc->u.stash.frame_annotation_size);
-    	u64_write_field(cmd_param, 
+    	u64_write_field(&cmd_param, 
     					DPNI_ATTACH_FRAME_DATA_O, 
     					DPNI_ATTACH_FRAME_DATA_S, 
     					params->flc->u.stash.frame_data_size);
-    	u64_write_field(cmd_param,
+    	u64_write_field(&cmd_param,
     					DPNI_ATTACH_FLOW_CTX_S_O, 
     					DPNI_ATTACH_FLOW_CTX_S_S,
     					params->flc->u.stash.flow_context_size);
@@ -795,28 +795,28 @@ void prepare_attach_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 	/* build param 2*/
     cmd_param = 0;
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_ATTACH_RX_USR_CTX_O,
     				DPNI_ATTACH_RX_USR_CTX_S,
     				params->rx_user_ctx);
     GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
 	/* build param 3*/
     cmd_param = 0;
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_ATTACH_RX_ERR_USR_CTX_O, 
     				DPNI_ATTACH_RX_ERR_USR_CTX_S, 
     				params->rx_err_user_ctx);
     GPP_CMD_WRITE_PARAM(desc, 3, cmd_param);
 	/* build param 4*/
     cmd_param = 0;
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_ATTACH_TX_USR_CTX_O, 
     				DPNI_ATTACH_TX_USR_CTX_S,
     				params->tx_err_user_ctx);
     GPP_CMD_WRITE_PARAM(desc, 4, cmd_param);
 	/* build param 5*/
     cmd_param = 0;
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_ATTACH_TX_CONF_USR_CTX_O, 
     				DPNI_ATTACH_TX_CONF_USR_CTX_O,
     				params->tx_conf_user_ctx);
@@ -826,14 +826,14 @@ void prepare_attach_cmd(struct cmdif_cmd_desc *desc,
 #ifndef AIOP
     if (params->flc->stash_en)
     {
-        u64_write_field(cmd_param, 
+        u64_write_field(&cmd_param, 
         				DPNI_ATTACH_FLOW_CTX_ADDR_O,
         				DPNI_ATTACH_FLOW_CTX_ADDR_S,
         				params->flc->u.stash.flow_context_addr);
     }
     else
     {
-    	u64_write_field(cmd_param, 
+    	u64_write_field(&cmd_param, 
     					DPNI_ATTACH_ODP_O,
     					DPNI_ATTACH_ODP_S, 
        					params->flc->u.odp);
@@ -859,7 +859,7 @@ void prepare_rx_tc_cmd(struct cmdif_cmd_desc *desc,
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_RX_TC_DIST_O,
     				DPNI_SET_RX_TC_DIST_S, 
                     tc_cfg->dist_size);
@@ -874,37 +874,37 @@ void prepare_tx_q_cfg_cmd(struct cmdif_cmd_desc *desc,
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_TX_Q_CFG_DPIO_O, 
     				DPNI_SET_TX_Q_CFG_DPIO_S,
     				(uint16_t)params->tx_conf_dpio_id);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_SET_TX_Q_CFG_TCID_O,
     				DPNI_SET_TX_Q_CFG_TCID_S, 
     				tcid);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_SET_TX_Q_CFG_TX_CONF_O,
     				DPNI_SET_TX_Q_CFG_TX_CONF_S,
     				params->tx_conf);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_TX_Q_CFG_CKSUM_GEN_O, 
     				DPNI_SET_TX_Q_CFG_CKSUM_GEN_S, 
     				params->chksum_gen);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_SET_TX_Q_CFG_DEPTH_O, 
     				DPNI_SET_TX_Q_CFG_DEPTH_S, 
     				params->depth_limit);
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
     /* build param 2 */
     cmd_param = 0;
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_TX_Q_CFG_USR_CTX_O,
     				DPNI_SET_TX_Q_CFG_USR_CTX_S, 
     				params->user_ctx);
     GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
     /* build param 3 */
     cmd_param = 0;
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_SET_TX_Q_CFG_MOD_OPT_O,
     				DPNI_SET_TX_Q_CFG_MOD_OPT_S,
     				params->options);
@@ -918,19 +918,19 @@ void prepare_rx_flow_io_cmd(struct cmdif_cmd_desc *desc,
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
                     DPNI_SET_RX_FLOW_IO_DPIO_O,
                     DPNI_SET_RX_FLOW_IO_DPIO_S,
                     params->dpio_id);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
                     DPNI_SET_RX_FLOW_IO_FLOWID_O,
                     DPNI_SET_RX_FLOW_IO_FLOWID_S, 
                     flowid);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
                     DPNI_SET_RX_FLOW_IO_TCID_O, 
                     DPNI_SET_RX_FLOW_IO_TCID_S,
                     tcid);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
                     DPNI_SET_RX_FLOW_IO_OPTIONS_O, 
                     DPNI_SET_RX_FLOW_IO_OPTIONS_S, 
                     params->options);
@@ -944,38 +944,38 @@ void prepare_rx_flow_cfg_cmd(struct cmdif_cmd_desc *desc,
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
                     DPNI_SET_RX_FLOW_CFG_DAN_EN_O,
                     DPNI_SET_RX_FLOW_CFG_DAN_EN_S,
                     params->dan_en);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
                     DPNI_SET_RX_FLOW_CFG_FLOWID_O,
                     DPNI_SET_RX_FLOW_CFG_FLOWID_S, 
                     flowid);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
                     DPNI_SET_RX_FLOW_CFG_TCID_O, 
                     DPNI_SET_RX_FLOW_CFG_TCID_S,
                     tcid);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
                     DPNI_SET_RX_FLOW_CFG_OPTIONS_O, 
                     DPNI_SET_RX_FLOW_CFG_OPTIONS_S, 
                     params->options);
 #ifndef AIOP
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_SET_RX_Q_CTX_STASH_EN_O, 
     				DPNI_SET_RX_Q_CTX_STASH_EN_S,
     				params->flc->stash_en);
     if (params->flc->stash_en) /*TODO - review */
     {
-    	u64_write_field(cmd_param, 
+    	u64_write_field(&cmd_param, 
     					DPNI_SET_RX_Q_CTX_FRM_ANNO_O, 
     					DPNI_SET_RX_Q_CTX_FRM_ANNO_S,
     					params->flc->u.stash.frame_annotation_size);
-    	u64_write_field(cmd_param,
+    	u64_write_field(&cmd_param,
     					DPNI_SET_RX_Q_CTX_FRM_DATA_O,
     					DPNI_SET_RX_Q_CTX_FRM_DATA_S,
     					params->flc->u.stash.frame_data_size);
-    	u64_write_field(cmd_param, 
+    	u64_write_field(&cmd_param, 
     					DPNI_SET_RX_Q_CTX_FLOW_CTX_S_O, 
     					DPNI_SET_RX_Q_CTX_FLOW_CTX_S_S,
     					params->flc->u.stash.flow_context_size);
@@ -985,7 +985,7 @@ void prepare_rx_flow_cfg_cmd(struct cmdif_cmd_desc *desc,
     
     /* build param 2 */
     cmd_param = 0;
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
                     DPNI_SET_RX_FLOW_CFG_USR_CTX_O, 
                     DPNI_SET_RX_FLOW_CFG_USR_CTX_S, 
                     params->user_ctx);
@@ -1071,7 +1071,7 @@ void prepare_set_mfl_cmd(struct cmdif_cmd_desc *desc, uint16_t mfl)
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, DPNI_SET_MFL_MFL_O, DPNI_SET_MFL_MFL_S, mfl);
+    u64_write_field(&cmd_param, DPNI_SET_MFL_MFL_O, DPNI_SET_MFL_MFL_S, mfl);
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
@@ -1080,7 +1080,7 @@ void prepare_set_mtu_cmd(struct cmdif_cmd_desc *desc, uint16_t mtu)
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, DPNI_SET_MTU_MTU_O, DPNI_SET_MTU_MTU_S, mtu);
+    u64_write_field(&cmd_param, DPNI_SET_MTU_MTU_O, DPNI_SET_MTU_MTU_S, mtu);
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
@@ -1088,7 +1088,7 @@ void prepare_mcast_promisc_cmd(struct cmdif_cmd_desc *desc, int en)
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
-    u64_write_field(cmd_param, DPNI_EN_MCAST_EN_O, DPNI_EN_MCAST_EN_S, en);
+    u64_write_field(&cmd_param, DPNI_EN_MCAST_EN_O, DPNI_EN_MCAST_EN_S, en);
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
@@ -1101,7 +1101,7 @@ void prepare_mod_prim_mac_cmd(struct cmdif_cmd_desc *desc,
     /* build param 1*/
     for ( i = 0 ; i < NET_HDR_FLD_ETH_ADDR_SIZE ; i++ )
     {
-	    u64_write_field(cmd_param,
+	    u64_write_field(&cmd_param,
 	    	DPNI_MODIFY_PRIM_MAC_ADDR_O + i * DPNI_MODIFY_PRIM_MAC_ADDR_S, 
 	    	DPNI_MODIFY_PRIM_MAC_ADDR_S, 
 	    	addr[i]);
@@ -1117,7 +1117,7 @@ void prepare_add_mac_cmd(struct cmdif_cmd_desc *desc, const uint8_t addr[])
     /* build param 1*/
     for ( i = 0 ; i < NET_HDR_FLD_ETH_ADDR_SIZE ; i++ )
     {
-	    u64_write_field(cmd_param, 
+	    u64_write_field(&cmd_param, 
 	    		DPNI_ADD_MAC_ADDR_O + i * DPNI_ADD_MAC_ADDR_S,
 	    		DPNI_ADD_MAC_ADDR_S,
 	    		addr[i]);
@@ -1134,7 +1134,7 @@ void prepare_remove_mac_cmd(struct cmdif_cmd_desc *desc, const uint8_t addr[])
     /* build param 1*/
     for ( i = 0 ; i < NET_HDR_FLD_ETH_ADDR_SIZE ; i++ )
     {
-	    u64_write_field(cmd_param, 
+	    u64_write_field(&cmd_param, 
 	    		DPNI_REMOVE_MAC_ADDR_O + i * DPNI_REMOVE_MAC_ADDR_S,
 	    		DPNI_REMOVE_MAC_ADDR_S, 
 	    		addr[i]);
@@ -1147,7 +1147,7 @@ void prepare_add_vlan_id_cmd(struct cmdif_cmd_desc *desc, uint16_t vid)
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     			DPNI_ADD_VLAN_ID_VID_O,
     			DPNI_ADD_VLAN_ID_VID_S,
     			vid);
@@ -1159,7 +1159,7 @@ void prepare_remove_vlan_id_cmd(struct cmdif_cmd_desc *desc, uint16_t vid)
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     			DPNI_REMOVE_VLAN_ID_VID_O,
     			DPNI_REMOVE_VLAN_ID_VID_S,
     			vid);
@@ -1172,11 +1172,11 @@ void prepare_set_qos_tbl_cmd(struct cmdif_cmd_desc *desc,
     uint64_t cmd_param = 0;
 
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_QOS_TBL_DROP_FRAME_O,
     				DPNI_SET_QOS_TBL_DROP_FRAME_S,
     				params->drop_frame);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_QOS_TBL_DEFAULT_TC_O,
     				DPNI_SET_QOS_TBL_DEFAULT_TC_S, 
     				params->default_tc);
@@ -1213,7 +1213,7 @@ void prepare_set_dist_cmd(struct cmdif_cmd_desc *desc,
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_DIST_DIST_FS_O, 
     				DPNI_SET_DIST_DIST_FS_S, 
     				dist->dist_fs);
@@ -1228,15 +1228,15 @@ void prepare_set_fs_tbl_cmd(struct cmdif_cmd_desc 		*desc,
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_SET_FS_TBL_DEFAULT_FLOWID_O, 
     				DPNI_SET_FS_TBL_DEFAULT_FLOWID_S, 
     				params->default_flowid);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_SET_FS_TBL_DROP_FRAME_O,
     				DPNI_SET_FS_TBL_DROP_FRAME_S,
     				params->drop_frame);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_SET_FS_TBL_TCID_O,
     				DPNI_SET_FS_TBL_TCID_S, 
     				tcid);
@@ -1248,7 +1248,7 @@ void prepare_delete_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_DELETE_FS_TBL_TCID_O,
     				DPNI_DELETE_FS_TBL_TCID_S,
     				tcid);
@@ -1264,11 +1264,11 @@ void prepare_add_fs_entry_cmd(struct cmdif_cmd_desc *desc,
     uint64_t cmd_param = 0;
     /* build param 1*/
     UNUSED (params);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_ADD_FS_ENT_FLOWID_O, 
     				DPNI_ADD_FS_ENT_FLOWID_S,
     				flowid);
-    u64_write_field(cmd_param,
+    u64_write_field(&cmd_param,
     				DPNI_ADD_FS_ENT_TCID_O,
     				DPNI_ADD_FS_ENT_TCID_S, 
     				tcid);
@@ -1283,7 +1283,7 @@ void prepare_remove_fs_entry_cmd(struct cmdif_cmd_desc *desc,
     uint64_t cmd_param = 0;
     /* build param 1*/
     UNUSED (params);
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_REMOVE_FS_ENT_TCID_O, 
     				DPNI_REMOVE_FS_ENT_TCID_S, 
     				tcid);
@@ -1295,7 +1295,7 @@ void prepare_clear_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
-    u64_write_field(cmd_param, 
+    u64_write_field(&cmd_param, 
     				DPNI_CLR_FS_TBL_TCID_O, 
     				DPNI_CLR_FS_TBL_TCID_S, 
     				tcid);

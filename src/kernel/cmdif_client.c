@@ -4,18 +4,19 @@
 #include "common/fsl_malloc.h"
 #include "common/gen.h"
 #include "arch/fsl_soc.h"
+#include "arch/fsl_cmdif_mc.h"
 
 
 #define CMDIF_MC_OPEN_SIZE	8
 #define CMDIF_MC_CLOSE_SIZE	0
 
-#define CMDIF_MC_DPNI_OPEN	0x201
-#define CMDIF_MC_DPSW_OPEN	0x202
-#define CMDIF_MC_DPIO_OPEN	0x203
-#define CMDIF_MC_DPSP_OPEN	0x204
-#define CMDIF_MC_DPRC_OPEN	0x205
+#define CMDIF_MC_DPNI_OPEN	0x801
+#define CMDIF_MC_DPSW_OPEN	0x802
+#define CMDIF_MC_DPIO_OPEN	0x803
+#define CMDIF_MC_DPSP_OPEN	0x804
+#define CMDIF_MC_DPRC_OPEN	0x805
 
-#define CMDIF_MC_CLOSE		0x200
+#define CMDIF_MC_CLOSE		0x800
 
 #define CMDIF_MC_READ_CMDID(_hdr)		u64_read_field((_hdr), CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE)
 #define CMDIF_MC_READ_AUTHID(_hdr)	u64_read_field((_hdr), CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE)
@@ -27,12 +28,13 @@
 
 #define CMDIF_MC_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri) 			\
 	do { 										\
-		volatile uint64_t tmp = 0;							\
-		u64_write_field(tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));	\
-		u64_write_field(tmp, CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE, (_auth));	\
-		u64_write_field(tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));	\
-		u64_write_field(tmp, CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE, (_status));	\
-		u64_write_field(tmp, CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE, (_pri));		\
+		/*volatile uint64_t tmp = 0;	*/\
+		uint64_t tmp = 0;					\
+		u64_write_field(&tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));	\
+		u64_write_field(&tmp, CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE, (_auth));	\
+		u64_write_field(&tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));	\
+		u64_write_field(&tmp, CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE, (_status));	\
+		u64_write_field(&tmp, CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE, (_pri));		\
 		(_ptr)->header = swap_uint64(tmp);					\
 	} while (0)
 
