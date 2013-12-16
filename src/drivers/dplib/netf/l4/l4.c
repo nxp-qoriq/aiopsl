@@ -136,7 +136,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 			tcp_ptr->acknowledgment_number += tcp_ack_num_delta;
 
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
-			if (PARSER_IS_TCP_OPTIONS_DEFAULT()) {
+			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
 				fdma_modify_default_segment_data(tcp_offset,
 						option_size);
 				return NO_TCP_MSS_FOUND_ERROR;
