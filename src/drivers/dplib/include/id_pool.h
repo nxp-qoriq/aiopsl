@@ -111,7 +111,7 @@
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 inline int32_t id_pool_init(uint16_t *pool,
-			 int16_t length,
+			 uint16_t length,
 			 uint16_t buffer_pool_id,
 			 uint32_t buffer_size,
 			 uint64_t *ext_id_pool_address)
@@ -126,9 +126,9 @@ inline int32_t id_pool_init(uint16_t *pool,
 	}
 
 	/* Initialize pool in local memory */
-	pool[0] = length - 1;
+	pool[0] = (uint16_t)(length - 1);
 	for (i = length; i > 1; i--)
-		pool[i-1] = (length - i);
+		pool[i-1] = (uint16_t)(length - i);
 
 	/* Write pool to external memory */
 	if (cdma_write(*ext_id_pool_address, pool, length)) {
