@@ -28,13 +28,12 @@
 
 #define CMDIF_MC_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri) 			\
 	do { 										\
-		/*volatile uint64_t tmp = 0;	*/\
-		uint64_t tmp = 0;					\
-		u64_write_field(&tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));	\
-		u64_write_field(&tmp, CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE, (_auth));	\
-		u64_write_field(&tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));	\
-		u64_write_field(&tmp, CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE, (_status));	\
-		u64_write_field(&tmp, CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE, (_pri));		\
+		volatile uint64_t tmp = 0;				\
+		tmp = u64_write_field(tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));	\
+		tmp = u64_write_field(tmp, CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE, (_auth));	\
+		tmp = u64_write_field(tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));	\
+		tmp = u64_write_field(tmp, CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE, (_status));	\
+		tmp = u64_write_field(tmp, CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE, (_pri));		\
 		(_ptr)->header = swap_uint64(tmp);					\
 	} while (0)
 

@@ -127,12 +127,13 @@ static __inline__ uint64_t u64_read_field(uint64_t reg, int start_bit, int size)
     return (reg >> start_bit) & ((0x0000000000000001LL << size)-1);
 }
 
-static __inline__ void u64_write_field(uint64_t *reg, int start_bit, int size, uint64_t val)
+static __inline__ uint64_t u64_write_field(uint64_t reg, int start_bit, int size, uint64_t val)
 {
     if (size >= 64)
-        *reg = val;
+        reg = val;
     else
-        *reg |= (uint64_t)(val & ((0x0000000000000001LL << size) - 1) << start_bit);
+        reg |= (uint64_t)((val & ((0x0000000000000001LL << size) - 1)) << start_bit);
+    return reg;
 }
 
 
