@@ -6,8 +6,10 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
+#include "dplib/fsl_fdma.h"
+
 #include "aiop_verification.h"
-#include "fsl_fdma.h"
+
 
 void aiop_verification()
 {

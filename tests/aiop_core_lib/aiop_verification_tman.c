@@ -4,9 +4,10 @@
 @Description   This file contains the AIOP TMAN SRs SW Verification
 *//***************************************************************************/
 
+#include "dplib/fsl_tman.h"
+
 #include "aiop_verification.h"
 #include "aiop_verification_tman.h"
-#include "fsl_tman.h"
 
 
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr)

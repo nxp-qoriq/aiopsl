@@ -19,6 +19,7 @@
 #include "aiop_verification_parser.h"
 #include "aiop_verification_hm.h"
 
+
 #define ACCEL_ID_CMD_MASK		0xFFFF0000
 	/**< ACCEL_ID cmd mask */
 

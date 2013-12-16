@@ -5,10 +5,11 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
-#include "fsl_ctlu.h"
 
 #ifndef __AIOP_VERIFICATION_CTLU_H_
 #define __AIOP_VERIFICATION_CTLU_H_
+
+#include "dplib/fsl_ctlu.h"
 
 
 /* Accelerators IDs (from AIOP Source IDs section in ArchDef) */

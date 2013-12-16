@@ -4,9 +4,10 @@
 @Description   This file contains the AIOP STE SRs SW Verification
 *//***************************************************************************/
 
+#include "dplib/fsl_ste.h"
+
 #include "aiop_verification.h"
 #include "aiop_verification_ste.h"
-#include "fsl_ste.h"
 
 
 uint16_t aiop_verification_ste(uint32_t asa_seg_addr)
