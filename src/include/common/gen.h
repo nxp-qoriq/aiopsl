@@ -32,7 +32,7 @@
 
 
 /* Macro for checking if a number is a power of 2 */
-#define POWER_OF_2(n)   (!((n) & ((n)-1)))
+#define is_power_of_2(n)   (!((n) & ((n)-1)))
 
 /* Macro for calculating log of base 2 */
 //TODO: replace with static inline function, if needed
@@ -52,7 +52,7 @@
 #define NEXT_POWER_OF_2(_num, _next_pow)\
 do                                      \
 {                                       \
-    if (POWER_OF_2(_num))               \
+    if (is_power_of_2(_num))            \
         _next_pow = (_num);             \
     else                                \
     {                                   \

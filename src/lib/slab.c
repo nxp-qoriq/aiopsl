@@ -239,7 +239,7 @@ int slab_create_by_address(char           name[],
     /* make sure that the alignment is at least 4 and power of 2 */
     if (alignment < 4)
         alignment = 4;
-    else if (!POWER_OF_2(alignment))
+    else if (!is_power_of_2(alignment))
         RETURN_ERROR(MAJOR, E_INVALID_VALUE, ("alignment (should be power of 2)"));
 
     /* first allocate the segment descriptor */
@@ -358,7 +358,7 @@ int slab_create(char            name[],
     /* make sure that the alignment is at least 4 and power of 2 */
     if (alignment < 4)
         alignment = 4;
-    else if (!POWER_OF_2(alignment))
+    else if (!is_power_of_2(alignment))
         RETURN_ERROR(MAJOR, E_INVALID_VALUE, ("alignment (should be power of 2)"));
 
     /* first allocate the segment descriptor */
