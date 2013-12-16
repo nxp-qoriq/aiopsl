@@ -8,9 +8,14 @@
 
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_ctlu.h"
+
 #include "ctlu.h"
 #include "system.h"
 #include "id_pool.h"
+
+
+extern uint64_t ext_keyid_pool_address;
+
 
 int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 			  uint16_t *table_id)

@@ -1,12 +1,13 @@
+#include "general.h"
 #include "common/types.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "common/io.h"
 #include "dplib/dpni_drv.h"
-#include "kernel/platform.h"
-#include "inc/sys.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
+#include "kernel/platform.h"
+#include "inc/sys.h"
 
 
 #define __ERR_MODULE__  MODULE_DPNI
@@ -25,31 +26,30 @@ void dpni_drv_free(void);
 
 struct dpni_drv {
 	/** network interface ID */
-	uint16_t		id;
-	/** padding */
-	uint16_t		pad;
-	/** MTU value needed for the \ref dpni_drv_send() function */
-	uint32_t		mtu;
-	/** starting HXS */
-	uint16_t		starting_hxs;
-	/** Queueing destination for the enqueue. */
-	uint16_t		qdid;
-	/** \ref DPNI_DRV_DEFINES */
-	uint8_t			flags;
+	uint16_t            id;
 	/** Storage profile ID */
-	/* Need to store it in HW context */
-	uint8_t			spid;
+	uint8_t             spid;
+	uint8_t             res0[1];
+	/** Queueing destination for the enqueue. */
+	uint16_t            qdid;
+	/** starting HXS */
+	uint16_t            starting_hxs;
+	/** MTU value needed for the \ref dpni_drv_send() function */
+	uint32_t            mtu;
+	/** Parse Profile ID */
+	uint8_t             prpid;
+	/** \ref DPNI_DRV_DEFINES */
+	uint8_t             flags;
 	/** error mask for the \ref receive_cb() function FD
 	* error check 0 - continue; 1 - discard */
-	uint8_t			fd_err_mask;
-	/** Parse Profile ID */
-	uint8_t			prpid;
-	/** call back application function */
-	rx_cb_t			*rx_cbs[8];
-	/** call back application argument */
-	dpni_drv_app_arg_t	args[8];
-};
+	uint8_t             fd_err_mask;
+	uint8_t             res[1];
 
+	/** call back application function */
+	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
+	/** call back application argument */
+	dpni_drv_app_arg_t  args[DPNI_DRV_MAX_NUM_FLOWS];
+};
 
 extern __TASK uint8_t CURRENT_SCOPE_LEVEL;
 extern __TASK uint8_t SCOPE_MODE_LEVEL1;
@@ -57,10 +57,11 @@ extern __TASK uint8_t SCOPE_MODE_LEVEL2;
 extern __TASK uint8_t SCOPE_MODE_LEVEL3;
 extern __TASK uint8_t SCOPE_MODE_LEVEL4;
 
+extern __TASK struct aiop_default_task_params default_task_params;
+
 
 /* TODO - get rid */
 struct dpni_drv *nis;
-
 
 
 static void osm_task_init(void)
@@ -78,6 +79,7 @@ static void osm_task_init(void)
 	SCOPE_MODE_LEVEL4 = 0x00;
 		/**<	Exclusive (default) Mode in level 4 of hierarchy */
 }
+
 
 void receive_cb (void)
 {
@@ -187,11 +189,12 @@ int dpni_drv_init(void)
     memset(nis, 0, sizeof(struct dpni_drv)*100);
 
     tmp_reg =
-        sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-                                          0,
-                                          E_MAPPED_MEM_TYPE_GEN_REGS);
+        (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+                                           0,
+                                           E_MAPPED_MEM_TYPE_GEN_REGS) +
+         SOC_PERIPH_OFF_AIOP_WRKS);
     /* Write EPID-table EP_PC reg */
-    iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(tmp_reg + 0x1d100));
+    iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(tmp_reg + 0x100));
 
     return 0;
 }

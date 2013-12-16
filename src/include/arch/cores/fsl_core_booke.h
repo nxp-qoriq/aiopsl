@@ -739,6 +739,10 @@ void e500_set_pmgc0 (uint32_t newvalue);
 void e500_disable_secondary_threads(uint32_t secondary_threads_mask);
 void e500_enable_secondary_threads(uint32_t secondary_threads_mask);
 
+/* E200-AIOP special regs */
+uint32_t booke_get_CTSCSR0(void);            /* [464]  CTS gen control and status reg 0. */
+void booke_set_CTSCSR0(uint32_t newvalue);   /* [464]  CTS gen control and status reg 0. */
+
 /** @} */ /* end of booke_init_grp group */
 /** @} */ /* end of booke_grp group */
 

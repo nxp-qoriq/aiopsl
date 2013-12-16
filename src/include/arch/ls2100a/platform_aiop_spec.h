@@ -49,14 +49,15 @@ typedef enum platform_console_type {
  @Description   Platform Memory Regions
 *//***************************************************************************/
 typedef enum platform_mem_region {
-    E_PLATFORM_MEM_RGN_NONE = 0,
-    E_PLATFORM_MEM_RGN_DDR1,
-    E_PLATFORM_MEM_RGN_DDR2,
-    E_PLATFORM_MEM_RGN_WS,
-    E_PLATFORM_MEM_RGN_IRAM,
-    E_PLATFORM_MEM_RGN_SHRAM,
-    E_PLATFORM_MEM_RGN_CCSR,
-    E_PLATFORM_MEM_RGN_MC_PORTALS
+    PLTFRM_MEM_RGN_NONE = 0,
+    PLTFRM_MEM_RGN_DDR1,
+    PLTFRM_MEM_RGN_DDR2,
+    PLTFRM_MEM_RGN_WS,
+    PLTFRM_MEM_RGN_IRAM,
+    PLTFRM_MEM_RGN_SHRAM,
+    PLTFRM_MEM_RGN_AIOP,
+    PLTFRM_MEM_RGN_CCSR,
+    PLTFRM_MEM_RGN_MC_PORTALS
 } e_platform_mem_region;
 
 

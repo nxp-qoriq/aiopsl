@@ -1,11 +1,11 @@
  /**************************************************************************//**
  @File          gen.h
 
- @Description   General ARENA Standard Definitions
+ @Description   General FSL OS Standard Definitions
 *//***************************************************************************/
 
-#ifndef __FSL_ARENA_GEN_H
-#define __FSL_ARENA_GEN_H
+#ifndef __FSL_SYS_GEN_H
+#define __FSL_SYS_GEN_H
 
 #include "common/types.h"
 
@@ -103,8 +103,21 @@ do                                      \
 
 #define ILLEGAL_BASE    (~0)
 
-#define ARENA_MASTER_PART_ID      (0)
+#define SYS_MASTER_PART_ID      (0)
 /* @} */
+
+/* The following 3 lines must be located at the top of the header file */
+	/** Macros to verify a structure size does not exceed the size a user
+	 * allocates for that structure.
+	 * If verification fails the following error will be presented (on
+	 * compile time):
+	 * error: "division by 0". */
+#define ASSERT_CONCAT_(a, b) a##b
+#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
+#define ASSERT_STRUCT_SIZE(_sizeof_struct, _struct_fixed_size) \
+	ASSERT_STRUCT_SIZE_(_sizeof_struct <= _struct_fixed_size)
+#define ASSERT_STRUCT_SIZE_(e) \
+	enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
 
 
 static __inline__ uint64_t u64_read_field(uint64_t reg, int start_bit, int size)
@@ -114,13 +127,13 @@ static __inline__ uint64_t u64_read_field(uint64_t reg, int start_bit, int size)
     return (reg >> start_bit) & ((0x0000000000000001LL << size)-1);
 }
 
-static __inline__ void u64_write_field(uint64_t reg, int start_bit, int size, uint64_t val)
+static __inline__ void u64_write_field(uint64_t *reg, int start_bit, int size, uint64_t val)
 {
     if (size >= 64)
-        reg = val;
+        *reg = val;
     else
-        reg |= (uint64_t)(val & ((0x0000000000000001LL << size) - 1) << start_bit);
+        *reg |= (uint64_t)(val & ((0x0000000000000001LL << size) - 1) << start_bit);
 }
 
 
-#endif /* __FSL_ARENA_GEN_H */
+#endif /* __FSL_SYS_GEN_H */

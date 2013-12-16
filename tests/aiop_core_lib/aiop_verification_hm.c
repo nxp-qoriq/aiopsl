@@ -5,15 +5,19 @@
 *//***************************************************************************/
 
 #include "general.h"
+#include "net/fsl_net.h"
+#include "dplib/fsl_ip.h"
+#include "dplib/fsl_l2.h"
+#include "dplib/fsl_l4.h"
+#include "dplib/fsl_nat.h"
+#include "dplib/fsl_parser.h"
+
+/* TODO - get rid of this! */
+#include "../arch/accel/system.h"
+
 #include "aiop_verification.h"
 #include "aiop_verification_hm.h"
-#include "fsl_ip.h"
-#include "fsl_l2.h"
-#include "fsl_l4.h"
-#include "fsl_nat.h"
-#include "fsl_general_errors.h"
-#include "fsl_parser.h"
-#include "system.h"
+
 
 struct parse_profile_record verif_parse_profile;
 

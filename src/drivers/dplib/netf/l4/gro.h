@@ -8,6 +8,7 @@
 
 #include "dplib/fsl_gro.h"
 #include "dplib/fsl_fdma.h"
+#include "dplib/fsl_ldpaa.h"
 
 
 /** \addtogroup FSL_AIOP_GRO

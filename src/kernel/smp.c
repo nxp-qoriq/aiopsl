@@ -23,7 +23,7 @@ int sys_init_multi_processing(void)
 {
     uint32_t core_id = core_get_id();
 
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
     if (sys.is_partition_master[core_id])
     {
         /* Initialize the central program barrier */
@@ -36,7 +36,7 @@ int sys_init_multi_processing(void)
         /* Wait until system barrier is initialized */
         while (!sys.barrier_mask) ;
     }
-#endif /* ARENA_SMP_SUPPORT */
+#endif /* SYS_SMP_SUPPORT */
 
 /*
     if (sys.ipc_enabled && sys.is_partition_master[core_id])
@@ -154,7 +154,7 @@ void sys_kick_spinning_cores(uint64_t cores_mask,
 #endif /* NCSW_SPIN_TABLE_BASE */
 
 
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
 /*****************************************************************************/
 void sys_barrier(void)
 {
@@ -177,7 +177,7 @@ void sys_barrier(void)
         sys_unlock_spinlock(&(sys.barrier_lock));
     }
 }
-#endif /* ARENA_SMP_SUPPORT */
+#endif /* SYS_SMP_SUPPORT */
 
 
 /*****************************************************************************/
@@ -212,11 +212,11 @@ uint8_t sys_get_partition_id(void)
 /*****************************************************************************/
 uint64_t sys_get_cores_mask(void)
 {
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
     return sys.partition_cores_mask;
-#else /* ARENA_SMP_SUPPORT */
+#else /* SYS_SMP_SUPPORT */
     return (uint64_t)(1 << core_get_id());
-#endif /* ARENA_SMP_SUPPORT */
+#endif /* SYS_SMP_SUPPORT */
 }
 
 /*****************************************************************************/

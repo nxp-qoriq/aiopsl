@@ -6,9 +6,10 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
+#include "dplib/fsl_parser.h"
+
 #include "aiop_verification.h"
 #include "aiop_verification_parser.h"
-#include "fsl_parser.h"
 
 
 uint16_t aiop_verification_parser(uint32_t asa_seg_addr)

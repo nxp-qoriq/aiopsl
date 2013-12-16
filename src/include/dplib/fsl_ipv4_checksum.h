@@ -9,7 +9,8 @@
 #ifndef __FSL_IPV4_CHECKSUM_H
 #define __FSL_IPV4_CHECKSUM_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
 @Group	FSL_IPV4_CKSUM FSL_AIOP_IPv4_Checksum
@@ -106,7 +107,7 @@ inline uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2)
 }
 
 /** @} */ /* end of FSL_IPV4_CKSUM_Functions */
-
 /** @} */ /* end of FSL_IPV4_CKSUM */
+
 
 #endif /* __FSL_IPV4_CHCEKSUM_H */

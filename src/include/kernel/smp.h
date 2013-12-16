@@ -179,7 +179,7 @@ static __inline__ void sys_init_spinlock(struct spinlock *slock)
 *//***************************************************************************/
 static __inline__ void sys_lock_spinlock(struct spinlock *slock)
 {
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
     /* The implementation below avoids looping on atomic reservations.
        First try to acquire the lock. If the lock is taken, loop until
        the lock seems to be free, and try again. */
@@ -188,10 +188,10 @@ static __inline__ void sys_lock_spinlock(struct spinlock *slock)
 
     /* Wait for all previous instructions to complete */
     core_instruction_sync();
-#else  /* not ARENA_SMP_SUPPORT */
+#else  /* not SYS_SMP_SUPPORT */
     /* Single core version: do nothing */
     UNUSED(slock);
-#endif /* not ARENA_SMP_SUPPORT */
+#endif /* not SYS_SMP_SUPPORT */
 }
 
 /**************************************************************************//**
@@ -205,13 +205,13 @@ static __inline__ void sys_lock_spinlock(struct spinlock *slock)
 *//***************************************************************************/
 static __inline__ void sys_unlock_spinlock(struct spinlock *slock)
 {
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
     /* Memory barrier is required before spinlock is released */
     core_memory_barrier();
     slock->lock = 0;
-#else  /* not ARENA_SMP_SUPPORT */
+#else  /* not SYS_SMP_SUPPORT */
     UNUSED(slock);
-#endif /* not ARENA_SMP_SUPPORT */
+#endif /* not SYS_SMP_SUPPORT */
 }
 
 /**************************************************************************//**
@@ -227,7 +227,7 @@ static __inline__ void sys_unlock_spinlock(struct spinlock *slock)
 *//***************************************************************************/
 static __inline__ uint32_t sys_lock_intr_spinlock(struct spinlock *slock)
 {
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
     register uint32_t irq_flags;
 
     /* The implementation below avoids looping on atomic reservations while
@@ -249,12 +249,12 @@ static __inline__ uint32_t sys_lock_intr_spinlock(struct spinlock *slock)
     /* Wait for all previous instructions to complete */
     core_instruction_sync();
     return irq_flags;
-#else  /* not ARENA_SMP_SUPPORT */
+#else  /* not SYS_SMP_SUPPORT */
     /* Single core version: simply disable interrupts */
     UNUSED(slock);
 
     return core_local_irq_save();
-#endif /* not ARENA_SMP_SUPPORT */
+#endif /* not SYS_SMP_SUPPORT */
 }
 
 /**************************************************************************//**
@@ -271,13 +271,13 @@ static __inline__ uint32_t sys_lock_intr_spinlock(struct spinlock *slock)
 *//***************************************************************************/
 static __inline__ void sys_unlock_intr_spinlock(struct spinlock *slock, uint32_t irq_flags)
 {
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
     /* Memory barrier is required before spinlock is released */
     core_memory_barrier();
     slock->lock = 0;
-#else  /* not ARENA_SMP_SUPPORT */
+#else  /* not SYS_SMP_SUPPORT */
     UNUSED(slock);
-#endif /* not ARENA_SMP_SUPPORT */
+#endif /* not SYS_SMP_SUPPORT */
 
     /* Restore interrupts */
     core_local_irq_restore(irq_flags);
@@ -301,12 +301,12 @@ static __inline__ void sys_unlock_intr_spinlock(struct spinlock *slock, uint32_t
 
  @Param         None.
 *//***************************************************************************/
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
 void sys_barrier(void);
-#else  /* not ARENA_SMP_SUPPORT */
+#else  /* not SYS_SMP_SUPPORT */
 /* Single-core mode (not needed) */
 #define sys_barrier()   core_memory_barrier()
-#endif /* ARENA_SMP_SUPPORT */
+#endif /* SYS_SMP_SUPPORT */
 
 /** @} */ /* end of sys_mp_grp */
 /** @} */ /* end of sys_g */

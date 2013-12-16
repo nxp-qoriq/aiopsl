@@ -6,7 +6,8 @@
 #ifndef __FSL_GRO_H
 #define __FSL_GRO_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
 @Group		FSL_AIOP_GRO FSL AIOP GRO
@@ -287,14 +288,8 @@ int32_t tcp_gro_aggregate_seg(
 int32_t tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr);
 
-
-
-
 /** @} */ /* end of GRO_Functions */
-
-
 /** @} */ /* end of FSL_AIOP_GRO */
-
 
 
 #endif /* __FSL_GRO_H */

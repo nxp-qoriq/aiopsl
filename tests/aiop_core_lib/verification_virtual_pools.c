@@ -6,9 +6,9 @@
 				
 *//***************************************************************************/
 
+#include "virtual_pools.h"
 #include "aiop_verification.h"
 #include "verification_virtual_pools.h"
-#include "virtual_pools.h"
 
 uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 {

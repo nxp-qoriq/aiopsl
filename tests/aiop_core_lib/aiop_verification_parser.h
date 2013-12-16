@@ -9,8 +9,10 @@
 #ifndef __AIOP_VERIFICATION_PARSER_H_
 #define __AIOP_VERIFICATION_PARSER_H_
 
-#include "fsl_ldpaa.h"
-#include "fsl_parser.h"
+#include "dplib/fsl_ldpaa.h"
+#include "dplib/fsl_parser.h"
+
+
 /**************************************************************************//**
  @addtogroup		AIOP_Service_Routines_Verification
 

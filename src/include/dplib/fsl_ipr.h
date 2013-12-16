@@ -9,6 +9,9 @@
 #ifndef __FSL_IPR_H
 #define __FSL_IPR_H
 
+#include "common/types.h"
+
+
 /**************************************************************************//**
 @Description	IPR Instance handle Type definition
 

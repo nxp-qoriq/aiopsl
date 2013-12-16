@@ -3,13 +3,12 @@
 
  @File          dpni_drv.h
 
- @Description   This file contains AIOP driver Network Interface API.
+ @Description   TODO
 *//***************************************************************************/
 #ifndef __FSL_DPNI_DRV_H
 #define __FSL_DPNI_DRV_H
 
 #include "common/types.h"
-#include "general.h"
 
 
 /**************************************************************************//**
@@ -39,9 +38,7 @@ typedef uint64_t	dpni_drv_app_arg_t;
                 User provides this function. Driver invokes it when it gets a
                 frame received on this interface.
 
- @Param[in]     argument for application callback.
-
- @Return        None.
+ @Param[in]     arg     argument for application callback.
  *//***************************************************************************/
 typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
 
@@ -102,13 +99,11 @@ int dpni_drv_register_rx_cb (uint16_t     	ni_id,
 
 @{
 *//***************************************************************************/
-
 	/** MTU was crossed for DPNI driver send function */
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
 	/** NI is not enabled in DPNI driver send function */
 #define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
-
-/** @} */ /* end of DPNI_DRV_STATUS */
+/** @} */
 
 /**************************************************************************//**
  @Function      dpni_drv_send

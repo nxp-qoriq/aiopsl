@@ -9,7 +9,8 @@
 #ifndef __AIOP_VERIFICATION_CHECKSUM_H_
 #define __AIOP_VERIFICATION_CHECKSUM_H_
 
-#include "fsl_ldpaa.h"
+#include "dplib/fsl_ldpaa.h"
+
 
 /**************************************************************************//**
  @addtogroup		AIOP_Service_Routines_Verification

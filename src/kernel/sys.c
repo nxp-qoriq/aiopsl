@@ -12,10 +12,10 @@
 /* Global System Object */
 t_system sys;
 
-extern void     __arena_start(register int argc, register char **argv, register char **envp);
-extern void     __arena_start_secondary(void);
+extern void     __sys_start(register int argc, register char **argv, register char **envp);
+extern void     __sys_start_secondary(void);
 #ifdef CORE_E6500
-extern void     __arena_start_secondary_guest(void);
+extern void     __sys_start_secondary_guest(void);
 #endif /* CORE_E6500 */
 
 
@@ -320,12 +320,12 @@ int sys_init(void)
     struct platform_param   platform_param;
     int       err;
     uint32_t        core_id = core_get_id();
-#if (defined(ARENA_SMP_SUPPORT) && defined(ARENA_64BIT_ARCH))
+#if (defined(SYS_SMP_SUPPORT) && defined(SYS_64BIT_ARCH))
     dma_addr_t   *p_master_start_addr;
 #ifdef CORE_E6500
     dma_addr_t   *p_guest_start_addr;
 #endif /* CORE_E6500 */
-#endif /* ARENA_SMP_SUPPORT && ARENA_64BIT_ARCH */
+#endif /* SYS_SMP_SUPPORT && SYS_64BIT_ARCH */
 
     memset(&sys_param, 0, sizeof(sys_param));
     memset(&platform_param, 0, sizeof(platform_param));
@@ -333,7 +333,7 @@ int sys_init(void)
     fill_system_parameters(&sys_param);
 
     sys.is_partition_master[core_id]       = (int)(sys_param.master_cores_mask & (1ULL << core_id));
-    sys.is_master_partition_master[core_id] = (int)(sys.is_partition_master[core_id] && (sys_param.partition_id == ARENA_MASTER_PART_ID));
+    sys.is_master_partition_master[core_id] = (int)(sys.is_partition_master[core_id] && (sys_param.partition_id == SYS_MASTER_PART_ID));
     sys.is_core_master[core_id]            = IS_CORE_MASTER(core_id, sys_param.partition_cores_mask);
 
     if (sys.is_partition_master[core_id]) {
@@ -354,42 +354,42 @@ int sys_init(void)
     sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
 
     if (sys.is_partition_master[core_id]) {
-#ifdef ARENA_SMP_SUPPORT
+#ifdef SYS_SMP_SUPPORT
         /* Kick secondary cores on this partition */
-#ifdef ARENA_64BIT_ARCH
+#ifdef SYS_64BIT_ARCH
         /* In 64-bit ABI, function name points to function descriptor.
            This descriptor contains the function address. */
 #ifdef CORE_E6500
-            p_master_start_addr = (dma_addr_t *)(__arena_start_secondary);
-            p_guest_start_addr = (dma_addr_t *)(__arena_start_secondary_guest);
+            p_master_start_addr = (dma_addr_t *)(__sys_start_secondary);
+            p_guest_start_addr = (dma_addr_t *)(__sys_start_secondary_guest);
 
             sys_kick_spinning_cores(sys.partition_cores_mask,
                                  (dma_addr_t)PTR_TO_UINT(p_master_start_addr),
                                  (dma_addr_t)PTR_TO_UINT(p_guest_start_addr));
 #else
-        p_master_start_addr = (dma_addr_t *)(__arena_start);
+        p_master_start_addr = (dma_addr_t *)(__sys_start);
 
         sys_kick_spinning_cores(sys.partition_cores_mask,
                              (dma_addr_t)PTR_TO_UINT(*p_master_start_addr),
                              0);
 #endif /* CORE_E6500 */
 
-#else /*!ARENA_64BIT_ARCH*/
-#ifdef ARENA_SECONDARY_START
+#else /*!SYS_64BIT_ARCH*/
+#ifdef SYS_SECONDARY_START
 #ifdef CORE_E6500
         sys_kick_spinning_cores(sys.partition_cores_mask,
-                     (dma_addr_t)PTR_TO_UINT(__arena_start_secondary),
-                     (dma_addr_t)PTR_TO_UINT(__arena_start_secondary_guest));
+                     (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
+                     (dma_addr_t)PTR_TO_UINT(__sys_start_secondary_guest));
 #else /*CORE_E6500*/
         sys_kick_spinning_cores(sys.partition_cores_mask,
-                             (dma_addr_t)PTR_TO_UINT(__arena_start_secondary),
+                             (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
                              0);
 #endif /* CORE_E6500 */
-#else  /*!ARENA_SECONDARY_START*/
-        sys_kick_spinning_cores(sys.partition_cores_mask, (dma_addr_t)PTR_TO_UINT(__arena_start), 0);
-#endif /* ARENA_SECONDARY_START */
-#endif /* ARENA_64BIT_ARCH */
-#endif /* ARENA_SMP_SUPPORT */
+#else  /*!SYS_SECONDARY_START*/
+        sys_kick_spinning_cores(sys.partition_cores_mask, (dma_addr_t)PTR_TO_UINT(__sys_start), 0);
+#endif /* SYS_SECONDARY_START */
+#endif /* SYS_64BIT_ARCH */
+#endif /* SYS_SMP_SUPPORT */
 
         /* Initialize memory management */
         err = sys_init_memory_management();

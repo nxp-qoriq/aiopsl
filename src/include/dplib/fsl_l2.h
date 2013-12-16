@@ -13,6 +13,9 @@
 #ifndef __FSL_L2_H
 #define __FSL_L2_H
 
+#include "common/types.h"
+
+
 /**************************************************************************//**
 @addtogroup	FSL_HM FSL_AIOP_Header_Modification
 
@@ -26,6 +29,10 @@
 
 @{
 *//***************************************************************************/
+
+/** No VLAN exists.*/
+#define NO_VLAN_ERROR				(HM_MODULE_STATUS_ID + 0x0400)
+
 
 /*************************************************************************//**
 @Function	l2_header_remove
@@ -53,7 +60,7 @@
 		- In this function, the task yields.
 
 *//***************************************************************************/
-void l2_header_remove();
+void l2_header_remove(void);
 
 
 /*************************************************************************//**
@@ -84,7 +91,7 @@ void l2_header_remove();
 		In this function, the task yields
 
 *//***************************************************************************/
-int32_t l2_vlan_header_remove();
+int32_t l2_vlan_header_remove(void);
 
 /*************************************************************************//**
 @Function	l2_set_vlan_vid
@@ -188,10 +195,10 @@ void l2_push_vlan(uint16_t ethertype);
 @Cautions	The parse results must be updated before calling this operation.
 		This function assumes the presence of the ethernet header.
 *//***************************************************************************/
-int32_t l2_pop_vlan();
-
+int32_t l2_pop_vlan(void);
 
 /* @} end of group FSL_HM_L2_Functions */
 /* @} end of group FSL_HM */
+
 
 #endif /* __FSL_L2_H */

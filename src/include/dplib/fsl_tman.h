@@ -9,7 +9,8 @@
 #ifndef __FSL_TMAN_H
 #define __FSL_TMAN_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
 @Group		TMAN FSL_AIOP_TMAN
@@ -385,5 +386,6 @@ void tman_get_timestamp(uint64_t *timestamp);
 
 /* @} end of group TMAN_Functions */
 /* @} end of group TMAN */
+
 
 #endif /* __FSL_TMAN_H */

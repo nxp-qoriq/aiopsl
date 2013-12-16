@@ -13,11 +13,17 @@
 #ifndef __FSL_NAT_H
 #define __FSL_NAT_H
 
+#include "common/types.h"
+
+
 /**************************************************************************//**
 @addtogroup	FSL_HM FSL_AIOP_Header_Modification
 
 @{
 *//***************************************************************************/
+
+/** No IP or L4 (TCP/UDP) headers were found */
+#define NO_L4_IP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0800)
 
 /**************************************************************************//**
 @Group		HM_NAT_Modes HM NAT Modes
@@ -144,8 +150,8 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 		uint16_t l4_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta);
 
-
 /* @} end of group FSL_HM_NAT_Functions */
 /* @} end of group FSL_HM */
+
 
 #endif /* __FSL_NAT_H */

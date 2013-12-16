@@ -14,13 +14,13 @@
 
 #include "common/types.h"
 
-#ifdef ARENA_PPC_CORE
+#ifdef SOC_PPC_CORE
 #include "arch/fsl_core_ppc.h"
-#elif defined(ARENA_VXWORKS)
+#elif defined(SYS_OS_VXWORKS)
 #include "core_vxw_ext.h"
 #else
 #error "core is not defined!"
-#endif /* ARENA_PPC_CORE */
+#endif /* SOC_PPC_CORE */
 
 
 #if (!defined(CORE_IS_LITTLE_ENDIAN) && !defined(CORE_IS_BIG_ENDIAN))

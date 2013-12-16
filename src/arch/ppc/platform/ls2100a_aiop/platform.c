@@ -51,6 +51,7 @@ typedef struct t_platform {
     /* Multi-core/multi-partition related settings */
     uint8_t                 partition_id;
 
+    uintptr_t               aiop_base;
     uintptr_t               ccsr_base;
     uintptr_t               mc_portals_base;
 } t_platform;
@@ -91,7 +92,7 @@ static void platform_print_info(t_platform *p_platform)
     int         is_master_partition_master;    /* Master of master partition responsible
                                                for single resources initialization */
 
-    is_master_partition_master = (int)(is_master_core && (sys_get_partition_id() == ARENA_MASTER_PART_ID));
+    is_master_partition_master = (int)(is_master_core && (sys_get_partition_id() == SYS_MASTER_PART_ID));
 
     ASSERT_COND(p_platform);
 
@@ -309,6 +310,9 @@ static int platform_init_core(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
 
+    /* special AIOP registers */
+    booke_set_CTSCSR0(0x84000000);
+
 #if 0 /* TODO - complete! */
     /*------------------------------------------------------*/
     /* Initialize MMU                                       */
@@ -463,7 +467,7 @@ static int platform_init_console(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == ARENA_MASTER_PART_ID)
+    if (pltfrm->partition_id == SYS_MASTER_PART_ID)
     {
         /* Master partition - register DUART console */
         err = platform_enable_console(pltfrm);
@@ -485,7 +489,7 @@ static int platform_free_console(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == ARENA_MASTER_PART_ID)
+    if (pltfrm->partition_id == SYS_MASTER_PART_ID)
         platform_disable_console(pltfrm);
 
     sys_unregister_console();
@@ -500,7 +504,7 @@ static int platform_init_private(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (sys_is_master_core() && (pltfrm->partition_id == ARENA_MASTER_PART_ID))
+    if (sys_is_master_core() && (pltfrm->partition_id == SYS_MASTER_PART_ID))
     {
 #if 0
     	/* Register Platform CLI commands */
@@ -522,7 +526,7 @@ static int platform_free_private(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (sys_is_master_core() && (pltfrm->partition_id == ARENA_MASTER_PART_ID))
+    if (sys_is_master_core() && (pltfrm->partition_id == SYS_MASTER_PART_ID))
     {
 #if 0
     	/* Unregister Platform CLI commands */
@@ -593,12 +597,17 @@ int platform_init(struct platform_param    *p_platform_param,
     ASSERT_COND(err == E_OK);
 
     /* Store CCSR base (for convenience) */
-    mem_index = platform_find_mem_region_index(pltfrm->param.mem_info, E_PLATFORM_MEM_RGN_CCSR);
+    mem_index = platform_find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_CCSR);
     ASSERT_COND(mem_index != -1);
     pltfrm->ccsr_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
 
+    /* Store AIOP-peripherals base (for convenience) */
+    mem_index = platform_find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_AIOP);
+    ASSERT_COND(mem_index != -1);
+    pltfrm->aiop_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
+
     /* Store BM, FM portals bases (for convenience) */
-    mem_index = platform_find_mem_region_index(pltfrm->param.mem_info, E_PLATFORM_MEM_RGN_MC_PORTALS);
+    mem_index = platform_find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_MC_PORTALS);
     if (mem_index != -1)
     	pltfrm->mc_portals_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
 
@@ -654,19 +663,26 @@ uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
         { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
         { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
         { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART4       },
-        { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP         },
+        { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_TILE+SOC_PERIPH_OFF_AIOP_CMGW},
     };
 
     SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
 
     if (module == FSL_OS_MOD_MC_PORTAL)
         return (uintptr_t)(pltfrm->mc_portals_base + SOC_PERIPH_OFF_PORTALS_MC(id));
-
-    for (i = 0; i < ARRAY_SIZE(part_offset_map); i++)
-        if ((part_offset_map[i].module        == module)  &&
-            (part_offset_map[i].id            == id)      &&
-            (part_offset_map[i].mapped_mem_type == mapped_mem_type))
-            return (uintptr_t)(pltfrm->ccsr_base + part_offset_map[i].offset);
+    if (module == FSL_OS_MOD_CMGW) {
+        for (i = 0; i < ARRAY_SIZE(part_offset_map); i++)
+            if ((part_offset_map[i].module        == module)  &&
+                (part_offset_map[i].id            == id)      &&
+                (part_offset_map[i].mapped_mem_type == mapped_mem_type))
+                return (uintptr_t)(pltfrm->aiop_base + part_offset_map[i].offset);
+    } else {
+        for (i = 0; i < ARRAY_SIZE(part_offset_map); i++)
+        	if ((part_offset_map[i].module        == module)  &&
+                (part_offset_map[i].id            == id)      &&
+                (part_offset_map[i].mapped_mem_type == mapped_mem_type))
+                return (uintptr_t)(pltfrm->ccsr_base + part_offset_map[i].offset);
+    }
 
     REPORT_ERROR(MAJOR, E_NOT_FOUND, ("module base"));
     return 0;

@@ -6,10 +6,14 @@
 
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
+#include "general.h"
+#include "net/fsl_net.h"
 #include "dplib/fsl_l4_checksum.h"
 // todo fix
 #include "dplib/fsl_ipv4_checksum.h"
 #include "dplib/fsl_parser.h"
+#include "dplib/fsl_fdma.h"
+
 
 int32_t cksum_calc_udp_tcp_checksum()
 {

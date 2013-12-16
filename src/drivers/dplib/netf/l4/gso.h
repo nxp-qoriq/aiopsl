@@ -7,6 +7,7 @@
 #define __GSO_H
 
 #include "dplib/fsl_gso.h"
+#include "dplib/fsl_ldpaa.h"
 
 
 /** \addtogroup FSL_AIOP_GSO

@@ -13,7 +13,8 @@
 #ifndef __FSL_STE_H
 #define __FSL_STE_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
 @Group		STATS FSL_AIOP_Statistics
@@ -277,8 +278,8 @@ void ste_dec_and_sub_counters(uint64_t counter_addr,
 *//****************************************************************************/
 void ste_barrier();
 
-
 /* @} end of group STE_functions */
 /* @} end of group STATS */
+
 
 #endif /* __FSL_STE_H */

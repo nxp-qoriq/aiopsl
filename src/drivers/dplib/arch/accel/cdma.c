@@ -4,8 +4,11 @@
 @Description	This file contains the AIOP CDMA Operations API implementation.
 *//***************************************************************************/
 
-#include "dplib/fsl_cdma.h"
+#include "general.h"
+#include "common/types.h"
+
 #include "cdma.h"
+
 
 int32_t cdma_acquire_context_memory(
 		uint32_t context_size,

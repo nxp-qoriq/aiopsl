@@ -10,10 +10,10 @@
 
 *//***************************************************************************/
 
-#ifndef __FSL_L4_H
-#define __FSL_L4_H
+#ifndef __FSL_LIB_L4_H
+#define __FSL_LIB_L4_H
 
-
+#include "common/types.h"
 #include "dplib/fsl_gso.h"
 #include "dplib/fsl_gro.h"
 #include "dplib/fsl_l4_checksum.h"
@@ -32,6 +32,16 @@
 
 @{
 *//***************************************************************************/
+
+/** The frame not contain a UDP header */
+#define NO_UDP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0200)
+/** No TCP header was found */
+#define NO_TCP_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0500)
+/** No TCP MSS Option was found */
+#define NO_TCP_MSS_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0600)
+/** No TCP or UDP headers were found */
+#define NO_L4_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0700)
+
 
 /**************************************************************************//**
 @Group		HMUDPModeBits UDP header modification mode bits
@@ -186,8 +196,8 @@ int32_t l4_set_tp_src(uint16_t src_port);
 *//***************************************************************************/
 int32_t l4_set_tp_dst(uint16_t dst_port);
 
-
 /* @} end of group FSL_HM_L4_Functions */
 /* @} end of group FSL_HM */
 
-#endif /* __FSL_L4_H */
+
+#endif /* __FSL_LIB_L4_H */

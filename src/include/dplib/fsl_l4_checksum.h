@@ -8,7 +8,8 @@
 #ifndef __FSL_L4_CHECKSUM_H
 #define __FSL_L4_CHECKSUM_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
 @Group	FSL_L4_CKSUM FSL_AIOP_L4_Checksum
@@ -91,7 +92,7 @@
 int32_t cksum_calc_udp_tcp_checksum();
 
 /** @} */ /* end of FSL_L4_CKSUM_Functions */
-
 /** @} */ /* end of FSL_L4_CKSUM */
+
 
 #endif /* __FSL_L4_CHCEKSUM_H */

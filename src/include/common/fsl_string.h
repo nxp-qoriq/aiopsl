@@ -10,18 +10,18 @@
 #define __FSL_STRING_H
 
 
-#if defined(ARENA_LINUX) && defined(__KERNEL__)
+#if defined(SYS_OS_LINUX) && defined(__KERNEL__)
 #include <linux/kernel.h>
 #include <linux/string.h>
 extern char * strtok ( char * str, const char * delimiters );
 
-#elif defined(ARENA_VXWORKS)
+#elif defined(SYS_OS_VXWORKS)
 #include "string.h"
 
 #else
 #include <string.h>
 
-#endif /* defined(ARENA_LINUX) && defined(__KERNEL__) */
+#endif /* defined(SYS_OS_LINUX) && defined(__KERNEL__) */
 
 #include "common/types.h"
 

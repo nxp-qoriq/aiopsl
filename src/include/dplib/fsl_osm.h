@@ -7,7 +7,8 @@
 #ifndef __FSL_LIB_OSM_H
 #define __FSL_LIB_OSM_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
  @Group		FSL_AIOP_OSM
@@ -410,8 +411,7 @@ void osm_scope_exit(void);
 void osm_get_scope(struct scope_status_params *scope_status);
 
 /** @} end of group OSM_Functions */
-
 /** @} */ /* end of FSL_AIOP_OSM */
 
-#endif /* __FSL_LIB_OSM_H */
 
+#endif /* __FSL_LIB_OSM_H */

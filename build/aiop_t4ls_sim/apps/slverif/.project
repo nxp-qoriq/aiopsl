@@ -4,7 +4,7 @@
 	<comment></comment>
 	<projects>
 		<project location="PARENT-2-PROJECT_LOC/aiopsl">
-aiop_sl		</project>
+aiop		</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

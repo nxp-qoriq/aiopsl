@@ -10,7 +10,8 @@
 #ifndef __AIOP_VERIFICATION_FDMA_H_
 #define __AIOP_VERIFICATION_FDMA_H_
 
-#include "fsl_ldpaa.h"
+#include "dplib/fsl_ldpaa.h"
+
 
 /* Accelerators IDs (from AIOP Source IDs section in ArchDef) */
 	/** Frame Presentation DMA accelerator ID */

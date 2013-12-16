@@ -13,9 +13,11 @@
 #ifndef __FSL_IP_H
 #define __FSL_IP_H
 
+#include "common/types.h"
 #include "dplib/fsl_ipf.h"
 #include "dplib/fsl_ipr.h"
 #include "dplib/fsl_ipv4_checksum.h"
+
 
 /**************************************************************************//**
 @Group	FSL_HM FSL_AIOP_Header_Modification
@@ -24,6 +26,12 @@
 
 @{
 *//***************************************************************************/
+
+/** The frame contain only one IP header */
+#define NO_IP_ENCAPSULATION_FOUND_ERROR		(HM_MODULE_STATUS_ID + 0x0100)
+/** No IP header was found.*/
+#define NO_IP_HDR_ERROR				(HM_MODULE_STATUS_ID + 0x0300)
+
 
 /**************************************************************************//**
 @Group		HM_IP_Modes HM IP Modes
@@ -374,5 +382,6 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group FSL_HM */
+
 
 #endif /* __FSL_IP_H */

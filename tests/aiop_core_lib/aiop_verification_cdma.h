@@ -8,7 +8,7 @@
 #ifndef __AIOP_VERIFICATION_CDMA_H_
 #define __AIOP_VERIFICATION_CDMA_H_
 
-////#include "fsl_ldpaa.h"
+#include "common/types.h"
 
 
 /* CDMA Command IDs (from CDMA section in ArchDef) */

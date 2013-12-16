@@ -7,11 +7,8 @@
 #ifndef __FSL_IPSEC_H
 #define __FSL_IPSEC_H
 
-/**************************************************************************//**
-@Description	IPSec handle Type definition
+#include "common/types.h"
 
- *//***************************************************************************/
-typedef uint64_t ipsec_handle_t;
 
 /**************************************************************************//**
 @Group	FSL_IPSEC FSL_AIOP_IPSEC
@@ -20,6 +17,12 @@ typedef uint64_t ipsec_handle_t;
 
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@Description	IPSec handle Type definition
+
+ *//***************************************************************************/
+typedef uint64_t ipsec_handle_t;
 
 /**************************************************************************//**
 @Group		FSL_IPSEC_Functions IPsec Functions
@@ -87,5 +90,5 @@ int32_t ipsec_frame_encrypt(ipsec_handle_t ipsec_handle);
 
 /** @} */ /* end of FSL_IPSEC */
 
-#endif /* __FSL_IPSEC_H */
 
+#endif /* __FSL_IPSEC_H */

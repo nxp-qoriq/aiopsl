@@ -8,6 +8,7 @@
 #include "aiop_verification.h"
 #include "aiop_verification_ctlu.h"
 
+
 uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;

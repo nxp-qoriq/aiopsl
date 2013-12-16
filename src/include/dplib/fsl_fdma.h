@@ -6,12 +6,11 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
+#ifndef __FSL_FDMA_H
+#define __FSL_FDMA_H
 
-#ifndef __FSL_FDMA_H_
-#define __FSL_FDMA_H_
-
-
-#include "general.h"
+#include "common/types.h"
+#include "common/errors.h"
 
 
 /* extern uint8_t HWC_PRC_ADDR[]; */
@@ -59,7 +58,7 @@
 *//***************************************************************************/
 enum fdma_hw_errors {
 		/** Success. */
-	FDMA_SUCCESS = SUCCESS,
+	FDMA_SUCCESS = E_OK,
 		/** Enqueue failed due to QMan enqueue rejection. */
 	FDMA_ENQUEUE_FAILED_ERR = 0x1,
 		/** Failed due to buffer pool depletion. */
@@ -2634,9 +2633,8 @@ int32_t fdma_copy_data(
 		void *src,
 		void *dst);
 
-
 /** @} */ /* end of FDMA_Functions */
-
 /** @} */ /* end of FSL_AIOP_FDMA */
 
-#endif /* __FSL_FDMA_H_ */
+
+#endif /* __FSL_FDMA_H */

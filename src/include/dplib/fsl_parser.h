@@ -9,10 +9,9 @@
 #ifndef __FSL_PARSER_H
 #define __FSL_PARSER_H
 
-#include "general.h"
-#include "dplib/fsl_fdma.h"
+#include "common/types.h"
+#include "dplib/fsl_ldpaa.h"
 
-extern uint64_t ext_prpid_pool_address;
 
 /**************************************************************************//**
 @Group		FSL_PARSER FSL_AIOP_Parser
@@ -1583,7 +1582,6 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);
 
 /** @} */ /* end of FSL_PARSER_Functions */
-
 /** @} */ /* end of FSL_PARSER */
 
 

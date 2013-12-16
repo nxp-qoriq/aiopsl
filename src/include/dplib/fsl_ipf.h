@@ -6,7 +6,8 @@
 #ifndef __FSL_IPF_H
 #define __FSL_IPF_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
 @Group		FSL_IPF FSL_IPF
@@ -161,5 +162,6 @@ void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr);
 
 /** @} */ /* end of AIOP_IPF_Functions */
 /** @} */ /* end of FSL_IPF */
+
 
 #endif /* __FSL_IPF_H */

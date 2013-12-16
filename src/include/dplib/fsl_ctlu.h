@@ -9,9 +9,8 @@
 #ifndef __FSL_CTLU_H
 #define __FSL_CTLU_H
 
-#include "general.h"
+#include "common/types.h"
 
-extern uint64_t ext_keyid_pool_address;
 
 /**************************************************************************//**
 @Group	FSL_CTLU FSL_AIOP_CTLU
@@ -1702,5 +1701,6 @@ int32_t ctlu_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash);
 
 /** @} */ /* end of FSL_CTLU_Functions */
 /** @} */ /* end of FSL_CTLU */
+
 
 #endif /* __FSL_CTLU_H */

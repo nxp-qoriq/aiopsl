@@ -6,7 +6,8 @@
 #ifndef __FSL_GSO_H
 #define __FSL_GSO_H
 
-#include "general.h"
+#include "common/types.h"
+
 
 /**************************************************************************//**
 @Group		FSL_AIOP_GSO FSL AIOP GSO
@@ -157,11 +158,7 @@ void tcp_gso_context_init(
 		tcp_gso_ctx_t tcp_gso_context_addr);
 
 /** @} */ /* end of GSO_Functions */
-
-
-
 /** @} */ /* end of FSL_AIOP_GSO */
-
 
 
 #endif /* __FSL_GSO_H */

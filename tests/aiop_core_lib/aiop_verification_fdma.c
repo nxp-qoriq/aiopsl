@@ -6,10 +6,14 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
+#include "dplib/fsl_fdma.h"
+
+/* TODO - get rid of this! */
+/* Yariv: not sure why Shlomi changed itand wrote it */
+#include "../arch/accel/fdma.h"
+
 #include "aiop_verification.h"
 #include "aiop_verification_fdma.h"
-#include "fsl_fdma.h"
-#include "fdma.h"
 
 
 uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)

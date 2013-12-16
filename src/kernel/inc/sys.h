@@ -38,7 +38,7 @@ struct sys_module_desc {
  @Description   System initialization parameters structure
 *//***************************************************************************/
 typedef struct t_sys_param {
-    uint8_t                 partition_id;           /**< Partition ID - set to ARENA_MASTER_PART_ID
+    uint8_t                 partition_id;           /**< Partition ID - set to SYS_MASTER_PART_ID
                                                          on master partition */
     uint64_t                partition_cores_mask;   /**< Cores belonging to this partition,
                                                          used by SMP configuration for releasing
