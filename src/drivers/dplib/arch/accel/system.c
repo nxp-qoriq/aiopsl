@@ -19,8 +19,8 @@ int32_t sys_ctlu_prpid_pool_create(void)
 
 	/* TODO Replace these temporal assignments with buffer_pool_id and
 	 * buffer_size provided by ARENA function*/
-	uint16_t buffer_pool_id = 10;
-	uint32_t buffer_size = 128;
+	uint16_t buffer_pool_id = 1;
+	uint32_t buffer_size = 256;
 
 	status = id_pool_init(pool, SYS_PRPID_POOL_LENGTH,
 			buffer_pool_id, buffer_size, &ext_prpid_pool_address);
@@ -35,8 +35,8 @@ int32_t sys_ctlu_keyid_pool_create(void)
 
 	/* TODO Replace these temporal assignments with buffer_pool_id and
 	 * buffer_size provided by ARENA function*/
-	uint16_t buffer_pool_id = 20;
-	uint32_t buffer_size = 512;
+	uint16_t buffer_pool_id = 2;
+	uint32_t buffer_size = 1024;
 
 	status = id_pool_init(pool, SYS_KEYID_POOL_LENGTH,
 			buffer_pool_id, buffer_size, &ext_keyid_pool_address);
