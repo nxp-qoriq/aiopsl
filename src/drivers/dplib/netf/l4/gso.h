@@ -39,16 +39,21 @@ struct tcp_gso_context {
 	struct ldpaa_fd rem_fd;
 	/** Flags - Please refer to \ref TCP_GSO_FLAGS */
 	uint32_t flags;
-	/** Maximum Segment Size. */
-	uint16_t mss;
+	/** Internal TCP GSO flags - Please refer to 
+	 * \ref TCP_GSO_INTERNAL_FLAGS */
+	uint32_t internal_flags;
+	/** Split Size. */
+	uint16_t split_size;
+	/** Headers Size. */
+	uint16_t headers_size;
 	/** Urgent Pointer offset. */
 	uint16_t urgent_pointer;
 	/** Remaining frame handle. */
 	uint8_t	rem_frame_handle;
-		/** First Segment indication */
+	/** First Segment indication */
 	uint8_t	first_seg;
 	/** Padding */
-	uint8_t	pad[6];
+	uint8_t	pad[4];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */
@@ -78,6 +83,21 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 #pragma warning_errors off
 
 /** @} */ /* end of TCP_GSO_GENERAL_INT_DEFINITIONS */
+
+/**************************************************************************//**
+ @Group	TCP_GSO_INTERNAL_FLAGS TCP GSO Internal Flags
+
+ @Description TCP GSO Internal Flags.
+
+ @{
+*//***************************************************************************/
+
+	/** If set, the FIN flag in the TCP header of the GSO aggregation is set. */
+#define TCP_GSO_FIN_BIT		0x00000001
+	/** If set, the PSH flag in the TCP header of the GSO aggregation is set. */
+#define TCP_GSO_PSH_BIT		0x00000008	
+
+/** @} */ /* end of TCP_GSO_INTERNAL_FLAGS */
 
 /** @} */ /* end of TCP_GSO_INTERNAL_MACROS */
 
