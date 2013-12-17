@@ -80,7 +80,7 @@
 @Cautions	Should be called only once per CTLU.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t sys_ctlu_prpid_pool_create();
+int32_t sys_ctlu_prpid_pool_create(void);
 
 /*************************************************************************//**
 @Function	sys_ctlu_keyid_pool_create
@@ -93,10 +93,9 @@ int32_t sys_ctlu_prpid_pool_create();
 @Return		Status - please refer to \ref SYS_ID_POOL_CREATE_STATUS.
 
 @Cautions	Should be called only once per CTLU.
-		Retries to acquire CDMA context buffer until success.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t sys_ctlu_keyid_pool_create();
+int32_t sys_ctlu_keyid_pool_create(void);
 
 /** @} */ /* end of SYSTEM_Functions */
 
