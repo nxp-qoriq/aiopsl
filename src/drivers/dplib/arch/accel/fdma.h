@@ -411,26 +411,31 @@
 	/** Macro to set the default frame ASA address in workspace from the
 	 * presentation context */
 #define PRC_SET_ASA_ADDRESS(_val)					\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+	((((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_ASAPA_MASK) |			\
 		((uint16_t)_val & PRC_ASAPA_MASK))
 	/** Macro to set Segment reference bit in workspace from the
 	 * presentation context */
-#define PRC_SET_SR_BIT(_val)						\
+#define PRC_SET_SR_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		asapa_asaps & ~PRC_SR_MASK) | PRC_SR_MASK))
+#define PRC_RESET_SR_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_SR_MASK) |			\
-		(((uint16_t)_val) & PRC_SR_MASK))
+		asapa_asaps & ~PRC_SR_MASK))
 #ifdef NEXT_RELEASE
 	/** Macro to set No-Data-Segment bit in workspace from the
 	 * presentation context */
-#define PRC_SET_NDS_BIT(_val)						\
+#define PRC_SET_NDS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		asapa_asaps & ~PRC_NDS_MASK) | PRC_NDS_MASK))
+#define PRC_RESET_NDS_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_NDS_MASK) |			\
-		(((uint16_t)_val) & PRC_NDS_MASK))
-
+		asapa_asaps & ~PRC_NDS_MASK))
 #endif /* NEXT_RELEASE */
 	/** Macro to set the default frame ASA size in workspace from the
 	 * presentation context */

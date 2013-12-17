@@ -64,11 +64,23 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 *//***************************************************************************/
 
 	/** Segmentation process complete. The last segment was generated. */
-#define	TCP_GSO_GEN_SEG_STATUS_DONE		SUCCESS
+#define	TCP_GSO_GEN_SEG_STATUS_DONE					\
+						SUCCESS
 	/** Segmentation process did not complete.
 	 * Segment was generated and the user should call
 	 * gso_generate_tcp_seg() again to generate another segment */
-#define	TCP_GSO_GEN_SEG_STATUS_IN_PROCESS	(TCP_GSO_MODULE_STATUS_ID | 0x1)
+#define	TCP_GSO_GEN_SEG_STATUS_IN_PROCESS				\
+						(TCP_GSO_MODULE_STATUS_ID | 0x1)
+	/** Segmentation process cannot start since the syn/rst flags are set.*/
+#define	TCP_GSO_GEN_SEG_STATUS_SYN_RST_SET				\
+						(TCP_GSO_MODULE_STATUS_ID | 0x2)
+	/** Segmentation process cannot start since the packet size > 64KB. */
+#define	TCP_GSO_GEN_SEG_STATUS_SIZE_BIGGER_THAN_64KB			\
+						(TCP_GSO_MODULE_STATUS_ID | 0x3)
+	/** Segmentation process cannot start since Represented segment
+	 * size < headers size. */
+#define	TCP_GSO_GEN_SEG_STATUS_HEADERS_SIZE_BIGGER_THAN_SEGMENT_SIZE	\
+						(TCP_GSO_MODULE_STATUS_ID | 0x4)
 
 /** @} */ /* end of TCP_GSO_GENERATE_SEG_STATUS */
 

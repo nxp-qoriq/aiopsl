@@ -98,8 +98,9 @@ struct parser_prp_query_verif_command {
 struct parser_gen_parser_res_verif_command {
 	uint32_t opcode;
 	int32_t  status;
+	uint8_t prpid;
 	uint8_t  flags;
-	uint8_t  pad[3];
+	uint8_t  pad[6];
 };
 
 /**************************************************************************//**
@@ -110,10 +111,10 @@ struct parser_gen_parser_res_verif_command {
 struct parser_gen_parser_res_exp_verif_command {
 	uint32_t                      opcode;
 	int32_t                       status;
-	enum parser_starting_hxs_code hxs;
+	uint16_t		      hxs;
 	uint8_t                       flags;
 	uint8_t                       offset;
-	uint8_t                       pad[2];
+	uint8_t                       pad[4];
 };
 
 uint16_t aiop_verification_parser(uint32_t asa_seg_addr);

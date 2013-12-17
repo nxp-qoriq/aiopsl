@@ -1028,25 +1028,25 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** @} */ /* end of AIOP_PARSER_CREATE_PRP_STATUS */
 
 /**************************************************************************//**
-@Group AIOP_PARSER_REPLACE_PRP_STATUS Parser Replace Parse Profile Status
+@Group AIOP_PARSER_DELETE_PRP_STATUS Parser Delete Parse Profile Status
 @{
 *//***************************************************************************/
-	/** PRP was replaced successfully */
-#define PARSER_REPLACE_PRP_STATUS_SUCCESS		0x00000000
-	/** Parser PRP replace failed due to Invalid Parse profile ID */
-#define PARSER_REPLACE_PRP_STATUS_FAIL_INVALID_PRPID	0x81800000
+	/** PRP was deleted successfully */
+#define PARSER_DELETE_PRP_STATUS_SUCCESS		0x00000000
+	/** Parser PRP delete failed due to Invalid Parse profile ID */
+#define PARSER_DELETE_PRP_STATUS_FAIL_INVALID_PRPID	0x81800000
 /** Command failed. PRPID was not returned to pool due to CDMA write error */
-#define CTLU_KCR_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE\
+#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE\
 					(CTLU_STATUS_MGCF | 0x00000001)
 /** Command failed. PRPID was not returned to pool due to pool out of range */
-#define CTLU_KCR_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE\
+#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE\
 					(CTLU_STATUS_MGCF | 0x00000002)
 /** Command failed. PRPID was not returned to pool due to CDMA read error */
-#define CTLU_KCR_DELETE_RELEASE_ID_STATUS_CDMA_RD_FAILURE\
+#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_CDMA_RD_FAILURE\
 					(CTLU_STATUS_MGCF | 0x00000003)
 
 
-/** @} */ /* end of AIOP_PARSER_REPLACE_PRP_STATUS */
+/** @} */ /* end of AIOP_PARSER_DELETE_PRP_STATUS */
 
 /**************************************************************************//**
 @Group AIOP_PARSE_RESULT_GEN_STATUS Parse Result Generation SR Status
@@ -1479,7 +1479,7 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 @Param[in]	parse_profile - Parse Profile Record.
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref AIOP_PARSER_REPLACE_PRP_STATUS.
+@Return		Status - please refer to \ref AIOP_PARSER_SR_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1493,7 +1493,7 @@ int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
 
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref AIOP_PARSER_SR_STATUS.
+@Return		Status - please refer to \ref AIOP_PARSER_DELETE_PRP_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
