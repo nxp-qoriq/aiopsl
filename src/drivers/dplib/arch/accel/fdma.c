@@ -139,7 +139,7 @@ int32_t fdma_present_frame(
 				prc->seg_length = params->seg_length;
 				prc->seg_offset = params->seg_offset;
 				if (params->flags & FDMA_INIT_SR_BIT)
-					PRC_SET_SR_BIT(PRC_SR_MASK);
+					PRC_SET_SR_BIT();
 				prc->handles = ((params->frame_handle <<
 						PRC_FRAME_HANDLE_BIT_OFFSET) &
 						PRC_FRAME_HANDLE_MASK) |
