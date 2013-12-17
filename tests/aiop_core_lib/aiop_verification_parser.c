@@ -11,6 +11,7 @@
 #include "aiop_verification.h"
 #include "aiop_verification_parser.h"
 
+extern __TASK struct aiop_default_task_params default_task_params;
 
 uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 {
@@ -61,6 +62,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_gen_parser_res_verif_command *gpr =
 			(struct parser_gen_parser_res_verif_command *)
 			asa_seg_addr;
+		default_task_params.parser_profile_id = gpr->prpid;
 		gpr->status = parse_result_generate_default(gpr->flags);
 		str_size = sizeof(struct parser_gen_parser_res_verif_command);
 		break;
@@ -70,7 +72,8 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_gen_parser_res_exp_verif_command *gpre =
 			(struct parser_gen_parser_res_exp_verif_command *)
 			asa_seg_addr;
-		gpre->status = parse_result_generate(gpre->hxs,
+		gpre->status = parse_result_generate(
+				(enum parser_starting_hxs_code)gpre->hxs,
 							 gpre->offset,
 							 gpre->flags);
 		str_size =
