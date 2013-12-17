@@ -12,7 +12,7 @@
 uint64_t ext_prpid_pool_address;
 uint64_t ext_keyid_pool_address;
 
-int32_t sys_ctlu_prpid_pool_create()
+int32_t sys_ctlu_prpid_pool_create(void)
 {
 	uint16_t pool[SYS_PRPID_POOL_LENGTH];
 	int32_t status;
@@ -28,7 +28,7 @@ int32_t sys_ctlu_prpid_pool_create()
 }
 
 
-int32_t sys_ctlu_keyid_pool_create()
+int32_t sys_ctlu_keyid_pool_create(void)
 {
 	uint16_t pool[SYS_KEYID_POOL_LENGTH];
 	int32_t status;
