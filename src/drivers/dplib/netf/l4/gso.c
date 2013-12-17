@@ -37,6 +37,6 @@ void tcp_gso_context_init(
 			(struct tcp_gso_context *)tcp_gso_context_addr;
 	gso_ctx->first_seg = 1;
 	gso_ctx->flags = flags;
-	gso_ctx->mss = mss;
+	gso_ctx->split_size = mss;
 	gso_ctx->urgent_pointer = 0;
 }
