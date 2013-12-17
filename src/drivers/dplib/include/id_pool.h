@@ -131,7 +131,7 @@ inline int32_t id_pool_init(uint16_t *pool,
 		pool[i-1] = (uint16_t)(length - i);
 
 	/* Write pool to external memory */
-	if (cdma_write(*ext_id_pool_address, pool, length)) {
+	if (cdma_write(*ext_id_pool_address, pool, 2*length)) {
 		/* In case cdma_write failed, need to release the buffer */
 		if (cdma_release_context_memory(*ext_id_pool_address)) {
 			/* Todo return CDMA status with Accell ID? */
@@ -170,7 +170,7 @@ inline int32_t get_id(uint16_t *pool, uint16_t length,
 	status = (cdma_read_with_mutex(ext_id_pool_address,
 				     CDMA_PREDMA_MUTEX_WRITE_LOCK,
 				     pool,
-				     length));
+				     length*2));
 
 	if (status == CDMA_SUCCESS) {
 		index = pool[0];
@@ -184,7 +184,7 @@ inline int32_t get_id(uint16_t *pool, uint16_t length,
 		}
 		/* Write id pool from local memory, release mutex */
 		if (cdma_write_with_mutex(ext_id_pool_address,
-			CDMA_POSTDMA_MUTEX_RM_BIT, pool, 1))
+			CDMA_POSTDMA_MUTEX_RM_BIT, pool, 2))
 			/* In case of write error, CDMA SR will try to
 			 * release mutex if needed and return status.
 			 * TODO CDMA status */
@@ -203,7 +203,7 @@ inline int32_t get_id(uint16_t *pool, uint16_t length,
 /*************************************************************************//**
 @Function	release_id
 
-@Description	General function for pulling an id out of ID pool.
+@Description	General function for putting an id back to ID pool.
 
 @Param[in]	pool - local array to hold a copy of the external pool.
 
@@ -211,7 +211,7 @@ inline int32_t get_id(uint16_t *pool, uint16_t length,
 
 @Param[in]	ext_id_pool_address - External id pool address.
 
-@Param[out]	id - id pulled from the pool.
+@Param[out]	id - id pushed into the pool.
 
 @Return		Status - Success or Failure. (\ref RELEASE_ID_STATUS).
 
@@ -226,7 +226,7 @@ inline int32_t release_id(uint8_t id, uint16_t *pool,
 	status = cdma_read_with_mutex(ext_id_pool_address,
 				     CDMA_PREDMA_MUTEX_WRITE_LOCK,
 				     pool,
-				     length);
+				     length*2);
 	if (status == CDMA_SUCCESS) {
 		index = pool[0];
 		if (index < (length - 1)) {
@@ -239,7 +239,7 @@ inline int32_t release_id(uint8_t id, uint16_t *pool,
 		}
 
 		if (cdma_write_with_mutex(ext_id_pool_address,
-			CDMA_POSTDMA_MUTEX_RM_BIT, pool, length))
+			CDMA_POSTDMA_MUTEX_RM_BIT, pool, length*2))
 			/* In case of write error, CDMA SR will try to
 			 * release mutex if needed and return status.
 			 * TODO CDMA status */

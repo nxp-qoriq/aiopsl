@@ -198,6 +198,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/dpni</name>
+			<type>2</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -206,6 +211,11 @@
 			<name>sources/drivers/dplib/netf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/include/dplib/dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/dplib/fsl_cdma.h</name>
