@@ -519,6 +519,8 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		/* Reset IP checksum for re-calculation by FDMA */
 		ipv4_header_ptr->hdr_cksum = 0;
 		
+		ipv4_header_ptr->protocol = IPV4_PROTOCOL_ID;
+		
 		inner_ipv4_offset =
 				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		inner_ipv4hdr_ptr = (struct ipv4hdr *)
@@ -588,6 +590,8 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
 		/* Reset IP checksum for re-calculation by FDMA */
 		ipv4_header_ptr->hdr_cksum = 0;
+		
+		ipv4_header_ptr->protocol = IPV6_PROTOCOL_ID;
 
 		inner_ipv6_offset =
 				 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -700,7 +704,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-
+		
 		inner_ipv4_offset =
 				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		inner_ipv4hdr_ptr = (struct ipv4hdr *)
