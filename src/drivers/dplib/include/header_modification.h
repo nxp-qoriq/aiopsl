@@ -19,6 +19,9 @@
 #define TCP_DATA_OFFSET_SHIFT	3
 #define TCP_NO_OPTION_SIZE	20
 #define IPV6_ADDR_SIZE		32
+#define IPV4_PROTOCOL_ID	0x04
+#define IPV6_PROTOCOL_ID	0x29
+
 
 #define IPV4_DSCP_MASK		0x03
 #define IPV4_DF_MASK		0xbfff
