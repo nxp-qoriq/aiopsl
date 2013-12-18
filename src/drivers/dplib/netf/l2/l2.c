@@ -235,7 +235,7 @@ void l2_push_vlan(uint16_t ethertype)
 
 	fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
 
-	if ((prc->seg_address - TLS_SECTION_END_ADDR) >= 4) {
+	if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >= 4) {
 		/* there is enough room in the head room */
 		fdma_insert_default_segment_data(vlan_offset,
 					 inserted_vlan_ptr,

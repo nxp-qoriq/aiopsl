@@ -549,7 +549,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT |
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv4_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
@@ -639,7 +639,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv4_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
@@ -751,7 +751,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv6_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
@@ -811,7 +811,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 				inner_ipv6hdr_ptr->payload_length +
 					(uint16_t) ipv6_header_size - 40;
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv6_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
