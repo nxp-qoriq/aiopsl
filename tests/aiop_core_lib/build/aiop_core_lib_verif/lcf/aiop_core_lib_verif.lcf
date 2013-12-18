@@ -53,12 +53,11 @@ SECTIONS
     } > pseudo_rom
 
     GROUP : {
-        .__uninitialized_intc_handlertable ALIGN(0x10) : {}
-       .data   : {}
        .sdata  : {}
        .sbss   : {}
        .sdata2 : {}
        .sbss2  : {}
+       .data   : {}
        .bss    : {}
     } > private_shared_ram
     
