@@ -48,7 +48,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_read_command *str =
 				(struct cdma_read_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_read(
-					(void *)str->ws_dst, str->ext_address, 
+					(void *)str->ws_dst, *((uint64_t *)(str->context_memory)), 
 					str->size);
 			str_size = sizeof(struct cdma_read_command);
 			break;
@@ -59,7 +59,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_write_command *str =
 				(struct cdma_write_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_write(
-					str->ext_address, (void *)str->ws_src, 
+					*((uint64_t *)(str->context_memory)), (void *)str->ws_src, 
 					str->size);
 			str_size = sizeof(struct cdma_write_command);
 			break;
@@ -90,7 +90,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_read_with_mutex_command *str =
 				(struct cdma_read_with_mutex_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_read_with_mutex(
-					str->ext_address, str->flags,
+					*((uint64_t *)(str->context_memory)), str->flags,
 					(void *)str->ws_dst, str->size);
 			str_size = sizeof(struct cdma_read_with_mutex_command);
 			break;
@@ -101,7 +101,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_write_with_mutex_command *str =
 				(struct cdma_write_with_mutex_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_write_with_mutex(
-					str->ext_address, str->flags, 
+					*((uint64_t *)(str->context_memory)), str->flags, 
 					(void *)str->ws_src, str->size);
 			str_size = sizeof(struct cdma_write_with_mutex_command);
 			break;
