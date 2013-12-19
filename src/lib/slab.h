@@ -12,9 +12,9 @@
  @Description   Memory allocation owner.
 *//***************************************************************************/
 typedef enum e_slab_alloc_owner {
-    E_MEM_ALLOC_OWNER_LOCAL,
-    E_MEM_ALLOC_OWNER_LOCAL_SMART,
-    E_MEM_ALLOC_OWNER_EXTERNAL
+    SLAB_ALLOC_OWNER_LOCAL,
+    SLAB_ALLOC_OWNER_LOCAL_SMART,
+    SLAB_ALLOC_OWNER_EXTERNAL
 } e_slab_alloc_owner;
 
 
