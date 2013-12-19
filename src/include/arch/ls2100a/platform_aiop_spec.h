@@ -27,22 +27,20 @@
                 to support.
 *//***************************************************************************/
 typedef enum memory_partition_id {
-    E_MEM_1ST_DDR_CACHEABLE = 1,    /**< Primary DDR cacheable memory partition */
-    E_MEM_1ST_DDR_NON_CACHEABLE,    /**< Primary DDR non-cacheable memory partition */
-    E_MEM_2ND_DDR_CACHEABLE,        /**< Secondary DDR cacheable memory partition */
-    E_MEM_2ND_DDR_NON_CACHEABLE,    /**< Secondary DDR non-cacheable memory partition */
-    E_MEM_CPC_SRAM,                 /**< CPC SRAM cacheable memory partition */
-    E_MEM_INT_RAM,                  /**< Internal memory */
-    E_MEM_SHARED,                   /**< Shared memory partition (for AMP) */
-    E_MEM_INVALID                   /**< Invalid memory partition */
+    MEM_PART_1ST_DDR_NON_CACHEABLE = 1,/**< Primary DDR non-cacheable memory partition */
+    MEM_PART_2ND_DDR_NON_CACHEABLE,    /**< Secondary DDR non-cacheable memory partition */
+    MEM_PART_CPC_SRAM,                 /**< CPC SRAM cacheable memory partition */
+    MEM_PART_SH_RAM,                   /**< Shared-SRAM memory */
+    MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
+    MEM_PART_INVALID                   /**< Invalid memory partition */
 } e_memory_partition_id;
 
 /**************************************************************************//**
  @Description   Platform Console Types
 *//***************************************************************************/
 typedef enum platform_console_type {
-    E_PLATFORM_CONSOLE_NONE,        /**< Do not use platform console */
-    E_PLATFORM_CONSOLE_DUART        /**< Use DUART-x as console port */
+    PLTFRM_CONSOLE_NONE,        /**< Do not use platform console */
+    PLTFRM_CONSOLE_DUART        /**< Use DUART-x as console port */
 } e_platform_console_type;
 
 /**************************************************************************//**
@@ -57,6 +55,7 @@ typedef enum platform_mem_region {
     PLTFRM_MEM_RGN_SHRAM,
     PLTFRM_MEM_RGN_AIOP,
     PLTFRM_MEM_RGN_CCSR,
+    PLTFRM_MEM_RGN_PEB,
     PLTFRM_MEM_RGN_MC_PORTALS
 } e_platform_mem_region;
 
