@@ -20,6 +20,20 @@
  @{
 *//***************************************************************************/
 
+/**************************************************************************//**
+ @Anchor        mem_attr
+
+ @Collection    Memory Attributes
+
+                Various attributes of memory partitions. These values may be
+                or'ed together to create a mask of all memory attributes.
+ @{
+*//***************************************************************************/
+#define MEMORY_ATTR_CACHEABLE           0x00000001
+                                        /**< Memory is cacheable */
+/* @} */
+
+
 int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64_t size);
 
 int sys_unregister_virt_mem_mapping(uint64_t virt_addr);
