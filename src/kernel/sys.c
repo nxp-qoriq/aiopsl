@@ -10,7 +10,7 @@
 
 
 /* Global System Object */
-t_system sys;
+__SHRAM t_system sys;
 
 extern void     __sys_start(register int argc, register char **argv, register char **envp);
 extern void     __sys_start_secondary(void);
