@@ -427,6 +427,10 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 					*((((long long *)ip_dst_addr)+1));
 		}
 
+		/* Update changes in FDMA */
+		fdma_modify_default_segment_data(ipv6hdr_offset,
+					     	 	 	 	 40);
+
 		/* Update L4 checksum if needed */
 		if (l4_update) {
 			udp_tcp_offset = PARSER_GET_L4_OFFSET_DEFAULT();
@@ -437,20 +441,16 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 
 				if (udphdr_ptr->checksum != 0) {
 					/* Add checksum on old IPsrc+Ip dst */
-					l4_checksum =
-						cksum_ones_complement_sum16(
-								l4_checksum,
-						(uint16_t)udphdr_ptr->checksum);
+					l4_checksum = cksum_ones_complement_sum16(l4_checksum,
+												(uint16_t)udphdr_ptr->checksum);
 				/* Calculate checksum on new IP src + IP dst */
 					fdma_calculate_default_frame_checksum(
-							      ipv6hdr_offset+8,
-							      32,
-							      &checksum);
+							      	  	  	  	  	  	  ipv6hdr_offset+8,
+							      	  	  	  	  	  	  32,
+							      	  	  	  	  	  	  &checksum);
 				/* Substract checksum of new IP src+IP dst */
-					l4_checksum =
-						cksum_ones_complement_sum16(
-							l4_checksum,
-							(uint16_t)~checksum);
+					l4_checksum = cksum_ones_complement_sum16(l4_checksum,
+														   (uint16_t)~checksum);
 					udphdr_ptr->checksum = l4_checksum;
 
 				/* Update FDMA with recalculated UDP checksum */
@@ -483,8 +483,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 							     udp_tcp_offset+16,
 							     2);
 			}
-		}
-
+		} 
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
@@ -783,6 +782,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		return SUCCESS;
 
 	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
+		
 		inner_ipv6_offset =
 				 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		inner_ipv6hdr_ptr = (struct ipv6hdr *)
@@ -969,6 +969,5 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 	return SUCCESS;
 	} else {
 		return NO_IP_HDR_ERROR; }
-
-
+	
 }
