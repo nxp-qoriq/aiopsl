@@ -72,13 +72,13 @@ struct ipr_params {
 	uint16_t  timeout_value_ipv6;/** reass timeout value for ipv6 */
 		/** function to call upon Time Out occurrence for ipv4 */
 	ipr_timeout_cb_t *ipv4_timeout_cb;
+	/** function to call upon Time Out occurrence for ipv6 */
+	ipr_timeout_cb_t *ipv6_timeout_cb;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
-	ipr_timeout_cb_t *ipv6_timeout_cb;
+	ipr_timeout_arg_t cb_timeout_ipv4_arg;
 	/** Argument to be passed upon invocation of the IPv6 callback
 	    function*/
-	ipr_timeout_arg_t cb_timeout_ipv4_arg;
-		/** function to call upon Time Out occurrence for ipv6 */
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
 	uint32_t  flags;
