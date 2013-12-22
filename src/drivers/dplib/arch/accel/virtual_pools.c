@@ -405,6 +405,15 @@ int32_t __vpool_internal_release_buf(uint32_t virtual_pool_id)
 	return VIRTUAL_POOLS_SUCCESS;
 } /* End of __vpool_internal_release_buf */
 
+
+/***************************************************************************
+ * vpool_refcount_increment
+ ***************************************************************************/
+int32_t vpool_refcount_increment(uint64_t context_address)
+{
+	return cdma_refcount_increment(context_address);
+}
+
 /***************************************************************************
  * vpool_decr_ref_counter
  ***************************************************************************/

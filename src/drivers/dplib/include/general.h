@@ -44,7 +44,7 @@
 #define ONE	1
 
 /* Address of end of TLS section */
-#define TLS_SECTION_END_ADDR	0x1f40
+extern const uint16_t TLS_SECTION_END_ADDR[];
 
 /** @} */ /* end of AIOP_GENERAL_MACROS */
 

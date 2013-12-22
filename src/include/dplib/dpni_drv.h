@@ -27,6 +27,9 @@
  @{
 *//***************************************************************************/
 
+/* TODO - move to soc files */
+#define SOC_MAX_NUM_OF_DPNI		128
+
 #define DPNI_DRV_MAX_NUM_FLOWS		8
 
 
@@ -51,7 +54,7 @@ typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
  @Param[in]     ni_id   The Network Interface ID
 
  @Return        OK on success; error code, otherwise.
-*//***************************************************************************/    
+*//***************************************************************************/
 int dpni_drv_enable (uint16_t ni_id);
 
 /**************************************************************************//**
@@ -62,7 +65,7 @@ int dpni_drv_enable (uint16_t ni_id);
  @Param[in]     ni_id   The Network Interface ID
 
  @Return        OK on success; error code, otherwise.
-*//***************************************************************************/    
+*//***************************************************************************/
 int dpni_drv_disable (uint16_t ni_id);
 
 /**************************************************************************//**
@@ -73,7 +76,7 @@ int dpni_drv_disable (uint16_t ni_id);
  @Param[in]     ni_id   The Network Interface ID
 
  @Return        '1' if up; '0' otherwise.
-*//***************************************************************************/    
+*//***************************************************************************/
 int dpni_drv_is_up (uint16_t ni_id);
 
 /**************************************************************************//**
@@ -86,7 +89,7 @@ int dpni_drv_is_up (uint16_t ni_id);
  @Param[in]     arg     TODO
 
  @Return        OK on success; error code, otherwise.
-*//***************************************************************************/    
+*//***************************************************************************/
 int dpni_drv_register_rx_cb (uint16_t     	ni_id,
                              uint16_t     	flow_id,
                              rx_cb_t      	*cb,
@@ -116,20 +119,20 @@ int dpni_drv_register_rx_cb (uint16_t     	ni_id,
  @Return        OK on success; error code, otherwise.
 		For error codes refer to \ref FDMA_ENQUEUE_FRAME_ERRORS
 		and \ref DPNI_DRV_STATUS.
-*//***************************************************************************/    
+*//***************************************************************************/
 int dpni_drv_send (uint16_t ni_id);
 
 /**************************************************************************//**
- @Function     dpni_get_num_of_ni 
+ @Function     dpni_get_num_of_ni
 
  @Description   Returns the number of NI_ISs in the system.  Called by the AIOP
                 applications to learn the maximum number of available network
-	       	interfaces.  
+	       	interfaces.
 
  @Param[in]    none
 
  @Return       Number of NI_IDs in the system
-*//***************************************************************************/    
+*//***************************************************************************/
 int dpni_get_num_of_ni (void);
 
 /** @} */ /* end of dpni_drv_g group */
