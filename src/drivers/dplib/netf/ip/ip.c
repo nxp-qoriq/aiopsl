@@ -70,7 +70,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				cksum_update_uint16(
 				    &inner_ipv4_ptr->hdr_cksum,
 				    old_field,
-				    *((uint16_t *)inner_ipv4_ptr+4));
+				    *((uint16_t *)inner_ipv4_ptr));
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
 					old_field =
@@ -110,9 +110,11 @@ int32_t ip_header_decapsulation(uint8_t flags)
 					cksum_update_uint16(
 					    &inner_ipv4_ptr->hdr_cksum,
 					    old_field,
-					    *((uint16_t *)inner_ipv4_ptr+4));
+					    *((uint16_t *)inner_ipv4_ptr));
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
+					old_field =
+						*((uint16_t *)inner_ipv4_ptr+4);
 					inner_ipv4_ptr->ttl =
 						outer_ipv6_ptr->hop_limit;
 					/* Update IP CS for TTL changes. */
