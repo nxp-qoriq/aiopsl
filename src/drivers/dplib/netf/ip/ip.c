@@ -297,9 +297,6 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 			ipv4hdr_ptr->dst_addr = ip_dst_addr;
 		}
 
-		/* update IP checksum */
-//		ipv4_cksum_calculate(ipv4hdr_ptr);
-
 		/* update UDP/TCP checksum */
 		if (l4_update) {
 			udp_tcp_offset = PARSER_GET_L4_OFFSET_DEFAULT();
@@ -494,7 +491,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 }
 
 int32_t ipv4_header_encapsulation(uint8_t flags,
-		struct ipv4hdr *ipv4_header_ptr, uint8_t ipv4_header_size)
+								  void *ipv4header, uint8_t ipv4_header_size)
 {
 	struct ipv4hdr *inner_ipv4hdr_ptr;
 	struct ipv4hdr *outer_ipv4hdr_ptr;
@@ -513,6 +510,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
+	struct ipv4hdr *ipv4_header_ptr = ipv4header;
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* Reset IP checksum for re-calculation by FDMA */
@@ -684,7 +682,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 }
 
 int32_t ipv6_header_encapsulation(uint8_t flags,
-		struct ipv6hdr *ipv6_header_ptr, uint8_t ipv6_header_size)
+								void *ipv6header, uint8_t ipv6_header_size)
 {
 	struct ipv4hdr *inner_ipv4hdr_ptr;
 	struct ipv6hdr *inner_ipv6hdr_ptr;
@@ -701,6 +699,8 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
+	struct   ipv6hdr * ipv6_header_ptr = ipv6header;
+	
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		
