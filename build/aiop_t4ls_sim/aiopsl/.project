@@ -275,6 +275,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dprc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/netf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -318,6 +323,16 @@
 			<name>aiop_sl/drivers/dplib/dpni/dpni_drv.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dprc/dprc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dprc/dprc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/ip</name>

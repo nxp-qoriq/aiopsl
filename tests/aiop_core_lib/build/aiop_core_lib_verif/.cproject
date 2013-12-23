@@ -31,6 +31,8 @@
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf" value="com.freescale.ppc.toolchain.sharedoption.dwarf.2" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.911198810" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor" value="com.freescale.ppc.toolchain.sharedoption.processor.zen" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.1122761859" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym" value="true" valueType="boolean"/>
+							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.374522741" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="0" valueType="string"/>
+							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.326855268" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.694405016" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
 							<builder buildPath="${ProjDirPath}/RAM" id="com.freescale.ppc.toolchain.builder.441436400" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
 							<tool id="com.freescale.ppc.toolchain.linker.1401545175" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker">

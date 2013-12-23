@@ -70,7 +70,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 				cksum_update_uint16(
 				    &inner_ipv4_ptr->hdr_cksum,
 				    old_field,
-				    *((uint16_t *)inner_ipv4_ptr+4));
+				    *((uint16_t *)inner_ipv4_ptr));
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
 					old_field =
@@ -110,9 +110,11 @@ int32_t ip_header_decapsulation(uint8_t flags)
 					cksum_update_uint16(
 					    &inner_ipv4_ptr->hdr_cksum,
 					    old_field,
-					    *((uint16_t *)inner_ipv4_ptr+4));
+					    *((uint16_t *)inner_ipv4_ptr));
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
+					old_field =
+						*((uint16_t *)inner_ipv4_ptr+4);
 					inner_ipv4_ptr->ttl =
 						outer_ipv6_ptr->hop_limit;
 					/* Update IP CS for TTL changes. */
@@ -427,6 +429,10 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 					*((((long long *)ip_dst_addr)+1));
 		}
 
+		/* Update changes in FDMA */
+		fdma_modify_default_segment_data(ipv6hdr_offset,
+					     	 	 	 	 40);
+
 		/* Update L4 checksum if needed */
 		if (l4_update) {
 			udp_tcp_offset = PARSER_GET_L4_OFFSET_DEFAULT();
@@ -437,20 +443,16 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 
 				if (udphdr_ptr->checksum != 0) {
 					/* Add checksum on old IPsrc+Ip dst */
-					l4_checksum =
-						cksum_ones_complement_sum16(
-								l4_checksum,
-						(uint16_t)udphdr_ptr->checksum);
+					l4_checksum = cksum_ones_complement_sum16(l4_checksum,
+												(uint16_t)udphdr_ptr->checksum);
 				/* Calculate checksum on new IP src + IP dst */
 					fdma_calculate_default_frame_checksum(
-							      ipv6hdr_offset+8,
-							      32,
-							      &checksum);
+							      	  	  	  	  	  	  ipv6hdr_offset+8,
+							      	  	  	  	  	  	  32,
+							      	  	  	  	  	  	  &checksum);
 				/* Substract checksum of new IP src+IP dst */
-					l4_checksum =
-						cksum_ones_complement_sum16(
-							l4_checksum,
-							(uint16_t)~checksum);
+					l4_checksum = cksum_ones_complement_sum16(l4_checksum,
+														   (uint16_t)~checksum);
 					udphdr_ptr->checksum = l4_checksum;
 
 				/* Update FDMA with recalculated UDP checksum */
@@ -483,8 +485,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 							     udp_tcp_offset+16,
 							     2);
 			}
-		}
-
+		} 
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
@@ -549,7 +550,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT |
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv4_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
@@ -639,7 +640,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv4_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
@@ -751,7 +752,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv6_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
@@ -783,6 +784,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		return SUCCESS;
 
 	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
+		
 		inner_ipv6_offset =
 				 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		inner_ipv6hdr_ptr = (struct ipv6hdr *)
@@ -811,7 +813,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 				inner_ipv6hdr_ptr->payload_length +
 					(uint16_t) ipv6_header_size - 40;
 
-		if ((prc->seg_address - TLS_SECTION_END_ADDR) >=
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv6_header_size) {
 			/* there is enough room in the head room */
 			fdma_insert_default_segment_data(
@@ -969,6 +971,5 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 	return SUCCESS;
 	} else {
 		return NO_IP_HDR_ERROR; }
-
-
+	
 }

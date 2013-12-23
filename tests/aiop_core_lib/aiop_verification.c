@@ -76,6 +76,11 @@ void aiop_verification()
 			str_size = aiop_verification_hm(asa_seg_addr);
 			break;
 		}
+		case VPOOL_ACCEL_ID:
+		{
+			str_size = verification_virtual_pools(asa_seg_addr);
+			break;
+		}
 		case AIOP_TERMINATE_FLOW_CMD:
 		default:
 		{

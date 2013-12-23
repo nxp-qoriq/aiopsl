@@ -11,15 +11,16 @@ extern int dpni_drv_init(void);extern void dpni_drv_free(void);
 extern void build_apps_array(struct sys_module_desc *apps);
 
 
-#define MEMORY_INFO                                                                                        \
-{   /* Region ID                Memory partition ID          Phys. Addr.    Virt. Addr.  Size            */\
-    {PLTFRM_MEM_RGN_WS,         E_MEM_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_IRAM,       E_MEM_INVALID,               0x00fe0000,    0x00fe0000, (128 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_SHRAM,      E_MEM_INT_RAM,               0x01000000,    0x01000000, (256 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_MC_PORTALS, E_MEM_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
-    {PLTFRM_MEM_RGN_AIOP,       E_MEM_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_CCSR,       E_MEM_INVALID,               0x08000000,    0x0c000000, (384 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_DDR1,       E_MEM_1ST_DDR_NON_CACHEABLE, 0x58000000,    0x58000000, (128 * MEGABYTE) },\
+#define MEMORY_INFO                                                                                           \
+{   /* Region ID                Memory partition ID             Phys. Addr.    Virt. Addr.  Size            */\
+    {PLTFRM_MEM_RGN_WS,         MEM_PART_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_IRAM,       MEM_PART_INVALID,               0x00fe0000,    0x00fe0000, (128 * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (384 * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01000400,    0x01000400, (255 * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_DDR1,       MEM_PART_1ST_DDR_NON_CACHEABLE, 0x58000000,    0x58000000, (128 * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x80000000,    0x80000000, (2 * MEGABYTE)   },\
 }
 
 #define GLOBAL_MODULES                  \
@@ -62,7 +63,7 @@ int fill_system_parameters(t_sys_param *sys_param)
 
     sys_param->platform_param->clock_in_freq_hz = 100000000;
     sys_param->platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
-    sys_param->platform_param->console_type = E_PLATFORM_CONSOLE_NONE;
+    sys_param->platform_param->console_type = PLTFRM_CONSOLE_NONE;
     sys_param->platform_param->console_id = 0;
     memcpy(sys_param->platform_param->mem_info,
            mem_info,
@@ -103,7 +104,7 @@ int run_apps(void)
 
     memset(apps, 0, sizeof(apps));
     build_apps_array(apps);
-    
+
     for (i=0; i<MAX_NUM_OF_APPS; i++)
         if (apps[i].init)
             apps[i].init();
