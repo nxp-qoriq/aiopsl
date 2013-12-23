@@ -44,7 +44,8 @@ enum ctlu_verif_cmd_type {
 	CTLU_KCR_QUERY_VERIF_CMDTYPE,
 	CTLU_GEN_KEY_VERIF_CMDTYPE,
 	CTLU_GEN_HASH_VERIF_CMDTYPE,
-	CTLU_TABLE_QUERY_DEBUG_VERIF_CMDTYPE
+	CTLU_TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
+	CTLU_KEY_ID_POOL_CREATE_VERIF_CMDTYPE
 };
 
 /* CTLU Commands Structure identifiers */
@@ -158,6 +159,10 @@ enum ctlu_verif_cmd_type {
 /*!< Table Query Debug Command Structure identifier */
 #define CTLU_TABLE_QUERY_DEBUG_CMD_STR	((CTLU_ACCEL_ID << 16) | \
 				CTLU_TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
+
+/*!< Create Key ID Pool Command Structure identifier */
+#define CTLU_KEY_ID_POOL_CREATE_CMD_STR  ((CTLU_ACCEL_ID << 16) | \
+				CTLU_KEY_ID_POOL_CREATE_VERIF_CMDTYPE)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -787,6 +792,16 @@ struct ctlu_table_query_debug_command{
 	uint8_t	pad[2];			/*!< 64-bit alignment */
 };
 
+/**************************************************************************//**
+@Description	Key ID Pool Create Command structure.
+
+		Includes information needed for Create Key ID pool Command
+		verification.
+*//***************************************************************************/
+struct ctlu_key_id_pool_create_verif_command {
+	uint32_t opcode;
+	int32_t  status;
+};
 
 /** @} */ /* end of AIOP_CTLU_SRs_Verification */
 
