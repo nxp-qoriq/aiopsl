@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.freescale.cdt.launch.cw.download">
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSExeName" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="vlnx01-zil"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="40969"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbsc146"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="11111"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSTimeOut" value="60"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.JTAGConfigFile" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.chainSpeedTCK" value="12500"/>

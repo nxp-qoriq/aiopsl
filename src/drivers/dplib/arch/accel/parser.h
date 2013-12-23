@@ -9,6 +9,9 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
+#include "common/types.h"
+#include "dplib/fsl_parser.h"
+
 
 /**************************************************************************//**
 @Group		PARSER AIOP_Parser Internal

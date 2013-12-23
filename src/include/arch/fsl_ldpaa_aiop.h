@@ -17,6 +17,15 @@
  @{
  *//***************************************************************************/
 
+/** FD FLC running sum */
+#define FD_FLC_RUNNING_SUM	FD_FLC_DS_AS_CS_OFFSET + 2
+	/** FD APP Index offset for DPNI driver */
+#define FD_FLC_APPIDX_OFFSET	FD_FLC_DS_AS_CS_OFFSET + 1
+
+/* TODO - FRC error code definitions */
+#define FD_FRC_ERROR_MASK          0x00ff0000
+#define FD_FRC_DPNI_MTU_ERROR_CODE 0x00010000
+
 /**************************************************************************//**
  @Collection    LDPAA FD GETTER/SETTER MACROs
 

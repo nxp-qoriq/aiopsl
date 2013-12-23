@@ -27,7 +27,7 @@ int32_t l4_udp_header_modification(uint8_t flags,
 	udp_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 	udp_ptr = (struct udphdr *)(udp_offset + PRC_GET_SEGMENT_ADDRESS());
 	old_header = *(uint32_t *)udp_ptr;
-	if (~PARSER_IS_UDP_DEFAULT())
+	if (!PARSER_IS_UDP_DEFAULT())
 		return NO_UDP_FOUND_ERROR;
 	PARSER_CLEAR_RUNNING_SUM();
 	if (flags & L4_UDP_MODIFY_MODE_UDPSRC)
@@ -60,7 +60,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 	tcp_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 	tcp_ptr = (struct tcphdr *)(tcp_offset + PRC_GET_SEGMENT_ADDRESS());
 	option_size = TCP_NO_OPTION_SIZE;
-	if (~PARSER_IS_TCP_DEFAULT())
+	if (!PARSER_IS_TCP_DEFAULT())
 		return NO_TCP_FOUND_ERROR;
 	PARSER_CLEAR_RUNNING_SUM();
 
@@ -96,7 +96,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 					tcp_ptr->acknowledgment_number);
 		}
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
-			if (PARSER_IS_TCP_OPTIONS_DEFAULT())
+			if (!PARSER_IS_TCP_OPTIONS_DEFAULT())
 				return NO_TCP_MSS_FOUND_ERROR;
 			options_ptr = (uint8_t *)tcp_ptr;
 			mss_found = 0;
@@ -138,7 +138,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 			tcp_ptr->acknowledgment_number += tcp_ack_num_delta;
 
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
-			if (PARSER_IS_TCP_OPTIONS_DEFAULT()) {
+			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
 				fdma_modify_default_segment_data(tcp_offset,
 						option_size);
 				return NO_TCP_MSS_FOUND_ERROR;

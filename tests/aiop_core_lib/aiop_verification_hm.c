@@ -5,15 +5,19 @@
 *//***************************************************************************/
 
 #include "general.h"
+#include "net/fsl_net.h"
+#include "dplib/fsl_ip.h"
+#include "dplib/fsl_l2.h"
+#include "dplib/fsl_l4.h"
+#include "dplib/fsl_nat.h"
+#include "dplib/fsl_parser.h"
+
+/* TODO - get rid of this! */
+#include "../arch/accel/system.h"
+
 #include "aiop_verification.h"
 #include "aiop_verification_hm.h"
-#include "fsl_ip.h"
-#include "fsl_l2.h"
-#include "fsl_l4.h"
-#include "fsl_nat.h"
-#include "fsl_general_errors.h"
-#include "fsl_parser.h"
-#include "system.h"
+
 
 struct parse_profile_record verif_parse_profile;
 
@@ -57,7 +61,7 @@ void aiop_hm_init_parser()
 	/* Assuming no soft examination parameters */
 	for(i=0; i<16; i++)
 		verif_parse_profile.soft_examination_param_array[i] = 0x0;
-	sys_ctlu_prpid_pool_create(PARSER_INIT_BPID,PARSER_INIT_BUFF_SIZE);
+	sys_ctlu_prpid_pool_create();
 	/* Create the parse_profile and get an id */
 	parser_profile_create(&verif_parse_profile, &prpid);
 	default_task_params.parser_profile_id = prpid;
@@ -87,8 +91,6 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		/* HM L2 header remove Command Verification */
 		case HM_L2_HEADER_REMOVE_CMD_STR:
 		{
-			struct hm_l2_header_remove_command *str =
-			(struct hm_l2_header_remove_command *) asa_seg_addr;
 			l2_header_remove();
 			str_size = sizeof(struct hm_l2_header_remove_command);
 			break;

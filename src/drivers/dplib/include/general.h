@@ -46,9 +46,6 @@
 /* Address of end of TLS section */
 #define TLS_SECTION_END_ADDR	0x1f40
 
-/** Global task params */
-extern __TASK struct aiop_default_task_params default_task_params;
-
 /** @} */ /* end of AIOP_GENERAL_MACROS */
 
 
@@ -102,6 +99,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define GSO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x04000000)
 /** TCP GRO module ID */
 #define GRO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x05000000)
+/** DPNI driver module ID */
+#define DPNI_DRV_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x06000000)
 
 /** @} */ /* end of AIOP_Return_Status */
 
@@ -481,6 +480,8 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
+	/** parser accelerator status */
+	int32_t parser_status;
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 

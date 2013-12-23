@@ -8,6 +8,7 @@
 #include "aiop_verification.h"
 #include "aiop_verification_ctlu.h"
 
+
 uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
@@ -53,7 +54,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			str->status = ctlu_table_get_params(str->table_id,
 			&str->table_get_params_out);
 
-			str_size = sizeof(struct ctlu_update_miss_rule_command);
+			str_size = sizeof(struct ctlu_table_get_params_command);
 			break;
 		}
 

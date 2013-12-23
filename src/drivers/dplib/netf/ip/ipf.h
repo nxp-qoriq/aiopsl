@@ -43,14 +43,20 @@ struct ipf_context {
 	 * In case \ref IPF_RESTORE_ORIGINAL_FRAGMENTS flag is set, this
 	 * parameter is ignored. */
 	uint16_t mtu;
-	/** Fragment index */
+	/** MTU payload length */
+	uint16_t mtu_payload_length; 
+	/** Split size */
+	uint16_t split_size;
+	/** Fragment index (for SF mode) */
 	uint16_t frag_index;
+	/** Fragment Header Offset array (for SF mode) */
+	uint16_t frag_header_offset[16];
+	/** Previous Fragment Offset */
+	uint16_t prev_frag_offset;
 	/** Remaining frame handle*/
 	uint8_t rem_frame_handle;
 	/** First fragment indication */
 	uint8_t	first_frag;
-	/** Padding */
-	uint8_t  pad[2];
 };
 
 /** @} */ /* end of IPF_INTERNAL_STRUCTS */
