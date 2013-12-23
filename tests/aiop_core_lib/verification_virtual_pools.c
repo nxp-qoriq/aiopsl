@@ -48,6 +48,15 @@
 struct virtual_pool_desc virtual_pools[MAX_VIRTUAL_POOLS_NUM];
 struct callback_s callback_functions[MAX_VIRTUAL_POOLS_NUM];
 
+int callback_counter = 0;
+
+int32_t dummy_callback (uint64_t context_address)
+{
+	uint64_t dummy_addr = context_address;
+	callback_counter++;
+	return callback_counter;
+}
+
 uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
@@ -118,7 +127,9 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 					str->max_bufs,
 					str->committed_bufs,
 					str->flags,
-					(int32_t (*)(uint64_t))str->callback_func,
+					//(int32_t (*)(uint64_t))str->callback_func,
+					(int32_t (*)(uint64_t))(&dummy_callback),
+					
 					((uint32_t *)str->virtual_pool_id_ptr)
 					);
 			str_size = sizeof(struct vpool_create_pool_cmd);
