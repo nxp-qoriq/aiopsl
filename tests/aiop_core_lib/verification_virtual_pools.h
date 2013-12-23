@@ -314,6 +314,8 @@ struct vpool_add_total_bman_bufs_cmd {
 
 /** @}*/ /* end of Service_Routines_Verification */
 
+int32_t dummy_callback (uint64_t context_address);
+
 uint16_t verification_virtual_pools(uint32_t asa_seg_addr);
 
 #endif /* __VERIFICATION_VIRTUAL_POOLS_H_ */
