@@ -33,9 +33,26 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Description	TCP GRO Last Segment Header Fields.
+*//***************************************************************************/
+/* TCP GRO Last Segment Header Fields which needed to be updated in the 
+ * aggregated packet. */
+
+struct tcp_gro_last_seg_header_fields {
+		/** Acknowledgment number. */
+	uint32_t acknowledgment_number;
+		/** Data offset, reserved fields. */
+	uint8_t  data_offset_reserved;
+		/** TCP control bits */
+	uint8_t  flags;
+		/** Window size */
+	uint16_t window_size;
+};
+
+/**************************************************************************//**
 @Description	TCP GRO Internal Context.
 *//***************************************************************************/
-/* Currently the struct size is 120 bytes.
+/* Currently the struct size is 128 bytes.
  * The fixed definition size is 128 bytes.
  * In case additional fields are added to the struct we can either:
  * Modify the fixed size
@@ -51,6 +68,9 @@ struct tcp_gro_context {
 	struct ldpaa_fd agg_fd;
 		/** Aggregated packet metadata  */
 	struct tcp_gro_context_metadata metadata;
+		/** Last Segment header fields which we need to update in the 
+		 * aggregated packet. */
+	struct tcp_gro_last_seg_header_fields last_seg_fields;
 		/** Next expected sequence number. */
 	uint32_t next_seq;
 		/** Last received acknowledgment number. */
