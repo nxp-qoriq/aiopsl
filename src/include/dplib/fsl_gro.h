@@ -73,15 +73,15 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 #define TCP_GRO_NO_FLAGS				0x00000000
 	/** If set, tcp_gro_aggregate_seg() is called for the first time for
 	 * this session . */
-#define TCP_GRO_NEW_SESSION				0x00000001
+/*#define TCP_GRO_NEW_SESSION				0x00000001*/
 	/** If set, extended statistics is enabled.	*/
-#define TCP_GRO_EXTENDED_STATS_EN		0x00000002
+#define TCP_GRO_EXTENDED_STATS_EN			0x00000002
 	/** If set, save the segment sizes in the metadata. */
-#define TCP_GRO_METADATA_SEGMENT_SIZES	0x00000004
+#define TCP_GRO_METADATA_SEGMENT_SIZES			0x00000004
 	/** If set, calculate TCP checksum. */
-#define TCP_GRO_CALCULATE_TCP_CHECKSUM	0x00000008
+#define TCP_GRO_CALCULATE_TCP_CHECKSUM			0x00000008
 	/** If set, calculate IP checksum. */
-#define TCP_GRO_CALCULATE_IP_CHECKSUM	0x00000010
+#define TCP_GRO_CALCULATE_IP_CHECKSUM			0x00000010
 
 
 /** @} */ /* end of TCP_GRO_AGG_FLAGS */
@@ -103,6 +103,13 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(GRO_MODULE_STATUS_ID | 0x3)
+	/** Aggregation process cannot continue since Represented segment
+	 * size < headers size. */
+#define	TCP_GRO_SEG_AGG_STATUS_HEADERS_SIZE_BIGGER_THAN_SEGMENT_SIZE	\
+					(GRO_MODULE_STATUS_ID | 0x4)
+	/** Agregation process cannot continue since the packet size > 64KB. */
+#define TCP_GRO_SEG_AGG_STATUS_SIZE_BIGGER_THAN_64KB			\
+					(GRO_MODULE_STATUS_ID | 0x5)
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
@@ -164,7 +171,8 @@ struct tcp_gro_stats_cntrs {
 struct tcp_gro_context_metadata {
 		/** Address (in HW buffers) of the segment sizes. This field
 		 * will be updated if \ref TCP_GRO_METADATA_SEGMENT_SIZES is
-		 * set. */
+		 * set. For each segment, upper SW should allocate 2 bytes (to 
+		 * support up to 64KB length segments). */
 	uint64_t seg_sizes_addr;
 		/** Number of segments in the aggregation. */
 	uint16_t seg_num;
@@ -182,7 +190,8 @@ struct gro_context_limits {
 	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit. */
 	uint16_t packet_size_limit;
-		/** Maximum aggregated segments per packet limit. */
+		/** Maximum aggregated segments per packet limit. 
+		 * 0 is an illegal value and will be treated as 1. */
 	uint8_t	seg_num_limit;
 		/** Padding */
 	uint8_t	pad[3];
@@ -216,7 +225,7 @@ struct tcp_gro_context_params {
 		/** Aggregated packet limits. */
 	struct gro_context_limits limits;
 		/** Address (in HW buffers) of the TCP GRO aggregation metadata
-		 * (\ref tcp_gro_context_metadata).*/
+		 * (\ref tcp_gro_context_metadata). */
 	uint64_t metadata;	
 		/** Address (in HW buffers) of the TCP GRO statistics counters
 		 *  (\ref tcp_gro_stats_cntrs). 
@@ -248,7 +257,8 @@ struct tcp_gro_context_params {
 		in the default frame location in workspace.
 
 @Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
-		internal context. The user should allocate \ref tcp_gro_ctx_t in
+		internal context. 
+		The user should allocate \ref tcp_gro_ctx_t in
 		this address.
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	flags - Please refer to \ref TCP_GRO_AGG_FLAGS.
@@ -257,7 +267,8 @@ struct tcp_gro_context_params {
 		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
 		\ref TMANReturnStatus for more details.
 
-@Cautions	None.
+@Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
+		a new session begins.
 *//***************************************************************************/
 int32_t tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,

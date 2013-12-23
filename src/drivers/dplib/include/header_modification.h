@@ -93,8 +93,8 @@ inline void cksum_update_uint32(register uint16_t *cs_ptr,
 		register uint32_t old_val,
 		register uint32_t new_val)
 {
-	register uint8_t temp1;
-	register uint8_t temp2;
+	register temp1;
+	register temp2;
 	asm{
 		se_lhz	temp1, 0(cs_ptr)	/* Load CS */
 		nor	new_val, new_val, new_val/* One's complement of the new
@@ -121,7 +121,7 @@ inline uint16_t cksum_accumulative_update_uint32(register uint16_t cksum,
 		register uint32_t old_val,
 		register uint32_t new_val)
 {
-	register uint8_t temp2;
+	register temp2;
 	asm{
 		nor	new_val, new_val, new_val/* One's complement of the new
 						value. Pipeline optimization */
@@ -138,7 +138,7 @@ inline uint16_t cksum_accumulative_update_uint32(register uint16_t cksum,
 		se_srwi	temp2, 16		/* Isolate only the high 2B of
 						the previous addition */
 	}
-	return temp2;
+	return (uint16_t) temp2;
 }
 
 

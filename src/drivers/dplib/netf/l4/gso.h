@@ -53,7 +53,7 @@ struct tcp_gso_context {
 	/** First Segment indication */
 	uint8_t	first_seg;
 	/** Padding */
-	uint8_t	pad[4];
+	/*uint8_t	pad[4];*/
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */

@@ -7,6 +7,7 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_parser.h"
+#include "system.h"
 
 #include "aiop_verification.h"
 #include "aiop_verification_parser.h"
@@ -78,6 +79,16 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 							 gpre->flags);
 		str_size =
 			sizeof(struct parser_gen_parser_res_exp_verif_command);
+		break;
+	}
+	case PARSER_PRP_ID_POOL_CREATE_STR:
+	{
+		struct parser_prp_id_pool_create_verif_command *pipc =
+			(struct parser_prp_id_pool_create_verif_command*)
+			asa_seg_addr;
+		pipc->status = sys_ctlu_prpid_pool_create();
+		str_size =
+			sizeof(struct parser_prp_id_pool_create_verif_command);
 		break;
 	}
 	default:
