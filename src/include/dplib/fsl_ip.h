@@ -258,7 +258,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 							segment address.
 
 
-@Param[in]	ipv4_header_ptr - Points to the new outer IPv4 header be
+@Param[in]	ipv4header - Points to the new outer IPv4 header be
 		inserted (in workspace memory).
 @Param[in]	ipv4_header_size - Size (in bytes) of the new outer IPv4 header.
 
@@ -273,7 +273,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 
 *//***************************************************************************/
 int32_t ipv4_header_encapsulation(uint8_t flags,
-		struct ipv4hdr *ipv4_header_ptr, uint8_t ipv4_header_size);
+								  void *ipv4header, uint8_t ipv4_header_size);
 
 
 /*************************************************************************//**
@@ -298,7 +298,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 							segment address.
 
 
-@Param[in]	ipv6_header_ptr - Points to the new outer IPv6 header to be
+@Param[in]	ipv6header - Points to the new outer IPv6 header to be
 		inserted (in workspace).
 @Param[in]	ipv6_header_size - Size (in bytes) of the new outer IPv6 header.
 
@@ -313,7 +313,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 
 *//***************************************************************************/
 int32_t ipv6_header_encapsulation(uint8_t flags,
-		struct ipv6hdr *ipv6_header_ptr, uint8_t ipv6_header_size);
+								  void *ipv6header, uint8_t ipv6_header_size);
 
 /*************************************************************************//**
 @Function	ip_header_decapsulation
