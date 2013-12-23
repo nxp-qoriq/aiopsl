@@ -20,9 +20,9 @@ static int init_nic(int portal_id)
 	dpni_defconfig(&cfg);
 
 	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-																   (uint32_t)portal_id,
-																   E_MAPPED_MEM_TYPE_MC_PORTAL)),
-								 10);
+								       (uint32_t)portal_id,
+								       E_MAPPED_MEM_TYPE_MC_PORTAL)),
+			 10);
 
 	memset(&params, 0, sizeof(params));
 	params.type = DPNI_TYPE_NIC;

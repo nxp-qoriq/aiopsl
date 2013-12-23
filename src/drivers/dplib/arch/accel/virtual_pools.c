@@ -152,11 +152,15 @@ int32_t vpool_read_pool(uint32_t virtual_pool_id,
 		uint32_t *flags,
 		int32_t *callback_func)
 
+
 {
 	
+	struct callback_s *callback;
+			
 	// TODO: remove this if moving to handle
 	struct virtual_pool_desc *virtual_pool = 
 			(struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct;
+	
 	virtual_pool += virtual_pool_id;
 	
 	*max_bufs = virtual_pool->max_bufs;
@@ -165,7 +169,16 @@ int32_t vpool_read_pool(uint32_t virtual_pool_id,
 	*bman_pool_id = virtual_bman_pools[virtual_pool->bman_array_index].bman_pool_id;
 	
 	*flags =	(uint8_t)virtual_pool->flags;
-	*callback_func = 0; // TODO: need to check if callback exists and return it
+
+	/* Check if callback exists and return its address (can be null) */
+	if (virtual_pools_root.callback_func_struct != NULL) {
+		callback = 
+				(struct callback_s *)virtual_pools_root.callback_func_struct;
+		callback += virtual_pool_id;
+		*callback_func = (int32_t)callback->callback_func;
+	} else {
+		*callback_func = 0;
+	}
 	
 	return VIRTUAL_POOLS_SUCCESS;	
 } /* End of vpool_read_pool */
@@ -183,14 +196,11 @@ int32_t vpool_init(
 	
 	struct virtual_pool_desc *virtual_pool;
 
-	/* flags[0] = 0 indicates Shared RAM */  
-	if (!(flags & 0x1)) {
-		/* Mask when down-casting, if address is in Shared RAM (32 bit) */
-		virtual_pool = 
-				(struct virtual_pool_desc *)(virtual_pool_struct & 0xFFFFFFFF);
-	} else {
-		virtual_pool = (struct virtual_pool_desc *)virtual_pool_struct;
-	}
+	/* Mask when down-casting.
+	 *  Currently the address is only in Shared RAM (32 bit) 
+	*/
+	virtual_pool = 
+			(struct virtual_pool_desc *)(virtual_pool_struct & 0xFFFFFFFF);
 	
 	virtual_pools_root.virtual_pool_struct = virtual_pool_struct;
 	virtual_pools_root.callback_func_struct = callback_func_struct;
@@ -334,9 +344,11 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 			if (allocate == 2) /* only if it was allocated from the remaining area */ 
 				aiop_atomic_incr32(&virtual_bman_pools[virtual_pool->
 				                               bman_array_index].remaining, 1);
+			return (VIRTUAL_POOLS_CDMA_ERR | return_val);
 		}
+		
+		return VIRTUAL_POOLS_SUCCESS;
 	
-		return (VIRTUAL_POOLS_CDMA_ERR | return_val);
 	} else {
 		unlock_spinlock((uint8_t *)&virtual_pool->spinlock);
 		return VIRTUAL_POOLS_BUF_ALLOC_FAIL;
@@ -358,8 +370,9 @@ int32_t vpool_release_buf(uint32_t virtual_pool_id,
 	
 	if (!cdma_status) {
 		return_val = __vpool_internal_release_buf(virtual_pool_id); 
-		return return_val | cdma_status; /* Keep original CDMA return value */
+		return return_val; 
 	} else {
+		/* Keep original CDMA return value */
 		return VIRTUAL_POOLS_BUF_NOT_RELEASED | cdma_status; 
 	}
 		
@@ -392,16 +405,27 @@ int32_t __vpool_internal_release_buf(uint32_t virtual_pool_id)
 	return VIRTUAL_POOLS_SUCCESS;
 } /* End of __vpool_internal_release_buf */
 
+
+/***************************************************************************
+ * vpool_refcount_increment
+ ***************************************************************************/
+int32_t vpool_refcount_increment(uint64_t context_address)
+{
+	return cdma_refcount_increment(context_address);
+}
+
 /***************************************************************************
  * vpool_decr_ref_counter
  ***************************************************************************/
-int32_t vpool_refcount_decrement_and_release(uint32_t virtual_pool_id,
-		uint64_t context_address)
+int32_t vpool_refcount_decrement_and_release(
+		uint32_t virtual_pool_id,
+		uint64_t context_address,
+		int32_t *callback_status)
 {
 	int32_t return_val;
 	int32_t cdma_status;
-	int32_t callback_status = 0;
 	int32_t release = FALSE;
+	struct callback_s *callback; 
 
 	/* cdma_refcount_decrement_and_release: 
 	 *	This routine decrements reference count of Context memory
@@ -415,18 +439,19 @@ int32_t vpool_refcount_decrement_and_release(uint32_t virtual_pool_id,
 	// It can probably not be in a separate structure, since only 
 	// vpool_id is given. 
 	
-	struct callback_s *callback = 
-			(struct callback_s *)virtual_pools_root.callback_func_struct;
-	
+	*callback_status = 0;
+			
 	/* Check if a callback structure and function exist */
 	if (virtual_pools_root.callback_func_struct != NULL) {
+		callback = 
+				(struct callback_s *)virtual_pools_root.callback_func_struct;
 		callback += virtual_pool_id;
 		if (callback->callback_func != NULL) {
 			/* Decrement ref counter without release */
 			cdma_status = cdma_refcount_decrement(context_address);
 			if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
 				/* Call the callback function */
-				callback_status = callback->callback_func(context_address);
+				*callback_status = callback->callback_func(context_address);
 				/* Release the buffer */
 				cdma_status = cdma_release_context_memory(context_address);
 				if (!cdma_status) {
@@ -447,11 +472,11 @@ int32_t vpool_refcount_decrement_and_release(uint32_t virtual_pool_id,
 	
 	if (release) {
 		return_val = __vpool_internal_release_buf(virtual_pool_id);
-		return return_val | callback_status;
+		return return_val;
 	} else {
 		/* Keep CDMA return value in case of error */
-		return VIRTUAL_POOLS_BUF_NOT_RELEASED | cdma_status | callback_status; 
-	}	
+		return VIRTUAL_POOLS_BUF_NOT_RELEASED | cdma_status; 
+	}
 } /* End of vpool_refcount_decrement_and_release */
 
 

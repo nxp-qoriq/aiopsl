@@ -53,6 +53,7 @@ struct virtual_pools_root_desc {
 		uint32_t num_of_virtual_pools;
 		uint32_t flags;
 		uint32_t global_spinlock; 
+		uint32_t reserved;
 };
 
 /**************************************************************************//**
@@ -246,7 +247,8 @@ int32_t vpool_refcount_increment(
 *//***************************************************************************/
 int32_t vpool_refcount_decrement_and_release(
 		uint32_t virtual_pool_id, 
-		uint64_t context_address
+		uint64_t context_address,
+		int32_t *callback_status
 		);
 
 /*************************************************************************//**

@@ -5,10 +5,48 @@
 				SW Verification functions call
 				
 *//***************************************************************************/
+/* Virtual Pools Usage Flow Example */
+/*
+ * VPOOL_INIT_CMD - initialize global structures. 
+ *							Supply the max number of pools
+ *							Run this command only once.
+ *							
+ * VPOOL_INIT_TOTAL_BMAN_BUFS_CMD - initialize structures with BMAN pools parameters 
+ * 							Run this command for every BMAN pool ID used
+ * 							
+ * VPOOL_CREATE_POOL_CMD - initialize a virtual pool
+ * 							Supply a Workspace address that will be updated with the virtual_pool ID. 
+ * 							Supply virtual pool parameters (committed, max, bman ID, etc.)
+ * 							Run this command for every virtual pool used
+ * 							
+ * VPOOL_ALLOCATE_BUF_CMD - allocate a context buffer
+ * 							Supply a Workspace address that holds a valid virtual_pool ID
+ * 							(allocated by VPOOL_CREATE_POOL_CMD)
+ * 							Supply a Workspace address that will be updated with buffer address. 
+ * 							Run this command for every buffer allocated 
+ * 							 							 								
+ * VPOOL_REFCOUNT_INCREMENT_CMD - increment the reference counter of a context buffer
+ * 							Supply a Workspace address that holds a valid buffer address.
+ * 							(allocated by VPOOL_ALLOCATE_BUF_CMD)
+ * 							 
+ * VPOOL_REFCOUNT_DECREMENT_AND_RELEASE_CMD - decrement reference counter and release buffer
+ * 							if reached zero.
+ * 							Supply a Workspace address that holds a valid buffer address.
+ * 							Run this command 1 + (number of times VPOOL_REFCOUNT_INCREMENT_CMD
+ * 							was called for the same buffer address) times. 
+ * 														
+ * VPOOL_RELEASE_POOL_CMD - release a virtual pool							
+ * 							Supply a Workspace address that holds a valid virtual_pool ID
+ * 							Run this command after all buffers in this virtual pool were released. 
+ * 							
+ */
 
 #include "virtual_pools.h"
 #include "aiop_verification.h"
 #include "verification_virtual_pools.h"
+
+struct virtual_pool_desc virtual_pools[MAX_VIRTUAL_POOLS_NUM];
+struct callback_s callback_functions[MAX_VIRTUAL_POOLS_NUM];
 
 uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 {
@@ -26,7 +64,7 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 			struct vpool_allocate_buf_cmd *str =
 				(struct vpool_allocate_buf_cmd *)asa_seg_addr;
 			str->status = vpool_allocate_buf(
-					str->virtual_pool_id,
+					*((uint32_t *)str->virtual_pool_id_ptr),
 					(uint64_t *)str->context_address_ptr);
 			str->context_address = *((uint64_t *)str->context_address_ptr);
 			str_size = sizeof(struct vpool_allocate_buf_cmd);
@@ -39,8 +77,8 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 			struct vpool_release_buf_cmd *str =
 				(struct vpool_release_buf_cmd *)asa_seg_addr;
 			str->status = vpool_release_buf(
-					str->virtual_pool_id,
-					str->context_address_ptr);
+					*((uint32_t *)str->virtual_pool_id_ptr),
+					*((uint64_t *)str->context_address_ptr));
 			str_size = sizeof(struct vpool_release_buf_cmd);
 			break;
 		}
@@ -51,7 +89,7 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 			struct vpool_refcount_increment_cmd *str =
 				(struct vpool_refcount_increment_cmd *)asa_seg_addr;
 			str->status = vpool_refcount_increment(
-					str->context_address_ptr);
+					*((uint64_t *)str->context_address_ptr));
 			str_size = sizeof(struct vpool_refcount_increment_cmd);
 			break;
 		}
@@ -62,8 +100,10 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 			struct vpool_refcount_decrement_and_release_cmd *str =
 				(struct vpool_refcount_decrement_and_release_cmd *)asa_seg_addr;
 			str->status = vpool_refcount_decrement_and_release(
-					str->virtual_pool_id,
-					str->context_address_ptr);
+					*((uint32_t *)str->virtual_pool_id_ptr),
+					*((uint64_t *)str->context_address_ptr),
+					(int32_t *)str->callback_status_ptr);
+
 			str_size = sizeof(struct vpool_refcount_decrement_and_release_cmd);
 			break;
 		}
@@ -79,7 +119,8 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 					str->committed_bufs,
 					str->flags,
 					(int32_t (*)(uint64_t))str->callback_func,
-					&str->virtual_pool_id);
+					((uint32_t *)str->virtual_pool_id_ptr)
+					);
 			str_size = sizeof(struct vpool_create_pool_cmd);
 			break;
 		}
@@ -89,7 +130,9 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 		{
 			struct vpool_release_pool_cmd *str =
 				(struct vpool_release_pool_cmd *)asa_seg_addr;
-			str->status = vpool_release_pool(str->virtual_pool_id);
+			str->status = vpool_release_pool(
+					*((uint32_t *)str->virtual_pool_id_ptr)
+					);
 			str_size = sizeof(struct vpool_release_pool_cmd);
 			break;
 		}
@@ -100,7 +143,7 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 			struct vpool_read_pool_cmd *str =
 				(struct vpool_read_pool_cmd *)asa_seg_addr;
 			str->status = vpool_read_pool(
-					str->virtual_pool_id,
+					*((uint32_t *)str->virtual_pool_id_ptr),
 					&str->bman_pool_id,
 					&str->max_bufs,
 					&str->committed_bufs,
@@ -115,11 +158,14 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 		/* vpool_init_cmd Command Verification */
 		case VPOOL_INIT_CMD:
 		{
+			
 			struct vpool_init_cmd *str =
 				(struct vpool_init_cmd *)asa_seg_addr;
 			str->status = vpool_init(
-					str->virtual_pool_struct,
-					str->callback_func_struct,
+					//str->virtual_pool_struct,
+					(uint64_t)virtual_pools,
+					//str->callback_func_struct,
+					(uint64_t)callback_functions,
 					str->num_of_virtual_pools,
 					str->flags
 					);
@@ -163,3 +209,9 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 
 	return str_size;
 }
+
+
+
+
+
+
