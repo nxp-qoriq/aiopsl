@@ -73,7 +73,10 @@ static int pton6(const char *src, void *dst)
         0 is returned if src does not contain a character string representing a valid network address in the specified address family. 
     */
 #if 0
-    // TODO add leading zeros support and need to define real htons()
+    /* TODO add Groups of zeroes support for example - ::1
+     * define real htons() for ARM support 
+     * add Dotted-quad notation support for example ::ffff:192.0.2.128
+     */
 #endif
     const char digits_l[] = "0123456789abcdef";    
     const char digits_u[] = "0123456789ABCDEF";

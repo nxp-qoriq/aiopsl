@@ -56,7 +56,8 @@
  @internal
  @requirements CR:ENGR00272889
  @implements   See CR's Analysis information
- @warning      POSIX used for the API, however, no full POSIX implementation is guaranteed
+ @warning      POSIX used for the API, however, no full POSIX implementation is guaranteed;
+               Groups of zeros replaced by :: and dotted-quad notation for AF_INET6 are not supported
 
 *//***************************************************************************/
 int inet_pton(int af, const char *src, void *dst);
@@ -89,7 +90,7 @@ int inet_pton(int af, const char *src, void *dst);
  @requirements CR:ENGR00272890
  @implements   See CR's Analysis information
  @warning      POSIX used for the API, however, no full POSIX implementation is guaranteed
-
+               Groups of zeros replaced by :: and dotted-quad notation for AF_INET6 are not supported               
 *//***************************************************************************/
 const char * inet_ntop(int af, const void *src, char *dst, size_t size);
 
