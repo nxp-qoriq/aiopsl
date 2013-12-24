@@ -30,6 +30,10 @@ static int pton4(const char *src, void *dst)
         1 on success (network address was successfully converted).
         0 is returned if src does not contain a character string representing a valid network address in the specified address family. 
     */
+#if 0
+    // TODO need to define real ntohs()
+#endif
+    
     unsigned char tmp[IPV4_ADDR_SIZE];
     int ch = '\0';
     int i = 0, del_cnt = 0;
@@ -42,7 +46,7 @@ static int pton4(const char *src, void *dst)
        { // seeing digit                             
            num = (uint32_t)(ch - digit0) + num * 10;             
        }
-       else if (((ch == '.') || (ch == '\0')) && (num < 0x100))   
+       else if ((ch == '.') && (num < 0x100))   
        {   // delimiter
            // network is in big endian
            tmp[del_cnt] = (unsigned char)num; 
@@ -54,7 +58,9 @@ static int pton4(const char *src, void *dst)
        ++i;
     }
     
-    if (ch != '\0') return 0; // wrong format
+    if (ch == '\0') tmp[del_cnt] = (unsigned char)num;
+    else return 0; // wrong format
+    
     memcpy(dst, tmp, IPV4_ADDR_SIZE);
     return 1;
 }
@@ -67,11 +73,11 @@ static int pton6(const char *src, void *dst)
         0 is returned if src does not contain a character string representing a valid network address in the specified address family. 
     */
 #if 0
-    // TODO add leading zeros support, add hton()
+    // TODO add leading zeros support and need to define real htons()
 #endif
     const char digits_l[] = "0123456789abcdef";    
     const char digits_u[] = "0123456789ABCDEF";
-    unsigned short tmp[IPV6_ADDR_SIZE];
+    unsigned short tmp[IPV6_ADDR_SIZE >> 1]; // >> 1 because of unsigned short type 
     int ch = '\0';
     int i = 0, del_cnt = 0;
     uint32_t num = 0;
@@ -80,14 +86,14 @@ static int pton6(const char *src, void *dst)
     while (((ch = src[i]) != '\0') && (i < MAX_IPV6_STR_LEN)) 
     {
        if ((dig_ptr = strchr(digits_l,ch)) != NULL)
-       { // seeing digit                             
-           num = (uint32_t)(digits_l - dig_ptr) + (num << 4);             
+       { // seeing digit   
+           num = (uint32_t)(dig_ptr - digits_l) + (num << 4);             
        }
        else if ((dig_ptr = strchr(digits_u,ch)) != NULL)
        { // seeing digit                             
-           num = (uint32_t)(digits_u - dig_ptr) + (num << 4);                     
+           num = (uint32_t)(dig_ptr - digits_u) + (num << 4);                     
        }
-       else if (((ch == ':') || (ch == '\0')) && (num < 0x10000))  
+       else if ((ch == ':') && (num < 0x10000))  
        {   // delimiter
            // network is in big endian but host might be little endian
            tmp[del_cnt] = htons((unsigned short)num); 
@@ -99,7 +105,9 @@ static int pton6(const char *src, void *dst)
        i++;
     }
         
-    if (ch != '\0') return 0; // wrong format
+    if (ch == '\0') tmp[del_cnt] = htons((unsigned short)num);
+    else return 0; // wrong format
+    
     memcpy(dst, tmp, IPV6_ADDR_SIZE);
     return 1;
 }
