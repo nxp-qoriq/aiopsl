@@ -18,6 +18,11 @@ int aiop_ntop_init(void);
 void aiop_ntop_free(void);
 
 /*************************************************************************/
+#define PRINT_TEST_RESULT(PASS, MODULE, TEST) \
+    if (PASS) fsl_os_print("%s test %s PASSED:\n",MODULE, TEST); \
+    else fsl_os_print("%s test %s FAILED:\n",MODULE, TEST)
+
+/*************************************************************************/
 static int test_ntop4(uint32_t ip_addr, const char *expected_str, size_t s)
 {
     char dst[MAX_IPV4_STR_LEN];
@@ -78,44 +83,43 @@ int aiop_pton_init(void)
     uint16_t ip6_addr[8] = {0x2001,0x1db8,0x85a3,0xffff,0xffff,0x8a2e,0x1370,0x7334};
     
     err = test_pton4("192.0.2.33", 0xc0000221);
-    if (err != TEST_PASSED) fsl_os_print("PTON4 test %s FAILED:\n", "192.0.2.33");
+    PRINT_TEST_RESULT(err == TEST_PASSED, "PTON4", "192.0.2.33");
     
     err = test_pton4("192.192.192.255", 0xc0c0c0ff);
-    if (err != TEST_PASSED) fsl_os_print("PTON4 test %s FAILED:\n", "192.192.192.255");
+    PRINT_TEST_RESULT(err == TEST_PASSED, "PTON4", "192.192.192.255");
 
-    err = test_pton4("...", 0);
-    if (err != TEST_PASSED) fsl_os_print("PTON4 test %s FAILED:\n", "...");
-
-    err = test_pton6("2001:1db8:85a3:ffff:ffff:8a2e:1370:7334", &ip6_addr[0]);
-    if (err != TEST_PASSED) fsl_os_print("PTON6 test %s FAILED:\n", "2001:1db8:85a3:ffff:ffff:8a2e:1370:7334");
-
+    err = test_pton4("...", 0);    
+    PRINT_TEST_RESULT(err == TEST_PASSED, "PTON4", "...");
+    
+    err = test_pton6("2001:1db8:85a3:ffff:ffff:8a2e:1370:7334", &ip6_addr[0]);    
+    PRINT_TEST_RESULT(err == TEST_PASSED, "PTON6", "2001:1db8:85a3:ffff:ffff:8a2e:1370:7334");
+    
     ip6_addr[1] = 0xdb8; ip6_addr[2] = 0x5a3;
-    err = test_pton6("2001:db8:05a3:ffff:ffff:8a2e:1370:7334", &ip6_addr[0]);
-    if (err != TEST_PASSED) fsl_os_print("PTON6 test %s FAILED:\n", "2001:db8:05a3:ffff:ffff:8a2e:1370:7334");
-
+    err = test_pton6("2001:db8:05a3:ffff:ffff:8a2e:1370:7334", &ip6_addr[0]);    
+    PRINT_TEST_RESULT(err == TEST_PASSED, "PTON6", "2001:db8:05a3:ffff:ffff:8a2e:1370:7334");
+    
     memset(ip6_addr, 0, 16);    
-    err = test_pton6(":::::::", &ip6_addr[0]);
-    if (err != TEST_PASSED) fsl_os_print("PTON6 test %s FAILED:\n", ":::::::");
-
+    err = test_pton6(":::::::", &ip6_addr[0]);    
+    PRINT_TEST_RESULT(err == TEST_PASSED, "PTON6", ":::::::");
     
     // TEST errors
     err = test_pton4("1920.2.33", 0);
-    if (err == TEST_PASSED) fsl_os_print("PTON4 test %s FAILED:\n", "1920.2.33");
+    PRINT_TEST_RESULT(err != TEST_PASSED, "PTON6", "1920.2.33");
     
     err = test_pton4(".2.33", 0);
-    if (err == TEST_PASSED) fsl_os_print("PTON4 test %s FAILED:\n", ".2.33");
+    PRINT_TEST_RESULT(err != TEST_PASSED, "PTON6", ".2.33");    
     
-    err = test_pton4(".a.33", 0);
-    if (err == TEST_PASSED) fsl_os_print("PTON4 test %s FAILED:\n", ".a.33");
+    err = test_pton4(".a.33", 0);    
+    PRINT_TEST_RESULT(err != TEST_PASSED, "PTON4", ".A.33");
 
     err = test_pton6("20011db8:85a3:ffff:ffff:8a2e:1370:7334", NULL);
-    if (err == TEST_PASSED) fsl_os_print("PTON6 test %s FAILED:\n", "20011db8:85a3:ffff:ffff:8a2e:1370:7334");
+    PRINT_TEST_RESULT(err != TEST_PASSED, "PTON6", "20011db8:85a3:ffff:ffff:8a2e:1370:7334");    
     
     err = test_pton6("2001:1db8:85a3:ffff:ffff.8a2e:1370:7334", NULL);
-    if (err == TEST_PASSED) fsl_os_print("PTON6 test %s FAILED:\n", "2001:1db8:85a3:ffff.ffff:8a2e:1370:7334");
+    PRINT_TEST_RESULT(err != TEST_PASSED, "PTON6", "2001:1db8:85a3:ffff.ffff:8a2e:1370:7334");    
     
     err = test_pton6(":2001:1db8:85a3:ffff:ffff:8a2e:1370:7334", NULL);
-    if (err == TEST_PASSED) fsl_os_print("PTON6 test %s FAILED:\n", ":2001:1db8:85a3:ffff:ffff:8a2e:1370:7334");
+    PRINT_TEST_RESULT(err != TEST_PASSED, "PTON6", ":2001:1db8:85a3:ffff:ffff:8a2e:1370:7334");
 
     return 0;
 }
@@ -133,32 +137,33 @@ int aiop_ntop_init(void)
 	uint16_t ip6_addr[8] = {0x2001,0x1db8,0x85a3,0xffff,0xffff,0x8a2e,0x1370,0x7334};
 
 	err = test_ntop4(0x01020304, "1.2.3.4", MAX_IPV4_STR_LEN);
-    if (err != TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "1.2.3.4");
+    PRINT_TEST_RESULT(err == TEST_PASSED, "NTOP4", "1.2.3.4");
+    
     
     err = test_ntop4(0xffffffff, "255.255.255.255", MAX_IPV4_STR_LEN);
-    if (err != TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "255.255.255.255");
+    PRINT_TEST_RESULT(err == TEST_PASSED, "NTOP4", "255.255.255.255");
     
     err = test_ntop4(0xfff55314, "255.245.83.20", MAX_IPV4_STR_LEN);
-    if (err != TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "255.245.83.20");
+    PRINT_TEST_RESULT(err == TEST_PASSED, "NTOP4", "255.245.83.20");    
 
     err = test_ntop6(ip6_addr, "2001:1db8:85a3:ffff:ffff:8a2e:1370:7334", MAX_IPV6_STR_LEN);
-    if (err != TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "2001:1db8:85a3:ffff:ffff:8a2e:1370:7334");
-	    	
+    PRINT_TEST_RESULT(err == TEST_PASSED, "NTOP6", "2001:1db8:85a3:ffff:ffff:8a2e:1370:7334");
+    	    	
 	ip6_addr[0] = 0; ip6_addr[3] = 0;
     err = test_ntop6(ip6_addr, "0:1db8:85a3:0:ffff:8a2e:1370:7334", MAX_IPV6_STR_LEN);
-    if (err != TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "0:1db8:85a3:0:ffff:8a2e:1370:7334");
+    PRINT_TEST_RESULT(err == TEST_PASSED, "NTOP6", "0:1db8:85a3:0:ffff:8a2e:1370:7334");    
 
     ip6_addr[1] = 0;
-    err = test_ntop6(ip6_addr, "0:0:85a3:0:ffff:8a2e:1370:7334", MAX_IPV6_STR_LEN);
-    if (err != TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "0:0:85a3:0:ffff:8a2e:1370:7334");
+    err = test_ntop6(ip6_addr, "0:0:85a3:0:ffff:8a2e:1370:7334", MAX_IPV6_STR_LEN);    
+    PRINT_TEST_RESULT(err == TEST_PASSED, "NTOP6", "0:0:85a3:0:ffff:8a2e:1370:7334");
 
     // TEST errors
-    err = test_ntop6(ip6_addr, "0:0:85a3:0:ffff:8a2e:1370:7334", 10); // size is too small
-    if (err == TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "0:0:85a3:0:ffff:8a2e:1370:7334");
-
+    err = test_ntop6(ip6_addr, "0:0:85a3:0:ffff:8a2e:1370:7334", 10); // size is too small    
+    PRINT_TEST_RESULT(err != TEST_PASSED, "NTOP6", "0:0:85a3:0:ffff:8a2e:1370:7334");
+    
     err = test_ntop4(0x01020304, "1.2.3.4", 2); // size is too small
-    if (err == TEST_PASSED) fsl_os_print("NTOP4 test %s FAILED:\n", "1.2.3.4");
-
+    PRINT_TEST_RESULT(err != TEST_PASSED, "NTOP4", "1.2.3.4 size 2");
+    
 	return 0;
 }
 
