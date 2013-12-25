@@ -27,7 +27,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 	struct ipv4hdr *inner_ipv4_ptr, *outer_ipv4_ptr;
 	struct ipv6hdr *inner_ipv6_ptr, *outer_ipv6_ptr;
 	void *inner_ip_ptr;
-	uint16_t old_field;
+	uint32_t old_field;
 	struct presentation_context *prc =
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	inner_ip_offset = (uint8_t)(PARSER_GET_INNER_IP_OFFSET_DEFAULT());
@@ -41,7 +41,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 			inner_ipv4_ptr = (struct ipv4hdr *)
 				(inner_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 			/* For CS calculation */
-			old_field = *((uint16_t *)inner_ipv4_ptr);
+			old_field = *((uint32_t *)inner_ipv4_ptr);
 
 			if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 				/* Inner & Outer IPv4 */
@@ -67,21 +67,21 @@ int32_t ip_header_decapsulation(uint8_t flags)
 			 * functions) the bellow function takes 9 cycles
 			 * including parameter preparation */
 				/* Update IP CS for TOS changes. */
-				cksum_update_uint16(
+				cksum_update_uint32(
 				    &inner_ipv4_ptr->hdr_cksum,
 				    old_field,
-				    *((uint16_t *)inner_ipv4_ptr));
+				    *((uint32_t *)inner_ipv4_ptr));
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
 					old_field =
-						*((uint16_t *)inner_ipv4_ptr+4);
+						*((uint32_t *)inner_ipv4_ptr+4);
 					inner_ipv4_ptr->ttl =
 							outer_ipv4_ptr->ttl;
 					/* Update IP CS for TTL changes. */
-					cksum_update_uint16(
+					cksum_update_uint32(
 					    &inner_ipv4_ptr->hdr_cksum,
 					    old_field,
-					    *((uint16_t *)inner_ipv4_ptr+4));
+					    *((uint32_t *)inner_ipv4_ptr+4));
 				}
 			} else {
 				/* Inner IPv4 , outer IPv6 
@@ -107,21 +107,21 @@ int32_t ip_header_decapsulation(uint8_t flags)
 						>> 20) & ~IPV4_ECN_MASK));
 
 					/* Update IP CS for TOS changes. */
-					cksum_update_uint16(
+					cksum_update_uint32(
 					    &inner_ipv4_ptr->hdr_cksum,
 					    old_field,
-					    *((uint16_t *)inner_ipv4_ptr));
+					    *((uint32_t *)inner_ipv4_ptr));
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
 					old_field =
-						*((uint16_t *)inner_ipv4_ptr+4);
+						*((uint32_t *)inner_ipv4_ptr+4);
 					inner_ipv4_ptr->ttl =
 						outer_ipv6_ptr->hop_limit;
 					/* Update IP CS for TTL changes. */
-					cksum_update_uint16(
+					cksum_update_uint32(
 					    &inner_ipv4_ptr->hdr_cksum,
 					    old_field,
-					    *((uint16_t *)inner_ipv4_ptr+4));
+					    *((uint32_t *)inner_ipv4_ptr+4));
 				}
 				/* Update Etype or MPLS label if needed */
 				if (PARSER_IS_ONE_MPLS_DEFAULT()) {
