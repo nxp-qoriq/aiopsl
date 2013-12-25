@@ -51,35 +51,6 @@
 
 
 /**************************************************************************//**
-@Function	cksum_update_uint16
-
-@Description	Update the IPv4/UDP/TCP CS after updating 2 byte in the header.
-
-@Param[in]	cs_ptr - Pointer to the IPv4 CheckSum.
-
-@Param[in]	old_val - first argument.
-
-@Param[in]	new_val - second argument.
-
-@Return		None.
-
-@Cautions	The
-*//***************************************************************************/
-inline void cksum_update_uint16(uint16_t *cs_ptr,
-		uint16_t old_val,
-		uint16_t new_val)
-{
-	int32_t tmp2, tmp = *cs_ptr + old_val;
-	tmp = ((uint16_t)(tmp + (tmp >> 16)));
-	tmp2 = tmp + ~new_val;
-/* todo compiler need to optimize this to addc and adde - mail was
- * sent in 27.8.2013 */
-	if (tmp2 < tmp) //Check if carry
-	            tmp2++;
-	*cs_ptr = (uint16_t)tmp2;
-}
-
-/**************************************************************************//**
 @Function	cksum_update_uint32
 
 @Description	Update the IPv4/UDP/TCP CS aafter updating 4 consecutive
