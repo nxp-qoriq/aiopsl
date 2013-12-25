@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -198,6 +198,16 @@
 			<name>aiop_sl/kernel/sys_mem_mng.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/inet.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/inet.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/inet.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/inet.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/list.c</name>
