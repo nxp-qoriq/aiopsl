@@ -802,7 +802,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		if (flags & IPV6_ENCAP_MODE_TC_ECN)
 			vsn_traffic_flow =
 				(vsn_traffic_flow & IPV6_ECN_MASK) |
-	       (inner_ipv6hdr_ptr->vsn_traffic_flow & ~IPV4_ECN_MASK);
+	       (inner_ipv6hdr_ptr->vsn_traffic_flow & ~IPV6_ECN_MASK);
 
 		ipv6_header_ptr->vsn_traffic_flow = vsn_traffic_flow;
 
