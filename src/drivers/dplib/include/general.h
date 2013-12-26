@@ -123,7 +123,7 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 
 	/** Hardware Context size */
 #define HWC_SIZE		0x100
-	/** Address of Default working frame FD */
+	/** Size of the default working frame FD */
 #define HWC_FD_SIZE		0x20
 	/** Additional Dequeue Context size */
 #define HWC_ADC_SIZE		0x10

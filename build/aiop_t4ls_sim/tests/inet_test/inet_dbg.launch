@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.freescale.cdt.launch.cw.download">
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSExeName" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbsc146"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="11111"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbsc147:5706"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="40969"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSTimeOut" value="60"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.JTAGConfigFile" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.chainSpeedTCK" value="12500"/>
@@ -15,6 +15,8 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Debugger PIC Settings Panel.altLoadAddr" value="0"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Debugger PIC Settings Panel.enableAltLoadAddr" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.EPPC Debugger.processor" value="T4LS"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.EPPC Exceptions.BDM_exceptions" value="1111111111111111111"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.EPPC Exceptions.PQ3_exceptions" value="000000000000010"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.IDconstant" value="true"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.IDexecutable" value="true"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.IDinitialized" value="true"/>
@@ -41,6 +43,31 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.systemType" value="com.freescale.cw.system.LS.T4LS"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="true"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLine" value=""/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddr" value="-1879047936"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddrExt" value="0"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.downloadInitrd" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.enableCmdLine" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.enableInitrd" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.enableKernelTaggedList" value="false"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.initrdBaseAddr" value="0"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.initrdBaseAddrExt" value="0"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.initrdPath" value=""/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.initrdSize" value="0"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.initrdSizeExt" value="0"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.ofdtPath" value=""/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.taglistBaseAddr" value="-1879047936"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.taglistBaseAddrExt" value="0"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.enableDelayedBreakpoints" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.enableMemTranslation" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.enableThreading" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.enableUpdateBackgroundThreads" value="true"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.memorySize" value="32505856"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.memorySizeExt" value="0"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.physicalBaseAddr" value="-1879048192"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.physicalBaseAddrExt" value="0"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.virtualBaseAddr" value="-1073741824"/>
+<intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Debug Settings Panel.virtualBaseAddrExt" value="0"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.System Call Service.doMountRoot" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.System Call Service.doRedirectStdout" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.System Call Service.doRedirectTrace" value="false"/>
@@ -107,6 +134,11 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.InitializePCAtSymbol" value="main"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.InitializePCAtUserSpecified" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.LaunchMode" value="DOWNLOAD"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.autoLoad" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.keepTargetSuspended" value="false"/>
+<listAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.modulesNames"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.openDialog" value="false"/>
+<listAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.symbolicsPaths"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtExit" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtProgramEntryPoint" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtStartUp" value="true"/>
@@ -131,6 +163,7 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Connection Protocol Plugin Name" value="CCS EPPC Protocol Plugin"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Connection Type" value="com.freescale.cdt.debug.cw.core.settings.CCSConnection.Generic"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Connection Type CW Panel" value="CCS_Remote_Connection"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Host App Path" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Processor Attr Name" value="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.EPPC Debugger.processor"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.RSESystemIdentifier" value="T4240LS_T4240LSSimulator_download_RSESystem_Group"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.131104162212+0200"/>
@@ -376,16 +409,16 @@
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_REGISTER_BOOKKEEPING" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_RESTORE_WATCHPOINTS" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_VARIABLE_BOOKKEEPING" value="false"/>
-<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-fill_system_parameters-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-global_post_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;start_addr-mem_region_info-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;size-mem_region_info-platform_init-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;start_addr-info-[0]-mem_regions-get_mem_region_info-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base-*[0]-[0]-free_blocks-*p_MM-p_MM-slob_get-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;virt_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;phys_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
+<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;num-pton6-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;err-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[19]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[18]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[17]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[16]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[15]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[14]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[13]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[12]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[11]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[10]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[9]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[8]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[7]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[6]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[5]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[4]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[3]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[2]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[1]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[0]-dst-aiop_pton_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[0]-tmp-pton4-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;[3]-__src-inet_ntop-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[2]-__src-inet_ntop-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[1]-__src-inet_ntop-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[0]-__src-inet_ntop-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;*__src-__src-inet_ntop-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-fill_system_parameters-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-global_post_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;*dig_ptr-dig_ptr-pton4-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ch-pton4-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ch-pton4-(cast)&quot; val=&quot;unsigned char&quot;/&gt;&lt;content id=&quot;num-pton4-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;__src-inet_ntop-(cast_to_array)&quot; val=&quot;0:4&quot;/&gt;&lt;content id=&quot;len-inet_ntop-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
 <stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList/&gt;&#13;&#10;"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="out/aiop_app.elf"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="aiop_basic_ex"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="out/inet_test_dbg.elf"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="aiop_inet_test"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
 <intAttribute key="org.eclipse.cdt.launch.SET_REGULAR_BREAKPOINT_TYPE_AS" value="0"/>
 <booleanAttribute key="org.eclipse.cdt.launch.USE_SET_REGULAR_BREAKPOINT_TYPE_AS" value="false"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/aiop_basic_ex"/>
+<listEntry value="/aiop_inet_test"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="4"/>

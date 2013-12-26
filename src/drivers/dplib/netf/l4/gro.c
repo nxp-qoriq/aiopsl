@@ -24,6 +24,8 @@ void gro_init(uint32_t timeout_flags)
 		struct tcp_gro_context_params *params,
 		uint32_t flags)
 {
+	struct tcp_gro_context gro_ctx;
+	cdma(&)
 	return 0;
 }
 
