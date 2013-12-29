@@ -74,14 +74,14 @@ int32_t ip_header_decapsulation(uint8_t flags)
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
 					old_field =
-						*((uint32_t *)inner_ipv4_ptr+4);
+						*((uint32_t *)inner_ipv4_ptr+2);
 					inner_ipv4_ptr->ttl =
 							outer_ipv4_ptr->ttl;
 					/* Update IP CS for TTL changes. */
 					cksum_update_uint32(
 					    &inner_ipv4_ptr->hdr_cksum,
 					    old_field,
-					    *((uint32_t *)inner_ipv4_ptr+4));
+					    *((uint32_t *)inner_ipv4_ptr+2));
 				}
 			} else {
 				/* Inner IPv4 , outer IPv6 
@@ -114,14 +114,14 @@ int32_t ip_header_decapsulation(uint8_t flags)
 
 				if (flags & IP_DECAP_MODE_TTL_HL) {
 					old_field =
-						*((uint32_t *)inner_ipv4_ptr+4);
+						*((uint32_t *)inner_ipv4_ptr+2);
 					inner_ipv4_ptr->ttl =
 						outer_ipv6_ptr->hop_limit;
 					/* Update IP CS for TTL changes. */
 					cksum_update_uint32(
 					    &inner_ipv4_ptr->hdr_cksum,
 					    old_field,
-					    *((uint32_t *)inner_ipv4_ptr+4));
+					    *((uint32_t *)inner_ipv4_ptr+2));
 				}
 				/* Update Etype or MPLS label if needed */
 				if (PARSER_IS_ONE_MPLS_DEFAULT()) {
