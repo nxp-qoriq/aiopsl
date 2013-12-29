@@ -203,10 +203,8 @@ int32_t ip_header_decapsulation(uint8_t flags)
 
 			if (flags & IP_DECAP_MODE_TOS_TC_ECN)
 				inner_ipv6_ptr->vsn_traffic_flow =
-				(inner_ipv6_ptr->vsn_traffic_flow &
-						IPV6_ECN_MASK) |
-			(((uint8_t)(outer_ipv6_ptr->vsn_traffic_flow
-					>> 20) & ~IPV6_ECN_MASK));
+						(inner_ipv6_ptr->vsn_traffic_flow &	IPV6_ECN_MASK) |
+						((outer_ipv6_ptr->vsn_traffic_flow & ~IPV6_ECN_MASK));
 
 			if (flags & IP_DECAP_MODE_TTL_HL)
 				inner_ipv6_ptr->hop_limit =
