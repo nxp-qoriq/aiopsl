@@ -31,14 +31,14 @@ UNUSED(argc);UNUSED(argv);
         return err;
     sys_barrier();
 
-/*
     if (is_master_core)
     	fsl_os_print("Processing layout\n");
     sys_barrier();
+    /* TODO - get the DPL from somewhere .... */
     err = sys_lo_process(NULL);
+    err = 0; /* TODO - keep this until we have a DPL */
     if (err)
     	return err;
-*/
 
     if (is_master_core &&
         ((err = global_post_init()) != 0))
