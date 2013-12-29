@@ -48,12 +48,20 @@ struct tcp_gso_context {
 	uint16_t headers_size;
 	/** Urgent Pointer offset. */
 	uint16_t urgent_pointer;
+	/** Task default Starting HXS for Parser */
+	uint16_t parser_starting_hxs;
+	/** default segment workspace address for split command parameters */
+	uint16_t seg_address;
+	/** default segment length for split command parameters */
+	uint16_t seg_length;
+	/** Task default Parser Profile ID */
+	uint8_t parser_profile_id;
 	/** Remaining frame handle. */
 	uint8_t	rem_frame_handle;
 	/** First Segment indication */
 	uint8_t	first_seg;
 	/** Padding */
-	/*uint8_t	pad[4];*/
+	uint8_t	pad[1];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */
