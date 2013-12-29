@@ -122,14 +122,17 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 		{
 			struct vpool_create_pool_cmd *str =
 				(struct vpool_create_pool_cmd *)asa_seg_addr;
+			
+			/* If the callback function is not null */
+			if (str->callback_func) 
+				str->callback_func = (uint32_t)(&dummy_callback);
+							
 			str->status = vpool_create_pool(
 					str->bman_pool_id,
 					str->max_bufs,
 					str->committed_bufs,
 					str->flags,
-					//(int32_t (*)(uint64_t))str->callback_func,
-					(int32_t (*)(uint64_t))(&dummy_callback),
-					
+					(int32_t (*)(uint64_t))str->callback_func,
 					((uint32_t *)str->virtual_pool_id_ptr)
 					);
 			str_size = sizeof(struct vpool_create_pool_cmd);

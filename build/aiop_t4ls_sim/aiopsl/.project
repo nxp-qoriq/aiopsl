@@ -155,6 +155,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/console.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/dpl</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/error.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/error.c</locationURI>
@@ -195,9 +200,24 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/sys_lo.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_lo.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/sys_mem_mng.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/inet.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/inet.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/inet.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/inet.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/list.c</name>
@@ -288,6 +308,56 @@
 			<name>aiop_sl/drivers/serial/duart</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/data.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/data.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/dtc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/dtc.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/dtc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/dtc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/fdt.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/fdt.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/fdt.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/fdt.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/fdt_ro.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/fdt_ro.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/libfdt.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/libfdt.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/livetree.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/livetree.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/util.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/util.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/dpl/util.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/util.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/mem_mng.c</name>

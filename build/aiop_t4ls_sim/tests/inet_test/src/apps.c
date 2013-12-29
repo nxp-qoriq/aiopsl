@@ -1,11 +1,13 @@
 #include "common/fsl_string.h"
 #include "inc/sys.h"
 
-extern int aiop_app_init(void); extern void aiop_app_free(void);
+extern int aiop_pton_init(void); extern void aiop_pton_free(void);
+extern int aiop_ntop_init(void); extern void aiop_ntop_free(void);
 
 #define APPS                            	\
 {                                       	\
-	{aiop_app_init, aiop_app_free},		\
+	{aiop_ntop_init, aiop_ntop_free},       \
+    {aiop_pton_init, aiop_pton_free},       \
 	{NULL, NULL} /* never remove! */    	\
 }
 

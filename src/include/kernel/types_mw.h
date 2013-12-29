@@ -32,7 +32,7 @@ typedef uint64_t            dma_addr_t;
 #define __TASK __declspec(section ".tdata")
 
 /** Shared-SRAM global variables */
-#define __SHRAM __declspec(section ".sdata")
+#define __SHRAM __declspec(section ".data")
 
 /** Task global variable definition */
 #define __HOT_CODE __declspec(section ".text")

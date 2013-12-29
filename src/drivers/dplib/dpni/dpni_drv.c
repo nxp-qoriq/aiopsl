@@ -12,10 +12,10 @@
 
 #define __ERR_MODULE__  MODULE_DPNI
 
-#define DPNI_DRV_FLG_ENABLED    0x80
-#define DPNI_DRV_FLG_PARSE      0x40
-#define DPNI_DRV_FLG_MTU_DIS    0x20
-#define DPNI_DRV_FLG_PARSER_DIS 0x01
+#define DPNI_DRV_FLG_ENABLED	0x80
+#define DPNI_DRV_FLG_PARSE	0x40
+#define DPNI_DRV_FLG_MTU_DIS	0x20
+#define DPNI_DRV_FLG_PARSER_DIS	0x01
 
 
 void receive_cb (void);
@@ -80,6 +80,13 @@ static void osm_task_init(void)
 		/**<	Exclusive (default) Mode in level 4 of hierarchy */
 }
 
+static void dflt_rx_cb(dpni_drv_app_arg_t arg)
+{
+	UNUSED(arg);
+	/*if discard with terminate return with error then terminator*/
+	if(fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
+		fdma_terminate_task();
+}
 
 __HOT_CODE void receive_cb (void)
 {
@@ -134,7 +141,7 @@ __HOT_CODE void receive_cb (void)
 	dpni_drv->rx_cbs[appidx](dpni_drv->args[appidx]);
 }
 
-int dpni_drv_send(uint16_t ni_id)
+__HOT_CODE int dpni_drv_send(uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
@@ -168,40 +175,59 @@ int dpni_drv_send(uint16_t ni_id)
 	return (err);
 }
 
+int dpni_drv_register_rx_cb (uint16_t     	ni_id,
+                             uint16_t     	flow_id,
+                             rx_cb_t      	*cb,
+                             dpni_drv_app_arg_t arg)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the send NI structure */
+	dpni_drv = nis + ni_id;
+	dpni_drv->rx_cbs[flow_id] = cb;
+	dpni_drv->args[flow_id] = arg;
+
+	return E_OK;
+}
+
 
 int dpni_drv_init(void)
 {
-    uintptr_t   wrks_addr;
-    int         i;
+	uintptr_t	wrks_addr;
+	int		i;
 
-    nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,
-                              MEM_PART_SH_RAM,
-                              64);
-    if (!nis)
-        RETURN_ERROR(MAJOR, E_NO_MEMORY, ("NI objs!"));
-    memset(nis, 0, sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI);
+	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,
+				  MEM_PART_SH_RAM,
+				  64);
+	if (!nis)
+		RETURN_ERROR(MAJOR, E_NO_MEMORY, ("NI objs!"));
+	memset(nis, 0, sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI);
 
-    wrks_addr =
-        (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-                                           0,
-                                           E_MAPPED_MEM_TYPE_GEN_REGS) +
-         SOC_PERIPH_OFF_AIOP_WRKS);
+	wrks_addr =
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+					   0,
+					   E_MAPPED_MEM_TYPE_GEN_REGS) +
+	 SOC_PERIPH_OFF_AIOP_WRKS);
 
-    /* Write EPID-table parameters */
-    for (i=255; i>=(256-SOC_MAX_NUM_OF_DPNI); i--) {
-        struct dpni_drv *dpni_drv = nis + i;
+	/* Write EPID-table parameters */
+	for (i=255; i>=(256-SOC_MAX_NUM_OF_DPNI); i--) {
+		struct dpni_drv *dpni_drv = nis + i;
+		int		j;
 
-        dpni_drv->id = (uint16_t)i;
+		dpni_drv->id = (uint16_t)i;
+		/* put a default RX callback - dropping the frame */
+		for (j=0; j<DPNI_DRV_MAX_NUM_FLOWS; j++)
+			dpni_drv->rx_cbs[j] = dflt_rx_cb;
 
-        /* EPAS reg  - write to EPID 'i' */
-        iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8));
-        /* EP_PC */
-        iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100));
-        /* EP_PM */
-        iowrite32be(PTR_TO_UINT(nis + i), UINT_TO_PTR(wrks_addr + 0x100));
-    }
+		/* EPAS reg  - write to EPID 'i' */
+		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8));
+		/* EP_PC */
+		iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100));
+		/* EP_PM */
+		iowrite32be(PTR_TO_UINT(nis + i), UINT_TO_PTR(wrks_addr + 0x100));
+	}
 
-    return 0;
+	return 0;
 }
 
 void dpni_drv_free(void)

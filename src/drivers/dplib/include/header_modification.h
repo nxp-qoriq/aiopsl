@@ -16,7 +16,7 @@
 #define IPV6_ECN_MASK		0xFFCFFFFF
 #define IPV4_ECN_MASK		0xFC
 #define MIN_REPRESENT_SIZE	128
-#define TCP_DATA_OFFSET_SHIFT	3
+#define TCP_DATA_OFFSET_SHIFT	2
 #define TCP_NO_OPTION_SIZE	20
 #define IPV6_ADDR_SIZE		32
 #define IPV4_PROTOCOL_ID	0x04
@@ -49,29 +49,6 @@
 #define PARSER_CLEAR_RUNNING_SUM() \
 (((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum) = 0
 
-
-/**************************************************************************//**
-@Function	cksum_update_uint16
-
-@Description	Update the IPv4/UDP/TCP CS after updating 2 byte in the header.
-
-@Param[in]	cs_ptr - Pointer to the IPv4 CheckSum.
-
-@Param[in]	old_val - first argument.
-
-@Param[in]	new_val - second argument.
-
-@Return		None.
-
-@Cautions	The
-*//***************************************************************************/
-inline void cksum_update_uint16(uint16_t *cs_ptr,
-		uint16_t old_val,
-		uint16_t new_val)
-{
-	int32_t tmp = *cs_ptr + old_val + ~new_val;
-	*cs_ptr = ((uint16_t)(tmp + (tmp >> 16)));
-}
 
 /**************************************************************************//**
 @Function	cksum_update_uint32

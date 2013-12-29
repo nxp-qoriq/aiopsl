@@ -229,7 +229,7 @@ do { \
                      dbg_level_strings[_level - 1], \
                      PRINT_FMT_PARAMS); \
         fsl_os_print(__VA_ARGS__); \
-        fsl_os_print("\r\n"); \
+        /*fsl_os_print("\r\n");*/ \
     } \
 } while (0)
 #endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
