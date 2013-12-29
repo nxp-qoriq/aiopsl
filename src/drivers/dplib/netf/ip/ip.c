@@ -802,16 +802,15 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		if (flags & IPV6_ENCAP_MODE_TC_ECN)
 			vsn_traffic_flow =
 				(vsn_traffic_flow & IPV6_ECN_MASK) |
-	       (inner_ipv6hdr_ptr->vsn_traffic_flow & ~IPV4_ECN_MASK);
+	       (inner_ipv6hdr_ptr->vsn_traffic_flow & ~IPV6_ECN_MASK);
 
 		ipv6_header_ptr->vsn_traffic_flow = vsn_traffic_flow;
 
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		ipv6_header_ptr->payload_length =
-				inner_ipv6hdr_ptr->payload_length +
-					(uint16_t) ipv6_header_size - 40;
+		ipv6_header_ptr->payload_length = inner_ipv6hdr_ptr->payload_length +
+					(uint16_t) ipv6_header_size;
 
 		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
 							ipv6_header_size) {

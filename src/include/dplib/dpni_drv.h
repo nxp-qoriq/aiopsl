@@ -32,6 +32,16 @@
 
 #define DPNI_DRV_MAX_NUM_FLOWS		8
 
+/**************************************************************************//**
+ @Collection    DP-NI Statuses
+ @{
+ *//***************************************************************************/
+/** MTU was crossed for DPNI driver send function */
+#define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
+/** NI is not enabled in DPNI driver send function */
+#define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
+/* @} */
+
 
 typedef uint64_t	dpni_drv_app_arg_t;
 
@@ -94,19 +104,6 @@ int dpni_drv_register_rx_cb (uint16_t     	ni_id,
                              uint16_t     	flow_id,
                              rx_cb_t      	*cb,
                              dpni_drv_app_arg_t arg);
-
-/**************************************************************************//**
-@Group	DPNI_DRV_STATUS  DP network interface Statuses
-
-@Description \ref dpni_drv_send() possible return values
-
-@{
-*//***************************************************************************/
-	/** MTU was crossed for DPNI driver send function */
-#define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
-	/** NI is not enabled in DPNI driver send function */
-#define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
-/** @} */
 
 /**************************************************************************//**
  @Function      dpni_drv_send
