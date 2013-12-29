@@ -79,8 +79,6 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 						(TCP_GSO_MODULE_STATUS_ID | 0x3)
 	/** Segmentation process cannot start since Represented segment
 	 * size < headers size. */
-#define	TCP_GSO_GEN_SEG_STATUS_HEADERS_SIZE_BIGGER_THAN_SEGMENT_SIZE	\
-						(TCP_GSO_MODULE_STATUS_ID | 0x4)
 
 /** @} */ /* end of TCP_GSO_GENERATE_SEG_STATUS */
 
