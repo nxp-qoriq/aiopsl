@@ -461,7 +461,6 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 				tcphdr_ptr = (struct tcphdr *)
 						((uint16_t)udp_tcp_offset +
 						PRC_GET_SEGMENT_ADDRESS());
-				l4_checksum = (uint16_t)tcphdr_ptr->checksum;
 				/* Add checksum on old IPsrc+Ip dst */
 				l4_checksum = cksum_ones_complement_sum16(
 						l4_checksum,
