@@ -132,6 +132,7 @@ init_nic_stub(2, 10);
             apps[i].init();
 
     /* finished boot sequence; now wait for event .... */
+    fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
     asm ("wait  \n");
     return 0;
 }
