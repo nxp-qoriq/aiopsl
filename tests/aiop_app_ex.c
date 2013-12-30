@@ -15,6 +15,10 @@ static void /*__noreturn*/ rflct_rx_cb (dpni_drv_app_arg_t arg)
 
 	/* TODO - add here:
 	 * 1. print frame content */
+	/* TODO - add here swap on headers:
+	 * swap_eth_hdr((uint32_t *)p_data);
+	 * swap_ip_hdr((uint32_t *)(PTR_TO_UINT(p_data)+26));
+	 */
 	dpni_drv_send((uint16_t)arg);
 }
 
