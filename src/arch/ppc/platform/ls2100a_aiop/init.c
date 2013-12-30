@@ -131,5 +131,7 @@ init_nic_stub(2, 10);
         if (apps[i].init)
             apps[i].init();
 
+    /* finished boot sequence; now wait for event .... */
+    asm ("wait  \n");
     return 0;
 }
