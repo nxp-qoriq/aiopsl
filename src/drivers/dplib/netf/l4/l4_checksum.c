@@ -26,7 +26,8 @@ int32_t cksum_calc_udp_tcp_checksum()
 	if (PARSER_IS_TCP_DEFAULT()) {
 		/* Check if Gross Running Sum calculation is needed */
 		if (!pr->gross_running_sum) {
-			if (!fdma_calculate_default_frame_checksum(0, 0xFFFF,
+			if (FDMA_CHECKSUM_SUCCESS !=
+			    fdma_calculate_default_frame_checksum(0, 0xFFFF,
 						&pr->gross_running_sum)) {
 				return
 				L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_FDMA_FAILURE;
@@ -61,7 +62,8 @@ int32_t cksum_calc_udp_tcp_checksum()
 	else if (PARSER_IS_UDP_DEFAULT()) {
 		/* Check if Gross Running Sum calculation is needed */
 		if (!pr->gross_running_sum) {
-			if (!fdma_calculate_default_frame_checksum(0, 0xFFFF,
+			if (FDMA_CHECKSUM_SUCCESS !=
+			    fdma_calculate_default_frame_checksum(0, 0xFFFF,
 						&pr->gross_running_sum)) {
 				return
 				L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_FDMA_FAILURE;
