@@ -120,8 +120,7 @@ init_nic_stub(2, 10);
 	 * all should be placed in PEB. */
 	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
 	/* TODO - iterate through the device-list:
-	 * call 'dpni_open'
-	 * call 'dpni_attach' with the ni,dp-io, dp-sp
+	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)'
 	 */
     /* in this stage, all the NIC of AIOP are up and running */
 

@@ -51,6 +51,10 @@ int init_nic_stub(int portal_id, int ni_id)
 								       (uint32_t)portal_id,
 								       E_MAPPED_MEM_TYPE_MC_PORTAL)),
 			 ni_id);
+	if (!dpni) {
+		pr_err("failed to open DPNI!\n");
+		return -ENODEV;
+	}
 
 	/* obtain default configuration of the NIC */
 	dpni_defconfig(&cfg);
@@ -80,10 +84,19 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 
+	if (dpio || dpsp) {
+		pr_err("DPIO and\\or DPSP not supported yet\n");
+		return -E_NOT_SUPPORTED;
+	}
 	dpni_drv->args[flow_id] = arg;
 	dpni_drv->rx_cbs[flow_id] = cb;
 
-	return E_OK;
+	/* TODO - if passed DP-IO or DP-SP,
+	 * call 'dpni_attach' with new args.
+	 * also note to update the 'spid' if changed.
+	 */
+
+	return 0;
 }
 
 int dpni_drv_enable (uint16_t ni_id)
