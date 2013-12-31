@@ -645,6 +645,9 @@ int32_t fdma_split_frame(
 				prc->asapa_asaps =
 					(params->flags & FDMA_SPLIT_SR_BIT) ?
 							PRC_SR_MASK : ZERO;
+				if (!(params->flags & FDMA_SPLIT_SM_BIT))
+					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 
+							params->split_size_sf);
 			}
 		}
 		/* Update Task Defaults */
@@ -656,7 +659,16 @@ int32_t fdma_split_frame(
 					PRC_FRAME_HANDLE_MASK);
 				prc->ptapa_asapo = PRC_PTA_NOT_LOADED_ADDRESS;
 				prc->asapa_asaps = ZERO;
+				if (!(params->flags & FDMA_SPLIT_SM_BIT))
+					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 
+						params->split_size_sf);
 		}
+		
+		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) &&
+		    (params->source_frame_handle == PRC_GET_FRAME_HANDLE()) &&
+		    !(params->flags & FDMA_SPLIT_SM_BIT))
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0, 
+					params->split_size_sf); 
 	}
 
 	return (int32_t)(res1);
@@ -800,8 +812,11 @@ int32_t fdma_insert_default_segment_data(
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, ZERO);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, insert_size);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-		ws_address_rs = (void *)
-			(PRC_GET_SEGMENT_ADDRESS() - insert_size);
+		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
+				insert_size)
+			ws_address_rs = (void *)
+				((uint32_t)ws_address_rs - insert_size);
 		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs,
 				PRC_GET_SEGMENT_LENGTH());
 	}
