@@ -1,182 +1,81 @@
-#include "general.h"
 #include "common/types.h"
+#include "common/dbg.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "common/io.h"
-#include "dplib/dpni_drv.h"
+#include "dplib/fsl_dpni.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
 #include "kernel/platform.h"
 #include "inc/sys.h"
 
+#include "drv.h"
+
 
 #define __ERR_MODULE__  MODULE_DPNI
 
-#define DPNI_DRV_FLG_ENABLED	0x80
-#define DPNI_DRV_FLG_PARSE	0x40
-#define DPNI_DRV_FLG_MTU_DIS	0x20
-#define DPNI_DRV_FLG_PARSER_DIS	0x01
 
+int init_nic_stub(int portal_id, int ni_id);
 
-void receive_cb (void);
+int dpni_drv_probe(uint16_t	ni_id,
+                   uint16_t	mc_portal_id,
+                   fsl_handle_t	dpio,
+                   fsl_handle_t	dpsp);
 
 int dpni_drv_init(void);
 void dpni_drv_free(void);
-
-
-struct dpni_drv {
-	/** network interface ID */
-	uint16_t            id;
-	/** Storage profile ID */
-	uint8_t             spid;
-	uint8_t             res0[1];
-	/** Queueing destination for the enqueue. */
-	uint16_t            qdid;
-	/** starting HXS */
-	uint16_t            starting_hxs;
-	/** MTU value needed for the \ref dpni_drv_send() function */
-	uint32_t            mtu;
-	/** Parse Profile ID */
-	uint8_t             prpid;
-	/** \ref DPNI_DRV_DEFINES */
-	uint8_t             flags;
-	/** error mask for the \ref receive_cb() function FD
-	* error check 0 - continue; 1 - discard */
-	uint8_t             fd_err_mask;
-	uint8_t             res[1];
-
-	/** call back application function */
-	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
-	/** call back application argument */
-	dpni_drv_app_arg_t  args[DPNI_DRV_MAX_NUM_FLOWS];
-};
-
-extern __TASK uint8_t CURRENT_SCOPE_LEVEL;
-extern __TASK uint8_t SCOPE_MODE_LEVEL1;
-extern __TASK uint8_t SCOPE_MODE_LEVEL2;
-extern __TASK uint8_t SCOPE_MODE_LEVEL3;
-extern __TASK uint8_t SCOPE_MODE_LEVEL4;
-
-extern __TASK struct aiop_default_task_params default_task_params;
 
 
 /* TODO - get rid */
 __SHRAM struct dpni_drv *nis;
 
 
-static void osm_task_init(void)
-{
-	CURRENT_SCOPE_LEVEL = ((uint8_t)PRC_GET_OSM_SOURCE_VALUE());
-		/**<	0- No order scope specified.\n
-			1- Scope was specified for level 1 of hierarchy */
-	SCOPE_MODE_LEVEL1 = ((uint8_t)PRC_GET_OSM_EXECUTION_PHASE_VALUE());
-		/**<	0 = Exclusive mode.\n
-			1 = Concurrent mode. */
-	SCOPE_MODE_LEVEL2 = 0x00;
-		/**<	Exclusive (default) Mode in level 2 of hierarchy */
-	SCOPE_MODE_LEVEL3 = 0x00;
-		/**<	Exclusive (default) Mode in level 3 of hierarchy */
-	SCOPE_MODE_LEVEL4 = 0x00;
-		/**<	Exclusive (default) Mode in level 4 of hierarchy */
-}
-
 static void dflt_rx_cb(dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
 	/*if discard with terminate return with error then terminator*/
-	if(fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
+	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
 }
 
-__HOT_CODE void receive_cb (void)
+
+int init_nic_stub(int portal_id, int ni_id)
 {
-	struct dpni_drv *dpni_drv = (struct dpni_drv *)PRC_GET_PARAMETER();
-	uint8_t *fd_err = (uint8_t *)(HWC_FD_ADDRESS + FD_ERR_OFFSET);
-	uint8_t *fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + \
-			FD_FLC_APPIDX_OFFSET);
-	uint8_t appidx;
-	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct dpni_cfg			cfg;
+	struct dpni_init_params		params;
+	fsl_handle_t			dpni;
+	int 				err;
+	uint8_t				eth_addr[] = {0x00, 0x04, 0x9f, 0x0, 0x0, 0x1};
 
-	/* check if NI is enabled and there are no errors to discard and
-	 * application call-back is not NULL */
-	if (!(dpni_drv->flags & DPNI_DRV_FLG_ENABLED) ||
-			(*fd_err & dpni_drv->fd_err_mask) ||
-			!dpni_drv->rx_cbs[*fd_flc_appidx >> 2]) {
-		/*if discard with terminate return with error then terminator*/
-		if(fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-			fdma_terminate_task();
-	}
-	/* Need to save running-sum in parse-results LE-> BE */
-	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
-
-	osm_task_init();
-	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
-	default_task_params.parser_profile_id = dpni_drv->prpid;
-	default_task_params.parser_starting_hxs \
-			= dpni_drv->starting_hxs;
-	default_task_params.qd_priority = ((*((uint8_t *)ADC_WQID_PRI_OFFSET) \
-			& ADC_WQID_MASK) >> 4);
-
-	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
-		int32_t parse_status = parse_result_generate_default \
-				(PARSER_NO_FLAGS);
-		if (parse_status || PARSER_IS_PARSING_ERROR_DEFAULT()) {
-			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
-				/* if discard with terminate return with error \
-				 * then terminator */
-				if(fdma_discard_default_frame\
-						(FDMA_DIS_WF_TC_BIT))
-					fdma_terminate_task();
-			}
-			if (parse_status)
-				default_task_params.parser_status \
-				= parse_status;
-			else
-				default_task_params.parser_status \
-				= PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
-		}
+	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+								       (uint32_t)portal_id,
+								       E_MAPPED_MEM_TYPE_MC_PORTAL)),
+			 ni_id);
+	if (!dpni) {
+		pr_err("failed to open DPNI!\n");
+		return -ENODEV;
 	}
 
-	appidx = (*fd_flc_appidx >> 2);
-	dpni_drv->rx_cbs[appidx](dpni_drv->args[appidx]);
+	/* obtain default configuration of the NIC */
+	dpni_defconfig(&cfg);
+
+	memset(&params, 0, sizeof(params));
+	params.type = DPNI_TYPE_NIC;
+	params.max_dpio_objs = 8; /* TODO - ??? */
+	memcpy(params.mac_addr, eth_addr, sizeof(eth_addr));
+	err = dpni_init(dpni, &cfg, &params);
+	if (err)
+		return err;
+	dpni_close(dpni);
+
+	return 0;
 }
 
-__HOT_CODE int dpni_drv_send(uint16_t ni_id)
-{
-	struct dpni_drv *dpni_drv;
-	struct fdma_queueing_destination_params    enqueue_params;
-	int err;
 
-	dpni_drv = nis + ni_id; /* calculate pointer
-					* to the send NI structure   */
-
-	/* check if NI is enabled */
-	if (!(dpni_drv->flags & DPNI_DRV_FLG_ENABLED))
-			return(DPNI_DRV_NI_DIS);
-
-	if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu) {
-		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DIS)
-			return(DPNI_DRV_MTU_ERR);
-		else {
-			/* TODO - mark in the FLC some error indication */
-			uint32_t frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-			frc |= FD_FRC_DPNI_MTU_ERROR_CODE;
-			LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, frc);
-		}
-	}
-	/* for the enqueue set hash=0, an flags equal 0 meaning that the \
-	 * qd_priority is taken from the TLS and that enqueue function   \
-	 * always returns*/
-	enqueue_params.hash_value = 0;
-	enqueue_params.qd = dpni_drv->qdid;
-	enqueue_params.qd_priority = default_task_params.qd_priority;
-	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
-			FDMA_ENWF_NO_FLAGS);
-	return (err);
-}
-
-int dpni_drv_register_rx_cb (uint16_t     	ni_id,
-                             uint16_t     	flow_id,
+int dpni_drv_register_rx_cb (uint16_t		ni_id,
+                             uint16_t		flow_id,
+                             fsl_handle_t	dpio,
+                             fsl_handle_t	dpsp,
                              rx_cb_t      	*cb,
                              dpni_drv_app_arg_t arg)
 {
@@ -184,10 +83,95 @@ int dpni_drv_register_rx_cb (uint16_t     	ni_id,
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
-	dpni_drv->rx_cbs[flow_id] = cb;
-	dpni_drv->args[flow_id] = arg;
 
-	return E_OK;
+	if (dpio || dpsp) {
+		pr_err("DPIO and\\or DPSP not supported yet\n");
+		return -E_NOT_SUPPORTED;
+	}
+	dpni_drv->args[flow_id] = arg;
+	dpni_drv->rx_cbs[flow_id] = cb;
+
+	/* TODO - if passed DP-IO or DP-SP,
+	 * call 'dpni_attach' with new args.
+	 * also note to update the 'spid' if changed.
+	 */
+
+	return 0;
+}
+
+int dpni_drv_enable (uint16_t ni_id)
+{
+	struct dpni_drv *dpni_drv;
+	int		err;
+
+	/* calculate pointer to the send NI structure */
+	dpni_drv = nis + ni_id;
+
+	if ((err = dpni_enable(dpni_drv->dpni)) != 0)
+		return err;
+	dpni_drv->flags |= DPNI_DRV_FLG_ENABLED;
+	return 0;
+}
+
+int dpni_drv_disable (uint16_t ni_id)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the send NI structure */
+	dpni_drv = nis + ni_id;
+
+	dpni_drv->flags &= ~DPNI_DRV_FLG_ENABLED;
+	return dpni_disable(dpni_drv->dpni);
+}
+
+int dpni_drv_is_up (uint16_t ni_id)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the send NI structure */
+	dpni_drv = nis + ni_id;
+
+	return !!(dpni_drv->flags & DPNI_DRV_FLG_ENABLED);
+}
+
+
+int dpni_drv_probe(uint16_t	ni_id,
+                   uint16_t	mc_portal_id,
+                   fsl_handle_t	dpio,
+                   fsl_handle_t	dpsp)
+{
+	struct dpni_drv 		*dpni_drv;
+	struct dpni_attach_params	params;
+	int				err;
+
+	/* calculate pointer to the send NI structure */
+	dpni_drv = nis + ni_id;
+
+	dpni_drv->dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+	                                                                         (uint32_t)mc_portal_id,
+	                                                                         E_MAPPED_MEM_TYPE_MC_PORTAL)),
+				   ni_id);
+	if (!dpni_drv->dpni) {
+		pr_err("can't open DP-NI%d\n", ni_id);
+		return -ENODEV;
+	}
+
+	memset(&params, 0, sizeof(params));
+	/* TODO - how to retrieve the ID here??? */
+	params.dpio_id = (uint16_t)PTR_TO_UINT(dpio);
+	/* TODO - how to retrieve the ID here??? */
+	params.dpsp_id = (uint16_t)PTR_TO_UINT(dpsp);
+	if ((err = dpni_attach(dpni_drv->dpni,
+	                       (const struct dpni_attach_params *)&params)) != 0)
+		return err;
+
+	return 0;
+}
+
+int dpni_get_num_of_ni (void)
+{
+	/* TODO - complete here. should count the "real" number of NIs */
+	return 1;
 }
 
 

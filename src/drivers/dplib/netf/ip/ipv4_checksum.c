@@ -39,10 +39,11 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header)
 	ipv4header->hdr_cksum = 0;
 
 	/* Call FDMA for running sum computation */
-	if (FDMA_SUCCESS != fdma_calculate_default_frame_checksum(offset,
-								  ihl,
-								  &running_sum)
-								  ) {
+	if (FDMA_CHECKSUM_SUCCESS != fdma_calculate_default_frame_checksum
+								(offset,
+								 ihl,
+								 &running_sum)
+								 ) {
 		return IPV4_CKSUM_CALCULATE_STATUS_FDMA_FAILURE;
 	}
 
@@ -62,5 +63,7 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header)
 	IPv4 header */
 	ipv4header->hdr_cksum = running_sum;
 
+	/* TODO replace header if needed */
+	
 	return IPV4_CKSUM_CALCULATE_STATUS_SUCCESS;
 }

@@ -1,5 +1,7 @@
 #include "common/types.h"
+#include "common/dbg.h"
 #include "common/errors.h"
+#include "common/fsl_string.h"
 #include "common/fsl_cmdif.h"
 #include "common/fsl_malloc.h"
 #include "common/gen.h"
@@ -18,28 +20,23 @@
 
 #define CMDIF_MC_CLOSE		0x800
 
-#define CMDIF_MC_READ_CMDID(_hdr)		u64_read_field((_hdr), CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE)
-#define CMDIF_MC_READ_AUTHID(_hdr)	u64_read_field((_hdr), CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE)
-#define CMDIF_MC_READ_SIZE(_hdr)		u64_read_field((_hdr), CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE)
-#define CMDIF_MC_READ_STATUS(_hdr)	u64_read_field((_hdr), CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE)
-#define CMDIF_MC_READ_PRI(_hdr)		u64_read_field((_hdr), CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE)
+#define CMDIF_MC_READ_AUTHID(_hdr)	u64_read_field(swap_uint64(_hdr), CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE)
+#define CMDIF_MC_READ_STATUS(_hdr)	u64_read_field(swap_uint64(_hdr), CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE)
 
-#define CMDIF_MC_READ_HEADER(_ptr)	swap_uint64((_ptr)->header)
-
-#define CMDIF_MC_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri) 			\
-	do { 										\
-		volatile uint64_t tmp = 0;				\
-		tmp = u64_write_field(tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));	\
+#define CMDIF_MC_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri) 					\
+	do { 												\
+		volatile uint64_t tmp = 0;								\
+		tmp = u64_write_field(tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));		\
 		tmp = u64_write_field(tmp, CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE, (_auth));	\
-		tmp = u64_write_field(tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));	\
+		tmp = u64_write_field(tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));		\
 		tmp = u64_write_field(tmp, CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE, (_status));	\
 		tmp = u64_write_field(tmp, CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE, (_pri));		\
-		(_ptr)->header = swap_uint64(tmp);					\
+		(_ptr)->header = swap_uint64(tmp);							\
 	} while (0)
 
 
 struct mc_portal_regs {
-	uint64_t header;
+	volatile uint64_t header;
 	uint64_t param1;
 	uint64_t param2;
 	uint64_t param3;
@@ -64,7 +61,7 @@ static int wait_resp(struct mc_portal_regs *regs)
 		status = (enum cmdif_status)CMDIF_MC_READ_STATUS(regs->header);
 	} while (status == CMDIF_STATUS_READY);
 
-	
+
 	/* TODO - some errors are not defined */
 	switch (status)
 	{
@@ -78,7 +75,7 @@ static int wait_resp(struct mc_portal_regs *regs)
 		return EACCES;  		/* Permission denied */
 	case CMDIF_STATUS_DMA_ERR:
 		return 99;//EUNKNOWN;															 /* unknown error */
-	case CMDIF_STATUS_CONFIG_ERR:	
+	case CMDIF_STATUS_CONFIG_ERR:
 		return ENXIO;			/* Device not configured */
 	case  CMDIF_STATUS_TIMEOUT:
 		return 99;//EUNKNOWN;															 /* unknown error */
@@ -95,7 +92,7 @@ static int wait_resp(struct mc_portal_regs *regs)
 	case CMDIF_STATUS_INVALID_STATE:
 		return 99;	//EUNKNOWN;															/* Unknown error */
 
-		
+
 	}
 	return 99; /* default value */
 }
@@ -109,6 +106,13 @@ struct cmdif_dev *cmdif_open(void *regs,
 	int err;
 	int cmdid = 0;
 	struct cmdif_dev *dev = fsl_os_malloc(sizeof(struct cmdif_dev));
+
+	if (!dev)
+	{
+		pr_err("no memory for cmdif dev!\n");
+	        return NULL;
+	}
+	memset(dev, 0, sizeof(struct cmdif_dev));
 
 	dev->regs = (struct mc_portal_regs *)regs;
 
@@ -170,6 +174,9 @@ int cmdif_send(struct cmdif_dev *dev,
 
 	CMDIF_MC_WRITE_HEADER(dev->regs, cmd, dev->auth_id, size,
 	                    CMDIF_STATUS_READY, priority);
+pr_debug("AIOP sent cmd (BE) 0x%08x%08x\n",
+     (uint32_t)(swap_uint64(dev->regs->header)>>32),
+     (uint32_t)swap_uint64(dev->regs->header));
 
 	return wait_resp(dev->regs); /* blocking */
 }
