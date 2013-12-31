@@ -103,13 +103,6 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(GRO_MODULE_STATUS_ID | 0x3)
-	/** Aggregation process cannot continue since Represented segment
-	 * size < headers size. */
-#define	TCP_GRO_SEG_AGG_STATUS_HEADERS_SIZE_BIGGER_THAN_SEGMENT_SIZE	\
-					(GRO_MODULE_STATUS_ID | 0x4)
-	/** Agregation process cannot continue since the packet size > 64KB. */
-#define TCP_GRO_SEG_AGG_STATUS_SIZE_BIGGER_THAN_64KB			\
-					(GRO_MODULE_STATUS_ID | 0x5)
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
@@ -188,10 +181,11 @@ struct tcp_gro_context_metadata {
 struct gro_context_limits {
 		/** Timeout per packet aggregation limit. */
 	uint16_t timeout_limit;
-		/** Maximum aggregated packet size limit. */
+		/** Maximum aggregated packet size limit. 
+		 * A single segment size cannot oversize this limit. */
 	uint16_t packet_size_limit;
 		/** Maximum aggregated segments per packet limit. 
-		 * 0 is an illegal value and will be treated as 1. */
+		 * 0/1 are an illegal values. */
 	uint8_t	seg_num_limit;
 		/** Padding */
 	uint8_t	pad[3];
@@ -225,7 +219,26 @@ struct tcp_gro_context_params {
 		/** Aggregated packet limits. */
 	struct gro_context_limits limits;
 		/** Address (in HW buffers) of the TCP GRO aggregation metadata
-		 * (\ref tcp_gro_context_metadata). */
+		 * (tcp_gro_context_metadata()). 
+		 * Upper layer SW should send a new metadata address with each 
+		 * call to tcp_gro_aggregate_seg().
+		 * According to the returned status from tcp_gro_aggregate_seg()
+		 * the upper layer SW can decide whether the new metadata 
+		 * address was used by tcp_gro_aggregate_seg() OR the previous 
+		 * metadata address which was sent to tcp_gro_aggregate_seg() 
+		 * (for the same session) was used. 
+		 * Usage:
+		 * 1. Returned status = TCP_GRO_SEG_AGG_NOT_DONE: Sent metadata 
+		 * address is used only in case this is a new aggregation (= new 
+		 * session or last status for this session was 
+		 * TCP_GRO_SEG_AGG_DONE).
+		 * 2. Returned status = TCP_GRO_SEG_AGG_DONE: Sent  metadata 
+		 * address is used only in case this is a new aggregation (= new 
+		 * session or last status for this session was 
+		 * TCP_GRO_SEG_AGG_DONE).
+		 * 3. Returned status = TCP_GRO_SEG_AGG_DONE_AGG_OPEN: Sent 
+		 * metadata address is always used for the new aggregation.
+		 * */
 	uint64_t metadata;	
 		/** Address (in HW buffers) of the TCP GRO statistics counters
 		 *  (\ref tcp_gro_stats_cntrs). 
