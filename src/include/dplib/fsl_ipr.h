@@ -391,6 +391,8 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.
+		In case the function returns with status: IPR_REASSEMBLY_NOT_COMPLETED,
+		it is forbidden to modify the frame.
 		In this function, the task yields.
 
 *//***************************************************************************/

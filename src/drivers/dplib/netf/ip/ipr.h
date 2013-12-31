@@ -17,6 +17,60 @@
 @{
 *//***************************************************************************/
 
+#define OUT_OF_ORDER	0x00000001
+
+#define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
+#define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
+
+struct ipr_instance_handle {
+	uint64_t	extended_stats_addr;
+		/** maximum concurrently IPv4 open frames. */
+	uint32_t	table_id_ipv4;
+	uint32_t	table_id_ipv6;
+	uint32_t    max_open_frames_ipv4;
+	uint32_t  	max_open_frames_ipv6;
+	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
+	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
+	uint16_t  	timeout_value_ipv4;/** reass timeout value for ipv4 */
+	uint16_t  	timeout_value_ipv6;/** reass timeout value for ipv6 */
+	/** function to call upon Time Out occurrence for ipv4 */
+	ipr_timeout_cb_t *ipv4_timeout_cb;
+	/** function to call upon Time Out occurrence for ipv6 */
+	ipr_timeout_cb_t *ipv6_timeout_cb;
+	/** Argument to be passed upon invocation of the IPv4 callback
+	    function*/
+	ipr_timeout_arg_t cb_timeout_ipv4_arg;
+	/** Argument to be passed upon invocation of the IPv6 callback
+	    function*/
+	ipr_timeout_arg_t cb_timeout_ipv6_arg;
+		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
+	uint32_t  	flags;
+		/** 32-bit alignment. */
+	uint8_t  pad[4];
+};
+
+struct ipr_rfdc{
+	uint64_t	instance_handle;
+	uint64_t	key;
+	uint8_t		first_frag_index;
+	uint8_t		last_frag_index;
+	uint8_t		next_index;
+	uint8_t		index_to_out_of_order;
+	uint16_t	expected_total_length;
+	uint16_t	current_total_length;
+	uint32_t	status;
+	uint32_t	timer_handle;
+	uint16_t	first_frag_offset;
+	uint16_t	last_frag_offset;
+	uint32_t	res;
+};
+
+struct link_list_element{
+	uint8_t		prev_index;
+	uint8_t 	next_index;
+	uint16_t	frag_offset;
+};
+
 
 /**************************************************************************//**
 @Group		IPR_Internal Internal IPR functions & Definitions
@@ -112,6 +166,27 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 void ipr_init(uint32_t max_buffers, uint32_t flags, uint8_t tmi_id);
 
 /**************************************************************************//**
+@Function	ipr
+
+@Description	
+
+@Param[in]	
+@Param[in]	
+@Param[in]	.
+
+
+@Return		None.
+
+@Cautions	None.
+*//***************************************************************************/
+
+void ipr(struct	ipr_instance_handle *ipr_instance, struct ipr_rfdc *rfdc_ptr,
+		uint16_t fragmentOffset, uint64_t rfdc_ext_addr);
+
+void closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+
+
+/**************************************************************************//**
 @Description	IPR Global parameters
 *//***************************************************************************/
 
@@ -119,8 +194,6 @@ struct ipr_global_parameters {
 /** Initialized to max_buffers and will be decremented upon each
  * create instance */
 uint32_t ipr_avail_buffers_cntr;
-/** Pool id returned by the ARENA allocator to be used as context buffer pool */
-uint8_t  ipr_pool_id;
 /** Size of the allocated buffers by the ARENA. These buffers are associated to
     the ipr_pool_id */
 uint16_t ipr_buffer_size;
@@ -130,6 +203,9 @@ uint8_t  ipr_timeout_epid;
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
 uint8_t  ipr_tmi_id;
+/** Pool id returned by the ARENA allocator to be used as context buffer pool */
+uint8_t  ipr_pool_id;
+uint8_t	 res;
 };
 
 /* @} end of group IPR_Internal */

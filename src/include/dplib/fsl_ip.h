@@ -161,7 +161,8 @@
 
 		It automatically generates the IP checksum and optionally
 		can update the UDP/TCP checksum.
-		The function assumes the original IP checksum to be valid.
+		
+		The function assumes the original UDP/TCP checksum to be valid.
 
 		If the incoming frame contains TCP/UDP (the original UDP
 		checksum!= 0), the following occur:

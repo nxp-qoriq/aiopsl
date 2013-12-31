@@ -564,6 +564,6 @@ int32_t ctlu_table_query_debug(uint16_t table_id,
 
 /** @} */ /* end of CTLU_Functions */
 
-/** @} */ /* end of AIOP_CTLU */
+/** @} */ /* end of CTLU */
 
 #endif /* __CTLU_H */
