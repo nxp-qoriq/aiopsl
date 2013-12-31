@@ -63,5 +63,7 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header)
 	IPv4 header */
 	ipv4header->hdr_cksum = running_sum;
 
+	/* TODO replace header if needed */
+	
 	return IPV4_CKSUM_CALCULATE_STATUS_SUCCESS;
 }
