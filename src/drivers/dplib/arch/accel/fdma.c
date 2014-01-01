@@ -799,7 +799,7 @@ int32_t fdma_insert_default_segment_data(
 	struct presentation_context *prc =
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t arg1, arg2, arg3, arg4, seg_size_rs;
 	void	 *ws_address_rs;
 	int8_t res1;
 
@@ -813,12 +813,14 @@ int32_t fdma_insert_default_segment_data(
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, insert_size);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
 		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
+		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
 		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
-				insert_size)
+				insert_size){
 			ws_address_rs = (void *)
 				((uint32_t)ws_address_rs - insert_size);
-		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs,
-				PRC_GET_SEGMENT_LENGTH());
+			seg_size_rs = seg_size_rs + insert_size;
+		}
+		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs, seg_size_rs);
 	}
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, ZERO);
