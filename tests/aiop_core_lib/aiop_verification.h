@@ -53,7 +53,7 @@
 
 
 /**************************************************************************//**
- @Group		AIOP_Applications_Verification
+ @Group		AIOP_FMs_Verification
 
  @Description	AIOP Applications Verification structures definitions.
 
@@ -66,7 +66,7 @@
 /*GSO, IPF, GRO, IPR, ...*/
 
 
-/** @} */ /* end of AIOP_Applications_Verification */
+/** @} */ /* end of AIOP_FMs_Verification */
 
 
 /**************************************************************************//**
