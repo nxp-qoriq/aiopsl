@@ -10,11 +10,14 @@
 #include "net/fsl_net.h"
 #include "dplib/fsl_l4_checksum.h"
 #include "dplib/fsl_parser.h"
+#include "parser.h"
 #include "dplib/fsl_fdma.h"
 
+extern __TASK struct aiop_default_task_params default_task_params;
 
 int32_t cksum_calc_udp_tcp_checksum()
 {
+	uint16_t	l3checksum_dummy;
 	uint16_t	l4checksum;
 	struct tcphdr	*tcph;
 	struct udphdr	*udph;
@@ -34,9 +37,12 @@ int32_t cksum_calc_udp_tcp_checksum()
 		}
 	}
 
-	/* Call parser special TODO */
-	if (PARSER_STATUS_PASS !=
-	    parse_result_generate_default(0)) {
+	/* Call parser */
+	if (PARSER_STATUS_PASS != parse_result_generate_checksum(
+		(enum parser_starting_hxs_code)
+		default_task_params.parser_starting_hxs, 0, &l3checksum_dummy,
+		&l4checksum)) 
+	{
 		return
 		L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_PARSER_FAILURE;
 	}
