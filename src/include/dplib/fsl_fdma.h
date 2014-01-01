@@ -2398,10 +2398,12 @@ int32_t fdma_replace_default_segment_data(
 		Service Routine assumes there is enough headroom in the
 		Workspace before the default segment address to represent the
 		segment (the headroom should be large enough to contain the 
-		inserted data size).
+		inserted data size). The segment size will increase by the 
+		inserted size. 
 		In case there is not enough headroom for the inserted size, the 
 		service routine will segment representation will overwrite the 
-		old segment location in workspace.   
+		old segment location in workspace. The segment size will remain 
+		the same. 
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
