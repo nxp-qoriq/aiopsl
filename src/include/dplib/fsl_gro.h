@@ -97,12 +97,12 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 *//***************************************************************************/
 
 	/** A segment was aggregated and the aggregation is not completed. */
-#define	TCP_GRO_SEG_AGG_NOT_DONE	(GRO_MODULE_STATUS_ID | 0x1)
+#define	TCP_GRO_SEG_AGG_NOT_DONE	(TCP_GRO_MODULE_STATUS_ID | 0x1)
 	/** A segment was aggregated and the aggregation is completed. */
-#define	TCP_GRO_SEG_AGG_DONE		(GRO_MODULE_STATUS_ID | 0x2)
+#define	TCP_GRO_SEG_AGG_DONE		(TCP_GRO_MODULE_STATUS_ID | 0x2)
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
-#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(GRO_MODULE_STATUS_ID | 0x3)
+#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x3)
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
@@ -117,7 +117,7 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	/** The aggregation is flushed. */
 #define	TCP_GRO_FLUSH_AGG_DONE	SUCCESS
 	/** No aggregation exists for the session. */
-#define	TCP_GRO_FLUSH_NO_AGG	(GRO_MODULE_STATUS_ID | 0x1)
+#define	TCP_GRO_FLUSH_NO_AGG	(TCP_GRO_MODULE_STATUS_ID | 0x1)
 
 /** @} */ /* end of TCP_GRO_FLUSH_STATUS */
 
