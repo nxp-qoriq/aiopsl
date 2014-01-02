@@ -63,7 +63,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		params.asa_dst	= (void *)str->asa_dst;
 		params.asa_offset	= str->asa_offset;
 		params.asa_size		= str->asa_size;
-		params.fd_src		= (void *)str->fd_src;
+		params.fd_src		= (struct ldpaa_fd *)str->fd_src;
 		params.flags		= flags;
 		params.present_size	= str->present_size;
 		params.pta_dst	= (void *)str->pta_dst;
@@ -334,7 +334,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				FDMA_SPLIT_PSA_NO_PRESENT_BIT);
 		flags |= ((str->SM) ? FDMA_SPLIT_SM_BIT : 0x0);
 		flags |= ((str->SR)  ? FDMA_SPLIT_SR_BIT  : 0x0);
-		params.fd_dst		= (void *)str->fd_dst;
+		params.fd_dst		= (struct ldpaa_fd *)str->fd_dst;
 		params.flags		= flags;
 		params.present_size	= str->present_size;
 		params.split_size_sf	= str->split_size_sf;
