@@ -30,6 +30,8 @@
 #define FDMA_READ_ASA_CMD		0x00001002
 	/** FDMA Read PTA segment command code */
 #define FDMA_READ_PTA_CMD		0x00002002
+	/** FDMA Present Data segment explicit command code */
+#define FDMA_PRESENT_EXP_CMD		0x00003002
 	/** FDMA Extend presentation command code */
 #define FDMA_EXTEND_CMD			0x00000003
 	/** FDMA Store default working frame command code */
@@ -85,6 +87,8 @@
 #define FDMA_READ_ASA_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_READ_ASA_CMD)
 	/** FDMA Read PTA segment Command Structure identifier */
 #define FDMA_READ_PTA_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_READ_PTA_CMD)
+	/** FDMA Present Data segment explicit Command Structure identifier */
+#define FDMA_PRESENT_EXP_CMD_STR ((FPDMA_ACCEL_ID << 16) | FDMA_PRESENT_EXP_CMD)
 	/** FDMA Extend presentation Command Structure identifier */
 #define FDMA_EXTEND_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_EXTEND_CMD)
 	/** FDMA Store working frame Command Structure identifier */
@@ -335,6 +339,40 @@ struct fdma_read_pta_command {
 	int8_t  status;
 		/** 64-bit alignment. */
 	uint8_t	pad[5];
+};
+
+/**************************************************************************//**
+@Description	FDMA Present segment explicit Command structure.
+
+		Includes information needed for FDMA Present segment explicit
+		command verification.
+
+*//***************************************************************************/
+struct fdma_present_exp_command {
+		/** FDMA Present segment explicit command structure identifier. */
+	uint32_t opcode;
+		/** Pointer to the location within the workspace to present the
+		 * frame segment data. */
+	uint32_t ws_dst;
+		/** location within the presented frame to start presenting
+		 * from.*/
+	uint16_t offset;
+		/** Number of frame bytes to present (Must be greater than 0)*/
+	uint16_t present_size;
+		/** Command returned segment length. */
+	uint16_t seg_length;
+		/** frame handle. */
+	uint8_t frame_handle;
+		/** Command returned segment handle. */
+	uint8_t seg_handle;
+		/** Reference within the frame to present from:
+		 * - 0: start of the frame.
+		 * - 1: end of the frame. */
+	uint8_t SR;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
