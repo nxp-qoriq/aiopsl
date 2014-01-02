@@ -85,27 +85,6 @@
 *//***************************************************************************/
 int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header);
 
-
-/**************************************************************************//**
-@Function	cksum_ones_complement_sum16
-
-@Description	Calculates a 1's complement sum of two 16 bit arguments.
-
-
-@Param[in]	arg1 - first argument.
-
-@Param[in]	arg2 - second argument.
-
-@Return		1's complement sum of the two 16 bit arguments.
-
-@Cautions	None
-*//***************************************************************************/
-inline uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2)
-{
-	int32_t tmp = arg1 + arg2;
-	return (uint16_t)(tmp + (tmp >> 16));
-}
-
 /** @} */ /* end of FSL_IPV4_CKSUM_Functions */
 /** @} */ /* end of FSL_IPV4_CKSUM */
 

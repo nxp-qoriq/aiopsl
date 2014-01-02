@@ -176,9 +176,9 @@ int32_t fdma_present_default_frame_segment(
 	int8_t  res1;
 
 	/* This command may be invoked only on Data segment */
-	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
+	/*if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		return FDMA_NO_DATA_SEGMENT_HANDLE;*/
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			(flags | FDMA_ST_DATA_SEGMENT_BIT));
@@ -645,6 +645,9 @@ int32_t fdma_split_frame(
 				prc->asapa_asaps =
 					(params->flags & FDMA_SPLIT_SR_BIT) ?
 							PRC_SR_MASK : ZERO;
+				if (!(params->flags & FDMA_SPLIT_SM_BIT))
+					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 
+							params->split_size_sf);
 			}
 		}
 		/* Update Task Defaults */
@@ -656,7 +659,16 @@ int32_t fdma_split_frame(
 					PRC_FRAME_HANDLE_MASK);
 				prc->ptapa_asapo = PRC_PTA_NOT_LOADED_ADDRESS;
 				prc->asapa_asaps = ZERO;
+				if (!(params->flags & FDMA_SPLIT_SM_BIT))
+					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 
+						params->split_size_sf);
 		}
+		
+		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) &&
+		    (params->source_frame_handle == PRC_GET_FRAME_HANDLE()) &&
+		    !(params->flags & FDMA_SPLIT_SM_BIT))
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0, 
+					params->split_size_sf); 
 	}
 
 	return (int32_t)(res1);
@@ -787,7 +799,7 @@ int32_t fdma_insert_default_segment_data(
 	struct presentation_context *prc =
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t arg1, arg2, arg3, arg4, seg_size_rs;
 	void	 *ws_address_rs;
 	int8_t res1;
 
@@ -800,10 +812,15 @@ int32_t fdma_insert_default_segment_data(
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, ZERO);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, insert_size);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-		ws_address_rs = (void *)
-			(PRC_GET_SEGMENT_ADDRESS() - insert_size);
-		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs,
-				PRC_GET_SEGMENT_LENGTH());
+		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
+		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
+		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
+				insert_size){
+			ws_address_rs = (void *)
+				((uint32_t)ws_address_rs - insert_size);
+			seg_size_rs = seg_size_rs + insert_size;
+		}
+		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs, seg_size_rs);
 	}
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, ZERO);

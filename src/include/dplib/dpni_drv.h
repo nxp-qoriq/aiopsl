@@ -95,13 +95,18 @@ int dpni_drv_is_up (uint16_t ni_id);
  @Description   TODO
 
  @Param[in]     ni_id   The Network Interface ID
+ @Param[in]     flow_id TODO
+ @Param[in]     dpio    TODO
+ @Param[in]     dpsp    TODO
  @Param[in]     cb      TODO
  @Param[in]     arg     TODO
 
  @Return        OK on success; error code, otherwise.
 *//***************************************************************************/
-int dpni_drv_register_rx_cb (uint16_t     	ni_id,
-                             uint16_t     	flow_id,
+int dpni_drv_register_rx_cb (uint16_t		ni_id,
+                             uint16_t		flow_id,
+                             fsl_handle_t	dpio,
+                             fsl_handle_t	dpsp,
                              rx_cb_t      	*cb,
                              dpni_drv_app_arg_t arg);
 

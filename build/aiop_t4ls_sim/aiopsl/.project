@@ -150,6 +150,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/cmdif_srv.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/console.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/console.c</locationURI>
@@ -393,6 +398,16 @@
 			<name>aiop_sl/drivers/dplib/dpni/dpni_drv.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpni/dpni_drv_rxtx.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpni/drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dprc/dprc.c</name>

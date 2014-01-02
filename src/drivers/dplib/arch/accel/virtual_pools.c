@@ -210,12 +210,14 @@ int32_t vpool_init(
 	/* Init 'max' to zero, since it's an indicator to pool ID availability */
 	for(i = 0; i < num_of_virtual_pools; i++) {
 		virtual_pool->max_bufs = 0;
+		virtual_pool->spinlock = 0; /* clear spinlock indicator */
 		virtual_pool++; /* increment the pointer */
 	}
 
 	/* Init 'remaining' to -1, since it's an indicator an empty index */
 	for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
 		virtual_bman_pools[i].remaining = -1;
+		virtual_bman_pools[i].spinlock = 0; /* clear spinlock indicator */
 	}
 	
 	return VIRTUAL_POOLS_SUCCESS;	

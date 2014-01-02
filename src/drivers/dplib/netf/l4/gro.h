@@ -193,6 +193,8 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 	/** If set, TCP GRO is in exclusive mode. Otherwise, TCP GRO is in
 	 * concurrent mode.	*/
 #define TCP_GRO_OSM_EXLUSIVE_MODE	0x00000002
+	/** If set, TCP PSH flag is set -> flush aggregation when possible. */
+#define TCP_GRO_PSH_FLAG_SET		0x00000004
 	/** IP header reserved1 ECN bit of the GRO aggregation. */
 #define TCP_GRO_ECN1			0x00010000
 	/** IP header reserved2 ECN bit of the GRO aggregation. */
@@ -214,6 +216,31 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 #define TCP_GRO_ECN_MASK	0x00030000
 
 /** @} */ /* end of TCP_GRO_INTERNAL_MASKS */
+
+
+/**************************************************************************//**
+@Group	TCP_GRO_AGGREGATE_INTERNAL_STATUS  TCP GRO Aggregation Internal Statuses
+
+@Description \ref tcp_gro_aggregate_seg() return internal values
+
+@{
+*//***************************************************************************/
+
+	/** A segment has started a new aggregation and the aggregation has 
+	 * completed. */
+#define	TCP_GRO_SEG_AGG_DONE_NEW_AGG				\
+		(TCP_GRO_SEG_AGG_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+	/** A segment has started a new aggregation and the aggregation is not 
+	 * completed. */
+#define	TCP_GRO_SEG_AGG_NOT_DONE_NEW_AGG			\
+		(TCP_GRO_SEG_AGG_NOT_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+	/** A segment has started new aggregation, and the previous aggregation
+	 * is completed. */
+#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG			\
+	(TCP_GRO_SEG_AGG_DONE_AGG_OPEN | TCP_GRO_SEG_AGG_NEW_AGG)
+
+
+/** @} */ /* end of TCP_GRO_AGGREGATE_INTERNAL_STATUS */
 
 /** @} */ /* end of TCP_GRO_INTERNAL_MACROS */
 

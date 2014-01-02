@@ -19,18 +19,20 @@
 #include "aiop_verification_parser.h"
 #include "aiop_verification_hm.h"
 #include "verification_virtual_pools.h"
+#include "aiop_verification_gso.h"
 
-#define ACCEL_ID_CMD_MASK		0xFFFF0000
 	/**< ACCEL_ID cmd mask */
-
-#define AIOP_TERMINATE_FLOW_CMD		0xFFFF
+#define ACCEL_ID_CMD_MASK		0xFFFF0000
 	/**< AIOP Terminate Flow Verification command code */
-
-#define AIOP_TERMINATE_FLOW_CMD_STR	(AIOP_TERMINATE_FLOW_CMD << 16)
+#define AIOP_TERMINATE_FLOW_CMD		0xFFFF
 	/**< AIOP Terminate Flow Verification command structure identifier */
-
-#define STR_SIZE_ERR			0xFFFF
+#define AIOP_TERMINATE_FLOW_CMD_STR	(AIOP_TERMINATE_FLOW_CMD << 16)
 	/**< Struct size error code */
+#define STR_SIZE_ERR			0xFFFF
+	/**< Buffer Data chunk size. */
+#define DATA_SIZE	256
+	/**< Buffer Data chunk address in workspace. */
+#define WS_DATA_ADDR	0x100
 
 /**************************************************************************//**
  @Group		AIOP_Verification
@@ -53,7 +55,7 @@
 
 
 /**************************************************************************//**
- @Group		AIOP_Applications_Verification
+ @Group		AIOP_FMs_Verification
 
  @Description	AIOP Applications Verification structures definitions.
 
@@ -66,7 +68,7 @@
 /*GSO, IPF, GRO, IPR, ...*/
 
 
-/** @} */ /* end of AIOP_Applications_Verification */
+/** @} */ /* end of AIOP_FMs_Verification */
 
 
 /**************************************************************************//**
@@ -85,6 +87,7 @@ struct aiop_terminate_flow_command {
 
 
 void aiop_verification();
+void aiop_verification_fm();
 
 
 /** @} */ /* end of AIOP_Verification */

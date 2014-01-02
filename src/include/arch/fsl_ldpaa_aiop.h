@@ -298,14 +298,15 @@
 #define LDPAA_FD_SET_ADDR(_fd, _val)
 	/** Macro to set FD LENGTH field */
 #define LDPAA_FD_SET_LENGTH(_fd, _val)					\
-	({uint32_t length = (uint32_t)					\
-		(LW_SWAP(((char *)_fd) + FD_MEM_LENGTH_OFFSET));	\
+	({uint32_t length;						\
 	if (LDPAA_FD_GET_SL(_fd)) {					\
+		length = (uint32_t)					\
+			(LW_SWAP(((char *)_fd) + FD_MEM_LENGTH_OFFSET));\
 		length &= FD_MEM_MASK;					\
 		__e_rlwimi(length, _val, 0, 14, 31);			\
-		STW_SWAP(length, FD_MEM_LENGTH_OFFSET);			\
+		STW_SWAP(length, ((char *)_fd) + FD_MEM_LENGTH_OFFSET);	\
 	} else								\
-		STW_SWAP(_val, FD_MEM_LENGTH_OFFSET);			\
+		STW_SWAP(_val, ((char *)_fd) + FD_MEM_LENGTH_OFFSET);	\
 	})
 	/** Macro to set FD MEM field */
 #define LDPAA_FD_SET_MEM(_fd, _val)
@@ -368,13 +369,17 @@
 #define LDPAA_FD_SET_FLC(_fd, _val)
 
 /* Additional FD Macros */
-	/** Macro to update FD LENGTH */
+	/** Macro to update FD LENGTH 
+	  _from_size = new size
+	  _to_size = old size
+	 */
 #define LDPAA_FD_UPDATE_LENGTH(_fd, _from_size, _to_size)		\
 	({uint32_t length;						\
 	__lwbrx(length, ((char *)_fd) + FD_MEM_LENGTH_OFFSET);		\
+	/* inserting data */						\
 	if (_from_size >= _to_size)					\
 		length += (_from_size - _to_size);			\
-	else								\
+	else /* deleting data */					\
 		length -= (_to_size - _from_size);			\
 	STW_SWAP(length, ((char *)_fd) + FD_MEM_LENGTH_OFFSET); })
 
