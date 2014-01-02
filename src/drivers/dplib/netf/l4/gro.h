@@ -217,6 +217,31 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 
 /** @} */ /* end of TCP_GRO_INTERNAL_MASKS */
 
+
+/**************************************************************************//**
+@Group	TCP_GRO_AGGREGATE_INTERNAL_STATUS  TCP GRO Aggregation Internal Statuses
+
+@Description \ref tcp_gro_aggregate_seg() return internal values
+
+@{
+*//***************************************************************************/
+
+	/** A segment has started a new aggregation and the aggregation has 
+	 * completed. */
+#define	TCP_GRO_SEG_AGG_DONE_NEW_AGG				\
+		(TCP_GRO_SEG_AGG_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+	/** A segment has started a new aggregation and the aggregation is not 
+	 * completed. */
+#define	TCP_GRO_SEG_AGG_NOT_DONE_NEW_AGG			\
+		(TCP_GRO_SEG_AGG_NOT_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+	/** A segment has started new aggregation, and the previous aggregation
+	 * is completed. */
+#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG			\
+	(TCP_GRO_SEG_AGG_DONE_AGG_OPEN | TCP_GRO_SEG_AGG_NEW_AGG)
+
+
+/** @} */ /* end of TCP_GRO_AGGREGATE_INTERNAL_STATUS */
+
 /** @} */ /* end of TCP_GRO_INTERNAL_MACROS */
 
 
