@@ -200,6 +200,40 @@ int32_t fdma_present_default_frame_segment(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_present_frame_segment(
+		uint8_t frame_handle,
+		uint32_t flags,
+		void	 *ws_dst,
+		uint16_t offset,
+		uint16_t present_size,
+		uint16_t *seg_length,
+		uint8_t  *seg_handle)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_PRESENT_EXP_CMD_ARG1(frame_handle,
+			(flags | FDMA_ST_DATA_SEGMENT_BIT));
+	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
+	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	*seg_length = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2));
+	*seg_handle = *((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+			FDMA_SEG_HANDLE_OFFSET));
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	return (int32_t)(res1);
+}
+
 int32_t fdma_read_default_frame_asa(
 		uint32_t flags,
 		uint16_t offset,

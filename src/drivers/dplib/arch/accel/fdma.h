@@ -188,6 +188,11 @@
 	(uint32_t)((FDMA_GET_PRC_FRAME_HANDLE(_handles)) |		\
 	_flags | FDMA_PRESENT_CMD)
 
+	/** FDMA explicit Present command arg1 */
+#define FDMA_PRESENT_EXP_CMD_ARG1(_frame_handle, _flags)		\
+	(uint32_t)((_frame_handle << 16) | _flags | FDMA_PRESENT_CMD)
+
+
 	/** FDMA Present command arg2 */
 #define FDMA_PRESENT_CMD_ARG2(_ws_address, _offset)			\
 	(uint32_t)((_ws_address << 16) | _offset)
@@ -213,7 +218,7 @@
 	(uint32_t)((_seg_addr << 16) | _extend_size)
 
 	/**< FDMA Store default working frame command arg1 */
-#define FDMA_STORE_DEFAULT_CMD_ARG1(_spid, _handles)				\
+#define FDMA_STORE_DEFAULT_CMD_ARG1(_spid, _handles)			\
 	(uint32_t)((_spid << 24) |					\
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
 	FDMA_STORE_CMD)
