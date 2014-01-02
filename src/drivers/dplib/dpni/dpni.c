@@ -44,6 +44,10 @@ static void prepare_init_cmd(struct cmdif_cmd_desc	*desc,
     				DPNI_INIT_OPTIONS_O,
     				DPNI_INIT_OPTIONS_S,
                     cfg->options);
+    cmd_param = u64_write_field(cmd_param,
+    				DPNI_INIT_MAX_DPIOS_O,
+    				DPNI_INIT_MAX_DPIOS_S,
+                    params->max_dpio_objs);
     GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
 	/* build param 3*/
     cmd_param = 0;
