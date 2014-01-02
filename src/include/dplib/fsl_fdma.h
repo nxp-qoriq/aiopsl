@@ -1453,7 +1453,7 @@ struct fdma_present_frame_params {
 	void *asa_dst;
 		/** A pointer to the location in workspace of the FD that is to
 		* be presented. */
-	void *fd_src;
+	struct ldpaa_fd *fd_src;
 		/** location within the presented frame to start presenting
 		 * the segment from. */
 	uint16_t seg_offset;
@@ -1526,7 +1526,7 @@ struct fdma_split_frame_params {
 		 * \endlink */
 	uint32_t flags;
 		/** A pointer to the location in workspace for the split FD. */
-	void *fd_dst;
+	struct ldpaa_fd *fd_dst;
 		/** A pointer to the location in workspace for the presented
 		 * split frame segment. */
 	void *seg_dst;
