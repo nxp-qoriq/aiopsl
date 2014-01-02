@@ -11,6 +11,7 @@
 #define __AIOP_VERIFICATION_GSO_H_
 
 #include "dplib/fsl_ldpaa.h"
+#include "common/gen.h"
 #include "general.h"
 #include "gso.h"
 
@@ -84,7 +85,7 @@ struct tcp_gso_generate_seg_command {
 		
 };
 
-
+uint16_t  aiop_verification_gso(uint16_t data_addr, uint16_t rem_data_size);
 
 
 /** @} */ /* end of AIOP_GSO_Verification */
