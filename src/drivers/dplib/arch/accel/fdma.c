@@ -176,9 +176,9 @@ int32_t fdma_present_default_frame_segment(
 	int8_t  res1;
 
 	/* This command may be invoked only on Data segment */
-	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
+	/*if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		return FDMA_NO_DATA_SEGMENT_HANDLE;*/
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			(flags | FDMA_ST_DATA_SEGMENT_BIT));
