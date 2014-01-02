@@ -164,14 +164,16 @@ int cmdif_send(struct cmdif_dev *dev,
                int priority,
                struct cmdif_cmd_desc *desc)
 {
-	GPP_CMD_WRITE_PARAM(dev->regs, 1, desc->param1);
-	GPP_CMD_WRITE_PARAM(dev->regs, 2, desc->param2);
-	GPP_CMD_WRITE_PARAM(dev->regs, 3, desc->param3);
-	GPP_CMD_WRITE_PARAM(dev->regs, 4, desc->param4);
-	GPP_CMD_WRITE_PARAM(dev->regs, 5, desc->param5);
-	GPP_CMD_WRITE_PARAM(dev->regs, 6, desc->param6);
-	GPP_CMD_WRITE_PARAM(dev->regs, 7, desc->param7);
-
+	if (desc)
+	{
+		GPP_CMD_WRITE_PARAM(dev->regs, 1, desc->param1);
+		GPP_CMD_WRITE_PARAM(dev->regs, 2, desc->param2);
+		GPP_CMD_WRITE_PARAM(dev->regs, 3, desc->param3);
+		GPP_CMD_WRITE_PARAM(dev->regs, 4, desc->param4);
+		GPP_CMD_WRITE_PARAM(dev->regs, 5, desc->param5);
+		GPP_CMD_WRITE_PARAM(dev->regs, 6, desc->param6);
+		GPP_CMD_WRITE_PARAM(dev->regs, 7, desc->param7);
+	}
 	CMDIF_MC_WRITE_HEADER(dev->regs, cmd, dev->auth_id, size,
 	                    CMDIF_STATUS_READY, priority);
 pr_debug("AIOP sent cmd (BE) 0x%08x%08x\n",
