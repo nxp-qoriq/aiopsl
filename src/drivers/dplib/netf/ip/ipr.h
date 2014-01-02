@@ -127,6 +127,7 @@ uint16_t ipr_buffer_size;
 /** Should got either as a global define or as a return parameter from
     a dedicated  ARENA function (epid = get_tmi_epid(tmi_id)).*/
 uint8_t  ipr_timeout_epid;
+uint8_t  ipr_timeout_flags;
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
 uint8_t  ipr_tmi_id;
