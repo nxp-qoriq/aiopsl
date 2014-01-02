@@ -1680,6 +1680,39 @@ int32_t fdma_present_default_frame_segment(
 		uint8_t  *seg_handle);
 
 /**************************************************************************//**
+@Function	fdma_present_frame_segment
+
+@Description	Open a segment of a working frame and copy the
+		segment data into the specified location in the workspace.
+
+@Param[in]	frame_handle - working frame from which to open a segment. 
+@Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
+@Param[in]	ws_dst - A pointer to the location in workspace for the
+		presented frame segment.
+@Param[in]	offset - Location within the presented frame to start presenting
+		from. Must be within the bound of the frame.
+@Param[in]	present_size - Number of frame bytes to present (Must be greater
+		than 0).
+@Param[out]	seg_length - A pointer to the number of bytes actually
+		presented (the segment actual size).
+@Param[out]	seg_handle - A pointer to the handle of the presented segment.
+
+@Return		Status - Success or Failure (e.g. DMA error. (\ref
+		FDMA_PRESENT_SEGMENT_ERRORS).
+
+@Cautions	This command may be invoked only for Data segments.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_present_frame_segment(
+		uint8_t	 frame_handle,
+		uint32_t flags,
+		void	 *ws_dst,
+		uint16_t offset,
+		uint16_t present_size,
+		uint16_t *seg_length,
+		uint8_t  *seg_handle);
+
+/**************************************************************************//**
 @Function	fdma_read_default_frame_asa
 
 @Description	Read the Accelerator Specific Annotation (ASA) section
