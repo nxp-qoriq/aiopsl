@@ -324,6 +324,11 @@
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
 	(_flags) | FDMA_REPLACE_CMD)
 
+/** FDMA explicit Replace working frame segment command arg1 */
+#define FDMA_REPLACE_EXP_CMD_ARG1(_seg_handle, _frame_handle, _flags)	\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
+	(_flags) | FDMA_REPLACE_CMD)
+
 	/** FDMA Replace working frame segment command arg2 */
 #define FDMA_REPLACE_CMD_ARG2(_offset, _replace_target_size)		\
 	(uint32_t)((_offset << 16) | _replace_target_size)
