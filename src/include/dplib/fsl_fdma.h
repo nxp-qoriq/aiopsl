@@ -1479,6 +1479,33 @@ struct fdma_present_frame_params {
 };
 
 /**************************************************************************//**
+@Description	Segment Presentation parameters structure.
+
+*//***************************************************************************/
+struct fdma_present_segment_params {
+		/**< \link FDMA_PRES_Flags Present segment flags. \endlink */
+	uint32_t flags;
+		/**< A pointer to the location in workspace for the presented 
+		 * frame segment. */
+	void	 *ws_dst;
+		/**< Location within the presented frame to start presenting 
+		 * from. Must be within the bound of the frame. */
+	uint16_t offset;
+		/**< Number of frame bytes to present (Must be greater than 
+		 * 0). */
+	uint16_t present_size;
+		/**< Returned parameter:
+		 * A pointer to the number of bytes actually presented (the 
+		 * segment actual size). */
+	uint16_t seg_length;
+		/**< Returned parameter:
+		 * A pointer to the handle of the presented segment. */
+	uint8_t  seg_handle;
+		/**< working frame from which to open a segment. */
+	uint8_t	 frame_handle;
+};
+
+/**************************************************************************//**
 @Description	Queueing Destination Enqueue parameters structure.
 
 *//***************************************************************************/
@@ -1561,6 +1588,43 @@ struct fdma_split_frame_params {
 		 * buffers are required when optionally closing the split
 		 * working frame */
 	uint8_t  spid;
+};
+
+/**************************************************************************//**
+@Description	Insert Segment data parameters structure.
+
+*//***************************************************************************/
+struct fdma_insert_segment_data_params {
+		/**< a pointer to the workspace location from which the inserted
+		 * segment data starts. */
+	void	 *from_ws_src;
+		/**< A pointer to the location in workspace for the represented 
+		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
+		 *  flag is set). */
+	void	 *ws_dst_rs;
+		/**< \link FDMA_Replace_Flags replace working frame segment 
+		 * flags. \endlink */
+	uint32_t flags;
+		/**< Offset from the previously presented segment representing 
+		 * where to insert the data. 
+		 * Must be within the presented segment size. */	
+	uint16_t to_offset;
+		/**< Size of the data being inserted to the segment. */
+	uint16_t insert_size;
+		/**< Number of frame bytes to represent (relevant if 
+		 * \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set). */
+	uint16_t size_rs;
+		/**< Returned parameter:
+		 * A pointer to the number of bytes actually presented (the 
+		 * segment actual size). */
+	uint16_t seg_length_rs;
+		/**< Working frame handle to which the data is being inserted.*/
+	uint8_t	 frame_handle;
+		/**< Data segment handle (related to the working frame handle) 
+		 * from which the data is being inserted. */
+	uint8_t  seg_handle;	
+		/** 32-bit alignment. */
+	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1685,17 +1749,8 @@ int32_t fdma_present_default_frame_segment(
 @Description	Open a segment of a working frame and copy the
 		segment data into the specified location in the workspace.
 
-@Param[in]	frame_handle - working frame from which to open a segment. 
-@Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
-@Param[in]	ws_dst - A pointer to the location in workspace for the
-		presented frame segment.
-@Param[in]	offset - Location within the presented frame to start presenting
-		from. Must be within the bound of the frame.
-@Param[in]	present_size - Number of frame bytes to present (Must be greater
-		than 0).
-@Param[out]	seg_length - A pointer to the number of bytes actually
-		presented (the segment actual size).
-@Param[out]	seg_handle - A pointer to the handle of the presented segment.
+@Param[in]	params - A pointer to the Present frame segment command
+		parameters.
 
 @Return		Status - Success or Failure (e.g. DMA error. (\ref
 		FDMA_PRESENT_SEGMENT_ERRORS).
@@ -1704,13 +1759,7 @@ int32_t fdma_present_default_frame_segment(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_frame_segment(
-		uint8_t	 frame_handle,
-		uint32_t flags,
-		void	 *ws_dst,
-		uint16_t offset,
-		uint16_t present_size,
-		uint16_t *seg_length,
-		uint8_t  *seg_handle);
+		struct fdma_present_segment_params *params);
 
 /**************************************************************************//**
 @Function	fdma_read_default_frame_asa
@@ -2434,9 +2483,8 @@ int32_t fdma_replace_default_segment_data(
 		inserted data size). The segment size will increase by the 
 		inserted size. 
 		In case there is not enough headroom for the inserted size, the 
-		service routine will segment representation will overwrite the 
-		old segment location in workspace. The segment size will remain 
-		the same. 
+		segment representation will overwrite the old segment location 
+		in workspace. The segment size will remain the same. 
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -2445,6 +2493,43 @@ int32_t fdma_insert_default_segment_data(
 		void	 *from_ws_src,
 		uint16_t insert_size,
 		uint32_t flags);
+
+/**************************************************************************//**
+@Function	fdma_insert_segment_data
+
+@Description	Insert new data to a Working Frame (in the FDMA) through a Data 
+		segment.
+
+		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set this
+		Service Routine synchronizes the segment data between the
+		Task Workspace and the FDMA.
+
+@Param[in]	params - A pointer to the insert segment data command 
+		parameters.
+
+@Return		Status (Success or Failure. (\ref
+		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+
+@remark
+		- This is basically a replace command with
+		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
+		- Example: Insert 2 bytes - The default Data
+		segment represents a 100 bytes at offset 0 in the frame (0-99),
+		and the user want to insert 2 bytes after the 24th byte in the
+		segment.
+		Parameters:
+			- to_offset - 25 (relative to the presented segment)
+			- from_ws_address - <workspace address of the 2 bytes>
+			- insert_size - 2
+
+@Cautions	In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, the 
+		segment representation will overwrite the old segment location 
+		in workspace. The segment size will remain the same. 
+@Cautions	This command may be invoked only on the Data segment.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_insert_segment_data(
+		struct fdma_insert_segment_data_params *params);
 
 /**************************************************************************//**
 @Function	fdma_delete_default_segment_data
