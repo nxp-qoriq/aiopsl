@@ -70,6 +70,8 @@
 #define FDMA_REPLACE_ASA_CMD		0x00004019
 	/** FDMA Replace PTA segment command code */
 #define FDMA_REPLACE_PTA_CMD		0x00005019
+	/** FDMA explicit Insert working frame segment command code */
+#define FDMA_INSERT_EXP_DATA_CMD	0x00007019
 	/** FDMA Checksum working frame command code */
 #define FDMA_CKS_CMD			0x0000001A
 	/** FDMA Copy data command code */
@@ -133,6 +135,9 @@
 	/** FDMA Replace working frame PTA segment Command Structure
 	 * identifier*/
 #define FDMA_REPLACE_PTA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_REPLACE_PTA_CMD)
+/** FDMA Insert explicit working frame segment Command Structure identifier */
+#define FDMA_INSERT_EXP_DATA_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+		FDMA_INSERT_EXP_DATA_CMD)	
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
@@ -916,6 +921,49 @@ struct fdma_insert_segment_data_command {
 		/** Command returned segment length. (relevant if
 		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
+		/** Segment Action.
+		* - 0: keep segment open
+		* - 1: represent segment
+		* - 2: close segment */
+	uint8_t	SA;
+		/** Command returned status. */
+	int8_t	status;
+};
+
+/**************************************************************************//**
+@Description	FDMA Insert explicit data to Working Frame Segment Command structure.
+
+		Includes information needed for FDMA Insert Working Frame
+		Segment command verification.
+
+*//***************************************************************************/
+struct fdma_insert_segment_data_exp_command {
+		/** FDMA Insert data to Working Frame Segment explicit command 
+		 * structure identifier. */
+	uint32_t opcode;
+		/** Pointer to the workspace start location of the replacement
+		* segment data. */
+	uint32_t from_ws_src;
+		/**< pointer to the location in workspace for the represented 
+		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
+		 *  flag is set). */
+	uint32_t ws_dst_rs;	
+		/** Offset from the previously presented segment representing
+		* the start point of the replacement. */
+	uint16_t to_offset;
+		/** Inserted segment data size. */
+	uint16_t insert_size;
+	/**< Number of frame bytes to represent (relevant if 
+	 * \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set). */
+	uint16_t size_rs;
+		/** Command returned segment length. (relevant if
+		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
+	uint16_t seg_length_rs;
+		/**< Working frame handle to which the data is being inserted.*/
+	uint8_t	 frame_handle;
+		/**< Data segment handle (related to the working frame handle) 
+		 * from which the data is being inserted. */
+	uint8_t  seg_handle;	
 		/** Segment Action.
 		* - 0: keep segment open
 		* - 1: represent segment
