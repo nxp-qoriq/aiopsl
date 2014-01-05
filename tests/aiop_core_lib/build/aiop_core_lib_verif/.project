@@ -133,6 +133,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_fm.c</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/aiop_verification_gso.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_gso.h</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/aiop_verification_hm.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_hm.c</locationURI>
