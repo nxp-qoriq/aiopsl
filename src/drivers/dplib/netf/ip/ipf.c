@@ -21,7 +21,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 /* Remove these !!! */
 int32_t fdma_replace_segment_data();
-int32_t fdma_present_frame_segment1();
 uint32_t get_id(); 
 
 
@@ -58,7 +57,8 @@ inline int32_t ipf_insert_ipv6_frag_header(struct ipf_context *ipf_ctx,
 
 	/* Keep the last "next header" of the unfragmentable part */
 	next_header_offset = PARSER_GET_SHIM1_OFFSET_DEFAULT();
-	next_header = (uint8_t*)(next_header_offset + PRC_GET_SEGMENT_ADDRESS()); /* TODO soft parser? */
+	next_header = (uint8_t*)(next_header_offset + 
+			PRC_GET_SEGMENT_ADDRESS()); /* TODO soft parser? */
 	orig_next_header = *next_header;
 	/* Replace the last "next header" of the unfragmentable part with 44 */
 	*(next_header) = 44;
@@ -74,28 +74,13 @@ inline int32_t ipf_insert_ipv6_frag_header(struct ipf_context *ipf_ctx,
 		frag_ext_header.fragment_offset_flags = IPV6_HDR_M_FLAG_MASK;
 		frag_ext_header.id = get_id(); /*TODO */
 	
-		if ((PRC_GET_SEGMENT_ADDRESS() -
-				(uint32_t)TLS_SECTION_END_ADDR) >=
-					IPV6_FRAGMENT_HEADER_LENGTH) {
-			/* there is enough room in the head room */
-			status = fdma_insert_default_segment_data(frag_hdr_offset,
+		/* Insert to header */
+		status = fdma_insert_default_segment_data(frag_hdr_offset,
 						&frag_ext_header,
 						IPV6_FRAGMENT_HEADER_LENGTH,
 						FDMA_REPLACE_SA_REPRESENT_BIT);
-			if (status) /* TODO */
-				return status;
-		} else {
-			status = fdma_replace_default_segment_data(
-					frag_hdr_offset,
-					0,
-					&frag_ext_header,
-					IPV6_FRAGMENT_HEADER_LENGTH,
-					(void *)PRC_GET_SEGMENT_ADDRESS(),
-					PRC_GET_SEGMENT_LENGTH(),
-					FDMA_REPLACE_SA_REPRESENT_BIT);
-			if (status) /* TODO */
-				return status;
-		}
+		if (status) /* TODO */
+			return status;
 	}
 	/* Run parser */
 	parse_result_generate_default(PARSER_NO_FLAGS);
@@ -173,7 +158,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 			ipf_ctx->ipf_params.mtu_params.prev_frag_offset =
 								frag_offset;
 			/* present empty segment of the remaining frame */
-			status = fdma_present_frame_segment1(); /* TODO Gal */
+			status = fdma_present_frame_segment(); /* TODO Gal */
 			if (first_frag) {
 				/* TODO Handle options */
 				ipf_ctx->first_frag = 0;
@@ -226,7 +211,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 								= frag_offset;
 				/* present empty segment of the remaining
 				 * frame */
-				status = fdma_present_frame_segment1(); /* TODO Gal */
+				status = fdma_present_frame_segment(); /* TODO Gal */
 				header_length = frag_hdr_offset - ipv6_offset +
 						IPV6_FRAGMENT_HEADER_LENGTH;
 				/* fdma_replace to insert the header to the
@@ -333,11 +318,11 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 		if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS){
 			/* Restore original fragments */
 			if (IPF_SFV_QUERY()){
-				/* Clear gross running sum in parse results */
-				pr->gross_running_sum = 0;
 				status = ipf_move_remaining_frame(ipf_ctx);
 				if (status)
 					return status;
+				/* Clear gross running sum in parse results */
+				pr->gross_running_sum = 0;
 				status = ipf_restore_orig_fragment(ipf_ctx);
 				return status; /* TODO */
 			} else {
