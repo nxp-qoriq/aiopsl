@@ -543,25 +543,11 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT |
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
-							ipv4_header_size) {
-			/* there is enough room in the head room */
-			fdma_insert_default_segment_data(
+		fdma_insert_default_segment_data(
 						    inner_ipv4_offset,
 						    (void *)ipv4_header_ptr,
 						    (uint16_t) ipv4_header_size,
 						    fdma_flags);
-		} else {
-			fdma_replace_default_segment_data(
-						    inner_ipv4_offset,
-						    0,
-						    (void *)ipv4_header_ptr,
-						    (uint16_t) ipv4_header_size,
-						    (void *)prc->seg_address,
-						    prc->seg_length,
-						    fdma_flags);
-
-		}
 
 		/* Re-run parser */
 		parse_result_generate_default(0);
@@ -633,27 +619,11 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
-							ipv4_header_size) {
-			/* there is enough room in the head room */
-			fdma_insert_default_segment_data(
-						   inner_ipv6_offset,
-						   (void *)ipv4_header_ptr,
-						   (uint16_t) ipv4_header_size,
-						   fdma_flags);
-
-			etype_ptr = (void *)(((uint32_t)etype_ptr) -
-							ipv4_header_size);
-		} else {
-			fdma_replace_default_segment_data(
-						   inner_ipv6_offset,
-						   0,
-						   (void *)ipv4_header_ptr,
-						   (uint16_t) ipv4_header_size,
-						   (void *)prc->seg_address,
-						   prc->seg_length,
-						   fdma_flags);
-		}
+		fdma_insert_default_segment_data(
+						   	   	   	   	 inner_ipv6_offset,
+						   	   	   	   	 (void *)ipv4_header_ptr,
+						   	   	   	   	 (uint16_t) ipv4_header_size,
+						   	   	   	   	 fdma_flags);
 
 		/* Re-run parser */
 		parse_result_generate_default(0);
@@ -747,28 +717,11 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
-							ipv6_header_size) {
-			/* there is enough room in the head room */
-			fdma_insert_default_segment_data(
-						    inner_ipv4_offset,
-						    (void *)ipv6_header_ptr,
-						    (uint16_t) ipv6_header_size,
-						    fdma_flags);
-			etype_ptr = (void *)(((uint32_t)etype_ptr) -
-							ipv6_header_size);
-
-		} else {
-			fdma_replace_default_segment_data(
-						    inner_ipv4_offset,
-						    0,
-						    (void *)ipv6_header_ptr,
-						    (uint16_t) ipv6_header_size,
-						    (void *)prc->seg_address,
-						    prc->seg_length,
-						    fdma_flags);
-
-		}
+		fdma_insert_default_segment_data(
+										inner_ipv4_offset,
+										(void *)ipv6_header_ptr,
+										(uint16_t) ipv6_header_size,
+										fdma_flags);
 
 		/* Re-run parser */
 		parse_result_generate_default(0);
@@ -807,26 +760,11 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		ipv6_header_ptr->payload_length = inner_ipv6hdr_ptr->payload_length +
 					(uint16_t) ipv6_header_size;
 
-		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
-							ipv6_header_size) {
-			/* there is enough room in the head room */
-			fdma_insert_default_segment_data(
-						   inner_ipv6_offset,
-						   (void *)ipv6_header_ptr,
-						   (uint16_t) ipv6_header_size,
-						   fdma_flags);
+		fdma_insert_default_segment_data(inner_ipv6_offset,
+										 (void *)ipv6_header_ptr,
+										 (uint16_t) ipv6_header_size,
+										 fdma_flags);
 
-		} else {
-			fdma_replace_default_segment_data(
-						   inner_ipv6_offset,
-						   0,
-						   (void *)ipv6_header_ptr,
-						   (uint16_t) ipv6_header_size,
-						   (void *)prc->seg_address,
-						   prc->seg_length,
-						   fdma_flags);
-
-		}
 
 		/* Re-run parser */
 		parse_result_generate_default(0);
