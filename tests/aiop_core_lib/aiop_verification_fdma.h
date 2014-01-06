@@ -40,8 +40,12 @@
 #define FDMA_STORE_WF_CMD		0x00002010
 	/** FDMA Enqueue working frame command code */
 #define FDMA_ENQUEUE_WF_CMD		0x00000011
+	/** FDMA Enqueue working frame command code */
+#define FDMA_ENQUEUE_WF_EXP_CMD		0x00001011
 	/** FDMA Discard default frame command code */
 #define FDMA_ENQUEUE_FRAME_CMD		0x00000012
+	/** FDMA Discard default frame command code */
+#define FDMA_ENQUEUE_FRAME_EXP_CMD	0x00001012
 	/** FDMA Discard default frame command code */
 #define FDMA_DISCARD_DEFAULT_WF_CMD	0x00001013
 	/** FDMA Discard frame command code */
@@ -100,9 +104,15 @@
 #define FDMA_STORE_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_STORE_WF_CMD)
 	/** FDMA Enqueue working frame Command Structure identifier */
 #define FDMA_ENQUEUE_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_ENQUEUE_WF_CMD)
+	/** FDMA Enqueue working frame explicit Command Structure identifier */
+#define FDMA_ENQUEUE_WF_EXP_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+		FDMA_ENQUEUE_WF_EXP_CMD)
 	/** FDMA Enqueue FD Command Structure identifier */
 #define FDMA_ENQUEUE_FRAME_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
 		FDMA_ENQUEUE_FRAME_CMD)
+	/** FDMA Enqueue FD explicit Command Structure identifier */
+#define FDMA_ENQUEUE_FRAME_EXP_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
+		FDMA_ENQUEUE_FRAME_EXP_CMD)
 	/** FDMA Discard default frame Command Structure identifier */
 #define FDMA_DISCARD_DEFAULT_WF_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
 		FDMA_DISCARD_DEFAULT_WF_CMD)
@@ -509,6 +519,57 @@ struct fdma_enqueue_wf_command {
 };
 
 /**************************************************************************//**
+@Description	FDMA Enqueue Working Frame explicit Command structure.
+
+		Includes information needed for FDMA Enqueue Working Frame
+		command verification.
+
+*//***************************************************************************/
+struct fdma_enqueue_wf_exp_command {
+		/** FDMA Enqueue working frame explicit command structure
+		* identifier. */
+	uint32_t opcode;
+		/** Queueing destination for the enqueue
+		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
+		 * (enqueue_id_sel = 1,24bit).*/
+	uint32_t qd_fqid;
+		/** Distribution hash value passed to QMan for distribution
+		 * purpose on the enqueue. */
+	uint16_t hash_value;
+		/** Working Frame handle to enqueue. */
+	uint8_t	frame_handle;	
+		/** Queueing Destination Priority. */
+	uint8_t	qd_priority;
+		/** Storage profile used to store frame data if additional
+		* buffers are required*/
+	uint8_t	 spid;
+		/** Enqueue Priority source
+		* - 0: use QD_PRI provided with DMA Command
+		* - 1: use QD_PRI from h/w context. This is the value
+		* found in the WQID field from ADC. */
+	uint8_t	PS;
+		/** Terminate Control:
+		* - 0: Return after enqueue.
+		* - 1: Terminate: this command will trigger the Terminate task
+		* command right after the enqueue. If the enqueue failed, the
+		* frame will be discarded.
+		* - 2: Conditional Terminate: trigger the Terminate task
+		* command only if the enqueue succeeded. If the enqueue
+		* failed, the frame handle is not released and the command
+		* returns with an error code.
+		* - 3: reserved */
+	uint8_t	TC;
+		/** Enqueue ID selection:
+		* - 0 = queueing destination(16bit)
+		* - 1 = fqid (24bit). */
+	uint8_t	EIS;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
 @Description	FDMA Enqueue Frame Command structure.
 
 		Includes information needed for FDMA Enqueue Frame
@@ -523,6 +584,68 @@ struct fdma_enqueue_frame_command {
 		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
 		 * (enqueue_id_sel = 1,24bit).*/
 	uint32_t qd_fqid;
+		/** ICID of the FD to enqueue. */
+	uint16_t icid;
+		/** Distribution hash value passed to QMan for distribution
+		 * purpose on the enqueue. */
+	uint16_t hash_value;
+		/** Queueing Destination Priority. */
+	uint8_t	qd_priority;
+		/** Enqueue Priority source
+		* - 0: use QD_PRI provided with DMA Command
+		* - 1: use QD_PRI from h/w context. This is the value
+		* found in the WQID field from ADC. */
+	uint8_t	PS;
+		/** Terminate Control:
+		* - 0: Return after enqueue.
+		* - 1: Terminate: this command will trigger the Terminate task
+		* command right after the enqueue. If the enqueue failed, the
+		* frame will be discarded.
+		* - 2: Conditional Terminate: trigger the Terminate task
+		* command only if the enqueue succeeded. If the enqueue
+		* failed, the frame handle is not released and the command
+		* returns with an error code.
+		* - 3: reserved */
+	uint8_t	TC;
+		/** Enqueue ID selection:
+		* - 0 = queueing destination(16bit)
+		* - 1 = fqid (24bit). */
+	uint8_t	EIS;
+		/** Virtual Address. */
+	uint8_t	VA;
+		/** Bypass the Memory Translation. */
+	uint8_t	BMT;
+		/** Privilege Level. */
+	uint8_t	PL;
+		/** Bypass DPAA resource Isolation:
+		* - 0: Isolation is enabled for this command. The FQID ID
+		* specified is virtual within the specified ICID.
+		* - 1: Isolation is not enabled for this command. The FQID ID
+		* specified is a real (not virtual) pool ID. */
+	uint8_t	BDI;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[3];
+};
+
+/**************************************************************************//**
+@Description	FDMA Enqueue Frame explicit Command structure.
+
+		Includes information needed for FDMA Enqueue Frame explicit
+		command verification (the frame must be closed, i.e. - no WF
+		(frame is not presented)).
+
+*//***************************************************************************/
+struct fdma_enqueue_frame_exp_command {
+		/** FDMA Enqueue frame explicit command structure identifier. */
+	uint32_t opcode;
+		/**< Queueing destination for the enqueue
+		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
+		 * (enqueue_id_sel = 1,24bit).*/
+	uint32_t qd_fqid;
+		/** Frame Descriptor to enqueue. */
+	struct ldpaa_fd fd;
 		/** ICID of the FD to enqueue. */
 	uint16_t icid;
 		/** Distribution hash value passed to QMan for distribution
