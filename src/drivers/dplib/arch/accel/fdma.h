@@ -233,6 +233,11 @@
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
 	_flags | FDMA_ENQUEUE_WF_CMD)
 
+	/** FDMA Enqueue working frame command arg1 */
+#define FDMA_ENQUEUE_WF_EXP_ARG1(_spid, _frame_handle, _flags)		\
+	(uint32_t)((_spid << 24) |					\
+	(_frame_handle << 16)| _flags | FDMA_ENQUEUE_WF_CMD)
+
 	/** FDMA Enqueue working frame command arg2 */
 #define FDMA_ENQUEUE_WF_QD_ARG2(_pri, _qd)				\
 	(uint32_t)((_pri << FDMA_ENQUEUE_QD_PRIORITY_OFFSET) | _qd)
@@ -244,6 +249,11 @@
 	/** FDMA Enqueue frame command arg1 */
 #define FDMA_ENQUEUE_FRAME_ARG1(_flags)					\
 	(uint32_t)(((HWC_FD_ADDRESS << 16) |				\
+	(_flags & ~FDMA_ENF_BDI_BIT) | FDMA_ENQUEUE_FRAME_CMD))
+
+	/** FDMA Enqueue frame explicit command arg1 */
+#define FDMA_ENQUEUE_FRAME_EXP_ARG1(_flags, _fd)			\
+	(uint32_t)((((uint32_t)_fd << 16) |				\
 	(_flags & ~FDMA_ENF_BDI_BIT) | FDMA_ENQUEUE_FRAME_CMD))
 
 	/** FDMA Enqueue frame command arg3 */
@@ -322,6 +332,11 @@
 #define FDMA_REPLACE_CMD_ARG1(_handles, _flags)				\
 	(uint32_t)((FDMA_GET_PRC_SEGMENT_HANDLE(_handles)) |		\
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
+	(_flags) | FDMA_REPLACE_CMD)
+
+/** FDMA explicit Replace working frame segment command arg1 */
+#define FDMA_REPLACE_EXP_CMD_ARG1(_seg_handle, _frame_handle, _flags)	\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
 	(_flags) | FDMA_REPLACE_CMD)
 
 	/** FDMA Replace working frame segment command arg2 */
