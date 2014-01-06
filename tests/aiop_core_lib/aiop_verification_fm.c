@@ -9,31 +9,31 @@
 #include "dplib/fsl_fdma.h"
 
 #include "aiop_verification.h"
-
+#include "dplib/fsl_cdma.h"
 
 void aiop_verification_fm()
 {
 	tcp_gso_ctx_t tcp_gso_context_addr;
-	uint16_t data_addr;	/* Data Address in workspace*/
-	uint16_t data_size;  	/* Data Size */
-	uint16_t rem_data_size;	/* Remaining Data Size */
-	uint16_t size = 0;	/* Data incremental read size */
+	//tcp_ipf_ctx_t ipf_context_addr;
+	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	uint64_t ext_address;	/* External Data Address */
-	uint16_t str_size;
+	uint16_t str_size;	/* Command struct Size */
 	uint32_t opcode;
 	uint32_t flags;
+	uint8_t seg_handle;
+	uint16_t seg_length;
 
-	/* Todo - read last 8 bytes from frame */
-
-	/* Todo - read a new buffer from DDR with DATA_SIZE */
-	data_size = DATA_SIZE;
-	/* Todo - initialize parameters */
+	/* Read last 8 bytes from frame */
+	fdma_present_default_frame_segment(
+			FDMA_PRES_SR_BIT, (void *)&ext_address, 0, 8, 
+			&seg_length, &seg_handle);
 	
-	rem_data_size = data_size;
-	/* The condition is for back up only.
-	In case the ASA was written correctly the Terminate command will
-	finish the verification */
-	while (size < data_size) {
+	/* The Terminate command will finish the verification */
+	do
+	{
+		/* Read a new buffer from DDR with DATA_SIZE */
+		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
+		
 		opcode  = *((uint32_t *) data_addr);
 		flags = 0x0;
 
@@ -42,12 +42,13 @@ void aiop_verification_fm()
 		case TCP_GSO_MODULE_STATUS_ID:
 		{
 			str_size = aiop_verification_gso(tcp_gso_context_addr,
-					data_addr, rem_data_size);
+					(uint32_t)data_addr);
 			break;
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
 		{
-			str_size = aiop_verification_parser(data_addr);
+			str_size = aiop_verification_parser(
+					(uint32_t)data_addr);
 			break;
 		}
 		case AIOP_TERMINATE_FLOW_CMD:
@@ -62,24 +63,14 @@ void aiop_verification_fm()
 			fdma_terminate_task();
 			return;
 		}
-		if (str_size == STR_SIZE_BIG){
-			/* read a new buffer from DDR with DATA_SIZE */
-			/* Todo -  if CDMA fails ?? perhaps write tghe error to 
-			 * the last 8 bytes in the frame*/
-			//ext_address = ??
-			data_addr = WS_DATA_ADDR;
-			data_size = DATA_SIZE;
-			//cdma_read((void *)data_addr, ext_address, data_size);
-			
-			rem_data_size = data_size;
-			size = 0;
-		}
 		else{
-			data_addr += str_size;
-			rem_data_size -= str_size;
-			size += str_size;
+			/* write command results back to DDR */
+			cdma_write(ext_address, (void *)data_addr, str_size);
+			/* Read next command from DDR */
+			ext_address += str_size;
+			//cdma_read((void *)data_addr, ext_address, DATA_SIZE);
 		}
-	}
+	} while (1);
 
 	fdma_terminate_task();
 
