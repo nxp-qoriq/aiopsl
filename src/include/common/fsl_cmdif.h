@@ -13,7 +13,6 @@
 #include "arch/fsl_soc.h"
 #include "arch/fsl_cmdif_mc.h"
 
-
 /**************************************************************************//**
  @Group         cmdif_g  Command Interface API
 
@@ -25,16 +24,18 @@
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
 #define CMDIF_PRI_HIGH		1	/**< High Priority */
 
-
 /**************************************************************************//**
  @Description   command structure declaration
  *//***************************************************************************/
-struct cmdif_cmd_desc;
+struct cmdif_desc {
+	void *regs;
+	void *dev;
+	int (*lock_cb)(void *lock);
+	void (*unlock_cb)(void *lock);
+	void *lock;
+};
 
-/**************************************************************************//**
- @Description   command interface device structure declaration
- *//***************************************************************************/
-struct cmdif_dev;
+struct cmdif_cmd_data;
 
 /**************************************************************************//**
  @Description   command status
@@ -51,10 +52,9 @@ enum cmdif_status {
 	CMDIF_STATUS_TIMEOUT = 0x7,
 	CMDIF_STATUS_NO_RESOURCE = 0x8,
 	CMDIF_STATUS_NO_MEMORY = 0x9,
-	CMDIF_STATUS_BUSY = 0xa,
-	CMDIF_STATUS_INVALID_OP = 0xb,
-	CMDIF_STATUS_UNSUPPORTED_OP = 0xc,
-	CMDIF_STATUS_INVALID_STATE = 0xd
+	CMDIF_STATUS_BUSY = 0xA,
+	CMDIF_STATUS_UNSUPPORTED_OP = 0xB,
+	CMDIF_STATUS_INVALID_STATE = 0xC
 };
 
 /**************************************************************************//**
@@ -65,33 +65,33 @@ enum cmdif_status {
  @{
  *//***************************************************************************/
 /**************************************************************************//**
-@Description    Open callback.
+ @Description    Open callback.
 
-                User provides this function. Driver invokes it when it gets establish instance command.
+ User provides this function. Driver invokes it when it gets establish instance command.
 
  @Param[in]     handle      - device handle.
  @Param[in]     cmdif_cmd   - pointer to the init command, should include all that nneded for initialization od a module:
-                              icid, ports,etc..
+ icid, ports,etc..
  @Return        Handle to instance object, or NULL for Failure.
  *//***************************************************************************/
-typedef int (open_cb_t) (fsl_handle_t dev);
+typedef int (open_cb_t)(void *dev);
 
 /**************************************************************************//**
  @Description   De-init callback.
 
-                User provides this function. Driver invokes it when it gets
-                terminate instance command.
+ User provides this function. Driver invokes it when it gets
+ terminate instance command.
 
  @Param[in]     dev         A handle of the device.
 
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (close_cb_t) (fsl_handle_t dev);
+typedef int (close_cb_t)(void *dev);
 
 /**************************************************************************//**
  @Description   Control callback.
 
-                User provides this function. Driver invokes it for all runtime commands
+ User provides this function. Driver invokes it for all runtime commands
 
  @Param[in]     dev         A handle of the device.
  @Param[in]     cmd         TODO
@@ -100,20 +100,19 @@ typedef int (close_cb_t) (fsl_handle_t dev);
 
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (ctrl_cb_t) (fsl_handle_t           dev,
-			 uint16_t               cmd,
-			 uint16_t               size,
-			 struct cmdif_cmd_desc  *desc);
+typedef int (ctrl_cb_t)(void *dev,
+                        uint16_t cmd,
+                        uint16_t size,
+                        struct cmdif_cmd_data *desc);
 
 /**************************************************************************//**
  @Description   TODO
-*//***************************************************************************/
+ *//***************************************************************************/
 struct cmdif_module_ops {
-     open_cb_t  *open_cb;
-     close_cb_t *close_cb;
-     ctrl_cb_t  *ctrl_cb;
-}; 
-
+	open_cb_t *open_cb;
+	close_cb_t *close_cb;
+	ctrl_cb_t *ctrl_cb;
+};
 
 /**************************************************************************//**
  @Function      cmdif_register_module
@@ -129,8 +128,8 @@ struct cmdif_module_ops {
 
  @Return        0 on success; error code, otherwise.
  *//***************************************************************************/
-int cmdif_register_module(enum fsl_os_module        module,
-                          struct cmdif_module_ops   *ops);
+int cmdif_register_module(enum fsl_os_module module,
+                          struct cmdif_module_ops *ops);
 
 /**************************************************************************//**
  @Function      cmdif_cmd_done
@@ -143,7 +142,16 @@ int cmdif_register_module(enum fsl_os_module        module,
  @Param[in]     cmd     cmd pointer that was provided to the ctrl_cb .
  @Param[in]     status  completion status
  *//***************************************************************************/
-void cmdif_cmd_done(struct cmdif_cmd_desc *cmd, enum cmdif_status status);
+void cmdif_cmd_done(struct cmdif_cmd_data *cmd, enum cmdif_status status);
+
+/**************************************************************************//**
+ @Function      cmdif_close_dev
+
+ @Description   TODO
+
+ @Param[in]     dev         A handle of the device.
+ *//***************************************************************************/
+int cmdif_close_dev(void *dev);
 
 /** @} *//* end of cmdif_server_g group */
 
@@ -164,12 +172,11 @@ void cmdif_cmd_done(struct cmdif_cmd_desc *cmd, enum cmdif_status status);
  @Param[in]     mod     TODO
  @Param[in]     mod_id  TODO
 
- @Return        A handle to the device on success (positive value);
- NULL otherwise.
+ @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-struct cmdif_dev *cmdif_open(void               *regs,
-                             enum fsl_os_module mod,
-                             uint16_t           mod_id);
+int cmdif_open(struct cmdif_desc *cidesc,
+               enum fsl_os_module mod,
+               uint16_t mod_id);
 
 /**************************************************************************//**
  @Function      cmdif_close
@@ -180,27 +187,27 @@ struct cmdif_dev *cmdif_open(void               *regs,
 
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-int cmdif_close(struct cmdif_dev *dev);
+int cmdif_close(struct cmdif_desc *cidesc);
 
 /**************************************************************************//**
  @Function      cmdif_send
 
  @Description   TODO
 
- @Param[in]     dev     A handle as it was returened from cmdif_open().
+ @Param[in]     cidesc
  @Param[in]     cmd     TODO
  @Param[in]     desc    TODO
 
  @Return        OK on success; error code, otherwise.
  *//***************************************************************************/
-int cmdif_send(struct cmdif_dev         *dev,
-               uint16_t                 cmd,
-               int                      size,
-               int                      priority,
-               struct cmdif_cmd_desc    *desc);
+int cmdif_send(struct cmdif_desc *cidesc,
+               uint16_t cmd,
+               int size,
+               int priority,
+               struct cmdif_cmd_data *cmd_data);
 
 /**************************************************************************//**
- @Function      cmdif_get_desc
+ @Function      cmdif_get_cmd_data
 
  @Description   TODO
 
@@ -208,10 +215,10 @@ int cmdif_send(struct cmdif_dev         *dev,
 
  @Return        TODO
  *//***************************************************************************/
-struct cmdif_cmd_desc *cmdif_get_desc(struct cmdif_dev *dev);
+int cmdif_get_cmd_data(struct cmdif_desc *cidesc,
+                       struct cmdif_cmd_data **cmd_data);
 
 /** @} *//* end of cmdif_client_g group */
 /** @} *//* end of cmdif_g group */
-
 
 #endif /* __FSL_CMDIF_H */

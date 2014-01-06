@@ -6,5 +6,7 @@ int main()
 {	
 	__wait();
 	aiop_verification();
+	aiop_verification_fm();
+	
 	return 0;
 }

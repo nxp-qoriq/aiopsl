@@ -8,9 +8,16 @@
 #define _FSL_DPRC_H
 
 #include "common/types.h"
+#include "common/fsl_cmdif.h"
 
+
+#ifdef MC
 struct dprc;
-
+#else
+struct dprc {
+	struct cmdif_desc cidesc;
+};
+#endif
 /*!
  * @Group grp_dprc	Data Path Resource Container API
  *
@@ -47,11 +54,11 @@ enum dp_res_type {
 	/*!< Queuing destinations */
 	DP_RES_TYPE_CGID,
 	/*!< Congestion groups */
-	DP_RES_TYPE_CEETM_LFQMTIDX,
+	DP_RES_TYPE_CEETM_LFQMTIDX,           
 	/*!< Logical Frame Queue Mapping Table Index */
-	DP_RES_TYPE_CEETM_DCTIDX,
+	DP_RES_TYPE_CEETM_DCTIDX,               
 	/*!< Dequeue Command Type Index */
-	DP_RES_TYPE_CEETM_CQCHID,
+	DP_RES_TYPE_CEETM_CQCHID,                
 	/*!< Class Queue Channel ID */
 	DP_RES_TYPE_CEETM_LNIID,
 	/*!< !Logical Network Interface ID */
@@ -61,7 +68,7 @@ enum dp_res_type {
 	/*!< Key ID*/
 	DP_RES_TYPE_PLPID,
 	/*!< Policer profiles ID */
-	DP_RES_TYPE_PRPID,
+	DP_RES_TYPE_PRPID, 
 	/*!< parser profile ID */
 	DP_RES_TYPE_PPID,
 	/*!< Physical ports */
@@ -272,7 +279,7 @@ struct dprc_create_attributes {
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_container_id(void *portal_vaddr, int *container_id);
+int dprc_get_container_id(struct dprc *dprc, int *container_id);
 
 /**
  * @brief   	Opens a DPRC object for use and obtains its handle
@@ -284,7 +291,7 @@ int dprc_get_container_id(void *portal_vaddr, int *container_id);
  *
  * @warning	Required before any operation on the object.
  */
-struct dprc *dprc_open(void *portal_vaddr, int container_id);
+int dprc_open(struct dprc *dprc, int container_id);
 
 /**
  * @brief	Closes the DPRC object handle
@@ -421,7 +428,7 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id);
  * available in the container itself.
  *
  * The type of assignment depends on the dprc_res_req options, as follows:
- * - RES_REQ_OPT_EXPLICIT: indicates that assigned resources should have the
+ * - RES_REQ_OPT_EXPLICIT: indicates that assigned resources should have the 
  *   explicit base ID specified at the base_align field of res_req.
  * - RES_REQ_OPT_SEQUENTIAL: indicates that the assigned resources should be
  *   aligned to the value given at base_align field of dprc_res_req.
