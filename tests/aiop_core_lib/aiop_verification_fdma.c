@@ -205,6 +205,35 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = sizeof(struct fdma_enqueue_wf_command);
 		break;
 	}
+	/* FDMA Enqueue working frame explicit Command Verification */
+	case FDMA_ENQUEUE_WF_EXP_CMD_STR:
+	{
+		struct fdma_enqueue_wf_exp_command *str =
+			(struct fdma_enqueue_wf_exp_command *)asa_seg_addr;
+		struct fdma_queueing_destination_params qdp;
+		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
+		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
+		flags |= ((str->PS) ? FDMA_ENWF_PS_BIT : 0x0);
+
+		aiop_verification_replace_asa();
+		if (str->EIS) {
+			str->status = (int8_t)
+				fdma_store_and_enqueue_frame_fqid(
+					str->frame_handle,flags,
+					str->qd_fqid, str->spid);
+		} else{
+			qdp.qd = (uint16_t)(str->qd_fqid);
+			qdp.hash_value = str->hash_value;
+			qdp.qd_priority = str->qd_priority;
+			str->status = (int8_t)
+				fdma_store_and_enqueue_frame_qd(
+						str->frame_handle, flags,
+						&qdp, str->spid);
+		}
+
+		str_size = sizeof(struct fdma_enqueue_wf_exp_command);
+		break;
+	}
 	/* FDMA Enqueue FD Command Verification */
 	case FDMA_ENQUEUE_FRAME_CMD_STR:
 	{
@@ -233,6 +262,36 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		}
 
 		str_size = sizeof(struct fdma_enqueue_frame_command);
+		break;
+	}
+	/* FDMA Enqueue FD explicit Command Verification */
+	case FDMA_ENQUEUE_FRAME_EXP_CMD_STR:
+	{
+		struct fdma_enqueue_frame_exp_command *str =
+			(struct fdma_enqueue_frame_exp_command *)asa_seg_addr;
+		struct fdma_queueing_destination_params qdp;
+		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
+		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
+		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
+		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
+		flags |= ((str->BMT) ? FDMA_ENF_BMT_BIT : 0x0);
+		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
+		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
+
+		if (str->EIS) {
+			str->status = (int8_t)
+				fdma_enqueue_fd_fqid(&(str->fd), flags, 
+					str->qd_fqid, str->icid);
+		} else{
+			qdp.qd = (uint16_t)(str->qd_fqid);
+			qdp.hash_value = str->hash_value;
+			qdp.qd_priority = str->qd_priority;
+			str->status = (int8_t)
+				fdma_enqueue_fd_qd(&(str->fd), flags, 
+						&qdp, str->icid);
+		}
+
+		str_size = sizeof(struct fdma_enqueue_frame_exp_command);
 		break;
 	}
 	/* FDMA Discard default frame Command Verification */

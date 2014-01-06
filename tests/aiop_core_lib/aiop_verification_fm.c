@@ -13,8 +13,7 @@
 
 void aiop_verification_fm()
 {
-	/* Presentation Context */
-	struct presentation_context *PRC;
+	tcp_gso_ctx_t tcp_gso_context_addr;
 	uint16_t data_addr;	/* Data Address in workspace*/
 	uint16_t data_size;  	/* Data Size */
 	uint16_t rem_data_size;	/* Remaining Data Size */
@@ -27,7 +26,7 @@ void aiop_verification_fm()
 	/* Todo - read last 8 bytes from frame */
 
 	/* Todo - read a new buffer from DDR with DATA_SIZE */
-
+	data_size = DATA_SIZE;
 	/* Todo - initialize parameters */
 	
 	rem_data_size = data_size;
@@ -42,13 +41,13 @@ void aiop_verification_fm()
 
 		case TCP_GSO_MODULE_STATUS_ID:
 		{
-			str_size = aiop_verification_gso(
+			str_size = aiop_verification_gso(tcp_gso_context_addr,
 					data_addr, rem_data_size);
 			break;
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
 		{
-			str_size = aiop_verification_parser(asa_seg_addr);
+			str_size = aiop_verification_parser(data_addr);
 			break;
 		}
 		case AIOP_TERMINATE_FLOW_CMD:
@@ -63,7 +62,7 @@ void aiop_verification_fm()
 			fdma_terminate_task();
 			return;
 		}
-		if (str_size > rem_data_size){
+		if (str_size == STR_SIZE_BIG){
 			/* read a new buffer from DDR with DATA_SIZE */
 			/* Todo -  if CDMA fails ?? perhaps write tghe error to 
 			 * the last 8 bytes in the frame*/

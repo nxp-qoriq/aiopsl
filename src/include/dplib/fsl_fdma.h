@@ -2002,6 +2002,53 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 		uint32_t flags);
 
 /**************************************************************************//**
+@Function	fdma_store_and_enqueue_frame_fqid
+
+@Description	Enqueue a Working Frame to a given destination according to a 
+		frame queue id.
+
+		After completion, the Enqueue Working Frame command can
+		terminate the task or return.
+
+		If the Working Frame to be enqueued is modified, the Enqueue
+		Frame command performs a Store Frame Data command on the
+		Working Frame.
+
+		If the Working Frame to be enqueued is modified, existing
+		buffers as described by the FD are used to store data.
+
+		If the modified frame no longer fits in the original structure,
+		new buffers can be added using the provided storage profile.
+
+		If the original structure can not be modified, then a new
+		structure will be assembled using the provided storage
+		profile ID.
+
+		Implicit input parameters in Task Defaults: , 
+		(storage profile ID).
+
+@Param[in]	frame_handle - working frame handle to enqueue.
+@Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
+		bits. \endlink
+@Param[in]	fqid - frame queue ID for the enqueue.
+@Param[in]	spid - Storage Profile ID used to store frame data.
+
+@Return		Status (if enqueue succeeded or failed.
+		(\ref FDMA_ENQUEUE_FRAME_ERRORS)).
+
+@Cautions
+		- Function may not return.
+		- All modified segments (which are to be stored) must be
+		replaced (by a replace command) before storing a frame.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_store_and_enqueue_frame_fqid(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		uint32_t fqid,
+		uint8_t  spid);
+
+/**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_qd
 
 @Description	Enqueue the default Working Frame to a given destination
@@ -2027,7 +2074,7 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 		Implicit input parameters in Task Defaults: frame handle, spid
 		(storage profile ID).
 
-@Param[in]	enqueue_params - Pointer to the queueing destination parameters.
+@Param[in]	qdp - Pointer to the queueing destination parameters.
 @Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
 		bits. \endlink
 
@@ -2041,8 +2088,55 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_and_enqueue_default_frame_qd(
-		struct fdma_queueing_destination_params *enqueue_params,
+		struct fdma_queueing_destination_params *qdp,
 		uint32_t	flags);
+
+/**************************************************************************//**
+@Function	fdma_store_and_enqueue_frame_qd
+
+@Description	Enqueue a Working Frame to a given destination according to a 
+		queueing destination.
+
+		After completion, the Enqueue Working Frame command can
+		terminate the task or return.
+
+		If the Working Frame to be enqueued is modified, the Enqueue
+		Frame command performs a Store Frame Data command on the
+		Working Frame.
+
+		If the Working Frame to be enqueued is modified, existing
+		buffers as described by the FD are used to store data.
+
+		If the modified frame no longer fits in the original structure,
+		new buffers can be added using the provided storage profile.
+
+		If the original structure can not be modified, then a new
+		structure will be assembled using the provided storage
+		profile ID.
+
+		Implicit input parameters in Task Defaults: frame handle, spid
+		(storage profile ID).
+
+@Param[in]	frame_handle - working frame handle to enqueue.
+@Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
+		bits. \endlink
+@Param[in]	qdp - Pointer to the queueing destination parameters.
+@Param[in]	spid - Storage Profile ID used to store frame data.
+
+@Return		Status (if enqueue succeeded or failed. (\ref
+		FDMA_ENQUEUE_FRAME_ERRORS)).
+
+@Cautions
+		- Function may not return.
+		- All modified segments (which are to be stored) must be
+		replaced (by a replace command) before storing a frame.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_store_and_enqueue_frame_qd(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *qdp,
+		uint8_t spid);
 
 /**************************************************************************//**
 @Function	fdma_enqueue_default_fd_fqid
@@ -2068,9 +2162,36 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_default_fd_fqid(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		uint32_t fqid);
+
+/**************************************************************************//**
+@Function	fdma_enqueue_fd_fqid
+
+@Description	Enqueue a Frame Descriptor (which is not presented) to a given
+		destination according to a frame queue id.
+
+		After completion, the Enqueue Frame command can
+		terminate the task or return.
+
+@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
+		\endlink
+@Param[in]	fqid - frame queue ID for the enqueue.
+@Param[in]	icid - ICID of the FD to enqueue.
+
+@Return		Status (if enqueue succeeded or failed. (\ref
+		FDMA_ENQUEUE_FD_ERRORS)).
+
+@Cautions	Function may not return.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_enqueue_fd_fqid(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint32_t fqid,
+		uint16_t icid);
 
 /**************************************************************************//**
 @Function	fdma_enqueue_default_fd_qd
@@ -2096,9 +2217,36 @@ int32_t fdma_enqueue_default_fd_fqid(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_default_fd_qd(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params);
+
+/**************************************************************************//**
+@Function	fdma_enqueue_fd_qd
+
+@Description	Enqueue a Frame Descriptor (which is not presented) to a given
+		destination according to a queueing destination.
+
+		After completion, the Enqueue Frame command can
+		terminate the task or return.
+
+@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
+		\endlink
+@Param[in]	enqueue_params - Pointer to the queueing destination parameters.
+@Param[in]	icid - ICID of the FD to enqueue.
+
+@Return		Status (if enqueue succeeded or failed. (\ref
+		FDMA_ENQUEUE_FD_ERRORS)).
+
+@Cautions	Function may not return.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_enqueue_fd_qd(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *enqueue_params,
+		uint16_t icid);
 
 /**************************************************************************//**
 @Function	fdma_discard_default_frame

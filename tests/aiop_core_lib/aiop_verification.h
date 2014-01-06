@@ -29,6 +29,8 @@
 #define AIOP_TERMINATE_FLOW_CMD_STR	(AIOP_TERMINATE_FLOW_CMD << 16)
 	/**< Struct size error code */
 #define STR_SIZE_ERR			0xFFFF
+	/**< Struct size error code */
+#define STR_SIZE_BIG			0xFFFE
 	/**< Buffer Data chunk size. */
 #define DATA_SIZE	256
 	/**< Buffer Data chunk address in workspace. */
