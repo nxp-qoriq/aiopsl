@@ -400,6 +400,31 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_store_and_enqueue_frame_fqid(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		uint32_t fqid,
+		uint8_t  spid)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+
+	/* prepare command parameters */
+	flags |= FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
+	/* store command parameters */
+	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, ZERO);
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
 int32_t fdma_store_and_enqueue_default_frame_qd(
 		struct fdma_queueing_destination_params *qdp,
 		uint32_t	flags)
@@ -429,8 +454,37 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_store_and_enqueue_frame_qd(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *qdp,
+		uint8_t spid)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+
+	/* prepare command parameters */
+	flags &= ~FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
+	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
+	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->hash_value);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
+	/*__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);*/
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	return (int32_t)(res1);
+}
+
 int32_t fdma_enqueue_default_fd_fqid(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		uint32_t fqid)
 {
@@ -455,8 +509,35 @@ int32_t fdma_enqueue_default_fd_fqid(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_enqueue_fd_fqid(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint32_t fqid,
+		uint16_t icid)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg3;
+	int8_t res1;
+	/* storage profile ID */
+	/* prepare command parameters */
+	flags |= FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_FRAME_EXP_ARG1(flags, fd);
+	arg3 = FDMA_ENQUEUE_FRAME_ARG3(flags, icid);
+	/* store command parameters */
+	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
 int32_t fdma_enqueue_default_fd_qd(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params)
 {
@@ -467,6 +548,36 @@ int32_t fdma_enqueue_default_fd_qd(
 	/* prepare command parameters */
 	flags &= ~FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_FRAME_ARG1(flags);
+	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
+			enqueue_params->qd);
+	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
+			enqueue_params->hash_value);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_enqueue_fd_qd(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *enqueue_params,
+		uint16_t icid)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+	/* storage profile ID */
+	/* prepare command parameters */
+	flags &= ~FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_FRAME_EXP_ARG1(flags, fd);
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
