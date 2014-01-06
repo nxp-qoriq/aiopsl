@@ -5,7 +5,18 @@
 #include "common/endian.h"
 
 
-struct cmdif_cmd_desc {
+struct cmdif_cmd_data {
+	uint64_t param1;
+	uint64_t param2;
+	uint64_t param3;
+	uint64_t param4;
+	uint64_t param5;
+	uint64_t param6;
+	uint64_t param7;
+};
+
+struct mc_portal_regs {
+	volatile uint64_t header;
 	uint64_t param1;
 	uint64_t param2;
 	uint64_t param3;
