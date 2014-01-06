@@ -17,9 +17,5 @@
 
                 more_detailed_description
 *//***************************************************************************/
-struct dpni
-{
-	struct cmdif_dev	*dev;
-};
 
 #endif /* _DPNI_H */
