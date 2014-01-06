@@ -77,20 +77,46 @@ struct tcp_gso_init_command {
 struct tcp_gso_generate_seg_command {
 		/** TCP GSO Generate Segment command structure identifier. */
 	uint32_t opcode;
-		/** Returned presentation context. */
-	struct presentation_context prc;
-		/** Returned parse results. */
-	struct parse_result pr;
-		/** Returned task defaults. */
-	struct aiop_default_task_params default_task_params;	
-		/** Iteration return status. */
+		/** Returned Value: 
+		 * Iteration return status. */
 	int32_t status;
+		/** Returned Internal Value:
+		 * task defaults. */
+	struct tcp_gso_context gso_ctx;
+		/** Returned Value:
+		 * presentation context. */
+	struct presentation_context prc;
+		/** Returned Value:
+		 * parse results. */
+	struct parse_result pr;
+		/** Returned Value:
+		 * task defaults. */
+	struct aiop_default_task_params default_task_params;
+		
 };
+
+/**************************************************************************//**
+@Description	TCP GSO Discard Remainder Frame Command structure.
+
+		Includes information needed for GSO Remainder Frame command.
+
+*//***************************************************************************/
+struct tcp_gso_discard_remainder_frame_command {
+		/** TCP GSO discard remainder frame command structure 
+		 * identifier. */
+	uint32_t opcode;
+		/** Returned Value: 
+		 * Iteration return status. */
+	int32_t status;
+		/** Returned Internal Value:
+		 * task defaults. */
+	struct tcp_gso_context gso_ctx;
+};
+
 
 uint16_t  aiop_verification_gso(
 		tcp_gso_ctx_t tcp_gso_context_addr, 
-		uint16_t data_addr, 
-		uint16_t rem_data_size);
+		uint32_t data_addr);
 
 
 /** @} */ /* end of AIOP_GSO_Verification */
