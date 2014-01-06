@@ -242,6 +242,27 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_INTERNAL_STATUS */
 
+/**************************************************************************//**
+@Group	TCP_GRO_AGGREGATE_DEFINITIONS  TCP GRO Aggregation Internal Definitions
+
+@Description TCP GRO Aggregation Internal Definitions
+
+@{
+*//***************************************************************************/
+
+	/** Metadata first parameter size. */
+#define	TCP_GRO_METADATA_PARAM1_SIZE	8
+	/** Metadata second parameter size. */
+#define	TCP_GRO_METADATA_PARAM2_SIZE	2
+	/** Metadata third parameter size. */
+#define	TCP_GRO_METADATA_PARAM3_SIZE	2
+
+/** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
+
+
+/** @} */ /* end of TCP_GRO_AGGREGATE_INTERNAL_STATUS */
+
+
 /** @} */ /* end of TCP_GRO_INTERNAL_MACROS */
 
 

@@ -201,23 +201,17 @@ int32_t fdma_present_default_frame_segment(
 }
 
 int32_t fdma_present_frame_segment(
-		uint8_t frame_handle,
-		uint32_t flags,
-		void	 *ws_dst,
-		uint16_t offset,
-		uint16_t present_size,
-		uint16_t *seg_length,
-		uint8_t  *seg_handle)
+		struct fdma_present_segment_params *params)
 {
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3;
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_PRESENT_EXP_CMD_ARG1(frame_handle,
-			(flags | FDMA_ST_DATA_SEGMENT_BIT));
-	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
-	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
+	arg1 = FDMA_PRESENT_EXP_CMD_ARG1(params->frame_handle,
+			(params->flags | FDMA_ST_DATA_SEGMENT_BIT));
+	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)params->ws_dst, params->offset);
+	arg3 = FDMA_PRESENT_CMD_ARG3(params->present_size);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
@@ -227,8 +221,8 @@ int32_t fdma_present_frame_segment(
 	__accel_call() should return success/fail indication */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
-	*seg_length = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2));
-	*seg_handle = *((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+	params->seg_length = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2));
+	params->seg_handle = *((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
 			FDMA_SEG_HANDLE_OFFSET));
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	return (int32_t)(res1);
@@ -406,6 +400,31 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_store_and_enqueue_frame_fqid(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		uint32_t fqid,
+		uint8_t  spid)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+
+	/* prepare command parameters */
+	flags |= FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
+	/* store command parameters */
+	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, ZERO);
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
 int32_t fdma_store_and_enqueue_default_frame_qd(
 		struct fdma_queueing_destination_params *qdp,
 		uint32_t	flags)
@@ -435,8 +454,37 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_store_and_enqueue_frame_qd(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *qdp,
+		uint8_t spid)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+
+	/* prepare command parameters */
+	flags &= ~FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
+	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
+	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->hash_value);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
+	/*__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);*/
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	return (int32_t)(res1);
+}
+
 int32_t fdma_enqueue_default_fd_fqid(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		uint32_t fqid)
 {
@@ -461,8 +509,35 @@ int32_t fdma_enqueue_default_fd_fqid(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_enqueue_fd_fqid(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint32_t fqid,
+		uint16_t icid)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg3;
+	int8_t res1;
+	/* storage profile ID */
+	/* prepare command parameters */
+	flags |= FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_FRAME_EXP_ARG1(flags, fd);
+	arg3 = FDMA_ENQUEUE_FRAME_ARG3(flags, icid);
+	/* store command parameters */
+	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
 int32_t fdma_enqueue_default_fd_qd(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params)
 {
@@ -473,6 +548,36 @@ int32_t fdma_enqueue_default_fd_qd(
 	/* prepare command parameters */
 	flags &= ~FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_FRAME_ARG1(flags);
+	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
+			enqueue_params->qd);
+	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
+			enqueue_params->hash_value);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_enqueue_fd_qd(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *enqueue_params,
+		uint16_t icid)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+	/* storage profile ID */
+	/* prepare command parameters */
+	flags &= ~FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_FRAME_EXP_ARG1(flags, fd);
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
@@ -884,6 +989,65 @@ int32_t fdma_insert_default_segment_data(
 #endif /* NEXT_RELEASE */
 	}
 	return (int32_t)(res1);
+}
+
+int32_t fdma_insert_segment_data(
+		struct fdma_insert_segment_data_params *params)
+{
+	/* Presentation Context Pointer */
+	struct presentation_context *prc =
+			(struct presentation_context *) HWC_PRC_ADDRESS;
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	int8_t res1;
+
+	/* This command may be invoked only on Data segment */
+	if ((params->seg_handle == FDMA_ASA_SEG_HANDLE) ||
+	    (params->seg_handle == FDMA_PTA_SEG_HANDLE))
+		return FDMA_NO_DATA_SEGMENT_HANDLE;
+	/* prepare command parameters */
+	arg1 = FDMA_REPLACE_EXP_CMD_ARG1(params->seg_handle, 
+			params->frame_handle, params->flags);
+	arg2 = FDMA_REPLACE_CMD_ARG2(params->to_offset, ZERO);
+	arg3 = FDMA_REPLACE_CMD_ARG3(params->from_ws_src, params->insert_size);
+	if (params->flags & FDMA_REPLACE_SA_REPRESENT_BIT)
+		arg4 = FDMA_REPLACE_CMD_ARG4(params->ws_dst_rs, 
+				params->size_rs);
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, ZERO);
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	/* Update Task Defaults */
+	if (res1 >= FDMA_SUCCESS) {
+		if (params->flags & FDMA_REPLACE_SA_REPRESENT_BIT)
+		{
+			params->seg_length_rs = *((uint16_t *)
+					(HWC_ACC_OUT_ADDRESS2));
+			if (params->seg_handle == PRC_GET_SEGMENT_HANDLE()) 
+			{
+				prc->seg_address = (uint16_t)(uint32_t)
+							params->ws_dst_rs;
+				prc->seg_length = *((uint16_t *)
+							HWC_ACC_OUT_ADDRESS2);
+			}
+		}
+		else if (params->seg_handle == PRC_GET_SEGMENT_HANDLE())
+		{
+			/* FD fields should be updated with a swap load/store */
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 
+					params->insert_size, ZERO);
+#ifdef NEXT_RELEASE
+			if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
+				PRC_SET_NDS_BIT(PRC_NDS_MASK);
+#endif /* NEXT_RELEASE */	
+		}
+	}
+	return (int32_t)(res1);	
 }
 
 int32_t fdma_delete_default_segment_data(

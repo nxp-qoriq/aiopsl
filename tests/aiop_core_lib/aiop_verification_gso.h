@@ -14,15 +14,16 @@
 #include "common/gen.h"
 #include "general.h"
 #include "gso.h"
+#include "dplib/fsl_parser.h"
 
 
 /* TCP_GSO Command IDs */
 	/** TCP GSO Init command code */
-#define TCP_GSO_CONTEXT_INIT_CMD			0x00000001
+#define TCP_GSO_CONTEXT_INIT_CMD		0x00000001
 	/** TCP GSO Generate Segment command code */
 #define TCP_GSO_GENERATE_SEG_CMD		0x00000002
 	/** TCP GSO Discard Remaining Frame command code */
-#define TCP_GSO_DISCARD_REMAINING_FRAME_CMD		0x00000003
+#define TCP_GSO_DISCARD_REMAINING_FRAME_CMD	0x00000003
 
 
 /* TCP_GSO Commands Structure identifiers */
@@ -35,7 +36,6 @@
 	/** TCP GSO Discard Remaining Frame command Structure identifier */
 #define TCP_GSO_DISCARD_REMAINING_CMD_STR	(TCP_GSO_MODULE_STATUS_ID | \
 			TCP_GSO_DISCARD_REMAINING_FRAME_CMD)
-
 
 
 /** \addtogroup AIOP_FMs_Verification
@@ -77,15 +77,46 @@ struct tcp_gso_init_command {
 struct tcp_gso_generate_seg_command {
 		/** TCP GSO Generate Segment command structure identifier. */
 	uint32_t opcode;
-		/** Command returned status. */
-	int32_t  status;
-		/** Command returned status. */
-	uint64_t results;
-		
+		/** Returned Value: 
+		 * Iteration return status. */
+	int32_t status;
+		/** Returned Internal Value:
+		 * task defaults. */
+	struct tcp_gso_context gso_ctx;
+		/** Returned Value:
+		 * presentation context. */
+	struct presentation_context prc;
+		/** Returned Value:
+		 * parse results. */
+	struct parse_result pr;
+		/** Returned Value:
+		 * task defaults. */
+	struct aiop_default_task_params default_task_params;
 		
 };
 
-uint16_t  aiop_verification_gso(uint16_t data_addr, uint16_t rem_data_size);
+/**************************************************************************//**
+@Description	TCP GSO Discard Remainder Frame Command structure.
+
+		Includes information needed for GSO Remainder Frame command.
+
+*//***************************************************************************/
+struct tcp_gso_discard_remainder_frame_command {
+		/** TCP GSO discard remainder frame command structure 
+		 * identifier. */
+	uint32_t opcode;
+		/** Returned Value: 
+		 * Iteration return status. */
+	int32_t status;
+		/** Returned Internal Value:
+		 * task defaults. */
+	struct tcp_gso_context gso_ctx;
+};
+
+
+uint16_t  aiop_verification_gso(
+		tcp_gso_ctx_t tcp_gso_context_addr, 
+		uint32_t data_addr);
 
 
 /** @} */ /* end of AIOP_GSO_Verification */
