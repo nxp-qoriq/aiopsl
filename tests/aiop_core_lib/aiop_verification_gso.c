@@ -30,6 +30,7 @@ uint16_t  aiop_verification_gso(
 		
 		tcp_gso_context_init(str->flags, str->mss, 
 				tcp_gso_context_addr);
+		
 		str_size = sizeof(struct tcp_gso_init_command);
 		break;
 	}
