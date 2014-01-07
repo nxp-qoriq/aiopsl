@@ -21,8 +21,8 @@ uint16_t  aiop_verification_ipf(
 	opcode  = *((uint32_t *) data_addr);
 	
 	switch (opcode) {
-	/* IPF Init Context for Frame's Fragmentation command */
-	case IPF_CONTEXT_INIT_FRAG_FROM_FRAME_CMD :
+	/* IPF Init Context command */
+	case IPF_CONTEXT_INIT_CMD :
 	{
 		struct ipf_init_command *str =
 			(struct ipf_init_command *)data_addr;
@@ -31,18 +31,8 @@ uint16_t  aiop_verification_ipf(
 		str_size = sizeof(struct ipf_init_command);
 		break;
 	}
-	/* IPF Init Context for Fragment's Fragmentation command */
-	case IPF_CONTEXT_INIT_FRAG_FROM_FRAG_CMD :
-	{
-		struct ipf_init_command *str =
-			(struct ipf_init_command *)data_addr;
-		
-		ipf_context_init(str->flags, str->mtu, ipf_context_addr);
-		str_size = sizeof(struct ipf_init_command);
-		break;
-	}
-	/* IPF Generate Fragment from Frame Command */
-	case IPF_GENERATE_FRAG_FROM_FRAME_CMD:
+	/* IPF Generate Fragment Command */
+	case IPF_GENERATE_FRAG_CMD:
 	{
 		struct ipf_generate_frag_command *str =
 			(struct ipf_generate_frag_command *)data_addr;
@@ -58,38 +48,8 @@ uint16_t  aiop_verification_ipf(
 		str_size = sizeof(struct ipf_generate_frag_command);
 		break;
 	}
-	/* IPF Generate Fragment from Fragment Command */
-	case IPF_GENERATE_FRAG_FROM_FRAG_CMD:
-	{
-		struct ipf_generate_frag_command *str =
-			(struct ipf_generate_frag_command *)data_addr;
-		
-		str->status = ipf_generate_frag(ipf_context_addr);
-			/* The fragment that was generated is now the default 
-			 * frame of the task */
-		str->ipf_ctx = *((struct ipf_context *)ipf_context_addr);
-		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
-		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
-		str->default_task_params = default_task_params;
-		
-		str_size = sizeof(struct ipf_generate_frag_command);
-		break;
-	}
-	/* IPF Discard Remaining Frame of Frame's Fragmentation Command */
-	case IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAME_CMD:
-	{
-		struct ipf_discard_remainder_frame_command *str =
-			(struct ipf_discard_remainder_frame_command *)
-				data_addr;
-		
-		str->status = ipf_discard_frame_remainder(ipf_context_addr);
-		str->ipf_ctx = *((struct ipf_context *)ipf_context_addr);
-		
-		str_size = sizeof(struct ipf_discard_remainder_frame_command);
-		break;
-	}
-	/* IPF Discard Remaining Frame of Frag's Fragmentation Command */
-	case IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAG_CMD:
+	/* IPF Discard Remaining Frame Command */
+	case IPF_DISCARD_REMAINING_FRAME_CMD:
 	{
 		struct ipf_discard_remainder_frame_command *str =
 			(struct ipf_discard_remainder_frame_command *)
