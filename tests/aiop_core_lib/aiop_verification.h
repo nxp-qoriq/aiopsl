@@ -11,6 +11,7 @@
 #define __AIOP_VERIFICATION_H_
 
 #include "general.h"
+#include "dplib/fsl_ipsec.h"
 #include "aiop_verification_fdma.h"
 #include "aiop_verification_tman.h"
 #include "aiop_verification_ste.h"
