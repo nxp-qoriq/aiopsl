@@ -23,7 +23,6 @@ uint16_t  aiop_verification_gso(
 	flags = 0x0;
 
 	switch (opcode) {
-	/* FDMA Initial frame presentation Command Verification */
 	case TCP_GSO_CONTEXT_INIT_CMD_STR:
 	{
 		struct tcp_gso_init_command *str =
@@ -31,7 +30,7 @@ uint16_t  aiop_verification_gso(
 		
 		tcp_gso_context_init(str->flags, str->mss, 
 				tcp_gso_context_addr);
-		str_size = sizeof(struct fdma_init_command);
+		str_size = sizeof(struct tcp_gso_init_command);
 		break;
 	}
 	case TCP_GSO_GENERATE_SEG_CMD_STR:
