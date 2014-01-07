@@ -39,15 +39,20 @@ int32_t tcp_gro_flush_aggregation(
 {
 	struct tcp_gro_context gro_ctx;
 	/* read GRO context*/
-	cdma_read_with_mutex(tcp_gro_context_addr, 0, &gro_ctx, 
-			sizeof(struct tcp_gro_context));
+	cdma_read_with_mutex(tcp_gro_context_addr, CDMA_PREDMA_MUTEX_WRITE_LOCK,
+			(void *)&gro_ctx, sizeof(struct tcp_gro_context));
 	/* no aggregation */
 	if (gro_ctx.metadata.seg_num == 0)
 		return TCP_GRO_FLUSH_NO_AGG;
 	/* write metadata to external memory */
-	/*cdma_write_with_mutex(gro_ctx.params.metadata, 0, 
-		gro_ctx.metadata.seg_num, 
-		TCP_GRO_METADATA_PARAM2_SIZE + TCP_GRO_METADATA_PARAM3_SIZE);
-	*((ldpaa_fd *) HWC_FD_ADDRESS) = gro_ctx.agg_fd;*/
+	cdma_write_with_mutex(gro_ctx.params.metadata + 
+		member_size(struct tcp_gro_context_metadata, seg_sizes_addr), 
+			0, &(gro_ctx.metadata.seg_num), XX
+			/*sizeof(gro_ctx.metadata.seg_num) + 
+			sizeof(gro_ctx.metadata.max_seg_size)*/);
+	/* Copy aggregated FD to default FD location */
+	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
+
+	
 	
 }
