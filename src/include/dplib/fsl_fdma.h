@@ -2905,6 +2905,12 @@ int32_t fdma_copy_data(
 		void *src,
 		void *dst);
 
+int32_t fdma_create_frame(
+		struct ldpaa_fd *fd, 
+		void *data, 
+		uint16_t size);
+
+
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */
 
