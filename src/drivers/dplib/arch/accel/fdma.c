@@ -1311,7 +1311,6 @@ int32_t fdma_copy_data(
 	return (int32_t)(res1);
 }
 
-
 int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 {
 	struct fdma_present_frame_params present_frame_params;
