@@ -1453,7 +1453,7 @@ struct fdma_present_frame_params {
 	void *asa_dst;
 		/** A pointer to the location in workspace of the FD that is to
 		* be presented. */
-	void *fd_src;
+	struct ldpaa_fd *fd_src;
 		/** location within the presented frame to start presenting
 		 * the segment from. */
 	uint16_t seg_offset;
@@ -1476,6 +1476,33 @@ struct fdma_present_frame_params {
 	uint8_t seg_handle;
 		/** 32-bit alignment. */
 	uint8_t	pad[2];
+};
+
+/**************************************************************************//**
+@Description	Segment Presentation parameters structure.
+
+*//***************************************************************************/
+struct fdma_present_segment_params {
+		/**< \link FDMA_PRES_Flags Present segment flags. \endlink */
+	uint32_t flags;
+		/**< A pointer to the location in workspace for the presented 
+		 * frame segment. */
+	void	 *ws_dst;
+		/**< Location within the presented frame to start presenting 
+		 * from. Must be within the bound of the frame. */
+	uint16_t offset;
+		/**< Number of frame bytes to present (Must be greater than 
+		 * 0). */
+	uint16_t present_size;
+		/**< Returned parameter:
+		 * A pointer to the number of bytes actually presented (the 
+		 * segment actual size). */
+	uint16_t seg_length;
+		/**< Returned parameter:
+		 * A pointer to the handle of the presented segment. */
+	uint8_t  seg_handle;
+		/**< working frame from which to open a segment. */
+	uint8_t	 frame_handle;
 };
 
 /**************************************************************************//**
@@ -1526,7 +1553,7 @@ struct fdma_split_frame_params {
 		 * \endlink */
 	uint32_t flags;
 		/** A pointer to the location in workspace for the split FD. */
-	void *fd_dst;
+	struct ldpaa_fd *fd_dst;
 		/** A pointer to the location in workspace for the presented
 		 * split frame segment. */
 	void *seg_dst;
@@ -1561,6 +1588,43 @@ struct fdma_split_frame_params {
 		 * buffers are required when optionally closing the split
 		 * working frame */
 	uint8_t  spid;
+};
+
+/**************************************************************************//**
+@Description	Insert Segment data parameters structure.
+
+*//***************************************************************************/
+struct fdma_insert_segment_data_params {
+		/**< a pointer to the workspace location from which the inserted
+		 * segment data starts. */
+	void	 *from_ws_src;
+		/**< A pointer to the location in workspace for the represented 
+		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
+		 *  flag is set). */
+	void	 *ws_dst_rs;
+		/**< \link FDMA_Replace_Flags replace working frame segment 
+		 * flags. \endlink */
+	uint32_t flags;
+		/**< Offset from the previously presented segment representing 
+		 * where to insert the data. 
+		 * Must be within the presented segment size. */	
+	uint16_t to_offset;
+		/**< Size of the data being inserted to the segment. */
+	uint16_t insert_size;
+		/**< Number of frame bytes to represent (relevant if 
+		 * \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set). */
+	uint16_t size_rs;
+		/**< Returned parameter:
+		 * A pointer to the number of bytes actually presented (the 
+		 * segment actual size). */
+	uint16_t seg_length_rs;
+		/**< Working frame handle to which the data is being inserted.*/
+	uint8_t	 frame_handle;
+		/**< Data segment handle (related to the working frame handle) 
+		 * from which the data is being inserted. */
+	uint8_t  seg_handle;	
+		/** 32-bit alignment. */
+	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1678,6 +1742,24 @@ int32_t fdma_present_default_frame_segment(
 		uint16_t present_size,
 		uint16_t *seg_length,
 		uint8_t  *seg_handle);
+
+/**************************************************************************//**
+@Function	fdma_present_frame_segment
+
+@Description	Open a segment of a working frame and copy the
+		segment data into the specified location in the workspace.
+
+@Param[in]	params - A pointer to the Present frame segment command
+		parameters.
+
+@Return		Status - Success or Failure (e.g. DMA error. (\ref
+		FDMA_PRESENT_SEGMENT_ERRORS).
+
+@Cautions	This command may be invoked only for Data segments.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_present_frame_segment(
+		struct fdma_present_segment_params *params);
 
 /**************************************************************************//**
 @Function	fdma_read_default_frame_asa
@@ -1920,6 +2002,53 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 		uint32_t flags);
 
 /**************************************************************************//**
+@Function	fdma_store_and_enqueue_frame_fqid
+
+@Description	Enqueue a Working Frame to a given destination according to a 
+		frame queue id.
+
+		After completion, the Enqueue Working Frame command can
+		terminate the task or return.
+
+		If the Working Frame to be enqueued is modified, the Enqueue
+		Frame command performs a Store Frame Data command on the
+		Working Frame.
+
+		If the Working Frame to be enqueued is modified, existing
+		buffers as described by the FD are used to store data.
+
+		If the modified frame no longer fits in the original structure,
+		new buffers can be added using the provided storage profile.
+
+		If the original structure can not be modified, then a new
+		structure will be assembled using the provided storage
+		profile ID.
+
+		Implicit input parameters in Task Defaults: , 
+		(storage profile ID).
+
+@Param[in]	frame_handle - working frame handle to enqueue.
+@Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
+		bits. \endlink
+@Param[in]	fqid - frame queue ID for the enqueue.
+@Param[in]	spid - Storage Profile ID used to store frame data.
+
+@Return		Status (if enqueue succeeded or failed.
+		(\ref FDMA_ENQUEUE_FRAME_ERRORS)).
+
+@Cautions
+		- Function may not return.
+		- All modified segments (which are to be stored) must be
+		replaced (by a replace command) before storing a frame.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_store_and_enqueue_frame_fqid(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		uint32_t fqid,
+		uint8_t  spid);
+
+/**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_qd
 
 @Description	Enqueue the default Working Frame to a given destination
@@ -1945,7 +2074,7 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 		Implicit input parameters in Task Defaults: frame handle, spid
 		(storage profile ID).
 
-@Param[in]	enqueue_params - Pointer to the queueing destination parameters.
+@Param[in]	qdp - Pointer to the queueing destination parameters.
 @Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
 		bits. \endlink
 
@@ -1959,8 +2088,55 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_and_enqueue_default_frame_qd(
-		struct fdma_queueing_destination_params *enqueue_params,
+		struct fdma_queueing_destination_params *qdp,
 		uint32_t	flags);
+
+/**************************************************************************//**
+@Function	fdma_store_and_enqueue_frame_qd
+
+@Description	Enqueue a Working Frame to a given destination according to a 
+		queueing destination.
+
+		After completion, the Enqueue Working Frame command can
+		terminate the task or return.
+
+		If the Working Frame to be enqueued is modified, the Enqueue
+		Frame command performs a Store Frame Data command on the
+		Working Frame.
+
+		If the Working Frame to be enqueued is modified, existing
+		buffers as described by the FD are used to store data.
+
+		If the modified frame no longer fits in the original structure,
+		new buffers can be added using the provided storage profile.
+
+		If the original structure can not be modified, then a new
+		structure will be assembled using the provided storage
+		profile ID.
+
+		Implicit input parameters in Task Defaults: frame handle, spid
+		(storage profile ID).
+
+@Param[in]	frame_handle - working frame handle to enqueue.
+@Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
+		bits. \endlink
+@Param[in]	qdp - Pointer to the queueing destination parameters.
+@Param[in]	spid - Storage Profile ID used to store frame data.
+
+@Return		Status (if enqueue succeeded or failed. (\ref
+		FDMA_ENQUEUE_FRAME_ERRORS)).
+
+@Cautions
+		- Function may not return.
+		- All modified segments (which are to be stored) must be
+		replaced (by a replace command) before storing a frame.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_store_and_enqueue_frame_qd(
+		uint8_t  frame_handle,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *qdp,
+		uint8_t spid);
 
 /**************************************************************************//**
 @Function	fdma_enqueue_default_fd_fqid
@@ -1986,9 +2162,36 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_default_fd_fqid(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		uint32_t fqid);
+
+/**************************************************************************//**
+@Function	fdma_enqueue_fd_fqid
+
+@Description	Enqueue a Frame Descriptor (which is not presented) to a given
+		destination according to a frame queue id.
+
+		After completion, the Enqueue Frame command can
+		terminate the task or return.
+
+@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
+		\endlink
+@Param[in]	fqid - frame queue ID for the enqueue.
+@Param[in]	icid - ICID of the FD to enqueue.
+
+@Return		Status (if enqueue succeeded or failed. (\ref
+		FDMA_ENQUEUE_FD_ERRORS)).
+
+@Cautions	Function may not return.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_enqueue_fd_fqid(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint32_t fqid,
+		uint16_t icid);
 
 /**************************************************************************//**
 @Function	fdma_enqueue_default_fd_qd
@@ -2014,9 +2217,36 @@ int32_t fdma_enqueue_default_fd_fqid(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_default_fd_qd(
-		uint16_t icid ,
+		uint16_t icid,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params);
+
+/**************************************************************************//**
+@Function	fdma_enqueue_fd_qd
+
+@Description	Enqueue a Frame Descriptor (which is not presented) to a given
+		destination according to a queueing destination.
+
+		After completion, the Enqueue Frame command can
+		terminate the task or return.
+
+@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
+		\endlink
+@Param[in]	enqueue_params - Pointer to the queueing destination parameters.
+@Param[in]	icid - ICID of the FD to enqueue.
+
+@Return		Status (if enqueue succeeded or failed. (\ref
+		FDMA_ENQUEUE_FD_ERRORS)).
+
+@Cautions	Function may not return.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_enqueue_fd_qd(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		struct fdma_queueing_destination_params *enqueue_params,
+		uint16_t icid);
 
 /**************************************************************************//**
 @Function	fdma_discard_default_frame
@@ -2397,7 +2627,12 @@ int32_t fdma_replace_default_segment_data(
 @Cautions	In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, The
 		Service Routine assumes there is enough headroom in the
 		Workspace before the default segment address to represent the
-		segment.
+		segment (the headroom should be large enough to contain the 
+		inserted data size). The segment size will increase by the 
+		inserted size. 
+		In case there is not enough headroom for the inserted size, the 
+		segment representation will overwrite the old segment location 
+		in workspace. The segment size will remain the same. 
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -2406,6 +2641,43 @@ int32_t fdma_insert_default_segment_data(
 		void	 *from_ws_src,
 		uint16_t insert_size,
 		uint32_t flags);
+
+/**************************************************************************//**
+@Function	fdma_insert_segment_data
+
+@Description	Insert new data to a Working Frame (in the FDMA) through a Data 
+		segment.
+
+		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set this
+		Service Routine synchronizes the segment data between the
+		Task Workspace and the FDMA.
+
+@Param[in]	params - A pointer to the insert segment data command 
+		parameters.
+
+@Return		Status (Success or Failure. (\ref
+		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+
+@remark
+		- This is basically a replace command with
+		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
+		- Example: Insert 2 bytes - The default Data
+		segment represents a 100 bytes at offset 0 in the frame (0-99),
+		and the user want to insert 2 bytes after the 24th byte in the
+		segment.
+		Parameters:
+			- to_offset - 25 (relative to the presented segment)
+			- from_ws_address - <workspace address of the 2 bytes>
+			- insert_size - 2
+
+@Cautions	In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, the 
+		segment representation will overwrite the old segment location 
+		in workspace. The segment size will remain the same. 
+@Cautions	This command may be invoked only on the Data segment.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_insert_segment_data(
+		struct fdma_insert_segment_data_params *params);
 
 /**************************************************************************//**
 @Function	fdma_delete_default_segment_data

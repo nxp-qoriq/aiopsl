@@ -747,7 +747,7 @@
 #define PARSER_IS_TCP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_TCP_MASK)
-/** */
+/** Returns a non-zero value in case TCP or UDP is found */
 #define PARSER_IS_TCP_OR_UDP_DEFAULT() \
        (((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
        frame_attribute_flags_3 & (PARSER_ATT_TCP_MASK | PARSER_ATT_UDP_MASK))

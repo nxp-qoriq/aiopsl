@@ -74,11 +74,6 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 	/** Segmentation process cannot start since the syn/rst flags are set.*/
 #define	TCP_GSO_GEN_SEG_STATUS_SYN_RST_SET				\
 						(TCP_GSO_MODULE_STATUS_ID | 0x2)
-	/** Segmentation process cannot start since the packet size > 64KB. */
-#define	TCP_GSO_GEN_SEG_STATUS_SIZE_BIGGER_THAN_64KB			\
-						(TCP_GSO_MODULE_STATUS_ID | 0x3)
-	/** Segmentation process cannot start since Represented segment
-	 * size < headers size. */
 
 /** @} */ /* end of TCP_GSO_GENERATE_SEG_STATUS */
 

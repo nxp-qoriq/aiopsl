@@ -27,7 +27,7 @@
 *//***************************************************************************/
 
 	/** IPF context size definition. */
-#define IPF_CONTEXT_SIZE	96
+#define IPF_CONTEXT_SIZE	64
 	/** IPF context definition. */
 typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 
@@ -61,6 +61,8 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 #define	IPF_GEN_FRAG_STATUS_IN_PROCESS 	(IPF_MODULE_STATUS_ID | 0x1)
 /** Fragmentation not done due to Length > MTU but DF=1 */
 #define	IPF_GEN_FRAG_STATUS_DF_SET 	(IPF_MODULE_STATUS_ID | 0x2)
+/** Restoration of original fragments can not be performed since SFV=0 */ 
+#define	IPF_GEN_FRAG_STATUS_SFV_CLEAR 	(IPF_MODULE_STATUS_ID | 0x3)
 
 /** @} */ /* end of IPF_GENERATE_FRAG_STATUS */
 
@@ -73,11 +75,11 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
  * reassembled frame thus restoration of the original fragments is not possible.
  * This includes: modifications of the header, changes of frame boundaries
  * (e.g. IPSec, GRO).  */
-#define IPF_SFV_CLEAR   /*TODO maybe move to general.h ?*/
+#define IPF_SFV_CLEAR()  0 /*TODO maybe move to general.h ?*/
 /** SFV bit query. This macro returns the value of SFV bit.
  * In case the value of SFV is 0, the user should not ask for restoration of
  * original fragments.*/
-#define IPF_SFV_QUERY	/*TODO maybe move to general.h ?*/
+#define IPF_SFV_QUERY()	 1 /*TODO maybe move to general.h ?*/
 
 
 /** @} */ /* end of FSL_IPF_SFV_MACROS */
@@ -104,7 +106,8 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 		at the default frame location in workspace.
 
 		The remaining source frame is kept in the internal IPF
-		structure.
+		structure, and remains open until fragmentation process is
+		complete (\ref IPF_GEN_FRAG_STATUS_DONE).
 
 		This function should be called repeatedly
 		until the returned status indicates fragmentation is complete

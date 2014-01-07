@@ -8,6 +8,7 @@
 
 #include "dplib/fsl_gso.h"
 #include "dplib/fsl_ldpaa.h"
+#include "common/gen.h"
 
 
 /** \addtogroup FSL_AIOP_GSO
@@ -43,7 +44,7 @@ struct tcp_gso_context {
 	 * \ref TCP_GSO_INTERNAL_FLAGS */
 	uint32_t internal_flags;
 	/** Split Size. */
-	uint16_t split_size;
+	uint16_t mss;
 	/** Headers Size. */
 	uint16_t headers_size;
 	/** Urgent Pointer offset. */
@@ -109,7 +110,36 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 
 /** @} */ /* end of TCP_GSO_INTERNAL_MACROS */
 
+/**************************************************************************//**
+ @Group	TCP_GSO_INTERNAL_FUNCTIONS TCP GSO Internal Functions
+
+ @Description TCP GSO Internal Functions.
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@Function	tcp_gso_return_frame_remainder_as_default_frame
+
+@Description	This function relocate the remainder packet being segmented to 
+		the default frame location.
+		This function should be called internally for debug purposes 
+		only.
+
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
+
+@Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
+
+@Cautions	None.
+*//***************************************************************************/
+int32_t tcp_gso_return_frame_remainder_as_default_frame(
+		tcp_gso_ctx_t tcp_gso_context_addr);
+
+/** @} */ /* end of TCP_GSO_INTERNAL_FUNCTIONS */
+
 /** @} */ /* end of FSL_AIOP_TCP_GSO_INTERNAL */
+
+int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx);
 
 /** @} */ /* end of FSL_AIOP_GSO */
 

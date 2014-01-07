@@ -121,6 +121,8 @@
 /* param 2*/
 #define DPNI_INIT_OPTIONS_O			0
 #define DPNI_INIT_OPTIONS_S			32
+#define DPNI_INIT_MAX_DPIOS_O 		32
+#define DPNI_INIT_MAX_DPIOS_S		8
 /*param 3*/
 #define DPNI_INIT_MAX_DIST_O			0
 #define DPNI_INIT_MAX_DIST_S			8

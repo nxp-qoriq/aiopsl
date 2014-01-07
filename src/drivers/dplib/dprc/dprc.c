@@ -5,11 +5,9 @@
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dprc_cmd.h"
 #include "arch/fsl_cmdif_mc.h"
-
 #include "dprc.h"
 
-
-static void prepare_create_container_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_create_container_cmd(struct cmdif_cmd_data *desc,
                                          struct dprc_create_attributes *attr)
 {
 	uint64_t cmd_param = 0;
@@ -33,7 +31,7 @@ static void prepare_create_container_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_destroy_container_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_destroy_container_cmd(struct cmdif_cmd_data *desc,
                                           int container_id)
 {
 	uint64_t cmd_param = 0;
@@ -45,7 +43,7 @@ static void prepare_destroy_container_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_set_res_policy_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_set_res_policy_cmd(struct cmdif_cmd_data *desc,
                                        int container_id,
                                        enum dp_res_type type,
                                        enum dprc_alloc_policy alloc_policy,
@@ -68,7 +66,7 @@ static void prepare_set_res_policy_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_get_res_policy_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_get_res_policy_cmd(struct cmdif_cmd_data *desc,
                                        int container_id,
                                        enum dp_res_type type)
 {
@@ -81,7 +79,7 @@ static void prepare_get_res_policy_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_reset_container_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_reset_container_cmd(struct cmdif_cmd_data *desc,
                                         int container_id)
 {
 	uint64_t cmd_param = 0;
@@ -92,7 +90,7 @@ static void prepare_reset_container_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_assign_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_assign_cmd(struct cmdif_cmd_data *desc,
                                int container_id,
                                struct dprc_res_req *res_req)
 {
@@ -116,7 +114,7 @@ static void prepare_assign_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
 }
 
-static void prepare_unassign_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_unassign_cmd(struct cmdif_cmd_data *desc,
                                  int container_id,
                                  struct dprc_res_req *res_req)
 {
@@ -140,7 +138,7 @@ static void prepare_unassign_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
 }
 
-static void prepare_get_device_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_get_device_cmd(struct cmdif_cmd_data *desc,
                                     int dev_index)
 {
 	uint64_t cmd_param = 0;
@@ -150,7 +148,7 @@ static void prepare_get_device_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 3, cmd_param);
 }
 
-static void receive_get_device_cmd(struct cmdif_cmd_desc *desc,
+static void receive_get_device_cmd(struct cmdif_cmd_data *desc,
                                    struct dprc_dev_desc *dev_desc)
 {
 	uint64_t cmd_param = 0;
@@ -185,7 +183,7 @@ static void receive_get_device_cmd(struct cmdif_cmd_desc *desc,
 	                                           DPRC_GET_DEV_STATE_S);
 }
 
-static void prepare_get_res_count_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_get_res_count_cmd(struct cmdif_cmd_data *desc,
                                       enum dp_res_type type)
 {
 	uint64_t cmd_param = 0;
@@ -195,7 +193,7 @@ static void prepare_get_res_count_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_get_res_ids_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_get_res_ids_cmd(struct cmdif_cmd_data *desc,
                                     enum dp_res_type res_type,
                                     int num_of_ids)
 {
@@ -209,7 +207,7 @@ static void prepare_get_res_ids_cmd(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_get_dev_region(struct cmdif_cmd_desc *desc,
+static void prepare_get_dev_region(struct cmdif_cmd_data *desc,
                                    uint16_t dev_type,
                                    uint16_t dev_id,
                                    uint8_t region_index)
@@ -226,7 +224,7 @@ static void prepare_get_dev_region(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_set_irq(struct cmdif_cmd_desc *desc,
+static void prepare_set_irq(struct cmdif_cmd_data *desc,
                             uint8_t irq_index,
                             uint64_t irq_paddr,
                             uint32_t irq_val)
@@ -245,7 +243,7 @@ static void prepare_set_irq(struct cmdif_cmd_desc *desc,
 	GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
 }
 
-static void prepare_get_irq(struct cmdif_cmd_desc *desc,
+static void prepare_get_irq(struct cmdif_cmd_data *desc,
                             uint8_t irq_index)
 {
 	uint64_t cmd_param = 0;
@@ -256,42 +254,42 @@ static void prepare_get_irq(struct cmdif_cmd_desc *desc,
 
 }
 
-static void receive_get_dev_count_cmd(struct cmdif_cmd_desc *desc, int *count)
+static void receive_get_dev_count_cmd(struct cmdif_cmd_data *desc, int *count)
 {
 	uint64_t cmd_param = GPP_CMD_READ_PARAM(desc, 1);
 	*count = (int)u64_read_field(cmd_param, DPRC_GET_DEV_COUNT_COUNT_O,
 	                             DPRC_GET_DEV_COUNT_COUNT_S);
 }
 
-static void receive_get_res_count_cmd(struct cmdif_cmd_desc *desc, int *count)
+static void receive_get_res_count_cmd(struct cmdif_cmd_data *desc, int *count)
 {
 	uint64_t cmd_param = GPP_CMD_READ_PARAM(desc, 1);
 	*count = (int)u64_read_field(cmd_param, DPRC_GET_RES_COUNT_COUNT_O,
 	                             DPRC_GET_RES_COUNT_COUNT_S);
 }
-int dprc_get_container_id(void *portal_vaddr, int *container_id)
+int dprc_get_container_id(struct dprc *dprc, int *container_id)
 {
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)portal_vaddr; 	/* TODO - how to get desc ? */
-	int err = E_OK;
+	/*TODO - review*/
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	uint64_t cmd_param = 0;
-
 	/* prepare command */
 	/* build param 1*/
 	cmd_param = u64_write_field(cmd_param,
 	                DPRC_GET_CONT_ID_PORTAL_O,
 	                DPRC_GET_CONT_ID_PORTAL_S,
-	                (int)portal_vaddr);
-	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
+	                (int)dprc->cidesc.regs);/*TODO - check*/
+	GPP_CMD_WRITE_PARAM(cmd_data, 1, cmd_param);
 
 	/* send command to mc*/
 
-										/*TODO - need dprc dev to send */
-//	err = cmdif_send(dev, DPRC_CMD_GET_CONT_ID, DPRC_CMD_GET_CONT_ID_S,
-//	                 CMDIF_PRI_LOW, desc);
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMD_GET_CONT_ID, DPRC_CMD_GET_CONT_ID_S,
+	                 CMDIF_PRI_LOW, cmd_data);
 	/* recieve out parameters */
 	if (!err)
 	{
-		cmd_param = GPP_CMD_READ_PARAM(desc, 1);
+		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
 		*container_id = (int)u64_read_field(cmd_param,
 		                                    DPRC_GET_CONT_ID_O,
 		                                    DPRC_GET_CONT_ID_S);
@@ -299,19 +297,14 @@ int dprc_get_container_id(void *portal_vaddr, int *container_id)
 	return err;
 }
 
-struct dprc *dprc_open(void *portal_vaddr, int container_id)
+int dprc_open(struct dprc *dprc, int container_id)
 {
-	struct dprc *dprc = (struct dprc *)fsl_os_malloc(sizeof(struct dprc));
-
-	dprc->dev = cmdif_open(portal_vaddr, FSL_OS_MOD_DPRC, container_id);
-
-	return dprc;								/*TODO - open should return handle */
+	return cmdif_open(&(dprc->cidesc), FSL_OS_MOD_DPSP, container_id);
 }
 
 int dprc_close(struct dprc *dprc)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc->dev;
-	return cmdif_close(dev);
+	return cmdif_close(&(dprc->cidesc));
 }
 
 int dprc_create_container(struct dprc 			*dprc,
@@ -319,21 +312,20 @@ int dprc_create_container(struct dprc 			*dprc,
                           int 				*child_container_id,
                           uint64_t 			*child_portal_paddr)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)
-							cmdif_get_desc(dev);
+	struct cmdif_cmd_data *cmd_data;
 	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	uint64_t cmd_param;
 	/* write command body */
 
-	prepare_create_container_cmd(desc, attributes);
+	prepare_create_container_cmd(cmd_data, attributes);
 
 	/* send command to mc*/
-	err = cmdif_send(dev, DPRC_CMD_CREATE_CONT, DPRC_CMD_CREATE_CONT_S,
-	                 CMDIF_PRI_LOW, desc);
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMD_CREATE_CONT, DPRC_CMD_CREATE_CONT_S,
+	                 CMDIF_PRI_LOW, cmd_data);
 	/* recieve out parameters */
 	if (!err) {
-		cmd_param = GPP_CMD_READ_PARAM(desc, 2);
+		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 2);
 		*child_container_id = (uint32_t)u64_read_field(cmd_param,
 		                                  DPRC_CREATE_CONT_CHILD_ID_O,
 		                                  DPRC_CREATE_CONT_CHILD_ID_S);
@@ -346,18 +338,19 @@ int dprc_create_container(struct dprc 			*dprc,
 
 int dprc_destroy_container(struct dprc *dprc, int child_container_id)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
-	prepare_destroy_container_cmd(desc, child_container_id);
+	prepare_destroy_container_cmd(cmd_data, child_container_id);
 	/* send command to mc*/
-	return cmdif_send(dev,
+	return cmdif_send(&(dprc->cidesc),
 	                  DPRC_CMD_DESTROY_CONT,
 	                  DPRC_CMD_DESTROY_CONT_S,
 	                  CMDIF_PRI_LOW,
-	                  desc);
+	                  cmd_data);
 }
 
 int dprc_set_res_alloc_policy(struct dprc *dprc,
@@ -366,20 +359,21 @@ int dprc_set_res_alloc_policy(struct dprc *dprc,
                               enum dprc_alloc_policy alloc_policy,
                               uint16_t quota)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	err = cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
-	prepare_set_res_policy_cmd(desc,
+	prepare_set_res_policy_cmd(cmd_data,
 	                           child_container_id,
 	                           res_type,
 	                           alloc_policy,
 	                           quota);
 
 	/* send command to mc*/
-	return cmdif_send(dev, DPRC_CMD_SET_RES_ALLOC_P,
-	                  DPRC_CMD_SET_RES_ALLOC_P_S, CMDIF_PRI_LOW, desc);
+	return cmdif_send(&(dprc->cidesc), DPRC_CMD_SET_RES_ALLOC_P,
+	                  DPRC_CMD_SET_RES_ALLOC_P_S, CMDIF_PRI_LOW, cmd_data);
 }
 
 int dprc_get_res_alloc_policy(struct dprc *dprc,
@@ -388,92 +382,97 @@ int dprc_get_res_alloc_policy(struct dprc *dprc,
                               enum dprc_alloc_policy *alloc_policy,
                               uint16_t *quota)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
 	int err;
 	uint64_t cmd_param;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
+
 	/* write command body */
-	prepare_get_res_policy_cmd(desc,
+	prepare_get_res_policy_cmd(cmd_data,
 	                           child_container_id,
 	                           res_type);
 
 	/* send command to mc*/
-	err = cmdif_send(dev, DPRC_CMD_SET_RES_ALLOC_P,
-	                  DPRC_CMD_SET_RES_ALLOC_P_S, CMDIF_PRI_LOW, desc);
-	/* Receive out parameters */
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMD_SET_RES_ALLOC_P,
+	                  DPRC_CMD_SET_RES_ALLOC_P_S, CMDIF_PRI_LOW, cmd_data);
+	/* recieve out parameters */
 	if (!err)
 	{
-		desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-		cmd_param = GPP_CMD_READ_PARAM(desc, 1);
-		*alloc_policy = (enum dprc_alloc_policy)u64_read_field(
-						cmd_param,
-		                                DPRC_GET_RES_ALLOC_P_O,
-		                                DPRC_GET_RES_ALLOC_P_S);
-		*quota = (uint16_t)u64_read_field(cmd_param,
-		                                  DPRC_GET_RES_ALLOC_P_QUOTA_O,
-		                                  DPRC_GET_RES_ALLOC_P_QUOTA_S);
+		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
+		if (!err) {
+			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
+			*alloc_policy = (enum dprc_alloc_policy)u64_read_field(
+							cmd_param,
+							DPRC_GET_RES_ALLOC_P_O,
+							DPRC_GET_RES_ALLOC_P_S);
+			*quota = (uint16_t)u64_read_field(cmd_param,
+							  DPRC_GET_RES_ALLOC_P_QUOTA_O,
+							  DPRC_GET_RES_ALLOC_P_QUOTA_S);
+		}
 	}
 	return err;
 }
 
 int dprc_reset_container(struct dprc *dprc, int child_container_id)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* write command body */
-	prepare_reset_container_cmd(desc, child_container_id);
+	prepare_reset_container_cmd(cmd_data, child_container_id);
 
 	/* send command to mc*/
-	return cmdif_send(dev, DPRC_CMD_RST_CONT, DPRC_CMD_RST_CONT_S,
-	                  CMDIF_PRI_LOW, desc);
+	return cmdif_send(&(dprc->cidesc), DPRC_CMD_RST_CONT, DPRC_CMD_RST_CONT_S,
+	                  CMDIF_PRI_LOW, cmd_data);
 }
 
 int dprc_assign(struct dprc *dprc,
                 int container_id,
                 struct dprc_res_req *res_req)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
-	prepare_assign_cmd(desc, container_id, res_req);
+	prepare_assign_cmd(cmd_data, container_id, res_req);
 
 	/* send command to mc*/
-	return cmdif_send(dev, DPRC_CMD_ASSIGN, DPRC_CMD_ASSIGN_S,
-	                  CMDIF_PRI_LOW, desc);
+	return cmdif_send(&(dprc->cidesc), DPRC_CMD_ASSIGN, DPRC_CMD_ASSIGN_S,
+	                  CMDIF_PRI_LOW, cmd_data);
 }
 
 int dprc_unassign(struct dprc *dprc,
                   int child_container_id,
                   struct dprc_res_req *res_req)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
-	prepare_unassign_cmd(desc, child_container_id, res_req);
+	prepare_unassign_cmd(cmd_data, child_container_id, res_req);
 
 	/* send command to mc*/
-	return cmdif_send(dev, DPRC_CMD_UNASSIGN, DPRC_CMD_UNASSIGN_S,
-	                  CMDIF_PRI_LOW, desc);
+	return cmdif_send(&(dprc->cidesc), DPRC_CMD_UNASSIGN, DPRC_CMD_UNASSIGN_S,
+	                  CMDIF_PRI_LOW, cmd_data);
 }
 
 int dprc_get_device_count(struct dprc *dprc, int *dev_count)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
 	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* send command to mc*/
-	err = cmdif_send(dev, DPRC_CMD_GET_DEV_COUNT, DPRC_CMD_GET_DEV_COUNT_S,
-	                 CMDIF_PRI_LOW, desc);
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMD_GET_DEV_COUNT, DPRC_CMD_GET_DEV_COUNT_S,
+	                 CMDIF_PRI_LOW, cmd_data);
 	if (!err)
-		receive_get_dev_count_cmd(desc, dev_count);
+		receive_get_dev_count_cmd(cmd_data, dev_count);
 	return err;
 }
 
@@ -481,35 +480,36 @@ int dprc_get_device(struct dprc *dprc,
                     int dev_index,
                     struct dprc_dev_desc *dev_desc)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)
-							cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
 	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* write command body */
-	prepare_get_device_cmd(desc, dev_index);
+	prepare_get_device_cmd(cmd_data, dev_index);
 
 	/* send command to mc*/
-	err = cmdif_send(dev, DPRC_CMD_GET_DEVICE,
-		                 DPRC_CMD_GET_DEVICE_S, CMDIF_PRI_LOW, desc);
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMD_GET_DEVICE,
+		                 DPRC_CMD_GET_DEVICE_S, CMDIF_PRI_LOW, cmd_data);
 	if (!err) {
-		desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-		receive_get_device_cmd(desc, dev_desc);
+		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
+		if (!err)
+			receive_get_device_cmd(cmd_data, dev_desc);
 	}
 	return err;
 }
 
 int dprc_get_res_count(struct dprc *dprc, enum dp_res_type res_type, int *res_count)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
 	int err;
-	prepare_get_res_count_cmd(desc, res_type);
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
+	prepare_get_res_count_cmd(cmd_data, res_type);
 	/* send command to mc*/
-	err = cmdif_send(dev, DPRC_CMD_GET_RES_COUNT, DPRC_CMD_GET_RES_COUNT_S,
-	                 CMDIF_PRI_LOW, desc);
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMD_GET_RES_COUNT, DPRC_CMD_GET_RES_COUNT_S,
+	                 CMDIF_PRI_LOW, cmd_data);
 	if (!err)
-		receive_get_res_count_cmd(desc, res_count);
+		receive_get_res_count_cmd(cmd_data, res_count);
 	return err;
 }
 
@@ -519,61 +519,65 @@ int dprc_get_res_ids(struct dprc *dprc,
                                uint32_t *res_ids,
                                int *valid_count) /*TODO - add valid count */
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-	        dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
-	prepare_get_res_ids_cmd(desc, res_type, res_ids_num);
+	prepare_get_res_ids_cmd(cmd_data, res_type, res_ids_num);
 
 	/* send command to mc*/
-	return cmdif_send(dev, DPRC_CMD_GET_RES_IDS, DPRC_CMD_GET_RES_IDS_S,
-	                  CMDIF_PRI_LOW, desc);
+	return cmdif_send(&(dprc->cidesc), DPRC_CMD_GET_RES_IDS, DPRC_CMD_GET_RES_IDS_S,
+	                  CMDIF_PRI_LOW, cmd_data);
 }
 
 int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
 	int err;
 	uint64_t cmd_param;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* send command to mc*/
-	err = cmdif_send(dev,
+	err = cmdif_send(&(dprc->cidesc),
 	                 DPRC_CMD_GET_ATTR,
 	                 DPRC_CMD_GET_ATTR_S,
 	                 CMDIF_PRI_LOW,
-	                 NULL);
+	                 cmd_data);
 	/* recieve out parameters */
 	if (!err)
 	{
-		desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-		cmd_param = GPP_CMD_READ_PARAM(desc, 1);
-		attributes->container_id = (uint32_t)u64_read_field(
-						cmd_param,
-						DPRC_GET_ATTR_CONT_ID_O,
-						DPRC_GET_ATTR_CONT_ID_S);
-		attributes->icid = (uint16_t)u64_read_field(
-						cmd_param,
-						DPRC_GET_ATTR_ICID_O,
-						DPRC_GET_ATTR_ICID_S);
-		attributes->portal_id = (uint16_t)u64_read_field(
-						cmd_param,
-						DPRC_GET_ATTR_PORTAL_O,
-						DPRC_GET_ATTR_PORTAL_S);
-
-		cmd_param = GPP_CMD_READ_PARAM(desc, 2);
-		attributes->options = (uint32_t)u64_read_field(
-						cmd_param,
-						DPRC_GET_ATTR_OPTIONS_O,
-						DPRC_GET_ATTR_OPTIONS_S);
-		attributes->spawn_policy = (enum dprc_spawn_policy)
-				u64_read_field(cmd_param,
-						DPRC_GET_ATTR_SPAWN_O,
-						DPRC_GET_ATTR_SPAWN_S);
-		attributes->allocation_policy = (enum dprc_alloc_policy)
-				u64_read_field(cmd_param,
-						DPRC_GET_ATTR_ALLOC_O,
-						DPRC_GET_ATTR_ALLOC_S);
+		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
+		if (!err) {
+			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
+			attributes->container_id = (uint32_t)u64_read_field(
+							cmd_param,
+							DPRC_GET_ATTR_CONT_ID_O,
+							DPRC_GET_ATTR_CONT_ID_S);
+			attributes->icid = (uint16_t)u64_read_field(
+							cmd_param,
+							DPRC_GET_ATTR_ICID_O,
+							DPRC_GET_ATTR_ICID_S);
+			attributes->portal_id = (uint16_t)u64_read_field(
+							cmd_param,
+							DPRC_GET_ATTR_PORTAL_O,
+							DPRC_GET_ATTR_PORTAL_S);
+	
+			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 2);
+			attributes->options = (uint32_t)u64_read_field(
+							cmd_param,
+							DPRC_GET_ATTR_OPTIONS_O,
+							DPRC_GET_ATTR_OPTIONS_S);
+			attributes->spawn_policy = (enum dprc_spawn_policy)
+					u64_read_field(cmd_param,
+							DPRC_GET_ATTR_SPAWN_O,
+							DPRC_GET_ATTR_SPAWN_S);
+			attributes->allocation_policy = (enum dprc_alloc_policy)
+					u64_read_field(cmd_param,
+							DPRC_GET_ATTR_ALLOC_O,
+							DPRC_GET_ATTR_ALLOC_S);
+		}
 	}
 	return err;
 }
@@ -584,31 +588,33 @@ int dprc_get_dev_region(struct dprc *dprc,
                         uint8_t region_index,
                         struct dprc_region_desc *region_desc)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-									dev);
+	
+	struct cmdif_cmd_data *cmd_data;
 	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	uint64_t cmd_param;
 	/* prepare command */
-	prepare_get_dev_region(desc, dev_type, dev_id, region_index);
+	prepare_get_dev_region(cmd_data, dev_type, dev_id, region_index);
 	/* send command to mc*/
-	err = cmdif_send(dev,
+	err = cmdif_send(&(dprc->cidesc),
 	                 DPRC_CMD_GET_DEV_REG,
 	                 DPRC_CMD_GET_DEV_REG_S,
 	                 CMDIF_PRI_LOW,
-	                 desc);
+	                 cmd_data);
 	/* recieve out parameters */
 	if (!err)
 	{
-		desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-		cmd_param = GPP_CMD_READ_PARAM(desc, 1);
-		region_desc->size= (uint16_t)u64_read_field(cmd_param,
-		                                       DPRC_GET_DEV_REG_SIZE_O,
-		                                       DPRC_GET_DEV_REG_SIZE_S);
-		cmd_param = GPP_CMD_READ_PARAM(desc, 2);
-		region_desc->base_paddr= (uint64_t)u64_read_field(cmd_param,
-		                                 DPRC_GET_DEV_REG_BASE_PADDR_O,
-		                                 DPRC_GET_DEV_REG_BASE_PADDR_S);
+		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
+		if (!err) {
+			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
+			region_desc->size= (uint16_t)u64_read_field(cmd_param,
+							       DPRC_GET_DEV_REG_SIZE_O,
+							       DPRC_GET_DEV_REG_SIZE_S);
+			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 2);
+			region_desc->base_paddr= (uint64_t)u64_read_field(cmd_param,
+							 DPRC_GET_DEV_REG_BASE_PADDR_O,
+							 DPRC_GET_DEV_REG_BASE_PADDR_S);
+		}
 	}
 	return err;
 }
@@ -618,17 +624,18 @@ int dprc_set_irq(struct dprc *dprc,
                  uint64_t irq_paddr,
                  uint32_t irq_val)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-									dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	err = cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* prepare command */
-	prepare_set_irq(desc, irq_index, irq_paddr, irq_val);
+	prepare_set_irq(cmd_data, irq_index, irq_paddr, irq_val);
 	/* send command to mc*/
-	return cmdif_send(dev,
+	return cmdif_send(&(dprc->cidesc),
 	                  DPRC_CMD_SET_IRQ,
 	                  DPRC_CMD_SET_IRQ_S,
 	                  CMDIF_PRI_LOW,
-	                  desc);
+	                  cmd_data);
 }
 
 int dprc_get_irq(struct dprc *dprc,
@@ -636,30 +643,32 @@ int dprc_get_irq(struct dprc *dprc,
                  uint64_t *irq_paddr,
                  uint32_t *irq_val)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dprc;
-	struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(
-									dev);
+	
+	struct cmdif_cmd_data *cmd_data;
 	int err;
+	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	uint64_t cmd_param;
 	/* prepare command */
-	prepare_get_irq(desc, irq_index);
+	prepare_get_irq(cmd_data, irq_index);
 	/* send command to mc*/
-	err = cmdif_send(dev,
+	err = cmdif_send(&(dprc->cidesc),
 	                  DPRC_CMD_GET_IRQ,
 	                  DPRC_CMD_GET_IRQ_S,
 	                  CMDIF_PRI_LOW,
-	                  desc);
+	                  cmd_data);
 	if (!err)
 	{
-		desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-		cmd_param = GPP_CMD_READ_PARAM(desc, 1);
-		*irq_val= (uint32_t)u64_read_field(cmd_param,
-		                                   DPRC_GET_IRQ_VAL_O,
-		                                   DPRC_GET_IRQ_VAL_S);
-		cmd_param = GPP_CMD_READ_PARAM(desc, 2);
-		*irq_paddr= (uint64_t)u64_read_field(cmd_param,
-		                                     DPRC_GET_IRQ_PADDR_O,
-		                                     DPRC_GET_IRQ_PADDR_S);
+		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
+		if (!err) {
+			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
+			*irq_val= (uint32_t)u64_read_field(cmd_param,
+							   DPRC_GET_IRQ_VAL_O,
+							   DPRC_GET_IRQ_VAL_S);
+			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 2);
+			*irq_paddr= (uint64_t)u64_read_field(cmd_param,
+							     DPRC_GET_IRQ_PADDR_O,
+							     DPRC_GET_IRQ_PADDR_S);
+		}
 	}
 	return err;
 }

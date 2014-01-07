@@ -43,6 +43,7 @@ struct dpni_drv {
 
 	/** call back application function */
 	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
+	uint32_t            res1;
 	/** call back application argument */
 	dpni_drv_app_arg_t  args[DPNI_DRV_MAX_NUM_FLOWS];
 };
