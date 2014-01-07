@@ -476,7 +476,7 @@ int dprc_get_device(struct dprc *dprc,
                     int dev_index,
                     struct dprc_dev_desc *dev_desc)
 {
-	
+	int err;
 	struct cmdif_cmd_data *cmd_data;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* write command body */
@@ -514,7 +514,7 @@ int dprc_get_res_ids(struct dprc *dprc,
                                uint32_t *res_ids,
                                int *valid_count) /*TODO - add valid count */
 {
-	
+	UNUSED(res_ids);UNUSED(valid_count);
 	struct cmdif_cmd_data *cmd_data;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
