@@ -299,7 +299,7 @@ int dprc_get_container_id(struct dprc *dprc, int *container_id)
 
 int dprc_open(struct dprc *dprc, int container_id)
 {
-	return cmdif_open(&(dprc->cidesc), FSL_OS_MOD_DPSP, container_id);
+	return cmdif_open(&(dprc->cidesc), FSL_OS_MOD_DPSP, (uint16_t)container_id);
 }
 
 int dprc_close(struct dprc *dprc)
@@ -326,7 +326,7 @@ int dprc_create_container(struct dprc 			*dprc,
 	/* recieve out parameters */
 	if (!err) {
 		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 2);
-		*child_container_id = (uint32_t)u64_read_field(cmd_param,
+		*child_container_id = (int)u64_read_field(cmd_param,
 		                                  DPRC_CREATE_CONT_CHILD_ID_O,
 		                                  DPRC_CREATE_CONT_CHILD_ID_S);
 		*child_portal_paddr = (uint32_t)u64_read_field(cmd_param,
@@ -340,7 +340,6 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id)
 {
 	
 	struct cmdif_cmd_data *cmd_data;
-	int err;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
@@ -418,7 +417,6 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id)
 {
 	
 	struct cmdif_cmd_data *cmd_data;
-	int err;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* write command body */
 	prepare_reset_container_cmd(cmd_data, child_container_id);
@@ -434,7 +432,6 @@ int dprc_assign(struct dprc *dprc,
 {
 	
 	struct cmdif_cmd_data *cmd_data;
-	int err;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
@@ -451,7 +448,6 @@ int dprc_unassign(struct dprc *dprc,
 {
 	
 	struct cmdif_cmd_data *cmd_data;
-	int err;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
@@ -482,7 +478,6 @@ int dprc_get_device(struct dprc *dprc,
 {
 	
 	struct cmdif_cmd_data *cmd_data;
-	int err;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* write command body */
 	prepare_get_device_cmd(cmd_data, dev_index);
@@ -521,7 +516,6 @@ int dprc_get_res_ids(struct dprc *dprc,
 {
 	
 	struct cmdif_cmd_data *cmd_data;
-	int err;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 
 	/* write command body */
@@ -551,7 +545,7 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes)
 		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 		if (!err) {
 			cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
-			attributes->container_id = (uint32_t)u64_read_field(
+			attributes->container_id = (int)u64_read_field(
 							cmd_param,
 							DPRC_GET_ATTR_CONT_ID_O,
 							DPRC_GET_ATTR_CONT_ID_S);
