@@ -81,7 +81,7 @@ struct tcp_gso_generate_seg_command {
 		 * Iteration return status. */
 	int32_t status;
 		/** Returned Internal Value:
-		 * task defaults. */
+		 * gso internal context. */
 	struct tcp_gso_context gso_ctx;
 		/** Returned Value:
 		 * presentation context. */
@@ -109,7 +109,7 @@ struct tcp_gso_discard_remainder_frame_command {
 		 * Iteration return status. */
 	int32_t status;
 		/** Returned Internal Value:
-		 * task defaults. */
+		 * gso internal context. */
 	struct tcp_gso_context gso_ctx;
 };
 
