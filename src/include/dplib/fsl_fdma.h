@@ -1621,7 +1621,7 @@ struct fdma_insert_segment_data_params {
 		/**< Working frame handle to which the data is being inserted.*/
 	uint8_t	 frame_handle;
 		/**< Data segment handle (related to the working frame handle) 
-		 * from which the data is being inserted. */
+		 * to which the data is being inserted. */
 	uint8_t  seg_handle;	
 		/** 32-bit alignment. */
 	uint8_t	pad[2];
