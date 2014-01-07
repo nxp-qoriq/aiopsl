@@ -544,7 +544,8 @@ struct dpni_fs_tbl_params
 
 
 *//***************************************************************************/
-struct dpni *dpni_open(void *portal_vaddr, int dpni_id);
+//struct dpni *dpni_open(void *portal_vaddr, int dpni_id);
+int dpni_open(struct dpni *dpni, int id);
 
 /**************************************************************************//**
  @Function	dpni_close

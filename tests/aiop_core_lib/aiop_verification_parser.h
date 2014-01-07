@@ -35,7 +35,8 @@ enum parser_verif_cmd_type {
 	PARSER_PRP_QUERY_VERIF_CMDTYPE,
 	PARSER_GEN_PARSE_RES_VERIF_CMDTYPE,
 	PARSER_GEN_PARSE_RES_EXP_VERIF_CMDTYPE,
-	PARSER_PRP_ID_POOL_CREATE_VERIF_CMDTYPE
+	PARSER_PRP_ID_POOL_CREATE_VERIF_CMDTYPE,
+	PARSER_INIT_FOR_VERIF_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((CTLU_PARSE_CLASSIFY_ACCEL_ID << 16) | \
@@ -56,6 +57,21 @@ enum parser_verif_cmd_type {
 #define PARSER_PRP_ID_POOL_CREATE_STR ((CTLU_PARSE_CLASSIFY_ACCEL_ID << 16) | \
 					PARSER_PRP_ID_POOL_CREATE_VERIF_CMDTYPE)
 
+#define PARSER_INIT_FOR_VERIF_STR ((CTLU_PARSE_CLASSIFY_ACCEL_ID << 16) | \
+					PARSER_INIT_FOR_VERIF_CMDTYPE)
+/**************************************************************************//**
+@Description	Parser verification init Command structure.
+
+		This command inits the parse profile, receives prpid and updates
+		the prpid and hxs in the task defaults. This command needs to be
+		called once in the beginning of the test which requires running
+		parser.
+*//***************************************************************************/
+struct parser_init_verif_command {
+	uint32_t	opcode;
+	uint16_t	parser_starting_hxs;
+	uint8_t  pad[2];
+};
 /**************************************************************************//**
 @Description	Parser Profile Create Command structure.
 
@@ -131,6 +147,7 @@ struct parser_prp_id_pool_create_verif_command {
 	int32_t  status;
 };
 
+void aiop_init_parser();
 
 uint16_t aiop_verification_parser(uint32_t asa_seg_addr);
 
