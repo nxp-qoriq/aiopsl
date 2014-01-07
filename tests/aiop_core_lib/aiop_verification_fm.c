@@ -46,7 +46,8 @@ void aiop_verification_fm()
 
 		case TCP_GSO_MODULE_STATUS_ID:
 		{
-			str_size = aiop_verification_gso(tcp_gso_context_addr,
+			str_size = aiop_verification_gso(
+					tcp_gso_context_addr,
 					(uint32_t)data_addr);
 			break;
 		}
@@ -55,6 +56,12 @@ void aiop_verification_fm()
 			str_size = aiop_verification_ipf(
 					ipf_context_addr,
 					(uint32_t)data_addr);
+		}
+		case TCP_GRO_MODULE_STATUS_ID:
+		{
+			str_size = aiop_verification_gro(
+					(uint32_t)data_addr);
+			break;
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
 		{
