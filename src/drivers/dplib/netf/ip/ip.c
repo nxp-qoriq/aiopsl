@@ -493,36 +493,62 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 	struct ipv4hdr *inner_ipv4hdr_ptr;
 	struct ipv4hdr *outer_ipv4hdr_ptr;
 	struct ipv6hdr *inner_ipv6hdr_ptr;
-	uint32_t	fdma_flags;
-	uint16_t	inner_ipv4_offset;
-	uint16_t	outer_ipv4_offset;
-	uint16_t	inner_ipv6_offset;
-	uint16_t	mpls_offset;
-	uint16_t	etype_offset;
-	uint16_t	*etype_ptr;
-	uint32_t	*mpls_ptr;
-	uint32_t	vsn_traffic_flow;
-	uint8_t		tos, inner_tos;
+	uint32_t		fdma_flags;
+	uint16_t		inner_ipv4_offset;
+	uint16_t		outer_ipv4_offset;
+	uint16_t		inner_ipv6_offset;
+	uint16_t		inner_ip_offset;
+	uint16_t		mpls_offset;
+	uint16_t		etype_offset;
+	uint16_t		*etype_ptr;
+	uint32_t		*mpls_ptr;
+	uint32_t		vsn_traffic_flow;
+	uint8_t			tos, inner_tos;
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	struct ipv4hdr *ipv4_header_ptr = ipv4header;
+	
+	inner_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-		/* Reset IP checksum for re-calculation by FDMA */
-		ipv4_header_ptr->hdr_cksum = 0;
 		
-		ipv4_header_ptr->protocol = IPV4_PROTOCOL_ID;
+		/* Insert IPv4 header*/
+		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT |
+					FDMA_REPLACE_SA_REPRESENT_BIT);
+
+		fdma_insert_default_segment_data(
+						    inner_ip_offset,
+						    (void *)ipv4_header_ptr,
+						    (uint16_t) ipv4_header_size,
+						    fdma_flags);
+		
+		/* Re-run parser */
+		parse_result_generate_default(0);
+		
+		/* Mark running sum as invalid */
+		pr->gross_running_sum = 0;
+
+		outer_ipv4_offset =
+				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		outer_ipv4hdr_ptr = (struct ipv4hdr *)
+						(outer_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
 		
 		inner_ipv4_offset =
-				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+				(uint16_t)PARSER_GET_INNER_IP_OFFSET_DEFAULT();
 		inner_ipv4hdr_ptr = (struct ipv4hdr *)
 				(inner_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
 
+		/* Reset IP checksum for re-calculation by FDMA */
+		outer_ipv4hdr_ptr->hdr_cksum = 0;
+		
+		outer_ipv4hdr_ptr->protocol = IPV4_PROTOCOL_ID;
+
 		if (flags & IPV4_ENCAP_MODE_TTL)
-			ipv4_header_ptr->ttl = inner_ipv4hdr_ptr->ttl;
-		tos = ipv4_header_ptr->tos;
+			outer_ipv4hdr_ptr->ttl = inner_ipv4hdr_ptr->ttl;
+		tos = outer_ipv4hdr_ptr->tos;
 		inner_tos = inner_ipv4hdr_ptr->tos;
 		if (flags & IPV4_ENCAP_MODE_TOS_DS)
 			tos = (tos & IPV4_DSCP_MASK) |
@@ -530,58 +556,61 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		if (flags & IPV4_ENCAP_MODE_TOS_ECN)
 			tos = (tos & IPV4_ECN_MASK) |
 				(inner_tos & ~IPV4_ECN_MASK);
-		ipv4_header_ptr->tos = tos;
+		outer_ipv4hdr_ptr->tos = tos;
 		if (flags & IPV4_ENCAP_MODE_DF)
-			ipv4_header_ptr->flags_and_offset =
-			 (ipv4_header_ptr->flags_and_offset & IPV4_DF_MASK) |
+			outer_ipv4hdr_ptr->flags_and_offset =
+			 (outer_ipv4hdr_ptr->flags_and_offset & IPV4_DF_MASK) |
 		       (inner_ipv4hdr_ptr->flags_and_offset & ~IPV4_DF_MASK);
 
-		ipv4_header_ptr->total_length = inner_ipv4hdr_ptr->total_length
+		outer_ipv4hdr_ptr->total_length = inner_ipv4hdr_ptr->total_length
 						+ (uint16_t)ipv4_header_size;
 
+
+		/* Calculate outer IP checksum */
+		ipv4_cksum_calculate(outer_ipv4hdr_ptr);
+
+		/* update IP checksum in FDMA */
+		fdma_modify_default_segment_data(outer_ipv4_offset,
+						 	 	 	 	 12);
+		return SUCCESS;
+
+	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
 		/* Insert IPv4 header*/
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT |
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
 		fdma_insert_default_segment_data(
-						    inner_ipv4_offset,
+						    inner_ip_offset,
 						    (void *)ipv4_header_ptr,
 						    (uint16_t) ipv4_header_size,
 						    fdma_flags);
-
+		
 		/* Re-run parser */
 		parse_result_generate_default(0);
 		
 		/* Mark running sum as invalid */
 		pr->gross_running_sum = 0;
 
-		/* Calculate outer IP checksum */
-		outer_ipv4_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		outer_ipv4_offset =
+				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		outer_ipv4hdr_ptr = (struct ipv4hdr *)
-				(outer_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
-
-		ipv4_cksum_calculate(outer_ipv4hdr_ptr);
-
-		/* update IP checksum in FDMA */
-		fdma_modify_default_segment_data(outer_ipv4_offset+10,
-						 	 	 	 	 2);
-		return SUCCESS;
-
-	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
-		/* Reset IP checksum for re-calculation by FDMA */
-		ipv4_header_ptr->hdr_cksum = 0;
+						(outer_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
 		
-		ipv4_header_ptr->protocol = IPV6_PROTOCOL_ID;
-
 		inner_ipv6_offset =
-				 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+				(uint16_t)PARSER_GET_INNER_IP_OFFSET_DEFAULT();
 		inner_ipv6hdr_ptr = (struct ipv6hdr *)
 				(inner_ipv6_offset + PRC_GET_SEGMENT_ADDRESS());
 
-		tos = ipv4_header_ptr->tos;
+		/* Reset IP checksum for re-calculation by FDMA */
+		outer_ipv4hdr_ptr->hdr_cksum = 0;
+		
+		outer_ipv4hdr_ptr->protocol = IPV6_PROTOCOL_ID;
+
+
+		tos = outer_ipv4hdr_ptr->tos;
 		vsn_traffic_flow = inner_ipv6hdr_ptr->vsn_traffic_flow;
 		if (flags & IPV4_ENCAP_MODE_TTL)
-			ipv4_header_ptr->ttl = inner_ipv6hdr_ptr->hop_limit;
+			outer_ipv4hdr_ptr->ttl = inner_ipv6hdr_ptr->hop_limit;
 		if (flags & IPV4_ENCAP_MODE_TOS_DS)
 			tos = (tos & IPV4_DSCP_MASK) |
 			  ((uint8_t)((vsn_traffic_flow &
@@ -591,9 +620,9 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 			  ((uint8_t)((vsn_traffic_flow &
 					  ~IPV6_ECN_MASK)>>20));
 
-		ipv4_header_ptr->tos = tos;
+		outer_ipv4hdr_ptr->tos = tos;
 
-		ipv4_header_ptr->total_length =
+		outer_ipv4hdr_ptr->total_length =
 				inner_ipv6hdr_ptr->payload_length + 40
 						+ (uint16_t) ipv4_header_size;
 
@@ -615,32 +644,13 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 			}
 		}				
 
-		/* Insert IPv4 header*/
-		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
-					FDMA_REPLACE_SA_REPRESENT_BIT);
-
-		fdma_insert_default_segment_data(
-						   	   	   	   	 inner_ipv6_offset,
-						   	   	   	   	 (void *)ipv4_header_ptr,
-						   	   	   	   	 (uint16_t) ipv4_header_size,
-						   	   	   	   	 fdma_flags);
-
-		/* Re-run parser */
-		parse_result_generate_default(0);
-
-		/* Mark running sum as invalid */
-		pr->gross_running_sum = 0;
-
 		/* Calculate outer IP checksum */
-		outer_ipv4_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		outer_ipv4hdr_ptr = (struct ipv4hdr *) (outer_ipv4_offset +
-												prc->seg_address);
-
+		
 		ipv4_cksum_calculate(outer_ipv4hdr_ptr);
 
 		/* update IP Checksum in FDMA */
 		fdma_modify_default_segment_data(outer_ipv4_offset,
-				      	  	  	  	     2);
+				      	  	  	  	     12);
 
 		return SUCCESS;
 	} else { /* no inner IP */
@@ -653,72 +663,34 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 {
 	struct ipv4hdr *inner_ipv4hdr_ptr;
 	struct ipv6hdr *inner_ipv6hdr_ptr;
-	uint32_t 	fdma_flags;
-	uint16_t	inner_ipv4_offset;
-	uint16_t	inner_ipv6_offset;
-	uint16_t	mpls_offset;
-	uint16_t	etype_offset;
-	uint16_t	*etype_ptr;
-	uint32_t	*mpls_ptr;
-	uint32_t	vsn_traffic_flow;
-	uint8_t		inner_tos;
+	struct ipv6hdr *outer_ipv6hdr_ptr;
+	uint32_t 		fdma_flags;
+	uint16_t		outer_ipv6_offset;
+	uint16_t		inner_ipv4_offset;
+	uint16_t		inner_ipv6_offset;
+	uint16_t		inner_ip_offset;
+	uint16_t		mpls_offset;
+	uint16_t		etype_offset;
+	uint16_t		*etype_ptr;
+	uint32_t		*mpls_ptr;
+	uint32_t		vsn_traffic_flow;
+	uint8_t			inner_tos;
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	struct   ipv6hdr * ipv6_header_ptr = ipv6header;
 	
+	inner_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-		
-		inner_ipv4_offset =
-				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		inner_ipv4hdr_ptr = (struct ipv4hdr *)
-				(inner_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
-
-		vsn_traffic_flow = ipv6_header_ptr->vsn_traffic_flow;
-		inner_tos = inner_ipv4hdr_ptr->tos;
-		if (flags & IPV6_ENCAP_MODE_HL)
-			ipv6_header_ptr->hop_limit = inner_ipv4hdr_ptr->ttl;
-		if (flags & IPV6_ENCAP_MODE_TC_DSCP)
-			vsn_traffic_flow =
-				(vsn_traffic_flow & IPV6_DSCP_MASK) |
-		(((uint32_t)(inner_tos & ~IPV4_DSCP_MASK))<<22);
-		if (flags & IPV6_ENCAP_MODE_TC_ECN)
-			vsn_traffic_flow =
-				(vsn_traffic_flow & IPV6_ECN_MASK) |
-			(((uint32_t)((inner_tos & ~IPV4_ECN_MASK)))<<20);
-
-		ipv6_header_ptr->vsn_traffic_flow = vsn_traffic_flow;
-
-		ipv6_header_ptr->payload_length =
-				inner_ipv4hdr_ptr->total_length
-					+ (uint16_t)ipv6_header_size - 40;
-
-		/* Update Etype or MPLS label if needed */
-		if (PARSER_IS_ONE_MPLS_DEFAULT()) {
-			mpls_offset = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT();
-			mpls_ptr = (uint32_t *) (mpls_offset + prc->seg_address);
-			*mpls_ptr = (*mpls_ptr & MPLS_LABEL_MASK) |
-							   MPLS_LABEL_IPV6;
-			fdma_modify_default_segment_data(mpls_offset, 3);
-		}
-		else {
-			if (PARSER_IS_ETH_MAC_DEFAULT()) {
-				etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
-				etype_ptr = (uint16_t *)
-						(etype_offset + prc->seg_address);
-				*etype_ptr = ETYPE_IPV6;
-				fdma_modify_default_segment_data(etype_offset, 2);
-			}
-		}				
-
+	
 		/* Insert IPv6 header */
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
 		fdma_insert_default_segment_data(
-										inner_ipv4_offset,
+										inner_ip_offset,
 										(void *)ipv6_header_ptr,
 										(uint16_t) ipv6_header_size,
 										fdma_flags);
@@ -729,18 +701,94 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		/* Mark running sum as invalid */
 		pr->gross_running_sum = 0;
 
+		outer_ipv6_offset =
+				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		outer_ipv6hdr_ptr = (struct ipv6hdr *)
+						(outer_ipv6_offset + PRC_GET_SEGMENT_ADDRESS());
+
+		inner_ipv4_offset =
+				(uint16_t)PARSER_GET_INNER_IP_OFFSET_DEFAULT();
+		inner_ipv4hdr_ptr = (struct ipv4hdr *)
+				(inner_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
+
+		vsn_traffic_flow = outer_ipv6hdr_ptr->vsn_traffic_flow;
+		inner_tos = inner_ipv4hdr_ptr->tos;
+		if (flags & IPV6_ENCAP_MODE_HL)
+			outer_ipv6hdr_ptr->hop_limit = inner_ipv4hdr_ptr->ttl;
+		if (flags & IPV6_ENCAP_MODE_TC_DSCP)
+			vsn_traffic_flow =
+				(vsn_traffic_flow & IPV6_DSCP_MASK) |
+		(((uint32_t)(inner_tos & ~IPV4_DSCP_MASK))<<20);
+		if (flags & IPV6_ENCAP_MODE_TC_ECN)
+			vsn_traffic_flow =
+				(vsn_traffic_flow & IPV6_ECN_MASK) |
+			(((uint32_t)((inner_tos & ~IPV4_ECN_MASK)))<<20);
+
+		outer_ipv6hdr_ptr->vsn_traffic_flow = vsn_traffic_flow;
+
+		outer_ipv6hdr_ptr->payload_length =
+				inner_ipv4hdr_ptr->total_length
+					+ (uint16_t)ipv6_header_size - 40;
+
+		/* Update Etype or MPLS label if needed */
+		if (PARSER_IS_ONE_MPLS_DEFAULT()) {
+			mpls_offset = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT();
+			mpls_ptr = (uint32_t *) (mpls_offset + prc->seg_address);
+			*mpls_ptr = (*mpls_ptr & MPLS_LABEL_MASK) |
+							   MPLS_LABEL_IPV6;
+//			fdma_modify_default_segment_data(mpls_offset, 3);
+			fdma_modify_default_segment_data(mpls_offset, 12);
+		}
+		else {
+			if (PARSER_IS_ETH_MAC_DEFAULT()) {
+				etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
+				etype_ptr = (uint16_t *)
+						(etype_offset + prc->seg_address);
+				*etype_ptr = ETYPE_IPV6;
+//				fdma_modify_default_segment_data(etype_offset, 2);
+				fdma_modify_default_segment_data(etype_offset, 10);
+			} else {
+				/* Update FDMA with changes on IPv6 header */
+				if(flags != 0)
+					fdma_modify_default_segment_data(outer_ipv6_offset,
+							      	  	  	  	     8);
+			}
+			
+		}				
+
 		return SUCCESS;
 
 	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
+		
+		/* Insert IPv6 header */
+		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
+					FDMA_REPLACE_SA_REPRESENT_BIT);
+
+		fdma_insert_default_segment_data(
+										inner_ip_offset,
+										(void *)ipv6_header_ptr,
+										(uint16_t) ipv6_header_size,
+										fdma_flags);
+
+		/* Re-run parser */
+		parse_result_generate_default(0);
+
+		/* Mark running sum as invalid */
+		pr->gross_running_sum = 0;
+
+		outer_ipv6_offset =
+				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		outer_ipv6hdr_ptr = (struct ipv6hdr *)
+						(outer_ipv6_offset + PRC_GET_SEGMENT_ADDRESS());
 		
 		inner_ipv6_offset =
 				 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		inner_ipv6hdr_ptr = (struct ipv6hdr *)
 				(inner_ipv6_offset + PRC_GET_SEGMENT_ADDRESS());
 
-		vsn_traffic_flow = ipv6_header_ptr->vsn_traffic_flow;
+		vsn_traffic_flow = outer_ipv6hdr_ptr->vsn_traffic_flow;
 		if (flags & IPV6_ENCAP_MODE_HL)
-			ipv6_header_ptr->hop_limit =
+			outer_ipv6hdr_ptr->hop_limit =
 						  inner_ipv6hdr_ptr->hop_limit;
 		if (flags & IPV6_ENCAP_MODE_TC_DSCP)
 			vsn_traffic_flow =
@@ -752,25 +800,18 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 				(vsn_traffic_flow & IPV6_ECN_MASK) |
 	       (inner_ipv6hdr_ptr->vsn_traffic_flow & ~IPV6_ECN_MASK);
 
-		ipv6_header_ptr->vsn_traffic_flow = vsn_traffic_flow;
+		outer_ipv6hdr_ptr->vsn_traffic_flow = vsn_traffic_flow;
 
 		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		ipv6_header_ptr->payload_length = inner_ipv6hdr_ptr->payload_length +
+		outer_ipv6hdr_ptr->payload_length = inner_ipv6hdr_ptr->payload_length +
 					(uint16_t) ipv6_header_size;
 
-		fdma_insert_default_segment_data(inner_ipv6_offset,
-										 (void *)ipv6_header_ptr,
-										 (uint16_t) ipv6_header_size,
-										 fdma_flags);
-
-
-		/* Re-run parser */
-		parse_result_generate_default(0);
-
-		/* Mark running sum as invalid */
-		pr->gross_running_sum = 0;
+		/* Update FDMA with changes on IPv6 header */
+		if(flags != 0)
+			fdma_modify_default_segment_data(outer_ipv6_offset,
+					      	  	  	  	     8);
 
 		return SUCCESS;
 	} else { /* no inner IP */
