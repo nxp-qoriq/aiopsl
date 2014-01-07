@@ -14,7 +14,8 @@
 void aiop_verification_fm()
 {
 	tcp_gso_ctx_t tcp_gso_context_addr;
-	//tcp_ipf_ctx_t ipf_context_addr;
+	ipf_ctx_t ipf_context_addr1; /*intenral struct for frame's fragmentation*/
+	ipf_ctx_t ipf_context_addr2; /*intenral struct for frag's fragmentation*/	
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size;	/* Command struct Size */
@@ -43,6 +44,18 @@ void aiop_verification_fm()
 		{
 			str_size = aiop_verification_gso(tcp_gso_context_addr,
 					(uint32_t)data_addr);
+			break;
+		}
+		case IPF_MODULE_STATUS_ID:
+		{
+			if (opcode & IPF_FRAGMENT_FRAGMENTATION_COMMANDS_MASK)
+				str_size = aiop_verification_ipf(
+						ipf_context_addr2,
+						(uint32_t)data_addr);
+			else
+				str_size = aiop_verification_ipf(
+						ipf_context_addr1,
+						(uint32_t)data_addr);
 			break;
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:

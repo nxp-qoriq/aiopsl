@@ -21,6 +21,7 @@
 #include "aiop_verification_hm.h"
 #include "verification_virtual_pools.h"
 #include "aiop_verification_gso.h"
+#include "aiop_verification_ipf.h"
 
 	/**< ACCEL_ID cmd mask */
 #define ACCEL_ID_CMD_MASK		0xFFFF0000
@@ -36,7 +37,8 @@
 #define DATA_SIZE	256
 	/**< Buffer Data chunk address in workspace. */
 #define WS_DATA_ADDR	0x100
-
+	/**< IPF Fragment's fragmentation commands mask */
+#define IPF_FRAGMENT_FRAGMENTATION_COMMANDS_MASK 0x00000010
 /**************************************************************************//**
  @Group		AIOP_Verification
 
