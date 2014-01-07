@@ -8,6 +8,7 @@
 
 #include "dplib/fsl_gso.h"
 #include "dplib/fsl_ldpaa.h"
+#include "common/gen.h"
 
 
 /** \addtogroup FSL_AIOP_GSO
@@ -43,7 +44,7 @@ struct tcp_gso_context {
 	 * \ref TCP_GSO_INTERNAL_FLAGS */
 	uint32_t internal_flags;
 	/** Split Size. */
-	uint16_t split_size;
+	uint16_t mss;
 	/** Headers Size. */
 	uint16_t headers_size;
 	/** Urgent Pointer offset. */
@@ -137,6 +138,8 @@ int32_t tcp_gso_return_frame_remainder_as_default_frame(
 /** @} */ /* end of TCP_GSO_INTERNAL_FUNCTIONS */
 
 /** @} */ /* end of FSL_AIOP_TCP_GSO_INTERNAL */
+
+int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx);
 
 /** @} */ /* end of FSL_AIOP_GSO */
 

@@ -14,7 +14,7 @@
 void aiop_verification_fm()
 {
 	tcp_gso_ctx_t tcp_gso_context_addr;
-	//tcp_ipf_ctx_t ipf_context_addr;
+	ipf_ctx_t ipf_context_addr; /* intenral struct for IPF */
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size;	/* Command struct Size */
@@ -49,6 +49,12 @@ void aiop_verification_fm()
 			str_size = aiop_verification_gso(tcp_gso_context_addr,
 					(uint32_t)data_addr);
 			break;
+		}
+		case IPF_MODULE_STATUS_ID:
+		{
+			str_size = aiop_verification_ipf(
+					ipf_context_addr,
+					(uint32_t)data_addr);
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
 		{

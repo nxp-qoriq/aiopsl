@@ -142,11 +142,11 @@ int cmdif_send(struct cmdif_desc *cidesc,
 
 	CMDIF_MC_WRITE_HEADER(regs, cmd, (int)cidesc->dev, size,
 	                      CMDIF_STATUS_READY, priority);
-	/*pr_debug("GPP sent cmd (BE) 0x%08x%08x\n",
-	 (uint32_t)(swap_uint64(dev->regs->header)>>32),
-	 (uint32_t)swap_uint64(dev->regs->header));
-	 */
-	return wait_resp(cidesc->regs); /* blocking */
+	pr_debug("AIOP sent cmd (BE) 0x%08x%08x\n",
+	 (uint32_t)(swap_uint64(regs->header)>>32),
+	 (uint32_t)swap_uint64(regs->header));
+	
+	return wait_resp(regs); /* blocking */
 }
 
 int cmdif_get_cmd_data(struct cmdif_desc *cidesc,
