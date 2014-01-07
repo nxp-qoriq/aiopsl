@@ -233,8 +233,8 @@ enum fdma_replace_sa_options {
 	FDMA_REPLACE_SA_REPRESENT_BIT =	0x0100,
 		/** Close the replaced segment to free the workspace memory
 		 * associated with the segment.
-		 * This option is not relevant for replacing ASA/PTA. If it as chosen 
-		 * for replacing ASA/PTA it will be treated as 
+		 * This option is not relevant for replacing ASA/PTA. If it as 
+		 * chosen for replacing ASA/PTA it will be treated as 
 		 * \ref FDMA_REPLACE_SA_OPEN_BIT. */
 	FDMA_REPLACE_SA_CLOSE_BIT =	0x0200
 };
@@ -692,7 +692,7 @@ enum fdma_pta_size_type {
 #define FDMA_DISCARD_FRAME_WORKSPACE_MEMORY_READ_ERR			\
 		FDMA_WORKSPACE_MEMORY_READ_ERR
 /** System memory read error (permission or ECC). */
-#define FDMA_DISCARD_FRAME_SYSTEM_MEMORY_READ_ERR				\
+#define FDMA_DISCARD_FRAME_SYSTEM_MEMORY_READ_ERR			\
 		FDMA_SYSTEM_MEMORY_READ_ERR
 /** Frame structural error (invalid S/G bits settings, hop
  * limit). */
