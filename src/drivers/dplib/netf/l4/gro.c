@@ -23,17 +23,16 @@ void gro_init(uint32_t timeout_flags)
 }
 
 
-/*int32_t tcp_gro_aggregate_seg(
+int32_t tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		uint32_t flags)
 {
-	struct tcp_gro_context gro_ctx;
-	cdma(&)
-	return 0;
+	//struct tcp_gro_context gro_ctx;
+	//cdma(&)
+	/* Todo - remove next return statement */
+	return (int32_t)(tcp_gro_context_addr+params+flags); 
 }
-
-*/
 
 int32_t tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr)
@@ -60,5 +59,6 @@ int32_t tcp_gro_flush_aggregation(
 	
 	
 	
-	
+	/* Todo - remove next return statement */
+	return 0;
 }
