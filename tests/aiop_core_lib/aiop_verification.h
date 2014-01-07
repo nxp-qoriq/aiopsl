@@ -31,7 +31,8 @@
 #define STR_SIZE_ERR			0xFFFF
 	/**< Struct size error code */
 #define STR_SIZE_BIG			0xFFFE
-	/**< Buffer Data chunk size. */
+	/**< Buffer Data chunk size in bytes. 
+	 *   Must be > 64 bytes*/
 #define DATA_SIZE	256
 	/**< Buffer Data chunk address in workspace. */
 #define WS_DATA_ADDR	0x100
