@@ -21,6 +21,7 @@
 #include "aiop_verification_hm.h"
 #include "verification_virtual_pools.h"
 #include "aiop_verification_gso.h"
+#include "aiop_verification_gro.h"
 #include "aiop_verification_ipf.h"
 
 	/**< ACCEL_ID cmd mask */
