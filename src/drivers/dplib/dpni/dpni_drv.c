@@ -43,10 +43,10 @@ int init_nic_stub(int portal_id, int ni_id)
 {
 	struct dpni_cfg			cfg;
 	struct dpni_init_params		params;
-	fsl_handle_t			dpni;
+	struct dpni			dpni;
 	int 				err;
 	uint8_t				eth_addr[] = {0x00, 0x04, 0x9f, 0x0, 0x0, 0x1};
-
+#if 0
 	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
 								       (uint32_t)portal_id,
 								       E_MAPPED_MEM_TYPE_MC_PORTAL)),
@@ -55,7 +55,15 @@ int init_nic_stub(int portal_id, int ni_id)
 		pr_err("failed to open DPNI!\n");
 		return -ENODEV;
 	}
-
+#endif
+	dpni.cidesc.regs = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+									       (uint32_t)portal_id,
+									       E_MAPPED_MEM_TYPE_MC_PORTAL));
+	err = dpni_open(&dpni, ni_id);
+	if (err) {
+		pr_err("failed to open DPNI!\n");
+		return -ENODEV;
+	}
 	/* obtain default configuration of the NIC */
 	dpni_defconfig(&cfg);
 
@@ -63,10 +71,10 @@ int init_nic_stub(int portal_id, int ni_id)
 	params.type = DPNI_TYPE_NIC;
 	params.max_dpio_objs = 8; /* TODO - ??? */
 	memcpy(params.mac_addr, eth_addr, sizeof(eth_addr));
-	err = dpni_init(dpni, &cfg, &params);
+	err = dpni_init(&dpni, &cfg, &params);
 	if (err)
 		return err;
-	dpni_close(dpni);
+	dpni_close(&dpni);
 
 	return 0;
 }
@@ -147,11 +155,22 @@ int dpni_drv_probe(uint16_t	ni_id,
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 
-	dpni_drv->dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-	                                                                         (uint32_t)mc_portal_id,
-	                                                                         E_MAPPED_MEM_TYPE_MC_PORTAL)),
-				   ni_id);
+#if 0
+	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+								       (uint32_t)portal_id,
+								       E_MAPPED_MEM_TYPE_MC_PORTAL)),
+			 ni_id);
 	if (!dpni_drv->dpni) {
+		pr_err("can't open DP-NI%d\n", ni_id);
+		return -ENODEV;
+	}
+
+	dpni.cidesc.regs = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+									       (uint32_t)portal_id,
+									       E_MAPPED_MEM_TYPE_MC_PORTAL));
+#endif
+	err = dpni_open(dpni_drv->dpni, ni_id);
+	if (err) {
 		pr_err("can't open DP-NI%d\n", ni_id);
 		return -ENODEV;
 	}

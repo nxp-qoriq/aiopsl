@@ -646,14 +646,10 @@ static void recieve_get_stats_cmd(struct cmdif_cmd_data *desc,
     /* TODO */
 }
 
-struct dpni *dpni_open(void *regs, int id)
+int dpni_open(struct dpni *dpni, int id)
 {
-//    struct dpni *dpni = (struct dpni *)fsl_os_malloc(sizeof(struct dpni));
-//TODO
-//    dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, (uint16_t) id);
-//    if (dpni->dev != NULL)
-//    	return dpni;
-//    return NULL;
+	return cmdif_open(&(dpni->cidesc), FSL_OS_MOD_DPNI,
+	                  (uint16_t)id);
 }
 
 int dpni_close(struct dpni *dpni)
