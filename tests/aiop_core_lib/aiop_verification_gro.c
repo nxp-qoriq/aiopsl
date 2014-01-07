@@ -9,7 +9,6 @@
 
 #include "aiop_verification.h"
 
-extern __TASK struct aiop_default_task_params default_task_params;
 
 uint16_t  aiop_verification_gro(uint32_t data_addr)
 {
