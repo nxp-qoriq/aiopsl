@@ -10,6 +10,7 @@
 #include "general.h"
 #include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_cdma.h"
+#include "fdma.h"
 
 
 	/* Shared memory global GRO parameters. */
@@ -39,15 +40,25 @@ int32_t tcp_gro_flush_aggregation(
 {
 	struct tcp_gro_context gro_ctx;
 	/* read GRO context*/
-	cdma_read_with_mutex(tcp_gro_context_addr, 0, &gro_ctx, 
-			sizeof(struct tcp_gro_context));
+	cdma_read_with_mutex(tcp_gro_context_addr, CDMA_PREDMA_MUTEX_WRITE_LOCK,
+			(void *)&gro_ctx, sizeof(struct tcp_gro_context));
 	/* no aggregation */
 	if (gro_ctx.metadata.seg_num == 0)
 		return TCP_GRO_FLUSH_NO_AGG;
 	/* write metadata to external memory */
-	/*cdma_write_with_mutex(gro_ctx.params.metadata, 0, 
-		gro_ctx.metadata.seg_num, 
-		TCP_GRO_METADATA_PARAM2_SIZE + TCP_GRO_METADATA_PARAM3_SIZE);
-	*((ldpaa_fd *) HWC_FD_ADDRESS) = gro_ctx.agg_fd;*/
+	cdma_write_with_mutex((gro_ctx.params.metadata + METADATA_MEMBER1_SIZE), 
+			0, &(gro_ctx.metadata.seg_num), 
+			METADATA_MEMBER2_SIZE + METADATA_MEMBER3_SIZE);
+	/* Copy aggregated FD to default FD location */
+	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
+	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR + 
+			SEGMENT_HEADOOM_SIZE);
+	PRC_SET_SEGMENT_OFFSET(0);
+	//PRC_SET_SR_BIT(0);
+	//PRC_SET_ASA_SIZE(0);
+	//PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+	
+	
+	
 	
 }

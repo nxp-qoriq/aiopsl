@@ -71,17 +71,14 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 
 	/** GRO no flags indication. */
 #define TCP_GRO_NO_FLAGS				0x00000000
-	/** If set, tcp_gro_aggregate_seg() is called for the first time for
-	 * this session . */
-/*#define TCP_GRO_NEW_SESSION				0x00000001*/
 	/** If set, extended statistics is enabled.	*/
-#define TCP_GRO_EXTENDED_STATS_EN			0x00000002
+#define TCP_GRO_EXTENDED_STATS_EN			0x00000001
 	/** If set, save the segment sizes in the metadata. */
-#define TCP_GRO_METADATA_SEGMENT_SIZES			0x00000004
+#define TCP_GRO_METADATA_SEGMENT_SIZES			0x00000002
 	/** If set, calculate TCP checksum. */
-#define TCP_GRO_CALCULATE_TCP_CHECKSUM			0x00000008
+#define TCP_GRO_CALCULATE_TCP_CHECKSUM			0x00000004
 	/** If set, calculate IP checksum. */
-#define TCP_GRO_CALCULATE_IP_CHECKSUM			0x00000010
+#define TCP_GRO_CALCULATE_IP_CHECKSUM			0x00000008
 
 
 /** @} */ /* end of TCP_GRO_AGG_FLAGS */
