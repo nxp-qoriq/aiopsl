@@ -29,12 +29,6 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header)
 				 - ((uint8_t *)PRC_GET_SEGMENT_ADDRESS()))
 				+ PRC_GET_SEGMENT_OFFSET());
 
-	/* Subtract IPv4 checksum field from PR gross running sum *//*
-	pr->gross_running_sum =
-	   cksum_ones_complement_sum16(pr->gross_running_sum,
-				       (uint16_t)~(ipv4header->hdr_cksum));*/
-	/* Not needed, using invalidation instead */
-
 	/* Clear IPv4 checksum field */
 	ipv4header->hdr_cksum = 0;
 
@@ -47,21 +41,12 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header)
 		return IPV4_CKSUM_CALCULATE_STATUS_FDMA_FAILURE;
 	}
 
-	/* Invert Running Sum */
-	running_sum = (uint16_t)~running_sum;
-
-	/* Add IPv4 checksum field to PR gross running sum *//*
-	pr->gross_running_sum =
-	      cksum_ones_complement_sum16(pr->gross_running_sum, running_sum);
-	*/
-	/* Not needed, using invalidation instead */
-
 	/* Invalidate Parser Result Gross Running Sum field */
 	pr->gross_running_sum = 0;
 
 	/* Write 1's complement of the 1's complement 16 bit sum into the
 	IPv4 header */
-	ipv4header->hdr_cksum = running_sum;
+	ipv4header->hdr_cksum = (uint16_t)~running_sum;
 
 	/* TODO replace header if needed */
 	

@@ -21,7 +21,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 /* Remove these !!! */
 int32_t fdma_replace_segment_data();
-int32_t fdma_present_frame_segment();
+int32_t fdma_present_frame_segment1();
 uint32_t get_id(); 
 
 
@@ -173,7 +173,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 			ipf_ctx->ipf_params.mtu_params.prev_frag_offset =
 								frag_offset;
 			/* present empty segment of the remaining frame */
-			status = fdma_present_frame_segment(); /* TODO Gal */
+			status = fdma_present_frame_segment1(); /* TODO Gal */
 			if (first_frag) {
 				/* TODO Handle options */
 				ipf_ctx->first_frag = 0;
@@ -226,7 +226,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 								= frag_offset;
 				/* present empty segment of the remaining
 				 * frame */
-				status = fdma_present_frame_segment(); /* TODO Gal */
+				status = fdma_present_frame_segment1(); /* TODO Gal */
 				header_length = frag_hdr_offset - ipv6_offset +
 						IPV6_FRAGMENT_HEADER_LENGTH;
 				/* fdma_replace to insert the header to the

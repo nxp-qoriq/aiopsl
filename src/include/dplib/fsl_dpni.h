@@ -10,6 +10,8 @@
 #include "common/types.h"
 #include "net/fsl_net.h"
 #include "dplib/fsl_ldpaa.h"
+#include "common/fsl_cmdif.h"
+
 //TODO #include "dplib/fsl_dpkg.h"
 
 
@@ -21,7 +23,13 @@
  @{
 *//***************************************************************************/
 
+#ifdef MC
 struct dpni;
+#else
+struct dpni {
+	struct cmdif_desc cidesc;
+};
+#endif
 
 /**************************************************************************//**
  @Collection	General DPNI macros

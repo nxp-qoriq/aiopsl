@@ -236,6 +236,16 @@ typedef uint16_t net_hdr_fld_tcp_t;
 
 #define NET_HDR_FLD_TCP_PORT_SIZE                  2
 
+#define NET_HDR_FLD_TCP_FLAGS_FIN                  0x01
+#define NET_HDR_FLD_TCP_FLAGS_SYN                  0x02
+#define NET_HDR_FLD_TCP_FLAGS_RST                  0x04
+#define NET_HDR_FLD_TCP_FLAGS_PSH                  0x08
+#define NET_HDR_FLD_TCP_FLAGS_ACK                  0x10
+#define NET_HDR_FLD_TCP_FLAGS_URG                  0x20
+#define NET_HDR_FLD_TCP_FLAGS_ECE                  0x40
+#define NET_HDR_FLD_TCP_FLAGS_CWR                  0x80
+
+
 /*****************************  UDP fields  *********************************/
 typedef uint16_t net_hdr_fld_udp_t;
 

@@ -11,7 +11,7 @@
 
 #include "dpni.h"
 
-static void prepare_init_cmd(struct cmdif_cmd_desc	*desc,
+static void prepare_init_cmd(struct cmdif_cmd_data	*desc,
                       const struct dpni_cfg *cfg,
                       const struct dpni_init_params *params)
 {
@@ -44,6 +44,10 @@ static void prepare_init_cmd(struct cmdif_cmd_desc	*desc,
     				DPNI_INIT_OPTIONS_O,
     				DPNI_INIT_OPTIONS_S,
                     cfg->options);
+    cmd_param = u64_write_field(cmd_param,
+    				DPNI_INIT_MAX_DPIOS_O,
+    				DPNI_INIT_MAX_DPIOS_S,
+                    params->max_dpio_objs);
     GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
 	/* build param 3*/
     cmd_param = 0;
@@ -84,7 +88,7 @@ static void prepare_init_cmd(struct cmdif_cmd_desc	*desc,
     GPP_CMD_WRITE_PARAM(desc, 4, cmd_param);
 }
 
-static void prepare_attach_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_attach_cmd(struct cmdif_cmd_data *desc,
                         const struct dpni_attach_params *params)
 {
 	/* TODO - review - union */
@@ -173,7 +177,7 @@ static void prepare_attach_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 6, cmd_param);
 }
 
-static void prepare_tx_tc_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_tx_tc_cmd(struct cmdif_cmd_data *desc,
                        const struct dpni_tx_tc_cfg *tc_cfg)
 {
     uint64_t cmd_param = 0;
@@ -184,7 +188,7 @@ static void prepare_tx_tc_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_rx_tc_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_rx_tc_cmd(struct cmdif_cmd_data *desc,
                        const struct dpni_rx_tc_cfg *tc_cfg)
 {
     uint64_t cmd_param = 0;
@@ -198,7 +202,7 @@ static void prepare_rx_tc_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_tx_q_cfg_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_tx_q_cfg_cmd(struct cmdif_cmd_data *desc,
                           uint8_t tcid,
                           const struct dpni_tx_queue_cfg *params)
 {
@@ -242,7 +246,7 @@ static void prepare_tx_q_cfg_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 3, cmd_param);
 }
 
-static void prepare_rx_flow_io_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_rx_flow_io_cmd(struct cmdif_cmd_data *desc,
                           uint8_t tcid,
                           uint8_t flowid,
                           const struct dpni_rx_flow_io *params)
@@ -267,7 +271,7 @@ static void prepare_rx_flow_io_cmd(struct cmdif_cmd_desc *desc,
                     params->options);
 }
 
-static void prepare_rx_flow_cfg_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_rx_flow_cfg_cmd(struct cmdif_cmd_data *desc,
                           uint8_t tcid,
                           uint8_t flowid,
                           const struct dpni_rx_flow_cfg *params)
@@ -324,7 +328,7 @@ static void prepare_rx_flow_cfg_cmd(struct cmdif_cmd_desc *desc,
 }
 
 #if 0
-void recieve_get_cfg_cmd(struct cmdif_cmd_desc *desc,
+void recieve_get_cfg_cmd(struct cmdif_cmd_data *desc,
 						 struct dpni_int_cfg *cfg)
 {
     uint64_t cmd_param = GPP_CMD_READ_PARAM(desc, 1);
@@ -339,7 +343,7 @@ void recieve_get_cfg_cmd(struct cmdif_cmd_desc *desc,
 }
 #endif /* 0 */
 
-static void recieve_get_attr_cmd(struct cmdif_cmd_desc *desc,
+static void recieve_get_attr_cmd(struct cmdif_cmd_data *desc,
                           struct dpni_attributes *attr)
 {
 	int i;
@@ -364,7 +368,7 @@ static void recieve_get_attr_cmd(struct cmdif_cmd_desc *desc,
     }
 }
 
-static void recieve_get_qdid_cmd(struct cmdif_cmd_desc *desc,
+static void recieve_get_qdid_cmd(struct cmdif_cmd_data *desc,
                           uint16_t		*qdid)
 {
     uint64_t cmd_param = GPP_CMD_READ_PARAM(desc, 1);
@@ -375,7 +379,7 @@ static void recieve_get_qdid_cmd(struct cmdif_cmd_desc *desc,
     				 DPNI_GET_QDID_S);
 }
 
-static void recieve_get_tx_data_offset_cmd(struct cmdif_cmd_desc *desc,
+static void recieve_get_tx_data_offset_cmd(struct cmdif_cmd_data *desc,
                                     uint16_t		  *offset)
 {
     uint64_t cmd_param = GPP_CMD_READ_PARAM(desc, 1);
@@ -386,7 +390,7 @@ static void recieve_get_tx_data_offset_cmd(struct cmdif_cmd_desc *desc,
     					DPNI_GET_TX_DATA_OFF_S);
 }
 
-static void recieve_get_mfl_cmd(struct cmdif_cmd_desc *desc,
+static void recieve_get_mfl_cmd(struct cmdif_cmd_data *desc,
 			uint16_t		  *mfl)
 {
     uint64_t cmd_param = GPP_CMD_READ_PARAM(desc, 1);
@@ -397,7 +401,7 @@ static void recieve_get_mfl_cmd(struct cmdif_cmd_desc *desc,
     				DPNI_GET_MFL_S);
 }
 
-static void prepare_set_mfl_cmd(struct cmdif_cmd_desc *desc, uint16_t mfl)
+static void prepare_set_mfl_cmd(struct cmdif_cmd_data *desc, uint16_t mfl)
 {
     uint64_t cmd_param = 0;
 
@@ -406,7 +410,7 @@ static void prepare_set_mfl_cmd(struct cmdif_cmd_desc *desc, uint16_t mfl)
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_set_mtu_cmd(struct cmdif_cmd_desc *desc, uint16_t mtu)
+static void prepare_set_mtu_cmd(struct cmdif_cmd_data *desc, uint16_t mtu)
 {
     uint64_t cmd_param = 0;
 
@@ -415,7 +419,7 @@ static void prepare_set_mtu_cmd(struct cmdif_cmd_desc *desc, uint16_t mtu)
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_mcast_promisc_cmd(struct cmdif_cmd_desc *desc, int en)
+static void prepare_mcast_promisc_cmd(struct cmdif_cmd_data *desc, int en)
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
@@ -423,7 +427,7 @@ static void prepare_mcast_promisc_cmd(struct cmdif_cmd_desc *desc, int en)
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_mod_prim_mac_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_mod_prim_mac_cmd(struct cmdif_cmd_data *desc,
                               uint8_t addr[6])
 {
 	int i;
@@ -440,7 +444,7 @@ static void prepare_mod_prim_mac_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_add_mac_cmd(struct cmdif_cmd_desc *desc, const uint8_t addr[])
+static void prepare_add_mac_cmd(struct cmdif_cmd_data *desc, const uint8_t addr[])
 {
 	int i;
     uint64_t cmd_param = 0;
@@ -457,7 +461,7 @@ static void prepare_add_mac_cmd(struct cmdif_cmd_desc *desc, const uint8_t addr[
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_remove_mac_cmd(struct cmdif_cmd_desc *desc, const uint8_t addr[])
+static void prepare_remove_mac_cmd(struct cmdif_cmd_data *desc, const uint8_t addr[])
 {
 	int i;
     uint64_t cmd_param = 0;
@@ -473,7 +477,7 @@ static void prepare_remove_mac_cmd(struct cmdif_cmd_desc *desc, const uint8_t ad
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_add_vlan_id_cmd(struct cmdif_cmd_desc *desc, uint16_t vid)
+static void prepare_add_vlan_id_cmd(struct cmdif_cmd_data *desc, uint16_t vid)
 {
     uint64_t cmd_param = 0;
 
@@ -485,7 +489,7 @@ static void prepare_add_vlan_id_cmd(struct cmdif_cmd_desc *desc, uint16_t vid)
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_remove_vlan_id_cmd(struct cmdif_cmd_desc *desc, uint16_t vid)
+static void prepare_remove_vlan_id_cmd(struct cmdif_cmd_data *desc, uint16_t vid)
 {
     uint64_t cmd_param = 0;
 
@@ -497,7 +501,7 @@ static void prepare_remove_vlan_id_cmd(struct cmdif_cmd_desc *desc, uint16_t vid
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_set_qos_tbl_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_set_qos_tbl_cmd(struct cmdif_cmd_data *desc,
                              const struct dpni_qos_tbl_params *params)
 {
     uint64_t cmd_param = 0;
@@ -515,7 +519,7 @@ static void prepare_set_qos_tbl_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_add_qos_entry_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_add_qos_entry_cmd(struct cmdif_cmd_data *desc,
                                const struct dpni_key_params *params,
                                uint8_t tcid)
 {
@@ -528,7 +532,7 @@ static void prepare_add_qos_entry_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_remove_qos_entry_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_remove_qos_entry_cmd(struct cmdif_cmd_data *desc,
                                   const struct dpni_key_params *params)
 {
     uint64_t cmd_param = 0;
@@ -539,7 +543,7 @@ static void prepare_remove_qos_entry_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_set_dist_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_set_dist_cmd(struct cmdif_cmd_data *desc,
                           const struct dpni_dist_params *dist)
 {
     uint64_t cmd_param = 0;
@@ -553,7 +557,7 @@ static void prepare_set_dist_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_set_fs_tbl_cmd(struct cmdif_cmd_desc 		*desc,
+static void prepare_set_fs_tbl_cmd(struct cmdif_cmd_data 		*desc,
                             uint8_t 				tcid,
                             const struct dpni_fs_tbl_params 	*params)
 {
@@ -575,7 +579,7 @@ static void prepare_set_fs_tbl_cmd(struct cmdif_cmd_desc 		*desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_delete_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
+static void prepare_delete_fs_tbl_cmd(struct cmdif_cmd_data *desc, uint8_t tcid)
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
@@ -587,7 +591,7 @@ static void prepare_delete_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_add_fs_entry_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_add_fs_entry_cmd(struct cmdif_cmd_data *desc,
                               uint8_t tcid,
                               const struct dpni_key_params *params,
                               uint16_t flowid)
@@ -607,7 +611,7 @@ static void prepare_add_fs_entry_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_remove_fs_entry_cmd(struct cmdif_cmd_desc *desc,
+static void prepare_remove_fs_entry_cmd(struct cmdif_cmd_data *desc,
 				 uint8_t tcid,
 				 const struct dpni_key_params *params)
 {
@@ -622,7 +626,7 @@ static void prepare_remove_fs_entry_cmd(struct cmdif_cmd_desc *desc,
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void prepare_clear_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
+static void prepare_clear_fs_tbl_cmd(struct cmdif_cmd_data *desc, uint8_t tcid)
 {
     uint64_t cmd_param = 0;
     /* build param 1*/
@@ -634,7 +638,7 @@ static void prepare_clear_fs_tbl_cmd(struct cmdif_cmd_desc *desc, uint8_t tcid)
     GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
-static void recieve_get_stats_cmd(struct cmdif_cmd_desc *desc,
+static void recieve_get_stats_cmd(struct cmdif_cmd_data *desc,
                            const struct dpni_stats *stats)
 {
     UNUSED (desc);
@@ -644,18 +648,18 @@ static void recieve_get_stats_cmd(struct cmdif_cmd_desc *desc,
 
 struct dpni *dpni_open(void *regs, int id)
 {
-    struct dpni *dpni = (struct dpni *)fsl_os_malloc(sizeof(struct dpni));
-
-    dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, (uint16_t) id);
-    if (dpni->dev != NULL)
-    	return dpni;
-    return NULL;
+//    struct dpni *dpni = (struct dpni *)fsl_os_malloc(sizeof(struct dpni));
+//TODO
+//    dpni->dev = cmdif_open(regs, FSL_OS_MOD_DPNI, (uint16_t) id);
+//    if (dpni->dev != NULL)
+//    	return dpni;
+//    return NULL;
 }
 
 int dpni_close(struct dpni *dpni)
 {
-	struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-	return cmdif_close(dev);
+	
+	return cmdif_close(&(dpni->cidesc));
 }
 
 int dpni_defconfig(struct dpni_cfg *cfg)
@@ -668,25 +672,26 @@ int dpni_init(struct dpni *dpni,
               const struct dpni_cfg *cfg,
               const struct dpni_init_params *params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_init_cmd(desc, cfg, params);
+    prepare_init_cmd(cmd_data, cfg, params);
 
     /* send command to mc*/
-	return cmdif_send(dev,
+	return cmdif_send(&(dpni->cidesc),
 					  DPNI_CMD_INIT,
 					  DPNI_CMD_INIT_S,
 					  CMDIF_PRI_LOW,
-					  desc);
+					  cmd_data);
 }
 
 int dpni_free(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_FREE,
     				  DPNI_CMD_FREE_S,
     				  CMDIF_PRI_LOW,
@@ -695,26 +700,27 @@ int dpni_free(struct dpni *dpni)
 
 int dpni_attach(struct dpni *dpni, const struct dpni_attach_params *params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_attach_cmd(desc, params);
+    prepare_attach_cmd(cmd_data, params);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_ATTACH,
     				  DPNI_CMD_ATTACH_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 
 int dpni_detach(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_DETACH,
     				  DPNI_CMD_DETACH_S,
     				  CMDIF_PRI_LOW,
@@ -724,52 +730,55 @@ int dpni_detach(struct dpni *dpni)
 
 int dpni_set_tx_tc(struct dpni *dpni, const struct dpni_tx_tc_cfg *tc_cfg)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc =  (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
 
     /* write command body */
-    prepare_tx_tc_cmd(desc, tc_cfg);
+    prepare_tx_tc_cmd(cmd_data, tc_cfg);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
                       DPNI_CMD_SET_TX_TC,
                       DPNI_CMD_SET_TX_TC_S,
                       CMDIF_PRI_LOW,
-                      desc);
+                      cmd_data);
 }
 
 int dpni_set_rx_tc(struct dpni *dpni, const struct dpni_rx_tc_cfg *tc_cfg)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
 
     /* write command body */
-    prepare_rx_tc_cmd(desc, tc_cfg);
+    prepare_rx_tc_cmd(cmd_data, tc_cfg);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
                       DPNI_CMD_SET_RX_TC,
                       DPNI_CMD_SET_RX_TC_S,
                       CMDIF_PRI_LOW,
-                      desc);
+                      cmd_data);
 }
 
 int dpni_set_tx_queue_cfg(struct dpni *dpni,
                           uint8_t tcid,
                           const struct dpni_tx_queue_cfg *params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
 
     /* write command body */
-    prepare_tx_q_cfg_cmd(desc, tcid, params);
+    prepare_tx_q_cfg_cmd(cmd_data, tcid, params);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
                       DPNI_CMD_SET_TX_Q_CFG,
                       DPNI_CMD_SET_TX_Q_CFG_S,
                       CMDIF_PRI_LOW,
-                      desc);
+                      cmd_data);
 }
 
 int dpni_set_rx_flow_io(struct dpni			*dpni,
@@ -777,19 +786,19 @@ int dpni_set_rx_flow_io(struct dpni			*dpni,
                         uint8_t				flowid,
                         const struct dpni_rx_flow_io	*params)
 {
-	    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-	    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)
-							    cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
 
 	    /* write command body */
-	    prepare_rx_flow_io_cmd(desc, tcid, flowid, params);
+	    prepare_rx_flow_io_cmd(cmd_data, tcid, flowid, params);
 
 	    /* send command to mc*/
-	    return cmdif_send(dev,
+	    return cmdif_send(&(dpni->cidesc),
 	                      DPNI_CMD_SET_RX_FLOW_IO,
 	                      DPNI_CMD_SET_RX_FLOW_IO_S,
 	                      CMDIF_PRI_LOW,
-	                      desc);
+	                      cmd_data);
 }
 
 int dpni_set_rx_flow_cfg(struct dpni *dpni,
@@ -797,36 +806,39 @@ int dpni_set_rx_flow_cfg(struct dpni *dpni,
                           uint8_t flowid,
                           const struct dpni_rx_flow_cfg *params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
 
     /* write command body */
-    prepare_rx_flow_cfg_cmd(desc, tcid, flowid, params);
+    prepare_rx_flow_cfg_cmd(cmd_data, tcid, flowid, params);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_SET_RX_FLOW_CFG,
     				  DPNI_CMD_SET_RX_FLOW_CFG_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 #if 0
 int dpni_get_cfg(struct dpni *dpni, struct dpni_int_cfg *cfg)
 {
 	/* TODO - review */
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc;
-    int err;
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* send command to mc*/
-    err =  cmdif_send(dev,
+    err =  cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_GET_CFG,
     				  DPNI_CMD_GET_CFG_S,
     				  CMDIF_PRI_LOW,
     				  NULL);
     if (!err)
     {
-    	desc= (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-    	recieve_get_cfg_cmd(desc, cfg);
+		cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
+		if (!err)
+			recieve_get_cfg_cmd(cmd_data, cfg);
     }
     return err;
 }
@@ -835,19 +847,21 @@ int dpni_get_attributes(struct dpni *dpni,
 			struct dpni_attributes *attributes)
 {
 	/* TODO - review */
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc;
-    int err;
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* send command to mc*/
-    err = cmdif_send(dev,
+    err = cmdif_send(&(dpni->cidesc),
     				 DPNI_CMD_GET_ATTR,
     				 DPNI_CMD_GET_ATTR_S,
     				 CMDIF_PRI_LOW,
     				 NULL);
     if (!err)
     {
-    	desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-    	recieve_get_attr_cmd(desc, attributes);     /* Read command body */
+		cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
+		if (!err)
+			recieve_get_attr_cmd(cmd_data, attributes);     /* Read command body */
     }
     return err;
 }
@@ -855,29 +869,31 @@ int dpni_get_attributes(struct dpni *dpni,
 int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid)
 {
 	/* TODO - review */
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc;
-    int err;
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* send command to mc*/
-    err = cmdif_send(dev,
+    err = cmdif_send(&(dpni->cidesc),
     				DPNI_CMD_GET_QDID,
     				DPNI_CMD_GET_QDID_S,
     				CMDIF_PRI_LOW,
     				NULL);
     if (!err)
     {
-    	desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-    	recieve_get_qdid_cmd(desc, qdid);     /* Read command body */
+		cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
+		if (!err)
+			recieve_get_qdid_cmd(cmd_data, qdid);     /* Read command body */
     }
     return err;
 }
 
 int dpni_enable(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_ENABLE,
     				  DPNI_CMD_ENABLE_S,
     				  CMDIF_PRI_LOW,
@@ -886,10 +902,8 @@ int dpni_enable(struct dpni *dpni)
 
 int dpni_disable(struct dpni *dpni)
 {
-    struct cmdif_dev *dev =  (struct cmdif_dev *)dpni->dev;
-
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_DISABLE,
     				  DPNI_CMD_DISABLE_S,
     				  CMDIF_PRI_LOW,
@@ -899,19 +913,21 @@ int dpni_disable(struct dpni *dpni)
 int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset)
 {
 	/* TODO - review */
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc;
-    int err;
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* send command to mc*/
-    err = cmdif_send(dev,
+    err = cmdif_send(&(dpni->cidesc),
     				 DPNI_CMD_GET_TX_DATA_OFFSET,
     				 DPNI_CMD_GET_TX_DATA_OFF_S,
     				 CMDIF_PRI_LOW,
     				 NULL);
     if (!err)
     {
-    	desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-    	recieve_get_tx_data_offset_cmd(desc, data_offset);     /* Read command body */
+		cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
+		if (!err)
+			recieve_get_tx_data_offset_cmd(cmd_data, data_offset);     /* Read command body */
     }
     return err;
 }
@@ -919,29 +935,31 @@ int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset)
 int dpni_get_stats(struct dpni *dpni, struct dpni_stats *stats)
 {
 	/* TODO - fill stats descriptor */
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc;
-    int err;
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* send command to mc*/
-    err = cmdif_send(dev,
+    err = cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_GET_STATS,
     				  DPNI_CMD_GET_STATS_S,
     				  CMDIF_PRI_LOW,
     				  NULL);
     if (!err)
     {
-    	desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-        recieve_get_stats_cmd(desc, stats);
+		cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
+		if (!err)
+			recieve_get_stats_cmd(cmd_data, stats);
     }
     return err;
 }
 
 int dpni_reset_stats(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_RST_STATS,
     				  DPNI_CMD_RST_STATS_S,
     				  CMDIF_PRI_LOW,
@@ -951,9 +969,9 @@ int dpni_reset_stats(struct dpni *dpni)
 int dpni_get_link_state(struct dpni *dpni)
 {
 	/* TODO - how to get the state? */
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_GET_LNK_STATE,
     				  DPNI_CMD_GET_LNK_STATE_S,
     				  CMDIF_PRI_LOW,
@@ -962,126 +980,128 @@ int dpni_get_link_state(struct dpni *dpni)
 
 int dpni_set_mfl(struct dpni *dpni, uint16_t mfl)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_set_mfl_cmd(desc, mfl);
+    prepare_set_mfl_cmd(cmd_data, mfl);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_SET_MFL,
     				  DPNI_CMD_SET_MFL_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_get_mfl(struct dpni *dpni, uint16_t *mfl)
 {
 	/* TODO - review */
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc;
-    int err;
+	
+	struct cmdif_cmd_data *cmd_data;
+	int err;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* send command to mc*/
-    err = cmdif_send(dev,
+    err = cmdif_send(&(dpni->cidesc),
     				 DPNI_CMD_GET_MFL,
     				 DPNI_CMD_GET_MFL_S,
     				 CMDIF_PRI_LOW,
     				 NULL);
     if (!err)
     {
-    	desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-    	recieve_get_mfl_cmd(desc, mfl);     /* Read command body */
+		cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
+		if (!err)
+			recieve_get_mfl_cmd(cmd_data, mfl);     /* Read command body */
     }
     return err;
 }
 
 int dpni_set_mtu(struct dpni *dpni, uint16_t mtu)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_set_mtu_cmd(desc, mtu);
+    prepare_set_mtu_cmd(cmd_data, mtu);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_SET_MTU,
     				  DPNI_CMD_SET_MTU_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_enable_multicast_promisc(struct dpni *dpni, int en)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_mcast_promisc_cmd(desc, en);
+    prepare_mcast_promisc_cmd(cmd_data, en);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_MCAST_PROMISC,
     				  DPNI_CMD_MCAST_PROMISC_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_modify_primary_mac_addr(struct dpni *dpni, uint8_t addr[])
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_mod_prim_mac_cmd(desc, addr);
+    prepare_mod_prim_mac_cmd(cmd_data, addr);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_MODIFY_PRIM_MAC,
     				  DPNI_CMD_MODIFY_PRIM_MAC_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[])
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc =  (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_add_mac_cmd(desc, addr);
+    prepare_add_mac_cmd(cmd_data, addr);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_ADD_MAC_ADDR,
     				  DPNI_CMD_ADD_MAC_ADDR_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[])
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_remove_mac_cmd(desc, addr);
+    prepare_remove_mac_cmd(cmd_data, addr);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_REMOVE_MAC_ADDR,
     				  DPNI_CMD_REMOVE_MAC_ADDR_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_clear_mac_table(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_CLR_MAC_TBL,
     				  DPNI_CMD_CLR_MAC_TBL_S,
     				  CMDIF_PRI_LOW, NULL);
@@ -1089,42 +1109,42 @@ int dpni_clear_mac_table(struct dpni *dpni)
 
 int dpni_add_vlan_id(struct dpni *dpni, uint16_t vid)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_add_vlan_id_cmd(desc, vid);
+    prepare_add_vlan_id_cmd(cmd_data, vid);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_ADD_VLAN_ID,
     				  DPNI_CMD_ADD_VLAN_ID_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vid)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_remove_vlan_id_cmd(desc, vid);
+    prepare_remove_vlan_id_cmd(cmd_data, vid);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_REMOVE_VLAN_ID,
     				  DPNI_CMD_REMOVE_VLAN_ID_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_clear_vlan_table(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_CLR_VLAN_TBL,
     				  DPNI_CMD_CLR_VLAN_TBL_S,
     				  CMDIF_PRI_LOW,
@@ -1134,26 +1154,26 @@ int dpni_clear_vlan_table(struct dpni *dpni)
 int dpni_set_qos_table(struct dpni *dpni,
                        const struct dpni_qos_tbl_params *params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_set_qos_tbl_cmd(desc, params);
+    prepare_set_qos_tbl_cmd(cmd_data, params);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_SET_QOS_TBL,
     				  DPNI_CMD_SET_QOS_TBL_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_delete_qos_table(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_DELETE_QOS_TBL,
     				  DPNI_CMD_DELETE_QOS_TBL_S,
     				  CMDIF_PRI_LOW,
@@ -1164,44 +1184,44 @@ int dpni_add_qos_entry(struct dpni *dpni,
                        const struct dpni_key_params *key_params,
                        uint8_t tcid)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_add_qos_entry_cmd(desc, key_params, tcid);
+    prepare_add_qos_entry_cmd(cmd_data, key_params, tcid);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_ADD_QOS_ENT,
     				  DPNI_CMD_ADD_QOS_ENT_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_remove_qos_entry(struct dpni *dpni,
                           const struct dpni_key_params *key_params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_remove_qos_entry_cmd(desc, key_params);
+    prepare_remove_qos_entry_cmd(cmd_data, key_params);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
                       DPNI_CMD_REMOVE_QOS_ENT,
                       DPNI_CMD_REMOVE_QOS_ENT_S,
                       CMDIF_PRI_LOW,
-                      desc);
+                      cmd_data);
 }
 
 int dpni_clear_qos_table(struct dpni *dpni)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
+    
 
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
                       DPNI_CMD_CLR_QOS_TBL,
                       DPNI_CMD_CLR_QOS_TBL_S,
                       CMDIF_PRI_LOW,
@@ -1211,52 +1231,52 @@ int dpni_clear_qos_table(struct dpni *dpni)
 int dpni_set_dist(struct dpni *dpni,
                   const struct dpni_dist_params dist[])
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_set_dist_cmd(desc, dist);
+    prepare_set_dist_cmd(cmd_data, dist);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_SET_DIST,
     				  DPNI_CMD_SET_DIST_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_set_fs_table(struct dpni *dpni,
                       uint8_t 				tcid,
                       const struct dpni_fs_tbl_params *params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_set_fs_tbl_cmd(desc, tcid, params);
+    prepare_set_fs_tbl_cmd(cmd_data, tcid, params);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
                       DPNI_CMD_SET_FS_TBL,
                       DPNI_CMD_SET_FS_TBL_S,
                       CMDIF_PRI_LOW,
-                      desc);
+                      cmd_data);
 }
 
 int dpni_delete_fs_table(struct dpni *dpni, uint8_t tcid)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_delete_fs_tbl_cmd(desc, tcid);
+    prepare_delete_fs_tbl_cmd(cmd_data, tcid);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_DELETE_FS_TBL,
     				  DPNI_CMD_DELETE_FS_TBL_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_add_fs_entry(struct dpni *dpni,
@@ -1264,52 +1284,52 @@ int dpni_add_fs_entry(struct dpni *dpni,
                       const struct dpni_key_params *key_params,
                       uint16_t flowid)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_add_fs_entry_cmd(desc, tcid, key_params, flowid);
+    prepare_add_fs_entry_cmd(cmd_data, tcid, key_params, flowid);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_ADD_FS_ENT,
     				  DPNI_CMD_ADD_FS_ENT_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_remove_fs_entry(struct dpni *dpni,
 			uint8_t tcid,
 			const struct dpni_key_params *key_params)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_remove_fs_entry_cmd(desc, tcid, key_params);
+    prepare_remove_fs_entry_cmd(cmd_data, tcid, key_params);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_REMOVE_FS_ENT,
     				  DPNI_CMD_REMOVE_FS_ENT_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 int dpni_clear_fs_table(struct dpni *dpni, uint8_t tcid)
 {
-    struct cmdif_dev *dev = (struct cmdif_dev *)dpni->dev;
-    struct cmdif_cmd_desc *desc = (struct cmdif_cmd_desc *)cmdif_get_desc(dev);
-
+	
+	struct cmdif_cmd_data *cmd_data;
+	cmdif_get_cmd_data(&(dpni->cidesc), &cmd_data);
     /* write command body */
-    prepare_clear_fs_tbl_cmd(desc, tcid);
+    prepare_clear_fs_tbl_cmd(cmd_data, tcid);
 
     /* send command to mc*/
-    return cmdif_send(dev,
+    return cmdif_send(&(dpni->cidesc),
     				  DPNI_CMD_CLR_FS_TBL,
     				  DPNI_CMD_CLR_FS_TBL_S,
     				  CMDIF_PRI_LOW,
-    				  desc);
+    				cmd_data);
 }
 
 
