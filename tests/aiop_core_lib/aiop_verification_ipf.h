@@ -18,43 +18,23 @@
 
 
 /* IPF Command IDs */
-	/** IPF Init for Frame's Fragmentation command code */
-#define IPF_CONTEXT_INIT_FRAG_FROM_FRAME_CMD			0x00000001
-	/** IPF Init for Fragment's Fragmentation command code */
-#define IPF_CONTEXT_INIT_FRAG_FROM_FRAG_CMD			0x00000011
-	/** IPF Generate Fragment from Frame command code */
-#define IPF_GENERATE_FRAG_FROM_FRAME_CMD			0x00000002
-	/** IPF Generate Fragment from Fragment command code */
-#define IPF_GENERATE_FRAG_FROM_FRAG_CMD				0x00000012
-	/** IPF Discard Remaining Frame of Frame's Fragmentation command code */
-#define IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAME_CMD	0x00000003
-	/** IPF Discard Remaining Frame of Frag's Fragmentation command code */
-#define IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAG_CMD	0x00000013
+	/** IPF Context Init command code */
+#define IPF_CONTEXT_INIT_CMD			0x00000001
+	/** IPF Generate Fragment command code */
+#define IPF_GENERATE_FRAG_CMD			0x00000002
+	/** IPF Discard Remaining Frame command code */
+#define IPF_DISCARD_REMAINING_FRAME_CMD		0x00000003
 
 
 /* IPF Commands Structure identifiers */
-	/** IPF Init for Frame's Fragmentation command Structure identifier */
-#define IPF_CONTEXT_INIT_FRAG_FROM_FRAME_CMD_STR (IPF_MODULE_STATUS_ID | \
-			IPF_CONTEXT_INIT_FRAG_FROM_FRAME_CMD)
-	/** IPF Init for Fragment's Fragmentation command Structure identifier*/
-#define IPF_CONTEXT_INIT_FRAG_FROM_FRAG_CMD_STR (IPF_MODULE_STATUS_ID | \
-			IPF_CONTEXT_INIT_FRAG_FROM_FRAG_CMD)
-	/** IPF Generate Fragment from frame Command Structure identifier */
-#define IPF_GENERATE_FRAG_FROM_FRAME_CMD_STR	(IPF_MODULE_STATUS_ID | 	\
-			IPF_GENERATE_FRAG_FROM_FRAME_CMD)
-	/** IPF Generate Fragment from Fragment Command Structure identifier */
-#define IPF_GENERATE_FRAG_CMD_STR	(IPF_MODULE_STATUS_ID | 	\
-			IPF_GENERATE_FRAG_FROM_FRAG_CMD)
-	/** IPF Discard Remaining Frame of Frame's Fragmentation command
-	 * Structure identifier */
-#define IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAME_CMD_STR \
-		(IPF_MODULE_STATUS_ID | \
-			IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAME_CMD)
-	/** IPF Discard Remaining Frame of Fragment's Fragmentation command
-	 * Structure identifier */
-#define IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAG_CMD_STR \
-		(IPF_MODULE_STATUS_ID | \
-			IPF_DISCARD_REMAINING_FRAME_OF_FRAG_FROM_FRAG_CMD)
+	/** IPF Context Init command Structure identifier */
+#define IPF_CONTEXT_INIT_CMD_STR (IPF_MODULE_STATUS_ID | IPF_CONTEXT_INIT_CMD)
+	/** IPF Generate Fragment Command Structure identifier */
+#define IPF_GENERATE_FRAG_CMD_STR	(IPF_MODULE_STATUS_ID | \
+						IPF_GENERATE_FRAG_CMD)
+	/** IPF Discard Remaining Frame command Structure identifier */
+#define IPF_DISCARD_REMAINING_FRAME_CMD_STR  (IPF_MODULE_STATUS_ID | \
+			IPF_DISCARD_REMAINING_FRAME_CMD)
 
 /** \addtogroup AIOP_FMs_Verification
  *  @{
