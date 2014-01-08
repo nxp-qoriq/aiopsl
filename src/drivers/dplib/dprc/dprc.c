@@ -365,7 +365,7 @@ int dprc_get_container_id(struct dprc *dprc, int *container_id)
 
 int dprc_open(struct dprc *dprc, int container_id)
 {
-	return cmdif_open(&(dprc->cidesc), FSL_OS_MOD_DPSP,
+	return cmdif_open(&(dprc->cidesc), FSL_OS_MOD_DPRC,
 	                  (uint16_t)container_id);
 }
 
