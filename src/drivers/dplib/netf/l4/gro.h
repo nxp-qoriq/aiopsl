@@ -262,8 +262,8 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 #define METADATA_MEMBER3_SIZE (sizeof(					\
 		((struct tcp_gro_context_metadata *)0)->max_seg_size))
 
-	/** Segment default headroom size. */
-#define SEGMENT_HEADOOM_SIZE	128
+
+
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
