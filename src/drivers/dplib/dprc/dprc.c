@@ -2,10 +2,52 @@
 #include "common/errors.h"
 #include "common/fsl_malloc.h"
 #include "common/fsl_cmdif.h"
+#include "common/dbg.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dprc_cmd.h"
 #include "arch/fsl_cmdif_mc.h"
 #include "dprc.h"
+
+
+static int res_type_to_define(enum dp_res_type type)
+{
+	int i;
+	struct { 
+		enum dp_res_type res_type;
+		int				define;
+	} map[] = {
+				{DP_RES_TYPE_DPNI , DEV_TYPE_DPNI},
+				{DP_RES_TYPE_DPIO , DEV_TYPE_DPIO},
+				{DP_RES_TYPE_DPSP , DEV_TYPE_DPSP},
+				{DP_RES_TYPE_DPSW , DEV_TYPE_DPSW},
+				{DP_RES_TYPE_DPRC , DEV_TYPE_DPRC}
+	};
+	for (i=0 ; i < NUM_OF_DEVS ; i++)
+		if (type == map[i].res_type)
+			return map[i].define;
+	pr_err("invalid res_type\n");
+	return -EINVAL;
+}
+
+static enum dp_res_type define_to_res_type(int def)
+{
+	int i;
+	struct { 
+		enum dp_res_type res_type;
+		int				define;
+	} map[] = {
+				{DP_RES_TYPE_DPNI , DEV_TYPE_DPNI},
+				{DP_RES_TYPE_DPIO , DEV_TYPE_DPIO},
+				{DP_RES_TYPE_DPSP , DEV_TYPE_DPSP},
+				{DP_RES_TYPE_DPSW , DEV_TYPE_DPSW},
+				{DP_RES_TYPE_DPRC , DEV_TYPE_DPRC}
+	};
+	for (i=0 ; i < NUM_OF_DEVS ; i++)
+		if (def == map[i].define)
+			return map[i].res_type;
+	pr_err("invalid define for res_type\n");
+	return -EINVAL;
+}
 
 static void prepare_create_container_cmd(struct cmdif_cmd_data *desc,
                                          struct dprc_create_attributes *attr)
