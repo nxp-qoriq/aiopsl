@@ -427,6 +427,7 @@ int32_t vpool_refcount_decrement_and_release(
 	int32_t return_val;
 	int32_t cdma_status;
 	int32_t release = FALSE;
+	int32_t no_callback = TRUE;
 	struct callback_s *callback; 
 
 	/* cdma_refcount_decrement_and_release: 
@@ -449,6 +450,7 @@ int32_t vpool_refcount_decrement_and_release(
 				(struct callback_s *)virtual_pools_root.callback_func_struct;
 		callback += virtual_pool_id;
 		if (callback->callback_func != NULL) {
+			no_callback = FALSE;
 			/* Decrement ref counter without release */
 			cdma_status = cdma_refcount_decrement(context_address);
 			if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
@@ -461,7 +463,9 @@ int32_t vpool_refcount_decrement_and_release(
 				}
 			}
 		}
-	} else {
+	} 
+	
+	if (no_callback) {
 		/* decrement and release without a callback */
 		cdma_status = cdma_refcount_decrement_and_release(context_address);
 		if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
