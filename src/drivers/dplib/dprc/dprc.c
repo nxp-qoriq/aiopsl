@@ -40,7 +40,7 @@ static enum dp_res_type define_to_res_type(int def)
 		if (def == map[i].define)
 			return map[i].res_type;pr_err(
 	        "invalid define for res_type\n");
-	return -EINVAL;
+	return DP_RES_TYPE_DEVICE_DUMMY_LAST;/*TODO - error*/
 }
 
 static void prepare_create_container_cmd(struct cmdif_cmd_data *desc,

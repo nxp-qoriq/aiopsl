@@ -158,7 +158,7 @@ static void prepare_tx_tc_cmd(struct cmdif_cmd_data *desc,
                               const struct dpni_tx_tc_cfg *tc_cfg)
 {
 	uint64_t cmd_param = 0;
-
+	UNUSED(tc_cfg);
 	/* build param 1*/
 	/*TODO */
 
@@ -230,6 +230,7 @@ static void prepare_rx_flow_io_cmd(struct cmdif_cmd_data *desc,
 	cmd_param = u64_write_field(cmd_param, DPNI_SET_RX_FLOW_IO_OPTIONS_O,
 	                            DPNI_SET_RX_FLOW_IO_OPTIONS_S,
 	                            params->options);
+	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
 
 static void prepare_rx_flow_cfg_cmd(struct cmdif_cmd_data *desc,
