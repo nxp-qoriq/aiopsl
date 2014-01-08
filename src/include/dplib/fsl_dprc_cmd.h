@@ -198,6 +198,8 @@
 #define DPRC_GET_RES_IDS_IDX_O			48
 #define DPRC_GET_RES_IDS_IDX_S			8
 
+#define DPRC_GET_RES_IDS_VALID_CNT_O		0
+#define DPRC_GET_RES_IDS_VALID_CNT_S		32
 /* dprc_set_unassign_portal_policy */
 /* param 1 */
 #define DPRC_SET_UNASSIGN_PORTAL_P_O		0	
