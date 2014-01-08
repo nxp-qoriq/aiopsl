@@ -14,7 +14,7 @@
 void aiop_verification_fm()
 {
 	tcp_gso_ctx_t tcp_gso_context_addr;
-	//tcp_ipf_ctx_t ipf_context_addr;
+	ipf_ctx_t ipf_context_addr; /* intenral struct for IPF */
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size;	/* Command struct Size */
@@ -23,11 +23,16 @@ void aiop_verification_fm()
 	uint8_t seg_handle;
 	uint16_t seg_length;
 
-	/* Read last 8 bytes from frame */
-	fdma_present_default_frame_segment(
+	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
+	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)){
+		fdma_read_default_frame_pta((void *)data_addr);
+		ext_address = *((uint64_t *)data_addr);
+	}	
+	else{
+		fdma_present_default_frame_segment(
 			FDMA_PRES_SR_BIT, (void *)&ext_address, 0, 8, 
 			&seg_length, &seg_handle);
-	
+	}
 	/* The Terminate command will finish the verification */
 	do
 	{
@@ -41,7 +46,20 @@ void aiop_verification_fm()
 
 		case TCP_GSO_MODULE_STATUS_ID:
 		{
-			str_size = aiop_verification_gso(tcp_gso_context_addr,
+			str_size = aiop_verification_gso(
+					tcp_gso_context_addr,
+					(uint32_t)data_addr);
+			break;
+		}
+		case IPF_MODULE_STATUS_ID:
+		{
+			str_size = aiop_verification_ipf(
+					ipf_context_addr,
+					(uint32_t)data_addr);
+		}
+		case TCP_GRO_MODULE_STATUS_ID:
+		{
+			str_size = aiop_verification_gro(
 					(uint32_t)data_addr);
 			break;
 		}

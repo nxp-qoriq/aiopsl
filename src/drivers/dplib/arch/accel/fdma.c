@@ -1310,3 +1310,38 @@ int32_t fdma_copy_data(
 
 	return (int32_t)(res1);
 }
+
+int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
+{
+	struct fdma_present_frame_params present_frame_params;
+	struct fdma_insert_segment_data_params insert_params;
+	struct fdma_isolation_attributes isolation_attributes;
+	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	int32_t status;
+	
+	present_frame_params.fd_src = (void *)fd;
+	present_frame_params.asa_size = 0;
+	present_frame_params.flags = FDMA_INIT_NO_FLAGS;
+	present_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS;
+	present_frame_params.present_size = 0;
+	present_frame_params.seg_offset = 0;
+	
+	status = fdma_present_frame(&present_frame_params);
+	if (status != FDMA_SUCCESS)
+		return status;
+	
+	insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
+	insert_params.frame_handle = present_frame_params.frame_handle;
+	insert_params.from_ws_src = data;
+	insert_params.insert_size = size;
+	insert_params.seg_handle = present_frame_params.seg_handle;
+	insert_params.to_offset = 0;
+	
+	status = fdma_insert_segment_data(&insert_params);
+	if (status != FDMA_SUCCESS)
+			return status;
+	
+	return fdma_store_frame_data(present_frame_params.frame_handle, 
+			spid, &isolation_attributes);
+}
+

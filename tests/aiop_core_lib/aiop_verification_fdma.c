@@ -35,12 +35,12 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_init_command *str =
 			(struct fdma_init_command *) asa_seg_addr;
-		if (str->SR)
-			PRC_SET_SR_BIT();
 		PRC->asapa_asaps	=
 			(((uint16_t)(uint32_t)str->asa_address) &
 					PRC_ASAPA_MASK) |
 			((uint16_t)str->asa_size & PRC_ASAPS_MASK);
+		if (str->SR)
+			PRC_SET_SR_BIT();
 		PRC->ptapa_asapo	=
 			(((uint16_t)(uint32_t)str->pta_address) &
 					PRC_PTAPA_MASK) |

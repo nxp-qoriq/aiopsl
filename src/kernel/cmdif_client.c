@@ -19,6 +19,9 @@
 
 #define CMDIF_MC_CLOSE		0x800
 
+#define CMDIF_OPEN_MODULE_ID_O	0
+#define CMDIF_OPEN_MODULE_ID_S	16
+
 #define CMDIF_MC_READ_AUTHID(_hdr)	u64_read_field(swap_uint64(_hdr), CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE)
 #define CMDIF_MC_READ_STATUS(_hdr)	u64_read_field(swap_uint64(_hdr), CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE)
 
@@ -76,9 +79,12 @@ int cmdif_open(struct cmdif_desc *cidesc,
                uint16_t mod_id)
 {
 	struct mc_portal_regs *regs = (struct mc_portal_regs *)cidesc->regs;
+	struct cmdif_cmd_data *cmd_data;
 	int ret;
 	int cmdid = 0;
-
+	uint64_t cmd_param = 0;
+	
+	cmdif_get_cmd_data(cidesc, &cmd_data);
 	switch (mod) {
 	case FSL_OS_MOD_DPNI:
 		cmdid = CMDIF_MC_DPNI_OPEN;
@@ -101,10 +107,13 @@ int cmdif_open(struct cmdif_desc *cidesc,
 
 	/* Clear 'dev', which later will store the Authentication ID */
 	cidesc->dev = (void*)0;
+	cmd_param = u64_write_field(cmd_param, CMDIF_OPEN_MODULE_ID_O,
+	                            CMDIF_OPEN_MODULE_ID_S, mod_id);
 
+	GPP_CMD_WRITE_PARAM(cmd_data, 1, cmd_param);
 	if (cmdid != 0)
 		ret = cmdif_send(cidesc, (uint16_t)cmdid, CMDIF_MC_OPEN_SIZE,
-		                 CMDIF_PRI_LOW, NULL);
+		                 CMDIF_PRI_LOW, cmd_data);
 	if (ret != 0)
 		return ret;
 
@@ -142,11 +151,11 @@ int cmdif_send(struct cmdif_desc *cidesc,
 
 	CMDIF_MC_WRITE_HEADER(regs, cmd, (int)cidesc->dev, size,
 	                      CMDIF_STATUS_READY, priority);
-	/*pr_debug("GPP sent cmd (BE) 0x%08x%08x\n",
-	 (uint32_t)(swap_uint64(dev->regs->header)>>32),
-	 (uint32_t)swap_uint64(dev->regs->header));
-	 */
-	return wait_resp(cidesc->regs); /* blocking */
+	pr_debug("AIOP sent cmd (BE) 0x%08x%08x\n",
+	 (uint32_t)(swap_uint64(regs->header)>>32),
+	 (uint32_t)swap_uint64(regs->header));
+	
+	return wait_resp(regs); /* blocking */
 }
 
 int cmdif_get_cmd_data(struct cmdif_desc *cidesc,
