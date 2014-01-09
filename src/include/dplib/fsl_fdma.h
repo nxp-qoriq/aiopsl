@@ -1401,8 +1401,6 @@ struct working_frame {
 	struct ldpaa_fd *fd;
 		/** Handle to the HW working frame */
 	uint8_t frame_handle;
-		/** 32-bit alignment. */
-	uint8_t	pad[3];
 };
 
 
@@ -1428,8 +1426,6 @@ struct segment {
 		/** Segment offset in the frame relative to the
 		 * \ref FDMA_PRES_SR_BIT flag */
 	uint16_t seg_offset;
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
 };
 
 
@@ -1474,8 +1470,6 @@ struct fdma_present_frame_params {
 		/** Returned parameter:
 		 * The handle of the presented segment. */
 	uint8_t seg_handle;
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1517,8 +1511,6 @@ struct fdma_queueing_destination_params {
 	uint16_t hash_value;
 		/** Queueing Destination Priority. */
 	uint8_t	 qd_priority;
-		/** 32-bit alignment. */
-	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -1540,8 +1532,6 @@ struct fdma_concatenate_frames_params {
 		/** Trim a number of bytes from the beginning of frame 2 before
 		 * the concatenation. A size of zero disables the trim. */
 	uint8_t  trim;
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1622,9 +1612,7 @@ struct fdma_insert_segment_data_params {
 	uint8_t	 frame_handle;
 		/**< Data segment handle (related to the working frame handle) 
 		 * to which the data is being inserted. */
-	uint8_t  seg_handle;	
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
+	uint8_t  seg_handle;
 };
 
 /**************************************************************************//**
