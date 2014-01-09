@@ -122,5 +122,6 @@ int32_t tcp_gro_flush_aggregation(
 /* Todo - fill function */
 uint16_t tcp_gro_calc_tcp_header_cksum()
 {
-	
+	/* Todo - return valid checksum */
+	return 0;
 }
