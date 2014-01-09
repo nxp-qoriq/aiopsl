@@ -686,7 +686,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 
 	/* Save original fields of input IP header */
 	orig_tc_and_flow_label = *((uint32_t *)ipv6_header_ptr);
-	orig_length_and_hop_limit = *(((uint32_t *)ipv6_header_ptr+2));
+	orig_length_and_hop_limit = *(((uint32_t *)ipv6_header_ptr+1));
 
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
@@ -745,7 +745,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 		
 		/* Restore original fields of input IP header */
 		*((uint32_t *)ipv6_header_ptr) = orig_tc_and_flow_label;
-		*(((uint32_t *)ipv6_header_ptr+2)) = orig_length_and_hop_limit;
+		*(((uint32_t *)ipv6_header_ptr+1)) = orig_length_and_hop_limit;
 
 
 		/* Re-run parser */
