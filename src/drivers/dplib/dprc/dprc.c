@@ -127,18 +127,21 @@ static void prepare_assign_cmd(struct cmdif_cmd_data *desc,
 	                            DPRC_ASSIGN_CONT_ID_S, container_id);
 	cmd_param = u64_write_field(cmd_param, DPRC_ASSIGN_RES_TYPE_O,
 	                            DPRC_ASSIGN_RES_TYPE_S, res_req->type);
+	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
+	/*build param 2*/
+	cmd_param = 0;
 	cmd_param = u64_write_field(cmd_param, DPRC_ASSIGN_ALIGN_O,
-	                            DPRC_ASSIGN_ALIGN_S, res_req->base_align);
+	                            DPRC_ASSIGN_ALIGN_S, res_req->id_base_align);
 	cmd_param = u64_write_field(cmd_param, DPRC_ASSIGN_NUM_OF_RES_O,
 	                            DPRC_ASSIGN_NUM_OF_RES_S, res_req->num);
 
-	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
-	/* build param 2 */
+	GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
+	/* build param 3 */
 	cmd_param = 0;
 	cmd_param = u64_write_field(cmd_param, DPRC_ASSIGN_OPTIONS_O,
 	                            DPRC_ASSIGN_OPTIONS_S, res_req->options);
 
-	GPP_CMD_WRITE_PARAM(desc, 2, cmd_param);
+	GPP_CMD_WRITE_PARAM(desc, 3, cmd_param);
 }
 
 static void prepare_unassign_cmd(struct cmdif_cmd_data *desc,
@@ -152,7 +155,7 @@ static void prepare_unassign_cmd(struct cmdif_cmd_data *desc,
 	cmd_param = u64_write_field(cmd_param, DPRC_UNASSIGN_RES_TYPE_O,
 	                            DPRC_UNASSIGN_RES_TYPE_S, res_req->type);
 	cmd_param = u64_write_field(cmd_param, DPRC_UNASSIGN_ALIGN_O,
-	                            DPRC_UNASSIGN_ALIGN_S, res_req->base_align);
+	                            DPRC_UNASSIGN_ALIGN_S, res_req->id_base_align);
 	cmd_param = u64_write_field(cmd_param, DPRC_UNASSIGN_NUM_OF_RES_O,
 	                            DPRC_UNASSIGN_NUM_OF_RES_S, res_req->num);
 
@@ -601,7 +604,7 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes)
 
 	struct cmdif_cmd_data *cmd_data;
 	int err;
-	uint64_t cmd_param;
+	uint64_t cmd_param = 0;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
 	/* send command to mc*/
 	err = cmdif_send(&(dprc->cidesc), DPRC_CMD_GET_ATTR,
@@ -609,7 +612,8 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes)
 	/* recieve out parameters */
 	if (!err) {
 		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
-		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
+//		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
+		cmd_param = swap_uint64(cmd_data->param1);
 		attributes->container_id = (int)u64_read_field(
 		        cmd_param, DPRC_GET_ATTR_CONT_ID_O,
 		        DPRC_GET_ATTR_CONT_ID_S);

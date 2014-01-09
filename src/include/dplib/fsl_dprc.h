@@ -195,7 +195,7 @@ struct dprc_res_req {
 	/*!< Number of resources */
 	uint32_t options;
 	/*!< Request options */
-	int base_align;
+	int id_base_align;
 /*!<
  * In case of explicit assignment, this field represents the
  * required base ID for resource allocation;
