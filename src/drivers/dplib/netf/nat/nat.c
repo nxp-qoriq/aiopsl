@@ -27,7 +27,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 	uint32_t old_header;
 	struct tcphdr *tcp_ptr;
 	struct ipv4hdr *ipv4_ptr;
-	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_IP_DEFAULT())
+	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_OUTER_IPV4_DEFAULT())
 		return NO_L4_IP_FOUND_ERROR;
 
 	l4_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
@@ -172,7 +172,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 	uint32_t old_header;
 	struct tcphdr *tcp_ptr;
 	struct ipv6hdr *ipv6_ptr;
-	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_IP_DEFAULT())
+	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_OUTER_IPV6_DEFAULT())
 		return NO_L4_IP_FOUND_ERROR;
 
 	l4_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
