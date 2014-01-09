@@ -50,7 +50,7 @@ struct mc_portal_regs {
 #define CMDIF_MC_READ_PARAM(_ptr, _id)	        ((_ptr)->param##_id)
 #define CMDIF_MC_WRITE_PARAM(_ptr, _id, _val)   ((_ptr)->param##_id = (_val))
 
-#define GPP_CMD_READ_PARAM(_ptr, _id)	        swap_uint64((_ptr)->param##_id)
+#define GPP_CMD_READ_PARAM(_ptr, _id)	        ((_ptr)->param##_id)
 #define GPP_CMD_WRITE_PARAM(_ptr, _id, _val)    ((_ptr)->param##_id = swap_uint64(_val))
 /* @} */
 
