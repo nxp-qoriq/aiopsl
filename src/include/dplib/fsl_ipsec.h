@@ -139,11 +139,15 @@ enum ipsec_cipher_alg {
  
 *//***************************************************************************/
 enum ipsec_ars {
-	IPSEC_ARS_0 = 0,/** No anti-replay window */
-	IPSEC_ARS_32,/** 32-entry anti-replay window */
-	IPSEC_ARS_64,/** 64-entry anti-replay window */
-	IPSEC_ARS_128/** 128-entry anti-replay window, valid only for tunnel
-			new thread operational mode and not for legacy modes */
+	/** No anti-replay window */
+	IPSEC_ARS_0 = 0,
+	/** 32-entry anti-replay window */
+	IPSEC_ARS_32,
+	/** 64-entry anti-replay window */
+	IPSEC_ARS_64,
+	/** 128-entry anti-replay window, valid only for tunnel
+	new thread operational mode and not for legacy modes */
+	IPSEC_ARS_128
 };
 
 /**************************************************************************//**
@@ -256,7 +260,7 @@ typedef uint64_t ipsec_handle_t;
 IP header */
 #define IPSEC_ENC_COPY_DF                               0x04000000
 /** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
-IP header. Not valid for tunnel new thread operational mode */
+IP header */
 #define IPSEC_ENC_DTTL                                  0x02000000
 /** Perform computations to update header checksum for
 IPv4 header. Not valid for tunnel new thread operational mode */
@@ -285,7 +289,7 @@ TODO: removed outFmt and removeTrailer.
 /** Lifetime SEC Limit Enable */
 #define IPSEC_DEC_LIFETIME_SEC_LIMIT_EN                 0x08000000
 /** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
-IP header. Not valid for tunnel new thread operational mode */
+IP header */
 #define IPSEC_DEC_DTTL                                  0x02000000
 /** Perform computations to update header checksum for
 IPv4 header. Not valid for tunnel new thread operational mode */
@@ -407,6 +411,16 @@ struct ipsec_encap_param {
 	/** IP header source */
 	enum ipsec_hdr ipsec_hdr;
 	uint16_t pad;
+	/** Soft Kilobytes expiry */
+	uint32_t soft_kilobytes_limit;
+	/** Hard Kilobytes expiry */
+	uint32_t hard_kilobytes_limit;
+	/** Soft Seconds expiry */
+	uint32_t soft_seconds_limit;
+	/** Hard Second expiry */
+	uint32_t hard_seconds_limit;
+	/** IPsec flow context */
+	struct ipsec_flow_context_param ipsec_flow_context_param;
 };
 
 /**************************************************************************//**

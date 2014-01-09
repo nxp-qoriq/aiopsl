@@ -233,8 +233,8 @@ enum fdma_replace_sa_options {
 	FDMA_REPLACE_SA_REPRESENT_BIT =	0x0100,
 		/** Close the replaced segment to free the workspace memory
 		 * associated with the segment.
-		 * This option is not relevant for replacing ASA/PTA. If it as chosen 
-		 * for replacing ASA/PTA it will be treated as 
+		 * This option is not relevant for replacing ASA/PTA. If it as 
+		 * chosen for replacing ASA/PTA it will be treated as 
 		 * \ref FDMA_REPLACE_SA_OPEN_BIT. */
 	FDMA_REPLACE_SA_CLOSE_BIT =	0x0200
 };
@@ -692,7 +692,7 @@ enum fdma_pta_size_type {
 #define FDMA_DISCARD_FRAME_WORKSPACE_MEMORY_READ_ERR			\
 		FDMA_WORKSPACE_MEMORY_READ_ERR
 /** System memory read error (permission or ECC). */
-#define FDMA_DISCARD_FRAME_SYSTEM_MEMORY_READ_ERR				\
+#define FDMA_DISCARD_FRAME_SYSTEM_MEMORY_READ_ERR			\
 		FDMA_SYSTEM_MEMORY_READ_ERR
 /** Frame structural error (invalid S/G bits settings, hop
  * limit). */
@@ -1401,8 +1401,6 @@ struct working_frame {
 	struct ldpaa_fd *fd;
 		/** Handle to the HW working frame */
 	uint8_t frame_handle;
-		/** 32-bit alignment. */
-	uint8_t	pad[3];
 };
 
 
@@ -1428,8 +1426,6 @@ struct segment {
 		/** Segment offset in the frame relative to the
 		 * \ref FDMA_PRES_SR_BIT flag */
 	uint16_t seg_offset;
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
 };
 
 
@@ -1474,8 +1470,6 @@ struct fdma_present_frame_params {
 		/** Returned parameter:
 		 * The handle of the presented segment. */
 	uint8_t seg_handle;
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1517,8 +1511,6 @@ struct fdma_queueing_destination_params {
 	uint16_t hash_value;
 		/** Queueing Destination Priority. */
 	uint8_t	 qd_priority;
-		/** 32-bit alignment. */
-	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -1540,8 +1532,6 @@ struct fdma_concatenate_frames_params {
 		/** Trim a number of bytes from the beginning of frame 2 before
 		 * the concatenation. A size of zero disables the trim. */
 	uint8_t  trim;
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1621,10 +1611,8 @@ struct fdma_insert_segment_data_params {
 		/**< Working frame handle to which the data is being inserted.*/
 	uint8_t	 frame_handle;
 		/**< Data segment handle (related to the working frame handle) 
-		 * from which the data is being inserted. */
-	uint8_t  seg_handle;	
-		/** 32-bit alignment. */
-	uint8_t	pad[2];
+		 * to which the data is being inserted. */
+	uint8_t  seg_handle;
 };
 
 /**************************************************************************//**
@@ -2904,6 +2892,12 @@ int32_t fdma_copy_data(
 		uint32_t flags,
 		void *src,
 		void *dst);
+
+int32_t fdma_create_frame(
+		struct ldpaa_fd *fd, 
+		void *data, 
+		uint16_t size);
+
 
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */

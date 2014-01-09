@@ -89,8 +89,10 @@ struct tcp_gro_context {
 	struct fdma_isolation_attributes agg_fd_isolation_attributes;
 		/** TMAN Instance ID. */
 	uint32_t timer_handle;
+		/** aggregated checksum */
+	uint16_t checksum;
 		/** Padding */
-	uint8_t	pad[4];
+	uint8_t	pad[2];
 };
 
 
@@ -250,12 +252,39 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 @{
 *//***************************************************************************/
 
-	/** Metadata first parameter size. */
-#define	TCP_GRO_METADATA_PARAM1_SIZE	8
-	/** Metadata second parameter size. */
-#define	TCP_GRO_METADATA_PARAM2_SIZE	2
-	/** Metadata third parameter size. */
-#define	TCP_GRO_METADATA_PARAM3_SIZE	2
+	/** Metadata 1st member size. */
+#define METADATA_MEMBER1_SIZE (sizeof(					\
+		((struct tcp_gro_context_metadata *)0)->seg_sizes_addr))
+	/** Metadata 2nd member size. */
+#define METADATA_MEMBER2_SIZE (sizeof(					\
+		((struct tcp_gro_context_metadata *)0)->seg_num))
+	/** Metadata 3rd member size. */
+#define METADATA_MEMBER3_SIZE (sizeof(					\
+		((struct tcp_gro_context_metadata *)0)->max_seg_size))
+	
+
+	/* agg_num_cntr counter offset in statistics structure */
+#define AGG_NUM_CNTR_OFFSET						\
+	offsetof(struct tcp_gro_stats_cntrs, agg_num_cntr)
+	/* seg_num_cntr counter offset in statistics structure */
+#define SEG_NUM_CNTR_OFFSET						\
+	offsetof(struct tcp_gro_stats_cntrs, seg_num_cntr)
+	/* agg_timeout_cntr counter offset in statistics structure */
+#define AGG_TIMEOUT_CNTR_OFFSET						\
+	offsetof(struct tcp_gro_stats_cntrs, agg_timeout_cntr)
+	/* agg_max_seg_num_cntr counter offset in statistics structure */
+#define AGG_MAX_SEG_NUM_CNTR_OFFSET					\
+	offsetof(struct tcp_gro_stats_cntrs, agg_max_seg_num_cntr)
+	/* agg_max_packet_size_cntr counter offset in statistics structure */
+#define AGG_MAX_PACKET_SIZE_CNTR_OFFSET					\
+	offsetof(struct tcp_gro_stats_cntrs, agg_max_packet_size_cntr)
+	/* unexpected_seq_num_cntr counter offset in statistics structure */
+#define UNEXPECTED_SEQ_NUM_CNTR_OFFSET					\
+	offsetof(struct tcp_gro_stats_cntrs, unexpected_seq_num_cntr)
+	/* agg_flush_request_num_cntr counter offset in statistics structure */
+#define AGG_FLUSH_REQUEST_NUM_CNTR_OFFSET				\
+	offsetof(struct tcp_gro_stats_cntrs, agg_flush_request_num_cntr)
+
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
@@ -293,6 +322,17 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 @Cautions	None.
 *//***************************************************************************/
 void gro_init(uint32_t timeout_flags);
+
+/**************************************************************************//**
+@Function	tcp_gro_calc_tcp_header_cksum
+
+@Description	Calculate the TCP header checksum. 
+
+@Return		Calculated header checksum.
+
+@Cautions	None.
+*//***************************************************************************/
+uint16_t tcp_gro_calc_tcp_header_cksum();
 
 
 /** @} */ /* end of TCP_GRO_INTERNAL_FUNCTIONS */

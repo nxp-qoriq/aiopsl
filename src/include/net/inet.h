@@ -39,16 +39,14 @@
             The af argument must be either AF_INET or AF_INET6
 
  @param    [in] af - The following address families are currently supported
-                AF_INET 
-	           src points to a character string containing an IPv4
-	           network address in dotted-decimal format, 
-                AF_INET6 
-               src points to a character string containing an 
-               IPv6 network address. 
+                AF_INET - src points to a character string containing an IPv4
+	                      network address in dotted-decimal format, 
+                AF_INET6 - src points to a character string containing an 
+                           IPv6 network address. 
  @param    [in]     src - char string cotaing a network address
  @param    [out]    dst - pointer to network address structure 
 
- @returns  error or sucess value as defined below
+ @returns  error or success value as defined below
  @retval   1 on success (network address was successfully converted).
  @retval   0 is returned if src does not contain a character string representing a valid network address in the specified address family. 
  @retval  -1 if af does not contain a valid address family
@@ -72,17 +70,15 @@ int inet_pton(int af, const char *src, void *dst);
 	       buffer in the argument size. 
 
  @param    [in] af - The following address families are currently supported
-                AF_INET 
-	           src points to a character string containing an IPv4
-	           network address in dotted-decimal format, 
-                AF_INET6 
-		       src points to a character string containing an 
-               IPv6 network address. 
+                AF_INET - src points to a character string containing an IPv4
+	                      network address in dotted-decimal format, 
+                AF_INET - src points to a character string containing an 
+                          IPv6 network address. 
  @param    [in]  src  - network address structure
  @param    [out] dst  - char string address
  @param    [in]  size - number of buffers available in dst buffer
 
- @returns  error or sucess value as defined below
+ @returns  error or success value as defined below
  @retval   non-NULL pointer to destination is returned on sucess
  @retval   NULL is returned if size is not big enough or if af does not contain a valid address family 
 
