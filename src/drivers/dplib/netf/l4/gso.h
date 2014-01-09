@@ -44,7 +44,7 @@ struct tcp_gso_context {
 	 * \ref TCP_GSO_INTERNAL_FLAGS */
 	uint32_t internal_flags;
 	/** Split Size. */
-	uint16_t mss;
+	uint16_t split_size;
 	/** Headers Size. */
 	uint16_t headers_size;
 	/** Urgent Pointer offset. */
