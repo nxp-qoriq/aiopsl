@@ -39,7 +39,7 @@ struct dpni_drv {
 	* error check 0 - continue; 1 - discard */
 	uint8_t             fd_err_mask;
 	uint8_t             res[1];
-	fsl_handle_t        dpni;
+	struct dpni 		dpni;
 
 	/** call back application function */
 	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
