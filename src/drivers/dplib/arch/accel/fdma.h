@@ -74,6 +74,10 @@
 #define FDMA_STORE_CMD_OUT_FLAGS_MASK		0x0000FF00
 	/** FDMA Store command output flags offset. */
 #define FDMA_STORE_CMD_OUT_FLAGS_OFFSET		2
+	/** Default Segment headroom size. */
+#define DEFAULT_SEGMENT_HEADOOM_SIZE	128
+	/** Default Segment size. */
+#define DEFAULT_SEGMENT_SIZE		256
 
 /* @} end of group FDMA_Commands_Definitions */
 
