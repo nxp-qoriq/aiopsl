@@ -27,7 +27,7 @@ void gro_init(uint32_t timeout_flags)
 	gro_global_params.timeout_flags = timeout_flags;
 }
 
-
+/* New Aggregation */
 int32_t tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
@@ -72,19 +72,22 @@ int32_t tcp_gro_aggregate_seg(
 		status = cdma_mutex_lock_release(tcp_gro_context_addr);
 		/* update statistics */
 		ste_inc_and_acc_counters(params->stats_addr + 
-				AGG_NUM_CNTR_OFFSET, 1, 
+				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1, 
 				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE | 
 				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
 				STE_MODE_COMPOUND_CNTR_SATURATE |
 				STE_MODE_COMPOUND_ACC_SATURATE);
 		return TCP_GRO_SEG_AGG_DONE_NEW_AGG;
 	} else /* Aggregate */ {
-		/* create timer for the aggregation */
+		/* Todo - shouldn't we set the timer after we write the context 
+		 * to DDR? so there will not be a case it expires before we even
+		 * save the context the first time to DDR
+		 * create timer for the aggregation */
 		status = tman_create_timer(params->timeout_params.tmi_id, 
 				gro_global_params.timeout_flags,
 				params->limits.timeout_limit, 
 				tcp_gro_context_addr, 
-				(uint16_t)(uint32_t)&tcp_gro_timeout_cb, 
+				(uint16_t)(uint32_t)&tcp_gro_timeout_callback, 
 				gro_global_params.gro_timeout_epid,
 				0, 
 				&(gro_ctx.timer_handle));
@@ -107,7 +110,9 @@ int32_t tcp_gro_aggregate_seg(
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()){
 			ipv4 = (struct ipv4hdr *)
 				PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-			//gro_ctx.internal_flags |= ipv4->
+			/* Set ECN flags */
+			gro_ctx.internal_flags |= (*((uint32_t *)ipv4) &
+					TCP_GRO_ECN_MASK);
 		}
 		if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
 			gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum();
@@ -125,7 +130,8 @@ int32_t tcp_gro_aggregate_seg(
 				(void *)&gro_ctx, 
 				sizeof(struct tcp_gro_context));
 		/* update statistics */
-		ste_inc_counter(gro_ctx.params.stats_addr + SEG_NUM_CNTR_OFFSET, 
+		ste_inc_counter(gro_ctx.params.stats_addr + 
+			GRO_STAT_SEG_NUM_CNTR_OFFSET, 
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		
 		return TCP_GRO_SEG_AGG_NOT_DONE_NEW_AGG;
@@ -135,9 +141,68 @@ int32_t tcp_gro_aggregate_seg(
 /* Add segment to an existing aggregation */
 int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 {
+	struct tcphdr *tcp;
+	struct ipv4hdr *ipv4;
+	uint32_t timestamp;
+	uint8_t data_offset;
+	
+	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
+	ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+	
+	/* check termination conditions */
+	/* 1. Segment sequence number is not the expected sequence number  */
+	if (gro_ctx->next_seq != tcp->sequence_number){
+		/* update statistics */
+		ste_inc_counter(gro_ctx->params.stats_addr + 
+			GRO_STAT_UNEXPECTED_SEQ_NUM_CNTR_OFFSET, 
+			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+		return tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
+	}
+	/* 2. IP ECN value of the new packet is different from previously 
+	 * coalesced packet.
+	 * 3. Aggregated timestamp value is different than the new segment 
+	 * timestamp value.
+	 * 4. Segment ACK number is less than the ACK number of the previously 
+	 * coalesced segment. 
+	 * 5. PHS flag is set for the aggregation from the previous segment */
+	data_offset = tcp->data_offset_reserved >> TCP_DATA_OFFSET_OFFSET;
+	if (data_offset)
+		timestamp = *((uint32_t *)(PARSER_GET_L4_OFFSET_DEFAULT() + 
+			data_offset + TCP_TIMSTAMP_OPTION_VALUE_OFFSET));
+	else
+		timestamp = 0;
+	
+	if (((gro_ctx->internal_flags & TCP_GRO_ECN_MASK) != 
+		(*((uint32_t *)ipv4) & TCP_GRO_ECN_MASK)) ||
+		(gro_ctx->timestamp != timestamp) ||
+		(gro_ctx->last_ack > tcp->acknowledgment_number) ||
+		(gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET))
+		return tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
+	
+	/* Add segment to aggregation and close aggregation */
+	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
+		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
+	
+	
+	
+	
+	/* Todo - return valid status */
+	return (int32_t)gro_ctx;
+}
 
-	
-	
+/* Add segment to aggregation and close aggregation. */
+int32_t tcp_gro_add_seg_and_close_aggregation(
+		struct tcp_gro_context *gro_ctx)
+{
+	/* Todo - return valid status */
+	return (int32_t)gro_ctx;
+}
+
+/* Close an existing aggregation and start a new aggregation with the new 
+ * segment. */
+int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+		struct tcp_gro_context *gro_ctx)
+{
 	/* Todo - return valid status */
 	return (int32_t)gro_ctx;
 }
@@ -213,11 +278,11 @@ int32_t tcp_gro_flush_aggregation(
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 	
 	/* update statistics */
-	ste_inc_counter(gro_ctx.params.stats_addr + AGG_NUM_CNTR_OFFSET, 
-			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);	
+	ste_inc_counter(gro_ctx.params.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET 
+			, 1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);	
 	if (gro_ctx.flags & TCP_GRO_EXTENDED_STATS_EN)
 		ste_inc_counter(gro_ctx.params.stats_addr + 
-				AGG_FLUSH_REQUEST_NUM_CNTR_OFFSET, 
+			GRO_STAT_AGG_FLUSH_REQUEST_NUM_CNTR_OFFSET, 
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		
 	return TCP_GRO_FLUSH_AGG_DONE;
@@ -238,7 +303,7 @@ uint16_t tcp_gro_calc_tcp_header_cksum()
 }
 
 /* Todo - fill function */
-void tcp_gro_timeout_cb(uint64_t tcp_gro_context_addr)
+void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr)
 {
 	/* Todo - remove following statement when function is implemented */
 	tcp_gro_context_addr = 0;
