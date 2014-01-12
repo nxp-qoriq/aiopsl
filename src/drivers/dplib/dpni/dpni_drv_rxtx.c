@@ -72,6 +72,8 @@ __HOT_CODE void receive_cb (void)
 	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
 		int32_t parse_status = parse_result_generate_default \
 				(PARSER_NO_FLAGS);
+	/* TODO in future releases it may be enough to check only
+	 * parse_status */	
 		if (parse_status || PARSER_IS_PARSING_ERROR_DEFAULT()) {
 			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
 				/* if discard with terminate return with error \
@@ -80,12 +82,6 @@ __HOT_CODE void receive_cb (void)
 						(FDMA_DIS_WF_TC_BIT))
 					fdma_terminate_task();
 			}
-			if (parse_status)
-				default_task_params.parser_status \
-				= parse_status;
-			else
-				default_task_params.parser_status \
-				= PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
 		}
 	}
 
