@@ -480,8 +480,9 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
-	/** parser accelerator status */
-	int32_t parser_status;
+	/** Distribution hash value passed to QMan for distribution
+	 * purpose on the enqueue. */
+	uint16_t hash_value;
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 

@@ -184,7 +184,7 @@
 /* dprc_get_res_count */
 /* param 1 */
 #define DPRC_GET_RES_COUNT_COUNT_O		32
-#define DPRC_GET_RES_COUNT_COUNT_S		6
+#define DPRC_GET_RES_COUNT_COUNT_S		32
 #define DPRC_GET_RES_COUNT_TYPE_O		24	
 #define DPRC_GET_RES_COUNT_TYPE_S		8
 
