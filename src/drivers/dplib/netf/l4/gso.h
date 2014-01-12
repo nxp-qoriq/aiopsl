@@ -43,6 +43,8 @@ struct tcp_gso_context {
 	/** Internal TCP GSO flags - Please refer to 
 	 * \ref TCP_GSO_INTERNAL_FLAGS */
 	uint32_t internal_flags;
+	/** MSS */
+	uint16_t mss;
 	/** Split Size. */
 	uint16_t split_size;
 	/** Headers Size. */
@@ -62,7 +64,7 @@ struct tcp_gso_context {
 	/** First Segment indication */
 	uint8_t	first_seg;
 	/** Padding */
-	uint8_t	pad[1];
+	uint8_t	pad[7];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */
