@@ -46,15 +46,18 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 			cksum_update_uint32(&ipv4_ptr->hdr_cksum,
 					old_header,
 					ipv4_ptr->src_addr);
-			if (PARSER_IS_TCP_DEFAULT())
-				cksum_update_uint32(&tcp_ptr->checksum,
-							old_header,
-							ipv4_ptr->src_addr);
-			else /* In case UDP header */
-				cksum_update_uint32(
-					(uint16_t *)((uint16_t*)tcp_ptr+3),
-					old_header,
-					ipv4_ptr->src_addr);
+			if (!PARSER_IS_TUNNEL_IP_DEFAULT())
+			{
+				if (PARSER_IS_TCP_DEFAULT())
+					cksum_update_uint32(&tcp_ptr->checksum,
+								old_header,
+								ipv4_ptr->src_addr);
+				else /* In case UDP header */
+					cksum_update_uint32(
+						(uint16_t *)((uint16_t*)tcp_ptr+3),
+						old_header,
+						ipv4_ptr->src_addr);
+			}
 		}
 		if (flags & NAT_MODIFY_MODE_IPDST) {
 			old_header = ipv4_ptr->dst_addr;
@@ -62,15 +65,18 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 			cksum_update_uint32(&ipv4_ptr->hdr_cksum,
 					old_header,
 					ipv4_ptr->dst_addr);
-			if (PARSER_IS_TCP_DEFAULT())
-				cksum_update_uint32(&tcp_ptr->checksum,
-							old_header,
-							ipv4_ptr->dst_addr);
-			else /* In case UDP header */
-				cksum_update_uint32(
-					(uint16_t *)((uint16_t*)tcp_ptr+3),
-					old_header,
-					ipv4_ptr->dst_addr);
+			if (!PARSER_IS_TUNNEL_IP_DEFAULT())
+			{
+				if (PARSER_IS_TCP_DEFAULT())
+					cksum_update_uint32(&tcp_ptr->checksum,
+								old_header,
+								ipv4_ptr->dst_addr);
+				else /* In case UDP header */
+					cksum_update_uint32(
+						(uint16_t *)((uint16_t*)tcp_ptr+3),
+						old_header,
+						ipv4_ptr->dst_addr);
+			}
 		}
 
 		old_header = *(uint32_t *)tcp_ptr;
