@@ -137,11 +137,27 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 int32_t tcp_gso_return_frame_remainder_as_default_frame(
 		tcp_gso_ctx_t tcp_gso_context_addr);
 
+/**************************************************************************//**
+@Function	tcp_gso_split_segment
+
+@Description	This function generates a single TCP segment and locates it in
+		the default frame location in the workspace. 
+		
+		The remaining source frame is kept in the internal GSO
+		structure.
+
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
+
+@Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
+
+@Cautions	None.
+*//***************************************************************************/
+int32_t tcp_gso_split_segment(
+		struct tcp_gso_context *gso_ctx);
+
 /** @} */ /* end of TCP_GSO_INTERNAL_FUNCTIONS */
 
 /** @} */ /* end of FSL_AIOP_TCP_GSO_INTERNAL */
-
-int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx);
 
 /** @} */ /* end of FSL_AIOP_GSO */
 
