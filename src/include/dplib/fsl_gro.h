@@ -164,8 +164,6 @@ struct tcp_gro_stats_cntrs {
 		 * This counter is valid when extended statistics mode is 
 		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	agg_flush_request_num_cntr;
-		/** Padding */
-	uint8_t	pad[4];
 };
 
 /**************************************************************************//**
@@ -181,8 +179,6 @@ struct tcp_gro_context_metadata {
 	uint16_t seg_num;
 		/** Largest segment size*/
 	uint16_t max_seg_size;
-		/** Padding */
-	uint8_t	pad[4];
 };
 
 /**************************************************************************//**
@@ -198,9 +194,6 @@ struct gro_context_limits {
 		/** Maximum aggregated segments per packet limit. 
 		 * 0/1 are an illegal values. */
 	uint8_t	seg_num_limit;
-		/** Padding */
-	uint8_t	pad[3];
-
 };
 
 /**************************************************************************//**
@@ -217,8 +210,6 @@ struct gro_context_timeout_params {
 	gro_timeout_cb_t *gro_timeout_cb;
 		/** TMAN Instance ID. */
 	uint8_t tmi_id;
-		/** Padding */
-	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
