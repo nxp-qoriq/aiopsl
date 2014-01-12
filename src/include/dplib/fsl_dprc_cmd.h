@@ -43,7 +43,7 @@
 #define DPRC_CMD_RST_CONT_S			8
 #define DPRC_CMD_SET_RES_ALLOC_P_S		8
 
-#define DPRC_CMD_ASSIGN_S			(8 * 2)
+#define DPRC_CMD_ASSIGN_S			(8 * 3)
 #define	DPRC_CMD_SET_UNASSIGN_PORTAL_P_S 	8
 #define DPRC_CMD_UNASSIGN_S			(8 * 2)
 //#define DPRC_CMD_UNASSIGN_EXPLICIT_S		8
@@ -126,11 +126,12 @@
 #define DPRC_ASSIGN_CONT_ID_S			32
 #define DPRC_ASSIGN_RES_TYPE_O			32
 #define DPRC_ASSIGN_RES_TYPE_S			6
-#define DPRC_ASSIGN_ALIGN_O			38
-#define DPRC_ASSIGN_ALIGN_S			1
-#define DPRC_ASSIGN_NUM_OF_RES_O		41
-#define DPRC_ASSIGN_NUM_OF_RES_S		7
-/* param 2 */
+/*param 2*/
+#define DPRC_ASSIGN_NUM_OF_RES_O		0
+#define DPRC_ASSIGN_NUM_OF_RES_S		32
+#define DPRC_ASSIGN_ALIGN_O			32
+#define DPRC_ASSIGN_ALIGN_S			32
+/* param 3 */
 #define DPRC_ASSIGN_OPTIONS_O			0
 #define DPRC_ASSIGN_OPTIONS_S			32
 
@@ -183,7 +184,7 @@
 /* dprc_get_res_count */
 /* param 1 */
 #define DPRC_GET_RES_COUNT_COUNT_O		32
-#define DPRC_GET_RES_COUNT_COUNT_S		6
+#define DPRC_GET_RES_COUNT_COUNT_S		32
 #define DPRC_GET_RES_COUNT_TYPE_O		24	
 #define DPRC_GET_RES_COUNT_TYPE_S		8
 

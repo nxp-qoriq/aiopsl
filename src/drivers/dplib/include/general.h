@@ -751,6 +751,16 @@ struct aiop_default_task_params {
 #define IPV4_HDR_FRAG_OFFSET_OFFSET 0 /*!< IPv4 fragment offset field offset */
 
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
+
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control 
+		Protocol (TCP) Definitions
+@{
+*//***************************************************************************/
+#define TCP_HDR_LENGTH		      20   /**< TCP header length */
+
+/** @} */ /* end of AIOP_General_Protocols_TCP_Definitions */
+
 /** @} */ /* end of FSL_General_Protocols_Macros */
 /** @} */ /* end of AIOP_General_Protocols */
 /** @} */ /* end of AIOP_General_Definitions */
