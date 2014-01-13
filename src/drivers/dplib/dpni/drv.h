@@ -38,7 +38,7 @@ struct dpni_drv {
 	/** error mask for the \ref receive_cb() function FD
 	* error check 0 - continue; 1 - discard */
 	uint8_t             fd_err_mask;
-	fsl_handle_t        dpni;
+	struct dpni 		dpni;
 
 	/** call back application function */
 	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];

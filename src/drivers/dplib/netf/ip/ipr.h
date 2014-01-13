@@ -62,7 +62,8 @@ struct ipr_rfdc{
 	uint32_t	timer_handle;
 	uint16_t	first_frag_offset;
 	uint16_t	last_frag_offset;
-	uint32_t	res;
+	uint8_t		num_of_frags;
+	uint8_t		res[3]
 };
 
 struct link_list_element{
@@ -156,14 +157,13 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 		The size of each buffer should be at least 2240 bytes.\n
 		Buffers should be aligned to 64 bytes.
 @Param[in]	flags - \link IPRInitFlags IPR init flags \endlink
-@Param[in]	tmi_id - TMAN instance ID to be used for IPR process.
 
 
 @Return		None.
 
 @Cautions	None.
 *//***************************************************************************/
-void ipr_init(uint32_t max_buffers, uint32_t flags, uint8_t tmi_id);
+void ipr_init(uint32_t max_buffers, uint32_t flags);
 
 /**************************************************************************//**
 @Function	ipr
@@ -203,10 +203,9 @@ uint8_t  ipr_timeout_epid;
 uint8_t  ipr_timeout_flags;
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
-uint8_t  ipr_tmi_id;
 /** Pool id returned by the ARENA allocator to be used as context buffer pool */
 uint8_t  ipr_pool_id;
-uint8_t	 res;
+uint16_t res;
 };
 
 /* @} end of group IPR_Internal */

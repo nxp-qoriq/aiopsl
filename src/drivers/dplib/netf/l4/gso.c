@@ -74,7 +74,7 @@ int32_t tcp_gso_generate_seg(
 		gso_ctx->split_size = gso_ctx->headers_size + gso_ctx->mss; 
 			
 		/* Call to tcp_gso_split_segment */	
-		status = tcp_gso_split_segment(gso_ctx);
+		return tcp_gso_split_segment(gso_ctx);
 	}
 		
 		
