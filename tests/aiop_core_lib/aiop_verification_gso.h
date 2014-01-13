@@ -92,7 +92,7 @@ struct tcp_gso_generate_seg_command {
 		/** Workspace address of the GSO last returned status. 
 		 * Should be defined in the TLS area. */
 	uint32_t gso_status_addr;	
-	/** Returned Value:
+		/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;
 		/** Returned Value:
