@@ -62,10 +62,13 @@ struct tcp_gso_init_command {
 	uint32_t opcode;
 		/** Please refer to \ref TCP_GSO_FLAGS. */
 	uint32_t flags;
+		/** Workspace address of the GSO internal context. 
+		 * Should be defined in the TLS area. */
+	uint32_t gso_ctx_addr;
 		/** Maximum Segment Size. */
 	uint16_t mss;
 		/** Padding. */
-	int8_t  pad[6];
+	int8_t  pad[2];
 };
 
 /**************************************************************************//**
@@ -77,13 +80,19 @@ struct tcp_gso_init_command {
 struct tcp_gso_generate_seg_command {
 		/** TCP GSO Generate Segment command structure identifier. */
 	uint32_t opcode;
+		/** Workspace address of the GSO internal context. 
+		 * Should be defined in the TLS area. */
+	uint32_t gso_ctx_addr;
 		/** Returned Value: 
 		 * Iteration return status. */
 	int32_t status;
-		/** Returned Internal Value:
-		 * gso internal context. */
-	struct tcp_gso_context gso_ctx;
-		/** Returned Value:
+		/** Workspace address of the last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+		/** Workspace address of the GSO last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t gso_status_addr;	
+	/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;
 		/** Returned Value:
@@ -92,7 +101,8 @@ struct tcp_gso_generate_seg_command {
 		/** Returned Value:
 		 * task defaults. */
 	struct aiop_default_task_params default_task_params;
-		
+		/** Padding. */
+	int8_t  pad[4];
 };
 
 /**************************************************************************//**
@@ -105,17 +115,19 @@ struct tcp_gso_discard_remainder_frame_command {
 		/** TCP GSO discard remainder frame command structure 
 		 * identifier. */
 	uint32_t opcode;
+		/** Workspace address of the GSO internal context. 
+		 * Should be defined in the TLS area. */
+	uint32_t gso_ctx_addr;
 		/** Returned Value: 
 		 * Iteration return status. */
-	int32_t status;
-		/** Returned Internal Value:
-		 * gso internal context. */
-	struct tcp_gso_context gso_ctx;
+	int32_t  status;
+		/** Workspace address of the last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t status_addr;
 };
 
 
 uint16_t  aiop_verification_gso(
-		tcp_gso_ctx_t tcp_gso_context_addr, 
 		uint32_t data_addr);
 
 
