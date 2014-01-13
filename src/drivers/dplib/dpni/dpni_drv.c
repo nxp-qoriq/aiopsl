@@ -115,7 +115,7 @@ int dpni_drv_enable (uint16_t ni_id)
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 
-	if ((err = dpni_enable(dpni_drv->dpni)) != 0)
+	if ((err = dpni_enable(&dpni_drv->dpni)) != 0)
 		return err;
 	dpni_drv->flags |= DPNI_DRV_FLG_ENABLED;
 	return 0;
@@ -129,7 +129,7 @@ int dpni_drv_disable (uint16_t ni_id)
 	dpni_drv = nis + ni_id;
 
 	dpni_drv->flags &= ~DPNI_DRV_FLG_ENABLED;
-	return dpni_disable(dpni_drv->dpni);
+	return dpni_disable(&dpni_drv->dpni);
 }
 
 int dpni_drv_is_up (uint16_t ni_id)
@@ -164,12 +164,11 @@ int dpni_drv_probe(uint16_t	ni_id,
 		pr_err("can't open DP-NI%d\n", ni_id);
 		return -ENODEV;
 	}
-
-	dpni.cidesc.regs = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-									       (uint32_t)portal_id,
-									       E_MAPPED_MEM_TYPE_MC_PORTAL));
 #endif
-	err = dpni_open(dpni_drv->dpni, ni_id);
+	dpni_drv->dpni.cidesc.regs = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+									       (uint32_t)mc_portal_id,
+									       E_MAPPED_MEM_TYPE_MC_PORTAL));
+	err = dpni_open(&dpni_drv->dpni, ni_id);
 	if (err) {
 		pr_err("can't open DP-NI%d\n", ni_id);
 		return -ENODEV;
@@ -180,7 +179,7 @@ int dpni_drv_probe(uint16_t	ni_id,
 	params.dpio_id = (uint16_t)PTR_TO_UINT(dpio);
 	/* TODO - how to retrieve the ID here??? */
 	params.dpsp_id = (uint16_t)PTR_TO_UINT(dpsp);
-	if ((err = dpni_attach(dpni_drv->dpni,
+	if ((err = dpni_attach(&dpni_drv->dpni,
 	                       (const struct dpni_attach_params *)&params)) != 0)
 		return err;
 

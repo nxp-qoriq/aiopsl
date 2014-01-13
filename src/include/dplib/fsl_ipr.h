@@ -84,7 +84,7 @@ struct ipr_params {
 	uint32_t  flags;
 	/** tmi id to be used for timers creations */
 	uint8_t	  tmi_id;
-		/** 32-bit alignment. */
+	/** 32-bit alignment. */
 	uint8_t  pad[3];
 };
 

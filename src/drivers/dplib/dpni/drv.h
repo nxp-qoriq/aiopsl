@@ -24,7 +24,7 @@ struct dpni_drv {
 	uint16_t            id;
 	/** Storage profile ID */
 	uint8_t             spid;
-	uint8_t             res0[1];
+	uint8_t             res[1];
 	/** Queueing destination for the enqueue. */
 	uint16_t            qdid;
 	/** starting HXS */
@@ -38,12 +38,10 @@ struct dpni_drv {
 	/** error mask for the \ref receive_cb() function FD
 	* error check 0 - continue; 1 - discard */
 	uint8_t             fd_err_mask;
-	uint8_t             res[1];
-	fsl_handle_t        dpni;
+	struct dpni 		dpni;
 
 	/** call back application function */
 	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
-	uint32_t            res1;
 	/** call back application argument */
 	dpni_drv_app_arg_t  args[DPNI_DRV_MAX_NUM_FLOWS];
 };
