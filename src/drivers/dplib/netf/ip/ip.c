@@ -503,7 +503,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 	uint32_t	*mpls_ptr;
 	uint32_t	vsn_traffic_flow;
 	uint8_t		tos, inner_tos;
-	uint32_t	orig_vsn_and_tos;
+	uint64_t	orig_first_8_bytes;
 	uint32_t	orig_ttl_and_chksum;
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
@@ -512,8 +512,8 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 	struct ipv4hdr *ipv4_header_ptr = ipv4header;
 
 	/* Save original fields of input IP header */
-	orig_vsn_and_tos = *((uint32_t *)ipv4_header_ptr);
-	orig_ttl_and_chksum = *(((uint32_t *)ipv4_header_ptr+2));
+	orig_first_8_bytes 	  = *((uint64_t *)ipv4_header_ptr);
+	orig_ttl_and_chksum   = *(((uint32_t *)ipv4_header_ptr+2));
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* Reset IP checksum for re-calculation by FDMA */
@@ -556,7 +556,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 						    fdma_flags);
 		
 		/* Restore original fields of input IP header */
-		*((uint32_t *)ipv4_header_ptr) = orig_vsn_and_tos;
+		*((uint64_t *)ipv4_header_ptr)	   = orig_first_8_bytes;
 		*(((uint32_t *)ipv4_header_ptr+2)) = orig_ttl_and_chksum;
 
 		/* Re-run parser */
@@ -636,7 +636,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 						   	   	   	   	 fdma_flags);
 		
 		/* Restore original fields of input IP header */
-		*((uint32_t *)ipv4_header_ptr) = orig_vsn_and_tos;
+		*((uint64_t *)ipv4_header_ptr)	   = orig_first_8_bytes;
 		*(((uint32_t *)ipv4_header_ptr+2)) = orig_ttl_and_chksum;
 
 		/* Re-run parser */
@@ -653,7 +653,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		ipv4_cksum_calculate(outer_ipv4hdr_ptr);
 
 		/* update IP Checksum in FDMA */
-		fdma_modify_default_segment_data(outer_ipv4_offset,
+		fdma_modify_default_segment_data(outer_ipv4_offset+10,
 				      	  	  	  	     2);
 
 		return SUCCESS;
