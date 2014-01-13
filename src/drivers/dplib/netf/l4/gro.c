@@ -37,20 +37,20 @@ int32_t tcp_gro_aggregate_seg(
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
 	int32_t status;
-	int32_t status1;
+	int32_t sr_status;
 	uint16_t seg_size;
 	uint8_t data_offset;
 	
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	/* read GRO context*/
-	status = cdma_read_with_mutex(tcp_gro_context_addr, 
+	sr_status = cdma_read_with_mutex(tcp_gro_context_addr, 
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx), sizeof(struct tcp_gro_context));
 	/* add segment to an existing aggregation */
 	if (gro_ctx.metadata.seg_num != 0){
 		status = tcp_gro_add_seg_to_aggregation(&gro_ctx);
 		/* write gro context back to DDR + release mutex */
-		status1 = cdma_write_with_mutex(tcp_gro_context_addr, 
+		sr_status = cdma_write_with_mutex(tcp_gro_context_addr, 
 					CDMA_POSTDMA_MUTEX_RM_BIT, 
 					(void *)&gro_ctx, 
 					sizeof(struct tcp_gro_context));
@@ -58,10 +58,10 @@ int32_t tcp_gro_aggregate_seg(
 	}
 	/* read segment sizes address */
 	if (flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
-		status = cdma_read(&(gro_ctx.metadata.seg_sizes_addr), 
+		sr_status = cdma_read(&(gro_ctx.metadata.seg_sizes_addr), 
 				params->metadata, 
 				METADATA_MEMBER1_SIZE); 
-		status = cdma_write(gro_ctx.metadata.seg_sizes_addr, &seg_size, 
+		sr_status = cdma_write(gro_ctx.metadata.seg_sizes_addr, &seg_size, 
 			sizeof(seg_size));
 	}
 	/* set metadada values */
@@ -72,12 +72,12 @@ int32_t tcp_gro_aggregate_seg(
 	/* Flush Aggregation */
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) {
 		/* write metadata to external memory */
-		status = cdma_write((params->metadata + 
+		sr_status = cdma_write((params->metadata + 
 				METADATA_MEMBER1_SIZE), 
 				&(gro_ctx.metadata.seg_num), 
 				METADATA_MEMBER2_SIZE + METADATA_MEMBER3_SIZE);
 		/* release the mutex */
-		status = cdma_mutex_lock_release(tcp_gro_context_addr);
+		sr_status = cdma_mutex_lock_release(tcp_gro_context_addr);
 		/* update statistics */
 		ste_inc_and_acc_counters(params->stats_addr + 
 				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1, 
@@ -91,7 +91,7 @@ int32_t tcp_gro_aggregate_seg(
 		 * to DDR? so there will not be a case it expires before we even
 		 * save the context the first time to DDR
 		 * create timer for the aggregation */
-		status = tman_create_timer(params->timeout_params.tmi_id, 
+		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
 				gro_global_params.timeout_flags,
 				params->limits.timeout_limit, 
 				tcp_gro_context_addr, 
@@ -126,13 +126,13 @@ int32_t tcp_gro_aggregate_seg(
 			gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum();
 		
 		/* store aggregated frame */
-		status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(), 
+		sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(), 
 				*(uint8_t *)HWC_SPID_ADDRESS, 
 				&(gro_ctx.agg_fd_isolation_attributes));
 		/* copy default FD to gro context */
 		gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 		/* write gro context back to DDR + release mutex */
-		status = cdma_write_with_mutex(tcp_gro_context_addr, 
+		sr_status = cdma_write_with_mutex(tcp_gro_context_addr, 
 				CDMA_POSTDMA_MUTEX_RM_BIT, 
 				(void *)&gro_ctx, 
 				sizeof(struct tcp_gro_context));
@@ -153,7 +153,7 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_concatenate_frames_params concat_params;
 	uint32_t timestamp;
-	int32_t  status;
+	int32_t  sr_status;
 	uint16_t headers_size;
 	uint16_t seg_size;
 	uint16_t aggregated_size;
@@ -171,7 +171,8 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 		ste_inc_counter(gro_ctx->params.stats_addr + 
 			GRO_STAT_UNEXPECTED_SEQ_NUM_CNTR_OFFSET, 
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-		return tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
+		return 
+		 tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
 	}
 	/* 2. IP ECN value of the new packet is different from previously 
 	 * coalesced packet.
@@ -229,7 +230,7 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	present_frame_params.flags = FDMA_INIT_NDS_BIT;
 	present_frame_params.asa_size = 0;
 	present_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS; 
-	status = fdma_present_frame(&present_frame_params);
+	sr_status = fdma_present_frame(&present_frame_params);
 	/* concatenate frames and store aggregated packet */
 	concat_params.frame1 = present_frame_params.frame_handle;
 	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
@@ -244,7 +245,7 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	concat_params.flags = FDMA_CONCAT_PCA_BIT;*/
 	concat_params.flags = FDMA_CONCAT_NO_FLAGS;
 	fdma_concatenate_frames(&concat_params);
-	fdma_store_frame_data(present_frame_params.frame_handle, 
+	sr_status = fdma_store_frame_data(present_frame_params.frame_handle, 
 			*((uint8_t *)HWC_SPID_ADDRESS), 
 			&(gro_ctx->agg_fd_isolation_attributes));
 			
@@ -259,7 +260,7 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	
 	/* write metadata segment size to external memory */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) 
-		status = cdma_write(gro_ctx->metadata.seg_sizes_addr + 
+		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr + 
 				sizeof(seg_size) * gro_ctx->metadata.seg_num, 
 				&seg_size, sizeof(seg_size));
 	
@@ -295,11 +296,11 @@ int32_t tcp_gro_flush_aggregation(
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
-	int32_t status;
+	int32_t sr_status;
 	uint16_t ip_length, outer_ip_offset;
 	
 	/* read GRO context*/
-	status = cdma_read_with_mutex(tcp_gro_context_addr, 
+	sr_status = cdma_read_with_mutex(tcp_gro_context_addr, 
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx), sizeof(struct tcp_gro_context));
 	/* no aggregation */
@@ -307,11 +308,11 @@ int32_t tcp_gro_flush_aggregation(
 		return TCP_GRO_FLUSH_NO_AGG;
 	
 	/* write metadata to external memory */
-	status = cdma_write((gro_ctx.params.metadata + METADATA_MEMBER1_SIZE), 
+	sr_status = cdma_write((gro_ctx.params.metadata + METADATA_MEMBER1_SIZE), 
 			&(gro_ctx.metadata.seg_num), 
 			METADATA_MEMBER2_SIZE + METADATA_MEMBER3_SIZE);
 	/* release gro context mutex */
-	status = cdma_mutex_lock_release(tcp_gro_context_addr);
+	sr_status = cdma_mutex_lock_release(tcp_gro_context_addr);
 	
 	/* Copy aggregated FD to default FD location and prepare aggregated FD 
 	 * parameters in Presentation Context */
@@ -323,11 +324,11 @@ int32_t tcp_gro_flush_aggregation(
 	PRC_RESET_SR_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-	status = fdma_present_default_frame();
+	sr_status = fdma_present_default_frame();
 	
 	/* run parser since we don't know which scenario preceded 
 	 * the flush call */
-	status = parse_result_generate_default(PARSER_NO_FLAGS);
+	sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -355,7 +356,7 @@ int32_t tcp_gro_flush_aggregation(
 		tcp_gro_calc_tcp_header_cksum();
 	
 	/* Save headers changes to FDMA */
-	status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
+	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 	
 	/* update statistics */
