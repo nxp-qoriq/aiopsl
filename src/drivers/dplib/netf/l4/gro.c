@@ -37,6 +37,7 @@ int32_t tcp_gro_aggregate_seg(
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
 	int32_t status;
+	int32_t status1;
 	uint16_t seg_size;
 	uint8_t data_offset;
 	
@@ -46,8 +47,15 @@ int32_t tcp_gro_aggregate_seg(
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx), sizeof(struct tcp_gro_context));
 	/* add segment to an existing aggregation */
-	if (gro_ctx.metadata.seg_num != 0)
-		return tcp_gro_add_seg_to_aggregation(&gro_ctx);
+	if (gro_ctx.metadata.seg_num != 0){
+		status = tcp_gro_add_seg_to_aggregation(&gro_ctx);
+		/* write gro context back to DDR + release mutex */
+		status1 = cdma_write_with_mutex(tcp_gro_context_addr, 
+					CDMA_POSTDMA_MUTEX_RM_BIT, 
+					(void *)&gro_ctx, 
+					sizeof(struct tcp_gro_context));
+		return status;
+	}
 	/* read segment sizes address */
 	if (flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
 		status = cdma_read(&(gro_ctx.metadata.seg_sizes_addr), 
@@ -123,8 +131,7 @@ int32_t tcp_gro_aggregate_seg(
 				&(gro_ctx.agg_fd_isolation_attributes));
 		/* copy default FD to gro context */
 		gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
-		/* write gro context back to DDR */
-		/*   */
+		/* write gro context back to DDR + release mutex */
 		status = cdma_write_with_mutex(tcp_gro_context_addr, 
 				CDMA_POSTDMA_MUTEX_RM_BIT, 
 				(void *)&gro_ctx, 
@@ -143,13 +150,21 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 {
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
+	struct fdma_present_frame_params present_frame_params;
+	struct fdma_concatenate_frames_params concat_params;
 	uint32_t timestamp;
-	uint8_t data_offset;
+	int32_t  status;
+	uint16_t headers_size;
+	uint16_t seg_size;
+	uint16_t aggregated_size;
+	uint8_t  data_offset;
 	
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 	
-	/* check termination conditions */
+	/* Check for termination conditions due to the current segment.
+	 * In case one of the following conditions is met, close the aggregation 
+	 * and start a new aggregation with the current segment */
 	/* 1. Segment sequence number is not the expected sequence number  */
 	if (gro_ctx->next_seq != tcp->sequence_number){
 		/* update statistics */
@@ -166,9 +181,9 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	 * coalesced segment. 
 	 * 5. PHS flag is set for the aggregation from the previous segment */
 	data_offset = tcp->data_offset_reserved >> TCP_DATA_OFFSET_OFFSET;
-	if (data_offset)
+	if (data_offset > TCP_HDR_LENGTH)
 		timestamp = *((uint32_t *)(PARSER_GET_L4_OFFSET_DEFAULT() + 
-			data_offset + TCP_TIMSTAMP_OPTION_VALUE_OFFSET));
+			TCP_HDR_LENGTH + TCP_TIMSTAMP_OPTION_VALUE_OFFSET));
 	else
 		timestamp = 0;
 	
@@ -179,15 +194,80 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 		(gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET))
 		return tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
 	
-	/* Add segment to aggregation and close aggregation */
+	/* Check for termination condition due to the current segment.
+	 * In case one of the following conditions is met, add segment to 
+	 * aggregation and close the aggregation. */
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	
+	/* calculate data offset */
+	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 	
+	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd))) + 
+			seg_size - headers_size;
+	/* check whether aggregation limits are met */
+	/* check segment number limit */
+	if ((gro_ctx->metadata.seg_num + 1) == 
+			gro_ctx->params.limits.seg_num_limit)
+		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);	
+	/* check aggregated packet size limit */
+	if (aggregated_size > gro_ctx->params.limits.packet_size_limit)
+		return tcp_gro_close_aggregation_and_open_new_aggregation(
+				gro_ctx);
+	else if (aggregated_size == gro_ctx->params.limits.packet_size_limit)
+		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
+		
+	/* segment can be aggregated */
+	/* calculate tcp data checksum */
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum();	
 	
+	/* present aggregated frame */
+	present_frame_params.fd_src = &(gro_ctx->agg_fd);
+	present_frame_params.flags = FDMA_INIT_NDS_BIT;
+	present_frame_params.asa_size = 0;
+	present_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS; 
+	status = fdma_present_frame(&present_frame_params);
+	/* concatenate frames and store aggregated packet */
+	concat_params.frame1 = present_frame_params.frame_handle;
+	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
+	concat_params.trim = (uint8_t)headers_size;
+	/* Todo - when concatenate command support returning isolation context 
+	 * when closing frame1: 
+	 * 1. enable next 2 lines (spid and flags) instead of the next flags 
+	 * assignment,  
+	 * 2. remove next store, 
+	 * 3. add isolation attributes to the concatenate command
+	 * concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	concat_params.flags = FDMA_CONCAT_PCA_BIT;*/
+	concat_params.flags = FDMA_CONCAT_NO_FLAGS;
+	fdma_concatenate_frames(&concat_params);
+	fdma_store_frame_data(present_frame_params.frame_handle, 
+			*((uint8_t *)HWC_SPID_ADDRESS), 
+			&(gro_ctx->agg_fd_isolation_attributes));
+			
+	/* update gro context fields */
+	gro_ctx->last_ack = tcp->acknowledgment_number;
+	gro_ctx->next_seq = gro_ctx->next_seq + seg_size - headers_size;
+	gro_ctx->last_seg_fields = *((struct tcp_gro_last_seg_header_fields *)
+			(&(tcp->acknowledgment_number)));
+	gro_ctx->metadata.seg_num++;
+	if (gro_ctx->metadata.max_seg_size < seg_size)
+		gro_ctx->metadata.max_seg_size = seg_size;
 	
-	/* Todo - return valid status */
-	return (int32_t)gro_ctx;
+	/* write metadata segment size to external memory */
+	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) 
+		status = cdma_write(gro_ctx->metadata.seg_sizes_addr + 
+				sizeof(seg_size) * gro_ctx->metadata.seg_num, 
+				&seg_size, sizeof(seg_size));
+	
+	/* update statistics */
+	ste_inc_counter(gro_ctx->params.stats_addr + 
+			GRO_STAT_SEG_NUM_CNTR_OFFSET, 
+			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+	
+	return TCP_GRO_SEG_AGG_NOT_DONE;
 }
 
 /* Add segment to aggregation and close aggregation. */
