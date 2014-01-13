@@ -105,7 +105,7 @@ int32_t tcp_gro_aggregate_seg(
 		gro_ctx.flags = flags;
 		gro_ctx.last_ack = tcp->acknowledgment_number;
 		data_offset = tcp->data_offset_reserved >> 
-				TCP_DATA_OFFSET_OFFSET;
+				NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
 		gro_ctx.next_seq = tcp->sequence_number + seg_size - 
 				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 		/* in case there is an option it must be a timestamp option */
@@ -180,7 +180,8 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	 * 4. Segment ACK number is less than the ACK number of the previously 
 	 * coalesced segment. 
 	 * 5. PHS flag is set for the aggregation from the previous segment */
-	data_offset = tcp->data_offset_reserved >> TCP_DATA_OFFSET_OFFSET;
+	data_offset = tcp->data_offset_reserved >> 
+			NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
 	if (data_offset > TCP_HDR_LENGTH)
 		timestamp = *((uint32_t *)(PARSER_GET_L4_OFFSET_DEFAULT() + 
 			TCP_HDR_LENGTH + TCP_TIMSTAMP_OPTION_VALUE_OFFSET));
