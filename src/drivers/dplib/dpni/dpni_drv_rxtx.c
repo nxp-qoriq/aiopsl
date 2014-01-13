@@ -68,10 +68,13 @@ __HOT_CODE void receive_cb (void)
 			= dpni_drv->starting_hxs;
 	default_task_params.qd_priority = ((*((uint8_t *)ADC_WQID_PRI_OFFSET) \
 			& ADC_WQID_MASK) >> 4);
+	default_task_params.hash_value = 0;
 
 	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
 		int32_t parse_status = parse_result_generate_default \
 				(PARSER_NO_FLAGS);
+	/* TODO in future releases it may be enough to check only
+	 * parse_status */	
 		if (parse_status || PARSER_IS_PARSING_ERROR_DEFAULT()) {
 			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
 				/* if discard with terminate return with error \
@@ -80,12 +83,6 @@ __HOT_CODE void receive_cb (void)
 						(FDMA_DIS_WF_TC_BIT))
 					fdma_terminate_task();
 			}
-			if (parse_status)
-				default_task_params.parser_status \
-				= parse_status;
-			else
-				default_task_params.parser_status \
-				= PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
 		}
 	}
 
@@ -116,10 +113,10 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 			LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, frc);
 		}
 	}
-	/* for the enqueue set hash=0, an flags equal 0 meaning that the \
-	 * qd_priority is taken from the TLS and that enqueue function   \
+	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
+	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
-	enqueue_params.hash_value = 0;
+	enqueue_params.hash_value = default_task_params.hash_value;
 	enqueue_params.qd = dpni_drv->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
