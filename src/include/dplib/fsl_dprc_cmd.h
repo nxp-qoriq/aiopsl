@@ -72,19 +72,14 @@
 
 /* dprc_create_container */
 /* param 1 */
-#define DPRC_CREATE_CONT_CHILD_ID_O		0
-#define DPRC_CREATE_CONT_CHILD_ID_S		32
 #define DPRC_CREATE_CONT_ICID_O			32
 #define DPRC_CREATE_CONT_ICID_S			16
-#define DPRC_CREATE_CONT_SPAWN_O		48		
-#define DPRC_CREATE_CONT_SPAWN_S		1
-#define DPRC_CREATE_CONT_ALLOC_O		49
-#define DPRC_CREATE_CONT_ALLOC_S		1
-#define DPRC_CREATE_CONT_ID_O			56
-#define DPRC_CREATE_CONT_ID_S			8
-/* param 2 */
 #define DPRC_CREATE_CONT_OPTIONS_O		0
 #define DPRC_CREATE_CONT_OPTIONS_S		32
+
+/* param 2 */
+#define DPRC_CREATE_CONT_CHILD_ID_O		0
+#define DPRC_CREATE_CONT_CHILD_ID_S		32
 #define DPRC_CREATE_CONT_CHILD_PORTAL_O		32
 #define DPRC_CREATE_CONT_CHILD_PORTAL_S		32
 
@@ -217,10 +212,6 @@
 /* param 2 */
 #define DPRC_GET_ATTR_OPTIONS_O			0
 #define DPRC_GET_ATTR_OPTIONS_S			32
-#define DPRC_GET_ATTR_SPAWN_O			32
-#define DPRC_GET_ATTR_SPAWN_S			1
-#define DPRC_GET_ATTR_ALLOC_O			33
-#define DPRC_GET_ATTR_ALLOC_S			2
 
 /* dprc_get_dev_region */
 /* param 1 */

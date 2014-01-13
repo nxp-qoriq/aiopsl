@@ -50,12 +50,6 @@ static void prepare_create_container_cmd(struct cmdif_cmd_data *desc,
 	/* build param 1*/
 	cmd_param = u64_write_field(cmd_param, DPRC_CREATE_CONT_ICID_O,
 	                            DPRC_CREATE_CONT_ICID_S, attr->icid);
-	cmd_param = u64_write_field(cmd_param, DPRC_CREATE_CONT_SPAWN_O,
-	                            DPRC_CREATE_CONT_SPAWN_S,
-	                            attr->spawn_policy);
-	cmd_param = u64_write_field(cmd_param, DPRC_CREATE_CONT_ALLOC_O,
-	                            DPRC_CREATE_CONT_ALLOC_S,
-	                            attr->alloc_policy);
 	cmd_param = u64_write_field(cmd_param, DPRC_CREATE_CONT_OPTIONS_O,
 	                            DPRC_CREATE_CONT_OPTIONS_S, attr->options);
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
@@ -580,8 +574,6 @@ int dprc_get_res_ids(struct dprc *dprc,
                      uint32_t *res_ids,
                      int *valid_count) /*TODO - add valid count */
 {
-	UNUSED(res_ids);
-	UNUSED(valid_count);
 	struct cmdif_cmd_data *cmd_data;
 	int err;
 	cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
@@ -612,11 +604,10 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes)
 	/* recieve out parameters */
 	if (!err) {
 		cmdif_get_cmd_data(&(dprc->cidesc), &cmd_data);
-//		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
-		cmd_param = swap_uint64(cmd_data->param1);
-		attributes->container_id = (int)u64_read_field(
-		        cmd_param, DPRC_GET_ATTR_CONT_ID_O,
-		        DPRC_GET_ATTR_CONT_ID_S);
+		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 1);
+		attributes->options = (uint32_t)u64_read_field(
+		        cmd_param, DPRC_GET_ATTR_OPTIONS_O,
+		        DPRC_GET_ATTR_OPTIONS_S);
 		attributes->icid = (uint16_t)u64_read_field(
 		        cmd_param, DPRC_GET_ATTR_ICID_O, DPRC_GET_ATTR_ICID_S);
 		attributes->portal_id = (uint16_t)u64_read_field(
@@ -624,17 +615,10 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes)
 		        DPRC_GET_ATTR_PORTAL_S);
 
 		cmd_param = GPP_CMD_READ_PARAM(cmd_data, 2);
-		attributes->options = (uint32_t)u64_read_field(
-		        cmd_param, DPRC_GET_ATTR_OPTIONS_O,
-		        DPRC_GET_ATTR_OPTIONS_S);
-		attributes->spawn_policy =
-		        (enum dprc_spawn_policy)u64_read_field(
-		                cmd_param, DPRC_GET_ATTR_SPAWN_O,
-		                DPRC_GET_ATTR_SPAWN_S);
-		attributes->allocation_policy =
-		        (enum dprc_alloc_policy)u64_read_field(
-		                cmd_param, DPRC_GET_ATTR_ALLOC_O,
-		                DPRC_GET_ATTR_ALLOC_S);
+		attributes->container_id = (int)u64_read_field(
+		        cmd_param, DPRC_GET_ATTR_CONT_ID_O,
+		        DPRC_GET_ATTR_CONT_ID_S);
+
 	}
 	return err;
 }
