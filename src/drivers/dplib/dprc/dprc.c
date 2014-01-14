@@ -8,40 +8,6 @@
 #include "arch/fsl_cmdif_mc.h"
 #include "dprc.h"
 
-static int res_type_to_define(enum dp_res_type type)
-{
-	int i;
-	struct {
-		enum dp_res_type res_type;
-		int define;
-	} map[] = { { DP_RES_TYPE_DPNI, DEV_TYPE_DPNI }, { DP_RES_TYPE_DPIO,
-	                                                   DEV_TYPE_DPIO },
-	            { DP_RES_TYPE_DPSP, DEV_TYPE_DPSP }, { DP_RES_TYPE_DPSW,
-	                                                   DEV_TYPE_DPSW },
-	            { DP_RES_TYPE_DPRC, DEV_TYPE_DPRC } };
-	for (i = 0; i < NUM_OF_DEVS; i++)
-		if (type == map[i].res_type)
-			return map[i].define;pr_err("invalid res_type\n");
-	return -EINVAL;
-}
-
-static enum dp_res_type define_to_res_type(int def)
-{
-	int i;
-	struct {
-		enum dp_res_type res_type;
-		int define;
-	} map[] = { { DP_RES_TYPE_DPNI, DEV_TYPE_DPNI }, { DP_RES_TYPE_DPIO,
-	                                                   DEV_TYPE_DPIO },
-	            { DP_RES_TYPE_DPSP, DEV_TYPE_DPSP }, { DP_RES_TYPE_DPSW,
-	                                                   DEV_TYPE_DPSW },
-	            { DP_RES_TYPE_DPRC, DEV_TYPE_DPRC } };
-	for (i = 0; i < NUM_OF_DEVS; i++)
-		if (def == map[i].define)
-			return map[i].res_type;pr_err(
-	        "invalid define for res_type\n");
-	return DP_RES_TYPE_DEVICE_DUMMY_LAST;/*TODO - error*/
-}
 
 static void prepare_create_container_cmd(struct cmdif_cmd_data *desc,
                                          struct dprc_create_attributes *attr)
@@ -68,7 +34,7 @@ static void prepare_destroy_container_cmd(struct cmdif_cmd_data *desc,
 
 static void prepare_set_res_policy_cmd(struct cmdif_cmd_data *desc,
                                        int container_id,
-                                       enum dp_res_type type,
+                                       uint16_t type,
                                        enum dprc_alloc_policy alloc_policy,
                                        uint16_t quota)
 {
@@ -88,7 +54,7 @@ static void prepare_set_res_policy_cmd(struct cmdif_cmd_data *desc,
 
 static void prepare_get_res_policy_cmd(struct cmdif_cmd_data *desc,
                                        int container_id,
-                                       enum dp_res_type type)
+                                       uint16_t type)
 {
 	uint64_t cmd_param = 0;
 	/* build param 1*/
@@ -206,7 +172,7 @@ static void receive_get_device_cmd(struct cmdif_cmd_data *desc,
 }
 
 static void prepare_get_res_count_cmd(struct cmdif_cmd_data *desc,
-                                      enum dp_res_type type)
+                                      uint16_t type)
 {
 	uint64_t cmd_param = 0;
 	/* build param 1*/
@@ -216,7 +182,7 @@ static void prepare_get_res_count_cmd(struct cmdif_cmd_data *desc,
 }
 
 static void prepare_get_res_ids_cmd(struct cmdif_cmd_data *desc,
-                                    enum dp_res_type res_type,
+                                    uint16_t res_type,
                                     int num_of_ids)
 {
 	uint64_t cmd_param = 0;
@@ -416,7 +382,7 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id)
 
 int dprc_set_res_alloc_policy(struct dprc *dprc,
                               int child_container_id,
-                              enum dp_res_type res_type,
+                              uint16_t res_type,
                               enum dprc_alloc_policy alloc_policy,
                               uint16_t quota)
 {
@@ -436,7 +402,7 @@ int dprc_set_res_alloc_policy(struct dprc *dprc,
 
 int dprc_get_res_alloc_policy(struct dprc *dprc,
                               int child_container_id,
-                              enum dp_res_type res_type,
+                              uint16_t res_type,
                               enum dprc_alloc_policy *alloc_policy,
                               uint16_t *quota)
 {
@@ -550,7 +516,7 @@ int dprc_get_device(struct dprc *dprc,
 }
 
 int dprc_get_res_count(struct dprc *dprc,
-                       enum dp_res_type res_type,
+                       uint16_t res_type,
                        int *res_count)
 {
 
@@ -569,7 +535,7 @@ int dprc_get_res_count(struct dprc *dprc,
 }
 
 int dprc_get_res_ids(struct dprc *dprc,
-                     enum dp_res_type res_type,
+                     uint16_t res_type,
                      int res_ids_num,
                      uint32_t *res_ids,
                      int *valid_count) /*TODO - add valid count */
