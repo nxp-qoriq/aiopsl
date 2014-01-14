@@ -111,11 +111,11 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	}
 
 	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*/
-	__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
-	       *(((uint32_t *)&tbl_params->miss_result) + 2),
-	       *(((uint32_t *)&tbl_params->miss_result) + 3),
-	       *(((uint32_t *)&tbl_params->miss_result) + 4),
-	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv) + 1));
+	__stqw(*(((uint32_t *)&(tbl_params->miss_result)) + 1),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 2),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 3),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 4),
+	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv)) + 1);
 	/* Copy miss result  - First 4 bytes */
 	*((uint32_t *)(&(tbl_crt_in_msg.miss_lookup_fcv))) =
 			*((uint32_t *)&tbl_params->miss_result);
