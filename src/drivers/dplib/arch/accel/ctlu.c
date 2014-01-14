@@ -950,24 +950,29 @@ int32_t ctlu_kcr_builder_add_valid_field_fec(uint8_t mask,
 	uint8_t	nmsk_moff0 = 0x00; /* indicates 1 bytes mask from offset 0x00 */
 	uint8_t	fec_bytes_num = CTLU_KCR_VALID_FIELD_FEC_SIZE;
 
-	if ((curr_byte + fec_bytes_num) > CTLU_KCR_MAX_KCR_SIZE)
-		return CTLU_KCR_SIZE_ERR;
-
-	/* Build the FEC */
-	/* Valid field FECID, mask extension indication*/
-	kb->kcr[curr_byte] = CTLU_KCR_VF_FECID << 1;
 	if (mask) {
-		kb->kcr[curr_byte] = kb->kcr[curr_byte] | CTLU_KCR_MASK_EXT;
 		fec_bytes_num = fec_bytes_num + 2;
+		if ((curr_byte + fec_bytes_num) > CTLU_KCR_MAX_KCR_SIZE)
+			return CTLU_KCR_SIZE_ERR;
 
+		kb->kcr[curr_byte] = (CTLU_KCR_VF_FECID << 1) |
+				     CTLU_KCR_MASK_EXT;
 		kb->kcr[curr_byte+1] = 0x0;
 		kb->kcr[curr_byte+2] = nmsk_moff0;
 		kb->kcr[curr_byte+3] = mask;
+	} else {
+		if ((curr_byte + fec_bytes_num) > CTLU_KCR_MAX_KCR_SIZE)
+			return CTLU_KCR_SIZE_ERR;
+
+		kb->kcr[curr_byte] = CTLU_KCR_VF_FECID << 1;
+		kb->kcr[curr_byte+1] = 0x0;
 	}
+	/* Build the FEC */
+	/* Valid field FECID, mask extension indication*/
 
 	/* Update kcr_builder struct */
 	kb->kcr[0] += 1;
-	kb->kcr_length = fec_bytes_num;
+	kb->kcr_length += fec_bytes_num;
 
 	return CTLU_KCR_SUCCESSFUL_OPERATION;
 
