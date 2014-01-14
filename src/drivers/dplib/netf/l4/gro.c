@@ -110,9 +110,7 @@ int32_t tcp_gro_aggregate_seg(
 				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 		/* in case there is an option it must be a timestamp option */
 		if (data_offset > TCP_HDR_LENGTH){
-			gro_ctx.timestamp = *((uint32_t *)
-				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset +
-				TCP_TIMSTAMP_OPTION_VALUE_OFFSET));
+			gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
 			gro_ctx.internal_flags |= TCP_GRO_HAS_TIMESTAMP; 
 		}
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()){
@@ -184,8 +182,7 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	data_offset = tcp->data_offset_reserved >> 
 			NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
 	if (data_offset > TCP_HDR_LENGTH)
-		timestamp = *((uint32_t *)(PARSER_GET_L4_OFFSET_DEFAULT() + 
-			TCP_HDR_LENGTH + TCP_TIMSTAMP_OPTION_VALUE_OFFSET));
+		timestamp = ((struct tcphdr_gro *)tcp)->tsval;
 	else
 		timestamp = 0;
 	
