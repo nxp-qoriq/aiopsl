@@ -110,6 +110,25 @@ struct gro_global_parameters {
 	uint8_t  gro_timeout_epid;
 };
 
+/**************************************************************************//**
+@Description	TCP GRO Header Structure
+
+		Includes TCP header + Timestamp option.
+
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct tcphdr_gro {
+	/** TCP structure */
+	struct tcphdr tcp;
+		/** TCP option kind */
+	uint8_t  option_kind;
+		/** TCP option length */
+	uint8_t  option_length;
+		/** TCP timestamp option value of the TCP sending the option. */
+	uint32_t tsval;
+};
+#pragma pack(pop)
+
 /** @} */ /* end of TCP_GRO_INTERNAL_STRUCTS */
 
 
@@ -290,13 +309,10 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 #define GRO_STAT_AGG_FLUSH_REQUEST_NUM_CNTR_OFFSET			\
 	offsetof(struct tcp_gro_stats_cntrs, agg_flush_request_num_cntr)
 
-	/* TCP data_offset field offset value */
-#define TCP_DATA_OFFSET_OFFSET	4
-
 	/* TCP Timestamp option kind */
-#define TCP_TIMSTAMP_OPTION_KIND	8
-	/* TCP Timestamp option value offset */
-#define TCP_TIMSTAMP_OPTION_VALUE_OFFSET	2
+#define TCP_GRO_TCP_TIMSTAMP_OPTION_KIND	8
+	/* IPV6 ECN_OFFSET */
+#define	TCP_GRO_IPV6_ECN_OFFSET			4
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
@@ -387,13 +403,17 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
-@Description	Calculate the TCP header checksum. 
+@Description	Calculate the TCP header checksum from the data checksum (which 
+		was calculated previously) and the header checksum. 
+
+@Param[in]	gro_ctx - Pointer to the internal GRO context.
 
 @Return		Calculated header checksum.
 
 @Cautions	None.
 *//***************************************************************************/
-uint16_t tcp_gro_calc_tcp_header_cksum();
+uint16_t tcp_gro_calc_tcp_header_cksum(
+		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_data_cksum

@@ -1088,9 +1088,6 @@ struct ctlu_table_create_params {
 	Please note that this value is not returned through
 	\ref ctlu_table_get_params() function. */
 	uint8_t  key_size;
-
-	/** Padding */
-	uint8_t  pad;
 };
 
 
@@ -1116,9 +1113,6 @@ struct ctlu_table_get_params_output {
 	Please refer to \link FSL_CTLU_TABLE_ATTRIBUTES Table Attributes macros
 	\endlink for more details. */
 	uint16_t attributes;
-
-	/** Padding */
-	uint16_t pad;
 };
 
 
@@ -1133,9 +1127,6 @@ struct	ctlu_kcr_builder{
 	/** KCR length
 	Number of bytes the NFEC and FECs occupy */
 	uint8_t  kcr_length;
-
-	/** Padding */
-	uint8_t  pad[3];
 };
 
 
@@ -1169,9 +1160,6 @@ struct	ctlu_kcr_builder_fec_mask{
 
 	/** Number of masks (1-4) */
 	uint8_t	num_of_masks;
-
-	/** Padding */
-	uint8_t pad[3];
 };
 
 /** @} */ /* end of FSL_CTLU_STRUCTS */
