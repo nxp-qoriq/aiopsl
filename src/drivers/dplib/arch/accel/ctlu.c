@@ -827,12 +827,6 @@ int32_t ctlu_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 	/* General extraction FECID, mask extension indication */
 	fecid = CTLU_KCR_GEC_FECID << 1;
 
-	/* OP0, OP1 & OP2 */
-
-	op0 = 0;
-	op1 = 0;
-	op2 = 0;
-
 	switch (extract_field) {
 
 	case (CTLU_KCR_EXT_OPAQUE0):
