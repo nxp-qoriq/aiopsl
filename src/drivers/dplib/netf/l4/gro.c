@@ -35,17 +35,19 @@ int32_t tcp_gro_aggregate_seg(
 {
 	struct tcp_gro_context gro_ctx;
 	struct tcphdr *tcp;
-	struct ipv4hdr *ipv4;
 	int32_t status;
 	int32_t sr_status;
+	uint32_t ecn;
 	uint16_t seg_size;
 	uint8_t data_offset;
 	
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	
 	/* read GRO context*/
 	sr_status = cdma_read_with_mutex(tcp_gro_context_addr, 
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx), sizeof(struct tcp_gro_context));
+	
 	/* add segment to an existing aggregation */
 	if (gro_ctx.metadata.seg_num != 0){
 		status = tcp_gro_add_seg_to_aggregation(&gro_ctx);
@@ -56,6 +58,7 @@ int32_t tcp_gro_aggregate_seg(
 					sizeof(struct tcp_gro_context));
 		return status;
 	}
+	
 	/* read segment sizes address */
 	if (flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
 		sr_status = cdma_read(&(gro_ctx.metadata.seg_sizes_addr), 
@@ -64,11 +67,14 @@ int32_t tcp_gro_aggregate_seg(
 		sr_status = cdma_write(gro_ctx.metadata.seg_sizes_addr, &seg_size, 
 			sizeof(seg_size));
 	}
+	
 	/* set metadada values */
 	gro_ctx.metadata.seg_num = 1;
 	gro_ctx.metadata.max_seg_size = seg_size;
+	
 	/* New aggregation - Initialize GRO Context */
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
+	
 	/* Flush Aggregation */
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) {
 		/* write metadata to external memory */
@@ -86,7 +92,7 @@ int32_t tcp_gro_aggregate_seg(
 				STE_MODE_COMPOUND_CNTR_SATURATE |
 				STE_MODE_COMPOUND_ACC_SATURATE);
 		return TCP_GRO_SEG_AGG_DONE_NEW_AGG;
-	} else /* Aggregate */ {
+	} else { /* Aggregate */
 		/* Todo - shouldn't we set the timer after we write the context 
 		 * to DDR? so there will not be a case it expires before we even
 		 * save the context the first time to DDR
@@ -113,13 +119,15 @@ int32_t tcp_gro_aggregate_seg(
 			gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
 			gro_ctx.internal_flags |= TCP_GRO_HAS_TIMESTAMP; 
 		}
-		if (PARSER_IS_OUTER_IPV4_DEFAULT()){
-			ipv4 = (struct ipv4hdr *)
-				PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-			/* Set ECN flags */
-			gro_ctx.internal_flags |= (*((uint32_t *)ipv4) &
-					TCP_GRO_ECN_MASK);
-		}
+		
+		/* set ECN flags */
+		ecn = *((uint32_t *)(PARSER_GET_OUTER_IP_POINTER_DEFAULT()));
+		if (PARSER_IS_OUTER_IPV6_DEFAULT())
+			ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
+		ecn = ecn & TCP_GRO_ECN_MASK;
+		gro_ctx.internal_flags |= ecn;
+		
+		/* calculate tcp checksum */
 		if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
 			gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum();
 		
@@ -127,6 +135,7 @@ int32_t tcp_gro_aggregate_seg(
 		sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(), 
 				*(uint8_t *)HWC_SPID_ADDRESS, 
 				&(gro_ctx.agg_fd_isolation_attributes));
+		
 		/* copy default FD to gro context */
 		gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 		/* write gro context back to DDR + release mutex */
@@ -134,6 +143,7 @@ int32_t tcp_gro_aggregate_seg(
 				CDMA_POSTDMA_MUTEX_RM_BIT, 
 				(void *)&gro_ctx, 
 				sizeof(struct tcp_gro_context));
+		
 		/* update statistics */
 		ste_inc_counter(gro_ctx.params.stats_addr + 
 			GRO_STAT_SEG_NUM_CNTR_OFFSET, 
@@ -147,10 +157,10 @@ int32_t tcp_gro_aggregate_seg(
 int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 {
 	struct tcphdr *tcp;
-	struct ipv4hdr *ipv4;
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_concatenate_frames_params concat_params;
 	uint32_t timestamp;
+	uint32_t ecn;
 	int32_t  sr_status;
 	uint16_t headers_size;
 	uint16_t seg_size;
@@ -158,7 +168,6 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	uint8_t  data_offset;
 	
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
-	ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 	
 	/* Check for termination conditions due to the current segment.
 	 * In case one of the following conditions is met, close the aggregation 
@@ -172,6 +181,7 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 		return 
 		 tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
 	}
+
 	/* 2. IP ECN value of the new packet is different from previously 
 	 * coalesced packet.
 	 * 3. Aggregated timestamp value is different than the new segment 
@@ -179,17 +189,19 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	 * 4. Segment ACK number is less than the ACK number of the previously 
 	 * coalesced segment. 
 	 * 5. PHS flag is set for the aggregation from the previous segment */
+	ecn = *((uint32_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
+	if (PARSER_IS_OUTER_IPV6_DEFAULT())
+		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
+	ecn &= TCP_GRO_ECN_MASK;
 	data_offset = tcp->data_offset_reserved >> 
 			NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
+	timestamp = 0;
 	if (data_offset > TCP_HDR_LENGTH)
 		timestamp = ((struct tcphdr_gro *)tcp)->tsval;
-	else
-		timestamp = 0;
 	
-	if (((gro_ctx->internal_flags & TCP_GRO_ECN_MASK) != 
-		(*((uint32_t *)ipv4) & TCP_GRO_ECN_MASK)) ||
-		(gro_ctx->timestamp != timestamp) ||
-		(gro_ctx->last_ack > tcp->acknowledgment_number) ||
+	if (((gro_ctx->internal_flags & TCP_GRO_ECN_MASK) != ecn)	||
+		(gro_ctx->timestamp != timestamp) 			||
+		(gro_ctx->last_ack > tcp->acknowledgment_number) 	||
 		(gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET))
 		return tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
 	

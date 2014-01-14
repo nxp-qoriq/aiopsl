@@ -310,9 +310,9 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 	offsetof(struct tcp_gro_stats_cntrs, agg_flush_request_num_cntr)
 
 	/* TCP Timestamp option kind */
-#define TCP_TIMSTAMP_OPTION_KIND	8
-	/* TCP Timestamp option value offset */
-#define TCP_TIMSTAMP_OPTION_VALUE_OFFSET	2
+#define TCP_GRO_TCP_TIMSTAMP_OPTION_KIND	8
+	/* IPV6 ECN_OFFSET */
+#define	TCP_GRO_IPV6_ECN_OFFSET			4
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
