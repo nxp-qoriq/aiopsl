@@ -119,7 +119,7 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 *//***************************************************************************/
 
 	/** Size of modification in IP header of the source frame in the first 
-	 * iteration.. */
+	 * iteration. */
 #define TCP_GSO_IP_MODIFICATION_SIZE	12
 	
 
