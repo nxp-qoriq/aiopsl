@@ -403,13 +403,17 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
-@Description	Calculate the TCP header checksum. 
+@Description	Calculate the TCP header checksum from the data checksum (which 
+		was calculated previously) and the header checksum. 
+
+@Param[in]	gro_ctx - Pointer to the internal GRO context.
 
 @Return		Calculated header checksum.
 
 @Cautions	None.
 *//***************************************************************************/
-uint16_t tcp_gro_calc_tcp_header_cksum();
+uint16_t tcp_gro_calc_tcp_header_cksum(
+		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_data_cksum
