@@ -38,6 +38,7 @@ static void prepare_set_res_policy_cmd(struct cmdif_cmd_data *desc,
                                        enum dprc_alloc_policy alloc_policy,
                                        uint16_t quota)
 {
+#if 0
 	uint64_t cmd_param = 0;
 	/* build param 1*/
 	cmd_param = u64_write_field(cmd_param, DPRC_SET_RES_ALLOC_P_CONT_ID_O,
@@ -50,12 +51,14 @@ static void prepare_set_res_policy_cmd(struct cmdif_cmd_data *desc,
 	cmd_param = u64_write_field(cmd_param, DPRC_SET_RES_ALLOC_P_QUOTA_O,
 	                            DPRC_SET_RES_ALLOC_P_QUOTA_S, quota);
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
+#endif
 }
 
 static void prepare_get_res_policy_cmd(struct cmdif_cmd_data *desc,
                                        int container_id,
                                        uint16_t type)
 {
+#if 0
 	uint64_t cmd_param = 0;
 	/* build param 1*/
 	cmd_param = u64_write_field(cmd_param, DPRC_GET_RES_ALLOC_P_CONT_ID_O,
@@ -64,6 +67,7 @@ static void prepare_get_res_policy_cmd(struct cmdif_cmd_data *desc,
 	cmd_param = u64_write_field(cmd_param, DPRC_GET_RES_ALLOC_P_RES_TYPE_O,
 	                            DPRC_GET_RES_ALLOC_P_RES_TYPE_S, type);
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
+#endif
 }
 
 static void prepare_reset_container_cmd(struct cmdif_cmd_data *desc,
@@ -406,7 +410,7 @@ int dprc_get_res_alloc_policy(struct dprc *dprc,
                               enum dprc_alloc_policy *alloc_policy,
                               uint16_t *quota)
 {
-
+#if 0
 	struct cmdif_cmd_data *cmd_data;
 	int err;
 	uint64_t cmd_param;
@@ -432,6 +436,7 @@ int dprc_get_res_alloc_policy(struct dprc *dprc,
 		}
 	}
 	return err;
+#endif
 }
 
 int dprc_reset_container(struct dprc *dprc, int child_container_id)

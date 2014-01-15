@@ -92,7 +92,7 @@
 /* param 1 */
 #define DPRC_RST_CONT_ID_O			0
 #define DPRC_RST_CONT_ID_S			32
-
+#if 0
 /* dprc_set_res_alloc_policy */
 /* param 1 */
 #define DPRC_SET_RES_ALLOC_P_CONT_ID_O		0
@@ -114,13 +114,13 @@
 #define DPRC_GET_RES_ALLOC_P_S			1
 #define DPRC_GET_RES_ALLOC_P_QUOTA_O		48
 #define DPRC_GET_RES_ALLOC_P_QUOTA_S		16
-
+#endif
 /* dprc_assign */
 /* param 1 */
 #define DPRC_ASSIGN_CONT_ID_O			0
 #define DPRC_ASSIGN_CONT_ID_S			32
 #define DPRC_ASSIGN_RES_TYPE_O			32
-#define DPRC_ASSIGN_RES_TYPE_S			6
+#define DPRC_ASSIGN_RES_TYPE_S			10
 /*param 2*/
 #define DPRC_ASSIGN_NUM_OF_RES_O		0
 #define DPRC_ASSIGN_NUM_OF_RES_S		32
@@ -135,14 +135,10 @@
 #define DPRC_UNASSIGN_CONT_ID_O			0
 #define DPRC_UNASSIGN_CONT_ID_S			32
 #define DPRC_UNASSIGN_RES_TYPE_O		32
-#define DPRC_UNASSIGN_RES_TYPE_S		6
-#define DPRC_UNASSIGN_ALIGN_O			38
+#define DPRC_UNASSIGN_RES_TYPE_S		10
+#define DPRC_UNASSIGN_ALIGN_O			42
 #define DPRC_UNASSIGN_ALIGN_S			1
-#define DPRC_UNASSIGN_SEQ_O			39
-#define DPRC_UNASSIGN_SEQ_S			1
-#define DPRC_UNASSIGN_VIRT_O			40
-#define DPRC_UNASSIGN_VIRT_S			16
-#define DPRC_UNASSIGN_NUM_OF_RES_O		41
+#define DPRC_UNASSIGN_NUM_OF_RES_O		43
 #define DPRC_UNASSIGN_NUM_OF_RES_S		7
 /* param 2 */
 #define DPRC_UNASSIGN_OPTIONS_O			0
@@ -180,18 +176,18 @@
 /* param 1 */
 #define DPRC_GET_RES_COUNT_COUNT_O		32
 #define DPRC_GET_RES_COUNT_COUNT_S		32
-#define DPRC_GET_RES_COUNT_TYPE_O		24	
-#define DPRC_GET_RES_COUNT_TYPE_S		8
+#define DPRC_GET_RES_COUNT_TYPE_O		32	
+#define DPRC_GET_RES_COUNT_TYPE_S		10
 
 /*	dprc_get_res_ids */
 /* param 1 */
 #define DPRC_GET_RES_IDS_RES_IDS_O		0
 #define DPRC_GET_RES_IDS_RES_IDS_S		32
 #define DPRC_GET_RES_IDS_RES_TYPE_O		32
-#define DPRC_GET_RES_IDS_RES_TYPE_S		6
-#define DPRC_GET_RES_IDS_NUM_OF_IDS_O		41
+#define DPRC_GET_RES_IDS_RES_TYPE_S		10
+#define DPRC_GET_RES_IDS_NUM_OF_IDS_O		42
 #define DPRC_GET_RES_IDS_NUM_OF_IDS_S		7
-#define DPRC_GET_RES_IDS_IDX_O			48
+#define DPRC_GET_RES_IDS_IDX_O			49
 #define DPRC_GET_RES_IDS_IDX_S			8
 
 #define DPRC_GET_RES_IDS_VALID_CNT_O		0
@@ -212,6 +208,7 @@
 /* param 2 */
 #define DPRC_GET_ATTR_OPTIONS_O			0
 #define DPRC_GET_ATTR_OPTIONS_S			32
+
 
 /* dprc_get_dev_region */
 /* param 1 */
