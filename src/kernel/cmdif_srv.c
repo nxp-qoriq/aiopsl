@@ -1,4 +1,5 @@
 #include "common/types.h"
+#include "common/gen.h"
 #include "common/fsl_cmdif.h"
 
 
@@ -6,8 +7,7 @@ int cmdif_srv_init(void);
 void cmdif_srv_free(void);
 
 
-int cmdif_register_module (enum fsl_os_module module,
-			   struct cmdif_module_ops *ops)
+int cmdif_register_module(enum cmdif_module module, struct cmdif_module_ops *ops)
 {
 UNUSED(module);UNUSED(ops);
 	/* TODO - complete here!!! */

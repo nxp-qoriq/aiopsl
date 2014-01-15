@@ -101,30 +101,22 @@
 #define DEFAULT_POLL_LF_2Crlf             0           /*Default value for lf2crlf is false*/
 
 
-#if defined(__MWERKS__) && !defined(__GNUC__)
-#pragma pack(push,1)
-#endif /* defined(__MWERKS__) && ... */
-
 /**************************************************************************//**
  @Description   structure representing DUART UART memory map
 
 *//***************************************************************************/
-typedef _prepacked struct t_duart_mem_map {
-    volatile uint8_t urbr_uthr_udlb;    /**< combined register for URBR, UTHR and UDLB */
-    volatile uint8_t uier_udmb;         /**< combined register for UIER and UDMB */
-    volatile uint8_t uiir_ufcr_uafr;    /**< combined register for UIIR, UFCR and UAFR */
-    volatile uint8_t ulcr;              /**< line control register */
-    volatile uint8_t umcr;              /**< MODEM control register */
-    volatile uint8_t ulsr;              /**< line status register */
-    volatile uint8_t umsr;              /**< MODEM status register */
-    volatile uint8_t uscr;              /**< scratch register */
-    volatile uint8_t RESERVED0[8];
-    volatile uint8_t udsr;              /**< DMA status register */
-} _packed t_duart_mem_map;
-
-#if defined(__MWERKS__) && !defined(__GNUC__)
-#pragma pack(pop)
-#endif /* defined(__MWERKS__) && ... */
+typedef struct t_duart_mem_map {
+    uint8_t urbr_uthr_udlb;    /**< combined register for URBR, UTHR and UDLB */
+    uint8_t uier_udmb;         /**< combined register for UIER and UDMB */
+    uint8_t uiir_ufcr_uafr;    /**< combined register for UIIR, UFCR and UAFR */
+    uint8_t ulcr;              /**< line control register */
+    uint8_t umcr;              /**< MODEM control register */
+    uint8_t ulsr;              /**< line status register */
+    uint8_t umsr;              /**< MODEM status register */
+    uint8_t uscr;              /**< scratch register */
+    uint8_t RESERVED0[8];
+    uint8_t udsr;              /**< DMA status register */
+} t_duart_mem_map;
 
 
 /**************************************************************************//**

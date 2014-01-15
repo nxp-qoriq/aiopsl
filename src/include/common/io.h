@@ -3,54 +3,104 @@
 
  @File          io.h
 
- @Description   TODO
+ @Description   I/O accessors
  *//***************************************************************************/
 #ifndef __FSL_IO_H
 #define __FSL_IO_H
 
 #include "common/types.h"
+#include "common/endian.h"
 
-/************************/
-/* I/O access macros */
-/************************/
+static inline uint8_t ioread8(const volatile uint8_t *addr)
+{
+	uint8_t ret = *addr;
+	core_memory_barrier();
+	return ret;
+}
 
-#define GET_UINT8(arg)              *(volatile uint8_t *)(&(arg))
-#define GET_UINT16(arg)             *(volatile uint16_t*)(&(arg))
-#define GET_UINT32(arg)             *(volatile uint32_t*)(&(arg))
-#define GET_UINT64(arg)             *(volatile uint64_t*)(&(arg))
+static inline uint16_t ioread16(const volatile uint16_t *addr)
+{
+	uint16_t ret = LE16_TO_CPU(*addr);
+	core_memory_barrier();
+	return ret;
+}
 
-#define _WRITE_UINT8(arg, data)     *(volatile uint8_t *)(&(arg)) = (data)
-#define _WRITE_UINT16(arg, data)    *(volatile uint16_t*)(&(arg)) = (data)
-#define _WRITE_UINT32(arg, data)    *(volatile uint32_t*)(&(arg)) = (data)
-#define _WRITE_UINT64(arg, data)    *(volatile uint64_t*)(&(arg)) = (data)
+static inline uint16_t ioread16be(const volatile uint16_t *addr)
+{
+	uint16_t ret = BE16_TO_CPU(*addr);
+	core_memory_barrier();
+	return ret;
+}
 
-#ifdef DEBUG_IO_WRITE
-#define WRITE_UINT8(arg, data)  \
-    do { fsl_os_print("ADDR: 0x%08x, VAL: 0x%02x\r\n",    (uint32_t)&(arg), (data)); _WRITE_UINT8((arg), (data)); } while (0)
-#define WRITE_UINT16(arg, data) \
-    do { fsl_os_print("ADDR: 0x%08x, VAL: 0x%04x\r\n",    (uint32_t)&(arg), (data)); _WRITE_UINT16((arg), (data)); } while (0)
-#define WRITE_UINT32(arg, data) \
-    do { fsl_os_print("ADDR: 0x%08x, VAL: 0x%08x\r\n",    (uint32_t)&(arg), (data)); _WRITE_UINT32((arg), (data)); } while (0)
-#define WRITE_UINT64(arg, data) \
-    do { fsl_os_print("ADDR: 0x%08x, VAL: 0x%016llx\r\n", (uint32_t)&(arg), (data)); _WRITE_UINT64((arg), (data)); } while (0)
+static inline uint32_t ioread32(const volatile uint32_t *addr)
+{
+	uint32_t ret = LE32_TO_CPU(*addr);
+	core_memory_barrier();
+	return ret;
+}
 
-#else  /* not DEBUG_IO_WRITE */
-#define WRITE_UINT8     _WRITE_UINT8
-#define WRITE_UINT16    _WRITE_UINT16
-#define WRITE_UINT32    _WRITE_UINT32
-#define WRITE_UINT64    _WRITE_UINT64
-#endif /* not DEBUG_IO_WRITE */
+static inline uint32_t ioread32be(const volatile uint32_t *addr)
+{
+	uint32_t ret = BE32_TO_CPU(*addr);
+	core_memory_barrier();
+	return ret;
+}
 
-#define ioread8(_addr)              GET_UINT8(*_addr)
-#define ioread16be(_addr)           GET_UINT16(*_addr)
-#define ioread32be(_addr)           GET_UINT32(*_addr)
-#define ioread64be(_addr)           GET_UINT64(*_addr)
+static inline uint64_t ioread64(const volatile uint64_t *addr)
+{
+	uint64_t ret = LE64_TO_CPU(*addr);
+	core_memory_barrier();
+	return ret;
+}
 
-#define iowrite8(_val, _addr)       WRITE_UINT8(*_addr, _val)
-#define iowrite16be(_val, _addr)    WRITE_UINT16(*_addr, _val)
-#define iowrite32be(_val, _addr)    WRITE_UINT32(*_addr, _val)
-#define iowrite64be(_val, _addr)    WRITE_UINT64(*_addr, _val)
+static inline uint64_t ioread64be(const volatile uint64_t *addr)
+{
+	uint64_t ret = BE64_TO_CPU(*addr);
+	core_memory_barrier();
+	return ret;
+}
 
+static inline void iowrite8(uint8_t val, volatile uint8_t *addr)
+{
+	*addr = val;
+	core_memory_barrier();
+}
+
+static inline void iowrite16(uint16_t val, volatile uint16_t *addr)
+{
+	*addr = CPU_TO_LE16(val);
+	core_memory_barrier();
+}
+
+static inline void iowrite16be(uint16_t val, volatile uint16_t *addr)
+{
+	*addr = CPU_TO_BE16(val);
+	core_memory_barrier();
+}
+
+static inline void iowrite32(uint32_t val, volatile uint32_t *addr)
+{
+	*addr = CPU_TO_LE32(val);
+	core_memory_barrier();
+}
+
+static inline void iowrite32be(uint32_t val, volatile uint32_t *addr)
+{
+	*addr = CPU_TO_BE32(val);
+	core_memory_barrier();
+}
+
+static inline void iowrite64(uint64_t val, volatile uint64_t *addr)
+{
+	*addr = CPU_TO_LE64(val);
+	core_memory_barrier();
+}
+
+static inline void iowrite64be(uint64_t val, volatile uint64_t *addr)
+{
+	*addr = CPU_TO_BE64(val);
+	core_memory_barrier();
+}
 
 /**************************************************************************//**
  @Function      memcpy32
@@ -72,9 +122,9 @@
  to supply non-null parameters as source & destination and size
  that actually fits into the destination buffer.
  *//***************************************************************************/
-void * io2iocpy32(void* p_dst, void* p_src, uint32_t size);
-void * io2memcpy32(void* p_dst, void* p_src, uint32_t size);
-void * mem2iocpy32(void* p_dst, void* p_src, uint32_t size);
+void *io2iocpy32(void* p_dst, void* p_src, uint32_t size);
+void *io2memcpy32(void* p_dst, void* p_src, uint32_t size);
+void *mem2iocpy32(void* p_dst, void* p_src, uint32_t size);
 
 /**************************************************************************//**
  @Function      iomemset32
@@ -92,7 +142,7 @@ void * mem2iocpy32(void* p_dst, void* p_src, uint32_t size);
  to supply non null parameter as destination and size
  that actually fits into the destination buffer.
  *//***************************************************************************/
-void * iomemset32(void* p_dst, uint8_t val, uint32_t size);
+void *iomemset32(void* p_dst, uint8_t val, uint32_t size);
 
 /**************************************************************************//**
  @Function      fsl_os_phys_to_virt
@@ -103,7 +153,7 @@ void * iomemset32(void* p_dst, uint8_t val, uint32_t size);
 
  @Return        Virtual address.
  *//***************************************************************************/
-void * fsl_os_phys_to_virt(dma_addr_t addr);
+void *fsl_os_phys_to_virt(dma_addr_t addr);
 
 /**************************************************************************//**
  @Function      fsl_os_virt_to_phys
@@ -115,6 +165,5 @@ void * fsl_os_phys_to_virt(dma_addr_t addr);
  @Return        Physical address.
  *//***************************************************************************/
 dma_addr_t fsl_os_virt_to_phys(void *addr);
-
 
 #endif /* __FSL_IO_H */
