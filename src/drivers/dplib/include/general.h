@@ -480,8 +480,9 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
-	/** parser accelerator status */
-	int32_t parser_status;
+	/** Distribution hash value passed to QMan for distribution
+	 * purpose on the enqueue. */
+	uint16_t hash_value;
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
@@ -753,6 +754,16 @@ struct aiop_default_task_params {
 #define IPV4_HDR_FRAG_OFFSET_OFFSET 0 /*!< IPv4 fragment offset field offset */
 
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
+
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control 
+		Protocol (TCP) Definitions
+@{
+*//***************************************************************************/
+#define TCP_HDR_LENGTH		      20   /**< TCP header length */
+
+/** @} */ /* end of AIOP_General_Protocols_TCP_Definitions */
+
 /** @} */ /* end of FSL_General_Protocols_Macros */
 /** @} */ /* end of AIOP_General_Protocols */
 /** @} */ /* end of AIOP_General_Definitions */

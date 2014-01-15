@@ -12,4 +12,7 @@
 #include "common\fsl_cmdif.h"
 #include "dplib\fsl_dprc.h"
 
+/* res_type defines */
+
+
 #endif /* _DPRC_H */

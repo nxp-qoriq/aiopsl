@@ -6,9 +6,10 @@
 #ifndef __GRO_H
 #define __GRO_H
 
+#include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_gro.h"
 #include "dplib/fsl_fdma.h"
-#include "dplib/fsl_ldpaa.h"
+
 
 
 /** \addtogroup FSL_AIOP_GRO
@@ -100,10 +101,33 @@ struct tcp_gro_context {
 @Description	GRO Global parameters
 *//***************************************************************************/
 
-struct gro_global_parameters {
+struct gro_global_parameters {	
 		/** GRO Timeout flags \ref GRO_INTERNAL_TIMEOUT_FLAGS. */
 	uint32_t timeout_flags;
+		/** Should got either as a global define or as a return
+		 * parameter from a dedicated  ARENA function 
+		 * (epid = get_tmi_epid(tmi_id)).*/
+	uint8_t  gro_timeout_epid;
 };
+
+/**************************************************************************//**
+@Description	TCP GRO Header Structure
+
+		Includes TCP header + Timestamp option.
+
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct tcphdr_gro {
+	/** TCP structure */
+	struct tcphdr tcp;
+		/** TCP option kind */
+	uint8_t  option_kind;
+		/** TCP option length */
+	uint8_t  option_length;
+		/** TCP timestamp option value of the TCP sending the option. */
+	uint32_t tsval;
+};
+#pragma pack(pop)
 
 /** @} */ /* end of TCP_GRO_INTERNAL_STRUCTS */
 
@@ -261,9 +285,34 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 	/** Metadata 3rd member size. */
 #define METADATA_MEMBER3_SIZE (sizeof(					\
 		((struct tcp_gro_context_metadata *)0)->max_seg_size))
+	
 
-	/** Segment default headroom size. */
-#define SEGMENT_HEADOOM_SIZE	128
+	/* agg_num_cntr counter offset in statistics structure */
+#define GRO_STAT_AGG_NUM_CNTR_OFFSET					\
+	offsetof(struct tcp_gro_stats_cntrs, agg_num_cntr)
+	/* seg_num_cntr counter offset in statistics structure */
+#define GRO_STAT_SEG_NUM_CNTR_OFFSET					\
+	offsetof(struct tcp_gro_stats_cntrs, seg_num_cntr)
+	/* agg_timeout_cntr counter offset in statistics structure */
+#define GRO_STAT_AGG_TIMEOUT_CNTR_OFFSET				\
+	offsetof(struct tcp_gro_stats_cntrs, agg_timeout_cntr)
+	/* agg_max_seg_num_cntr counter offset in statistics structure */
+#define GRO_STAT_AGG_MAX_SEG_NUM_CNTR_OFFSET				\
+	offsetof(struct tcp_gro_stats_cntrs, agg_max_seg_num_cntr)
+	/* agg_max_packet_size_cntr counter offset in statistics structure */
+#define GRO_STAT_AGG_MAX_PACKET_SIZE_CNTR_OFFSET			\
+	offsetof(struct tcp_gro_stats_cntrs, agg_max_packet_size_cntr)
+	/* unexpected_seq_num_cntr counter offset in statistics structure */
+#define GRO_STAT_UNEXPECTED_SEQ_NUM_CNTR_OFFSET				\
+	offsetof(struct tcp_gro_stats_cntrs, unexpected_seq_num_cntr)
+	/* agg_flush_request_num_cntr counter offset in statistics structure */
+#define GRO_STAT_AGG_FLUSH_REQUEST_NUM_CNTR_OFFSET			\
+	offsetof(struct tcp_gro_stats_cntrs, agg_flush_request_num_cntr)
+
+	/* TCP Timestamp option kind */
+#define TCP_GRO_TCP_TIMSTAMP_OPTION_KIND	8
+	/* IPV6 ECN_OFFSET */
+#define	TCP_GRO_IPV6_ECN_OFFSET			4
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
@@ -301,6 +350,96 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 @Cautions	None.
 *//***************************************************************************/
 void gro_init(uint32_t timeout_flags);
+
+/**************************************************************************//**
+@Function	tcp_gro_add_seg_to_aggregation
+
+@Description	Add segment to an existing aggregation.
+
+@Param[in]	gro_ctx - Pointer to the internal GRO context. 
+
+@Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
+		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
+		\ref TMANReturnStatus for more details.
+
+@Cautions	None.
+*//***************************************************************************/
+int32_t tcp_gro_add_seg_to_aggregation(
+		struct tcp_gro_context *gro_ctx);
+
+/**************************************************************************//**
+@Function	tcp_gro_add_seg_and_close_aggregation
+
+@Description	Add segment to aggregation and close aggregation.
+
+@Param[in]	gro_ctx - Pointer to the internal GRO context. 
+
+@Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
+		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
+		\ref TMANReturnStatus for more details.
+
+@Cautions	None.
+*//***************************************************************************/
+int32_t tcp_gro_add_seg_and_close_aggregation(
+		struct tcp_gro_context *gro_ctx);
+
+/**************************************************************************//**
+@Function	tcp_gro_close_aggregation_and_open_new_aggregation
+
+@Description	Close an existing aggregation and start a new aggregation with 
+		the new segment.
+
+@Param[in]	gro_ctx - Pointer to the internal GRO context. 
+
+@Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
+		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
+		\ref TMANReturnStatus for more details.
+
+@Cautions	None.
+*//***************************************************************************/
+int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+		struct tcp_gro_context *gro_ctx);
+
+/**************************************************************************//**
+@Function	tcp_gro_calc_tcp_header_cksum
+
+@Description	Calculate the TCP header checksum from the data checksum (which 
+		was calculated previously) and the header checksum. 
+
+@Param[in]	gro_ctx - Pointer to the internal GRO context.
+
+@Return		Calculated header checksum.
+
+@Cautions	None.
+*//***************************************************************************/
+uint16_t tcp_gro_calc_tcp_header_cksum(
+		struct tcp_gro_context *gro_ctx);
+
+/**************************************************************************//**
+@Function	tcp_gro_calc_tcp_data_cksum
+
+@Description	Calculate the TCP data checksum. 
+
+@Return		Calculated data checksum.
+
+@Cautions	None.
+*//***************************************************************************/
+uint16_t tcp_gro_calc_tcp_data_cksum();
+
+/**************************************************************************//**
+@Function	tcp_gro_timeout_callback
+
+@Description	TCo GRO timeout callback.
+
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context. 
+
+@Return		None.
+
+@Cautions	None.
+*//***************************************************************************/
+void tcp_gro_timeout_callback(
+		uint64_t tcp_gro_context_addr);
 
 
 /** @} */ /* end of TCP_GRO_INTERNAL_FUNCTIONS */

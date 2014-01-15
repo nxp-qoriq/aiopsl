@@ -33,71 +33,75 @@ struct dprc {
  */
 
 /**
- * Resource types enumeration
+ * Resource types defines
  */
-enum dp_res_type {
-	DP_RES_TYPE_ICID,	//TODO - remove
+//uint16_t {
+#define	DP_RES_TYPE_DEF_ICID  0	//TODO - remove
 	/*!< Isolation contexts ID */
-	DP_RES_TYPE_MCPID,
+#define	DP_RES_TYPE_DEF_MCPID  1
 	/*!< Management portals */
-	DP_RES_TYPE_SWP,
+#define	DP_RES_TYPE_DEF_SWP  2
 	/*!< Software portals (base address + interrupt) */
-	DP_RES_TYPE_BPID,
+#define	DP_RES_TYPE_DEF_BPID  3
 	/*!< Buffer pools */
-	DP_RES_TYPE_CHANNELS,
+#define	DP_RES_TYPE_DEF_CHANNELS  4
 	/*!< Channels */
-	DP_RES_TYPE_FQID,
+#define	DP_RES_TYPE_DEF_FQID  5
 	/*!< Frame queues */
-	DP_RES_TYPE_QPR,
+#define	DP_RES_TYPE_DEF_QPR  6
 	/*!< Queuing priority record */
-	DP_RES_TYPE_QDID,
+#define	DP_RES_TYPE_DEF_QDID  7
 	/*!< Queuing destinations */
-	DP_RES_TYPE_CGID,
+#define	DP_RES_TYPE_DEF_CGID  8
 	/*!< Congestion groups */
-	DP_RES_TYPE_CEETM_LFQMTIDX,           
+#define	DP_RES_TYPE_DEF_CEETM_LFQMTIDX  9          
 	/*!< Logical Frame Queue Mapping Table Index */
-	DP_RES_TYPE_CEETM_DCTIDX,               
+#define	DP_RES_TYPE_DEF_CEETM_DCTIDX  10            
 	/*!< Dequeue Command Type Index */
-	DP_RES_TYPE_CEETM_CQCHID,                
+#define	DP_RES_TYPE_DEF_CEETM_CQCHID  11               
 	/*!< Class Queue Channel ID */
-	DP_RES_TYPE_CEETM_LNIID,
+#define	DP_RES_TYPE_DEF_CEETM_LNIID  12
 	/*!< !Logical Network Interface ID */
-	DP_RES_TYPE_TID,
+#define	DP_RES_TYPE_DEF_TID  13
 	/*!< Classification tables */
-	DP_RES_TYPE_KID,
+#define	DP_RES_TYPE_DEF_KID  14
 	/*!< Key ID*/
-	DP_RES_TYPE_PLPID,
+#define	DP_RES_TYPE_DEF_PLPID  15
 	/*!< Policer profiles ID */
-	DP_RES_TYPE_PRPID, 
-	/*!< parser profile ID */
-	DP_RES_TYPE_PPID,
+#define	DP_RES_TYPE_DEF_PRPID  16
+	/*!< Parser profile ID */
+#define	DP_RES_TYPE_DEF_PPID  17
 	/*!< Physical ports */
-	DP_RES_TYPE_IFPID,
+#define	DP_RES_TYPE_DEF_IFPID  18
 	/*!< Interface profiles */
-	DP_RES_TYPE_TASK,
+#define	DP_RES_TYPE_DEF_TASK  19
 	/*!< AIOP tasks*/
-	DP_RES_TYPE_LOOKUP_TABLE,	//TODO - same as TID?
+#define	DP_RES_TYPE_DEF_LOOKUP_TABLE  20	//TODO - same as TID?
 	/*!< Lookup tables */
-	DP_RES_TYPE_RP_PORT,
+#define	DP_RES_TYPE_DEF_RP_PORT  21
 	/*!< Recycle path port */
-	DP_RES_TYPE_RPLR,
+#define	DP_RES_TYPE_DEF_RPLR  22
 	/*!< Replication list record */
-	DP_RES_TYPE_DPSW_PORT,
+#define	DP_RES_TYPE_DEF_DPSW_PORT  23
 	/*!< DPSW port*/
-	DP_RES_TYPE_DEVICE_DUMMY_FIRST,	//TODO - ignore, will be removed
-	DP_RES_TYPE_DPNI,
+#define DP_RES_TYPE_DEF_POLICY_ID  24
+	/*!< Policy ID */
+	//DP_RES_TYPE_DEF_DEVICE_DUMMY_FIRST,	//TODO - ignore, will be removed
+#define	DP_RES_TYPE_DEF_DPNI 100
 	/*!< DPNI Device*/
-	DP_RES_TYPE_DPIO,
+#define	DP_RES_TYPE_DEF_DPIO 101
 	/*!< DPIO device */
-	DP_RES_TYPE_DPSP,
+#define	DP_RES_TYPE_DEF_DPSP 102
 	/*!< DPSP device */
-	DP_RES_TYPE_DPSW,
+#define	DP_RES_TYPE_DEF_DPSW 103
 	/*!< DPSW device */
-	DP_RES_TYPE_DEVICE_DUMMY_LAST, 	//TODO - ignore, will be removed
-	DP_RES_TYPE_DPRC,
-	DP_RES_TYPE_MC
+#define	DP_RES_TYPE_DEF_DPMAC 104
+	/*!< DPMAC device */
+//	DP_RES_TYPE_DEF_DEVICE_DUMMY_LAST, 	//TODO - ignore, will be removed
+#define	DP_RES_TYPE_DEF_DPRC 105
+#define	DP_RES_TYPE_DEF_MC 200
 //TODO - can be removed?
-};
+//};
 
 /*!
  * @name Resource request options
@@ -189,13 +193,13 @@ enum dprc_alloc_policy {
  * 		un-assignment of resources and devices.
  */
 struct dprc_res_req {
-	enum dp_res_type type;
+	uint16_t type;
 	/*!< Resource type */
 	uint32_t num;
 	/*!< Number of resources */
 	uint32_t options;
 	/*!< Request options */
-	int base_align;
+	int id_base_align;
 /*!<
  * In case of explicit assignment, this field represents the
  * required base ID for resource allocation;
@@ -368,7 +372,7 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  */
 int dprc_set_res_alloc_policy(struct dprc *dprc,
                               int child_container_id,
-                              enum dp_res_type res_type,
+                              uint16_t res_type,
                               enum dprc_alloc_policy alloc_policy,
                               uint16_t quota);
 
@@ -390,7 +394,7 @@ int dprc_set_res_alloc_policy(struct dprc *dprc,
  */
 int dprc_get_res_alloc_policy(struct dprc *dprc,
                               int child_container_id,
-                              enum dp_res_type res_type,
+                              uint16_t res_type,
                               enum dprc_alloc_policy *alloc_policy,
                               uint16_t *quota);
 
@@ -513,7 +517,7 @@ int dprc_get_device(struct dprc *dprc,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_count(struct dprc *dprc,
-                       enum dp_res_type res_type,
+                       uint16_t res_type,
                        int *res_count);
 
 /**
@@ -531,7 +535,7 @@ int dprc_get_res_count(struct dprc *dprc,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_ids(struct dprc *dprc,
-                     enum dp_res_type res_type,
+                     uint16_t res_type,
                      int res_ids_num,
                      uint32_t *res_ids,
                      int *valid_count);

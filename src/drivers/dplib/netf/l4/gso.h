@@ -43,8 +43,10 @@ struct tcp_gso_context {
 	/** Internal TCP GSO flags - Please refer to 
 	 * \ref TCP_GSO_INTERNAL_FLAGS */
 	uint32_t internal_flags;
-	/** Split Size. */
+	/** MSS */
 	uint16_t mss;
+	/** Split Size. */
+	uint16_t split_size;
 	/** Headers Size. */
 	uint16_t headers_size;
 	/** Urgent Pointer offset. */
@@ -62,7 +64,7 @@ struct tcp_gso_context {
 	/** First Segment indication */
 	uint8_t	first_seg;
 	/** Padding */
-	uint8_t	pad[1];
+	uint8_t	pad[7];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */
@@ -108,6 +110,21 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 
 /** @} */ /* end of TCP_GSO_INTERNAL_FLAGS */
 
+/**************************************************************************//**
+ @Group	TCP_GSO_INTERNAL_DEFINITIONS TCP GSO Internal Definitions
+
+ @Description TCP GSO Internal Definitions.
+
+ @{
+*//***************************************************************************/
+
+	/** Size of modification in IP header of the source frame in the first 
+	 * iteration. */
+#define TCP_GSO_IP_MODIFICATION_SIZE	12
+	
+
+/** @} */ /* end of TCP_GSO_INTERNAL_DEFINITIONS */
+
 /** @} */ /* end of TCP_GSO_INTERNAL_MACROS */
 
 /**************************************************************************//**
@@ -135,11 +152,27 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 int32_t tcp_gso_return_frame_remainder_as_default_frame(
 		tcp_gso_ctx_t tcp_gso_context_addr);
 
+/**************************************************************************//**
+@Function	tcp_gso_split_segment
+
+@Description	This function generates a single TCP segment and locates it in
+		the default frame location in the workspace. 
+		
+		The remaining source frame is kept in the internal GSO
+		structure.
+
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
+
+@Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
+
+@Cautions	None.
+*//***************************************************************************/
+int32_t tcp_gso_split_segment(
+		struct tcp_gso_context *gso_ctx);
+
 /** @} */ /* end of TCP_GSO_INTERNAL_FUNCTIONS */
 
 /** @} */ /* end of FSL_AIOP_TCP_GSO_INTERNAL */
-
-int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx);
 
 /** @} */ /* end of FSL_AIOP_GSO */
 

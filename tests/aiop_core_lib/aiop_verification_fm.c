@@ -7,13 +7,16 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_fdma.h"
-
-#include "aiop_verification.h"
 #include "dplib/fsl_cdma.h"
+#include "dplib/fsl_gso.h"
+#include "aiop_verification.h"
+
+__TASK tcp_gso_ctx_t tcp_gso_context_addr;
+__TASK int32_t status;
+__TASK int32_t status_gso;
 
 void aiop_verification_fm()
 {
-	tcp_gso_ctx_t tcp_gso_context_addr;
 	ipf_ctx_t ipf_context_addr; /* intenral struct for IPF */
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	uint64_t ext_address;	/* External Data Address */
@@ -46,9 +49,7 @@ void aiop_verification_fm()
 
 		case TCP_GSO_MODULE_STATUS_ID:
 		{
-			str_size = aiop_verification_gso(
-					tcp_gso_context_addr,
-					(uint32_t)data_addr);
+			str_size = aiop_verification_gso((uint32_t)data_addr);
 			break;
 		}
 		case IPF_MODULE_STATUS_ID:

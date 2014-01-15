@@ -43,7 +43,7 @@
 #define DPRC_CMD_RST_CONT_S			8
 #define DPRC_CMD_SET_RES_ALLOC_P_S		8
 
-#define DPRC_CMD_ASSIGN_S			(8 * 2)
+#define DPRC_CMD_ASSIGN_S			(8 * 3)
 #define	DPRC_CMD_SET_UNASSIGN_PORTAL_P_S 	8
 #define DPRC_CMD_UNASSIGN_S			(8 * 2)
 //#define DPRC_CMD_UNASSIGN_EXPLICIT_S		8
@@ -72,19 +72,14 @@
 
 /* dprc_create_container */
 /* param 1 */
-#define DPRC_CREATE_CONT_CHILD_ID_O		0
-#define DPRC_CREATE_CONT_CHILD_ID_S		32
 #define DPRC_CREATE_CONT_ICID_O			32
 #define DPRC_CREATE_CONT_ICID_S			16
-#define DPRC_CREATE_CONT_SPAWN_O		48		
-#define DPRC_CREATE_CONT_SPAWN_S		1
-#define DPRC_CREATE_CONT_ALLOC_O		49
-#define DPRC_CREATE_CONT_ALLOC_S		1
-#define DPRC_CREATE_CONT_ID_O			56
-#define DPRC_CREATE_CONT_ID_S			8
-/* param 2 */
 #define DPRC_CREATE_CONT_OPTIONS_O		0
 #define DPRC_CREATE_CONT_OPTIONS_S		32
+
+/* param 2 */
+#define DPRC_CREATE_CONT_CHILD_ID_O		0
+#define DPRC_CREATE_CONT_CHILD_ID_S		32
 #define DPRC_CREATE_CONT_CHILD_PORTAL_O		32
 #define DPRC_CREATE_CONT_CHILD_PORTAL_S		32
 
@@ -126,11 +121,12 @@
 #define DPRC_ASSIGN_CONT_ID_S			32
 #define DPRC_ASSIGN_RES_TYPE_O			32
 #define DPRC_ASSIGN_RES_TYPE_S			6
-#define DPRC_ASSIGN_ALIGN_O			38
-#define DPRC_ASSIGN_ALIGN_S			1
-#define DPRC_ASSIGN_NUM_OF_RES_O		41
-#define DPRC_ASSIGN_NUM_OF_RES_S		7
-/* param 2 */
+/*param 2*/
+#define DPRC_ASSIGN_NUM_OF_RES_O		0
+#define DPRC_ASSIGN_NUM_OF_RES_S		32
+#define DPRC_ASSIGN_ALIGN_O			32
+#define DPRC_ASSIGN_ALIGN_S			32
+/* param 3 */
 #define DPRC_ASSIGN_OPTIONS_O			0
 #define DPRC_ASSIGN_OPTIONS_S			32
 
@@ -183,7 +179,7 @@
 /* dprc_get_res_count */
 /* param 1 */
 #define DPRC_GET_RES_COUNT_COUNT_O		32
-#define DPRC_GET_RES_COUNT_COUNT_S		6
+#define DPRC_GET_RES_COUNT_COUNT_S		32
 #define DPRC_GET_RES_COUNT_TYPE_O		24	
 #define DPRC_GET_RES_COUNT_TYPE_S		8
 
@@ -198,6 +194,8 @@
 #define DPRC_GET_RES_IDS_IDX_O			48
 #define DPRC_GET_RES_IDS_IDX_S			8
 
+#define DPRC_GET_RES_IDS_VALID_CNT_O		0
+#define DPRC_GET_RES_IDS_VALID_CNT_S		32
 /* dprc_set_unassign_portal_policy */
 /* param 1 */
 #define DPRC_SET_UNASSIGN_PORTAL_P_O		0	
@@ -214,10 +212,6 @@
 /* param 2 */
 #define DPRC_GET_ATTR_OPTIONS_O			0
 #define DPRC_GET_ATTR_OPTIONS_S			32
-#define DPRC_GET_ATTR_SPAWN_O			32
-#define DPRC_GET_ATTR_SPAWN_S			1
-#define DPRC_GET_ATTR_ALLOC_O			33
-#define DPRC_GET_ATTR_ALLOC_S			2
 
 /* dprc_get_dev_region */
 /* param 1 */
