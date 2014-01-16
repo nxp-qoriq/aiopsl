@@ -32,8 +32,8 @@
 #define DPRC_CMDSZ_DESTROY_CONT			8
 #define DPRC_CMDSZ_GET_CONT_ID			8
 #define DPRC_CMDSZ_RESET_CONT			8
-#define DPRC_CMDSZ_SET_RES_QUOTA		8
-#define DPRC_CMDSZ_GET_RES_QUOTA		8
+#define DPRC_CMDSZ_SET_RES_ALLOC_P		8
+#define DPRC_CMDSZ_GET_RES_ALLOC_P		8
 #define DPRC_CMDSZ_ASSIGN			(8*3)
 #define DPRC_CMDSZ_UNASSIGN			(8*2)
 #define DPRC_CMDSZ_GET_DEV_COUNT		0
@@ -130,21 +130,21 @@
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_CMD_GET_RES_IDS(_OP) \
 	_OP(0, 	32, 10,	uint16_t,			 res_type_def) \
-	_OP(0, 	42, 7, 	enum dprc_rage_ineration_status, range_desc->iteration_status)
+	_OP(0, 	42, 7, 	enum dprc_iteration_status, range_desc->iteration_status)
 
 //TODO fix this response
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_RSP_GET_RES_IDS(_OP) \
-	_OP(0, 	42, 	7, 	enum dprc_rage_ineration_status, range_desc->iteration_status)\
+	_OP(0, 	42, 	7, 	enum dprc_iteration_status, range_desc->iteration_status)\
 	_OP(1, 	0, 	32, 	int,			range_desc->base_id) \
 	_OP(1, 	32, 	32, 	int,			range_desc->last_id) 
 
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_RSP_GET_ATTRIBUTES(_OP) \
-	_OP(0, 	0, 	32, 	int,			attr->container_id) \
+	_OP(0, 	0, 		32, 	int,			attr->container_id) \
 	_OP(0, 	32, 	16, 	uint16_t,		attr->icid) \
 	_OP(0, 	48, 	16, 	uint16_t,		attr->portal_id) \
-	_OP(1, 	0, 	32, 	uint32_t,		attr->options)
+	_OP(1, 	0, 		32, 	uint32_t,		attr->options)
 
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_CMD_GET_DEV_REGION(_OP) \
@@ -155,7 +155,7 @@
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_RSP_GET_DEV_REGION(_OP) \
 	_OP(0, 	48, 	16, 	uint16_t,		region_desc->size) \
-	_OP(1, 	0, 	64, 	uint64_t,		region_desc->base_paddr)
+	_OP(1, 	0, 		64, 	uint64_t,		region_desc->base_paddr)
 
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_CMD_SET_IRQ(_OP) \
