@@ -50,7 +50,9 @@ int32_t tcp_gro_aggregate_seg(
 	
 	/* add segment to an existing aggregation */
 	if (gro_ctx.metadata.seg_num != 0){
-		status = tcp_gro_add_seg_to_aggregation(&gro_ctx);
+		gro_ctx.flags = flags;
+		status = tcp_gro_add_seg_to_aggregation(
+				tcp_gro_context_addr, params, &gro_ctx);
 		/* write gro context back to DDR + release mutex */
 		sr_status = cdma_write_with_mutex(tcp_gro_context_addr, 
 					CDMA_POSTDMA_MUTEX_RM_BIT, 
@@ -154,7 +156,10 @@ int32_t tcp_gro_aggregate_seg(
 }
 
 /* Add segment to an existing aggregation */
-int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
+int32_t tcp_gro_add_seg_to_aggregation(
+		uint64_t tcp_gro_context_addr,
+		struct tcp_gro_context_params *params, 
+		struct tcp_gro_context *gro_ctx)
 {
 	struct tcphdr *tcp;
 	struct fdma_present_frame_params present_frame_params;
@@ -178,8 +183,8 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 		ste_inc_counter(gro_ctx->params.stats_addr + 
 			GRO_STAT_UNEXPECTED_SEQ_NUM_CNTR_OFFSET, 
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-		return 
-		 tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
+		return tcp_gro_close_aggregation_and_open_new_aggregation(
+				 tcp_gro_context_addr, params, gro_ctx);
 	}
 
 	/* 2. IP ECN value of the new packet is different from previously 
@@ -203,7 +208,8 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 		(gro_ctx->timestamp != timestamp) 			||
 		(gro_ctx->last_ack > tcp->acknowledgment_number) 	||
 		(gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET))
-		return tcp_gro_close_aggregation_and_open_new_aggregation(gro_ctx);
+		return tcp_gro_close_aggregation_and_open_new_aggregation(
+				 tcp_gro_context_addr, params, gro_ctx);
 	
 	/* Check for termination condition due to the current segment.
 	 * In case one of the following conditions is met, add segment to 
@@ -235,7 +241,7 @@ int32_t tcp_gro_add_seg_to_aggregation(struct tcp_gro_context *gro_ctx)
 	/* check aggregated packet size limit */
 	if (aggregated_size > gro_ctx->params.limits.packet_size_limit)
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
-				gro_ctx);
+				 tcp_gro_context_addr, params, gro_ctx);
 	else if (aggregated_size == gro_ctx->params.limits.packet_size_limit){
 		/* update statistics */
 		ste_inc_counter(gro_ctx->params.stats_addr + 
@@ -413,10 +419,13 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 /* Close an existing aggregation and start a new aggregation with the new 
  * segment. */
 int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+		uint64_t tcp_gro_context_addr,
+		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx)
 {
 	/* Todo - return valid status */
-	return (int32_t)gro_ctx;
+	return (int32_t)gro_ctx + (int32_t)params + 
+			(int32_t)tcp_gro_context_addr;
 }
 
 int32_t tcp_gro_flush_aggregation(
