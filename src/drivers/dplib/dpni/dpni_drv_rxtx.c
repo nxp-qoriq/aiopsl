@@ -65,14 +65,6 @@ void receive_cb_cont (void)
 	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
-	/* check there are no errors to discard and
-	 * application call-back is not NULL */
-	if ( (*fd_err & dpni_drv->fd_err_mask) ||
-		!dpni_drv->rx_cbs[*fd_flc_appidx >> 2]) {
-		/*if discard with terminate return with error then terminator*/
-		if(fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-			fdma_terminate_task();
-	}
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
 
@@ -113,8 +105,9 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 	dpni_drv = nis + ni_id; /* calculate pointer
 					* to the send NI structure   */
 
-	if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu) {
-		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DIS)
+	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu) ) {
+		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DISCARD)
 			return(DPNI_DRV_MTU_ERR);
 		else {
 			/* TODO - mark in the FLC some error indication */
