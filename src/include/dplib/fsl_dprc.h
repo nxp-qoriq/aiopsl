@@ -7,8 +7,7 @@
 #ifndef _FSL_DPRC_H
 #define _FSL_DPRC_H
 
-#include "common/types.h"
-#include "common/fsl_cmdif.h"
+#include <fsl_cmdif.h>
 
 
 #ifdef MC
@@ -36,13 +35,12 @@ struct dprc {
 /**
  * Resource types defines
  */
-//uint16_t {
-#define	DP_RES_TYPE_DEF_ICID  0	//TODO - remove
+#define	DP_RES_TYPE_DEF_ICID  0
 	/*!< Isolation contexts ID */
 #define	DP_RES_TYPE_DEF_MCPID  1
 	/*!< Management portals */
 #define	DP_RES_TYPE_DEF_SWP  2
-	/*!< Software portals (base address + interrupt) */
+	/*!< Software portals */
 #define	DP_RES_TYPE_DEF_BPID  3
 	/*!< Buffer pools */
 #define	DP_RES_TYPE_DEF_CHANNELS  4
@@ -107,7 +105,7 @@ struct dprc {
 /*!< Explicit resource id request - Relevant only for primitive resources
  * request. The requested resources are explicit and sequential The base ID is
  * given at res_req at base_align field */
-#define RES_REQ_OPT_ALIGN		0x00000002
+#define RES_REQ_OPT_ALIGNED		0x00000002
 /*!< Sequential resources request - Relevant only for primitive resources
  * request. Indicates that resources id should be sequential and aligned to the
  * value given at dprc_res_req base_align field */
@@ -123,14 +121,23 @@ struct dprc {
 
 /*!
  * @name Container general options
+ * 
+ * These Options determined at container creation by the container creator and 
+ * can be retrived using dprc_get_attributes()
  */
-#define CREATE_ATTR_OPT_SPAWN_ALLOWED           0x00000001
-#define CREATE_ATTR_OPT_ALLOC_ALLOWED           0x00000002
-#define RES_REQ_OPT_DEVICE_INIT_ALLOWED         0x00000004
-#define RES_REQ_OPT_TOPOLOGY_CHANGES_ALLOWED    0x00000008                 
-#define DPRC_OPT_IOMMU_BYPASS                   0x00000010
-		
-/*!<  */
+#define CREATE_ATTR_OPT_SPAWN_ALLOWED           	0x00000001
+/*!< Spawn Policy Option allowed - Indicates that the new container is alllowd 
+ * to span and have its own child containers */
+#define CREATE_ATTR_OPT_ALLOC_ALLOWED           	0x00000002
+/*!< General Container allocation policy - Policy Option allowed - 
+ * Indicates that the new container is alllowd to span and have its own child 
+ * containers */
+#define CREATE_ATTR_OPT_DEVICE_INIT_ALLOWED        	0x00000004
+/*!< Device initialization option allowd */ 
+#define CREATE_ATTR_OPT_TOPOLOGY_CHANGES_ALLOWED    	0x00000008
+/*!<Topology change option allowd */
+#define CREATE_ATTR_OPT_IOMMU_BYPASS                   	0x00000010
+/*!<IOMMU bypass */
 /* @} */
 
 /*!
@@ -199,17 +206,17 @@ struct dprc_region_desc {
 };
 
 /**
- * @brief	Range Iteration status
+ * @brief	Iteration status
  *
- * Used at dprc_res_ids_range_desc to indicate the range iteration.
+ *
  */
-enum dprc_rage_ineration_status {
-	DPRC_RANGE_ITER_STATUS_FIRST = 0,
-	/*!< First Range */
-	DPRC_RANGE_ITER_STATUS_MID = 1,
-	/*!< Middle Range */
-	DPRC_RANGE_ITER_STATUS_LAST = 2,
-/*!< Last Range */
+enum dprc_iteration_status {
+	DPRC_ITER_STATUS_FIRST = 0,
+	/*!< Perform first iteration */
+	DPRC_ITER_STATUS_MORE = 1,
+	/*!< Indicates more/next iteration is needed */
+	DPRC_ITER_STATUS_LAST = 2,
+	/*!< Indicates last iteration */
 };
 
 /**
@@ -221,7 +228,7 @@ struct dprc_res_ids_range_desc {
 	/*!< Range base ID */
 	int last_id;
 	/*!< Range last ID */
-	enum dprc_rage_ineration_status iteration_status;
+	enum dprc_iteration_status iteration_status;
 	/*!< Iterartion status - first/middle/last */	
 };
 
@@ -235,12 +242,7 @@ struct dprc_attributes {
 	/*!< Container's ICID */
 	int portal_id;
 	/*!< Container's portal ID */
-	//enum dprc_spawn_policy spawn_policy;
-	/*!< Container's spawn policy */
-	//enum dprc_alloc_policy allocation_policy;
-	/*!< Container's default allocation policy for all its resources,
-	 * primitives and devices*/
-	uint32_t options;
+	uint64_t options;
 /*!< Container's attributes flags */
 };
 
@@ -250,11 +252,6 @@ struct dprc_attributes {
 struct dprc_create_attributes {
 	uint16_t icid;
 	/*!< Container's ICID */
-	//enum dprc_spawn_policy spawn_policy;
-	/*!< Container's spawn policy */
-	//enum dprc_alloc_policy alloc_policy;
-	/*!< Container's default allocation policy for all its resources,
-	 * primitives and devices*/
 	uint64_t options;
 /*!< Container's attributes flags */
 };

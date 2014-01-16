@@ -1,11 +1,9 @@
-#include "common/types.h"
-#include "common/errors.h"
-#include "common/fsl_cmdif.h"
-#include "common/dbg.h"
-#include "dplib/fsl_dprc.h"
-#include "dplib/fsl_dprc_cmd.h"
-#include "arch/fsl_cmdif_mc.h"
-#include "dprc.h"
+
+#include <fsl_dplib_sys.h>
+#include <fsl_cmdif.h>
+#include <fsl_cmdif_mc.h>
+#include <fsl_dprc.h>
+#include <fsl_dprc_cmd.h>
 
 
 #define CMD_PREP(_param, _offset, _width, _type, _arg) \
@@ -17,63 +15,12 @@
 #define RSP_READ_STRUCT(_param, _offset, _width, _type, _arg) \
 	_arg = (_type)u64_dec(cmd_data.params[_param], _offset, _width);
 
-
-static void receive_get_res_ids(struct mc_cmd_data *cmd_data,
-                                uint32_t *res_ids,
-                                int *valid_count)
-{
-	/*TODO - temporary solution - can only get 12 ids for now*/
-	int i;
-	int offset = 0;
-	int id_size = 32;
-	int param = 2;
-	uint64_t cmd_param; // = GPP_CMD_READ_PARAM(desc, 1);
-
-//	*valid_count = (int)u64_dec(cmd_param, DPRC_GET_RES_IDS_VALID_CNT_O,
-//	                            DPRC_GET_RES_IDS_VALID_CNT_S);
-
-//	cmd_param = GPP_CMD_READ_PARAM(desc, 2);
-
-	for (i = 0; i < (*valid_count); i++) {
-		res_ids[i] = (uint32_t)u64_dec(cmd_param, offset, id_size);
-		if (offset == 64 - id_size) {
-			offset = 0;
-			param++;
-			switch (param) {
-			case 3:
-//				cmd_param = GPP_CMD_READ_PARAM(desc, 3);
-				break;
-			case 4:
-//				cmd_param = GPP_CMD_READ_PARAM(desc, 4);
-				break;
-			case 5:
-//				cmd_param = GPP_CMD_READ_PARAM(desc, 5);
-				break;
-			case 6:
-//				cmd_param = GPP_CMD_READ_PARAM(desc, 6);
-				break;
-			case 7:
-//				cmd_param = GPP_CMD_READ_PARAM(desc, 7);
-				break;
-			}
-		} else
-			offset += id_size;
-	}
-}
-
 int dprc_get_container_id(struct dprc *dprc, int *container_id)
 {
 	/*TODO - review*/
 	struct mc_cmd_data cmd_data = { 0 };
 	int err;
 
-	/* prepare command */
-#if 0 // TODO: no need for this param!
-	/* build param 1*/
-	cmd_param = u64_enc(DPRC_GET_CONT_ID_PORTAL_O,
-		DPRC_GET_CONT_ID_PORTAL_S, (int)dprc->cidesc.regs);/*TODO - check*/
-	GPP_CMD_WRITE_PARAM(cmd_data, 1, cmd_param);
-#endif
 	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_CONT_ID,
 	                 DPRC_CMDSZ_GET_CONT_ID, CMDIF_PRI_LOW,
 	                 (uint8_t*)&cmd_data);
@@ -263,23 +210,21 @@ int dprc_get_res_count(struct dprc *dprc,
 
 int dprc_get_res_ids(struct dprc *dprc,
                      uint16_t res_type,
-                     int res_ids_num,
-                     uint32_t *res_ids,
-                     int *valid_count) /*TODO - add valid count */
+                     struct dprc_res_ids_range_desc *range_desc) 
 {
+
 	struct mc_cmd_data cmd_data = { 0 };
 	uint16_t res_type_def = res_type;
 	int err;
 
 	DPRC_CMD_GET_RES_IDS(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_RES_IDS,
-	                 DPRC_CMDSZ_GET_RES_IDS, CMDIF_PRI_LOW,
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_RES_COUNT,
+	                 DPRC_CMDSZ_GET_RES_COUNT, CMDIF_PRI_LOW,
 	                 (uint8_t*)&cmd_data);
 	if (!err) {
 		/* retrieve response parameters */
-		DPRC_RSP_GET_RES_IDS(RSP_READ);
-//TODO		receive_get_res_ids(&cmd_data, res_ids, valid_count);
+		DPRC_RSP_GET_RES_IDS(RSP_READ_STRUCT); 
 	}
 
 	return err;

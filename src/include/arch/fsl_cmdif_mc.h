@@ -1,10 +1,6 @@
 #ifndef __FSL_MC_CMDIF_H
 #define __FSL_MC_CMDIF_H
 
-#include "common/types.h"
-#include "common/io.h"
-#include "common/gen.h"
-
 #define MC_CMD_NUM_OF_PARAMS	7
 
 struct mc_cmd_data {
