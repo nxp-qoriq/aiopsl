@@ -10,9 +10,6 @@
 #include "aiop_verification.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
-extern __TASK tcp_gso_ctx_t tcp_gso_context_addr;
-extern __TASK int32_t status;
-extern __TASK int32_t status_gso;
 
 uint16_t  aiop_verification_gso(
 		uint32_t data_addr)
