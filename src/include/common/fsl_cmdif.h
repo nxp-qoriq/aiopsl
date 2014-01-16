@@ -9,8 +9,6 @@
 #ifndef __FSL_CMDIF_H
 #define __FSL_CMDIF_H
 
-#include "common/types.h"
-
 /**************************************************************************//**
  @Group         cmdif_g  Command Interface API
 
@@ -43,7 +41,6 @@ enum cmdif_module {
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
 #define CMDIF_PRI_HIGH		1	/**< High Priority */
 
-#if 1
 /**************************************************************************//**
  @Group         cmdif_server_g  Command Interface - Server API
 
@@ -51,21 +48,6 @@ enum cmdif_module {
 
  @{
  *//***************************************************************************/
-
-enum cmdif_status {
-	CMDIF_STATUS_OK = 0x0, /**< passed */
-	CMDIF_STATUS_READY = 0x1, /**< Ready to be processed */
-	CMDIF_STATUS_AUTH_ERR = 0x3, /**< Authentication error */
-	CMDIF_STATUS_NO_PRIVILEGE = 0x4,
-	CMDIF_STATUS_DMA_ERR = 0x5,
-	CMDIF_STATUS_CONFIG_ERR = 0x6,
-	CMDIF_STATUS_TIMEOUT = 0x7,
-	CMDIF_STATUS_NO_RESOURCE = 0x8,
-	CMDIF_STATUS_NO_MEMORY = 0x9,
-	CMDIF_STATUS_BUSY = 0xA,
-	CMDIF_STATUS_UNSUPPORTED_OP = 0xB,
-	CMDIF_STATUS_INVALID_STATE = 0xC
-};
 
 /**************************************************************************//**
  @Description   TODO
@@ -111,7 +93,7 @@ int cmdif_register_module(enum cmdif_module module, struct cmdif_module_ops *ops
  @Param[in]     cmd     cmd pointer that was provided to the ctrl_cb .
  @Param[in]     status  completion status
  *//***************************************************************************/
-void cmdif_cmd_done(struct cmdif_cmd_data *cmd, enum cmdif_status status);
+//void cmdif_cmd_done(struct cmdif_cmd_data *cmd, enum cmdif_status status);
 
 /**************************************************************************//**
  @Function      cmdif_close_dev
@@ -123,7 +105,6 @@ void cmdif_cmd_done(struct cmdif_cmd_data *cmd, enum cmdif_status status);
 int cmdif_close_dev(void *dev);
 
 /** @} *//* end of cmdif_server_g group */
-#endif
 
 /**************************************************************************//**
  @Group         cmdif_client_g  Command Interface - Client API

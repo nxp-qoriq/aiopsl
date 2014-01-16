@@ -1,9 +1,7 @@
-#include "common/types.h"
-#include "common/errors.h"
-#include "common/gen.h"
-#include "common/io.h"
-#include "common/fsl_cmdif.h"
-#include "arch/fsl_cmdif_mc.h"
+
+#include <fsl_dplib_sys.h>
+#include <fsl_cmdif.h>
+#include <fsl_cmdif_mc.h>
 
 static int cmdif_wait_resp(struct mc_portal *portal)
 {
@@ -12,30 +10,30 @@ static int cmdif_wait_resp(struct mc_portal *portal)
 	/* wait for MC to complete command */
 	do {
 		status = mc_cmd_read_status(portal);
-	} while (status == CMDIF_STATUS_READY);
+	} while (status == MC_CMD_STATUS_READY);
 
 	switch (status) {
-	case CMDIF_STATUS_OK:
+	case MC_CMD_STATUS_OK:
 		return 0;
-	case CMDIF_STATUS_AUTH_ERR:
+	case MC_CMD_STATUS_AUTH_ERR:
 		return -EACCES; /* Authentication error */
-	case CMDIF_STATUS_NO_PRIVILEGE:
+	case MC_CMD_STATUS_NO_PRIVILEGE:
 		return -EPERM; /* Permission denied */
-	case CMDIF_STATUS_DMA_ERR:
+	case MC_CMD_STATUS_DMA_ERR:
 		return -EIO; /* Input/Output error */
-	case CMDIF_STATUS_CONFIG_ERR:
+	case MC_CMD_STATUS_CONFIG_ERR:
 		return -EINVAL; /* Device not configured */
-	case CMDIF_STATUS_TIMEOUT:
+	case MC_CMD_STATUS_TIMEOUT:
 		return -ETIMEDOUT; /* Operation timed out */
-	case CMDIF_STATUS_NO_RESOURCE:
+	case MC_CMD_STATUS_NO_RESOURCE:
 		return -ENAVAIL; /* Resource temporarily unavailable */
-	case CMDIF_STATUS_NO_MEMORY:
+	case MC_CMD_STATUS_NO_MEMORY:
 		return -ENOMEM; /* Cannot allocate memory */
-	case CMDIF_STATUS_BUSY:
+	case MC_CMD_STATUS_BUSY:
 		return -EBUSY; /* Device busy */
-	case CMDIF_STATUS_UNSUPPORTED_OP:
+	case MC_CMD_STATUS_UNSUPPORTED_OP:
 		return -ENOTSUP; /* Operation not supported by device */
-	case CMDIF_STATUS_INVALID_STATE:
+	case MC_CMD_STATUS_INVALID_STATE:
 		return -ENODEV; /* Invalid device state */
 	default:
 		break;

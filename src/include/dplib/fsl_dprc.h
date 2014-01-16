@@ -7,7 +7,7 @@
 #ifndef _FSL_DPRC_H
 #define _FSL_DPRC_H
 
-#include "common/fsl_cmdif.h"
+#include <fsl_cmdif.h>
 
 
 #ifdef MC
@@ -35,13 +35,12 @@ struct dprc {
 /**
  * Resource types defines
  */
-//uint16_t {
-#define	DP_RES_TYPE_DEF_ICID  0	//TODO - remove
+#define	DP_RES_TYPE_DEF_ICID  0
 	/*!< Isolation contexts ID */
 #define	DP_RES_TYPE_DEF_MCPID  1
 	/*!< Management portals */
 #define	DP_RES_TYPE_DEF_SWP  2
-	/*!< Software portals (base address + interrupt) */
+	/*!< Software portals */
 #define	DP_RES_TYPE_DEF_BPID  3
 	/*!< Buffer pools */
 #define	DP_RES_TYPE_DEF_CHANNELS  4

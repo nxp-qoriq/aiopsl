@@ -1,7 +1,6 @@
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/dbg.h"
-#include "common/fsl_string.h"
 #include "common/fsl_cmdif.h"
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_dpni_cmd.h"
@@ -589,7 +588,9 @@ int dpni_close(struct dpni *dpni)
 
 int dpni_defconfig(struct dpni_cfg *cfg)
 {
-	memset(cfg, 0, sizeof(struct dpni_cfg));
+	struct dpni_cfg tmp = { 0 };
+	
+	*cfg = tmp;
 	return 0;
 }
 
