@@ -1,5 +1,7 @@
 
 #include <fsl_dplib_sys.h>
+#include <fsl_cmdif.h>
+#include <fsl_cmdif_mc.h>
 #include <fsl_dprc.h>
 #include <fsl_dprc_cmd.h>
 
@@ -19,13 +21,6 @@ int dprc_get_container_id(struct dprc *dprc, int *container_id)
 	struct mc_cmd_data cmd_data = { 0 };
 	int err;
 
-	/* prepare command */
-#if 0 // TODO: no need for this param!
-	/* build param 1*/
-	cmd_param = u64_enc(DPRC_GET_CONT_ID_PORTAL_O,
-		DPRC_GET_CONT_ID_PORTAL_S, (int)dprc->cidesc.regs);/*TODO - check*/
-	GPP_CMD_WRITE_PARAM(cmd_data, 1, cmd_param);
-#endif
 	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_CONT_ID,
 	                 DPRC_CMDSZ_GET_CONT_ID, CMDIF_PRI_LOW,
 	                 (uint8_t*)&cmd_data);
