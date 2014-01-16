@@ -157,10 +157,10 @@ enum e_tman_query_timer {
 	TMAN_TIMER_PENDING_CONF = 0,
 	/** Timer has not expired */
 	TMAN_TIMER_RUNNING,
-	/** Timer is non active (in tmi free list) */
-	TMAN_TIMER_NON_ACTIVE,
 	/** Timer is in expiration queue */
-	TMAN_TIMER_EXPIRATION_QUEUE
+	TMAN_TIMER_EXPIRATION_QUEUE,
+	/** Timer is non active (in tmi free list) */
+	TMAN_TIMER_NON_ACTIVE
 };
 
 /* @} end of group TMAN_Modes */

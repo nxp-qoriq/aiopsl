@@ -199,6 +199,33 @@ struct dprc_region_desc {
 };
 
 /**
+ * @brief	Range Iteration status
+ *
+ * Used at dprc_res_ids_range_desc to indicate the range iteration.
+ */
+enum dprc_rage_ineration_status {
+	DPRC_RANGE_ITER_STATUS_FIRST = 0,
+	/*!< First Range */
+	DPRC_RANGE_ITER_STATUS_MID = 1,
+	/*!< Middle Range */
+	DPRC_RANGE_ITER_STATUS_LAST = 2,
+/*!< Last Range */
+};
+
+/**
+ * @brief	Resource Id rangen descriptor, Used at dprc_get_res_ids() and 
+ * contains one range details. 
+ */
+struct dprc_res_ids_range_desc {
+	int base_id;
+	/*!< Range base ID */
+	int last_id;
+	/*!< Range last ID */
+	enum dprc_rage_ineration_status iteration_status;
+	/*!< Iterartion status - first/middle/last */	
+};
+
+/**
  * @brief	Container attributes, returned by dprc_get_attributes()
  */
 struct dprc_attributes {
@@ -478,20 +505,13 @@ int dprc_get_res_count(struct dprc *dprc,
  *
  * @param[in]	dprc		DPRC object handle
  * @param[in]	res_type	Selects the resource type
- * @param[in]	res_ids_num	The number of resource IDs to retrieve;
- * 				Indicates the size of res_ids array.
- * @param[out]	res_ids		Array of primitive resources IDs to fill
- * @param[out]	valid_count	Number of valid resource IDs returned - may be
- * 				less than the requested res_ids_num in case it
- * 				exceeds the number of available resources.
+ * @param[in, out] range_desc	range descriptor
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_ids(struct dprc *dprc,
                      uint16_t res_type,
-                     int res_ids_num,
-                     uint32_t *res_ids,
-                     int *valid_count);
+                     struct dprc_res_ids_range_desc *range_desc);
 
 /**
  * @brief   	Obtains container attributes
