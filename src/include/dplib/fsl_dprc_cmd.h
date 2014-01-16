@@ -12,7 +12,7 @@
 /* Command IDs */
 #define DPRC_CMDID_CREATE_CONT			0x151
 #define DPRC_CMDID_DESTROY_CONT			0x152
-#define DPRC_CMDID_GET_CONT_ID			0x153
+#define DPRC_CMDID_GET_CONT_ID			0x830
 #define DPRC_CMDID_RESET_CONT			0x154
 #define DPRC_CMDID_SET_RES_QUOTA		0x155
 #define DPRC_CMDID_GET_RES_QUOTA		0x156
@@ -32,8 +32,8 @@
 #define DPRC_CMDSZ_DESTROY_CONT			8
 #define DPRC_CMDSZ_GET_CONT_ID			8
 #define DPRC_CMDSZ_RESET_CONT			8
-#define DPRC_CMDSZ_SET_RES_QUOTA		8
-#define DPRC_CMDSZ_GET_RES_QUOTA		8
+#define DPRC_CMDSZ_SET_RES_ALLOC_P		8
+#define DPRC_CMDSZ_GET_RES_ALLOC_P		8
 #define DPRC_CMDSZ_ASSIGN			(8*3)
 #define DPRC_CMDSZ_UNASSIGN			(8*2)
 #define DPRC_CMDSZ_GET_DEV_COUNT		0
@@ -82,12 +82,7 @@
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_RSP_GET_RES_QUOTA(_OP) \
 	_OP(0, 	48, 	16, 	uint16_t, 			quota) 
-#if 0
-/* 	param, offset, width, 	type, 			arg_name */
-#define DPRC_RSP_GET_RES_ALLOC_POLICY(_OP) \
-	/*_OP(0, 	38,	1,	enum dprc_alloc_policy, alloc_policy)*/ \
-	_OP(0,  48, 	16, 	uint16_t,		quota)
-#endif
+
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_CMD_ASSIGN(_OP) \
 	_OP(0, 	0, 		32, 	int, 			container_id) \
