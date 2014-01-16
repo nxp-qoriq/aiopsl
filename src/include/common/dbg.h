@@ -10,6 +10,7 @@
 #define __FSL_DBG_H
 
 #include "common/types.h"
+#include "common/io.h"
 #include "common/fsl_stdio.h"
 
 
@@ -149,13 +150,13 @@
         switch (dump_var_size) \
         { \
             case 1:  dump_print("0x%010ll_x: 0x%02x%14s\t%s\r\n", \
-                                phys_addr, GET_UINT8(*(uint8_t*)addr), "", dump_sub_str); break; \
+                                phys_addr, ioread8(addr), "", dump_sub_str); break; \
             case 2:  dump_print("0x%010ll_x: 0x%04x%12s\t%s\r\n", \
-                                phys_addr, GET_UINT16(*(uint16_t*)addr), "", dump_sub_str); break; \
+                                phys_addr, ioread16(addr), "", dump_sub_str); break; \
             case 4:  dump_print("0x%010ll_x: 0x%08x%8s\t%s\r\n", \
-                                phys_addr, GET_UINT32(*(uint32_t*)addr), "", dump_sub_str); break; \
+                                phys_addr, ioread32(addr), "", dump_sub_str); break; \
             case 8:  dump_print("0x%010ll_x: 0x%016llx\t%s\r\n", \
-                                phys_addr, GET_UINT64(*(uint64_t*)addr), dump_sub_str); break; \
+                                phys_addr, ioread64(addr), dump_sub_str); break; \
             default: dump_print("bad size %d (" #st "->" #phrase ")\r\n", dump_var_size); \
         } \
     } while (0)
@@ -185,25 +186,25 @@
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%02x%14s\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT8((st)->phrase[dump_arr_idx]), "", dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread8(&((st)->phrase[dump_arr_idx])), "", dump_sub_str, dump_arr_idx); \
                 } break; \
             case 2: \
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%04x%12s\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT16((st)->phrase[dump_arr_idx]), "", dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread16(&((st)->phrase[dump_arr_idx])), "", dump_sub_str, dump_arr_idx); \
                 } break; \
             case 4: \
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%08x%8s\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT32((st)->phrase[dump_arr_idx]), "", dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread32(&((st)->phrase[dump_arr_idx])), "", dump_sub_str, dump_arr_idx); \
                 } break; \
             case 8: \
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%016llx\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT64((st)->phrase[dump_arr_idx]), dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread64(&((st)->phrase[dump_arr_idx])), dump_sub_str, dump_arr_idx); \
                 } break; \
             default: dump_print("bad size %d (" #st "->" #phrase "[0])\r\n", dump_var_size); \
         } \

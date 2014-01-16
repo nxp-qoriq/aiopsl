@@ -11,8 +11,6 @@
 
 
 /* cmd IDs */
-#define DPNI_CMD_OPEN				0x801 
-#define DPNI_CMD_CLOSE				0x121
 #define DPNI_CMD_INIT				0x123
 #define DPNI_CMD_FREE				0x124
 #define DPNI_CMD_ATTACH				0x125
@@ -106,8 +104,6 @@
 /* param 1 */
 #define DPNI_OPEN_ID_O				0
 #define DPNI_OPEN_ID_S				16
-#define DPNI_OPEN_ICID_O			16
-#define DPNI_OPEN_ICID_S			16
 
 /* dpni_init */
 /* param 1*/

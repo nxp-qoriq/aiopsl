@@ -32,72 +32,73 @@ struct dprc {
  * allocated by the DPRC from the pool of ICIDs
  */
 
+
 /**
- * Resource types enumeration
+ * Resource types defines
  */
-enum dp_res_type {
-	DP_RES_TYPE_ICID,	//TODO - remove
+//uint16_t {
+#define	DP_RES_TYPE_DEF_ICID  0	//TODO - remove
 	/*!< Isolation contexts ID */
-	DP_RES_TYPE_MCPID,
+#define	DP_RES_TYPE_DEF_MCPID  1
 	/*!< Management portals */
-	DP_RES_TYPE_SWP,
+#define	DP_RES_TYPE_DEF_SWP  2
 	/*!< Software portals (base address + interrupt) */
-	DP_RES_TYPE_BPID,
+#define	DP_RES_TYPE_DEF_BPID  3
 	/*!< Buffer pools */
-	DP_RES_TYPE_CHANNELS,
+#define	DP_RES_TYPE_DEF_CHANNELS  4
 	/*!< Channels */
-	DP_RES_TYPE_FQID,
+#define	DP_RES_TYPE_DEF_FQID  5
 	/*!< Frame queues */
-	DP_RES_TYPE_QPR,
+#define	DP_RES_TYPE_DEF_QPR  6
 	/*!< Queuing priority record */
-	DP_RES_TYPE_QDID,
+#define	DP_RES_TYPE_DEF_QDID  7
 	/*!< Queuing destinations */
-	DP_RES_TYPE_CGID,
+#define	DP_RES_TYPE_DEF_CGID  8
 	/*!< Congestion groups */
-	DP_RES_TYPE_CEETM_LFQMTIDX,           
+#define	DP_RES_TYPE_DEF_CEETM_LFQMTIDX  9          
 	/*!< Logical Frame Queue Mapping Table Index */
-	DP_RES_TYPE_CEETM_DCTIDX,               
+#define	DP_RES_TYPE_DEF_CEETM_DCTIDX  10            
 	/*!< Dequeue Command Type Index */
-	DP_RES_TYPE_CEETM_CQCHID,                
+#define	DP_RES_TYPE_DEF_CEETM_CQCHID  11               
 	/*!< Class Queue Channel ID */
-	DP_RES_TYPE_CEETM_LNIID,
+#define	DP_RES_TYPE_DEF_CEETM_LNIID  12
 	/*!< !Logical Network Interface ID */
-	DP_RES_TYPE_TID,
+#define	DP_RES_TYPE_DEF_TID  13
 	/*!< Classification tables */
-	DP_RES_TYPE_KID,
+#define	DP_RES_TYPE_DEF_KID  14
 	/*!< Key ID*/
-	DP_RES_TYPE_PLPID,
+#define	DP_RES_TYPE_DEF_PLPID  15
 	/*!< Policer profiles ID */
-	DP_RES_TYPE_PRPID, 
-	/*!< parser profile ID */
-	DP_RES_TYPE_PPID,
+#define	DP_RES_TYPE_DEF_PRPID  16
+	/*!< Parser profile ID */
+#define	DP_RES_TYPE_DEF_PPID  17
 	/*!< Physical ports */
-	DP_RES_TYPE_IFPID,
+#define	DP_RES_TYPE_DEF_IFPID  18
 	/*!< Interface profiles */
-	DP_RES_TYPE_TASK,
+#define	DP_RES_TYPE_DEF_TASK  19
 	/*!< AIOP tasks*/
-	DP_RES_TYPE_LOOKUP_TABLE,	//TODO - same as TID?
+#define	DP_RES_TYPE_DEF_LOOKUP_TABLE  20	//TODO - same as TID?
 	/*!< Lookup tables */
-	DP_RES_TYPE_RP_PORT,
+#define	DP_RES_TYPE_DEF_RP_PORT  21
 	/*!< Recycle path port */
-	DP_RES_TYPE_RPLR,
+#define	DP_RES_TYPE_DEF_RPLR  22
 	/*!< Replication list record */
-	DP_RES_TYPE_DPSW_PORT,
+#define	DP_RES_TYPE_DEF_DPSW_PORT  23
 	/*!< DPSW port*/
-	DP_RES_TYPE_DEVICE_DUMMY_FIRST,	//TODO - ignore, will be removed
-	DP_RES_TYPE_DPNI,
+#define DP_RES_TYPE_DEF_POLICY_ID  24
+	/*!< Policy ID */
+#define	DP_RES_TYPE_DEF_DPNI 100
 	/*!< DPNI Device*/
-	DP_RES_TYPE_DPIO,
+#define	DP_RES_TYPE_DEF_DPIO 101
 	/*!< DPIO device */
-	DP_RES_TYPE_DPSP,
+#define	DP_RES_TYPE_DEF_DPSP 102
 	/*!< DPSP device */
-	DP_RES_TYPE_DPSW,
+#define	DP_RES_TYPE_DEF_DPSW 103
 	/*!< DPSW device */
-	DP_RES_TYPE_DEVICE_DUMMY_LAST, 	//TODO - ignore, will be removed
-	DP_RES_TYPE_DPRC,
-	DP_RES_TYPE_MC
-//TODO - can be removed?
-};
+#define	DP_RES_TYPE_DEF_DPMAC 104
+	/*!< DPMAC device */
+#define	DP_RES_TYPE_DEF_DPRC 105
+
 
 /*!
  * @name Resource request options
@@ -106,15 +107,15 @@ enum dp_res_type {
 /*!< Explicit resource id request - Relevant only for primitive resources
  * request. The requested resources are explicit and sequential The base ID is
  * given at res_req at base_align field */
-#define RES_REQ_OPT_SEQUENTIAL		0x00000002
+#define RES_REQ_OPT_ALIGN		0x00000002
 /*!< Sequential resources request - Relevant only for primitive resources
  * request. Indicates that resources id should be sequential and aligned to the
  * value given at dprc_res_req base_align field */
-#define RES_REQ_OPT_PLUGGED		    0x00000004
+#define RES_REQ_OPT_PLUGGED		0x00000004
 /*!< Plugged Flag - Relevant only for device assignment request.
  * Indicates that after all devices assigned. An interrupt will be invoked at
  * the relevant GPP. The assigned device will be marked as plugged */
-#define RES_REQ_OPT_SHARED		    0x00000008			//TODO - this should be internal only?
+#define RES_REQ_OPT_SHARED		0x00000008			//TODO - this should be internal only?
 /*!< Shared flag - Relevant only for device assignment request.
  * In case this flag is set the device will be copied to the containers on
  * assignment otherwise it will be moved from its container to the new one */
@@ -123,11 +124,14 @@ enum dp_res_type {
 /*!
  * @name Container general options
  */
-#define DPRC_OPT_IOMMU_BYPASS		0x00000001
-/*!<
- * Indicates a trusted container that is allowed to bypass IOMMU address
- * translations.
- */
+#define CREATE_ATTR_OPT_SPAWN_ALLOWED           0x00000001
+#define CREATE_ATTR_OPT_ALLOC_ALLOWED           0x00000002
+#define RES_REQ_OPT_DEVICE_INIT_ALLOWED         0x00000004
+#define RES_REQ_OPT_TOPOLOGY_CHANGES_ALLOWED    0x00000008                 
+#define DPRC_OPT_IOMMU_BYPASS                   0x00000010
+		
+/*!<  */
+/* @} */
 
 /*!
  * @name Device Attributes Flags
@@ -140,56 +144,13 @@ enum dp_res_type {
 /*!< Shared state - Indicates that a device is shared by more than one container */
 /* @} */
 
-/**
- * @brief	Container spawn policy
- *
- * Spawn policy determines if the container is allowed to spawn or not.
- * A container (DPRC) may create child containers according to its spawn policy.
- */
-enum dprc_spawn_policy {
-	DPRC_SPAWN_POLICY_ALLOWED,
-	/*!< Spawning is allowed */
-	DPRC_SPAWN_POLICY_FORBIDDEN
-/*!< Spawning is forbidden */
-};
-
-/**
- * @brief	Resource allocation policy
- *
- * Allocation policy defines the container permission to request resources from
- * its parent container.
- */
-enum dprc_alloc_policy {
-	DPRC_ALLOC_POLICY_UNLIMITED,
-	/*!<
-	 * Allocation from parent is unlimited. As long as resources are
-	 * available, container can take as much resources as needed from the
-	 * parent
-	 */
-	DPRC_ALLOC_POLICY_FORBIDDEN,
-	/*!<
-	 * Allocation from parent is forbidden
-	 */
-	DPRC_ALLOC_POLICY_BY_QUOTA,
-	/*!<
-	 * Allocation from parent is allowed but limited by a quota (has to be
-	 * set by the parent)
-	 */
-	DPRC_ALLOC_POLICY_BY_CONTAINER_POLICY,
-/*!<
- * Allocation from parent of a specific resource type is done according
- * to the 'global' policy set in the container. This option is valid only
- * when set to a specific resource type, and cannot be used by itself
- * as the container's global policy.
- */
-};
 
 /**
  * @brief	Resource request descriptor, to be used in assignment or
  * 		un-assignment of resources and devices.
  */
 struct dprc_res_req {
-	enum dp_res_type type;
+	uint16_t type;
 	/*!< Resource type */
 	uint32_t num;
 	/*!< Number of resources */
@@ -213,18 +174,18 @@ struct dprc_dev_desc {
 	/*!< Device vendor identifier */
 	uint16_t type;
 	/*!< Type of logical device resource */
-	uint32_t id;
+	int id;
 	/*!< ID of logical device resource */
 	uint8_t rev_major;
 	/*!< Major revision number */
 	uint8_t rev_minor;
 	/*!< Minor  revision number */
-	uint32_t state;
-	/*!< Device state */
 	uint8_t irq_count;
 	/*!< Number of interrupts supported by the device */
 	uint8_t region_count;
-/*!< Number of mappable regions supported by the device */
+	/*!< Number of mappable regions supported by the device */
+	uint32_t state;
+	/*!< Device state */
 };
 
 /**
@@ -245,11 +206,11 @@ struct dprc_attributes {
 	/*!< Container's ID */
 	uint16_t icid;
 	/*!< Container's ICID */
-	uint16_t portal_id;
+	int portal_id;
 	/*!< Container's portal ID */
-	enum dprc_spawn_policy spawn_policy;
+	//enum dprc_spawn_policy spawn_policy;
 	/*!< Container's spawn policy */
-	enum dprc_alloc_policy allocation_policy;
+	//enum dprc_alloc_policy allocation_policy;
 	/*!< Container's default allocation policy for all its resources,
 	 * primitives and devices*/
 	uint32_t options;
@@ -262,12 +223,12 @@ struct dprc_attributes {
 struct dprc_create_attributes {
 	uint16_t icid;
 	/*!< Container's ICID */
-	enum dprc_spawn_policy spawn_policy;
+	//enum dprc_spawn_policy spawn_policy;
 	/*!< Container's spawn policy */
-	enum dprc_alloc_policy alloc_policy;
+	//enum dprc_alloc_policy alloc_policy;
 	/*!< Container's default allocation policy for all its resources,
 	 * primitives and devices*/
-	uint32_t options;
+	uint64_t options;
 /*!< Container's attributes flags */
 };
 
@@ -355,7 +316,6 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  * @param[in]	dprc			DPRC object handle
  * @param[in]	child_container_id	ID of the child container
  * @param[in]	res_type		Selects the resource type
- * @param[in]	alloc_policy		Selects the allocation policy
  * @param[in]	quota			Sets the maximum number of resources of
  * 					the selected type that the child container
  * 					is allowed to allocate from the parent;
@@ -366,11 +326,10 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  *
  * @warning	Only the parent container is allowed to change a child policy.
  */
-int dprc_set_res_alloc_policy(struct dprc *dprc,
-                              int child_container_id,
-                              enum dp_res_type res_type,
-                              enum dprc_alloc_policy alloc_policy,
-                              uint16_t quota);
+int dprc_set_res_quota(struct dprc *dprc,
+                       int child_container_id,
+                       uint16_t res_type,
+                       uint16_t quota);
 
 /**
  * @brief	Gets the allocation policy of a specific resource type in a \
@@ -379,20 +338,18 @@ int dprc_set_res_alloc_policy(struct dprc *dprc,
  * @param[in]	dprc			DPRC object handle
  * @param[in]	child_container_id	ID of the child container
  * @param[in]	res_type		Selects the resource type
- * @param[out]	alloc_policy		Selects the allocation policy
  * @param[out]	quota			Sets the maximum number of resources of
  * 					the selected type that the child container
  * 					is allowed to allocate from the parent;
- * 					valid only if alloc_policy is set to
- * 					DPRC_ALLOC_POLICY_BY_QUOTA.
+ * 					when quota set to -1, the policy is
+ * 					that same as container's policy.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_alloc_policy(struct dprc *dprc,
-                              int child_container_id,
-                              enum dp_res_type res_type,
-                              enum dprc_alloc_policy *alloc_policy,
-                              uint16_t *quota);
+int dprc_get_res_quota(struct dprc *dprc,
+                       int child_container_id,
+                       uint16_t res_type,
+                       uint16_t *quota);
 
 /**
  * @brief	Resets a child container.
@@ -428,7 +385,7 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id);
  * available in the container itself.
  *
  * The type of assignment depends on the dprc_res_req options, as follows:
- * - RES_REQ_OPT_EXPLICIT: indicates that assigned resources should have the 
+ * - RES_REQ_OPT_EXPLICIT: indicates that assigned resources should have the
  *   explicit base ID specified at the base_align field of res_req.
  * - RES_REQ_OPT_SEQUENTIAL: indicates that the assigned resources should be
  *   aligned to the value given at base_align field of dprc_res_req.
@@ -513,7 +470,7 @@ int dprc_get_device(struct dprc *dprc,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_count(struct dprc *dprc,
-                       enum dp_res_type res_type,
+                       uint16_t res_type,
                        int *res_count);
 
 /**
@@ -531,7 +488,7 @@ int dprc_get_res_count(struct dprc *dprc,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_ids(struct dprc *dprc,
-                     enum dp_res_type res_type,
+                     uint16_t res_type,
                      int res_ids_num,
                      uint32_t *res_ids,
                      int *valid_count);
