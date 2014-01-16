@@ -411,6 +411,21 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
+@Function	tcp_gro_timeout_callback
+
+@Description	TCP GRO timeout callback.
+
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context. 
+
+@Return		None.
+
+@Cautions	None.
+*//***************************************************************************/
+void tcp_gro_timeout_callback(
+		uint64_t tcp_gro_context_addr);
+
+/**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
 @Description	Calculate the TCP header checksum from the data checksum (which 
@@ -435,21 +450,6 @@ uint16_t tcp_gro_calc_tcp_header_cksum(
 @Cautions	None.
 *//***************************************************************************/
 uint16_t tcp_gro_calc_tcp_data_cksum();
-
-/**************************************************************************//**
-@Function	tcp_gro_timeout_callback
-
-@Description	TCo GRO timeout callback.
-
-@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
-		internal context. 
-
-@Return		None.
-
-@Cautions	None.
-*//***************************************************************************/
-void tcp_gro_timeout_callback(
-		uint64_t tcp_gro_context_addr);
 
 
 /** @} */ /* end of TCP_GRO_INTERNAL_FUNCTIONS */
