@@ -236,11 +236,11 @@ do { \
 #endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
 #endif /* (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0)) */
 
-#define pr_debug(...) do{DBG(REPORT_LEVEL_TRACE, __VA_ARGS__);}while(0)
-#define pr_info(...) do{DBG(REPORT_LEVEL_INFO, __VA_ARGS__);}while(0)
-#define pr_warn(...) do{DBG(REPORT_LEVEL_WARNING, __VA_ARGS__);}while(0)
-#define pr_err(...) do{DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__);}while(0)
-#define pr_crit(...) do{DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__);}while(0)
+#define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
+#define pr_info(...) 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__)
+#define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
+#define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
+#define pr_crit(...)	DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__)
 
 /** @} */ /* end of dump_g group */
 /** @} */ /* end of gen_g group */
