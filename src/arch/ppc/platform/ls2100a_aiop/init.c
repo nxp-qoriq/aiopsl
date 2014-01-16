@@ -111,7 +111,7 @@ int run_apps(void)
 
 extern int init_nic_stub(int portal_id, int ni_id);
 /* TODO - get rid of this stub! */
-init_nic_stub(2, 10);
+//init_nic_stub(2, 10);
 
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */

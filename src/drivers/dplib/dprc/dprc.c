@@ -219,8 +219,8 @@ int dprc_get_res_ids(struct dprc *dprc,
 
 	DPRC_CMD_GET_RES_IDS(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_RES_COUNT,
-	                 DPRC_CMDSZ_GET_RES_COUNT, CMDIF_PRI_LOW,
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_RES_IDS,
+	                 DPRC_CMDSZ_GET_RES_IDS, CMDIF_PRI_LOW,
 	                 (uint8_t*)&cmd_data);
 	if (!err) {
 		/* retrieve response parameters */
