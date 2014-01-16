@@ -79,17 +79,6 @@ int dpni_drv_enable (uint16_t ni_id);
 int dpni_drv_disable (uint16_t ni_id);
 
 /**************************************************************************//**
- @Function      dpni_drv_is_up
-
- @Description   TODO
-
- @Param[in]     ni_id   The Network Interface ID
-
- @Return        '1' if up; '0' otherwise.
-*//***************************************************************************/
-int dpni_drv_is_up (uint16_t ni_id);
-
-/**************************************************************************//**
  @Function      dpni_drv_enable
 
  @Description   TODO

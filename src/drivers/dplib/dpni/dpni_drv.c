@@ -117,7 +117,6 @@ int dpni_drv_enable (uint16_t ni_id)
 
 	if ((err = dpni_enable(&dpni_drv->dpni)) != 0)
 		return err;
-	dpni_drv->flags |= DPNI_DRV_FLG_ENABLED;
 	return 0;
 }
 
@@ -127,21 +126,8 @@ int dpni_drv_disable (uint16_t ni_id)
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
-
-	dpni_drv->flags &= ~DPNI_DRV_FLG_ENABLED;
 	return dpni_disable(&dpni_drv->dpni);
 }
-
-int dpni_drv_is_up (uint16_t ni_id)
-{
-	struct dpni_drv *dpni_drv;
-
-	/* calculate pointer to the send NI structure */
-	dpni_drv = nis + ni_id;
-
-	return !!(dpni_drv->flags & DPNI_DRV_FLG_ENABLED);
-}
-
 
 int dpni_drv_probe(uint16_t	ni_id,
                    uint16_t	mc_portal_id,
