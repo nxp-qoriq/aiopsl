@@ -229,7 +229,7 @@ int dprc_get_res_ids(struct dprc *dprc,
 	                 (uint8_t*)&cmd_data);
 	if (!err) {
 		/* retrieve response parameters */
-		DPRC_RSP_GET_RES_COUNT(RSP_READ);
+		DPRC_RSP_GET_RES_IDS(RSP_READ_STRUCT); 
 	}
 
 	return err;
