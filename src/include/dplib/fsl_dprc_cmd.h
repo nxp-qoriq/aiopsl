@@ -129,14 +129,15 @@
 
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_CMD_GET_RES_IDS(_OP) \
-	_OP(0, 	32, 	10, 	uint16_t,		res_type_def) \
-	_OP(0, 	42, 	7, 		int,			res_ids_num)
+	_OP(0, 	32, 10,	uint16_t,			 res_type_def) \
+	_OP(0, 	42, 7, 	enum dprc_iteration_status, range_desc->iteration_status)
 
 //TODO fix this response
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_RSP_GET_RES_IDS(_OP) \
-	_OP(0, 	0, 		32, 	uint32_t,		res_ids) \
-	_OP(0, 	32, 	32, 	int,			valid_count) \
+	_OP(0, 	42, 	7, 	enum dprc_iteration_status, range_desc->iteration_status)\
+	_OP(1, 	0, 	32, 	int,			range_desc->base_id) \
+	_OP(1, 	32, 	32, 	int,			range_desc->last_id) 
 
 /* 	param, offset, width, 	type, 			arg_name */
 #define DPRC_RSP_GET_ATTRIBUTES(_OP) \
