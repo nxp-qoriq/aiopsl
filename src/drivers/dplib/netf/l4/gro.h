@@ -356,6 +356,9 @@ void gro_init(uint32_t timeout_flags);
 
 @Description	Add segment to an existing aggregation.
 
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context. 
+@Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	gro_ctx - Pointer to the internal GRO context. 
 
 @Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
@@ -365,6 +368,8 @@ void gro_init(uint32_t timeout_flags);
 @Cautions	None.
 *//***************************************************************************/
 int32_t tcp_gro_add_seg_to_aggregation(
+		uint64_t tcp_gro_context_addr,
+		struct tcp_gro_context_params *params, 
 		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
@@ -389,6 +394,9 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 @Description	Close an existing aggregation and start a new aggregation with 
 		the new segment.
 
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context. 
+@Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	gro_ctx - Pointer to the internal GRO context. 
 
 @Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
@@ -398,6 +406,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 @Cautions	None.
 *//***************************************************************************/
 int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+		uint64_t tcp_gro_context_addr,
+		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
