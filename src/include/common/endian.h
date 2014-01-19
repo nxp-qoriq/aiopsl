@@ -10,15 +10,9 @@
 #define __FSL_ENDIAN_H
 
 #include "common/types.h"
+#include "common/fsl_core.h"
 
 
-/**************************************************************************//**
- @Group         fsl_lib_g   Utility Library Application Programming Interface
-
- @Description   External routines.
-
- @{
-*//***************************************************************************/
 
 /**************************************************************************//**
  @Group         fsl_lib_endian_g Big/Little-Endian Conversion
@@ -53,7 +47,7 @@
 
  @Cautions      The given value is evaluated multiple times by this macro.
                 For calculated expressions or expressions that contain function
-                calls it is recommended to use the SwapUint16() routine.
+                calls it is recommended to use the swap_uint16() routine.
 
  @hideinitializer
 *//***************************************************************************/
@@ -69,7 +63,7 @@
 
  @Cautions      The given value is evaluated multiple times by this macro.
                 For calculated expressions or expressions that contain function
-                calls it is recommended to use the SwapUint32() routine.
+                calls it is recommended to use the swap_uint32() routine.
 
  @hideinitializer
 *//***************************************************************************/
@@ -88,7 +82,7 @@
 
  @Cautions      The given value is evaluated multiple times by this macro.
                 For calculated expressions or expressions that contain function
-                calls it is recommended to use the SwapUint64() routine.
+                calls it is recommended to use the swap_uint64() routine.
 
  @hideinitializer
 *//***************************************************************************/
@@ -124,7 +118,7 @@
 
  @Return        The byte-swapped value of the parameter.
 *//***************************************************************************/
-static __inline__ uint16_t swap_uint16(uint16_t val)
+static inline uint16_t swap_uint16(uint16_t val)
 {
     return (uint16_t)(((val & 0x00ff) << 8) |
                       ((val & 0xff00) >> 8));
@@ -139,7 +133,7 @@ static __inline__ uint16_t swap_uint16(uint16_t val)
 
  @Return        The byte-swapped value of the parameter.
 *//***************************************************************************/
-static __inline__ uint32_t swap_uint32(uint32_t val)
+static inline uint32_t swap_uint32(uint32_t val)
 {
     return (uint32_t)(((val & 0x000000ff) << 24) |
                       ((val & 0x0000ff00) <<  8) |
@@ -156,7 +150,7 @@ static __inline__ uint32_t swap_uint32(uint32_t val)
 
  @Return        The byte-swapped value of the parameter.
 *//***************************************************************************/
-static __inline__ uint64_t swap_uint64(uint64_t val)
+static inline uint64_t swap_uint64(uint64_t val)
 {
     return (uint64_t)(((val & 0x00000000000000ffULL) << 56) |
                       ((val & 0x000000000000ff00ULL) << 40) |
@@ -187,7 +181,7 @@ static __inline__ uint64_t swap_uint64(uint64_t val)
 
  @Return        None.
 *//***************************************************************************/
-static __inline__ void swap_uint16_p(uint16_t *p_val)
+static inline void swap_uint16_p(uint16_t *p_val)
 {
     *p_val = swap_uint16(*p_val);
 }
@@ -201,7 +195,7 @@ static __inline__ void swap_uint16_p(uint16_t *p_val)
 
  @Return        None.
 *//***************************************************************************/
-static __inline__ void swap_uint32_p(uint32_t *p_val)
+static inline void swap_uint32_p(uint32_t *p_val)
 {
     *p_val = swap_uint32(*p_val);
 }
@@ -215,7 +209,7 @@ static __inline__ void swap_uint32_p(uint32_t *p_val)
 
  @Return        None.
 *//***************************************************************************/
-static __inline__ void swap_uint64_p(uint64_t *p_val)
+static inline void swap_uint64_p(uint64_t *p_val)
 {
     *p_val = swap_uint64(*p_val);
 }
@@ -238,77 +232,35 @@ static __inline__ void swap_uint64_p(uint64_t *p_val)
  @{
 *//***************************************************************************/
 
-/**************************************************************************//**
- @Description   Converts a given 16-bit value from CPU byte order to
-                Little-Endian byte order.
+#ifdef CORE_IS_BIG_ENDIAN
 
- @Param[in]     val - The 16-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CPU_TO_LE16(val)        swap_uint16(val)
-
-/**************************************************************************//**
- @Description   Converts a given 32-bit value from CPU byte order to
-                Little-Endian byte order.
-
- @Param[in]     val - The 32-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CPU_TO_LE32(val)        swap_uint32(val)
-
-/**************************************************************************//**
- @Description   Converts a given 64-bit value from CPU byte order to
-                Little-Endian byte order.
-
- @Param[in]     val - The 64-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CPU_TO_LE64(val)        swap_uint64(val)
 
-/**************************************************************************//**
- @Description   Converts a given 16-bit value from Little-Endian byte order to
-                CPU byte order.
+#define CPU_TO_BE16(val)	((uint16_t)(val))
+#define CPU_TO_BE32(val)	((uint32_t)(val))
+#define CPU_TO_BE64(val)	((uint64_t)(val))
 
- @Param[in]     val - The 16-bit value to convert.
+#else  /* CORE_IS_LITTLE_ENDIAN */
 
- @Return        The converted value.
+#define CPU_TO_LE16(val)	((uint16_t)(val))
+#define CPU_TO_LE32(val)	((uint32_t)(val))
+#define CPU_TO_LE64(val)	((uint64_t)(val))
 
- @hideinitializer
-*//***************************************************************************/
+#define CPU_TO_BE16(val)        swap_uint16(val)
+#define CPU_TO_BE32(val)        swap_uint32(val)
+#define CPU_TO_BE64(val)        swap_uint64(val)
+
+#endif /* CORE_IS_LITTLE_ENDIAN */
+
 #define LE16_TO_CPU(val)        CPU_TO_LE16(val)
-
-/**************************************************************************//**
- @Description   Converts a given 32-bit value from Little-Endian byte order to
-                CPU byte order.
-
- @Param[in]     val - The 32-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define LE32_TO_CPU(val)        CPU_TO_LE32(val)
-
-/**************************************************************************//**
- @Description   Converts a given 64-bit value from Little-Endian byte order to
-                CPU byte order.
-
- @Param[in]     val - The 64-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define LE64_TO_CPU(val)        CPU_TO_LE64(val)
+
+#define BE16_TO_CPU(val)        CPU_TO_BE16(val)
+#define BE32_TO_CPU(val)        CPU_TO_BE32(val)
+#define BE64_TO_CPU(val)        CPU_TO_BE64(val)
 
 /* @} */
 
@@ -328,82 +280,39 @@ static __inline__ void swap_uint64_p(uint64_t *p_val)
 
  @{
 *//***************************************************************************/
+#ifdef CORE_IS_BIG_ENDIAN
 
-/**************************************************************************//**
- @Description   Converts a given 16-bit constant from CPU byte order to
-                Little-Endian byte order.
-
- @Param[in]     val - The 16-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CONST_CPU_TO_LE16(val)  SWAP_UINT16(val)
-
-/**************************************************************************//**
- @Description   Converts a given 32-bit constant from CPU byte order to
-                Little-Endian byte order.
-
- @Param[in]     val - The 32-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CONST_CPU_TO_LE32(val)  SWAP_UINT32(val)
-
-/**************************************************************************//**
- @Description   Converts a given 64-bit constant from CPU byte order to
-                Little-Endian byte order.
-
- @Param[in]     val - The 64-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CONST_CPU_TO_LE64(val)  SWAP_UINT64(val)
 
-/**************************************************************************//**
- @Description   Converts a given 16-bit constant from Little-Endian byte order
-                to CPU byte order.
+#define CONST_CPU_TO_BE16(val)  ((uint16_t)(val))
+#define CONST_CPU_TO_BE32(val)  ((uint32_t)(val))
+#define CONST_CPU_TO_BE64(val)  ((uint64_t)(val))
 
- @Param[in]     val - The 16-bit value to convert.
+#else  /* CORE_IS_LITTLE_ENDIAN */
 
- @Return        The converted value.
+#define CONST_CPU_TO_LE16(val)  ((uint16_t)(val))
+#define CONST_CPU_TO_LE32(val)  ((uint32_t)(val))
+#define CONST_CPU_TO_LE64(val)  ((uint64_t)(val))
 
- @hideinitializer
-*//***************************************************************************/
+#define CONST_CPU_TO_BE16(val)  SWAP_UINT16(val)
+#define CONST_CPU_TO_BE32(val)  SWAP_UINT32(val)
+#define CONST_CPU_TO_BE64(val)  SWAP_UINT64(val)
+
+#endif /* CORE_IS_LITTLE_ENDIAN */
+
 #define CONST_LE16_TO_CPU(val)  CONST_CPU_TO_LE16(val)
-
-/**************************************************************************//**
- @Description   Converts a given 32-bit constant from Little-Endian byte order
-                to CPU byte order.
-
- @Param[in]     val - The 32-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CONST_LE32_TO_CPU(val)  CONST_CPU_TO_LE32(val)
-
-/**************************************************************************//**
- @Description   Converts a given 64-bit constant from Little-Endian byte order
-                to CPU byte order.
-
- @Param[in]     val - The 64-bit value to convert.
-
- @Return        The converted value.
-
- @hideinitializer
-*//***************************************************************************/
 #define CONST_LE64_TO_CPU(val)  CONST_CPU_TO_LE64(val)
+
+#define CONST_BE16_TO_CPU(val)  CONST_CPU_TO_BE16(val)
+#define CONST_BE32_TO_CPU(val)  CONST_CPU_TO_BE32(val)
+#define CONST_BE64_TO_CPU(val)  CONST_CPU_TO_BE64(val)
+
 /* @} */
 
 /** @} */ /* end of fsl_lib_endian_g group */
-/** @} */ /* end of fsl_lib_g group */
 
 
 #endif /* __FSL_ENDIAN_H */

@@ -7,114 +7,111 @@
 #ifndef _FSL_DPRC_H
 #define _FSL_DPRC_H
 
-#include "common/types.h"
-#include "common/fsl_cmdif.h"
+#include <fsl_cmdif.h>
 
 
 #ifdef MC
 struct dprc;
 #else
 struct dprc {
-	struct cmdif_desc cidesc;
+	struct cmdif_desc cidesc;	/*!< Descriptor for command portal */
 };
 #endif
 /*!
  * @Group grp_dprc	Data Path Resource Container API
  *
- * @brief	Contains initialization APIs and runtime control APIs for DPRC
+ * @brief	Contains DPRC API for managing and querying LDPAA resources
  * @{
  */
 
-#define DPRC_GET_ICID_FROM_POOL		(uint16_t)(~(0))
-/*!<
- * Set this value as the ICID value in dprc_create_attributes when creating a
+/*!
+ * Set this value as the ICID value in dprc_cfg structure when creating a
  * container, in case the ICID is not selected by the user and should be
- * allocated by the DPRC from the pool of ICIDs
+ * allocated by the DPRC from the pool of ICIDs.
  */
+#define DPRC_GET_ICID_FROM_POOL		(uint16_t)(~(0))
 
 /**
- * Resource types enumeration
+ * Resource types defines
  */
-enum dp_res_type {
-	DP_RES_TYPE_ICID,	//TODO - remove
+#define	DP_RES_ICID  0
 	/*!< Isolation contexts ID */
-	DP_RES_TYPE_MCPID,
+#define	DP_RES_MCPID  1
 	/*!< Management portals */
-	DP_RES_TYPE_SWP,
-	/*!< Software portals (base address + interrupt) */
-	DP_RES_TYPE_BPID,
+#define	DP_RES_SWP  2
+	/*!< Software portals */
+#define	DP_RES_BPID  3
 	/*!< Buffer pools */
-	DP_RES_TYPE_CHANNELS,
+#define	DP_RES_WQ_CHANNEL  4
 	/*!< Channels */
-	DP_RES_TYPE_FQID,
+#define	DP_RES_FQID  5
 	/*!< Frame queues */
-	DP_RES_TYPE_QPR,
+#define	DP_RES_QPR  6
 	/*!< Queuing priority record */
-	DP_RES_TYPE_QDID,
+#define	DP_RES_QDID  7
 	/*!< Queuing destinations */
-	DP_RES_TYPE_CGID,
+#define	DP_RES_CGID  8
 	/*!< Congestion groups */
-	DP_RES_TYPE_CEETM_LFQMTIDX,           
-	/*!< Logical Frame Queue Mapping Table Index */
-	DP_RES_TYPE_CEETM_DCTIDX,               
-	/*!< Dequeue Command Type Index */
-	DP_RES_TYPE_CEETM_CQCHID,                
+#define	DP_RES_CEETM_CQ_CHANNEL  11
 	/*!< Class Queue Channel ID */
-	DP_RES_TYPE_CEETM_LNIID,
-	/*!< !Logical Network Interface ID */
-	DP_RES_TYPE_TID,
+#define	DP_RES_TABLE_ID  13
 	/*!< Classification tables */
-	DP_RES_TYPE_KID,
+#define	DP_RES_KEY_PROFILE_ID  14
 	/*!< Key ID*/
-	DP_RES_TYPE_PLPID,
+#define	DP_RES_PLPID  15
 	/*!< Policer profiles ID */
-	DP_RES_TYPE_PRPID, 
-	/*!< parser profile ID */
-	DP_RES_TYPE_PPID,
+#define	DP_RES_PRPID  16
+	/*!< Parser profile ID */
+#define	DP_RES_PPID  17
 	/*!< Physical ports */
-	DP_RES_TYPE_IFPID,
+#define	DP_RES_IFPID  18
 	/*!< Interface profiles */
-	DP_RES_TYPE_TASK,
+#define	DP_RES_TASK  19
 	/*!< AIOP tasks*/
-	DP_RES_TYPE_LOOKUP_TABLE,	//TODO - same as TID?
-	/*!< Lookup tables */
-	DP_RES_TYPE_RP_PORT,
-	/*!< Recycle path port */
-	DP_RES_TYPE_RPLR,
+#define	DP_RES_RPLR  22
 	/*!< Replication list record */
-	DP_RES_TYPE_DPSW_PORT,
+#define	DP_RES_DPSW_PORT  23
 	/*!< DPSW port*/
-	DP_RES_TYPE_DEVICE_DUMMY_FIRST,	//TODO - ignore, will be removed
-	DP_RES_TYPE_DPNI,
+#define DP_RES_POLICY_ID  24
+	/*!< Policy ID */
+
+
+/**
+ * Device types definition
+ */
+#define	DP_DEV_DPRC 100
+	/*!< DPRC Device */
+#define	DP_DEV_DPNI 101
 	/*!< DPNI Device*/
-	DP_RES_TYPE_DPIO,
+#define	DP_DEV_DPIO 102
 	/*!< DPIO device */
-	DP_RES_TYPE_DPSP,
+#define	DP_DEV_DPSP 103
 	/*!< DPSP device */
-	DP_RES_TYPE_DPSW,
+#define	DP_DEV_DPSW 104
 	/*!< DPSW device */
-	DP_RES_TYPE_DEVICE_DUMMY_LAST, 	//TODO - ignore, will be removed
-	DP_RES_TYPE_DPRC,
-	DP_RES_TYPE_MC
-//TODO - can be removed?
-};
+#define	DP_DEV_DPDMUX 105
+	/*!< DPMAC device */
+#define	DP_DEV_DPMAC 106
+	/*!< DPMAC device */
+/* More will be added... */
+
 
 /*!
  * @name Resource request options
  */
-#define RES_REQ_OPT_EXPLICIT		0x00000001
-/*!< Explicit resource id request - Relevant only for primitive resources
+#define DPRC_RES_REQ_OPT_EXPLICIT		0x00000001
+/*!< Explicit resource id request - Relevant only for resources
  * request. The requested resources are explicit and sequential The base ID is
  * given at res_req at base_align field */
-#define RES_REQ_OPT_SEQUENTIAL		0x00000002
-/*!< Sequential resources request - Relevant only for primitive resources
+#define DPRC_RES_REQ_OPT_ALIGNED		0x00000002
+/*!< Sequential resources request - Relevant only for resources
  * request. Indicates that resources id should be sequential and aligned to the
  * value given at dprc_res_req base_align field */
-#define RES_REQ_OPT_PLUGGED		    0x00000004
+#define DPRC_RES_REQ_OPT_PLUGGED		0x00000004
 /*!< Plugged Flag - Relevant only for device assignment request.
  * Indicates that after all devices assigned. An interrupt will be invoked at
  * the relevant GPP. The assigned device will be marked as plugged */
-#define RES_REQ_OPT_SHARED		    0x00000008			//TODO - this should be internal only?
+#define DPRC_RES_REQ_OPT_SHARED			0x00000008
 /*!< Shared flag - Relevant only for device assignment request.
  * In case this flag is set the device will be copied to the containers on
  * assignment otherwise it will be moved from its container to the new one */
@@ -122,87 +119,63 @@ enum dp_res_type {
 
 /*!
  * @name Container general options
+ *
+ * These options may be selected at container creation by the container creator
+ * and can be retreived using dprc_get_attributes()
  */
-#define DPRC_OPT_IOMMU_BYPASS		0x00000001
-/*!<
- * Indicates a trusted container that is allowed to bypass IOMMU address
- * translations.
- */
+#define DPRC_CFG_OPT_SPAWN_ALLOWED           	0x00000001
+/*!< Spawn Policy Option allowed - Indicates that the new container is alllowd
+ * to span and have its own child containers. */
+#define DPRC_CFG_OPT_ALLOC_ALLOWED           	0x00000002
+/*!< General Container allocation policy - Indicates that the new container is
+ * allowed to allocate requested resources from its parent container; if not
+ * set, the container is only allowed to use resources in its own pools; Note
+ * that this is a container's global policy, but the parent container may
+ * override it and set specific quota per resource type. */
+#define DPRC_CFG_OPT_DEVICE_INIT_ALLOWED        0x00000004
+/*!< Device initialization allowed - software context associated with this
+ * container is allowed to invoke device intiialization operations. */
+#define DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED	0x00000008
+/*!< Topology change allowed - software context associated with this
+ * container is allowed to invoke topology operations, such as attach/detach
+ * of network devices. */
+#define DPRC_CFG_OPT_IOMMU_BYPASS		0x00000010
+/*!<IOMMU bypass - indicates whether devices of this container are permitted
+ * to bypass the IOMMU.  */
+/* @} */
 
 /*!
  * @name Device Attributes Flags
  */
 #define DPRC_DEV_STATE_OPEN		0x00000001
-/*!< Opened state - Indicates that a device is opened for use by at least one owner */
+/*!< Opened state - Indicates that a device was opened by at least one owner */
 #define DPRC_DEV_STATE_PLUGGED		0x00000002
 /*!< Plugged state - Indicates that a device is plugged */
 #define DPRC_DEV_STATE_SHARED		0x00000004
 /*!< Shared state - Indicates that a device is shared by more than one container */
 /* @} */
 
-/**
- * @brief	Container spawn policy
- *
- * Spawn policy determines if the container is allowed to spawn or not.
- * A container (DPRC) may create child containers according to its spawn policy.
- */
-enum dprc_spawn_policy {
-	DPRC_SPAWN_POLICY_ALLOWED,
-	/*!< Spawning is allowed */
-	DPRC_SPAWN_POLICY_FORBIDDEN
-/*!< Spawning is forbidden */
-};
-
-/**
- * @brief	Resource allocation policy
- *
- * Allocation policy defines the container permission to request resources from
- * its parent container.
- */
-enum dprc_alloc_policy {
-	DPRC_ALLOC_POLICY_UNLIMITED,
-	/*!<
-	 * Allocation from parent is unlimited. As long as resources are
-	 * available, container can take as much resources as needed from the
-	 * parent
-	 */
-	DPRC_ALLOC_POLICY_FORBIDDEN,
-	/*!<
-	 * Allocation from parent is forbidden
-	 */
-	DPRC_ALLOC_POLICY_BY_QUOTA,
-	/*!<
-	 * Allocation from parent is allowed but limited by a quota (has to be
-	 * set by the parent)
-	 */
-	DPRC_ALLOC_POLICY_BY_CONTAINER_POLICY,
-/*!<
- * Allocation from parent of a specific resource type is done according
- * to the 'global' policy set in the container. This option is valid only
- * when set to a specific resource type, and cannot be used by itself
- * as the container's global policy.
- */
-};
 
 /**
  * @brief	Resource request descriptor, to be used in assignment or
  * 		un-assignment of resources and devices.
  */
 struct dprc_res_req {
-	enum dp_res_type type;
-	/*!< Resource type */
+	uint16_t type;
+	/*!< Resource/device type: one of DP_RES_ or DP_DEV_ values;
+	 * Note: it is not possible to assign/unassign DP_DEV_DPRC devices */
 	uint32_t num;
 	/*!< Number of resources */
 	uint32_t options;
-	/*!< Request options */
+	/*!< Request options: combination of DPRC_RES_REQ_OPT_ options */
 	int id_base_align;
-/*!<
- * In case of explicit assignment, this field represents the
- * required base ID for resource allocation;
- * In case of non-explicit
- * assignment, this field indicates the required alignment for the
- * resource ID(s) - use 0 or 1 if there is no alignment requirement.
- */
+	/*!<
+	 * In case of explicit assignment, this field represents the
+	 * required base ID for resource allocation;
+	 * In case of non-explicit
+	 * assignment, this field indicates the required alignment for the
+	 * resource ID(s) - use 0 or 1 if there is no alignment requirement.
+	 */
 };
 
 /**
@@ -212,19 +185,19 @@ struct dprc_dev_desc {
 	uint16_t vendor;
 	/*!< Device vendor identifier */
 	uint16_t type;
-	/*!< Type of logical device resource */
-	uint32_t id;
+	/*!< Type of device: one of DP_DEV_ values */
+	int id;
 	/*!< ID of logical device resource */
 	uint8_t rev_major;
 	/*!< Major revision number */
 	uint8_t rev_minor;
 	/*!< Minor  revision number */
-	uint32_t state;
-	/*!< Device state */
 	uint8_t irq_count;
 	/*!< Number of interrupts supported by the device */
 	uint8_t region_count;
-/*!< Number of mappable regions supported by the device */
+	/*!< Number of mappable regions supported by the device */
+	uint32_t state;
+	/*!< Device state: combination of DPRC_DEV_STATE_ states */
 };
 
 /**
@@ -234,7 +207,36 @@ struct dprc_region_desc {
 	uint64_t base_paddr;
 	/*!< Region base physical address */
 	uint16_t size;
-/*!< Region size (in bytes) */
+	/*!< Region size (in bytes) */
+};
+
+/**
+ * @brief	Iteration status, for use with dprc_get_res_ids() function
+ *
+ */
+enum dprc_iter_status {
+	DPRC_ITER_STATUS_FIRST = 0,
+	/*!< Perform first iteration */
+	DPRC_ITER_STATUS_MORE = 1,
+	/*!< Indicates more/next iteration is needed */
+	DPRC_ITER_STATUS_LAST = 2,
+	/*!< Indicates last iteration */
+};
+
+/**
+ * @brief	Resource Id rangen descriptor, Used at dprc_get_res_ids() and
+ * 		contains one range details.
+ */
+struct dprc_res_ids_range_desc {
+	int base_id;
+	/*!< Base resource ID of this range */
+	int last_id;
+	/*!< Last resource ID of this range */
+	enum dprc_iter_status iter_status;
+	/*!< Iterartion status - should be set to DPRC_ITER_STATUS_FIRST at
+	 * first iteration; while the returned marker is DPRC_ITER_STATUS_MORE,
+	 * additional iterations are needed, until the returned marker is
+	 * DPRC_ITER_STATUS_LAST. */
 };
 
 /**
@@ -245,36 +247,27 @@ struct dprc_attributes {
 	/*!< Container's ID */
 	uint16_t icid;
 	/*!< Container's ICID */
-	uint16_t portal_id;
+	int portal_id;
 	/*!< Container's portal ID */
-	enum dprc_spawn_policy spawn_policy;
-	/*!< Container's spawn policy */
-	enum dprc_alloc_policy allocation_policy;
-	/*!< Container's default allocation policy for all its resources,
-	 * primitives and devices*/
-	uint32_t options;
-/*!< Container's attributes flags */
+	uint64_t options;
+	/*!< Container's options as set at container's creation */
 };
 
 /**
- * @brief	Container creation attributes, used in dprc_create_container()
+ * @brief	Container configuration options, used in dprc_create_container()
  */
-struct dprc_create_attributes {
+struct dprc_cfg {
 	uint16_t icid;
-	/*!< Container's ICID */
-	enum dprc_spawn_policy spawn_policy;
-	/*!< Container's spawn policy */
-	enum dprc_alloc_policy alloc_policy;
-	/*!< Container's default allocation policy for all its resources,
-	 * primitives and devices*/
-	uint32_t options;
-/*!< Container's attributes flags */
+	/*!< Container's ICID; if set to DPRC_GET_ICID_FROM_POOL, a free ICID
+	 * will be allocated by the DPRC */
+	uint64_t options;
+	/*!< Combination of DPRC_CFG_OPT_ options */
 };
 
 /**
  * @brief   	Obtains the container id associated with a given portal.
  *
- * @param[in]	portal_vaddr	Pointer to MC portal registers
+ * @param[in]	dprc		DPRC descriptor object
  * @param[out]	container_id	Requested container ID
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -284,7 +277,7 @@ int dprc_get_container_id(struct dprc *dprc, int *container_id);
 /**
  * @brief   	Opens a DPRC object for use and obtains its handle
  *
- * @param[in]	portal_vaddr	Pointer to MC portal registers
+ * @param[in]	dprc		DPRC descriptor object
  * @param[in]	container_id	Container ID to open
  *
  * @returns	DPRC object handle, to be used in subsequent DPRC API calls
@@ -299,7 +292,7 @@ int dprc_open(struct dprc *dprc, int container_id);
  * No further operations on the object are allowed after this call without
  * re-opening the object.
  *
- * @param[in]	dprc	DPRC object handle
+ * @param[in]	dprc		DPRC descriptor object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
@@ -308,15 +301,15 @@ int dprc_close(struct dprc *dprc);
 /**
  * @brief	Creates a child container
  *
- * @param[in]	dprc			DPRC object handle
- * @param[in]	attributes		Child container attributes
+ * @param[in]	dprc			DPRC descriptor object
+ * @param[in]	cfg			Child container configuration
  * @param[out]	child_container_id	Child container ID
  * @param[out]	child_portal_paddr	Base physical address of the child portal
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_create_container(struct dprc *dprc,
-                          struct dprc_create_attributes *attributes,
+                          struct dprc_cfg *cfg,
                           int *child_container_id,
                           uint64_t *child_portal_paddr);
 
@@ -328,12 +321,12 @@ int dprc_create_container(struct dprc *dprc,
  *
  * Notes:
  * - Destroying a container is allowed only if it contains no active devices.
- * - All primitive resources of the destroyed container are returned to their
+ * - All resources of the destroyed container are returned to their
  *   original container.
  * - This function tries to destroy all the child containers of the specified
  *   container prior to destroying the container itself.
  *
- * @param[in]	dprc			DPRC object handle
+ * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the container to destroy
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -352,47 +345,43 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  * The default policy for all resource types matches the container's 'global'
  * allocation policy.
  *
- * @param[in]	dprc			DPRC object handle
+ * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the child container
- * @param[in]	res_type		Selects the resource type
- * @param[in]	alloc_policy		Selects the allocation policy
+ * @param[in]	res_type		Selects the resource/device type
  * @param[in]	quota			Sets the maximum number of resources of
  * 					the selected type that the child container
- * 					is allowed to allocate from the parent;
- * 					valid only if alloc_policy is set to
- * 					DPRC_ALLOC_POLICY_BY_QUOTA.
+ * 					is allowed to allocate from its parent;
+ * 					when quota is set to -1, the policy is
+ * 					the same as container's general policy.
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Only the parent container is allowed to change a child policy.
  */
-int dprc_set_res_alloc_policy(struct dprc *dprc,
-                              int child_container_id,
-                              enum dp_res_type res_type,
-                              enum dprc_alloc_policy alloc_policy,
-                              uint16_t quota);
+int dprc_set_res_quota(struct dprc *dprc,
+                       int child_container_id,
+                       uint16_t res_type,
+                       uint16_t quota);
 
 /**
  * @brief	Gets the allocation policy of a specific resource type in a \
  * 		child container
  *
- * @param[in]	dprc			DPRC object handle
+ * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the child container
- * @param[in]	res_type		Selects the resource type
- * @param[out]	alloc_policy		Selects the allocation policy
- * @param[out]	quota			Sets the maximum number of resources of
+ * @param[in]	res_type		Selects the resource/device type
+ * @param[out]	quota			Holds the maximum number of resources of
  * 					the selected type that the child container
  * 					is allowed to allocate from the parent;
- * 					valid only if alloc_policy is set to
- * 					DPRC_ALLOC_POLICY_BY_QUOTA.
+ * 					when quota is set to -1, the policy is
+ * 					the same as container's general policy.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_alloc_policy(struct dprc *dprc,
-                              int child_container_id,
-                              enum dp_res_type res_type,
-                              enum dprc_alloc_policy *alloc_policy,
-                              uint16_t *quota);
+int dprc_get_res_quota(struct dprc *dprc,
+                       int child_container_id,
+                       uint16_t res_type,
+                       uint16_t *quota);
 
 /**
  * @brief	Resets a child container.
@@ -410,7 +399,7 @@ int dprc_get_res_alloc_policy(struct dprc *dprc,
  * has not crashed, but the resulting device cleanup operations will not be
  * aware of that.
  *
- * @param[in]	dprc			DPRC object handle
+ * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the container to reset
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -418,7 +407,7 @@ int dprc_get_res_alloc_policy(struct dprc *dprc,
 int dprc_reset_container(struct dprc *dprc, int child_container_id);
 
 /**
- * @brief   	Assigns devices or primitive resource to a child container.
+ * @brief   	Assigns devices or resource to a child container.
  *
  * Assignment is usually done by a parent (this DPRC) to one of its child
  * containers.
@@ -428,17 +417,17 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id);
  * available in the container itself.
  *
  * The type of assignment depends on the dprc_res_req options, as follows:
- * - RES_REQ_OPT_EXPLICIT: indicates that assigned resources should have the 
- *   explicit base ID specified at the base_align field of res_req.
- * - RES_REQ_OPT_SEQUENTIAL: indicates that the assigned resources should be
- *   aligned to the value given at base_align field of dprc_res_req.
- * - RES_REQ_OPT_PLUGGED: Relevant only for device assignment, and indicates
+ * - DPRC_RES_REQ_OPT_EXPLICIT: indicates that assigned resources should have the
+ *   explicit base ID specified at the id_base_align field of res_req.
+ * - DPRC_RES_REQ_OPT_ALIGNED: indicates that the assigned resources should be
+ *   aligned to the value given at id_base_align field of res_req.
+ * - DPRC_RES_REQ_OPT_PLUGGED: Relevant only for device assignment, and indicates
  *   that the device must be set to the plugged state.
  *
  * If IRQ information has been set in the child DPRC, it will signal an
- * interrupt following every change in its resource assignment.
+ * interrupt following every change in its device assignment.
  *
- * @param[in]	dprc		DPRC object handle
+ * @param[in]	dprc		DPRC descriptor object
  * @param[in]	container_id 	ID of the child container
  * @param[in]	res_req		Describes the type and amount of resources to
  * 				assign to the given container.
@@ -450,10 +439,10 @@ int dprc_assign(struct dprc *dprc,
                 struct dprc_res_req *res_req);
 
 /**
- * @brief	Un-assigns devices or primitive resources from a child container
+ * @brief	Un-assigns devices or resources from a child container
  * 		and moves them into this (parent) DPRC.
  *
- * Un-assignment of primitive resources moves arbitrary or explicit resources
+ * Un-assignment of resources moves arbitrary or explicit resources
  * from the specified child container to the parent container.
  *
  * Un-assignment of devices can succeed only if the device is not in the
@@ -462,7 +451,7 @@ int dprc_assign(struct dprc *dprc,
  * A container may use this function with its own ID in order to change a
  * device state to plugged or unplugged.
  *
- * @param[in]	dprc			DPRC object handle
+ * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the child container
  * @param[in]	res_req			Describes the type and amount of
  * 					resources to un-assign from the child
@@ -477,7 +466,7 @@ int dprc_unassign(struct dprc *dprc,
 /**
  * @brief	Obtains the number of devices in the DPRC
  *
- * @param[in]	dprc		DPRC object handle
+ * @param[in]	dprc		DPRC descriptor object
  * @param[out]	dev_count	Number of devices assigned to the DPRC
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -491,7 +480,7 @@ int dprc_get_device_count(struct dprc *dprc, int *dev_count);
  * 		dev_index up to (not including) the value of dev_count returned
  * 		from dprc_get_device_count().
  *
- * @param[in]	dprc		DPRC object handle
+ * @param[in]	dprc		DPRC descriptor object
  * @param[in]	dev_index	Index of the device to be queried (< dev_count)
  * @param[out]	dev_desc	Returns the requested device descriptor
  *
@@ -502,45 +491,38 @@ int dprc_get_device(struct dprc *dprc,
                     struct dprc_dev_desc *dev_desc);
 
 /**
- * @brief	Obtains the number of free primitive resources that are assigned
+ * @brief	Obtains the number of free  resources that are assigned
  * 		to this container, by resource type
  *
- * @param[in]	dprc		DPRC object handle
- * @param[in]	res_type	Primitive resource type
- * @param[out]	res_count	Number of free primitive resources of the given
+ * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	res_type	Resource type
+ * @param[out]	res_count	Number of free resources of the given
  * 				resource type that are assigned to this DPRC
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_count(struct dprc *dprc,
-                       enum dp_res_type res_type,
+                       uint16_t res_type,
                        int *res_count);
 
 /**
- * @brief	Obtains IDs of free primitive resources in the container
+ * @brief	Obtains IDs of free resources in the container
  *
- * @param[in]	dprc		DPRC object handle
+ * @param[in]	dprc		DPRC descriptor object
  * @param[in]	res_type	Selects the resource type
- * @param[in]	res_ids_num	The number of resource IDs to retrieve;
- * 				Indicates the size of res_ids array.
- * @param[out]	res_ids		Array of primitive resources IDs to fill
- * @param[out]	valid_count	Number of valid resource IDs returned - may be
- * 				less than the requested res_ids_num in case it
- * 				exceeds the number of available resources.
+ * @param[in,out] range_desc	range descriptor
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_ids(struct dprc *dprc,
-                     enum dp_res_type res_type,
-                     int res_ids_num,
-                     uint32_t *res_ids,
-                     int *valid_count);
+                     uint16_t res_type,
+                     struct dprc_res_ids_range_desc *range_desc);
 
 /**
  * @brief   	Obtains container attributes
  *
- * @param[in]	dprc		DPRC object handle
- * @param[out]	attributes   	- Container attributes
+ * @param[in]	dprc		DPRC descriptor object
+ * @param[out]	attributes   	Container attributes
  *
  * @returns     '0' on Success; Error code otherwise.
  */
@@ -549,7 +531,7 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes);
 /**
  * @brief	Returns region information for a specified device.
  *
- * @param[in]	dprc		DPRC object handle
+ * @param[in]	dprc		DPRC descriptor object
  * @param[in]	dev_type	Device type as returned in dprc_get_device()
  * @param[in]	dev_id		Unique device instance as returned in
  * 				dprc_get_device()
@@ -567,7 +549,7 @@ int dprc_get_dev_region(struct dprc *dprc,
 /**
  * @brief 	Sets IRQ information for the DPRC.
  *
- * @param[in]	dprc		DPRC object handle
+ * @param[in]	dprc		DPRC descriptor object
  * @param[in]	irq_index	Identifies the interrupt index to configure
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  * 				signal a message-based interrupt
@@ -583,8 +565,11 @@ int dprc_set_irq(struct dprc *dprc,
 /**
  * @brief   	Gets IRQ information from the DPRC.
  *
- * @param[in]	dprc		DPRC object handle
- * @param[in]   irq_index	The interrupt index to configure (< irq_count)
+ * @param[in]	dprc		DPRC descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * 				DPRC supports only irq_index 0 - this interrupt
+ * 				will be signaled on every change to resource/device
+ * 				assignment in this DPRC.
  * @param[out]	irq_paddr	Physical address that must be written in order
  * 				to signal the message-based interrupt
  * @param[out]	irq_val		Value to write in order to signal the

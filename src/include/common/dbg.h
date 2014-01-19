@@ -10,6 +10,7 @@
 #define __FSL_DBG_H
 
 #include "common/types.h"
+#include "common/io.h"
 #include "common/fsl_stdio.h"
 
 
@@ -149,13 +150,13 @@
         switch (dump_var_size) \
         { \
             case 1:  dump_print("0x%010ll_x: 0x%02x%14s\t%s\r\n", \
-                                phys_addr, GET_UINT8(*(uint8_t*)addr), "", dump_sub_str); break; \
+                                phys_addr, ioread8(addr), "", dump_sub_str); break; \
             case 2:  dump_print("0x%010ll_x: 0x%04x%12s\t%s\r\n", \
-                                phys_addr, GET_UINT16(*(uint16_t*)addr), "", dump_sub_str); break; \
+                                phys_addr, ioread16(addr), "", dump_sub_str); break; \
             case 4:  dump_print("0x%010ll_x: 0x%08x%8s\t%s\r\n", \
-                                phys_addr, GET_UINT32(*(uint32_t*)addr), "", dump_sub_str); break; \
+                                phys_addr, ioread32(addr), "", dump_sub_str); break; \
             case 8:  dump_print("0x%010ll_x: 0x%016llx\t%s\r\n", \
-                                phys_addr, GET_UINT64(*(uint64_t*)addr), dump_sub_str); break; \
+                                phys_addr, ioread64(addr), dump_sub_str); break; \
             default: dump_print("bad size %d (" #st "->" #phrase ")\r\n", dump_var_size); \
         } \
     } while (0)
@@ -185,25 +186,25 @@
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%02x%14s\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT8((st)->phrase[dump_arr_idx]), "", dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread8(&((st)->phrase[dump_arr_idx])), "", dump_sub_str, dump_arr_idx); \
                 } break; \
             case 2: \
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%04x%12s\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT16((st)->phrase[dump_arr_idx]), "", dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread16(&((st)->phrase[dump_arr_idx])), "", dump_sub_str, dump_arr_idx); \
                 } break; \
             case 4: \
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%08x%8s\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT32((st)->phrase[dump_arr_idx]), "", dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread32(&((st)->phrase[dump_arr_idx])), "", dump_sub_str, dump_arr_idx); \
                 } break; \
             case 8: \
                 for (dump_arr_idx=0; dump_arr_idx < dump_arr_size; dump_arr_idx++) { \
                     phys_addr = fsl_os_virt_to_phys((void *)&((st)->phrase[dump_arr_idx])); \
                     dump_print("0x%010ll_x: 0x%016llx\t%s[%d]\r\n", \
-                               phys_addr, GET_UINT64((st)->phrase[dump_arr_idx]), dump_sub_str, dump_arr_idx); \
+                               phys_addr, ioread64(&((st)->phrase[dump_arr_idx])), dump_sub_str, dump_arr_idx); \
                 } break; \
             default: dump_print("bad size %d (" #st "->" #phrase "[0])\r\n", dump_var_size); \
         } \
@@ -235,11 +236,11 @@ do { \
 #endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
 #endif /* (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0)) */
 
-#define pr_debug(...) do{DBG(REPORT_LEVEL_TRACE, __VA_ARGS__);}while(0)
-#define pr_info(...) do{DBG(REPORT_LEVEL_INFO, __VA_ARGS__);}while(0)
-#define pr_warn(...) do{DBG(REPORT_LEVEL_WARNING, __VA_ARGS__);}while(0)
-#define pr_err(...) do{DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__);}while(0)
-#define pr_crit(...) do{DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__);}while(0)
+#define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
+#define pr_info(...) 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__)
+#define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
+#define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
+#define pr_crit(...)	DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__)
 
 /** @} */ /* end of dump_g group */
 /** @} */ /* end of gen_g group */
