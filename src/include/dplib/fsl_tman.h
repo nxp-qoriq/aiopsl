@@ -153,14 +153,14 @@ struct tman_tmi_params {
 
 /*! \enum e_tman_query_timer Defines the TMAN query timer state.*/
 enum e_tman_query_timer {
-	/** Timer is waiting for confirmation */
-	TMAN_TIMER_PENDING_CONF = 0,
+	/** Timer is non active (in tmi free list) */
+	TMAN_TIMER_NON_ACTIVE = 0,
+	/** Timer is in expiration queue */
+	TMAN_TIMER_EXPIRATION_QUEUE,
 	/** Timer has not expired */
 	TMAN_TIMER_RUNNING,
-	/** Timer is non active (in tmi free list) */
-	TMAN_TIMER_NON_ACTIVE,
-	/** Timer is in expiration queue */
-	TMAN_TIMER_EXPIRATION_QUEUE
+	/** Timer is waiting for confirmation */
+	TMAN_TIMER_PENDING_CONF
 };
 
 /* @} end of group TMAN_Modes */

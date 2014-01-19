@@ -10,9 +10,6 @@ void aiop_app_free(void);
 
 static void /*__noreturn*/ rflct_rx_cb (dpni_drv_app_arg_t arg)
 {
-	if (!dpni_drv_is_up((uint16_t)arg))
-		return;
-
 	/* TODO - add here:
 	 * 1. print frame content */
 	/* TODO - add here swap on headers:
