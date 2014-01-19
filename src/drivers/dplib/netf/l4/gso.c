@@ -179,7 +179,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 				&isolation_attributes); /* TODO FDMA ERROR */
 		/* Copy remaining FD to default FD */
 		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gso_ctx->rem_fd;
-		/* present segment + header segment */
+		/* present frame + header segment */
 		status = fdma_present_default_frame(); /* TODO FDMA ERROR */
 		/* run parser on default frame */
 		/* TODO PARSER ERROR */
