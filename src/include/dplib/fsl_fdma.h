@@ -2893,6 +2893,25 @@ int32_t fdma_copy_data(
 		void *src,
 		void *dst);
 
+/**************************************************************************//**
+@Function	fdma_create_frame
+
+@Description	Create a frame from scratch and fill it with user specified 
+		data.
+
+@Param[in]	fd - Pointer to the frame descriptor of the created frame. 
+@Param[in]	data - A pointer to the workspace data to be inserted to the 
+		frame.
+@Param[in]	size - data size.
+
+@Return		
+		- Success or Failure (\ref FDMA_PRESENT_FRAME_ERRORS, \ref 
+		FDMA_REPLACE_DATA_SEGMENT_ERRORS, \ref 
+		FDMA_STORE_FRAME_ERRORS)).
+		- Update FD.
+		
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
 int32_t fdma_create_frame(
 		struct ldpaa_fd *fd, 
 		void *data, 

@@ -1319,6 +1319,13 @@ int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 	int32_t status;
 	
+/*	*fd = {0};*/
+	fd->addr = 0;
+	fd->control = 0;
+	fd->flc = 0;
+	fd->frc = 0;
+	fd->length = 0;
+	fd->offset = 0;
 	present_frame_params.fd_src = (void *)fd;
 	present_frame_params.asa_size = 0;
 	present_frame_params.flags = FDMA_INIT_NO_FLAGS;
@@ -1339,7 +1346,7 @@ int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 	
 	status = fdma_insert_segment_data(&insert_params);
 	if (status != FDMA_SUCCESS)
-			return status;
+		return status;
 	
 	return fdma_store_frame_data(present_frame_params.frame_handle, 
 			spid, &isolation_attributes);

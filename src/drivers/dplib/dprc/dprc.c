@@ -43,7 +43,7 @@ int dprc_close(struct dprc *dprc)
 }
 
 int dprc_create_container(struct dprc *dprc,
-                          struct dprc_create_attributes *attr,
+                          struct dprc_cfg *cfg,
                           int *child_container_id,
                           uint64_t *child_portal_paddr)
 {
@@ -210,7 +210,7 @@ int dprc_get_res_count(struct dprc *dprc,
 
 int dprc_get_res_ids(struct dprc *dprc,
                      uint16_t res_type,
-                     struct dprc_res_ids_range_desc *range_desc) 
+                     struct dprc_res_ids_range_desc *range_desc)
 {
 
 	struct mc_cmd_data cmd_data = { 0 };
@@ -224,7 +224,7 @@ int dprc_get_res_ids(struct dprc *dprc,
 	                 (uint8_t*)&cmd_data);
 	if (!err) {
 		/* retrieve response parameters */
-		DPRC_RSP_GET_RES_IDS(RSP_READ_STRUCT); 
+		DPRC_RSP_GET_RES_IDS(RSP_READ_STRUCT);
 	}
 
 	return err;
