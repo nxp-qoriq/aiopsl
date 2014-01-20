@@ -2844,7 +2844,7 @@ int32_t fdma_replace_default_pta_segment_data(
 		enum fdma_pta_size_type size_type);
 
 /**************************************************************************//**
-@Function	fdma_calculate_checksum
+@Function	fdma_calculate_default_frame_checksum
 
 @Description	Computes the gross checksum of the default Working
 		Frame.
