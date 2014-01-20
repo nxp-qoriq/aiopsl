@@ -38,21 +38,7 @@ static void osm_task_init(void)
 		/**<	Exclusive (default) Mode in level 4 of hierarchy */
 }
 
-
-asm void init_stack_ptr(void)
-{
-	e_lis    rsp, _stack_addr@ha
-	e_add16i rsp, rsp, _stack_addr@l
-	blr
-}
-
 __HOT_CODE void receive_cb (void)
-{
-	init_stack_ptr();
-	receive_cb_cont();
-}
-
-void receive_cb_cont (void)
 {
 	struct dpni_drv *dpni_drv;
 	uint8_t *fd_err;
