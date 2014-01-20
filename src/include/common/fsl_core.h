@@ -16,8 +16,6 @@
 
 #ifdef SOC_PPC_CORE
 #include "arch/fsl_core_ppc.h"
-#elif defined(SYS_OS_VXWORKS)
-#include "core_vxw_ext.h"
 #else
 #error "core is not defined!"
 #endif /* SOC_PPC_CORE */
@@ -40,17 +38,6 @@
  @Return        Core ID.
 *//***************************************************************************/
 uint32_t core_get_id(void);
-
-/**************************************************************************//**
- @Function      core_barrier
-
- @Description   This routine will cause the core to stop executing any commands
-                until all previous memory read/write commands are completely out
-                of the core's pipeline.
-
- @Return        None.
-*//***************************************************************************/
-void core_barrier(void);
 
 /**************************************************************************//**
  @Function      core_memory_barrier

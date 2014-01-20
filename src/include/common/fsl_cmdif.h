@@ -18,17 +18,36 @@
  *//***************************************************************************/
 
 /**************************************************************************//**
- @Description   Module types.
-*//***************************************************************************/
+ @Description   Command interface descriptor.
+
+ *//***************************************************************************/
 struct cmdif_desc {
 	void *regs;
+	/*!<
+	 * Pointer to command interface registers (virtual address);
+	 * Must be set by the user
+	 */
 	void *dev;
+	/*!<
+	 * Opaque handle for the use of the command interface;
+	 * user should not modify it.
+	 */
 	void *lock;
+	/*!<
+	 * Optional lock object to be used with the lock/unlock callbacks;
+	 * user must zero it if not needed.
+	 */
 	void (*lock_cb)(void *lock);
+	/*!<
+	 * Callback for locking the command interface (multiple users scenario);
+	 * user must zero it if not needed.
+	 */
 	void (*unlock_cb)(void *lock);
+	/*!<
+	 * Callback for unlocking the command interface (multiple users scenario);
+	 * user must zero it if not needed.
+	 */
 };
-
-struct cmdif_cmd_data;
 
 enum cmdif_module {
 	CMDIF_MOD_DPRC,
@@ -80,20 +99,8 @@ struct cmdif_module_ops {
 
  @Return        0 on success; error code, otherwise.
  *//***************************************************************************/
-int cmdif_register_module(enum cmdif_module module, struct cmdif_module_ops *ops);
-
-/**************************************************************************//**
- @Function      cmdif_cmd_done
-
- @Description   updating the status for the GPP in the command portal
-
- Each module, upon finishing the ctrl_cb, needs to update the return
- status in the command portal using this routine.
-
- @Param[in]     cmd     cmd pointer that was provided to the ctrl_cb .
- @Param[in]     status  completion status
- *//***************************************************************************/
-//void cmdif_cmd_done(struct cmdif_cmd_data *cmd, enum cmdif_status status);
+int cmdif_register_module(enum cmdif_module module,
+                          struct cmdif_module_ops *ops);
 
 /**************************************************************************//**
  @Function      cmdif_close_dev
@@ -127,9 +134,8 @@ int cmdif_send(struct cmdif_desc *cidesc,
                uint8_t *cmd_data);
 
 #if 1
-// think if needed
-int cmdif_get_cmd_data(struct cmdif_desc *cidesc,
-                       uint8_t **cmd_data);
+// TODO - think if needed
+int cmdif_get_cmd_data(struct cmdif_desc *cidesc, uint8_t **cmd_data);
 #endif
 
 /** @} *//* end of cmdif_client_g group */

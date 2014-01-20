@@ -1,5 +1,5 @@
 /**************************************************************************//**
-@File		aiop_verification.c
+@File		aiop_verification_fm.c
 
 @Description	This file contains the AIOP SW Verification Engine
 
@@ -9,15 +9,17 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_gso.h"
+#include "dplib/fsl_ipf.h"
 #include "aiop_verification.h"
 
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
+__TASK ipf_ctx_t ipf_context_addr;
 __TASK int32_t status;
 __TASK int32_t status_gso;
+__TASK int32_t status_ipf;
 
 void aiop_verification_fm()
 {
-	ipf_ctx_t ipf_context_addr; /* intenral struct for IPF */
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size;	/* Command struct Size */
@@ -54,9 +56,7 @@ void aiop_verification_fm()
 		}
 		case IPF_MODULE_STATUS_ID:
 		{
-			str_size = aiop_verification_ipf(
-					ipf_context_addr,
-					(uint32_t)data_addr);
+			str_size = aiop_verification_ipf((uint32_t)data_addr);
 		}
 		case TCP_GRO_MODULE_STATUS_ID:
 		{

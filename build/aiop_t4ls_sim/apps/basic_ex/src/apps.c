@@ -2,10 +2,12 @@
 #include "inc/sys.h"
 
 extern int aiop_app_init(void); extern void aiop_app_free(void);
+extern int dprc_test_init(void); extern void dprc_test_free(void);
+
 
 #define APPS                            	\
 {                                       	\
-	{aiop_app_init, aiop_app_free},		\
+	{dprc_test_init, dprc_test_free},	\
 	{NULL, NULL} /* never remove! */    	\
 }
 

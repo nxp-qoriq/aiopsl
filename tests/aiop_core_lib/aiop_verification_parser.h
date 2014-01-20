@@ -70,7 +70,8 @@ enum parser_verif_cmd_type {
 struct parser_init_verif_command {
 	uint32_t	opcode;
 	uint16_t	parser_starting_hxs;
-	uint8_t  pad[2];
+	uint8_t		prpid;
+	uint8_t 	pad;
 };
 /**************************************************************************//**
 @Description	Parser Profile Create Command structure.
@@ -147,7 +148,7 @@ struct parser_prp_id_pool_create_verif_command {
 	int32_t  status;
 };
 
-void aiop_init_parser();
+void aiop_init_parser(uint8_t *prpid);
 
 uint16_t aiop_verification_parser(uint32_t asa_seg_addr);
 

@@ -60,10 +60,13 @@ struct ipf_init_command {
 	uint32_t opcode;
 		/** Please refer to \ref IPF_Flags. */
 	uint32_t flags;
+		/** Workspace address of the IPF internal context. 
+		 * Should be defined in the TLS area. */
+	uint32_t ipf_ctx_addr;
 		/** Maximum Transmission Unit. */
 	uint16_t mtu;
 		/** Padding. */
-	int8_t  pad[6];
+	int8_t  pad[2];
 };
 
 /**************************************************************************//**
@@ -75,12 +78,18 @@ struct ipf_init_command {
 struct ipf_generate_frag_command {
 		/** IPF Generate Fragment command structure identifier. */
 	uint32_t opcode;
+		/** Workspace address of the IPF internal context. 
+		 * Should be defined in the TLS area. */
+	uint32_t ipf_ctx_addr;
 		/** Returned Value: 
 		 * Iteration return status. */
 	int32_t status;
-		/** Returned Internal Value:
-		 * IPF context. */
-	struct ipf_context ipf_ctx;
+		/** Workspace address of the last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+		/** Workspace address of the IPF last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t ipf_status_addr;	
 		/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;
@@ -90,7 +99,9 @@ struct ipf_generate_frag_command {
 		/** Returned Value:
 		 * task defaults. */
 	struct aiop_default_task_params default_task_params;
-		
+		/** Padding. */
+	int8_t  pad[4];
+	
 };
 
 /**************************************************************************//**
@@ -103,21 +114,23 @@ struct ipf_discard_remainder_frame_command {
 		/** IPF discard remainder frame command structure 
 		 * identifier. */
 	uint32_t opcode;
+		/** Workspace address of the IPF internal context. 
+		 * Should be defined in the TLS area. */
+	uint32_t ipf_ctx_addr;
 		/** Returned Value: 
 		 * Command return status. */
 	int32_t status;
-		/** Returned Internal Value:
-		 * IPF context. */
-	struct ipf_context ipf_ctx;
+		/** Workspace address of the last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t status_addr;
 };
 
 
 uint16_t  aiop_verification_ipf(
-		ipf_ctx_t ipf_context_addr, 
 		uint32_t data_addr);
 
 
-/** @} */ /* end of AIOP_GSO_Verification */
+/** @} */ /* end of AIOP_IPF_Verification */
 
 /** @}*/ /* end of AIOP_FMs_Verification */
 

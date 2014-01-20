@@ -87,14 +87,14 @@ aiop_sl		</project>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/aiop_app_ex.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/aiop_app_ex.c</locationURI>
-		</link>
-		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+		</link>
+		<link>
+			<name>src/dprc_test.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/dprc_test.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
