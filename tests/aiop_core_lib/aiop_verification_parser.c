@@ -16,9 +16,9 @@ struct parse_profile_record verif_parse_profile1;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-void aiop_init_parser()
+void aiop_init_parser(uint8_t *prpid)
 {
-	uint8_t i, prpid;
+	uint8_t i;
 	/* Init basic parse profile */
 	verif_parse_profile1.eth_hxs_config = 0x0;
 	verif_parse_profile1.llc_snap_hxs_config = 0x0;
@@ -56,9 +56,9 @@ void aiop_init_parser()
 		verif_parse_profile1.soft_examination_param_array[i] = 0x0;
 	sys_ctlu_prpid_pool_create();
 	/* Create the parse_profile and get an id */
-	parser_profile_create(&verif_parse_profile1, &prpid);
+	parser_profile_create(&verif_parse_profile1, prpid);
 	/* Update prpid in task defaults */
-	default_task_params.parser_profile_id = prpid;
+	default_task_params.parser_profile_id = *prpid;
 }
 
 
@@ -142,7 +142,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		(struct parser_init_verif_command *) asa_seg_addr;
 		default_task_params.parser_starting_hxs =
 				str->parser_starting_hxs;
-		aiop_init_parser();
+		aiop_init_parser(&(str->prpid));
 		str_size = sizeof(struct parser_init_verif_command);
 		break;
 	}
