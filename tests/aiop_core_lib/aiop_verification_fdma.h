@@ -80,6 +80,8 @@
 #define FDMA_CKS_CMD			0x0000001A
 	/** FDMA Copy data command code */
 #define FDMA_COPY_CMD			0x00000040
+	/** FDMA Create Frame command code */
+#define FDMA_CREATE_FRAME_CMD		0x00000100
 
 /* FDMA Commands Structure identifiers */
 	/** FDMA Initial frame presentation Command Structure identifier */
@@ -152,7 +154,9 @@
 #define FDMA_CKS_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
 #define FDMA_COPY_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_COPY_CMD)
-
+	/** FDMA Create Frame command Structure identifier */
+#define FDMA_CREATE_FRAME_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+		FDMA_CREATE_FRAME_CMD)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -1291,6 +1295,31 @@ struct fdma_copy_command {
 	int8_t  status;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Create Frame Command structure.
+
+		Includes information needed for Create Frame data command
+		verification.
+
+*//***************************************************************************/
+struct fdma_create_frame_command {
+		/** Create Frame command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location in workspace of the data to be
+		 * inserted to the frame. 
+		 * The data MUST be located in workspace prior to calling this 
+		 * command. */
+	uint32_t data;
+		/** Frame Descriptor of the created frame. */
+	struct ldpaa_fd fd;
+		/** Data size to be inserted to the frame. */
+	uint16_t size;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[5];
 };
 
 
