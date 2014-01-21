@@ -785,7 +785,7 @@ int32_t fdma_split_frame(
 					(params->flags & FDMA_SPLIT_SR_BIT) ?
 							PRC_SR_MASK : ZERO;
 				if (!(params->flags & FDMA_SPLIT_SM_BIT))
-					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 
+					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
 							params->split_size_sf);
 			}
 		}
@@ -799,15 +799,15 @@ int32_t fdma_split_frame(
 				prc->ptapa_asapo = PRC_PTA_NOT_LOADED_ADDRESS;
 				prc->asapa_asaps = ZERO;
 				if (!(params->flags & FDMA_SPLIT_SM_BIT))
-					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 
+					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
 						params->split_size_sf);
 		}
-		
+
 		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) &&
 		    (params->source_frame_handle == PRC_GET_FRAME_HANDLE()) &&
 		    !(params->flags & FDMA_SPLIT_SM_BIT))
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0, 
-					params->split_size_sf); 
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
+					params->split_size_sf);
 	}
 
 	return (int32_t)(res1);
@@ -1006,12 +1006,12 @@ int32_t fdma_insert_segment_data(
 	    (params->seg_handle == FDMA_PTA_SEG_HANDLE))
 		return FDMA_NO_DATA_SEGMENT_HANDLE;
 	/* prepare command parameters */
-	arg1 = FDMA_REPLACE_EXP_CMD_ARG1(params->seg_handle, 
+	arg1 = FDMA_REPLACE_EXP_CMD_ARG1(params->seg_handle,
 			params->frame_handle, params->flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(params->to_offset, ZERO);
 	arg3 = FDMA_REPLACE_CMD_ARG3(params->from_ws_src, params->insert_size);
 	if (params->flags & FDMA_REPLACE_SA_REPRESENT_BIT)
-		arg4 = FDMA_REPLACE_CMD_ARG4(params->ws_dst_rs, 
+		arg4 = FDMA_REPLACE_CMD_ARG4(params->ws_dst_rs,
 				params->size_rs);
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, ZERO);
@@ -1024,30 +1024,26 @@ int32_t fdma_insert_segment_data(
 
 	/* Update Task Defaults */
 	if (res1 >= FDMA_SUCCESS) {
-		if (params->flags & FDMA_REPLACE_SA_REPRESENT_BIT)
-		{
+		if (params->flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
 			params->seg_length_rs = *((uint16_t *)
 					(HWC_ACC_OUT_ADDRESS2));
-			if (params->seg_handle == PRC_GET_SEGMENT_HANDLE()) 
-			{
+			if (params->seg_handle == PRC_GET_SEGMENT_HANDLE()) {
 				prc->seg_address = (uint16_t)(uint32_t)
 							params->ws_dst_rs;
 				prc->seg_length = *((uint16_t *)
 							HWC_ACC_OUT_ADDRESS2);
 			}
-		}
-		else if (params->seg_handle == PRC_GET_SEGMENT_HANDLE())
-		{
+		} else if (params->seg_handle == PRC_GET_SEGMENT_HANDLE()) {
 			/* FD fields should be updated with a swap load/store */
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
 					params->insert_size, ZERO);
 #ifdef NEXT_RELEASE
 			if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 				PRC_SET_NDS_BIT(PRC_NDS_MASK);
-#endif /* NEXT_RELEASE */	
+#endif /* NEXT_RELEASE */
 		}
 	}
-	return (int32_t)(res1);	
+	return (int32_t)(res1);
 }
 
 int32_t fdma_delete_default_segment_data(
@@ -1318,8 +1314,8 @@ int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 	struct fdma_isolation_attributes isolation_attributes;
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 	int32_t status;
-	
-/*	*fd = {0};*/
+
+	/* *fd = {0};*/
 	fd->addr = 0;
 	fd->control = 0;
 	fd->flc = 0;
@@ -1332,23 +1328,23 @@ int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 	present_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS;
 	present_frame_params.present_size = 0;
 	present_frame_params.seg_offset = 0;
-	
+
 	status = fdma_present_frame(&present_frame_params);
 	if (status != FDMA_SUCCESS)
 		return status;
-	
+
 	insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
 	insert_params.frame_handle = present_frame_params.frame_handle;
 	insert_params.from_ws_src = data;
 	insert_params.insert_size = size;
 	insert_params.seg_handle = present_frame_params.seg_handle;
 	insert_params.to_offset = 0;
-	
+
 	status = fdma_insert_segment_data(&insert_params);
 	if (status != FDMA_SUCCESS)
 		return status;
-	
-	return fdma_store_frame_data(present_frame_params.frame_handle, 
+
+	return fdma_store_frame_data(present_frame_params.frame_handle,
 			spid, &isolation_attributes);
 }
 
