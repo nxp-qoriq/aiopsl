@@ -14,18 +14,13 @@
 
 
 /**************************************************************************//**
- @Group         fsl_os_g  FSL OS Interface (System call hooks)
-
- @Description   Prototypes, externals and typedefs for system-supplied
-                (external) routines
-
+ @ingroup         fsl_lib_g
  @{
-*//***************************************************************************/
-
+ *//***************************************************************************/
 /**************************************************************************//**
- @Group         fsl_os_stdio_g  FSL OS STDIO API
+ @Group         fsl_os_stdio_g  STDIO API
 
- @Description   TODO
+ @Description   Console output functions
 
  @{
 *//***************************************************************************/
@@ -33,16 +28,35 @@
 /**************************************************************************//**
  @Function      fsl_os_print
 
- @Description   print a string.
+ @Description   print a formated string.
 
  @Param[in]     str - string to print.
+ 
+		The format string is a character string, beginning and ending
+		in its initial shift state, if any. The format string is
+		composed of zero or more directives: ordinary characters (not
+		%), which are copied unchanged to the output stream; and
+		conversion specifications, each of which results in fetching
+		zero or more subsequent arguments. Each conversion
+		specification is introduced by the character %.
+		The arguments must correspond properly (after type promotion)
+		with the conversion specifier.
 
- @Return        None.
+		The following command characters are supported:
+%d	Prints an integer in decimal form
+%x 	Prints and integer in hexadecimal form
+%s 	Prints a string
+%llx 	Prints a 32 bit value in hexadecimal form
+%llx 	Prints a 64 bit value in hexadecimal form
+
+
+
+ @Return       none 
 *//***************************************************************************/
 void fsl_os_print(char *str, ...);
 
 /** @} */ /* end of fsl_os_stdio_g group */
-/** @} */ /* end of fsl_os_g group */
+/** @} *//* end of fsl_lib_g group */
 
 
 #endif /* __FSL_STDIO_H */
