@@ -1,3 +1,14 @@
+/*!
+ *  @file    sys.h
+ *  @brief   general system configuratoins and declarations
+ *
+ *  @details 
+ *
+ *  @internal
+ *  @requirements TODO: Put the CQ PRD record   
+ *  @implements   TODO: Add link to the design chapter/description
+ */
+
 #ifndef __FSL_SYS_H
 #define __FSL_SYS_H
 
@@ -29,6 +40,13 @@
 
 struct platform_param;
 
+/*!
+ * @ingroup aiopapp_init 
+ * Struct defining the AIOP Applicatoins initialization and de-initialliation 
+ * functions. 
+ * Each AIOP Applicaton requiring initializatoin shall provide a
+ * sys_module_desc entry.
+ */
 struct sys_module_desc {
     int     (*init) (void);
     void    (*free) (void);
