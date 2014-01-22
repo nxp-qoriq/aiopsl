@@ -46,13 +46,22 @@ __HOT_CODE void receive_cb (void)
 	uint8_t appidx;
 	struct parse_result *pr;
 
-	dpni_drv = (struct dpni_drv *)PRC_GET_PARAMETER();
+	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
+						* to the send NI structure   */
 	fd_err = (uint8_t *)(HWC_FD_ADDRESS + FD_ERR_OFFSET);
 	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
+	
+	dpni_drv->spid = 0;
+	dpni_drv->prpid = 0;
+	dpni_drv->starting_hxs = 0;
+	dpni_drv->qdid = 0;
+	dpni_drv->flags = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | \
+			DPNI_DRV_FLG_MTU_ENABLE | DPNI_DRV_FLG_MTU_DISCARD;
+	dpni_drv->mtu = 0xffff;
 
 	osm_task_init();
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
