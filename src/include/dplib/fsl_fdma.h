@@ -2897,6 +2897,7 @@ int32_t fdma_copy_data(
 		data.
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
+		On a success return this pointer will point to a valid FD. 
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size.

@@ -14,7 +14,14 @@
 
 
 /**************************************************************************//**
-@Group		FSL_PARSER FSL_AIOP_Parser
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_PARSER PARSER
 
 @Description	Freescale AIOP Parser API
 
@@ -1587,6 +1594,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 
 /** @} */ /* end of FSL_PARSER_Functions */
 /** @} */ /* end of FSL_PARSER */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_PARSER_H */

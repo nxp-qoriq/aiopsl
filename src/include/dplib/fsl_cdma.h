@@ -1,4 +1,4 @@
-/***************************************************************************//*
+/**************************************************************************//**
 @File          fsl_cdma.h
 
 @Description   This file contains the AIOP SW CDMA Operations API
@@ -14,7 +14,14 @@
 
 
 /**************************************************************************//**
- @Group		FSL_CDMA
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		FSL_CDMA CDMA
 
  @Description	FSL AIOP CDMA macros and functions
 
@@ -1181,6 +1188,7 @@ int32_t cdma_access_context_memory(
 
 /** @} end of group CDMA_Functions */
 /** @} */ /* end of FSL_CDMA */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_CDMA_H */
