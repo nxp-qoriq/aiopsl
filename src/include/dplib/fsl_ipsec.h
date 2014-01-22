@@ -11,7 +11,14 @@
 
 
 /**************************************************************************//**
-@Group	FSL_IPSEC FSL_AIOP_IPSEC
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_IPSEC FSL_AIOP_IPSEC IPSEC
 
 @Description	Freescale AIOP IPsec API
 
@@ -614,6 +621,7 @@ int32_t ipsec_frame_encrypt(ipsec_handle_t ipsec_handle);
 /** @} */ /* end of FSL_IPSEC_Functions */
 
 /** @} */ /* end of FSL_IPSEC */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_IPSEC_H */
