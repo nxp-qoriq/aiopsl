@@ -5,8 +5,8 @@
 
  @Description   Data Path Network Interface API
 *//***************************************************************************/
-#ifndef __FSL_DPNI_DRV_H
-#define __FSL_DPNI_DRV_H
+#ifndef __DPNI_DRV_H
+#define __DPNI_DRV_H
 
 #include "common/types.h"
 
@@ -80,46 +80,6 @@ int dpni_drv_enable (uint16_t ni_id);
 int dpni_drv_disable (uint16_t ni_id);
 
 /**************************************************************************//**
- @Description	DPNI NI attributes, used in dpni_drv_get_attrib functoins calls
-*//***************************************************************************/
-enum dpni_ni_attrib {
-	DPNI_ISUP = 0,  	/**< 1 if a ni_id is up, 0 otherwise */
-	DPNI_EXISTS,	        /**< NI_ID has been created */
-        DPNI_CFG_OPT_CHKSM_GEN_DISABLED,
-			/**< checksum generation disable  */
-        DPNI_CFG_OPT_CHKSM_VALID_DISABLED,
-			/**< checksum validation disable */
-        DPNI_CFG_OPT_TX_CONF_DISABLED,
-			/**< tx-confirmation disable */
-        DPNI_CFG_OPT_PASS_RX_TIMESTAMP,
-			/**< get time-stamp on rx */
-        DPNI_CFG_OPT_DIST_HASH	,
-			/**< hash based distribution support */
-        DPNI_CFG_OPT_DIST_FS	,
-			/**< flow-steering based distribution support */
-        DPNI_CFG_OPT_POLICING	,
-			/**< policing support */
-        DPNI_CFG_OPT_UNICAST_FILTER,
-			/**< unicast filtering support */
-        DPNI_CFG_OPT_MULTICAST_FILTER,
-			/**< multicast filtering support */
-        DPNI_CFG_OPT_VLAN_FILTER,
-			/**< vlan filtering support */
-        DPNI_CFG_OPT_MACSEC,
-			/**< MACSEC support */
-        DPNI_CFG_OPT_IPR,
-			/**< IP-reassembly support */
-        DPNI_CFG_OPT_IPF,
-			/**< IP-fragmentation support */
-        DPNI_CFG_OPT_RSC,
-			/**< RSC support */
-        DPNI_CFG_OPT_GSO,
-			/**< GSO support */
-        DPNI_CFG_OPT_IPSEC,
-			/**< IPSec transport support */
-        DPNI_CFG_OPT_WFQ,
-};
-/**************************************************************************//**
  @Function      dpni_drv_get_attrib
 
  @Description   Returns the value of the NI_ID attribute specified with the attrib argument. See the dpni_ni_attrib enum for the list of supported attributes. 
@@ -129,37 +89,7 @@ enum dpni_ni_attrib {
 
  @Return        The value of the attribute, negative value in case of an error
 *//***************************************************************************/    
-int dpni_drv_get_attrib(uint16_t ni_id, enum dpni_ni_attrib  attrib);
-
-/**************************************************************************//**
- @Description	Structure representing statistic parameters
-*//***************************************************************************/
-struct dpni_stats
-{
-	uint64_t	egr_frame_cnt;
-		/**< egress frame counter */
-	uint64_t	egr_byte_cnt;
-		/**< egress byte counter */
-	uint64_t	egr_frame_discard_cnt;
-		/**< egress frame discard counter due to errors */
-	uint64_t	ing_frame_cnt;
-	 	 /**< ingress frame counter */
-	uint64_t	ing_byte_cnt;
-	 	 /**< ingress frame counter */
-	uint64_t	ing_dropped_frame_cnt;
-	 	 /**< ingress frame dropped counter due to
-	 	      explicit 'drop' setting*/
-	uint64_t	ing_frame_discard_cnt;
-	 	 /**< ingress frame discarded counter due to errors*/
-	uint64_t	ing_mcast_frame_cnt;
-		/**< ingress multicast frame counter */
-	uint64_t	ing_mcast_byte_cnt;
-		/**< ingress multicast byte counter */
-	uint64_t	ing_bcast_frame_cnt;
-		/**< ingress broadcast frame counter */
-	uint64_t	ing_bcast_bytes_cnt;
-		/**< ingress broadcast byte counter */
-};
+int dpni_drv_get_attrib(uint16_t ni_id, int attrib);
 
 /**************************************************************************//**
  @Function	dpni_drv_get_stats
@@ -185,15 +115,6 @@ int dpni_drv_get_stats(uint16_t ni_id,
 int dpni_drv_reset_stats(uint16_t ni_id);
 
 /**************************************************************************//**
- @Description	Structure representing DPNI RX TC configuration
-*//***************************************************************************/
-struct dpni_rx_tc_cfg {
-	uint8_t dist_size;	/**< TODO */
-//	struct policing_params *params;
-//TODO - add struct ldpaa_flow_ctx	*flc; /**< valid only in case of flow-steering */
-};
-
-/**************************************************************************//**
  @Function	dpni_drv_set_rx_tc
 
  @Description	Set RX TC settings
@@ -205,18 +126,6 @@ struct dpni_rx_tc_cfg {
 *//***************************************************************************/
 int dpni_set_rx_tc(struct dpni			*dpni,
                    const struct dpni_rx_tc_cfg	*tc_cfg);
-
-/**************************************************************************//**
- @Description	Structure representing distribution parameters
-*//***************************************************************************/
-struct dpni_dist_params
-{
-	int				dist_fs;
-		/**< '1' for distribution based on flow-steering;
-		     '0' for hash based */
-	struct dpkg_profile_params	*extract_params;
-	/**< define the extractions to be used for the distribution key */
-};
 
 /**************************************************************************//**
  @Function	dpni_drv_set_dist
@@ -315,4 +224,4 @@ int dpni_get_num_of_ni (void);
 /** @} */ /* end of grp_dplib_aiop group */
 
 
-#endif /* __FSL_DPNI_DRV_H */
+#endif /* __DPNI_DRV_H */
