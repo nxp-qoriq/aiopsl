@@ -10,7 +10,11 @@
 #include "general.h"
 
 /**************************************************************************//**
- @Group		FSL_AIOP_SPINLOCK
+ @ingroup         fsl_lib_g   Utility Library 
+ @{
+ *//***************************************************************************/
+/**************************************************************************//**
+ @Group		FSL_AIOP_SPINLOCK SPINLOCK
 
  @Description	FSL AIOP Spinlock macros and functions
 
@@ -156,6 +160,7 @@ void aiop_atomic_decr32(int32_t *var, int32_t value);
 /** @} end of group Spinlock_Functions */
 
 /** @} */ /* end of FSL_AIOP_SPINLOCK */
+/** @} *//* end of fsl_lib_g group */
 
 #endif /* __FSL_LIB_SPINLOCK_H */
 
