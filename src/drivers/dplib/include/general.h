@@ -753,7 +753,7 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
 
 /**************************************************************************//**
-@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control 
+@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control
 		Protocol (TCP) Definitions
 @{
 *//***************************************************************************/

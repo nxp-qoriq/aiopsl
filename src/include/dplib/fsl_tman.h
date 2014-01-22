@@ -13,7 +13,14 @@
 
 
 /**************************************************************************//**
-@Group		TMAN FSL_AIOP_TMAN
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		TMAN TMAN
 
 @Description	AIOP TMAN functions macros and definitions
 
@@ -386,6 +393,7 @@ void tman_get_timestamp(uint64_t *timestamp);
 
 /* @} end of group TMAN_Functions */
 /* @} end of group TMAN */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_TMAN_H */
