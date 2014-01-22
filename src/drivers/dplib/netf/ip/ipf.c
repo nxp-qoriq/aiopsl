@@ -17,6 +17,7 @@
 #include "fdma.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
+
 /*uint64_t lfsr64;
 uint64_t lfsr_array64[16];
 uint32_t lfsr32;
@@ -24,13 +25,13 @@ uint32_t lfsr_array32[16];
 uint8_t id_lock_byte;*/
 
 /* Remove these !!! */
-/*
-int32_t get_id_mutex(uint64_t *id); 
-uint32_t get_id_per_core(void);
+
+/*int32_t get_id_mutex(uint64_t *id); 
+uint64_t get_id_per_core(void);
 uint32_t get_ipv6_id(void);
 uint32_t aiop_get_32bit_id();
-uint64_t aiop_get_64bit_id();
-*/
+uint64_t aiop_get_64bit_id();*/
+
 
 int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
@@ -80,7 +81,7 @@ int32_t ipf_insert_ipv6_frag_header(struct ipf_context *ipf_ctx,
 		frag_ext_header.next_header = orig_next_header;
 		frag_ext_header.reserved = 0;
 		frag_ext_header.fragment_offset_flags = IPV6_HDR_M_FLAG_MASK;
-		//frag_ext_header.id = get_ipv6_id(void); /*TODO */
+	//	frag_ext_header.id = aiop_get_64bit_id(); /*TODO */
 
 		/* Insert to header */
 		status = fdma_insert_default_segment_data(frag_hdr_offset,
@@ -492,32 +493,32 @@ void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr)
 	ipf_ctx->ipv4 = 0;
 	ipf_ctx->frag_index = 0;
 	ipf_ctx->ipf_params.mtu_params.prev_frag_offset = 0;
-	
 }
 
 
-/*int32_t get_id_mutex(uint64_t *id){
+/*
+int32_t get_id_mutex(uint64_t *id){
 	int32_t status;
-	status = cdma_mutex_lock_take((uint64_t)&lfsr32,CDMA_MUTEX_WRITE_LOCK);
+	status = cdma_mutex_lock_take((uint64_t)&lfsr64,CDMA_MUTEX_WRITE_LOCK);
 	if (status)
 		return status;
-	lfsr32 = (lfsr32 >> 1) ^ (-(lfsr32 & 1u) & 0xD0000001u);
-	// lfsr=(lfsr>>1) ^ (-(lfsr & 1LL) & 0xb000000000000001LL);
-        *id = lfsr32;
-        status = cdma_mutex_lock_release((uint64_t)&lfsr32);
+	//lfsr32 = (lfsr32 >> 1) ^ (-(lfsr32 & 1u) & 0xD0000001u);
+	 lfsr64=(lfsr64>>1) ^ (-(lfsr64 & 1LL) & 0x9d206b8e1036b29fLL);
+        *id = lfsr64;
+        status = cdma_mutex_lock_release((uint64_t)&lfsr64);
 	return status;
 }
 
 
-uint32_t get_id_per_core(void){
+uint64_t get_id_per_core(void){
 	uint8_t core_id;
-	uint32_t my_id;
+	uint64_t my_id;
 	
 	core_id = 5;
-	my_id = (uint32_t)lfsr_array32[core_id];
-	lfsr32 = (lfsr32 >> 1) ^ (-(lfsr32 & 1u) & 0xD0000001u);
-	// lfsr=(lfsr>>1) ^ (-(lfsr & 1LL) & 0xb000000000000001LL);
-        lfsr_array32[core_id] = my_id;
+	my_id = (uint64_t)lfsr_array64[core_id];
+	//lfsr32 = (lfsr32 >> 1) ^ (-(lfsr32 & 1u) & 0xD0000001u);
+	lfsr64=(lfsr64>>1) ^ (-(lfsr64 & 1LL) & 0x9d206b8e1036b29fLL);
+        lfsr_array64[core_id] = my_id;
 	return my_id;
 }
 
@@ -528,13 +529,13 @@ inline void my_lock_spinlock(register uint8_t *spinlock)
 	register uint8_t temp2;
 	asm{
  Address is in r3, new value (non zero) in r4 and old in r5 
-	li	temp1, 1		 prepare non-zero value 
+	li	temp1, 1		 
 spinlock_loop :
-	lbarx	temp2, 0, spinlock	 load and reserve 
-	cmpwi	temp2, 0		 check loaded value 
-	bne -	spinlock_loop	 not equal to 0 - already set 
-	stbcx.	temp1, 0, spinlock	 try to store non-zero 
-	bne -	spinlock_loop		 lost reservation 
+	lbarx	temp2, 0, spinlock	  
+	cmpwi	temp2, 0		  
+	bne -	spinlock_loop	  
+	stbcx.	temp1, 0, spinlock	 
+	bne -	spinlock_loop		
 	}
 }
 
@@ -547,7 +548,7 @@ uint64_t aiop_get_64bit_id()
 {	
 	spinlock_loop:
 	my_lock_spinlock(&id_lock_byte);
-	lfsr64=(lfsr64>>1) ^ (-(lfsr64 & 1LL) & 0xb000000000000001LL);
+	lfsr64=(lfsr64>>1) ^ (-(lfsr64 & 1LL) & 0x9d206b8e1036b29fLL);
 	my_unlock_spinlock(&id_lock_byte);
 	 asm
 	{
@@ -556,6 +557,7 @@ uint64_t aiop_get_64bit_id()
 	 return lfsr64;
 	}
 	
+
 uint32_t aiop_get_32bit_id()
 {
 	uint32_t temp1, temp2;
@@ -575,5 +577,6 @@ uint32_t aiop_get_32bit_id()
 uint32_t get_ipv6_id(void){
 	 lfsr32=(lfsr32>>1) ^ (-(lfsr32 & 1LL) & 0xD0000001u);
 	return (uint32_t)lfsr32;
-}*/
+}
+*/
 
