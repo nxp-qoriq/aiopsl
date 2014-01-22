@@ -107,7 +107,7 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 			      CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE,
 			      0);
 	if (cdma_status) { /* handle CDMA error TODO maybe use CR instead */
-		return CTLU_CDMA_CALL_ERROR;
+		return cdma_status;
 	}
 
 	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*/
