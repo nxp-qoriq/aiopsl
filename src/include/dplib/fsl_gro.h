@@ -10,7 +10,14 @@
 
 
 /**************************************************************************//**
-@Group		FSL_AIOP_GRO FSL AIOP GRO
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_AIOP_GRO GRO
 
 @Description	FSL AIOP GRO
 
@@ -304,6 +311,7 @@ int32_t tcp_gro_flush_aggregation(
 
 /** @} */ /* end of GRO_Functions */
 /** @} */ /* end of FSL_AIOP_GRO */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_GRO_H */

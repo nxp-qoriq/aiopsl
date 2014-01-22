@@ -1,4 +1,4 @@
-/**************************************************************************//*
+/**************************************************************************//**
  @File          event_mgr.h
 
  @Description   AIOP Event Manager Header file
@@ -14,7 +14,7 @@
 #include "common/fsl_core.h"
  
 /**************************************************************************//**
- @Group         event_mgr AIOP Event Manager
+ @Group         event_mgr EVENT_MGR (AIOP Event Manager)
 
  @Description   The event manager facilitates a common mechanism in AIOP, for
                 intra-application communication. The AIOP applications can 
@@ -70,7 +70,6 @@ typedef int (evm_cb_t)(
  @Param[in]     app_listen_mask - Mask of the evm_appid that the current 
                 application should listen to. Only signals from evm_appid with 
 		enabled bit in the mask (left shifted) are triggering the callback. 
-	
 		Value 0xfffffff_ffffffff means receive signals for any application.
 	       	0x1 receive signal from evm_appid 1.
 

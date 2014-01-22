@@ -183,7 +183,7 @@ int dpni_drv_init(void)
 {
 	uintptr_t	wrks_addr;
 	int		    i;
-
+	
 	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
 	
 	if (!nis) {
@@ -198,8 +198,8 @@ int dpni_drv_init(void)
 	/* TODO change i to start from 0, this is temporal WA in order to be able 
 	 * to run with Viper which sets EPID 0; 
 	 * NOTE in this implementation EPID = NI  */
-    for (i = 1; i < SOC_MAX_NUM_OF_DPNI; i++) {
-		struct dpni_drv *dpni_drv = nis + i;
+    for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
+        struct dpni_drv * dpni_drv = nis + i;
 		int	   j;
 
 		dpni_drv->id           = (uint16_t)i;
@@ -215,7 +215,9 @@ int dpni_drv_init(void)
 		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)
 			dpni_drv->rx_cbs[j] = dflt_rx_cb;
 		
-		/* TODO there might be an issue with ISS which set Work Scheduler to LE */
+#if 0
+		/* TODO there might be an issue with ISS which set Work Scheduler to LE 
+		 * EPID table is supposed to be set by MC */
 		
 		/* EPAS reg  - write to EPID 'i' */
 		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8));
@@ -223,6 +225,7 @@ int dpni_drv_init(void)
 		iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100));
 		/* EP_PM  - NI index, receive_cb should call nis + i */
 		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
+#endif
 	}
 
 	return 0;
