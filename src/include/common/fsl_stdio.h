@@ -41,15 +41,12 @@
 		specification is introduced by the character %.
 		The arguments must correspond properly (after type promotion)
 		with the conversion specifier.
-
 		The following command characters are supported:
-%d	Prints an integer in decimal form
-%x 	Prints and integer in hexadecimal form
-%s 	Prints a string
-%llx 	Prints a 32 bit value in hexadecimal form
-%llx 	Prints a 64 bit value in hexadecimal form
-
-
+		%d	Prints an integer in decimal form
+		%x 	Prints and integer in hexadecimal form
+		%s 	Prints a string
+		%llx 	Prints a 32 bit value in hexadecimal form
+		%lx 	Prints a 64 bit value in hexadecimal form
 
  @Return       none 
 *//***************************************************************************/
