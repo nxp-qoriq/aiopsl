@@ -54,7 +54,7 @@ enum cmdif_module {
 	CMDIF_MOD_DPNI,
 	CMDIF_MOD_DPIO,
 	CMDIF_MOD_DPSP,
-	CMDIF_MOD_DPSW,
+	CMDIF_MOD_DPSW
 };
 
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
