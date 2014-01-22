@@ -20,7 +20,21 @@
 
 
 /**************************************************************************//**
-@Group	FSL_HM FSL_AIOP_Header_Modification
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_IP IP
+
+ @Description	AIOP IP related header modifications
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_HM FSL_AIOP_Header_Modification IP Header Manipulations
 
 @Description	Header Modification API
 
@@ -383,6 +397,8 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group FSL_HM */
+/* @} end of group AIOP_IP */
+/* @} end of group NETF */
 
 
 #endif /* __FSL_IP_H */
