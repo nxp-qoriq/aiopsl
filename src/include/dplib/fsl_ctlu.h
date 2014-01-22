@@ -13,7 +13,14 @@
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU FSL_AIOP_CTLU
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_CTLU CTLU
 
 @Description	Freescale AIOP CTLU API
 
@@ -1689,6 +1696,7 @@ int32_t ctlu_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash);
 
 /** @} */ /* end of FSL_CTLU_Functions */
 /** @} */ /* end of FSL_CTLU */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_CTLU_H */
