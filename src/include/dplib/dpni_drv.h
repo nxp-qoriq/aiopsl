@@ -5,8 +5,8 @@
 
  @Description   Data Path Network Interface API
 *//***************************************************************************/
-#ifndef __FSL_DPNI_DRV_H
-#define __FSL_DPNI_DRV_H
+#ifndef __DPNI_DRV_H
+#define __DPNI_DRV_H
 
 #include "common/types.h"
 
@@ -114,16 +114,6 @@ int dpni_drv_get_stats(uint16_t ni_id,
 *//***************************************************************************/
 int dpni_drv_reset_stats(uint16_t ni_id);
 
-#if 0
-/**************************************************************************//**
- @Description	Structure representing DPNI RX TC configuration
-*//***************************************************************************/
-struct dpni_rx_tc_cfg {
-	uint8_t dist_size;	/**< TODO */
-//	struct policing_params *params;
-//TODO - add struct ldpaa_flow_ctx	*flc; /**< valid only in case of flow-steering */
-};
-#endif
 /**************************************************************************//**
  @Function	dpni_drv_set_rx_tc
 
@@ -234,4 +224,4 @@ int dpni_get_num_of_ni (void);
 /** @} */ /* end of grp_dplib_aiop group */
 
 
-#endif /* __FSL_DPNI_DRV_H */
+#endif /* __DPNI_DRV_H */
