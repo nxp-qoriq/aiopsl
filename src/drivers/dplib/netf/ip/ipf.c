@@ -12,7 +12,7 @@
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_ipv4_checksum.h"
-#include "fsl_spinlock.h"
+/*#include "common/spinlock.h"*/
 #include "ipf.h"
 #include "fdma.h"
 
