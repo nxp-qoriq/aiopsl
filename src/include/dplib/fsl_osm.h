@@ -11,7 +11,14 @@
 
 
 /**************************************************************************//**
- @Group		FSL_AIOP_OSM
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		FSL_AIOP_OSM OSM
 
  @Description	FSL AIOP OSM macros and functions
 
@@ -412,6 +419,7 @@ void osm_get_scope(struct scope_status_params *scope_status);
 
 /** @} end of group OSM_Functions */
 /** @} */ /* end of FSL_AIOP_OSM */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_LIB_OSM_H */

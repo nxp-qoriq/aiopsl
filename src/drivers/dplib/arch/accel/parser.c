@@ -131,10 +131,10 @@ int32_t parse_result_generate_default(uint8_t flags)
 {
 	uint32_t arg1, arg2;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct input_message_params input_struct;
+	/* 8 Byte aligned for stqw optimization */
+	struct input_message_params input_struct __attribute__((aligned(8)));
 		
 	__stqw(0,0,0,0,0,&input_struct);
-	input_struct.gross_running_sum = pr->gross_running_sum;
 	input_struct.opaquein = 0;
 
 	/* If L4 checksum validation is required,
@@ -144,6 +144,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 					&pr->gross_running_sum))
 			return PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
 	}
+	input_struct.gross_running_sum = pr->gross_running_sum;
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id |
 		((uint32_t)flags << 8) |
@@ -170,10 +171,10 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 {
 	uint32_t arg1, arg2;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct input_message_params input_struct;
+	/* 8 Byte aligned for stqw optimization */
+	struct input_message_params input_struct __attribute__((aligned(8)));
 		
 	__stqw(0,0,0,0,0,&input_struct);
-	input_struct.gross_running_sum = pr->gross_running_sum;
 	input_struct.opaquein = 0;
 
 	/* If L4 checksum validation is required,
@@ -183,6 +184,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 					&pr->gross_running_sum))
 			return PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
 	}
+	input_struct.gross_running_sum = pr->gross_running_sum;
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id |
 		((uint32_t)flags << 8) |
@@ -212,7 +214,8 @@ int32_t parse_result_generate_checksum(
 {
 	uint32_t arg1, arg2;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct input_message_params input_struct;
+	/* 8 Byte aligned for stqw optimization */
+	struct input_message_params input_struct __attribute__((aligned(8)));
 		
 	__stqw(0,0,0,0,0,&input_struct);
 	input_struct.gross_running_sum = pr->gross_running_sum;

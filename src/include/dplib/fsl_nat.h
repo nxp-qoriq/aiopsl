@@ -17,7 +17,14 @@
 
 
 /**************************************************************************//**
-@addtogroup	FSL_HM FSL_AIOP_Header_Modification
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@addtogroup	FSL_HM Header Modification
 
 @{
 *//***************************************************************************/
@@ -152,6 +159,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 
 /* @} end of group FSL_HM_NAT_Functions */
 /* @} end of group FSL_HM */
+/* @} end of group NETF */
 
 
 #endif /* __FSL_NAT_H */
