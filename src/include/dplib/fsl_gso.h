@@ -88,7 +88,7 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 
 /**************************************************************************//**
-@Group		GSO_Functions GSO_Functions
+@Group		GSO_Functions GSO Functions
 
 @Description	GSO Functions
 
