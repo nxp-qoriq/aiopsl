@@ -9,6 +9,8 @@
 #ifndef __AIOP_IPR_H
 #define __AIOP_IPR_H
 
+#include "common/types.h"
+
 /**************************************************************************//**
 @addtogroup	FSL_IPR FSL_AIOP_IPR
 
@@ -63,7 +65,7 @@ struct ipr_rfdc{
 	uint16_t	first_frag_offset;
 	uint16_t	last_frag_offset;
 	uint8_t		num_of_frags;
-	uint8_t		res[3]
+	uint8_t		res[3];
 };
 
 struct link_list_element{
