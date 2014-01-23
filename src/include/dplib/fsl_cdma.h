@@ -716,7 +716,7 @@ enum cdma_errors {
 
 
 /**************************************************************************//**
-@Group			CDMA Functions
+@Group		CDMA_Functions	CDMA Functions
 
 @Description	AIOP CDMA operations functions.
 

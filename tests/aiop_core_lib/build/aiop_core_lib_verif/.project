@@ -223,6 +223,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/include/common</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/include/dplib</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -251,6 +256,11 @@
 			<name>sources/drivers/dplib/netf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/include/common/spinlock.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/spinlock.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/dplib/dpni_drv.h</name>
@@ -366,11 +376,6 @@
 			<name>sources/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/include/fsl_spinlock.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/fsl_spinlock.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/include/general.c</name>

@@ -123,7 +123,7 @@ struct scope_status_params {
 
 
 /**************************************************************************//**
-@Group			OSM Functions
+@Group		OSM_Functions	OSM Functions
 
 @Description	AIOP OSM operations functions.
 

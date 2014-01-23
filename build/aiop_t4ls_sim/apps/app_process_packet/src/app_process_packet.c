@@ -1,7 +1,9 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
+#include "fsl_dpni.h"
 #include "dplib/dpni_drv.h"
+#include "dpni/drv.h"
 
 
 int app_init(void);
@@ -17,6 +19,11 @@ static void app_process_packet (dpni_drv_app_arg_t arg)
 int app_init(void)
 {
     int i, err = 0;
+    
+    // This code is supposed to tell linker to include function receive_cb() in elf file.
+    volatile int always_zero = 0;
+    if(always_zero)
+    	receive_cb();
 
     fsl_os_print("AIOP test: app_process_packet \n");
 
