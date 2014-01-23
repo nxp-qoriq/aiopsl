@@ -19,7 +19,7 @@
 /**************************************************************************//**
 @Group		FSL_AIOP_GRO GRO
 
-@Description	FSL AIOP GRO
+@Description	FSL_AIOP_GRO
 
 @{
 *//***************************************************************************/
@@ -247,7 +247,7 @@ struct tcp_gro_context_params {
 /** @} */ /* end of GRO_STRUCTS */
 
 /**************************************************************************//**
-@Group		GRO_FUNCTIONS TCP GRO Functions
+@Group		GRO_FUNCTIONS GRO_Functions
 
 @Description	GRO Functions
 
