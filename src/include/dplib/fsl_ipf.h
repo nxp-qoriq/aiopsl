@@ -65,11 +65,11 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 /** Fragmentation process didn't complete.
  * Fragment was generated and the user SHOULD call generate_frag()
  * again to generate another fragment*/
-#define	IPF_GEN_FRAG_STATUS_IN_PROCESS 	(IPF_MODULE_STATUS_ID | 0x1)
+#define	IPF_GEN_FRAG_STATUS_IN_PROCESS	(IPF_MODULE_STATUS_ID | 0x1)
 /** Fragmentation not done due to Length > MTU but DF=1 */
-#define	IPF_GEN_FRAG_STATUS_DF_SET 	(IPF_MODULE_STATUS_ID | 0x2)
-/** Restoration of original fragments can not be performed since SFV=0 */ 
-#define	IPF_GEN_FRAG_STATUS_SFV_CLEAR 	(IPF_MODULE_STATUS_ID | 0x3)
+#define	IPF_GEN_FRAG_STATUS_DF_SET	(IPF_MODULE_STATUS_ID | 0x2)
+/** Restoration of original fragments can not be performed since SFV=0 */
+#define	IPF_GEN_FRAG_STATUS_SFV_CLEAR	(IPF_MODULE_STATUS_ID | 0x3)
 
 /** @} */ /* end of IPF_GENERATE_FRAG_STATUS */
 
