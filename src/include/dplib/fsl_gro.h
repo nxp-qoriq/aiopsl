@@ -247,7 +247,7 @@ struct tcp_gro_context_params {
 /** @} */ /* end of GRO_STRUCTS */
 
 /**************************************************************************//**
-@Group		GRO_FUNCTIONS GRO_Functions
+@Group		GRO_FUNCTIONS GRO Functions
 
 @Description	GRO Functions
 
