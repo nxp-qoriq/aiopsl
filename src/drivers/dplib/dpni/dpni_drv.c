@@ -117,7 +117,6 @@ int dpni_drv_enable (uint16_t ni_id)
 
 	if ((err = dpni_enable(&dpni_drv->dpni)) != 0)
 		return err;
-	dpni_drv->flags |= DPNI_DRV_FLG_ENABLED;
 	return 0;
 }
 
@@ -127,21 +126,8 @@ int dpni_drv_disable (uint16_t ni_id)
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
-
-	dpni_drv->flags &= ~DPNI_DRV_FLG_ENABLED;
 	return dpni_disable(&dpni_drv->dpni);
 }
-
-int dpni_drv_is_up (uint16_t ni_id)
-{
-	struct dpni_drv *dpni_drv;
-
-	/* calculate pointer to the send NI structure */
-	dpni_drv = nis + ni_id;
-
-	return !!(dpni_drv->flags & DPNI_DRV_FLG_ENABLED);
-}
-
 
 int dpni_drv_probe(uint16_t	ni_id,
                    uint16_t	mc_portal_id,
@@ -196,37 +182,50 @@ int dpni_get_num_of_ni (void)
 int dpni_drv_init(void)
 {
 	uintptr_t	wrks_addr;
-	int		i;
+	int		    i;
+	
+	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
+	
+	if (!nis) {
+	    return -ENOMEM;
+	}
+	memset(nis, 0, sizeof(struct dpni_drv) * SOC_MAX_NUM_OF_DPNI);
 
-	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,
-				  MEM_PART_SH_RAM,
-				  64);
-	if (!nis)
-		RETURN_ERROR(MAJOR, E_NO_MEMORY, ("NI objs!"));
-	memset(nis, 0, sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI);
-
-	wrks_addr =
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-					   0,
-					   E_MAPPED_MEM_TYPE_GEN_REGS) +
-	 SOC_PERIPH_OFF_AIOP_WRKS);
+	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
+	             SOC_PERIPH_OFF_AIOP_WRKS);
 
 	/* Write EPID-table parameters */
-	for (i=255; i>=(256-SOC_MAX_NUM_OF_DPNI); i--) {
-		struct dpni_drv *dpni_drv = nis + i;
-		int		j;
+	/* TODO change i to start from 0, this is temporal WA in order to be able 
+	 * to run with Viper which sets EPID 0; 
+	 * NOTE in this implementation EPID = NI  */
+    for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
+        struct dpni_drv * dpni_drv = nis + i;
+		int	   j;
 
-		dpni_drv->id = (uint16_t)i;
+		dpni_drv->id           = (uint16_t)i;
+		dpni_drv->spid         = 0;
+		dpni_drv->prpid        = 0;
+		dpni_drv->starting_hxs = 0; //ETH HXS
+		dpni_drv->qdid         = 0;
+		dpni_drv->flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | 
+		                         DPNI_DRV_FLG_MTU_ENABLE | DPNI_DRV_FLG_MTU_DISCARD;
+		dpni_drv->mtu          = 0xffff;
+
 		/* put a default RX callback - dropping the frame */
-		for (j=0; j<DPNI_DRV_MAX_NUM_FLOWS; j++)
+		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)
 			dpni_drv->rx_cbs[j] = dflt_rx_cb;
-
+		
+#if 0
+		/* TODO there might be an issue with ISS which set Work Scheduler to LE 
+		 * EPID table is supposed to be set by MC */
+		
 		/* EPAS reg  - write to EPID 'i' */
 		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8));
-		/* EP_PC */
+		/* EP_PC - general receive_cb which will call dpni_drv->rx_cbs[j] */
 		iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100));
-		/* EP_PM */
-		iowrite32be(PTR_TO_UINT(nis + i), UINT_TO_PTR(wrks_addr + 0x100));
+		/* EP_PM  - NI index, receive_cb should call nis + i */
+		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
+#endif
 	}
 
 	return 0;

@@ -240,7 +240,7 @@
 	/** FDMA Enqueue working frame command arg1 */
 #define FDMA_ENQUEUE_WF_EXP_ARG1(_spid, _frame_handle, _flags)		\
 	(uint32_t)((_spid << 24) |					\
-	(_frame_handle << 16)| _flags | FDMA_ENQUEUE_WF_CMD)
+	(_frame_handle << 16) | _flags | FDMA_ENQUEUE_WF_CMD)
 
 	/** FDMA Enqueue working frame command arg2 */
 #define FDMA_ENQUEUE_WF_QD_ARG2(_pri, _qd)				\

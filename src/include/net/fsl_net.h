@@ -245,6 +245,9 @@ typedef uint16_t net_hdr_fld_tcp_t;
 #define NET_HDR_FLD_TCP_FLAGS_ECE                  0x40
 #define NET_HDR_FLD_TCP_FLAGS_CWR                  0x80
 
+/* TCP data_offset field offset value */
+#define NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET	4
+
 
 /*****************************  UDP fields  *********************************/
 typedef uint16_t net_hdr_fld_udp_t;

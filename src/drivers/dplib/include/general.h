@@ -16,7 +16,7 @@
 /*#include "dplib/fsl_aiop_parser.h"*/
 
 /**************************************************************************//**
- @Group		AIOP_General_Definitions
+ @Group		AIOP_General_Definitions AIOP SL General Definitions
 
  @Description	AIOP General Definitions
 
@@ -480,9 +480,6 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
-	/** Distribution hash value passed to QMan for distribution
-	 * purpose on the enqueue. */
-	uint16_t hash_value;
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
@@ -756,7 +753,7 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
 
 /**************************************************************************//**
-@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control 
+@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control
 		Protocol (TCP) Definitions
 @{
 *//***************************************************************************/

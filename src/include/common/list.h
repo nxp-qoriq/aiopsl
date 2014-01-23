@@ -171,7 +171,7 @@ typedef struct list {
 
  @Return        none.
 *//***************************************************************************/
-static __inline__ void list_add(list_t *p_new, list_t *head)
+static inline void list_add(list_t *p_new, list_t *head)
 {
     LIST_PREV(LIST_NEXT(head)) = p_new;
     LIST_NEXT(p_new)             = LIST_NEXT(head);
@@ -192,7 +192,7 @@ static __inline__ void list_add(list_t *p_new, list_t *head)
 
  @Return        none.
 *//***************************************************************************/
-static __inline__ void list_add_to_tail(list_t *p_new, list_t *head)
+static inline void list_add_to_tail(list_t *p_new, list_t *head)
 {
     LIST_NEXT(LIST_PREV(head)) = p_new;
     LIST_PREV(p_new)             = LIST_PREV(head);
@@ -212,7 +212,7 @@ static __inline__ void list_add_to_tail(list_t *p_new, list_t *head)
  @Cautions      LIST_is_Empty() on entry does not return true after this,
                 the entry is in an undefined state.
 *//***************************************************************************/
-static __inline__ void list_del(list_t *entry)
+static inline void list_del(list_t *entry)
 {
     LIST_PREV(LIST_NEXT(entry)) = LIST_PREV(entry);
     LIST_NEXT(LIST_PREV(entry)) = LIST_NEXT(entry);
@@ -227,7 +227,7 @@ static __inline__ void list_del(list_t *entry)
 
  @Return        none.
 *//***************************************************************************/
-static __inline__ void list_del_and_init(list_t *entry)
+static inline void list_del_and_init(list_t *entry)
 {
     list_del(entry);
     INIT_LIST(entry);
@@ -243,7 +243,7 @@ static __inline__ void list_del_and_init(list_t *entry)
 
  @Return        none.
 *//***************************************************************************/
-static __inline__ void list_move(list_t *entry, list_t *head)
+static inline void list_move(list_t *entry, list_t *head)
 {
     list_del(entry);
     list_add(entry, head);
@@ -259,7 +259,7 @@ static __inline__ void list_move(list_t *entry, list_t *head)
 
  @Return        none.
 *//***************************************************************************/
-static __inline__ void list_move_to_tail(list_t *entry, list_t *head)
+static inline void list_move_to_tail(list_t *entry, list_t *head)
 {
     list_del(entry);
     list_add_to_tail(entry, head);
@@ -274,7 +274,7 @@ static __inline__ void list_move_to_tail(list_t *entry, list_t *head)
 
  @Return        1 if the list is empty, 0 otherwise.
 *//***************************************************************************/
-static __inline__ int list_is_empty(list_t *lst)
+static inline int list_is_empty(list_t *lst)
 {
     return (LIST_FIRST(lst) == lst);
 }

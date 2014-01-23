@@ -20,7 +20,14 @@
 
 
 /**************************************************************************//**
-@addtogroup	FSL_HM FSL_AIOP_Header_Modification
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@addtogroup	FSL_HM Header Modification
 
 @{
 *//***************************************************************************/
@@ -198,6 +205,7 @@ int32_t l4_set_tp_dst(uint16_t dst_port);
 
 /* @} end of group FSL_HM_L4_Functions */
 /* @} end of group FSL_HM */
+/* @} end of group NETF */
 
 
 #endif /* __FSL_LIB_L4_H */

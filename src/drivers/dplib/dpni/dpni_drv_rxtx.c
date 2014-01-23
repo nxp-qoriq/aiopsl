@@ -18,7 +18,6 @@ extern __TASK uint8_t SCOPE_MODE_LEVEL4;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-
 /* TODO - get rid */
 extern __SHRAM struct dpni_drv *nis;
 
@@ -39,25 +38,20 @@ static void osm_task_init(void)
 		/**<	Exclusive (default) Mode in level 4 of hierarchy */
 }
 
-
 __HOT_CODE void receive_cb (void)
 {
-	struct dpni_drv *dpni_drv = (struct dpni_drv *)PRC_GET_PARAMETER();
-	uint8_t *fd_err = (uint8_t *)(HWC_FD_ADDRESS + FD_ERR_OFFSET);
-	uint8_t *fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + \
-			FD_FLC_APPIDX_OFFSET);
+	struct dpni_drv *dpni_drv;
+	uint8_t *fd_err;
+	uint8_t *fd_flc_appidx;
 	uint8_t appidx;
-	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct parse_result *pr;
 
-	/* check if NI is enabled and there are no errors to discard and
-	 * application call-back is not NULL */
-	if (!(dpni_drv->flags & DPNI_DRV_FLG_ENABLED) ||
-			(*fd_err & dpni_drv->fd_err_mask) ||
-			!dpni_drv->rx_cbs[*fd_flc_appidx >> 2]) {
-		/*if discard with terminate return with error then terminator*/
-		if(fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-			fdma_terminate_task();
-	}
+	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
+						* to the send NI structure   */
+	fd_err = (uint8_t *)(HWC_FD_ADDRESS + FD_ERR_OFFSET);
+	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
 
@@ -68,7 +62,6 @@ __HOT_CODE void receive_cb (void)
 			= dpni_drv->starting_hxs;
 	default_task_params.qd_priority = ((*((uint8_t *)ADC_WQID_PRI_OFFSET) \
 			& ADC_WQID_MASK) >> 4);
-	default_task_params.hash_value = 0;
 
 	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
 		int32_t parse_status = parse_result_generate_default \
@@ -99,12 +92,9 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 	dpni_drv = nis + ni_id; /* calculate pointer
 					* to the send NI structure   */
 
-	/* check if NI is enabled */
-	if (!(dpni_drv->flags & DPNI_DRV_FLG_ENABLED))
-			return(DPNI_DRV_NI_DIS);
-
-	if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu) {
-		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DIS)
+	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu) ) {
+		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DISCARD)
 			return(DPNI_DRV_MTU_ERR);
 		else {
 			/* TODO - mark in the FLC some error indication */
@@ -116,7 +106,7 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
-	enqueue_params.hash_value = default_task_params.hash_value;
+	enqueue_params.hash_value = 0;
 	enqueue_params.qd = dpni_drv->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \

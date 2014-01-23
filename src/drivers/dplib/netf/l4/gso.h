@@ -110,6 +110,21 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 
 /** @} */ /* end of TCP_GSO_INTERNAL_FLAGS */
 
+/**************************************************************************//**
+ @Group	TCP_GSO_INTERNAL_DEFINITIONS TCP GSO Internal Definitions
+
+ @Description TCP GSO Internal Definitions.
+
+ @{
+*//***************************************************************************/
+
+	/** Size of modification in IP header of the source frame in the first 
+	 * iteration. */
+#define TCP_GSO_IP_MODIFICATION_SIZE	12
+	
+
+/** @} */ /* end of TCP_GSO_INTERNAL_DEFINITIONS */
+
 /** @} */ /* end of TCP_GSO_INTERNAL_MACROS */
 
 /**************************************************************************//**

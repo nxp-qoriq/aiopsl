@@ -18,6 +18,10 @@
 #include "common/errors.h"
  
 /**************************************************************************//**
+ @ingroup         fsl_lib_g   Utility Library 
+ @{
+ *//***************************************************************************/
+/**************************************************************************//**
  @ingroup       net_utils AIOP Service Layer Network Utilities
 
  @Description   The AIOP Service Layer Network Utilities group provides 
@@ -92,6 +96,7 @@ const char * inet_ntop(int af, const void *src, char *dst, size_t size);
 
 
 /** @} */ /* end of net_utils group */
+/** @} *//* end of fsl_lib_g group */
 
 
 #endif /* _INET_H */

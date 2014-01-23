@@ -333,7 +333,7 @@ int sys_init(void)
     fill_system_parameters(&sys_param);
 
     sys.is_partition_master[core_id]       = (int)(sys_param.master_cores_mask & (1ULL << core_id));
-    sys.is_master_partition_master[core_id] = (int)(sys.is_partition_master[core_id] && (sys_param.partition_id == SYS_MASTER_PART_ID));
+    sys.is_master_partition_master[core_id] = (int)(sys.is_partition_master[core_id] && (sys_param.partition_id == 0));
     sys.is_core_master[core_id]            = IS_CORE_MASTER(core_id, sys_param.partition_cores_mask);
 
     if (sys.is_partition_master[core_id]) {

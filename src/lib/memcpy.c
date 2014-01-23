@@ -1,11 +1,12 @@
 
 #include "common/types.h"
 #include "common/errors.h"
+#include "common/gen.h"
 #include "common/fsl_string.h"
 #include "common/io.h"
 
 
-void * memcpy32(void* p_dst,void* p_src, uint32_t size)
+void *memcpy32(void* p_dst, void* p_src, uint32_t size)
 {
     uint32_t left_align;
     uint32_t right_align;
@@ -79,6 +80,7 @@ void * memcpy32(void* p_dst,void* p_src, uint32_t size)
     return p_dst;
 }
 
+#if 0
 void * io2iocpy32(void* p_dst,void* p_src, uint32_t size)
 {
     uint32_t left_align;
@@ -503,6 +505,7 @@ void * memset64(void* p_dst, uint8_t val, uint32_t size)
 
     return p_dst;
 }
+#endif
 
 void mem_disp(uint8_t *p, int size)
 {

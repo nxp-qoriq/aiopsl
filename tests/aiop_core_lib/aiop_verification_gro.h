@@ -65,13 +65,20 @@ struct tcp_gro_agg_seg_command {
 		/** Pointer to the TCP GRO aggregation parameters. */
 	struct tcp_gro_context_params params;
 	/* Todo - should we add:
-	 * 	1. parse results
-	 * 	2. presentation context
-	 * 	3. global task defaults
-	 * 	4. gro internal context - it is in external memory already.. */
+	 * 	3. global task defaults. */
+	
+		/** Returned Value:
+		 * presentation context. */
+	struct presentation_context prc;
 		/** Returned Value: 
 		 * Iteration return status. */
 	int32_t status;
+		/** Workspace address of the last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+		/** Workspace address of the GSO last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t gro_status_addr;
 		/** Padding. */
 	int8_t  pad[4];
 };
@@ -94,10 +101,20 @@ struct tcp_gro_flush_agg_command {
 		a new session begins. */
 	uint64_t tcp_gro_context_addr;
 	/* Todo - should we add:
-	 * 	1. parse results
-	 * 	2. presentation context
-	 * 	3. global task defaults
-	 * 	4. gro internal context - it is in external memory already.. */	
+	 * 	
+	 * 3. global task defaults */
+		/** Returned Value:
+		 * presentation context. */
+	struct presentation_context prc;	
+		/** Returned Value:
+		 * parse results. */
+	struct parse_result pr;
+		/** Workspace address of the last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+		/** Workspace address of the GSO last returned status. 
+		 * Should be defined in the TLS area. */
+	uint32_t gro_status_addr;
 };
 
 

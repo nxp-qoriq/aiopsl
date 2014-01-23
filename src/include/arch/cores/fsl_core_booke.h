@@ -15,17 +15,17 @@
 #include "common/types.h"
 
 
-#define core_dcache_enable       booke_dcache_enable
-#define core_icache_enable       booke_icache_enable
-#define core_dcache_disable      booke_dcache_disable
-#define core_icache_disable      booke_icache_disable
-#define core_get_id              booke_get_id
-#define core_test_and_set        booke_test_and_set
-#define core_memory_barrier      booke_memory_barrier
-#define core_instruction_sync    booke_instruction_sync
+#define core_dcache_enable      booke_dcache_enable
+#define core_icache_enable      booke_icache_enable
+#define core_dcache_disable     booke_dcache_disable
+#define core_icache_disable     booke_icache_disable
+#define core_get_id             booke_get_id
+#define core_test_and_set       booke_test_and_set
+#define core_memory_barrier     booke_memory_barrier
+#define core_instruction_sync   booke_instruction_sync
 
-#define core_local_irq_save    booke_local_irq_save
-#define core_local_irq_restore    booke_local_irq_restore
+#define core_local_irq_save    	booke_local_irq_save
+#define core_local_irq_restore	booke_local_irq_restore
 
 
 /**************************************************************************//**
@@ -305,7 +305,7 @@ void booke_generic_isr(uint32_t intr_entry);
  @Description   This is the specific critical booke interrupt handler.
 
                 It is called by the main assembly interrupt handler
-                when an critical interrupt.
+                when a critical interrupt occurs.
 
  @Param         intrEntry   - (In) The exception interrupt vector entry.
 *//***************************************************************************/
@@ -347,22 +347,9 @@ int booke_test_and_set(volatile int *p);
 
  @Return        None.
 *//***************************************************************************/
-static __inline__ void booke_memory_barrier(void)
+static inline void booke_memory_barrier(void)
 {
-#ifndef CORE_E500V2
-    __asm__ ("mbar 1");
-#else  /* CORE_E500V2 */
-    /**** ERRATA WORK AROUND START ****/
-    /* ERRATA num:  CPU1 */
-    /* Description: "mbar MO = 1" instruction fails to order caching-inhibited
-                    guarded loads and stores. */
-
-    /* "msync" instruction is used instead */
-
     __asm__ ("msync");
-
-    /**** ERRATA WORK AROUND END ****/
-#endif /* CORE_E500V2 */
 }
 
 /**************************************************************************//**
@@ -375,13 +362,13 @@ static __inline__ void booke_memory_barrier(void)
 
  @Return        None.
 *//***************************************************************************/
-static __inline__ void booke_instruction_sync(void)
+static inline void booke_instruction_sync(void)
 {
     __asm__ ("isync");
 }
 
 /*****************************************************************************/
-static __inline__ uint32_t booke_local_irq_save(void)
+static inline uint32_t booke_local_irq_save(void)
 {
     uint32_t   temp = 0 ;
 
@@ -392,7 +379,7 @@ static __inline__ uint32_t booke_local_irq_save(void)
 }
 
 /*****************************************************************************/
-static __inline__ void booke_local_irq_restore(uint32_t flags)
+static inline void booke_local_irq_restore(uint32_t flags)
 {
     __asm__ ("wrtee   %0" : : "r" (flags)); /* Restore external interrupt by flags */
 }

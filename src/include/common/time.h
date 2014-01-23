@@ -1,4 +1,4 @@
-/**************************************************************************//*
+/**************************************************************************//**
  @file          time.h
 
  @brief         AIOP Service Layer Time Queries routines
@@ -18,7 +18,12 @@
 #include "common/errors.h"
  
 /**************************************************************************//**
- @ingroup       aiopsl_time_queries AIOP Service Layer Time Queries
+ @ingroup         fsl_lib_g   Utility Library 
+
+ @{
+ *//***************************************************************************/
+/**************************************************************************//**
+ @Group       aiopsl_time_queries TIME QUERIES
 
  @Description   The AIOP Service Layer Time Queries group provides 
  		standard time queries functions 
@@ -87,6 +92,7 @@ int gettimeofday(
 
 
 /** @} */ /* end of aiopsl_time_queries group */
+/** @} *//* end of fsl_lib_g group */
 
 
 #endif /* _TIME_H */

@@ -12,6 +12,7 @@
 
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
+#define SYS_MASTER_PART_ID 0
 
 /* -------------------------- */
 /*  { MEMORY REGION,               START_ADDR,    SIZE,            mem-ctrl-id } */
