@@ -485,9 +485,9 @@ struct ipsec_decap_param {
 		Updated the BPID of SA in the SRAM.
 		Optionally updated the BPID of ASA copying in the SRAM.
 		
-@Param[in]	Max. number of SA.
+@Param[in]	max_sa_no - Max. number of SAs.
 
-@Param[in]	Flag indicating if SA copying is needed.
+@Param[in]	asa_copy - Flag indicating if SA copying is needed.
 
 @Return		TODO
 
@@ -501,9 +501,10 @@ int32_t ipsec_init(uint16_t max_sa_no, uint8_t asa_copy);
 		creating the IPsec flow context and the Shared Descriptor.
 
 		Implicit Input: BPID in the SRAM.
-@Param[in]	
+@Param[in]	ipsec_encap_param 
+@Param[in]	ipsec_shrdesc_param 
 
-@Param[out]	IPsec handler which is the pointer to the buffer 
+@Param[out]	ipsec_handle - IPsec handler which is the pointer to the buffer 
 		allocated for SA handling.
 
 @Return		TODO error status for CDMA buffer allocation failure.
@@ -521,9 +522,10 @@ int32_t ipsec_add_sa_encap(
 		creating the IPsec flow context and the Shared Descriptor.
 
 		Implicit Input: BPID in the SRAM.
-@Param[in]	
+@Param[in]	ipsec_decap_param
+@Param[in]	ipsec_shrdesc_param
 
-@Param[out]	IPsec handler which is the pointer to the buffer 
+@Param[out]	ipsec_handle - IPsec handler which is the pointer to the buffer 
 		allocated for SA handling.
 
 @Return		TODO error status for CDMA buffer allocation failure.
@@ -555,6 +557,8 @@ int32_t ipsec_sa_rem(ipsec_handle_t ipsec_handle);
 		seconds and kilobyte.
 
 @Param[in]	ipsec_handle - IPsec handle.
+@Param[out]	kilobytes - number of bytes processes by this SA.
+@Param[out]	sec - number of seconds passed since this SA was created.
 
 @Return		TODO
 
