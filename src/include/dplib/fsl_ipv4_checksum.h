@@ -27,7 +27,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_IPV4_CKSUM FSL_AIOP_IPv4_Checksum IPV4 Checksum
+@Group	FSL_IPV4_CKSUM IPV4 Checksum
 
 @Description	Freescale AIOP Internet Protocol Version 4 Checksum API
 
