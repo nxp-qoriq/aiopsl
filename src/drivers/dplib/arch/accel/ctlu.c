@@ -77,15 +77,13 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 					CTLU_LPM_IPV4_WC_ENTRIES_PER_RULE;
 		}
 		break;
-
+/*
 	case CTLU_TBL_ATTRIBUTE_TYPE_TCAM_ACL:
-		/* TODO */
 		break;
 
 	case CTLU_TBL_ATTRIBUTE_TYPE_ALG_ACL:
-		/* TODO */
 		break;
-
+*/
 	default:
 		break;
 

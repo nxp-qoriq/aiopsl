@@ -71,11 +71,13 @@
 	/** Longest Prefix Match table */
 #define CTLU_TBL_ATTRIBUTE_TYPE_LPM		0x1000
 
-	/** Ternary match Table for ACL */
+/*
+	 Ternary match Table for ACL
 #define CTLU_TBL_ATTRIBUTE_TYPE_TCAM_ACL	0x2000
 
-	/** Algorithmic ACL */
+	 Algorithmic ACL
 #define CTLU_TBL_ATTRIBUTE_TYPE_ALG_ACL		0x4000
+*/
 
 	/** Table type sub field mask */
 #define CTLU_TBL_ATTRIBUTE_TYPE_MASK		0xF000
@@ -158,6 +160,8 @@
 	The sub field is specified by \ref CTLU_TABLE_ATTRIBUTE_AGT_MASK
 	and \ref CTLU_TABLE_ATTRIBUTE_AGT_OFFSET (The mask determines the
 	size and position of the field).
+	NOTE: This field must be cleared unless \ref
+	FSL_CTLU_TABLE_ATTRIBUTE_TYPE is set to CTLU_TBL_ATTRIBUTE_TYPE_EM.
 
 @{
 *//***************************************************************************/
@@ -214,7 +218,11 @@
 #define	CTLU_RULE_TIMESTAMP_ENABLE	0x80
 
 	/** Enables timestamp update per rule and aging.
-	Aging is described in \ref FSL_CTLU_TABLE_ATTRIBUTE_AGT. */
+	 * Aging is described in \ref FSL_CTLU_TABLE_ATTRIBUTE_AGT.
+	 * NOTE: This option must not be used unless at table creation
+	 * \ref FSL_CTLU_TABLE_ATTRIBUTE_TYPE was set to
+	 * CTLU_TBL_ATTRIBUTE_TYPE_EM. (i.e. this options is available only
+	 * in exact match tables)*/
 #define CTLU_RULE_TIMESTAMP_AGT_ENABLE	0xC0
 
 /** @} *//* end of FSL_CTLU_TABLE_RULE_OPTIONS_TIMESTAMP */
