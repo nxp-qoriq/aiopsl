@@ -161,7 +161,8 @@
 	and \ref CTLU_TABLE_ATTRIBUTE_AGT_OFFSET (The mask determines the
 	size and position of the field).
 	NOTE: This field must be cleared unless \ref
-	FSL_CTLU_TABLE_ATTRIBUTE_TYPE is set to CTLU_TBL_ATTRIBUTE_TYPE_EM.
+	FSL_CTLU_TABLE_ATTRIBUTE_TYPE is set to CTLU_TBL_ATTRIBUTE_TYPE_EM
+	(i.e. This field can only be used in exact match tables).
 
 @{
 *//***************************************************************************/
