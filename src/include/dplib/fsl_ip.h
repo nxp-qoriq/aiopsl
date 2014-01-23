@@ -34,7 +34,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_HM FSL_AIOP_Header_Modification IP Header Manipulations
+@Group	FSL_HM IP Header Modification
 
 @Description	Header Modification API
 
