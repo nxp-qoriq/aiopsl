@@ -156,6 +156,94 @@ void aiop_atomic_decr16(int16_t *var, int16_t value);
 *//***************************************************************************/
 void aiop_atomic_decr32(int32_t *var, int32_t value);
 
+/* @Todo - remove following definition is obsolete and should not be used */
+typedef fsl_handle_t spinlock_t;
+
+/**************************************************************************//**
+ @Function      spin_lock_create
+
+ @Description   Creates a spinlock.
+
+ @Return        A Spinlock handle is returned on success; NULL otherwise.
+ 
+ @Todo - remove this function since its is obsolete and should not be used  
+*//***************************************************************************/
+spinlock_t spin_lock_create(void);
+
+/**************************************************************************//**
+ @Function      spin_lock_init
+
+ @Description   Initialize a spinlock.
+
+ @Param[in]     lock - A handle to a spinlock.
+ 
+ @Todo - remove this function since its is obsolete and should not be used 
+*//***************************************************************************/
+void spin_lock_init(spinlock_t lock);
+
+/**************************************************************************//**
+ @Function      spin_lock_free
+
+ @Description   Frees the memory allocated for the spinlock creation.
+
+ @Param[in]     lock - A handle to a spinlock.
+ 
+ @Todo - remove this function since its is obsolete and should not be used 
+*//***************************************************************************/
+void spin_lock_free(spinlock_t lock);
+
+/**************************************************************************//**
+ @Function      spin_lock
+
+ @Description   Locks a spinlock.
+
+ @Param[in]     lock - A handle to a spinlock.
+ 
+ @Todo - remove this function since its is obsolete and should not be used 
+*//***************************************************************************/
+void spin_lock(spinlock_t lock);
+
+/**************************************************************************//**
+ @Function      spin_unlock
+
+ @Description   Unlocks a spinlock.
+
+ @Param[in]     lock - A handle to a spinlock.
+ 
+ @Todo - remove this function since its is obsolete and should not be used 
+*//***************************************************************************/
+void spin_unlock(spinlock_t lock);
+
+/**************************************************************************//**
+ @Function      spin_lock_irqsave
+
+ @Description   Locks a spinlock (interrupt safe).
+
+ @Param[in]     lock - A handle to a spinlock.
+
+ @Return        A value that represents the interrupts state before the
+                operation, and should be passed to the matching
+                spin_unlock_irqrestore() call.
+                
+@Todo - remove this function since its is obsolete and should not be used 
+*//***************************************************************************/
+uint32_t spin_lock_irqsave(spinlock_t lock);
+
+/**************************************************************************//**
+ @Function      spin_unlock_irqrestore
+
+ @Description   Unlocks a spinlock (interrupt safe).
+
+ @Param[in]     lock  - A handle to a spinlock.
+ @Param[in]     irqFlags   - A value that represents the interrupts state to
+                              restore, as returned by the matching call for
+                              spin_lock_irqsave().
+                            
+@Todo - remove this function since its is obsolete and should not be used 
+*//***************************************************************************/
+void spin_unlock_irqrestore(spinlock_t lock, uint32_t irq_flags);
+
+
 
 /** @} end of group Spinlock_Functions */
 
