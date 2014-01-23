@@ -68,8 +68,12 @@ struct ipr_params {
 	uint32_t  max_open_frames_ipv6;
 	uint16_t  max_reass_frm_size;	/** maximum reassembled frame size */
 	uint16_t  min_frag_size;	/** minimum fragment size allowed */
-	uint16_t  timeout_value_ipv4;/** reass timeout value for ipv4 */
-	uint16_t  timeout_value_ipv6;/** reass timeout value for ipv6 */
+	/** reass timeout value for ipv4.
+	 * The value given here is in units of 10 ms */
+	uint16_t  timeout_value_ipv4;
+	/** reass timeout value for ipv6.
+	 * The value given here is in units of 10 ms */
+	uint16_t  timeout_value_ipv6;
 		/** function to call upon Time Out occurrence for ipv4 */
 	ipr_timeout_cb_t *ipv4_timeout_cb;
 	/** function to call upon Time Out occurrence for ipv6 */
@@ -283,7 +287,7 @@ struct extended_stats_cntrs {
 
 
 /**************************************************************************//**
-@Group		FSL_IPRRessReturnStatus IPR functions return status
+@Group		FSL_IPRReassReturnStatus IPR functions return status
 
 @{
 *//***************************************************************************/
@@ -301,7 +305,7 @@ struct extended_stats_cntrs {
     to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
 
-/* @} end of group FSL_IPRRessReturnStatus */
+/* @} end of group FSL_IPRReassReturnStatus */
 
 /**************************************************************************//**
 @Group		FSL_IPRTOCallbackFlags IPR Time Out Callback flags
@@ -387,7 +391,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
 @Param[in]	ipr_instance - The IPR instance handle.
 
 @Return		Status -\n
-		\link FSL_IPRRessReturnStatus IP Reassembly Return status
+		\link FSL_IPRReassReturnStatus IP Reassembly Return status
 		\endlink \n
 		\ref FSL_CTLU_STATUS_RULE_CREATE \n
 		\ref FSL_CTLU_STATUS_RULE_DELETE \n
