@@ -46,7 +46,8 @@ __HOT_CODE void receive_cb (void)
 	uint8_t appidx;
 	struct parse_result *pr;
 
-	dpni_drv = (struct dpni_drv *)PRC_GET_PARAMETER();
+	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
+						* to the send NI structure   */
 	fd_err = (uint8_t *)(HWC_FD_ADDRESS + FD_ERR_OFFSET);
 	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;

@@ -10,7 +10,14 @@
 
 
 /**************************************************************************//**
-@Group		FSL_IPF FSL_IPF
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_IPF IPF
 
 @Description	Freescale AIOP IP Fragmentation
 
@@ -165,6 +172,7 @@ void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr);
 
 /** @} */ /* end of AIOP_IPF_Functions */
 /** @} */ /* end of FSL_IPF */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_IPF_H */

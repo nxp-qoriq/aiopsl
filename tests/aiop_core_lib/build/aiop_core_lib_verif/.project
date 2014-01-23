@@ -243,6 +243,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/kernel</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -393,6 +398,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/kernel/os.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/os.c</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf/ip</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -496,11 +506,6 @@
 			<name>sources/drivers/dplib/arch/accel/virtual_pools.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/virtual_pools.c</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/arch/ppc/spinlock.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/ppc/spinlock.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/ip/ip.c</name>

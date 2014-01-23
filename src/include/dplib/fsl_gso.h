@@ -10,9 +10,16 @@
 
 
 /**************************************************************************//**
-@Group		FSL_AIOP_GSO FSL AIOP GSO
+ @Group		NETF NETF (Network Libraries)
 
-@Description	FSL AIOP GSO
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_AIOP_GSO GSO
+
+@Description	FSL_AIOP_GSO
 
 @{
 *//***************************************************************************/
@@ -81,7 +88,7 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 
 /**************************************************************************//**
-@Group		GSO_Functions TCP GSO Functions
+@Group		GSO_Functions GSO Functions
 
 @Description	GSO Functions
 
@@ -164,6 +171,7 @@ void tcp_gso_context_init(
 
 /** @} */ /* end of GSO_Functions */
 /** @} */ /* end of FSL_AIOP_GSO */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_GSO_H */

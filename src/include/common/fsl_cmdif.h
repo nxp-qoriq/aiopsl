@@ -3,16 +3,17 @@
 
  @File          fsl_cmdif.h
 
- @Description   TODO
+ @Description   Contains the client and server API defintion of the command interface APIs
  *//***************************************************************************/
 
 #ifndef __FSL_CMDIF_H
 #define __FSL_CMDIF_H
 
 /**************************************************************************//**
- @Group         cmdif_g  Command Interface API
+ @Group         cmdif_g  CMDIF (Command Interface)
 
- @Description   TODO
+ @Description   Command Interface API is responsible for the communicatioin 
+                over the GPP, AIOP and MC boundaries.
 
  @{
  *//***************************************************************************/
@@ -48,13 +49,12 @@ struct cmdif_desc {
 	 * user must zero it if not needed.
 	 */
 };
-
 enum cmdif_module {
 	CMDIF_MOD_DPRC,
 	CMDIF_MOD_DPNI,
 	CMDIF_MOD_DPIO,
 	CMDIF_MOD_DPSP,
-	CMDIF_MOD_DPSW,
+	CMDIF_MOD_DPSW
 };
 
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
@@ -63,7 +63,7 @@ enum cmdif_module {
 /**************************************************************************//**
  @Group         cmdif_server_g  Command Interface - Server API
 
- @Description   TODO
+ @Description   Thoe are the APIs available at the service provider side
 
  @{
  *//***************************************************************************/
@@ -116,7 +116,7 @@ int cmdif_close_dev(void *dev);
 /**************************************************************************//**
  @Group         cmdif_client_g  Command Interface - Client API
 
- @Description   TODO
+ @Description   Command Interfaces - Client Side
 
  @{
  *//***************************************************************************/
