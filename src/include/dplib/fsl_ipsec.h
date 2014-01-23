@@ -18,7 +18,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_IPSEC FSL_AIOP_IPSEC IPSEC
+@Group	FSL_IPSEC IPSEC
 
 @Description	Freescale AIOP IPsec API
 
