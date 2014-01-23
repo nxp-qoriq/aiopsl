@@ -4,6 +4,7 @@
 #include "fsl_dpni.h"
 #include "dplib/dpni_drv.h"
 #include "dpni/drv.h"
+#include "fsl_fdma.h"
 
 
 int app_init(void);
@@ -13,6 +14,7 @@ void app_free(void);
 static void app_process_packet (dpni_drv_app_arg_t arg)
 {
 	dpni_drv_send((uint16_t)arg);
+	fdma_terminate_task();
 }
 
 
@@ -25,7 +27,7 @@ int app_init(void)
     if(always_zero)
     	receive_cb();
 
-    fsl_os_print("AIOP test: app_process_packet \n");
+    //fsl_os_print("AIOP test: app_process_packet \n");
 
     err = dpni_drv_register_rx_cb(0/*ni_id*/, 
                                   0/*flow_id*/, 
