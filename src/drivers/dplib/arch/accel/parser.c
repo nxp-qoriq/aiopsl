@@ -133,8 +133,8 @@ int32_t parse_result_generate_default(uint8_t flags)
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	/* 8 Byte aligned for stqw optimization */
 	struct input_message_params input_struct __attribute__((aligned(8)));
-		
-	__stqw(0,0,0,0,0,&input_struct);
+
+	__stqw(0, 0, 0, 0, 0, &input_struct);
 	input_struct.opaquein = 0;
 
 	/* If L4 checksum validation is required,
@@ -160,7 +160,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 	__stqw(PARSER_GEN_PARSE_RES_MTYPE, (uint32_t)HWC_PARSE_RES_ADDRESS, 0,
 						arg1, HWC_ACC_IN_ADDRESS, 0);
 	}
-	
+
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -173,8 +173,8 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	/* 8 Byte aligned for stqw optimization */
 	struct input_message_params input_struct __attribute__((aligned(8)));
-		
-	__stqw(0,0,0,0,0,&input_struct);
+
+	__stqw(0, 0, 0, 0, 0, &input_struct);
 	input_struct.opaquein = 0;
 
 	/* If L4 checksum validation is required,
@@ -201,7 +201,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	__stqw(PARSER_GEN_PARSE_RES_MTYPE, (uint32_t)HWC_PARSE_RES_ADDRESS, 0,
 						arg1, HWC_ACC_IN_ADDRESS, 0);
 	}
-	
+
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -216,26 +216,26 @@ int32_t parse_result_generate_checksum(
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	/* 8 Byte aligned for stqw optimization */
 	struct input_message_params input_struct __attribute__((aligned(8)));
-		
-	__stqw(0,0,0,0,0,&input_struct);
+
+	__stqw(0, 0, 0, 0, 0, &input_struct);
 	input_struct.gross_running_sum = pr->gross_running_sum;
 	input_struct.opaquein = 0;
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id |
 		((uint32_t)starting_hxs << 13) |
 		((uint32_t)starting_offset << 24);
-	
+
 	arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
 
-	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),arg2,0, arg1,
+	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE), arg2, 0, arg1,
 						HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
-	
-	*l3_checksum = *((uint16_t*)HWC_ACC_OUT_ADDRESS2);
-	*l4_checksum = *((uint16_t*)(HWC_ACC_OUT_ADDRESS2+2));
-	
+
+	*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+	*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
+
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
