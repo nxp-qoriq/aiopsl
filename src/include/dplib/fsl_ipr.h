@@ -178,7 +178,7 @@ struct extended_stats_cntrs {
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group		FSL_IPR FSL_AIOP_IPR IPR
+@Group		FSL_IPR IPR
 
 @Description	AIOP IP reassembly functions macros and definitions
 
