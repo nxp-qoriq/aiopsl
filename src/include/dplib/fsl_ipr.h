@@ -167,7 +167,14 @@ struct extended_stats_cntrs {
 };
 
 /**************************************************************************//**
-@Group		FSL_IPR FSL_AIOP_IPR
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_IPR FSL_AIOP_IPR IPR
 
 @Description	AIOP IP reassembly functions macros and definitions
 
@@ -495,5 +502,6 @@ uint32_t ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 
 /* @} end of group FSL_IPR_Functions */
 /* @} end of group FSL_IPR */
+/* @} end of group NETF */
 
 #endif /* __FSL_IPR_H */

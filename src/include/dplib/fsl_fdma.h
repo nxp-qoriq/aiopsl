@@ -17,7 +17,14 @@
 
 
 /**************************************************************************//**
- @Group		FSL_AIOP_FDMA
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		FSL_AIOP_FDMA FDMA
 
  @Description	FSL AIOP FDMA macros and functions
 
@@ -2918,6 +2925,7 @@ int32_t fdma_create_frame(
 
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_FDMA_H */

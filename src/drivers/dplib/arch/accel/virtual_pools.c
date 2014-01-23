@@ -6,7 +6,7 @@
 *//***************************************************************************/
 
 #include "virtual_pools.h"
-#include "fsl_spinlock.h"
+#include "common/spinlock.h"
 #include "dplib/fsl_cdma.h"
 
 //struct virtual_pool_desc virtual_pools[MAX_VIRTUAL_POOLS_NUM];
