@@ -378,11 +378,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/include/fsl_spinlock.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/fsl_spinlock.h</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers/dplib/include/general.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.c</locationURI>
