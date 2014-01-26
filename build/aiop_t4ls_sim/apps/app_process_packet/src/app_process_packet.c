@@ -5,7 +5,9 @@
 #include "dplib/dpni_drv.h"
 #include "dpni/drv.h"
 #include "fsl_fdma.h"
-
+#include "general.h"
+#include "fsl_ip.h"
+#include "fsl_parser.h"
 
 int app_init(void);
 void app_free(void);
@@ -13,6 +15,15 @@ void app_free(void);
 
 static void app_process_packet (dpni_drv_app_arg_t arg)
 {
+	// Change the first 4 bytes of the frame
+	*((uint32_t *) PRC_GET_SEGMENT_ADDRESS()) = 0xdeadbeef;
+	fdma_modify_default_segment_data(0,4);
+	/*
+	ret = ip_set_nw_src(src_addr);
+	if (!ret)
+			fsl_os_print("AIOP test: Error while replacing header src address\n");
+
+	 */
 	dpni_drv_send((uint16_t)arg);
 	fdma_terminate_task();
 }
