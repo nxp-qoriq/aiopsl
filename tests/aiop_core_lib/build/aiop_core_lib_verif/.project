@@ -173,6 +173,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ipf.h</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/aiop_verification_ipr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ipr.c</locationURI>
+		</link>
+		<link>
+			<name>sources/Verification/aiop_verification_ipr.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ipr.h</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/aiop_verification_parser.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_parser.c</locationURI>
@@ -223,6 +233,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/include/common</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/include/dplib</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -243,9 +258,19 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/kernel</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/include/common/spinlock.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/spinlock.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/dplib/dpni_drv.h</name>
@@ -363,11 +388,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/include/fsl_spinlock.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/fsl_spinlock.h</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers/dplib/include/general.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.c</locationURI>
@@ -391,6 +411,11 @@
 			<name>sources/drivers/dplib/include/virtual_pools.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/os.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/os.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/ip</name>
@@ -496,11 +521,6 @@
 			<name>sources/drivers/dplib/arch/accel/virtual_pools.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/virtual_pools.c</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/arch/ppc/spinlock.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/ppc/spinlock.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/ip/ip.c</name>

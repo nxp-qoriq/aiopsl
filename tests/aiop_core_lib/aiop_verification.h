@@ -23,6 +23,7 @@
 #include "aiop_verification_gso.h"
 #include "aiop_verification_gro.h"
 #include "aiop_verification_ipf.h"
+#include "aiop_verification_ipr.h"
 
 	/**< ACCEL_ID cmd mask */
 #define ACCEL_ID_CMD_MASK		0xFFFF0000

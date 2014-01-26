@@ -13,7 +13,21 @@
 
 
 /**************************************************************************//**
-@Group	FSL_IPV4_CKSUM FSL_AIOP_IPv4_Checksum
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_IP IP
+
+ @Description	AIOP IP related header modifications
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_IPV4_CKSUM IPV4 Checksum
 
 @Description	Freescale AIOP Internet Protocol Version 4 Checksum API
 
@@ -87,6 +101,8 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header);
 
 /** @} */ /* end of FSL_IPV4_CKSUM_Functions */
 /** @} */ /* end of FSL_IPV4_CKSUM */
+/** @} */ /* end of IP */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_IPV4_CHCEKSUM_H */

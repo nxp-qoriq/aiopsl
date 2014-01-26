@@ -16,7 +16,7 @@
 /*#include "dplib/fsl_aiop_parser.h"*/
 
 /**************************************************************************//**
- @Group		AIOP_General_Definitions
+ @Group		AIOP_General_Definitions AIOP SL General Definitions
 
  @Description	AIOP General Definitions
 

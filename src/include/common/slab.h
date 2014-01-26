@@ -13,15 +13,16 @@
 
 
 /**************************************************************************//**
- @Group         fsl_lib_g   Utility Library Application Programming Interface
-
- @Description   External routines.
-
+ @ingroup         fsl_lib_g   Utility Library 
+ @{
+ *//***************************************************************************/
+/**************************************************************************//**
+ @ingroup         fsl_mm_g  
  @{
  *//***************************************************************************/
 
 /**************************************************************************//**
- @Group         slab_g   Slab Memory Manager
+ @Group         slab_g   SLAB
 
  @Description   Slab Memory Manager module functions, definitions and enums.
 
@@ -175,6 +176,7 @@ void slab_check_leaks(struct slab *slab);
 #endif /* not DEBUG_MEM_LEAKS */
 
 /** @} *//* end of slab_g group */
+/** @} *//* end of fsl_mm_g group */
 /** @} *//* end of fsl_lib_g group */
 
 #endif /* __FSL_SLAB_H */

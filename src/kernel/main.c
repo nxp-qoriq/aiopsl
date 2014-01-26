@@ -11,6 +11,7 @@ extern int run_apps(void);
 
 extern int sys_lo_process (void *lo);
 
+#define CTSCSR_ENABLE 0x80000000
 
 /*****************************************************************************/
 int main(int argc, char *argv[])
@@ -44,6 +45,9 @@ UNUSED(argc);UNUSED(argv);
         ((err = global_post_init()) != 0))
         return err;
     sys_barrier();
+    
+    /* CTSEN = 1, finished boot */
+    booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
 
     if (is_master_core)
     	fsl_os_print("Running applications\n");

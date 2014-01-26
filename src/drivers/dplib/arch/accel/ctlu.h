@@ -464,7 +464,7 @@ struct ctlu_acc_context {
 @Description	CTLU KCR Builder FEC Mask
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct	ctlu_hw_fec_mask{
+struct	ctlu_hw_fec_mask {
 	/** Number of mask bytes & Mask offset 0.
 	First Nibble: Number of mask bytes, determines the size of the FEC mask
 	extension.
