@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File		fsl_ipv4_checksum.h
 
-@Description	This file contains the AIOP SW Internet Protocol Version 4 
+@Description	This file contains the AIOP SW Internet Protocol Version 4
 		Checksum API.
 
 		Copyright 2013 Freescale Semiconductor, Inc.
@@ -27,7 +27,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_IPV4_CKSUM FSL_AIOP_IPv4_Checksum IPV4 Checksum
+@Group	FSL_IPV4_CKSUM IPV4 Checksum
 
 @Description	Freescale AIOP Internet Protocol Version 4 Checksum API
 

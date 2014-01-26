@@ -54,6 +54,11 @@ void aiop_verification_fm()
 			str_size = aiop_verification_gso((uint32_t)data_addr);
 			break;
 		}
+		case IPR_MODULE_STATUS_ID:
+		{
+			str_size = aiop_verification_ipr((uint32_t)data_addr);
+			break;
+		}
 		case IPF_MODULE_STATUS_ID:
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);

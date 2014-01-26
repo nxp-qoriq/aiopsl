@@ -34,7 +34,7 @@ struct ipf_mtu_params {
 	 * parameter is ignored. */
 	uint16_t mtu;
 	/** MTU payload length */
-	uint16_t mtu_payload_length; 
+	uint16_t mtu_payload_length;
 	/** Split size */
 	uint16_t split_size;
 	/** Previous Fragment Offset */
@@ -42,19 +42,10 @@ struct ipf_mtu_params {
 };
 
 /**************************************************************************//**
-@Description	IPF parameters used by IPF functions for split by SF.
-*//***************************************************************************/
-//struct ipf_sf_params {
-	/** Fragment Header Offset array (for SF mode) */
-//	uint16_t frag_header_offset[4];
-//};
-
-/**************************************************************************//**
 @Description	IPF union parameters used by IPF functions.
 *//***************************************************************************/
 union ipf_mtu_sf_params {
 	struct ipf_mtu_params mtu_params;
-//	struct ipf_sf_params sf_params;
 	uint16_t frag_header_offset[4];
 };
 
@@ -82,7 +73,7 @@ struct ipf_context {
 	/** Original segment address from PRC */
 	uint16_t prc_seg_address;
 	/** Original segment length from PRC */
-	uint16_t prc_seg_length;	
+	uint16_t prc_seg_length;
 	/** Remaining payload length */
 	uint16_t remaining_payload_length;
 	/** Original Parser Profile ID from Task default */
@@ -137,7 +128,7 @@ struct ipv6_fragment_header {
 /** Size of IPv6 Fragment header */
 #define IPV6_FRAGMENT_HEADER_LENGTH  8
 /** Maximum number of restored fragments */
-//#define MAX_NUM_OF_FRAGMENTS 64
+/*#define MAX_NUM_OF_FRAGMENTS 64 */
 /** Mask for IPv6 Fragment Header M flag */
 #define IPV6_HDR_M_FLAG_MASK 0x0001
 

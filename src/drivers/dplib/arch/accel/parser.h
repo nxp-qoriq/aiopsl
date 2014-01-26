@@ -48,7 +48,7 @@
 @Group	PARSER_DEFINES Parser Defines
 @{
 *//***************************************************************************/
-#define PARSER_GRSV_MASK	0x04000000	
+#define PARSER_GRSV_MASK	0x04000000
 
 /** @} */ /* end of PARSER_DEFINES */
 
@@ -66,7 +66,7 @@
 @Description	Parser Profile Create or Update Params
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct parse_profile_create_params{
+struct parse_profile_create_params {
 	/** Reserved */
 	uint8_t reserved1[4];
 
@@ -85,7 +85,7 @@ struct parse_profile_create_params{
 @Description	Parser Profile Delete/Query Params
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct parse_profile_delete_query_params{
+struct parse_profile_delete_query_params {
 	/** Reserved */
 	uint8_t reserved1;
 
@@ -104,10 +104,10 @@ struct parse_profile_delete_query_params{
 #pragma pack(pop)
 
 /**************************************************************************//**
-@Description	Input message Structure 
+@Description	Input message Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct input_message_params{
+struct input_message_params {
 	uint16_t fha;
 	uint16_t frs;
 	uint16_t pra;

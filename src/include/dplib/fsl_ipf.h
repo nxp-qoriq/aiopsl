@@ -25,7 +25,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_IPF_MACROS IP Fragmentation Macros
+@Group	IPF_MACROS IPF Macros
 @{
 *//***************************************************************************/
 /**************************************************************************//**
@@ -65,16 +65,16 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 /** Fragmentation process didn't complete.
  * Fragment was generated and the user SHOULD call generate_frag()
  * again to generate another fragment*/
-#define	IPF_GEN_FRAG_STATUS_IN_PROCESS 	(IPF_MODULE_STATUS_ID | 0x1)
+#define	IPF_GEN_FRAG_STATUS_IN_PROCESS	(IPF_MODULE_STATUS_ID | 0x1)
 /** Fragmentation not done due to Length > MTU but DF=1 */
-#define	IPF_GEN_FRAG_STATUS_DF_SET 	(IPF_MODULE_STATUS_ID | 0x2)
-/** Restoration of original fragments can not be performed since SFV=0 */ 
-#define	IPF_GEN_FRAG_STATUS_SFV_CLEAR 	(IPF_MODULE_STATUS_ID | 0x3)
+#define	IPF_GEN_FRAG_STATUS_DF_SET	(IPF_MODULE_STATUS_ID | 0x2)
+/** Restoration of original fragments can not be performed since SFV=0 */
+#define	IPF_GEN_FRAG_STATUS_SFV_CLEAR	(IPF_MODULE_STATUS_ID | 0x3)
 
 /** @} */ /* end of IPF_GENERATE_FRAG_STATUS */
 
 /**************************************************************************//**
-@Group	FSL_IPF_SFV_MACROS IP Fragmentation SFV (Start Fragment Valid)bit macros
+@Group	FSL_IPF_SFV_MACROS IPF SFV (Start Fragment Valid)bit macros
 @{
 *//***************************************************************************/
 /**SFV bit clear.
@@ -91,13 +91,13 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 
 /** @} */ /* end of FSL_IPF_SFV_MACROS */
 
-/** @} */ /* end of FSL_IPF_MACROS */
+/** @} */ /* end of IPF_MACROS */
 
 
 /**************************************************************************//**
-@Group		AIOP_IPF_Functions
+@Group		IPF_Functions IPF Functions
 
-@Description	AIOP IP Fragmentation Functions
+@Description	AIOP IPF Functions
 
 @{
 *//***************************************************************************/
@@ -170,7 +170,7 @@ int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 *//***************************************************************************/
 void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr);
 
-/** @} */ /* end of AIOP_IPF_Functions */
+/** @} */ /* end of IPF_Functions */
 /** @} */ /* end of FSL_IPF */
 /** @} */ /* end of NETF */
 
