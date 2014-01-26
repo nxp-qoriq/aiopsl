@@ -12,8 +12,9 @@ fdma.c: add fdma_create_frame() function.
 fdma.c: fix CR:ENGR290881
 fsl_gro.h: finalize API.
 fsl_gso.h: finalize API.
-
-
+dpni_drv.h: Introduce new DPNI driver code.
+drv.h: Introduce new DPNI driver code.
+dpni_drv_rxtx.c: Introduce new DPNI driver code.  
 
 
 Doc & Tool compatibility:
