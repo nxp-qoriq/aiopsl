@@ -83,24 +83,33 @@
 @Group	CTLU_MTYPE CTLU Message Types
 @{
 *//***************************************************************************/
-	/** Table create message type */
+
+/** Table create message type */
 #define CTLU_TABLE_CREATE_MTYPE				0x004C
 	/** Table Parameters replace message type */
 #define CTLU_TABLE_PARAMETERS_REPLACE_MTYPE		0x0046
 	/** Table query without reference counting message type */
 #define CTLU_TABLE_QUERY_MTYPE				0x0043
-	/** Table query with reference counting message type */
-#define CTLU_TABLE_QUERY_REFERENCE_INC_MTYPE		0x0047
 	/** Table delete message type */
 #define CTLU_TABLE_DELETE_MTYPE				0x0042
+
+
 	/** Table rule create */
-#define CTLU_RULE_CREATE_MTYPE				0x006C
+#define CTLU_RULE_CREATE_MTYPE				0x007C
+	/** Table rule create or replace with reference counter decrement (for
+	 * the old entry) */
+#define CTLU_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE	0x006D
 	/** Table rule create or replace */
-#define CTLU_RULE_CREATE_OR_REPLACE_MTYPE		0x006D
+#define CTLU_RULE_CREATE_OR_REPLACE_MTYPE		0x007D
+	/** Table rule replace with reference counter decrement (for the old
+	 * entry) */
+#define CTLU_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE		0x0066
 	/** Table rule replace */
-#define CTLU_RULE_REPLACE_MTYPE				0x0066
+#define CTLU_RULE_REPLACE_MTYPE				0x0076
+	/** Table rule delete with reference counter decrement. */
+#define CTLU_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE		0x0062
 	/** Table rule delete */
-#define CTLU_RULE_DELETE_MTYPE				0x0062
+#define CTLU_RULE_DELETE_MTYPE				0x0072
 
 	/** Table rule query
 	With timestamp and reference counter update */
@@ -115,54 +124,17 @@
 	Without timestamp update, without reference counter update */
 #define CTLU_RULE_QUERY_MTYPE				0x0077
 
-	/** Table lookup with keyID
-	With timestamp and reference counter update */
-#define CTLU_LOOKUP_KEYID_TMSTMP_RPTR_MTYPE		0x0060
-	/** Table lookup with keyID
-	With timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_TMSTMP_MTYPE			0x0064
-	/** Table lookup with keyID
-	Without timestamp update, with reference counter update */
-#define CTLU_LOOKUP_KEYID_RPTR_MTYPE			0x0070
-	/** Table lookup with keyID
-	Without timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_MTYPE				0x0074
-
 	/** Table lookup with keyID and explicit parse result.
 	With timestamp and reference counter update */
 #define CTLU_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE	0x0160
-	/** Table lookup with keyID and explicit parse result.
-	With timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_EPRS_TMSTMP_MTYPE		0x0164
-	/** Table lookup with keyID and explicit parse result.
-	Without timestamp update, with reference counter update */
-#define CTLU_LOOKUP_KEYID_EPRS_RPTR_MTYPE		0x0170
-	/** Table lookup with keyID and explicit parse result.
-	Without timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_EPRS_MTYPE			0x0174
-
 	/** Table lookup with explicit key
 	With timestamp and reference counter update. Single search only. */
 #define CTLU_LOOKUP_KEY_TMSTMP_RPTR_MTYPE		0x0069
-	/** Table lookup with explicit key
-	With timestamp update, without reference counter update. Single search
-	only. */
-#define CTLU_LOOKUP_KEY_TMSTMP_MTYPE			0x006D
-	/** Table lookup with explicit key
-	Without timestamp update, with reference counter update. Single search
-	only. */
-#define CTLU_LOOKUP_KEY_RPTR_MTYPE			0x0079
-	/** Table lookup with explicit key
-	Without timestamp update, without reference counter update. Single
-	search only. */
-#define CTLU_LOOKUP_KEY_MTYPE				0x007D
 
 	/** Key composition rule create or replace */
 #define CTLU_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE	0x003D
 	/** Key composition rule query */
 #define CTLU_KEY_COMPOSITION_RULE_QUERY_MTYPE			0x0037
-	/** Key generate */
-#define CTLU_KEY_GENERATE_MTYPE					0x0034
 	/** Key generate with explicit parse result */
 #define CTLU_KEY_GENERATE_EPRS_MTYPE				0x0035
 	/** Generate hash (Parses the frame) */
@@ -179,7 +151,7 @@
 @{
 *//***************************************************************************/
 	/** Table create input message reserved space */
-#define CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE	120
+#define CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE	140
 
 	/** BDI mask in table create ICID field */
 #define CTLU_TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK	0x8000
@@ -347,9 +319,6 @@ struct ctlu_table_create_input_message {
 
 	/** Reserved */
 	uint8_t  reserved[CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE];
-
-	/** Miss Result */
-	struct ctlu_table_rule_result miss_lookup_fcv;
 
 };
 #pragma pack(pop)

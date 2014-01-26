@@ -1052,7 +1052,10 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
-@Cautions	In this function the task yields.
+@Cautions	This function should only be called if the table was defined
+		with a miss entry (i.e. CTLU_TBL_ATTRIBUTE_MR_MISS was set in
+		table attributes).
+		In this function the task yields.
 *//***************************************************************************/
 int32_t ctlu_table_update_miss_result(uint16_t table_id,
 				      struct ctlu_table_rule_result
@@ -1158,8 +1161,9 @@ int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
 *//***************************************************************************/
 int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 					  struct ctlu_table_rule *rule,
-					  uint8_t key_size);
-
+					  uint8_t key_size,
+					  uint32_t flags);
+//TODO add flags documentation
 
 /**************************************************************************//**
 @Function	aiop_ctlu_table_replace_rule
@@ -1183,8 +1187,9 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 *//***************************************************************************/
 int32_t ctlu_table_rule_replace(uint16_t table_id,
 				struct ctlu_table_rule *rule,
-				uint8_t key_size);
-
+				uint8_t key_size,
+				uint32_t flags);
+//TODO add flags documentation
 
 /**************************************************************************//**
 @Function	table_delete_rule
@@ -1202,8 +1207,8 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 		In this function the task yields.
 *//***************************************************************************/
 int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
-			       uint8_t key_size);
-
+			       uint8_t key_size, uint32_t flags);
+//TODO add flags documentation
 
 /* ######################################################################### */
 /* ############################# Table Lookups ############################# */
