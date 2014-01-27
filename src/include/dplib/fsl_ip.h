@@ -34,7 +34,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_HM IP Header Modification
+@Group	FSL_HM Header Modification
 
 @Description	Header Modification API
 
