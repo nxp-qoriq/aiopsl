@@ -12,8 +12,17 @@ fdma.c: add fdma_create_frame() function.
 fdma.c: fix CR:ENGR290881
 fsl_gro.h: finalize API.
 fsl_gso.h: finalize API.
-
-
+fsl_ipf.h: finalize API.
+parser.h: Add internal function parse_result_generate_checksum().
+parser.c: Fix CR:ENGR00295530 
+id_pool.h: Fix CR:ENGR00292371
+id_pool.h: Fix CR:ENGR00292125
+id_pool.h: Fix CR:ENGR00291705 
+system.c: Fix CR:ENGR290657
+system.c: Fix CR:ENGR291260 
+dpni_drv.h: Introduce new DPNI driver code.
+drv.h: Introduce new DPNI driver code.
+dpni_drv_rxtx.c: Introduce new DPNI driver code.  
 
 
 Doc & Tool compatibility:
