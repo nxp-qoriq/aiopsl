@@ -28,6 +28,15 @@
     { PLTFRM_MEM_RGN_MC_PORTALS, { 0x80c000000LL, (64*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
 }
 
+// Number of tasks as they defined by CTSCSR register.
+#define CTSCSR_ENABLE 0x80000000
+#define CTSCSR_1_TASKS 0  
+#define CTSCSR_2_TASKS (1 << 24)
+#define CTSCSR_4_TASKS (2 << 24)
+#define CTSCSR_8_TASKS (3 << 24)
+#define CTSCSR_16_TASKS (4 << 24)
+#define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS | CTSCSR_16_TASKS)
+
 
 enum platform_mem_ctrl {
     PLTFRM_MEM_NONE = 0,
@@ -356,6 +365,7 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
     int     err;
+    uint32_t CTSCSR_value = 0;;
 
     ASSERT_COND(pltfrm);
 
@@ -372,9 +382,14 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* Enable the BTB - branches predictor */
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
-
-    /* special AIOP registers */
-    booke_set_CTSCSR0(0x84000000);
+    
+    /* special AIOP registers 
+     Setting number of tasks to 8 in order to have a bugger stack*/
+#if 0
+    // boot sequence is not finished here removed CTSCSR_ENABLE
+#endif
+    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_8_TASKS;
+    booke_set_CTSCSR0(CTSCSR_value);
 
 #if 0 /* TODO - complete! */
     /*------------------------------------------------------*/

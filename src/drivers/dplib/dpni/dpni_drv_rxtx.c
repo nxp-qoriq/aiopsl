@@ -38,7 +38,7 @@ static void osm_task_init(void)
 		/**<	Exclusive (default) Mode in level 4 of hierarchy */
 }
 
-__HOT_CODE void receive_cb (void)
+__HOT_CODE void receive_cb(void)
 {
 	struct dpni_drv *dpni_drv;
 	uint8_t *fd_err;
@@ -67,12 +67,12 @@ __HOT_CODE void receive_cb (void)
 		int32_t parse_status = parse_result_generate_default \
 				(PARSER_NO_FLAGS);
 	/* TODO in future releases it may be enough to check only
-	 * parse_status */	
+	 * parse_status */
 		if (parse_status || PARSER_IS_PARSING_ERROR_DEFAULT()) {
 			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
 				/* if discard with terminate return with error \
 				 * then terminator */
-				if(fdma_discard_default_frame\
+				if (fdma_discard_default_frame\
 						(FDMA_DIS_WF_TC_BIT))
 					fdma_terminate_task();
 			}
@@ -93,9 +93,9 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 					* to the send NI structure   */
 
 	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
-		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu) ) {
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu)) {
 		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DISCARD)
-			return(DPNI_DRV_MTU_ERR);
+			return DPNI_DRV_MTU_ERR;
 		else {
 			/* TODO - mark in the FLC some error indication */
 			uint32_t frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
@@ -111,5 +111,5 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
-	return (err);
+	return err;
 }

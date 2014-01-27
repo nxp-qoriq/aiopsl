@@ -43,6 +43,6 @@ struct dpni_drv {
 	struct dpni 		dpni;
 };
 
-void receive_cb (void);
+void receive_cb(void);
 
 #endif /* __DRV_H */

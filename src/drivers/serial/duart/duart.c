@@ -174,9 +174,10 @@ static void intr_handler(fsl_handle_t duart)
 
 /************************************************************************/
 static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
-{
+{	
     t_duart_driver_param  *p_driver_param = p_uart->p_driver_param;
 
+    UNUSED(params);
     ASSERT_COND(p_driver_param);
 
     if((p_driver_param->baud_rate < BAUD_RATE_MIN_VAL) ||
