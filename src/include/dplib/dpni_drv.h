@@ -9,6 +9,7 @@
 #define __DPNI_DRV_H
 
 #include "common/types.h"
+#include "dplib/fsl_dpni.h"
 
 
 /**************************************************************************//**
