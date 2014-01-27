@@ -5,6 +5,8 @@
 #include "dpl/libfdt.h"
 
 
+#if 0
+// TODO removed due to not used
 
 int fdt_check_header(const void *fdt)
 {
@@ -226,4 +228,4 @@ struct devices_list *fdt_devices(const void *fdt, char *path)
     return head;
 }
 
-
+#endif // removed due to not used

@@ -64,6 +64,10 @@ static void make_fdt_header(struct fdt_header *fdt, struct version_info *vi, int
         fdt->size_dt_struct = dtsize;
 }
 #endif
+
+#if 0
+// TODO removed as it's not used
+
 static void inbuf_init(struct inbuf *inb, void *base, void *limit)
 {
     inb->base = base;
@@ -405,3 +409,5 @@ struct boot_info *dtc_from_blob(const unsigned int *dt_blob)
 //    fclose(f);
     return build_boot_info(reservelist, tree, boot_cpuid_phys);
 }
+
+#endif
