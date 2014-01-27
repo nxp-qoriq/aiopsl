@@ -220,19 +220,6 @@ struct extended_stats_cntrs {
 
 /* @} end of group FSL_IPRInsModeBits */
 
-/**************************************************************************//**
-@Group		FSL_IPRInitFlags IPR init flags
-
-@Description	IPR init flags.
-
-@{
-*//***************************************************************************/
-
-/** If set, the ins_mem_base_addr points to a DDR address.
- If reset, the ins_mem_base_addr points to a Shared RAM address. */
-#define IPR_INIT_EXT_MEM 0x01
-
-/* @} end of group FSL_IPRInitFlags */
 
 /**************************************************************************//**
 @Group		FSL_IPRStatsFlags IPR stats flags
@@ -404,7 +391,8 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.
-		In case the function returns with status: IPR_REASSEMBLY_NOT_COMPLETED,
+		In case the function returns with status:
+		IPR_REASSEMBLY_NOT_COMPLETED,
 		it is forbidden to modify the frame.
 		In this function, the task yields.
 
