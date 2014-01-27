@@ -10,6 +10,7 @@
 #include "inc/sys.h"
 
 #include "drv.h"
+#include "system.h"
 
 
 #define __ERR_MODULE__  MODULE_DPNI
@@ -179,10 +180,53 @@ int dpni_get_num_of_ni (void)
 }
 
 
+static int aiop_replace_parser(uint8_t prpid)
+{
+    struct parse_profile_record verif_parse_profile1;
+    int status = 0;
+    
+    /* Init basic parse profile */
+    verif_parse_profile1.eth_hxs_config = 0x0;
+    verif_parse_profile1.llc_snap_hxs_config = 0x0;
+    verif_parse_profile1.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
+    verif_parse_profile1.vlan_hxs_config.configured_tpid_1 = 0x0;
+    verif_parse_profile1.vlan_hxs_config.configured_tpid_2 = 0x0;
+    /* No MTU checking */
+    verif_parse_profile1.pppoe_ppp_hxs_config = 0x0;
+    verif_parse_profile1.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+    /* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
+    verif_parse_profile1.mpls_hxs_config.lie_dnp = PARSER_IP_STARTING_HXS;
+    verif_parse_profile1.arp_hxs_config = 0x0;
+    verif_parse_profile1.ip_hxs_config = 0x0;
+    verif_parse_profile1.ipv4_hxs_config = 0x0;
+    /* Routing header is ignored and the destination address from
+     * main header is used instead */
+    verif_parse_profile1.ipv6_hxs_config = 0x0;
+    verif_parse_profile1.gre_hxs_config = 0x0;
+    verif_parse_profile1.minenc_hxs_config = 0x0;
+    verif_parse_profile1.other_l3_shell_hxs_config= 0x0;
+    /* In short Packet, padding is removed from Checksum calculation */
+    verif_parse_profile1.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    /* In short Packet, padding is removed from Checksum calculation */
+    verif_parse_profile1.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    verif_parse_profile1.ipsec_hxs_config = 0x0;
+    verif_parse_profile1.sctp_hxs_config = 0x0;
+    verif_parse_profile1.dccp_hxs_config = 0x0;
+    verif_parse_profile1.other_l4_shell_hxs_config = 0x0;
+    verif_parse_profile1.gtp_hxs_config = 0x0;
+    verif_parse_profile1.esp_hxs_config = 0x0;
+    verif_parse_profile1.l5_shell_hxs_config = 0x0;
+    verif_parse_profile1.final_shell_hxs_config = 0x0;
+
+    status = parser_profile_replace(&verif_parse_profile1, prpid);
+    return status;
+}
+
 int dpni_drv_init(void)
 {
 	uintptr_t	wrks_addr;
 	int		    i;
+	int         error = 0;
 	
 	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
 	
@@ -194,9 +238,7 @@ int dpni_drv_init(void)
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
 	             SOC_PERIPH_OFF_AIOP_WRKS);
 
-	/* Write EPID-table parameters */
-	/* TODO change i to start from 0, this is temporal WA in order to be able 
-	 * to run with Viper which sets EPID 0; 
+	/* Write EPID-table parameters 
 	 * NOTE in this implementation EPID = NI  */
     for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
         struct dpni_drv * dpni_drv = nis + i;
@@ -227,8 +269,11 @@ int dpni_drv_init(void)
 		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
 #endif
 	}
-
-	return 0;
+    /* Set PRPID 0 
+     * TODO it must be prpid for every ni */
+    error = aiop_replace_parser(0);
+    
+	return error;
 }
 
 void dpni_drv_free(void)

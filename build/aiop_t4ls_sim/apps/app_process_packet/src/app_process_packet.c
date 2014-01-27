@@ -18,16 +18,19 @@ static void app_process_packet (dpni_drv_app_arg_t arg)
 	// Change the first 4 bytes of the frame
 	*((uint32_t *) PRC_GET_SEGMENT_ADDRESS()) = 0xdeadbeef;
 	fdma_modify_default_segment_data(0,4);
+#if 0
 	/*
 	ret = ip_set_nw_src(src_addr);
 	if (!ret)
 			fsl_os_print("AIOP test: Error while replacing header src address\n");
 
 	 */
+#endif
 	dpni_drv_send((uint16_t)arg);
 	fdma_terminate_task();
 }
 
+#if 0
 static void aiop_replace_parser()
 {
     struct parse_profile_record verif_parse_profile1;
@@ -69,9 +72,12 @@ static void aiop_replace_parser()
 
     parser_profile_replace(&verif_parse_profile1, prpid);
 }
+#endif
 
 static  void  app_receive_cb(void) {
-    aiop_replace_parser();
+#if 0
+    //aiop_replace_parser();
+#endif
     receive_cb();
 }
 
@@ -84,15 +90,13 @@ int app_init(void)
     if(always_zero)
         app_receive_cb();
 
-    //fsl_os_print("AIOP test: app_process_packet \n");
-
     err = dpni_drv_register_rx_cb(0/*ni_id*/, 
                                   0/*flow_id*/, 
                                   NULL/*dpio*/, 
                                   NULL /*dpsp*/, 
-                                  app_process_packet, 
+                                  app_process_packet, /* callback for flow_id*/
                                   0/*arg, nic number*/);
-
+    
     return err;
 }
 
