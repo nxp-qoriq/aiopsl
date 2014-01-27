@@ -7,7 +7,7 @@ MEMORY
 {
     frame:                  org = 0x00000000,   len = 0x000002C0 /* HW-Context+SW-Context+presentation */
     tls:                    org = 0x000002C0,   len = 0x00000040 /* TLS - Task Local Storage */
-    stack :                org = 0x00000300,   len = 0x000008000 /* Start location for Stack, intentionally make it bigger to accomodate big stack */    
+    stack :                org = 0x00000300,   len = 0x00000d00 /* Start location for Stack, defined for 8 tasks */    
     i_ram:                  org = 0x00fe0000,   len = 0x00002000 /* I-RAM  */
     shared_ram:             org = 0x01000000,   len = 0x00040000 /* Shared-RAM */
     dp_ddr:                 org = 0x58000000,   len = 0x08000000 /* SoC-DDR  */
