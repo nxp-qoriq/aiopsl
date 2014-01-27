@@ -15,17 +15,11 @@ void app_free(void);
 
 static void app_process_packet (dpni_drv_app_arg_t arg)
 {
-	// Change the first 4 bytes of the frame
-	*((uint32_t *) PRC_GET_SEGMENT_ADDRESS()) = 0xdeadbeef;
-	fdma_modify_default_segment_data(0,4);
-#if 0
-	/*
+	uint32_t src_addr = 0x10203040;// new ipv4 src_addr
+	int32_t ret = SUCCESS;
 	ret = ip_set_nw_src(src_addr);
-	if (!ret)
-			fsl_os_print("AIOP test: Error while replacing header src address\n");
-
-	 */
-#endif
+	if (ret != SUCCESS)
+		fsl_os_print("AIOP test: Error while replacing header src address\n");
 	dpni_drv_send((uint16_t)arg);
 	fdma_terminate_task();
 }
