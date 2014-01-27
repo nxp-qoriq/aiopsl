@@ -3,8 +3,8 @@
 #include "dpl/libfdt.h"
 
 
-
-
+#if 0
+// removed due to not used
 
 static int _fdt_nodename_eq(const void *fdt, int offset,
                 const char *s, int len)
@@ -543,5 +543,5 @@ int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
 }
 #endif
 
-
+#endif // removed due to not used
 

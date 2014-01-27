@@ -99,7 +99,7 @@ uint32_t fdt_next_tag(const void *fdt, int offset, int *nextoffset);
 const void *fdt_offset_ptr(const void *fdt, int offset, unsigned int checklen);
 static inline void *fdt_offset_ptr_w(void *fdt, int offset, int checklen)
 {
-	return (void *)(uintptr_t)fdt_offset_ptr(fdt, offset, checklen);
+	return (void *)(uintptr_t)fdt_offset_ptr(fdt, offset, (unsigned int)checklen);
 }
 
 uint32_t fdt_next_tag(const void *fdt, int offset, int *nextoffset);

@@ -3,7 +3,8 @@
 
 #include "dtc.h"
 
-
+#if 0
+// TODO removed because it's not used
 struct data data_grow_for(struct data d, int xlen)
 {
     struct data nd;
@@ -23,3 +24,5 @@ struct data data_grow_for(struct data d, int xlen)
 
     return nd;
 }
+
+#endif

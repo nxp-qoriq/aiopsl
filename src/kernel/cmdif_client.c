@@ -54,7 +54,7 @@ int cmdif_open(struct cmdif_desc *cidesc,
 {
 	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
 	struct mc_cmd_data cmd_data = { 0 };
-	uint16_t cmd_id, auth_id;
+	uint16_t auth_id;
 	int ret, i;
 
 	const struct cmdif_cmd_mapping_entry cmd_map[] =

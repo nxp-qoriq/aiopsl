@@ -183,7 +183,8 @@ int dpni_get_num_of_ni (void)
 static int aiop_replace_parser(uint8_t prpid)
 {
     struct parse_profile_record verif_parse_profile1;
-    int status = 0;
+    int i, status = 0;
+    uint8_t prpid_new = 0;
     
     /* Init basic parse profile */
     verif_parse_profile1.eth_hxs_config = 0x0;
@@ -217,6 +218,9 @@ static int aiop_replace_parser(uint8_t prpid)
     verif_parse_profile1.esp_hxs_config = 0x0;
     verif_parse_profile1.l5_shell_hxs_config = 0x0;
     verif_parse_profile1.final_shell_hxs_config = 0x0;
+    /* Assuming no soft examination parameters */
+    for(i=0; i<16; i++)
+        verif_parse_profile1.soft_examination_param_array[i] = 0x0;
 
     status = parser_profile_replace(&verif_parse_profile1, prpid);
     return status;

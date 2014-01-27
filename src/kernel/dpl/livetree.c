@@ -6,7 +6,7 @@
 
 #include "dpl/dtc.h"
 
-
+// removed due to not used
 struct boot_info *build_boot_info(struct reserve_info *reservelist,
                   struct node *tree, uint32_t boot_cpuid_phys)
 {
@@ -461,7 +461,7 @@ struct node *get_node_by_path(struct node *tree, const char *path)
 
     for_each_child(tree, child) {
 //        if (p && strneq(path, child->name, p-path))
-        if (p && !strncmp(path, child->name, p-path))
+        if (p && !strncmp(path, child->name, (size_t)(p-path)))
             return get_node_by_path(child, p+1);
  //       else if (!p && streq(path, child->name))
         else if (!p && !strcmp(path, child->name))
