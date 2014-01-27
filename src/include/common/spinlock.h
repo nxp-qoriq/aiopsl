@@ -166,7 +166,7 @@ typedef fsl_handle_t spinlock_t;
 
  @Return        A Spinlock handle is returned on success; NULL otherwise.
  
- @Todo - remove this function since its is obsolete and should not be used  
+ @Todo - This function is obsolete and should not be used  
 *//***************************************************************************/
 spinlock_t spin_lock_create(void);
 
@@ -177,7 +177,7 @@ spinlock_t spin_lock_create(void);
 
  @Param[in]     lock - A handle to a spinlock.
  
- @Todo - remove this function since its is obsolete and should not be used 
+ @Todo - This function is obsolete and should not be used 
 *//***************************************************************************/
 void spin_lock_init(spinlock_t lock);
 
@@ -188,7 +188,7 @@ void spin_lock_init(spinlock_t lock);
 
  @Param[in]     lock - A handle to a spinlock.
  
- @Todo - remove this function since its is obsolete and should not be used 
+ @Todo - This function is obsolete and should not be used 
 *//***************************************************************************/
 void spin_lock_free(spinlock_t lock);
 
@@ -199,7 +199,7 @@ void spin_lock_free(spinlock_t lock);
 
  @Param[in]     lock - A handle to a spinlock.
  
- @Todo - remove this function since its is obsolete and should not be used 
+ @Todo - This function is obsolete and should not be used 
 *//***************************************************************************/
 void spin_lock(spinlock_t lock);
 
@@ -210,7 +210,7 @@ void spin_lock(spinlock_t lock);
 
  @Param[in]     lock - A handle to a spinlock.
  
- @Todo - remove this function since its is obsolete and should not be used 
+ @Todo - This function is obsolete and should not be used 
 *//***************************************************************************/
 void spin_unlock(spinlock_t lock);
 
@@ -225,7 +225,7 @@ void spin_unlock(spinlock_t lock);
                 operation, and should be passed to the matching
                 spin_unlock_irqrestore() call.
                 
-@Todo - remove this function since its is obsolete and should not be used 
+@Todo - This function is obsolete and should not be used 
 *//***************************************************************************/
 uint32_t spin_lock_irqsave(spinlock_t lock);
 
@@ -239,7 +239,7 @@ uint32_t spin_lock_irqsave(spinlock_t lock);
                               restore, as returned by the matching call for
                               spin_lock_irqsave().
                             
-@Todo - remove this function since its is obsolete and should not be used 
+@Todo - This function is obsolete and should not be used 
 *//***************************************************************************/
 void spin_unlock_irqrestore(spinlock_t lock, uint32_t irq_flags);
 
