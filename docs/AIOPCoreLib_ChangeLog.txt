@@ -20,6 +20,9 @@ id_pool.h: Fix CR:ENGR00292125
 id_pool.h: Fix CR:ENGR00291705 
 system.c: Fix CR:ENGR290657
 system.c: Fix CR:ENGR291260 
+dpni_drv.h: Introduce new DPNI driver code.
+drv.h: Introduce new DPNI driver code.
+dpni_drv_rxtx.c: Introduce new DPNI driver code.  
 
 
 Doc & Tool compatibility:

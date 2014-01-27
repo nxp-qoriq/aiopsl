@@ -35,7 +35,7 @@
 #define CTSCSR_4_TASKS (2 << 24)
 #define CTSCSR_8_TASKS (3 << 24)
 #define CTSCSR_16_TASKS (4 << 24)
-
+#define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS | CTSCSR_16_TASKS)
 
 
 enum platform_mem_ctrl {
@@ -385,7 +385,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     
     /* special AIOP registers 
      Setting number of tasks to 8 in order to have a bugger stack*/
-    CTSCSR_value = CTSCSR_ENABLE | CTSCSR_8_TASKS;
+#if 0
+    // boot sequence is not finished here removed CTSCSR_ENABLE
+#endif
+    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_8_TASKS;
     booke_set_CTSCSR0(CTSCSR_value);
 
 #if 0 /* TODO - complete! */
