@@ -131,11 +131,12 @@ int32_t parse_result_generate_default(uint8_t flags)
 {
 	uint32_t arg1, arg2;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	/* 8 Byte aligned for stqw optimization */
-	struct input_message_params input_struct __attribute__((aligned(8)));
+	struct input_message_params input_struct;
 
-	__stqw(0, 0, 0, 0, 0, &input_struct);
+	__stdw(0, 0, 0, &input_struct);
+	__stdw(0, 0, 8, &input_struct);
 	input_struct.opaquein = 0;
+
 
 	/* If L4 checksum validation is required,
 	 * Check if Gross Running Sum calculation is needed */
@@ -172,9 +173,10 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint32_t arg1, arg2;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	/* 8 Byte aligned for stqw optimization */
-	struct input_message_params input_struct __attribute__((aligned(8)));
+	struct input_message_params input_struct;
 
-	__stqw(0, 0, 0, 0, 0, &input_struct);
+	__stdw(0, 0, 0, &input_struct);
+	__stdw(0, 0, 8, &input_struct);
 	input_struct.opaquein = 0;
 
 	/* If L4 checksum validation is required,
@@ -214,10 +216,10 @@ int32_t parse_result_generate_checksum(
 {
 	uint32_t arg1, arg2;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	/* 8 Byte aligned for stqw optimization */
-	struct input_message_params input_struct __attribute__((aligned(8)));
+	struct input_message_params input_struct;
 
-	__stqw(0, 0, 0, 0, 0, &input_struct);
+	__stdw(0, 0, 0, &input_struct);
+	__stdw(0, 0, 8, &input_struct);
 	input_struct.gross_running_sum = pr->gross_running_sum;
 	input_struct.opaquein = 0;
 
