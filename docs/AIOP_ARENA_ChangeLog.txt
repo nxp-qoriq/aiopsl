@@ -1,0 +1,2 @@
+AIOP ARENA V1.1 Change Log
+- Added a new sample CW project app_process_packet that is located under {aiopsl}\build\aiop_t4ls_sim\apps\app_process_packet.
