@@ -10,7 +10,8 @@ MEMORY
     presentation:           org = 0x00000140,   len = 0x000001c0 /* Frame presentation area  */
     stack :                 org = 0x00000300,   len = 0x00000d00 /* Start location for Stack, defined for 8 tasks */    
     i_ram:                  org = 0x00800000,   len = 0x00800000 /* I-RAM  */
-    exception_handlers:     org = 0x08000000,   len = 0x00002000    
+    exception_handlers:     org = 0x00800000,   len = 0x00002000    
+    receivecb:              org = 0x00820000,   len = 0x00020000 /* inside (IRAM) */    
     shared_ram:             org = 0x01000000,   len = 0x00040000 /* Shared-RAM */
     dp_ddr:                 org = 0x58000000,   len = 0x08000000 /* SoC-DDR  */
     pseudo_rom:             org = 0x58002000,   len = 0x0010e000
@@ -23,6 +24,10 @@ MEMORY
 
 SECTIONS
 {
+    GROUP : {
+      .receivecb_func (VLECODE) ALIGN (2048) : {}
+    } > receivecb
+
     GROUP : {
       .init  : {}
       .init_vle (VLECODE) : {
