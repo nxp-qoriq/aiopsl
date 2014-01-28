@@ -10,7 +10,7 @@
 #define __FSL_IPV4_CHECKSUM_H
 
 #include "common/types.h"
-
+#include "net/fsl_net.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)
