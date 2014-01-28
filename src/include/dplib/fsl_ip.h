@@ -20,7 +20,21 @@
 
 
 /**************************************************************************//**
-@Group	FSL_HM FSL_AIOP_Header_Modification
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_IP IP
+
+ @Description	AIOP IP related header modifications
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_HM Header Modification
 
 @Description	Header Modification API
 
@@ -161,7 +175,8 @@
 
 		It automatically generates the IP checksum and optionally
 		can update the UDP/TCP checksum.
-		The function assumes the original IP checksum to be valid.
+
+		The function assumes the original UDP/TCP checksum to be valid.
 
 		If the incoming frame contains TCP/UDP (the original UDP
 		checksum!= 0), the following occur:
@@ -258,7 +273,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 							segment address.
 
 
-@Param[in]	ipv4_header_ptr - Points to the new outer IPv4 header be
+@Param[in]	ipv4header - Points to the new outer IPv4 header be
 		inserted (in workspace memory).
 @Param[in]	ipv4_header_size - Size (in bytes) of the new outer IPv4 header.
 
@@ -273,7 +288,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 
 *//***************************************************************************/
 int32_t ipv4_header_encapsulation(uint8_t flags,
-		struct ipv4hdr *ipv4_header_ptr, uint8_t ipv4_header_size);
+				void *ipv4header, uint8_t ipv4_header_size);
 
 
 /*************************************************************************//**
@@ -298,7 +313,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 							segment address.
 
 
-@Param[in]	ipv6_header_ptr - Points to the new outer IPv6 header to be
+@Param[in]	ipv6header - Points to the new outer IPv6 header to be
 		inserted (in workspace).
 @Param[in]	ipv6_header_size - Size (in bytes) of the new outer IPv6 header.
 
@@ -313,7 +328,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 
 *//***************************************************************************/
 int32_t ipv6_header_encapsulation(uint8_t flags,
-		struct ipv6hdr *ipv6_header_ptr, uint8_t ipv6_header_size);
+				void *ipv6header, uint8_t ipv6_header_size);
 
 /*************************************************************************//**
 @Function	ip_header_decapsulation
@@ -382,6 +397,8 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group FSL_HM */
+/* @} end of group AIOP_IP */
+/* @} end of group NETF */
 
 
 #endif /* __FSL_IP_H */

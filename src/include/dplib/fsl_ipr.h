@@ -68,22 +68,28 @@ struct ipr_params {
 	uint32_t  max_open_frames_ipv6;
 	uint16_t  max_reass_frm_size;	/** maximum reassembled frame size */
 	uint16_t  min_frag_size;	/** minimum fragment size allowed */
-	uint16_t  timeout_value_ipv4;/** reass timeout value for ipv4 */
-	uint16_t  timeout_value_ipv6;/** reass timeout value for ipv6 */
+	/** reass timeout value for ipv4.
+	 * The value given here is in units of 10 ms */
+	uint16_t  timeout_value_ipv4;
+	/** reass timeout value for ipv6.
+	 * The value given here is in units of 10 ms */
+	uint16_t  timeout_value_ipv6;
 		/** function to call upon Time Out occurrence for ipv4 */
 	ipr_timeout_cb_t *ipv4_timeout_cb;
+	/** function to call upon Time Out occurrence for ipv6 */
+	ipr_timeout_cb_t *ipv6_timeout_cb;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
-	ipr_timeout_cb_t *ipv6_timeout_cb;
+	ipr_timeout_arg_t cb_timeout_ipv4_arg;
 	/** Argument to be passed upon invocation of the IPv6 callback
 	    function*/
-	ipr_timeout_arg_t cb_timeout_ipv4_arg;
-		/** function to call upon Time Out occurrence for ipv6 */
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
 	uint32_t  flags;
-		/** 32-bit alignment. */
-	uint8_t  pad[4];
+	/** tmi id to be used for timers creations */
+	uint8_t	  tmi_id;
+	/** 32-bit alignment. */
+	uint8_t  pad[3];
 };
 
 /**************************************************************************//**
@@ -165,7 +171,14 @@ struct extended_stats_cntrs {
 };
 
 /**************************************************************************//**
-@Group		FSL_IPR FSL_AIOP_IPR
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_IPR IPR
 
 @Description	AIOP IP reassembly functions macros and definitions
 
@@ -207,19 +220,6 @@ struct extended_stats_cntrs {
 
 /* @} end of group FSL_IPRInsModeBits */
 
-/**************************************************************************//**
-@Group		FSL_IPRInitFlags IPR init flags
-
-@Description	IPR init flags.
-
-@{
-*//***************************************************************************/
-
-/** If set, the ins_mem_base_addr points to a DDR address.
- If reset, the ins_mem_base_addr points to a Shared RAM address. */
-#define IPR_INIT_EXT_MEM 0x01
-
-/* @} end of group FSL_IPRInitFlags */
 
 /**************************************************************************//**
 @Group		FSL_IPRStatsFlags IPR stats flags
@@ -274,7 +274,7 @@ struct extended_stats_cntrs {
 
 
 /**************************************************************************//**
-@Group		FSL_IPRRessReturnStatus IPR functions return status
+@Group		FSL_IPRReassReturnStatus IPR functions return status
 
 @{
 *//***************************************************************************/
@@ -292,7 +292,7 @@ struct extended_stats_cntrs {
     to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
 
-/* @} end of group FSL_IPRRessReturnStatus */
+/* @} end of group FSL_IPRReassReturnStatus */
 
 /**************************************************************************//**
 @Group		FSL_IPRTOCallbackFlags IPR Time Out Callback flags
@@ -378,7 +378,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
 @Param[in]	ipr_instance - The IPR instance handle.
 
 @Return		Status -\n
-		\link FSL_IPRRessReturnStatus IP Reassembly Return status
+		\link FSL_IPRReassReturnStatus IP Reassembly Return status
 		\endlink \n
 		\ref FSL_CTLU_STATUS_RULE_CREATE \n
 		\ref FSL_CTLU_STATUS_RULE_DELETE \n
@@ -391,6 +391,9 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.
+		In case the function returns with status:
+		IPR_REASSEMBLY_NOT_COMPLETED,
+		it is forbidden to modify the frame.
 		In this function, the task yields.
 
 *//***************************************************************************/
@@ -491,5 +494,6 @@ uint32_t ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 
 /* @} end of group FSL_IPR_Functions */
 /* @} end of group FSL_IPR */
+/* @} end of group NETF */
 
 #endif /* __FSL_IPR_H */

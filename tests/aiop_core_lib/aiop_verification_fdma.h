@@ -30,6 +30,8 @@
 #define FDMA_READ_ASA_CMD		0x00001002
 	/** FDMA Read PTA segment command code */
 #define FDMA_READ_PTA_CMD		0x00002002
+	/** FDMA Present Data segment explicit command code */
+#define FDMA_PRESENT_EXP_CMD		0x00003002
 	/** FDMA Extend presentation command code */
 #define FDMA_EXTEND_CMD			0x00000003
 	/** FDMA Store default working frame command code */
@@ -38,8 +40,12 @@
 #define FDMA_STORE_WF_CMD		0x00002010
 	/** FDMA Enqueue working frame command code */
 #define FDMA_ENQUEUE_WF_CMD		0x00000011
+	/** FDMA Enqueue working frame command code */
+#define FDMA_ENQUEUE_WF_EXP_CMD		0x00001011
 	/** FDMA Discard default frame command code */
 #define FDMA_ENQUEUE_FRAME_CMD		0x00000012
+	/** FDMA Discard default frame command code */
+#define FDMA_ENQUEUE_FRAME_EXP_CMD	0x00001012
 	/** FDMA Discard default frame command code */
 #define FDMA_DISCARD_DEFAULT_WF_CMD	0x00001013
 	/** FDMA Discard frame command code */
@@ -68,10 +74,14 @@
 #define FDMA_REPLACE_ASA_CMD		0x00004019
 	/** FDMA Replace PTA segment command code */
 #define FDMA_REPLACE_PTA_CMD		0x00005019
+	/** FDMA explicit Insert working frame segment command code */
+#define FDMA_INSERT_EXP_DATA_CMD	0x00007019
 	/** FDMA Checksum working frame command code */
 #define FDMA_CKS_CMD			0x0000001A
 	/** FDMA Copy data command code */
 #define FDMA_COPY_CMD			0x00000040
+	/** FDMA Create Frame command code */
+#define FDMA_CREATE_FRAME_CMD		0x00000100
 
 /* FDMA Commands Structure identifiers */
 	/** FDMA Initial frame presentation Command Structure identifier */
@@ -85,6 +95,8 @@
 #define FDMA_READ_ASA_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_READ_ASA_CMD)
 	/** FDMA Read PTA segment Command Structure identifier */
 #define FDMA_READ_PTA_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_READ_PTA_CMD)
+	/** FDMA Present Data segment explicit Command Structure identifier */
+#define FDMA_PRESENT_EXP_CMD_STR ((FPDMA_ACCEL_ID << 16) | FDMA_PRESENT_EXP_CMD)
 	/** FDMA Extend presentation Command Structure identifier */
 #define FDMA_EXTEND_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_EXTEND_CMD)
 	/** FDMA Store working frame Command Structure identifier */
@@ -94,9 +106,15 @@
 #define FDMA_STORE_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_STORE_WF_CMD)
 	/** FDMA Enqueue working frame Command Structure identifier */
 #define FDMA_ENQUEUE_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_ENQUEUE_WF_CMD)
+	/** FDMA Enqueue working frame explicit Command Structure identifier */
+#define FDMA_ENQUEUE_WF_EXP_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+		FDMA_ENQUEUE_WF_EXP_CMD)
 	/** FDMA Enqueue FD Command Structure identifier */
 #define FDMA_ENQUEUE_FRAME_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
 		FDMA_ENQUEUE_FRAME_CMD)
+	/** FDMA Enqueue FD explicit Command Structure identifier */
+#define FDMA_ENQUEUE_FRAME_EXP_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
+		FDMA_ENQUEUE_FRAME_EXP_CMD)
 	/** FDMA Discard default frame Command Structure identifier */
 #define FDMA_DISCARD_DEFAULT_WF_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
 		FDMA_DISCARD_DEFAULT_WF_CMD)
@@ -129,11 +147,16 @@
 	/** FDMA Replace working frame PTA segment Command Structure
 	 * identifier*/
 #define FDMA_REPLACE_PTA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_REPLACE_PTA_CMD)
+/** FDMA Insert explicit working frame segment Command Structure identifier */
+#define FDMA_INSERT_EXP_DATA_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+		FDMA_INSERT_EXP_DATA_CMD)	
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
 #define FDMA_COPY_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_COPY_CMD)
-
+	/** FDMA Create Frame command Structure identifier */
+#define FDMA_CREATE_FRAME_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+		FDMA_CREATE_FRAME_CMD)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -338,6 +361,40 @@ struct fdma_read_pta_command {
 };
 
 /**************************************************************************//**
+@Description	FDMA Present segment explicit Command structure.
+
+		Includes information needed for FDMA Present segment explicit
+		command verification.
+
+*//***************************************************************************/
+struct fdma_present_exp_command {
+		/** FDMA Present segment explicit command structure identifier. */
+	uint32_t opcode;
+		/** Pointer to the location within the workspace to present the
+		 * frame segment data. */
+	uint32_t ws_dst;
+		/** location within the presented frame to start presenting
+		 * from.*/
+	uint16_t offset;
+		/** Number of frame bytes to present (Must be greater than 0)*/
+	uint16_t present_size;
+		/** Command returned segment length. */
+	uint16_t seg_length;
+		/** frame handle. */
+	uint8_t frame_handle;
+		/** Command returned segment handle. */
+	uint8_t seg_handle;
+		/** Reference within the frame to present from:
+		 * - 0: start of the frame.
+		 * - 1: end of the frame. */
+	uint8_t SR;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[6];
+};
+
+/**************************************************************************//**
 @Description	FDMA Extend presentation Command structure.
 
 		Includes information needed for FDMA Extend presentation
@@ -466,6 +523,57 @@ struct fdma_enqueue_wf_command {
 };
 
 /**************************************************************************//**
+@Description	FDMA Enqueue Working Frame explicit Command structure.
+
+		Includes information needed for FDMA Enqueue Working Frame
+		command verification.
+
+*//***************************************************************************/
+struct fdma_enqueue_wf_exp_command {
+		/** FDMA Enqueue working frame explicit command structure
+		* identifier. */
+	uint32_t opcode;
+		/** Queueing destination for the enqueue
+		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
+		 * (enqueue_id_sel = 1,24bit).*/
+	uint32_t qd_fqid;
+		/** Distribution hash value passed to QMan for distribution
+		 * purpose on the enqueue. */
+	uint16_t hash_value;
+		/** Working Frame handle to enqueue. */
+	uint8_t	frame_handle;	
+		/** Queueing Destination Priority. */
+	uint8_t	qd_priority;
+		/** Storage profile used to store frame data if additional
+		* buffers are required*/
+	uint8_t	 spid;
+		/** Enqueue Priority source
+		* - 0: use QD_PRI provided with DMA Command
+		* - 1: use QD_PRI from h/w context. This is the value
+		* found in the WQID field from ADC. */
+	uint8_t	PS;
+		/** Terminate Control:
+		* - 0: Return after enqueue.
+		* - 1: Terminate: this command will trigger the Terminate task
+		* command right after the enqueue. If the enqueue failed, the
+		* frame will be discarded.
+		* - 2: Conditional Terminate: trigger the Terminate task
+		* command only if the enqueue succeeded. If the enqueue
+		* failed, the frame handle is not released and the command
+		* returns with an error code.
+		* - 3: reserved */
+	uint8_t	TC;
+		/** Enqueue ID selection:
+		* - 0 = queueing destination(16bit)
+		* - 1 = fqid (24bit). */
+	uint8_t	EIS;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
 @Description	FDMA Enqueue Frame Command structure.
 
 		Includes information needed for FDMA Enqueue Frame
@@ -480,6 +588,68 @@ struct fdma_enqueue_frame_command {
 		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
 		 * (enqueue_id_sel = 1,24bit).*/
 	uint32_t qd_fqid;
+		/** ICID of the FD to enqueue. */
+	uint16_t icid;
+		/** Distribution hash value passed to QMan for distribution
+		 * purpose on the enqueue. */
+	uint16_t hash_value;
+		/** Queueing Destination Priority. */
+	uint8_t	qd_priority;
+		/** Enqueue Priority source
+		* - 0: use QD_PRI provided with DMA Command
+		* - 1: use QD_PRI from h/w context. This is the value
+		* found in the WQID field from ADC. */
+	uint8_t	PS;
+		/** Terminate Control:
+		* - 0: Return after enqueue.
+		* - 1: Terminate: this command will trigger the Terminate task
+		* command right after the enqueue. If the enqueue failed, the
+		* frame will be discarded.
+		* - 2: Conditional Terminate: trigger the Terminate task
+		* command only if the enqueue succeeded. If the enqueue
+		* failed, the frame handle is not released and the command
+		* returns with an error code.
+		* - 3: reserved */
+	uint8_t	TC;
+		/** Enqueue ID selection:
+		* - 0 = queueing destination(16bit)
+		* - 1 = fqid (24bit). */
+	uint8_t	EIS;
+		/** Virtual Address. */
+	uint8_t	VA;
+		/** Bypass the Memory Translation. */
+	uint8_t	BMT;
+		/** Privilege Level. */
+	uint8_t	PL;
+		/** Bypass DPAA resource Isolation:
+		* - 0: Isolation is enabled for this command. The FQID ID
+		* specified is virtual within the specified ICID.
+		* - 1: Isolation is not enabled for this command. The FQID ID
+		* specified is a real (not virtual) pool ID. */
+	uint8_t	BDI;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[3];
+};
+
+/**************************************************************************//**
+@Description	FDMA Enqueue Frame explicit Command structure.
+
+		Includes information needed for FDMA Enqueue Frame explicit
+		command verification (the frame must be closed, i.e. - no WF
+		(frame is not presented)).
+
+*//***************************************************************************/
+struct fdma_enqueue_frame_exp_command {
+		/** FDMA Enqueue frame explicit command structure identifier. */
+	uint32_t opcode;
+		/**< Queueing destination for the enqueue
+		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
+		 * (enqueue_id_sel = 1,24bit).*/
+	uint32_t qd_fqid;
+		/** Frame Descriptor to enqueue. */
+	struct ldpaa_fd fd;
 		/** ICID of the FD to enqueue. */
 	uint16_t icid;
 		/** Distribution hash value passed to QMan for distribution
@@ -888,6 +1058,49 @@ struct fdma_insert_segment_data_command {
 };
 
 /**************************************************************************//**
+@Description	FDMA Insert explicit data to Working Frame Segment Command structure.
+
+		Includes information needed for FDMA Insert Working Frame
+		Segment command verification.
+
+*//***************************************************************************/
+struct fdma_insert_segment_data_exp_command {
+		/** FDMA Insert data to Working Frame Segment explicit command 
+		 * structure identifier. */
+	uint32_t opcode;
+		/** Pointer to the workspace start location of the replacement
+		* segment data. */
+	uint32_t from_ws_src;
+		/**< pointer to the location in workspace for the represented 
+		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
+		 *  flag is set). */
+	uint32_t ws_dst_rs;	
+		/** Offset from the previously presented segment representing
+		* the start point of the replacement. */
+	uint16_t to_offset;
+		/** Inserted segment data size. */
+	uint16_t insert_size;
+	/**< Number of frame bytes to represent (relevant if 
+	 * \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set). */
+	uint16_t size_rs;
+		/** Command returned segment length. (relevant if
+		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
+	uint16_t seg_length_rs;
+		/**< Working frame handle to which the data is being inserted.*/
+	uint8_t	 frame_handle;
+		/**< Data segment handle (related to the working frame handle) 
+		 * from which the data is being inserted. */
+	uint8_t  seg_handle;	
+		/** Segment Action.
+		* - 0: keep segment open
+		* - 1: represent segment
+		* - 2: close segment */
+	uint8_t	SA;
+		/** Command returned status. */
+	int8_t	status;
+};
+
+/**************************************************************************//**
 @Description	FDMA Delete data from Working Frame Segment Command structure.
 
 		Includes information needed for FDMA Delete data from Working
@@ -1082,6 +1295,33 @@ struct fdma_copy_command {
 	int8_t  status;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Create Frame Command structure.
+
+		Includes information needed for Create Frame data command
+		verification.
+
+*//***************************************************************************/
+struct fdma_create_frame_command {
+		/** Create Frame command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location in workspace of the data to be
+		 * inserted to the frame. 
+		 * The data MUST be located in workspace prior to calling this 
+		 * command. */
+	uint32_t data;
+		/** Pointer (in workspace) to the Frame Descriptor of the 
+		 * created frame. 
+		 * The command updates the FD in workspace. */
+	struct ldpaa_fd *fd;
+		/** Data size to be inserted to the frame. */
+	uint16_t size;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 

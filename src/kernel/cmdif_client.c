@@ -1,234 +1,145 @@
-#include "common/types.h"
-#include "common/errors.h"
-#include "common/fsl_cmdif.h"
-#include "common/fsl_malloc.h"
-#include "common/gen.h"
-#include "arch/fsl_soc.h"
-#include "arch/fsl_cmdif_mc.h"
 
+#include <fsl_dplib_sys.h>
+#include <fsl_cmdif.h>
+#include <fsl_cmdif_mc.h>
 
-#define CMDIF_MC_OPEN_SIZE	8
-#define CMDIF_MC_CLOSE_SIZE	0
-
-#define CMDIF_MC_DPNI_OPEN	0x801
-#define CMDIF_MC_DPSW_OPEN	0x802
-#define CMDIF_MC_DPIO_OPEN	0x803
-#define CMDIF_MC_DPSP_OPEN	0x804
-#define CMDIF_MC_DPRC_OPEN	0x805
-
-#define CMDIF_MC_CLOSE		0x800
-
-#define CMDIF_MC_READ_CMDID(_hdr)		u64_read_field((_hdr), CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE)
-#define CMDIF_MC_READ_AUTHID(_hdr)	u64_read_field((_hdr), CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE)
-#define CMDIF_MC_READ_SIZE(_hdr)		u64_read_field((_hdr), CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE)
-#define CMDIF_MC_READ_STATUS(_hdr)	u64_read_field((_hdr), CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE)
-#define CMDIF_MC_READ_PRI(_hdr)		u64_read_field((_hdr), CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE)
-
-#define CMDIF_MC_READ_HEADER(_ptr)	swap_uint64((_ptr)->header)
-
-#define CMDIF_MC_WRITE_HEADER(_ptr, _id, _auth, _size, _status, _pri) 			\
-	do { 										\
-		volatile uint64_t tmp = 0;				\
-		tmp = u64_write_field(tmp, CMDIF_MC_CMDID_OFFSET, CMDIF_MC_CMDID_SIZE, (_id));	\
-		tmp = u64_write_field(tmp, CMDIF_MC_AUTHID_OFFSET, CMDIF_MC_AUTHID_SIZE, (_auth));	\
-		tmp = u64_write_field(tmp, CMDIF_MC_SIZE_OFFSET, CMDIF_MC_SIZE_SIZE, (_size));	\
-		tmp = u64_write_field(tmp, CMDIF_MC_STATUS_OFFSET, CMDIF_MC_STATUS_SIZE, (_status));	\
-		tmp = u64_write_field(tmp, CMDIF_MC_PRI_OFFSET, CMDIF_MC_PRI_SIZE, (_pri));		\
-		(_ptr)->header = swap_uint64(tmp);					\
-	} while (0)
-
-
-struct mc_portal_regs {
-	uint64_t header;
-	uint64_t param1;
-	uint64_t param2;
-	uint64_t param3;
-	uint64_t param4;
-	uint64_t param5;
-	uint64_t param6;
-	uint64_t param7;
-};
-
-struct cmdif_dev {
-	struct mc_portal_regs *regs;
-	int auth_id;
-};
-
-
-static int wait_resp(struct mc_portal_regs *regs)
+static int cmdif_wait_resp(struct mc_portal *portal)
 {
-	enum cmdif_status status;
+	enum mc_cmd_status status;
 
-	/* Busy waiting for MC to complete command */
+	/* wait for MC to complete command */
 	do {
-		status = (enum cmdif_status)CMDIF_MC_READ_STATUS(regs->header);
-	} while (status == CMDIF_STATUS_READY);
+		status = mc_cmd_read_status(portal);
+	} while (status == MC_CMD_STATUS_READY);
 
-	
-	/* TODO - some errors are not defined */
-	switch (status)
-	{
-	case CMDIF_STATUS_OK:
-		return E_OK;
-	case CMDIF_STATUS_READY:
-		return ENOSYS; 			/* function not implemented */
-	case CMDIF_STATUS_AUTH_ERR:
-		return 99;	//EUNKNOWN;															 /* unknown error */
-	case CMDIF_STATUS_NO_PRIVILEGE:
-		return EACCES;  		/* Permission denied */
-	case CMDIF_STATUS_DMA_ERR:
-		return 99;//EUNKNOWN;															 /* unknown error */
-	case CMDIF_STATUS_CONFIG_ERR:	
-		return ENXIO;			/* Device not configured */
-	case  CMDIF_STATUS_TIMEOUT:
-		return 99;//EUNKNOWN;															 /* unknown error */
-	case CMDIF_STATUS_NO_RESOURCE:
-		return EAGAIN;			/* Resource temporarily unavailable */
-	case CMDIF_STATUS_NO_MEMORY:
-		return ENOMEM; 			/* Cannot allocate memory */
-	case CMDIF_STATUS_BUSY:
-		return EBUSY; 			/* Device busy */
-	case CMDIF_STATUS_INVALID_OP:
-		return EPERM;			/* Operation not permitted */
-	case CMDIF_STATUS_UNSUPPORTED_OP:
-		return ENODEV;			/* Operation not supported by device */
-	case CMDIF_STATUS_INVALID_STATE:
-		return 99;	//EUNKNOWN;															/* Unknown error */
-
-		
-	}
-	return 99; /* default value */
-}
-
-struct cmdif_dev *cmdif_open(void *regs,
-                             enum fsl_os_module mod,
-                             uint16_t mod_id)
-{
-	UNUSED (mod_id);
-
-	int err;
-	int cmdid = 0;
-	struct cmdif_dev *dev = fsl_os_malloc(sizeof(struct cmdif_dev));
-
-	dev->regs = (struct mc_portal_regs *)regs;
-
-	switch (mod) {
-	case FSL_OS_MOD_DPNI:
-		cmdid = CMDIF_MC_DPNI_OPEN;
-		break;
-	case FSL_OS_MOD_DPSW:
-		cmdid = CMDIF_MC_DPSW_OPEN;
-		break;
-	case FSL_OS_MOD_DPRC:
-		cmdid = CMDIF_MC_DPRC_OPEN;
-		break;
-	case FSL_OS_MOD_DPIO:
-		cmdid = CMDIF_MC_DPIO_OPEN;
-		break;
-	case FSL_OS_MOD_DPSP:
-		cmdid = CMDIF_MC_DPSP_OPEN;
-		break;
+	switch (status) {
+	case MC_CMD_STATUS_OK:
+		return 0;
+	case MC_CMD_STATUS_AUTH_ERR:
+		return -EACCES; /* Authentication error */
+	case MC_CMD_STATUS_NO_PRIVILEGE:
+		return -EPERM; /* Permission denied */
+	case MC_CMD_STATUS_DMA_ERR:
+		return -EIO; /* Input/Output error */
+	case MC_CMD_STATUS_CONFIG_ERR:
+		return -EINVAL; /* Device not configured */
+	case MC_CMD_STATUS_TIMEOUT:
+		return -ETIMEDOUT; /* Operation timed out */
+	case MC_CMD_STATUS_NO_RESOURCE:
+		return -ENAVAIL; /* Resource temporarily unavailable */
+	case MC_CMD_STATUS_NO_MEMORY:
+		return -ENOMEM; /* Cannot allocate memory */
+	case MC_CMD_STATUS_BUSY:
+		return -EBUSY; /* Device busy */
+	case MC_CMD_STATUS_UNSUPPORTED_OP:
+		return -ENOTSUP; /* Operation not supported by device */
+	case MC_CMD_STATUS_INVALID_STATE:
+		return -ENODEV; /* Invalid device state */
 	default:
 		break;
 	}
 
-	if (cmdid != 0)
-		err = cmdif_send(dev, (uint16_t)cmdid, CMDIF_MC_OPEN_SIZE,
-		                    CMDIF_PRI_LOW, NULL);
-
-	if (err != E_OK)
-		return NULL;
-
-	/* Save Authentication ID */
-	dev->auth_id = (int)CMDIF_MC_READ_AUTHID(dev->regs->header);
-	return dev;
+	/* not expected to reach here */
+	return -EINVAL;
 }
 
-int cmdif_close(struct cmdif_dev *dev)
+struct cmdif_cmd_mapping_entry {
+	enum cmdif_module module;
+	uint16_t cmd_id;
+};
+
+int cmdif_open(struct cmdif_desc *cidesc,
+               enum cmdif_module module,
+               int instance_id)
 {
-	/* TODO - review */
-	int err;
-	err = cmdif_send(dev, CMDIF_MC_CLOSE, CMDIF_MC_CLOSE_SIZE,
-			                    CMDIF_PRI_LOW, NULL);
-	fsl_os_free(dev);
-	return err;
-}
+	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
+	struct mc_cmd_data cmd_data = { 0 };
+	uint16_t auth_id;
+	int ret, i;
 
-int cmdif_send(struct cmdif_dev *dev,
-               uint16_t cmd,
-               int size,
-               int priority,
-               struct cmdif_cmd_desc *desc)
-{
-	GPP_CMD_WRITE_PARAM(dev->regs, 1, desc->param1);
-	GPP_CMD_WRITE_PARAM(dev->regs, 2, desc->param2);
-	GPP_CMD_WRITE_PARAM(dev->regs, 3, desc->param3);
-	GPP_CMD_WRITE_PARAM(dev->regs, 4, desc->param4);
-	GPP_CMD_WRITE_PARAM(dev->regs, 5, desc->param5);
-	GPP_CMD_WRITE_PARAM(dev->regs, 6, desc->param6);
-	GPP_CMD_WRITE_PARAM(dev->regs, 7, desc->param7);
+	const struct cmdif_cmd_mapping_entry cmd_map[] =
+	        { { CMDIF_MOD_DPRC, MC_DPRC_CMDID_OPEN },
+	          { CMDIF_MOD_DPNI, MC_DPNI_CMDID_OPEN },
+	          { CMDIF_MOD_DPIO, MC_DPIO_CMDID_OPEN },
+	          { CMDIF_MOD_DPSP, MC_DPSP_CMDID_OPEN },
+	          { CMDIF_MOD_DPSW, MC_DPSW_CMDID_OPEN } };
 
-	CMDIF_MC_WRITE_HEADER(dev->regs, cmd, dev->auth_id, size,
-	                    CMDIF_STATUS_READY, priority);
+	for (i = 0; i < ARRAY_SIZE(cmd_map); i++)
+		if (cmd_map[i].module == module)
+			break;
+	if (i == ARRAY_SIZE(cmd_map))
+		return -ENOTSUP;
 
-	return wait_resp(dev->regs); /* blocking */
-}
+	/* clear 'dev' - later it will store the Authentication ID */
+	cidesc->dev = (void*)0;
 
-#if 0
-int status2errno(enum cmdif_status status)
-{
-	int ret;
+	/* prepare command param */
+	cmd_data.params[0] = u64_enc(MC_CMD_OPEN_INST_ID_O,
+	                             MC_CMD_OPEN_INST_ID_S, instance_id);
 
-	switch (status) {
-		case CMDIF_STATUS_READY: /**< [0] not handled (only GPP clears this field) */
-		ret = EOPNOTSUPP; /* Operation not supported on transport endpoint */
-		break;
-		case CMDIF_STATUS_OK: /**< [2]Passed */
-		ret = 0;
-		break;
-		case CMDIF_STATUS_AUTH_ERR: /**< [3]Authentication error */
-		ret = EACCES; /* Permission denied */
-		break;
-		case CMDIF_STATUS_NO_PRIVILEGE: /**< [4]Privilege error */
-		ret = PRIV_ERROR;
-		break;
-		case CMDIF_STATUS_DMA_ERR: /**< [5]DMA failure */
-		ret = DMA_ERROR;
-		break;
-		case CMDIF_STATUS_CONFIG_ERR: /**< [6]Configuration failure */
-		ret = CONF_ERROR;
-		break;
-		case CMDIF_STATUS_TIMEOUT: /**< [7]command timed out */
-		ret = ETIME; /* Timer expired */
-		break;
-		case CMDIF_STATUS_NO_RESOURCE: /**< [8]no resources */
-		ret = ENOSR;
-		break;
-		case CMDIF_STATUS_NO_MEMORY: /**< [9]no_mem */
-		ret = NO_MEM;
-		break;
-		case CMDIF_STATUS_BUSY: /**< [A]busy */
-		ret = EBUSY;
-		break;
-		case CMDIF_STATUS_INVALID_OP: /**< [B]Invalid operation */
-		ret = INVALID_OPERATION;
-		break;
-		case CMDIF_STATUS_UNSUPPORTED_OP:/**< [C]Unsupported operation */
-		ret = UNSUPPORTED_OPERATION;
-		break;
-		case CMDIF_STATUS_INVALID_STATE: /**< [D]Invalid state */
-		ret = ENOTRECOVERABLE;
-		break;
-		default:
-		ret = UNKNOWN_ERROR;
-		break;
-	}
+	/* acquire lock as needed */
+	if (cidesc->lock_cb)
+		cidesc->lock_cb(cidesc->lock);
+
+	/* not using cmdif_send - need auth_id back before releasing the lock */
+	mc_cmd_write(portal, cmd_map[i].cmd_id, 0, MC_CMD_OPEN_SIZE,
+	             CMDIF_PRI_LOW, &cmd_data);
+
+	ret = cmdif_wait_resp(portal); /* blocking */
+	auth_id = mc_cmd_read_auth_id(portal);
+
+	/* release lock as needed */
+	if (cidesc->unlock_cb)
+		cidesc->unlock_cb(cidesc->lock);
+
+	if (ret == 0)
+		/* all good - store the Authentication ID in 'dev' */
+		cidesc->dev = (void*)auth_id;
+
 	return ret;
 }
-#endif
 
-struct cmdif_cmd_desc *cmdif_get_desc(struct cmdif_dev *dev)
+int cmdif_close(struct cmdif_desc *cidesc)
 {
-	return PTR_MOVE(dev->regs, 8);
+	return cmdif_send(cidesc, MC_CMDID_CLOSE, MC_CMD_CLOSE_SIZE,
+	                  CMDIF_PRI_HIGH, NULL);
 }
 
+int cmdif_send(struct cmdif_desc *cidesc,
+               uint16_t cmd_id,
+               int size,
+               int priority,
+               uint8_t *cmd_data)
+{
+	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
+	struct mc_cmd_data *data = (struct mc_cmd_data *)cmd_data;
+	uint16_t auth_id = (uint16_t)PTR_TO_UINT(cidesc->dev);
+	int ret;
+
+	/* acquire external lock as needed */
+	if (cidesc->lock_cb)
+		cidesc->lock_cb(cidesc->lock);
+
+	mc_cmd_write(portal, cmd_id, auth_id, (uint8_t)size, priority, data);
+	/*pr_debug("GPP sent cmd (BE) 0x%08x%08x\n",
+	 (uint32_t)(swap_uint64(dev->regs->header)>>32),
+	 (uint32_t)swap_uint64(dev->regs->header));
+	 */
+	ret = cmdif_wait_resp(portal); /* blocking */
+	if (ret == 0)
+		mc_cmd_read_response(portal, data);
+
+	/* release lock as needed */
+	if (cidesc->unlock_cb)
+		cidesc->unlock_cb(cidesc->lock);
+
+	return ret;
+}
+
+#if 1
+int cmdif_get_cmd_data(struct cmdif_desc *cidesc, uint8_t **cmd_data)
+{
+	*cmd_data = (uint8_t*)PTR_MOVE(cidesc->regs, 8);
+	return 0;
+}
+#endif

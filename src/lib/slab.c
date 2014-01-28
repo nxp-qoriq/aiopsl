@@ -83,7 +83,7 @@ static int create_sw_slab(char          name[],
     if (err_code != E_OK)
         RETURN_ERROR(MAJOR, err_code, NO_MSG);
 
-    ((slab_t *)(*slab))->alloc_owner = E_MEM_ALLOC_OWNER_LOCAL;
+    ((slab_t *)(*slab))->alloc_owner = SLAB_ALLOC_OWNER_LOCAL;
 
     return E_OK;
 }
@@ -239,7 +239,7 @@ int slab_create_by_address(char           name[],
     /* make sure that the alignment is at least 4 and power of 2 */
     if (alignment < 4)
         alignment = 4;
-    else if (!POWER_OF_2(alignment))
+    else if (!is_power_of_2(alignment))
         RETURN_ERROR(MAJOR, E_INVALID_VALUE, ("alignment (should be power of 2)"));
 
     /* first allocate the segment descriptor */
@@ -270,7 +270,7 @@ int slab_create_by_address(char           name[],
     pslab->buff_size = buff_size;
     pslab->p_bases[0] = p_blocks;
     pslab->get_failures = 0;
-    pslab->alloc_owner = E_MEM_ALLOC_OWNER_EXTERNAL;
+    pslab->alloc_owner = SLAB_ALLOC_OWNER_EXTERNAL;
     pslab->consecutive = 1;
     pslab->prefix_size = prefix_size;
     pslab->postfix_size = postfix_size;
@@ -358,7 +358,7 @@ int slab_create(char            name[],
     /* make sure that the alignment is at least 4 and power of 2 */
     if (alignment < 4)
         alignment = 4;
-    else if (!POWER_OF_2(alignment))
+    else if (!is_power_of_2(alignment))
         RETURN_ERROR(MAJOR, E_INVALID_VALUE, ("alignment (should be power of 2)"));
 
     /* first allocate the segment descriptor */
@@ -388,7 +388,7 @@ int slab_create(char            name[],
     pslab->current = 0;
     pslab->buff_size = buff_size;
     pslab->get_failures = 0;
-    pslab->alloc_owner = E_MEM_ALLOC_OWNER_LOCAL_SMART;
+    pslab->alloc_owner = SLAB_ALLOC_OWNER_LOCAL_SMART;
     pslab->consecutive = 1;
     pslab->prefix_size = prefix_size;
     pslab->postfix_size = postfix_size;
@@ -506,11 +506,11 @@ void slab_free(struct slab *slab)
     {
         num_buffs = pslab->consecutive ? 1 : pslab->num_buffs;
 
-        if (pslab->alloc_owner == E_MEM_ALLOC_OWNER_LOCAL_SMART)
+        if (pslab->alloc_owner == SLAB_ALLOC_OWNER_LOCAL_SMART)
             for (i=0; i < num_buffs; i++)
                 if (pslab->p_bases[i])
                     fsl_os_free_smart(pslab->p_bases[i]);
-        else if (pslab->alloc_owner == E_MEM_ALLOC_OWNER_LOCAL)
+        else if (pslab->alloc_owner == SLAB_ALLOC_OWNER_LOCAL)
             for (i=0; i < num_buffs; i++)
                 if (pslab->p_bases[i])
                     fsl_os_free(pslab->p_bases[i]);

@@ -223,7 +223,7 @@ static __inline__ void sys_unlock_spinlock(struct spinlock *slock)
 
  @Return        A value that represents the interrupts state before the
                 operation, and should be passed to the matching
-                SYS_UnlockIntrSpinlock() call.
+                sys_unlock_intr_spinlock() call.
 *//***************************************************************************/
 static __inline__ uint32_t sys_lock_intr_spinlock(struct spinlock *slock)
 {

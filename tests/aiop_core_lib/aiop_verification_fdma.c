@@ -9,6 +9,7 @@
 #include "dplib/fsl_fdma.h"
 
 /* TODO - get rid of this! */
+/* Yariv: not sure why Shlomi changed itand wrote it */
 #include "../arch/accel/fdma.h"
 
 #include "aiop_verification.h"
@@ -34,12 +35,12 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_init_command *str =
 			(struct fdma_init_command *) asa_seg_addr;
-		if (str->SR)
-			PRC_SET_SR_BIT(1);
 		PRC->asapa_asaps	=
 			(((uint16_t)(uint32_t)str->asa_address) &
 					PRC_ASAPA_MASK) |
 			((uint16_t)str->asa_size & PRC_ASAPS_MASK);
+		if (str->SR)
+			PRC_SET_SR_BIT();
 		PRC->ptapa_asapo	=
 			(((uint16_t)(uint32_t)str->pta_address) &
 					PRC_PTAPA_MASK) |
@@ -62,7 +63,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		params.asa_dst	= (void *)str->asa_dst;
 		params.asa_offset	= str->asa_offset;
 		params.asa_size		= str->asa_size;
-		params.fd_src		= (void *)str->fd_src;
+		params.fd_src		= (struct ldpaa_fd *)str->fd_src;
 		params.flags		= flags;
 		params.present_size	= str->present_size;
 		params.pta_dst	= (void *)str->pta_dst;
@@ -117,6 +118,22 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		else
 			str->seg_length = PTA_SIZE_NO_PTA;
 		str_size = sizeof(struct fdma_read_pta_command);
+		break;
+	}
+	/* FDMA Present segment Command Verification */
+	case FDMA_PRESENT_EXP_CMD_STR:
+	{
+		struct fdma_present_exp_command *str =
+			(struct fdma_present_exp_command *) asa_seg_addr;
+		struct fdma_present_segment_params params;
+		flags |= ((str->SR) ? FDMA_PRES_SR_BIT : 0x0);
+		params.flags = flags;
+		params.frame_handle = str->frame_handle;
+		params.offset = str->offset;
+		params.present_size = str->present_size;
+		params.ws_dst = (void *)str->ws_dst;
+		str->status = (int8_t)fdma_present_frame_segment(&params);
+		str_size = sizeof(struct fdma_present_exp_command);
 		break;
 	}
 	/* FDMA Extend segment Command Verification */
@@ -188,6 +205,35 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = sizeof(struct fdma_enqueue_wf_command);
 		break;
 	}
+	/* FDMA Enqueue working frame explicit Command Verification */
+	case FDMA_ENQUEUE_WF_EXP_CMD_STR:
+	{
+		struct fdma_enqueue_wf_exp_command *str =
+			(struct fdma_enqueue_wf_exp_command *)asa_seg_addr;
+		struct fdma_queueing_destination_params qdp;
+		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
+		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
+		flags |= ((str->PS) ? FDMA_ENWF_PS_BIT : 0x0);
+
+		aiop_verification_replace_asa();
+		if (str->EIS) {
+			str->status = (int8_t)
+				fdma_store_and_enqueue_frame_fqid(
+					str->frame_handle,flags,
+					str->qd_fqid, str->spid);
+		} else{
+			qdp.qd = (uint16_t)(str->qd_fqid);
+			qdp.hash_value = str->hash_value;
+			qdp.qd_priority = str->qd_priority;
+			str->status = (int8_t)
+				fdma_store_and_enqueue_frame_qd(
+						str->frame_handle, flags,
+						&qdp, str->spid);
+		}
+
+		str_size = sizeof(struct fdma_enqueue_wf_exp_command);
+		break;
+	}
 	/* FDMA Enqueue FD Command Verification */
 	case FDMA_ENQUEUE_FRAME_CMD_STR:
 	{
@@ -216,6 +262,36 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		}
 
 		str_size = sizeof(struct fdma_enqueue_frame_command);
+		break;
+	}
+	/* FDMA Enqueue FD explicit Command Verification */
+	case FDMA_ENQUEUE_FRAME_EXP_CMD_STR:
+	{
+		struct fdma_enqueue_frame_exp_command *str =
+			(struct fdma_enqueue_frame_exp_command *)asa_seg_addr;
+		struct fdma_queueing_destination_params qdp;
+		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
+		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
+		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
+		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
+		flags |= ((str->BMT) ? FDMA_ENF_BMT_BIT : 0x0);
+		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
+		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
+
+		if (str->EIS) {
+			str->status = (int8_t)
+				fdma_enqueue_fd_fqid(&(str->fd), flags, 
+					str->qd_fqid, str->icid);
+		} else{
+			qdp.qd = (uint16_t)(str->qd_fqid);
+			qdp.hash_value = str->hash_value;
+			qdp.qd_priority = str->qd_priority;
+			str->status = (int8_t)
+				fdma_enqueue_fd_qd(&(str->fd), flags, 
+						&qdp, str->icid);
+		}
+
+		str_size = sizeof(struct fdma_enqueue_frame_exp_command);
 		break;
 	}
 	/* FDMA Discard default frame Command Verification */
@@ -333,7 +409,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				FDMA_SPLIT_PSA_NO_PRESENT_BIT);
 		flags |= ((str->SM) ? FDMA_SPLIT_SM_BIT : 0x0);
 		flags |= ((str->SR)  ? FDMA_SPLIT_SR_BIT  : 0x0);
-		params.fd_dst		= (void *)str->fd_dst;
+		params.fd_dst		= (struct ldpaa_fd *)str->fd_dst;
 		params.flags		= flags;
 		params.present_size	= str->present_size;
 		params.split_size_sf	= str->split_size_sf;
@@ -385,7 +461,10 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				str->to_offset, str->to_size,
 				(void *)str->from_ws_src, str->from_size,
 				(void *)str->ws_dst_rs, str->size_rs, flags);
-		str->seg_length_rs = PRC->seg_length;
+		if (str->SA == 1)
+			str->seg_length_rs = PRC->seg_length;
+		else if (str->SA == 2)
+			str->seg_length_rs = 0;
 		str_size = sizeof(struct fdma_replace_command);
 		break;
 	}
@@ -400,8 +479,36 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->status = (int8_t)fdma_insert_default_segment_data(
 				str->to_offset, (void *)str->from_ws_src,
 				str->insert_size, flags);
-		str->seg_length_rs = PRC->seg_length;
+		if (str->SA == 1)
+			str->seg_length_rs = PRC->seg_length;
+		else if (str->SA == 2)
+			str->seg_length_rs = 0;
 		str_size = sizeof(struct fdma_insert_segment_data_command);
+		break;
+	}
+	/* FDMA Insert data Command Verification */
+	case FDMA_INSERT_EXP_DATA_CMD_STR:
+	{
+		struct fdma_insert_segment_data_exp_command *str =
+		    (struct fdma_insert_segment_data_exp_command *)asa_seg_addr;
+		struct fdma_insert_segment_data_params params;
+		flags |= ((str->SA == 1) ? FDMA_REPLACE_SA_REPRESENT_BIT :
+			 ((str->SA == 2) ? FDMA_REPLACE_SA_CLOSE_BIT :
+					   FDMA_REPLACE_SA_OPEN_BIT));
+		params.flags = flags;
+		params.frame_handle = str->frame_handle;
+		params.from_ws_src = (void *)str->from_ws_src;
+		params.insert_size = str->insert_size;
+		params.seg_handle = str->seg_handle;
+		params.size_rs = str->size_rs;
+		params.to_offset = str->to_offset;
+		params.ws_dst_rs = (void *)str->ws_dst_rs;
+		str->status = (int8_t)fdma_insert_segment_data(&params);
+		if (str->SA == 1)
+			str->seg_length_rs = params.seg_length_rs;
+		else if (str->SA == 2)
+			str->seg_length_rs = 0;
+		str_size = sizeof(struct fdma_insert_segment_data_exp_command);
 		break;
 	}
 	/* FDMA Delete data Command Verification */
@@ -414,7 +521,10 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					   FDMA_REPLACE_SA_OPEN_BIT));
 		str->status = (int8_t)fdma_delete_default_segment_data(
 				str->to_offset, str->delete_target_size, flags);
-		str->seg_length_rs = PRC->seg_length;
+		if (str->SA == 1)
+			str->seg_length_rs = PRC->seg_length;
+		else if (str->SA == 2)
+			str->seg_length_rs = 0;
 		str_size = sizeof(struct fdma_delete_segment_data_command);
 		break;
 	}
@@ -439,8 +549,12 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				str->to_offset, str->to_size,
 				(void *)str->from_ws_src, str->from_size,
 				(void *)str->ws_dst_rs, str->size_rs, flags);
-		str->seg_length_rs = (*((uint16_t *) HWC_ACC_OUT_ADDRESS2)) &
-				PRC_ASAPS_MASK;
+		
+		if (str->SA == 1)
+			str->seg_length_rs = (*((uint16_t *) 
+				HWC_ACC_OUT_ADDRESS2)) & PRC_ASAPS_MASK;
+		else if (str->SA == 2)
+			str->seg_length_rs = 0;
 		str_size = sizeof(struct fdma_replace_asa_command);
 		break;
 	}
@@ -456,7 +570,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				flags, (void *)str->from_ws_src,
 				(void *)str->ws_dst_rs,
 				(enum fdma_pta_size_type)str->size);
-		if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS))
+		if (str->SA == 2)
+			str->seg_length = 0;
+		else if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1_2;
 		else if (LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1;
@@ -487,6 +603,16 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->status = (int8_t)fdma_copy_data(str->copy_size, flags,
 				(void *)str->src, (void *)str->dst);
 		str_size = sizeof(struct fdma_copy_command);
+		break;
+	}
+	/* FDMA Copy Command Verification */
+	case FDMA_CREATE_FRAME_CMD_STR:
+	{
+		struct fdma_create_frame_command *str =
+			(struct fdma_create_frame_command *) asa_seg_addr;
+		str->status = (int8_t)fdma_create_frame(
+				str->fd, (void *)(str->data), str->size);
+		str_size = sizeof(struct fdma_create_frame_command);
 		break;
 	}
 	default:

@@ -14,7 +14,7 @@
 #include "dplib/fsl_l4.h"
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_l4_checksum.h"
-
+#include "checksum.h"
 #include "header_modification.h"
 
 
@@ -53,13 +53,14 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		uint16_t tcp_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta, uint16_t tcp_mss)
 {
-	uint8_t tcp_offset, *options_ptr, option_size, mss_found;
+	uint8_t tcp_offset, *options_ptr, modify_size, mss_found, *l5_ptr;
+	uint8_t options_size;
 	uint16_t old_mss;
 	uint32_t old_header;
 	struct tcphdr *tcp_ptr;
 	tcp_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 	tcp_ptr = (struct tcphdr *)(tcp_offset + PRC_GET_SEGMENT_ADDRESS());
-	option_size = TCP_NO_OPTION_SIZE;
+	modify_size = TCP_NO_OPTION_SIZE;
 	if (!PARSER_IS_TCP_DEFAULT())
 		return NO_TCP_FOUND_ERROR;
 	PARSER_CLEAR_RUNNING_SUM();
@@ -96,16 +97,19 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 					tcp_ptr->acknowledgment_number);
 		}
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
-			if (!PARSER_IS_TCP_OPTIONS_DEFAULT())
+			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
+				fdma_modify_default_segment_data(tcp_offset, modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
-			options_ptr = (uint8_t *)tcp_ptr;
+			}
+			options_size = (tcp_ptr->data_offset_reserved >> 
+					TCP_DATA_OFFSET_SHIFT);
+			l5_ptr = (uint8_t *)tcp_ptr + options_size;
+			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 || !mss_found) {
+			while (*options_ptr != 0 && !mss_found && (options_ptr < l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
-					option_size =
-					tcp_ptr->data_offset_reserved >>
-					TCP_DATA_OFFSET_SHIFT;
+					modify_size = options_size;
 					old_mss = ((uint16_t *)options_ptr)[1];
 
 					((uint16_t *)options_ptr)[1] = tcp_mss;
@@ -120,10 +124,12 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 					options_ptr++;
 
 			}
-			if (!mss_found)
+			if (!mss_found) {
+				fdma_modify_default_segment_data(tcp_offset, modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
+			}
 
-	}
+		}
 	} else {
 		if (flags & L4_TCP_MODIFY_MODE_TCPSRC)
 			tcp_ptr->src_port = tcp_src_port;
@@ -139,36 +145,34 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
 			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
-				fdma_modify_default_segment_data(tcp_offset,
-						option_size);
+				fdma_modify_default_segment_data(tcp_offset, modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
-			options_ptr = (uint8_t *)tcp_ptr;
+			
+			options_size = (tcp_ptr->data_offset_reserved >> 
+					TCP_DATA_OFFSET_SHIFT);
+			l5_ptr = (uint8_t *)tcp_ptr + options_size;
+			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 && !mss_found) {
+			while (*options_ptr != 0 && !mss_found && (options_ptr < l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
-					option_size =
-					tcp_ptr->data_offset_reserved >>
-					TCP_DATA_OFFSET_SHIFT;
-
+					modify_size = options_size;
 					((uint16_t *)options_ptr)[1] = tcp_mss;
 				}
 				if (*options_ptr != 1)
 					options_ptr += (uint8_t)options_ptr[1];
 				else
 					options_ptr++;
-
 			}
 			if (!mss_found) {
-				fdma_modify_default_segment_data(tcp_offset,
-						option_size);
+				fdma_modify_default_segment_data(tcp_offset, modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 		}
 	}
 	/* Modify the segment */
-	fdma_modify_default_segment_data(tcp_offset, option_size);
+	fdma_modify_default_segment_data(tcp_offset, modify_size);
 
 	return SUCCESS;
 }

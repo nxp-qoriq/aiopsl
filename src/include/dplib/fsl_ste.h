@@ -15,9 +15,15 @@
 
 #include "common/types.h"
 
-
 /**************************************************************************//**
-@Group		STATS FSL_AIOP_Statistics
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		STATS STE (Statistics)
 
 @Description	AIOP Statistics functions macros and definitions
 
@@ -278,8 +284,9 @@ void ste_dec_and_sub_counters(uint64_t counter_addr,
 *//****************************************************************************/
 void ste_barrier();
 
+
 /* @} end of group STE_functions */
 /* @} end of group STATS */
-
+/** @} */ /* end of ACCEL */
 
 #endif /* __FSL_STE_H */

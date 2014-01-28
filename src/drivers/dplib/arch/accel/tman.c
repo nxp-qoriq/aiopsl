@@ -93,8 +93,9 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+	/* Optimization: remove one cycle compared to and statement */
 	/* Erase PL and BDI from output_ptr */
-	*((uint8_t *)(&output_ptr->max_num_of_timers) + 3) = 0;
+	*(uint8_t *)(&output_ptr->max_num_of_timers) = 0;
 	/* Isolate status bits from the TMAN output */
 	res1 &= TMAN_STATUS_MASK;
 	return (int32_t)(res1);

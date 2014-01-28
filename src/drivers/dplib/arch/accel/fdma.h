@@ -74,6 +74,10 @@
 #define FDMA_STORE_CMD_OUT_FLAGS_MASK		0x0000FF00
 	/** FDMA Store command output flags offset. */
 #define FDMA_STORE_CMD_OUT_FLAGS_OFFSET		2
+	/** Default Segment headroom size. */
+#define DEFAULT_SEGMENT_HEADOOM_SIZE	128
+	/** Default Segment size. */
+#define DEFAULT_SEGMENT_SIZE		256
 
 /* @} end of group FDMA_Commands_Definitions */
 
@@ -188,6 +192,11 @@
 	(uint32_t)((FDMA_GET_PRC_FRAME_HANDLE(_handles)) |		\
 	_flags | FDMA_PRESENT_CMD)
 
+	/** FDMA explicit Present command arg1 */
+#define FDMA_PRESENT_EXP_CMD_ARG1(_frame_handle, _flags)		\
+	(uint32_t)((_frame_handle << 16) | _flags | FDMA_PRESENT_CMD)
+
+
 	/** FDMA Present command arg2 */
 #define FDMA_PRESENT_CMD_ARG2(_ws_address, _offset)			\
 	(uint32_t)((_ws_address << 16) | _offset)
@@ -213,7 +222,7 @@
 	(uint32_t)((_seg_addr << 16) | _extend_size)
 
 	/**< FDMA Store default working frame command arg1 */
-#define FDMA_STORE_DEFAULT_CMD_ARG1(_spid, _handles)				\
+#define FDMA_STORE_DEFAULT_CMD_ARG1(_spid, _handles)			\
 	(uint32_t)((_spid << 24) |					\
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
 	FDMA_STORE_CMD)
@@ -228,6 +237,11 @@
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
 	_flags | FDMA_ENQUEUE_WF_CMD)
 
+	/** FDMA Enqueue working frame command arg1 */
+#define FDMA_ENQUEUE_WF_EXP_ARG1(_spid, _frame_handle, _flags)		\
+	(uint32_t)((_spid << 24) |					\
+	(_frame_handle << 16) | _flags | FDMA_ENQUEUE_WF_CMD)
+
 	/** FDMA Enqueue working frame command arg2 */
 #define FDMA_ENQUEUE_WF_QD_ARG2(_pri, _qd)				\
 	(uint32_t)((_pri << FDMA_ENQUEUE_QD_PRIORITY_OFFSET) | _qd)
@@ -239,6 +253,11 @@
 	/** FDMA Enqueue frame command arg1 */
 #define FDMA_ENQUEUE_FRAME_ARG1(_flags)					\
 	(uint32_t)(((HWC_FD_ADDRESS << 16) |				\
+	(_flags & ~FDMA_ENF_BDI_BIT) | FDMA_ENQUEUE_FRAME_CMD))
+
+	/** FDMA Enqueue frame explicit command arg1 */
+#define FDMA_ENQUEUE_FRAME_EXP_ARG1(_flags, _fd)			\
+	(uint32_t)((((uint32_t)_fd << 16) |				\
 	(_flags & ~FDMA_ENF_BDI_BIT) | FDMA_ENQUEUE_FRAME_CMD))
 
 	/** FDMA Enqueue frame command arg3 */
@@ -317,6 +336,11 @@
 #define FDMA_REPLACE_CMD_ARG1(_handles, _flags)				\
 	(uint32_t)((FDMA_GET_PRC_SEGMENT_HANDLE(_handles)) |		\
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
+	(_flags) | FDMA_REPLACE_CMD)
+
+/** FDMA explicit Replace working frame segment command arg1 */
+#define FDMA_REPLACE_EXP_CMD_ARG1(_seg_handle, _frame_handle, _flags)	\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
 	(_flags) | FDMA_REPLACE_CMD)
 
 	/** FDMA Replace working frame segment command arg2 */
@@ -411,26 +435,31 @@
 	/** Macro to set the default frame ASA address in workspace from the
 	 * presentation context */
 #define PRC_SET_ASA_ADDRESS(_val)					\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+	((((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_ASAPA_MASK) |			\
 		((uint16_t)_val & PRC_ASAPA_MASK))
 	/** Macro to set Segment reference bit in workspace from the
 	 * presentation context */
-#define PRC_SET_SR_BIT(_val)						\
+#define PRC_SET_SR_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		asapa_asaps & ~PRC_SR_MASK) | PRC_SR_MASK))
+#define PRC_RESET_SR_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_SR_MASK) |			\
-		(((uint16_t)_val) & PRC_SR_MASK))
+		asapa_asaps & ~PRC_SR_MASK))
 #ifdef NEXT_RELEASE
 	/** Macro to set No-Data-Segment bit in workspace from the
 	 * presentation context */
-#define PRC_SET_NDS_BIT(_val)						\
+#define PRC_SET_NDS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		asapa_asaps & ~PRC_NDS_MASK) | PRC_NDS_MASK))
+#define PRC_RESET_NDS_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_NDS_MASK) |			\
-		(((uint16_t)_val) & PRC_NDS_MASK))
-
+		asapa_asaps & ~PRC_NDS_MASK))
 #endif /* NEXT_RELEASE */
 	/** Macro to set the default frame ASA size in workspace from the
 	 * presentation context */

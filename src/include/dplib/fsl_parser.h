@@ -14,7 +14,14 @@
 
 
 /**************************************************************************//**
-@Group		FSL_PARSER FSL_AIOP_Parser
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_PARSER PARSER
 
 @Description	Freescale AIOP Parser API
 
@@ -747,6 +754,10 @@
 #define PARSER_IS_TCP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_TCP_MASK)
+/** Returns a non-zero value in case TCP or UDP is found */
+#define PARSER_IS_TCP_OR_UDP_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	frame_attribute_flags_3 & (PARSER_ATT_TCP_MASK | PARSER_ATT_UDP_MASK))
 /** Returns a non-zero value in case TCP with options is found */
 #define PARSER_IS_TCP_OPTIONS_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -1028,25 +1039,25 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** @} */ /* end of AIOP_PARSER_CREATE_PRP_STATUS */
 
 /**************************************************************************//**
-@Group AIOP_PARSER_REPLACE_PRP_STATUS Parser Replace Parse Profile Status
+@Group AIOP_PARSER_DELETE_PRP_STATUS Parser Delete Parse Profile Status
 @{
 *//***************************************************************************/
-	/** PRP was replaced successfully */
-#define PARSER_REPLACE_PRP_STATUS_SUCCESS		0x00000000
-	/** Parser PRP replace failed due to Invalid Parse profile ID */
-#define PARSER_REPLACE_PRP_STATUS_FAIL_INVALID_PRPID	0x81800000
+	/** PRP was deleted successfully */
+#define PARSER_DELETE_PRP_STATUS_SUCCESS		0x00000000
+	/** Parser PRP delete failed due to Invalid Parse profile ID */
+#define PARSER_DELETE_PRP_STATUS_FAIL_INVALID_PRPID	0x81800000
 /** Command failed. PRPID was not returned to pool due to CDMA write error */
-#define CTLU_KCR_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE\
+#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE\
 					(CTLU_STATUS_MGCF | 0x00000001)
 /** Command failed. PRPID was not returned to pool due to pool out of range */
-#define CTLU_KCR_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE\
+#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE\
 					(CTLU_STATUS_MGCF | 0x00000002)
 /** Command failed. PRPID was not returned to pool due to CDMA read error */
-#define CTLU_KCR_DELETE_RELEASE_ID_STATUS_CDMA_RD_FAILURE\
+#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_CDMA_RD_FAILURE\
 					(CTLU_STATUS_MGCF | 0x00000003)
 
 
-/** @} */ /* end of AIOP_PARSER_REPLACE_PRP_STATUS */
+/** @} */ /* end of AIOP_PARSER_DELETE_PRP_STATUS */
 
 /**************************************************************************//**
 @Group AIOP_PARSE_RESULT_GEN_STATUS Parse Result Generation SR Status
@@ -1076,7 +1087,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /**************************************************************************//**
 @Group	FSL_PARSER_HXS_CONFIG Parser HXS configuration in parse profile defines
 
-@Description 	For configuring each HXS (Header Examination Sequence) in the
+@Description	For configuring each HXS (Header Examination Sequence) in the
 		Parse Profile Record, user should use the flags relevant to
 		each HXS configuration by performing "OR" between the flags
 		and the index for soft sequence start address.
@@ -1143,7 +1154,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 @{
 *//***************************************************************************/
- enum parser_starting_hxs_code{
+enum parser_starting_hxs_code {
 	/** Ethernet Starting HXS coding */
 	 PARSER_ETH_STARTING_HXS = 0x0000,
 	/** LLC+SNAP Starting HXS coding */
@@ -1184,7 +1195,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 	 PARSER_L5_SHELL_STARTING_HXS = 0x001E,
 	/** Final Shell Starting HXS coding */
 	 PARSER_FINAL_SHELL_STARTING_HXS = 0x001F
- };
+};
 
 /** @} */ /* end of parser_starting_hxs_code */
 
@@ -1207,7 +1218,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 		Please refer to the parser specification for more details.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct parse_result{
+struct parse_result {
 	 /** Reserved
 	 Reserved for compliance with HW format.
 	 User should not access this field */
@@ -1272,7 +1283,7 @@ struct parse_result{
 @Description	Vlan HXS Configuration in Parser Profile Record structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct	vlan_hxs_configuration{
+struct	vlan_hxs_configuration {
 	/** This field includes:
 	Bits EN, ERM (refer to \ref FSL_PARSER_HXS_CONFIG) and
 	11-bit index for soft sequence start address */
@@ -1292,7 +1303,7 @@ struct	vlan_hxs_configuration{
 @Description	MPLS HXS Configuration in Parser Profile Record structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct	mpls_hxs_configuration{
+struct	mpls_hxs_configuration {
 	/** This field includes:
 	Bits EN, ERM (refer to \ref FSL_PARSER_HXS_CONFIG) and
 	11-bit index for soft sequence start address */
@@ -1330,7 +1341,7 @@ struct	mpls_hxs_configuration{
 
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct parse_profile_record{
+struct parse_profile_record {
 	/** Reserved
 	Reserved for compliance with HW format.
 	User should not access this field */
@@ -1479,7 +1490,7 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 @Param[in]	parse_profile - Parse Profile Record.
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref AIOP_PARSER_REPLACE_PRP_STATUS.
+@Return		Status - please refer to \ref AIOP_PARSER_SR_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1493,7 +1504,7 @@ int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
 
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref AIOP_PARSER_SR_STATUS.
+@Return		Status - please refer to \ref AIOP_PARSER_DELETE_PRP_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1583,6 +1594,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 
 /** @} */ /* end of FSL_PARSER_Functions */
 /** @} */ /* end of FSL_PARSER */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_PARSER_H */

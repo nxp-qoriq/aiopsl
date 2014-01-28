@@ -7,8 +7,10 @@
 
 #include "common/fsl_malloc.h"
 #include "common/fsl_string.h"
+#include "common/irq.h"
 #include "common/dbg.h"
 #include "common/io.h"
+#include "common/gen.h"
 
 #include "duart.h"
 
@@ -24,16 +26,16 @@ static void intr_handler(fsl_handle_t duart)
 
     ASSERT_COND(duart);
 
-    intr_status = GET_UINT8(p_uart->p_mem_map->UIIR);
+    intr_status = ioread8(&p_uart->p_mem_map->UIIR);
     intr_status = (uint8_t)(intr_status & (uint8_t)(DUART_INTR_MASK));
 
     /* Receiver Line Status Interrupt */
     if (intr_status == UIIR_RLSI)
     {
-        ulsr = GET_UINT8(p_uart->p_mem_map->ulsr);
+        ulsr = ioread8(&p_uart->p_mem_map->ulsr);
 
         if (ulsr & ULSR_BI)
-            data = GET_UINT8(p_uart->p_mem_map->URBR);
+            data = ioread8(&p_uart->p_mem_map->URBR);
 
         /* Overrun error, Receiver FIFO error, Framing Error or Parity Error */
         if (p_uart->f_exceptions &&
@@ -48,13 +50,13 @@ static void intr_handler(fsl_handle_t duart)
     {
         do
         {
-            data = GET_UINT8(p_uart->p_mem_map->URBR);
+            data = ioread8(&p_uart->p_mem_map->URBR);
 
             if (p_uart->flow_control == E_DUART_HW_FLOW_CONTROL)
             {
-                umcr = GET_UINT8(p_uart->p_mem_map->umcr);
+                umcr = ioread8(&p_uart->p_mem_map->umcr);
                 umcr |= UMCR_RTS;
-                WRITE_UINT8(p_uart->p_mem_map->umcr, umcr);
+                iowrite8(umcr, &p_uart->p_mem_map->umcr);
             }
 
             if (!p_uart->initialized)
@@ -79,11 +81,11 @@ static void intr_handler(fsl_handle_t duart)
                     p_uart->f_low_space_alert(p_uart->h_app);
             }
         }
-        while ((GET_UINT8(p_uart->p_mem_map->ulsr) & ULSR_DR) != 0);
+        while ((ioread8(&p_uart->p_mem_map->ulsr) & ULSR_DR) != 0);
     }
 
     if(intr_status == 0)
-        umsr = GET_UINT8(p_uart->p_mem_map->umsr);
+        umsr = ioread8(&p_uart->p_mem_map->umsr);
     UNUSED(umsr);
      /* Transmitter holding register empty */
     if((intr_status & UIIR_THREI) != 0)
@@ -100,18 +102,18 @@ static void intr_handler(fsl_handle_t duart)
                 if(p_uart->flow_control == E_DUART_HW_FLOW_CONTROL)
                 {
                     /* Transmit until the FIFO is full */
-                    while ((GET_UINT8(p_uart->p_mem_map->udsr) & UDSR_TXRDY) == 0)
+                    while ((ioread8(&p_uart->p_mem_map->udsr) & UDSR_TXRDY) == 0)
                     {
                         /* If peripheral isn't ready or all data has
                            already been sent, exit the interrupt handler.*/
-                        if (((GET_UINT8(p_uart->p_mem_map->umsr) & UMSR_CTS) == 0)  ||
+                        if (((ioread8(&p_uart->p_mem_map->umsr) & UMSR_CTS) == 0)  ||
                             (p_uart->tx_buffer_pos >= p_uart->tx_buffer_count))
                                 return;
 
-                        WRITE_UINT8(p_uart->p_mem_map->UTHR, p_uart->p_tx_buffer[p_uart->tx_buffer_pos++]);
+                        iowrite8(p_uart->p_tx_buffer[p_uart->tx_buffer_pos++], &p_uart->p_mem_map->UTHR);
 
                         /* Check if received data is available */
-                        if ((GET_UINT8(p_uart->p_mem_map->ulsr) & ULSR_DR) != 0)
+                        if ((ioread8(&p_uart->p_mem_map->ulsr) & ULSR_DR) != 0)
                             return;
                     }
                 }
@@ -119,16 +121,16 @@ static void intr_handler(fsl_handle_t duart)
                 else /* No Flow Control */
                 {
                     /* Transmit until the FIFO is full */
-                    while ((GET_UINT8(p_uart->p_mem_map->udsr) & UDSR_TXRDY) == 0)
+                    while ((ioread8(&p_uart->p_mem_map->udsr) & UDSR_TXRDY) == 0)
                     {
                         /* If all data has been sent, exit the interrupt handler */
                         if(p_uart->tx_buffer_pos >= p_uart->tx_buffer_count)
                             return;
 
-                        WRITE_UINT8(p_uart->p_mem_map->UTHR, p_uart->p_tx_buffer[p_uart->tx_buffer_pos++]);
+                        iowrite8(p_uart->p_tx_buffer[p_uart->tx_buffer_pos++], &p_uart->p_mem_map->UTHR);
 
                         /* Check if received data is available */
-                        if ((GET_UINT8(p_uart->p_mem_map->ulsr) & ULSR_DR) != 0)
+                        if ((ioread8(&p_uart->p_mem_map->ulsr) & ULSR_DR) != 0)
                             return;
                     }
                 }
@@ -139,11 +141,11 @@ static void intr_handler(fsl_handle_t duart)
             {
                 if(p_uart->flow_control == E_DUART_HW_FLOW_CONTROL)
                 {
-                    if ((GET_UINT8(p_uart->p_mem_map->umsr) & UMSR_CTS) == 0)
+                    if ((ioread8(&p_uart->p_mem_map->umsr) & UMSR_CTS) == 0)
                         return;
                 }
 
-                WRITE_UINT8(p_uart->p_mem_map->UTHR, p_uart->p_tx_buffer[p_uart->tx_buffer_pos++]);
+                iowrite8(p_uart->p_tx_buffer[p_uart->tx_buffer_pos++], &p_uart->p_mem_map->UTHR);
             }
 
             return;
@@ -152,9 +154,9 @@ static void intr_handler(fsl_handle_t duart)
         /* Check if finished transmission */
         if(p_uart->tx_buffer_pos == p_uart->tx_buffer_count)
         {
-            tmp_reg = GET_UINT8(p_uart->p_mem_map->UIER);
+            tmp_reg = ioread8(&p_uart->p_mem_map->UIER);
             tmp_reg &= ~UIER_ETHREI;
-            WRITE_UINT8(p_uart->p_mem_map->UIER, tmp_reg);
+            iowrite8(tmp_reg, &p_uart->p_mem_map->UIER);
 
             p_uart->tx_buffer_count = 0;
             p_uart->tx_buffer_pos  = 0;
@@ -172,11 +174,10 @@ static void intr_handler(fsl_handle_t duart)
 
 /************************************************************************/
 static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
-{
-    UNUSED (params);
-
+{	
     t_duart_driver_param  *p_driver_param = p_uart->p_driver_param;
 
+    UNUSED(params);
     ASSERT_COND(p_driver_param);
 
     if((p_driver_param->baud_rate < BAUD_RATE_MIN_VAL) ||
@@ -250,7 +251,7 @@ static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
         /* Make sure transmitter is ready */
         do
         {
-            status = GET_UINT8(p_uart->p_mem_map->ulsr);
+            status = ioread8(&p_uart->p_mem_map->ulsr);
             tries++;
             if (tries >= 1000000000)
                 return ERROR_CODE(E_BUSY);
@@ -262,7 +263,7 @@ static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
             tries = 0;
             do
             {
-                status = GET_UINT8(p_uart->p_mem_map->umsr);
+                status = ioread8(&p_uart->p_mem_map->umsr);
                 tries++;
                 if (tries >= 10000)
                     return ERROR_CODE(E_BUSY);
@@ -272,21 +273,21 @@ static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
         /* Write actual data to transmitter */
         if (p_uart->lf2crlf && (*data == '\n'))
         {
-            WRITE_UINT8(p_uart->p_mem_map->UTHR, '\r');
+            iowrite8('\r', &p_uart->p_mem_map->UTHR);
 
             tries = 0;
             do
             {
-                status = GET_UINT8(p_uart->p_mem_map->ulsr);
+                status = ioread8(&p_uart->p_mem_map->ulsr);
                 tries++;
                 if (tries >= 1000000000)
                     return ERROR_CODE(E_BUSY);
             } while ((status & ULSR_THRE) == 0);
 
-            WRITE_UINT8(p_uart->p_mem_map->UTHR, *data++);
+            iowrite8(*data++, &p_uart->p_mem_map->UTHR);
         }
         else
-            WRITE_UINT8(p_uart->p_mem_map->UTHR, *data++);
+            iowrite8(*data++, &p_uart->p_mem_map->UTHR);
     }
 
     /* Call transmit confirm callback.*/
@@ -310,16 +311,16 @@ static uint32_t duart_poll_rx(fsl_handle_t duart, uint8_t *buffer, uint32_t size
         timeout = p_uart->rx_timeout;
 
         /* Wait for input char */
-        status = GET_UINT8(p_uart->p_mem_map->ulsr);
+        status = ioread8(&p_uart->p_mem_map->ulsr);
 
         if (status & ULSR_BI)
         {
 #ifdef MPC837x
             /* Workaround for unexplained behavior in 837x optimized code */
-            data = GET_UINT8(p_uart->p_mem_map->umsr);
+            data = ioread8(p_uart->p_mem_map->umsr);
 #endif /* MPC837x */
             /* Ignore break signal */
-            data = GET_UINT8(p_uart->p_mem_map->URBR);
+            data = ioread8(&p_uart->p_mem_map->URBR);
             continue;
         }
 
@@ -331,17 +332,17 @@ static uint32_t duart_poll_rx(fsl_handle_t duart, uint8_t *buffer, uint32_t size
             if (timeout == 0)
                 return count;
 
-            status = GET_UINT8(p_uart->p_mem_map->ulsr);
+            status = ioread8(&p_uart->p_mem_map->ulsr);
         }
 
         /* Read the data */
-        data = GET_UINT8(p_uart->p_mem_map->URBR);
+        data = ioread8(&p_uart->p_mem_map->URBR);
 
         if(p_uart->flow_control == E_DUART_HW_FLOW_CONTROL)
         {
-            umcr = GET_UINT8(p_uart->p_mem_map->umcr);
+            umcr = ioread8(&p_uart->p_mem_map->umcr);
             umcr |= UMCR_RTS;
-            WRITE_UINT8(p_uart->p_mem_map->umcr, umcr);
+            iowrite8(umcr, &p_uart->p_mem_map->umcr);
         }
         /* Check for control char and handle.*/
         for (i=0; i < p_uart->numcc_entries; i++)
@@ -384,7 +385,7 @@ static void duart_free_local(fsl_handle_t duart)
         p_uart->p_tx_buffer = NULL;
     }
 
-    fsl_os_free(duart);
+     fsl_os_free(duart);
 }
 
 
@@ -692,7 +693,7 @@ int duart_init (fsl_handle_t duart)
     p_uart->rx_buffer_count = 0;
 
     /* Reset ulsr by reading the register*/
-    tmp_reg = GET_UINT8(p_mem_map->ulsr);
+    tmp_reg = ioread8(&p_mem_map->ulsr);
 
     /* Set parity parameters according to user choice. */
     switch(p_driver_param->parity)
@@ -732,13 +733,13 @@ int duart_init (fsl_handle_t duart)
     baud_rate_factor = p_uart->system_clock_mhz*1000000 / p_driver_param->baud_rate / 16;
 
     /* Set access to UDMB/UDLB/UAFR */
-    WRITE_UINT8(p_mem_map->ulcr, ULCR_DLAB);
+    iowrite8(ULCR_DLAB, &p_mem_map->ulcr);
 
     /* Make sure that that the data has been written */
-    tmp_reg = GET_UINT8 (p_mem_map->ulcr);
+    tmp_reg = ioread8(&p_mem_map->ulcr);
 
-    WRITE_UINT8(p_mem_map->UDMB, (uint8_t)((baud_rate_factor >> 8) & 0xff));
-    WRITE_UINT8(p_mem_map->UDLB, (uint8_t)(baud_rate_factor & 0xff));
+    iowrite8((uint8_t)((baud_rate_factor >> 8) & 0xff), &p_mem_map->UDMB);
+    iowrite8((uint8_t)(baud_rate_factor & 0xff), &p_mem_map->UDLB);
 
     /* Intialize registers */
     tmp_reg = (uint8_t)((p_driver_param->stick_parity * ULCR_SP)   |
@@ -747,15 +748,16 @@ int duart_init (fsl_handle_t duart)
                        (p_driver_param->stop_bits * ULCR_NTSB)    |
                        p_driver_param->data_bits);
 
-    WRITE_UINT8(p_mem_map->ulcr, tmp_reg);
+    iowrite8(tmp_reg, &p_mem_map->ulcr);
 
+ 
     if (p_driver_param->enable_fifo)
     {
         tmp_reg = (uint8_t)(p_driver_param->enable_fifo);
-        WRITE_UINT8(p_mem_map->UFCR, tmp_reg);
+        iowrite8(tmp_reg, &p_mem_map->UFCR);
 
         tmp_reg = (uint8_t)(p_driver_param->enable_fifo | UFCR_RFR | UFCR_TFR);
-        WRITE_UINT8(p_mem_map->UFCR, tmp_reg);
+        iowrite8(tmp_reg, &p_mem_map->UFCR);
 
         tmp_reg = (uint8_t)(p_driver_param->rec_trigger_level |
                           (p_driver_param->dma_mode_select * UFCR_DMS) |
@@ -765,15 +767,15 @@ int duart_init (fsl_handle_t duart)
         tmp_reg = 0;
 
     /* Reset FIFO and internal shift register */
-    WRITE_UINT8(p_mem_map->UFCR, tmp_reg);
+    iowrite8(tmp_reg, &p_mem_map->UFCR);
 
-    tmp_reg = GET_UINT8(p_mem_map->URBR);
+    tmp_reg = ioread8(&p_mem_map->URBR);
     tmp_reg = (uint8_t)(p_driver_param->loop_back_mode * UMCR_LOOP);
 
     if(p_uart->flow_control == E_DUART_HW_FLOW_CONTROL)
         tmp_reg |= (uint8_t)UMCR_RTS;
 
-    WRITE_UINT8(p_mem_map->umcr, tmp_reg);
+    iowrite8(tmp_reg, &p_mem_map->umcr);
 
     if (!p_uart->poll_mode)
         tmp_reg = (uint8_t)((p_driver_param->en_modem_stat_intr * UIER_EMSI)   |
@@ -782,7 +784,7 @@ int duart_init (fsl_handle_t duart)
     else
         tmp_reg = 0;     /* Close all Interrupts in Poll Mode */
 
-    WRITE_UINT8(p_mem_map->UIER, tmp_reg);
+    iowrite8(tmp_reg, &p_mem_map->UIER);
 
     fsl_os_free(p_uart->p_driver_param);
     p_uart->p_driver_param = NULL;
@@ -838,13 +840,13 @@ int duart_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
     p_uart->tx_buffer_pos   = 0;
 
     /* Open transmit interrupt so the transmit will work */
-    tmp_reg = GET_UINT8(p_uart->p_mem_map->UIER);
+    tmp_reg = ioread8(&p_uart->p_mem_map->UIER);
     tmp_reg |= UIER_ETHREI;
 
-    WRITE_UINT8(p_uart->p_mem_map->UIER, tmp_reg);
+    iowrite8(tmp_reg, &p_uart->p_mem_map->UIER);
 
     /* Make sure the data has been written */
-    tmp_reg = GET_UINT8(p_uart->p_mem_map->UIER);
+    tmp_reg = ioread8(&p_uart->p_mem_map->UIER);
 
     return(E_OK);
 }
@@ -940,7 +942,7 @@ uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart)
 
     if (p_uart->poll_mode)
     {
-        status = GET_UINT8(p_uart->p_mem_map->ulsr);
+        status = ioread8(&p_uart->p_mem_map->ulsr);
          if ((status & ULSR_DR) == 0)
             return 0;
           else
@@ -971,11 +973,11 @@ int duart_set_break_signal (fsl_handle_t duart, int break_signal)
 
     SANITY_CHECK_RETURN_ERROR(duart, E_INVALID_VALUE);
 
-    ulcr_val = GET_UINT8(p_uart->p_mem_map->ulcr);
+    ulcr_val = ioread8(&p_uart->p_mem_map->ulcr);
     if (break_signal)
-        WRITE_UINT8(p_uart->p_mem_map->ulcr, (uint8_t)(ulcr_val | ULCR_SB));
+        iowrite8((uint8_t)(ulcr_val | ULCR_SB), &p_uart->p_mem_map->ulcr);
     else
-        WRITE_UINT8(p_uart->p_mem_map->ulcr, (uint8_t)(ulcr_val & (~ULCR_SB)));
+        iowrite8((uint8_t)(ulcr_val & (~ULCR_SB)), &p_uart->p_mem_map->ulcr);
     core_memory_barrier();
 
     return E_OK;
@@ -1000,16 +1002,16 @@ int duart_set_baud_rate (fsl_handle_t duart, uint32_t baud_rate)
     baud_rate_factor = p_uart->system_clock_mhz*1000000 / baud_rate / 16;
 
     /* Storing ulcr */
-    ulcr_val = GET_UINT8 (p_mem_map->ulcr);
+    ulcr_val = ioread8(&p_mem_map->ulcr);
 
     /* Set access to UDMB/UDLB/UAFR */
-    WRITE_UINT8(p_mem_map->ulcr, ULCR_DLAB);
+    iowrite8(ULCR_DLAB, &p_mem_map->ulcr);
 
-    WRITE_UINT8(p_mem_map->UDMB, (uint8_t)((baud_rate_factor >> 8) & 0xff));
-    WRITE_UINT8(p_mem_map->UDLB, (uint8_t)(baud_rate_factor & 0xff));
+    iowrite8((uint8_t)((baud_rate_factor >> 8) & 0xff), &p_mem_map->UDMB);
+    iowrite8((uint8_t)(baud_rate_factor & 0xff), &p_mem_map->UDLB);
 
     /* Restoring ulcr */
-    WRITE_UINT8(p_mem_map->ulcr, ulcr_val);
+    iowrite8(ulcr_val, &p_mem_map->ulcr);
 
     return E_OK;
 }

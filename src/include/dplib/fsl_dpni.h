@@ -10,6 +10,8 @@
 #include "common/types.h"
 #include "net/fsl_net.h"
 #include "dplib/fsl_ldpaa.h"
+#include "common/fsl_cmdif.h"
+
 //TODO #include "dplib/fsl_dpkg.h"
 
 
@@ -21,7 +23,13 @@
  @{
 *//***************************************************************************/
 
+#ifdef MC
 struct dpni;
+#else
+struct dpni {
+	struct cmdif_desc cidesc;
+};
+#endif
 
 /**************************************************************************//**
  @Collection	General DPNI macros
@@ -529,14 +537,12 @@ struct dpni_fs_tbl_params
 
  @Description	Open object handle - Required before any operation on the object
 
- @Param[in]	portal_vaddr - Pointer to MC portal registers
+ @Param[in]	dpni - Pointer to dpni object
  @Param[in]	dpni_id - DPNI unique ID
 
  @Return	Pointer to the DPNI object, to be used in subsequent calls
-
-
 *//***************************************************************************/
-struct dpni *dpni_open(void *portal_vaddr, int dpni_id);
+int dpni_open(struct dpni *dpni, int dpni_id);
 
 /**************************************************************************//**
  @Function	dpni_close

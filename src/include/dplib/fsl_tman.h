@@ -13,7 +13,14 @@
 
 
 /**************************************************************************//**
-@Group		TMAN FSL_AIOP_TMAN
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		TMAN TMAN
 
 @Description	AIOP TMAN functions macros and definitions
 
@@ -153,14 +160,14 @@ struct tman_tmi_params {
 
 /*! \enum e_tman_query_timer Defines the TMAN query timer state.*/
 enum e_tman_query_timer {
-	/** Timer is waiting for confirmation */
-	TMAN_TIMER_PENDING_CONF = 0,
+	/** Timer is non active (in tmi free list) */
+	TMAN_TIMER_NON_ACTIVE = 0,
+	/** Timer is in expiration queue */
+	TMAN_TIMER_EXPIRATION_QUEUE,
 	/** Timer has not expired */
 	TMAN_TIMER_RUNNING,
-	/** Timer is non active (in tmi free list) */
-	TMAN_TIMER_NON_ACTIVE,
-	/** Timer is in expiration queue */
-	TMAN_TIMER_EXPIRATION_QUEUE
+	/** Timer is waiting for confirmation */
+	TMAN_TIMER_PENDING_CONF
 };
 
 /* @} end of group TMAN_Modes */
@@ -386,6 +393,7 @@ void tman_get_timestamp(uint64_t *timestamp);
 
 /* @} end of group TMAN_Functions */
 /* @} end of group TMAN */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_TMAN_H */

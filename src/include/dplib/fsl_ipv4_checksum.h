@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File		fsl_ipv4_checksum.h
 
-@Description	This file contains the AIOP SW Internet Protocol Version 4 
+@Description	This file contains the AIOP SW Internet Protocol Version 4
 		Checksum API.
 
 		Copyright 2013 Freescale Semiconductor, Inc.
@@ -13,7 +13,21 @@
 
 
 /**************************************************************************//**
-@Group	FSL_IPV4_CKSUM FSL_AIOP_IPv4_Checksum
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_IP IP
+
+ @Description	AIOP IP related header modifications
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_IPV4_CKSUM IPV4 Checksum
 
 @Description	Freescale AIOP Internet Protocol Version 4 Checksum API
 
@@ -85,29 +99,10 @@
 *//***************************************************************************/
 int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header);
 
-
-/**************************************************************************//**
-@Function	cksum_ones_complement_sum16
-
-@Description	Calculates a 1's complement sum of two 16 bit arguments.
-
-
-@Param[in]	arg1 - first argument.
-
-@Param[in]	arg2 - second argument.
-
-@Return		1's complement sum of the two 16 bit arguments.
-
-@Cautions	None
-*//***************************************************************************/
-inline uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2)
-{
-	int32_t tmp = arg1 + arg2;
-	return (uint16_t)(tmp + (tmp >> 16));
-}
-
 /** @} */ /* end of FSL_IPV4_CKSUM_Functions */
 /** @} */ /* end of FSL_IPV4_CKSUM */
+/** @} */ /* end of IP */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_IPV4_CHCEKSUM_H */

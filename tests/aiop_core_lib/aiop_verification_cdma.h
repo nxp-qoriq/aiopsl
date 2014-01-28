@@ -156,13 +156,14 @@ struct cdma_read_command {
 		/**< CDMA cdma_read Command Structure identifier. */
 	uint32_t 	ws_dst;
 		/**< A pointer to the Workspace. */
-	uint64_t	ext_address;
-		/**< A pointer to a context memory address in the external memory (DDR/PEB). */
+	uint32_t 	context_memory;
+				/**< An address to the Workspace where
+				the 64 bit address of the Context memory is found. */
 	uint16_t	size;
 		/**< Read data access size, in bytes. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[5];
+	uint8_t		pad[1];
 		/**< 64-bit alignment. */
 };
 
@@ -178,13 +179,14 @@ struct cdma_write_command {
 		/**< CDMA cdma_write Command Structure identifier. */
 	uint32_t 	ws_src;
 			/**< A pointer to the Workspace. */
-	uint64_t	ext_address;
-		/**< A pointer to a context memory address in the external memory (DDR/PEB). */
+	uint32_t 	context_memory;
+				/**< An address to the Workspace where
+				the 64 bit address of the Context memory is found. */
 	uint16_t	size;
 		/**< Write data access size, in bytes. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[5];
+	uint8_t		pad[1];
 		/**< 64-bit alignment. */
 };
 
@@ -242,15 +244,16 @@ struct cdma_read_with_mutex_command {
 		/**< CDMA cdma_read_with_mutex Command Structure identifier. */
 	uint32_t 	ws_dst;
 		/**< A pointer to the Workspace. */
-	uint64_t	ext_address;
-		/**< A pointer to a context memory address in the external memory (DDR/PEB). */
+	uint32_t 	context_memory;
+			/**< An address to the Workspace where
+			the 64 bit address of the Context memory is found. */
 	uint32_t	flags;
 		/**< CDMA Mutex flags */
 	uint16_t	size;
 		/**< Read data access size, in bytes. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[1];
+	uint8_t		pad[5];
 		/**< 64-bit alignment. */
 };
 
@@ -266,15 +269,16 @@ struct cdma_write_with_mutex_command {
 		/**< CDMA cdma_write_with_mutex Command Structure identifier. */
 	uint32_t 	ws_src;
 		/**< A pointer to the Workspace. */
-	uint64_t	ext_address;
-		/**< A pointer to a context memory address in the external memory (DDR/PEB). */
+	uint32_t 	context_memory;
+			/**< An address to the Workspace where
+			the 64 bit address of the Context memory is found. */
 	uint32_t	flags;
 		/**< CDMA Mutex flags */
 	uint16_t	size;
 		/**< Read data access size, in bytes. */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[1];
+	uint8_t		pad[5];
 		/**< 64-bit alignment. */
 };
 

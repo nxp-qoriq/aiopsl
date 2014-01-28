@@ -13,7 +13,14 @@
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU FSL_AIOP_CTLU
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_CTLU CTLU
 
 @Description	Freescale AIOP CTLU API
 
@@ -496,7 +503,7 @@
 #define CTLU_KCR_CREATE_SUCCESS				0x00000000
 	/** Command successful. A rule with matching KeyID was found.
 	Key composition rule was replaced. */
-#define CTLU_KCR_CREATE_STATUS_KCR_REPLACED 	(CTLU_STATUS_MGCF | 0x00010000)
+#define CTLU_KCR_CREATE_STATUS_KCR_REPLACED	(CTLU_STATUS_MGCF | 0x00010000)
 /** Command failed. KeyID was not fetched from pool due to CDMA write error */
 #define CTLU_KCR_CREATE_GET_ID_STATUS_CDMA_WR_FAILURE \
 						(CTLU_STATUS_MGCF | 0x00000001)
@@ -617,7 +624,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@enum 	kcr_builder_parse_result_offset
+@enum	kcr_builder_parse_result_offset
 
 @Description	 Key Composition Rule Builder Parse Result Offset
 
@@ -679,7 +686,7 @@ enum kcr_builder_parse_result_offset {
 
 @{
 *//***************************************************************************/
-enum kcr_builder_protocol_fecid{
+enum kcr_builder_protocol_fecid {
 	/** FECID of Generic Extraction Command */
 	CTLU_KCR_GEC_FECID = 0x00,
 	/** FECID of User defined constant */
@@ -789,7 +796,7 @@ enum kcr_builder_protocol_fecid{
 @Description	Table Rule Result Chaining Parameters
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_rule_result_chain_parameters{
+struct ctlu_rule_result_chain_parameters {
 	/** Reserved
 	Reserved for compliance with HW format.
 	User should not access this field. */
@@ -826,7 +833,7 @@ struct ctlu_rule_result_chain_parameters{
 		should be set to \ref CTLU_RULE_RESULT_TYPE_CHAINING).
 *//***************************************************************************/
 #pragma pack(push, 1)
-union ctlu_op0_refptr_clp{
+union ctlu_op0_refptr_clp {
 	/** Opaque0
 	Returned as part of lookup result */
 	uint64_t opaque0;
@@ -1088,9 +1095,6 @@ struct ctlu_table_create_params {
 	Please note that this value is not returned through
 	\ref ctlu_table_get_params() function. */
 	uint8_t  key_size;
-
-	/** Padding */
-	uint8_t  pad;
 };
 
 
@@ -1116,16 +1120,13 @@ struct ctlu_table_get_params_output {
 	Please refer to \link FSL_CTLU_TABLE_ATTRIBUTES Table Attributes macros
 	\endlink for more details. */
 	uint16_t attributes;
-
-	/** Padding */
-	uint16_t pad;
 };
 
 
 /**************************************************************************//**
 @Description	Key Composition Rule (kcr) builder
 *//***************************************************************************/
-struct	ctlu_kcr_builder{
+struct	ctlu_kcr_builder {
 	/** KCR as defined by CTLU
 	must be initialized by ctlu_kcr_builder_init() before use */
 	uint8_t  kcr[CTLU_KCR_LENGTH];
@@ -1133,9 +1134,6 @@ struct	ctlu_kcr_builder{
 	/** KCR length
 	Number of bytes the NFEC and FECs occupy */
 	uint8_t  kcr_length;
-
-	/** Padding */
-	uint8_t  pad[3];
 };
 
 
@@ -1143,7 +1141,7 @@ struct	ctlu_kcr_builder{
 /**************************************************************************//**
 @Description	Key Composition Rule (kcr) builder FEC single mask
 *//***************************************************************************/
-struct	ctlu_kcr_builder_fec_single_mask{
+struct	ctlu_kcr_builder_fec_single_mask {
 	/** Bit-wise mask
 	Applied to the extracted header at the corresponding offset from its
 	beginning */
@@ -1161,7 +1159,7 @@ struct	ctlu_kcr_builder_fec_single_mask{
 /**************************************************************************//**
 @Description	Key Composition Rule (kcr) builder FEC mask array
 *//***************************************************************************/
-struct	ctlu_kcr_builder_fec_mask{
+struct	ctlu_kcr_builder_fec_mask {
 	/** An array of up to 4 pairs of bit-wise masks and offsets.
 	Masks are applied to the extracted header at the corresponding offset
 	from its beginning */
@@ -1169,9 +1167,6 @@ struct	ctlu_kcr_builder_fec_mask{
 
 	/** Number of masks (1-4) */
 	uint8_t	num_of_masks;
-
-	/** Padding */
-	uint8_t pad[3];
 };
 
 /** @} */ /* end of FSL_CTLU_STRUCTS */
@@ -1701,6 +1696,7 @@ int32_t ctlu_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash);
 
 /** @} */ /* end of FSL_CTLU_Functions */
 /** @} */ /* end of FSL_CTLU */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_CTLU_H */

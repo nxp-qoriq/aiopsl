@@ -10,13 +10,15 @@
 #include "common/types.h"
 
 
-#define PTR_TO_UINT(_ptr)           ((uintptr_t)(_ptr))
-#define UINT_TO_PTR(_val)           ((void*)(uintptr_t)(_val))
+#define PTR_TO_UINT(_ptr)       ((uintptr_t)(_ptr))
+#define UINT_TO_PTR(_val)       ((void*)(uintptr_t)(_val))
 
-#define PTR_MOVE(_ptr, _offset)     (void*)((uint8_t*)(_ptr) + (_offset))
+#define PTR_MOVE(_ptr, _offset)	(void*)((uint8_t*)(_ptr) + (_offset))
 
+#define MAKE_UINT64(_h32, _l32)	(((uint64_t)high32 << 32) | (low32))
 
-#define MAKE_UINT64(high32, low32)      (((uint64_t)high32 << 32) | (low32))
+#define MAKE_UMASK32(_width)	(uint32_t)(((uint64_t)1 << (_width)) - 1)
+#define MAKE_UMASK64(_width)	(uint64_t)(((uint64_t)1 << (_width)) - 1)
 
 
 /*----------------------*/
@@ -25,46 +27,39 @@
 
 #define UNUSED(_x)	((void)(_x))
 
-#define KILOBYTE            0x400UL                 /* 1024 */
-#define MEGABYTE            (KILOBYTE * KILOBYTE)   /* 1024*1024 */
-#define GIGABYTE            ((uint64_t)(KILOBYTE * MEGABYTE))   /* 1024*1024*1024 */
-#define TERABYTE            ((uint64_t)(KILOBYTE * GIGABYTE))   /* 1024*1024*1024*1024 */
-
+#define KILOBYTE	1024UL
+#define MEGABYTE	(KILOBYTE * KILOBYTE)
+#define GIGABYTE	((KILOBYTE * MEGABYTE))
 
 /* Macro for checking if a number is a power of 2 */
-#define POWER_OF_2(n)   (!((n) & ((n)-1)))
+#define is_power_of_2(n)   (!((n) & ((n)-1)))
 
 /* Macro for calculating log of base 2 */
 //TODO: replace with static inline function, if needed
-#define LOG2(num, log2_num)     \
-    do                          \
-    {                           \
-        uint64_t tmp = (num);   \
-        log2_num = 0;           \
-        while (tmp > 1)         \
-        {                       \
-            log2_num++;         \
+#define LOG2(_num, _log2_num)   \
+    do  {                       \
+        uint64_t tmp = (_num);  \
+        _log2_num = 0;          \
+        while (tmp > 1) {       \
+            _log2_num++;        \
             tmp >>= 1;          \
         }                       \
     } while (0)
 
 //TODO: replace with static inline function, if needed
-#define NEXT_POWER_OF_2(_num, _next_pow)\
-do                                      \
-{                                       \
-    if (POWER_OF_2(_num))               \
-        _next_pow = (_num);             \
-    else                                \
-    {                                   \
-        uint64_t tmp = (_num);          \
-        _next_pow = 1;                  \
-        while (tmp)                     \
-        {                               \
-            _next_pow <<= 1;            \
-            tmp >>= 1;                  \
-        }                               \
-    }                                   \
-} while (0)
+#define NEXT_POWER_OF_2(_num, _next_pow) \
+    do {                                 \
+        if (is_power_of_2(_num))         \
+            _next_pow = (_num);          \
+        else {                           \
+            uint64_t tmp = (_num);       \
+            _next_pow = 1;               \
+            while (tmp) {                \
+                _next_pow <<= 1;         \
+                tmp >>= 1;               \
+            }                            \
+        }                                \
+    } while (0)
 
 /* Ceiling division - not the fastest way, but safer in terms of overflow */
 #define DIV_CEIL(x,y)   (((x)/(y)) + ((((((x)/(y)))*(y)) == (x)) ? 0 : 1))
@@ -89,21 +84,22 @@ do                                      \
 /* Min, Max macros */
 #define MIN(a,b)    ((a) < (b) ? (a) : (b))
 #define MAX(a,b)    ((a) > (b) ? (a) : (b))
-#define IN_RANGE(min,val,max) ((min)<=(val) && (val)<=(max))
+
+#define IN_RANGE(_min,_val,_max)	((_min)<=(_val) && (_val)<=(_max))
 
 #define ABS(a)  ((a<0)?(a*-1):a)
 
 #if !(defined(ARRAY_SIZE))
-#define ARRAY_SIZE(arr)   (sizeof(arr) / sizeof((arr)[0]))
+#define ARRAY_SIZE(arr)		(sizeof(arr) / sizeof((arr)[0]))
 #endif /* !defined(ARRAY_SIZE) */
+#define ARRAY_EL_SIZE(arr)	(sizeof((arr)[0]))
 
 #ifndef IS_ALIGNED
 #define IS_ALIGNED(n,align)     (!((uint32_t)(n) & (align - 1)))
 #endif /* IS_ALIGNED */
 
-#define ILLEGAL_BASE    (~0)
+#define ILLEGAL_BASE    (~0)	//TODO - remove
 
-#define SYS_MASTER_PART_ID      (0)
 /* @} */
 
 /* The following 3 lines must be located at the top of the header file */
@@ -120,21 +116,29 @@ do                                      \
 	enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
 
 
-static __inline__ uint64_t u64_read_field(uint64_t reg, int start_bit, int size)
-{
-    if (size >= 64)
-        return reg;
-    return (reg >> start_bit) & ((0x0000000000000001LL << size)-1);
+#define DECLARE_UINT_CODEC(w) \
+static inline uint##w##_t u##w##_enc(int lsoffset, int width, uint##w##_t val) \
+{ \
+	return (uint##w##_t)(((uint##w##_t)val & MAKE_UMASK##w(width)) << lsoffset); \
+} \
+static inline uint##w##_t u##w##_dec(uint##w##_t val, int lsoffset, int width) \
+{ \
+	return (uint##w##_t)((val >> lsoffset) & MAKE_UMASK##w(width)); \
+} \
+static inline uint##w##_t u##w##_clr(uint##w##_t val, int lsoffset, int width) \
+{ \
+	return (uint##w##_t)(val & ~(MAKE_UMASK##w(width) << lsoffset)); \
+} \
+static inline uint##w##_t u##w##_iso(uint##w##_t val, int lsoffset, int width) \
+{ \
+	return (uint##w##_t)(val & (MAKE_UMASK##w(width) << lsoffset)); \
+} \
+static inline uint##w##_t u##w##_rmw(uint##w##_t val, int lsoffset, int width, uint##w##_t new_val) \
+{ \
+	return (uint##w##_t)(u##w##_clr(val, lsoffset, width) | u##w##_enc(lsoffset, width, new_val)); \
 }
 
-static __inline__ uint64_t u64_write_field(uint64_t reg, int start_bit, int size, uint64_t val)
-{
-    if (size >= 64)
-        reg = val;
-    else
-        reg |= (uint64_t)((val & ((0x0000000000000001LL << size) - 1)) << start_bit);
-    return reg;
-}
-
+DECLARE_UINT_CODEC(32)
+DECLARE_UINT_CODEC(64)
 
 #endif /* __FSL_SYS_GEN_H */

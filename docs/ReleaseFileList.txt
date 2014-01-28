@@ -22,6 +22,7 @@ fsl_osm.h
 fsl_spinlock.h
 fsl_ste.h
 fsl_tman.h
+dpni_drv.h
 
 general.h
 
@@ -39,6 +40,7 @@ gro.h
 gso.h
 system.h
 ipf.h
+drv.h
 
 ctlu.c
 fdma.c
@@ -53,6 +55,7 @@ parser.c
 osm.c
 aiop_ni_init_task.c
 aiop_spinlock.c
+dpni_drv_rxtx.c
 
 
 

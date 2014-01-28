@@ -10,9 +10,16 @@
 
 
 /**************************************************************************//**
-@Group		FSL_AIOP_GSO FSL AIOP GSO
+ @Group		NETF NETF (Network Libraries)
 
-@Description	FSL AIOP GSO
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_AIOP_GSO GSO
+
+@Description	FSL_AIOP_GSO
 
 @{
 *//***************************************************************************/
@@ -64,11 +71,16 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 *//***************************************************************************/
 
 	/** Segmentation process complete. The last segment was generated. */
-#define	TCP_GSO_GEN_SEG_STATUS_DONE		SUCCESS
+#define	TCP_GSO_GEN_SEG_STATUS_DONE					\
+						SUCCESS
 	/** Segmentation process did not complete.
 	 * Segment was generated and the user should call
 	 * gso_generate_tcp_seg() again to generate another segment */
-#define	TCP_GSO_GEN_SEG_STATUS_IN_PROCESS	(TCP_GSO_MODULE_STATUS_ID | 0x1)
+#define	TCP_GSO_GEN_SEG_STATUS_IN_PROCESS				\
+						(TCP_GSO_MODULE_STATUS_ID | 0x1)
+	/** Segmentation process cannot start since the syn/rst flags are set.*/
+#define	TCP_GSO_GEN_SEG_STATUS_SYN_RST_SET				\
+						(TCP_GSO_MODULE_STATUS_ID | 0x2)
 
 /** @} */ /* end of TCP_GSO_GENERATE_SEG_STATUS */
 
@@ -76,7 +88,7 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 
 /**************************************************************************//**
-@Group		GSO_Functions TCP GSO Functions
+@Group		GSO_Functions GSO Functions
 
 @Description	GSO Functions
 
@@ -159,6 +171,7 @@ void tcp_gso_context_init(
 
 /** @} */ /* end of GSO_Functions */
 /** @} */ /* end of FSL_AIOP_GSO */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_GSO_H */

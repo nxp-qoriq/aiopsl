@@ -9,6 +9,11 @@
 #ifndef __AIOP_IPR_H
 #define __AIOP_IPR_H
 
+#include "common/types.h"
+#include "dplib\fsl_ipr.h"
+#include "dplib\fsl_osm.h"
+
+
 /**************************************************************************//**
 @addtogroup	FSL_IPR FSL_AIOP_IPR
 
@@ -16,6 +21,89 @@
 
 @{
 *//***************************************************************************/
+
+#define OUT_OF_ORDER	0x00000001
+#define	MAX_NUM_OF_FRAGS 		64
+#define	FRAG_IN_ORDER_OK		0
+#define LAST_FRAG_IN_ORDER		1
+#define	FRAG_OUT_OF_ORDER_OK	2
+#define LAST_FRAG_OUT_OF_ORDER	3
+#define FRAG_ERROR				4
+#define FRAG_ERROR_EARLY_TO		5
+#define NO_BYPASS_OSM			0x00000000
+#define	BYPASS_OSM				0x00000001
+#define START_CONCURRENT		0x00000003
+#define	RESET_MF_BIT			0xFFDF
+#define NO_ERROR				0
+#define IPR_CONTEXT_SIZE		2624
+#define SIZE_TO_INIT			576 /* RFDC + Link List */
+#define RFDC_VALID				0x00000001
+#define FRAG_OFFSET_MASK		0x1FFF
+#define IPV4_FRAME				0x00000000 /* in RFDC status */
+#define IPV6_FRAME				0x00000001 /* in RFDC status */
+
+/* todo should move to general or OSM include file */
+#define EXCLUSIVE				0
+#define CONCURRENT				1
+
+#define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
+#define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
+
+struct ipr_instance {
+	uint64_t	extended_stats_addr;
+		/** maximum concurrently IPv4 open frames. */
+	uint16_t	table_id_ipv4;
+	uint16_t	table_id_ipv6;
+	uint32_t    max_open_frames_ipv4;
+	uint32_t  	max_open_frames_ipv6;
+	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
+	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
+	uint16_t  	timeout_value_ipv4;/** reass timeout value for ipv4 */
+	uint16_t  	timeout_value_ipv6;/** reass timeout value for ipv6 */
+	/** function to call upon Time Out occurrence for ipv4 */
+	ipr_timeout_cb_t *ipv4_timeout_cb;
+	/** function to call upon Time Out occurrence for ipv6 */
+	ipr_timeout_cb_t *ipv6_timeout_cb;
+	/** Argument to be passed upon invocation of the IPv4 callback
+	    function*/
+	ipr_timeout_arg_t cb_timeout_ipv4_arg;
+	/** Argument to be passed upon invocation of the IPv6 callback
+	    function*/
+	ipr_timeout_arg_t cb_timeout_ipv6_arg;
+		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
+	uint32_t  	flags;
+	/** Number of frames that started reassembly but didn't complete it yet */
+	uint16_t	num_of_open_reass_frames;
+	uint8_t		tmi_id;
+		/** 32-bit alignment. */
+	uint8_t  pad[1];
+};
+
+struct ipr_rfdc{
+	uint64_t	instance_handle;
+	uint64_t	key[2];
+	uint32_t	status;
+	uint32_t	timer_handle;
+	uint16_t	expected_total_length;
+	uint16_t	current_total_length;
+	uint16_t	first_frag_offset;
+	uint16_t	last_frag_offset;
+	uint16_t	current_running_sum;
+	uint8_t		first_frag_index;
+	uint8_t		last_frag_index;
+	uint8_t		next_index;
+	uint8_t		index_to_out_of_order;
+	uint8_t		num_of_frags;
+	uint8_t		res[1];
+};
+
+struct link_list_element{
+	uint16_t	frag_offset;
+	uint16_t	frag_length;
+	uint16_t	res;
+	uint8_t		prev_index;
+	uint8_t 	next_index;
+};
 
 
 /**************************************************************************//**
@@ -102,14 +190,47 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 		The size of each buffer should be at least 2240 bytes.\n
 		Buffers should be aligned to 64 bytes.
 @Param[in]	flags - \link IPRInitFlags IPR init flags \endlink
-@Param[in]	tmi_id - TMAN instance ID to be used for IPR process.
 
 
 @Return		None.
 
 @Cautions	None.
 *//***************************************************************************/
-void ipr_init(uint32_t max_buffers, uint32_t flags, uint8_t tmi_id);
+void ipr_init(uint32_t max_buffers, uint32_t flags);
+
+/**************************************************************************//**
+@Function	ipr_insert_to_link_list
+
+@Description	
+
+@Param[in]	
+@Param[in]	
+@Param[in]	.
+
+
+@Return		None.
+
+@Cautions	None.
+*//***************************************************************************/
+
+uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
+								 uint64_t rfdc_ext_addr);
+
+void closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+
+inline void move_to_correct_ordering_scope(uint32_t osm_status)
+{
+		if(osm_status == 0) {
+			/* return to original ordering scope that entered
+			 * the ipr_reassemble function */
+			osm_scope_exit();
+			osm_scope_exit();	
+		} else if(osm_status & START_CONCURRENT) {
+				osm_scope_transition_to_concurrent_with_increment_scope_id();
+		}
+}
+
+uint32_t check_for_frag_error();
 
 /**************************************************************************//**
 @Description	IPR Global parameters
@@ -119,17 +240,18 @@ struct ipr_global_parameters {
 /** Initialized to max_buffers and will be decremented upon each
  * create instance */
 uint32_t ipr_avail_buffers_cntr;
-/** Pool id returned by the ARENA allocator to be used as context buffer pool */
-uint8_t  ipr_pool_id;
 /** Size of the allocated buffers by the ARENA. These buffers are associated to
     the ipr_pool_id */
 uint16_t ipr_buffer_size;
 /** Should got either as a global define or as a return parameter from
     a dedicated  ARENA function (epid = get_tmi_epid(tmi_id)).*/
 uint8_t  ipr_timeout_epid;
+uint8_t  ipr_timeout_flags;
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
-uint8_t  ipr_tmi_id;
+/** Pool id returned by the ARENA allocator to be used as context buffer pool */
+uint8_t  ipr_pool_id;
+uint16_t res;
 };
 
 /* @} end of group IPR_Internal */

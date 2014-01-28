@@ -12,6 +12,13 @@
 
 
 /**************************************************************************//**
+ @Group		AIOP_General_Definitionsa AIOP SL General Definitions
+
+ @Description	AIOP General Definitions
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
  @Group         ldpaa_g  LDPAA API
 
  @Description   TODO
@@ -269,5 +276,6 @@ struct ldpaa_fd {
 #error "SoC subsystem not defined!"
 #endif /* defined(AIOP) */
 
+/** @} */ /* end of AIOP_General_Definitions */
 
 #endif /* __FSL_LDPAA_H */

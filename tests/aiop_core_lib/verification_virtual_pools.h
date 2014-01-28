@@ -15,6 +15,10 @@
 	#define	VPOOL_ACCEL_ID 0x8D
 #endif
 
+#ifndef MAX_VIRTUAL_POOLS_NUM
+	#define MAX_VIRTUAL_POOLS_NUM 1000
+#endif
+
 /* Virtual Pools Commands */
 #define	VPOOL_ALLOCATE_BUF_CMD                     0 | (VPOOL_ACCEL_ID << 16)
 #define	VPOOL_RELEASE_BUF_CMD                      1 | (VPOOL_ACCEL_ID << 16)
@@ -51,7 +55,7 @@
 struct vpool_allocate_buf_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
-	uint32_t virtual_pool_id;
+	uint32_t virtual_pool_id_ptr;
 		/**< Virtual pool ID */
 	uint32_t context_address_ptr;
 		/**< Pointer to the buffer address */
@@ -76,7 +80,7 @@ struct vpool_allocate_buf_cmd {
 struct vpool_release_buf_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
-	uint32_t virtual_pool_id;
+	uint32_t virtual_pool_id_ptr;
 		/**< Virtual pool ID */
 	uint32_t context_address_ptr;
 		/**< Pointer to the buffer address */
@@ -117,12 +121,15 @@ struct vpool_refcount_increment_cmd {
 struct vpool_refcount_decrement_and_release_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
-	uint32_t virtual_pool_id;
+	uint32_t virtual_pool_id_ptr;
 		/**< Virtual pool ID */
 	uint32_t context_address_ptr;
 		/**< Pointer to the buffer address */
 	int32_t status;
 		/**< Command return status */
+	int32_t callback_status_ptr;
+	/**< Pointer to Callback function return status */
+
 };
 
 /**************************************************************************//**
@@ -155,7 +162,7 @@ struct vpool_create_pool_cmd {
 		/**< Control flags */
 	uint32_t callback_func;
 		/**< Reference to a callback function */
-	uint32_t virtual_pool_id;
+	uint32_t virtual_pool_id_ptr;
 		/**< Virtual pool ID returned value */
 	int32_t status;
 		/**< Command return status */
@@ -172,7 +179,7 @@ struct vpool_create_pool_cmd {
 struct vpool_release_pool_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
-	uint32_t virtual_pool_id;
+	uint32_t virtual_pool_id_ptr;
 		/**< Virtual pool ID */
 	int32_t status;
 		/**< Command return status */
@@ -198,7 +205,7 @@ struct vpool_release_pool_cmd {
 struct vpool_read_pool_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
-	uint32_t virtual_pool_id;
+	uint32_t virtual_pool_id_ptr;
 		/**< Virtual pool ID */
 	uint16_t bman_pool_id;
 		/**< BMAN pool ID */	
@@ -238,9 +245,9 @@ struct vpool_init_cmd {
 		/**< Command Structure identifier. */
 	uint32_t pad1;
 		/**< Padding */
-	uint64_t virtual_pool_struct;
+	//uint64_t virtual_pool_struct;
 		/**< Reference to the head of the virtual pools structure. */
-	uint64_t callback_func_struct;
+	//uint64_t callback_func_struct;
 		/**< Reference to the head of the callback functions structure. */
 	uint32_t num_of_virtual_pools;
 		/**< Number of virtual pools */
@@ -306,6 +313,8 @@ struct vpool_add_total_bman_bufs_cmd {
 /** @} */ /* end of Virtual_Pools_Verification */
 
 /** @}*/ /* end of Service_Routines_Verification */
+
+int32_t dummy_callback (uint64_t context_address);
 
 uint16_t verification_virtual_pools(uint32_t asa_seg_addr);
 

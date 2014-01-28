@@ -1,4 +1,3 @@
-
 1. Copy all files to be documented in doxygen to this folder
 2. load Doxyfile_cfg.txt by Doxywizard
 3. rename project name (e.g. AIOPCoreLib 8.19)

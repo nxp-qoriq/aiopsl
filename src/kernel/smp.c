@@ -56,7 +56,7 @@ void sys_free_multi_processing(void)
 }
 
 
-#ifdef NCSW_SPIN_TABLE_BASE
+#ifdef SYS_SPIN_TABLE_BASE
 
 extern char _spin_table[];  /* base address of spin table (from linker file) */
                             /*Get spin table offset by core ID*/
@@ -67,7 +67,7 @@ void sys_kick_spinning_cores(uint64_t cores_mask,
                           dma_addr_t core_master_entry,
                           dma_addr_t core_guest_entry)
 {
-    uint64_t    spin_table_base = PTR_TO_UINT(NCSW_SPIN_TABLE_BASE);
+    uint64_t    spin_table_base = PTR_TO_UINT(SYS_SPIN_TABLE_BASE);
     uint64_t    spin_table_addr;
     uint32_t    core_id, this_core_id = core_get_id();
     int        core_master;
@@ -123,7 +123,7 @@ uint64_t sys_get_spin_table(uint64_t spin_table_base, uint32_t core_id)
 /*****************************************************************************/
 int sys_kick_guest_partition(uint64_t cores_mask, dma_addr_t phys_base_addr)
 {
-    uint64_t    spin_table_base = PTR_TO_UINT(NCSW_SPIN_TABLE_BASE);
+    uint64_t    spin_table_base = PTR_TO_UINT(SYS_SPIN_TABLE_BASE);
     uint32_t    core_id, this_core_id = core_get_id();
     uint8_t     entry_size = CORE_CACHELINE_SIZE;
 
@@ -151,7 +151,7 @@ void sys_kick_spinning_cores(uint64_t cores_mask,
     UNUSED(core_guest_entry);
     sys.platform_ops.f_enable_cores(sys.platform_ops.h_platform, cores_mask);
 }
-#endif /* NCSW_SPIN_TABLE_BASE */
+#endif /* SYS_SPIN_TABLE_BASE */
 
 
 #ifdef SYS_SMP_SUPPORT

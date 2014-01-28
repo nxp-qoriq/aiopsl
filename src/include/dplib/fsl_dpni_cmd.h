@@ -11,8 +11,6 @@
 
 
 /* cmd IDs */
-#define DPNI_CMD_OPEN				0x801 
-#define DPNI_CMD_CLOSE				0x121
 #define DPNI_CMD_INIT				0x123
 #define DPNI_CMD_FREE				0x124
 #define DPNI_CMD_ATTACH				0x125
@@ -35,7 +33,7 @@
 #define DPNI_CMD_SET_MFL			0x135
 #define DPNI_CMD_SET_MTU			0x136
 #define DPNI_CMD_MCAST_PROMISC			0x137
-#define DPNI_CMD_MODIFY_PRIM_MAC 		0x138
+#define DPNI_CMD_SET_PRIM_MAC 		0x138
 #define DPNI_CMD_ADD_MAC_ADDR			0x139
 #define DPNI_CMD_REMOVE_MAC_ADDR		0x13A
 #define DPNI_CMD_CLR_MAC_TBL			0x13B
@@ -81,7 +79,7 @@
 #define DPNI_CMD_SET_MFL_S			8
 #define DPNI_CMD_SET_MTU_S			8
 #define DPNI_CMD_MCAST_PROMISC_S		8
-#define DPNI_CMD_MODIFY_PRIM_MAC_S 		8
+#define DPNI_CMD_SET_PRIM_MAC_S 		8
 #define DPNI_CMD_ADD_MAC_ADDR_S			8
 #define DPNI_CMD_REMOVE_MAC_ADDR_S		8
 #define DPNI_CMD_CLR_MAC_TBL_S			0
@@ -100,13 +98,12 @@
 #define DPNI_CMD_REMOVE_FS_ENT_S		8
 #define DPNI_CMD_CLR_FS_TBL_S			8
 #define DPNI_CMD_GET_MFL_S			8
+#define DPNI_CMD_GET_PRIM_MAC_S 		8
 
 /* dpni_open */
 /* param 1 */
 #define DPNI_OPEN_ID_O				0
 #define DPNI_OPEN_ID_S				16
-#define DPNI_OPEN_ICID_O			16
-#define DPNI_OPEN_ICID_S			16
 
 /* dpni_init */
 /* param 1*/
@@ -121,6 +118,8 @@
 /* param 2*/
 #define DPNI_INIT_OPTIONS_O			0
 #define DPNI_INIT_OPTIONS_S			32
+#define DPNI_INIT_MAX_DPIOS_O 		32
+#define DPNI_INIT_MAX_DPIOS_S		8
 /*param 3*/
 #define DPNI_INIT_MAX_DIST_O			0
 #define DPNI_INIT_MAX_DIST_S			8
@@ -287,8 +286,13 @@
 
 /* dpni_set_primary_mac_addr */
 /* param 1 */
-#define DPNI_MODIFY_PRIM_MAC_ADDR_O		16
-#define DPNI_MODIFY_PRIM_MAC_ADDR_S		8
+#define DPNI_SET_PRIM_MAC_ADDR_O		16
+#define DPNI_SET_PRIM_MAC_ADDR_S		8
+
+/* dpni_get_primary_mac_addr */
+/* param 1 */
+#define DPNI_GET_PRIM_MAC_ADDR_O		16
+#define DPNI_GET_PRIM_MAC_ADDR_S		8
 
 /* dpni_add_mac_addr */
 /* param 1 */

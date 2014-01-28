@@ -110,15 +110,18 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 		return CTLU_CDMA_CALL_ERROR;
 	}
 
-	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*/
-	__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
-	       *(((uint32_t *)&tbl_params->miss_result) + 2),
-	       *(((uint32_t *)&tbl_params->miss_result) + 3),
-	       *(((uint32_t *)&tbl_params->miss_result) + 4),
-	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv) + 1));
-	/* Copy miss result  - First 4 bytes */
+	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*//*
+	__stqw(*(((uint32_t *)&(tbl_params->miss_result)) + 1),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 2),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 3),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 4),
+	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv)) + 1);*/
+	/* Copy miss result  - First 4 bytes *//*
 	*((uint32_t *)(&(tbl_crt_in_msg.miss_lookup_fcv))) =
-			*((uint32_t *)&tbl_params->miss_result);
+			*((uint32_t *)&tbl_params->miss_result);*/
+
+	/*TODO temp fix until compiler issue with alignment is solved */
+	tbl_crt_in_msg.miss_lookup_fcv = tbl_params->miss_result;
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
@@ -166,16 +169,19 @@ int32_t ctlu_table_update_miss_result(uint16_t table_id,
 	*((uint64_t *)tbl_params_in_msg.reserved + 4) = 0;
 	*((uint32_t *)tbl_params_in_msg.reserved + 10) = 0;
 
-	/* Copy miss result  - Last 16 bytes */
+	/* Copy miss result  - Last 16 bytes *//*
 	__stqw(*(((uint32_t *)miss_rule) + 1),
 	       *(((uint32_t *)miss_rule) + 2),
 	       *(((uint32_t *)miss_rule) + 3),
 	       *(((uint32_t *)miss_rule) + 4),
-	       0, ((uint32_t *)&(tbl_params_in_msg.miss_lookup_fcv) + 1));
+	       0, ((uint32_t *)&(tbl_params_in_msg.miss_lookup_fcv) + 1));*/
 
-	/* Copy miss result  - First 4 bytes */
+	/* Copy miss result  - First 4 bytes *//*
 	*((uint32_t *)(&(tbl_params_in_msg.miss_lookup_fcv))) =
-			*((uint32_t *)miss_rule);
+			*((uint32_t *)miss_rule);*/
+
+	/*TODO temp fix until compiler issue with alignment is solved */
+	tbl_params_in_msg.miss_lookup_fcv = *miss_rule;
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__stqw(CTLU_TABLE_PARAMETERS_REPLACE_MTYPE,
@@ -827,12 +833,6 @@ int32_t ctlu_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 	/* General extraction FECID, mask extension indication */
 	fecid = CTLU_KCR_GEC_FECID << 1;
 
-	/* OP0, OP1 & OP2 */
-
-	op0 = 0;
-	op1 = 0;
-	op2 = 0;
-
 	switch (extract_field) {
 
 	case (CTLU_KCR_EXT_OPAQUE0):
@@ -956,24 +956,29 @@ int32_t ctlu_kcr_builder_add_valid_field_fec(uint8_t mask,
 	uint8_t	nmsk_moff0 = 0x00; /* indicates 1 bytes mask from offset 0x00 */
 	uint8_t	fec_bytes_num = CTLU_KCR_VALID_FIELD_FEC_SIZE;
 
-	if ((curr_byte + fec_bytes_num) > CTLU_KCR_MAX_KCR_SIZE)
-		return CTLU_KCR_SIZE_ERR;
-
-	/* Build the FEC */
-	/* Valid field FECID, mask extension indication*/
-	kb->kcr[curr_byte] = CTLU_KCR_VF_FECID << 1;
 	if (mask) {
-		kb->kcr[curr_byte] = kb->kcr[curr_byte] | CTLU_KCR_MASK_EXT;
 		fec_bytes_num = fec_bytes_num + 2;
+		if ((curr_byte + fec_bytes_num) > CTLU_KCR_MAX_KCR_SIZE)
+			return CTLU_KCR_SIZE_ERR;
 
+		kb->kcr[curr_byte] = (CTLU_KCR_VF_FECID << 1) |
+				     CTLU_KCR_MASK_EXT;
 		kb->kcr[curr_byte+1] = 0x0;
 		kb->kcr[curr_byte+2] = nmsk_moff0;
 		kb->kcr[curr_byte+3] = mask;
+	} else {
+		if ((curr_byte + fec_bytes_num) > CTLU_KCR_MAX_KCR_SIZE)
+			return CTLU_KCR_SIZE_ERR;
+
+		kb->kcr[curr_byte] = CTLU_KCR_VF_FECID << 1;
+		kb->kcr[curr_byte+1] = 0x0;
 	}
+	/* Build the FEC */
+	/* Valid field FECID, mask extension indication*/
 
 	/* Update kcr_builder struct */
 	kb->kcr[0] += 1;
-	kb->kcr_length = fec_bytes_num;
+	kb->kcr_length += fec_bytes_num;
 
 	return CTLU_KCR_SUCCESSFUL_OPERATION;
 

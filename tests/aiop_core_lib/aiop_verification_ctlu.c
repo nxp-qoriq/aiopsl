@@ -7,6 +7,7 @@
 *//***************************************************************************/
 #include "aiop_verification.h"
 #include "aiop_verification_ctlu.h"
+#include "system.h"
 
 
 uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
@@ -421,6 +422,15 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			
 			str_size =
 				sizeof(struct ctlu_table_query_debug_command);
+			break;
+		}
+		case CTLU_KEY_ID_POOL_CREATE_CMD_STR:
+		{
+			struct ctlu_key_id_pool_create_verif_command *str =
+			(struct ctlu_key_id_pool_create_verif_command *) 
+			asa_seg_addr;
+			str->status = sys_ctlu_keyid_pool_create();
+			str_size = sizeof(struct ctlu_key_id_pool_create_verif_command);
 			break;
 		}
 		default:

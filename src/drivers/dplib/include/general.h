@@ -16,7 +16,7 @@
 /*#include "dplib/fsl_aiop_parser.h"*/
 
 /**************************************************************************//**
- @Group		AIOP_General_Definitions
+ @Group		AIOP_General_Definitions AIOP SL General Definitions
 
  @Description	AIOP General Definitions
 
@@ -44,7 +44,7 @@
 #define ONE	1
 
 /* Address of end of TLS section */
-#define TLS_SECTION_END_ADDR	0x1f40
+extern const uint16_t TLS_SECTION_END_ADDR[];
 
 /** @} */ /* end of AIOP_GENERAL_MACROS */
 
@@ -96,9 +96,9 @@
 /** IP Fragmentation module ID */
 #define IPF_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x03000000)
 /** TCP GSO module ID */
-#define GSO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x04000000)
+#define TCP_GSO_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x04000000)
 /** TCP GRO module ID */
-#define GRO_MODULE_STATUS_ID	(BASE_SW_MODULES_STATUS_ID + 0x05000000)
+#define TCP_GRO_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x05000000)
 /** DPNI driver module ID */
 #define DPNI_DRV_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x06000000)
 
@@ -123,7 +123,7 @@
 
 	/** Hardware Context size */
 #define HWC_SIZE		0x100
-	/** Address of Default working frame FD */
+	/** Size of the default working frame FD */
 #define HWC_FD_SIZE		0x20
 	/** Additional Dequeue Context size */
 #define HWC_ADC_SIZE		0x10
@@ -480,8 +480,6 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
-	/** parser accelerator status */
-	int32_t parser_status;
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
@@ -753,6 +751,16 @@ struct aiop_default_task_params {
 #define IPV4_HDR_FRAG_OFFSET_OFFSET 0 /*!< IPv4 fragment offset field offset */
 
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
+
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control
+		Protocol (TCP) Definitions
+@{
+*//***************************************************************************/
+#define TCP_HDR_LENGTH		      20   /**< TCP header length */
+
+/** @} */ /* end of AIOP_General_Protocols_TCP_Definitions */
+
 /** @} */ /* end of FSL_General_Protocols_Macros */
 /** @} */ /* end of AIOP_General_Protocols */
 /** @} */ /* end of AIOP_General_Definitions */
