@@ -24,6 +24,19 @@
 #include "aiop_verification_gro.h"
 #include "aiop_verification_ipf.h"
 #include "aiop_verification_ipr.h"
+#include "dplib/fsl_ip.h"
+#include "dplib/fsl_ipsec.h"
+#include "dplib/fsl_ipv4_checksum.h"
+#include "dplib/fsl_l2.h"
+#include "dplib/fsl_l4.h"
+#include "dplib/fsl_l4_checksum.h"
+#include "dplib/fsl_nat.h"
+#include "dplib/fsl_osm.h"
+#include "dplib/dpni_drv.h"
+#include "dplib/fsl_dpni.h"
+#include "dplib/fsl_dplib_sys.h"
+#include "dplib/fsl_dpni_cmd.h"
+
 
 	/**< ACCEL_ID cmd mask */
 #define ACCEL_ID_CMD_MASK		0xFFFF0000
