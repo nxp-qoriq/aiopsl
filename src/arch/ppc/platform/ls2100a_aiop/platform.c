@@ -391,9 +391,6 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_8_TASKS;
     booke_set_CTSCSR0(CTSCSR_value);
 
-    /* special AIOP registers */
-    booke_set_CTSCSR0(0x84000000);
-
 #if 0 /* TODO - complete! */
     /*------------------------------------------------------*/
     /* Initialize MMU                                       */

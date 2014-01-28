@@ -368,7 +368,6 @@ static void prepare_set_mtu_cmd(struct cmdif_cmd_data *desc, uint16_t mtu)
 	                            DPNI_SET_MTU_MTU_S, mtu);
 	GPP_CMD_WRITE_PARAM(desc, 1, cmd_param);
 }
-#endif /* 0 */
 
 static void prepare_mcast_promisc_cmd(struct cmdif_cmd_data *desc, int en)
 {
