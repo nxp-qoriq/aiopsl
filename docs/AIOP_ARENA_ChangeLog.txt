@@ -1,2 +1,10 @@
 AIOP ARENA V1.1 Change Log
 - Added a new sample CW project app_process_packet that is located under {aiopsl}\build\aiop_t4ls_sim\apps\app_process_packet.
+- aiop_link.lcf: Updated tls memory inside aiop_link.lcf that is located under {aiopsl}\build\aiop_t4ls_sim\cw_files.
+- dpni_drv.c: Modified dpni_drv_init() inside dpni_drv.c that is located under {aiopsl}\src\drivers\dplib\dpni.
+  Added parser profile id 0 initialization and fixed NI table initialization.
+- main.c : Modified ARENA main inside main.c that is located under {aiopsl}\src\kernel.
+  Added CTSCSR0[CTSEN] = 1 right before run_apps().
+- platform.c : Modified pltfrm_init_core_cb() inside platform.c that is located under {aiopsl}\src\arch\ppc\platform\ls2100a_aiop.
+  Removed CTSCSR0[CTSEN] = 1.
+- Updated preprocessor settings in all ARENA demos to use dflags_dbg.h.    
