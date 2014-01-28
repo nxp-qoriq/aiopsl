@@ -1,14 +1,39 @@
 The following file includes the instructions for app_process_packet demo.
 
-Set EPID table with the following settings:
+Use ViPR to setup the following settings. 
+Please refer to examples in TLS simulator installation folder at LS2100-AFM_SIM_ALPHA1\demo_ls\aiop\
+to initialize all the AIOP accelerators. 
+Use AIOP standalone mode.
+
+The aiop_packet_processing demo assumes the following additional settings.
+
+Set first EPID table entry with the following settings:
 ===========================================
 1. EP_PC = 0x00820000.
-2. EPID = 0
 3. EP_PM = 0 - only 1 NI is currently tested
 
 FD[FLC] - frame descriptor special settings
 ===========================================
-1. Set flow ID to 0
+1. Set it all to 0
+
+===========================================
+Demo possible modifications:
+===========================================
+1. The user may add application additional initialization inside app_init()
+2. The user may add packet processing code inside app_process_packet()
+
+===========================================
+Execution flow
+===========================================
+1. Run the demo and get till the core is at waiting state
+2. Start enqueueing FDs using ViPR environment.
+3. See that app_process_packet() is called on every FD.
+ 
+=================
+Important NOTEs:
+=================
+ARENA SW sets CTSCSR0[CTSEN] and and CTSCSR0[NTASKS] by the end of boot, 
+do not set it inside ViPR 
 
 ARENA sets the following default values for every NI: 
 ===========================================
@@ -17,9 +42,11 @@ ARENA sets the following default values for every NI:
   spid = 0 - Storage profile ID
   MTU = maximal value
 
-Important NOTEs:
-=================
-ARENA SW sets CTSCSR0[CTSEN] and and CTSCSR0[NTASKS] by the end of boot, 
-do not set it inside ViPR 
+BMAN pools
+===========================================
+Please note that BMAN pool ID 1 is used by parser initialization routine. 
 
+Virtual pools
+===========================================
+Prior to virtual pools creation the corresponding BMAN pool must be initialized and filled with buffers. 
  
