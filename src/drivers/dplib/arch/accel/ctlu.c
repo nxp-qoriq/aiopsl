@@ -16,18 +16,21 @@
 
 extern uint64_t ext_keyid_pool_address;
 
-
 int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 			  uint16_t *table_id)
 {
+	int32_t status;
+	struct ctlu_table_rule * miss_rule;
 	/* Initialized to one for the simple case where key_size <= 24 */
 	int                               num_entries_per_rule = 1;
 
-	/* 8 Byte aligned for stqw optimization */
+	/* 16 Byte aligned for stqw optimization + HW requirements */
 	struct ctlu_table_create_input_message  tbl_crt_in_msg
-		__attribute__((aligned(8)));
+		__attribute__((aligned(16)));
 
-	struct ctlu_table_create_output_message tbl_crt_out_msg;
+	struct ctlu_table_create_output_message tbl_crt_out_msg
+		__attribute__((aligned(16)));
+	
 	int32_t                           cdma_status;
 
 	struct ctlu_acc_context      *acc_ctx =
@@ -116,66 +119,41 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	/* Call CTLU accelerator */
 	__e_hwacceli(CTLU_ACCEL_ID);
 
-	/* TODO HANDLE MISS RESULT */
-
 	/* Return Table ID */
 	*table_id = (((struct ctlu_table_create_output_message *)acc_ctx->
 		output_pointer)->tid);
 
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+
+	if (status) {
+		return status;
+	}
+
+	/* TODO perform assertion of size here */
+	/* Re-assignment of the structure is done because of stack limitations
+	 * of the service layer */
+	miss_rule = (struct ctlu_table_rule *)&tbl_crt_in_msg;
+	miss_rule->options = CTLU_RULE_TIMESTAMP_NONE;
+
+	/* TODO STQW optimization */
+	miss_rule->result = tbl_params->miss_result;
+
+	return ctlu_table_rule_create(*table_id, miss_rule, 0);
 }
-
-
+/* TODO change update to replace */
+/* TODO return something */
+/* TODO add flags of INC ref-pointer */
 int32_t ctlu_table_update_miss_result(uint16_t table_id,
-				      struct ctlu_table_rule_result *miss_rule)
+				      struct ctlu_table_rule_result *miss_rule,
+				      uint32_t flags)
 {
-	/* 8 Byte aligned for stqw optimization */
-	struct ctlu_table_params_replace_input_message tbl_params_in_msg
-		__attribute__((aligned(8)));
+	/* 16 Byte aligned for stqw optimization + HW requirements */
+	struct ctlu_table_rule new_miss_rule __attribute__((aligned(16)));
+	new_miss_rule.options = CTLU_RULE_TIMESTAMP_NONE;
+	/* TODO STQW optimization */
+	new_miss_rule.result = *miss_rule;
 
-	/* TODO  potential compiler issue? *//*
-	__stdw(0, 0, 0, tbl_params_in_msg.reserved);
-	__stdw(0, 0, 0x8, tbl_params_in_msg.reserved);
-	__stdw(0, 0, 0x10, tbl_params_in_msg.reserved);
-	__stdw(0, 0, 0x18, tbl_params_in_msg.reserved);
-	__stdw(0, 0, 0x20, tbl_params_in_msg.reserved);
-	__stw(0, 0x28, tbl_params_in_msg.reserved);*/
-
-	/* TODO potential compiler issue? *//*
-	__stqw(0, 0, 0, 0, 0, tbl_params_in_msg.reserved);
-	__stqw(0, 0, 0, 0, 0x10, tbl_params_in_msg.reserved);
-	__stqw(0, 0, 0, 0, 0x20, tbl_params_in_msg.reserved);
-	/* This overruns miss result field. The code later overruns it again
-	with the actual miss result. */
-
-	/* Prepare input message */
-	*((uint64_t *)tbl_params_in_msg.reserved) = 0;
-	*((uint64_t *)tbl_params_in_msg.reserved + 1) = 0;
-	*((uint64_t *)tbl_params_in_msg.reserved + 2) = 0;
-	*((uint64_t *)tbl_params_in_msg.reserved + 3) = 0;
-	*((uint64_t *)tbl_params_in_msg.reserved + 4) = 0;
-	*((uint32_t *)tbl_params_in_msg.reserved + 10) = 0;
-
-	/* Copy miss result  - Last 16 bytes */
-	__stqw(*(((uint32_t *)miss_rule) + 1),
-	       *(((uint32_t *)miss_rule) + 2),
-	       *(((uint32_t *)miss_rule) + 3),
-	       *(((uint32_t *)miss_rule) + 4),
-	       0, ((uint32_t *)&(tbl_params_in_msg.miss_lookup_fcv) + 1));
-
-	/* Copy miss result  - First 4 bytes */
-	*((uint32_t *)(&(tbl_params_in_msg.miss_lookup_fcv))) =
-			*((uint32_t *)miss_rule);
-
-	/* Prepare ACC context for CTLU accelerator call */
-	__stqw(CTLU_TABLE_PARAMETERS_REPLACE_MTYPE,
-	       ((uint32_t)&tbl_params_in_msg) << 16, table_id, 0,
-	       HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
-
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	return ctlu_table_rule_replace(table_id, &new_miss_rule, 0, 0); /* TODO FLAGS */
 }
 
 
@@ -205,29 +183,15 @@ int32_t ctlu_table_get_params(uint16_t table_id,
 int32_t ctlu_table_get_miss_result(uint16_t table_id,
 				   struct ctlu_table_rule_result *miss_rule)
 {
-	struct ctlu_table_params_query_output_message output;
+	uint32_t invalid_timestamp;
+	return
+	  ctlu_table_rule_query(table_id, 0, 0, miss_rule, &invalid_timestamp);
 
-	/* Prepare ACC context for TLU accelerator call */
-	__stqw(CTLU_TABLE_QUERY_REFERENCE_INC_MTYPE, (uint32_t)&output,
-	       table_id, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
-
-	/* Copy miss result */
-	*((uint64_t *) miss_rule) = *((uint64_t *)&(output.miss_lookup_fcv));
-	*(((uint64_t *) miss_rule) + 1) =
-		*(((uint64_t *)&(output.miss_lookup_fcv)) + 1);
-	*(((uint32_t *) miss_rule) + 4) =
-			*(((uint32_t *)&(output.miss_lookup_fcv)) + 4);
-
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
 int32_t ctlu_table_delete(uint16_t table_id)
 {
-
 	/* Prepare ACC context for CTLU accelerator call */
 	__stqw(CTLU_TABLE_DELETE_MTYPE, 0, table_id, 0, HWC_ACC_IN_ADDRESS, 0);
 
@@ -328,6 +292,43 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 
 	/* Call CTLU accelerator */
 	__e_hwacceli(CTLU_ACCEL_ID);
+
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+}
+
+
+int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
+			      uint8_t key_size, struct ctlu_table_rule_result
+			      *result, uint32_t *timestamp)
+{
+	struct ctlu_table_entry entry;
+	/* Prepare HW context for TLU accelerator call */
+	uint32_t arg3 = table_id;
+	uint32_t arg2 = (uint32_t)&entry;
+	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__e_rlwimi(arg2, key, 16, 0, 15);
+	__stqw(CTLU_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call CTLU accelerator */
+	__e_hwacceli(CTLU_ACCEL_ID);
+
+	switch (entry.type & CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK) {
+	case (CTLU_TABLE_ENTRY_ENTYPE_EME16):
+		*timestamp = entry.body.eme16.timestamp; 
+		*result = entry.body.eme16.result;
+		break;
+	case (CTLU_TABLE_ENTRY_ENTYPE_EME24):
+		*timestamp = entry.body.eme24.timestamp;
+		*result = entry.body.eme24.result;
+		break;
+	case (CTLU_TABLE_ENTRY_ENTYPE_LPM_RES):
+		*timestamp = entry.body.lpm_res.timestamp;
+		*result = entry.body.lpm_res.result;
+		break;
+	default:
+		break;
+		/*todo*/
+	} /* Switch */
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }

@@ -335,6 +335,7 @@ A general bit that is set in some errors conditions */
  * initialized. */
 #define CTLU_STATUS_TIDE	0x00000080 | (CTLU_ACCEL_ID << 24) | \
 						CTLU_STATUS_MGCF
+
 /** Policer Initialization Entry Error*/ //TODO consider to remove as HW removes it.
 #define CTLU_STATUS_PIEE	0x00000040 | (CTLU_ACCEL_ID << 24)
 
@@ -975,7 +976,6 @@ struct	ctlu_kcr_builder{
 };
 
 
-
 /**************************************************************************//**
 @Description	Key Composition Rule (kcr) builder FEC single mask
 *//***************************************************************************/
@@ -1059,7 +1059,8 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 *//***************************************************************************/
 int32_t ctlu_table_update_miss_result(uint16_t table_id,
 				      struct ctlu_table_rule_result
-					     *miss_result);
+					     *miss_result,
+				      uint32_t flags);
 
 
 /**************************************************************************//**
@@ -1190,6 +1191,35 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 				uint8_t key_size,
 				uint32_t flags);
 //TODO add flags documentation
+
+
+/**************************************************************************//**
+@Function	ctlu_table_rule_query
+
+@Description	Queries a rule in the table.
+
+@Param[in]	table_id - Table ID.
+@Param[in]	key - Key of the rule to be queried.
+@Param[in]	key_size - Key size in bytes.
+@Param[out]	result - The result of the query.
+@Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
+		unless the rule queried for was created with suitable options
+		(Please refer to \ref FSL_CTLU_TABLE_RULE_OPTIONS for more
+		details).
+
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+
+@Cautions	NOTE: If the result is of type that contains pointer to CDMA
+		application buffer (refer to struct ctlu_table_rule_result
+		documentation) this function will not increment the reference
+		counter of the buffer. For query functions that does increment
+		the reference counter please refer to table lookup function.
+		In this function the task yields.
+*//***************************************************************************/
+int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
+			      uint8_t key_size, struct ctlu_table_rule_result
+			      *result, uint32_t *timestamp);
+
 
 /**************************************************************************//**
 @Function	table_delete_rule

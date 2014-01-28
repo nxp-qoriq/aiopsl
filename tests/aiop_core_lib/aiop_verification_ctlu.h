@@ -246,7 +246,6 @@ struct ctlu_table_create_command {
 		Includes information needed for CTLU Update Miss Rule command
 		verification.
 *//***************************************************************************/
-
 struct ctlu_update_miss_rule_command {
 	/** CTLU Update Miss Rule Command identifier */
 	uint32_t opcode;
@@ -260,6 +259,9 @@ struct ctlu_update_miss_rule_command {
 
 	/** Command returned status. */
 	int32_t  status;
+
+	/** Flags */
+	uint32_t flags;
 
 	/** Table ID */
 	uint16_t table_id;
@@ -341,10 +343,10 @@ struct ctlu_table_delete_command {
 
 
 /**************************************************************************//**
-@Description	CTLU Table Rule Create/Create or Replace/Replace Command struct.
+@Description	CTLU Table Rule Create struct.
 
-		Includes information needed for CTLU Table Rule Create/ 
-		Create or Replace/ Replace command verification.
+		Includes information needed for CTLU Table Rule Create
+		command verification.
 *//***************************************************************************/
 struct ctlu_table_rule_create_command{
 	/** CTLU Table Rule Create identifier */
@@ -366,6 +368,37 @@ struct ctlu_table_rule_create_command{
 	uint8_t pad;
 };
 
+
+/**************************************************************************//**
+@Description	CTLU Table Rule Create or Replace/Replace Command struct.
+
+		Includes information needed for CTLU Table Rule
+		Create or Replace/ Replace command verification.
+*//***************************************************************************/
+struct ctlu_table_rule_create_replace_command{
+	/** CTLU Table Rule Create identifier */
+	uint32_t opcode;
+
+	/** A pointer to the rule to be added (workspace pointer)*/
+	uint32_t rule_ptr;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/** Flags */
+	uint32_t flags;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Key size */
+	uint8_t key_size;
+
+	/** 64-bit alignment */
+	uint8_t pad;
+};
+
+
 /**************************************************************************//**
 @Description	CTLU Table Rule Delete Command structure.
 
@@ -381,6 +414,9 @@ struct ctlu_table_rule_delete_command{
 
 	/** Command returned status */
 	int32_t  status;
+
+	/** Flags */
+	uint32_t flags;
 
 	/** Table ID */
 	uint16_t table_id;
