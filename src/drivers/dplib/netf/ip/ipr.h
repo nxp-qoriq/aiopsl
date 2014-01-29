@@ -244,6 +244,7 @@ inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 		  osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
 }
+uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();
 
