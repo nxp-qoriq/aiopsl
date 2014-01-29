@@ -247,15 +247,18 @@ struct ctlu_table_create_command {
 		verification.
 *//***************************************************************************/
 struct ctlu_update_miss_rule_command {
-	/** CTLU Update Miss Rule Command identifier */
-	uint32_t opcode;
-
 	/** Miss Rule to update.
 	The structure to be passed must be one of the following:
 	 - \ref aiop_ctlu_result_chaining
 	 - \ref aiop_ctlu_result_reference
 	 - \ref aiop_ctlu_result_opaque */
 	struct ctlu_table_rule_result miss_rule;
+
+	/** The old miss result */
+	struct ctlu_table_rule_result old_miss_result;
+
+	/** CTLU Update Miss Rule Command identifier */
+	uint32_t opcode;
 
 	/** Command returned status. */
 	int32_t  status;
@@ -376,6 +379,9 @@ struct ctlu_table_rule_create_command{
 		Create or Replace/ Replace command verification.
 *//***************************************************************************/
 struct ctlu_table_rule_create_replace_command{
+	/** Rule's old result - valid only if replace occurred */
+	struct ctlu_table_rule_result old_res;
+
 	/** CTLU Table Rule Create identifier */
 	uint32_t opcode;
 
@@ -406,6 +412,9 @@ struct ctlu_table_rule_create_replace_command{
 		command verification.
 *//***************************************************************************/
 struct ctlu_table_rule_delete_command{
+	/** Rule's old result */
+	struct ctlu_table_rule_result old_res;
+
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
 

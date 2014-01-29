@@ -1046,6 +1046,8 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 
 @Param[in]	miss_result - A default rule that is chosen when no match is
 		found.
+@Param[in]	flags - TODO
+@Param[out]	old_result - The replaced miss result.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1057,7 +1059,9 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 int32_t ctlu_table_update_miss_result(uint16_t table_id,
 				      struct ctlu_table_rule_result
 					     *miss_result,
-				      uint32_t flags);
+				      uint32_t flags,
+				      struct ctlu_table_rule_result
+					     *old_result);
 
 
 /**************************************************************************//**
@@ -1152,6 +1156,9 @@ int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
+@Param[in]	flags - TODO
+@Param[out]	old_res - The result of the replaced entry. Valid only if
+		replace took place.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1160,7 +1167,10 @@ int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
 int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 					  struct ctlu_table_rule *rule,
 					  uint8_t key_size,
-					  uint32_t flags);
+					  uint32_t flags,
+					  struct ctlu_table_rule_result
+						 *old_res
+					 );
 //TODO add flags documentation
 
 /**************************************************************************//**
@@ -1176,6 +1186,8 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 		rule to be replaced will be found and contain the rule
 		result to be replaced. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
+@Param[in]	flags - TODO
+@Param[out]	old_res - The result of the replaced entry.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1186,8 +1198,9 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 int32_t ctlu_table_rule_replace(uint16_t table_id,
 				struct ctlu_table_rule *rule,
 				uint8_t key_size,
-				uint32_t flags);
-//TODO add flags documentation
+				uint32_t flags,
+				struct ctlu_table_rule_result *old_res
+			       );
 
 
 /**************************************************************************//**
@@ -1214,9 +1227,12 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 		the reference counter please refer to table lookup function.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
-			      uint8_t key_size, struct ctlu_table_rule_result
-			      *result, uint32_t *timestamp);
+int32_t ctlu_table_rule_query(uint16_t table_id,
+			      union ctlu_key *key,
+			      uint8_t key_size,
+			      struct ctlu_table_rule_result *result,
+			      uint32_t *timestamp
+			     );
 
 
 /**************************************************************************//**
@@ -1228,6 +1244,8 @@ int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
 @Param[in]	key - Key of the rule to be deleted. Must be aligned to 16B
 		boundary.
 @Param[in]	key_size - Key size in bytes.
+@Param[in]	flags - TODO
+@Param[out]	result - The result of the deleted rule.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1235,9 +1253,13 @@ int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
-			       uint8_t key_size, uint32_t flags);
-//TODO add flags documentation
+int32_t ctlu_table_rule_delete(uint16_t table_id,
+			       union ctlu_key *key,
+			       uint8_t key_size,
+			       uint32_t flags,
+			       struct ctlu_table_rule_result *result
+			      );
+
 
 /* ######################################################################### */
 /* ############################# Table Lookups ############################# */
@@ -1267,8 +1289,9 @@ int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_lookup_by_keyid(uint16_t table_id, uint8_t keyid,
-				struct ctlu_lookup_result *lookup_result);
+int32_t ctlu_table_lookup_by_keyid(uint16_t table_id,
+				   uint8_t keyid,
+				   struct ctlu_lookup_result *lookup_result);
 
 
 /**************************************************************************//**

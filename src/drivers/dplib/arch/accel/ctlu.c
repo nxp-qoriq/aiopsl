@@ -144,16 +144,20 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 /* TODO return something */
 /* TODO add flags of INC ref-pointer */
 int32_t ctlu_table_update_miss_result(uint16_t table_id,
-				      struct ctlu_table_rule_result *miss_rule,
-				      uint32_t flags)
+				      struct ctlu_table_rule_result
+					     *miss_result,
+				      uint32_t flags,
+				      struct ctlu_table_rule_result
+					     *old_result)
 {
 	/* 16 Byte aligned for stqw optimization + HW requirements */
 	struct ctlu_table_rule new_miss_rule __attribute__((aligned(16)));
 	new_miss_rule.options = CTLU_RULE_TIMESTAMP_NONE;
 	/* TODO STQW optimization */
-	new_miss_rule.result = *miss_rule;
+	new_miss_rule.result = *miss_result;
 
-	return ctlu_table_rule_replace(table_id, &new_miss_rule, 0, 0); /* TODO FLAGS */
+	return ctlu_table_rule_replace(table_id, &new_miss_rule, 0, 0);
+	/* TODO FLAGS */
 }
 
 
@@ -237,7 +241,10 @@ int32_t ctlu_table_rule_create(uint16_t table_id,
 int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 					  struct ctlu_table_rule *rule,
 					  uint8_t key_size,
-					  uint32_t flags)
+					  uint32_t flags,
+					  struct ctlu_table_rule_result
+						 *old_res
+					 )
 {
 	uint32_t arg3 = table_id;
 
@@ -269,7 +276,9 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 int32_t ctlu_table_rule_replace(uint16_t table_id,
 				struct ctlu_table_rule *rule,
 				uint8_t key_size,
-				uint32_t flags)
+				uint32_t flags,
+				struct ctlu_table_rule_result *old_res
+			       )
 {
 	uint32_t arg3 = table_id;
 
@@ -297,9 +306,12 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 }
 
 
-int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
-			      uint8_t key_size, struct ctlu_table_rule_result
-			      *result, uint32_t *timestamp)
+int32_t ctlu_table_rule_query(uint16_t table_id,
+			      union ctlu_key *key,
+			      uint8_t key_size,
+			      struct ctlu_table_rule_result *result,
+			      uint32_t *timestamp
+			     )
 {
 	struct ctlu_table_entry entry __attribute__((aligned(16)));
 	/* Prepare HW context for TLU accelerator call */
@@ -337,8 +349,12 @@ int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
 }
 
 
-int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
-			       uint8_t key_size, uint32_t flags)
+int32_t ctlu_table_rule_delete(uint16_t table_id,
+			       union ctlu_key *key,
+			       uint8_t key_size,
+			       uint32_t flags,
+			       struct ctlu_table_rule_result *result
+			      )
 {
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg3 = table_id;
