@@ -110,15 +110,18 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 		return CTLU_CDMA_CALL_ERROR;
 	}
 
-	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*/
+	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*//*
 	__stqw(*(((uint32_t *)&(tbl_params->miss_result)) + 1),
 	       *(((uint32_t *)&(tbl_params->miss_result)) + 2),
 	       *(((uint32_t *)&(tbl_params->miss_result)) + 3),
 	       *(((uint32_t *)&(tbl_params->miss_result)) + 4),
-	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv)) + 1);
-	/* Copy miss result  - First 4 bytes */
+	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv)) + 1);*/
+	/* Copy miss result  - First 4 bytes *//*
 	*((uint32_t *)(&(tbl_crt_in_msg.miss_lookup_fcv))) =
-			*((uint32_t *)&tbl_params->miss_result);
+			*((uint32_t *)&tbl_params->miss_result);*/
+
+	/*TODO temp fix until compiler issue with alignment is solved */
+	tbl_crt_in_msg.miss_lookup_fcv = tbl_params->miss_result;
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
@@ -166,16 +169,19 @@ int32_t ctlu_table_update_miss_result(uint16_t table_id,
 	*((uint64_t *)tbl_params_in_msg.reserved + 4) = 0;
 	*((uint32_t *)tbl_params_in_msg.reserved + 10) = 0;
 
-	/* Copy miss result  - Last 16 bytes */
+	/* Copy miss result  - Last 16 bytes *//*
 	__stqw(*(((uint32_t *)miss_rule) + 1),
 	       *(((uint32_t *)miss_rule) + 2),
 	       *(((uint32_t *)miss_rule) + 3),
 	       *(((uint32_t *)miss_rule) + 4),
-	       0, ((uint32_t *)&(tbl_params_in_msg.miss_lookup_fcv) + 1));
+	       0, ((uint32_t *)&(tbl_params_in_msg.miss_lookup_fcv) + 1));*/
 
-	/* Copy miss result  - First 4 bytes */
+	/* Copy miss result  - First 4 bytes *//*
 	*((uint32_t *)(&(tbl_params_in_msg.miss_lookup_fcv))) =
-			*((uint32_t *)miss_rule);
+			*((uint32_t *)miss_rule);*/
+
+	/*TODO temp fix until compiler issue with alignment is solved */
+	tbl_params_in_msg.miss_lookup_fcv = *miss_rule;
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__stqw(CTLU_TABLE_PARAMETERS_REPLACE_MTYPE,

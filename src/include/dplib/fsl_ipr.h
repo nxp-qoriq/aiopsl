@@ -291,6 +291,9 @@ struct extended_stats_cntrs {
 /* Fragment has been recognized as malformed, and wasn't added
     to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
+/* An error occurred during reassembly, like instance not valid,
+ * early time out */
+#define IPR_ERROR			(IPR_MODULE_STATUS_ID + 0x0500)
 
 /* @} end of group FSL_IPRReassReturnStatus */
 
