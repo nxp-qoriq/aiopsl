@@ -646,6 +646,8 @@ enum cdma_errors {
 *//***************************************************************************/
 
 /* Read/Write Data Access */
+		/* No data access */
+#define CDMA_ACCESS_CONTEXT_NO_MEM_DMA		0x0000
 		/* Read data access from external memory to Workspace */
 #define CDMA_ACCESS_CONTEXT_MEM_DMA_READ	0x4000
 		/* Write data access from Workspace to external memory */
