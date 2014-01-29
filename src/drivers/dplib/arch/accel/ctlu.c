@@ -160,8 +160,8 @@ int32_t ctlu_table_update_miss_result(uint16_t table_id,
 int32_t ctlu_table_get_params(uint16_t table_id,
 			      struct ctlu_table_get_params_output *tbl_params)
 {
-
-	struct ctlu_table_params_query_output_message output;
+	struct ctlu_table_params_query_output_message output
+		__attribute__((aligned(16)));
 
 	/* Prepare ACC context for TLU accelerator call */
 	__stqw(CTLU_TABLE_QUERY_MTYPE, (uint32_t)&output, table_id, 0,
@@ -301,7 +301,7 @@ int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
 			      uint8_t key_size, struct ctlu_table_rule_result
 			      *result, uint32_t *timestamp)
 {
-	struct ctlu_table_entry entry;
+	struct ctlu_table_entry entry __attribute__((aligned(16)));
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
@@ -314,15 +314,18 @@ int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
 
 	switch (entry.type & CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK) {
 	case (CTLU_TABLE_ENTRY_ENTYPE_EME16):
-		*timestamp = entry.body.eme16.timestamp; 
+		*timestamp = entry.body.eme16.timestamp;
+		/*todo optimization */
 		*result = entry.body.eme16.result;
 		break;
 	case (CTLU_TABLE_ENTRY_ENTYPE_EME24):
 		*timestamp = entry.body.eme24.timestamp;
+		/*todo optimization */
 		*result = entry.body.eme24.result;
 		break;
 	case (CTLU_TABLE_ENTRY_ENTYPE_LPM_RES):
 		*timestamp = entry.body.lpm_res.timestamp;
+		/*todo optimization */
 		*result = entry.body.lpm_res.result;
 		break;
 	default:

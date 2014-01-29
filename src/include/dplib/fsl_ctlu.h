@@ -336,9 +336,6 @@ A general bit that is set in some errors conditions */
 #define CTLU_STATUS_TIDE	0x00000080 | (CTLU_ACCEL_ID << 24) | \
 						CTLU_STATUS_MGCF
 
-/** Policer Initialization Entry Error*/ //TODO consider to remove as HW removes it.
-#define CTLU_STATUS_PIEE	0x00000040 | (CTLU_ACCEL_ID << 24)
-
 /** Resource is not available
  * */
 #define CTLU_STATUS_NORSC	0x00000020 | (CTLU_ACCEL_ID << 24) | \
@@ -1132,8 +1129,8 @@ int32_t ctlu_table_delete(uint16_t table_id);
 		a status will be returned.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added.
-@Param[in]	key_size - Key size.
+@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	key_size - Key size in bytes.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1153,8 +1150,8 @@ int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
 		rule will be created in the table.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added.
-@Param[in]	key_size - Key size.
+@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	key_size - Key size in bytes.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1177,8 +1174,8 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - Table rule, contains the rule's key, with which the
 		rule to be replaced will be found and contain the rule
-		result to be replaced.
-@Param[in]	key_size - Key size.
+		result to be replaced. Must be aligned to 16B boundary.
+@Param[in]	key_size - Key size in bytes.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1199,7 +1196,8 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 @Description	Queries a rule in the table.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Key of the rule to be queried.
+@Param[in]	key - Key of the rule to be queried. Must be aligned to 16B
+		boundary.
 @Param[in]	key_size - Key size in bytes.
 @Param[out]	result - The result of the query.
 @Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
@@ -1227,8 +1225,9 @@ int32_t ctlu_table_rule_query(uint16_t table_id, union ctlu_key *key,
 @Description	Deletes a specified rule in the table.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Key of the rule to be deleted.
-@Param[in]	key_size - Key size.
+@Param[in]	key - Key of the rule to be deleted. Must be aligned to 16B
+		boundary.
+@Param[in]	key_size - Key size in bytes.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1261,7 +1260,8 @@ int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
 @Param[in]	keyid - A key ID for the table lookups (key ID specifies
 		how to build a key).
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written.
+		the table lookup result will be written.  Must be aligned to
+		16B boundary.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1281,10 +1281,11 @@ int32_t ctlu_table_lookup_by_keyid(uint16_t table_id, uint8_t keyid,
 		usage.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Lookup key.
-@Param[in]	key_size - Key size.
+@Param[in]	key - Lookup key. Must be aligned to 16B boundary
+@Param[in]	key_size - Key size in bytes.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written.
+		the table lookup result will be written. Must be aligned to 16B
+		boundary.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1542,8 +1543,9 @@ int32_t ctlu_kcr_query(uint8_t keyid, uint8_t *kcr, uint8_t *size);
 @Description	Extracts a key from a frame and returns it.
 
 @Param[in]	keyid - The key ID to be used for the key extraction.
-@Param[out]	key - The key.
-@Param[out]	key_size - Key size.
+@Param[out]	key - The key. This structure is allocated by the user and must
+		be aligned to 16B boundary
+@Param[out]	key_size - Key size in bytes.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1557,8 +1559,9 @@ int32_t ctlu_gen_key(uint8_t keyid, union ctlu_key *key, uint8_t *key_size);
 
 @Description	Generates a hash value from a given key.
 
-@Param[in]	key - The key to generate hash from.
-@Param[in]	key_size - Key size.
+@Param[in]	key - The key to generate hash from. Must be aligned to 16B
+		boundary
+@Param[in]	key_size - Key size in bytes.
 @Param[out]	hash - The hash result.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
