@@ -24,9 +24,8 @@ int32_t cksum_calc_udp_tcp_checksum(uint32_t flags)
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Check if TCP or UDP*/
-	if (!PARSER_IS_TCP_OR_UDP_DEFAULT()) {
+	if (!PARSER_IS_TCP_OR_UDP_DEFAULT())
 		return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_NON_UDP_TCP;
-	}
 
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {
@@ -39,15 +38,14 @@ int32_t cksum_calc_udp_tcp_checksum(uint32_t flags)
 
 	/* Call parser */
 	if (PARSER_STATUS_PASS != parse_result_generate_checksum(
-		(enum parser_starting_hxs_code)
-		default_task_params.parser_starting_hxs, 0, &l3checksum_dummy,
-		&l4checksum)) 
-	{
+	    (enum parser_starting_hxs_code)
+	    default_task_params.parser_starting_hxs, 0, &l3checksum_dummy,
+	    &l4checksum)) {
 		return
 		L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_PARSER_FAILURE;
 	}
 
-	if (PARSER_IS_TCP_DEFAULT()){
+	if (PARSER_IS_TCP_DEFAULT()) {
 		/* Point to the TCP header */
 		tcph = (struct tcphdr *)(PRC_GET_SEGMENT_ADDRESS() +
 					 PARSER_GET_L4_OFFSET_DEFAULT());
@@ -57,7 +55,7 @@ int32_t cksum_calc_udp_tcp_checksum(uint32_t flags)
 
 		/* Write checksum to TCP header */
 		tcph->checksum = l4checksum;
-	} /* TCP */ 
+	} /* TCP */
 	else {
 		/* Point to the UDP header */
 		udph = (struct udphdr *)(PRC_GET_SEGMENT_ADDRESS() +

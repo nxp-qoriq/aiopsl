@@ -20,7 +20,21 @@
 
 
 /**************************************************************************//**
-@Group	FSL_HM FSL_AIOP_Header_Modification
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_IP IP
+
+ @Description	AIOP IP related header modifications
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_HM Header Modification
 
 @Description	Header Modification API
 
@@ -161,7 +175,7 @@
 
 		It automatically generates the IP checksum and optionally
 		can update the UDP/TCP checksum.
-		
+
 		The function assumes the original UDP/TCP checksum to be valid.
 
 		If the incoming frame contains TCP/UDP (the original UDP
@@ -274,7 +288,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 
 *//***************************************************************************/
 int32_t ipv4_header_encapsulation(uint8_t flags,
-								  void *ipv4header, uint8_t ipv4_header_size);
+				void *ipv4header, uint8_t ipv4_header_size);
 
 
 /*************************************************************************//**
@@ -314,7 +328,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 
 *//***************************************************************************/
 int32_t ipv6_header_encapsulation(uint8_t flags,
-								  void *ipv6header, uint8_t ipv6_header_size);
+				void *ipv6header, uint8_t ipv6_header_size);
 
 /*************************************************************************//**
 @Function	ip_header_decapsulation
@@ -383,6 +397,8 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group FSL_HM */
+/* @} end of group AIOP_IP */
+/* @} end of group NETF */
 
 
 #endif /* __FSL_IP_H */

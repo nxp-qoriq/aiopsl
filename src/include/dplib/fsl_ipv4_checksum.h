@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File		fsl_ipv4_checksum.h
 
-@Description	This file contains the AIOP SW Internet Protocol Version 4 
+@Description	This file contains the AIOP SW Internet Protocol Version 4
 		Checksum API.
 
 		Copyright 2013 Freescale Semiconductor, Inc.
@@ -10,10 +10,24 @@
 #define __FSL_IPV4_CHECKSUM_H
 
 #include "common/types.h"
-
+#include "net/fsl_net.h"
 
 /**************************************************************************//**
-@Group	FSL_IPV4_CKSUM FSL_AIOP_IPv4_Checksum
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_IP IP
+
+ @Description	AIOP IP related header modifications
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_IPV4_CKSUM IPV4 Checksum
 
 @Description	Freescale AIOP Internet Protocol Version 4 Checksum API
 
@@ -88,6 +102,8 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t flags);
 
 /** @} */ /* end of FSL_IPV4_CKSUM_Functions */
 /** @} */ /* end of FSL_IPV4_CKSUM */
+/** @} */ /* end of IP */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_IPV4_CHCEKSUM_H */

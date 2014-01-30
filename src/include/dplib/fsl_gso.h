@@ -19,7 +19,7 @@
 /**************************************************************************//**
 @Group		FSL_AIOP_GSO GSO
 
-@Description	FSL AIOP GSO
+@Description	FSL_AIOP_GSO
 
 @{
 *//***************************************************************************/
@@ -88,7 +88,7 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 
 /**************************************************************************//**
-@Group		GSO_Functions TCP GSO Functions
+@Group		GSO_Functions GSO Functions
 
 @Description	GSO Functions
 

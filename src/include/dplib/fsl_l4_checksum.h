@@ -12,7 +12,14 @@
 
 
 /**************************************************************************//**
-@Group	FSL_L4_CKSUM FSL_AIOP_L4_Checksum
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group	FSL_L4_CKSUM L4 Checksum
 
 @Description	Freescale AIOP Layer 4 Checksum API
 
@@ -95,6 +102,7 @@ int32_t cksum_calc_udp_tcp_checksum(uint32_t flags);
 
 /** @} */ /* end of FSL_L4_CKSUM_Functions */
 /** @} */ /* end of FSL_L4_CKSUM */
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_L4_CHCEKSUM_H */

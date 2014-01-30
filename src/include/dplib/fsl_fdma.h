@@ -1492,8 +1492,7 @@ struct fdma_present_segment_params {
 		/**< Location within the presented frame to start presenting
 		 * from. Must be within the bound of the frame. */
 	uint16_t offset;
-		/**< Number of frame bytes to present (Must be greater than
-		 * 0). */
+		/**< Number of frame bytes to present (any value including 0).*/
 	uint16_t present_size;
 		/**< Returned parameter:
 		 * A pointer to the number of bytes actually presented (the
@@ -1718,8 +1717,8 @@ int32_t fdma_present_frame(
 		presented frame segment.
 @Param[in]	offset - Location within the presented frame to start presenting
 		from. Must be within the bound of the frame.
-@Param[in]	present_size - Number of frame bytes to present (Must be greater
-		than 0).
+@Param[in]	present_size - Number of frame bytes to present (any value 
+		including 0).
 @Param[out]	seg_length - A pointer to the number of bytes actually
 		presented (the segment actual size).
 @Param[out]	seg_handle - A pointer to the handle of the presented segment.
@@ -2902,6 +2901,10 @@ int32_t fdma_copy_data(
 
 @Description	Create a frame from scratch and fill it with user specified
 		data.
+		
+		Implicit input parameters in Task Defaults: SPID (Storage 
+		Profile ID), frame isolation attributes 
+		(struct fdma_isolation_attributes). 
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD. 

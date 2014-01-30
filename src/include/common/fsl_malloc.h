@@ -14,8 +14,7 @@
 
 
 /**************************************************************************//**
- @Group         fsl_os_g  FSL OS Interface (System call hooks)
-
+ @Group         fsl_lib_g   Utility Library 
  @Description   Prototypes, externals and typedefs for system-supplied
                 (external) routines
 
@@ -23,6 +22,14 @@
 *//***************************************************************************/
 
 #ifndef DEBUG_FSL_OS_MALLOC
+/**************************************************************************//**
+ @Group         fsl_mm_g   Memory Manager
+
+ @Description   Prototypes, externals and typedefs for system-supplied
+                (external) routines
+
+ @{
+*//***************************************************************************/
 /**************************************************************************//**
  @Function      fsl_os_malloc
 
@@ -155,7 +162,9 @@ uint32_t fsl_os_buff_get_size(int pool_id);
  *//***************************************************************************/
 uint32_t fsl_os_buff_get_num_buffs(int pool_id);
 
-/** @} */ /* end of fsl_os_g group */
+/** @} */ /* end of fsl_mm_g group */
+
+/** @} */ /* end of fsl_lib_g  group */
 
 
 #endif /* __FSL_MALLOC_H */
