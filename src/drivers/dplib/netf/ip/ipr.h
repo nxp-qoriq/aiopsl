@@ -25,25 +25,28 @@
 
 #define OUT_OF_ORDER			0x00000001
 #define	MAX_NUM_OF_FRAGS 		64
-#define	FRAG_IN_ORDER_OK		0
+#define	FRAG_OK_REASS_NOT_COMPL		0
 #define LAST_FRAG_IN_ORDER		1
-#define	FRAG_OUT_OF_ORDER_OK		2
-#define LAST_FRAG_OUT_OF_ORDER		3
-#define FRAG_ERROR			4
-#define FRAG_ERROR_EARLY_TO		5
+#define LAST_FRAG_OUT_OF_ORDER		2
+#define FRAG_ERROR			3
 #define NO_BYPASS_OSM			0x00000000
 #define	BYPASS_OSM			0x00000001
 #define START_CONCURRENT		0x00000003
 #define	RESET_MF_BIT			0xFFDF
 #define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2624
-#define SIZE_TO_INIT			576 /* RFDC + Link List */
+#define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
+#define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
+#define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
 #define RFDC_VALID			0x00000001
 #define FRAG_OFFSET_MASK		0x1FFF
 #define IPV4_FRAME			0x00000000 /* in RFDC status */
 #define IPV6_FRAME			0x00000001 /* in RFDC status */
 #define INSTANCE_VALID			0x0001
 #define REF_COUNT_ADDR_DUMMY		HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+#define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
+#define RFDC_SIZE			sizeof(struct ipr_rfdc)
+#define FD_SIZE				sizeof(struct ldpaa_fd)
 
 /* todo should move to general or OSM include file */
 #define EXCLUSIVE				0
