@@ -76,6 +76,7 @@
 		running sum] field.
 
 @Param[in]	ipv4header - pointer to ipv4 header.
+@Param[in]	flags - Flags for this function. Please refer TODO
 
 @Return		Please refer to \ref FSL_IPV4_CKSUM_STATUS.
 
@@ -83,7 +84,7 @@
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header);
+int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t flags);
 
 /** @} */ /* end of FSL_IPV4_CKSUM_Functions */
 /** @} */ /* end of FSL_IPV4_CKSUM */

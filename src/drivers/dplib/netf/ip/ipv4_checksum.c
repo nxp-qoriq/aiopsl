@@ -13,7 +13,7 @@
 #include "dplib/fsl_parser.h"
 
 
-int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header)
+int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t flags)
 {
 
 	uint16_t running_sum;

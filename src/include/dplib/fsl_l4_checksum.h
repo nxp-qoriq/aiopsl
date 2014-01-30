@@ -80,6 +80,8 @@
 
 		Implicitly updated values in Task Defaults: Parse Result.
 
+@Param[in]	flags - Flags for this function. Please refer TODO
+
 @Return		Please refer to \ref FSL_L4_CKSUM_STATUS_CALC_UDP_TCP.
 
 @Cautions	In this function the task yields. \n
@@ -89,7 +91,7 @@
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t cksum_calc_udp_tcp_checksum();
+int32_t cksum_calc_udp_tcp_checksum(uint32_t flags);
 
 /** @} */ /* end of FSL_L4_CKSUM_Functions */
 /** @} */ /* end of FSL_L4_CKSUM */
