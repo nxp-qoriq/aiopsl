@@ -12,6 +12,7 @@
 #include "common/types.h"
 #include "dplib\fsl_ipr.h"
 #include "dplib\fsl_osm.h"
+#include "cdma.h"
 
 
 /**************************************************************************//**
@@ -22,25 +23,30 @@
 @{
 *//***************************************************************************/
 
-#define OUT_OF_ORDER	0x00000001
+#define OUT_OF_ORDER			0x00000001
 #define	MAX_NUM_OF_FRAGS 		64
-#define	FRAG_IN_ORDER_OK		0
+#define	FRAG_OK_REASS_NOT_COMPL		0
 #define LAST_FRAG_IN_ORDER		1
-#define	FRAG_OUT_OF_ORDER_OK	2
-#define LAST_FRAG_OUT_OF_ORDER	3
-#define FRAG_ERROR				4
-#define FRAG_ERROR_EARLY_TO		5
+#define LAST_FRAG_OUT_OF_ORDER		2
+#define FRAG_ERROR			3
 #define NO_BYPASS_OSM			0x00000000
-#define	BYPASS_OSM				0x00000001
+#define	BYPASS_OSM			0x00000001
 #define START_CONCURRENT		0x00000003
 #define	RESET_MF_BIT			0xFFDF
-#define NO_ERROR				0
+#define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2624
-#define SIZE_TO_INIT			576 /* RFDC + Link List */
-#define RFDC_VALID				0x00000001
+#define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
+#define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
+#define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
+#define RFDC_VALID			0x00000001
 #define FRAG_OFFSET_MASK		0x1FFF
-#define IPV4_FRAME				0x00000000 /* in RFDC status */
-#define IPV6_FRAME				0x00000001 /* in RFDC status */
+#define IPV4_FRAME			0x00000000 /* in RFDC status */
+#define IPV6_FRAME			0x00000001 /* in RFDC status */
+#define INSTANCE_VALID			0x0001
+#define REF_COUNT_ADDR_DUMMY		HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+#define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
+#define RFDC_SIZE			sizeof(struct ipr_rfdc)
+#define FD_SIZE				sizeof(struct ldpaa_fd)
 
 /* todo should move to general or OSM include file */
 #define EXCLUSIVE				0
@@ -51,10 +57,10 @@
 
 struct ipr_instance {
 	uint64_t	extended_stats_addr;
-		/** maximum concurrently IPv4 open frames. */
+	/** maximum concurrently IPv4 open frames. */
 	uint16_t	table_id_ipv4;
 	uint16_t	table_id_ipv6;
-	uint32_t    max_open_frames_ipv4;
+	uint32_t    	max_open_frames_ipv4;
 	uint32_t  	max_open_frames_ipv6;
 	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
 	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
@@ -214,11 +220,25 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-								 uint64_t rfdc_ext_addr);
+				 uint64_t rfdc_ext_addr);
 
-void closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
+				 uint64_t rfdc_ext_addr);
 
-inline void move_to_correct_ordering_scope(uint32_t osm_status)
+
+inline void move_to_correct_ordering_scope1(uint32_t osm_status)
+{
+		if(osm_status == 0) {
+			/* return to original ordering scope that entered
+			 * the ipr_reassemble function */
+			osm_scope_exit();
+		} else if(osm_status & START_CONCURRENT) {
+		   osm_scope_transition_to_concurrent_with_increment_scope_id();
+		}
+}
+
+inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 {
 		if(osm_status == 0) {
 			/* return to original ordering scope that entered
@@ -226,9 +246,10 @@ inline void move_to_correct_ordering_scope(uint32_t osm_status)
 			osm_scope_exit();
 			osm_scope_exit();	
 		} else if(osm_status & START_CONCURRENT) {
-				osm_scope_transition_to_concurrent_with_increment_scope_id();
+		  osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
 }
+uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();
 

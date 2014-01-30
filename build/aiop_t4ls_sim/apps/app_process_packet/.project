@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -82,14 +82,34 @@ aiop_sl		</project>
 	</natures>
 	<linkedResources>
 		<link>
+			<name>README.txt</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/README.txt</locationURI>
+		</link>
+		<link>
+			<name>lcf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>lcf/aiop_link.lcf</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
+		</link>
+		<link>
 			<name>src/app_process_packet.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/app_process_packet.c</locationURI>
+		</link>
+		<link>
+			<name>src/app_receive_cb.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/app_receive_cb.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>

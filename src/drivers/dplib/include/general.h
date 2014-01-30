@@ -212,9 +212,9 @@ struct additional_dequeue_context {
 	/** QMan Frame Queue ID mask */
 #define ADC_FQID_MASK		0x00FFFFFF
 	/** Privilege Level mask */
-#define ADC_PL_MASK		0x80000000
+#define ADC_PL_MASK		0x8000
 	/** Isolation Context ID mask */
-#define ADC_ICID_MASK		0x7F000000
+#define ADC_ICID_MASK		0x7FFF
 	/** QMan Work Queue ID mask */
 #define ADC_WQID_MASK		0x70
 	/** Entry Priority mask */
