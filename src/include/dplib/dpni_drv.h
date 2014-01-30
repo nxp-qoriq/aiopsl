@@ -38,10 +38,7 @@
 *//***************************************************************************/
 /** MTU was crossed for DPNI driver send function */
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
-/** NI is not enabled in DPNI driver send function */
-#define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
 /* @} */
-
 
 typedef uint64_t	dpni_drv_app_arg_t;
 
@@ -225,7 +222,7 @@ int dpni_drv_send(uint16_t ni_id);
  	 	fdma_create_frame 
 
  @Return	OK on success; error code, otherwise.
-		For error codes refer to \ref FDMA_ENQUEUE_FRAME_ERRORS
+		For error codes refer to \ref FDMA_ENQUEUE_FD_ERRORS
 		and \ref DPNI_DRV_STATUS.
 *//***************************************************************************/
 int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
