@@ -5,7 +5,6 @@
 #include "kernel/platform.h"
 #include "inc/sys.h"
 
-
 extern int cmdif_srv_init(void);extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);extern void dpni_drv_free(void);
 
@@ -37,7 +36,6 @@ extern void build_apps_array(struct sys_module_desc *apps);
 }
 
 #define MAX_NUM_OF_APPS		10
-
 
 int fill_system_parameters(t_sys_param *sys_param);
 int global_init(void);
@@ -104,14 +102,19 @@ int global_post_init(void)
 	return 0;
 }
 
+static void core_ready_for_tasks(void) {
+
+    /* finished boot sequence; now wait for event .... */
+    fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
+    /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
+    booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
+    asm ("wait  \n");
+}
+
 int run_apps(void)
 {
     struct sys_module_desc apps[MAX_NUM_OF_APPS];
     int                    i;
-
-extern int init_nic_stub(int portal_id, int ni_id);
-/* TODO - get rid of this stub! */
-//init_nic_stub(2, 10);
 
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
@@ -131,8 +134,6 @@ extern int init_nic_stub(int portal_id, int ni_id);
         if (apps[i].init)
             apps[i].init();
 
-    /* finished boot sequence; now wait for event .... */
-    fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
-    asm ("wait  \n");
+    core_ready_for_tasks();
     return 0;
 }
