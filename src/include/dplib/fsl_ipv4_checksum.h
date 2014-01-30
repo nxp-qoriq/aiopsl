@@ -43,6 +43,23 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Group	FSL_IPV4_CKSUM_CALCULATE_OPTIONS Options for \
+	 \ref ipv4_cksum_calculate function.
+@{
+*//***************************************************************************/
+
+/** No options */
+#define IPV4_CKSUM_CALCULATE_OPTION_NONE			0x00000000
+
+/** Update FDMA option
+ * When this options is set, the SR will call \ref
+ * fdma_modify_default_segment_data to update the FDMA engine with the frame
+ * header changes. */
+#define IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA			0x00000001
+
+/** @} */ /* end of FSL_IPV4_CKSUM_CALCULATE_OPTIONS */
+
+/**************************************************************************//**
 @Group	FSL_IPV4_CKSUM_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
@@ -90,7 +107,8 @@
 		running sum] field.
 
 @Param[in]	ipv4header - pointer to ipv4 header.
-@Param[in]	flags - Flags for this function. Please refer TODO
+@Param[in]	options - Please refer to \ref
+		FSL_IPV4_CKSUM_CALCULATE_OPTIONS
 
 @Return		Please refer to \ref FSL_IPV4_CKSUM_STATUS.
 
@@ -98,7 +116,7 @@
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t flags);
+int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t options);
 
 /** @} */ /* end of FSL_IPV4_CKSUM_Functions */
 /** @} */ /* end of FSL_IPV4_CKSUM */

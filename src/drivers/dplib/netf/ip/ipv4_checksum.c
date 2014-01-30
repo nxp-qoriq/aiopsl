@@ -13,9 +13,8 @@
 #include "dplib/fsl_parser.h"
 
 
-int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t flags)
+int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t options)
 {
-
 	uint16_t running_sum;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -48,7 +47,11 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t flags)
 	IPv4 header */
 	ipv4header->hdr_cksum = (uint16_t)~running_sum;
 
-	/* TODO replace header if needed */
+	/* Update FDMA */
+	if (options & IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA) {
+		/* TODO MACRO */
+		fdma_modify_default_segment_data(offset + 10, 2);
+	}
 
 	return IPV4_CKSUM_CALCULATE_STATUS_SUCCESS;
 }

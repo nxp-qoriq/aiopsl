@@ -15,10 +15,11 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int32_t cksum_calc_udp_tcp_checksum(uint32_t flags)
+int32_t cksum_calc_udp_tcp_checksum(uint32_t options)
 {
 	uint16_t	l3checksum_dummy;
 	uint16_t	l4checksum;
+	uint16_t	l4offset;
 	struct tcphdr	*tcph;
 	struct udphdr	*udph;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -45,10 +46,11 @@ int32_t cksum_calc_udp_tcp_checksum(uint32_t flags)
 		L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_PARSER_FAILURE;
 	}
 
+	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
+
 	if (PARSER_IS_TCP_DEFAULT()) {
 		/* Point to the TCP header */
-		tcph = (struct tcphdr *)(PRC_GET_SEGMENT_ADDRESS() +
-					 PARSER_GET_L4_OFFSET_DEFAULT());
+		tcph = (struct tcphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
 
 		/* Invalidate Parser Result Gross Running Sum field */
 		pr->gross_running_sum = 0;
@@ -58,8 +60,7 @@ int32_t cksum_calc_udp_tcp_checksum(uint32_t flags)
 	} /* TCP */
 	else {
 		/* Point to the UDP header */
-		udph = (struct udphdr *)(PRC_GET_SEGMENT_ADDRESS() +
-			 PARSER_GET_L4_OFFSET_DEFAULT());
+		udph = (struct udphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
 
 		/* Invalidate Parser Result Gross Running Sum field */
 		pr->gross_running_sum = 0;
@@ -68,7 +69,10 @@ int32_t cksum_calc_udp_tcp_checksum(uint32_t flags)
 		udph->checksum = l4checksum;
 	} /* UDP */
 
-	/* TODO replace header if needed */
+	/* Update FDMA */
+	if (options & L4_CKSUM_CALC_UDP_TCP_CKSUM_OPTION_UPDATE_FDMA) {
+		fdma_modify_default_segment_data(l4offset, 2);
+	}
 
 	return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_SUCCESS;
 }
