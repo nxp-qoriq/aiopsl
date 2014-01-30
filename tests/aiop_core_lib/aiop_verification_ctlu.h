@@ -263,9 +263,6 @@ struct ctlu_update_miss_rule_command {
 	/** Command returned status. */
 	int32_t  status;
 
-	/** Flags */
-	uint32_t flags;
-
 	/** Table ID */
 	uint16_t table_id;
 
@@ -391,9 +388,6 @@ struct ctlu_table_rule_create_replace_command{
 	/** Command returned status */
 	int32_t  status;
 
-	/** Flags */
-	uint32_t flags;
-
 	/** Table ID */
 	uint16_t table_id;
 
@@ -423,9 +417,6 @@ struct ctlu_table_rule_delete_command{
 
 	/** Command returned status */
 	int32_t  status;
-
-	/** Flags */
-	uint32_t flags;
 
 	/** Table ID */
 	uint16_t table_id;

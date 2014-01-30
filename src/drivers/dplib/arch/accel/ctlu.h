@@ -523,6 +523,20 @@ struct ctlu_table_entry {
 
 
 /**************************************************************************//**
+@Description	Table Entry
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_old_result {
+	/* TODO */
+	uint8_t reserved[44]; /* TODO */
+
+	/** The body of the entry (varies per type) */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
 @Description	CTLU Accelerator Context Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
