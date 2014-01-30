@@ -12,6 +12,7 @@
 #include "common/types.h"
 #include "dplib\fsl_ipr.h"
 #include "dplib\fsl_osm.h"
+#include "cdma.h"
 
 
 /**************************************************************************//**
@@ -42,6 +43,7 @@
 #define IPV4_FRAME			0x00000000 /* in RFDC status */
 #define IPV6_FRAME			0x00000001 /* in RFDC status */
 #define INSTANCE_VALID			0x0001
+#define REF_COUNT_ADDR_DUMMY		HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 
 /* todo should move to general or OSM include file */
 #define EXCLUSIVE				0

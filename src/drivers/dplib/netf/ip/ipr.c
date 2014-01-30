@@ -41,220 +41,232 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	ipv4hdr_ptr = (struct ipv4hdr *)
 			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 		
-		/* Get OSM status (ordering scope mode and levels) */	
-		osm_get_scope(&scope_status);
+	/* Get OSM status (ordering scope mode and levels) */	
+	osm_get_scope(&scope_status);
 
-		if(scope_status.scope_mode == EXCLUSIVE) {
-			if(PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
-				osm_status = BYPASS_OSM;				
-			} else {
-				/* regular frame */
-				return IPR_REASSEMBLY_SUCCESS;
+	if(scope_status.scope_mode == EXCLUSIVE) {
+		if(PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
+			osm_status = BYPASS_OSM;				
+		} else {
+			/* regular frame */
+			return IPR_REASSEMBLY_SUCCESS;
+		}
+	} else {
+	    /* move to exclusive */
+	    osm_scope_transition_to_exclusive_with_increment_scope_id();
+	    if(PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
+		/* Fragment */
+		if(scope_status.scope_level <= 2) {
+		/* create nested exclusive for the fragments of
+		 * the same flow*/
+		 osm_scope_enter_to_exclusive_with_increment_scope_id();
+
+		} else {
+			/* can't create 2 nested */
+			osm_status = BYPASS_OSM | START_CONCURRENT;					
 			}
 		} else {
-		    /* enter in concurrent mode */
-		    osm_scope_transition_to_exclusive_with_increment_scope_id();
-		    if(PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
-			/* Fragment */
-			if(scope_status.scope_level <= 2) {
-			/* create nested exclusive for the fragments of
-			 * the same flow*/
-			 osm_scope_enter_to_exclusive_with_increment_scope_id();
-
-			} else {
-				/* can't create 2 nested */
-				osm_status = BYPASS_OSM | START_CONCURRENT;					
-				}
-			} else {
-				/* regular frame */
-				osm_scope_relinquish_exclusivity();
-				return IPR_REASSEMBLY_SUCCESS;
+			/* regular frame */
+			osm_scope_relinquish_exclusivity();
+			return IPR_REASSEMBLY_SUCCESS;
+		}
+	}
+	
+	/* read and lock instance handle parameters */
+	cdma_read_with_mutex(instance_handle,
+			     CDMA_PREDMA_MUTEX_WRITE_LOCK,
+			     &instance_params,
+			     sizeof(struct ipr_instance));
+	
+	if(check_for_frag_error() == NO_ERROR) {
+		/* Good fragment */
+		if(instance_params.flags & INSTANCE_VALID) {
+		sr_status = ctlu_table_lookup_by_keyid(
+				instance_params.table_id_ipv4,
+				ipr_global_parameters1.ipr_key_id_ipv4,
+				&lookup_result);
+		if(sr_status == CTLU_LOOKUP_STATUS_MATCH_FOUND) {
+		     /* Hit */
+		     rfdc_ext_addr = lookup_result.opaque0_or_reference;
+		     /* Unlock instance handle parameters*/
+		     cdma_mutex_lock_release(instance_handle);
+		     if(osm_status == NO_BYPASS_OSM) {
+			/* create nested per reassembled frame */
+			osm_scope_enter_to_exclusive_with_new_scope_id(
+					       (uint32_t)rfdc_ext_addr);
 			}
+		     /* read and lock RFDC */
+		     cdma_read_with_mutex( rfdc_ext_addr,
+					  CDMA_PREDMA_MUTEX_WRITE_LOCK,
+					  &rfdc,
+					  sizeof(struct ipr_rfdc));
+
+			if(!(rfdc.status & RFDC_VALID)) {
+			   move_to_correct_ordering_scope2(osm_status);
+			   cdma_write_release_lock_and_decrement(
+					       rfdc_ext_addr,
+					       (void *)&rfdc,
+					       sizeof(struct ipr_rfdc));
+			   /* Early Time out */
+			   return IPR_ERROR;
+			}
+			
+		} else if(sr_status ==
+				CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {
+			/* Miss */
+		    cdma_acquire_context_memory(
+				    IPR_CONTEXT_SIZE,
+				    ipr_global_parameters1.ipr_pool_id,
+				    &context_memory);
+		    rfdc_ext_addr = context_memory;
+		    /* Lock RFDC */
+		    cdma_mutex_lock_take(rfdc_ext_addr, CDMA_MUTEX_WRITE_LOCK);
+		    /* Reset RFDC + Link List */
+		    cdma_ws_memory_init((void *)&rfdc,
+					SIZE_TO_INIT,
+					0);
+		    /* Add entry to TLU table */
+		    /* Generate key */
+		    ctlu_gen_key(ipr_global_parameters1.ipr_key_id_ipv4,
+				 (union ctlu_key *)&rule.key.key_em,
+				 &keysize);
+		//	rule.key.key_em = key_em;
+		    rule.options = 0;
+		    rule.result.type = CTLU_RULE_RESULT_TYPE_REFERENCE;
+		    rule.result.op_rptr_clp.reference_pointer = rfdc_ext_addr;
+		    ctlu_table_rule_create(instance_params.table_id_ipv4,
+					   &rule,
+					   keysize);
+		    /* store key in RDFC */
+		    rfdc.key[0] = *(uint64_t *)rule.key.key_em.key;
+		    rfdc.key[1] = *(uint64_t *)(rule.key.key_em.key+8);
+		    /* todo release struct rule  or call function for gen+add rule */
+		    rfdc.status = RFDC_VALID;
+		    /* todo : unify this cdma command with previous lock into
+		     * cdma_access_context_memory() */
+		    /* Increment ref. count to balance with later decrement */
+		    cdma_refcount_increment(rfdc_ext_addr);
+			
+		    /* create Timer in TMAN */
+		    tman_create_timer(
+			       instance_params.tmi_id,
+			       ipr_global_parameters1.ipr_timeout_flags,
+			       instance_params.timeout_value_ipv4,
+			       rfdc_ext_addr,
+			       NULL,
+			       ipr_global_parameters1.ipr_timeout_epid,
+			       (uint32_t)instance_params.ipv4_timeout_cb,
+			       &rfdc.timer_handle);
+		    instance_params.num_of_open_reass_frames += 1;
+		    /* Write and unlock instance handle parameters*/
+		    cdma_access_context_memory(
+				   instance_handle,
+				   CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT,
+				   0,
+				   (void *)&instance_params,
+				   CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | 
+				   sizeof(struct ipr_instance),
+				   (uint16_t *)REF_COUNT_ADDR_DUMMY);
+
+		     if(osm_status == NO_BYPASS_OSM) {
+			/* create nested per reassembled frame */
+			osm_scope_enter_to_exclusive_with_new_scope_id(
+					       (uint32_t)rfdc_ext_addr);
+			}
+			
+		} else {
+			/* TLU lookup SR error */
 		}
 		
+		status_insert_to_LL = 
+			  ipr_insert_to_link_list(&rfdc,rfdc_ext_addr);
+		switch(status_insert_to_LL) {
+		case 0:
+			/* Fragment was successfully added to LL */
+			move_to_correct_ordering_scope2(osm_status);
+			if(instance_params.flags &
+					IPR_MODE_IPV4_TO_TYPE) {
+			/* recharge timer in case of time out 
+			 * between fragments */
+				tman_recharge_timer(rfdc.timer_handle);
+			}
+			/* Write and release updated 64 first bytes
+			 * of RFDC */
+			cdma_write_release_lock_and_decrement(
+					       rfdc_ext_addr,
+					       &rfdc,
+					       sizeof(struct ipr_rfdc));
+			return IPR_REASSEMBLY_NOT_COMPLETED;
+		case 1:
+			/* Last fragment, need reassembly in order */
+			closing_in_order(&rfdc,rfdc_ext_addr);
+			break;
+		case 2:
+			/* Last fragment, need re-ordering */
+			closing_with_reordering(&rfdc,rfdc_ext_addr);
+			break;
+		case 3:
+			/* duplicate or overlap fragment */
+			return IPR_MALFORMED_FRAG;
+			break;
+		}
+		if(ip_header_update_and_l4_validation(&rfdc) ==
+							~SUCCESS) {
+			/* L4 checksum is not valid */
+		} else {
+		/* L4 checksum is valid */			
+		/* Write and release updated 64 first bytes of RFDC */
+		cdma_write_release_lock_and_decrement(
+				       rfdc_ext_addr,
+				       &rfdc,
+				       sizeof(struct ipr_rfdc));
+		
+		move_to_correct_ordering_scope2(osm_status);
+
 		/* read and lock instance handle parameters */
 		cdma_read_with_mutex( instance_handle,
 				CDMA_PREDMA_MUTEX_WRITE_LOCK,
 				&instance_params,
 				sizeof(struct ipr_instance));
+
+		instance_params.num_of_open_reass_frames --;
+		if(!(instance_params.flags & INSTANCE_VALID)) {
+			/* instance no more valid */
+		}		
+		/* Write and unlock instance params */
+		/* todo no decrement ref. count */
+		cdma_write_release_lock_and_decrement(
+				instance_handle,
+				(void *)&instance_params,
+				sizeof(struct ipr_instance));
+		cdma_access_context_memory(
+				instance_handle,
+				CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT,
+				0,
+				(void *)&instance_params,
+				CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | 
+				sizeof(struct ipr_instance),
+				(uint16_t *)REF_COUNT_ADDR_DUMMY);
+
 		
-		if(check_for_frag_error() == NO_ERROR) {
-			/* Good fragment */
-			if(instance_params.flags & INSTANCE_VALID) {
-			sr_status = ctlu_table_lookup_by_keyid(
-					instance_params.table_id_ipv4,
-					ipr_global_parameters1.ipr_key_id_ipv4,
-					&lookup_result);
-			if(sr_status == CTLU_LOOKUP_STATUS_MATCH_FOUND) {
-			     /* Hit */
-			     rfdc_ext_addr = lookup_result.opaque0_or_reference;
-			     /* Unlock instance handle parameters*/
-			     cdma_mutex_lock_release(instance_handle);
-			     if(osm_status == NO_BYPASS_OSM) {
-				/* create nested per reassembled frame */
-				osm_scope_enter_to_exclusive_with_new_scope_id(
-				 		       (uint32_t)rfdc_ext_addr);
-				}
-			     /* read and lock RFDC */
-			     cdma_read_with_mutex( rfdc_ext_addr,
-						  CDMA_PREDMA_MUTEX_WRITE_LOCK,
-						  &rfdc,
-						  sizeof(struct ipr_rfdc));
-
-				if(!(rfdc.status & RFDC_VALID)) {
-				   move_to_correct_ordering_scope2(osm_status);
-				   cdma_write_release_lock_and_decrement(
-						       rfdc_ext_addr,
-						       (void *)&rfdc,
-						       sizeof(struct ipr_rfdc));
-				   /* Early Time out */
-				   return IPR_ERROR;
-				}
-				
-			} else if(sr_status ==
-					CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {
-				/* Miss */
-			    cdma_acquire_context_memory(
-					    IPR_CONTEXT_SIZE,
-					    ipr_global_parameters1.ipr_pool_id,
-					    &context_memory);
-			    rfdc_ext_addr = context_memory;
-			    /* Lock RFDC */
-			    cdma_mutex_lock_take(rfdc_ext_addr, CDMA_MUTEX_WRITE_LOCK);
-			    /* Reset RFDC + Link List */
-			    cdma_ws_memory_init((void *)&rfdc,
-						SIZE_TO_INIT,
-						0);
-			    /* Add entry to TLU table */
-			    /* Generate key */
-			    ctlu_gen_key(ipr_global_parameters1.ipr_key_id_ipv4,
-					 (union ctlu_key *)&rule.key.key_em,
-					 &keysize);
-			//	rule.key.key_em = key_em;
-			    rule.options = 0;
-			    rule.result.type = CTLU_RULE_RESULT_TYPE_REFERENCE;
-			    rule.result.op_rptr_clp.reference_pointer = rfdc_ext_addr;
-			    ctlu_table_rule_create(instance_params.table_id_ipv4,
-						   &rule,
-						   keysize);
-			    /* store key in RDFC */
-			    rfdc.key[0] = *(uint64_t *)rule.key.key_em.key;
-			    rfdc.key[1] = *(uint64_t *)(rule.key.key_em.key+8);
-			    /* todo release struct rule  or call function for gen+add rule */
-			    rfdc.status = RFDC_VALID;
-			    /* todo : unify this cdma command with previous lock into
-			     * cdma_access_context_memory() */
-			    /* Increment ref. count to balance with later decrement */
-			    cdma_refcount_increment(rfdc_ext_addr);
-				
-			    /* create Timer in TMAN */
-			    tman_create_timer(
-				       instance_params.tmi_id,
-				       ipr_global_parameters1.ipr_timeout_flags,
-				       instance_params.timeout_value_ipv4,
-				       rfdc_ext_addr,
-				       NULL,
-				       ipr_global_parameters1.ipr_timeout_epid,
-				       (uint32_t)instance_params.ipv4_timeout_cb,
-				       &rfdc.timer_handle);
-			    instance_params.num_of_open_reass_frames += 1;
-			    /* Write and unlock instance handle parameters*/
-			    /* todo no decrement ref. count */
-			    cdma_write_release_lock_and_decrement(
-						instance_handle,
-						(void *)&instance_params,
-						sizeof(struct ipr_instance));
-
-			     if(osm_status == NO_BYPASS_OSM) {
-				/* create nested per reassembled frame */
-				osm_scope_enter_to_exclusive_with_new_scope_id(
-				 		       (uint32_t)rfdc_ext_addr);
-				}
-				
-			} else {
-				/* TLU lookup SR error */
-			}
-			
-			status_insert_to_LL = 
-				  ipr_insert_to_link_list(&rfdc,rfdc_ext_addr);
-			switch(status_insert_to_LL) {
-			case 0:
-				/* Fragment was successfully added to LL */
-				move_to_correct_ordering_scope2(osm_status);
-				if(instance_params.flags &
-						IPR_MODE_IPV4_TO_TYPE) {
-				/* recharge timer in case of time out 
-				 * between fragments */
-					tman_recharge_timer(rfdc.timer_handle);
-				}
-				/* Write and release updated 64 first bytes
-				 * of RFDC */
-				cdma_write_release_lock_and_decrement(
-						       rfdc_ext_addr,
-						       &rfdc,
-						       sizeof(struct ipr_rfdc));
-				return IPR_REASSEMBLY_NOT_COMPLETED;
-			case 1:
-				/* Last fragment, need reassembly in order */
-				closing_in_order(&rfdc,rfdc_ext_addr);
-				break;
-			case 2:
-				/* Last fragment, need re-ordering */
-				closing_with_reordering(&rfdc,rfdc_ext_addr);
-				break;
-			case 3:
-				/* duplicate or overlap fragment */
-				return IPR_MALFORMED_FRAG;
-				break;
-			}
-			if(ip_header_update_and_l4_validation(&rfdc) ==
-								~SUCCESS) {
-				/* L4 checksum is not valid */
-			} else {
-			/* L4 checksum is valid */			
-			/* Write and release updated 64 first bytes of RFDC */
-			cdma_write_release_lock_and_decrement(
-					       rfdc_ext_addr,
-					       &rfdc,
-					       sizeof(struct ipr_rfdc));
-			
-			move_to_correct_ordering_scope2(osm_status);
-
-			/* read and lock instance handle parameters */
-			cdma_read_with_mutex( instance_handle,
-					CDMA_PREDMA_MUTEX_WRITE_LOCK,
-					&instance_params,
-					sizeof(struct ipr_instance));
-
-			instance_params.num_of_open_reass_frames --;
-			if(!(instance_params.flags & INSTANCE_VALID)) {
-				/* instance no more valid */
-			}		
-			/* Write and unlock instance params */
-			/* todo no decrement ref. count */
-			cdma_write_release_lock_and_decrement(
-					instance_handle,
-					(void *)&instance_params,
-					sizeof(struct ipr_instance));
-			
-			return IPR_REASSEMBLY_SUCCESS;
-			} /* L4 checksum is valid */
-			} 
-			else {
-				/* instance not valid */
-				cdma_mutex_lock_release(instance_handle);
-				move_to_correct_ordering_scope1(osm_status);
-				return IPR_ERROR;
-			}
-
-		} else {
-			/* Error fragment */
+		return IPR_REASSEMBLY_SUCCESS;
+		} /* L4 checksum is valid */
+		} 
+		else {
+			/* instance not valid */
 			cdma_mutex_lock_release(instance_handle);
 			move_to_correct_ordering_scope1(osm_status);
-			return IPR_MALFORMED_FRAG;
-		}	
-		/* todo remove the following return */
-		return SUCCESS;
+			return IPR_ERROR;
+		}
+
+	} else {
+		/* Error fragment */
+		cdma_mutex_lock_release(instance_handle);
+		move_to_correct_ordering_scope1(osm_status);
+		return IPR_MALFORMED_FRAG;
+	}	
+	/* todo remove the following return */
+	return SUCCESS;
 }
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
@@ -570,48 +582,6 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 			fdma_present_default_frame();
 			/* run parser */
 			parse_result_generate_default(0);
-	/*		ipv4hdr_offset =
-				 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-			ipv4hdr_ptr = (struct ipv4hdr *)
-				  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-	*/		/* update IP checksum */
-	/*		new_total_length = rfdc_ptr->current_total_length;
-			old_ip_checksum = ipv4hdr_ptr->hdr_cksum;
-			ip_hdr_cksum = old_ip_checksum;
-			cksum_accumulative_update_uint32(ip_hdr_cksum,
-					    		ipv4hdr_ptr->total_length,
-					    		new_total_length);
-			ipv4hdr_ptr->total_length = new_total_length;
-			
-			new_flags_and_offset = ipv4hdr_ptr->flags_and_offset & RESET_MF_BIT;
-			cksum_accumulative_update_uint32(
-						 ip_hdr_cksum,
-						 ipv4hdr_ptr->flags_and_offset,
-						 new_flags_and_offset);
-			ipv4hdr_ptr->flags_and_offset = new_flags_and_offset;
-
-			ipv4hdr_ptr->hdr_cksum = ip_hdr_cksum;
-	*/		
-			/* prepare gross running sum for L4 checksum validation by parser */
-	/*		gross_running_sum = rfdc_ptr->current_running_sum;
-			cksum_accumulative_update_uint32(
-							gross_running_sum,
-						 	old_ip_checksum,
-							ipv4hdr_ptr->hdr_cksum);
-
-			pr->gross_running_sum = gross_running_sum;
-			
-	*/		/* update FDMA with total length and IP header checksum*/
-	/*		fdma_modify_default_segment_data(ipv4hdr_offset+2,10);
-
-	*/		/* Call parser for L4 validation */
-	/*		parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM);
-			if ((pr->parse_error_code == PARSER_UDP_CHECKSUM_ERROR)
-					|| 
-			   (pr->parse_error_code == PARSER_TCP_CHECKSUM_ERROR))
-			{
-	*/			/* error in L4 checksum */
-	//		}
 			return SUCCESS;
 }
 

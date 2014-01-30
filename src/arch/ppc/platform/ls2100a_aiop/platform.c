@@ -28,16 +28,6 @@
     { PLTFRM_MEM_RGN_MC_PORTALS, { 0x80c000000LL, (64*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
 }
 
-// Number of tasks as they defined by CTSCSR register.
-#define CTSCSR_ENABLE 0x80000000
-#define CTSCSR_1_TASKS 0  
-#define CTSCSR_2_TASKS (1 << 24)
-#define CTSCSR_4_TASKS (2 << 24)
-#define CTSCSR_8_TASKS (3 << 24)
-#define CTSCSR_16_TASKS (4 << 24)
-#define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS | CTSCSR_16_TASKS)
-
-
 enum platform_mem_ctrl {
     PLTFRM_MEM_NONE = 0,
     PLTFRM_MEM_NOR_FLASH
