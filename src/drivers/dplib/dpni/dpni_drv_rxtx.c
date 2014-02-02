@@ -154,9 +154,6 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	if (icid & ADC_PL_MASK)
 		flags |= FDMA_ENF_PL_BIT;
 	icid &= ADC_ICID_MASK;
-	err = (int)fdma_enqueue_fd_qd(fd, \
-			flags, \
-			&enqueue_params, \
-			icid);
+	err = (int)fdma_enqueue_fd_qd(fd, flags, &enqueue_params, icid);
 	return err;
 }
