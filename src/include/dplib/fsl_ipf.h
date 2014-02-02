@@ -126,7 +126,8 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 @Return		Status. Please refer to \ref IPF_GENERATE_FRAG_STATUS or
 		\ref fdma_hw_errors or \ref fdma_sw_errors for more details.
 
-@Cautions	No support in IPv6 jumbograms.
+@Cautions	In the output fragment, ASA & PTA are not presented.
+		No support in IPv6 jumbograms.
 *//***************************************************************************/
 int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 
