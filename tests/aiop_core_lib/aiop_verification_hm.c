@@ -36,7 +36,8 @@ void aiop_hm_init_parser()
 	verif_parse_profile.pppoe_ppp_hxs_config = 0x0;
 	verif_parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-	verif_parse_profile.mpls_hxs_config.lie_dnp = PARSER_IP_STARTING_HXS;
+	verif_parse_profile.mpls_hxs_config.lie_dnp = 
+			PARSER_PRP_MPLS_HXS_CONFIG_LIE | PARSER_IP_STARTING_HXS;
 	verif_parse_profile.arp_hxs_config = 0x0;
 	verif_parse_profile.ip_hxs_config = 0x0;
 	verif_parse_profile.ipv4_hxs_config = 0x0;

@@ -15,10 +15,10 @@
 
 char *strdup(const char *s)
 {
-    int len = strlen(s) + 1;
-    char *dup = fsl_os_malloc(len);
+    int len = (int)(strlen(s) + 1);
+    char *dup = fsl_os_malloc((size_t)len);
 
-    memcpy(dup, s, len);
+    memcpy(dup, s, (size_t)len);
 
     return dup;
 }
@@ -97,7 +97,7 @@ static char get_oct_char(const char *s, int *i)
     assert(endx > x);
 
     (*i) += endx - x;
-    return val;
+    return (char)val;
 }
 
 /*
@@ -120,7 +120,7 @@ static char get_hex_char(const char *s, int *i)
 //        die("\\x used with no following hex digits\n");
 
     (*i) += endx - x;
-    return val;
+    return (char)val;
 }
 
 char get_escape_char(const char *s, int *i)

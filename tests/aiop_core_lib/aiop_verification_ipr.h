@@ -10,7 +10,8 @@
 
 #include "dplib/fsl_ldpaa.h"
 #include "net/fsl_net.h"
-#include "net/fsl_ipr.h"
+#include "dplib/fsl_ipr.h"
+#include "ipr.h"
 
 
 /**************************************************************************//**
@@ -124,8 +125,9 @@ struct ipr_delete_instance_command {
 	/**< Command structure identifier. */
 	int32_t					status;
 	ipr_instance_handle_t	ipr_instance;
-	pr_del_cb_t				*confirm_delete_cb;
+	ipr_del_cb_t			*confirm_delete_cb;
 	ipr_del_arg_t			delete_arg;
+	uint8_t					ipr_instance_ref;
 };
 
 /**************************************************************************//**
@@ -138,6 +140,7 @@ struct ipr_reassemble_command {
 		/**< Command structure identifier. */
 	int32_t					status;
 	ipr_instance_handle_t	ipr_instance;
+	uint8_t					ipr_instance_ref;
 };
 
 /**************************************************************************//**
@@ -151,6 +154,7 @@ struct ipr_modify_max_reass_frm_size_command {
 	int32_t					status;
 	ipr_instance_handle_t	ipr_instance;
 	uint16_t				max_reass_frm_size;
+	uint8_t					ipr_instance_ref;
 };
 
 /**************************************************************************//**
@@ -164,6 +168,7 @@ struct ipr_modify_min_frag_size_command {
 	int32_t					status;
 	ipr_instance_handle_t	ipr_instance;
 	uint16_t				min_frag_size;
+	uint8_t					ipr_instance_ref;
 };
 
 /**************************************************************************//**
@@ -177,6 +182,7 @@ struct ipr_modify_timeout_value_ipv4_command {
 	int32_t					status;
 	ipr_instance_handle_t	ipr_instance;
 	uint16_t				reasm_timeout_value_ipv4;
+	uint8_t					ipr_instance_ref;
 };
 
 /**************************************************************************//**
@@ -190,6 +196,7 @@ struct ipr_modify_timeout_value_ipv6_command {
 	int32_t					status;
 	ipr_instance_handle_t	ipr_instance;
 	uint16_t				reasm_timeout_value_ipv6;
+	uint8_t					ipr_instance_ref;
 };
 
 /**************************************************************************//**
@@ -204,6 +211,7 @@ struct ipr_get_reass_frm_cntr_command {
 	ipr_instance_handle_t	ipr_instance;
 	uint32_t				flags;
 	uint32_t				*reass_frm_cntr;
+	uint8_t					ipr_instance_ref;
 };
 
 

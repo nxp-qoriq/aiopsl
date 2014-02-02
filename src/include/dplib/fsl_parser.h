@@ -14,7 +14,14 @@
 
 
 /**************************************************************************//**
-@Group		FSL_PARSER FSL_AIOP_Parser
+ @Group		ACCEL ACCEL (Accelerator APIs)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_PARSER PARSER
 
 @Description	Freescale AIOP Parser API
 
@@ -749,8 +756,8 @@
 	frame_attribute_flags_3 & PARSER_ATT_TCP_MASK)
 /** Returns a non-zero value in case TCP or UDP is found */
 #define PARSER_IS_TCP_OR_UDP_DEFAULT() \
-       (((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-       frame_attribute_flags_3 & (PARSER_ATT_TCP_MASK | PARSER_ATT_UDP_MASK))
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	frame_attribute_flags_3 & (PARSER_ATT_TCP_MASK | PARSER_ATT_UDP_MASK))
 /** Returns a non-zero value in case TCP with options is found */
 #define PARSER_IS_TCP_OPTIONS_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -1080,7 +1087,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /**************************************************************************//**
 @Group	FSL_PARSER_HXS_CONFIG Parser HXS configuration in parse profile defines
 
-@Description 	For configuring each HXS (Header Examination Sequence) in the
+@Description	For configuring each HXS (Header Examination Sequence) in the
 		Parse Profile Record, user should use the flags relevant to
 		each HXS configuration by performing "OR" between the flags
 		and the index for soft sequence start address.
@@ -1147,7 +1154,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 @{
 *//***************************************************************************/
- enum parser_starting_hxs_code{
+enum parser_starting_hxs_code {
 	/** Ethernet Starting HXS coding */
 	 PARSER_ETH_STARTING_HXS = 0x0000,
 	/** LLC+SNAP Starting HXS coding */
@@ -1188,7 +1195,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 	 PARSER_L5_SHELL_STARTING_HXS = 0x001E,
 	/** Final Shell Starting HXS coding */
 	 PARSER_FINAL_SHELL_STARTING_HXS = 0x001F
- };
+};
 
 /** @} */ /* end of parser_starting_hxs_code */
 
@@ -1211,7 +1218,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 		Please refer to the parser specification for more details.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct parse_result{
+struct parse_result {
 	 /** Reserved
 	 Reserved for compliance with HW format.
 	 User should not access this field */
@@ -1276,7 +1283,7 @@ struct parse_result{
 @Description	Vlan HXS Configuration in Parser Profile Record structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct	vlan_hxs_configuration{
+struct	vlan_hxs_configuration {
 	/** This field includes:
 	Bits EN, ERM (refer to \ref FSL_PARSER_HXS_CONFIG) and
 	11-bit index for soft sequence start address */
@@ -1296,7 +1303,7 @@ struct	vlan_hxs_configuration{
 @Description	MPLS HXS Configuration in Parser Profile Record structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct	mpls_hxs_configuration{
+struct	mpls_hxs_configuration {
 	/** This field includes:
 	Bits EN, ERM (refer to \ref FSL_PARSER_HXS_CONFIG) and
 	11-bit index for soft sequence start address */
@@ -1334,7 +1341,7 @@ struct	mpls_hxs_configuration{
 
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct parse_profile_record{
+struct parse_profile_record {
 	/** Reserved
 	Reserved for compliance with HW format.
 	User should not access this field */
@@ -1587,6 +1594,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 
 /** @} */ /* end of FSL_PARSER_Functions */
 /** @} */ /* end of FSL_PARSER */
+/** @} */ /* end of ACCEL */
 
 
 #endif /* __FSL_PARSER_H */

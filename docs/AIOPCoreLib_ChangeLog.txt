@@ -1,3 +1,41 @@
+SL Pre-Alpha v0.2  Change Log
+
+
+fsl_fdma.h: Add fdma_present_frame_segment() explicit service routine.
+fsl_fdma.h: Add insert_segment_data_command() explicit service routine.
+fsl_fdma.h: Add explicit enqueue commands service routines.
+fsl_fdma.h: add fdma_create_frame() function.
+fdma.c: Add fdma_present_frame_segment() explicit service routine.
+fdma.c: Add insert_segment_data_command() explicit service routine.
+fdma.c: Add explicit enqueue commands service routines.
+fdma.c: add fdma_create_frame() function.
+fdma.c: fix CR:ENGR290881
+fsl_gro.h: finalize API.
+fsl_gso.h: finalize API.
+fsl_ipf.h: finalize API.
+fsl_ipr.h: finalize API.
+parser.h: Add internal function parse_result_generate_checksum().
+parser.c: Fix CR:ENGR00295530 
+id_pool.h: Fix CR:ENGR00292371
+id_pool.h: Fix CR:ENGR00292125
+id_pool.h: Fix CR:ENGR00291705 
+system.c: Fix CR:ENGR290657
+system.c: Fix CR:ENGR291260 
+dpni_drv.h: Introduce new DPNI driver code.
+drv.h: Introduce new DPNI driver code.
+dpni_drv_rxtx.c: Introduce new DPNI driver code.  
+
+
+Doc & Tool compatibility:
+	AIOP Archdef 0.7.1
+	CTLU Archdef 0.6
+	FD_section   0.62.2
+	Parser_Block_Guide	3.40 (Maturity level 0.95)
+	AIOP_Instruction_Additions 0.60
+	Compiler Build 265
+
+
+
 SL Code Drop v0.1  Change Log
 
 fsl_ipr.h: massive API changes

@@ -10,6 +10,7 @@
 #include "inc/sys.h"
 
 #include "drv.h"
+#include "system.h"
 
 
 #define __ERR_MODULE__  MODULE_DPNI
@@ -179,43 +180,104 @@ int dpni_get_num_of_ni (void)
 }
 
 
+static int aiop_replace_parser(uint8_t prpid)
+{
+    struct parse_profile_record verif_parse_profile1;
+    int i, status = 0;
+    uint8_t prpid_new = 0;
+    
+    /* Init basic parse profile */
+    verif_parse_profile1.eth_hxs_config = 0x0;
+    verif_parse_profile1.llc_snap_hxs_config = 0x0;
+    verif_parse_profile1.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
+    verif_parse_profile1.vlan_hxs_config.configured_tpid_1 = 0x0;
+    verif_parse_profile1.vlan_hxs_config.configured_tpid_2 = 0x0;
+    /* No MTU checking */
+    verif_parse_profile1.pppoe_ppp_hxs_config = 0x0;
+    verif_parse_profile1.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+    /* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
+    verif_parse_profile1.mpls_hxs_config.lie_dnp = PARSER_IP_STARTING_HXS;
+    verif_parse_profile1.arp_hxs_config = 0x0;
+    verif_parse_profile1.ip_hxs_config = 0x0;
+    verif_parse_profile1.ipv4_hxs_config = 0x0;
+    /* Routing header is ignored and the destination address from
+     * main header is used instead */
+    verif_parse_profile1.ipv6_hxs_config = 0x0;
+    verif_parse_profile1.gre_hxs_config = 0x0;
+    verif_parse_profile1.minenc_hxs_config = 0x0;
+    verif_parse_profile1.other_l3_shell_hxs_config= 0x0;
+    /* In short Packet, padding is removed from Checksum calculation */
+    verif_parse_profile1.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    /* In short Packet, padding is removed from Checksum calculation */
+    verif_parse_profile1.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    verif_parse_profile1.ipsec_hxs_config = 0x0;
+    verif_parse_profile1.sctp_hxs_config = 0x0;
+    verif_parse_profile1.dccp_hxs_config = 0x0;
+    verif_parse_profile1.other_l4_shell_hxs_config = 0x0;
+    verif_parse_profile1.gtp_hxs_config = 0x0;
+    verif_parse_profile1.esp_hxs_config = 0x0;
+    verif_parse_profile1.l5_shell_hxs_config = 0x0;
+    verif_parse_profile1.final_shell_hxs_config = 0x0;
+    /* Assuming no soft examination parameters */
+    for(i=0; i<16; i++)
+        verif_parse_profile1.soft_examination_param_array[i] = 0x0;
+
+    status = parser_profile_replace(&verif_parse_profile1, prpid);
+    return status;
+}
+
 int dpni_drv_init(void)
 {
 	uintptr_t	wrks_addr;
-	int		i;
+	int		    i;
+	int         error = 0;
+	
+	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
+	
+	if (!nis) {
+	    return -ENOMEM;
+	}
+	memset(nis, 0, sizeof(struct dpni_drv) * SOC_MAX_NUM_OF_DPNI);
 
-	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,
-				  MEM_PART_SH_RAM,
-				  64);
-	if (!nis)
-		RETURN_ERROR(MAJOR, E_NO_MEMORY, ("NI objs!"));
-	memset(nis, 0, sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI);
+	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
+	             SOC_PERIPH_OFF_AIOP_WRKS);
 
-	wrks_addr =
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-					   0,
-					   E_MAPPED_MEM_TYPE_GEN_REGS) +
-	 SOC_PERIPH_OFF_AIOP_WRKS);
+	/* Write EPID-table parameters 
+	 * NOTE in this implementation EPID = NI  */
+    for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
+        struct dpni_drv * dpni_drv = nis + i;
+		int	   j;
 
-	/* Write EPID-table parameters */
-	for (i=255; i>=(256-SOC_MAX_NUM_OF_DPNI); i--) {
-		struct dpni_drv *dpni_drv = nis + i;
-		int		j;
+		dpni_drv->id           = (uint16_t)i;
+		dpni_drv->spid         = 0;
+		dpni_drv->prpid        = 0;
+		dpni_drv->starting_hxs = 0; //ETH HXS
+		dpni_drv->qdid         = 0;
+		dpni_drv->flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | 
+		                         DPNI_DRV_FLG_MTU_ENABLE | DPNI_DRV_FLG_MTU_DISCARD;
+		dpni_drv->mtu          = 0xffff;
 
-		dpni_drv->id = (uint16_t)i;
 		/* put a default RX callback - dropping the frame */
-		for (j=0; j<DPNI_DRV_MAX_NUM_FLOWS; j++)
+		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)
 			dpni_drv->rx_cbs[j] = dflt_rx_cb;
-
+		
+#if 0
+		/* TODO there might be an issue with ISS which set Work Scheduler to LE 
+		 * EPID table is supposed to be set by MC */
+		
 		/* EPAS reg  - write to EPID 'i' */
 		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8));
-		/* EP_PC */
+		/* EP_PC - general receive_cb which will call dpni_drv->rx_cbs[j] */
 		iowrite32be(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100));
-		/* EP_PM */
-		iowrite32be(PTR_TO_UINT(nis + i), UINT_TO_PTR(wrks_addr + 0x100));
+		/* EP_PM  - NI index, receive_cb should call nis + i */
+		iowrite32be((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
+#endif
 	}
-
-	return 0;
+    /* Set PRPID 0 
+     * TODO it must be prpid for every ni */
+    error = aiop_replace_parser(0);
+    
+	return error;
 }
 
 void dpni_drv_free(void)

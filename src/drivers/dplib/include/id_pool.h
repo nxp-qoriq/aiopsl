@@ -118,16 +118,16 @@ inline int32_t id_pool_init(uint16_t *pool,
 {
 	int i;
 	uint64_t int_id_pool_address;
-	       
+
 	/* Acquire buffer for the pool */
 	if (cdma_acquire_context_memory(buffer_size, buffer_pool_id,
 						&int_id_pool_address)) {
 		/* Todo return CDMA status with Accell ID? -*/
 		return ID_POOL_INIT_STATUS_CDMA_ERR_NO_BUFFER_ACQUIRED;
 	}
-	/* store the address in the global parameter */     
+	/* store the address in the global parameter */
 	*ext_id_pool_address = int_id_pool_address;
-	       
+
 	/* Initialize pool in local memory */
 	pool[0] = (uint16_t)(length - 1);
 	for (i = length; i > 1; i--)
@@ -171,7 +171,7 @@ inline int32_t get_id(uint16_t *pool, uint16_t length,
 	uint64_t int_id_pool_address;
 
 	int_id_pool_address = ext_id_pool_address;
-	
+
 	/* Read id pool to local memory */
 	status = (cdma_read_with_mutex(int_id_pool_address,
 				     CDMA_PREDMA_MUTEX_WRITE_LOCK,
@@ -254,7 +254,7 @@ inline int32_t release_id(uint8_t id, uint16_t *pool,
 			 * TODO CDMA status */
 			return GET_ID_STATUS_CDMA_WR_FAILURE;
 		else
-			return status;;
+			return status;
 	} else {	/* CDMA read error */
 		/* In case of read error, CDMA SR will try to release mutex
 		 * if needed and return status.

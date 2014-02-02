@@ -9,6 +9,12 @@
 #ifndef __AIOP_IPR_H
 #define __AIOP_IPR_H
 
+#include "common/types.h"
+#include "dplib\fsl_ipr.h"
+#include "dplib\fsl_osm.h"
+#include "cdma.h"
+
+
 /**************************************************************************//**
 @addtogroup	FSL_IPR FSL_AIOP_IPR
 
@@ -17,17 +23,44 @@
 @{
 *//***************************************************************************/
 
-#define OUT_OF_ORDER	0x00000001
+#define OUT_OF_ORDER			0x00000001
+#define	MAX_NUM_OF_FRAGS 		64
+#define	FRAG_OK_REASS_NOT_COMPL		0
+#define LAST_FRAG_IN_ORDER		1
+#define LAST_FRAG_OUT_OF_ORDER		2
+#define FRAG_ERROR			3
+#define NO_BYPASS_OSM			0x00000000
+#define	BYPASS_OSM			0x00000001
+#define START_CONCURRENT		0x00000003
+#define	RESET_MF_BIT			0xFFDF
+#define NO_ERROR			0
+#define IPR_CONTEXT_SIZE		2624
+#define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
+#define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
+#define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
+#define RFDC_VALID			0x00000001
+#define FRAG_OFFSET_MASK		0x1FFF
+#define IPV4_FRAME			0x00000000 /* in RFDC status */
+#define IPV6_FRAME			0x00000001 /* in RFDC status */
+#define INSTANCE_VALID			0x0001
+#define REF_COUNT_ADDR_DUMMY		HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+#define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
+#define RFDC_SIZE			sizeof(struct ipr_rfdc)
+#define FD_SIZE				sizeof(struct ldpaa_fd)
+
+/* todo should move to general or OSM include file */
+#define EXCLUSIVE				0
+#define CONCURRENT				1
 
 #define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
 #define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
 
-struct ipr_instance_handle {
+struct ipr_instance {
 	uint64_t	extended_stats_addr;
-		/** maximum concurrently IPv4 open frames. */
-	uint32_t	table_id_ipv4;
-	uint32_t	table_id_ipv6;
-	uint32_t    max_open_frames_ipv4;
+	/** maximum concurrently IPv4 open frames. */
+	uint16_t	table_id_ipv4;
+	uint16_t	table_id_ipv6;
+	uint32_t    	max_open_frames_ipv4;
 	uint32_t  	max_open_frames_ipv6;
 	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
 	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
@@ -45,31 +78,37 @@ struct ipr_instance_handle {
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
 	uint32_t  	flags;
+	/** Number of frames that started reassembly but didn't complete it yet */
+	uint16_t	num_of_open_reass_frames;
+	uint8_t		tmi_id;
 		/** 32-bit alignment. */
-	uint8_t  pad[4];
+	uint8_t  pad[1];
 };
 
 struct ipr_rfdc{
 	uint64_t	instance_handle;
-	uint64_t	key;
+	uint64_t	key[2];
+	uint32_t	status;
+	uint32_t	timer_handle;
+	uint16_t	expected_total_length;
+	uint16_t	current_total_length;
+	uint16_t	first_frag_offset;
+	uint16_t	last_frag_offset;
+	uint16_t	current_running_sum;
 	uint8_t		first_frag_index;
 	uint8_t		last_frag_index;
 	uint8_t		next_index;
 	uint8_t		index_to_out_of_order;
-	uint16_t	expected_total_length;
-	uint16_t	current_total_length;
-	uint32_t	status;
-	uint32_t	timer_handle;
-	uint16_t	first_frag_offset;
-	uint16_t	last_frag_offset;
 	uint8_t		num_of_frags;
-	uint8_t		res[3]
+	uint8_t		res[1];
 };
 
 struct link_list_element{
+	uint16_t	frag_offset;
+	uint16_t	frag_length;
+	uint16_t	res;
 	uint8_t		prev_index;
 	uint8_t 	next_index;
-	uint16_t	frag_offset;
 };
 
 
@@ -166,7 +205,7 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 void ipr_init(uint32_t max_buffers, uint32_t flags);
 
 /**************************************************************************//**
-@Function	ipr
+@Function	ipr_insert_to_link_list
 
 @Description	
 
@@ -180,11 +219,39 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 @Cautions	None.
 *//***************************************************************************/
 
-void ipr(struct	ipr_instance_handle *ipr_instance, struct ipr_rfdc *rfdc_ptr,
-		uint16_t fragmentOffset, uint64_t rfdc_ext_addr);
+uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
+				 uint64_t rfdc_ext_addr);
 
-void closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
+				 uint64_t rfdc_ext_addr);
 
+
+inline void move_to_correct_ordering_scope1(uint32_t osm_status)
+{
+		if(osm_status == 0) {
+			/* return to original ordering scope that entered
+			 * the ipr_reassemble function */
+			osm_scope_exit();
+		} else if(osm_status & START_CONCURRENT) {
+		   osm_scope_transition_to_concurrent_with_increment_scope_id();
+		}
+}
+
+inline void move_to_correct_ordering_scope2(uint32_t osm_status)
+{
+		if(osm_status == 0) {
+			/* return to original ordering scope that entered
+			 * the ipr_reassemble function */
+			osm_scope_exit();
+			osm_scope_exit();	
+		} else if(osm_status & START_CONCURRENT) {
+		  osm_scope_transition_to_concurrent_with_increment_scope_id();
+		}
+}
+uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
+
+uint32_t check_for_frag_error();
 
 /**************************************************************************//**
 @Description	IPR Global parameters

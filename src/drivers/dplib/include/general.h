@@ -16,7 +16,7 @@
 /*#include "dplib/fsl_aiop_parser.h"*/
 
 /**************************************************************************//**
- @Group		AIOP_General_Definitions
+ @Group		AIOP_General_Definitions AIOP SL General Definitions
 
  @Description	AIOP General Definitions
 
@@ -212,9 +212,9 @@ struct additional_dequeue_context {
 	/** QMan Frame Queue ID mask */
 #define ADC_FQID_MASK		0x00FFFFFF
 	/** Privilege Level mask */
-#define ADC_PL_MASK		0x80000000
+#define ADC_PL_MASK		0x8000
 	/** Isolation Context ID mask */
-#define ADC_ICID_MASK		0x7F000000
+#define ADC_ICID_MASK		0x7FFF
 	/** QMan Work Queue ID mask */
 #define ADC_WQID_MASK		0x70
 	/** Entry Priority mask */
@@ -756,7 +756,7 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
 
 /**************************************************************************//**
-@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control 
+@Group		AIOP_General_Protocols_TCP_Definitions Transmission Control
 		Protocol (TCP) Definitions
 @{
 *//***************************************************************************/
