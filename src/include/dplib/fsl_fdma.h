@@ -2469,7 +2469,7 @@ int32_t fdma_trim_default_segment_presentation(
 /**************************************************************************//**
 @Function	fdma_modify_default_segment_data
 
-@Description	Modified data in the default Data segment in the default
+@Description	Modifies data in the default Data segment in the default
 		Working Frame (in the FDMA).
 
 		This Service Routine updates the FDMA that certain data in the

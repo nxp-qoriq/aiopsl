@@ -58,8 +58,8 @@ __HOT_CODE void receive_cb(void)
 	default_task_params.parser_profile_id = dpni_drv->prpid;
 	default_task_params.parser_starting_hxs \
 			= dpni_drv->starting_hxs;
-	default_task_params.qd_priority = ((*((uint8_t *)ADC_WQID_PRI_OFFSET) \
-			& ADC_WQID_MASK) >> 4);
+	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
+			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
 	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
 		int32_t parse_status = parse_result_generate_default \
@@ -109,5 +109,51 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
+	return err;
+}
+
+__HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
+{
+	struct dpni_drv *dpni_drv;
+	struct fdma_queueing_destination_params    enqueue_params;
+	int err;
+	uint32_t flags = 0;
+	uint16_t icid;
+	uint8_t va_bdi;
+
+	dpni_drv = nis + ni_id; /* calculate pointer
+					* to the send NI structure   */
+
+	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu)) {
+		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DISCARD)
+			return DPNI_DRV_MTU_ERR;
+		else {
+			/* TODO - mark in the FLC some error indication */
+			uint32_t frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+			frc |= FD_FRC_DPNI_MTU_ERROR_CODE;
+			LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, frc);
+		}
+	}
+	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
+	 * the qd_priority is taken from the TLS and that enqueue function \
+	 * always returns*/
+	enqueue_params.hash_value = 0;
+	enqueue_params.qd = dpni_drv->qdid;
+	enqueue_params.qd_priority = default_task_params.qd_priority;
+	/* Assuming user already called fdma_create_frame() and saved fd in the
+	 *  TLS */
+	/* TODO maybe in future HW the fdma_enqueue_fd_qd command will support
+	 * taking ICID and relevant bits from default values */
+	va_bdi = *((uint8_t *)(HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET));
+	if (va_bdi & ADC_BDI_MASK)
+		flags |= FDMA_ENF_BDI_BIT;
+	if (va_bdi & ADC_VA_MASK)
+		flags |= FDMA_ENF_VA_BIT;
+	icid = LH_SWAP(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
+	if (icid & ADC_PL_MASK)
+		flags |= FDMA_ENF_PL_BIT;
+	icid &= ADC_ICID_MASK;
+	err = (int)fdma_enqueue_fd_qd(fd, flags, &enqueue_params, icid);
 	return err;
 }
