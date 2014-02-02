@@ -298,6 +298,8 @@
 @Group	FSL_CTLU_STATUS_GENERAL General status returned from CTLU
 @{
 *//***************************************************************************/
+/** Command successful */
+#define CTLU_STATUS_SUCCESS	0x00000000
 
 /** Command failed general status bit.
 A general bit that is set in some errors conditions */

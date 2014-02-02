@@ -83,7 +83,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					instance_params.table_id_ipv4,
 					ipr_global_parameters1.ipr_key_id_ipv4,
 					&lookup_result);
-			if(sr_status == CTLU_LOOKUP_STATUS_MATCH_FOUND) {
+			if(sr_status == CTLU_STATUS_SUCCESS) {
 			     /* Hit */
 			     rfdc_ext_addr = lookup_result.opaque0_or_reference;
 			     /* Unlock instance handle parameters*/
@@ -108,8 +108,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				   /* Early Time out */
 				   return IPR_ERROR;
 				}	
-			} else if(sr_status ==
-					CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {
+			} else if(sr_status == CTLU_STATUS_MISS) {
 				/* Miss */
 			    cdma_acquire_context_memory(
 					     IPR_CONTEXT_SIZE,
