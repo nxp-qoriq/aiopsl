@@ -38,10 +38,7 @@
 *//***************************************************************************/
 /** MTU was crossed for DPNI driver send function */
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
-/** NI is not enabled in DPNI driver send function */
-#define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
 /* @} */
-
 
 typedef uint64_t	dpni_drv_app_arg_t;
 
@@ -201,7 +198,7 @@ int dpni_drv_register_default_rx_cb(
 /**************************************************************************//**
  @Function	dpni_drv_send
 
- @Description	@Description	Network Interface send (AIOP enqueue) function.
+ @Description	Network Interface send (AIOP enqueue) function.
 
  @Param[in]	ni_id   The Network Interface ID
 	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
@@ -211,6 +208,24 @@ int dpni_drv_register_default_rx_cb(
 		and \ref DPNI_DRV_STATUS.
 *//***************************************************************************/
 int dpni_drv_send(uint16_t ni_id);
+
+/**************************************************************************//**
+ @Function	dpni_drv_explicit_send
+
+ @Description	Network Interface explicit send (AIOP enqueue) function.
+
+ @Param[in]	ni_id	The Network Interface ID
+	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
+	
+ @Param[in]	fd	pointer to explicit FD. The assumption is that user
+ 	 	used fdma function to creat an explicit FD as 
+ 	 	fdma_create_frame 
+
+ @Return	OK on success; error code, otherwise.
+		For error codes refer to \ref FDMA_ENQUEUE_FD_ERRORS
+		and \ref DPNI_DRV_STATUS.
+*//***************************************************************************/
+int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
 
 /**************************************************************************//**
  @Function	dpni_get_num_of_ni

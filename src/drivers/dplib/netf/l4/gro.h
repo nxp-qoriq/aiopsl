@@ -437,8 +437,9 @@ void tcp_gro_timeout_callback(
 
 @Cautions	None.
 *//***************************************************************************/
-uint16_t tcp_gro_calc_tcp_header_cksum(
-		struct tcp_gro_context *gro_ctx);
+void tcp_gro_calc_tcp_header_cksum(
+		struct tcp_gro_context *gro_ctx, 
+		uint16_t delta_total_length);
 
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_data_cksum
@@ -449,7 +450,8 @@ uint16_t tcp_gro_calc_tcp_header_cksum(
 
 @Cautions	None.
 *//***************************************************************************/
-uint16_t tcp_gro_calc_tcp_data_cksum();
+uint16_t tcp_gro_calc_tcp_data_cksum(
+		struct tcp_gro_context *gro_ctx);
 
 
 /** @} */ /* end of TCP_GRO_INTERNAL_FUNCTIONS */
