@@ -713,6 +713,7 @@ struct aiop_default_task_params {
 @{
 *//***************************************************************************/
 #define IPV4_HDR_LENGTH		      20   /**< IPv4 header length */
+#define IPV4_HDR_ADD_LENGTH	      8    /**< IPv4 header address length */
 
 #define IPV4_EOOL_OPTION_TYPE	      0	   /*!< End of Option List */
 #define IPV4_NOP_OPTION_TYPE	      1	   /*!< No Operation */
@@ -724,6 +725,8 @@ struct aiop_default_task_params {
 #define IPV4_SSRR_OPTION_TYPE	      137  /*!< Strict Source & Record Route */
 
 #define IPV6_HDR_LENGTH		      40   /*!< IPv6 header length */
+#define IPV6_HDR_ADD_LENGTH	      32   /*!< IPv4 header address length */
+
 /** @} */ /* end of AIOP_General_Protocols_IP_Definitions */
 
 /**************************************************************************//**
