@@ -34,6 +34,26 @@
 @{
 *//***************************************************************************/
 
+
+/**************************************************************************//**
+@Group	FSL_L4_CKSUM_CALC_OPTIONS Options for \
+	\ref l4_cksum_calculate function.
+@{
+*//***************************************************************************/
+
+/** No options */
+#define L4_CKSUM_CALC_UDP_TCP_CKSUM_OPTION_NONE			0x00000000
+
+
+/** Update FDMA option
+ * When this options is set, the SR will call \ref
+ * fdma_modify_default_segment_data to update the FDMA engine with the frame
+ * header changes. */
+#define L4_CKSUM_CALC_UDP_TCP_CKSUM_OPTION_UPDATE_FDMA		0x00000001
+
+/** @} */ /* end of FSL_L4_CKSUM_CALC_UDP_TCP_OPTIONS */
+
+
 /**************************************************************************//**
 @Group	FSL_L4_CKSUM_STATUS Status returned to calling function
 @{
@@ -41,7 +61,7 @@
 
 /**************************************************************************//**
 @Group	FSL_L4_CKSUM_STATUS_CALC_UDP_TCP Status returned from \
-	 \ref l4_cksum_calc_udp_tcp_checksum SR
+	 \ref l4_cksum_calculate SR
 @{
 *//***************************************************************************/
 /** Success */
@@ -71,7 +91,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	l4_cksum_calc_udp_tcp_checksum
+@Function	l4_cksum_calculate
 
 @Description	Calculates and updates frame's UDP/TCP checksum.
 
@@ -87,6 +107,9 @@
 
 		Implicitly updated values in Task Defaults: Parse Result.
 
+@Param[in]	options - Please refer to \ref
+		FSL_L4_CKSUM_CALC_UDP_TCP_OPTIONS
+
 @Return		Please refer to \ref FSL_L4_CKSUM_STATUS_CALC_UDP_TCP.
 
 @Cautions	In this function the task yields. \n
@@ -96,7 +119,7 @@
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t cksum_calc_udp_tcp_checksum();
+int32_t l4_cksum_calculate(uint32_t options);
 
 /** @} */ /* end of FSL_L4_CKSUM_Functions */
 /** @} */ /* end of FSL_L4_CKSUM */

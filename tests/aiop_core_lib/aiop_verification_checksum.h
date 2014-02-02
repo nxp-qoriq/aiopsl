@@ -50,6 +50,7 @@ struct cksum_calc_ipv4_header_checksum_command {
 	uint32_t opcode;
 	int32_t  status;
 	uint32_t ipv4header;
+	uint32_t options;
 };
 
 /**************************************************************************//**
@@ -60,6 +61,7 @@ struct cksum_calc_ipv4_header_checksum_command {
 struct cksum_calc_udp_tcp_checksum_command {
 	uint32_t opcode;
 	int32_t  status;
+	uint32_t options;
 };
 
 uint16_t aiop_verification_checksum(uint32_t asa_seg_addr);

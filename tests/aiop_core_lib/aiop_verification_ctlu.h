@@ -246,17 +246,19 @@ struct ctlu_table_create_command {
 		Includes information needed for CTLU Update Miss Rule command
 		verification.
 *//***************************************************************************/
-
 struct ctlu_update_miss_rule_command {
-	/** CTLU Update Miss Rule Command identifier */
-	uint32_t opcode;
-
 	/** Miss Rule to update.
 	The structure to be passed must be one of the following:
 	 - \ref aiop_ctlu_result_chaining
 	 - \ref aiop_ctlu_result_reference
 	 - \ref aiop_ctlu_result_opaque */
 	struct ctlu_table_rule_result miss_rule;
+
+	/** The old miss result */
+	struct ctlu_table_rule_result old_miss_result;
+
+	/** CTLU Update Miss Rule Command identifier */
+	uint32_t opcode;
 
 	/** Command returned status. */
 	int32_t  status;
@@ -341,10 +343,10 @@ struct ctlu_table_delete_command {
 
 
 /**************************************************************************//**
-@Description	CTLU Table Rule Create/Create or Replace/Replace Command struct.
+@Description	CTLU Table Rule Create struct.
 
-		Includes information needed for CTLU Table Rule Create/ 
-		Create or Replace/ Replace command verification.
+		Includes information needed for CTLU Table Rule Create
+		command verification.
 *//***************************************************************************/
 struct ctlu_table_rule_create_command{
 	/** CTLU Table Rule Create identifier */
@@ -366,6 +368,37 @@ struct ctlu_table_rule_create_command{
 	uint8_t pad;
 };
 
+
+/**************************************************************************//**
+@Description	CTLU Table Rule Create or Replace/Replace Command struct.
+
+		Includes information needed for CTLU Table Rule
+		Create or Replace/ Replace command verification.
+*//***************************************************************************/
+struct ctlu_table_rule_create_replace_command{
+	/** Rule's old result - valid only if replace occurred */
+	struct ctlu_table_rule_result old_res;
+
+	/** CTLU Table Rule Create identifier */
+	uint32_t opcode;
+
+	/** A pointer to the rule to be added (workspace pointer)*/
+	uint32_t rule_ptr;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Key size */
+	uint8_t key_size;
+
+	/** 64-bit alignment */
+	uint8_t pad;
+};
+
+
 /**************************************************************************//**
 @Description	CTLU Table Rule Delete Command structure.
 
@@ -373,6 +406,9 @@ struct ctlu_table_rule_create_command{
 		command verification.
 *//***************************************************************************/
 struct ctlu_table_rule_delete_command{
+	/** Rule's old result */
+	struct ctlu_table_rule_result old_res;
+
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
 
