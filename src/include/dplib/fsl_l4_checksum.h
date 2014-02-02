@@ -36,8 +36,8 @@
 
 
 /**************************************************************************//**
-@Group	FSL_L4_CKSUM_CALC_UDP_TCP_OPTIONS Options for \
-	\ref cksum_calc_udp_tcp_checksum function.
+@Group	FSL_L4_CKSUM_CALC_OPTIONS Options for \
+	\ref l4_cksum_calculate function.
 @{
 *//***************************************************************************/
 
@@ -61,7 +61,7 @@
 
 /**************************************************************************//**
 @Group	FSL_L4_CKSUM_STATUS_CALC_UDP_TCP Status returned from \
-	 \ref l4_cksum_calc_udp_tcp_checksum SR
+	 \ref l4_cksum_calculate SR
 @{
 *//***************************************************************************/
 /** Success */
@@ -91,7 +91,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	l4_cksum_calc_udp_tcp_checksum
+@Function	l4_cksum_calculate
 
 @Description	Calculates and updates frame's UDP/TCP checksum.
 
@@ -119,7 +119,7 @@
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t cksum_calc_udp_tcp_checksum(uint32_t options);
+int32_t l4_cksum_calculate(uint32_t options);
 
 /** @} */ /* end of FSL_L4_CKSUM_Functions */
 /** @} */ /* end of FSL_L4_CKSUM */

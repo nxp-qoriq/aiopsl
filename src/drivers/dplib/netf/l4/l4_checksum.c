@@ -15,7 +15,7 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int32_t cksum_calc_udp_tcp_checksum(uint32_t options)
+int32_t l4_cksum_calculate(uint32_t options)
 {
 	uint16_t	l3checksum_dummy;
 	uint16_t	l4checksum;

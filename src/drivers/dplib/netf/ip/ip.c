@@ -325,7 +325,7 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					/* calculate IP checksum and update
 					   IP checksum in FDMA*/
 					ipv4_cksum_calculate(ipv4hdr_ptr,
-				       IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA);
+					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 					/* calculate IP checksum */
 //					ipv4_cksum_calculate(ipv4hdr_ptr);
 					/* update IP checksum in FDMA */
@@ -342,7 +342,7 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					/* calculate IP checksum and update
 					   IP checksum in FDMA*/
 					ipv4_cksum_calculate(ipv4hdr_ptr,
-				       IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA);
+					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 					/* calculate IP checksum */
 //					ipv4_cksum_calculate(ipv4hdr_ptr);
 					/* update IP checksum in FDMA */
@@ -364,7 +364,7 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 				/* calculate IP checksum and update
 				   IP checksum in FDMA*/
 				ipv4_cksum_calculate(ipv4hdr_ptr,
-				       IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA);
+				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 				/* calculate IP checksum */
 	//				ipv4_cksum_calculate(ipv4hdr_ptr);
 				/* update IP checksum in FDMA */
@@ -383,7 +383,7 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 			/* calculate IP checksum and update
 			   IP checksum in FDMA*/
 			ipv4_cksum_calculate(ipv4hdr_ptr,
-				       IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA);
+				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 			/* calculate IP checksum */
 //					ipv4_cksum_calculate(ipv4hdr_ptr);
 			/* update IP checksum in FDMA */
@@ -607,7 +607,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		/* calculate IP checksum and update
 		   IP checksum in FDMA*/
 		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
-				     IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA);
+				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 		/* calculate IP checksum */
 //					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
 		/* update IP checksum in FDMA */
@@ -693,7 +693,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		/* calculate IP checksum and update
 		   IP checksum in FDMA*/
 		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
-				     IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA);
+				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 		/* calculate IP checksum */
 //					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
 		/* update IP checksum in FDMA */

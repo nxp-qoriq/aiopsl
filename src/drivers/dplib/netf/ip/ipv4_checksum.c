@@ -37,7 +37,7 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t options)
 								 ihl,
 								 &running_sum)
 								 ) {
-		return IPV4_CKSUM_CALCULATE_STATUS_FDMA_FAILURE;
+		return IPV4_CKSUM_CALC_STATUS_FDMA_FAILURE;
 	}
 
 	/* Invalidate Parser Result Gross Running Sum field */
@@ -48,10 +48,10 @@ int32_t ipv4_cksum_calculate(struct ipv4hdr *ipv4header, uint32_t options)
 	ipv4header->hdr_cksum = (uint16_t)~running_sum;
 
 	/* Update FDMA */
-	if (options & IPV4_CKSUM_CALCULATE_OPTION_UPDATE_FDMA) {
+	if (options & IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA) {
 		/* TODO MACRO */
 		fdma_modify_default_segment_data(offset + 10, 2);
 	}
 
-	return IPV4_CKSUM_CALCULATE_STATUS_SUCCESS;
+	return IPV4_CKSUM_CALC_STATUS_SUCCESS;
 }

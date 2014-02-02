@@ -43,7 +43,7 @@ uint16_t aiop_verification_checksum(uint32_t asa_seg_addr)
 		struct cksum_calc_udp_tcp_checksum_command *cmd =
 				(struct cksum_calc_udp_tcp_checksum_command *)
 				asa_seg_addr;
-		cmd->status = cksum_calc_udp_tcp_checksum(cmd->options);
+		cmd->status = l4_cksum_calculate(cmd->options);
 		str_size = sizeof(struct cksum_calc_udp_tcp_checksum_command);
 		break;
 	}
