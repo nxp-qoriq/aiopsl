@@ -763,7 +763,6 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr)
 			gro_ctx.params.timeout_params.gro_timeout_cb_arg);
 }
 
-/* Todo - fill function */
 uint16_t tcp_gro_calc_tcp_data_cksum(
 		struct tcp_gro_context *gro_ctx)
 {
@@ -777,6 +776,7 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 	struct tcphdr *tcp;
 	uint16_t *ipsrc_ptr;
 	uint16_t *ipdst_ptr;
+	
 	ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 	ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
@@ -789,11 +789,12 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 	/* save original TCP cksum */
 	tcp_cs = tcp->checksum;
 	tcp->checksum = 0;
-	tcp_header_length = tcp->data_offset_reserved >> 
-					NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;	
+	tcp_header_length = (tcp->data_offset_reserved & 
+				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
+				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	
-		
-	/* calculate seg data cksum  */
+	/* calculate seg TCP + Pseudo IP cksum  */
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()){
 		/* IPv4 */
 		/* calculate TCP header + IPsrc + IPdst cksum  */
@@ -802,7 +803,7 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 				(uint16_t)(tcp_header_length + 
 						IPV4_HDR_ADD_LENGTH), 
 				&(tcp->checksum));
-		/* calculate seg data cksum  */
+		/* calculate additional Pseudo IP cksum */
 		ip_pseudo_tcp_length = ipv4->total_length - IPV4_HDR_LENGTH;
 		tmp_checksum = cksum_ones_complement_sum16(
 				(uint16_t)(ipv4->protocol),
@@ -816,25 +817,27 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 				(uint16_t)(tcp_header_length + 
 						IPV6_HDR_ADD_LENGTH), 
 				&(tcp->checksum));
-		/* calculate seg data cksum  */
+		/* calculate additional Pseudo IP cksum  */
 		ip_pseudo_tcp_length = ipv6->payload_length;
 		tmp_checksum = cksum_ones_complement_sum16(
 				(uint16_t)(ipv6->next_header),
 				ip_pseudo_tcp_length);
 	}		
+	
 	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,tcp->checksum);
+	
+	/* reduce seg TCP + Pseudo IP cksum from original seg cksum. 
+	 * The result is the seg Data chkum */
 	tmp_checksum = cksum_ones_complement_sum16(tcp_cs,
 			(uint16_t)~tmp_checksum);
 	
 	/* calculate accumulated seg data cksum  */
 	return  cksum_ones_complement_sum16(tmp_checksum, 
 			gro_ctx->checksum);
-	
-	/* Todo - return valid checksum */
-	//return 0;
 }
 
-/* Todo - fill function */
+/* Todo - change to only fix fields at the end*/
+/* Todo - in A save gro->cksum = tcp->cksum*/
 void tcp_gro_calc_tcp_header_cksum(
 		struct tcp_gro_context *gro_ctx, 
 		uint16_t delta_total_length)
@@ -849,7 +852,5 @@ void tcp_gro_calc_tcp_header_cksum(
 			delta_total_length));
 	
 	gro_ctx->checksum = 0;
-	
-	/* Todo - return valid checksum */
-	// return *((uint16_t *)gro_ctx);
+
 }
