@@ -44,6 +44,33 @@
 /** @} */ /* end of AIOP_CTLU_RULE_RESULT_CONSTANTS */
 
 /**************************************************************************//**
+@Group	CTLU_ENTRY_MACROS CTLU Entry Macros
+@{
+*//***************************************************************************/
+/** Entry type Entype field mask */
+#define CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK			0x0F
+
+/** Entry type Entype EME24 */
+#define CTLU_TABLE_ENTRY_ENTYPE_EME24				0x01
+
+/** Entry type Entype EME16 */
+#define CTLU_TABLE_ENTRY_ENTYPE_EME16				0x03
+
+/** Entry type Entype LPM Result*/
+#define CTLU_TABLE_ENTRY_ENTYPE_LPM_RES				0x05
+
+/** EME24 Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE			24
+
+/** EME16 Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE			16
+
+/** LPM Result Entry Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE		24
+
+/** @} */ /* end of CTLU_ENTRY_MACROS */
+
+/**************************************************************************//**
 @Group	CTLU_RULE_ENTRY_MACROS CTLU Rule-Entry related Macros
 @{
 *//***************************************************************************/
@@ -78,91 +105,53 @@
 
 /** @} */ /* end of CTLU_RULE_ENTRY_MACROS */
 
-
 /**************************************************************************//**
 @Group	CTLU_MTYPE CTLU Message Types
 @{
 *//***************************************************************************/
-	/** Table create message type */
+
+/** Table create message type */
 #define CTLU_TABLE_CREATE_MTYPE				0x004C
 	/** Table Parameters replace message type */
 #define CTLU_TABLE_PARAMETERS_REPLACE_MTYPE		0x0046
 	/** Table query without reference counting message type */
 #define CTLU_TABLE_QUERY_MTYPE				0x0043
-	/** Table query with reference counting message type */
-#define CTLU_TABLE_QUERY_REFERENCE_INC_MTYPE		0x0047
 	/** Table delete message type */
 #define CTLU_TABLE_DELETE_MTYPE				0x0042
-	/** Table rule create */
-#define CTLU_RULE_CREATE_MTYPE				0x006C
-	/** Table rule create or replace */
-#define CTLU_RULE_CREATE_OR_REPLACE_MTYPE		0x006D
-	/** Table rule replace */
-#define CTLU_RULE_REPLACE_MTYPE				0x0066
-	/** Table rule delete */
-#define CTLU_RULE_DELETE_MTYPE				0x0062
 
-	/** Table rule query
-	With timestamp and reference counter update */
-#define CTLU_RULE_QUERY_TMSTMP_RPTR_MTYPE		0x0063
-	/** Table rule query
-	With timestamp update, without reference counter update */
-#define CTLU_RULE_QUERY_TMSTMP_MTYPE			0x0067
-	/** Table rule query
-	Without timestamp update, with reference counter update */
-#define CTLU_RULE_QUERY_RPTR_MTYPE			0x0073
+
+	/** Table rule create */
+#define CTLU_RULE_CREATE_MTYPE				0x007C
+	/** Table rule create or replace with reference counter decrement (for
+	 * the old entry) */
+#define CTLU_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE	0x006D
+	/** Table rule create or replace */
+#define CTLU_RULE_CREATE_OR_REPLACE_MTYPE		0x007D
+	/** Table rule replace with reference counter decrement (for the old
+	 * entry) */
+#define CTLU_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE		0x0066
+	/** Table rule replace */
+#define CTLU_RULE_REPLACE_MTYPE				0x0076
+	/** Table rule delete with reference counter decrement. */
+#define CTLU_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE		0x0062
+	/** Table rule delete */
+#define CTLU_RULE_DELETE_MTYPE				0x0072
+
 	/** Table rule query
 	Without timestamp update, without reference counter update */
 #define CTLU_RULE_QUERY_MTYPE				0x0077
 
-	/** Table lookup with keyID
-	With timestamp and reference counter update */
-#define CTLU_LOOKUP_KEYID_TMSTMP_RPTR_MTYPE		0x0060
-	/** Table lookup with keyID
-	With timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_TMSTMP_MTYPE			0x0064
-	/** Table lookup with keyID
-	Without timestamp update, with reference counter update */
-#define CTLU_LOOKUP_KEYID_RPTR_MTYPE			0x0070
-	/** Table lookup with keyID
-	Without timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_MTYPE				0x0074
-
 	/** Table lookup with keyID and explicit parse result.
 	With timestamp and reference counter update */
 #define CTLU_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE	0x0160
-	/** Table lookup with keyID and explicit parse result.
-	With timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_EPRS_TMSTMP_MTYPE		0x0164
-	/** Table lookup with keyID and explicit parse result.
-	Without timestamp update, with reference counter update */
-#define CTLU_LOOKUP_KEYID_EPRS_RPTR_MTYPE		0x0170
-	/** Table lookup with keyID and explicit parse result.
-	Without timestamp update, without reference counter update */
-#define CTLU_LOOKUP_KEYID_EPRS_MTYPE			0x0174
-
 	/** Table lookup with explicit key
 	With timestamp and reference counter update. Single search only. */
 #define CTLU_LOOKUP_KEY_TMSTMP_RPTR_MTYPE		0x0069
-	/** Table lookup with explicit key
-	With timestamp update, without reference counter update. Single search
-	only. */
-#define CTLU_LOOKUP_KEY_TMSTMP_MTYPE			0x006D
-	/** Table lookup with explicit key
-	Without timestamp update, with reference counter update. Single search
-	only. */
-#define CTLU_LOOKUP_KEY_RPTR_MTYPE			0x0079
-	/** Table lookup with explicit key
-	Without timestamp update, without reference counter update. Single
-	search only. */
-#define CTLU_LOOKUP_KEY_MTYPE				0x007D
 
 	/** Key composition rule create or replace */
 #define CTLU_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE	0x003D
 	/** Key composition rule query */
 #define CTLU_KEY_COMPOSITION_RULE_QUERY_MTYPE			0x0037
-	/** Key generate */
-#define CTLU_KEY_GENERATE_MTYPE					0x0034
 	/** Key generate with explicit parse result */
 #define CTLU_KEY_GENERATE_EPRS_MTYPE				0x0035
 	/** Generate hash (Parses the frame) */
@@ -179,12 +168,22 @@
 @{
 *//***************************************************************************/
 	/** Table create input message reserved space */
-#define CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE	120
+#define CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE	140
 
 	/** BDI mask in table create ICID field */
 #define CTLU_TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK	0x8000
 
 /** @} */ /* end of CTLU_TBL_CREATE */
+
+/**************************************************************************//**
+@Group	CTLU_TBL_PARAMS_REPLACE CTLU Table Parameters Replace specific \
+	 constants
+@{
+*//***************************************************************************/
+	/** Table parameter replace input message reserved space */
+#define TABLE_PARAMS_REPLACE_INPUT_MESSAGE_RESERVED_SPACE	44
+
+/** @} */ /* end of CTLU_TBL_PARAMS_REPLACE */
 
 /**************************************************************************//**
 @Group	TLU_KCR CTLU KCR Builder defines
@@ -296,17 +295,6 @@
 
 /** @} */ /* end of CTLU_KCR */
 
-
-/**************************************************************************//**
-@Group	CTLU_TBL_PARAMS_REPLACE CTLU Table Parameters Replace specific \
-	 constants
-@{
-*//***************************************************************************/
-	/** Table parameter replace input message reserved space */
-#define TABLE_PARAMS_REPLACE_INPUT_MESSAGE_RESERVED_SPACE	44
-
-/** @} */ /* end of CTLU_TBL_PARAMS_REPLACE */
-
 /** @} */ /* end of CTLU_MACROS */
 
 
@@ -347,9 +335,6 @@ struct ctlu_table_create_input_message {
 
 	/** Reserved */
 	uint8_t  reserved[CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE];
-
-	/** Miss Result */
-	struct ctlu_table_rule_result miss_lookup_fcv;
 
 };
 #pragma pack(pop)
@@ -419,14 +404,134 @@ struct ctlu_table_params_query_output_message {
 	/** Current Number of entries */
 	uint32_t current_entries;
 
-	/** Reserved */
-	uint64_t  reserved0;
+	/** Reserved */ /*TODO magic number*/
+	uint8_t  reserved[16];
+};
+#pragma pack(pop)
 
-	/** Reserved */
-	uint64_t  reserved1;
 
-	/** Miss Result */
-	struct ctlu_table_rule_result miss_lookup_fcv;
+/**************************************************************************//**
+@Description	Table Entry Body EME16
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_eme16 {
+	/** Reserved */
+	uint8_t  reserved[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage0;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage1;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE];
+
+	/** CTLU result */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body EME24
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_eme24 {
+	/** Reserved */
+	uint8_t  reserved[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE];
+
+	/** CTLU result */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body LPM
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_lpm_res {
+	/** Reserved */
+	uint8_t  reserved[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage0;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE];
+
+	/** CTLU result */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body Union
+*//***************************************************************************/
+#pragma pack(push, 1)
+union ctlu_table_entry_body {
+	/** EME16 Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_eme16 eme16;
+	
+	/** EME24 Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_eme24 eme24;
+	
+	/** LPM Result Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_lpm_res lpm_res;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry {
+	/* TODO */
+	uint8_t type;
+
+	/** The body of the entry (varies per type) */
+	union ctlu_table_entry_body body;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_old_result {
+	/* TODO */
+	uint8_t reserved[44]; /* TODO */
+
+	/** The body of the entry (varies per type) */
+	struct ctlu_table_rule_result result;
 };
 #pragma pack(pop)
 

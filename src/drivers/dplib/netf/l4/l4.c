@@ -36,11 +36,12 @@ int32_t l4_udp_header_modification(uint8_t flags,
 		udp_ptr->dst_port = udp_dst_port;
 	if (flags & L4_UDP_MODIFY_MODE_L4_CHECKSUM) {
 		if (udp_ptr->checksum == 0) {
-			cksum_calc_udp_tcp_checksum();
+			l4_cksum_calculate(
+				       L4_CKSUM_CALC_UDP_TCP_CKSUM_OPTION_NONE);
 		} else {
 			cksum_update_uint32(&udp_ptr->checksum,
-								old_header,
-								*(uint32_t *)udp_ptr);
+					    old_header,
+					    *(uint32_t *)udp_ptr);
 		}
 	}
 	/* Modify the segment */

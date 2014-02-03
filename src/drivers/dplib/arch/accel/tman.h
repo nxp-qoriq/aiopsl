@@ -32,6 +32,8 @@ enum e_tman_cmd_type {
 #define TMAN_TMCBCC_ADDRESS	(TMAN_BASE_ADDRESS+0x014)
 /** TMTSTMP- TMan TMAN Timestamp register address */
 #define TMAN_TMTSTMP_ADDRESS	(TMAN_BASE_ADDRESS+0x020)
+/** TMan Dedicated EPID */
+#define EPID_TIMER_EVENT_IDX	1
 
 /**************************************************************************//**
 @Description	TMI input extension params
@@ -45,5 +47,23 @@ struct tman_tmi_input_extention {
 		and EPID */
 	uint32_t	opaque_data2_epid;
 };
+
+
+/**************************************************************************//**
+@Function	tman_timer_callback
+
+@Description	Callback function, called for every timer expiration and for
+		TMI delete completion confirmation.
+		This function will call the user function the argument
+		specified in the tman_delete_tmi and tman_create_timer
+		functions.
+
+@Param		None.
+
+@Return		None.
+@Cautions	This is a none return function.
+
+*//***************************************************************************/
+void tman_timer_callback(void);
 
 #endif /* __AIOP_TMAN_H */
