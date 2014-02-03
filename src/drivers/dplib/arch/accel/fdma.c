@@ -1307,6 +1307,58 @@ int32_t fdma_copy_data(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_acquire_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		void *dst)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2;
+	int8_t res1;
+	
+	/* prepare command parameters */
+	arg1 = FDMA_ACQUIRE_CMD_ARG1(icid, flags);
+	arg2 = FDMA_ACQUIRE_CMD_ARG2(dst,bpid);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
+	
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_release_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		uint64_t addr)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+	
+	/* prepare command parameters */
+	arg1 = FDMA_RELEASE_CMD_ARG1(icid, flags);
+	/* store command parameters */
+	__stdw(arg1, bpid, HWC_ACC_IN_ADDRESS, ZERO);
+	__llstdw(addr, HWC_ACC_IN_ADDRESS3, ZERO);
+		
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
 int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 {
 	struct fdma_present_frame_params present_frame_params;
