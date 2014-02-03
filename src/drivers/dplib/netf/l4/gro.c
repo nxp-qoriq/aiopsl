@@ -99,7 +99,7 @@ int32_t tcp_gro_aggregate_seg(
 		 * to DDR? so there will not be a case it expires before we even
 		 * save the context the first time to DDR
 		 * create timer for the aggregation */
-		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
+/*		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
 				gro_global_params.timeout_flags,
 				params->limits.timeout_limit, 
 				tcp_gro_context_addr, 
@@ -107,7 +107,7 @@ int32_t tcp_gro_aggregate_seg(
 				gro_global_params.gro_timeout_epid,
 				0, 
 				&(gro_ctx.timer_handle));
-		
+*/		
 		/* initialize gro context fields */
 		gro_ctx.params = *params;
 		gro_ctx.flags = flags;
@@ -538,7 +538,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 			
 	if (gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET) {
 		/* create zero timer for the new PUSH segment */
-		sr_status = tman_create_timer(params->timeout_params.tmi_id,
+/*		sr_status = tman_create_timer(params->timeout_params.tmi_id,
 				gro_global_params.timeout_flags, 
 				0, 
 				tcp_gro_context_addr, 
@@ -546,10 +546,10 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				gro_global_params.gro_timeout_epid,
 				0, 
 				&(gro_ctx->timer_handle));
-	}
+*/	}
 	else {
 		/* create timer for the new aggregation */
-		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
+/*		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
 				gro_global_params.timeout_flags,
 				params->limits.timeout_limit, 
 				tcp_gro_context_addr, 
@@ -557,7 +557,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				gro_global_params.gro_timeout_epid,
 				0, 
 				&(gro_ctx->timer_handle));
-		/* recharge timer for the new aggregation */
+*/		/* recharge timer for the new aggregation */
 		/* sr_status = tman_recharge_timer(gro_ctx->timer_handle); */
 	}
 		
