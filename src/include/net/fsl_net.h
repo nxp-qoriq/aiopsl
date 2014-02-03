@@ -247,6 +247,9 @@ typedef uint16_t net_hdr_fld_tcp_t;
 
 /* TCP data_offset field offset value */
 #define NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET	4
+/* TCP data_offset field byte unit shift value (the data offset field specifies
+ * the size of the TCP header in 32but words)*/
+#define NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE	2
 /* TCP data_offset field mask value */
 #define NET_HDR_FLD_TCP_DATA_OFFSET_MASK        0xf0
 
