@@ -279,8 +279,10 @@ struct extended_stats_cntrs {
 @{
 *//***************************************************************************/
 
-/* Frame was correctly reassembled or was a regular frame*/
-#define IPR_REASSEMBLY_SUCCESS		SUCCESS
+/* Frame was a regular frame*/
+#define IPR_REASSEMBLY_REGULAR		0
+/* Frame was correctly reassembled */
+#define IPR_REASSEMBLY_SUCCESS		(IPR_MODULE_STATUS_ID + 0x1000)
 /* Reassembly isn't completed yet but fragment was successfully added to the
    partially reassembled frame*/
 #define IPR_REASSEMBLY_NOT_COMPLETED	(IPR_MODULE_STATUS_ID + 0x0200)
