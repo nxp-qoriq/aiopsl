@@ -253,8 +253,8 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	} 
 	
 	/* update TCP checksum */
-	status = l4_cksum_calculate(
-		L4_CKSUM_CALC_UDP_TCP_CKSUM_OPTION_NONE); /* TODO FDMA ERROR */
+	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE);
+	/* TODO FDMA ERROR */
 	
 	/* Modify default segment */
 	/* TODO FDMA ERROR */

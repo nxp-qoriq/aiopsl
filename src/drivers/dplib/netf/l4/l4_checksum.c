@@ -15,7 +15,7 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int32_t l4_cksum_calculate(uint32_t options)
+int32_t l4_udp_tcp_cksum_calc(uint32_t options)
 {
 	uint16_t	l3checksum_dummy;
 	uint16_t	l4checksum;
@@ -26,14 +26,14 @@ int32_t l4_cksum_calculate(uint32_t options)
 
 	/* Check if TCP or UDP*/
 	if (!PARSER_IS_TCP_OR_UDP_DEFAULT())
-		return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_NON_UDP_TCP;
+		return L4_UDP_TCP_CKSUM_CALC_STATUS_NON_UDP_TCP;
 
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {
 		if (FDMA_CHECKSUM_SUCCESS !=
 		    fdma_calculate_default_frame_checksum(0, 0xFFFF,
 						&pr->gross_running_sum)) {
-			return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_FDMA_FAILURE;
+			return L4_UDP_TCP_CKSUM_CALC_STATUS_FDMA_FAILURE;
 		}
 	}
 
@@ -42,8 +42,7 @@ int32_t l4_cksum_calculate(uint32_t options)
 	    (enum parser_starting_hxs_code)
 	    default_task_params.parser_starting_hxs, 0, &l3checksum_dummy,
 	    &l4checksum)) {
-		return
-		L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_PARSER_FAILURE;
+		return L4_UDP_TCP_CKSUM_CALC_STATUS_PARSER_FAILURE;
 	}
 
 	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
@@ -70,10 +69,10 @@ int32_t l4_cksum_calculate(uint32_t options)
 	} /* UDP */
 
 	/* Update FDMA */
-	if (options & L4_CKSUM_CALC_UDP_TCP_CKSUM_OPTION_UPDATE_FDMA) {
+	if (options & L4_UDP_TCP_CKSUM_CALC_OPTIONS_UPDATE_FDMA) {
 		fdma_modify_default_segment_data(l4offset, 2);
 	}
 
-	return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_SUCCESS;
+	return L4_UDP_TCP_CKSUM_CALC_STATUS_SUCCESS;
 }
 
