@@ -9,10 +9,10 @@
 extern int cmdif_srv_init(void);extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);extern void dpni_drv_free(void);
 
-extern int dpni_drv_probe(uint16_t	ni_id,
-                          uint16_t	mc_portal_id,
-                          fsl_handle_t	dpio,
-                          fsl_handle_t	dpsp);
+extern int dpni_drv_probe(uint16_t    ni_id,
+                          uint16_t    mc_portal_id,
+                          fsl_handle_t    dpio,
+                          fsl_handle_t    dpsp);
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
@@ -36,7 +36,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {NULL, NULL} /* never remove! */    \
 }
 
-#define MAX_NUM_OF_APPS		10
+#define MAX_NUM_OF_APPS        10
 
 
 int fill_system_parameters(t_sys_param *sys_param);
@@ -56,9 +56,9 @@ int fill_system_parameters(t_sys_param *sys_param)
 
 #ifndef DEBUG_NO_MC
     { /* TODO - temporary check boot register */
-    	uintptr_t   tmp_reg = 0x00000000 + SOC_PERIPH_OFF_MC;
-    	/* wait for MC command for boot */
-    	while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x08)) & 0x1)) ;
+        uintptr_t   tmp_reg = 0x00000000 + SOC_PERIPH_OFF_MC;
+        /* wait for MC command for boot */
+        while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x08)) & 0x1)) ;
     }
 #endif /* DEBUG_NO_MC */
 
@@ -86,22 +86,22 @@ int global_init(void)
 
     for (i=0; i<ARRAY_SIZE(modules); i++)
         if (modules[i].init)
-    	    modules[i].init();
+            modules[i].init();
 
     return 0;
 }
 
 int global_post_init(void)
 {
-	uintptr_t   tmp_reg =
-	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-	                                      0,
-	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
+    uintptr_t   tmp_reg =
+        sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+                                          0,
+                                          E_MAPPED_MEM_TYPE_GEN_REGS);
 
-	/* Write AIOP boot status */
-	iowrite32be((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
+    /* Write AIOP boot status */
+    iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
 
-	return 0;
+    return 0;
 }
 
 int run_apps(void)
@@ -113,15 +113,15 @@ extern int init_nic_stub(int portal_id, int ni_id);
 /* TODO - get rid of this stub! */
 //init_nic_stub(2, 10);
 
-	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
-	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
-	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
-	 * This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
-	 * all should be placed in PEB. */
-	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
-	/* TODO - iterate through the device-list:
-	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)'
-	 */
+    /* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
+     * This should be mapped to ALL cores of AIOP and to ALL the tasks */
+    /* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
+     * This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
+     * all should be placed in PEB. */
+    /* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
+    /* TODO - iterate through the device-list:
+     * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)'
+     */
     /* in this stage, all the NIC of AIOP are up and running */
 
     memset(apps, 0, sizeof(apps));
