@@ -42,7 +42,7 @@
 void * fsl_os_malloc(size_t size);
 
 /**************************************************************************//**
- @Function      fsl_os_malloc_smart
+ @Function     fsl_os_xmalloc
 
  @Description   Allocates contiguous block of memory in a specified
                 alignment and from the specified segment.
@@ -54,12 +54,12 @@ void * fsl_os_malloc(size_t size);
 
  @Return        The address of the newly allocated block on success, NULL on failure.
 *//***************************************************************************/
-void * fsl_os_malloc_smart(size_t size, int mem_partition_id, uint32_t alignment);
+void *fsl_os_xmalloc(size_t size, int mem_partition_id, uint32_t alignment);
 
 #else /* DEBUG_FSL_OS_MALLOC */
 void * fsl_os_malloc_debug(size_t size, char *fname, int line);
 
-void * fsl_os_malloc_smart_debug(size_t size,
+void *fsl_os_xmalloc_debug(size_t size,
                            int      mem_partition_id,
                            uint32_t alignment,
                            char     *fname,
@@ -68,19 +68,19 @@ void * fsl_os_malloc_smart_debug(size_t size,
 #define fsl_os_malloc(sz) \
     fsl_os_malloc_debug((sz), __FILE__, __LINE__)
 
-#define fsl_os_malloc_smart(sz, memt, al) \
-    fsl_os_malloc_smart_debug((sz), (memt), (al), __FILE__, __LINE__)
+#define fsl_os_xmalloc(sz, memt, al) \
+   fsl_os_xmalloc_debug((sz), (memt), (al), __FILE__, __LINE__)
 #endif /* !DEBUG_FSL_OS_MALLOC */
 
 /**************************************************************************//**
- @Function      fsl_os_free_smart
+ @Function      fsl_os_xfree
 
  @Description   Frees the memory block pointed to by "p".
-                Only for memory allocated by fsl_os_malloc_smart().
+                Only for memory allocated byfsl_os_xmalloc().
 
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
-void fsl_os_free_smart(void *mem);
+void fsl_os_xfree(void *mem);
 
 /**************************************************************************//**
  @Function      fsl_os_free

@@ -68,7 +68,7 @@ static int create_sw_slab(char          name[],
                                              postfix_size,
                                              alignment);
 
-    address = (uint8_t *)fsl_os_malloc_smart(alloc_size, mem_partition_id, 1);
+    address = (uint8_t *)fsl_os_xmalloc(alloc_size, mem_partition_id, 1);
     if (!address)
         RETURN_ERROR(MAJOR, E_NO_MEMORY, ("memory segment"));
 
@@ -415,7 +415,7 @@ int slab_create(char            name[],
            received segment for alignment reasons, therefore the allocation is of:
            (alignment + (num_buffs * block size)). */
         uint8_t *p_blocks = (uint8_t *)
-            fsl_os_malloc_smart((uint32_t)((num_buffs * block_size) + alignment), mem_partition_id, 1);
+           fsl_os_xmalloc((uint32_t)((num_buffs * block_size) + alignment), mem_partition_id, 1);
         if (!p_blocks)
         {
             slab_free(pslab);
@@ -449,7 +449,7 @@ int slab_create(char            name[],
         for (i = 0; i < num_buffs; i++)
         {
             uint8_t *p_block = (uint8_t *)
-                fsl_os_malloc_smart((uint32_t)(block_size + alignment), mem_partition_id, 1);
+               fsl_os_xmalloc((uint32_t)(block_size + alignment), mem_partition_id, 1);
             if (!p_block)
             {
                 slab_free(pslab);
@@ -509,7 +509,7 @@ void slab_free(struct slab *slab)
         if (pslab->alloc_owner == SLAB_ALLOC_OWNER_LOCAL_SMART)
             for (i=0; i < num_buffs; i++)
                 if (pslab->p_bases[i])
-                    fsl_os_free_smart(pslab->p_bases[i]);
+                    fsl_os_xfree(pslab->p_bases[i]);
         else if (pslab->alloc_owner == SLAB_ALLOC_OWNER_LOCAL)
             for (i=0; i < num_buffs; i++)
                 if (pslab->p_bases[i])

@@ -28,6 +28,27 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Description	TMAN Timer expiration task arguments Type definition
+
+*//***************************************************************************/
+
+typedef uint64_t tman_arg_8B_t;
+typedef uint16_t tman_arg_2B_t;
+
+/**************************************************************************//**
+@Description	User callback function, called after ipr_delete_instance
+		function has finished deleting the instance and release all its
+		recourses. The user provides this function and the IPR process
+		invokes it.
+
+@Param[in]	arg - Argument of the callback function.
+
+ *//***************************************************************************/
+typedef void /*__noreturn*/ (*tman_cb_t) (
+					tman_arg_8B_t arg1,
+					tman_arg_2B_t arg2);
+
+/**************************************************************************//**
 @Group		TMANReturnStatus TMAN functions return status
 
 @Description	AIOP TMAN functions return status
@@ -219,8 +240,7 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 		confirmation_epid.
 
 
-@Param[in]	confirmation_epid - EPID used as the index to the
-		Entry Point Mapping table to extract the starting PC for
+@Param[in]	tman_confirm_cb - A callback function used for
 		the task created upon completion of the delete tmi.
 @Param[in]	flags - \link TMANInsDeleteModeBits TMAN instance
 		delete flags \endlink
@@ -235,9 +255,9 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int32_t tman_delete_tmi(uint8_t confirmation_epid, uint32_t flags,
-			uint8_t tmi_id, uint64_t conf_opaque_data1,
-			uint16_t conf_opaque_data2);
+int32_t tman_delete_tmi( tman_cb_t tman_confirm_cb, uint32_t flags,
+			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
+			tman_arg_2B_t conf_opaque_data2);
 
 /**************************************************************************//**
 @Function	tman_query_tmi
@@ -269,11 +289,8 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 @Param[in]	duration - Timer duration time (the number of timer ticks).
 @Param[in]	opaque_data1 - Data to be associated with to the created task.
 @Param[in]	opaque_data2 - Data to be associated with to the created task.
-@Param[in]	epid - EPID used as the index to the Entry Point Mapping table
-		to extract the starting PC for the task created upon timer
-		expiration.
-@Param[in]	scope_id - The ordering scope for the created upon timer
-		expiration.
+@Param[in]	tman_timer_cb - A callback function used for the task created
+		upon timer expiration.
 @Param[out]	timer_handle - the handle of the timer for future reference.
 		The handle includes the tmi ID and timer ID values.
 
@@ -284,8 +301,8 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 
 *//***************************************************************************/
 int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
-			uint16_t duration, uint64_t opaque_data1,
-			uint16_t opaque_data2, uint8_t epid, uint32_t scope_id,
+			uint16_t duration, tman_arg_8B_t opaque_data1,
+			tman_arg_2B_t opaque_data2, tman_cb_t tman_timer_cb,
 			uint32_t *timer_handle);
 
 /**************************************************************************//**
