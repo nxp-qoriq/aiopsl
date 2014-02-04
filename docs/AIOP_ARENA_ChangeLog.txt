@@ -1,3 +1,7 @@
+
+- aiop_link.lcf: Moved app_receive_cb() to the start of IRAM and fixed IRAM size to 128K
+- fsl_slab.h:    Added new file with slab API
+
 AIOP ARENA Feb 4, 2014
 - Changed i_ram to start at 0xfe0000 in aiop_link.lcf in order to match simulator
 - Removed evm_register_callback stub in order to avoid conflict with app level stub implementation.
