@@ -41,6 +41,9 @@
 /** Uses for masking of Table ID, Key ID valid bit*/
 #define CTLU_TLUR_TKIDV_BIT_MASK		0x02000000
 
+/** Table old result reserved space */
+#define CTLU_TABLE_OLD_RESULT_RESERVED_SPACE	44
+
 /** @} */ /* end of AIOP_CTLU_RULE_RESULT_CONSTANTS */
 
 /**************************************************************************//**
@@ -174,6 +177,15 @@
 #define CTLU_TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK	0x8000
 
 /** @} */ /* end of CTLU_TBL_CREATE */
+
+/**************************************************************************//**
+@Group	CTLU_TBL_RULE_QUERY CTLU Table Query specific constants
+@{
+*//***************************************************************************/
+	/** Table create input message reserved space */
+#define CTLU_TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	16
+
+/** @} */ /* end of CTLU_TBL_RULE_QUERY */
 
 /**************************************************************************//**
 @Group	CTLU_TBL_PARAMS_REPLACE CTLU Table Parameters Replace specific \
@@ -404,8 +416,8 @@ struct ctlu_table_params_query_output_message {
 	/** Current Number of entries */
 	uint32_t current_entries;
 
-	/** Reserved */ /*TODO magic number*/
-	uint8_t  reserved[16];
+	/** Reserved */
+	uint8_t  reserved[CTLU_TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE];
 };
 #pragma pack(pop)
 
@@ -513,7 +525,8 @@ union ctlu_table_entry_body {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct ctlu_table_entry {
-	/* TODO */
+	/* Entry type (and some more things)
+	 * Macros are available at: \ref CTLU_ENTRY_MACROS */
 	uint8_t type;
 
 	/** The body of the entry (varies per type) */
@@ -527,8 +540,8 @@ struct ctlu_table_entry {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct ctlu_table_old_result {
-	/* TODO */
-	uint8_t reserved[44]; /* TODO */
+	/* Reserved */
+	uint8_t reserved[CTLU_TABLE_OLD_RESULT_RESERVED_SPACE];
 
 	/** The body of the entry (varies per type) */
 	struct ctlu_table_rule_result result;
