@@ -66,8 +66,8 @@ int32_t tcp_gro_aggregate_seg(
 		sr_status = cdma_read(&(gro_ctx.metadata.seg_sizes_addr), 
 				params->metadata, 
 				METADATA_MEMBER1_SIZE); 
-		sr_status = cdma_write(gro_ctx.metadata.seg_sizes_addr, &seg_size, 
-			sizeof(seg_size));
+		sr_status = cdma_write(gro_ctx.metadata.seg_sizes_addr, 
+				&seg_size, sizeof(seg_size));
 	}
 	
 	/* set metadada values */
@@ -99,7 +99,9 @@ int32_t tcp_gro_aggregate_seg(
 		 * to DDR? so there will not be a case it expires before we even
 		 * save the context the first time to DDR
 		 * create timer for the aggregation */
-/*		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
+/*		
+ * 		Todo - enable timer
+ * 		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
 				gro_global_params.timeout_flags,
 				params->limits.timeout_limit, 
 				tcp_gro_context_addr, 
@@ -112,8 +114,10 @@ int32_t tcp_gro_aggregate_seg(
 		gro_ctx.params = *params;
 		gro_ctx.flags = flags;
 		gro_ctx.last_ack = tcp->acknowledgment_number;
-		data_offset = tcp->data_offset_reserved >> 
-				NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
+		data_offset = (tcp->data_offset_reserved & 
+				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 		gro_ctx.next_seq = tcp->sequence_number + seg_size - 
 				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 		/* in case there is an option it must be a timestamp option */
@@ -131,7 +135,8 @@ int32_t tcp_gro_aggregate_seg(
 		
 		/* calculate tcp checksum */
 		if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM){
-			gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum(&gro_ctx);
+			gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum(
+					&gro_ctx);
 			gro_ctx.checksum = cksum_ones_complement_sum16(
 					gro_ctx.checksum, 
 					(uint16_t)tcp->sequence_number);
@@ -204,8 +209,10 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	if (PARSER_IS_OUTER_IPV6_DEFAULT())
 		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
 	ecn &= TCP_GRO_ECN_MASK;
-	data_offset = tcp->data_offset_reserved >> 
-			NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
+	data_offset = (tcp->data_offset_reserved & 
+			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	timestamp = 0;
 	if (data_offset > TCP_HDR_LENGTH)
 		timestamp = ((struct tcphdr_gro *)tcp)->tsval;
@@ -318,7 +325,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_concatenate_frames_params concat_params;
 	int32_t sr_status;
-	uint16_t seg_size, headers_size, ip_length, outer_ip_offset , delta_total_length;
+	uint16_t seg_size, headers_size, ip_length;
+	uint16_t outer_ip_offset, delta_total_length;
 	uint8_t  data_offset;
 		
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
@@ -343,8 +351,10 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	sr_status = fdma_present_frame(&present_frame_params);
 	
 	/* concatenate frames and store aggregated packet */
-	data_offset = tcp->data_offset_reserved >> 
-				NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
+	data_offset = (tcp->data_offset_reserved & 
+			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 	concat_params.frame1 = present_frame_params.frame_handle;
 	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
@@ -395,7 +405,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	
 	/* calculate tcp header checksum */
 	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-		tcp_gro_calc_tcp_header_and_data_cksum(gro_ctx, delta_total_length);
+		tcp_gro_calc_tcp_header_and_data_cksum(
+				gro_ctx, delta_total_length);
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
@@ -406,7 +417,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 				sizeof(seg_size) * gro_ctx->metadata.seg_num, 
 				&seg_size, sizeof(seg_size));
 	/* write metadata to external memory */
-	sr_status = cdma_write((gro_ctx->params.metadata + METADATA_MEMBER1_SIZE), 
+	sr_status = cdma_write(
+			(gro_ctx->params.metadata + METADATA_MEMBER1_SIZE), 
 			&(gro_ctx->metadata.seg_num), 
 			METADATA_MEMBER2_SIZE + METADATA_MEMBER3_SIZE);
 	
@@ -543,7 +555,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 			
 	if (gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET) {
 		/* create zero timer for the new PUSH segment */
-/*		sr_status = tman_create_timer(params->timeout_params.tmi_id,
+/*		Todo - enable timer
+ * 		sr_status = tman_create_timer(params->timeout_params.tmi_id,
 				gro_global_params.timeout_flags, 
 				0, 
 				tcp_gro_context_addr, 
@@ -554,7 +567,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 */	}
 	else {
 		/* create timer for the new aggregation */
-/*		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
+/*		Todo - enable timer
+ * 		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
 				gro_global_params.timeout_flags,
 				params->limits.timeout_limit, 
 				tcp_gro_context_addr, 
@@ -563,7 +577,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				0, 
 				&(gro_ctx->timer_handle));
 */		/* recharge timer for the new aggregation */
-		/* sr_status = tman_recharge_timer(gro_ctx->timer_handle); */
+		/* Todo - enable timer
+		 * sr_status = tman_recharge_timer(gro_ctx->timer_handle); */
 	}
 		
 	/* initialize gro context fields */
@@ -691,6 +706,8 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr)
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx), sizeof(struct tcp_gro_context));
 	/* no aggregation */
+	/* Todo - this timeout should flush only the aggregation which created 
+	 * it */
 	if (gro_ctx.metadata.seg_num == 0)
 		return;
 	

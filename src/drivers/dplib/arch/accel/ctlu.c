@@ -16,20 +16,18 @@
 
 extern uint64_t ext_keyid_pool_address;
 
+
 int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 			  uint16_t *table_id)
 {
-	int32_t status;
-	struct ctlu_table_rule * miss_rule;
 	/* Initialized to one for the simple case where key_size <= 24 */
 	int                               num_entries_per_rule = 1;
 
-	/* 16 Byte aligned for stqw optimization + HW requirements */
+	/* 8 Byte aligned for stqw optimization */
 	struct ctlu_table_create_input_message  tbl_crt_in_msg
-		__attribute__((aligned(16)));
+		__attribute__((aligned(8)));
 
-	struct ctlu_table_create_output_message tbl_crt_out_msg
-		__attribute__((aligned(16)));
+	struct ctlu_table_create_output_message tbl_crt_out_msg;
 	int32_t                           cdma_status;
 
 	struct ctlu_acc_context      *acc_ctx =
@@ -79,13 +77,15 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 					CTLU_LPM_IPV4_WC_ENTRIES_PER_RULE;
 		}
 		break;
-/*
+
 	case CTLU_TBL_ATTRIBUTE_TYPE_TCAM_ACL:
+		/* TODO */
 		break;
 
 	case CTLU_TBL_ATTRIBUTE_TYPE_ALG_ACL:
+		/* TODO */
 		break;
-*/
+
 	default:
 		break;
 
@@ -106,11 +106,22 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	cdma_status = cdma_ws_memory_init(tbl_crt_in_msg.reserved,
 			      CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE,
 			      0);
-
-	/* handle CDMA error */
-	if (cdma_status != CDMA_WS_MEMORY_INIT__SUCCESS) {
-		return cdma_status;
+	if (cdma_status) { /* handle CDMA error TODO maybe use CR instead */
+		return CTLU_CDMA_CALL_ERROR;
 	}
+
+	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*//*
+	__stqw(*(((uint32_t *)&(tbl_params->miss_result)) + 1),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 2),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 3),
+	       *(((uint32_t *)&(tbl_params->miss_result)) + 4),
+	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv)) + 1);*/
+	/* Copy miss result  - First 4 bytes *//*
+	*((uint32_t *)(&(tbl_crt_in_msg.miss_lookup_fcv))) =
+			*((uint32_t *)&tbl_params->miss_result);*/
+
+	/*TODO temp fix until compiler issue with alignment is solved */
+	tbl_crt_in_msg.miss_lookup_fcv = tbl_params->miss_result;
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
@@ -124,64 +135,71 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	*table_id = (((struct ctlu_table_create_output_message *)acc_ctx->
 		output_pointer)->tid);
 
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-
-	if (status) {
-		return status;
-	}
-
-	/* TODO perform assertion of size here */
-	/* Re-assignment of the structure is done because of stack limitations
-	 * of the service layer */
-	miss_rule = (struct ctlu_table_rule *)&tbl_crt_in_msg;
-	miss_rule->options = CTLU_RULE_TIMESTAMP_NONE;
-
-	/* Copy miss result  - Last 16 bytes */
-	__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
-	       *(((uint32_t *)&tbl_params->miss_result) + 2),
-	       *(((uint32_t *)&tbl_params->miss_result) + 3),
-	       *(((uint32_t *)&tbl_params->miss_result) + 4),
-	       0, ((uint32_t *)&(miss_rule->result) + 1));
-
-	/* Copy miss result  - First 4 bytes */
-	*((uint32_t *)(&(miss_rule->result))) =
-			*((uint32_t *)&tbl_params->miss_result);
-
-	return ctlu_table_rule_create(*table_id, miss_rule, 0);
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-int32_t ctlu_table_replace_miss_result(uint16_t table_id,
-				      struct ctlu_table_rule_result
-					     *new_miss_result,
-				      struct ctlu_table_rule_result
-					     *old_miss_result)
+int32_t ctlu_table_update_miss_result(uint16_t table_id,
+				      struct ctlu_table_rule_result *miss_rule)
 {
-	/* 16 Byte aligned for stqw optimization + HW requirements */
-	struct ctlu_table_rule new_miss_rule __attribute__((aligned(16)));
-	new_miss_rule.options = CTLU_RULE_TIMESTAMP_NONE;
+	/* 8 Byte aligned for stqw optimization */
+	struct ctlu_table_params_replace_input_message tbl_params_in_msg
+		__attribute__((aligned(8)));
 
-	/* Copy miss result  - Last 16 bytes */
-	__stqw(*(((uint32_t *)new_miss_result) + 1),
-	       *(((uint32_t *)new_miss_result) + 2),
-	       *(((uint32_t *)new_miss_result) + 3),
-	       *(((uint32_t *)new_miss_result) + 4),
-	       0, ((uint32_t *)&(new_miss_rule.result) + 1));
+	/* TODO  potential compiler issue? *//*
+	__stdw(0, 0, 0, tbl_params_in_msg.reserved);
+	__stdw(0, 0, 0x8, tbl_params_in_msg.reserved);
+	__stdw(0, 0, 0x10, tbl_params_in_msg.reserved);
+	__stdw(0, 0, 0x18, tbl_params_in_msg.reserved);
+	__stdw(0, 0, 0x20, tbl_params_in_msg.reserved);
+	__stw(0, 0x28, tbl_params_in_msg.reserved);*/
 
-	/* Copy miss result  - First 4 bytes */
-	*((uint32_t *)(&(new_miss_rule.result))) =
-			*((uint32_t *)new_miss_result);
+	/* TODO potential compiler issue? *//*
+	__stqw(0, 0, 0, 0, 0, tbl_params_in_msg.reserved);
+	__stqw(0, 0, 0, 0, 0x10, tbl_params_in_msg.reserved);
+	__stqw(0, 0, 0, 0, 0x20, tbl_params_in_msg.reserved);
+	/* This overruns miss result field. The code later overruns it again
+	with the actual miss result. */
 
-	return ctlu_table_rule_replace(table_id, &new_miss_rule, 0,
-				       old_miss_result);
+	/* Prepare input message */
+	*((uint64_t *)tbl_params_in_msg.reserved) = 0;
+	*((uint64_t *)tbl_params_in_msg.reserved + 1) = 0;
+	*((uint64_t *)tbl_params_in_msg.reserved + 2) = 0;
+	*((uint64_t *)tbl_params_in_msg.reserved + 3) = 0;
+	*((uint64_t *)tbl_params_in_msg.reserved + 4) = 0;
+	*((uint32_t *)tbl_params_in_msg.reserved + 10) = 0;
+
+	/* Copy miss result  - Last 16 bytes *//*
+	__stqw(*(((uint32_t *)miss_rule) + 1),
+	       *(((uint32_t *)miss_rule) + 2),
+	       *(((uint32_t *)miss_rule) + 3),
+	       *(((uint32_t *)miss_rule) + 4),
+	       0, ((uint32_t *)&(tbl_params_in_msg.miss_lookup_fcv) + 1));*/
+
+	/* Copy miss result  - First 4 bytes *//*
+	*((uint32_t *)(&(tbl_params_in_msg.miss_lookup_fcv))) =
+			*((uint32_t *)miss_rule);*/
+
+	/*TODO temp fix until compiler issue with alignment is solved */
+	tbl_params_in_msg.miss_lookup_fcv = *miss_rule;
+
+	/* Prepare ACC context for CTLU accelerator call */
+	__stqw(CTLU_TABLE_PARAMETERS_REPLACE_MTYPE,
+	       ((uint32_t)&tbl_params_in_msg) << 16, table_id, 0,
+	       HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call CTLU accelerator */
+	__e_hwacceli(CTLU_ACCEL_ID);
+
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
 int32_t ctlu_table_get_params(uint16_t table_id,
 			      struct ctlu_table_get_params_output *tbl_params)
 {
-	struct ctlu_table_params_query_output_message output
-		__attribute__((aligned(16)));
+
+	struct ctlu_table_params_query_output_message output;
 
 	/* Prepare ACC context for TLU accelerator call */
 	__stqw(CTLU_TABLE_QUERY_MTYPE, (uint32_t)&output, table_id, 0,
@@ -201,18 +219,31 @@ int32_t ctlu_table_get_params(uint16_t table_id,
 
 
 int32_t ctlu_table_get_miss_result(uint16_t table_id,
-				   struct ctlu_table_rule_result *miss_result)
+				   struct ctlu_table_rule_result *miss_rule)
 {
-	uint32_t invalid_timestamp;
-	return
-	  ctlu_table_rule_query(table_id, 0, 0, miss_result,
-				&invalid_timestamp);
+	struct ctlu_table_params_query_output_message output;
 
+	/* Prepare ACC context for TLU accelerator call */
+	__stqw(CTLU_TABLE_QUERY_REFERENCE_INC_MTYPE, (uint32_t)&output,
+	       table_id, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call CTLU accelerator */
+	__e_hwacceli(CTLU_ACCEL_ID);
+
+	/* Copy miss result */
+	*((uint64_t *) miss_rule) = *((uint64_t *)&(output.miss_lookup_fcv));
+	*(((uint64_t *) miss_rule) + 1) =
+		*(((uint64_t *)&(output.miss_lookup_fcv)) + 1);
+	*(((uint32_t *) miss_rule) + 4) =
+			*(((uint32_t *)&(output.miss_lookup_fcv)) + 4);
+
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
 int32_t ctlu_table_delete(uint16_t table_id)
 {
+
 	/* Prepare ACC context for CTLU accelerator call */
 	__stqw(CTLU_TABLE_DELETE_MTYPE, 0, table_id, 0, HWC_ACC_IN_ADDRESS, 0);
 
@@ -228,9 +259,6 @@ int32_t ctlu_table_rule_create(uint16_t table_id,
 			       struct ctlu_table_rule *rule,
 			       uint8_t key_size)
 {
-	int32_t status;
-	struct ctlu_table_old_result aged_res __attribute__((aligned(16)));
-	uint32_t arg2 = (uint32_t)&aged_res;
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
@@ -246,36 +274,22 @@ int32_t ctlu_table_rule_create(uint16_t table_id,
 	}
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
-	__stqw(CTLU_RULE_CREATE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(CTLU_RULE_CREATE_MTYPE, ((uint32_t)rule) << 16,
+	       arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
 	__e_hwacceli(CTLU_ACCEL_ID);
-
-	/* Handle aged rule */ /*  TODO REMOVE after specification change */
-	if (aged_res.result.type == CTLU_RULE_RESULT_TYPE_REFERENCE) {
-		status = cdma_refcount_decrement
-			    (aged_res.result.op_rptr_clp.reference_pointer);
-		if (status)
-			return status;
-	}
 
 	/* Return Status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-/*TODO handle aged rule ?? needs specification clarification */
 int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 					  struct ctlu_table_rule *rule,
-					  uint8_t key_size,
-					  struct ctlu_table_rule_result
-						 *old_res
-					 )
+					  uint8_t key_size)
 {
-	struct ctlu_table_old_result hw_old_res __attribute__((aligned(16)));
-	uint32_t arg2 = (uint32_t)&hw_old_res;
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
@@ -291,21 +305,12 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 	}
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__stqw(CTLU_RULE_CREATE_OR_REPLACE_MTYPE, ((uint32_t)rule) << 16,
+	       arg3, 0,	HWC_ACC_IN_ADDRESS, 0);
 
-	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
-		__stqw(CTLU_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*old_res = hw_old_res.result;
-	} else {
-		__stqw(CTLU_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE, arg2, arg3,
-		       0, HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
-	}
+	/* Call CTLU accelerator */
+	__e_hwacceli(CTLU_ACCEL_ID);
 
 	/* Return Status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -314,12 +319,8 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 
 int32_t ctlu_table_rule_replace(uint16_t table_id,
 				struct ctlu_table_rule *rule,
-				uint8_t key_size,
-				struct ctlu_table_rule_result *old_res
-			       )
+				uint8_t key_size)
 {
-	struct ctlu_table_old_result hw_old_res __attribute__((aligned(16)));
-	uint32_t arg2 = (uint32_t)&hw_old_res;
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
@@ -335,21 +336,12 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 	}
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__stqw(CTLU_RULE_REPLACE_MTYPE, ((uint32_t)rule) << 16,
+	       arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
-	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
-		__stqw(CTLU_RULE_REPLACE_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*old_res = hw_old_res.result;
-	} else {
-		__stqw(CTLU_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
-	}
+	/* Call CTLU accelerator */
+	__e_hwacceli(CTLU_ACCEL_ID);
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
@@ -401,31 +393,17 @@ int32_t ctlu_table_rule_query(uint16_t table_id,
 }
 
 
-int32_t ctlu_table_rule_delete(uint16_t table_id,
-			       union ctlu_key *key,
-			       uint8_t key_size,
-			       struct ctlu_table_rule_result *result
-			      )
+int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
+			       uint8_t key_size)
 {
-	struct ctlu_table_old_result old_res __attribute__((aligned(16)));
 	/* Prepare HW context for TLU accelerator call */
-	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
-	__e_rlwimi(arg2, key, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__stqw(CTLU_RULE_DELETE_MTYPE, ((uint32_t)key) << 16,
+	       arg3, 0,	HWC_ACC_IN_ADDRESS, 0);
 
-	if (result) { /* Returning result and thus not decrementing RCOUNT */
-		__stqw(CTLU_RULE_DELETE_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*result = old_res.result;
-	} else {
-		__stqw(CTLU_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
-	}
+	/* Call CTLU accelerator */
+	__e_hwacceli(CTLU_ACCEL_ID);
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
@@ -679,6 +657,7 @@ int32_t ctlu_kcr_builder_add_protocol_based_generic_fec(
 int32_t ctlu_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	uint8_t extract_size, uint32_t flags,
 	struct ctlu_kcr_builder_fec_mask *mask, struct ctlu_kcr_builder *kb)
+
 {
 	uint8_t curr_byte = kb->kcr_length;
 	uint8_t fecid, op0, op1, op2;

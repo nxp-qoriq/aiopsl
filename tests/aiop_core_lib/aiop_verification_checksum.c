@@ -32,8 +32,7 @@ uint16_t aiop_verification_checksum(uint32_t asa_seg_addr)
 			(struct cksum_calc_ipv4_header_checksum_command *)
 			asa_seg_addr;
 		cmd->status = ipv4_cksum_calculate(
-				(struct ipv4hdr *)cmd->ipv4header,
-				cmd->options);
+				(struct ipv4hdr *)cmd->ipv4header); 
 		str_size =
 		   sizeof(struct cksum_calc_ipv4_header_checksum_command);
 		break;
@@ -43,7 +42,7 @@ uint16_t aiop_verification_checksum(uint32_t asa_seg_addr)
 		struct cksum_calc_udp_tcp_checksum_command *cmd =
 				(struct cksum_calc_udp_tcp_checksum_command *)
 				asa_seg_addr;
-		cmd->status = l4_udp_tcp_cksum_calc(cmd->options);
+		cmd->status = cksum_calc_udp_tcp_checksum();
 		str_size = sizeof(struct cksum_calc_udp_tcp_checksum_command);
 		break;
 	}
