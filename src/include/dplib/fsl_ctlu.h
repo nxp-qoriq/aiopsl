@@ -11,7 +11,7 @@
 
 #include "common/types.h"
 
-
+/* TODO remark on allocations of out params */
 /**************************************************************************//**
  @Group		ACCEL ACCEL (Accelerator APIs)
 
@@ -1048,9 +1048,10 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 
 @Param[in]	new_miss_result - A default result that is chosen when no match
 		is found.
-@Param[out]	old_miss_result - The replaced miss result. If null the old
+@Param[in, out]	old_miss_result - The replaced miss result. If null the old
 		miss result will not be returned and the old result reference
-		counter will be decremented (if exists).
+		counter will be decremented (if exists). If not null structure
+		should be allocated by the caller to this function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1073,7 +1074,8 @@ int32_t ctlu_table_replace_miss_result(uint16_t table_id,
 		This function does not return the table miss result.
 
 @Param[in]	table_id - Table ID.
-@Param[out]	tbl_params - Table parameters.
+@Param[out]	tbl_params - Table parameters. Structure should be allocated by
+		the caller to this function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1094,7 +1096,8 @@ int32_t ctlu_table_get_params(uint16_t table_id,
 
 @Param[in]	table_id - Table ID.
 @Param[out]	miss_result - A default rule data that is chosen when no match
-		is found.
+		is found. Structure should be allocated by the
+		caller to this function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1161,7 +1164,8 @@ int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
 @Param[in, out]	old_res - The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned and its reference counter will be
-		decremented (if exists).
+		decremented (if exists). If not null structure should be
+		allocated by the caller to this function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1190,7 +1194,8 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 @Param[in]	key_size - Key size in bytes.
 @Param[in, out]	old_res - The result of the replaced rule. If null the replaced
 		rule's result will not be returned and its reference counter
-		will be decremented (if exists).
+		will be decremented (if exists). If not null structure should
+		be allocated by the caller to this function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1214,11 +1219,12 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 @Param[in]	key - Key of the rule to be queried. Must be aligned to 16B
 		boundary.
 @Param[in]	key_size - Key size in bytes.
-@Param[out]	result - The result of the query.
+@Param[out]	result - The result of the query. Structure should be allocated
+		by the caller to this function.
 @Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
 		unless the rule queried for was created with suitable options
 		(Please refer to \ref FSL_CTLU_TABLE_RULE_OPTIONS for more
-		details).
+		details). Must be allocated by the caller to this function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1248,7 +1254,8 @@ int32_t ctlu_table_rule_query(uint16_t table_id,
 @Param[in]	key_size - Key size in bytes.
 @Param[in, out]	result - The result of the deleted rule. If null the deleted
 		rule's result will not be returned and its reference counter
-		will be decremented (if exists).
+		will be decremented (if exists). If not null structure should
+		be allocated by the caller to this function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1570,7 +1577,7 @@ int32_t ctlu_kcr_query(uint8_t keyid, uint8_t *kcr, uint8_t *size);
 @Param[in]	keyid - The key ID to be used for the key extraction.
 @Param[out]	key - The key. This structure is allocated by the user and must
 		be aligned to 16B boundary
-@Param[out]	key_size - Key size in bytes.
+@Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
@@ -1587,7 +1594,8 @@ int32_t ctlu_gen_key(uint8_t keyid, union ctlu_key *key, uint8_t *key_size);
 @Param[in]	key - The key to generate hash from. Must be aligned to 16B
 		boundary
 @Param[in]	key_size - Key size in bytes.
-@Param[out]	hash - The hash result.
+@Param[out]	hash - The hash result. Must be allocated by the caller to this
+		function.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 

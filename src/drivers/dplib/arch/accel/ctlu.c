@@ -30,7 +30,6 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 
 	struct ctlu_table_create_output_message tbl_crt_out_msg
 		__attribute__((aligned(16)));
-	
 	int32_t                           cdma_status;
 
 	struct ctlu_acc_context      *acc_ctx =
@@ -107,19 +106,11 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	cdma_status = cdma_ws_memory_init(tbl_crt_in_msg.reserved,
 			      CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE,
 			      0);
-	if (cdma_status) { /* handle CDMA error TODO maybe use CR instead */
+
+	/* handle CDMA error */
+	if (cdma_status != CDMA_WS_MEMORY_INIT__SUCCESS) {
 		return cdma_status;
 	}
-
-	/* Copy miss result  - Last 16 bytes (Optimization - 2 clocks)*//*
-	__stqw(*(((uint32_t *)&(tbl_params->miss_result)) + 1),
-	       *(((uint32_t *)&(tbl_params->miss_result)) + 2),
-	       *(((uint32_t *)&(tbl_params->miss_result)) + 3),
-	       *(((uint32_t *)&(tbl_params->miss_result)) + 4),
-	       0, ((uint32_t *)&(tbl_crt_in_msg.miss_lookup_fcv)) + 1);*/
-	/* Copy miss result  - First 4 bytes *//*
-	*((uint32_t *)(&(tbl_crt_in_msg.miss_lookup_fcv))) =
-			*((uint32_t *)&tbl_params->miss_result);*/
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
@@ -145,8 +136,16 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	miss_rule = (struct ctlu_table_rule *)&tbl_crt_in_msg;
 	miss_rule->options = CTLU_RULE_TIMESTAMP_NONE;
 
-	/* TODO STQW optimization */
-	miss_rule->result = tbl_params->miss_result;
+	/* Copy miss result  - Last 16 bytes */
+	__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
+	       *(((uint32_t *)&tbl_params->miss_result) + 2),
+	       *(((uint32_t *)&tbl_params->miss_result) + 3),
+	       *(((uint32_t *)&tbl_params->miss_result) + 4),
+	       0, ((uint32_t *)&(miss_rule->result) + 1));
+
+	/* Copy miss result  - First 4 bytes */
+	*((uint32_t *)(&(miss_rule->result))) =
+			*((uint32_t *)&tbl_params->miss_result);
 
 	return ctlu_table_rule_create(*table_id, miss_rule, 0);
 }
@@ -154,17 +153,27 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 
 int32_t ctlu_table_replace_miss_result(uint16_t table_id,
 				      struct ctlu_table_rule_result
-					     *miss_result,
+					     *new_miss_result,
 				      struct ctlu_table_rule_result
-					     *old_result)
+					     *old_miss_result)
 {
 	/* 16 Byte aligned for stqw optimization + HW requirements */
 	struct ctlu_table_rule new_miss_rule __attribute__((aligned(16)));
 	new_miss_rule.options = CTLU_RULE_TIMESTAMP_NONE;
-	/* TODO STQW optimization */
-	new_miss_rule.result = *miss_result;
 
-	return ctlu_table_rule_replace(table_id, &new_miss_rule, 0, old_result);
+	/* Copy miss result  - Last 16 bytes */
+	__stqw(*(((uint32_t *)new_miss_result) + 1),
+	       *(((uint32_t *)new_miss_result) + 2),
+	       *(((uint32_t *)new_miss_result) + 3),
+	       *(((uint32_t *)new_miss_result) + 4),
+	       0, ((uint32_t *)&(new_miss_rule.result) + 1));
+
+	/* Copy miss result  - First 4 bytes */
+	*((uint32_t *)(&(new_miss_rule.result))) =
+			*((uint32_t *)new_miss_result);
+
+	return ctlu_table_rule_replace(table_id, &new_miss_rule, 0,
+				       old_miss_result);
 }
 
 
@@ -220,7 +229,7 @@ int32_t ctlu_table_rule_create(uint16_t table_id,
 			       uint8_t key_size)
 {
 	int32_t status;
-	struct ctlu_table_old_result aged_res;
+	struct ctlu_table_old_result aged_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&aged_res;
 	uint32_t arg3 = table_id;
 
@@ -265,7 +274,7 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 						 *old_res
 					 )
 {
-	struct ctlu_table_old_result hw_old_res;
+	struct ctlu_table_old_result hw_old_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&hw_old_res;
 	uint32_t arg3 = table_id;
 
@@ -289,7 +298,8 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 		__stqw(CTLU_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
 		__e_hwacceli(CTLU_ACCEL_ID);
-		/* TODO optimization */
+		/* STQW optimization is not done here so we do not force
+		   alignment */
 		*old_res = hw_old_res.result;
 	} else {
 		__stqw(CTLU_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE, arg2, arg3,
@@ -308,7 +318,7 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 				struct ctlu_table_rule_result *old_res
 			       )
 {
-	struct ctlu_table_old_result hw_old_res;
+	struct ctlu_table_old_result hw_old_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&hw_old_res;
 	uint32_t arg3 = table_id;
 
@@ -332,7 +342,8 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 		__stqw(CTLU_RULE_REPLACE_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
 		__e_hwacceli(CTLU_ACCEL_ID);
-		/* TODO optimization */
+		/* STQW optimization is not done here so we do not force
+		   alignment */
 		*old_res = hw_old_res.result;
 	} else {
 		__stqw(CTLU_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
@@ -365,17 +376,20 @@ int32_t ctlu_table_rule_query(uint16_t table_id,
 	switch (entry.type & CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK) {
 	case (CTLU_TABLE_ENTRY_ENTYPE_EME16):
 		*timestamp = entry.body.eme16.timestamp;
-		/* todo optimization */
+		/* STQW optimization is not done here so we do not force
+		   alignment */
 		*result = entry.body.eme16.result;
 		break;
 	case (CTLU_TABLE_ENTRY_ENTYPE_EME24):
 		*timestamp = entry.body.eme24.timestamp;
-		/* todo optimization */
+		/* STQW optimization is not done here so we do not force
+		   alignment */
 		*result = entry.body.eme24.result;
 		break;
 	case (CTLU_TABLE_ENTRY_ENTYPE_LPM_RES):
 		*timestamp = entry.body.lpm_res.timestamp;
-		/* todo optimization */
+		/* STQW optimization is not done here so we do not force
+		   alignment */
 		*result = entry.body.lpm_res.result;
 		break;
 	default:
@@ -393,7 +407,7 @@ int32_t ctlu_table_rule_delete(uint16_t table_id,
 			       struct ctlu_table_rule_result *result
 			      )
 {
-	struct ctlu_table_old_result old_res;
+	struct ctlu_table_old_result old_res __attribute__((aligned(16)));
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
@@ -404,7 +418,8 @@ int32_t ctlu_table_rule_delete(uint16_t table_id,
 		__stqw(CTLU_RULE_DELETE_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
 		__e_hwacceli(CTLU_ACCEL_ID);
-		/* TODO optimization */
+		/* STQW optimization is not done here so we do not force
+		   alignment */
 		*result = old_res.result;
 	} else {
 		__stqw(CTLU_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
