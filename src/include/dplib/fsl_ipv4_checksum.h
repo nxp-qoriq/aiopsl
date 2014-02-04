@@ -13,18 +13,18 @@
 #include "net/fsl_net.h"
 
 /**************************************************************************//**
- @Group		NETF NETF (Network Libraries)
+@Group		NETF NETF (Network Libraries)
 
- @Description	AIOP Accelerator APIs
+@Description	AIOP Accelerator APIs
 
- @{
+@{
 *//***************************************************************************/
 /**************************************************************************//**
- @Group		AIOP_IP IP
+@Group		AIOP_IP IP
 
- @Description	AIOP IP related header modifications
+@Description	AIOP IP related header modifications
 
- @{
+@{
 *//***************************************************************************/
 /**************************************************************************//**
 @Group	FSL_IPV4_CKSUM IPV4 Checksum
