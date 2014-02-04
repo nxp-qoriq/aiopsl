@@ -254,8 +254,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		gso_ctx->urgent_pointer -= tcp_ptr->urgent_pointer;
 	} 
 	
-	/* update TCP checksum */
-	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE);
+	/* update TCP checksum *//* TODO CHECKSUM NEW API (Doron)
+	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE); */
+	status = cksum_calc_udp_tcp_checksum();
 	/* TODO FDMA ERROR */
 	
 	/* Modify default segment */
