@@ -54,7 +54,8 @@ int32_t tcp_gso_generate_seg(
 			((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) + 
 				((tcp_ptr->data_offset_reserved & 
 				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
-				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 2))); 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
+				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE))); 
 		gso_ctx->split_size = gso_ctx->headers_size + gso_ctx->mss; 
 			
 		/* Call to tcp_gso_split_segment */	
@@ -96,7 +97,8 @@ int32_t tcp_gso_generate_seg(
 		((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) + 
 				((tcp_ptr->data_offset_reserved & 
 				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
-				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 2))); 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE))); 
 	gso_ctx->split_size = gso_ctx->headers_size + gso_ctx->mss;
 	ip_header_length = gso_ctx->split_size - 
 			(uint16_t)(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
@@ -253,7 +255,8 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	} 
 	
 	/* update TCP checksum */
-	status = cksum_calc_udp_tcp_checksum(); /* TODO FDMA ERROR */
+	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE);
+	/* TODO FDMA ERROR */
 	
 	/* Modify default segment */
 	/* TODO FDMA ERROR */

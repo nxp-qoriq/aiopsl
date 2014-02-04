@@ -15,24 +15,25 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int32_t cksum_calc_udp_tcp_checksum()
+int32_t l4_udp_tcp_cksum_calc(uint32_t options)
 {
 	uint16_t	l3checksum_dummy;
 	uint16_t	l4checksum;
+	uint16_t	l4offset;
 	struct tcphdr	*tcph;
 	struct udphdr	*udph;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Check if TCP or UDP*/
 	if (!PARSER_IS_TCP_OR_UDP_DEFAULT())
-		return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_NON_UDP_TCP;
+		return L4_UDP_TCP_CKSUM_CALC_STATUS_NON_UDP_TCP;
 
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {
 		if (FDMA_CHECKSUM_SUCCESS !=
 		    fdma_calculate_default_frame_checksum(0, 0xFFFF,
 						&pr->gross_running_sum)) {
-			return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_FDMA_FAILURE;
+			return L4_UDP_TCP_CKSUM_CALC_STATUS_FDMA_FAILURE;
 		}
 	}
 
@@ -41,14 +42,14 @@ int32_t cksum_calc_udp_tcp_checksum()
 	    (enum parser_starting_hxs_code)
 	    default_task_params.parser_starting_hxs, 0, &l3checksum_dummy,
 	    &l4checksum)) {
-		return
-		L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_PARSER_FAILURE;
+		return L4_UDP_TCP_CKSUM_CALC_STATUS_PARSER_FAILURE;
 	}
+
+	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
 
 	if (PARSER_IS_TCP_DEFAULT()) {
 		/* Point to the TCP header */
-		tcph = (struct tcphdr *)(PRC_GET_SEGMENT_ADDRESS() +
-					 PARSER_GET_L4_OFFSET_DEFAULT());
+		tcph = (struct tcphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
 
 		/* Invalidate Parser Result Gross Running Sum field */
 		pr->gross_running_sum = 0;
@@ -58,8 +59,7 @@ int32_t cksum_calc_udp_tcp_checksum()
 	} /* TCP */
 	else {
 		/* Point to the UDP header */
-		udph = (struct udphdr *)(PRC_GET_SEGMENT_ADDRESS() +
-			 PARSER_GET_L4_OFFSET_DEFAULT());
+		udph = (struct udphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
 
 		/* Invalidate Parser Result Gross Running Sum field */
 		pr->gross_running_sum = 0;
@@ -68,8 +68,11 @@ int32_t cksum_calc_udp_tcp_checksum()
 		udph->checksum = l4checksum;
 	} /* UDP */
 
-	/* TODO replace header if needed */
+	/* Update FDMA */
+	if (options & L4_UDP_TCP_CKSUM_CALC_OPTIONS_UPDATE_FDMA) {
+		fdma_modify_default_segment_data(l4offset, 2);
+	}
 
-	return L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_SUCCESS;
+	return L4_UDP_TCP_CKSUM_CALC_STATUS_SUCCESS;
 }
 

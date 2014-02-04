@@ -275,7 +275,7 @@ void * fsl_os_malloc_debug(size_t size, char *fname, int line)
 }
 
 /*****************************************************************************/
-void * fsl_os_malloc_smart_debug(size_t     size,
+void *fsl_os_xmalloc_debug(size_t     size,
                            int          partition_id,
                            uint32_t     alignment,
                            char         *fname,
@@ -292,7 +292,7 @@ void * fsl_os_malloc(size_t size)
 }
 
 /*****************************************************************************/
-void * fsl_os_malloc_smart(size_t size, int partition_id, uint32_t alignment)
+void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 {
     return sys_mem_alloc(partition_id, size, alignment, "", "", 0);
 }
@@ -306,7 +306,7 @@ void fsl_os_free(void *p_memory)
 }
 
 /*****************************************************************************/
-void fsl_os_free_smart(void *p_memory)
+void fsl_os_xfree(void *p_memory)
 {
     sys_mem_free(p_memory);
 }

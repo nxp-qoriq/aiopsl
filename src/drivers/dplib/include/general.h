@@ -761,6 +761,7 @@ struct aiop_default_task_params {
 @{
 *//***************************************************************************/
 #define TCP_HDR_LENGTH		      20   /**< TCP header length */
+#define TCP_PROTOCOL		      6   /**< TCP Protocol number */
 
 /** @} */ /* end of AIOP_General_Protocols_TCP_Definitions */
 

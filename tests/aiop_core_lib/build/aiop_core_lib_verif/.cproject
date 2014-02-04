@@ -134,8 +134,10 @@
 								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1345496829" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
 							<tool id="com.freescale.ppc.toolchain.disassembler.670456195" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
-								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.46238340" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.46238340" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.header.891064977" name="Show Headers" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.header" value="false" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.597885564" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.26766275" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="false" valueType="boolean"/>
 							</tool>
 							<tool id="com.freescale.ppc.toolchain.preprocessor.1557942209" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>

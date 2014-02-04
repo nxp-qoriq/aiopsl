@@ -11,7 +11,7 @@
 
 #include "common/types.h"
 
-
+/* TODO remark on allocations of out params */
 /**************************************************************************//**
  @Group		ACCEL ACCEL (Accelerator APIs)
 
@@ -71,11 +71,13 @@
 	/** Longest Prefix Match table */
 #define CTLU_TBL_ATTRIBUTE_TYPE_LPM		0x1000
 
-	/** Ternary match Table for ACL */
+/*
+	 Ternary match Table for ACL
 #define CTLU_TBL_ATTRIBUTE_TYPE_TCAM_ACL	0x2000
 
-	/** Algorithmic ACL */
+	 Algorithmic ACL
 #define CTLU_TBL_ATTRIBUTE_TYPE_ALG_ACL		0x4000
+*/
 
 	/** Table type sub field mask */
 #define CTLU_TBL_ATTRIBUTE_TYPE_MASK		0xF000
@@ -158,6 +160,9 @@
 	The sub field is specified by \ref CTLU_TABLE_ATTRIBUTE_AGT_MASK
 	and \ref CTLU_TABLE_ATTRIBUTE_AGT_OFFSET (The mask determines the
 	size and position of the field).
+	NOTE: This field must be cleared unless \ref
+	FSL_CTLU_TABLE_ATTRIBUTE_TYPE is set to CTLU_TBL_ATTRIBUTE_TYPE_EM
+	(i.e. This field can only be used in exact match tables).
 
 @{
 *//***************************************************************************/
@@ -214,7 +219,11 @@
 #define	CTLU_RULE_TIMESTAMP_ENABLE	0x80
 
 	/** Enables timestamp update per rule and aging.
-	Aging is described in \ref FSL_CTLU_TABLE_ATTRIBUTE_AGT. */
+	 * Aging is described in \ref FSL_CTLU_TABLE_ATTRIBUTE_AGT.
+	 * NOTE: This option must not be used unless at table creation
+	 * \ref FSL_CTLU_TABLE_ATTRIBUTE_TYPE was set to
+	 * CTLU_TBL_ATTRIBUTE_TYPE_EM. (i.e. this options is available only
+	 * in exact match tables)*/
 #define CTLU_RULE_TIMESTAMP_AGT_ENABLE	0xC0
 
 /** @} *//* end of FSL_CTLU_TABLE_RULE_OPTIONS_TIMESTAMP */
@@ -285,213 +294,65 @@
 @Group	FSL_CTLU_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
-
 /**************************************************************************//**
 @Group	FSL_CTLU_STATUS_GENERAL General status returned from CTLU
 @{
 *//***************************************************************************/
-	/** Function call failed general status bit.
-	Please see function specific status for more details. */
-#define CTLU_STATUS_MGCF				0x80000000
-	/** Function call is invalid general status bit.
-	Invalid function call. Invalid MTYPE value. STATUS field does not
-	contain	valid information.*/
-#define CTLU_STATUS_MGINV				0x40000000
-	/** Function Call write data general status bit.
-	Please see function specific status for more details. */
-#define CTLU_STATUS_MGCWD				0x10000000
-	/** CTLU SR called CDMA SR which failed */
-#define CTLU_CDMA_CALL_ERROR			\
-	(CTLU_STATUS_MGCF | 0x0FF00000)
+/** Command successful */
+#define CTLU_STATUS_SUCCESS	0x00000000
 
+/** Command failed general status bit.
+A general bit that is set in some errors conditions */
+#define CTLU_STATUS_MGCF	0x80000000
+
+/* Parser status are intentionally missing here */
+
+/** Table Lookup Miss
+ * This status is set when a matching rule is not found. Note that on chained
+ * lookups this status is set only if the last lookup results in a miss. */
+#define CTLU_STATUS_MISS	0x00000800 | (CTLU_ACCEL_ID << 24)
+
+/** Key Composition Error
+ * This status is set when a key composition error occurs meaning one of the
+ * following:
+ * - Invalid Key Composition ID was used.
+ * - Key Size Error.
+ * */
+#define CTLU_STATUS_KSE		0x00000400 | (CTLU_ACCEL_ID << 24)
+
+/** Extract Out Of Frame Header
+ * This status is set if key composition attempts to extract a field which is
+ * not in the frame header either because it is placed beyond the first 256
+ * bytes of the frame, or because the frame is shorter than the index evaluated
+ * for the extraction. */
+#define CTLU_STATUS_EOFH	0x00000200 | (CTLU_ACCEL_ID << 24)
+
+/** Maximum Number Of Chained Lookups Is Reached
+ * This status is set if the number of table lookups performed by the CTLU
+ * reached the threshold. */
+#define CTLU_STATUS_MNLE	0x00000100 | (CTLU_ACCEL_ID << 24)
+
+/** Invalid Table ID
+ * This status is set if the lookup table associated with the TID is not
+ * initialized. */
+#define CTLU_STATUS_TIDE	0x00000080 | (CTLU_ACCEL_ID << 24) | \
+						CTLU_STATUS_MGCF
+
+/** Resource is not available
+ * */
+#define CTLU_STATUS_NORSC	0x00000020 | (CTLU_ACCEL_ID << 24) | \
+						CTLU_STATUS_MGCF
+/** Resource Is Temporarily Not Available
+ * Temporarily Not Available occurs if an other resource is in the process of
+ * being freed up. Once the process ends, the resource may be available for new
+ * allocation (availability is not guaranteed). */
+#define CTLU_STATUS_TEMPNOR	0x00000010 | CTLU_STATUS_NORSC
+
+/** ICID Protection Is Violated
+ * */
+#define CTLU_STATUS_ICIDE	0x00000008 | (CTLU_ACCEL_ID << 24) | \
+						CTLU_STATUS_MGCF
 /** @} */ /* end of FSL_CTLU_STATUS_GENERAL */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_TBL_CREATE Status returned from table create SR
-@{
-*//***************************************************************************/
-	/** Successful table creation */
-#define CTLU_TABLE_CREATE_STATUS_PASS		CTLU_STATUS_MGCWD
-
-	/** Table creation permanently failed.
-	It is not possible to create a table with this number of Committed
-	Rules and Key Size since there is not enough memory resource
-	available */
-#define CTLU_TABLE_CREATE_STATUS_PERMANENT_FAIL	\
-	(CTLU_STATUS_MGCF | 0x01000000)
-
-	/** Table creation temporarily failed.
-	Not enough resources available. This is a temporary state which might
-	change if other tables have some rules removed.*/
-#define CTLU_TABLE_CREATE_STATUS_TEMP_FAIL	\
-	(CTLU_STATUS_MGCF | 0x00100000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_TBL_CREATE */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_TBL_UPDATE_MR Status returned from table update miss \
-	 result SR
-@{
-*//***************************************************************************/
-	/** Successful miss result update */
-#define CTLU_TABLE_UPDATE_MR_STATUS_PASS		0x00000000
-	/** Table miss result update failed due to invalid table ID */
-#define CTLU_TABLE_UPDATE_MR_STATUS_INVALID_TID	\
-	(CTLU_STATUS_MGCF | 0x01000000)
-	/** Table was not configured to contain a miss result */
-#define CTLU_TABLE_UPDATE_MR_STATUS_MR_DISABLED	\
-	(CTLU_STATUS_MGCF | 0x03000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_TBL_UPDATE_MR */
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_TBL_GET_PARAMS Status returned from table get \
-	 parameters SR
-@{
-*//***************************************************************************/
-	/** Successful get parameters call */
-#define CTLU_TABLE_GET_PARAMS_STATUS_PASS		CTLU_STATUS_MGCWD
-	/** Table get parameters failed due to invalid table ID */
-#define CTLU_TABLE_GET_PARAMS_STATUS_INVALID_TID	\
-	(CTLU_STATUS_MGCF | 0x01000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_TBL_GET_PARAMS */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_TBL_GET_MR Status returned from table get miss \
-	 result SR
-@{
-*//***************************************************************************/
-	/** Successful get parameters call */
-#define CTLU_TABLE_GET_MR_STATUS_PASS		CTLU_STATUS_MGCWD
-	/** Table get parameters failed due to invalid table ID */
-#define CTLU_TABLE_GET_MR_STATUS_INVALID_TID	(CTLU_STATUS_MGCF | 0x01000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_TBL_GET_MR */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_TBL_DELETE Status returned from table delete SR
-@{
-*//***************************************************************************/
-	/** Successful table deletion.
-	Note that it may take additional time until all resources will be
-	released */
-#define CTLU_TABLE_DELETE_STATUS_PASS		0x00000000
-	/** Table delete parameters failed due to invalid table ID */
-#define CTLU_TABLE_DELETE_STATUS_INVALID_TID	(CTLU_STATUS_MGCF | 0x01000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_TBL_DELETE */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_RULE_CREATE Status returned from rule create SR
-@{
-*//***************************************************************************/
-	/** Command successful, a matching rule is not found in the table.
-	New rule was created. */
-#define CTLU_RULE_CREATE_STATUS_RULE_ADDED		0x00000000
-	/** Command successful, a matching rule was found in the table.
-	No change was made */
-#define CTLU_RULE_CREATE_STATUS_RULE_EXIST		0x00010000
-	/** Command failed, invalid table ID. */
-#define CTLU_RULE_CREATE_STATUS_INVALID_TID	\
-	(CTLU_STATUS_MGCF | 0x01000000)
-	/** Command failed, Not enough resource available. */
-#define CTLU_RULE_CREATE_STATUS_NO_RESOURCES	\
-	(CTLU_STATUS_MGCF | 0x03000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_RULE_CREATE */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_RULE_CREATE_OR_REPLACE Status returned from rule \
-	 create or replace SR
-@{
-*//***************************************************************************/
-	/** Command successful, a matching rule was not found in the table.
-	A new rule was created. */
-#define CTLU_RULE_CREATE_OR_REPLACE_STATUS_RULE_ADDED	0x00000000
-	/** Command successful, a matching rule was found in the table.
-	The rule result was replaced. */
-#define CTLU_RULE_CREATE_OR_REPLACE_STATUS_RULE_REPLACED	0x00010000
-	/** Command failed, invalid table ID. */
-#define CTLU_RULE_CREATE_OR_REPLACE_STATUS_INVALID_TID	\
-	(CTLU_STATUS_MGCF | 0x01000000)
-	/** Command failed, Not enough resource available. */
-#define CTLU_RULE_CREATE_OR_REPLACE_STATUS_NO_RESOURCES	\
-	(CTLU_STATUS_MGCF | 0x03000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_RULE_CREATE_OR_REPLACE */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_RULE_REPLACE Status returned from rule replace SR
-@{
-*//***************************************************************************/
-	/** Command successful, a matching rule was not found in the table.
-	No change was made to the table. */
-#define CTLU_RULE_REPLACE_STATUS_RULE_NO_CHANGE	0x00000000
-	/** Command successful, a matching rule was found in the table.
-	The rule result was replaced. */
-#define CTLU_RULE_REPLACE_STATUS_RULE_REPLACED	0x00010000
-	/** Command failed, invalid table ID. */
-#define CTLU_RULE_REPLACE_STATUS_INVALID_TID	(CTLU_STATUS_MGCF | 0x01000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_RULE_REPLACE */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_RULE_DELETE Status returned from rule delete SR
-@{
-*//***************************************************************************/
-	/** Command successful, a matching rule was not found in the table.
-	No change is made to the table. */
-#define CTLU_RULE_DELETE_STATUS_RULE_NOT_FOUND	0x00000000
-	/** Command successful, a matching rule was found in the table.
-	The rule result was deleted. */
-#define CTLU_RULE_DELETE_STATUS_RULE_REPLACED	0x00010000
-	/** Command failed, invalid table ID. */
-#define CTLU_RULE_DELETE_STATUS_INVALID_TID	(CTLU_STATUS_MGCF | 0x01000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_RULE_DELETE */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_LOOKUP Status returned from lookup SR
-@{
-*//***************************************************************************/
-	/** Command successful, a matching rule was found. */
-#define CTLU_LOOKUP_STATUS_MATCH_FOUND		CTLU_STATUS_MGCWD
-	/** Command successful, a miss result was returned. */
-#define CTLU_LOOKUP_STATUS_MISS_RESULT	\
-		(CTLU_STATUS_MGCWD | 0x00010000)
-	/** Command successful, a matching rule was not found, no miss result
-	was defined for this table. */
-#define CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND	0x00010000
-	/** Command failed, invalid table ID. */
-#define CTLU_LOOKUP_STATUS_INVALID_TID		(CTLU_STATUS_MGCF | 0x01000000)
-	/** Command failed, Invalid key composition rule ID (KID). */
-#define CTLU_LOOKUP_STATUS_INVALID_KID		(CTLU_STATUS_MGCF | 0x02000000)
-	/** Command failed, Maximum number of chained lookups is reached. */
-#define CTLU_LOOKUP_STATUS_MNLE			(CTLU_STATUS_MGCF | 0x03000000)
-	/** Command failed, parser error.
-	bits 8-15 represent parser error bits. see parser API */
-#define CTLU_LOOKUP_STATUS_PARSER_ERROR		(CTLU_STATUS_MGCF | 0x04000000)
-	/** Command failed, key composition error.
-	bits 12-15 represent key composition error bits. */
-#define CTLU_LOOKUP_STATUS_KEY_COMPOSITION_ERROR	\
-	(CTLU_STATUS_MGCF | 0x01000000)
-	/** Command failed, policer error.
-	bits 12-15 represent policer error bits. */
-#define CTLU_LOOKUP_STATUS_POLICER_ERROR		\
-	(CTLU_STATUS_MGCF | 0x06000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_LOOKUP */
-
 
 /**************************************************************************//**
 @Group	FSL_CTLU_STATUS_KCR_CREATE Status returned from Key composition rule \
@@ -530,6 +391,7 @@
 
 /** @} */ /* end of FSL_CTLU_STATUS_KCR_REPLACE */
 
+
 /**************************************************************************//**
 @Group	FSL_CTLU_STATUS_KCR_DELETE Status returned from Key \
 	 composition rule delete SR
@@ -549,7 +411,6 @@
 #define CTLU_KCR_DELETE_RELEASE_ID_STATUS_CDMA_RD_FAILURE\
 					(CTLU_STATUS_MGCF | 0x00000003)
 
-
 /** @} */ /* end of FSL_CTLU_STATUS_KCR_DELETE */
 
 
@@ -562,29 +423,6 @@
 #define CTLU_KCR_QUERY_STATUS_SUCCESS	CTLU_STATUS_MGCWD
 
 /** @} */ /* end of FSL_CTLU_STATUS_KCR_QUERY */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_GEN_KEY Status returned from Generate Key SR
-@{
-*//***************************************************************************/
-	/** Command successful. */
-#define CTLU_GEN_KEY_STATUS_SUCCESS	AIOP_CTLU_STATUS_MGCWD
-	/** Command failed, Invalid key composition rule ID (KID). */
-#define CTLU_GEN_KEY_STATUS_INVALID_KID	\
-	(CTLU_STATUS_MGCF | 0x02000000)
-
-/** @} */ /* end of FSL_CTLU_STATUS_GEN_KEY */
-
-
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS_GEN_HASH Status returned from Generate Hash SR
-@{
-*//***************************************************************************/
-	/** Command successful. */
-#define CTLU_GEN_HASH_STATUS_SUCCESS	CTLU_STATUS_MGCWD
-
-/** @} */ /* end of FSL_CTLU_STATUS_GEN_HASH */
 
 /**************************************************************************//**
 @Group	FSL_CTLU_STATUS_KCR Status returned from Key Composition Rule Builder
@@ -1137,7 +975,6 @@ struct	ctlu_kcr_builder {
 };
 
 
-
 /**************************************************************************//**
 @Description	Key Composition Rule (kcr) builder FEC single mask
 *//***************************************************************************/
@@ -1194,7 +1031,7 @@ struct	ctlu_kcr_builder_fec_mask {
 @Param[out]	table_id - Table ID. A unique table identification number to be
 		used for future table references.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_TBL_CREATE
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1203,22 +1040,31 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 
 
 /**************************************************************************//**
-@Function	ctlu_table_update_miss_result
+@Function	ctlu_table_replace_miss_result
 
-@Description	Updates specific table miss result.
+@Description	Replaces specific table miss result.
 
 @Param[in]	table_id - Table ID.
 
-@Param[in]	miss_result - A default rule that is chosen when no match is
-		found.
+@Param[in]	new_miss_result - A default result that is chosen when no match
+		is found.
+@Param[in, out]	old_miss_result - The replaced miss result. If null the old
+		miss result will not be returned and the old result reference
+		counter will be decremented (if exists). If not null structure
+		should be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_TBL_UPDATE_MR
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
-@Cautions	In this function the task yields.
+@Cautions	This function should only be called if the table was defined
+		with a miss entry (i.e. CTLU_TBL_ATTRIBUTE_MR_MISS was set in
+		table attributes).
+		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_update_miss_result(uint16_t table_id,
-				      struct ctlu_table_rule_result
-					     *miss_result);
+int32_t ctlu_table_replace_miss_result(uint16_t table_id,
+				       struct ctlu_table_rule_result
+					      *new_miss_result,
+				       struct ctlu_table_rule_result
+					      *old_miss_result);
 
 
 /**************************************************************************//**
@@ -1228,9 +1074,10 @@ int32_t ctlu_table_update_miss_result(uint16_t table_id,
 		This function does not return the table miss result.
 
 @Param[in]	table_id - Table ID.
-@Param[out]	tbl_params - Table parameters.
+@Param[out]	tbl_params - Table parameters. Structure should be allocated by
+		the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_TBL_GET_PARAMS
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1249,9 +1096,10 @@ int32_t ctlu_table_get_params(uint16_t table_id,
 
 @Param[in]	table_id - Table ID.
 @Param[out]	miss_result - A default rule data that is chosen when no match
-		is found.
+		is found. Structure should be allocated by the
+		caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_TBL_GET_MR
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1270,7 +1118,7 @@ int32_t ctlu_table_get_miss_result(uint16_t table_id,
 
 @Param[in]	table_id - Table ID.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_TBL_DELETE
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1290,10 +1138,10 @@ int32_t ctlu_table_delete(uint16_t table_id);
 		a status will be returned.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added.
-@Param[in]	key_size - Key size.
+@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	key_size - Key size in bytes.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_RULE_CREATE
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1311,16 +1159,24 @@ int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
 		rule will be created in the table.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added.
-@Param[in]	key_size - Key size.
+@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	key_size - Key size in bytes.
+@Param[in, out]	old_res - The result of the replaced rule. Valid only if
+		replace took place. If set to null the replaced rule's result
+		will not be returned and its reference counter will be
+		decremented (if exists). If not null structure should be
+		allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_RULE_CREATE_OR_REPLACE
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 					  struct ctlu_table_rule *rule,
-					  uint8_t key_size);
+					  uint8_t key_size,
+					  struct ctlu_table_rule_result
+						 *old_res
+					 );
 
 
 /**************************************************************************//**
@@ -1334,10 +1190,14 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - Table rule, contains the rule's key, with which the
 		rule to be replaced will be found and contain the rule
-		result to be replaced.
-@Param[in]	key_size - Key size.
+		result to be replaced. Must be aligned to 16B boundary.
+@Param[in]	key_size - Key size in bytes.
+@Param[in, out]	old_res - The result of the replaced rule. If null the replaced
+		rule's result will not be returned and its reference counter
+		will be decremented (if exists). If not null structure should
+		be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_RULE_REPLACE
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	The key must be the exact same key that was used for the rule
 		creation.
@@ -1345,7 +1205,42 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 *//***************************************************************************/
 int32_t ctlu_table_rule_replace(uint16_t table_id,
 				struct ctlu_table_rule *rule,
-				uint8_t key_size);
+				uint8_t key_size,
+				struct ctlu_table_rule_result *old_res
+			       );
+
+
+/**************************************************************************//**
+@Function	ctlu_table_rule_query
+
+@Description	Queries a rule in the table.
+
+@Param[in]	table_id - Table ID.
+@Param[in]	key - Key of the rule to be queried. Must be aligned to 16B
+		boundary.
+@Param[in]	key_size - Key size in bytes.
+@Param[out]	result - The result of the query. Structure should be allocated
+		by the caller to this function.
+@Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
+		unless the rule queried for was created with suitable options
+		(Please refer to \ref FSL_CTLU_TABLE_RULE_OPTIONS for more
+		details). Must be allocated by the caller to this function.
+
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+
+@Cautions	NOTE: If the result is of type that contains pointer to CDMA
+		application buffer (refer to struct ctlu_table_rule_result
+		documentation) this function will not increment the reference
+		counter of the buffer. For query functions that does increment
+		the reference counter please refer to table lookup function.
+		In this function the task yields.
+*//***************************************************************************/
+int32_t ctlu_table_rule_query(uint16_t table_id,
+			      union ctlu_key *key,
+			      uint8_t key_size,
+			      struct ctlu_table_rule_result *result,
+			      uint32_t *timestamp
+			     );
 
 
 /**************************************************************************//**
@@ -1354,17 +1249,25 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 @Description	Deletes a specified rule in the table.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Key of the rule to be deleted.
-@Param[in]	key_size - Key size.
+@Param[in]	key - Key of the rule to be deleted. Must be aligned to 16B
+		boundary.
+@Param[in]	key_size - Key size in bytes.
+@Param[in, out]	result - The result of the deleted rule. If null the deleted
+		rule's result will not be returned and its reference counter
+		will be decremented (if exists). If not null structure should
+		be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_RULE_DELETE
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	The key must be the exact same key that was used for the rule
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
-			       uint8_t key_size);
+int32_t ctlu_table_rule_delete(uint16_t table_id,
+			       union ctlu_key *key,
+			       uint8_t key_size,
+			       struct ctlu_table_rule_result *result
+			      );
 
 
 /* ######################################################################### */
@@ -1388,14 +1291,16 @@ int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
 @Param[in]	keyid - A key ID for the table lookups (key ID specifies
 		how to build a key).
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written.
+		the table lookup result will be written.  Must be aligned to
+		16B boundary.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_LOOKUP
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_lookup_by_keyid(uint16_t table_id, uint8_t keyid,
-				struct ctlu_lookup_result *lookup_result);
+int32_t ctlu_table_lookup_by_keyid(uint16_t table_id,
+				   uint8_t keyid,
+				   struct ctlu_lookup_result *lookup_result);
 
 
 /**************************************************************************//**
@@ -1408,12 +1313,13 @@ int32_t ctlu_table_lookup_by_keyid(uint16_t table_id, uint8_t keyid,
 		usage.
 
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Lookup key.
-@Param[in]	key_size - Key size.
+@Param[in]	key - Lookup key. Must be aligned to 16B boundary
+@Param[in]	key_size - Key size in bytes.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written.
+		the table lookup result will be written. Must be aligned to 16B
+		boundary.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_LOOKUP
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 		This lookup cannot be used for chaining of lookups.
@@ -1669,10 +1575,11 @@ int32_t ctlu_kcr_query(uint8_t keyid, uint8_t *kcr, uint8_t *size);
 @Description	Extracts a key from a frame and returns it.
 
 @Param[in]	keyid - The key ID to be used for the key extraction.
-@Param[out]	key - The key.
-@Param[out]	key_size - Key size.
+@Param[out]	key - The key. This structure is allocated by the user and must
+		be aligned to 16B boundary
+@Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GEN_KEY
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1684,11 +1591,13 @@ int32_t ctlu_gen_key(uint8_t keyid, union ctlu_key *key, uint8_t *key_size);
 
 @Description	Generates a hash value from a given key.
 
-@Param[in]	key - The key to generate hash from.
-@Param[in]	key_size - Key size.
-@Param[out]	hash - The hash result.
+@Param[in]	key - The key to generate hash from. Must be aligned to 16B
+		boundary
+@Param[in]	key_size - Key size in bytes.
+@Param[out]	hash - The hash result. Must be allocated by the caller to this
+		function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GEN_HASH
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
