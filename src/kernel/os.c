@@ -44,7 +44,6 @@ msr_enable_fp();
 #endif /* EMULATOR */
 }
 
-
 /*****************************************************************************/
 /*                        Spinlock Service Routines                          */
 /*****************************************************************************/
@@ -324,6 +323,7 @@ dma_addr_t fsl_os_virt_to_phys(void *addr)
 }
 
 
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 /*                        Timers Service Routines                            */
 /*****************************************************************************/
@@ -386,3 +386,4 @@ uint32_t fsl_os_sleep(uint32_t msecs)
     REPORT_ERROR(MINOR, E_NOT_SUPPORTED, ("Timer!"));
     return 0;
 }
+#endif
