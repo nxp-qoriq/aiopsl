@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #ifndef LIBFDT_H_
 #define LIBFDT_H_
 
@@ -1505,3 +1506,4 @@ struct devices_list *fdt_devices(const void *fdt, char *path);
 
 
 #endif /* LIBFDT_H_ */
+#endif
