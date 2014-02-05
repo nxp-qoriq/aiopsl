@@ -36,4 +36,26 @@
 #define SLAB_VP_POOL_GET(SLAB) (((SLAB) & SLAB_VP_POOL_MASK) >> 1) 
 /**< Returns VP id to be used with virtual pools API */ 
 
+/**************************************************************************//**
+ @Function      slab_module_init
+
+ @Description   Initialize SLAB module
+                
+                In AIOP during slab_module_init() we’ll call MC API in order to get all BPIDs
+                
+ @Return        0 on success, error code otherwise.
+ *//***************************************************************************/
+int slab_module_init(void);
+
+/**************************************************************************//**
+ @Function      slab_module_free
+
+ @Description   Frees SLAB module
+ 
+                In addition to memory de-allocation it will return BPIDs to MC
+                
+ @Return        None
+ *//***************************************************************************/
+void slab_module_free(void);
+
 #endif /* __SLAB_H */

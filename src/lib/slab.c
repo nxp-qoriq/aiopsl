@@ -3,8 +3,11 @@
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "common/spinlock.h"
+#include "common/dbg.h"
 #include "slab.h"
 #include "virtual_pools.h"
+#include "fsl_fdma.h"
+#include "io.h"
 
 /*****************************************************************************/
 int slab_create(uint16_t    num_buffs,
@@ -17,7 +20,8 @@ int slab_create(uint16_t    num_buffs,
                 slab_release_cb_t release_cb,
                 uint32_t    *slab)
 {
-    int error = 0;
+    int        error = 0;
+    dma_addr_t addr = 0;
     
     UNUSED(prefix_size);
     UNUSED(postfix_size);
@@ -31,8 +35,10 @@ int slab_create(uint16_t    num_buffs,
      * Only HW SLAB is supported
      * TODO choose BMAN pool 
      * TODO Fill BMAN pool
+     * TODO read icid
      */
-    
+    addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, mem_partition_id, alignment));    
+    error = fdma_release_buffer(0, 0, 1, NULL);
     error = vpool_create_pool(1, num_buffs, num_buffs, 0, NULL, slab);
     *slab = (((*slab) & (SLAB_VP_POOL_MASK >> SLAB_VP_POOL_SHIFT)) << SLAB_VP_POOL_SHIFT) | SLAB_HW_POOL_SET;
 
@@ -79,7 +85,7 @@ void slab_free(uint32_t slab)
     
     if (SLAB_IS_HW_POOL(slab)) {
         if (vpool_release_pool(SLAB_VP_POOL_GET(slab)) != VIRTUAL_POOLS_SUCCESS) {
-            
+            pr_err("Failed to release HW pool %d", SLAB_VP_POOL_GET(slab));
         }
     };              
 }
@@ -104,4 +110,14 @@ int slab_release(uint32_t slab, uint64_t buff)
     return 0;    
 }
 
+/*****************************************************************************/
+int slab_module_init(void)
+{
+    return -ENOTSUP;    
+}
 
+/*****************************************************************************/
+void slab_module_free(void)
+{
+    return;
+}
