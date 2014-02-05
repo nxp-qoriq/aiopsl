@@ -17,6 +17,7 @@
 #include "common/types.h"
 #include "kernel/event_mgr.h"
 
+#if 0
 int evm_register_callback( uint8_t evm_event_id,
 	uint64_t app_listen_mask,
 	uint8_t priority,
@@ -31,4 +32,4 @@ int evm_register_callback( uint8_t evm_event_id,
 	/* to be done */
     return 0;
 }
-
+#endif

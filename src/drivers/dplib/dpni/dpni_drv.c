@@ -232,7 +232,7 @@ int dpni_drv_init(void)
 	int		    i;
 	int         error = 0;
 	
-	nis = fsl_os_malloc_smart(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
+	nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
 	
 	if (!nis) {
 	    return -ENOMEM;
@@ -282,6 +282,6 @@ int dpni_drv_init(void)
 void dpni_drv_free(void)
 {
 	if (nis)
-		fsl_os_free_smart(nis);
+		fsl_os_xfree(nis);
 	nis = NULL;
 }

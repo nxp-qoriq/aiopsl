@@ -605,6 +605,28 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = sizeof(struct fdma_copy_command);
 		break;
 	}
+	/* FDMA Acquire Buffer Verification */
+	case FDMA_ACQUIRE_BUFFER_CMD_STR:
+	{
+		struct fdma_acquire_buffer_command *str =
+			(struct fdma_acquire_buffer_command *) asa_seg_addr;
+		flags |= ((str->bdi) ? FDMA_ACQUIRE_BDI_BIT : 0x0);
+		str->status = (int8_t)fdma_acquire_buffer(str->icid, flags,
+				str->bpid, (void *)str->dst);
+		str_size = sizeof(struct fdma_acquire_buffer_command);
+		break;
+	}
+	/* FDMA Release Buffer Verification */
+	case FDMA_RELEASE_BUFFER_CMD_STR:
+	{
+		struct fdma_release_buffer_command *str =
+			(struct fdma_release_buffer_command *) asa_seg_addr;
+		flags |= ((str->bdi) ? FDMA_ACQUIRE_BDI_BIT : 0x0);
+		str->status = (int8_t)fdma_release_buffer(str->icid, flags,
+				str->bpid, str->addr);
+		str_size = sizeof(struct fdma_release_buffer_command);
+		break;
+	}
 	/* FDMA Copy Command Verification */
 	case FDMA_CREATE_FRAME_CMD_STR:
 	{

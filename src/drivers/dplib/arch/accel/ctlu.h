@@ -44,6 +44,33 @@
 /** @} */ /* end of AIOP_CTLU_RULE_RESULT_CONSTANTS */
 
 /**************************************************************************//**
+@Group	CTLU_ENTRY_MACROS CTLU Entry Macros
+@{
+*//***************************************************************************/
+/** Entry type Entype field mask */
+#define CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK			0x0F
+
+/** Entry type Entype EME24 */
+#define CTLU_TABLE_ENTRY_ENTYPE_EME24				0x01
+
+/** Entry type Entype EME16 */
+#define CTLU_TABLE_ENTRY_ENTYPE_EME16				0x03
+
+/** Entry type Entype LPM Result*/
+#define CTLU_TABLE_ENTRY_ENTYPE_LPM_RES				0x05
+
+/** EME24 Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE			24
+
+/** EME16 Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE			16
+
+/** LPM Result Entry Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE		24
+
+/** @} */ /* end of CTLU_ENTRY_MACROS */
+
+/**************************************************************************//**
 @Group	CTLU_RULE_ENTRY_MACROS CTLU Rule-Entry related Macros
 @{
 *//***************************************************************************/
@@ -427,6 +454,119 @@ struct ctlu_table_params_query_output_message {
 
 	/** Miss Result */
 	struct ctlu_table_rule_result miss_lookup_fcv;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body EME16
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_eme16 {
+	/** Reserved */
+	uint8_t  reserved[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage0;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage1;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE];
+
+	/** CTLU result */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body EME24
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_eme24 {
+	/** Reserved */
+	uint8_t  reserved[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE];
+
+	/** CTLU result */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body LPM
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_lpm_res {
+	/** Reserved */
+	uint8_t  reserved[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage0;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE];
+
+	/** CTLU result */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body Union
+*//***************************************************************************/
+#pragma pack(push, 1)
+union ctlu_table_entry_body {
+	/** EME16 Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_eme16 eme16;
+	
+	/** EME24 Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_eme24 eme24;
+	
+	/** LPM Result Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_lpm_res lpm_res;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry {
+	/* Entry type (and some more things)
+	 * Macros are available at: \ref CTLU_ENTRY_MACROS */
+	uint8_t type;
+
+	/** The body of the entry (varies per type) */
+	union ctlu_table_entry_body body;
 };
 #pragma pack(pop)
 

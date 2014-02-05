@@ -52,8 +52,10 @@ int32_t tcp_gso_generate_seg(
 		/* Calculate split_size */
 		gso_ctx->headers_size = (uint16_t)
 			((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) + 
-				(tcp_ptr->data_offset_reserved >> 
-					NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET)); 
+				((tcp_ptr->data_offset_reserved & 
+				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
+				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE))); 
 		gso_ctx->split_size = gso_ctx->headers_size + gso_ctx->mss; 
 			
 		/* Call to tcp_gso_split_segment */	
@@ -92,9 +94,11 @@ int32_t tcp_gso_generate_seg(
 	gso_ctx->seg_length = PRC_GET_SEGMENT_LENGTH();
 	
 	gso_ctx->headers_size = (uint16_t)
-			((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) + 
-				(tcp_ptr->data_offset_reserved >> 
-					NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET)); 
+		((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) + 
+				((tcp_ptr->data_offset_reserved & 
+				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE))); 
 	gso_ctx->split_size = gso_ctx->headers_size + gso_ctx->mss;
 	ip_header_length = gso_ctx->split_size - 
 			(uint16_t)(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
@@ -250,8 +254,10 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		gso_ctx->urgent_pointer -= tcp_ptr->urgent_pointer;
 	} 
 	
-	/* update TCP checksum */
-	status = cksum_calc_udp_tcp_checksum(); /* TODO FDMA ERROR */
+	/* update TCP checksum *//* TODO CHECKSUM NEW API (Doron)
+	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE); */
+	status = cksum_calc_udp_tcp_checksum();
+	/* TODO FDMA ERROR */
 	
 	/* Modify default segment */
 	/* TODO FDMA ERROR */

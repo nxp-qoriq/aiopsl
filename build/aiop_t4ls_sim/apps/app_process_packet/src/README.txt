@@ -9,12 +9,13 @@ The aiop_packet_processing demo assumes the following additional settings.
 
 Set first EPID table entry with the following settings:
 ===========================================
-1. EP_PC = 0x00820000.
-3. EP_PM = 0 - only 1 NI is currently tested
+1. EP_PC = 0x00fe0000.
+3. EP_PM = NI id that you've registered to using dpni_drv_register_rx_cb.
 
 FD[FLC] - frame descriptor special settings
 ===========================================
-1. Set it all to 0
+1. Set EPID to 0, EPID entry 0 will include the NI id under EP_PM.  
+2. Set APPIDX to the flow id number that you've registered to using dpni_drv_register_rx_cb.
 
 ===========================================
 Demo possible modifications:
@@ -26,7 +27,7 @@ Demo possible modifications:
 Execution flow
 ===========================================
 1. Run the demo and get till the core is at waiting state
-2. Start enqueueing FDs using ViPR environment.
+2. Start enqueueing FDs using ViPR environment shell.
 3. See that app_process_packet() is called on every FD.
  
 =================

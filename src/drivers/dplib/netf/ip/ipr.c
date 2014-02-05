@@ -83,6 +83,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					instance_params.table_id_ipv4,
 					ipr_global_parameters1.ipr_key_id_ipv4,
 					&lookup_result);
+			/* todo new ctlu api CTLU_STATUS_SUCCESS*/
 			if(sr_status == CTLU_LOOKUP_STATUS_MATCH_FOUND) {
 			     /* Hit */
 			     rfdc_ext_addr = lookup_result.opaque0_or_reference;
@@ -108,8 +109,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				   /* Early Time out */
 				   return IPR_ERROR;
 				}	
-			} else if(sr_status ==
-					CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {
+			/* todo new ctlu api CTLU_STATUS_MISS*/
+			} else if(sr_status == 
+				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {
 				/* Miss */
 			    cdma_acquire_context_memory(
 					     IPR_CONTEXT_SIZE,
@@ -150,7 +152,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    rfdc.status = RFDC_VALID;
 				
 			    /* create Timer in TMAN */
-			    tman_create_timer(
+/*			    tman_create_timer(
 				       instance_params.tmi_id,
 				       ipr_global_parameters1.ipr_timeout_flags,
 				       instance_params.timeout_value_ipv4,
@@ -159,7 +161,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				       ipr_global_parameters1.ipr_timeout_epid,
 				       (uint32_t)instance_params.ipv4_timeout_cb,
 				       &rfdc.timer_handle);
-			    instance_params.num_of_open_reass_frames += 1;
+*/			    instance_params.num_of_open_reass_frames += 1;
 			    /* Write and unlock instance handle parameters*/
 			    cdma_access_context_memory(
 					   instance_handle,

@@ -9,7 +9,8 @@
 #include "general.h"
 #include "tman.h"
 #include "dplib/fsl_tman.h"
-
+#include "dplib/fsl_fdma.h"
+#include "osm.h"
 
 int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
@@ -44,25 +45,25 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 	return (int32_t)(res1);
 }
 
-int32_t tman_delete_tmi(uint8_t confirmation_epid, uint32_t flags,
-			uint8_t tmi_id, uint64_t conf_opaque_data1,
-			uint16_t conf_opaque_data2)
+int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
+			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
+			tman_arg_2B_t conf_opaque_data2)
 {
 	struct tman_tmi_input_extention extention_params;
 	/* command parameters and results */
-	uint32_t res1;
+	uint32_t res1, epid = EPID_TIMER_EVENT_IDX;
 
 	/* extention_params.conf_opaque_data1 = conf_opaque_data1;
 	Optimization: remove 1 cycle of store word (this rely on EABI) */
 	__st64dw_b(conf_opaque_data1,
 		  (uint32_t)(&extention_params.opaque_data1));
-	/* A non nested Scope ID */
-	extention_params.hash = 0x1070;
+	/* The function callback */
+	extention_params.hash = (uint32_t)tman_confirm_cb;
 	/* extention_params.opaque_data2_epid =
 		(uint32_t)(conf_opaque_data2 << 16) | confirmation_epid;
 	Optimization: remove 2 cycles clear and shift */
-	__e_rlwimi(confirmation_epid, conf_opaque_data2, 16, 0, 15);
-	__stw(confirmation_epid, 0, &(extention_params.opaque_data2_epid));
+	__e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
+	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 	/* Store first two command parameters */
 	__stdw(flags, tmi_id, HWC_ACC_IN_ADDRESS, 0);
 
@@ -102,12 +103,13 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 }
 
 int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
-			uint16_t duration, uint64_t opaque_data1,
-			uint16_t opaque_data2, uint8_t epid,
-			uint32_t scope_id, uint32_t *timer_handle)
+			uint16_t duration, tman_arg_8B_t opaque_data1,
+			tman_arg_2B_t opaque_data2, tman_cb_t tman_timer_cb,
+			uint32_t *timer_handle)
 {
 	struct tman_tmi_input_extention extention_params;
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_CREATE, res1;
+	uint32_t epid = EPID_TIMER_EVENT_IDX;
 
 	/* Fill command parameters */
 	__stdw(cmd_type, (uint32_t)tmi_id, HWC_ACC_IN_ADDRESS, 0);
@@ -118,7 +120,7 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 
 	__st64dw_b(opaque_data1,
 		  (uint32_t)(&extention_params.opaque_data1));
-	extention_params.hash = scope_id;
+	extention_params.hash = (uint32_t)tman_timer_cb;
 	/* extention_params.opaque_data2_epid =
 			(uint32_t)(opaque_data2 << 16) | epid;
 	Optimization: remove 2 cycles clear and shift */
@@ -226,5 +228,20 @@ void tman_get_timestamp(uint64_t *timestamp)
 	*timestamp = *((uint64_t *) TMAN_TMTSTMP_ADDRESS);
 	/* todo __ld64dw_b(*timestamp, reg_addr);*/
 	/* todo __st64dw_b(*timestamp, timestamp); */
+}
+
+void tman_timer_callback(void)
+{
+	tman_cb_t tman_cb;
+	tman_arg_8B_t tman_cb_arg1;
+	tman_arg_2B_t tman_cb_arg2;
+	
+	tman_cb = (tman_cb_t)*
+			((uint32_t*)(HWC_FD_ADDRESS+FD_FLC_DS_AS_CS_OFFSET));
+	tman_cb_arg1 = *(tman_arg_8B_t *)(HWC_FD_ADDRESS);
+	tman_cb_arg2 = *(tman_arg_2B_t *)(HWC_FD_ADDRESS+FD_FLC_RUNNING_SUM);
+	osm_task_init();
+	(*(tman_cb))(tman_cb_arg1, tman_cb_arg2);
+	fdma_terminate_task();
 }
 
