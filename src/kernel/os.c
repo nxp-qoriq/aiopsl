@@ -136,9 +136,9 @@ void spin_unlock_irqrestore(spinlock_t lock, uint32_t irq_flags)
  *            stbcx., sthcx., stwcx.
 ***************************************************************************/
 /***************************************************************************
- * aiop_atomic_incr8
+ * atomic_incr8
 ***************************************************************************/
-void aiop_atomic_incr8(register int8_t *var, register int8_t value)
+void atomic_incr8(register int8_t *var, register int8_t value)
 {
 
 	register int8_t orig_value;
@@ -155,9 +155,9 @@ atomic_loop:
 }
 
 /***************************************************************************
- * aiop_atomic_incr16
+ * atomic_incr16
 ***************************************************************************/
-void aiop_atomic_incr16(register int16_t *var, register int16_t value)
+void atomic_incr16(register int16_t *var, register int16_t value)
 {
 
 	register int16_t orig_value;
@@ -174,9 +174,9 @@ atomic_loop:
 }
 
 /***************************************************************************
- * aiop_atomic_incr32
+ * atomic_incr32
  ***************************************************************************/
-void aiop_atomic_incr32(register int32_t *var, register int32_t value)
+void atomic_incr32(register int32_t *var, register int32_t value)
 {
 
 	/* Fetch and Add
@@ -207,9 +207,9 @@ atomic_loop:
 }
 
 /***************************************************************************
- * aiop_atomic_decr8
+ * atomic_decr8
  ***************************************************************************/
-void aiop_atomic_decr8(register int8_t *var, register int8_t value)
+void atomic_decr8(register int8_t *var, register int8_t value)
 {
 
 	register int8_t orig_value;
@@ -227,9 +227,9 @@ atomic_loop:
 }
 
 /***************************************************************************
- * aiop_atomic_decr16
+ * atomic_decr16
  ***************************************************************************/
-void aiop_atomic_decr16(register int16_t *var, register int16_t value)
+void atomic_decr16(register int16_t *var, register int16_t value)
 {
 
 	register int16_t orig_value;
@@ -247,9 +247,9 @@ atomic_loop:
 }
 
 /***************************************************************************
- * aiop_atomic_decr32
+ * atomic_decr32
  ***************************************************************************/
-void aiop_atomic_decr32(register int32_t *var, register int32_t value)
+void atomic_decr32(register int32_t *var, register int32_t value)
 {
 
 	register int32_t orig_value;

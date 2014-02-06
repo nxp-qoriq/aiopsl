@@ -135,7 +135,7 @@ int32_t vpool_release_pool(uint32_t virtual_pool_id)
 	unlock_spinlock((uint8_t *)&virtual_pools_root.global_spinlock);
 	
 	/* Increment the total available BMAN pool buffers */ 
-	aiop_atomic_incr32(&virtual_bman_pools[virtual_pool->bman_array_index].remaining, 
+	atomic_incr32(&virtual_bman_pools[virtual_pool->bman_array_index].remaining, 
 			virtual_pool->committed_bufs);
 		
 	return VIRTUAL_POOLS_SUCCESS;	
@@ -283,7 +283,7 @@ int32_t vpool_add_total_bman_bufs(
 	}
 		
 	/* Increment the total available BMAN pool buffers */ 
-	aiop_atomic_incr32(&virtual_bman_pools[bman_array_index].remaining, 
+	atomic_incr32(&virtual_bman_pools[bman_array_index].remaining, 
 			additional_bufs);
 
 	return VIRTUAL_POOLS_SUCCESS;
@@ -342,9 +342,9 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 
 		/* If allocation failed, undo the counters increment/decrement */
 		if (return_val) {
-			aiop_atomic_decr32(&virtual_pool->allocated_bufs, 1); 
+			atomic_decr32(&virtual_pool->allocated_bufs, 1); 
 			if (allocate == 2) /* only if it was allocated from the remaining area */ 
-				aiop_atomic_incr32(&virtual_bman_pools[virtual_pool->
+				atomic_incr32(&virtual_bman_pools[virtual_pool->
 				                               bman_array_index].remaining, 1);
 			return (VIRTUAL_POOLS_CDMA_ERR | return_val);
 		}
@@ -397,7 +397,7 @@ int32_t __vpool_internal_release_buf(uint32_t virtual_pool_id)
 	if(virtual_pool->allocated_bufs > 
 			virtual_pool->committed_bufs) 	{
 		/* One buffer returns to the common pool */
-		aiop_atomic_incr32(&virtual_bman_pools[virtual_pool->bman_array_index].remaining, 1);
+		atomic_incr32(&virtual_bman_pools[virtual_pool->bman_array_index].remaining, 1);
 	}	
 	
 	virtual_pool->allocated_bufs--;
