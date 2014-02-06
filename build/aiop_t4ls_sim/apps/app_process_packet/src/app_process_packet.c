@@ -66,15 +66,15 @@ int app_init(void)
     
     err = slab_create(5, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab);
     if (err) return err;
-    fsl_os_print("slab_create() passed \n");
+    fsl_os_print("--------------------slab_create() passed --------------------\n");
 
     err = slab_acquire(slab, &buff);
     if (err) return err;
-    fsl_os_print("slab_acquire() passed \n");
+    fsl_os_print("--------------------slab_acquire() passed --------------------\n");
 
     err = slab_release(slab, buff);
     if (err) return err;
-    fsl_os_print("slab_release() passed \n");
+    fsl_os_print("--------------------slab_release() passed --------------------\n");
 
     return err;
 }

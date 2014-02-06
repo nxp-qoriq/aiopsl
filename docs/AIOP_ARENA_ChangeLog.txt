@@ -1,7 +1,9 @@
 
+- app_process_packet.c: Added SLAB test inside app_init() of app_process_packet demo
+
 - gen.h:         Added ALIGN_UP, ALIGN_DOWN macros
 - aiop_link.lcf: Moved app_receive_cb() to the start of IRAM and fixed IRAM size to 128K
-- fsl_slab.h:    Added new file with slab API
+- fsl_slab.h:    Added new file with SLAB API
 
 AIOP ARENA Feb 4, 2014
 - Changed i_ram to start at 0xfe0000 in aiop_link.lcf in order to match simulator
