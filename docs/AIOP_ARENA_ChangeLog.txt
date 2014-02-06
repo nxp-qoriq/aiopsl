@@ -1,4 +1,5 @@
 
+- gen.h:         Added ALIGN_UP, ALIGN_DOWN macros
 - aiop_link.lcf: Moved app_receive_cb() to the start of IRAM and fixed IRAM size to 128K
 - fsl_slab.h:    Added new file with slab API
 

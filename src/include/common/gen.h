@@ -98,6 +98,18 @@
 #define IS_ALIGNED(n,align)     (!((uint32_t)(n) & (align - 1)))
 #endif /* IS_ALIGNED */
 
+#ifndef ALIGN_UP
+#define ALIGN_UP(ADDRESS, ALIGNMENT)           \
+        ((((uint32_t)(ADDRESS)) + ((uint32_t)(ALIGNMENT)) - 1) & (~(((uint32_t)(ALIGNMENT)) - 1)))
+        /**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
+#endif /* ALIGN_UP */
+
+#ifndef ALIGN_DOWN
+#define ALIGN_DOWN(ADDRESS, ALIGNMENT)      \
+        ((uint32_t)(ADDRESS) & (~(((uint32_t)(ALIGNMENT)) - 1)))
+        /**< Align a given address to a lower aligned address - equivalent to floor(ADDRESS,ALIGNMENT) */
+#endif /* ALIGN_DOWN */
+
 #define ILLEGAL_BASE    (~0)	//TODO - remove
 
 /* @} */
