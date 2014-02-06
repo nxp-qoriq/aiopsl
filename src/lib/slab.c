@@ -30,7 +30,7 @@ int static find_bpid(uint16_t *bpid,
                      uint8_t  mem_partition_id,
                      struct   slab_module_info *slab_module)
 {
-    int     i = 0, temp = 0;
+    int     i = 0, temp = 0, found = 0;
     int     num_bpids = slab_module->num_hw_pools;
     struct  slab_hw_pool_info *hw_pools = slab_module->hw_pools;
     
@@ -39,10 +39,13 @@ int static find_bpid(uint16_t *bpid,
             (hw_pools[i].alignment        >= alignment)        &&
             (hw_pools[i].buff_size        >= buff_size)) {
             
-            if (hw_pools[temp].buff_size > hw_pools[i].buff_size) {
+            if (!found) {
+                temp = i;                
+            } else if (hw_pools[temp].buff_size >= hw_pools[i].buff_size) {
                 /* Choose smallest possible size */
                 temp = i;
             }
+            found = 1;
         }
     }
     
@@ -51,7 +54,7 @@ int static find_bpid(uint16_t *bpid,
         (hw_pools[temp].alignment        >= alignment)        &&
         (hw_pools[temp].buff_size        >= buff_size)) {
         
-        *bpid = temp;
+        *bpid = (uint16_t)temp;
         return 0;
     }
 
@@ -65,7 +68,7 @@ int static find_and_fill_bpid(uint16_t *bpid,
                               uint16_t alignment, 
                               uint8_t  mem_partition_id,
                               struct   slab_module_info *slab_module,
-                              uint32_t *num_filled_buffs)
+                              int      *num_filled_buffs)
 {    
     int        error = 0, i = 0;
     dma_addr_t addr  = 0;
@@ -152,7 +155,7 @@ int static find_and_fill_bpid_by_address(uint16_t *bpid,
 /*****************************************************************************/
 static void free_slab_module_memory() 
 {
-    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 1, 0);
+    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
 
     fsl_os_xfree(slab_module->virtual_pool_struct);
     fsl_os_xfree(slab_module->callback_func_struct);
@@ -191,7 +194,7 @@ int slab_create(uint16_t    num_buffs,
                 slab_release_cb_t release_cb,
                 uint32_t    *slab)
 {
-    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 1, 0);
+    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
 
     int        error = 0;
     dma_addr_t addr  = 0;
@@ -210,7 +213,7 @@ int slab_create(uint16_t    num_buffs,
     /*
      * Only HW SLAB is supported
      */
-    error = find_and_fill_bpid(&bpid, num_buffs, buff_size, alignment, mem_partition_id, slab_module, &data);
+    error = find_and_fill_bpid(&bpid, num_buffs, buff_size, alignment, mem_partition_id, slab_module, (int *)(&data));
     if (error) return -ENAVAIL;
     
     data  = 0;
@@ -238,7 +241,7 @@ int slab_create_by_address(uint16_t num_buffs,
                            slab_release_cb_t release_cb,
                            uint32_t *slab)
 {
-    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 1, 0);
+    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
     
     int      error = 0;
     uint32_t data  = 0;    
@@ -276,7 +279,7 @@ int slab_create_by_address(uint16_t num_buffs,
 /*****************************************************************************/
 void slab_free(uint32_t slab)
 {
-    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 1, 0);
+    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
     
     /* TODO free all buffers ?? */
     
@@ -347,7 +350,9 @@ int slab_module_init(void)
         
         i++;
     }
-    
+    /* Set one BPID for PEB */
+    slab_module->hw_pools[i-1].mem_partition_id = MEM_PART_PEB;
+
     /* Add to all system handles */
     error = sys_add_handle(slab_module, FSL_OS_MOD_SLAB, 1, 0);
     return error;        

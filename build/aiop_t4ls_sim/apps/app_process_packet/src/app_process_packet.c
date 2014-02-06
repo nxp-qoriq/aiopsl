@@ -8,6 +8,8 @@
 #include "general.h"
 #include "fsl_ip.h"
 #include "fsl_parser.h"
+#include "common/fsl_slab.h"
+#include "kernel/platform.h"
 
 int app_init(void);
 void app_free(void);
@@ -35,8 +37,10 @@ static void app_process_packet_flow1 (dpni_drv_app_arg_t arg)
 
 int app_init(void)
 {
-    int err = 0;    
-    uint32_t ni = 0;
+    int        err  = 0;    
+    uint32_t   ni   = 0;
+    uint32_t   slab = 0;
+    dma_addr_t buff = 0;
 
     fsl_os_print("Running app_init()\n");
     
@@ -49,7 +53,7 @@ int app_init(void)
                                       NULL /*dpsp*/, 
                                       app_process_packet_flow1, /* callback for flow_id*/
                                       (ni | (flow_id << 16)) /*arg, nic number*/);
-        if (err > 0) return err;
+        if (err) return err;
         flow_id = 0;
         err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/, 
                                       (uint16_t)flow_id/*flow_id*/, 
@@ -57,8 +61,21 @@ int app_init(void)
                                       NULL /*dpsp*/, 
                                       app_process_packet_flow0, /* callback for flow_id*/
                                       (ni | (flow_id << 16))/*arg, nic number*/);
-        if (err > 0) return err;
+        if (err) return err;
     }
+    
+    err = slab_create(5, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab);
+    if (err) return err;
+    fsl_os_print("slab_create() passed \n");
+
+    err = slab_acquire(slab, &buff);
+    if (err) return err;
+    fsl_os_print("slab_acquire() passed \n");
+
+    err = slab_release(slab, buff);
+    if (err) return err;
+    fsl_os_print("slab_release() passed \n");
+
     return err;
 }
 
