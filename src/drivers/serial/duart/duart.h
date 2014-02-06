@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 /**
  @File          duart.h
 
@@ -217,4 +218,5 @@ typedef struct t_duart_uart
 
 
 #endif /* __DUART_H */
+#endif
 

@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #ifndef _UTIL_H
 #define _UTIL_H
 
@@ -233,3 +234,4 @@ void util_usage(const char *errmsg, const char *synopsis,
 
 
 #endif /* _UTIL_H */
+#endif

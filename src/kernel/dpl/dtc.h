@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #ifndef DTC_H_
 #define DTC_H_
 
@@ -265,3 +266,4 @@ const struct property *get_properties(struct node *tree, char *path);
 const struct devices *get_devices(struct node *tree, char *path);
 
 #endif /* _DTC_H */
+#endif
