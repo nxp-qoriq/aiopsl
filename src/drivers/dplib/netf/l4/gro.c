@@ -70,6 +70,7 @@ int32_t tcp_gro_aggregate_seg(
 				(uint16_t)METADATA_MEMBER1_SIZE); 
 		sr_status = cdma_write(gro_ctx.metadata.seg_sizes_addr, 
 				&seg_size, (uint16_t)sizeof(seg_size));
+		gro_ctx.metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
 	}
 	
 	/* set metadata values */
@@ -98,10 +99,7 @@ int32_t tcp_gro_aggregate_seg(
 				STE_MODE_COMPOUND_ACC_SATURATE);
 		return TCP_GRO_SEG_AGG_DONE_NEW_AGG;
 	} else { /* Aggregate */
-		/* Todo - shouldn't we set the timer after we write the context 
-		 * to DDR? so there will not be a case it expires before we even
-		 * save the context the first time to DDR
-		 * create timer for the aggregation */
+		/* create timer for the aggregation */
 /*		
  * 		Todo - enable timer
  * 		sr_status = tman_create_timer(params->timeout_params.tmi_id, 
@@ -305,11 +303,11 @@ int32_t tcp_gro_add_seg_to_aggregation(
 		gro_ctx->metadata.max_seg_size = seg_size;
 	
 	/* write metadata segment size to external memory */
-	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) 
-		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr + 
-				sizeof(seg_size) * gro_ctx->metadata.seg_num, 
+	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
+		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr, 
 				&seg_size, (uint16_t)sizeof(seg_size));
-	
+		gro_ctx->metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
+	}
 	/* update statistics */
 	ste_inc_counter(gro_ctx->params.stats_addr + 
 			GRO_STAT_SEG_NUM_CNTR_OFFSET, 
@@ -341,10 +339,6 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	gro_ctx->metadata.seg_num++;
 	if (gro_ctx->metadata.max_seg_size < seg_size)
 		gro_ctx->metadata.max_seg_size = seg_size;
-	
-	/* calculate tcp data checksum */
-	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 	
 	/* present aggregated frame */
 	present_frame_params.fd_src = &(gro_ctx->agg_fd);
@@ -415,10 +409,11 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 	
 	/* write metadata segment size to external memory */
-	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) 
-		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr + 
-				sizeof(seg_size) * gro_ctx->metadata.seg_num, 
+	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES){
+		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr, 
 				&seg_size, (uint16_t)sizeof(seg_size));
+		gro_ctx->metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
+	}
 	/* write metadata to external memory */
 	sr_status = cdma_write(
 			(gro_ctx->params.metadata + METADATA_MEMBER1_SIZE), 
@@ -461,8 +456,10 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* initialize gro_context parameters */	
 	gro_ctx->internal_flags = 0;
 	gro_ctx->last_ack = tcp->acknowledgment_number;
-	data_offset = tcp->data_offset_reserved >> 
-				NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET;
+	data_offset = (tcp->data_offset_reserved & 
+			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 	gro_ctx->next_seq = tcp->acknowledgment_number + 
 			(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 
@@ -601,7 +598,9 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr, 
 				&(gro_ctx->metadata.max_seg_size), 
 				(uint16_t)
-					sizeof(gro_ctx->metadata.max_seg_size));	
+					sizeof(gro_ctx->metadata.max_seg_size));
+		gro_ctx->metadata.seg_sizes_addr += (uint16_t)
+				sizeof(gro_ctx->metadata.max_seg_size);
 	}
 	
 	return TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG;	
