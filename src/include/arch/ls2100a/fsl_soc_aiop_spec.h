@@ -36,7 +36,7 @@ enum fsl_os_module {
 	FSL_OS_MOD_DPIO,
 	FSL_OS_MOD_DPSP,
 	FSL_OS_MOD_DPSW,
-
+	FSL_OS_MOD_SLAB,
 	FSL_OS_MOD_UART,
 
 	FSL_OS_MOD_CMGW,
