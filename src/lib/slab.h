@@ -12,8 +12,6 @@
 #include "common/fsl_slab.h"
 #include "common/list.h"
 
-#define __ERR_MODULE__  MODULE_SLAB
-
 /**************************************************************************//**
  @Description   SLAB common internal macros 
 *//***************************************************************************/
