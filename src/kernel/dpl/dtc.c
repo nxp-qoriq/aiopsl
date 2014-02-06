@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
 #include "common/fsl_string.h"
 
@@ -410,4 +411,5 @@ struct boot_info *dtc_from_blob(const unsigned int *dt_blob)
     return build_boot_info(reservelist, tree, boot_cpuid_phys);
 }
 
+#endif
 #endif

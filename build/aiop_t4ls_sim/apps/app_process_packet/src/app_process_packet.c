@@ -37,6 +37,8 @@ int app_init(void)
 {
     int err = 0;    
     uint32_t ni = 0;
+
+    fsl_os_print("Running app_init()\n");
     
     for (ni = 0; ni < 6; ni++)
     {
