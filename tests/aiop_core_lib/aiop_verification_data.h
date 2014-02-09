@@ -18,7 +18,6 @@
 #pragma section RW ".verif_tdata" ".verif_tbss"
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
-__VERIF_TLS uint64_t verif_ipr_example;
 
 
 
