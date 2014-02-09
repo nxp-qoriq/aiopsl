@@ -54,12 +54,29 @@ int32_t tcp_gro_aggregate_seg(
 		gro_ctx.flags = flags;
 		status = tcp_gro_add_seg_to_aggregation(
 				params, &gro_ctx);
-		/* write gro context back to DDR + release mutex */
-		sr_status = cdma_write_with_mutex(tcp_gro_context_addr, 
-					CDMA_POSTDMA_MUTEX_RM_BIT, 
-					(void *)&gro_ctx, 
-					(uint16_t)
-						sizeof(struct tcp_gro_context));
+		if (status == TCP_GRO_SEG_AGG_DONE)
+			/* write gro context specific fields (metadata seg_num + 
+			 * internal_flags) back to DDR + release mutex */
+			sr_status = cdma_access_context_memory(
+				tcp_gro_context_addr,
+				CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				(offsetof(struct tcp_gro_context, metadata) + 
+						METADATA_MEMBER1_SIZE),
+				(void *)&(gro_ctx.metadata.seg_num),
+				(CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | 
+					(METADATA_MEMBER2_SIZE + 
+					 METADATA_MEMBER3_SIZE + 
+					 INT_FLAGS_SIZE)),
+				&seg_size);
+		else
+			/* write entire gro context back to DDR + release 
+			 * mutex */
+			sr_status = cdma_write_with_mutex(
+				tcp_gro_context_addr, 
+				CDMA_POSTDMA_MUTEX_RM_BIT, 
+				(void *)&gro_ctx, 
+				(uint16_t)
+					sizeof(struct tcp_gro_context));
 		return status;
 	}
 	
@@ -231,7 +248,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH){
 		/* Todo - no counter for aggregation due to PSH flag.
 		 * on the other hand - no counter for different timestamp/ECN,
-		 * smaller ACk number ...  should we add them all ???*/
+		 * smaller ACk number ...  should we add them all ? */
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
 	
@@ -412,7 +429,6 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES){
 		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr, 
 				&seg_size, (uint16_t)sizeof(seg_size));
-		gro_ctx->metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
 	}
 	/* write metadata to external memory */
 	sr_status = cdma_write(
@@ -444,8 +460,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 {
 	struct tcphdr *tcp;
 	uint8_t data_offset;
-	uint16_t headers_size, outer_ip_offset, ip_length, delta_total_length, 
-	new_agg_checksum;
+	uint16_t headers_size, outer_ip_offset, ip_length, delta_total_length; 
+	uint16_t agg_checksum, new_agg_checksum;
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
@@ -480,16 +496,18 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	else {
 		/* IPv6 */
 		ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-		gro_ctx->internal_flags |= ((*((uint32_t *)ipv6)) >> 4 & 
+		gro_ctx->internal_flags |= (((*((uint32_t *)ipv6)) >> 
+				TCP_GRO_IPV6_ECN_OFFSET) & 
 				TCP_GRO_ECN_MASK);
 	}
 		
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
 		/* PSH flag set */
 		gro_ctx->internal_flags |= TCP_GRO_PSH_FLAG_SET;
-	
-	////if (gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET == 0) 
-	/* calculate tcp data checksum */
+	 
+	/* calculate tcp data checksum for the new frame */
+	agg_checksum = gro_ctx->checksum;
+	gro_ctx->checksum = 0;
 	new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 				
 	/* store segment frame */
@@ -504,8 +522,10 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	sr_status = fdma_present_default_frame(); /* TODO FDMA ERROR */
 		
 	/* update last segment header fields */
-	*((struct tcp_gro_last_seg_header_fields *) 
-		(&(tcp->acknowledgment_number))) = gro_ctx->last_seg_fields;
+	if (gro_ctx->metadata.seg_num > 1)
+		*((struct tcp_gro_last_seg_header_fields *) 
+				(&(tcp->acknowledgment_number))) = 
+						gro_ctx->last_seg_fields;
 		
 	/* update statistics */
 	ste_inc_and_acc_counters(params->stats_addr + 
@@ -542,17 +562,18 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		ipv6->payload_length = ip_length - IPV6_HDR_LENGTH;
 	}
 		
-	/* update TCP checksum */
+	/* update TCP checksum for the aggregated frame */
 	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+	{
+		gro_ctx->checksum = agg_checksum;
 		tcp_gro_calc_tcp_header_cksum(gro_ctx);
+	}
 		
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 			(PARSER_GET_L4_OFFSET_DEFAULT() + 
 					TCP_HDR_LENGTH - outer_ip_offset));
-	/* calculate tcp data checksum */
-	//if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-			//gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx); // ?????????
+	/* restore tcp data checksum */
 	gro_ctx->checksum = new_agg_checksum;
 			
 	if (gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET) {
@@ -566,7 +587,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				gro_global_params.gro_timeout_epid,
 				0, 
 				&(gro_ctx->timer_handle));
-*/	}
+*/ 	}
 	else {
 		/* create timer for the new aggregation */
 /*		Todo - enable timer
@@ -585,7 +606,6 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		
 	/* initialize gro context fields */
 	gro_ctx->params = *params;
-	//gro_ctx->flags = gro_ctx.flags;   // ??????????????
 	gro_ctx->metadata.seg_num = 1;
 	gro_ctx->metadata.max_seg_size = 
 			(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -603,7 +623,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				sizeof(gro_ctx->metadata.max_seg_size);
 	}
 	
-	return TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG;	
+	return TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG;
 }
 
 int32_t tcp_gro_flush_aggregation(

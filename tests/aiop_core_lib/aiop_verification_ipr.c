@@ -6,10 +6,13 @@
 
 #include "aiop_verification.h"
 #include "aiop_verification_ipr.h"
+#include "aiop_verification_data.h"
 
+extern __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
 
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 {
+	
 #if 0
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;

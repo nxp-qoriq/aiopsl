@@ -67,19 +67,19 @@ struct tcp_gro_context {
 	struct tcp_gro_context_params params;
 		/** Aggregated packet FD  */
 	struct ldpaa_fd agg_fd;
-		/** Aggregated packet metadata  */
-	struct tcp_gro_context_metadata metadata;
 		/** Last Segment header fields which we need to update in the 
 		 * aggregated packet. */
 	struct tcp_gro_last_seg_header_fields last_seg_fields;
+		/** Aggregated packet metadata  */
+	struct tcp_gro_context_metadata metadata;
+		/** Internal TCP GRO flags */
+	uint32_t internal_flags;
 		/** Next expected sequence number. */
 	uint32_t next_seq;
 		/** Last received acknowledgment number. */
 	uint32_t last_ack;
 		/** Aggregated packet timestamp value. */
 	uint32_t timestamp;
-		/** Internal TCP GRO flags */
-	uint32_t internal_flags;
 		/** TCP GRO aggregation flags */
 	uint32_t flags;
 		/** Aggregated packet isolation attributes.
@@ -285,7 +285,9 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 	/** Metadata 3rd member size. */
 #define METADATA_MEMBER3_SIZE (sizeof(					\
 		((struct tcp_gro_context_metadata *)0)->max_seg_size))
-	
+	/** Internal flags member size. */
+#define INT_FLAGS_SIZE (sizeof(					\
+		((struct tcp_gro_context *)0)->internal_flags))
 
 	/* agg_num_cntr counter offset in statistics structure */
 #define GRO_STAT_AGG_NUM_CNTR_OFFSET					\
