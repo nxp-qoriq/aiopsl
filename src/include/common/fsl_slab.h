@@ -133,7 +133,7 @@ void slab_free(uint32_t slab);
  @Function      slab_acquire
 
  @Description   Get a buffer of memory from a pool;
-                Buffer reference counter if such exists will be set to 1.
+                AIOP HW pool buffer reference counter will be set to 1.
 
  @Param[in]     slab - Handle to memory pool.
  @Param[out]    buff - The buffer to return.
@@ -145,8 +145,8 @@ int slab_acquire(uint32_t slab, uint64_t *buff);
 /**************************************************************************//**
 @Function      slab_release
 
-@Description   Decrement buffer reference counter if such exists 
-               and return the buffer back to a pool.
+@Description   Return the buffer back to a pool;
+               AIOP HW pool buffer reference counter will be decremented. 
 
 @Param[in]     slab - Handle to memory pool.
 @Param[in]     buff - The buffer to return.
