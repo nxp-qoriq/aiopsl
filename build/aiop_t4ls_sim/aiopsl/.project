@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -140,11 +140,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/serial</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/cmdif_client.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
@@ -158,11 +153,6 @@
 			<name>aiop_sl/kernel/console.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/console.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/error.c</name>
@@ -203,11 +193,6 @@
 			<name>aiop_sl/kernel/sys.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/sys_lo.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_lo.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/sys_mem_mng.c</name>
@@ -290,17 +275,7 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/controllers</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpni</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/dprc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -308,61 +283,6 @@
 			<name>aiop_sl/drivers/dplib/netf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/serial/duart</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/data.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/data.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/dtc.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/dtc.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/dtc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/dtc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/fdt.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/fdt.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/fdt.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/fdt.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/fdt_ro.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/fdt_ro.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/libfdt.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/libfdt.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/livetree.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/livetree.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/util.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/util.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/dpl/util.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/dpl/util.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/mem_mng.c</name>
@@ -410,16 +330,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/drv.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/dprc/dprc.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/dprc/dprc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/netf/ip</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -438,16 +348,6 @@
 			<name>aiop_sl/drivers/dplib/netf/nat</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/serial/duart/duart.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/serial/duart/duart.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/serial/duart/duart.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/serial/duart/duart.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/init.c</name>

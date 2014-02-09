@@ -253,8 +253,7 @@ int dpni_drv_init(void)
 		dpni_drv->prpid        = 0;
 		dpni_drv->starting_hxs = 0; //ETH HXS
 		dpni_drv->qdid         = 0;
-		dpni_drv->flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | 
-		                         DPNI_DRV_FLG_MTU_ENABLE | DPNI_DRV_FLG_MTU_DISCARD;
+		dpni_drv->flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | DPNI_DRV_FLG_MTU_ENABLE;
 		dpni_drv->mtu          = 0xffff;
 
 		/* put a default RX callback - dropping the frame */

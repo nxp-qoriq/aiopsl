@@ -76,16 +76,8 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 					* to the send NI structure   */
 
 	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
-		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu)) {
-		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DISCARD)
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu))
 			return DPNI_DRV_MTU_ERR;
-		else {
-			/* TODO - mark in the FLC some error indication */
-			uint32_t frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-			frc |= FD_FRC_DPNI_MTU_ERROR_CODE;
-			LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, frc);
-		}
-	}
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
@@ -110,16 +102,8 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 					* to the send NI structure   */
 
 	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
-		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu)) {
-		if (dpni_drv->flags & DPNI_DRV_FLG_MTU_DISCARD)
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu))
 			return DPNI_DRV_MTU_ERR;
-		else {
-			/* TODO - mark in the FLC some error indication */
-			uint32_t frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-			frc |= FD_FRC_DPNI_MTU_ERROR_CODE;
-			LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, frc);
-		}
-	}
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/

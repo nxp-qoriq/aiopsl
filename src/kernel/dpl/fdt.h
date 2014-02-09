@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #ifndef FDT_H_
 #define FDT_H_
 
@@ -76,3 +77,4 @@ struct devices_list {
 #define FDT_V16_SIZE    FDT_V3_SIZE
 #define FDT_V17_SIZE    (FDT_V16_SIZE + sizeof(fdt32_t))
 #endif /* FDT_H_ */
+#endif

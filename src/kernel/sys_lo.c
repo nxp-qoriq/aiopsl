@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
 //#include "common/errors.h"
 #include "kernel/layout.h"
@@ -123,3 +124,4 @@ int sys_lo_process (void *lo)	/* TODO - lo is the device tree (struct node) or d
 	}
     return err; /* TODO - ERROR */
 }
+#endif

@@ -9,7 +9,7 @@ The aiop_packet_processing demo assumes the following additional settings.
 
 Set first EPID table entry with the following settings:
 ===========================================
-1. EP_PC = 0x00820000.
+1. EP_PC = 0x00fe0000.
 3. EP_PM = NI id that you've registered to using dpni_drv_register_rx_cb.
 
 FD[FLC] - frame descriptor special settings
