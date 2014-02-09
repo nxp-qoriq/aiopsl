@@ -29,7 +29,7 @@
  @{
  *//***************************************************************************/
 
-/* Each block is of the following structure:
+/* Each buffer is of the following structure:
  *
  *
  *  +-----------+----------+---------------------------+-----------+-----------+
@@ -41,6 +41,18 @@
  */
 
 /**************************************************************************//**
+ @Description   Available debug information about every slab 
+*//***************************************************************************/
+struct slab_debug_info {
+    uint32_t buff_size; /**< Maximal buffer size */
+    uint16_t pool_id;   /**< HW pool ID */
+    uint16_t alignment; /**< Maximal alignment */
+    uint16_t num_buffs; /**< The number of available buffers */
+    uint16_t max_buffs; /**< The maximal number of buffers inside this pool */
+    uint16_t mem_partition_id; /**< Memory partition */
+};
+
+/**************************************************************************//**
  @Description   Type of the function callback to be called on release of buffer into pool 
 *//***************************************************************************/
 typedef int32_t (*slab_release_cb_t)(uint64_t); 
@@ -50,22 +62,25 @@ typedef int32_t (*slab_release_cb_t)(uint64_t);
 
  @Description   Create a new buffers pool.
 
- @Param[in]     num_buffs           Number of blocks in new pool.
- @Param[in]     buff_size           Size of blocks in pool.
+ @Param[in]     num_buffs           Number of buffers in new pool.
+ @Param[in]     extra_buffs         Number of extra buffers that can be allocated by this new pool.
+ @Param[in]     buff_size           Size of buffers in pool.
  @Param[in]     prefix_size         How many bytes to allocate before the data.
                                     AIOP: Not supported by AIOP HW pools.
  @Param[in]     postfix_size        How many bytes to allocate after the data.
                                     AIOP: Not supported by AIOP HW pools.
  @Param[in]     alignment           Requested alignment for data field (in bytes).
+                                    AIOP: HW pool supports up to 8 bytes alignment.
  @Param[in]     mem_partition_id    Memory partition ID for allocation.
                                     AIOP: HW pool supports only PEB and DPAA DDR.
- @Param[in]     flags               Set it 0 for default slab creation. 
+ @Param[in]     flags               Set it to 0 for default slab creation.                           
  @Param[in]     release_cb          Function to be called on release of buffer into pool
  @Param[out]    slab                Handle to new pool is returned through here.
 
  @Return        0 - on success, -ENOMEM - out of memory.
  *//***************************************************************************/
 int slab_create(uint16_t    num_buffs,
+                uint16_t    extra_buffs,
                 uint16_t    buff_size,
                 uint16_t    prefix_size,
                 uint16_t    postfix_size,
@@ -80,8 +95,9 @@ int slab_create(uint16_t    num_buffs,
 
  @Description   Create a new buffers pool starting from address base.
 
- @Param[in]     num_buffs           Number of blocks in new pool.
- @Param[in]     buff_size           Size of blocks in pool.
+ @Param[in]     num_buffs           Number of buffers in new pool.
+ @Param[in]     extra_buffs         Number of extra buffers that can be allocated by this new pool.
+ @Param[in]     buff_size           Size of buffers in pool.
  @Param[in]     prefix_size         How many bytes to allocate before the data.
                                     AIOP: Not supported by AIOP HW pools.
  @Param[in]     postfix_size        How many bytes to allocate after the data.
@@ -94,6 +110,7 @@ int slab_create(uint16_t    num_buffs,
  @Return        0 - on success, -ENOMEM - out of memory.
  *//***************************************************************************/
 int slab_create_by_address(uint16_t num_buffs,
+                           uint16_t extra_buffs,                           
                            uint16_t buff_size,
                            uint16_t prefix_size,
                            uint16_t postfix_size,
@@ -106,7 +123,7 @@ int slab_create_by_address(uint16_t num_buffs,
 /**************************************************************************//**
  @Function      slab_free
 
- @Description   Free a specific pool.
+ @Description   Free a specific pool and all it's buffers.
 
  @Param[in]     slab - Handle to memory pool.
  *//***************************************************************************/
@@ -137,6 +154,19 @@ int slab_acquire(uint32_t slab, uint64_t *buff);
 @Return        E_OK on success, error code otherwise.
 *//***************************************************************************/
 int slab_release(uint32_t slab, uint64_t buff);
+
+/**************************************************************************//**
+@Function      slab_debug_info_get
+
+@Description   Decrement buffer reference counter if such exists 
+               and return the buffer back to a pool.
+
+@Param[in]     slab - Handle to memory pool.
+@Param[out]    slab_info - The pointer to place the debug information.
+
+@Return        E_OK on success, error code otherwise.
+*//***************************************************************************/
+int slab_debug_info_get(uint32_t slab, struct slab_debug_info *slab_info);
 
 /** @} *//* end of slab_g group */
 /** @} *//* end of fsl_mm_g group */
