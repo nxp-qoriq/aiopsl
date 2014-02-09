@@ -118,6 +118,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ctlu.h</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/aiop_verification_data.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_data.h</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/aiop_verification_fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_fdma.c</locationURI>

@@ -6,14 +6,16 @@
 MEMORY
 {
     hw_context:             org = 0x00000000,   len = 0x000000C0 /* Hardware Context         */
-    tls:                    org = 0x000000C0,   len = 0x00000080 /* TLS - Task Local Storage */
+    tls:                    org = 0x000000C0,   len = 0x00000040 /* TLS - Task Local Storage */
+    verif_tls:              org = 0x00000100,   len = 0x00000040 /* TLS - For Verification Env. */
     presentation:           org = 0x00000140,   len = 0x000001c0 /* Frame presentation area  */
     stack :                 org = 0x00000300,   len = 0x00000D00 /* Start location for Stack */
     exception_handlers:     org = 0x00800000,   len = 0x00002000 /* IRAM   */
     init:                   org = 0x00802000,   len = 0x00001000
     pseudo_rom:             org = 0x00803000,   len = 0x0001D000
     private_shared_ram:     org = 0x01000000,   len = 0x00008000 /* Application global vars  */
-    heap  :                 org = 0x01008000,   len = 0x00038000 /* currently sit in shared SRAM */
+    verif_shared_ram:       org = 0x01008000,   len = 0x00001000 /* Verification Env global vars  */
+    heap  :                 org = 0x01009000,   len = 0x00037000 /* currently sit in shared SRAM */
     dp_ddr:                 org = 0x50000000,   len = 0x10000000 /* DP-DDR  */
     spintbl :               org = 0x50008000,   len = 0x00001000 /* DDR - heap */
     pebm  :                 org = 0x80000000,   len = 0x00600000 /* PEBM */
@@ -65,6 +67,17 @@ SECTIONS
         .tdata (DATA):{}
         .tbss (BSS) NO_INIT_BSS :{}
    } > tls
+
+    GROUP : {
+       .verif_data   : {}
+       .verif_bss   : {}
+    } > verif_shared_ram
+
+    GROUP : {
+       .verif_tdata   : {}
+       .verif_tbss   : {}
+    } > verif_tls
+
 }
 
 TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
