@@ -1,4 +1,5 @@
-
+- fsl_slab.h:           Added extra_buffs for slab_create() API
+- app_process_packet.c: Added SLAB test inside app_process_packet_flow1() of app_process_packet demo
 - app_process_packet.c: Added SLAB test inside app_init() of app_process_packet demo
 
 - gen.h:         Added ALIGN_UP, ALIGN_DOWN macros
