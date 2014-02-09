@@ -41,20 +41,22 @@
  @Description   Information to be kept about every HW pool inside DDR
 *//***************************************************************************/
 struct slab_hw_pool_info {
-    uint32_t flags;
-    uint32_t buff_size; /**< Maximal buffer size */
-    uint16_t pool_id;
-    uint16_t mem_partition_id;
-    uint16_t alignment;
+    uint32_t flags;     /**< Control flags */
+    uint16_t buff_size; /**< Maximal buffer size including 8 bytes of CDMA metadata */
+    uint16_t pool_id;   /**< BMAN pool ID */
+    uint16_t alignment; /**< Buffer alignment */
+    uint16_t mem_partition_id; /**< Memory partition for buffers allocation */
 };
 
-
+/**************************************************************************//**
+ @Description   Information to be kept about SLAB module
+*//***************************************************************************/
 struct slab_module_info {    
-    struct  slab_hw_pool_info *hw_pools;
+    struct  slab_hw_pool_info *hw_pools;    /**< List of BMAN pools */
     void    *virtual_pool_struct;           /**< VP internal structure size of (struct virtual_pool_desc) * MAX_VIRTUAL_POOLS_NUM */ 
     void    *callback_func_struct;          /**< VP internal structure size of (struct callback_s) * MAX_VIRTUAL_POOLS_NUM */
-    uint8_t spinlock;
-    uint8_t num_hw_pools;
+    uint8_t spinlock;                       /**< Spinlock placed at SHRAM */
+    uint8_t num_hw_pools;                   /**< Number of BMAN pools */
 };
 
 /**************************************************************************//**
