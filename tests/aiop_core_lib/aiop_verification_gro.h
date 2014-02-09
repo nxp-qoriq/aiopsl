@@ -76,7 +76,7 @@ struct tcp_gro_agg_seg_command {
 		/** Workspace address of the last returned status. 
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
-		/** Workspace address of the GSO last returned status. 
+		/** Workspace address of the GRO last returned status. 
 		 * Should be defined in the TLS area. */
 	uint32_t gro_status_addr;
 		/** Padding. */
