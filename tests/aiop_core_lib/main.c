@@ -8,6 +8,7 @@ int main()
 /* initialize stack pointer */
 	aiop_verification();
 	aiop_verification_fm();
+	aiop_verification_fm_temp();
 	
 	return 0;
 }
