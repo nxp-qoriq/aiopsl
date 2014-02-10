@@ -110,9 +110,11 @@ struct ipr_init_verif_command {
 struct ipr_create_instance_command {
 	uint32_t				opcode;
 		/**< Command structure identifier. */
-	int32_t					status;
-	struct ipr_params		*ipr_params_ptr;
-	ipr_instance_handle_t	*ipr_instance_ptr;
+	int32_t			status;
+	struct ipr_params	ipr_params;
+	ipr_instance_handle_t	ipr_instance;
+	uint8_t			ipr_instance_ref;
+
 };
 
 /**************************************************************************//**
