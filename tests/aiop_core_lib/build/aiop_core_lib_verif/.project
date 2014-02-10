@@ -558,6 +558,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/netf/ip/ipsec.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/netf/ip/ipsec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf/ip/ipv4_checksum.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipv4_checksum.c</locationURI>
