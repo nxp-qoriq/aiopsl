@@ -19,7 +19,6 @@ void aiop_verification_fm_temp()
 	uint16_t size = 0;	/* ASA incremental read size */
 	uint16_t str_size;
 	uint32_t opcode;
-	uint32_t flags;
 
 
 	/* initialize Additional Dequeue Context */
@@ -35,7 +34,6 @@ void aiop_verification_fm_temp()
 	finish the verification */
 	while (size < asa_seg_size) {
 		opcode  = *((uint32_t *) asa_seg_addr);
-		flags = 0x0;
 
 		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
 
