@@ -1,4 +1,4 @@
-
+#ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/gen.h"
@@ -570,3 +570,4 @@ void mem_disp(uint8_t *p, int size)
         fsl_os_print("\r\n");
     }
 }
+#endif
