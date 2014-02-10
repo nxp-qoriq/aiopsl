@@ -14,10 +14,10 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-	uint32_t flags;
+/*	uint32_t flags;*/
 
 	opcode  = *((uint32_t *) asa_seg_addr);
-	flags = 0x0;
+/*	flags = 0x0;*/
 
 
 	switch (opcode) {
