@@ -112,8 +112,10 @@ struct ipr_create_instance_command {
 		/**< Command structure identifier. */
 	int32_t			status;
 	struct ipr_params	ipr_params;
+#ifdef CLOSE_MODEL	
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
+#endif	
 
 };
 
@@ -122,6 +124,7 @@ struct ipr_create_instance_command {
 
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
+#ifdef CLOSE_MODEL
 struct ipr_delete_instance_command {
 	uint32_t				opcode;
 	/**< Command structure identifier. */
@@ -131,6 +134,7 @@ struct ipr_delete_instance_command {
 	ipr_del_arg_t			delete_arg;
 	uint8_t					ipr_instance_ref;
 };
+#endif
 
 /**************************************************************************//**
 @Description	IPR Reassembly Command structure.
@@ -141,8 +145,10 @@ struct ipr_reassemble_command {
 	uint32_t				opcode;
 		/**< Command structure identifier. */
 	int32_t					status;
+#ifdef CLOSE_MODEL	
 	ipr_instance_handle_t	ipr_instance;
-	uint8_t					ipr_instance_ref;
+	uint8_t			ipr_instance_ref;
+#endif	
 };
 
 /**************************************************************************//**
@@ -150,6 +156,7 @@ struct ipr_reassemble_command {
 
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
+#ifdef CLOSE_MODEL
 struct ipr_modify_max_reass_frm_size_command {
 	uint32_t				opcode;
 		/**< Command structure identifier. */
@@ -216,7 +223,7 @@ struct ipr_get_reass_frm_cntr_command {
 	uint8_t					ipr_instance_ref;
 };
 
-
+#endif
 #pragma pack(pop)
 
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr);
