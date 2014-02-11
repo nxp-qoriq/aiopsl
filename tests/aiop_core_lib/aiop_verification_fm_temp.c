@@ -20,7 +20,7 @@ void aiop_verification_fm_temp()
 	uint16_t str_size;
 	uint32_t opcode;
 
-
+	
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
 
@@ -29,6 +29,7 @@ void aiop_verification_fm_temp()
 	/* shift size by 6 since the size is in 64bytes (2^6 = 64) quantities */
 	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK) << 6;
 
+	init_verif_tls();
 	/* The condition is for back up only.
 	In case the ASA was written correctly the Terminate command will
 	finish the verification */
@@ -37,7 +38,7 @@ void aiop_verification_fm_temp()
 
 		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
 
-		case TCP_GRO_MODULE_STATUS_ID:
+		case GRO_FM_ID:
 		{
 			str_size = aiop_verification_gro(asa_seg_addr);
 			break;
