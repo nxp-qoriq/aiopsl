@@ -14,10 +14,8 @@
 
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
 __TASK ipf_ctx_t ipf_context_addr;
-__TASK int32_t status;
 __TASK int32_t status_gso;
 __TASK int32_t status_ipf;
-__TASK int32_t status_gro;
 
 void aiop_verification_fm()
 {

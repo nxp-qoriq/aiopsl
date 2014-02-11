@@ -17,6 +17,9 @@
 #include "dplib/fsl_parser.h"
 
 
+	/** GRO FM ID */
+#define GRO_FM_ID	 (TCP_GRO_MODULE_STATUS_ID >> 16)
+
 /* TCP_GRO Command IDs */
 	/** TCP GRO Aggregate Segment command code */
 #define TCP_GRO_CONTEXT_AGG_SEG_CMD		0x00000001

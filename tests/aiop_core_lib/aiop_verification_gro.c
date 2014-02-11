@@ -14,10 +14,8 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-	uint32_t flags;
 
 	opcode  = *((uint32_t *) data_addr);
-	flags = 0x0;
 
 	switch (opcode) {
 	case TCP_GRO_CONTEXT_AGG_SEG_CMD_STR:
@@ -33,7 +31,7 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		*((int32_t *)(str->gro_status_addr)) = str->status;
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
-		str_size = sizeof(struct tcp_gro_agg_seg_command);
+		str_size = (uint16_t)sizeof(struct tcp_gro_agg_seg_command);
 		break;
 	}
 	case TCP_GRO_CONTEXT_FLUSH_AGG_CMD_STR:
@@ -49,7 +47,7 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
-		str_size = sizeof(struct tcp_gro_flush_agg_command);
+		str_size = (uint16_t)sizeof(struct tcp_gro_flush_agg_command);
 		break;
 	}
 	default:

@@ -10,6 +10,7 @@
 #ifndef __AIOP_VERIFICATION_H_
 #define __AIOP_VERIFICATION_H_
 
+#include "aiop_verification_data.h"
 #include "general.h"
 #include "dplib/fsl_ipsec.h"
 #include "aiop_verification_fdma.h"
