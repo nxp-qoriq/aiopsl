@@ -16,3 +16,8 @@ __VERIF_TLS int32_t status;
 __VERIF_TLS int32_t status_gro;
 
 
+void init_verif_tls()
+{
+	status = 0;
+	status_gro = 0;
+}
