@@ -14,7 +14,6 @@
 
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
 __TASK ipf_ctx_t ipf_context_addr;
-__TASK int32_t status;
 __TASK int32_t status_gso;
 __TASK int32_t status_ipf;
 
@@ -38,6 +37,9 @@ void aiop_verification_fm()
 			FDMA_PRES_SR_BIT, (void *)&ext_address, 0, 8, 
 			&seg_length, &seg_handle);
 	}
+	
+	init_verif_tls();
+	
 	/* The Terminate command will finish the verification */
 	do
 	{

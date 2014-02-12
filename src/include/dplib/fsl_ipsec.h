@@ -34,203 +34,16 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
- @enum ipsec_cipher_alg
+ @enum ipsec_direction
  
- @Description   IPSEC Cipher-Algorithm Options
+ @Description   IPSEC Inbound/Outbound (Decap/Encap) Direction  
  
-*//***************************************************************************/
-
-enum ipsec_cipher_alg {
-	/** DES_CBC_HMAC_96_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_DES_CBC_HMAC_96_MD5_128,
-	/** DES_CBC_HMAC_96_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_DES_CBC_HMAC_96_SHA_160,
-	/** DES_CBC_HMAC_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_DES_CBC_HMAC_MD5_128,
-	/** DES_CBC_HMAC_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_DES_CBC_HMAC_SHA_160,
-	/** DES_CBC_HMAC_SHA_256_128 ciphersuite */
-	IPSEC_CIPHER_ALG_DES_CBC_HMAC_SHA_256_128,
-	/** DES_CBC_HMAC_SHA_384_192 ciphersuite */
-	IPSEC_CIPHER_ALG_DES_CBC_HMAC_SHA_384_192,
-	/** DES_CBC_HMAC_SHA_512_256 ciphersuite */
-	IPSEC_CIPHER_ALG_DES_CBC_HMAC_SHA_512_256,
-	/** 3DES_CBC_HMAC_96_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_3DES_CBC_HMAC_96_MD5_128,
-	/** 3DES_CBC_HMAC_96_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_3DES_CBC_HMAC_96_SHA_160,
-	/** 3DES_CBC_HMAC_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_3DES_CBC_HMAC_MD5_128,
-	/** 3DES_CBC_HMAC_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_3DES_CBC_HMAC_SHA_160,
-	/** 3DES_CBC_HMAC_SHA_256_128 ciphersuite */
-	IPSEC_CIPHER_ALG_3DES_CBC_HMAC_SHA_256_128,
-	/** 3DES_CBC_HMAC_SHA_384_192 ciphersuite */
-	IPSEC_CIPHER_ALG_3DES_CBC_HMAC_SHA_384_192,
-	/** 3DES_CBC_HMAC_SHA_512_256 ciphersuite */
-	IPSEC_CIPHER_ALG_3DES_CBC_HMAC_SHA_512_256,
-	/** NULL_ENC_HMAC_96_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_HMAC_96_MD5_128,
-	/** NULL_ENC_HMAC_96_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_HMAC_96_SHA_160,
-	/** NULL_ENC_AES_XCBC_MAC_96 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_AES_XCBC_MAC_96,
-	/** NULL_ENC_HMAC_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_HMAC_MD5_128,
-	/** NULL_ENC_HMAC_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_HMAC_SHA_160,
-	/** NULL_ENC_AES_CMAC_96 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_AES_CMAC_96,
-	/** NULL_ENC_HMAC_SHA_256_128 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_HMAC_SHA_256_128,
-	/** NULL_ENC_HMAC_SHA_384_192 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_HMAC_SHA_384_192,
-	/** NULL_ENC_HMAC_SHA_512_256 ciphersuite */
-	IPSEC_CIPHER_ALG_NULL_ENC_HMAC_SHA_512_256,
-	/** AES_CBC_HMAC_96_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_HMAC_96_MD5_128,
-	/** AES_CBC_HMAC_96_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_HMAC_96_SHA_160,
-	/** AES_CBC_AES_XCBC_MAC_96 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_AES_XCBC_MAC_96,
-	/** AES_CBC_HMAC_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_HMAC_MD5_128,
-	/** AES_CBC_HMAC_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_HMAC_SHA_160,
-	/** AES_CBC_AES_CMAC_96 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_AES_CMAC_96,
-	/** AES_CBC_HMAC_SHA_256_128 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_HMAC_SHA_256_128,
-	/** AES_CBC_HMAC_SHA_384_192 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_HMAC_SHA_384_192,
-	/** AES_CBC_HMAC_SHA_512_256 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CBC_HMAC_SHA_512_256,
-	/** AES_CTR_HMAC_96_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_HMAC_96_MD5_128,
-	/** AES_CTR_HMAC_96_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_HMAC_96_SHA_160,
-	/** AES_CTR_AES_XCBC_MAC_96 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_AES_XCBC_MAC_96,
-	/** AES_CTR_HMAC_MD5_128 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_HMAC_MD5_128,
-	/** AES_CTR_HMAC_SHA_160 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_HMAC_SHA_160,
-	/** AES_CTR_AES_CMAC_96 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_AES_CMAC_96,
-	/** AES_CTR_HMAC_SHA_256_128 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_HMAC_SHA_256_128,
-	/** AES_CTR_HMAC_SHA_384_192 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_HMAC_SHA_384_192,
-	/** AES_CTR_HMAC_SHA_512_256 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CTR_HMAC_SHA_512_256,
-	/** AES_CCM_8 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CCM_8,
-	/** AES_CCM_12 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CCM_12,
-	/** AES_CCM_16 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_CCM_16,
-	/** AES_GCM_8 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_GCM_8,
-	/** AES_GCM_12 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_GCM_12,
-	/** AES_GCM_16 ciphersuite */
-	IPSEC_CIPHER_ALG_AES_GCM_16,
-	/** AES_NULL_WITH_GMAC ciphersuite */
-	IPSEC_CIPHER_ALG_AES_NULL_WITH_GMAC
+*************************************************************************/
+enum ipsec_direction {
+	IPSEC_DIRECTION_INBOUND = 1, 	/*!< Inbound Direction */
+	IPSEC_DIRECTION_OUTBOUND = 2 	/*!< Outbound Direction */
 };
 
-/**************************************************************************//**
- @enum ipsec_ars
- 
- @Description   IPSEC Anti-Replay-Size Options
- 
-*//***************************************************************************/
-enum ipsec_ars {
-	/** No anti-replay window */
-	IPSEC_ARS_0 = 0,
-	/** 32-entry anti-replay window */
-	IPSEC_ARS_32,
-	/** 64-entry anti-replay window */
-	IPSEC_ARS_64,
-	/** 128-entry anti-replay window, valid only for tunnel
-	new thread operational mode and not for legacy modes */
-	IPSEC_ARS_128
-};
-
-/**************************************************************************//**
- @enum key_src
- 
- @Description   Key-Source Options
- 
-*//***************************************************************************/
-enum key_src {
-	/** Key is inside the descriptor */
-	KEY_SRC_INTERNAL,
-	/** Key is outside the descriptor */
-	KEY_SRC_EXTERNAL
-};
-
-/**************************************************************************//**
- @enum key_type
- 
- @Description   Key-Type Options
- 
-*//***************************************************************************/
-enum key_type {
-	/** Key is not encrypted */
-	KEY_TYPE_NON_ENC,
-	/** Key is ECB-encrypted */
-	KEY_TYPE_ECB_ENC,
-	/** Key is CCM-encrypted */
-	KEY_TYPE_CCM_ENC
-};
-
-/**************************************************************************//**
- @enum key_dest
-
- @Description   Key-Destination Options
- TODO: maybe we can omit it if split is supported by HW
-       removed e_KEY_DEST_PKHA_E_MEM, e_KEY_DEST_AFHA_SBOX
-
-*//***************************************************************************/
-
-enum key_dest {
-	/** Key Register */
-	KEY_DEST_REGISTER,
-	/** MDHA Split Key */
-	KEY_DEST_MDHA_SPLIT
-};
-
-/**************************************************************************//**
- @enum ipsec_ver
-
- @Description   IPSEC Version Options
- 
-*//***************************************************************************/
-enum ipsec_ver {
-	/** IPv4, valid only for transport mode */
-	IPSEC_VER_4 = 4,
-	/** IPv6, valid only for transport mode */
-	IPSEC_VER_6 = 6
-};
-
-/**************************************************************************//**
- @enum ipsec_hdr
-
- @Description   IPSEC Header Options
- 
-*//***************************************************************************/
-enum ipsec_hdr {
-	/** IP header not include */
-	IPSEC_HDR_NONE = 0,
-	/** IP header included in each frame */
-	IPSEC_HDR_IN_FRAME,
-	/** IP header included in parameters */
-	IPSEC_HDR_IN_PARAM,
-	/** IP header address included in parameters, valid only for tunnel
-	new thread operational mode and not for legacy modes */
-	IPSEC_HDR_ADDRESS_IN_PARAM
-};
 
 /* @} end of IPSEC_ENUM */
 
@@ -249,71 +62,170 @@ enum ipsec_hdr {
 typedef uint64_t ipsec_handle_t;
 
 /**************************************************************************//**
-@Description	ipsec encryption parameters flags
+@Description	ipsec general flags
 
+		Use for ipsec_descriptor_params.flags
 *//***************************************************************************/
 
-/** IPsec mode: transport or new thread tunnel operational mode */
-#define IPSEC_ENC_MODE                                  0x80000000
-/** NAT Support. Tunnel new thread operational mode only */
-#define IPSEC_ENC_NAT_SUPPORT                           0x40000000
-/** NAT UDP checksum enable. Tunnel new thread operational mode only */
-#define IPSEC_ENC_NAT_UDP_CHKSUM_EN                     0x20000000
-/** Lifetime KB Limit Enable */
-#define IPSEC_ENC_LIFETIME_KB_LIMIT_EN                  0x10000000
-/** Lifetime SEC Limit Enable */
-#define IPSEC_ENC_LIFETIME_SEC_LIMIT_EN                 0x08000000
-/** Copy DF bit (IPv4 Tunnel Mode only) from inner IP header to outer
-IP header */
-#define IPSEC_ENC_COPY_DF                               0x04000000
-/** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
-IP header */
-#define IPSEC_ENC_DTTL                                  0x02000000
-/** Perform computations to update header checksum for
-IPv4 header. Not valid for tunnel new thread operational mode */
-#define IPSEC_ENC_EN_CHKSUM                             0x01000000
-/** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
-IP header to inner IP header. Not valid for tunnel new thread
-operational mode */
-#define IPSEC_ENC_COPY_TOS                              0x00800000
-/** Generate random initial vector before starting encapsulation */
-#define IPSEC_ENC_RAND_IV                               0x00400000
-/** Use a 64-bit sequence number instead of a 32-bit sequence number */
-#define IPSEC_ENC_EXT_SEQ_NUM                           0x00200000
-/** Propagate ASA */
-#define IPSEC_ENC_COPY_ASA                              0x00020000
+/** IPsec transport mode (default = tunnel mode) */
+#define IPSEC_FLG_TRANSPORT_MODE		0x00000001
+
+/** Enable Transport mode ESP pad check (default = no check) */
+#define IPSEC_FLG_TRANSPORT_PAD_CHECK	0x00000002 
+
+/** Frames do not include a L2 Header */
+#define IPSEC_FLG_NO_L2_HEADER		0x00000010 
+
+/** Lifetime KiloByte Counter Enable */
+#define IPSEC_FLG_LIFETIME_KB_CNTR_EN	0x00000100 
+/** Lifetime Packet counter Enable */
+#define IPSEC_FLG_LIFETIME_PKT_CNTR_EN	0x00000200 
+/** Lifetime Seconds counter Enable */
+#define IPSEC_FLG_LIFETIME_SEC_CNTR_EN	0x00000400 
+
+/** Preserve the ASA (Accelerator Specific Annotation) */
+#define IPSEC_FLG_PRESERVE_ASA		0x00020000
 
 /**************************************************************************//**
-@Description	ipsec decryption parameters flags
-TODO: removed outFmt and removeTrailer.
+@Description	General IPSec ESP encap/decap options 
+
+		Use for ipsec_encap/decap_params.options
+*//***************************************************************************/
+#define IPSEC_OPTS_ESP_ESN	0x10   /**< extended sequence included */
+
+#define IPSEC_OPTS_ESP_IPVSN	0x02   /**< process an IPv6 header 
+ 	 	 	 	 	 Valid for transport mode only */
+
+/**************************************************************************//**
+@Description	IPSec ESP Encapsulation options 
+
+		Use for ipsec_encap_params.options
+*//***************************************************************************/
+/** Perform computations to update header checksum for IPv4 header. 
+ * Not valid for tunnel mode */
+#define IPSEC_ENC_OPTS_UPDATE_CSUM	0x80  
+
+/** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
+ * IP header to inner IP header. Not valid for tunnel mode */
+#define IPSEC_ENC_OPTS_DIFFSERV		0x40
+
+/** Generate random initial vector before starting encapsulation 
+ * If set, the IV comes from an internal random generator */
+#define IPSEC_ENC_OPTS_IVSRC		0x20   
+
+/* Add Output IP header to the frame */ 
+/* Relevant for tunnel mode only */
+#define IPSEC_ENC_OPTS_ADD_IPHDR	0x0c /* Add IP header */
+
+/** NAT UDP Encapsulation enable. Tunnel mode only */
+#define IPSEC_ENC_OPTS_NAT_EN		0x02 
+/** NAT UDP checksum enable. Tunnel mode only */
+#define IPSEC_ENC_OPTS_NUC_EN		0x01
+
+/**************************************************************************//**
+@Description	IPSec ESP Decapsulation options 
+
+		Use for ipsec_decap_params.options
+*//***************************************************************************/
+
+/* Anti-replay window size. Use one of the following options. */
+/* Note: the 128-entry size is for tunnel mode only */
+#define IPSEC_DEC_OPTS_ARSNONE	0x00   /**< no anti-replay window */
+#define IPSEC_DEC_OPTS_ARS32	0x40   /**< 32-entry anti-replay window */
+#define IPSEC_DEC_OPTS_ARS128	0x80   /**< 128-entry anti-replay window */
+#define IPSEC_DEC_OPTS_ARS64	0xc0   /**< 64-entry anti-replay window */
+
+/** Perform checksum verification to IPv4 header in Transport mode. 
+ * Not valid for tunnel mode */
+#define IPSEC_DEC_OPTS_VERIFY_CSUM 0x20   /**< validate IP header checksum */ 
+
+/** Enable Tunnel ECN according to RFC 6040
+ * Valid for Tunnel mode only */
+#define IPSEC_DEC_OPTS_TECN          0x20
+
+/**************************************************************************//**
+@Description	IPSec ESP Encapsulation HMO field  
+
+		Use for ipsec_encap_params.hmo
+*//***************************************************************************/
+
+/** Copy the DF bit from the inner IP header to the outer IP header. */
+#define IPSEC_HMO_ENCAP_DFC 	0x04
+
+/** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
+ * IP header */
+#define IPSEC_HMO_ENCAP_DTTL 	0x02                            
+
+/**************************************************************************//**
+@Description	IPSec ESP Decapsulation HMO field  
+
+		Use for ipsec_decap_params.hmo
+*//***************************************************************************/
+
+/** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
+ * IP header */
+#define IPSEC_HMO_DECAP_DTTL	0x02
+
+/* DiffServ Copy
+ * Copy the IPv4 TOS or IPv6 Traffic Class byte from the outer IP header 
+ * to the inner IP header. */
+#define IPSEC_HMO_DECAP_DSC	0x01
+
+/**************************************************************************//**
+@Description	IPSec Cipher Algorithms  
+
+ Use for the ipsec_descriptor_params.cipherdata.algtype field
+
+*//***************************************************************************/
+#define IPSEC_CIPHER_DES_IV64			0x0100
+#define IPSEC_CIPHER_DES			0x0200
+#define IPSEC_CIPHER_3DES			0x0300
+#define IPSEC_CIPHER_NULL			0x0B00
+#define IPSEC_CIPHER_AES_CBC			0x0c00
+#define IPSEC_CIPHER_AES_CTR			0x0d00
+#define IPSEC_CIPHER_AES_XTS			0x1600
+#define IPSEC_CIPHER_AES_CCM8			0x0e00
+#define IPSEC_CIPHER_AES_CCM12			0x0f00
+#define IPSEC_CIPHER_AES_CCM16			0x1000
+#define IPSEC_CIPHER_AES_GCM8			0x1200
+#define IPSEC_CIPHER_AES_GCM12			0x1300
+#define IPSEC_CIPHER_AES_GCM16			0x1400
+#define IPSEC_CIPHER_AES_NULL_WITH_GMAC		0x1500
+
+/**************************************************************************//**
+@Description	IPSec Authentication Algorithms  
+
+ Use for the ipsec_descriptor_params.authdata.algtype field
+
+*//***************************************************************************/
+#define IPSEC_AUTH_HMAC_NULL			0x0000
+#define IPSEC_AUTH_HMAC_MD5_96		 	0x0001
+#define IPSEC_AUTH_HMAC_SHA1_96			0x0002
+#define IPSEC_AUTH_AES_XCBC_MAC_96		0x0005
+#define IPSEC_AUTH_HMAC_MD5_128			0x0006
+#define IPSEC_AUTH_HMAC_SHA1_160		0x0007
+#define IPSEC_AUTH_AES_CMAC_96			0x0008
+#define IPSEC_AUTH_HMAC_SHA2_256_128		0x000c
+#define IPSEC_AUTH_HMAC_SHA2_384_192		0x000d
+#define IPSEC_AUTH_HMAC_SHA2_512_256		0x000e
+
+/**************************************************************************//**
+@Description	IPSec Key Encryption Flags  
+
+ To be set to the alg_info.key_enc_flags field
 
 *//***************************************************************************/
 
-/** IPsec mode: transport or new thread tunnel operational mode */
-#define IPSEC_DEC_MODE                                  0x80000000
-/** Lifetime KB Limit Enable */
-#define IPSEC_DEC_LIFETIME_KB_LIMIT_EN                  0x10000000
-/** Lifetime SEC Limit Enable */
-#define IPSEC_DEC_LIFETIME_SEC_LIMIT_EN                 0x08000000
-/** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
-IP header */
-#define IPSEC_DEC_DTTL                                  0x02000000
-/** Perform computations to update header checksum for
-IPv4 header. Not valid for tunnel new thread operational mode */
-#define IPSEC_DEC_EN_CHKSUM                             0x01000000
-/** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
-IP header to inner IP header */
-#define IPSEC_DEC_COPY_TOS                              0x00800000
-/** Use a 64-bit sequence number instead of a 32-bit sequence number */
-#define IPSEC_ENC_EXT_SEQ_NUM                           0x00200000
-/** Enable Tunnel ECN according to RFC 6040 */
-#define IPSEC_DEC_TECN                                  0x00100000
-/** Enable Transport mode pad check */
-#define IPSEC_DEC_PAD_CHECK                             0x00080000
-/** EtherType field update */
-#define IPSEC_DEC_ETU                                   0x00040000
-/** Propagate ASA */
-#define IPSEC_DEC_COPY_ASA                              0x00020000
+/* ENC: Encrypted - Key is encrypted either with the KEK, or
+ * 	with the TDKEK if this descriptor is trusted */
+#define IPSEC_KEY_ENC			0x00400000
+/* NWB: No Write Back - Do not allow key to be FIFO STOREd */
+#define IPSEC_KEY_NWB			0x00200000
+/* EKT: Enhanced Encryption of Key */
+#define IPSEC_KEY_EKT			0x00100000
+/* TK: Encrypted with Trusted Key */
+#define IPSEC_KEY_TK			0x00008000
+
 
 /** @} */ /* end of FSL_IPSEC_MACROS */
 
@@ -326,144 +238,164 @@ IP header to inner IP header */
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Description	IPsec Key Parameters 
+ * @struct    ipsec_encap_cbc_params fsl_ipsec.h
+ * @ingroup   ipsec_encap_params
+ * @details   IV field for IPsec CBC encapsulation
 *//***************************************************************************/
-struct key_param {
-	/** Key source */
-	enum key_src  src;
-	/** Key type */
-	enum key_type type;
-	/** Key destination */
-	enum key_dest dest;
-	uint8_t pad1;
-	/** Key size in bytes */
-	uint32_t size;
-	/** Key data pointer */
-	uint8_t *data_ptr;
+struct ipsec_encap_cbc_params {
+	uint32_t iv[4];
 };
 
 /**************************************************************************//**
- @Description   IPsec Shared-Descriptor Parameters
+ * @struct    ipsec_encap_ctr_params fsl_ipsec.h
+ * @ingroup   ipsec_encap_params
+ * @details   Nonce and IV fields for IPsec CTR encapsulation
 *//***************************************************************************/
-struct ipsec_shrdesc_param {
-	/** Cryptographic key parameters */
-	struct key_param crypto_key;
-	/** Authentication key parameters */
-	struct key_param authen_key;
-	/** Cipher algorithm */
-	enum ipsec_cipher_alg cipher_alg;
-	uint8_t pad[3];
+struct ipsec_encap_ctr_params {
+	uint32_t ctr_nonce;
+	uint32_t iv[2];
 };
 
 /**************************************************************************//**
- @Description   IPSEC Initial-Vector Attributes
+ * @struct    ipsec_encap_ccm_params fsl_ipsec.h
+ * @ingroup   ipsec_encap_params
+ * @details   Salt and IV fields for IPsec CCM encapsulation
 *//***************************************************************************/
-union ipsec_iv_attr {
-	struct {
-		/** NONCE value */
-		uint32_t nonce;
-		/** Initial count */
-		uint32_t count;
-	} ctr;
-	struct {
-		/** SALT value */
-		uint32_t salt;
-	} ccm;
-	struct {
-		/** SALT value */
-		uint32_t salt;
-	} gcm;
+struct ipsec_encap_ccm_params {
+	uint32_t salt; /* lower 24 bits */
+	uint32_t iv[2];
 };
 
 /**************************************************************************//**
- @Description   IPSEC-Flow Context Parameters
+ * @struct    ipsec_encap_gcm_params fsl_ipsec.h
+ * @ingroup   ipsec_encap_params
+ * @details   Salt and IV fields for IPsec GCM encapsulation
 *//***************************************************************************/
-struct ipsec_flow_context_param {
-	/** Security domain ID */
-	uint16_t sdid;
-	/** Storage profile ID of SEC output frame */
-	uint16_t spid;
-	/** Return input frame on error */
-	uint8_t rife;
-	/** Critical resource ID */
-	uint8_t crid;
-	uint16_t pad;
+struct ipsec_encap_gcm_params {
+	uint32_t salt; /* lower 24 bits */
+	uint32_t iv[2];
 };
 
 /**************************************************************************//**
- @Description   IPSEC-Encapsulation Parameters
+ * @struct    ipsec_encap_params fsl_ipsec.h
+ * @ingroup   ipsec_encap_params
+ * @details   Container for encapsulation parameters
 *//***************************************************************************/
-struct ipsec_encap_param {
-	/** flags */
-	uint32_t flags;
-	/** Next header value used for transport mode */
-	uint8_t next_hdr;
-	/** Next header offset used for transport mode */
-	uint8_t nh_offset;
-	/** IP header length */
-	uint16_t iphdr_len;
-	/** Initial sequence number */
-	uint64_t seq_num;
-	/** Initial vector attributes (relevant only for CTR/CCM/GCM) */
-	union ipsec_iv_attr iv_attr;
-	/** Initial vector pointer (16 bytes for CBC, 8 bytes for CTR/CCM/GCM,
-	not in use for NULL_ENC) */
-	uint8_t *p_iv;
-	/** Security parameter index */
-	uint32_t spi;
-	/** IP header pointer */
-	uint8_t *ip_hdr;
-	/** IP version */
-	enum ipsec_ver ipsec_ver;
-	/** IP header source */
-	enum ipsec_hdr ipsec_hdr;
-	uint16_t pad;
-	/** Soft Kilobytes expiry */
-	uint32_t soft_kilobytes_limit;
-	/** Hard Kilobytes expiry */
-	uint32_t hard_kilobytes_limit;
-	/** Soft Seconds expiry */
-	uint32_t soft_seconds_limit;
-	/** Hard Second expiry */
-	uint32_t hard_seconds_limit;
-	/** IPsec flow context */
-	struct ipsec_flow_context_param ipsec_flow_context_param;
+struct ipsec_encap_params {
+	uint8_t hmo; /* Header Modification Options */
+	uint8_t ip_nh; /** Next header value used for transport mode */
+	uint8_t options;
+	uint32_t seq_num_ext_hi; /** Extended sequence number */
+	uint32_t seq_num;	/** Initial sequence number */
+	uint32_t spi; 	/** Security Parameter Index */
+	uint16_t ip_hdr_len; /** IP header length */
+	uint32_t *ip_hdr; /** optional IP Header content */
+	union {
+		struct ipsec_encap_cbc_params cbc;
+		struct ipsec_encap_ctr_params ctr;
+		struct ipsec_encap_ccm_params ccm;
+		struct ipsec_encap_gcm_params gcm;
+	};
+};
+
+
+/**************************************************************************//**
+ * @struct    ipsec_decap_ctr_params fsl_ipsec.h
+ * @ingroup   ipsec_decap_params
+ * @details   Salt and counter fields for IPsec CTR decapsulation
+*//***************************************************************************/
+struct ipsec_decap_ctr_params {
+	uint32_t salt;
+	uint32_t ctr_initial;
 };
 
 /**************************************************************************//**
- @Description   IPSEC-Decapsulation Parameters
+ * @struct    ipsec_decap_ccm_params fsl_ipsec.h
+ * @ingroup   ipsec_decap_params
+ * @details   Salt, counter and flag fields for IPsec CCM decapsulation
 *//***************************************************************************/
-struct ipsec_decap_param {
-	/** flags */
-	uint32_t flags;
-	/** IP header length */
-	uint16_t iphdr_len;
-	/** Next header offset used for transport mode */
-	uint8_t nh_offset;
-	uint8_t pad1;
-	/** Initial sequence number */
-	uint64_t seq_num;
-	/** Initial vector attributes (relevant only for CTR/CCM/GCM) */
-	union ipsec_iv_attr iv_attr;
-	/** Anti-replay window size */
-	enum ipsec_ars ipsec_ars;
-	/** IP version */
-	enum ipsec_ver ipsec_ver;
-	uint16_t pad2;
-	/** Soft Kilobytes expiry */
-	uint32_t soft_kilobytes_limit;
-	/** Hard Kilobytes expiry */
-	uint32_t hard_kilobytes_limit;
-	/** Soft Seconds expiry */
-	uint32_t soft_seconds_limit;
-	/** Hard Second expiry */
-	uint32_t hard_seconds_limit;
-	/** IPsec flow context */
-	struct ipsec_flow_context_param ipsec_flow_context_param;
-	uint32_t pad3;
+struct ipsec_decap_ccm_params {
+	uint32_t salt;
 };
+
+/**************************************************************************//**
+ * @struct    ipsec_decap_gcm_params fsl_ipsec.h
+ * @ingroup   ipsec_decap_params
+ * @details   Salt field for IPsec GCM decapsulation
+*//***************************************************************************/
+struct ipsec_decap_gcm_params {
+	uint32_t salt;
+};
+
+/**************************************************************************//**
+ * @struct    ipsec_decap_params fsl_ipsec.h
+ * @ingroup   ipsec_decap_params
+ * @details   Container for decapsulation parameters
+*//***************************************************************************/
+struct ipsec_decap_params {
+	uint8_t options;
+	uint32_t seq_num_ext_hi; /* Extended sequence number */
+	uint32_t seq_num; /* Sequence number */
+	union {
+		struct ipsec_decap_ctr_params ctr;
+		struct ipsec_decap_ccm_params ccm;
+		struct ipsec_decap_gcm_params gcm;
+	};
+};
+
+/**************************************************************************//**
+ * @struct    alg_info
+ * @ingroup   alg_info
+ * @details   Container for IPsec algorithm details
+*//***************************************************************************/
+struct alg_info {
+	uint32_t algtype;  /**< Algorithm selector. */
+	uint64_t key;      /**< Address where algorithm key resides */
+	uint32_t keylen;   /**< Length of the provided key, in bytes */
+	uint32_t key_enc_flags; /**< Key encryption flags 
+				ENC, EKT, TK, NWB */
+};
+
+/**************************************************************************//**
+ @Description   IPsec Descriptor Parameters
+*//***************************************************************************/
+struct ipsec_descriptor_params {
+	
+	/* Descriptor direction */
+	enum ipsec_direction ipsec_direction; 
+	
+	uint32_t flags; /* Miscellaneous control flags */
+	
+	union {
+		struct ipsec_encap_params *encparams;
+		struct ipsec_decap_params *decparams;
+	};
+
+	struct alg_info *cipherdata; /* cipher algorithm information */
+	struct alg_info *authdata; /* authentication algorithm information */
+			
+	/* Lifetime Limits */
+	/* Set to NULL to disable specific limits check */
+	uint32_t soft_kilobytes_limit;	/*!< Soft Kilobytes limit. */
+	uint32_t hard_kilobytes_limit; 	/*!< Hard Kilobytes limit. */
+	uint64_t soft_packet_limit; 	/*!< Soft Packet count limit. */
+	uint64_t hard_packet_limit;	/*!< Hard Packet count limit. */
+	uint32_t soft_seconds_limit;	/*!< Soft Seconds limit. */
+	uint32_t hard_seconds_limit; 	/*!< Hard Second limit. */
+	
+	/* Callback function. 
+	 * Invoked when the Soft Seconds timer reaches the limit value */
+	/* Set to NULL to disable this option*/
+	int (*soft_seconds_callback)(uint64_t); 
+
+	uint16_t spid; /** Storage Profile ID of the SEC output frame */
+	// TODO : how does (or should) the APPSW know the SPID?
+
+};
+
 
 /** @} */ /* end of FSL_IPSEC_STRUCTS */
+
 
 /**************************************************************************//**
 @Group		FSL_IPSEC_Functions IPsec Functions
@@ -473,100 +405,106 @@ struct ipsec_decap_param {
 @{
 *//***************************************************************************/
 
-/**************************************************************************//**
-@Function	ipsec_init
-
-@Description	This function performs reservation of:
-		1. Maximum number of IPsec SA buffers.
-		2. Optionally maximum number of buffers needed for ASA copying.
-
-		TODO need to finalize the buffer mechanism.
-		Implicitly: 
-		Updated the BPID of SA in the SRAM.
-		Optionally updated the BPID of ASA copying in the SRAM.
-		
-@Param[in]	max_sa_no - Max. number of SAs.
-
-@Param[in]	asa_copy - Flag indicating if SA copying is needed.
-
-@Return		TODO
-
-*//****************************************************************************/
-int32_t ipsec_init(uint16_t max_sa_no, uint8_t asa_copy);
 
 /**************************************************************************//**
-@Function	ipsec_add_sa_encap
+@Function	ipsec_add_sa_descriptor
 
 @Description	This function performs add SA for encapsulation:
 		creating the IPsec flow context and the Shared Descriptor.
 
 		Implicit Input: BPID in the SRAM.
-@Param[in]	ipsec_encap_param 
-@Param[in]	ipsec_shrdesc_param 
+@Param[in]	ipsec_descriptor_params - descriptor parameters 
 
-@Param[out]	ipsec_handle - IPsec handler which is the pointer to the buffer 
-		allocated for SA handling.
-
-@Return		TODO error status for CDMA buffer allocation failure.
+@Param[out]	ipsec_handle - IPsec handle to the descriptor datbase 
+		
+@Return		pass/error status. //TODO: add codes
 
 *//****************************************************************************/
-int32_t ipsec_add_sa_encap(
-		struct ipsec_encap_param *ipsec_encap_param,
-		struct ipsec_shrdesc_param *ipsec_shrdesc_param,
+int32_t ipsec_add_sa_descriptor(
+		struct ipsec_descriptor_params *ipsec_descriptor_params,
 		ipsec_handle_t *ipsec_handle);
 
-/**************************************************************************//**
-@Function	ipsec_add_sa_decap
-
-@Description	This function performs add SA for decapsulation:
-		creating the IPsec flow context and the Shared Descriptor.
-
-		Implicit Input: BPID in the SRAM.
-@Param[in]	ipsec_decap_param
-@Param[in]	ipsec_shrdesc_param
-
-@Param[out]	ipsec_handle - IPsec handler which is the pointer to the buffer 
-		allocated for SA handling.
-
-@Return		TODO error status for CDMA buffer allocation failure.
-
-*//****************************************************************************/
-int32_t ipsec_add_sa_decap(
-		struct ipsec_decap_param *ipsec_decap_param,
-		struct ipsec_shrdesc_param *ipsec_shrdesc_param,
-		ipsec_handle_t *ipsec_handle);
 
 /**************************************************************************//**
-@Function	ipsec_sa_rem
+@Function	ipsec_remove_sa_descriptor
 
 @Description	This function performs buffer deallocation of the IPsec handler.
 
 		Implicit Input: BPID in the SRAM.
 
-@Param[in]	ipsec_handle - IPsec handle.
+@Param[in]	ipsec_handle - descriptor handle.
 
 @Return		TODO
 
 *//****************************************************************************/
-int32_t ipsec_sa_rem(ipsec_handle_t ipsec_handle);
+int32_t ipsec_remove_sa_descriptor(ipsec_handle_t ipsec_handle);
 
 /**************************************************************************//**
-@Function	ipsec_read_stats
+@Function	ipsec_get_lifetime_stats
 
 @Description	This function returns SA lifetime counters:
-		seconds and kilobyte.
+		kilobyte, packets and seconds.
 
 @Param[in]	ipsec_handle - IPsec handle.
-@Param[out]	kilobytes - number of bytes processes by this SA.
+@Param[out]	kilobytes - number of bytes processed by this SA.
+@Param[out]	packets - number of packets processed by this SA.
 @Param[out]	sec - number of seconds passed since this SA was created.
 
-@Return		TODO
+@Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_read_stats(
+int32_t ipsec_get_lifetime_stats(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *kilobytes,
+		uint64_t *packets,
 		uint32_t *sec);
+
+/**************************************************************************//**
+@Function	ipsec_decr_lifetime_counters
+
+@Description	This function returns SA lifetime counters:
+		kilobyte, packets and seconds.
+
+@Param[in]	ipsec_handle - IPsec handle.
+@Param[in]	kilobytes_decr_val - number of bytes to decrement from 
+		the kilobytes counter of this SA.
+@Param[in]	packets_decr_val - number of packets to decrement from
+		the packets counter of this SA.
+
+@Return		Status
+
+*//****************************************************************************/
+int32_t ipsec_decr_lifetime_counters(
+		ipsec_handle_t ipsec_handle,
+		uint32_t kilobytes_decr_val,
+		uint32_t packets_decr_val
+		);
+
+/**************************************************************************//**
+@Function	ipsec_get_seq_num
+
+@Description	This function returns the following information:
+		- Sequence number.
+		- Extended sequence number (if exists).
+		- Anti-replay bitmap (scorecard) (if exists).
+		
+
+@Param[in]	ipsec_handle - IPsec handle.
+@Param[out]	sequence_number - Sequence number.
+@Param[out]	extended_sequence_number - Extended sequence number.
+@Param[out]	anti_replay_bitmap - Anti-replay bitmap. 4 words. 
+		* For 32-entry only the first 32 bit word is valid.
+		* For 64-entry only the first two 32 bit words are valid.
+		* For 128-entry all four words are valid.
+
+@Return		Status
+
+*//****************************************************************************/
+int32_t ipsec_get_seq_num(
+		ipsec_handle_t ipsec_handle,
+		uint32_t *sequence_number,
+		uint32_t *extended_sequence_number,
+		uint32_t anti_replay_bitmap[4]);
 
 /**************************************************************************//**
 @Function	ipsec_frame_decrypt
@@ -582,7 +520,7 @@ int32_t ipsec_read_stats(
 
 @Param[in]	ipsec_handle - IPsec handle.
 
-@Return		TODO (implementation dependent)
+@Return		Status 
 
 @Cautions	User should note the following:
 		 - In this function the task yields.
@@ -610,7 +548,7 @@ int32_t ipsec_frame_decrypt(ipsec_handle_t ipsec_handle);
 
 @Param[in]	ipsec_handle - IPsec handle.
 
-@Return		TODO (implementation dependent)
+@Return		Status
 
 @Cautions	User should note the following:
 		 - In this function the task yields.

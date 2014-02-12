@@ -10,6 +10,7 @@
 #ifndef __AIOP_VERIFICATION_H_
 #define __AIOP_VERIFICATION_H_
 
+#include "aiop_verification_data.h"
 #include "general.h"
 #include "dplib/fsl_ipsec.h"
 #include "aiop_verification_fdma.h"
@@ -109,6 +110,7 @@ struct aiop_terminate_flow_command {
 
 void aiop_verification();
 void aiop_verification_fm();
+void aiop_verification_fm_temp();
 
 
 /** @} */ /* end of AIOP_Verification */

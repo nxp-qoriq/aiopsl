@@ -14,10 +14,8 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-	uint32_t flags;
 
 	opcode  = *((uint32_t *) data_addr);
-	flags = 0x0;
 
 	switch (opcode) {
 	case TCP_GRO_CONTEXT_AGG_SEG_CMD_STR:
@@ -33,7 +31,7 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		*((int32_t *)(str->gro_status_addr)) = str->status;
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
-		str_size = sizeof(struct tcp_gro_agg_seg_command);
+		str_size = (uint16_t)sizeof(struct tcp_gro_agg_seg_command);
 		break;
 	}
 	case TCP_GRO_CONTEXT_FLUSH_AGG_CMD_STR:
@@ -49,7 +47,7 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
-		str_size = sizeof(struct tcp_gro_flush_agg_command);
+		str_size = (uint16_t)sizeof(struct tcp_gro_flush_agg_command);
 		break;
 	}
 	default:
@@ -57,12 +55,30 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		return STR_SIZE_ERR;
 	}
 	}
-
+	
+	gro_verif_create_next_frame();
 	return str_size;
 }
 
+void gro_verif_create_next_frame()
+{
+	struct tcphdr *tcp;
+	uint16_t headers_size, seg_size;
+	uint8_t  data_offset;
+	
+	fdma_present_default_frame();
+	
+	tcp = ((struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT());
+	/* calculate data offset + headers size*/
+	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	data_offset = (tcp->data_offset_reserved & 
+				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
+	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
+	tcp->sequence_number = tcp->sequence_number + seg_size - headers_size;
 
-
+}
 
 
 

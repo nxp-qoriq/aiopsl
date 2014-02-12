@@ -322,6 +322,10 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					fdma_modify_default_segment_data(
 					    ipv4hdr_offset,
 					    udp_tcp_offset-ipv4hdr_offset + 8);
+					/* calculate IP checksum and update
+					   IP checksum in FDMA*/
+//					ipv4_cksum_calculate(ipv4hdr_ptr,
+//					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 					/* calculate IP checksum */
 					ipv4_cksum_calculate(ipv4hdr_ptr);
 					/* update IP checksum in FDMA */
@@ -335,9 +339,13 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					fdma_modify_default_segment_data(
 							ipv4hdr_offset,
 							20);
-				/* calculate IP checksum */
+					/* calculate IP checksum and update
+					   IP checksum in FDMA*/
+//					ipv4_cksum_calculate(ipv4hdr_ptr,
+//					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+					/* calculate IP checksum */
 					ipv4_cksum_calculate(ipv4hdr_ptr);
-				/* update IP checksum in FDMA */
+					/* update IP checksum in FDMA */
 					fdma_modify_default_segment_data(
 							      ipv4hdr_offset+10,
 							      2);
@@ -353,10 +361,14 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 				fdma_modify_default_segment_data(
 					    ipv4hdr_offset,
 					    udp_tcp_offset-ipv4hdr_offset + 18);
+				/* calculate IP checksum and update
+				   IP checksum in FDMA*/
+//				ipv4_cksum_calculate(ipv4hdr_ptr,
+//				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 				/* calculate IP checksum */
-				ipv4_cksum_calculate(ipv4hdr_ptr);
+					ipv4_cksum_calculate(ipv4hdr_ptr);
 				/* update IP checksum in FDMA */
-				fdma_modify_default_segment_data(
+					fdma_modify_default_segment_data(
 							      ipv4hdr_offset+10,
 							      2);
 
@@ -368,13 +380,16 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 			/* update IP header in FDMA */
 			fdma_modify_default_segment_data(ipv4hdr_offset,
 							  20);
+			/* calculate IP checksum and update
+			   IP checksum in FDMA*/
+//			ipv4_cksum_calculate(ipv4hdr_ptr,
+//				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 			/* calculate IP checksum */
-			ipv4_cksum_calculate(ipv4hdr_ptr);
+					ipv4_cksum_calculate(ipv4hdr_ptr);
 			/* update IP checksum in FDMA */
-			fdma_modify_default_segment_data(ipv4hdr_offset+10,
-							  2);
-
-
+					fdma_modify_default_segment_data(
+							      ipv4hdr_offset+10,
+							      2);
 		}
 	return SUCCESS;
 	} else {
@@ -589,11 +604,16 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		outer_ipv4hdr_ptr = (struct ipv4hdr *)
 				(outer_ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
 
-		ipv4_cksum_calculate(outer_ipv4hdr_ptr);
-
+		/* calculate IP checksum and update
+		   IP checksum in FDMA*/
+//		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
+//				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+		/* calculate IP checksum */
+					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
 		/* update IP checksum in FDMA */
-		fdma_modify_default_segment_data(outer_ipv4_offset+10,
-						 2);
+					fdma_modify_default_segment_data(
+							   outer_ipv4_offset+10,
+							   2);
 		return SUCCESS;
 
 	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
@@ -670,11 +690,16 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		outer_ipv4hdr_ptr = (struct ipv4hdr *) (outer_ipv4_offset +
 							      prc->seg_address);
 
-		ipv4_cksum_calculate(outer_ipv4hdr_ptr);
-
-		/* update IP Checksum in FDMA */
-		fdma_modify_default_segment_data(outer_ipv4_offset+10,
-						 2);
+		/* calculate IP checksum and update
+		   IP checksum in FDMA*/
+//		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
+//				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+		/* calculate IP checksum */
+					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
+		/* update IP checksum in FDMA */
+					fdma_modify_default_segment_data(
+							   outer_ipv4_offset+10,
+							   2);
 
 		return SUCCESS;
 	} else { /* no inner IP */
@@ -832,6 +857,7 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;
+	uint16_t udp_checksum;
 	uint32_t old_src_add;
 	struct   ipv4hdr *ipv4hdr_ptr;
 	struct   udphdr *udphdr_ptr;
@@ -862,16 +888,22 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 			udphdr_ptr = (struct udphdr *) ((uint16_t)udp_tcp_offset
 						+ PRC_GET_SEGMENT_ADDRESS());
 
-			cksum_update_uint32(&udphdr_ptr->checksum,
-								old_src_add,
-								src_addr);
+			if(udphdr_ptr->checksum != 0) {
+				udp_checksum = udphdr_ptr->checksum;
+				cksum_accumulative_update_uint32(udp_checksum,
+								 old_src_add,
+								 src_addr);
+
+			if(udp_checksum == 0)
+				udp_checksum = (uint16_t) ~udp_checksum;
+			udphdr_ptr->checksum = udp_checksum;
 
 			/* update FDMA */
 			fdma_modify_default_segment_data(udp_tcp_offset + 6, 2);
 
 			/* Invalidate gross running sum */
 			pr->gross_running_sum = 0;
-
+			}
 		} else if (PARSER_IS_TCP_DEFAULT()) {
 			tcphdr_ptr = (struct tcphdr *) ((uint16_t)udp_tcp_offset
 					+ PRC_GET_SEGMENT_ADDRESS());
@@ -896,6 +928,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;
+	uint16_t udp_checksum;
 	uint32_t old_dst_addr;
 	struct   ipv4hdr *ipv4hdr_ptr;
 	struct   udphdr *udphdr_ptr;
@@ -925,16 +958,22 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 		if (PARSER_IS_UDP_DEFAULT()) {
 			udphdr_ptr = (struct udphdr *) ((uint16_t)udp_tcp_offset
 						+ PRC_GET_SEGMENT_ADDRESS());
+			
+			if(udphdr_ptr->checksum != 0) {
+				udp_checksum = udphdr_ptr->checksum;
+				cksum_accumulative_update_uint32(udp_checksum,
+								 old_dst_addr,
+								 dst_addr);
 
-			cksum_update_uint32(&udphdr_ptr->checksum,
-								old_dst_addr,
-								dst_addr);
-
+			if(udp_checksum == 0)
+				udp_checksum = (uint16_t) ~udp_checksum;
+			udphdr_ptr->checksum = udp_checksum;
 			/* update FDMA */
 			fdma_modify_default_segment_data(udp_tcp_offset + 6, 2);
 
 			/* Invalidate gross running sum */
 			pr->gross_running_sum = 0;
+			}
 
 		} else if (PARSER_IS_TCP_DEFAULT()) {
 			tcphdr_ptr = (struct tcphdr *) ((uint16_t)udp_tcp_offset

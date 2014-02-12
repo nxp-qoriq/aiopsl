@@ -347,6 +347,52 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 }
 
 
+int32_t ctlu_table_rule_query(uint16_t table_id,
+			      union ctlu_key *key,
+			      uint8_t key_size,
+			      struct ctlu_table_rule_result *result,
+			      uint32_t *timestamp
+			     )
+{
+	struct ctlu_table_entry entry __attribute__((aligned(16)));
+	/* Prepare HW context for TLU accelerator call */
+	uint32_t arg3 = table_id;
+	uint32_t arg2 = (uint32_t)&entry;
+	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__e_rlwimi(arg2, key, 16, 0, 15);
+	__stqw(CTLU_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call CTLU accelerator */
+	__e_hwacceli(CTLU_ACCEL_ID);
+
+	switch (entry.type & CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK) {
+	case (CTLU_TABLE_ENTRY_ENTYPE_EME16):
+		*timestamp = entry.body.eme16.timestamp;
+		/* STQW optimization is not done here so we do not force
+		   alignment */
+		*result = entry.body.eme16.result;
+		break;
+	case (CTLU_TABLE_ENTRY_ENTYPE_EME24):
+		*timestamp = entry.body.eme24.timestamp;
+		/* STQW optimization is not done here so we do not force
+		   alignment */
+		*result = entry.body.eme24.result;
+		break;
+	case (CTLU_TABLE_ENTRY_ENTYPE_LPM_RES):
+		*timestamp = entry.body.lpm_res.timestamp;
+		/* STQW optimization is not done here so we do not force
+		   alignment */
+		*result = entry.body.lpm_res.result;
+		break;
+	default:
+		break;
+		/* todo */
+	} /* Switch */
+
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+}
+
+
 int32_t ctlu_table_rule_delete(uint16_t table_id, union ctlu_key *key,
 			       uint8_t key_size)
 {

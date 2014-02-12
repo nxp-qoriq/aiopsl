@@ -1,4 +1,4 @@
-
+#ifdef ARENA_LEGACY_CODE
 #include "dpl/fdt.h"
 #include "dpl/libfdt.h"
 
@@ -544,4 +544,4 @@ int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
 #endif
 
 #endif // removed due to not used
-
+#endif

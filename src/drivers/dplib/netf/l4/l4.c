@@ -36,11 +36,13 @@ int32_t l4_udp_header_modification(uint8_t flags,
 		udp_ptr->dst_port = udp_dst_port;
 	if (flags & L4_UDP_MODIFY_MODE_L4_CHECKSUM) {
 		if (udp_ptr->checksum == 0) {
+			/* TODO new API l4_udp_tcp_cksum_calc(
+					L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE); */
 			cksum_calc_udp_tcp_checksum();
 		} else {
 			cksum_update_uint32(&udp_ptr->checksum,
-								old_header,
-								*(uint32_t *)udp_ptr);
+					    old_header,
+					    *(uint32_t *)udp_ptr);
 		}
 	}
 	/* Modify the segment */
@@ -101,7 +103,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 				fdma_modify_default_segment_data(tcp_offset, modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
-			options_size = (tcp_ptr->data_offset_reserved >> 
+			options_size = (tcp_ptr->data_offset_reserved << 
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
@@ -149,7 +151,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 			
-			options_size = (tcp_ptr->data_offset_reserved >> 
+			options_size = (tcp_ptr->data_offset_reserved << 
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;

@@ -144,7 +144,7 @@ enum e_hm_verif_cmd_type {
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
 
 
-#pragma pack(push, 1)
+
 /**************************************************************************//**
 @Description	HM verification init Command structure.
 
@@ -157,6 +157,7 @@ struct hm_init_verif_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	uint16_t	parser_starting_hxs;
+	uint8_t		pad[2];
 };
 
 /**************************************************************************//**
@@ -178,7 +179,6 @@ struct hm_vlan_remove_command {
 	uint32_t	opcode;
 	/**< Command structure identifier. */
 	int32_t		status;
-	uint8_t		pad[2];
 };
 
 /**************************************************************************//**
@@ -195,7 +195,6 @@ struct hm_ipv4_modification_command {
 	uint16_t	id;
 	uint8_t		flags;
 	uint8_t		tos;
-	uint8_t		pad[2];
 };
 
 /**************************************************************************//**
@@ -227,6 +226,7 @@ struct hm_ipv4_encapsulation_command {
 	struct ipv4hdr	ipv4_header_ptr;
 	uint8_t		flags;
 	uint8_t		ipv4_header_size;
+	uint8_t		pad[2];
 };
 
 /**************************************************************************//**
@@ -388,6 +388,7 @@ struct hm_set_tp_command {
 		/**< Command structure identifier. */
 	int32_t		status;
 	uint16_t	port;
+	uint8_t		pad[2];
 };
 
 /**************************************************************************//**
@@ -399,6 +400,7 @@ struct hm_push_vlan_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	uint16_t	ethertype;
+	uint8_t		pad[2];
 };
 
 /**************************************************************************//**
@@ -412,7 +414,7 @@ struct hm_pop_vlan_command {
 	int32_t		status;
 };
 
-#pragma pack(pop)
+
 
 void aiop_hm_init_parser();
 

@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
 #include "common/fsl_malloc.h"
 
@@ -229,3 +230,4 @@ struct devices_list *fdt_devices(const void *fdt, char *path)
 }
 
 #endif // removed due to not used
+#endif

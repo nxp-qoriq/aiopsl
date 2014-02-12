@@ -1104,6 +1104,48 @@ enum fdma_pta_size_type {
 
 /* @} end of group FDMA_COPY_ERRORS */
 
+/**************************************************************************//**
+@Group		FDMA_ACQUIRE_BUFFER_ERRORS
+
+@Description	FDMA Errors Status returned from Acquire buffer
+		command
+
+@{
+*//***************************************************************************/
+/** Success. */
+#define FDMA_ACQUIRE_SUCCESS						\
+		FDMA_SUCCESS
+/**Failed due to buffer pool depletion. */
+#define FDMA_ACQUIRE_BUFFER_POOL_DEPLETION_ERR				\
+		FDMA_BUFFER_POOL_DEPLETION_ERR
+/** Workspace memory read Error. */
+#define FDMA_ACQUIRE_WORKSPACE_MEMORY_READ_ERR				\
+		FDMA_WORKSPACE_MEMORY_READ_ERR
+/** Workspace memory write Error. */
+#define FDMA_ACQUIRE_WORKSPACE_MEMORY_WRITE_ERR				\
+		FDMA_WORKSPACE_MEMORY_WRITE_ERR
+
+/* @} end of group FDMA_ACQUIRE_BUFFER_ERRORS */
+
+/**************************************************************************//**
+@Group		FDMA_RELEASE_BUFFER_ERRORS
+
+@Description	FDMA Errors Status returned from Acquire buffer
+		command
+
+@{
+*//***************************************************************************/
+/** Success. */
+#define FDMA_RELEASE_SUCCESS						\
+		FDMA_SUCCESS
+/** Workspace memory read Error. */
+#define FDMA_RELEASE_WORKSPACE_MEMORY_READ_ERR				\
+		FDMA_WORKSPACE_MEMORY_READ_ERR
+/** Workspace memory write Error. */
+#define FDMA_RELEASE_WORKSPACE_MEMORY_WRITE_ERR				\
+		FDMA_WORKSPACE_MEMORY_WRITE_ERR
+
+/* @} end of group FDMA_RELEASE_BUFFER_ERRORS */
 
 /* @} end of group FDMA_Commands_Errors */
 
@@ -1369,6 +1411,44 @@ enum fdma_pta_size_type {
 /* @} end of group FDMA_Copy_Flags */
 
 /**************************************************************************//**
+@Group		FDMA_ACQUIRE_BUFFER_Flags
+
+@Description	FDMA Acquire buffer flags
+
+@{
+*//***************************************************************************/
+
+	/** No flags indication. */
+#define FDMA_ACQUIRE_NO_FLAGS	0x00000000
+	/** Bypass DPAA resource Isolation:
+	 * If reset - Isolation is enabled for this command. The pool ID 
+	 * specified is virtual within the specified ICID.
+	 * If set - Isolation is not enabled for this command. The pool ID 
+	 * specified is a real (not virtual) pool ID. */
+#define FDMA_ACQUIRE_BDI_BIT	0x80000000
+
+/* @} end of group FDMA_ACQUIRE_BUFFER_Flags */
+
+/**************************************************************************//**
+@Group		FDMA_RELEASE_BUFFER_Flags
+
+@Description	FDMA Release buffer flags
+
+@{
+*//***************************************************************************/
+
+	/** No flags indication. */
+#define FDMA_RELEASE_NO_FLAGS	0x00000000
+	/** Bypass DPAA resource Isolation:
+	 * If reset - Isolation is enabled for this command. The pool ID 
+	 * specified is virtual within the specified ICID.
+	 * If set - Isolation is not enabled for this command. The pool ID 
+	 * specified is a real (not virtual) pool ID. */
+#define FDMA_RELEASE_BDI_BIT	0x80000000
+
+/* @} end of group FDMA_RELEASE_BUFFER_Flags */
+
+/**************************************************************************//**
 @Group		FDMA_ISOLATION_ATTRIBUTES_Flags
 
 @Description	ICID context flags
@@ -1404,7 +1484,8 @@ enum fdma_pta_size_type {
 
 *//***************************************************************************/
 struct working_frame {
-		/** A pointer to Frame descriptor in workspace */
+		/** A pointer to Frame descriptor in workspace.
+		 * The FD address must be aligned to 32 bytes. */
 	struct ldpaa_fd *fd;
 		/** Handle to the HW working frame */
 	uint8_t frame_handle;
@@ -1455,7 +1536,8 @@ struct fdma_present_frame_params {
 		 * store the ASA. */
 	void *asa_dst;
 		/** A pointer to the location in workspace of the FD that is to
-		* be presented. */
+		* be presented. 
+		* The FD address must be aligned to 32 bytes.*/
 	struct ldpaa_fd *fd_src;
 		/** location within the presented frame to start presenting
 		 * the segment from. */
@@ -1548,7 +1630,8 @@ struct fdma_split_frame_params {
 		/** \link FDMA_Split_Flags split frames flags
 		 * \endlink */
 	uint32_t flags;
-		/** A pointer to the location in workspace for the split FD. */
+		/** A pointer to the location in workspace for the split FD.
+		 * The FD address must be aligned to 32 bytes. */
 	struct ldpaa_fd *fd_dst;
 		/** A pointer to the location in workspace for the presented
 		 * split frame segment. */
@@ -2166,7 +2249,8 @@ int32_t fdma_enqueue_default_fd_fqid(
 		After completion, the Enqueue Frame command can
 		terminate the task or return.
 
-@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
+		The FD address must be aligned to 32 bytes.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	fqid - frame queue ID for the enqueue.
@@ -2221,7 +2305,8 @@ int32_t fdma_enqueue_default_fd_qd(
 		After completion, the Enqueue Frame command can
 		terminate the task or return.
 
-@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
+		The FD address must be aligned to 32 bytes.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
@@ -2832,8 +2917,8 @@ int32_t fdma_replace_default_asa_segment_data(
 @Param[in]	size_type - Replacing segment size type of the PTA
 		(\ref fdma_pta_size_type).
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_PTA_SEGMENT_ERRORS)).
+@Return		Status - Success or Failure. (\ref 
+		FDMA_REPLACE_PTA_SEGMENT_ERRORS).
 
 @remark		The length of the represented PTA can be read directly from the
 		FD.
@@ -2859,7 +2944,7 @@ int32_t fdma_replace_default_pta_segment_data(
 @Param[out]	checksum - Ones complement sum over the specified range of the
 		working frame.
 
-@Return		Success or Failure (\ref FDMA_CHECKSUM_ERRORS)).
+@Return		Status - Success or Failure (\ref FDMA_CHECKSUM_ERRORS).
 
 @Cautions	The h/w must have previously opened the frame with an
 		initial presentation or initial presentation command.
@@ -2884,7 +2969,7 @@ int32_t fdma_calculate_default_frame_checksum(
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
 		memory to store the copied data.
 
-@Return		Success or Failure (\ref FDMA_COPY_ERRORS)).
+@Return		Status - Success or Failure (\ref FDMA_COPY_ERRORS).
 
 @Cautions	If source and destination regions overlap then this is a
 		destructive copy.
@@ -2897,6 +2982,59 @@ int32_t fdma_copy_data(
 		void *dst);
 
 /**************************************************************************//**
+@Function	fdma_acquire_buffer
+
+@Description	Provides direct access to the BMan in order to acquire a BMan 
+		buffer in a software managed way. 
+
+@Param[in]	icid - Buffer Pool ICID.
+@Param[in]	flags - Please refer to
+		\link FDMA_ACQUIRE_BUFFER_Flags command flags \endlink.
+@Param[in]	bpid - Buffer pool ID used for the Acquire Buffer.
+@Param[out]	dst - A pointer to the location in the workspace where to return
+		the acquired 64 bit buffer address.
+
+@Return		Status - Success or Failure (\ref FDMA_ACQUIRE_BUFFER_ERRORS).
+
+@Cautions	This command is not intended to be used in a normal datapath, 
+		but more of a get out of jail card where access to BMan buffers
+		is required when operating on a frame while not using the 
+		provided FDMA working frame commands.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_acquire_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		void *dst);
+
+/**************************************************************************//**
+@Function	fdma_release_buffer
+
+@Description	Provides direct access to the BMan in order to release a BMan 
+		buffer in a software managed way.
+
+@Param[in]	icid - Buffer Pool ICID.
+@Param[in]	flags - Please refer to
+		\link FDMA_RELEASE_BUFFER_Flags command flags \endlink.
+@Param[in]	bpid - Buffer pool ID used for the Release Buffer.
+@Param[out]	addr - Buffer address to be released.
+
+@Return		Status - Success or Failure (\ref FDMA_RELEASE_BUFFER_ERRORS).
+
+@Cautions	This command is not intended to be used in a normal datapath, 
+		but more of a get out of jail card where access to BMan buffers
+		is required when operating on a frame while not using the 
+		provided FDMA working frame commands.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_release_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		uint64_t addr);
+
+/**************************************************************************//**
 @Function	fdma_create_frame
 
 @Description	Create a frame from scratch and fill it with user specified
@@ -2907,14 +3045,15 @@ int32_t fdma_copy_data(
 		(struct fdma_isolation_attributes). 
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
-		On a success return this pointer will point to a valid FD. 
+		On a success return this pointer will point to a valid FD.
+		The FD address must be aligned to 32 bytes.  
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size.
 
 @Return
-		- Success or Failure (\ref FDMA_PRESENT_FRAME_ERRORS, \ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS, \ref
+		- Status - Success or Failure (\ref FDMA_PRESENT_FRAME_ERRORS, 
+		\ref FDMA_REPLACE_DATA_SEGMENT_ERRORS, \ref
 		FDMA_STORE_FRAME_ERRORS)).
 		- Update FD.
 

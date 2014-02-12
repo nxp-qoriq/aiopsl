@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
 #include "common/fsl_stdlib.h"
 
@@ -25,4 +26,5 @@ struct data data_grow_for(struct data d, int xlen)
     return nd;
 }
 
+#endif
 #endif

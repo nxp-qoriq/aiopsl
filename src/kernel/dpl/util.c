@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #include <assert.h>
 
 #include "common/types.h"
@@ -423,4 +424,5 @@ void util_usage(const char *errmsg, const char *synopsis,
 	} else
 		exit(EXIT_SUCCESS);
 }
+#endif
 #endif

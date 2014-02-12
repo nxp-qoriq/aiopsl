@@ -1,3 +1,7 @@
+
+spinlock.h: removed aiop_ prefix from aiop_atomic_incr8/16/32 and from aiop_atomic_decr8/16/32
+fsl_ipr.h: change API: add a different return status for regular frames 
+
 SL Pre-Alpha v0.2  Change Log
 
 

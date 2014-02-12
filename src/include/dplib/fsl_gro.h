@@ -72,6 +72,8 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
  @Group	TCP_GRO_AGG_FLAGS TCP GRO Aggregation Flags
 
  @Description Flags for \ref tcp_gro_aggregate_seg() function.
+ 
+ The flags are allowed to be changed per new session only.
 
  @{
 *//***************************************************************************/

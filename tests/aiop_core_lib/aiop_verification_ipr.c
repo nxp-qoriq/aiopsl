@@ -6,15 +6,19 @@
 
 #include "aiop_verification.h"
 #include "aiop_verification_ipr.h"
+#include "aiop_verification_data.h"
 
+extern __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
 
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 {
-#if 0
+	
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
+#ifdef CLOSE_MODEL
 	ipr_instance_handle_t ipr_instance;
-
+	ipr_instance_handle_t *ipr_instance_ptr;
+#endif
 	opcode  = *((uint32_t *) asa_seg_addr);
 
 
@@ -34,27 +38,9 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 			struct ipr_create_instance_command *str =
 				(struct ipr_create_instance_command *) asa_seg_addr;
 			str->status = ipr_create_instance(
-					str->ipr_params_ptr,
-					str->ipr_instance_ptr);
+					&(str->ipr_params),
+					&verif_ipr_instance_handle);
 			str_size = sizeof(struct ipr_create_instance_command);
-			break;
-		}
-		/* IPR delete instance Command Verification */
-		case IPR_CMDTYPE_DELETE_INSTANCE:
-		{
-			struct ipr_delete_instance_command *str =
-				(struct ipr_delete_instance_command *) asa_seg_addr;
-            if(str->ipr_instance_ref)
-            	ipr_instance = 
-            		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
-            else 
-            	ipr_instance = str->ipr_instance;
-
-			str->status = ipr_delete_instance(
-					ipr_instance,
-					str->confirm_delete_cb,
-					str->delete_arg);
-			str_size = sizeof(struct ipr_delete_instance_command);
 			break;
 		}
 		/* IPR reassemble Command Verification */
@@ -62,14 +48,63 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_reassemble_command *str =
 				(struct ipr_reassemble_command *) asa_seg_addr;
-            if(str->ipr_instance_ref)
-            	ipr_instance = 
-            		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
-            else 
-            	ipr_instance = str->ipr_instance;
+			str->status = ipr_reassemble(verif_ipr_instance_handle);
+			str_size = sizeof(struct ipr_reassemble_command);
+			break;
+		}
+#ifdef CLOSE_MODEL
+		case IPR_CMDTYPE_CREATE_INSTANCE:
+		{
+			struct ipr_create_instance_command *str =
+				(struct ipr_create_instance_command *) asa_seg_addr;
+			if(str->ipr_instance_ref)
+				ipr_instance_ptr = 
+				(ipr_instance_handle_t*) str->ipr_instance;
+			else 
+				ipr_instance_ptr = &(str->ipr_instance);
+
+			
+			
+			str->status = ipr_create_instance(
+					&(str->ipr_params),
+					ipr_instance_ptr);
+			str_size = sizeof(struct ipr_create_instance_command);
+			break;
+		}
+		/* IPR reassemble Command Verification */
+		case IPR_CMDTYPE_REASSEMBLE:
+		{
+			struct ipr_reassemble_command *str =
+				(struct ipr_reassemble_command *) asa_seg_addr;
+			if(str->ipr_instance_ref)
+				ipr_instance = 
+		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
+			else 
+				ipr_instance = str->ipr_instance;
 
 			str->status = ipr_reassemble(ipr_instance);
 			str_size = sizeof(struct ipr_reassemble_command);
+			break;
+		}
+#endif
+		
+#if 0
+		/* IPR delete instance Command Verification */
+		case IPR_CMDTYPE_DELETE_INSTANCE:
+		{
+			struct ipr_delete_instance_command *str =
+				(struct ipr_delete_instance_command *) asa_seg_addr;
+			if(str->ipr_instance_ref)
+				ipr_instance = 
+		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
+			else 
+				ipr_instance = str->ipr_instance;
+
+			str->status = ipr_delete_instance(
+					ipr_instance,
+					str->confirm_delete_cb,
+					str->delete_arg);
+			str_size = sizeof(struct ipr_delete_instance_command);
 			break;
 		}
 		/* IPR max reassembled frame size Command Verification */
@@ -158,6 +193,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 			str_size = sizeof(struct ipr_get_reass_frm_cntr_command);
 			break;
 		}
+#endif
 		default:
 		{
 			return STR_SIZE_ERR;
@@ -166,9 +202,4 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 
 
 	return str_size;
-#else
-	/* Todo - remove the if statement and delete the bellow return when the
-	 * code will be ready*/ 
-	return (uint16_t)asa_seg_addr;
-#endif
 }

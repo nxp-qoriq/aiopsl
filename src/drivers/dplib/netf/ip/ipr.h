@@ -176,9 +176,9 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 /** Tables are located in dedicated RAM */
 #define IPR_MODE_TABLE_LOCATION_INT		0x00000000
 /** Tables are located in Packet Express Buffer table */
-#define IPR_MODE_TABLE_LOCATION_PEB		0x10000000
+#define IPR_MODE_TABLE_LOCATION_PEB		0x02000000
 /** Tables are located in DDR */
-#define IPR_MODE_LOCATION_EXT			0x30000000
+#define IPR_MODE_TABLE_LOCATION_EXT		0x03000000
 
 /* @} end of group IPRInitFlags */
 
@@ -253,6 +253,8 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();
 
+void ipr_time_out();
+
 /**************************************************************************//**
 @Description	IPR Global parameters
 *//***************************************************************************/
@@ -264,9 +266,8 @@ uint32_t ipr_avail_buffers_cntr;
 /** Size of the allocated buffers by the ARENA. These buffers are associated to
     the ipr_pool_id */
 uint16_t ipr_buffer_size;
-/** Should got either as a global define or as a return parameter from
-    a dedicated  ARENA function (epid = get_tmi_epid(tmi_id)).*/
-uint8_t  ipr_timeout_epid;
+/** save ipr table location */
+uint8_t  ipr_table_location;
 uint8_t  ipr_timeout_flags;
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
