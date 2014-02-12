@@ -286,17 +286,17 @@ struct ipsec_encap_params {
 	uint8_t ip_nh; /** Next header value used for transport mode */
 	uint8_t ip_nh_offset; /** Next header offset used for transport mode */
 	uint8_t options;
-	uint32_t seq_num_ext_hi;
+	uint32_t seq_num_ext_hi; /** Extended sequence number */
 	uint32_t seq_num;	/** Initial sequence number */
+	uint32_t spi; 	/** Security Parameter Index */
+	uint16_t ip_hdr_len; /** IP header length */
+	uint32_t *ip_hdr; /** optional IP Header content */
 	union {
 		struct ipsec_encap_cbc_params cbc;
 		struct ipsec_encap_ctr_params ctr;
 		struct ipsec_encap_ccm_params ccm;
 		struct ipsec_encap_gcm_params gcm;
 	};
-	uint32_t spi; 	/** Security Parameter Index */
-	uint16_t ip_hdr_len; /** IP header length */
-	uint32_t *ip_hdr; /** optional IP Header content */
 };
 
 
@@ -341,13 +341,13 @@ struct ipsec_decap_params {
 				The location is indicated by the number of 
 				bytes from the beginning of the IP header. */
 	uint8_t options;
+	uint32_t seq_num_ext_hi; /* Extended sequence number */
+	uint32_t seq_num; /* Sequence number */
 	union {
 		struct ipsec_decap_ctr_params ctr;
 		struct ipsec_decap_ccm_params ccm;
 		struct ipsec_decap_gcm_params gcm;
 	};
-	uint32_t seq_num_ext_hi; /* Extended sequence number */
-	uint32_t seq_num; /* Sequence number */
 };
 
 /**************************************************************************//**
