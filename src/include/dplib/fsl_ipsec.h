@@ -238,44 +238,40 @@ typedef uint64_t ipsec_handle_t;
 *//***************************************************************************/
 
 /**************************************************************************//**
- * @struct    ipsec_encap_cbc fsl_ipsec.h
+ * @struct    ipsec_encap_cbc_params fsl_ipsec.h
  * @ingroup   ipsec_encap_params
  * @details   IV field for IPsec CBC encapsulation
 *//***************************************************************************/
-struct ipsec_encap_cbc {
+struct ipsec_encap_cbc_params {
 	uint32_t iv[4];
 };
 
 /**************************************************************************//**
- * @struct    ipsec_encap_ctr fsl_ipsec.h
+ * @struct    ipsec_encap_ctr_params fsl_ipsec.h
  * @ingroup   ipsec_encap_params
  * @details   Nonce and IV fields for IPsec CTR encapsulation
 *//***************************************************************************/
-struct ipsec_encap_ctr {
+struct ipsec_encap_ctr_params {
 	uint32_t ctr_nonce;
-	uint32_t ctr_initial;
 	uint32_t iv[2];
 };
 
 /**************************************************************************//**
- * @struct    ipsec_encap_ccm fsl_ipsec.h
+ * @struct    ipsec_encap_ccm_params fsl_ipsec.h
  * @ingroup   ipsec_encap_params
  * @details   Salt and IV fields for IPsec CCM encapsulation
 *//***************************************************************************/
-struct ipsec_encap_ccm {
+struct ipsec_encap_ccm_params {
 	uint32_t salt; /* lower 24 bits */
-	uint8_t b0_flags;
-	uint8_t ctr_flags;
-	uint16_t ctr_initial; /* Initial Counter */
 	uint32_t iv[2];
 };
 
 /**************************************************************************//**
- * @struct    ipsec_encap_gcm fsl_ipsec.h
+ * @struct    ipsec_encap_gcm_params fsl_ipsec.h
  * @ingroup   ipsec_encap_params
  * @details   Salt and IV fields for IPsec GCM encapsulation
 *//***************************************************************************/
-struct ipsec_encap_gcm {
+struct ipsec_encap_gcm_params {
 	uint32_t salt; /* lower 24 bits */
 	uint32_t iv[2];
 };
@@ -293,10 +289,10 @@ struct ipsec_encap_params {
 	uint32_t seq_num_ext_hi;
 	uint32_t seq_num;	/** Initial sequence number */
 	union {
-		struct ipsec_encap_cbc cbc;
-		struct ipsec_encap_ctr ctr;
-		struct ipsec_encap_ccm ccm;
-		struct ipsec_encap_gcm gcm;
+		struct ipsec_encap_cbc_params cbc;
+		struct ipsec_encap_ctr_params ctr;
+		struct ipsec_encap_ccm_params ccm;
+		struct ipsec_encap_gcm_params gcm;
 	};
 	uint32_t spi; 	/** Security Parameter Index */
 	uint16_t ip_hdr_len; /** IP header length */
@@ -305,33 +301,30 @@ struct ipsec_encap_params {
 
 
 /**************************************************************************//**
- * @struct    ipsec_decap_ctr fsl_ipsec.h
+ * @struct    ipsec_decap_ctr_params fsl_ipsec.h
  * @ingroup   ipsec_decap_params
  * @details   Salt and counter fields for IPsec CTR decapsulation
 *//***************************************************************************/
-struct ipsec_decap_ctr {
+struct ipsec_decap_ctr_params {
 	uint32_t salt;
 	uint32_t ctr_initial;
 };
 
 /**************************************************************************//**
- * @struct    ipsec_decap_ctr fsl_ipsec.h
+ * @struct    ipsec_decap_ccm_params fsl_ipsec.h
  * @ingroup   ipsec_decap_params
  * @details   Salt, counter and flag fields for IPsec CCM decapsulation
 *//***************************************************************************/
-struct ipsec_decap_ccm {
+struct ipsec_decap_ccm_params {
 	uint32_t salt;
-	uint8_t iv_flags;
-	uint8_t ctr_flags;
-	uint16_t ctr_initial;
 };
 
 /**************************************************************************//**
- * @struct    ipsec_decap_gcm fsl_ipsec.h
+ * @struct    ipsec_decap_gcm_params fsl_ipsec.h
  * @ingroup   ipsec_decap_params
  * @details   Salt field for IPsec GCM decapsulation
 *//***************************************************************************/
-struct ipsec_decap_gcm {
+struct ipsec_decap_gcm_params {
 	uint32_t salt;
 };
 
@@ -349,9 +342,9 @@ struct ipsec_decap_params {
 				bytes from the beginning of the IP header. */
 	uint8_t options;
 	union {
-		struct ipsec_decap_ctr ctr;
-		struct ipsec_decap_ccm ccm;
-		struct ipsec_decap_gcm gcm;
+		struct ipsec_decap_ctr_params ctr;
+		struct ipsec_decap_ccm_params ccm;
+		struct ipsec_decap_gcm_params gcm;
 	};
 	uint32_t seq_num_ext_hi; /* Extended sequence number */
 	uint32_t seq_num; /* Sequence number */
