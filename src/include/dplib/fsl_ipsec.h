@@ -284,7 +284,6 @@ struct ipsec_encap_gcm_params {
 struct ipsec_encap_params {
 	uint8_t hmo; /* Header Modification Options */
 	uint8_t ip_nh; /** Next header value used for transport mode */
-	uint8_t ip_nh_offset; /** Next header offset used for transport mode */
 	uint8_t options;
 	uint32_t seq_num_ext_hi; /** Extended sequence number */
 	uint32_t seq_num;	/** Initial sequence number */
@@ -334,12 +333,6 @@ struct ipsec_decap_gcm_params {
  * @details   Container for decapsulation parameters
 *//***************************************************************************/
 struct ipsec_decap_params {
-	uint16_t ip_hdr_len; /* The length, in bytes, of the portion of the 
-				IP header that is not encrypted. */ 
-	uint8_t ip_nh_offset; /* The location of the next header field within 
-				the IP header of the transport mode packet. 
-				The location is indicated by the number of 
-				bytes from the beginning of the IP header. */
 	uint8_t options;
 	uint32_t seq_num_ext_hi; /* Extended sequence number */
 	uint32_t seq_num; /* Sequence number */
@@ -368,7 +361,7 @@ struct alg_info {
 *//***************************************************************************/
 struct ipsec_descriptor_params {
 	
-	/* Descriptor direction. Use IPSEC_DIRECTION_<INBOUND/OUTBOUND> */
+	/* Descriptor direction */
 	enum ipsec_direction ipsec_direction; 
 	
 	uint32_t flags; /* Miscellaneous control flags */
