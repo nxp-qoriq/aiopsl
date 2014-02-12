@@ -51,7 +51,6 @@ int32_t tcp_gro_aggregate_seg(
 	
 	/* add segment to an existing aggregation */
 	if (gro_ctx.metadata.seg_num != 0){
-		gro_ctx.flags = flags;
 		status = tcp_gro_add_seg_to_aggregation(
 				params, &gro_ctx);
 		if (status == TCP_GRO_SEG_AGG_DONE)
