@@ -103,27 +103,24 @@ typedef uint64_t ipsec_handle_t;
 *//***************************************************************************/
 /** Perform computations to update header checksum for IPv4 header. 
  * Not valid for tunnel mode */
-#define IPSEC_ENC_OPTS_UPDATE_CSUM 0x80   
+#define IPSEC_ENC_OPTS_UPDATE_CSUM	0x80  
 
 /** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
  * IP header to inner IP header. Not valid for tunnel mode */
-#define IPSEC_ENC_OPTS_DIFFSERV	0x40   
+#define IPSEC_ENC_OPTS_DIFFSERV		0x40
 
 /** Generate random initial vector before starting encapsulation 
  * If set, the IV comes from an internal random generator */
-#define IPSEC_ENC_OPTS_IVSRC	0x20   
+#define IPSEC_ENC_OPTS_IVSRC		0x20   
 
-/* Output IP header source options. Use one of the following options. 
- * Relevant for tunnel mode only */
-#define IPSEC_ENC_OPTS_IPHDR_SRC_NONE	0x00 /* IP header not included */
-#define IPSEC_ENC_OPTS_IPHDR_SRC_FRAME 	0x04 /* IP header from input frame */
-#define IPSEC_ENC_OPTS_IPHDR_SRC_ADDR	0x08 /* IP header ref from parameters */
-#define IPSEC_ENC_OPTS_IPHDR_SRC_PARAM	0x0c /* IP header from parameters */
+/* Add Output IP header to the frame */ 
+/* Relevant for tunnel mode only */
+#define IPSEC_ENC_OPTS_ADD_IPHDR	0x0c /* Add IP header */
 
 /** NAT UDP Encapsulation enable. Tunnel mode only */
-#define IPSEC_ENC_OPTS_NAT_EN        0x02 
+#define IPSEC_ENC_OPTS_NAT_EN		0x02 
 /** NAT UDP checksum enable. Tunnel mode only */
-#define IPSEC_ENC_OPTS_NUC_EN        0x01
+#define IPSEC_ENC_OPTS_NUC_EN		0x01
 
 /**************************************************************************//**
 @Description	IPSec ESP Decapsulation options 
@@ -143,7 +140,7 @@ typedef uint64_t ipsec_handle_t;
 #define IPSEC_DEC_OPTS_VERIFY_CSUM 0x20   /**< validate IP header checksum */ 
 
 /** Enable Tunnel ECN according to RFC 6040
- * Valid for Tunnel mode*/
+ * Valid for Tunnel mode only */
 #define IPSEC_DEC_OPTS_TECN          0x20
 
 /**************************************************************************//**
@@ -159,24 +156,11 @@ typedef uint64_t ipsec_handle_t;
  * IP header */
 #define IPSEC_HMO_ENCAP_DTTL 	0x02                            
 
-/* SNR: Sequence Number Rollover control 
- * If not set, a Sequence Number Rollover causes an error
- * if set, Sequence Number Rollover is permitted*/
-#define IPSEC_HMO_ENCAP_SNR	0x01                             
-
 /**************************************************************************//**
 @Description	IPSec ESP Decapsulation HMO field  
 
 		Use for ipsec_decap_params.hmo
 *//***************************************************************************/
-
-/* ODF: the DF bit in the IPv4 header in the output frame is replaced 
- * with the DFV value as shown below. 
- * Note: * Must not be set for IPv6 */
-#define IPSEC_HMO_DECAP_ODF	0x08
-
-/* DFV -- DF bit Value */
-#define IPSEC_HMO_DECAP_DFV	0x04
 
 /** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
  * IP header */
@@ -190,7 +174,7 @@ typedef uint64_t ipsec_handle_t;
 /**************************************************************************//**
 @Description	IPSec Cipher Algorithms  
 
- To be set to the ipsec_descriptor_params.cipherdata.algtype field
+ Use for the ipsec_descriptor_params.cipherdata.algtype field
 
 *//***************************************************************************/
 #define IPSEC_CIPHER_DES_IV64			0x0100
@@ -211,7 +195,7 @@ typedef uint64_t ipsec_handle_t;
 /**************************************************************************//**
 @Description	IPSec Authentication Algorithms  
 
- To be set to the ipsec_descriptor_params.authdata.algtype field
+ Use for the ipsec_descriptor_params.authdata.algtype field
 
 *//***************************************************************************/
 #define IPSEC_AUTH_HMAC_NULL			0x0000
@@ -228,7 +212,7 @@ typedef uint64_t ipsec_handle_t;
 /**************************************************************************//**
 @Description	IPSec Key Encryption Flags  
 
- To be set to the alginfo.key_enc_flags field
+ To be set to the alg_info.key_enc_flags field
 
 *//***************************************************************************/
 
@@ -374,28 +358,16 @@ struct ipsec_decap_params {
 };
 
 /**************************************************************************//**
- * @struct    alginfo
- * @ingroup   alginfo
+ * @struct    alg_info
+ * @ingroup   alg_info
  * @details   Container for IPsec algorithm details
 *//***************************************************************************/
-struct alginfo {
+struct alg_info {
 	uint32_t algtype;  /**< Algorithm selector. */
 	uint64_t key;      /**< Address where algorithm key resides */
 	uint32_t keylen;   /**< Length of the provided key, in bytes */
 	uint32_t key_enc_flags; /**< Key encryption flags 
 				ENC, EKT, TK, NWB */
-};
-
-/**************************************************************************//**
- * @struct    ipsec_storage_params
- * @ingroup   ipsec_storage_params
- * @details   Container for IPsec descriptor storage parameters
-*//***************************************************************************/
-struct ipsec_storage_params {
-	uint16_t sdid; /** Security domain ID */
-	uint16_t spid; /** Storage profile ID of SEC output frame */
-	uint8_t rife; /** Return input frame on error */
-	uint8_t crid; /** Critical resource ID */
 };
 
 /**************************************************************************//**
@@ -406,18 +378,18 @@ struct ipsec_descriptor_params {
 	/* Descriptor direction. Use IPSEC_DIRECTION_<INBOUND/OUTBOUND> */
 	enum ipsec_direction ipsec_direction; 
 	
-	uint32_t flags; /* Miscellaneous control flags flags */
+	uint32_t flags; /* Miscellaneous control flags */
 	
 	union {
 		struct ipsec_encap_params *encparams;
 		struct ipsec_decap_params *decparams;
 	};
 
-	struct alginfo *cipherdata; /* cipher algorithm information */
-	struct alginfo *authdata; /* authentication algorithm information */
+	struct alg_info *cipherdata; /* cipher algorithm information */
+	struct alg_info *authdata; /* authentication algorithm information */
 			
 	/* Lifetime Limits */
-	/* Set to NULL to disable specific limits */
+	/* Set to NULL to disable specific limits check */
 	uint32_t soft_kilobytes_limit;	/*!< Soft Kilobytes limit. */
 	uint32_t hard_kilobytes_limit; 	/*!< Hard Kilobytes limit. */
 	uint64_t soft_packet_limit; 	/*!< Soft Packet count limit. */
@@ -430,7 +402,9 @@ struct ipsec_descriptor_params {
 	/* Set to NULL to disable this option*/
 	int (*soft_seconds_callback)(uint64_t); 
 
-	struct ipsec_storage_params ipsec_storage_params;
+	uint16_t spid; /** Storage Profile ID of the SEC output frame */
+	// TODO : how does (or should) the APPSW know the SPID?
+
 };
 
 
