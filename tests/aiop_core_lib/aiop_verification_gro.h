@@ -123,6 +123,7 @@ struct tcp_gro_flush_agg_command {
 
 
 uint16_t  aiop_verification_gro(uint32_t data_addr);
+void gro_verif_create_next_frame();
 
 
 /** @} */ /* end of AIOP_GRO_Verification */
