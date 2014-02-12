@@ -17,6 +17,9 @@
 #include "dplib/fsl_parser.h"
 
 
+	/** GRO FM ID */
+#define GRO_FM_ID	 (TCP_GRO_MODULE_STATUS_ID >> 16)
+
 /* TCP_GRO Command IDs */
 	/** TCP GRO Aggregate Segment command code */
 #define TCP_GRO_CONTEXT_AGG_SEG_CMD		0x00000001
@@ -120,6 +123,7 @@ struct tcp_gro_flush_agg_command {
 
 
 uint16_t  aiop_verification_gro(uint32_t data_addr);
+void gro_verif_create_next_frame();
 
 
 /** @} */ /* end of AIOP_GRO_Verification */

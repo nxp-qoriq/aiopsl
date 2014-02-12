@@ -1345,16 +1345,17 @@ struct fdma_create_frame_command {
 		 * The data MUST be located in workspace prior to calling this 
 		 * command. */
 	uint32_t data;
-		/** Pointer (in workspace) to the Frame Descriptor of the 
-		 * created frame. 
-		 * The command updates the FD in workspace. */
-	struct ldpaa_fd *fd;
+		/** Command returned Frame Descriptor for the created frame. 
+		 * The command updates the FD in workspace, and when the ASA is
+		 * written back to the frame, the updated FD will be written to 
+		 * the frame as well. */
+	struct ldpaa_fd fd;
 		/** Data size to be inserted to the frame. */
 	uint16_t size;
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[1];
+	uint8_t	pad[5];
 };
 
 

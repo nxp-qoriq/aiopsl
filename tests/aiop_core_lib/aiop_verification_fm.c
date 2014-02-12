@@ -37,6 +37,9 @@ void aiop_verification_fm()
 			FDMA_PRES_SR_BIT, (void *)&ext_address, 0, 8, 
 			&seg_length, &seg_handle);
 	}
+	
+	init_verif_tls();
+	
 	/* The Terminate command will finish the verification */
 	do
 	{
