@@ -15,6 +15,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 	
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
+	uint64_t ipr_instance_handle; 
+
 #ifdef CLOSE_MODEL
 	ipr_instance_handle_t ipr_instance;
 	ipr_instance_handle_t *ipr_instance_ptr;
@@ -22,7 +24,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 	opcode  = *((uint32_t *) asa_seg_addr);
 
 
-	switch (opcode) {
+	switch (opcode & 0xff) {
 		/* IPR Init Command Verification */
 		case IPR_CMDTYPE_VERIF_INIT:
 		{
@@ -37,9 +39,14 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_create_instance_command *str =
 				(struct ipr_create_instance_command *) asa_seg_addr;
+		/*	str->status = ipr_create_instance(
+					&(str->ipr_params),
+					&verif_ipr_instance_handle);*/
 			str->status = ipr_create_instance(
 					&(str->ipr_params),
-					&verif_ipr_instance_handle);
+					&ipr_instance_handle);
+
+			verif_ipr_instance_handle = ipr_instance_handle;
 			str_size = sizeof(struct ipr_create_instance_command);
 			break;
 		}
