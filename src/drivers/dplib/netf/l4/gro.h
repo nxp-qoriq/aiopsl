@@ -95,8 +95,8 @@ struct tcp_gro_context {
 	uint32_t timer_handle;
 		/** aggregated checksum */
 	uint16_t checksum;
-		/** Padding */
-	uint8_t	pad[2];
+		/** Aggregation headers size */
+	uint16_t agg_headers_size;
 };
 
 
