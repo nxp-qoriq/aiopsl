@@ -230,6 +230,8 @@ void tman_get_timestamp(uint64_t *timestamp)
 	/* todo __st64dw_b(*timestamp, timestamp); */
 }
 
+#pragma push
+#pragma force_active on
 void tman_timer_callback(void)
 {
 	tman_cb_t tman_cb;
@@ -245,3 +247,4 @@ void tman_timer_callback(void)
 	fdma_terminate_task();
 }
 
+#pragma pop
