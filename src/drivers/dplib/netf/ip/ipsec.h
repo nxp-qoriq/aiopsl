@@ -47,6 +47,9 @@
 *//***************************************************************************/
 
 // TMP, removed from the external API
+/** Frames do not include a L2 Header */
+#define IPSEC_FLG_NO_L2_HEADER		0x00000010
+
 /* Output IP header source options. Use one of the following options. 
  * Relevant for tunnel mode only */
 #define IPSEC_ENC_OPTS_IPHDR_SRC_NONE	0x00 /* IP header not included */
