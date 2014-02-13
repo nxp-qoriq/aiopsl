@@ -41,6 +41,9 @@ void aiop_verification_fm_temp()
 		case GRO_FM_ID:
 		{
 			str_size = aiop_verification_gro(asa_seg_addr);
+			
+			if (str_size == sizeof(struct tcp_gro_agg_seg_command))
+				gro_verif_create_next_frame();
 			break;
 		}
 		case FPDMA_ACCEL_ID:
