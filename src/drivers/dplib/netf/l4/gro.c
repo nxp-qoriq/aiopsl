@@ -466,7 +466,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
 	int32_t sr_status;
-	int32_t old_timestamp;
+	uint32_t old_timestamp;
 				
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 			
