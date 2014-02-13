@@ -466,12 +466,12 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
 	int32_t sr_status;
-	uint32_t old_timestamp;
+	uint32_t old_agg_timestamp;
 				
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 			
 	/* initialize gro_context parameters */	
-	old_timestamp = gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP;
+	old_agg_timestamp = gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP;
 	gro_ctx->internal_flags = 0;
 	gro_ctx->last_ack = tcp->acknowledgment_number;
 	data_offset = (tcp->data_offset_reserved & 
@@ -524,7 +524,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	sr_status = fdma_present_default_frame(); /* TODO FDMA ERROR */
 	
 	/* run parser if needed */
-	if (old_timestamp != (gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP))
+	if (old_agg_timestamp != 
+		(gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP))
 		sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	
 	/* update last segment header fields */
