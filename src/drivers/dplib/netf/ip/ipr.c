@@ -208,7 +208,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			     /* Hit */
 			     rfdc_ext_addr = lookup_result.opaque0_or_reference;
 			     /* Unlock instance handle parameters*/
-			     cdma_mutex_lock_release(instance_handle);
+//			     cdma_mutex_lock_release(instance_handle);
 			     if(osm_status == NO_BYPASS_OSM) {
 				/* create nested per reassembled frame */
 				osm_scope_enter_to_exclusive_with_new_scope_id(
@@ -230,8 +230,11 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				   return IPR_ERROR;
 				}	
 			/* todo new ctlu api CTLU_STATUS_MISS*/
-			} else if(sr_status == 
-				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {
+/* todo restore this else } else if(sr_status == 
+				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {*/
+			} else if((sr_status == 
+				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) || 
+				  (sr_status == CTLU_LOOKUP_STATUS_MISS_RESULT)){
 				/* Miss */
 			    cdma_acquire_context_memory(
 					     IPR_CONTEXT_SIZE,
@@ -249,9 +252,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				     (uint16_t *)REF_COUNT_ADDR_DUMMY);
 	
 			    /* Reset RFDC + Link List */
-			    cdma_ws_memory_init((void *)&rfdc,
+		/*	    cdma_ws_memory_init((void *)&rfdc,
 						SIZE_TO_INIT,
-						0);
+						0);  */
 			    /* Add entry to TLU table */
 			    /* Generate key */
 			    ctlu_gen_key(ipr_global_parameters1.ipr_key_id_ipv4,
@@ -270,20 +273,15 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    rfdc.key[1] = *(uint64_t *)(rule.key.key_em.key+8);
 			    /* todo release struct rule  or call function for gen+add rule */
 			    rfdc.status = RFDC_VALID;
+			    rfdc.instance_handle = instance_handle;
+			    rfdc.expected_total_length = 0;
+			    rfdc.index_to_out_of_order = 0;
+			    rfdc.index_to_out_of_order = 0;
+			    rfdc.next_index = 0;
+			    rfdc.current_total_length = 0;
 				
 			    /* create Timer in TMAN */
-/*			    tman_create_timer(
-			       instance_params.tmi_id,
-			       ipr_global_parameters1.ipr_timeout_flags,
-			       instance_params.timeout_value_ipv4,
-			       rfdc_ext_addr,
-			       NULL,
-			       ipr_global_parameters1.ipr_timeout_epid,
-			       (uint32_t)instance_params.ipv4_timeout_cb,
-			       &rfdc.timer_handle);
-		
-*/		
-		    tman_create_timer(instance_params.tmi_id,
+			    tman_create_timer(instance_params.tmi_id,
 				      ipr_global_parameters1.ipr_timeout_flags,
 				      instance_params.timeout_value_ipv4,
 				      (tman_arg_8B_t) rfdc_ext_addr,
@@ -291,34 +289,34 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    		      (tman_cb_t) ipr_time_out,
 		    		      &rfdc.timer_handle);
 
-		    /* read and lock instance handle parameters */
-		    cdma_read_with_mutex(
-				    instance_handle+
-				    offsetof(struct ipr_instance,
-				    		     num_of_open_reass_frames),
-				    CDMA_PREDMA_MUTEX_WRITE_LOCK,
-				    &instance_params.num_of_open_reass_frames,
-				    4);
-
-		    instance_params.num_of_open_reass_frames += 1;
-		    /* Write and unlock instance handle parameters*/
-		    cdma_access_context_memory(
-				    instance_handle+
-				    offsetof(struct ipr_instance,
-				    		     num_of_open_reass_frames),
-				   CDMA_ACCESS_CONTEXT_MEM_AA_BIT,
-				   0,
-				   (void *)&instance_params.max_reass_frm_size,
-				   CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | 
-				   4,
-				   (uint16_t *)REF_COUNT_ADDR_DUMMY);
-
-		     if(osm_status == NO_BYPASS_OSM) {
-			/* create nested per reassembled frame */
-			osm_scope_enter_to_exclusive_with_new_scope_id(
-					       (uint32_t)rfdc_ext_addr);
-			}
-			
+			    /* read and lock instance handle parameters */
+			    cdma_read_with_mutex(
+				     instance_handle+
+				     offsetof(struct ipr_instance,
+					      num_of_open_reass_frames),
+				      CDMA_PREDMA_MUTEX_WRITE_LOCK,
+				      &instance_params.num_of_open_reass_frames,
+				      4);
+	
+			    instance_params.num_of_open_reass_frames += 1;
+			    /* Write and unlock instance handle parameters*/
+			    cdma_access_context_memory(
+					    instance_handle+
+					    offsetof(struct ipr_instance,
+							     num_of_open_reass_frames),
+					   CDMA_ACCESS_CONTEXT_MEM_AA_BIT,
+					   0,
+					   (void *)&instance_params.num_of_open_reass_frames,
+					   CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | 
+					   4,
+					   (uint16_t *)REF_COUNT_ADDR_DUMMY);
+	
+			     if(osm_status == NO_BYPASS_OSM) {
+				/* create nested per reassembled frame */
+				osm_scope_enter_to_exclusive_with_new_scope_id(
+						       (uint32_t)rfdc_ext_addr);
+				}
+				
 		} else {
 			/* TLU lookup SR error */
 			return IPR_ERROR;
@@ -444,6 +442,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		
 	frag_offset = ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_MASK;
 	
+	expected_frag_offset = rfdc_ptr->current_total_length>>3;
+
 	if (frag_offset == 0) {
 	   current_frag_size = ipv4hdr_ptr->total_length;
 	} else {
@@ -454,7 +454,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 	if(!(rfdc_ptr->status & OUT_OF_ORDER)) {
 		/* In order handling */
-		expected_frag_offset = rfdc_ptr->current_total_length>>3;
+//		expected_frag_offset = rfdc_ptr->current_total_length>>3;
 		if (frag_offset == expected_frag_offset) {
 			
 			rfdc_ptr->num_of_frags ++;
@@ -475,6 +475,10 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			/* Set 1rst frag's running sum for L4 checksum check */
 			  rfdc_ptr->current_running_sum = pr->gross_running_sum;
 			}
+			
+		    	/* Close current frame before storing FD */
+		    	fdma_store_default_frame_data();
+
 			/* Write FD in external buffer */
 			ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
 				   rfdc_ptr->next_index*FD_SIZE;
@@ -800,3 +804,16 @@ void ipr_time_out()
 {
 	
 }
+
+void move_to_correct_ordering_scope2(uint32_t osm_status)
+{
+		if(osm_status == 0) {
+			/* return to original ordering scope that entered
+			 * the ipr_reassemble function */
+			osm_scope_exit();
+			osm_scope_exit();	
+		} else if(osm_status & START_CONCURRENT) {
+		  osm_scope_transition_to_concurrent_with_increment_scope_id();
+		}
+}
+

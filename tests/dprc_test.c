@@ -1,4 +1,3 @@
-#ifdef UNDER_CONSTRUCTION
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
@@ -239,4 +238,4 @@ void dprc_test_free(void)
 {
 	/* TODO - complete!*/
 }
-#endif
+

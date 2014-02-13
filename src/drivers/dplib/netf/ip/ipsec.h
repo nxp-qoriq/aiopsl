@@ -103,6 +103,23 @@ struct ipsec_storage_params {
 	uint8_t crid; /** Critical resource ID */
 };
 
+
+/*
+struct ipsec_encap_params {
+	// TMP, removed from the external API
+	uint8_t ip_nh_offset; /** Next header offset used for transport mode */
+/* */
+
+//struct ipsec_decap_params {
+//uint16_t ip_hdr_len; /* The length, in bytes, of the portion of the 
+//			IP header that is not encrypted. */
+// TODO: TBD if we need a fixed values for ip_hdr_len
+//
+//uint8_t ip_nh_offset; /* The location of the next header field within 
+//			the IP header of the transport mode packet. */ 
+// TODO: TBD if we need a fixed values for ip_nh_offset
+
+
 /** @} */ /* end of FSL_IPSEC_STRUCTS */
 
 
