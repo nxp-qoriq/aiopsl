@@ -46,6 +46,15 @@ void aiop_verification_fm_temp()
 				gro_verif_create_next_frame();
 			break;
 		}
+		case IPR_VERIF_FM_ID:
+		{
+			str_size = aiop_verification_ipr(asa_seg_addr);
+			
+//			if (str_size == sizeof(struct tcp_gro_agg_seg_command))
+//				ipr_verif_create_next_frame();
+			break;
+		}
+
 		case FPDMA_ACCEL_ID:
 		case FODMA_ACCEL_ID:
 		{
