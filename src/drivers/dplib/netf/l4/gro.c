@@ -136,6 +136,9 @@ int32_t tcp_gro_aggregate_seg(
 				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
 				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
 				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
+
+		gro_ctx.agg_headers_size = (uint16_t)
+				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 		gro_ctx.next_seq = tcp->sequence_number + seg_size - 
 				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 		/* in case there is an option it must be a timestamp option */
@@ -395,6 +398,12 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	/* present default FD (the aggregated FD) */
 	sr_status = fdma_present_default_frame();
 	
+	/* run parser if headers were changed */
+	if (gro_ctx->agg_headers_size != headers_size){
+		sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
+		tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
+	}
+		
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ip_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 
@@ -523,10 +532,13 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* present frame (default_FD(agg_FD)) +  present header */
 	sr_status = fdma_present_default_frame(); /* TODO FDMA ERROR */
 	
-	/* run parser if needed */
-	if (old_agg_timestamp != 
-		(gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP))
+	/* run parser if headers were changed */
+	if ((gro_ctx->agg_headers_size != headers_size) ||
+	    (old_agg_timestamp != 
+		(gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP))){
 		sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
+		tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
+	}
 	
 	/* update last segment header fields */
 	if (gro_ctx->metadata.seg_num > 1)
