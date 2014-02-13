@@ -32,6 +32,8 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str_size = (uint16_t)sizeof(struct tcp_gro_agg_seg_command);
+		
+		gro_verif_create_next_frame();
 		break;
 	}
 	case TCP_GRO_CONTEXT_FLUSH_AGG_CMD_STR:
@@ -56,7 +58,6 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 	}
 	}
 	
-	gro_verif_create_next_frame();
 	return str_size;
 }
 
@@ -77,7 +78,6 @@ void gro_verif_create_next_frame()
 				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 	tcp->sequence_number = tcp->sequence_number + seg_size - headers_size;
-
 }
 
 
