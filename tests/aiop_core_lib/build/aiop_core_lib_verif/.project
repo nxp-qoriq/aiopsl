@@ -118,6 +118,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ctlu.h</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/aiop_verification_data.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_data.c</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/aiop_verification_data.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_data.h</locationURI>
@@ -393,6 +398,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/include/checksum.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.c</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
@@ -556,6 +566,16 @@
 			<name>sources/drivers/dplib/netf/ip/ipr.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/netf/ip/ipsec.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/netf/ip/ipsec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/ip/ipv4_checksum.c</name>

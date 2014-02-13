@@ -14,10 +14,8 @@
 
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
 __TASK ipf_ctx_t ipf_context_addr;
-__TASK int32_t status;
 __TASK int32_t status_gso;
 __TASK int32_t status_ipf;
-__TASK int32_t status_gro;
 
 void aiop_verification_fm()
 {
@@ -39,6 +37,9 @@ void aiop_verification_fm()
 			FDMA_PRES_SR_BIT, (void *)&ext_address, 0, 8, 
 			&seg_length, &seg_handle);
 	}
+	
+	init_verif_tls();
+	
 	/* The Terminate command will finish the verification */
 	do
 	{
@@ -55,6 +56,11 @@ void aiop_verification_fm()
 			str_size = aiop_verification_gso((uint32_t)data_addr);
 			break;
 		}
+		case TCP_GRO_MODULE_STATUS_ID:
+		{
+			str_size = aiop_verification_gro((uint32_t)data_addr);
+			break;
+		}
 		case IPR_MODULE_STATUS_ID:
 		{
 			str_size = aiop_verification_ipr((uint32_t)data_addr);
@@ -64,15 +70,46 @@ void aiop_verification_fm()
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);
 		}
-		case TCP_GRO_MODULE_STATUS_ID:
+		case FPDMA_ACCEL_ID:
+		case FODMA_ACCEL_ID:
 		{
-			str_size = aiop_verification_gro(
-					(uint32_t)data_addr);
+			str_size = aiop_verification_fdma((uint32_t)data_addr);
+			break;
+		}
+		case TMAN_ACCEL_ID:
+		{
+			str_size = aiop_verification_tman((uint32_t)data_addr);
+			break;
+		}
+		case STE_VERIF_ACCEL_ID:
+		{
+			str_size = aiop_verification_ste((uint32_t)data_addr);
+			break;
+		}
+		case CDMA_ACCEL_ID:
+		{
+			str_size = aiop_verification_cdma((uint32_t)data_addr);
+			break;
+		}
+		case CTLU_ACCEL_ID:
+		{
+			str_size = aiop_verification_ctlu((uint32_t)data_addr);
 			break;
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
 		{
 			str_size = aiop_verification_parser(
+					(uint32_t)data_addr);
+			break;
+		}
+		case HM_VERIF_ACCEL_ID:
+		{
+			str_size = aiop_verification_hm((uint32_t)data_addr);
+			break;
+		}
+		case VPOOL_ACCEL_ID:
+		{
+			str_size = verification_virtual_pools(
 					(uint32_t)data_addr);
 			break;
 		}

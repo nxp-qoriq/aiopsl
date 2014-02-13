@@ -17,10 +17,6 @@
 #pragma section RW ".verif_data" ".verif_bss"
 #pragma section RW ".verif_tdata" ".verif_tbss"
 
-__VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
-
-
-
-
+void init_verif_tls();
 
 #endif /* __AIOP_VERIFICATION_DATA_H_ */

@@ -101,6 +101,7 @@ struct tman_tmi_delete_command {
 	tman_cb_t	tman_confirm_cb;
 	tman_arg_2B_t	conf_opaque_data2;
 	uint8_t		tmi_id;
+	uint8_t		pad[5];
 };
 
 /**************************************************************************//**
@@ -134,7 +135,7 @@ struct tman_timer_create_command {
 	uint16_t	opaque_data2;
 	uint16_t	duration;
 	uint8_t		tmi_id;
-	uint8_t		pad[6];
+	uint8_t		pad[7];
 };
 
 /**************************************************************************//**

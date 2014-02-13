@@ -308,6 +308,7 @@ static int disable_l1_cache(t_platform *pltfrm)
     return E_OK;
 }
 
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 static int console_print_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size)
 {
@@ -349,6 +350,7 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
     msr_disable_me();
     msr_disable_ce();
 }
+#endif
 
 /*****************************************************************************/
 static int pltfrm_init_core_cb(fsl_handle_t h_platform)
@@ -417,6 +419,7 @@ static int pltfrm_free_core_cb(fsl_handle_t h_platform)
     return E_OK;
 }
 
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 {
@@ -453,6 +456,7 @@ static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 
     return E_OK;
 }
+#endif
 
 /*****************************************************************************/
 static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
@@ -550,6 +554,7 @@ static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
     return E_OK;
 }
 
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 static int pltfrm_init_private_cb(fsl_handle_t h_platform)
 {
@@ -588,7 +593,7 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 
     return E_OK;
 }
-
+#endif
 
 /*****************************************************************************/
 int platform_early_init(struct platform_param *pltfrm_params)
@@ -675,12 +680,12 @@ int platform_init(struct platform_param    *pltfrm_param,
     pltfrm_ops->f_free_console          = NULL; // pltfrm_free_console_cb;
     pltfrm_ops->f_init_mem_partitions   = pltfrm_init_mem_partitions_cb;
     pltfrm_ops->f_free_mem_partitions   = pltfrm_free_mem_partitions_cb;
-    pltfrm_ops->f_init_private          = pltfrm_init_private_cb;
-    pltfrm_ops->f_free_private          = pltfrm_free_private_cb;
+    pltfrm_ops->f_init_private          = NULL; // pltfrm_init_private_cb;
+    pltfrm_ops->f_free_private          = NULL; // pltfrm_free_private_cb;
 
     pltfrm_ops->f_enable_cores          = NULL;
-    pltfrm_ops->f_enable_local_irq      = pltfrm_enable_local_irq_cb;
-    pltfrm_ops->f_disable_local_irq     = pltfrm_disable_local_irq_cb;
+    pltfrm_ops->f_enable_local_irq      = NULL; // pltfrm_enable_local_irq_cb;
+    pltfrm_ops->f_disable_local_irq     = NULL; // pltfrm_disable_local_irq_cb;
 
     return E_OK;
 }
@@ -746,6 +751,7 @@ uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
     return (pltfrm->param.clock_in_freq_hz * 4);
 }
 
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 int platform_enable_console(fsl_handle_t h_platform)
 {
@@ -833,3 +839,4 @@ int platform_disable_console(fsl_handle_t h_platform)
 
     return E_OK;
 }
+#endif
