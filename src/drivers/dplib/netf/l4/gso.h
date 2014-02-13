@@ -37,7 +37,8 @@
 *//***************************************************************************/
 struct tcp_gso_context {
 	/** Remaining packet FD  */
-	struct ldpaa_fd rem_fd;
+	struct ldpaa_fd rem_fd 
+		__attribute__((aligned(sizeof(struct ldpaa_fd))));
 	/** Flags - Please refer to \ref TCP_GSO_FLAGS */
 	uint32_t flags;
 	/** Internal TCP GSO flags - Please refer to 
@@ -63,8 +64,10 @@ struct tcp_gso_context {
 	uint8_t	rem_frame_handle;
 	/** First Segment indication */
 	uint8_t	first_seg;
+	/** IP offset */
+	uint8_t	ip_offset;
 	/** Padding */
-	uint8_t	pad[7];
+	uint8_t	pad[6];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */

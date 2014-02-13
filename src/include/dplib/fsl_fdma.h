@@ -1484,7 +1484,8 @@ enum fdma_pta_size_type {
 
 *//***************************************************************************/
 struct working_frame {
-		/** A pointer to Frame descriptor in workspace */
+		/** A pointer to Frame descriptor in workspace.
+		 * The FD address in workspace must be aligned to 32 bytes. */
 	struct ldpaa_fd *fd;
 		/** Handle to the HW working frame */
 	uint8_t frame_handle;
@@ -1535,7 +1536,8 @@ struct fdma_present_frame_params {
 		 * store the ASA. */
 	void *asa_dst;
 		/** A pointer to the location in workspace of the FD that is to
-		* be presented. */
+		* be presented. 
+		* The FD address in workspace must be aligned to 32 bytes.*/
 	struct ldpaa_fd *fd_src;
 		/** location within the presented frame to start presenting
 		 * the segment from. */
@@ -2246,7 +2248,7 @@ int32_t fdma_enqueue_default_fd_fqid(
 		After completion, the Enqueue Frame command can
 		terminate the task or return.
 
-@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	fqid - frame queue ID for the enqueue.
@@ -2301,7 +2303,7 @@ int32_t fdma_enqueue_default_fd_qd(
 		After completion, the Enqueue Frame command can
 		terminate the task or return.
 
-@Param[in]	fd - Frame Descriptor to be enqueued.
+@Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
@@ -3040,7 +3042,8 @@ int32_t fdma_release_buffer(
 		(struct fdma_isolation_attributes). 
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
-		On a success return this pointer will point to a valid FD. 
+		On a success return this pointer will point to a valid FD.
+		The FD address in workspace must be aligned to 32 bytes.  
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size.
