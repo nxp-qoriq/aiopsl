@@ -1630,8 +1630,7 @@ struct fdma_split_frame_params {
 		/** \link FDMA_Split_Flags split frames flags
 		 * \endlink */
 	uint32_t flags;
-		/** A pointer to the location in workspace for the split FD.
-		 * The FD address in workspace must be aligned to 32 bytes. */
+		/** A pointer to the location in workspace for the split FD. */
 	struct ldpaa_fd *fd_dst;
 		/** A pointer to the location in workspace for the presented
 		 * split frame segment. */
@@ -2250,7 +2249,6 @@ int32_t fdma_enqueue_default_fd_fqid(
 		terminate the task or return.
 
 @Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
-		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	fqid - frame queue ID for the enqueue.
@@ -2306,7 +2304,6 @@ int32_t fdma_enqueue_default_fd_qd(
 		terminate the task or return.
 
 @Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
-		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
