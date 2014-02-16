@@ -134,6 +134,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		params.ws_dst = (void *)str->ws_dst;
 		str->status = (int8_t)fdma_present_frame_segment(&params);
 		str_size = (uint16_t)sizeof(struct fdma_present_exp_command);
+		str->seg_length = params.seg_length;
+		str->seg_handle = params.seg_handle;
+
 		break;
 	}
 	/* FDMA Extend segment Command Verification */
