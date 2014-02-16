@@ -633,7 +633,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 {
-	struct 		ldpaa_fd fds_to_concatenate[2];
+	struct 		ldpaa_fd fds_to_concatenate[2] \
+			     __attribute__((aligned(sizeof(struct ldpaa_fd))));
     	uint64_t	fds_to_fetch_addr;
     	uint8_t		frame_handle1;
     	uint8_t		frame_handle2;
