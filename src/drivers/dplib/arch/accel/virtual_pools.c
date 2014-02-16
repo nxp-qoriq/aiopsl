@@ -8,6 +8,7 @@
 #include "virtual_pools.h"
 #include "common/spinlock.h"
 #include "dplib/fsl_cdma.h"
+#include "cdma.h"
 
 //struct virtual_pool_desc virtual_pools[MAX_VIRTUAL_POOLS_NUM];
 struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
