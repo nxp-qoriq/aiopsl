@@ -140,7 +140,7 @@ int32_t tcp_gro_aggregate_seg(
 		gro_ctx.agg_headers_size = (uint16_t)
 				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 		gro_ctx.next_seq = tcp->sequence_number + seg_size - 
-				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
+				gro_ctx.agg_headers_size;
 		/* in case there is an option it must be a timestamp option */
 		if (data_offset > TCP_HDR_LENGTH){
 			gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
