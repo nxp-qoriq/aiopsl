@@ -60,7 +60,7 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 	return str_size;
 }
 
-void gro_verif_create_next_frame()
+void gro_verif_create_next_frame(uint8_t gro_iteration)
 {
 	struct tcphdr *tcp;
 	uint32_t sequence_number;
