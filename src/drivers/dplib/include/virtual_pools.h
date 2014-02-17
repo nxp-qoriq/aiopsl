@@ -19,6 +19,7 @@
  @{
 *//***************************************************************************/
 
+typedef int (vpool_callback_t) (uint64_t context_address);
 
 /* Virtual Pool structure */
 struct virtual_pool_desc {
@@ -27,13 +28,12 @@ struct virtual_pool_desc {
 	int32_t allocated_bufs;
 	uint8_t spinlock;
 	uint8_t flags;
-	//uint16_t bman_pool_id;
-    uint16_t bman_array_index;
+	uint16_t bman_array_index;
 };
 
 /* Callback functions struct */
 struct callback_s {
-	int32_t (*callback_func)(uint64_t);
+	vpool_callback_t *callback_func;
 };
 
 /* BMAN Pool structure */
@@ -136,11 +136,11 @@ enum VIRTUAL_POOLS_STATUS {
 @Function	__vpool_internal_release_buf
 
 @Description	This function does the virtual pools counters handling
-				upon releasing a buffer.
+		upon releasing a buffer.
 
 @Param[in]	virtual_pool_id - virtual pool ID. 
 
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t __vpool_internal_release_buf (uint32_t virtual_pool_id);
@@ -162,8 +162,8 @@ int32_t __vpool_internal_release_buf (uint32_t virtual_pool_id);
 			the acquired 64 bit address of the Context memory.
 
 @Return		Status - Success or Failure. 
-			A failure status reflects CDMA module errors or Virtual Pools 
-			module errors. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
+		A failure status reflects CDMA module errors or Virtual Pools 
+		module errors. (\ref cdma_errors VIRTUAL_POOLS_STATUS).
 			 
 @Cautions	The maximum legal id value is MAX_AIOP_VIRTUAL_POOLS_MEM.
 @Cautions	This function performs a task switch. ???
@@ -176,22 +176,22 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 @Function	vpool_release_buf
 
 @Description	This routine releases (frees) the Context memory block
-				related to a virtual pool according to the pool ID given.
-				The routine is utilizing the CDMA module for the actual 
-				deallocation.
+		related to a virtual pool according to the pool ID given.
+		The routine is utilizing the CDMA module for the actual 
+		deallocation.
 				
 @Param[in]	virtual_pool_id - the virtual pool ID.
 @Param[in]	context_address - Address of Context memory to be released.
 
 @Return		Status - Success or Failure.
-			A failure status reflects CDMA module errors or Virtual Pools 
-			module errors. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
+		A failure status reflects CDMA module errors or Virtual Pools 
+		module errors. (\ref cdma_errors VIRTUAL_POOLS_STATUS).
 
 @remark		This function is not considering the reference counter value,
-			and releases the buffer even if it is not zero.
-			It should not be used by an application in a normal flow.
-			For decrementing the reference counter and releasing a buffer,
-			use the function vpool_refcount_decrement_and_release.  
+		and releases the buffer even if it is not zero.
+		It should not be used by an application in a normal flow.
+		For decrementing the reference counter and releasing a buffer,
+		use the function vpool_refcount_decrement_and_release.  
 
 @Cautions	A mutex lock (if exists) will not be released.
 @Cautions	This function yields 
@@ -204,11 +204,12 @@ int32_t vpool_release_buf(uint32_t virtual_pool_id,
 @Function	vpool_refcount_increment
 
 @Description	This routine increments the reference counter of a
-				Context memory object.
+		Context memory object.
 
 @Param[in]	context_address - Address of the Context buffer.
 
-@Return		Status - Success or Failure. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. 
+		(\ref cdma_errors VIRTUAL_POOLS_STATUS).
 
 @remark		The provided context_address must be of a valid Context buffer.
 
@@ -222,24 +223,25 @@ int32_t vpool_refcount_increment(
 @Function	vpool_decr_ref_counter
 
 @Description	This routine decrements the reference counter of a 
-				Context buffer, and if the counter reached zero performs
-				the following actions:
-				1. If this virtual pool contains a non-NULL callback function,
-				it calls the function.
-				2. Releases (frees) the Context memory buffer.
+		Context buffer, and if the counter reached zero performs
+		the following actions:
+		1. If this virtual pool contains a non-NULL callback function,
+		   it calls the function.
+		2. Releases (frees) the Context memory buffer.
 				
-				The routine is utilizing the CDMA module for the actual 
-				decrement and deallocation.
+		The routine is utilizing the CDMA module for the actual 
+		decrement and deallocation.
 				
 @Param[in]	virtual_pool_id - the virtual pool ID.
 @Param[in]	context_address - Address of Context memory.
+@Param[out]	callback_status - Returned status of the callback.
 
 @Return		Status - Success or Failure.
-			A failure status reflects CDMA module errors or Virtual Pools 
-			module errors. (\ref cdma_errors VIRTUAL_POOLS_ERRORS).
+		A failure status reflects CDMA module errors or Virtual Pools 
+		module errors. (\ref cdma_errors VIRTUAL_POOLS_STATUS).
 
 @remark		This function is doing a reference counter decrement,
-			and only if the counter reached zero, releases the buffer.
+		and only if the counter reached zero, releases the buffer.
 
 @Cautions	A mutex lock (if exists) will not be released.
 @Cautions	This function yields 
@@ -255,23 +257,23 @@ int32_t vpool_refcount_decrement_and_release(
 @Function	vpool_create_pool
 
 @Description	This routine creates a virtual pool structure and returns 
-				the ID of it.
+		the ID of it.
 
 @Param[in]	bman_pool_id - BMAN pool ID from which the virtual pool 
-			allocates buffers. 
+		allocates buffers. 
 @Param[in] 	max_bufs - the maximum number of Context buffers that this 
-			virtual pool can allocate. 
+		virtual pool can allocate. 
 @Param[in] 	committed_bufs - the number of Context buffers that this 
-			virtual pool must be able to allocate. 
+		virtual pool must be able to allocate. 
 @Param[in] 	flags - control flags. Should be all zeros. 
 
 @Param[in] 	callback_func - Reference to a callback function. This function 
-			will invoked when calling vpool_refcount_decrement_and_release
-			and a buffer related to this virtual pool should be deallocated.  
+		will invoked when calling vpool_refcount_decrement_and_release
+		and a buffer related to this virtual pool should be deallocated.  
 
 @Param[out]	virtual_pool_id - virtual pool ID.
- 	 	 	A pointer where to return the virtual pool ID.
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_ERRORS).
+ 	 	A pointer where to return the virtual pool ID.
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t vpool_create_pool(
@@ -279,7 +281,7 @@ int32_t vpool_create_pool(
 		int32_t max_bufs, 
 		int32_t committed_bufs,
 		uint32_t flags,
-		int32_t (*callback_func)(uint64_t),
+		vpool_callback_t *callback_func,
 		uint32_t *virtual_pool_id
 		);
 		
@@ -292,7 +294,7 @@ int32_t vpool_create_pool(
 
 @Param[in]	virtual_pool_id - virtual pool ID to be released.
 
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t vpool_release_pool(uint32_t virtual_pool_id);
@@ -305,16 +307,16 @@ int32_t vpool_release_pool(uint32_t virtual_pool_id);
 @Param[in]	virtual_pool_id - virtual pool ID.
 @Param[out]	bman_pool_id - A pointer where to return the  BMAN pool ID. 
 @Param[out] max_bufs - A pointer where to return the maximum number of 
-			Context buffers that this virtual pool can allocate. 
+		Context buffers that this virtual pool can allocate. 
 @Param[out] committed_bufs - A pointer where to return the number of 
-			Context buffers that this virtual pool must be able to allocate. 
+		Context buffers that this virtual pool must be able to allocate. 
 @Param[out] allocated_bufs - A pointer where to return the current number of 
-			Context buffers already allocated by this virtual pool. 
+		Context buffers already allocated by this virtual pool. 
 @Param[out] flags - A pointer where to return the virtual pool flags. 
 @Param[out] callback_func - A pointer where to return the callback function
-			reference. 
+		reference. 
 
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t vpool_read_pool(uint32_t virtual_pool_id, 
@@ -330,21 +332,21 @@ int32_t vpool_read_pool(uint32_t virtual_pool_id,
 @Function	vpool_init
 
 @Description	This function initializes the virtual pools structure. 
-				Memory blocks for the virtual pools and callback functions
-				structure should be allocated by the initializing function,
-				and references to these memory blocks are the input to this
-				function.
+		Memory blocks for the virtual pools and callback functions
+		structure should be allocated by the initializing function,
+		and references to these memory blocks are the input to this
+		function.
 
 @Param[in]	virtual_pool_struct - address of the virtual pools structure 
-			memory block. 
+		memory block. 
 @Param[in] 	callback_func_struct - address of the callback functions 
-			memory block. 
-			A NULL in this field indicates that no callback functions 
-			are available. In this case a memory block is not required. 
+		memory block. 
+		A NULL in this field indicates that no callback functions 
+		are available. In this case a memory block is not required. 
 @Param[in] 	num_of_virtual_pools - number of virtual pools.
 @Param[in] 	flags - control flags. Should be all zeros.
  
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t vpool_init(
@@ -359,16 +361,16 @@ int32_t vpool_init(
 @Function	vpool_init_total_bman_bufs
 
 @Description	This function initializes the total number of BMAN buffers 
-				available for the virtual pools function from each BMAN pool.
-				This function should be called once for each BMAN pool ID
-				used by the virtual pools function.
+		available for the virtual pools function from each BMAN pool.
+		This function should be called once for each BMAN pool ID
+		used by the virtual pools function.
 
 @Param[in]	bman_pool_id - BMAN pool ID. 
 @Param[in] 	total_avail_bufs - The total number of available buffers in 
-			bman_pool_id BMAN pool. 
+		bman_pool_id BMAN pool. 
 @Param[in] 	buf_size - size of buffers in bman_pool_id pool
  
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t vpool_init_total_bman_bufs( 
@@ -380,25 +382,22 @@ int32_t vpool_init_total_bman_bufs(
 @Function	vpool_add_total_bman_bufs
 
 @Description	This function adds additional_bufs number of BMAN buffers to
-				the total number of BMAN buffers initialized with  
-				vpool_init_total_bman_bufs function.
-				This function should can be called multiple times .
+		the total number of BMAN buffers initialized with  
+		vpool_init_total_bman_bufs function.
+		This function should can be called multiple times .
 
 @Param[in]	bman_pool_id - BMAN pool ID. 
 @Param[in] 	additional_bufs - The total number of buffers to add to the  
-			bman_pool_id BMAN pool. 
+		bman_pool_id BMAN pool. 
  
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_ERRORS).
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t vpool_add_total_bman_bufs( 
 		uint16_t bman_pool_id, 
 		int32_t additional_bufs);
 
-
-
 // TODO: all functions should be inline
-
 
 
 /** @} end of group VIRTUAL_POOLS_Functions */

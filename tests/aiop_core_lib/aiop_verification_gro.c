@@ -60,7 +60,7 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 	return str_size;
 }
 
-void gro_verif_create_next_frame()
+void gro_verif_create_next_frame(uint8_t gro_iteration)
 {
 	struct tcphdr *tcp;
 	uint32_t sequence_number;
@@ -78,7 +78,23 @@ void gro_verif_create_next_frame()
 				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
 				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
-	tcp->sequence_number = sequence_number + seg_size - headers_size;
+	
+	switch (gro_iteration)
+	{
+	case 1 :
+	{
+		tcp->sequence_number = sequence_number + seg_size - 
+				headers_size;
+		break;
+	}
+	default:
+	{
+		tcp->sequence_number = sequence_number + seg_size - 
+						headers_size;
+	}
+	}
+
+
 }
 
 
