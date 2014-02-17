@@ -16,7 +16,7 @@
 #include "general.h"
 #include "fdma.h"
 #include "checksum.h"
-
+#include "cdma.h"
 
 	/* Shared memory global GRO parameters. */
 struct gro_global_parameters gro_global_params;
