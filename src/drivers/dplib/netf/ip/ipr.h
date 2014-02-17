@@ -12,7 +12,6 @@
 #include "common/types.h"
 #include "dplib/fsl_ipr.h"
 #include "dplib/fsl_osm.h"
-#include "cdma.h"
 
 
 /**************************************************************************//**

@@ -210,3 +210,24 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 
 	return str_size;
 }
+
+void ipr_verif_update_frame(uint16_t iteration)
+{
+	struct ipv4hdr *iphdr;
+	
+	iphdr = ((struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
+	if(iteration > 2) {
+		fdma_present_default_frame();
+	
+	/* calculate segment size + data offset + headers size*/
+/*	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	data_offset = (tcp->data_offset_reserved & 
+				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
+				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
+	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
+	tcp->sequence_number = sequence_number + seg_size - headers_size;
+*/
+	iphdr->flags_and_offset = (iphdr->flags_and_offset & 0xffC0) | 0x60;
+	}
+}
