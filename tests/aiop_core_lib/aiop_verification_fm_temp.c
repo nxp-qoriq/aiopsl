@@ -20,6 +20,7 @@ void aiop_verification_fm_temp()
 	uint16_t str_size;
 	uint32_t opcode;
 	uint8_t gro_iteration = 0;
+	uint8_t  ipr_iteration = 0;
 
 	
 	/* initialize Additional Dequeue Context */
@@ -51,10 +52,9 @@ void aiop_verification_fm_temp()
 		}
 		case IPR_VERIF_FM_ID:
 		{
+			ipr_verif_update_frame(ipr_iteration);
 			str_size = aiop_verification_ipr(asa_seg_addr);
-			
-//			if (str_size == sizeof(struct tcp_gro_agg_seg_command))
-//				ipr_verif_create_next_frame();
+			ipr_iteration ++;
 			break;
 		}
 

@@ -231,6 +231,9 @@ struct ipr_get_reass_frm_cntr_command {
 
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr);
 
+void ipr_verif_update_frame(uint16_t iteration);
+
+
 /** @} */ /* end of AIOP_IPR_FM_Verification */
 
 /** @} */ /* end of AIOP_Service_Routines_Verification */

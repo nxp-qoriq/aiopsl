@@ -11,7 +11,6 @@
 #include "system.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/fsl_ctlu.h"
@@ -20,6 +19,8 @@
 #include "fdma.h"
 #include "checksum.h"
 #include "ipr.h"
+#include "cdma.h"
+
 
 struct  ipr_global_parameters ipr_global_parameters1;
 uint8_t ipr_instance_spin_lock = 0;

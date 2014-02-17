@@ -132,7 +132,7 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 					str->max_bufs,
 					str->committed_bufs,
 					str->flags,
-					(int32_t (*)(uint64_t))str->callback_func,
+					(vpool_callback_t *)str->callback_func,
 					((uint32_t *)str->virtual_pool_id_ptr)
 					);
 			str_size = sizeof(struct vpool_create_pool_cmd);
