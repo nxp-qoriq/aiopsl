@@ -11,7 +11,6 @@
 #include "system.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/fsl_ctlu.h"
@@ -20,6 +19,8 @@
 #include "fdma.h"
 #include "checksum.h"
 #include "ipr.h"
+#include "cdma.h"
+
 
 struct  ipr_global_parameters ipr_global_parameters1;
 uint8_t ipr_instance_spin_lock = 0;
@@ -633,7 +634,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 {
-	struct 		ldpaa_fd fds_to_concatenate[2];
+	struct 		ldpaa_fd fds_to_concatenate[2] \
+			     __attribute__((aligned(sizeof(struct ldpaa_fd))));
     	uint64_t	fds_to_fetch_addr;
     	uint8_t		frame_handle1;
     	uint8_t		frame_handle2;

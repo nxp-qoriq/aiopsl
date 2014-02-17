@@ -8,8 +8,8 @@
 #include "virtual_pools.h"
 #include "common/spinlock.h"
 #include "dplib/fsl_cdma.h"
+#include "cdma.h"
 
-//struct virtual_pool_desc virtual_pools[MAX_VIRTUAL_POOLS_NUM];
 struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
 
 struct virtual_pools_root_desc virtual_pools_root;
@@ -23,19 +23,21 @@ int32_t vpool_create_pool(
 		int32_t max_bufs, 
 		int32_t committed_bufs,
 		uint32_t flags,
-		int32_t (*callback_func)(uint64_t),
+		vpool_callback_t *callback_func,
 		uint32_t *virtual_pool_id)
 {
 	
 	uint32_t vpool_id;
 	uint32_t num_of_virtual_pools = virtual_pools_root.num_of_virtual_pools;
-    uint16_t bman_array_index;
+	uint16_t bman_array_index;
 	int i;
 	
 	struct virtual_pool_desc *virtual_pool = 
-			(struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct;
+			(struct virtual_pool_desc *)
+				virtual_pools_root.virtual_pool_struct;
 	struct callback_s *callback = 
-			(struct callback_s *)virtual_pools_root.callback_func_struct;
+			(struct callback_s *)
+				virtual_pools_root.callback_func_struct;
 
 	#ifdef SL_DEBUG
 		/* Check the arguments correctness */
@@ -61,27 +63,33 @@ int32_t vpool_create_pool(
 	// TODO: check if out of range and return error
 		
 	/* Spinlock this BMAN pool counter */
-	lock_spinlock((uint8_t *)&virtual_bman_pools[bman_array_index].spinlock);
+	lock_spinlock(
+		(uint8_t *)&virtual_bman_pools[bman_array_index].spinlock);
 	
 	/* Check if there are enough buffers to commit */
 	if (virtual_bman_pools[bman_array_index].remaining >= committed_bufs) {
 		/* decrement the total available BMAN pool buffers */ 
-		virtual_bman_pools[bman_array_index].remaining -= committed_bufs;
+		virtual_bman_pools[bman_array_index].remaining -= 
+								committed_bufs;
 		
-		unlock_spinlock((uint8_t *)&virtual_bman_pools[bman_array_index].spinlock);
+		unlock_spinlock((uint8_t *)
+			&virtual_bman_pools[bman_array_index].spinlock);
 
 	} else {
-		unlock_spinlock((uint8_t *)&virtual_bman_pools[bman_array_index].spinlock);
+		unlock_spinlock((uint8_t *)
+			&virtual_bman_pools[bman_array_index].spinlock);
 		return VIRTUAL_POOLS_INSUFFICIENT_BUFFERS;
 	}
 		
 	lock_spinlock((uint8_t *)&virtual_pools_root.global_spinlock);
 	
 	/* Allocate a virtual pool ID */
-	/* Return with error if it was not possible to allocate a virtual pool */
+	/* Return with error if it was not possible to 
+	 * allocate a virtual pool */
 	for(vpool_id = 0; vpool_id < num_of_virtual_pools; vpool_id++) {
 		if(virtual_pool->max_bufs == 0) {
-			virtual_pool->max_bufs = max_bufs; /* use max_bufs as indicator */
+			/* use max_bufs as indicator */
+			virtual_pool->max_bufs = max_bufs; 
 			break;
 		}
 		virtual_pool++; /* increment the pointer */
@@ -118,7 +126,8 @@ int32_t vpool_release_pool(uint32_t virtual_pool_id)
 {
 
 	struct virtual_pool_desc *virtual_pool = 
-			(struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct;
+			(struct virtual_pool_desc *)
+				virtual_pools_root.virtual_pool_struct;
 	virtual_pool += virtual_pool_id;
 	
 	lock_spinlock((uint8_t *)&virtual_pools_root.global_spinlock);
@@ -135,8 +144,9 @@ int32_t vpool_release_pool(uint32_t virtual_pool_id)
 	unlock_spinlock((uint8_t *)&virtual_pools_root.global_spinlock);
 	
 	/* Increment the total available BMAN pool buffers */ 
-	atomic_incr32(&virtual_bman_pools[virtual_pool->bman_array_index].remaining, 
-			virtual_pool->committed_bufs);
+	atomic_incr32(
+		&virtual_bman_pools[virtual_pool->bman_array_index].remaining, 
+		virtual_pool->committed_bufs);
 		
 	return VIRTUAL_POOLS_SUCCESS;	
 } /* End of vpool_release_pool */
@@ -151,29 +161,29 @@ int32_t vpool_read_pool(uint32_t virtual_pool_id,
 		int32_t *allocated_bufs,
 		uint32_t *flags,
 		int32_t *callback_func)
-
-
 {
 	
 	struct callback_s *callback;
 			
 	// TODO: remove this if moving to handle
 	struct virtual_pool_desc *virtual_pool = 
-			(struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct;
+		(struct virtual_pool_desc *)
+			virtual_pools_root.virtual_pool_struct;
 	
 	virtual_pool += virtual_pool_id;
 	
 	*max_bufs = virtual_pool->max_bufs;
 	*committed_bufs = virtual_pool->committed_bufs;
 	*allocated_bufs = virtual_pool->allocated_bufs; 
-	*bman_pool_id = virtual_bman_pools[virtual_pool->bman_array_index].bman_pool_id;
+	*bman_pool_id = 
+		virtual_bman_pools[virtual_pool->bman_array_index].bman_pool_id;
 	
-	*flags =	(uint8_t)virtual_pool->flags;
+	*flags = (uint8_t)virtual_pool->flags;
 
 	/* Check if callback exists and return its address (can be null) */
 	if (virtual_pools_root.callback_func_struct != NULL) {
-		callback = 
-				(struct callback_s *)virtual_pools_root.callback_func_struct;
+		callback = (struct callback_s *)
+				virtual_pools_root.callback_func_struct;
 		callback += virtual_pool_id;
 		*callback_func = (int32_t)callback->callback_func;
 	} else {
@@ -200,14 +210,15 @@ int32_t vpool_init(
 	 *  Currently the address is only in Shared RAM (32 bit) 
 	*/
 	virtual_pool = 
-			(struct virtual_pool_desc *)(virtual_pool_struct & 0xFFFFFFFF);
+		(struct virtual_pool_desc *)(virtual_pool_struct & 0xFFFFFFFF);
 	
 	virtual_pools_root.virtual_pool_struct = virtual_pool_struct;
 	virtual_pools_root.callback_func_struct = callback_func_struct;
 	virtual_pools_root.num_of_virtual_pools = num_of_virtual_pools;
 	virtual_pools_root.flags = flags;
 	
-	/* Init 'max' to zero, since it's an indicator to pool ID availability */
+	/* Init 'max' to zero, since it's an indicator to 
+	 * pool ID availability */
 	for(i = 0; i < num_of_virtual_pools; i++) {
 		virtual_pool->max_bufs = 0;
 		virtual_pool->spinlock = 0; /* clear spinlock indicator */
@@ -217,7 +228,8 @@ int32_t vpool_init(
 	/* Init 'remaining' to -1, since it's an indicator an empty index */
 	for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
 		virtual_bman_pools[i].remaining = -1;
-		virtual_bman_pools[i].spinlock = 0; /* clear spinlock indicator */
+		/* clear spinlock indicator */
+		virtual_bman_pools[i].spinlock = 0; 
 	}
 	
 	return VIRTUAL_POOLS_SUCCESS;	
@@ -299,32 +311,37 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 	int allocate = 0;
 	
 	// TODO: remove this if moving to handle
-	struct virtual_pool_desc *virtual_pool = 
-			(struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct;
+	struct virtual_pool_desc *virtual_pool = (struct virtual_pool_desc *)
+			virtual_pools_root.virtual_pool_struct;
 	virtual_pool += virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&virtual_pool->spinlock);
 
-	/* First check if there are still available buffers in the VP committed area */ 
+	/* First check if there are still available buffers 
+	 * in the VP committed area */ 
 	if(virtual_pool->allocated_bufs < 
 			virtual_pool->committed_bufs) 	{
 		allocate = 1; /* allocated from committed area */
-	/* Else, check if there are still available buffers in the VP max-committed area */ 
+	/* Else, check if there are still available buffers 
+	 * in the VP max-committed area */ 
 	} else if (virtual_pool->allocated_bufs < virtual_pool->max_bufs) {
-		/* There is still an extra space in the virtual pool, check BMAN pool */
+		/* There is still an extra space in the virtual pool, 
+		 * check BMAN pool */
 		
 		/* spinlock this BMAN pool counter */
 		lock_spinlock((uint8_t *)&virtual_bman_pools[virtual_pool->
-		                                       bman_array_index].spinlock);
+		                               bman_array_index].spinlock);
 
-		if ((virtual_bman_pools[virtual_pool->bman_array_index].remaining) > 0)
+		if ((virtual_bman_pools[
+		              virtual_pool->bman_array_index].remaining) > 0)
 		{ 
 			allocate = 2; /* allocated from remaining area */
-			virtual_bman_pools[virtual_pool->bman_array_index].remaining--; 
+			virtual_bman_pools
+				[virtual_pool->bman_array_index].remaining--; 
 		}
 		
 		unlock_spinlock((uint8_t *)&virtual_bman_pools[virtual_pool->
-		                                       bman_array_index].spinlock);
+		                                bman_array_index].spinlock);
 	}
 		
 	/* Request CDMA to allocate a buffer*/
@@ -336,16 +353,20 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 
 		/* allocate a buffer with the CDMA */
 		return_val = (int32_t)cdma_acquire_context_memory(
-				(uint32_t)virtual_bman_pools[virtual_pool->bman_array_index].buf_size, 
-				(uint16_t)virtual_bman_pools[virtual_pool->bman_array_index].bman_pool_id, 
-				(uint64_t *)context_address); /* uint64_t *context_memory */ 
+			(uint32_t)virtual_bman_pools
+				[virtual_pool->bman_array_index].buf_size, 
+			(uint16_t)virtual_bman_pools
+				[virtual_pool->bman_array_index].bman_pool_id, 
+			(uint64_t *)context_address); /* context_memory */ 
 
-		/* If allocation failed, undo the counters increment/decrement */
+		/* If allocation failed, 
+		 * undo the counters increment/decrement */
 		if (return_val) {
 			atomic_decr32(&virtual_pool->allocated_bufs, 1); 
-			if (allocate == 2) /* only if it was allocated from the remaining area */ 
+			if (allocate == 2) /* only if it was allocated from 
+						the remaining area */ 
 				atomic_incr32(&virtual_bman_pools[virtual_pool->
-				                               bman_array_index].remaining, 1);
+				             bman_array_index].remaining, 1);
 			return (VIRTUAL_POOLS_CDMA_ERR | return_val);
 		}
 		
@@ -388,7 +409,8 @@ int32_t __vpool_internal_release_buf(uint32_t virtual_pool_id)
 	
 	// TODO: remove this if moving to handle
 	struct virtual_pool_desc *virtual_pool = 
-			(struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct;
+		(struct virtual_pool_desc *)
+			virtual_pools_root.virtual_pool_struct;
 	virtual_pool += virtual_pool_id;
 	
 	lock_spinlock((uint8_t *)&virtual_pool->spinlock);
@@ -397,7 +419,8 @@ int32_t __vpool_internal_release_buf(uint32_t virtual_pool_id)
 	if(virtual_pool->allocated_bufs > 
 			virtual_pool->committed_bufs) 	{
 		/* One buffer returns to the common pool */
-		atomic_incr32(&virtual_bman_pools[virtual_pool->bman_array_index].remaining, 1);
+		atomic_incr32(&virtual_bman_pools
+			[virtual_pool->bman_array_index].remaining, 1);
 	}	
 	
 	virtual_pool->allocated_bufs--;
@@ -447,17 +470,26 @@ int32_t vpool_refcount_decrement_and_release(
 	/* Check if a callback structure and function exist */
 	if (virtual_pools_root.callback_func_struct != NULL) {
 		callback = 
-				(struct callback_s *)virtual_pools_root.callback_func_struct;
+			(struct callback_s *)
+				virtual_pools_root.callback_func_struct;
 		callback += virtual_pool_id;
 		if (callback->callback_func != NULL) {
 			no_callback = FALSE;
 			/* Decrement ref counter without release */
 			cdma_status = cdma_refcount_decrement(context_address);
-			if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
+			
+			/* It is considered OK both if the reference count
+			 * got to zero or was already at zero
+			 * (so CDMA returned with decrement error). */
+			if ((cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) ||
+				(cdma_status == CDMA_REFCOUNT_DECREMENT_ERR)
+				) {
 				/* Call the callback function */
-				*callback_status = callback->callback_func(context_address);
+				*callback_status = callback->
+						callback_func(context_address);
 				/* Release the buffer */
-				cdma_status = cdma_release_context_memory(context_address);
+				cdma_status = cdma_release_context_memory
+							(context_address);
 				if (!cdma_status) {
 					release = TRUE;
 				}
@@ -467,14 +499,26 @@ int32_t vpool_refcount_decrement_and_release(
 	
 	if (no_callback) {
 		/* decrement and release without a callback */
-		cdma_status = cdma_refcount_decrement_and_release(context_address);
+		cdma_status = 
+			cdma_refcount_decrement_and_release(context_address);
+		/* It is considered OK both if the reference count
+		 * got to zero or was already at zero
+		 * (so CDMA returned with decrement error). */
 		if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
 			release = TRUE;
 			cdma_status = 0;
-		}	
+		} else if (cdma_status == CDMA_REFCOUNT_DECREMENT_ERR) {
+			/* Release the buffer */
+			cdma_status = cdma_release_context_memory
+						(context_address);
+			if (!cdma_status) {
+				release = TRUE;
+			}	
+		}
 	}
 
-	// TODO: the return value is inconsistent with cdma_refcount_decrement_and_release
+	/* TODO: the return value is inconsistent with 
+	cdma_refcount_decrement_and_release */
 	
 	if (release) {
 		return_val = __vpool_internal_release_buf(virtual_pool_id);

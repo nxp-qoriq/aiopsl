@@ -114,7 +114,7 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 @Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context. 
 		Must be initialized by gso_context_init() prior to the first 
-		call.
+		call. Must be aligned to Frame Descriptor size.
 
 @Return		Status, please refer to \ref TCP_GSO_GENERATE_SEG_STATUS or
 		\ref fdma_hw_errors or \ref fdma_sw_errors for more details.
@@ -132,7 +132,8 @@ int32_t tcp_gso_generate_seg(
 		its completion (before a \ref TCP_GSO_GEN_SEG_STATUS_DONE status
 		is returned).
 
-@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context. 
+		Must be aligned to Frame Descriptor size.
 
 @Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
 
@@ -158,7 +159,7 @@ int32_t tcp_gso_discard_frame_remainder(
 @Param[in]	mss - Maximum Segment Size.
 @Param[out]	tcp_gso_context_addr - Address to the TCP GSO internal context
 		structure allocated by the user. Internally used by TCP GSO
-		functions.
+		functions. Must be aligned to Frame Descriptor size.
 
 @Return		None.
 

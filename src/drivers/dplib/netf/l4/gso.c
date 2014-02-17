@@ -48,19 +48,13 @@ int32_t tcp_gso_generate_seg(
 		/* Restore PRC parameters */
 		PRC_SET_SEGMENT_ADDRESS(gso_ctx->seg_address);
 		PRC_SET_SEGMENT_LENGTH(gso_ctx->seg_length);
-		
-		/* Calculate split_size */
-		gso_ctx->headers_size = (uint16_t)
-			((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) + 
-				((tcp_ptr->data_offset_reserved & 
-				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
-				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
-				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE))); 
-		gso_ctx->split_size = gso_ctx->headers_size + gso_ctx->mss; 
 			
 		/* Call to tcp_gso_split_segment */	
 		return tcp_gso_split_segment(gso_ctx);
 	}
+	
+	/* save ip_offset */
+	gso_ctx->ip_offset = outer_ip_offset;
 	
 	if (tcp_ptr->flags & (NET_HDR_FLD_TCP_FLAGS_RST | 
 			NET_HDR_FLD_TCP_FLAGS_SYN))
@@ -153,13 +147,6 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	struct fdma_present_segment_params present_segment_params;
 	struct fdma_insert_segment_data_params insert_segment_data_params;
 	
-	tcp_ptr = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
-	outer_ip_offset = (uint8_t)(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
-	outer_ipv4_ptr = (struct ipv4hdr *)(
-			PARSER_GET_OUTER_IP_POINTER_DEFAULT());
-	outer_ipv6_ptr = (struct ipv6hdr *)(
-			PARSER_GET_OUTER_IP_POINTER_DEFAULT());
-	
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0; /* Todo - why? */
 	
@@ -185,17 +172,19 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gso_ctx->rem_fd;
 		/* present frame + header segment */
 		status = fdma_present_default_frame(); /* TODO FDMA ERROR */
-		/* run parser on default frame */
-		/* TODO PARSER ERROR */
-		status = parse_result_generate_default(PARSER_NO_FLAGS);
-		status = TCP_GSO_GEN_SEG_STATUS_DONE;
-		/* update TCP header flags */
-		tcp_ptr->flags |= (gso_ctx->internal_flags & (TCP_GSO_FIN_BIT | 
-				TCP_GSO_PSH_BIT));
 		
+		status = TCP_GSO_GEN_SEG_STATUS_DONE;
+		
+		/* We didn't run the parser yet so the outer_ip_offset is taken 
+		 from gso_ctx. The parser will be run only after the IP length 
+		 is updated.  */
+		outer_ip_offset = gso_ctx->ip_offset;
+			
 		/* update IP length */
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 			/* IPv4 - update IP length */
+			outer_ipv4_ptr = (struct ipv4hdr *)(
+				outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 			updated_ipv4_outer_total_length = 
 				(uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				outer_ip_offset);
@@ -207,10 +196,26 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 					updated_ipv4_outer_total_length;
 		} else {	
 			/* IPv6 - update IP length */
+			outer_ipv6_ptr = (struct ipv6hdr *)(
+				outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 			outer_ipv6_ptr->payload_length = 
 				(uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 					outer_ip_offset - IPV6_HDR_LENGTH);
 		}
+		/* run parser on default frame */
+		/* TODO PARSER ERROR */
+		status = parse_result_generate_default(PARSER_NO_FLAGS);
+		tcp_ptr = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
+		outer_ip_offset = (uint8_t)(
+				PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
+		/*outer_ipv4_ptr = (struct ipv4hdr *)(
+				PARSER_GET_OUTER_IP_POINTER_DEFAULT()); */
+		/* outer_ipv6_ptr = (struct ipv6hdr *)(
+				PARSER_GET_OUTER_IP_POINTER_DEFAULT()); */
+		
+		/* update TCP header flags */
+		tcp_ptr->flags |= (gso_ctx->internal_flags & (TCP_GSO_FIN_BIT | 
+						TCP_GSO_PSH_BIT));
 	}
 	else {
 		/* First/middle segment */
@@ -221,6 +226,14 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			/* run parser on default frame */
 			/* TODO PARSER ERROR */
 			status = parse_result_generate_default(PARSER_NO_FLAGS);
+		
+		tcp_ptr = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
+		outer_ip_offset = (uint8_t)(
+				PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
+		/* outer_ipv4_ptr = (struct ipv4hdr *)(
+				PARSER_GET_OUTER_IP_POINTER_DEFAULT()); */
+		/* outer_ipv6_ptr = (struct ipv6hdr *)(
+				PARSER_GET_OUTER_IP_POINTER_DEFAULT()); */
 				
 		/* Present empty segment of the remaining FD */
 		present_segment_params.flags = FDMA_PRES_NO_FLAGS;
@@ -254,16 +267,23 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		gso_ctx->urgent_pointer -= tcp_ptr->urgent_pointer;
 	} 
 	
+	/* Modify default segment */
+		/* TODO FDMA ERROR */
+	status = fdma_modify_default_segment_data((uint16_t)outer_ip_offset,
+			(uint16_t)(gso_ctx->headers_size - outer_ip_offset));
+	
 	/* update TCP checksum *//* TODO CHECKSUM NEW API (Doron)
 	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE); */
 	status = cksum_calc_udp_tcp_checksum();
 	/* TODO FDMA ERROR */
 	
-	/* Modify default segment */
+	/* Modify default segment (updated TCP checksum) */
 	/* TODO FDMA ERROR */
-	status = fdma_modify_default_segment_data((uint16_t)outer_ip_offset,
-			(uint16_t)(gso_ctx->headers_size - outer_ip_offset));
-		
+	status = fdma_modify_default_segment_data(
+			(uint16_t)PARSER_GET_L4_OFFSET_DEFAULT() + 
+			(uint16_t)offsetof(struct tcphdr, checksum),(uint16_t)
+			sizeof(tcp_ptr->checksum));
+	
 	return status; /* Todo - return valid status*/	
 	}
 

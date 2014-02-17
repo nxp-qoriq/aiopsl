@@ -39,6 +39,7 @@ SECTIONS
     } > exception_handlers
 
     GROUP : {
+        .verif_text (VLECODE) : {}
         .text (TEXT) ALIGN(0x1000) : {}
         .text_vle (VLECODE) ALIGN(0x1000): {
              *(.text)
