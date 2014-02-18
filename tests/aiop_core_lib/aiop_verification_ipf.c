@@ -10,9 +10,6 @@
 #include "aiop_verification.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
-//extern __TASK ipf_ctx_t ipf_context_addr;
-//extern __TASK int32_t status;
-//extern __TASK int32_t status_ipf;
 
 uint16_t  aiop_verification_ipf(
 		uint32_t data_addr)
@@ -24,7 +21,7 @@ uint16_t  aiop_verification_ipf(
 	
 	switch (opcode) {
 	/* IPF Init Context command */
-	case IPF_CONTEXT_INIT_CMD :
+	case IPF_CONTEXT_INIT_CMD_STR :
 	{
 		struct ipf_init_command *str =
 			(struct ipf_init_command *)data_addr;
@@ -35,7 +32,7 @@ uint16_t  aiop_verification_ipf(
 		break;
 	}
 	/* IPF Generate Fragment Command */
-	case IPF_GENERATE_FRAG_CMD:
+	case IPF_GENERATE_FRAG_CMD_STR:
 	{
 		struct ipf_generate_frag_command *str =
 			(struct ipf_generate_frag_command *)data_addr;
@@ -54,7 +51,7 @@ uint16_t  aiop_verification_ipf(
 		break;
 	}
 	/* IPF Discard Remaining Frame Command */
-	case IPF_DISCARD_REMAINING_FRAME_CMD:
+	case IPF_DISCARD_REMAINING_FRAME_CMD_STR:
 	{
 		struct ipf_discard_remainder_frame_command *str =
 			(struct ipf_discard_remainder_frame_command *)
