@@ -90,7 +90,8 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				CTLU_TBL_ATTRIBUTE_MR_NO_MISS;
 		err = ctlu_table_create(&tbl_params,
 				&ipr_instance.table_id_ipv4);
-		if (err != CTLU_TABLE_CREATE_STATUS_PASS)
+		/* TODO was CTLU_TABLE_CREATE_STATUS_PASS in 0.6 ctlu api */
+		if (err != CTLU_STATUS_SUCCESS)
 		{
 			/* todo SR error case */
 			cdma_release_context_memory(*ipr_instance_ptr);
@@ -204,8 +205,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					instance_params.table_id_ipv4,
 					ipr_global_parameters1.ipr_key_id_ipv4,
 					&lookup_result);
-			/* todo new ctlu api CTLU_STATUS_SUCCESS*/
-			if(sr_status == CTLU_LOOKUP_STATUS_MATCH_FOUND) {
+			/* todo 0.6 ctlu api CTLU_LOOKUP_STATUS_MATCH_FOUND*/
+			if(sr_status == CTLU_STATUS_SUCCESS) {
 			     /* Hit */
 			     rfdc_ext_addr = lookup_result.opaque0_or_reference;
 			     /* Unlock instance handle parameters*/
@@ -230,13 +231,14 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				   /* Early Time out */
 				   return IPR_ERROR;
 				}	
-			/* todo new ctlu api CTLU_STATUS_MISS*/
-/* todo restore this else } else if(sr_status == 
+/* todo 0.6 api w\o bug } else if(sr_status == 
 				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {*/
-			} else if((sr_status == 
+			/* todo 0.6 api with bug} else if((sr_status == 
 				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) || 
-				  (sr_status == CTLU_LOOKUP_STATUS_MISS_RESULT)){
+				  (sr_status == CTLU_LOOKUP_STATUS_MISS_RESULT)){ */
 				/* Miss */
+			} else if(sr_status == 
+					CTLU_STATUS_MISS) {
 			    cdma_acquire_context_memory(
 					     IPR_CONTEXT_SIZE,
 					     ipr_global_parameters1.ipr_pool_id,

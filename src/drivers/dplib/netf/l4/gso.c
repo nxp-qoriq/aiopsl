@@ -272,9 +272,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	status = fdma_modify_default_segment_data((uint16_t)outer_ip_offset,
 			(uint16_t)(gso_ctx->headers_size - outer_ip_offset));
 	
-	/* update TCP checksum *//* TODO CHECKSUM NEW API (Doron)
-	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE); */
-	status = cksum_calc_udp_tcp_checksum();
+	/* update TCP checksum *//* TODO CHECKSUM 0.6 API (Doron)
+	status = cksum_calc_udp_tcp_checksum(); */
+	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE);
 	/* TODO FDMA ERROR */
 	
 	/* Modify default segment (updated TCP checksum) */

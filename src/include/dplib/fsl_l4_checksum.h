@@ -12,11 +12,11 @@
 
 
 /**************************************************************************//**
- @Group		NETF NETF (Network Libraries)
+@Group		NETF NETF (Network Libraries)
 
- @Description	AIOP Accelerator APIs
+@Description	AIOP Accelerator APIs
 
- @{
+@{
 *//***************************************************************************/
 /**************************************************************************//**
 @Group	FSL_L4_CKSUM L4 Checksum
@@ -34,29 +34,49 @@
 @{
 *//***************************************************************************/
 
+
+/**************************************************************************//**
+@Group	FSL_L4_UDP_TCP_CKSUM_CALC_OPTIONS Options for \
+	\ref l4_udp_tcp_cksum_calc function.
+@{
+*//***************************************************************************/
+
+/** No options */
+#define L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE			0x00000000
+
+
+/** Update FDMA option
+ * When this options is set, the SR will call \ref
+ * fdma_modify_default_segment_data to update the FDMA engine with the frame
+ * header changes. */
+#define L4_UDP_TCP_CKSUM_CALC_OPTIONS_UPDATE_FDMA		0x00000001
+
+/** @} */ /* end of FSL_L4_UDP_TCP_CKSUM_CALC_OPTIONS */
+
+
 /**************************************************************************//**
 @Group	FSL_L4_CKSUM_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_L4_CKSUM_STATUS_CALC_UDP_TCP Status returned from \
-	 \ref l4_cksum_calc_udp_tcp_checksum SR
+@Group	FSL_L4_UDP_TCP_CKSUM_CALC_STATUS Status returned from \
+	 \ref l4_udp_tcp_cksum_calc SR
 @{
 *//***************************************************************************/
 /** Success */
-#define L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_SUCCESS		0x00000000
+#define L4_UDP_TCP_CKSUM_CALC_STATUS_SUCCESS			0x00000000
 
 /** Default frame is not UDP/TCP (according to parser result) */
-#define L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_NON_UDP_TCP		0x00000001
+#define L4_UDP_TCP_CKSUM_CALC_STATUS_NON_UDP_TCP		0x00000001
 
 /** Failure, FDMA error occurred */
-#define L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_FDMA_FAILURE		0x80010000
+#define L4_UDP_TCP_CKSUM_CALC_STATUS_FDMA_FAILURE		0x80010000
 
 /** Failure, Parser error occurred */
-#define L4_CKSUM_CALC_UDP_TCP_CKSUM_STATUS_PARSER_FAILURE	0x80020000
+#define L4_UDP_TCP_CKSUM_CALC_STATUS_PARSER_FAILURE		0x80020000
 
-/** @} */ /* end of FSL_L4_CKSUM_STATUS_CALC_UDP_TCP */
+/** @} */ /* end of FSL_L4_UDP_TCP_CKSUM_CALC_STATUS */
 
 /** @} */ /* end of FSL_L4_CKSUM_STATUS */
 
@@ -71,7 +91,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	l4_cksum_calc_udp_tcp_checksum
+@Function	l4_udp_tcp_cksum_calc
 
 @Description	Calculates and updates frame's UDP/TCP checksum.
 
@@ -87,7 +107,10 @@
 
 		Implicitly updated values in Task Defaults: Parse Result.
 
-@Return		Please refer to \ref FSL_L4_CKSUM_STATUS_CALC_UDP_TCP.
+@Param[in]	options - Please refer to \ref
+		FSL_L4_UDP_TCP_CKSUM_CALC_OPTIONS
+
+@Return		Please refer to \ref FSL_L4_UDP_TCP_CKSUM_CALC_STATUS.
 
 @Cautions	In this function the task yields. \n
 		Parse Result (excluding Gross Running Sum field) must be valid.
@@ -96,7 +119,7 @@
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t cksum_calc_udp_tcp_checksum();
+int32_t l4_udp_tcp_cksum_calc(uint32_t options);
 
 /** @} */ /* end of FSL_L4_CKSUM_Functions */
 /** @} */ /* end of FSL_L4_CKSUM */

@@ -324,14 +324,14 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					    udp_tcp_offset-ipv4hdr_offset + 8);
 					/* calculate IP checksum and update
 					   IP checksum in FDMA*/
-//					ipv4_cksum_calculate(ipv4hdr_ptr,
-//					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+					ipv4_cksum_calculate(ipv4hdr_ptr,
+					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 					/* calculate IP checksum */
-					ipv4_cksum_calculate(ipv4hdr_ptr);
+//					ipv4_cksum_calculate(ipv4hdr_ptr);
 					/* update IP checksum in FDMA */
-					fdma_modify_default_segment_data(
-							      ipv4hdr_offset+10,
-							      2);
+//					fdma_modify_default_segment_data(
+//							      ipv4hdr_offset+10,
+//							      2);
 					/* Invalidate gross running sum */
 					pr->gross_running_sum = 0;
 				} else{
@@ -341,14 +341,14 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 							20);
 					/* calculate IP checksum and update
 					   IP checksum in FDMA*/
-//					ipv4_cksum_calculate(ipv4hdr_ptr,
-//					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+					ipv4_cksum_calculate(ipv4hdr_ptr,
+					  IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 					/* calculate IP checksum */
-					ipv4_cksum_calculate(ipv4hdr_ptr);
+//					ipv4_cksum_calculate(ipv4hdr_ptr);
 					/* update IP checksum in FDMA */
-					fdma_modify_default_segment_data(
-							      ipv4hdr_offset+10,
-							      2);
+//					fdma_modify_default_segment_data(
+//							      ipv4hdr_offset+10,
+//							      2);
 				}
 			} else if (PARSER_IS_TCP_DEFAULT()) {
 				tcphdr_ptr = (struct tcphdr *)
@@ -363,14 +363,14 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					    udp_tcp_offset-ipv4hdr_offset + 18);
 				/* calculate IP checksum and update
 				   IP checksum in FDMA*/
-//				ipv4_cksum_calculate(ipv4hdr_ptr,
-//				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+				ipv4_cksum_calculate(ipv4hdr_ptr,
+				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 				/* calculate IP checksum */
-					ipv4_cksum_calculate(ipv4hdr_ptr);
+//					ipv4_cksum_calculate(ipv4hdr_ptr);
 				/* update IP checksum in FDMA */
-					fdma_modify_default_segment_data(
-							      ipv4hdr_offset+10,
-							      2);
+//					fdma_modify_default_segment_data(
+//							      ipv4hdr_offset+10,
+//							      2);
 
 
 				/* Invalidate gross running sum */
@@ -382,14 +382,14 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 							  20);
 			/* calculate IP checksum and update
 			   IP checksum in FDMA*/
-//			ipv4_cksum_calculate(ipv4hdr_ptr,
-//				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+			ipv4_cksum_calculate(ipv4hdr_ptr,
+				       IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 			/* calculate IP checksum */
-					ipv4_cksum_calculate(ipv4hdr_ptr);
+//					ipv4_cksum_calculate(ipv4hdr_ptr);
 			/* update IP checksum in FDMA */
-					fdma_modify_default_segment_data(
-							      ipv4hdr_offset+10,
-							      2);
+//					fdma_modify_default_segment_data(
+//							      ipv4hdr_offset+10,
+//							      2);
 		}
 	return SUCCESS;
 	} else {
@@ -606,14 +606,14 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 
 		/* calculate IP checksum and update
 		   IP checksum in FDMA*/
-//		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
-//				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
+				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 		/* calculate IP checksum */
-					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
+//					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
 		/* update IP checksum in FDMA */
-					fdma_modify_default_segment_data(
-							   outer_ipv4_offset+10,
-							   2);
+//					fdma_modify_default_segment_data(
+//							   outer_ipv4_offset+10,
+//							   2);
 		return SUCCESS;
 
 	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
@@ -692,14 +692,14 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 
 		/* calculate IP checksum and update
 		   IP checksum in FDMA*/
-//		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
-//				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
+		ipv4_cksum_calculate(outer_ipv4hdr_ptr,
+				     IPV4_CKSUM_CALC_OPTIONS_UPDATE_FDMA);
 		/* calculate IP checksum */
-					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
+//					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
 		/* update IP checksum in FDMA */
-					fdma_modify_default_segment_data(
-							   outer_ipv4_offset+10,
-							   2);
+//					fdma_modify_default_segment_data(
+//							   outer_ipv4_offset+10,
+//							   2);
 
 		return SUCCESS;
 	} else { /* no inner IP */

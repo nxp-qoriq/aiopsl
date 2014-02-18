@@ -14,10 +14,10 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-/*	uint32_t flags;*/
+	uint32_t flags;
 
 	opcode  = *((uint32_t *) asa_seg_addr);
-/*	flags = 0x0;*/
+	flags = 0x0;
 
 
 	switch (opcode) {
@@ -40,8 +40,9 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_update_miss_rule_command *str =
 			(struct ctlu_update_miss_rule_command *) asa_seg_addr;
 		
-			str->status = ctlu_table_update_miss_result 
-				(str->table_id, &(str->miss_rule));
+			str->status = ctlu_table_replace_miss_result
+				(str->table_id, &(str->miss_rule),
+				 &str->old_miss_result);
 			str_size = sizeof(struct ctlu_update_miss_rule_command);
 			break;
 		}
@@ -103,13 +104,15 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		/* Table Rule Create or Replace Command Verification */
 		case CTLU_RULE_CREATE_OR_REPLACE_CMD_STR:
 		{
-			struct ctlu_table_rule_create_command *str =
-			(struct ctlu_table_rule_create_command *) asa_seg_addr;
+			struct ctlu_table_rule_create_replace_command *str =
+			  (struct ctlu_table_rule_create_replace_command *)
+			  asa_seg_addr;
 			
 			str->status = ctlu_table_rule_create_or_replace
 				(str->table_id, 
 				(struct ctlu_table_rule*)str->rule_ptr,
-				str->key_size);
+				str->key_size,
+				&str->old_res);
 
 			str_size =
 				sizeof(struct ctlu_table_rule_create_command);
@@ -119,13 +122,15 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		/* Table Rule Replace Command Verification */
 		case CTLU_RULE_REPLACE_CMD_STR:
 		{
-			struct ctlu_table_rule_create_command *str =
-			(struct ctlu_table_rule_create_command *) asa_seg_addr;
-			
+			struct ctlu_table_rule_create_replace_command *str =
+			  (struct ctlu_table_rule_create_replace_command *)
+			  asa_seg_addr;
+
 			str->status = ctlu_table_rule_replace
 				(str->table_id, 
 				(struct ctlu_table_rule*)str->rule_ptr,
-				str->key_size);
+				str->key_size,
+				&str->old_res);
 
 			str_size =
 				sizeof(struct ctlu_table_rule_create_command);
@@ -139,7 +144,10 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			(struct ctlu_table_rule_delete_command *) asa_seg_addr;
 			
 			str->status = ctlu_table_rule_delete
-				(str->table_id, (union ctlu_key *)str->key_ptr, str->key_size);
+				(str->table_id,
+				 (union ctlu_key *)str->key_ptr,
+				 str->key_size,
+				 &str->old_res);
 
 			str_size =
 				sizeof(struct ctlu_table_rule_delete_command);
