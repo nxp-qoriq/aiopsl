@@ -16,6 +16,9 @@
 #include "ipf.h"
 #include "dplib/fsl_parser.h"
 
+	/** IPF FM ID */
+#define IPF_FM_ID	 (IPF_MODULE_STATUS_ID >> 16)
+
 
 /* IPF Command IDs */
 	/** IPF Context Init command code */
