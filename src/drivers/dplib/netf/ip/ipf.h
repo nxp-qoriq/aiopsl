@@ -30,7 +30,8 @@
 *//***************************************************************************/
 struct ipf_context {
 	 /** Remaining frame's FD  */
-	struct ldpaa_fd rem_fd;
+	struct ldpaa_fd rem_fd 
+			__attribute__((aligned(sizeof(struct ldpaa_fd))));
 	/** Frame ID. Used for IPv6 fragmentation extension in case of
 	 * fragmentation according to MTU.
 	 * In case \ref IPF_RESTORE_ORIGINAL_FRAGMENTS flag is set, this
