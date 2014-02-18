@@ -122,7 +122,9 @@
 	/** Table delete message type */
 #define CTLU_TABLE_DELETE_MTYPE				0x0042
 
-
+	/** Table rule create with reference counter decrement (for aged entry)
+	*/
+#define CTLU_RULE_CREATE_RPTR_DEC_MTYPE			0x006C
 	/** Table rule create */
 #define CTLU_RULE_CREATE_MTYPE				0x007C
 	/** Table rule create or replace with reference counter decrement (for

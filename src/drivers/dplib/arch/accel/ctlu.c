@@ -228,7 +228,6 @@ int32_t ctlu_table_rule_create(uint16_t table_id,
 			       struct ctlu_table_rule *rule,
 			       uint8_t key_size)
 {
-	int32_t status;
 	struct ctlu_table_old_result aged_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&aged_res;
 	uint32_t arg3 = table_id;
@@ -248,25 +247,18 @@ int32_t ctlu_table_rule_create(uint16_t table_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
-	__stqw(CTLU_RULE_CREATE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(CTLU_RULE_CREATE_RPTR_DEC_MTYPE, arg2, arg3, 0,
+	       HWC_ACC_IN_ADDRESS, 0); /* using RPTR DEC because aging would
+	       have removed this entry with DEC if it would arrived on time */
 
 	/* Call CTLU accelerator */
 	__e_hwacceli(CTLU_ACCEL_ID);
-
-	/* Handle aged rule */ /*  TODO REMOVE after specification change */
-	if (aged_res.result.type == CTLU_RULE_RESULT_TYPE_REFERENCE) {
-		status = cdma_refcount_decrement
-			    (aged_res.result.op_rptr_clp.reference_pointer);
-		if (status)
-			return status;
-	}
 
 	/* Return Status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-/*TODO handle aged rule ?? needs specification clarification */
 int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 					  struct ctlu_table_rule *rule,
 					  uint8_t key_size,
