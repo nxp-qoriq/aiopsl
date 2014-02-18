@@ -2,6 +2,12 @@
 
 #define __wait()	asm ("wait  \n"	)
 
+#pragma push
+#pragma section code_type ".verif_text"
+#pragma force_active on
+#pragma function_align 256  
+#pragma require_prototypes off
+
 int main()
 {	
 	__wait();
@@ -12,3 +18,4 @@ int main()
 	
 	return 0;
 }
+#pragma pop

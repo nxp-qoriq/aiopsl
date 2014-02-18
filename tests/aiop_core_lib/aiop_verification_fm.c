@@ -56,6 +56,11 @@ void aiop_verification_fm()
 			str_size = aiop_verification_gso((uint32_t)data_addr);
 			break;
 		}
+		case TCP_GRO_MODULE_STATUS_ID:
+		{
+			str_size = aiop_verification_gro((uint32_t)data_addr);
+			break;
+		}
 		case IPR_MODULE_STATUS_ID:
 		{
 			str_size = aiop_verification_ipr((uint32_t)data_addr);
@@ -65,15 +70,46 @@ void aiop_verification_fm()
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);
 		}
-		case TCP_GRO_MODULE_STATUS_ID:
+		case FPDMA_ACCEL_ID:
+		case FODMA_ACCEL_ID:
 		{
-			str_size = aiop_verification_gro(
-					(uint32_t)data_addr);
+			str_size = aiop_verification_fdma((uint32_t)data_addr);
+			break;
+		}
+		case TMAN_ACCEL_ID:
+		{
+			str_size = aiop_verification_tman((uint32_t)data_addr);
+			break;
+		}
+		case STE_VERIF_ACCEL_ID:
+		{
+			str_size = aiop_verification_ste((uint32_t)data_addr);
+			break;
+		}
+		case CDMA_ACCEL_ID:
+		{
+			str_size = aiop_verification_cdma((uint32_t)data_addr);
+			break;
+		}
+		case CTLU_ACCEL_ID:
+		{
+			str_size = aiop_verification_ctlu((uint32_t)data_addr);
 			break;
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
 		{
 			str_size = aiop_verification_parser(
+					(uint32_t)data_addr);
+			break;
+		}
+		case HM_VERIF_ACCEL_ID:
+		{
+			str_size = aiop_verification_hm((uint32_t)data_addr);
+			break;
+		}
+		case VPOOL_ACCEL_ID:
+		{
+			str_size = verification_virtual_pools(
 					(uint32_t)data_addr);
 			break;
 		}

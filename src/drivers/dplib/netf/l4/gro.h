@@ -63,10 +63,13 @@ struct tcp_gro_last_seg_header_fields {
  * of un-needed bytes currently)*/
 
 struct tcp_gro_context {
+		/** Aggregated packet FD.
+		 * This field must remain at the beginning of the structure due 
+		 * to alignment restrictions for FD in workspace.*/
+	struct ldpaa_fd agg_fd 
+		__attribute__((aligned(sizeof(struct ldpaa_fd))));	
 		/** Aggregation parameters  */
 	struct tcp_gro_context_params params;
-		/** Aggregated packet FD  */
-	struct ldpaa_fd agg_fd;
 		/** Last Segment header fields which we need to update in the 
 		 * aggregated packet. */
 	struct tcp_gro_last_seg_header_fields last_seg_fields;
@@ -92,8 +95,8 @@ struct tcp_gro_context {
 	uint32_t timer_handle;
 		/** aggregated checksum */
 	uint16_t checksum;
-		/** Padding */
-	uint8_t	pad[2];
+		/** Aggregation headers size */
+	uint16_t agg_headers_size;
 };
 
 

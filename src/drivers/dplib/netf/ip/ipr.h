@@ -10,9 +10,8 @@
 #define __AIOP_IPR_H
 
 #include "common/types.h"
-#include "dplib\fsl_ipr.h"
-#include "dplib\fsl_osm.h"
-#include "cdma.h"
+#include "dplib/fsl_ipr.h"
+#include "dplib/fsl_osm.h"
 
 
 /**************************************************************************//**
@@ -31,14 +30,14 @@
 #define FRAG_ERROR			3
 #define NO_BYPASS_OSM			0x00000000
 #define	BYPASS_OSM			0x00000001
-#define START_CONCURRENT		0x00000003
+#define START_CONCURRENT		0x00000002
 #define	RESET_MF_BIT			0xFFDF
 #define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2624
 #define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
 #define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
 #define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
-#define RFDC_VALID			0x00000001
+#define RFDC_VALID			0x80
 #define FRAG_OFFSET_MASK		0x1FFF
 #define IPV4_FRAME			0x00000000 /* in RFDC status */
 #define IPV6_FRAME			0x00000001 /* in RFDC status */
@@ -46,6 +45,7 @@
 #define REF_COUNT_ADDR_DUMMY		HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 #define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
 #define RFDC_SIZE			sizeof(struct ipr_rfdc)
+#define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
 #define FD_SIZE				sizeof(struct ldpaa_fd)
 
 /* todo should move to general or OSM include file */
@@ -70,14 +70,14 @@ struct ipr_instance {
 	ipr_timeout_cb_t *ipv4_timeout_cb;
 	/** function to call upon Time Out occurrence for ipv6 */
 	ipr_timeout_cb_t *ipv6_timeout_cb;
+	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
+	uint32_t  	flags;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv4_arg;
 	/** Argument to be passed upon invocation of the IPv6 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
-		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint32_t  	flags;
 	/** Number of frames that started reassembly but didn't complete it yet */
 	uint16_t	num_of_open_reass_frames;
 	uint8_t		tmi_id;
@@ -85,10 +85,9 @@ struct ipr_instance {
 	uint8_t  pad[1];
 };
 
+#pragma pack(push,1) 
 struct ipr_rfdc{
 	uint64_t	instance_handle;
-	uint64_t	key[2];
-	uint32_t	status;
 	uint32_t	timer_handle;
 	uint16_t	expected_total_length;
 	uint16_t	current_total_length;
@@ -100,8 +99,13 @@ struct ipr_rfdc{
 	uint8_t		next_index;
 	uint8_t		index_to_out_of_order;
 	uint8_t		num_of_frags;
-	uint8_t		res[1];
+	uint8_t		status;
+//	uint32_t	status;
+	uint64_t	key[4];
+	uint32_t	ipv6_key_cont;
 };
+#pragma pack(pop) 
+
 
 struct link_list_element{
 	uint16_t	frag_offset;
@@ -237,18 +241,19 @@ inline void move_to_correct_ordering_scope1(uint32_t osm_status)
 		   osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
 }
-
+void move_to_correct_ordering_scope2(uint32_t osm_status);
+/* todo restore this inline after compiler fix.
 inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 {
-		if(osm_status == 0) {
+		if(osm_status == 0) { */
 			/* return to original ordering scope that entered
 			 * the ipr_reassemble function */
-			osm_scope_exit();
+	/*		osm_scope_exit();
 			osm_scope_exit();	
 		} else if(osm_status & START_CONCURRENT) {
 		  osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
-}
+}*/
 uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();

@@ -16,7 +16,7 @@
 #include "general.h"
 #include "fdma.h"
 #include "checksum.h"
-
+#include "cdma.h"
 
 	/* Shared memory global GRO parameters. */
 struct gro_global_parameters gro_global_params;
@@ -136,8 +136,11 @@ int32_t tcp_gro_aggregate_seg(
 				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >> 
 				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET - 
 				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
-		gro_ctx.next_seq = tcp->sequence_number + seg_size - 
+
+		gro_ctx.agg_headers_size = (uint16_t)
 				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
+		gro_ctx.next_seq = tcp->sequence_number + seg_size - 
+				gro_ctx.agg_headers_size;
 		/* in case there is an option it must be a timestamp option */
 		if (data_offset > TCP_HDR_LENGTH){
 			gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
@@ -395,6 +398,12 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	/* present default FD (the aggregated FD) */
 	sr_status = fdma_present_default_frame();
 	
+	/* run parser if headers were changed */
+	if (gro_ctx->agg_headers_size != headers_size){
+		sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
+		tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
+	}
+		
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ip_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 
@@ -466,10 +475,12 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
 	int32_t sr_status;
+	uint32_t old_agg_timestamp;
 				
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 			
 	/* initialize gro_context parameters */	
+	old_agg_timestamp = gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP;
 	gro_ctx->internal_flags = 0;
 	gro_ctx->last_ack = tcp->acknowledgment_number;
 	data_offset = (tcp->data_offset_reserved & 
@@ -483,7 +494,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* save timestap if exist */
 	if (data_offset > TCP_HDR_LENGTH){
 		gro_ctx->timestamp = ((struct tcphdr_gro *)tcp)->tsval;
-		gro_ctx->internal_flags |= TCP_GRO_HAS_TIMESTAMP; 
+		gro_ctx->internal_flags |= TCP_GRO_HAS_TIMESTAMP;
 	}
 		
 	/* Set ECN flags */
@@ -520,7 +531,15 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		
 	/* present frame (default_FD(agg_FD)) +  present header */
 	sr_status = fdma_present_default_frame(); /* TODO FDMA ERROR */
-		
+	
+	/* run parser if headers were changed */
+	if ((gro_ctx->agg_headers_size != headers_size) ||
+	    (old_agg_timestamp != 
+		(gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP))){
+		sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
+		tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
+	}
+	
 	/* update last segment header fields */
 	if (gro_ctx->metadata.seg_num > 1)
 		*((struct tcp_gro_last_seg_header_fields *) 

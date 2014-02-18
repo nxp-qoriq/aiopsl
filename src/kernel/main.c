@@ -32,7 +32,7 @@ UNUSED(argc);UNUSED(argv);
         return err;
     sys_barrier();
 
-#ifdef AIOP_LEGACY_CODE
+#ifdef ARENA_LEGACY_CODE
     if (is_master_core)
     	fsl_os_print("Processing layout\n");
     sys_barrier();
