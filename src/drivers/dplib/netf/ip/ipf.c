@@ -18,34 +18,6 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-/*
-void cksum_update_uint32(register uint16_t *cs_ptr,
-		register uint32_t old_val,
-		register uint32_t new_val)
-{
-	register temp1;
-	register temp2;
-	asm{
-		se_lhz	temp1, 0(cs_ptr)	 Load CS 
-		nor	new_val, new_val, new_val One's complement of the new
-						value. Pipeline optimization 
-		addc	temp1, temp1, old_val	 Adding old value to CS and
-						generating carry 
-		adde	temp1, new_val, temp1	 Adding new value and carry of
-						the previous addition to CS 
-		addze	temp1, temp1		 Add carry of the previous
-						addition to CS 
-		e_rlwinm temp2, temp1, 16, 0, 31 Replace two half words
-						location 
-		se_add	temp2, temp1		 Adding two half words and
-						first half word carry 
-		se_srwi	temp2, 16		 Isolate only the high 2B of
-						the previous addition 
-		se_sth	temp2, 0(cs_ptr)	 Store CS 
-	}
-}
-
-*/
 
 int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
@@ -445,7 +417,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 		split_frame_params.split_size_sf = ipf_ctx->split_size;
 		split_frame_params.source_frame_handle =
 						ipf_ctx->rem_frame_handle;
-		split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
+/*		split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);*/
 
 		/* Split remaining frame, put split frame in default FD
 		 * location*/
