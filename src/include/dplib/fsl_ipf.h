@@ -168,7 +168,8 @@ int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 		parameter is ignored.
 @Param[out]	ipf_context_addr - Address to the IPF internal context
 		structure allocated by the user. Internally used by
-		IP Fragmentation functions.
+		IP Fragmentation functions. Must be aligned to Frame Descriptor
+		Size.
 
 @Return		None.
 
