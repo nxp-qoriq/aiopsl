@@ -31,7 +31,7 @@ static inline void free_buffs_from_bman_pool(uint16_t bpid, int num_buffs)
 }
 
 /*****************************************************************************/
-int static find_bpid(uint16_t buff_size, 
+static inline int find_bpid(uint16_t buff_size, 
                      uint16_t alignment, 
                      uint8_t  mem_partition_id,
                      struct   slab_module_info *slab_module,
@@ -74,7 +74,7 @@ int static find_bpid(uint16_t buff_size,
 }
 
 /*****************************************************************************/
-int static find_and_fill_bpid(uint16_t num_buffs, 
+static int find_and_fill_bpid(uint16_t num_buffs, 
                               uint16_t buff_size, 
                               uint16_t alignment, 
                               uint8_t  mem_partition_id,
@@ -129,11 +129,10 @@ static void free_slab_module_memory()
 }
 
 /*****************************************************************************/
-static int sanity_check_slab_create(uint16_t    num_buffs,
+static inline int sanity_check_slab_create(uint16_t    num_buffs,
                                     uint16_t    buff_size,
                                     uint16_t    alignment,
                                     uint8_t     mem_partition_id,
-                                    uint8_t     *address,
                                     uint32_t    flags)
 {
     SLAB_ASSERT_COND_RETURN(num_buffs > 0,   -EINVAL);
@@ -141,7 +140,6 @@ static int sanity_check_slab_create(uint16_t    num_buffs,
     SLAB_ASSERT_COND_RETURN(alignment > 0,   -EINVAL);
     SLAB_ASSERT_COND_RETURN(alignment <= 8,  -EINVAL); /* TODO need to support more then 8 ?*/
     SLAB_ASSERT_COND_RETURN(flags == 0,      -EINVAL);
-    SLAB_ASSERT_COND_RETURN(address != NULL, -EINVAL);
     
     SLAB_ASSERT_COND_RETURN(is_power_of_2(alignment), -EINVAL);
     SLAB_ASSERT_COND_RETURN(((mem_partition_id == MEM_PART_1ST_DDR_NON_CACHEABLE) || 
@@ -173,7 +171,7 @@ int slab_create(uint16_t    num_buffs,
     
 #ifdef DEBUG
     /* Sanity checks */
-    error = sanity_check_slab_create(num_buffs, buff_size, alignment, mem_partition_id, (uint8_t *)0x100/* dummy*/, flags);
+    error = sanity_check_slab_create(num_buffs, buff_size, alignment, mem_partition_id, flags);
     if (error)           return -ENAVAIL;
     if (extra_buffs > 0) return -ENAVAIL; /* TODO remove it when extra_buffs are supported */
 #endif
