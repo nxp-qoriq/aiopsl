@@ -19,8 +19,8 @@ void app_free(void);
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16) 
 /**< Get flow id from callback argument, it's demo specific macro */
 
-uint32_t  slab_peb = 0;
-uint32_t  slab_ddr = 0;
+__SHRAM uint32_t slab_peb = 0;
+__SHRAM uint32_t slab_ddr = 0;
 
 static int app_write_buff_and_release(uint32_t slab, uint64_t buff)
 {
@@ -78,18 +78,18 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
     err = ip_set_nw_src(src_addr);
     if (err) fdma_terminate_task();
 	
-    err = app_test_slab(slab_peb, 4);
-    if (err) fdma_terminate_task();
-
     dpni_drv_send(APP_NI_GET(arg));
 	fdma_terminate_task();
 }
 
 static void app_process_packet_flow1 (dpni_drv_app_arg_t arg)
 {    
-    int      err = 0;
-    
-    err = app_test_slab(slab_ddr, 4);
+    int      err = 0;    
+
+    err = app_test_slab(slab_peb, 4); 
+    if (err) fdma_terminate_task();
+        
+    err = app_test_slab(slab_ddr, 4); 
     if (err) fdma_terminate_task();
 
     dpni_drv_send(APP_NI_GET(arg));
@@ -106,6 +106,7 @@ int app_init(void)
     
     for (ni = 0; ni < 6; ni++)
     {
+        /* Every ni will have 2 flows */
         uint32_t flow_id = 1;
         err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/, 
                                       (uint16_t)flow_id/*flow_id*/, 
@@ -124,32 +125,21 @@ int app_init(void)
         if (err) return err;
     }
     
-    /* DDR SLAB can be created only at init */
+    /* DDR SLAB creation */
     err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, NULL, &slab_ddr);
     if (err) return err;
 
-    err = slab_acquire(slab_ddr, &buff);
+    /* PEB SLAB creation */
+    err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
     if (err) return err;
-
-    err = slab_release(slab_ddr, buff);
-    if (err) return err;
-    
-    err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
-    if (err) return err;        
- 
-    return err;
+        
+    return 0;
 }
 
 void app_free(void)
-{
+{    
     int err = 0;
-    
     /* TODO - complete!*/
     err = slab_free(slab_ddr);
-    if (err == 0) 
-        fsl_os_print("--------------------slab_free() passed --------------------\n");
-
-    err = slab_free(slab_peb);
-    if (err == 0) 
-        fsl_os_print("--------------------slab_free() passed --------------------\n");
+    err = slab_free(slab_peb);    
 }
