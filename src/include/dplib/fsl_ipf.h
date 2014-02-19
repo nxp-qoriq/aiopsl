@@ -126,7 +126,13 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 @Return		Status. Please refer to \ref IPF_GENERATE_FRAG_STATUS or
 		\ref fdma_hw_errors or \ref fdma_sw_errors for more details.
 
-@Cautions	No support in IPv6 jumbograms.
+@Cautions	1. In the output fragment, ASA & PTA are not presented.
+		2. No support in IPv6 jumbograms.
+		3. Since during fragmentation process of an IPv6 frame, fragment
+		extension (8 bytes) is added to the header, user must ensure
+		that either 8 bytes are available in the headroom, or that
+		Presented segment size is large enough to include these 8 bytes
+		in addition to any existing headers presented.
 *//***************************************************************************/
 int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 
@@ -162,7 +168,8 @@ int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 		parameter is ignored.
 @Param[out]	ipf_context_addr - Address to the IPF internal context
 		structure allocated by the user. Internally used by
-		IP Fragmentation functions.
+		IP Fragmentation functions. Must be aligned to Frame Descriptor
+		Size.
 
 @Return		None.
 

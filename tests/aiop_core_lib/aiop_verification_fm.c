@@ -12,10 +12,12 @@
 #include "dplib/fsl_ipf.h"
 #include "aiop_verification.h"
 
+/*
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
 __TASK ipf_ctx_t ipf_context_addr;
 __TASK int32_t status_gso;
 __TASK int32_t status_ipf;
+*/
 
 void aiop_verification_fm()
 {
