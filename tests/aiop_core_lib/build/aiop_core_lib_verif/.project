@@ -283,6 +283,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/util</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/include/common/spinlock.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/spinlock.h</locationURI>
@@ -398,11 +403,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/include/checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.c</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
@@ -456,6 +456,11 @@
 			<name>sources/drivers/dplib/netf/nat</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/util/checksum.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/cdma.c</name>
