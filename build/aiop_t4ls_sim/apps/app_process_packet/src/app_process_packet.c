@@ -83,7 +83,7 @@ int app_init(void)
         if (err) return err;
     }
     
-    err = slab_create(5, 1, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab);
+    err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab);
     if (err) return err;
     fsl_os_print("--------------------slab_create() passed --------------------\n");
 
