@@ -15,7 +15,7 @@ int main()
 	 * 1. enable next line
 	 * 2. enable project files under ppc + kernel */
 	/*if (sys_is_master_core())*/
-		aiop_verif_init_parser();
+		/*aiop_verif_init_parser();*/
 	__wait();
 /* initialize stack pointer */
 	aiop_verification();

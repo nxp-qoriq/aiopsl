@@ -9,6 +9,7 @@
 
 #include "common/types.h"
 #include "aiop_verification_data.h"
+#include "aiop_verification.h"
 #include "dplib/fsl_gso.h"
 #include "dplib/fsl_ipf.h"
 #include "dplib/fsl_ldpaa.h"
@@ -31,6 +32,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 void init_verif()
 {
+	aiop_verif_init_parser();
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.parser_profile_id = verif_prpid;
 	parse_result_generate_default(0);
