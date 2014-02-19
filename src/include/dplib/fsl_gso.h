@@ -112,8 +112,8 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 		until the returned status indicates segmentation is completed
 		(\ref TCP_GSO_GEN_SEG_STATUS_DONE).
 
-@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context. 
-		Must be initialized by gso_context_init() prior to the first 
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
+		Must be initialized by gso_context_init() prior to the first
 		call. Must be aligned to Frame Descriptor size.
 
 @Return		Status, please refer to \ref TCP_GSO_GENERATE_SEG_STATUS or
@@ -132,7 +132,7 @@ int32_t tcp_gso_generate_seg(
 		its completion (before a \ref TCP_GSO_GEN_SEG_STATUS_DONE status
 		is returned).
 
-@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context. 
+@Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
 		Must be aligned to Frame Descriptor size.
 
 @Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
