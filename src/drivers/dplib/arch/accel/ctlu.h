@@ -71,6 +71,12 @@
 /** LPM Result Entry Lookup Key field size. */
 #define CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE		24
 
+/** MFLU Rule Entry Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_MFLU_RULE_LOOKUP_KEY_SIZE		32
+
+/** MFLU Result Entry Lookup Key field size. */
+#define CTLU_TABLE_ENTRY_MFLU_RES_LOOKUP_KEY_SIZE		16
+
 /** @} */ /* end of CTLU_ENTRY_MACROS */
 
 /**************************************************************************//**
@@ -115,15 +121,15 @@
 
 /** Table create message type */
 #define CTLU_TABLE_CREATE_MTYPE				0x004C
-	/** Table Parameters replace message type */
-#define CTLU_TABLE_PARAMETERS_REPLACE_MTYPE		0x0046
 	/** Table query without reference counting message type */
 #define CTLU_TABLE_QUERY_MTYPE				0x0043
 	/** Table delete message type */
 #define CTLU_TABLE_DELETE_MTYPE				0x0042
+	/** Table Parameters replace message type */
+#define CTLU_TABLE_PARAMETERS_REPLACE_MTYPE		0x0046
 
 	/** Table rule create with reference counter decrement (for aged entry)
-	*/
+	 * */
 #define CTLU_RULE_CREATE_RPTR_DEC_MTYPE			0x006C
 	/** Table rule create */
 #define CTLU_RULE_CREATE_MTYPE				0x007C
@@ -152,6 +158,25 @@
 	/** Table lookup with explicit key
 	With timestamp and reference counter update. Single search only. */
 #define CTLU_LOOKUP_KEY_TMSTMP_RPTR_MTYPE		0x0069
+
+	/** CTLU Entry create or replace */
+#define CTLU_ENTRY_CREATE_OR_REPLACE_MTYPE			0x005C
+	/** CTLU Entry create or replace UniqueID */
+#define CTLU_ENTRY_CREATE_OR_REPLACE_UNIQUEID_MTYPE		0x005D
+	/** CTLU Entry delete always */
+#define CTLU_ENTRY_DELETE_ALWAYS_MTYPE				0x0052
+	/** CTLU Entry delete if aged */
+#define CTLU_ENTRY_DELETE_IF_AGED_MTYPE				0x005A
+	/** CTLU Entry query */
+#define CTLU_ENTRY_QUERY_MTYPE					0x0053
+	/** CTLU Entry query hash + uniqueID */
+#define CTLU_ENTRY_QUERY_HASH_UNIQUEID_MTYPE			0x005B
+
+	/** CTLU Acquire Semaphore */
+#define CTLU_ACQUIRE_SEMAPHORE_MTYPE				0x00B0
+	/** CTLU Release Semaphore */
+#define CTLU_RELEASE_SEMAPHORE_MTYPE				0x00B1
+
 
 	/** Key composition rule create or replace */
 #define CTLU_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE	0x003D
@@ -506,18 +531,132 @@ struct ctlu_table_entry_body_lpm_res {
 
 
 /**************************************************************************//**
+@Description	Table Entry Body MFLU Branch
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_mflu_branch {
+	/** Reserved */
+	uint8_t  reserved0[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage0;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Index of the byte to be compared in the key */
+	uint8_t  keyByteNum;
+
+	/** Reserved */
+	uint8_t  reserved1[3]; /* TODO magic */
+
+	/* TODO */
+	uint32_t prevUniqueID;
+
+	/* TODO */
+	uint32_t prevHashValue;
+
+	/* TODO */
+	uint16_t what;
+
+	/** Exact match children enable bits */
+	uint16_t em_children_enable;
+
+	/** Child with wild cards exists flags */
+	uint8_t  child_with_wildcards[32]; /* TODO */
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body MFLU Branch
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_mflu_rule {
+	/** Reserved */
+	uint8_t  reserved0[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage0;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Priority */
+	uint32_t priority;
+
+	/* TODO */
+	uint32_t prevUniqueID;
+
+	/* TODO */
+	uint32_t prevHashValue;
+
+	/* TODO */
+	uint16_t what;
+
+	/** Reserved */
+	uint16_t reserved1;
+
+	/** Part of lookup key, each 9 bits describes a byte */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_MFLU_RULE_LOOKUP_KEY_SIZE];
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body MFLU Result
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct ctlu_table_entry_body_mflu_res {
+	/** Reserved */
+	uint8_t  reserved[3];
+
+	/** CTLU HW internal usage */
+	uint64_t internal_usage0;
+
+	/** Unique ID */
+	uint32_t unique_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/* TODO */
+	uint32_t prevUniqueID;
+
+	/* TODO */
+	uint32_t prevHashValue;
+
+	/** Part of lookup key, each 9 bits describes a byte */
+	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_MFLU_RES_LOOKUP_KEY_SIZE];
+
+	/** CTLU result */
+	struct ctlu_table_rule_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
 @Description	Table Entry Body Union
 *//***************************************************************************/
 #pragma pack(push, 1)
 union ctlu_table_entry_body {
 	/** EME16 Entry - see CTLU specification for more details */
 	struct ctlu_table_entry_body_eme16 eme16;
-	
+
 	/** EME24 Entry - see CTLU specification for more details */
 	struct ctlu_table_entry_body_eme24 eme24;
-	
+
 	/** LPM Result Entry - see CTLU specification for more details */
 	struct ctlu_table_entry_body_lpm_res lpm_res;
+
+	/** MFLU Branch Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_mflu_branch mflu_branch;
+
+	/** MFLU Rule Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_mflu_rule mflu_rule;
+
+	/** MFLU Result Entry - see CTLU specification for more details */
+	struct ctlu_table_entry_body_mflu_res mflu_result;
 };
 #pragma pack(pop)
 
