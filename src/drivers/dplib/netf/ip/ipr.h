@@ -31,7 +31,7 @@
 #define NO_BYPASS_OSM			0x00000000
 #define	BYPASS_OSM			0x00000001
 #define START_CONCURRENT		0x00000002
-#define	RESET_MF_BIT			0xFFDF
+#define	RESET_MF_BIT			0xDFFF
 #define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2624
 #define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)

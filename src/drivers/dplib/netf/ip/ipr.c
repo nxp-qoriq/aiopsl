@@ -183,7 +183,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		} else {
 			/* regular frame */
 			osm_scope_relinquish_exclusivity();
-			return IPR_REASSEMBLY_SUCCESS;
+			return IPR_REASSEMBLY_REGULAR;
 		}
 	}
 	
@@ -445,13 +445,13 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	
 	expected_frag_offset = rfdc_ptr->current_total_length>>3;
 
-	if (frag_offset == 0) {
-	   current_frag_size = ipv4hdr_ptr->total_length;
-	} else {
+//	if (frag_offset == 0) {
+//	   current_frag_size = ipv4hdr_ptr->total_length;
+//	} else {
 	    ip_header_size = (uint16_t)
 	    		((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
 		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
-	}
+//	}
 
 	if(!(rfdc_ptr->status & OUT_OF_ORDER)) {
 		/* In order handling */
@@ -487,12 +487,12 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				   (void *)HWC_FD_ADDRESS,
 				   FD_SIZE);
 	
-			rfdc_ptr->next_index++;
 			if(IS_LAST_FRAGMENT()) {
 				return LAST_FRAG_IN_ORDER;
 			} else {
 				/* Non closing fragment */
-			    return FRAG_OK_REASS_NOT_COMPL;
+				rfdc_ptr->next_index++;
+				return FRAG_OK_REASS_NOT_COMPL;
 			}
 		    }
 		    else if (frag_offset < expected_frag_offset) {
@@ -532,10 +532,10 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	
 			rfdc_ptr->next_index++;
 			
-				if(!IS_LAST_FRAGMENT()) {        
-				rfdc_ptr->expected_total_length = frag_offset<<3 +
-														  current_frag_size;
-				}
+			if(!IS_LAST_FRAGMENT())        
+				rfdc_ptr->expected_total_length = 
+					     frag_offset<<3 + current_frag_size;
+			
 			/* Write updated RFDC */
 			cdma_write(rfdc_ext_addr,
 					   (void *)rfdc_ptr,
@@ -646,15 +646,11 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
     				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 
-    	/* Close current frame */
-    	fdma_store_default_frame_data();
-
     	/* Bring into workspace 2 FDs to be concatenated */
     	fds_to_fetch_addr = rfdc_ext_addr+ RFDC_SIZE + LINK_LIST_SIZE;
 	cdma_read((void *)fds_to_concatenate,
 		  fds_to_fetch_addr,  
 		  64);
-	fds_to_fetch_addr += 2*FD_SIZE;
 	/* Copy 1rst FD to default frame FD's place */	
 	*((struct ldpaa_fd *)(HWC_FD_ADDRESS)) = fds_to_concatenate[0];
 	
@@ -691,27 +687,38 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 		
 	fdma_concatenate_frames(&concatenate_frame_params);
 	num_of_frags = rfdc_ptr->num_of_frags - 2;
-	while(num_of_frags >= 2) {
+	while(num_of_frags >= 2) {	
 		/* Bring into workspace 2 FDs to be concatenated */
+		fds_to_fetch_addr += 2*FD_SIZE;
 		cdma_read((void *)fds_to_concatenate,
 			  fds_to_fetch_addr,  
 			  2*FD_SIZE);
 		/* Open frame and get frame handle */
 		present_frame_params.fd_src = fds_to_concatenate;
 		frame_handle2 = present_frame_params.frame_handle;
-		concatenate_frame_params.frame2 =
-					     (uint16_t) frame_handle2;
+		concatenate_frame_params.frame2 = (uint16_t) frame_handle2;
 		/* Take header size to be removed from FD[FRC] */
 		concatenate_frame_params.trim  =
 				    (uint8_t)fds_to_concatenate[0].frc;
 
 		fdma_concatenate_frames(&concatenate_frame_params);
 		
-		num_of_frags --;
+		/* Open frame and get frame handle */
+		present_frame_params.fd_src = fds_to_concatenate + 1;
+		frame_handle2 = present_frame_params.frame_handle;
+		concatenate_frame_params.frame2 = (uint16_t) frame_handle2;
+		/* Take header size to be removed from FD[FRC] */
+		concatenate_frame_params.trim  =
+				    (uint8_t)fds_to_concatenate[1].frc;
+
+		fdma_concatenate_frames(&concatenate_frame_params);
+		
+		num_of_frags -= 2;
 	}
 	if(num_of_frags == 1) {
 		/* Handle last even fragment */	
 		/* Bring into workspace last FD to be concatenated */
+		fds_to_fetch_addr += 2*FD_SIZE;
 		cdma_read((void *)fds_to_concatenate,
 			  fds_to_fetch_addr,  
 			  FD_SIZE);
@@ -738,6 +745,7 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	uint16_t	old_ip_checksum;
 	uint16_t	new_flags_and_offset;
 	uint16_t	gross_running_sum;
+	uint16_t	ip_header_size;
 	struct ipv4hdr  *ipv4hdr_ptr;
     	struct 		parse_result *pr = 
     				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -748,7 +756,9 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 	/* update IP checksum */
-	new_total_length = rfdc_ptr->current_total_length;
+	ip_header_size = (uint16_t)
+	    		((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
+	new_total_length = rfdc_ptr->current_total_length + ip_header_size;
 	old_ip_checksum = ipv4hdr_ptr->hdr_cksum;
 	ip_hdr_cksum = old_ip_checksum;
 	cksum_accumulative_update_uint32(ip_hdr_cksum,
