@@ -19,6 +19,7 @@ void aiop_verification_fm_temp()
 	uint16_t size = 0;	/* ASA incremental read size */
 	uint16_t str_size;
 	uint32_t opcode;
+	uint8_t gro_iteration = 0;
 	uint8_t  ipr_iteration = 0;
 
 	
@@ -41,10 +42,19 @@ void aiop_verification_fm_temp()
 
 		case GRO_FM_ID:
 		{
-			str_size = aiop_verification_gro(asa_seg_addr);
-			
+			str_size = aiop_verification_gro(asa_seg_addr);	
 			if (str_size == sizeof(struct tcp_gro_agg_seg_command))
-				gro_verif_create_next_frame();
+				gro_verif_create_next_frame(++gro_iteration);
+			break;
+		}
+		case IPF_FM_ID:
+		{
+			str_size = aiop_verification_ipf(asa_seg_addr);
+			break;
+		}
+		case (TCP_GSO_MODULE_STATUS_ID >> 16):
+		{
+			str_size = aiop_verification_gso(asa_seg_addr);
 			break;
 		}
 		case IPR_VERIF_FM_ID:
