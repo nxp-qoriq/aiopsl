@@ -4,6 +4,12 @@ fsl_ipr.h: change API: add a different return status for regular frames
 virtual_pools.h: added callback function typedef
 virtual_pools.c: updated vpool_refcount_decrement_and_release to release 
 		also in case of ref counter already at zero.
+fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma.h file and replaced by new SLAB functions: 
+	•	cdma_acquire_context_memory
+	•	cdma_release_context_memory
+	•	cdma_refcount_decrement_and_release
+	•	cdma_access_context_memory
+		
 
 
 SL Pre-Alpha v0.2  Change Log

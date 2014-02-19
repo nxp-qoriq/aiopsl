@@ -12,6 +12,7 @@
 #include "common/fsl_slab.h"
 #include "common/list.h"
 
+
 /**************************************************************************//**
  @Description   SLAB common internal macros 
 *//***************************************************************************/
@@ -36,6 +37,20 @@
 #define SLAB_HW_ACCEL_MASK     0xFF000000
 #define SLAB_VP_POOL_GET(SLAB) ((uint32_t)(((SLAB) & SLAB_VP_POOL_MASK) >> 1)) 
 /**< Returns VP id to be used with virtual pools API */ 
+
+#define SLAB_HW_METADATA_OFFSET     8 /**< bytes */
+#define SLAB_HW_BUFF_SIZE(SIZE)     ((SIZE) - SLAB_HW_METADATA_OFFSET) 
+/**< Real buffer size used by user */
+
+/**************************************************************************//**
+ @Description   SLAB module defaults macros 
+*//***************************************************************************/
+#define SLAB_BPIDS_PARTITION0       {1, 2, 3, 4, 5}
+#define SLAB_MODULE_FAST_MEMORY     MEM_PART_SH_RAM
+#define SLAB_MODULE_DDR_MEMORY      MEM_PART_1ST_DDR_NON_CACHEABLE
+#define SLAB_DEFAULT_BUFF_SIZE      256
+#define SLAB_DEFAULT_BUFF_ALIGN     8
+#define SLAB_MAX_NUM_VP             1000
 
 /**************************************************************************//**
  @Description   Information to be kept about every HW pool inside DDR

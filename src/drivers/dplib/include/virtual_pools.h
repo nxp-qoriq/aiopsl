@@ -397,6 +397,25 @@ int32_t vpool_add_total_bman_bufs(
 		uint16_t bman_pool_id, 
 		int32_t additional_bufs);
 
+/*************************************************************************//**
+@Function	vpool_decr_total_bman_bufs
+
+@Description	This function decrements less_bufs number of BMAN buffers to
+		the total number of BMAN buffers initialized with  
+		vpool_init_total_bman_bufs function.
+		This function should can be called multiple times .
+
+@Param[in]	bman_pool_id - BMAN pool ID. 
+@Param[in] 	less_bufs - The total number of buffers to decrement from the  
+		bman_pool_id BMAN pool. 
+ 
+@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
+			
+*//***************************************************************************/
+int32_t vpool_decr_total_bman_bufs( 
+		uint16_t bman_pool_id, 
+		int32_t less_bufs);
+
 // TODO: all functions should be inline
 
 

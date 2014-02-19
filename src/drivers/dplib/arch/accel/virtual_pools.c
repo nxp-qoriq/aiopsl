@@ -302,6 +302,38 @@ int32_t vpool_add_total_bman_bufs(
 } /* End of vpool_add_total_bman_bufs */
 
 /***************************************************************************
+ * vpool_decr_total_bman_bufs
+ ***************************************************************************/
+int32_t vpool_decr_total_bman_bufs( 
+		uint16_t bman_pool_id, 
+		int32_t less_bufs)
+{
+	
+	int i;
+	uint16_t bman_array_index;
+	
+	#ifdef SL_DEBUG
+		/* Check the arguments correctness */
+		if (bman_pool_id >= MAX_VIRTUAL_BMAN_POOLS_NUM)
+				return VIRTUAL_POOLS_ILLEGAL_ARGS;
+	#endif
+		
+	/* Check which BMAN pool ID array element matches the ID */ 
+	for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
+		if (virtual_bman_pools[i].bman_pool_id == bman_pool_id) {
+			bman_array_index = (uint16_t)i;
+			break;
+		}
+	}
+	
+	/* Increment the total available BMAN pool buffers */ 
+	atomic_decr32(&virtual_bman_pools[bman_array_index].remaining, 
+			less_bufs);
+
+	return VIRTUAL_POOLS_SUCCESS;
+} /* End of vpool_decr_total_bman_bufs */
+
+/***************************************************************************
  * vpool_allocate_buf
  ***************************************************************************/
 int32_t vpool_allocate_buf(uint32_t virtual_pool_id, 
