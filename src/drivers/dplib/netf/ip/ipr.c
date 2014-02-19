@@ -183,7 +183,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		} else {
 			/* regular frame */
 			osm_scope_relinquish_exclusivity();
-			return IPR_REASSEMBLY_SUCCESS;
+			return IPR_REASSEMBLY_REGULAR;
 		}
 	}
 	
