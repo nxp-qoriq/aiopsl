@@ -676,16 +676,30 @@ int platform_init(struct platform_param    *pltfrm_param,
     pltfrm_ops->f_free_timer            = NULL;
     pltfrm_ops->f_init_ipc              = NULL;
     pltfrm_ops->f_free_ipc              = NULL;
-    pltfrm_ops->f_init_console          = NULL; // pltfrm_init_console_cb;
-    pltfrm_ops->f_free_console          = NULL; // pltfrm_free_console_cb;
+#ifdef ARENA_LEGACY_CODE
+    pltfrm_ops->f_init_console          = pltfrm_init_console_cb;
+    pltfrm_ops->f_free_console          = pltfrm_free_console_cb;
+#else
+    pltfrm_ops->f_init_console          = NULL;
+    pltfrm_ops->f_free_console          = NULL;
+#endif
     pltfrm_ops->f_init_mem_partitions   = pltfrm_init_mem_partitions_cb;
     pltfrm_ops->f_free_mem_partitions   = pltfrm_free_mem_partitions_cb;
-    pltfrm_ops->f_init_private          = NULL; // pltfrm_init_private_cb;
-    pltfrm_ops->f_free_private          = NULL; // pltfrm_free_private_cb;
-
+#ifdef ARENA_LEGACY_CODE
+    pltfrm_ops->f_init_private          = pltfrm_init_private_cb;
+    pltfrm_ops->f_free_private          = pltfrm_free_private_cb;
+#else
+    pltfrm_ops->f_init_private          = NULL;
+    pltfrm_ops->f_free_private          = NULL;
+#endif
     pltfrm_ops->f_enable_cores          = NULL;
-    pltfrm_ops->f_enable_local_irq      = NULL; // pltfrm_enable_local_irq_cb;
-    pltfrm_ops->f_disable_local_irq     = NULL; // pltfrm_disable_local_irq_cb;
+#ifdef ARENA_LEGACY_CODE
+    pltfrm_ops->f_enable_local_irq      = pltfrm_enable_local_irq_cb;
+    pltfrm_ops->f_disable_local_irq     = pltfrm_disable_local_irq_cb;
+#else
+    pltfrm_ops->f_enable_local_irq      = NULL;
+    pltfrm_ops->f_disable_local_irq     = NULL;
+#endif
 
     return E_OK;
 }

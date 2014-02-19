@@ -47,6 +47,16 @@ void aiop_verification_fm_temp()
 				gro_verif_create_next_frame(++gro_iteration);
 			break;
 		}
+		case IPF_FM_ID:
+		{
+			str_size = aiop_verification_ipf(asa_seg_addr);
+			break;
+		}
+		case (TCP_GSO_MODULE_STATUS_ID >> 16):
+		{
+			str_size = aiop_verification_gso(asa_seg_addr);
+			break;
+		}
 		case IPR_VERIF_FM_ID:
 		{
 			ipr_verif_update_frame(ipr_iteration);

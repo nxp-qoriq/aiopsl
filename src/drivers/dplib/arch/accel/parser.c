@@ -155,8 +155,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
-				(uint32_t)HWC_PARSE_RES_ADDRESS, 0,
-					arg1, HWC_ACC_IN_ADDRESS, 0);
+				arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
 	} else {
 	__stqw(PARSER_GEN_PARSE_RES_MTYPE, (uint32_t)HWC_PARSE_RES_ADDRESS, 0,
 						arg1, HWC_ACC_IN_ADDRESS, 0);
@@ -197,8 +196,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
-				(uint32_t)HWC_PARSE_RES_ADDRESS, 0,
-					arg1, HWC_ACC_IN_ADDRESS, 0);
+				arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
 	} else {
 	__stqw(PARSER_GEN_PARSE_RES_MTYPE, (uint32_t)HWC_PARSE_RES_ADDRESS, 0,
 						arg1, HWC_ACC_IN_ADDRESS, 0);
