@@ -101,7 +101,8 @@ int app_init(void)
     int        err  = 0;    
     uint32_t   ni   = 0;
     dma_addr_t buff = 0;
-
+    struct slab_debug_info slab_info;
+    
     fsl_os_print("Running app_init()\n");
     
     for (ni = 0; ni < 6; ni++)
@@ -129,10 +130,26 @@ int app_init(void)
     err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, NULL, &slab_ddr);
     if (err) return err;
 
+    err = slab_debug_info_get(slab_peb, &slab_info);
+    if (err) {
+        return err;
+    } else {
+        if ((slab_info.num_buffs != slab_info.max_buffs) || (slab_info.num_buffs == 0))
+            return -ENODEV;
+    }
+
     /* PEB SLAB creation */
     err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
     if (err) return err;
-        
+          
+    err = slab_debug_info_get(slab_ddr, &slab_info);
+    if (err) {
+        return err;
+    } else {
+        if ((slab_info.num_buffs != slab_info.max_buffs) || (slab_info.num_buffs == 0))
+            return -ENODEV;
+    }
+
     return 0;
 }
 
