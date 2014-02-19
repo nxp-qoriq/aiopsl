@@ -18,33 +18,6 @@
 extern struct virtual_pools_root_desc virtual_pools_root;
 extern struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
 /*****************************************************************************/
-static int vp_remove_total_bman_bufs(uint16_t bman_pool_id, int32_t  decr_bufs)
-{
-    
-    int i;
-    uint16_t bman_array_index;
-    
-#ifdef DEBUG
-        /* Check the arguments correctness */
-        if (bman_pool_id >= MAX_VIRTUAL_BMAN_POOLS_NUM)
-                return VIRTUAL_POOLS_ILLEGAL_ARGS;
-#endif
-        
-    /* Check which BMAN pool ID array element matches the ID */ 
-    for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
-        if (virtual_bman_pools[i].bman_pool_id == bman_pool_id) {
-            bman_array_index = (uint16_t)i;
-            break;
-        }
-    }
-        
-    /* decrement the total available BMAN pool buffers */ 
-    atomic_decr32(&virtual_bman_pools[bman_array_index].remaining, decr_bufs);
-
-    return 0;
-} 
-
-/*****************************************************************************/
 static inline void free_buffs_from_bman_pool(uint16_t bpid, int num_buffs) 
 {
     int      i;
@@ -241,7 +214,7 @@ int slab_free(uint32_t slab)
             return -EBUSY;
         } else {
             /* TODO use VP API to update VP BPID !! */
-            vp_remove_total_bman_bufs(bpid, remaining_buffs);
+            vpool_decr_total_bman_bufs(bpid, remaining_buffs);
             /* Free all the remaining buffers for VP */
             free_buffs_from_bman_pool(bpid, remaining_buffs);
         }        
