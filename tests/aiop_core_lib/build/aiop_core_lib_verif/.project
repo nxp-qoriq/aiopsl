@@ -408,11 +408,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/include/general.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.c</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers/dplib/include/general.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.h</locationURI>
@@ -461,6 +456,11 @@
 			<name>sources/drivers/dplib/util/checksum.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/util/general.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/cdma.c</name>
