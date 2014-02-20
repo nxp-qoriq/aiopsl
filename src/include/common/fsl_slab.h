@@ -41,6 +41,11 @@
  */
 
 /**************************************************************************//**
+ @Description   Slab handle type 
+*//***************************************************************************/
+struct slab;
+
+/**************************************************************************//**
  @Description   Available debug information about every slab 
 *//***************************************************************************/
 struct slab_debug_info {
@@ -91,7 +96,7 @@ int slab_create(uint16_t    num_buffs,
                 uint8_t     mem_partition_id,
                 uint32_t    flags,
                 slab_release_cb_t release_cb,
-                uint32_t    *slab);
+                struct slab **slab);
 
 /**************************************************************************//**
  @Function      slab_create_by_address
@@ -121,7 +126,7 @@ int slab_create_by_address(uint16_t num_buffs,
                            uint8_t  *address,
                            uint32_t flags,
                            slab_release_cb_t release_cb,
-                           uint32_t *slab);
+                           struct slab **slab);
 
 /**************************************************************************//**
  @Function      slab_free
@@ -134,7 +139,7 @@ int slab_create_by_address(uint16_t num_buffs,
                -EBUSY  - this slab can't be freed 
                -EINVAL - not a valid slab handle                
  *//***************************************************************************/
-int slab_free(uint32_t slab);
+int slab_free(struct slab *slab);
 
 /**************************************************************************//**
  @Function      slab_acquire
@@ -149,7 +154,7 @@ int slab_free(uint32_t slab);
                -ENOMEM - no buffer available, 
                -EINVAL - not a valid slab handle
  *//***************************************************************************/
-int slab_acquire(uint32_t slab, uint64_t *buff);
+int slab_acquire(struct slab *slab, uint64_t *buff);
 
 /**************************************************************************//**
 @Function      slab_release
@@ -164,7 +169,7 @@ int slab_acquire(uint32_t slab, uint64_t *buff);
               -EFAULT - failed to release buffer, 
               -EINVAL - not a valid slab handle 
 *//***************************************************************************/
-int slab_release(uint32_t slab, uint64_t buff);
+int slab_release(struct slab *slab, uint64_t buff);
 
 /**************************************************************************//**
 @Function      slab_debug_info_get
@@ -178,7 +183,7 @@ int slab_release(uint32_t slab, uint64_t buff);
 @Return        0      - on success, 
               -EINVAL - invalid parameter.
 *//***************************************************************************/
-int slab_debug_info_get(uint32_t slab, struct slab_debug_info *slab_info);
+int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 
 /** @} *//* end of slab_g group */
 /** @} *//* end of fsl_mm_g group */
