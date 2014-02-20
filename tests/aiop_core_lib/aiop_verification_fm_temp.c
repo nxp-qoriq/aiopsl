@@ -7,7 +7,6 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_fdma.h"
-
 #include "aiop_verification.h"
 
 void aiop_verification_fm_temp()
@@ -31,7 +30,8 @@ void aiop_verification_fm_temp()
 	/* shift size by 6 since the size is in 64bytes (2^6 = 64) quantities */
 	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK) << 6;
 
-	init_verif_tls();
+	init_verif();
+	
 	/* The condition is for back up only.
 	In case the ASA was written correctly the Terminate command will
 	finish the verification */
