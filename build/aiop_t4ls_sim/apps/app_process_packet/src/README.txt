@@ -49,5 +49,8 @@ Please note that BMAN pool ID 1 is used by parser initialization routine.
 
 Virtual pools
 ===========================================
-Prior to virtual pools creation the corresponding BMAN pool must be initialized and filled with buffers. 
- 
+Don't use virtual pools API, use SLAB API as demonstrated inside this demo
+
+SLAB pools  
+===========================================
+Don't create your SLABs inside FD task, prepare them beforehand inside app_init() as demonstrated inside this demo
