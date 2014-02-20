@@ -65,7 +65,7 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 	/** PARSER & CLASSIFIER accelerator ID */
 #define CTLU_PARSE_CLASSIFY_ACCEL_ID	0x04
 	/** CTLU accelerator ID */
-#define CTLU_ACCEL_ID			0x05
+//#define CTLU_ACCEL_ID			0x05
 	/** Frame Presentation DMA accelerator ID */
 #define FPDMA_ACCEL_ID			0x0C
 	/** Frame Output DMA accelerator ID */

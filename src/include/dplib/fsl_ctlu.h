@@ -294,6 +294,7 @@
 @Group	FSL_CTLU_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
+/* TODO!!!!!!!!!!!!! STATUS FROM CTLU AND AACL varies */
 /**************************************************************************//**
 @Group	FSL_CTLU_STATUS_GENERAL General status returned from CTLU
 @{
@@ -310,7 +311,7 @@ A general bit that is set in some errors conditions */
 /** Table Lookup Miss
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
-#define CTLU_STATUS_MISS	0x00000800 | (CTLU_ACCEL_ID << 24)
+#define CTLU_STATUS_MISS	0x00000800 | (TABLE_ACCEL_ID_CTLU << 24)
 
 /** Key Composition Error
  * This status is set when a key composition error occurs meaning one of the
@@ -318,29 +319,29 @@ A general bit that is set in some errors conditions */
  * - Invalid Key Composition ID was used.
  * - Key Size Error.
  * */
-#define CTLU_STATUS_KSE		0x00000400 | (CTLU_ACCEL_ID << 24)
+#define CTLU_STATUS_KSE		0x00000400 | (TABLE_ACCEL_ID_CTLU << 24)
 
 /** Extract Out Of Frame Header
  * This status is set if key composition attempts to extract a field which is
  * not in the frame header either because it is placed beyond the first 256
  * bytes of the frame, or because the frame is shorter than the index evaluated
  * for the extraction. */
-#define CTLU_STATUS_EOFH	0x00000200 | (CTLU_ACCEL_ID << 24)
+#define CTLU_STATUS_EOFH	0x00000200 | (TABLE_ACCEL_ID_CTLU << 24)
 
 /** Maximum Number Of Chained Lookups Is Reached
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. */
-#define CTLU_STATUS_MNLE	0x00000100 | (CTLU_ACCEL_ID << 24)
+#define CTLU_STATUS_MNLE	0x00000100 | (TABLE_ACCEL_ID_CTLU << 24)
 
 /** Invalid Table ID
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
-#define CTLU_STATUS_TIDE	0x00000080 | (CTLU_ACCEL_ID << 24) | \
+#define CTLU_STATUS_TIDE	0x00000080 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						CTLU_STATUS_MGCF
 
 /** Resource is not available
  * */
-#define CTLU_STATUS_NORSC	0x00000020 | (CTLU_ACCEL_ID << 24) | \
+#define CTLU_STATUS_NORSC	0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						CTLU_STATUS_MGCF
 /** Resource Is Temporarily Not Available
  * Temporarily Not Available occurs if an other resource is in the process of
@@ -350,7 +351,7 @@ A general bit that is set in some errors conditions */
 
 /** ICID Protection Is Violated
  * */
-#define CTLU_STATUS_ICIDE	0x00000008 | (CTLU_ACCEL_ID << 24) | \
+#define CTLU_STATUS_ICIDE	0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						CTLU_STATUS_MGCF
 /** @} */ /* end of FSL_CTLU_STATUS_GENERAL */
 
@@ -460,6 +461,22 @@ A general bit that is set in some errors conditions */
 
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@enum	table_hw_accel_id
+
+@Description	IDs of hardware table lookup accelerator
+
+@{
+*//***************************************************************************/
+enum table_hw_accel_id {
+	/** MFLU accelerator ID */
+	TABLE_ACCEL_ID_MFLU = 0x02,
+	/** CTLU accelerator ID */
+	TABLE_ACCEL_ID_CTLU = 0x05
+};
+
+/** @} */ /* end of table_hw_accel_id */
 
 /**************************************************************************//**
 @enum	kcr_builder_parse_result_offset
@@ -1035,7 +1052,8 @@ struct	ctlu_kcr_builder_fec_mask {
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
+int32_t ctlu_table_create(enum table_hw_accel_id acc_id, /* TODO */
+			  struct ctlu_table_create_params *tbl_params,
 			  uint16_t *table_id);
 
 
@@ -1060,7 +1078,8 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 		table attributes).
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_replace_miss_result(uint16_t table_id,
+int32_t ctlu_table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
+				       uint16_t table_id,
 				       struct ctlu_table_rule_result
 					      *new_miss_result,
 				       struct ctlu_table_rule_result
@@ -1081,7 +1100,8 @@ int32_t ctlu_table_replace_miss_result(uint16_t table_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_get_params(uint16_t table_id,
+int32_t ctlu_table_get_params(enum table_hw_accel_id acc_id, /* TODO */
+			      uint16_t table_id,
 			      struct ctlu_table_get_params_output *tbl_params);
 
 
@@ -1103,7 +1123,8 @@ int32_t ctlu_table_get_params(uint16_t table_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_get_miss_result(uint16_t table_id,
+int32_t ctlu_table_get_miss_result(enum table_hw_accel_id acc_id, /* TODO */
+				   uint16_t table_id,
 				   struct ctlu_table_rule_result *miss_result);
 
 
@@ -1122,7 +1143,8 @@ int32_t ctlu_table_get_miss_result(uint16_t table_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_delete(uint16_t table_id);
+int32_t ctlu_table_delete(enum table_hw_accel_id acc_id, /* TODO */
+			  uint16_t table_id);
 
 
 /* ######################################################################### */
@@ -1145,7 +1167,9 @@ int32_t ctlu_table_delete(uint16_t table_id);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
+int32_t ctlu_table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
+			       uint16_t table_id,
+			       struct ctlu_table_rule *rule,
 			       uint8_t key_size);
 
 
@@ -1171,7 +1195,8 @@ int32_t ctlu_table_rule_create(uint16_t table_id, struct ctlu_table_rule *rule,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
+int32_t ctlu_table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO */
+					  uint16_t table_id,
 					  struct ctlu_table_rule *rule,
 					  uint8_t key_size,
 					  struct ctlu_table_rule_result
@@ -1203,7 +1228,8 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_replace(uint16_t table_id,
+int32_t ctlu_table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
+				uint16_t table_id,
 				struct ctlu_table_rule *rule,
 				uint8_t key_size,
 				struct ctlu_table_rule_result *old_res
@@ -1235,7 +1261,8 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 		the reference counter please refer to table lookup function.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_query(uint16_t table_id,
+int32_t ctlu_table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
+			      uint16_t table_id,
 			      union ctlu_key *key,
 			      uint8_t key_size,
 			      struct ctlu_table_rule_result *result,
@@ -1263,7 +1290,8 @@ int32_t ctlu_table_rule_query(uint16_t table_id,
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_delete(uint16_t table_id,
+int32_t ctlu_table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
+			       uint16_t table_id,
 			       union ctlu_key *key,
 			       uint8_t key_size,
 			       struct ctlu_table_rule_result *result
@@ -1298,7 +1326,8 @@ int32_t ctlu_table_rule_delete(uint16_t table_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_lookup_by_keyid(uint16_t table_id,
+int32_t ctlu_table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
+				   uint16_t table_id,
 				   uint8_t keyid,
 				   struct ctlu_lookup_result *lookup_result);
 
@@ -1324,7 +1353,8 @@ int32_t ctlu_table_lookup_by_keyid(uint16_t table_id,
 @Cautions	In this function the task yields.
 		This lookup cannot be used for chaining of lookups.
 *//***************************************************************************/
-int32_t ctlu_table_lookup_by_key(uint16_t table_id,
+int32_t ctlu_table_lookup_by_key(enum table_hw_accel_id acc_id, /* TODO */
+				 uint16_t table_id,
 				 union ctlu_key *key,
 				 uint8_t key_size,
 				 struct ctlu_lookup_result *lookup_result);
@@ -1521,7 +1551,9 @@ int32_t ctlu_kcr_builder_add_valid_field_fec(uint8_t mask,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_kcr_create(uint8_t *kcr, uint8_t *keyid);
+int32_t ctlu_kcr_create(enum table_hw_accel_id acc_id,
+			uint8_t *kcr,
+			uint8_t *keyid);
 
 
 /**************************************************************************//**
@@ -1536,7 +1568,9 @@ int32_t ctlu_kcr_create(uint8_t *kcr, uint8_t *keyid);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_kcr_replace(uint8_t *kcr, uint8_t keyid);
+int32_t ctlu_kcr_replace(enum table_hw_accel_id acc_id,
+			 uint8_t *kcr,
+			 uint8_t keyid);
 
 
 /**************************************************************************//**
@@ -1550,7 +1584,8 @@ int32_t ctlu_kcr_replace(uint8_t *kcr, uint8_t keyid);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_kcr_delete(uint8_t keyid);
+int32_t ctlu_kcr_delete(enum table_hw_accel_id acc_id,
+			uint8_t keyid);
 
 
 /**************************************************************************//**
@@ -1566,7 +1601,9 @@ int32_t ctlu_kcr_delete(uint8_t keyid);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_kcr_query(uint8_t keyid, uint8_t *kcr, uint8_t *size);
+int32_t ctlu_kcr_query(enum table_hw_accel_id acc_id,
+		       uint8_t keyid, uint8_t *kcr,
+		       uint8_t *size);
 
 
 /**************************************************************************//**
@@ -1583,7 +1620,10 @@ int32_t ctlu_kcr_query(uint8_t keyid, uint8_t *kcr, uint8_t *size);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_gen_key(uint8_t keyid, union ctlu_key *key, uint8_t *key_size);
+int32_t ctlu_gen_key(enum table_hw_accel_id acc_id,
+		     uint8_t keyid,
+		     union ctlu_key *key,
+		     uint8_t *key_size);
 
 
 /**************************************************************************//**

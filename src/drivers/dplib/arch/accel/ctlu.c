@@ -16,7 +16,8 @@
 
 extern uint64_t ext_keyid_pool_address;
 
-int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
+int32_t ctlu_table_create(enum table_hw_accel_id acc_id,
+			  struct ctlu_table_create_params *tbl_params,
 			  uint16_t *table_id)
 {
 	int32_t status;
@@ -118,7 +119,7 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	       0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id); /*TODO*/
 
 	/* Return Table ID */
 	*table_id = (((struct ctlu_table_create_output_message *)acc_ctx->
@@ -147,15 +148,16 @@ int32_t ctlu_table_create(struct ctlu_table_create_params *tbl_params,
 	*((uint32_t *)(&(miss_rule->result))) =
 			*((uint32_t *)&tbl_params->miss_result);
 
-	return ctlu_table_rule_create(*table_id, miss_rule, 0);
+	return ctlu_table_rule_create(acc_id, *table_id, miss_rule, 0);
 }
 
 
-int32_t ctlu_table_replace_miss_result(uint16_t table_id,
-				      struct ctlu_table_rule_result
-					     *new_miss_result,
-				      struct ctlu_table_rule_result
-					     *old_miss_result)
+int32_t ctlu_table_replace_miss_result(enum table_hw_accel_id acc_id,
+				       uint16_t table_id,
+				       struct ctlu_table_rule_result
+					      *new_miss_result,
+				       struct ctlu_table_rule_result
+					      *old_miss_result)
 {
 	/* 16 Byte aligned for stqw optimization + HW requirements */
 	struct ctlu_table_rule new_miss_rule __attribute__((aligned(16)));
@@ -172,12 +174,13 @@ int32_t ctlu_table_replace_miss_result(uint16_t table_id,
 	*((uint32_t *)(&(new_miss_rule.result))) =
 			*((uint32_t *)new_miss_result);
 
-	return ctlu_table_rule_replace(table_id, &new_miss_rule, 0,
+	return ctlu_table_rule_replace(acc_id, table_id, &new_miss_rule, 0,
 				       old_miss_result);
 }
 
 
-int32_t ctlu_table_get_params(uint16_t table_id,
+int32_t ctlu_table_get_params(enum table_hw_accel_id acc_id,
+			      uint16_t table_id,
 			      struct ctlu_table_get_params_output *tbl_params)
 {
 	struct ctlu_table_params_query_output_message output
@@ -188,7 +191,7 @@ int32_t ctlu_table_get_params(uint16_t table_id,
 	       HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	/* Getting output parameters */
 	tbl_params->current_rules = output.current_rules;
@@ -200,31 +203,34 @@ int32_t ctlu_table_get_params(uint16_t table_id,
 }
 
 
-int32_t ctlu_table_get_miss_result(uint16_t table_id,
+int32_t ctlu_table_get_miss_result(enum table_hw_accel_id acc_id,
+				   uint16_t table_id,
 				   struct ctlu_table_rule_result *miss_result)
 {
 	uint32_t invalid_timestamp;
 	return
-	  ctlu_table_rule_query(table_id, 0, 0, miss_result,
+	  ctlu_table_rule_query(acc_id, table_id, 0, 0, miss_result,
 				&invalid_timestamp);
 
 }
 
 
-int32_t ctlu_table_delete(uint16_t table_id)
+int32_t ctlu_table_delete(enum table_hw_accel_id acc_id,
+			  uint16_t table_id)
 {
 	/* Prepare ACC context for CTLU accelerator call */
 	__stqw(CTLU_TABLE_DELETE_MTYPE, 0, table_id, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	/* Return Status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-int32_t ctlu_table_rule_create(uint16_t table_id,
+int32_t ctlu_table_rule_create(enum table_hw_accel_id acc_id,
+			       uint16_t table_id,
 			       struct ctlu_table_rule *rule,
 			       uint8_t key_size)
 {
@@ -252,14 +258,15 @@ int32_t ctlu_table_rule_create(uint16_t table_id,
 	       have removed this entry with DEC if it would arrived on time */
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	/* Return Status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
+int32_t ctlu_table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+					  uint16_t table_id,
 					  struct ctlu_table_rule *rule,
 					  uint8_t key_size,
 					  struct ctlu_table_rule_result
@@ -289,14 +296,14 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
 		__stqw(CTLU_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
+		__e_hwaccel(acc_id);
 		/* STQW optimization is not done here so we do not force
 		   alignment */
 		*old_res = hw_old_res.result;
 	} else {
 		__stqw(CTLU_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE, arg2, arg3,
 		       0, HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
+		__e_hwaccel(acc_id);
 	}
 
 	/* Return Status */
@@ -304,7 +311,8 @@ int32_t ctlu_table_rule_create_or_replace(uint16_t table_id,
 }
 
 
-int32_t ctlu_table_rule_replace(uint16_t table_id,
+int32_t ctlu_table_rule_replace(enum table_hw_accel_id acc_id,
+				uint16_t table_id,
 				struct ctlu_table_rule *rule,
 				uint8_t key_size,
 				struct ctlu_table_rule_result *old_res
@@ -333,21 +341,22 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
 		__stqw(CTLU_RULE_REPLACE_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
+		__e_hwaccel(acc_id);
 		/* STQW optimization is not done here so we do not force
 		   alignment */
 		*old_res = hw_old_res.result;
 	} else {
 		__stqw(CTLU_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
+		__e_hwaccel(acc_id);
 	}
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-int32_t ctlu_table_rule_query(uint16_t table_id,
+int32_t ctlu_table_rule_query(enum table_hw_accel_id acc_id,
+			      uint16_t table_id,
 			      union ctlu_key *key,
 			      uint8_t key_size,
 			      struct ctlu_table_rule_result *result,
@@ -363,7 +372,7 @@ int32_t ctlu_table_rule_query(uint16_t table_id,
 	__stqw(CTLU_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	switch (entry.type & CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK) {
 	case (CTLU_TABLE_ENTRY_ENTYPE_EME16):
@@ -393,7 +402,8 @@ int32_t ctlu_table_rule_query(uint16_t table_id,
 }
 
 
-int32_t ctlu_table_rule_delete(uint16_t table_id,
+int32_t ctlu_table_rule_delete(enum table_hw_accel_id acc_id,
+			       uint16_t table_id,
 			       union ctlu_key *key,
 			       uint8_t key_size,
 			       struct ctlu_table_rule_result *result
@@ -409,22 +419,23 @@ int32_t ctlu_table_rule_delete(uint16_t table_id,
 	if (result) { /* Returning result and thus not decrementing RCOUNT */
 		__stqw(CTLU_RULE_DELETE_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
+		__e_hwaccel(acc_id);
 		/* STQW optimization is not done here so we do not force
 		   alignment */
 		*result = old_res.result;
 	} else {
 		__stqw(CTLU_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
 		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwacceli(CTLU_ACCEL_ID);
+		__e_hwaccel(acc_id);
 	}
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-int32_t ctlu_table_lookup_by_keyid(uint16_t table_id, uint8_t keyid,
-			struct ctlu_lookup_result *lookup_result)
+int32_t ctlu_table_lookup_by_keyid(enum table_hw_accel_id acc_id,
+				   uint16_t table_id, uint8_t keyid,
+				   struct ctlu_lookup_result *lookup_result)
 {
 
 	/* Prepare HW context for TLU accelerator call */
@@ -433,14 +444,16 @@ int32_t ctlu_table_lookup_by_keyid(uint16_t table_id, uint8_t keyid,
 	       0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU Lookup accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	/* Return status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
 
-int32_t ctlu_table_lookup_by_key(uint16_t table_id, union ctlu_key *key,
+int32_t ctlu_table_lookup_by_key(enum table_hw_accel_id acc_id,
+				 uint16_t table_id,
+				 union ctlu_key *key,
 				 uint8_t key_size,
 				 struct ctlu_lookup_result *lookup_result)
 {
@@ -454,7 +467,7 @@ int32_t ctlu_table_lookup_by_key(uint16_t table_id, union ctlu_key *key,
 	       0);
 
 	/* Call CTLU Lookup accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	/* Return status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -1044,7 +1057,9 @@ int32_t ctlu_kcr_builder_add_valid_field_fec(uint8_t mask,
 }
 
 
-int32_t ctlu_kcr_create(uint8_t *kcr, uint8_t *keyid)
+int32_t ctlu_kcr_create(enum table_hw_accel_id acc_id,
+			uint8_t *kcr,
+			uint8_t *keyid)
 {
 	int32_t status;
 	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];
@@ -1061,7 +1076,7 @@ int32_t ctlu_kcr_create(uint8_t *kcr, uint8_t *keyid)
 	       HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	/* Return status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -1072,7 +1087,9 @@ int32_t ctlu_kcr_create(uint8_t *kcr, uint8_t *keyid)
 }
 
 
-int32_t ctlu_kcr_replace(uint8_t *kcr, uint8_t keyid)
+int32_t ctlu_kcr_replace(enum table_hw_accel_id acc_id,
+			 uint8_t *kcr,
+			 uint8_t keyid)
 {
 	int32_t status;
 
@@ -1082,7 +1099,7 @@ int32_t ctlu_kcr_replace(uint8_t *kcr, uint8_t keyid)
 	       HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	/* Return status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -1094,7 +1111,8 @@ int32_t ctlu_kcr_replace(uint8_t *kcr, uint8_t keyid)
 }
 
 
-int32_t ctlu_kcr_delete(uint8_t keyid)
+int32_t ctlu_kcr_delete(enum table_hw_accel_id acc_id,
+			uint8_t keyid)
 {
 	int32_t status;
 	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];
@@ -1106,7 +1124,7 @@ int32_t ctlu_kcr_delete(uint8_t keyid)
 	       HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
 	if (!status)	/* In this command status 0 means failure */
@@ -1119,15 +1137,16 @@ int32_t ctlu_kcr_delete(uint8_t keyid)
 }
 
 
-int32_t ctlu_kcr_query(uint8_t keyid, uint8_t *kcr,
-					uint8_t *size)
+int32_t ctlu_kcr_query(enum table_hw_accel_id acc_id,
+		       uint8_t keyid, uint8_t *kcr,
+		       uint8_t *size)
 {
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(CTLU_KEY_COMPOSITION_RULE_QUERY_MTYPE, (uint32_t)kcr,
 	       ((uint32_t)keyid) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	*size = *(((uint8_t *)HWC_ACC_OUT_ADDRESS) + 5);
 
@@ -1136,7 +1155,10 @@ int32_t ctlu_kcr_query(uint8_t keyid, uint8_t *kcr,
 }
 
 
-int32_t ctlu_gen_key(uint8_t keyid, union ctlu_key *key, uint8_t *key_size)
+int32_t ctlu_gen_key(enum table_hw_accel_id acc_id,
+		     uint8_t keyid,
+		     union ctlu_key *key,
+		     uint8_t *key_size)
 {
 
 	/* Prepare HW context for TLU accelerator call */
@@ -1145,7 +1167,7 @@ int32_t ctlu_gen_key(uint8_t keyid, union ctlu_key *key, uint8_t *key_size)
 
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwaccel(acc_id);
 
 	*key_size = *(((uint8_t *)HWC_ACC_OUT_ADDRESS) + 5);
 
@@ -1162,12 +1184,27 @@ int32_t ctlu_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash)
 	       ((uint32_t)key_size) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwacceli(TABLE_ACCEL_ID_CTLU); /*TODO*/
 
 	*hash = *(((uint32_t *)HWC_ACC_OUT_ADDRESS) + 1);
 
 	/* Return status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+}
+/*****************************************************************************/
+/*				Internal API				     */
+/*****************************************************************************/
+int32_t ctlu_acquire_semaphore(enum table_hw_accel_id acc_id){
+	__stqw(CTLU_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
+	__e_hwaccel(acc_id);
+
+	/* Return status */
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+}
+
+void ctlu_release_semaphore(enum table_hw_accel_id acc_id){
+	__stqw(CTLU_RELEASE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
+	__e_hwaccel(acc_id);
 }
 
 /*****************************************************************************/
@@ -1182,7 +1219,7 @@ int32_t ctlu_table_query_debug(uint16_t table_id,
 	       HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(CTLU_ACCEL_ID);
+	__e_hwacceli(TABLE_ACCEL_ID_CTLU); /*TODO*/
 
 	/* Return status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);

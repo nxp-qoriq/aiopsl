@@ -11,12 +11,6 @@
 
 #include "dplib/fsl_ctlu.h"
 
-
-/* Accelerators IDs (from AIOP Source IDs section in ArchDef) */
-
-/** CTLU accelerator ID */
-#define CTLU_ACCEL_ID		0x05
-
 /** \enum ctlu_verif_cmd_type defines the parser verification CMDTYPE
  * field. */
 enum ctlu_verif_cmd_type {
@@ -51,117 +45,117 @@ enum ctlu_verif_cmd_type {
 /* CTLU Commands Structure identifiers */
 
 /*! Table Create Command Structure identifier */
-#define CTLU_TABLE_CREATE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_TABLE_CREATE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_CREATE_VERIF_CMDTYPE)
 
 /*! Table Update Miss Rule Command Structure identifier */
-#define CTLU_UPDATE_MISS_RULE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_UPDATE_MISS_RULE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_TABLE_UPDATE_MISS_RULE_VERIF_CMDTYPE)
 
 /*! Table get params Command Structure identifier */
-#define CTLU_TABLE_GET_PARAMS_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_TABLE_GET_PARAMS_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_GET_PARAMS_VERIF_CMDTYPE)
 
 /*! Table query with reference counting Command Structure identifier */
-#define CTLU_GET_MISS_RULE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_GET_MISS_RULE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_GET_MISS_RULE_VERIF_CMDTYPE)
 
 /*! Table delete Command Structure identifier */
-#define CTLU_TABLE_DELETE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_TABLE_DELETE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_DELETE_VERIF_CMDTYPE)
 
 /*! Table rule create Command Structure identifier */
-#define CTLU_RULE_CREATE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_RULE_CREATE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_RULE_CREATE_VERIF_CMDTYPE)
 
 /** Table rule create or replace Command Structure identifier */
-#define CTLU_RULE_CREATE_OR_REPLACE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_RULE_CREATE_OR_REPLACE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 			CTLU_TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE)
 
 /*! Table rule replace Command Structure identifier */
-#define CTLU_RULE_REPLACE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_RULE_REPLACE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_RULE_REPLACE_VERIF_CMDTYPE)
 
 /*! Table rule delete Command Structure identifier */
-#define CTLU_RULE_DELETE_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_RULE_DELETE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_RULE_DELETE_VERIF_CMDTYPE)
 
 /*! Table lookup by keyID */
-#define CTLU_LOOKUP_BY_KEYID_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_LOOKUP_BY_KEYID_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
 
 /** Table lookup by explicit key */	
-#define CTLU_LOOKUP_BY_KEY_CMD_STR		((CTLU_ACCEL_ID << 16) | \
+#define CTLU_LOOKUP_BY_KEY_CMD_STR		((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
 
 /*! Init Key Composition Rule Builder Command Structure identifier*/
-#define CTLU_KCR_BUILDER_INIT_CMD_STR   ((CTLU_ACCEL_ID << 16) | \
+#define CTLU_KCR_BUILDER_INIT_CMD_STR   ((TABLE_ACCEL_ID_CTLU << 16) | \
 					CTLU_KCR_BUILDER_INIT_VERIF_CMDTYPE)
 
 /*! Add "constant" fec to KCR Command Structure identifier*/
 #define CTLU_KCR_BUILDER_ADD_CONSTANT_FEC_CMD_STR \
-	((CTLU_ACCEL_ID << 16) | \
+	((TABLE_ACCEL_ID_CTLU << 16) | \
 	CTLU_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE)
 
 /*! Add "protocol specific field" fec to KCR Command Structure identifier */
 #define CTLU_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FIELD_FEC_CMD_STR \
-	((CTLU_ACCEL_ID << 16) | \
+	((TABLE_ACCEL_ID_CTLU << 16) | \
 	CTLU_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE)
 
 /*! Add "protocol based generic extract" fec to KCR Command Structure
  * identifier */
 #define CTLU_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_CMD_STR \
-	((CTLU_ACCEL_ID << 16) | \
+	((TABLE_ACCEL_ID_CTLU << 16) | \
 	CTLU_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
 
 /*! Add "generic extract" fec to KCR Command Structure identifier */
 #define CTLU_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_CMD_STR \
-	((CTLU_ACCEL_ID << 16) | \
+	((TABLE_ACCEL_ID_CTLU << 16) | \
 	CTLU_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
 
 /*! Add "lookup result field" fec to KCR Command Structure identifier */
 #define CTLU_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_CMD_STR \
-	((CTLU_ACCEL_ID << 16) | \
+	((TABLE_ACCEL_ID_CTLU << 16) | \
 	CTLU_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_VERIF_CMDTYPE)
 
 /*! Add "valid field" fec to KCR Command Structure identifier */
 #define CTLU_KCR_BUILDER_ADD_VALID_FIELD_FEC_CMD_STR \
-	((CTLU_ACCEL_ID << 16) | \
+	((TABLE_ACCEL_ID_CTLU << 16) | \
 	CTLU_KCR_BUILDER_ADD_VALID_FIELD_FEC_VERIF_CMDTYPE)
 
 /*! Key composition rule create Command Structure identifier */
 #define CTLU_KCR_CREATE_CMD_STR	\
-		((CTLU_ACCEL_ID << 16) | \
+		((TABLE_ACCEL_ID_CTLU << 16) | \
 		CTLU_KCR_CREATE_VERIF_CMDTYPE)
 
 /*! Key composition rule replace Command Structure identifier */
 #define CTLU_KCR_REPLACE_CMD_STR	\
-		((CTLU_ACCEL_ID << 16) | \
+		((TABLE_ACCEL_ID_CTLU << 16) | \
 		CTLU_KCR_REPLACE_VERIF_CMDTYPE)
 
 /*! Key composition rule delete Command Structure identifier */
 #define CTLU_KCR_DELETE_CMD_STR	\
-		((CTLU_ACCEL_ID << 16) | \
+		((TABLE_ACCEL_ID_CTLU << 16) | \
 		CTLU_KCR_DELETE_VERIF_CMDTYPE)
 
 /** Key composition rule query Command Structure identifier */
-#define CTLU_KCR_QUERY_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_KCR_QUERY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_KCR_QUERY_VERIF_CMDTYPE)
 
 /*! Generate key Command Structure identifier*/
-#define CTLU_GEN_KEY_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_GEN_KEY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_GEN_KEY_VERIF_CMDTYPE)
 
 /*! Generate hash Command Structure identifier */
-#define CTLU_GEN_HASH_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_GEN_HASH_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_GEN_HASH_VERIF_CMDTYPE)
 
 /*!< Table Query Debug Command Structure identifier */
-#define CTLU_TABLE_QUERY_DEBUG_CMD_STR	((CTLU_ACCEL_ID << 16) | \
+#define CTLU_TABLE_QUERY_DEBUG_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
 
 /*!< Create Key ID Pool Command Structure identifier */
-#define CTLU_KEY_ID_POOL_CREATE_CMD_STR  ((CTLU_ACCEL_ID << 16) | \
+#define CTLU_KEY_ID_POOL_CREATE_CMD_STR  ((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_KEY_ID_POOL_CREATE_VERIF_CMDTYPE)
 
 /** \addtogroup AIOP_Service_Routines_Verification
@@ -224,6 +218,7 @@ struct ctlu_table_params_query_output_message {
 *//***************************************************************************/
 
 struct ctlu_table_create_command {
+
 	/** CTLU Create Table Command identifier */
 	uint32_t opcode;
 
@@ -236,8 +231,8 @@ struct ctlu_table_create_command {
 	/** Command returned Table ID */
 	uint16_t table_id;
 
-	/** 64-bit alignment */
-	uint8_t	pad[2];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -266,8 +261,8 @@ struct ctlu_update_miss_rule_command {
 	/** Table ID */
 	uint16_t table_id;
 
-	/** 64-bit alignment */
-	uint8_t	pad[2];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -290,8 +285,8 @@ struct ctlu_table_get_params_command {
 	/** Table ID */
 	uint16_t table_id;
 
-	/** 64-bit alignment */
-	uint8_t	pad[2];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 
@@ -317,8 +312,8 @@ struct ctlu_get_miss_rule_command {
 	/** Table ID */
 	uint16_t table_id;
 
-	/** 64-bit alignment */
-	uint8_t	pad[2];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -337,8 +332,8 @@ struct ctlu_table_delete_command {
 	/** Table ID */
 	uint16_t table_id;
 
-	/** 64-bit alignment */
-	uint8_t	pad[6];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 
@@ -364,8 +359,8 @@ struct ctlu_table_rule_create_command{
 	/** Key size */
 	uint8_t key_size;
 
-	/** 64-bit alignment */
-	uint8_t pad;
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 
@@ -394,8 +389,8 @@ struct ctlu_table_rule_create_replace_command{
 	/** Key size */
 	uint8_t key_size;
 
-	/** 64-bit alignment */
-	uint8_t pad;
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 
@@ -424,8 +419,8 @@ struct ctlu_table_rule_delete_command{
 	/** Input key size*/
 	uint8_t key_size;
 
-	/** 64-bit alignment */
-	uint8_t	pad[1];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -450,8 +445,8 @@ struct ctlu_table_lookup_by_keyid_command{
 	/** Key ID */
 	uint8_t key_id;
 
-	/** 64-bit alignment */
-	uint8_t	pad;
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -479,8 +474,8 @@ struct ctlu_table_lookup_by_key_command{
 	/** Input key size*/
 	uint8_t key_size;
 
-	/** padding */
-	uint8_t	pad[5];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 
 };
 
@@ -710,8 +705,8 @@ struct ctlu_kcr_create_or_replace_command{
 	/** Key ID */
 	uint8_t  key_id;
 
-	/** 64-bit alignment */
-	uint8_t  pad[3];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 
@@ -731,8 +726,8 @@ struct ctlu_kcr_delete_command{
 	/** Key ID */
 	uint8_t key_id;
 
-	/** 64-bit alignment */
-	uint8_t	pad[7];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -757,8 +752,8 @@ struct ctlu_kcr_query_command{
 	/** Key Composition Rule size */
 	uint8_t size;
 
-	/** 64-bit alignment */
-	uint8_t	pad[2];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -783,8 +778,8 @@ struct ctlu_gen_key_command{
 	/** Output key size*/
 	uint8_t key_size;
 
-	/** Padding */
-	uint8_t	pad[2];
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**

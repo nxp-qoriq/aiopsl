@@ -821,6 +821,10 @@ int32_t ctlu_table_query_debug(uint16_t table_id,
 			       struct ctlu_table_params_query_output_message
 			       *output);
 
+int32_t ctlu_acquire_semaphore(enum table_hw_accel_id acc_id);
+
+void ctlu_release_semaphore(enum table_hw_accel_id acc_id);
+
 /** @} */ /* end of CTLU_Functions */
 
 /** @} */ /* end of CTLU */
