@@ -19,10 +19,10 @@ void app_free(void);
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16) 
 /**< Get flow id from callback argument, it's demo specific macro */
 
-__SHRAM uint32_t slab_peb = 0;
-__SHRAM uint32_t slab_ddr = 0;
+__SHRAM struct slab *slab_peb = 0;
+__SHRAM struct slab *slab_ddr = 0;
 
-static int app_write_buff_and_release(uint32_t slab, uint64_t buff)
+static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 {
     uint64_t data1 = 0xAABBCCDD00001122;
     uint64_t data2 = 0;
@@ -44,7 +44,7 @@ static int app_write_buff_and_release(uint32_t slab, uint64_t buff)
     return 0;
 }
 
-static int app_test_slab(uint32_t slab, int num_times) 
+static int app_test_slab(struct slab *slab, int num_times) 
 {
     uint64_t buff[3] = {0, 0, 0};
     int      err = 0;
@@ -78,14 +78,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
     err = ip_set_nw_src(src_addr);
     if (err) fdma_terminate_task();
 	
-    dpni_drv_send(APP_NI_GET(arg));
-	fdma_terminate_task();
-}
-
-static void app_process_packet_flow1 (dpni_drv_app_arg_t arg)
-{    
-    int      err = 0;    
-
     err = app_test_slab(slab_peb, 4); 
     if (err) fdma_terminate_task();
         
@@ -93,7 +85,7 @@ static void app_process_packet_flow1 (dpni_drv_app_arg_t arg)
     if (err) fdma_terminate_task();
 
     dpni_drv_send(APP_NI_GET(arg));
-    fdma_terminate_task();
+	fdma_terminate_task();
 }
 
 int app_init(void)
@@ -107,22 +99,14 @@ int app_init(void)
     
     for (ni = 0; ni < 6; ni++)
     {
-        /* Every ni will have 2 flows */
-        uint32_t flow_id = 1;
-        err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/, 
-                                      (uint16_t)flow_id/*flow_id*/, 
-                                      NULL/*dpio*/, 
-                                      NULL /*dpsp*/, 
-                                      app_process_packet_flow1, /* callback for flow_id*/
-                                      (ni | (flow_id << 16)) /*arg, nic number*/);
-        if (err) return err;
-        flow_id = 0;
+        /* Every ni will have 1 flow */
+        uint32_t flow_id = 0;
         err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/, 
                                       (uint16_t)flow_id/*flow_id*/, 
                                       NULL/*dpio*/, 
                                       NULL /*dpsp*/, 
                                       app_process_packet_flow0, /* callback for flow_id*/
-                                      (ni | (flow_id << 16))/*arg, nic number*/);
+                                      (ni | (flow_id << 16)) /*arg, nic number*/);
         if (err) return err;
     }
     
