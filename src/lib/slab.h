@@ -12,13 +12,14 @@
 #include "common/fsl_slab.h"
 #include "common/list.h"
 
+#define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 
 /**************************************************************************//**
  @Description   SLAB common internal macros 
 *//***************************************************************************/
 #define SLAB_HW_POOL_SET      0x00000001
 /**< Flag which indicates that this SLAB handle is HW pool */
-#define SLAB_IS_HW_POOL(SLAB) ((SLAB) & SLAB_HW_POOL_SET)
+#define SLAB_IS_HW_POOL(SLAB) (SLAB_HW_HANDLE(SLAB) & SLAB_HW_POOL_SET)
 /**< Slab handle is HW pool */
 
 /**************************************************************************//**
@@ -35,7 +36,7 @@
 #define SLAB_VP_POOL_MAX       (SLAB_VP_POOL_MASK >> 1) /**< Maximal number to be used as VP id */
 #define SLAB_VP_POOL_SHIFT     1
 #define SLAB_HW_ACCEL_MASK     0xFF000000
-#define SLAB_VP_POOL_GET(SLAB) ((uint32_t)(((SLAB) & SLAB_VP_POOL_MASK) >> 1)) 
+#define SLAB_VP_POOL_GET(SLAB) ((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1)) 
 /**< Returns VP id to be used with virtual pools API */ 
 
 #define SLAB_HW_METADATA_OFFSET     8 /**< bytes */
