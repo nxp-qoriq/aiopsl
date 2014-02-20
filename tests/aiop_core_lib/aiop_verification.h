@@ -184,7 +184,7 @@ struct aiop_if_verif_command {
 	uint32_t opcode;
 		/** Compared value. 
 		 * This value will be compared to a variable chosen according to
-		 * the compared_variable_id. */
+		 * the compared_variable_addr. */
 	int32_t compared_value;
 		/** Workspace address of the compared task variable. */
 	uint32_t compared_variable_addr;
@@ -214,7 +214,7 @@ struct aiop_if_else_verif_command {
 	uint32_t opcode;
 		/** Compared value. 
 		 * This value will be compared to a variable chosen according to
-		 * the compared_variable_id. */
+		 * the compared_variable_addr. */
 	int32_t compared_value;	
 		/** Workspace address of the compared task variable. */
 	uint32_t compared_variable_addr;
