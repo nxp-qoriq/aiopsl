@@ -29,7 +29,7 @@
 *//***************************************************************************/
 
 	/**< HM accelerator ID For verification purposes*/
-#define IPR_VERIF_FM_ID	 (IPR_MODULE_STATUS_ID >> 16)
+#define IPR_FM_ID	 (IPR_MODULE_STATUS_ID >> 16)
 
 //#define IPR_VERIF_ACCEL_ID	0xFD
 	/**< HM accelerator ID For verification purposes*/
