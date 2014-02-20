@@ -1,6 +1,4 @@
 /**************************************************************************//**
-		Copyright 2013 Freescale Semiconductor, Inc.
-
  @File		dpni_drv.h
 
  @Description	Data Path Network Interface API
