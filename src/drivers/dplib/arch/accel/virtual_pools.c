@@ -10,9 +10,9 @@
 #include "dplib/fsl_cdma.h"
 #include "cdma.h"
 
-struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
+__SHRAM struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
 
-struct virtual_pools_root_desc virtual_pools_root;
+__SHRAM struct virtual_pools_root_desc virtual_pools_root;
 
 
 /***************************************************************************
