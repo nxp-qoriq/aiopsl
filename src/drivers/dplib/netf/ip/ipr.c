@@ -107,7 +107,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		unlock_spinlock(&ipr_instance_spin_lock);
 		/* todo SR error case */
 		cdma_release_context_memory(*ipr_instance_ptr);
-		/* todo: erro case and case only IPv6 table*/
+		/* todo: error case and case only IPv6 table*/
 		ctlu_table_delete(ipr_instance.table_id_ipv4);
 		return IPR_MAX_BUFFERS_REACHED;
 	}
@@ -135,6 +135,33 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		return err;
 	else
 		return IPR_CREATE_INSTANCE_SUCCESS;
+}
+
+int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
+			    ipr_del_cb_t *confirm_delete_cb,
+			    ipr_del_arg_t delete_arg)
+{
+	struct ipr_instance ipr_instance;
+	uint32_t aggregate_open_frames;
+	int32_t err;
+	
+	/* todo caalback function */
+	UNUSED(confirm_delete_cb);
+	UNUSED(delete_arg);
+	
+	err = cdma_read(&ipr_instance,ipr_instance_ptr, IPR_INSTANCE_SIZE);
+	if (err)
+		return err;
+	/* todo SR error case */
+	cdma_release_context_memory(ipr_instance_ptr);
+	/* todo: error case and case only IPv6 table*/
+	ctlu_table_delete(ipr_instance.table_id_ipv4);
+	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
+			ipr_instance.max_open_frames_ipv6;
+	lock_spinlock(&ipr_instance_spin_lock);
+	ipr_global_parameters1.ipr_avail_buffers_cntr += aggregate_open_frames;
+	unlock_spinlock(&ipr_instance_spin_lock);
+	return SUCCESS;
 }
 
 int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
