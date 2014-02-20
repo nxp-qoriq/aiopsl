@@ -1,4 +1,9 @@
-- API Change: change fsl_os_malloc_smart()->fsl_os_xmalloc() , fsl_os_free_smart()-> fsl_os_xfree()
+.cproject app_process_packet: Set small data and small data2 to 0 at PowerPC CPU settings
+.cproject aiopsl:             Set small data and small data2 to 0 at PowerPC CPU settings
+
+- app_process_packet.c: updated SLAB test and removed flow1 test
+- fsl_slab.h:           Changed type of SLAB handle, updated documentation
+- API Change:           change fsl_os_malloc_smart()->fsl_os_xmalloc() , fsl_os_free_smart()-> fsl_os_xfree()
 - fsl_slab.h:           Added extra_buffs for slab_create() API
 - app_process_packet.c: Added SLAB test inside app_process_packet_flow1() of app_process_packet demo
 - app_process_packet.c: Added SLAB test inside app_init() of app_process_packet demo
@@ -6,6 +11,8 @@
 - gen.h:         Added ALIGN_UP, ALIGN_DOWN macros
 - aiop_link.lcf: Moved app_receive_cb() to the start of IRAM and fixed IRAM size to 128K
 - fsl_slab.h:    Added new file with SLAB API
+- slab.h:        AIOP HW SLAB implementation
+- slab.c:        AIOP HW SLAB implementation
 
 AIOP ARENA Feb 4, 2014
 - Changed i_ram to start at 0xfe0000 in aiop_link.lcf in order to match simulator

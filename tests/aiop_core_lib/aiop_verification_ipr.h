@@ -29,7 +29,7 @@
 *//***************************************************************************/
 
 	/**< HM accelerator ID For verification purposes*/
-#define IPR_VERIF_FM_ID	 (IPR_MODULE_STATUS_ID >> 16)
+#define IPR_FM_ID	 (IPR_MODULE_STATUS_ID >> 16)
 
 //#define IPR_VERIF_ACCEL_ID	0xFD
 	/**< HM accelerator ID For verification purposes*/
@@ -103,6 +103,7 @@ struct ipr_init_verif_command {
 	uint32_t	max_buffers;
 	uint32_t	flags;
 	uint8_t		tmi_id;
+	uint8_t		res[3];
 };
 
 /**************************************************************************//**
@@ -118,6 +119,7 @@ struct ipr_create_instance_command {
 #ifdef CLOSE_MODEL	
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
+	uint8_t			res[3];
 #endif	
 
 };
@@ -129,13 +131,14 @@ struct ipr_create_instance_command {
 *//***************************************************************************/
 #ifdef CLOSE_MODEL
 struct ipr_delete_instance_command {
-	uint32_t				opcode;
+	uint32_t			opcode;
 	/**< Command structure identifier. */
-	int32_t					status;
-	ipr_instance_handle_t	ipr_instance;
+	int32_t				status;
+	ipr_instance_handle_t		ipr_instance;
 	ipr_del_cb_t			*confirm_delete_cb;
 	ipr_del_arg_t			delete_arg;
-	uint8_t					ipr_instance_ref;
+	uint8_t				ipr_instance_ref;
+	uint8_t				res[3];
 };
 #endif
 
@@ -151,6 +154,7 @@ struct ipr_reassemble_command {
 #ifdef CLOSE_MODEL	
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
+	uint8_t			res[3];
 #endif	
 };
 
@@ -164,9 +168,10 @@ struct ipr_modify_max_reass_frm_size_command {
 	uint32_t				opcode;
 		/**< Command structure identifier. */
 	int32_t					status;
-	ipr_instance_handle_t	ipr_instance;
+	ipr_instance_handle_t			ipr_instance;
 	uint16_t				max_reass_frm_size;
 	uint8_t					ipr_instance_ref;
+	uint8_t					res[5];
 };
 
 /**************************************************************************//**
@@ -181,6 +186,7 @@ struct ipr_modify_min_frag_size_command {
 	ipr_instance_handle_t	ipr_instance;
 	uint16_t				min_frag_size;
 	uint8_t					ipr_instance_ref;
+	uint8_t					res[5];
 };
 
 /**************************************************************************//**
@@ -195,6 +201,7 @@ struct ipr_modify_timeout_value_ipv4_command {
 	ipr_instance_handle_t	ipr_instance;
 	uint16_t				reasm_timeout_value_ipv4;
 	uint8_t					ipr_instance_ref;
+	uint8_t					res[5];
 };
 
 /**************************************************************************//**
@@ -206,9 +213,10 @@ struct ipr_modify_timeout_value_ipv6_command {
 	uint32_t				opcode;
 		/**< Command structure identifier. */
 	int32_t					status;
-	ipr_instance_handle_t	ipr_instance;
+	ipr_instance_handle_t			ipr_instance;
 	uint16_t				reasm_timeout_value_ipv6;
 	uint8_t					ipr_instance_ref;
+	uint8_t					res[5];
 };
 
 /**************************************************************************//**
@@ -224,6 +232,7 @@ struct ipr_get_reass_frm_cntr_command {
 	uint32_t				flags;
 	uint32_t				*reass_frm_cntr;
 	uint8_t					ipr_instance_ref;
+	uint8_t					res[7];
 };
 
 #endif
