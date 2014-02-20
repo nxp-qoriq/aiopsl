@@ -1,4 +1,7 @@
 
+SL Pre-Alpha v0.3  Change Log
+
+
 spinlock.h: removed aiop_ prefix from aiop_atomic_incr8/16/32 and from aiop_atomic_decr8/16/32
 fsl_ipr.h: change API: add a different return status for regular frames 
 virtual_pools.h: added callback function typedef
@@ -10,8 +13,15 @@ fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma
 	•	cdma_refcount_decrement_and_release
 	•	cdma_access_context_memory
 		
+Doc & Tool compatibility:
+	AIOP Archdef 0.7.1
+	CTLU Archdef 0.6
+	FD_section   0.62.2
+	Parser_Block_Guide	3.40 (Maturity level 0.95)
+	AIOP_Instruction_Additions 0.60
+	Compiler Build 268
 
-
+	
 SL Pre-Alpha v0.2  Change Log
 
 
