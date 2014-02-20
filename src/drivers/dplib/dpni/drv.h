@@ -1,9 +1,7 @@
 /**************************************************************************//*
- @File          dvr.h
+ @File          drv.h
 
- @Description   TODO
-
- @Cautions      None.
+ @Description   DPNI driver structure and internal functions.
 *//***************************************************************************/
 
 #ifndef __DRV_H
