@@ -284,14 +284,14 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 
 		if (str->EIS) {
 			str->status = (int8_t)
-				fdma_enqueue_fd_fqid(&(str->fd), flags, 
+				fdma_enqueue_fd_fqid(&(str->fd), flags,
 					str->qd_fqid, str->icid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
 			qdp.hash_value = str->hash_value;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
-				fdma_enqueue_fd_qd(&(str->fd), flags, 
+				fdma_enqueue_fd_qd(&(str->fd), flags,
 						&qdp, str->icid);
 		}
 
@@ -561,9 +561,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				str->to_offset, str->to_size,
 				(void *)str->from_ws_src, str->from_size,
 				(void *)str->ws_dst_rs, str->size_rs, flags);
-		
+
 		if (str->SA == 1)
-			str->seg_length_rs = (*((uint16_t *) 
+			str->seg_length_rs = (*((uint16_t *)
 				HWC_ACC_OUT_ADDRESS2)) & PRC_ASAPS_MASK;
 		else if (str->SA == 2)
 			str->seg_length_rs = 0;
@@ -668,6 +668,8 @@ void aiop_verification_replace_asa()
 	uint16_t asa_seg_size;  /* ASA Segment Size */
 	uint32_t flags;
 
+	if (LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS) == 0)
+		return;
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
 	/* Initialize ASA variables */
