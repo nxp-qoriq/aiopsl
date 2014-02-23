@@ -370,9 +370,9 @@ struct ipsec_descriptor_params {
 	uint32_t hard_seconds_limit; 	/**< Hard Second limit. */
 
 	/** Callback function.
-	 * Invoked when the Soft Seconds timer reaches the limit value
+	 * Invoked when the Soft or Hard Seconds timer reaches the limit value
 	 * Set to NULL to disable this option */
-        ipsec_lifetime_callback_t *soft_seconds_callback;
+        ipsec_lifetime_callback_t *lifetime_callback;
 
         uint64_t  callback_arg; /**< argument for callback function
         			(SA address) */
