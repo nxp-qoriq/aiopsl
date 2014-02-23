@@ -215,7 +215,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     }
 
     /* Copy partition name */
-    strncpy(p_new_partition->info.name, name, MEM_MNG_MAX_PARTITION_NAME_LEN);
+    strncpy(p_new_partition->info.name, name, MEM_MNG_MAX_PARTITION_NAME_LEN-1);
 
     /* Initialize debug entries list */
     INIT_LIST(&(p_new_partition->mem_debug_list));
@@ -237,6 +237,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     }
     else
     {
+	ASSERT_COND(p_partition);
         if (p_partition->id < partition_id)
             list_add(&(p_new_partition->node), &(p_partition->node));
         else

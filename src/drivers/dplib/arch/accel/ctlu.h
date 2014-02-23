@@ -546,10 +546,10 @@ struct ctlu_table_entry_body_lpm_res {
 union ctlu_table_entry_body {
 	/** EME16 Entry - see CTLU specification for more details */
 	struct ctlu_table_entry_body_eme16 eme16;
-	
+
 	/** EME24 Entry - see CTLU specification for more details */
 	struct ctlu_table_entry_body_eme24 eme24;
-	
+
 	/** LPM Result Entry - see CTLU specification for more details */
 	struct ctlu_table_entry_body_lpm_res lpm_res;
 };
