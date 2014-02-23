@@ -4,14 +4,19 @@ SL Pre-Alpha v0.3  Change Log
 
 spinlock.h: removed aiop_ prefix from aiop_atomic_incr8/16/32 and from aiop_atomic_decr8/16/32
 fsl_ipr.h: change API: add a different return status for regular frames 
-virtual_pools.h: added callback function typedef
-virtual_pools.c: updated vpool_refcount_decrement_and_release to release 
-		also in case of ref counter already at zero.
+virtual_pools.h: 
+	• added callback function typedef
+	• added the "vpool_decr_total_bman_bufs	"function
+virtual_pools.c:
+	• updated vpool_refcount_decrement_and_release to release also in case of ref counter already at zero.
+	• added the "vpool_decr_total_bman_bufs	"function,
 fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma.h file and replaced by new SLAB functions: 
 	•	cdma_acquire_context_memory
 	•	cdma_release_context_memory
 	•	cdma_refcount_decrement_and_release
 	•	cdma_access_context_memory
+
+fsl_ipsec.h: API changes, updates and additions following a review.
 		
 Doc & Tool compatibility:
 	AIOP Archdef 0.7.1
