@@ -1316,13 +1316,13 @@ int32_t fdma_acquire_buffer(
 	/* command parameters and results */
 	uint32_t arg1, arg2;
 	int8_t res1;
-	
+
 	/* prepare command parameters */
 	arg1 = FDMA_ACQUIRE_CMD_ARG1(icid, flags);
-	arg2 = FDMA_ACQUIRE_CMD_ARG2(dst,bpid);
+	arg2 = FDMA_ACQUIRE_CMD_ARG2(dst, bpid);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
-	
+
 	/* call FDMA Accelerator */
 	/* Todo - Note to Hw/Compiler team:
 	__accel_call() should return success/fail indication */
@@ -1342,13 +1342,13 @@ int32_t fdma_release_buffer(
 	/* command parameters and results */
 	uint32_t arg1;
 	int8_t res1;
-	
+
 	/* prepare command parameters */
 	arg1 = FDMA_RELEASE_CMD_ARG1(icid, flags);
 	/* store command parameters */
 	__stdw(arg1, bpid, HWC_ACC_IN_ADDRESS, ZERO);
 	__llstdw(addr, HWC_ACC_IN_ADDRESS3, ZERO);
-		
+
 	/* call FDMA Accelerator */
 	/* Todo - Note to Hw/Compiler team:
 	__accel_call() should return success/fail indication */
