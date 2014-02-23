@@ -78,6 +78,7 @@ void aiop_verification_fm()
 		case IPF_FM_ID:
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);
+			break;
 		}
 		case FPDMA_ACCEL_ID:
 		case FODMA_ACCEL_ID:

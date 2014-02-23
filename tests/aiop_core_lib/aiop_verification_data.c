@@ -15,6 +15,7 @@
 #include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_parser.h"
 #include "system.h"
+#include "osm.h"
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
@@ -34,10 +35,19 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 void init_verif()
 {
+	struct parse_result *pr;
+	
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	
 	if (!verif_prpid_valid){
 		aiop_verif_init_parser();
 		verif_prpid_valid = 1;
 	}
+	
+	/* Need to save running-sum in parse-results LE-> BE */
+	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
+	
+	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.parser_profile_id = verif_prpid;
 	parse_result_generate_default(0);
