@@ -114,7 +114,7 @@ int app_init(void)
     err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, NULL, &slab_ddr);
     if (err) return err;
 
-    err = slab_debug_info_get(slab_peb, &slab_info);
+    err = slab_debug_info_get(slab_ddr, &slab_info);
     if (err) {
         return err;
     } else {
@@ -126,7 +126,7 @@ int app_init(void)
     err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
     if (err) return err;
           
-    err = slab_debug_info_get(slab_ddr, &slab_info);
+    err = slab_debug_info_get(slab_peb, &slab_info);
     if (err) {
         return err;
     } else {
