@@ -17,6 +17,9 @@ fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma
 	•	cdma_access_context_memory
 
 fsl_ipsec.h: API changes, updates and additions following a review.
+fsl_ctlu.h: Added rule query function
+ipf.c: New file.
+ipf.h: Some changes in ipf internal structures.
 		
 Doc & Tool compatibility:
 	AIOP Archdef 0.7.1
