@@ -668,7 +668,8 @@ void aiop_verification_replace_asa()
 	uint16_t asa_seg_size;  /* ASA Segment Size */
 	uint32_t flags;
 
-	if (LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS) == 0)
+	if ((LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS) == 0) ||
+			(PRC_GET_ASA_SIZE() == 0))
 		return;
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
