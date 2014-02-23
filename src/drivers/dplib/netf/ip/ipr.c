@@ -145,7 +145,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	uint32_t aggregate_open_frames;
 	int32_t err;
 	
-	/* todo caalback function */
+	/* todo callback function */
 	UNUSED(confirm_delete_cb);
 	UNUSED(delete_arg);
 	
@@ -191,7 +191,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			osm_status = BYPASS_OSM;				
 		} else {
 			/* regular frame */
-			return IPR_REASSEMBLY_SUCCESS;
+			return IPR_REASSEMBLY_REGULAR;
 		}
 	} else {
 	    /* move to exclusive */
@@ -249,7 +249,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 						  RFDC_SIZE);
 	
 			     if(!(rfdc.status & RFDC_VALID)) {
-				     move_to_correct_ordering_scope2(osm_status);
+				    move_to_correct_ordering_scope2(osm_status);
 				     cdma_write_release_lock_and_decrement(
 								rfdc_ext_addr,
 								(void *)&rfdc,
@@ -262,7 +262,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {*/
 			} else if((sr_status == 
 				  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) || 
-				  (sr_status == CTLU_LOOKUP_STATUS_MISS_RESULT)){
+				 (sr_status == CTLU_LOOKUP_STATUS_MISS_RESULT)){
 				/* Miss */
 			    cdma_acquire_context_memory(
 					     IPR_CONTEXT_SIZE,
@@ -299,7 +299,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    /* store key in RDFC */
 			    rfdc.key[0] = *(uint64_t *)rule.key.key_em.key;
 			    rfdc.key[1] = *(uint64_t *)(rule.key.key_em.key+8);
-			    /* todo release struct rule  or call function for gen+add rule */
+			    /* todo release struct rule  or call function for
+			     * gen+add rule */
 			    rfdc.status = RFDC_VALID;
 			    rfdc.instance_handle = instance_handle;
 			    rfdc.expected_total_length = 0;
@@ -329,15 +330,13 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    instance_params.num_of_open_reass_frames += 1;
 			    /* Write and unlock instance handle parameters*/
 			    cdma_access_context_memory(
-					    instance_handle+
-					    offsetof(struct ipr_instance,
-							     num_of_open_reass_frames),
-					   CDMA_ACCESS_CONTEXT_MEM_AA_BIT,
-					   0,
-					   (void *)&instance_params.num_of_open_reass_frames,
-					   CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | 
-					   4,
-					   (uint16_t *)REF_COUNT_ADDR_DUMMY);
+			     instance_handle+ offsetof(struct ipr_instance,
+					     	     num_of_open_reass_frames),
+			      CDMA_ACCESS_CONTEXT_MEM_AA_BIT,
+			      0,
+			      (void *)&instance_params.num_of_open_reass_frames,
+			      CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | 4,
+			      (uint16_t *)REF_COUNT_ADDR_DUMMY);
 	
 			     if(osm_status == NO_BYPASS_OSM) {
 				/* create nested per reassembled frame */
@@ -451,17 +450,12 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	uint16_t			current_frag_size;
 	uint16_t			expected_frag_offset;
 	uint64_t			ext_addr;
-	uint64_t			my_element_ext_addr;
-	uint64_t			link_list_ext_addr;
-	struct link_list_element	my_element;
-	struct link_list_element	*my_element_ptr;
-	struct link_list_element	*last_frag_element_ptr;
-	struct link_list_element	*first_frag_element_ptr;
-	uint8_t				current_index;
-	uint16_t			size;
 	uint16_t			ip_header_size;
-	struct link_list_element	link_list[33];
-	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct 	parse_result 		*pr =
+				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	
+	/* todo remove next line */
+	uint32_t frc;
 
 	
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -490,8 +484,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			if(frag_offset != 0) {
 			/* Not first frag */	
 			/* Save header to be removed in FD[FRC] */
-				((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc = 
-					   PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+			((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc = 
+			     (uint32_t) (PARSER_GET_OUTER_IP_OFFSET_DEFAULT() +
+					  ip_header_size);
+		      /* todo remove next line when simulator issue is fixed */
+				frc = ((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc;
 		
 			/* Add current frag's running sum for
 			 * L4 checksum check */
@@ -506,6 +503,9 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			
 		    	/* Close current frame before storing FD */
 		    	fdma_store_default_frame_data();
+		    	
+		      /* todo remove next line when simulator issue is fixed */
+		    	((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc = frc;
 
 			/* Write FD in external buffer */
 			ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
@@ -526,134 +526,10 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		    /* Malformed Error */
 			return FRAG_ERROR;
 		    } else {
-		    /* New out of order */
-			rfdc_ptr->status |= OUT_OF_ORDER;
-			rfdc_ptr->num_of_frags ++;
-		   //     p_IntRfd->outOfOrderTotalFragmentsPayload = p_IntRfd->totalFragmentsPayload;
-			rfdc_ptr->current_total_length += current_frag_size;
-			current_index = rfdc_ptr->next_index;
-			rfdc_ptr->index_to_out_of_order = current_index;
-			rfdc_ptr->index_to_out_of_order = current_index;
-			rfdc_ptr->first_frag_index = current_index;
-			rfdc_ptr->last_frag_index = current_index;
-			my_element.next_index = 0;
-			my_element.prev_index = 0;
-			my_element.frag_offset = frag_offset;
-			/* Write my element of link list */
-			my_element_ext_addr = rfdc_ext_addr + sizeof(struct ipr_rfdc) +
-							current_index*sizeof(struct link_list_element);
-			cdma_write(my_element_ext_addr,
-					   (void *)&my_element,
-					   sizeof(struct link_list_element));
-			/* Save header size to be removed upon concatenation */
-		  //      *(uint16_t *)(HWC_FD_ADDRESS+16) = ipv4hdr_offset;
-			((struct ldpaa_fd *)(HWC_FD_ADDRESS))->frc = ipv4hdr_offset;
-			
-			/* Write FD in RFDC */
-			ext_addr = rfdc_ext_addr + sizeof(struct ipr_rfdc) +
-						MAX_NUM_OF_FRAGS*sizeof(struct link_list_element) + 
-						rfdc_ptr->next_index*sizeof(struct ldpaa_fd);
-			cdma_write(ext_addr,
-					   (void *)HWC_FD_ADDRESS,
-					   sizeof(struct ldpaa_fd));
-	
-			rfdc_ptr->next_index++;
-			
-			if(!IS_LAST_FRAGMENT())        
-				rfdc_ptr->expected_total_length = 
-					     frag_offset<<3 + current_frag_size;
-			
-			/* Write updated RFDC */
-			cdma_write(rfdc_ext_addr,
-					   (void *)rfdc_ptr,
-					   sizeof(struct ipr_rfdc));
-			return FRAG_OK_REASS_NOT_COMPL;
+			    /* New out of order */	    
 		    }
             } else {
-        	   /* Out of order handling */
-            	current_index = rfdc_ptr->next_index;
-            	if(current_index <= 31) {
-            		/* all the link list will be in the workspace */
-                    size = (uint16_t)(current_index*8);
-                    link_list_ext_addr = rfdc_ext_addr+64;
-                    cdma_read( link_list,
-            				   rfdc_ext_addr+64,  
-            				   size);
-            	  last_frag_element_ptr = &link_list[rfdc_ptr->last_frag_index];
-            	  if(frag_offset > last_frag_element_ptr->frag_offset) {
-            			/* bigger than biggest arrived fragment */
-            			if(!LAST_FRAG_ARRIVED()) {
-            				last_frag_element_ptr->next_index = current_index;
-            				my_element_ptr = (struct link_list_element *)
-            								&link_list[current_index];
-            				my_element_ptr->next_index = 0;
-                            my_element_ptr->prev_index = 
-                            						 rfdc_ptr->last_frag_index;
-                            my_element_ptr->frag_offset = frag_offset;
-                            /* Save header size to be removed upon
-                               concatenation */
-                            *(uint16_t *)(HWC_FD_ADDRESS+16) = ipv4hdr_offset;
-
-                            /* Write back updated link list */                
-                            cdma_write(rfdc_ext_addr+64,
-                            		   link_list,
-                            		   size+8);
-                            /* Write FD in RFDC */                
-                            ext_addr = rfdc_ext_addr + 576 + current_index*32;
-                            cdma_write(rfdc_ext_addr+64,
-                            		   (void *)HWC_FD_ADDRESS,
-                            		   32);
-  			rfdc_ptr->num_of_frags ++;
-                        return FRAG_OK_REASS_NOT_COMPL;
-            				
-            			} else {
-            				/* Malformed fragment */
-            			}
-            			
-            		} else {
-            			/* smaller than biggest arrived fragment */
-            			if(frag_offset < rfdc_ptr->first_frag_offset) {
-            				/* smaller than smallest arrived fragment */
-                      	    first_frag_element_ptr = 
-                      	    		     &link_list[rfdc_ptr->first_frag_index];
-                      	  first_frag_element_ptr->prev_index = current_index;
-                      	  my_element_ptr = (struct link_list_element *)
-          								&link_list[current_index];
-                      	  my_element_ptr->next_index = 
-                      			  	  	  	  	  rfdc_ptr->first_frag_index;
-                          my_element_ptr->prev_index = 0;
-                          my_element_ptr->frag_offset = frag_offset;
-                          /* Save header size to be removed upon
-                             concatenation */
-                          *(uint16_t *)(HWC_FD_ADDRESS+16) = ipv4hdr_offset;
-
-                          /* Write back updated link list */                
-                          cdma_write(rfdc_ext_addr+64,
-                          		   link_list,
-                          		   size+8);
-                          /* Write FD in RFDC */                
-                          ext_addr = rfdc_ext_addr + 576 + current_index*32;
-                          cdma_write(rfdc_ext_addr+64,
-                          		   (void *)HWC_FD_ADDRESS,
-                          		   32);
-                      //    return;
-            			} else {
-            				/* current frag is between smallest and biggest
-            				   arrived fragment */
-            //				checked_element = (struct link_list_element *)
-              //    						 &link_list[rfdc_ptr->first_frag_index];
-            //				if(frag_offset > checked_element_ptr->frag_offset)
-            //				{
-            					
-            //				}
-            			}
-            		}
-            	}
-            	else {
-            		/* more than 31 fragments arrived */
-			rfdc_ptr->num_of_frags ++;
-            		return FRAG_OK_REASS_NOT_COMPL;
-            	}
+         	   /* Out of order handling */
             }
 	/* to be removed */
 	return SUCCESS;
@@ -667,10 +543,13 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
     	uint8_t		frame_handle1;
     	uint8_t		frame_handle2;
     	uint8_t		num_of_frags;
+    	uint8_t		seg_handle;
     	struct		fdma_concatenate_frames_params concatenate_frame_params;
     	struct		fdma_present_frame_params present_frame_params;
     	struct 		parse_result *pr = 
     				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct 		presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 
     	/* Bring into workspace 2 FDs to be concatenated */
@@ -761,6 +640,17 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 		fdma_concatenate_frames(&concatenate_frame_params);
 	}
 
+	
+	fdma_present_default_frame_segment( FDMA_PRES_NO_FLAGS,
+					   (void *)prc->seg_address,
+					   0,
+					   DEFAULT_SEGMENT_SIZE,
+					   &prc->seg_length,
+					   &seg_handle);
+	
+	/* updated default segment handle */ 
+	PRC_SET_SEGMENT_HANDLE(seg_handle);
+	
 	return SUCCESS;
 }
 
