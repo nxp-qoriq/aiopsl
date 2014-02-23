@@ -20,6 +20,10 @@ fsl_ipsec.h: API changes, updates and additions following a review.
 fsl_ctlu.h: Added rule query function
 ipf.c: New file.
 ipf.h: Some changes in ipf internal structures.
+gso.c: New file.
+gso.h: Some changes in gso internal structures.
+gro.c: New file.
+gro.h: Some changes in gro internal structures.
 		
 Doc & Tool compatibility:
 	AIOP Archdef 0.7.1
@@ -28,7 +32,8 @@ Doc & Tool compatibility:
 	Parser_Block_Guide	3.40 (Maturity level 0.95)
 	AIOP_Instruction_Additions 0.60
 	Compiler Build 268
-
+	CW for DPAA 10.0.5
+	Simulator	DPAA Simulator 0_5_2_0068
 	
 SL Pre-Alpha v0.2  Change Log
 
