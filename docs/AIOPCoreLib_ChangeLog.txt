@@ -24,6 +24,8 @@ gso.c: New file.
 gso.h: Some changes in gso internal structures.
 gro.c: New file.
 gro.h: Some changes in gro internal structures.
+fsl_fdma.h: Add fdma_acquire_buffer SR.
+fsl_fdma.h: Add fdma_release_buffer SR.
 		
 Doc & Tool compatibility:
 	AIOP Archdef 0.7.1
