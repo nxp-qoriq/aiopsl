@@ -72,7 +72,7 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
  @Group	TCP_GRO_AGG_FLAGS TCP GRO Aggregation Flags
 
  @Description Flags for \ref tcp_gro_aggregate_seg() function.
- 
+
  The flags are allowed to be changed per new session only.
 
  @{
@@ -112,8 +112,8 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 
 
 	/** A new aggregation has started with the current segment.
-	 * The metadata address was used by tcp_gro_aggregate_seg(). 
-	 * This status bit can be return only as part of a combined status with 
+	 * The metadata address was used by tcp_gro_aggregate_seg().
+	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
 #define	TCP_GRO_SEG_AGG_NEW_AGG		0x10
 
@@ -169,8 +169,8 @@ struct tcp_gro_stats_cntrs {
 		 * is not expected. This counter is valid when extended
 		 * statistics mode is enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	unexpected_seq_num_cntr;
-		/** Counts the number of aggregations due to flush request. 
-		 * This counter is valid when extended statistics mode is 
+		/** Counts the number of aggregations due to flush request.
+		 * This counter is valid when extended statistics mode is
 		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	agg_flush_request_num_cntr;
 };
@@ -181,7 +181,7 @@ struct tcp_gro_stats_cntrs {
 struct tcp_gro_context_metadata {
 		/** Address (in HW buffers) of the segment sizes. This field
 		 * will be updated if \ref TCP_GRO_METADATA_SEGMENT_SIZES is
-		 * set. For each segment, upper SW should allocate 2 bytes (to 
+		 * set. For each segment, upper SW should allocate 2 bytes (to
 		 * support up to 64KB length segments). */
 	uint64_t seg_sizes_addr;
 		/** Number of segments in the aggregation. */
@@ -200,7 +200,7 @@ struct gro_context_limits {
 		 * packet headers + payload).
 		 * A single segment size cannot oversize this limit. */
 	uint16_t packet_size_limit;
-		/** Maximum aggregated segments per packet limit. 
+		/** Maximum aggregated segments per packet limit.
 		 * 0/1 are an illegal values. */
 	uint8_t	seg_num_limit;
 };
@@ -229,18 +229,18 @@ struct tcp_gro_context_params {
 	struct gro_context_timeout_params timeout_params;
 		/** Aggregated packet limits. */
 	struct gro_context_limits limits;
-		/** Address (in HW buffers) of the TCP GRO aggregation metadata 
-		 * buffer (\ref tcp_gro_context_metadata). 
-		 * Upper layer SW should always send a metadata buffer address 
+		/** Address (in HW buffers) of the TCP GRO aggregation metadata
+		 * buffer (\ref tcp_gro_context_metadata)
+		 * Upper layer SW should always send a metadata buffer address
 		 * to tcp_gro_aggregate_seg().
-		 * After tcp_gro_aggregate_seg() returns \ref 
-		 * TCP_GRO_SEG_AGG_NEW_AGG bit in the status, the following call 
-		 * to tcp_gro_aggregate_seg() should send an address to a new 
+		 * After tcp_gro_aggregate_seg() returns \ref
+		 * TCP_GRO_SEG_AGG_NEW_AGG bit in the status, the following call
+		 * to tcp_gro_aggregate_seg() should send an address to a new
 		 * metadata buffer.
 		 * */
-	uint64_t metadata;	
+	uint64_t metadata;
 		/** Address (in HW buffers) of the TCP GRO statistics counters
-		 *  (\ref tcp_gro_stats_cntrs). 
+		 *  (\ref tcp_gro_stats_cntrs).
 		 *  The user should zero the statistics once it is allocated. */
 	uint64_t stats_addr;
 };
@@ -269,7 +269,7 @@ struct tcp_gro_context_params {
 		in the default frame location in workspace.
 
 @Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
-		internal context. 
+		internal context.
 		The user should allocate \ref tcp_gro_ctx_t in
 		this address.
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
@@ -281,10 +281,10 @@ struct tcp_gro_context_params {
 
 @Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins.
-		
-@remark		When returning from this function, in case the aggregation is 
+
+@remark		When returning from this function, in case the aggregation is
 		not done, no frame will be in the default frame area.
-		Only when an aggregation is done, the aggregated frame will be 
+		Only when an aggregation is done, the aggregated frame will be
 		in the default frame area.
 
 *//***************************************************************************/
