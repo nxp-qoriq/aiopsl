@@ -30,9 +30,6 @@ void aiop_verification_fm()
 	uint64_t initial_ext_address;	/* Initial External Data Address */
 	uint16_t str_size;	/* Command struct Size */
 	uint32_t opcode;
-	uint32_t flags;
-	uint8_t seg_handle;
-	uint16_t seg_length;
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)){
@@ -41,8 +38,7 @@ void aiop_verification_fm()
 	}
 	else{
 		fdma_present_default_frame_segment(
-			FDMA_PRES_SR_BIT, (void *)&ext_address, 8, 8,
-			&seg_length, &seg_handle);
+			FDMA_PRES_SR_BIT, (void *)&ext_address, 8, 8);
 	}
 	initial_ext_address = ext_address;
 
@@ -56,7 +52,6 @@ void aiop_verification_fm()
 
 		opcode  = *((uint32_t *) data_addr);
 		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
-		flags = 0x0;
 
 		switch (opcode) {
 

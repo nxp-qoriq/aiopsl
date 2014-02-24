@@ -84,8 +84,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		flags |= ((str->SR) ? FDMA_PRES_SR_BIT : 0x0);
 		str->status = (int8_t)fdma_present_default_frame_segment(flags,
 				(void *)str->ws_dst, str->offset,
-				str->present_size, &(str->seg_length),
-				&(str->seg_handle));
+				str->present_size);
+		str->seg_length = PRC_GET_SEGMENT_LENGTH();
+		str->seg_handle = PRC_GET_SEGMENT_HANDLE();
 		str_size = (uint16_t)sizeof(struct fdma_present_command);
 		break;
 	}
