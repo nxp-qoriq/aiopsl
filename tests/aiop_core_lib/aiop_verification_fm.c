@@ -38,27 +38,26 @@ void aiop_verification_fm()
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)){
 		fdma_read_default_frame_pta((void *)data_addr);
 		ext_address = *((uint64_t *)data_addr);
-	}	
+	}
 	else{
 		fdma_present_default_frame_segment(
-			FDMA_PRES_SR_BIT, (void *)&ext_address, 0, 8, 
+			FDMA_PRES_SR_BIT, (void *)&ext_address, 8, 8,
 			&seg_length, &seg_handle);
 	}
 	initial_ext_address = ext_address;
-	
+
 	init_verif();
-	
+
 	/* The Terminate command will finish the verification */
 	do
 	{
 		/* Read a new buffer from DDR with DATA_SIZE */
 		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
-		
+
 		opcode  = *((uint32_t *) data_addr);
-		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
 		flags = 0x0;
 
-		switch (opcode) {
+		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
 
 		case GSO_FM_ID:
 		{
@@ -129,23 +128,23 @@ void aiop_verification_fm()
 				(struct aiop_if_verif_command *)
 					((uint32_t)data_addr);
 			uint32_t if_result;
-			
+
 			if_result = if_statement_result(
-					str->compared_variable_addr, 
-					str->compared_value, str->cond); 
-			
+					str->compared_variable_addr,
+					str->compared_value, str->cond);
+
 			if (if_result == AIOP_TERMINATE_FLOW_CMD)
 			{
 				fdma_terminate_task();
 				return;
 			}
 			else if (if_result)
-				ext_address = initial_ext_address + 
+				ext_address = initial_ext_address +
 					str->true_cmd_offset;
 			else	/* jump to the next sequential command */
-				ext_address = ext_address + 
+				ext_address = ext_address +
 					sizeof(struct aiop_if_verif_command);
-			
+
 			break;
 		}
 		case AIOP_IF_ELSE_CMD:
@@ -154,23 +153,23 @@ void aiop_verification_fm()
 				(struct aiop_if_else_verif_command *)
 							((uint32_t)data_addr);
 			uint32_t if_result;
-			
+
 			if_result = if_statement_result(
-					str->compared_variable_addr, 
-					str->compared_value, str->cond); 
-			
+					str->compared_variable_addr,
+					str->compared_value, str->cond);
+
 			if (if_result == AIOP_TERMINATE_FLOW_CMD)
 			{
 				fdma_terminate_task();
 				return;
 			}
 			else if (if_result)
-				ext_address = initial_ext_address + 
+				ext_address = initial_ext_address +
 					str->true_cmd_offset;
 			else
-				ext_address = initial_ext_address + 
+				ext_address = initial_ext_address +
 					str->false_cmd_offset;
-				
+
 			break;
 		}
 		case AIOP_TERMINATE_FLOW_CMD:
@@ -181,13 +180,13 @@ void aiop_verification_fm()
 		}
 		}
 
-		
-		if (str_size == STR_SIZE_ERR) 
+
+		if (str_size == STR_SIZE_ERR)
 		{
 			fdma_terminate_task();
-			return;	
-		}	
-		else if ((opcode != AIOP_IF_CMD) && 
+			return;
+		}
+		else if ((opcode != AIOP_IF_CMD) &&
 			 (opcode != AIOP_IF_ELSE_CMD))
 		{
 			/* write command results back to DDR */
@@ -195,8 +194,8 @@ void aiop_verification_fm()
 			/* Set next address to read from DDR */
 			ext_address += str_size;
 		}
-		
-		
+
+
 	} while (1);
 
 	fdma_terminate_task();
@@ -217,7 +216,7 @@ void aiop_verif_init_parser()
 	verif_parse_profile.pppoe_ppp_hxs_config = 0x0;
 	verif_parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-	verif_parse_profile.mpls_hxs_config.lie_dnp = 
+	verif_parse_profile.mpls_hxs_config.lie_dnp =
 			PARSER_PRP_MPLS_HXS_CONFIG_LIE | PARSER_IP_STARTING_HXS;
 	verif_parse_profile.arp_hxs_config = 0x0;
 	verif_parse_profile.ip_hxs_config = 0x0;
@@ -256,7 +255,7 @@ uint32_t if_statement_result(
 {
 	uint8_t if_result;
 	int32_t compared_variable;
-	
+
 	compared_variable = *((int32_t *)compared_variable_addr);
 	/*switch (compared_variable_id){
 	case COMPARE_GRO_STATUS:
@@ -289,7 +288,7 @@ uint32_t if_statement_result(
 		return AIOP_TERMINATE_FLOW_CMD;
 	}
 	}*/
-	
+
 	switch (cond){
 	case COND_EQUAL:
 	{
@@ -306,7 +305,7 @@ uint32_t if_statement_result(
 		return AIOP_TERMINATE_FLOW_CMD;
 	}
 	}
-	
+
 	return if_result;
 }
 
