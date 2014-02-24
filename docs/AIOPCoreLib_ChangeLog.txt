@@ -26,6 +26,7 @@ gro.c: New file.
 gro.h: Some changes in gro internal structures.
 fsl_fdma.h: Add fdma_acquire_buffer SR.
 fsl_fdma.h: Add fdma_release_buffer SR.
+fsl_fdma.h: Update fdma_present_default_frame_segment SR API.
 		
 Doc & Tool compatibility:
 	AIOP Archdef 0.7.1
