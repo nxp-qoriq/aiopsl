@@ -23,7 +23,7 @@ void aiop_verification_fm_temp()
 	uint8_t gro_iteration = 0;
 	uint8_t  ipr_iteration = 0;
 
-	
+
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
 
@@ -34,19 +34,18 @@ void aiop_verification_fm_temp()
 	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK) << 6;
 
 	init_verif();
-	
+
 	/* The condition is for back up only.
 	In case the ASA was written correctly the Terminate command will
 	finish the verification */
 	while (size < asa_seg_size) {
 		opcode  = *((uint32_t *) asa_seg_addr);
-		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
-		
-		switch (opcode) {
+
+		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
 
 		case GRO_FM_ID:
 		{
-			str_size = aiop_verification_gro(asa_seg_addr);	
+			str_size = aiop_verification_gro(asa_seg_addr);
 			if (str_size == sizeof(struct tcp_gro_agg_seg_command))
 				gro_verif_create_next_frame(++gro_iteration);
 			break;
@@ -115,23 +114,23 @@ void aiop_verification_fm_temp()
 			struct aiop_if_verif_command *str =
 				(struct aiop_if_verif_command *)asa_seg_addr;
 			uint32_t if_result;
-			
+
 			if_result = if_statement_result(
-					str->compared_variable_addr, 
-					str->compared_value, str->cond); 
-			
+					str->compared_variable_addr,
+					str->compared_value, str->cond);
+
 			if (if_result == AIOP_TERMINATE_FLOW_CMD)
 			{
 				fdma_terminate_task();
 				return;
 			}
 			else if (if_result)
-				asa_seg_addr = init_asa_seg_addr + 
+				asa_seg_addr = init_asa_seg_addr +
 							str->true_cmd_offset;
 			else	/* jump to the next sequential command */
-				asa_seg_addr = asa_seg_addr + 
+				asa_seg_addr = asa_seg_addr +
 					sizeof(struct aiop_if_verif_command);
-			
+
 			break;
 		}
 		case AIOP_IF_ELSE_CMD:
@@ -140,23 +139,23 @@ void aiop_verification_fm_temp()
 				(struct aiop_if_else_verif_command *)
 							asa_seg_addr;
 			uint32_t if_result;
-			
+
 			if_result = if_statement_result(
-					str->compared_variable_addr, 
-					str->compared_value, str->cond); 
-			
+					str->compared_variable_addr,
+					str->compared_value, str->cond);
+
 			if (if_result == AIOP_TERMINATE_FLOW_CMD)
 			{
 				fdma_terminate_task();
 				return;
 			}
 			else if (if_result)
-				asa_seg_addr = init_asa_seg_addr + 
+				asa_seg_addr = init_asa_seg_addr +
 							str->true_cmd_offset;
 			else
-				asa_seg_addr = init_asa_seg_addr + 
+				asa_seg_addr = init_asa_seg_addr +
 							str->false_cmd_offset;
-				
+
 			break;
 		}
 		case AIOP_TERMINATE_FLOW_CMD:
@@ -167,13 +166,13 @@ void aiop_verification_fm_temp()
 		}
 		}
 
-		
+
 		if ((opcode == AIOP_IF_CMD) || (opcode == AIOP_IF_ELSE_CMD))
 		{
 			size = (uint16_t)(asa_seg_addr - init_asa_seg_addr);
 		}
 		else
-		{	
+		{
 			if (str_size == STR_SIZE_ERR) {
 				fdma_terminate_task();
 				return;
