@@ -1795,6 +1795,9 @@ int32_t fdma_present_frame(
 
 		Implicit input parameters in Task Defaults: frame handle.
 
+		Implicitly updated values in Task Defaults: segment length,
+		segment handle.
+
 @Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
 @Param[in]	ws_dst - A pointer to the location in workspace for the
 		presented frame segment.
@@ -1803,9 +1806,6 @@ int32_t fdma_present_frame(
 		\ref FDMA_PRES_SR_BIT flag.
 @Param[in]	present_size - Number of frame bytes to present (any value
 		including 0).
-@Param[out]	seg_length - A pointer to the number of bytes actually
-		presented (the segment actual size).
-@Param[out]	seg_handle - A pointer to the handle of the presented segment.
 
 @Return		Status - Success or Failure (e.g. DMA error. (\ref
 		FDMA_PRESENT_SEGMENT_ERRORS).
@@ -1817,9 +1817,7 @@ int32_t fdma_present_default_frame_segment(
 		uint32_t flags,
 		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size,
-		uint16_t *seg_length,
-		uint8_t  *seg_handle);
+		uint16_t present_size);
 
 /**************************************************************************//**
 @Function	fdma_present_frame_segment
