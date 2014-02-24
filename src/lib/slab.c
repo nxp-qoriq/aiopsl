@@ -56,7 +56,7 @@ static inline int find_bpid(uint16_t buff_size,
                 /* Keep the first found */
                 temp  = i;    
                 found = 1;
-            } else if (hw_pools[temp].buff_size >= hw_pools[i].buff_size) {
+            } else if (hw_pools[temp].buff_size > hw_pools[i].buff_size) {
                 /* Choose smallest possible size */
                 temp = i;
             }
@@ -262,7 +262,7 @@ int slab_release(struct slab *slab, uint64_t buff)
 int slab_module_init(void)
 {    
     uint16_t bpids_arr[] = SLAB_BPIDS_PARTITION0;    /* TODO Call MC to get all BPID per partition */
-    int      num_bpids = (sizeof(bpids_arr) / sizeof(uint16_t));
+    int      num_bpids = ARRAY_SIZE(bpids_arr);
     struct   slab_module_info *slab_module = NULL;
     int      i = 0;
     int      error = 0;
@@ -300,6 +300,22 @@ int slab_module_init(void)
     }
     /* Set one BPID for PEB */
     slab_module->hw_pools[i-1].mem_partition_id = MEM_PART_PEB;
+    
+    /* SL limitation
+     * BPID 1 must be configured to include at least 1 buffer of size 256 bytes.
+     * This buffer is used for parse profile ID generation. This limitation will be removed in future releases.
+     * BPID 2 must be configured to include at least 1 buffer of size 1024 bytes.
+     * This buffer is used for key ID generation. This limitation will be removed in future releases. */
+    i = 0;
+    while (i < num_bpids) {
+        if (slab_module->hw_pools[i].pool_id == 2) {
+            slab_module->hw_pools[i].buff_size = 1024 + SLAB_HW_METADATA_OFFSET;
+        }
+        else if (slab_module->hw_pools[i].pool_id == 1) {
+            slab_module->hw_pools[i].buff_size = 256 + SLAB_HW_METADATA_OFFSET;
+        }
+        i++;
+    }
 
     /* Add to all system handles */
     error = sys_add_handle(slab_module, FSL_OS_MOD_SLAB, 1, 0);
