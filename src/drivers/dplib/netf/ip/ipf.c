@@ -86,10 +86,10 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				ipv4_offset - header_length;
 			frag_offset =
-			ipf_ctx->prev_frag_offset + payload_length>>3;
+			ipf_ctx->prev_frag_offset + (payload_length>>3);
 		} else {
 		frag_offset = ipf_ctx->prev_frag_offset +
-					ipf_ctx->mtu_payload_length>>3;
+					(ipf_ctx->mtu_payload_length>>3);
 		}
 	}
 	/* Update frag offset, M flag=1, checksum, length */
@@ -260,7 +260,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				frag_hdr_offset - IPV6_FRAGMENT_HEADER_LENGTH;
 			frag_offset = ipf_ctx->prev_frag_offset +
-					frag_payload_length>>3;
+					(frag_payload_length>>3);
 /*
 			 Modify header payload length in FDMA
 			status = fdma_modify_default_segment_data
@@ -269,7 +269,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				return status;  TODO
 			*/
 			ipv6_frag_hdr->fragment_offset_flags =
-					frag_offset<<3 | IPV6_HDR_M_FLAG_MASK;
+					(frag_offset<<3) | IPV6_HDR_M_FLAG_MASK;
 
 			modify_size = frag_hdr_offset +
 				IPV6_FRAGMENT_HEADER_LENGTH - ipv6_offset;
@@ -280,9 +280,9 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 
 		} else {
 			frag_offset = ipf_ctx->prev_frag_offset +
-					ipf_ctx->mtu_payload_length>>3;
+					(ipf_ctx->mtu_payload_length>>3);
 			ipv6_frag_hdr->fragment_offset_flags =
-					frag_offset<<3 | IPV6_HDR_M_FLAG_MASK;
+					(frag_offset<<3) | IPV6_HDR_M_FLAG_MASK;
 			/* Modify fragment header fields in FDMA */
 			status = fdma_modify_default_segment_data
 							(frag_hdr_offset+2, 2);
@@ -402,7 +402,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 					LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 					ipv4_offset - ip_header_length;
 				frag_offset = ipf_ctx->prev_frag_offset +
-						payload_length>>3;
+						(payload_length>>3);
 			} else {
 				frag_offset = ipf_ctx->prev_frag_offset +
 					(ipf_ctx->mtu_payload_length>>3);
@@ -447,7 +447,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 					frag_hdr_offset -
 					IPV6_FRAGMENT_HEADER_LENGTH;
 				frag_offset = ipf_ctx->prev_frag_offset +
-						payload_length>>3;
+						(payload_length>>3);
 			} else {
 				frag_offset = ipf_ctx->prev_frag_offset +
 					(ipf_ctx->mtu_payload_length>>3);
