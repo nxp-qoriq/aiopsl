@@ -1572,7 +1572,8 @@ struct fdma_present_segment_params {
 		 * frame segment. */
 	void	 *ws_dst;
 		/**< Location within the presented frame to start presenting
-		 * from. Must be within the bound of the frame. */
+		 * from. Must be within the bound of the frame. Relative to
+		\ref FDMA_PRES_SR_BIT flag. */
 	uint16_t offset;
 		/**< Number of frame bytes to present (any value including 0).*/
 	uint16_t present_size;
@@ -1798,7 +1799,8 @@ int32_t fdma_present_frame(
 @Param[in]	ws_dst - A pointer to the location in workspace for the
 		presented frame segment.
 @Param[in]	offset - Location within the presented frame to start presenting
-		from. Must be within the bound of the frame.
+		from. Must be within the bound of the frame. Relative to
+		\ref FDMA_PRES_SR_BIT flag.
 @Param[in]	present_size - Number of frame bytes to present (any value
 		including 0).
 @Param[out]	seg_length - A pointer to the number of bytes actually
@@ -1853,6 +1855,7 @@ int32_t fdma_present_frame_segment(
 @Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
 @Param[in]	offset - Location within the ASA to start presenting from.
 		Must be within the bound of the frame. Specified in 64B units.
+		Relative to \ref FDMA_PRES_SR_BIT flag.
 @Param[in]	present_size - Number of frame bytes to present (Must be greater
 		than 0). Contains the number of 64B quantities to present
 		because the Frame ASAL field is specified in 64B units.
