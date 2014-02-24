@@ -167,9 +167,7 @@ int32_t fdma_present_default_frame_segment(
 		uint32_t flags,
 		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size,
-		uint16_t *seg_length,
-		uint8_t	 *seg_handle)
+		uint16_t present_size)
 {
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3;
@@ -193,9 +191,9 @@ int32_t fdma_present_default_frame_segment(
 	__accel_call() should return success/fail indication */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
-	*seg_length = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2));
-	*seg_handle = *((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
-			FDMA_SEG_HANDLE_OFFSET));
+	PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
+	PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+					FDMA_SEG_HANDLE_OFFSET)));
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	return (int32_t)(res1);
 }
