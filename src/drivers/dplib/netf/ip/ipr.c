@@ -533,7 +533,7 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 	uint8_t		frame_handle1;
 	uint8_t		frame_handle2;
 	uint8_t		num_of_frags;
-	uint8_t		seg_handle;
+/*	uint8_t		seg_handle;*/
 	struct		fdma_concatenate_frames_params concatenate_frame_params;
 	struct		fdma_present_frame_params present_frame_params;
 	struct		parse_result *pr =
@@ -629,16 +629,19 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 		fdma_concatenate_frames(&concatenate_frame_params);
 	}
 
-	fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS,
+	fdma_store_default_frame_data();
+	fdma_present_default_frame();
+
+/*	fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS,
 					   (void *)prc->seg_address,
 					   0,
 					   DEFAULT_SEGMENT_SIZE,
 					   &prc->seg_length,
 					   &seg_handle);
-
+*/
 	/* updated default segment handle */
-	PRC_SET_SEGMENT_HANDLE(seg_handle);
-
+/*	PRC_SET_SEGMENT_HANDLE(seg_handle);
+*/
 	return SUCCESS;
 }
 
