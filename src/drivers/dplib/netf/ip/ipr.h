@@ -211,14 +211,12 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 /**************************************************************************//**
 @Function	ipr_insert_to_link_list
 
-@Description	
+@Description	Insert to Link List - Save FD
 
-@Param[in]	
-@Param[in]	
-@Param[in]	.
+@Param[in]	rfdc_ptr - pointer to RFDC in workspace (on stack)
+@Param[in]	rfdc_ext_addr - pointer to RFDC in external memory.
 
-
-@Return		None.
+@Return		Status - Success or Failure.
 
 @Cautions	None.
 *//***************************************************************************/
@@ -278,7 +276,8 @@ uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
 /** Pool id returned by the ARENA allocator to be used as context buffer pool */
 uint8_t  ipr_pool_id;
-uint16_t res;
+uint8_t  ipr_instance_spin_lock;
+uint8_t res;
 };
 
 /* @} end of group IPR_Internal */
