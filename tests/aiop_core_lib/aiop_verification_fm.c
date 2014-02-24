@@ -55,9 +55,10 @@ void aiop_verification_fm()
 		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
 		opcode  = *((uint32_t *) data_addr);
+		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
 		flags = 0x0;
 
-		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
+		switch (opcode) {
 
 		case GSO_FM_ID:
 		{

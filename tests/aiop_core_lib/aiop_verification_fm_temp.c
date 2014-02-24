@@ -40,8 +40,9 @@ void aiop_verification_fm_temp()
 	finish the verification */
 	while (size < asa_seg_size) {
 		opcode  = *((uint32_t *) asa_seg_addr);
+		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
 
-		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
+		switch (opcode) {
 
 		case GRO_FM_ID:
 		{
