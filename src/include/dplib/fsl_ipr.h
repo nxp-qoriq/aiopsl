@@ -398,7 +398,9 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		\ref TMANReturnStatus \n
 
 
-@Cautions	If this function is called in concurrent mode, the scope_id is
+@Cautions	It is forbidden to call this function when the task
+		isn't found in any ordering scope (null scope_id).
+		If this function is called in concurrent mode, the scope_id is
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.
