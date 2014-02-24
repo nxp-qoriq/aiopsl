@@ -60,24 +60,24 @@ void aiop_verification_fm()
 
 		switch (opcode) {
 
-		case GSO_FM_ID:
-		{
-			str_size = aiop_verification_gso((uint32_t)data_addr);
-			break;
-		}
 		case GRO_FM_ID:
 		{
 			str_size = aiop_verification_gro((uint32_t)data_addr);
 			break;
 		}
-		case IPR_FM_ID:
-		{
-			str_size = aiop_verification_ipr((uint32_t)data_addr);
-			break;
-		}
 		case IPF_FM_ID:
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);
+			break;
+		}
+		case GSO_FM_ID:
+		{
+			str_size = aiop_verification_gso((uint32_t)data_addr);
+			break;
+		}
+		case IPR_FM_ID:
+		{
+			str_size = aiop_verification_ipr((uint32_t)data_addr);
 			break;
 		}
 		case FPDMA_ACCEL_ID:
