@@ -1796,7 +1796,7 @@ int32_t fdma_present_frame(
 		Implicit input parameters in Task Defaults: frame handle.
 
 		Implicitly updated values in Task Defaults: segment length,
-		segment handle.
+		segment handle, segment address, segment offset.
 
 @Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
 @Param[in]	ws_dst - A pointer to the location in workspace for the

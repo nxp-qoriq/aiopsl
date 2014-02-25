@@ -26,6 +26,7 @@ extern struct parse_profile_record verif_parse_profile;
 void aiop_verification_fm()
 {
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
+	struct fdma_present_segment_params present_params;
 	uint64_t ext_address;	/* External Data Address */
 	uint64_t initial_ext_address;	/* Initial External Data Address */
 	uint16_t str_size;	/* Command struct Size */
@@ -33,12 +34,21 @@ void aiop_verification_fm()
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)){
-		fdma_read_default_frame_pta((void *)data_addr);
-		ext_address = *((uint64_t *)data_addr);
-	}
-	else{
-		fdma_present_default_frame_segment(
-			FDMA_PRES_SR_BIT, (void *)&ext_address, 8, 8);
+		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
+			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
+		} else {
+			if (!fdma_read_default_frame_pta((void *)data_addr))
+				return;
+			ext_address = *((uint64_t *)data_addr);
+		}
+	} else{
+		present_params.flags = FDMA_PRES_SR_BIT;
+		present_params.frame_handle = PRC_GET_FRAME_HANDLE();
+		present_params.offset = 8;
+		present_params.present_size = 8;
+		present_params.ws_dst = (void *)&ext_address;
+		if (!fdma_present_frame_segment(&present_params))
+			return;
 	}
 	initial_ext_address = ext_address;
 

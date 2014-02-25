@@ -49,8 +49,8 @@
 #define FD_SIZE				sizeof(struct ldpaa_fd)
 
 /* todo should move to general or OSM include file */
-#define EXCLUSIVE				0
-#define CONCURRENT				1
+#define CONCURRENT				0
+#define EXCLUSIVE				1
 
 #define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
 #define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
