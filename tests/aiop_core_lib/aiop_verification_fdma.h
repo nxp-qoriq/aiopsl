@@ -1366,7 +1366,6 @@ struct fdma_create_frame_command {
 
 
 uint16_t aiop_verification_fdma(uint32_t asa_seg_addr);
-void aiop_verification_replace_asa();
 
 
 #endif /* __AIOP_VERIFICATION_FDMA_H_ */
