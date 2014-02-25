@@ -1020,6 +1020,9 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /**************************************************************************//**
 @Group AIOP_PARSER_CREATE_PRP_STATUS Parser Create Parse Profile (PRP) Status
+
+@Description Return statuses for \ref parser_profile_create
+
 @{
 *//***************************************************************************/
 	/** Successful PRP creation */
@@ -1040,6 +1043,9 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /**************************************************************************//**
 @Group AIOP_PARSER_DELETE_PRP_STATUS Parser Delete Parse Profile Status
+
+@Description Return statuses for \ref parser_profile_delete
+
 @{
 *//***************************************************************************/
 	/** PRP was deleted successfully */
@@ -1061,6 +1067,9 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /**************************************************************************//**
 @Group AIOP_PARSE_RESULT_GEN_STATUS Parse Result Generation SR Status
+
+@Description Return statuses for Parse Result Generation functions
+
 @{
 *//***************************************************************************/
 	/** Successful parse SR */
@@ -1075,6 +1084,9 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /**************************************************************************//**
 @Group AIOP_PARSER_SR_STATUS Parser SRs Status
+
+@Description Return statuses for Parser SR functions
+
 @{
 *//***************************************************************************/
 	/** Successful parser SR */

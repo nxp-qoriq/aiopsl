@@ -131,7 +131,7 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 #define HWC_PRC_SIZE		0x10
 	/** Address of Storage Profile ID of the default working frame */
 	/* Todo - set SPID address when according to new layout(once decided)*/
-#define HWC_SPID_ADDRESS	0x03
+#define HWC_SPID_ADDRESS	0x07
 	/** Address for passing parameters to accelerators */
 #define HWC_ACC_IN_ADDRESS	0x20
 	/** Address for passing parameters to accelerators */
@@ -212,9 +212,9 @@ struct additional_dequeue_context {
 	/** QMan Frame Queue ID mask */
 #define ADC_FQID_MASK		0x00FFFFFF
 	/** Privilege Level mask */
-#define ADC_PL_MASK		0x80000000
+#define ADC_PL_MASK		0x8000
 	/** Isolation Context ID mask */
-#define ADC_ICID_MASK		0x7F000000
+#define ADC_ICID_MASK		0x7FFF
 	/** QMan Work Queue ID mask */
 #define ADC_WQID_MASK		0x70
 	/** Entry Priority mask */
@@ -713,6 +713,7 @@ struct aiop_default_task_params {
 @{
 *//***************************************************************************/
 #define IPV4_HDR_LENGTH		      20   /**< IPv4 header length */
+#define IPV4_HDR_ADD_LENGTH	      8    /**< IPv4 header address length */
 
 #define IPV4_EOOL_OPTION_TYPE	      0	   /*!< End of Option List */
 #define IPV4_NOP_OPTION_TYPE	      1	   /*!< No Operation */
@@ -724,6 +725,8 @@ struct aiop_default_task_params {
 #define IPV4_SSRR_OPTION_TYPE	      137  /*!< Strict Source & Record Route */
 
 #define IPV6_HDR_LENGTH		      40   /*!< IPv6 header length */
+#define IPV6_HDR_ADD_LENGTH	      32   /*!< IPv4 header address length */
+
 /** @} */ /* end of AIOP_General_Protocols_IP_Definitions */
 
 /**************************************************************************//**
@@ -758,6 +761,7 @@ struct aiop_default_task_params {
 @{
 *//***************************************************************************/
 #define TCP_HDR_LENGTH		      20   /**< TCP header length */
+#define TCP_PROTOCOL		      6   /**< TCP Protocol number */
 
 /** @} */ /* end of AIOP_General_Protocols_TCP_Definitions */
 

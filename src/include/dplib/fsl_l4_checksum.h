@@ -41,7 +41,7 @@
 
 /**************************************************************************//**
 @Group	FSL_L4_CKSUM_STATUS_CALC_UDP_TCP Status returned from \
-	 \ref l4_cksum_calc_udp_tcp_checksum SR
+	l4_cksum_calc_udp_tcp_checksum SR
 @{
 *//***************************************************************************/
 /** Success */

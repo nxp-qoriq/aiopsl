@@ -118,6 +118,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ctlu.h</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/aiop_verification_data.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_data.c</locationURI>
+		</link>
+		<link>
+			<name>sources/Verification/aiop_verification_data.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_data.h</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/aiop_verification_fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_fdma.c</locationURI>
@@ -131,6 +141,11 @@
 			<name>sources/Verification/aiop_verification_fm.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_fm.c</locationURI>
+		</link>
+		<link>
+			<name>sources/Verification/aiop_verification_fm_temp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_fm_temp.c</locationURI>
 		</link>
 		<link>
 			<name>sources/Verification/aiop_verification_gro.c</name>
@@ -268,6 +283,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/util</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/include/common/spinlock.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/spinlock.h</locationURI>
@@ -388,11 +408,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/include/general.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.c</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers/dplib/include/general.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.h</locationURI>
@@ -413,9 +428,34 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/kernel/console.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/console.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/mem_mng.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/mem_mng/mem_mng.c</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/kernel/os.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/os.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/smp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/smp.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/sys.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/sys.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/sys_mem_mng.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/ip</name>
@@ -436,6 +476,16 @@
 			<name>sources/drivers/dplib/netf/nat</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/util/checksum.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/util/general.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/cdma.c</name>
@@ -523,6 +573,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/virtual_pools.c</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/ppc/booke.S</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/booke.S</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/ppc/booke.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/booke.c</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf/ip/ip.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ip.c</locationURI>
@@ -538,9 +598,24 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipf.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/netf/ip/ipr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.c</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf/ip/ipr.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/netf/ip/ipsec.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/netf/ip/ipsec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/ip/ipv4_checksum.c</name>

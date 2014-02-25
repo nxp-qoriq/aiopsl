@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 /**
 
  @File          duart.c
@@ -1042,3 +1043,4 @@ int duart_dump_regs(fsl_handle_t duart)
     return E_OK;
 }
 #endif /* (DEBUG_ERRORS > 0) */
+#endif

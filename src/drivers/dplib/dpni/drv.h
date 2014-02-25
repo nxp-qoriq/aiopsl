@@ -1,9 +1,7 @@
 /**************************************************************************//*
- @File          dvr.h
+ @File          drv.h
 
- @Description   TODO
-
- @Cautions      None.
+ @Description   DPNI driver structure and internal functions.
 *//***************************************************************************/
 
 #ifndef __DRV_H
@@ -16,7 +14,6 @@
 #define DPNI_DRV_FLG_PARSE		0x80
 #define DPNI_DRV_FLG_PARSER_DIS		0x40
 #define DPNI_DRV_FLG_MTU_ENABLE		0x20
-#define DPNI_DRV_FLG_MTU_DISCARD	0x10
 
 struct dpni_drv {
 	/** network interface ID */

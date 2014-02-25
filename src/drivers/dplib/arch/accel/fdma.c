@@ -167,9 +167,7 @@ int32_t fdma_present_default_frame_segment(
 		uint32_t flags,
 		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size,
-		uint16_t *seg_length,
-		uint8_t	 *seg_handle)
+		uint16_t present_size)
 {
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3;
@@ -193,9 +191,9 @@ int32_t fdma_present_default_frame_segment(
 	__accel_call() should return success/fail indication */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
-	*seg_length = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2));
-	*seg_handle = *((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
-			FDMA_SEG_HANDLE_OFFSET));
+	PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
+	PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+					FDMA_SEG_HANDLE_OFFSET)));
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	return (int32_t)(res1);
 }
@@ -1297,6 +1295,58 @@ int32_t fdma_copy_data(
 	/* store command parameters */
 	__stdw(arg1, (uint32_t)src, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = (uint32_t)dst;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_acquire_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		void *dst)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2;
+	int8_t res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_ACQUIRE_CMD_ARG1(icid, flags);
+	arg2 = FDMA_ACQUIRE_CMD_ARG2(dst, bpid);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_release_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		uint64_t addr)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_RELEASE_CMD_ARG1(icid, flags);
+	/* store command parameters */
+	__stdw(arg1, bpid, HWC_ACC_IN_ADDRESS, ZERO);
+	__llstdw(addr, HWC_ACC_IN_ADDRESS3, ZERO);
+
 	/* call FDMA Accelerator */
 	/* Todo - Note to Hw/Compiler team:
 	__accel_call() should return success/fail indication */

@@ -37,10 +37,11 @@
 *//***************************************************************************/
 struct tcp_gso_context {
 	/** Remaining packet FD  */
-	struct ldpaa_fd rem_fd;
+	struct ldpaa_fd rem_fd
+		__attribute__((aligned(sizeof(struct ldpaa_fd))));
 	/** Flags - Please refer to \ref TCP_GSO_FLAGS */
 	uint32_t flags;
-	/** Internal TCP GSO flags - Please refer to 
+	/** Internal TCP GSO flags - Please refer to
 	 * \ref TCP_GSO_INTERNAL_FLAGS */
 	uint32_t internal_flags;
 	/** MSS */
@@ -63,8 +64,10 @@ struct tcp_gso_context {
 	uint8_t	rem_frame_handle;
 	/** First Segment indication */
 	uint8_t	first_seg;
+	/** IP offset */
+	uint8_t	ip_offset;
 	/** Padding */
-	uint8_t	pad[7];
+	uint8_t	pad[6];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */
@@ -103,10 +106,12 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
  @{
 *//***************************************************************************/
 
-	/** If set, the FIN flag in the TCP header of the GSO aggregation is set. */
+	/** If set, the FIN flag in the TCP header of the GSO aggregation is
+	 * set. */
 #define TCP_GSO_FIN_BIT		0x00000001
-	/** If set, the PSH flag in the TCP header of the GSO aggregation is set. */
-#define TCP_GSO_PSH_BIT		0x00000008	
+	/** If set, the PSH flag in the TCP header of the GSO aggregation is
+	 * set. */
+#define TCP_GSO_PSH_BIT		0x00000008
 
 /** @} */ /* end of TCP_GSO_INTERNAL_FLAGS */
 
@@ -118,10 +123,10 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
  @{
 *//***************************************************************************/
 
-	/** Size of modification in IP header of the source frame in the first 
+	/** Size of modification in IP header of the source frame in the first
 	 * iteration. */
 #define TCP_GSO_IP_MODIFICATION_SIZE	12
-	
+
 
 /** @} */ /* end of TCP_GSO_INTERNAL_DEFINITIONS */
 
@@ -138,9 +143,9 @@ ASSERT_STRUCT_SIZE(SIZEOF_GSO_CONTEXT, TCP_GSO_CONTEXT_SIZE);
 /**************************************************************************//**
 @Function	tcp_gso_return_frame_remainder_as_default_frame
 
-@Description	This function relocate the remainder packet being segmented to 
+@Description	This function relocate the remainder packet being segmented to
 		the default frame location.
-		This function should be called internally for debug purposes 
+		This function should be called internally for debug purposes
 		only.
 
 @Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
@@ -156,8 +161,8 @@ int32_t tcp_gso_return_frame_remainder_as_default_frame(
 @Function	tcp_gso_split_segment
 
 @Description	This function generates a single TCP segment and locates it in
-		the default frame location in the workspace. 
-		
+		the default frame location in the workspace.
+
 		The remaining source frame is kept in the internal GSO
 		structure.
 

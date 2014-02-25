@@ -6,7 +6,6 @@
 #include "inc/console.h"
 #include "sys.h"
 
-
 #define PRE_CONSOLE_BUF_SIZE    (4 * 1024)
 
 
@@ -147,6 +146,7 @@ void sys_print(char *str)
 	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 }
 
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 char sys_get_char(void)
 {
@@ -167,6 +167,7 @@ char sys_get_char(void)
 
 	return ('\0');
 }
+#endif
 
 /*****************************************************************************/
 void sys_register_debugger_console(void)
@@ -179,3 +180,4 @@ void sys_register_debugger_console(void)
 	err_code = sys_register_console(&sys, sys_debugger_print, NULL);
 	ASSERT_COND(err_code == E_OK);
 }
+

@@ -96,11 +96,12 @@ struct tman_tmi_delete_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	uint32_t	mode_bits;
-	uint64_t	conf_opaque_data1;
+	tman_arg_8B_t	conf_opaque_data1;
 	int32_t		status;
-	uint16_t	conf_opaque_data2;
+	tman_cb_t	tman_confirm_cb;
+	tman_arg_2B_t	conf_opaque_data2;
 	uint8_t		tmi_id;
-	uint8_t		confirmation_epid;
+	uint8_t		pad[5];
 };
 
 /**************************************************************************//**
@@ -130,12 +131,11 @@ struct tman_timer_create_command {
 	uint64_t	opaque_data1;
 	int32_t		status;
 	uint32_t	timer_handle;
-	uint32_t	scope_id;
+	tman_cb_t	tman_timer_cb;
 	uint16_t	opaque_data2;
 	uint16_t	duration;
-	uint8_t		epid;
 	uint8_t		tmi_id;
-	uint8_t		pad[6];
+	uint8_t		pad[7];
 };
 
 /**************************************************************************//**
@@ -215,6 +215,8 @@ struct tman_get_ts_command {
 };
 
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr);
+void verif_timer_callback(uint64_t opaque1, uint16_t opaque2);
+void verif_tmi_delete_callback(uint64_t opaque1, uint16_t opaque2);
 
 /** @} */ /* end of AIOP_TMAN_SRs_Verification */
 

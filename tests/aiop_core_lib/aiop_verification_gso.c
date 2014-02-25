@@ -16,10 +16,8 @@ uint16_t  aiop_verification_gso(
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-	uint32_t flags;
 
 	opcode  = *((uint32_t *) data_addr);
-	flags = 0x0;
 
 	switch (opcode) {
 	case TCP_GSO_CONTEXT_INIT_CMD_STR:
@@ -30,7 +28,7 @@ uint16_t  aiop_verification_gso(
 		tcp_gso_context_init(str->flags, str->mss, 
 				(uint8_t *)(str->gso_ctx_addr));
 		
-		str_size = sizeof(struct tcp_gso_init_command);
+		str_size = (uint16_t)sizeof(struct tcp_gso_init_command);
 		break;
 	}
 	case TCP_GSO_GENERATE_SEG_CMD_STR:
@@ -48,7 +46,8 @@ uint16_t  aiop_verification_gso(
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
 		str->default_task_params = default_task_params;
 		
-		str_size = sizeof(struct tcp_gso_generate_seg_command);
+		str_size = (uint16_t)
+				sizeof(struct tcp_gso_generate_seg_command);
 		break;
 	}
 	case TCP_GSO_DISCARD_REMAINING_CMD_STR:
@@ -61,7 +60,7 @@ uint16_t  aiop_verification_gso(
 				(uint8_t *)(str->gso_ctx_addr));
 		
 		*((int32_t *)(str->status_addr)) = str->status;
-		str_size = sizeof(
+		str_size = (uint16_t)sizeof(
 			struct tcp_gso_discard_remainder_frame_command);
 		break;
 	}

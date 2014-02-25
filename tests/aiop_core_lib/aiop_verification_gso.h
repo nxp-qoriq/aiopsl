@@ -17,6 +17,9 @@
 #include "dplib/fsl_parser.h"
 
 
+	/** GSO FM ID */
+#define GSO_FM_ID	 (TCP_GSO_MODULE_STATUS_ID >> 16)
+
 /* TCP_GSO Command IDs */
 	/** TCP GSO Init command code */
 #define TCP_GSO_CONTEXT_INIT_CMD		0x00000001

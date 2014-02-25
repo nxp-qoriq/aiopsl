@@ -10,8 +10,8 @@
 #define __AIOP_IPR_H
 
 #include "common/types.h"
-#include "dplib\fsl_ipr.h"
-#include "dplib\fsl_osm.h"
+#include "dplib/fsl_ipr.h"
+#include "dplib/fsl_osm.h"
 
 
 /**************************************************************************//**
@@ -22,25 +22,31 @@
 @{
 *//***************************************************************************/
 
-#define OUT_OF_ORDER	0x00000001
+#define OUT_OF_ORDER			0x00000001
 #define	MAX_NUM_OF_FRAGS 		64
-#define	FRAG_IN_ORDER_OK		0
+#define	FRAG_OK_REASS_NOT_COMPL		0
 #define LAST_FRAG_IN_ORDER		1
-#define	FRAG_OUT_OF_ORDER_OK	2
-#define LAST_FRAG_OUT_OF_ORDER	3
-#define FRAG_ERROR				4
-#define FRAG_ERROR_EARLY_TO		5
+#define LAST_FRAG_OUT_OF_ORDER		2
+#define FRAG_ERROR			3
 #define NO_BYPASS_OSM			0x00000000
-#define	BYPASS_OSM				0x00000001
-#define START_CONCURRENT		0x00000003
-#define	RESET_MF_BIT			0xFFDF
-#define NO_ERROR				0
+#define	BYPASS_OSM			0x00000001
+#define START_CONCURRENT		0x00000002
+#define	RESET_MF_BIT			0xDFFF
+#define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2624
-#define SIZE_TO_INIT			576 /* RFDC + Link List */
-#define RFDC_VALID				0x00000001
+#define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
+#define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
+#define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
+#define RFDC_VALID			0x80
 #define FRAG_OFFSET_MASK		0x1FFF
-#define IPV4_FRAME				0x00000000 /* in RFDC status */
-#define IPV6_FRAME				0x00000001 /* in RFDC status */
+#define IPV4_FRAME			0x00000000 /* in RFDC status */
+#define IPV6_FRAME			0x00000001 /* in RFDC status */
+#define INSTANCE_VALID			0x0001
+#define REF_COUNT_ADDR_DUMMY		HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+#define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
+#define RFDC_SIZE			sizeof(struct ipr_rfdc)
+#define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
+#define FD_SIZE				sizeof(struct ldpaa_fd)
 
 /* todo should move to general or OSM include file */
 #define EXCLUSIVE				0
@@ -51,10 +57,10 @@
 
 struct ipr_instance {
 	uint64_t	extended_stats_addr;
-		/** maximum concurrently IPv4 open frames. */
+	/** maximum concurrently IPv4 open frames. */
 	uint16_t	table_id_ipv4;
 	uint16_t	table_id_ipv6;
-	uint32_t    max_open_frames_ipv4;
+	uint32_t    	max_open_frames_ipv4;
 	uint32_t  	max_open_frames_ipv6;
 	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
 	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
@@ -64,14 +70,14 @@ struct ipr_instance {
 	ipr_timeout_cb_t *ipv4_timeout_cb;
 	/** function to call upon Time Out occurrence for ipv6 */
 	ipr_timeout_cb_t *ipv6_timeout_cb;
+	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
+	uint32_t  	flags;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv4_arg;
 	/** Argument to be passed upon invocation of the IPv6 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
-		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint32_t  	flags;
 	/** Number of frames that started reassembly but didn't complete it yet */
 	uint16_t	num_of_open_reass_frames;
 	uint8_t		tmi_id;
@@ -79,10 +85,9 @@ struct ipr_instance {
 	uint8_t  pad[1];
 };
 
+#pragma pack(push,1) 
 struct ipr_rfdc{
 	uint64_t	instance_handle;
-	uint64_t	key[2];
-	uint32_t	status;
 	uint32_t	timer_handle;
 	uint16_t	expected_total_length;
 	uint16_t	current_total_length;
@@ -94,8 +99,13 @@ struct ipr_rfdc{
 	uint8_t		next_index;
 	uint8_t		index_to_out_of_order;
 	uint8_t		num_of_frags;
-	uint8_t		res[1];
+	uint8_t		status;
+//	uint32_t	status;
+	uint64_t	key[4];
+	uint32_t	ipv6_key_cont;
 };
+#pragma pack(pop) 
+
 
 struct link_list_element{
 	uint16_t	frag_offset;
@@ -170,9 +180,9 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 /** Tables are located in dedicated RAM */
 #define IPR_MODE_TABLE_LOCATION_INT		0x00000000
 /** Tables are located in Packet Express Buffer table */
-#define IPR_MODE_TABLE_LOCATION_PEB		0x10000000
+#define IPR_MODE_TABLE_LOCATION_PEB		0x02000000
 /** Tables are located in DDR */
-#define IPR_MODE_LOCATION_EXT			0x30000000
+#define IPR_MODE_TABLE_LOCATION_EXT		0x03000000
 
 /* @} end of group IPRInitFlags */
 
@@ -201,36 +211,52 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 /**************************************************************************//**
 @Function	ipr_insert_to_link_list
 
-@Description	
+@Description	Insert to Link List - Save FD
 
-@Param[in]	
-@Param[in]	
-@Param[in]	.
+@Param[in]	rfdc_ptr - pointer to RFDC in workspace (on stack)
+@Param[in]	rfdc_ext_addr - pointer to RFDC in external memory.
 
-
-@Return		None.
+@Return		Status - Success or Failure.
 
 @Cautions	None.
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-								 uint64_t rfdc_ext_addr);
+				 uint64_t rfdc_ext_addr);
 
-void closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr);
+uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
+				 uint64_t rfdc_ext_addr);
 
-inline void move_to_correct_ordering_scope(uint32_t osm_status)
+
+inline void move_to_correct_ordering_scope1(uint32_t osm_status)
 {
 		if(osm_status == 0) {
 			/* return to original ordering scope that entered
 			 * the ipr_reassemble function */
 			osm_scope_exit();
-			osm_scope_exit();	
 		} else if(osm_status & START_CONCURRENT) {
-				osm_scope_transition_to_concurrent_with_increment_scope_id();
+		   osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
 }
+void move_to_correct_ordering_scope2(uint32_t osm_status);
+/* todo restore this inline after compiler fix.
+inline void move_to_correct_ordering_scope2(uint32_t osm_status)
+{
+		if(osm_status == 0) { */
+			/* return to original ordering scope that entered
+			 * the ipr_reassemble function */
+	/*		osm_scope_exit();
+			osm_scope_exit();	
+		} else if(osm_status & START_CONCURRENT) {
+		  osm_scope_transition_to_concurrent_with_increment_scope_id();
+		}
+}*/
+uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();
+
+void ipr_time_out();
 
 /**************************************************************************//**
 @Description	IPR Global parameters
@@ -243,15 +269,15 @@ uint32_t ipr_avail_buffers_cntr;
 /** Size of the allocated buffers by the ARENA. These buffers are associated to
     the ipr_pool_id */
 uint16_t ipr_buffer_size;
-/** Should got either as a global define or as a return parameter from
-    a dedicated  ARENA function (epid = get_tmi_epid(tmi_id)).*/
-uint8_t  ipr_timeout_epid;
+/** save ipr table location */
+uint8_t  ipr_table_location;
 uint8_t  ipr_timeout_flags;
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
 /** Pool id returned by the ARENA allocator to be used as context buffer pool */
 uint8_t  ipr_pool_id;
-uint16_t res;
+uint8_t  ipr_instance_spin_lock;
+uint8_t res;
 };
 
 /* @} end of group IPR_Internal */

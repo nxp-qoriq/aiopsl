@@ -17,6 +17,9 @@
 #include "dplib/fsl_parser.h"
 
 
+	/** GRO FM ID */
+#define GRO_FM_ID	 (TCP_GRO_MODULE_STATUS_ID >> 16)
+
 /* TCP_GRO Command IDs */
 	/** TCP GRO Aggregate Segment command code */
 #define TCP_GRO_CONTEXT_AGG_SEG_CMD		0x00000001
@@ -76,7 +79,7 @@ struct tcp_gro_agg_seg_command {
 		/** Workspace address of the last returned status. 
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
-		/** Workspace address of the GSO last returned status. 
+		/** Workspace address of the GRO last returned status. 
 		 * Should be defined in the TLS area. */
 	uint32_t gro_status_addr;
 		/** Padding. */
@@ -120,6 +123,7 @@ struct tcp_gro_flush_agg_command {
 
 
 uint16_t  aiop_verification_gro(uint32_t data_addr);
+void gro_verif_create_next_frame(uint8_t gro_iteration);
 
 
 /** @} */ /* end of AIOP_GRO_Verification */

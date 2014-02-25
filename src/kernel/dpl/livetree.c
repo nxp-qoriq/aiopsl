@@ -1,3 +1,4 @@
+#ifdef ARENA_LEGACY_CODE
 #include <assert.h>
 
 #include "common/types.h"
@@ -762,3 +763,4 @@ const struct devices *get_devices(struct node *tree, char *path)
 }
 
 const struct devices *get_devices(struct node *tree, char *path);
+#endif

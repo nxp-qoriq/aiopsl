@@ -1,4 +1,3 @@
-
 #include <fsl_dplib_sys.h>
 #include <fsl_cmdif.h>
 #include <fsl_cmdif_mc.h>
@@ -303,3 +302,4 @@ int dprc_get_irq(struct dprc *dprc,
 
 	return err;
 }
+

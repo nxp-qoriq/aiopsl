@@ -1349,6 +1349,39 @@ int32_t ctlu_table_rule_replace(uint16_t table_id,
 
 
 /**************************************************************************//**
+@Function	ctlu_table_rule_query
+
+@Description	Queries a rule in the table.
+
+@Param[in]	table_id - Table ID.
+@Param[in]	key - Key of the rule to be queried. Must be aligned to 16B
+		boundary.
+@Param[in]	key_size - Key size in bytes.
+@Param[out]	result - The result of the query. Structure should be allocated
+		by the caller to this function.
+@Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
+		unless the rule queried for was created with suitable options
+		(Please refer to \ref FSL_CTLU_TABLE_RULE_OPTIONS for more
+		details). Must be allocated by the caller to this function.
+
+@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+
+@Cautions	NOTE: If the result is of type that contains pointer to CDMA
+		application buffer (refer to struct ctlu_table_rule_result
+		documentation) this function will not increment the reference
+		counter of the buffer. For query functions that does increment
+		the reference counter please refer to table lookup function.
+		In this function the task yields.
+*//***************************************************************************/
+int32_t ctlu_table_rule_query(uint16_t table_id,
+			      union ctlu_key *key,
+			      uint8_t key_size,
+			      struct ctlu_table_rule_result *result,
+			      uint32_t *timestamp
+			     );
+
+
+/**************************************************************************//**
 @Function	table_delete_rule
 
 @Description	Deletes a specified rule in the table.

@@ -8,6 +8,15 @@
 #ifndef __OSM_H_
 #define __OSM_H_
 
+#include "general.h"
+
+extern __TASK uint8_t CURRENT_SCOPE_LEVEL;
+extern __TASK uint8_t SCOPE_MODE_LEVEL1;
+extern __TASK uint8_t SCOPE_MODE_LEVEL2;
+extern __TASK uint8_t SCOPE_MODE_LEVEL3;
+extern __TASK uint8_t SCOPE_MODE_LEVEL4;
+
+
 #define LEVEL0		0x00000000  /** Null ScopeID */
 #define LEVEL1		0x00000001  /** Level 1 hierarchy scope level */
 #define LEVEL2		0x00000002  /** Level 2 hierarchy scope level */
@@ -67,6 +76,22 @@
 	/** OSM Scope Enter: relinquish_exclusivity_parent=true,
 	 * scope_id=INCR, request_exclusivity=true */
 #define OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP	0x17
+
+inline void osm_task_init(void)
+{
+	CURRENT_SCOPE_LEVEL = ((uint8_t)PRC_GET_OSM_SOURCE_VALUE());
+		/**<	0- No order scope specified.\n
+			1- Scope was specified for level 1 of hierarchy */
+	SCOPE_MODE_LEVEL1 = ((uint8_t)PRC_GET_OSM_EXECUTION_PHASE_VALUE());
+		/**<	0 = Exclusive mode.\n
+			1 = Concurrent mode. */
+	SCOPE_MODE_LEVEL2 = 0x00;
+		/**<	Exclusive (default) Mode in level 2 of hierarchy */
+	SCOPE_MODE_LEVEL3 = 0x00;
+		/**<	Exclusive (default) Mode in level 3 of hierarchy */
+	SCOPE_MODE_LEVEL4 = 0x00;
+		/**<	Exclusive (default) Mode in level 4 of hierarchy */
+}
 
 
 #endif /* __OSM_H_ */

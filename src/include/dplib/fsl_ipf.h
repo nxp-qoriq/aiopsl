@@ -43,7 +43,10 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 
 
 /**************************************************************************//**
- @Group	IPF_Flags Flags for ipf_generate_frag() function
+ @Group	IPF_FLAGS IPF Flags
+
+ @Description	Flags for ipf_generate_frag() function
+
  @{
 *//***************************************************************************/
 /** No flags indication. */
@@ -54,10 +57,13 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
  * Should not be set in case \ref IPF_SFV_QUERY returns the value 0. */
 #define IPF_RESTORE_ORIGINAL_FRAGMENTS	0x00000001
 
-/** @} */ /* end of IPF_Flags */
+/** @} */ /* end of IPF_FLAGS */
 
 /**************************************************************************//**
-@Group	IPF_GENERATE_FRAG_STATUS ipf_generate_frag() return values
+@Group	IPF_GENERATE_FRAG_STATUS  IPF Return Statuses
+
+@Description ipf_generate_frag() return values
+
 @{
 *//***************************************************************************/
 /** Fragmentation process complete. The last fragment was generated */
@@ -74,7 +80,10 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 /** @} */ /* end of IPF_GENERATE_FRAG_STATUS */
 
 /**************************************************************************//**
-@Group	FSL_IPF_SFV_MACROS IPF SFV (Start Fragment Valid)bit macros
+@Group	FSL_IPF_SFV_MACROS IPF SFV (Start Fragment Valid) bit macros
+
+@Description Macros for SFV bit
+
 @{
 *//***************************************************************************/
 /**SFV bit clear.
@@ -126,7 +135,13 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 @Return		Status. Please refer to \ref IPF_GENERATE_FRAG_STATUS or
 		\ref fdma_hw_errors or \ref fdma_sw_errors for more details.
 
-@Cautions	No support in IPv6 jumbograms.
+@Cautions	1. In the output fragment, ASA & PTA are not presented.
+		2. No support in IPv6 jumbograms.
+		3. Since during fragmentation process of an IPv6 frame, fragment
+		extension (8 bytes) is added to the header, user must ensure
+		that either 8 bytes are available in the headroom, or that
+		Presented segment size is large enough to include these 8 bytes
+		in addition to any existing headers presented.
 *//***************************************************************************/
 int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 
@@ -156,13 +171,14 @@ int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 @Description	This function initializes the IPF context structure that is
 		used for the IP fragmentation process.
 
-@Param[in]	flags - Please refer to \ref IPF_Flags.
+@Param[in]	flags - Please refer to \ref IPF_FLAGS.
 @Param[in]	mtu - Maximum Transmit Unit.
 		In case \ref IPF_RESTORE_ORIGINAL_FRAGMENTS flag is set, this
 		parameter is ignored.
 @Param[out]	ipf_context_addr - Address to the IPF internal context
 		structure allocated by the user. Internally used by
-		IP Fragmentation functions.
+		IP Fragmentation functions. Must be aligned to Frame Descriptor
+		Size.
 
 @Return		None.
 

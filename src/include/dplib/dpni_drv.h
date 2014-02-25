@@ -1,6 +1,4 @@
 /**************************************************************************//**
-		Copyright 2013 Freescale Semiconductor, Inc.
-
  @File		dpni_drv.h
 
  @Description	Data Path Network Interface API
@@ -38,10 +36,7 @@
 *//***************************************************************************/
 /** MTU was crossed for DPNI driver send function */
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
-/** NI is not enabled in DPNI driver send function */
-#define	DPNI_DRV_NI_DIS		(DPNI_DRV_MODULE_STATUS_ID | 0x2)
 /* @} */
-
 
 typedef uint64_t	dpni_drv_app_arg_t;
 
@@ -106,8 +101,8 @@ int dpni_drv_get_attrib(uint16_t ni_id, int attrib);
 
  @Return	'0' on Success; Error code otherwise.
 *//***************************************************************************/
-int dpni_drv_get_stats(uint16_t			ni_id,
-			struct dpni_stats	*stats);
+int dpni_drv_get_stats(uint16_t	ni_id, struct dpni_stats *stats);
+
 /**************************************************************************//**
  @Function	dpni_drv_reset_stats
 
@@ -129,8 +124,7 @@ int dpni_drv_reset_stats(uint16_t ni_id);
 
  @Return	'0' on Success; error code otherwise.
 *//***************************************************************************/
-int dpni_set_rx_tc(struct dpni			*dpni,
-		const struct dpni_rx_tc_cfg	*tc_cfg);
+int dpni_set_rx_tc(struct dpni *dpni, const struct dpni_rx_tc_cfg *tc_cfg);
 
 /**************************************************************************//**
  @Function	dpni_drv_set_dist
@@ -144,31 +138,29 @@ int dpni_set_rx_tc(struct dpni			*dpni,
 
  @Cautions	Allowed only following dpni_attach().
 *//***************************************************************************/
-int dpni_set_drv_dist(struct dpni 			*dpni,
-		const struct dpni_dist_params	dist[DPNI_MAX_NUM_OF_TC]);
+int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_params dist[DPNI_MAX_NUM_OF_TC]);
 
 /**************************************************************************//**
  @Function	dpni_drv_register_rx_cb
 
  @Description	Attaches a pointer to a call back function to a NI ID.
-		The callback function will be called when the NI_ID receives
-		a frame
+                The callback function will be called when the NI_ID receives a frame
 
  @Param[in]	ni_id   The Network Interface ID
- @Param[in]	flow_id TODO
- @Param[in]	dpio    TODO
- @Param[in]	dpsp    TODO
- @Param[in]	cb      TODO
- @Param[in]	arg     TODO
+ @Param[in]	flow_id Flow ID, it should be between 0 and #DPNI_DRV_MAX_NUM_FLOWS 
+ @Param[in]	dpio    MUST be set to NULL
+ @Param[in]	dpsp    Must be set to NULL
+ @Param[in]	cb      Callback function for Network Interface specified flow_id
+ @Param[in]	arg     Argument that will be passed to callback function 
 
  @Return	OK on success; error code, otherwise.
 *//***************************************************************************/
-int dpni_drv_register_rx_cb(uint16_t		ni_id,
-			uint16_t		flow_id,
-			fsl_handle_t	dpio,
-			fsl_handle_t	dpsp,
-			rx_cb_t		*cb,
-			dpni_drv_app_arg_t arg);
+int dpni_drv_register_rx_cb(uint16_t        ni_id,
+                            uint16_t        flow_id,
+                            fsl_handle_t	dpio,
+                            fsl_handle_t	dpsp,
+                            rx_cb_t		    *cb,
+                            dpni_drv_app_arg_t arg);
 
 /**************************************************************************//**
  @Function	dpni_drv_register_default_rx_cb
@@ -201,7 +193,7 @@ int dpni_drv_register_default_rx_cb(
 /**************************************************************************//**
  @Function	dpni_drv_send
 
- @Description	@Description	Network Interface send (AIOP enqueue) function.
+ @Description	Network Interface send (AIOP enqueue) function.
 
  @Param[in]	ni_id   The Network Interface ID
 	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
@@ -211,6 +203,24 @@ int dpni_drv_register_default_rx_cb(
 		and \ref DPNI_DRV_STATUS.
 *//***************************************************************************/
 int dpni_drv_send(uint16_t ni_id);
+
+/**************************************************************************//**
+ @Function	dpni_drv_explicit_send
+
+ @Description	Network Interface explicit send (AIOP enqueue) function.
+
+ @Param[in]	ni_id	The Network Interface ID
+	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
+	
+ @Param[in]	fd	pointer to explicit FD. The assumption is that user
+ 	 	used fdma function to creat an explicit FD as 
+ 	 	fdma_create_frame 
+
+ @Return	OK on success; error code, otherwise.
+		For error codes refer to \ref FDMA_ENQUEUE_FD_ERRORS
+		and \ref DPNI_DRV_STATUS.
+*//***************************************************************************/
+int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
 
 /**************************************************************************//**
  @Function	dpni_get_num_of_ni

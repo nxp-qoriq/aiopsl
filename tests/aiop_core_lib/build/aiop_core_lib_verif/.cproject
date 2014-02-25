@@ -68,12 +68,16 @@
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.freescale.ppc.toolchain.compiler.550517216" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1177934181" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_t4ls_sim/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2100a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/cores&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/mem_mng&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/serial/duart&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
@@ -97,7 +101,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.1209360885" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.938717919" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\Prefix\lib_ewl.prefix&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\..\..\..\build\aiop_t4ls_sim\build_flags\build_flags.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\..\..\..\build\aiop_t4ls_sim\build_flags\dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1610691706" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
@@ -131,11 +135,19 @@
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1570848850" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.freescale.ppc.toolchain.assembler.1801014957" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler">
+								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.1959485246" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
+								</option>
+								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.61788061" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
+								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.1820086721" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1345496829" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
 							<tool id="com.freescale.ppc.toolchain.disassembler.670456195" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.46238340" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.header.891064977" name="Show Headers" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.header" value="false" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.597885564" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.26766275" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="false" valueType="boolean"/>
 							</tool>
 							<tool id="com.freescale.ppc.toolchain.preprocessor.1557942209" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>
@@ -173,7 +185,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Project_Settings/Linker_Files/MPC5643L_FLASH.lcf|Sources/Other/Compiler/compiler_example_1.c|Project_Settings/Startup_Code/MPC5643L_init_flash.c|Temp_Sources/Compiler/compiler_example_2.c|Sources/Other/Compiler/compiler_example_2.c|Sources/sources/fsl_aiop_cdma.c|MPC5643L_readme.txt|Sources/sources/aiop_verification.h|Prefix/MPC5643L_FLASH_VLE_DPM.prefix|Temp_Sources/Compiler/compiler_example_1.c|Sources/Other/temp.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="sources/drivers/dplib/kernel/sys_mem_mng.c|sources/drivers/dplib/kernel/smp.c|sources/drivers/dplib/kernel/mem_mng.c|sources/drivers/dplib/kernel/console.c|sources/drivers/dplib/arch/ppc/booke.S|sources/drivers/dplib/arch/ppc/booke.c|sources/drivers/dplib/kernel/sys.c|Project_Settings/Linker_Files/MPC5643L_FLASH.lcf|Sources/Other/Compiler/compiler_example_1.c|Project_Settings/Startup_Code/MPC5643L_init_flash.c|Temp_Sources/Compiler/compiler_example_2.c|Sources/Other/Compiler/compiler_example_2.c|Sources/sources/fsl_aiop_cdma.c|MPC5643L_readme.txt|Sources/sources/aiop_verification.h|Prefix/MPC5643L_FLASH_VLE_DPM.prefix|Temp_Sources/Compiler/compiler_example_1.c|Sources/Other/temp.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
