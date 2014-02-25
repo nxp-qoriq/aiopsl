@@ -191,6 +191,8 @@ int32_t fdma_present_default_frame_segment(
 	__accel_call() should return success/fail indication */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
+	PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
+	PRC_SET_SEGMENT_OFFSET(offset);
 	PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
 	PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
 					FDMA_SEG_HANDLE_OFFSET)));
