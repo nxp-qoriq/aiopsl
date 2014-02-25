@@ -33,7 +33,7 @@ Doc & Tool compatibility:
 	CTLU Archdef 0.6
 	FD_section   0.62.2
 	Parser_Block_Guide	3.40 (Maturity level 0.95)
-	AIOP_Instruction_Additions 0.60
+	AIOP_Instruction_Additions 1.0
 	Compiler Build 268
 	CW for DPAA 10.0.5
 	Simulator	DPAA Simulator 0_5_2_0068
