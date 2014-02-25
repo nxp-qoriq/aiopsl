@@ -23,7 +23,6 @@
 
 
 struct  ipr_global_parameters ipr_global_parameters1;
-uint8_t ipr_instance_spin_lock = 0;
 
 void ipr_init(uint32_t max_buffers, uint32_t flags)
 {
@@ -36,6 +35,7 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	ipr_global_parameters1.ipr_avail_buffers_cntr = max_buffers;
 	ipr_global_parameters1.ipr_table_location = (uint8_t)(flags>>24);
 	ipr_global_parameters1.ipr_timeout_flags = (uint8_t)(flags>>16);
+	ipr_global_parameters1.ipr_instance_spin_lock = 0;
 	/* todo remove when MC will do this */
 	sys_ctlu_keyid_pool_create();
 	/* todo for IPv6 */
@@ -98,10 +98,10 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv6;
 	aggregate_open_frames += max_open_frames;
 	/* todo IPv6 */
-	lock_spinlock(&ipr_instance_spin_lock);
+	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 	if (ipr_global_parameters1.ipr_avail_buffers_cntr < \
 			aggregate_open_frames) {
-		unlock_spinlock(&ipr_instance_spin_lock);
+		unlock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 		/* todo SR error case */
 		cdma_release_context_memory(*ipr_instance_ptr);
 		/* todo: error case and case only IPv6 table*/
@@ -109,7 +109,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		return IPR_MAX_BUFFERS_REACHED;
 	}
 	ipr_global_parameters1.ipr_avail_buffers_cntr -= aggregate_open_frames;
-	unlock_spinlock(&ipr_instance_spin_lock);
+	unlock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 	/* Initialize instance parameters */
 	ipr_instance.extended_stats_addr = ipr_params_ptr->extended_stats_addr;
 	ipr_instance.max_open_frames_ipv4 = \
@@ -155,9 +155,9 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	ctlu_table_delete(ipr_instance.table_id_ipv4);
 	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
 			ipr_instance.max_open_frames_ipv6;
-	lock_spinlock(&ipr_instance_spin_lock);
+	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 	ipr_global_parameters1.ipr_avail_buffers_cntr += aggregate_open_frames;
-	unlock_spinlock(&ipr_instance_spin_lock);
+	unlock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 	return SUCCESS;
 }
 
@@ -385,8 +385,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		/* Run parser */
 		parse_result_generate_default(0);
 
-		if (ip_header_update_and_l4_validation(&rfdc) ==
-							     SUCCESS) {
+		if (ip_header_update_and_l4_validation(&rfdc) == SUCCESS) {
 			/* L4 checksum is valid */
 			/* Write and release updated 64 first bytes of RFDC */
 			cdma_write_release_lock_and_decrement(
@@ -533,7 +532,6 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 	uint8_t		frame_handle1;
 	uint8_t		frame_handle2;
 	uint8_t		num_of_frags;
-/*	uint8_t		seg_handle;*/
 	struct		fdma_concatenate_frames_params concatenate_frame_params;
 	struct		fdma_present_frame_params present_frame_params;
 	struct		parse_result *pr =
@@ -629,19 +627,13 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 		fdma_concatenate_frames(&concatenate_frame_params);
 	}
 
-	fdma_store_default_frame_data();
-	fdma_present_default_frame();
-
-/*	fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS,
+	fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS,
 					   (void *)prc->seg_address,
 					   0,
-					   DEFAULT_SEGMENT_SIZE,
-					   &prc->seg_length,
-					   &seg_handle);
-*/
-	/* updated default segment handle */
-/*	PRC_SET_SEGMENT_HANDLE(seg_handle);
-*/
+					   DEFAULT_SEGMENT_SIZE);
+
+	/* FD length is still not updated */
+
 	return SUCCESS;
 }
 
@@ -658,8 +650,7 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	struct		parse_result *pr =
 				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
-	ipv4hdr_offset =
-		 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 	/* update IP checksum */
@@ -694,6 +685,9 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	/* update FDMA with total length and IP header checksum*/
 	fdma_modify_default_segment_data(ipv4hdr_offset+2, 10);
+
+	/* Updated FD[length] */
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset);
 
 	/* Call parser for L4 validation */
 	parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM);
