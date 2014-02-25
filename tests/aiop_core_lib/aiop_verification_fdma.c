@@ -220,7 +220,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		if (str->EIS) {
 			str->status = (int8_t)
 				fdma_store_and_enqueue_frame_fqid(
-					str->frame_handle,flags,
+					str->frame_handle, flags,
 					str->qd_fqid, str->spid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
