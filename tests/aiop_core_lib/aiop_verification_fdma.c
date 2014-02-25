@@ -159,7 +159,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_store_default_frame_command *str =
 			(struct fdma_store_default_frame_command *)asa_seg_addr;
 		*(uint8_t *) HWC_SPID_ADDRESS = str->spid;
-		aiop_verification_replace_asa();
 		str->status = (int8_t)fdma_store_default_frame_data();
 		str_size = (uint16_t)
 				sizeof(struct fdma_store_default_frame_command);
@@ -171,7 +170,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_store_frame_command *str =
 			(struct fdma_store_frame_command *) asa_seg_addr;
 		struct fdma_isolation_attributes isolation_attributes;
-		aiop_verification_replace_asa();
+
 		str->status = (int8_t)fdma_store_frame_data(str->frame_handle,
 				str->spid, &isolation_attributes);
 		str->icid = (isolation_attributes.bdi_icid) & ~0x8000;
@@ -193,7 +192,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENWF_PS_BIT : 0x0);
 
-		aiop_verification_replace_asa();
 		if (str->EIS) {
 			str->status = (int8_t)
 				fdma_store_and_enqueue_default_frame_fqid(
@@ -219,8 +217,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENWF_PS_BIT : 0x0);
-
-		aiop_verification_replace_asa();
 		if (str->EIS) {
 			str->status = (int8_t)
 				fdma_store_and_enqueue_frame_fqid(
@@ -352,8 +348,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				((str->CFA == 1) ?
 					FDMA_CFA_ASA_COPY_BIT :
 					FDMA_CFA_NO_COPY_BIT));
-		if (str->ENQ)
-			aiop_verification_replace_asa();
 		if (str->EIS) {
 			str->status = (int8_t)fdma_replicate_frame_fqid(
 					str->frame_handle1, str->spid,
@@ -661,27 +655,5 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	return str_size;
 }
 
-void aiop_verification_replace_asa()
-{
-	/* Presentation Context */
-	struct presentation_context *PRC;
-	uint16_t asa_seg_addr;	/* ASA Segment Address */
-	uint16_t asa_seg_size;  /* ASA Segment Size */
-	uint32_t flags;
-
-	if ((LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS) == 0) ||
-			(PRC_GET_ASA_SIZE() == 0))
-		return;
-	/* initialize Additional Dequeue Context */
-	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
-	/* Initialize ASA variables */
-	asa_seg_addr = (uint16_t)(PRC->asapa_asaps & PRC_ASAPA_MASK);
-	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK);
-	flags = FDMA_REPLACE_SA_OPEN_BIT;
-
-	fdma_replace_default_asa_segment_data((uint16_t)ZERO, asa_seg_size,
-			(void *)asa_seg_addr, asa_seg_size,
-			(void *)asa_seg_addr, (uint16_t)ZERO, flags);
-}
 
 
