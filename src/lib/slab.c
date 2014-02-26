@@ -33,12 +33,12 @@ static void free_buffs_from_bman_pool(uint16_t bpid, int num_buffs)
 
 /*****************************************************************************/
 static inline int find_bpid(uint16_t buff_size, 
-                     uint16_t alignment, 
-                     uint8_t  mem_partition_id,
-                     struct   slab_module_info *slab_module,
-                     uint16_t *bpid,                                         
-                     uint16_t *alloc_buff_size, 
-                     uint16_t *alloc_alignment)
+                            uint16_t alignment, 
+                            uint8_t  mem_partition_id,
+                            struct   slab_module_info *slab_module,
+                            uint16_t *bpid,                                         
+                            uint16_t *alloc_buff_size, 
+                            uint16_t *alloc_alignment)
 {
     int     i = 0, temp = 0, found = 0;
     int     num_bpids = slab_module->num_hw_pools;
@@ -75,18 +75,19 @@ static inline int find_bpid(uint16_t buff_size,
 }
 
 /*****************************************************************************/
-static int find_and_fill_bpid(uint16_t num_buffs, 
-                              uint16_t buff_size, 
-                              uint16_t alignment, 
-                              uint8_t  mem_partition_id,
-                              struct   slab_module_info *slab_module,
-                              int      *num_filled_buffs,
-                              uint16_t *bpid)
+int slab_find_and_fill_bpid(uint16_t num_buffs, 
+                            uint16_t buff_size, 
+                            uint16_t alignment, 
+                            uint8_t  mem_partition_id,
+                            int      *num_filled_buffs,
+                            uint16_t *bpid)
 {    
     int        error = 0, i = 0;
     dma_addr_t addr  = 0;
     uint16_t   new_buff_size = 0; 
     uint16_t   new_alignment = 0;
+    
+    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
 
     error = find_bpid(buff_size, alignment, mem_partition_id, slab_module, bpid, &new_buff_size, &new_alignment);
     SLAB_ASSERT_COND_RETURN(error == 0, error);
@@ -107,9 +108,9 @@ static int find_and_fill_bpid(uint16_t num_buffs,
         /* Isolation is enabled */
         if (fdma_release_buffer(SLAB_FDMA_ICID, FDMA_RELEASE_NO_FLAGS, *bpid, addr)) {
             fsl_os_xfree(fsl_os_phys_to_virt(addr));
-            *num_filled_buffs = i + 1;
             /* Do something with the buffers that were released before this failure - free them */
-            free_buffs_from_bman_pool(*bpid, *num_filled_buffs);
+            free_buffs_from_bman_pool(*bpid, i + 1);
+            *num_filled_buffs = 0;
             return -ENAVAIL;
         }
     }
@@ -165,8 +166,6 @@ int slab_create(uint16_t    num_buffs,
                 slab_release_cb_t release_cb,
                 struct slab **slab)
 {
-    struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
-
     int        error = 0;
     dma_addr_t addr  = 0;
     uint32_t   data  = 0;
@@ -186,7 +185,7 @@ int slab_create(uint16_t    num_buffs,
     /*
      * Only HW SLAB is supported
      */
-    error = find_and_fill_bpid(num_buffs, buff_size, alignment, mem_partition_id, slab_module, (int *)(&data), &bpid);
+    error = slab_find_and_fill_bpid(num_buffs, buff_size, alignment, mem_partition_id, (int *)(&data), &bpid);
     if (error) return error; /* -EINVAL or -ENOMEM */
     
     data  = 0;
