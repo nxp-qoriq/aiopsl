@@ -1172,6 +1172,17 @@ enum fdma_pta_size_type {
 	/** Reference within the frame to present from.
 	 * If set - end of the frame. Otherwise - start of the frame. */
 #define FDMA_INIT_SR_BIT	0x00000100
+	/** AMQ attributes (PL, VA, BDI, ICID) Source.
+	 * If set - supplied AMQ attributes are used.
+	 * If reset - task default AMQ attributes (From Additional Dequeue
+	 * Context) are used. */
+#define FDMA_INIT_AS_BIT	0x00001000
+	/** Virtual Address. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
+#define FDMA_INIT_VA_BIT	0x00004000
+	/** Privilege Level. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
+#define FDMA_INIT_PL_BIT	0x00008000
 
 /* @} end of group FDMA_Present_Frame_Flags */
 
@@ -1457,11 +1468,11 @@ enum fdma_pta_size_type {
 *//***************************************************************************/
 
 	/** Virtual Address of the Stored frame flag. */
-#define FDMA_ICID_CONTEXT_VA	0x00002000
+#define FDMA_ICID_CONTEXT_VA	0x0001
 	/** Bypass the Memory Translation of the Stored frame flag. */
-#define FDMA_ICID_CONTEXT_BMT	0x00004000
+#define FDMA_ICID_CONTEXT_BMT	0x0002
 	/** Privilege Level of the Stored frame flag. */
-#define FDMA_ICID_CONTEXT_PL	0x00008000
+#define FDMA_ICID_CONTEXT_PL	0x0004
 
 /* @} end of group FDMA_ISOLATION_ATTRIBUTES_Flags */
 
@@ -1545,6 +1556,11 @@ struct fdma_present_frame_params {
 		/** Number of frame bytes to present and create an open
 		 * segment for. */
 	uint16_t present_size;
+		/**
+		* bits<0> : Bypass Datapath Isolation. Frame AMQ attribute.
+		* bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_INIT_AS_BIT is set. */
+	uint16_t bdi_icid;
 		/** The first ASA 64B quantity to present. */
 	uint8_t asa_offset;
 		/** Number (maximum) of 64B ASA quantities to present. */
@@ -1742,7 +1758,8 @@ struct fdma_isolation_attributes {
 		segment offset, segment size, PTA address (\ref
 		PRC_PTA_NOT_LOADED_ADDRESS for no presentation), ASA address,
 		ASA size, ASA offset, Segment Reference bit, fd address in
-		workspace (\ref HWC_FD_ADDRESS).
+		workspace (\ref HWC_FD_ADDRESS), AMQ attributes (PL, VA, BDI,
+		ICID).
 
 		This command can also be used to initiate construction of a
 		frame from scratch (without a presented frame). In this case
