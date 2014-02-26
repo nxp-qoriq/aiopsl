@@ -249,8 +249,7 @@ int slab_release(struct slab *slab, uint64_t buff)
 #ifdef DEBUG
     SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 #endif
-
-    if (vpool_release_buf(SLAB_VP_POOL_GET(slab), buff))
+    if (vpool_refcount_decrement_and_release(SLAB_VP_POOL_GET(slab), buff, NULL))
     {
         return -EFAULT;
     }
