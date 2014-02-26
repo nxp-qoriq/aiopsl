@@ -111,7 +111,7 @@ int evm_register_callback(
 
  @Cautions      None
 *//***************************************************************************/
-int evm_deregister_callbackb( 
+int evm_deregister_callback( 
 	uint8_t evm_event_id,
 	evm_cb_t cb
 );
