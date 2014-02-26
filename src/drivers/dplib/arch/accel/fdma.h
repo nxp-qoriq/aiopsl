@@ -73,7 +73,7 @@
 	/** FDMA Store command output flags mask. */
 #define FDMA_STORE_CMD_OUT_FLAGS_MASK		0x0000FF00
 	/** FDMA Store command output flags offset. */
-#define FDMA_STORE_CMD_OUT_FLAGS_OFFSET		2
+#define FDMA_STORE_CMD_OUT_ICID_OFFSET		2
 	/** Default Segment headroom size. */
 #define DEFAULT_SEGMENT_HEADOOM_SIZE	128
 	/** Default Segment size. */
@@ -163,31 +163,36 @@
 #define FDMA_GET_PRC_SEGMENT_HANDLE(_handles)				\
 	((_handles & PRC_SEGMENT_HANDLE_MASK) << 24)
 
-	/** FDMA Initial presentation command command arg1 */
+	/** FDMA Initial presentation command arg1 */
 #define FDMA_INIT_CMD_ARG1(_fd_addr, _flags)				\
 	(uint32_t)((_fd_addr << 16) | _flags | FDMA_INIT_CMD)
 
-	/** FDMA Initial presentation command command arg2 */
+	/** FDMA Initial presentation command arg2 */
 #define FDMA_INIT_CMD_ARG2(_seg_address, _seg_offset)			\
 	(uint32_t)((_seg_address << 16) | _seg_offset)
 
-	/** FDMA Initial presentation command command arg3 */
+	/** FDMA Initial presentation command arg3 */
 #define FDMA_INIT_CMD_ARG3(_present_size, _ptapa_asapo)\
 	(uint32_t)((_present_size << 16) | _ptapa_asapo)
 
-	/** FDMA Initial presentation command command arg4 */
-#define FDMA_INIT_CMD_ARG4(_asapa_asaps)			\
+	/** FDMA Initial presentation command arg4 */
+#define FDMA_INIT_CMD_ARG4(_asapa_asaps)				\
 	(uint32_t)(_asapa_asaps)
 
-	/** FDMA Initial presentation explicit command command arg3 */
+	/** FDMA Initial presentation explicit command arg3 */
 #define FDMA_INIT_EXP_CMD_ARG3(_present_size, _pta_address, _asa_offset)\
 	(uint32_t)((_present_size << 16) |				\
-	(((uint16_t)(uint32_t)_pta_address) & PRC_PTAPA_MASK) |	\
+	(((uint16_t)(uint32_t)_pta_address) & PRC_PTAPA_MASK) |		\
 	(_asa_offset & PRC_ASAPO_MASK))
 
-	/** FDMA Initial presentation explicit command command arg4 */
+	/** FDMA Initial presentation explicit command arg4 */
 #define FDMA_INIT_EXP_CMD_ARG4(_asa_address, _asa_size)			\
 	(uint32_t)((((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |\
+	(_asa_size & PRC_ASAPS_MASK))
+	/** FDMA Initial presentation explicit AMQ command arg4 */
+#define FDMA_INIT_EXP_AMQ_CMD_ARG4(_bdi_icid ,_asa_address, _asa_size)	\
+	(uint32_t)(((uint32_t)_bdi_icid << 16) |			\
+	(((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |		\
 	(_asa_size & PRC_ASAPS_MASK))
 
 	/** FDMA Present command arg1 */
@@ -457,22 +462,50 @@
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_SR_MASK) | PRC_SR_MASK))
+	/** Macro to reset Segment reference bit in workspace from the
+	 * presentation context */
 #define PRC_RESET_SR_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_SR_MASK))
-#ifdef NEXT_RELEASE
 	/** Macro to set No-Data-Segment bit in workspace from the
 	 * presentation context */
 #define PRC_SET_NDS_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_NDS_MASK) | PRC_NDS_MASK))
+	/** Macro to reset No-Data-Segment bit in workspace from the
+	 * presentation context */
 #define PRC_RESET_NDS_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_NDS_MASK))
-#endif /* NEXT_RELEASE */
+	/** Macro to set No-PTA-Segment bit in workspace from the
+	 * presentation context */
+#if NAS_NPS_ENABLE
+#define PRC_SET_NPS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NPS_MASK) | PRC_NPS_MASK))
+	/** Macro to reset No-PTA-Segment bit in workspace from the
+	 * presentation context */
+#define PRC_RESET_NPS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NPS_MASK))
+	/** Macro to set No-ASA-Segment bit in workspace from the
+	 * presentation context */
+#define PRC_SET_NAS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NAS_MASK) | PRC_NAS_MASK))
+	/** Macro to reset No-ASA-Segment bit in workspace from the
+	 * presentation context */
+#define PRC_RESET_NAS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NAS_MASK))
+#endif /*NAS_NPS_ENABLE*/
 	/** Macro to set the default frame ASA size in workspace from the
 	 * presentation context */
 #define PRC_SET_ASA_SIZE(_val)						\
