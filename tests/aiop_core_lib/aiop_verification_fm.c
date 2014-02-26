@@ -34,9 +34,10 @@ void aiop_verification_fm()
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
+			/* PTA was already loaded */
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
 			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
-		} else { /* PTA address == PRC_PTA_NOT_LOADED_ADDRESS */
+		} else { /* PTA was not loaded */
 			if (!fdma_read_default_frame_pta((void *)data_addr))
 				return;
 			ext_address = *((uint64_t *)data_addr);
