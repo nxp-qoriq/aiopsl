@@ -329,13 +329,17 @@ struct extended_stats_cntrs {
 		by the caller to invoke IP reassembly functions.
 
 
-@Return		Success or Failure.
-		Failure can be one of the following:
+@Return		Success or Failure.\n
+		Failure can be one of the following:\n
 		\link FSL_IPRCreateReturnStatus IPR create instance return
 		status \endlink \n
 		\ref FSL_CTLU_STATUS_TBL_CREATE \n
-		\ref CDMA_ACQUIRE_CONTEXT_MEMORY_STATUS \n
 		\ref CDMA_WRITE_STATUS \n
+		\ref cdma_errors (CDMA_WORKSPACE_MEMORY_READ_ERR,
+		 CDMA_BUFFER_POOL_DEPLETION_ERR,
+		 CDMA_WORKSPACE_MEMORY_WRITE_ERR,
+		 CDMA_EXTERNAL_MEMORY_WRITE_ERR)
+		  
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
@@ -351,19 +355,21 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		The delete request has been registered and the deletion will be
 		performed gradually.
 
-@Param[in]	ipr_instance - The IPR instance handle.
+@Param[in]	ipr_instance_ptr - The IPR instance handle.
 @Param[in]	confirm_delete_cb - The function to be used for confirmation
 		after all resources associated to the instance have been
 		deleted.
 @Param[in]	delete_arg - Argument of the confirm callback function.
 
-@Return		Success or Failure.
-		Failure can be one of the following:
-		\ref CDMA_RELEASE_CONTEXT_MEMORY_STATUS
+@Return		Success or Failure.\n
+		Failure can be one of the following:\n
+		\ref cdma_errors (CDMA_INTERNAL_MEMORY_ECC_ERR,
+		CDMA_WORKSPACE_MEMORY_READ_ERR,
+		CDMA_EXTERNAL_MEMORY_READ_ERR)
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
-int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
+int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 			    ipr_del_cb_t *confirm_delete_cb,
 			    ipr_del_arg_t delete_arg);
 
@@ -392,7 +398,9 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance,
 		\ref TMANReturnStatus \n
 
 
-@Cautions	If this function is called in concurrent mode, the scope_id is
+@Cautions	It is forbidden to call this function when the task
+		isn't found in any ordering scope (null scope_id).
+		If this function is called in concurrent mode, the scope_id is
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.

@@ -56,7 +56,9 @@ osm.c
 aiop_ni_init_task.c
 aiop_spinlock.c
 dpni_drv_rxtx.c
-
+ipf.c
+gro.c
+gso.c
 
 
 

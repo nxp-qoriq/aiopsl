@@ -41,6 +41,11 @@
  */
 
 /**************************************************************************//**
+ @Description   Slab handle type 
+*//***************************************************************************/
+struct slab;
+
+/**************************************************************************//**
  @Description   Available debug information about every slab 
 *//***************************************************************************/
 struct slab_debug_info {
@@ -55,7 +60,7 @@ struct slab_debug_info {
 /**************************************************************************//**
  @Description   Type of the function callback to be called on release of buffer into pool 
 *//***************************************************************************/
-typedef int32_t (*slab_release_cb_t)(uint64_t); 
+typedef int (*slab_release_cb_t)(uint64_t); 
 
 /**************************************************************************//**
  @Function      slab_create
@@ -63,7 +68,8 @@ typedef int32_t (*slab_release_cb_t)(uint64_t);
  @Description   Create a new buffers pool.
 
  @Param[in]     num_buffs           Number of buffers in new pool.
- @Param[in]     extra_buffs         Number of extra buffers that can be allocated by this new pool.
+ @Param[in]     extra_buffs         Set it to 0; 
+                                    Number of extra buffers that can be allocated by this new pool.
  @Param[in]     buff_size           Size of buffers in pool.
  @Param[in]     prefix_size         How many bytes to allocate before the data.
                                     AIOP: Not supported by AIOP HW pools.
@@ -77,7 +83,9 @@ typedef int32_t (*slab_release_cb_t)(uint64_t);
  @Param[in]     release_cb          Function to be called on release of buffer into pool
  @Param[out]    slab                Handle to new pool is returned through here.
 
- @Return        0 - on success, -ENOMEM - out of memory.
+ @Return        0       - on success, 
+               -ENAVAIL - resource not available or not found,
+               -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
 int slab_create(uint16_t    num_buffs,
                 uint16_t    extra_buffs,
@@ -88,26 +96,26 @@ int slab_create(uint16_t    num_buffs,
                 uint8_t     mem_partition_id,
                 uint32_t    flags,
                 slab_release_cb_t release_cb,
-                uint32_t    *slab);
+                struct slab **slab);
 
 /**************************************************************************//**
  @Function      slab_create_by_address
 
  @Description   Create a new buffers pool starting from address base.
-
+                AIOP: Not supported by AIOP HW pools.
+                
  @Param[in]     num_buffs           Number of buffers in new pool.
  @Param[in]     extra_buffs         Number of extra buffers that can be allocated by this new pool.
  @Param[in]     buff_size           Size of buffers in pool.
  @Param[in]     prefix_size         How many bytes to allocate before the data.
-                                    AIOP: Not supported by AIOP HW pools.
  @Param[in]     postfix_size        How many bytes to allocate after the data.
-                                    AIOP: Not supported by AIOP HW pools.
  @Param[in]     alignment           Requested alignment for data field (in bytes).
  @Param[in]     flags               Set it 0 for default slab creation. 
  @Param[in]     release_cb          Function to be called on release of buffer into pool
  @Param[out]    slab                Handle to new pool is returned through here.
 
- @Return        0 - on success, -ENOMEM - out of memory.
+ @Return        0       - on success, 
+               -ENAVAIL - resource not available or not found.
  *//***************************************************************************/
 int slab_create_by_address(uint16_t num_buffs,
                            uint16_t extra_buffs,                           
@@ -118,7 +126,7 @@ int slab_create_by_address(uint16_t num_buffs,
                            uint8_t  *address,
                            uint32_t flags,
                            slab_release_cb_t release_cb,
-                           uint32_t *slab);
+                           struct slab **slab);
 
 /**************************************************************************//**
  @Function      slab_free
@@ -126,8 +134,12 @@ int slab_create_by_address(uint16_t num_buffs,
  @Description   Free a specific pool and all it's buffers.
 
  @Param[in]     slab - Handle to memory pool.
+ 
+ @Return        0      - on success, 
+               -EBUSY  - this slab can't be freed 
+               -EINVAL - not a valid slab handle                
  *//***************************************************************************/
-void slab_free(uint32_t slab);
+int slab_free(struct slab *slab);
 
 /**************************************************************************//**
  @Function      slab_acquire
@@ -138,9 +150,11 @@ void slab_free(uint32_t slab);
  @Param[in]     slab - Handle to memory pool.
  @Param[out]    buff - The buffer to return.
 
- @Return        E_OK on success, error code otherwise.
+ @Return        0      - on success, 
+               -ENOMEM - no buffer available, 
+               -EINVAL - not a valid slab handle
  *//***************************************************************************/
-int slab_acquire(uint32_t slab, uint64_t *buff);
+int slab_acquire(struct slab *slab, uint64_t *buff);
 
 /**************************************************************************//**
 @Function      slab_release
@@ -151,9 +165,11 @@ int slab_acquire(uint32_t slab, uint64_t *buff);
 @Param[in]     slab - Handle to memory pool.
 @Param[in]     buff - The buffer to return.
 
-@Return        E_OK on success, error code otherwise.
+@Return        0      - on success, 
+              -EFAULT - failed to release buffer, 
+              -EINVAL - not a valid slab handle 
 *//***************************************************************************/
-int slab_release(uint32_t slab, uint64_t buff);
+int slab_release(struct slab *slab, uint64_t buff);
 
 /**************************************************************************//**
 @Function      slab_debug_info_get
@@ -164,9 +180,10 @@ int slab_release(uint32_t slab, uint64_t buff);
 @Param[in]     slab - Handle to memory pool.
 @Param[out]    slab_info - The pointer to place the debug information.
 
-@Return        E_OK on success, error code otherwise.
+@Return        0      - on success, 
+              -EINVAL - invalid parameter.
 *//***************************************************************************/
-int slab_debug_info_get(uint32_t slab, struct slab_debug_info *slab_info);
+int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 
 /** @} *//* end of slab_g group */
 /** @} *//* end of fsl_mm_g group */

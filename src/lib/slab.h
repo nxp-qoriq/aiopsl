@@ -10,14 +10,15 @@
 #define __SLAB_H
 
 #include "common/fsl_slab.h"
-#include "common/list.h"
+
+#define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 
 /**************************************************************************//**
  @Description   SLAB common internal macros 
 *//***************************************************************************/
 #define SLAB_HW_POOL_SET      0x00000001
 /**< Flag which indicates that this SLAB handle is HW pool */
-#define SLAB_IS_HW_POOL(SLAB) ((SLAB) & SLAB_HW_POOL_SET)
+#define SLAB_IS_HW_POOL(SLAB) (SLAB_HW_HANDLE(SLAB) & SLAB_HW_POOL_SET)
 /**< Slab handle is HW pool */
 
 /**************************************************************************//**
@@ -34,8 +35,22 @@
 #define SLAB_VP_POOL_MAX       (SLAB_VP_POOL_MASK >> 1) /**< Maximal number to be used as VP id */
 #define SLAB_VP_POOL_SHIFT     1
 #define SLAB_HW_ACCEL_MASK     0xFF000000
-#define SLAB_VP_POOL_GET(SLAB) ((uint32_t)(((SLAB) & SLAB_VP_POOL_MASK) >> 1)) 
+#define SLAB_VP_POOL_GET(SLAB) ((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1)) 
 /**< Returns VP id to be used with virtual pools API */ 
+
+#define SLAB_HW_METADATA_OFFSET     8 /**< bytes */
+#define SLAB_HW_BUFF_SIZE(SIZE)     ((SIZE) - SLAB_HW_METADATA_OFFSET) 
+/**< Real buffer size used by user */
+
+/**************************************************************************//**
+ @Description   SLAB module defaults macros 
+*//***************************************************************************/
+#define SLAB_BPIDS_PARTITION0       {1, 2, 3, 4, 5}
+#define SLAB_MODULE_FAST_MEMORY     MEM_PART_SH_RAM
+#define SLAB_MODULE_DDR_MEMORY      MEM_PART_1ST_DDR_NON_CACHEABLE
+#define SLAB_DEFAULT_BUFF_SIZE      (256 + SLAB_HW_METADATA_OFFSET)
+#define SLAB_DEFAULT_BUFF_ALIGN     8
+#define SLAB_MAX_NUM_VP             1000
 
 /**************************************************************************//**
  @Description   Information to be kept about every HW pool inside DDR
@@ -80,5 +95,33 @@ int slab_module_init(void);
  @Return        None
  *//***************************************************************************/
 void slab_module_free(void);
+
+/**************************************************************************//**
+ @Function      slab_find_and_fill_bpid
+
+ @Description   Finds and fills buffer pool with new buffers
+ 
+                This function is part of SLAB module therefore it should be called only after
+                it has been initialized by slab_module_init()
+
+ @Param[in]     num_buffs           Number of buffers in new pool.
+ @Param[in]     buff_size           Size of buffers in pool.
+ @Param[in]     alignment           Requested alignment for data field (in bytes).
+                                    AIOP: HW pool supports up to 8 bytes alignment.
+ @Param[in]     mem_partition_id    Memory partition ID for allocation.
+                                    AIOP: HW pool supports only PEB and DPAA DDR.
+ @Param[out]    num_filled_buffs    Number of buffers that we succeeded to fill.                                    
+ @Param[out]    bpid                Id if the buffer that was filled with new buffers.
+
+ @Return        0       - on success, 
+               -ENAVAIL - could not release into bpid
+               -ENOMEM  - not enough memory for mem_partition_id
+ *//***************************************************************************/
+int slab_find_and_fill_bpid(uint16_t num_buffs, 
+                            uint16_t buff_size, 
+                            uint16_t alignment, 
+                            uint8_t  mem_partition_id,
+                            int      *num_filled_buffs,
+                            uint16_t *bpid);
 
 #endif /* __SLAB_H */

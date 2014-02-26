@@ -43,19 +43,63 @@
 #define ACCEL_ID_CMD_MASK		0xFFFF0000
 	/**< AIOP Terminate Flow Verification command code */
 #define AIOP_TERMINATE_FLOW_CMD		0xFFFF
+	/**< AIOP IF Verification command code */
+#define AIOP_IF_CMD			0x100
+	/**< AIOP IF_ELSE Verification command code */
+#define AIOP_IF_ELSE_CMD		0x101
+
 	/**< AIOP Terminate Flow Verification command structure identifier */
 #define AIOP_TERMINATE_FLOW_CMD_STR	(AIOP_TERMINATE_FLOW_CMD << 16)
+	/**< AIOP IF Verification command structure identifier */
+#define AIOP_IF_CMD_STR			(AIOP_IF_CMD << 16)
+	/**< AIOP IF ELSE command structure identifier */
+#define AIOP_IF_ELSE_CMD_STR		(AIOP_IF_ELSE_CMD << 16)
+
 	/**< Struct size error code */
 #define STR_SIZE_ERR			0xFFFF
 	/**< Struct size error code */
 #define STR_SIZE_BIG			0xFFFE
-	/**< Buffer Data chunk size in bytes. 
+	/**< Buffer Data chunk size in bytes.
 	 *   Must be > 64 bytes*/
 #define DATA_SIZE	256
 	/**< Buffer Data chunk address in workspace. */
 #define WS_DATA_ADDR	0x100
 	/**< IPF Fragment's fragmentation commands mask */
 #define IPF_FRAGMENT_FRAGMENTATION_COMMANDS_MASK 0x00000010
+
+
+/* E200-AIOP special regs */
+
+/* Number of tasks as they defined by CTSCSR register. */
+#define CTSCSR_ENABLE 0x80000000
+#define CTSCSR_1_TASKS 0
+#define CTSCSR_2_TASKS (1 << 24)
+#define CTSCSR_4_TASKS (2 << 24)
+#define CTSCSR_8_TASKS (3 << 24)
+#define CTSCSR_16_TASKS (4 << 24)
+#define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS \
+              | CTSCSR_16_TASKS)
+
+#define __getctscsr0(_res)                      \
+       asm ("mfdcr %[result], 464\n"                   \
+              :[result]"=r"(_res)               \
+              );
+
+#define __setctscsr0(_val)                      \
+       asm ("mtdcr 464, %[value]\n"                    \
+              :[value]"=r"(_val)                \
+              );
+
+#define GET_CTSCSR0()                                  \
+       (uint32_t)({register uint32_t __rR;             \
+       uint32_t temp;                                  \
+       __getctscsr0(temp);                      \
+       __rR = temp; })
+
+#define SET_CTSCSR0(_val)                       \
+       __setctscsr0(_val);
+
+
 /**************************************************************************//**
  @Group		AIOP_Verification
 
@@ -94,23 +138,152 @@
 
 
 /**************************************************************************//**
+ @enum verif_modules_ids
+
+ @Description	AIOP verification Modules IDs enumeration.
+
+ @{
+*//***************************************************************************/
+enum verif_modules_ids {
+	GSO_MODULE = GSO_FM_ID,
+	GRO_MODULE = GRO_FM_ID,
+	IPR_MODULE = IPR_FM_ID,
+	IPF_MODULE = IPF_FM_ID,
+	FPDMA_MODULE = FPDMA_ACCEL_ID,
+	FODMA_MODULE = FODMA_ACCEL_ID,
+	TMAN_MODULE = TMAN_ACCEL_ID,
+	STE_MODULE = STE_VERIF_ACCEL_ID,
+	CDMA_MODULE = CDMA_ACCEL_ID,
+	CTLU_MODULE = CTLU_ACCEL_ID,
+	CTLU_PARSE_CLASSIFY_MODULE = CTLU_PARSE_CLASSIFY_ACCEL_ID,
+	HM_MODULE = HM_VERIF_ACCEL_ID,
+	VPOOL_MODULE = VPOOL_ACCEL_ID,
+	IF_MODULE = AIOP_IF_CMD,
+	IF_ELSE_MODULE = AIOP_IF_ELSE_CMD,
+	TERMINATE_FLOW_MODULE = AIOP_TERMINATE_FLOW_CMD
+};
+
+/**************************************************************************//**
+ @enum cond_ids
+
+ @Description	AIOP verification enumeration of if-statement condition IDs.
+
+ @{
+*//***************************************************************************/
+enum cond_ids {
+		/** Equal condition. */
+	COND_EQUAL,
+		/** Non Equal condition. */
+	COND_NON_EQUAL
+};
+
+/**************************************************************************//**
+ @enum compared_variable_ids
+
+ @Description	AIOP verification enumeration of the compared variable IDs.
+
+ @{
+*//***************************************************************************/
+enum compared_variable_ids {
+		/** Compare GRO last status. */
+	COMPARE_GRO_STATUS,
+		/** Compare GSO last status. */
+	COMPARE_GSO_STATUS,
+		/** Compare IPR last status. */
+	COMPARE_IPR_STATUS,
+		/** Compare IPF last status. */
+	COMPARE_IPF_STATUS,
+	/** Compare IPF last status. */
+	COMPARE_LAST_STATUS
+};
+
+
+/**************************************************************************//**
+@Description	AIOP IF Verification Command structure.
+
+		This command generates an if statement in the verification
+		process.
+
+*//***************************************************************************/
+struct aiop_if_verif_command {
+		/** AIOP Verification IF command structure identifier. */
+	uint32_t opcode;
+		/** Compared value.
+		 * This value will be compared to a variable chosen according to
+		 * the compared_variable_addr. */
+	int32_t compared_value;
+		/** Workspace address of the compared task variable. */
+	uint32_t compared_variable_addr;
+		/** An offset from the beginning of the commands buffer to the
+		 * command to be executed in case of a TRUE result in the IF
+		 * statement. */
+	uint16_t true_cmd_offset;
+		/** Id of the compared task variable.
+		 * Please see \ref compared_variable_ids for more details.
+	uint8_t compared_variable_id;*/
+		/** Condition to be checked in the if statement.
+		* Please see \ref cond_ids for more details. */
+	uint8_t cond;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
+};
+
+/**************************************************************************//**
+@Description	AIOP IF-ELSE Verification Command structure.
+
+		This command generates an if-else statement in the verification
+		process.
+
+*//***************************************************************************/
+struct aiop_if_else_verif_command {
+		/** AIOP Verification IF command structure identifier. */
+	uint32_t opcode;
+		/** Compared value.
+		 * This value will be compared to a variable chosen according to
+		 * the compared_variable_addr. */
+	int32_t compared_value;
+		/** Workspace address of the compared task variable. */
+	uint32_t compared_variable_addr;
+		/** An offset from the beginning of the commands buffer to the
+		 * command to be executed in case of a TRUE result in the IF
+		 * statement. */
+	uint16_t true_cmd_offset;
+		/** An offset from the beginning of the commands buffer to the
+		 * command to be executed in case of a FALSE result in the IF
+		 * statement. */
+	uint16_t false_cmd_offset;
+	/** Id of the compared task variable.
+			 * Please see \ref compared_variable_ids for details.
+	uint8_t compared_variable_id;*/
+		/** Condition to be checked in the if statement. */
+	uint8_t cond;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
 @Description	AIOP Terminate Flow Verification Command structure.
 
 		This command ends the verification process.
 
 *//***************************************************************************/
 struct aiop_terminate_flow_command {
-	uint32_t opcode;
-		/**< AIOP Terminate Flow Verification command structure
+		/** AIOP Terminate Flow Verification command structure
 		 * identifier. */
+	uint32_t opcode;
+		/** 64-bit alignment. */
 	uint8_t	pad[4];
-		/**< 64-bit alignment. */
 };
 
 
 void aiop_verification();
 void aiop_verification_fm();
 void aiop_verification_fm_temp();
+void aiop_verif_init_parser();
+uint32_t if_statement_result(
+		uint32_t compared_variable_addr,
+		int32_t compared_value,
+		uint8_t cond);
 
 
 /** @} */ /* end of AIOP_Verification */

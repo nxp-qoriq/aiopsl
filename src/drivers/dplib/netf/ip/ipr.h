@@ -31,7 +31,7 @@
 #define NO_BYPASS_OSM			0x00000000
 #define	BYPASS_OSM			0x00000001
 #define START_CONCURRENT		0x00000002
-#define	RESET_MF_BIT			0xFFDF
+#define	RESET_MF_BIT			0xDFFF
 #define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2624
 #define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
@@ -49,8 +49,8 @@
 #define FD_SIZE				sizeof(struct ldpaa_fd)
 
 /* todo should move to general or OSM include file */
-#define EXCLUSIVE				0
-#define CONCURRENT				1
+#define CONCURRENT				0
+#define EXCLUSIVE				1
 
 #define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
 #define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
@@ -211,14 +211,12 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 /**************************************************************************//**
 @Function	ipr_insert_to_link_list
 
-@Description	
+@Description	Insert to Link List - Save FD
 
-@Param[in]	
-@Param[in]	
-@Param[in]	.
+@Param[in]	rfdc_ptr - pointer to RFDC in workspace (on stack)
+@Param[in]	rfdc_ext_addr - pointer to RFDC in external memory.
 
-
-@Return		None.
+@Return		Status - Success or Failure.
 
 @Cautions	None.
 *//***************************************************************************/
@@ -278,7 +276,8 @@ uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
 /** Pool id returned by the ARENA allocator to be used as context buffer pool */
 uint8_t  ipr_pool_id;
-uint16_t res;
+uint8_t  ipr_instance_spin_lock;
+uint8_t res;
 };
 
 /* @} end of group IPR_Internal */
