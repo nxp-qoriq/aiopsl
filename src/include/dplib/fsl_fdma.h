@@ -1610,7 +1610,7 @@ struct fdma_queueing_destination_params {
 	uint16_t qd;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	 qd_priority;
 };
