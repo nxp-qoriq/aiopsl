@@ -1470,6 +1470,8 @@ enum fdma_pta_size_type {
 #define FDMA_ICID_CONTEXT_BMT	0x0002
 	/** Privilege Level of the Stored frame flag. */
 #define FDMA_ICID_CONTEXT_PL	0x0004
+	/** BDI of the Stored frame flag. */
+#define FDMA_ICID_CONTEXT_BDI	0x8000
 
 /* @} end of group FDMA_ISOLATION_ATTRIBUTES_Flags */
 
@@ -2014,39 +2016,6 @@ int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
 		struct fdma_isolation_attributes *isolation_attributes);
-
-/**************************************************************************
-@Function	fdma_close_frame
-
-@Description	Closes a Working Frame. Data which was written to the working
-		frame will be written to the backing storage in system memory
-		described by the Frame Descriptor.
-
-		Existing FD buffers are used to store data.
-
-		If the modified frame no longer fits in the original structure,
-		new buffers can be added using the provided storage profile.
-		If the original structure can not be modified, then a new
-		structure will be assembled using the default frame storage
-		profile ID.
-
-		This service routine is intended to be used with frames which
-		are not the default frame.
-
-		Implicit input parameters in Task Defaults: spid (storage
-		profile ID).
-
-@Param[in]	frame_handle - Handle to the frame to be closed.
-
-@Return
-		- Success or Failure (e.g. FDMA error. (\ref fdma_hw_errors)).
-		- Update FD.
-
-@Cautions	All modified segments (which are to be stored) must be replaced
-		(by a replace command) before storing a frame.
-@Cautions	In this Service Routine the task yields.
-*************************************************************************
-int32_t fdma_close_frame(uint16_t frame_handle);*/
 
 /**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_fqid
@@ -3054,8 +3023,7 @@ int32_t fdma_release_buffer(
 		data.
 
 		Implicit input parameters in Task Defaults: SPID (Storage
-		Profile ID), frame isolation attributes
-		(struct fdma_isolation_attributes).
+		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.
