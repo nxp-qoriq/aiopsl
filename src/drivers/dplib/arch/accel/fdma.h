@@ -10,7 +10,7 @@
 
 
 #include "general.h"
-
+#include "dplib\fsl_fdma.h"
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{
@@ -398,6 +398,44 @@
 	(uint32_t)((((uint32_t)_icid) << 16) | _flags | FDMA_RELEASE_BUFFER_CMD)
 
 /* @} end of group FDMA_Commands_Args */
+
+	/** Getter for AMQ (ICID, PL, VA, BDI) default attributes */
+inline void get_default_amq_attributes(struct fdma_isolation_attributes *amq)
+{
+	struct additional_dequeue_context *adc =
+		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	uint16_t adc_pl_icid = LH_SWAP(&(adc->pl_icid));
+
+	amq->flags = 0;
+	amq->bdi_icid = adc_pl_icid & ADC_ICID_MASK;
+	if (adc->fdsrc_va_fca_bdi & ADC_BDI_MASK)
+		amq->bdi_icid |= FDMA_ICID_CONTEXT_BDI;
+	if (adc->fdsrc_va_fca_bdi & ADC_VA_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_VA;
+	if (adc_pl_icid & ADC_PL_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_PL;
+}
+
+	/** Setter for AMQ (ICID, PL, VA, BDI) default attributes */
+inline void set_default_amq_attributes(struct fdma_isolation_attributes *amq)
+{
+	struct additional_dequeue_context *adc =
+			(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	uint16_t pl_icid = (amq->bdi_icid & ADC_ICID_MASK);
+	uint8_t flags = 0;
+
+	if (amq->flags & FDMA_ICID_CONTEXT_VA)
+		flags |=  ADC_VA_MASK;
+	if (amq->bdi_icid & FDMA_ICID_CONTEXT_BDI)
+		flags |=  ADC_BDI_MASK;
+	if (amq->flags & FDMA_ICID_CONTEXT_PL)
+		pl_icid |= ADC_PL_MASK;
+	STH_SWAP(pl_icid, &(adc->pl_icid));
+	adc->fdsrc_va_fca_bdi =
+		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
+}
+
+
 
 /** @}*/ /* end of group FDMA_Internal_Definitions */
 
