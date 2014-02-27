@@ -1197,8 +1197,7 @@ enum fdma_pta_size_type {
 	/** No flags indication. */
 #define FDMA_PRES_NO_FLAGS	0x00000000
 	/** Reference within the frame to present from (This field is ignored
-	 * when presenting PTA segments. For ASA segments it indicates segment
-	 * reference within the annotation data.).
+	 * when presenting PTA or ASA segments).
 	 * If set - end of the frame. Otherwise - start of the frame. */
 #define FDMA_PRES_SR_BIT	0x100
 
@@ -1263,8 +1262,6 @@ enum fdma_pta_size_type {
 #define FDMA_ENF_PS_BIT		0x00001000
 	/** Virtual Address. */
 #define FDMA_ENF_VA_BIT		0x00002000
-	/** Bypass the Memory Translation. */
-#define FDMA_ENF_BMT_BIT	0x00004000
 	/** Privilege Level. */
 #define FDMA_ENF_PL_BIT		0x00008000
 	/** Bypass DPAA resource Isolation.
@@ -1706,8 +1703,9 @@ struct fdma_insert_segment_data_params {
 	uint16_t to_offset;
 		/**< Size of the data being inserted to the segment. */
 	uint16_t insert_size;
-		/**< Number of frame bytes to represent (relevant if
-		 * \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set). */
+		/**< Number of frame bytes to represent in the segment. Must be
+		 * greater than 0.
+		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
 	uint16_t size_rs;
 		/**< Returned parameter:
 		 * A pointer to the number of bytes actually presented (the
@@ -1867,15 +1865,14 @@ int32_t fdma_present_frame_segment(
 		ASA segment length (the number of bytes actually presented given
 		in 64B units), ASA segment offset.
 
-@Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
+@Param[in]	ws_dst - A pointer to the location in workspace for the
+		presented ASA segment.
 @Param[in]	offset - Location within the ASA to start presenting from.
 		Must be within the bound of the frame. Specified in 64B units.
 		Relative to \ref FDMA_PRES_SR_BIT flag.
 @Param[in]	present_size - Number of frame bytes to present (Must be greater
 		than 0). Contains the number of 64B quantities to present
 		because the Frame ASAL field is specified in 64B units.
-@Param[in]	ws_dst - A pointer to the location in workspace for the
-		presented ASA segment.
 
 @Return		Success or Failure (e.g. DMA error, No HW Annotation. (\ref
 		FDMA_PRESENT_ASA_SEGMENT_ERRORS)).
@@ -1887,10 +1884,9 @@ int32_t fdma_present_frame_segment(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_read_default_frame_asa(
-		uint32_t flags,
+		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size,
-		void	 *ws_dst);
+		uint16_t present_size);
 
 /**************************************************************************//**
 @Function	fdma_read_default_frame_pta
@@ -2633,8 +2629,9 @@ int32_t fdma_modify_default_segment_data(
 @Param[in]	ws_dst_rs - A pointer to the location in workspace for the
 		represented frame segment (relevant if
 		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
-@Param[in]	size_rs - Number of frame bytes to represent (relevant if
-		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Param[in]	size_rs - Number of frame bytes to represent in the segment.
+ 	 	Must be greater than 0.
+ 	 	Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
@@ -2879,8 +2876,9 @@ int32_t fdma_close_default_segment(void);
 @Param[in]	ws_dst_rs - A pointer to the location in workspace for the
 		represented frame segment (relevant if \ref
 		FDMA_REPLACE_SA_REPRESENT_BIT) flag is set).
-@Param[in]	size_rs - Number of frame bytes to represent in 64B portions
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Param[in]	size_rs - Number of frame bytes to represent in 64B portions.
+		Must be greater than 0.
+		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
