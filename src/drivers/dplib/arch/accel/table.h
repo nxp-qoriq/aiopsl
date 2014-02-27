@@ -115,49 +115,48 @@
 /** @} */ /* end of CTLU_RULE_ENTRY_MACROS */
 
 /**************************************************************************//**
-@Group	CTLU_MTYPE CTLU Message Types
+@Group	TABLE_MTYPE HW Table Accelerator Message Types
 @{
 *//***************************************************************************/
-
-/** Table create message type */
-#define CTLU_TABLE_CREATE_MTYPE				0x004C
+	/** Table create message type */
+#define TABLE_CREATE_MTYPE				0x004C
 	/** Table query without reference counting message type */
-#define CTLU_TABLE_QUERY_MTYPE				0x0043
+#define TABLE_QUERY_MTYPE				0x0043
 	/** Table delete message type */
-#define CTLU_TABLE_DELETE_MTYPE				0x0042
+#define TABLE_DELETE_MTYPE				0x0042
 	/** Table Parameters replace message type */
-#define CTLU_TABLE_PARAMETERS_REPLACE_MTYPE		0x0046
+#define TABLE_PARAMETERS_REPLACE_MTYPE			0x0046
 
 	/** Table rule create with reference counter decrement (for aged entry)
 	 * */
-#define CTLU_RULE_CREATE_RPTR_DEC_MTYPE			0x006C
+#define TABLE_RULE_CREATE_RPTR_DEC_MTYPE		0x006C
 	/** Table rule create */
-#define CTLU_RULE_CREATE_MTYPE				0x007C
+#define TABLE_RULE_CREATE_MTYPE				0x007C
 	/** Table rule create or replace with reference counter decrement (for
 	 * the old entry) */
-#define CTLU_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE	0x006D
+#define TABLE_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE	0x006D
 	/** Table rule create or replace */
-#define CTLU_RULE_CREATE_OR_REPLACE_MTYPE		0x007D
+#define TABLE_RULE_CREATE_OR_REPLACE_MTYPE		0x007D
 	/** Table rule replace with reference counter decrement (for the old
 	 * entry) */
-#define CTLU_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE		0x0066
+#define TABLE_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE		0x0066
 	/** Table rule replace */
-#define CTLU_RULE_REPLACE_MTYPE				0x0076
+#define TABLE_RULE_REPLACE_MTYPE			0x0076
 	/** Table rule delete with reference counter decrement. */
-#define CTLU_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE		0x0062
+#define TABLE_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE		0x0062
 	/** Table rule delete */
-#define CTLU_RULE_DELETE_MTYPE				0x0072
+#define TABLE_RULE_DELETE_MTYPE				0x0072
 
 	/** Table rule query
 	Without timestamp update, without reference counter update */
-#define CTLU_RULE_QUERY_MTYPE				0x0077
+#define TABLE_RULE_QUERY_MTYPE				0x0077
 
 	/** Table lookup with keyID and explicit parse result.
 	With timestamp and reference counter update */
-#define CTLU_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE	0x0160
+#define TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE	0x0160
 	/** Table lookup with explicit key
 	With timestamp and reference counter update. Single search only. */
-#define CTLU_LOOKUP_KEY_TMSTMP_RPTR_MTYPE		0x0069
+#define TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE		0x0069
 
 	/** CTLU Entry create or replace */
 #define CTLU_ENTRY_CREATE_OR_REPLACE_MTYPE			0x005C
@@ -173,9 +172,9 @@
 #define CTLU_ENTRY_QUERY_HASH_UNIQUEID_MTYPE			0x005B
 
 	/** CTLU Acquire Semaphore */
-#define CTLU_ACQUIRE_SEMAPHORE_MTYPE				0x00B0
+#define TABLE_ACQUIRE_SEMAPHORE_MTYPE				0x00B0
 	/** CTLU Release Semaphore */
-#define CTLU_RELEASE_SEMAPHORE_MTYPE				0x00B1
+#define TABLE_RELEASE_SEMAPHORE_MTYPE				0x00B1
 
 
 	/** Key composition rule create or replace */
@@ -453,7 +452,7 @@ struct ctlu_table_params_query_output_message {
 @Description	Table Entry Body EME16
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_entry_body_eme16 {
+struct table_entry_body_eme16 {
 	/** Reserved */
 	uint8_t  reserved[3];
 
@@ -482,7 +481,7 @@ struct ctlu_table_entry_body_eme16 {
 @Description	Table Entry Body EME24
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_entry_body_eme24 {
+struct table_entry_body_eme24 {
 	/** Reserved */
 	uint8_t  reserved[3];
 
@@ -508,7 +507,7 @@ struct ctlu_table_entry_body_eme24 {
 @Description	Table Entry Body LPM
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_entry_body_lpm_res {
+struct table_entry_body_lpm_res {
 	/** Reserved */
 	uint8_t  reserved[3];
 
@@ -534,7 +533,7 @@ struct ctlu_table_entry_body_lpm_res {
 @Description	Table Entry Body MFLU Branch
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_entry_body_mflu_branch {
+struct table_entry_body_mflu_branch {
 	/** Reserved */
 	uint8_t  reserved0[3];
 
@@ -572,7 +571,7 @@ struct ctlu_table_entry_body_mflu_branch {
 @Description	Table Entry Body MFLU Branch
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_entry_body_mflu_rule {
+struct table_entry_body_mflu_rule {
 	/** Reserved */
 	uint8_t  reserved0[3];
 
@@ -607,7 +606,7 @@ struct ctlu_table_entry_body_mflu_rule {
 @Description	Table Entry Body MFLU Result
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_entry_body_mflu_res {
+struct table_entry_body_mflu_res {
 	/** Reserved */
 	uint8_t  reserved[3];
 
@@ -639,24 +638,24 @@ struct ctlu_table_entry_body_mflu_res {
 @Description	Table Entry Body Union
 *//***************************************************************************/
 #pragma pack(push, 1)
-union ctlu_table_entry_body {
+union table_entry_body {
 	/** EME16 Entry - see CTLU specification for more details */
-	struct ctlu_table_entry_body_eme16 eme16;
+	struct table_entry_body_eme16 eme16;
 
 	/** EME24 Entry - see CTLU specification for more details */
-	struct ctlu_table_entry_body_eme24 eme24;
+	struct table_entry_body_eme24 eme24;
 
 	/** LPM Result Entry - see CTLU specification for more details */
-	struct ctlu_table_entry_body_lpm_res lpm_res;
+	struct table_entry_body_lpm_res lpm_res;
 
 	/** MFLU Branch Entry - see CTLU specification for more details */
-	struct ctlu_table_entry_body_mflu_branch mflu_branch;
+	struct table_entry_body_mflu_branch mflu_branch;
 
 	/** MFLU Rule Entry - see CTLU specification for more details */
-	struct ctlu_table_entry_body_mflu_rule mflu_rule;
+	struct table_entry_body_mflu_rule mflu_rule;
 
 	/** MFLU Result Entry - see CTLU specification for more details */
-	struct ctlu_table_entry_body_mflu_res mflu_result;
+	struct table_entry_body_mflu_res mflu_result;
 };
 #pragma pack(pop)
 
@@ -665,13 +664,13 @@ union ctlu_table_entry_body {
 @Description	Table Entry
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_entry {
+struct table_entry {
 	/* Entry type (and some more things)
 	 * Macros are available at: \ref CTLU_ENTRY_MACROS */
 	uint8_t type;
 
 	/** The body of the entry (varies per type) */
-	union ctlu_table_entry_body body;
+	union table_entry_body body;
 };
 #pragma pack(pop)
 
@@ -680,7 +679,7 @@ struct ctlu_table_entry {
 @Description	Table Entry
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_old_result {
+struct table_old_result {
 	/* Reserved */
 	uint8_t reserved[CTLU_TABLE_OLD_RESULT_RESERVED_SPACE];
 

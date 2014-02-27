@@ -87,7 +87,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = CTLU_TBL_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				CTLU_TBL_ATTRIBUTE_MR_NO_MISS;
-		err = ctlu_table_create(TABLE_ACCEL_ID_CTLU, /* Doron */
+		err = table_create(TABLE_ACCEL_ID_CTLU, /* Doron */
 				&tbl_params,
 				&ipr_instance.table_id_ipv4);
 		/* TODO was CTLU_TABLE_CREATE_STATUS_PASS in 0.6 ctlu api */
@@ -108,7 +108,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		/* todo SR error case */
 		cdma_release_context_memory(*ipr_instance_ptr);
 		/* todo: error case and case only IPv6 table*/
-		ctlu_table_delete(TABLE_ACCEL_ID_CTLU, /* Doron */ipr_instance.table_id_ipv4);
+		table_delete(TABLE_ACCEL_ID_CTLU, /* Doron */ipr_instance.table_id_ipv4);
 		return IPR_MAX_BUFFERS_REACHED;
 	}
 	ipr_global_parameters1.ipr_avail_buffers_cntr -= aggregate_open_frames;
@@ -156,7 +156,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	cdma_release_context_memory(ipr_instance_ptr);
 	/* todo: error case and case only IPv6 table*/
 	/* todo 0.6 ctlu api ctlu_table_delete(ipr_instance.table_id_ipv4); */
-	ctlu_table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
+	table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
 	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
 			ipr_instance.max_open_frames_ipv6;
 	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
@@ -230,7 +230,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 /*	if(instance_params.flags & INSTANCE_VALID) {*/
 		if (check_for_frag_error() == NO_ERROR) {
 			/* Good fragment */
-			sr_status = ctlu_table_lookup_by_keyid(TABLE_ACCEL_ID_CTLU, /* Doron */
+			sr_status = table_lookup_by_keyid(TABLE_ACCEL_ID_CTLU, /* Doron */
 					instance_params.table_id_ipv4,
 					ipr_global_parameters1.ipr_key_id_ipv4,
 					&lookup_result);
@@ -298,7 +298,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    rule.result.type = CTLU_RULE_RESULT_TYPE_REFERENCE;
 			    rule.result.op_rptr_clp.reference_pointer =
 					    rfdc_ext_addr;
-			    ctlu_table_rule_create(TABLE_ACCEL_ID_CTLU, /* Doron */
+			    table_rule_create(TABLE_ACCEL_ID_CTLU, /* Doron */
 					    instance_params.table_id_ipv4,
 					    &rule,
 					    keysize);

@@ -1052,7 +1052,7 @@ struct	ctlu_kcr_builder_fec_mask {
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_create(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_create(enum table_hw_accel_id acc_id, /* TODO */
 			  struct ctlu_table_create_params *tbl_params,
 			  uint16_t *table_id);
 
@@ -1078,7 +1078,7 @@ int32_t ctlu_table_create(enum table_hw_accel_id acc_id, /* TODO */
 		table attributes).
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 				       uint16_t table_id,
 				       struct ctlu_table_rule_result
 					      *new_miss_result,
@@ -1100,7 +1100,7 @@ int32_t ctlu_table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_get_params(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_get_params(enum table_hw_accel_id acc_id, /* TODO */
 			      uint16_t table_id,
 			      struct ctlu_table_get_params_output *tbl_params);
 
@@ -1123,7 +1123,7 @@ int32_t ctlu_table_get_params(enum table_hw_accel_id acc_id, /* TODO */
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_get_miss_result(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_get_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 				   uint16_t table_id,
 				   struct ctlu_table_rule_result *miss_result);
 
@@ -1143,7 +1143,7 @@ int32_t ctlu_table_get_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_delete(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_delete(enum table_hw_accel_id acc_id, /* TODO */
 			  uint16_t table_id);
 
 
@@ -1167,7 +1167,7 @@ int32_t ctlu_table_delete(enum table_hw_accel_id acc_id, /* TODO */
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
 			       uint16_t table_id,
 			       struct ctlu_table_rule *rule,
 			       uint8_t key_size);
@@ -1195,7 +1195,7 @@ int32_t ctlu_table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO */
 					  uint16_t table_id,
 					  struct ctlu_table_rule *rule,
 					  uint8_t key_size,
@@ -1228,7 +1228,7 @@ int32_t ctlu_table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
 				uint16_t table_id,
 				struct ctlu_table_rule *rule,
 				uint8_t key_size,
@@ -1261,7 +1261,7 @@ int32_t ctlu_table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
 		the reference counter please refer to table lookup function.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
 			      uint16_t table_id,
 			      union ctlu_key *key,
 			      uint8_t key_size,
@@ -1290,7 +1290,7 @@ int32_t ctlu_table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
 			       uint16_t table_id,
 			       union ctlu_key *key,
 			       uint8_t key_size,
@@ -1326,7 +1326,7 @@ int32_t ctlu_table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t ctlu_table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
 				   uint16_t table_id,
 				   uint8_t keyid,
 				   struct ctlu_lookup_result *lookup_result);
@@ -1353,7 +1353,7 @@ int32_t ctlu_table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
 @Cautions	In this function the task yields.
 		This lookup cannot be used for chaining of lookups.
 *//***************************************************************************/
-int32_t ctlu_table_lookup_by_key(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_lookup_by_key(enum table_hw_accel_id acc_id, /* TODO */
 				 uint16_t table_id,
 				 union ctlu_key *key,
 				 uint8_t key_size,

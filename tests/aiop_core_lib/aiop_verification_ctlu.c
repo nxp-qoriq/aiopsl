@@ -27,7 +27,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_table_create_command *str =
 			(struct ctlu_table_create_command *) asa_seg_addr;
 		
-			str->status = ctlu_table_create 
+			str->status = table_create 
 					(str->acc_id,
 					(struct ctlu_table_create_params *)str->table_create_params_ptr,
 					&(str->table_id));
@@ -41,7 +41,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_update_miss_rule_command *str =
 			(struct ctlu_update_miss_rule_command *) asa_seg_addr;
 		
-			str->status = ctlu_table_replace_miss_result
+			str->status = table_replace_miss_result
 				(str->acc_id, str->table_id, &(str->miss_rule),
 				 &str->old_miss_result);
 			str_size = sizeof(struct ctlu_update_miss_rule_command);
@@ -54,7 +54,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_table_get_params_command *str =
 			(struct ctlu_table_get_params_command *) asa_seg_addr;
 			
-			str->status = ctlu_table_get_params(str->acc_id,
+			str->status = table_get_params(str->acc_id,
 							    str->table_id,
 							    &str->table_get_params_out);
 
@@ -68,7 +68,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_get_miss_rule_command *str =
 			(struct ctlu_get_miss_rule_command *) asa_seg_addr;
 			
-			str->status = ctlu_table_get_miss_result
+			str->status = table_get_miss_result
 					(str->acc_id,
 					 str->table_id,
 					 &(str->miss_rule));
@@ -83,7 +83,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_table_delete_command *str =
 			(struct ctlu_table_delete_command *) asa_seg_addr;
 			
-			str->status = ctlu_table_delete(str->acc_id,
+			str->status = table_delete(str->acc_id,
 							str->table_id);
 
 			str_size = sizeof(struct ctlu_table_delete_command);
@@ -96,7 +96,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_table_rule_create_command *str =
 			(struct ctlu_table_rule_create_command *) asa_seg_addr;
 			
-			str->status = ctlu_table_rule_create(str->acc_id,
+			str->status = table_rule_create(str->acc_id,
 				    str->table_id,
 				    (struct ctlu_table_rule*)str->rule_ptr,
 				    str->key_size);
@@ -113,7 +113,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			  (struct ctlu_table_rule_create_replace_command *)
 			  asa_seg_addr;
 
-			str->status = ctlu_table_rule_create_or_replace
+			str->status = table_rule_create_or_replace
 				(str->acc_id,
 				 str->table_id, 
 				 (struct ctlu_table_rule*)str->rule_ptr,
@@ -132,7 +132,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			  (struct ctlu_table_rule_create_replace_command *)
 			  asa_seg_addr;
 
-			str->status = ctlu_table_rule_replace
+			str->status = table_rule_replace
 				(str->acc_id,
 				str->table_id,
 				(struct ctlu_table_rule*)str->rule_ptr,
@@ -150,7 +150,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_table_rule_delete_command *str =
 			(struct ctlu_table_rule_delete_command *) asa_seg_addr;
 
-			str->status = ctlu_table_rule_delete
+			str->status = table_rule_delete
 				(str->acc_id,
 				 str->table_id,
 				 (union ctlu_key *)str->key_ptr,
@@ -168,7 +168,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_table_lookup_by_keyid_command *str =
 			(struct ctlu_table_lookup_by_keyid_command *) asa_seg_addr;
 
-			str->status = ctlu_table_lookup_by_keyid(str->acc_id,
+			str->status = table_lookup_by_keyid(str->acc_id,
 				str->table_id, 
 				str->key_id, &(str->lookup_result));
 
@@ -183,7 +183,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct ctlu_table_lookup_by_key_command *str =
 			(struct ctlu_table_lookup_by_key_command *) asa_seg_addr;
 
-			str->status = ctlu_table_lookup_by_key(str->acc_id,
+			str->status = table_lookup_by_key(str->acc_id,
 							       str->table_id,
 				(union ctlu_key *)str->key_ptr, str->key_size,
 				&(str->lookup_result));
