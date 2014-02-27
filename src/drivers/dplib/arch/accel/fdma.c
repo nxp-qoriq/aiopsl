@@ -255,10 +255,9 @@ int32_t fdma_present_frame_segment(
 }
 
 int32_t fdma_read_default_frame_asa(
-		uint32_t flags,
+		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size,
-		void	 *ws_dst)
+		uint16_t present_size)
 {
 	/* Presentation Context Pointer */
 	struct presentation_context *prc =
@@ -268,13 +267,8 @@ int32_t fdma_read_default_frame_asa(
 	int8_t  res1;
 
 	/* prepare command parameters */
-#ifdef NEXT_RELEASE
-	/*Todo - SR bit is not relevant for ASA presentation in Present command.
-	 * Since the flags parameters here has only the SR bit, the flags
-	 * parameters should be removed from the function. */
-#endif /* NEXT_RELEASE */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
-			(flags | FDMA_ST_ASA_SEGMENT_BIT));
+			FDMA_ST_ASA_SEGMENT_BIT);
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
 	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
 	/* store command parameters */
@@ -649,6 +643,9 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
 	uint32_t arg1;
 	int8_t res1;
 	/* prepare command parameters */
+#ifdef REV2
+	/* Todo - Add ICID + flags support */
+#endif /*REV2*/
 	/*if (flags & FDMA_DIS_FS_HANDLE_BIT)*/
 		arg1 = FDMA_DISCARD_ARG1_FRAME(frame, flags);
 	/*else
@@ -743,6 +740,9 @@ int32_t fdma_concatenate_frames(
 	int8_t  res1;
 
 	/* prepare command parameters */
+#ifdef REV2
+	/* Todo - Add ICID + flags + FDs support */
+#endif /*REV2*/
 	arg1 = FDMA_CONCAT_CMD_ARG1(params->spid, params->trim, params->flags);
 	arg2 = FDMA_CONCAT_CMD_ARG2(params->frame2, params->frame1);
 
