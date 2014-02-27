@@ -266,6 +266,8 @@ struct presentation_context {
 		/**
 		- bits<0-9>  : Pass Through Annotation(PTA) presentation
 		address value.
+		- bits<10> : No PTA segment (NPS).
+		- bits<11> : No ASA segment (NAS).
 		- bits<12-15>: Acceleration Specific Annotation(ASA)
 		presentation offset value. */
 	uint16_t  ptapa_asapo;
@@ -273,6 +275,7 @@ struct presentation_context {
 		- bits<0-9>  : Accelerator Specific Annotation (ASA)
 		presentation address value.
 		- bits<10>   : Entry Point Segment Reference (SR) bit.
+		- bits<11>   : No Data segment (NDS).
 		- bits<12-15>: Acceleration Specific Annotation (ASA)
 		presentation size value. */
 	uint16_t  asapa_asaps;
@@ -301,6 +304,12 @@ struct presentation_context {
 #define PRC_SR_MASK		0x0020
 	/** No Data Segment (NDS) bit mask */
 #define PRC_NDS_MASK		0x0010
+#if NAS_NPS_ENABLE
+	/** No PTA Segment (NPS) bit mask */
+#define PRC_NPS_MASK		0x0020
+	/** No ASA Segment (NAS) bit mask */
+#define PRC_NAS_MASK		0x0010
+#endif /*NAS_NPS_ENABLE*/
 	/** ASA presentation size mask */
 #define PRC_ASAPS_MASK		0x000F
 	/** OSM Entry point source value mask*/
@@ -321,6 +330,12 @@ struct presentation_context {
 #define PRC_SR_BIT_OFFSET	0x5
 	/** No Data Segment bit offset */
 #define PRC_NDS_BIT_OFFSET	0x4
+#if NAS_NPS_ENABLE
+	/** No PTA Segment bit offset */
+#define PRC_NPS_BIT_OFFSET	0x5
+	/** No ASA Segment bit offset */
+#define PRC_NAS_BIT_OFFSET	0x4
+#endif /*NAS_NPS_ENABLE*/
 	/** OSM Entry Point source value offset */
 #define PRC_OSRC_BIT_OFFSET	0x7
 	/** OSM Entry Point Execution Phase value offset */
@@ -383,13 +398,23 @@ struct presentation_context {
 #define PRC_GET_SR_BIT()						\
 	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps) & PRC_SR_MASK) >> PRC_SR_BIT_OFFSET)
-#ifdef NEXT_RELEASE
 	/** Macro to get the No-Data-Segment bit from the presentation
 	 * context */
 #define PRC_GET_NDS_BIT()						\
 	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps) & PRC_NDS_MASK) >> PRC_NDS_BIT_OFFSET)
-#endif /* NEXT_RELEASE */
+#if NAS_NPS_ENABLE
+	/** Macro to get the No-ASA-Segment bit from the presentation
+	 * context */
+#define PRC_GET_NAS_BIT()						\
+	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo) & PRC_NAS_MASK) >> PRC_NAS_BIT_OFFSET)
+	/** Macro to get the No-PTA-Segment bit from the presentation
+	 * context */
+#define PRC_GET_NPS_BIT()						\
+	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo) & PRC_NPS_MASK) >> PRC_NPS_BIT_OFFSET)
+#endif /*NAS_NPS_ENABLE*/
 	/** Macro to get the default frame ASA size in workspace from the
 	 * presentation context */
 #define PRC_GET_ASA_SIZE()						\

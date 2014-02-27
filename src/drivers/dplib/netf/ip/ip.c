@@ -890,7 +890,8 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 
 			if(udphdr_ptr->checksum != 0) {
 				udp_checksum = udphdr_ptr->checksum;
-				cksum_accumulative_update_uint32(udp_checksum,
+				udp_checksum = cksum_accumulative_update_uint32(
+								 udp_checksum,
 								 old_src_add,
 								 src_addr);
 
@@ -961,7 +962,8 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 			
 			if(udphdr_ptr->checksum != 0) {
 				udp_checksum = udphdr_ptr->checksum;
-				cksum_accumulative_update_uint32(udp_checksum,
+				udp_checksum = cksum_accumulative_update_uint32(
+								 udp_checksum,
 								 old_dst_addr,
 								 dst_addr);
 

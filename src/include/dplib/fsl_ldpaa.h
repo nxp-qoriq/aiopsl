@@ -1,6 +1,4 @@
 /**************************************************************************//**
- Copyright 2013 Freescale Semiconductor, Inc.
-
  @File          fsl_ldpaa.h
 
  @Description   This file contains LDPAA general definitions.

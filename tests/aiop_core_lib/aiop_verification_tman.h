@@ -215,6 +215,8 @@ struct tman_get_ts_command {
 };
 
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr);
+void verif_timer_callback(uint64_t opaque1, uint16_t opaque2);
+void verif_tmi_delete_callback(uint64_t opaque1, uint16_t opaque2);
 
 /** @} */ /* end of AIOP_TMAN_SRs_Verification */
 

@@ -66,7 +66,7 @@
 
 /**************************************************************************//**
 @Group	FSL_IPV4_CKSUM_CALC_STATUS Status returned from \
-	 \ref ipv4_cksum_calculate SR
+	ipv4_cksum_calculate SR
 @{
 *//***************************************************************************/
 /** Success */
