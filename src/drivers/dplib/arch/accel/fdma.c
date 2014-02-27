@@ -463,7 +463,7 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 	flags &= ~FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_WF_ARG1(spid, PRC_GET_HANDLES(), flags);
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
-	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->hash_value);
+	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
@@ -492,7 +492,7 @@ int32_t fdma_store_and_enqueue_frame_qd(
 	flags &= ~FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
-	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->hash_value);
+	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
@@ -575,7 +575,7 @@ int32_t fdma_enqueue_default_fd_qd(
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
-			enqueue_params->hash_value);
+			enqueue_params->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
@@ -605,7 +605,7 @@ int32_t fdma_enqueue_fd_qd(
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
-			enqueue_params->hash_value);
+			enqueue_params->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
@@ -717,7 +717,7 @@ int32_t fdma_replicate_frame_qd(
 	arg2 = FDMA_REPLIC_CMD_ARG2_QD(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_REPLIC_CMD_ARG3_QD((uint32_t)fd_dst,
-			enqueue_params->hash_value);
+			enqueue_params->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
