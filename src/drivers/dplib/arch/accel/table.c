@@ -1,15 +1,15 @@
 /**************************************************************************//**
-@File		ctlu.c
+@File		table.c
 
-@Description	This file contains the AIOP SW CTLU API implementation.
+@Description	This file contains the AIOP SW Table API implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_cdma.h"
-#include "dplib/fsl_ctlu.h"
+#include "dplib/fsl_table.h"
 
-#include "ctlu.h"
+#include "table.h"
 #include "system.h"
 #include "id_pool.h"
 
@@ -1194,7 +1194,24 @@ int32_t ctlu_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash)
 /*****************************************************************************/
 /*				Internal API				     */
 /*****************************************************************************/
-int32_t ctlu_acquire_semaphore(enum table_hw_accel_id acc_id){
+int32_t table_query_debug(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  struct ctlu_table_params_query_output_message *output
+			 )
+{
+	/* Prepare ACC context for TLU accelerator call */
+	__stqw(CTLU_TABLE_QUERY_MTYPE, (uint32_t)output, table_id, 0,
+	       HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call CTLU accelerator */
+	__e_hwaccel(acc_id);
+
+	/* Return status */
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+}
+
+
+int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id){
 	__stqw(CTLU_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 	__e_hwaccel(acc_id);
 
@@ -1202,26 +1219,9 @@ int32_t ctlu_acquire_semaphore(enum table_hw_accel_id acc_id){
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
-void ctlu_release_semaphore(enum table_hw_accel_id acc_id){
+
+void table_hw_accel_release_lock(enum table_hw_accel_id acc_id){
 	__stqw(CTLU_RELEASE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 	__e_hwaccel(acc_id);
-}
-
-/*****************************************************************************/
-/*				DEBUG CODE				     */
-/*****************************************************************************/
-int32_t ctlu_table_query_debug(uint16_t table_id,
-			    struct ctlu_table_params_query_output_message
-			    *output)
-{
-	/* Prepare ACC context for TLU accelerator call */
-	__stqw(CTLU_TABLE_QUERY_MTYPE, (uint32_t)output, table_id, 0,
-	       HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call CTLU accelerator */
-	__e_hwacceli(TABLE_ACCEL_ID_CTLU); /*TODO*/
-
-	/* Return status */
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 

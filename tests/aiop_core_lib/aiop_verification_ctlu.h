@@ -9,7 +9,7 @@
 #ifndef __AIOP_VERIFICATION_CTLU_H_
 #define __AIOP_VERIFICATION_CTLU_H_
 
-#include "dplib/fsl_ctlu.h"
+#include "dplib/fsl_table.h"
 
 /** \enum ctlu_verif_cmd_type defines the parser verification CMDTYPE
  * field. */
@@ -838,7 +838,7 @@ struct ctlu_key_id_pool_create_verif_command {
 
 /** @}*/ /* end of AIOP_Service_Routines_Verification */
 
-int32_t ctlu_table_query_debug(uint16_t table_id,
+int32_t table_query_debug(uint16_t table_id,
 			       struct ctlu_table_params_query_output_message 
 			       *output);
 

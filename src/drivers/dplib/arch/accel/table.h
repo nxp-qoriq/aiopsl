@@ -10,7 +10,7 @@
 #define __CTLU_H
 
 #include "general.h"
-#include "dplib/fsl_ctlu.h"
+#include "dplib/fsl_table.h"
 
 /**************************************************************************//**
 @Group	CTLU CTLU (Internal)
@@ -803,13 +803,16 @@ struct	ctlu_hw_fec_mask {
 }*/
 
 /**************************************************************************//**
-@Function	ctlu_table_query_debug
+@Function	table_query_debug
 
-@Description	Return all table parameters as kept in CTLU HW.
+@Description	Return all table parameters as kept in the given table
+		accelerator HW.
+
+@Param[in]	acc_id - Table Accelerator ID.
 
 @Param[in]	table_id - Table ID.
 
-@Param[in]	output - All table parameter CTLU HW keeps.
+@Param[in]	output - All table parameter Table Hardware HW keeps.
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_TBL_GET_PARAMS
 
@@ -817,13 +820,39 @@ struct	ctlu_hw_fec_mask {
 		This function does not increment the reference count for the
 		miss result returned.
 *//***************************************************************************/
-int32_t ctlu_table_query_debug(uint16_t table_id,
-			       struct ctlu_table_params_query_output_message
-			       *output);
+int32_t table_query_debug(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  struct ctlu_table_params_query_output_message *output
+			 );
 
-int32_t ctlu_acquire_semaphore(enum table_hw_accel_id acc_id);
+/**************************************************************************//**
+@Function	table_hw_accel_acquire_lock
 
-void ctlu_release_semaphore(enum table_hw_accel_id acc_id);
+@Description	Tries to acquire the binary lock of the given table hardware
+		accelerator.
+
+@Param[in]	acc_id - Table Accelerator ID.
+
+@Return		If the lock is already in use \ref TABLE_STATUS_MISS is set.
+
+@Cautions	This function performs a task switch.
+*//***************************************************************************/
+int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
+
+
+/**************************************************************************//**
+@Function	table_hw_accel_release_lock
+
+@Description	Releases the binary lock of the given table hardware
+		accelerator.
+
+@Param[in]	acc_id - Table Accelerator ID.
+
+@Return		None.
+
+@Cautions	This function performs a task switch.
+*//***************************************************************************/
+void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 /** @} */ /* end of CTLU_Functions */
 

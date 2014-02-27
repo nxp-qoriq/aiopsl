@@ -436,7 +436,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		{
 			struct ctlu_table_query_debug_command *str =
 			(struct ctlu_table_query_debug_command *) asa_seg_addr;
-			str->status = ctlu_table_query_debug(str->table_id,
+			str->status = table_query_debug(str->table_id,
 				(struct ctlu_table_params_query_output_message *)(str->output_ptr));
 			
 			str_size =

@@ -303,11 +303,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_cdma.h</locationURI>
 		</link>
 		<link>
-			<name>sources/include/dplib/fsl_ctlu.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ctlu.h</locationURI>
-		</link>
-		<link>
 			<name>sources/include/dplib/fsl_fdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_fdma.h</locationURI>
@@ -386,6 +381,11 @@
 			<name>sources/include/dplib/fsl_ste.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ste.h</locationURI>
+		</link>
+		<link>
+			<name>sources/include/dplib/fsl_table.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_table.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/dplib/fsl_tman.h</name>
@@ -498,16 +498,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma.h</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/arch/accel/ctlu.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/ctlu.c</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/arch/accel/ctlu.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/ctlu.h</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers/dplib/arch/accel/fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.c</locationURI>
@@ -556,6 +546,16 @@
 			<name>sources/drivers/dplib/arch/accel/system.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/system.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/accel/table.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/table.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/accel/table.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/table.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/tman.c</name>

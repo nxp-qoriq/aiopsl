@@ -1,13 +1,13 @@
 /**************************************************************************//**
-@File		fsl_ctlu.h
+@File		fsl_table.h
 
-@Description	This file contains the AIOP Software CTLU API
+@Description	This file contains the AIOP Software Table API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#ifndef __FSL_CTLU_H
-#define __FSL_CTLU_H
+#ifndef __FSL_TABLE_H
+#define __FSL_TABLE_H
 
 #include "common/types.h"
 
@@ -20,17 +20,17 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_CTLU CTLU
+@Group	FSL_TABLE Table
 
-@Description	Freescale AIOP CTLU API
+@Description	Freescale AIOP Table API
 
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_CTLU_MACROS CTLU Macros
+@Group	FSL_TABLE_MACROS Table Macros
 
-@Description	Freescale AIOP CTLU Macros
+@Description	Freescale AIOP Table Macros
 
 @{
 *//***************************************************************************/
@@ -1643,9 +1643,9 @@ int32_t ctlu_gen_key(enum table_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t ctlu_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash);
 
-/** @} */ /* end of FSL_CTLU_Functions */
-/** @} */ /* end of FSL_CTLU */
+/** @} */ /* end of FSL_TABLE_Functions */
+/** @} */ /* end of FSL_TABLE */
 /** @} */ /* end of ACCEL */
 
 
-#endif /* __FSL_CTLU_H */
+#endif /* __FSL_TABLE_H */

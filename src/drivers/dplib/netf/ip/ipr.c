@@ -13,7 +13,7 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_osm.h"
-#include "dplib/fsl_ctlu.h"
+#include "dplib/fsl_table.h"
 #include "net/fsl_net.h"
 #include "common/spinlock.h"
 #include "fdma.h"
