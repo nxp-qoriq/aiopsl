@@ -482,7 +482,7 @@ struct fdma_enqueue_wf_command {
 	uint32_t qd_fqid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Storage profile used to store frame data if additional
@@ -529,7 +529,7 @@ struct fdma_enqueue_wf_exp_command {
 	uint32_t qd_fqid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Working Frame handle to enqueue. */
 	uint8_t	frame_handle;
 		/** Queueing Destination Priority. */
@@ -582,7 +582,7 @@ struct fdma_enqueue_frame_command {
 	uint16_t icid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Enqueue Priority source
@@ -642,7 +642,7 @@ struct fdma_enqueue_frame_exp_command {
 	uint16_t icid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Enqueue Priority source
@@ -769,7 +769,7 @@ struct fdma_replicate_frames_command {
 	uint32_t qd_fqid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Handle of the source frame. */

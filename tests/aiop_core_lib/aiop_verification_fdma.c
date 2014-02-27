@@ -203,7 +203,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->qd_fqid, flags);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_store_and_enqueue_default_frame_qd(
@@ -229,7 +229,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->qd_fqid, str->spid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_store_and_enqueue_frame_qd(
@@ -259,7 +259,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->icid, flags, str->qd_fqid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_enqueue_default_fd_qd(
@@ -288,7 +288,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->qd_fqid, str->icid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_enqueue_fd_qd(&(str->fd), flags,
@@ -358,7 +358,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					flags, &(str->frame_handle2));
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)fdma_replicate_frame_qd(
 					str->frame_handle1, str->spid,
