@@ -58,8 +58,14 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_init_exp_command *str =
 			(struct fdma_init_exp_command *) asa_seg_addr;
 		struct fdma_present_frame_params params;
-		flags |= ((str->NDS)  ? FDMA_INIT_NDS_BIT  : 0x0);
-		flags |= ((str->SR)   ? FDMA_INIT_SR_BIT   : 0x0);
+		flags |= ((str->NDS) ? FDMA_INIT_NDS_BIT : 0x0);
+		flags |= ((str->SR) ? FDMA_INIT_SR_BIT : 0x0);
+		flags |= ((str->AS) ? FDMA_INIT_AS_BIT : 0x0);
+		if (str->AS) {
+			flags |= ((str->VA) ? FDMA_INIT_VA_BIT : 0x0);
+			flags |= ((str->PL) ? FDMA_INIT_PL_BIT : 0x0);
+			params.bdi_icid = str->bdi_icid;
+		}
 		params.asa_dst	= (void *)str->asa_dst;
 		params.asa_offset	= str->asa_offset;
 		params.asa_size		= str->asa_size;
