@@ -14,17 +14,17 @@
 /** \enum ctlu_verif_cmd_type defines the parser verification CMDTYPE
  * field. */
 enum ctlu_verif_cmd_type {
-	CTLU_TABLE_CREATE_VERIF_CMDTYPE = 0,
-	CTLU_TABLE_UPDATE_MISS_RULE_VERIF_CMDTYPE,
-	CTLU_TABLE_GET_PARAMS_VERIF_CMDTYPE,
-	CTLU_TABLE_GET_MISS_RULE_VERIF_CMDTYPE,
-	CTLU_TABLE_DELETE_VERIF_CMDTYPE,
-	CTLU_TABLE_RULE_CREATE_VERIF_CMDTYPE,
-	CTLU_TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE,
-	CTLU_TABLE_RULE_REPLACE_VERIF_CMDTYPE,
-	CTLU_TABLE_RULE_DELETE_VERIF_CMDTYPE,
-	CTLU_TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
-	CTLU_TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
+	TABLE_CREATE_VERIF_CMDTYPE = 0,
+	TABLE_REPLACE_MISS_RESULT_VERIF_CMDTYPE,
+	TABLE_GET_PARAMS_VERIF_CMDTYPE,
+	TABLE_GET_MISS_RESULT_VERIF_CMDTYPE,
+	TABLE_DELETE_VERIF_CMDTYPE,
+	TABLE_RULE_CREATE_VERIF_CMDTYPE,
+	TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE,
+	TABLE_RULE_REPLACE_VERIF_CMDTYPE,
+	TABLE_RULE_DELETE_VERIF_CMDTYPE,
+	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
+	TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
 	CTLU_KCR_BUILDER_INIT_VERIF_CMDTYPE,
 	CTLU_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE,
 	CTLU_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE,
@@ -38,55 +38,55 @@ enum ctlu_verif_cmd_type {
 	CTLU_KCR_QUERY_VERIF_CMDTYPE,
 	CTLU_GEN_KEY_VERIF_CMDTYPE,
 	CTLU_GEN_HASH_VERIF_CMDTYPE,
-	CTLU_TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
+	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
 	CTLU_KEY_ID_POOL_CREATE_VERIF_CMDTYPE
 };
 
 /* CTLU Commands Structure identifiers */
 
-/*! Table Create Command Structure identifier */
-#define CTLU_TABLE_CREATE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_CREATE_VERIF_CMDTYPE)
+/** Table Create Command Structure identifier */
+#define TABLE_CREATE_CMD_STR	((TABLE_MODULE << 16) | \
+				  TABLE_CREATE_VERIF_CMDTYPE)
 
-/*! Table Update Miss Rule Command Structure identifier */
-#define CTLU_UPDATE_MISS_RULE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-				CTLU_TABLE_UPDATE_MISS_RULE_VERIF_CMDTYPE)
+/** Table Replace Miss Rule Command Structure identifier */
+#define TABLE_REPLACE_MISS_RESULT_CMD_STR	((TABLE_MODULE << 16) | \
+				TABLE_REPLACE_MISS_RESULT_VERIF_CMDTYPE)
 
-/*! Table get params Command Structure identifier */
-#define CTLU_TABLE_GET_PARAMS_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_GET_PARAMS_VERIF_CMDTYPE)
+/** Table get params Command Structure identifier */
+#define TABLE_GET_PARAMS_CMD_STR	((TABLE_MODULE << 16) | \
+					TABLE_GET_PARAMS_VERIF_CMDTYPE)
 
-/*! Table query with reference counting Command Structure identifier */
-#define CTLU_GET_MISS_RULE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_GET_MISS_RULE_VERIF_CMDTYPE)
+/** Table get miss result Command Structure identifier */
+#define TABLE_GET_MISS_RESULT_CMD_STR	((TABLE_MODULE << 16) | \
+					TABLE_GET_MISS_RESULT_VERIF_CMDTYPE)
 
-/*! Table delete Command Structure identifier */
-#define CTLU_TABLE_DELETE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_DELETE_VERIF_CMDTYPE)
+/** Table delete Command Structure identifier */
+#define TABLE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
+				  TABLE_DELETE_VERIF_CMDTYPE)
 
-/*! Table rule create Command Structure identifier */
-#define CTLU_RULE_CREATE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_RULE_CREATE_VERIF_CMDTYPE)
+/** Table rule create Command Structure identifier */
+#define TABLE_RULE_CREATE_CMD_STR	((TABLE_MODULE << 16) | \
+					  TABLE_RULE_CREATE_VERIF_CMDTYPE)
 
 /** Table rule create or replace Command Structure identifier */
-#define CTLU_RULE_CREATE_OR_REPLACE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-			CTLU_TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE)
+#define TABLE_RULE_CREATE_OR_REPLACE_CMD_STR	((TABLE_MODULE << 16) | \
+				TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE)
 
-/*! Table rule replace Command Structure identifier */
-#define CTLU_RULE_REPLACE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_RULE_REPLACE_VERIF_CMDTYPE)
+/** Table rule replace Command Structure identifier */
+#define TABLE_RULE_REPLACE_CMD_STR	((TABLE_MODULE << 16) | \
+					TABLE_RULE_REPLACE_VERIF_CMDTYPE)
 
-/*! Table rule delete Command Structure identifier */
-#define CTLU_RULE_DELETE_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_RULE_DELETE_VERIF_CMDTYPE)
+/** Table rule delete Command Structure identifier */
+#define TABLE_RULE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
+					TABLE_RULE_DELETE_VERIF_CMDTYPE)
 
-/*! Table lookup by keyID */
-#define CTLU_LOOKUP_BY_KEYID_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-				CTLU_TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
+/** Table lookup by keyID */
+#define TABLE_LOOKUP_BY_KEYID_CMD_STR	((TABLE_MODULE << 16) | \
+				TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
 
 /** Table lookup by explicit key */	
-#define CTLU_LOOKUP_BY_KEY_CMD_STR		((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
+#define TABLE_LOOKUP_BY_KEY_CMD_STR		((TABLE_MODULE << 16) | \
+					TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
 
 /*! Init Key Composition Rule Builder Command Structure identifier*/
 #define CTLU_KCR_BUILDER_INIT_CMD_STR   ((TABLE_ACCEL_ID_CTLU << 16) | \
@@ -150,9 +150,9 @@ enum ctlu_verif_cmd_type {
 #define CTLU_GEN_HASH_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
 				CTLU_GEN_HASH_VERIF_CMDTYPE)
 
-/*!< Table Query Debug Command Structure identifier */
-#define CTLU_TABLE_QUERY_DEBUG_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-				CTLU_TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
+/** Table Query Debug Command Structure identifier */
+#define TABLE_QUERY_DEBUG_CMD_STR	((TABLE_MODULE << 16) | \
+				TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
 
 /*!< Create Key ID Pool Command Structure identifier */
 #define CTLU_KEY_ID_POOL_CREATE_CMD_STR  ((TABLE_ACCEL_ID_CTLU << 16) | \
@@ -223,7 +223,7 @@ struct ctlu_table_create_command {
 	uint32_t opcode;
 
 	/*! Table create parameters pointer to the workspace */
-	uint32_t  table_create_params_ptr; 
+	uint32_t  table_create_params_ptr;
 
 	/** Command returned status */
 	int32_t  status;

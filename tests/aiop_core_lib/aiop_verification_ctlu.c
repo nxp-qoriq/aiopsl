@@ -22,7 +22,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 
 	switch (opcode) {
 		/* Table Create Command Verification */
-		case CTLU_TABLE_CREATE_CMD_STR:
+		case TABLE_CREATE_CMD_STR:
 		{
 			struct ctlu_table_create_command *str =
 			(struct ctlu_table_create_command *) asa_seg_addr;
@@ -36,7 +36,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 		
 		/* Update Miss Rule Command Verification */
-		case CTLU_UPDATE_MISS_RULE_CMD_STR:
+		case TABLE_REPLACE_MISS_RESULT_CMD_STR:
 		{
 			struct ctlu_update_miss_rule_command *str =
 			(struct ctlu_update_miss_rule_command *) asa_seg_addr;
@@ -49,7 +49,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 		
 		/* Table Parameters Query Command Verification */
-		case CTLU_TABLE_GET_PARAMS_CMD_STR:
+		case TABLE_GET_PARAMS_CMD_STR:
 		{
 			struct ctlu_table_get_params_command *str =
 			(struct ctlu_table_get_params_command *) asa_seg_addr;
@@ -63,7 +63,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 
 		/* Get Miss Rule Command Verification */
-		case CTLU_GET_MISS_RULE_CMD_STR:
+		case TABLE_GET_MISS_RESULT_CMD_STR:
 		{
 			struct ctlu_get_miss_rule_command *str =
 			(struct ctlu_get_miss_rule_command *) asa_seg_addr;
@@ -78,7 +78,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 		
 		/* Table Delete Command Verification */
-		case CTLU_TABLE_DELETE_CMD_STR:
+		case TABLE_DELETE_CMD_STR:
 		{
 			struct ctlu_table_delete_command *str =
 			(struct ctlu_table_delete_command *) asa_seg_addr;
@@ -91,7 +91,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 	
 		/* Table Rule Create Command Verification */
-		case CTLU_RULE_CREATE_CMD_STR:
+		case TABLE_RULE_CREATE_CMD_STR:
 		{
 			struct ctlu_table_rule_create_command *str =
 			(struct ctlu_table_rule_create_command *) asa_seg_addr;
@@ -107,7 +107,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 		
 		/* Table Rule Create or Replace Command Verification */
-		case CTLU_RULE_CREATE_OR_REPLACE_CMD_STR:
+		case TABLE_RULE_CREATE_OR_REPLACE_CMD_STR:
 		{
 			struct ctlu_table_rule_create_replace_command *str =
 			  (struct ctlu_table_rule_create_replace_command *)
@@ -126,7 +126,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 
 		/* Table Rule Replace Command Verification */
-		case CTLU_RULE_REPLACE_CMD_STR:
+		case TABLE_RULE_REPLACE_CMD_STR:
 		{
 			struct ctlu_table_rule_create_replace_command *str =
 			  (struct ctlu_table_rule_create_replace_command *)
@@ -145,7 +145,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 
 		/* Table Rule Delete Command Verification */
-		case CTLU_RULE_DELETE_CMD_STR:
+		case TABLE_RULE_DELETE_CMD_STR:
 		{
 			struct ctlu_table_rule_delete_command *str =
 			(struct ctlu_table_rule_delete_command *) asa_seg_addr;
@@ -163,7 +163,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 
 		/* Table Lookup by KeyID Command Verification */
-		case CTLU_LOOKUP_BY_KEYID_CMD_STR:
+		case TABLE_LOOKUP_BY_KEYID_CMD_STR:
 		{
 			struct ctlu_table_lookup_by_keyid_command *str =
 			(struct ctlu_table_lookup_by_keyid_command *) asa_seg_addr;
@@ -178,7 +178,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 		
 		/* Table Lookup with explicit Key Command Verification */
-		case CTLU_LOOKUP_BY_KEY_CMD_STR:
+		case TABLE_LOOKUP_BY_KEY_CMD_STR:
 		{
 			struct ctlu_table_lookup_by_key_command *str =
 			(struct ctlu_table_lookup_by_key_command *) asa_seg_addr;
@@ -432,7 +432,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		}
 
 		/* Hash Generation Command Verification */
-		case CTLU_TABLE_QUERY_DEBUG_CMD_STR:
+		case TABLE_QUERY_DEBUG_CMD_STR:
 		{
 			struct ctlu_table_query_debug_command *str =
 			(struct ctlu_table_query_debug_command *) asa_seg_addr;

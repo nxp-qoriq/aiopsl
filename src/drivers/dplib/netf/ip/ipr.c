@@ -155,7 +155,8 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
 	/* todo: error case and case only IPv6 table*/
-	ctlu_table_delete(ipr_instance.table_id_ipv4);
+	/* todo 0.6 ctlu api ctlu_table_delete(ipr_instance.table_id_ipv4); */
+	ctlu_table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
 	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
 			ipr_instance.max_open_frames_ipv6;
 	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
