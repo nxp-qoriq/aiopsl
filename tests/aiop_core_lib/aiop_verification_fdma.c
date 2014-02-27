@@ -101,10 +101,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_read_asa_command *str =
 			(struct fdma_read_asa_command *) asa_seg_addr;
-		flags |= ((str->SR) ? FDMA_PRES_SR_BIT : 0x0);
-		str->status = (int8_t)fdma_read_default_frame_asa(flags,
-				str->offset, str->present_size,
-				(void *)str->ws_dst);
+		str->status = (int8_t)fdma_read_default_frame_asa(
+				(void *)str->ws_dst,
+				str->offset, str->present_size);
 		str->seg_length = PRC_GET_ASA_SIZE();
 		str_size = (uint16_t)sizeof(struct fdma_read_asa_command);
 		break;
@@ -251,7 +250,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
-		flags |= ((str->BMT) ? FDMA_ENF_BMT_BIT : 0x0);
 		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 
@@ -281,7 +279,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
-		flags |= ((str->BMT) ? FDMA_ENF_BMT_BIT : 0x0);
 		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 
