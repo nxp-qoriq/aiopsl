@@ -70,7 +70,7 @@ struct slab_module_info {
     struct  slab_hw_pool_info *hw_pools;    /**< List of BMAN pools */
     void    *virtual_pool_struct;           /**< VP internal structure size of (struct virtual_pool_desc) * MAX_VIRTUAL_POOLS_NUM */ 
     void    *callback_func_struct;          /**< VP internal structure size of (struct callback_s) * MAX_VIRTUAL_POOLS_NUM */
-    uint8_t spinlock;                       /**< Spinlock placed at SHRAM */
+    /* TODO uint8_t spinlock; */            /**< Spinlock placed at SHRAM */
     uint8_t num_hw_pools;                   /**< Number of BMAN pools */
 };
 
