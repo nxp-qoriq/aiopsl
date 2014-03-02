@@ -77,8 +77,12 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		params.seg_offset	= str->seg_offset;
 		str->status = (int8_t)fdma_present_frame(&params);
 		str->frame_handle	= params.frame_handle;
-		str->seg_handle		= params.seg_handle;
-		str->seg_length		= params.seg_length;
+		if (str->NDS == 1)
+			str->seg_length	= 0;
+		else {
+			str->seg_length	= params.seg_length;
+			str->seg_handle	= params.seg_handle;
+		}
 		str_size = (uint16_t)sizeof(struct fdma_init_exp_command);
 		break;
 	}
@@ -178,11 +182,15 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 
 		str->status = (int8_t)fdma_store_frame_data(str->frame_handle,
 				str->spid, &isolation_attributes);
-		str->icid = (isolation_attributes.bdi_icid) & ~0x8000;
-		str->BDI = (uint8_t)((isolation_attributes.bdi_icid) & 0x8000);
-		str->BMT = (uint8_t)(flags & FDMA_ICID_CONTEXT_BMT);
-		str->PL = (uint8_t)(flags & FDMA_ICID_CONTEXT_PL);
-		str->VA = (uint8_t)(flags & FDMA_ICID_CONTEXT_VA);
+		str->icid = isolation_attributes.icid;
+		str->BDI = (uint8_t)
+			(isolation_attributes.flags & FDMA_ICID_CONTEXT_BDI);
+		str->BMT = (uint8_t)
+			(isolation_attributes.flags & FDMA_ICID_CONTEXT_BMT);
+		str->PL = (uint8_t)
+			(isolation_attributes.flags & FDMA_ICID_CONTEXT_PL);
+		str->VA = (uint8_t)
+			(isolation_attributes.flags & FDMA_ICID_CONTEXT_VA);
 		str_size = (uint16_t)sizeof(struct fdma_store_frame_command);
 		break;
 	}
