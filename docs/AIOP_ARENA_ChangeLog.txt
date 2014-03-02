@@ -1,3 +1,5 @@
+- slab.c:  slab_free() calls vpool_refcount_decrement_and_release()instead of vpool_release_buff()
+- slab.h:  Added slab_find_and_fill_bpid() SL internal API 
 
 ** AIOP ARENA SL Pre-Alpha 0.3 **
 - .cproject app_process_packet: Set small data and small data2 to 0 at PowerPC CPU settings

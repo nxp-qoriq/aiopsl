@@ -1729,9 +1729,8 @@ struct fdma_isolation_attributes {
 		 * \endlink */
 	uint16_t flags;
 		/**
-		 * bits<0> : BDI of the Stored frame.
 		 * bits<1-15> : ICID of the Stored frame. */
-	uint16_t bdi_icid;
+	uint16_t icid;
 };
 
 /* @} end of group FDMA_Structures */

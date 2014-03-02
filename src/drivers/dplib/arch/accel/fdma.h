@@ -400,41 +400,14 @@
 /* @} end of group FDMA_Commands_Args */
 
 	/** Getter for AMQ (ICID, PL, VA, BDI) default attributes */
-inline void get_default_amq_attributes(struct fdma_isolation_attributes *amq)
-{
-	struct additional_dequeue_context *adc =
-		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
-	uint16_t adc_pl_icid = LH_SWAP(&(adc->pl_icid));
-
-	amq->flags = 0;
-	amq->bdi_icid = adc_pl_icid & ADC_ICID_MASK;
-	if (adc->fdsrc_va_fca_bdi & ADC_BDI_MASK)
-		amq->bdi_icid |= FDMA_ICID_CONTEXT_BDI;
-	if (adc->fdsrc_va_fca_bdi & ADC_VA_MASK)
-		amq->flags |= FDMA_ICID_CONTEXT_VA;
-	if (adc_pl_icid & ADC_PL_MASK)
-		amq->flags |= FDMA_ICID_CONTEXT_PL;
-}
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void get_default_amq_attributes(
+		struct fdma_isolation_attributes *amq);
 
 	/** Setter for AMQ (ICID, PL, VA, BDI) default attributes */
-inline void set_default_amq_attributes(struct fdma_isolation_attributes *amq)
-{
-	struct additional_dequeue_context *adc =
-			(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
-	uint16_t pl_icid = (amq->bdi_icid & ADC_ICID_MASK);
-	uint8_t flags = 0;
-
-	if (amq->flags & FDMA_ICID_CONTEXT_VA)
-		flags |=  ADC_VA_MASK;
-	if (amq->bdi_icid & FDMA_ICID_CONTEXT_BDI)
-		flags |=  ADC_BDI_MASK;
-	if (amq->flags & FDMA_ICID_CONTEXT_PL)
-		pl_icid |= ADC_PL_MASK;
-	STH_SWAP(pl_icid, &(adc->pl_icid));
-	adc->fdsrc_va_fca_bdi =
-		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
-}
-
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void set_default_amq_attributes(
+		struct fdma_isolation_attributes *amq);
 
 
 /** @}*/ /* end of group FDMA_Internal_Definitions */
@@ -604,5 +577,32 @@ inline void set_default_amq_attributes(struct fdma_isolation_attributes *amq)
 /** @} */ /* end of AIOP_PRC_Setters */
 
 /** @}*/ /* end of group AIOP_PRC_Definitions */
+
+
+/**************************************************************************//**
+@Function	fdma_present_frame_without_segments
+
+@Description	Initial presentation of a frame into the task workspace without
+		ant segments (Data, ASA, PTA).
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID).
+
+		Implicitly updated values in Task Defaults in case the FD points
+		to the default FD location:  NDS bit, ASA size (0), PTA address
+		(\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
+		to present.
+@Param[out]	frame_handle - A handle to the opened working frame.
+
+@Return		Status - Success or Failure (e.g. DMA error. (\ref
+		FDMA_PRESENT_FRAME_ERRORS)).
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_present_frame_without_segments(
+		struct ldpaa_fd *fd,
+		uint8_t *frame_handle);
 
 #endif /* __FDMA_H_ */

@@ -57,7 +57,6 @@ int32_t fdma_present_default_frame(void)
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if (((int32_t)res1) >= FDMA_SUCCESS) {
 		prc->seg_length = *((uint16_t *) (HWC_ACC_OUT_ADDRESS2));
-		/* Todo - if NDS/NAS/NPS are added to prc update them */
 		prc->handles =
 			(((*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET))) <<
@@ -67,13 +66,13 @@ int32_t fdma_present_default_frame(void)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET))) &
 			PRC_SEGMENT_HANDLE_MASK);
 
-		(flags & FDMA_INIT_NDS_BIT) ? PRC_RESET_NDS_BIT() :
-				PRC_SET_NDS_BIT();
+		(flags & FDMA_INIT_NDS_BIT) ? PRC_SET_NDS_BIT() :
+				PRC_RESET_NDS_BIT();
 #if NAS_NPS_ENABLE
-		(flags & FDMA_INIT_NAS_BIT) ? PRC_RESET_NAS_BIT() :
-				PRC_SET_NAS_BIT();
-		(flags & FDMA_INIT_NPS_BIT) ? PRC_RESET_NPS_BIT() :
-				PRC_SET_NPS_BIT();
+		(flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
+				PRC_RESET_NAS_BIT();
+		(flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
+				PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
 	}
 
@@ -144,11 +143,9 @@ int32_t fdma_present_frame(
 			params->seg_handle = *((uint8_t *)
 					(HWC_ACC_OUT_ADDRESS2 +
 					FDMA_SEG_HANDLE_OFFSET));
-			PRC_SET_NDS_BIT();
+			PRC_RESET_NDS_BIT();
 			/* Update Task Defaults */
 			if (((uint32_t)params->fd_src) == HWC_FD_ADDRESS) {
-				/* Todo - if NDS/NAS/NPS are added to prc update
-				 * them */
 				prc->seg_address = (uint16_t)
 					((uint32_t)params->seg_dst);
 				prc->seg_length = params->seg_length;
@@ -175,14 +172,53 @@ int32_t fdma_present_frame(
 					((uint16_t)arg4 & ~PRC_SR_MASK);
 		}
 
+
 		if (params->flags & FDMA_INIT_NDS_BIT)
-			PRC_RESET_NDS_BIT();
+			PRC_SET_NDS_BIT();
 #if NAS_NPS_ENABLE
-		(params->flags & FDMA_INIT_NAS_BIT) ? PRC_RESET_NAS_BIT() :
-						PRC_SET_NAS_BIT();
-		(params->flags & FDMA_INIT_NPS_BIT) ? PRC_RESET_NPS_BIT() :
-						PRC_SET_NPS_BIT();
+		(params->flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
+						PRC_RESET_NAS_BIT();
+		(params->flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
+						PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+	}
+	return (int32_t)(res1);
+}
+
+int32_t fdma_present_frame_without_segments(
+		struct ldpaa_fd *fd,
+		uint8_t *frame_handle)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)fd, FDMA_INIT_NDS_BIT);
+
+	/* store command parameters */
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	__stdw(PRC_PTA_NOT_LOADED_ADDRESS, 0, HWC_ACC_IN_ADDRESS3, ZERO);
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if (((int32_t)res1) >= FDMA_SUCCESS) {
+		*frame_handle = *((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET));
+		if ((uint32_t)fd == HWC_FD_ADDRESS) {
+			PRC_SET_FRAME_HANDLE(*frame_handle);
+			PRC_SET_NDS_BIT();
+			PRC_SET_ASA_SIZE(0);
+			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+#if NAS_NPS_ENABLE
+			PRC_SET_NAS_BIT();
+			PRC_SET_NPS_BIT();
+#endif /*NAS_NPS_ENABLE*/
+		}
 	}
 	return (int32_t)(res1);
 }
@@ -381,6 +417,7 @@ int32_t fdma_store_frame_data(
 {
 	/* command parameters and results */
 	uint32_t arg1;
+	uint16_t bdi_icid;
 	int8_t res1;
 	/* storage profile ID */
 
@@ -393,9 +430,12 @@ int32_t fdma_store_frame_data(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	isolation_attributes->bdi_icid = *((uint16_t *)
+	bdi_icid = *((uint16_t *)
 		(HWC_ACC_OUT_ADDRESS2 + FDMA_STORE_CMD_OUT_ICID_OFFSET));
-	isolation_attributes->flags = (*((uint16_t *)HWC_ACC_OUT_ADDRESS2));
+	isolation_attributes->icid = bdi_icid & ~(FDMA_ICID_CONTEXT_BDI);
+	isolation_attributes->flags =
+		((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) |
+		(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
 	return (int32_t)(res1);
 }
 
@@ -1409,5 +1449,43 @@ int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 
 	return fdma_store_frame_data(present_frame_params.frame_handle,
 			spid, &isolation_attributes);
+}
+
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void get_default_amq_attributes(
+		struct fdma_isolation_attributes *amq)
+{
+	struct additional_dequeue_context *adc =
+		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	uint16_t adc_pl_icid = LH_SWAP(&(adc->pl_icid));
+
+	amq->flags = 0;
+	amq->icid = adc_pl_icid & ADC_ICID_MASK;
+	if (adc->fdsrc_va_fca_bdi & ADC_BDI_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_BDI;
+	if (adc->fdsrc_va_fca_bdi & ADC_VA_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_VA;
+	if (adc_pl_icid & ADC_PL_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_PL;
+}
+
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void set_default_amq_attributes(
+		struct fdma_isolation_attributes *amq)
+{
+	struct additional_dequeue_context *adc =
+			(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	uint16_t pl_icid = (amq->icid & ADC_ICID_MASK);
+	uint8_t flags = 0;
+
+	if (amq->flags & FDMA_ICID_CONTEXT_VA)
+		flags |=  ADC_VA_MASK;
+	if (amq->flags & FDMA_ICID_CONTEXT_BDI)
+		flags |=  ADC_BDI_MASK;
+	if (amq->flags & FDMA_ICID_CONTEXT_PL)
+		pl_icid |= ADC_PL_MASK;
+	STH_SWAP(pl_icid, &(adc->pl_icid));
+	adc->fdsrc_va_fca_bdi =
+		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
