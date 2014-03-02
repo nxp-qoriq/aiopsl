@@ -620,6 +620,7 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 			  FD_SIZE);
 
 		present_frame_params.fd_src = fds_to_concatenate;
+		fdma_present_frame(&present_frame_params);
 		frame_handle2 = present_frame_params.frame_handle;
 		concatenate_frame_params.frame2 =
 					      (uint16_t) frame_handle2;
