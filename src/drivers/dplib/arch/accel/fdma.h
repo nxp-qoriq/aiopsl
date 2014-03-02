@@ -578,4 +578,31 @@
 
 /** @}*/ /* end of group AIOP_PRC_Definitions */
 
+
+/**************************************************************************//**
+@Function	fdma_present_frame_without_segments
+
+@Description	Initial presentation of a frame into the task workspace without
+		ant segments (Data, ASA, PTA).
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID).
+
+		Implicitly updated values in Task Defaults in case the FD points
+		to the default FD location:  NDS bit, ASA size (0), PTA address
+		(\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
+		to present.
+@Param[out]	frame_handle - A handle to the opened working frame.
+
+@Return		Status - Success or Failure (e.g. DMA error. (\ref
+		FDMA_PRESENT_FRAME_ERRORS)).
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_present_frame_without_segments(
+		struct ldpaa_fd *fd,
+		uint8_t *frame_handle);
+
 #endif /* __FDMA_H_ */

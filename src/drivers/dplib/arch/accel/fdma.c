@@ -57,7 +57,6 @@ int32_t fdma_present_default_frame(void)
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if (((int32_t)res1) >= FDMA_SUCCESS) {
 		prc->seg_length = *((uint16_t *) (HWC_ACC_OUT_ADDRESS2));
-		/* Todo - if NDS/NAS/NPS are added to prc update them */
 		prc->handles =
 			(((*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET))) <<
@@ -147,8 +146,6 @@ int32_t fdma_present_frame(
 			PRC_RESET_NDS_BIT();
 			/* Update Task Defaults */
 			if (((uint32_t)params->fd_src) == HWC_FD_ADDRESS) {
-				/* Todo - if NDS/NAS/NPS are added to prc update
-				 * them */
 				prc->seg_address = (uint16_t)
 					((uint32_t)params->seg_dst);
 				prc->seg_length = params->seg_length;
@@ -184,6 +181,44 @@ int32_t fdma_present_frame(
 		(params->flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
 						PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+	}
+	return (int32_t)(res1);
+}
+
+int32_t fdma_present_frame_without_segments(
+		struct ldpaa_fd *fd,
+		uint8_t *frame_handle)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)fd, FDMA_INIT_NDS_BIT);
+
+	/* store command parameters */
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	__stdw(PRC_PTA_NOT_LOADED_ADDRESS, 0, HWC_ACC_IN_ADDRESS3, ZERO);
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if (((int32_t)res1) >= FDMA_SUCCESS) {
+		*frame_handle = *((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET));
+		if ((uint32_t)fd == HWC_FD_ADDRESS) {
+			PRC_SET_FRAME_HANDLE(*frame_handle);
+			PRC_SET_NDS_BIT();
+			PRC_SET_ASA_SIZE(0);
+			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+#if NAS_NPS_ENABLE
+			PRC_SET_NAS_BIT();
+			PRC_SET_NPS_BIT();
+#endif /*NAS_NPS_ENABLE*/
+		}
 	}
 	return (int32_t)(res1);
 }
