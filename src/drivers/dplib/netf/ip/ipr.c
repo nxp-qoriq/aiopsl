@@ -662,13 +662,13 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	new_total_length = rfdc_ptr->current_total_length + ip_header_size;
 	old_ip_checksum = ipv4hdr_ptr->hdr_cksum;
 	ip_hdr_cksum = old_ip_checksum;
-	cksum_accumulative_update_uint32(ip_hdr_cksum,
+	ip_hdr_cksum = cksum_accumulative_update_uint32(ip_hdr_cksum,
 					 ipv4hdr_ptr->total_length,
 					 new_total_length);
 	ipv4hdr_ptr->total_length = new_total_length;
 
 	new_flags_and_offset = ipv4hdr_ptr->flags_and_offset & RESET_MF_BIT;
-	cksum_accumulative_update_uint32(
+	ip_hdr_cksum = cksum_accumulative_update_uint32(
 				 ip_hdr_cksum,
 				 ipv4hdr_ptr->flags_and_offset,
 				 new_flags_and_offset);
@@ -679,7 +679,7 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* L4 checksum Validation */
 	/* prepare gross running sum for L4 checksum validation by parser */
 	gross_running_sum = rfdc_ptr->current_running_sum;
-	cksum_accumulative_update_uint32(
+	gross_running_sum = cksum_accumulative_update_uint32(
 					gross_running_sum,
 					old_ip_checksum,
 					ipv4hdr_ptr->hdr_cksum);
