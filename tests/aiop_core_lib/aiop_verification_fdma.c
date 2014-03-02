@@ -58,8 +58,14 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_init_exp_command *str =
 			(struct fdma_init_exp_command *) asa_seg_addr;
 		struct fdma_present_frame_params params;
-		flags |= ((str->NDS)  ? FDMA_INIT_NDS_BIT  : 0x0);
-		flags |= ((str->SR)   ? FDMA_INIT_SR_BIT   : 0x0);
+		flags |= ((str->NDS) ? FDMA_INIT_NDS_BIT : 0x0);
+		flags |= ((str->SR) ? FDMA_INIT_SR_BIT : 0x0);
+		flags |= ((str->AS) ? FDMA_INIT_AS_BIT : 0x0);
+		if (str->AS) {
+			flags |= ((str->VA) ? FDMA_INIT_VA_BIT : 0x0);
+			flags |= ((str->PL) ? FDMA_INIT_PL_BIT : 0x0);
+			params.bdi_icid = str->bdi_icid;
+		}
 		params.asa_dst	= (void *)str->asa_dst;
 		params.asa_offset	= str->asa_offset;
 		params.asa_size		= str->asa_size;
@@ -95,10 +101,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_read_asa_command *str =
 			(struct fdma_read_asa_command *) asa_seg_addr;
-		flags |= ((str->SR) ? FDMA_PRES_SR_BIT : 0x0);
-		str->status = (int8_t)fdma_read_default_frame_asa(flags,
-				str->offset, str->present_size,
-				(void *)str->ws_dst);
+		str->status = (int8_t)fdma_read_default_frame_asa(
+				(void *)str->ws_dst,
+				str->offset, str->present_size);
 		str->seg_length = PRC_GET_ASA_SIZE();
 		str_size = (uint16_t)sizeof(struct fdma_read_asa_command);
 		break;
@@ -198,7 +203,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->qd_fqid, flags);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_store_and_enqueue_default_frame_qd(
@@ -220,11 +225,11 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		if (str->EIS) {
 			str->status = (int8_t)
 				fdma_store_and_enqueue_frame_fqid(
-					str->frame_handle,flags,
+					str->frame_handle, flags,
 					str->qd_fqid, str->spid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_store_and_enqueue_frame_qd(
@@ -245,7 +250,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
-		flags |= ((str->BMT) ? FDMA_ENF_BMT_BIT : 0x0);
 		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 
@@ -255,7 +259,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->icid, flags, str->qd_fqid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_enqueue_default_fd_qd(
@@ -275,7 +279,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
-		flags |= ((str->BMT) ? FDMA_ENF_BMT_BIT : 0x0);
 		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 
@@ -285,7 +288,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->qd_fqid, str->icid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
 				fdma_enqueue_fd_qd(&(str->fd), flags,
@@ -355,7 +358,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					flags, &(str->frame_handle2));
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.hash_value = str->hash_value;
+			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)fdma_replicate_frame_qd(
 					str->frame_handle1, str->spid,

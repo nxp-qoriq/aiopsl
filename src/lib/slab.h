@@ -10,7 +10,6 @@
 #define __SLAB_H
 
 #include "common/fsl_slab.h"
-#include "common/list.h"
 
 #define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 
@@ -96,5 +95,33 @@ int slab_module_init(void);
  @Return        None
  *//***************************************************************************/
 void slab_module_free(void);
+
+/**************************************************************************//**
+ @Function      slab_find_and_fill_bpid
+
+ @Description   Finds and fills buffer pool with new buffers
+ 
+                This function is part of SLAB module therefore it should be called only after
+                it has been initialized by slab_module_init()
+
+ @Param[in]     num_buffs           Number of buffers in new pool.
+ @Param[in]     buff_size           Size of buffers in pool.
+ @Param[in]     alignment           Requested alignment for data field (in bytes).
+                                    AIOP: HW pool supports up to 8 bytes alignment.
+ @Param[in]     mem_partition_id    Memory partition ID for allocation.
+                                    AIOP: HW pool supports only PEB and DPAA DDR.
+ @Param[out]    num_filled_buffs    Number of buffers that we succeeded to fill.                                    
+ @Param[out]    bpid                Id if the buffer that was filled with new buffers.
+
+ @Return        0       - on success, 
+               -ENAVAIL - could not release into bpid
+               -ENOMEM  - not enough memory for mem_partition_id
+ *//***************************************************************************/
+int slab_find_and_fill_bpid(uint16_t num_buffs, 
+                            uint16_t buff_size, 
+                            uint16_t alignment, 
+                            uint8_t  mem_partition_id,
+                            int      *num_filled_buffs,
+                            uint16_t *bpid);
 
 #endif /* __SLAB_H */

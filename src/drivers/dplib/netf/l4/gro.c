@@ -684,6 +684,7 @@ int32_t tcp_gro_flush_aggregation(
 	PRC_RESET_SR_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	sr_status = fdma_present_default_frame();
 
 	/* run parser since we don't know which scenario preceded
@@ -776,6 +777,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr)
 	PRC_RESET_SR_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	sr_status = fdma_present_default_frame();
 
 	/* run parser */

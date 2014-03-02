@@ -81,7 +81,7 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
-	enqueue_params.hash_value = 0;
+	enqueue_params.qdbin = 0;
 	enqueue_params.qd = dpni_drv->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
@@ -107,7 +107,7 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
-	enqueue_params.hash_value = 0;
+	enqueue_params.qdbin = 0;
 	enqueue_params.qd = dpni_drv->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	/* Assuming user already called fdma_create_frame() and saved fd in the

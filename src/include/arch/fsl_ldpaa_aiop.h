@@ -324,7 +324,7 @@
 #define LDPAA_FD_SET_SL(_fd, _val)
 	/** Macro to set FD FRC field */
 #define LDPAA_FD_SET_FRC(_fd, _val)					\
-	STW_SWAP(_val, FD_FRC_OFFSET);
+	STW_SWAP(_val, ((char *)_fd) + FD_FRC_OFFSET);
 	/** Macro to set FD ERR field */
 #define LDPAA_FD_SET_ERR(_fd, _val)
 	/** Macro to set FD VA field */
@@ -369,7 +369,7 @@
 #define LDPAA_FD_SET_FLC(_fd, _val)
 
 /* Additional FD Macros */
-	/** Macro to update FD LENGTH 
+	/** Macro to update FD LENGTH
 	  _from_size = new size
 	  _to_size = old size
 	 */
