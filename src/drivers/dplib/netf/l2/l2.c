@@ -200,7 +200,8 @@ int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 	 * (1 cycle less - e_rlwinm r8,r8,0,19,15) */
 	/* Optimization: using constructed_vlan variable remove 1 cycle of
 	 * store to stack */
-	constructed_vlan = (vlan_pcp & VLAN_PCP_MASK) |\
+	/* Optimization: using VLAN_PCP_MASK to remove 1 or cycle */
+	constructed_vlan = ((vlan_pcp << VLAN_PCP_SHIFT) & VLAN_PCP_MASK) |\
 			(*vlan_ptr & ~VLAN_PCP_MASK);
 
 	*vlan_ptr = constructed_vlan;
@@ -219,7 +220,6 @@ void l2_push_vlan(uint16_t ethertype)
 {
 	uint32_t fdma_flags;
 	uint16_t vlan_offset;
-	uint32_t *vlan_ptr;
 	uint32_t inserted_vlan;
 	uint32_t *inserted_vlan_ptr;
 	struct   parse_result *pr =
