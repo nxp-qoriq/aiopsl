@@ -38,7 +38,8 @@ void aiop_verification_fm()
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
 			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
 		} else { /* PTA was not loaded */
-			if (!fdma_read_default_frame_pta((void *)data_addr))
+			if (fdma_read_default_frame_pta((void *)data_addr) !=
+					FDMA_SUCCESS)
 				return;
 			ext_address = *((uint64_t *)data_addr);
 			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
@@ -49,7 +50,7 @@ void aiop_verification_fm()
 		present_params.offset = 8;
 		present_params.present_size = 8;
 		present_params.ws_dst = (void *)&ext_address;
-		if (!fdma_present_frame_segment(&present_params))
+		if (fdma_present_frame_segment(&present_params) != FDMA_SUCCESS)
 			return;
 	}
 	initial_ext_address = ext_address;
@@ -219,7 +220,7 @@ void aiop_verif_init_parser()
 	verif_parse_profile.mpls_hxs_config.en_erm_soft_seq_start = 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
 	verif_parse_profile.mpls_hxs_config.lie_dnp =
-			PARSER_PRP_MPLS_HXS_CONFIG_LIE | PARSER_IP_STARTING_HXS;
+			PARSER_PRP_MPLS_HXS_CONFIG_LIE;
 	verif_parse_profile.arp_hxs_config = 0x0;
 	verif_parse_profile.ip_hxs_config = 0x0;
 	verif_parse_profile.ipv4_hxs_config = 0x0;
