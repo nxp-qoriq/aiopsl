@@ -48,9 +48,9 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		tbl_params->committed_rules;
 
 	/* Calculate the number of entries each rule occupies */
-	switch (type & CTLU_TBL_ATTRIBUTE_TYPE_MASK) {
+	switch (type & TABLE_ATTRIBUTE_TYPE_MASK) {
 
-	case CTLU_TBL_ATTRIBUTE_TYPE_EM:
+	case TABLE_ATTRIBUTE_TYPE_EM:
 		if (key_size > CTLU_SINGLE_ENTRY_RULE_KEY_SIZE) {
 			num_entries_per_rule += ((((key_size -
 			CTLU_MULTIPLE_ENTRY_RULE_LAST_ENTRY_KEY_SIZE) - 1)
@@ -69,7 +69,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		/* else, already initialized to one */
 		break;
 
-	case CTLU_TBL_ATTRIBUTE_TYPE_LPM:
+	case TABLE_ATTRIBUTE_TYPE_LPM:
 		if (key_size > CTLU_MAX_LPM_EM4_IPV4_KEY_SIZE) {
 			/* IPv6*/
 			num_entries_per_rule =

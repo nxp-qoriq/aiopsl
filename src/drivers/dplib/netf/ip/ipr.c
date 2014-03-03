@@ -79,15 +79,18 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		(uint32_t)(ipr_global_parameters1.ipr_table_location<<24)\
 		& 0x03000000;
 		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_INT;
+			/* Doron */
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_PEB;
-		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT)
-			/* Doron - TODO */
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_EXT1;
-		tbl_params.attributes = CTLU_TBL_ATTRIBUTE_TYPE_EM | \
+			/* Doron */
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
+		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
+			/* Doron - TODO EXT 2 */
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+			/* Doron */
+		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
-				CTLU_TBL_ATTRIBUTE_MR_NO_MISS;
+				TABLE_ATTRIBUTE_MR_NO_MISS;
 		err = table_create(TABLE_ACCEL_ID_CTLU, /* Doron */
 				&tbl_params,
 				&ipr_instance.table_id_ipv4);
