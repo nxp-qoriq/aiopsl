@@ -66,8 +66,6 @@ int32_t fdma_present_default_frame(void)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET))) &
 			PRC_SEGMENT_HANDLE_MASK);
 
-		(flags & FDMA_INIT_NDS_BIT) ? PRC_SET_NDS_BIT() :
-				PRC_RESET_NDS_BIT();
 #if NAS_NPS_ENABLE
 		(flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
 				PRC_RESET_NAS_BIT();
@@ -152,6 +150,8 @@ int32_t fdma_present_frame(
 				prc->seg_offset = params->seg_offset;
 				if (params->flags & FDMA_INIT_SR_BIT)
 					PRC_SET_SR_BIT();
+				else
+					PRC_RESET_SR_BIT();
 				prc->handles = ((params->frame_handle <<
 						PRC_FRAME_HANDLE_BIT_OFFSET) &
 						PRC_FRAME_HANDLE_MASK) |
@@ -251,14 +251,20 @@ int32_t fdma_present_default_frame_segment(
 	__accel_call() should return success/fail indication */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
-	PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
-	PRC_SET_SEGMENT_OFFSET(offset);
-	PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
-	PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
-					FDMA_SEG_HANDLE_OFFSET)));
-	PRC_SET_NDS_BIT();
-
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if (res1 >= FDMA_SUCCESS) {
+		PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
+		PRC_SET_SEGMENT_OFFSET(offset);
+		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
+		PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+						FDMA_SEG_HANDLE_OFFSET)));
+		PRC_RESET_NDS_BIT();
+		if (flags & FDMA_PRES_SR_BIT)
+			PRC_SET_SR_BIT();
+		else
+			PRC_RESET_SR_BIT();
+	}
+
 	return (int32_t)(res1);
 }
 
@@ -322,7 +328,7 @@ int32_t fdma_read_default_frame_asa(
 						PRC_ASAPS_MASK);
 	PRC_SET_ASA_OFFSET(offset);
 #if NAS_NPS_ENABLE
-	PRC_SET_NAS_BIT();
+	PRC_RESET_NAS_BIT();
 #endif /*NAS_NPS_ENABLE*/
 	return (int32_t)(res1);
 }
@@ -351,7 +357,7 @@ int32_t fdma_read_default_frame_pta(
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	PRC_SET_PTA_ADDRESS((uint16_t)((uint32_t)ws_dst));
 #if NAS_NPS_ENABLE
-	PRC_SET_NPS_BIT();
+	PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
 	return (int32_t)(res1);
 }

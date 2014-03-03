@@ -134,9 +134,9 @@ enum fdma_hw_errors {
 *//***************************************************************************/
 enum fdma_sw_errors {
 		/** The segment handle does not represent a Data segment. */
-	FDMA_NO_DATA_SEGMENT_HANDLE = 0x70,
+	FDMA_NO_DATA_SEGMENT_HANDLE = 0x80000070,
 		/** Invalid PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS). */
-	FDMA_INVALID_PTA_ADDRESS = 0x71
+	FDMA_INVALID_PTA_ADDRESS = 0x80000071
 };
 
 /* @} end of enum fdma_sw_errors */
