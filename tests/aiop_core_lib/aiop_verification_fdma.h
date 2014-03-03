@@ -319,6 +319,8 @@ struct fdma_read_asa_command {
 	uint16_t seg_length;
 		/** Command returned status. */
 	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
