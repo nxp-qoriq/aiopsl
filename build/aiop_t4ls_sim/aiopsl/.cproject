@@ -31,8 +31,8 @@
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1824920422" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf" value="com.freescale.ppc.toolchain.sharedoption.dwarf.2" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.1068387856" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym" value="true" valueType="boolean"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.284791920" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor" value="com.freescale.ppc.toolchain.sharedoption.processor.zen" valueType="enumerated"/>
-							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.198236227" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="0" valueType="string"/>
-							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.490107511" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
+							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.198236227" name="Small Data" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="0" valueType="string"/>
+							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.490107511" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.2126422044" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
 							<builder autoBuildTarget="" buildPath="${ProjDirPath}/out" cleanBuildTarget="" enableAutoBuild="true" enableCleanBuild="true" enabledIncrementalBuild="true" id="com.freescale.ppc.toolchain.builder.459361658" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
 							<tool id="com.freescale.ppc.toolchain.linker.1985844452" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker">
@@ -55,7 +55,6 @@
 									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/platform/ls2100a_aiop/platform.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni_drv.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/serial/duart/duart.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif_client.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/console.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/error.c"/>
@@ -67,12 +66,32 @@
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/sys.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/sys_mem_mng.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/list.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/lib/memcpy.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/slab.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/slob.c"/>
 									<listOptionValue builtIn="false" value="cw_files/start.c"/>
-									<listOptionValue builtIn="false" value="cw_files/start_secondary.S"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l2/l2.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/cdma.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/ctlu.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/fdma.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/osm.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/parser.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/ste.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/system.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/tman.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/virtual_pools.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni_drv_rxtx.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dprc/dprc.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/ip/ip.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/ip/ipf.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/ip/ipv4_checksum.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/gro.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/gso.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/l4.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/l4_checksum.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/nat/nat.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/util/checksum.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif_srv.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/lib/inet.c"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption.454800088" name="Output Type" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption" value="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption.library" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.eol.1362915637" name="EOL Character:" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.eol" value="com.freescale.ppc.toolchain.linker.base.generateSrec.unix" valueType="enumerated"/>
@@ -91,6 +110,7 @@
 									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_Runtime/Runtime_PA/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/dplib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/net&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/arch&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1857545294" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive"/>

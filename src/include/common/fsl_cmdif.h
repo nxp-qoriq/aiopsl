@@ -3,17 +3,16 @@
 
  @File          fsl_cmdif.h
 
- @Description   Contains the client and server API defintion of the command interface APIs
+ @Description   TODO
  *//***************************************************************************/
 
 #ifndef __FSL_CMDIF_H
 #define __FSL_CMDIF_H
 
 /**************************************************************************//**
- @Group         cmdif_g  CMDIF (Command Interface)
+ @Group         cmdif_g  Command Interface API
 
- @Description   Command Interface API is responsible for the communicatioin 
-                over the GPP, AIOP and MC boundaries.
+ @Description   TODO
 
  @{
  *//***************************************************************************/
@@ -49,12 +48,16 @@ struct cmdif_desc {
 	 * user must zero it if not needed.
 	 */
 };
+
 enum cmdif_module {
 	CMDIF_MOD_DPRC,
 	CMDIF_MOD_DPNI,
+	CMDIF_MOD_DPMAC,
 	CMDIF_MOD_DPIO,
-	CMDIF_MOD_DPSP,
-	CMDIF_MOD_DPSW
+	CMDIF_MOD_DPBP,
+	CMDIF_MOD_DPSW,
+	CMDIF_MOD_DPDMUX,
+	CMDIF_MOD_DPCON
 };
 
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
@@ -63,7 +66,7 @@ enum cmdif_module {
 /**************************************************************************//**
  @Group         cmdif_server_g  Command Interface - Server API
 
- @Description   Thoe are the APIs available at the service provider side
+ @Description   TODO
 
  @{
  *//***************************************************************************/
@@ -71,18 +74,51 @@ enum cmdif_module {
 /**************************************************************************//**
  @Description   TODO
  *//***************************************************************************/
+/**************************************************************************//**
+ @Description    Open callback.
+
+ User provides this function. Driver invokes it when it gets establish instance command.
+
+ @Param[in]     handle      - device handle.
+ @Param[in]     cmdif_cmd   - pointer to the init command, should include all that needed for initialization of a module:
+ icid, ports,etc..
+ @Return        Handle to instance object, or NULL for Failure.
+ *//***************************************************************************/
+typedef int (open_cb_t)(void *dev);
+
+/**************************************************************************//**
+ @Description   De-init callback.
+
+ User provides this function. Driver invokes it when it gets
+ terminate instance command.
+
+ @Param[in]     dev         A handle of the device.
+
+ @Return        OK on success; error code, otherwise.
+ *//***************************************************************************/
+typedef int (close_cb_t)(void *dev);
+
+/**************************************************************************//**
+ @Description   Control callback.
+
+ User provides this function. Driver invokes it for all runtime commands
+
+ @Param[in]     dev         A handle of the device.
+ @Param[in]     cmd         TODO
+ @Param[in]     size        TODO
+ @Param[in]     desc        A pointer of the command
+
+ @Return        OK on success; error code, otherwise.
+ *//***************************************************************************/
+typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint16_t size, uint8_t *data);
+
+/**************************************************************************//**
+ @Description   TODO
+ *//***************************************************************************/
 struct cmdif_module_ops {
-	int (*open_cb)(void *dev);
-	/*!< The server calls this function when  an 'open' command is received. */
-
-	int (*close_cb)(void *dev);
-	/*!< The server calls this function when  a 'close' command is received. */
-
-	int (*ctrl_cb)(void *dev,
-	               uint16_t cmd,
-	               uint16_t size,
-	               uint8_t *cmd_data);
-	/*!< The server calls this function when any control command is received. */
+	open_cb_t *open_cb;
+	close_cb_t *close_cb;
+	ctrl_cb_t *ctrl_cb;
 };
 
 /**************************************************************************//**
@@ -116,7 +152,7 @@ int cmdif_close_dev(void *dev);
 /**************************************************************************//**
  @Group         cmdif_client_g  Command Interface - Client API
 
- @Description   Command Interfaces - Client Side
+ @Description   TODO
 
  @{
  *//***************************************************************************/
