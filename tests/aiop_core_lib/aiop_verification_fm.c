@@ -38,7 +38,8 @@ void aiop_verification_fm()
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
 			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
 		} else { /* PTA was not loaded */
-			if (!fdma_read_default_frame_pta((void *)data_addr))
+			if (fdma_read_default_frame_pta((void *)data_addr) !=
+					FDMA_SUCCESS)
 				return;
 			ext_address = *((uint64_t *)data_addr);
 			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
@@ -49,7 +50,7 @@ void aiop_verification_fm()
 		present_params.offset = 8;
 		present_params.present_size = 8;
 		present_params.ws_dst = (void *)&ext_address;
-		if (!fdma_present_frame_segment(&present_params))
+		if (fdma_present_frame_segment(&present_params) != FDMA_SUCCESS)
 			return;
 	}
 	initial_ext_address = ext_address;
