@@ -1,4 +1,3 @@
-
 #include <fsl_dplib_sys.h>
 #include <fsl_cmdif.h>
 #include <fsl_cmdif_mc.h>
@@ -53,7 +52,7 @@ int cmdif_open(struct cmdif_desc *cidesc,
                int instance_id)
 {
 	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
-	struct mc_cmd_data cmd_data = { 0 };
+	struct mc_cmd_data cmd_data = {{ 0 }};
 	uint16_t auth_id;
 	int ret, i;
 
@@ -61,7 +60,8 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	        { { CMDIF_MOD_DPRC, MC_DPRC_CMDID_OPEN },
 	          { CMDIF_MOD_DPNI, MC_DPNI_CMDID_OPEN },
 	          { CMDIF_MOD_DPIO, MC_DPIO_CMDID_OPEN },
-	          { CMDIF_MOD_DPSP, MC_DPSP_CMDID_OPEN },
+	          { CMDIF_MOD_DPBP, MC_DPBP_CMDID_OPEN },
+	          { CMDIF_MOD_DPDMUX, MC_DPDMUX_CMDID_OPEN },
 	          { CMDIF_MOD_DPSW, MC_DPSW_CMDID_OPEN } };
 
 	for (i = 0; i < ARRAY_SIZE(cmd_map); i++)
