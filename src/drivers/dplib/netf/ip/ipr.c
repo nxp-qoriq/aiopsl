@@ -602,6 +602,7 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 			  2*FD_SIZE);
 		/* Open frame and get frame handle */
 		present_frame_params.fd_src = fds_to_concatenate;
+		fdma_present_frame(&present_frame_params);
 		frame_handle2 = present_frame_params.frame_handle;
 		concatenate_frame_params.frame2 = (uint16_t) frame_handle2;
 		/* Take header size to be removed from FD[FRC] */
@@ -612,6 +613,7 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 
 		/* Open frame and get frame handle */
 		present_frame_params.fd_src = fds_to_concatenate + 1;
+		fdma_present_frame(&present_frame_params);
 		frame_handle2 = present_frame_params.frame_handle;
 		concatenate_frame_params.frame2 = (uint16_t) frame_handle2;
 		/* Take header size to be removed from FD[FRC] */
@@ -631,6 +633,7 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 			  FD_SIZE);
 
 		present_frame_params.fd_src = fds_to_concatenate;
+		fdma_present_frame(&present_frame_params);
 		frame_handle2 = present_frame_params.frame_handle;
 		concatenate_frame_params.frame2 =
 					      (uint16_t) frame_handle2;
@@ -673,13 +676,13 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	new_total_length = rfdc_ptr->current_total_length + ip_header_size;
 	old_ip_checksum = ipv4hdr_ptr->hdr_cksum;
 	ip_hdr_cksum = old_ip_checksum;
-	cksum_accumulative_update_uint32(ip_hdr_cksum,
+	ip_hdr_cksum = cksum_accumulative_update_uint32(ip_hdr_cksum,
 					 ipv4hdr_ptr->total_length,
 					 new_total_length);
 	ipv4hdr_ptr->total_length = new_total_length;
 
 	new_flags_and_offset = ipv4hdr_ptr->flags_and_offset & RESET_MF_BIT;
-	cksum_accumulative_update_uint32(
+	ip_hdr_cksum = cksum_accumulative_update_uint32(
 				 ip_hdr_cksum,
 				 ipv4hdr_ptr->flags_and_offset,
 				 new_flags_and_offset);
@@ -690,7 +693,7 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* L4 checksum Validation */
 	/* prepare gross running sum for L4 checksum validation by parser */
 	gross_running_sum = rfdc_ptr->current_running_sum;
-	cksum_accumulative_update_uint32(
+	gross_running_sum = cksum_accumulative_update_uint32(
 					gross_running_sum,
 					old_ip_checksum,
 					ipv4hdr_ptr->hdr_cksum);

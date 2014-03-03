@@ -96,11 +96,13 @@ int slab_find_and_fill_bpid(uint16_t num_buffs,
      * It's an easy implementation
      * TODO icid != 0 for fdma_release_buffer  ??
      */
+    *num_filled_buffs = 0;
     for (i = 0; i < num_buffs; i++) {
         
         addr = (dma_addr_t)fsl_os_xmalloc(new_buff_size, mem_partition_id, new_alignment);
         if (addr == NULL) {
-            free_buffs_from_bman_pool(*bpid, *num_filled_buffs);
+            /* Free buffs that we already filled */
+            free_buffs_from_bman_pool(*bpid, i);
             return -ENOMEM;        
         }
         addr = fsl_os_virt_to_phys((void *)addr);  
@@ -108,9 +110,8 @@ int slab_find_and_fill_bpid(uint16_t num_buffs,
         /* Isolation is enabled */
         if (fdma_release_buffer(SLAB_FDMA_ICID, FDMA_RELEASE_NO_FLAGS, *bpid, addr)) {
             fsl_os_xfree(fsl_os_phys_to_virt(addr));
-            /* Do something with the buffers that were released before this failure - free them */
-            free_buffs_from_bman_pool(*bpid, i + 1);
-            *num_filled_buffs = 0;
+            /* Free buffs that we already filled */
+            free_buffs_from_bman_pool(*bpid, i);
             return -ENAVAIL;
         }
     }
