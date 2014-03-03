@@ -37,7 +37,7 @@
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU_TABLE_ATTRIBUTES Table Attributes
+@Group	FSL_TABLE_ATTRIBUTES Table Attributes
 
 @Description	Table Attributes
 
@@ -48,15 +48,15 @@
 	- Aging Threshold field
 
 	For more details of each one of the sub fields, please refer to:
-	- \ref FSL_CTLU_TABLE_ATTRIBUTE_TYPE
-	- \ref FSL_CTLU_TABLE_ATTRIBUTE_LOCATION
-	- \ref FSL_CTLU_TABLE_ATTRIBUTE_MR
-	- \ref FSL_CTLU_TABLE_ATTRIBUTE_AGT
+	- \ref FSL_TABLE_ATTRIBUTE_TYPE
+	- \ref FSL_TABLE_ATTRIBUTE_LOCATION
+	- \ref FSL_TABLE_ATTRIBUTE_MR
+	- \ref FSL_TABLE_ATTRIBUTE_AGT
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_CTLU_TABLE_ATTRIBUTE_TYPE Table Type Attribute
+@Group	FSL_TABLE_ATTRIBUTE_TYPE Table Type Attribute
 
 @Description	Table Type
 
@@ -66,30 +66,30 @@
 @{
 *//***************************************************************************/
 	/** Exact Match table */
-#define CTLU_TBL_ATTRIBUTE_TYPE_EM		0x0000
+#define TABLE_ATTRIBUTE_TYPE_EM		0x0000
 
 	/** Longest Prefix Match table */
-#define CTLU_TBL_ATTRIBUTE_TYPE_LPM		0x1000
+#define TABLE_ATTRIBUTE_TYPE_LPM	0x1000
 
 /*
 	 Ternary match Table for ACL
-#define CTLU_TBL_ATTRIBUTE_TYPE_TCAM_ACL	0x2000
+#define TABLE_ATTRIBUTE_TYPE_TCAM_ACL	0x2000
 
 	 Algorithmic ACL
-#define CTLU_TBL_ATTRIBUTE_TYPE_ALG_ACL		0x4000
+#define TABLE_ATTRIBUTE_TYPE_ALG_ACL	0x4000
 */
 
 	/** Table type sub field mask */
-#define CTLU_TBL_ATTRIBUTE_TYPE_MASK		0xF000
+#define TABLE_ATTRIBUTE_TYPE_MASK	0xF000
 
 	/** Table type sub field offset */
-#define CTLU_TBL_ATTRIBUTE_TYPE_OFFSET		12
+#define TABLE_ATTRIBUTE_TYPE_OFFSET	12
 
 /** @} */ /* end of FSL_CTLU_TABLE_TYPE */
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU_TABLE_ATTRIBUTE_LOCATION Table Location Attribute
+@Group	FSL_TABLE_ATTRIBUTE_LOCATION Table Location Attribute
 
 @Description	Table Location
 
@@ -99,26 +99,33 @@
 		defines):
 @{
 *//***************************************************************************/
-	/** Internal table (located in dedicated RAM) */
-#define CTLU_TABLE_ATTRIBUTE_LOCATION_INT	0x0000
+	/** Internal table (located in dedicated RAM), Not available for 
+	 * MFLU Table HW Accelerator */
+#define TABLE_ATTRIBUTE_LOCATION_INT	0x0200
 
-	/** Packet Express Buffer table */
-#define CTLU_TABLE_ATTRIBUTE_LOCATION_PEB	0x0200
+	/** Packet Express Buffer table (Exact memory region is specified by
+	 * the user at the initialization time of the Table HW Accelerator) */
+#define TABLE_ATTRIBUTE_LOCATION_PEB	0x0300
 
-	/** External table (located in DDR) */
-#define CTLU_TABLE_ATTRIBUTE_LOCATION_EXT	0x0300
+	/** External table 1 (Exact memory region is specified by the user at
+	 * the initialization time of the Table HW Accelerator) */
+#define TABLE_ATTRIBUTE_LOCATION_EXT1	0x0400
+
+	/** External table 2 (Exact memory region is specified by the user at
+	 * the initialization time of the Table HW Accelerator) */
+#define TABLE_ATTRIBUTE_LOCATION_EXT2	0x0500
 
 	/** Table Location sub field mask */
-#define CTLU_TABLE_ATTRIBUTE_LOCATION_MASK	0x0300
+#define TABLE_ATTRIBUTE_LOCATION_MASK	0x0700
 
 	/** Table Location sub field offset */
-#define CTLU_TBL_TYPE_IEX_OFFSET		8
+#define TABLE_TYPE_IEX_OFFSET		8
 
 /** @} */ /* end of FSL_CTLU_TABLE_ATTRIBUTE_LOCATION */
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU_TABLE_ATTRIBUTE_MR Table Miss Result Attribute
+@Group	FSL_TABLE_ATTRIBUTE_MR Table Miss Result Attribute
 
 @Description	Table Miss Result Options
 
@@ -128,22 +135,22 @@
 @{
 *//***************************************************************************/
 	/** Table without miss result */
-#define CTLU_TBL_ATTRIBUTE_MR_NO_MISS	0x0000
+#define TABLE_ATTRIBUTE_MR_NO_MISS	0x0000
 
 	/** Table with miss result */
-#define CTLU_TBL_ATTRIBUTE_MR_MISS	0x0080
+#define TABLE_ATTRIBUTE_MR_MISS		0x0080
 
 	/** Miss result options sub field mask */
-#define CTLU_TABLE_ATTRIBUTE_MR_MASK	0x00C0
+#define TABLE_ATTRIBUTE_MR_MASK	0x00C0
 
 	/** Miss result options sub field offset */
-#define CTLU_TABLE_ATTRIBUTE_MR_OFFSET	6
+#define TABLE_ATTRIBUTE_MR_OFFSET	6
 
-/** @} */ /* end of FSL_CTLU_TABLE_ATTRIBUTE_MR */
+/** @} */ /* end of FSL_TABLE_ATTRIBUTE_MR */
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU_TABLE_ATTRIBUTE_AGT Table Aging Threshold Attribute
+@Group	FSL_TABLE_ATTRIBUTE_AGT Table Aging Threshold Attribute
 
 @Description	Table Aging Threshold
 
@@ -151,30 +158,33 @@
 	the sub field.
 	Aging Threshold is used for removal of aged rules in the table.
 	This feature is only enabled to table rules in which
-	\ref CTLU_RULE_TIMESTAMP_AGT_ENABLE is enabled in rule[options].
+	\ref TABLE_RULE_TIMESTAMP_AGT_ENABLE is enabled in rule[options].
 	If enabled, and Current timestamp - rule[timestamp] > 2^AGT (where AGT
 	is the value configured in this sub field ) the aging
 	function removes the lookup table rule from the lookup table.
 	The units in which timestamp is measured are determined according to
 	CTLU IOP_CTLU_TIMESTAMP_WINDOW register configuration.
-	The sub field is specified by \ref CTLU_TABLE_ATTRIBUTE_AGT_MASK
-	and \ref CTLU_TABLE_ATTRIBUTE_AGT_OFFSET (The mask determines the
-	size and position of the field).
+	The sub field is specified by \ref TABLE_ATTRIBUTE_AGT_MASK and
+	\ref TABLE_ATTRIBUTE_AGT_OFFSET (The mask determines the size and
+	position of the field).
 	NOTE: This field must be cleared unless \ref
-	FSL_CTLU_TABLE_ATTRIBUTE_TYPE is set to CTLU_TBL_ATTRIBUTE_TYPE_EM
+	FSL_TABLE_ATTRIBUTE_TYPE is set to TBL_ATTRIBUTE_TYPE_EM
 	(i.e. This field can only be used in exact match tables).
+
+@Cautions	This feature is currently only available for CTLU Table
+		Accelerator.
 
 @{
 *//***************************************************************************/
 	/** Aging Threshold Mask */
-#define CTLU_TABLE_ATTRIBUTE_AGT_MASK	0x001F
+#define TABLE_ATTRIBUTE_AGT_MASK	0x001F
 
 	/** Aging Threshold field offset */
-#define CTLU_TABLE_ATTRIBUTE_AGT_OFFSET	0
+#define TABLE_ATTRIBUTE_AGT_OFFSET	0
 
-/** @} */ /* end of FSL_CTLU_TABLE_ATTRIBUTE_AGT */
+/** @} */ /* end of FSL_TABLE_ATTRIBUTE_AGT */
 
-/** @} */ /* end of FSL_CTLU_TABLE_ATTRIBUTES */
+/** @} */ /* end of FSL_TABLE_ATTRIBUTES */
 
 
 /**************************************************************************//**

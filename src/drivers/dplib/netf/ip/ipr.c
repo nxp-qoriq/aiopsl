@@ -83,7 +83,8 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_EXT;
+			/* Doron - TODO */
+			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_EXT1;
 		tbl_params.attributes = CTLU_TBL_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				CTLU_TBL_ATTRIBUTE_MR_NO_MISS;
