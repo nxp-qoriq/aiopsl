@@ -101,15 +101,17 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		}
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
 			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
-			options_size = (tcp_ptr->data_offset_reserved << 
+			options_size = (tcp_ptr->data_offset_reserved >> 
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 && !mss_found && (options_ptr < l5_ptr)) {
+			while (*options_ptr != 0 && !mss_found && (options_ptr<
+					l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
 					modify_size = options_size;
@@ -128,7 +130,8 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 
 			}
 			if (!mss_found) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 
@@ -148,7 +151,8 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
 			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 			
@@ -157,7 +161,8 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 && !mss_found && (options_ptr < l5_ptr)) {
+			while (*options_ptr != 0 && !mss_found && (options_ptr<
+					l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
 					modify_size = options_size;
@@ -169,7 +174,8 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 					options_ptr++;
 			}
 			if (!mss_found) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 		}

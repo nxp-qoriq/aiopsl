@@ -12,6 +12,7 @@
 #include "common/types.h"
 #include "dplib/fsl_ipr.h"
 #include "dplib/fsl_osm.h"
+#include "fdma.h"
 
 
 /**************************************************************************//**
@@ -37,7 +38,7 @@
 #define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
 #define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
 #define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
-#define RFDC_VALID			0x80
+#define RFDC_VALID			0x80000000
 #define FRAG_OFFSET_MASK		0x1FFF
 #define IPV4_FRAME			0x00000000 /* in RFDC status */
 #define IPV6_FRAME			0x00000001 /* in RFDC status */
@@ -99,12 +100,20 @@ struct ipr_rfdc{
 	uint8_t		next_index;
 	uint8_t		index_to_out_of_order;
 	uint8_t		num_of_frags;
-	uint8_t		status;
-//	uint32_t	status;
-	uint64_t	key[4];
+	uint8_t		res;
+	uint32_t	status;
+	struct 		fdma_isolation_attributes isolation_bits; // 4 bytes
+	uint64_t	ipv4_key[2];
+	uint32_t	res1[3];
+};
+#pragma pack(pop)
+
+#pragma pack(push,1) 
+struct extended_ipr_rfc{
+	uint64_t	ipv6_key[4];
 	uint32_t	ipv6_key_cont;
 };
-#pragma pack(pop) 
+#pragma pack(pop)
 
 
 struct link_list_element{
