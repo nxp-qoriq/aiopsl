@@ -55,7 +55,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			    ipr_instance_handle_t *ipr_instance_ptr)
 {
 	struct ipr_instance ipr_instance;
-	struct ctlu_table_create_params tbl_params;
+	struct table_create_params tbl_params;
 	int32_t err;
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
 	uint16_t table_location_attr;
@@ -79,14 +79,18 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		(uint32_t)(ipr_global_parameters1.ipr_table_location<<24)\
 		& 0x03000000;
 		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_INT;
+			/* Doron */
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_PEB;
-		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_EXT;
-		tbl_params.attributes = CTLU_TBL_ATTRIBUTE_TYPE_EM | \
+			/* Doron */
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
+		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
+			/* Doron - TODO EXT 2 */
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+			/* Doron */
+		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
-				CTLU_TBL_ATTRIBUTE_MR_NO_MISS;
+				TABLE_ATTRIBUTE_MR_NO_MISS;
 		err = table_create(TABLE_ACCEL_ID_CTLU, /* Doron */
 				&tbl_params,
 				&ipr_instance.table_id_ipv4);
@@ -177,8 +181,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct	ipv4hdr	*ipv4hdr_ptr;
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
-	struct ctlu_lookup_result lookup_result;
-	struct ctlu_table_rule rule;
+	struct table_lookup_result lookup_result;
+	struct table_rule rule;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
@@ -254,10 +258,20 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				if (!(rfdc.status & RFDC_VALID)) {
 					move_to_correct_ordering_scope2(
 								   osm_status);
-					cdma_write_release_lock_and_decrement(
+				/*	cdma_write_release_lock_and_decrement(
 								rfdc_ext_addr,
 								(void *)&rfdc,
-								RFDC_SIZE);
+								RFDC_SIZE); */
+					cdma_access_context_memory(
+					      rfdc_ext_addr,
+					      CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
+					      CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+					      NULL,
+					      &rfdc,
+					      CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
+					      | RFDC_SIZE,
+					      (uint16_t *)REF_COUNT_ADDR_DUMMY);
+
 				   /* Early Time out */
 				   return IPR_ERROR;
 				}
@@ -276,7 +290,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    /* Lock RFDC + increment reference count*/
 			    cdma_access_context_memory(
 				     rfdc_ext_addr,
-				     CDMA_ACCESS_CONTEXT_MEM_AA_BIT |
 				     CDMA_ACCESS_CONTEXT_MEM_MUTEX_WRITE_LOCK |
 				     CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
 				     0,
@@ -303,8 +316,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					    &rule,
 					    keysize);
 			    /* store key in RDFC */
-			    rfdc.key[0] = *(uint64_t *)rule.key.key_em.key;
-			    rfdc.key[1] = *(uint64_t *)(rule.key.key_em.key+8);
+			    rfdc.ipv4_key[0] = *(uint64_t *)rule.key.key_em.key;
+			    rfdc.ipv4_key[1] = 
+					   *(uint64_t *)(rule.key.key_em.key+8);
 			    /* todo release struct rule  or call function for
 			     * gen+add rule */
 			    rfdc.status = RFDC_VALID;
@@ -314,6 +328,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    rfdc.index_to_out_of_order = 0;
 			    rfdc.next_index = 0;
 			    rfdc.current_total_length = 0;
+			    get_default_amq_attributes(&rfdc.isolation_bits);
 
 			    /* create Timer in TMAN */
 /*
@@ -398,10 +413,20 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		if (ip_header_update_and_l4_validation(&rfdc) == SUCCESS) {
 			/* L4 checksum is valid */
 			/* Write and release updated 64 first bytes of RFDC */
-			cdma_write_release_lock_and_decrement(
+			/*cdma_write_release_lock_and_decrement(
 					       rfdc_ext_addr,
 					       &rfdc,
-					       RFDC_SIZE);
+					       RFDC_SIZE); */
+			cdma_access_context_memory(
+				  rfdc_ext_addr,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
+				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  NULL,
+				  &rfdc,
+				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
+				  RFDC_SIZE,
+				  (uint16_t *)REF_COUNT_ADDR_DUMMY);
+
 
 			move_to_correct_ordering_scope2(osm_status);
 
@@ -415,7 +440,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			/* Write and unlock instance params */
 			cdma_access_context_memory(
 					instance_handle,
-					CDMA_ACCESS_CONTEXT_MEM_AA_BIT,
+					NULL,
 					0,
 					(void *)&instance_params,
 					CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
@@ -539,11 +564,8 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 	struct		ldpaa_fd fds_to_concatenate[2] \
 			     __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint64_t	fds_to_fetch_addr;
-	uint8_t		frame_handle1;
-	uint8_t		frame_handle2;
 	uint8_t		num_of_frags;
-	struct		fdma_concatenate_frames_params concatenate_frame_params;
-	struct		fdma_present_frame_params present_frame_params;
+	struct		fdma_concatenate_frames_params concatenate_params;
 	struct		parse_result *pr =
 				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct		presentation_context *prc =
@@ -566,29 +588,24 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 
 	/* Open 1rst frame and get frame handle */
 	fdma_present_default_frame();
-	frame_handle1 = PRC_GET_FRAME_HANDLE();
+//	fdma_present_default_frame_without_segments();
 
 	/* Open 2nd frame and get frame handle */
-	present_frame_params.flags	= FDMA_INIT_NDS_BIT;
-	present_frame_params.asa_size	= 0;
-	present_frame_params.pta_dst	= (void *)PRC_PTA_NOT_LOADED_ADDRESS;
-	present_frame_params.fd_src	= fds_to_concatenate+1;
-
-	fdma_present_frame(&present_frame_params);
-	frame_handle2 = present_frame_params.frame_handle;
+	fdma_present_frame_without_segments(
+		   fds_to_concatenate+1,
+		   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));
 
 	if (0)/* SF_MODE */
-		concatenate_frame_params.flags = FDMA_CONCAT_SF_BIT;
+		concatenate_params.flags = FDMA_CONCAT_SF_BIT;
 	else
-		concatenate_frame_params.flags = FDMA_CONCAT_NO_FLAGS;
+		concatenate_params.flags = FDMA_CONCAT_NO_FLAGS;
 
-	concatenate_frame_params.spid = *((uint8_t *) HWC_SPID_ADDRESS);
-	concatenate_frame_params.frame1 = (uint16_t) frame_handle1;
-	concatenate_frame_params.frame2 = (uint16_t) frame_handle2;
+	concatenate_params.spid = *((uint8_t *) HWC_SPID_ADDRESS);
+	concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 	/* Take header size to be removed from 2nd FD[FRC] */
-	concatenate_frame_params.trim = (uint8_t)fds_to_concatenate[1].frc;
+	concatenate_params.trim = (uint8_t)fds_to_concatenate[1].frc;
 
-	fdma_concatenate_frames(&concatenate_frame_params);
+	fdma_concatenate_frames(&concatenate_params);
 	num_of_frags = rfdc_ptr->num_of_frags - 2;
 	while (num_of_frags >= 2) {
 		/* Bring into workspace 2 FDs to be concatenated */
@@ -597,24 +614,26 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 			  fds_to_fetch_addr,
 			  2*FD_SIZE);
 		/* Open frame and get frame handle */
-		present_frame_params.fd_src = fds_to_concatenate;
-		frame_handle2 = present_frame_params.frame_handle;
-		concatenate_frame_params.frame2 = (uint16_t) frame_handle2;
-		/* Take header size to be removed from FD[FRC] */
-		concatenate_frame_params.trim  =
-				    (uint8_t)fds_to_concatenate[0].frc;
+		fdma_present_frame_without_segments(
+				fds_to_concatenate,
+				(uint8_t *)(&(concatenate_params.frame2)) +
+				sizeof(uint8_t));
 
-		fdma_concatenate_frames(&concatenate_frame_params);
+		/* Take header size to be removed from FD[FRC] */
+		concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
+
+		fdma_concatenate_frames(&concatenate_params);
 
 		/* Open frame and get frame handle */
-		present_frame_params.fd_src = fds_to_concatenate + 1;
-		frame_handle2 = present_frame_params.frame_handle;
-		concatenate_frame_params.frame2 = (uint16_t) frame_handle2;
-		/* Take header size to be removed from FD[FRC] */
-		concatenate_frame_params.trim  =
-				    (uint8_t)fds_to_concatenate[1].frc;
+		fdma_present_frame_without_segments(
+				fds_to_concatenate+1,
+				(uint8_t *)(&(concatenate_params.frame2)) +
+				sizeof(uint8_t));
 
-		fdma_concatenate_frames(&concatenate_frame_params);
+		/* Take header size to be removed from FD[FRC] */
+		concatenate_params.trim  = (uint8_t)fds_to_concatenate[1].frc;
+
+		fdma_concatenate_frames(&concatenate_params);
 
 		num_of_frags -= 2;
 	}
@@ -626,21 +645,24 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 			  fds_to_fetch_addr,
 			  FD_SIZE);
 
-		present_frame_params.fd_src = fds_to_concatenate;
-		frame_handle2 = present_frame_params.frame_handle;
-		concatenate_frame_params.frame2 =
-					      (uint16_t) frame_handle2;
-		/* Take header size to be removed from FD[FRC] */
-		concatenate_frame_params.trim =
-				    (uint8_t)fds_to_concatenate[0].frc;
+		fdma_present_frame_without_segments(
+				fds_to_concatenate,
+				(uint8_t *)(&(concatenate_params.frame2)) +
+				sizeof(uint8_t));
 
-		fdma_concatenate_frames(&concatenate_frame_params);
+		/* Take header size to be removed from FD[FRC] */
+		concatenate_params.trim = (uint8_t)fds_to_concatenate[0].frc;
+
+		fdma_concatenate_frames(&concatenate_params);
 	}
 
-	fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS,
-					   (void *)prc->seg_address,
-					   0,
-					   DEFAULT_SEGMENT_SIZE);
+	/* Open segment for reassembled frame */
+	fdma_present_default_frame_segment(
+					FDMA_PRES_NO_FLAGS,
+					(void *)((uint32_t)TLS_SECTION_END_ADDR +
+					DEFAULT_SEGMENT_HEADOOM_SIZE),
+					0,
+					DEFAULT_SEGMENT_SIZE);
 
 	/* FD length is still not updated */
 
@@ -669,13 +691,13 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	new_total_length = rfdc_ptr->current_total_length + ip_header_size;
 	old_ip_checksum = ipv4hdr_ptr->hdr_cksum;
 	ip_hdr_cksum = old_ip_checksum;
-	cksum_accumulative_update_uint32(ip_hdr_cksum,
+	ip_hdr_cksum = cksum_accumulative_update_uint32(ip_hdr_cksum,
 					 ipv4hdr_ptr->total_length,
 					 new_total_length);
 	ipv4hdr_ptr->total_length = new_total_length;
 
 	new_flags_and_offset = ipv4hdr_ptr->flags_and_offset & RESET_MF_BIT;
-	cksum_accumulative_update_uint32(
+	ip_hdr_cksum = cksum_accumulative_update_uint32(
 				 ip_hdr_cksum,
 				 ipv4hdr_ptr->flags_and_offset,
 				 new_flags_and_offset);
@@ -686,7 +708,7 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* L4 checksum Validation */
 	/* prepare gross running sum for L4 checksum validation by parser */
 	gross_running_sum = rfdc_ptr->current_running_sum;
-	cksum_accumulative_update_uint32(
+	gross_running_sum = cksum_accumulative_update_uint32(
 					gross_running_sum,
 					old_ip_checksum,
 					ipv4hdr_ptr->hdr_cksum);
@@ -723,6 +745,9 @@ uint32_t check_for_frag_error()
 
 void ipr_time_out()
 {
+	/* Restore isolation bits 
+	 * set_default_amq_attributes(rfdc_ptr->isolation_bits);
+	 */
 
 }
 

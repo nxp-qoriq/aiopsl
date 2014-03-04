@@ -29,7 +29,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		
 			str->status = table_create 
 					(str->acc_id,
-					(struct ctlu_table_create_params *)str->table_create_params_ptr,
+					(struct table_create_params *)str->table_create_params_ptr,
 					&(str->table_id));
 			str_size = sizeof(struct ctlu_table_create_command);
 			break;
@@ -98,7 +98,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			
 			str->status = table_rule_create(str->acc_id,
 				    str->table_id,
-				    (struct ctlu_table_rule*)str->rule_ptr,
+				    (struct table_rule*)str->rule_ptr,
 				    str->key_size);
 
 			str_size =
@@ -116,7 +116,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			str->status = table_rule_create_or_replace
 				(str->acc_id,
 				 str->table_id, 
-				 (struct ctlu_table_rule*)str->rule_ptr,
+				 (struct table_rule*)str->rule_ptr,
 				 str->key_size,
 				 &str->old_res);
 
@@ -135,7 +135,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			str->status = table_rule_replace
 				(str->acc_id,
 				str->table_id,
-				(struct ctlu_table_rule*)str->rule_ptr,
+				(struct table_rule*)str->rule_ptr,
 				str->key_size,
 				&str->old_res);
 

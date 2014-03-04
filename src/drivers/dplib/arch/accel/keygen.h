@@ -1,0 +1,264 @@
+/**************************************************************************//**
+@File		keygen.h
+
+@Description	This file contains the AIOP SW Key Generation API
+
+		Copyright 2013 Freescale Semiconductor, Inc.
+*//***************************************************************************/
+
+#ifndef __KEYGEN_H
+#define __KEYGEN_H
+
+#include "general.h"
+#include "dplib/fsl_keygen.h"
+
+/**************************************************************************//**
+@Group	CTLU CTLU (Internal)
+
+@Description	AIOP CTLU API
+
+@{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@Group	CTLU_MACROS CTLU Macros
+
+@Description	AIOP CTLU Macros
+
+@{
+*//***************************************************************************/
+
+
+
+
+/**************************************************************************//**
+@Group	KEYGEN_MTYPE HW Key Generation Accelerator Message Types
+@{
+*//***************************************************************************/
+
+	/** Key composition rule create or replace */
+#define CTLU_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE	0x003D
+	/** Key composition rule query */
+#define CTLU_KEY_COMPOSITION_RULE_QUERY_MTYPE			0x0037
+	/** Key generate with explicit parse result */
+#define CTLU_KEY_GENERATE_EPRS_MTYPE				0x0035
+	/** Generate hash (Parses the frame) */
+#define CTLU_HASH_GEN_MTYPE					0x0095
+	/** Generate hash from explicit parse result*/
+#define CTLU_HASH_GEN_EPRS_MTYPE				0x0195
+	/** Generate hash from explicit key */
+#define CTLU_HASH_GEN_KEY_MTYPE					0x009D
+
+/** @} */ /* end of KEYGEN_MTYPE */
+
+
+/**************************************************************************//**
+@Group	TLU_KCR CTLU KCR Builder defines
+@{
+*//***************************************************************************/
+
+	/** Number of FEC's (first byte in the KCR) */
+#define	CTLU_KCR_NFEC			0
+	/** OP0 HET Protocol Based Extraction */
+#define CTLU_KCR_OP0_HET_PROTOCOL	0x00
+	/** OP0 HET Generic Extraction */
+#define CTLU_KCR_OP0_HET_GEC		0x80
+	/** Protocol based Extraction Header validation */
+#define CTLU_KCR_PROTOCOL_HVT		0x40
+	/** Mask extension exists */
+#define CTLU_KCR_MASK_EXT		0x01
+
+	/** Generic Extraction max. extract size */
+#define CTLU_KCR_MAX_EXTRACT_SIZE	0xF
+	/** Protocol Based Generic Extraction max. offset in Parse Result */
+#define CTLU_KCR_PROTOCOL_MAX_OFFSET	0x3F
+	/** Generic Extraction max. extract offset */
+#define CTLU_KCR_MAX_EXTRACT_OFFET	0xF
+	/** 16 Bytes alignment */
+#define CTLU_KCR_16_BYTES_ALIGNMENT	0xF0
+	/** Offset within 16 bytes */
+#define CTLU_KCR_OFFSET_WITHIN_16_BYTES	0x0F
+
+
+	/** Maximum KCR size */
+#define CTLU_KCR_MAX_KCR_SIZE				64
+	/** Constant FEC size */
+#define CTLU_KCR_CONST_FEC_SIZE				3
+	/** Protocol Specific FEC size (not including mask) */
+#define CTLU_KCR_PROTOCOL_SPECIFIC_FEC_SIZE		1
+	/** Protocol Based Generic FEC size (not including mask) */
+#define CTLU_KCR_PROTOCOL_BASED_GENERIC_FEC_SIZE	4
+	/** Generic FEC size (not including mask) */
+#define CTLU_KCR_GENERIC_FEC_SIZE			4
+	/** Lookup Result FEC size (not including mask) */
+#define CTLU_KCR_LOOKUP_RES_FEC_SIZE			4
+	/** Valid Field FEC size (not including mask) */
+#define CTLU_KCR_VALID_FIELD_FEC_SIZE			2
+
+
+	/** Generic Extraction offset 0x00 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x00		0x00
+	/** Generic Extraction offset 0x10 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x10		0x01
+	/** Generic Extraction offset 0x20 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x20		0x02
+	/** Generic Extraction offset 0x30 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x30		0x03
+	/** Generic Extraction offset 0x40 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x40		0x04
+	/** Generic Extraction offset 0x50 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x50		0x05
+	/** Generic Extraction offset 0x60 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x60		0x06
+	/** Generic Extraction offset 0x70 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x70		0x07
+	/** Generic Extraction offset 0x80 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x80		0x08
+	/** Generic Extraction offset 0x90 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0x90		0x09
+	/** Generic Extraction offset 0xA0 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0xA0		0x0A
+	/** Generic Extraction offset 0xB0 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0xB0		0x0B
+	/** Generic Extraction offset 0xC0 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0xC0		0x0C
+	/** Generic Extraction offset 0xD0 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0xD0		0x0D
+	/** Generic Extraction offset 0xE0 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0xE0		0x0E
+	/** Generic Extraction offset 0xF0 from start of frame */
+#define CTLU_KCR_EOM_FRAME_OFFSET_0xF0		0x0F
+	/** Generic Extraction offset 0x00 from start of frame */
+#define CTLU_KCR_EOM_PARSE_RES_OFFSET_0x00	0x10
+	/** Generic Extraction offset 0x10 from Parse Result */
+#define CTLU_KCR_EOM_PARSE_RES_OFFSET_0x10	0x11
+	/** Generic Extraction offset 0x20 from Parse Result */
+#define CTLU_KCR_EOM_PARSE_RES_OFFSET_0x20	0x12
+	/** Generic Extraction offset 0x30 from Parse Result */
+#define CTLU_KCR_EOM_PARSE_RES_OFFSET_0x30	0x13
+	/** Todo Generic Extraction offset 0x00 from FCV */
+#define CTLU_KCR_EOM_FCV_OFFSET_0x00		0x14
+	/** Todo Generic Extraction offset 0x10 from FCV */
+#define CTLU_KCR_EOM_FCV_OFFSET_0x10		0x15
+
+
+	/** Todo Opaque0 Field offset from \ref CTLU_KCR_EOM_FCV_OFFSET_0x00 */
+#define CTLU_KCR_EXT_OPAQUE0_OFFSET	0x00
+	/** Todo Opaque1 Field offset from \ref CTLU_KCR_EOM_FCV_OFFSET_0x00 */
+#define CTLU_KCR_EXT_OPAQUE1_OFFSET	0x08
+	/** Todo Opaque2 Field offset from \ref CTLU_KCR_EOM_FCV_OFFSET_0x10 */
+#define CTLU_KCR_EXT_OPAQUE2_OFFSET	0x00
+	/** Unique ID Field offset from \ref CTLU_KCR_EOM_FCV_OFFSET_0x10 */
+#define CTLU_KCR_EXT_UNIQUE_ID_OFFSET	0x08
+	/** Timestamp Field offset from \ref CTLU_KCR_EOM_FCV_OFFSET_0x10 */
+#define CTLU_KCR_EXT_TIMESTAMP_OFFSET	0x0C
+
+	/** Opaque2 Field size to extract (= real size - 1) */
+#define CTLU_KCR_EXT_OPAQUE2_SIZE	0x00
+	/** Unique ID Field size to extract (= real size - 1) */
+#define CTLU_KCR_EXT_UNIQUE_ID_SIZE	0x03
+	/** Timestamp Field size to extract (= real size - 1) */
+#define CTLU_KCR_EXT_TIMESTAMP_SIZE	0x03
+
+/** @} */ /* end of CTLU_KCR */
+
+/** @} */ /* end of CTLU_MACROS */
+
+
+/**************************************************************************//**
+@Group		CTLU_STRUCTS CTLU Structures
+
+@Description	AIOP CTLU Structures
+
+@{
+*//***************************************************************************/
+
+
+/**************************************************************************//**
+@Description	CTLU KCR Builder FEC Mask
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct	ctlu_hw_fec_mask {
+	/** Number of mask bytes & Mask offset 0.
+	First Nibble: Number of mask bytes, determines the size of the FEC mask
+	extension.
+	Second Nibble: Mask offset 0. */
+	uint8_t  nmsk_moff0;
+
+	/** Mask0.
+	Bit-wise-mask which is applied to the extracted header at offset MOFF0
+	from its beginning */
+	uint8_t  mask0;
+
+	/** Mask offset 1 & Mask offset 2.
+	First Nibble: Mask offset 1.
+	Second Nibble: Mask offset 2. */
+	uint8_t  moff1_moff2;
+
+	/** Mask 1.
+	Bit-wise-mask which is applied to the extracted header at offset MOFF1
+	from its beginning */
+	uint8_t  mask1;
+
+	/** Mask 2.
+	Bit-wise-mask which is applied to the extracted header at offset MOFF2
+	from its beginning */
+	uint8_t  mask2;
+
+	/** Mask offset 3.
+	First Nibble: Reserved.
+	Second Nibble: Mask offset 3. */
+	uint8_t  res_moff3;
+
+	/** Mask 3.
+	Bit-wise-mask which is applied to the extracted header at offset MOFF3
+	from its beginning */
+	uint8_t  mask3;
+};
+#pragma pack(pop)
+
+/** @} */ /* end of CTLU_STRUCTS */
+
+/**************************************************************************//**
+@Group		CTLU_Functions CTLU Functions
+
+@Description	AIOP CTLU Functions
+
+@{
+*//***************************************************************************/
+/*
+@Function	ctlu_kcr_builder_build_fec_mask - OBSOLETE
+
+@Description	This function builds the fec's mask structure as the HW expects.
+
+@Param[in]	mask - The user's mask array.
+@Param[out]	fec_mask - The fec's mask structure for the HW.
+@Param[out]	mask_bytes - number of fec's mask bytes.
+
+@Return		None.
+*/
+/*inline void ctlu_kcr_builder_build_fec_mask(
+	struct ctlu_kcr_builder_fec_mask *mask,
+	struct ctlu_hw_fec_mask *fec_mask, uint8_t *mask_bytes)
+{
+	/* build fec_mask
+	fec_mask->nmsk_moff0 = ((mask->num_of_masks - 1) << 4) |
+					mask->single_mask[0].mask_offset;
+	fec_mask->mask0 = mask->single_mask[0].mask;
+	fec_mask->moff1_moff2 = (mask->single_mask[1].mask_offset<<4) |
+					mask->single_mask[2].mask_offset;
+	fec_mask->mask1 = mask->single_mask[1].mask;
+	fec_mask->mask2 = mask->single_mask[2].mask;
+	fec_mask->res_moff3 = mask->single_mask[3].mask_offset;
+	fec_mask->mask3 = mask->single_mask[3].mask;
+
+	*mask_bytes = ((mask->num_of_masks == 1) ? 2 :
+			(mask->num_of_masks == 2) ? 4 :
+			(mask->num_of_masks == 3) ? 5 : 7);
+}*/
+
+/** @} */ /* end of CTLU_Functions */
+
+/** @} */ /* end of CTLU */
+
+#endif /* __KEYGEN_H */

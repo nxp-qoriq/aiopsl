@@ -57,7 +57,6 @@ int32_t fdma_present_default_frame(void)
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if (((int32_t)res1) >= FDMA_SUCCESS) {
 		prc->seg_length = *((uint16_t *) (HWC_ACC_OUT_ADDRESS2));
-		/* Todo - if NDS/NAS/NPS are added to prc update them */
 		prc->handles =
 			(((*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET))) <<
@@ -67,13 +66,11 @@ int32_t fdma_present_default_frame(void)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET))) &
 			PRC_SEGMENT_HANDLE_MASK);
 
-		(flags & FDMA_INIT_NDS_BIT) ? PRC_RESET_NDS_BIT() :
-				PRC_SET_NDS_BIT();
 #if NAS_NPS_ENABLE
-		(flags & FDMA_INIT_NAS_BIT) ? PRC_RESET_NAS_BIT() :
-				PRC_SET_NAS_BIT();
-		(flags & FDMA_INIT_NPS_BIT) ? PRC_RESET_NPS_BIT() :
-				PRC_SET_NPS_BIT();
+		(flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
+				PRC_RESET_NAS_BIT();
+		(flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
+				PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
 	}
 
@@ -144,17 +141,17 @@ int32_t fdma_present_frame(
 			params->seg_handle = *((uint8_t *)
 					(HWC_ACC_OUT_ADDRESS2 +
 					FDMA_SEG_HANDLE_OFFSET));
-			PRC_SET_NDS_BIT();
+			PRC_RESET_NDS_BIT();
 			/* Update Task Defaults */
 			if (((uint32_t)params->fd_src) == HWC_FD_ADDRESS) {
-				/* Todo - if NDS/NAS/NPS are added to prc update
-				 * them */
 				prc->seg_address = (uint16_t)
 					((uint32_t)params->seg_dst);
 				prc->seg_length = params->seg_length;
 				prc->seg_offset = params->seg_offset;
 				if (params->flags & FDMA_INIT_SR_BIT)
 					PRC_SET_SR_BIT();
+				else
+					PRC_RESET_SR_BIT();
 				prc->handles = ((params->frame_handle <<
 						PRC_FRAME_HANDLE_BIT_OFFSET) &
 						PRC_FRAME_HANDLE_MASK) |
@@ -175,14 +172,53 @@ int32_t fdma_present_frame(
 					((uint16_t)arg4 & ~PRC_SR_MASK);
 		}
 
+
 		if (params->flags & FDMA_INIT_NDS_BIT)
-			PRC_RESET_NDS_BIT();
+			PRC_SET_NDS_BIT();
 #if NAS_NPS_ENABLE
-		(params->flags & FDMA_INIT_NAS_BIT) ? PRC_RESET_NAS_BIT() :
-						PRC_SET_NAS_BIT();
-		(params->flags & FDMA_INIT_NPS_BIT) ? PRC_RESET_NPS_BIT() :
-						PRC_SET_NPS_BIT();
+		(params->flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
+						PRC_RESET_NAS_BIT();
+		(params->flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
+						PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+	}
+	return (int32_t)(res1);
+}
+
+int32_t fdma_present_frame_without_segments(
+		struct ldpaa_fd *fd,
+		uint8_t *frame_handle)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)fd, FDMA_INIT_NDS_BIT);
+
+	/* store command parameters */
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	__stdw(PRC_PTA_NOT_LOADED_ADDRESS, 0, HWC_ACC_IN_ADDRESS3, ZERO);
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if (((int32_t)res1) >= FDMA_SUCCESS) {
+		*frame_handle = *((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET));
+		if ((uint32_t)fd == HWC_FD_ADDRESS) {
+			PRC_SET_FRAME_HANDLE(*frame_handle);
+			PRC_SET_NDS_BIT();
+			PRC_SET_ASA_SIZE(0);
+			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+#if NAS_NPS_ENABLE
+			PRC_SET_NAS_BIT();
+			PRC_SET_NPS_BIT();
+#endif /*NAS_NPS_ENABLE*/
+		}
 	}
 	return (int32_t)(res1);
 }
@@ -215,14 +251,20 @@ int32_t fdma_present_default_frame_segment(
 	__accel_call() should return success/fail indication */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
-	PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
-	PRC_SET_SEGMENT_OFFSET(offset);
-	PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
-	PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
-					FDMA_SEG_HANDLE_OFFSET)));
-	PRC_SET_NDS_BIT();
-
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if (res1 >= FDMA_SUCCESS) {
+		PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
+		PRC_SET_SEGMENT_OFFSET(offset);
+		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
+		PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+						FDMA_SEG_HANDLE_OFFSET)));
+		PRC_RESET_NDS_BIT();
+		if (flags & FDMA_PRES_SR_BIT)
+			PRC_SET_SR_BIT();
+		else
+			PRC_RESET_SR_BIT();
+	}
+
 	return (int32_t)(res1);
 }
 
@@ -255,10 +297,9 @@ int32_t fdma_present_frame_segment(
 }
 
 int32_t fdma_read_default_frame_asa(
-		uint32_t flags,
+		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size,
-		void	 *ws_dst)
+		uint16_t present_size)
 {
 	/* Presentation Context Pointer */
 	struct presentation_context *prc =
@@ -268,13 +309,8 @@ int32_t fdma_read_default_frame_asa(
 	int8_t  res1;
 
 	/* prepare command parameters */
-#ifdef NEXT_RELEASE
-	/*Todo - SR bit is not relevant for ASA presentation in Present command.
-	 * Since the flags parameters here has only the SR bit, the flags
-	 * parameters should be removed from the function. */
-#endif /* NEXT_RELEASE */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
-			(flags | FDMA_ST_ASA_SEGMENT_BIT));
+			FDMA_ST_ASA_SEGMENT_BIT);
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
 	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
 	/* store command parameters */
@@ -292,7 +328,7 @@ int32_t fdma_read_default_frame_asa(
 						PRC_ASAPS_MASK);
 	PRC_SET_ASA_OFFSET(offset);
 #if NAS_NPS_ENABLE
-	PRC_SET_NAS_BIT();
+	PRC_RESET_NAS_BIT();
 #endif /*NAS_NPS_ENABLE*/
 	return (int32_t)(res1);
 }
@@ -321,7 +357,7 @@ int32_t fdma_read_default_frame_pta(
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	PRC_SET_PTA_ADDRESS((uint16_t)((uint32_t)ws_dst));
 #if NAS_NPS_ENABLE
-	PRC_SET_NPS_BIT();
+	PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
 	return (int32_t)(res1);
 }
@@ -387,6 +423,7 @@ int32_t fdma_store_frame_data(
 {
 	/* command parameters and results */
 	uint32_t arg1;
+	uint16_t bdi_icid;
 	int8_t res1;
 	/* storage profile ID */
 
@@ -399,9 +436,12 @@ int32_t fdma_store_frame_data(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	isolation_attributes->bdi_icid = *((uint16_t *)
+	bdi_icid = *((uint16_t *)
 		(HWC_ACC_OUT_ADDRESS2 + FDMA_STORE_CMD_OUT_ICID_OFFSET));
-	isolation_attributes->flags = (*((uint16_t *)HWC_ACC_OUT_ADDRESS2));
+	isolation_attributes->icid = bdi_icid & ~(FDMA_ICID_CONTEXT_BDI);
+	isolation_attributes->flags =
+		((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) |
+		(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
 	return (int32_t)(res1);
 }
 
@@ -469,7 +509,7 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 	flags &= ~FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_WF_ARG1(spid, PRC_GET_HANDLES(), flags);
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
-	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->hash_value);
+	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
@@ -498,7 +538,7 @@ int32_t fdma_store_and_enqueue_frame_qd(
 	flags &= ~FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
-	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->hash_value);
+	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
@@ -581,7 +621,7 @@ int32_t fdma_enqueue_default_fd_qd(
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
-			enqueue_params->hash_value);
+			enqueue_params->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
@@ -611,7 +651,7 @@ int32_t fdma_enqueue_fd_qd(
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_ENQUEUE_FRAME_QD_ARG3(flags, icid,
-			enqueue_params->hash_value);
+			enqueue_params->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
@@ -649,6 +689,9 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
 	uint32_t arg1;
 	int8_t res1;
 	/* prepare command parameters */
+#ifdef REV2
+	/* Todo - Add ICID + flags support */
+#endif /*REV2*/
 	/*if (flags & FDMA_DIS_FS_HANDLE_BIT)*/
 		arg1 = FDMA_DISCARD_ARG1_FRAME(frame, flags);
 	/*else
@@ -720,7 +763,7 @@ int32_t fdma_replicate_frame_qd(
 	arg2 = FDMA_REPLIC_CMD_ARG2_QD(enqueue_params->qd_priority,
 			enqueue_params->qd);
 	arg3 = FDMA_REPLIC_CMD_ARG3_QD((uint32_t)fd_dst,
-			enqueue_params->hash_value);
+			enqueue_params->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, ZERO);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
@@ -743,6 +786,9 @@ int32_t fdma_concatenate_frames(
 	int8_t  res1;
 
 	/* prepare command parameters */
+#ifdef REV2
+	/* Todo - Add ICID + flags + FDs support */
+#endif /*REV2*/
 	arg1 = FDMA_CONCAT_CMD_ARG1(params->spid, params->trim, params->flags);
 	arg2 = FDMA_CONCAT_CMD_ARG2(params->frame2, params->frame1);
 
@@ -1409,5 +1455,43 @@ int32_t fdma_create_frame(struct ldpaa_fd *fd, void *data, uint16_t size)
 
 	return fdma_store_frame_data(present_frame_params.frame_handle,
 			spid, &isolation_attributes);
+}
+
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void get_default_amq_attributes(
+		struct fdma_isolation_attributes *amq)
+{
+	struct additional_dequeue_context *adc =
+		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	uint16_t adc_pl_icid = LH_SWAP(&(adc->pl_icid));
+
+	amq->flags = 0;
+	amq->icid = adc_pl_icid & ADC_ICID_MASK;
+	if (adc->fdsrc_va_fca_bdi & ADC_BDI_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_BDI;
+	if (adc->fdsrc_va_fca_bdi & ADC_VA_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_VA;
+	if (adc_pl_icid & ADC_PL_MASK)
+		amq->flags |= FDMA_ICID_CONTEXT_PL;
+}
+
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void set_default_amq_attributes(
+		struct fdma_isolation_attributes *amq)
+{
+	struct additional_dequeue_context *adc =
+			(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	uint16_t pl_icid = (amq->icid & ADC_ICID_MASK);
+	uint8_t flags = 0;
+
+	if (amq->flags & FDMA_ICID_CONTEXT_VA)
+		flags |=  ADC_VA_MASK;
+	if (amq->flags & FDMA_ICID_CONTEXT_BDI)
+		flags |=  ADC_BDI_MASK;
+	if (amq->flags & FDMA_ICID_CONTEXT_PL)
+		pl_icid |= ADC_PL_MASK;
+	STH_SWAP(pl_icid, &(adc->pl_icid));
+	adc->fdsrc_va_fca_bdi =
+		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
