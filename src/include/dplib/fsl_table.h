@@ -727,7 +727,7 @@ union ctlu_op0_refptr_clp {
 		table miss result).
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_rule_result {
+struct table_rule_result {
 	/** Result Type
 	Should be set to one of the types specified in
 	\link FSL_CTLU_TABLE_RULE_RESULT_TYPES Result Types \endlink macros. */
@@ -857,7 +857,7 @@ union ctlu_key {
 @Description	Table Rule
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_rule {
+struct table_rule {
 	/** Rule's key
 	The structure to be passed is one of the following:
 	 - \ref ctlu_key_exact_match
@@ -881,7 +881,7 @@ struct ctlu_table_rule {
 	uint8_t  reserved1[3];
 
 	/** Table Rule Result */
-	struct ctlu_table_rule_result result;
+	struct table_rule_result result;
 };
 #pragma pack(pop)
 
@@ -889,10 +889,11 @@ struct ctlu_table_rule {
 /**************************************************************************//**
 @Description	Table Lookup Result
 
-		The structure returned from the CTLU upon a successful lookup.
+		This structure returned from the table accelerator upon a
+		successful lookup.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_lookup_result {
+struct table_lookup_result {
 	/** Opaque0 or Reference Pointer
 	This field can be either:
 	- 8 bytes of opaque data.
@@ -932,7 +933,7 @@ struct ctlu_lookup_result {
 /**************************************************************************//**
 @Description	Create Table Parameters
 *//***************************************************************************/
-struct ctlu_table_create_params {
+struct table_create_params {
 	/** Committed Number Of Rules
 	The table committed number of rules, at any point in time the table can
 	contain at least this number of rules.*/
@@ -946,7 +947,7 @@ struct ctlu_table_create_params {
 
 	/** Miss Result
 	A default rule that is chosen when no match is found. */
-	struct ctlu_table_rule_result  miss_result;
+	struct table_rule_result  miss_result;
 
 	/** Table Attributes
 	Please refer to \link FSL_CTLU_TABLE_ATTRIBUTES Table Attributes macros
@@ -966,7 +967,7 @@ struct ctlu_table_create_params {
 /**************************************************************************//**
 @Description	Get Table Parameters Output
 *//***************************************************************************/
-struct ctlu_table_get_params_output {
+struct table_get_params_output {
 	/** Table's current number of rules */
 	uint32_t current_rules;
 
@@ -1037,9 +1038,9 @@ struct	ctlu_kcr_builder_fec_mask {
 
 
 /**************************************************************************//**
-@Group		FSL_CTLU_Functions CTLU Functions
+@Group		FSL_CTLU_Functions Table Functions
 
-@Description	Freescale AIOP CTLU Functions
+@Description	Freescale AIOP Table Functions
 
 @{
 *//***************************************************************************/
@@ -1049,7 +1050,7 @@ struct	ctlu_kcr_builder_fec_mask {
 /* ######################################################################### */
 
 /**************************************************************************//**
-@Function	ctlu_table_create
+@Function	table_create
 
 @Description	Creates a new table.
 
@@ -1063,12 +1064,12 @@ struct	ctlu_kcr_builder_fec_mask {
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t table_create(enum table_hw_accel_id acc_id, /* TODO */
-			  struct ctlu_table_create_params *tbl_params,
-			  uint16_t *table_id);
+		     struct table_create_params *tbl_params,
+		     uint16_t *table_id);
 
 
 /**************************************************************************//**
-@Function	ctlu_table_replace_miss_result
+@Function	table_replace_miss_result
 
 @Description	Replaces specific table miss result.
 
@@ -1089,15 +1090,13 @@ int32_t table_create(enum table_hw_accel_id acc_id, /* TODO */
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
-				       uint16_t table_id,
-				       struct ctlu_table_rule_result
-					      *new_miss_result,
-				       struct ctlu_table_rule_result
-					      *old_miss_result);
+				  uint16_t table_id,
+				  struct table_rule_result *new_miss_result,
+				  struct table_rule_result *old_miss_result);
 
 
 /**************************************************************************//**
-@Function	ctlu_table_get_params
+@Function	table_get_params
 
 @Description	A getter for the table parameters.
 		This function does not return the table miss result.
@@ -1111,8 +1110,8 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t table_get_params(enum table_hw_accel_id acc_id, /* TODO */
-			      uint16_t table_id,
-			      struct ctlu_table_get_params_output *tbl_params);
+			 uint16_t table_id,
+			 struct table_get_params_output *tbl_params);
 
 
 /**************************************************************************//**
@@ -1134,8 +1133,8 @@ int32_t table_get_params(enum table_hw_accel_id acc_id, /* TODO */
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t table_get_miss_result(enum table_hw_accel_id acc_id, /* TODO */
-				   uint16_t table_id,
-				   struct ctlu_table_rule_result *miss_result);
+			      uint16_t table_id,
+			      struct table_rule_result *miss_result);
 
 
 /**************************************************************************//**
@@ -1154,11 +1153,11 @@ int32_t table_get_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t table_delete(enum table_hw_accel_id acc_id, /* TODO */
-			  uint16_t table_id);
+		     uint16_t table_id);
 
 
 /* ######################################################################### */
-/* ########################### Rule Operations ############################# */
+/* ######################## Table Rule Operations ########################## */
 /* ######################################################################### */
 
 /**************************************************************************//**
@@ -1178,9 +1177,9 @@ int32_t table_delete(enum table_hw_accel_id acc_id, /* TODO */
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
-			       uint16_t table_id,
-			       struct ctlu_table_rule *rule,
-			       uint8_t key_size);
+			  uint16_t table_id,
+			  struct table_rule *rule,
+			  uint8_t key_size);
 
 
 /**************************************************************************//**
@@ -1206,12 +1205,10 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO */
-					  uint16_t table_id,
-					  struct ctlu_table_rule *rule,
-					  uint8_t key_size,
-					  struct ctlu_table_rule_result
-						 *old_res
-					 );
+				     uint16_t table_id,
+				     struct table_rule *rule,
+				     uint8_t key_size,
+				     struct table_rule_result *old_res);
 
 
 /**************************************************************************//**
@@ -1239,11 +1236,10 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO */
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
-				uint16_t table_id,
-				struct ctlu_table_rule *rule,
-				uint8_t key_size,
-				struct ctlu_table_rule_result *old_res
-			       );
+			  uint16_t table_id,
+			  struct table_rule *rule,
+			  uint8_t key_size,
+			  struct table_rule_result *old_res);
 
 
 /**************************************************************************//**
@@ -1272,12 +1268,11 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
-			      uint16_t table_id,
-			      union ctlu_key *key,
-			      uint8_t key_size,
-			      struct ctlu_table_rule_result *result,
-			      uint32_t *timestamp
-			     );
+			 uint16_t table_id,
+			 union ctlu_key *key,
+			 uint8_t key_size,
+			 struct table_rule_result *result,
+			 uint32_t *timestamp);
 
 
 /**************************************************************************//**
@@ -1301,11 +1296,10 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
-			       uint16_t table_id,
-			       union ctlu_key *key,
-			       uint8_t key_size,
-			       struct ctlu_table_rule_result *result
-			      );
+			  uint16_t table_id,
+			  union ctlu_key *key,
+			  uint8_t key_size,
+			  struct table_rule_result *result);
 
 
 /* ######################################################################### */
@@ -1337,9 +1331,9 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
-				   uint16_t table_id,
-				   uint8_t keyid,
-				   struct ctlu_lookup_result *lookup_result);
+			      uint16_t table_id,
+			      uint8_t keyid,
+			      struct table_lookup_result *lookup_result);
 
 
 /**************************************************************************//**
@@ -1364,10 +1358,10 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
 		This lookup cannot be used for chaining of lookups.
 *//***************************************************************************/
 int32_t table_lookup_by_key(enum table_hw_accel_id acc_id, /* TODO */
-				 uint16_t table_id,
-				 union ctlu_key *key,
-				 uint8_t key_size,
-				 struct ctlu_lookup_result *lookup_result);
+			    uint16_t table_id,
+			    union ctlu_key *key,
+			    uint8_t key_size,
+			    struct table_lookup_result *lookup_result);
 
 
 /* ######################################################################### */

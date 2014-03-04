@@ -265,7 +265,7 @@
 		<link>
 			<name>sources/drivers/dplib/dpni</name>
 			<type>2</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni</locationURI>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/include</name>
@@ -301,6 +301,11 @@
 			<name>sources/include/dplib/fsl_cdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_cdma.h</locationURI>
+		</link>
+		<link>
+			<name>sources/include/dplib/fsl_dplib_sys.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_dplib_sys.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/dplib/fsl_fdma.h</name>
@@ -401,6 +406,31 @@
 			<name>sources/drivers/dplib/arch/ppc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/dpni/dpni.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/dpni/dpni.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/dpni/dpni_drv.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/dpni/dpni_drv_rxtx.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/dpni/drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/drv.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/include/checksum.h</name>

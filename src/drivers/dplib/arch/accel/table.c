@@ -17,11 +17,11 @@
 extern uint64_t ext_keyid_pool_address;
 
 int32_t table_create(enum table_hw_accel_id acc_id,
-		     struct ctlu_table_create_params *tbl_params,
+		     struct table_create_params *tbl_params,
 		     uint16_t *table_id)
 {
 	int32_t status;
-	struct ctlu_table_rule * miss_rule;
+	struct table_rule * miss_rule;
 	/* Initialized to one for the simple case where key_size <= 24 */
 	int                               num_entries_per_rule = 1;
 
@@ -133,7 +133,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 	/* TODO perform assertion of size here */
 	/* Re-assignment of the structure is done because of stack limitations
 	 * of the service layer */
-	miss_rule = (struct ctlu_table_rule *)&tbl_crt_in_msg;
+	miss_rule = (struct table_rule *)&tbl_crt_in_msg;
 	miss_rule->options = CTLU_RULE_TIMESTAMP_NONE;
 
 	/* Copy miss result  - Last 16 bytes */
@@ -153,13 +153,13 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
 				  uint16_t table_id,
-				  struct ctlu_table_rule_result
+				  struct table_rule_result
 					 *new_miss_result,
-				  struct ctlu_table_rule_result
+				  struct table_rule_result
 					 *old_miss_result)
 {
 	/* 16 Byte aligned for stqw optimization + HW requirements */
-	struct ctlu_table_rule new_miss_rule __attribute__((aligned(16)));
+	struct table_rule new_miss_rule __attribute__((aligned(16)));
 	new_miss_rule.options = CTLU_RULE_TIMESTAMP_NONE;
 
 	/* Copy miss result  - Last 16 bytes */
@@ -180,7 +180,7 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
 
 int32_t table_get_params(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
-			 struct ctlu_table_get_params_output *tbl_params)
+			 struct table_get_params_output *tbl_params)
 {
 	struct ctlu_table_params_query_output_message output
 		__attribute__((aligned(16)));
@@ -204,7 +204,7 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 
 int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
 			      uint16_t table_id,
-			      struct ctlu_table_rule_result *miss_result)
+			      struct table_rule_result *miss_result)
 {
 	uint32_t invalid_timestamp;
 	return
@@ -230,7 +230,7 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 
 int32_t table_rule_create(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  struct ctlu_table_rule *rule,
+			  struct table_rule *rule,
 			  uint8_t key_size)
 {
 	struct table_old_result aged_res __attribute__((aligned(16)));
@@ -266,9 +266,9 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 
 int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				     uint16_t table_id,
-				     struct ctlu_table_rule *rule,
+				     struct table_rule *rule,
 				     uint8_t key_size,
-				     struct ctlu_table_rule_result *old_res)
+				     struct table_rule_result *old_res)
 {
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&hw_old_res;
@@ -310,9 +310,9 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 
 int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 			   uint16_t table_id,
-			   struct ctlu_table_rule *rule,
+			   struct table_rule *rule,
 			   uint8_t key_size,
-			   struct ctlu_table_rule_result *old_res)
+			   struct table_rule_result *old_res)
 {
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&hw_old_res;
@@ -355,7 +355,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
 			 union ctlu_key *key,
 			 uint8_t key_size,
-			 struct ctlu_table_rule_result *result,
+			 struct table_rule_result *result,
 			 uint32_t *timestamp)
 {
 	struct table_entry entry __attribute__((aligned(16)));
@@ -401,7 +401,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
 			  union ctlu_key *key,
 			  uint8_t key_size,
-			  struct ctlu_table_rule_result *result)
+			  struct table_rule_result *result)
 {
 	struct table_old_result old_res __attribute__((aligned(16)));
 	/* Prepare HW context for TLU accelerator call */
@@ -429,7 +429,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 
 int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 			      uint16_t table_id, uint8_t keyid,
-			      struct ctlu_lookup_result *lookup_result)
+			      struct table_lookup_result *lookup_result)
 {
 
 	/* Prepare HW context for TLU accelerator call */
@@ -449,7 +449,7 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 			    uint16_t table_id,
 			    union ctlu_key *key,
 			    uint8_t key_size,
-			    struct ctlu_lookup_result *lookup_result)
+			    struct table_lookup_result *lookup_result)
 {
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;

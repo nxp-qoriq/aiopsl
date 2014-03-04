@@ -55,7 +55,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			    ipr_instance_handle_t *ipr_instance_ptr)
 {
 	struct ipr_instance ipr_instance;
-	struct ctlu_table_create_params tbl_params;
+	struct table_create_params tbl_params;
 	int32_t err;
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
 	uint16_t table_location_attr;
@@ -181,8 +181,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct	ipv4hdr	*ipv4hdr_ptr;
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
-	struct ctlu_lookup_result lookup_result;
-	struct ctlu_table_rule rule;
+	struct table_lookup_result lookup_result;
+	struct table_rule rule;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
