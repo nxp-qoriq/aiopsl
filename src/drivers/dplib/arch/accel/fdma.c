@@ -185,6 +185,39 @@ int32_t fdma_present_frame(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_present_default_frame_without_segments(void)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)HWC_FD_ADDRESS, FDMA_INIT_NDS_BIT);
+
+	/* store command parameters */
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	__stdw(PRC_PTA_NOT_LOADED_ADDRESS, 0, HWC_ACC_IN_ADDRESS3, ZERO);
+
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if (((int32_t)res1) >= FDMA_SUCCESS) {
+		PRC_SET_FRAME_HANDLE(*((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)));
+		PRC_SET_NDS_BIT();
+		PRC_SET_ASA_SIZE(0);
+		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+#if NAS_NPS_ENABLE
+		PRC_SET_NAS_BIT();
+		PRC_SET_NPS_BIT();
+#endif /*NAS_NPS_ENABLE*/
+	}
+	return (int32_t)(res1);
+}
+
 int32_t fdma_present_frame_without_segments(
 		struct ldpaa_fd *fd,
 		uint8_t *frame_handle)
@@ -979,22 +1012,14 @@ int32_t fdma_replace_default_segment_data(
 
 	/* Update Task Defaults */
 	if (res1 >= FDMA_SUCCESS) {
-		if (to_size != from_size) {
-			if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-				prc->seg_address = (uint16_t)(uint32_t)
-							ws_dst_rs;
-				prc->seg_length = *((uint16_t *)
-						HWC_ACC_OUT_ADDRESS2);
-
-			} /*else {
-				prc->seg_length += from_size ;
-				prc->seg_length -= to_size;
-			}*/
-			/* FD fields should be updated with a swap load/store */
-			if (from_size != to_size)
-				LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
-						from_size, to_size);
+		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+			prc->seg_address = (uint16_t)(uint32_t)ws_dst_rs;
+			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		}
+		/* FD fields should be updated with a swap load/store */
+		if (from_size != to_size)
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
+					from_size, to_size);
 
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_RESET_NDS_BIT();
@@ -1048,13 +1073,9 @@ int32_t fdma_insert_default_segment_data(
 	/* Update Task Defaults */
 	if (res1 >= FDMA_SUCCESS) {
 		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-			prc->seg_address = (uint16_t)(uint32_t)
-						ws_address_rs;
-			prc->seg_length = *((uint16_t *)
-					HWC_ACC_OUT_ADDRESS2);
-		} /*else {
-			prc->seg_length += insert_size ;
-		}*/
+			prc->seg_address = (uint16_t)(uint32_t)ws_address_rs;
+			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		}
 		/* FD fields should be updated with a swap load/store */
 		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, insert_size, ZERO);
 
@@ -1159,13 +1180,9 @@ int32_t fdma_delete_default_segment_data(
 	/* Update Task Defaults */
 	if (res1 >= FDMA_SUCCESS) {
 		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-			prc->seg_address = (uint16_t)(uint32_t)
-						ws_address_rs;
-			prc->seg_length = *((uint16_t *)
-					HWC_ACC_OUT_ADDRESS2);
-		} /*else {
-			prc->seg_length -= delete_target_size;
-		}*/
+			prc->seg_address = (uint16_t)(uint32_t)ws_address_rs;
+			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		}
 		/* FD fields should be updated with a swap load/store */
 		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, ZERO,
 				delete_target_size);
