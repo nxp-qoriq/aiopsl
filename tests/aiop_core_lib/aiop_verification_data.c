@@ -47,11 +47,6 @@ void init_verif()
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
 	
-	/* todo remove next line when simulator issue will be fixed.
-	 * Set ordering scope to exclusive */
-	((struct presentation_context *)HWC_PRC_ADDRESS)->osrc_oep_osel_osrm =
-									   0x80;
-
 	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.parser_profile_id = verif_prpid;

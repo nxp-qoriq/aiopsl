@@ -124,7 +124,9 @@ int dpni_drv_reset_stats(uint16_t ni_id);
 
  @Return	'0' on Success; error code otherwise.
 *//***************************************************************************/
-int dpni_set_rx_tc(struct dpni *dpni, const struct dpni_rx_tc_cfg *tc_cfg);
+int dpni_set_rx_tc(struct dpni *dpni,
+	uint8_t tc_id,
+	const struct dpni_rx_tc_cfg *cfg);
 
 /**************************************************************************//**
  @Function	dpni_drv_set_dist
@@ -138,7 +140,7 @@ int dpni_set_rx_tc(struct dpni *dpni, const struct dpni_rx_tc_cfg *tc_cfg);
 
  @Cautions	Allowed only following dpni_attach().
 *//***************************************************************************/
-int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_params dist[DPNI_MAX_NUM_OF_TC]);
+int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
 
 /**************************************************************************//**
  @Function	dpni_drv_register_rx_cb

@@ -52,7 +52,6 @@ static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 int init_nic_stub(int portal_id, int ni_id)
 {
 	struct dpni_cfg			cfg;
-	struct dpni_init_params		params;
 	struct dpni			dpni;
 	int 				err;
 	uint8_t				eth_addr[] = {0x00, 0x04, 0x9f, 0x0, 0x0, 0x1};
@@ -75,13 +74,13 @@ int init_nic_stub(int portal_id, int ni_id)
 		return -ENODEV;
 	}
 	/* obtain default configuration of the NIC */
-	dpni_defconfig(&cfg);
+//	dpni_defconfig(&cfg);
 
-	memset(&params, 0, sizeof(params));
-	params.type = DPNI_TYPE_NIC;
-	params.max_dpio_objs = 8; /* TODO - ??? */
-	memcpy(params.mac_addr, eth_addr, sizeof(eth_addr));
-	err = dpni_init(&dpni, &cfg, &params);
+//	memset(&params, 0, sizeof(params));
+	cfg.type = DPNI_TYPE_NIC;
+	cfg.adv.max_senders = 8; /* TODO - ??? */
+	memcpy(cfg.mac_addr, eth_addr, sizeof(eth_addr));
+	err = dpni_init(&dpni, &cfg);
 	if (err)
 		return err;
 	dpni_close(&dpni);
@@ -144,10 +143,10 @@ int dpni_drv_disable (uint16_t ni_id)
 int dpni_drv_probe(uint16_t	ni_id,
                    uint16_t	mc_portal_id,
                    fsl_handle_t	dpio,
-                   fsl_handle_t	dpsp)
+                   fsl_handle_t	dpbp)
 {
 	struct dpni_drv 		*dpni_drv;
-	struct dpni_attach_params	params;
+	struct dpni_attach_cfg	cfg;
 	int				err;
 
 	/* calculate pointer to the send NI structure */
@@ -172,13 +171,13 @@ int dpni_drv_probe(uint16_t	ni_id,
 		return -ENODEV;
 	}
 
-	memset(&params, 0, sizeof(params));
+	memset(&cfg, 0, sizeof(cfg));
 	/* TODO - how to retrieve the ID here??? */
-	params.dpio_id = (uint16_t)PTR_TO_UINT(dpio);
+	cfg.dest_cfg.dpio_id = (uint16_t)PTR_TO_UINT(dpio);
 	/* TODO - how to retrieve the ID here??? */
-	params.dpsp_id = (uint16_t)PTR_TO_UINT(dpsp);
+	cfg.dpbp_id[0] = (uint16_t)PTR_TO_UINT(dpbp);  //TODO - ids
 	if ((err = dpni_attach(&dpni_drv->dpni,
-	                       (const struct dpni_attach_params *)&params)) != 0)
+	                       (const struct dpni_attach_cfg *)&cfg)) != 0)
 		return err;
 
 	return 0;
@@ -325,7 +324,7 @@ static int aiop_replace_parser(uint8_t prpid)
     verif_parse_profile1.pppoe_ppp_hxs_config = 0x0;
     verif_parse_profile1.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
     /* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-    verif_parse_profile1.mpls_hxs_config.lie_dnp = PARSER_IP_STARTING_HXS;
+    verif_parse_profile1.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
     verif_parse_profile1.arp_hxs_config = 0x0;
     verif_parse_profile1.ip_hxs_config = 0x0;
     verif_parse_profile1.ipv4_hxs_config = 0x0;
