@@ -366,7 +366,7 @@
 	_OP(1,   0,	64,	uint64_t,		cfg->user_ctx)\
 	_OP(2,   0,	32,	uint32_t,		cfg->options)\
 	_OP(2,   32,	32,	int,			cfg->tx_conf_err)\
-	_OP(3,   0,	32,	int,			*fqid)
+	_OP(3,   0,	32,	uint32_t,		*fqid)
 
 /*	param, offset, width,	type,				arg_name */
 #define DPNI_CMD_SET_RX_FLOW(_OP) \
