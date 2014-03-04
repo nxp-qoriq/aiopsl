@@ -155,7 +155,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 			
-			options_size = (tcp_ptr->data_offset_reserved << 
+			options_size = (tcp_ptr->data_offset_reserved >> 
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
