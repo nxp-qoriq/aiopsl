@@ -2963,59 +2963,6 @@ int32_t fdma_copy_data(
 		void *dst);
 
 /**************************************************************************//**
-@Function	fdma_acquire_buffer
-
-@Description	Provides direct access to the BMan in order to acquire a BMan
-		buffer in a software managed way.
-
-@Param[in]	icid - Buffer Pool ICID.
-@Param[in]	flags - Please refer to
-		\link FDMA_ACQUIRE_BUFFER_Flags command flags \endlink.
-@Param[in]	bpid - Buffer pool ID used for the Acquire Buffer.
-@Param[out]	dst - A pointer to the location in the workspace where to return
-		the acquired 64 bit buffer address.
-
-@Return		Status - Success or Failure (\ref FDMA_ACQUIRE_BUFFER_ERRORS).
-
-@Cautions	This command is not intended to be used in a normal datapath,
-		but more of a get out of jail card where access to BMan buffers
-		is required when operating on a frame while not using the
-		provided FDMA working frame commands.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-int32_t fdma_acquire_buffer(
-		uint16_t icid,
-		uint32_t flags,
-		uint16_t bpid,
-		void *dst);
-
-/**************************************************************************//**
-@Function	fdma_release_buffer
-
-@Description	Provides direct access to the BMan in order to release a BMan
-		buffer in a software managed way.
-
-@Param[in]	icid - Buffer Pool ICID.
-@Param[in]	flags - Please refer to
-		\link FDMA_RELEASE_BUFFER_Flags command flags \endlink.
-@Param[in]	bpid - Buffer pool ID used for the Release Buffer.
-@Param[out]	addr - Buffer address to be released.
-
-@Return		Status - Success or Failure (\ref FDMA_RELEASE_BUFFER_ERRORS).
-
-@Cautions	This command is not intended to be used in a normal datapath,
-		but more of a get out of jail card where access to BMan buffers
-		is required when operating on a frame while not using the
-		provided FDMA working frame commands.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-int32_t fdma_release_buffer(
-		uint16_t icid,
-		uint32_t flags,
-		uint16_t bpid,
-		uint64_t addr);
-
-/**************************************************************************//**
 @Function	fdma_create_frame
 
 @Description	Create a frame from scratch and fill it with user specified
