@@ -163,7 +163,7 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
                             dpni_drv_app_arg_t arg);
 
 /**************************************************************************//**
- @Function	dpni_drv_register_default_rx_cb
+ @Function	dpni_drv_register_discard_rx_cb
 
  @Description	register a default receive callback functions.
 		The default callback function will be called when a frame is
@@ -184,7 +184,7 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 
  @Return	OK on success; error code, otherwise.
 *//***************************************************************************/
-int dpni_drv_register_default_rx_cb(
+int dpni_drv_register_discard_rx_cb(
 		fsl_handle_t		dpio,
 		fsl_handle_t		dpsp,
 		rx_cb_t			*cb,
