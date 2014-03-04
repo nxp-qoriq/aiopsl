@@ -14,6 +14,7 @@
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/fsl_table.h"
+#include "dplib/fsl_keygen.h"
 #include "net/fsl_net.h"
 #include "common/spinlock.h"
 #include "fdma.h"
@@ -26,7 +27,7 @@ struct  ipr_global_parameters ipr_global_parameters1;
 
 void ipr_init(uint32_t max_buffers, uint32_t flags)
 {
-	struct ctlu_kcr_builder kb;
+	struct kcr_builder kb;
 
 	/* todo call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
@@ -39,16 +40,16 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	/* todo remove when MC will do this */
 	sys_ctlu_keyid_pool_create();
 	/* todo for IPv6 */
-	ctlu_kcr_builder_init(&kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_IPSRC_1_FECID,\
+	keygen_kcr_builder_init(&kb);
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,\
 			NULL , &kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_IPDST_1_FECID,\
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPDST_1_FECID,\
 				NULL , &kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_PTYPE_1_FECID,\
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_PTYPE_1_FECID,\
 					NULL , &kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_IPID_1_FECID,\
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPID_1_FECID,\
 					NULL , &kb);
-	ctlu_kcr_create(TABLE_ACCEL_ID_CTLU, /* Doron */kb.kcr, &ipr_global_parameters1.ipr_key_id_ipv4);
+	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU, /* Doron */kb.kcr, &ipr_global_parameters1.ipr_key_id_ipv4);
 }
 
 int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
@@ -303,7 +304,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 						0);  */
 			    /* Add entry to TLU table */
 			    /* Generate key */
-			    ctlu_gen_key(TABLE_ACCEL_ID_CTLU, /* Doron */
+			    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU, /* Doron */
 					 ipr_global_parameters1.ipr_key_id_ipv4,
 					 (union ctlu_key *)&rule.key.key_em,
 					 &keysize);
