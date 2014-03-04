@@ -101,7 +101,7 @@ int dpni_drv_get_attrib(uint16_t ni_id, int attrib);
 
  @Return	'0' on Success; Error code otherwise.
 *//***************************************************************************/
-int dpni_drv_get_stats(uint16_t	ni_id, struct dpni_stats *stats);
+//int dpni_drv_get_stats(uint16_t	ni_id, struct dpni_stats *stats);//TODO - dpni_stats
 
 /**************************************************************************//**
  @Function	dpni_drv_reset_stats
@@ -222,7 +222,7 @@ int dpni_drv_send(uint16_t ni_id);
 		For error codes refer to \ref FDMA_ENQUEUE_FD_ERRORS
 		and \ref DPNI_DRV_STATUS.
 *//***************************************************************************/
-int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
+//int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd); //TODO - ldpaa_fd
 
 /**************************************************************************//**
  @Function	dpni_get_num_of_ni
