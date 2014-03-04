@@ -348,6 +348,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ipv4_checksum.h</locationURI>
 		</link>
 		<link>
+			<name>sources/include/dplib/fsl_keygen.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_keygen.h</locationURI>
+		</link>
+		<link>
 			<name>sources/include/dplib/fsl_l2.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_l2.h</locationURI>
@@ -536,6 +541,16 @@
 			<name>sources/drivers/dplib/arch/accel/fdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/accel/keygen.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/keygen.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/accel/keygen.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/keygen.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/osm.c</name>
