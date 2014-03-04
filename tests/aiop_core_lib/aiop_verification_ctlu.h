@@ -10,6 +10,7 @@
 #define __AIOP_VERIFICATION_CTLU_H_
 
 #include "dplib/fsl_table.h"
+#include "dplib/fsl_keygen.h"
 
 /** \enum ctlu_verif_cmd_type defines the parser verification CMDTYPE
  * field. */
@@ -25,21 +26,21 @@ enum ctlu_verif_cmd_type {
 	TABLE_RULE_DELETE_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
-	CTLU_KCR_BUILDER_INIT_VERIF_CMDTYPE,
-	CTLU_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE,
-	CTLU_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE,
-	CTLU_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE,
-	CTLU_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE,
-	CTLU_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_VERIF_CMDTYPE,
-	CTLU_KCR_BUILDER_ADD_VALID_FIELD_FEC_VERIF_CMDTYPE,
-	CTLU_KCR_CREATE_VERIF_CMDTYPE,
-	CTLU_KCR_REPLACE_VERIF_CMDTYPE,
-	CTLU_KCR_DELETE_VERIF_CMDTYPE,
-	CTLU_KCR_QUERY_VERIF_CMDTYPE,
-	CTLU_GEN_KEY_VERIF_CMDTYPE,
-	CTLU_GEN_HASH_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_INIT_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_ADD_VALID_FIELD_FEC_VERIF_CMDTYPE,
+	KEYGEN_KCR_CREATE_VERIF_CMDTYPE,
+	KEYGEN_KCR_REPLACE_VERIF_CMDTYPE,
+	KEYGEN_KCR_DELETE_VERIF_CMDTYPE,
+	KEYGEN_KCR_QUERY_VERIF_CMDTYPE,
+	KEYGEN_GEN_KEY_VERIF_CMDTYPE,
+	KEYGEN_GEN_HASH_VERIF_CMDTYPE,
 	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
-	CTLU_KEY_ID_POOL_CREATE_VERIF_CMDTYPE
+	KEYGEN_KEY_ID_POOL_CREATE_VERIF_CMDTYPE
 };
 
 /* CTLU Commands Structure identifiers */
@@ -89,74 +90,74 @@ enum ctlu_verif_cmd_type {
 					TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
 
 /*! Init Key Composition Rule Builder Command Structure identifier*/
-#define CTLU_KCR_BUILDER_INIT_CMD_STR   ((TABLE_ACCEL_ID_CTLU << 16) | \
-					CTLU_KCR_BUILDER_INIT_VERIF_CMDTYPE)
+#define KEYGEN_KCR_BUILDER_INIT_CMD_STR   ((TABLE_ACCEL_ID_CTLU << 16) | \
+					KEYGEN_KCR_BUILDER_INIT_VERIF_CMDTYPE)
 
 /*! Add "constant" fec to KCR Command Structure identifier*/
-#define CTLU_KCR_BUILDER_ADD_CONSTANT_FEC_CMD_STR \
+#define KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_CMD_STR \
 	((TABLE_ACCEL_ID_CTLU << 16) | \
-	CTLU_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE)
+	KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE)
 
 /*! Add "protocol specific field" fec to KCR Command Structure identifier */
-#define CTLU_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FIELD_FEC_CMD_STR \
+#define KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FIELD_FEC_CMD_STR \
 	((TABLE_ACCEL_ID_CTLU << 16) | \
-	CTLU_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE)
+	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE)
 
 /*! Add "protocol based generic extract" fec to KCR Command Structure
  * identifier */
-#define CTLU_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_CMD_STR \
+#define KEYGEN_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_CMD_STR \
 	((TABLE_ACCEL_ID_CTLU << 16) | \
-	CTLU_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
+	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
 
 /*! Add "generic extract" fec to KCR Command Structure identifier */
-#define CTLU_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_CMD_STR \
+#define KEYGEN_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_CMD_STR \
 	((TABLE_ACCEL_ID_CTLU << 16) | \
-	CTLU_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
+	KEYGEN_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
 
 /*! Add "lookup result field" fec to KCR Command Structure identifier */
-#define CTLU_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_CMD_STR \
+#define KEYGEN_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_CMD_STR \
 	((TABLE_ACCEL_ID_CTLU << 16) | \
-	CTLU_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_VERIF_CMDTYPE)
+	KEYGEN_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_VERIF_CMDTYPE)
 
 /*! Add "valid field" fec to KCR Command Structure identifier */
-#define CTLU_KCR_BUILDER_ADD_VALID_FIELD_FEC_CMD_STR \
+#define KEYGEN_KCR_BUILDER_ADD_VALID_FIELD_FEC_CMD_STR \
 	((TABLE_ACCEL_ID_CTLU << 16) | \
-	CTLU_KCR_BUILDER_ADD_VALID_FIELD_FEC_VERIF_CMDTYPE)
+	KEYGEN_KCR_BUILDER_ADD_VALID_FIELD_FEC_VERIF_CMDTYPE)
 
 /*! Key composition rule create Command Structure identifier */
-#define CTLU_KCR_CREATE_CMD_STR	\
+#define KEYGEN_KCR_CREATE_CMD_STR	\
 		((TABLE_ACCEL_ID_CTLU << 16) | \
-		CTLU_KCR_CREATE_VERIF_CMDTYPE)
+		KEYGEN_KCR_CREATE_VERIF_CMDTYPE)
 
 /*! Key composition rule replace Command Structure identifier */
-#define CTLU_KCR_REPLACE_CMD_STR	\
+#define KEYGEN_KCR_REPLACE_CMD_STR	\
 		((TABLE_ACCEL_ID_CTLU << 16) | \
-		CTLU_KCR_REPLACE_VERIF_CMDTYPE)
+		KEYGEN_KCR_REPLACE_VERIF_CMDTYPE)
 
 /*! Key composition rule delete Command Structure identifier */
-#define CTLU_KCR_DELETE_CMD_STR	\
+#define KEYGEN_KCR_DELETE_CMD_STR	\
 		((TABLE_ACCEL_ID_CTLU << 16) | \
-		CTLU_KCR_DELETE_VERIF_CMDTYPE)
+		KEYGEN_KCR_DELETE_VERIF_CMDTYPE)
 
 /** Key composition rule query Command Structure identifier */
-#define CTLU_KCR_QUERY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-				CTLU_KCR_QUERY_VERIF_CMDTYPE)
+#define KEYGEN_KCR_QUERY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
+				KEYGEN_KCR_QUERY_VERIF_CMDTYPE)
 
 /*! Generate key Command Structure identifier*/
-#define CTLU_GEN_KEY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-				CTLU_GEN_KEY_VERIF_CMDTYPE)
+#define KEYGEN_GEN_KEY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
+			KEYGEN_GEN_KEY_VERIF_CMDTYPE)
 
 /*! Generate hash Command Structure identifier */
-#define CTLU_GEN_HASH_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
-				CTLU_GEN_HASH_VERIF_CMDTYPE)
+#define KEYGEN_GEN_HASH_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
+		KEYGEN_GEN_HASH_VERIF_CMDTYPE)
 
 /** Table Query Debug Command Structure identifier */
 #define TABLE_QUERY_DEBUG_CMD_STR	((TABLE_MODULE << 16) | \
 				TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
 
 /*!< Create Key ID Pool Command Structure identifier */
-#define CTLU_KEY_ID_POOL_CREATE_CMD_STR  ((TABLE_ACCEL_ID_CTLU << 16) | \
-				CTLU_KEY_ID_POOL_CREATE_VERIF_CMDTYPE)
+#define KEYGEN_KEY_ID_POOL_CREATE_CMD_STR  ((TABLE_ACCEL_ID_CTLU << 16) | \
+			KEYGEN_KEY_ID_POOL_CREATE_VERIF_CMDTYPE)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -485,7 +486,7 @@ struct ctlu_table_lookup_by_key_command{
 		Includes information needed for Key Composition Rule Builder
 		Initialization command verification.
 *//***************************************************************************/
-struct ctlu_kcr_builder_init_command{
+struct keygen_kcr_builder_init_command{
 	/** KCR Builder Initialization identifier */
 	uint32_t opcode;
 
@@ -507,7 +508,7 @@ struct ctlu_kcr_builder_init_command{
 		Includes information needed for Add Constant FEC to
 		Key Composition Rule command verification.
 *//***************************************************************************/
-struct ctlu_kcr_builder_add_constant_fec_command{
+struct keygen_kcr_builder_add_constant_fec_command{
 	/** Add Constant FEC to KCR identifier */
 	uint32_t opcode;
 
@@ -534,14 +535,14 @@ struct ctlu_kcr_builder_add_constant_fec_command{
 		Includes information needed for Add Protocol Specific FEC to
 		Key Composition Rule command verification.
 *//***************************************************************************/
-struct ctlu_kcr_builder_add_protocol_specific_field_fec_command{
+struct keygen_kcr_builder_add_protocol_specific_field_fec_command{
 	/** Add Protocol Specific FEC to KCR identifier */
 	uint32_t opcode;
 
 	/** FEC Mask array.
 	If mask is not required for this FEC, num_of_masks should be set to 0.
 	*/
-	struct ctlu_kcr_builder_fec_mask mask;
+	struct kcr_builder_fec_mask mask;
 
 	/** A pointer to a struct in the workspace, that will contain the Key
 	 * Composition Rule vector and its length */
@@ -563,14 +564,14 @@ struct ctlu_kcr_builder_add_protocol_specific_field_fec_command{
 		Includes information needed for Add Protocol Based Generic 
 		Extract FEC to Key Composition Rule command verification.
 *//***************************************************************************/
-struct ctlu_kcr_builder_add_protocol_based_generic_extract_fec_command{
+struct keygen_kcr_builder_add_protocol_based_generic_extract_fec_command{
 	/** Add Generic Extract FEC to KCR identifier */
 	uint32_t opcode;
 
 	/** FEC Mask array.
 	If mask is not required for this FEC, num_of_masks should be set to 0.
 	*/
-	struct ctlu_kcr_builder_fec_mask mask;
+	struct kcr_builder_fec_mask mask;
 
 	/** A pointer to a struct in the workspace, that will contain the Key
 	 * Composition Rule vector and its length */
@@ -600,7 +601,7 @@ struct ctlu_kcr_builder_add_protocol_based_generic_extract_fec_command{
 	 	Key Composition Rule command verification.
 
 *//***************************************************************************/
-struct ctlu_kcr_builder_add_generic_extract_fec_command{
+struct keygen_kcr_builder_add_generic_extract_fec_command{
 	/** Add Generic Extract FEC to KCR identifier */
 	uint32_t opcode;
 
@@ -609,11 +610,11 @@ struct ctlu_kcr_builder_add_generic_extract_fec_command{
 	uint32_t kb_ptr;
 
 	/** a structure of up to 4 bitwise masks from defined offsets */
-	struct ctlu_kcr_builder_fec_mask mask;
+	struct kcr_builder_fec_mask mask;
 
-	/** Should be one of \ref FSL_CTLU_KCR_BUILDER_GEC_FLAGS:
-	- CTLU_KCR_GEC_FRAME (For Generic Extraction from start	of frame)
-	- CTLU_KCR_GEC_PARSE_RES (For Generic Extraction from Parser Result) */
+	/** Should be one of \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS:
+	- KEYGEN_KCR_GEC_FRAME (For Generic Extraction from start	of frame)
+	- KEYGEN_KCR_GEC_PARSE_RES (For Generic Extraction from Parser Result) */
 	uint32_t flags;
 
 	/** Command returned status */
@@ -635,7 +636,7 @@ struct ctlu_kcr_builder_add_generic_extract_fec_command{
 		Includes information needed for Add Lookup Result Field 
 		FEC to Key Composition Rule command verification.
 *//***************************************************************************/
-struct ctlu_kcr_builder_add_lookup_result_field_fec_command{
+struct keygen_kcr_builder_add_lookup_result_field_fec_command{
 	/** Add Lookup Result Field FEC to KCR identifier */
 	uint32_t opcode;
 
@@ -644,12 +645,12 @@ struct ctlu_kcr_builder_add_lookup_result_field_fec_command{
 	uint32_t kb_ptr;
 
 	/** a structure of up to 4 bitwise masks from defined offsets */
-	struct ctlu_kcr_builder_fec_mask mask;
+	struct kcr_builder_fec_mask mask;
 
 	/** Command returned status */
 	int32_t  status;
 
-	/**  Please refer to \ref FSL_CTLU_KCR_BUILDER_EXT_LOOKUP_RES_FIELD */
+	/**  Please refer to \ref FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD */
 	uint8_t extract_field; 
 
 	/*! size of extraction in case of Opaque0 or Opaque1. */
@@ -668,7 +669,7 @@ struct ctlu_kcr_builder_add_lookup_result_field_fec_command{
 		Includes information needed for Add Valid Field 
 		FEC to Key Composition Rule command verification.
 *//***************************************************************************/
-struct ctlu_kcr_builder_add_valid_field_fec_command{
+struct keygen_kcr_builder_add_valid_field_fec_command{
 	/** Add Lookup Valid Field FEC to KCR identifier */
 	uint32_t opcode;
 
@@ -692,7 +693,7 @@ struct ctlu_kcr_builder_add_valid_field_fec_command{
 		Includes information needed for Key Composition Create 
 		or Replace command verification.
 *//***************************************************************************/
-struct ctlu_kcr_create_or_replace_command{
+struct keygen_kcr_create_or_replace_command{
 	/** Key Composition Create or Replace identifier */
 	uint32_t opcode;
 
@@ -706,7 +707,7 @@ struct ctlu_kcr_create_or_replace_command{
 	uint8_t  key_id;
 
 	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
+	enum keygen_hw_accel_id acc_id;
 };
 
 
@@ -716,7 +717,7 @@ struct ctlu_kcr_create_or_replace_command{
 		Includes information needed for Key Composition Delete
 		 command verification.
 *//***************************************************************************/
-struct ctlu_kcr_delete_command{
+struct keygen_kcr_delete_command{
 	/** Key Composition Delete identifier */
 	uint32_t opcode;
 
@@ -727,7 +728,7 @@ struct ctlu_kcr_delete_command{
 	uint8_t key_id;
 
 	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
+	enum keygen_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -736,7 +737,7 @@ struct ctlu_kcr_delete_command{
 		Includes information needed for Key Composition Rule Query
 		 command verification.
 *//***************************************************************************/
-struct ctlu_kcr_query_command{
+struct keygen_kcr_query_command{
 	/** Key Composition Create or Update identifier */
 	uint32_t opcode;
 
@@ -753,7 +754,7 @@ struct ctlu_kcr_query_command{
 	uint8_t size;
 
 	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
+	enum keygen_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -762,7 +763,7 @@ struct ctlu_kcr_query_command{
 		Includes information needed for Generate Key command
 		verification.
 *//***************************************************************************/
-struct ctlu_gen_key_command{
+struct keygen_gen_key_command{
 	/** CTLU Generate Key identifier */
 	uint32_t opcode;
 
@@ -779,7 +780,7 @@ struct ctlu_gen_key_command{
 	uint8_t key_size;
 
 	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
+	enum keygen_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
@@ -788,7 +789,7 @@ struct ctlu_gen_key_command{
 		Includes information needed for Generate Hash command 
 		verification.
 *//***************************************************************************/
-struct ctlu_gen_hash_command{
+struct keygen_gen_hash_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
 
@@ -829,7 +830,7 @@ struct ctlu_table_query_debug_command{
 		Includes information needed for Create Key ID pool Command
 		verification.
 *//***************************************************************************/
-struct ctlu_key_id_pool_create_verif_command {
+struct keygen_key_id_pool_create_verif_command {
 	uint32_t opcode;
 	int32_t  status;
 };
