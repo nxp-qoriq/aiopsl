@@ -473,14 +473,15 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr)
 {
 
-	struct	ipv4hdr			*ipv4hdr_ptr;
-	uint16_t			frag_offset;
-	uint16_t			ipv4hdr_offset;
-	uint16_t			current_frag_size;
-	uint16_t			expected_frag_offset;
-	uint64_t			ext_addr;
-	uint16_t			ip_header_size;
-	struct	parse_result		*pr =
+	struct	ipv4hdr		*ipv4hdr_ptr;
+	uint16_t		frag_offset;
+	uint16_t		ipv4hdr_offset;
+	uint16_t		current_frag_size;
+	uint16_t		expected_frag_offset;
+	uint64_t		ext_addr;
+	uint16_t		ip_header_size;
+	uint8_t			current_index;
+	struct	parse_result	*pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* todo remove next line */
@@ -523,7 +524,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  pr->running_sum);
 			} else {
 			/* Set 1rst frag's running sum for L4 checksum check */
-			  rfdc_ptr->current_running_sum = pr->gross_running_sum;
+				rfdc_ptr->current_running_sum =
+							  pr->gross_running_sum;
 			}
 
 			/* Close current frame before storing FD */
@@ -552,6 +554,17 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				return FRAG_ERROR;
 		    } else {
 			    /* New out of order */
+			    rfdc_ptr->status |= OUT_OF_ORDER;
+			    current_index     = rfdc_ptr->next_index;
+			    rfdc_ptr->index_to_out_of_order = current_index;
+			    if(IS_LAST_FRAGMENT())
+				    rfdc_ptr->expected_total_length =
+					     frag_offset>>3 + current_frag_size;
+			    
+			    
+			    /* Non closing fragment */
+			    rfdc_ptr->next_index++;
+			    return FRAG_OK_REASS_NOT_COMPL;
 		    }
 		} else {
 			/* Out of order handling */
@@ -581,15 +594,15 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 	*((struct ldpaa_fd *)(HWC_FD_ADDRESS)) = fds_to_concatenate[0];
 
 	/* set default task parameters */
-	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-			     DEFAULT_SEGMENT_HEADOOM_SIZE);
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	PRC_SET_SEGMENT_OFFSET(0);
-	PRC_RESET_SR_BIT();
+//	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
+//			     DEFAULT_SEGMENT_HEADOOM_SIZE);
+//	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+//	PRC_SET_SEGMENT_OFFSET(0);
+//	PRC_RESET_SR_BIT();
 
 	/* Open 1rst frame and get frame handle */
-	fdma_present_default_frame();
-//	fdma_present_default_frame_without_segments();
+//	fdma_present_default_frame();
+	fdma_present_default_frame_without_segments();
 
 	/* Open 2nd frame and get frame handle */
 	fdma_present_frame_without_segments(
