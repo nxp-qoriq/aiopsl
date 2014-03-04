@@ -223,11 +223,16 @@ void tman_timer_completion_confirmation(uint32_t timer_handle)
 
 void tman_get_timestamp(uint64_t *timestamp)
 {
-	/* todo reevaluate when compiler performance issue resolved
-	 * int32_t  reg_addr = (uint32_t)TMAN_TMTSTMP_ADDRESS; */
+//	uint64_t temp;
+	
+	/*TODO the bellow line is because of compiler warning please remove 
+	when possible */
+//	temp = 0;
+	
+//	__llldbrw(temp, 0, (void *) TMAN_TMTSTMP_ADDRESS);
+//	*timestamp = temp;
 	*timestamp = *((uint64_t *) TMAN_TMTSTMP_ADDRESS);
-	/* todo __ld64dw_b(*timestamp, reg_addr);*/
-	/* todo __st64dw_b(*timestamp, timestamp); */
+
 }
 
 #pragma push
