@@ -274,7 +274,7 @@ enum dpni_dest {
 	DPNI_DEST_DPIO,
 	/*!< queues will generate notification to the dpio's channel;
 	 i.e. will be set in schedule mode and FQDAN enable */
-	DPNI_DEST_DPCON,
+	DPNI_DEST_DPCON
 /*!< queues won't generate notification, but will be connected to this
  channel object; i.e. will be set in schedule mode and FQDAN disable */
 };
@@ -351,7 +351,7 @@ enum dpni_link_type {
 	DPNI_LINK_TYPE_DPSW, /*!< Attached to DPSW */
 	DPNI_LINK_TYPE_DPDMUX, /*!< Attached to DPDMUX */
 	DPNI_LINK_TYPE_DPLAG, /*!< Attached to DPLAG */
-	DPNI_LINK_TYPE_DPNI,
+	DPNI_LINK_TYPE_DPNI
 /*!< Attached to DPNI */
 };
 
@@ -1104,7 +1104,7 @@ enum dpni_fs_miss_action {
 	/*!< in case of no-match drop the frame  */
 	DPNI_FS_MISS_EXPLICIT_FLOWID,
 	/*!< in case of no-match go to explicit flow-id */
-	DPNI_FS_MISS_HASH,
+	DPNI_FS_MISS_HASH
 /*!< in case of no-match do a hashing to select a flow */
 };
 
