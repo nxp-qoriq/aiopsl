@@ -987,7 +987,6 @@ int32_t fdma_replace_default_segment_data(
 		if (from_size != to_size)
 			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
 					from_size, to_size);
-		}
 
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_RESET_NDS_BIT();
