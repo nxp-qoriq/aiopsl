@@ -4,15 +4,22 @@
 #include "kernel/smp.h"
 #include "kernel/platform.h"
 #include "inc/sys.h"
+#include "dplib/fsl_dprc.h"
+#include "dplib/fsl_dpni.h"
+#include "common/dbg.h"
+#include "common/fsl_malloc.h"
+#include "fsl_fdma.h"
+#include "io.h"
 
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
 extern int slab_module_init(void);  extern void slab_module_free(void);
 
-extern int dpni_drv_probe(uint16_t	ni_id,
-                          uint16_t	mc_portal_id,
-                          fsl_handle_t	dpio,
-                          fsl_handle_t	dpsp);
+/* TODO: move to hdr file */
+extern int dpni_drv_probe(struct dprc	*dprc,
+			  uint16_t	mc_ni_id,
+			  uint16_t	aiop_ni_id,
+                          struct dpni_attach_params *attach_params);
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
@@ -113,29 +120,209 @@ static void core_ready_for_tasks(void) {
     asm ("wait  \n");
 }
 
+#define DEBUG
+#ifdef DEBUG
+static void print_dev_desc(struct dprc_dev_desc* dev_desc)
+{
+	fsl_os_print(" device %d\n");
+	fsl_os_print("***********\n");
+	fsl_os_print("vendor - %x\n", dev_desc->vendor);
+	if (dev_desc->type == DP_DEV_DPNI)
+		fsl_os_print("type - DP_DEV_DPNI\n");
+	else if (dev_desc->type == DP_DEV_DPRC)
+		fsl_os_print("type - DP_DEV_DPRC\n");
+	else if (dev_desc->type == DP_DEV_DPIO)
+		fsl_os_print("type - DP_DEV_DPIO\n");
+	fsl_os_print("id - %d\n", dev_desc->id);
+	fsl_os_print("region_count - %d\n", dev_desc->region_count);
+	fsl_os_print("rev_major - %d\n", dev_desc->rev_major);
+	fsl_os_print("rev_minor - %d\n", dev_desc->rev_minor);
+	fsl_os_print("irq_count - %d\n\n", dev_desc->irq_count);
+}
+#endif
+
+
+/* TODO: Need to replace this temporary workaround with the actual function.
+/*****************************************************************************/
+static int fill_bpid(uint16_t num_buffs, 
+                              uint16_t buff_size, 
+                              uint16_t alignment, 
+                              uint8_t  mem_partition_id,
+                              uint16_t bpid)
+{    
+    int        i = 0;
+    dma_addr_t addr  = 0;
+    
+    for (i = 0; i < num_buffs; i++) {
+        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, mem_partition_id, alignment));  
+        /* Here, we pass virtual BPID, therefore BDI = 0 */
+        if (fdma_release_buffer(0, FDMA_RELEASE_NO_FLAGS, bpid, addr)) {
+            fsl_os_xfree(fsl_os_phys_to_virt(addr));
+            return -ENAVAIL;
+        }
+    }
+    return 0;
+}
+
 int run_apps(void)
 {
-    struct sys_module_desc apps[MAX_NUM_OF_APPS];
-    int                    i;
+	struct sys_module_desc apps[MAX_NUM_OF_APPS];
+	int i;	
+	int err = 0, dev_count, tmp = 0;
+	void *portal_vaddr;
+	/* TODO: replace with memset */
+	struct dprc dprc = { 0 };
+#ifdef NEW_MC_API
+	struct dpbp dpbp = { 0 };
+#endif
+	int container_id;
+	struct dprc_dev_desc dev_desc;
+	struct dprc_region_desc region_desc;
+	uint16_t dpbp_id;	// TODO: replace by real dpbp creation
+#ifdef NEW_MC_API
+	struct dpbp_cfg dpbp_cfg;
+	struct dpbp_attributes attributes;
+#endif	
+	uint16_t dpsp_id;
+	uint8_t region_index = 0;
+	struct dpni_attach_params attach_params;
+	struct dprc_res_req assign_res_req;
+
 
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
-	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
+	* This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
-	 * This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
-	 * all should be placed in PEB. */
+	* This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
+	* all should be placed in PEB. */	
 	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
 	/* TODO - iterate through the device-list:
-	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)'
-	 */
-    /* in this stage, all the NIC of AIOP are up and running */
+	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */	
 
-    memset(apps, 0, sizeof(apps));
-    build_apps_array(apps);
+	
+	/* TODO: replace hard-coded portal address 10 with configured value */
+	/* TODO : layout file must contain portal ID 10 in order to work. */
+	/* TODO : in this call, can 3rd argument be zero? */
+	/* Get virtual address of MC portal */
+	portal_vaddr = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
+    	                                 (uint32_t)10, E_MAPPED_MEM_TYPE_MC_PORTAL));
 
-    for (i=0; i<MAX_NUM_OF_APPS; i++)
-        if (apps[i].init)
-            apps[i].init();
+	/* Open root container in order to create and query for devices */
+	dprc.cidesc.regs = portal_vaddr;
+	if (err = dprc_get_container_id(&dprc, &container_id)) {
+		pr_err("Failed to get AIOP root container ID.\n");
+		return(err);
+	}
+	if (err = dprc_open(&dprc, container_id)) {
+		pr_err("Failed to open AIOP root container DP-RC%d.\n", container_id);
+		return(err);
+	}
+    
+    	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
-    core_ready_for_tasks();
-    return 0;
+
+#ifdef NEW_MC_API
+	/* TODO: Currently creating a stub DPBP with ID=1. 
+	 * Open and init calls will be replaced by 'create' when available at MC.
+	 * At that point, the DPBP ID will be provided by MC. */
+    	dpbp_id = 1;
+	
+	assign_res_req.num = dpbp_id;
+	assign_res_req.options = DPRC_RES_REQ_OPT_EXPLICIT;
+	assign_res_req.id_base_align = 1;
+	assign_res_req.type = DP_DEV_DPBP;
+	if (err = dprc_assign(&dprc, 0, &assign_res_req)) {
+		pr_err("Failed to assign DP-BP%d.\n", dpbp_id);
+		return err;
+	}
+	
+    	/* Get the physical portal address for this object.
+    	 * The physical portal address is at region_index zero */ 
+    	region_index = 0;  
+    	if (err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) {
+		pr_err("Failed to get device region for DP-BP%d.\n", dpbp_id);
+		return err;
+	}
+
+    	dpbp.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
+	
+	if (err = dpbp_open(&dpbp, dpbp_id)) {
+		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
+		return err;		
+	}
+
+	dpbp_cfg.buffer_size = 1024;
+	if (err = dpbp_init(&dpbp, &dpbp_cfg)) {
+		pr_err("Failed to init DP-BP%d.\n", dpbp_id);
+		return err;				
+	}
+	
+	if (err = dpbp_enable(&dpbp)) {
+		pr_err("Failed to enable DP-BP%d.\n", dpbp_id);
+		return err;						
+	}
+	
+	if (err = dpbp_get_attributes(&dpbp, &attributes)) {
+		pr_err("Failed to get attributes from DP-BP%d.\n", dpbp_id);
+		return err;								
+	}
+
+	if (err = fill_bpid(1000, attributes.buffer_size, 64, MEM_PART_PEB, attributes.bpid)) {
+		pr_err("Failed to fill DP-BP%d (BPID=%d) with buffer size %d.\n",
+				dpbp_id, attributes.bpid, attributes.buffer_size);
+		return err;
+	}
+#endif
+	
+	/* Prepare parameters to attach to each discovered DPNI */
+	attach_params.dpio_id = (uint16_t)dpbp_id; 	// TODO: change dpio_id to dpbp_id
+	attach_params.dpsp_id = (uint16_t)0;		// TODO: remove. dpsp will be taken from DPNI object during probe
+	attach_params.dan_en = (int)0;
+	attach_params.rx_user_ctx = (uint64_t)0;
+	attach_params.rx_err_user_ctx = (uint64_t)0;
+	attach_params.tx_err_user_ctx = (uint64_t)0;
+	attach_params.tx_conf_user_ctx = (uint64_t)0;
+
+	
+#ifdef NEW_MC_API
+	memset (&attach_params, 0, sizeof(attach_params));
+	attach_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
+	attach_params.dpbp_id[0] = dpbp_id; /*!< DPBPs object id */
+#endif
+	if (err = dprc_get_device_count(&dprc, &dev_count)) {
+	    pr_err("Failed to get device count for AIOP root container DP-RC%d.\n", container_id);
+	    return err;
+	}
+
+	/* Enable all DPNI devices */
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_device(&dprc, i, &dev_desc);
+		if (dev_desc.type == DP_DEV_DPNI) {
+			/* TODO: print conditionally based on log level */
+			print_dev_desc(&dev_desc);   	
+#ifdef NEW_MC_API
+			if (err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, &attach_params)) {
+				pr_err("Failed to probe DP-NI%d.\n", i);
+				return err;  
+			}
+#else
+			if (err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, 0)) {
+				pr_err("Failed to probe DP-NI%d.\n", i);
+				return err;  
+			}
+#endif
+		}
+	}
+    
+	/* At this stage, all the NIC of AIOP are up and running */
+
+	memset(apps, 0, sizeof(apps));
+	build_apps_array(apps);
+
+	for (i=0; i<MAX_NUM_OF_APPS; i++) {
+		if (apps[i].init)
+			apps[i].init();
+	}
+
+	core_ready_for_tasks();
+	return 0;
 }
