@@ -29,10 +29,10 @@
 @{
 *//***************************************************************************/
 /** Parser Profile ID pool length */
-#define SYS_PRPID_POOL_LENGTH	65
+#define SYS_NUM_OF_PRPIDS	64
 
 /** Key ID pool length */
-#define SYS_KEYID_POOL_LENGTH	257
+#define SYS_NUM_OF_KEYIDS	256
 
 /** @} */ /* end of SYS_ID_POOL_LENGTH */
 

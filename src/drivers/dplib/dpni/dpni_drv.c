@@ -222,8 +222,9 @@ static int aiop_replace_parser(uint8_t prpid)
     for(i=0; i<16; i++)
         verif_parse_profile1.soft_examination_param_array[i] = 0x0;
 
-    status = parser_profile_replace(&verif_parse_profile1, prpid);
-    return status;
+/*    status = parser_profile_replace(&verif_parse_profile1, prpid);*/
+    parser_profile_replace(&verif_parse_profile1, prpid);
+/*    return status;*/
 }
 
 int dpni_drv_init(void)

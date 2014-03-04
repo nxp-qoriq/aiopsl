@@ -105,10 +105,11 @@ struct parser_prp_delete_verif_command {
 *//***************************************************************************/
 struct parser_prp_query_verif_command {
 	uint32_t opcode;
-	int32_t  status;
+/*	int32_t  status;*/
 	uint32_t parse_profile;
 	uint8_t  prpid;
-	uint8_t  pad[3];
+	/*	uint8_t  pad[3];*/
+	uint8_t  pad[7];
 };
 
 /**************************************************************************//**

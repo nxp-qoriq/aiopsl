@@ -49,6 +49,11 @@
 @{
 *//***************************************************************************/
 #define PARSER_GRSV_MASK	0x04000000
+	/** Failure indication */
+#define PARSER_STATUS_FAIL	0x80000000
+	/** Parser status mask */
+#define PARSER_STATUS_MASK	0xFFFF0000
+
 
 /** @} */ /* end of PARSER_DEFINES */
 

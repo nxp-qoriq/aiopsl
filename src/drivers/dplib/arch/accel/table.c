@@ -1057,10 +1057,9 @@ int32_t ctlu_kcr_create(enum table_hw_accel_id acc_id,
 			uint8_t *keyid)
 {
 	int32_t status;
-	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];
+/*	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];*/
 
-	status = get_id(keyid_pool, SYS_KEYID_POOL_LENGTH,
-		ext_keyid_pool_address, keyid);
+	status = get_id(ext_keyid_pool_address, SYS_NUM_OF_PRPIDS, keyid);
 
 	if (status != 0)		/* TODO check status ??? */
 		return status;
@@ -1110,7 +1109,7 @@ int32_t ctlu_kcr_delete(enum table_hw_accel_id acc_id,
 			uint8_t keyid)
 {
 	int32_t status;
-	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];
+/*	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];*/
 	uint8_t fake_kcr = 0;
 
 	/* Prepare HW context for TLU accelerator call */
@@ -1125,8 +1124,7 @@ int32_t ctlu_kcr_delete(enum table_hw_accel_id acc_id,
 	if (!status)	/* In this command status 0 means failure */
 		return CTLU_KCR_DELETE_FAIL_INVALID_KID;
 
-	status = release_id(keyid, keyid_pool, SYS_KEYID_POOL_LENGTH,
-		ext_keyid_pool_address);
+	status = release_id(keyid, ext_keyid_pool_address);
 	/*TODO check status ??? */
 	return status;
 }
