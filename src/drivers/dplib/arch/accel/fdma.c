@@ -979,21 +979,14 @@ int32_t fdma_replace_default_segment_data(
 
 	/* Update Task Defaults */
 	if (res1 >= FDMA_SUCCESS) {
-		if (to_size != from_size) {
-			if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-				prc->seg_address = (uint16_t)(uint32_t)
-							ws_dst_rs;
-				prc->seg_length = *((uint16_t *)
-						HWC_ACC_OUT_ADDRESS2);
-
-			} /*else {
-				prc->seg_length += from_size ;
-				prc->seg_length -= to_size;
-			}*/
-			/* FD fields should be updated with a swap load/store */
-			if (from_size != to_size)
-				LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
-						from_size, to_size);
+		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+			prc->seg_address = (uint16_t)(uint32_t)ws_dst_rs;
+			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		}
+		/* FD fields should be updated with a swap load/store */
+		if (from_size != to_size)
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
+					from_size, to_size);
 		}
 
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
@@ -1048,13 +1041,9 @@ int32_t fdma_insert_default_segment_data(
 	/* Update Task Defaults */
 	if (res1 >= FDMA_SUCCESS) {
 		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-			prc->seg_address = (uint16_t)(uint32_t)
-						ws_address_rs;
-			prc->seg_length = *((uint16_t *)
-					HWC_ACC_OUT_ADDRESS2);
-		} /*else {
-			prc->seg_length += insert_size ;
-		}*/
+			prc->seg_address = (uint16_t)(uint32_t)ws_address_rs;
+			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		}
 		/* FD fields should be updated with a swap load/store */
 		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, insert_size, ZERO);
 
@@ -1159,13 +1148,9 @@ int32_t fdma_delete_default_segment_data(
 	/* Update Task Defaults */
 	if (res1 >= FDMA_SUCCESS) {
 		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-			prc->seg_address = (uint16_t)(uint32_t)
-						ws_address_rs;
-			prc->seg_length = *((uint16_t *)
-					HWC_ACC_OUT_ADDRESS2);
-		} /*else {
-			prc->seg_length -= delete_target_size;
-		}*/
+			prc->seg_address = (uint16_t)(uint32_t)ws_address_rs;
+			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		}
 		/* FD fields should be updated with a swap load/store */
 		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, ZERO,
 				delete_target_size);
