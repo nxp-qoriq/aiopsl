@@ -17,7 +17,6 @@ __TASK uint8_t SCOPE_MODE_LEVEL4;
 
 int32_t osm_scope_transition_to_exclusive_with_increment_scope_id(void)
 {
-
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_OP,
 			OSM_SCOPE_ID_STAGE_INCREMENT_MASK))
@@ -26,26 +25,26 @@ int32_t osm_scope_transition_to_exclusive_with_increment_scope_id(void)
 		switch (CURRENT_SCOPE_LEVEL) {
 		case (LEVEL1):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL1 = 1;
 			break;
 			}
 		case (LEVEL2):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL2 = 1;
 			break;
 			}
 		case (LEVEL3):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL3 = 1;
 			break;
 			}
 		case (LEVEL4):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL4 = 1;
 			break;
 			}
 		}
@@ -91,26 +90,26 @@ int32_t osm_scope_transition_to_exclusive_with_new_scope_id(
 		switch (CURRENT_SCOPE_LEVEL) {
 		case (LEVEL1):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL1 = 1;
 			break;
 			}
 		case (LEVEL2):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL2 = 1;
 			break;
 			}
 		case (LEVEL3):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL3 = 1;
 			break;
 			}
 		case (LEVEL4):
 			{
-			/** 0 = Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 0;
+			/** 1 = Exclusive mode. */
+			SCOPE_MODE_LEVEL4 = 1;
 			break;
 			}
 		}
@@ -129,26 +128,26 @@ int32_t osm_scope_transition_to_concurrent_with_increment_scope_id(void)
 		switch (CURRENT_SCOPE_LEVEL) {
 		case (LEVEL1):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL1 = 0;
 			break;
 			}
 		case (LEVEL2):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL2 = 0;
 			break;
 			}
 		case (LEVEL3):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL3 = 0;
 			break;
 			}
 		case (LEVEL4):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL4 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL4 = 0;
 			break;
 			}
 
@@ -195,26 +194,26 @@ int32_t osm_scope_transition_to_concurrent_with_new_scope_id(
 		switch (CURRENT_SCOPE_LEVEL) {
 		case (LEVEL1):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL1 = 0;
 			break;
 			}
 		case (LEVEL2):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL2 = 0;
 			break;
 			}
 		case (LEVEL3):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL3 = 0;
 			break;
 			}
 		case (LEVEL4):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL4 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL4 = 0;
 			break;
 			}
 
@@ -231,26 +230,26 @@ void osm_scope_relinquish_exclusivity(void)
 		switch (CURRENT_SCOPE_LEVEL) {
 		case (LEVEL1):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL1 = 0;
 			break;
 			}
 		case (LEVEL2):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL2 = 0;
 			break;
 			}
 		case (LEVEL3):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL3 = 0;
 			break;
 			}
 		case (LEVEL4):
 			{
-			/** 1 = Concurrent mode. */
-			SCOPE_MODE_LEVEL4 = 1;
+			/** 0 = Concurrent mode. */
+			SCOPE_MODE_LEVEL4 = 0;
 			break;
 			}
 		}
@@ -268,32 +267,32 @@ int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 		switch (CURRENT_SCOPE_LEVEL) {
 		case (LEVEL1):
 			{
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL1 = 1;
 			break;
 			}
 		case (LEVEL2):
 			{
-			/** 1 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 1;
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 0;
+			/** 0 = Parent: Concurrent mode. */
+			SCOPE_MODE_LEVEL1 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL2 = 1;
 			break;
 			}
 		case (LEVEL3):
 			{
-			/** 1 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 1;
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 0;
+			/** 0 = Parent: Concurrent mode. */
+			SCOPE_MODE_LEVEL2 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL3 = 1;
 			break;
 			}
 		case (LEVEL4):
 			{
-			/** 1 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 1;
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 0;
+			/** 0 = Parent: Concurrent mode. */
+			SCOPE_MODE_LEVEL3 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL4 = 1;
 			break;
 			}
 
@@ -347,32 +346,32 @@ int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
 		switch (CURRENT_SCOPE_LEVEL) {
 		case (LEVEL1):
 			{
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL1 = 1;
 			break;
 			}
 		case (LEVEL2):
 			{
-			/** 1 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 1;
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 0;
+			/** 0 = Parent: Concurrent mode. */
+			SCOPE_MODE_LEVEL1 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL2 = 1;
 			break;
 			}
 		case (LEVEL3):
 			{
-			/** 1 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 1;
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 0;
+			/** 0 = Parent: Concurrent mode. */
+			SCOPE_MODE_LEVEL2 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL3 = 1;
 			break;
 			}
 		case (LEVEL4):
 			{
-			/** 1 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 1;
-			/** 0 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 0;
+			/** 0 = Parent: Concurrent mode. */
+			SCOPE_MODE_LEVEL3 = 0;
+			/** 1 = Child: Exclusive mode. */
+			SCOPE_MODE_LEVEL4 = 1;
 			break;
 			}
 
@@ -432,26 +431,26 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL4 = 0;
 				break;
 				}
 
@@ -472,26 +471,26 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL4 = 0;
 				break;
 				}
 
@@ -546,32 +545,32 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 1;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL4 = 0;
 				break;
 				}
 
@@ -593,32 +592,32 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				/** 1 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 1;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
+				/** 0 = Child: Concurrent mode. */
+				SCOPE_MODE_LEVEL4 = 0;
 				break;
 				}
 
@@ -672,26 +671,26 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL1 = 1;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL2 = 1;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL3 = 1;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL4 = 1;
 				break;
 				}
 
@@ -712,26 +711,26 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL1 = 1;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL2 = 1;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL3 = 1;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL4 = 1;
 				break;
 				}
 
@@ -786,32 +785,32 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL1 = 1;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 0;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL2 = 1;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 0;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL3 = 1;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 0;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL4 = 1;
 				break;
 				}
 
@@ -834,32 +833,32 @@ int32_t osm_scope_enter(
 			switch (CURRENT_SCOPE_LEVEL) {
 			case (LEVEL1):
 				{
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL1 = 1;
 				break;
 				}
 			case (LEVEL2):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 0;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL1 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL2 = 1;
 				break;
 				}
 			case (LEVEL3):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 0;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL2 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL3 = 1;
 				break;
 				}
 			case (LEVEL4):
 				{
-				/** 1 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				/** 0 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 0;
+				/** 0 = Parent: Concurrent mode. */
+				SCOPE_MODE_LEVEL3 = 0;
+				/** 1 = Child: Exclusive mode. */
+				SCOPE_MODE_LEVEL4 = 1;
 				break;
 				}
 

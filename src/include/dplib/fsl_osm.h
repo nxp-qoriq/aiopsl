@@ -73,8 +73,8 @@ struct scope_status_params {
 		4 = The task is in level 4 of hierarchy.*/
 	uint8_t	scope_mode;/**< The current scope mode. Valid only if
 		scope_level is not equal to zero (null scope_id).\n
-		0 = Exclusive mode.\n
-		1 = Concurrent mode.*/
+		0 = Concurrent mode.\n
+		1 = Exclusive mode.*/
 };
 
 /* @} end of group OSM_Structures */
