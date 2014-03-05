@@ -124,7 +124,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	int i;
 	uint64_t int_id_pool_address;
 	uint16_t fill_ids;
-	uint8_t num_of_writes;
+	uint8_t num_of_writes = 0;
 	uint8_t pool[64];
 	
 
