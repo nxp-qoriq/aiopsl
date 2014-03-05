@@ -10,8 +10,7 @@
 
 #include "general.h"
 
-extern __TASK uint8_t CURRENT_SCOPE_LEVEL;
-extern __TASK uint8_t SCOPE_MODE_LEVEL_ARR[4];
+extern __TASK struct aiop_default_task_params default_task_params;
 
 
 #define CONCURRENT	0	/** Concurrent Mode */
@@ -81,17 +80,18 @@ inline void osm_task_init(void)
 {
 	/**<	0 = No order scope specified.\n
 		1 = Scope was specified for level 1 of hierarchy */
-	CURRENT_SCOPE_LEVEL = ((uint8_t)PRC_GET_OSM_SOURCE_VALUE());
+	default_task_params.current_scppe_level = 
+			((uint8_t)PRC_GET_OSM_SOURCE_VALUE());
 	/**<	0 = Concurrent mode.\n
 		1 = Exclusive mode. */
-	SCOPE_MODE_LEVEL_ARR[0] = 
+	default_task_params.scope_mode_level_arr[0] = 
 			((uint8_t)PRC_GET_OSM_EXECUTION_PHASE_VALUE());
 	/**<	Concurrent (default) Mode in level 2 of hierarchy */
-	SCOPE_MODE_LEVEL_ARR[1] = 0x00;
+	default_task_params.scope_mode_level_arr[1] = 0x00;
 	/**<	Concurrent (default) Mode in level 3 of hierarchy */
-	SCOPE_MODE_LEVEL_ARR[2] = 0x00;
+	default_task_params.scope_mode_level_arr[2] = 0x00;
 	/**<	Concurrent (default) Mode in level 4 of hierarchy */
-	SCOPE_MODE_LEVEL_ARR[3] = 0x00;
+	default_task_params.scope_mode_level_arr[3] = 0x00;
 }
 
 
