@@ -505,6 +505,10 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
+	/** current scope level */
+	uint8_t current_scppe_level;
+	/** scope mode level [0-3] */
+	uint8_t scope_mode_level_arr[4];
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
