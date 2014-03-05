@@ -306,6 +306,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    /* Generate key */
 			    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU, /* Doron */
 					 ipr_global_parameters1.ipr_key_id_ipv4,
+					 0,
 					 (union ctlu_key *)&rule.key.key_em,
 					 &keysize);
 			    rule.options = 0;
