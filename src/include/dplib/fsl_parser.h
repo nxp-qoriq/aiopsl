@@ -1030,6 +1030,14 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 #define PARSER_GET_L5_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_L5_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
+/** Get the pointer to Routing Header in 1st IPv6 header */
+#define PARSER_GET_1ST_IPV6_ROUTING_HDR_POINTER_DEFAULT() \
+	(void *)((uint16_t)PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
+			+ PRC_GET_SEGMENT_ADDRESS())
+/** Get the pointer to Routing Header in 2nd IPv6 header */
+#define PARSER_GET_2ND_IPV6_ROUTING_HDR_POINTER_DEFAULT() \
+	(void *)((uint16_t)PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
+			+ PRC_GET_SEGMENT_ADDRESS())
 /** Get the pointer to Next header (last header that has not been parsed)
  in the default frame presented in the workspace */
 #define PARSER_GET_NEXT_HEADER_POINTER_DEFAULT() \
@@ -1072,13 +1080,13 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 #define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED\
 			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00080000)
 	/** L3 checksum validation failure */
-#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION_FAILED\
+#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION\
 	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x000C0000)
 	/** L4 checksum validation success */
 #define PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED\
 			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00020000)
 	/** L4 checksum validation failure */
-#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION_FAILED\
+#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION\
 	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00030000)
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_STATUS */
