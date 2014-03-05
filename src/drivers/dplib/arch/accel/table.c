@@ -454,7 +454,7 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 {
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;
-	__e_rlwimi(arg2, key, 16, 0, 15);
+	__e_rlwimi(arg2, *((uint32_t *)(&key)), 16, 0, 15);
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE, arg2,
