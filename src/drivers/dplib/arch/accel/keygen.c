@@ -681,7 +681,7 @@ int32_t keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     union ctlu_key *key,
+		     union table_key *key,
 		     uint8_t *key_size)
 {
 
@@ -700,7 +700,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 }
 
 
-int32_t keygen_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash)
+int32_t keygen_gen_hash(union table_key *key, uint8_t key_size, uint32_t *hash)
 {
 
 	/* Prepare HW context for TLU accelerator call */

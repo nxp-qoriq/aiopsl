@@ -153,7 +153,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			str->status = table_rule_delete
 				(str->acc_id,
 				 str->table_id,
-				 (union ctlu_key *)str->key_ptr,
+				 (union table_key *)str->key_ptr,
 				 str->key_size,
 				 &str->old_res);
 
@@ -184,9 +184,10 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			(struct ctlu_table_lookup_by_key_command *) asa_seg_addr;
 
 			str->status = table_lookup_by_key(str->acc_id,
-							       str->table_id,
-				(union ctlu_key *)str->key_ptr, str->key_size,
-				&(str->lookup_result));
+							  str->table_id,
+							  str->key,
+							  str->key_size,
+							  &(str->lookup_result));
 
 			str_size =
 				sizeof(struct ctlu_table_lookup_by_key_command);
@@ -411,7 +412,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 
 			str->status = keygen_gen_key(str->acc_id,
 						   str->key_id, (union
-						   ctlu_key *)str->key_ptr,
+						   table_key *)str->key_ptr,
 						   &str->key_size);
 			str_size =
 				sizeof(struct keygen_gen_key_command);
@@ -423,7 +424,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		{
 			struct keygen_gen_hash_command *str =
 			(struct keygen_gen_hash_command *) asa_seg_addr;
-			str->status = keygen_gen_hash((union ctlu_key *)str->key_ptr, str->key_size,
+			str->status = keygen_gen_hash((union table_key *)str->key_ptr, str->key_size,
 						    &(str->hash));
 			
 			str_size =

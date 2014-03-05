@@ -306,10 +306,11 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    /* Generate key */
 			    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU, /* Doron */
 					 ipr_global_parameters1.ipr_key_id_ipv4,
-					 (union ctlu_key *)&rule.key.key_em,
+					 (union table_key *)&rule.key.key_em,
 					 &keysize);
 			    rule.options = 0;
-			    rule.result.type = CTLU_RULE_RESULT_TYPE_REFERENCE;
+			    /* Doron */
+			    rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
 			    rule.result.op_rptr_clp.reference_pointer =
 					    rfdc_ext_addr;
 			    table_rule_create(TABLE_ACCEL_ID_CTLU, /* Doron */
