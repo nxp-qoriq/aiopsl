@@ -40,7 +40,8 @@ enum ctlu_verif_cmd_type {
 	KEYGEN_GEN_KEY_VERIF_CMDTYPE,
 	KEYGEN_GEN_HASH_VERIF_CMDTYPE,
 	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
-	KEYGEN_KEY_ID_POOL_CREATE_VERIF_CMDTYPE
+	KEYGEN_KEY_ID_POOL_CREATE_VERIF_CMDTYPE,
+	KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC_VERIF_CMDTYPE
 };
 
 /* CTLU Commands Structure identifiers */
@@ -97,6 +98,11 @@ enum ctlu_verif_cmd_type {
 #define KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_CMD_STR \
 	((TABLE_ACCEL_ID_CTLU << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE)
+
+/*! Add "input value" fec to KCR Command Structure identifier*/
+#define KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC_CMD_STR \
+	((TABLE_ACCEL_ID_CTLU << 16) | \
+	KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC_VERIF_CMDTYPE)
 
 /*! Add "protocol specific field" fec to KCR Command Structure identifier */
 #define KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FIELD_FEC_CMD_STR \
@@ -524,6 +530,37 @@ struct keygen_kcr_builder_add_constant_fec_command{
 };
 
 /**************************************************************************//**
+@Description	Add Input value FEC to KCR Command structure.
+
+		Includes information needed for Add Input value FEC to
+		Key Composition Rule command verification.
+*//***************************************************************************/
+struct keygen_kcr_builder_add_input_value_fec_command{
+	/** Add Input Value FEC to KCR identifier */
+	uint32_t opcode;
+
+	/** A pointer to a struct in the workspace, that will contain the Key
+	 * Composition Rule vector and its length */
+	uint32_t kb_ptr;
+
+	/** a structure of up to 4 bitwise masks from defined offsets */
+	struct kcr_builder_fec_mask mask;
+
+	/*! size of extraction */
+	uint8_t extract_size;
+
+	/*! Offset of extraction in Input value */
+	uint8_t offset;
+
+	/** 64-bit alignment */
+	uint8_t	pad1[1];
+
+	/** Command returned status */
+	int32_t  status;
+};
+
+
+/**************************************************************************//**
 @Description	Add Protocol Specific FEC to KCR Command structure.
 
 		Includes information needed for Add Protocol Specific FEC to
@@ -533,23 +570,23 @@ struct keygen_kcr_builder_add_protocol_specific_field_fec_command{
 	/** Add Protocol Specific FEC to KCR identifier */
 	uint32_t opcode;
 
+	/** A pointer to a struct in the workspace, that will contain the Key
+	 * Composition Rule vector and its length */
+	uint32_t kb_ptr;
+
 	/** FEC Mask array.
 	If mask is not required for this FEC, num_of_masks should be set to 0.
 	*/
 	struct kcr_builder_fec_mask mask;
 
-	/** A pointer to a struct in the workspace, that will contain the Key
-	 * Composition Rule vector and its length */
-	uint32_t kb_ptr;
-
-	/** Command returned status */
-	int32_t status;
-
 	/** FECID out of \ref kcr_builder_protocol_fecid */
 	uint8_t fecid;
 
 	/** 64-bit alignment */
-	uint8_t pad[7];
+	uint8_t pad[2];
+
+	/** Command returned status */
+	int32_t status;
 };
 
 /**************************************************************************//**
@@ -562,17 +599,14 @@ struct keygen_kcr_builder_add_protocol_based_generic_extract_fec_command{
 	/** Add Generic Extract FEC to KCR identifier */
 	uint32_t opcode;
 
-	/** FEC Mask array.
-	If mask is not required for this FEC, num_of_masks should be set to 0.
-	*/
-	struct kcr_builder_fec_mask mask;
-
 	/** A pointer to a struct in the workspace, that will contain the Key
 	 * Composition Rule vector and its length */
 	int32_t kb_ptr;
 
-	/** Command returned status */
-	int32_t status;
+	/** FEC Mask array.
+	If mask is not required for this FEC, num_of_masks should be set to 0.
+	*/
+	struct kcr_builder_fec_mask mask;
 
 	/** Parse Result Offset */
 	uint8_t parse_result_offset;
@@ -583,8 +617,8 @@ struct keygen_kcr_builder_add_protocol_based_generic_extract_fec_command{
 	/*! offset in frame or parse result */
 	uint8_t extract_offset;
 
-	/** 64-bit alignment */
-	uint8_t	pad1[5];
+	/** Command returned status */
+	int32_t status;
 };
 
 
@@ -606,14 +640,6 @@ struct keygen_kcr_builder_add_generic_extract_fec_command{
 	/** a structure of up to 4 bitwise masks from defined offsets */
 	struct kcr_builder_fec_mask mask;
 
-	/** Should be one of \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS:
-	- KEYGEN_KCR_GEC_FRAME (For Generic Extraction from start	of frame)
-	- KEYGEN_KCR_GEC_PARSE_RES (For Generic Extraction from Parser Result) */
-	uint32_t flags;
-
-	/** Command returned status */
-	int32_t  status;
-
 	/*! size of extraction */
 	uint8_t extract_size;
 
@@ -621,7 +647,18 @@ struct keygen_kcr_builder_add_generic_extract_fec_command{
 	uint8_t offset;
 
 	/** 64-bit alignment */
-	uint8_t	pad1[2];
+	uint8_t	pad1[1];
+
+	/** Should be one of \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS:
+	- KEYGEN_KCR_GEC_FRAME (For Generic Extraction from start of frame)
+	- KEYGEN_KCR_GEC_PARSE_RES (For Generic Extraction from Parser Result) */
+	uint32_t flags;
+
+	/** Command returned status */
+	int32_t  status;
+	
+	/** 64-bit alignment */
+	uint8_t	pad2[4];
 };
 
 /**************************************************************************//**
@@ -641,9 +678,6 @@ struct keygen_kcr_builder_add_lookup_result_field_fec_command{
 	/** a structure of up to 4 bitwise masks from defined offsets */
 	struct kcr_builder_fec_mask mask;
 
-	/** Command returned status */
-	int32_t  status;
-
 	/**  Please refer to \ref FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD */
 	uint8_t extract_field; 
 
@@ -653,8 +687,8 @@ struct keygen_kcr_builder_add_lookup_result_field_fec_command{
 	/*! Offset in Opaque0 or Opaque1 in lookup result */
 	uint8_t offset_in_opaque;
 
-	/** 64-bit alignment */
-	uint8_t	pad1[5];
+	/** Command returned status */
+	int32_t  status;
 };
 
 /**************************************************************************//**
