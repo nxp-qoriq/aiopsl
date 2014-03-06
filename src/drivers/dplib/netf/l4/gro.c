@@ -294,19 +294,13 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	/* concatenate frames and store aggregated packet */
 	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
 	concat_params.trim = (uint8_t)headers_size;
-	/* Todo - when concatenate command support returning isolation context
-	 * when closing frame1:
-	 * 1. enable next 2 lines (spid and flags) instead of the next flags
-	 * assignment,
-	 * 2. remove next store,
-	 * 3. add isolation attributes to the concatenate command
-	 * concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
-	concat_params.flags = FDMA_CONCAT_PCA_BIT;*/
-	concat_params.flags = FDMA_CONCAT_NO_FLAGS;
+	concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	concat_params.flags = FDMA_CONCAT_PCA_BIT;
+	/*concat_params.flags = FDMA_CONCAT_NO_FLAGS;*/
 	sr_status = fdma_concatenate_frames(&concat_params);
-	sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
+	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
 			*((uint8_t *)HWC_SPID_ADDRESS),
-			&(gro_ctx->agg_fd_isolation_attributes));
+			&(gro_ctx->agg_fd_isolation_attributes));*/
 
 	/* update gro context fields */
 	gro_ctx->last_ack = tcp->acknowledgment_number;
@@ -366,22 +360,16 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
 	concat_params.trim = (uint8_t)headers_size;
-	/* Todo - when concatenate command support returning isolation context
-	 * when closing frame1:
-	 * 1. enable next 2 lines (spid and flags) instead of the next flags
-	 * assignment,
-	 * 2. remove next store,
-	 * 3. add isolation attributes to the concatenate command
-	 * concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
-	concat_params.flags = FDMA_CONCAT_PCA_BIT;*/
-	concat_params.flags = FDMA_CONCAT_NO_FLAGS;
+	concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	concat_params.flags = FDMA_CONCAT_PCA_BIT;
+	/*concat_params.flags = FDMA_CONCAT_NO_FLAGS;*/
 	sr_status = fdma_concatenate_frames(&concat_params);
 
 	/* store aggregated frame*/
-	sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
+	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
 				*((uint8_t *)HWC_SPID_ADDRESS),
 				&(gro_ctx->agg_fd_isolation_attributes));
-
+*/
 	/* copy aggregated FD to default FD */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx->agg_fd;
 
