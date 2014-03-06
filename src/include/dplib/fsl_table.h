@@ -811,13 +811,11 @@ union table_lookup_key {
 @Description	Create Table Parameters
 *//***************************************************************************/
 struct table_create_params {
-	/* TODO MFLU */
 	/** Committed Number Of Rules
 	The table committed number of rules, at any point in time the table can
 	contain at least this number of rules.*/
 	uint32_t committed_rules;
 
-	/* TODO MFLU */
 	/** Max Number Of Rules
 	The max number of rules this table can contain. This number is not
 	guaranteed in contrast to committed_rules. Meaning, trying to add a
@@ -825,9 +823,8 @@ struct table_create_params {
 	uint32_t max_rules;
 
 	/** Miss Result
-	A default rule that is chosen when no match is found. TODO Available only
-	for tables of type \ref TABLE_ATTRIBUTE_TYPE_EM, This field should
-	not be filled otherwise.*/
+	A default rule that is chosen when no match is found. Available only
+	for CTLU tables, This field should not be filled otherwise.*/
 	struct table_result miss_result;
 
 	/** Table Attributes
@@ -945,7 +942,7 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Param[out]	tbl_params - Table parameters. Structure should be allocated by
 		the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1091,7 +1088,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 			  uint8_t key_size,
 			  struct table_result *old_res);
 
-
+//TODO reference count increment remark
 /**************************************************************************//**
 @Function	table_rule_query
 
@@ -1143,7 +1140,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		will be decremented (if exists). If not null structure should
 		be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	Not available for MFLU table accelerator in Rev1
 		The key must be the exact same key that was used for the rule

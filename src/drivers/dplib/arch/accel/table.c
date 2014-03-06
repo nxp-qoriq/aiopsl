@@ -114,7 +114,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
 	__stqw(TABLE_CREATE_MTYPE, arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
-	/* Call CTLU accelerator */
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id); /*TODO*/
 
 	/* Return Table ID */
@@ -215,7 +215,7 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	__stqw(TABLE_DELETE_MTYPE, 0, table_id, 0, HWC_ACC_IN_ADDRESS, 0);
 
-	/* Call CTLU accelerator */
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
 	/* Return Status */
@@ -253,7 +253,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 	       HWC_ACC_IN_ADDRESS, 0); /* using RPTR DEC because aging would
 	       have removed this entry with DEC if it would arrived on time */
 
-	/* Call CTLU accelerator */
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
 	/* Return Status */
@@ -367,7 +367,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 	__e_rlwimi(arg2, key, 16, 0, 15);
 	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
-	/* Call CTLU accelerator */
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
 	switch (entry.type & CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK) {
@@ -438,7 +438,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	       (uint32_t)lookup_result, table_id | (((uint32_t)keyid) << 16),
 	       0, HWC_ACC_IN_ADDRESS, 0);
 
-	/* Call CTLU Lookup accelerator */
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
 	/* Return status */
@@ -461,7 +461,7 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 	       table_id | (((uint32_t)key_size) << 16), 0, HWC_ACC_IN_ADDRESS,
 	       0);
 
-	/* Call CTLU Lookup accelerator */
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
 	/* Return status */
@@ -480,7 +480,7 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 	__stqw(TABLE_QUERY_MTYPE, (uint32_t)output, table_id, 0,
 	       HWC_ACC_IN_ADDRESS, 0);
 
-	/* Call CTLU accelerator */
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
 	/* Return status */
@@ -490,6 +490,8 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 
 int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id){
 	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
 	/* Return status */
@@ -499,6 +501,8 @@ int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id){
 
 void table_hw_accel_release_lock(enum table_hw_accel_id acc_id){
 	__stqw(TABLE_RELEASE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 }
 
