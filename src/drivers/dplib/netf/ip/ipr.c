@@ -96,7 +96,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				&tbl_params,
 				&ipr_instance.table_id_ipv4);
 		/* TODO was CTLU_TABLE_CREATE_STATUS_PASS in 0.6 ctlu api */
-		if (err != CTLU_STATUS_SUCCESS)
+		if (err != TABLE_STATUS_SUCCESS)
 		{
 			/* todo SR error case */
 			cdma_release_context_memory(*ipr_instance_ptr);
@@ -240,7 +240,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					ipr_global_parameters1.ipr_key_id_ipv4,
 					&lookup_result);
 			/* todo 0.6 ctlu api CTLU_LOOKUP_STATUS_MATCH_FOUND*/
-			if(sr_status == CTLU_STATUS_SUCCESS) {
+			if(sr_status == TABLE_STATUS_SUCCESS) {
 			     /* Hit */
 			     rfdc_ext_addr = lookup_result.opaque0_or_reference;
 			     /* Unlock instance handle parameters*/
@@ -307,20 +307,21 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU, /* Doron */
 					 ipr_global_parameters1.ipr_key_id_ipv4,
 					 0,
-					 (union table_key *)&rule.key.key_em,					 &keysize);
+					 (union table_key *)&rule.key.em,					 &keysize);
 			    rule.options = 0;
 			    /* Doron */
 			    rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-			    rule.result.op_rptr_clp.reference_pointer =
+			    /* Doron */
+			    rule.result.op0_rptr_clp.reference_pointer =
 					    rfdc_ext_addr;
 			    table_rule_create(TABLE_ACCEL_ID_CTLU, /* Doron */
 					    instance_params.table_id_ipv4,
 					    &rule,
 					    keysize);
 			    /* store key in RDFC */
-			    rfdc.ipv4_key[0] = *(uint64_t *)rule.key.key_em.key;
+			    rfdc.ipv4_key[0] = *(uint64_t *)rule.key.em.key;
 			    rfdc.ipv4_key[1] = 
-					   *(uint64_t *)(rule.key.key_em.key+8);
+					   *(uint64_t *)(rule.key.em.key+8);
 			    /* todo release struct rule  or call function for
 			     * gen+add rule */
 			    rfdc.status = RFDC_VALID;

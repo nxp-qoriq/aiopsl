@@ -77,7 +77,7 @@
 	 Ternary match Table for ACL
 #define TABLE_ATTRIBUTE_TYPE_TCAM_ACL	0x2000
 */
-	/* MFLU (Previously called Algorithmic ACL table)
+	/** MFLU (Previously called Algorithmic ACL table)
 	 * Not available for CTLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_MFLU	0x4000
 
@@ -276,18 +276,18 @@
 @{
 *//***************************************************************************/
 /** Command successful */
-#define CTLU_STATUS_SUCCESS	0x00000000
+#define TABLE_STATUS_SUCCESS	0x00000000
 
 /** Command failed general status bit.
 A general bit that is set in some errors conditions */
-#define CTLU_STATUS_MGCF	0x80000000
+#define TABLE_STATUS_MGCF	0x80000000
 
 /* Parser status are intentionally missing here */
 
-/** Table Lookup Miss
+/** CTLU Lookup Miss
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
-#define CTLU_STATUS_MISS	0x00000800 | (TABLE_ACCEL_ID_CTLU << 24)
+#define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
 
 /** Key Composition Error
  * This status is set when a key composition error occurs meaning one of the
@@ -295,42 +295,87 @@ A general bit that is set in some errors conditions */
  * - Invalid Key Composition ID was used.
  * - Key Size Error.
  * */
-#define CTLU_STATUS_KSE		0x00000400 | (TABLE_ACCEL_ID_CTLU << 24)
+#define CTLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
 
 /** Extract Out Of Frame Header
  * This status is set if key composition attempts to extract a field which is
  * not in the frame header either because it is placed beyond the first 256
  * bytes of the frame, or because the frame is shorter than the index evaluated
  * for the extraction. */
-#define CTLU_STATUS_EOFH	0x00000200 | (TABLE_ACCEL_ID_CTLU << 24)
+#define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
 
 /** Maximum Number Of Chained Lookups Is Reached
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. */
-#define CTLU_STATUS_MNLE	0x00000100 | (TABLE_ACCEL_ID_CTLU << 24)
+#define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
 
 /** Invalid Table ID
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
-#define CTLU_STATUS_TIDE	0x00000080 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						CTLU_STATUS_MGCF
+#define CTLU_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_CTLU << 24) | \
+						TABLE_STATUS_MGCF)
 
 /** Resource is not available
  * */
-#define CTLU_STATUS_NORSC	0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						CTLU_STATUS_MGCF
+#define CTLU_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
+						TABLE_STATUS_MGCF)
 /** Resource Is Temporarily Not Available
  * Temporarily Not Available occurs if an other resource is in the process of
  * being freed up. Once the process ends, the resource may be available for new
  * allocation (availability is not guaranteed). */
-#define CTLU_STATUS_TEMPNOR	0x00000010 | CTLU_STATUS_NORSC
+#define CTLU_STATUS_TEMPNOR	(0x00000010 | CTLU_STATUS_NORSC)
 
 /** ICID Protection Is Violated
  * */
-#define CTLU_STATUS_ICIDE	0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						CTLU_STATUS_MGCF
+#define CTLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
+						TABLE_STATUS_MGCF)
 
-/** @} */ /* end of FSL_CTLU_STATUS */
+/** MFLU Lookup Miss
+ * This status is set when a matching rule is not found. Note that on chained
+ * lookups this status is set only if the last lookup results in a miss. */
+#define MFLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_MFLU << 24))
+
+/** Key Composition Error
+ * This status is set when a key composition error occurs meaning one of the
+ * following:
+ * - Invalid Key Composition ID was used.
+ * - Key Size Error.
+ * */
+#define MFLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_MFLU << 24))
+
+/** Extract Out Of Frame Header
+ * This status is set if key composition attempts to extract a field which is
+ * not in the frame header either because it is placed beyond the first 256
+ * bytes of the frame, or because the frame is shorter than the index evaluated
+ * for the extraction. */
+#define MFLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_MFLU << 24))
+
+/** Maximum Number Of Chained Lookups Is Reached
+ * This status is set if the number of table lookups performed by the MFLU
+ * reached the threshold. */
+#define MFLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_MFLU << 24))
+
+/** Invalid Table ID
+ * This status is set if the lookup table associated with the TID is not
+ * initialized. */
+#define MFLU_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_MFLU << 24) | \
+						TABLE_STATUS_MGCF)
+
+/** Resource is not available
+ * */
+#define MFLU_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_MFLU << 24) | \
+						TABLE_STATUS_MGCF)
+/** Resource Is Temporarily Not Available
+ * Temporarily Not Available occurs if an other resource is in the process of
+ * being freed up. Once the process ends, the resource may be available for new
+ * allocation (availability is not guaranteed). */
+#define MFLU_STATUS_TEMPNOR	(0x00000010 | MFLU_STATUS_NORSC)
+
+/** ICID Protection Is Violated
+ * */
+#define MFLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_MFLU << 24) | \
+						TABLE_STATUS_MGCF)
+/** @} */ /* end of FSL_TABLE_STATUS */
 
 /** @} */ /* end of FSL_TABLE_MACROS */
 
@@ -409,7 +454,7 @@ struct table_result_chain_parameters {
 		should be set to \ref CTLU_RULE_RESULT_TYPE_CHAINING).
 *//***************************************************************************/
 #pragma pack(push, 1)
-union ctlu_op0_refptr_clp {
+union table_result_op0_refptr_clp {
 	/** Opaque0
 	Returned as part of lookup result */
 	uint64_t opaque0;
@@ -468,7 +513,7 @@ struct table_result {
 	chained lookup (type field should be set to
 	\ref TABLE_RESULT_TYPE_CHAINING). This is not available for Rev1.
 	*/
-	union ctlu_op0_refptr_clp op_rptr_clp;
+	union table_result_op0_refptr_clp op0_rptr_clp;
 
 	/** Opaque1
 	Returned as part of lookup result. Not valid when type is set to
@@ -599,19 +644,19 @@ struct table_key_mflu {
 union table_key {
 	/** Exact Match Key
 	 * Should only be used with CTLU Hardware Table Accelerator */
-	struct table_key_exact_match key_em;
+	struct table_key_exact_match em;
 
 	/** LPM IPv4 Key
 	* Should only be used with CTLU Hardware Table Accelerator */
-	struct table_key_lpm_ipv4    key_lpm_ipv4;
+	struct table_key_lpm_ipv4    lpm_ipv4;
 
 	/** LPM IPv6 Key
 	 * Should only be used with CTLU Hardware Table Accelerator */
-	struct table_key_lpm_ipv6   key_lpm_ipv6;
+	struct table_key_lpm_ipv6    lpm_ipv6;
 
 	/** LPM IPv6 Key
 	 * Should only be used with MFLU Hardware Table Accelerator */
-	struct table_key_mflu       key_mflu;
+	struct table_key_mflu        mflu;
 };
 
 
@@ -786,24 +831,24 @@ union table_lookup_key {
 	/** Exact Match Key
 	 * Should only be used with CTLU Hardware Table Accelerator and tables
 	 * of type \ref TABLE_ATTRIBUTE_TYPE_EM */
-	void                             *em_lookup_key;
+	void                             *em;
 
 	/** LPM IPv4 Key
 	 * Should only be used with CTLU Hardware Table Accelerator and tables
 	 * of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
 	 * \ref TABLE_KEY_LPM_IPV4_SIZE key size. */
-	struct table_lookup_key_lpm_ipv4 *lpm_ipv4_lookup_key;
+	struct table_lookup_key_lpm_ipv4 *lpm_ipv4;
 
 	/** LPM IPv6 Key
 	 * Should only be used with CTLU Hardware Table Accelerator and tables
 	 * of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
 	 * \ref TABLE_KEY_LPM_IPV6_SIZE key size. */
-	struct table_lookup_key_lpm_ipv6 *lpm_ipv6_lookup_key;
+	struct table_lookup_key_lpm_ipv6 *lpm_ipv6;
 
 	/** MFLU Key
 	 * Should only be used with MFLU Hardware Table Accelerator and tables
 	 * of type \ref TABLE_ATTRIBUTE_TYPE_MFLU. */
-	struct table_lookup_key_mflu     *mflu_lookup_key;
+	struct table_lookup_key_mflu     *mflu;
 };
 
 
@@ -918,7 +963,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
-@Cautions	Not available for MFLU table accelerator in Rev1.
+@Cautions	Not available for MFLU table accelerator.
 		This function should only be called if the table was defined
 		with a miss entry (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
@@ -1088,7 +1133,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 			  uint8_t key_size,
 			  struct table_result *old_res);
 
-//TODO reference count increment remark
+
 /**************************************************************************//**
 @Function	table_rule_query
 
@@ -1163,9 +1208,10 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 
 @Description	Performs a lookup with a predefined key.
 
-		If Opaque0 result field is an application context pointer, user
-		should decrement the application context reference count after
-		usage.
+		If Opaque0 result field is an application context pointer, its
+		reference counter will be incremented during this operation.
+		user should decrement the application context reference count
+		after usage.
 
 		Implicit input parameters in Task Defaults: Segment Address,
 		Segment Size and Parse Results.
@@ -1194,9 +1240,10 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 @Description	Performs a lookup with a key built by the user.
 
-		If Opaque0 result field is an application context pointer, user
-		should decrement the application context reference count after
-		usage.
+		If Opaque0 result field is an application context pointer, its
+		reference counter will be incremented during this operation.
+		user should decrement the application context reference count
+		after usage.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
