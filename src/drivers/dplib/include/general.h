@@ -240,13 +240,29 @@ struct additional_dequeue_context {
 	/** ADC fdsrc_va_fca_bdi offset */
 #define ADC_FDSRC_VA_FCA_BDI_OFFSET	0xF
 
+
+/**************************************************************************//**
+ @Group		AIOP_ADC_Getters
+
+ @Description	Additional Dequeue Context (ADC) Getters
+
+ @{
+*//***************************************************************************/
+
+/** Macro to get ICID field */
+#define ADC_GET_ICID()                              \
+       (LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),             \
+		       ADC_ICID_MASK))
+
+/** @} */ /* end of AIOP_ADC_Getters */
+
 /** @} */ /* end of AIOP_ADC_Definitions */
 
 
 /**************************************************************************//**
  @Group		AIOP_PRC_Definitions
 
- @Description	Presentation Context (ADC) Definitions
+ @Description	Presentation Context (PRC) Definitions
 
  @{
 *//***************************************************************************/
@@ -355,7 +371,7 @@ struct presentation_context {
 /**************************************************************************//**
  @Group		AIOP_PRC_Getters
 
- @Description	Presentation Context (ADC) Getters
+ @Description	Presentation Context (PRC) Getters
 
  @{
 *//***************************************************************************/
