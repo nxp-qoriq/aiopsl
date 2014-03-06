@@ -18,7 +18,7 @@ struct dpio;
 #else
 #include <fsl_cmdif.h>
 struct dpio {
-	struct cmdif_desc cidesc;
+	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
 };
 #endif
 
