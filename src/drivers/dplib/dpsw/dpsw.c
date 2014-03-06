@@ -12,19 +12,13 @@
 #include <fsl_dpsw_cmd.h>
 
 #define CMD_PREP(_param, _offset, _width, _type, _arg) \
-do { \
 	cmd_data.params[_param] |= u64_enc(_offset, _width, _arg); \
-}while (0);
 
 #define RSP_READ(_param, _offset, _width, _type, _arg) \
-do { \
 	*(_arg) = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
-}while (0);	
 
 #define RSP_READ_STRUCT(_param, _offset, _width, _type, _arg) \
-do{\
 	_arg = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
-}while (0);
 
 int dpsw_open(struct dpsw *dpsw, int dpsw_id)
 {
@@ -676,7 +670,8 @@ int dpsw_get_irq(struct dpsw *dpsw,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-
+	DPSW_CMD_GET_IRQ(CMD_PREP);
+	
 	err = cmdif_send(&(dpsw->cidesc), DPSW_CMDID_GET_IRQ,
 				DPSW_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
@@ -707,6 +702,7 @@ int dpsw_get_irq_enable(struct dpsw *dpsw,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPSW_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
 	err = cmdif_send(&(dpsw->cidesc), DPSW_CMDID_GET_IRQ_ENABLE,
 				DPSW_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
@@ -737,6 +733,7 @@ int dpsw_get_irq_mask(struct dpsw *dpsw,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPSW_CMD_GET_IRQ_MASK(CMD_PREP);
 
 	err = cmdif_send(&(dpsw->cidesc), DPSW_CMDID_GET_IRQ_MASK,
 				DPSW_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
@@ -767,6 +764,7 @@ int dpsw_get_irq_status(struct dpsw *dpsw,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPSW_CMD_GET_IRQ_STATUS(CMD_PREP);
 
 	err = cmdif_send(&(dpsw->cidesc), DPSW_CMDID_GET_IRQ_STATUS,
 				DPSW_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,

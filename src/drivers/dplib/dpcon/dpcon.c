@@ -76,7 +76,7 @@ int dpcon_get_irq(struct dpcon *dpcon,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-
+	DPCON_CMD_GET_IRQ(CMD_PREP);
 	err = cmdif_send(&(dpcon->cidesc), DPCON_CMDID_GET_IRQ,
 				DPCON_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
@@ -107,6 +107,7 @@ int dpcon_get_irq_enable(struct dpcon *dpcon,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPCON_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
 	err = cmdif_send(&(dpcon->cidesc), DPCON_CMDID_GET_IRQ_ENABLE,
 				DPCON_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
@@ -137,6 +138,7 @@ int dpcon_get_irq_mask(struct dpcon *dpcon,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPCON_CMD_GET_IRQ_MASK(CMD_PREP);
 
 	err = cmdif_send(&(dpcon->cidesc), DPCON_CMDID_GET_IRQ_MASK,
 				DPCON_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
@@ -167,6 +169,7 @@ int dpcon_get_irq_status(struct dpcon *dpcon,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPCON_CMD_GET_IRQ_STATUS(CMD_PREP);
 
 	err = cmdif_send(&(dpcon->cidesc), DPCON_CMDID_GET_IRQ_STATUS,
 				DPCON_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,

@@ -82,7 +82,9 @@ int dpio_get_irq(struct dpio *dpio,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-
+	
+	DPIO_CMD_GET_IRQ(CMD_PREP);
+	
 	err = cmdif_send(&(dpio->cidesc), DPIO_CMDID_GET_IRQ,
 				DPIO_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
@@ -113,6 +115,7 @@ int dpio_get_irq_enable(struct dpio *dpio,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPIO_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
 	err = cmdif_send(&(dpio->cidesc), DPIO_CMDID_GET_IRQ_ENABLE,
 				DPIO_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
@@ -143,6 +146,7 @@ int dpio_get_irq_mask(struct dpio *dpio,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPIO_CMD_GET_IRQ_MASK(CMD_PREP);
 
 	err = cmdif_send(&(dpio->cidesc), DPIO_CMDID_GET_IRQ_MASK,
 				DPIO_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
@@ -173,6 +177,7 @@ int dpio_get_irq_status(struct dpio *dpio,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPIO_CMD_GET_IRQ_STATUS(CMD_PREP);
 
 	err = cmdif_send(&(dpio->cidesc), DPIO_CMDID_GET_IRQ_STATUS,
 				DPIO_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,
