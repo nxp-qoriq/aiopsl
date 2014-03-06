@@ -685,7 +685,9 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     uint64_t opaquein,		     union table_key *key,		     uint8_t *key_size);
+		     uint64_t opaquein,
+		     union table_key *key,
+		     uint8_t *key_size);
 
 
 /**************************************************************************//**
