@@ -197,7 +197,7 @@
 @{
 *//***************************************************************************/
 /** Result is used for chaining of lookups, Contains 9B Opaque fields
- * Available only for rev2 */
+ * Not available for Rev1 */
 #define TABLE_RULE_RESULT_TYPE_CHAINING		0x81 
 
 /** Result is 9B of opaque data fields and 8B Context Memory pointer field.
@@ -422,7 +422,7 @@ union ctlu_op0_refptr_clp {
 
 	/** Chaining Parameters
 	A structure that contains table ID and key composition ID parameters
-	of the chained lookup. Available only for Rev2*/
+	of the chained lookup. Not available for Rev1 */
 	struct table_result_chain_parameters chain_parameters;
 };
 #pragma pack(pop)
@@ -454,7 +454,8 @@ struct table_result {
 	\ref CTLU_RULE_RESULT_TYPE_CHAINING */
 	uint8_t  opaque2;
 
-	/** Opaque0 or Reference Pointer or Chained Lookup Parameters(Rev2 only)
+	/** Opaque0 or Reference Pointer or Chained Lookup Parameters(N/A for
+	 * Rev1)
 	This field can be used either:
 	- As an opaque field of 8 bytes (type field should be set to
 	\ref TABLE_RESULT_TYPE_OPAQUES). \n Returned as part of lookup
@@ -465,7 +466,7 @@ struct table_result {
 	result.
 	- As a structure containing table ID and key ID parameters for a
 	chained lookup (type field should be set to
-	\ref TABLE_RESULT_TYPE_CHAINING). This available only for Rev2.
+	\ref TABLE_RESULT_TYPE_CHAINING). This is not available for Rev1.
 	*/
 	union ctlu_op0_refptr_clp op_rptr_clp;
 
