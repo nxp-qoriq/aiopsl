@@ -505,6 +505,10 @@ struct aiop_default_task_params {
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
+	/** current scope level */
+	uint8_t current_scppe_level;
+	/** scope mode level [0-3] */
+	uint8_t scope_mode_level_arr[4];
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
@@ -683,6 +687,12 @@ struct aiop_default_task_params {
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
+#define LLLDW_SWAP(_addr)					\
+	(uint64_t)({register uint64_t __rR = 0;		\
+	uint64_t temp;						\
+	__llldbrw(temp, _addr, 0);				\
+	__rR = (uint64_t ) temp; })
+
 #define LH_SWAP_MASK(_addr, _mask)				\
 	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
 	uint16_t temp;						\
@@ -710,6 +720,9 @@ struct aiop_default_task_params {
 
 #define STW_SWAP(_val, _addr)					\
 	__stwbrx(_val, _addr);
+
+#define LLSTDW_SWAP(_val, _addr)				\
+	__llstdbrw(_val, _addr, 0);
 
 #define STQ_SWAP(_val, _addr)					\
 	__stwbrx(_val, _addr);

@@ -1,4 +1,9 @@
 
+fsl_osm.h + osm.h: The order scope execution phase values was changed according to archdef_0.7.2 (0 = Concurrent mode, 1 = Exclusive mode).
+
+
+
+
 SL Pre-Alpha v0.3  Change Log
 
 

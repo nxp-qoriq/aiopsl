@@ -11,12 +11,6 @@
 #define __ERR_MODULE__  MODULE_DPNI
 
 
-extern __TASK uint8_t CURRENT_SCOPE_LEVEL;
-extern __TASK uint8_t SCOPE_MODE_LEVEL1;
-extern __TASK uint8_t SCOPE_MODE_LEVEL2;
-extern __TASK uint8_t SCOPE_MODE_LEVEL3;
-extern __TASK uint8_t SCOPE_MODE_LEVEL4;
-
 extern __TASK struct aiop_default_task_params default_task_params;
 
 /* TODO - get rid */

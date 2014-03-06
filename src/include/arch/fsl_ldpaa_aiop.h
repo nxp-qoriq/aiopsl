@@ -135,20 +135,11 @@
 
 	/** Macro to get FD ADDRESS field.*/
 	/* Todo - 64/49 bit address. Phys to Virt? */
-#define LDPAA_FD_GET_ADDR(_fd)					\
-	(uint64_t)({register uint64_t *__rR = 0;		\
-	uint64_t addr;						\
-	/*uint32_t addr1, addr2;*/					\
-	/* Todo - use swap intrinsic with long long when supported (e_ldbrw) */\
-	/*__ldwbrw(addr >> 32, addr, ((uint32_t)(((char *)_fd) +	\
-			FD_ADDR_OFFSET)),0);*/				\
-	/*__ldwbrw(addr1, addr2, ((uint32_t)(((char *)_fd) + FD_ADDR_OFFSET)),\
-			0); \*						\
-	__e_ldwbrw_d(addr, ((uint32_t)(((char *)_fd) + FD_ADDR_OFFSET)));\
-	/*__ldwbrw(addr@hiword, addr@loword, ((uint32_t)(((char *)_fd) + \
-		FD_ADDR_OFFSET)), 0);*/					\
-	/*__rR = (uint64_t *) (((uint64_t)(addr1 << 32)) | addr2) ;*/	\
-	__rR = (uint64_t *) (addr); })
+#define LDPAA_FD_GET_ADDR(_fd)						\
+	(uint64_t)({register uint64_t __rR = 0;				\
+	uint64_t addr;							\
+	addr = (LLLDW_SWAP((uint64_t)(((char *)_fd) + FD_ADDR_OFFSET)));\
+	__rR = (uint64_t ) addr; })
 	/** Macro to get FD LENGTH field */
 #define LDPAA_FD_GET_LENGTH(_fd)					\
 	(uint32_t)({register uint32_t *__rR = 0;			\
@@ -288,14 +279,18 @@
 	ds >>= FD_DS_SHIFT;						\
 	__rR = (uint8_t *) ds; })
 	/** Macro to get FD FLC field */
-	/* Todo - load flc to a 64bit _val - use swap intrinsic with long long
-	 * once supported (e_ldbrw) */
-#define LDPAA_FD_GET_FLC(_fd)
-
+#define LDPAA_FD_GET_FLC(_fd)						\
+	(uint64_t)({register uint64_t __rR = 0;				\
+	uint64_t addr;							\
+	addr = (LLLDW_SWAP((uint64_t)(((char *)_fd)+ FD_FLC_DS_AS_CS_OFFSET)));\
+	__rR = (uint64_t ) addr; })
 
 	/** Macro to set FD ADDRESS field */
 	/* Todo - 64/49 bit address. Phys to Virt? */
-#define LDPAA_FD_SET_ADDR(_fd, _val)
+#define LDPAA_FD_SET_ADDR(_fd, _val)					\
+	({								\
+	LLSTDW_SWAP(_val, ((uint64_t)(((char *)_fd) + FD_ADDR_OFFSET)));\
+	})
 	/** Macro to set FD LENGTH field */
 #define LDPAA_FD_SET_LENGTH(_fd, _val)					\
 	({uint32_t length;						\
@@ -364,9 +359,10 @@
 	/** Macro to set FD DS field */
 #define LDPAA_FD_SET_DS(_fd, _val)
 	/** Macro to set FD FLC field */
-	/* Todo - set flc with a 64bit _val - use swap intrinsic with long long
-	 * once supported (e_stdbrw) */
-#define LDPAA_FD_SET_FLC(_fd, _val)
+#define LDPAA_FD_SET_FLC(_fd, _val)					\
+	({								\
+	LLSTDW_SWAP(_val,((uint64_t)(((char *)_fd) + FD_FLC_DS_AS_CS_OFFSET)));\
+	})
 
 /* Additional FD Macros */
 	/** Macro to update FD LENGTH

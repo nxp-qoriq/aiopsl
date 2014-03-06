@@ -941,7 +941,7 @@ struct dpni_rx_flow_cfg {
 	 with each rx frame */
 	struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
 	 when 'options' set with DPNI_RX_FLOW_MOD_OPT_DEST; */
-/* TODO - add struct ldpaa_flow_ctx	*flc;
+/* TODO - add struct ldpaa_flow_ctx	*flc;*/
 /*!< valid only in case of flow-steering */
 };
 
@@ -1193,6 +1193,36 @@ int dpni_remove_fs_entry(struct dpni *dpni,
  * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_fs_table(struct dpni *dpni, uint8_t tc_id);
+
+
+int dpni_get_irq(struct dpni *dpni,
+                 uint8_t irq_index,
+                 uint64_t *irq_paddr,
+                 uint32_t *irq_val);
+
+int dpni_set_irq_enable(struct dpni *dpni,
+                          uint8_t irq_index,
+                          uint8_t enable_state);
+
+int dpni_get_irq_enable(struct dpni *dpni,
+                          uint8_t irq_index,
+                          uint8_t *enable_state);
+
+int dpni_set_irq_mask(struct dpni *dpni,
+                        uint8_t irq_index,
+                        uint32_t mask);
+
+int dpni_get_irq_mask(struct dpni *dpni,
+                        uint8_t irq_index,
+                        uint32_t *mask);
+
+int dpni_get_irq_status(struct dpni *dpni,
+                         uint8_t irq_index,
+                         uint32_t *status);
+
+int dpni_clear_irq_status(struct dpni *dpni,
+                            uint8_t irq_index,
+                            uint32_t status);
 
 /** @} */
 
