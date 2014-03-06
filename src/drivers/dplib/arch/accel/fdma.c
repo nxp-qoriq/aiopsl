@@ -473,7 +473,8 @@ int32_t fdma_store_frame_data(
 		(HWC_ACC_OUT_ADDRESS2 + FDMA_STORE_CMD_OUT_ICID_OFFSET));
 	isolation_attributes->icid = bdi_icid & ~(FDMA_ICID_CONTEXT_BDI);
 	isolation_attributes->flags =
-		((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) |
+		(((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) & (FDMA_ICID_CONTEXT_BMT
+			| FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_VA)) |
 		(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
 	return (int32_t)(res1);
 }
