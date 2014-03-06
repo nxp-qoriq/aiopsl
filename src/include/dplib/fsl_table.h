@@ -11,7 +11,7 @@
 
 #include "common/types.h"
 
-/* TODO remark on allocations of out params */
+
 /**************************************************************************//**
  @Group		ACCEL ACCEL (Accelerator APIs)
 
@@ -270,7 +270,7 @@
 
 /** @} */ /* end of FSL_KEY_DEFINES */
 
-/* TODO!!!!!!!!!!!!! STATUS FROM CTLU AND AACL varies */
+
 /**************************************************************************//**
 @Group	FSL_TABLE_STATUS Status returned to calling function
 @{
@@ -1042,7 +1042,6 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 /* ######################################################################### */
 /* ######################## Table Rule Operations ########################## */
 /* ######################################################################### */
-/*TODO comments about increment that doesn't happen ;)*/
 /**************************************************************************//**
 @Function	table_rule_create
 
