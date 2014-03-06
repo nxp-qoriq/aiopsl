@@ -63,7 +63,8 @@
 
 /**************************************************************************//**
 @Group	FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD \
-	 Key Composition Rule Builder Lookup Result Field Extract
+	 Key Composition Rule Builder Lookup Result Field Extract.
+	 Not available for Rev1.
 @{
 *//***************************************************************************/
 	/** Extract Opaque0 Field from Lookup Result */
@@ -564,6 +565,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 @Param[in,out]	kb - kcr builder pointer.
 
 @Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+
+@Caution	This function is not available for rev1.
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
