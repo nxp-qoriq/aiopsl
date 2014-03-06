@@ -8,7 +8,7 @@
 
 #include "common/types.h"
 #include "dplib/fsl_dpni.h"
-
+#include "dplib/fsl_ldpaa.h"
 
 /**************************************************************************//**
  @Group		grp_dplib_aiop	DPLIB
@@ -39,6 +39,11 @@
 /* @} */
 
 typedef uint64_t	dpni_drv_app_arg_t;
+
+/* TODO: need to define stats */
+struct dpni_stats {
+	int num_pkts;
+};
 
 /**************************************************************************//**
 @Description	Application Receive callback
@@ -150,8 +155,6 @@ int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_cfg dist[DPNI_MA
 
  @Param[in]	ni_id   The Network Interface ID
  @Param[in]	flow_id Flow ID, it should be between 0 and #DPNI_DRV_MAX_NUM_FLOWS 
- @Param[in]	dpio    MUST be set to NULL
- @Param[in]	dpsp    Must be set to NULL
  @Param[in]	cb      Callback function for Network Interface specified flow_id
  @Param[in]	arg     Argument that will be passed to callback function 
 
@@ -159,8 +162,6 @@ int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_cfg dist[DPNI_MA
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
                             uint16_t        flow_id,
-                            fsl_handle_t	dpio,
-                            fsl_handle_t	dpsp,
                             rx_cb_t		    *cb,
                             dpni_drv_app_arg_t arg);
 

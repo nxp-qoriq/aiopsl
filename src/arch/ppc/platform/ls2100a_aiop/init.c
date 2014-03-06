@@ -8,8 +8,9 @@
 #include "dplib/fsl_dpni.h"
 #include "common/dbg.h"
 #include "common/fsl_malloc.h"
-#include "fsl_fdma.h"
 #include "io.h"
+#include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
+#include "dplib/fsl_dpbp.h"
 
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
@@ -19,7 +20,7 @@ extern int slab_module_init(void);  extern void slab_module_free(void);
 extern int dpni_drv_probe(struct dprc	*dprc,
 			  uint16_t	mc_ni_id,
 			  uint16_t	aiop_ni_id,
-                          struct dpni_attach_params *attach_params);
+                          struct dpni_attach_cfg *attach_params);
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
@@ -172,20 +173,16 @@ int run_apps(void)
 	void *portal_vaddr;
 	/* TODO: replace with memset */
 	struct dprc dprc = { 0 };
-#ifdef NEW_MC_API
 	struct dpbp dpbp = { 0 };
-#endif
 	int container_id;
 	struct dprc_dev_desc dev_desc;
 	struct dprc_region_desc region_desc;
 	uint16_t dpbp_id;	// TODO: replace by real dpbp creation
-#ifdef NEW_MC_API
-	struct dpbp_cfg dpbp_cfg;
-	struct dpbp_attributes attributes;
-#endif	
-	uint16_t dpsp_id;
+	struct dpbp_attr attr;
+
+
 	uint8_t region_index = 0;
-	struct dpni_attach_params attach_params;
+	struct dpni_attach_cfg attach_params;
 	struct dprc_res_req assign_res_req;
 
 
@@ -204,23 +201,21 @@ int run_apps(void)
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
 	portal_vaddr = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-    	                                 (uint32_t)10, E_MAPPED_MEM_TYPE_MC_PORTAL));
+    	                                 (uint32_t)0, E_MAPPED_MEM_TYPE_MC_PORTAL));
 
 	/* Open root container in order to create and query for devices */
 	dprc.cidesc.regs = portal_vaddr;
-	if (err = dprc_get_container_id(&dprc, &container_id)) {
+	if ((err = dprc_get_container_id(&dprc, &container_id)) != 0) {
 		pr_err("Failed to get AIOP root container ID.\n");
 		return(err);
 	}
-	if (err = dprc_open(&dprc, container_id)) {
+	if ((err = dprc_open(&dprc, container_id)) != 0) {
 		pr_err("Failed to open AIOP root container DP-RC%d.\n", container_id);
 		return(err);
 	}
     
     	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
-
-#ifdef NEW_MC_API
 	/* TODO: Currently creating a stub DPBP with ID=1. 
 	 * Open and init calls will be replaced by 'create' when available at MC.
 	 * At that point, the DPBP ID will be provided by MC. */
@@ -230,7 +225,7 @@ int run_apps(void)
 	assign_res_req.options = DPRC_RES_REQ_OPT_EXPLICIT;
 	assign_res_req.id_base_align = 1;
 	assign_res_req.type = DP_DEV_DPBP;
-	if (err = dprc_assign(&dprc, 0, &assign_res_req)) {
+	if ((err = dprc_assign(&dprc, 0, &assign_res_req)) != 0) {
 		pr_err("Failed to assign DP-BP%d.\n", dpbp_id);
 		return err;
 	}
@@ -238,57 +233,41 @@ int run_apps(void)
     	/* Get the physical portal address for this object.
     	 * The physical portal address is at region_index zero */ 
     	region_index = 0;  
-    	if (err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) {
+    	if ((err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) != 0) {
 		pr_err("Failed to get device region for DP-BP%d.\n", dpbp_id);
 		return err;
 	}
 
     	dpbp.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
 	
-	if (err = dpbp_open(&dpbp, dpbp_id)) {
+	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
 		return err;		
 	}
-
-	dpbp_cfg.buffer_size = 1024;
-	if (err = dpbp_init(&dpbp, &dpbp_cfg)) {
-		pr_err("Failed to init DP-BP%d.\n", dpbp_id);
-		return err;				
-	}
 	
-	if (err = dpbp_enable(&dpbp)) {
+	if ((err = dpbp_enable(&dpbp)) != 0) {
 		pr_err("Failed to enable DP-BP%d.\n", dpbp_id);
 		return err;						
 	}
 	
-	if (err = dpbp_get_attributes(&dpbp, &attributes)) {
+	if ((err = dpbp_get_attributes(&dpbp, &attr)) != 0) {
 		pr_err("Failed to get attributes from DP-BP%d.\n", dpbp_id);
 		return err;								
 	}
 
-	if (err = fill_bpid(1000, attributes.buffer_size, 64, MEM_PART_PEB, attributes.bpid)) {
+	/* TODO: number and size of buffers should not be hard-coded */
+	if ((err = fill_bpid(100, attr.buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
 		pr_err("Failed to fill DP-BP%d (BPID=%d) with buffer size %d.\n",
-				dpbp_id, attributes.bpid, attributes.buffer_size);
+				dpbp_id, attr.bpid, attr.buffer_size);
 		return err;
 	}
-#endif
-	
-	/* Prepare parameters to attach to each discovered DPNI */
-	attach_params.dpio_id = (uint16_t)dpbp_id; 	// TODO: change dpio_id to dpbp_id
-	attach_params.dpsp_id = (uint16_t)0;		// TODO: remove. dpsp will be taken from DPNI object during probe
-	attach_params.dan_en = (int)0;
-	attach_params.rx_user_ctx = (uint64_t)0;
-	attach_params.rx_err_user_ctx = (uint64_t)0;
-	attach_params.tx_err_user_ctx = (uint64_t)0;
-	attach_params.tx_conf_user_ctx = (uint64_t)0;
 
-	
-#ifdef NEW_MC_API
+	/* Prepare parameters to attach to DPNI object */
 	memset (&attach_params, 0, sizeof(attach_params));
 	attach_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
 	attach_params.dpbp_id[0] = dpbp_id; /*!< DPBPs object id */
-#endif
-	if (err = dprc_get_device_count(&dprc, &dev_count)) {
+
+	if ((err = dprc_get_device_count(&dprc, &dev_count)) != 0) {
 	    pr_err("Failed to get device count for AIOP root container DP-RC%d.\n", container_id);
 	    return err;
 	}
@@ -299,17 +278,11 @@ int run_apps(void)
 		if (dev_desc.type == DP_DEV_DPNI) {
 			/* TODO: print conditionally based on log level */
 			print_dev_desc(&dev_desc);   	
-#ifdef NEW_MC_API
-			if (err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, &attach_params)) {
+
+			if ((err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, &attach_params)) != 0) {
 				pr_err("Failed to probe DP-NI%d.\n", i);
 				return err;  
 			}
-#else
-			if (err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, 0)) {
-				pr_err("Failed to probe DP-NI%d.\n", i);
-				return err;  
-			}
-#endif
 		}
 	}
     

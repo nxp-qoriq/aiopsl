@@ -9,29 +9,18 @@
 #include "kernel/platform.h"
 #include "inc/sys.h"
 #include "dplib/fsl_dprc.h"
-#ifdef NEW_MC_API
 #include "dplib/fsl_dpbp.h"
-#endif
 
 #include "drv.h"
 #include "system.h"
 
-
 #define __ERR_MODULE__  MODULE_DPNI
-
-
-#if ARENA_LEGACY_CODE
-int init_nic_stub(int portal_id, int ni_id);
-#endif
-
 
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
-
 /* TODO - get rid */
 __SHRAM struct dpni_drv *nis;
-
 
 static void discard_rx_cb()
 {
@@ -48,52 +37,8 @@ static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 		fdma_terminate_task();  
 }
 
-#if ARENA_LEGACY_CODE
-int init_nic_stub(int portal_id, int ni_id)
-{
-	struct dpni_cfg			cfg;
-	struct dpni			dpni;
-	int 				err;
-	uint8_t				eth_addr[] = {0x00, 0x04, 0x9f, 0x0, 0x0, 0x1};
-#if 0
-	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-								       (uint32_t)portal_id,
-								       E_MAPPED_MEM_TYPE_MC_PORTAL)),
-			 ni_id);
-	if (!dpni) {
-		pr_err("failed to open DPNI!\n");
-		return -ENODEV;
-	}
-#endif
-	dpni.cidesc.regs = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-									       (uint32_t)portal_id,
-									       E_MAPPED_MEM_TYPE_MC_PORTAL));
-	err = dpni_open(&dpni, ni_id);
-	if (err) {
-		pr_err("failed to open DPNI!\n");
-		return -ENODEV;
-	}
-	/* obtain default configuration of the NIC */
-//	dpni_defconfig(&cfg);
-
-//	memset(&params, 0, sizeof(params));
-	cfg.type = DPNI_TYPE_NIC;
-	cfg.adv.max_senders = 8; /* TODO - ??? */
-	memcpy(cfg.mac_addr, eth_addr, sizeof(eth_addr));
-	err = dpni_init(&dpni, &cfg);
-	if (err)
-		return err;
-	dpni_close(&dpni);
-
-	return 0;
-}
-#endif
-
-
 int dpni_drv_register_rx_cb (uint16_t		ni_id,
                              uint16_t		flow_id,
-                             fsl_handle_t	dpio,
-                             fsl_handle_t	dpsp,
                              rx_cb_t      	*cb,
                              dpni_drv_app_arg_t arg)
 {
@@ -101,18 +46,8 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
-
-	if (dpio || dpsp) {
-		pr_err("DPIO and\\or DPSP not supported yet\n");
-		return -E_NOT_SUPPORTED;
-	}
 	dpni_drv->args[flow_id] = arg;
 	dpni_drv->rx_cbs[flow_id] = cb;
-
-	/* TODO - if passed DP-IO or DP-SP,
-	 * call 'dpni_attach' with new args.
-	 * also note to update the 'spid' if changed.
-	 */
 
 	return 0;
 }
@@ -139,68 +74,22 @@ int dpni_drv_disable (uint16_t ni_id)
 	return dpni_disable(&dpni_drv->dpni);
 }
 
-#ifdef ARENA_LEGACY_CODE
-int dpni_drv_probe(uint16_t	ni_id,
-                   uint16_t	mc_portal_id,
-                   fsl_handle_t	dpio,
-                   fsl_handle_t	dpbp)
-{
-	struct dpni_drv 		*dpni_drv;
-	struct dpni_attach_cfg	cfg;
-	int				err;
-
-	/* calculate pointer to the send NI structure */
-	dpni_drv = nis + ni_id;
-
-#if 0
-	dpni = dpni_open(UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-								       (uint32_t)portal_id,
-								       E_MAPPED_MEM_TYPE_MC_PORTAL)),
-			 ni_id);
-	if (!dpni_drv->dpni) {
-		pr_err("can't open DP-NI%d\n", ni_id);
-		return -ENODEV;
-	}
-#endif
-	dpni_drv->dpni.cidesc.regs = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-									       (uint32_t)mc_portal_id,
-									       E_MAPPED_MEM_TYPE_MC_PORTAL));
-	err = dpni_open(&dpni_drv->dpni, ni_id);
-	if (err) {
-		pr_err("can't open DP-NI%d\n", ni_id);
-		return -ENODEV;
-	}
-
-	memset(&cfg, 0, sizeof(cfg));
-	/* TODO - how to retrieve the ID here??? */
-	cfg.dest_cfg.dpio_id = (uint16_t)PTR_TO_UINT(dpio);
-	/* TODO - how to retrieve the ID here??? */
-	cfg.dpbp_id[0] = (uint16_t)PTR_TO_UINT(dpbp);  //TODO - ids
-	if ((err = dpni_attach(&dpni_drv->dpni,
-	                       (const struct dpni_attach_cfg *)&cfg)) != 0)
-		return err;
-
-	return 0;
-}
-#endif
 
 int dpni_drv_probe(struct dprc	*dprc,
 		   uint16_t	mc_niid,
 		   uint16_t	aiop_niid,
-                   struct dpni_attach_params *attach_params)
+                   struct dpni_attach_cfg *attach_params)
 {
 	uintptr_t wrks_addr;
 	int i;
 	uint32_t j;
 	int err = 0, tmp = 0;
-#ifdef NEW_MC_API
 	struct dpbp dpbp = { 0 };
-#endif
 	struct dpni dpni = { 0 };
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
 	struct dprc_region_desc region_desc;
-	struct dpni_attributes attributes;
+	struct dpni_attr attributes;
 	
 	/* TODO: replace wrks_addr with global struct */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
@@ -225,26 +114,26 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* Register MC NI ID in AIOP NI table */
 			nis[aiop_niid].mc_niid = mc_niid;
 
-			if (err = dprc_get_dev_region(dprc, DP_DEV_DPNI, mc_niid, 0, &region_desc)) {
+			if ((err = dprc_get_dev_region(dprc, DP_DEV_DPNI, mc_niid, 0, &region_desc)) != 0) {
 				pr_err("Failed to get device region for DP-NI%d.\n", mc_niid);
 				return err;
 			}
 
 			dpni.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
 			
-			if (err = dpni_open(&dpni, mc_niid)) {
+			if ((err = dpni_open(&dpni, mc_niid)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);
 				return err;
 			}
 
 			/* Register MAC address in internal AIOP NI table */
-			if (err = dpni_get_primary_mac_addr(&dpni, mac_addr)) {
+			if ((err = dpni_get_primary_mac_addr(&dpni, mac_addr)) != 0) {
 				pr_err("Failed to get MAC address for DP-NI%d\n", mc_niid);
 				return err;
 			}
 			memcpy(nis[aiop_niid].mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
 
-			if (err = dpni_get_attributes(&dpni, &attributes)) {
+			if ((err = dpni_get_attributes(&dpni, &attributes)) != 0) {
 				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
 				return err;
 			}
@@ -252,16 +141,15 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
 
-#ifdef NEW_MC_API
-			if (err = dpni_attach(&dpni, attach_params)) {
+			if ((err = dpni_attach(&dpni, attach_params)) != 0) {
 				pr_err("Failed to attach parameters to DP-NI%d.\n", mc_niid);
 				return err;
 			}
-#endif			
+			
 			/* Enable DPNI before updating the entry point function (EP_PC)
 			 * in order to allow DPNI's attributes to be initialized.
 			 * Frames arriving before the entry point function is updated will be dropped. */
-			if (err = dpni_enable(&dpni)) {
+			if ((err = dpni_enable(&dpni)) != 0) {
 				pr_err("Failed to enable DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
@@ -269,7 +157,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* Now a Storage Profile exists and is associated with the NI */
 						
 			/* Register QDID in internal AIOP NI table */
-			if (err = dpni_get_qdid(&dpni, &qdid)) {
+			if ((err = dpni_get_qdid(&dpni, &qdid)) != 0) {
 				pr_err("Failed to get QDID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
@@ -277,7 +165,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			
 #ifdef NEW_MC_API
 			/* Register SPID in internal AIOP NI table */
-			if (err = dpni_get_spid(&dpni, &spid)) {
+			if ((err = dpni_get_spid(&dpni, &spid)) != 0) {
 				pr_err("Failed to get SPID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
@@ -285,7 +173,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 #endif	
 			
 			
-			dpni_close(&dpni);	// TODO: check if should close or not
+			dpni_close(&dpni);
 			
 			/* TODO: need to initialize additional NI table fields according to DPNI attributes */
 			
@@ -361,9 +249,7 @@ int dpni_drv_init(void)
 	uintptr_t	wrks_addr;
 	int		    i;
 	int         error = 0;
-//	uint32_t 	*ptr;
-	struct aiop_tile_regs *aiop_tile_regs;
-	struct aiop_ws_regs *ws_regs;
+
 	
 	/* Allocate initernal AIOP NI table */
 	nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
@@ -390,7 +276,7 @@ int dpni_drv_init(void)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
 	
-#if 0	
+#if NEW_MC_API
 	/* TODO: following code can not currently compile on AIOP, only on MC */
 	aiop_tile_regs = (struct aiop_tile_regs *)sys_get_memory_mapped_module_base(FSL_OS_MOD_AIOP,
 	                                                     0,
@@ -422,7 +308,7 @@ int dpni_drv_init(void)
 		/* TODO : this is a temporary assignment for testing purposes, until MC initialization will be operational.
 		 * Initialize all EPID entries to MC NI ID 2 (EP_PM)
 		 * Due to Simulator issue, only one value can be initialized for all EPID entries. */
-		iowrite32((uint32_t)2, UINT_TO_PTR(wrks_addr + 0x104));
+		iowrite32((uint32_t)1, UINT_TO_PTR(wrks_addr + 0x104));
 	}
 #endif
 	
