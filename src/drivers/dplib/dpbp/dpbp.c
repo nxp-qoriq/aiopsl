@@ -5,19 +5,13 @@
 #include <fsl_dpbp_cmd.h>
 
 #define CMD_PREP(_param, _offset, _width, _type, _arg) \
-do { \
 	cmd_data.params[_param] |= u64_enc(_offset, _width, _arg);\
-} while (0);
 
 #define RSP_READ(_param, _offset, _width, _type, _arg) \
-do { \
 	*(_arg) = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
-} while (0);
 
 #define RSP_READ_STRUCT(_param, _offset, _width, _type, _arg) \
-do { \
 	_arg = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
-} while (0);
 
 int dpbp_open(struct dpbp *dpbp, int dpbp_id)
 {
@@ -84,6 +78,8 @@ int dpbp_get_irq(struct dpbp *dpbp,
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
+	DPBP_CMD_GET_IRQ(CMD_PREP);
+	
 	err = cmdif_send(&(dpbp->cidesc), DPBP_CMDID_GET_IRQ,
 				DPBP_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
@@ -114,6 +110,7 @@ int dpbp_get_irq_enable(struct dpbp *dpbp,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPBP_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
 	err = cmdif_send(&(dpbp->cidesc), DPBP_CMDID_GET_IRQ_ENABLE,
 				DPBP_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
@@ -144,6 +141,7 @@ int dpbp_get_irq_mask(struct dpbp *dpbp,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	DPBP_CMD_GET_IRQ_MASK(CMD_PREP);
 
 	err = cmdif_send(&(dpbp->cidesc), DPBP_CMDID_GET_IRQ_MASK,
 				DPBP_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
@@ -174,6 +172,8 @@ int dpbp_get_irq_status(struct dpbp *dpbp,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+	
+	DPBP_CMD_GET_IRQ_STATUS(CMD_PREP);
 
 	err = cmdif_send(&(dpbp->cidesc), DPBP_CMDID_GET_IRQ_STATUS,
 				DPBP_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,
