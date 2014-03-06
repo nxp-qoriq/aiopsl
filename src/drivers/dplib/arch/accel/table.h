@@ -266,7 +266,7 @@ struct ctlu_table_params_replace_input_message {
 	uint8_t reserved[TABLE_PARAMS_REPLACE_INPUT_MESSAGE_RESERVED_SPACE];
 
 	/** Miss Result */
-	struct table_rule_result miss_lookup_fcv;
+	struct table_result miss_lookup_fcv;
 };
 #pragma pack(pop)
 
@@ -348,7 +348,7 @@ struct table_entry_body_eme16 {
 	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE];
 
 	/** CTLU result */
-	struct table_rule_result result;
+	struct table_result result;
 };
 #pragma pack(pop)
 
@@ -374,7 +374,7 @@ struct table_entry_body_eme24 {
 	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE];
 
 	/** CTLU result */
-	struct table_rule_result result;
+	struct table_result result;
 };
 #pragma pack(pop)
 
@@ -400,7 +400,7 @@ struct table_entry_body_lpm_res {
 	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE];
 
 	/** CTLU result */
-	struct table_rule_result result;
+	struct table_result result;
 };
 #pragma pack(pop)
 
@@ -505,7 +505,7 @@ struct table_entry_body_mflu_res {
 	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_MFLU_RES_LOOKUP_KEY_SIZE];
 
 	/** CTLU result */
-	struct table_rule_result result;
+	struct table_result result;
 };
 #pragma pack(pop)
 
@@ -560,7 +560,7 @@ struct table_old_result {
 	uint8_t reserved[CTLU_TABLE_OLD_RESULT_RESERVED_SPACE];
 
 	/** The body of the entry (varies per type) */
-	struct table_rule_result result;
+	struct table_result result;
 };
 #pragma pack(pop)
 

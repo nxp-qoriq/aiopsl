@@ -685,9 +685,7 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     uint64_t opaquein,
-		     union ctlu_key *key,
-		     uint8_t *key_size);
+		     uint64_t opaquein,		     union table_key *key,		     uint8_t *key_size);
 
 
 /**************************************************************************//**
@@ -705,7 +703,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t keygen_gen_hash(union ctlu_key *key, uint8_t key_size, uint32_t *hash);
+int32_t keygen_gen_hash(union table_key *key, uint8_t key_size, uint32_t *hash);
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */

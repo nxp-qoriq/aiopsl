@@ -212,7 +212,7 @@ struct ctlu_table_params_query_output_message {
 	uint64_t  reserved1;
 
 	/** Miss Result */
-	struct table_rule_result miss_lookup_fcv;
+	struct table_result miss_lookup_fcv;
 					
 };
 #pragma pack(pop)
@@ -254,10 +254,10 @@ struct ctlu_update_miss_rule_command {
 	 - \ref aiop_ctlu_result_chaining
 	 - \ref aiop_ctlu_result_reference
 	 - \ref aiop_ctlu_result_opaque */
-	struct table_rule_result miss_rule;
+	struct table_result miss_rule;
 
 	/** The old miss result */
-	struct table_rule_result old_miss_result;
+	struct table_result old_miss_result;
 
 	/** CTLU Update Miss Rule Command identifier */
 	uint32_t opcode;
@@ -311,7 +311,7 @@ struct ctlu_get_miss_rule_command {
 	- struct aiop_ctlu_result_chaining
 	- struct aiop_ctlu_result_reference
 	- struct aiop_ctlu_result_opaque */
-	struct table_rule_result miss_rule;
+	struct table_result miss_rule;
 
 	/** Command returned status */
 	int32_t  status;
@@ -379,7 +379,7 @@ struct ctlu_table_rule_create_command{
 *//***************************************************************************/
 struct ctlu_table_rule_create_replace_command{
 	/** Rule's old result - valid only if replace occurred */
-	struct table_rule_result old_res;
+	struct table_result old_res;
 
 	/** CTLU Table Rule Create identifier */
 	uint32_t opcode;
@@ -409,7 +409,7 @@ struct ctlu_table_rule_create_replace_command{
 *//***************************************************************************/
 struct ctlu_table_rule_delete_command{
 	/** Rule's old result */
-	struct table_rule_result old_res;
+	struct table_result old_res;
 
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
@@ -470,7 +470,7 @@ struct ctlu_table_lookup_by_key_command{
 	struct table_lookup_result lookup_result;
 
 	/** A pointer to the key in the workspace */
-	uint32_t key_ptr;
+	union table_lookup_key key;
 
 	/** Command returned status */
 	int32_t  status;

@@ -65,19 +65,21 @@
 		of the following defines (excluding mask and offset defines):
 @{
 *//***************************************************************************/
-	/** Exact Match table */
+	/** Exact Match table,
+	 * Not available for MFLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_EM		0x0000
 
-	/** Longest Prefix Match table */
+	/** Longest Prefix Match table,
+	 * Not available for MFLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_LPM	0x1000
 
 /*
 	 Ternary match Table for ACL
 #define TABLE_ATTRIBUTE_TYPE_TCAM_ACL	0x2000
-
-	 Algorithmic ACL
-#define TABLE_ATTRIBUTE_TYPE_ALG_ACL	0x4000
 */
+	/* MFLU (Previously called Algorithmic ACL table)
+	 * Not available for CTLU Table HW Accelerator */
+#define TABLE_ATTRIBUTE_TYPE_MFLU	0x4000
 
 	/** Table type sub field mask */
 #define TABLE_ATTRIBUTE_TYPE_MASK	0xF000
@@ -119,7 +121,7 @@
 #define TABLE_ATTRIBUTE_LOCATION_MASK	0x0700
 
 	/** Table Location sub field offset */
-#define TABLE_TYPE_IEX_OFFSET		8
+#define TABLE_ATTRIBUTE_LOCATION_OFFSET		8
 
 /** @} */ /* end of FSL_CTLU_TABLE_ATTRIBUTE_LOCATION */
 
@@ -141,7 +143,7 @@
 #define TABLE_ATTRIBUTE_MR_MISS		0x0080
 
 	/** Miss result options sub field mask */
-#define TABLE_ATTRIBUTE_MR_MASK	0x00C0
+#define TABLE_ATTRIBUTE_MR_MASK		0x00C0
 
 	/** Miss result options sub field offset */
 #define TABLE_ATTRIBUTE_MR_OFFSET	6
@@ -173,7 +175,6 @@
 
 @Cautions	This feature is currently only available for CTLU Table
 		Accelerator.
-
 @{
 *//***************************************************************************/
 	/** Aging Threshold Mask */
@@ -188,33 +189,34 @@
 
 
 /**************************************************************************//**
-@Group		FSL_CTLU_TABLE_RULE_RESULT_TYPES Table Rule Results Types
+@Group		FSL_TABLE_RULE_RESULT_TYPES Table Rule Results Types
 
 @Description	Table Rule Results Types
 
 		User should select one of the following defines:
 @{
 *//***************************************************************************/
-	/** Result is used for chaining of lookups */
-#define CTLU_RULE_RESULT_TYPE_CHAINING	0x81
+/** Result is used for chaining of lookups, Contains 9B Opaque fields
+ * Available only for rev2 */
+#define TABLE_RULE_RESULT_TYPE_CHAINING		0x81 
 
-	/** Result is 8B of opaque data and 8B DDR pointer.
-	Uses for reference counting */
-#define CTLU_RULE_RESULT_TYPE_REFERENCE	0x91
+/** Result is 9B of opaque data fields and 8B Context Memory pointer field.
+ * Uses for reference counting */
+#define TABLE_RESULT_TYPE_REFERENCE		0x91
 
-	/** Result is 16B of opaque data */
-#define CTLU_RULE_RESULT_TYPE_OPAQUES	0xB1
+	/** Result is 17B of opaque data fields */
+#define TABLE_RESULT_TYPE_OPAQUES		0xB1
 
-/** @} *//* end of FSL_CTLU_TABLE_RULE_RESULT_TYPES */
+/** @} *//* end of FSL_TABLE_RULE_RESULT_TYPES */
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU_TABLE_RULE_OPTIONS Table Rule Options
+@Group	FSL_TABLE_RULE_OPTIONS Table Rule Options
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_CTLU_TABLE_RULE_OPTIONS_TIMESTAMP Table Rule Timestamp Options
+@Group	FSL_TABLE_RULE_OPTIONS_TIMESTAMP Table Rule Timestamp Options
 
 @Description	Table Rule Timestamp Options
 
@@ -223,50 +225,54 @@
 @{
 *//***************************************************************************/
 	/** Timestamp is disabled for this rule*/
-#define	CTLU_RULE_TIMESTAMP_NONE	0x00
+#define	TABLE_RULE_TIMESTAMP_NONE	0x00
 
 	/** Enables timestamp update per rule. */
-#define	CTLU_RULE_TIMESTAMP_ENABLE	0x80
+#define	TABLE_RULE_TIMESTAMP_ENABLE	0x80
 
 	/** Enables timestamp update per rule and aging.
-	 * Aging is described in \ref FSL_CTLU_TABLE_ATTRIBUTE_AGT.
+	 * Aging is described in \ref FSL_TABLE_ATTRIBUTE_AGT.
 	 * NOTE: This option must not be used unless at table creation
-	 * \ref FSL_CTLU_TABLE_ATTRIBUTE_TYPE was set to
-	 * CTLU_TBL_ATTRIBUTE_TYPE_EM. (i.e. this options is available only
-	 * in exact match tables)*/
-#define CTLU_RULE_TIMESTAMP_AGT_ENABLE	0xC0
+	 * \ref FSL_TABLE_ATTRIBUTE_TYPE was set to TABLE_ATTRIBUTE_TYPE_EM.
+	 * (i.e. this options is available only in exact match tables)*/
+#define TABLE_RULE_TIMESTAMP_AGT_ENABLE	0xC0
 
-/** @} *//* end of FSL_CTLU_TABLE_RULE_OPTIONS_TIMESTAMP */
+/** @} *//* end of FSL_TABLE_RULE_OPTIONS_TIMESTAMP */
 
 /** @} *//* end of FSL_CTLU_TABLE_RULE_OPTIONS */
 
 
 /**************************************************************************//**
-@Group	FSL_CTLU_KEY_DEFINES Table Rule Key
+@Group	FSL_TABLE_KEY_DEFINES Table Rule Key
 @{
 *//***************************************************************************/
 	/** Exact Match key size */
-#define CTLU_TABLE_RULE_KEY_EXACT_MATCH_SIZE	124
-	/** Exact Match key padding */
-#define CTLU_KEY_EXACT_MATCH_PADDING		4
+#define TABLE_KEY_EXACT_MATCH_SIZE		124
+	/** Exact Match key Reserved field size in bytes */
+#define TABLE_KEY_EXACT_MATCH_RESERVED_SIZE	4
+
 	/** IPv4 LPM key size */
-#define CTLU_KEY_LPM_IPV4_SIZE			0x08
+#define TABLE_KEY_LPM_IPV4_SIZE			0x08
+	/** IPv4 LPM key Reserved field size in bytes */
+#define TABLE_KEY_LPM_IPV4_RESERVED_SIZE	119
+
 	/** IPv6 LPM key size */
-#define CTLU_KEY_LPM_IPV6_SIZE			0x14
-	/** IPv4 LPM key padding */
-#define CTLU_KEY_LPM_IPV4_PADDING		119
-	/** IPv6 LPM key padding */
-#define CTLU_KEY_LPM_IPV6_PADDING		107
+#define TABLE_KEY_LPM_IPV6_SIZE			0x14
+	/** IPv6 LPM key Reserved field size in bytes */
+#define TABLE_KEY_LPM_IPV6_RESERVED_SIZE	107
 
-/** @} */ /* end of FSL_CTLU_KEY_DEFINES */
+	/** IPv6 LPM key size */
+#define TABLE_KEY_MFLU_SIZE			0x38
+	/** MFLU key mask field size in bytes */
+#define TABLE_KEY_MFLU_MASK_SIZE		0x38
+	/** MFLU key Reserved1 field size in bytes */
+#define TABLE_KEY_MFLU_RESERVED1_SIZE		8
 
-/**************************************************************************//**
-@Group	FSL_CTLU_STATUS Status returned to calling function
-@{
-*//***************************************************************************/
+/** @} */ /* end of FSL_KEY_DEFINES */
+
 /* TODO!!!!!!!!!!!!! STATUS FROM CTLU AND AACL varies */
 /**************************************************************************//**
-@Group	FSL_CTLU_STATUS_GENERAL General status returned from CTLU
+@Group	FSL_TABLE_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
 /** Command successful */
@@ -323,16 +329,15 @@ A general bit that is set in some errors conditions */
  * */
 #define CTLU_STATUS_ICIDE	0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						CTLU_STATUS_MGCF
-/** @} */ /* end of FSL_CTLU_STATUS_GENERAL */
 
 /** @} */ /* end of FSL_CTLU_STATUS */
 
-/** @} */ /* end of FSL_CTLU_MACROS */
+/** @} */ /* end of FSL_TABLE_MACROS */
 
 /**************************************************************************//**
-@Group		FSL_CTLU_Enumerations CTLU Enumerations
+@Group		FSL_TABLE_Enumerations Table Enumerations
 
-@Description	CTLU Enumerations
+@Description	Table Enumerations
 
 @{
 *//***************************************************************************/
@@ -367,7 +372,7 @@ enum table_hw_accel_id {
 @Description	Table Rule Result Chaining Parameters
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_rule_result_chain_parameters {
+struct table_result_chain_parameters {
 	/** Reserved
 	Reserved for compliance with HW format.
 	User should not access this field. */
@@ -417,8 +422,8 @@ union ctlu_op0_refptr_clp {
 
 	/** Chaining Parameters
 	A structure that contains table ID and key composition ID parameters
-	of the chained lookup. */
-	struct ctlu_rule_result_chain_parameters chain_parameters;
+	of the chained lookup. Available only for Rev2*/
+	struct table_result_chain_parameters chain_parameters;
 };
 #pragma pack(pop)
 
@@ -433,10 +438,10 @@ union ctlu_op0_refptr_clp {
 		table miss result).
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_rule_result {
+struct table_result {
 	/** Result Type
 	Should be set to one of the types specified in
-	\link FSL_CTLU_TABLE_RULE_RESULT_TYPES Result Types \endlink macros. */
+	\link FSL_TABLE_RESULT_TYPES Result Types \endlink macros. */
 	uint8_t  type;
 
 	/** Reserved
@@ -446,21 +451,21 @@ struct table_rule_result {
 
 	/** Opaque2
 	Returned as part of lookup result. Not valid when type is set to
-	CTLU_RULE_RESULT_TYPE_CHAINING */
+	\ref CTLU_RULE_RESULT_TYPE_CHAINING */
 	uint8_t  opaque2;
 
-	/** Opaque0 or Reference Pointer or Chained Lookup Parameters
+	/** Opaque0 or Reference Pointer or Chained Lookup Parameters(Rev2 only)
 	This field can be used either:
 	- As an opaque field of 8 bytes (type field should be set to
-	\ref CTLU_RULE_RESULT_TYPE_OPAQUES). \n Returned as part of lookup
+	\ref TABLE_RESULT_TYPE_OPAQUES). \n Returned as part of lookup
 	result.
 	- As a pointer to CDMA application context which has a reference
 	counter (type field should be set to
-	\ref CTLU_RULE_RESULT_TYPE_REFERENCE). \n Returned as part of lookup
+	\ref TABLE_RESULT_TYPE_REFERENCE). \n Returned as part of lookup
 	result.
 	- As a structure containing table ID and key ID parameters for a
 	chained lookup (type field should be set to
-	\ref CTLU_RULE_RESULT_TYPE_CHAINING).
+	\ref TABLE_RESULT_TYPE_CHAINING). This available only for Rev2.
 	*/
 	union ctlu_op0_refptr_clp op_rptr_clp;
 
@@ -476,12 +481,14 @@ struct table_rule_result {
 @Description	Exact Match Key Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_key_exact_match {
+struct table_key_exact_match {
 	/** Exact Match key */
-	uint8_t  key[CTLU_TABLE_RULE_KEY_EXACT_MATCH_SIZE];
+	uint8_t  key[TABLE_KEY_EXACT_MATCH_SIZE];
 
-	/** Padding */
-	uint8_t  pad[CTLU_KEY_EXACT_MATCH_PADDING];
+	/** Reserved
+	 * Reserved for compliance with HW format.
+	 * User should not access this field. */
+	uint8_t  reserved[TABLE_KEY_EXACT_MATCH_RESERVED_SIZE];
 };
 #pragma pack(pop)
 
@@ -493,21 +500,21 @@ struct ctlu_key_exact_match {
 		{exact_match, full_ipv4_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_key_lpm_ipv4 {
+struct table_key_lpm_ipv4 {
 	/** Exact Match bytes */
 	uint32_t exact_match;
 
 	/** IPv4 Address */
 	uint32_t addr;
 
-	/** Prefix length.
-	In lookups defines the maximum prefix length for this search. The CTLU
-	does not search for a prefix length larger than prefix_length. For
-	lookup on all prefixes prefix_length = 0xFF. */
-	uint8_t	 prefix_length;
+	/** IPv4 Address Prefix length.
+	 * Must be > 0. */
+	uint8_t  prefix_length;
 
-	/** Padding */
-	uint8_t  pad[CTLU_KEY_LPM_IPV4_PADDING];
+	/** Reserved
+	 * Reserved for compliance with HW format.
+	 * User should not access this field. */
+	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
 };
 #pragma pack(pop)
 
@@ -519,7 +526,7 @@ struct ctlu_key_lpm_ipv4 {
 		{exact_match, full_ipv6_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_key_lpm_ipv6 {
+struct table_key_lpm_ipv6 {
 	/** Exact Match bytes */
 	uint32_t exact_match;
 
@@ -529,33 +536,81 @@ struct ctlu_key_lpm_ipv6 {
 	/** IPv6 Address (8 LSB) */
 	uint64_t addr1;
 
-	/** Prefix length.
-	In lookups defines the maximum prefix length for this search. The CTLU
-	does not search for a prefix length larger than prefix_length. For
-	lookup on all prefixes prefix_length = 0xFF. */
+	/** IPv6 Address Prefix length.
+	 * Must be > 0. */
 	uint8_t  prefix_length;
 
-	/** Padding */
-	uint8_t  pad[CTLU_KEY_LPM_IPV6_PADDING];
+	/** Reserved
+	 * Reserved for compliance with HW format.
+	 * User should not access this field. */
+	uint8_t  reserved[TABLE_KEY_LPM_IPV6_RESERVED_SIZE];
 };
 #pragma pack(pop)
 
 
 /**************************************************************************//**
-@Description	Union of 3 Table Result Types
+@Description	MFLU Key Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_key_mflu {
+	/** Key */
+	uint8_t  key[TABLE_KEY_MFLU_SIZE];
+
+	/** Reserved
+	 * Reserved for compliance with HW format.
+	 * User should not access this field. */
+	uint32_t reserved0;
+
+	/** Priority 
+	 * priority determines the selection between two rule that match in the
+	 * MFLU lookup.
+	 * 0x00000000 is the highest priority.*/
+	uint32_t priority;
+
+	/** Key mask 
+	 * Each byte in the mask must have contiguous ‘1’s in the MSbits.
+	 * Therefore there are 9 valid values for each byte in the mask:
+	 *  - 0x00: The entire byte is masked
+	 *  - 0x80: The MSbit in this byte is not masked
+	 *  - 0xC0: The 2 MSbits in this byte are not masked
+	 *  - ...
+	 *  - 0xFE: The 7 MSbits in this byte are not masked
+	 *  - 0xFF: The entire byte is not masked */
+	uint8_t  mask[TABLE_KEY_MFLU_MASK_SIZE];
+
+	/** Reserved
+	 * Reserved for compliance with HW format.
+	 * User should not access this field. */
+	uint8_t  reserved[TABLE_KEY_MFLU_RESERVED1_SIZE];
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Union of 4 Table Key Types
 
 		This union includes:
-		- struct ctlu_key_lpm_ipv4
-		- struct ctlu_key_lpm_ipv6
-		- struct ctlu_key_em
+		- struct table_key_lpm_ipv4
+		- struct table_key_lpm_ipv6
+		- struct table_key_em
+		- struct key_mflu
 *//***************************************************************************/
-union ctlu_key {
-		/** Exact Match Key */
-	struct ctlu_key_exact_match key_em;
-		/** LPM IPv4 Key */
-	struct ctlu_key_lpm_ipv4 key_lpm_ipv4;
-		/** LPM IPv6 Key */
-	struct ctlu_key_lpm_ipv6 key_lpm_ipv6;
+union table_key {
+	/** Exact Match Key
+	 * Should only be used with CTLU Hardware Table Accelerator */
+	struct table_key_exact_match key_em;
+
+	/** LPM IPv4 Key
+	* Should only be used with CTLU Hardware Table Accelerator */
+	struct table_key_lpm_ipv4    key_lpm_ipv4;
+
+	/** LPM IPv6 Key
+	 * Should only be used with CTLU Hardware Table Accelerator */
+	struct table_key_lpm_ipv6   key_lpm_ipv6;
+
+	/** LPM IPv6 Key
+	 * Should only be used with MFLU Hardware Table Accelerator */
+	struct table_key_mflu       key_mflu;
 };
 
 
@@ -566,10 +621,11 @@ union ctlu_key {
 struct table_rule {
 	/** Rule's key
 	The structure to be passed is one of the following:
-	 - \ref ctlu_key_exact_match
-	 - \ref ctlu_key_lpm_ipv4
-	 - \ref ctlu_key_lpm_ipv6 */
-	union ctlu_key key;
+	 - \ref table_key_exact_match
+	 - \ref table_key_lpm_ipv4
+	 - \ref table_key_lpm_ipv6
+	 - \ref table_key_mflu */
+	union table_key key;
 
 	/** Reserved
 	Reserved for compliance with HW format.
@@ -587,7 +643,7 @@ struct table_rule {
 	uint8_t  reserved1[3];
 
 	/** Table Rule Result */
-	struct table_rule_result result;
+	struct table_result result;
 };
 #pragma pack(pop)
 
@@ -603,7 +659,7 @@ struct table_lookup_result {
 	/** Opaque0 or Reference Pointer
 	This field can be either:
 	- 8 bytes of opaque data.
-	- A pointer to CDMA application context which has a reference pointer.
+	- A pointer to CDMA context memory which has a reference pointer. TODO Amir
 	Depending on the matching rule result type */
 	uint64_t opaque0_or_reference;
 
@@ -637,14 +693,130 @@ struct table_lookup_result {
 
 
 /**************************************************************************//**
+@Description	LPM IPv4 Lookup Key Structure
+
+		The CTLU searches for the LPM of the concatenation of
+		{exact_match, full_ipv4_address}.
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_lookup_key_lpm_ipv4 {
+	/** Exact Match bytes */
+	uint32_t exact_match;
+
+	/** IPv4 Address */
+	uint32_t addr;
+
+	/** Maximum Prefix
+	 * Defines the maximum IP address prefix length for this search.
+	 * The CTLU does not search for a prefix length larger than max_prefix.
+	 * For lookup on all prefixes prefix_length = 0xFF. This field must
+	 * be > 1 */
+	uint8_t	 max_prefix;
+
+	/** Reserved
+	 * Reserved for compliance with HW format.
+	 * User should not access this field. */
+	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	LPM IPv6 Key Structure
+
+		The CTLU searches for the LPM of the concatenation of
+		{exact_match, full_ipv6_address}.
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_lookup_key_lpm_ipv6 {
+	/** Exact Match bytes */
+	uint32_t exact_match;
+
+	/** IPv6 Address (8 MSB) */
+	uint64_t addr0;
+
+	/** IPv6 Address (8 LSB) */
+	uint64_t addr1;
+
+	/** Maximum Prefix
+	 * Defines the maximum IP address prefix length for this search.
+	 * The CTLU does not search for a prefix length larger than max_prefix.
+	 * For lookup on all prefixes prefix_length = 0xFF. This field must
+	 * be > 1 */
+	uint8_t  max_prefix;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	MFLU Key Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_lookup_key_mflu {
+	/** Lookup Key */
+	uint8_t  key[TABLE_KEY_MFLU_SIZE];
+
+	/** Reserved
+	 * Reserved for compliance with HW format.
+	 * User should not access this field. */
+	uint32_t reserved0;
+
+	/** Maximum Priority 
+	 * defines the maximum priority for the lookup operation.
+	 * Rules with lower priority will not be matched. 0 is the lowest
+	 * priority, 0xFFFFFFFF is the highest priority.
+	 * For lookup of all priorities assign 0 to this field. */
+	uint32_t max_priority;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Union of 4 Table Lookup Key Types
+
+		This Structure is used for table lookup operations.
+		This union includes:
+		- void pointer for exact match lookups.
+		- struct table_lookup_key_lpm_ipv4 pointer for LPM IPv4 lookups.
+		- struct table_lookup_key_lpm_ipv6 pointer for LPM IPv6 lookups.
+		- struct table_lookup_key_mflu for MFLU lookups.
+*//***************************************************************************/
+union table_lookup_key {
+	/** Exact Match Key
+	 * Should only be used with CTLU Hardware Table Accelerator and tables
+	 * of type \ref TABLE_ATTRIBUTE_TYPE_EM */
+	void                             *em_lookup_key;
+
+	/** LPM IPv4 Key
+	 * Should only be used with CTLU Hardware Table Accelerator and tables
+	 * of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	 * \ref TABLE_KEY_LPM_IPV4_SIZE key size. */
+	struct table_lookup_key_lpm_ipv4 *lpm_ipv4_lookup_key;
+
+	/** LPM IPv6 Key
+	 * Should only be used with CTLU Hardware Table Accelerator and tables
+	 * of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	 * \ref TABLE_KEY_LPM_IPV6_SIZE key size. */
+	struct table_lookup_key_lpm_ipv6 *lpm_ipv6_lookup_key;
+
+	/** MFLU Key
+	 * Should only be used with MFLU Hardware Table Accelerator and tables
+	 * of type \ref TABLE_ATTRIBUTE_TYPE_MFLU. */
+	struct table_lookup_key_mflu     *mflu_lookup_key;
+};
+
+
+/**************************************************************************//**
 @Description	Create Table Parameters
 *//***************************************************************************/
 struct table_create_params {
+	/* TODO MFLU */
 	/** Committed Number Of Rules
 	The table committed number of rules, at any point in time the table can
 	contain at least this number of rules.*/
 	uint32_t committed_rules;
 
+	/* TODO MFLU */
 	/** Max Number Of Rules
 	The max number of rules this table can contain. This number is not
 	guaranteed in contrast to committed_rules. Meaning, trying to add a
@@ -652,20 +824,22 @@ struct table_create_params {
 	uint32_t max_rules;
 
 	/** Miss Result
-	A default rule that is chosen when no match is found. */
-	struct table_rule_result  miss_result;
+	A default rule that is chosen when no match is found. TODO Available only
+	for tables of type \ref TABLE_ATTRIBUTE_TYPE_EM, This field should
+	not be filled otherwise.*/
+	struct table_result miss_result;
 
 	/** Table Attributes
-	Please refer to \link FSL_CTLU_TABLE_ATTRIBUTES Table Attributes macros
+	Please refer to \link FSL_TABLE_ATTRIBUTES Table Attributes macros
 	\endlink for more details. */
 	uint16_t attributes;
 
-	/** Table Key Size
+	/** Table Key Size in bytes
 	In a case of LPM table:
-	 - Should be set to 0x08 for IPv4
-	 - Should be set to 0x14 for IPv6
+	 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4
+	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6
 	Please note that this value is not returned through
-	\ref ctlu_table_get_params() function. */
+	\ref table_get_params() function. */
 	uint8_t  key_size;
 };
 
@@ -689,15 +863,15 @@ struct table_get_params_output {
 	uint32_t max_rules;
 
 	/** Table Attributes
-	Please refer to \link FSL_CTLU_TABLE_ATTRIBUTES Table Attributes macros
+	Please refer to \link FSL_TABLE_ATTRIBUTES Table Attributes macros
 	\endlink for more details. */
 	uint16_t attributes;
 };
-/** @} */ /* end of FSL_CTLU_STRUCTS */
+/** @} */ /* end of FSL_TABLE_STRUCTS */
 
 
 /**************************************************************************//**
-@Group		FSL_CTLU_Functions Table Functions
+@Group		FSL_TABLE_Functions Table Functions
 
 @Description	Freescale AIOP Table Functions
 
@@ -713,16 +887,18 @@ struct table_get_params_output {
 
 @Description	Creates a new table.
 
+@Param[in]	acc_id - The ID of the Hardware Table Accelerator in which the
+		the table will be created.
 @Param[in]	tbl_params - The table parameters.
+@Param[out]	table_id - Table ID. A unique (per Hardware Table Accelerator)
+		table identification number to be used for future table
+		references.
 
-@Param[out]	table_id - Table ID. A unique table identification number to be
-		used for future table references.
-
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_create(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_create(enum table_hw_accel_id acc_id,
 		     struct table_create_params *tbl_params,
 		     uint16_t *table_id);
 
@@ -732,8 +908,9 @@ int32_t table_create(enum table_hw_accel_id acc_id, /* TODO */
 
 @Description	Replaces specific table miss result.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-
 @Param[in]	new_miss_result - A default result that is chosen when no match
 		is found.
 @Param[in, out]	old_miss_result - The replaced miss result. If null the old
@@ -741,17 +918,18 @@ int32_t table_create(enum table_hw_accel_id acc_id, /* TODO */
 		counter will be decremented (if exists). If not null structure
 		should be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
-@Cautions	This function should only be called if the table was defined
-		with a miss entry (i.e. CTLU_TBL_ATTRIBUTE_MR_MISS was set in
+@Cautions	Not available for MFLU table accelerator in Rev1.
+		This function should only be called if the table was defined
+		with a miss entry (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
 				  uint16_t table_id,
-				  struct table_rule_result *new_miss_result,
-				  struct table_rule_result *old_miss_result);
+				  struct table_result *new_miss_result,
+				  struct table_result *old_miss_result);
 
 
 /**************************************************************************//**
@@ -760,6 +938,8 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 @Description	A getter for the table parameters.
 		This function does not return the table miss result.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the query will be performed.
 @Param[in]	table_id - Table ID.
 @Param[out]	tbl_params - Table parameters. Structure should be allocated by
 		the caller to this function.
@@ -768,7 +948,7 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id, /* TODO */
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_get_params(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_get_params(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
 			 struct table_get_params_output *tbl_params);
 
@@ -778,71 +958,75 @@ int32_t table_get_params(enum table_hw_accel_id acc_id, /* TODO */
 
 @Description	A getter for the table miss result.
 
-		If miss result is of CTLU_RULE_RESULT_TYPE_REFERENCE
-		type, user should decrement the application context reference
-		count after usage.
-
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the query will be performed.
 @Param[in]	table_id - Table ID.
 @Param[out]	miss_result - A default rule data that is chosen when no match
-		is found. Structure should be allocated by the
-		caller to this function.
+		is found. Structure should be allocated by the caller to this
+		function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
-@Cautions	In this function the task yields.
+@Cautions	Not available for MFLU table accelerator.
+		In this function the task yields.
 *//***************************************************************************/
-int32_t table_get_miss_result(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
 			      uint16_t table_id,
-			      struct table_rule_result *miss_result);
+			      struct table_result *miss_result);
 
 
 /**************************************************************************//**
-@Function	ctlu_table_delete
+@Function	table_delete
 
 @Description	Deletes a specified table.
 
-		After a table is deleted, all reference counters related to the
-		application contexts pointed by the table results will be
-		decremented.
+		After a table is deleted, all reference counters (if exist)
+		related to the application contexts pointed by the table
+		results will be decremented.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_delete(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_delete(enum table_hw_accel_id acc_id,
 		     uint16_t table_id);
 
 
 /* ######################################################################### */
 /* ######################## Table Rule Operations ########################## */
 /* ######################################################################### */
-
+/*TODO comments about increment that doesn't happen ;)*/
 /**************************************************************************//**
-@Function	ctlu_table_rule_create
+@Function	table_rule_create
 
 @Description	Adds a rule to a specified table.
 
 		If the rule key already exists, the rule will not be added and
 		a status will be returned.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
-@Cautions	In this function the task yields.
+@Cautions	Not available for MFLU table accelerator in Rev1.
+		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_create(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
 			  struct table_rule *rule,
 			  uint8_t key_size);
 
 
 /**************************************************************************//**
-@Function	ctlu_table_rule_create_or_replace
+@Function	table_rule_create_or_replace
 
 @Description	Adds/replaces a rule to a specified table.
 
@@ -850,6 +1034,8 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
 		the one specified in the function's parameters. Else, a new
 		rule will be created in the table.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
@@ -859,25 +1045,28 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id, /* TODO */
 		decremented (if exists). If not null structure should be
 		allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
-@Cautions	In this function the task yields.
+@Cautions	Not available for MFLU table accelerator in Rev1.
+		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				     uint16_t table_id,
 				     struct table_rule *rule,
 				     uint8_t key_size,
-				     struct table_rule_result *old_res);
+				     struct table_result *old_res);
 
 
 /**************************************************************************//**
-@Function	aiop_ctlu_table_replace_rule
+@Function	table_replace_rule
 
 @Description	Replaces a specified rule in the table.
 
 		The rule's key is not modifiable. Caller to this function
 		supplies the key of the rule to be replaced.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - Table rule, contains the rule's key, with which the
 		rule to be replaced will be found and contain the rule
@@ -888,24 +1077,27 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id, /* TODO */
 		will be decremented (if exists). If not null structure should
 		be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
-@Cautions	The key must be the exact same key that was used for the rule
+@Cautions	Not available for MFLU table accelerator in Rev1.
+		The key must be the exact same key that was used for the rule
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
 			  struct table_rule *rule,
 			  uint8_t key_size,
-			  struct table_rule_result *old_res);
+			  struct table_result *old_res);
 
 
 /**************************************************************************//**
-@Function	ctlu_table_rule_query
+@Function	table_rule_query
 
 @Description	Queries a rule in the table.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the query will be performed.
 @Param[in]	table_id - Table ID.
 @Param[in]	key - Key of the rule to be queried. Must be aligned to 16B
 		boundary.
@@ -914,10 +1106,10 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
 		by the caller to this function.
 @Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
 		unless the rule queried for was created with suitable options
-		(Please refer to \ref FSL_CTLU_TABLE_RULE_OPTIONS for more
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
 		details). Must be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	NOTE: If the result is of type that contains pointer to CDMA
 		application buffer (refer to struct ctlu_table_rule_result
@@ -926,11 +1118,11 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id, /* TODO */
 		the reference counter please refer to table lookup function.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_query(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
-			 union ctlu_key *key,
+			 union table_key *key,
 			 uint8_t key_size,
-			 struct table_rule_result *result,
+			 struct table_result *result,
 			 uint32_t *timestamp);
 
 
@@ -939,6 +1131,8 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
 
 @Description	Deletes a specified rule in the table.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 @Param[in]	key - Key of the rule to be deleted. Must be aligned to 16B
 		boundary.
@@ -950,24 +1144,24 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id, /* TODO */
 
 @Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
 
-@Cautions	The key must be the exact same key that was used for the rule
+@Cautions	Not available for MFLU table accelerator in Rev1
+		The key must be the exact same key that was used for the rule
 		creation.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  union ctlu_key *key,
+			  union table_key *key,
 			  uint8_t key_size,
-			  struct table_rule_result *result);
+			  struct table_result *result);
 
 
 /* ######################################################################### */
 /* ############################# Table Lookups ############################# */
 /* ######################################################################### */
 
-
 /**************************************************************************//**
-@Function	ctlu_table_lookup_by_keyid
+@Function	table_lookup_by_keyid
 
 @Description	Performs a lookup with a predefined key.
 
@@ -978,6 +1172,8 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
 		Implicit input parameters in Task Defaults: Segment Address,
 		Segment Size and Parse Results.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 @Param[in]	keyid - A key ID for the table lookups (key ID specifies
 		how to build a key).
@@ -985,18 +1181,18 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id, /* TODO */
 		the table lookup result will be written.  Must be aligned to
 		16B boundary.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 			      uint16_t table_id,
 			      uint8_t keyid,
 			      struct table_lookup_result *lookup_result);
 
 
 /**************************************************************************//**
-@Function	ctlu_table_lookup_by_key
+@Function	table_lookup_by_key
 
 @Description	Performs a lookup with a key built by the user.
 
@@ -1004,6 +1200,8 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
 		should decrement the application context reference count after
 		usage.
 
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 @Param[in]	key - Lookup key. Must be aligned to 16B boundary
 @Param[in]	key_size - Key size in bytes.
@@ -1011,14 +1209,14 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id, /* TODO */
 		the table lookup result will be written. Must be aligned to 16B
 		boundary.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	In this function the task yields.
 		This lookup cannot be used for chaining of lookups.
 *//***************************************************************************/
-int32_t table_lookup_by_key(enum table_hw_accel_id acc_id, /* TODO */
+int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 			    uint16_t table_id,
-			    union ctlu_key *key,
+			    union table_lookup_key key,
 			    uint8_t key_size,
 			    struct table_lookup_result *lookup_result);
 
