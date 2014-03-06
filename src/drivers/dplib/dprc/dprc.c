@@ -266,6 +266,23 @@ int dprc_get_dev_region(struct dprc *dprc,
 	return err;
 }
 
+int dprc_get_irq(struct dprc *dprc,
+                 uint8_t irq_index,
+                 uint64_t *irq_paddr,
+                 uint32_t *irq_val)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ,
+				DPRC_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
+				(uint8_t *)&cmd_data);
+	if (!err)
+		DPRC_RSP_GET_IRQ(RSP_READ);
+
+	return err;
+}
+
 int dprc_set_irq(struct dprc *dprc,
 	uint8_t irq_index,
 	uint64_t irq_paddr,
@@ -273,30 +290,101 @@ int dprc_set_irq(struct dprc *dprc,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
+	/* prepare command */
 	DPRC_CMD_SET_IRQ(CMD_PREP);
 
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_IRQ,
-				DPRC_CMDSZ_SET_IRQ, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	/* send command to mc*/
+	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_IRQ, DPRC_CMDSZ_SET_IRQ,
+				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 }
 
-int dprc_get_irq(struct dprc *dprc,
-	uint8_t irq_index,
-	uint64_t *irq_paddr,
-	uint32_t *irq_val)
+int dprc_get_irq_enable(struct dprc *dprc,
+                          uint8_t irq_index,
+                          uint8_t *enable_state)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	DPRC_CMD_GET_IRQ(CMD_PREP);
-
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ,
-				DPRC_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ_ENABLE,
+				DPRC_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
-	if (!err) {
-		/* retrieve response parameters */
-		DPRC_RSP_GET_IRQ(RSP_READ);
-	}
+	if (!err)
+		DPRC_RSP_GET_IRQ_ENABLE(RSP_READ);
 
 	return err;
 }
+
+int dprc_set_irq_enable(struct dprc *dprc,
+                          uint8_t irq_index,
+                          uint8_t enable_state)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	/* prepare command */
+	DPRC_CMD_SET_IRQ_ENABLE(CMD_PREP);
+
+	/* send command to mc*/
+	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_IRQ_ENABLE, DPRC_CMDSZ_SET_IRQ_ENABLE,
+				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+}
+
+int dprc_get_irq_mask(struct dprc *dprc,
+	uint8_t irq_index,
+                          uint32_t *mask)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ_MASK,
+				DPRC_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
+				(uint8_t *)&cmd_data);
+	if (!err)
+		DPRC_RSP_GET_IRQ_MASK(RSP_READ);
+
+	return err;
+}
+
+int dprc_set_irq_mask(struct dprc *dprc,
+                          uint8_t irq_index,
+                          uint32_t mask)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	/* prepare command */
+	DPRC_CMD_SET_IRQ_MASK(CMD_PREP);
+
+	/* send command to mc*/
+	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_IRQ_MASK, DPRC_CMDSZ_SET_IRQ_MASK,
+				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+}
+
+int dprc_get_irq_status(struct dprc *dprc,
+                          uint8_t irq_index,
+                          uint32_t *status)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ_STATUS,
+				DPRC_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,
+				(uint8_t *)&cmd_data);
+	if (!err)
+		DPRC_RSP_GET_IRQ_STATUS(RSP_READ);
+
+	return err;
+	}
+
+int dprc_clear_irq_status(struct dprc *dprc,
+                          uint8_t irq_index,
+                          uint32_t status)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	/* prepare command */
+	DPRC_CMD_CLEAR_IRQ_STATUS(CMD_PREP);
+
+	/* send command to mc*/
+	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_CLEAR_IRQ_STATUS, DPRC_CMDSZ_CLEAR_IRQ_STATUS,
+				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+}
+

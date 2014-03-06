@@ -26,6 +26,12 @@
 #define DPRC_CMDID_GET_DEV_REG			0x15E
 #define DPRC_CMDID_SET_IRQ			0x15F
 #define DPRC_CMDID_GET_IRQ			0x160
+#define DPRC_CMDID_SET_IRQ_ENABLE		0x161
+#define DPRC_CMDID_GET_IRQ_ENABLE		0x162
+#define DPRC_CMDID_SET_IRQ_MASK			0x163
+#define DPRC_CMDID_GET_IRQ_MASK			0x164
+#define DPRC_CMDID_GET_IRQ_STATUS		0x165
+#define DPRC_CMDID_CLEAR_IRQ_STATUS		0x166
 
 /* Command sizes */
 #define DPRC_CMDSZ_CREATE_CONT			(8 * 2)
@@ -44,6 +50,12 @@
 #define DPRC_CMDSZ_GET_DEV_REG			(8 * 2)
 #define DPRC_CMDSZ_SET_IRQ			(8 * 2)
 #define DPRC_CMDSZ_GET_IRQ			(8 * 2)
+#define DPRC_CMDSZ_SET_IRQ_ENABLE		8
+#define DPRC_CMDSZ_GET_IRQ_ENABLE		8
+#define DPRC_CMDSZ_SET_IRQ_MASK			8
+#define DPRC_CMDSZ_GET_IRQ_MASK			8
+#define DPRC_CMDSZ_GET_IRQ_STATUS		8
+#define DPRC_CMDSZ_CLEAR_IRQ_STATUS		8
 
 /*	param, offset, width,	type,			arg_name */
 #define DPRC_RSP_GET_CONTAINER_ID(_OP) \
@@ -173,5 +185,44 @@
 #define DPRC_RSP_GET_IRQ(_OP) \
 	_OP(0,	0,	32,	uint32_t,		irq_val) \
 	_OP(1,	0,	64,	uint64_t,		irq_paddr)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_SET_IRQ_ENABLE(_OP) \
+	_OP(0,	0,	8,	uint8_t,		enable_state) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_GET_IRQ_ENABLE(_OP) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_RSP_GET_IRQ_ENABLE(_OP) \
+	_OP(0,	0,	8,	uint8_t,		enable_state)
+	
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_SET_IRQ_MASK(_OP) \
+	_OP(0,	0,	32,	uint32_t,		mask) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_GET_IRQ_MASK(_OP) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_RSP_GET_IRQ_MASK(_OP) \
+	_OP(0,	0,	32,	uint32_t,		mask) 
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_GET_IRQ_STATUS(_OP) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_RSP_GET_IRQ_STATUS(_OP) \
+	_OP(0,	0,	32,	uint32_t,		status) \
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_CLEAR_IRQ_STATUS(_OP) \
+	_OP(0,	0,	32,	uint32_t,		status) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
 
 #endif /* _FSL_DPRC_CMD_H */
