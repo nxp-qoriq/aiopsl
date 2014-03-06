@@ -10,6 +10,7 @@
 #define __FSL_KEYGEN_H
 
 #include "common/types.h"
+#include "general.h"
 #include "fsl_table.h" /* TODO remove! */
 
 /* TODO remark on allocations of out params */
@@ -84,80 +85,31 @@
 @{
 *//***************************************************************************/
 
-/** Command failed general status bit.
-A general bit that is set in some errors conditions */
-#define KEYGEN_STATUS_MGCF	0x80000000
+	/** Command status success. */
+#define KEYGEN_STATUS_SUCCESS	0x00000000
+	/** Command failed general status bit.
+	A general bit that is set in some errors conditions */
+#define KEYGEN_STATUS_FAIL	0x80000000
+	/** Key Composition Error for Key Generation in MFLU.
+	 * Invalid key composition ID (KID) or Key size error */
+#define KEYGEN_MFLU_STATUS_KCE	\
+		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_MFLU << 24) | 0x00000400)
+	/** Key Composition Error for Key Generation in CTLU.
+	 * Invalid key composition ID (KID) or Key size error */
+#define KEYGEN_CTLU_STATUS_KCE	\
+		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_CTLU << 24) | 0x00000400)
+	/** Extract Out Of Frame Header Error for Key Generation in MFLU.
+	 * This bit is set if key composition attempts to extract a field which
+	 * is not in the frame header */
+#define KEYGEN_MFLU_STATUS_EOFH	\
+		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_MFLU << 24) | 0x00000200)
+	/** Extract Out Of Frame Header Error for Key Generation in CTLU.
+	 * This bit is set if key composition attempts to extract a field which
+	 * is not in the frame header */
+#define KEYGEN_CTLU_STATUS_EOFH	\
+		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_CTLU << 24) | 0x00000200)
+
 /** @} */ /* end of FSL_KEYGEN_STATUS_GENERAL */
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS_KCR_CREATE Status returned from Key composition rule \
-	create SR
-@{
-*//***************************************************************************/
-	/** Command successful. A rule with matching KeyID was not found.
-	Key composition rule was updated. */
-#define KEYGEN_KCR_CREATE_SUCCESS				0x00000000
-	/** Command successful. A rule with matching KeyID was found.
-	Key composition rule was replaced. */
-#define KEYGEN_KCR_CREATE_STATUS_KCR_REPLACED (KEYGEN_STATUS_MGCF | 0x00010000)
-/** Command failed. KeyID was not fetched from pool due to CDMA write error */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_WR_FAILURE \
-					(KEYGEN_STATUS_MGCF | 0x00000001)
-/** Command failed. KeyID was not fetched from pool due to pool out of range */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_POOL_OUT_OF_RANGE \
-					(KEYGEN_STATUS_MGCF | 0x00000002)
-/** Command failed. KeyID was not fetched from pool due to CDMA read error */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_RD_FAILURE \
-					(KEYGEN_STATUS_MGCF | 0x00000003)
-
-/** @} */ /* end of FSL_KEYGEN_STATUS_KCR_CREATE */
-
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS_KCR_REPLACE Status returned from Key composition \
-	rule replace SR
-@{
-*//***************************************************************************/
-	/** Command successful. A rule with matching KeyID was found.
-	Key composition rule was replaced. */
-#define KEYGEN_KCR_REPLACE_SUCCESS		0x00000000
-	/** Command failed, A rule with matching KeyID was not found */
-#define KEYGEN_KCR_REPLACE_FAIL_INVALID_KID    (KEYGEN_STATUS_MGCF | 0x00000001)
-
-/** @} */ /* end of FSL_KEYGEN_STATUS_KCR_REPLACE */
-
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS_KCR_DELETE Status returned from Key composition \
-	rule delete SR
-@{
-*//***************************************************************************/
-	/** Command successful. A rule with matching KeyID was deleted */
-#define KEYGEN_KCR_DELETE_SUCCESS			0x00000000
-	/** Command failed. A rule with matching KeyID was not found */
-#define KEYGEN_KCR_DELETE_FAIL_INVALID_KID     (KEYGEN_STATUS_MGCF | 0x00000001)
-/** Command failed. KeyID was not returned to pool due to CDMA write error */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE\
-					(KEYGEN_STATUS_MGCF | 0x00000001)
-/** Command failed. KeyID was not returned to pool due to pool out of range */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE\
-					(KEYGEN_STATUS_MGCF | 0x00000002)
-/** Command failed. KeyID was not returned to pool due to CDMA read error */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_RD_FAILURE\
-					(KEYGEN_STATUS_MGCF | 0x00000003)
-
-/** @} */ /* end of FSL_KEYGEN_STATUS_KCR_DELETE */
-
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS_KCR_QUERY Status returned from Key composition rule \
-	 query SR
-@{
-*//***************************************************************************/
-	/** Command successful */
-#define KEYGEN_KCR_QUERY_STATUS_SUCCESS	CTLU_STATUS_MGCWD
-
-/** @} */ /* end of FSL_KEYGEN_STATUS_KCR_QUERY */
 
 /**************************************************************************//**
 @Group	FSL_KEYGEN_STATUS_KCR Status returned from Key Composition Rule Builder
@@ -364,9 +316,9 @@ enum kcr_builder_protocol_fecid {
 *//***************************************************************************/
 enum keygen_hw_accel_id {
 	/** MFLU accelerator ID */
-	KEYGEN_ACCEL_ID_MFLU = 0x02,
+	KEYGEN_ACCEL_ID_MFLU = MFLU_ACCEL_ID,
 	/** CTLU accelerator ID */
-	KEYGEN_ACCEL_ID_CTLU = 0x05
+	KEYGEN_ACCEL_ID_CTLU = CTLU_ACCEL_ID
 };
 
 /** @} */ /* end of keygen_hw_accel_id */
@@ -453,9 +405,9 @@ struct	kcr_builder_fec_mask {
 @Param[in,out]	kb - kcr builder pointer. Must not be null (user should
 		allocate memory for this structure).
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		None.
 *//***************************************************************************/
-int32_t keygen_kcr_builder_init(struct kcr_builder *kb);
+void keygen_kcr_builder_init(struct kcr_builder *kb);
 
 
 /**************************************************************************//**
@@ -626,7 +578,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 @Param[in]	kcr - Key composition rule.
 @Param[out]	keyid - Key ID.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR_CREATE
+@Return		Please refer to \ref GET_ID_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -644,11 +596,11 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 @Param[in]	kcr - Key composition rule.
 @Param[in]	keyid - Key ID.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR_REPLACE
+@Return		None.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
+void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 			 uint8_t *kcr,
 			 uint8_t keyid);
 
@@ -661,7 +613,7 @@ int32_t keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - Key ID.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR_DELETE
+@Return		Please refer to \ref RELEASE_ID_STATUS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -677,16 +629,14 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - The key ID.
 @Param[out]	kcr - Key composition rule.
-@Param[out]	size - Size of the key that the kcr creates.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR_QUERY
+@Return		None.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t keygen_kcr_query(enum keygen_hw_accel_id acc_id,
+void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 		       uint8_t keyid,
-		       uint8_t *kcr,
-		       uint8_t *size);
+		       uint8_t *kcr);
 
 
 /**************************************************************************//**
@@ -696,6 +646,7 @@ int32_t keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - The key ID to be used for the key extraction.
+@Param[in]	opaquein - OpaqueIn field for key composition.
 @Param[out]	key - The key. This structure is allocated by the user and must
 		be aligned to 16B boundary
 @Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
@@ -706,8 +657,7 @@ int32_t keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     union table_key *key,
-		     uint8_t *key_size);
+		     uint64_t opaquein,		     union table_key *key,		     uint8_t *key_size);
 
 
 /**************************************************************************//**
@@ -721,7 +671,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 @Param[out]	hash - The hash result. Must be allocated by the caller to this
 		function.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_GENERAL
+@Return		Please refer to \ref FSL_KEYGEN_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/

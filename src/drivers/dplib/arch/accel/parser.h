@@ -48,6 +48,7 @@
 @Group	PARSER_DEFINES Parser Defines
 @{
 *//***************************************************************************/
+	/** Gross Running Sum Valid */
 #define PARSER_GRSV_MASK	0x04000000
 	/** Failure indication */
 #define PARSER_STATUS_FAIL	0x80000000
@@ -121,7 +122,7 @@ struct input_message_params {
 	uint16_t reserved2;
 	uint16_t falugrp;
 	uint16_t gross_running_sum;
-	uint32_t opaquein;
+	uint64_t opaquein;
 };
 #pragma pack(pop)
 

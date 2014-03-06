@@ -11,17 +11,18 @@
 #include "keygen.h"
 #include "system.h"
 #include "id_pool.h"
+#include "parser.h" /* TODO remove! */
 
 extern uint64_t ext_keyid_pool_address;
 
-int32_t keygen_kcr_builder_init(struct kcr_builder *kb)
+void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
 	/* clear NFEC (first byte in the KCR) */
 	kb->kcr[KEYGEN_KCR_NFEC] = 0;
 	/* Initialize KCR length to 1 */
 	kb->kcr_length = 1;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+	return;
 }
 
 
@@ -604,19 +605,14 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 	__e_hwaccel(acc_id);
 
 	/* Return status */
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (!status)
-		return KEYGEN_KCR_CREATE_SUCCESS;
-	else
-		return KEYGEN_KCR_CREATE_STATUS_KCR_REPLACED;
+	return KEYGEN_STATUS_SUCCESS;
 }
 
 
-int32_t keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
+void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 			 uint8_t *kcr,
 			 uint8_t keyid)
 {
-	int32_t status;
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE,
@@ -626,13 +622,7 @@ int32_t keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 	/* Call CTLU accelerator */
 	__e_hwaccel(acc_id);
 
-	/* Return status */
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (!status) /* In this command status 0 means failure */
-		return KEYGEN_KCR_REPLACE_FAIL_INVALID_KID;
-	else
-		return
-			KEYGEN_KCR_REPLACE_SUCCESS;
+	return;
 }
 
 
@@ -650,10 +640,6 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 
 	/* Call CTLU accelerator */
 	__e_hwaccel(acc_id);
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-
-	if (!status)	/* In this command status 0 means failure */
-		return KEYGEN_KCR_DELETE_FAIL_INVALID_KID;
 
 	status = release_id(keyid, ext_keyid_pool_address);
 	/*TODO check status ??? */
@@ -661,9 +647,8 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 }
 
 
-int32_t keygen_kcr_query(enum keygen_hw_accel_id acc_id,
-		       uint8_t keyid, uint8_t *kcr,
-		       uint8_t *size)
+void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
+		       uint8_t keyid, uint8_t *kcr)
 {
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_QUERY_MTYPE, (uint32_t)kcr,
@@ -672,23 +657,33 @@ int32_t keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 	/* Call CTLU accelerator */
 	__e_hwaccel(acc_id);
 
-	*size = *(((uint8_t *)HWC_ACC_OUT_ADDRESS) + 5);
-
-	/* Return status */
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	return;
 }
 
 
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
+		     uint64_t opaquein,
 		     union table_key *key,
 		     uint8_t *key_size)
 {
-
+	struct input_message_params input_struct;
+	uint32_t arg1;
+	
+	if (opaquein) {
+		__stdw(0, 0, 0, &input_struct);
+		__stdw(0, 0, 8, &input_struct);
+		input_struct.opaquein = opaquein;
+	
+		/* Prepare HW context for TLU accelerator call */
+		arg1 = ((((uint32_t)(&input_struct)) << 16) | (uint32_t)key);
+		__stqw((KEYGEN_KEY_GENERATE_EPRS_MTYPE | KEYGEN_OPAQUEIN_VALID),
+			arg1,((uint32_t)keyid) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
+	} else {
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_GENERATE_EPRS_MTYPE, ((uint32_t)key),
 	       ((uint32_t)keyid) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
-
+	}
 
 	/* Call CTLU accelerator */
 	__e_hwaccel(acc_id);
@@ -710,7 +705,7 @@ int32_t keygen_gen_hash(union table_key *key, uint8_t key_size, uint32_t *hash)
 	/* Call CTLU accelerator */
 	__e_hwacceli(KEYGEN_ACCEL_ID_CTLU); /*TODO*/
 
-	*hash = *(((uint32_t *)HWC_ACC_OUT_ADDRESS) + 1);
+	*hash = *((uint32_t *)HWC_ACC_OUT_ADDRESS2);
 
 	/* Return status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);

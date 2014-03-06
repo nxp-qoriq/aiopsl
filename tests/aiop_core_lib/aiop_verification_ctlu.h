@@ -493,12 +493,6 @@ struct keygen_kcr_builder_init_command{
 	/** A pointer to a struct in the workspace, that will contain the Key
 	 * Composition Rule vector and its length */
 	uint32_t kb_ptr;
-
-	/** Command returned status */
-	int32_t status;
-
-	/** 64-bit alignment */
-	uint8_t	pad[4];
 };
 
 
@@ -697,17 +691,20 @@ struct keygen_kcr_create_or_replace_command{
 	/** Key Composition Create or Replace identifier */
 	uint32_t opcode;
 
-	/** Command returned status */
-	int32_t  status;
-
 	/**  A pointer to the Key Composition Rule vector in the workspace */
 	uint32_t kcr_ptr;
+
+	/** Table Accelerator ID */
+	enum keygen_hw_accel_id acc_id;
+
+	/** Command returned status */
+	int32_t  status;
 
 	/** Key ID */
 	uint8_t  key_id;
 
-	/** Table Accelerator ID */
-	enum keygen_hw_accel_id acc_id;
+	/** 64-bit alignment */
+	uint8_t	pad[7];
 };
 
 
@@ -724,11 +721,14 @@ struct keygen_kcr_delete_command{
 	/** Command returned status */
 	int32_t  status;
 
-	/** Key ID */
-	uint8_t key_id;
-
 	/** Table Accelerator ID */
 	enum keygen_hw_accel_id acc_id;
+
+	/** Key ID */
+	uint8_t key_id;
+	
+	/** 64-bit alignment */
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -741,20 +741,20 @@ struct keygen_kcr_query_command{
 	/** Key Composition Create or Update identifier */
 	uint32_t opcode;
 
-	/** Command returned status */
-	int32_t status;
-
 	/** Pointer to the Key Composition Rule vector in the Workspace*/
 	uint32_t kcr_ptr;
+
+	/** Table Accelerator ID */
+	enum keygen_hw_accel_id acc_id;
 
 	/** Key ID */
 	uint8_t key_id;
 
 	/** Key Composition Rule size */
 	uint8_t size;
-
-	/** Table Accelerator ID */
-	enum keygen_hw_accel_id acc_id;
+	
+	/** 64-bit alignment */
+	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -767,11 +767,17 @@ struct keygen_gen_key_command{
 	/** CTLU Generate Key identifier */
 	uint32_t opcode;
 
+	/** OpaqueIn field for key composition */
+	uint64_t opaquein;
+	
 	/**  A pointer to the Key to be generated in the workspace */
 	uint32_t key_ptr;
 
 	/** Command returned status */
 	int32_t  status;
+
+	/** Table Accelerator ID */
+	enum keygen_hw_accel_id acc_id;
 
 	/** Key ID */
 	uint8_t key_id;
@@ -779,8 +785,8 @@ struct keygen_gen_key_command{
 	/** Output key size*/
 	uint8_t key_size;
 
-	/** Table Accelerator ID */
-	enum keygen_hw_accel_id acc_id;
+	/** 64-bit alignment */
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**

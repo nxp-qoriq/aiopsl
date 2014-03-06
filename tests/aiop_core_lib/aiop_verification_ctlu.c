@@ -200,7 +200,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			struct keygen_kcr_builder_init_command *str =
 			(struct keygen_kcr_builder_init_command *) asa_seg_addr;
 
-			str->status = keygen_kcr_builder_init((struct kcr_builder *)str->kb_ptr);
+			keygen_kcr_builder_init((struct kcr_builder *)str->kb_ptr);
 
 			str_size =
 				sizeof(struct keygen_kcr_builder_init_command);
@@ -365,7 +365,7 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			(struct keygen_kcr_create_or_replace_command *) 
 								asa_seg_addr;
 		
-			str->status = keygen_kcr_replace
+			keygen_kcr_replace
 				(str->acc_id, (uint8_t *)str->kcr_ptr, str->key_id);
 			str_size =
 			sizeof (struct keygen_kcr_create_or_replace_command);
@@ -391,13 +391,10 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 		{
 					
 			struct keygen_kcr_query_command *str =
-			(struct keygen_kcr_query_command *) 
-								asa_seg_addr;
+			(struct keygen_kcr_query_command *) asa_seg_addr;
 		
-			str->status = 
-					keygen_kcr_query 
-				(str->acc_id, str->key_id, (uint8_t*)(str->kcr_ptr), 
-					(uint8_t*)&(str->size));
+			keygen_kcr_query 
+				(str->acc_id, str->key_id, (uint8_t*)(str->kcr_ptr));
 			
 			str_size =
 			sizeof (struct keygen_kcr_query_command);
@@ -411,9 +408,9 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			(struct keygen_gen_key_command *) asa_seg_addr;
 
 			str->status = keygen_gen_key(str->acc_id,
-						   str->key_id, (union
-						   table_key *)str->key_ptr,
-						   &str->key_size);
+						   str->key_id, 
+						   str->opaquein,
+						   (union table_key *)str->key_ptr,						   &str->key_size);
 			str_size =
 				sizeof(struct keygen_gen_key_command);
 			break;
