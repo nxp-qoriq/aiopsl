@@ -7,7 +7,7 @@
 #define __FSL_DPCON_H
 
 /*!
- * @Group grp_dpbp	Data Path Buffer Concentrator API
+ * @Group grp_dpcon	Data Path Concentrator API
  *
  * @brief	Contains initialization APIs and runtime control APIs for DPCON
  * @{
@@ -18,7 +18,7 @@ struct dpcon;
 #else
 #include <fsl_cmdif.h>
 struct dpcon {
-	struct cmdif_desc cidesc;
+	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
 };
 #endif
 
