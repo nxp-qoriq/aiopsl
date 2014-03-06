@@ -102,37 +102,37 @@
 
 
 	/** Generic Extraction offset 0x00 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x00		0x00
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x00	0x00
 	/** Generic Extraction offset 0x10 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x10		0x01
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x10	0x01
 	/** Generic Extraction offset 0x20 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x20		0x02
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x20	0x02
 	/** Generic Extraction offset 0x30 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x30		0x03
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x30	0x03
 	/** Generic Extraction offset 0x40 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x40		0x04
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x40	0x04
 	/** Generic Extraction offset 0x50 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x50		0x05
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x50	0x05
 	/** Generic Extraction offset 0x60 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x60		0x06
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x60	0x06
 	/** Generic Extraction offset 0x70 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x70		0x07
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x70	0x07
 	/** Generic Extraction offset 0x80 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x80		0x08
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x80	0x08
 	/** Generic Extraction offset 0x90 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x90		0x09
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0x90	0x09
 	/** Generic Extraction offset 0xA0 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xA0		0x0A
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xA0	0x0A
 	/** Generic Extraction offset 0xB0 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xB0		0x0B
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xB0	0x0B
 	/** Generic Extraction offset 0xC0 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xC0		0x0C
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xC0	0x0C
 	/** Generic Extraction offset 0xD0 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xD0		0x0D
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xD0	0x0D
 	/** Generic Extraction offset 0xE0 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xE0		0x0E
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xE0	0x0E
 	/** Generic Extraction offset 0xF0 from start of frame */
-#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xF0		0x0F
+#define KEYGEN_KCR_EOM_FRAME_OFFSET_0xF0	0x0F
 	/** Generic Extraction offset 0x00 from start of frame */
 #define KEYGEN_KCR_EOM_PARSE_RES_OFFSET_0x00	0x10
 	/** Generic Extraction offset 0x10 from Parse Result */
@@ -141,22 +141,33 @@
 #define KEYGEN_KCR_EOM_PARSE_RES_OFFSET_0x20	0x12
 	/** Generic Extraction offset 0x30 from Parse Result */
 #define KEYGEN_KCR_EOM_PARSE_RES_OFFSET_0x30	0x13
-	/** Todo Generic Extraction offset 0x00 from FCV */
-#define KEYGEN_KCR_EOM_FCV_OFFSET_0x00		0x14
-	/** Todo Generic Extraction offset 0x10 from FCV */
-#define KEYGEN_KCR_EOM_FCV_OFFSET_0x10		0x15
+
+	/** EOM of Opaque0 Field from FCV */
+#define KEYGEN_KCR_EXT_OPAQUE0_EOM	0x18
+	/** EOM of Opaque1 Field from FCV */
+#define KEYGEN_KCR_EXT_OPAQUE1_EOM	0x1C
+	/** EOM of Opaque2 Field from FCV */
+#define KEYGEN_KCR_EXT_OPAQUE2_EOM	0x18
+	/** EOM of Unique ID Field from FCV */
+#define KEYGEN_KCR_EXT_UNIQUE_ID_EOM	0x20
+	/** EOM of Timestamp Field from FCV */
+#define KEYGEN_KCR_EXT_TIMESTAMP_EOM	0x20
+	/** EOM of OpaqueIn Field from FCV */
+#define KEYGEN_KCR_EXT_OPAQUE_IN_EOM	0x14
 
 
-	/** Todo Opaque0 Field offset from \ref KEYGEN_KCR_EOM_FCV_OFFSET_0x00*/
-#define KEYGEN_KCR_EXT_OPAQUE0_OFFSET	0x00
-	/** Todo Opaque1 Field offset from \ref KEYGEN_KCR_EOM_FCV_OFFSET_0x00*/
-#define KEYGEN_KCR_EXT_OPAQUE1_OFFSET	0x08
-	/** Todo Opaque2 Field offset from \ref KEYGEN_KCR_EOM_FCV_OFFSET_0x10*/
-#define KEYGEN_KCR_EXT_OPAQUE2_OFFSET	0x00
-	/** Unique ID Field offset from \ref KEYGEN_KCR_EOM_FCV_OFFSET_0x10 */
-#define KEYGEN_KCR_EXT_UNIQUE_ID_OFFSET	0x08
-	/** Timestamp Field offset from \ref KEYGEN_KCR_EOM_FCV_OFFSET_0x10 */
-#define KEYGEN_KCR_EXT_TIMESTAMP_OFFSET	0x0C
+	/** Basic Extraction Offset of Opaque0 */
+#define KEYGEN_KCR_EXT_OPAQUE0_BASIC_EO		0x8
+	/** Basic Extraction Offset of Opaque1 */
+#define KEYGEN_KCR_EXT_OPAQUE1_BASIC_EO		0x0
+	/** Basic Extraction Offset of Opaque2 */
+#define KEYGEN_KCR_EXT_OPAQUE2_BASIC_EO		0x1
+	/** Basic Extraction Offset of Unique */
+#define KEYGEN_KCR_EXT_UNIQUE_ID_BASIC_EO	0x8
+	/** Basic Extraction Offset of Timestamp */
+#define KEYGEN_KCR_EXT_TIMESTAMP_BASIC_EO	0xA
+	/** Basic Extraction Offset of OpaqueIn */
+#define KEYGEN_KCR_EXT_OPAQUE_IN_BASIC_EO	0x8
 
 	/** Opaque2 Field size to extract (= real size - 1) */
 #define KEYGEN_KCR_EXT_OPAQUE2_SIZE	0x00

@@ -63,7 +63,8 @@
 
 /**************************************************************************//**
 @Group	FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD \
-	 Key Composition Rule Builder Lookup Result Field Extract
+	 Key Composition Rule Builder Lookup Result Field Extract.
+	 Not available for Rev1.
 @{
 *//***************************************************************************/
 	/** Extract Opaque0 Field from Lookup Result */
@@ -72,7 +73,10 @@
 #define KEYGEN_KCR_EXT_OPAQUE1		0x01
 	/** Extract Opaque2 Field from Lookup Result */
 #define KEYGEN_KCR_EXT_OPAQUE2		0x02
-
+	/** Extract UniqueID Field from Lookup Result */
+#define KEYGEN_KCR_EXT_UNIQUE_ID	0x03
+	/** Extract Timestamp Field from Lookup Result */
+#define	KEYGEN_KCR_EXT_TIMESTAMP	0x04
 /** @} */ /* end of FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD */
 
 
@@ -156,8 +160,10 @@
 @{
 *//***************************************************************************/
 enum kcr_builder_parse_result_offset {
-	/** Running Sum field's offset in parser result */
-	RUNNING_SUM_OFFSET_IN_PR = 0x2,
+	/** Next header field's offset in parser result */
+	NXT_HDR_OFFSET_IN_PR = 0x0,
+	/** Frame Attribute Flags Extension field's offset in parser result */
+	FRAME_ATTRIBUTE_FLAGS_EXTENSION_OFFSET_IN_PR = 0x2,
 	/** Frame Attribute Flags field's offset in parser result */
 	FRAME_ATTRIBUTE_FLAGS_OFFSET_IN_PR = 0x4,
 	/** Shim Offset 1 field's offset in parser result */
@@ -192,14 +198,16 @@ enum kcr_builder_parse_result_offset {
 	L4_OFFSET_OFFSET_IN_PR = 0x1E,
 	/** GTP/ESP/IPsec offset field's offset in parser result */
 	GTP_ESP_IPSEC_OFFSET_OFFSET_IN_PR = 0x1F,
-	/** Next header field's offset in parser result */
-	NXT_HDR_OFFSET_IN_PR = 0x20,
+	/** Routing header offset of 1st frame field's offset in parser result*/
+	ROUTING_HDR_OFFSET_1_OFFSET_IN_PR = 0x20,
+	/** Routing header offset of 2nd frame field's offset in parser result*/
+	ROUTING_HDR_OFFSET_2_OFFSET_IN_PR = 0x21,
 	/** Next header offset field's offset in parser result */
 	NXT_HDR_OFFSET_OFFSET_IN_PR = 0x22,
 	/** IPv6 fragmentable part offset field's offset in parser result */
 	IPV6_FRAG_OFFSET_OFFSET_IN_PR = 0x23,
 	/** Soft parsing context */
-	SOFT_PARSING_CONTEXT = 0x27
+	SOFT_PARSING_CONTEXT = 0x29
 };
 
 /** @} */ /* end of kcr_builder_parse_result_offset */
@@ -427,6 +435,27 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 
 
 /**************************************************************************//**
+@Function	keygen_kcr_builder_add_input_value_fec
+
+@Description	Adds Field Extract Command (FEC) to key composition rule (kcr)
+		for extraction of an input value given in \ref keygen_gen_key.
+
+@Param[in]	offset - Offset in input value given in keygen_gen_key.
+@Param[in]	extract_size - size of extraction. 
+@Param[in]	mask - a structure of up to 4 bitwise masks from defined
+		offsets. If user is not interested in mask for this FEC,
+		this parameter should be NULL.
+@Param[in,out]	kb - kcr builder pointer.
+
+@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+*//***************************************************************************/
+int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
+					uint8_t extract_size,
+					struct kcr_builder_fec_mask *mask,
+					struct kcr_builder *kb);
+
+
+/**************************************************************************//**
 @Function	keygen_kcr_builder_add_protocol_specific_field
 
 @Description	Adds protocol specific Field Extract Command (FEC) for
@@ -471,8 +500,8 @@ int32_t keygen_kcr_builder_add_protocol_specific_field
 		this parameter should be NULL.
 @Param[in,out]	kb - kcr builder pointer.
 
-		Note that extraction will take place only if all following
-		conditions are met:
+		Note that extraction (using \ref keygen_gen_key) will take place
+		only if all following conditions are met:
 		- The corresponding parse result offset is not 0xFF
 		- The corresponding "Present condition in parser frame
 		attribute flags" is met
@@ -505,7 +534,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 
 @Param[in]	offset - offset in frame or parse result.
 @Param[in]	extract_size - size of extraction.
-@Param[in]	flags - Please refer to \ref FSL_CTLU_KCR_BUILDER_GEC_FLAGS
+@Param[in]	flags - Please refer to \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
@@ -536,6 +565,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 @Param[in,out]	kb - kcr builder pointer.
 
 @Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+
+@Caution	This function is not available for rev1.
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
@@ -657,7 +688,9 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     uint64_t opaquein,		     union table_key *key,		     uint8_t *key_size);
+		     uint64_t opaquein,
+		     union table_key *key,
+		     uint8_t *key_size);
 
 
 /**************************************************************************//**

@@ -223,6 +223,29 @@ uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr)
 			break;
 		}
 
+		
+		/* Key Composition Rule Add input value FEC Command Verification */
+		case KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC_CMD_STR:
+		{
+			struct kcr_builder_fec_mask *mask_ptr;
+
+			struct keygen_kcr_builder_add_input_value_fec_command *str =
+			(struct keygen_kcr_builder_add_input_value_fec_command *) 
+								asa_seg_addr;
+
+			mask_ptr = (str->mask.num_of_masks == 0) ? NULL :
+							 &(str->mask);
+		
+			str->status = keygen_kcr_builder_add_input_value_fec
+				(str->offset, str->extract_size, mask_ptr,
+				 (struct kcr_builder *)str->kb_ptr);
+
+			str_size =
+			sizeof(struct keygen_kcr_builder_add_input_value_fec_command);
+			break;
+		}
+
+		
 		/* Key Composition Rule Add Protocol specific FEC Command 
 		 * Verification */
 		case KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FIELD_FEC_CMD_STR:

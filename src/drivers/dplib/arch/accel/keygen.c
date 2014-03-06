@@ -59,6 +59,90 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 }
 
 
+int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
+					uint8_t extract_size,
+					struct kcr_builder_fec_mask *mask,
+					struct kcr_builder *kb){
+	
+	
+	uint8_t curr_byte = kb->kcr_length;
+	uint8_t fecid, op0, op1, op2;
+	uint8_t	fec_bytes_num = KEYGEN_KCR_LOOKUP_RES_FEC_SIZE;
+	uint8_t	mask_bytes = 0;
+
+	/* Build the FEC */
+	/* General extraction FECID, mask extension indication */
+	fecid = KEYGEN_KCR_GEC_FECID << 1;
+
+	if ((offset + extract_size) > 8) {
+		return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
+	} else {
+	op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE_IN_EOM;
+	op1 = KEYGEN_KCR_EXT_OPAQUE_IN_BASIC_EO + offset;
+	op2 = extract_size - 1;
+	}
+	
+
+	if (mask) {
+		if (mask->single_mask[0].mask_offset > 0xF ||
+			mask->single_mask[1].mask_offset > 0xF ||
+			mask->single_mask[2].mask_offset > 0xF ||
+			mask->single_mask[3].mask_offset > 0xF)
+			return KEYGEN_KCR_MASK_OFFSET_ERR;
+
+		/* build fec_mask */
+		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
+				(mask->num_of_masks == 2) ? 4 :
+				(mask->num_of_masks == 3) ? 5 : 7);
+		fec_bytes_num = fec_bytes_num + mask_bytes;
+		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
+			return KEYGEN_KCR_SIZE_ERR;
+
+		fecid = fecid | KEYGEN_KCR_MASK_EXT;
+
+		switch (mask->num_of_masks) {
+		case(4):
+			kb->kcr[curr_byte+10] =
+				mask->single_mask[3].mask;
+			kb->kcr[curr_byte+9] =
+				mask->single_mask[3].mask_offset;
+		case(3):
+			kb->kcr[curr_byte+8] =
+				mask->single_mask[2].mask;
+			kb->kcr[curr_byte+6] =
+				mask->single_mask[2].mask_offset;
+		case(2):
+			kb->kcr[curr_byte+7] =
+				mask->single_mask[1].mask;
+			kb->kcr[curr_byte+6] |=
+				mask->single_mask[1].mask_offset << 4;
+		case(1):
+			kb->kcr[curr_byte+5] =
+				mask->single_mask[0].mask;
+			kb->kcr[curr_byte+4] =
+				((mask->num_of_masks - 1) << 4) |
+					mask->single_mask[0].mask_offset;
+			break;
+		default:
+			break;
+		}
+	} else {
+		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
+			return KEYGEN_KCR_SIZE_ERR;
+	}
+
+	/* Update kcr_builder struct */
+	kb->kcr[curr_byte] = fecid;
+	kb->kcr[curr_byte+1] = op0;
+	kb->kcr[curr_byte+2] = op1;
+	kb->kcr[curr_byte+3] = op2;
+	kb->kcr[KEYGEN_KCR_NFEC] += 1;
+	kb->kcr_length += 4 + mask_bytes;
+
+	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+}
+
+
 int32_t keygen_kcr_builder_add_protocol_specific_field(enum
 	kcr_builder_protocol_fecid protocol_fecid,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb)
@@ -453,8 +537,8 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 		if ((offset_in_opaque + extract_size_in_opaque) > 8) {
 			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
 		} else {
-		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EOM_FCV_OFFSET_0x00;
-		op1 = KEYGEN_KCR_EXT_OPAQUE0_OFFSET + offset_in_opaque;
+		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE0_EOM;
+		op1 = KEYGEN_KCR_EXT_OPAQUE0_BASIC_EO + offset_in_opaque;
 		op2 = extract_size_in_opaque - 1;
 		}
 		break;
@@ -462,26 +546,26 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 		if ((offset_in_opaque + extract_size_in_opaque) > 8) {
 			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
 		} else {
-		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EOM_FCV_OFFSET_0x00;
-		op1 = KEYGEN_KCR_EXT_OPAQUE1_OFFSET + offset_in_opaque;
+		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE1_EOM;
+		op1 = KEYGEN_KCR_EXT_OPAQUE1_BASIC_EO + offset_in_opaque;
 		op2 = extract_size_in_opaque - 1;
 		}
 		break;
 	case (KEYGEN_KCR_EXT_OPAQUE2):
-		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EOM_FCV_OFFSET_0x10;
-		op1 = KEYGEN_KCR_EXT_OPAQUE2_OFFSET;
+		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE2_EOM;
+		op1 = KEYGEN_KCR_EXT_OPAQUE2_BASIC_EO;
 		op2 = KEYGEN_KCR_EXT_OPAQUE2_SIZE;
 		break;
-	/*case (KEYGEN_KCR_EXT_UNIQUE_ID):
-		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EOM_FCV_OFFSET_0x10;
-		op1 = KEYGEN_KCR_EXT_UNIQUE_ID_OFFSET;
+	case (KEYGEN_KCR_EXT_UNIQUE_ID):
+		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_UNIQUE_ID_EOM;
+		op1 = KEYGEN_KCR_EXT_UNIQUE_ID_BASIC_EO;
 		op2 = KEYGEN_KCR_EXT_UNIQUE_ID_SIZE;
 		break;
 	case (KEYGEN_KCR_EXT_TIMESTAMP):
-		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EOM_FCV_OFFSET_0x10;
-		op1 = KEYGEN_KCR_EXT_TIMESTAMP_OFFSET;
+		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_TIMESTAMP_EOM;
+		op1 = KEYGEN_KCR_EXT_TIMESTAMP_BASIC_EO;
 		op2 = KEYGEN_KCR_EXT_TIMESTAMP_SIZE;
-		break;*/
+		break;
 	default:
 		return KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR;
 		break;
