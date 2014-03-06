@@ -22,7 +22,7 @@ struct dpni;
 #else
 #include <fsl_cmdif.h>
 struct dpni {
-	struct cmdif_desc cidesc;
+	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
 };
 #endif
 
@@ -139,7 +139,7 @@ int dpni_close(struct dpni *dpni);
  *
  */
 enum dpni_type {
-	DPNI_TYPE_NI = 0, /*!< DPNI of type NI */
+	DPNI_TYPE_NI = 1, /*!< DPNI of type NI */
 	DPNI_TYPE_NIC
 /*!< DPNI of type NIC */
 };
@@ -347,7 +347,7 @@ int dpni_detach(struct dpni *dpni);
  *
  */
 enum dpni_link_type {
-	DPNI_LINK_TYPE_DPMAC = 0, /*!< Attached to DPMAC */
+	DPNI_LINK_TYPE_DPMAC = 1, /*!< Attached to DPMAC */
 	DPNI_LINK_TYPE_DPSW, /*!< Attached to DPSW */
 	DPNI_LINK_TYPE_DPDMUX, /*!< Attached to DPDMUX */
 	DPNI_LINK_TYPE_DPLAG, /*!< Attached to DPLAG */
@@ -554,7 +554,7 @@ int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset);
  *
  */
 enum dpni_counter {
-	DPNI_CNT_ING_FRAME,
+	DPNI_CNT_ING_FRAME = 1,
 	/*!< Ingress frame count */
 	DPNI_CNT_ING_BYTE,
 	/*!< Ingress byte count */

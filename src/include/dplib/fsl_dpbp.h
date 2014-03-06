@@ -18,7 +18,7 @@ struct dpbp;
 #else
 #include <fsl_cmdif.h>
 struct dpbp {
-	struct cmdif_desc cidesc;
+	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
 };
 #endif
 

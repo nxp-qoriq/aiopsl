@@ -215,7 +215,7 @@ enum dprc_iter_status {
 	/*!< Perform first iteration */
 	DPRC_ITER_STATUS_MORE = 1,
 	/*!< Indicates more/next iteration is needed */
-	DPRC_ITER_STATUS_LAST = 2,
+	DPRC_ITER_STATUS_LAST = 2
 /*!< Indicates last iteration */
 };
 
