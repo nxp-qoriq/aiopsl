@@ -428,6 +428,46 @@ enum cdma_errors {
 
 /* @} end of group CDMA_WS_MEMORY_INIT_STATUS */
 
+/**************************************************************************//**
+@Group		CDMA_REFCOUNT_GET_STATUS
+
+@Description	CDMA status returned by the cdma_refcount_get command
+
+@{
+*//***************************************************************************/
+/* Success */
+#define CDMA_REFCOUNT_GET__SUCCESS CDMA_SUCCESS
+/** Increment reference count failed, count is at max value.*/
+#define CDMA_REFCOUNT_GET__REFCOUNT_INCREMENT_ERR \
+			CDMA_REFCOUNT_INCREMENT_ERR
+/** Decrement reference count caused the reference count to
+ * go to zero. (not an error) */
+#define CDMA_REFCOUNT_GET__REFCOUNT_DECREMENT_TO_ZERO \
+			CDMA_REFCOUNT_DECREMENT_TO_ZERO
+/** Decrement reference count failed, count is at zero. */
+#define CDMA_REFCOUNT_GET__REFCOUNT_DECREMENT_ERR \
+			CDMA_REFCOUNT_DECREMENT_ERR
+/* 0xA0: Internal memory ECC uncorrected ECC error */
+#define CDMA_REFCOUNT_GET__INTERNAL_MEMORY_ECC_ERR \
+			CDMA_INTERNAL_MEMORY_ECC_ERR
+/* Workspace memory write Error */
+#define CDMA_REFCOUNT_GET__WORKSPACE_MEMORY_WRITE_ERR \
+			CDMA_WORKSPACE_MEMORY_WRITE_ERR
+/* 0xA1: Workspace memory read Error */
+#define CDMA_REFCOUNT_GET__WORKSPACE_MEMORY_READ_ERR \
+			CDMA_WORKSPACE_MEMORY_READ_ERR
+/* External memory write error */
+#define CDMA_REFCOUNT_GET__EXTERNAL_MEMORY_WRITE_ERR \
+			CDMA_EXTERNAL_MEMORY_WRITE_ERR
+/* 0xA3: System memory read error (permission or ECC) */
+#define CDMA_REFCOUNT_GET__EXTERNAL_MEMORY_READ_ERR \
+			CDMA_EXTERNAL_MEMORY_READ_ERR
+/** Invalid reference count operation, address is not base address.*/
+#define CDMA_REFCOUNT_GET__REFCOUNT_INVALID_OPERATION_ERR \
+			CDMA_REFCOUNT_INVALID_OPERATION_ERR
+/* @} end of group CDMA_REFCOUNT_GET_STATUS */
+
+
 /* @} end of group CDMA_Commands_Satus */
 
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -830,6 +870,28 @@ int32_t cdma_ws_memory_init(
 		void *ws_dst,
 		uint16_t size,
 		uint32_t data_pattern);
+
+
+/*************************************************************************//**
+@Function	cdma_refcount_get 
+
+@Description	This routine returns the current value of reference count.
+
+@Param[in]	context_address - A pointer to the Context memory.
+
+@Param[out]	refcount_value - Current value of reference count.
+
+@Return		Status - Success or Failure.
+		(\ref CDMA_REFCOUNT_GET_STATUS).
+
+@remark		This function is for verification only.
+
+@Cautions	In this function the task yields.
+
+*//***************************************************************************/
+int32_t cdma_refcount_get(
+		uint64_t context_address,
+		uint16_t *refcount_value);
 
 /** @} end of group CDMA_Functions */
 /** @} */ /* end of FSL_CDMA */
