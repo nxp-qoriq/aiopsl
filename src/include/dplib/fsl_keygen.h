@@ -116,6 +116,20 @@
 /** @} */ /* end of FSL_KEYGEN_STATUS_GENERAL */
 
 /**************************************************************************//**
+@Group	FSL_KEYGEN_STATUS_HASH_GEN Hash Generation status defines
+@{
+*//***************************************************************************/
+
+	/** Command status success. */
+#define KEYGEN_HASH_STATUS_SUCCESS	0x00000000
+	/** Key Size Error for Hash Generation in MFLU */
+#define KEYGEN_MFLU_HASH_STATUS_KSE	KEYGEN_MFLU_STATUS_KCE
+	/** Key Size Error for Hash Generation in CTLU */
+#define KEYGEN_CTLU_HASH_STATUS_KSE	KEYGEN_CTLU_STATUS_KCE
+
+/** @} */ /* end of FSL_KEYGEN_STATUS_HASH_GEN */
+
+/**************************************************************************//**
 @Group	FSL_KEYGEN_STATUS_KCR Status returned from Key Composition Rule Builder
 @{
 *//***************************************************************************/
@@ -438,7 +452,8 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 @Function	keygen_kcr_builder_add_input_value_fec
 
 @Description	Adds Field Extract Command (FEC) to key composition rule (kcr)
-		for extraction of an input value given in \ref keygen_gen_key.
+		for extraction of an input value supplied in
+		\ref keygen_gen_key.
 
 @Param[in]	offset - Offset in input value given in keygen_gen_key.
 @Param[in]	extract_size - size of extraction. 
@@ -606,7 +621,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 @Description	Creates key composition rule.
 
 @Param[in]	acc_id - Accelerator ID.
-@Param[in]	kcr - Key composition rule.
+@Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
 @Param[out]	keyid - Key ID.
 
 @Return		Please refer to \ref GET_ID_STATUS.
@@ -624,7 +639,7 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 @Description	Replaces key composition rule of a specified keyid.
 
 @Param[in]	acc_id - Accelerator ID.
-@Param[in]	kcr - Key composition rule.
+@Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
 @Param[in]	keyid - Key ID.
 
 @Return		None.
@@ -659,7 +674,7 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - The key ID.
-@Param[out]	kcr - Key composition rule.
+@Param[out]	kcr - Key composition rule. Must be aligned to 16B boundary.
 
 @Return		None.
 
@@ -679,10 +694,10 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Param[in]	keyid - The key ID to be used for the key extraction.
 @Param[in]	opaquein - OpaqueIn field for key composition.
 @Param[out]	key - The key. This structure is allocated by the user and must
-		be aligned to 16B boundary
+		be aligned to 16B boundary.
 @Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_GENERAL
+@Return		Please refer to \ref FSL_KEYGEN_STATUS_KEY_GENERATION
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -699,7 +714,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 @Description	Generates a hash value from a given key.
 
 @Param[in]	key - The key to generate hash from. Must be aligned to 16B
-		boundary
+		boundary.
 @Param[in]	key_size - Key size in bytes.
 @Param[out]	hash - The hash result. Must be allocated by the caller to this
 		function.
