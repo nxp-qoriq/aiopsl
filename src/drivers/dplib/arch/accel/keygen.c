@@ -715,7 +715,7 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 {
 	int32_t status;
 /*	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];*/
-	uint8_t fake_kcr = 0;
+	uint8_t fake_kcr __attribute__((aligned(16))) = 0;
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE,
@@ -751,7 +751,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     union table_key *key,
 		     uint8_t *key_size)
 {
-	struct input_message_params input_struct;
+	struct input_message_params input_struct __attribute__((aligned(16)));
 	uint32_t arg1;
 	
 	if (opaquein) {
