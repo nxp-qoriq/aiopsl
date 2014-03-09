@@ -64,7 +64,7 @@ typedef uint64_t ipsec_handle_t;
 @Description	Lifetime callback function type definition
 
 *//***************************************************************************/
-typedef int (ipsec_lifetime_callback_t) (
+typedef void (ipsec_lifetime_callback_t) (
 		uint64_t callback_arg, /* callback argument (SA address) */
 		uint8_t expiry_type /* Hard or Soft */
 		);
