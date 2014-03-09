@@ -21,8 +21,13 @@ int dpni_drv_probe(struct dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid, stru
 struct dpni_drv {
 	/** network interface ID which is equal to this entry's index in the NI table - internal to AIOP */
 	uint16_t            aiop_niid;
+	
+#if 0
+	/** TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe.
 	/** network interface ID assigned by MC - known outside AIOP */
 	uint16_t            mc_niid;
+#endif
+	
 	/** MAC address of this NI */
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/** Storage profile ID */

@@ -253,35 +253,45 @@ int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
 int dpni_get_num_of_ni(void);
 
 /**************************************************************************//**
- @Function	DPNI_GET_RECEIVE_NIID
+ @Function	dpni_get_receive_niid
 
  @Description	Get ID of NI on which the default packet arrived. 
 
  @Return	NI_IDs on which the default packet arrived.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int DPNI_GET_RECEIVE_NIID(void);
+int dpni_get_receive_niid(void);
 
 /**************************************************************************//**
- @Function	DPNI_SET_SEND_NIID
+ @Function	dpni_set_send_niid
 
  @Description	Set the NI ID on which the packet should be sent.
 
  @Return	0 on success; error code, otherwise.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int DPNI_SET_SEND_NIID(uint16_t niid);
+int dpni_set_send_niid(uint16_t niid);
 
 /**************************************************************************//**
- @Function	DPNI_GET_SEND_NIID
+ @Function	dpni_get_send_niid
 
  @Description	Get ID of NI on which the default packet should be sent.
 
  @Return	0 on success; error code, otherwise.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int DPNI_GET_SEND_NIID(void);
+int dpni_get_send_niid(void);
 
+
+/**************************************************************************//**
+ @Function	dpni_drv_get_primary_mac_address
+
+ @Description	Get Primary MAC address of NI.
+
+ @Return	MAC Address.
+*//***************************************************************************/
+/* TODO : replace by macros/inline funcs */
+int dpni_drv_get_primary_mac_addr(uint16_t niid);
 
 /** @} */ /* end of grp_dpni_aiop group */
 /** @} */ /* end of grp_dplib_aiop group */

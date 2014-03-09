@@ -123,9 +123,12 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32(aiop_niid, UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
+#if 0
+			/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
 			/* Register MC NI ID in AIOP NI table */
 			nis[aiop_niid].mc_niid = mc_niid;
-
+#endif
+			
 			if ((err = dprc_get_dev_region(dprc, DP_DEV_DPNI, mc_niid, 0, &region_desc)) != 0) {
 				pr_err("Failed to get device region for DP-NI%d.\n", mc_niid);
 				return err;
@@ -183,9 +186,13 @@ int dpni_drv_probe(struct dprc	*dprc,
 			}
 			nis[aiop_niid].spid = spid;
 #endif	
-			
-			
+
+#if 0
+			/* TODO: need to decide if we should close DPNI at this stage.
+			 * If so, then the MC NI ID must be saved in dpni_drv.mc_niid.
+			 */
 			dpni_close(&dpni);
+#endif
 			
 			/* TODO: need to initialize additional NI table fields according to DPNI attributes */
 			
@@ -205,6 +212,13 @@ int dpni_get_num_of_ni (void)
 {
 	/* TODO - complete here. should count the "real" number of NIs */
 	return 1;
+}
+
+
+/* TODO: replace with macro/inline */
+int dpni_drv_get_primary_mac_addr(uint16_t niid)
+{
+	return((int)nis[niid].mac_addr);
 }
 
 
@@ -275,7 +289,10 @@ int dpni_drv_init(void)
 		int	   j;
 
 		dpni_drv->aiop_niid    = (uint16_t)i;
+#if 0
+		/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
 		dpni_drv->mc_niid      = 0;
+#endif
 		dpni_drv->spid         = 0;
 		dpni_drv->prpid        = 0;
 		dpni_drv->starting_hxs = 0; //ETH HXS
@@ -288,45 +305,42 @@ int dpni_drv_init(void)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
 	
-#if NEW_MC_API
-	/* TODO: following code can not currently compile on AIOP, only on MC */
+	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
+#if 0
+	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */
 	aiop_tile_regs = (struct aiop_tile_regs *)sys_get_memory_mapped_module_base(FSL_OS_MOD_AIOP,
 	                                                     0,
 	                                                     E_MAPPED_MEM_TYPE_GEN_REGS);
 	ws_regs = &aiop_tile_regs->ws_regs;
+	/* TODO: replace 1024 w/ constant */
 	for (i = 0; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table */
-		iowrite32((uint32_t)i, ws_regs->epas; 			// TODO: change to LE
+		iowrite32((uint32_t)i, ws_regs->epas; 					// TODO: change to LE
 		iowrite32(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE		
-
-		/* TODO : this is a temporary assignment for testing purposes, until MC initialization will be operational.
-		 * Initialize all EPID entries to MC NI ID 2
-		 * Due to Simulator issue, only one value can be initialized for all EPID entries. */
-		iowrite32((uint32_t)2, ws_regs->ep_pm);
 	}	
 #else
-	/* TODO: replace wrks_addr with global struct */
+	/* TODO: temporary code. should be removed. */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
 	             SOC_PERIPH_OFF_AIOP_WRKS);
 
-	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) 
-	 * TODO: replace 1024 w/ constant defined by Yulia */
+
+	/* TODO: replace 1024 w/ constant */
 	for (i = 0; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table - EPAS reg */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 
 		iowrite32(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define		
 
-		/* TODO : this is a temporary assignment for testing purposes, until MC initialization will be operational.
-		 * Initialize all EPID entries to MC NI ID 2 (EP_PM)
-		 * Due to Simulator issue, only one value can be initialized for all EPID entries. */
-		iowrite32((uint32_t)1, UINT_TO_PTR(wrks_addr + 0x104));
+#if 1
+		/* TODO : this is a temporary assignment for testing purposes, until MC initialization of EPID table will be operational. */
+		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
+#endif
 	}
 #endif
 	
 	/* Set PRPID 0 
 	 * TODO it must be prpid for every ni */
-    	error = aiop_replace_parser(0);
+    error = aiop_replace_parser(0);
     
 	return error;
 }

@@ -1,4 +1,6 @@
 
+dpni_drv.h: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_nii
+dpni_drv_rxtx.c: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_niid
 fsl_osm.h + osm.h: The order scope execution phase values was changed according to archdef_0.7.2 (0 = Concurrent mode, 1 = Exclusive mode).
 fsl_cdma.h + cdma.c: Added cdma_refcount_get(). This routine returns the current value of reference count.
 general.h: Added new macro (ADC_GET_ICID) to get ICID field.

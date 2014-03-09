@@ -214,12 +214,12 @@ int run_apps(void)
 		return(err);
 	}
     
-    	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
+    /* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
 	/* TODO: Currently creating a stub DPBP with ID=1. 
 	 * Open and init calls will be replaced by 'create' when available at MC.
 	 * At that point, the DPBP ID will be provided by MC. */
-    	dpbp_id = 1;
+    dpbp_id = 1;
 	
 	assign_res_req.num = dpbp_id;
 	assign_res_req.options = DPRC_RES_REQ_OPT_EXPLICIT;
@@ -230,15 +230,15 @@ int run_apps(void)
 		return err;
 	}
 	
-    	/* Get the physical portal address for this object.
-    	 * The physical portal address is at region_index zero */ 
-    	region_index = 0;  
-    	if ((err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) != 0) {
+	/* Get the physical portal address for this object.
+	 * The physical portal address is at region_index zero */ 
+	region_index = 0;  
+    if ((err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) != 0) {
 		pr_err("Failed to get device region for DP-BP%d.\n", dpbp_id);
 		return err;
 	}
 
-    	dpbp.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
+    dpbp.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
 	
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
