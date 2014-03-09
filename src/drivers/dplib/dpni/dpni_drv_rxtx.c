@@ -123,14 +123,14 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 }
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int DPNI_GET_RECEIVE_NIID(void)
+__HOT_CODE int dpni_get_receive_niid(void)
 {
 	return((int)default_task_params.receive_niid);
 }
 
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int DPNI_SET_SEND_NIID(uint16_t niid)
+__HOT_CODE int dpni_set_send_niid(uint16_t niid)
 {
 	default_task_params.send_niid = niid;
 	return 0;
@@ -138,7 +138,7 @@ __HOT_CODE int DPNI_SET_SEND_NIID(uint16_t niid)
 
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int DPNI_GET_SEND_NIID(void)
+__HOT_CODE int dpni_get_send_niid(void)
 {
 	return((int)default_task_params.send_niid);
 }
