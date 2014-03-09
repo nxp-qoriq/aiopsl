@@ -23,7 +23,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 				uint8_t *prpid)
 {
-	struct parse_profile_create_params parse_profile_create_params;
+	struct parse_profile_create_params parse_profile_create_params
+						__attribute__((aligned(16)));
 	int32_t status;
 /*	uint16_t prpid_pool[SYS_PRPID_POOL_LENGTH];*/
 
@@ -54,7 +55,8 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 void parser_profile_replace(struct parse_profile_record *parse_profile,
 				uint8_t prpid)
 {
-	struct parse_profile_create_params parse_profile_create_params;
+	struct parse_profile_create_params parse_profile_create_params
+						__attribute__((aligned(16)));
 
 	parse_profile_create_params.parse_profile.reserved1 = 0;
 	parse_profile_create_params.parse_profile.reserved2 = 0;
@@ -79,7 +81,8 @@ void parser_profile_replace(struct parse_profile_record *parse_profile,
 int32_t parser_profile_delete(uint8_t prpid)
 {
 
-	struct parse_profile_delete_query_params parse_profile_delete_params;
+	struct parse_profile_delete_query_params parse_profile_delete_params
+						__attribute__((aligned(16)));
 	int32_t status;
 /*	uint16_t prpid_pool[SYS_PRPID_POOL_LENGTH];*/
 
@@ -104,7 +107,8 @@ int32_t parser_profile_delete(uint8_t prpid)
 void parser_profile_query(uint8_t prpid,
 			struct parse_profile_record *parse_profile)
 {
-	struct parse_profile_delete_query_params parse_profile_query_params;
+	struct parse_profile_delete_query_params parse_profile_query_params
+						__attribute__((aligned(16)));
 
 	parse_profile_query_params.reserved1 = 0;
 	parse_profile_query_params.mtype = PARSER_PRP_QUERY_MTYPE;
@@ -127,7 +131,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct input_message_params input_struct;
+	struct input_message_params input_struct __attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -179,7 +183,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	/* 8 Byte aligned for stqw optimization */
-	struct input_message_params input_struct;
+	struct input_message_params input_struct __attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -232,7 +236,7 @@ int32_t parse_result_generate_checksum(
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct input_message_params input_struct;
+	struct input_message_params input_struct __attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
