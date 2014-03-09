@@ -44,8 +44,8 @@ static void dpni_test_process_packet (dpni_drv_app_arg_t arg)
 	receive_niid = dpni_get_receive_niid();
 	dpni_set_send_niid(SEND_NIID); 
 	send_niid = dpni_get_send_niid();
-	receive_mac_addr = dpni_drv_get_primary_mac_addr(receive_niid);
-	send_mac_addr = dpni_drv_get_primary_mac_addr(send_niid);
+	receive_mac_addr = dpni_drv_get_primary_mac_addr((uint16_t)receive_niid);
+	send_mac_addr = dpni_drv_get_primary_mac_addr((uint16_t)send_niid);
 	
 	fsl_os_print("DPNI TEST: Running dpni_test_process_packet(), Receive NIID = %d (MAC=0x%x), Send NIID = %d (MAC=0x%x), arg = %d\n",
 				receive_niid, receive_mac_addr, send_niid, send_mac_addr, (int)arg);
