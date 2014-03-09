@@ -343,11 +343,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ipsec.h</locationURI>
 		</link>
 		<link>
-			<name>sources/include/dplib/fsl_ipv4_checksum.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ipv4_checksum.h</locationURI>
-		</link>
-		<link>
 			<name>sources/include/dplib/fsl_keygen.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_keygen.h</locationURI>
@@ -661,11 +656,6 @@
 			<name>sources/drivers/dplib/netf/ip/ipsec.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.h</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/netf/ip/ipv4_checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipv4_checksum.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/l2/l2.c</name>

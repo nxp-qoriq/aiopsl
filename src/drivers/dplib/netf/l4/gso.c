@@ -12,7 +12,6 @@
 #include "net/fsl_net.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "dplib/fsl_ipv4_checksum.h"
 #include "dplib/fsl_l4_checksum.h"
 #include "fdma.h"
 #include "checksum.h"

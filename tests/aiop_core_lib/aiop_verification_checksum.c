@@ -7,7 +7,6 @@
 *//***************************************************************************/
 
 #include "net/fsl_net.h"
-#include "dplib/fsl_ipv4_checksum.h"
 #include "dplib/fsl_l4_checksum.h"
 
 #include "aiop_verification.h"
@@ -31,9 +30,9 @@ uint16_t aiop_verification_checksum(uint32_t asa_seg_addr)
 		struct cksum_calc_ipv4_header_checksum_command *cmd =
 			(struct cksum_calc_ipv4_header_checksum_command *)
 			asa_seg_addr;
-		cmd->status = ipv4_cksum_calculate(
+		cmd->status = ip_cksum_calculate(
 				(struct ipv4hdr *)cmd->ipv4header,
-				cmd->options);
+				cmd->flags);
 		str_size =
 		   sizeof(struct cksum_calc_ipv4_header_checksum_command);
 		break;

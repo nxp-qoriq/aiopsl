@@ -50,7 +50,7 @@ struct cksum_calc_ipv4_header_checksum_command {
 	uint32_t opcode;
 	int32_t  status;
 	uint32_t ipv4header;
-	uint32_t options;
+	uint8_t  flags;
 };
 
 /**************************************************************************//**
