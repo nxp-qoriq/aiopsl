@@ -52,6 +52,18 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 	return 0;
 }
 
+int dpni_drv_unregister_rx_cb (uint16_t		ni_id,
+                             uint16_t		flow_id)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the send NI structure */
+	dpni_drv = nis + ni_id;
+	dpni_drv->rx_cbs[flow_id] = &discard_rx_app_cb;
+
+	return 0;
+}
+
 int dpni_drv_enable (uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
