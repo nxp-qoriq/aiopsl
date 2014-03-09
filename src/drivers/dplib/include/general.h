@@ -526,7 +526,7 @@ struct aiop_default_task_params {
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
 	/** current scope level */
-	uint8_t current_scppe_level;
+	uint8_t current_scope_level;
 	/** scope mode level [0-3] */
 	uint8_t scope_mode_level_arr[4];
 };
