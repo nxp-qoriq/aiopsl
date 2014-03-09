@@ -116,19 +116,26 @@ typedef int (ipsec_lifetime_callback_t) (
 *//***************************************************************************/
 /** Perform computations to update header checksum for IPv4 header.
  * Not valid for tunnel mode */
-#define IPSEC_ENC_OPTS_UPDATE_CSUM	0x80
+#define IPSEC_ENC_OPTS_UPDATE_CSUM	0x0080
 
 /** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
  * IP header to inner IP header. Not valid for tunnel mode */
-#define IPSEC_ENC_OPTS_DIFFSERV		0x40
+#define IPSEC_ENC_OPTS_DIFFSERV		0x0040
 
 /** Generate random initial vector before starting encapsulation
  * If set, the IV comes from an internal random generator */
-#define IPSEC_ENC_OPTS_IVSRC		0x20
+#define IPSEC_ENC_OPTS_IVSRC		0x0020
 
 /** Add Output IP header to the frame
 * Relevant for tunnel mode only */
-#define IPSEC_ENC_OPTS_ADD_IPHDR	0x0c /* Add IP header */
+#define IPSEC_ENC_OPTS_ADD_IPHDR	0x000c /* Add IP header */
+
+/** Copy the DF bit from the inner IP header to the outer IP header. */
+#define IPSEC_ENC_OPTS_DFC 		0x0400
+
+/** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
+ * IP header */
+#define IPSEC_ENC_OPTS_DTTL 		0x0200
 
 /**************************************************************************//**
 @Description	IPSec ESP Decapsulation options
@@ -137,46 +144,27 @@ typedef int (ipsec_lifetime_callback_t) (
 *//***************************************************************************/
 
 /** Anti-replay window size. Use one of the following options */
-#define IPSEC_DEC_OPTS_ARSNONE	0x00   /**< no anti-replay window */
-#define IPSEC_DEC_OPTS_ARS32	0x40   /**< 32-entry anti-replay window */
-#define IPSEC_DEC_OPTS_ARS128	0x80   /**< 128-entry anti-replay window */
-#define IPSEC_DEC_OPTS_ARS64	0xc0   /**< 64-entry anti-replay window */
+#define IPSEC_DEC_OPTS_ARSNONE	0x0000   /**< no anti-replay window */
+#define IPSEC_DEC_OPTS_ARS32	0x0040   /**< 32-entry anti-replay window */
+#define IPSEC_DEC_OPTS_ARS128	0x0080   /**< 128-entry anti-replay window */
+#define IPSEC_DEC_OPTS_ARS64	0x00c0   /**< 64-entry anti-replay window */
 
 /** Perform checksum verification to IPv4 header in Transport mode.
  * Transport mode only. Not valid for tunnel mode */
-#define IPSEC_DEC_OPTS_VERIFY_CSUM 	0x20 /** validate IP header checksum */
+#define IPSEC_DEC_OPTS_VERIFY_CSUM 	0x0020 /** validate IP header checksum */
 
 /** Enable Tunnel ECN according to RFC 6040
  * Valid for Tunnel mode only. Not valid for transport mode */
-#define IPSEC_DEC_OPTS_TECN		0x20
-
-/**************************************************************************//**
-@Description	IPSec ESP Encapsulation HMO field
-
-		Use for ipsec_encap_params.hmo
-*//***************************************************************************/
-
-/** Copy the DF bit from the inner IP header to the outer IP header. */
-#define IPSEC_HMO_ENCAP_DFC 	0x04
+#define IPSEC_DEC_OPTS_TECN		0x0020
 
 /** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
  * IP header */
-#define IPSEC_HMO_ENCAP_DTTL 	0x02
-
-/**************************************************************************//**
-@Description	IPSec ESP Decapsulation HMO field
-
-		Use for ipsec_decap_params.hmo
-*//***************************************************************************/
-
-/** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
- * IP header */
-#define IPSEC_HMO_DECAP_DTTL	0x02
+#define IPSEC_DEC_OPTS_DTTL	0x0200
 
 /** DiffServ Copy
  * Copy the IPv4 TOS or IPv6 Traffic Class byte from the outer IP header
  * to the inner IP header. */
-#define IPSEC_HMO_DECAP_DSC	0x01
+#define IPSEC_DEC_OPTS_DSC	0x0100
 
 /**************************************************************************//**
 @Description	IPSec Cipher Algorithms
@@ -278,9 +266,8 @@ struct ipsec_encap_gcm_params {
  * @Description   Container for encapsulation parameters
 *//***************************************************************************/
 struct ipsec_encap_params {
-	uint8_t hmo; /**< Header Modification Options */
 	uint8_t ip_nh; /**< Next header value used for transport mode */
-	uint8_t options; /**< Options */
+	uint16_t options; /**< Options */
 	uint32_t seq_num_ext_hi; /**< Extended sequence number */
 	uint32_t seq_num;	/**< Initial sequence number */
 	uint32_t spi; 	/**< Security Parameter Index */
@@ -320,8 +307,7 @@ struct ipsec_decap_gcm_params {
  * @Description   Container for decapsulation parameters
 *//***************************************************************************/
 struct ipsec_decap_params {
-	uint8_t hmo; /**< Header Modification Options */
-	uint8_t options; /**< Options */
+	uint16_t options; /**< Options */
 	uint32_t seq_num_ext_hi; /**< Extended sequence number */
 	uint32_t seq_num; /**< Sequence number */
 	union {
