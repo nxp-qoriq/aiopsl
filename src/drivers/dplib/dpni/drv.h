@@ -9,15 +9,22 @@
 
 #include "common/types.h"
 #include "dplib/dpni_drv.h"
+#include "net/fsl_net.h"
+#include "dplib/fsl_dprc.h"
 
+int dpni_drv_probe(struct dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid, struct dpni_attach_cfg *attach_params);
 
 #define DPNI_DRV_FLG_PARSE		0x80
 #define DPNI_DRV_FLG_PARSER_DIS		0x40
 #define DPNI_DRV_FLG_MTU_ENABLE		0x20
 
 struct dpni_drv {
-	/** network interface ID */
-	uint16_t            id;
+	/** network interface ID which is equal to this entry's index in the NI table - internal to AIOP */
+	uint16_t            aiop_niid;
+	/** network interface ID assigned by MC - known outside AIOP */
+	uint16_t            mc_niid;
+	/** MAC address of this NI */
+	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/** Storage profile ID */
 	uint8_t             spid;
 	uint8_t             res[1];

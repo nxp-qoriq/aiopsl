@@ -15,12 +15,12 @@ struct dpsw;
 #else
 #include <fsl_cmdif.h>
 struct dpsw {
-	struct cmdif_desc cidesc;
+	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
 };
 #endif
 
 /*!
- * @Group grp_dprc	L2 switch API
+ * @Group grp_dpsw	Data Path L2 Switch API
  *
  * @brief	Contains API for handling L2 switch topology and functionality
  * @{
@@ -114,7 +114,7 @@ struct dpsw_cfg {
 		/*!< Default FDB aging time for default FDB table.
 		 * 0 - indicates default 300 seconds */
 		uint16_t fdb_aging_time;
-	} adv;
+	} adv; /*!< use this structure to change default settings */
 };
 
 /**
@@ -145,14 +145,14 @@ int dpsw_done(struct dpsw *dpsw);
  *
  */
 struct dpsw_attr {
-	uint32_t version; /* L2 switch Version */
-	uint64_t options; /* Enable/Disable L2 switch features */
-	uint8_t max_vlans; /* Maximum Number of VLANs */
-	uint8_t max_fdbs; /* Maximum Number of FDBs */
-	uint16_t mem_size; /* L2 Switch frame storage mem size */
-	uint16_t num_ifs; /* Number of interfaces */
-	uint8_t num_vlans; /* Current number of VLANs */
-	uint8_t num_fdbs; /* Current number of FDBs */
+	uint32_t version; /*!< L2 switch Version */
+	uint64_t options; /*!< Enable/Disable L2 switch features */
+	uint8_t max_vlans; /*!< Maximum Number of VLANs */
+	uint8_t max_fdbs; /*!< Maximum Number of FDBs */
+	uint16_t mem_size; /*!< L2 Switch frame storage mem size */
+	uint16_t num_ifs; /*!< Number of interfaces */
+	uint8_t num_vlans; /*!< Current number of VLANs */
+	uint8_t num_fdbs; /*!< Current number of FDBs */
 };
 
 /**
@@ -536,7 +536,7 @@ int dpsw_if_get_counter(struct dpsw *dpsw,
  *
  * @param[in]	type		counter type
  *
- * @param[int]	counter	return value
+ * @param[in]	counter		new counter value
  *
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
@@ -693,6 +693,8 @@ struct dpsw_metering_cfg {
  *
  * @param[in]	if_id		Interface Identifier
  *
+ * @param[in]	tc_id		Traffic class selection (1-8)
+ *
  * @param[in]	cfg		Metering and marking parameters
  *
  * @returns      Completion status. '0' on Success; Error code otherwise.
@@ -790,6 +792,8 @@ struct dpsw_bandwidth_cfg {
  * @param[in]	dpsw		L2 switch handle
  *
  * @param[in]	if_id		Interface Identifier
+ *
+ * @param[in]	tc_id		Traffic class selection (1-8)
  *
  * @param[in]	cfg		Traffic class bandwidth configuration
  *

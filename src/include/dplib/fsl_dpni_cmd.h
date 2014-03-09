@@ -34,7 +34,7 @@
 #define DPNI_CMDID_SET_MTU			0x136
 #define DPNI_CMDID_SET_MCAST_PROMISC		0x137
 #define DPNI_CMDID_GET_MCAST_PROMISC		0x138
-#define DPNI_CMDID_SET_PRIM_MAC		0x139
+#define DPNI_CMDID_SET_PRIM_MAC			0x139
 #define DPNI_CMDID_ADD_MAC_ADDR			0x13A
 #define DPNI_CMDID_REMOVE_MAC_ADDR		0x13B
 #define DPNI_CMDID_CLR_MAC_TBL			0x13C
@@ -57,7 +57,7 @@
 #define DPNI_CMDID_SET_RX_IGNORE_PAUSE_FRAMES	0x14D
 
 #define DPNI_CMDID_GET_TX_DATA_OFFSET		0x150
-#define DPNI_CMDID_GET_PRIM_MAC		0x151
+#define DPNI_CMDID_GET_PRIM_MAC			0x151
 #define DPNI_CMDID_GET_MFL			0x152
 #define DPNI_CMDID_GET_MTU			0x153
 #define DPNI_CMDID_GET_RX_BUFFER_LAYOUT		0x154
@@ -364,7 +364,10 @@
 	_OP(1,   0,	64,	uint64_t,		cfg->user_ctx)\
 	_OP(2,   0,	32,	uint32_t,		cfg->options)\
 	_OP(2,   32,	32,	int,			cfg->tx_conf_err)\
-/*TODO - flow_id in/out????*/
+
+/*	param, offset, width,	type,				arg_name */
+#define DPNI_RSP_SET_TX_FLOW(_OP) \
+	_OP(0,   48,	16,	uint16_t,		*flow_id)\
 
 /*	param, offset, width,	type,				arg_name */
 #define DPNI_CMD_GET_TX_FLOW(_OP) \

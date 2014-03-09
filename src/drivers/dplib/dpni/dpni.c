@@ -5,13 +5,13 @@
 #include <fsl_dpni_cmd.h>
 
 #define CMD_PREP(_param, _offset, _width, _type, _arg) \
-	cmd_data.params[_param] |= u64_enc(_offset, _width, _arg);
+	cmd_data.params[_param] |= u64_enc(_offset, _width, _arg); \
 
 #define RSP_READ(_param, _offset, _width, _type, _arg) \
-	*(_arg) = (_type)u64_dec(cmd_data.params[_param], _offset, _width);
+	*(_arg) = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
 
 #define RSP_READ_STRUCT(_param, _offset, _width, _type, _arg) \
-	_arg = (_type)u64_dec(cmd_data.params[_param], _offset, _width);
+	_arg = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
 
 int dpni_open(struct dpni *dpni, int dpni_id)
 {
@@ -453,13 +453,16 @@ int dpni_set_tx_flow(struct dpni *dpni,
 	const struct dpni_tx_flow_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
-
+	int err;
 	/* prepare command */
 	DPNI_CMD_SET_TX_FLOW(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_TX_FLOW,
+	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_TX_FLOW,
 				DPNI_CMDSZ_SET_TX_FLOW, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
+	if (!err)
+		DPNI_RSP_SET_TX_FLOW(RSP_READ_STRUCT);
+	return err;
 }
 
 int dpni_get_tx_flow(struct dpni *dpni,
@@ -630,9 +633,7 @@ int dpni_get_irq(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	
 	DPNI_CMD_GET_IRQ(CMD_PREP);
-	
 	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_IRQ,
 				DPNI_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
@@ -679,7 +680,6 @@ int dpni_get_irq_mask(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-
 	DPNI_CMD_GET_IRQ_MASK(CMD_PREP);
 
 	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_IRQ_MASK,
@@ -711,7 +711,6 @@ int dpni_get_irq_status(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-
 	DPNI_CMD_GET_IRQ_STATUS(CMD_PREP);
 
 	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_IRQ_STATUS,
