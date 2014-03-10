@@ -13,8 +13,6 @@ fsl_fdma.h:
 		• Change fdma_isolation_attributes structure field name: bdi_icid -> icid.
 		• Remove flags parameter from fdma_read_default_frame_asa() SR.
 	• Change fdma_queueing_destination_params structure field name: hash_value -> qdbin (HW alignmnet).
-	• Remove fdma_acquire_buffer().
-	• Remove fdma_release_buffer().
 	
 
 
