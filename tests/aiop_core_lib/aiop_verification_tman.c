@@ -154,9 +154,12 @@ void verif_timer_callback(uint64_t opaque1, uint16_t opaque2)
 
 void verif_tmi_delete_callback(uint64_t opaque1, uint16_t opaque2)
 {
-	struct ldpaa_fd fd;
-	
-	fdma_create_frame(&fd,&opaque1, sizeof(opaque1));
+	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
+	uint8_t frame_handle;
+	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
+
+	fdma_create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
 	tman_timer_completion_confirmation((uint32_t)opaque1);
-	fdma_enqueue_fd_fqid(&fd,FDMA_EN_TC_TERM_BITS,(uint32_t)opaque2, 0);
+	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
+			(uint32_t)opaque2, spid);
 }
