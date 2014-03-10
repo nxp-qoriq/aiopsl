@@ -171,9 +171,9 @@ enum ctlu_verif_cmd_type {
 
 
 /**************************************************************************//**
-@Group		AIOP_CTLU_SRs_Verification
+@Group		AIOP_Table_SRs_Verification
 
-@Description	AIOP CTLU Verification structures definitions.
+@Description	AIOP Table Verification structures definitions.
 
 @{
 *//***************************************************************************/
@@ -218,9 +218,9 @@ struct ctlu_table_params_query_output_message {
 #pragma pack(pop)
 
 /**************************************************************************//**
-@Description	CTLU Create Table Command structure.
+@Description	Create Table Command structure.
 
-		Includes information needed for CTLU Create Table command
+		Includes information needed for Create Table command
 		verification.
 *//***************************************************************************/
 
@@ -875,7 +875,7 @@ struct keygen_key_id_pool_create_verif_command {
 	int32_t  status;
 };
 
-/** @} */ /* end of AIOP_CTLU_SRs_Verification */
+/** @} */ /* end of AIOP_Table_SRs_Verification */
 
 /** @}*/ /* end of AIOP_Service_Routines_Verification */
 
