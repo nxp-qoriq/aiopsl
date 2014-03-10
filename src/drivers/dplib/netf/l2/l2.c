@@ -255,7 +255,8 @@ int32_t l2_pop_vlan()
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT()) {
-		vlan_offset = (uint16_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 2;
+		vlan_offset = (uint16_t)
+			      (PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 2;
 
 		fdma_flags =
 			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
