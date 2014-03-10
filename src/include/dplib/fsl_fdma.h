@@ -1722,10 +1722,10 @@ struct fdma_insert_segment_data_params {
 };
 
 /**************************************************************************//**
-@Description	Isolation_attributes structure.
+@Description	FDMA access management qualifier (AMQs) structure.
 
 *//***************************************************************************/
-struct fdma_isolation_attributes {
+struct fdma_amq {
 		/** \link FDMA_ISOLATION_ATTRIBUTES_Flags icid context flags
 		 * \endlink */
 	uint16_t flags;
@@ -2015,7 +2015,7 @@ int32_t fdma_store_default_frame_data(void);
 int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
-		struct fdma_isolation_attributes *isolation_attributes);
+		struct fdma_amq *isolation_attributes);
 
 /**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_fqid
