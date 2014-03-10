@@ -1,4 +1,6 @@
 
+SL Pre-Alpha v0.3.1  Change Log
+
 ipr.h + ipr.c: IP checksum fix. use new fdma function. Fix reassembly with more than 2 fragments. 
 dpni_drv.h: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_nii
 dpni_drv_rxtx.c: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_niid
@@ -14,7 +16,7 @@ fsl_fdma.h:
 		• Remove flags parameter from fdma_read_default_frame_asa() SR.
 	• Change fdma_queueing_destination_params structure field name: hash_value -> qdbin (HW alignmnet).
 	
-
+fsl_ipsec.h: unified hmo and options fields, changed callback type to void
 
 SL Pre-Alpha v0.3  Change Log
 
