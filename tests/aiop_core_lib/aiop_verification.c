@@ -38,48 +38,48 @@ void aiop_verification()
 
 		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
 
-		case FPDMA_ACCEL_ID:
-		case FODMA_ACCEL_ID:
+		case FPDMA_MODULE:
+		case FODMA_MODULE:
 		{
 			str_size = aiop_verification_fdma(asa_seg_addr);
 			break;
 		}
-		case TMAN_ACCEL_ID:
+		case TMAN_MODULE:
 		{
 			str_size = aiop_verification_tman(asa_seg_addr);
 			break;
 		}
-		case STE_VERIF_ACCEL_ID:
+		case STE_MODULE:
 		{
 			str_size = aiop_verification_ste(asa_seg_addr);
 			break;
 		}
-		case CDMA_ACCEL_ID:
+		case CDMA_MODULE:
 		{
 			str_size = aiop_verification_cdma(asa_seg_addr);
 			break;
 		}
-		case CTLU_ACCEL_ID:
+		case CTLU_MODULE:
 		{
 			str_size = aiop_verification_ctlu(asa_seg_addr);
 			break;
 		}
-		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
+		case CTLU_PARSE_CLASSIFY_MODULE:
 		{
 			str_size = aiop_verification_parser(asa_seg_addr);
 			break;
 		}
-		case HM_VERIF_ACCEL_ID:
+		case HM_MODULE:
 		{
 			str_size = aiop_verification_hm(asa_seg_addr);
 			break;
 		}
-		case VPOOL_ACCEL_ID:
+		case VPOOL_MODULE:
 		{
 			str_size = verification_virtual_pools(asa_seg_addr);
 			break;
 		}
-		case AIOP_TERMINATE_FLOW_CMD:
+		case TERMINATE_FLOW_MODULE:
 		default:
 		{
 			fdma_terminate_task();
