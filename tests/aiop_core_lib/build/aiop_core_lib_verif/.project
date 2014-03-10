@@ -98,16 +98,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_cdma.h</locationURI>
 		</link>
 		<link>
-			<name>sources/Verification/aiop_verification_checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_checksum.c</locationURI>
-		</link>
-		<link>
-			<name>sources/Verification/aiop_verification_checksum.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_checksum.h</locationURI>
-		</link>
-		<link>
 			<name>sources/Verification/aiop_verification_ctlu.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ctlu.c</locationURI>
@@ -356,11 +346,6 @@
 			<name>sources/include/dplib/fsl_l4.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_l4.h</locationURI>
-		</link>
-		<link>
-			<name>sources/include/dplib/fsl_l4_checksum.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_l4_checksum.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/dplib/fsl_ldpaa.h</name>
@@ -686,11 +671,6 @@
 			<name>sources/drivers/dplib/netf/l4/l4.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/l4/l4.c</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/netf/l4/l4_checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/l4/l4_checksum.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/nat/nat.c</name>

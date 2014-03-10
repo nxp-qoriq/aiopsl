@@ -29,7 +29,6 @@
 #include "dplib/fsl_ipsec.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_l4.h"
-#include "dplib/fsl_l4_checksum.h"
 #include "dplib/fsl_nat.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/dpni_drv.h"

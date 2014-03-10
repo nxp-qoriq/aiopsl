@@ -12,7 +12,7 @@
 #include "net/fsl_net.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "dplib/fsl_l4_checksum.h"
+#include "dplib/fsl_l4.h"
 #include "fdma.h"
 #include "checksum.h"
 
@@ -275,7 +275,8 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	
 	/* update TCP checksum *//* TODO CHECKSUM 0.6 API (Doron)
 	status = cksum_calc_udp_tcp_checksum(); */
-	status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE);
+	status = l4_udp_tcp_cksum_calc(
+		L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA);
 	/* TODO FDMA ERROR */
 
 	/* Modify default segment (updated TCP checksum) */
