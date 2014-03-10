@@ -99,8 +99,11 @@ int32_t fdma_present_frame(
 		params->flags |= FDMA_INIT_NAS_BIT;
 	else {
 		if (params->flags & FDMA_INIT_AS_BIT)
-			arg4 = FDMA_INIT_EXP_AMQ_CMD_ARG4(params->bdi_icid,
-					params->asa_dst, params->asa_size);
+			arg4 = FDMA_INIT_EXP_AMQ_CMD_ARG4(
+					params->flags,
+					params->icid,
+					params->asa_dst,
+					params->asa_size);
 		else
 			arg4 = FDMA_INIT_EXP_CMD_ARG4(params->asa_dst,
 					params->asa_size);
@@ -109,7 +112,8 @@ int32_t fdma_present_frame(
 	if ((uint32_t)(params->pta_dst) == PRC_PTA_NOT_LOADED_ADDRESS)
 		params->flags |= FDMA_INIT_NPS_BIT;
 
-	arg1 = FDMA_INIT_CMD_ARG1(((uint32_t)params->fd_src), params->flags);
+	arg1 = FDMA_INIT_CMD_ARG1(((uint32_t)params->fd_src),
+			(params->flags & ~FDMA_INIT_BDI_BIT));
 	/*arg2 = FDMA_INIT_CMD_ARG2((uint32_t)(params->seg_address),
 						params->seg_offset);*/
 	arg3 = FDMA_INIT_EXP_CMD_ARG3(params->present_size, params->pta_dst,
