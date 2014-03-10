@@ -282,7 +282,8 @@
 A general bit that is set in some errors conditions */
 #define TABLE_STATUS_MGCF	0x80000000
 
-/* Parser status are intentionally missing here */
+/** Table function input or output is erroneous  */
+#define TABLE_IO_ERROR		0x80000001
 
 /** CTLU Lookup Miss
  * This status is set when a matching rule is not found. Note that on chained
@@ -1011,6 +1012,10 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	Not available for MFLU table accelerator.
+		NOTE: If the result is of type that contains pointer to CDMA
+		application buffer (refer to struct table_rule_result
+		documentation) this function will not increment the reference
+		counter of the buffer.
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
@@ -1154,7 +1159,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	NOTE: If the result is of type that contains pointer to CDMA
-		application buffer (refer to struct ctlu_table_rule_result
+		application buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
 		counter of the buffer. For query functions that does increment
 		the reference counter please refer to table lookup function.

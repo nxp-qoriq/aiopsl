@@ -21,15 +21,15 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 	int                               num_entries_per_rule = 1;
 
 	/* 16 Byte aligned for stqw optimization + HW requirements */
-	struct ctlu_table_create_input_message  tbl_crt_in_msg
+	struct table_create_input_message  tbl_crt_in_msg
 		__attribute__((aligned(16)));
 
-	struct ctlu_table_create_output_message tbl_crt_out_msg
+	struct table_create_output_message tbl_crt_out_msg
 		__attribute__((aligned(16)));
 	int32_t                           cdma_status;
 
-	struct ctlu_acc_context      *acc_ctx =
-		(struct ctlu_acc_context *)HWC_ACC_IN_ADDRESS;
+	struct table_acc_context      *acc_ctx =
+		(struct table_acc_context *)HWC_ACC_IN_ADDRESS;
 
 	uint32_t arg2 = (uint32_t)&tbl_crt_out_msg; /* To be used in
 						    Accelerator context __stqw
@@ -46,10 +46,10 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 	switch (type & TABLE_ATTRIBUTE_TYPE_MASK) {
 
 	case TABLE_ATTRIBUTE_TYPE_EM:
-		if (key_size > CTLU_SINGLE_ENTRY_RULE_KEY_SIZE) {
+		if (key_size > TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE) {
 			num_entries_per_rule += ((((key_size -
-			CTLU_MULTIPLE_ENTRY_RULE_LAST_ENTRY_KEY_SIZE) - 1)
-			/ CTLU_MULTIPLE_ENTRY_RULE_NON_LAST_ENTRY_KEY_SIZE
+			TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE) - 1)
+			/ TABLE_ENTRY_EME36_LOOKUP_KEY_SIZE
 			) + 1);
 		}
 		/* First, we remove the last entry key size which is already
@@ -58,40 +58,42 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		 * entries which are non last. and finally add one since we
 		 * have reminder */
 
-		/* TODO CONSIDER other methods if devision too costly.
+		/* CONSIDER other methods if devision too costly.
 		 * Devision operation on e200 is 4-34 cycles.	*/
 
 		/* else, already initialized to one */
 		break;
 
 	case TABLE_ATTRIBUTE_TYPE_LPM:
-		if (key_size > CTLU_MAX_LPM_EM4_IPV4_KEY_SIZE) {
+		if (key_size > TABLE_LPM_EM4_IPV4_KEY_SIZE) {
 			/* IPv6*/
 			num_entries_per_rule =
-					CTLU_LPM_IPV6_WC_ENTRIES_PER_RULE;
+					TABLE_LPM_IPV6_WC_ENTRIES_PER_RULE;
 		} else {
 			/* IPv4 */
 			num_entries_per_rule =
-					CTLU_LPM_IPV4_WC_ENTRIES_PER_RULE;
+					TABLE_LPM_IPV4_WC_ENTRIES_PER_RULE;
 		}
 		break;
 
 	case TABLE_ATTRIBUTE_TYPE_MFLU:
-		if (key_size > 42 /* TODO */) {
-			num_entries_per_rule = 3 /* TODO */;
+		if (key_size > TABLE_MFLU_SMALL_KEY_MAX_SIZE) {
+			num_entries_per_rule = 
+				TABLE_MFLU_BIG_KEY_WC_ENTRIES_PER_RULE;
 		} else {
-			num_entries_per_rule = 4 /* TODO */;
+			num_entries_per_rule =
+				TABLE_MFLU_BIG_KEY_WC_ENTRIES_PER_RULE;
 		}
 		break;
 
 	default:
-		/* TODO */
+		return TABLE_IO_ERROR;
 		break;
 	}
 
 	/* Prepare input message */
 	tbl_crt_in_msg.type = type;
-	tbl_crt_in_msg.icid = CTLU_TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK;
+	tbl_crt_in_msg.icid = TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK;
 	tbl_crt_in_msg.max_rules = max_rules;
 	tbl_crt_in_msg.max_entries =
 		num_entries_per_rule * max_rules;
@@ -102,7 +104,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 	tbl_crt_in_msg.committed_rules = committed_rules;
 
 	cdma_status = cdma_ws_memory_init(tbl_crt_in_msg.reserved,
-			      CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE,
+			      TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE,
 			      0);
 
 	/* handle CDMA error */
@@ -115,10 +117,10 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 	__stqw(TABLE_CREATE_MTYPE, arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
-	__e_hwaccel(acc_id); /*TODO*/
+	__e_hwaccel(acc_id);
 
-	/* Return Table ID */
-	*table_id = (((struct ctlu_table_create_output_message *)acc_ctx->
+	/* Get new Table ID */
+	*table_id = (((struct table_create_output_message *)acc_ctx->
 		output_pointer)->tid);
 
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -127,7 +129,8 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		return status;
 	}
 
-	/* TODO perform assertion of size here */
+	/* TODO perform assertion of size here between table_rule and
+	 * table_create_input_message*/
 	/* Re-assignment of the structure is done because of stack limitations
 	 * of the service layer */
 	miss_rule = (struct table_rule *)&tbl_crt_in_msg;
@@ -233,7 +236,8 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
-	*(uint16_t *)(&(rule->result.type)) |= CTLU_TLUR_OPAQUE_VALID_BITS_MASK;
+	*(uint16_t *)(&(rule->result.type)) |= 
+			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
 
 	/* Clear byte in offset 2*/
 	*((uint8_t *)&(rule->result) + 2) = 0;
@@ -242,7 +246,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 	if (rule->result.type == TABLE_RULE_RESULT_TYPE_CHAINING) {
 		rule->result.op_rptr_clp.chain_parameters.reserved1 = 0;
 		rule->result.op_rptr_clp.chain_parameters.reserved0 =
-			CTLU_TLUR_TKIDV_BIT_MASK;
+			TABLE_TLUR_TKIDV_BIT_MASK;
 	}
 	*/
 
@@ -272,7 +276,8 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
-	*(uint16_t *)(&(rule->result.type)) |= CTLU_TLUR_OPAQUE_VALID_BITS_MASK;
+	*(uint16_t *)(&(rule->result.type)) |=
+			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
 
 	/* Clear byte in offset 2*/
 	*((uint8_t *)&(rule->result) + 2) = 0;
@@ -281,7 +286,7 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	if (rule->result.type == TABLE_RULE_RESULT_TYPE_CHAINING) {
 		rule->result.op_rptr_clp.chain_parameters.reserved1 = 0;
 		rule->result.op_rptr_clp.chain_parameters.reserved0 =
-			CTLU_TLUR_TKIDV_BIT_MASK;
+			TABLE_TLUR_TKIDV_BIT_MASK;
 	}
 	*/
 
@@ -318,7 +323,8 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
-	*(uint16_t *)(&(rule->result.type)) |= CTLU_TLUR_OPAQUE_VALID_BITS_MASK;
+	*(uint16_t *)(&(rule->result.type)) |=
+			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
 
 	/* Clear byte in offset 2*/
 	*((uint8_t *)&(rule->result) + 2) = 0;
@@ -370,20 +376,20 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
-	switch (entry.type & CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK) {
-	case (CTLU_TABLE_ENTRY_ENTYPE_EME16):
+	switch (entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK) {
+	case (TABLE_ENTRY_ENTYPE_EME16):
 		*timestamp = entry.body.eme16.timestamp;
 		/* STQW optimization is not done here so we do not force
 		   alignment */
 		*result = entry.body.eme16.result;
 		break;
-	case (CTLU_TABLE_ENTRY_ENTYPE_EME24):
+	case (TABLE_ENTRY_ENTYPE_EME24):
 		*timestamp = entry.body.eme24.timestamp;
 		/* STQW optimization is not done here so we do not force
 		   alignment */
 		*result = entry.body.eme24.result;
 		break;
-	case (CTLU_TABLE_ENTRY_ENTYPE_LPM_RES):
+	case (TABLE_ENTRY_ENTYPE_LPM_RES):
 		*timestamp = entry.body.lpm_res.timestamp;
 		/* STQW optimization is not done here so we do not force
 		   alignment */
@@ -391,7 +397,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		break;
-		/* todo */
+		return TABLE_IO_ERROR;
 	} /* Switch */
 
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
