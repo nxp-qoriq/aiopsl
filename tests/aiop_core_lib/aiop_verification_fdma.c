@@ -179,19 +179,19 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_store_frame_command *str =
 			(struct fdma_store_frame_command *) asa_seg_addr;
-		struct fdma_isolation_attributes isolation_attributes;
+		struct fdma_amq amq;
 
 		str->status = (int8_t)fdma_store_frame_data(str->frame_handle,
-				str->spid, &isolation_attributes);
-		str->icid = isolation_attributes.icid;
+				str->spid, &amq);
+		str->icid = amq.icid;
 		str->BDI = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_BDI);
+			(amq.flags & FDMA_ICID_CONTEXT_BDI);
 		str->BMT = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_BMT);
+			(amq.flags & FDMA_ICID_CONTEXT_BMT);
 		str->PL = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_PL);
+			(amq.flags & FDMA_ICID_CONTEXT_PL);
 		str->VA = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_VA);
+			(amq.flags & FDMA_ICID_CONTEXT_VA);
 		str_size = (uint16_t)sizeof(struct fdma_store_frame_command);
 		break;
 	}
