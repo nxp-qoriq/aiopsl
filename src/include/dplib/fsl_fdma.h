@@ -1531,7 +1531,7 @@ struct segment {
 
 
 /**************************************************************************//**
-@Description	Initial frame presentation parameters structure.
+@Description	Frame presentation parameters structure.
 
 *//***************************************************************************/
 struct fdma_present_frame_params {
