@@ -560,11 +560,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/netf/ip/ipv4_checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipv4_checksum.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/netf/l2/l2.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/l2/l2.c</locationURI>
@@ -593,11 +588,6 @@
 			<name>aiop_sl/drivers/dplib/netf/l4/l4.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/l4/l4.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/netf/l4/l4_checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/l4/l4_checksum.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/nat/nat.c</name>

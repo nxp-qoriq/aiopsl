@@ -638,4 +638,13 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 /** @} */ /* end of TABLE */
 
+/* Asserting structure size for re-using of space allocated on stack in table
+ * create function - macro appears twice because its checking < and not == */
+#pragma warning_errors on
+ASSERT_STRUCT_SIZE(sizeof(struct table_create_input_message), \
+		   sizeof(struct table_rule));
+ASSERT_STRUCT_SIZE(sizeof(struct table_rule), \
+		   sizeof(struct table_create_input_message));
+#pragma warning_errors off
+
 #endif /* __TABLE_H */

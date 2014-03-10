@@ -8,7 +8,6 @@
 
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_table.h"
-
 #include "table.h"
 
 int32_t table_create(enum table_hw_accel_id acc_id,
@@ -129,10 +128,8 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		return status;
 	}
 
-	/* TODO perform assertion of size here between table_rule and
-	 * table_create_input_message*/
 	/* Re-assignment of the structure is done because of stack limitations
-	 * of the service layer */
+	 * of the service layer  - assertion of sizes is done on table.h */
 	miss_rule = (struct table_rule *)&tbl_crt_in_msg;
 	miss_rule->options = TABLE_RULE_TIMESTAMP_NONE;
 
