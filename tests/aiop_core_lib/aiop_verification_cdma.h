@@ -48,36 +48,36 @@
 
 
 /* CDMA Commands Structure identifiers */
-#define CDMA_ACQUIRE_CONTEXT_MEM_CMD_STR	((CDMA_ACCEL_ID << 16) | CDMA_ACQUIRE_CONTEXT_MEM_CMD)
+#define CDMA_ACQUIRE_CONTEXT_MEM_CMD_STR	((CDMA_MODULE << 16) | CDMA_ACQUIRE_CONTEXT_MEM_CMD)
 	/* CDMA cdma_acquire_context_memory Command Structure identifier */
-#define CDMA_ACCESS_CONTEXT_MEM_CMD_STR		((CDMA_ACCEL_ID << 16) | CDMA_ACCESS_CONTEXT_MEM_CMD)
+#define CDMA_ACCESS_CONTEXT_MEM_CMD_STR		((CDMA_MODULE << 16) | CDMA_ACCESS_CONTEXT_MEM_CMD)
 	/* CDMA cdma_access_context_memory Command Structure identifier */
-#define CDMA_RELEASE_CONTEXT_MEM_CMD_STR	((CDMA_ACCEL_ID << 16) | CDMA_RELEASE_CONTEXT_MEM_CMD)
+#define CDMA_RELEASE_CONTEXT_MEM_CMD_STR	((CDMA_MODULE << 16) | CDMA_RELEASE_CONTEXT_MEM_CMD)
 	/* CDMA acdma_release_context_memory Command Structure identifier */
-#define CDMA_WS_MEM_INIT_CMD_STR		((CDMA_ACCEL_ID << 16) | CDMA_MEM_INIT_CMD)
+#define CDMA_WS_MEM_INIT_CMD_STR		((CDMA_MODULE << 16) | CDMA_MEM_INIT_CMD)
 	/* CDMA cdma_memory_init Command Structure identifier */
 
-#define CDMA_READ_CMD_STR			((CDMA_ACCEL_ID << 16) | CDMA_READ_CMD)
+#define CDMA_READ_CMD_STR			((CDMA_MODULE << 16) | CDMA_READ_CMD)
 	/* CDMA cdma_read Command Structure identifier */
-#define CDMA_WRITE_CMD_STR			((CDMA_ACCEL_ID << 16) | CDMA_WRITE_CMD)
+#define CDMA_WRITE_CMD_STR			((CDMA_MODULE << 16) | CDMA_WRITE_CMD)
 	/* CDMA cdma_write Command Structure identifier */
-#define	CDMA_MUTEX_LOCK_TAKE_CMD_STR 		((CDMA_ACCEL_ID << 16) | CDMA_MUTEX_LOCK_TAKE_CMD)
+#define	CDMA_MUTEX_LOCK_TAKE_CMD_STR 		((CDMA_MODULE << 16) | CDMA_MUTEX_LOCK_TAKE_CMD)
 	/**< CDMA mutex lock take command Structure identifier */
-#define	CDMA_MUTEX_LOCK_RELEASE_CMD_STR 	((CDMA_ACCEL_ID << 16) | CDMA_MUTEX_LOCK_RELEASE_CMD)
+#define	CDMA_MUTEX_LOCK_RELEASE_CMD_STR 	((CDMA_MODULE << 16) | CDMA_MUTEX_LOCK_RELEASE_CMD)
 	/**< CDMA mutex lock release command Structure identifier */
-#define	CDMA_READ_WITH_MUTEX_CMD_STR		((CDMA_ACCEL_ID << 16) | CDMA_READ_WITH_MUTEX_CMD)
+#define	CDMA_READ_WITH_MUTEX_CMD_STR		((CDMA_MODULE << 16) | CDMA_READ_WITH_MUTEX_CMD)
 	/**< CDMA read with mutex command Structure identifier */
-#define	CDMA_WRITE_WITH_MUTEX_CMD_STR 		((CDMA_ACCEL_ID << 16) | CDMA_WRITE_WITH_MUTEX_CMD)
+#define	CDMA_WRITE_WITH_MUTEX_CMD_STR 		((CDMA_MODULE << 16) | CDMA_WRITE_WITH_MUTEX_CMD)
 	/**< CDMA write with mutex command Structure identifier */
-#define	CDMA_REFCOUNT_INC_CMD_STR 		((CDMA_ACCEL_ID << 16) | CDMA_REFCOUNT_INC_CMD)
+#define	CDMA_REFCOUNT_INC_CMD_STR 		((CDMA_MODULE << 16) | CDMA_REFCOUNT_INC_CMD)
 	/**< CDMA reference count increment command Structure identifier */
-#define CDMA_REFCOUNT_DEC_CMD_STR		((CDMA_ACCEL_ID << 16) | CDMA_REFCOUNT_DEC_CMD)
+#define CDMA_REFCOUNT_DEC_CMD_STR		((CDMA_MODULE << 16) | CDMA_REFCOUNT_DEC_CMD)
 	/* CDMA cdma_refcount_decrement Command Structure identifier */
-#define CDMA_REFCOUNT_DEC_AND_RELEASE_CMD_STR	((CDMA_ACCEL_ID << 16) | CDMA_REFCOUNT_DEC_AND_RELEASE_CMD)
+#define CDMA_REFCOUNT_DEC_AND_RELEASE_CMD_STR	((CDMA_MODULE << 16) | CDMA_REFCOUNT_DEC_AND_RELEASE_CMD)
 	/* CDMA cdma_refcount_decrement_and_release Command Structure identifier */
-#define	CDMA_LOCK_DMA_READ_AND_INC_CMD_STR 	((CDMA_ACCEL_ID << 16) | CDMA_LOCK_DMA_READ_AND_INC_CMD)
+#define	CDMA_LOCK_DMA_READ_AND_INC_CMD_STR 	((CDMA_MODULE << 16) | CDMA_LOCK_DMA_READ_AND_INC_CMD)
 	/**< CDMA lock dma read and increment command Structure identifier*/
-#define	CDMA_WRITE_RELEASE_LOCK_AND_DEC_CMD_STR ((CDMA_ACCEL_ID << 16) | CDMA_WRITE_RELEASE_LOCK_AND_DEC_CMD)
+#define	CDMA_WRITE_RELEASE_LOCK_AND_DEC_CMD_STR ((CDMA_MODULE << 16) | CDMA_WRITE_RELEASE_LOCK_AND_DEC_CMD)
 	/**< CDMA write release lock and decrement command Structure identifier*/
 
 
@@ -115,7 +115,7 @@ struct cdma_acquire_context_memory_command {
 		/**< An address to the Workspace where to return
 		the acquired 64 bit address of the Context memory. */
 	uint64_t	context_memory_addr;
-		/**< A returned pointer to the acquired 64 bit address 
+		/**< A returned pointer to the acquired 64 bit address
 		 * of the Context memory. */
 	int8_t  	status;
 			/**< Command returned status. */
@@ -126,7 +126,7 @@ struct cdma_acquire_context_memory_command {
 /**************************************************************************//**
 @Description	CDMA Release Context Memory Command Structure.
 
-		Includes information needed for CDMA Release Context Memory 
+		Includes information needed for CDMA Release Context Memory
 		command verification.
 
 *//***************************************************************************/
@@ -147,7 +147,7 @@ struct cdma_release_context_memory_command{
 /**************************************************************************//**
 @Description	CDMA Read Command structure.
 
-		Includes information needed for CDMA DMA read command 
+		Includes information needed for CDMA DMA read command
 		verification.
 
 *//***************************************************************************/
@@ -170,7 +170,7 @@ struct cdma_read_command {
 /**************************************************************************//**
 @Description	CDMA Write Command Structure.
 
-		Includes information needed for CDMA DMA write command 
+		Includes information needed for CDMA DMA write command
 		verification.
 
 *//***************************************************************************/
@@ -193,9 +193,9 @@ struct cdma_write_command {
 /**************************************************************************//**
 @Description	CDMA Mutex Lock Take Command Structure.
 
-		Includes information needed for CDMA Mutex Lock Take command 
+		Includes information needed for CDMA Mutex Lock Take command
 		verification.
-		
+
 *//***************************************************************************/
 struct cdma_mutex_lock_take_command  {
 	uint32_t 	opcode;
@@ -215,7 +215,7 @@ struct cdma_mutex_lock_take_command  {
 /**************************************************************************//**
 @Description	CDMA Mutex Lock Release Command Structure.
 
-		Includes information needed for CDMA Mutex Lock Release command 
+		Includes information needed for CDMA Mutex Lock Release command
 		verification.
 
 *//***************************************************************************/
@@ -235,7 +235,7 @@ struct cdma_mutex_lock_release_command {
 /**************************************************************************//**
 @Description	CDMA Read with Mutex Command structure.
 
-		Includes information needed for CDMA DMA read with Mutex command 
+		Includes information needed for CDMA DMA read with Mutex command
 		verification.
 
 *//***************************************************************************/
@@ -260,7 +260,7 @@ struct cdma_read_with_mutex_command {
 /**************************************************************************//**
 @Description	CDMA Write with Mutex Command Structure.
 
-		Includes information needed for CDMA DMA write with Mutex command 
+		Includes information needed for CDMA DMA write with Mutex command
 		verification.
 
 *//***************************************************************************/
@@ -325,7 +325,7 @@ struct cdma_refcount_decrement_command{
 /**************************************************************************//**
 @Description	CDMA Refcount Decrement and Release Command Structure.
 
-		Includes information needed for CDMA Refcount Decrement and 
+		Includes information needed for CDMA Refcount Decrement and
 		Release command verification.
 
 *//***************************************************************************/
@@ -346,7 +346,7 @@ struct cdma_refcount_decrement_and_release_command{
 /**************************************************************************//**
 @Description	CDMA Write Lock DMA Read and Increment Command structure.
 
-		Includes information needed for Write Lock DMA Read and 
+		Includes information needed for Write Lock DMA Read and
 		Increment command verification.
 
 *//***************************************************************************/
@@ -369,7 +369,7 @@ struct cdma_write_lock_dma_read_and_increment_command  {
 /**************************************************************************//**
 @Description	CDMA Write Release Lock and Decrement Command Structure.
 
-		Includes information needed for CDMA Write Release Lock and 
+		Includes information needed for CDMA Write Release Lock and
 		Decrement command verification.
 
 *//***************************************************************************/
@@ -392,7 +392,7 @@ struct cdma_write_release_lock_and_decrement_command {
 /**************************************************************************//**
 @Description	CDMA Memory Init Command Structure.
 
-		Includes information needed for CDMA Memory Initialization 
+		Includes information needed for CDMA Memory Initialization
 		command verification.
 
 *//***************************************************************************/
@@ -414,7 +414,7 @@ struct cdma_ws_memory_init_command{
 /**************************************************************************//**
 @Description	CDMA Access Context Memory Command Structure.
 
-		Includes information needed for CDMA Access Context Memory 
+		Includes information needed for CDMA Access Context Memory
 		command verification.
 
 *//***************************************************************************/

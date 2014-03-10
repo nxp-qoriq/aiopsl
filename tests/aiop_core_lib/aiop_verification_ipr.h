@@ -28,9 +28,6 @@
  @{
 *//***************************************************************************/
 
-	/**< HM accelerator ID For verification purposes*/
-#define IPR_FM_ID	 (IPR_MODULE_STATUS_ID >> 16)
-
 //#define IPR_VERIF_ACCEL_ID	0xFD
 	/**< HM accelerator ID For verification purposes*/
 #define PARSER_INIT_BPID	1
@@ -59,31 +56,31 @@ enum e_ipr_verif_cmd_type {
 
 /* IPR Commands Structure identifiers */
 
-#define IPR_VERIF_INIT_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_VERIF_INIT_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_VERIF_INIT)
 
-#define IPR_CREATE_INSTANCE_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_CREATE_INSTANCE_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_CREATE_INSTANCE)
 
-#define IPR_DELETE_INSTANCE_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_DELETE_INSTANCE_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_DELETE_INSTANCE)
 
-#define IPR_REASSEMBLE_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_REASSEMBLE_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_REASSEMBLE)
 
-#define IPR_MODIFY_REASS_FRM_SIZE_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_MODIFY_REASS_FRM_SIZE_CMD_STR ((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_MODIFY_REASS_FRM_SIZE)
 
-#define IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_MODIFY_MIN_FRAG_SIZE)
 
-#define IPR_MODIFY_TO_VALUE_IPV4_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_MODIFY_TO_VALUE_IPV4_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_MODIFY_TO_VALUE_IPV4)
 
-#define IPR_MODIFY_TO_VALUE_IPV6_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_MODIFY_TO_VALUE_IPV6_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_MODIFY_TO_VALUE_IPV6)
 
-#define IPR_GET_REASS_FRM_CNTR_CMD_STR	(IPR_MODULE_STATUS_ID  | \
+#define IPR_GET_REASS_FRM_CNTR_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_GET_REASS_FRM_CNTR)
 
 #pragma pack(push, 1)
@@ -116,11 +113,11 @@ struct ipr_create_instance_command {
 		/**< Command structure identifier. */
 	int32_t			status;
 	struct ipr_params	ipr_params;
-#ifdef CLOSE_MODEL	
+#ifdef CLOSE_MODEL
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
 	uint8_t			res[3];
-#endif	
+#endif
 
 };
 
@@ -151,11 +148,11 @@ struct ipr_reassemble_command {
 	uint32_t				opcode;
 		/**< Command structure identifier. */
 	int32_t					status;
-#ifdef CLOSE_MODEL	
+#ifdef CLOSE_MODEL
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
 	uint8_t			res[3];
-#endif	
+#endif
 };
 
 /**************************************************************************//**
