@@ -37,7 +37,7 @@ struct profile_sram {
 	#define mode_bits2_VA_MASK  0x04
 	#define mode_bits2_DLC_MASK 0x01
 
-struct  profile_sram profile_sram1;
+__VERIF_PROFILE_SRAM struct  profile_sram profile_sram1;
 
 void aiop_verification()
 {
