@@ -221,11 +221,9 @@ struct fdma_init_exp_command {
 		/** Command returned number of bytes actually presented
 		 * (the segment actual size). */
 	uint16_t seg_length;
-		/**
-		* bits<0> : Bypass Datapath Isolation. Frame AMQ attribute.
-		* bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
 		* Used only in case AS field is set. */
-	uint16_t bdi_icid;
+	uint16_t icid;
 		/** The first ASA 64B quantity to present. */
 	uint8_t asa_offset;
 		/** Number (maximum) of 64B ASA quantities to present (0 for no
@@ -250,6 +248,9 @@ struct fdma_init_exp_command {
 		/** Privilege Level. Frame AMQ attribute.
 		 * Used only in case AS field is set. */
 	uint8_t PL;
+		/** Bypass Datapath Isolation. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t BDI;
 		/** Command returned handle of the working frame. */
 	uint8_t frame_handle;
 		/** Command returned handle of the presented segment. */
@@ -257,7 +258,7 @@ struct fdma_init_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[2];
+	uint8_t	pad[1];
 };
 
 

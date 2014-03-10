@@ -64,7 +64,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		if (str->AS) {
 			flags |= ((str->VA) ? FDMA_INIT_VA_BIT : 0x0);
 			flags |= ((str->PL) ? FDMA_INIT_PL_BIT : 0x0);
-			params.bdi_icid = str->bdi_icid;
+			flags |= ((str->BDI) ? FDMA_INIT_BDI_BIT : 0x0);
+			params.icid = str->icid;
 		}
 		params.asa_dst	= (void *)str->asa_dst;
 		params.asa_offset	= str->asa_offset;
