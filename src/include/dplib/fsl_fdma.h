@@ -1183,6 +1183,9 @@ enum fdma_pta_size_type {
 	/** Privilege Level. Frame AMQ attribute.
 	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
 #define FDMA_INIT_PL_BIT	0x00008000
+	/** Bypass Datapath Isolation. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
+#define FDMA_INIT_BDI_BIT	0x80000000
 
 /* @} end of group FDMA_Present_Frame_Flags */
 
@@ -1555,11 +1558,9 @@ struct fdma_present_frame_params {
 		/** Number of frame bytes to present and create an open
 		 * segment for. */
 	uint16_t present_size;
-		/**
-		* bits<0> : Bypass Datapath Isolation. Frame AMQ attribute.
-		* bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
 		* Used only in case \ref FDMA_INIT_AS_BIT is set. */
-	uint16_t bdi_icid;
+	uint16_t icid;
 		/** The first ASA 64B quantity to present. */
 	uint8_t asa_offset;
 		/** Number (maximum) of 64B ASA quantities to present. */
