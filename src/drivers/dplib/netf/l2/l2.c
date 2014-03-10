@@ -159,7 +159,7 @@ int32_t l2_set_vlan_vid(uint16_t vlan_vid)
 
 	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT() - 2);
 
-	if (PARSER_IS_ONE_VLAN_DEFAULT())
+	if (!PARSER_IS_ONE_VLAN_DEFAULT())
 		return NO_VLAN_ERROR;
 	/* Optimization: whole vlan to remove 2 add cycles */
 	vlan_ptr = (uint32_t *)(vlan_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -191,7 +191,7 @@ int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 
 	vlan_offset = (uint8_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT() - 2);
 
-	if (PARSER_IS_ONE_VLAN_DEFAULT())
+	if (!PARSER_IS_ONE_VLAN_DEFAULT())
 		return NO_VLAN_ERROR;
 	/* Optimization: whole vlan to remove 2 add cycles */
 	vlan_ptr = (uint32_t *)(vlan_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -200,7 +200,8 @@ int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 	 * (1 cycle less - e_rlwinm r8,r8,0,19,15) */
 	/* Optimization: using constructed_vlan variable remove 1 cycle of
 	 * store to stack */
-	constructed_vlan = (vlan_pcp & VLAN_PCP_MASK) |\
+	/* Optimization: using VLAN_PCP_MASK to remove 1 or cycle */
+	constructed_vlan = ((vlan_pcp << VLAN_PCP_SHIFT) & VLAN_PCP_MASK) |\
 			(*vlan_ptr & ~VLAN_PCP_MASK);
 
 	*vlan_ptr = constructed_vlan;
@@ -219,26 +220,22 @@ void l2_push_vlan(uint16_t ethertype)
 {
 	uint32_t fdma_flags;
 	uint16_t vlan_offset;
-	uint32_t *vlan_ptr;
 	uint32_t inserted_vlan;
 	uint32_t *inserted_vlan_ptr;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct   presentation_context *prc =
-				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	inserted_vlan_ptr = &inserted_vlan;
 	*((uint16_t *)inserted_vlan_ptr) = ethertype;
 
 	vlan_offset = 12;
-	vlan_ptr = (uint32_t *)(vlan_offset + PRC_GET_SEGMENT_ADDRESS());
 
 	fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
 
 	fdma_insert_default_segment_data(vlan_offset,
-									inserted_vlan_ptr,
-									4,
-									fdma_flags);
+					inserted_vlan_ptr,
+					4,
+					fdma_flags);
 
 		/* Re-run parser */
 		parse_result_generate_default(0);
@@ -258,7 +255,8 @@ int32_t l2_pop_vlan()
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT()) {
-		vlan_offset = (uint16_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 2;
+		vlan_offset = (uint16_t)
+			      (PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 2;
 
 		fdma_flags =
 			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;

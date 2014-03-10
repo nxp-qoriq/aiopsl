@@ -100,15 +100,17 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		}
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
 			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
-			options_size = (tcp_ptr->data_offset_reserved << 
+			options_size = (tcp_ptr->data_offset_reserved >> 
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 && !mss_found && (options_ptr < l5_ptr)) {
+			while (*options_ptr != 0 && !mss_found && (options_ptr<
+					l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
 					modify_size = options_size;
@@ -127,7 +129,8 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 
 			}
 			if (!mss_found) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 
@@ -147,16 +150,18 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 
 		if (flags & L4_TCP_MODIFY_MODE_MSS) {
 			if (!PARSER_IS_TCP_OPTIONS_DEFAULT()) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 			
-			options_size = (tcp_ptr->data_offset_reserved << 
+			options_size = (tcp_ptr->data_offset_reserved >> 
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 && !mss_found && (options_ptr < l5_ptr)) {
+			while (*options_ptr != 0 && !mss_found && (options_ptr<
+					l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
 					modify_size = options_size;
@@ -168,7 +173,8 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 					options_ptr++;
 			}
 			if (!mss_found) {
-				fdma_modify_default_segment_data(tcp_offset, modify_size);
+				fdma_modify_default_segment_data(tcp_offset,
+						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
 		}
@@ -182,46 +188,67 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 
 int32_t l4_set_tp_src(uint16_t src_port)
 {
-	uint16_t tcphdr_offset;
+	uint16_t l4_offset;
 	struct   tcphdr *tcphdr_ptr;
+	struct   udphdr *udphdr_ptr;
 	struct   parse_result *pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
+	l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
 
 	if (PARSER_IS_TCP_DEFAULT()) {
-		tcphdr_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		tcphdr_ptr = (struct tcphdr *) ((uint16_t)tcphdr_offset
+		tcphdr_ptr = (struct tcphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
 
 		cksum_update_uint32(&tcphdr_ptr->checksum,
-							tcphdr_ptr->src_port,
-							src_port);
+				    tcphdr_ptr->src_port,
+				    src_port);
 
 		tcphdr_ptr->src_port = src_port;
 
 		/* update FDMA */
-		fdma_modify_default_segment_data(tcphdr_offset, 18);
+		fdma_modify_default_segment_data(l4_offset, 18);
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
 		return SUCCESS;
+	} else if(PARSER_IS_UDP_DEFAULT()){
+		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
+				+ PRC_GET_SEGMENT_ADDRESS());
+
+		cksum_update_uint32(&udphdr_ptr->checksum,
+				    udphdr_ptr->src_port,
+				    src_port);
+
+		udphdr_ptr->src_port = src_port;
+
+		/* update FDMA */
+		fdma_modify_default_segment_data(l4_offset, 8);
+		/* Invalidate gross running sum */
+		pr->gross_running_sum = 0;
+
+		
+		return SUCCESS;
 	} else {
-		return NO_TCP_FOUND_ERROR; }
+		return NO_L4_FOUND_ERROR;
+	}
 
 }
 
 int32_t l4_set_tp_dst(uint16_t dst_port)
 {
-	uint16_t tcphdr_offset;
+	uint16_t l4_offset;
 	struct   tcphdr *tcphdr_ptr;
+	struct   udphdr *udphdr_ptr;
 	struct   parse_result *pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 
+	l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
+
 	if (PARSER_IS_TCP_DEFAULT()) {
-		tcphdr_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		tcphdr_ptr = (struct tcphdr *) ((uint16_t)tcphdr_offset
+		tcphdr_ptr = (struct tcphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
 		cksum_update_uint32(&tcphdr_ptr->checksum,
@@ -231,12 +258,30 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 		tcphdr_ptr->dst_port = dst_port;
 
 		/* update FDMA */
-		fdma_modify_default_segment_data(tcphdr_offset+2, 16);
+		fdma_modify_default_segment_data(l4_offset+2, 18);
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
 		return SUCCESS;
+	} else if(PARSER_IS_UDP_DEFAULT()){
+		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
+				+ PRC_GET_SEGMENT_ADDRESS());
+
+		cksum_update_uint32(&udphdr_ptr->checksum,
+				    udphdr_ptr->dst_port,
+				    dst_port);
+
+		udphdr_ptr->dst_port = dst_port;
+
+		/* update FDMA */
+		fdma_modify_default_segment_data(l4_offset, 8);
+		/* Invalidate gross running sum */
+		pr->gross_running_sum = 0;
+
+		
+		return SUCCESS;
 	} else {
-		return NO_TCP_FOUND_ERROR; }
+		return NO_L4_FOUND_ERROR;
+	}
 
 }

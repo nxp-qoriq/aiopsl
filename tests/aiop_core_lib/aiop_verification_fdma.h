@@ -221,6 +221,9 @@ struct fdma_init_exp_command {
 		/** Command returned number of bytes actually presented
 		 * (the segment actual size). */
 	uint16_t seg_length;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case AS field is set. */
+	uint16_t icid;
 		/** The first ASA 64B quantity to present. */
 	uint8_t asa_offset;
 		/** Number (maximum) of 64B ASA quantities to present (0 for no
@@ -234,6 +237,20 @@ struct fdma_init_exp_command {
 		 * - 0: start of the frame.
 		 * - 1: end of the frame. */
 	uint8_t SR;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If set - supplied AMQ attributes are used.
+		 * If reset - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t AS;
+		/** Virtual Address. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t VA;
+		/** Privilege Level. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t PL;
+		/** Bypass Datapath Isolation. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t BDI;
 		/** Command returned handle of the working frame. */
 	uint8_t frame_handle;
 		/** Command returned handle of the presented segment. */
@@ -241,7 +258,7 @@ struct fdma_init_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[1];
 };
 
 
@@ -301,12 +318,10 @@ struct fdma_read_asa_command {
 		/** Command returned number of bytes actually
 		 * presented (the segment size) given in 64B units */
 	uint16_t seg_length;
-		/** Reference within the ASA to present from:
-		 * - 0: start of the annotation.
-		 * - 1: end of the annotation. */
-	uint8_t SR;
 		/** Command returned status. */
 	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
@@ -323,6 +338,8 @@ struct fdma_read_pta_command {
 		 * PTA segment data. */
 	uint32_t ws_dst;
 		/** Command returned number of bytes actually presented:
+		- 0x0 = No PTA presented. PTV1=0 and PTV2=0 in the working
+		frame.
 		- 0x1 = 32B of PTA presented (PTV1=1 and PTV2=0 in the working
 		frame).
 		- 0x2 = 32B of PTA presented (PTV1=0 and PTV2=1 in the working
@@ -468,7 +485,7 @@ struct fdma_enqueue_wf_command {
 	uint32_t qd_fqid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Storage profile used to store frame data if additional
@@ -515,7 +532,7 @@ struct fdma_enqueue_wf_exp_command {
 	uint32_t qd_fqid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Working Frame handle to enqueue. */
 	uint8_t	frame_handle;
 		/** Queueing Destination Priority. */
@@ -568,7 +585,7 @@ struct fdma_enqueue_frame_command {
 	uint16_t icid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Enqueue Priority source
@@ -593,8 +610,6 @@ struct fdma_enqueue_frame_command {
 	uint8_t	EIS;
 		/** Virtual Address. */
 	uint8_t	VA;
-		/** Bypass the Memory Translation. */
-	uint8_t	BMT;
 		/** Privilege Level. */
 	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
@@ -606,7 +621,7 @@ struct fdma_enqueue_frame_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[3];
+	uint8_t	pad[4];
 };
 
 /**************************************************************************//**
@@ -630,7 +645,7 @@ struct fdma_enqueue_frame_exp_command {
 	uint16_t icid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Enqueue Priority source
@@ -655,8 +670,6 @@ struct fdma_enqueue_frame_exp_command {
 	uint8_t	EIS;
 		/** Virtual Address. */
 	uint8_t	VA;
-		/** Bypass the Memory Translation. */
-	uint8_t	BMT;
 		/** Privilege Level. */
 	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
@@ -668,7 +681,7 @@ struct fdma_enqueue_frame_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[3];
+	uint8_t	pad[4];
 };
 
 /**************************************************************************//**
@@ -759,7 +772,7 @@ struct fdma_replicate_frames_command {
 	uint32_t qd_fqid;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	qd_priority;
 		/** Handle of the source frame. */
@@ -987,8 +1000,8 @@ struct fdma_replace_command {
 	uint16_t to_size;
 		/** Replacing segment size. */
 	uint16_t from_size;
-		/** Number of frame bytes to represent (relevant if
-		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT)). */
+		/** Number of frame bytes to represent. Must be greater than 0.
+		 *  Relevant if SA field is set. */
 	uint16_t size_rs;
 		/** Command returned segment length. (relevant if
 		(flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
@@ -1056,11 +1069,11 @@ struct fdma_insert_segment_data_exp_command {
 	uint16_t to_offset;
 		/** Inserted segment data size. */
 	uint16_t insert_size;
-	/**< Number of frame bytes to represent (relevant if
-	 * \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set). */
+	/**< Number of frame bytes to represent. Must be greater than 0.
+	 * Relevant if SA field is set. */
 	uint16_t size_rs;
-		/** Command returned segment length. (relevant if
-		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
+		/** Command returned segment length.
+		 * Relevant if SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/**< Working frame handle to which the data is being inserted.*/
 	uint8_t	 frame_handle;
@@ -1092,8 +1105,8 @@ struct fdma_delete_segment_data_command {
 	uint16_t to_offset;
 		/** Deleted segment data size. */
 	uint16_t delete_target_size;
-		/** Command returned segment length. (relevant if
-		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
+		/** Command returned segment length.
+		 * Relevant if SA field is set. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
 		 * - 0: keep segment open
@@ -1151,7 +1164,8 @@ struct fdma_replace_asa_command {
 		/** The number of 64B units that will replace the
 		 * specified portion of the ASA segment. */
 	uint16_t from_size;
-		/** Number of frame bytes to represent in 64B portions
+		/** Number of frame bytes to represent in 64B portions.
+		 * Must be greater than 0.
 		 * (relevant if (flags==\ref FDMA_REPLACE_SA_REPRESENT_BIT)). */
 	uint16_t size_rs;
 		/** Command returned segment length in 64 bytes units.
@@ -1197,6 +1211,8 @@ struct fdma_replace_pta_command {
 	uint16_t size;
 		/** Command returned segment length. (relevant if
 		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT)):
+		 * - 0x0 = No PTA presented. PTV1=0 and PTV2=0 in the working
+		 * frame.
 		 * - 0x1: 32B of PTA presented. PTV1=1 and PTV2=0 in the working
 		 * frame.
 		 * - 0x2: 32B of PTA presented. PTV1=0 and PTV2=1 in the working

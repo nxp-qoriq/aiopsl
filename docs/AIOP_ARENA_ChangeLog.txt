@@ -1,3 +1,11 @@
+** AIOP ARENA SL Pre-Alpha 0.3.1 **
+- dpni_test.c: new demo application that works with the DPNI object. 
+- dpni_drv.c/h: added DPNI support - DPNI discovery and enablement.
+- dpni_drv.c/h: added dpni_drv_unregister_rx_cb(), dpni_drv_get_primary_mac_addr().
+- os.c: added workaround for fsl_os_printf stack overflow issue 
+- event_mgr.h: fixed typo in evm_deregister_callback() function name.
+- slab.c:  slab_free() calls vpool_refcount_decrement_and_release()instead of vpool_release_buff()
+- slab.h:  Added slab_find_and_fill_bpid() SL internal API 
 
 ** AIOP ARENA SL Pre-Alpha 0.3 **
 - .cproject app_process_packet: Set small data and small data2 to 0 at PowerPC CPU settings

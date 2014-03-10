@@ -134,9 +134,9 @@ enum fdma_hw_errors {
 *//***************************************************************************/
 enum fdma_sw_errors {
 		/** The segment handle does not represent a Data segment. */
-	FDMA_NO_DATA_SEGMENT_HANDLE = 0x70,
+	FDMA_NO_DATA_SEGMENT_HANDLE = 0x80000070,
 		/** Invalid PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS). */
-	FDMA_INVALID_PTA_ADDRESS = 0x71
+	FDMA_INVALID_PTA_ADDRESS = 0x80000071
 };
 
 /* @} end of enum fdma_sw_errors */
@@ -1172,6 +1172,20 @@ enum fdma_pta_size_type {
 	/** Reference within the frame to present from.
 	 * If set - end of the frame. Otherwise - start of the frame. */
 #define FDMA_INIT_SR_BIT	0x00000100
+	/** AMQ attributes (PL, VA, BDI, ICID) Source.
+	 * If set - supplied AMQ attributes are used.
+	 * If reset - task default AMQ attributes (From Additional Dequeue
+	 * Context) are used. */
+#define FDMA_INIT_AS_BIT	0x00001000
+	/** Virtual Address. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
+#define FDMA_INIT_VA_BIT	0x00004000
+	/** Privilege Level. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
+#define FDMA_INIT_PL_BIT	0x00008000
+	/** Bypass Datapath Isolation. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
+#define FDMA_INIT_BDI_BIT	0x80000000
 
 /* @} end of group FDMA_Present_Frame_Flags */
 
@@ -1186,8 +1200,7 @@ enum fdma_pta_size_type {
 	/** No flags indication. */
 #define FDMA_PRES_NO_FLAGS	0x00000000
 	/** Reference within the frame to present from (This field is ignored
-	 * when presenting PTA segments. For ASA segments it indicates segment
-	 * reference within the annotation data.).
+	 * when presenting PTA or ASA segments).
 	 * If set - end of the frame. Otherwise - start of the frame. */
 #define FDMA_PRES_SR_BIT	0x100
 
@@ -1252,8 +1265,6 @@ enum fdma_pta_size_type {
 #define FDMA_ENF_PS_BIT		0x00001000
 	/** Virtual Address. */
 #define FDMA_ENF_VA_BIT		0x00002000
-	/** Bypass the Memory Translation. */
-#define FDMA_ENF_BMT_BIT	0x00004000
 	/** Privilege Level. */
 #define FDMA_ENF_PL_BIT		0x00008000
 	/** Bypass DPAA resource Isolation.
@@ -1457,11 +1468,13 @@ enum fdma_pta_size_type {
 *//***************************************************************************/
 
 	/** Virtual Address of the Stored frame flag. */
-#define FDMA_ICID_CONTEXT_VA	0x00002000
+#define FDMA_ICID_CONTEXT_VA	0x0001
 	/** Bypass the Memory Translation of the Stored frame flag. */
-#define FDMA_ICID_CONTEXT_BMT	0x00004000
+#define FDMA_ICID_CONTEXT_BMT	0x0002
 	/** Privilege Level of the Stored frame flag. */
-#define FDMA_ICID_CONTEXT_PL	0x00008000
+#define FDMA_ICID_CONTEXT_PL	0x0004
+	/** BDI of the Stored frame flag. */
+#define FDMA_ICID_CONTEXT_BDI	0x8000
 
 /* @} end of group FDMA_ISOLATION_ATTRIBUTES_Flags */
 
@@ -1518,7 +1531,7 @@ struct segment {
 
 
 /**************************************************************************//**
-@Description	Initial frame presentation parameters structure.
+@Description	Frame presentation parameters structure.
 
 *//***************************************************************************/
 struct fdma_present_frame_params {
@@ -1545,6 +1558,9 @@ struct fdma_present_frame_params {
 		/** Number of frame bytes to present and create an open
 		 * segment for. */
 	uint16_t present_size;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_INIT_AS_BIT is set. */
+	uint16_t icid;
 		/** The first ASA 64B quantity to present. */
 	uint8_t asa_offset;
 		/** Number (maximum) of 64B ASA quantities to present. */
@@ -1597,7 +1613,7 @@ struct fdma_queueing_destination_params {
 	uint16_t qd;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
-	uint16_t hash_value;
+	uint16_t qdbin;
 		/** Queueing Destination Priority. */
 	uint8_t	 qd_priority;
 };
@@ -1690,8 +1706,9 @@ struct fdma_insert_segment_data_params {
 	uint16_t to_offset;
 		/**< Size of the data being inserted to the segment. */
 	uint16_t insert_size;
-		/**< Number of frame bytes to represent (relevant if
-		 * \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set). */
+		/**< Number of frame bytes to represent in the segment. Must be
+		 * greater than 0.
+		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
 	uint16_t size_rs;
 		/**< Returned parameter:
 		 * A pointer to the number of bytes actually presented (the
@@ -1713,9 +1730,8 @@ struct fdma_isolation_attributes {
 		 * \endlink */
 	uint16_t flags;
 		/**
-		 * bits<0> : BDI of the Stored frame.
 		 * bits<1-15> : ICID of the Stored frame. */
-	uint16_t bdi_icid;
+	uint16_t icid;
 };
 
 /* @} end of group FDMA_Structures */
@@ -1742,7 +1758,8 @@ struct fdma_isolation_attributes {
 		segment offset, segment size, PTA address (\ref
 		PRC_PTA_NOT_LOADED_ADDRESS for no presentation), ASA address,
 		ASA size, ASA offset, Segment Reference bit, fd address in
-		workspace (\ref HWC_FD_ADDRESS).
+		workspace (\ref HWC_FD_ADDRESS), AMQ attributes (PL, VA, BDI,
+		ICID).
 
 		This command can also be used to initiate construction of a
 		frame from scratch (without a presented frame). In this case
@@ -1850,15 +1867,14 @@ int32_t fdma_present_frame_segment(
 		ASA segment length (the number of bytes actually presented given
 		in 64B units), ASA segment offset.
 
-@Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
+@Param[in]	ws_dst - A pointer to the location in workspace for the
+		presented ASA segment.
 @Param[in]	offset - Location within the ASA to start presenting from.
 		Must be within the bound of the frame. Specified in 64B units.
 		Relative to \ref FDMA_PRES_SR_BIT flag.
 @Param[in]	present_size - Number of frame bytes to present (Must be greater
 		than 0). Contains the number of 64B quantities to present
 		because the Frame ASAL field is specified in 64B units.
-@Param[in]	ws_dst - A pointer to the location in workspace for the
-		presented ASA segment.
 
 @Return		Success or Failure (e.g. DMA error, No HW Annotation. (\ref
 		FDMA_PRESENT_ASA_SEGMENT_ERRORS)).
@@ -1870,10 +1886,9 @@ int32_t fdma_present_frame_segment(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_read_default_frame_asa(
-		uint32_t flags,
+		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size,
-		void	 *ws_dst);
+		uint16_t present_size);
 
 /**************************************************************************//**
 @Function	fdma_read_default_frame_pta
@@ -2001,39 +2016,6 @@ int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
 		struct fdma_isolation_attributes *isolation_attributes);
-
-/**************************************************************************
-@Function	fdma_close_frame
-
-@Description	Closes a Working Frame. Data which was written to the working
-		frame will be written to the backing storage in system memory
-		described by the Frame Descriptor.
-
-		Existing FD buffers are used to store data.
-
-		If the modified frame no longer fits in the original structure,
-		new buffers can be added using the provided storage profile.
-		If the original structure can not be modified, then a new
-		structure will be assembled using the default frame storage
-		profile ID.
-
-		This service routine is intended to be used with frames which
-		are not the default frame.
-
-		Implicit input parameters in Task Defaults: spid (storage
-		profile ID).
-
-@Param[in]	frame_handle - Handle to the frame to be closed.
-
-@Return
-		- Success or Failure (e.g. FDMA error. (\ref fdma_hw_errors)).
-		- Update FD.
-
-@Cautions	All modified segments (which are to be stored) must be replaced
-		(by a replace command) before storing a frame.
-@Cautions	In this Service Routine the task yields.
-*************************************************************************
-int32_t fdma_close_frame(uint16_t frame_handle);*/
 
 /**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_fqid
@@ -2616,8 +2598,9 @@ int32_t fdma_modify_default_segment_data(
 @Param[in]	ws_dst_rs - A pointer to the location in workspace for the
 		represented frame segment (relevant if
 		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
-@Param[in]	size_rs - Number of frame bytes to represent (relevant if
-		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Param[in]	size_rs - Number of frame bytes to represent in the segment.
+ 	 	Must be greater than 0.
+ 	 	Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
@@ -2862,8 +2845,9 @@ int32_t fdma_close_default_segment(void);
 @Param[in]	ws_dst_rs - A pointer to the location in workspace for the
 		represented frame segment (relevant if \ref
 		FDMA_REPLACE_SA_REPRESENT_BIT) flag is set).
-@Param[in]	size_rs - Number of frame bytes to represent in 64B portions
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Param[in]	size_rs - Number of frame bytes to represent in 64B portions.
+		Must be greater than 0.
+		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
@@ -2980,67 +2964,13 @@ int32_t fdma_copy_data(
 		void *dst);
 
 /**************************************************************************//**
-@Function	fdma_acquire_buffer
-
-@Description	Provides direct access to the BMan in order to acquire a BMan
-		buffer in a software managed way.
-
-@Param[in]	icid - Buffer Pool ICID.
-@Param[in]	flags - Please refer to
-		\link FDMA_ACQUIRE_BUFFER_Flags command flags \endlink.
-@Param[in]	bpid - Buffer pool ID used for the Acquire Buffer.
-@Param[out]	dst - A pointer to the location in the workspace where to return
-		the acquired 64 bit buffer address.
-
-@Return		Status - Success or Failure (\ref FDMA_ACQUIRE_BUFFER_ERRORS).
-
-@Cautions	This command is not intended to be used in a normal datapath,
-		but more of a get out of jail card where access to BMan buffers
-		is required when operating on a frame while not using the
-		provided FDMA working frame commands.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-int32_t fdma_acquire_buffer(
-		uint16_t icid,
-		uint32_t flags,
-		uint16_t bpid,
-		void *dst);
-
-/**************************************************************************//**
-@Function	fdma_release_buffer
-
-@Description	Provides direct access to the BMan in order to release a BMan
-		buffer in a software managed way.
-
-@Param[in]	icid - Buffer Pool ICID.
-@Param[in]	flags - Please refer to
-		\link FDMA_RELEASE_BUFFER_Flags command flags \endlink.
-@Param[in]	bpid - Buffer pool ID used for the Release Buffer.
-@Param[out]	addr - Buffer address to be released.
-
-@Return		Status - Success or Failure (\ref FDMA_RELEASE_BUFFER_ERRORS).
-
-@Cautions	This command is not intended to be used in a normal datapath,
-		but more of a get out of jail card where access to BMan buffers
-		is required when operating on a frame while not using the
-		provided FDMA working frame commands.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-int32_t fdma_release_buffer(
-		uint16_t icid,
-		uint32_t flags,
-		uint16_t bpid,
-		uint64_t addr);
-
-/**************************************************************************//**
 @Function	fdma_create_frame
 
 @Description	Create a frame from scratch and fill it with user specified
 		data.
 
 		Implicit input parameters in Task Defaults: SPID (Storage
-		Profile ID), frame isolation attributes
-		(struct fdma_isolation_attributes).
+		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.

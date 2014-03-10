@@ -216,9 +216,14 @@ void ipr_verif_update_frame(uint16_t iteration)
 	struct ipv4hdr *iphdr;
 	
 	iphdr = ((struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
-	if(iteration > 2) {
+	if(iteration == 3) {
+		fdma_present_default_frame();
+		iphdr->flags_and_offset = (iphdr->flags_and_offset & 0x0000)
+									 | 0xC;
+	}
+	else if (iteration == 4) {
 		fdma_present_default_frame();
 		iphdr->flags_and_offset = (iphdr->flags_and_offset & 0xC000)
-									 | 0xC;
+									 | 0x18;		
 	}
 }

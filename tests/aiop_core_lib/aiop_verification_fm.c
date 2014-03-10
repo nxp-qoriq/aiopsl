@@ -33,13 +33,16 @@ void aiop_verification_fm()
 	uint32_t opcode;
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
-	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)){
+	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
+			/* PTA was already loaded */
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
 			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
-		} else {
-			if (!fdma_read_default_frame_pta((void *)data_addr))
+		} else { /* PTA was not loaded */
+			if (fdma_read_default_frame_pta((void *)data_addr) !=
+					FDMA_SUCCESS)
 				return;
 			ext_address = *((uint64_t *)data_addr);
+			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		}
 	} else{
 		present_params.flags = FDMA_PRES_SR_BIT;
@@ -47,7 +50,7 @@ void aiop_verification_fm()
 		present_params.offset = 8;
 		present_params.present_size = 8;
 		present_params.ws_dst = (void *)&ext_address;
-		if (!fdma_present_frame_segment(&present_params))
+		if (fdma_present_frame_segment(&present_params) != FDMA_SUCCESS)
 			return;
 	}
 	initial_ext_address = ext_address;
@@ -55,8 +58,7 @@ void aiop_verification_fm()
 	init_verif();
 
 	/* The Terminate command will finish the verification */
-	do
-	{
+	do {
 		/* Read a new buffer from DDR with DATA_SIZE */
 		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
@@ -139,17 +141,16 @@ void aiop_verification_fm()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD)
-			{
+			if (if_result == AIOP_TERMINATE_FLOW_CMD) {
 				fdma_terminate_task();
 				return;
-			}
-			else if (if_result)
+			} else if (if_result) {
 				ext_address = initial_ext_address +
 					str->true_cmd_offset;
-			else	/* jump to the next sequential command */
+			} else {/* jump to the next sequential command */
 				ext_address = ext_address +
 					sizeof(struct aiop_if_verif_command);
+			}
 
 			break;
 		}
@@ -164,17 +165,16 @@ void aiop_verification_fm()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD)
-			{
+			if (if_result == AIOP_TERMINATE_FLOW_CMD) {
 				fdma_terminate_task();
 				return;
-			}
-			else if (if_result)
+			} else if (if_result) {
 				ext_address = initial_ext_address +
 					str->true_cmd_offset;
-			else
+			} else {
 				ext_address = initial_ext_address +
 					str->false_cmd_offset;
+			}
 
 			break;
 		}
@@ -187,14 +187,11 @@ void aiop_verification_fm()
 		}
 
 
-		if (str_size == STR_SIZE_ERR)
-		{
+		if (str_size == STR_SIZE_ERR) {
 			fdma_terminate_task();
 			return;
-		}
-		else if ((opcode != AIOP_IF_CMD) &&
-			 (opcode != AIOP_IF_ELSE_CMD))
-		{
+		} else if ((opcode != AIOP_IF_CMD) &&
+			 (opcode != AIOP_IF_ELSE_CMD)) {
 			/* write command results back to DDR */
 			cdma_write(ext_address, (void *)data_addr, str_size);
 			/* Set next address to read from DDR */
@@ -220,10 +217,10 @@ void aiop_verif_init_parser()
 	verif_parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
 	/* No MTU checking */
 	verif_parse_profile.pppoe_ppp_hxs_config = 0x0;
-	verif_parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+	verif_parse_profile.mpls_hxs_config.en_erm_soft_seq_start = 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
 	verif_parse_profile.mpls_hxs_config.lie_dnp =
-			PARSER_PRP_MPLS_HXS_CONFIG_LIE | PARSER_IP_STARTING_HXS;
+			PARSER_PRP_MPLS_HXS_CONFIG_LIE;
 	verif_parse_profile.arp_hxs_config = 0x0;
 	verif_parse_profile.ip_hxs_config = 0x0;
 	verif_parse_profile.ipv4_hxs_config = 0x0;
@@ -232,7 +229,7 @@ void aiop_verif_init_parser()
 	verif_parse_profile.ipv6_hxs_config = 0x0;
 	verif_parse_profile.gre_hxs_config = 0x0;
 	verif_parse_profile.minenc_hxs_config = 0x0;
-	verif_parse_profile.other_l3_shell_hxs_config= 0x0;
+	verif_parse_profile.other_l3_shell_hxs_config = 0x0;
 	/* In short Packet, padding is removed from Checksum calculation */
 	verif_parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
 	/* In short Packet, padding is removed from Checksum calculation */
@@ -246,7 +243,7 @@ void aiop_verif_init_parser()
 	verif_parse_profile.l5_shell_hxs_config = 0x0;
 	verif_parse_profile.final_shell_hxs_config = 0x0;
 	/* Assuming no soft examination parameters */
-	for(i=0; i<16; i++)
+	for (i = 0; i < 16; i++)
 		verif_parse_profile.soft_examination_param_array[i] = 0x0;
 	sys_ctlu_prpid_pool_create();
 	/* Create the parse_profile and get an id */
@@ -295,15 +292,15 @@ uint32_t if_statement_result(
 	}
 	}*/
 
-	switch (cond){
+	switch (cond) {
 	case COND_EQUAL:
 	{
-		if_result = (compared_variable == compared_value)? 1:0;
+		if_result = (compared_variable == compared_value) ? 1 : 0;
 		break;
 	}
 	case COND_NON_EQUAL:
 	{
-		if_result = (compared_variable != compared_value)? 1:0;
+		if_result = (compared_variable != compared_value) ? 1 : 0;
 		break;
 	}
 	default:

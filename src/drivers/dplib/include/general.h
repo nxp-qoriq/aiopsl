@@ -240,13 +240,29 @@ struct additional_dequeue_context {
 	/** ADC fdsrc_va_fca_bdi offset */
 #define ADC_FDSRC_VA_FCA_BDI_OFFSET	0xF
 
+
+/**************************************************************************//**
+ @Group		AIOP_ADC_Getters
+
+ @Description	Additional Dequeue Context (ADC) Getters
+
+ @{
+*//***************************************************************************/
+
+/** Macro to get ICID field */
+#define ADC_GET_ICID()                              \
+       (LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),             \
+		       ADC_ICID_MASK))
+
+/** @} */ /* end of AIOP_ADC_Getters */
+
 /** @} */ /* end of AIOP_ADC_Definitions */
 
 
 /**************************************************************************//**
  @Group		AIOP_PRC_Definitions
 
- @Description	Presentation Context (ADC) Definitions
+ @Description	Presentation Context (PRC) Definitions
 
  @{
 *//***************************************************************************/
@@ -266,6 +282,8 @@ struct presentation_context {
 		/**
 		- bits<0-9>  : Pass Through Annotation(PTA) presentation
 		address value.
+		- bits<10> : No PTA segment (NPS).
+		- bits<11> : No ASA segment (NAS).
 		- bits<12-15>: Acceleration Specific Annotation(ASA)
 		presentation offset value. */
 	uint16_t  ptapa_asapo;
@@ -273,6 +291,7 @@ struct presentation_context {
 		- bits<0-9>  : Accelerator Specific Annotation (ASA)
 		presentation address value.
 		- bits<10>   : Entry Point Segment Reference (SR) bit.
+		- bits<11>   : No Data segment (NDS).
 		- bits<12-15>: Acceleration Specific Annotation (ASA)
 		presentation size value. */
 	uint16_t  asapa_asaps;
@@ -301,6 +320,12 @@ struct presentation_context {
 #define PRC_SR_MASK		0x0020
 	/** No Data Segment (NDS) bit mask */
 #define PRC_NDS_MASK		0x0010
+#if NAS_NPS_ENABLE
+	/** No PTA Segment (NPS) bit mask */
+#define PRC_NPS_MASK		0x0020
+	/** No ASA Segment (NAS) bit mask */
+#define PRC_NAS_MASK		0x0010
+#endif /*NAS_NPS_ENABLE*/
 	/** ASA presentation size mask */
 #define PRC_ASAPS_MASK		0x000F
 	/** OSM Entry point source value mask*/
@@ -321,6 +346,12 @@ struct presentation_context {
 #define PRC_SR_BIT_OFFSET	0x5
 	/** No Data Segment bit offset */
 #define PRC_NDS_BIT_OFFSET	0x4
+#if NAS_NPS_ENABLE
+	/** No PTA Segment bit offset */
+#define PRC_NPS_BIT_OFFSET	0x5
+	/** No ASA Segment bit offset */
+#define PRC_NAS_BIT_OFFSET	0x4
+#endif /*NAS_NPS_ENABLE*/
 	/** OSM Entry Point source value offset */
 #define PRC_OSRC_BIT_OFFSET	0x7
 	/** OSM Entry Point Execution Phase value offset */
@@ -340,7 +371,7 @@ struct presentation_context {
 /**************************************************************************//**
  @Group		AIOP_PRC_Getters
 
- @Description	Presentation Context (ADC) Getters
+ @Description	Presentation Context (PRC) Getters
 
  @{
 *//***************************************************************************/
@@ -383,13 +414,23 @@ struct presentation_context {
 #define PRC_GET_SR_BIT()						\
 	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps) & PRC_SR_MASK) >> PRC_SR_BIT_OFFSET)
-#ifdef NEXT_RELEASE
 	/** Macro to get the No-Data-Segment bit from the presentation
 	 * context */
 #define PRC_GET_NDS_BIT()						\
 	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps) & PRC_NDS_MASK) >> PRC_NDS_BIT_OFFSET)
-#endif /* NEXT_RELEASE */
+#if NAS_NPS_ENABLE
+	/** Macro to get the No-ASA-Segment bit from the presentation
+	 * context */
+#define PRC_GET_NAS_BIT()						\
+	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo) & PRC_NAS_MASK) >> PRC_NAS_BIT_OFFSET)
+	/** Macro to get the No-PTA-Segment bit from the presentation
+	 * context */
+#define PRC_GET_NPS_BIT()						\
+	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo) & PRC_NPS_MASK) >> PRC_NPS_BIT_OFFSET)
+#endif /*NAS_NPS_ENABLE*/
 	/** Macro to get the default frame ASA size in workspace from the
 	 * presentation context */
 #define PRC_GET_ASA_SIZE()						\
@@ -474,12 +515,20 @@ struct hardware_context {
 *//***************************************************************************/
 
 struct aiop_default_task_params {
+	/** NI ID the packet arrived on */
+	uint16_t receive_niid;
+	/** NI ID the packet should be sent on */
+	uint16_t send_niid;
 	/** Task default Starting HXS for Parser */
 	uint16_t parser_starting_hxs;
 	/** Task default Parser Profile ID */
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
+	/** current scope level */
+	uint8_t current_scope_level;
+	/** scope mode level [0-3] */
+	uint8_t scope_mode_level_arr[4];
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
@@ -658,6 +707,12 @@ struct aiop_default_task_params {
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
+#define LLLDW_SWAP(_addr)					\
+	(uint64_t)({register uint64_t __rR = 0;		\
+	uint64_t temp;						\
+	__llldbrw(temp, _addr, 0);				\
+	__rR = (uint64_t ) temp; })
+
 #define LH_SWAP_MASK(_addr, _mask)				\
 	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
 	uint16_t temp;						\
@@ -685,6 +740,9 @@ struct aiop_default_task_params {
 
 #define STW_SWAP(_val, _addr)					\
 	__stwbrx(_val, _addr);
+
+#define LLSTDW_SWAP(_val, _addr)				\
+	__llstdbrw(_val, _addr, 0);
 
 #define STQ_SWAP(_val, _addr)					\
 	__stwbrx(_val, _addr);

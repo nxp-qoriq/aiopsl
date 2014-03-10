@@ -10,7 +10,7 @@
 
 
 #include "general.h"
-
+#include "dplib\fsl_fdma.h"
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{
@@ -73,7 +73,7 @@
 	/** FDMA Store command output flags mask. */
 #define FDMA_STORE_CMD_OUT_FLAGS_MASK		0x0000FF00
 	/** FDMA Store command output flags offset. */
-#define FDMA_STORE_CMD_OUT_FLAGS_OFFSET		2
+#define FDMA_STORE_CMD_OUT_ICID_OFFSET		2
 	/** Default Segment headroom size. */
 #define DEFAULT_SEGMENT_HEADOOM_SIZE	128
 	/** Default Segment size. */
@@ -163,31 +163,37 @@
 #define FDMA_GET_PRC_SEGMENT_HANDLE(_handles)				\
 	((_handles & PRC_SEGMENT_HANDLE_MASK) << 24)
 
-	/** FDMA Initial presentation command command arg1 */
+	/** FDMA Initial presentation command arg1 */
 #define FDMA_INIT_CMD_ARG1(_fd_addr, _flags)				\
 	(uint32_t)((_fd_addr << 16) | _flags | FDMA_INIT_CMD)
 
-	/** FDMA Initial presentation command command arg2 */
+	/** FDMA Initial presentation command arg2 */
 #define FDMA_INIT_CMD_ARG2(_seg_address, _seg_offset)			\
 	(uint32_t)((_seg_address << 16) | _seg_offset)
 
-	/** FDMA Initial presentation command command arg3 */
+	/** FDMA Initial presentation command arg3 */
 #define FDMA_INIT_CMD_ARG3(_present_size, _ptapa_asapo)\
 	(uint32_t)((_present_size << 16) | _ptapa_asapo)
 
-	/** FDMA Initial presentation command command arg4 */
-#define FDMA_INIT_CMD_ARG4(_asapa_asaps)			\
+	/** FDMA Initial presentation command arg4 */
+#define FDMA_INIT_CMD_ARG4(_asapa_asaps)				\
 	(uint32_t)(_asapa_asaps)
 
-	/** FDMA Initial presentation explicit command command arg3 */
+	/** FDMA Initial presentation explicit command arg3 */
 #define FDMA_INIT_EXP_CMD_ARG3(_present_size, _pta_address, _asa_offset)\
 	(uint32_t)((_present_size << 16) |				\
-	(((uint16_t)(uint32_t)_pta_address) & PRC_PTAPA_MASK) |	\
+	(((uint16_t)(uint32_t)_pta_address) & PRC_PTAPA_MASK) |		\
 	(_asa_offset & PRC_ASAPO_MASK))
 
-	/** FDMA Initial presentation explicit command command arg4 */
+	/** FDMA Initial presentation explicit command arg4 */
 #define FDMA_INIT_EXP_CMD_ARG4(_asa_address, _asa_size)			\
 	(uint32_t)((((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |\
+	(_asa_size & PRC_ASAPS_MASK))
+	/** FDMA Initial presentation explicit AMQ command arg4 */
+#define FDMA_INIT_EXP_AMQ_CMD_ARG4(_flags, _icid ,_asa_address, _asa_size)\
+	(uint32_t)(((uint32_t)(((_icid & ~FDMA_ICID_CONTEXT_BDI) << 16) | \
+	(_flags & FDMA_INIT_BDI_BIT))) |				\
+	(((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |		\
 	(_asa_size & PRC_ASAPS_MASK))
 
 	/** FDMA Present command arg1 */
@@ -394,6 +400,17 @@
 
 /* @} end of group FDMA_Commands_Args */
 
+	/** Getter for AMQ (ICID, PL, VA, BDI) default attributes */
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void get_default_amq_attributes(
+		struct fdma_isolation_attributes *amq);
+
+	/** Setter for AMQ (ICID, PL, VA, BDI) default attributes */
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void set_default_amq_attributes(
+		struct fdma_isolation_attributes *amq);
+
+
 /** @}*/ /* end of group FDMA_Internal_Definitions */
 
 /** @}*/ /* end of group FSL_AIOP_FDMA */
@@ -457,22 +474,50 @@
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_SR_MASK) | PRC_SR_MASK))
+	/** Macro to reset Segment reference bit in workspace from the
+	 * presentation context */
 #define PRC_RESET_SR_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_SR_MASK))
-#ifdef NEXT_RELEASE
 	/** Macro to set No-Data-Segment bit in workspace from the
 	 * presentation context */
 #define PRC_SET_NDS_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_NDS_MASK) | PRC_NDS_MASK))
+	/** Macro to reset No-Data-Segment bit in workspace from the
+	 * presentation context */
 #define PRC_RESET_NDS_BIT()						\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		asapa_asaps & ~PRC_NDS_MASK))
-#endif /* NEXT_RELEASE */
+	/** Macro to set No-PTA-Segment bit in workspace from the
+	 * presentation context */
+#if NAS_NPS_ENABLE
+#define PRC_SET_NPS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NPS_MASK) | PRC_NPS_MASK))
+	/** Macro to reset No-PTA-Segment bit in workspace from the
+	 * presentation context */
+#define PRC_RESET_NPS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NPS_MASK))
+	/** Macro to set No-ASA-Segment bit in workspace from the
+	 * presentation context */
+#define PRC_SET_NAS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NAS_MASK) | PRC_NAS_MASK))
+	/** Macro to reset No-ASA-Segment bit in workspace from the
+	 * presentation context */
+#define PRC_RESET_NAS_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
+		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		ptapa_asapo & ~PRC_NAS_MASK))
+#endif /*NAS_NPS_ENABLE*/
 	/** Macro to set the default frame ASA size in workspace from the
 	 * presentation context */
 #define PRC_SET_ASA_SIZE(_val)						\
@@ -533,5 +578,104 @@
 /** @} */ /* end of AIOP_PRC_Setters */
 
 /** @}*/ /* end of group AIOP_PRC_Definitions */
+
+
+/**************************************************************************//**
+@Function	fdma_present_default_frame_without_segments
+
+@Description	Initial presentation of a default frame into the task workspace
+		without any segments (Data, ASA, PTA).
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID), FD address.
+
+		Implicitly updated values in Task Defaults: frame handle, NDS
+		bit, ASA size (0), PTA address(\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Return		Status - Success or Failure (e.g. DMA error. (\ref
+		FDMA_PRESENT_FRAME_ERRORS)).
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_present_default_frame_without_segments(void);
+
+/**************************************************************************//**
+@Function	fdma_present_frame_without_segments
+
+@Description	Initial presentation of a frame into the task workspace without
+		any segments (Data, ASA, PTA).
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID).
+
+		Implicitly updated values in Task Defaults in case the FD points
+		to the default FD location: frame handle, NDS bit, ASA size (0),
+		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
+		to present.
+@Param[out]	frame_handle - A handle to the opened working frame.
+
+@Return		Status - Success or Failure (e.g. DMA error. (\ref
+		FDMA_PRESENT_FRAME_ERRORS)).
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_present_frame_without_segments(
+		struct ldpaa_fd *fd,
+		uint8_t *frame_handle);
+
+/**************************************************************************//**
+@Function	fdma_acquire_buffer
+
+@Description	Provides direct access to the BMan in order to acquire a BMan
+		buffer in a software managed way.
+
+@Param[in]	icid - Buffer Pool ICID.
+@Param[in]	flags - Please refer to
+		\link FDMA_ACQUIRE_BUFFER_Flags command flags \endlink.
+@Param[in]	bpid - Buffer pool ID used for the Acquire Buffer.
+@Param[out]	dst - A pointer to the location in the workspace where to return
+		the acquired 64 bit buffer address.
+
+@Return		Status - Success or Failure (\ref FDMA_ACQUIRE_BUFFER_ERRORS).
+
+@Cautions	This command is not intended to be used in a normal datapath,
+		but more of a get out of jail card where access to BMan buffers
+		is required when operating on a frame while not using the
+		provided FDMA working frame commands.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_acquire_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		void *dst);
+
+/**************************************************************************//**
+@Function	fdma_release_buffer
+
+@Description	Provides direct access to the BMan in order to release a BMan
+		buffer in a software managed way.
+
+@Param[in]	icid - Buffer Pool ICID.
+@Param[in]	flags - Please refer to
+		\link FDMA_RELEASE_BUFFER_Flags command flags \endlink.
+@Param[in]	bpid - Buffer pool ID used for the Release Buffer.
+@Param[out]	addr - Buffer address to be released.
+
+@Return		Status - Success or Failure (\ref FDMA_RELEASE_BUFFER_ERRORS).
+
+@Cautions	This command is not intended to be used in a normal datapath,
+		but more of a get out of jail card where access to BMan buffers
+		is required when operating on a frame while not using the
+		provided FDMA working frame commands.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_release_buffer(
+		uint16_t icid,
+		uint32_t flags,
+		uint16_t bpid,
+		uint64_t addr);
 
 #endif /* __FDMA_H_ */

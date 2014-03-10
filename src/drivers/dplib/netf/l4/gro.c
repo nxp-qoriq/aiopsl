@@ -194,7 +194,6 @@ int32_t tcp_gro_add_seg_to_aggregation(
 		struct tcp_gro_context *gro_ctx)
 {
 	struct tcphdr *tcp;
-	struct fdma_present_frame_params present_frame_params;
 	struct fdma_concatenate_frames_params concat_params;
 	uint32_t timestamp;
 	uint32_t ecn;
@@ -290,28 +289,18 @@ int32_t tcp_gro_add_seg_to_aggregation(
 		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
 	/* present aggregated frame */
-	present_frame_params.fd_src = &(gro_ctx->agg_fd);
-	present_frame_params.flags = FDMA_INIT_NDS_BIT;
-	present_frame_params.asa_size = 0;
-	present_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS;
-	sr_status = fdma_present_frame(&present_frame_params);
+	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
+			(uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
 	/* concatenate frames and store aggregated packet */
-	concat_params.frame1 = present_frame_params.frame_handle;
 	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
 	concat_params.trim = (uint8_t)headers_size;
-	/* Todo - when concatenate command support returning isolation context
-	 * when closing frame1:
-	 * 1. enable next 2 lines (spid and flags) instead of the next flags
-	 * assignment,
-	 * 2. remove next store,
-	 * 3. add isolation attributes to the concatenate command
-	 * concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
-	concat_params.flags = FDMA_CONCAT_PCA_BIT;*/
-	concat_params.flags = FDMA_CONCAT_NO_FLAGS;
+	concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	concat_params.flags = FDMA_CONCAT_PCA_BIT;
+	/*concat_params.flags = FDMA_CONCAT_NO_FLAGS;*/
 	sr_status = fdma_concatenate_frames(&concat_params);
-	sr_status = fdma_store_frame_data(present_frame_params.frame_handle,
+	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
 			*((uint8_t *)HWC_SPID_ADDRESS),
-			&(gro_ctx->agg_fd_isolation_attributes));
+			&(gro_ctx->agg_fd_isolation_attributes));*/
 
 	/* update gro context fields */
 	gro_ctx->last_ack = tcp->acknowledgment_number;
@@ -343,7 +332,6 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
-	struct fdma_present_frame_params present_frame_params;
 	struct fdma_concatenate_frames_params concat_params;
 	int32_t sr_status;
 	uint16_t seg_size, headers_size, ip_length;
@@ -361,11 +349,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 		gro_ctx->metadata.max_seg_size = seg_size;
 
 	/* present aggregated frame */
-	present_frame_params.fd_src = &(gro_ctx->agg_fd);
-	present_frame_params.flags = FDMA_INIT_NDS_BIT;
-	present_frame_params.asa_size = 0;
-	present_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS;
-	sr_status = fdma_present_frame(&present_frame_params);
+	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
+		(uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
 
 	/* concatenate frames and store aggregated packet */
 	data_offset = (tcp->data_offset_reserved &
@@ -373,25 +358,18 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
 			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
-	concat_params.frame1 = present_frame_params.frame_handle;
 	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
 	concat_params.trim = (uint8_t)headers_size;
-	/* Todo - when concatenate command support returning isolation context
-	 * when closing frame1:
-	 * 1. enable next 2 lines (spid and flags) instead of the next flags
-	 * assignment,
-	 * 2. remove next store,
-	 * 3. add isolation attributes to the concatenate command
-	 * concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
-	concat_params.flags = FDMA_CONCAT_PCA_BIT;*/
-	concat_params.flags = FDMA_CONCAT_NO_FLAGS;
+	concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	concat_params.flags = FDMA_CONCAT_PCA_BIT;
+	/*concat_params.flags = FDMA_CONCAT_NO_FLAGS;*/
 	sr_status = fdma_concatenate_frames(&concat_params);
 
 	/* store aggregated frame*/
-	sr_status = fdma_store_frame_data(present_frame_params.frame_handle,
+	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
 				*((uint8_t *)HWC_SPID_ADDRESS),
 				&(gro_ctx->agg_fd_isolation_attributes));
-
+*/
 	/* copy aggregated FD to default FD */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx->agg_fd;
 
@@ -684,6 +662,7 @@ int32_t tcp_gro_flush_aggregation(
 	PRC_RESET_SR_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	sr_status = fdma_present_default_frame();
 
 	/* run parser since we don't know which scenario preceded
@@ -776,6 +755,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr)
 	PRC_RESET_SR_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	sr_status = fdma_present_default_frame();
 
 	/* run parser */

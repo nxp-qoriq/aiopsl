@@ -157,5 +157,6 @@ void verif_tmi_delete_callback(uint64_t opaque1, uint16_t opaque2)
 	struct ldpaa_fd fd;
 	
 	fdma_create_frame(&fd,&opaque1, sizeof(opaque1));
+	tman_timer_completion_confirmation((uint32_t)opaque1);
 	fdma_enqueue_fd_fqid(&fd,FDMA_EN_TC_TERM_BITS,(uint32_t)opaque2, 0);
 }
