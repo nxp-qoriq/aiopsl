@@ -244,7 +244,7 @@ void tman_timer_callback(void)
 	tman_arg_8B_t tman_cb_arg1;
 	tman_arg_2B_t tman_cb_arg2;
 	
-	tman_cb = (tman_cb_t)__lwbr(HWC_FD_ADDRESS+FD_FLC_DS_AS_CS_OFFSET, 0);
+	tman_cb = (tman_cb_t)__lwbr(HWC_FD_ADDRESS+FD_HASH_OFFSET, 0);
 	tman_cb_arg1 = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	tman_cb_arg2 = 
 		(tman_arg_2B_t)__lhbr(HWC_FD_ADDRESS+FD_OPAQUE1_OFFSET, 0);

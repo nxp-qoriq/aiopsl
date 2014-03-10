@@ -42,40 +42,40 @@ enum e_ste_verif_cmd_type {
 };
 
 /* STE Commands Structure identifiers */
-#define STE_SET_4B_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_SET_4B_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_SET_4B)
 
-#define STE_SET_8B_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_SET_8B_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_SET_8B)
 
-#define STE_ADD_CMD_STR		((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_ADD_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_ADD)
 
-#define STE_SUB_CMD_STR		((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_SUB_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_SUB)
 
-#define STE_ADD_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_ADD_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_ADD)
 
-#define STE_DEC_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_DEC_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC)
 
-#define STE_DEC_8B_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_DEC_8B_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC_8B)
 
-#define STE_INC_ACC_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_INC_ACC_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_INC_ADD)
 
-#define STE_INC_SUB_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_INC_SUB_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_INC_SUB)
 
-#define STE_DEC_ACC_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_DEC_ACC_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC_ADD)
 
-#define STE_DEC_SUB_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_DEC_SUB_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC_SUB)
 
-#define STE_BARRIER_CMD_STR	((STE_VERIF_ACCEL_ID << 16) | \
+#define STE_BARRIER_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_BARRIER)
 
 /**************************************************************************//**

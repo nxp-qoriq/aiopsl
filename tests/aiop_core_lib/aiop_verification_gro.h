@@ -17,9 +17,6 @@
 #include "dplib/fsl_parser.h"
 
 
-	/** GRO FM ID */
-#define GRO_FM_ID	 (TCP_GRO_MODULE_STATUS_ID >> 16)
-
 /* TCP_GRO Command IDs */
 	/** TCP GRO Aggregate Segment command code */
 #define TCP_GRO_CONTEXT_AGG_SEG_CMD		0x00000001
@@ -29,10 +26,10 @@
 
 /* TCP_GRO Commands Structure identifiers */
 	/** TCP GRO Aggregate Segment command Structure identifier */
-#define TCP_GRO_CONTEXT_AGG_SEG_CMD_STR	(TCP_GRO_MODULE_STATUS_ID | 	\
+#define TCP_GRO_CONTEXT_AGG_SEG_CMD_STR	((GRO_MODULE << 16) | 		\
 			TCP_GRO_CONTEXT_AGG_SEG_CMD)
 	/** TCP GRO Flush Aggregation Command Structure identifier */
-#define TCP_GRO_CONTEXT_FLUSH_AGG_CMD_STR (TCP_GRO_MODULE_STATUS_ID | 	\
+#define TCP_GRO_CONTEXT_FLUSH_AGG_CMD_STR ((GRO_MODULE << 16) | 	\
 			TCP_GRO_CONTEXT_FLUSH_AGG_CMD)
 
 
@@ -60,7 +57,7 @@ struct tcp_gro_agg_seg_command {
 	uint32_t opcode;
 		/** Please refer to \ref TCP_GRO_AGG_FLAGS. */
 	uint32_t flags;
-		/** Address (in HW buffers) of the TCP GRO internal context. 
+		/** Address (in HW buffers) of the TCP GRO internal context.
 		The user should allocate \ref tcp_gro_ctx_t in this address.
 		The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins. */
@@ -69,17 +66,17 @@ struct tcp_gro_agg_seg_command {
 	struct tcp_gro_context_params params;
 	/* Todo - should we add:
 	 * 	3. global task defaults. */
-	
+
 		/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;
-		/** Returned Value: 
+		/** Returned Value:
 		 * Iteration return status. */
 	int32_t status;
-		/** Workspace address of the last returned status. 
+		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
-		/** Workspace address of the GRO last returned status. 
+		/** Workspace address of the GRO last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t gro_status_addr;
 		/** Padding. */
@@ -95,27 +92,27 @@ struct tcp_gro_agg_seg_command {
 struct tcp_gro_flush_agg_command {
 		/** TCP GRO Flush Aggregation command structure identifier. */
 	uint32_t opcode;
-		/** Returned Value: 
+		/** Returned Value:
 		 * Iteration return status. */
-	int32_t status;	
-		/** Address (in HW buffers) of the TCP GRO internal context. 
+	int32_t status;
+		/** Address (in HW buffers) of the TCP GRO internal context.
 		The user should allocate \ref tcp_gro_ctx_t in this address.
 		The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins. */
 	uint64_t tcp_gro_context_addr;
 	/* Todo - should we add:
-	 * 	
+	 *
 	 * 3. global task defaults */
 		/** Returned Value:
 		 * presentation context. */
-	struct presentation_context prc;	
+	struct presentation_context prc;
 		/** Returned Value:
 		 * parse results. */
 	struct parse_result pr;
-		/** Workspace address of the last returned status. 
+		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
-		/** Workspace address of the GSO last returned status. 
+		/** Workspace address of the GSO last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t gro_status_addr;
 };
