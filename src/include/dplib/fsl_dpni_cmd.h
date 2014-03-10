@@ -34,7 +34,7 @@
 #define DPNI_CMDID_SET_MTU			0x136
 #define DPNI_CMDID_SET_MCAST_PROMISC		0x137
 #define DPNI_CMDID_GET_MCAST_PROMISC		0x138
-#define DPNI_CMDID_SET_PRIM_MAC		0x139
+#define DPNI_CMDID_SET_PRIM_MAC			0x139
 #define DPNI_CMDID_ADD_MAC_ADDR			0x13A
 #define DPNI_CMDID_REMOVE_MAC_ADDR		0x13B
 #define DPNI_CMDID_CLR_MAC_TBL			0x13C
@@ -57,11 +57,20 @@
 #define DPNI_CMDID_SET_RX_IGNORE_PAUSE_FRAMES	0x14D
 
 #define DPNI_CMDID_GET_TX_DATA_OFFSET		0x150
-#define DPNI_CMDID_GET_PRIM_MAC		0x151
+#define DPNI_CMDID_GET_PRIM_MAC			0x151
 #define DPNI_CMDID_GET_MFL			0x152
 #define DPNI_CMDID_GET_MTU			0x153
 #define DPNI_CMDID_GET_RX_BUFFER_LAYOUT		0x154
 #define DPNI_CMDID_SET_RX_BUFFER_LAYOUT		0x155
+
+#define DPNI_CMDID_GET_IRQ				0x156
+#define DPNI_CMDID_SET_IRQ_ENABLE			0x157
+#define DPNI_CMDID_GET_IRQ_ENABLE			0x158
+#define DPNI_CMDID_SET_IRQ_MASK				0x159
+#define DPNI_CMDID_GET_IRQ_MASK				0x15A
+#define DPNI_CMDID_GET_IRQ_STATUS			0x15B
+#define DPNI_CMDID_CLEAR_IRQ_STATUS			0x15C
+
 /* cmd sizes */
 #define DPNI_CMDSZ_INIT				(8 * 6)
 #define DPNI_CMDSZ_DONE				0
@@ -117,6 +126,13 @@
 #define DPNI_CMDSZ_SET_COUNTER			(8 * 2)
 #define DPNI_CMDSZ_SET_PRIM_MAC		8
 #define DPNI_CMDSZ_GET_PRIM_MAC		8
+#define DPNI_CMDSZ_GET_IRQ				(8 * 2)
+#define DPNI_CMDSZ_SET_IRQ_ENABLE			8
+#define DPNI_CMDSZ_GET_IRQ_ENABLE			8
+#define DPNI_CMDSZ_SET_IRQ_MASK				8
+#define DPNI_CMDSZ_GET_IRQ_MASK				8
+#define DPNI_CMDSZ_GET_IRQ_STATUS			8
+#define DPNI_CMDSZ_CLEAR_IRQ_STATUS			8
 
 /*	param, offset, width,	type,				arg_name */
 #define DPNI_CMD_INIT(_OP) \
@@ -348,7 +364,10 @@
 	_OP(1,   0,	64,	uint64_t,		cfg->user_ctx)\
 	_OP(2,   0,	32,	uint32_t,		cfg->options)\
 	_OP(2,   32,	32,	int,			cfg->tx_conf_err)\
-/*TODO - flow_id in/out????*/
+
+/*	param, offset, width,	type,				arg_name */
+#define DPNI_RSP_SET_TX_FLOW(_OP) \
+	_OP(0,   48,	16,	uint16_t,		*flow_id)\
 
 /*	param, offset, width,	type,				arg_name */
 #define DPNI_CMD_GET_TX_FLOW(_OP) \
@@ -452,4 +471,52 @@
 #define DPNI_CMD_CLEAR_FS_TABLE(_OP) \
 	_OP(0,	16,	8,	uint8_t,		tc_id) \
 
-#endif /* _FSL_DPSW_CMD_H */
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_CMD_GET_IRQ(_OP) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_RSP_GET_IRQ(_OP) \
+	_OP(0,	0,	32,	uint32_t,		irq_val) \
+	_OP(1,	0,	64,	uint64_t,		irq_paddr)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_CMD_SET_IRQ_ENABLE(_OP) \
+	_OP(0,	0,	8,	uint8_t,		enable_state) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_CMD_GET_IRQ_ENABLE(_OP) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_RSP_GET_IRQ_ENABLE(_OP) \
+	_OP(0,	0,	8,	uint8_t,		enable_state)
+	
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_CMD_SET_IRQ_MASK(_OP) \
+	_OP(0,	0,	32,	uint32_t,		mask) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_CMD_GET_IRQ_MASK(_OP) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_RSP_GET_IRQ_MASK(_OP) \
+	_OP(0,	0,	32,	uint32_t,		mask) 
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_CMD_GET_IRQ_STATUS(_OP) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_RSP_GET_IRQ_STATUS(_OP) \
+	_OP(0,	0,	32,	uint32_t,		status) \
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_CMD_CLEAR_IRQ_STATUS(_OP) \
+	_OP(0,	0,	32,	uint32_t,		status) \
+	_OP(0,	32,	8,	uint8_t,		irq_index)
+
+#endif /* _FSL_DPNI_CMD_H */

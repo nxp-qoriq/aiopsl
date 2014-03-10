@@ -215,7 +215,7 @@ enum dprc_iter_status {
 	/*!< Perform first iteration */
 	DPRC_ITER_STATUS_MORE = 1,
 	/*!< Indicates more/next iteration is needed */
-	DPRC_ITER_STATUS_LAST = 2,
+	DPRC_ITER_STATUS_LAST = 2
 /*!< Indicates last iteration */
 };
 
@@ -578,6 +578,31 @@ int dprc_get_irq(struct dprc *dprc,
 	uint8_t irq_index,
 	uint64_t *irq_paddr,
 	uint32_t *irq_val);
+
+int dprc_set_irq_enable(struct dprc *dprc,
+                          uint8_t irq_index,
+                          uint8_t enable_state);
+
+int dprc_get_irq_enable(struct dprc *dprc,
+                          uint8_t irq_index,
+                          uint8_t *enable_state);
+
+int dprc_set_irq_mask(struct dprc *dprc,
+                        uint8_t irq_index,
+                        uint32_t mask);
+
+int dprc_get_irq_mask(struct dprc *dprc,
+                        uint8_t irq_index,
+                        uint32_t *mask);
+
+int dprc_get_irq_status(struct dprc *dprc,
+                         uint8_t irq_index,
+                         uint32_t *status);
+
+int dprc_clear_irq_status(struct dprc *dprc,
+                            uint8_t irq_index,
+                            uint32_t status);
+
 
 /*! @} */
 

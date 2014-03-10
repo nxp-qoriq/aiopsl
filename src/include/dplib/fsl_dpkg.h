@@ -131,7 +131,7 @@ struct dpkg_extract {
 		 the constant is to be
 		 entered to the key */
 		} constant; /*!< used when type = DPKG_EXTRACT_CONSTANT */
-	} extract;
+	} extract; /*!< Selects extraction method */
 	uint8_t num_of_byte_masks;
 	/*!< Defines the valid number of entries in the
 	 array below; This is also number of bytes

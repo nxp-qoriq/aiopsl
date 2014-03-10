@@ -7,7 +7,7 @@
 #include "kernel/platform.h"
 #include "slab.h"
 #include "virtual_pools.h"
-#include "fsl_fdma.h"
+#include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "io.h"
 
 /* TODO need to read the ICID from somewhere */
