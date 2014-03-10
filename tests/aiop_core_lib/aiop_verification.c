@@ -11,6 +11,34 @@
 #include "aiop_verification.h"
 
 
+struct profile_sram {
+	uint64_t ip_secific_sp_info; /**< IP-Specific SP Information 	 */
+	uint16_t dl; /**<  DataLength(correction)	 */
+	uint16_t reserved; /**< reserved 	 */
+	uint16_t dhr; /**< DataHeadRoom(correction) */
+	uint8_t  mode_bits1; /**< mode bits 	 */
+	uint8_t  mode_bits2; /**< mode bits 	 */
+	uint16_t pbs1; /**<  Pool Buffer Size	 */
+	uint16_t bpid1; /**<  Bypass Memory Translation	 */
+	uint16_t pbs2; /**<  Pool Buffer Size	 */
+	uint16_t bpid2; /**<  Bypass Memory Translation	 */
+	uint16_t pbs3; /**<  Pool Buffer Size	 */
+	uint16_t bpid3; /**<  Bypass Memory Translation	 */
+	uint16_t pbs4; /**<  Pool Buffer Size	 */
+	uint16_t bpid4; /**<  Bypass Memory Translation	 */
+};
+
+	#define mode_bits1_PTAR_MASK  0x80
+	#define mode_bits1_SGHR_MASK  0x10
+	#define mode_bits1_ASAR_MASK  0x0f
+
+	#define mode_bits2_BS_MASK  0x80
+	#define mode_bits2_FF_MASK  0x30
+	#define mode_bits2_VA_MASK  0x04
+	#define mode_bits2_DLC_MASK 0x01
+
+struct  profile_sram profile_sram1;
+
 void aiop_verification()
 {
 	/* Presentation Context */
@@ -21,6 +49,41 @@ void aiop_verification()
 	uint16_t str_size;
 	uint32_t opcode;
 
+	/* initialize profile sram */
+	#define mode_bits1_PTAR  0x80
+	#define mode_bits1_Rsrvd 0x00
+	#define mode_bits1_SGHR  0x00
+	#define mode_bits1_ASAR  0x0f
+	
+	#define mode_bits2_BS  0x00
+	#define mode_bits2_FF  0x00
+	#define mode_bits2_VA  0x00
+	#define mode_bits2_DLC 0x00
+
+	
+	profile_sram1.ip_secific_sp_info = 0;
+	profile_sram1.dl = 0;
+	profile_sram1.reserved = 0;
+	/* 0x0080 --> 0x8000 (little endian) */
+	profile_sram1.dhr = 0x8000;  
+	profile_sram1.mode_bits1 = (mode_bits1_PTAR | mode_bits1_SGHR | 
+			mode_bits1_ASAR); 
+	profile_sram1.mode_bits2 = (mode_bits2_BS | mode_bits2_FF | 
+			mode_bits2_VA | mode_bits2_DLC);
+	/* buffer size is 1024 bit, so PBS should be 2. 
+	 * 0x0081 --> 0x8100 (little endian) */
+	profile_sram1.pbs1 = 0x8100;  
+	/* BPID=0 */
+	profile_sram1.bpid1 = 0x0000; 
+	/* buffer size is 1024 bit, so PBS should be 2. 
+	 * 0x0081 --> 0x8100 (little endian) */
+	profile_sram1.pbs2 = 0x8100;  
+	/* BPID=1, 0x0001 --> 0x0100 (little endian) */
+	profile_sram1.bpid2 = 0x0100; 
+	profile_sram1.pbs3 = 0x0000; 
+	profile_sram1.bpid3 = 0x0000;
+	profile_sram1.pbs4 = 0x0000; 
+	profile_sram1.bpid4 = 0x0000; 
 
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
