@@ -179,7 +179,7 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
 			 struct table_get_params_output *tbl_params)
 {
-	struct ctlu_table_params_query_output_message output
+	struct table_params_query_output_message output
 		__attribute__((aligned(16)));
 
 	/* Prepare ACC context for TLU accelerator call */
@@ -473,7 +473,7 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 /*****************************************************************************/
 int32_t table_query_debug(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  struct ctlu_table_params_query_output_message *output
+			  struct table_params_query_output_message *output
 			 )
 {
 	/* Prepare ACC context for TLU accelerator call */

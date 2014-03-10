@@ -292,7 +292,7 @@ struct	ctlu_table_create_output_message {
 @Description	Table Parameters Query Output Message Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_params_query_output_message {
+struct table_params_query_output_message {
 	/** Table Type
 	Includes IEX, MRES & AGT bits */
 	uint16_t type;
@@ -623,7 +623,7 @@ struct ctlu_acc_context {
 *//***************************************************************************/
 int32_t table_query_debug(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  struct ctlu_table_params_query_output_message *output
+			  struct table_params_query_output_message *output
 			 );
 
 /**************************************************************************//**

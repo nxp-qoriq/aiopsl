@@ -1,31 +1,19 @@
 /**************************************************************************//**
-@File		aiop_verification_ctlu.h
+@File		aiop_verification_keygen.h
 
-@Description	This file contains the AIOP CTLU SW Verification Structures
+@Description	This file contains the AIOP Keygen SW Verification Structures
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#ifndef __AIOP_VERIFICATION_CTLU_H_
-#define __AIOP_VERIFICATION_CTLU_H_
+#ifndef __AIOP_VERIFICATION_KEYGEN_H_
+#define __AIOP_VERIFICATION_KEYGEN_H_
 
-#include "dplib/fsl_table.h"
 #include "dplib/fsl_keygen.h"
 
-/** \enum ctlu_verif_cmd_type defines the parser verification CMDTYPE
+/** \enum keygen_verif_cmd_type defines the parser verification CMDTYPE
  * field. */
-enum ctlu_verif_cmd_type {
-	TABLE_CREATE_VERIF_CMDTYPE = 0,
-	TABLE_REPLACE_MISS_RESULT_VERIF_CMDTYPE,
-	TABLE_GET_PARAMS_VERIF_CMDTYPE,
-	TABLE_GET_MISS_RESULT_VERIF_CMDTYPE,
-	TABLE_DELETE_VERIF_CMDTYPE,
-	TABLE_RULE_CREATE_VERIF_CMDTYPE,
-	TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE,
-	TABLE_RULE_REPLACE_VERIF_CMDTYPE,
-	TABLE_RULE_DELETE_VERIF_CMDTYPE,
-	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
-	TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
+enum keygen_verif_cmd_type {
 	KEYGEN_KCR_BUILDER_INIT_VERIF_CMDTYPE,
 	KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE,
 	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE,
@@ -39,130 +27,81 @@ enum ctlu_verif_cmd_type {
 	KEYGEN_KCR_QUERY_VERIF_CMDTYPE,
 	KEYGEN_GEN_KEY_VERIF_CMDTYPE,
 	KEYGEN_GEN_HASH_VERIF_CMDTYPE,
-	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
 	KEYGEN_KEY_ID_POOL_CREATE_VERIF_CMDTYPE,
 	KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC_VERIF_CMDTYPE
 };
 
-/* CTLU Commands Structure identifiers */
-
-/** Table Create Command Structure identifier */
-#define TABLE_CREATE_CMD_STR	((TABLE_MODULE << 16) | \
-				  TABLE_CREATE_VERIF_CMDTYPE)
-
-/** Table Replace Miss Rule Command Structure identifier */
-#define TABLE_REPLACE_MISS_RESULT_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_REPLACE_MISS_RESULT_VERIF_CMDTYPE)
-
-/** Table get params Command Structure identifier */
-#define TABLE_GET_PARAMS_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_GET_PARAMS_VERIF_CMDTYPE)
-
-/** Table get miss result Command Structure identifier */
-#define TABLE_GET_MISS_RESULT_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_GET_MISS_RESULT_VERIF_CMDTYPE)
-
-/** Table delete Command Structure identifier */
-#define TABLE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
-				  TABLE_DELETE_VERIF_CMDTYPE)
-
-/** Table rule create Command Structure identifier */
-#define TABLE_RULE_CREATE_CMD_STR	((TABLE_MODULE << 16) | \
-					  TABLE_RULE_CREATE_VERIF_CMDTYPE)
-
-/** Table rule create or replace Command Structure identifier */
-#define TABLE_RULE_CREATE_OR_REPLACE_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE)
-
-/** Table rule replace Command Structure identifier */
-#define TABLE_RULE_REPLACE_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_RULE_REPLACE_VERIF_CMDTYPE)
-
-/** Table rule delete Command Structure identifier */
-#define TABLE_RULE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_RULE_DELETE_VERIF_CMDTYPE)
-
-/** Table lookup by keyID */
-#define TABLE_LOOKUP_BY_KEYID_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
-
-/** Table lookup by explicit key */	
-#define TABLE_LOOKUP_BY_KEY_CMD_STR		((TABLE_MODULE << 16) | \
-					TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
+/* Keygen Commands Structure identifiers */
 
 /*! Init Key Composition Rule Builder Command Structure identifier*/
-#define KEYGEN_KCR_BUILDER_INIT_CMD_STR   ((TABLE_ACCEL_ID_CTLU << 16) | \
+#define KEYGEN_KCR_BUILDER_INIT_CMD_STR   ((KEYGEN_MODULE << 16) | \
 					KEYGEN_KCR_BUILDER_INIT_VERIF_CMDTYPE)
 
 /*! Add "constant" fec to KCR Command Structure identifier*/
 #define KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_CMD_STR \
-	((TABLE_ACCEL_ID_CTLU << 16) | \
+	((KEYGEN_MODULE << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC_VERIF_CMDTYPE)
 
 /*! Add "input value" fec to KCR Command Structure identifier*/
 #define KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC_CMD_STR \
-	((TABLE_ACCEL_ID_CTLU << 16) | \
+	((KEYGEN_MODULE << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC_VERIF_CMDTYPE)
 
 /*! Add "protocol specific field" fec to KCR Command Structure identifier */
 #define KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FIELD_FEC_CMD_STR \
-	((TABLE_ACCEL_ID_CTLU << 16) | \
+	((KEYGEN_MODULE << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FEC_VERIF_CMDTYPE)
 
 /*! Add "protocol based generic extract" fec to KCR Command Structure
  * identifier */
 #define KEYGEN_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_CMD_STR \
-	((TABLE_ACCEL_ID_CTLU << 16) | \
+	((KEYGEN_MODULE << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
 
 /*! Add "generic extract" fec to KCR Command Structure identifier */
 #define KEYGEN_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_CMD_STR \
-	((TABLE_ACCEL_ID_CTLU << 16) | \
+	((KEYGEN_MODULE << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC_VERIF_CMDTYPE)
 
 /*! Add "lookup result field" fec to KCR Command Structure identifier */
 #define KEYGEN_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_CMD_STR \
-	((TABLE_ACCEL_ID_CTLU << 16) | \
+	((KEYGEN_MODULE << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_VERIF_CMDTYPE)
 
 /*! Add "valid field" fec to KCR Command Structure identifier */
 #define KEYGEN_KCR_BUILDER_ADD_VALID_FIELD_FEC_CMD_STR \
-	((TABLE_ACCEL_ID_CTLU << 16) | \
+	((KEYGEN_MODULE << 16) | \
 	KEYGEN_KCR_BUILDER_ADD_VALID_FIELD_FEC_VERIF_CMDTYPE)
 
 /*! Key composition rule create Command Structure identifier */
 #define KEYGEN_KCR_CREATE_CMD_STR	\
-		((TABLE_ACCEL_ID_CTLU << 16) | \
+		((KEYGEN_MODULE << 16) | \
 		KEYGEN_KCR_CREATE_VERIF_CMDTYPE)
 
 /*! Key composition rule replace Command Structure identifier */
 #define KEYGEN_KCR_REPLACE_CMD_STR	\
-		((TABLE_ACCEL_ID_CTLU << 16) | \
+		((KEYGEN_MODULE << 16) | \
 		KEYGEN_KCR_REPLACE_VERIF_CMDTYPE)
 
 /*! Key composition rule delete Command Structure identifier */
 #define KEYGEN_KCR_DELETE_CMD_STR	\
-		((TABLE_ACCEL_ID_CTLU << 16) | \
+		((KEYGEN_MODULE << 16) | \
 		KEYGEN_KCR_DELETE_VERIF_CMDTYPE)
 
 /** Key composition rule query Command Structure identifier */
-#define KEYGEN_KCR_QUERY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
+#define KEYGEN_KCR_QUERY_CMD_STR	((KEYGEN_MODULE << 16) | \
 				KEYGEN_KCR_QUERY_VERIF_CMDTYPE)
 
 /*! Generate key Command Structure identifier*/
-#define KEYGEN_GEN_KEY_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
+#define KEYGEN_GEN_KEY_CMD_STR	((KEYGEN_MODULE << 16) | \
 			KEYGEN_GEN_KEY_VERIF_CMDTYPE)
 
 /*! Generate hash Command Structure identifier */
-#define KEYGEN_GEN_HASH_CMD_STR	((TABLE_ACCEL_ID_CTLU << 16) | \
+#define KEYGEN_GEN_HASH_CMD_STR	((KEYGEN_MODULE << 16) | \
 		KEYGEN_GEN_HASH_VERIF_CMDTYPE)
 
-/** Table Query Debug Command Structure identifier */
-#define TABLE_QUERY_DEBUG_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
-
 /*!< Create Key ID Pool Command Structure identifier */
-#define KEYGEN_KEY_ID_POOL_CREATE_CMD_STR  ((TABLE_ACCEL_ID_CTLU << 16) | \
+#define KEYGEN_KEY_ID_POOL_CREATE_CMD_STR  ((KEYGEN_MODULE << 16) | \
 			KEYGEN_KEY_ID_POOL_CREATE_VERIF_CMDTYPE)
 
 /** \addtogroup AIOP_Service_Routines_Verification
@@ -171,320 +110,12 @@ enum ctlu_verif_cmd_type {
 
 
 /**************************************************************************//**
-@Group		AIOP_Table_SRs_Verification
+@Group		AIOP_Kegen_SRs_Verification
 
-@Description	AIOP Table Verification structures definitions.
+@Description	AIOP Keygen Verification structures definitions.
 
 @{
 *//***************************************************************************/
-
-/**************************************************************************//**
-@Description	Table Parameters Query Output Message Structure
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct ctlu_table_params_query_output_message {
-	/** Table Type, Includes IEX, MRES & AGT bits */
-	uint16_t type;			
-
-	/** ICID (including BDI) */
-	uint16_t icid;			
-
-	/** Max Rules */
-	uint32_t max_rules;		
-
-	/** Max Entries */
-	uint32_t max_entries;		
-
-	/** Committed Entries */
-	uint32_t committed_entries;	
-
-	/** Committed Rules */
-	uint32_t committed_rules;	
-
-	/** Current Number of rules */
-	uint32_t current_rules;		
-
-	/** Current Number of entries */
-	uint32_t current_entries;	
-
-	uint64_t  reserved0;
-
-	uint64_t  reserved1;
-
-	/** Miss Result */
-	struct table_result miss_lookup_fcv;
-					
-};
-#pragma pack(pop)
-
-/**************************************************************************//**
-@Description	Create Table Command structure.
-
-		Includes information needed for Create Table command
-		verification.
-*//***************************************************************************/
-
-struct ctlu_table_create_command {
-
-	/** CTLU Create Table Command identifier */
-	uint32_t opcode;
-
-	/*! Table create parameters pointer to the workspace */
-	uint32_t  table_create_params_ptr;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Command returned Table ID */
-	uint16_t table_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-/**************************************************************************//**
-@Description	CTLU Update Miss Rule Command structure.
-
-		Includes information needed for CTLU Update Miss Rule command
-		verification.
-*//***************************************************************************/
-struct ctlu_update_miss_rule_command {
-	/** Miss Rule to update.
-	The structure to be passed must be one of the following:
-	 - \ref aiop_ctlu_result_chaining
-	 - \ref aiop_ctlu_result_reference
-	 - \ref aiop_ctlu_result_opaque */
-	struct table_result miss_rule;
-
-	/** The old miss result */
-	struct table_result old_miss_result;
-
-	/** CTLU Update Miss Rule Command identifier */
-	uint32_t opcode;
-
-	/** Command returned status. */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-/**************************************************************************//**
-@Description	CTLU Table Get Parameters Command structure.
-
-		Includes information needed for CTLU Table Get Parameters
-		command verification.
-*//***************************************************************************/
-
-struct ctlu_table_get_params_command {
-	/** CTLU Table Get Parameters Command identifier */
-	uint32_t opcode;
-
-	/*! Table get params output*/
-	struct table_get_params_output table_get_params_out;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-
-/**************************************************************************//**
-@Description	CTLU Get Miss Rule Command structure.
-
-		Includes information needed for CTLU Get Miss Rule command
-		verification.
-*//***************************************************************************/
-struct ctlu_get_miss_rule_command {
-	/** CTLU Get Miss Rule Command identifier */
-	uint32_t opcode;
-
-	/** This union includes:
-	- struct aiop_ctlu_result_chaining
-	- struct aiop_ctlu_result_reference
-	- struct aiop_ctlu_result_opaque */
-	struct table_result miss_rule;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-/**************************************************************************//**
-@Description	CTLU Table Delete Command structure.
-
-		Includes information needed for CTLU Table Delete command
-		verification.
-*//***************************************************************************/
-struct ctlu_table_delete_command {
-	/** CTLU Table Delete Command identifier */
-	uint32_t opcode;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-
-/**************************************************************************//**
-@Description	CTLU Table Rule Create struct.
-
-		Includes information needed for CTLU Table Rule Create
-		command verification.
-*//***************************************************************************/
-struct ctlu_table_rule_create_command{
-	/** CTLU Table Rule Create identifier */
-	uint32_t opcode;
-
-	/** A pointer to the rule to be added (workspace pointer)*/
-	uint32_t rule_ptr;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Key size */
-	uint8_t key_size;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-
-/**************************************************************************//**
-@Description	CTLU Table Rule Create or Replace/Replace Command struct.
-
-		Includes information needed for CTLU Table Rule
-		Create or Replace/ Replace command verification.
-*//***************************************************************************/
-struct ctlu_table_rule_create_replace_command{
-	/** Rule's old result - valid only if replace occurred */
-	struct table_result old_res;
-
-	/** CTLU Table Rule Create identifier */
-	uint32_t opcode;
-
-	/** A pointer to the rule to be added (workspace pointer)*/
-	uint32_t rule_ptr;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Key size */
-	uint8_t key_size;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-
-/**************************************************************************//**
-@Description	CTLU Table Rule Delete Command structure.
-
-		Includes information needed for CTLU Table Rule Delete
-		command verification.
-*//***************************************************************************/
-struct ctlu_table_rule_delete_command{
-	/** Rule's old result */
-	struct table_result old_res;
-
-	/** CTLU Table Rule Delete identifier */
-	uint32_t opcode;
-
-	/** Input Key pointer to the workspace */
-	uint32_t key_ptr;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Input key size*/
-	uint8_t key_size;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-/**************************************************************************//**
-@Description	CTLU Table Lookup by KeyID Command structure.
-
-		Includes information needed for CTLU Table Lookup by KeyID
-		command verification.
-*//***************************************************************************/
-struct ctlu_table_lookup_by_keyid_command{
-	/** CTLU Lookup by KeyID identifier */
-	uint32_t opcode;
-
-	/** The structure returned to the caller upon a successful lookup */
-	struct table_lookup_result lookup_result;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Key ID */
-	uint8_t key_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-/**************************************************************************//**
-@Description	CTLU Table Lookup by Explicit Key Command structure.
-
-		Includes information needed for CTLU Table Lookup by Explicit
-		Key command verification.
-*//***************************************************************************/
-struct ctlu_table_lookup_by_key_command{
-	/** CTLU Lookup by Key identifier */
-	uint32_t opcode;
-
-	/** The structure returned to the caller upon a successful lookup */
-	struct table_lookup_result lookup_result;
-
-	/** A pointer to the key in the workspace */
-	union table_lookup_key key;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Input key size*/
-	uint8_t key_size;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-
-};
 
 /**************************************************************************//**
 @Description	Key Composition Rule Builder Initialization Command structure.
@@ -850,21 +481,6 @@ struct keygen_gen_hash_command{
 };
 
 /**************************************************************************//**
-@Description	Table Query Debug Command structure.
-
-		Includes information needed for Table Query Debug command 
-		verification.
-
-*//***************************************************************************/
-struct ctlu_table_query_debug_command{
-	uint32_t opcode; 		/*!< CTLU Generate Hash identifier */
-	uint32_t output_ptr; /*!< Table Parameters output pointer in the workspace */
-	int32_t  status;		/*!< Command returned status */
-	uint16_t table_id;		/*!< Table ID */
-	uint8_t	pad[2];			/*!< 64-bit alignment */
-};
-
-/**************************************************************************//**
 @Description	Key ID Pool Create Command structure.
 
 		Includes information needed for Create Key ID pool Command
@@ -875,15 +491,12 @@ struct keygen_key_id_pool_create_verif_command {
 	int32_t  status;
 };
 
-/** @} */ /* end of AIOP_Table_SRs_Verification */
+/** @} */ /* end of AIOP_Keygen_SRs_Verification */
 
 /** @}*/ /* end of AIOP_Service_Routines_Verification */
 
-int32_t table_query_debug(uint16_t table_id,
-			       struct ctlu_table_params_query_output_message 
-			       *output);
 
-uint16_t aiop_verification_ctlu(uint32_t asa_seg_addr);
+uint16_t aiop_verification_keygen(uint32_t asa_seg_addr);
 
-#endif /* __AIOP_VERIFICATION_CTLU_H_ */
+#endif /* __AIOP_VERIFICATION_KEYGEN_H_ */
 

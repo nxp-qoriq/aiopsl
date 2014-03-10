@@ -108,9 +108,14 @@ void aiop_verification_fm()
 			str_size = aiop_verification_cdma((uint32_t)data_addr);
 			break;
 		}
-		case TABLE_ACCEL_ID_CTLU:
+		case TABLE_MODULE:
 		{
-			str_size = aiop_verification_ctlu((uint32_t)data_addr);
+			str_size = aiop_verification_table((uint32_t)data_addr);
+			break;
+		}
+		case KEYGEN_MODULE:
+		{
+			str_size = aiop_verification_keygen((uint32_t)data_addr);
 			break;
 		}
 		case CTLU_PARSE_CLASSIFY_ACCEL_ID:

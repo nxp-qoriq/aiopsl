@@ -17,7 +17,8 @@
 #include "aiop_verification_tman.h"
 #include "aiop_verification_ste.h"
 #include "aiop_verification_cdma.h"
-#include "aiop_verification_ctlu.h"
+#include "aiop_verification_keygen.h"
+#include "aiop_verification_table.h"
 #include "aiop_verification_parser.h"
 #include "aiop_verification_hm.h"
 #include "verification_virtual_pools.h"
@@ -152,13 +153,13 @@ enum verif_modules_ids {
 	TMAN_MODULE = TMAN_ACCEL_ID,
 	STE_MODULE = STE_VERIF_ACCEL_ID,
 	CDMA_MODULE = CDMA_ACCEL_ID,
-	TABLE_MODULE,
-	CTLU_PARSE_CLASSIFY_MODULE = CTLU_PARSE_CLASSIFY_ACCEL_ID,
 	HM_MODULE = HM_VERIF_ACCEL_ID,
 	VPOOL_MODULE = VPOOL_ACCEL_ID,
 	IF_MODULE = AIOP_IF_CMD,
 	IF_ELSE_MODULE = AIOP_IF_ELSE_CMD,
-	TERMINATE_FLOW_MODULE = AIOP_TERMINATE_FLOW_CMD
+	TERMINATE_FLOW_MODULE = AIOP_TERMINATE_FLOW_CMD,
+	KEYGEN_MODULE,
+	TABLE_MODULE
 };
 
 /**************************************************************************//**
