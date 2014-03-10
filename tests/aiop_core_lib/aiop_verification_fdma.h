@@ -52,6 +52,8 @@
 #define FDMA_INSERT_EXP_DATA_CMD	0x00007019
 	/** FDMA Create Frame command code */
 #define FDMA_CREATE_FRAME_CMD		0x00000100
+	/** FDMA Create FD command code */
+#define FDMA_CREATE_FD_CMD		0x00000101
 
 /* FDMA Commands Structure identifiers */
 	/** FDMA Initial frame presentation Command Structure identifier */
@@ -133,6 +135,9 @@
 	/** FDMA Create Frame command Structure identifier */
 #define FDMA_CREATE_FRAME_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
 		FDMA_CREATE_FRAME_CMD)
+	/** FDMA Create FD command Structure identifier */
+#define FDMA_CREATE_FD_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+		FDMA_CREATE_FD_CMD)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -1363,6 +1368,37 @@ struct fdma_create_frame_command {
 	uint32_t data;
 		/** Data size to be inserted to the frame. */
 	uint16_t size;
+		/** Command returned frame handle. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[4];
+		/** Command returned Frame Descriptor for the created frame.
+		 * The command updates the FD in workspace, and when the ASA is
+		 * written back to the frame, the updated FD will be written to
+		 * the frame as well.
+		 * The FD address in workspace must be aligned to 32 bytes. */
+	struct ldpaa_fd fd;
+};
+
+/**************************************************************************//**
+@Description	FDMA Create FD Command structure.
+
+		Includes information needed for Create FD data command
+		verification.
+
+*//***************************************************************************/
+struct fdma_create_fd_command {
+		/** Create FD command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location in workspace of the data to be
+		 * inserted to the frame.
+		 * The data MUST be located in workspace prior to calling this
+		 * command. */
+	uint32_t data;
+		/** Data size to be inserted to the frame. */
+	uint16_t size;
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
@@ -1374,7 +1410,6 @@ struct fdma_create_frame_command {
 		 * The FD address in workspace must be aligned to 32 bytes. */
 	struct ldpaa_fd fd;
 };
-
 
 /** @} */ /* end of AIOP_FDMA_SRs_Verification */
 

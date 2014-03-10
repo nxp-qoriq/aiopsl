@@ -647,14 +647,25 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = (uint16_t)sizeof(struct fdma_release_buffer_command);
 		break;
 	}
-	/* FDMA Copy Command Verification */
+	/* FDMA create frame Command Verification */
 	case FDMA_CREATE_FRAME_CMD_STR:
 	{
 		struct fdma_create_frame_command *str =
 			(struct fdma_create_frame_command *) asa_seg_addr;
 		str->status = (int8_t)fdma_create_frame(
-				&(str->fd), (void *)(str->data), str->size);
+				&(str->fd), (void *)(str->data), str->size,
+				&(str->frame_handle));
 		str_size = (uint16_t)sizeof(struct fdma_create_frame_command);
+		break;
+	}
+	/* FDMA create FD Command Verification */
+	case FDMA_CREATE_FD_CMD_STR:
+	{
+		struct fdma_create_fd_command *str =
+			(struct fdma_create_fd_command *) asa_seg_addr;
+		str->status = (int8_t)fdma_create_fd(
+				&(str->fd), (void *)(str->data), str->size);
+		str_size = (uint16_t)sizeof(struct fdma_create_fd_command);
 		break;
 	}
 	default:
