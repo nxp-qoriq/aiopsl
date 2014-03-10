@@ -10,7 +10,6 @@
 
 #include "aiop_verification.h"
 
-
 void aiop_verification()
 {
 	/* Presentation Context */
@@ -21,7 +20,6 @@ void aiop_verification()
 	uint16_t str_size;
 	uint32_t opcode;
 
-
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
 
@@ -29,6 +27,11 @@ void aiop_verification()
 	asa_seg_addr = (uint32_t)(PRC->asapa_asaps & PRC_ASAPA_MASK);
 	/* shift size by 6 since the size is in 64bytes (2^6 = 64) quantities */
 	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK) << 6;
+	
+	/* initialize profile sram */
+	/* This is a temporary function and has to be used only until 
+			 * the ARENA will initialize the profile sram */
+	init_profile_sram();
 
 	/* The condition is for back up only.
 	In case the ASA was written correctly the Terminate command will
