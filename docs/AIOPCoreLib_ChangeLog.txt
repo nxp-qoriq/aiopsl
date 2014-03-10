@@ -14,7 +14,7 @@ fsl_fdma.h:
 		• Remove flags parameter from fdma_read_default_frame_asa() SR.
 	• Change fdma_queueing_destination_params structure field name: hash_value -> qdbin (HW alignmnet).
 	
-
+fsl_ipsec.h: unified hmo and options fields, changed callback type to void
 
 SL Pre-Alpha v0.3  Change Log
 
