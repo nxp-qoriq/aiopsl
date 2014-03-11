@@ -41,8 +41,7 @@ void aiop_verification()
 
 		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
 
-		case FPDMA_MODULE:
-		case FODMA_MODULE:
+		case FDMA_MODULE:
 		{
 			str_size = aiop_verification_fdma(asa_seg_addr);
 			break;
