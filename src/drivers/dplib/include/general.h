@@ -242,13 +242,29 @@ struct additional_dequeue_context {
 	/** ADC fdsrc_va_fca_bdi offset */
 #define ADC_FDSRC_VA_FCA_BDI_OFFSET	0xF
 
+
+/**************************************************************************//**
+ @Group		AIOP_ADC_Getters
+
+ @Description	Additional Dequeue Context (ADC) Getters
+
+ @{
+*//***************************************************************************/
+
+/** Macro to get ICID field */
+#define ADC_GET_ICID()                              \
+       (LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),             \
+		       ADC_ICID_MASK))
+
+/** @} */ /* end of AIOP_ADC_Getters */
+
 /** @} */ /* end of AIOP_ADC_Definitions */
 
 
 /**************************************************************************//**
  @Group		AIOP_PRC_Definitions
 
- @Description	Presentation Context (ADC) Definitions
+ @Description	Presentation Context (PRC) Definitions
 
  @{
 *//***************************************************************************/
@@ -357,7 +373,7 @@ struct presentation_context {
 /**************************************************************************//**
  @Group		AIOP_PRC_Getters
 
- @Description	Presentation Context (ADC) Getters
+ @Description	Presentation Context (PRC) Getters
 
  @{
 *//***************************************************************************/
@@ -501,12 +517,20 @@ struct hardware_context {
 *//***************************************************************************/
 
 struct aiop_default_task_params {
+	/** NI ID the packet arrived on */
+	uint16_t receive_niid;
+	/** NI ID the packet should be sent on */
+	uint16_t send_niid;
 	/** Task default Starting HXS for Parser */
 	uint16_t parser_starting_hxs;
 	/** Task default Parser Profile ID */
 	uint8_t parser_profile_id;
 	/** Queueing Destination Priority */
 	uint8_t qd_priority;
+	/** current scope level */
+	uint8_t current_scope_level;
+	/** scope mode level [0-3] */
+	uint8_t scope_mode_level_arr[4];
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
@@ -685,6 +709,12 @@ struct aiop_default_task_params {
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
+#define LLLDW_SWAP(_addr)					\
+	(uint64_t)({register uint64_t __rR = 0;		\
+	uint64_t temp;						\
+	__llldbrw(temp, _addr, 0);				\
+	__rR = (uint64_t ) temp; })
+
 #define LH_SWAP_MASK(_addr, _mask)				\
 	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
 	uint16_t temp;						\
@@ -712,6 +742,9 @@ struct aiop_default_task_params {
 
 #define STW_SWAP(_val, _addr)					\
 	__stwbrx(_val, _addr);
+
+#define LLSTDW_SWAP(_val, _addr)				\
+	__llstdbrw(_val, _addr, 0);
 
 #define STQ_SWAP(_val, _addr)					\
 	__stwbrx(_val, _addr);

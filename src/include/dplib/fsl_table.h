@@ -160,13 +160,13 @@
 	the sub field.
 	Aging Threshold is used for removal of aged rules in the table.
 	This feature is only enabled to table rules in which
-	\ref TABLE_RULE_TIMESTAMP_AGT_ENABLE is enabled in rule[options].
+	TABLE_RULE_TIMESTAMP_AGT_ENABLE is enabled in rule[options].
 	If enabled, and Current timestamp - rule[timestamp] > 2^AGT (where AGT
 	is the value configured in this sub field ) the aging
 	function removes the lookup table rule from the lookup table.
 	The units in which timestamp is measured are determined according to
 	CTLU IOP_CTLU_TIMESTAMP_WINDOW register configuration.
-	The sub field is specified by \ref TABLE_ATTRIBUTE_AGT_MASK and
+	The sub field is specified by TABLE_ATTRIBUTE_AGT_MASK and
 	\ref TABLE_ATTRIBUTE_AGT_OFFSET (The mask determines the size and
 	position of the field).
 	NOTE: This field must be cleared unless \ref
@@ -189,25 +189,25 @@
 
 
 /**************************************************************************//**
-@Group		FSL_TABLE_RULE_RESULT_TYPES Table Rule Results Types
+@Group		FSL_TABLE_RESULT_TYPES Table Results Types
 
-@Description	Table Rule Results Types
+@Description	Table Results Types
 
 		User should select one of the following defines:
 @{
 *//***************************************************************************/
 /** Result is used for chaining of lookups, Contains 9B Opaque fields
  * Not available for Rev1 */
-#define TABLE_RULE_RESULT_TYPE_CHAINING		0x81 
+#define TABLE_RESULT_TYPE_CHAINING		0x81 
 
 /** Result is 9B of opaque data fields and 8B Context Memory pointer field.
  * Uses for reference counting */
 #define TABLE_RESULT_TYPE_REFERENCE		0x91
 
-	/** Result is 17B of opaque data fields */
+/** Result is 17B of opaque data fields */
 #define TABLE_RESULT_TYPE_OPAQUES		0xB1
 
-/** @} *//* end of FSL_TABLE_RULE_RESULT_TYPES */
+/** @} *//* end of FSL_TABLE_RESULT_TYPES */
 
 
 /**************************************************************************//**
@@ -234,7 +234,7 @@
 	 * Aging is described in \ref FSL_TABLE_ATTRIBUTE_AGT.
 	 * NOTE: This option must not be used unless at table creation
 	 * \ref FSL_TABLE_ATTRIBUTE_TYPE was set to TABLE_ATTRIBUTE_TYPE_EM.
-	 * (i.e. this options is available only in exact match tables)*/
+	 * (i.e. this options is available only in exact match tables). */
 #define TABLE_RULE_TIMESTAMP_AGT_ENABLE	0xC0
 
 /** @} *//* end of FSL_TABLE_RULE_OPTIONS_TIMESTAMP */
@@ -246,7 +246,7 @@
 @Group	FSL_TABLE_KEY_DEFINES Table Rule Key
 @{
 *//***************************************************************************/
-	/** Exact Match key size */
+	/** Exact Match maximum key size in bytes */
 #define TABLE_KEY_EXACT_MATCH_SIZE		124
 	/** Exact Match key Reserved field size in bytes */
 #define TABLE_KEY_EXACT_MATCH_RESERVED_SIZE	4
@@ -261,7 +261,7 @@
 	/** IPv6 LPM key Reserved field size in bytes */
 #define TABLE_KEY_LPM_IPV6_RESERVED_SIZE	107
 
-	/** IPv6 LPM key size */
+	/** MFLU maximum key size in bytes */
 #define TABLE_KEY_MFLU_SIZE			0x38
 	/** MFLU key mask field size in bytes */
 #define TABLE_KEY_MFLU_MASK_SIZE		0x38
@@ -282,34 +282,35 @@
 A general bit that is set in some errors conditions */
 #define TABLE_STATUS_MGCF	0x80000000
 
-/* Parser status are intentionally missing here */
+/** Table function input or output is erroneous  */
+#define TABLE_IO_ERROR		0x80000001
 
-/** CTLU Lookup Miss
+/** CTLU Lookup Miss.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
 #define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
 
-/** Key Composition Error
- * This status is set when a key composition error occurs meaning one of the
+/** Key Composition Error.
+ * This status is set when a key composition error occurs, meaning one of the
  * following:
  * - Invalid Key Composition ID was used.
  * - Key Size Error.
  * */
 #define CTLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
 
-/** Extract Out Of Frame Header
+/** Extract Out Of Frame Header.
  * This status is set if key composition attempts to extract a field which is
  * not in the frame header either because it is placed beyond the first 256
  * bytes of the frame, or because the frame is shorter than the index evaluated
  * for the extraction. */
 #define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
 
-/** Maximum Number Of Chained Lookups Is Reached
+/** Maximum Number Of Chained Lookups Is Reached.
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. */
 #define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
 
-/** Invalid Table ID
+/** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
 #define CTLU_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_CTLU << 24) | \
@@ -319,7 +320,7 @@ A general bit that is set in some errors conditions */
  * */
 #define CTLU_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						TABLE_STATUS_MGCF)
-/** Resource Is Temporarily Not Available
+/** Resource Is Temporarily Not Available.
  * Temporarily Not Available occurs if an other resource is in the process of
  * being freed up. Once the process ends, the resource may be available for new
  * allocation (availability is not guaranteed). */
@@ -330,12 +331,12 @@ A general bit that is set in some errors conditions */
 #define CTLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						TABLE_STATUS_MGCF)
 
-/** MFLU Lookup Miss
+/** MFLU Lookup Miss.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
 #define MFLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_MFLU << 24))
 
-/** Key Composition Error
+/** Key Composition Error.
  * This status is set when a key composition error occurs meaning one of the
  * following:
  * - Invalid Key Composition ID was used.
@@ -343,19 +344,19 @@ A general bit that is set in some errors conditions */
  * */
 #define MFLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_MFLU << 24))
 
-/** Extract Out Of Frame Header
+/** Extract Out Of Frame Header.
  * This status is set if key composition attempts to extract a field which is
  * not in the frame header either because it is placed beyond the first 256
  * bytes of the frame, or because the frame is shorter than the index evaluated
  * for the extraction. */
 #define MFLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_MFLU << 24))
 
-/** Maximum Number Of Chained Lookups Is Reached
+/** Maximum Number Of Chained Lookups Is Reached.
  * This status is set if the number of table lookups performed by the MFLU
  * reached the threshold. */
 #define MFLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_MFLU << 24))
 
-/** Invalid Table ID
+/** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
 #define MFLU_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_MFLU << 24) | \
@@ -365,7 +366,7 @@ A general bit that is set in some errors conditions */
  * */
 #define MFLU_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_MFLU << 24) | \
 						TABLE_STATUS_MGCF)
-/** Resource Is Temporarily Not Available
+/** Resource Is Temporarily Not Available.
  * Temporarily Not Available occurs if an other resource is in the process of
  * being freed up. Once the process ends, the resource may be available for new
  * allocation (availability is not guaranteed). */
@@ -438,20 +439,20 @@ struct table_result_chain_parameters {
 
 
 /**************************************************************************//**
-@Description	\ref ctlu_table_rule_result structure ctlu_op0_refptr_clp field
+@Description	\ref table_result structure ctlu_op0_refptr_clp field.
 
 		This field can be used either:
-		- As an opaque field of 8 bytes (\ref ctlu_table_rule_result
+		- As an opaque field of 8 bytes (\ref table_result
 		type field should be set to
-		\ref CTLU_RULE_RESULT_TYPE_OPAQUES). \n Returned as part of
+		\ref TABLE_RESULT_TYPE_OPAQUES). \n Returned as part of
 		lookup result.
 		- As a pointer to CDMA application context which has a
-		reference counter (\ref ctlu_table_rule_result type field
-		should be set to \ref CTLU_RULE_RESULT_TYPE_REFERENCE). \n
-		Returned as part of lookup result
-		- As a structure containing table ID and key ID parameters for
-		a chained lookup (\ref ctlu_table_rule_result type field
-		should be set to \ref CTLU_RULE_RESULT_TYPE_CHAINING).
+		reference counter (\ref table_result type field
+		should be set to \ref TABLE_RESULT_TYPE_REFERENCE). \n
+		Returned as part of lookup result.
+		- As a structure containing table ID and Key ID parameters for
+		a chained lookup (\ref table_result type field
+		should be set to \ref TABLE_RESULT_TYPE_CHAINING).
 *//***************************************************************************/
 #pragma pack(push, 1)
 union table_result_op0_refptr_clp {
@@ -461,26 +462,26 @@ union table_result_op0_refptr_clp {
 
 	/** Reference Pointer
 	Pointer to CDMA application context.
-	The CTLU increments or decrements the reference counter when necessary.
+	The Table Hardware can increment or decrement the reference counter of
+	the application context on certain operations (please refer to \link
+	FSL_TABLE_Functions Table functions documentation\endlink).\n
 	Returned as part of lookup result. */
 	uint64_t reference_pointer;
 
 	/** Chaining Parameters
 	A structure that contains table ID and key composition ID parameters
-	of the chained lookup. Not available for Rev1 */
+	for the chained lookups. Not available for Rev1 */
 	struct table_result_chain_parameters chain_parameters;
 };
 #pragma pack(pop)
 
 
 /**************************************************************************//**
-@Description	Table Rule Result
+@Description	Table Result
 
-		This structure represents the table rule result. Some of the
-		fields defined here are returned after lookup, see fields
-		specification for more details. \n This structure is used as a
-		part of table rule, but also as a stand alone result (e.g.
-		table miss result).
+		This structure represents the table result. Some of the fields
+		defined here are returned after lookup, see fields
+		specification for more details.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_result {
@@ -496,28 +497,18 @@ struct table_result {
 
 	/** Opaque2
 	Returned as part of lookup result. Not valid when type is set to
-	\ref CTLU_RULE_RESULT_TYPE_CHAINING */
+	\ref TABLE_RESULT_TYPE_CHAINING */
 	uint8_t  opaque2;
 
-	/** Opaque0 or Reference Pointer or Chained Lookup Parameters(N/A for
-	 * Rev1)
-	This field can be used either:
-	- As an opaque field of 8 bytes (type field should be set to
-	\ref TABLE_RESULT_TYPE_OPAQUES). \n Returned as part of lookup
-	result.
-	- As a pointer to CDMA application context which has a reference
-	counter (type field should be set to
-	\ref TABLE_RESULT_TYPE_REFERENCE). \n Returned as part of lookup
-	result.
-	- As a structure containing table ID and key ID parameters for a
-	chained lookup (type field should be set to
-	\ref TABLE_RESULT_TYPE_CHAINING). This is not available for Rev1.
-	*/
+	/** Opaque0 or Reference Pointer or Chained Lookup Parameters.
+	Chained Lookup is not available in Rev1.\n
+	For more details please refer to \link table_result_op0_refptr_clp
+	structure documentation\endlink. */
 	union table_result_op0_refptr_clp op0_rptr_clp;
 
 	/** Opaque1
 	Returned as part of lookup result. Not valid when type is set to
-	CTLU_RULE_RESULT_TYPE_CHAINING */
+	\ref TABLE_RESULT_TYPE_CHAINING */
 	uint64_t opaque1;
 };
 #pragma pack(pop)
@@ -532,8 +523,8 @@ struct table_key_exact_match {
 	uint8_t  key[TABLE_KEY_EXACT_MATCH_SIZE];
 
 	/** Reserved
-	 * Reserved for compliance with HW format.
-	 * User should not access this field. */
+	Reserved for compliance with HW format.
+	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_EXACT_MATCH_RESERVED_SIZE];
 };
 #pragma pack(pop)
@@ -558,8 +549,8 @@ struct table_key_lpm_ipv4 {
 	uint8_t  prefix_length;
 
 	/** Reserved
-	 * Reserved for compliance with HW format.
-	 * User should not access this field. */
+	Reserved for compliance with HW format.
+	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
 };
 #pragma pack(pop)
@@ -587,8 +578,8 @@ struct table_key_lpm_ipv6 {
 	uint8_t  prefix_length;
 
 	/** Reserved
-	 * Reserved for compliance with HW format.
-	 * User should not access this field. */
+	Reserved for compliance with HW format.
+	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_LPM_IPV6_RESERVED_SIZE];
 };
 #pragma pack(pop)
@@ -603,30 +594,30 @@ struct table_key_mflu {
 	uint8_t  key[TABLE_KEY_MFLU_SIZE];
 
 	/** Reserved
-	 * Reserved for compliance with HW format.
-	 * User should not access this field. */
+	Reserved for compliance with HW format.
+	User should not access this field. */
 	uint32_t reserved0;
 
 	/** Priority 
-	 * priority determines the selection between two rule that match in the
-	 * MFLU lookup.
-	 * 0x00000000 is the highest priority.*/
+	priority determines the selection between two rule that match in the
+	MFLU lookup.
+	0x00000000 is the highest priority.*/
 	uint32_t priority;
 
 	/** Key mask 
-	 * Each byte in the mask must have contiguous ‘1’s in the MSbits.
-	 * Therefore there are 9 valid values for each byte in the mask:
-	 *  - 0x00: The entire byte is masked
-	 *  - 0x80: The MSbit in this byte is not masked
-	 *  - 0xC0: The 2 MSbits in this byte are not masked
-	 *  - ...
-	 *  - 0xFE: The 7 MSbits in this byte are not masked
-	 *  - 0xFF: The entire byte is not masked */
+	Each byte in the mask must have contiguous ‘1’s in the MSbits.
+	Therefore there are 9 valid values for each byte in the mask:
+	 - 0x00: The entire byte is masked
+	 - 0x80: The MSbit in this byte is not masked
+	 - 0xC0: The 2 MSbits in this byte are not masked
+	 - ...
+	 - 0xFE: The 7 MSbits in this byte are not masked
+	 - 0xFF: The entire byte is not masked */
 	uint8_t  mask[TABLE_KEY_MFLU_MASK_SIZE];
 
 	/** Reserved
-	 * Reserved for compliance with HW format.
-	 * User should not access this field. */
+	Reserved for compliance with HW format.
+	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_MFLU_RESERVED1_SIZE];
 };
 #pragma pack(pop)
@@ -643,19 +634,19 @@ struct table_key_mflu {
 *//***************************************************************************/
 union table_key {
 	/** Exact Match Key
-	 * Should only be used with CTLU Hardware Table Accelerator */
+	Should only be used with CTLU Hardware Table Accelerator */
 	struct table_key_exact_match em;
 
 	/** LPM IPv4 Key
-	* Should only be used with CTLU Hardware Table Accelerator */
+	Should only be used with CTLU Hardware Table Accelerator */
 	struct table_key_lpm_ipv4    lpm_ipv4;
 
 	/** LPM IPv6 Key
-	 * Should only be used with CTLU Hardware Table Accelerator */
+	Should only be used with CTLU Hardware Table Accelerator */
 	struct table_key_lpm_ipv6    lpm_ipv6;
 
 	/** LPM IPv6 Key
-	 * Should only be used with MFLU Hardware Table Accelerator */
+	Should only be used with MFLU Hardware Table Accelerator */
 	struct table_key_mflu        mflu;
 };
 
@@ -679,7 +670,7 @@ struct table_rule {
 	uint64_t reserved0;
 
 	/** Table Rule flags
-	Please refer to \link FSL_CTLU_TABLE_RULE_OPTIONS table rule options
+	Please refer to \link FSL_TABLE_RULE_OPTIONS table rule options
 	\endlink for more details.*/
 	uint8_t  options;
 
@@ -753,15 +744,15 @@ struct table_lookup_key_lpm_ipv4 {
 	uint32_t addr;
 
 	/** Maximum Prefix
-	 * Defines the maximum IP address prefix length for this search.
-	 * The CTLU does not search for a prefix length larger than max_prefix.
-	 * For lookup on all prefixes prefix_length = 0xFF. This field must
-	 * be > 1 */
+	Defines the maximum IP address prefix length for this search.
+	The CTLU does not search for a prefix length larger than max_prefix.
+	For lookup on all prefixes prefix_length = 0xFF. This field must
+	be > 1 */
 	uint8_t	 max_prefix;
 
 	/** Reserved
-	 * Reserved for compliance with HW format.
-	 * User should not access this field. */
+	Reserved for compliance with HW format.
+	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
 };
 #pragma pack(pop)
@@ -785,10 +776,10 @@ struct table_lookup_key_lpm_ipv6 {
 	uint64_t addr1;
 
 	/** Maximum Prefix
-	 * Defines the maximum IP address prefix length for this search.
-	 * The CTLU does not search for a prefix length larger than max_prefix.
-	 * For lookup on all prefixes prefix_length = 0xFF. This field must
-	 * be > 1 */
+	Defines the maximum IP address prefix length for this search.
+	The CTLU does not search for a prefix length larger than max_prefix.
+	For lookup on all prefixes prefix_length = 0xFF. This field must
+	be > 1 */
 	uint8_t  max_prefix;
 };
 #pragma pack(pop)
@@ -803,15 +794,15 @@ struct table_lookup_key_mflu {
 	uint8_t  key[TABLE_KEY_MFLU_SIZE];
 
 	/** Reserved
-	 * Reserved for compliance with HW format.
-	 * User should not access this field. */
+	Reserved for compliance with HW format.
+	User should not access this field. */
 	uint32_t reserved0;
 
 	/** Maximum Priority 
-	 * defines the maximum priority for the lookup operation.
-	 * Rules with lower priority will not be matched. 0 is the lowest
-	 * priority, 0xFFFFFFFF is the highest priority.
-	 * For lookup of all priorities assign 0 to this field. */
+	defines the maximum priority for the lookup operation.
+	Rules with lower priority will not be matched. 0 is the lowest
+	priority, 0xFFFFFFFF is the highest priority.
+	For lookup of all priorities assign 0 to this field. */
 	uint32_t max_priority;
 };
 #pragma pack(pop)
@@ -829,25 +820,25 @@ struct table_lookup_key_mflu {
 *//***************************************************************************/
 union table_lookup_key {
 	/** Exact Match Key
-	 * Should only be used with CTLU Hardware Table Accelerator and tables
-	 * of type \ref TABLE_ATTRIBUTE_TYPE_EM */
+	Should only be used with CTLU Hardware Table Accelerator and tables
+	of type \ref TABLE_ATTRIBUTE_TYPE_EM */
 	void                             *em;
 
 	/** LPM IPv4 Key
-	 * Should only be used with CTLU Hardware Table Accelerator and tables
-	 * of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
-	 * \ref TABLE_KEY_LPM_IPV4_SIZE key size. */
+	Should only be used with CTLU Hardware Table Accelerator and tables
+	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	\ref TABLE_KEY_LPM_IPV4_SIZE key size. */
 	struct table_lookup_key_lpm_ipv4 *lpm_ipv4;
 
 	/** LPM IPv6 Key
-	 * Should only be used with CTLU Hardware Table Accelerator and tables
-	 * of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
-	 * \ref TABLE_KEY_LPM_IPV6_SIZE key size. */
+	Should only be used with CTLU Hardware Table Accelerator and tables
+	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	\ref TABLE_KEY_LPM_IPV6_SIZE key size. */
 	struct table_lookup_key_lpm_ipv6 *lpm_ipv6;
 
 	/** MFLU Key
-	 * Should only be used with MFLU Hardware Table Accelerator and tables
-	 * of type \ref TABLE_ATTRIBUTE_TYPE_MFLU. */
+	Should only be used with MFLU Hardware Table Accelerator and tables
+	of type \ref TABLE_ATTRIBUTE_TYPE_MFLU. */
 	struct table_lookup_key_mflu     *mflu;
 };
 
@@ -1011,6 +1002,10 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	Not available for MFLU table accelerator.
+		NOTE: If the result is of type that contains pointer to CDMA
+		application buffer (refer to struct table_rule_result
+		documentation) this function will not increment the reference
+		counter of the buffer.
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
@@ -1154,7 +1149,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	NOTE: If the result is of type that contains pointer to CDMA
-		application buffer (refer to struct ctlu_table_rule_result
+		application buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
 		counter of the buffer. For query functions that does increment
 		the reference counter please refer to table lookup function.

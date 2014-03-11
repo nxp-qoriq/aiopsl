@@ -270,12 +270,37 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dpbp</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpcon</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpio</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpmac</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpni</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dprc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpsw</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -315,6 +340,26 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dpbp/dpbp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpbp/dpbp.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpcon/dpcon.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpcon/dpcon.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpio/dpio.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpio/dpio.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpmac/dpmac.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpmac/dpmac.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib//dpni/dpni.c</locationURI>
@@ -348,6 +393,11 @@
 			<name>aiop_sl/drivers/dplib/dprc/dprc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpsw/dpsw.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpsw/dpsw.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
@@ -510,11 +560,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/netf/ip/ipv4_checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipv4_checksum.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/netf/l2/l2.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/l2/l2.c</locationURI>
@@ -543,11 +588,6 @@
 			<name>aiop_sl/drivers/dplib/netf/l4/l4.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/l4/l4.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/netf/l4/l4_checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/l4/l4_checksum.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/nat/nat.c</name>

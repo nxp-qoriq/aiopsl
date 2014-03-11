@@ -1,4 +1,23 @@
 
+SL Pre-Alpha v0.3.1  Change Log
+
+ipr.h + ipr.c: IP checksum fix. use new fdma function. Fix reassembly with more than 2 fragments. 
+dpni_drv.h: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_nii
+dpni_drv_rxtx.c: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_niid
+fsl_osm.h + osm.h: The order scope execution phase values was changed according to archdef_0.7.2 (0 = Concurrent mode, 1 = Exclusive mode).
+fsl_cdma.h + cdma.c: Added cdma_refcount_get(). This routine returns the current value of reference count.
+general.h: Added new macro (ADC_GET_ICID) to get ICID field.
+
+fsl_fdma.h: 
+	• Adjust to ArchDef 0.7.2:
+		• Add AS flag (indicates usage of default AMQ attributes) to commands which present a frame (fdma_present_default_frame(), fdma_present_frame()).
+		• Remove BMT (Bypass the Memory Translation) flag from Enqueue FD commands(fdma_enqueue_default_fd_fqid(), fdma_enqueue_fd_fqid(), fdma_enqueue_default_fd_qd(), fdma_enqueue_fd_qd()).
+		• Change fdma_isolation_attributes structure field name: bdi_icid -> icid.
+		• Remove flags parameter from fdma_read_default_frame_asa() SR.
+	• Change fdma_queueing_destination_params structure field name: hash_value -> qdbin (HW alignmnet).
+	
+fsl_ipsec.h: unified hmo and options fields, changed callback type to void
+
 SL Pre-Alpha v0.3  Change Log
 
 

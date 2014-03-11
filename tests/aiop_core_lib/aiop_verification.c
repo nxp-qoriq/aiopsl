@@ -10,7 +10,6 @@
 
 #include "aiop_verification.h"
 
-
 void aiop_verification()
 {
 	/* Presentation Context */
@@ -21,7 +20,6 @@ void aiop_verification()
 	uint16_t str_size;
 	uint32_t opcode;
 
-
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
 
@@ -29,6 +27,11 @@ void aiop_verification()
 	asa_seg_addr = (uint32_t)(PRC->asapa_asaps & PRC_ASAPA_MASK);
 	/* shift size by 6 since the size is in 64bytes (2^6 = 64) quantities */
 	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK) << 6;
+	
+	/* initialize profile sram */
+	/* This is a temporary function and has to be used only until 
+			 * the ARENA will initialize the profile sram */
+	init_profile_sram();
 
 	/* The condition is for back up only.
 	In case the ASA was written correctly the Terminate command will
@@ -38,48 +41,53 @@ void aiop_verification()
 
 		switch ((opcode & ACCEL_ID_CMD_MASK) >> 16) {
 
-		case FPDMA_ACCEL_ID:
-		case FODMA_ACCEL_ID:
+		case FPDMA_MODULE:
+		case FODMA_MODULE:
 		{
 			str_size = aiop_verification_fdma(asa_seg_addr);
 			break;
 		}
-		case TMAN_ACCEL_ID:
+		case TMAN_MODULE:
 		{
 			str_size = aiop_verification_tman(asa_seg_addr);
 			break;
 		}
-		case STE_VERIF_ACCEL_ID:
+		case STE_MODULE:
 		{
 			str_size = aiop_verification_ste(asa_seg_addr);
 			break;
 		}
-		case CDMA_ACCEL_ID:
+		case CDMA_MODULE:
 		{
 			str_size = aiop_verification_cdma(asa_seg_addr);
 			break;
 		}
-		case TABLE_ACCEL_ID_CTLU:
+		case TABLE_MODULE:
 		{
-			str_size = aiop_verification_ctlu(asa_seg_addr);
+			str_size = aiop_verification_table(asa_seg_addr);
 			break;
 		}
-		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
+		case KEYGEN_MODULE:
+		{
+			str_size = aiop_verification_keygen(asa_seg_addr);
+			break;
+		}
+		case PARSE_MODULE:
 		{
 			str_size = aiop_verification_parser(asa_seg_addr);
 			break;
 		}
-		case HM_VERIF_ACCEL_ID:
+		case HM_MODULE:
 		{
 			str_size = aiop_verification_hm(asa_seg_addr);
 			break;
 		}
-		case VPOOL_ACCEL_ID:
+		case VPOOL_MODULE:
 		{
 			str_size = verification_virtual_pools(asa_seg_addr);
 			break;
 		}
-		case AIOP_TERMINATE_FLOW_CMD:
+		case TERMINATE_FLOW_MODULE:
 		default:
 		{
 			fdma_terminate_task();

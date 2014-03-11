@@ -11,12 +11,6 @@
 #define __ERR_MODULE__  MODULE_DPNI
 
 
-extern __TASK uint8_t CURRENT_SCOPE_LEVEL;
-extern __TASK uint8_t SCOPE_MODE_LEVEL1;
-extern __TASK uint8_t SCOPE_MODE_LEVEL2;
-extern __TASK uint8_t SCOPE_MODE_LEVEL3;
-extern __TASK uint8_t SCOPE_MODE_LEVEL4;
-
 extern __TASK struct aiop_default_task_params default_task_params;
 
 /* TODO - get rid */
@@ -39,6 +33,7 @@ __HOT_CODE void receive_cb(void)
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
 
 	osm_task_init();
+	default_task_params.receive_niid = dpni_drv->aiop_niid;
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
 	default_task_params.parser_profile_id = dpni_drv->prpid;
 	default_task_params.parser_starting_hxs \
@@ -126,3 +121,25 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	err = (int)fdma_enqueue_fd_qd(fd, flags, &enqueue_params, icid);
 	return err;
 }
+
+/* TODO : replace by macros/inline funcs */
+__HOT_CODE int dpni_get_receive_niid(void)
+{
+	return((int)default_task_params.receive_niid);
+}
+
+
+/* TODO : replace by macros/inline funcs */
+__HOT_CODE int dpni_set_send_niid(uint16_t niid)
+{
+	default_task_params.send_niid = niid;
+	return 0;
+}
+
+
+/* TODO : replace by macros/inline funcs */
+__HOT_CODE int dpni_get_send_niid(void)
+{
+	return((int)default_task_params.send_niid);
+}
+

@@ -66,84 +66,90 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_SET_TP_SRC,
 	HM_CMDTYPE_SET_TP_DST,
 	HM_CMDTYPE_PUSH_VLAN,
-	HM_CMDTYPE_POP_VLAN
+	HM_CMDTYPE_POP_VLAN,
+	HM_CMDTYPE_IP_CKSUM_CALCULATE,
+	HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC
 };
 
 /* HM Commands Structure identifiers */
 
-#define HM_VERIF_INIT_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_VERIF_INIT_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_VERIF_INIT)
 
-#define HM_L2_HEADER_REMOVE_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_L2_HEADER_REMOVE_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_L2_HEADER_REMOVE)
 
-#define HM_VLAN_HEADER_REMOVE_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_VLAN_HEADER_REMOVE_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_VLAN_HEADER_REMOVE)
 
-#define HM_IPV4_MODIFICATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IPV4_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV4_MODIFICATION)
 
-#define HM_IPV6_MODIFICATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IPV6_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV6_MODIFICATION)
 
-#define HM_IPV4_ENCAPSULATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IPV4_ENCAPSULATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV4_ENCAPSULATION)
 
-#define HM_IPV6_ENCAPSULATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IPV6_ENCAPSULATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV6_ENCAPSULATION)
 
-#define HM_IPV4_EXT_ENCAPSULATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IPV4_EXT_ENCAPSULATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_EXT_IPV4_ENCAPSULATION)
 
-#define HM_IPV6_EXT_ENCAPSULATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IPV6_EXT_ENCAPSULATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_EXT_IPV6_ENCAPSULATION)
 
-#define HM_IP_DECAPSULATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IP_DECAPSULATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IP_DECAPSULATION)
 
-#define HM_UDP_MODIFICATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_UDP_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_UDP_MODIFICATION)
 
-#define HM_TCP_MODIFICATION_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_TCP_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_TCP_MODIFICATION)
 
-#define HM_NAT_IPV4_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_NAT_IPV4_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_NAT_IPV4)
 
-#define HM_NAT_IPV6_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_NAT_IPV6_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_NAT_IPV6)
 
-#define HM_SET_VLAN_VID_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_VLAN_VID_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_VLAN_VID)
 
-#define HM_SET_VLAN_PCP_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_VLAN_PCP_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_VLAN_PCP)
 
-#define HM_SET_DL_SRC_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_DL_SRC_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_DL_SRC)
 
-#define HM_SET_DL_DST_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_DL_DST_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_DL_DST)
 
-#define HM_SET_NW_SRC_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_NW_SRC_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_NW_SRC)
 
-#define HM_SET_NW_DST_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_NW_DST_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_NW_DST)
 
-#define HM_SET_TP_SRC_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_TP_SRC_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_TP_SRC)
 
-#define HM_SET_TP_DST_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_SET_TP_DST_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_TP_DST)
 
-#define HM_PUSH_VLAN_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_PUSH_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_PUSH_VLAN)
 
-#define HM_POP_VLAN_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_POP_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
 
+#define HM_IP_CKSUM_CALCULATE_CMD_STR		((HM_VERIF_ACCEL_ID << 16) | \
+		(uint32_t)HM_CMDTYPE_IP_CKSUM_CALCULATE)
 
+#define HM_L4_UDP_TCP_CKSUM_CALC_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+		(uint32_t)HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC)
 
 /**************************************************************************//**
 @Description	HM verification init Command structure.
@@ -414,7 +420,28 @@ struct hm_pop_vlan_command {
 	int32_t		status;
 };
 
+/**************************************************************************//**
+@Description	Calculate IPv4 Header Checksum Command structure.
 
+		Includes information needed for Checksum Commands verification.
+*//***************************************************************************/
+struct hm_ip_cksum_calculation_command {
+	uint32_t opcode;
+	int32_t  status;
+	uint32_t ipv4header;
+	uint8_t  flags;
+};
+
+/**************************************************************************//**
+@Description	Calculate UDP TCP Checksum Command structure.
+
+		Includes information needed for Checksum Commands verification.
+*//***************************************************************************/
+struct hm_l4_udp_tcp_cksum_calc_command {
+	uint32_t opcode;
+	int32_t  status;
+	uint8_t  flags;
+};
 
 void aiop_hm_init_parser();
 

@@ -4,19 +4,20 @@
 @Description	This file contains the layer 4 header modification API
 		implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "general.h"
 #include "net/fsl_net.h"
 #include "dplib/fsl_parser.h"
+#include "parser.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_l4.h"
 #include "dplib/fsl_cdma.h"
-#include "dplib/fsl_l4_checksum.h"
 #include "checksum.h"
 #include "header_modification.h"
 
+extern __TASK struct aiop_default_task_params default_task_params;
 
 int32_t l4_udp_header_modification(uint8_t flags,
 		uint16_t udp_src_port, uint16_t udp_dst_port)
@@ -39,7 +40,7 @@ int32_t l4_udp_header_modification(uint8_t flags,
 			/* TODO checksum 0.6 API
 			cksum_calc_udp_tcp_checksum(); */
 			l4_udp_tcp_cksum_calc(
-				L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE);
+				L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA);
 		} else {
 			cksum_update_uint32(&udp_ptr->checksum,
 					    old_header,
@@ -189,46 +190,67 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 
 int32_t l4_set_tp_src(uint16_t src_port)
 {
-	uint16_t tcphdr_offset;
+	uint16_t l4_offset;
 	struct   tcphdr *tcphdr_ptr;
+	struct   udphdr *udphdr_ptr;
 	struct   parse_result *pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
+	l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
 
 	if (PARSER_IS_TCP_DEFAULT()) {
-		tcphdr_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		tcphdr_ptr = (struct tcphdr *) ((uint16_t)tcphdr_offset
+		tcphdr_ptr = (struct tcphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
 
 		cksum_update_uint32(&tcphdr_ptr->checksum,
-							tcphdr_ptr->src_port,
-							src_port);
+				    tcphdr_ptr->src_port,
+				    src_port);
 
 		tcphdr_ptr->src_port = src_port;
 
 		/* update FDMA */
-		fdma_modify_default_segment_data(tcphdr_offset, 18);
+		fdma_modify_default_segment_data(l4_offset, 18);
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
 		return SUCCESS;
+	} else if(PARSER_IS_UDP_DEFAULT()){
+		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
+				+ PRC_GET_SEGMENT_ADDRESS());
+
+		cksum_update_uint32(&udphdr_ptr->checksum,
+				    udphdr_ptr->src_port,
+				    src_port);
+
+		udphdr_ptr->src_port = src_port;
+
+		/* update FDMA */
+		fdma_modify_default_segment_data(l4_offset, 8);
+		/* Invalidate gross running sum */
+		pr->gross_running_sum = 0;
+
+		
+		return SUCCESS;
 	} else {
-		return NO_TCP_FOUND_ERROR; }
+		return NO_L4_FOUND_ERROR;
+	}
 
 }
 
 int32_t l4_set_tp_dst(uint16_t dst_port)
 {
-	uint16_t tcphdr_offset;
+	uint16_t l4_offset;
 	struct   tcphdr *tcphdr_ptr;
+	struct   udphdr *udphdr_ptr;
 	struct   parse_result *pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 
+	l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
+
 	if (PARSER_IS_TCP_DEFAULT()) {
-		tcphdr_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		tcphdr_ptr = (struct tcphdr *) ((uint16_t)tcphdr_offset
+		tcphdr_ptr = (struct tcphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
 		cksum_update_uint32(&tcphdr_ptr->checksum,
@@ -238,12 +260,102 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 		tcphdr_ptr->dst_port = dst_port;
 
 		/* update FDMA */
-		fdma_modify_default_segment_data(tcphdr_offset+2, 16);
+		fdma_modify_default_segment_data(l4_offset+2, 18);
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
 		return SUCCESS;
+	} else if(PARSER_IS_UDP_DEFAULT()){
+		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
+				+ PRC_GET_SEGMENT_ADDRESS());
+
+		cksum_update_uint32(&udphdr_ptr->checksum,
+				    udphdr_ptr->dst_port,
+				    dst_port);
+
+		udphdr_ptr->dst_port = dst_port;
+
+		/* update FDMA */
+		fdma_modify_default_segment_data(l4_offset, 8);
+		/* Invalidate gross running sum */
+		pr->gross_running_sum = 0;
+
+		
+		return SUCCESS;
 	} else {
-		return NO_TCP_FOUND_ERROR; }
+		return NO_L4_FOUND_ERROR;
+	}
 
 }
+
+
+int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
+{
+	uint16_t	l3checksum_dummy;
+	uint16_t	l4checksum;
+	uint16_t	l4offset;
+	int32_t		hw_status;
+	struct tcphdr	*tcph;
+	struct udphdr	*udph;
+	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
+	/* Check if TCP or UDP*/
+	if (!PARSER_IS_TCP_OR_UDP_DEFAULT()) /* TODO ask vortiqa if this can
+	 be removed */
+		return NO_L4_FOUND_ERROR;
+
+	/* Check if Gross Running Sum calculation is needed */
+	if (!pr->gross_running_sum) {
+		hw_status = fdma_calculate_default_frame_checksum(0, 0xFFFF,
+					&pr->gross_running_sum);
+		if (FDMA_CHECKSUM_SUCCESS != hw_status) {
+			return hw_status;
+		}
+	}
+
+	/* Call parser */
+	hw_status = parse_result_generate_checksum(
+			(enum parser_starting_hxs_code)
+			    default_task_params.parser_starting_hxs,
+			0,
+			&l3checksum_dummy,
+			&l4checksum);
+	if (PARSER_STATUS_PASS != hw_status) {
+		return hw_status;
+	}
+
+	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
+
+	if (PARSER_IS_TCP_DEFAULT()) {
+		/* Point to the TCP header */
+		tcph = (struct tcphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
+
+		/* Invalidate Parser Result Gross Running Sum field */
+		pr->gross_running_sum = 0;
+
+		/* Write checksum to TCP header */
+		tcph->checksum = l4checksum;
+	} /* TCP */
+	else {
+		/* Point to the UDP header */
+		udph = (struct udphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
+
+		/* Invalidate Parser Result Gross Running Sum field */
+		pr->gross_running_sum = 0;
+
+		/* Write checksum to UDP header */
+		udph->checksum = l4checksum;
+	} /* UDP */
+
+	/* Update FDMA */
+	if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
+		hw_status = fdma_modify_default_segment_data(l4offset,
+				sizeof ((struct udphdr*)0)->checksum);
+		if (hw_status != FDMA_CHECKSUM_SUCCESS){
+			return hw_status;
+		}
+	}
+
+	return SUCCESS;
+}
+

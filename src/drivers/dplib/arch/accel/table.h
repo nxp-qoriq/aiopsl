@@ -1,118 +1,115 @@
 /**************************************************************************//**
-@File		ctlu.h
+@File		table.h
 
-@Description	This file contains the AIOP SW CTLU API
+@Description	This file contains the AIOP SW Table API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#ifndef __CTLU_H
-#define __CTLU_H
+#ifndef __TABLE_H
+#define __TABLE_H
 
 #include "general.h"
 #include "dplib/fsl_table.h"
 
 /**************************************************************************//**
-@Group	CTLU CTLU (Internal)
+@Group	TABLE Table (Internal)
 
-@Description	AIOP CTLU API
-
-@{
-*//***************************************************************************/
-
-/**************************************************************************//**
-@Group	CTLU_MACROS CTLU Macros
-
-@Description	AIOP CTLU Macros
+@Description	AIOP Table API
 
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	CTLU_RULE_RESULT_CONSTANTS CTLU Table Rule Result Constants
+@Group	TABLE_MACROS Table Macros
+
+@Description	AIOP Table Macros
+
 @{
 *//***************************************************************************/
-/** Rule Result Size Constant */
-#define CTLU_FCV_RESULT_SIZE 20
 
+/**************************************************************************//**
+@Group	TABLE_RULE_RESULT_CONSTANTS Table Rule Result Constants
+@{
+*//***************************************************************************/
 /** Uses for masking of opaque1 & opaque2 valid bits*/
-#define CTLU_TLUR_OPAQUE_VALID_BITS_MASK	0x01FF
+#define TABLE_TLUR_OPAQUE_VALID_BITS_MASK	0x01FF
 
 /** Uses for masking of Table ID, Key ID valid bit*/
-#define CTLU_TLUR_TKIDV_BIT_MASK		0x02000000
+#define TABLE_TLUR_TKIDV_BIT_MASK		0x02000000
 
 /** Table old result reserved space */
-#define CTLU_TABLE_OLD_RESULT_RESERVED_SPACE	44
+#define TABLE_OLD_RESULT_RESERVED_SPACE		44
 
-/** @} */ /* end of AIOP_CTLU_RULE_RESULT_CONSTANTS */
+/** @} */ /* end of TABLE_RULE_RESULT_CONSTANTS */
 
 /**************************************************************************//**
-@Group	CTLU_ENTRY_MACROS CTLU Entry Macros
+@Group	TABLE_ENTRY_MACROS Table Entry Macros
 @{
 *//***************************************************************************/
 /** Entry type Entype field mask */
-#define CTLU_TABLE_ENTRY_ENTYPE_FIELD_MASK			0x0F
+#define TABLE_ENTRY_ENTYPE_FIELD_MASK			0x0F
 
 /** Entry type Entype EME24 */
-#define CTLU_TABLE_ENTRY_ENTYPE_EME24				0x01
+#define TABLE_ENTRY_ENTYPE_EME24			0x01
 
 /** Entry type Entype EME16 */
-#define CTLU_TABLE_ENTRY_ENTYPE_EME16				0x03
+#define TABLE_ENTRY_ENTYPE_EME16			0x03
 
 /** Entry type Entype LPM Result*/
-#define CTLU_TABLE_ENTRY_ENTYPE_LPM_RES				0x05
-
-/** EME24 Lookup Key field size. */
-#define CTLU_TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE			24
+#define TABLE_ENTRY_ENTYPE_LPM_RES			0x05
 
 /** EME16 Lookup Key field size. */
-#define CTLU_TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE			16
+#define TABLE_ENTRY_EME44_LOOKUP_KEY_SIZE		44
+
+/** EME16 Lookup Key field size. */
+#define TABLE_ENTRY_EME36_LOOKUP_KEY_SIZE		36
+
+/** EME16 Lookup Key field size. */
+#define TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE		16
+
+/** EME24 Lookup Key field size. */
+#define TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE		24
 
 /** LPM Result Entry Lookup Key field size. */
-#define CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE		24
+#define TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE		24
 
 /** MFLU Rule Entry Lookup Key field size. */
-#define CTLU_TABLE_ENTRY_MFLU_RULE_LOOKUP_KEY_SIZE		32
+#define TABLE_ENTRY_MFLU_RULE_LOOKUP_KEY_SIZE		32
 
 /** MFLU Result Entry Lookup Key field size. */
-#define CTLU_TABLE_ENTRY_MFLU_RES_LOOKUP_KEY_SIZE		16
+#define TABLE_ENTRY_MFLU_RES_LOOKUP_KEY_SIZE		16
 
-/** @} */ /* end of CTLU_ENTRY_MACROS */
+/** @} */ /* end of TABLE_ENTRY_MACROS */
 
 /**************************************************************************//**
-@Group	CTLU_RULE_ENTRY_MACROS CTLU Rule-Entry related Macros
+@Group	TABLE_RULE_ENTRY_MACROS Table Rule-Entry related Macros
 @{
 *//***************************************************************************/
 /** Max size of LPM IPv4 rule's key including the exact match field.
  * including prefix length. */
-#define CTLU_MAX_LPM_EM4_IPV4_KEY_SIZE				9
+#define TABLE_LPM_EM4_IPV4_KEY_SIZE				9
 
 /** Max size of LPM IPv6 rule's key including the exact match field.
  * including prefix length. */
-#define CTLU_MAX_LPM_EM4_IPV6_KEY_SIZE				21
+#define TABLE_LPM_EM4_IPV6_KEY_SIZE				21
 
-/** The key size available for a rule that occupies a single entry */
-#define CTLU_SINGLE_ENTRY_RULE_KEY_SIZE				24
-
-/** Key size in entry that is the last one in a chain of entries */
-#define CTLU_MULTIPLE_ENTRY_RULE_LAST_ENTRY_KEY_SIZE		16
-
-/** Key size in entry that isn't the last one in a chain of entries */
-#define CTLU_MULTIPLE_ENTRY_RULE_NON_LAST_ENTRY_KEY_SIZE	36
-
-/** Number of entries needed for IPv4 LPM rule in best scenario */
-#define CTLU_LPM_IPV4_BC_ENTRIES_PER_RULE			2
+/** MFLU small key (lead node takes 2 entries) max size */
+#define TABLE_MFLU_SMALL_KEY_MAX_SIZE				42
 
 /** Number of entries needed for IPv4 LPM rule in worst case */
-#define CTLU_LPM_IPV4_WC_ENTRIES_PER_RULE			5
+#define TABLE_LPM_IPV4_WC_ENTRIES_PER_RULE			5
 
-/** Number of entries needed for IPv6 LPM rule in best scenario */
-#define CTLU_LPM_IPV6_BC_ENTRIES_PER_RULE			2
+/** Number of entries needed for IPv6 LPM rule in worst case */
+#define TABLE_LPM_IPV6_WC_ENTRIES_PER_RULE			9
 
-/** Number of entries needed for IPv4 LPM rule in worst case */
-#define CTLU_LPM_IPV6_WC_ENTRIES_PER_RULE			9
+/** Number of entries needed for MFLU rule for small key in worst case */
+#define TABLE_MFLU_SMALL_KEY_WC_ENTRIES_PER_RULE		3
 
-/** @} */ /* end of CTLU_RULE_ENTRY_MACROS */
+/** Number of entries needed for MFLU rule for big key in worst case */
+#define TABLE_MFLU_BIG_KEY_WC_ENTRIES_PER_RULE			4
+
+/** @} */ /* end of TABLE_RULE_ENTRY_MACROS */
 
 /**************************************************************************//**
 @Group	TABLE_MTYPE HW Table Accelerator Message Types
@@ -158,64 +155,63 @@
 	With timestamp and reference counter update. Single search only. */
 #define TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE		0x0069
 
-	/** CTLU Entry create or replace */
-#define CTLU_ENTRY_CREATE_OR_REPLACE_MTYPE			0x005C
-	/** CTLU Entry create or replace UniqueID */
-#define CTLU_ENTRY_CREATE_OR_REPLACE_UNIQUEID_MTYPE		0x005D
-	/** CTLU Entry delete always */
-#define CTLU_ENTRY_DELETE_ALWAYS_MTYPE				0x0052
-	/** CTLU Entry delete if aged */
-#define CTLU_ENTRY_DELETE_IF_AGED_MTYPE				0x005A
-	/** CTLU Entry query */
-#define CTLU_ENTRY_QUERY_MTYPE					0x0053
-	/** CTLU Entry query hash + uniqueID */
-#define CTLU_ENTRY_QUERY_HASH_UNIQUEID_MTYPE			0x005B
+	/** Table Entry create or replace */
+#define TABLE_ENTRY_CREATE_OR_REPLACE_MTYPE			0x005C
+	/** Table Entry create or replace UniqueID */
+#define TABLE_ENTRY_CREATE_OR_REPLACE_UNIQUEID_MTYPE		0x005D
+	/** Table Entry delete always */
+#define TABLE_ENTRY_DELETE_ALWAYS_MTYPE				0x0052
+	/** Table Entry delete if aged */
+#define TABLE_ENTRY_DELETE_IF_AGED_MTYPE			0x005A
+	/** Table Entry query */
+#define TABLE_ENTRY_QUERY_MTYPE					0x0053
+	/** Table Entry query hash + uniqueID */
+#define TABLE_ENTRY_QUERY_HASH_UNIQUEID_MTYPE			0x005B
 
-	/** CTLU Acquire Semaphore */
+	/** Table Acquire Semaphore */
 #define TABLE_ACQUIRE_SEMAPHORE_MTYPE				0x00B0
-	/** CTLU Release Semaphore */
+	/** Table Release Semaphore */
 #define TABLE_RELEASE_SEMAPHORE_MTYPE				0x00B1
 
-/** @} */ /* end of CTLU_MTYPE */
+/** @} */ /* end of TABLE_MTYPE */
 
 /**************************************************************************//**
-@Group	CTLU_TBL_CREATE CTLU Table Create specific constants
+@Group	TABLE_CREATE Table Create specific constants
 @{
 *//***************************************************************************/
 	/** Table create input message reserved space */
-#define CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE	140
+#define TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE	140
 
 	/** BDI mask in table create ICID field */
-#define CTLU_TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK	0x8000
+#define TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK	0x8000
 
-/** @} */ /* end of CTLU_TBL_CREATE */
+/** @} */ /* end of TABLE_CREATE */
 
 /**************************************************************************//**
-@Group	CTLU_TBL_RULE_QUERY CTLU Table Query specific constants
+@Group	TABLE_QUERY Table Query specific constants
 @{
 *//***************************************************************************/
-	/** Table create input message reserved space */
-#define CTLU_TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	16
+	/** Table query output message reserved space */
+#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	16
 
-/** @} */ /* end of CTLU_TBL_RULE_QUERY */
+/** @} */ /* end of TABLE_QUERY */
 
 /**************************************************************************//**
-@Group	CTLU_TBL_PARAMS_REPLACE CTLU Table Parameters Replace specific \
-	 constants
+@Group	TABLE_PARAMS_REPLACE Table Parameters Replace specific constants
 @{
 *//***************************************************************************/
 	/** Table parameter replace input message reserved space */
 #define TABLE_PARAMS_REPLACE_INPUT_MESSAGE_RESERVED_SPACE	44
 
-/** @} */ /* end of CTLU_TBL_PARAMS_REPLACE */
+/** @} */ /* end of TABLE_PARAMS_REPLACE */
 
-/** @} */ /* end of CTLU_MACROS */
+/** @} */ /* end of TABLE_MACROS */
 
 
 /**************************************************************************//**
-@Group		CTLU_STRUCTS CTLU Structures
+@Group		TABLE_STRUCTS Table Structures
 
-@Description	AIOP CTLU Structures
+@Description	AIOP Table Structures
 
 @{
 *//***************************************************************************/
@@ -227,7 +223,7 @@
 
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_create_input_message {
+struct table_create_input_message {
 	/** Table Type
 	Includes IEX, MRES & AGT bits */
 	uint16_t type;
@@ -248,25 +244,8 @@ struct ctlu_table_create_input_message {
 	uint32_t committed_rules;
 
 	/** Reserved */
-	uint8_t  reserved[CTLU_TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE];
+	uint8_t  reserved[TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE];
 
-};
-#pragma pack(pop)
-
-
-/**************************************************************************//**
-@Description	Table Parameters Replace Input Message Structure
-
-		Pointed by input pointer.
-
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct ctlu_table_params_replace_input_message {
-	/** Reserved */
-	uint8_t reserved[TABLE_PARAMS_REPLACE_INPUT_MESSAGE_RESERVED_SPACE];
-
-	/** Miss Result */
-	struct table_result miss_lookup_fcv;
 };
 #pragma pack(pop)
 
@@ -278,7 +257,7 @@ struct ctlu_table_params_replace_input_message {
 
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct	ctlu_table_create_output_message {
+struct	table_create_output_message {
 	/** Table ID */
 	uint16_t  tid;
 
@@ -292,7 +271,7 @@ struct	ctlu_table_create_output_message {
 @Description	Table Parameters Query Output Message Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_table_params_query_output_message {
+struct table_params_query_output_message {
 	/** Table Type
 	Includes IEX, MRES & AGT bits */
 	uint16_t type;
@@ -319,7 +298,7 @@ struct ctlu_table_params_query_output_message {
 	uint32_t current_entries;
 
 	/** Reserved */
-	uint8_t  reserved[CTLU_TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE];
+	uint8_t  reserved[TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE];
 };
 #pragma pack(pop)
 
@@ -332,7 +311,7 @@ struct table_entry_body_eme16 {
 	/** Reserved */
 	uint8_t  reserved[3];
 
-	/** CTLU HW internal usage */
+	/**  Table internal usage */
 	uint64_t internal_usage0;
 
 	/** Unique ID */
@@ -341,13 +320,13 @@ struct table_entry_body_eme16 {
 	/** Timestamp */
 	uint32_t timestamp;
 
-	/** CTLU HW internal usage */
+	/** Table HW internal usage */
 	uint64_t internal_usage1;
 
 	/** Part of lookup key */
-	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE];
+	uint8_t  lookup_key_part[TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE];
 
-	/** CTLU result */
+	/** Table result */
 	struct table_result result;
 };
 #pragma pack(pop)
@@ -361,7 +340,7 @@ struct table_entry_body_eme24 {
 	/** Reserved */
 	uint8_t  reserved[3];
 
-	/** CTLU HW internal usage */
+	/** Table HW internal usage */
 	uint64_t internal_usage;
 
 	/** Unique ID */
@@ -371,9 +350,9 @@ struct table_entry_body_eme24 {
 	uint32_t timestamp;
 
 	/** Part of lookup key */
-	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE];
+	uint8_t  lookup_key_part[TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE];
 
-	/** CTLU result */
+	/** Table result */
 	struct table_result result;
 };
 #pragma pack(pop)
@@ -387,7 +366,7 @@ struct table_entry_body_lpm_res {
 	/** Reserved */
 	uint8_t  reserved[3];
 
-	/** CTLU HW internal usage */
+	/** Table HW internal usage */
 	uint64_t internal_usage0;
 
 	/** Unique ID */
@@ -397,9 +376,9 @@ struct table_entry_body_lpm_res {
 	uint32_t timestamp;
 
 	/** Part of lookup key */
-	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE];
+	uint8_t  lookup_key_part[TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE];
 
-	/** CTLU result */
+	/** Table result */
 	struct table_result result;
 };
 #pragma pack(pop)
@@ -413,7 +392,7 @@ struct table_entry_body_mflu_branch {
 	/** Reserved */
 	uint8_t  reserved0[3];
 
-	/** CTLU HW internal usage */
+	/** Table HW internal usage */
 	uint64_t internal_usage0;
 
 	/** Unique ID */
@@ -451,7 +430,7 @@ struct table_entry_body_mflu_rule {
 	/** Reserved */
 	uint8_t  reserved0[3];
 
-	/** CTLU HW internal usage */
+	/** Table HW internal usage */
 	uint64_t internal_usage0;
 
 	/** Unique ID */
@@ -473,7 +452,7 @@ struct table_entry_body_mflu_rule {
 	uint16_t reserved1;
 
 	/** Part of lookup key, each 9 bits describes a byte */
-	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_MFLU_RULE_LOOKUP_KEY_SIZE];
+	uint8_t  lookup_key_part[TABLE_ENTRY_MFLU_RULE_LOOKUP_KEY_SIZE];
 };
 #pragma pack(pop)
 
@@ -486,7 +465,7 @@ struct table_entry_body_mflu_res {
 	/** Reserved */
 	uint8_t  reserved[3];
 
-	/** CTLU HW internal usage */
+	/** Table HW internal usage */
 	uint64_t internal_usage0;
 
 	/** Unique ID */
@@ -502,9 +481,9 @@ struct table_entry_body_mflu_res {
 	uint32_t prevHashValue;
 
 	/** Part of lookup key, each 9 bits describes a byte */
-	uint8_t  lookup_key_part[CTLU_TABLE_ENTRY_MFLU_RES_LOOKUP_KEY_SIZE];
+	uint8_t  lookup_key_part[TABLE_ENTRY_MFLU_RES_LOOKUP_KEY_SIZE];
 
-	/** CTLU result */
+	/** Table result */
 	struct table_result result;
 };
 #pragma pack(pop)
@@ -524,13 +503,13 @@ union table_entry_body {
 	/** LPM Result Entry - see CTLU specification for more details */
 	struct table_entry_body_lpm_res lpm_res;
 
-	/** MFLU Branch Entry - see CTLU specification for more details */
+	/** MFLU Branch Entry - see MFLU specification for more details */
 	struct table_entry_body_mflu_branch mflu_branch;
 
-	/** MFLU Rule Entry - see CTLU specification for more details */
+	/** MFLU Rule Entry - see MFLU specification for more details */
 	struct table_entry_body_mflu_rule mflu_rule;
 
-	/** MFLU Result Entry - see CTLU specification for more details */
+	/** MFLU Result Entry - see MFLU specification for more details */
 	struct table_entry_body_mflu_res mflu_result;
 };
 #pragma pack(pop)
@@ -542,7 +521,7 @@ union table_entry_body {
 #pragma pack(push, 1)
 struct table_entry {
 	/* Entry type (and some more things)
-	 * Macros are available at: \ref CTLU_ENTRY_MACROS */
+	 * Macros are available at: \ref TABLE_ENTRY_MACROS */
 	uint8_t type;
 
 	/** The body of the entry (varies per type) */
@@ -557,7 +536,7 @@ struct table_entry {
 #pragma pack(push, 1)
 struct table_old_result {
 	/* Reserved */
-	uint8_t reserved[CTLU_TABLE_OLD_RESULT_RESERVED_SPACE];
+	uint8_t reserved[TABLE_OLD_RESULT_RESERVED_SPACE];
 
 	/** The body of the entry (varies per type) */
 	struct table_result result;
@@ -566,10 +545,10 @@ struct table_old_result {
 
 
 /**************************************************************************//**
-@Description	CTLU Accelerator Context Structure
+@Description	Table Accelerator Context Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct ctlu_acc_context {
+struct table_acc_context {
 	/** IPFID + Reserved */
 	uint16_t	flags_and_reserved;
 
@@ -593,12 +572,12 @@ struct ctlu_acc_context {
 };
 #pragma pack(pop)
 
-/** @} */ /* end of CTLU_STRUCTS */
+/** @} */ /* end of TABLE_STRUCTS */
 
 /**************************************************************************//**
-@Group		CTLU_Functions CTLU Functions
+@Group		TABLE_Functions Table Functions
 
-@Description	AIOP CTLU Functions
+@Description	AIOP Table Functions
 
 @{
 *//***************************************************************************/
@@ -615,7 +594,7 @@ struct ctlu_acc_context {
 
 @Param[in]	output - All table parameter Table Hardware HW keeps.
 
-@Return		Please refer to \ref FSL_CTLU_STATUS_TBL_GET_PARAMS
+@Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	This function performs a task switch.
 		This function does not increment the reference count for the
@@ -623,7 +602,7 @@ struct ctlu_acc_context {
 *//***************************************************************************/
 int32_t table_query_debug(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  struct ctlu_table_params_query_output_message *output
+			  struct table_params_query_output_message *output
 			 );
 
 /**************************************************************************//**
@@ -655,8 +634,17 @@ int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 *//***************************************************************************/
 void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
-/** @} */ /* end of CTLU_Functions */
+/** @} */ /* end of TABLE_Functions */
 
-/** @} */ /* end of CTLU */
+/** @} */ /* end of TABLE */
 
-#endif /* __CTLU_H */
+/* Asserting structure size for re-using of space allocated on stack in table
+ * create function - macro appears twice because its checking < and not == */
+#pragma warning_errors on
+ASSERT_STRUCT_SIZE(sizeof(struct table_create_input_message), \
+		   sizeof(struct table_rule));
+ASSERT_STRUCT_SIZE(sizeof(struct table_rule), \
+		   sizeof(struct table_create_input_message));
+#pragma warning_errors off
+
+#endif /* __TABLE_H */

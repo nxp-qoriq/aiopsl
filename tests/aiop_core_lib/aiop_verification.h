@@ -17,7 +17,8 @@
 #include "aiop_verification_tman.h"
 #include "aiop_verification_ste.h"
 #include "aiop_verification_cdma.h"
-#include "aiop_verification_ctlu.h"
+#include "aiop_verification_keygen.h"
+#include "aiop_verification_table.h"
 #include "aiop_verification_parser.h"
 #include "aiop_verification_hm.h"
 #include "verification_virtual_pools.h"
@@ -29,7 +30,6 @@
 #include "dplib/fsl_ipsec.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_l4.h"
-#include "dplib/fsl_l4_checksum.h"
 #include "dplib/fsl_nat.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/dpni_drv.h"
@@ -144,22 +144,23 @@
  @{
 *//***************************************************************************/
 enum verif_modules_ids {
-	GSO_MODULE = GSO_FM_ID,
-	GRO_MODULE = GRO_FM_ID,
-	IPR_MODULE = IPR_FM_ID,
-	IPF_MODULE = IPF_FM_ID,
-	FPDMA_MODULE = FPDMA_ACCEL_ID,
-	FODMA_MODULE = FODMA_ACCEL_ID,
-	TMAN_MODULE = TMAN_ACCEL_ID,
-	STE_MODULE = STE_VERIF_ACCEL_ID,
-	CDMA_MODULE = CDMA_ACCEL_ID,
+	GSO_MODULE = 0,
+	GRO_MODULE,
+	IPR_MODULE,
+	IPF_MODULE,
+	FPDMA_MODULE,
+	FODMA_MODULE,
+	TMAN_MODULE,
+	STE_MODULE,
+	CDMA_MODULE,
 	TABLE_MODULE,
-	CTLU_PARSE_CLASSIFY_MODULE = CTLU_PARSE_CLASSIFY_ACCEL_ID,
-	HM_MODULE = HM_VERIF_ACCEL_ID,
-	VPOOL_MODULE = VPOOL_ACCEL_ID,
-	IF_MODULE = AIOP_IF_CMD,
-	IF_ELSE_MODULE = AIOP_IF_ELSE_CMD,
-	TERMINATE_FLOW_MODULE = AIOP_TERMINATE_FLOW_CMD
+	PARSE_MODULE,
+	HM_MODULE,
+	VPOOL_MODULE,
+	IF_MODULE,
+	IF_ELSE_MODULE,
+	TERMINATE_FLOW_MODULE,
+	KEYGEN_MODULE
 };
 
 /**************************************************************************//**

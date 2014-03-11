@@ -11,6 +11,7 @@
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_fdma.h"
 #include "osm.h"
+#include "dplib/fsl_ldpaa.h"
 
 int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
@@ -243,10 +244,10 @@ void tman_timer_callback(void)
 	tman_arg_8B_t tman_cb_arg1;
 	tman_arg_2B_t tman_cb_arg2;
 	
-	tman_cb = (tman_cb_t)*
-			((uint32_t*)(HWC_FD_ADDRESS+FD_FLC_DS_AS_CS_OFFSET));
-	tman_cb_arg1 = *(tman_arg_8B_t *)(HWC_FD_ADDRESS);
-	tman_cb_arg2 = *(tman_arg_2B_t *)(HWC_FD_ADDRESS+FD_FLC_RUNNING_SUM);
+	tman_cb = (tman_cb_t)__lwbr(HWC_FD_ADDRESS+FD_HASH_OFFSET, 0);
+	tman_cb_arg1 = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	tman_cb_arg2 = 
+		(tman_arg_2B_t)__lhbr(HWC_FD_ADDRESS+FD_OPAQUE1_OFFSET, 0);
 	osm_task_init();
 	(*(tman_cb))(tman_cb_arg1, tman_cb_arg2);
 	fdma_terminate_task();

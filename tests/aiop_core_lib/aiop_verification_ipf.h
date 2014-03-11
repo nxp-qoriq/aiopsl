@@ -16,9 +16,6 @@
 #include "ipf.h"
 #include "dplib/fsl_parser.h"
 
-	/** IPF FM ID */
-#define IPF_FM_ID	 (IPF_MODULE_STATUS_ID >> 16)
-
 
 /* IPF Command IDs */
 	/** IPF Context Init command code */
@@ -31,13 +28,13 @@
 
 /* IPF Commands Structure identifiers */
 	/** IPF Context Init command Structure identifier */
-#define IPF_CONTEXT_INIT_CMD_STR (IPF_MODULE_STATUS_ID | IPF_CONTEXT_INIT_CMD)
+#define IPF_CONTEXT_INIT_CMD_STR ((IPF_MODULE << 16) | IPF_CONTEXT_INIT_CMD)
 	/** IPF Generate Fragment Command Structure identifier */
-#define IPF_GENERATE_FRAG_CMD_STR	(IPF_MODULE_STATUS_ID | \
-						IPF_GENERATE_FRAG_CMD)
+#define IPF_GENERATE_FRAG_CMD_STR ((IPF_MODULE << 16) | \
+				IPF_GENERATE_FRAG_CMD)
 	/** IPF Discard Remaining Frame command Structure identifier */
-#define IPF_DISCARD_REMAINING_FRAME_CMD_STR  (IPF_MODULE_STATUS_ID | \
-			IPF_DISCARD_REMAINING_FRAME_CMD)
+#define IPF_DISCARD_REMAINING_FRAME_CMD_STR  ((IPF_MODULE << 16) | \
+				IPF_DISCARD_REMAINING_FRAME_CMD)
 
 /** \addtogroup AIOP_FMs_Verification
  *  @{
@@ -63,7 +60,7 @@ struct ipf_init_command {
 	uint32_t opcode;
 		/** Please refer to \ref IPF_Flags. */
 	uint32_t flags;
-		/** Workspace address of the IPF internal context. 
+		/** Workspace address of the IPF internal context.
 		 * Should be defined in the TLS area. */
 	uint32_t ipf_ctx_addr;
 		/** Maximum Transmission Unit. */
@@ -81,18 +78,18 @@ struct ipf_init_command {
 struct ipf_generate_frag_command {
 		/** IPF Generate Fragment command structure identifier. */
 	uint32_t opcode;
-		/** Workspace address of the IPF internal context. 
+		/** Workspace address of the IPF internal context.
 		 * Should be defined in the TLS area. */
 	uint32_t ipf_ctx_addr;
-		/** Returned Value: 
+		/** Returned Value:
 		 * Iteration return status. */
 	int32_t status;
-		/** Workspace address of the last returned status. 
+		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
-		/** Workspace address of the IPF last returned status. 
+		/** Workspace address of the IPF last returned status.
 		 * Should be defined in the TLS area. */
-	uint32_t ipf_status_addr;	
+	uint32_t ipf_status_addr;
 		/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;
@@ -104,7 +101,7 @@ struct ipf_generate_frag_command {
 	struct aiop_default_task_params default_task_params;
 		/** Padding. */
 	int8_t  pad[4];
-	
+
 };
 
 /**************************************************************************//**
@@ -114,16 +111,16 @@ struct ipf_generate_frag_command {
 
 *//***************************************************************************/
 struct ipf_discard_remainder_frame_command {
-		/** IPF discard remainder frame command structure 
+		/** IPF discard remainder frame command structure
 		 * identifier. */
 	uint32_t opcode;
-		/** Workspace address of the IPF internal context. 
+		/** Workspace address of the IPF internal context.
 		 * Should be defined in the TLS area. */
 	uint32_t ipf_ctx_addr;
-		/** Returned Value: 
+		/** Returned Value:
 		 * Command return status. */
 	int32_t status;
-		/** Workspace address of the last returned status. 
+		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
 };

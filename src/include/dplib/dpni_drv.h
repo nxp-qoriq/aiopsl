@@ -8,7 +8,7 @@
 
 #include "common/types.h"
 #include "dplib/fsl_dpni.h"
-
+#include "dplib/fsl_ldpaa.h"
 
 /**************************************************************************//**
  @Group		grp_dplib_aiop	DPLIB
@@ -39,6 +39,11 @@
 /* @} */
 
 typedef uint64_t	dpni_drv_app_arg_t;
+
+/* TODO: need to define stats */
+struct dpni_stats {
+	int num_pkts;
+};
 
 /**************************************************************************//**
 @Description	Application Receive callback
@@ -150,8 +155,6 @@ int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_cfg dist[DPNI_MA
 
  @Param[in]	ni_id   The Network Interface ID
  @Param[in]	flow_id Flow ID, it should be between 0 and #DPNI_DRV_MAX_NUM_FLOWS 
- @Param[in]	dpio    MUST be set to NULL
- @Param[in]	dpsp    Must be set to NULL
  @Param[in]	cb      Callback function for Network Interface specified flow_id
  @Param[in]	arg     Argument that will be passed to callback function 
 
@@ -159,13 +162,27 @@ int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_cfg dist[DPNI_MA
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
                             uint16_t        flow_id,
-                            fsl_handle_t	dpio,
-                            fsl_handle_t	dpsp,
                             rx_cb_t		    *cb,
                             dpni_drv_app_arg_t arg);
 
 /**************************************************************************//**
- @Function	dpni_drv_register_default_rx_cb
+ @Function	dpni_drv_unregister_rx_cb
+
+ @Description	Unregisters a NI callback function by replacing it with a
+                pointer to a discard callback. 
+                The discard callback function will be called when the NI_ID 
+                receives a frame
+
+ @Param[in]	ni_id   The Network Interface ID
+ @Param[in]	flow_id Flow ID, it should be between 0 and #DPNI_DRV_MAX_NUM_FLOWS 
+
+ @Return	OK on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_unregister_rx_cb(uint16_t		ni_id,
+                             uint16_t		flow_id);
+
+/**************************************************************************//**
+ @Function	dpni_drv_register_discard_rx_cb
 
  @Description	register a default receive callback functions.
 		The default callback function will be called when a frame is
@@ -186,7 +203,7 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 
  @Return	OK on success; error code, otherwise.
 *//***************************************************************************/
-int dpni_drv_register_default_rx_cb(
+int dpni_drv_register_discard_rx_cb(
 		fsl_handle_t		dpio,
 		fsl_handle_t		dpsp,
 		rx_cb_t			*cb,
@@ -234,6 +251,47 @@ int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
  @Return	Number of NI_IDs in the system
 *//***************************************************************************/
 int dpni_get_num_of_ni(void);
+
+/**************************************************************************//**
+ @Function	dpni_get_receive_niid
+
+ @Description	Get ID of NI on which the default packet arrived. 
+
+ @Return	NI_IDs on which the default packet arrived.
+*//***************************************************************************/
+/* TODO : replace by macros/inline funcs */
+int dpni_get_receive_niid(void);
+
+/**************************************************************************//**
+ @Function	dpni_set_send_niid
+
+ @Description	Set the NI ID on which the packet should be sent.
+
+ @Return	0 on success; error code, otherwise.
+*//***************************************************************************/
+/* TODO : replace by macros/inline funcs */
+int dpni_set_send_niid(uint16_t niid);
+
+/**************************************************************************//**
+ @Function	dpni_get_send_niid
+
+ @Description	Get ID of NI on which the default packet should be sent.
+
+ @Return	0 on success; error code, otherwise.
+*//***************************************************************************/
+/* TODO : replace by macros/inline funcs */
+int dpni_get_send_niid(void);
+
+
+/**************************************************************************//**
+ @Function	dpni_drv_get_primary_mac_address
+
+ @Description	Get Primary MAC address of NI.
+
+ @Return	MAC Address.
+*//***************************************************************************/
+/* TODO : replace by macros/inline funcs */
+int dpni_drv_get_primary_mac_addr(uint16_t niid);
 
 /** @} */ /* end of grp_dpni_aiop group */
 /** @} */ /* end of grp_dplib_aiop group */

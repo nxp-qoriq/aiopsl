@@ -6,48 +6,21 @@
 
 #include "dplib/fsl_osm.h"
 #include "osm.h"
-/* #include "dpni_drv.h" */
+#include "general.h"
 
-__TASK uint8_t CURRENT_SCOPE_LEVEL;
-__TASK uint8_t SCOPE_MODE_LEVEL1;
-__TASK uint8_t SCOPE_MODE_LEVEL2;
-__TASK uint8_t SCOPE_MODE_LEVEL3;
-__TASK uint8_t SCOPE_MODE_LEVEL4;
+extern __TASK struct aiop_default_task_params default_task_params;
 
 
 int32_t osm_scope_transition_to_exclusive_with_increment_scope_id(void)
 {
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_OP,
-			OSM_SCOPE_ID_STAGE_INCREMENT_MASK))
+			OSM_SCOPE_ID_STAGE_INCREMENT_MASK)) {
 		return 1;
-	else {
-		switch (CURRENT_SCOPE_LEVEL) {
-		case (LEVEL1):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 1;
-			break;
-			}
-		case (LEVEL2):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 1;
-			break;
-			}
-		case (LEVEL3):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 1;
-			break;
-			}
-		case (LEVEL4):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 1;
-			break;
-			}
-		}
+	} else {
+		/** 1 = Exclusive mode. */
+		default_task_params.scope_mode_level_arr
+		[default_task_params.current_scope_level-1] = EXCLUSIVE;
 		return 0;
 	}
 }
@@ -56,7 +29,7 @@ int32_t osm_scope_transition_to_exclusive_with_new_scope_id(
 		uint32_t scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-	switch (CURRENT_SCOPE_LEVEL) {
+	switch (default_task_params.current_scope_level) {
 	case (LEVEL1):
 		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
@@ -84,37 +57,14 @@ int32_t osm_scope_transition_to_exclusive_with_new_scope_id(
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_WITH_NEW_SCOPEID_OP,
-			scope_id))
+			scope_id)) {
 		return 1;
-	else {
-		switch (CURRENT_SCOPE_LEVEL) {
-		case (LEVEL1):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 1;
-			break;
-			}
-		case (LEVEL2):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 1;
-			break;
-			}
-		case (LEVEL3):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 1;
-			break;
-			}
-		case (LEVEL4):
-			{
-			/** 1 = Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 1;
-			break;
-			}
-		}
+	} else {
+		/** 1 = Exclusive mode. */
+		default_task_params.scope_mode_level_arr
+		[default_task_params.current_scope_level-1] = EXCLUSIVE;
 		return 0;
-	}
+		}
 }
 
 int32_t osm_scope_transition_to_concurrent_with_increment_scope_id(void)
@@ -122,45 +72,21 @@ int32_t osm_scope_transition_to_concurrent_with_increment_scope_id(void)
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_CONCUR_OP,
-		OSM_SCOPE_ID_STAGE_INCREMENT_MASK))
+		OSM_SCOPE_ID_STAGE_INCREMENT_MASK)) {
 		return 1;
-	else {
-		switch (CURRENT_SCOPE_LEVEL) {
-		case (LEVEL1):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 0;
-			break;
-			}
-		case (LEVEL2):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 0;
-			break;
-			}
-		case (LEVEL3):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 0;
-			break;
-			}
-		case (LEVEL4):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL4 = 0;
-			break;
-			}
-
-		}
+	} else {
+		/** 0 = Concurrent mode. */
+		default_task_params.scope_mode_level_arr
+		[default_task_params.current_scope_level-1] = CONCURRENT;
 		return 0;
-	}
+		}
 }
 
 int32_t osm_scope_transition_to_concurrent_with_new_scope_id(
 		uint32_t scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-	switch (CURRENT_SCOPE_LEVEL) {
+	switch (default_task_params.current_scope_level) {
 	case (LEVEL1):
 		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
@@ -188,38 +114,14 @@ int32_t osm_scope_transition_to_concurrent_with_new_scope_id(
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_CONCUR_WITH_NEW_SCOPEID_OP,
-			scope_id))
+			scope_id)) {
 		return 1;
-	else {
-		switch (CURRENT_SCOPE_LEVEL) {
-		case (LEVEL1):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 0;
-			break;
-			}
-		case (LEVEL2):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 0;
-			break;
-			}
-		case (LEVEL3):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 0;
-			break;
-			}
-		case (LEVEL4):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL4 = 0;
-			break;
-			}
-
-		}
+	} else {
+		/** 0 = Concurrent mode. */
+		default_task_params.scope_mode_level_arr
+		[default_task_params.current_scope_level-1] = CONCURRENT;
 		return 0;
-	}
+		}
 }
 
 void osm_scope_relinquish_exclusivity(void)
@@ -227,32 +129,9 @@ void osm_scope_relinquish_exclusivity(void)
 
 	/* call OSM */
 	__e_osmcmd(OSM_SCOPE_RELINQUISH_EXCL_OP, 0);
-		switch (CURRENT_SCOPE_LEVEL) {
-		case (LEVEL1):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 0;
-			break;
-			}
-		case (LEVEL2):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 0;
-			break;
-			}
-		case (LEVEL3):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 0;
-			break;
-			}
-		case (LEVEL4):
-			{
-			/** 0 = Concurrent mode. */
-			SCOPE_MODE_LEVEL4 = 0;
-			break;
-			}
-		}
+	/** 0 = Concurrent mode. */
+	default_task_params.scope_mode_level_arr
+	[default_task_params.current_scope_level-1] = CONCURRENT;
 }
 
 int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void)
@@ -260,43 +139,18 @@ int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
-			, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK))
+			, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
 		return 1;
-	else {
-		CURRENT_SCOPE_LEVEL++;
-		switch (CURRENT_SCOPE_LEVEL) {
-		case (LEVEL1):
-			{
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 1;
-			break;
-			}
-		case (LEVEL2):
-			{
+	} else {
+		default_task_params.current_scope_level++;
+		if (default_task_params.current_scope_level > 1)
 			/** 0 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 0;
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 1;
-			break;
-			}
-		case (LEVEL3):
-			{
-			/** 0 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 0;
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 1;
-			break;
-			}
-		case (LEVEL4):
-			{
-			/** 0 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 0;
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 1;
-			break;
-			}
-
-		}
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-2] = 
+					CONCURRENT;
+		/** 1 = Child: Exclusive mode. */
+		default_task_params.scope_mode_level_arr
+		[default_task_params.current_scope_level-1] = EXCLUSIVE;
 		return 0;
 	}
 }
@@ -305,7 +159,7 @@ int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
 		uint32_t child_scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-	switch (CURRENT_SCOPE_LEVEL) {
+	switch (default_task_params.current_scope_level) {
 	case (LEVEL0):
 		{
 		child_scope_id = (child_scope_id &
@@ -339,43 +193,18 @@ int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
 	}
 
 	/* call OSM */
-	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP, child_scope_id))
+	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP, child_scope_id)) {
 		return 1;
-	else {
-		CURRENT_SCOPE_LEVEL++;
-		switch (CURRENT_SCOPE_LEVEL) {
-		case (LEVEL1):
-			{
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL1 = 1;
-			break;
-			}
-		case (LEVEL2):
-			{
+	} else {
+		default_task_params.current_scope_level++;
+		if (default_task_params.current_scope_level > 1)
 			/** 0 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL1 = 0;
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL2 = 1;
-			break;
-			}
-		case (LEVEL3):
-			{
-			/** 0 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL2 = 0;
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL3 = 1;
-			break;
-			}
-		case (LEVEL4):
-			{
-			/** 0 = Parent: Concurrent mode. */
-			SCOPE_MODE_LEVEL3 = 0;
-			/** 1 = Child: Exclusive mode. */
-			SCOPE_MODE_LEVEL4 = 1;
-			break;
-			}
-
-		}
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-2] = 
+					CONCURRENT;
+		/** 1 = Child: Exclusive mode. */
+		default_task_params.scope_mode_level_arr
+		[default_task_params.current_scope_level-1] = EXCLUSIVE;
 		return 0;
 	}
 }
@@ -389,7 +218,7 @@ int32_t osm_scope_enter(
 	case (OSM_SCOPE_ENTER_CHILD_TO_CONCURENT):
 	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-		switch (CURRENT_SCOPE_LEVEL) {
+		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
 			{
 			child_scope_id = (child_scope_id &
@@ -424,37 +253,14 @@ int32_t osm_scope_enter(
 
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_OP,
-			child_scope_id))
+			child_scope_id)) {
 			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				break;
-				}
-			case (LEVEL2):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 0;
-				break;
-				}
-
-			}
+		} else {
+			default_task_params.current_scope_level++;
+			/** 0 = Child: Concurrent mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = 
+					CONCURRENT;
 			return 0;
 		}
 		break;
@@ -464,37 +270,14 @@ int32_t osm_scope_enter(
 	{
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_SCOPE_INC_OP,
-				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK))
-			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				break;
-				}
-			case (LEVEL2):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 0;
-				break;
-				}
-
-			}
+				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
+			return 1; 
+		} else {
+			default_task_params.current_scope_level++;
+			/** 0 = Child: Concurrent mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = 
+					CONCURRENT;
 			return 0;
 		}
 		break;
@@ -503,7 +286,7 @@ int32_t osm_scope_enter(
 			OSM_SCOPE_ENTER_RELINQUISH_PARENT_EXCLUSIVITY):
 	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-		switch (CURRENT_SCOPE_LEVEL) {
+		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
 			{
 			child_scope_id = (child_scope_id &
@@ -538,43 +321,20 @@ int32_t osm_scope_enter(
 
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_REL_PARENT_OP,
-			child_scope_id))
+			child_scope_id)) {
 			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				break;
-				}
-			case (LEVEL2):
-				{
+		} else {
+			default_task_params.current_scope_level++;
+			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 0;
-				break;
-				}
-
-			}
+				default_task_params.scope_mode_level_arr
+				[default_task_params.current_scope_level-2] = 
+						CONCURRENT;
+			/** 0 = Child: Concurrent mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = 
+					CONCURRENT;
+					
 			return 0;
 		}
 		break;
@@ -585,43 +345,19 @@ int32_t osm_scope_enter(
 	{
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_CONC_SCOPE_INC_REL_PARENT_OP
-				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK))
+				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
 			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				break;
-				}
-			case (LEVEL2):
-				{
+		} else {
+			default_task_params.current_scope_level++;
+			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				/** 0 = Child: Concurrent mode. */
-				SCOPE_MODE_LEVEL4 = 0;
-				break;
-				}
-
-			}
+				default_task_params.scope_mode_level_arr
+				[default_task_params.current_scope_level-2] = 
+						CONCURRENT;
+			/** 0 = Child: Concurrent mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = 
+					CONCURRENT;
 			return 0;
 		}
 		break;
@@ -629,7 +365,7 @@ int32_t osm_scope_enter(
 	case (OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE):
 	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-		switch (CURRENT_SCOPE_LEVEL) {
+		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
 			{
 			child_scope_id = (child_scope_id &
@@ -664,37 +400,14 @@ int32_t osm_scope_enter(
 
 		/* call OSM */
 		if (__e_osmcmd_(
-			OSM_SCOPE_ENTER_EXCL_OP, child_scope_id))
+			OSM_SCOPE_ENTER_EXCL_OP, child_scope_id)) {
 			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				break;
-				}
-			case (LEVEL2):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 1;
-				break;
-				}
-
-			}
+		} else {
+			default_task_params.current_scope_level++;
+			/** 1 = Child: Exclusive mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = EXCLUSIVE;
+			
 			return 0;
 		}
 		break;
@@ -704,37 +417,14 @@ int32_t osm_scope_enter(
 	{
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_OP,
-				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK))
+				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
 			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				break;
-				}
-			case (LEVEL2):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 1;
-				break;
-				}
-
-			}
+		} else {
+			default_task_params.current_scope_level++;
+			/** 1 = Child: Exclusive mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = EXCLUSIVE;
+			
 			return 0;
 		}
 		break;
@@ -743,7 +433,7 @@ int32_t osm_scope_enter(
 			OSM_SCOPE_ENTER_RELINQUISH_PARENT_EXCLUSIVITY):
 	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-		switch (CURRENT_SCOPE_LEVEL) {
+		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
 			{
 			child_scope_id = (child_scope_id &
@@ -778,43 +468,18 @@ int32_t osm_scope_enter(
 
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP,
-				child_scope_id))
+				child_scope_id)) {
 			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				break;
-				}
-			case (LEVEL2):
-				{
+		} else {
+			default_task_params.current_scope_level++;
+			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 1;
-				break;
-				}
-
-				}
+				default_task_params.scope_mode_level_arr
+				[default_task_params.current_scope_level-2] = 
+						CONCURRENT;
+			/** 1 = Child: Exclusive mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = EXCLUSIVE;
 			return 0;
 		}
 		break;
@@ -826,43 +491,18 @@ int32_t osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
-				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK))
+				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
 			return 1;
-		else {
-			CURRENT_SCOPE_LEVEL++;
-			switch (CURRENT_SCOPE_LEVEL) {
-			case (LEVEL1):
-				{
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL1 = 1;
-				break;
-				}
-			case (LEVEL2):
-				{
+		} else {
+			default_task_params.current_scope_level++;
+			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL1 = 0;
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL2 = 1;
-				break;
-				}
-			case (LEVEL3):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL2 = 0;
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL3 = 1;
-				break;
-				}
-			case (LEVEL4):
-				{
-				/** 0 = Parent: Concurrent mode. */
-				SCOPE_MODE_LEVEL3 = 0;
-				/** 1 = Child: Exclusive mode. */
-				SCOPE_MODE_LEVEL4 = 1;
-				break;
-				}
-
-				}
+				default_task_params.scope_mode_level_arr
+				[default_task_params.current_scope_level-2] = 
+						CONCURRENT;
+			/** 1 = Child: Exclusive mode. */
+			default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1] = EXCLUSIVE;
 			return 0;
 		}
 		break;
@@ -877,33 +517,13 @@ void osm_scope_exit(void)
 {
 	/* call OSM */
 	__e_osmcmd(OSM_SCOPE_EXIT_OP, 0);
-		if (CURRENT_SCOPE_LEVEL != 0)
-			CURRENT_SCOPE_LEVEL--;
+		if (default_task_params.current_scope_level != 0)
+			default_task_params.current_scope_level--;
 }
 
 void osm_get_scope(struct scope_status_params *scope_status)
 {
-	scope_status->scope_level = CURRENT_SCOPE_LEVEL;
-	switch (CURRENT_SCOPE_LEVEL) {
-	case (LEVEL1):
-		{
-		scope_status->scope_mode = SCOPE_MODE_LEVEL1;
-		break;
-		}
-	case (LEVEL2):
-		{
-		scope_status->scope_mode = SCOPE_MODE_LEVEL2;
-		break;
-		}
-	case (LEVEL3):
-		{
-		scope_status->scope_mode = SCOPE_MODE_LEVEL3;
-		break;
-		}
-	case (LEVEL4):
-		{
-		scope_status->scope_mode = SCOPE_MODE_LEVEL4;
-		break;
-		}
-	}
+	scope_status->scope_level = default_task_params.current_scope_level;
+	scope_status->scope_mode = default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1];
 }
