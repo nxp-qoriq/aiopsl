@@ -697,7 +697,8 @@ struct table_lookup_result {
 	This field can be either:
 	- 8 bytes of opaque data.
 	- A pointer to Slab/CDMA acquired buffer (which has a reference counter)
-	Depending on the matching rule result type */
+
+	Depends on the matching rule result type. */
 	uint64_t opaque0_or_reference;
 
 	/** Opaque1 */
@@ -872,7 +873,8 @@ struct table_create_params {
 	/** Table Key Size in bytes
 	In a case of LPM table:
 	 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.\n
+	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+
 	Please note that this value is not returned through
 	\ref table_get_params() function. */
 	uint8_t  key_size;
