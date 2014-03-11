@@ -12,8 +12,7 @@
 #include "net/fsl_net.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "dplib/fsl_ipv4_checksum.h"
-#include "dplib/fsl_l4_checksum.h"
+#include "dplib/fsl_l4.h"
 #include "fdma.h"
 #include "checksum.h"
 
@@ -276,11 +275,11 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* TODO FDMA ERROR */
 	sr_status = fdma_modify_default_segment_data((uint16_t)outer_ip_offset,
 			(uint16_t)(gso_ctx->headers_size - outer_ip_offset));
-
-	/* update TCP checksum */
-	/* TODO CHECKSUM NEW API (Doron) */
-	/* sr_status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_) */
-	sr_status = cksum_calc_udp_tcp_checksum();
+	
+	/* update TCP checksum *//* TODO CHECKSUM 0.6 API (Doron)
+	status = cksum_calc_udp_tcp_checksum(); */
+	status = l4_udp_tcp_cksum_calc(
+		L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA);
 	/* TODO FDMA ERROR */
 
 	/* Modify default segment (updated TCP checksum) */

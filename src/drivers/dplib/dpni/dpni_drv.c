@@ -264,8 +264,10 @@ static int aiop_replace_parser(uint8_t prpid)
     for(i=0; i<16; i++)
         verif_parse_profile1.soft_examination_param_array[i] = 0x0;
 
-    status = parser_profile_replace(&verif_parse_profile1, prpid);
-    return status;
+/*    status = parser_profile_replace(&verif_parse_profile1, prpid); Hagit*/
+    parser_profile_replace(&verif_parse_profile1, prpid); /*Hagit */
+/*    return status; Hagit*/
+    return 0;/*Hagit */
 }
 
 
@@ -340,7 +342,8 @@ int dpni_drv_init(void)
 	
 	/* Set PRPID 0 
 	 * TODO it must be prpid for every ni */
-    error = aiop_replace_parser(0);
+/*    error = aiop_replace_parser(0); Hagit*/
+    aiop_replace_parser(0);
     
 	return error;
 }

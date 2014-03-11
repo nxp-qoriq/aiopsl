@@ -4,19 +4,20 @@
 @Description	This file contains the layer 4 header modification API
 		implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "general.h"
 #include "net/fsl_net.h"
 #include "dplib/fsl_parser.h"
+#include "parser.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_l4.h"
 #include "dplib/fsl_cdma.h"
-#include "dplib/fsl_l4_checksum.h"
 #include "checksum.h"
 #include "header_modification.h"
 
+extern __TASK struct aiop_default_task_params default_task_params;
 
 int32_t l4_udp_header_modification(uint8_t flags,
 		uint16_t udp_src_port, uint16_t udp_dst_port)
@@ -36,9 +37,10 @@ int32_t l4_udp_header_modification(uint8_t flags,
 		udp_ptr->dst_port = udp_dst_port;
 	if (flags & L4_UDP_MODIFY_MODE_L4_CHECKSUM) {
 		if (udp_ptr->checksum == 0) {
-			/* TODO new API l4_udp_tcp_cksum_calc(
-					L4_UDP_TCP_CKSUM_CALC_OPTIONS_NONE); */
-			cksum_calc_udp_tcp_checksum();
+			/* TODO checksum 0.6 API
+			cksum_calc_udp_tcp_checksum(); */
+			l4_udp_tcp_cksum_calc(
+				L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA);
 		} else {
 			cksum_update_uint32(&udp_ptr->checksum,
 					    old_header,
@@ -296,3 +298,75 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 	}
 
 }
+
+
+int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
+{
+	uint16_t	l3checksum_dummy;
+	uint16_t	l4checksum;
+	uint16_t	l4offset;
+	int32_t		hw_status;
+	struct tcphdr	*tcph;
+	struct udphdr	*udph;
+	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
+	/* Check if TCP or UDP*/
+	if (!PARSER_IS_TCP_OR_UDP_DEFAULT()) /* TODO ask vortiqa if this can
+	 be removed */
+		return NO_L4_FOUND_ERROR;
+
+	/* Check if Gross Running Sum calculation is needed */
+	if (!pr->gross_running_sum) {
+		hw_status = fdma_calculate_default_frame_checksum(0, 0xFFFF,
+					&pr->gross_running_sum);
+		if (FDMA_CHECKSUM_SUCCESS != hw_status) {
+			return hw_status;
+		}
+	}
+
+	/* Call parser */
+	hw_status = parse_result_generate_checksum(
+			(enum parser_starting_hxs_code)
+			    default_task_params.parser_starting_hxs,
+			0,
+			&l3checksum_dummy,
+			&l4checksum);
+	if (PARSER_STATUS_PASS != hw_status) {
+		return hw_status;
+	}
+
+	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
+
+	if (PARSER_IS_TCP_DEFAULT()) {
+		/* Point to the TCP header */
+		tcph = (struct tcphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
+
+		/* Invalidate Parser Result Gross Running Sum field */
+		pr->gross_running_sum = 0;
+
+		/* Write checksum to TCP header */
+		tcph->checksum = l4checksum;
+	} /* TCP */
+	else {
+		/* Point to the UDP header */
+		udph = (struct udphdr *)(PRC_GET_SEGMENT_ADDRESS() + l4offset);
+
+		/* Invalidate Parser Result Gross Running Sum field */
+		pr->gross_running_sum = 0;
+
+		/* Write checksum to UDP header */
+		udph->checksum = l4checksum;
+	} /* UDP */
+
+	/* Update FDMA */
+	if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
+		hw_status = fdma_modify_default_segment_data(l4offset,
+				sizeof ((struct udphdr*)0)->checksum);
+		if (hw_status != FDMA_CHECKSUM_SUCCESS){
+			return hw_status;
+		}
+	}
+
+	return SUCCESS;
+}
+

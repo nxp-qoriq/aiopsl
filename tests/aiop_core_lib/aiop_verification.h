@@ -17,7 +17,8 @@
 #include "aiop_verification_tman.h"
 #include "aiop_verification_ste.h"
 #include "aiop_verification_cdma.h"
-#include "aiop_verification_ctlu.h"
+#include "aiop_verification_keygen.h"
+#include "aiop_verification_table.h"
 #include "aiop_verification_parser.h"
 #include "aiop_verification_hm.h"
 #include "verification_virtual_pools.h"
@@ -27,10 +28,8 @@
 #include "aiop_verification_ipr.h"
 #include "dplib/fsl_ip.h"
 #include "dplib/fsl_ipsec.h"
-#include "dplib/fsl_ipv4_checksum.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_l4.h"
-#include "dplib/fsl_l4_checksum.h"
 #include "dplib/fsl_nat.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/dpni_drv.h"
@@ -147,13 +146,14 @@ enum verif_modules_ids {
 	TMAN_MODULE,
 	STE_MODULE,
 	CDMA_MODULE,
-	CTLU_MODULE,
-	CTLU_PARSE_CLASSIFY_MODULE,
+	TABLE_MODULE,
+	PARSE_MODULE,
 	HM_MODULE,
 	VPOOL_MODULE,
 	IF_MODULE,
 	IF_ELSE_MODULE,
-	TERMINATE_FLOW_MODULE
+	TERMINATE_FLOW_MODULE,
+	KEYGEN_MODULE
 };
 
 /**************************************************************************//**

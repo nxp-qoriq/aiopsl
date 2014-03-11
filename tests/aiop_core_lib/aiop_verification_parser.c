@@ -29,7 +29,8 @@ void aiop_init_parser(uint8_t *prpid)
 	verif_parse_profile1.pppoe_ppp_hxs_config = 0x0;
 	verif_parse_profile1.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-	verif_parse_profile1.mpls_hxs_config.lie_dnp = PARSER_IP_STARTING_HXS;
+	verif_parse_profile1.mpls_hxs_config.lie_dnp =
+					PARSER_PRP_MPLS_HXS_CONFIG_LIE;
 	verif_parse_profile1.arp_hxs_config = 0x0;
 	verif_parse_profile1.ip_hxs_config = 0x0;
 	verif_parse_profile1.ipv4_hxs_config = 0x0;
@@ -97,9 +98,11 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_query_verif_command *pq =
 				(struct parser_prp_query_verif_command *)
 				asa_seg_addr;
+/*
 		pq->status = 
 		   parser_profile_query(pq->prpid,
 			(struct parse_profile_record *)pq->parse_profile);
+*/
 		str_size = sizeof(struct parser_prp_query_verif_command);
 		break;
 	}
