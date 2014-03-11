@@ -328,7 +328,7 @@ int32_t ipf_split_fragment(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
 	struct fdma_split_frame_params split_frame_params;
-	struct fdma_isolation_attributes isolation_attributes;
+	struct fdma_amq isolation_attributes;
 	struct ipv4hdr *ipv4_hdr;
 	struct ipv6hdr *ipv6_hdr;
 	struct ipv6_fragment_header *ipv6_frag_hdr;
