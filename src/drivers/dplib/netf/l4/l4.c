@@ -217,14 +217,20 @@ int32_t l4_set_tp_src(uint16_t src_port)
 		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
-		cksum_update_uint32(&udphdr_ptr->checksum,
-				    udphdr_ptr->src_port,
-				    src_port);
+		if(udphdr_ptr->checksum != 0) {
+			cksum_update_uint32(&udphdr_ptr->checksum,
+					    udphdr_ptr->src_port,
+					    src_port);
 
 		udphdr_ptr->src_port = src_port;
 
 		/* update FDMA */
 		fdma_modify_default_segment_data(l4_offset, 8);
+		} else {
+			udphdr_ptr->src_port = src_port;
+			/* update FDMA */
+			fdma_modify_default_segment_data(l4_offset, 2);			
+		}
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
@@ -258,7 +264,7 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 		tcphdr_ptr->dst_port = dst_port;
 
 		/* update FDMA */
-		fdma_modify_default_segment_data(l4_offset+2, 18);
+		fdma_modify_default_segment_data(l4_offset+2, 16);
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
@@ -267,6 +273,7 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
+		if(udphdr_ptr->checksum != 0) {
 		cksum_update_uint32(&udphdr_ptr->checksum,
 				    udphdr_ptr->dst_port,
 				    dst_port);
@@ -274,7 +281,11 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 		udphdr_ptr->dst_port = dst_port;
 
 		/* update FDMA */
-		fdma_modify_default_segment_data(l4_offset, 8);
+		fdma_modify_default_segment_data(l4_offset+2, 6);
+		} else {
+			udphdr_ptr->dst_port = dst_port;
+			fdma_modify_default_segment_data(l4_offset+2, 2);		
+		}
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
