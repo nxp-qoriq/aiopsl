@@ -13,7 +13,8 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_osm.h"
-#include "dplib/fsl_ctlu.h"
+#include "dplib/fsl_table.h"
+#include "dplib/fsl_keygen.h"
 #include "dplib/fsl_ste.h"
 #include "net/fsl_net.h"
 #include "common/spinlock.h"
@@ -27,7 +28,7 @@ struct  ipr_global_parameters ipr_global_parameters1;
 
 void ipr_init(uint32_t max_buffers, uint32_t flags)
 {
-	struct ctlu_kcr_builder kb;
+	struct kcr_builder kb;
 
 	/* todo call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
@@ -40,23 +41,25 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	/* todo remove when MC will do this */
 	sys_ctlu_keyid_pool_create();
 	/* todo for IPv6 */
-	ctlu_kcr_builder_init(&kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_IPSRC_1_FECID,\
+	keygen_kcr_builder_init(&kb);
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,\
 			NULL , &kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_IPDST_1_FECID,\
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPDST_1_FECID,\
 				NULL , &kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_PTYPE_1_FECID,\
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_PTYPE_1_FECID,\
 					NULL , &kb);
-	ctlu_kcr_builder_add_protocol_specific_field(CTLU_KCR_IPID_1_FECID,\
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPID_1_FECID,\
 					NULL , &kb);
-	ctlu_kcr_create(kb.kcr, &ipr_global_parameters1.ipr_key_id_ipv4);
+	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+			  kb.kcr,
+			  &ipr_global_parameters1.ipr_key_id_ipv4);
 }
 
 int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			    ipr_instance_handle_t *ipr_instance_ptr)
 {
 	struct ipr_instance ipr_instance;
-	struct ctlu_table_create_params tbl_params;
+	struct table_create_params tbl_params;
 	int32_t err;
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
 	uint16_t table_location_attr;
@@ -80,17 +83,19 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		(uint32_t)(ipr_global_parameters1.ipr_table_location<<24)\
 		& 0x03000000;
 		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_INT;
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_PEB;
-		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT)
-			table_location_attr = CTLU_TABLE_ATTRIBUTE_LOCATION_EXT;
-		tbl_params.attributes = CTLU_TBL_ATTRIBUTE_TYPE_EM | \
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
+		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT2;		
+		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
-				CTLU_TBL_ATTRIBUTE_MR_NO_MISS;
-		err = ctlu_table_create(&tbl_params,
+				TABLE_ATTRIBUTE_MR_NO_MISS;
+		err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv4);
-		if (err != CTLU_TABLE_CREATE_STATUS_PASS) {
+		if (err != TABLE_STATUS_SUCCESS) {
 			/* todo SR error case */
 			cdma_release_context_memory(*ipr_instance_ptr);
 			return err;
@@ -106,7 +111,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		/* todo SR error case */
 		cdma_release_context_memory(*ipr_instance_ptr);
 		/* todo: error case and case only IPv6 table*/
-		ctlu_table_delete(ipr_instance.table_id_ipv4);
+		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
 		return IPR_MAX_BUFFERS_REACHED;
 	}
 	ipr_global_parameters1.ipr_avail_buffers_cntr -= aggregate_open_frames;
@@ -153,7 +158,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
 	/* todo: error case and case only IPv6 table*/
-	ctlu_table_delete(ipr_instance.table_id_ipv4);
+	table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
 	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
 			ipr_instance.max_open_frames_ipv6;
 	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
@@ -174,8 +179,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct	ipv4hdr	*ipv4hdr_ptr;
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
-	struct ctlu_lookup_result lookup_result;
-	struct ctlu_table_rule rule;
+	struct table_lookup_result lookup_result;
+	struct table_rule rule;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
@@ -221,12 +226,13 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 	if (check_for_frag_error() == NO_ERROR) {
 		/* Good fragment */
-		sr_status = ctlu_table_lookup_by_keyid(
+		sr_status = table_lookup_by_keyid(
+				TABLE_ACCEL_ID_CTLU,
 				instance_params.table_id_ipv4,
 				ipr_global_parameters1.ipr_key_id_ipv4,
 				&lookup_result);
 		/* todo new ctlu api CTLU_STATUS_SUCCESS*/
-		if (sr_status == CTLU_LOOKUP_STATUS_MATCH_FOUND) {
+		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
 			rfdc_ext_addr =
 				    lookup_result.opaque0_or_reference;
@@ -262,9 +268,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		/* todo new ctlu api CTLU_STATUS_MISS*/
 /* todo restore this else } else if(sr_status ==
 			  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {*/
-		} else if ((sr_status ==
-			  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) ||
-			(sr_status == CTLU_LOOKUP_STATUS_MISS_RESULT)) {
+		} else if (sr_status == CTLU_STATUS_MISS) {
 			/* Miss */
 		    cdma_acquire_context_memory(
 				     IPR_CONTEXT_SIZE,
@@ -286,21 +290,25 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					0);  */
 		    /* Add entry to TLU table */
 		    /* Generate key */
-		    ctlu_gen_key(ipr_global_parameters1.ipr_key_id_ipv4,
-				 (union ctlu_key *)&rule.key.key_em,
-				 &keysize);
+		    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
+				    ipr_global_parameters1.ipr_key_id_ipv4,
+				    0,
+				    &rule.key,
+				    &keysize);
+		    
 		    rule.options = 0;
-		    rule.result.type = CTLU_RULE_RESULT_TYPE_REFERENCE;
-		    rule.result.op_rptr_clp.reference_pointer =
+		    rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
+		    rule.result.op0_rptr_clp.reference_pointer =
 				    rfdc_ext_addr;
-		    ctlu_table_rule_create(
+		    table_rule_create(
+				    TABLE_ACCEL_ID_CTLU,
 				    instance_params.table_id_ipv4,
 				    &rule,
 				    keysize);
 		    /* store key in RDFC */
-		    rfdc.ipv4_key[0] = *(uint64_t *)rule.key.key_em.key;
+		    rfdc.ipv4_key[0] = *(uint64_t *)rule.key.em.key;
 		    rfdc.ipv4_key[1] = 
-				   *(uint64_t *)(rule.key.key_em.key+8);
+				   *(uint64_t *)(rule.key.em.key+8);
 		    /* todo release struct rule  or call function for
 		     * gen+add rule */
 		    rfdc.status = RFDC_VALID;
