@@ -140,7 +140,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	struct tcphdr *tcp_ptr;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct fdma_split_frame_params split_frame_params;
-	struct fdma_isolation_attributes isolation_attributes;
+	struct fdma_amq isolation_attributes;
 	struct ipv4hdr *outer_ipv4_ptr;
 	struct ipv6hdr *outer_ipv6_ptr;
 	struct fdma_present_segment_params present_segment_params;

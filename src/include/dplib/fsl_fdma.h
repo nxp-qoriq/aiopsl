@@ -1722,10 +1722,10 @@ struct fdma_insert_segment_data_params {
 };
 
 /**************************************************************************//**
-@Description	Isolation_attributes structure.
+@Description	FDMA access management qualifier (AMQs) structure.
 
 *//***************************************************************************/
-struct fdma_isolation_attributes {
+struct fdma_amq {
 		/** \link FDMA_ISOLATION_ATTRIBUTES_Flags icid context flags
 		 * \endlink */
 	uint16_t flags;
@@ -2015,7 +2015,7 @@ int32_t fdma_store_default_frame_data(void);
 int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
-		struct fdma_isolation_attributes *isolation_attributes);
+		struct fdma_amq *isolation_attributes);
 
 /**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_fqid
@@ -2947,9 +2947,9 @@ int32_t fdma_calculate_default_frame_checksum(
 @Param[in]	flags - Please refer to
 		\link FDMA_Copy_Flags Copy command flags \endlink.
 @Param[in]	src - A pointer to the location in the workspace/AIOP Shared
-		memory of the source data.
+		memory of the source data (limited to 20 bits).
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
-		memory to store the copied data.
+		memory to store the copied data (limited to 20 bits).
 
 @Return		Status - Success or Failure (\ref FDMA_COPY_ERRORS).
 

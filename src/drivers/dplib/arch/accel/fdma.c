@@ -456,7 +456,7 @@ int32_t fdma_store_default_frame_data(void)
 int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
-		struct fdma_isolation_attributes *isolation_attributes)
+		struct fdma_amq *amq)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -475,8 +475,8 @@ int32_t fdma_store_frame_data(
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	bdi_icid = *((uint16_t *)
 		(HWC_ACC_OUT_ADDRESS2 + FDMA_STORE_CMD_OUT_ICID_OFFSET));
-	isolation_attributes->icid = bdi_icid & ~(FDMA_ICID_CONTEXT_BDI);
-	isolation_attributes->flags =
+	amq->icid = bdi_icid & ~(FDMA_ICID_CONTEXT_BDI);
+	amq->flags =
 		(((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) & (FDMA_ICID_CONTEXT_BMT
 			| FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_VA)) |
 		(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
@@ -1510,7 +1510,7 @@ int32_t fdma_create_fd(
 {
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
-	struct fdma_isolation_attributes isolation_attributes;
+	struct fdma_amq amq;
 	uint8_t spid;
 	int32_t status;
 
@@ -1564,13 +1564,13 @@ int32_t fdma_create_fd(
 
 		spid = *((uint8_t *)HWC_SPID_ADDRESS);
 		return fdma_store_frame_data(present_frame_params.frame_handle,
-				spid, &isolation_attributes);
+				spid, &amq);
 	}
 }
 
 /* Todo - enable inline when inline works correctly+move definition to .h file*/
 /*inline*/ void get_default_amq_attributes(
-		struct fdma_isolation_attributes *amq)
+		struct fdma_amq *amq)
 {
 	struct additional_dequeue_context *adc =
 		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
@@ -1588,7 +1588,7 @@ int32_t fdma_create_fd(
 
 /* Todo - enable inline when inline works correctly+move definition to .h file*/
 /*inline*/ void set_default_amq_attributes(
-		struct fdma_isolation_attributes *amq)
+		struct fdma_amq *amq)
 {
 	struct additional_dequeue_context *adc =
 			(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
