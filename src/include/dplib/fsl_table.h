@@ -599,20 +599,20 @@ struct table_key_mflu {
 	uint32_t reserved0;
 
 	/** Priority 
-	priority determines the selection between two rule that match in the
+	Priority determines the selection between two rule that match in the
 	MFLU lookup.
 	0x00000000 is the highest priority.*/
 	uint32_t priority;
 
 	/** Key mask 
-	Each byte in the mask must have contiguous ‘1’s in the MSbits.
+	Each byte in the mask must have contiguous 1's in the MSbits.
 	Therefore there are 9 valid values for each byte in the mask:
-	 - 0x00: The entire byte is masked
-	 - 0x80: The MSbit in this byte is not masked
-	 - 0xC0: The 2 MSbits in this byte are not masked
+	 - 0x00: The entire byte is masked.
+	 - 0x80: The MSbit in this byte is not masked.
+	 - 0xC0: The 2 MSbits in this byte are not masked.
 	 - ...
-	 - 0xFE: The 7 MSbits in this byte are not masked
-	 - 0xFF: The entire byte is not masked */
+	 - 0xFE: The 7 MSbits in this byte are not masked.
+	 - 0xFF: The entire byte is not masked. */
 	uint8_t  mask[TABLE_KEY_MFLU_MASK_SIZE];
 
 	/** Reserved
@@ -645,7 +645,7 @@ union table_key {
 	Should only be used with CTLU Hardware Table Accelerator */
 	struct table_key_lpm_ipv6    lpm_ipv6;
 
-	/** LPM IPv6 Key
+	/** MFLU Key
 	Should only be used with MFLU Hardware Table Accelerator */
 	struct table_key_mflu        mflu;
 };
@@ -669,7 +669,7 @@ struct table_rule {
 	User should not access this field. */
 	uint64_t reserved0;
 
-	/** Table Rule flags
+	/** Table Rule Options
 	Please refer to \link FSL_TABLE_RULE_OPTIONS table rule options
 	\endlink for more details.*/
 	uint8_t  options;
@@ -721,10 +721,11 @@ struct table_lookup_result {
 	User should not access this field. */
 	uint64_t reserved2;
 
-	/** Reserved
-	Reserved for compliance with HW format.
-	User should not access this field. */
-	uint32_t reserved3;
+	/** Timestamp
+	Timestamp of the rule that was matched in the lookup process.
+	For this timestamp to be valid, suitable option should be set in
+	\ref table_rule option field. */
+	uint32_t timestamp;
 };
 #pragma pack(pop)
 
