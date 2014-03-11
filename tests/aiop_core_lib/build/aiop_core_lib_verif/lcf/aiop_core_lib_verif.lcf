@@ -80,6 +80,11 @@ SECTIONS
        .verif_tbss   : {}
     } > verif_tls
 
+    GROUP : {
+       .verif_psram_data   : {}
+       .verif_psram_bss   : {}
+    } > profile_sram
+
 }
 
 TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);

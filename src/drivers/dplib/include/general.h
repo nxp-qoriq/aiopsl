@@ -647,6 +647,18 @@ struct aiop_default_task_params {
 		:					\
 		:[value]"r" (_val), [displ]"i" (_disp)	\
 		);
+/* Store half word displacement as input variable */
+#define __sthw_d(_val, _disp)				\
+	asm ("e_sth %[value], %[displ](r0)\n"		\
+		:					\
+		:[value]"r" (_val), [displ]"i" (_disp)	\
+		);
+/* Load byte displacement as input variable */
+#define __lbz_d(_val, _disp)				\
+	asm ("e_lbz %[value], %[displ](r0)\n"		\
+		:					\
+		:[value]"r" (_val), [displ]"i" (_disp)	\
+		);
 #define __stw(_val, _disp, _base_reg)			\
 	asm ("e_stw %[value], %[displ](%[base])\n"	\
 		:					\
