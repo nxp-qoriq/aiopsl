@@ -61,10 +61,35 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 
 /* @} end of group TMANReturnStatus */
 
-/**************************************************************************//**
-@Group		TMANDataStructures TMAN Data Structurs
 
-@Description	AIOP TMAN Data Structurs
+/**************************************************************************//**
+@Group		TMANMacroes TMAN MACROES
+
+@Description	AIOP TMAN Macroes
+@{
+*//***************************************************************************/
+
+/** Macro to get the number of missed expiration for periodic timers.
+ * This macro may be called on the periodic timer expiration task. */
+#define TMAN_GET_MISSED_EXPIRATION(_fd)					\
+	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
+	uint8_t err = *((uint8_t *) (((char *)_fd) + FD_BPID_OFFSET));\
+	__rR = (uint8_t *) err; })
+
+/** Macro to get the timer handle. This macro may be called on the timer
+ *  expiration task or on the TMI confirmation task. */
+#define TMAN_GET_TIMER_HANDLE(_fd)					\
+	(uint32_t)({register uint32_t *__rR = 0;			\
+	uint32_t frc = (LW_SWAP(((char *)_fd) + FD_FRC_OFFSET));	\
+	__rR = (uint32_t *) frc; })
+
+/* @} end of group TMANReturnStatus */
+
+
+/**************************************************************************//**
+@Group		TMANDataStructures TMAN Data Structures
+
+@Description	AIOP TMAN Data Structures
 @{
 *//***************************************************************************/
 
@@ -137,9 +162,9 @@ struct tman_tmi_params {
 @Description Timer create flags.
 
 
-| 0 - 7  | 8  | 9 |   10 - 11   | 19 | 16- 17- 18| 0 - 15  |
-|--------|----|---|-------------|----|-----------|---------|
-|        |Type|   |AIOP_priority|TPRI|Granularity|         |
+| 0 - 2  | 3  | 4-5 |    6 - 7    | 8-10 | 11 | 12 | 13- 14- 15| 0 - 15  |
+|--------|----|-----|-------------|------|----|----|-----------|---------|
+|        |Type|     |AIOP_priority|      |TPRI|    |Granularity|         |
 
 @{
 *//***************************************************************************/
@@ -164,18 +189,18 @@ struct tman_tmi_params {
 	/** TMAN Priority. If set, the timer would be treated with higher
 	     accuracy and delivered quicker to the expiration queue at the
 	     relevant time tick */
-#define TMAN_CREATE_TIMER_MODE_TPRI			0x00080000
+#define TMAN_CREATE_TIMER_MODE_TPRI			0x00100000
 	/** If set, the timer is a one-shot timer.*/
-#define TMAN_CREATE_TIMER_ONE_SHOT			0x00800000
+#define TMAN_CREATE_TIMER_ONE_SHOT			0x10000000
 
 /* The following defines will be used to set the AIOP task priority.*/
 
 	/** Low priority AIOP task*/
 #define TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK	0x00000000
 	/** Middle priority AIOP task*/
-#define TMAN_CREATE_TIMER_MODE_MID_PRIORITY_TASK	0x00100000
+#define TMAN_CREATE_TIMER_MODE_MID_PRIORITY_TASK	0x01000000
 	/** High priority AIOP task*/
-#define TMAN_CREATE_TIMER_MODE_HIGH_PRIORITY_TASK	0x00200000
+#define TMAN_CREATE_TIMER_MODE_HIGH_PRIORITY_TASK	0x02000000
 
 /* @} end of group TMANTimerCreateModeBits */
 
@@ -208,7 +233,7 @@ enum e_tman_query_timer {
 
 @Description	Creates an TMAN instance.
 		Implicit input parameters:
-		ICID, PL and BDI.
+		ICID, VA, PL and BDI.
 
 @Param[in]	tmi_mem_base_addr - address to memory used for the timers
 		associated with this instance.
