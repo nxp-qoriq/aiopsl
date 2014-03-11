@@ -64,7 +64,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		if (str->AS) {
 			flags |= ((str->VA) ? FDMA_INIT_VA_BIT : 0x0);
 			flags |= ((str->PL) ? FDMA_INIT_PL_BIT : 0x0);
-			params.bdi_icid = str->bdi_icid;
+			flags |= ((str->BDI) ? FDMA_INIT_BDI_BIT : 0x0);
+			params.icid = str->icid;
 		}
 		params.asa_dst	= (void *)str->asa_dst;
 		params.asa_offset	= str->asa_offset;
@@ -178,19 +179,19 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_store_frame_command *str =
 			(struct fdma_store_frame_command *) asa_seg_addr;
-		struct fdma_isolation_attributes isolation_attributes;
+		struct fdma_amq amq;
 
 		str->status = (int8_t)fdma_store_frame_data(str->frame_handle,
-				str->spid, &isolation_attributes);
-		str->icid = isolation_attributes.icid;
+				str->spid, &amq);
+		str->icid = amq.icid;
 		str->BDI = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_BDI);
+			(amq.flags & FDMA_ICID_CONTEXT_BDI);
 		str->BMT = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_BMT);
+			(amq.flags & FDMA_ICID_CONTEXT_BMT);
 		str->PL = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_PL);
+			(amq.flags & FDMA_ICID_CONTEXT_PL);
 		str->VA = (uint8_t)
-			(isolation_attributes.flags & FDMA_ICID_CONTEXT_VA);
+			(amq.flags & FDMA_ICID_CONTEXT_VA);
 		str_size = (uint16_t)sizeof(struct fdma_store_frame_command);
 		break;
 	}
@@ -646,14 +647,25 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = (uint16_t)sizeof(struct fdma_release_buffer_command);
 		break;
 	}
-	/* FDMA Copy Command Verification */
+	/* FDMA create frame Command Verification */
 	case FDMA_CREATE_FRAME_CMD_STR:
 	{
 		struct fdma_create_frame_command *str =
 			(struct fdma_create_frame_command *) asa_seg_addr;
 		str->status = (int8_t)fdma_create_frame(
-				&(str->fd), (void *)(str->data), str->size);
+				&(str->fd), (void *)(str->data), str->size,
+				&(str->frame_handle));
 		str_size = (uint16_t)sizeof(struct fdma_create_frame_command);
+		break;
+	}
+	/* FDMA create FD Command Verification */
+	case FDMA_CREATE_FD_CMD_STR:
+	{
+		struct fdma_create_fd_command *str =
+			(struct fdma_create_fd_command *) asa_seg_addr;
+		str->status = (int8_t)fdma_create_fd(
+				&(str->fd), (void *)(str->data), str->size);
+		str_size = (uint16_t)sizeof(struct fdma_create_fd_command);
 		break;
 	}
 	default:

@@ -190,8 +190,9 @@
 	(uint32_t)((((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |\
 	(_asa_size & PRC_ASAPS_MASK))
 	/** FDMA Initial presentation explicit AMQ command arg4 */
-#define FDMA_INIT_EXP_AMQ_CMD_ARG4(_bdi_icid ,_asa_address, _asa_size)	\
-	(uint32_t)(((uint32_t)_bdi_icid << 16) |			\
+#define FDMA_INIT_EXP_AMQ_CMD_ARG4(_flags, _icid ,_asa_address, _asa_size)\
+	(uint32_t)(((uint32_t)(((_icid & ~FDMA_ICID_CONTEXT_BDI) << 16) | \
+	(_flags & FDMA_INIT_BDI_BIT))) |				\
 	(((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |		\
 	(_asa_size & PRC_ASAPS_MASK))
 
@@ -402,12 +403,12 @@
 	/** Getter for AMQ (ICID, PL, VA, BDI) default attributes */
 /* Todo - enable inline when inline works correctly+move definition to .h file*/
 /*inline*/ void get_default_amq_attributes(
-		struct fdma_isolation_attributes *amq);
+		struct fdma_amq *amq);
 
 	/** Setter for AMQ (ICID, PL, VA, BDI) default attributes */
 /* Todo - enable inline when inline works correctly+move definition to .h file*/
 /*inline*/ void set_default_amq_attributes(
-		struct fdma_isolation_attributes *amq);
+		struct fdma_amq *amq);
 
 
 /** @}*/ /* end of group FDMA_Internal_Definitions */

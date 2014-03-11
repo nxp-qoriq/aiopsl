@@ -1183,6 +1183,9 @@ enum fdma_pta_size_type {
 	/** Privilege Level. Frame AMQ attribute.
 	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
 #define FDMA_INIT_PL_BIT	0x00008000
+	/** Bypass Datapath Isolation. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
+#define FDMA_INIT_BDI_BIT	0x80000000
 
 /* @} end of group FDMA_Present_Frame_Flags */
 
@@ -1528,7 +1531,7 @@ struct segment {
 
 
 /**************************************************************************//**
-@Description	Initial frame presentation parameters structure.
+@Description	Frame presentation parameters structure.
 
 *//***************************************************************************/
 struct fdma_present_frame_params {
@@ -1555,11 +1558,9 @@ struct fdma_present_frame_params {
 		/** Number of frame bytes to present and create an open
 		 * segment for. */
 	uint16_t present_size;
-		/**
-		* bits<0> : Bypass Datapath Isolation. Frame AMQ attribute.
-		* bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
 		* Used only in case \ref FDMA_INIT_AS_BIT is set. */
-	uint16_t bdi_icid;
+	uint16_t icid;
 		/** The first ASA 64B quantity to present. */
 	uint8_t asa_offset;
 		/** Number (maximum) of 64B ASA quantities to present. */
@@ -1721,10 +1722,10 @@ struct fdma_insert_segment_data_params {
 };
 
 /**************************************************************************//**
-@Description	Isolation_attributes structure.
+@Description	FDMA access management qualifier (AMQs) structure.
 
 *//***************************************************************************/
-struct fdma_isolation_attributes {
+struct fdma_amq {
 		/** \link FDMA_ISOLATION_ATTRIBUTES_Flags icid context flags
 		 * \endlink */
 	uint16_t flags;
@@ -2014,7 +2015,7 @@ int32_t fdma_store_default_frame_data(void);
 int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
-		struct fdma_isolation_attributes *isolation_attributes);
+		struct fdma_amq *isolation_attributes);
 
 /**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_fqid
@@ -2946,9 +2947,9 @@ int32_t fdma_calculate_default_frame_checksum(
 @Param[in]	flags - Please refer to
 		\link FDMA_Copy_Flags Copy command flags \endlink.
 @Param[in]	src - A pointer to the location in the workspace/AIOP Shared
-		memory of the source data.
+		memory of the source data (limited to 20 bits).
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
-		memory to store the copied data.
+		memory to store the copied data (limited to 20 bits).
 
 @Return		Status - Success or Failure (\ref FDMA_COPY_ERRORS).
 
@@ -2977,6 +2978,7 @@ int32_t fdma_copy_data(
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size.
+@Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return
 		- Status - Success or Failure (\ref FDMA_PRESENT_FRAME_ERRORS,
@@ -2989,8 +2991,39 @@ int32_t fdma_copy_data(
 int32_t fdma_create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
-		uint16_t size);
+		uint16_t size,
+		uint8_t *frame_handle);
 
+/**************************************************************************//**
+@Function	fdma_create_fd
+
+@Description	Create a frame from scratch and fill it with user specified
+		data.
+
+		After filling the frame, it will be closed.
+
+		Implicit input parameters in Task Defaults: SPID (Storage
+		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
+
+@Param[in]	fd - Pointer to the frame descriptor of the created frame.
+		On a success return this pointer will point to a valid FD.
+		The FD address in workspace must be aligned to 32 bytes.
+@Param[in]	data - A pointer to the workspace data to be inserted to the
+		frame.
+@Param[in]	size - data size.
+
+@Return
+		- Status - Success or Failure (\ref FDMA_PRESENT_FRAME_ERRORS,
+		\ref FDMA_REPLACE_DATA_SEGMENT_ERRORS, \ref
+		FDMA_STORE_FRAME_ERRORS)).
+		- Update FD.
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_create_fd(
+		struct ldpaa_fd *fd,
+		void *data,
+		uint16_t size);
 
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */

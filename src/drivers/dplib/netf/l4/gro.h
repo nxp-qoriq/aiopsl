@@ -90,7 +90,7 @@ struct tcp_gro_context {
 		 * attributes there is no need to save this structure since the
 		 * attributes can be taken from the new segment Additional
 		 * Dequeue Context area. */
-	struct fdma_isolation_attributes agg_fd_isolation_attributes;
+	struct fdma_amq agg_fd_isolation_attributes;
 		/** TMAN Instance ID. */
 	uint32_t timer_handle;
 		/** aggregated checksum */
