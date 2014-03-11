@@ -26,7 +26,7 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/******************************************************************/
 
 	/* Load ICID and PL */
-	__lwbrx(icid_pl, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
+	__lhbrx(icid_pl, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
 	/* Load VA and BDI */
 	__lbz_d(va_bdi, HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET);
 	
@@ -35,9 +35,9 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/* Add BDI bit */
 	/* Optimization: remove 1 cycle of or using rlwimi */
 	//arg1 = (va_bdi << 31) | arg1;
-	__e_rlwimi(arg1, va_bdi, 31, 1, 31);
+	__e_rlwimi(arg1, va_bdi, 31, 0, 0);
 	/* Move PL bit to the right offset */
-	icid_pl = (icid_pl >> 5) & 0x04000000;
+	icid_pl = (icid_pl << 11) & 0x04000000;
 	/* Add PL and VA to max_num_of_timers */
 	arg2 = icid_pl | ((va_bdi << 22) & 0x01000000) | max_num_of_timers;
 	/* Store command parameters */
@@ -79,7 +79,7 @@ int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);
 	*arg1 = (uint32_t)(&extention_params);
 	Optimization: remove 1 cycle of address calc */
-	__sthw_d(&extention_params, HWC_ACC_IN_ADDRESS + 8);
+	__sthw_d(&extention_params, HWC_ACC_IN_ADDRESS + 0xA);
 	/* call TMAN. */
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
@@ -98,7 +98,7 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 	   when using an inline function */
 	__stdw(cmd_type, tmi_id, HWC_ACC_IN_ADDRESS, 0);
 	/* Fill command parameters */
-	__sthw_d(output_ptr, HWC_ACC_IN_ADDRESS + 0xE);
+	__sthw_d(output_ptr, HWC_ACC_IN_ADDRESS + 0x8);
 	/* call TMAN. */
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
@@ -139,7 +139,7 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);
 	*arg1 = (uint32_t)(&extention_params);
 	Optimization: remove 1 cycle of address calc */
-	__sthw_d(&extention_params, HWC_ACC_IN_ADDRESS + 8);
+	__sthw_d(&extention_params, HWC_ACC_IN_ADDRESS + 0xA);
 
 	/* Fill command parameters */
 	/* Optimization: remove 1 cycle of clearing duration upper bits
