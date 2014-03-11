@@ -191,7 +191,7 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 /** Tables are located in Packet Express Buffer table */
 #define IPR_MODE_TABLE_LOCATION_PEB		0x02000000
 /** Tables are located in DDR */
-#define IPR_MODE_TABLE_LOCATION_EXT1		0x03000000 /* Doron */
+#define IPR_MODE_TABLE_LOCATION_EXT		0x03000000
 
 /* @} end of group IPRInitFlags */
 
