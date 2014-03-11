@@ -2947,9 +2947,9 @@ int32_t fdma_calculate_default_frame_checksum(
 @Param[in]	flags - Please refer to
 		\link FDMA_Copy_Flags Copy command flags \endlink.
 @Param[in]	src - A pointer to the location in the workspace/AIOP Shared
-		memory of the source data.
+		memory of the source data (limited to 20 bits).
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
-		memory to store the copied data.
+		memory to store the copied data (limited to 20 bits).
 
 @Return		Status - Success or Failure (\ref FDMA_COPY_ERRORS).
 
