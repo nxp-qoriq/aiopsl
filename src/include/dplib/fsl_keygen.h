@@ -49,7 +49,7 @@
 
 /**************************************************************************//**
 @Group	FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS \
-	 Key Composition Rule Builder Generic Extract Flags.
+	 Key Composition Rule Builder Generic Extract Flags
 	User should select one of the followings.
 @{
 *//***************************************************************************/
@@ -63,7 +63,7 @@
 
 /**************************************************************************//**
 @Group	FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD \
-	 Key Composition Rule Builder Lookup Result Field Extract.
+	 Key Composition Rule Builder Lookup Result Field Extract
 	 Not available for Rev1.
 @{
 *//***************************************************************************/
@@ -159,9 +159,9 @@
 /** @} */ /* end of FSL_KEYGEN_MACROS */
 
 /**************************************************************************//**
-@Group		FSL_KEYGEN_Enumerations CTLU Enumerations
+@Group		FSL_KEYGEN_Enumerations Keygen Enumerations
 
-@Description	KEYGEN Enumerations
+@Description	Keygen Enumerations
 
 @{
 *//***************************************************************************/
@@ -348,9 +348,9 @@ enum keygen_hw_accel_id {
 /** @} */ /* end of FSL_KEYGEN_Enumerations */
 
 /**************************************************************************//**
-@Group		FSL_KEYGEN_STRUCTS KEYGEN Structures
+@Group		FSL_KEYGEN_STRUCTS Keygen Structures
 
-@Description	Freescale AIOP KEYGEN Structures
+@Description	Freescale AIOP Keygen Structures
 
 @{
 *//***************************************************************************/
@@ -404,7 +404,7 @@ struct	kcr_builder_fec_mask {
 
 
 /**************************************************************************//**
-@Group		FSL_KEYGEN_Functions Table Functions
+@Group		FSL_KEYGEN_Functions Keygen Functions
 
 @Description	Freescale AIOP Keygen Functions
 
@@ -581,7 +581,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 @Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
 
-@Caution	This function is not available for rev1.
+@Cautions	This function is not available for rev1.
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
@@ -697,7 +697,7 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 		be aligned to 16B boundary.
 @Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KEY_GENERATION
+@Return		Please refer to \ref FSL_KEYGEN_STATUS_GENERAL
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -719,7 +719,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 @Param[out]	hash - The hash result. Must be allocated by the caller to this
 		function.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_GENERAL
+@Return		Please refer to \ref FSL_KEYGEN_STATUS_HASH_GEN
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
