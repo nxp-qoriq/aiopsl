@@ -66,7 +66,7 @@ struct ipf_init_command {
 		/** Maximum Transmission Unit. */
 	uint16_t mtu;
 		/** Padding. */
-	int8_t  pad[2];
+/*	int8_t  pad[2];*/
 };
 
 /**************************************************************************//**
@@ -100,7 +100,7 @@ struct ipf_generate_frag_command {
 		 * task defaults. */
 	struct aiop_default_task_params default_task_params;
 		/** Padding. */
-	int8_t  pad[4];
+/*	int8_t  pad[4];*/
 
 };
 
