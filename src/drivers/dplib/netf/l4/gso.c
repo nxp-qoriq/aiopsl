@@ -242,6 +242,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		present_segment_params.present_size = 0;
 		/* TODO FDMA ERROR */
 		sr_status = fdma_present_frame_segment(&present_segment_params);
+		//sr_status = fdma_present_frame_without_segments(struct ldpaa_fd *fd, 
+				//gso_ctx->rem_frame_handle)
+
 
 		/* Insert header to the remaining frame + close segment  */
 		insert_segment_data_params.from_ws_src =
