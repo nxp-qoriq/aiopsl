@@ -1051,6 +1051,24 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /** @} */ /* end of FSL_PARSER_POINTER_IN_FRMAE_GETTERS */
 
+/**************************************************************************//**
+@Group	FSL_PARSER_SETTERS Parser Setters
+
+@Description	These macros return the pointer to the relevant protocol
+		in the frame.
+		These macros are working on the default working frame's
+		parse results.
+@{
+*//***************************************************************************/
+	/** Macro to set parser_profile_id in the default task params */
+#define PARSER_SET_PRPID(_val)						\
+	(default_task_params.parser_profile_id = (uint8_t)_val)
+	/** Macro to set parser_starting_hxs in the default task params */
+#define PARSER_SET_STARTING_HXS(_val)					\
+	(default_task_params.parser_starting_hxs = (uint8_t)_val)
+
+/** @} */ /* end of FSL_PARSER_SETTERS */
+
 
 /**************************************************************************//**
 @Group AIOP_PARSE_RESULT_GEN_STATUS Parse Result Generation SR Status
