@@ -87,8 +87,7 @@ void aiop_verification_fm()
 			str_size = aiop_verification_ipr((uint32_t)data_addr);
 			break;
 		}
-		case FPDMA_MODULE:
-		case FODMA_MODULE:
+		case FDMA_MODULE:
 		{
 			str_size = aiop_verification_fdma((uint32_t)data_addr);
 			break;
