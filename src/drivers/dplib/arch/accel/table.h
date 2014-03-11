@@ -86,14 +86,6 @@
 @Group	TABLE_RULE_ENTRY_MACROS Table Rule-Entry related Macros
 @{
 *//***************************************************************************/
-/** Max size of LPM IPv4 rule's key including the exact match field.
- * including prefix length. */
-#define TABLE_LPM_EM4_IPV4_KEY_SIZE				9
-
-/** Max size of LPM IPv6 rule's key including the exact match field.
- * including prefix length. */
-#define TABLE_LPM_EM4_IPV6_KEY_SIZE				21
-
 /** MFLU small key (lead node takes 2 entries) max size */
 #define TABLE_MFLU_SMALL_KEY_MAX_SIZE				42
 

@@ -64,7 +64,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		break;
 
 	case TABLE_ATTRIBUTE_TYPE_LPM:
-		if (key_size > TABLE_LPM_EM4_IPV4_KEY_SIZE) {
+		if (key_size > TABLE_KEY_LPM_IPV4_SIZE) {
 			/* IPv6*/
 			num_entries_per_rule =
 					TABLE_LPM_IPV6_WC_ENTRIES_PER_RULE;

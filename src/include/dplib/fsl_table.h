@@ -121,7 +121,7 @@
 #define TABLE_ATTRIBUTE_LOCATION_MASK	0x0700
 
 	/** Table Location sub field offset */
-#define TABLE_ATTRIBUTE_LOCATION_OFFSET		8
+#define TABLE_ATTRIBUTE_LOCATION_OFFSET	8
 
 /** @} */ /* end of FSL_CTLU_TABLE_ATTRIBUTE_LOCATION */
 
@@ -200,8 +200,8 @@
  * Not available for Rev1 */
 #define TABLE_RESULT_TYPE_CHAINING		0x81 
 
-/** Result is 9B of opaque data fields and 8B Context Memory pointer field.
- * Uses for reference counting */
+/** Result is 9B of opaque data fields and 8B Slab/CDMA buffer pointer (which
+ * has reference counter) */
 #define TABLE_RESULT_TYPE_REFERENCE		0x91
 
 /** Result is 17B of opaque data fields */
@@ -252,12 +252,12 @@
 #define TABLE_KEY_EXACT_MATCH_RESERVED_SIZE	4
 
 	/** IPv4 LPM key size */
-#define TABLE_KEY_LPM_IPV4_SIZE			0x08
+#define TABLE_KEY_LPM_IPV4_SIZE			0x09
 	/** IPv4 LPM key Reserved field size in bytes */
 #define TABLE_KEY_LPM_IPV4_RESERVED_SIZE	119
 
 	/** IPv6 LPM key size */
-#define TABLE_KEY_LPM_IPV6_SIZE			0x14
+#define TABLE_KEY_LPM_IPV6_SIZE			0x15
 	/** IPv6 LPM key Reserved field size in bytes */
 #define TABLE_KEY_LPM_IPV6_RESERVED_SIZE	107
 
@@ -442,17 +442,17 @@ struct table_result_chain_parameters {
 @Description	\ref table_result structure ctlu_op0_refptr_clp field.
 
 		This field can be used either:
-		- As an opaque field of 8 bytes (\ref table_result
+		- As an opaque field of 8 bytes \ref table_result
 		type field should be set to
-		\ref TABLE_RESULT_TYPE_OPAQUES). \n Returned as part of
+		\ref TABLE_RESULT_TYPE_OPAQUES.\n Returned as part of
 		lookup result.
-		- As a pointer to CDMA application context which has a
-		reference counter (\ref table_result type field
-		should be set to \ref TABLE_RESULT_TYPE_REFERENCE). \n
+		- As a pointer to Slab/CDMA acquired buffer (which has
+		reference counter). \ref table_result type field
+		should be set to \ref TABLE_RESULT_TYPE_REFERENCE.\n
 		Returned as part of lookup result.
 		- As a structure containing table ID and Key ID parameters for
-		a chained lookup (\ref table_result type field
-		should be set to \ref TABLE_RESULT_TYPE_CHAINING).
+		a chained lookup. \ref table_result type field
+		should be set to \ref TABLE_RESULT_TYPE_CHAINING.
 *//***************************************************************************/
 #pragma pack(push, 1)
 union table_result_op0_refptr_clp {
@@ -461,9 +461,9 @@ union table_result_op0_refptr_clp {
 	uint64_t opaque0;
 
 	/** Reference Pointer
-	Pointer to CDMA application context.
+	A pointer to Slab/CDMA acquired buffer (which has reference counter).
 	The Table Hardware can increment or decrement the reference counter of
-	the application context on certain operations (please refer to \link
+	the Slab/CDMA buffer on certain operations (please refer to \link
 	FSL_TABLE_Functions Table functions documentation\endlink).\n
 	Returned as part of lookup result. */
 	uint64_t reference_pointer;
@@ -696,7 +696,7 @@ struct table_lookup_result {
 	/** Opaque0 or Reference Pointer
 	This field can be either:
 	- 8 bytes of opaque data.
-	- A pointer to CDMA context memory which has a reference pointer. TODO Amir
+	- A pointer to Slab/CDMA acquired buffer (which has a reference counter)
 	Depending on the matching rule result type */
 	uint64_t opaque0_or_reference;
 
@@ -871,8 +871,8 @@ struct table_create_params {
 
 	/** Table Key Size in bytes
 	In a case of LPM table:
-	 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4
-	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6
+	 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.\n
 	Please note that this value is not returned through
 	\ref table_get_params() function. */
 	uint8_t  key_size;
@@ -1003,8 +1003,8 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	Not available for MFLU table accelerator.
-		NOTE: If the result is of type that contains pointer to CDMA
-		application buffer (refer to struct table_rule_result
+		NOTE: If the result is of type that contains pointer to
+		Slab/CDMA buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
 		counter of the buffer.
 		In this function the task yields.
@@ -1051,6 +1051,9 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
+		In a case of LPM table:
+		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
@@ -1077,6 +1080,9 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
+		In a case of LPM table:
+		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 @Param[in, out]	old_res - The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned and its reference counter will be
@@ -1110,6 +1116,9 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		rule to be replaced will be found and contain the rule
 		result to be replaced. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
+		In a case of LPM table:
+		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 @Param[in, out]	old_res - The result of the replaced rule. If null the replaced
 		rule's result will not be returned and its reference counter
 		will be decremented (if exists). If not null structure should
@@ -1140,6 +1149,9 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 @Param[in]	key - Key of the rule to be queried. Must be aligned to 16B
 		boundary.
 @Param[in]	key_size - Key size in bytes.
+		In a case of LPM table:
+		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 @Param[out]	result - The result of the query. Structure should be allocated
 		by the caller to this function.
 @Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
@@ -1149,8 +1161,8 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
-@Cautions	NOTE: If the result is of type that contains pointer to CDMA
-		application buffer (refer to struct table_rule_result
+@Cautions	NOTE: If the result is of type that contains pointer to
+		Slab/CDMA buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
 		counter of the buffer. For query functions that does increment
 		the reference counter please refer to table lookup function.
@@ -1175,6 +1187,9 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 @Param[in]	key - Key of the rule to be deleted. Must be aligned to 16B
 		boundary.
 @Param[in]	key_size - Key size in bytes.
+		In a case of LPM table:
+		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 @Param[in, out]	result - The result of the deleted rule. If null the deleted
 		rule's result will not be returned and its reference counter
 		will be decremented (if exists). If not null structure should
@@ -1203,9 +1218,9 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 
 @Description	Performs a lookup with a predefined key.
 
-		If Opaque0 result field is an application context pointer, its
-		reference counter will be incremented during this operation.
-		user should decrement the application context reference count
+		If opaque0_or_reference result field is a reference pointer,
+		its reference counter will be incremented during this operation.
+		user should decrement the Slac/CDMA buffer reference counter
 		after usage.
 
 		Implicit input parameters in Task Defaults: Segment Address,
@@ -1235,9 +1250,9 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 @Description	Performs a lookup with a key built by the user.
 
-		If Opaque0 result field is an application context pointer, its
-		reference counter will be incremented during this operation.
-		user should decrement the application context reference count
+		If opaque0_or_reference result field is a reference pointer,
+		its reference counter will be incremented during this operation.
+		user should decrement the Slac/CDMA buffer reference counter
 		after usage.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
@@ -1245,6 +1260,9 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 @Param[in]	table_id - Table ID.
 @Param[in]	key - Lookup key. Must be aligned to 16B boundary
 @Param[in]	key_size - Key size in bytes.
+		In a case of LPM table:
+		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
 		the table lookup result will be written. Must be aligned to 16B
 		boundary.
