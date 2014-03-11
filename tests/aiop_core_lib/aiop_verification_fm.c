@@ -140,7 +140,7 @@ void aiop_verification_fm()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD) {
+			if (if_result == TERMINATE_FLOW_MODULE) {
 				fdma_terminate_task();
 				return;
 			} else if (if_result) {
@@ -164,7 +164,7 @@ void aiop_verification_fm()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD) {
+			if (if_result == TERMINATE_FLOW_MODULE) {
 				fdma_terminate_task();
 				return;
 			} else if (if_result) {
@@ -189,8 +189,8 @@ void aiop_verification_fm()
 		if (str_size == STR_SIZE_ERR) {
 			fdma_terminate_task();
 			return;
-		} else if ((opcode != AIOP_IF_CMD) &&
-			 (opcode != AIOP_IF_ELSE_CMD)) {
+		} else if ((opcode != IF_MODULE) &&
+			 (opcode != IF_ELSE_MODULE)) {
 			/* write command results back to DDR */
 			cdma_write(ext_address, (void *)data_addr, str_size);
 			/* Set next address to read from DDR */
@@ -304,7 +304,7 @@ uint32_t if_statement_result(
 	}
 	default:
 	{
-		return AIOP_TERMINATE_FLOW_CMD;
+		return TERMINATE_FLOW_MODULE;
 	}
 	}
 
