@@ -12,6 +12,7 @@
 #include "common/types.h"
 #include "dplib/fsl_ldpaa.h"
 
+extern __TASK struct aiop_default_task_params default_task_params;
 
 /**************************************************************************//**
  @Group		ACCEL ACCEL (Accelerator APIs)
@@ -1050,6 +1051,22 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 		+ PRC_GET_SEGMENT_ADDRESS())
 
 /** @} */ /* end of FSL_PARSER_POINTER_IN_FRMAE_GETTERS */
+
+/**************************************************************************//**
+@Group	FSL_PARSER_SETTERS Parser Setters
+
+@Description	These macros set parser parameters in the default task params.
+
+@{
+*//***************************************************************************/
+	/** Macro to set parser_profile_id in the default task params */
+#define PARSER_SET_PRPID(_val)						\
+	(default_task_params.parser_profile_id = (uint8_t)_val)
+	/** Macro to set parser_starting_hxs in the default task params */
+#define PARSER_SET_STARTING_HXS(_val)					\
+	(default_task_params.parser_starting_hxs = (uint8_t)_val)
+
+/** @} */ /* end of FSL_PARSER_SETTERS */
 
 
 /**************************************************************************//**
