@@ -41,19 +41,13 @@
 
 	/**< ACCEL_ID cmd mask */
 #define ACCEL_ID_CMD_MASK		0xFFFF0000
-	/**< AIOP Terminate Flow Verification command code */
-#define AIOP_TERMINATE_FLOW_CMD		0xFFFF
-	/**< AIOP IF Verification command code */
-#define AIOP_IF_CMD			0x100
-	/**< AIOP IF_ELSE Verification command code */
-#define AIOP_IF_ELSE_CMD		0x101
 
 	/**< AIOP Terminate Flow Verification command structure identifier */
-#define AIOP_TERMINATE_FLOW_CMD_STR	(AIOP_TERMINATE_FLOW_CMD << 16)
+#define AIOP_TERMINATE_FLOW_CMD_STR	(TERMINATE_FLOW_MODULE << 16)
 	/**< AIOP IF Verification command structure identifier */
-#define AIOP_IF_CMD_STR			(AIOP_IF_CMD << 16)
+#define AIOP_IF_CMD_STR			(IF_MODULE << 16)
 	/**< AIOP IF ELSE command structure identifier */
-#define AIOP_IF_ELSE_CMD_STR		(AIOP_IF_ELSE_CMD << 16)
+#define AIOP_IF_ELSE_CMD_STR		(IF_ELSE_MODULE << 16)
 
 	/**< Struct size error code */
 #define STR_SIZE_ERR			0xFFFF

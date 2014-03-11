@@ -118,7 +118,7 @@ void aiop_verification_fm_temp()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD)
+			if (if_result == TERMINATE_FLOW_MODULE)
 			{
 				fdma_terminate_task();
 				return;
@@ -143,7 +143,7 @@ void aiop_verification_fm_temp()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD)
+			if (if_result == TERMINATE_FLOW_MODULE)
 			{
 				fdma_terminate_task();
 				return;
@@ -166,7 +166,7 @@ void aiop_verification_fm_temp()
 		}
 
 
-		if ((opcode == AIOP_IF_CMD) || (opcode == AIOP_IF_ELSE_CMD))
+		if ((opcode == IF_MODULE) || (opcode == IF_ELSE_MODULE))
 		{
 			size = (uint16_t)(asa_seg_addr - init_asa_seg_addr);
 		}
