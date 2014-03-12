@@ -66,7 +66,9 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_SET_TP_SRC,
 	HM_CMDTYPE_SET_TP_DST,
 	HM_CMDTYPE_PUSH_VLAN,
-	HM_CMDTYPE_POP_VLAN
+	HM_CMDTYPE_POP_VLAN,
+	HM_CMDTYPE_IP_CKSUM_CALCULATE,
+	HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC
 };
 
 /* HM Commands Structure identifiers */
@@ -143,7 +145,11 @@ enum e_hm_verif_cmd_type {
 #define HM_POP_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
 
+#define HM_IP_CKSUM_CALCULATE_CMD_STR		((HM_VERIF_ACCEL_ID << 16) | \
+		(uint32_t)HM_CMDTYPE_IP_CKSUM_CALCULATE)
 
+#define HM_L4_UDP_TCP_CKSUM_CALC_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+		(uint32_t)HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC)
 
 /**************************************************************************//**
 @Description	HM verification init Command structure.
@@ -414,7 +420,28 @@ struct hm_pop_vlan_command {
 	int32_t		status;
 };
 
+/**************************************************************************//**
+@Description	Calculate IPv4 Header Checksum Command structure.
 
+		Includes information needed for Checksum Commands verification.
+*//***************************************************************************/
+struct hm_ip_cksum_calculation_command {
+	uint32_t opcode;
+	int32_t  status;
+	uint32_t ipv4header;
+	uint8_t  flags;
+};
+
+/**************************************************************************//**
+@Description	Calculate UDP TCP Checksum Command structure.
+
+		Includes information needed for Checksum Commands verification.
+*//***************************************************************************/
+struct hm_l4_udp_tcp_cksum_calc_command {
+	uint32_t opcode;
+	int32_t  status;
+	uint8_t  flags;
+};
 
 void aiop_hm_init_parser();
 

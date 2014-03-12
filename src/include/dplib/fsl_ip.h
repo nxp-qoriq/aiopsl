@@ -6,7 +6,7 @@
 @Cautions	Please note that the parse results must be updated before
 		calling functions defined in this file.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 
 *//***************************************************************************/
 
@@ -16,7 +16,6 @@
 #include "common/types.h"
 #include "dplib/fsl_ipf.h"
 #include "dplib/fsl_ipr.h"
-#include "dplib/fsl_ipv4_checksum.h"
 
 
 /**************************************************************************//**
@@ -45,6 +44,10 @@
 #define NO_IP_ENCAPSULATION_FOUND_ERROR		(HM_MODULE_STATUS_ID + 0x0100)
 /** No IP header was found.*/
 #define NO_IP_HDR_ERROR				(HM_MODULE_STATUS_ID + 0x0300)
+
+/** Failure, FDMA error occurred */
+//#define IPV4_CKSUM_CALC_STATUS_FDMA_FAILURE	0x80010000
+
 
 
 /**************************************************************************//**
@@ -157,6 +160,22 @@
 #define IP_DECAP_MODE_TOS_TC_ECN 0x04
 
 /* @} end of group HMIPDecapModeBits */
+
+/**************************************************************************//**
+@Group		HMIPCksumCalcModeBits IP header checksum calculation mode bits
+
+@{
+*//***************************************************************************/
+
+/** No Mode bits */
+#define IP_CKSUM_CALC_MODE_NONE			0x00
+
+/** Don't Update FDMA mode bit
+ * If set, the SR will not call \ref fdma_modify_default_segment_data to update
+ * the FDMA engine with the frame header changes. */
+#define IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA	0x01
+
+/* @} end of group HMIPCksumCalcModeBits */
 
 /* @} end of group HM_IP_Modes */
 
@@ -394,6 +413,35 @@ int32_t ip_set_nw_src(uint32_t src_addr);
 
 *//***************************************************************************/
 int32_t ip_set_nw_dst(uint32_t dst_addr);
+
+/**************************************************************************//**
+@Function	ip_cksum_calculate
+
+@Description	Calculates and updates IPv4 header checksum.
+
+		This function calculates and updates IPv4 header checksum.
+		The IPv4 header must reside entirely in the default segment
+		(which must be open in the workspace).
+		The contents of the header must be updated, if needed, by FDMA
+		replace command before calling this function.
+
+		Implicit input parameters in Task Defaults: Segment Address,
+		Segment Offset and Frame Handle.
+
+		Implicitly updated values in Task Defaults: Parse Result[gross
+		running sum] field.
+
+@Param[in]	ipv4header - pointer to ipv4 header.
+@Param[in]	flags - \link HMIPCksumCalcModeBits IP Checksum calculation mode
+		bits \endlink
+
+@Return		Success or FDMA Failure.
+
+@Cautions	In this function the task yields. \n
+		This function invalidates the Parser Result Gross Running Sum
+		field.
+*//***************************************************************************/
+int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
 
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group FSL_HM */
