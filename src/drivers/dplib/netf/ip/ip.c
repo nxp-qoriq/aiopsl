@@ -15,6 +15,7 @@
 #include "dplib/fsl_cdma.h"
 #include "checksum.h"
 #include "header_modification.h"
+#include "ip.h"
 
 
 int32_t ip_header_decapsulation(uint8_t flags)
@@ -1043,3 +1044,89 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	return SUCCESS;
 }
 
+uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
+
+	uint32_t current_hdr_ptr;
+	uint16_t current_hdr_size;
+	uint8_t current_ver;
+	uint8_t next_hdr;
+	uint8_t ah_ext;
+	uint8_t dst_ext;
+	uint8_t frag_ext;
+	uint16_t ipv6_payload; 
+	uint8_t no_extension; 
+
+	no_extension = 0;
+
+	/* fragmentation request (flag = 1) */
+	if (flag){
+		ah_ext = no_extension;
+		frag_ext = no_extension;
+
+	/* Encapsulation request (flag = 0) */
+	} else {
+		ah_ext = IPV6_EXT_AH;
+		frag_ext = IPV6_EXT_FRAGMENT;
+	}
+
+	/* destination extension can appear only once on frag. request */
+	dst_ext = IPV6_EXT_DESTINATION;
+
+	/* Copy initials IPv6 header */
+	current_hdr_ptr = (uint32_t)ipv6_hdr;
+	current_hdr_size = IPV6_HDR_LENGTH;
+	ipv6_payload = ipv6_hdr->payload_length;
+	next_hdr = ipv6_hdr->next_header;
+
+	/* Skip to next extension header until extension isn't ipv6 header
+	 * or until extension is the fragmentation position (depend on flag) */
+	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
+		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
+		(next_hdr == ah_ext) ||
+		(next_hdr == frag_ext)) {
+
+		current_ver = next_hdr;
+		current_hdr_ptr += current_hdr_size;
+		next_hdr = *((uint8_t *)(current_hdr_ptr));
+		current_hdr_size = *((uint8_t *)(current_hdr_ptr + 1));
+
+		/* Calculate current extension size  */
+		switch (current_ver) {
+
+		case IPV6_EXT_DESTINATION: 
+		{
+			current_hdr_size = ((current_hdr_size + 1) << 3);
+
+			/* fragmentation request -> disable dst ext */
+			if (flag){
+				dst_ext = no_extension;
+			}
+			break;
+		}
+
+		case IPV6_EXT_AH:
+		{
+			current_hdr_size = ((current_hdr_size + 2) << 2);	
+			break;
+		}
+
+		case IPV6_EXT_FRAGMENT:
+		{
+			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
+			break;
+		}
+
+		/* Routing or Hop By Hop */ 
+		default:
+		{
+			current_hdr_size = ((current_hdr_size + 1) << 3);
+		}
+		}
+	}
+
+	/* return last extension pointer and extension indicator */
+	if (current_hdr_ptr == (uint32_t)ipv6_hdr)
+		return no_extension;
+
+	return current_hdr_ptr;
+}

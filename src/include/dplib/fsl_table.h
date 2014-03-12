@@ -751,11 +751,6 @@ struct table_lookup_key_lpm_ipv4 {
 	For lookup on all prefixes prefix_length = 0xFF. This field must
 	be > 1 */
 	uint8_t	 max_prefix;
-
-	/** Reserved
-	Reserved for compliance with HW format.
-	User should not access this field. */
-	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
 };
 #pragma pack(pop)
 
@@ -1254,7 +1249,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 		If opaque0_or_reference result field is a reference pointer,
 		its reference counter will be incremented during this operation.
-		user should decrement the Slac/CDMA buffer reference counter
+		user should decrement the Slab/CDMA buffer reference counter
 		after usage.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
