@@ -1097,7 +1097,7 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 		{
 			current_hdr_size = ((current_hdr_size + 1) << 3);
 
-			/* IPV6_EXT_FRAGMENTation request -> disable dst ext */
+			/* fragmentation request -> disable dst ext */
 			if (flag){
 				dst_ext = no_extension;
 			}
@@ -1116,7 +1116,7 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 			break;
 		}
 
-		/* IPV6_EXT_ROUTING or Hop By Hop */ 
+		/* Routing or Hop By Hop */ 
 		default:
 		{
 			current_hdr_size = ((current_hdr_size + 1) << 3);
