@@ -29,7 +29,7 @@
 		pointer of IPv6 header.
 
 @Param[in]	ipv6_hdr - pointer to IPv6 header
-@Param[in]	flag - fragmentation request = 0, encaspulation request = 1.
+@Param[in]	flag - fragmentation request = 1, encaspulation request = 0.
 
 @Return		Fragmentation pointer or last IPv6 extension pointer
 
