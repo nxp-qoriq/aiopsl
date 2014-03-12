@@ -15,7 +15,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		     uint16_t *table_id)
 {
 	int32_t status;
-	struct table_rule * miss_rule;
+	struct table_rule *miss_rule;
 	/* Initialized to one for the simple case where key_size <= 24 */
 	int                               num_entries_per_rule = 1;
 
@@ -77,7 +77,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	case TABLE_ATTRIBUTE_TYPE_MFLU:
 		if (key_size > TABLE_MFLU_SMALL_KEY_MAX_SIZE) {
-			num_entries_per_rule = 
+			num_entries_per_rule =
 				TABLE_MFLU_BIG_KEY_WC_ENTRIES_PER_RULE;
 		} else {
 			num_entries_per_rule =
@@ -107,9 +107,8 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 			      0);
 
 	/* handle CDMA error */
-	if (cdma_status != CDMA_WS_MEMORY_INIT__SUCCESS) {
+	if (cdma_status != CDMA_WS_MEMORY_INIT__SUCCESS)
 		return cdma_status;
-	}
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
@@ -124,9 +123,8 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
-	if (status) {
+	if (status)
 		return status;
-	}
 
 	/* Re-assignment of the structure is done because of stack limitations
 	 * of the service layer  - assertion of sizes is done on table.h */
@@ -205,7 +203,7 @@ int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
 {
 	uint32_t invalid_timestamp;
 	return table_rule_query(acc_id, table_id, 0, 0, miss_result,
-			        &invalid_timestamp);
+				&invalid_timestamp);
 }
 
 
@@ -233,7 +231,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
-	*(uint16_t *)(&(rule->result.type)) |= 
+	*(uint16_t *)(&(rule->result.type)) |=
 			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
 
 	/* Clear byte in offset 2*/
@@ -491,7 +489,8 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id){
+int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
+{
 	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
@@ -502,7 +501,8 @@ int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id){
 }
 
 
-void table_hw_accel_release_lock(enum table_hw_accel_id acc_id){
+void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
+{
 	__stqw(TABLE_RELEASE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
