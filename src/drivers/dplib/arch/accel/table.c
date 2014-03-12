@@ -355,7 +355,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 
 int32_t table_rule_query(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
-			 union table_key *key,
+			 union table_key_desc *key_desc,
 			 uint8_t key_size,
 			 struct table_result *result,
 			 uint32_t *timestamp)
@@ -365,7 +365,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
-	__e_rlwimi(arg2, key, 16, 0, 15);
+	__e_rlwimi(arg2, key_desc, 16, 0, 15);
 	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
@@ -401,7 +401,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 
 int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  union table_key *key,
+			  union table_key_desc *key_desc,
 			  uint8_t key_size,
 			  struct table_result *result)
 {
@@ -409,7 +409,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
-	__e_rlwimi(arg2, key, 16, 0, 15);
+	__e_rlwimi(arg2, key_desc, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
 
 	if (result) { /* Returning result and thus not decrementing RCOUNT */
@@ -449,13 +449,13 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 			    uint16_t table_id,
-			    union table_lookup_key key,
+			    union table_lookup_key_desc key_desc,
 			    uint8_t key_size,
 			    struct table_lookup_result *lookup_result)
 {
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;
-	__e_rlwimi(arg2, *((uint32_t *)(&key)), 16, 0, 15);
+	__e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE, arg2,
@@ -474,8 +474,7 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 /*****************************************************************************/
 int32_t table_query_debug(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  struct table_params_query_output_message *output
-			 )
+			  struct table_params_query_output_message *output)
 {
 	/* Prepare ACC context for TLU accelerator call */
 	__stqw(TABLE_QUERY_MTYPE, (uint32_t)output, table_id, 0,

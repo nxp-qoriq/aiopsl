@@ -383,7 +383,7 @@ struct table_lookup_by_key_command{
 	struct table_lookup_result lookup_result;
 
 	/** A pointer to the key in the workspace */
-	union table_lookup_key key;
+	union table_lookup_key_desc key;
 
 	/** Command returned status */
 	int32_t  status;

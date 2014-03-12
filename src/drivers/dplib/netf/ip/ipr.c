@@ -293,7 +293,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
 				    ipr_global_parameters1.ipr_key_id_ipv4,
 				    0,
-				    &rule.key,
+				    &rule.key_desc,
 				    &keysize);
 		    
 		    rule.options = 0;
@@ -306,9 +306,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				    &rule,
 				    keysize);
 		    /* store key in RDFC */
-		    rfdc.ipv4_key[0] = *(uint64_t *)rule.key.em.key;
+		    rfdc.ipv4_key[0] = *(uint64_t *)rule.key_desc.em.key;
 		    rfdc.ipv4_key[1] = 
-				   *(uint64_t *)(rule.key.em.key+8);
+				   *(uint64_t *)(rule.key_desc.em.key+8);
 		    /* todo release struct rule  or call function for
 		     * gen+add rule */
 		    rfdc.status = RFDC_VALID;

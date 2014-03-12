@@ -153,7 +153,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		str->status = table_rule_delete
 			(str->acc_id,
 			 str->table_id,
-			 (union table_key *)str->key_ptr,
+			 (union table_key_desc *)str->key_ptr,
 			 str->key_size,
 			 &str->old_res);
 
