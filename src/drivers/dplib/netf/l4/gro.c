@@ -466,7 +466,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
 			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
-	gro_ctx->next_seq = tcp->acknowledgment_number +
+	gro_ctx->next_seq = tcp->sequence_number +
 			(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 			headers_size;
 	/* save timestap if exist */

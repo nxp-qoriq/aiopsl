@@ -101,7 +101,7 @@
 		defines):
 @{
 *//***************************************************************************/
-	/** Internal table (located in dedicated RAM), Not available for 
+	/** Internal table (located in dedicated RAM), Not available for
 	 * MFLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_LOCATION_INT	0x0200
 
@@ -198,7 +198,7 @@
 *//***************************************************************************/
 /** Result is used for chaining of lookups, Contains 9B Opaque fields
  * Not available for Rev1 */
-#define TABLE_RESULT_TYPE_CHAINING		0x81 
+#define TABLE_RESULT_TYPE_CHAINING		0x81
 
 /** Result is 9B of opaque data fields and 8B Slab/CDMA buffer pointer (which
  * has reference counter) */
@@ -598,13 +598,13 @@ struct table_key_mflu {
 	User should not access this field. */
 	uint32_t reserved0;
 
-	/** Priority 
+	/** Priority
 	Priority determines the selection between two rule that match in the
 	MFLU lookup.
 	0x00000000 is the highest priority.*/
 	uint32_t priority;
 
-	/** Key mask 
+	/** Key mask
 	Each byte in the mask must have contiguous 1's in the MSbits.
 	Therefore there are 9 valid values for each byte in the mask:
 	 - 0x00: The entire byte is masked.
@@ -751,11 +751,6 @@ struct table_lookup_key_lpm_ipv4 {
 	For lookup on all prefixes prefix_length = 0xFF. This field must
 	be > 1 */
 	uint8_t	 max_prefix;
-
-	/** Reserved
-	Reserved for compliance with HW format.
-	User should not access this field. */
-	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
 };
 #pragma pack(pop)
 
@@ -800,7 +795,7 @@ struct table_lookup_key_mflu {
 	User should not access this field. */
 	uint32_t reserved0;
 
-	/** Maximum Priority 
+	/** Maximum Priority
 	defines the maximum priority for the lookup operation.
 	Rules with lower priority will not be matched. 0 is the lowest
 	priority, 0xFFFFFFFF is the highest priority.
@@ -828,13 +823,13 @@ union table_lookup_key {
 
 	/** LPM IPv4 Key
 	Should only be used with CTLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with
 	\ref TABLE_KEY_LPM_IPV4_SIZE key size. */
 	struct table_lookup_key_lpm_ipv4 *lpm_ipv4;
 
 	/** LPM IPv6 Key
 	Should only be used with CTLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with
 	\ref TABLE_KEY_LPM_IPV6_SIZE key size. */
 	struct table_lookup_key_lpm_ipv6 *lpm_ipv6;
 
@@ -1254,7 +1249,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 		If opaque0_or_reference result field is a reference pointer,
 		its reference counter will be incremented during this operation.
-		user should decrement the Slac/CDMA buffer reference counter
+		user should decrement the Slab/CDMA buffer reference counter
 		after usage.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
