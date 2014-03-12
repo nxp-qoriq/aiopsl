@@ -25,8 +25,8 @@
 /*************************************************************************//**
 @Function	ipv6_last_header
 
-@Description	Return the fragmnetation pointer for ipf or the last extension
-		pointer of IPv6 header for ipr.
+@Description	Return the fragmnetation pointer or the last extension
+		pointer of IPv6 header.
 
 @Param[in]	ipv6_hdr - pointer to IPv6 header
 @Param[in]	flag - fragmentation request = 0, encaspulation request = 1.
