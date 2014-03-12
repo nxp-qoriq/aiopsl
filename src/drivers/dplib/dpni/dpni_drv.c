@@ -216,9 +216,10 @@ int dpni_get_num_of_ni (void)
 
 
 /* TODO: replace with macro/inline */
-int dpni_drv_get_primary_mac_addr(uint16_t niid)
+int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-	return((int)nis[niid].mac_addr);
+	memcpy(mac_addr, nis[niid].mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	return 0;
 }
 
 
@@ -274,7 +275,9 @@ static int aiop_replace_parser(uint8_t prpid)
 
 int dpni_drv_init(void)
 {
+#if MC_INTEGRATED
 	uintptr_t	wrks_addr;
+#endif
 	int		    i;
 	int         error = 0;
 
@@ -306,7 +309,8 @@ int dpni_drv_init(void)
 		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
-	
+
+#if MC_INTEGRATED
 	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
 #if 0
 	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */
@@ -338,6 +342,7 @@ int dpni_drv_init(void)
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
 #endif
 	}
+#endif
 #endif
 	
 	/* Set PRPID 0 

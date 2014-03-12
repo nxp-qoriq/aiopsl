@@ -38,17 +38,18 @@ static void dpni_test_process_packet (dpni_drv_app_arg_t arg)
 {
 	int receive_niid;
 	int send_niid;
-	int receive_mac_addr;
-	int send_mac_addr;
+	uint8_t receive_mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
+	uint8_t send_mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	
 	receive_niid = dpni_get_receive_niid();
 	dpni_set_send_niid(SEND_NIID); 
 	send_niid = dpni_get_send_niid();
-	receive_mac_addr = dpni_drv_get_primary_mac_addr((uint16_t)receive_niid);
-	send_mac_addr = dpni_drv_get_primary_mac_addr((uint16_t)send_niid);
+	dpni_drv_get_primary_mac_addr((uint16_t)receive_niid, receive_mac_addr);
+	dpni_drv_get_primary_mac_addr((uint16_t)send_niid, send_mac_addr);
 	
-	fsl_os_print("DPNI TEST: Running dpni_test_process_packet(), Receive NIID = %d (MAC=0x%x), Send NIID = %d (MAC=0x%x), arg = %d\n",
-				receive_niid, receive_mac_addr, send_niid, send_mac_addr, (int)arg);
+	fsl_os_print("DPNI TEST: Running dpni_test_process_packet(), Receive NIID = %d (MAC=0x%x%x%x%x%x%x), Send NIID = %d (MAC=0x%x%x%x%x%x%x), arg = %d\n",
+				receive_niid, receive_mac_addr[0], receive_mac_addr[1], receive_mac_addr[2], receive_mac_addr[3], receive_mac_addr[4], receive_mac_addr[5],
+				send_niid, send_mac_addr[0], send_mac_addr[1], send_mac_addr[2], send_mac_addr[3], send_mac_addr[4], send_mac_addr[5], (int)arg);
 }
 
 
