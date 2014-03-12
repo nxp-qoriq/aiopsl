@@ -1,0 +1,27 @@
+
+AIOP Core Library Doxygen Files
+===============================
+The following files should be used for Doxygen generation:
+
+fsl_cdma.h
+fsl_table.h
+fsl_keygen.h
+fsl_fdma.h
+fsl_gso.h
+fsl_gro.h
+fsl_general_errors.h
+fsl_ip.h
+fsl_ipf.h
+fsl_ipr.h
+fsl_ipsec.h
+fsl_l2.h
+fsl_l4.h
+fsl_ldpaa.h
+fsl_nat.h
+fsl_parser.h
+fsl_osm.h
+fsl_spinlock.h
+fsl_ste.h
+fsl_tman.h
+dpni_drv.h
+general.h

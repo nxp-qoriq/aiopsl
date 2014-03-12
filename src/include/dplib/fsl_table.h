@@ -101,7 +101,7 @@
 		defines):
 @{
 *//***************************************************************************/
-	/** Internal table (located in dedicated RAM), Not available for 
+	/** Internal table (located in dedicated RAM), Not available for
 	 * MFLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_LOCATION_INT	0x0200
 
@@ -198,7 +198,7 @@
 *//***************************************************************************/
 /** Result is used for chaining of lookups, Contains 9B Opaque fields
  * Not available for Rev1 */
-#define TABLE_RESULT_TYPE_CHAINING		0x81 
+#define TABLE_RESULT_TYPE_CHAINING		0x81
 
 /** Result is 9B of opaque data fields and 8B Slab/CDMA buffer pointer (which
  * has reference counter) */
@@ -248,24 +248,24 @@
 *//***************************************************************************/
 	/** Exact Match maximum key size in bytes */
 #define TABLE_KEY_EXACT_MATCH_SIZE		124
-	/** Exact Match key Reserved field size in bytes */
+	/** Exact Match Key Descriptor Reserved field size in bytes */
 #define TABLE_KEY_EXACT_MATCH_RESERVED_SIZE	4
 
 	/** IPv4 LPM key size */
 #define TABLE_KEY_LPM_IPV4_SIZE			0x09
-	/** IPv4 LPM key Reserved field size in bytes */
+	/** IPv4 LPM Key Descriptor Reserved field size in bytes */
 #define TABLE_KEY_LPM_IPV4_RESERVED_SIZE	119
 
 	/** IPv6 LPM key size */
 #define TABLE_KEY_LPM_IPV6_SIZE			0x15
-	/** IPv6 LPM key Reserved field size in bytes */
+	/** IPv6 LPM Key Descriptor Reserved field size in bytes */
 #define TABLE_KEY_LPM_IPV6_RESERVED_SIZE	107
 
 	/** MFLU maximum key size in bytes */
 #define TABLE_KEY_MFLU_SIZE			0x38
 	/** MFLU key mask field size in bytes */
 #define TABLE_KEY_MFLU_MASK_SIZE		0x38
-	/** MFLU key Reserved1 field size in bytes */
+	/** MFLU Key Descriptor Reserved1 field size in bytes */
 #define TABLE_KEY_MFLU_RESERVED1_SIZE		8
 
 /** @} */ /* end of FSL_KEY_DEFINES */
@@ -515,10 +515,10 @@ struct table_result {
 
 
 /**************************************************************************//**
-@Description	Exact Match Key Structure
+@Description	Exact Match Key Descriptor Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_key_exact_match {
+struct table_key_desc_em {
 	/** Exact Match key */
 	uint8_t  key[TABLE_KEY_EXACT_MATCH_SIZE];
 
@@ -531,13 +531,13 @@ struct table_key_exact_match {
 
 
 /**************************************************************************//**
-@Description	LPM IPv4 Key Structure
+@Description	LPM IPv4 Key Descriptor Structure
 
 		The CTLU searches for the LPM of the concatenation of
 		{exact_match, full_ipv4_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_key_lpm_ipv4 {
+struct table_key_desc_lpm_ipv4 {
 	/** Exact Match bytes */
 	uint32_t exact_match;
 
@@ -557,13 +557,13 @@ struct table_key_lpm_ipv4 {
 
 
 /**************************************************************************//**
-@Description	LPM IPv6 Key Structure
+@Description	LPM IPv6 Key Descriptor Structure
 
 		The CTLU searches for the LPM of the concatenation of
 		{exact_match, full_ipv6_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_key_lpm_ipv6 {
+struct table_key_desc_lpm_ipv6 {
 	/** Exact Match bytes */
 	uint32_t exact_match;
 
@@ -589,7 +589,7 @@ struct table_key_lpm_ipv6 {
 @Description	MFLU Key Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_key_mflu {
+struct table_key_desc_mflu {
 	/** Key */
 	uint8_t  key[TABLE_KEY_MFLU_SIZE];
 
@@ -598,13 +598,13 @@ struct table_key_mflu {
 	User should not access this field. */
 	uint32_t reserved0;
 
-	/** Priority 
+	/** Priority
 	Priority determines the selection between two rule that match in the
 	MFLU lookup.
 	0x00000000 is the highest priority.*/
 	uint32_t priority;
 
-	/** Key mask 
+	/** Key mask
 	Each byte in the mask must have contiguous 1's in the MSbits.
 	Therefore there are 9 valid values for each byte in the mask:
 	 - 0x00: The entire byte is masked.
@@ -624,30 +624,24 @@ struct table_key_mflu {
 
 
 /**************************************************************************//**
-@Description	Union of 4 Table Key Types
-
-		This union includes:
-		- struct table_key_lpm_ipv4
-		- struct table_key_lpm_ipv6
-		- struct table_key_em
-		- struct key_mflu
+@Description	Table Key Descriptor
 *//***************************************************************************/
-union table_key {
-	/** Exact Match Key
+union table_key_desc {
+	/** Exact Match Key Descriptor
 	Should only be used with CTLU Hardware Table Accelerator */
-	struct table_key_exact_match em;
+	struct table_key_desc_em          em;
 
-	/** LPM IPv4 Key
+	/** LPM IPv4 Key Descriptor
 	Should only be used with CTLU Hardware Table Accelerator */
-	struct table_key_lpm_ipv4    lpm_ipv4;
+	struct table_key_desc_lpm_ipv4    lpm_ipv4;
 
-	/** LPM IPv6 Key
+	/** LPM IPv6 Key Descriptor
 	Should only be used with CTLU Hardware Table Accelerator */
-	struct table_key_lpm_ipv6    lpm_ipv6;
+	struct table_key_desc_lpm_ipv6    lpm_ipv6;
 
-	/** MFLU Key
+	/** MFLU Key Descriptor
 	Should only be used with MFLU Hardware Table Accelerator */
-	struct table_key_mflu        mflu;
+	struct table_key_desc_mflu        mflu;
 };
 
 
@@ -656,13 +650,8 @@ union table_key {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_rule {
-	/** Rule's key
-	The structure to be passed is one of the following:
-	 - \ref table_key_exact_match
-	 - \ref table_key_lpm_ipv4
-	 - \ref table_key_lpm_ipv6
-	 - \ref table_key_mflu */
-	union table_key key;
+	/** Rule's key descriptor */
+	union table_key_desc key_desc;
 
 	/** Reserved
 	Reserved for compliance with HW format.
@@ -732,13 +721,13 @@ struct table_lookup_result {
 
 
 /**************************************************************************//**
-@Description	LPM IPv4 Lookup Key Structure
+@Description	LPM IPv4 Lookup Key Descriptor Structure
 
 		The CTLU searches for the LPM of the concatenation of
 		{exact_match, full_ipv4_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_lookup_key_lpm_ipv4 {
+struct table_lookup_key_desc_lpm_ipv4 {
 	/** Exact Match bytes */
 	uint32_t exact_match;
 
@@ -751,23 +740,18 @@ struct table_lookup_key_lpm_ipv4 {
 	For lookup on all prefixes prefix_length = 0xFF. This field must
 	be > 1 */
 	uint8_t	 max_prefix;
-
-	/** Reserved
-	Reserved for compliance with HW format.
-	User should not access this field. */
-	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
 };
 #pragma pack(pop)
 
 
 /**************************************************************************//**
-@Description	LPM IPv6 Key Structure
+@Description	LPM IPv6 Key Descriptor Structure
 
 		The CTLU searches for the LPM of the concatenation of
 		{exact_match, full_ipv6_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_lookup_key_lpm_ipv6 {
+struct table_lookup_key_desc_lpm_ipv6 {
 	/** Exact Match bytes */
 	uint32_t exact_match;
 
@@ -788,10 +772,10 @@ struct table_lookup_key_lpm_ipv6 {
 
 
 /**************************************************************************//**
-@Description	MFLU Key Structure
+@Description	MFLU Key Descriptor Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_lookup_key_mflu {
+struct table_lookup_key_desc_mflu {
 	/** Lookup Key */
 	uint8_t  key[TABLE_KEY_MFLU_SIZE];
 
@@ -800,7 +784,7 @@ struct table_lookup_key_mflu {
 	User should not access this field. */
 	uint32_t reserved0;
 
-	/** Maximum Priority 
+	/** Maximum Priority
 	defines the maximum priority for the lookup operation.
 	Rules with lower priority will not be matched. 0 is the lowest
 	priority, 0xFFFFFFFF is the highest priority.
@@ -811,37 +795,30 @@ struct table_lookup_key_mflu {
 
 
 /**************************************************************************//**
-@Description	Union of 4 Table Lookup Key Types
-
-		This Structure is used for table lookup operations.
-		This union includes:
-		- void pointer for exact match lookups.
-		- struct table_lookup_key_lpm_ipv4 pointer for LPM IPv4 lookups.
-		- struct table_lookup_key_lpm_ipv6 pointer for LPM IPv6 lookups.
-		- struct table_lookup_key_mflu for MFLU lookups.
+@Description	Table Lookup Key Descriptor
 *//***************************************************************************/
-union table_lookup_key {
+union table_lookup_key_desc {
 	/** Exact Match Key
 	Should only be used with CTLU Hardware Table Accelerator and tables
 	of type \ref TABLE_ATTRIBUTE_TYPE_EM */
-	void                             *em;
+	void                                  *em_key;
 
-	/** LPM IPv4 Key
+	/** LPM IPv4 Key Descriptor
 	Should only be used with CTLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with
 	\ref TABLE_KEY_LPM_IPV4_SIZE key size. */
-	struct table_lookup_key_lpm_ipv4 *lpm_ipv4;
+	struct table_lookup_key_desc_lpm_ipv4 *lpm_ipv4;
 
-	/** LPM IPv6 Key
+	/** LPM IPv6 Key Descriptor
 	Should only be used with CTLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with 
+	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with
 	\ref TABLE_KEY_LPM_IPV6_SIZE key size. */
-	struct table_lookup_key_lpm_ipv6 *lpm_ipv6;
+	struct table_lookup_key_desc_lpm_ipv6 *lpm_ipv6;
 
-	/** MFLU Key
+	/** MFLU Key Descriptor
 	Should only be used with MFLU Hardware Table Accelerator and tables
 	of type \ref TABLE_ATTRIBUTE_TYPE_MFLU. */
-	struct table_lookup_key_mflu     *mflu;
+	struct table_lookup_key_desc_mflu     *mflu;
 };
 
 
@@ -1114,9 +1091,9 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - Table rule, contains the rule's key, with which the
-		rule to be replaced will be found and contain the rule
-		result to be replaced. Must be aligned to 16B boundary.
+@Param[in]	rule - Table rule, contains the rule's key descriptor, with
+		which the rule to be replaced will be found and contain the
+		rule result to be replaced. Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1129,8 +1106,8 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	Not available for MFLU table accelerator in Rev1.
-		The key must be the exact same key that was used for the rule
-		creation.
+		The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including reserved fields).
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_rule_replace(enum table_hw_accel_id acc_id,
@@ -1148,8 +1125,8 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Key of the rule to be queried. Must be aligned to 16B
-		boundary.
+@Param[in]	key_desc - Key Descriptor of the rule to be queried. Must be
+		aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1172,7 +1149,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t table_rule_query(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
-			 union table_key *key,
+			 union table_key_desc *key_desc,
 			 uint8_t key_size,
 			 struct table_result *result,
 			 uint32_t *timestamp);
@@ -1186,8 +1163,8 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Key of the rule to be deleted. Must be aligned to 16B
-		boundary.
+@Param[in]	key_desc - Key Descriptor of the rule to be queried. Must be
+		aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1200,13 +1177,13 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	Not available for MFLU table accelerator in Rev1
-		The key must be the exact same key that was used for the rule
-		creation.
+		The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including reserved fields).
 		In this function the task yields.
 *//***************************************************************************/
 int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  union table_key *key,
+			  union table_key_desc *key_desc,
 			  uint8_t key_size,
 			  struct table_result *result);
 
@@ -1254,13 +1231,14 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 		If opaque0_or_reference result field is a reference pointer,
 		its reference counter will be incremented during this operation.
-		user should decrement the Slac/CDMA buffer reference counter
+		user should decrement the Slab/CDMA buffer reference counter
 		after usage.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key - Lookup key. Must be aligned to 16B boundary
+@Param[in]	key_desc - Lookup Key Descriptor of the rule to be queried.
+		Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1276,7 +1254,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 			    uint16_t table_id,
-			    union table_lookup_key key,
+			    union table_lookup_key_desc key_desc,
 			    uint8_t key_size,
 			    struct table_lookup_result *lookup_result);
 

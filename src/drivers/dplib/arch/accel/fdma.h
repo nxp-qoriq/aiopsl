@@ -10,7 +10,7 @@
 
 
 #include "general.h"
-#include "dplib\fsl_fdma.h"
+#include "dplib/fsl_fdma.h"
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{
