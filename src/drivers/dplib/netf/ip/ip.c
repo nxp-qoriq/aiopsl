@@ -15,6 +15,7 @@
 #include "dplib/fsl_cdma.h"
 #include "checksum.h"
 #include "header_modification.h"
+#include "ip.h"
 
 
 int32_t ip_header_decapsulation(uint8_t flags)
@@ -1061,7 +1062,7 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	if (flag){
 		ah_ext = no_extension;
 		frag_ext = no_extension;
-	
+
 	/* Encapsulation request (flag = 0) */
 	} else {
 		ah_ext = IPV6_EXT_AH;
@@ -1077,44 +1078,44 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	ipv6_payload = ipv6_hdr->payload_length;
 	next_hdr = ipv6_hdr->next_header;
 
-	/* Skip to next extension header until extension isn't ipv6 header 
+	/* Skip to next extension header until extension isn't ipv6 header
 	 * or until extension is the fragmentation position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
 		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
 		(next_hdr == ah_ext) ||
 		(next_hdr == frag_ext)) {
-		
+
 		current_ver = next_hdr;
 		current_hdr_ptr += current_hdr_size;
 		next_hdr = *((uint8_t *)(current_hdr_ptr));
 		current_hdr_size = *((uint8_t *)(current_hdr_ptr + 1));
-		
+
 		/* Calculate current extension size  */
 		switch (current_ver) {
-			
+
 		case IPV6_EXT_DESTINATION: 
 		{
 			current_hdr_size = ((current_hdr_size + 1) * 8);
-			
+
 			/* IPV6_EXT_FRAGMENTation request -> disable dst ext */
 			if (flag){
 				dst_ext = no_extension;
-			}	
+			}
 			break;
 		}
-				
-		case IPV6_EXT_AH: 
+
+		case IPV6_EXT_AH:
 		{
 			current_hdr_size = ((current_hdr_size + 2) * 4);	
 			break;
 		}
-			
-		case IPV6_EXT_FRAGMENT: 
+
+		case IPV6_EXT_FRAGMENT:
 		{
 			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
 			break;
 		}
-					
+
 		/* IPV6_EXT_ROUTING or Hop By Hop */ 
 		default:
 		{
@@ -1122,10 +1123,10 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 		}
 		}
 	}
-	
+
 	/* return last extension pointer and extension indicator */
 	if (current_hdr_ptr == (uint32_t)ipv6_hdr)
 		return no_extension;
-	
+
 	return current_hdr_ptr;
 }
