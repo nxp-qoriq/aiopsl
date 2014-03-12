@@ -17,9 +17,6 @@
 #include "dplib/fsl_parser.h"
 
 
-	/** GSO FM ID */
-#define GSO_FM_ID	 (TCP_GSO_MODULE_STATUS_ID >> 16)
-
 /* TCP_GSO Command IDs */
 	/** TCP GSO Init command code */
 #define TCP_GSO_CONTEXT_INIT_CMD		0x00000001
@@ -31,13 +28,13 @@
 
 /* TCP_GSO Commands Structure identifiers */
 	/** TCP GSO Init command Structure identifier */
-#define TCP_GSO_CONTEXT_INIT_CMD_STR	(TCP_GSO_MODULE_STATUS_ID | 	\
+#define TCP_GSO_CONTEXT_INIT_CMD_STR	((GSO_MODULE << 16) | 	\
 			TCP_GSO_CONTEXT_INIT_CMD)
 	/** TCP GSO Generate Segment Command Structure identifier */
-#define TCP_GSO_GENERATE_SEG_CMD_STR	(TCP_GSO_MODULE_STATUS_ID | 	\
+#define TCP_GSO_GENERATE_SEG_CMD_STR	((GSO_MODULE << 16) | 	\
 			TCP_GSO_GENERATE_SEG_CMD)
 	/** TCP GSO Discard Remaining Frame command Structure identifier */
-#define TCP_GSO_DISCARD_REMAINING_CMD_STR	(TCP_GSO_MODULE_STATUS_ID | \
+#define TCP_GSO_DISCARD_REMAINING_CMD_STR ((GSO_MODULE << 16) |	\
 			TCP_GSO_DISCARD_REMAINING_FRAME_CMD)
 
 
@@ -65,7 +62,7 @@ struct tcp_gso_init_command {
 	uint32_t opcode;
 		/** Please refer to \ref TCP_GSO_FLAGS. */
 	uint32_t flags;
-		/** Workspace address of the GSO internal context. 
+		/** Workspace address of the GSO internal context.
 		 * Should be defined in the TLS area. */
 	uint32_t gso_ctx_addr;
 		/** Maximum Segment Size. */
@@ -83,18 +80,18 @@ struct tcp_gso_init_command {
 struct tcp_gso_generate_seg_command {
 		/** TCP GSO Generate Segment command structure identifier. */
 	uint32_t opcode;
-		/** Workspace address of the GSO internal context. 
+		/** Workspace address of the GSO internal context.
 		 * Should be defined in the TLS area. */
 	uint32_t gso_ctx_addr;
-		/** Returned Value: 
+		/** Returned Value:
 		 * Iteration return status. */
 	int32_t status;
-		/** Workspace address of the last returned status. 
+		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
-		/** Workspace address of the GSO last returned status. 
+		/** Workspace address of the GSO last returned status.
 		 * Should be defined in the TLS area. */
-	uint32_t gso_status_addr;	
+	uint32_t gso_status_addr;
 		/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;
@@ -115,16 +112,16 @@ struct tcp_gso_generate_seg_command {
 
 *//***************************************************************************/
 struct tcp_gso_discard_remainder_frame_command {
-		/** TCP GSO discard remainder frame command structure 
+		/** TCP GSO discard remainder frame command structure
 		 * identifier. */
 	uint32_t opcode;
-		/** Workspace address of the GSO internal context. 
+		/** Workspace address of the GSO internal context.
 		 * Should be defined in the TLS area. */
 	uint32_t gso_ctx_addr;
-		/** Returned Value: 
+		/** Returned Value:
 		 * Iteration return status. */
 	int32_t  status;
-		/** Workspace address of the last returned status. 
+		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
 };

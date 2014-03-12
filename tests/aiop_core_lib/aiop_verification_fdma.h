@@ -52,87 +52,92 @@
 #define FDMA_INSERT_EXP_DATA_CMD	0x00007019
 	/** FDMA Create Frame command code */
 #define FDMA_CREATE_FRAME_CMD		0x00000100
+	/** FDMA Create FD command code */
+#define FDMA_CREATE_FD_CMD		0x00000101
 
 /* FDMA Commands Structure identifiers */
 	/** FDMA Initial frame presentation Command Structure identifier */
-#define FDMA_INIT_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_INIT_CMD)
+#define FDMA_INIT_CMD_STR	((FDMA_MODULE << 16) | FDMA_INIT_CMD)
 	/** FDMA Initial frame presentation explicit Command Structure
 	 * identifier */
-#define FDMA_INIT_EXP_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_INIT_EXP_CMD)
+#define FDMA_INIT_EXP_CMD_STR	((FDMA_MODULE << 16) | FDMA_INIT_EXP_CMD)
 	/** FDMA Present Data segment Command Structure identifier */
-#define FDMA_PRESENT_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_PRESENT_CMD)
+#define FDMA_PRESENT_CMD_STR	((FDMA_MODULE << 16) | FDMA_PRESENT_CMD)
 	/** FDMA Read ASA segment Command Structure identifier */
-#define FDMA_READ_ASA_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_READ_ASA_CMD)
+#define FDMA_READ_ASA_CMD_STR	((FDMA_MODULE << 16) | FDMA_READ_ASA_CMD)
 	/** FDMA Read PTA segment Command Structure identifier */
-#define FDMA_READ_PTA_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_READ_PTA_CMD)
+#define FDMA_READ_PTA_CMD_STR	((FDMA_MODULE << 16) | FDMA_READ_PTA_CMD)
 	/** FDMA Present Data segment explicit Command Structure identifier */
-#define FDMA_PRESENT_EXP_CMD_STR ((FPDMA_ACCEL_ID << 16) | FDMA_PRESENT_EXP_CMD)
+#define FDMA_PRESENT_EXP_CMD_STR ((FDMA_MODULE << 16) | FDMA_PRESENT_EXP_CMD)
 	/** FDMA Extend presentation Command Structure identifier */
-#define FDMA_EXTEND_CMD_STR	((FPDMA_ACCEL_ID << 16) | FDMA_EXTEND_CMD)
+#define FDMA_EXTEND_CMD_STR	((FDMA_MODULE << 16) | FDMA_EXTEND_CMD)
 	/** FDMA Store working frame Command Structure identifier */
-#define FDMA_STORE_DEFAULT_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | \
+#define FDMA_STORE_DEFAULT_WF_CMD_STR	((FDMA_MODULE << 16) | \
 		FDMA_STORE_DEFAULT_WF_CMD)
 	/** FDMA Store working frame Command Structure identifier */
-#define FDMA_STORE_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_STORE_WF_CMD)
+#define FDMA_STORE_WF_CMD_STR	((FDMA_MODULE << 16) | FDMA_STORE_WF_CMD)
 	/** FDMA Enqueue working frame Command Structure identifier */
-#define FDMA_ENQUEUE_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_ENQUEUE_WF_CMD)
+#define FDMA_ENQUEUE_WF_CMD_STR	((FDMA_MODULE << 16) | FDMA_ENQUEUE_WF_CMD)
 	/** FDMA Enqueue working frame explicit Command Structure identifier */
-#define FDMA_ENQUEUE_WF_EXP_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+#define FDMA_ENQUEUE_WF_EXP_CMD_STR ((FDMA_MODULE << 16) | 		\
 		FDMA_ENQUEUE_WF_EXP_CMD)
 	/** FDMA Enqueue FD Command Structure identifier */
-#define FDMA_ENQUEUE_FRAME_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
+#define FDMA_ENQUEUE_FRAME_CMD_STR	((FDMA_MODULE << 16) |	\
 		FDMA_ENQUEUE_FRAME_CMD)
 	/** FDMA Enqueue FD explicit Command Structure identifier */
-#define FDMA_ENQUEUE_FRAME_EXP_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
+#define FDMA_ENQUEUE_FRAME_EXP_CMD_STR	((FDMA_MODULE << 16) |	\
 		FDMA_ENQUEUE_FRAME_EXP_CMD)
 	/** FDMA Discard default frame Command Structure identifier */
-#define FDMA_DISCARD_DEFAULT_WF_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
+#define FDMA_DISCARD_DEFAULT_WF_CMD_STR	((FDMA_MODULE << 16) |	\
 		FDMA_DISCARD_DEFAULT_WF_CMD)
 	/** FDMA Discard working frame Command Structure identifier */
-#define FDMA_DISCARD_WF_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_DISCARD_WF_CMD)
+#define FDMA_DISCARD_WF_CMD_STR	((FDMA_MODULE << 16) | FDMA_DISCARD_WF_CMD)
 	/** FDMA Terminate Task Command Structure identifier */
-#define FDMA_TERMINATE_TASK_CMD_STR	((FODMA_ACCEL_ID << 16) |	\
+#define FDMA_TERMINATE_TASK_CMD_STR	((FDMA_MODULE << 16) |	\
 		FDMA_TERMINATE_TASK_CMD)
 	/** FDMA Replicate frame Command Structure identifier */
-#define FDMA_REPLICATE_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_REPLICATE_CMD)
+#define FDMA_REPLICATE_CMD_STR	((FDMA_MODULE << 16) | FDMA_REPLICATE_CMD)
 	/** FDMA Concatenate frames Command Structure identifier */
-#define FDMA_CONCAT_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_CONCAT_CMD)
+#define FDMA_CONCAT_CMD_STR	((FDMA_MODULE << 16) | FDMA_CONCAT_CMD)
 	/** FDMA Split working frame Command Structure identifier */
-#define FDMA_SPLIT_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_SPLIT_CMD)
+#define FDMA_SPLIT_CMD_STR	((FDMA_MODULE << 16) | FDMA_SPLIT_CMD)
 	/** FDMA Trim working frame segment Command Structure identifier */
-#define FDMA_TRIM_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_TRIM_CMD)
+#define FDMA_TRIM_CMD_STR	((FDMA_MODULE << 16) | FDMA_TRIM_CMD)
 	/** FDMA Modify working frame segment Command Structure identifier */
-#define FDMA_MODIFY_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_MODIFY_CMD)
+#define FDMA_MODIFY_CMD_STR	((FDMA_MODULE << 16) | FDMA_MODIFY_CMD)
 	/** FDMA Replace working frame segment Command Structure identifier */
-#define FDMA_REPLACE_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_REPLACE_CMD)
+#define FDMA_REPLACE_CMD_STR	((FDMA_MODULE << 16) | FDMA_REPLACE_CMD)
 	/** FDMA Insert working frame segment Command Structure identifier */
-#define FDMA_INSERT_DATA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_INSERT_DATA_CMD)
+#define FDMA_INSERT_DATA_CMD_STR ((FDMA_MODULE << 16) | FDMA_INSERT_DATA_CMD)
 	/** FDMA Delete working frame segment Command Structure identifier */
-#define FDMA_DELETE_DATA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_DELETE_DATA_CMD)
+#define FDMA_DELETE_DATA_CMD_STR ((FDMA_MODULE << 16) | FDMA_DELETE_DATA_CMD)
 	/** FDMA Delete working frame segment Command Structure identifier */
-#define FDMA_CLOSE_SEG_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_CLOSE_SEG_CMD)
+#define FDMA_CLOSE_SEG_CMD_STR ((FDMA_MODULE << 16) | FDMA_CLOSE_SEG_CMD)
 	/** FDMA Replace working frame ASA segment Command Structure
 	 * identifier */
-#define FDMA_REPLACE_ASA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_REPLACE_ASA_CMD)
+#define FDMA_REPLACE_ASA_CMD_STR ((FDMA_MODULE << 16) | FDMA_REPLACE_ASA_CMD)
 	/** FDMA Replace working frame PTA segment Command Structure
 	 * identifier*/
-#define FDMA_REPLACE_PTA_CMD_STR ((FODMA_ACCEL_ID << 16) | FDMA_REPLACE_PTA_CMD)
+#define FDMA_REPLACE_PTA_CMD_STR ((FDMA_MODULE << 16) | FDMA_REPLACE_PTA_CMD)
 /** FDMA Insert explicit working frame segment Command Structure identifier */
-#define FDMA_INSERT_EXP_DATA_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+#define FDMA_INSERT_EXP_DATA_CMD_STR ((FDMA_MODULE << 16) | 		\
 		FDMA_INSERT_EXP_DATA_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
-#define FDMA_CKS_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_CKS_CMD)
+#define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
-#define FDMA_COPY_CMD_STR	((FODMA_ACCEL_ID << 16) | FDMA_COPY_CMD)
+#define FDMA_COPY_CMD_STR	((FDMA_MODULE << 16) | FDMA_COPY_CMD)
 	/** FDMA Acquire buffer command Structure identifier */
-#define FDMA_ACQUIRE_BUFFER_CMD_STR 	((FODMA_ACCEL_ID << 16) | 	\
+#define FDMA_ACQUIRE_BUFFER_CMD_STR 	((FDMA_MODULE << 16) | 	\
 		FDMA_ACQUIRE_BUFFER_CMD)
 	/** FDMA Release buffer command Structure identifier */
-#define FDMA_RELEASE_BUFFER_CMD_STR	((FODMA_ACCEL_ID << 16) | 	\
+#define FDMA_RELEASE_BUFFER_CMD_STR	((FDMA_MODULE << 16) | 	\
 		FDMA_RELEASE_BUFFER_CMD)
 	/** FDMA Create Frame command Structure identifier */
-#define FDMA_CREATE_FRAME_CMD_STR ((FODMA_ACCEL_ID << 16) | 		\
+#define FDMA_CREATE_FRAME_CMD_STR ((FDMA_MODULE << 16) | 		\
 		FDMA_CREATE_FRAME_CMD)
+	/** FDMA Create FD command Structure identifier */
+#define FDMA_CREATE_FD_CMD_STR ((FDMA_MODULE << 16) | 		\
+		FDMA_CREATE_FD_CMD)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -221,11 +226,9 @@ struct fdma_init_exp_command {
 		/** Command returned number of bytes actually presented
 		 * (the segment actual size). */
 	uint16_t seg_length;
-		/**
-		* bits<0> : Bypass Datapath Isolation. Frame AMQ attribute.
-		* bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
 		* Used only in case AS field is set. */
-	uint16_t bdi_icid;
+	uint16_t icid;
 		/** The first ASA 64B quantity to present. */
 	uint8_t asa_offset;
 		/** Number (maximum) of 64B ASA quantities to present (0 for no
@@ -250,6 +253,9 @@ struct fdma_init_exp_command {
 		/** Privilege Level. Frame AMQ attribute.
 		 * Used only in case AS field is set. */
 	uint8_t PL;
+		/** Bypass Datapath Isolation. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t BDI;
 		/** Command returned handle of the working frame. */
 	uint8_t frame_handle;
 		/** Command returned handle of the presented segment. */
@@ -257,7 +263,7 @@ struct fdma_init_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[2];
+	uint8_t	pad[1];
 };
 
 
@@ -1362,6 +1368,37 @@ struct fdma_create_frame_command {
 	uint32_t data;
 		/** Data size to be inserted to the frame. */
 	uint16_t size;
+		/** Command returned frame handle. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[4];
+		/** Command returned Frame Descriptor for the created frame.
+		 * The command updates the FD in workspace, and when the ASA is
+		 * written back to the frame, the updated FD will be written to
+		 * the frame as well.
+		 * The FD address in workspace must be aligned to 32 bytes. */
+	struct ldpaa_fd fd;
+};
+
+/**************************************************************************//**
+@Description	FDMA Create FD Command structure.
+
+		Includes information needed for Create FD data command
+		verification.
+
+*//***************************************************************************/
+struct fdma_create_fd_command {
+		/** Create FD command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location in workspace of the data to be
+		 * inserted to the frame.
+		 * The data MUST be located in workspace prior to calling this
+		 * command. */
+	uint32_t data;
+		/** Data size to be inserted to the frame. */
+	uint16_t size;
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
@@ -1373,7 +1410,6 @@ struct fdma_create_frame_command {
 		 * The FD address in workspace must be aligned to 32 bytes. */
 	struct ldpaa_fd fd;
 };
-
 
 /** @} */ /* end of AIOP_FDMA_SRs_Verification */
 

@@ -12,8 +12,7 @@
 #include "net/fsl_net.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "dplib/fsl_ipv4_checksum.h"
-#include "dplib/fsl_l4_checksum.h"
+#include "dplib/fsl_l4.h"
 #include "fdma.h"
 #include "checksum.h"
 
@@ -140,7 +139,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	struct tcphdr *tcp_ptr;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct fdma_split_frame_params split_frame_params;
-	struct fdma_isolation_attributes isolation_attributes;
+	struct fdma_amq isolation_attributes;
 	struct ipv4hdr *outer_ipv4_ptr;
 	struct ipv6hdr *outer_ipv6_ptr;
 	struct fdma_present_segment_params present_segment_params;
@@ -242,6 +241,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		present_segment_params.present_size = 0;
 		/* TODO FDMA ERROR */
 		sr_status = fdma_present_frame_segment(&present_segment_params);
+		//sr_status = fdma_present_frame_without_segments(struct ldpaa_fd *fd, 
+				//gso_ctx->rem_frame_handle)
+
 
 		/* Insert header to the remaining frame + close segment  */
 		insert_segment_data_params.from_ws_src =
@@ -273,11 +275,11 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* TODO FDMA ERROR */
 	sr_status = fdma_modify_default_segment_data((uint16_t)outer_ip_offset,
 			(uint16_t)(gso_ctx->headers_size - outer_ip_offset));
-
-	/* update TCP checksum */
-	/* TODO CHECKSUM NEW API (Doron) */
-	/* sr_status = l4_udp_tcp_cksum_calc(L4_UDP_TCP_CKSUM_CALC_OPTIONS_) */
-	sr_status = cksum_calc_udp_tcp_checksum();
+	
+	/* update TCP checksum *//* TODO CHECKSUM 0.6 API (Doron)
+	status = cksum_calc_udp_tcp_checksum(); */
+	status = l4_udp_tcp_cksum_calc(
+		L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA);
 	/* TODO FDMA ERROR */
 
 	/* Modify default segment (updated TCP checksum) */

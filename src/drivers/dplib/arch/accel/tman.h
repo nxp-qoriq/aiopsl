@@ -35,7 +35,9 @@ enum e_tman_cmd_type {
 /** TMan Dedicated EPID */
 #define EPID_TIMER_EVENT_IDX	1
 /** Offset to USER_OPAQUE1 in FD */
-#define FD_OPAQUE1_OFFSET	0x1E
+#define FD_OPAQUE1_OFFSET	0x1A
+/** Offset to HASH in FD */
+#define FD_HASH_OFFSET		0x1C
 
 /**************************************************************************//**
 @Description	TMI input extension params

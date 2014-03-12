@@ -17,21 +17,29 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2, res1, res2;
+	uint32_t arg1, arg2, res1, res2, icid_pl, va_bdi;
 
 	/* The bellow two code lines are there because of compiler warning */
 	/* TODO need to remove the bellow lines when compiler will be fixed*/
 	res1=0;
 	res2=0;
 	/******************************************************************/
+
+	/* Load ICID and PL */
+	__lhbrx(icid_pl, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
+	/* Load VA and BDI */
+	__lbz_d(va_bdi, HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET);
 	
-	/* Load ICID, PL and BDI */
-	__lwbrx(arg1, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
-	/* isolate PL and BDI bits */
-	arg2 = ((arg1 << 16) & 0x80000000) | (arg1 << 31)
-		| max_num_of_timers;
 	/* Isolate ICID */
-	arg1 = ((arg1 << 16) & 0x7FFF0000) + TMAN_CMDTYPE_TMI_CREATE;
+	arg1 = ((icid_pl << 16) & 0x7FFF0000) + TMAN_CMDTYPE_TMI_CREATE;
+	/* Add BDI bit */
+	/* Optimization: remove 1 cycle of or using rlwimi */
+	//arg1 = (va_bdi << 31) | arg1;
+	__e_rlwimi(arg1, va_bdi, 31, 0, 0);
+	/* Move PL bit to the right offset */
+	icid_pl = (icid_pl << 11) & 0x04000000;
+	/* Add PL and VA to max_num_of_timers */
+	arg2 = icid_pl | ((va_bdi << 22) & 0x01000000) | max_num_of_timers;
 	/* Store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	__st64dw_d(tmi_mem_base_addr, HWC_ACC_IN_ADDRESS + 8);
@@ -71,7 +79,7 @@ int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);
 	*arg1 = (uint32_t)(&extention_params);
 	Optimization: remove 1 cycle of address calc */
-	__stw_d(&extention_params, HWC_ACC_IN_ADDRESS + 8);
+	__sthw_d(&extention_params, HWC_ACC_IN_ADDRESS + 0xA);
 	/* call TMAN. */
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
@@ -90,7 +98,7 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 	   when using an inline function */
 	__stdw(cmd_type, tmi_id, HWC_ACC_IN_ADDRESS, 0);
 	/* Fill command parameters */
-	__stw_d(output_ptr, HWC_ACC_IN_ADDRESS + 0xc);
+	__sthw_d(output_ptr, HWC_ACC_IN_ADDRESS + 0x8);
 	/* call TMAN. */
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
@@ -131,7 +139,7 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);
 	*arg1 = (uint32_t)(&extention_params);
 	Optimization: remove 1 cycle of address calc */
-	__stw_d(&extention_params, HWC_ACC_IN_ADDRESS + 8);
+	__sthw_d(&extention_params, HWC_ACC_IN_ADDRESS + 0xA);
 
 	/* Fill command parameters */
 	/* Optimization: remove 1 cycle of clearing duration upper bits
@@ -244,7 +252,7 @@ void tman_timer_callback(void)
 	tman_arg_8B_t tman_cb_arg1;
 	tman_arg_2B_t tman_cb_arg2;
 	
-	tman_cb = (tman_cb_t)__lwbr(HWC_FD_ADDRESS+FD_FLC_DS_AS_CS_OFFSET, 0);
+	tman_cb = (tman_cb_t)__lwbr(HWC_FD_ADDRESS+FD_HASH_OFFSET, 0);
 	tman_cb_arg1 = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	tman_cb_arg2 = 
 		(tman_arg_2B_t)__lhbr(HWC_FD_ADDRESS+FD_OPAQUE1_OFFSET, 0);

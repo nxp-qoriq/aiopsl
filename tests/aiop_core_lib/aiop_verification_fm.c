@@ -67,70 +67,74 @@ void aiop_verification_fm()
 
 		switch (opcode) {
 
-		case GRO_FM_ID:
+		case GRO_MODULE:
 		{
 			str_size = aiop_verification_gro((uint32_t)data_addr);
 			break;
 		}
-		case IPF_FM_ID:
+		case IPF_MODULE:
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);
 			break;
 		}
-		case GSO_FM_ID:
+		case GSO_MODULE:
 		{
 			str_size = aiop_verification_gso((uint32_t)data_addr);
 			break;
 		}
-		case IPR_FM_ID:
+		case IPR_MODULE:
 		{
 			str_size = aiop_verification_ipr((uint32_t)data_addr);
 			break;
 		}
-		case FPDMA_ACCEL_ID:
-		case FODMA_ACCEL_ID:
+		case FDMA_MODULE:
 		{
 			str_size = aiop_verification_fdma((uint32_t)data_addr);
 			break;
 		}
-		case TMAN_ACCEL_ID:
+		case TMAN_MODULE:
 		{
 			str_size = aiop_verification_tman((uint32_t)data_addr);
 			break;
 		}
-		case STE_VERIF_ACCEL_ID:
+		case STE_MODULE:
 		{
 			str_size = aiop_verification_ste((uint32_t)data_addr);
 			break;
 		}
-		case CDMA_ACCEL_ID:
+		case CDMA_MODULE:
 		{
 			str_size = aiop_verification_cdma((uint32_t)data_addr);
 			break;
 		}
-		case CTLU_ACCEL_ID:
+		case TABLE_MODULE:
 		{
-			str_size = aiop_verification_ctlu((uint32_t)data_addr);
+			str_size = aiop_verification_table((uint32_t)data_addr);
 			break;
 		}
-		case CTLU_PARSE_CLASSIFY_ACCEL_ID:
+		case KEYGEN_MODULE:
+		{
+			str_size = aiop_verification_keygen((uint32_t)data_addr);
+			break;
+		}
+		case PARSE_MODULE:
 		{
 			str_size = aiop_verification_parser(
 					(uint32_t)data_addr);
 			break;
 		}
-		case HM_VERIF_ACCEL_ID:
+		case HM_MODULE:
 		{
 			str_size = aiop_verification_hm((uint32_t)data_addr);
 			break;
 		}
-		case VPOOL_ACCEL_ID:
+		case VPOOL_MODULE:
 		{
 			str_size = verification_virtual_pools(
 					(uint32_t)data_addr);
 			break;
 		}
-		case AIOP_IF_CMD:
+		case IF_MODULE:
 		{
 			struct aiop_if_verif_command *str =
 				(struct aiop_if_verif_command *)
@@ -141,7 +145,7 @@ void aiop_verification_fm()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD) {
+			if (if_result == TERMINATE_FLOW_MODULE) {
 				fdma_terminate_task();
 				return;
 			} else if (if_result) {
@@ -154,7 +158,7 @@ void aiop_verification_fm()
 
 			break;
 		}
-		case AIOP_IF_ELSE_CMD:
+		case IF_ELSE_MODULE:
 		{
 			struct aiop_if_else_verif_command *str =
 				(struct aiop_if_else_verif_command *)
@@ -165,7 +169,7 @@ void aiop_verification_fm()
 					str->compared_variable_addr,
 					str->compared_value, str->cond);
 
-			if (if_result == AIOP_TERMINATE_FLOW_CMD) {
+			if (if_result == TERMINATE_FLOW_MODULE) {
 				fdma_terminate_task();
 				return;
 			} else if (if_result) {
@@ -178,7 +182,7 @@ void aiop_verification_fm()
 
 			break;
 		}
-		case AIOP_TERMINATE_FLOW_CMD:
+		case TERMINATE_FLOW_MODULE:
 		default:
 		{
 			fdma_terminate_task();
@@ -190,8 +194,8 @@ void aiop_verification_fm()
 		if (str_size == STR_SIZE_ERR) {
 			fdma_terminate_task();
 			return;
-		} else if ((opcode != AIOP_IF_CMD) &&
-			 (opcode != AIOP_IF_ELSE_CMD)) {
+		} else if ((opcode != IF_MODULE) &&
+			 (opcode != IF_ELSE_MODULE)) {
 			/* write command results back to DDR */
 			cdma_write(ext_address, (void *)data_addr, str_size);
 			/* Set next address to read from DDR */
@@ -305,7 +309,7 @@ uint32_t if_statement_result(
 	}
 	default:
 	{
-		return AIOP_TERMINATE_FLOW_CMD;
+		return TERMINATE_FLOW_MODULE;
 	}
 	}
 

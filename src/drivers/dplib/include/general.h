@@ -62,6 +62,8 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 #define YIELD_ACCEL_ID			0x00
 	/** TMAN accelerator ID */
 #define TMAN_ACCEL_ID			0x01
+	/** MFLU accelerator ID */
+#define MFLU_ACCEL_ID			0x02
 	/** PARSER & CLASSIFIER accelerator ID */
 #define CTLU_PARSE_CLASSIFY_ACCEL_ID	0x04
 	/** CTLU accelerator ID */
@@ -644,6 +646,18 @@ struct aiop_default_task_params {
 /* Store word input variable */
 #define __stw_d(_val, _disp)				\
 	asm ("e_stw %[value], %[displ](r0)\n"		\
+		:					\
+		:[value]"r" (_val), [displ]"i" (_disp)	\
+		);
+/* Store half word displacement as input variable */
+#define __sthw_d(_val, _disp)				\
+	asm ("e_sth %[value], %[displ](r0)\n"		\
+		:					\
+		:[value]"r" (_val), [displ]"i" (_disp)	\
+		);
+/* Load byte displacement as input variable */
+#define __lbz_d(_val, _disp)				\
+	asm ("e_lbz %[value], %[displ](r0)\n"		\
 		:					\
 		:[value]"r" (_val), [displ]"i" (_disp)	\
 		);
