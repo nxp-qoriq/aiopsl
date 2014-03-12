@@ -623,6 +623,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ip.c</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/netf/ip/ip.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ip.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf/ip/ipf.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/ip/ipf.c</locationURI>
