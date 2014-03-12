@@ -1254,7 +1254,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 		If opaque0_or_reference result field is a reference pointer,
 		its reference counter will be incremented during this operation.
-		user should decrement the Slac/CDMA buffer reference counter
+		user should decrement the Slab/CDMA buffer reference counter
 		after usage.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
