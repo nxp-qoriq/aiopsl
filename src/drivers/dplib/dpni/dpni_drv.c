@@ -1,4 +1,3 @@
-#define MC_INTEGRATED 1
 #include "common/types.h"
 #include "common/dbg.h"
 #include "common/fsl_string.h"
