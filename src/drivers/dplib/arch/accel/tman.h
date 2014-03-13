@@ -38,6 +38,16 @@ enum e_tman_cmd_type {
 #define FD_OPAQUE1_OFFSET	0x1A
 /** Offset to HASH in FD */
 #define FD_HASH_OFFSET		0x1C
+/** Number of command retries - for debug purposes */
+#define TMAN_MAX_RETRIES	1000
+/** A mask that defines the TMI commands temporary error types */
+#define TMAN_TMI_TMP_ERR_MASK	0x00000070
+/** Timer commands temporary error 1 */
+#define TMAN_TMR_TMP_ERR1	0x81400020
+/** Timer commands temporary error 2 */
+#define TMAN_TMR_TMP_ERR2	0x81400030
+/** Timer commands temporary error 3 */
+#define TMAN_TMR_TMP_ERR3	0x81400040
 
 /**************************************************************************//**
 @Description	TMI input extension params

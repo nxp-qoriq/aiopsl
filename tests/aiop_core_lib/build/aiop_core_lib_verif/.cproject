@@ -50,12 +50,53 @@
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1509767408" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}\lcf\aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.1048527672" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
-									<listOptionValue builtIn="false" value="Lib/__ppc_eabi_init.c"/>
-									<listOptionValue builtIn="false" value="Sources/main.c"/>
-									<listOptionValue builtIn="false" value="Sources/sources/aiop_fdma.c"/>
-									<listOptionValue builtIn="false" value="Sources/sources/aiop_tman.c"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\Lib\libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\Lib\librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="lib/__ppc_eabi_init.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_cdma.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_checksum.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ctlu.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_data.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_fdma.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_fm.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_fm_temp.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_gro.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_gso.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_hm.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipf.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipr.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_parser.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ste.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_tman.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/main.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/verification_virtual_pools.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/cdma.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/fdma.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/osm.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/parser.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/ste.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/system.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/table.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/tman.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/virtual_pools.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/dpni/dpni.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/dpni/dpni_drv.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/dpni/dpni_drv_rxtx.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/kernel/os.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ip.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipf.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipr.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipsec.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipv4_checksum.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l2/l2.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/gro.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/gso.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/l4.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/l4_checksum.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\lib/libc_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\lib/librt_E200z446_VLE.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.926178335" name="List Closure" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.1607589974" name="List Unused Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="false" valueType="boolean"/>
@@ -69,7 +110,6 @@
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.freescale.ppc.toolchain.compiler.550517216" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1177934181" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_t4ls_sim/build_flags&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2100a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/cores&quot;"/>
@@ -109,6 +149,7 @@
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1610691706" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.optLevel.1286544519" name="Optimization Level" superClass="com.freescale.ppc.toolchain.compiler.base.options.optLevel" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.optlevel.0" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.asErrors.293686994" name="Treat All Warnings As Errors" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.asErrors" value="false" valueType="boolean"/>

@@ -148,7 +148,9 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 void verif_timer_callback(uint64_t opaque1, uint16_t opaque2)
 {
 	opaque2 = 0;
-	tman_timer_completion_confirmation((uint32_t)opaque1);
+	opaque1 = 0;
+	tman_timer_completion_confirmation(
+			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
 	fdma_terminate_task();
 }
 
@@ -159,7 +161,8 @@ void verif_tmi_delete_callback(uint64_t opaque1, uint16_t opaque2)
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
 	fdma_create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
-	tman_timer_completion_confirmation((uint32_t)opaque1);
+	tman_timer_completion_confirmation(
+			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
 			(uint32_t)opaque2, spid);
 }

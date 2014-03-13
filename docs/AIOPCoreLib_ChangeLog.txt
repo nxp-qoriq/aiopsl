@@ -1,6 +1,31 @@
+fsl_ctlu.h: table function were moved to fsl_table.h
+fsl_ctlu.h: keygen and hash function were moved to fsl_keygen.h
+fsl_ctlu.h: file was deleted.
+fsl_table.h: ctlu_xxxx functions were renamed to table_xxxx functions
+fsl_table.h: support in 0.7 CTLU specification
+fsl_table.h: update miss result was renamed to replace miss result
+fsl_table.h: Rule delete/replace/create_or_replace SRs now return the result of the rule that was replaced/deleted under certain conditions.
+fsl_table.h: Replace miss result SR now returns the result of the rule that was replaced/deleted under certain conditions.
+fsl_table.h: 16B alignment is now required for certain structures.
+fsl_table.h: Status modification from 0.7 CTLU/MFLU spec
+fsl_table.h: Miss result is only available in EM and LPM.
+fsl_table.h: Accelerator ID was introduced (uses as an input parameter)
+fsl_table.h: Lookup key structure was intoduced to consume less stack
+fsl_table.h: A remark concerning get miss result and reference count was added.
+fsl_table.h: Timestamp field was added to lookup result
+fsl_table.h: LPM key sized were changed for 9 and 21 instead of 8 and 20 (IPv4/IPv6)
+fsl_l4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
+fsl_l4_checksum.h: status values were changed.
+fsl_l4_checksum.h: no check for UDP/TCP is done at implementation.
+fsl_l4_checksum.h: l4 checksum functionality was removed to fsl_l4.h .
+fsl_ipv4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
+fsl_ipv4_checksum.h:status values were changed.
+fsl_ipv4_checksum.h: ipv4 checksum functionality was removed to fsl_ip.h.
+
+
 
 SL Pre-Alpha v0.3.1  Change Log
-
+===============================
 ipr.h + ipr.c: IP checksum fix. use new fdma function. Fix reassembly with more than 2 fragments. 
 dpni_drv.h: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_nii
 dpni_drv_rxtx.c: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_niid
@@ -19,8 +44,7 @@ fsl_fdma.h:
 fsl_ipsec.h: unified hmo and options fields, changed callback type to void
 
 SL Pre-Alpha v0.3  Change Log
-
-
+=============================
 spinlock.h: removed aiop_ prefix from aiop_atomic_incr8/16/32 and from aiop_atomic_decr8/16/32
 fsl_ipr.h: change API: add a different return status for regular frames 
 virtual_pools.h: 
@@ -58,8 +82,7 @@ Doc & Tool compatibility:
 	Simulator	DPAA Simulator 0_5_2_0068
 	
 SL Pre-Alpha v0.2  Change Log
-
-
+=============================
 fsl_fdma.h: Add fdma_present_frame_segment() explicit service routine.
 fsl_fdma.h: Add insert_segment_data_command() explicit service routine.
 fsl_fdma.h: Add explicit enqueue commands service routines.
@@ -96,7 +119,7 @@ Doc & Tool compatibility:
 
 
 SL Code Drop v0.1  Change Log
-
+=============================
 fsl_ipr.h: massive API changes
 fsl_header_modification.h: changed to fsl_l2.h fsl_ip.h fsl_l4.h fsl_nat.h + all functions names changed
 fsl_header_modification_open_flow.h: changed to fsl_l2.h fsl_ip.h fsl_l4.h fsl_nat.h + all functions names changed

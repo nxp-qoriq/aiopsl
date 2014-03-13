@@ -288,10 +288,10 @@ int dpni_get_send_niid(void);
 
  @Description	Get Primary MAC address of NI.
 
- @Return	MAC Address.
+ @Return	0 on success; error code, otherwise.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_drv_get_primary_mac_addr(uint16_t niid);
+int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /** @} */ /* end of grp_dpni_aiop group */
 /** @} */ /* end of grp_dplib_aiop group */

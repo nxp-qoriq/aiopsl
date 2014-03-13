@@ -107,12 +107,17 @@ void aiop_verification_fm()
 			str_size = aiop_verification_cdma((uint32_t)data_addr);
 			break;
 		}
-		case CTLU_MODULE:
+		case TABLE_MODULE:
 		{
-			str_size = aiop_verification_ctlu((uint32_t)data_addr);
+			str_size = aiop_verification_table((uint32_t)data_addr);
 			break;
 		}
-		case CTLU_PARSE_CLASSIFY_MODULE:
+		case KEYGEN_MODULE:
+		{
+			str_size = aiop_verification_keygen((uint32_t)data_addr);
+			break;
+		}
+		case PARSE_MODULE:
 		{
 			str_size = aiop_verification_parser(
 					(uint32_t)data_addr);
