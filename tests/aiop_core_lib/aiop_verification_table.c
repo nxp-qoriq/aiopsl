@@ -153,12 +153,31 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		str->status = table_rule_delete
 			(str->acc_id,
 			 str->table_id,
-			 (union table_key *)str->key_ptr,
+			 (union table_key_desc *)str->key_desc_ptr,
 			 str->key_size,
 			 &str->old_res);
 
 		str_size =
 			sizeof(struct table_rule_delete_command);
+		break;
+	}
+
+	/* Table Rule Delete Command Verification */
+	case TABLE_RULE_QUERY_CMD_STR:
+	{
+		struct table_rule_query_command *str =
+		(struct table_rule_query_command *) asa_seg_addr;
+
+		str->status = table_rule_query
+			(str->acc_id,
+			 str->table_id,
+			 (union table_key_desc *)str->key_desc_ptr,
+			 str->key_size,
+			 &str->result,
+			 &str->timestamp);
+
+		str_size =
+			sizeof(struct table_rule_query_command);
 		break;
 	}
 
@@ -185,7 +204,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 
 		str->status = table_lookup_by_key(str->acc_id,
 						  str->table_id,
-						  str->key,
+						  str->key_desc,
 						  str->key_size,
 						  &(str->lookup_result));
 
@@ -194,7 +213,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		break;
 	}
 
-	/* Hash Generation Command Verification */
+	/* Table Query Command Verification */
 	case TABLE_QUERY_DEBUG_CMD_STR:
 	{
 		struct table_query_debug_command *str =
@@ -206,6 +225,28 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		
 		str_size =
 			sizeof(struct table_query_debug_command);
+		break;
+	}
+
+	/* Table HW ACCEL Acquire Lock Command Verification */
+	case TABLE_HW_ACCEL_ACQUIRE_LOCK_CMD_STR:
+	{
+		struct table_hw_accel_acquire_lock_command *str =
+		(struct table_hw_accel_acquire_lock_command *) asa_seg_addr;
+		str->status = table_hw_accel_acquire_lock(str->acc_id);
+		str_size =
+			sizeof(struct table_hw_accel_acquire_lock_command);
+		break;
+	}
+
+	/* Table HW ACCEL Release Lock Command Verification */
+	case TABLE_HW_ACCEL_RELEASE_LOCK_CMD_STR:
+	{
+		struct table_hw_accel_release_lock_command *str =
+		(struct table_hw_accel_release_lock_command *) asa_seg_addr;
+		table_hw_accel_release_lock(str->acc_id);
+		str_size =
+			sizeof(struct table_hw_accel_release_lock_command);
 		break;
 	}
 

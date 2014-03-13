@@ -797,6 +797,7 @@ struct aiop_default_task_params {
 #define IPV4_SSRR_OPTION_TYPE	      137  /*!< Strict Source & Record Route */
 
 #define IPV6_HDR_LENGTH		      40   /*!< IPv6 header length */
+#define IPV6_FRAGMENT_HEADER_LENGTH   8    /*!< IPv6 fragment header length */
 #define IPV6_HDR_ADD_LENGTH	      32   /*!< IPv4 header address length */
 
 /** @} */ /* end of AIOP_General_Protocols_IP_Definitions */
@@ -826,6 +827,18 @@ struct aiop_default_task_params {
 #define IPV4_HDR_FRAG_OFFSET_OFFSET 0 /*!< IPv4 fragment offset field offset */
 
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
+
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_IPV6_Extensions IPv6 Extensions 
+@{
+*//***************************************************************************/
+#define  IPV6_EXT_HOP_BY_HOP	0 /*!< IPv6 Hop By Hop extension number*/
+#define  IPV6_EXT_ROUTING	43 /*!< IPv6 Routing extension number*/
+#define  IPV6_EXT_DESTINATION	60 /*!< IPv6 Destination extension number*/
+#define  IPV6_EXT_AH		51 /*!< IPv6 Authentication extension number*/
+#define  IPV6_EXT_FRAGMENT	44 /*!< IPv6 Fragment extension number*/
+
+/** @} */ /* end of AIOP_General_Protocols_IPV6_Extensions */
 
 /**************************************************************************//**
 @Group		AIOP_General_Protocols_TCP_Definitions Transmission Control
