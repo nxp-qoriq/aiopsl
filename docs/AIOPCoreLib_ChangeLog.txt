@@ -10,7 +10,7 @@ fsl_table.h: 16B alignment is now required for certain structures.
 fsl_table.h: Status modification from 0.7 CTLU/MFLU spec
 fsl_table.h: Miss result is only available in EM and LPM.
 fsl_table.h: Accelerator ID was introduced (used as an input parameter)
-fsl_table.h: Lookup key structure was intoduced to consume less stack
+fsl_table.h: Lookup key structure was introduced to consume less stack
 fsl_table.h: A remark concerning get miss result and reference count was added.
 fsl_table.h: Timestamp field was added to lookup result
 fsl_table.h: LPM key sized were changed for 9 and 21 instead of 8 and 20 (IPv4/IPv6)
@@ -31,7 +31,7 @@ fsl_l4_checksum.h: l4 checksum functionality was removed to fsl_l4.h .
 fsl_ipv4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
 fsl_ipv4_checksum.h:status values were changed.
 fsl_ipv4_checksum.h: ipv4 checksum functionality was removed to fsl_ip.h.
-
+id_pool.h: Some implementation changes to consume less stack.
 
 
 SL Pre-Alpha v0.3.1  Change Log
