@@ -1,3 +1,4 @@
+#define MC_INTEGRATED 1
 #include "common/types.h"
 #include "common/dbg.h"
 #include "common/fsl_string.h"
@@ -24,6 +25,8 @@ __SHRAM struct dpni_drv *nis;
 
 static void discard_rx_cb()
 {
+	
+	fsl_os_print("Packet discarded by discard_rx_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
@@ -32,6 +35,7 @@ static void discard_rx_cb()
 static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
+	fsl_os_print("Packet discarded by discard_rx_app_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();  
@@ -337,7 +341,7 @@ int dpni_drv_init(void)
 
 		iowrite32(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define		
 
-#if 1
+#if 0
 		/* TODO : this is a temporary assignment for testing purposes, until MC initialization of EPID table will be operational. */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
 #endif
