@@ -310,10 +310,6 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 	struct udphdr	*udph;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
-	/* Check if TCP or UDP*/
-	if (!PARSER_IS_TCP_OR_UDP_DEFAULT()) /* TODO ask vortiqa if this can
-	 be removed */
-		return NO_L4_FOUND_ERROR;
 
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {

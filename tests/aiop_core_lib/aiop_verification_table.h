@@ -10,7 +10,7 @@
 #define __AIOP_VERIFICATION_TABLE_H_
 
 #include "dplib/fsl_table.h"
-
+#include "table.h"
 /** \enum table_verif_cmd_type defines the parser verification CMDTYPE
  * field. */
 enum table_verif_cmd_type {
@@ -23,9 +23,12 @@ enum table_verif_cmd_type {
 	TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE,
 	TABLE_RULE_REPLACE_VERIF_CMDTYPE,
 	TABLE_RULE_DELETE_VERIF_CMDTYPE,
+	TABLE_RULE_QUERY_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
-	TABLE_QUERY_DEBUG_VERIF_CMDTYPE
+	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
+	TABLE_HW_ACCEL_ACQUIRE_LOCK_CMDTYPE,
+	TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE
 };
 
 /* CTLU Commands Structure identifiers */
@@ -66,6 +69,10 @@ enum table_verif_cmd_type {
 #define TABLE_RULE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
 					TABLE_RULE_DELETE_VERIF_CMDTYPE)
 
+/** Table rule query Command Structure identifier */
+#define TABLE_RULE_QUERY_CMD_STR	((TABLE_MODULE << 16) | \
+					TABLE_RULE_QUERY_VERIF_CMDTYPE)
+
 /** Table lookup by keyID */
 #define TABLE_LOOKUP_BY_KEYID_CMD_STR	((TABLE_MODULE << 16) | \
 				TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
@@ -77,6 +84,14 @@ enum table_verif_cmd_type {
 /** Table Query Debug Command Structure identifier */
 #define TABLE_QUERY_DEBUG_CMD_STR	((TABLE_MODULE << 16) | \
 				TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
+
+/** Table Acquire Lock Debug Command Structure identifier */
+#define TABLE_HW_ACCEL_ACQUIRE_LOCK_CMD_STR	((TABLE_MODULE << 16) | \
+				TABLE_HW_ACCEL_ACQUIRE_LOCK_CMDTYPE)
+
+/** Table Release Lock Debug Command Structure identifier */
+#define TABLE_HW_ACCEL_RELEASE_LOCK_CMD_STR	((TABLE_MODULE << 16) | \
+				TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -90,45 +105,6 @@ enum table_verif_cmd_type {
 
 @{
 *//***************************************************************************/
-
-/**************************************************************************//**
-@Description	Table Parameters Query Output Message Structure
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct table_params_query_output_message {
-	/** Table Type, Includes IEX, MRES & AGT bits */
-	uint16_t type;			
-
-	/** ICID (including BDI) */
-	uint16_t icid;			
-
-	/** Max Rules */
-	uint32_t max_rules;		
-
-	/** Max Entries */
-	uint32_t max_entries;		
-
-	/** Committed Entries */
-	uint32_t committed_entries;	
-
-	/** Committed Rules */
-	uint32_t committed_rules;	
-
-	/** Current Number of rules */
-	uint32_t current_rules;		
-
-	/** Current Number of entries */
-	uint32_t current_entries;	
-
-	uint64_t  reserved0;
-
-	uint64_t  reserved1;
-
-	/** Miss Result */
-	struct table_result miss_lookup_fcv;
-					
-};
-#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	Table Create Command structure.
@@ -327,8 +303,8 @@ struct table_rule_delete_command{
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
 
-	/** Input Key pointer to the workspace */
-	uint32_t key_ptr;
+	/** Input Key Descriptor pointer to the workspace */
+	uint32_t key_desc_ptr;
 
 	/** Command returned status */
 	int32_t  status;
@@ -342,6 +318,40 @@ struct table_rule_delete_command{
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
 };
+
+
+/**************************************************************************//**
+@Description	CTLU Table Rule Query Command structure.
+
+		Includes information needed for CTLU Table Rule Query
+		command verification.
+*//***************************************************************************/
+struct table_rule_query_command{
+	/** The structure returned to the caller upon a successful Query */
+	struct table_result result;
+
+	/** CTLU Table Rule Delete identifier */
+	uint32_t opcode;
+
+	/** Input Key Descriptor pointer to the workspace */
+	uint32_t key_desc_ptr;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/* Timestamp of the matched rule*/
+	uint32_t timestamp;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Input key size*/
+	uint8_t key_size;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
 
 /**************************************************************************//**
 @Description	CTLU Table Lookup by KeyID Command structure.
@@ -382,8 +392,8 @@ struct table_lookup_by_key_command{
 	/** The structure returned to the caller upon a successful lookup */
 	struct table_lookup_result lookup_result;
 
-	/** A pointer to the key in the workspace */
-	union table_lookup_key key;
+	/** Input Lookup Key Descriptor pointer to the workspace */
+	union table_lookup_key_desc key_desc;
 
 	/** Command returned status */
 	int32_t  status;
@@ -423,10 +433,36 @@ struct table_query_debug_command{
 	uint16_t table_id;
 };
 
-int32_t table_query_debug(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_params_query_output_message *output
-			 );
+
+/**************************************************************************//**
+@Description	Table HW Accelerator Acquire Lock Command structure.
+*//***************************************************************************/
+struct table_hw_accel_acquire_lock_command{
+	/** CTLU Generate Hash identifier */
+	uint32_t opcode;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+
+	/** Command returned status */
+	int32_t  status;
+};
+
+
+/**************************************************************************//**
+@Description	Table HW Accelerator Release Lock Command structure.
+*//***************************************************************************/
+struct table_hw_accel_release_lock_command{
+	/** CTLU Generate Hash identifier */
+	uint32_t opcode;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+
+	/** Command returned status */
+	int32_t  status;
+};
+
 /** @} */ /* end of AIOP_Table_SRs_Verification */
 
 /** @}*/ /* end of AIOP_Service_Routines_Verification */

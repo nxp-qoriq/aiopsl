@@ -46,6 +46,13 @@
 @{
 *//***************************************************************************/
 
+#define IPSEC_PROFILE_SRAM_ADDR 0x00030000 /* hard wired address */
+#define IPSEC_STORAGE_PROFILE_SIZE_SHIFT 5 /* 32 bytes */
+#define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
+#define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
+
+
+
 // TMP, removed from the external API
 /** Frames do not include a L2 Header */
 #define IPSEC_FLG_NO_L2_HEADER		0x00000010
@@ -202,7 +209,62 @@ struct ipsec_sa_descriptor {
 
 
 /* SEC Flow Context Descriptor */
+
 struct ipsec_flow_context {
+	/* word 0 */
+	uint16_t word0_sdid; /* 11-0  SDID */
+	uint16_t word0_res; /* 31-12 reserved */
+	
+	/* word 1 */
+	uint8_t word1_sdl; 	/* 5-0 SDL 	*/
+						/* 7-6 reserved */
+	
+	uint8_t word1_bits_15_8; 	/* 11-8 CRID */
+								/* 14-12 reserved */
+								/* 15 CRJD */
+	
+	uint8_t word1_bits23_16; /* 16	EWS */
+								/* 17 DAC */
+								/* 18,19,20 ? */
+								/* 23-21 reserved */
+
+	uint8_t word1_bits31_24; /* 24 RSC */
+							/* 25 RBMT */
+	 	 	 	 	 	 	 /* 31-26 reserved */
+	
+	/* word 2  RFLC[31-0] */
+	uint32_t word2_rflc_31_0;
+
+	/* word 3  RFLC[63-32] */
+	uint32_t word3_rflc_63_32;
+
+	/* word 4 */
+	uint16_t word4_iicid; /* 15-0  IICID */
+	uint16_t word4_oicid; /* 31-16 OICID */
+	
+	/* word 5 */
+	uint32_t word5_31_0; 
+			/* 23-0 OFQID */
+			/* 24 OSC */
+			/* 25 OBMT */
+			/* 29-26 reserved 	*/
+			/* 31-30 ICR */
+	/* word 6 */
+	uint32_t word6_oflc_31_0;
+
+	/* word 7 */
+	uint32_t word7_oflc_63_32;
+	 
+	/* words 8-15 are a copy of the standard storage profile */
+	uint64_t storage_profile[4];
+};
+
+//-------------------------------------------------------------------------
+// 							Obsolete Structures
+//-------------------------------------------------------------------------
+
+/* Obsolete SEC Flow Context Descriptor (bit fields)*/
+struct obsolete_flow_context {
 	/* word 0 */
 	uint32_t word0_res: 20; /* 31-12 reserved */
 	uint32_t word0_sdid:12; /* 11-0  SDID */
@@ -319,6 +381,19 @@ struct ipsec_flow_context {
 int32_t ipsec_init(uint32_t max_sa_no);
 
 /**************************************************************************//**
+@Function		ipsec_generate_flc 
+
+@Description	Generate SEC Flow Context Descriptor
+*//***************************************************************************/
+int32_t ipsec_generate_flc(
+		uint64_t flc_address, /* Flow Context Address in external memory */
+		uint16_t spid /* Storage Profile ID of the SEC output frame */
+);
+
+/**************************************************************************//**
+
+
+
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 
