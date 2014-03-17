@@ -37,7 +37,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		struct tman_tmi_delete_command *str =
 			(struct tman_tmi_delete_command *) asa_seg_addr;
 		str->status = tman_delete_tmi(
-				&verif_tmi_delete_callback,
+				&verif_tman_callback,
 				str->mode_bits,
 				str->tmi_id,
 				str->conf_opaque_data1,
@@ -67,7 +67,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 				str->duration,
 				str->opaque_data1,
 				str->opaque_data2,
-				&verif_timer_callback,
+				&verif_tman_callback,
 				&(str->timer_handle));
 		str_size = sizeof(struct tman_timer_create_command);
 		break;
@@ -145,16 +145,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 	return str_size;
 }
 
-void verif_timer_callback(uint64_t opaque1, uint16_t opaque2)
-{
-	opaque2 = 0;
-	opaque1 = 0;
-	tman_timer_completion_confirmation(
-			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
-	fdma_terminate_task();
-}
-
-void verif_tmi_delete_callback(uint64_t opaque1, uint16_t opaque2)
+void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 {
 	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle;

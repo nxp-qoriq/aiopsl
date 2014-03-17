@@ -9,11 +9,21 @@ fsl_table.h: Replace miss result SR now returns the result of the rule that was 
 fsl_table.h: 16B alignment is now required for certain structures.
 fsl_table.h: Status modification from 0.7 CTLU/MFLU spec
 fsl_table.h: Miss result is only available in EM and LPM.
-fsl_table.h: Accelerator ID was introduced (uses as an input parameter)
-fsl_table.h: Lookup key structure was intoduced to consume less stack
+fsl_table.h: Accelerator ID was introduced (used as an input parameter)
+fsl_table.h: Lookup key structure was introduced to consume less stack
 fsl_table.h: A remark concerning get miss result and reference count was added.
 fsl_table.h: Timestamp field was added to lookup result
 fsl_table.h: LPM key sized were changed for 9 and 21 instead of 8 and 20 (IPv4/IPv6)
+fsl_keygen.h: ctlu_xxxx functions were renamed to keygen_xxxx functions
+fsl_keygen.h: support in 0.7 CTLU specification
+fsl_keygen.h: 16B alignment is now required for certain structures.
+fsl_keygen.h: Status modification from 0.7 CTLU/MFLU spec.
+fsl_keygen.h: Added a new function: keygen_kcr_builder_add_input_value_fec().
+fsl_keygen.h: Accelerator ID was introduced (used as an input parameter)
+fsl_parser.h: Some changes to parse result to fit new spec.
+fsl_parser.h: Added some new macros (related to routing header)
+fsl_parser.h: Added setters to PRPID and starting HXS. 
+fsl_parser.h: Status modification from 0.7 CTLU/MFLU spec.
 fsl_l4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
 fsl_l4_checksum.h: status values were changed.
 fsl_l4_checksum.h: no check for UDP/TCP is done at implementation.
@@ -21,7 +31,7 @@ fsl_l4_checksum.h: l4 checksum functionality was removed to fsl_l4.h .
 fsl_ipv4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
 fsl_ipv4_checksum.h:status values were changed.
 fsl_ipv4_checksum.h: ipv4 checksum functionality was removed to fsl_ip.h.
-
+id_pool.h: Some implementation changes to consume less stack.
 
 
 SL Pre-Alpha v0.3.1  Change Log
