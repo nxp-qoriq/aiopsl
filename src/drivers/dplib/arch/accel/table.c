@@ -15,7 +15,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		     uint16_t *table_id)
 {
 	int32_t status;
-	struct table_rule * miss_rule;
+	struct table_rule *miss_rule;
 	/* Initialized to one for the simple case where key_size <= 24 */
 	int                               num_entries_per_rule = 1;
 
@@ -77,7 +77,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	case TABLE_ATTRIBUTE_TYPE_MFLU:
 		if (key_size > TABLE_MFLU_SMALL_KEY_MAX_SIZE) {
-			num_entries_per_rule = 
+			num_entries_per_rule =
 				TABLE_MFLU_BIG_KEY_WC_ENTRIES_PER_RULE;
 		} else {
 			num_entries_per_rule =
@@ -107,9 +107,8 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 			      0);
 
 	/* handle CDMA error */
-	if (cdma_status != CDMA_WS_MEMORY_INIT__SUCCESS) {
+	if (cdma_status != CDMA_WS_MEMORY_INIT__SUCCESS)
 		return cdma_status;
-	}
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
@@ -124,27 +123,30 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
-	if (status) {
-		return status;
+	/* Add miss result to the table if needed and if an error did not occur
+	 * during table creation */
+	if (!status && (tbl_params->attributes & TABLE_ATTRIBUTE_MR_MASK ==
+			TABLE_ATTRIBUTE_MR_MISS)) {
+		/* Re-assignment of the structure is done because of stack
+		 * limitations of the service layer - assertion of sizes is
+		 * done on table.h */
+		miss_rule = (struct table_rule *)&tbl_crt_in_msg;
+		miss_rule->options = TABLE_RULE_TIMESTAMP_NONE;
+
+		/* Copy miss result  - Last 16 bytes */
+		__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
+		       *(((uint32_t *)&tbl_params->miss_result) + 2),
+		       *(((uint32_t *)&tbl_params->miss_result) + 3),
+		       *(((uint32_t *)&tbl_params->miss_result) + 4),
+		       0, ((uint32_t *)&(miss_rule->result) + 1));
+
+		/* Copy miss result  - First 4 bytes */
+		*((uint32_t *)(&(miss_rule->result))) =
+				*((uint32_t *)&tbl_params->miss_result);
+		status = table_rule_create(acc_id, *table_id, miss_rule, 0);
 	}
 
-	/* Re-assignment of the structure is done because of stack limitations
-	 * of the service layer  - assertion of sizes is done on table.h */
-	miss_rule = (struct table_rule *)&tbl_crt_in_msg;
-	miss_rule->options = TABLE_RULE_TIMESTAMP_NONE;
-
-	/* Copy miss result  - Last 16 bytes */
-	__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
-	       *(((uint32_t *)&tbl_params->miss_result) + 2),
-	       *(((uint32_t *)&tbl_params->miss_result) + 3),
-	       *(((uint32_t *)&tbl_params->miss_result) + 4),
-	       0, ((uint32_t *)&(miss_rule->result) + 1));
-
-	/* Copy miss result  - First 4 bytes */
-	*((uint32_t *)(&(miss_rule->result))) =
-			*((uint32_t *)&tbl_params->miss_result);
-
-	return table_rule_create(acc_id, *table_id, miss_rule, 0);
+	return status;
 }
 
 
@@ -205,7 +207,7 @@ int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
 {
 	uint32_t invalid_timestamp;
 	return table_rule_query(acc_id, table_id, 0, 0, miss_result,
-			        &invalid_timestamp);
+				&invalid_timestamp);
 }
 
 
@@ -233,7 +235,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
-	*(uint16_t *)(&(rule->result.type)) |= 
+	*(uint16_t *)(&(rule->result.type)) |=
 			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
 
 	/* Clear byte in offset 2*/
@@ -357,7 +359,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 
 int32_t table_rule_query(enum table_hw_accel_id acc_id,
 			 uint16_t table_id,
-			 union table_key *key,
+			 union table_key_desc *key_desc,
 			 uint8_t key_size,
 			 struct table_result *result,
 			 uint32_t *timestamp)
@@ -367,7 +369,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
-	__e_rlwimi(arg2, key, 16, 0, 15);
+	__e_rlwimi(arg2, key_desc, 16, 0, 15);
 	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
@@ -403,7 +405,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 
 int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  union table_key *key,
+			  union table_key_desc *key_desc,
 			  uint8_t key_size,
 			  struct table_result *result)
 {
@@ -411,7 +413,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
-	__e_rlwimi(arg2, key, 16, 0, 15);
+	__e_rlwimi(arg2, key_desc, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
 
 	if (result) { /* Returning result and thus not decrementing RCOUNT */
@@ -451,13 +453,13 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 			    uint16_t table_id,
-			    union table_lookup_key key,
+			    union table_lookup_key_desc key_desc,
 			    uint8_t key_size,
 			    struct table_lookup_result *lookup_result)
 {
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;
-	__e_rlwimi(arg2, *((uint32_t *)(&key)), 16, 0, 15);
+	__e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE, arg2,
@@ -476,8 +478,7 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 /*****************************************************************************/
 int32_t table_query_debug(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
-			  struct table_params_query_output_message *output
-			 )
+			  struct table_params_query_output_message *output)
 {
 	/* Prepare ACC context for TLU accelerator call */
 	__stqw(TABLE_QUERY_MTYPE, (uint32_t)output, table_id, 0,
@@ -491,7 +492,8 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id){
+int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
+{
 	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
@@ -502,7 +504,8 @@ int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id){
 }
 
 
-void table_hw_accel_release_lock(enum table_hw_accel_id acc_id){
+void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
+{
 	__stqw(TABLE_RELEASE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */

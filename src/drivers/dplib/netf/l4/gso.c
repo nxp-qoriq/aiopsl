@@ -29,7 +29,7 @@ int32_t tcp_gso_generate_seg(
 	struct tcphdr *tcp_ptr;
 	struct ipv4hdr *outer_ipv4_ptr;
 	struct ipv6hdr *outer_ipv6_ptr;
-	struct fdma_present_frame_params present_rem_frame_params;
+	/* struct fdma_present_frame_params present_rem_frame_params; */
 
 	tcp_ptr = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 	outer_ip_offset = (uint8_t)(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
@@ -119,13 +119,17 @@ int32_t tcp_gso_generate_seg(
 	gso_ctx->rem_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 
 	/* Present the remaining FD */
-	present_rem_frame_params.flags = FDMA_INIT_NDS_BIT;
+	
+	/* present_rem_frame_params.flags = FDMA_INIT_NDS_BIT;
 	present_rem_frame_params.asa_size = 0;
 	present_rem_frame_params.fd_src = &(gso_ctx->rem_fd);
 	present_rem_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS;
-	/* TODO FDMA ERROR */
 	sr_status = fdma_present_frame(&present_rem_frame_params);
-	gso_ctx->rem_frame_handle = present_rem_frame_params.frame_handle;
+	gso_ctx->rem_frame_handle = present_rem_frame_params.frame_handle; */
+	
+	/* TODO FDMA ERROR */
+	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd), 
+			&(gso_ctx->rem_frame_handle));
 
 	/* Call to tcp_gso_split_segment */
 	return tcp_gso_split_segment(gso_ctx);
@@ -241,9 +245,6 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		present_segment_params.present_size = 0;
 		/* TODO FDMA ERROR */
 		sr_status = fdma_present_frame_segment(&present_segment_params);
-		//sr_status = fdma_present_frame_without_segments(struct ldpaa_fd *fd, 
-				//gso_ctx->rem_frame_handle)
-
 
 		/* Insert header to the remaining frame + close segment  */
 		insert_segment_data_params.from_ws_src =
@@ -277,8 +278,8 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			(uint16_t)(gso_ctx->headers_size - outer_ip_offset));
 	
 	/* update TCP checksum *//* TODO CHECKSUM 0.6 API (Doron)
-	status = cksum_calc_udp_tcp_checksum(); */
-	status = l4_udp_tcp_cksum_calc(
+	sr_status = cksum_calc_udp_tcp_checksum(); */
+	sr_status = l4_udp_tcp_cksum_calc(
 		L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA);
 	/* TODO FDMA ERROR */
 

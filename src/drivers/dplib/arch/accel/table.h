@@ -605,7 +605,8 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 
 @Param[in]	acc_id - Table Accelerator ID.
 
-@Return		If the lock is already in use \ref TABLE_STATUS_MISS is set.
+@Return		If the lock is already in use \ref CTLU_STATUS_MISS or
+		\ref MFLU_STATUS_MISS are set.
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/

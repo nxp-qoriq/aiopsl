@@ -1,16 +1,18 @@
-- start.c: added support for small data sections.
+- start.c:      added support for small data sections.
+- slab.h:       added static table of BPID, size, mem partition; DDR sizes 256 - 4096, PEB sizes 256 - 2048.
+- init.c/h:     added implementation and declaration for: ntohs, ntohl, htons, htonl. Codding style update.      
 - dpni_drv.c/h: placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
-- init.c: placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
+- init.c:       placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
 - dpni_drv.c/h: fixed dpni_get_primary_mac_addr() bug, API modified
-- dpni_test.c: fixed dpni_get_primary_mac_addr() bug, API modified
+- dpni_test.c:  fixed dpni_get_primary_mac_addr() bug, API modified
 
 ** AIOP ARENA SL Pre-Alpha 0.3.1 **
-- dpni_test.c: new demo application that works with the DPNI object. 
+- dpni_test.c:  new demo application that works with the DPNI object. 
 - dpni_drv.c/h: added DPNI support - DPNI discovery and enablement.
 - dpni_drv.c/h: added dpni_drv_unregister_rx_cb(), dpni_drv_get_primary_mac_addr().
 - os.c: added workaround for fsl_os_printf stack overflow issue 
 - event_mgr.h: fixed typo in evm_deregister_callback() function name.
-- slab.c:  slab_free() calls vpool_refcount_decrement_and_release()instead of vpool_release_buff()
+- slab.c:  Fixed ENGR00303738. slab_release() calls vpool_refcount_decrement_and_release()instead of vpool_release_buff()
 - slab.h:  Added slab_find_and_fill_bpid() SL internal API 
 
 ** AIOP ARENA SL Pre-Alpha 0.3 **
