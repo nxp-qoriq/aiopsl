@@ -69,7 +69,9 @@ struct ipf_context {
 	/** IP offset */
 	uint8_t ip_offset;
 	/** IPv6 Fragment header offset	*/
-	uint8_t ipv6_frag_hdr_offset;
+/*	uint8_t ipv6_frag_hdr_offset;*/
+	/** IPv6 last extension before fragmentation offset */
+	uint8_t ipv6_last_hdr_offset;
 	/* Padding */
 	uint8_t	pad[2];
 };
