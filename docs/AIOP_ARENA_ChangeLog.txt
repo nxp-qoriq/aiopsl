@@ -1,3 +1,4 @@
+- start.c: added support for small data sections.
 - dpni_drv.c/h: placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
 - init.c: placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
 - dpni_drv.c/h: fixed dpni_get_primary_mac_addr() bug, API modified
