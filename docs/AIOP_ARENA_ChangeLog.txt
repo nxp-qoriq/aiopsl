@@ -1,3 +1,4 @@
+- slab.h:       added static table of BPID, size, mem partition; DDR sizes 256 - 4096, PEB sizes 256 - 2048.
 - init.c/h:     added implementation and declaration for: ntohs, ntohl, htons, htonl. Codding style update.      
 - dpni_drv.c/h: placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
 - init.c:       placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
@@ -5,7 +6,7 @@
 - dpni_test.c:  fixed dpni_get_primary_mac_addr() bug, API modified
 
 ** AIOP ARENA SL Pre-Alpha 0.3.1 **
-- dpni_test.c: new demo application that works with the DPNI object. 
+- dpni_test.c:  new demo application that works with the DPNI object. 
 - dpni_drv.c/h: added DPNI support - DPNI discovery and enablement.
 - dpni_drv.c/h: added dpni_drv_unregister_rx_cb(), dpni_drv_get_primary_mac_addr().
 - os.c: added workaround for fsl_os_printf stack overflow issue 
