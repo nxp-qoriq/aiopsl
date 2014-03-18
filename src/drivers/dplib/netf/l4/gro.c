@@ -262,16 +262,6 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd))) +
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
-	/* check segment number limit */
-	if ((gro_ctx->metadata.seg_num + 1) ==
-			gro_ctx->params.limits.seg_num_limit){
-		/* update statistics */
-		ste_inc_counter(gro_ctx->params.stats_addr +
-			GRO_STAT_AGG_MAX_SEG_NUM_CNTR_OFFSET,
-			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
-	}
-
 	/* check aggregated packet size limit */
 	if (aggregated_size > gro_ctx->params.limits.packet_size_limit)
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
@@ -280,6 +270,15 @@ int32_t tcp_gro_add_seg_to_aggregation(
 		/* update statistics */
 		ste_inc_counter(gro_ctx->params.stats_addr +
 			GRO_STAT_AGG_MAX_PACKET_SIZE_CNTR_OFFSET,
+			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
+	}
+	/* check segment number limit */
+	if ((gro_ctx->metadata.seg_num + 1) ==
+			gro_ctx->params.limits.seg_num_limit){
+		/* update statistics */
+		ste_inc_counter(gro_ctx->params.stats_addr +
+			GRO_STAT_AGG_MAX_SEG_NUM_CNTR_OFFSET,
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}

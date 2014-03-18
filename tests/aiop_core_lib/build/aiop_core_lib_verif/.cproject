@@ -45,10 +45,10 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.1076839220" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1245625048" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1538584736" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
 								</option>
-								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1509767408" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}\lcf\aiop_core_lib_verif.lcf" valueType="string"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1509767408" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.1048527672" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
 									<listOptionValue builtIn="false" value="lib/__ppc_eabi_init.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification.c"/>
@@ -95,8 +95,8 @@
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.926178335" name="List Closure" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.1607589974" name="List Unused Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="false" valueType="boolean"/>
@@ -144,8 +144,8 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions.999907985" name="Enable C++ Exceptions" superClass="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.1209360885" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.938717919" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\Prefix\lib_ewl.prefix&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\..\..\..\build\aiop_t4ls_sim\build_flags\dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Prefix/lib_ewl.prefix&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_t4ls_sim/build_flags/dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1610691706" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>

@@ -88,4 +88,5 @@ _ssram_end   = ADDR(shared_ram)+SIZEOF(shared_ram);
 
 /* Exceptions Handlers Location (used in Exceptions.c for IVPR initialization) */
 
-EXCEPTION_HANDLERS = ADDR(exception_handlers);
+EXCEPTION_HANDLERS   = ADDR(exception_handlers);
+TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
