@@ -41,34 +41,34 @@ enum e_tman_cmd_type {
 	TMAN_CMDTYPE_GET_TS
 };
 /* TMAN Commands Structure identifiers */
-#define TMAN_TMI_CREATE_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TMI_CREATE_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TMI_CREATE)
 
-#define TMAN_TMI_DELETE_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TMI_DELETE_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TMI_DELETE)
 
-#define TMAN_TMI_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TMI_QUERY_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TMI_QUERY)
 
-#define TMAN_TIMER_CREATE_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TIMER_CREATE_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_CREATE)
 
-#define TMAN_TIMER_DELETE_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TIMER_DELETE_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_DELETE)
 
-#define TMAN_TIMER_INC_DURATION_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TIMER_INC_DURATION_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_INC_DURATION)
 
-#define TMAN_TIMER_RECHARGE_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TIMER_RECHARGE_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_RECHARGE)
 
-#define TMAN_TIMER_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TIMER_QUERY_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_QUERY)
 
-#define TMAN_TIMER_COMPLETION_CONF_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_TIMER_COMPLETION_CONF_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_COMPLETION_CONF)
 
-#define TMAN_GET_TS_CMD_STR	((TMAN_MODULE << 16) | \
+#define TMAN_GET_TS_CMD_STR	((TMAN_ACCEL_ID << 16) | \
 		(uint32_t)TMAN_CMDTYPE_GET_TS)
 
 /**************************************************************************//**
@@ -215,8 +215,7 @@ struct tman_get_ts_command {
 };
 
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr);
-void verif_timer_callback(uint64_t opaque1, uint16_t opaque2);
-void verif_tmi_delete_callback(uint64_t opaque1, uint16_t opaque2);
+void verif_tman_callback(uint64_t opaque1, uint16_t opaque2);
 
 /** @} */ /* end of AIOP_TMAN_SRs_Verification */
 

@@ -78,11 +78,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>sources/Verification/aiop_verification.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification.c</locationURI>
-		</link>
-		<link>
 			<name>sources/Verification/aiop_verification.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification.h</locationURI>
@@ -196,6 +191,11 @@
 			<name>sources/Verification/aiop_verification_parser.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_parser.h</locationURI>
+		</link>
+		<link>
+			<name>sources/Verification/aiop_verification_sr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_sr.c</locationURI>
 		</link>
 		<link>
 			<name>sources/Verification/aiop_verification_ste.c</name>

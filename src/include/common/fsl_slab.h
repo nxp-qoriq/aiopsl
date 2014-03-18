@@ -54,11 +54,12 @@ struct slab_debug_info {
     uint16_t alignment; /**< Maximal alignment */
     uint16_t num_buffs; /**< The number of available buffers */
     uint16_t max_buffs; /**< The maximal number of buffers inside this pool */
-    uint16_t mem_partition_id; /**< Memory partition */
+    uint16_t mem_pid;   /**< Memory partition */
 };
 
 /**************************************************************************//**
- @Description   Type of the function callback to be called on release of buffer into pool 
+ @Description   Type of the function callback to be called on release of buffer 
+		into pool 
 *//***************************************************************************/
 typedef int (*slab_release_cb_t)(uint64_t); 
 
@@ -68,8 +69,8 @@ typedef int (*slab_release_cb_t)(uint64_t);
  @Description   Create a new buffers pool.
 
  @Param[in]     num_buffs           Number of buffers in new pool.
- @Param[in]     extra_buffs         Set it to 0; 
-                                    Number of extra buffers that can be allocated by this new pool.
+ @Param[in]     extra_buffs         Set it to 0; Number of extra buffers that 
+ 	 	 	 	    can be allocated by this new pool.
  @Param[in]     buff_size           Size of buffers in pool.
  @Param[in]     prefix_size         How many bytes to allocate before the data.
                                     AIOP: Not supported by AIOP HW pools.

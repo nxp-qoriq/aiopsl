@@ -7,6 +7,7 @@
 #include "stdlib.h"
 #include "dplib/dpni_drv.h"
 #include "common/dbg.h"
+#include "fsl_fdma.h"
 
 int dpni_test_init(void);
 static void dpni_test_process_packet (dpni_drv_app_arg_t);
@@ -40,14 +41,11 @@ static void dpni_test_process_packet (dpni_drv_app_arg_t arg)
 	uint8_t send_mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	
 	receive_niid = dpni_get_receive_niid();
-	send_niid = 3 - receive_niid;
+	send_niid = 1 - receive_niid;
 	
 	dpni_set_send_niid((uint16_t)send_niid); 
 	send_niid = dpni_get_send_niid();
-	
-#if 0
 	dpni_drv_send((uint16_t)send_niid);
-#endif
 	
 	dpni_drv_get_primary_mac_addr((uint16_t)receive_niid, receive_mac_addr);
 	dpni_drv_get_primary_mac_addr((uint16_t)send_niid, send_mac_addr);
@@ -55,6 +53,8 @@ static void dpni_test_process_packet (dpni_drv_app_arg_t arg)
 	fsl_os_print("DPNI TEST: Running dpni_test_process_packet(), Receive NIID = %d (MAC=0x%02X%02X%02X%02X%02X%02X), Send NIID = %d (MAC=0x%02X%02X%02X%02X%02X%02X), arg = %d\n",
 				receive_niid, receive_mac_addr[0], receive_mac_addr[1], receive_mac_addr[2], receive_mac_addr[3], receive_mac_addr[4], receive_mac_addr[5],
 				send_niid, send_mac_addr[0], send_mac_addr[1], send_mac_addr[2], send_mac_addr[3], send_mac_addr[4], send_mac_addr[5], (int)arg);
+
+	fdma_terminate_task();
 }
 
 
