@@ -268,7 +268,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		/* todo new ctlu api CTLU_STATUS_MISS*/
 /* todo restore this else } else if(sr_status ==
 			  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {*/
-		} else if (sr_status == CTLU_STATUS_MISS) {
+/* todo this is a WA for the new CTLU of simulator 86 that does not return accelerator ID */			
+		} else if (sr_status == (CTLU_STATUS_MISS & 0x00ffffff)) {
 			/* Miss */
 		    cdma_acquire_context_memory(
 				     IPR_CONTEXT_SIZE,
