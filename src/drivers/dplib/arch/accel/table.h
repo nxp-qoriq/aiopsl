@@ -59,6 +59,9 @@
 /** Entry type Entype LPM Result*/
 #define TABLE_ENTRY_ENTYPE_LPM_RES			0x05
 
+/** Entry type Entype MFLU Result*/
+#define TABLE_ENTRY_ENTYPE_MFLU_RES			0x09
+
 /** EME16 Lookup Key field size. */
 #define TABLE_ENTRY_EME44_LOOKUP_KEY_SIZE		44
 
