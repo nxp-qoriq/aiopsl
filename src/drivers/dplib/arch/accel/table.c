@@ -394,8 +394,13 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		   alignment */
 		*result = entry.body.lpm_res.result;
 		break;
-	default:
+	case (TABLE_ENTRY_ENTYPE_MFLU_RES):
+		*timestamp = entry.body.mflu_result.timestamp;
+		/* STQW optimization is not done here so we do not force
+		   alignment */
+		*result = entry.body.mflu_result.result;
 		break;
+	default:
 		return TABLE_IO_ERROR;
 	} /* Switch */
 

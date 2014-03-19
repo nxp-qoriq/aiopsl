@@ -1,3 +1,5 @@
+- aiop_link.lcf: added TLS_SECTION_END_ADDR, it's required for AIOP SL.
+
 - start.c:      added support for small data sections.
 - slab.h:       added static table of BPID, size, mem partition; DDR sizes 256 - 4096, PEB sizes 256 - 2048.
 - init.c/h:     added implementation and declaration for: ntohs, ntohl, htons, htonl. Codding style update.      
