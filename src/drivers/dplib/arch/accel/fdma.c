@@ -1379,7 +1379,7 @@ int32_t fdma_copy_data(
 	/* call FDMA Accelerator */
 	/* Todo - Note to Hw/Compiler team:
 	__accel_call() should return success/fail indication */
-	__e_hwacceli_(FODMA_ACCEL_ID);
+	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
@@ -1405,7 +1405,7 @@ int32_t fdma_acquire_buffer(
 	/* call FDMA Accelerator */
 	/* Todo - Note to Hw/Compiler team:
 	__accel_call() should return success/fail indication */
-	__e_hwacceli_(FODMA_ACCEL_ID);
+	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
@@ -1431,7 +1431,7 @@ int32_t fdma_release_buffer(
 	/* call FDMA Accelerator */
 	/* Todo - Note to Hw/Compiler team:
 	__accel_call() should return success/fail indication */
-	__e_hwacceli_(FODMA_ACCEL_ID);
+	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
