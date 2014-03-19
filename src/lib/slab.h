@@ -38,20 +38,45 @@
 #define SLAB_VP_POOL_GET(SLAB) ((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1)) 
 /**< Returns VP id to be used with virtual pools API */ 
 
-#define SLAB_HW_METADATA_OFFSET     8 /**< bytes */
-#define SLAB_HW_BUFF_SIZE(SIZE)     ((SIZE) - SLAB_HW_METADATA_OFFSET) 
+#define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
+#define SLAB_SIZE_GET(SIZE)     ((SIZE) - SLAB_HW_META_OFFSET) 
 /**< Real buffer size used by user */
-
+#define SLAB_SIZE_SET(SIZE)     ((SIZE) + SLAB_HW_META_OFFSET)
+/**< Buffer size that needs to be set for CDMA, including metadata */
 /**************************************************************************//**
  @Description   SLAB module defaults macros 
 *//***************************************************************************/
-#define SLAB_BPIDS_PARTITION0       {1, 2, 3, 4, 5}
-#define SLAB_MODULE_FAST_MEMORY     MEM_PART_SH_RAM
-#define SLAB_MODULE_DDR_MEMORY      MEM_PART_1ST_DDR_NON_CACHEABLE
-#define SLAB_DEFAULT_BUFF_SIZE      (256 + SLAB_HW_METADATA_OFFSET)
-#define SLAB_DEFAULT_BUFF_ALIGN     8
-#define SLAB_MAX_NUM_VP             1000
+/** bpid, user required size, partition */ 
 
+#define SLAB_BPIDS_ARR	\
+	{ \
+	{1,	256,    MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{5,	512,    MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{3,	1024,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{4,	2048,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{2,	3072,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{6,	4096,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{7,	256,    MEM_PART_PEB},                   \
+	{8,	512,    MEM_PART_PEB},                   \
+	{9,	1024,   MEM_PART_PEB},                   \
+	{10,	2048,   MEM_PART_PEB}                    \
+	}
+
+
+#define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
+#define SLAB_DDR_MEMORY         MEM_PART_1ST_DDR_NON_CACHEABLE
+#define SLAB_DEFAULT_ALIGN      8
+#define SLAB_MAX_NUM_VP         1000
+
+/**************************************************************************//**
+@Description   Information for every bpid
+*//***************************************************************************/                                 
+struct slab_bpid_info {
+        uint16_t bpid;
+        uint16_t size;
+        e_memory_partition_id mem_pid;
+};
+                                 
 /**************************************************************************//**
  @Description   Information to be kept about every HW pool inside DDR
 *//***************************************************************************/
@@ -60,7 +85,7 @@ struct slab_hw_pool_info {
     uint16_t buff_size; /**< Maximal buffer size including 8 bytes of CDMA metadata */
     uint16_t pool_id;   /**< BMAN pool ID */
     uint16_t alignment; /**< Buffer alignment */
-    uint16_t mem_partition_id; /**< Memory partition for buffers allocation */
+    uint16_t mem_pid;   /**< Memory partition for buffers allocation */
 };
 
 /**************************************************************************//**

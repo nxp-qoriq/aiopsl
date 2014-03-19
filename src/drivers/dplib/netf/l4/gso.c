@@ -222,10 +222,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	} else {
 		/* First/middle segment */
 		status = TCP_GSO_GEN_SEG_STATUS_IN_PROCESS;
-		if (gso_ctx->first_seg)
-			gso_ctx->first_seg = 0;
-		else
-			/* run parser on default frame */
+		
+		/* run parser on default frame if no first segment*/
+		if (~gso_ctx->first_seg)
 			/* TODO PARSER ERROR */
 			sr_status = parse_result_generate_default(
 					PARSER_NO_FLAGS);
@@ -265,6 +264,14 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* } */
 
 		}
+	
+	/* sequence number calculation */
+	if (gso_ctx->first_seg)
+		gso_ctx->first_seg = 0;
+	else
+		tcp_ptr->sequence_number += gso_ctx->mss;
+	
+	/* urgent pointer calculation */
 	if (gso_ctx->urgent_pointer) {
 		tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
 		tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
