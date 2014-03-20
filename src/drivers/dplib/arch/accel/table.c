@@ -123,26 +123,30 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
-	if (status)
-		return status;
+	/* Add miss result to the table if needed and if an error did not occur
+	 * during table creation */
+	if (!status && ((tbl_params->attributes & TABLE_ATTRIBUTE_MR_MASK) ==
+			TABLE_ATTRIBUTE_MR_MISS)) {
+		/* Re-assignment of the structure is done because of stack
+		 * limitations of the service layer - assertion of sizes is
+		 * done on table.h */
+		miss_rule = (struct table_rule *)&tbl_crt_in_msg;
+		miss_rule->options = TABLE_RULE_TIMESTAMP_NONE;
 
-	/* Re-assignment of the structure is done because of stack limitations
-	 * of the service layer  - assertion of sizes is done on table.h */
-	miss_rule = (struct table_rule *)&tbl_crt_in_msg;
-	miss_rule->options = TABLE_RULE_TIMESTAMP_NONE;
+		/* Copy miss result  - Last 16 bytes */
+		__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
+		       *(((uint32_t *)&tbl_params->miss_result) + 2),
+		       *(((uint32_t *)&tbl_params->miss_result) + 3),
+		       *(((uint32_t *)&tbl_params->miss_result) + 4),
+		       0, ((uint32_t *)&(miss_rule->result) + 1));
 
-	/* Copy miss result  - Last 16 bytes */
-	__stqw(*(((uint32_t *)&tbl_params->miss_result) + 1),
-	       *(((uint32_t *)&tbl_params->miss_result) + 2),
-	       *(((uint32_t *)&tbl_params->miss_result) + 3),
-	       *(((uint32_t *)&tbl_params->miss_result) + 4),
-	       0, ((uint32_t *)&(miss_rule->result) + 1));
+		/* Copy miss result  - First 4 bytes */
+		*((uint32_t *)(&(miss_rule->result))) =
+				*((uint32_t *)&tbl_params->miss_result);
+		status = table_rule_create(acc_id, *table_id, miss_rule, 0);
+	}
 
-	/* Copy miss result  - First 4 bytes */
-	*((uint32_t *)(&(miss_rule->result))) =
-			*((uint32_t *)&tbl_params->miss_result);
-
-	return table_rule_create(acc_id, *table_id, miss_rule, 0);
+	return status;
 }
 
 
@@ -390,8 +394,13 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		   alignment */
 		*result = entry.body.lpm_res.result;
 		break;
-	default:
+	case (TABLE_ENTRY_ENTYPE_MFLU_RES):
+		*timestamp = entry.body.mflu_result.timestamp;
+		/* STQW optimization is not done here so we do not force
+		   alignment */
+		*result = entry.body.mflu_result.result;
 		break;
+	default:
 		return TABLE_IO_ERROR;
 	} /* Switch */
 

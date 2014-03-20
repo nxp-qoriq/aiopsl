@@ -11,6 +11,7 @@
 
 #include "common/types.h"
 #include "common/errors.h"
+#include "dplib/fsl_ldpaa.h"
 
 
 /* extern uint8_t HWC_PRC_ADDR[]; */
@@ -2986,7 +2987,9 @@ int32_t fdma_copy_data(
 		FDMA_STORE_FRAME_ERRORS)).
 		- Update FD.
 
-@Cautions	In this Service Routine the task yields.
+@Cautions
+		- In this Service Routine the task yields.
+		- The FD address in workspace must be aligned to 32 bytes.
 *//***************************************************************************/
 int32_t fdma_create_frame(
 		struct ldpaa_fd *fd,
@@ -3018,7 +3021,9 @@ int32_t fdma_create_frame(
 		FDMA_STORE_FRAME_ERRORS)).
 		- Update FD.
 
-@Cautions	In this Service Routine the task yields.
+@Cautions
+		- In this Service Routine the task yields.
+		- The FD address in workspace must be aligned to 32 bytes.
 *//***************************************************************************/
 int32_t fdma_create_fd(
 		struct ldpaa_fd *fd,

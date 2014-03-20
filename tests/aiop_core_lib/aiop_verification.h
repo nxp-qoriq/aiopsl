@@ -269,7 +269,7 @@ struct aiop_terminate_flow_command {
 };
 
 
-void aiop_verification();
+void aiop_verification_sr();
 void aiop_verification_fm();
 void aiop_verification_fm_temp();
 void aiop_verif_init_parser();

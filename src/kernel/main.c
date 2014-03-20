@@ -43,12 +43,12 @@ UNUSED(argc);UNUSED(argv);
     if (err)
     	return err;
 #endif
-    
+
     if (is_master_core &&
         ((err = global_post_init()) != 0))
         return err;
     sys_barrier();
-    
+
     if (is_master_core)
     	fsl_os_print("Running applications\n");
     sys_barrier();

@@ -475,6 +475,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/keygen.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/keygen.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/osm.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/osm.c</locationURI>
@@ -553,6 +558,11 @@
 			<name>aiop_sl/drivers/dplib/netf/ip/ipf.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipf.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/netf/ip/ipr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/ip/ipr.h</name>

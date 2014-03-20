@@ -98,14 +98,29 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_query_verif_command *pq =
 				(struct parser_prp_query_verif_command *)
 				asa_seg_addr;
-/*
-		pq->status = 
+
+/*		pq->status = */
 		   parser_profile_query(pq->prpid,
 			(struct parse_profile_record *)pq->parse_profile);
-*/
+
 		str_size = sizeof(struct parser_prp_query_verif_command);
 		break;
 	}
+	case PARSER_PRP_REPLACE_STR:
+	{
+		struct parser_prp_replace_verif_command *pq =
+				(struct parser_prp_replace_verif_command *)
+				asa_seg_addr;
+
+/*		pq->status = */
+		   parser_profile_replace(
+			(struct parse_profile_record *)pq->parse_profile,
+			pq->prpid);
+
+		str_size = sizeof(struct parser_prp_replace_verif_command);
+		break;
+	}
+
 	case PARSER_GEN_PARSE_RES_STR:
 	{
 		struct parser_gen_parser_res_verif_command *gpr =
