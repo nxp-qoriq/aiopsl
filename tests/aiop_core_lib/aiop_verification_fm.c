@@ -55,6 +55,11 @@ void aiop_verification_fm()
 	}
 	initial_ext_address = ext_address;
 
+	/* spid=0. This is a temporary spid setter and has to be removed when 
+				* the ni function will be run.
+				* (According to Ilan request) */
+	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+	
 	init_verif();
 
 	/* The Terminate command will finish the verification */
