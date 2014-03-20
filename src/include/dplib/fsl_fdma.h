@@ -11,6 +11,7 @@
 
 #include "common/types.h"
 #include "common/errors.h"
+#include "dplib/fsl_ldpaa.h"
 
 
 /* extern uint8_t HWC_PRC_ADDR[]; */
