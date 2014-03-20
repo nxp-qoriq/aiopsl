@@ -125,7 +125,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	/* Add miss result to the table if needed and if an error did not occur
 	 * during table creation */
-	if (!status && (tbl_params->attributes & TABLE_ATTRIBUTE_MR_MASK ==
+	if (!status && ((tbl_params->attributes & TABLE_ATTRIBUTE_MR_MASK) ==
 			TABLE_ATTRIBUTE_MR_MISS)) {
 		/* Re-assignment of the structure is done because of stack
 		 * limitations of the service layer - assertion of sizes is

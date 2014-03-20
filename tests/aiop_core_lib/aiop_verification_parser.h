@@ -33,6 +33,7 @@ enum parser_verif_cmd_type {
 	PARSER_PRP_CREATE_VERIF_CMDTYPE = 0,
 	PARSER_PRP_DELETE_VERIF_CMDTYPE,
 	PARSER_PRP_QUERY_VERIF_CMDTYPE,
+	PARSER_PRP_REPLACE_VERIF_CMDTYPE,	
 	PARSER_GEN_PARSE_RES_VERIF_CMDTYPE,
 	PARSER_GEN_PARSE_RES_EXP_VERIF_CMDTYPE,
 	PARSER_PRP_ID_POOL_CREATE_VERIF_CMDTYPE,
@@ -47,6 +48,9 @@ enum parser_verif_cmd_type {
 
 #define PARSER_PRP_QUERY_STR  ((PARSE_MODULE << 16) | \
 				PARSER_PRP_QUERY_VERIF_CMDTYPE)
+
+#define PARSER_PRP_REPLACE_STR  ((PARSE_MODULE << 16) | \
+				PARSER_PRP_REPLACE_VERIF_CMDTYPE)
 
 #define PARSER_GEN_PARSE_RES_STR  ((PARSE_MODULE << 16) | \
 				PARSER_GEN_PARSE_RES_VERIF_CMDTYPE)
@@ -98,6 +102,7 @@ struct parser_prp_delete_verif_command {
 	uint8_t  pad[3];
 };
 
+
 /**************************************************************************//**
 @Description	Parser Profile Query Command structure.
 
@@ -109,6 +114,18 @@ struct parser_prp_query_verif_command {
 	uint32_t parse_profile;
 	uint8_t  prpid;
 	/*	uint8_t  pad[3];*/
+	uint8_t  pad[7];
+};
+
+/**************************************************************************//**
+@Description	Parser Profile Replace Command structure.
+
+		Includes information needed for Parser Commands verification.
+*//***************************************************************************/
+struct parser_prp_replace_verif_command {
+	uint32_t opcode;
+	uint32_t parse_profile;
+	uint8_t  prpid;
 	uint8_t  pad[7];
 };
 
