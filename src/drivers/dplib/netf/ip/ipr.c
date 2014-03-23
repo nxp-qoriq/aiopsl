@@ -265,9 +265,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			   /* Early Time out */
 			   return IPR_ERROR;
 			}
-		/* todo new ctlu api CTLU_STATUS_MISS*/
-/* todo restore this else } else if(sr_status ==
-			  CTLU_LOOKUP_STATUS_MATCH_NOT_FOUND) {*/
 /* todo this is a WA for the new CTLU of simulator 86 that does not return accelerator ID */			
 		} else if (sr_status == (CTLU_STATUS_MISS & 0x00ffffff)) {
 			/* Miss */
@@ -479,13 +476,12 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				/* Add current frag's running sum for
 				 * L4 checksum check */
 				rfdc_ptr->current_running_sum =
-						cksum_ones_complement_sum16(
-						  rfdc_ptr->current_running_sum,
-						  pr->running_sum);
+										cksum_ones_complement_sum16(
+												  rfdc_ptr->current_running_sum,
+												  pr->running_sum);
 			} else {
 			/* Set 1rst frag's running sum for L4 checksum check */
-				rfdc_ptr->current_running_sum =
-							  pr->gross_running_sum;
+				rfdc_ptr->current_running_sum = pr->gross_running_sum;
 			}
 
 			/* Close current frame before storing FD */
@@ -497,10 +493,10 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 			/* Write FD in external buffer */
 			ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
-				   rfdc_ptr->next_index*FD_SIZE;
+									rfdc_ptr->next_index*FD_SIZE;
 			cdma_write(ext_addr,
-				   (void *)HWC_FD_ADDRESS,
-				   FD_SIZE);
+				       (void *)HWC_FD_ADDRESS,
+				       FD_SIZE);
 
 			if (IS_LAST_FRAGMENT()) {
 				return LAST_FRAG_IN_ORDER;
@@ -519,8 +515,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			    rfdc_ptr->index_to_out_of_order = current_index;
 			    if(IS_LAST_FRAGMENT())
 				    rfdc_ptr->expected_total_length =
-					     frag_offset>>3 + current_frag_size;
-			    
+					     frag_offset>>3 + current_frag_size;	    
 			    
 			    /* Non closing fragment */
 			    rfdc_ptr->next_index++;
@@ -548,20 +543,12 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr)
 	/* Bring into workspace 2 FDs to be concatenated */
 	fds_to_fetch_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE;
 	cdma_read((void *)fds_to_concatenate,
-		  fds_to_fetch_addr,
-		  64);
+			  fds_to_fetch_addr,
+			  64);
 	/* Copy 1rst FD to default frame FD's place */
 	*((struct ldpaa_fd *)(HWC_FD_ADDRESS)) = fds_to_concatenate[0];
 
-	/* set default task parameters */
-//	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-//			     DEFAULT_SEGMENT_HEADOOM_SIZE);
-//	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-//	PRC_SET_SEGMENT_OFFSET(0);
-//	PRC_RESET_SR_BIT();
-
 	/* Open 1rst frame and get frame handle */
-//	fdma_present_default_frame();
 	fdma_present_default_frame_without_segments();
 
 	/* Open 2nd frame and get frame handle */
