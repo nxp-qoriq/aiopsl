@@ -1,7 +1,7 @@
 /**************************************************************************//*
  @File          slab.h
 
- @Description   This is slab internal header file which includes all the 
+ @Description   This is slab internal header file which includes all the
                 architecture specific implementation defines.
 
  @Cautions      This file is private for AIOP.
@@ -14,7 +14,7 @@
 #define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 
 /**************************************************************************//**
- @Description   SLAB common internal macros 
+ @Description   SLAB common internal macros
 *//***************************************************************************/
 #define SLAB_HW_POOL_SET      0x00000001
 /**< Flag which indicates that this SLAB handle is HW pool */
@@ -22,44 +22,45 @@
 /**< Slab handle is HW pool */
 
 /**************************************************************************//**
- @Description   SLAB AIOP HW pool internal macros 
+ @Description   SLAB AIOP HW pool internal macros
 *//***************************************************************************/
 /*
- *  HW SLAB structure 
- *  
+ *  HW SLAB structure
+ *
  * 31----------23--------------1--------0
  * | HW accel   |VP ID         |HW flg  |
- * ------------------------------------- 
+ * -------------------------------------
  */
 #define SLAB_VP_POOL_MASK      0x00FFFFFE
 #define SLAB_VP_POOL_MAX       (SLAB_VP_POOL_MASK >> 1) /**< Maximal number to be used as VP id */
 #define SLAB_VP_POOL_SHIFT     1
 #define SLAB_HW_ACCEL_MASK     0xFF000000
-#define SLAB_VP_POOL_GET(SLAB) ((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1)) 
-/**< Returns VP id to be used with virtual pools API */ 
+#define SLAB_VP_POOL_GET(SLAB) ((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1))
+/**< Returns VP id to be used with virtual pools API */
 
 #define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
-#define SLAB_SIZE_GET(SIZE)     ((SIZE) - SLAB_HW_META_OFFSET) 
+#define SLAB_SIZE_GET(SIZE)     ((SIZE) - SLAB_HW_META_OFFSET)
 /**< Real buffer size used by user */
 #define SLAB_SIZE_SET(SIZE)     ((SIZE) + SLAB_HW_META_OFFSET)
 /**< Buffer size that needs to be set for CDMA, including metadata */
 /**************************************************************************//**
- @Description   SLAB module defaults macros 
+ @Description   SLAB module defaults macros
 *//***************************************************************************/
-/** bpid, user required size, partition */ 
+/** bpid, user required size, partition */
 
 #define SLAB_BPIDS_ARR	\
 	{ \
-	{1,	256,    MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{3,	256,    MEM_PART_1ST_DDR_NON_CACHEABLE}, \
 	{5,	512,    MEM_PART_1ST_DDR_NON_CACHEABLE}, \
-	{3,	1024,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{2,	1024,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
 	{4,	2048,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
-	{2,	3072,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{1,	3072,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
 	{6,	4096,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
 	{7,	256,    MEM_PART_PEB},                   \
 	{8,	512,    MEM_PART_PEB},                   \
 	{9,	1024,   MEM_PART_PEB},                   \
-	{10,	2048,   MEM_PART_PEB}                    \
+	{10,	2048,   MEM_PART_PEB},                   \
+	{11,	4096,   MEM_PART_PEB}                    \
 	}
 
 
@@ -70,13 +71,13 @@
 
 /**************************************************************************//**
 @Description   Information for every bpid
-*//***************************************************************************/                                 
+*//***************************************************************************/
 struct slab_bpid_info {
         uint16_t bpid;
         uint16_t size;
         e_memory_partition_id mem_pid;
 };
-                                 
+
 /**************************************************************************//**
  @Description   Information to be kept about every HW pool inside DDR
 *//***************************************************************************/
@@ -91,9 +92,9 @@ struct slab_hw_pool_info {
 /**************************************************************************//**
  @Description   Information to be kept about SLAB module
 *//***************************************************************************/
-struct slab_module_info {    
+struct slab_module_info {
     struct  slab_hw_pool_info *hw_pools;    /**< List of BMAN pools */
-    void    *virtual_pool_struct;           /**< VP internal structure size of (struct virtual_pool_desc) * MAX_VIRTUAL_POOLS_NUM */ 
+    void    *virtual_pool_struct;           /**< VP internal structure size of (struct virtual_pool_desc) * MAX_VIRTUAL_POOLS_NUM */
     void    *callback_func_struct;          /**< VP internal structure size of (struct callback_s) * MAX_VIRTUAL_POOLS_NUM */
     /* TODO uint8_t spinlock; */            /**< Spinlock placed at SHRAM */
     uint8_t num_hw_pools;                   /**< Number of BMAN pools */
@@ -103,9 +104,9 @@ struct slab_module_info {
  @Function      slab_module_init
 
  @Description   Initialize SLAB module
-                
+
                 In AIOP during slab_module_init() we’ll call MC API in order to get all BPIDs
-                
+
  @Return        0 on success, error code otherwise.
  *//***************************************************************************/
 int slab_module_init(void);
@@ -114,9 +115,9 @@ int slab_module_init(void);
  @Function      slab_module_free
 
  @Description   Frees SLAB module
- 
+
                 In addition to memory de-allocation it will return BPIDs to MC
-                
+
  @Return        None
  *//***************************************************************************/
 void slab_module_free(void);
@@ -125,7 +126,7 @@ void slab_module_free(void);
  @Function      slab_find_and_fill_bpid
 
  @Description   Finds and fills buffer pool with new buffers
- 
+
                 This function is part of SLAB module therefore it should be called only after
                 it has been initialized by slab_module_init()
 
@@ -135,16 +136,16 @@ void slab_module_free(void);
                                     AIOP: HW pool supports up to 8 bytes alignment.
  @Param[in]     mem_partition_id    Memory partition ID for allocation.
                                     AIOP: HW pool supports only PEB and DPAA DDR.
- @Param[out]    num_filled_buffs    Number of buffers that we succeeded to fill.                                    
+ @Param[out]    num_filled_buffs    Number of buffers that we succeeded to fill.
  @Param[out]    bpid                Id if the buffer that was filled with new buffers.
 
- @Return        0       - on success, 
+ @Return        0       - on success,
                -ENAVAIL - could not release into bpid
                -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
-int slab_find_and_fill_bpid(uint16_t num_buffs, 
-                            uint16_t buff_size, 
-                            uint16_t alignment, 
+int slab_find_and_fill_bpid(uint16_t num_buffs,
+                            uint16_t buff_size,
+                            uint16_t alignment,
                             uint8_t  mem_partition_id,
                             int      *num_filled_buffs,
                             uint16_t *bpid);
