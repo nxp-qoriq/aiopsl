@@ -153,7 +153,8 @@ enum verif_modules_ids {
 	IF_MODULE,
 	IF_ELSE_MODULE,
 	TERMINATE_FLOW_MODULE,
-	KEYGEN_MODULE
+	KEYGEN_MODULE,
+	IPSEC_MODULE
 };
 
 /**************************************************************************//**
