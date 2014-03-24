@@ -33,7 +33,6 @@ __HOT_CODE void receive_cb(void)
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
 
 	osm_task_init();
-	default_task_params.receive_niid = dpni_drv->aiop_niid;
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
 	default_task_params.parser_profile_id = dpni_drv->prpid;
 	default_task_params.parser_starting_hxs \
@@ -44,9 +43,7 @@ __HOT_CODE void receive_cb(void)
 	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
 		int32_t parse_status = parse_result_generate_default \
 				(PARSER_NO_FLAGS);
-	/* TODO in future releases it may be enough to check only
-	 * parse_status */
-		if (parse_status || PARSER_IS_PARSING_ERROR_DEFAULT()) {
+		if (parse_status) {
 			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
 				/* if discard with terminate return with error \
 				 * then terminator */
@@ -125,7 +122,7 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 /* TODO : replace by macros/inline funcs */
 __HOT_CODE int dpni_get_receive_niid(void)
 {
-	return((int)default_task_params.receive_niid);
+	return((int)PRC_GET_PARAMETER());
 }
 
 
