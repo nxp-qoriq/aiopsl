@@ -45,11 +45,6 @@
 /** No IP header was found.*/
 #define NO_IP_HDR_ERROR				(HM_MODULE_STATUS_ID + 0x0300)
 
-/** Failure, FDMA error occurred */
-//#define IPV4_CKSUM_CALC_STATUS_FDMA_FAILURE	0x80010000
-
-
-
 /**************************************************************************//**
 @Group		HM_IP_Modes HM IP Modes
 
