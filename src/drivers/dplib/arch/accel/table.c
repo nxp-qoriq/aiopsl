@@ -81,7 +81,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 				TABLE_MFLU_BIG_KEY_WC_ENTRIES_PER_RULE;
 		} else {
 			num_entries_per_rule =
-				TABLE_MFLU_BIG_KEY_WC_ENTRIES_PER_RULE;
+				TABLE_MFLU_SMALL_KEY_WC_ENTRIES_PER_RULE;
 		}
 		break;
 
