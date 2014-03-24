@@ -42,7 +42,12 @@ fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma
 	•	cdma_write_lock_dma_read_and_increment
 	•	cdma_write_release_lock_and_decrement
 	refcount incr and decr will be part of slab API.
-
+fsl_fdma.h:
+	•	Change name: fdma_create_frame() -> fdma_create_fd() - this function returns an updated FD for the newly created frame.
+	•	Add function: fdma_create_frame() - this function returns a frame handle for the newly created FDMA working frame.
+	•	Change struct fdma_isolation_attributes to struct fdma_amq.
+	•	Fix CQ: ENGR304324
+	
 
 SL Pre-Alpha v0.3.1  Change Log
 ===============================
