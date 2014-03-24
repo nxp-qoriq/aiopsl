@@ -1,3 +1,7 @@
+SL Pre-Alpha v0.3.2  Change Log
+===============================
+general.h: remove receive_niid from TLS
+dpni_drv_rxtx.c: check only parse_status in function receive_cb(). Removed receive_niid from the TLS and instead use macro PRC_GET_PARAMETER.
 fsl_ctlu.h: table function were moved to fsl_table.h
 fsl_ctlu.h: keygen and hash function were moved to fsl_keygen.h
 fsl_ctlu.h: file was deleted.
