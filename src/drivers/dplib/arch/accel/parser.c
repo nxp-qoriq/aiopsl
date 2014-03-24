@@ -138,20 +138,20 @@ int32_t parse_result_generate_default(uint8_t flags)
 	input_struct.opaquein = 0;
 
 
-	/* If L4 checksum validation is required,
-	 * Check if Gross Running Sum calculation is needed */
-	if ((flags & PARSER_VALIDATE_L4_CHECKSUM) & (!pr->gross_running_sum)) {
-		if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
-					&pr->gross_running_sum))
-			return PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
-	}
-	input_struct.gross_running_sum = pr->gross_running_sum;
-
 	arg1 = (uint32_t)default_task_params.parser_profile_id |
 		((uint32_t)flags << 8) |
 		((uint32_t)default_task_params.parser_starting_hxs << 13);
 
+	/* If L4 checksum validation is required,
+	 * Check if Gross Running Sum calculation is needed */
 	if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
+		if (!pr->gross_running_sum)
+			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						&pr->gross_running_sum))
+				return
+				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+		input_struct.gross_running_sum = pr->gross_running_sum;
+
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
@@ -189,21 +189,21 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	__stdw(0, 0, 8, &input_struct);
 	input_struct.opaquein = 0;
 
-	/* If L4 checksum validation is required,
-	 * Check if Gross Running Sum calculation is needed */
-	if ((flags & PARSER_VALIDATE_L4_CHECKSUM) & (!pr->gross_running_sum)) {
-		if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
-					&pr->gross_running_sum))
-			return PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
-	}
-	input_struct.gross_running_sum = pr->gross_running_sum;
-
 	arg1 = (uint32_t)default_task_params.parser_profile_id |
 		((uint32_t)flags << 8) |
 		((uint32_t)starting_hxs << 13) |
 		((uint32_t)starting_offset << 24);
 
+	/* If L4 checksum validation is required,
+	 * Check if Gross Running Sum calculation is needed */
 	if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
+		if (!pr->gross_running_sum)
+			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						&pr->gross_running_sum))
+				return
+				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+		input_struct.gross_running_sum = pr->gross_running_sum;
+
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
