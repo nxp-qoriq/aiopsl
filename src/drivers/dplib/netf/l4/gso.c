@@ -223,13 +223,21 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* First/middle segment */
 		status = TCP_GSO_GEN_SEG_STATUS_IN_PROCESS;
 		
-		/* run parser on default frame if no first segment*/
-		if (~gso_ctx->first_seg)
+		if (gso_ctx->first_seg) {
+			gso_ctx->first_seg = 0;
+			tcp_ptr = (struct tcphdr *)(
+					PARSER_GET_L4_POINTER_DEFAULT());
+		} else {
+			/* run parser on default frame if no first segment*/
 			/* TODO PARSER ERROR */
 			sr_status = parse_result_generate_default(
 					PARSER_NO_FLAGS);
+			tcp_ptr = (struct tcphdr *)(
+					PARSER_GET_L4_POINTER_DEFAULT());
+			/* sequence number calculation */
+			tcp_ptr->sequence_number += gso_ctx->mss;
+			}
 
-		tcp_ptr = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 		outer_ip_offset = (uint8_t)(
 				PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 		/* outer_ipv4_ptr = (struct ipv4hdr *)(
@@ -264,12 +272,6 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* } */
 
 		}
-	
-	/* sequence number calculation */
-	if (gso_ctx->first_seg)
-		gso_ctx->first_seg = 0;
-	else
-		tcp_ptr->sequence_number += gso_ctx->mss;
 	
 	/* urgent pointer calculation */
 	if (gso_ctx->urgent_pointer) {
