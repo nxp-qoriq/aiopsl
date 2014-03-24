@@ -1,3 +1,7 @@
+SL Pre-Alpha v0.3.2  Change Log
+===============================
+general.h: remove receive_niid from TLS
+dpni_drv_rxtx.c: check only parse_status in function receive_cb(). Removed receive_niid from the TLS and instead use macro PRC_GET_PARAMETER.
 fsl_ctlu.h: table function were moved to fsl_table.h
 fsl_ctlu.h: keygen and hash function were moved to fsl_keygen.h
 fsl_ctlu.h: file was deleted.
@@ -32,6 +36,12 @@ fsl_ipv4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" 
 fsl_ipv4_checksum.h:status values were changed.
 fsl_ipv4_checksum.h: ipv4 checksum functionality was removed to fsl_ip.h.
 id_pool.h: Some implementation changes to consume less stack.
+fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma.h file:
+	•	cdma_refcount_increment
+	•	cdma_refcount_decrement
+	•	cdma_write_lock_dma_read_and_increment
+	•	cdma_write_release_lock_and_decrement
+	refcount incr and decr will be part of slab API.
 
 
 SL Pre-Alpha v0.3.1  Change Log

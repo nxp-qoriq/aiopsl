@@ -10,6 +10,7 @@
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "io.h"
 #include "fsl_cdma.h"
+#include "cdma.h"
 
 /* TODO need to read the ICID from somewhere */
 #define SLAB_FDMA_ICID              0 /**< ICID to be used for FDMA release & acquire*/

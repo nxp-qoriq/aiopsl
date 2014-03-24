@@ -517,8 +517,6 @@ struct hardware_context {
 *//***************************************************************************/
 
 struct aiop_default_task_params {
-	/** NI ID the packet arrived on */
-	uint16_t receive_niid;
 	/** NI ID the packet should be sent on */
 	uint16_t send_niid;
 	/** Task default Starting HXS for Parser */
