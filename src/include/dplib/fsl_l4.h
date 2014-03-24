@@ -26,9 +26,18 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@addtogroup	FSL_HM Header Modification
+ @Group		AIOP_L4 L4
 
-@{
+ @Description	AIOP L4 related API
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_L4_HM L4 Header Modifications
+
+ @Description	AIOP L4 related header modifications API
+
+ @{
 *//***************************************************************************/
 
 /**************************************************************************//**
@@ -238,10 +247,9 @@ int32_t l4_set_tp_dst(uint16_t dst_port);
 
 		Implicitly updated values in Task Defaults: Parse Result.
 
-@Param[in]	options - Please refer to \ref
-		FSL_L4_UDP_TCP_CKSUM_CALC_OPTIONS
+@Param[in]	flags - Please refer to \ref HML4UDPTCPCksumCalcModeBits
 
-@Return		Success or Failure (There was no TCP/UDP header in the frame).
+@Return		Success, FDMA failure or Parser failure.
 
 @Cautions	In this function the task yields. \n
 		Parse Result (excluding Gross Running Sum field) must be valid.
@@ -252,7 +260,8 @@ int32_t l4_set_tp_dst(uint16_t dst_port);
 *//***************************************************************************/
 int32_t l4_udp_tcp_cksum_calc(uint8_t flags);
 /* @} end of group FSL_HM_L4_Functions */
-/* @} end of group FSL_HM */
+/* @} end of group AIOP_L4_HM */
+/* @} end of group AIOP_L4 */
 /* @} end of group NETF */
 
 

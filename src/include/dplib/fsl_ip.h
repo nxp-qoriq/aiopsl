@@ -33,11 +33,11 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_HM Header Modification
+ @Group		AIOP_IP_HM IP Header Modifications
 
-@Description	Header Modification API
+ @Description	AIOP IP related header modifications API
 
-@{
+ @{
 *//***************************************************************************/
 
 /** The frame contain only one IP header */
@@ -444,7 +444,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
 
 /* @} end of group FSL_HM_IP_Functions */
-/* @} end of group FSL_HM */
+/* @} end of group AIOP_IP_HM */
 /* @} end of group AIOP_IP */
 /* @} end of group NETF */
 
