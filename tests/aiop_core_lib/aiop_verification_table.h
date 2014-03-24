@@ -77,7 +77,7 @@ enum table_verif_cmd_type {
 #define TABLE_LOOKUP_BY_KEYID_CMD_STR	((TABLE_MODULE << 16) | \
 				TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
 
-/** Table lookup by explicit key */	
+/** Table lookup by explicit key */
 #define TABLE_LOOKUP_BY_KEY_CMD_STR		((TABLE_MODULE << 16) | \
 					TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
 
@@ -420,9 +420,6 @@ struct table_query_debug_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
 
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-
 	/** Table Parameters output pointer in the workspace */
 	uint32_t output_ptr;
 
@@ -431,6 +428,9 @@ struct table_query_debug_command{
 
 	/** Table ID */
 	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 
@@ -441,11 +441,11 @@ struct table_hw_accel_acquire_lock_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
 
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-
 	/** Command returned status */
 	int32_t  status;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 
@@ -456,11 +456,11 @@ struct table_hw_accel_release_lock_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
 
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-
 	/** Command returned status */
 	int32_t  status;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /** @} */ /* end of AIOP_Table_SRs_Verification */
