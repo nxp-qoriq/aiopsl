@@ -9,7 +9,6 @@
 #include "virtual_pools.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "io.h"
-#include "fsl_cdma.h"
 #include "cdma.h"
 
 /* TODO need to read the ICID from somewhere */
@@ -249,14 +248,16 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 int slab_release(struct slab *slab, uint64_t buff)
 {
 
+	int error = 0;
 #ifdef DEBUG
         SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 #endif
-        if (vpool_refcount_decrement_and_release(SLAB_VP_POOL_GET(slab), buff, NULL))
-        {
-                return -EFAULT;
-        }
-        return 0;
+        error = vpool_refcount_decrement_and_release(SLAB_VP_POOL_GET(slab), buff, NULL);
+        /* It's OK for buffer not to be released as long as there is no cdma_error */
+        if ((error == VIRTUAL_POOLS_BUF_NOT_RELEASED) || (error == 0))
+        	return 0;
+        else
+        	return -EFAULT;
 }
 /*****************************************************************************/
 static int bpid_init(struct slab_hw_pool_info *hw_pools,
