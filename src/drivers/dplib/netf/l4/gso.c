@@ -219,6 +219,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* update TCP header flags */
 		tcp_ptr->flags |= (gso_ctx->internal_flags & (TCP_GSO_FIN_BIT |
 						TCP_GSO_PSH_BIT));
+		
+		/* sequence number calculation */
+		tcp_ptr->sequence_number += gso_ctx->mss;
 	} else {
 		/* First/middle segment */
 		status = TCP_GSO_GEN_SEG_STATUS_IN_PROCESS;
