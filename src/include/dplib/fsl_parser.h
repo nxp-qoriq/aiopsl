@@ -834,7 +834,8 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** Returns a non-zero value in case Routing hdr in 1st IPv6 header is found */
 #define PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_1)
+	frame_attribute_flags_3 & PARSER_ATT_IPV6_ROUTING_HDR_1)
+/** Returns a non-zero value in case Routing hdr in 2nd IPv6 header is found */
 #define PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_2)
