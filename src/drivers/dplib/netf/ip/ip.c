@@ -967,7 +967,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 								 old_dst_addr,
 								 dst_addr);
 
-			if(udp_checksum == 0)
+			if (udp_checksum == 0)
 				udp_checksum = (uint16_t) ~udp_checksum;
 			udphdr_ptr->checksum = udp_checksum;
 			/* update FDMA */
@@ -1020,9 +1020,8 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	/* Call FDMA for running sum computation */
 	fdma_status = fdma_calculate_default_frame_checksum(offset, ihl,
 							    &running_sum);
-	if (fdma_status != FDMA_CHECKSUM_SUCCESS){
+	if (fdma_status != FDMA_CHECKSUM_SUCCESS)
 		return fdma_status;
-	}
 
 	/* Invalidate Parser Result Gross Running Sum field */
 	pr->gross_running_sum = 0;
@@ -1035,10 +1034,9 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	if (!(flags & IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
 		fdma_status = fdma_modify_default_segment_data(offset +
 				offsetof(struct ipv4hdr, hdr_cksum),
-				sizeof ((struct ipv4hdr*)0)->hdr_cksum);
-		if (fdma_status != FDMA_CHECKSUM_SUCCESS){
+				sizeof((struct ipv4hdr *)0)->hdr_cksum);
+		if (fdma_status != FDMA_CHECKSUM_SUCCESS)
 			return fdma_status;
-		}
 	}
 
 	return SUCCESS;

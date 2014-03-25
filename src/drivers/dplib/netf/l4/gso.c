@@ -219,6 +219,23 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* update TCP header flags */
 		tcp_ptr->flags |= (gso_ctx->internal_flags & (TCP_GSO_FIN_BIT |
 						TCP_GSO_PSH_BIT));
+		
+		/* sequence number calculation */
+		tcp_ptr->sequence_number += gso_ctx->mss;
+		
+		/* urgent pointer calculation */
+		if (tcp_ptr->urgent_pointer) {
+			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
+			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
+						gso_ctx->urgent_pointer);
+			if (tcp_ptr->urgent_pointer)
+				gso_ctx->urgent_pointer -= 
+						tcp_ptr->urgent_pointer;
+			else
+				/* reset URG */
+				tcp_ptr->flags = tcp_ptr->flags & 
+				~NET_HDR_FLD_TCP_FLAGS_URG;
+		}
 	} else {
 		/* First/middle segment */
 		status = TCP_GSO_GEN_SEG_STATUS_IN_PROCESS;
@@ -237,6 +254,20 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			/* sequence number calculation */
 			tcp_ptr->sequence_number += gso_ctx->mss;
 			}
+		
+		/* urgent pointer calculation */
+		if (tcp_ptr->urgent_pointer) {
+			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
+			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
+						gso_ctx->urgent_pointer);
+			if (tcp_ptr->urgent_pointer)
+				gso_ctx->urgent_pointer -= 
+						tcp_ptr->urgent_pointer;
+			else
+				/* reset URG */
+				tcp_ptr->flags = tcp_ptr->flags & 
+				~NET_HDR_FLD_TCP_FLAGS_URG;
+		}
 
 		outer_ip_offset = (uint8_t)(
 				PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
@@ -274,12 +305,12 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		}
 	
 	/* urgent pointer calculation */
-	if (gso_ctx->urgent_pointer) {
+/*	if (gso_ctx->urgent_pointer) {
 		tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
 		tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 					gso_ctx->urgent_pointer);
 		gso_ctx->urgent_pointer -= tcp_ptr->urgent_pointer;
-	}
+	} */
 
 	/* Modify default segment */
 		/* TODO FDMA ERROR */

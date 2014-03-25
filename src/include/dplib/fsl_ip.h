@@ -33,22 +33,17 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_HM Header Modification
+ @Group		AIOP_IP_HM IP Header Modifications
 
-@Description	Header Modification API
+ @Description	AIOP IP related header modifications API
 
-@{
+ @{
 *//***************************************************************************/
 
 /** The frame contain only one IP header */
 #define NO_IP_ENCAPSULATION_FOUND_ERROR		(HM_MODULE_STATUS_ID + 0x0100)
 /** No IP header was found.*/
 #define NO_IP_HDR_ERROR				(HM_MODULE_STATUS_ID + 0x0300)
-
-/** Failure, FDMA error occurred */
-//#define IPV4_CKSUM_CALC_STATUS_FDMA_FAILURE	0x80010000
-
-
 
 /**************************************************************************//**
 @Group		HM_IP_Modes HM IP Modes
@@ -444,7 +439,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
 
 /* @} end of group FSL_HM_IP_Functions */
-/* @} end of group FSL_HM */
+/* @} end of group AIOP_IP_HM */
 /* @} end of group AIOP_IP */
 /* @} end of group NETF */
 
