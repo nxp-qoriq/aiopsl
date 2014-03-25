@@ -73,11 +73,13 @@ Driver invokes it when it gets establish instance command.
 
 @Param[in]	instance_id - Instance id to be specified by client
 		on cmdif_open().
+@Param[in]	size        - Size of the data.
+@Param[in]	data        - Data allocated by user.
 @Param[out]	dev         - device handle.
 
 @Return		Handle to instance object, or NULL for Failure.
  *//***************************************************************************/
-typedef int (open_cb_t)(int instance_id, void **dev);
+typedef int (open_cb_t)(int instance_id, uint32_t size, uint8_t *data, void **dev);
 
 /**************************************************************************//**
 @Description	De-init callback
@@ -171,7 +173,7 @@ that had been sent through cidesc.
  *//***************************************************************************/
 typedef int (cmdif_cb_t)(void *async_ctx,
 			uint16_t cmd_id,
-			uint16_t size,
+			uint32_t size,
 			uint8_t *data);
 
 /**************************************************************************//**
@@ -187,6 +189,10 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		asynchronious command.
 @Param[in]	async_ctx   - Context to be received with asynchronious command
 		response inside async_cb().
+@Param[in]	size     - Size of the data.
+@Param[in]	data     - Data of the command or buffer allocated by user which
+		will be by open_cb_t().
+		This address should be accessible by Server and Client
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -194,7 +200,9 @@ int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		int instance_id,
 		cmdif_cb_t async_cb,
-		void *async_ctx);
+		void *async_ctx,
+		uint32_t size,
+		uint8_t *data);
 
 /**************************************************************************//**
 @Function	cmdif_close
