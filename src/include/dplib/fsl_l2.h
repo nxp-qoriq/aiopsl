@@ -24,10 +24,22 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@addtogroup	FSL_HM Header Modification
+ @Group		AIOP_L2 L2
 
-@{
+ @Description	AIOP L2 related API
+
+ @{
 *//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_L2_HM L2 Header Modifications
+
+ @Description	AIOP L2 related header modifications API
+
+ @{
+*//***************************************************************************/
+
+/** No VLAN exists.*/
+#define NO_VLAN_ERROR				(HM_MODULE_STATUS_ID + 0x0400)
 
 /**************************************************************************//**
 @Group		FSL_HM_L2_Functions HM L2 related functions
@@ -36,9 +48,6 @@
 
 @{
 *//***************************************************************************/
-
-/** No VLAN exists.*/
-#define NO_VLAN_ERROR				(HM_MODULE_STATUS_ID + 0x0400)
 
 
 /*************************************************************************//**
@@ -205,7 +214,8 @@ void l2_push_vlan(uint16_t ethertype);
 int32_t l2_pop_vlan(void);
 
 /* @} end of group FSL_HM_L2_Functions */
-/* @} end of group FSL_HM */
+/* @} end of group AIOP_L2_HM */
+/* @} end of group AIOP_L2 */
 /* @} end of group NETF */
 
 
