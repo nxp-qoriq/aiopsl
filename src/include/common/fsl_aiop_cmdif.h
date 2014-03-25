@@ -19,8 +19,11 @@ Copyright 2013 Freescale Semiconductor, Inc.
 
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
 #define CMDIF_PRI_HIGH		1	/**< High Priority */
+
 #define CMDIF_ASYNC_CMD		0x2000
 /**< Bit to be used for cmd_id to indentify asynchronious commands */
+#define CMDIF_NORESP_CMD	0x1000
+/**< Bit to be used for commands that don't need responce */
 
 /**************************************************************************//**
 @Description   Command interface descriptor.
@@ -101,7 +104,7 @@ User provides this function. Driver invokes it for all runtime commands
 
 @Return		OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint16_t size, uint8_t *data);
+typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, uint8_t *data);
 
 /**************************************************************************//**
 @Description	Function pointers to be supplied during module registration
@@ -226,7 +229,7 @@ int cmdif_close(struct cmdif_desc *cidesc);
  *//***************************************************************************/
 int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
-		int size,
+		uint32_t size,
 		int priority,
 		uint8_t *data);
 
