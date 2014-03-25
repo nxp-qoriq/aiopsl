@@ -1,3 +1,5 @@
+
+** AIOP ARENA SL Pre-Alpha v0.3.2  **
 - slab.h:        added slab_refcount_incr(), slab_refcount_decr()
 - aiop_link.lcf: added TLS_SECTION_END_ADDR, it's required for AIOP SL.
 
