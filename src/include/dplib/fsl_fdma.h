@@ -2973,6 +2973,11 @@ int32_t fdma_copy_data(
 		Implicit input parameters in Task Defaults: SPID (Storage
 		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
 
+		Implicitly updated values in Task Defaults in case the FD
+		address is located in the default FD address
+		(\ref HWC_FD_ADDRESS): ASA size, PTA address,segment length,
+		segment offset, segment handle, NDS bit, frame handle.
+
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
@@ -3007,6 +3012,11 @@ int32_t fdma_create_frame(
 
 		Implicit input parameters in Task Defaults: SPID (Storage
 		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
+
+		Implicitly updated values in Task Defaults in case the FD
+		address is located in the default FD address
+		(\ref HWC_FD_ADDRESS): ASA size, PTA address,segment length,
+		segment offset, NDS bit.
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.
