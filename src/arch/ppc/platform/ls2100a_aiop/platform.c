@@ -380,7 +380,7 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 #if 0
     // boot sequence is not finished here removed CTSCSR_ENABLE
 #endif
-    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_8_TASKS;
+    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_16_TASKS;
     booke_set_CTSCSR0(CTSCSR_value);
 
 #if 0 /* TODO - complete! */
