@@ -83,10 +83,13 @@ asm void __sys_start(register int argc, register char **argv, register char **en
     mfpir  r17
     /*"srwi   17, 17, 5 \n"*/
 
-    /* Initialize small data area pointers.
-       No _SDA2_BASE_ because r2 is reserved for thread pointer under LinuxABI */
-    lis    r13,     _SDA_BASE_@ha
+    /* Initialize small data area pointers */
+    lis    r2, _SDA2_BASE_@ha
+    addi   r2, r2, _SDA2_BASE_@l
+    lis    r13, _SDA_BASE_@ha
     addi   r13, r13, _SDA_BASE_@l
+    mtdcr dcr469,r2 // INITR2
+    mtdcr dcr470,r13// INITR13
 
     /* Initialize stack pointer (based on core ID) */
     cmpwi   r17, 0

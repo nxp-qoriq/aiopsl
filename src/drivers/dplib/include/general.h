@@ -62,6 +62,8 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 #define YIELD_ACCEL_ID			0x00
 	/** TMAN accelerator ID */
 #define TMAN_ACCEL_ID			0x01
+	/** MFLU accelerator ID */
+#define MFLU_ACCEL_ID			0x02
 	/** PARSER & CLASSIFIER accelerator ID */
 #define CTLU_PARSE_CLASSIFY_ACCEL_ID	0x04
 	/** CTLU accelerator ID */
@@ -515,8 +517,6 @@ struct hardware_context {
 *//***************************************************************************/
 
 struct aiop_default_task_params {
-	/** NI ID the packet arrived on */
-	uint16_t receive_niid;
 	/** NI ID the packet should be sent on */
 	uint16_t send_niid;
 	/** Task default Starting HXS for Parser */
@@ -644,6 +644,18 @@ struct aiop_default_task_params {
 /* Store word input variable */
 #define __stw_d(_val, _disp)				\
 	asm ("e_stw %[value], %[displ](r0)\n"		\
+		:					\
+		:[value]"r" (_val), [displ]"i" (_disp)	\
+		);
+/* Store half word displacement as input variable */
+#define __sthw_d(_val, _disp)				\
+	asm ("e_sth %[value], %[displ](r0)\n"		\
+		:					\
+		:[value]"r" (_val), [displ]"i" (_disp)	\
+		);
+/* Load byte displacement as input variable */
+#define __lbz_d(_val, _disp)				\
+	asm ("e_lbz %[value], %[displ](r0)\n"		\
 		:					\
 		:[value]"r" (_val), [displ]"i" (_disp)	\
 		);
@@ -783,6 +795,7 @@ struct aiop_default_task_params {
 #define IPV4_SSRR_OPTION_TYPE	      137  /*!< Strict Source & Record Route */
 
 #define IPV6_HDR_LENGTH		      40   /*!< IPv6 header length */
+#define IPV6_FRAGMENT_HEADER_LENGTH   8    /*!< IPv6 fragment header length */
 #define IPV6_HDR_ADD_LENGTH	      32   /*!< IPv4 header address length */
 
 /** @} */ /* end of AIOP_General_Protocols_IP_Definitions */
@@ -812,6 +825,18 @@ struct aiop_default_task_params {
 #define IPV4_HDR_FRAG_OFFSET_OFFSET 0 /*!< IPv4 fragment offset field offset */
 
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
+
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_IPV6_Extensions IPv6 Extensions 
+@{
+*//***************************************************************************/
+#define  IPV6_EXT_HOP_BY_HOP	0 /*!< IPv6 Hop By Hop extension number*/
+#define  IPV6_EXT_ROUTING	43 /*!< IPv6 Routing extension number*/
+#define  IPV6_EXT_DESTINATION	60 /*!< IPv6 Destination extension number*/
+#define  IPV6_EXT_AH		51 /*!< IPv6 Authentication extension number*/
+#define  IPV6_EXT_FRAGMENT	44 /*!< IPv6 Fragment extension number*/
+
+/** @} */ /* end of AIOP_General_Protocols_IPV6_Extensions */
 
 /**************************************************************************//**
 @Group		AIOP_General_Protocols_TCP_Definitions Transmission Control

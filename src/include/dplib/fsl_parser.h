@@ -12,6 +12,7 @@
 #include "common/types.h"
 #include "dplib/fsl_ldpaa.h"
 
+extern __TASK struct aiop_default_task_params default_task_params;
 
 /**************************************************************************//**
  @Group		ACCEL ACCEL (Accelerator APIs)
@@ -35,6 +36,18 @@
 
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@Group	FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS Frame Attributes Ext. Masks
+
+@Description	Frame Attributes Extension Masks
+		Used with \ref parse_result frame_attribute_flags_extension
+@{
+*//***************************************************************************/
+	/** Routing header present in 2nd IPv6 header */
+#define PARSER_ATT_IPV6_ROUTING_HDR_2               0x0001
+
+/** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS */
 
 /**************************************************************************//**
 @Group	FSL_PARSER_FRAME_ATTRIBUTES_PART_1_MASKS Frame Attributes Masks 1
@@ -197,7 +210,6 @@
 
 /** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_PART_2_MASKS */
 
-
 /**************************************************************************//**
 @Group	FSL_PARSER_FRAME_ATTRIBUTES_PART_3_MASKS Frame Attributes Masks 3
 
@@ -243,6 +255,8 @@
 #define PARSER_ATT_CAPWAP_CONTROL_MASK              0x00000008
 	/** "Capwap data" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_CAPWAP_DATA_MASK                 0x00000004
+	/** Routing header present in 1st IPv6 header */
+#define PARSER_ATT_IPV6_ROUTING_HDR_1               0x00000001
 
 /** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_PART_3_MASKS */
 
@@ -817,6 +831,14 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 #define PARSER_IS_CAPWAP_DATA_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_CAPWAP_DATA_MASK)
+/** Returns a non-zero value in case Routing hdr in 1st IPv6 header is found */
+#define PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	frame_attribute_flags_3 & PARSER_ATT_IPV6_ROUTING_HDR_1)
+/** Returns a non-zero value in case Routing hdr in 2nd IPv6 header is found */
+#define PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_2)
 
 /** @} */ /* end of FSL_PARSER_PR_QUERIES */
 
@@ -832,6 +854,9 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 @{
 *//***************************************************************************/
 
+/** Get Next header */
+#define PARSER_GET_NEXT_HEADER_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->nxt_hdr)
 /** Get Shim1 offset*/
 #define PARSER_GET_SHIM1_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->shim_offset_1)
@@ -888,9 +913,12 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** Get L5 (GTP/ESP/IPsec) header offset */
 #define PARSER_GET_L5_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gtp_esp_ipsec_offset)
-/** Get Next header */
-#define PARSER_GET_NEXT_HEADER_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->nxt_hdr)
+/** Get Routing Header offset in 1st IPv6 header */
+#define PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->routing_hdr_offset1)
+/** Get Routing Header offset in 2nd IPv6 header */
+#define PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->routing_hdr_offset2)
 /** Get Next header offset
  * (offset to the last header that has not been parsed) */
 #define PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() \
@@ -1004,6 +1032,14 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 #define PARSER_GET_L5_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_L5_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
+/** Get the pointer to Routing Header in 1st IPv6 header */
+#define PARSER_GET_1ST_IPV6_ROUTING_HDR_POINTER_DEFAULT() \
+	(void *)((uint16_t)PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
+			+ PRC_GET_SEGMENT_ADDRESS())
+/** Get the pointer to Routing Header in 2nd IPv6 header */
+#define PARSER_GET_2ND_IPV6_ROUTING_HDR_POINTER_DEFAULT() \
+	(void *)((uint16_t)PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
+			+ PRC_GET_SEGMENT_ADDRESS())
 /** Get the pointer to Next header (last header that has not been parsed)
  in the default frame presented in the workspace */
 #define PARSER_GET_NEXT_HEADER_POINTER_DEFAULT() \
@@ -1017,53 +1053,22 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /** @} */ /* end of FSL_PARSER_POINTER_IN_FRMAE_GETTERS */
 
-
 /**************************************************************************//**
-@Group AIOP_PARSER_CREATE_PRP_STATUS Parser Create Parse Profile (PRP) Status
+@Group	FSL_PARSER_SETTERS Parser Setters
 
-@Description Return statuses for \ref parser_profile_create
+@Description	These macros set parser parameters in the default task params.
 
 @{
 *//***************************************************************************/
-	/** Successful PRP creation */
-#define PARSER_CREATE_PRP_STATUS_SUCCESS		0x00000000
-	/** Parser PRP creation failed due to Invalid Parse profile ID */
-#define PARSER_CREATE_PRP_STATUS_FAIL_INVALID_PRPID	0x81800000
-/** Command failed. PRPID was not fetched from pool due to CDMA write error */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_WR_FAILURE \
-						(CTLU_STATUS_MGCF | 0x00000001)
-/** Command failed. PRPID was not fetched from pool due to pool out of range */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_POOL_OUT_OF_RANGE \
-						(CTLU_STATUS_MGCF | 0x00000002)
-/** Command failed. PRPID was not fetched from pool due to CDMA read error */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_RD_FAILURE \
-						(CTLU_STATUS_MGCF | 0x00000003)
+	/** Macro to set parser_profile_id in the default task params */
+#define PARSER_SET_PRPID(_val)						\
+	(default_task_params.parser_profile_id = (uint8_t)_val)
+	/** Macro to set parser_starting_hxs in the default task params */
+#define PARSER_SET_STARTING_HXS(_val)					\
+	(default_task_params.parser_starting_hxs = (uint8_t)_val)
 
-/** @} */ /* end of AIOP_PARSER_CREATE_PRP_STATUS */
+/** @} */ /* end of FSL_PARSER_SETTERS */
 
-/**************************************************************************//**
-@Group AIOP_PARSER_DELETE_PRP_STATUS Parser Delete Parse Profile Status
-
-@Description Return statuses for \ref parser_profile_delete
-
-@{
-*//***************************************************************************/
-	/** PRP was deleted successfully */
-#define PARSER_DELETE_PRP_STATUS_SUCCESS		0x00000000
-	/** Parser PRP delete failed due to Invalid Parse profile ID */
-#define PARSER_DELETE_PRP_STATUS_FAIL_INVALID_PRPID	0x81800000
-/** Command failed. PRPID was not returned to pool due to CDMA write error */
-#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE\
-					(CTLU_STATUS_MGCF | 0x00000001)
-/** Command failed. PRPID was not returned to pool due to pool out of range */
-#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE\
-					(CTLU_STATUS_MGCF | 0x00000002)
-/** Command failed. PRPID was not returned to pool due to CDMA read error */
-#define CTLU_PRP_DELETE_RELEASE_ID_STATUS_CDMA_RD_FAILURE\
-					(CTLU_STATUS_MGCF | 0x00000003)
-
-
-/** @} */ /* end of AIOP_PARSER_DELETE_PRP_STATUS */
 
 /**************************************************************************//**
 @Group AIOP_PARSE_RESULT_GEN_STATUS Parse Result Generation SR Status
@@ -1072,29 +1077,54 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 @{
 *//***************************************************************************/
+
 	/** Successful parse SR */
 #define PARSER_STATUS_PASS				0x00000000
-	/** Parser SR failed due to Invalid Parse profile ID */
-#define PARSER_STATUS_FAIL_INVALID_PRPID		0x81800000
 	/** Parser SR failed due to FDMA error (TODO return fdma status?) */
 #define PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE	0x80010000
+	/** Parser SR failed due to Cycle limit exceeded */
+#define PARSER_STATUS_FAIL_CYCLE_LIMIT_EXCCEEDED\
+	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00800000)
+	/** Parser SR failed due to invalid soft parse instruction */
+#define PARSER_STATUS_FAIL_INVALID_SOFT_PARSE_INSTRUCTION\
+	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00400000)
+	/** Parser SR failed due to parsing error */
+#define PARSER_STATUS_FAIL_PARSING_ERROR\
+	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00200000)
+	/** Parser SR failed due to block limit exceeded */
+#define PARSER_STATUS_FAIL_BLOCK_LIMIT_EXCCEEDED\
+	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00100000)
+	/** L3 checksum validation success */
+#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED\
+			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00080000)
+	/** L3 checksum validation failure */
+#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION\
+	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x000C0000)
+	/** L4 checksum validation success */
+#define PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED\
+			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00020000)
+	/** L4 checksum validation failure */
+#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION\
+	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00030000)
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_STATUS */
 
-
 /**************************************************************************//**
-@Group AIOP_PARSER_SR_STATUS Parser SRs Status
-
-@Description Return statuses for Parser SR functions
+@Group	FSL_PARSER_GEN_PARSE_RESULT_FLAGS Flags for parse_result_generate func.
 
 @{
 *//***************************************************************************/
-	/** Successful parser SR */
-#define PARSER_SR_STATUS_PASS				0x00000000
-	/** Parser SR failed due to Invalid Parse profile ID */
-#define PARSER_SR_STATUS_FAIL_INVALID_PRPID		0x81800000
+/** No flags */
+#define PARSER_NO_FLAGS				0x0
+/** Validate L3 checksum flag */
+#define PARSER_VALIDATE_L3_CHECKSUM		0x10
+/** Validate L4 checksum flag */
+#define PARSER_VALIDATE_L4_CHECKSUM		0x08
+/** Validate L3 & L4 checksum flags */
+#define PARSER_VALIDATE_L3_L4_CHECKSUM		0x18
 
-/** @} */ /* end of AIOP_SR_PARSER_STATUS */
+/** @} */ /* end of FSL_PARSER_GEN_PARSE_RESULT_FLAGS */
+
 
 /**************************************************************************//**
 @Group	FSL_PARSER_HXS_CONFIG Parser HXS configuration in parse profile defines
@@ -1133,20 +1163,6 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 
 /** @} */ /* end of FSL_PARSER_HXS_CONFIG */
-
-/**************************************************************************//**
-@Group	FSL_PARSER_GEN_PARSE_RESULT_FLAGS Flags for parse_result_generate func.
-
-@{
-*//***************************************************************************/
-/** No flags */
-#define PARSER_NO_FLAGS				0x0
-/** Validate L3 checksum flag */
-#define PARSER_VALIDATE_L3_CHECKSUM		0x10
-/** Validate L4 checksum flag */
-#define PARSER_VALIDATE_L4_CHECKSUM		0x08
-
-/** @} */ /* end of FSL_PARSER_GEN_PARSE_RESULT_FLAGS */
 
 /** @} */ /* end of FSL_PARSER_MACROS */
 
@@ -1231,12 +1247,10 @@ enum parser_starting_hxs_code {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct parse_result {
-	 /** Reserved
-	 Reserved for compliance with HW format.
-	 User should not access this field */
-	uint16_t  reserved;
-	/** Running Sum */
-	uint16_t running_sum;
+	/** Next header */
+	uint16_t nxt_hdr;
+	/** Frame Attribute Flags Extension */
+	uint16_t frame_attribute_flags_extension;
 	/** Frame Attribute Flags (part 1)*/
 	uint32_t frame_attribute_flags_1;
 	/** Frame Attribute Flags (part 2)*/
@@ -1275,19 +1289,23 @@ struct parse_result {
 	uint8_t  l4_offset;
 	/** GTP/ESP/IPsec offset */
 	uint8_t  gtp_esp_ipsec_offset;
-	/** Next header */
-	uint16_t nxt_hdr;
+	/** Routing header offset of 1st IPv6 header */
+	uint8_t  routing_hdr_offset1;
+	/** Routing header offset of 2nd IPv6 header */
+	uint8_t  routing_hdr_offset2;
 	/** Next header offset */
 	uint8_t  nxt_hdr_offset;
 	/** IPv6 fragmentable part offset */
 	uint8_t  ipv6_frag_offset;
+	/** Frame's untouched running sum */
+	uint16_t gross_running_sum;
+	/** Running Sum */
+	uint16_t running_sum;
 	/** Parse Error code.
 	 * Please refer to \ref FSL_PARSER_ERROR_CODES*/
 	uint8_t  parse_error_code;
-	/** Frame's untouched running sum */
-	uint16_t gross_running_sum;
-	/** Reserved for Soft HXS context*/
-	uint8_t  soft_parsing_context[9];
+	/** Reserved for Soft parsing context*/
+	uint8_t  soft_parsing_context[23];
 };
 #pragma pack(pop)
 
@@ -1486,7 +1504,7 @@ struct parse_profile_record {
 @Param[in]	parse_profile - Parse Profile Record.
 @Param[out]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref AIOP_PARSER_CREATE_PRP_STATUS.
+@Return		Status - please refer to \ref GET_ID_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1502,11 +1520,11 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 @Param[in]	parse_profile - Parse Profile Record.
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref AIOP_PARSER_SR_STATUS.
+@Return		None.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
+void parser_profile_replace(struct parse_profile_record *parse_profile,
 	uint8_t prpid);
 
 /**************************************************************************//**
@@ -1516,7 +1534,7 @@ int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
 
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref AIOP_PARSER_DELETE_PRP_STATUS.
+@Return		Status - please refer to \ref RELEASE_ID_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1531,11 +1549,11 @@ int32_t parser_profile_delete(uint8_t prpid);
 @Param[out]	parse_profile - Points to a user preallocated memory to which
 		the parse profile entry will be written.
 
-@Return		Status - please refer to \ref AIOP_PARSER_SR_STATUS.
+@Return		None.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t parser_profile_query(uint8_t prpid,
+void parser_profile_query(uint8_t prpid,
 			struct parse_profile_record *parse_profile);
 
 /**************************************************************************//**
@@ -1556,13 +1574,10 @@ int32_t parser_profile_query(uint8_t prpid,
 @Param[in]	flags - Please refer to \ref FSL_PARSER_GEN_PARSE_RESULT_FLAGS.
 
 @Return		Status - please refer to \ref AIOP_PARSE_RESULT_GEN_STATUS.\n
-		Note: In the current version of this function, the returned
-		status does not indicate of frame parsing errors.
-		This will be supported in the future.
-		Meanwhile, user should use PARSER_IS_PARSING_ERROR_DEFAULT()
-		in order to find out whether parsing error has occurred.
+		
 		The exact error code can be discovered by using
-		PARSER_GET_PARSE_ERROR_CODE_DEFAULT().
+		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
+		\ref FSL_PARSER_ERROR_CODES.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1591,13 +1606,10 @@ int32_t parse_result_generate_default(uint8_t flags);
 @Param[in]	flags - Please refer to \ref FSL_PARSER_GEN_PARSE_RESULT_FLAGS.
 
 @Return		Status - please refer to \ref AIOP_PARSE_RESULT_GEN_STATUS.\n
-		Note: In the current version of this function, the returned
-		status does not indicate of frame parsing errors.
-		This will be supported in the future.
-		Meanwhile, user should use PARSER_IS_PARSING_ERROR_DEFAULT()
-		in order to find out whether parsing error has occurred.
+		
 		The exact error code can be discovered by using
-		PARSER_GET_PARSE_ERROR_CODE_DEFAULT().
+		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
+		\ref FSL_PARSER_ERROR_CODES.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/

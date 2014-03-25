@@ -1,6 +1,56 @@
+SL Pre-Alpha v0.3.2  Change Log
+===============================
+general.h: remove receive_niid from TLS
+dpni_drv_rxtx.c: check only parse_status in function receive_cb(). Removed receive_niid from the TLS and instead use macro PRC_GET_PARAMETER.
+fsl_ctlu.h: table function were moved to fsl_table.h
+fsl_ctlu.h: keygen and hash function were moved to fsl_keygen.h
+fsl_ctlu.h: file was deleted.
+fsl_table.h: ctlu_xxxx functions were renamed to table_xxxx functions
+fsl_table.h: support in 0.7 CTLU specification
+fsl_table.h: update miss result was renamed to replace miss result
+fsl_table.h: Rule delete/replace/create_or_replace SRs now return the result of the rule that was replaced/deleted under certain conditions.
+fsl_table.h: Replace miss result SR now returns the result of the rule that was replaced/deleted under certain conditions.
+fsl_table.h: 16B alignment is now required for certain structures.
+fsl_table.h: Status modification from 0.7 CTLU/MFLU spec
+fsl_table.h: Miss result is only available in EM and LPM.
+fsl_table.h: Accelerator ID was introduced (used as an input parameter)
+fsl_table.h: Lookup key structure was introduced to consume less stack
+fsl_table.h: A remark concerning get miss result and reference count was added.
+fsl_table.h: Timestamp field was added to lookup result
+fsl_table.h: LPM key sized were changed for 9 and 21 instead of 8 and 20 (IPv4/IPv6)
+fsl_keygen.h: ctlu_xxxx functions were renamed to keygen_xxxx functions
+fsl_keygen.h: support in 0.7 CTLU specification
+fsl_keygen.h: 16B alignment is now required for certain structures.
+fsl_keygen.h: Status modification from 0.7 CTLU/MFLU spec.
+fsl_keygen.h: Added a new function: keygen_kcr_builder_add_input_value_fec().
+fsl_keygen.h: Accelerator ID was introduced (used as an input parameter)
+fsl_parser.h: Some changes to parse result to fit new spec.
+fsl_parser.h: Added some new macros (related to routing header)
+fsl_parser.h: Added setters to PRPID and starting HXS. 
+fsl_parser.h: Status modification from 0.7 CTLU/MFLU spec.
+fsl_l4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
+fsl_l4_checksum.h: status values were changed.
+fsl_l4_checksum.h: no check for UDP/TCP is done at implementation.
+fsl_l4_checksum.h: l4 checksum functionality was removed to fsl_l4.h .
+fsl_ipv4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
+fsl_ipv4_checksum.h:status values were changed.
+fsl_ipv4_checksum.h: ipv4 checksum functionality was removed to fsl_ip.h.
+id_pool.h: Some implementation changes to consume less stack.
+fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma.h file:
+	•	cdma_refcount_increment
+	•	cdma_refcount_decrement
+	•	cdma_write_lock_dma_read_and_increment
+	•	cdma_write_release_lock_and_decrement
+	refcount incr and decr will be part of slab API.
+fsl_fdma.h:
+	•	Change name: fdma_create_frame() -> fdma_create_fd() - this function returns an updated FD for the newly created frame.
+	•	Add function: fdma_create_frame() - this function returns a frame handle for the newly created FDMA working frame.
+	•	Change struct fdma_isolation_attributes to struct fdma_amq.
+	•	Fix CQ: ENGR304324
+	
 
 SL Pre-Alpha v0.3.1  Change Log
-
+===============================
 ipr.h + ipr.c: IP checksum fix. use new fdma function. Fix reassembly with more than 2 fragments. 
 dpni_drv.h: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_nii
 dpni_drv_rxtx.c: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_niid
@@ -19,8 +69,7 @@ fsl_fdma.h:
 fsl_ipsec.h: unified hmo and options fields, changed callback type to void
 
 SL Pre-Alpha v0.3  Change Log
-
-
+=============================
 spinlock.h: removed aiop_ prefix from aiop_atomic_incr8/16/32 and from aiop_atomic_decr8/16/32
 fsl_ipr.h: change API: add a different return status for regular frames 
 virtual_pools.h: 
@@ -58,8 +107,7 @@ Doc & Tool compatibility:
 	Simulator	DPAA Simulator 0_5_2_0068
 	
 SL Pre-Alpha v0.2  Change Log
-
-
+=============================
 fsl_fdma.h: Add fdma_present_frame_segment() explicit service routine.
 fsl_fdma.h: Add insert_segment_data_command() explicit service routine.
 fsl_fdma.h: Add explicit enqueue commands service routines.
@@ -96,7 +144,7 @@ Doc & Tool compatibility:
 
 
 SL Code Drop v0.1  Change Log
-
+=============================
 fsl_ipr.h: massive API changes
 fsl_header_modification.h: changed to fsl_l2.h fsl_ip.h fsl_l4.h fsl_nat.h + all functions names changed
 fsl_header_modification_open_flow.h: changed to fsl_l2.h fsl_ip.h fsl_l4.h fsl_nat.h + all functions names changed

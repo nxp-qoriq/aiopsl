@@ -29,7 +29,7 @@ int main()
 
 	__wait();
 /* initialize stack pointer */
-	aiop_verification();
+	aiop_verification_sr();
 	aiop_verification_fm();
 	aiop_verification_fm_temp();
 	

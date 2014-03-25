@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File          verification_virtual_pools.h
 
-@Description   	This file contains the AIOP Virtual Pools 
+@Description   	This file contains the AIOP Virtual Pools
 				SW Verification Structures
 *//***************************************************************************/
 
@@ -20,16 +20,16 @@
 #endif
 
 /* Virtual Pools Commands */
-#define	VPOOL_ALLOCATE_BUF_CMD                     0 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_RELEASE_BUF_CMD                      1 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_REFCOUNT_INCREMENT_CMD               2 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_REFCOUNT_DECREMENT_AND_RELEASE_CMD   3 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_CREATE_POOL_CMD                      4 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_RELEASE_POOL_CMD                     5 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_READ_POOL_CMD                        6 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_INIT_CMD                             7 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_INIT_TOTAL_BMAN_BUFS_CMD             8 | (VPOOL_ACCEL_ID << 16)
-#define	VPOOL_ADD_TOTAL_BMAN_BUFS_CMD              9 | (VPOOL_ACCEL_ID << 16)
+#define	VPOOL_ALLOCATE_BUF_CMD                     0 | (VPOOL_MODULE << 16)
+#define	VPOOL_RELEASE_BUF_CMD                      1 | (VPOOL_MODULE << 16)
+#define	VPOOL_REFCOUNT_INCREMENT_CMD               2 | (VPOOL_MODULE << 16)
+#define	VPOOL_REFCOUNT_DECREMENT_AND_RELEASE_CMD   3 | (VPOOL_MODULE << 16)
+#define	VPOOL_CREATE_POOL_CMD                      4 | (VPOOL_MODULE << 16)
+#define	VPOOL_RELEASE_POOL_CMD                     5 | (VPOOL_MODULE << 16)
+#define	VPOOL_READ_POOL_CMD                        6 | (VPOOL_MODULE << 16)
+#define	VPOOL_INIT_CMD                             7 | (VPOOL_MODULE << 16)
+#define	VPOOL_INIT_TOTAL_BMAN_BUFS_CMD             8 | (VPOOL_MODULE << 16)
+#define	VPOOL_ADD_TOTAL_BMAN_BUFS_CMD              9 | (VPOOL_MODULE << 16)
 
 /** \addtogroup Service_Routines_Verification
  *  @{
@@ -45,12 +45,12 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Description	Virtual Pools 
+@Description	Virtual Pools
 				vpool_allocate_buf verification command Structure.
-				Actual command: 
- 	 	 	 	int32_t vpool_allocate_buf(uint32_t virtual_pool_id, 
- 	 	 	 	 	 uint64_t *context_address); 
-		
+				Actual command:
+ 	 	 	 	int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
+ 	 	 	 	 	 uint64_t *context_address);
+
 *//***************************************************************************/
 struct vpool_allocate_buf_cmd {
 	uint32_t opcode;
@@ -70,12 +70,12 @@ struct vpool_allocate_buf_cmd {
 };
 
 /**************************************************************************//**
-@Description	Virtual Pools 
+@Description	Virtual Pools
 				vpool_release_buf verification command Structure.
-				Actual command: 
- 	 	 	 	int32_t vpool_release_buf(uint32_t virtual_pool_id, 
+				Actual command:
+ 	 	 	 	int32_t vpool_release_buf(uint32_t virtual_pool_id,
 					uint64_t context_address);
-							
+
 *//***************************************************************************/
 struct vpool_release_buf_cmd {
 	uint32_t opcode;
@@ -89,12 +89,12 @@ struct vpool_release_buf_cmd {
 };
 
 /**************************************************************************//**
-@Description	Virtual Pools 
+@Description	Virtual Pools
 				vpool_refcount_increment verification command Structure.
-				Actual command: 
+				Actual command:
  	 	 	 	int32_t vpool_refcount_increment(
 					uint64_t context_address);
-							
+
 *//***************************************************************************/
 struct vpool_refcount_increment_cmd {
 	uint32_t opcode;
@@ -109,14 +109,14 @@ struct vpool_refcount_increment_cmd {
 
 
 /**************************************************************************//**
-@Description	Virtual Pools 
-				vpool_refcount_decrement_and_release 
+@Description	Virtual Pools
+				vpool_refcount_decrement_and_release
 				verification command Structure.
-				Actual command: 
+				Actual command:
  	 	 	 	int32_t vpool_refcount_decrement_and_release(
-					uint32_t virtual_pool_id, 
+					uint32_t virtual_pool_id,
 					uint64_t context_address);
-						
+
 *//***************************************************************************/
 struct vpool_refcount_decrement_and_release_cmd {
 	uint32_t opcode;
@@ -133,25 +133,25 @@ struct vpool_refcount_decrement_and_release_cmd {
 };
 
 /**************************************************************************//**
-@Description	Virtual Pools 
-				vpool_create_pool 
+@Description	Virtual Pools
+				vpool_create_pool
 				verification command Structure.
-				Actual command: 
+				Actual command:
 				int32_t vpool_create_pool(
-					uint16_t bman_pool_id, 
-					int32_t max_bufs, 
+					uint16_t bman_pool_id,
+					int32_t max_bufs,
 					int32_t committed_bufs,
 					uint32_t flags,
 					int32_t (*callback_func)(uint64_t),
 					uint32_t *virtual_pool_id
 					);
-						
+
 *//***************************************************************************/
 struct vpool_create_pool_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
 	uint16_t bman_pool_id;
-		/**< BMAN pool ID */	
+		/**< BMAN pool ID */
 	uint16_t pad1;
 		/**< Padding */
 	int32_t max_bufs;
@@ -169,12 +169,12 @@ struct vpool_create_pool_cmd {
 };
 
 /**************************************************************************//**
-@Description	Virtual Pools 
-				vpool_release_pool 
+@Description	Virtual Pools
+				vpool_release_pool
 				verification command Structure.
-				Actual command: 
+				Actual command:
 				int32_t vpool_release_pool(uint32_t virtual_pool_id);
-						
+
 *//***************************************************************************/
 struct vpool_release_pool_cmd {
 	uint32_t opcode;
@@ -189,18 +189,18 @@ struct vpool_release_pool_cmd {
 
 
 /**************************************************************************//**
-@Description	Virtual Pools 
-				vpool_read_pool 
+@Description	Virtual Pools
+				vpool_read_pool
 				verification command Structure.
-				Actual command: 
-				int32_t vpool_read_pool(uint32_t virtual_pool_id, 
-					uint16_t *bman_pool_id, 
-					int32_t *max_bufs, 
+				Actual command:
+				int32_t vpool_read_pool(uint32_t virtual_pool_id,
+					uint16_t *bman_pool_id,
+					int32_t *max_bufs,
 					int32_t *committed_bufs,
 					int32_t *allocated_bufs,
 					uint32_t *flags,
 					int32_t *callback_func
-					);						
+					);
 *//***************************************************************************/
 struct vpool_read_pool_cmd {
 	uint32_t opcode;
@@ -208,7 +208,7 @@ struct vpool_read_pool_cmd {
 	uint32_t virtual_pool_id_ptr;
 		/**< Virtual pool ID */
 	uint16_t bman_pool_id;
-		/**< BMAN pool ID */	
+		/**< BMAN pool ID */
 	uint16_t pad1;
 		/**< Padding */
 	int32_t max_bufs;
@@ -228,17 +228,17 @@ struct vpool_read_pool_cmd {
 };
 
 /**************************************************************************//**
-@Description	Virtual Pools 
-				vpool_init 
+@Description	Virtual Pools
+				vpool_init
 				verification command Structure.
-				Actual command: 
+				Actual command:
 				int32_t vpool_init(
 					uint64_t *virtual_pool_struct,
 					uint64_t *callback_func_struct,
 					uint32_t num_of_virtual_pools,
 					uint32_t flags
 					);
-						
+
 *//***************************************************************************/
 struct vpool_init_cmd {
 	uint32_t opcode;
@@ -260,21 +260,21 @@ struct vpool_init_cmd {
 };
 
 /**************************************************************************//**
-@Description	Virtual Pools 
-				vpool_init_total_bman_bufs 
+@Description	Virtual Pools
+				vpool_init_total_bman_bufs
 				verification command Structure.
-				Actual command: 
-				int32_t vpool_init_total_bman_bufs( 
-					uint16_t bman_pool_id, 
+				Actual command:
+				int32_t vpool_init_total_bman_bufs(
+					uint16_t bman_pool_id,
 					int32_t total_avail_bufs,
 					uint32_t buf_size);
-						
+
 *//***************************************************************************/
 struct vpool_init_total_bman_bufs_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
 	uint16_t bman_pool_id;
-		/**< BMAN pool ID */	
+		/**< BMAN pool ID */
 	uint16_t pad1;
 		/**< Padding */
 	int32_t total_avail_bufs;
@@ -288,20 +288,20 @@ struct vpool_init_total_bman_bufs_cmd {
 };
 
 /**************************************************************************//**
-@Description	Virtual Pools 
-				vpool_add_total_bman_bufs 
+@Description	Virtual Pools
+				vpool_add_total_bman_bufs
 				verification command Structure.
-				Actual command: 
-				int32_t vpool_add_total_bman_bufs( 
-					uint16_t bman_pool_id, 
+				Actual command:
+				int32_t vpool_add_total_bman_bufs(
+					uint16_t bman_pool_id,
 					int32_t additional_bufs);
-						
+
 *//***************************************************************************/
 struct vpool_add_total_bman_bufs_cmd {
 	uint32_t opcode;
 		/**< Command Structure identifier. */
 	uint16_t bman_pool_id;
-		/**< BMAN pool ID */	
+		/**< BMAN pool ID */
 	uint16_t pad1;
 		/**< Padding */
 	int32_t additional_bufs;

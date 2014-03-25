@@ -33,7 +33,7 @@ Execution flow
 =================
 Important NOTEs:
 =================
-ARENA SW sets CTSCSR0[CTSEN] and and CTSCSR0[NTASKS] by the end of boot, 
+ARENA SW sets CTSCSR0[CTSEN] and CTSCSR0[NTASKS] by the end of boot, 
 do not set it inside ViPR 
 
 ARENA sets the following default values for every NI: 

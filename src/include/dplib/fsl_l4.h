@@ -6,7 +6,7 @@
 @Cautions	Please note that the parse results must be updated before
 		calling functions defined in this file.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
+		Copyright 2013-2014 Freescale Semiconductor, Inc.
 
 *//***************************************************************************/
 
@@ -16,7 +16,6 @@
 #include "common/types.h"
 #include "dplib/fsl_gso.h"
 #include "dplib/fsl_gro.h"
-#include "dplib/fsl_l4_checksum.h"
 
 
 /**************************************************************************//**
@@ -27,9 +26,18 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@addtogroup	FSL_HM Header Modification
+ @Group		AIOP_L4 L4
 
-@{
+ @Description	AIOP L4 related API
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_L4_HM L4 Header Modifications
+
+ @Description	AIOP L4 related header modifications API
+
+ @{
 *//***************************************************************************/
 
 /**************************************************************************//**
@@ -48,7 +56,7 @@
 #define NO_TCP_MSS_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0600)
 /** No TCP or UDP headers were found */
 #define NO_L4_FOUND_ERROR			(HM_MODULE_STATUS_ID + 0x0700)
-
+/* TODO Ask Hezi if this define should be changed */
 
 /**************************************************************************//**
 @Group		HMUDPModeBits UDP header modification mode bits
@@ -90,6 +98,24 @@
 #define L4_TCP_MODIFY_MODE_MSS 0x20
 
 /* @} end of group HMTCPModeBits */
+
+
+/**************************************************************************//**
+@Group		HML4UDPTCPCksumCalcModeBits L4 UDP TCP Checksum Calculation \
+		 mode bits
+
+@{
+*//***************************************************************************/
+
+	/** No Mode bits */
+#define L4_UDP_TCP_CKSUM_CALC_MODE_NONE			0x00
+
+	/** Don't Update FDMA mode bit
+	 * If set, the SR will not call \ref fdma_modify_default_segment_data
+	 * to update the FDMA engine with the frame header changes. */
+#define L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA	0x01
+
+/* @} end of group HML4UDPTCPCksumCalcModeBits */
 /* @} end of group HM_L4_Modes */
 
 /**************************************************************************//**
@@ -203,8 +229,39 @@ int32_t l4_set_tp_src(uint16_t src_port);
 *//***************************************************************************/
 int32_t l4_set_tp_dst(uint16_t dst_port);
 
+
+/**************************************************************************//**
+@Function	l4_udp_tcp_cksum_calc
+
+@Description	Calculates and updates frame's UDP/TCP checksum.
+
+		The UDP/TCP header must reside entirely in the default segment
+		(which must be open in the workspace).
+
+		Checksum field is always updated (also when UDP[checksum]
+		field is zero), unless an error occurred.
+
+		Implicit input parameters in Task Defaults: Segment Address,
+		Segment Offset, Frame Handle, Parser Result, Parser Profile ID
+		and Starting HXS.
+
+		Implicitly updated values in Task Defaults: Parse Result.
+
+@Param[in]	flags - Please refer to \ref HML4UDPTCPCksumCalcModeBits
+
+@Return		Success, FDMA failure or Parser failure.
+
+@Cautions	In this function the task yields. \n
+		Parse Result (excluding Gross Running Sum field) must be valid.
+		If Parse Result[Gross Running Sum] field is not valid a
+		significant performance degradation is expected.
+		This function invalidates the Parser Result Gross Running Sum
+		field.
+*//***************************************************************************/
+int32_t l4_udp_tcp_cksum_calc(uint8_t flags);
 /* @} end of group FSL_HM_L4_Functions */
-/* @} end of group FSL_HM */
+/* @} end of group AIOP_L4_HM */
+/* @} end of group AIOP_L4 */
 /* @} end of group NETF */
 
 

@@ -86,7 +86,7 @@ struct ipr_instance {
 	uint8_t  pad[1];
 };
 
-#pragma pack(push,1) 
+#pragma pack(push,1)
 struct ipr_rfdc{
 	uint64_t	instance_handle;
 	uint32_t	timer_handle;
@@ -102,13 +102,13 @@ struct ipr_rfdc{
 	uint8_t		num_of_frags;
 	uint8_t		res;
 	uint32_t	status;
-	struct 		fdma_isolation_attributes isolation_bits; // 4 bytes
+	struct 		fdma_amq isolation_bits; // 4 bytes
 	uint64_t	ipv4_key[2];
 	uint32_t	res1[3];
 };
 #pragma pack(pop)
 
-#pragma pack(push,1) 
+#pragma pack(push,1)
 struct extended_ipr_rfc{
 	uint64_t	ipv6_key[4];
 	uint32_t	ipv6_key_cont;
@@ -190,8 +190,10 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 #define IPR_MODE_TABLE_LOCATION_INT		0x00000000
 /** Tables are located in Packet Express Buffer table */
 #define IPR_MODE_TABLE_LOCATION_PEB		0x02000000
-/** Tables are located in DDR */
-#define IPR_MODE_TABLE_LOCATION_EXT		0x03000000
+/** Tables are located in DDR1 */
+#define IPR_MODE_TABLE_LOCATION_EXT1		0x03000000
+/** Tables are located in DDR2 */
+#define IPR_MODE_TABLE_LOCATION_EXT2		0x04000000
 
 /* @} end of group IPRInitFlags */
 
@@ -256,7 +258,7 @@ inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 			/* return to original ordering scope that entered
 			 * the ipr_reassemble function */
 	/*		osm_scope_exit();
-			osm_scope_exit();	
+			osm_scope_exit();
 		} else if(osm_status & START_CONCURRENT) {
 		  osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}

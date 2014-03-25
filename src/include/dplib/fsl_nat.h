@@ -24,9 +24,18 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@addtogroup	FSL_HM Header Modification
+ @Group		AIOP_NAT NAT
 
-@{
+ @Description	AIOP NAT related API
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+ @Group		AIOP_NAT_HM NAT Header Modifications
+
+ @Description	AIOP NAT related header modifications API
+
+ @{
 *//***************************************************************************/
 
 /** No IP or L4 (TCP/UDP) headers were found */
@@ -158,7 +167,8 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 		int16_t tcp_ack_num_delta);
 
 /* @} end of group FSL_HM_NAT_Functions */
-/* @} end of group FSL_HM */
+/* @} end of group AIOP_NAT_HM */
+/* @} end of group AIOP_NAT */
 /* @} end of group NETF */
 
 

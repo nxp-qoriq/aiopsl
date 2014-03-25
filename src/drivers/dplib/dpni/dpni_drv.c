@@ -24,6 +24,8 @@ __SHRAM struct dpni_drv *nis;
 
 static void discard_rx_cb()
 {
+	
+	fsl_os_print("Packet discarded by discard_rx_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
@@ -32,6 +34,7 @@ static void discard_rx_cb()
 static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
+	fsl_os_print("Packet discarded by discard_rx_app_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();  
@@ -216,9 +219,10 @@ int dpni_get_num_of_ni (void)
 
 
 /* TODO: replace with macro/inline */
-int dpni_drv_get_primary_mac_addr(uint16_t niid)
+int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-	return((int)nis[niid].mac_addr);
+	memcpy(mac_addr, nis[niid].mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	return 0;
 }
 
 
@@ -264,15 +268,19 @@ static int aiop_replace_parser(uint8_t prpid)
     for(i=0; i<16; i++)
         verif_parse_profile1.soft_examination_param_array[i] = 0x0;
 
-    status = parser_profile_replace(&verif_parse_profile1, prpid);
-    return status;
+/*    status = parser_profile_replace(&verif_parse_profile1, prpid); Hagit*/
+    parser_profile_replace(&verif_parse_profile1, prpid); /*Hagit */
+/*    return status; Hagit*/
+    return 0;/*Hagit */
 }
 
 
 
 int dpni_drv_init(void)
 {
+#ifdef MC_INTEGRATED
 	uintptr_t	wrks_addr;
+#endif
 	int		    i;
 	int         error = 0;
 
@@ -304,7 +312,8 @@ int dpni_drv_init(void)
 		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
-	
+
+#ifdef MC_INTEGRATED
 	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
 #if 0
 	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */
@@ -331,16 +340,18 @@ int dpni_drv_init(void)
 
 		iowrite32(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define		
 
-#if 1
+#if 0
 		/* TODO : this is a temporary assignment for testing purposes, until MC initialization of EPID table will be operational. */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
 #endif
 	}
 #endif
+#endif
 	
 	/* Set PRPID 0 
 	 * TODO it must be prpid for every ni */
-    error = aiop_replace_parser(0);
+/*    error = aiop_replace_parser(0); Hagit*/
+    aiop_replace_parser(0);
     
 	return error;
 }
