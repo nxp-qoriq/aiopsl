@@ -38,10 +38,6 @@
 #define FALSE	0
 	/** Logical true */
 #define TRUE	1
-	/**< 0 value */
-#define ZERO	0
-	/** 1 value */
-#define ONE	1
 
 /* Address of end of TLS section */
 extern const uint16_t TLS_SECTION_END_ADDR[];
@@ -827,7 +823,7 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
 
 /**************************************************************************//**
-@Group		AIOP_General_Protocols_IPV6_Extensions IPv6 Extensions 
+@Group		AIOP_General_Protocols_IPV6_Extensions IPv6 Extensions
 @{
 *//***************************************************************************/
 #define  IPV6_EXT_HOP_BY_HOP	0 /*!< IPv6 Hop By Hop extension number*/
