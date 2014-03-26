@@ -67,7 +67,7 @@ int32_t tcp_gro_aggregate_seg(
 					(METADATA_MEMBER2_SIZE +
 					 METADATA_MEMBER3_SIZE +
 					 INT_FLAGS_SIZE)),
-				&seg_size);
+				&ecn);
 		else
 			/* write entire gro context back to DDR + release
 			 * mutex */
