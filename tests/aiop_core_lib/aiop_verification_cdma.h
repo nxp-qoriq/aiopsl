@@ -104,9 +104,6 @@
 struct cdma_acquire_context_memory_command {
 	uint32_t 	opcode;
 		/**< CDMA cdma_acquire_context_memory Command Structure identifier. */
-	uint32_t	context_size;
-		/**< Size of the Context memory, must match the size
-		of the BMan buffer being acquired using the pool_id. */
 	uint16_t	pool_id;
 		/**< BMan pool ID used for the Acquire Context Memory. */
 	uint8_t		pad1[2];
