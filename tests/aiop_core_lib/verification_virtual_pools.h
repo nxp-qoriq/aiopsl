@@ -266,8 +266,8 @@ struct vpool_init_cmd {
 				Actual command:
 				int32_t vpool_init_total_bman_bufs(
 					uint16_t bman_pool_id,
-					int32_t total_avail_bufs,
-					uint32_t buf_size);
+					int32_t total_avail_bufs
+					);
 
 *//***************************************************************************/
 struct vpool_init_total_bman_bufs_cmd {
@@ -279,8 +279,6 @@ struct vpool_init_total_bman_bufs_cmd {
 		/**< Padding */
 	int32_t total_avail_bufs;
 		/**< Total number of buffers in this BMAN pool */
-	uint32_t buf_size;
-		/**< Buffers size */
 	int32_t status;
 		/**< Command return status */
 	uint32_t pad2;
