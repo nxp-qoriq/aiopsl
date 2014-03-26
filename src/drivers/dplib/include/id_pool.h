@@ -106,10 +106,6 @@
 @Param[in]	buffer_pool_id - BMan pool ID used for the Acquire Context
 		Memory for Parser Profile ID pool.
 
-@Param[in]	buffer_size - Size of the Context memory buffer, must match the
-		size of the BMan buffer being acquired using the
-		buffer_pool_id.
-
 @Param[out]	ext_id_pool_address - External id pool address.
 
 @Return		Status - Success or Failure. (\ref INIT_ID_POOL_STATUS).
@@ -118,7 +114,6 @@
 *//***************************************************************************/
 inline int32_t id_pool_init(uint16_t num_of_ids,
 			 uint16_t buffer_pool_id,
-			 uint32_t buffer_size,
 			 uint64_t *ext_id_pool_address)
 {
 	int i;
@@ -129,8 +124,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	
 
 	/* Acquire buffer for the pool */
-	if (cdma_acquire_context_memory(buffer_size, buffer_pool_id,
-						&int_id_pool_address)) {
+	if (cdma_acquire_context_memory(buffer_pool_id, &int_id_pool_address)) {
 		/* Todo return CDMA status with Accell ID? -*/
 		return ID_POOL_INIT_STATUS_CDMA_ERR_NO_BUFFER_ACQUIRED;
 	}

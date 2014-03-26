@@ -750,7 +750,7 @@ int32_t cdma_access_context_memory(
 		uint16_t offset,
 		void *ws_address,
 		uint16_t dma_param,
-		uint16_t *refcount_value);
+		uint32_t *refcount_value);
 
 /** @} end of group CDMA_Internal_Functions */
 

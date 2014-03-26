@@ -194,8 +194,7 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 				(struct vpool_init_total_bman_bufs_cmd *)asa_seg_addr;
 			str->status = vpool_init_total_bman_bufs(
 					str->bman_pool_id,
-					str->total_avail_bufs,
-					str->buf_size
+					str->total_avail_bufs
 					);
 			str_size = sizeof(struct vpool_init_total_bman_bufs_cmd);
 			break;

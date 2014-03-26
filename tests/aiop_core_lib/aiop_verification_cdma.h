@@ -425,12 +425,12 @@ struct cdma_access_context_memory_command {
 			the 64 bit address of the Context memory is found. */
 	uint32_t	flags;
 			/**< CDMA flags */
+	uint32_t        refcount_value;
+			/**< Command returned Current value of reference count */
 	uint16_t	offset;
 		/**< An offset (in bytes) from the context_address. */
 	uint16_t	dma_param;
 		/**< DMA Parameters */
-	uint16_t        refcount_value;
-		/**< Command returned Current value of reference count */
 	int8_t  	status;
 		/**< Command returned status. */
 	uint8_t		pad[1];

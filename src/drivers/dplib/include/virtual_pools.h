@@ -39,8 +39,6 @@ struct callback_s {
 /* BMAN Pool structure */
 struct bman_pool_desc {
 	int32_t remaining;
-	uint32_t buf_size;
-	//uint32_t spinlock;
     uint8_t spinlock; 
     uint8_t flags; 
     uint16_t bman_pool_id; 
@@ -368,15 +366,14 @@ int32_t vpool_init(
 @Param[in]	bman_pool_id - BMAN pool ID. 
 @Param[in] 	total_avail_bufs - The total number of available buffers in 
 		bman_pool_id BMAN pool. 
-@Param[in] 	buf_size - size of buffers in bman_pool_id pool
  
 @Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 			
 *//***************************************************************************/
 int32_t vpool_init_total_bman_bufs( 
 		uint16_t bman_pool_id, 
-		int32_t total_avail_bufs,
-		uint32_t buf_size);
+		int32_t total_avail_bufs
+		);
 
 /*************************************************************************//**
 @Function	vpool_add_total_bman_bufs

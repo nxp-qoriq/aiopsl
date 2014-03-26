@@ -268,11 +268,7 @@ static int bpid_init(struct slab_hw_pool_info *hw_pools,
         hw_pools->flags            = 0;
         hw_pools->mem_pid          = bpid.mem_pid;
         hw_pools->buff_size        = SLAB_SIZE_SET(bpid.size);
-        /* TODO check which buff_size I should pass to VP with or without metadata
-         * TODO buff_size should be removed one day*/
-        return vpool_init_total_bman_bufs(bpid.bpid,
-                                          0,
-                                          (uint32_t)bpid.size);
+        return vpool_init_total_bman_bufs(bpid.bpid, 0);
 }
 
 /*****************************************************************************/

@@ -128,7 +128,6 @@ int32_t ipsec_add_sa_descriptor(
 	 * Flow Context and Shared Descriptor with CDMA. */
 	/* allocate a buffer with the CDMA */
 	return_val = (int32_t)cdma_acquire_context_memory(
-		0, /* TMP size; will be removed in future arch def */
 		global_params.desc_bpid,
 		ipsec_handle); /* context_memory */ 
 	
