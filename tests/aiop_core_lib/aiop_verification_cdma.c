@@ -28,8 +28,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_acquire_context_memory_command *str =
 				(struct cdma_acquire_context_memory_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_acquire_context_memory(
-					str->context_size, str->pool_id, 
-					(uint64_t *)str->context_memory);
+					str->pool_id, (uint64_t *)str->context_memory);
 			str->context_memory_addr = *((uint64_t *)(str->context_memory));
 			str_size = sizeof(struct cdma_acquire_context_memory_command);
 			break;
