@@ -316,7 +316,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		/*flags |= ((str->FS == 1) ? FDMA_DIS_FS_FD_BIT :
 				FDMA_DIS_FS_HANDLE_BIT);*/
 		/*flags |= FDMA_DIS_FS_HANDLE_BIT;*/
-		flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : ZERO ;
+		flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;
 		str->status = (int8_t)fdma_discard_default_frame(flags);
 		str_size = (uint16_t)
 				sizeof(struct fdma_discard_default_wf_command);
@@ -330,7 +330,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		/*flags |= ((str->FS == 1) ? FDMA_DIS_FS_FD_BIT :
 				FDMA_DIS_FS_HANDLE_BIT);*/
 		/*flags |= FDMA_DIS_FS_HANDLE_BIT;*/
-		flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : ZERO ;
+		flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;
 		str->status = (int8_t)fdma_discard_frame(str->frame, flags);
 		str_size = (uint16_t)sizeof(struct fdma_discard_wf_command);
 		break;
