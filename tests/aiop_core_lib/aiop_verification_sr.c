@@ -113,7 +113,7 @@ void aiop_verification_sr()
 			str_size = verification_virtual_pools(asa_seg_addr);
 			break;
 		}
-		case WRITE_DATA_TO_WS:
+		case WRITE_DATA_TO_WS_MODULE:
 		{
 
 			struct write_data_to_workspace_command *str =
