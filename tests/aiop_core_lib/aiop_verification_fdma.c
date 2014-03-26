@@ -23,7 +23,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
 	uint32_t flags;
-	uint32_t i;
 
 
 	opcode  = *((uint32_t *) asa_seg_addr);
