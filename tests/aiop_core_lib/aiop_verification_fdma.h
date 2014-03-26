@@ -971,9 +971,6 @@ struct fdma_modify_command {
 	uint16_t offset;
 		/** Replaced size. */
 	uint16_t size;
-		/** Replacing Data. If size > 24 then the replacing data will
-		 * be wrapped. */
-	uint8_t	data[24];
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */

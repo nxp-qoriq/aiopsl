@@ -631,7 +631,7 @@ int32_t cdma_ws_memory_init(
 *//***************************************************************************/
 int32_t cdma_refcount_get(
 		uint64_t context_address,
-		uint16_t *refcount_value);
+		uint32_t *refcount_value);
 
 /** @} end of group CDMA_Functions */
 /** @} */ /* end of FSL_CDMA */

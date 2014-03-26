@@ -154,7 +154,8 @@ enum verif_modules_ids {
 	IF_ELSE_MODULE,
 	TERMINATE_FLOW_MODULE,
 	KEYGEN_MODULE,
-	IPSEC_MODULE
+	IPSEC_MODULE,
+	WRITE_DATA_TO_WS_MODULE
 };
 
 /**************************************************************************//**
@@ -267,6 +268,31 @@ struct aiop_terminate_flow_command {
 	uint32_t opcode;
 		/** 64-bit alignment. */
 	uint8_t	pad[4];
+};
+
+/**************************************************************************//**
+@Description	Write Data to workspace Command structure.
+
+		Includes information needed for writing Data to workspace (as a
+		preceding step for a replace command).
+
+*//***************************************************************************/
+struct write_data_to_workspace_command {
+		/** Write Data to workspace command structure identifier. */
+	uint32_t opcode;
+		/** Pointer to the workspace start location of represented
+		* segment (relevant if (flags == \ref
+		* FDMA_REPLACE_SA_REPRESENT_BIT)). */
+	uint32_t ws_dst_rs;
+		/** Replacing Data. If size > 24 then the replacing data will
+		 * be wrapped. */
+	uint8_t	data[32];
+		/** Data size. */
+	uint16_t size;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[5];
 };
 
 
