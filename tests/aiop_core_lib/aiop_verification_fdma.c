@@ -452,10 +452,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_modify_command *str =
 			(struct fdma_modify_command *) asa_seg_addr;
-		uint8_t *address = (uint8_t *)(PRC_GET_SEGMENT_ADDRESS() +
-						str->offset);
-		for (i = 0; i < str->size; i++)
-			*address++ = str->data[i%24];
 
 		str->status = (int8_t)fdma_modify_default_segment_data(
 				str->offset, str->size);
