@@ -241,8 +241,8 @@ int32_t vpool_init(
  ***************************************************************************/
 int32_t vpool_init_total_bman_bufs( 
 		uint16_t bman_pool_id, 
-		int32_t total_avail_bufs, 
-		uint32_t buf_size)
+		int32_t total_avail_bufs 
+		)
 {
 	int i;
 	
@@ -252,13 +252,11 @@ int32_t vpool_init_total_bman_bufs(
 			return VIRTUAL_POOLS_ILLEGAL_ARGS;
 	#endif
 
-	//TODO: bman_pool_id as index is a problem
 	for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
-		// check if virtual_bman_pools[i] is empty
+		/* check if virtual_bman_pools[i] is empty */
 		if (virtual_bman_pools[i].remaining == -1) {
 			virtual_bman_pools[i].bman_pool_id = bman_pool_id; 
 			virtual_bman_pools[i].remaining = total_avail_bufs;
-			virtual_bman_pools[i].buf_size = buf_size;
 			break;
 		}
 	}
@@ -385,8 +383,6 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 
 		/* allocate a buffer with the CDMA */
 		return_val = (int32_t)cdma_acquire_context_memory(
-			(uint32_t)virtual_bman_pools
-				[virtual_pool->bman_array_index].buf_size, 
 			(uint16_t)virtual_bman_pools
 				[virtual_pool->bman_array_index].bman_pool_id, 
 			(uint64_t *)context_address); /* context_memory */ 
