@@ -1,3 +1,5 @@
+- aiop_link.lcf: stack size for init_task changed to maximum allowed size.
+- platform.c:    number of taskes per core changed to 16.
 
 ** AIOP ARENA SL Pre-Alpha v0.3.2  **
 - slab.h:        added slab_refcount_incr(), slab_refcount_decr()
