@@ -143,7 +143,7 @@ void slab_module_free(void);
                -ENAVAIL - could not release into bpid
                -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
-int slab_find_and_fill_bpid(uint16_t num_buffs,
+int slab_find_and_fill_bpid(uint32_t num_buffs,
                             uint16_t buff_size,
                             uint16_t alignment,
                             uint8_t  mem_partition_id,

@@ -76,7 +76,7 @@ static inline int find_bpid(uint16_t buff_size,
 }
 
 /*****************************************************************************/
-int slab_find_and_fill_bpid(uint16_t num_buffs,
+int slab_find_and_fill_bpid(uint32_t num_buffs,
                             uint16_t buff_size,
                             uint16_t alignment,
                             uint8_t  mem_pid,
@@ -117,8 +117,8 @@ int slab_find_and_fill_bpid(uint16_t num_buffs,
                 }
         }
 
-        *num_filled_buffs = num_buffs;
-        vpool_add_total_bman_bufs(*bpid, num_buffs);
+        *num_filled_buffs = (int)num_buffs;
+        vpool_add_total_bman_bufs(*bpid, (int32_t)num_buffs);
 
         return 0;
 }
@@ -138,7 +138,7 @@ static void free_slab_module_memory()
 }
 
 /*****************************************************************************/
-static inline int sanity_check_slab_create(uint16_t    num_buffs,
+static inline int sanity_check_slab_create(uint32_t    num_buffs,
                                            uint16_t    buff_size,
                                            uint16_t    alignment,
                                            uint8_t     mem_pid,
@@ -157,8 +157,8 @@ static inline int sanity_check_slab_create(uint16_t    num_buffs,
 }
 
 /*****************************************************************************/
-int slab_create(uint16_t    num_buffs,
-                uint16_t    extra_buffs,
+int slab_create(uint32_t    num_buffs,
+                uint32_t    max_buffs,
                 uint16_t    buff_size,
                 uint16_t    prefix_size,
                 uint16_t    postfix_size,
@@ -179,8 +179,10 @@ int slab_create(uint16_t    num_buffs,
 #ifdef DEBUG
         /* Sanity checks */
         error = sanity_check_slab_create(num_buffs, buff_size, alignment, mem_pid, flags);
-        if (error)           return -ENAVAIL;
-        if (extra_buffs > 0) return -ENAVAIL; /* TODO remove it when extra_buffs are supported */
+        if (error)
+        	return -ENAVAIL;
+        if (max_buffs > num_buffs)
+        	return -ENAVAIL; /* TODO remove it when extra_buffs are supported */
 #endif
 
         *((uint32_t *)slab) = 0;
@@ -191,7 +193,7 @@ int slab_create(uint16_t    num_buffs,
         if (error) return error; /* -EINVAL or -ENOMEM */
 
         data  = 0;
-        error = vpool_create_pool(bpid, num_buffs + extra_buffs, num_buffs, 0, release_cb , &data);
+        error = vpool_create_pool(bpid, (int32_t)max_buffs, (int32_t)num_buffs, 0, release_cb , &data);
         if (error)
                 return -ENAVAIL;
         if (data > SLAB_VP_POOL_MAX) {
