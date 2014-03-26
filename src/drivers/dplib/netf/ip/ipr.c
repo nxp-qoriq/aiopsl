@@ -64,9 +64,8 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
 	uint16_t table_location_attr;
 
-	err = cdma_acquire_context_memory(IPR_INSTANCE_SIZE,
-				ipr_global_parameters1.ipr_pool_id,
-				ipr_instance_ptr);
+	err = cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
+									  ipr_instance_ptr);
 
 	if (err)
 		return err;
@@ -268,10 +267,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 /* todo this is a WA for the new CTLU of simulator 86 that does not return accelerator ID */			
 		} else if (sr_status == (CTLU_STATUS_MISS & 0x00ffffff)) {
 			/* Miss */
-		    cdma_acquire_context_memory(
-				     IPR_CONTEXT_SIZE,
-				     ipr_global_parameters1.ipr_pool_id,
-				     &rfdc_ext_addr);
+		    cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
+				     	 	 	 	    &rfdc_ext_addr);
 		    /* Lock RFDC + increment reference count*/
 		    cdma_access_context_memory(
 			     rfdc_ext_addr,
