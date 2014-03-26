@@ -128,7 +128,6 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 	/** Presentation Context size */
 #define HWC_PRC_SIZE		0x10
 	/** Address of Storage Profile ID of the default working frame */
-	/* Todo - set SPID address when according to new layout(once decided)*/
 #define HWC_SPID_ADDRESS	0x07
 	/** Address for passing parameters to accelerators */
 #define HWC_ACC_IN_ADDRESS	0x20
