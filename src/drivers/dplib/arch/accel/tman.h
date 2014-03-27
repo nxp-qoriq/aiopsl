@@ -48,6 +48,8 @@ enum e_tman_cmd_type {
 #define TMAN_TMR_TMP_ERR2	0x81400030
 /** Timer commands temporary error 3 */
 #define TMAN_TMR_TMP_ERR3	0x81400040
+/** Timer query command state bits mask */
+#define TMAN_TMR_QUERY_STATE_MASK	0x81400040
 
 /**************************************************************************//**
 @Description	TMI input extension params
