@@ -259,7 +259,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				      &rfdc,
 				      CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
 				      | RFDC_SIZE,
-				      (uint16_t *)REF_COUNT_ADDR_DUMMY);
+				      (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 			   /* Early Time out */
 			   return IPR_ERROR;
@@ -277,7 +277,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			     0,
 			     (void *)0,
 			     0,
-			     (uint16_t *)REF_COUNT_ADDR_DUMMY);
+			     (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 		    /* Reset RFDC + Link List */
 		    /*cdma_ws_memory_init((void *)&rfdc,
@@ -348,8 +348,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	status_insert_to_LL =
 		  ipr_insert_to_link_list(&rfdc, rfdc_ext_addr);
 	switch (status_insert_to_LL) {
-	case 0:
-		/* Fragment was successfully added to LL */
+	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
 		if (instance_params.flags &
 				IPR_MODE_IPV4_TO_TYPE) {
@@ -364,15 +363,13 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				       &rfdc,
 				       RFDC_SIZE);
 		return IPR_REASSEMBLY_NOT_COMPLETED;
-	case 1:
-		/* Last fragment, need reassembly in order */
+	case LAST_FRAG_IN_ORDER:
 		closing_in_order(&rfdc, rfdc_ext_addr);
 		break;
-	case 2:
-		/* Last fragment, need re-ordering */
+	case LAST_FRAG_OUT_OF_ORDER:
 		closing_with_reordering(&rfdc, rfdc_ext_addr);
 		break;
-	case 4:
+	case FRAG_ERROR:
 		/* duplicate or overlap fragment */
 		return IPR_MALFORMED_FRAG;
 		break;
@@ -396,7 +393,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			  &rfdc,
 			  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
 			  RFDC_SIZE,
-			  (uint16_t *)REF_COUNT_ADDR_DUMMY);
+			  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 
 		move_to_correct_ordering_scope2(osm_status);

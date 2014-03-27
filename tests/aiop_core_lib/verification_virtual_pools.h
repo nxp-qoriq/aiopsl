@@ -5,6 +5,8 @@
 				SW Verification Structures
 *//***************************************************************************/
 
+/* */
+
 #ifndef __VERIFICATION_VIRTUAL_POOLS_H_
 #define __VERIFICATION_VIRTUAL_POOLS_H_
 
