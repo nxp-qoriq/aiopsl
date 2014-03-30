@@ -3,16 +3,18 @@
 
 #include "common/fsl_aiop_cmdif.h"
 
-#define CMD_ID_MASK	0x00000000FFFF0000
-#define CMD_ID_OFF	16
-#define CMD_ID_OPEN     0x8000
+#define CMD_ID_MASK	   0x00000000FFFF0000
+#define CMD_ID_OFF	   16
+#define CMD_ID_OPEN        0x8000
+#define CMD_ID_CLOSE       0x4000
+#define CMD_AUTH_ID_MASK   0x0000FFFF
 
-#define MAX_NUM_OF_INSTANCES    1000
-#define MAX_NUM_OF_MODULES      64
-#define MAX_NAME_CHARS          8     /**< Not including \0 */
+#define M_NUM_OF_INSTANCES    1000
+#define M_NUM_OF_MODULES      64
+#define M_NAME_CHARS          8     /**< Not including \0 */
 
 struct cmdif_srv {
-	char         (*m_name)[MAX_NAME_CHARS + 1];
+	char         (*m_name)[M_NAME_CHARS + 1];
 	/**< pointer to arrays of module name per module */
 	ctrl_cb_t    **ctrl_cb;
 	/**< execution callbacks one per module */
