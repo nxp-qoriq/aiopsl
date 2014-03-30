@@ -1,13 +1,15 @@
 #include "common/types.h"
 #include "common/gen.h"
+#include "common/errors.h"
+#include "common/fsl_string.h"
 #include "cmdif_srv.h"
 #include "general.h"
-#include "common/errors.h"
 #include "io.h"
 #include "fsl_fdma.h"
 #include "sys.h"
 #include "fsl_malloc.h"
 #include "dbg.h"
+#include "spinlock.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
@@ -18,9 +20,47 @@
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) & CMDIF_ASYNC_CMD))
+/** Malloc array of structs */
+#define ARR_MALLOC_SHRAM(FIELD, TYPE, NUM) \
+	FIELD = fsl_os_xmalloc(sizeof(TYPE) * (NUM), MEM_PART_SH_RAM, 1)
+/** Malloc array of structs */
+#define ARR_MALLOC_DDR(FIELD, TYPE, NUM) \
+	FIELD = fsl_os_xmalloc(sizeof(TYPE) * (NUM), \
+	                       MEM_PART_1ST_DDR_NON_CACHEABLE, 1)
+
+#define FREE_MODULE    '\0'
+
+static int module_id_alloc(const char *module_name, struct cmdif_srv *srv)
+{
+	int i = 0;
+	int id = -ENAVAIL;
+
+	if ((module_name == NULL) || (module_name[0] == FREE_MODULE))
+		return -1;
+
+	lock_spinlock(&srv->lock);
+
+	for (i = 0; i < MAX_NUM_OF_MODULES; i++) {
+		if ((srv->m_name[i][0] == FREE_MODULE) && (id == -1)) {
+			id = i;
+		} else if (strncmp(srv->m_name[i], module_name, MAX_NAME_CHARS) == 0) {
+			unlock_spinlock(&srv->lock);
+			return -EEXIST;
+		}
+	}
+	if (id > 0) {
+		strcpy(srv->m_name[i], module_name);
+	}
+
+	unlock_spinlock(&srv->lock);
+	return id;
+}
 
 int cmdif_register_module(const char *module_name, struct cmdif_module_ops *ops)
 {
+
+	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+
 	if ((module_name == NULL) || (ops == NULL))
 		return -EINVAL;
 
@@ -71,6 +111,7 @@ static int epid_setup()
 	}
 #endif
 #endif /* MC_INTEGRATED */
+	return 0;
 }
 
 int cmdif_srv_init(void)
@@ -78,12 +119,26 @@ int cmdif_srv_init(void)
 	int     err = 0;
 	struct  cmdif_srv *srv = NULL;
 
+	if (sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0))
+		return -ENODEV;
+
 	srv = fsl_os_xmalloc(sizeof(struct cmdif_srv), MEM_PART_SH_RAM, 1);
         if (srv == NULL) {
 		pr_err("No memory for CMDIF Server init");
 		return -ENOMEM;
         }
 
+	/* SHRAM */
+	ARR_MALLOC_SHRAM(srv->instance_handle, fsl_handle_t, MAX_NUM_OF_INSTANCES);
+	ARR_MALLOC_SHRAM(srv->m_id, uint8_t, MAX_NUM_OF_INSTANCES);
+	ARR_MALLOC_SHRAM(srv->ctrl_cb, ctrl_cb_t *, MAX_NUM_OF_MODULES);
+	/* DDR */
+	ARR_MALLOC_DDR(srv->m_name, char[MAX_NAME_CHARS + 1], MAX_NUM_OF_MODULES);
+	ARR_MALLOC_DDR(srv->open_cb, open_cb_t *, MAX_NUM_OF_MODULES);
+	ARR_MALLOC_DDR(srv->close_cb, close_cb_t *, MAX_NUM_OF_MODULES);
+
+	memset(srv->m_name, FREE_MODULE, sizeof(srv->m_name[0]) * MAX_NUM_OF_MODULES);
+	srv->instances_counter = 0;
         err = sys_add_handle(srv, FSL_OS_MOD_CMDIF_SRV, 1, 0);
 
 	return 0;

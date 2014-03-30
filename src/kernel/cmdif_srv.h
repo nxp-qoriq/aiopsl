@@ -7,20 +7,28 @@
 #define CMD_ID_OFF	16
 #define CMD_ID_OPEN     0x8000
 
+#define MAX_NUM_OF_INSTANCES    1000
+#define MAX_NUM_OF_MODULES      64
+#define MAX_NAME_CHARS          8     /**< Not including \0 */
+
 struct cmdif_srv {
-	ctrl_cb_t **ctrl_cb;
+	char         (*m_name)[MAX_NAME_CHARS + 1];
+	/**< pointer to arrays of module name per module */
+	ctrl_cb_t    **ctrl_cb;
 	/**< execution callbacks one per module */
 	fsl_handle_t *instance_handle;
 	/**< array of instances handels(converted from the authentication ID)
 	 * in the size of MAX_NUM_OF_INSTANCES */
-	uint8_t *module_id;
+	uint8_t      *m_id;
 	/**< converts ID to module for cb */
-	uint16_t instances_counter;
+	uint16_t     instances_counter;
 	/*DDR structures */
-	open_cb_t **open_cb;
+	open_cb_t    **open_cb;
 	/**< open(init) callbacks, one per module*/
-	close_cb_t **close_cb;
+	close_cb_t   **close_cb;
 	/**< close(de-init) callbacks, one per module*/
+	uint8_t      lock;
+	/**< cmdif spinlock used for module id allocation */
 };
 
 int cmdif_srv_init(void);
