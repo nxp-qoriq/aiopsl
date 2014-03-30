@@ -131,7 +131,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	/* store the address in the global parameter */
 	*ext_id_pool_address = int_id_pool_address;
 
-	while (num_of_ids) {
+	while (num_of_ids + 1) {
 		/* Initialize pool in local memory */
 		fill_ids = (num_of_ids<64) ? num_of_ids : 64;
 		for (i = 0; i < fill_ids; i++)
@@ -139,7 +139,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 		if (num_of_writes == 0) 
 			pool[0] = 0;
 		num_of_writes++;
-		num_of_ids = num_of_ids - fill_ids;
+		num_of_ids = num_of_ids + 1 - fill_ids;
 		/* Write pool to external memory */
 		if (cdma_write(int_id_pool_address, pool, fill_ids)) {
 			/* In case cdma_write failed, need to release
