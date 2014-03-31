@@ -119,6 +119,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	int i;
 	uint64_t int_id_pool_address;
 	uint16_t fill_ids;
+	uint16_t num_of_ids_and_index;
 	uint8_t num_of_writes = 0;
 	uint8_t pool[64];
 	
@@ -131,17 +132,19 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	/* store the address in the global parameter */
 	*ext_id_pool_address = int_id_pool_address;
 
-	while (num_of_ids + 1) {
+	num_of_ids_and_index = (num_of_ids + 1);
+	
+	while (num_of_ids_and_index) {
 		/* Initialize pool in local memory */
-		fill_ids = (num_of_ids<64) ? num_of_ids : 64;
+		fill_ids = (num_of_ids_and_index < 64) ? num_of_ids_and_index : 64;
 		for (i = 0; i < fill_ids; i++)
-			pool[i] = (uint8_t)((num_of_writes<<6)+i-1);
+			pool[i] = (uint8_t)((num_of_writes<<6) + i - 1);
 		if (num_of_writes == 0) 
 			pool[0] = 0;
 		num_of_writes++;
-		num_of_ids = num_of_ids + 1 - fill_ids;
+		num_of_ids_and_index = num_of_ids_and_index - fill_ids;
 		/* Write pool to external memory */
-		if (cdma_write(int_id_pool_address, pool, fill_ids)) {
+		if (cdma_write((int_id_pool_address + (num_of_writes<<6)), pool, fill_ids)) {
 			/* In case cdma_write failed, need to release
 			 * the buffer */
 			if (cdma_release_context_memory(int_id_pool_address)) {
