@@ -16,7 +16,7 @@
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
-	(uint16_t)(swap_uint64(FQD_CTX_GET) & 0x01FFFFFF) /* TODO use LLLDW_SWAP */
+	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET) & 0x01FFFFFF)
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) & CMDIF_ASYNC_CMD))
@@ -289,9 +289,9 @@ static int cmdif_fd_send()
 	int err;
 
 	/** TODO ordering !!!*/
-	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-							RESP_QID_GET,
-							FDMA_ENWF_NO_FLAGS);
+	err = (int)fdma_enqueue_default_fd_fqid(0, /* TODO ICID */
+						FDMA_ENWF_NO_FLAGS,
+						RESP_QID_GET);
 	return err;
 }
 
@@ -315,6 +315,9 @@ void cmdif_srv_isr(void)
 	uint32_t size	= 0;
 	uint8_t  *data	= 0;
 	struct   cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+
+	/* Delete FDMA handle, now I can modify FD in WS */
+	fdma_store_default_frame_data();
 
 	cmd_id	= cmd_id_get();
 	data	= cmd_data_get();
