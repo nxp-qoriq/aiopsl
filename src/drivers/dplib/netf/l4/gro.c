@@ -67,7 +67,8 @@ int32_t tcp_gro_aggregate_seg(
 					(METADATA_MEMBER2_SIZE +
 					 METADATA_MEMBER3_SIZE +
 					 INT_FLAGS_SIZE)),
-				&ecn);
+				(uint32_t *)(HWC_ACC_OUT_ADDRESS +
+						CDMA_REF_CNT_OFFSET));
 		else
 			/* write entire gro context back to DDR + release
 			 * mutex */

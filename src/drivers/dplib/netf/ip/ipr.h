@@ -269,6 +269,8 @@ uint32_t check_for_frag_error();
 
 void ipr_time_out();
 
+void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr);
+
 /**************************************************************************//**
 @Description	IPR Global parameters
 *//***************************************************************************/
