@@ -1,3 +1,7 @@
+- event_mgr.h:     This file has been removed
+- event_mgr.c:     This file has been removed
+- .project aiopsl: Removed event_mgr.c and event_mgr.h
+
 - fsl_slab.h:    Changed num_buffs to be 32 bit and renamed extra_buffs to max_buffs
 - slab.h:        Changed num_buffs to be 32 bit
 - slab.c:        Removed buff_size from CDMA based API      

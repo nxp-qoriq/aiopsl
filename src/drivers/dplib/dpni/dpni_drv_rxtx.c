@@ -56,6 +56,7 @@ __HOT_CODE void receive_cb(void)
 
 	appidx = (*fd_flc_appidx >> 2);
 	dpni_drv->rx_cbs[appidx](dpni_drv->args[appidx]);
+	fdma_terminate_task();
 }
 
 __HOT_CODE int dpni_drv_send(uint16_t ni_id)

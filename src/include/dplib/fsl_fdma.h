@@ -1595,11 +1595,11 @@ struct fdma_present_segment_params {
 		/**< Number of frame bytes to present (any value including 0).*/
 	uint16_t present_size;
 		/**< Returned parameter:
-		 * A pointer to the number of bytes actually presented (the
-		 * segment actual size). */
+		 * The number of bytes actually presented (the segment actual
+		 * size). */
 	uint16_t seg_length;
 		/**< Returned parameter:
-		 * A pointer to the handle of the presented segment. */
+		 * The handle of the presented segment. */
 	uint8_t  seg_handle;
 		/**< working frame from which to open a segment. */
 	uint8_t	 frame_handle;

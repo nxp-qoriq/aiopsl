@@ -291,7 +291,7 @@ int32_t tman_query_timer(uint32_t timer_handle,
 	/* performs *state = res1 & 0x03 */
 	/* Optimization: remove 2 cycles of clearing duration upper bits */
 	*((uint8_t *)(state)) = (uint8_t)res1;
-	return (int32_t)(res1);
+	return (int32_t)(res1 & TMAN_TMR_QUERY_STATE_MASK);
 }
 
 void tman_timer_completion_confirmation(uint32_t timer_handle)
