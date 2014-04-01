@@ -36,12 +36,13 @@
                -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
 
-int slab_find_and_fill_bpid(uint32_t num_buffs,
-							uint16_t buff_size,
-                            uint16_t alignment,
-                            uint8_t  mem_partition_id,
-                            int      *num_filled_buffs,
-                            uint16_t *bpid);
+int slab_find_and_fill_bpid(
+			uint32_t num_buffs,
+			uint16_t buff_size,
+			uint16_t alignment,
+			uint8_t  mem_partition_id,
+			int      *num_filled_buffs,
+			uint16_t *bpid);
 
 
 

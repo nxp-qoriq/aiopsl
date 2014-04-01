@@ -15,13 +15,15 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
                             int      *num_filled_buffs,
                             uint16_t *bpid)
 {
+	num_buffs = alignment = mem_partition_id = 0;
+
 	if (buff_size == (SYS_NUM_OF_PRPIDS+1))
 		*bpid = 1;
 	else
 		*bpid = 2;
 
 	*num_filled_buffs = 1;
-	
+
 	return 0;
 }
 
