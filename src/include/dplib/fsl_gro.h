@@ -192,6 +192,8 @@ struct tcp_gro_context_metadata {
 
 /**************************************************************************//**
 @Description	GRO aggregation limits.
+
+		These limits are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_limits {
 		/** Timeout per packet aggregation limit. */
@@ -207,6 +209,8 @@ struct gro_context_limits {
 
 /**************************************************************************//**
 @Description	GRO aggregation Timeout Parameters.
+
+		These parameters are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_timeout_params {
 		/** Address (in HW buffers) of the callback function parameter
