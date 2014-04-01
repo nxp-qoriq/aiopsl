@@ -21,7 +21,7 @@ void aiop_verification_sr()
 	uint16_t str_size;
 	uint32_t opcode;
 	uint8_t gro_iteration = 0;
-	uint8_t  ipr_iteration = 0;
+	uint8_t ipr_iteration = 0;
 
 
 	/* initialize Additional Dequeue Context */
@@ -115,7 +115,6 @@ void aiop_verification_sr()
 		}
 		case WRITE_DATA_TO_WS_MODULE:
 		{
-
 			struct write_data_to_workspace_command *str =
 				(struct write_data_to_workspace_command *)
 					asa_seg_addr;
@@ -176,6 +175,17 @@ void aiop_verification_sr()
 				asa_seg_addr = init_asa_seg_addr +
 							str->false_cmd_offset;
 
+			break;
+		}
+		case UPDATE_ASA_VARIABLE:
+		{
+			struct update_asa_variable_command *str =
+				(struct update_asa_variable_command *)
+						asa_seg_addr;
+			*((uint16_t *)(init_asa_seg_addr + str->asa_offset)) +=
+					str->value;
+			str_size = (uint16_t)
+			       sizeof(struct update_asa_variable_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:

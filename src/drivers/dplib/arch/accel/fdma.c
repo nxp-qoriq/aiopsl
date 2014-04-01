@@ -1212,7 +1212,35 @@ int32_t fdma_close_default_segment(void)
 	    (seg_handle == FDMA_PTA_SEG_HANDLE))
 		return FDMA_NO_DATA_SEGMENT_HANDLE;
 	/* prepare command parameters */
-	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(PRC_GET_HANDLES(), seg_handle);
+	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(PRC_GET_FRAME_HANDLE(), seg_handle);
+	/* store command parameters */
+	__stdw(arg1, 0, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = 0;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		PRC_SET_NDS_BIT();
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+
+	/* This command may be invoked only on Data segment */
+	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
+	    (seg_handle == FDMA_PTA_SEG_HANDLE))
+		return FDMA_NO_DATA_SEGMENT_HANDLE;
+	/* prepare command parameters */
+	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(frame_handle, seg_handle);
 	/* store command parameters */
 	__stdw(arg1, 0, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = 0;

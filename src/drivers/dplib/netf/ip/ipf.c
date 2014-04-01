@@ -197,9 +197,6 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ipv6_hdr->next_header = IPV6_EXT_FRAGMENT;
 		}
 
-		if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
-			/* TODO */
-		} else {
 			/* Build IPv6 fragment header */
 
 			ipv6_frag_hdr->next_header = orig_next_header;
@@ -223,7 +220,6 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 					(uint32_t)IPV6_FRAGMENT_HEADER_LENGTH);
 				seg_size_rs = seg_size_rs +
 						IPV6_FRAGMENT_HEADER_LENGTH;
-			}
 		
 			status = fdma_replace_default_segment_data(
 				ipv6_offset,
@@ -589,7 +585,7 @@ int32_t ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 				return IPF_GEN_FRAG_STATUS_IN_PROCESS;
 		} else {
 			/* Last Fragment */
-				status = ipf_ipv4_last_frag(ipf_ctx);
+				status = ipf_ipv6_last_frag(ipf_ctx);
 				return status;
 		}
 	}
@@ -647,22 +643,14 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 				
 			if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 				/* Restore original fragments */
-				if (IPF_SFV_QUERY()) {
-					status =
-					ipf_move_remaining_frame(ipf_ctx);
-					if (status)
-						return status;
-					/* Clear gross running sum in parse
-					 * results */
-					pr->gross_running_sum = 0;
+				status = ipf_move_remaining_frame(ipf_ctx);
+				if (status)
+					return status;
+				/* Clear gross running sum in parse results */
+				pr->gross_running_sum = 0;
 					
-					status = ipf_split_ipv6_fragment
-								(ipf_ctx, NULL);
-						return status; /* TODO */
-				} else {
-					/* SFV bit is clear */
-					return IPF_GEN_FRAG_STATUS_SFV_CLEAR;
-				}
+				status = ipf_split_ipv6_fragment(ipf_ctx, NULL);
+					return status; /* TODO */
 			} else {
 				/* Split according to MTU */
 				ip_header_length = (uint16_t)
@@ -697,23 +685,16 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 			ipf_ctx->ipv4 = 1;
 			if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 				/* Restore original fragments */
-				if (IPF_SFV_QUERY()) {
-					status =
-					ipf_move_remaining_frame(ipf_ctx);
-					if (status)
-						return status;
-					/* Clear gross running sum in parse
-					 * results */
-					pr->gross_running_sum = 0;
+				status = ipf_move_remaining_frame(ipf_ctx);
+				if (status)
+					return status;
+				/* Clear gross running sum in parse results */
+				pr->gross_running_sum = 0;
 					
-					status = ipf_split_ipv4_fragment
-								(ipf_ctx);
-						return status; /* TODO */
-				} else {
-					/* SFV bit is clear */
-					return IPF_GEN_FRAG_STATUS_SFV_CLEAR;
-				}
+				status = ipf_split_ipv4_fragment(ipf_ctx);
+					return status; /* TODO */
 			} else {
+			/* Split according to MTU */
 				ipv4_hdr =
 					(struct ipv4hdr *)(ipf_ctx->ip_offset +
 					PRC_GET_SEGMENT_ADDRESS());
