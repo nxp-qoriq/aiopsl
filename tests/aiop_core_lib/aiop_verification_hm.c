@@ -62,7 +62,7 @@ void aiop_hm_init_parser()
 	/* Assuming no soft examination parameters */
 	for(i=0; i<16; i++)
 		verif_parse_profile.soft_examination_param_array[i] = 0x0;
-	sys_ctlu_prpid_pool_create();
+	sys_prpid_pool_create();
 	/* Create the parse_profile and get an id */
 	parser_profile_create(&verif_parse_profile, &prpid);
 	default_task_params.parser_profile_id = prpid;

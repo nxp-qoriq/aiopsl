@@ -10,6 +10,7 @@
 #define __SLAB_H
 
 #include "common/fsl_slab.h"
+#include "kernel/platform.h"
 
 #define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 

@@ -551,6 +551,17 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				sizeof(struct fdma_close_segment_command);
 		break;
 	}
+	/* FDMA Close segment Command Verification */
+	case FDMA_CLOSE_SEG_EXP_CMD_STR:
+	{
+		struct fdma_close_segment_exp_command *str =
+			(struct fdma_close_segment_exp_command *)asa_seg_addr;
+		str->status = (int8_t)fdma_close_segment(
+				str->frame_handle, str->seg_handle);
+		str_size = (uint16_t)
+				sizeof(struct fdma_close_segment_exp_command);
+		break;
+	}
 	/* FDMA Replace ASA Command Verification */
 	case FDMA_REPLACE_ASA_CMD_STR:
 	{

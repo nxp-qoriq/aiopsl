@@ -55,7 +55,7 @@ void aiop_init_parser(uint8_t *prpid)
 	/* Assuming no soft examination parameters */
 	for(i=0; i<16; i++)
 		verif_parse_profile1.soft_examination_param_array[i] = 0x0;
-	sys_ctlu_prpid_pool_create();
+	sys_prpid_pool_create();
 	/* Create the parse_profile and get an id */
 	parser_profile_create(&verif_parse_profile1, prpid);
 	/* Update prpid in task defaults */
@@ -149,7 +149,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_id_pool_create_verif_command *pipc =
 			(struct parser_prp_id_pool_create_verif_command*)
 			asa_seg_addr;
-		pipc->status = sys_ctlu_prpid_pool_create();
+		pipc->status = sys_prpid_pool_create();
 		str_size =
 			sizeof(struct parser_prp_id_pool_create_verif_command);
 		break;
