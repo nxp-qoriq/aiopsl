@@ -10,9 +10,9 @@ FD[FLC] - frame descriptor special settings
 1. Set EPID entry index inside FD[FLC] bits 9-0.
 2. Set FD[FLC] bits 31-16 as 0x2000, it will make FLC[checksum] = 0x2000
 
-FD[FRC] - special settings
+FD[BPID] - special settings
 ===========================================
-1. Set FD[FRC] bits 15-0 to 0x0
+1. Set FD[BPID] to 0x0
 
 ===========================================
 Demo possible modifications:

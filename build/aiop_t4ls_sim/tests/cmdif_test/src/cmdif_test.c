@@ -3,7 +3,6 @@
 #include "common/fsl_string.h"
 #include "fsl_fdma.h"
 #include "general.h"
-#include "fsl_ip.h"
 #include "fsl_cdma.h"
 #include "common/fsl_slab.h"
 #include "kernel/platform.h"
@@ -23,6 +22,11 @@ int cmdif_open(struct cmdif_desc *cidesc,
 		void *async_ctx)
 {
 	struct   cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	UNUSED(cidesc);
+	UNUSED(module_name);
+	UNUSED(instance_id);
+	UNUSED(async_cb);
+	UNUSED(async_ctx);
 	srv->instance_handle[0] = (void *)0x22222222;
 	srv->sync_done[0] = &sync_done;
 	return 0;
@@ -30,16 +34,24 @@ int cmdif_open(struct cmdif_desc *cidesc,
 
 static int open_cb(uint8_t instance_id, void **dev)
 {
+	UNUSED(instance_id);
+	UNUSED(dev);
 	return 0;
 }
 
 static int close_cb(void *dev)
 {
+	UNUSED(dev);
 	return 0;
 }
 
 static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
 {
+	UNUSED(dev);
+	UNUSED(cmd);
+	UNUSED(size);
+	UNUSED(data);
+
 	return 0;
 }
 

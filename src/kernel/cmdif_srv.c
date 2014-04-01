@@ -20,6 +20,9 @@
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) & CMDIF_ASYNC_CMD))
+/** Blocking commands don't need response FD */
+#define SYNC_CMD(CMD)	\
+	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
 /** Malloc array of structs */
 #define ARR_MALLOC_SHRAM(FIELD, TYPE, NUM) \
 	FIELD = fsl_os_xmalloc(sizeof(TYPE) * (NUM), MEM_PART_SH_RAM, 1)
@@ -161,7 +164,7 @@ static uint8_t cmd_inst_id_get() {
 }
 
 static uint16_t cmd_auth_id_get() {
-	return (uint16_t)(LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & CMD_AUTH_ID_MASK);
+	return (uint16_t)LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);
 }
 
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
@@ -311,8 +314,12 @@ static int cmdif_fd_send(int cb_err)
 
 static int sync_cmd_done(int err, uint16_t auth_id, struct   cmdif_srv *srv)
 {
+	/* Delete FDMA handle and store user modified data */
+	fdma_store_default_frame_data();
 	*((uint8_t *)srv->sync_done[auth_id]) = 0x80 | (uint8_t)err;
-	/* TODO how much size do you need ? 8 bit is enough ? */
+	/* TODO how much size do you need ? 8 bit is enough ?
+	 * TODO use cdma to set it !!! */
+	fdma_terminate_task();
 }
 
 /** Sets the address for polling on synchronous commands */
@@ -371,7 +378,7 @@ void cmdif_srv_isr(void)
 			/* TODO ask Michal if I can pass ptr to WS for data
 			 * User can ignore the ptr and use presentation context */
 			err = CTRL_CB(auth_id, cmd_id, size, data);
-			if (!(cmd_id & CMDIF_ASYNC_CMD)) {
+			if (SYNC_CMD(cmd_id)) {
 				sync_cmd_done(err, auth_id, srv);
 			}
 		} else {
@@ -382,8 +389,10 @@ void cmdif_srv_isr(void)
 
 	if (SEND_RESP(cmd_id)) {
 		err = cmdif_fd_send(err);
+	} else {
+		/* CMDIF_NORESP_CMD store user modified data but don't send */
+		fdma_store_default_frame_data();
 	}
-
 	fdma_terminate_task();
 }
 
