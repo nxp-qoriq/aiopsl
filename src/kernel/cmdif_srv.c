@@ -303,10 +303,9 @@ static int cmdif_fd_send(int cb_err)
 
 	LDPAA_FD_SET_ERR(HWC_FD_ADDRESS, cb_err);
 
-	/** TODO ordering !!!*/
-	err = (int)fdma_enqueue_default_fd_fqid(0, /* TODO ICID */
-						FDMA_ENWF_NO_FLAGS,
-						RESP_QID_GET);
+	/** TODO Ask Michal ordering !!!*/
+	err = fdma_store_and_enqueue_default_frame_fqid(RESP_QID_GET,
+	                                                FDMA_ENWF_NO_FLAGS);
 	return err;
 }
 
@@ -335,9 +334,6 @@ void cmdif_srv_isr(void)
 	struct   cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
 
 	cmd_id	= cmd_id_get();
-	/* Delete FDMA handle, now I can modify FD in WS */
-	fdma_store_default_frame_data();
-
 
 	if (cmd_id & CMD_ID_OPEN) {
 		/* TODO Add error scenarios !!!
@@ -372,7 +368,8 @@ void cmdif_srv_isr(void)
 		uint8_t  *data	 = cmd_data_get();
 
 		if (srv->instance_handle[auth_id]) {
-			/* TODO ask Mihal if I can pass ptr to WS for data */
+			/* TODO ask Michal if I can pass ptr to WS for data
+			 * User can ignore the ptr and use presentation context */
 			err = CTRL_CB(auth_id, cmd_id, size, data);
 			if (!(cmd_id & CMDIF_ASYNC_CMD)) {
 				sync_cmd_done(err, auth_id, srv);
