@@ -365,9 +365,8 @@
 	(uint32_t)((((uint32_t)_ws_address) << 16) | _size)
 
 	/** FDMA Close working frame segment command arg1 */
-#define FDMA_CLOSE_SEG_CMD_ARG1(_handles, _seg_handle)			\
-	(uint32_t)((_seg_handle << 24) |				\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
+#define FDMA_CLOSE_SEG_CMD_ARG1(_frame_handle, _seg_handle)		\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
 	(FDMA_REPLACE_SA_CLOSE_BIT) | FDMA_REPLACE_CMD)
 
 	/** FDMA Replace working frame segment command arg1 */

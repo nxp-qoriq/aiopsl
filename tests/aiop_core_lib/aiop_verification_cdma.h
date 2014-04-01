@@ -116,7 +116,7 @@ struct cdma_acquire_context_memory_command {
 		 * of the Context memory. */
 	int8_t  	status;
 			/**< Command returned status. */
-	uint8_t		pad2[4];
+	uint8_t		pad2[3];
 		/**< 64-bit alignment. */
 };
 

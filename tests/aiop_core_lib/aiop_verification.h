@@ -155,7 +155,8 @@ enum verif_modules_ids {
 	TERMINATE_FLOW_MODULE,
 	KEYGEN_MODULE,
 	IPSEC_MODULE,
-	WRITE_DATA_TO_WS_MODULE
+	WRITE_DATA_TO_WS_MODULE,
+	UPDATE_ASA_VARIABLE
 };
 
 /**************************************************************************//**
@@ -254,6 +255,23 @@ struct aiop_if_else_verif_command {
 	uint8_t cond;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	AIOP Update ASA Variable Command structure.
+
+		This command generates an update ASA variable command in the
+		verification process.
+
+*//***************************************************************************/
+struct update_asa_variable_command {
+		/** AIOP Verification Update ASA variable command structure
+		 * identifier. */
+	uint32_t opcode;
+		/** ASA offset to the changed variable. */
+	uint16_t asa_offset;
+		/** Value to be added to the changed variable. */
+	uint16_t value;
 };
 
 /**************************************************************************//**
