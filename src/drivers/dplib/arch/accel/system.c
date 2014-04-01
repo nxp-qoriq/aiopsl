@@ -7,11 +7,12 @@
 *//***************************************************************************/
 #include "system.h"
 #include "id_pool.h"
-#include "slab_stub.h" /* TODO remove when ARENA is included */
-/* TODO include the followings when ARENA will be included
+#ifdef AIOP_VERIF
+#include "slab_stub.h"
+#else
 #include "slab.h"
 #include "kernel/platform.h"
-*/
+#endif /* AIOP_VERIF */
 
 /* Global parameters*/
 uint64_t ext_prpid_pool_address;
@@ -24,7 +25,7 @@ int32_t sys_ctlu_prpid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+1), 2, 
+	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+1), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
 			&num_filled_buffs,&buffer_pool_id);
 	if (status < 0)
@@ -45,7 +46,7 @@ int32_t sys_ctlu_keyid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+1), 2, 
+	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+1), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
 			&num_filled_buffs,&buffer_pool_id);
 	if (status < 0)
