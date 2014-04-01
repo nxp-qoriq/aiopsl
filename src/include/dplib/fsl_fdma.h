@@ -2816,6 +2816,25 @@ int32_t fdma_delete_default_segment_data(
 int32_t fdma_close_default_segment(void);
 
 /**************************************************************************//**
+@Function	fdma_close_segment
+
+@Description	Closes a segment in the specified frame.
+		Free the workspace memory associated with the segment.
+		All segment modifications which were not written to the working
+		frame will be lost.
+
+@Param[in]	frame_handle - working frame from which to close the segment
+@Param[in]	seg_handle - The handle of the segment to be closed.
+
+@Return		Status (Success or Failure. (\ref
+		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+
+@Cautions	This command may be invoked only for Data segments.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
+
+/**************************************************************************//**
 @Function	fdma_replace_default_frame_asa_segment_data
 
 @Description	Replace modified data in the Accelerator Specific Annotation
