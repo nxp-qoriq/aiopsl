@@ -39,7 +39,7 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	ipr_global_parameters1.ipr_timeout_flags = (uint8_t)(flags>>16);
 	ipr_global_parameters1.ipr_instance_spin_lock = 0;
 	/* todo remove when MC will do this */
-	sys_ctlu_keyid_pool_create();
+	sys_keyid_pool_create();
 	/* todo for IPv6 */
 	keygen_kcr_builder_init(&kb);
 	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,\
@@ -484,10 +484,14 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			/* todo remove next line when simulator issue
 			 * is fixed */
 			((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc = frc;
+			
+			check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+			fdma_store_default_frame_data();
 
 			/* Write FD in external buffer */
 			ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
 									rfdc_ptr->next_index*FD_SIZE;
+			/* todo consider storing the frame for cases that FD changes */
 			cdma_write(ext_addr,
 				       (void *)HWC_FD_ADDRESS,
 				       FD_SIZE);
@@ -716,5 +720,38 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 	} else if (osm_status & START_CONCURRENT) {
 		osm_scope_transition_to_concurrent_with_increment_scope_id();
 	}
+}
+
+void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr)
+{
+	uint8_t			delta;
+	void 			*tail_frame_ptr;
+	struct fdma_present_segment_params params;
+	
+	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	ipv4hdr_ptr = (struct ipv4hdr *)
+		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+	
+	delta = (uint8_t)((uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 
+									(ipv4hdr_ptr->total_length+ipv4hdr_offset));
+
+	if(delta != 0) {
+		
+		params.flags = FDMA_PRES_SR_BIT;
+		params.frame_handle = (uint8_t) PRC_GET_FRAME_HANDLE();
+		params.offset = delta;
+		params.ws_dst = &tail_frame_ptr;
+		params.present_size = delta;
+/*		fdma_present_frame_segment(&params);
+		fdma_delete_segment_data(0,
+								 delta,
+								 FDMA_REPLACE_SA_CLOSE_BIT,
+								 (uint8_t) PRC_GET_FRAME_HANDLE(),
+								 params->seg_handle,
+								 tail_frame_ptr);
+*/
+		/* todo : take care of Eth CRC */
+	}
+	return;
 }
 

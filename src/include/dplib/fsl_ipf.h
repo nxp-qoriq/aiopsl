@@ -53,8 +53,7 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 #define IPF_NO_FLAGS			0x00000000
 /** Restore Original Fragments.
  * When set, fragmentation restores the original fragments of a reassembled
- * frame and ignores MTU.
- * Should not be set in case \ref IPF_SFV_QUERY returns the value 0. */
+ * frame and ignores MTU. */
 #define IPF_RESTORE_ORIGINAL_FRAGMENTS	0x00000001
 
 /** @} */ /* end of IPF_FLAGS */
@@ -74,31 +73,8 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 #define	IPF_GEN_FRAG_STATUS_IN_PROCESS	(IPF_MODULE_STATUS_ID | 0x1)
 /** Fragmentation not done due to Length > MTU but DF=1 */
 #define	IPF_GEN_FRAG_STATUS_DF_SET	(IPF_MODULE_STATUS_ID | 0x2)
-/** Restoration of original fragments can not be performed since SFV=0 */
-#define	IPF_GEN_FRAG_STATUS_SFV_CLEAR	(IPF_MODULE_STATUS_ID | 0x3)
 
 /** @} */ /* end of IPF_GENERATE_FRAG_STATUS */
-
-/**************************************************************************//**
-@Group	FSL_IPF_SFV_MACROS IPF SFV (Start Fragment Valid) bit macros
-
-@Description Macros for SFV bit
-
-@{
-*//***************************************************************************/
-/**SFV bit clear.
- * This macro should be used in case the application has modified the
- * reassembled frame thus restoration of the original fragments is not possible.
- * This includes: modifications of the header, changes of frame boundaries
- * (e.g. IPSec, GRO).  */
-#define IPF_SFV_CLEAR()  0 /*TODO maybe move to general.h ?*/
-/** SFV bit query. This macro returns the value of SFV bit.
- * In case the value of SFV is 0, the user should not ask for restoration of
- * original fragments.*/
-#define IPF_SFV_QUERY()	 1 /*TODO maybe move to general.h ?*/
-
-
-/** @} */ /* end of FSL_IPF_SFV_MACROS */
 
 /** @} */ /* end of IPF_MACROS */
 

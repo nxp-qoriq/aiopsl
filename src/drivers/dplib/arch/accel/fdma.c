@@ -1132,14 +1132,16 @@ int32_t fdma_insert_segment_data(
 				prc->seg_length = *((uint16_t *)
 							HWC_ACC_OUT_ADDRESS2);
 			}
-		} else if (params->seg_handle == PRC_GET_SEGMENT_HANDLE()) {
+		}
+
+		if (params->frame_handle == PRC_GET_FRAME_HANDLE())
 			/* FD fields should be updated with a swap load/store */
 			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
 					params->insert_size, 0);
 
-			if (params->flags & FDMA_REPLACE_SA_CLOSE_BIT)
-				PRC_SET_NDS_BIT();
-		}
+		if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
+			(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
+			PRC_SET_NDS_BIT();
 	}
 	return (int32_t)(res1);
 }
@@ -1199,6 +1201,68 @@ int32_t fdma_delete_default_segment_data(
 	return (int32_t)(res1);
 }
 
+int32_t fdma_delete_segment_data(
+		struct fdma_delete_segment_data_params *params)
+{
+	/* Presentation Context Pointer */
+	struct presentation_context *prc =
+			(struct presentation_context *) HWC_PRC_ADDRESS;
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	int8_t res1;
+
+	/* This command may be invoked only on Data segment */
+	if ((params->seg_handle == FDMA_ASA_SEG_HANDLE) ||
+	    (params->seg_handle == FDMA_PTA_SEG_HANDLE))
+		return FDMA_NO_DATA_SEGMENT_HANDLE;
+	/* prepare command parameters */
+	arg1 = FDMA_DELETE_CMD_ARG1(params->seg_handle, params->frame_handle,
+			params->flags);
+	arg2 = FDMA_REPLACE_CMD_ARG2(params->to_offset,
+			params->delete_target_size);
+	arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
+	if (params->flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+		arg4 = FDMA_REPLACE_CMD_ARG4(params->ws_dst_rs,
+				params->size_rs);
+	}
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	/* Update Task Defaults */
+	if (res1 >= FDMA_SUCCESS) {
+		if (params->flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+			params->seg_length_rs =
+					*((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+			if (params->seg_handle == PRC_GET_SEGMENT_HANDLE()) {
+				prc->seg_address =
+					(uint16_t)((uint32_t)params->ws_dst_rs);
+				prc->seg_length = *((uint16_t *)
+							HWC_ACC_OUT_ADDRESS2);
+			}
+		}
+
+		if (params->frame_handle == PRC_GET_FRAME_HANDLE()) {
+			/* FD fields should be updated with a swap load/store */
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
+					params->delete_target_size);
+
+			if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
+				(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
+				PRC_SET_NDS_BIT();
+		}
+
+	}
+	return (int32_t)(res1);
+}
+
+
 int32_t fdma_close_default_segment(void)
 {
 	/* command parameters and results */
@@ -1212,7 +1276,35 @@ int32_t fdma_close_default_segment(void)
 	    (seg_handle == FDMA_PTA_SEG_HANDLE))
 		return FDMA_NO_DATA_SEGMENT_HANDLE;
 	/* prepare command parameters */
-	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(PRC_GET_HANDLES(), seg_handle);
+	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(PRC_GET_FRAME_HANDLE(), seg_handle);
+	/* store command parameters */
+	__stdw(arg1, 0, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = 0;
+	/* call FDMA Accelerator */
+	/* Todo - Note to Hw/Compiler team:
+	__accel_call() should return success/fail indication */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		PRC_SET_NDS_BIT();
+
+	return (int32_t)(res1);
+}
+
+int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+
+	/* This command may be invoked only on Data segment */
+	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
+	    (seg_handle == FDMA_PTA_SEG_HANDLE))
+		return FDMA_NO_DATA_SEGMENT_HANDLE;
+	/* prepare command parameters */
+	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(frame_handle, seg_handle);
 	/* store command parameters */
 	__stdw(arg1, 0, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = 0;

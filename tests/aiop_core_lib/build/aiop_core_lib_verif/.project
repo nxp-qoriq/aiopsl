@@ -243,6 +243,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/main.c</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/slab_stub.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/slab_stub.c</locationURI>
+		</link>
+		<link>
+			<name>sources/Verification/slab_stub.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/slab_stub.h</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/verification_virtual_pools.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/verification_virtual_pools.c</locationURI>

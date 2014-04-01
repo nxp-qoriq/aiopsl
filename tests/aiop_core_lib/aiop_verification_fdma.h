@@ -50,6 +50,8 @@
 #define FDMA_REPLACE_PTA_CMD		0x00005019
 	/** FDMA explicit Insert working frame segment command code */
 #define FDMA_INSERT_EXP_DATA_CMD	0x00007019
+	/** FDMA Close working frame segment explicit command code */
+#define FDMA_CLOSE_SEG_EXP_CMD		0x00008019
 	/** FDMA Create Frame command code */
 #define FDMA_CREATE_FRAME_CMD		0x00000100
 	/** FDMA Create FD command code */
@@ -122,6 +124,9 @@
 /** FDMA Insert explicit working frame segment Command Structure identifier */
 #define FDMA_INSERT_EXP_DATA_CMD_STR ((FDMA_MODULE << 16) | 		\
 		FDMA_INSERT_EXP_DATA_CMD)
+	/** FDMA Delete working frame segment Command Structure identifier */
+#define FDMA_CLOSE_SEG_EXP_CMD_STR ((FDMA_MODULE << 16) | 		\
+		FDMA_CLOSE_SEG_EXP_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
@@ -1136,6 +1141,27 @@ struct fdma_close_segment_command {
 	int8_t	status;
 		/** 64-bit alignment. */
 	uint8_t	pad[3];
+};
+
+/**************************************************************************//**
+@Description	FDMA Close Working Frame Segment explicit Command structure.
+
+		Includes information needed for FDMA Close Working
+		Frame Segment explicit command verification.
+
+*//***************************************************************************/
+struct fdma_close_segment_exp_command {
+		/** FDMA Close Working Frame Segment explicit command structure
+		 * identifier. */
+	uint32_t opcode;
+		/** Frame handle holding the segment to be closed. */
+	uint8_t frame_handle;
+		/** Segment handle to be closed. */
+	uint8_t seg_handle;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**

@@ -180,31 +180,31 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 
 
 /* The following defines will be used to set the timeout timer tick size.*/
-/**< 1 uSec timeout timer ticks*/
+/** 1 uSec timeout timer ticks*/
 #define GRO_MODE_USEC_TO_GRANULARITY		0x00000000
-/**< 10 uSec timeout timer ticks*/
+/** 10 uSec timeout timer ticks*/
 #define GRO_MODE_10_USEC_TO_GRANULARITY		0x00010000
-/**< 100 uSec timeout timer ticks*/
+/** 100 uSec timeout timer ticks*/
 #define GRO_MODE_100_USEC_TO_GRANULARITY	0x00020000
-/**< 1 mSec timeout timer ticks*/
+/** 1 mSec timeout timer ticks*/
 #define GRO_MODE_MSEC_TO_GRANULARITY		0x00030000
-/**< 10 mSec timeout timer ticks*/
+/** 10 mSec timeout timer ticks*/
 #define GRO_MODE_10_MSEC_TO_GRANULARITY		0x00040000
-/**< 100 mSec timeout timer ticks*/
+/** 100 mSec timeout timer ticks*/
 #define GRO_MODE_100_MSEC_TO_GRANULARITY	0x00050000
-/**< 1 Sec timeout timer ticks*/
+/** 1 Sec timeout timer ticks*/
 #define GRO_MODE_SEC_TO_GRANULARITY		0x00060000
 
-/**< If set, timeout priority task is high. */
+/** If set, timeout priority task is high. */
 #define GRO_MODE_TPRI				0x00080000
 
-/* The following defines will be used to set the AIOP task priority
+/* The following definitions will be used to set the AIOP task priority
  * of the created timeout task.*/
-/**< Low priority AIOP task*/
+/** Low priority AIOP task*/
 #define GRO_MODE_LOW_PRIORITY_TASK		0x00000000
-/**< Middle priority AIOP task*/
+/** Middle priority AIOP task*/
 #define GRO_MODE_MID_PRIORITY_TASK		0x00100000
-/**< High priority AIOP task*/
+/** High priority AIOP task*/
 #define GRO_MODE_HIGH_PRIORITY_TASK		0x00200000
 
 /* @} end of group GRO_INTERNAL_TIMEOUT_FLAGS */
@@ -318,6 +318,8 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 #define TCP_GRO_TCP_TIMSTAMP_OPTION_KIND	8
 	/* IPV6 ECN_OFFSET */
 #define	TCP_GRO_IPV6_ECN_OFFSET			4
+	/* Timer Handle Mask in TIMER FD */
+#define TIMER_HANDLE_MASK			0x00FFFFFF
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
@@ -361,6 +363,8 @@ void gro_init(uint32_t timeout_flags);
 
 @Description	Add segment to an existing aggregation.
 
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context.
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	gro_ctx - Pointer to the internal GRO context.
 
@@ -371,6 +375,7 @@ void gro_init(uint32_t timeout_flags);
 @Cautions	None.
 *//***************************************************************************/
 int32_t tcp_gro_add_seg_to_aggregation(
+		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);
 
@@ -396,6 +401,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 @Description	Close an existing aggregation and start a new aggregation with
 		the new segment.
 
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context.
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	gro_ctx - Pointer to the internal GRO context.
 
@@ -406,6 +413,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 @Cautions	None.
 *//***************************************************************************/
 int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);
 
@@ -422,7 +430,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 @Cautions	None.
 *//***************************************************************************/
 void tcp_gro_timeout_callback(
-		uint64_t tcp_gro_context_addr);
+		uint64_t tcp_gro_context_addr,
+		uint16_t opaque2);
 
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_data_cksum

@@ -1,7 +1,7 @@
 /**************************************************************************//**
  Copyright 2013 Freescale Semiconductor, Inc.
 
- @File          fsl_ldpaa.h
+ @File          fsl_ldpaa_aiop.h
 
  @Description   This file contains LDPAA general definitions.
  *//***************************************************************************/
@@ -321,7 +321,8 @@
 #define LDPAA_FD_SET_FRC(_fd, _val)					\
 	STW_SWAP(_val, ((char *)_fd) + FD_FRC_OFFSET);
 	/** Macro to set FD ERR field */
-#define LDPAA_FD_SET_ERR(_fd, _val)
+#define LDPAA_FD_SET_ERR(_fd, _val)                                     \
+	*((uint8_t *) (((char *)_fd) + FD_ERR_OFFSET)) = (uint8_t)_val
 	/** Macro to set FD VA field */
 #define LDPAA_FD_SET_VA(_fd, _val)
 	/** Macro to set FD ASAL field */
