@@ -101,7 +101,7 @@ int32_t tcp_gro_aggregate_seg(
 	/* Flush Aggregation */
 	if ((tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)	||
 		(params->limits.seg_num_limit <= 1)	||
-		(params->limits.packet_size_limit >= seg_size)) {
+		(params->limits.packet_size_limit <= seg_size)) {
 		/* write metadata to external memory */
 		sr_status = cdma_write((params->metadata +
 				METADATA_MEMBER1_SIZE),
