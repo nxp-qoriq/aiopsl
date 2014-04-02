@@ -100,60 +100,33 @@ int32_t tcp_gro_aggregate_seg(
 
 	/* Flush Aggregation */
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) {
-		/* write metadata to external memory */
-		sr_status = cdma_write((params->metadata +
-				METADATA_MEMBER1_SIZE),
-				&(gro_ctx.metadata.seg_num),
-				(uint16_t)(METADATA_MEMBER2_SIZE +
-					METADATA_MEMBER3_SIZE));
-		/* release the mutex */
-		sr_status = cdma_mutex_lock_release(tcp_gro_context_addr);
 		/* update statistics */
-		ste_inc_and_acc_counters(params->stats_addr +
+		/*ste_inc_and_acc_counters(params->stats_addr +
 				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
 				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
 				STE_MODE_COMPOUND_CNTR_SATURATE |
-				STE_MODE_COMPOUND_ACC_SATURATE);
-		return TCP_GRO_SEG_AGG_DONE_NEW_AGG;
+				STE_MODE_COMPOUND_ACC_SATURATE);*/
+		return TCP_GRO_SEG_AGG_DONE;
 	}
-
 	if (params->limits.seg_num_limit <= 1) {
-		/* write metadata to external memory */
-		sr_status = cdma_write((params->metadata +
-				METADATA_MEMBER1_SIZE),
-				&(gro_ctx.metadata.seg_num),
-				(uint16_t)(METADATA_MEMBER2_SIZE +
-					METADATA_MEMBER3_SIZE));
-		/* release the mutex */
-		sr_status = cdma_mutex_lock_release(tcp_gro_context_addr);
-		/* update statistics */
-		ste_inc_and_acc_counters(params->stats_addr +
+		/*ste_inc_and_acc_counters(params->stats_addr +
 				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
 				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
 				STE_MODE_COMPOUND_CNTR_SATURATE |
-				STE_MODE_COMPOUND_ACC_SATURATE);
-		return TCP_GRO_SEG_AGG_DONE_NEW_AGG;
+				STE_MODE_COMPOUND_ACC_SATURATE);*/
+		return TCP_GRO_SEG_AGG_DONE;
 	}
-
 	if (params->limits.packet_size_limit <= seg_size) {
-		/* write metadata to external memory */
-		sr_status = cdma_write((params->metadata +
-				METADATA_MEMBER1_SIZE),
-				&(gro_ctx.metadata.seg_num),
-				(uint16_t)(METADATA_MEMBER2_SIZE +
-					METADATA_MEMBER3_SIZE));
-		/* release the mutex */
-		sr_status = cdma_mutex_lock_release(tcp_gro_context_addr);
 		/* update statistics */
-		ste_inc_and_acc_counters(params->stats_addr +
+		/*ste_inc_and_acc_counters(params->stats_addr +
 				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
 				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
 				STE_MODE_COMPOUND_CNTR_SATURATE |
-				STE_MODE_COMPOUND_ACC_SATURATE);
-		return TCP_GRO_SEG_AGG_DONE_NEW_AGG;
+				STE_MODE_COMPOUND_ACC_SATURATE);*/
+		return TCP_GRO_SEG_AGG_DONE;
 	}
 
 	/* Aggregate */
