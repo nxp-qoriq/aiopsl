@@ -936,7 +936,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 @Cautions	Not available for MFLU table accelerator.
 		This function should only be called if the table was defined
-		with a miss entry (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
+		with a miss result (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
 		In this function the task yields.
 *//***************************************************************************/
@@ -982,6 +982,9 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
 @Cautions	Not available for MFLU table accelerator.
+		This function should only be called if the table was defined
+		with a miss result (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
+		table attributes).
 		NOTE: If the result is of type that contains pointer to
 		Slab/CDMA buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
