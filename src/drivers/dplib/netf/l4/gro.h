@@ -258,15 +258,15 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 	/** A segment has started a new aggregation and the aggregation has
 	 * completed. */
 #define	TCP_GRO_SEG_AGG_DONE_NEW_AGG				\
-		(TCP_GRO_SEG_AGG_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+		(TCP_GRO_SEG_AGG_DONE | TCP_GRO_METADATA_USED)
 	/** A segment has started a new aggregation and the aggregation is not
 	 * completed. */
 #define	TCP_GRO_SEG_AGG_NOT_DONE_NEW_AGG			\
-		(TCP_GRO_SEG_AGG_NOT_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+		(TCP_GRO_SEG_AGG_NOT_DONE | TCP_GRO_METADATA_USED)
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG			\
-	(TCP_GRO_SEG_AGG_DONE_AGG_OPEN | TCP_GRO_SEG_AGG_NEW_AGG)
+	(TCP_GRO_SEG_AGG_DONE_AGG_OPEN | TCP_GRO_METADATA_USED)
 
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_INTERNAL_STATUS */
