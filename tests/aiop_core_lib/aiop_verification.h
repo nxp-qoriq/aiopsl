@@ -209,7 +209,7 @@ struct aiop_if_verif_command {
 		 * the compared_variable_addr. */
 	int32_t compared_value;
 		/** Workspace address of the compared task variable. */
-	uint32_t compared_variable_addr;
+	uint16_t compared_variable_addr;
 		/** An offset from the beginning of the commands buffer to the
 		 * command to be executed in case of a TRUE result in the IF
 		 * statement. */
@@ -221,7 +221,7 @@ struct aiop_if_verif_command {
 		* Please see \ref cond_ids for more details. */
 	uint8_t cond;
 		/** 64-bit alignment. */
-	uint8_t	pad[1];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -239,7 +239,7 @@ struct aiop_if_else_verif_command {
 		 * the compared_variable_addr. */
 	int32_t compared_value;
 		/** Workspace address of the compared task variable. */
-	uint32_t compared_variable_addr;
+	uint16_t compared_variable_addr;
 		/** An offset from the beginning of the commands buffer to the
 		 * command to be executed in case of a TRUE result in the IF
 		 * statement. */
@@ -254,7 +254,7 @@ struct aiop_if_else_verif_command {
 		/** Condition to be checked in the if statement. */
 	uint8_t cond;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
@@ -319,7 +319,7 @@ void aiop_verification_fm();
 void aiop_verification_fm_temp();
 void aiop_verif_init_parser();
 uint32_t if_statement_result(
-		uint32_t compared_variable_addr,
+		uint16_t compared_variable_addr,
 		int32_t compared_value,
 		uint8_t cond);
 

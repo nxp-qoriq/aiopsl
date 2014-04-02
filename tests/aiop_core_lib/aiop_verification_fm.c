@@ -277,7 +277,7 @@ void aiop_verif_init_parser()
 }
 
 uint32_t if_statement_result(
-		uint32_t compared_variable_addr,
+		uint16_t compared_variable_addr,
 		int32_t compared_value,
 		uint8_t cond)
 {
