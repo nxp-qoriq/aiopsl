@@ -7,7 +7,6 @@
 #define CMD_ID_OFF	   16
 #define CMD_ID_OPEN        0x8000
 #define CMD_ID_CLOSE       0x4000
-#define CMD_AUTH_ID_MASK   0x0000FFFF
 
 #define M_NUM_OF_INSTANCES    1000
 #define M_NUM_OF_MODULES      64
