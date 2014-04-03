@@ -17,12 +17,11 @@
 #include "ip.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
-
+extern __TASK uint64_t random_64bit;
 
 int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
-/*	struct fdma_present_frame_params present_rem_frame_params;*/
 
 	status = fdma_store_default_frame_data();
 	if (status)
@@ -31,15 +30,6 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	ipf_ctx->rem_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 
 	/* Present the remaining FD */
-/*
-	present_rem_frame_params.flags = FDMA_INIT_NDS_BIT;
-	present_rem_frame_params.asa_size = 0;
-	present_rem_frame_params.fd_src = &(ipf_ctx->rem_fd);
-	present_rem_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS;
-	status = fdma_present_frame(&present_rem_frame_params);
-	ipf_ctx->rem_frame_handle = present_rem_frame_params.frame_handle;
-*/
-	
 	status = fdma_present_frame_without_segments(&(ipf_ctx->rem_fd),
 						&(ipf_ctx->rem_frame_handle));
 
@@ -199,12 +189,13 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 
 			/* Build IPv6 fragment header */
 
+			update_random_64bit();
+
 			ipv6_frag_hdr->next_header = orig_next_header;
 			ipv6_frag_hdr->reserved = 0;
 			ipv6_frag_hdr->fragment_offset_flags =
 						IPV6_HDR_M_FLAG_MASK;
-			ipv6_frag_hdr->id = 0x12345678; /*TODO remove! */ 
-			/* ipv6_frag_hdr->id = aiop_get_id(); TODO */
+			ipv6_frag_hdr->id = (uint32_t)random_64bit; 
 
 			/* replace ip payload length, replace next header,
 			 * insert IPv6 fragment header
