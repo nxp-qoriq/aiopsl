@@ -279,7 +279,8 @@ int32_t tcp_gro_add_seg_to_aggregation(
 
 	/* present aggregated frame */
 	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
-		0, 0, (uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
+			FDMA_PRES_NO_FLAGS, 0,
+			(uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
 	/* concatenate frames and store aggregated packet */
 	concat_params.frame2 = (uint16_t)PRC_GET_FRAME_HANDLE();
 	concat_params.trim = (uint8_t)headers_size;
@@ -344,7 +345,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 
 	/* present aggregated frame */
 	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
-		0, 0, (uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
+			FDMA_PRES_NO_FLAGS, 0,
+			(uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
 
 	/* concatenate frames and store aggregated packet */
 	data_offset = (tcp->data_offset_reserved &
