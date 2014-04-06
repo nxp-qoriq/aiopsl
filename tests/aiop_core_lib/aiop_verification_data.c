@@ -40,6 +40,7 @@ void init_verif()
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	if (!verif_prpid_valid){
+		aiop_sl_init();
 		aiop_verif_init_parser();
 		/* This is a temporary function and has to be used only until
 				* the ARENA will initialize the profile sram */
