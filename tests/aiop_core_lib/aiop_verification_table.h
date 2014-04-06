@@ -138,6 +138,9 @@ struct table_create_command {
 		verification.
 *//***************************************************************************/
 struct table_replace_miss_result_command {
+	/** CTLU Update Miss Rule Command identifier */
+	uint32_t opcode;
+
 	/** Miss Rule to update.
 	The structure to be passed must be one of the following:
 	 - \ref aiop_ctlu_result_chaining
@@ -147,9 +150,6 @@ struct table_replace_miss_result_command {
 
 	/** The old miss result */
 	struct table_result old_miss_result;
-
-	/** CTLU Update Miss Rule Command identifier */
-	uint32_t opcode;
 
 	/** Command returned status. */
 	int32_t  status;
@@ -267,11 +267,11 @@ struct table_rule_create_command{
 		Create or Replace/ Replace command verification.
 *//***************************************************************************/
 struct table_rule_create_replace_command{
-	/** Rule's old result - valid only if replace occurred */
-	struct table_result old_res;
-
 	/** CTLU Table Rule Create identifier */
 	uint32_t opcode;
+
+	/** Rule's old result - valid only if replace occurred */
+	struct table_result old_res;
 
 	/** A pointer to the rule to be added (workspace pointer)*/
 	uint32_t rule_ptr;
@@ -297,11 +297,11 @@ struct table_rule_create_replace_command{
 		command verification.
 *//***************************************************************************/
 struct table_rule_delete_command{
-	/** Rule's old result */
-	struct table_result old_res;
-
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
+
+	/** Rule's old result */
+	struct table_result old_res;
 
 	/** Input Key Descriptor pointer to the workspace */
 	uint32_t key_desc_ptr;
@@ -327,11 +327,11 @@ struct table_rule_delete_command{
 		command verification.
 *//***************************************************************************/
 struct table_rule_query_command{
-	/** The structure returned to the caller upon a successful Query */
-	struct table_result result;
-
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
+
+	/** The structure returned to the caller upon a successful Query */
+	struct table_result result;
 
 	/** Input Key Descriptor pointer to the workspace */
 	uint32_t key_desc_ptr;

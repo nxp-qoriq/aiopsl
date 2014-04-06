@@ -121,6 +121,7 @@ void aiop_verification_fm_temp()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
+					str->compared_variable_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE)
@@ -146,6 +147,7 @@ void aiop_verification_fm_temp()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
+					str->compared_variable_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE)

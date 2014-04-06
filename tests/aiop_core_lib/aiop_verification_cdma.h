@@ -106,7 +106,7 @@ struct cdma_acquire_context_memory_command {
 		/**< CDMA cdma_acquire_context_memory Command Structure identifier. */
 	uint16_t	pool_id;
 		/**< BMan pool ID used for the Acquire Context Memory. */
-	uint8_t		pad1[2];
+	uint8_t		pad1[6];
 		/**< 64-bit alignment. */
 	uint32_t 	context_memory;
 		/**< An address to the Workspace where to return
@@ -116,7 +116,7 @@ struct cdma_acquire_context_memory_command {
 		 * of the Context memory. */
 	int8_t  	status;
 			/**< Command returned status. */
-	uint8_t		pad2[4];
+	uint8_t		pad2[7];
 		/**< 64-bit alignment. */
 };
 

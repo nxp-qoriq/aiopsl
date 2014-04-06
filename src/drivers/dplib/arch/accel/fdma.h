@@ -165,7 +165,8 @@
 
 	/** FDMA Initial presentation command arg1 */
 #define FDMA_INIT_CMD_ARG1(_fd_addr, _flags)				\
-	(uint32_t)((_fd_addr << 16) | _flags | FDMA_INIT_CMD)
+	(uint32_t)((_fd_addr << 16) |					\
+	(_flags & ~FDMA_INIT_BDI_BIT) | FDMA_INIT_CMD)
 
 	/** FDMA Initial presentation command arg2 */
 #define FDMA_INIT_CMD_ARG2(_seg_address, _seg_offset)			\
@@ -352,6 +353,12 @@
 	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
 	(_flags) | FDMA_REPLACE_CMD)
 
+/** FDMA Delete segment command arg1 */
+#define FDMA_DELETE_CMD_ARG1(_seg_handle, _frame_handle, _flags)	\
+	(uint32_t)((_seg_handle << 24) |		\
+	(_frame_handle << 16) |				\
+	(_flags) | FDMA_REPLACE_CMD)
+
 	/** FDMA Replace working frame segment command arg2 */
 #define FDMA_REPLACE_CMD_ARG2(_offset, _replace_target_size)		\
 	(uint32_t)((_offset << 16) | _replace_target_size)
@@ -365,9 +372,8 @@
 	(uint32_t)((((uint32_t)_ws_address) << 16) | _size)
 
 	/** FDMA Close working frame segment command arg1 */
-#define FDMA_CLOSE_SEG_CMD_ARG1(_handles, _seg_handle)			\
-	(uint32_t)((_seg_handle << 24) |				\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
+#define FDMA_CLOSE_SEG_CMD_ARG1(_frame_handle, _seg_handle)		\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
 	(FDMA_REPLACE_SA_CLOSE_BIT) | FDMA_REPLACE_CMD)
 
 	/** FDMA Replace working frame segment command arg1 */
@@ -614,6 +620,9 @@ int32_t fdma_present_default_frame_without_segments(void);
 
 @Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
 		to present.
+@Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
+@Param[in]	icid - Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		Used only in case \ref FDMA_INIT_AS_BIT is set.
 @Param[out]	frame_handle - A handle to the opened working frame.
 
 @Return		Status - Success or Failure (e.g. DMA error. (\ref
@@ -623,6 +632,8 @@ int32_t fdma_present_default_frame_without_segments(void);
 *//***************************************************************************/
 int32_t fdma_present_frame_without_segments(
 		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint16_t icid,
 		uint8_t *frame_handle);
 
 /**************************************************************************//**
