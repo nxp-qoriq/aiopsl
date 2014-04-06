@@ -568,6 +568,8 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	/* Open 2nd frame and get frame handle */
 	fdma_present_frame_without_segments(
 		   fds_to_concatenate+1,
+		   FDMA_INIT_NO_FLAGS,
+		   0,
 		   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));
 
 	if (0)/* SF_MODE */
@@ -591,6 +593,8 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		/* Open frame and get frame handle */
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
+				FDMA_INIT_NO_FLAGS,
+				0,
 				(uint8_t *)(&(concatenate_params.frame2)) +
 				sizeof(uint8_t));
 
@@ -602,6 +606,8 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		/* Open frame and get frame handle */
 		fdma_present_frame_without_segments(
 				fds_to_concatenate+1,
+				FDMA_INIT_NO_FLAGS,
+				0,
 				(uint8_t *)(&(concatenate_params.frame2)) +
 				sizeof(uint8_t));
 
@@ -622,6 +628,8 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
+				FDMA_INIT_NO_FLAGS,
+				0,
 				(uint8_t *)(&(concatenate_params.frame2)) +
 				sizeof(uint8_t));
 
