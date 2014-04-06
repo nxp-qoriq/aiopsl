@@ -83,10 +83,10 @@ void init_profile_sram()
 				mode_bits1_ASAR);
 		profile_sram1.mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
 				mode_bits2_VA | mode_bits2_DLC);
-		/* buffer size is 1024 bit, so PBS should be 2.
-		 * 0x0081 --> 0x8100 (little endian) */
-		/*profile_sram1.pbs1 = 0x8100;  */
-		profile_sram1.pbs1 = 0x0081;
+		/* buffer size is 1024 bytes, so PBS should be 16 (0x10).
+		 * 0x0401 --> 0x0104 (little endian) */
+		/*profile_sram1.pbs1 = 0x0104;  */
+		profile_sram1.pbs1 = 0x0401;
 		/* BPID=0 */
 		profile_sram1.bpid1 = 0x0000;
 		/* buffer size is 1024 bit, so PBS should be 2.
