@@ -168,7 +168,7 @@ enum verif_modules_ids {
 *//***************************************************************************/
 enum cond_ids {
 		/** Equal condition. */
-	COND_EQUAL,
+	COND_EQUAL = 0,
 		/** Non Equal condition. */
 	COND_NON_EQUAL
 };
@@ -182,7 +182,7 @@ enum cond_ids {
 *//***************************************************************************/
 enum compared_variable_ids {
 		/** Compare GRO last status. */
-	COMPARE_GRO_STATUS,
+	COMPARE_GRO_STATUS = 0,
 		/** Compare GSO last status. */
 	COMPARE_GSO_STATUS,
 		/** Compare IPR last status. */

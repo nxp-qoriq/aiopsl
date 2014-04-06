@@ -165,7 +165,8 @@
 
 	/** FDMA Initial presentation command arg1 */
 #define FDMA_INIT_CMD_ARG1(_fd_addr, _flags)				\
-	(uint32_t)((_fd_addr << 16) | _flags | FDMA_INIT_CMD)
+	(uint32_t)((_fd_addr << 16) |					\
+	(_flags & ~FDMA_INIT_BDI_BIT) | FDMA_INIT_CMD)
 
 	/** FDMA Initial presentation command arg2 */
 #define FDMA_INIT_CMD_ARG2(_seg_address, _seg_offset)			\
@@ -619,6 +620,9 @@ int32_t fdma_present_default_frame_without_segments(void);
 
 @Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
 		to present.
+@Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
+@Param[in]	icid - Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		Used only in case \ref FDMA_INIT_AS_BIT is set.
 @Param[out]	frame_handle - A handle to the opened working frame.
 
 @Return		Status - Success or Failure (e.g. DMA error. (\ref
@@ -628,6 +632,8 @@ int32_t fdma_present_default_frame_without_segments(void);
 *//***************************************************************************/
 int32_t fdma_present_frame_without_segments(
 		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint16_t icid,
 		uint8_t *frame_handle);
 
 /**************************************************************************//**
