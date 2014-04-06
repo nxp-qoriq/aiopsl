@@ -164,6 +164,7 @@ void aiop_verification_fm()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
+					str->compared_variable_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE) {
@@ -188,6 +189,7 @@ void aiop_verification_fm()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
+					str->compared_variable_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE) {
@@ -278,44 +280,42 @@ void aiop_verif_init_parser()
 
 uint32_t if_statement_result(
 		uint16_t compared_variable_addr,
-		int32_t compared_value,
+		enum compared_variable_size size,
+		int64_t compared_value,
 		uint8_t cond)
 {
 	uint8_t if_result;
-	int32_t compared_variable;
+	int64_t compared_variable;
 
-	compared_variable = *((int32_t *)compared_variable_addr);
-	/*switch (compared_variable_id){
-	case COMPARE_GRO_STATUS:
+	switch (size) {
+	case COMPARE_1BYTE:
 	{
-		compared_variable = status_gro;
+		compared_variable =
+			(int64_t)(*((int8_t *)compared_variable_addr));
 		break;
 	}
-	case COMPARE_GSO_STATUS:
+	case COMPARE_2BYTE:
 	{
-		compared_variable = status_gso;
+		compared_variable =
+			(int64_t)(*((int16_t *)compared_variable_addr));
 		break;
 	}
-	case COMPARE_IPR_STATUS:
+	case COMPARE_4BYTE:
 	{
-		compared_variable = status_ipr;
+		compared_variable =
+			(int64_t)(*((int32_t *)compared_variable_addr));
 		break;
 	}
-	case COMPARE_IPF_STATUS:
+	case COMPARE_8BYTE:
 	{
-		compared_variable = status_ipf;
-		break;
-	}
-	case COMPARE_LAST_STATUS:
-	{
-		compared_variable = status;
+		compared_variable = *((int64_t *)compared_variable_addr);
 		break;
 	}
 	default:
 	{
-		return AIOP_TERMINATE_FLOW_CMD;
+		return TERMINATE_FLOW_MODULE;
 	}
-	}*/
+	}
 
 	switch (cond) {
 	case COND_EQUAL:

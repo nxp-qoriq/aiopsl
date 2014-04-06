@@ -193,6 +193,24 @@ enum compared_variable_ids {
 	COMPARE_LAST_STATUS
 };
 
+/**************************************************************************//**
+ @enum compared_variable_size
+
+ @Description	AIOP verification enumeration of the compared variable sizes.
+
+ @{
+*//***************************************************************************/
+enum compared_variable_size {
+		/** Compare 1 byte. */
+	COMPARE_1BYTE,
+		/** Compare 2 byte. */
+	COMPARE_2BYTE,
+		/** Compare 4 byte. */
+	COMPARE_4BYTE,
+		/** Compare 8 byte. */
+	COMPARE_8BYTE
+};
+
 
 /**************************************************************************//**
 @Description	AIOP IF Verification Command structure.
@@ -204,10 +222,12 @@ enum compared_variable_ids {
 struct aiop_if_verif_command {
 		/** AIOP Verification IF command structure identifier. */
 	uint32_t opcode;
+		/** Size of the compared task variable. */
+	enum compared_variable_size compared_variable_size;
 		/** Compared value.
 		 * This value will be compared to a variable chosen according to
 		 * the compared_variable_addr. */
-	int32_t compared_value;
+	int64_t compared_value;
 		/** Workspace address of the compared task variable. */
 	uint16_t compared_variable_addr;
 		/** An offset from the beginning of the commands buffer to the
@@ -234,10 +254,12 @@ struct aiop_if_verif_command {
 struct aiop_if_else_verif_command {
 		/** AIOP Verification IF command structure identifier. */
 	uint32_t opcode;
+		/** Size of the compared task variable. */
+	enum compared_variable_size compared_variable_size;
 		/** Compared value.
 		 * This value will be compared to a variable chosen according to
 		 * the compared_variable_addr. */
-	int32_t compared_value;
+	int64_t compared_value;
 		/** Workspace address of the compared task variable. */
 	uint16_t compared_variable_addr;
 		/** An offset from the beginning of the commands buffer to the
@@ -320,7 +342,8 @@ void aiop_verification_fm_temp();
 void aiop_verif_init_parser();
 uint32_t if_statement_result(
 		uint16_t compared_variable_addr,
-		int32_t compared_value,
+		enum compared_variable_size size,
+		int64_t compared_value,
 		uint8_t cond);
 
 
