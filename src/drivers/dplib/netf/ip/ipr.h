@@ -239,8 +239,8 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr);
 
-uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-						  uint8_t num_of_frags);
+uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
+
 uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr);
 
