@@ -15,6 +15,7 @@
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
 extern int slab_module_init(void);  extern void slab_module_free(void);
+extern int aiop_sl_init(void);      extern void aiop_sl_free(void);
 
 /* TODO: move to hdr file */
 extern int dpni_drv_probe(struct dprc	*dprc,
@@ -42,6 +43,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {slab_module_init,  slab_module_free}, \
     {cmdif_srv_init,    cmdif_srv_free},   \
     {dpni_drv_init,     dpni_drv_free},    \
+    {aiop_sl_init,      aiop_sl_free},     \
     {NULL, NULL} /* never remove! */       \
 }
 
