@@ -99,35 +99,10 @@ int32_t tcp_gro_aggregate_seg(
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 
 	/* Flush Aggregation */
-	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) {
-		/* update statistics */
-		/*ste_inc_and_acc_counters(params->stats_addr +
-				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
-				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
-				STE_MODE_COMPOUND_CNTR_SATURATE |
-				STE_MODE_COMPOUND_ACC_SATURATE);*/
+	if ((tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) ||
+	    (params->limits.seg_num_limit <= 1)	||
+	    (params->limits.packet_size_limit <= seg_size))
 		return TCP_GRO_SEG_AGG_DONE;
-	}
-	if (params->limits.seg_num_limit <= 1) {
-		/*ste_inc_and_acc_counters(params->stats_addr +
-				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
-				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
-				STE_MODE_COMPOUND_CNTR_SATURATE |
-				STE_MODE_COMPOUND_ACC_SATURATE);*/
-		return TCP_GRO_SEG_AGG_DONE;
-	}
-	if (params->limits.packet_size_limit <= seg_size) {
-		/* update statistics */
-		/*ste_inc_and_acc_counters(params->stats_addr +
-				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
-				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
-				STE_MODE_COMPOUND_CNTR_SATURATE |
-				STE_MODE_COMPOUND_ACC_SATURATE);*/
-		return TCP_GRO_SEG_AGG_DONE;
-	}
 
 	/* Aggregate */
 	/* create timer for the aggregation */
