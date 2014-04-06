@@ -437,9 +437,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	struct link_list_element	current_element;
 	struct	parse_result	*pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
-	/* todo remove next line */
-	uint32_t frc;
-
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -451,6 +448,24 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	ip_header_size = (uint16_t)
 			((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
 	current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
+	
+	if (frag_offset != 0) {
+		/* Not first frag */
+		/* Save header to be removed in FD[FRC] */
+		((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc =
+	     (uint32_t) (PARSER_GET_OUTER_IP_OFFSET_DEFAULT() +
+				  ip_header_size);
+
+		/* Add current frag's running sum for
+		 * L4 checksum check */
+		rfdc_ptr->current_running_sum =
+								cksum_ones_complement_sum16(
+										  rfdc_ptr->current_running_sum,
+										  pr->running_sum);
+	} else {
+	/* Set 1rst frag's running sum for L4 checksum check */
+		rfdc_ptr->current_running_sum = pr->gross_running_sum;
+	}
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {
 		/* In order handling */
@@ -458,33 +473,9 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 			rfdc_ptr->num_of_frags++;
 			rfdc_ptr->current_total_length += current_frag_size;
-			if (frag_offset != 0) {
-				/* Not first frag */
-				/* Save header to be removed in FD[FRC] */
-				((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc =
-			     (uint32_t) (PARSER_GET_OUTER_IP_OFFSET_DEFAULT() +
-						  ip_header_size);
-				/* todo remove next line when simulator issue
-				 * is fixed */
-				frc = ((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc;
-
-				/* Add current frag's running sum for
-				 * L4 checksum check */
-				rfdc_ptr->current_running_sum =
-										cksum_ones_complement_sum16(
-												  rfdc_ptr->current_running_sum,
-												  pr->running_sum);
-			} else {
-			/* Set 1rst frag's running sum for L4 checksum check */
-				rfdc_ptr->current_running_sum = pr->gross_running_sum;
-			}
 
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data();
-
-			/* todo remove next line when simulator issue
-			 * is fixed */
-			((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc = frc;
 			
 			check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
 			fdma_store_default_frame_data();
