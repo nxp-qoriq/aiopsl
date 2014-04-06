@@ -364,7 +364,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				       RFDC_SIZE);
 		return IPR_REASSEMBLY_NOT_COMPLETED;
 	case LAST_FRAG_IN_ORDER:
-		closing_in_order(&rfdc, rfdc_ext_addr,rfdc.num_of_frags);
+		closing_in_order(rfdc_ext_addr,rfdc.num_of_frags);
 		break;
 	case LAST_FRAG_OUT_OF_ORDER:
 		closing_with_reordering(&rfdc, rfdc_ext_addr);
@@ -541,8 +541,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	return SUCCESS;
 }
 
-uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-						  uint8_t num_of_frags)
+uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 {
 	struct		ldpaa_fd fds_to_concatenate[2] \
 			     __attribute__((aligned(sizeof(struct ldpaa_fd))));
@@ -558,7 +557,7 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	fds_to_fetch_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE;
 	cdma_read((void *)fds_to_concatenate,
 			  fds_to_fetch_addr,
-			  64);
+			  FD_SIZE*2);
 	/* Copy 1rst FD to default frame FD's place */
 	*((struct ldpaa_fd *)(HWC_FD_ADDRESS)) = fds_to_concatenate[0];
 
@@ -572,18 +571,14 @@ uint32_t closing_in_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		   0,
 		   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));
 
-	if (0)/* SF_MODE */
-		concatenate_params.flags = FDMA_CONCAT_SF_BIT;
-	else
-		concatenate_params.flags = FDMA_CONCAT_NO_FLAGS;
-
-	concatenate_params.spid = *((uint8_t *) HWC_SPID_ADDRESS);
+	concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
+	concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
 	concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 	/* Take header size to be removed from 2nd FD[FRC] */
-	concatenate_params.trim = (uint8_t)fds_to_concatenate[1].frc;
+	concatenate_params.trim   = (uint8_t)fds_to_concatenate[1].frc;
 
 	fdma_concatenate_frames(&concatenate_params);
-//	num_of_frags = rfdc_ptr->num_of_frags - 2;
+	num_of_frags -= 2;
 	while (num_of_frags >= 2) {
 		/* Bring into workspace 2 FDs to be concatenated */
 		fds_to_fetch_addr += 2*FD_SIZE;
@@ -718,13 +713,11 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 {
 	uint8_t						num_of_frags;
 	uint8_t						current_index;
-	uint8_t						first_index;
 	uint8_t						octet_index;
 	uint64_t					temp_ext_addr;
 	struct link_list_element	link_list[8];
 	struct						ldpaa_fd fds_to_concatenate[2] \
 			     	 	 	 __attribute__((aligned(sizeof(struct ldpaa_fd))));
-	uint64_t					fds_to_fetch_addr;
 	struct					  fdma_concatenate_frames_params concatenate_params;
 	struct						parse_result *pr =
 				   	   	   	   	   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -732,26 +725,102 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 								(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	
-	current_index = rfdc_ptr->num_of_frags;
-
 	if(rfdc_ptr->status & ORDER_AND_OOO) {
 		num_of_frags = rfdc_ptr->index_to_out_of_order;
 		if(num_of_frags > 1) {
-			closing_in_order(rfdc_ptr,rfdc_ext_addr,num_of_frags);
-			num_of_frags = current_index - num_of_frags;
+			closing_in_order(rfdc_ext_addr,num_of_frags);
+			current_index = num_of_frags;
+			num_of_frags = rfdc_ptr->num_of_frags - num_of_frags;
 		}
+	} else {
+		num_of_frags  = rfdc_ptr->num_of_frags;
+		current_index = rfdc_ptr->first_frag_index;
 	}
+	
 	/* Bring 8 elements of LL */
-	first_index = rfdc_ptr->first_frag_index;
-	octet_index = first_index >> 3;
+	octet_index = current_index >> 3;
 	temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
 					octet_index * LINK_LIST_ELEMENT_SIZE;
 	cdma_read(link_list,
 			  temp_ext_addr,
 			  8*LINK_LIST_ELEMENT_SIZE);
-//	cdma_read();
-//	link_list[first_index&OCTET_LINK_LIST_MASK].next_index
+	temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
+					current_index * LINK_LIST_ELEMENT_SIZE;
+	cdma_read(fds_to_concatenate,
+			  temp_ext_addr,
+			  FD_SIZE);
+	current_index = link_list[current_index&OCTET_LINK_LIST_MASK].next_index;
+	temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
+					current_index * LINK_LIST_ELEMENT_SIZE;
+	cdma_read(fds_to_concatenate+1,
+			  temp_ext_addr,
+			  FD_SIZE);
+	/* Copy 1rst FD to default frame FD's place */
+	*((struct ldpaa_fd *)(HWC_FD_ADDRESS)) = fds_to_concatenate[0];
+
+	/* Open 1rst frame and get frame handle */
+	fdma_present_default_frame_without_segments();
+
+	/* Open 2nd frame and get frame handle */
+	fdma_present_frame_without_segments(
+		   fds_to_concatenate+1,
+		   FDMA_INIT_NO_FLAGS,
+		   0,
+		   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));
+
+	concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
+	concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
+	concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
+	/* Take header size to be removed from 2nd FD[FRC] */
+	concatenate_params.trim   = (uint8_t)fds_to_concatenate[1].frc;
+
+	fdma_concatenate_frames(&concatenate_params);
 	
+	num_of_frags -= 2;
+	while (num_of_frags != 0) {
+		if((current_index >>3) == octet_index)
+			current_index = link_list[current_index&OCTET_LINK_LIST_MASK].next_index;
+		else {
+			/* Bring 8 elements of LL */
+			octet_index = current_index >> 3;
+			temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
+							octet_index * LINK_LIST_ELEMENT_SIZE;
+			cdma_read(link_list,
+					  temp_ext_addr,
+					  8*LINK_LIST_ELEMENT_SIZE);		
+		}
+
+		temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
+						current_index * LINK_LIST_ELEMENT_SIZE;
+
+		cdma_read((void *)fds_to_concatenate,
+				  temp_ext_addr,
+				  FD_SIZE);
+		/* Open frame and get frame handle */
+		fdma_present_frame_without_segments(
+				fds_to_concatenate,
+				FDMA_INIT_NO_FLAGS,
+				0,
+				(uint8_t *)(&(concatenate_params.frame2)) +
+				sizeof(uint8_t));
+	
+		/* Take header size to be removed from FD[FRC] */
+		concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
+	
+		fdma_concatenate_frames(&concatenate_params);
+	
+		num_of_frags -= 1;
+	}
+	
+	/* Open segment for reassembled frame */
+	fdma_present_default_frame_segment(
+					FDMA_PRES_NO_FLAGS,
+					(void *)((uint32_t)TLS_SECTION_END_ADDR +
+					DEFAULT_SEGMENT_HEADOOM_SIZE),
+					0,
+					DEFAULT_SEGMENT_SIZE);
+	
+	/* FD length is still not updated */	
 	return SUCCESS;
 }
 
