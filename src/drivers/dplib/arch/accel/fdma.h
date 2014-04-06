@@ -620,7 +620,8 @@ int32_t fdma_present_default_frame_without_segments(void);
 
 @Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
 		to present.
-@Param[in]	flags - \link FDMA_PRES_Flags Present segment flags. \endlink
+@Param[in]	flags - \link FDMA_Present_Frame_Flags Present segment flags.
+		\endlink
 @Param[in]	icid - Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
 		Used only in case \ref FDMA_INIT_AS_BIT is set.
 @Param[out]	frame_handle - A handle to the opened working frame.
