@@ -99,94 +99,79 @@ int32_t tcp_gro_aggregate_seg(
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 
 	/* Flush Aggregation */
-	if ((tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)	||
-		(params->limits.seg_num_limit <= 1)	||
-		(params->limits.packet_size_limit <= seg_size)) {
-		/* write metadata to external memory */
-		sr_status = cdma_write((params->metadata +
-				METADATA_MEMBER1_SIZE),
-				&(gro_ctx.metadata.seg_num),
-				(uint16_t)(METADATA_MEMBER2_SIZE +
-					METADATA_MEMBER3_SIZE));
-		/* release the mutex */
-		sr_status = cdma_mutex_lock_release(tcp_gro_context_addr);
-		/* update statistics */
-		ste_inc_and_acc_counters(params->stats_addr +
-				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
-				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
-				STE_MODE_COMPOUND_CNTR_SATURATE |
-				STE_MODE_COMPOUND_ACC_SATURATE);
-		return TCP_GRO_SEG_AGG_DONE_NEW_AGG;
-	} else { /* Aggregate */
-		/* create timer for the aggregation */
+	if ((tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) ||
+	    (params->limits.seg_num_limit <= 1)	||
+	    (params->limits.packet_size_limit <= seg_size))
+		return TCP_GRO_SEG_AGG_DONE;
 
-		sr_status = tman_create_timer(params->timeout_params.tmi_id,
-				gro_global_params.timeout_flags,
-				params->limits.timeout_limit,
-				tcp_gro_context_addr,
-				0,
-				&tcp_gro_timeout_callback,
-				&(gro_ctx.timer_handle));
+	/* Aggregate */
+	/* create timer for the aggregation */
 
-		/* initialize gro context fields */
-		gro_ctx.params = *params;
-		gro_ctx.flags = flags;
-		gro_ctx.last_ack = tcp->acknowledgment_number;
-		data_offset = (tcp->data_offset_reserved &
-				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
-				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
-				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
+	sr_status = tman_create_timer(params->timeout_params.tmi_id,
+			gro_global_params.timeout_flags,
+			params->limits.timeout_limit,
+			tcp_gro_context_addr,
+			0,
+			&tcp_gro_timeout_callback,
+			&(gro_ctx.timer_handle));
 
-		gro_ctx.agg_headers_size = (uint16_t)
-				(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
-		gro_ctx.next_seq = tcp->sequence_number + seg_size -
-				gro_ctx.agg_headers_size;
-		/* in case there is an option it must be a timestamp option */
-		if (data_offset > TCP_HDR_LENGTH) {
-			gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
-			gro_ctx.internal_flags |= TCP_GRO_HAS_TIMESTAMP;
-		}
+	/* initialize gro context fields */
+	gro_ctx.params = *params;
+	gro_ctx.flags = flags;
+	gro_ctx.last_ack = tcp->acknowledgment_number;
+	data_offset = (tcp->data_offset_reserved &
+			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
+			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
+			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
-		/* set ECN flags */
-		ecn = *((uint32_t *)(PARSER_GET_OUTER_IP_POINTER_DEFAULT()));
-		if (PARSER_IS_OUTER_IPV6_DEFAULT())
-			ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
-		ecn = ecn & TCP_GRO_ECN_MASK;
-		gro_ctx.internal_flags |= ecn;
-
-		/* calculate tcp checksum */
-		if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
-			gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum(
-					&gro_ctx);
-			gro_ctx.checksum = cksum_ones_complement_sum16(
-					gro_ctx.checksum,
-					(uint16_t)tcp->sequence_number);
-			gro_ctx.checksum = cksum_ones_complement_sum16(
-					gro_ctx.checksum,
-					(uint16_t)(tcp->sequence_number >> 16));
-		}
-
-		/* store aggregated frame */
-		sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
-				*(uint8_t *)HWC_SPID_ADDRESS,
-				&(gro_ctx.agg_fd_isolation_attributes));
-
-		/* copy default FD to gro context */
-		gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
-		/* write gro context back to DDR + release mutex */
-		sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
-				CDMA_POSTDMA_MUTEX_RM_BIT,
-				(void *)&gro_ctx,
-				(uint16_t)sizeof(struct tcp_gro_context));
-
-		/* update statistics */
-		ste_inc_counter(gro_ctx.params.stats_addr +
-			GRO_STAT_SEG_NUM_CNTR_OFFSET,
-			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-
-		return TCP_GRO_SEG_AGG_NOT_DONE_NEW_AGG;
+	gro_ctx.agg_headers_size = (uint16_t)
+			(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
+	gro_ctx.next_seq = tcp->sequence_number + seg_size -
+			gro_ctx.agg_headers_size;
+	/* in case there is an option it must be a timestamp option */
+	if (data_offset > TCP_HDR_LENGTH) {
+		gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
+		gro_ctx.internal_flags |= TCP_GRO_HAS_TIMESTAMP;
 	}
+
+	/* set ECN flags */
+	ecn = *((uint32_t *)(PARSER_GET_OUTER_IP_POINTER_DEFAULT()));
+	if (PARSER_IS_OUTER_IPV6_DEFAULT())
+		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
+	ecn = ecn & TCP_GRO_ECN_MASK;
+	gro_ctx.internal_flags |= ecn;
+
+	/* calculate tcp checksum */
+	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
+		gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum(
+				&gro_ctx);
+		gro_ctx.checksum = cksum_ones_complement_sum16(
+				gro_ctx.checksum,
+				(uint16_t)tcp->sequence_number);
+		gro_ctx.checksum = cksum_ones_complement_sum16(
+				gro_ctx.checksum,
+				(uint16_t)(tcp->sequence_number >> 16));
+	}
+
+	/* store aggregated frame */
+	sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
+			*(uint8_t *)HWC_SPID_ADDRESS,
+			&(gro_ctx.agg_fd_isolation_attributes));
+
+	/* copy default FD to gro context */
+	gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
+	/* write gro context back to DDR + release mutex */
+	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+			CDMA_POSTDMA_MUTEX_RM_BIT,
+			(void *)&gro_ctx,
+			(uint16_t)sizeof(struct tcp_gro_context));
+
+	/* update statistics */
+	ste_inc_counter(gro_ctx.params.stats_addr +
+		GRO_STAT_SEG_NUM_CNTR_OFFSET,
+		1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+
+	return TCP_GRO_SEG_AGG_NOT_DONE_NEW_AGG;
 }
 
 /* Add segment to an existing aggregation */

@@ -52,6 +52,8 @@
 #define FDMA_INSERT_EXP_DATA_CMD	0x00007019
 	/** FDMA Close working frame segment explicit command code */
 #define FDMA_CLOSE_SEG_EXP_CMD		0x00008019
+	/** FDMA Delete working frame segment explicit command code */
+#define FDMA_DELETE_DATA_EXP_CMD	0x00009019
 	/** FDMA Create Frame command code */
 #define FDMA_CREATE_FRAME_CMD		0x00000100
 	/** FDMA Create FD command code */
@@ -127,6 +129,10 @@
 	/** FDMA Delete working frame segment Command Structure identifier */
 #define FDMA_CLOSE_SEG_EXP_CMD_STR ((FDMA_MODULE << 16) | 		\
 		FDMA_CLOSE_SEG_EXP_CMD)
+	/** FDMA Delete working frame segment explicit Command Structure
+	 * identifier */
+#define FDMA_DELETE_DATA_EXP_CMD_STR ((FDMA_MODULE << 16) |		\
+		FDMA_DELETE_DATA_EXP_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
@@ -1125,6 +1131,50 @@ struct fdma_delete_segment_data_command {
 		/** 64-bit alignment. */
 	uint8_t	pad[4];
 };
+/**************************************************************************//**
+@Description	FDMA Delete data from Working Frame Segment explicit Command
+		structure.
+
+		Includes information needed for FDMA Delete data from Working
+		Frame Segment explicit command verification.
+
+*//***************************************************************************/
+struct fdma_delete_segment_data_exp_command {
+		/** FDMA Delete data from Working Frame Segment explicit command
+		 * structure identifier. */
+	uint32_t opcode;
+		/**< pointer to the location in workspace for the represented
+		 * frame segment (relevant if SA field is set). */
+	uint32_t ws_dst_rs;
+		/** Offset from the previously presented segment representing
+		* the start point of the deletion. */
+	uint16_t to_offset;
+		/** Deleted segment data size. */
+	uint16_t delete_target_size;
+		/** Number of frame bytes to represent in the segment. Must be
+		 * greater than 0.
+		 * Relevant if SA field is set.*/
+	uint16_t size_rs;
+		/** Command returned segment length.
+		 * Relevant if SA field is set. */
+	uint16_t seg_length_rs;
+		/** Segment Action.
+		 * - 0: keep segment open
+		 * - 1: represent segment
+		 * - 2: close segment */
+	uint8_t	SA;
+		/**< Working frame handle from which the data is being
+		 * deleted.*/
+	uint8_t	 frame_handle;
+		/**< Data segment handle (related to the working frame handle)
+		 * from which the data is being deleted. */
+	uint8_t  seg_handle;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[4];
+};
+
 
 /**************************************************************************//**
 @Description	FDMA Close Working Frame default Segment Command structure.
