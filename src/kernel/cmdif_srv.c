@@ -17,6 +17,13 @@
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
 	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET) & 0x01FFFFFF)
+/** PL_ICID from Additional Dequeue Context */
+#define PL_ICID_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
+/** Get ICID to send response */
+#define RESP_ICID_GET \
+	LH_SWAP(&PL_ICID_GET)
+
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) & CMDIF_ASYNC_CMD))
@@ -124,7 +131,7 @@ static int inst_alloc(struct cmdif_srv *srv)
 	}
 }
 
-static int inst_dealloc(int inst, struct cmdif_srv *srv)
+static void inst_dealloc(int inst, struct cmdif_srv *srv)
 {
 	lock_spinlock(&srv->lock);
 	srv->instance_handle[inst] = FREE_INSTANCE;
@@ -213,6 +220,7 @@ int cmdif_unregister_module(const char *m_name)
 	}
 }
 
+#if 0
 static int epid_setup()
 {
 #ifdef MC_INTEGRATED
@@ -251,6 +259,7 @@ static int epid_setup()
 #endif /* MC_INTEGRATED */
 	return 0;
 }
+#endif //epid_setup()
 
 int cmdif_srv_init(void)
 {
@@ -304,15 +313,19 @@ static int cmdif_fd_send(int cb_err)
 {
 	int err;
 
+	/* Delete FDMA handle and store user modified data */
+	err = fdma_store_default_frame_data();
+
 	LDPAA_FD_SET_ERR(HWC_FD_ADDRESS, cb_err);
 
 	/** TODO Ask Michal ordering !!!*/
-	err = fdma_store_and_enqueue_default_frame_fqid(RESP_QID_GET,
-	                                                FDMA_ENWF_NO_FLAGS);
+	err = (int)fdma_enqueue_default_fd_fqid(RESP_ICID_GET,
+						FDMA_ENWF_NO_FLAGS,
+						RESP_QID_GET);
 	return err;
 }
 
-static int sync_cmd_done(int err, uint16_t auth_id, struct   cmdif_srv *srv)
+static void sync_cmd_done(int err, uint16_t auth_id, struct   cmdif_srv *srv)
 {
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();

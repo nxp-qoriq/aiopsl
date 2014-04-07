@@ -21,9 +21,9 @@ Copyright 2013 Freescale Semiconductor, Inc.
 #define CMDIF_PRI_HIGH		1	/**< High Priority */
 
 #define CMDIF_ASYNC_CMD		0x2000
-/**< Bit to be used for cmd_id to indentify asynchronious commands */
+/**< Bit to be used for cmd_id to identify asynchronous commands */
 #define CMDIF_NORESP_CMD	0x1000
-/**< Bit to be used for commands that don't need responce */
+/**< Bit to be used for commands that don't need response */
 
 /**************************************************************************//**
 @Description   Command interface descriptor.
