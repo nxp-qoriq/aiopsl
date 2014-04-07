@@ -35,6 +35,13 @@
  @{
 *//***************************************************************************/
 
+enum ipsec_cipher_type {
+	CIPHER_TYPE_CBC = 0, 	/* CBC */
+	CIPHER_TYPE_CTR, /* CTR */
+	CIPHER_TYPE_CCM, /* CCM */
+	CIPHER_TYPE_GCM /* GCM */
+};
+
 
 /* @} end of IPSEC_ENUM */
 
@@ -50,7 +57,100 @@
 #define IPSEC_STORAGE_PROFILE_SIZE_SHIFT 5 /* 32 bytes */
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
 #define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
+#define IPSEC_ENC_PDB_HMO_MASK 0xFF00
+#define IPSEC_DEC_PDB_HMO_MASK 0xF000
+#define IPSEC_PDB_OPTIONS_MASK 0x00FF
 
+/* OPTIONS[3:2] - OIHI: Outer IP Header Included 
+ * 00 : No Outer IP Header provided
+ * 01 : First PDB:Opt IP Hdr Len bytes of Input frame is the
+ * 		Outer IP Header Material to be included in Output Frame
+ * 10 : PDB contains address to Outer IP Header Material to be
+ * 		included in Output Frame (length is PDB:Opt IP Hdr Len
+*/
+#define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x04
+
+/* 28 (HMO 4 out of 7:0) Sequence Number Rollover control. 
+ * 0 : Sequence Number Rollover causes an error
+ * 1 : Sequence Number Rollover permitted
+*/
+#define IPSEC_ENC_PDB_HMO_SNR 0x10
+
+
+#define IPSEC_ARS_MASK	0x00c0   /* anti-replay window option mask */
+#define IPSEC_ESN_MASK 0x10 /* Extended sequence number option mask */
+#define IPSEC_SEC_NEW_BUFFER_MODE 0
+#define IPSEC_SEC_REUSE_BUFFER_MODE 1
+
+/*
+* Big-endian systems are systems in which the most significant byte of the word 
+* is stored in the smallest address given and the least significant byte 
+* is stored in the largest. 
+* In contrast, little endian systems are those in which the 
+* least significant byte is stored in the smallest address.
+*/
+/* Little Endian
+ Register:
+* +---------------------------------------------------------------+
+* |   A   |   B   |   C   |   D   |   E   |   F   |   G   |   H   |
+* |  MSB  |       |       |       |       |       |       |  LSB  |
+* +---------------------------------------------------------------+
+* Bytes address
+* |   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   |
+* +---------------------------------------------------------------+
+
+Big Endian
+ Register:
+* +---------------------------------------------------------------+
+* |   H   |   G   |   F   |   E   |   D   |   C   |   B   |   A   |
+* |  LSB  |       |       |       |       |       |       |  MSB  |
+* +---------------------------------------------------------------+
+* Bytes address
+* |   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   |
+* +---------------------------------------------------------------+
+*/
+
+/* FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } */
+/* FLC Little Endian Format 
+* +---------------------------------------------------------------+
+* |   x   |   x   |  CS1  |  CS0  |  BC3  |  BC2  |  BC1  |  BC0  |
+* |       |       |  MSB  |  LSB  |  MSB  |       |       |  LSB  |
+* +---------------------------------------------------------------+
+* Byte address
+* |   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   |
+* +---------------------------------------------------------------+
+
+* FLC Big Endian Format 
+* +---------------------------------------------------------------+
+* |  BC0  |  BC1  |  BC2  |  BC3  |  CS1  |  CS0  |   x   |   x   |
+* |  LSB  |       |  MSB  |  MSB  |  LSB  |  MSB  |       |       |
+* +---------------------------------------------------------------+
+* Byte address
+* |   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   |
+* +---------------------------------------------------------------+
+*/
+/* FLC Checksum Little Endian Mask */
+#define IPSEC_RETURN_FLC_CHECKSUM_LE_MASK 0x0000FFFF00000000
+/* FLC Checksum Big Endian Mask */
+#define IPSEC_RETURN_FLC_CHECKSUM_BE_MASK 0x00000000FFFF0000
+/* FLC Byte Count Big Endian Mask */
+#define IPSEC_RETURN_FLC_BCNT_BE_MASK 0xFFFFFFFF00000000
+
+/* FLC Checksum Big Endian Shift */
+#define IPSEC_RETURN_FLC_CHECKSUM_BE_SHIFT 16
+/* FLC Byte Count Big Endian Shift */
+#define IPSEC_RETURN_FLC_BCNT_BE_SHIFT 32
+
+/* AAP Command Fields */
+#define  IPSEC_AAP_USE_FLC_SP 0x10000000
+#define  IPSEC_AAP_OS_EX 0x00800000
+
+// TODO: temporary, need to update general.h
+/** AAP SEC accelerator ID  (according to Archdef 7.5)*/
+#define AAP_SEC_ACCEL_ID	0x03
+
+/* DPOVRD OVRD */
+#define IPSEC_DPOVRD_OVRD 0x80000000
 
 
 // TMP, removed from the external API
@@ -174,7 +274,7 @@ struct ipsec_sa_params {
 	uint8_t sec_buffer_mode; /* new/reuse (for ASA copy). 1B */
 	
 	/* total = 84 bytes; padding = 128 - total = 44 bytes*/
-	uint8_t padding[44]; /* Padding to 128 bytes */
+	//uint8_t padding[44]; /* Padding to 128 bytes */
 
 };
 
@@ -193,19 +293,36 @@ struct sec_shared_descriptor {
 	uint8_t sd[256];
 };
 
-/* SA Descriptor Structure 
- * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
- * sec_flow_context	- SEC Flow Context. 64 bytes
- * 			Should be 64-byte aligned for optimal performance.	
- * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
- * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation 
- * (Outer IP change)	TBD 
-*/
-struct ipsec_sa_descriptor {
-	struct ipsec_sa_params sa_params;
-	struct sec_flow_context flow_context;
-	struct sec_shared_descriptor shared_descriptor;
+
+/* DPOVRD for Tunnel Encap mode */
+struct dpovrd_tunnel_encap {
+	uint8_t reserved; /* 7-0 Reserved */
+	uint8_t aoipho; /* 13-8 AOIPHO */
+					/* 14 Reserved */
+					/* 15 OIMIF */
+	uint16_t outer_material_length; /* 27-16 Outer IP Header Material Length */
+									/* 30-28 Reserved */
+									/* 31 OVRD */
 };
+
+/* DPOVRD for Tunnel Decap mode */
+struct dpovrd_tunnel_decap {
+	uint32_t word;
+	/* 31 OVRD
+	 * 30-20 Reserved
+	 * 19-12 AOIPHO
+	 * 11-0 Outer IP Header Material Length */
+};
+
+
+
+
+struct dpovrd_general {
+	union {
+		struct dpovrd_tunnel_decap tunnel_decap;
+	};
+};
+
 
 
 /* SEC Flow Context Descriptor */
@@ -243,12 +360,18 @@ struct ipsec_flow_context {
 	uint16_t word4_oicid; /* 31-16 OICID */
 	
 	/* word 5 */
-	uint32_t word5_31_0; 
-			/* 23-0 OFQID */
-			/* 24 OSC */
-			/* 25 OBMT */
-			/* 29-26 reserved 	*/
-			/* 31-30 ICR */
+	uint8_t word5_7_0; /* 23-0 OFQID */
+	uint8_t word5_15_8;
+	uint8_t word5_23_16;
+	
+	uint8_t word5_31_24; 
+						/* 24 OSC */
+						/* 25 OBMT */
+						/* 29-26 reserved 	*/
+						/* 31-30 ICR */
+	
+	//uint32_t word5_31_0; 
+	
 	/* word 6 */
 	uint32_t word6_oflc_31_0;
 
@@ -387,12 +510,47 @@ int32_t ipsec_init(uint32_t max_sa_no);
 *//***************************************************************************/
 int32_t ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
-		uint16_t spid /* Storage Profile ID of the SEC output frame */
+		uint16_t spid, /* Storage Profile ID of the SEC output frame */
+		uint32_t sd_size /* Shared descriptor Length */
 );
 
 /**************************************************************************//**
+@Function		ipsec_generate_sd 
+
+@Description	Generate SEC Shared Descriptor for Encapsulation
+*//***************************************************************************/
+int32_t ipsec_generate_encap_sd(
+		uint64_t sd_addr, /* Flow Context Address in external memory */
+		struct ipsec_descriptor_params *params,
+		uint32_t *sd_size /* Shared descriptor Length */
+);
+
+/**************************************************************************//**
+@Function		ipsec_generate_sd 
+
+@Description	Generate SEC Shared Descriptor for Decapsulation
+*//***************************************************************************/
+int32_t ipsec_generate_decap_sd(
+		uint64_t sd_addr, /* Flow Context Address in external memory */
+		struct ipsec_descriptor_params *params,
+		uint32_t *sd_size /* Shared descriptor Length */
+);
 
 
+/**************************************************************************//**
+@Function		ipsec_generate_sa_params 
+
+@Description	Generate and store the functional module internal parameter
+*//***************************************************************************/
+int32_t ipsec_generate_sa_params(
+		ipsec_handle_t *ipsec_handle, /* Parameters area (start of buffer) */
+		struct ipsec_descriptor_params *params);
+
+/**************************************************************************//**
+	 
+******************************************************************************	
+
+/*
 
 
 /** @} */ /* end of FSL_IPSEC_Functions */
