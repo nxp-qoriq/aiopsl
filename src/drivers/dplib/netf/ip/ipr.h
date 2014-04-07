@@ -49,7 +49,7 @@
 #define RFDC_SIZE				sizeof(struct ipr_rfdc)
 #define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
 #define FD_SIZE					sizeof(struct ldpaa_fd)
-#define OCTET_LINK_LIST_MASK	0xF8
+#define OCTET_LINK_LIST_MASK	0x07
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
@@ -278,7 +278,7 @@ void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr);
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
-					  uint16_t frag_offset); 
+					  uint16_t frag_offset_shifted); 
 
 
 /**************************************************************************//**
