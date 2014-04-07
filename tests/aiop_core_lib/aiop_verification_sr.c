@@ -136,7 +136,7 @@ void aiop_verification_sr()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
-					str->compared_variable_size,
+					str->compared_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE)
@@ -162,7 +162,7 @@ void aiop_verification_sr()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
-					str->compared_variable_size,
+					str->compared_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE)
