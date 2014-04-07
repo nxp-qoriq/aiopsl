@@ -277,7 +277,7 @@ void ipr_time_out();
 void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr);
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-					  struct ipv4hdr *ipv4hdr_ptr, uint16_t current_frag_size,
+					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
 					  uint16_t frag_offset); 
 
 
