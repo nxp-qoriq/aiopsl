@@ -236,9 +236,6 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	 * In case one of the following conditions is met, add segment to
 	 * aggregation and close the aggregation. */
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) {
-		/* Todo - no counter for aggregation due to PSH flag.
-		 * on the other hand - no counter for different timestamp/ECN,
-		 * smaller ACk number ...  should we add them all ? */
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
 
