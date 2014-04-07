@@ -77,25 +77,25 @@ void init_profile_sram()
 		profile_sram1.dl = 0;
 		profile_sram1.reserved = 0;
 		/* 0x0080 --> 0x8000 (little endian) */
-		/*profile_sram1.dhr = 0x8000; */
-		profile_sram1.dhr = 0x0080;
+		profile_sram1.dhr = 0x8000;
+		/*profile_sram1.dhr = 0x0080; */
 		profile_sram1.mode_bits1 = (mode_bits1_PTAR | mode_bits1_SGHR |
 				mode_bits1_ASAR);
 		profile_sram1.mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
 				mode_bits2_VA | mode_bits2_DLC);
 		/* buffer size is 1024 bytes, so PBS should be 16 (0x10).
 		 * 0x0401 --> 0x0104 (little endian) */
-		/*profile_sram1.pbs1 = 0x0104;  */
-		profile_sram1.pbs1 = 0x0401;
+		profile_sram1.pbs1 = 0x0104;
+		/*profile_sram1.pbs1 = 0x0401;  */
 		/* BPID=0 */
 		profile_sram1.bpid1 = 0x0000;
 		/* buffer size is 1024 bit, so PBS should be 2.
 		 * 0x0081 --> 0x8100 (little endian) */
-		/*profile_sram1.pbs2 = 0x8100; */
-		profile_sram1.pbs2 = 0x0081;
+		profile_sram1.pbs2 = 0x8100;
+		/*profile_sram1.pbs2 = 0x0081; */
 		/* BPID=1, 0x0001 --> 0x0100 (little endian) */
-		/*profile_sram1.bpid2 = 0x0100;*/
-		profile_sram1.bpid2 = 0x0001;
+		profile_sram1.bpid2 = 0x0100;
+		/*profile_sram1.bpid2 = 0x0001; */
 		profile_sram1.pbs3 = 0x0000;
 		profile_sram1.bpid3 = 0x0000;
 		profile_sram1.pbs4 = 0x0000;
