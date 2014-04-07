@@ -86,6 +86,39 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = (uint16_t)sizeof(struct fdma_init_exp_command);
 		break;
 	}
+	/* FDMA Initial frame presentation without segments Command
+	 * Verification */
+	case FDMA_INIT_NO_SEG_CMD_STR:
+	{
+		struct fdma_init_no_seg_command *str =
+			(struct fdma_init_no_seg_command *) asa_seg_addr;
+
+		str->status =
+			(int8_t)fdma_present_default_frame_without_segments();
+		str_size = (uint16_t)sizeof(struct fdma_init_no_seg_command);
+		break;
+	}
+	/* FDMA Initial frame presentation explicit Command Verification */
+	case FDMA_INIT_NO_SEG_EXP_CMD_STR:
+	{
+		struct fdma_init_no_seg_exp_command *str =
+			(struct fdma_init_no_seg_exp_command *) asa_seg_addr;
+
+		flags |= ((str->AS) ? FDMA_INIT_AS_BIT : 0x0);
+		if (str->AS) {
+			flags |= ((str->VA) ? FDMA_INIT_VA_BIT : 0x0);
+			flags |= ((str->PL) ? FDMA_INIT_PL_BIT : 0x0);
+			flags |= ((str->BDI) ? FDMA_INIT_BDI_BIT : 0x0);
+		}
+
+		str->status = (int8_t)fdma_present_frame_without_segments(
+				(void *)(str->fd_src), flags, str->icid,
+				&str->frame_handle);
+
+		str_size = (uint16_t)
+			sizeof(struct fdma_init_no_seg_exp_command);
+		break;
+	}
 	/* FDMA Present segment Command Verification */
 	case FDMA_PRESENT_CMD_STR:
 	{

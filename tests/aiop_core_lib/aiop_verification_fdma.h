@@ -18,6 +18,10 @@
  * fdma.h) */
 	/** FDMA Initial Presentation explicit command code */
 #define FDMA_INIT_EXP_CMD		0x00001001
+	/** FDMA Initial Presentation without segments explicit command code */
+#define FDMA_INIT_NO_SEG_CMD		0x00002001
+	/** FDMA Initial Presentation without segments explicit command code */
+#define FDMA_INIT_NO_SEG_EXP_CMD	0x00003001
 	/** FDMA Read ASA segment command code */
 #define FDMA_READ_ASA_CMD		0x00001002
 	/** FDMA Read PTA segment command code */
@@ -65,6 +69,13 @@
 	/** FDMA Initial frame presentation explicit Command Structure
 	 * identifier */
 #define FDMA_INIT_EXP_CMD_STR	((FDMA_MODULE << 16) | FDMA_INIT_EXP_CMD)
+	/** FDMA Initial frame presentation without segments Command Structure
+	 * identifier */
+#define FDMA_INIT_NO_SEG_CMD_STR ((FDMA_MODULE << 16) | FDMA_INIT_NO_SEG_CMD)
+	/** FDMA Initial frame presentation without segments explicit Command
+	 * Structure identifier */
+#define FDMA_INIT_NO_SEG_EXP_CMD_STR					\
+	((FDMA_MODULE << 16) | FDMA_INIT_NO_SEG_EXP_CMD)
 	/** FDMA Present Data segment Command Structure identifier */
 #define FDMA_PRESENT_CMD_STR	((FDMA_MODULE << 16) | FDMA_PRESENT_CMD)
 	/** FDMA Read ASA segment Command Structure identifier */
@@ -277,6 +288,63 @@ struct fdma_init_exp_command {
 	uint8_t	pad[1];
 };
 
+/**************************************************************************//**
+@Description	FDMA Initial frame presentation without segments Command
+		structure.
+
+		Includes information needed for FDMA Initial frame presentation
+		without segments command verification.
+		This command works on the default frame (expect a FD at address
+		0x60), and present a data segment only if present_size > 0.
+
+*//***************************************************************************/
+struct fdma_init_no_seg_command {
+		/** FDMA Initial frame presentation  without segments command
+		 * structure identifier. */
+	uint32_t opcode;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[3];
+};
+
+/**************************************************************************//**
+@Description	FDMA Initial frame presentation without segments (explicit)
+		Command structure.
+
+		Includes information needed for FDMA Initial frame presentation
+		without segments explicit command verification.
+
+*//***************************************************************************/
+struct fdma_init_no_seg_exp_command {
+		/** FDMA Initial frame presentation without segments explicit
+		 * command structure identifier. */
+	uint32_t opcode;
+		/** Pointer to the location within the workspace of the FD that
+		 * is to be presented. */
+	uint32_t fd_src;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case AS field is set. */
+	uint16_t icid;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If set - supplied AMQ attributes are used.
+		 * If reset - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t AS;
+		/** Virtual Address. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t VA;
+		/** Privilege Level. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t PL;
+		/** Bypass Datapath Isolation. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t BDI;
+		/** Command returned handle of the working frame. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+};
 
 /**************************************************************************//**
 @Description	FDMA Present segment Command structure.

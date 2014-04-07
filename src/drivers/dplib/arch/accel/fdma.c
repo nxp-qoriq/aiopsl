@@ -97,17 +97,16 @@ int32_t fdma_present_frame(
 					params->seg_offset);
 	if (params->asa_size == 0)
 		params->flags |= FDMA_INIT_NAS_BIT;
-	else {
-		if (params->flags & FDMA_INIT_AS_BIT)
-			arg4 = FDMA_INIT_EXP_AMQ_CMD_ARG4(
-					params->flags,
-					params->icid,
-					params->asa_dst,
-					params->asa_size);
-		else
-			arg4 = FDMA_INIT_EXP_CMD_ARG4(params->asa_dst,
-					params->asa_size);
-	}
+
+	if (params->flags & FDMA_INIT_AS_BIT)
+		arg4 = FDMA_INIT_EXP_AMQ_CMD_ARG4(
+				params->flags,
+				params->icid,
+				params->asa_dst,
+				params->asa_size);
+	else
+		arg4 = FDMA_INIT_EXP_CMD_ARG4(params->asa_dst,
+				params->asa_size);
 
 	if ((uint32_t)(params->pta_dst) == PRC_PTA_NOT_LOADED_ADDRESS)
 		params->flags |= FDMA_INIT_NPS_BIT;
@@ -224,18 +223,26 @@ int32_t fdma_present_default_frame_without_segments(void)
 
 int32_t fdma_present_frame_without_segments(
 		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint16_t icid,
 		uint8_t *frame_handle)
 {
 	/* command parameters and results */
-	uint32_t arg1;
+	uint32_t arg1, arg4;
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)fd, FDMA_INIT_NDS_BIT);
+	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)fd, flags | FDMA_INIT_NDS_BIT);
 
 	/* store command parameters */
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
-	__stdw(PRC_PTA_NOT_LOADED_ADDRESS, 0, HWC_ACC_IN_ADDRESS3, 0);
+
+	if (flags & FDMA_INIT_AS_BIT)
+		arg4 = FDMA_INIT_EXP_AMQ_CMD_ARG4(flags, icid, 0, 0);
+	else
+		arg4 = 0;
+
+	__stdw(PRC_PTA_NOT_LOADED_ADDRESS, arg4, HWC_ACC_IN_ADDRESS3, 0);
 
 	/* call FDMA Accelerator */
 	/* Todo - Note to Hw/Compiler team:

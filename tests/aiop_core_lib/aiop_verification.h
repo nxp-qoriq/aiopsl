@@ -168,7 +168,7 @@ enum verif_modules_ids {
 *//***************************************************************************/
 enum cond_ids {
 		/** Equal condition. */
-	COND_EQUAL,
+	COND_EQUAL = 0,
 		/** Non Equal condition. */
 	COND_NON_EQUAL
 };
@@ -182,7 +182,7 @@ enum cond_ids {
 *//***************************************************************************/
 enum compared_variable_ids {
 		/** Compare GRO last status. */
-	COMPARE_GRO_STATUS,
+	COMPARE_GRO_STATUS = 0,
 		/** Compare GSO last status. */
 	COMPARE_GSO_STATUS,
 		/** Compare IPR last status. */
@@ -191,6 +191,24 @@ enum compared_variable_ids {
 	COMPARE_IPF_STATUS,
 	/** Compare IPF last status. */
 	COMPARE_LAST_STATUS
+};
+
+/**************************************************************************//**
+ @enum compared_variable_size
+
+ @Description	AIOP verification enumeration of the compared variable sizes.
+
+ @{
+*//***************************************************************************/
+enum compared_variable_size {
+		/** Compare 1 byte. */
+	COMPARE_1BYTE = 0,
+		/** Compare 2 byte. */
+	COMPARE_2BYTE,
+		/** Compare 4 byte. */
+	COMPARE_4BYTE,
+		/** Compare 8 byte. */
+	COMPARE_8BYTE
 };
 
 
@@ -204,19 +222,19 @@ enum compared_variable_ids {
 struct aiop_if_verif_command {
 		/** AIOP Verification IF command structure identifier. */
 	uint32_t opcode;
+		/** Size of the compared task variable.
+		 * Please see \ref cond_ids for more details. */
+	uint32_t compared_size;
 		/** Compared value.
 		 * This value will be compared to a variable chosen according to
 		 * the compared_variable_addr. */
-	int32_t compared_value;
+	int64_t compared_value;
 		/** Workspace address of the compared task variable. */
 	uint16_t compared_variable_addr;
 		/** An offset from the beginning of the commands buffer to the
 		 * command to be executed in case of a TRUE result in the IF
 		 * statement. */
 	uint16_t true_cmd_offset;
-		/** Id of the compared task variable.
-		 * Please see \ref compared_variable_ids for more details.
-	uint8_t compared_variable_id;*/
 		/** Condition to be checked in the if statement.
 		* Please see \ref cond_ids for more details. */
 	uint8_t cond;
@@ -234,10 +252,13 @@ struct aiop_if_verif_command {
 struct aiop_if_else_verif_command {
 		/** AIOP Verification IF command structure identifier. */
 	uint32_t opcode;
+		/** Size of the compared task variable.
+		 * Please see \ref cond_ids for more details. */
+	uint32_t compared_size;
 		/** Compared value.
 		 * This value will be compared to a variable chosen according to
 		 * the compared_variable_addr. */
-	int32_t compared_value;
+	int64_t compared_value;
 		/** Workspace address of the compared task variable. */
 	uint16_t compared_variable_addr;
 		/** An offset from the beginning of the commands buffer to the
@@ -248,9 +269,6 @@ struct aiop_if_else_verif_command {
 		 * command to be executed in case of a FALSE result in the IF
 		 * statement. */
 	uint16_t false_cmd_offset;
-	/** Id of the compared task variable.
-			 * Please see \ref compared_variable_ids for details.
-	uint8_t compared_variable_id;*/
 		/** Condition to be checked in the if statement. */
 	uint8_t cond;
 		/** 64-bit alignment. */
@@ -320,7 +338,8 @@ void aiop_verification_fm_temp();
 void aiop_verif_init_parser();
 uint32_t if_statement_result(
 		uint16_t compared_variable_addr,
-		int32_t compared_value,
+		uint32_t size,
+		int64_t compared_value,
 		uint8_t cond);
 
 
