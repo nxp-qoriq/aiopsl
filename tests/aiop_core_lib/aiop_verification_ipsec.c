@@ -11,6 +11,13 @@
 #include "aiop_verification_ipsec.h"
 #include "ipsec.h"
 
+//#include "ipsec.c"
+//#define pr_debug printf
+//#define ALIGN(x, a) \
+//	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
+//#include "rta.h"
+//#include "protoshared.h"
+
 uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;

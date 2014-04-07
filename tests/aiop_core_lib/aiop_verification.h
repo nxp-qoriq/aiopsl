@@ -26,6 +26,7 @@
 #include "aiop_verification_gro.h"
 #include "aiop_verification_ipf.h"
 #include "aiop_verification_ipr.h"
+#include "aiop_verification_ipsec.h"
 #include "dplib/fsl_ip.h"
 #include "dplib/fsl_ipsec.h"
 #include "dplib/fsl_l2.h"

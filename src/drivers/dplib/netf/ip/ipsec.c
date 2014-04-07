@@ -20,8 +20,11 @@
 
 /* TODO: temporary fix to pr_debug due to RTA issue */
 //#define pr_debug //
-#define pr_debug printf
-
+//#define pr_debug printf
+void dummy_pr_debug (...);
+void dummy_pr_debug (...) {}
+#define pr_debug dummy_pr_debug 
+		
 //#define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
 //#define ALIGN(x, a) (x+a)
 // TODO: temporary workaround since "typeof" fails compilation
@@ -1018,6 +1021,66 @@ int32_t ipsec_frame_decrypt(
 	/* Return */
 	return 0;
 } /* End of ipsec_frame_decrypt */
+
+
+/**************************************************************************//**
+	ipsec_get_lifetime_stats
+*//****************************************************************************/
+int32_t ipsec_get_lifetime_stats(
+		ipsec_handle_t ipsec_handle,
+		uint64_t *kilobytes,
+		uint64_t *packets,
+		uint32_t *sec)
+{
+	/* Temporary Implementation */
+	ipsec_handle_t tmp = ipsec_handle;
+	*kilobytes = 0x1234;
+	*packets = 0x5678;
+	*sec = 0xabcd;
+	
+	return 0;
+	
+} /* End of ipsec_get_lifetime_stats */
+
+/**************************************************************************//**
+	ipsec_decr_lifetime_counters
+*//****************************************************************************/
+int32_t ipsec_decr_lifetime_counters(
+		ipsec_handle_t ipsec_handle,
+		uint32_t kilobytes_decr_val,
+		uint32_t packets_decr_val
+		)
+{
+	/* Temporary Implementation */
+	ipsec_handle_t tmp = ipsec_handle;
+	uint32_t tmp2 = kilobytes_decr_val;
+	uint32_t tmp3 = packets_decr_val;
+	
+	return 0;	
+} /* End of ipsec_decr_lifetime_counters */
+
+/**************************************************************************//**
+	ipsec_get_seq_num
+*//****************************************************************************/
+int32_t ipsec_get_seq_num(
+		ipsec_handle_t ipsec_handle,
+		uint32_t *sequence_number,
+		uint32_t *extended_sequence_number,
+		uint32_t anti_replay_bitmap[4])
+{
+	/* Temporary Implementation */
+	ipsec_handle_t tmp = ipsec_handle;
+	*sequence_number = 0x1234;
+	*extended_sequence_number = 0x5678;
+	anti_replay_bitmap[0] = 0xa;
+	anti_replay_bitmap[1] = 0xb;
+	anti_replay_bitmap[2] = 0xc;
+	anti_replay_bitmap[3] = 0xd;
+	
+	return 0;	
+
+} /* End of ipsec_get_seq_num */
+
 
 /**************************************************************************/
 
