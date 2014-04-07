@@ -202,7 +202,7 @@ enum compared_variable_ids {
 *//***************************************************************************/
 enum compared_variable_size {
 		/** Compare 1 byte. */
-	COMPARE_1BYTE,
+	COMPARE_1BYTE = 0,
 		/** Compare 2 byte. */
 	COMPARE_2BYTE,
 		/** Compare 4 byte. */
@@ -222,8 +222,9 @@ enum compared_variable_size {
 struct aiop_if_verif_command {
 		/** AIOP Verification IF command structure identifier. */
 	uint32_t opcode;
-		/** Size of the compared task variable. */
-	enum compared_variable_size compared_variable_size;
+		/** Size of the compared task variable.
+		 * Please see \ref cond_ids for more details. */
+	uint32_t compared_size;
 		/** Compared value.
 		 * This value will be compared to a variable chosen according to
 		 * the compared_variable_addr. */
@@ -234,9 +235,6 @@ struct aiop_if_verif_command {
 		 * command to be executed in case of a TRUE result in the IF
 		 * statement. */
 	uint16_t true_cmd_offset;
-		/** Id of the compared task variable.
-		 * Please see \ref compared_variable_ids for more details.
-	uint8_t compared_variable_id;*/
 		/** Condition to be checked in the if statement.
 		* Please see \ref cond_ids for more details. */
 	uint8_t cond;
@@ -254,8 +252,9 @@ struct aiop_if_verif_command {
 struct aiop_if_else_verif_command {
 		/** AIOP Verification IF command structure identifier. */
 	uint32_t opcode;
-		/** Size of the compared task variable. */
-	enum compared_variable_size compared_variable_size;
+		/** Size of the compared task variable.
+		 * Please see \ref cond_ids for more details. */
+	uint32_t compared_size;
 		/** Compared value.
 		 * This value will be compared to a variable chosen according to
 		 * the compared_variable_addr. */
@@ -270,9 +269,6 @@ struct aiop_if_else_verif_command {
 		 * command to be executed in case of a FALSE result in the IF
 		 * statement. */
 	uint16_t false_cmd_offset;
-	/** Id of the compared task variable.
-			 * Please see \ref compared_variable_ids for details.
-	uint8_t compared_variable_id;*/
 		/** Condition to be checked in the if statement. */
 	uint8_t cond;
 		/** 64-bit alignment. */
@@ -342,7 +338,7 @@ void aiop_verification_fm_temp();
 void aiop_verif_init_parser();
 uint32_t if_statement_result(
 		uint16_t compared_variable_addr,
-		enum compared_variable_size size,
+		uint32_t size,
 		int64_t compared_value,
 		uint8_t cond);
 
