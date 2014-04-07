@@ -67,7 +67,7 @@
 *//***************************************************************************/
 
 /*************************************************************************//**
-@Function	sys_ctlu_prpid_pool_create
+@Function	sys_prpid_pool_create
 
 @Description	Creation and Initialization of system Parser Profile ID pool
 		for the Parser.
@@ -80,10 +80,10 @@
 @Cautions	Should be called only once per CTLU.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t sys_ctlu_prpid_pool_create(void);
+int32_t sys_prpid_pool_create(void);
 
 /*************************************************************************//**
-@Function	sys_ctlu_keyid_pool_create
+@Function	sys_keyid_pool_create
 
 @Description	Creation and Initialization of system Key ID pool for CTLU.
 
@@ -95,7 +95,33 @@ int32_t sys_ctlu_prpid_pool_create(void);
 @Cautions	Should be called only once per CTLU.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t sys_ctlu_keyid_pool_create(void);
+int32_t sys_keyid_pool_create(void);
+
+/*************************************************************************//**
+@Function	aiop_sl_init
+
+@Description	AIOP Service Layer Initialization function.
+
+		Implicitly updated values in AIOP System global parameters:
+		ext_keyid_pool_address, ext_prpid_pool_address.
+
+@Return		Status - please refer to \ref SYS_ID_POOL_CREATE_STATUS.
+
+@Cautions	Should be called during system initialization.
+		In this function the task yields.
+*//***************************************************************************/
+int32_t aiop_sl_init(void);
+
+/*************************************************************************//**
+@Function	aiop_sl_free
+
+@Description	AIOP Service Layer Free Resources function.
+
+@Cautions	Should be called before system shutdown.
+		In this function the task yields.
+*//***************************************************************************/
+void aiop_sl_free(void);
+
 
 /** @} */ /* end of SYSTEM_Functions */
 

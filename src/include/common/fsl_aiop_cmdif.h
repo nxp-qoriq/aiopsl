@@ -21,9 +21,9 @@ Copyright 2013 Freescale Semiconductor, Inc.
 #define CMDIF_PRI_HIGH		1	/**< High Priority */
 
 #define CMDIF_ASYNC_CMD		0x2000
-/**< Bit to be used for cmd_id to indentify asynchronious commands */
+/**< Bit to be used for cmd_id to identify asynchronous commands */
 #define CMDIF_NORESP_CMD	0x1000
-/**< Bit to be used for commands that don't need responce */
+/**< Bit to be used for commands that don't need response */
 
 /**************************************************************************//**
 @Description   Command interface descriptor.
@@ -79,7 +79,7 @@ Driver invokes it when it gets establish instance command.
 
 @Return		Handle to instance object, or NULL for Failure.
  *//***************************************************************************/
-typedef int (open_cb_t)(int instance_id, uint32_t size, uint8_t *data, void **dev);
+typedef int (open_cb_t)(uint8_t instance_id, void **dev);
 
 /**************************************************************************//**
 @Description	De-init callback
@@ -198,11 +198,9 @@ typedef int (cmdif_cb_t)(void *async_ctx,
  *//***************************************************************************/
 int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
-		int instance_id,
+		uint8_t instance_id,
 		cmdif_cb_t async_cb,
-		void *async_ctx,
-		uint32_t size,
-		uint8_t *data);
+		void *async_ctx);
 
 /**************************************************************************//**
 @Function	cmdif_close

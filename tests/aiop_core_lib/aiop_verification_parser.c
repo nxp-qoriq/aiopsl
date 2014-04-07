@@ -55,7 +55,7 @@ void aiop_init_parser(uint8_t *prpid)
 	/* Assuming no soft examination parameters */
 	for(i=0; i<16; i++)
 		verif_parse_profile1.soft_examination_param_array[i] = 0x0;
-	sys_ctlu_prpid_pool_create();
+	sys_prpid_pool_create();
 	/* Create the parse_profile and get an id */
 	parser_profile_create(&verif_parse_profile1, prpid);
 	/* Update prpid in task defaults */
@@ -149,7 +149,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_id_pool_create_verif_command *pipc =
 			(struct parser_prp_id_pool_create_verif_command*)
 			asa_seg_addr;
-		pipc->status = sys_ctlu_prpid_pool_create();
+		pipc->status = sys_prpid_pool_create();
 		str_size =
 			sizeof(struct parser_prp_id_pool_create_verif_command);
 		break;
@@ -162,6 +162,41 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 				str->parser_starting_hxs;
 		aiop_init_parser(&(str->prpid));
 		str_size = sizeof(struct parser_init_verif_command);
+		break;
+	}
+	case PARSER_MACROS_STR:
+	{
+		struct parser_macros_command *str =
+		(struct parser_macros_command *) asa_seg_addr;
+		
+		((struct parse_result *)str->macros_struct)->nxt_hdr = PARSER_GET_NEXT_HEADER_DEFAULT();
+		((struct parse_result *)str->macros_struct)->shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->shim_offset_2 = PARSER_GET_SHIM2_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->ip_pid_offset = PARSER_GET_IP_PID_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->eth_offset = PARSER_GET_ETH_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->llc_snap_offset = PARSER_GET_LLC_SNAP_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->vlan_tci1_offset = PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->vlan_tcin_offset = PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->last_etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->pppoe_offset = PARSER_GET_PPPOE_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->mpls_offset_1 = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->mpls_offset_n = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_ARP_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_INNER_IP_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_MINENCAP_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->gre_offset = PARSER_GET_GRE_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->gtp_esp_ipsec_offset = PARSER_GET_L5_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->routing_hdr_offset1 = PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->nxt_hdr_offset = PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT(); 
+		
+		// TODO : Add attributes macros
+		
+		str_size = sizeof(struct parser_macros_command);
 		break;
 	}
 	default:

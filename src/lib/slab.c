@@ -4,7 +4,6 @@
 #include "common/fsl_malloc.h"
 #include "common/spinlock.h"
 #include "common/dbg.h"
-#include "kernel/platform.h"
 #include "slab.h"
 #include "virtual_pools.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */

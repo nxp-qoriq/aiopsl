@@ -41,6 +41,9 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 				&(str->params),
 				(uint64_t *)(str->ipsec_handle_ptr)
 				);
+		
+		str->descriptor_addr = *((uint64_t *)(str->ipsec_handle_ptr));
+		
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str_size = (uint16_t)sizeof(struct ipsec_add_sa_descriptor_command);
@@ -164,6 +167,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 				&str->enc_status		
 		);
 		*((int32_t *)(str->fm_encr_status_addr)) = str->fm_encr_status;
+		
+		/* if encryption failed, don't do decryption */
+		if (str->fm_encr_status)
+			break;
 		
 		/* Decryption */
 		str->fm_decr_status = ipsec_frame_encrypt(

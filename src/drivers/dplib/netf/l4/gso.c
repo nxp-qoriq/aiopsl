@@ -119,17 +119,17 @@ int32_t tcp_gso_generate_seg(
 	gso_ctx->rem_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 
 	/* Present the remaining FD */
-	
+
 	/* present_rem_frame_params.flags = FDMA_INIT_NDS_BIT;
 	present_rem_frame_params.asa_size = 0;
 	present_rem_frame_params.fd_src = &(gso_ctx->rem_fd);
 	present_rem_frame_params.pta_dst = (void *)PRC_PTA_NOT_LOADED_ADDRESS;
 	sr_status = fdma_present_frame(&present_rem_frame_params);
 	gso_ctx->rem_frame_handle = present_rem_frame_params.frame_handle; */
-	
+
 	/* TODO FDMA ERROR */
-	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd), 
-			&(gso_ctx->rem_frame_handle));
+	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd),
+			FDMA_INIT_NO_FLAGS, 0, &(gso_ctx->rem_frame_handle));
 
 	/* Call to tcp_gso_split_segment */
 	return tcp_gso_split_segment(gso_ctx);
@@ -219,27 +219,27 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* update TCP header flags */
 		tcp_ptr->flags |= (gso_ctx->internal_flags & (TCP_GSO_FIN_BIT |
 						TCP_GSO_PSH_BIT));
-		
+
 		/* sequence number calculation */
 		tcp_ptr->sequence_number += gso_ctx->mss;
-		
+
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
 			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
 			if (tcp_ptr->urgent_pointer)
-				gso_ctx->urgent_pointer -= 
+				gso_ctx->urgent_pointer -=
 						tcp_ptr->urgent_pointer;
 			else
 				/* reset URG */
-				tcp_ptr->flags = tcp_ptr->flags & 
+				tcp_ptr->flags = tcp_ptr->flags &
 				~NET_HDR_FLD_TCP_FLAGS_URG;
 		}
 	} else {
 		/* First/middle segment */
 		status = TCP_GSO_GEN_SEG_STATUS_IN_PROCESS;
-		
+
 		if (gso_ctx->first_seg) {
 			gso_ctx->first_seg = 0;
 			tcp_ptr = (struct tcphdr *)(
@@ -254,18 +254,18 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			/* sequence number calculation */
 			tcp_ptr->sequence_number += gso_ctx->mss;
 			}
-		
+
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
 			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
 			if (tcp_ptr->urgent_pointer)
-				gso_ctx->urgent_pointer -= 
+				gso_ctx->urgent_pointer -=
 						tcp_ptr->urgent_pointer;
 			else
 				/* reset URG */
-				tcp_ptr->flags = tcp_ptr->flags & 
+				tcp_ptr->flags = tcp_ptr->flags &
 				~NET_HDR_FLD_TCP_FLAGS_URG;
 		}
 
@@ -303,7 +303,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* } */
 
 		}
-	
+
 	/* urgent pointer calculation */
 /*	if (gso_ctx->urgent_pointer) {
 		tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
@@ -316,7 +316,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* TODO FDMA ERROR */
 	sr_status = fdma_modify_default_segment_data((uint16_t)outer_ip_offset,
 			(uint16_t)(gso_ctx->headers_size - outer_ip_offset));
-	
+
 	/* update TCP checksum *//* TODO CHECKSUM 0.6 API (Doron)
 	sr_status = cksum_calc_udp_tcp_checksum(); */
 	sr_status = l4_udp_tcp_cksum_calc(

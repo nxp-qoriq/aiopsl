@@ -115,7 +115,12 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	 * The metadata address was used by tcp_gro_aggregate_seg().
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
-#define	TCP_GRO_SEG_AGG_NEW_AGG		0x10
+#define	TCP_GRO_METADATA_USED		0x10
+	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
+	 * user when possible.
+	 * This status bit can be return only as part of a combined status with
+	 * one of the above statuses. */
+#define	TCP_GRO_FLUSH_REQUIRED		0x20
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
@@ -170,6 +175,8 @@ struct tcp_gro_stats_cntrs {
 		 * statistics mode is enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	unexpected_seq_num_cntr;
 		/** Counts the number of aggregations due to flush request.
+		 * This counter does not count cases when the flush is triggered
+		 * due to a \ref TCP_GRO_FLUSH_NO_AGG status flag.
 		 * This counter is valid when extended statistics mode is
 		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	agg_flush_request_num_cntr;
@@ -192,6 +199,8 @@ struct tcp_gro_context_metadata {
 
 /**************************************************************************//**
 @Description	GRO aggregation limits.
+
+		These limits are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_limits {
 		/** Timeout per packet aggregation limit. */
@@ -207,6 +216,8 @@ struct gro_context_limits {
 
 /**************************************************************************//**
 @Description	GRO aggregation Timeout Parameters.
+
+		These parameters are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_timeout_params {
 		/** Address (in HW buffers) of the callback function parameter
@@ -234,7 +245,7 @@ struct tcp_gro_context_params {
 		 * Upper layer SW should always send a metadata buffer address
 		 * to tcp_gro_aggregate_seg().
 		 * After tcp_gro_aggregate_seg() returns \ref
-		 * TCP_GRO_SEG_AGG_NEW_AGG bit in the status, the following call
+		 * TCP_GRO_METADATA_USED bit in the status, the following call
 		 * to tcp_gro_aggregate_seg() should send an address to a new
 		 * metadata buffer.
 		 * */
