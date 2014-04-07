@@ -38,8 +38,6 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	ipr_global_parameters1.ipr_table_location = (uint8_t)(flags>>24);
 	ipr_global_parameters1.ipr_timeout_flags = (uint8_t)(flags>>16);
 	ipr_global_parameters1.ipr_instance_spin_lock = 0;
-	/* todo remove when MC will do this */
-	sys_keyid_pool_create();
 	/* todo for IPv6 */
 	keygen_kcr_builder_init(&kb);
 	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,\
