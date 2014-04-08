@@ -179,6 +179,8 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extracomma.1474544269" name="Extra Commas" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extracomma" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.structclass.1941294859" name="Inconsistent 'class' / 'struct' Usage" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.structclass" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1090411683" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.general.enableC99.902440649" superClass="com.freescale.ppc.toolchain.compiler.base.general.enableC99" value="false" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.general.enableGCC.958649380" superClass="com.freescale.ppc.toolchain.compiler.base.general.enableGCC" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1570848850" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.freescale.ppc.toolchain.assembler.1801014957" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler">
