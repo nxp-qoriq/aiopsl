@@ -116,6 +116,11 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
 #define	TCP_GRO_METADATA_USED		0x10
+	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
+	 * user when possible.
+	 * This status bit can be return only as part of a combined status with
+	 * one of the above statuses. */
+#define	TCP_GRO_FLUSH_REQUIRED		0x20
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
@@ -170,6 +175,8 @@ struct tcp_gro_stats_cntrs {
 		 * statistics mode is enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	unexpected_seq_num_cntr;
 		/** Counts the number of aggregations due to flush request.
+		 * This counter does not count cases when the flush is triggered
+		 * due to a \ref TCP_GRO_FLUSH_NO_AGG status flag.
 		 * This counter is valid when extended statistics mode is
 		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	agg_flush_request_num_cntr;

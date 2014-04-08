@@ -130,7 +130,13 @@ int32_t tcp_gro_aggregate_seg(
 			gro_ctx.agg_headers_size;
 	/* in case there is an option it must be a timestamp option */
 	if (data_offset > TCP_HDR_LENGTH) {
-		gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
+		/* Timestamp option is optimized with to starting nops */
+		if (*((uint8_t *)((uint8_t *)tcp + TCP_HDR_LENGTH)) ==
+				TIMESTAMP_NOP_VAL)
+			gro_ctx.timestamp =
+					((struct tcphdr_gro_opt *)tcp)->tsval;
+		else /* Timestamp option is not optimized */
+			gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
 		gro_ctx.internal_flags |= TCP_GRO_HAS_TIMESTAMP;
 	}
 
@@ -148,9 +154,9 @@ int32_t tcp_gro_aggregate_seg(
 		gro_ctx.checksum = cksum_ones_complement_sum16(
 				gro_ctx.checksum,
 				(uint16_t)tcp->sequence_number);
-		gro_ctx.checksum = cksum_ones_complement_sum16(
+		/*gro_ctx.checksum = cksum_ones_complement_sum16(
 				gro_ctx.checksum,
-				(uint16_t)(tcp->sequence_number >> 16));
+				(uint16_t)(tcp->sequence_number >> 16));*/
 	}
 
 	/* store aggregated frame */
@@ -222,13 +228,19 @@ int32_t tcp_gro_add_seg_to_aggregation(
 			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
 			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	timestamp = 0;
-	if (data_offset > TCP_HDR_LENGTH)
-		timestamp = ((struct tcphdr_gro *)tcp)->tsval;
+	if (data_offset > TCP_HDR_LENGTH) {
+		/* Timestamp option is optimized with to starting nops */
+		if (*((uint8_t *)((uint8_t *)tcp + TCP_HDR_LENGTH)) ==
+				TIMESTAMP_NOP_VAL)
+			timestamp = ((struct tcphdr_gro_opt *)tcp)->tsval;
+		else /* Timestamp option is not optimized */
+			timestamp = ((struct tcphdr_gro *)tcp)->tsval;
+	}
 
 	if (((gro_ctx->internal_flags & TCP_GRO_ECN_MASK) != ecn)	||
 		(gro_ctx->timestamp != timestamp)			||
 		(gro_ctx->last_ack > tcp->acknowledgment_number)	||
-		(gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET))
+		(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET))
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
 
@@ -236,9 +248,6 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	 * In case one of the following conditions is met, add segment to
 	 * aggregation and close the aggregation. */
 	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) {
-		/* Todo - no counter for aggregation due to PSH flag.
-		 * on the other hand - no counter for different timestamp/ECN,
-		 * smaller ACk number ...  should we add them all ? */
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
 
@@ -462,43 +471,55 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* initialize gro_context parameters */
 	old_agg_timestamp = gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP;
 	gro_ctx->internal_flags = 0;
-	gro_ctx->last_ack = tcp->acknowledgment_number;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
 			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
-			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
+			NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
-	gro_ctx->next_seq = tcp->sequence_number +
-			(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			headers_size;
-	/* save timestap if exist */
-	if (data_offset > TCP_HDR_LENGTH) {
-		gro_ctx->timestamp = ((struct tcphdr_gro *)tcp)->tsval;
-		gro_ctx->internal_flags |= TCP_GRO_HAS_TIMESTAMP;
-	}
-
-	/* Set ECN flags */
-	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-		/* IPv4 */
-		ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-		gro_ctx->internal_flags |= (*((uint32_t *)ipv4) &
-				TCP_GRO_ECN_MASK);
+	/* Flush the segment when possible */
+	if ((tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) ||
+		(params->limits.seg_num_limit <= 1)  ||
+		(params->limits.packet_size_limit <= seg_size)) {
+		gro_ctx->internal_flags |= TCP_GRO_FLUSH_AGG_SET;
 	} else {
-		/* IPv6 */
-		ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-		gro_ctx->internal_flags |= (((*((uint32_t *)ipv6)) >>
-				TCP_GRO_IPV6_ECN_OFFSET) &
-				TCP_GRO_ECN_MASK);
-	}
+		gro_ctx->last_ack = tcp->acknowledgment_number;
+		gro_ctx->next_seq = tcp->sequence_number +
+				(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
+				headers_size;
+		/* save timestap if exist */
+		if (data_offset > TCP_HDR_LENGTH) {
+			/* Timestamp option is optimized with to starting nops */
+			if (*((uint8_t *)((uint8_t *)tcp + TCP_HDR_LENGTH)) ==
+					TIMESTAMP_NOP_VAL)
+				gro_ctx->timestamp =
+					((struct tcphdr_gro_opt *)tcp)->tsval;
+			else /* Timestamp option is not optimized */
+				gro_ctx->timestamp =
+					((struct tcphdr_gro *)tcp)->tsval;
+			gro_ctx->internal_flags |= TCP_GRO_HAS_TIMESTAMP;
+		}
 
-	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
-		/* PSH flag set */
-		gro_ctx->internal_flags |= TCP_GRO_PSH_FLAG_SET;
+		/* Set ECN flags */
+		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+			/* IPv4 */
+			ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+			gro_ctx->internal_flags |= (*((uint32_t *)ipv4) &
+					TCP_GRO_ECN_MASK);
+		} else {
+			/* IPv6 */
+			ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+			gro_ctx->internal_flags |= (((*((uint32_t *)ipv6)) >>
+					TCP_GRO_IPV6_ECN_OFFSET) &
+					TCP_GRO_ECN_MASK);
+		}
+	}
 
 	/* calculate tcp data checksum for the new frame */
 	agg_checksum = gro_ctx->checksum;
 	gro_ctx->checksum = 0;
-	new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
+	if ((gro_ctx->internal_flags & ~TCP_GRO_FLUSH_AGG_SET) &&
+		(gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM))
+		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
 	/* store segment frame */
 	sr_status = fdma_store_default_frame_data();
@@ -524,14 +545,6 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		*((struct tcp_gro_last_seg_header_fields *)
 				(&(tcp->acknowledgment_number))) =
 						gro_ctx->last_seg_fields;
-
-	/* update statistics */
-	ste_inc_and_acc_counters(params->stats_addr +
-			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-			STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
-			STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
-			STE_MODE_COMPOUND_CNTR_SATURATE |
-			STE_MODE_COMPOUND_ACC_SATURATE);
 
 	/* write metadata to external memory */
 	sr_status = cdma_write((params->metadata +
@@ -566,35 +579,46 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 			(PARSER_GET_L4_OFFSET_DEFAULT() +
 					TCP_HDR_LENGTH - outer_ip_offset));
+
+	if (gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) {
+		/* update statistics */
+		ste_inc_counter(gro_ctx->params.stats_addr +
+			GRO_STAT_AGG_NUM_CNTR_OFFSET,
+			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+		/* create zero timer for the new PUSH segment */
+		sr_status = tman_delete_timer(gro_ctx->timer_handle,
+				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+		gro_ctx->metadata.seg_num = 1;
+
+		/* Clear gross running sum in parse results */
+		pr->gross_running_sum = 0;
+
+		return (TCP_GRO_SEG_AGG_DONE | TCP_GRO_FLUSH_REQUIRED);
+	}
+
 	/* restore tcp data checksum */
 	gro_ctx->checksum = new_agg_checksum;
 
-	if (gro_ctx->internal_flags & TCP_GRO_PSH_FLAG_SET) {
-		/* create zero timer for the new PUSH segment */
-/*		Todo - enable timer
- *		sr_status = tman_create_timer(params->timeout_params.tmi_id,
-				gro_global_params.timeout_flags,
-				0,
-				tcp_gro_context_addr,
-				(uint16_t)(uint32_t)&tcp_gro_timeout_callback,
-				gro_global_params.gro_timeout_epid,
-				0,
-				&(gro_ctx->timer_handle));
-*/	}
-	else {
-		/* recharge timer for the new aggregation */
-		sr_status = tman_recharge_timer(gro_ctx->timer_handle);
+	/* recharge timer for the new aggregation */
+	sr_status = tman_recharge_timer(gro_ctx->timer_handle);
 
-		if (sr_status != TMAN_REC_TMR_SUCCESS)
-			sr_status = tman_create_timer(
-					params->timeout_params.tmi_id,
-					gro_global_params.timeout_flags,
-					params->limits.timeout_limit,
-					tcp_gro_context_addr,
-					0,
-					&tcp_gro_timeout_callback,
-					&(gro_ctx->timer_handle));
-	}
+	if (sr_status != TMAN_REC_TMR_SUCCESS)
+		sr_status = tman_create_timer(
+				params->timeout_params.tmi_id,
+				gro_global_params.timeout_flags,
+				params->limits.timeout_limit,
+				tcp_gro_context_addr,
+				0,
+				&tcp_gro_timeout_callback,
+				&(gro_ctx->timer_handle));
+
+	/* update statistics */
+	ste_inc_and_acc_counters(params->stats_addr +
+			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
+			STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
+			STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
+			STE_MODE_COMPOUND_CNTR_SATURATE |
+			STE_MODE_COMPOUND_ACC_SATURATE);
 
 	/* initialize gro context fields */
 	gro_ctx->params = *params;
@@ -646,13 +670,31 @@ int32_t tcp_gro_flush_aggregation(
 	sr_status = tman_delete_timer(gro_ctx.timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
+	if (gro_ctx.internal_flags & TCP_GRO_FLUSH_AGG_SET) {
+		/* reset gro context fields */
+		gro_ctx.metadata.seg_num = 0;
+		gro_ctx.internal_flags = 0;
+		/* write gro context back to DDR + release mutex */
+		sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+				CDMA_POSTDMA_MUTEX_RM_BIT,
+				(void *)&gro_ctx,
+				(uint16_t)sizeof(struct tcp_gro_context));
+		/* Copy aggregated FD to default FD location and prepare
+		 * aggregated FD parameters in Presentation Context */
+		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
+		sr_status = fdma_present_default_frame();
+		/* Clear gross running sum in parse results */
+		pr->gross_running_sum = 0;
+
+		return TCP_GRO_FLUSH_AGG_DONE;
+	}
+
 	/* write metadata to external memory */
 	sr_status = cdma_write((gro_ctx.params.metadata +
-					METADATA_MEMBER1_SIZE),
-			&(gro_ctx.metadata.seg_num),
-			(uint16_t)(METADATA_MEMBER2_SIZE +
-					METADATA_MEMBER3_SIZE));
-
+		METADATA_MEMBER1_SIZE),
+		&(gro_ctx.metadata.seg_num),
+		(uint16_t)(METADATA_MEMBER2_SIZE +
+				METADATA_MEMBER3_SIZE));
 	/* reset gro context fields */
 	gro_ctx.metadata.seg_num = 0;
 	gro_ctx.internal_flags = 0;
@@ -844,7 +886,7 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 	/* offset to TCP header */
 	tcp_offset = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 
-	/* save original TCP cksum */
+	/* save original TCP checksum */
 	tcp_cs = tcp->checksum;
 	tcp->checksum = 0;
 	tcp_header_length = (tcp->data_offset_reserved &
@@ -852,29 +894,31 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
 				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
-	/* calculate seg TCP + Pseudo IP cksum  */
+	/* calculate TCP header + Pseudo IP checksum  */
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* IPv4 */
-		/* calculate TCP header + IPsrc + IPdst cksum  */
+		/* calculate TCP header + IPsrc + IPdst checksum  */
 		sr_status = fdma_calculate_default_frame_checksum(
 				tcp_offset - IPV4_HDR_ADD_LENGTH,
 				(uint16_t)(tcp_header_length +
 						IPV4_HDR_ADD_LENGTH),
 				&(tcp->checksum));
-		/* calculate additional Pseudo IP cksum */
+		/* calculate additional Pseudo IP checksum (IP protocol +
+		 * tcp length) */
 		ip_pseudo_tcp_length = ipv4->total_length - IPV4_HDR_LENGTH;
 		tmp_checksum = cksum_ones_complement_sum16(
 				(uint16_t)(ipv4->protocol),
 				ip_pseudo_tcp_length);
 	} else {
 		/* IPv6 */
-		/* calculate TCP header + IPsrc + IPdst cksum  */
+		/* calculate TCP header + IPsrc + IPdst checksum  */
 		sr_status = fdma_calculate_default_frame_checksum(
 				tcp_offset - IPV6_HDR_ADD_LENGTH,
 				(uint16_t)(tcp_header_length +
 						IPV6_HDR_ADD_LENGTH),
 				&(tcp->checksum));
-		/* calculate additional Pseudo IP cksum  */
+		/* calculate additional Pseudo IP checksum (IP protocol +
+		 * tcp length) */
 		ip_pseudo_tcp_length = ipv6->payload_length;
 		tmp_checksum = cksum_ones_complement_sum16(
 				(uint16_t)(ipv6->next_header),
@@ -883,12 +927,14 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 
 	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum, tcp->checksum);
 
-	/* reduce seg TCP + Pseudo IP cksum from original seg cksum.
-	 * The result is the seg Data chkum */
+	/* Reduce TCP header + Pseudo IP checksum from original TCP checksum.
+	 * The result is the Data checksum */
 	tmp_checksum = cksum_ones_complement_sum16(tcp_cs,
 			(uint16_t)~tmp_checksum);
 
-	/* calculate accumulated seg data cksum  */
+	/* Calculate accumulated packet data checksum:
+	 * Add Data checksum from previous segments in the aggregation to the
+	 * data checksum which has just been calculated. */
 	return  cksum_ones_complement_sum16(tmp_checksum,
 			gro_ctx->checksum);
 }
@@ -903,12 +949,14 @@ void tcp_gro_calc_tcp_header_and_data_cksum(
 
 	tmp_checksum = cksum_ones_complement_sum16(tcp->checksum,
 			gro_ctx->checksum);
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)~((uint16_t)tcp->sequence_number));
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)~((uint16_t)(tcp->sequence_number >> 16)));
-	tcp->checksum = (uint16_t)(~cksum_ones_complement_sum16(tmp_checksum,
-			delta_total_length));
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number));
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)~((uint16_t)tcp->sequence_number));*/
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)~((uint16_t)(tcp->sequence_number >> 16)));*/
+	tcp->checksum = (uint16_t)(~(cksum_ones_complement_sum16(
+				tmp_checksum, delta_total_length)));
 
 	gro_ctx->checksum = 0;
 
@@ -939,41 +987,48 @@ void tcp_gro_calc_tcp_header_cksum(
 	tcp->checksum = 0;
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-		/* calculate TCP header + IPsrc + IPdst cksum  */
+		/* calculate TCP header + IPsrc + IPdst checksum  */
 		sr_status = fdma_calculate_default_frame_checksum(
 				(uint16_t)(tcp_offset - IPV4_HDR_ADD_LENGTH),
 				(uint16_t)(tcp_header_length +
 						IPV4_HDR_ADD_LENGTH),
 				&(tmp_checksum));
-		/* calculate additional Pseudo IP cksum  */
+		/* calculate additional Pseudo IP checksum  */
 		ip_pseudo_tcp_length = ipv4->total_length - IPV4_HDR_LENGTH;
 
 	} else {
-		/* calculate TCP header + IPsrc + IPdst cksum  */
+		/* calculate TCP header + IPsrc + IPdst checksum  */
 		sr_status = fdma_calculate_default_frame_checksum(
 				tcp_offset - IPV6_HDR_ADD_LENGTH,
 				(uint16_t)(tcp_header_length +
 						IPV6_HDR_ADD_LENGTH),
 				&(tmp_checksum));
-		/* calculate additional Pseudo IP cksum  */
+		/* calculate additional Pseudo IP checksum  */
 		ip_pseudo_tcp_length = ipv6->payload_length;
 	}
 
-	/* Remove sequence number from chacksum since we added it in the
+	/* Remove sequence number from checksum since we added it in the
 	 * beginning */
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)(~(uint16_t)(tcp->sequence_number)));
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)(~(uint16_t)(tcp->sequence_number >> 16)));
-	/* Add IP Pseudo length */
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number));
+
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)(~(uint16_t)(tcp->sequence_number)));*/
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)(~(uint16_t)(tcp->sequence_number >> 16)));*/
+	/* Add TCP length */
 	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
 			ip_pseudo_tcp_length);
 	/* Add TCP Protocol number */
 	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum, TCP_PROTOCOL);
 
-	/* Accumulate data checksum */
-	tcp->checksum = (uint16_t)~cksum_ones_complement_sum16(tmp_checksum,
-				gro_ctx->checksum);
+	/* Currently: tmp_checksum = TCP calculated pseudo header checksum */
+
+	/* Accumulate previous segments data checksum with the TCP calculated
+	 * pseudo header checksum.
+	 * checksum */
+	tcp->checksum = (uint16_t)~(cksum_ones_complement_sum16(
+			tmp_checksum, gro_ctx->checksum));
 
 	gro_ctx->checksum = 0;
 }

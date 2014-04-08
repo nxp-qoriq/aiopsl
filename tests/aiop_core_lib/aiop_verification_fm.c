@@ -164,7 +164,7 @@ void aiop_verification_fm()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
-					str->compared_variable_size,
+					str->compared_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE) {
@@ -189,7 +189,7 @@ void aiop_verification_fm()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
-					str->compared_variable_size,
+					str->compared_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE) {
@@ -280,7 +280,7 @@ void aiop_verif_init_parser()
 
 uint32_t if_statement_result(
 		uint16_t compared_variable_addr,
-		enum compared_variable_size size,
+		uint32_t size,
 		int64_t compared_value,
 		uint8_t cond)
 {
@@ -313,7 +313,9 @@ uint32_t if_statement_result(
 	}
 	default:
 	{
-		return TERMINATE_FLOW_MODULE;
+		compared_variable =
+			(int64_t)(*((int32_t *)compared_variable_addr));
+		break;
 	}
 	}
 
