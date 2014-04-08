@@ -262,8 +262,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			   /* Early Time out */
 			   return IPR_ERROR;
 			}
-/* todo this is a WA for the new CTLU of simulator 86 that does not return accelerator ID */			
-		} else if (sr_status == (CTLU_STATUS_MISS & 0x00ffffff)) {
+		} else if (sr_status == CTLU_STATUS_MISS) {
 			/* Miss */
 		    cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
 				     	 	 	 	    &rfdc_ext_addr);
@@ -479,11 +478,9 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 			rfdc_ptr->num_of_frags++;
 			rfdc_ptr->current_total_length += current_frag_size;
-
-			/* Close current frame before storing FD */
-			fdma_store_default_frame_data();
 			
 			check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+			/* Close current frame before storing FD */
 			fdma_store_default_frame_data();
 
 			/* Write FD in external buffer */
@@ -533,10 +530,9 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				cdma_write(current_element_ext_addr,
 						   (void *)&current_element,
 						   LINK_LIST_ELEMENT_SIZE);
-				/* Close current frame before storing FD */
-				fdma_store_default_frame_data();
 				
 				check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+				/* Close current frame before storing FD */
 				fdma_store_default_frame_data();
 
 				/* Write FD in external buffer */
@@ -1005,12 +1001,11 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
                 }
                 rfdc_ptr->current_total_length += current_frag_size;
                 rfdc_ptr->num_of_frags++;
-				/* Close current frame before storing FD */
-				fdma_store_default_frame_data();
 				
 				ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
 				check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+				/* Close current frame before storing FD */
 				fdma_store_default_frame_data();
 
 				/* Write FD in external buffer */
@@ -1112,12 +1107,10 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
         	}
     }
 
-		/* Close current frame before storing FD */
-		fdma_store_default_frame_data();
-
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
 		check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+		/* Close current frame before storing FD */
 		fdma_store_default_frame_data();
 	
 		/* Write FD in external buffer */
