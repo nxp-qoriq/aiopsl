@@ -42,7 +42,20 @@
 *//***************************************************************************/
 uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2);
 
+/**************************************************************************//**
+@Function	cksum_ones_complement_dec16
 
+@Description	Calculates a 1's complement subtraction of two 16 bit arguments.
+
+@Param[in]	arg1 - first argument.
+
+@Param[in]	arg2 - second argument to be subtracted from the first argument.
+
+@Return		1's complement subtraction of the two 16 bit arguments.
+
+@Cautions	None
+*//***************************************************************************/
+uint16_t cksum_ones_complement_dec16(uint16_t arg1, uint16_t arg2);
 
 /**************************************************************************//**
 @Function	cksum_update_uint32
@@ -67,7 +80,6 @@ uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2);
 void cksum_update_uint32(register uint16_t *cs_ptr,
 		register uint32_t old_val,
 		register uint32_t new_val);
-
 
 /**************************************************************************//**
 @Function	cksum_accumulative_update_uint32
