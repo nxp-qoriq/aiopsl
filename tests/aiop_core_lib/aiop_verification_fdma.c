@@ -367,6 +367,18 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = (uint16_t)sizeof(struct fdma_discard_wf_command);
 		break;
 	}
+	/* FDMA Discard FD Verification */
+	case FDMA_DISCARD_FD_CMD_STR:
+	{
+		struct fdma_discard_fd_command *str =
+			(struct fdma_discard_fd_command *) asa_seg_addr;
+
+		flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;
+		str->status = (int8_t)fdma_discard_fd(
+				(struct ldpaa_fd *)(str->fd_dst), flags);
+		str_size = (uint16_t)sizeof(struct fdma_discard_fd_command);
+		break;
+	}
 	/* FDMA Terminate Task Command Verification */
 	case FDMA_TERMINATE_TASK_CMD_STR:
 	{
