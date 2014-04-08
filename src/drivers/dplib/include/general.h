@@ -693,7 +693,7 @@ struct aiop_default_task_params {
 		 [maske]"i"(_mask2)					\
 		);
 /* Rotate left and mask */
-#define __e_rlwinm(_res, _arg, _shift, _mask1, _mask2)			\
+#define __rlwinm(_res, _arg, _shift, _mask1, _mask2)			\
 	asm ("e_rlwinm %[result], %[argu], %[sh], %[maskb], %[maske]\n"	\
 		:[result]"=r"(_res)					\
 		:[argu]"r"(_arg), [sh]"i"(_shift), [maskb]"i"(_mask1),	\
