@@ -20,7 +20,8 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2, res1, res2, icid_pl, va_bdi;
+	uint32_t arg1, arg2, icid_pl, va_bdi;
+	unsigned int res1, res2;
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
 #endif
@@ -52,7 +53,7 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 		/* call TMAN. */
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
-		__ldw(res1, res2, HWC_ACC_OUT_ADDRESS, 0);
+		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
 #ifdef SL_DEBUG
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
@@ -140,7 +141,8 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 			uint32_t *timer_handle)
 {
 	struct tman_tmi_input_extention extention_params;
-	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_CREATE, res1, res2;
+	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_CREATE;
+	unsigned int res1, res2;
 	uint32_t epid = EPID_TIMER_EVENT_IDX;
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
@@ -182,7 +184,7 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		/* call TMAN. */
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
-		__ldw(res1, res2, HWC_ACC_OUT_ADDRESS, 0);
+		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
 #ifdef SL_DEBUG
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);

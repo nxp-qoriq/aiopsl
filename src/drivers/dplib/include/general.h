@@ -718,14 +718,14 @@ struct aiop_default_task_params {
 #define LDW_SWAP(_addr)						\
 	(uint64_t)({register uint64_t *__rR = 0;		\
 	uint32_t temp1, temp2;					\
-	__ldwbrw(temp1, temp2, _addr, 0);			\
+	__ldwbrw(&temp1, &temp2, _addr, 0);			\
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
 #define LLLDW_SWAP(_addr)					\
 	(uint64_t)({register uint64_t __rR = 0;		\
 	uint64_t temp;						\
-	__llldbrw(temp, _addr, 0);				\
+	__llldbrw(&temp, _addr, 0);				\
 	__rR = (uint64_t ) temp; })
 
 #define LH_SWAP_MASK(_addr, _mask)				\

@@ -132,6 +132,29 @@ struct tcphdr_gro {
 };
 #pragma pack(pop)
 
+/**************************************************************************//**
+@Description	TCP GRO Optimized Header Structure
+
+		Includes TCP header + Optimized Timestamp option.
+
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct tcphdr_gro_opt {
+	/** TCP structure */
+	struct tcphdr tcp;
+		/** TCP Timestamp first nop */
+	uint8_t	nop1;
+		/** TCP Timestamp second nop */
+	uint8_t	nop2;
+		/** TCP option kind */
+	uint8_t	option_kind;
+		/** TCP option length */
+	uint8_t	option_length;
+		/** TCP timestamp option value of the TCP sending the option. */
+	uint32_t tsval;
+};
+#pragma pack(pop)
+
 /** @} */ /* end of TCP_GRO_INTERNAL_STRUCTS */
 
 
@@ -320,7 +343,8 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 #define	TCP_GRO_IPV6_ECN_OFFSET			4
 	/* Timer Handle Mask in TIMER FD */
 #define TIMER_HANDLE_MASK			0x00FFFFFF
-
+	/* TCP Timestamp option NOP value */
+#define TIMESTAMP_NOP_VAL 1
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
 
@@ -436,7 +460,8 @@ void tcp_gro_timeout_callback(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_data_cksum
 
-@Description	Calculate the TCP data checksum.
+@Description	Calculate the TCP data checksum and add it to the accumulated
+		payload checksum (which was calculated previously).
 
 @Return		Calculated data checksum.
 
@@ -466,9 +491,8 @@ void tcp_gro_calc_tcp_header_and_data_cksum(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
-@Description	Calculate the TCP header checksum and add it to the
-		accumulated payload checksum (which was calculated previously)
-		and the header checksum.
+@Description	Calculate the TCP pseudo header checksum and add it to the
+		accumulated payload checksum (which was calculated previously).
 
 @Param[in]	gro_ctx - Pointer to the internal GRO context.
 
