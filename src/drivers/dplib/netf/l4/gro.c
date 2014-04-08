@@ -947,8 +947,10 @@ void tcp_gro_calc_tcp_header_and_data_cksum(
 
 	tmp_checksum = cksum_ones_complement_sum16(tcp->checksum,
 			gro_ctx->checksum);
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)~((uint16_t)tcp->sequence_number));
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number));
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)~((uint16_t)tcp->sequence_number));*/
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
 			(uint16_t)~((uint16_t)(tcp->sequence_number >> 16)));*/
 	tcp->checksum = (uint16_t)(~(cksum_ones_complement_sum16(
@@ -1005,8 +1007,11 @@ void tcp_gro_calc_tcp_header_cksum(
 
 	/* Remove sequence number from checksum since we added it in the
 	 * beginning */
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)(~(uint16_t)(tcp->sequence_number)));
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number));
+
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)(~(uint16_t)(tcp->sequence_number)));*/
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
 			(uint16_t)(~(uint16_t)(tcp->sequence_number >> 16)));*/
 	/* Add TCP length */
