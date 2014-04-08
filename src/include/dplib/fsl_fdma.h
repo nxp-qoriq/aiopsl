@@ -2380,6 +2380,10 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
 		Implicit input parameters in Task Defaults: AMQ attributes (PL,
 		VA, BDI, ICID).
 
+		Implicitly updated values in Task Defaults in case the FD points
+		to the default FD location: frame handle, NDS bit, ASA size (0),
+		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
 @Param[in]	frame - FD address in workspace to be discarded.
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
