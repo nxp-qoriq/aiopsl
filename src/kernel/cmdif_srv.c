@@ -4,6 +4,7 @@
 #include "common/fsl_string.h"
 #include "cmdif_srv.h"
 #include "general.h"
+#include "fsl_ldpaa_aiop.h"
 #include "io.h"
 #include "fsl_fdma.h"
 #include "sys.h"
@@ -154,8 +155,7 @@ static void inst_dealloc(int inst, struct cmdif_srv *srv)
 
 static uint16_t cmd_id_get()
 {
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	uint64_t data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	return (uint16_t)((data & CMD_ID_MASK) >> CMD_ID_OFF);
 }
 
