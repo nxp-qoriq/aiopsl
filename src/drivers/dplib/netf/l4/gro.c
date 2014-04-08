@@ -517,7 +517,9 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* calculate tcp data checksum for the new frame */
 	agg_checksum = gro_ctx->checksum;
 	gro_ctx->checksum = 0;
-	new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
+	if ((gro_ctx->internal_flags & ~TCP_GRO_FLUSH_AGG_SET) &&
+		(gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM))
+		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
 	/* store segment frame */
 	sr_status = fdma_store_default_frame_data();
@@ -947,8 +949,10 @@ void tcp_gro_calc_tcp_header_and_data_cksum(
 
 	tmp_checksum = cksum_ones_complement_sum16(tcp->checksum,
 			gro_ctx->checksum);
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)~((uint16_t)tcp->sequence_number));
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number));
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)~((uint16_t)tcp->sequence_number));*/
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
 			(uint16_t)~((uint16_t)(tcp->sequence_number >> 16)));*/
 	tcp->checksum = (uint16_t)(~(cksum_ones_complement_sum16(
@@ -1005,8 +1009,11 @@ void tcp_gro_calc_tcp_header_cksum(
 
 	/* Remove sequence number from checksum since we added it in the
 	 * beginning */
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			(uint16_t)(~(uint16_t)(tcp->sequence_number)));
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number));
+
+	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
+			(uint16_t)(~(uint16_t)(tcp->sequence_number)));*/
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
 			(uint16_t)(~(uint16_t)(tcp->sequence_number >> 16)));*/
 	/* Add TCP length */
