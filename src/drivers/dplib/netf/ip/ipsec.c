@@ -28,7 +28,7 @@ void dummy_pr_debug (...) {}
 //#define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
 //#define ALIGN(x, a) (x+a)
 // TODO: temporary workaround since "typeof" fails compilation
-#define ALIGN(x, a) \
+//#define ALIGN(x, a) \
 	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
 
 //#include "desc.h"
