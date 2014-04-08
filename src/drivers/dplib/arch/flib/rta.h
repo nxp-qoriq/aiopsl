@@ -191,8 +191,8 @@
  * - SEC HW block revision format is "v"
  * - SEC revision format is "x.y"
  */
-//extern enum rta_sec_era rta_sec_era;
-enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
+extern enum rta_sec_era rta_sec_era;
+//enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /**
  * @brief              Set SEC Era HW block revision for which the RTA library

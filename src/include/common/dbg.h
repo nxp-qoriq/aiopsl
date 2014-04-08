@@ -236,7 +236,11 @@ do { \
 #endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
 #endif /* (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0)) */
 
+#ifdef pr_debug
+#undef pr_debug
+#endif
 #define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
+
 #define pr_info(...) 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__)
 #define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
 #define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)

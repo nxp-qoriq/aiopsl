@@ -278,6 +278,45 @@ struct ipsec_sa_params {
 
 };
 
+/* SA Descriptor Parameter to read with CDMA */ 
+struct ipsec_read_params {
+	/* TODO: update and align */
+	/* Reorder in a way minimal data should be read with CDMA */
+	
+	/* 7x8 = 56 bytes */
+	uint64_t soft_byte_limit; /* soft byte count limit,	8 Bytes */
+	uint64_t soft_packet_limit; /* soft packet limit, 8B */
+	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
+	uint64_t hard_packet_limit; /* hard packet limit, 8B */
+	uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
+	uint64_t packet_counter; /*	Packets counter, 8B */
+	uint64_t sec_callback_arg; /* SA handle used as argument for the application 
+					callback function. 8B */
+	
+	/* 5x4 = 20 bytes */
+	uint32_t soft_tmr_handle; /* Soft seconds timer handle, 4B */
+	uint32_t hard_tmr_handle; /* Hard seconds timer handle, 4B */
+	uint32_t sec_callback_func; /* Application callback function, 
+	 	 	 	 	to call upon a seconds lifetime expiry. 4B */
+	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable, 
+					outer IP version, etc. 4B */
+	uint32_t status; /* 	lifetime expiry, semaphores	4-8B */
+	
+	/* 2x2 = 4 bytes */
+	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
+	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
+	
+	/* 4x1 = 4 bytes */
+	uint8_t valid; /* descriptor valid. 1B */
+	uint8_t esn; /* Extended sequence number enabled. 1B */
+	uint8_t anti_replay_size; /* none/32/64/128	1B */
+	uint8_t sec_buffer_mode; /* new/reuse (for ASA copy). 1B */
+	
+	/* total = 84 bytes; padding = 128 - total = 44 bytes*/
+	//uint8_t padding[44]; /* Padding to 128 bytes */
+
+};
+
 
 /* SEC Flow Context Descriptor */ 
 struct sec_flow_context {

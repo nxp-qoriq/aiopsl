@@ -20,20 +20,23 @@
 
 /* TODO: temporary fix to pr_debug due to RTA issue */
 //#define pr_debug //
-//#define pr_debug printf
-void dummy_pr_debug (...);
-void dummy_pr_debug (...) {}
-#define pr_debug dummy_pr_debug 
-		
-//#define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
-//#define ALIGN(x, a) (x+a)
-// TODO: temporary workaround since "typeof" fails compilation
-//#define ALIGN(x, a) \
-	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
+//void dummy_pr_debug (...);
+//void dummy_pr_debug (...) {}
+//#define pr_debug dummy_pr_debug 
 
-//#include "desc.h"
+/* Note: GCC Extension should be enabled to support "typeof"
+ * Otherwise it fails compilation of the RTA "ALIGN" macro.
+ * #define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
+ * Alternative usage is "__typeof__":
+ * #define ALIGN(x, a) \
+ *	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
+*/
+
 #include "rta.h"
 #include "protoshared.h"
+
+/* SEC Era version for RTA */
+enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /* Global parameters */
 __SHRAM struct ipsec_global_params global_params;
@@ -623,6 +626,7 @@ int32_t ipsec_frame_encrypt(
 	uint64_t orig_flc;
 	uint32_t orig_frc;
 	uint64_t *eth_pointer_default;
+	struct ipsec_read_params params; /* Parameters to read from ext buffer */
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
 	 * – Simplified Flow */

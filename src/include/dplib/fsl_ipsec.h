@@ -137,6 +137,12 @@ typedef void (ipsec_lifetime_callback_t) (
  * IP header */
 #define IPSEC_ENC_OPTS_DTTL 		0x0200
 
+/* Sequence Number Rollover control.
+ * This control permits a Sequence Number Rollover
+ * If not set, a Sequence Number Rollover causes an error */
+#define IPSEC_ENC_OPTS_SNR_EN  	0x0100	
+
+
 /**************************************************************************//**
 @Description	IPSec ESP Decapsulation options
 
