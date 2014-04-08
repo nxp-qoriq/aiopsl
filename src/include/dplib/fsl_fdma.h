@@ -2372,6 +2372,26 @@ int32_t fdma_discard_default_frame(uint32_t flags);
 int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
 
 /**************************************************************************//**
+@Function	fdma_discard_fd
+
+@Description	Release the resources associated with a frame
+		descriptor.
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID).
+
+@Param[in]	frame - FD address in workspace to be discarded.
+@Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
+		frame flags. \endlink
+
+@Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS,
+		\ref FDMA_PRESENT_FRAME_ERRORS)).
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
+
+/**************************************************************************//**
 @Function	fdma_terminate_task
 
 @Description	End all processing on the associated task and notify the Order
