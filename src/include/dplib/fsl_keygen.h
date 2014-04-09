@@ -12,6 +12,7 @@
 #include "common/types.h"
 #include "general.h"
 #include "fsl_table.h" /* TODO remove! */
+#include "fsl_parser.h"
 
 /* TODO remark on allocations of out params */
 /**************************************************************************//**
@@ -166,6 +167,7 @@
 @{
 *//***************************************************************************/
 
+
 /**************************************************************************//**
 @enum	kcr_builder_parse_result_offset
 
@@ -175,53 +177,76 @@
 *//***************************************************************************/
 enum kcr_builder_parse_result_offset {
 	/** Next header field's offset in parser result */
-	NXT_HDR_OFFSET_IN_PR = 0x0,
+	NXT_HDR_OFFSET_IN_PR = offsetof(struct parse_result, nxt_hdr),
 	/** Frame Attribute Flags Extension field's offset in parser result */
-	FRAME_ATTRIBUTE_FLAGS_EXTENSION_OFFSET_IN_PR = 0x2,
+	FRAME_ATTRIBUTE_FLAGS_EXTENSION_OFFSET_IN_PR =
+		offsetof(struct parse_result, frame_attribute_flags_extension),
 	/** Frame Attribute Flags field's offset in parser result */
-	FRAME_ATTRIBUTE_FLAGS_OFFSET_IN_PR = 0x4,
+	FRAME_ATTRIBUTE_FLAGS_OFFSET_IN_PR =
+			offsetof(struct parse_result, frame_attribute_flags_1),
 	/** Shim Offset 1 field's offset in parser result */
-	SHIM_OFFSET_1_OFFSET_IN_PR = 0x10,
+	SHIM_OFFSET_1_OFFSET_IN_PR =
+			offsetof(struct parse_result, shim_offset_1),
 	/** Shim Offset 2 field's offset in parser result */
-	SHIM_OFFSET_2_OFFSET_IN_PR = 0x11,
+	SHIM_OFFSET_2_OFFSET_IN_PR =
+			offsetof(struct parse_result, shim_offset_2),
 	/** IP NH/protocol offset field's offset in parser result */
-	IP_PID_OFFSET_OFFSET_IN_PR = 0x12,
+	IP_PID_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, ip_pid_offset),
 	/** Ethernet offset field's offset in parser result */
-	ETH_OFFSET_OFFSET_IN_PR = 0x13,
+	ETH_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, eth_offset),
 	/** llc_snap offset field's offset in parser result */
-	LLC_SNAP_OFFSET_OFFSET_IN_PR = 0x14,
+	LLC_SNAP_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, llc_snap_offset),
 	/** First VLAN's TCI offset field's offset in parser result */
-	TCI1_OFFSET_OFFSET_IN_PR = 0x15,
+	TCI1_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, vlan_tci1_offset),
 	/** Last VLAN's TCI offset field's offset in parser result */
-	TCIN_OFFSET_OFFSET_IN_PR = 0x16,
+	TCIN_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, vlan_tcin_offset),
 	/** Last Ethertype offset field's offset in parser result */
-	LAST_ETYPE_OFFSET_OFFSET_IN_PR = 0x17,
+	LAST_ETYPE_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, last_etype_offset),
 	/** PPPoE offset field's offset in parser result */
-	PPPOE_OFFSET_OFFSET_IN_PR = 0x18,
+	PPPOE_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, pppoe_offset),
 	/** First MPLS offset field's offset in parser result */
-	MPLS_OFFSET_1_OFFSET_IN_PR = 0x19,
+	MPLS_OFFSET_1_OFFSET_IN_PR =
+			offsetof(struct parse_result, mpls_offset_1),
 	/** Last MPLS offset field's offset in parser result */
-	MPLS_OFFSET_N_OFFSET_IN_PR = 0x1A,
+	MPLS_OFFSET_N_OFFSET_IN_PR =
+			offsetof(struct parse_result, mpls_offset_n),
 	/** First IP or ARP offset field's offset in parser result */
-	IP1_OR_ARP_OFFSET_OFFSET_IN_PR = 0x1B,
+	IP1_OR_ARP_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, ip1_or_arp_offset),
 	/** Last IP or MinEncap offset field's offset in parser result */
-	IPN_OR_MINENCAP0_OFFSET_OFFSET_IN_PR = 0x1C,
+	IPN_OR_MINENCAP0_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, ipn_or_minencapO_offset),
 	/** GRE offset field's offset in parser result */
-	GRE_OFFSET_OFFSET_IN_PR = 0x1D,
+	GRE_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, gre_offset),
 	/** Layer 4 offset field's offset in parser result */
-	L4_OFFSET_OFFSET_IN_PR = 0x1E,
+	L4_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, l4_offset),
 	/** GTP/ESP/IPsec offset field's offset in parser result */
-	GTP_ESP_IPSEC_OFFSET_OFFSET_IN_PR = 0x1F,
+	GTP_ESP_IPSEC_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, gtp_esp_ipsec_offset),
 	/** Routing header offset of 1st frame field's offset in parser result*/
-	ROUTING_HDR_OFFSET_1_OFFSET_IN_PR = 0x20,
+	ROUTING_HDR_OFFSET_1_OFFSET_IN_PR =
+			offsetof(struct parse_result, routing_hdr_offset1),
 	/** Routing header offset of 2nd frame field's offset in parser result*/
-	ROUTING_HDR_OFFSET_2_OFFSET_IN_PR = 0x21,
+	ROUTING_HDR_OFFSET_2_OFFSET_IN_PR =
+			offsetof(struct parse_result, routing_hdr_offset2),
 	/** Next header offset field's offset in parser result */
-	NXT_HDR_OFFSET_OFFSET_IN_PR = 0x22,
+	NXT_HDR_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, nxt_hdr_offset),
 	/** IPv6 fragmentable part offset field's offset in parser result */
-	IPV6_FRAG_OFFSET_OFFSET_IN_PR = 0x23,
+	IPV6_FRAG_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, ipv6_frag_offset),
 	/** Soft parsing context */
-	SOFT_PARSING_CONTEXT = 0x29
+	SOFT_PARSING_CONTEXT =
+			offsetof(struct parse_result, soft_parsing_context[0])
 };
 
 /** @} */ /* end of kcr_builder_parse_result_offset */
