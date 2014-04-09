@@ -599,13 +599,13 @@ void tman_timer_completion_confirmation(uint32_t timer_handle);
 /**************************************************************************//**
 @Function	tman_get_timestamp
 
-@Description	This function returns the current TAMN timestamp value.
+@Description	This function returns the current TMAN timestamp value.
 
-@Param[out]	timestamp - The TMAN timestamp value.
+@Param[out]	timestamp - The TMAN timestamp value expressed in micro seconds.
 
 @Return		None.
 
-@Cautions	The TMAN Timestamp do not give the current time as it is not
+@Cautions	The TMAN Timestamp cannot be used for time of day as it is not
 		synchronized to the 1588 clock.
 
 *//***************************************************************************/
