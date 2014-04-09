@@ -51,9 +51,12 @@ void create_frame_example(uint32_t fqid, uint16_t icid)
 	 * Process the frame data
 	 * ...*/
 
-	/* Enqueue the frame according to a given fqid */
+	/* Store and Enqueue the frame according to a given fqid */
 	fdma_store_and_enqueue_default_frame_fqid(fqid, FDMA_ENWF_NO_FLAGS);
-
+	/* Store and Enqueue the frame according to a given fqid in separate
+	 * operations*/
+	/*fdma_store_default_frame_data();
+	fdma_enqueue_default_fd_fqid(icid, FDMA_ENF_NO_FLAGS, fqid);*/
 
 
 	/*  Case 2 - create a frame (not as the default frame) -
