@@ -1168,10 +1168,12 @@ enum fdma_pta_size_type {
 	/** No flags indication. */
 #define FDMA_INIT_NO_FLAGS	0x00000000
 	/** No Data Segment.
-	 * If set - do not present Data segment. Otherwise - present Data. */
+	 * If set - do not present Data segment.
+	 * Otherwise - present Data segment. */
 #define FDMA_INIT_NDS_BIT	0x00000200
 	/** Reference within the frame to present from.
-	 * If set - end of the frame. Otherwise - start of the frame. */
+	 * If set - end of the frame.
+	 * Otherwise - start of the frame. */
 #define FDMA_INIT_SR_BIT	0x00000100
 	/** AMQ attributes (PL, VA, BDI, ICID) Source.
 	 * If set - supplied AMQ attributes are used.
