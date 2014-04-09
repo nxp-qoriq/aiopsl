@@ -1168,10 +1168,12 @@ enum fdma_pta_size_type {
 	/** No flags indication. */
 #define FDMA_INIT_NO_FLAGS	0x00000000
 	/** No Data Segment.
-	 * If set - do not present Data segment. Otherwise - present Data. */
+	 * If set - do not present Data segment.
+	 * Otherwise - present Data segment. */
 #define FDMA_INIT_NDS_BIT	0x00000200
 	/** Reference within the frame to present from.
-	 * If set - end of the frame. Otherwise - start of the frame. */
+	 * If set - end of the frame.
+	 * Otherwise - start of the frame. */
 #define FDMA_INIT_SR_BIT	0x00000100
 	/** AMQ attributes (PL, VA, BDI, ICID) Source.
 	 * If set - supplied AMQ attributes are used.
@@ -2370,6 +2372,30 @@ int32_t fdma_discard_default_frame(uint32_t flags);
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
+
+/**************************************************************************//**
+@Function	fdma_discard_fd
+
+@Description	Release the resources associated with a frame
+		descriptor.
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID).
+
+		Implicitly updated values in Task Defaults in case the FD points
+		to the default FD location: frame handle, NDS bit, ASA size (0),
+		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Param[in]	frame - FD address in workspace to be discarded.
+@Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
+		frame flags. \endlink
+
+@Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS,
+		\ref FDMA_PRESENT_FRAME_ERRORS)).
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_terminate_task

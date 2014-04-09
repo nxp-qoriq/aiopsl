@@ -27,8 +27,8 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	UNUSED(instance_id);
 	UNUSED(async_cb);
 	UNUSED(async_ctx);
-	srv->instance_handle[0] = (void *)0x22222222;
-	srv->sync_done[0] = &sync_done;
+	srv->inst_dev[0] = (void *)0x22222222;
+	srv->sync_done[0] = (uint64_t)&sync_done;
 	return 0;
 }
 

@@ -749,6 +749,19 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
 	return (int32_t)(res1);
 }
 
+int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
+{
+	uint8_t frame_handle;
+	int32_t status;
+
+	status = fdma_present_frame_without_segments(fd, FDMA_INIT_NO_FLAGS,
+			0, &frame_handle);
+	if (status != FDMA_SUCCESS)
+		return status;
+
+	return fdma_discard_frame(frame_handle, flags);
+}
+
 void fdma_terminate_task(void)
 {
 	/* command parameters and results */
@@ -1558,9 +1571,7 @@ int32_t fdma_create_frame(
 	if ((uint32_t)fd == HWC_FD_ADDRESS){
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		PRC_SET_SEGMENT_LENGTH(0);
-		PRC_SET_SEGMENT_OFFSET(0);
-		PRC_RESET_NDS_BIT();
+		PRC_SET_NDS_BIT();
 		status = fdma_present_default_frame();
 		if (status != FDMA_SUCCESS)
 			return status;
@@ -1624,9 +1635,7 @@ int32_t fdma_create_fd(
 	if ((uint32_t)fd == HWC_FD_ADDRESS){
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		PRC_SET_SEGMENT_LENGTH(0);
-		PRC_SET_SEGMENT_OFFSET(0);
-		PRC_RESET_NDS_BIT();
+		PRC_SET_NDS_BIT();
 		status = fdma_present_default_frame();
 		if (status != FDMA_SUCCESS)
 			return status;

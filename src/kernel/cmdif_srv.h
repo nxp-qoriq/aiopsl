@@ -5,6 +5,10 @@
 
 #define CMD_ID_MASK	   0x00000000FFFF0000
 #define CMD_ID_OFF	   16
+#define AUTH_ID_MASK	   0x0000FFFF00000000
+#define AUTH_ID_OFF	   32
+#define ERROR_MASK	   0xFFFF000000000000
+#define ERROR_OFF	   48
 #define CMD_ID_OPEN        0x8000
 #define CMD_ID_CLOSE       0x4000
 
@@ -21,15 +25,15 @@ struct cmdif_srv {
 	/**< close(de-init) callbacks, one per module, DDR*/
 	ctrl_cb_t    **ctrl_cb;
 	/**< execution callbacks one per module, SHRAM */
-	fsl_handle_t *instance_handle;
+	fsl_handle_t *inst_dev;
 	/**< array of instances handels(converted from the authentication ID)
 	 * in the size of M_NUM_OF_INSTANCES, SHRAM */
-	void         **sync_done;
-	/**< array of virtual addresses per instance for setting done
+	uint64_t     *sync_done;
+	/**< array of physical addresses per instance for setting done
 	 * for synchronious commands, SHRAM */
 	uint8_t      *m_id;
 	/**< converts auth_id to module for cb, SHRAM */
-	uint16_t     instances_counter;
+	uint16_t     inst_count;
 	/**< counter for instance handlers */
 	uint8_t      lock;
 	/**< cmdif spinlock used for module id allocation */

@@ -321,9 +321,14 @@ struct presentation_context {
 #define PRC_ASAPO_MASK		0x000F
 	/** ASA presentation address mask */
 #define PRC_ASAPA_MASK		0xFFC0
-	/** Segment Reference (SR) bit mask */
+	/** Segment Reference (SR) bit mask.
+	 * Reference within the frame to present from:
+	 * If set - end of the frame.
+	 * Otherwise - start of the frame. */
 #define PRC_SR_MASK		0x0020
-	/** No Data Segment (NDS) bit mask */
+	/** No Data Segment (NDS) bit mask.
+	 * If set - do not present Data segment.
+	 * Otherwise - present data segment */
 #define PRC_NDS_MASK		0x0010
 #if NAS_NPS_ENABLE
 	/** No PTA Segment (NPS) bit mask */
@@ -693,7 +698,7 @@ struct aiop_default_task_params {
 		 [maske]"i"(_mask2)					\
 		);
 /* Rotate left and mask */
-#define __e_rlwinm(_res, _arg, _shift, _mask1, _mask2)			\
+#define __rlwinm(_res, _arg, _shift, _mask1, _mask2)			\
 	asm ("e_rlwinm %[result], %[argu], %[sh], %[maskb], %[maske]\n"	\
 		:[result]"=r"(_res)					\
 		:[argu]"r"(_arg), [sh]"i"(_shift), [maskb]"i"(_mask1),	\
@@ -718,14 +723,14 @@ struct aiop_default_task_params {
 #define LDW_SWAP(_addr)						\
 	(uint64_t)({register uint64_t *__rR = 0;		\
 	uint32_t temp1, temp2;					\
-	__ldwbrw(temp1, temp2, _addr, 0);			\
+	__ldwbrw(&temp1, &temp2, _addr, 0);			\
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
 #define LLLDW_SWAP(_addr)					\
 	(uint64_t)({register uint64_t __rR = 0;		\
 	uint64_t temp;						\
-	__llldbrw(temp, _addr, 0);				\
+	__llldbrw(&temp, _addr, 0);				\
 	__rR = (uint64_t ) temp; })
 
 #define LH_SWAP_MASK(_addr, _mask)				\
