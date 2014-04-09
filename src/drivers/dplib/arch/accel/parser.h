@@ -73,14 +73,11 @@
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct parse_profile_create_params {
-	/** Reserved */
-	uint8_t reserved1[4];
+	/** Command Mtype Field */
+	uint32_t mtype;
 
-	/** Parse Profile ID */
-	uint8_t prpid;
-
-	/** Reserved */
-	uint8_t reserved2[3];
+	/** Parse Profile ID Field */
+	uint32_t prpid;
 
 	/** Parse Profile */
 	struct	parse_profile_record parse_profile;
@@ -92,20 +89,11 @@ struct parse_profile_create_params {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct parse_profile_delete_query_params {
-	/** Reserved */
-	uint8_t reserved1;
+	/** Command MTYPE Field */
+	uint32_t mtype;
 
-	/** Command MTYPE */
-	uint8_t	mtype;
-
-	/** Reserved */
-	uint16_t reserved2;
-
-	/** Parse Profile ID */
-	uint8_t prpid;
-
-	/** Reserved */
-	uint8_t reserved3[3];
+	/** Parse Profile ID  */
+	uint32_t prpid;
 };
 #pragma pack(pop)
 
