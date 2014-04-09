@@ -11,6 +11,7 @@
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_l2.h"
+#include "dplib/fsl_tman.h"
 #include "header_modification.h"
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"
@@ -440,49 +441,53 @@ int32_t ipsec_generate_sa_params(
 	int32_t return_val;
 	
 	struct ipsec_sa_params sap;
-		
-	sap.soft_byte_limit = params->soft_kilobytes_limit; 
-	sap.soft_packet_limit = params->soft_packet_limit; 
-	sap.hard_byte_limit = params->hard_kilobytes_limit; 
-	sap.hard_packet_limit = params->hard_packet_limit; 
-		
-	sap.byte_counter = 0; /* Encrypted/decrypted bytes counter */
-	sap.packet_counter = 0; /*	Packets counter */
 	
-	sap.sec_callback_func = (uint32_t)params->lifetime_callback;
-	sap.sec_callback_arg = params->callback_arg;
-
-	sap.flags = params->flags; // TMP 
-	/* 	transport mode, UDP encap, pad check, counters enable, 
-				outer IP version, etc. 4B */
-	sap.status = 0; /* 	lifetime expiry, semaphores	*/
+	/* Descriptor Part #1 */
+	sap.sap1.flags = params->flags; // TMP 
+		/* 	transport mode, UDP encap, pad check, counters enable, 
+					outer IP version, etc. 4B */
+	sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
 
 	/* UDP Encap for transport mode */
-	sap.udp_src_port = 0; /* UDP source for transport mode. TMP */
-	sap.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
+	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
+	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
 
 	/* Extended sequence number enable */
-	sap.esn = (uint8_t)(((params->encparams.options) & 
+	sap.sap1.esn = (uint8_t)(((params->encparams.options) & 
 					IPSEC_PDB_OPTIONS_MASK & IPSEC_ESN_MASK));
 
-	sap.anti_replay_size = /* none/32/64/128 */ 
+	sap.sap1.anti_replay_size = /* none/32/64/128 */ 
 			(uint8_t)(((params->encparams.options) & 
 					IPSEC_PDB_OPTIONS_MASK & IPSEC_ARS_MASK));
-	
-	/* new/reuse (for ASA copy). TMP */
-	sap.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
-	
-	// sap.padding[44]; /* Padding to 128 bytes, not cleared */
+		
+		/* new/reuse (for ASA copy). TMP */
+	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
-	// TODO: init one-shot timers according to:
-	// soft_seconds_limit;	/**< Soft Seconds limit. */
-	// hard_seconds_limit; 	/**< Hard Second limit. */
-	sap.soft_tmr_handle = NULL; /* Soft seconds timer handle, TMP */
-	sap.hard_tmr_handle = NULL; /* Hard seconds timer handle, TMP */
-
+	sap.sap1.soft_byte_limit = params->soft_kilobytes_limit; 
+	sap.sap1.soft_packet_limit = params->soft_packet_limit; 
+	sap.sap1.hard_byte_limit = params->hard_kilobytes_limit; 
+	sap.sap1.hard_packet_limit = params->hard_packet_limit; 
+		
+	sap.sap1.byte_counter = 0; /* Encrypted/decrypted bytes counter */
+	sap.sap1.packet_counter = 0; /*	Packets counter */
+	
 	/* Set valid flag */
-	sap.valid = 1; /* descriptor valid. */
+	sap.sap1.valid = 1; /* descriptor valid. */
 	
+	/* Descriptor Part #2 */
+	sap.sap2.sec_callback_func = (uint32_t)params->lifetime_callback;
+	sap.sap2.sec_callback_arg = params->callback_arg;
+		
+	// TODO: init one-shot timers according to:
+	// soft_seconds_limit; 
+	// hard_seconds_limit; 
+	sap.sap2.soft_tmr_handle = NULL; /* Soft seconds timer handle, TMP */
+	sap.sap2.hard_tmr_handle = NULL; /* Hard seconds timer handle, TMP */
+
+	/* Get timestamp from TMAN */
+	tman_get_timestamp(&(sap.sap2.timestamp));
+	
+
 	/* Store to external memory with CDMA */
 	return_val = cdma_write(
 			*ipsec_handle, /* uint64_t ext_address */
@@ -626,7 +631,8 @@ int32_t ipsec_frame_encrypt(
 	uint64_t orig_flc;
 	uint32_t orig_frc;
 	uint64_t *eth_pointer_default;
-	struct ipsec_read_params params; /* Parameters to read from ext buffer */
+	
+	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
 	 * – Simplified Flow */
