@@ -675,7 +675,7 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 	int32_t status;
 /*	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];*/
 
-	status = get_id(ext_keyid_pool_address, SYS_NUM_OF_PRPIDS, keyid);
+	status = get_id(ext_keyid_pool_address, keyid);
 
 	if (status != 0)		/* TODO check status ??? */
 		return status;
