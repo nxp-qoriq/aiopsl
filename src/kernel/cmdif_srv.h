@@ -7,7 +7,7 @@
 #define CMD_ID_OFF	   16
 #define AUTH_ID_MASK	   0x0000FFFF00000000
 #define AUTH_ID_OFF	   32
-#define ERROR_MASK	   0xFFFF000000000000
+#define ERROR_MASK	   0x00FF000000000000
 #define ERROR_OFF	   48
 #define CMD_ID_OPEN        0x8000
 #define CMD_ID_CLOSE       0x4000
@@ -15,6 +15,9 @@
 #define M_NUM_OF_INSTANCES    1000
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
+
+#define OPEN_AUTH_ID          0xFFFF 
+/**< auth_id that will be sent as hash value for open commands */
 
 struct cmdif_srv {
 	char         (*m_name)[M_NAME_CHARS + 1];
