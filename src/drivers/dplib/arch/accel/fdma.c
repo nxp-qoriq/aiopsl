@@ -1571,7 +1571,9 @@ int32_t fdma_create_frame(
 	if ((uint32_t)fd == HWC_FD_ADDRESS){
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		PRC_SET_NDS_BIT();
+		PRC_SET_SEGMENT_LENGTH(0);
+		PRC_SET_SEGMENT_OFFSET(0);
+		PRC_RESET_NDS_BIT();
 		status = fdma_present_default_frame();
 		if (status != FDMA_SUCCESS)
 			return status;
@@ -1635,7 +1637,9 @@ int32_t fdma_create_fd(
 	if ((uint32_t)fd == HWC_FD_ADDRESS){
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		PRC_SET_NDS_BIT();
+		PRC_SET_SEGMENT_LENGTH(0);
+		PRC_SET_SEGMENT_OFFSET(0);
+		PRC_RESET_NDS_BIT();
 		status = fdma_present_default_frame();
 		if (status != FDMA_SUCCESS)
 			return status;
