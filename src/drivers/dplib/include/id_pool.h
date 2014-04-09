@@ -121,7 +121,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	uint16_t fill_ids;
 	uint16_t pool_length_to_fill;
 	uint8_t num_of_writes = 0;
-	uint8_t last_id_in_pool = num_of_ids - 1;
+	uint8_t last_id_in_pool = (uint8_t)(num_of_ids - 1);
 	uint8_t pool[64];
 	
 
