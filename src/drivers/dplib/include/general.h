@@ -321,9 +321,14 @@ struct presentation_context {
 #define PRC_ASAPO_MASK		0x000F
 	/** ASA presentation address mask */
 #define PRC_ASAPA_MASK		0xFFC0
-	/** Segment Reference (SR) bit mask */
+	/** Segment Reference (SR) bit mask.
+	 * Reference within the frame to present from:
+	 * If set - end of the frame.
+	 * Otherwise - start of the frame. */
 #define PRC_SR_MASK		0x0020
-	/** No Data Segment (NDS) bit mask */
+	/** No Data Segment (NDS) bit mask.
+	 * If set - do not present Data segment.
+	 * Otherwise - present data segment */
 #define PRC_NDS_MASK		0x0010
 #if NAS_NPS_ENABLE
 	/** No PTA Segment (NPS) bit mask */
