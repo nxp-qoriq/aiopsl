@@ -202,6 +202,12 @@ enum cipher_type_macsec {
 #define DUMMY_BUF_BASE		0xDEADC000
 
 /**
+ * @def HDR_PAYLOAD_MASK
+ * Mask to be used for extracting only the header CRC from the corresponding
+ * field in the MBMS Type 1 & 3 PDUs SYNC headers
+ */
+#define HDR_CRC_MASK		0xFC00000000000000ll
+/**
  * @def FM_RX_PRIV_SIZE
  * Size of the private part, reserved for DPA ETH in the buffer before the frame
  */
@@ -1230,12 +1236,15 @@ static inline void cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 
 /**
  * @details  IPSec new mode ESP encapsulation protocol-level shared descriptor.
- *           Requires a MDHA split key.
+ *           If an authentication key is required by the protocol,
+ *           it must be a MDHA split key.
  * @ingroup sharedesc_group
  *
- * @param[in,out] descbuf    Pointer to buffer used for descriptor construction
- * @param[in,out] bufsize    Pointer to descriptor size to be written back upon
+ * @param[in,out] descbuf Pointer to buffer used for descriptor construction
+ * @param[in,out] bufsize Pointer to descriptor size to be written back upon
  *      completion
+ * @param [in] ps         If 36/40bit addressing is desired, this parameter
+ *      must be non-zero.
  * @param[in] pdb         Pointer to the PDB to be used with this descriptor.
  *      This structure will be copied inline to the descriptor under
  *      construction. No error checking will be made. Refer to the
@@ -1248,10 +1257,19 @@ static inline void cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  */
 static inline void cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf,
 					       unsigned *bufsize,
+					       unsigned short ps,
 					       struct ipsec_encap_pdb *pdb,
 					       struct alginfo *cipherdata,
 					       struct alginfo *authdata)
 {
+	struct program prg;
+	struct program *program = &prg;
+
+	LABEL(keyjmp);
+	REFERENCE(pkeyjmp);
+	LABEL(hdr);
+	REFERENCE(phdr);
+
 	if (rta_sec_era < RTA_SEC_ERA_8) {
 		pr_debug("IPsec new mode encap: available only for Era %d or above\n",
 			 USER_SEC_ERA(RTA_SEC_ERA_8));
@@ -1259,18 +1277,58 @@ static inline void cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf,
 		return;
 	}
 
-	/* Dummy behaviour - until descriptor is ready */
-	*bufsize = 0;
+	PROGRAM_CNTXT_INIT(descbuf, 0);
+	PROGRAM_SET_BSWAP();
+	if (ps)
+		PROGRAM_SET_36BIT_ADDR();
+	phdr = SHR_HDR(SHR_SERIAL, hdr, 0);
+
+	switch (pdb->options & PDBOPTS_ESP_OIHI_MASK) {
+	case PDBOPTS_ESP_OIHI_PDB_INL:
+		ENDIAN_DATA((uint8_t *)pdb,
+			    sizeof(struct ipsec_encap_pdb) + pdb->ip_hdr_len);
+		break;
+	case PDBOPTS_ESP_OIHI_PDB_REF:
+		if (ps)
+			ENDIAN_DATA((uint8_t *)pdb,
+				    sizeof(struct ipsec_encap_pdb) + BYTES_8);
+		else
+			ENDIAN_DATA((uint8_t *)pdb,
+				    sizeof(struct ipsec_encap_pdb) + BYTES_4);
+		break;
+	default:
+		ENDIAN_DATA((uint8_t *)pdb, sizeof(struct ipsec_encap_pdb));
+		break;
+	}
+	SET_LABEL(hdr);
+
+	pkeyjmp = JUMP(IMM(keyjmp), LOCAL_JUMP, ALL_TRUE, SHRD);
+	if (authdata->keylen)
+		KEY(MDHA_SPLIT_KEY, authdata->key_enc_flags, PTR(authdata->key),
+		    authdata->keylen, 0);
+	if (cipherdata->keylen)
+		KEY(KEY1, cipherdata->key_enc_flags, PTR(cipherdata->key),
+		    cipherdata->keylen, 0);
+	SET_LABEL(keyjmp);
+	PROTOCOL(OP_TYPE_ENCAP_PROTOCOL,
+		 OP_PCLID_IPSEC_NEW,
+		 (uint16_t)(cipherdata->algtype | authdata->algtype));
+	PATCH_JUMP(pkeyjmp, keyjmp);
+	PATCH_HDR(phdr, hdr);
+	*bufsize = PROGRAM_FINALIZE();
 }
 
 /**
  * @details IPSec new mode ESP decapsulation protocol-level shared descriptor.
- *          Requires a MDHA split key.
+ *           If an authentication key is required by the protocol,
+ *           it must be a MDHA split key.
  * @ingroup sharedesc_group
  *
- * @param[in,out] descbuf    Pointer to buffer used for descriptor construction
- * @param[in,out] bufsize    Pointer to descriptor size to be written back upon
+ * @param[in,out] descbuf Pointer to buffer used for descriptor construction
+ * @param[in,out] bufsize Pointer to descriptor size to be written back upon
  *      completion
+ * @param [in] ps         If 36/40bit addressing is desired, this parameter
+ *      must be non-zero.
  * @param[in] pdb         Pointer to the PDB to be used with this descriptor.
  *      This structure will be copied inline to the descriptor under
  *      construction. No error checking will be made. Refer to the
@@ -1283,10 +1341,19 @@ static inline void cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf,
  */
 static inline void cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf,
 					       unsigned *bufsize,
+					       unsigned short ps,
 					       struct ipsec_decap_pdb *pdb,
 					       struct alginfo *cipherdata,
 					       struct alginfo *authdata)
 {
+	struct program prg;
+	struct program *program = &prg;
+
+	LABEL(keyjmp);
+	REFERENCE(pkeyjmp);
+	LABEL(hdr);
+	REFERENCE(phdr);
+
 	if (rta_sec_era < RTA_SEC_ERA_8) {
 		pr_debug("IPsec new mode decap: available only for Era %d or above\n",
 			 USER_SEC_ERA(RTA_SEC_ERA_8));
@@ -1294,8 +1361,27 @@ static inline void cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf,
 		return;
 	}
 
-	/* Dummy behaviour - until descriptor is ready */
-	*bufsize = 0;
+	PROGRAM_CNTXT_INIT(descbuf, 0);
+	PROGRAM_SET_BSWAP();
+	if (ps)
+		PROGRAM_SET_36BIT_ADDR();
+	phdr = SHR_HDR(SHR_SERIAL, hdr, 0);
+	ENDIAN_DATA((uint8_t *)pdb, sizeof(struct ipsec_decap_pdb));
+	SET_LABEL(hdr);
+	pkeyjmp = JUMP(IMM(keyjmp), LOCAL_JUMP, ALL_TRUE, SHRD);
+	if (authdata->keylen)
+		KEY(MDHA_SPLIT_KEY, authdata->key_enc_flags, PTR(authdata->key),
+		    authdata->keylen, 0);
+	if (cipherdata->keylen)
+		KEY(KEY1, cipherdata->key_enc_flags, PTR(cipherdata->key),
+		    cipherdata->keylen, 0);
+	SET_LABEL(keyjmp);
+	PROTOCOL(OP_TYPE_DECAP_PROTOCOL,
+		 OP_PCLID_IPSEC_NEW,
+		 (uint16_t)(cipherdata->algtype | authdata->algtype));
+	PATCH_JUMP(pkeyjmp, keyjmp);
+	PATCH_HDR(phdr, hdr);
+	*bufsize = PROGRAM_FINALIZE();
 }
 
 /**
@@ -4549,7 +4635,7 @@ static inline void cnstr_shdsc_mbms_type0(uint32_t *descbuf,
 	MOVE(MATH0, 0, DESCBUF, 0, IMM(8), WAITCOMP);
 
 	/* Store the updated statistic in external memory */
-	STORE(SHAREDESCBUF_EFF, 4, IMM(0xDEADC0DE), 4, WITH(0));
+	STORE(SHAREDESCBUF_EFF, 4, IMM(DUMMY_BUF_BASE), 4, WITH(0));
 
 	SET_LABEL(rto);
 
@@ -4596,31 +4682,36 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 						unsigned short ps,
 						enum mbms_pdu_type pdu_type)
 {
-	struct program part1_prg;
+	struct program part1_prg, part2_prg;
 	struct program *program = &part1_prg;
 	struct mbms_type_1_3_pdb pdb;
+	uint32_t *part1_buf, *part2_buf;
 
 	LABEL(pdb_end);
 	LABEL(end_of_sd);
 	LABEL(seq_in_ptr);
 	LABEL(sd_ptr);
 	LABEL(hdr_crc_pass);
+	LABEL(load_2nd_part);
 	LABEL(all_crc_pass);
+	LABEL(end_of_part2);
 	REFERENCE(jump_chk_payload_crc);
 	REFERENCE(jump_start_of_desc);
-	REFERENCE(load_2nd_part);
+	REFERENCE(patch_load_2nd_part);
 	REFERENCE(jump_all_crc_ok);
 	REFERENCE(phdr);
 	REFERENCE(seq_in_address);
 
 	REFERENCE(move_sd_address);
-	REFERENCE(patch_load_2nd_part);
+	REFERENCE(patch_move_load_2nd_part);
 
 	REFERENCE(patch_load);
 	REFERENCE(load_start_of_buf);
 
+	part1_buf = descbuf;
+
 	memset(&pdb, 0, sizeof(pdb));
-	PROGRAM_CNTXT_INIT(descbuf, 0);
+	PROGRAM_CNTXT_INIT(part1_buf, 0);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR();
 
@@ -4653,7 +4744,7 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	 * and the descriptor are allocated is 256B aligned.
 	 */
 	move_sd_address = MOVE(DESCBUF, 0, MATH2, 0, IMM(7), 0);
-	patch_load_2nd_part = MOVE(MATH2, 0, DESCBUF, 0, IMM(7), WITH(0));
+	patch_move_load_2nd_part = MOVE(MATH2, 0, DESCBUF, 0, IMM(7), WITH(0));
 
 	/*
 	 * This descriptor overwrites itself ("overlay methodology").
@@ -4729,7 +4820,7 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	JUMP(IMM(1), LOCAL_JUMP, ALL_TRUE, WITH(CALM | CLASS2));
 
 	/* Clear the payload CRC */
-	MATHB(MATH3, AND, IMM(0xFC00000000000000), MATH2, SIZE(8), 0);
+	MATHB(MATH3, AND, IMM(HDR_CRC_MASK), MATH2, SIZE(8), 0);
 
 	/* Put in M3 the payload CRC */
 	MATHB(MATH3, XOR, MATH2, MATH3, SIZE(8), WITH(STL));
@@ -4778,7 +4869,7 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	MOVE(MATH0, 0, DESCBUF, 0, IMM(8), WAITCOMP);
 
 	/* Store the updated statistic in external memory */
-	STORE(SHAREDESCBUF_EFF, 4, IMM(0xDEADC0DE), 4, WITH(0));
+	STORE(SHAREDESCBUF_EFF, 4, IMM(DUMMY_BUF_BASE), 4, WITH(0));
 
 	/* Halt here with the appropriate status */
 	JUMP(IMM(MBMS_CRC_HDR_FAIL), HALT_STATUS, ALL_FALSE, WITH(0));
@@ -4821,10 +4912,8 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	 *
 	 * Note2: The "+8" below is due to the preheader that is before the SD
 	 */
-	load_2nd_part = LOAD(PTR(DUMMY_BUF_BASE + 8 +
-			     (program->current_pc + 4) * 4), DESCBUF, 0,
-			     SIZE(136), 0);
-	load_2nd_part++;
+	SET_LABEL(load_2nd_part);
+	patch_load_2nd_part = LOAD(PTR(DUMMY_BUF_BASE), DESCBUF, 0, SIZE(8), 0);
 
 	jump_start_of_desc = JUMP(IMM(0), LOCAL_JUMP, ALL_TRUE, WITH(CALM));
 
@@ -4839,6 +4928,50 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	SET_LABEL(end_of_sd);
 	seq_in_ptr = end_of_sd + 8;
 	sd_ptr = end_of_sd + 1;
+
+	PATCH_MOVE(seq_in_address, seq_in_ptr);
+	PATCH_MOVE(patch_load, load_start_of_buf);
+	PATCH_MOVE(move_sd_address, sd_ptr);
+	/*
+	 * +1 here is needed because the PTR field (2WORDs) in the LOAD
+	 * command needs to be updated by the MOVE command, not the LOAD command
+	 * itself.
+	 */
+	PATCH_MOVE(patch_move_load_2nd_part, load_2nd_part + 1);
+	PATCH_JUMP(jump_chk_payload_crc, hdr_crc_pass);
+	PATCH_JUMP(jump_start_of_desc, pdb_end);
+	PATCH_LOAD(patch_load_2nd_part, pdb_end);
+
+	/*
+	 * This patches the pointer in the load command so that it points after
+	 * the "first part" SD.
+	 * Note1: The +2 in the REFERENCE is needed because the least
+	 *        significant byte in the PTR field of the LOAD command (the
+	 *        offset from the base) needs to be updated; this resides 2
+	 *        WORDS from the actual LOAD command
+	 * Note2: The "+8" below is due to the preheader that is before the SD
+	 */
+	PATCH_RAW(patch_load_2nd_part + 2, 0xFF, end_of_sd * 4 + 8);
+
+	PATCH_HDR(phdr, pdb_end);
+
+	*bufsize = PROGRAM_FINALIZE();
+
+	/* Here goes the 2nd part of the descriptor, as a separate program */
+	program = &part2_prg;
+
+	/*
+	 * Start to write instructions in descriptor buffer after the
+	 * instructions in the first program
+	 */
+	part2_buf = part1_buf + end_of_sd;
+
+	/*
+	 * The offset is set to the end of the PDB because the 2nd part of the
+	 * descriptor is brought after the PDB in the SD (overwriting is done
+	 * after the PDB).
+	 */
+	PROGRAM_CNTXT_INIT(part2_buf, pdb_end);
 
 	/* Load the payload polynomial to KEY2 register */
 	KEY(KEY2, 0, IMM(MBMS_PAYLOAD_POLY), 2, WITH(IMMED));
@@ -4919,7 +5052,7 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	MOVE(MATH0, 4, DESCBUF, 0, IMM(8), WAITCOMP);
 
 	/* Store the updated statistic in external memory */
-	STORE(SHAREDESCBUF_EFF, 8, IMM(0xDEADC0DE), 4, WITH(0));
+	STORE(SHAREDESCBUF_EFF, 8, IMM(DUMMY_BUF_BASE), 4, WITH(0));
 
 	/*
 	 * Halt here with the appropriate status, but wait first for data
@@ -4956,25 +5089,13 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	 */
 	JUMP(IMM(0x00), HALT_STATUS, ALL_TRUE, WITH(CALM));
 
-	PATCH_MOVE(seq_in_address, seq_in_ptr);
-	PATCH_MOVE(patch_load, load_start_of_buf);
-	PATCH_MOVE(move_sd_address, sd_ptr);
-	PATCH_MOVE(patch_load_2nd_part, load_2nd_part);
-	PATCH_JUMP(jump_chk_payload_crc, hdr_crc_pass);
+	SET_LABEL(end_of_part2);
+
 	PATCH_JUMP(jump_all_crc_ok, all_crc_pass);
-	PATCH_JUMP(jump_start_of_desc, pdb_end);
-	PATCH_LOAD(load_2nd_part - 1, pdb_end);
+	PATCH_RAW_NON_LOCAL(&part1_prg, patch_load_2nd_part, 0xFF,
+			    end_of_part2);
 
-	PATCH_HDR(phdr, pdb_end);
-
-	*bufsize = PROGRAM_FINALIZE();
-
-	/*
-	 * This is a temporary workaround till RTA has support for
-	 * patching the length of the SD.
-	 */
-	*program->shrhdr &= (uint32_t)(~0x7F);
-	*program->shrhdr |= end_of_sd;
+	*bufsize += PROGRAM_FINALIZE();
 
 	return end_of_sd;
 }

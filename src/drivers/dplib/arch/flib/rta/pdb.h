@@ -40,8 +40,21 @@
 #define PDBOPTS_ESP_DIFFSERV	0x40   /**< copy TOS/TC from inner iphdr
 					    valid only for IPsec legacy mode */
 #define PDBOPTS_ESP_IVSRC	0x20   /**< IV comes from internal random gen */
-#define PDBOPTS_ESP_IPHDRSRC	0x08   /**< IP header comes from PDB */
-#define PDBOPTS_ESP_INCIPHDR	0x04   /**< prepend IP header to output frame */
+#define PDBOPTS_ESP_IPHDRSRC	0x08   /**< IP header comes from PDB
+					    valid only for IPsec legacy mode */
+#define PDBOPTS_ESP_INCIPHDR	0x04   /**< prepend IP header to output frame
+					    valid only for IPsec legacy mode */
+#define PDBOPTS_ESP_OIHI_MASK	0x0c	/**< Mask for Outer IP Header Included
+					     valid only for IPsec new mode */
+#define PDBOPTS_ESP_OIHI_PDB_INL 0x0c   /**< prepend IP header to output frame
+					    from PDB (where it is inlined)
+					    valid only for IPsec new mode */
+#define PDBOPTS_ESP_OIHI_PDB_REF 0x08   /**< prepend IP header to output frame
+					    from PDB (referenced by pointer)
+					    valid only for IPsec new mode */
+#define PDBOPTS_ESP_OIHI_IF	0x04   /**< prepend IP header to output frame
+					    from input frame
+					    valid only for IPsec new mode */
 #define PDBOPTS_ESP_NAT		0x02   /**< enable RFC 3948 UDP-encapsulated-ESP
 					    valid only for IPsec new mode */
 #define PDBOPTS_ESP_NUC		0x01   /**< enable NAT UDP Checksum
@@ -236,7 +249,7 @@ struct ipsec_decap_gcm {
  */
 struct ipsec_decap_pdb {
 	uint16_t ip_hdr_len;		/* HMO (upper nibble) + IP header length
-	 	 	 	 	 * (lower 3 nibbles) */
+					 * (lower 3 nibbles) */
 	union {
 		uint8_t ip_nh_offset;	/* next header offset for legacy mode */
 		uint8_t aoipho;		/* actual outer IP header offset for
@@ -251,7 +264,7 @@ struct ipsec_decap_pdb {
 	};
 	uint32_t seq_num_ext_hi;
 	uint32_t seq_num;
-	uint32_t anti_replay[2];
+	uint32_t anti_replay[4];
 	uint32_t end_index[0];
 };
 

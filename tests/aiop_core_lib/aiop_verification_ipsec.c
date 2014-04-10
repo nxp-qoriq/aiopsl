@@ -6,7 +6,6 @@
 		Copyright 2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-
 #include "aiop_verification.h"
 #include "aiop_verification_ipsec.h"
 #include "ipsec.h"
@@ -17,6 +16,8 @@
 //	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
 //#include "rta.h"
 //#include "protoshared.h"
+
+__VERIF_GLOBAL uint64_t sa_desc_handle[32];
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 {
@@ -51,11 +52,13 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		
 		str->status = ipsec_add_sa_descriptor(
 				&(str->params),
-				(uint64_t *)(str->ipsec_handle_ptr)
+				//(uint64_t *)(str->ipsec_handle_ptr)
+				(uint64_t *)(&(sa_desc_handle[str->sa_desc_id]))
 				);
 		
-		str->descriptor_addr = *((uint64_t *)(str->ipsec_handle_ptr));
-		
+		//str->descriptor_addr = *((uint64_t *)(str->ipsec_handle_ptr));
+		str->descriptor_addr = sa_desc_handle[str->sa_desc_id];
+
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str_size = (uint16_t)sizeof(struct ipsec_add_sa_descriptor_command);
@@ -69,7 +72,9 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_del_sa_descriptor_command *)data_addr;
 		
 		str->status = ipsec_del_sa_descriptor(
-				*((uint64_t *)(str->ipsec_handle_ptr)));
+				//*((uint64_t *)(str->ipsec_handle_ptr))
+				sa_desc_handle[str->sa_desc_id]
+				);
 		
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
@@ -84,7 +89,8 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_get_lifetime_stats_command *)data_addr;
 		
 		str->status = ipsec_get_lifetime_stats(
-				*((uint64_t *)(str->ipsec_handle_ptr)),
+				//*((uint64_t *)(str->ipsec_handle_ptr)),
+				sa_desc_handle[str->sa_desc_id],
 				&(str-> kilobytes),
 				&(str-> packets),
 				&(str-> sec)
@@ -103,7 +109,8 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_decr_lifetime_counters_command *)data_addr;
 		
 		str->status = ipsec_decr_lifetime_counters(
-				*((uint64_t *)(str->ipsec_handle_ptr)),
+				//*((uint64_t *)(str->ipsec_handle_ptr)),
+				sa_desc_handle[str->sa_desc_id],
 				str->kilobytes_decr_val,
 				str->packets_decr_val
 				);
@@ -121,7 +128,8 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_get_seq_num_command *)data_addr;
 		
 		str->status = ipsec_get_seq_num(
-				*((uint64_t *)(str->ipsec_handle_ptr)),
+				//*((uint64_t *)(str->ipsec_handle_ptr)),
+				sa_desc_handle[str->sa_desc_id],
 				&(str->sequence_number),
 				&(str->extended_sequence_number),
 				&(str->anti_replay_bitmap[4])
@@ -141,9 +149,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_frame_decrypt_command *)data_addr;
 		
 		str->status = ipsec_frame_decrypt(
-				*((uint64_t *)(str->ipsec_handle_ptr)),
+				//*((uint64_t *)(str->ipsec_handle_ptr)),
+				sa_desc_handle[str->sa_desc_id],
 				&str->dec_status		
-		);
+				);
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
@@ -157,9 +166,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_frame_encrypt_command *)data_addr;
 		
 		str->status = ipsec_frame_encrypt(
-				*((uint64_t *)(str->ipsec_handle_ptr)),
+				//*((uint64_t *)(str->ipsec_handle_ptr)),
+				sa_desc_handle[str->sa_desc_id],
 				&str->enc_status		
-		);
+				);
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
@@ -175,9 +185,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		
 		/* Encryption */
 		str->fm_encr_status = ipsec_frame_encrypt(
-				*((uint64_t *)(str->ipsec_encr_handle_ptr)),
+				//*((uint64_t *)(str->ipsec_encr_handle_ptr)),
+				sa_desc_handle[str->encr_sa_desc_id],
 				&str->enc_status		
-		);
+				);
 		*((int32_t *)(str->fm_encr_status_addr)) = str->fm_encr_status;
 		
 		/* if encryption failed, don't do decryption */
@@ -186,7 +197,8 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		
 		/* Decryption */
 		str->fm_decr_status = ipsec_frame_encrypt(
-				*((uint64_t *)(str->ipsec_decr_handle_ptr)),
+				//*((uint64_t *)(str->ipsec_decr_handle_ptr)),
+				sa_desc_handle[str->decr_sa_desc_id],
 				&str->dec_status		
 		);
 		*((int32_t *)(str->fm_decr_status_addr)) = str->fm_decr_status;

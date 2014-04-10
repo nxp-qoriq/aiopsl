@@ -69,10 +69,18 @@ int32_t ipsec_generate_encap_sd(
 	
 	uint8_t cipher_type = 0;
 	uint8_t tunnel_mode = 1; // TODO: TMP
-
+	int32_t return_val;
+	
 	// RTA TMP params
 	unsigned short ps = 1;
-	struct ipsec_encap_pdb pdb;
+	//struct ipsec_encap_pdb pdb;
+	
+	struct encap_pdb {
+		struct ipsec_encap_pdb innerpdb;
+		uint32_t *outer_hdr; 
+	} pdb;	
+	
+	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
 	
 	/* Build PDB fields for the RTA */
 	
@@ -107,19 +115,19 @@ int32_t ipsec_generate_encap_sd(
 	switch (cipher_type) {
 		case CIPHER_TYPE_CBC:
 			/* uint32_t iv[4] */
-			pdb.cbc.iv[0] = params->encparams.cbc.iv[0];
-			pdb.cbc.iv[1] = params->encparams.cbc.iv[1];
-			pdb.cbc.iv[2] = params->encparams.cbc.iv[2];
-			pdb.cbc.iv[3] = params->encparams.cbc.iv[3];
+			pdb.innerpdb.cbc.iv[0] = params->encparams.cbc.iv[0];
+			pdb.innerpdb.cbc.iv[1] = params->encparams.cbc.iv[1];
+			pdb.innerpdb.cbc.iv[2] = params->encparams.cbc.iv[2];
+			pdb.innerpdb.cbc.iv[3] = params->encparams.cbc.iv[3];
 			break;
 		case CIPHER_TYPE_CTR:
 			/*	uint32_t ctr_nonce; */
 			/*	uint32_t ctr_initial; */
 			/*	uint32_t iv[2]; */
-			pdb.ctr.ctr_nonce = params->encparams.ctr.ctr_nonce;
-			pdb.ctr.ctr_initial = 0;
-			pdb.ctr.iv[0] = params->encparams.ctr.iv[0];
-			pdb.ctr.iv[1] = params->encparams.ctr.iv[1];
+			pdb.innerpdb.ctr.ctr_nonce = params->encparams.ctr.ctr_nonce;
+			pdb.innerpdb.ctr.ctr_initial = 0;
+			pdb.innerpdb.ctr.iv[0] = params->encparams.ctr.iv[0];
+			pdb.innerpdb.ctr.iv[1] = params->encparams.ctr.iv[1];
 			break;
 		case CIPHER_TYPE_CCM:
 			/*	uint32_t salt; lower 24 bits */
@@ -127,32 +135,32 @@ int32_t ipsec_generate_encap_sd(
 			/*	uint8_t ctr_flags; */
 			/*	uint16_t ctr_initial; */
 			/*	uint32_t iv[2]; */
-			pdb.ccm.salt = params->encparams.ccm.salt;
-			pdb.ccm.b0_flags = 0;
-			pdb.ccm.ctr_flags = 0;
-			pdb.ccm.ctr_initial = 0;
-			pdb.ccm.iv[0] = params->encparams.ccm.iv[0];
-			pdb.ccm.iv[1] = params->encparams.ccm.iv[1];
+			pdb.innerpdb.ccm.salt = params->encparams.ccm.salt;
+			pdb.innerpdb.ccm.b0_flags = 0;
+			pdb.innerpdb.ccm.ctr_flags = 0;
+			pdb.innerpdb.ccm.ctr_initial = 0;
+			pdb.innerpdb.ccm.iv[0] = params->encparams.ccm.iv[0];
+			pdb.innerpdb.ccm.iv[1] = params->encparams.ccm.iv[1];
 			break;
 		case CIPHER_TYPE_GCM:
 			/*	uint32_t salt; lower 24 bits */
 			/*	uint32_t rsvd1; */
 			/*	uint32_t iv[2]; */
-			pdb.gcm.salt = params->encparams.gcm.salt;
-			pdb.gcm.rsvd1 = 0;
-			pdb.gcm.iv[0] = params->encparams.gcm.iv[0];
-			pdb.gcm.iv[1] = params->encparams.gcm.iv[1];
+			pdb.innerpdb.gcm.salt = params->encparams.gcm.salt;
+			pdb.innerpdb.gcm.rsvd1 = 0;
+			pdb.innerpdb.gcm.iv[0] = params->encparams.gcm.iv[0];
+			pdb.innerpdb.gcm.iv[1] = params->encparams.gcm.iv[1];
 			break;
 		default:
-			pdb.cbc.iv[0] = 0;
-			pdb.cbc.iv[1] = 0;
-			pdb.cbc.iv[2] = 0;
-			pdb.cbc.iv[3] = 0;
+			pdb.innerpdb.cbc.iv[0] = 0;
+			pdb.innerpdb.cbc.iv[1] = 0;
+			pdb.innerpdb.cbc.iv[2] = 0;
+			pdb.innerpdb.cbc.iv[3] = 0;
 	}
 	
-	pdb.hmo = 
+	pdb.innerpdb.hmo = 
 		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
-	pdb.options = 
+	pdb.innerpdb.options = 
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
 		IPSEC_ENC_PDB_OPTIONS_OIHI_PDB /* outer header from PDB */ 
 		);
@@ -163,50 +171,59 @@ int32_t ipsec_generate_encap_sd(
 	//	uint8_t ip_nh;	/* next header for legacy mode */
 	//	uint8_t rsvd;	/* reserved for new mode */
 	//};
-	pdb.rsvd = 0;
+	pdb.innerpdb.rsvd = 0;
 				
 	//union {
 	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
 	//	uint8_t aoipho;		/* actual outer IP header offset for
 	//				 * new mode */
 	//};
-	pdb.aoipho = 0;
+	pdb.innerpdb.aoipho = 0;
 
-	pdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
-	pdb.seq_num = params->encparams.seq_num;
+	pdb.innerpdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
+	pdb.innerpdb.seq_num = params->encparams.seq_num;
 	
-	pdb.spi = params->encparams.spi;
+	pdb.innerpdb.spi = params->encparams.spi;
 		
-	pdb.rsvd2 = 0;
+	pdb.innerpdb.rsvd2 = 0;
 
-	pdb.ip_hdr_len = params->encparams.ip_hdr_len;
-	pdb.ip_hdr[0] = *params->encparams.outer_hdr; // TODO: fix this issue
-	// Optionally the RTA should be modified to get a pointer
+	pdb.innerpdb.ip_hdr_len = params->encparams.ip_hdr_len;
+	pdb.outer_hdr = params->encparams.outer_hdr;
 	
 	/* Call RTA function to build an encap descriptor */
 	if (tunnel_mode) {
 		/* Tunnel mode, SEC "new thread" */	
 		cnstr_shdsc_ipsec_new_encap(
-			(uint32_t *)(sd_addr), /* uint32_t *descbuf */
+			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
-			&pdb, /* struct ipsec_encap_pdb *pdb */
+			ps, /* unsigned short ps */
+			((struct ipsec_encap_pdb *)(&pdb)), /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&(params->cipherdata)),
 			(struct alginfo *)(&(params->authdata)) 
 		);
 	} else {
 		/* Transport mode, SEC legacy new thread */
 		cnstr_shdsc_ipsec_encap(
-			(uint32_t *)(sd_addr), /* uint32_t *descbuf */
+			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
 			ps, /* unsigned short ps */
-			&pdb, /* struct ipsec_encap_pdb *pdb */
+			((struct ipsec_encap_pdb *)(&pdb)), /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&(params->cipherdata)),
 			(struct alginfo *)(&(params->authdata)) 
 		);
 	}	
+	
+	/* Write the descriptor to external memory */
+	return_val = cdma_write(
+			sd_addr, /* ext_address */
+			ws_shared_desc, /* ws_src */
+			(uint16_t)*sd_size); /* uint16_t size */
+	// TODO: handle error return
+	
 	return 0;
+	
 } /* End of ipsec_generate_encap_sd */
 
 /**************************************************************************//**
@@ -222,11 +239,14 @@ int32_t ipsec_generate_decap_sd(
 	
 	uint8_t cipher_type = 0;
 	uint8_t tunnel_mode = 1; // TODO: TMP
-
+	int32_t return_val;
+	
 	// RTA TMP params
 	unsigned short ps = 1;
 	struct ipsec_decap_pdb pdb;
-	
+
+	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
+
 	/* Build PDB fields for the RTA */
 	
 	/* Check which method is it according to the key */
@@ -320,9 +340,11 @@ int32_t ipsec_generate_decap_sd(
 	pdb.seq_num_ext_hi = params->decparams.seq_num_ext_hi;
 	pdb.seq_num = params->decparams.seq_num;
 	
-	/* uint32_t anti_replay[2]; */
+	/* uint32_t anti_replay[4]; */
 	pdb.anti_replay[0] = 0;
 	pdb.anti_replay[1] = 0;
+	pdb.anti_replay[2] = 0;
+	pdb.anti_replay[3] = 0;
 
 	/* uint32_t end_index[0]; */
 	// TODO: asked RTA team to change it, to uint32_t anti_replay[4]
@@ -331,9 +353,10 @@ int32_t ipsec_generate_decap_sd(
 	if (tunnel_mode) {
 		/* Tunnel mode, SEC "new thread" */	
 		cnstr_shdsc_ipsec_new_decap(
-			(uint32_t *)(sd_addr), /* uint32_t *descbuf */
+			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
+			ps, /* unsigned short ps */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&(params->cipherdata)),
 			(struct alginfo *)(&(params->authdata)) 
@@ -341,7 +364,7 @@ int32_t ipsec_generate_decap_sd(
 	} else {
 		/* Transport mode, SEC legacy new thread */
 		cnstr_shdsc_ipsec_decap(
-			(uint32_t *)(sd_addr), /* uint32_t *descbuf */
+			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
 			ps, /* unsigned short ps */
@@ -350,6 +373,14 @@ int32_t ipsec_generate_decap_sd(
 			(struct alginfo *)(&(params->authdata)) 
 		);
 	}	
+	
+	/* Write the descriptor to external memory */
+	return_val = cdma_write(
+			sd_addr, /* ext_address */
+			ws_shared_desc, /* ws_src */
+			(uint16_t)*sd_size); /* uint16_t size */
+	// TODO: handle error return
+
 	return 0;
 } /* End of ipsec_generate_decap_sd */
 

@@ -71,7 +71,9 @@ struct ipsec_init_command {
 struct ipsec_add_sa_descriptor_command {
 	uint32_t opcode;
 	struct ipsec_descriptor_params params;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	
 	uint64_t descriptor_addr; /* descriptor address */
     uint8_t outer_ip_header[80]; /* outer IP header */
     
@@ -91,7 +93,8 @@ struct ipsec_add_sa_descriptor_command {
 *//****************************************************************************/
 struct ipsec_del_sa_descriptor_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
 
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
@@ -109,7 +112,8 @@ struct ipsec_del_sa_descriptor_command {
 *//****************************************************************************/
 struct ipsec_get_lifetime_stats_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
 
 	uint64_t kilobytes;
 	uint64_t packets;
@@ -131,7 +135,9 @@ struct ipsec_get_lifetime_stats_command {
 *//****************************************************************************/
 struct ipsec_decr_lifetime_counters_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	
 	uint32_t kilobytes_decr_val;
 	uint32_t packets_decr_val;
 		
@@ -151,8 +157,9 @@ struct ipsec_decr_lifetime_counters_command {
 *//****************************************************************************/
 struct ipsec_get_seq_num_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
-	
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+
 	uint32_t sequence_number;
 	uint32_t extended_sequence_number;
 	uint32_t anti_replay_bitmap[4];
@@ -173,7 +180,9 @@ struct ipsec_get_seq_num_command {
 *//****************************************************************************/
 struct ipsec_frame_decrypt_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+
 	uint32_t dec_status; /* SEC Decryption status */
 	
 	/** Returned Value: presentation context. */
@@ -195,7 +204,9 @@ struct ipsec_frame_decrypt_command {
 *//****************************************************************************/
 struct ipsec_frame_encrypt_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+
 	uint32_t enc_status; /* SEC Encryption status */
 	
 	/** Returned Value: presentation context. */
@@ -218,8 +229,12 @@ struct ipsec_frame_encrypt_command {
 *//****************************************************************************/
 struct ipsec_frame_encr_decr_command {
 	uint32_t opcode;
-	uint32_t ipsec_encr_handle_ptr; /* pointer of encr. descriptor handle */
-	uint32_t ipsec_decr_handle_ptr; /* pointer of decr. descriptor handle */
+	//uint32_t ipsec_encr_handle_ptr; /* pointer of encr. descriptor handle */
+	//uint32_t ipsec_decr_handle_ptr; /* pointer of decr. descriptor handle */
+	
+	uint32_t encr_sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	uint32_t decr_sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	
 	uint32_t enc_status; /* SEC Encryption status */
 	uint32_t dec_status; /* SEC Decryption status */
 

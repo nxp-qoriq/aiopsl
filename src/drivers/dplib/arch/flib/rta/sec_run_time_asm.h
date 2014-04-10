@@ -759,6 +759,20 @@ static inline void rta_patch_store(struct program *program, unsigned line,
 	program->buffer[line] = bswap ? swab32(opcode) : opcode;
 }
 
+static inline void rta_patch_raw(struct program *program, unsigned line,
+				 unsigned mask, unsigned new_val,
+				 unsigned check_swap)
+{
+	uint32_t opcode;
+	unsigned bswap = check_swap && program->bswap;
+
+	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+
+	opcode &= (uint32_t)~mask;
+	opcode |= new_val & mask;
+	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+}
+
 static inline int __rta_map_opcode(uint32_t name,
 				  const uint32_t (*map_table)[2],
 				  unsigned num_of_entries, uint32_t *val)

@@ -19,9 +19,6 @@
 #error Environment not supported!
 #endif
 
-//#define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
-//#define pr_debug(fmt, ...)    printf(fmt, ##__VA_ARGS__)
-
 #ifndef pr_debug
 #ifdef RTA_DEBUG
 #define pr_debug(fmt, ...)    printf(fmt, ##__VA_ARGS__)
@@ -38,7 +35,8 @@
 #endif
 
 #ifndef ALIGN
-#define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
+#define ALIGN(x, a) (((x) + ((__typeof__(x))(a) - 1)) & \
+			~((__typeof__(x))(a) - 1))
 #endif
 
 /* Use Linux naming convention */

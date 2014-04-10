@@ -192,7 +192,6 @@
  * - SEC revision format is "x.y"
  */
 extern enum rta_sec_era rta_sec_era;
-//enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /**
  * @brief              Set SEC Era HW block revision for which the RTA library
@@ -1065,6 +1064,47 @@ static inline unsigned rta_get_sec_era(void)
 #define PATCH_HDR_NON_LOCAL(src_program, line, new_ref) \
 	rta_patch_header(src_program, line, new_ref, 1)
 
+/**
+ * @def                PATCH_RAW
+ * @details            Auxiliary command to resolve self referential code.
+ *
+ * @param[in] line     Position in descriptor buffer where the update will be
+ *                     done; this value is previously retained in program flow
+ *                     using a reference near the sequence to be modified
+ *                     (@c unsigned).
+ * @param[in] mask     Mask to be used for applying the new value (@c unsigned).
+ *                     The mask selects which bits from the provided @new_val
+ *                     are taken into consideration when overwriting the
+ *                     existing value.
+ * @param[in] new_val  Updated value that will be masked using the provided
+ *                     mask value and inserted in descriptor buffer at the
+ *                     specified line.
+ *
+ */
+#define PATCH_RAW(line, mask, new_val) \
+	rta_patch_raw(program, line, mask, new_val, 0)
+
+/**
+ * @def                PATCH_RAW_NON_LOCAL
+ * @details            Auxiliary command to resolve referential code between
+ *                     two program buffers.
+ *
+ * @param[in] src_program Buffer to be updated (<c>struct program *</c>).
+ * @param[in] line     Position in descriptor buffer where the update will be
+ *                     done; this value is previously retained in program flow
+ *                     using a reference near the sequence to be modified
+ *                     (@c unsigned).
+ * @param[in] mask     Mask to be used for applying the new value (@c unsigned).
+ *                     The mask selects which bits from the provided @new_val
+ *                     are taken into consideration when overwriting the
+ *                     existing value.
+ * @param[in] new_val  Updated value that will be masked using the provided
+ *                     mask value and inserted in descriptor buffer at the
+ *                     specified line.
+ *
+ */
+#define PATCH_RAW_NON_LOCAL(src_program, line, mask, new_val) \
+	rta_patch_raw(src_program, line, mask, new_val, 1)
 /** @} */ /* end of refcode_group */
 
 

@@ -418,6 +418,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/flib</name>
+			<type>2</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/flib</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/arch/ppc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
