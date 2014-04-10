@@ -329,7 +329,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		       data structure */
 		     ste_inc_counter(instance_handle+
 				     offsetof(struct ipr_instance,
-				     num_of_open_reass_frames),
+				     num_of_open_reass_frames_ipv4),
 				     1,
 				     STE_MODE_32_BIT_CNTR_SIZE);
 
@@ -410,7 +410,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		 * structure */
 		ste_dec_counter(instance_handle+
 				offsetof(struct ipr_instance,
-				num_of_open_reass_frames),
+				num_of_open_reass_frames_ipv4),
 				1,
 				STE_MODE_32_BIT_CNTR_SIZE);
 
