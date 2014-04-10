@@ -399,7 +399,7 @@ static void sync_cmd_done(int err, uint16_t auth_id,
 		fdma_terminate_task();
 }
 
-/** Sets the address for polling on synchronous commands */
+/** Save the address for polling on synchronous commands */
 static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
