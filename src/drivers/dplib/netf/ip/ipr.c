@@ -128,7 +128,10 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	ipr_instance.cb_timeout_ipv4_arg = ipr_params_ptr->cb_timeout_ipv4_arg;
 	ipr_instance.cb_timeout_ipv6_arg = ipr_params_ptr->cb_timeout_ipv6_arg;
 	ipr_instance.flags = ipr_params_ptr->flags;
-	ipr_instance.num_of_open_reass_frames = 0;
+	ipr_instance.num_of_open_reass_frames_ipv4 = 0;
+	ipr_instance.num_of_open_reass_frames_ipv6 = 0;
+	ipr_instance.ipv4_reass_frm_cntr = 0;
+	ipr_instance.ipv6_reass_frm_cntr = 0;
 	ipr_instance.tmi_id = ipr_params_ptr->tmi_id;
 	err = cdma_write(*ipr_instance_ptr, &ipr_instance, IPR_INSTANCE_SIZE);
 	if (err)
@@ -1196,4 +1199,72 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
     		return FRAG_OK_REASS_NOT_COMPL;
     	}
 }
+
+int32_t ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,
+									  uint16_t max_reass_frm_size)
+{
+	int sr_status;
+	
+	sr_status = cdma_write(ipr_instance+offsetof(struct ipr_instance,
+												 max_reass_frm_size),
+			   &max_reass_frm_size,
+			   sizeof(max_reass_frm_size));
+	return sr_status;
+}
+
+int32_t ipr_modify_min_frag_size(ipr_instance_handle_t ipr_instance,
+				 	 	 	 	 uint16_t min_frag_size)
+{
+	int sr_status;
+	
+	sr_status = cdma_write(ipr_instance+
+						   offsetof(struct ipr_instance,min_frag_size),
+						   &min_frag_size,
+						   sizeof(min_frag_size));
+	return sr_status;
+}
+
+int32_t ipr_modify_timeout_value_ipv4(ipr_instance_handle_t ipr_instance,
+				      	  	  	      uint16_t reasm_timeout_value_ipv4)
+{
+	int sr_status;
+	
+	sr_status = cdma_write(ipr_instance+
+						   offsetof(struct ipr_instance,timeout_value_ipv4),
+			   	   	   	   &reasm_timeout_value_ipv4,
+			   	   	   	   sizeof(reasm_timeout_value_ipv4));
+	return sr_status;
+}
+
+int32_t ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
+				      	  	  	      uint16_t reasm_timeout_value_ipv6)
+{
+	int sr_status;
+	
+	sr_status = cdma_write(ipr_instance+
+						   offsetof(struct ipr_instance,timeout_value_ipv6),
+			   	   	   	   &reasm_timeout_value_ipv6,
+			   	   	   	   sizeof(reasm_timeout_value_ipv6));
+	return sr_status;
+}
+
+int32_t ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
+				uint32_t flags, uint32_t *reass_frm_cntr)
+{
+	int sr_status;
+
+	if(flags & IPR_STATS_IP_VERSION)
+		sr_status = cdma_read(reass_frm_cntr,
+							 ipr_instance+offsetof(struct ipr_instance,
+									 	 	 	   ipv4_reass_frm_cntr),
+							 sizeof(*reass_frm_cntr));
+	else
+		sr_status =  cdma_read(reass_frm_cntr,
+							 ipr_instance+offsetof(struct ipr_instance,
+									 	 	 	   ipv6_reass_frm_cntr),
+							 sizeof(*reass_frm_cntr));
+	return sr_status;
+}
+
+
 
