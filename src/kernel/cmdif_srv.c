@@ -379,7 +379,8 @@ static int cmdif_fd_send(int cb_err)
 
 	/** 
 	 * TODO for non sync mode I need *dev to be used on GPP size, is it 8 or 4 bytes ?
-	 * answer: it's 39 bit vaddr will be set by client 
+	 * answer: it's 39 bit vaddr will be set by client but maybe I can pass
+	 * only the id and not full pointer and keep this information on server side
 	 * TODO what do I need FDMA_ENWF_NO_FLAGS ????*/
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
 					RESP_QID_GET, FDMA_ENWF_NO_FLAGS);
@@ -490,6 +491,7 @@ void cmdif_srv_isr(void)
 			 * in order not to overload response queue,
 			 * it might be intentional attack 
 			 * */
+			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	}
