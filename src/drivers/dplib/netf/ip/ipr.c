@@ -376,6 +376,14 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Only successfully reassembled frames continue
 	   from here */
 	/* default frame is now the full reassembled frame */
+	
+    /* Increment no of reassembled IPv4 frames in instance
+       data structure */
+     ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
+		    		 	 	 	 	 ipv4_reass_frm_cntr),
+		    		 1,
+		    		 STE_MODE_32_BIT_CNTR_SIZE);
+
 	/* Open segment for reassembled frame */
 	fdma_present_default_frame_segment(
 					FDMA_PRES_NO_FLAGS,
