@@ -44,6 +44,11 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		struct ipsec_add_sa_descriptor_command *str =
 			(struct ipsec_add_sa_descriptor_command *)data_addr;
 		
+		/* Pointer to outer IP header within the command string */
+		if (str->params.direction == IPSEC_DIRECTION_OUTBOUND) {
+			str->params.encparams.outer_hdr = (uint32_t *)str->outer_ip_header;
+		}
+		
 		str->status = ipsec_add_sa_descriptor(
 				&(str->params),
 				(uint64_t *)(str->ipsec_handle_ptr)
