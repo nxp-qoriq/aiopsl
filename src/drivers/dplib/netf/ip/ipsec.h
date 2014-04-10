@@ -238,6 +238,8 @@ struct ipsec_global_params {
 	uint8_t spinlock; /* Spinlock indicator, for SA counter  */
 };
 
+#define IPSEC_SA_PARAMS_FLAGS_
+
 /* SA Descriptor Parameter for Internal Usage */ 
 /* Part 1 */
 struct ipsec_sa_params_part1 {

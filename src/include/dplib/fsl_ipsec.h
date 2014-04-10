@@ -340,8 +340,9 @@ struct alg_info {
 *//***************************************************************************/
 struct ipsec_descriptor_params {
 	
-	enum ipsec_direction direction; 	/**< Descriptor direction */
-	
+	//enum ipsec_direction direction; 	/**< Descriptor direction */
+	int32_t direction; 	/**< Descriptor direction */
+
 	uint32_t flags; /**< Miscellaneous control flags */
 	
 	union {
