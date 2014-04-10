@@ -129,9 +129,10 @@ struct parser_prp_query_verif_command {
 *//***************************************************************************/
 struct parser_prp_replace_verif_command {
 	uint32_t opcode;
+	int32_t  status;
 	uint32_t parse_profile;
 	uint8_t  prpid;
-	uint8_t  pad[7];
+	uint8_t  pad[3];
 };
 
 /**************************************************************************//**

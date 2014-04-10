@@ -112,8 +112,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 				(struct parser_prp_replace_verif_command *)
 				asa_seg_addr;
 
-/*		pq->status = */
-		   parser_profile_replace(
+		pq->status = parser_profile_replace(
 			(struct parse_profile_record *)pq->parse_profile,
 			pq->prpid);
 
