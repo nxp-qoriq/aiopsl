@@ -1,3 +1,5 @@
+- cmdif_test.c:    Added CMDIF reflector and Client Server test. This test tests AIOP side Server.
+                   See {aiopls}\build\aiop_t4ls_sim\tests\cmdif_test\README.txt
 - event_mgr.h:     This file has been removed
 - event_mgr.c:     This file has been removed
 - .project aiopsl: Removed event_mgr.c and event_mgr.h
