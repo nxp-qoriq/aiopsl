@@ -3,6 +3,7 @@
 #include "common/errors.h"
 #include "common/fsl_string.h"
 #include "cmdif_srv.h"
+#include "cmdif_client.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
 #include "io.h"
@@ -17,18 +18,6 @@
  * This means that cmd data and size are already set. In real world NADK API
  * will set it for us. 
  * This code also define the communication between client and Server through FD */
-
-/** Should be copied to GPP client */
-struct cmdif_dev {
-	cmdif_cb_t *async_cb;   
-	/**< Asynchronous commands callback */
-	void       *async_ctx;  
-	/**< Asynchronous commands context */
-	void       *sync_done;
-	/**< 4 bytes to be used for synchronous commands*/
-	uint16_t   auth_id;     
-	/**< Authentication ID to be used for session with server*/	
-};
 
 static void cmd_id_set(uint16_t cmd_id) 
 {
@@ -78,11 +67,12 @@ static void cmd_auth_id_set(uint16_t auth_id)
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, data);	
 }
 
-static void cmd_dev_set(uint64_t dev_for_asynch)
+static void cmd_dev_set(void *dev)
 {
 	/* Virtual address for linux is 39 bit, we need only virtual addr */
 	uint64_t data = 0;
-
+	uint64_t dev_for_asynch = (uint64_t)dev;
+	
 	/* Low */
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, ((uint32_t)dev_for_asynch));
 	/* High */
@@ -94,48 +84,49 @@ static void cmd_dev_set(uint64_t dev_for_asynch)
 /** These functions define how GPP should setup the FD 
  * It does not include data_addr and data_lenght because it's setup by NADK API
  * This code is used to modify the defaults FD inside WS */
+void client_open_cmd(struct cmdif_desc *client, void *sync_done); 
+void client_close_cmd(struct cmdif_desc *client); 
+void client_sync_cmd(struct cmdif_desc *client); 
+void client_async_cmd(struct cmdif_desc *client); 
+void client_no_resp_cmd(struct cmdif_desc *client); 
 
-void client_open_cmd(void *sync_done) 
+void client_open_cmd(struct cmdif_desc *client, void *sync_done) 
 {
 	uint16_t   cmd_id = CMD_ID_OPEN;
-	const char *module = "ABCABC";
+	const char *module = "ABCABC";	
 	cmd_id_set(cmd_id); 
 	cmd_m_name_set(module);	
 	cmd_sync_addr_set(sync_done);
 	cmd_inst_id_set(3);
 	cmd_auth_id_set(OPEN_AUTH_ID);
+	((struct cmdif_dev *)client->dev)->sync_done = sync_done;
 }
 
-void client_close_cmd(uint16_t auth_id) 
+void client_close_cmd(struct cmdif_desc *client) 
 {
 	uint16_t cmd_id = CMD_ID_CLOSE;
 	cmd_id_set(cmd_id);
-	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(auth_id); 
+	cmd_auth_id_set(((struct cmdif_dev *)client->dev)->auth_id); 
 }
 
-void client_sync_cmd(uint16_t auth_id) 
+void client_sync_cmd(struct cmdif_desc *client) 
 {
 	uint16_t cmd_id = 0xCC; /* Any number */
 	cmd_id_set(cmd_id); 
-	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(auth_id);
+	cmd_auth_id_set(((struct cmdif_dev *)client->dev)->auth_id); 
 }
 
-void client_async_cmd(uint16_t auth_id) 
+void client_async_cmd(struct cmdif_desc *client) 
 {
-	uint16_t cmd_id = CMDIF_ASYNC_CMD;
+	uint16_t cmd_id = CMDIF_ASYNC_CMD | 0xA;
 	cmd_id_set(cmd_id);
-	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(auth_id);
-	/* device for callbacks should be taken from struct cmdif_desc.dev */
-	cmd_dev_set(0x4BDDDDDDDD);
+	cmd_auth_id_set(((struct cmdif_dev *)client->dev)->auth_id); 
+	cmd_dev_set(client->dev);
 }
 
-void client_no_resp_cmd(uint16_t auth_id) 
+void client_no_resp_cmd(struct cmdif_desc *client) 
 {
-	uint16_t cmd_id = CMDIF_NORESP_CMD;
+	uint16_t cmd_id = CMDIF_NORESP_CMD | 0x2;
 	cmd_id_set(cmd_id);
-	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(auth_id);
+	cmd_auth_id_set(((struct cmdif_dev *)client->dev)->auth_id); 
 }

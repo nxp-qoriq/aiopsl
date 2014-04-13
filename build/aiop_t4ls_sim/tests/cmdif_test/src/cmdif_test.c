@@ -14,9 +14,13 @@
 int app_init(void);
 void app_free(void);
 
+//#define REFLECTOR_DEMO
+
 #ifdef REFLECTOR_DEMO
+extern uint32_t    sync_done;
+
 /* Client STUB */
-int cmdif_open(struct cmdif_desc *cidesc,
+static int my_cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t instance_id,
 		cmdif_cb_t async_cb,
@@ -100,7 +104,7 @@ int app_init(void)
 	if (err) return err;
 
 #ifdef REFLECTOR_DEMO
-	err = cmdif_open(NULL, module, 0, NULL, NULL);
+	err = my_cmdif_open(NULL, module, 0, NULL, NULL);
 #else
 	/* More complex demo that tests client server different commands */
 	epid_setup();
