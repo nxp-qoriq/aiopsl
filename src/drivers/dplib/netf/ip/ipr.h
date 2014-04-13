@@ -64,7 +64,7 @@ struct ipr_instance {
 	/** maximum concurrently IPv4 open frames. */
 	uint16_t	table_id_ipv4;
 	uint16_t	table_id_ipv6;
-	uint32_t    	max_open_frames_ipv4;
+	uint32_t    max_open_frames_ipv4;
 	uint32_t  	max_open_frames_ipv6;
 	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
 	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
@@ -75,7 +75,10 @@ struct ipr_instance {
 	/** function to call upon Time Out occurrence for ipv6 */
 	ipr_timeout_cb_t *ipv6_timeout_cb;
 	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint32_t  	flags;
+	uint16_t  	flags;
+	/* TMAN Instance ID */
+	uint8_t		tmi_id;
+	uint8_t		reserved;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv4_arg;
@@ -83,10 +86,10 @@ struct ipr_instance {
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 	/** Number of frames that started reassembly but didn't complete it yet */
-	uint16_t	num_of_open_reass_frames;
-	uint8_t		tmi_id;
-		/** 32-bit alignment. */
-	uint8_t  pad[1];
+	uint32_t	num_of_open_reass_frames_ipv4;
+	uint32_t	num_of_open_reass_frames_ipv6;
+	uint32_t	ipv4_reass_frm_cntr;
+	uint32_t	ipv6_reass_frm_cntr;
 };
 
 #pragma pack(push,1)

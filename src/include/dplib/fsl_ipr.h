@@ -85,11 +85,11 @@ struct ipr_params {
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint32_t  flags;
+	uint16_t  flags;
 	/** tmi id to be used for timers creations */
 	uint8_t	  tmi_id;
 	/** 32-bit alignment. */
-	uint8_t  pad[3];
+	uint8_t  pad[1];
 };
 
 /**************************************************************************//**
@@ -502,7 +502,7 @@ int32_t ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
 
 @Cautions	None.
 *//***************************************************************************/
-uint32_t ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
+int32_t ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 				uint32_t flags, uint32_t *reass_frm_cntr);
 
 /* @} end of group FSL_IPR_Functions */

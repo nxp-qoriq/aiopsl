@@ -1,3 +1,6 @@
+fsl_ipr.h: change return value type of ipr_get_reass_frm_cntr function.
+fsl_ipr.h: change flags size in ipr_params (from 4 bytes to 2 bytes).
+
 SL Pre-Alpha v0.3.2  Change Log
 ===============================
 general.h: remove receive_niid from TLS
