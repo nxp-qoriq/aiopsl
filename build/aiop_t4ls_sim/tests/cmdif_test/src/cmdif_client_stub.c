@@ -18,7 +18,17 @@
  * will set it for us. 
  * This code also define the communication between client and Server through FD */
 
-uint32_t sync_done = 0; /* DDR server access it with CDMA, 4 byte is enough */
+/** Should be copied to GPP client */
+struct cmdif_dev {
+	cmdif_cb_t *async_cb;   
+	/**< Asynchronous commands callback */
+	void       *async_ctx;  
+	/**< Asynchronous commands context */
+	void       *sync_done;
+	/**< 4 bytes to be used for synchronous commands*/
+	uint16_t   auth_id;     
+	/**< Authentication ID to be used for session with server*/	
+};
 
 static void cmd_id_set(uint16_t cmd_id) 
 {
@@ -26,14 +36,6 @@ static void cmd_id_set(uint16_t cmd_id)
 	data &= ~CMD_ID_MASK;
 	data |= (((uint64_t)cmd_id) << CMD_ID_OFF);
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, data);		
-}
-
-static void cmd_auth_id_set(uint16_t auth_id)
-{
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & ~AUTH_ID_MASK;
-	data |= (auth_id << AUTH_ID_OFF);
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, data);	
 }
 
 /** Module name is first 8 bytes inside data */
@@ -68,6 +70,14 @@ static void cmd_inst_id_set(uint8_t inst_id)
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, frc);	
 }
 
+static void cmd_auth_id_set(uint16_t auth_id)
+{
+	uint64_t data = 0;
+	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & ~AUTH_ID_MASK;
+	data |= (((uint64_t)auth_id) << AUTH_ID_OFF);
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, data);	
+}
+
 static void cmd_dev_set(uint64_t dev_for_asynch)
 {
 	/* Virtual address for linux is 39 bit, we need only virtual addr */
@@ -77,7 +87,7 @@ static void cmd_dev_set(uint64_t dev_for_asynch)
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, ((uint32_t)dev_for_asynch));
 	/* High */
 	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & ~DEV_H_MASK;
-	data |=  (dev_for_asynch & 0x0000007F00000000);
+	data |=  (dev_for_asynch & 0x0000007F00000000) << DEV_H_OFF;
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, data);		
 }
 
@@ -85,47 +95,47 @@ static void cmd_dev_set(uint64_t dev_for_asynch)
  * It does not include data_addr and data_lenght because it's setup by NADK API
  * This code is used to modify the defaults FD inside WS */
 
-void client_open_cmd() 
+void client_open_cmd(void *sync_done) 
 {
 	uint16_t   cmd_id = CMD_ID_OPEN;
 	const char *module = "ABCABC";
-
 	cmd_id_set(cmd_id); 
 	cmd_m_name_set(module);	
-	cmd_sync_addr_set(&sync_done);
+	cmd_sync_addr_set(sync_done);
 	cmd_inst_id_set(3);
+	cmd_auth_id_set(OPEN_AUTH_ID);
 }
 
-void client_close_cmd() 
+void client_close_cmd(uint16_t auth_id) 
 {
 	uint16_t cmd_id = CMD_ID_CLOSE;
 	cmd_id_set(cmd_id);
 	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(0); 
+	cmd_auth_id_set(auth_id); 
 }
 
-void client_sync_cmd() 
+void client_sync_cmd(uint16_t auth_id) 
 {
 	uint16_t cmd_id = 0xCC; /* Any number */
 	cmd_id_set(cmd_id); 
 	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(2);
+	cmd_auth_id_set(auth_id);
 }
 
-void client_async_cmd() 
+void client_async_cmd(uint16_t auth_id) 
 {
 	uint16_t cmd_id = CMDIF_ASYNC_CMD;
 	cmd_id_set(cmd_id);
 	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(3);
+	cmd_auth_id_set(auth_id);
 	/* device for callbacks should be taken from struct cmdif_desc.dev */
 	cmd_dev_set(0x4BDDDDDDDD);
 }
 
-void client_no_resp_cmd() 
+void client_no_resp_cmd(uint16_t auth_id) 
 {
 	uint16_t cmd_id = CMDIF_NORESP_CMD;
 	cmd_id_set(cmd_id);
 	/* auth_id should be taken from struct cmdif_desc.dev */
-	cmd_auth_id_set(1);
+	cmd_auth_id_set(auth_id);
 }

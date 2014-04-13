@@ -273,6 +273,7 @@ static int epid_setup()
 	if (data != 0x11000005)
 		return -EINVAL;
 	
+	pr_info("CMDIF Server is setting EPID = 0\n");
 	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
 	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
 	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
@@ -283,6 +284,7 @@ static int epid_setup()
 	
 	return 0;
 }
+
 static void srv_memory_free(struct  cmdif_srv *srv)
 {
 	if (srv->inst_dev)
@@ -470,6 +472,7 @@ void cmdif_srv_isr(void)
 				pr_err("Open callback failed\n");
 				inst_dealloc(new_inst, srv);
 			} 
+			pr_debug("PASSED open command\n");
 			fdma_terminate_task();				
 		} else {
 			/* couldn't find free place for new device */
@@ -488,6 +491,7 @@ void cmdif_srv_isr(void)
 				 * close the device */
 				inst_dealloc(auth_id, srv);				
 			}
+			pr_debug("PASSED close command\n");
 			fdma_terminate_task();
 		} else {
 			sync_cmd_done(-EPERM, auth_id, srv, FALSE);
@@ -501,6 +505,7 @@ void cmdif_srv_isr(void)
 			/* User can ignore data and use presentation context */
 			err = CTRL_CB(auth_id, cmd_id, size, data);
 			if (SYNC_CMD(cmd_id)) {
+				pr_debug("PASSED Synchronous Command\n");
 				sync_cmd_done(err, auth_id, srv, TRUE);
 			}
 		} else {
@@ -514,9 +519,11 @@ void cmdif_srv_isr(void)
 	}
 
 	if (SEND_RESP(cmd_id)) {
+		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
+		pr_debug("PASSED No Response Command\n");
 		fdma_store_default_frame_data();
 	}
 	fdma_terminate_task();

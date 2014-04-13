@@ -8,12 +8,13 @@
 #include "kernel/platform.h"
 #include "common/fsl_aiop_cmdif.h"
 #include "cmdif_srv.h"
+#include "io.h"
+#include "aiop_common.h"
 
 int app_init(void);
 void app_free(void);
 
-__SHRAM uint32_t sync_done = 0;
-
+#ifdef REFLECTOR_DEMO
 /* Client STUB */
 int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
@@ -31,17 +32,20 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	srv->sync_done[0] = (uint64_t)&sync_done;
 	return 0;
 }
+#endif
 
 static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(instance_id);
 	UNUSED(dev);
+	fsl_os_print("open_cb\n");
 	return 0;
 }
 
 static int close_cb(void *dev)
 {
 	UNUSED(dev);
+	fsl_os_print("close_cb\n");
 	return 0;
 }
 
@@ -51,8 +55,23 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
 	UNUSED(cmd);
 	UNUSED(size);
 	UNUSED(data);
-
+	fsl_os_print("ctrl_cb\n");
 	return 0;
+}
+
+/* This is temporal WA for stand alone demo only */
+#define WRKS_REGS_GET \
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
+	                                   0,                          \
+	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
+	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+static void epid_setup()
+{
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
+
+	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
+	iowrite32(0, &wrks_addr->epas); 
+	iowrite32(0x00fe0000, &wrks_addr->ep_pc);
 }
 
 int app_init(void)
@@ -80,8 +99,14 @@ int app_init(void)
 	err = cmdif_unregister_module("TTTTTTTTTTT");
 	if (err) return err;
 
+#ifdef REFLECTOR_DEMO
 	err = cmdif_open(NULL, module, 0, NULL, NULL);
+#else
+	/* More complex demo that tests client server different commands */
+	epid_setup();
+#endif
 
+	
 	return err;
 }
 
