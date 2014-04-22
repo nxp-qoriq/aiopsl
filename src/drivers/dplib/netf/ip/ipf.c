@@ -147,11 +147,6 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	uint8_t *last_header;
 	uint8_t orig_next_header;
 	void *ws_dst_rs;
-	
-	/* TODO Remove!
-	 * Temporary workaround until sim96 is fixed */
-	struct ipv6_fragment_header temp_ipv6_frag_hdr;
-
 
 	if (ipf_ctx->first_frag) {
 		ipv6_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -160,8 +155,12 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		ipv6_hdr->payload_length =
 		(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - ipv6_offset -
 		IPV6_HDR_LENGTH + IPV6_FRAGMENT_HEADER_LENGTH;
-
-		
+/*
+		 Modify payload length field in FDMA
+		status = fdma_modify_default_segment_data(ipv6_offset+4, 2);
+		if (status)
+			return status;  TODO
+*/
 		if (~(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS))
 			ipf_ctx->split_size += IPV6_FRAGMENT_HEADER_LENGTH;
 
@@ -184,63 +183,36 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 							last_ext_hdr_size);
 			orig_next_header = *last_header;
 			*(last_header) = IPV6_EXT_FRAGMENT;
-
 		} else { /* no ext headers */
 			orig_next_header = ipv6_hdr->next_header;
 			ipv6_hdr->next_header = IPV6_EXT_FRAGMENT;
 		}
 
-		/**************************************************/
-		/* TODO Remove!
-		 * Temporary workaround until sim96 is fixed */
-		/* Modify Payload length in ipv6 header & next header field in FDMA */
-		status = fdma_modify_default_segment_data(ipv6_offset, (uint16_t)((uint32_t)ipv6_frag_hdr - (uint32_t)ipv6_hdr));
-		if (status)
-			return status;
-		/**************************************************/
-   
-		
-		/* Build IPv6 fragment header */
+			/* Build IPv6 fragment header */
 
 			update_random_64bit();
 
-			/*****************************************/
-			/* TODO temporarily removed
 			ipv6_frag_hdr->next_header = orig_next_header;
 			ipv6_frag_hdr->reserved = 0;
 			ipv6_frag_hdr->fragment_offset_flags =
 						IPV6_HDR_M_FLAG_MASK;
-			ipv6_frag_hdr->id = (uint32_t)random_64bit; */
-			
-			/* TODO Remove!
-			 * Temporary workaround until sim96 is fixed */	
-			temp_ipv6_frag_hdr.next_header = orig_next_header;
-			temp_ipv6_frag_hdr.reserved = 0;
-			temp_ipv6_frag_hdr.fragment_offset_flags =
-						IPV6_HDR_M_FLAG_MASK;
-			temp_ipv6_frag_hdr.id = (uint32_t)random_64bit; 
-			
-			/*********************************************/
+			ipv6_frag_hdr->id = (uint32_t)random_64bit; 
+
 			/* replace ip payload length, replace next header,
 			 * insert IPv6 fragment header
 			 */
 
-			/*****************************************************************/
-			/* Temporarily removed until sim96 is fixed
-			 
 			ws_dst_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
 			seg_size_rs = PRC_GET_SEGMENT_LENGTH();
 
-			if (((uint32_t)ws_dst_rs -
+			if ((PRC_GET_SEGMENT_ADDRESS() -
 					(uint32_t)TLS_SECTION_END_ADDR) >=
-					IPV6_FRAGMENT_HEADER_LENGTH) {
+					IPV6_FRAGMENT_HEADER_LENGTH){
 				ws_dst_rs = (void *)((uint32_t)ws_dst_rs -
 					(uint32_t)IPV6_FRAGMENT_HEADER_LENGTH);
-			seg_size_rs = seg_size_rs + IPV6_FRAGMENT_HEADER_LENGTH;
-			PRC_SET_SEGMENT_ADDRESS((uint32_t)ws_dst_rs);  TODO ask Gal 
-			PRC_SET_SEGMENT_LENGTH(seg_size_rs);  TODO ask Gal 
-			}
-
+				seg_size_rs = seg_size_rs +
+						IPV6_FRAGMENT_HEADER_LENGTH;
+		
 			status = fdma_replace_default_segment_data(
 				ipv6_offset,
 				(uint16_t)
@@ -252,18 +224,10 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				ws_dst_rs,
 				seg_size_rs,
 				FDMA_REPLACE_SA_REPRESENT_BIT);
-	/*****************************************************************/
-			/* TODO Remove!
-			 * Temporary workaround until sim96 is fixed */
-			status = fdma_insert_default_segment_data(
-					ipf_ctx->ipv6_frag_hdr_offset,
-					&temp_ipv6_frag_hdr,
-					IPV6_FRAGMENT_HEADER_LENGTH,
-					FDMA_REPLACE_SA_REPRESENT_BIT);
-			
+
 			if (status) /* TODO */
 				return status;
-		
+		}
 		/* Run parser */
 		status = parse_result_generate_default(PARSER_NO_FLAGS);
 		if (status) /* TODO */
