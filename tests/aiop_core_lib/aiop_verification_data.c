@@ -20,6 +20,7 @@
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
 __VERIF_GLOBAL uint8_t verif_prpid;
+__VERIF_GLOBAL uint8_t tmi_id;
 
 __VERIF_TLS ipf_ctx_t ipf_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
@@ -46,6 +47,7 @@ void init_verif()
 				* the ARENA will initialize the profile sram */
 		init_profile_sram();
 		verif_prpid_valid = 1;
+		gro_timeout_cb_verif(0);
 	}
 
 	/* Need to save running-sum in parse-results LE-> BE */
@@ -63,6 +65,7 @@ void init_verif()
 	status_ipr = 0;
 	tcp_gso_context_addr1[0] = 0;
 	ipf_context_addr1[0] = 0;
+	tmi_id = 0;
 }
 
 __VERIF_PROFILE_SRAM struct  profile_sram profile_sram1;

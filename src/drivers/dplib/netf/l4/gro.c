@@ -18,14 +18,6 @@
 #include "checksum.h"
 #include "cdma.h"
 
-	/* Shared memory global GRO parameters. */
-struct gro_global_parameters gro_global_params;
-
-
-void gro_init(uint32_t timeout_flags)
-{
-	gro_global_params.timeout_flags = timeout_flags;
-}
 
 /* New Aggregation */
 int32_t tcp_gro_aggregate_seg(
@@ -108,7 +100,7 @@ int32_t tcp_gro_aggregate_seg(
 	/* create timer for the aggregation */
 
 	sr_status = tman_create_timer(params->timeout_params.tmi_id,
-			gro_global_params.timeout_flags,
+			TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY,
 			params->limits.timeout_limit,
 			tcp_gro_context_addr,
 			0,
@@ -605,7 +597,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	if (sr_status != TMAN_REC_TMR_SUCCESS)
 		sr_status = tman_create_timer(
 				params->timeout_params.tmi_id,
-				gro_global_params.timeout_flags,
+				TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY,
 				params->limits.timeout_limit,
 				tcp_gro_context_addr,
 				0,
