@@ -79,8 +79,8 @@ struct tcp_gro_agg_seg_command {
 		/** Workspace address of the GRO last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t gro_status_addr;
-		/** Padding. */
-	int8_t  pad[4];
+		/** Shared RAM address of the tmi_id. */
+	uint32_t tmi_id_addr;
 };
 
 /**************************************************************************//**
@@ -121,7 +121,7 @@ struct tcp_gro_flush_agg_command {
 
 uint16_t  aiop_verification_gro(uint32_t data_addr);
 void gro_verif_create_next_frame(uint8_t gro_iteration);
-
+void gro_timeout_cb_verif(uint64_t arg);
 
 /** @} */ /* end of AIOP_GRO_Verification */
 

@@ -7,7 +7,6 @@
 #ifndef __FSL_LIB_SPINLOCK_H
 #define __FSL_LIB_SPINLOCK_H
 
-#include "general.h"
 
 /**************************************************************************//**
  @ingroup         fsl_lib_g   Utility Library 

@@ -25,7 +25,7 @@ int32_t sys_prpid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+1), 2,
+	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
 			&num_filled_buffs,&buffer_pool_id);
 	if (status < 0)
@@ -46,7 +46,7 @@ int32_t sys_keyid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+1), 2,
+	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
 			&num_filled_buffs,&buffer_pool_id);
 	if (status < 0)

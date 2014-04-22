@@ -37,6 +37,7 @@
 #define NO_ERROR				0
 #define IPR_CONTEXT_SIZE		2624
 #define LINK_LIST_ELEMENT_SIZE	sizeof(struct link_list_element)
+#define LINK_LIST_OCTET_SIZE	8*LINK_LIST_ELEMENT_SIZE
 #define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
 #define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
 #define RFDC_VALID				0x8000
@@ -49,7 +50,7 @@
 #define RFDC_SIZE				sizeof(struct ipr_rfdc)
 #define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
 #define FD_SIZE					sizeof(struct ldpaa_fd)
-#define OCTET_LINK_LIST_MASK	0xF8
+#define OCTET_LINK_LIST_MASK	0x07
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
@@ -63,7 +64,7 @@ struct ipr_instance {
 	/** maximum concurrently IPv4 open frames. */
 	uint16_t	table_id_ipv4;
 	uint16_t	table_id_ipv6;
-	uint32_t    	max_open_frames_ipv4;
+	uint32_t    max_open_frames_ipv4;
 	uint32_t  	max_open_frames_ipv6;
 	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
 	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
@@ -74,7 +75,10 @@ struct ipr_instance {
 	/** function to call upon Time Out occurrence for ipv6 */
 	ipr_timeout_cb_t *ipv6_timeout_cb;
 	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint32_t  	flags;
+	uint16_t  	flags;
+	/* TMAN Instance ID */
+	uint8_t		tmi_id;
+	uint8_t		reserved;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv4_arg;
@@ -82,10 +86,10 @@ struct ipr_instance {
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 	/** Number of frames that started reassembly but didn't complete it yet */
-	uint16_t	num_of_open_reass_frames;
-	uint8_t		tmi_id;
-		/** 32-bit alignment. */
-	uint8_t  pad[1];
+	uint32_t	num_of_open_reass_frames_ipv4;
+	uint32_t	num_of_open_reass_frames_ipv6;
+	uint32_t	ipv4_reass_frm_cntr;
+	uint32_t	ipv6_reass_frm_cntr;
 };
 
 #pragma pack(push,1)
@@ -278,7 +282,7 @@ void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr);
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
-					  uint16_t frag_offset); 
+					  uint16_t frag_offset_shifted); 
 
 
 /**************************************************************************//**

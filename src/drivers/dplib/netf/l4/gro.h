@@ -132,6 +132,29 @@ struct tcphdr_gro {
 };
 #pragma pack(pop)
 
+/**************************************************************************//**
+@Description	TCP GRO Optimized Header Structure
+
+		Includes TCP header + Optimized Timestamp option.
+
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct tcphdr_gro_opt {
+	/** TCP structure */
+	struct tcphdr tcp;
+		/** TCP Timestamp first nop */
+	uint8_t	nop1;
+		/** TCP Timestamp second nop */
+	uint8_t	nop2;
+		/** TCP option kind */
+	uint8_t	option_kind;
+		/** TCP option length */
+	uint8_t	option_length;
+		/** TCP timestamp option value of the TCP sending the option. */
+	uint32_t tsval;
+};
+#pragma pack(pop)
+
 /** @} */ /* end of TCP_GRO_INTERNAL_STRUCTS */
 
 
@@ -160,54 +183,6 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 
 /** @} */ /* end of TCP_GRO_GENERAL_INT_DEFINITIONS */
 
-
-/**************************************************************************//**
-@Group		GRO_INTERNAL_TIMEOUT_FLAGS GRO Internal Timeout Flags
-
-@Description GRO Timeout Flags.
-
-
-| 0-9 |     10-11    | 12 |   13 - 15   | 16 - 31  |
-|-----|--------------|----|-------------|----------|
-|     |AIOP_priority |TPRI| Granularity |          |
-
-
-Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
-			    TPRI : not set (low priority)
-			    AIOP task priority: low
-@{
-*//***************************************************************************/
-
-
-/* The following defines will be used to set the timeout timer tick size.*/
-/** 1 uSec timeout timer ticks*/
-#define GRO_MODE_USEC_TO_GRANULARITY		0x00000000
-/** 10 uSec timeout timer ticks*/
-#define GRO_MODE_10_USEC_TO_GRANULARITY		0x00010000
-/** 100 uSec timeout timer ticks*/
-#define GRO_MODE_100_USEC_TO_GRANULARITY	0x00020000
-/** 1 mSec timeout timer ticks*/
-#define GRO_MODE_MSEC_TO_GRANULARITY		0x00030000
-/** 10 mSec timeout timer ticks*/
-#define GRO_MODE_10_MSEC_TO_GRANULARITY		0x00040000
-/** 100 mSec timeout timer ticks*/
-#define GRO_MODE_100_MSEC_TO_GRANULARITY	0x00050000
-/** 1 Sec timeout timer ticks*/
-#define GRO_MODE_SEC_TO_GRANULARITY		0x00060000
-
-/** If set, timeout priority task is high. */
-#define GRO_MODE_TPRI				0x00080000
-
-/* The following definitions will be used to set the AIOP task priority
- * of the created timeout task.*/
-/** Low priority AIOP task*/
-#define GRO_MODE_LOW_PRIORITY_TASK		0x00000000
-/** Middle priority AIOP task*/
-#define GRO_MODE_MID_PRIORITY_TASK		0x00100000
-/** High priority AIOP task*/
-#define GRO_MODE_HIGH_PRIORITY_TASK		0x00200000
-
-/* @} end of group GRO_INTERNAL_TIMEOUT_FLAGS */
 
 /**************************************************************************//**
  @Group	TCP_GRO_INTERNAL_FLAGS TCP GRO Internal Flags
@@ -320,7 +295,8 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 #define	TCP_GRO_IPV6_ECN_OFFSET			4
 	/* Timer Handle Mask in TIMER FD */
 #define TIMER_HANDLE_MASK			0x00FFFFFF
-
+	/* TCP Timestamp option NOP value */
+#define TIMESTAMP_NOP_VAL 1
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
 
@@ -337,26 +313,6 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 
 @{
 *//***************************************************************************/
-
-/**************************************************************************//**
-@Function	gro_init
-
-@Description	Initialize the GRO
-		infrastructure.
-
-		This function should be called once.
-
-		Any other GRO function cannot be called before this function is
-		called.
-
-@Param[in]	timeout_flags - GRO Timeout flags
-		\ref GRO_INTERNAL_TIMEOUT_FLAGS.
-
-@Return		None.
-
-@Cautions	None.
-*//***************************************************************************/
-void gro_init(uint32_t timeout_flags);
 
 /**************************************************************************//**
 @Function	tcp_gro_add_seg_to_aggregation
@@ -436,7 +392,8 @@ void tcp_gro_timeout_callback(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_data_cksum
 
-@Description	Calculate the TCP data checksum.
+@Description	Calculate the TCP data checksum and add it to the accumulated
+		payload checksum (which was calculated previously).
 
 @Return		Calculated data checksum.
 
@@ -466,9 +423,8 @@ void tcp_gro_calc_tcp_header_and_data_cksum(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
-@Description	Calculate the TCP header checksum and add it to the
-		accumulated payload checksum (which was calculated previously)
-		and the header checksum.
+@Description	Calculate the TCP pseudo header checksum and add it to the
+		accumulated payload checksum (which was calculated previously).
 
 @Param[in]	gro_ctx - Pointer to the internal GRO context.
 
