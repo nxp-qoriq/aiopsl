@@ -102,9 +102,19 @@ aiop_sl		</project>
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
+			<name>src/app_receive_cb.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/app_receive_cb.c</locationURI>
+		</link>
+		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+		</link>
+		<link>
+			<name>src/cmdif_client_stub.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/cmdif_client_stub.c</locationURI>
 		</link>
 		<link>
 			<name>src/cmdif_test.c</name>

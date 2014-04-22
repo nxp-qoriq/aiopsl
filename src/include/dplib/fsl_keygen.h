@@ -144,14 +144,12 @@
 #define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003
 	/** General Extraction Extract Offset Error */
 #define KEYGEN_KCR_EXTRACT_OFFSET_ERR		0x80000004
-	/** User Defined Extraction Error */
-#define KEYGEN_KCR_UDC_FEC_ERR			0x80000005
 	/** Mask Offset Larger than 0x0F Error */
-#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000006
+#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000005
 	/** Lookup Result Field Extraction Error */
-#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000007
+#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006
 	/** Key Composition Rule Size exceeds KCR max size (64 bytes) */
-#define KEYGEN_KCR_SIZE_ERR			0x80000008
+#define KEYGEN_KCR_SIZE_ERR			0x80000007
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_KCR */
 

@@ -185,54 +185,6 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 
 
 /**************************************************************************//**
-@Group		GRO_INTERNAL_TIMEOUT_FLAGS GRO Internal Timeout Flags
-
-@Description GRO Timeout Flags.
-
-
-| 0-9 |     10-11    | 12 |   13 - 15   | 16 - 31  |
-|-----|--------------|----|-------------|----------|
-|     |AIOP_priority |TPRI| Granularity |          |
-
-
-Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
-			    TPRI : not set (low priority)
-			    AIOP task priority: low
-@{
-*//***************************************************************************/
-
-
-/* The following defines will be used to set the timeout timer tick size.*/
-/** 1 uSec timeout timer ticks*/
-#define GRO_MODE_USEC_TO_GRANULARITY		0x00000000
-/** 10 uSec timeout timer ticks*/
-#define GRO_MODE_10_USEC_TO_GRANULARITY		0x00010000
-/** 100 uSec timeout timer ticks*/
-#define GRO_MODE_100_USEC_TO_GRANULARITY	0x00020000
-/** 1 mSec timeout timer ticks*/
-#define GRO_MODE_MSEC_TO_GRANULARITY		0x00030000
-/** 10 mSec timeout timer ticks*/
-#define GRO_MODE_10_MSEC_TO_GRANULARITY		0x00040000
-/** 100 mSec timeout timer ticks*/
-#define GRO_MODE_100_MSEC_TO_GRANULARITY	0x00050000
-/** 1 Sec timeout timer ticks*/
-#define GRO_MODE_SEC_TO_GRANULARITY		0x00060000
-
-/** If set, timeout priority task is high. */
-#define GRO_MODE_TPRI				0x00080000
-
-/* The following definitions will be used to set the AIOP task priority
- * of the created timeout task.*/
-/** Low priority AIOP task*/
-#define GRO_MODE_LOW_PRIORITY_TASK		0x00000000
-/** Middle priority AIOP task*/
-#define GRO_MODE_MID_PRIORITY_TASK		0x00100000
-/** High priority AIOP task*/
-#define GRO_MODE_HIGH_PRIORITY_TASK		0x00200000
-
-/* @} end of group GRO_INTERNAL_TIMEOUT_FLAGS */
-
-/**************************************************************************//**
  @Group	TCP_GRO_INTERNAL_FLAGS TCP GRO Internal Flags
 
  @Description TCP GRO Internal Flags.
@@ -361,26 +313,6 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 
 @{
 *//***************************************************************************/
-
-/**************************************************************************//**
-@Function	gro_init
-
-@Description	Initialize the GRO
-		infrastructure.
-
-		This function should be called once.
-
-		Any other GRO function cannot be called before this function is
-		called.
-
-@Param[in]	timeout_flags - GRO Timeout flags
-		\ref GRO_INTERNAL_TIMEOUT_FLAGS.
-
-@Return		None.
-
-@Cautions	None.
-*//***************************************************************************/
-void gro_init(uint32_t timeout_flags);
 
 /**************************************************************************//**
 @Function	tcp_gro_add_seg_to_aggregation

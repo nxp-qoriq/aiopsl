@@ -273,6 +273,7 @@ static int epid_setup()
 	if (data != 0x11000005)
 		return -EINVAL;
 	
+	pr_info("CMDIF Server is setting EPID = 0\n");
 	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
 	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
 	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
@@ -283,6 +284,7 @@ static int epid_setup()
 	
 	return 0;
 }
+
 static void srv_memory_free(struct  cmdif_srv *srv)
 {
 	if (srv->inst_dev)
@@ -383,7 +385,7 @@ static int cmdif_fd_send(int cb_err)
 	 * only the id and not full pointer and keep this information on server side
 	 * TODO what do I need FDMA_ENWF_NO_FLAGS ????*/
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_ENWF_NO_FLAGS);
+					RESP_QID_GET, FDMA_EN_TC_CONDTERM_BITS);
 	return err;
 }
 
@@ -392,14 +394,24 @@ static void sync_cmd_done(int err, uint16_t auth_id,
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 
+	pr_debug("err = %d\n",err);
+	pr_debug("auth_id = 0x%x\n",auth_id);
+	pr_debug("sync_resp = 0x%x\n",resp);
+
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
-	cdma_write(srv->sync_done[auth_id], &resp, 4);
+	if (srv->sync_done[auth_id] == NULL) {
+		pr_err("Can't finish sync command, no valid address\n");
+		/** In this case client will fail on timeout */
+	} else if(cdma_write(srv->sync_done[auth_id], &resp, 4)) {
+		pr_err("CDMA write failed, can't finish sync command\n");
+		/** In this case client will fail on timeout */
+	}
 	if (terminate)
 		fdma_terminate_task();
 }
 
-/** Sets the address for polling on synchronous commands */
+/** Save the address for polling on synchronous commands */
 static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
@@ -422,8 +434,8 @@ void cmdif_srv_isr(void)
 		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
 	}
 	
-	pr_debug("CMD id = 0x%x\n",cmd_id);
-	pr_debug("AUTH id = 0x%x\n",auth_id);
+	pr_debug("cmd_id = 0x%x\n",cmd_id);
+	pr_debug("auth_id = 0x%x\n",auth_id);
 
 	if (cmd_id & CMD_ID_OPEN) {
 		char     m_name[M_NAME_CHARS + 1];
@@ -433,7 +445,7 @@ void cmdif_srv_isr(void)
 		
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			pr_err("No permission to open device \n");
+			pr_err("No permission to open device 0x%x\n", auth_id);
 			sync_cmd_done(-EPERM, auth_id, srv, TRUE);
 		}
 
@@ -448,6 +460,11 @@ void cmdif_srv_isr(void)
 		inst_id  = cmd_inst_id_get();
 		new_inst = inst_alloc(srv);
 		if (new_inst >= 0) {
+			
+			pr_debug("inst_id = %d\n",inst_id);
+			pr_debug("new_inst = %d\n",new_inst);
+			pr_debug("m_name = %s\n",m_name);
+			
 			sync_done_set((uint16_t)new_inst, srv);
 			err = OPEN_CB(m_id, inst_id, new_inst);
 			sync_cmd_done(err, (uint16_t)new_inst, srv, FALSE);
@@ -455,6 +472,7 @@ void cmdif_srv_isr(void)
 				pr_err("Open callback failed\n");
 				inst_dealloc(new_inst, srv);
 			} 
+			pr_debug("PASSED open command\n");
 			fdma_terminate_task();				
 		} else {
 			/* couldn't find free place for new device */
@@ -464,14 +482,17 @@ void cmdif_srv_isr(void)
 	} else if (cmd_id & CMD_ID_CLOSE) {
 		
 		if (IS_VALID_AUTH_ID(auth_id)) {
+			/* Don't reorder this sequence !!*/
 			err = CLOSE_CB(auth_id);
+			sync_cmd_done(err, auth_id, srv, FALSE);
 			if (!err) {
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
 				 * close the device */
 				inst_dealloc(auth_id, srv);				
 			}
-			sync_cmd_done(err, auth_id, srv, TRUE);
+			pr_debug("PASSED close command\n");
+			fdma_terminate_task();
 		} else {
 			sync_cmd_done(-EPERM, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("Invalid authentication id\n");
@@ -484,6 +505,7 @@ void cmdif_srv_isr(void)
 			/* User can ignore data and use presentation context */
 			err = CTRL_CB(auth_id, cmd_id, size, data);
 			if (SYNC_CMD(cmd_id)) {
+				pr_debug("PASSED Synchronous Command\n");
 				sync_cmd_done(err, auth_id, srv, TRUE);
 			}
 		} else {
@@ -497,9 +519,15 @@ void cmdif_srv_isr(void)
 	}
 
 	if (SEND_RESP(cmd_id)) {
+		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
+		if (err) {
+			pr_err("Failed to send response auth_id = 0x%x\n", 
+			       auth_id);			
+		}
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
+		pr_debug("PASSED No Response Command\n");
 		fdma_store_default_frame_data();
 	}
 	fdma_terminate_task();
