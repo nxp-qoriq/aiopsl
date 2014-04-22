@@ -10,19 +10,13 @@
 #include "aiop_verification_ipsec.h"
 #include "ipsec.h"
 
-//#include "ipsec.c"
-//#define pr_debug printf
-//#define ALIGN(x, a) \
-//	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
-//#include "rta.h"
-//#include "protoshared.h"
-
-__VERIF_GLOBAL uint64_t sa_desc_handle[32];
+__VERIF_GLOBAL uint64_t sa_desc_handle[32]; /* Global in Shared RAM */
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
+	uint64_t ws_sa_desc_handle; /* Temporary Workspace place holder*/
 
 	opcode  = *((uint32_t *) data_addr);
 
@@ -39,7 +33,7 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		str_size = (uint16_t)sizeof(struct ipsec_init_command);
 		break;
 	}
-	
+
 	case IPSEC_ADD_SA_DESCRIPTOR_CMD:
 	{
 		struct ipsec_add_sa_descriptor_command *str =
@@ -50,15 +44,20 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			str->params.encparams.outer_hdr = (uint32_t *)str->outer_ip_header;
 		}
 		
+		
 		str->status = ipsec_add_sa_descriptor(
 				&(str->params),
 				//(uint64_t *)(str->ipsec_handle_ptr)
-				(uint64_t *)(&(sa_desc_handle[str->sa_desc_id]))
+				//(uint64_t *)(&(sa_desc_handle[str->sa_desc_id]))
+				&ws_sa_desc_handle
 				);
+
+		sa_desc_handle[str->sa_desc_id] = ws_sa_desc_handle;
 		
 		//str->descriptor_addr = *((uint64_t *)(str->ipsec_handle_ptr));
-		str->descriptor_addr = sa_desc_handle[str->sa_desc_id];
-
+		//str->descriptor_addr = sa_desc_handle[str->sa_desc_id];
+		str->descriptor_addr = ws_sa_desc_handle;
+		
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str_size = (uint16_t)sizeof(struct ipsec_add_sa_descriptor_command);
