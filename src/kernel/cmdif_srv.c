@@ -205,6 +205,28 @@ static uint16_t cmd_auth_id_get()
 	return (uint16_t)((data & AUTH_ID_MASK) >> AUTH_ID_OFF);
 }
 
+static int empty_open_cb(uint8_t instance_id, void **dev)
+{
+	UNUSED(instance_id);
+	UNUSED(dev);
+	return -ENODEV;
+}
+
+static int empty_close_cb(void *dev)
+{	
+	UNUSED(dev);
+	return -ENODEV;
+}
+
+static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+{
+	UNUSED(cmd);
+	UNUSED(dev);
+	UNUSED(data);
+	UNUSED(size);
+	return -ENODEV;
+}
+
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 {
 
@@ -218,9 +240,18 @@ int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 	if (m_id < 0) {
 		return m_id;
 	} else {
-		srv->ctrl_cb[m_id]  = ops->ctrl_cb;
-		srv->open_cb[m_id]  = ops->open_cb;
-		srv->close_cb[m_id] = ops->close_cb;
+		if (ops->ctrl_cb)
+			srv->ctrl_cb[m_id]  = ops->ctrl_cb;
+		else
+			srv->ctrl_cb[m_id] = empty_ctrl_cb;
+		if (ops->open_cb)
+			srv->open_cb[m_id]  = ops->open_cb;
+		else
+			srv->open_cb[m_id]  = empty_open_cb;
+		if (ops->close_cb)
+			srv->close_cb[m_id] = ops->close_cb;
+		else
+			srv->close_cb[m_id] = empty_close_cb;
 	}
 
 	return 0;
