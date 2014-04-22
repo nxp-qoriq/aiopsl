@@ -25,11 +25,6 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
 #endif
-	/* The bellow two code lines are there because of compiler warning */
-	/* TODO need to remove the bellow lines when compiler will be fixed*/
-	res1=0;
-	res2=0;
-	/******************************************************************/
 
 	/* Load ICID and PL */
 	__lhbrx(icid_pl, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
@@ -147,12 +142,6 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
 #endif
-
-	/* The bellow two code lines are there because of compiler warning */
-	/* TODO need to remove the bellow lines when compiler will be fixed*/
-	res1=0;
-	res2=0;
-	/******************************************************************/
 
 	/* Fill command parameters */
 	__stdw(cmd_type, (uint32_t)tmi_id, HWC_ACC_IN_ADDRESS, 0);

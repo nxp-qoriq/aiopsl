@@ -7,9 +7,9 @@ MEMORY
 {
     hw_context:             org = 0x00000000,   len = 0x000000C0 /* Hardware Context         */
     tls:                    org = 0x000000C0,   len = 0x00000080 /* TLS - Task Local Storage */
-    presentation:           org = 0x00000140,   len = 0x000001c0 /* Frame presentation area  */
-    stack :                 org = 0x00000300,   len = 0x00008000 /* Start location for Stack, Big stack for init task */    
-    i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */               
+    presentation:           org = 0x00000140,   len = 0x000002C0 /* Frame presentation area  */
+    stack :                 org = 0x00000400,   len = 0x00007C00 /* Start location for Stack, Big stack for init task */
+    i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */
     shared_ram:             org = 0x01000000,   len = 0x00040000 /* Shared-RAM */
     dp_ddr:                 org = 0x58000000,   len = 0x08000000 /* SoC-DDR  */
     exception_handlers:     org = 0x58000000,   len = 0x00002000
@@ -62,8 +62,12 @@ SECTIONS
     } > internal_ram
 
     GROUP : {
-        .receivecb_func (VLECODE) ALIGN (2048) : {} /* Temporal WA for easy EPID setup */  
-        .itext (CONST) : {}
+        .receivecb_func (VLECODE) ALIGN (2048) : {} /* Temporal WA for easy EPID setup */
+        .itext (TEXT) ALIGN(0x1000): {}
+        .itext_vle (VLECODE) ALIGN(0x1000): {
+         *(.itext)
+         *(.itext_vle)
+         }
     } > i_ram
 
     GROUP : {

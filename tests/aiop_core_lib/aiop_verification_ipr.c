@@ -95,20 +95,19 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		}
 #endif
 		
-#if 0
 		/* IPR delete instance Command Verification */
 		case IPR_DELETE_INSTANCE_CMD_STR:
 		{
 			struct ipr_delete_instance_command *str =
 				(struct ipr_delete_instance_command *) asa_seg_addr;
-			if(str->ipr_instance_ref)
-				ipr_instance = 
-		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
-			else 
-				ipr_instance = str->ipr_instance;
+//			if(str->ipr_instance_ref)
+//				ipr_instance = 
+//		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
+//			else 
+//				ipr_instance = str->ipr_instance;
 
 			str->status = ipr_delete_instance(
-					ipr_instance,
+					verif_ipr_instance_handle,
 					str->confirm_delete_cb,
 					str->delete_arg);
 			str_size = sizeof(struct ipr_delete_instance_command);
@@ -119,14 +118,14 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_modify_max_reass_frm_size_command *str =
 				(struct ipr_modify_max_reass_frm_size_command *) asa_seg_addr;
-            if(str->ipr_instance_ref)
-            	ipr_instance = 
-            		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
-            else 
-            	ipr_instance = str->ipr_instance;
+ //           if(str->ipr_instance_ref)
+ //           	ipr_instance = 
+ //           		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
+ //           else 
+ //           	ipr_instance = str->ipr_instance;
 
 			str->status = ipr_modify_max_reass_frm_size(
-					ipr_instance,
+					verif_ipr_instance_handle,
 					str->max_reass_frm_size);
 			str_size = sizeof(struct ipr_modify_max_reass_frm_size_command);
 			break;
@@ -136,14 +135,14 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_modify_min_frag_size_command *str =
 				(struct ipr_modify_min_frag_size_command *) asa_seg_addr;
-            if(str->ipr_instance_ref)
-            	ipr_instance = 
-            		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
-            else 
-            	ipr_instance = str->ipr_instance;
+ //           if(str->ipr_instance_ref)
+ //           	ipr_instance = 
+ //           		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
+ //           else 
+ //           	ipr_instance = str->ipr_instance;
 
 			str->status = ipr_modify_min_frag_size(
-					ipr_instance,
+					verif_ipr_instance_handle,
 					str->min_frag_size);
 			str_size = sizeof(struct ipr_modify_min_frag_size_command);
 			break;
@@ -153,14 +152,14 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_modify_timeout_value_ipv4_command *str =
 				(struct ipr_modify_timeout_value_ipv4_command *) asa_seg_addr;
-            if(str->ipr_instance_ref)
+/*            if(str->ipr_instance_ref)
             	ipr_instance = 
             		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
             else 
             	ipr_instance = str->ipr_instance;
-
+*/
 			str->status = ipr_modify_timeout_value_ipv4(
-					ipr_instance,
+					verif_ipr_instance_handle,
 					str->reasm_timeout_value_ipv4);
 			str_size = sizeof(struct ipr_modify_timeout_value_ipv4_command);
 			break;
@@ -170,14 +169,14 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_modify_timeout_value_ipv6_command *str =
 				(struct ipr_modify_timeout_value_ipv6_command *) asa_seg_addr;
-            if(str->ipr_instance_ref)
+/*            if(str->ipr_instance_ref)
             	ipr_instance = 
             		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
             else 
             	ipr_instance = str->ipr_instance;
-
+*/
 			str->status = ipr_modify_timeout_value_ipv6(
-					ipr_instance,
+					verif_ipr_instance_handle,
 					str->reasm_timeout_value_ipv6);
 			str_size = sizeof(struct ipr_modify_timeout_value_ipv6_command);
 			break;
@@ -187,20 +186,19 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_get_reass_frm_cntr_command *str =
 				(struct ipr_get_reass_frm_cntr_command *) asa_seg_addr;
-            if(str->ipr_instance_ref)
+/*            if(str->ipr_instance_ref)
             	ipr_instance = 
             		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
             else 
             	ipr_instance = str->ipr_instance;
-
+*/
 			str->status = ipr_get_reass_frm_cntr(
-					ipr_instance,
+					verif_ipr_instance_handle,
 					str->flags,
 					str->reass_frm_cntr);
 			str_size = sizeof(struct ipr_get_reass_frm_cntr_command);
 			break;
 		}
-#endif
 		default:
 		{
 			return STR_SIZE_ERR;

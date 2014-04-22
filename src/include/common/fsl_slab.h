@@ -51,9 +51,9 @@ struct slab;
 struct slab_debug_info {
 	uint32_t buff_size; /**< Maximal buffer size */
 	uint32_t num_buffs; /**< The number of available buffers */
+	uint32_t max_buffs; /**< The maximal number of buffers inside this pool */
 	uint16_t pool_id;   /**< HW pool ID */
 	uint16_t alignment; /**< Maximal alignment */
-	uint16_t max_buffs; /**< The maximal number of buffers inside this pool */
 	uint16_t mem_pid;   /**< Memory partition */
 };
 

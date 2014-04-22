@@ -137,7 +137,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/app_receive_cb.c|tmp_src/dpni_test.c|src/arch/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="tmp_src/dpni_test.c|src/arch/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
