@@ -96,7 +96,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	                                   0,                          \
 	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
 	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
-static int epid_setup()
+static void epid_setup()
 {
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 

@@ -354,8 +354,8 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
                                     (uint32_t *)&temp,
                                     &temp) == 0) {
                         /* Modify num_buffs to have the number of available buffers not allocated */
-                        slab_info->num_buffs = (uint16_t)(max_buffs - num_buffs);
-                        slab_info->max_buffs = (uint16_t)max_buffs;
+                        slab_info->num_buffs = (uint32_t)(max_buffs - num_buffs);
+                        slab_info->max_buffs = (uint32_t)max_buffs;
 
                         temp = slab_module->num_hw_pools;
                         for (i = 0; i < temp; i++) {
