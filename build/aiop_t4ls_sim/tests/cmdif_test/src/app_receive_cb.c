@@ -22,12 +22,7 @@ struct cmdif_dev client_dev;
 
 #define     INVALID_AUTH_ID  1001
 
-#pragma push
-#pragma section code_type ".receivecb_func"
-#pragma force_active on
-#pragma function_align 256  
-#pragma require_prototypes off
-
+void app_receive_cb (void);
 void app_receive_cb (void) 
 {    
 	uint32_t auth_id = 0;
@@ -93,5 +88,3 @@ void app_receive_cb (void)
 	received_fd++;
 	cmdif_srv_isr();
 }
-
-#pragma pop
