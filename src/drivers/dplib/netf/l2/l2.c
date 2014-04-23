@@ -220,7 +220,7 @@ void l2_push_vlan(uint16_t ethertype)
 {
 	uint32_t fdma_flags;
 	uint16_t vlan_offset;
-	uint32_t inserted_vlan;
+	uint32_t inserted_vlan = 0;
 	uint32_t *inserted_vlan_ptr;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;

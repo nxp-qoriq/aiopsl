@@ -250,7 +250,7 @@ struct tcp_gro_context_params {
 		 * to tcp_gro_aggregate_seg() should send an address to a new
 		 * metadata buffer.
 		 * */
-	uint64_t metadata;
+	uint64_t metadata_addr;
 		/** Address (in HW buffers) of the TCP GRO statistics counters
 		 *  (\ref tcp_gro_stats_cntrs).
 		 *  The user should zero the statistics once it is allocated. */

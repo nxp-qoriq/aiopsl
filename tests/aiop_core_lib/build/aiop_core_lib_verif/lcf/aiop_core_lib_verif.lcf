@@ -46,6 +46,11 @@ SECTIONS
              *(.text)
              *(.text_vle)
          }
+        .itext (TEXT) ALIGN(0x1000): {}
+        .itext_vle (VLECODE) ALIGN(0x1000): {
+         	*(.itext)
+         	*(.itext_vle)
+         }
         .rodata (CONST) : {
             *(.rdata)
             *(.rodata)
@@ -63,6 +68,8 @@ SECTIONS
        .sbss2  : {}
        .data   : {}
        .bss    : {}
+       .shdata (DATA) : {}
+       .shbss (BSS) NO_INIT_BSS : {}
     } > private_shared_ram
 
     GROUP : {

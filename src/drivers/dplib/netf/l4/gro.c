@@ -76,7 +76,7 @@ int32_t tcp_gro_aggregate_seg(
 	/* read segment sizes address */
 	if (flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
 		sr_status = cdma_read(&(gro_ctx.metadata.seg_sizes_addr),
-				params->metadata,
+				params->metadata_addr,
 				(uint16_t)METADATA_MEMBER1_SIZE);
 		sr_status = cdma_write(gro_ctx.metadata.seg_sizes_addr,
 				&seg_size, (uint16_t)sizeof(seg_size));
@@ -416,7 +416,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	}
 	/* write metadata to external memory */
 	sr_status = cdma_write(
-			(gro_ctx->params.metadata + METADATA_MEMBER1_SIZE),
+			(gro_ctx->params.metadata_addr + METADATA_MEMBER1_SIZE),
 			&(gro_ctx->metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
@@ -539,7 +539,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 						gro_ctx->last_seg_fields;
 
 	/* write metadata to external memory */
-	sr_status = cdma_write((params->metadata +
+	sr_status = cdma_write((params->metadata_addr +
 			METADATA_MEMBER1_SIZE), &(gro_ctx->metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
@@ -620,7 +620,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* update seg size */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
 		sr_status = cdma_read(&(gro_ctx->metadata.seg_sizes_addr),
-				params->metadata ,
+				params->metadata_addr ,
 				(uint16_t)METADATA_MEMBER1_SIZE);
 		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr,
 				&(gro_ctx->metadata.max_seg_size),
@@ -682,7 +682,7 @@ int32_t tcp_gro_flush_aggregation(
 	}
 
 	/* write metadata to external memory */
-	sr_status = cdma_write((gro_ctx.params.metadata +
+	sr_status = cdma_write((gro_ctx.params.metadata_addr +
 		METADATA_MEMBER1_SIZE),
 		&(gro_ctx.metadata.seg_num),
 		(uint16_t)(METADATA_MEMBER2_SIZE +
@@ -788,7 +788,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	}
 
 	/* write metadata to external memory */
-	sr_status = cdma_write((gro_ctx.params.metadata +
+	sr_status = cdma_write((gro_ctx.params.metadata_addr +
 					METADATA_MEMBER1_SIZE),
 			&(gro_ctx.metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +

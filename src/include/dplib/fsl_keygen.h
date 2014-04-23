@@ -344,10 +344,8 @@ enum kcr_builder_protocol_fecid {
 	KEYGEN_KCR_ICMP_TYPE_FECID = 0x25,
 	/** FECID of ICMP code */
 	KEYGEN_KCR_ICMP_CODE_FECID = 0x26,
-	/** FECID of PBB ISID */
-	KEYGEN_KCR_PBB_ISID_FECID = 0x27,
 	/** FECID of Next Header */
-	KEYGEN_KCR_NXT_HDR_FECID = 0x28
+	KEYGEN_KCR_NXT_HDR_FECID = 0x27
 	/* TODO check spec  for updates */
 };
 /** @} */ /* end of kcr_builder_protocol_fecid */
@@ -398,10 +396,12 @@ struct	kcr_builder {
 struct	kcr_builder_fec_single_mask {
 	/** Bit-wise mask
 	Applied to the extracted header at the corresponding offset from its
-	beginning */
+	beginning.
+	0 - Corresponding bit is masked
+	1 - Corresponding bit is not masked */
 	uint8_t	mask;
 
-	/** Mask offset.
+	/** Mask offset
 	offset value can be between 0x00-0x0F.
 	It is up to the user to ensure that the offset is not larger than the
 	extracted header. */
