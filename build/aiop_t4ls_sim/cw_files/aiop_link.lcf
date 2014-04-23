@@ -62,7 +62,6 @@ SECTIONS
     } > internal_ram
 
     GROUP : {
-        .receivecb_func (VLECODE) ALIGN (2048) : {} /* Temporal WA for easy EPID setup */
         .itext (TEXT) ALIGN(0x1000): {}
         .itext_vle (VLECODE) ALIGN(0x1000): {
          *(.itext)
