@@ -161,18 +161,18 @@ static void inst_dealloc(int inst, struct cmdif_srv *srv)
 	unlock_spinlock(&srv->lock);
 }
 
-static uint16_t cmd_id_get()
+__HOT_CODE static uint16_t cmd_id_get()
 {
 	uint64_t data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	return (uint16_t)((data & CMD_ID_MASK) >> CMD_ID_OFF);
 }
 
-static uint32_t cmd_size_get()
+__HOT_CODE static uint32_t cmd_size_get()
 {
 	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
-static uint8_t * cmd_data_get()
+__HOT_CODE static uint8_t * cmd_data_get()
 {
 	return (uint8_t *)fsl_os_phys_to_virt(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
 }
@@ -198,7 +198,7 @@ static uint8_t cmd_inst_id_get()
 	return (uint8_t)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 }
 
-static uint16_t cmd_auth_id_get()
+__HOT_CODE static uint16_t cmd_auth_id_get()
 {
 	uint64_t data = 0;
 	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -397,7 +397,7 @@ void cmdif_srv_free(void)
 }
 
 
-static int cmdif_fd_send(int cb_err)
+__HOT_CODE static int cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -420,7 +420,7 @@ static int cmdif_fd_send(int cb_err)
 	return err;
 }
 
-static void sync_cmd_done(int err, uint16_t auth_id, 
+__HOT_CODE static void sync_cmd_done(int err, uint16_t auth_id, 
                           struct cmdif_srv *srv, char terminate)
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
@@ -454,7 +454,7 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 #pragma push
 #pragma force_active on
 
-void cmdif_srv_isr(void)
+__HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
 	struct   cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
