@@ -214,6 +214,12 @@ int32_t ipsec_generate_encap_sd(
 			(struct alginfo *)(&(params->authdata)) 
 		);
 	}	
+
+#define AIOPSL_IPSEC_DEBUG
+#ifdef AIOPSL_IPSEC_DEBUG
+	/* debug, set first word to a fixed value */
+	ws_shared_desc[0] = 0xDB01DB02;
+#endif
 	
 	/* Write the descriptor to external memory */
 	return_val = cdma_write(
