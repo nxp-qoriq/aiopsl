@@ -203,7 +203,8 @@ struct tcp_gro_context_metadata {
 		These limits are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_limits {
-		/** Timeout per packet aggregation limit. */
+		/** Timeout per packet (in 1 mSec granularity) aggregation
+		 * limit. */
 	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit (The size refers to the
 		 * packet headers + payload).
@@ -249,7 +250,7 @@ struct tcp_gro_context_params {
 		 * to tcp_gro_aggregate_seg() should send an address to a new
 		 * metadata buffer.
 		 * */
-	uint64_t metadata;
+	uint64_t metadata_addr;
 		/** Address (in HW buffers) of the TCP GRO statistics counters
 		 *  (\ref tcp_gro_stats_cntrs).
 		 *  The user should zero the statistics once it is allocated. */

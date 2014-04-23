@@ -1,3 +1,7 @@
+** AIOP ARENA SL Pre-Alpha v0.3.3  **
+- aiop_link.lcf:   Added fix to suport macros for __SHRAM and __HOT_CODE, stack size adjusted.
+- types_mw.c:      Added fix to suport macros for __SHRAM and __HOT_CODE. 
+
 - fsl_slab.h:      Changed slab_debug_info.max_buffs to 32 bit
 - cmdif_test.c:    Added CMDIF reflector and Client Server test. This test tests AIOP side Server.
                    See {aiopls}\build\aiop_t4ls_sim\tests\cmdif_test\README.txt
