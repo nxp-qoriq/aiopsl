@@ -19,6 +19,7 @@
 #define M_NUM_OF_INSTANCES    1000
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
+#define SYNC_BUFF_RESERVED    1     /**< 1 Byte must be reserved for done bit */
 
 #define OPEN_AUTH_ID          0xFFFF 
 /**< auth_id that will be sent as hash value for open commands */

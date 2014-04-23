@@ -180,7 +180,7 @@ __HOT_CODE static uint8_t * cmd_data_get()
 static void cmd_m_name_get(char * name)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	addr += PRC_GET_SEGMENT_OFFSET();
+	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
 
 	/* I expect that name will end by \0 if it has less than 8 chars */
 	if (name != NULL) {
@@ -420,21 +420,30 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	return err;
 }
 
-__HOT_CODE static void sync_cmd_done(int err, uint16_t auth_id, 
-                          struct cmdif_srv *srv, char terminate)
+__HOT_CODE static void sync_cmd_done(uint64_t sync_done, 
+                                     int err, 
+                                     uint16_t auth_id, 
+                                     struct cmdif_srv *srv, 
+                                     char terminate)
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
-
+	uint64_t _sync_done = NULL;
+	
 	pr_debug("err = %d\n",err);
 	pr_debug("auth_id = 0x%x\n",auth_id);
 	pr_debug("sync_resp = 0x%x\n",resp);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
-	if (srv->sync_done[auth_id] == NULL) {
+	if ((sync_done != NULL) || (auth_id == OPEN_AUTH_ID))
+		_sync_done = sync_done;
+	else
+		_sync_done = srv->sync_done[auth_id];
+	
+	if (_sync_done == NULL) {
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
-	} else if(cdma_write(srv->sync_done[auth_id], &resp, 4)) {
+	} else if(cdma_write(_sync_done, &resp, 4)) {
 		pr_err("CDMA write failed, can't finish sync command\n");
 		/** In this case client will fail on timeout */
 	}
@@ -443,13 +452,12 @@ __HOT_CODE static void sync_cmd_done(int err, uint16_t auth_id,
 }
 
 /** Save the address for polling on synchronous commands */
+#define sync_done_get() LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)
 static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 {
-	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	addr += PRC_GET_SEGMENT_OFFSET() + M_NAME_CHARS;
-
-	srv->sync_done[auth_id] = *((uint64_t *)addr); /* Phys addr for cdma */
+	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
+
 
 #pragma push
 #pragma force_active on
@@ -473,11 +481,12 @@ __HOT_CODE void cmdif_srv_isr(void)
 		int      m_id;
 		uint8_t  inst_id;
 		int      new_inst;
+		uint64_t sync_done = sync_done_get();
 		
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			pr_err("No permission to open device 0x%x\n", auth_id);
-			sync_cmd_done(-EPERM, auth_id, srv, TRUE);
+			sync_cmd_done(sync_done, -EPERM, auth_id, srv, TRUE);
 		}
 
 		cmd_m_name_get(&m_name[0]);		
@@ -485,7 +494,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 		if (m_id < 0) {
 			/* Did not find module with such name */
 			pr_err("No such module %s\n", m_name);
-			sync_cmd_done(-ENODEV, OPEN_AUTH_ID, srv, TRUE);
+			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, TRUE);
 		}
 		
 		inst_id  = cmd_inst_id_get();
@@ -498,7 +507,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 			
 			sync_done_set((uint16_t)new_inst, srv);
 			err = OPEN_CB(m_id, inst_id, new_inst);
-			sync_cmd_done(err, (uint16_t)new_inst, srv, FALSE);
+			sync_cmd_done(sync_done, err, (uint16_t)new_inst, srv, FALSE);
 			if (err) {
 				pr_err("Open callback failed\n");
 				inst_dealloc(new_inst, srv);
@@ -507,7 +516,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 			fdma_terminate_task();				
 		} else {
 			/* couldn't find free place for new device */
-			sync_cmd_done(-ENODEV, OPEN_AUTH_ID, srv, FALSE);
+			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("No free entry for new device\n");
 		}
 	} else if (cmd_id & CMD_ID_CLOSE) {
@@ -515,7 +524,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* Don't reorder this sequence !!*/
 			err = CLOSE_CB(auth_id);
-			sync_cmd_done(err, auth_id, srv, FALSE);
+			sync_cmd_done(NULL, err, auth_id, srv, FALSE);
 			if (!err) {
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
@@ -525,7 +534,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 			pr_debug("PASSED close command\n");
 			fdma_terminate_task();
 		} else {
-			sync_cmd_done(-EPERM, auth_id, srv, FALSE);
+			sync_cmd_done(NULL, -EPERM, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else {
@@ -537,7 +546,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 			err = CTRL_CB(auth_id, cmd_id, size, data);
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
-				sync_cmd_done(err, auth_id, srv, TRUE);
+				sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 			}
 		} else {
 			/* don't bother to send response 
