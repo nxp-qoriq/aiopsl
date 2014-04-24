@@ -20,15 +20,11 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2, res1, res2, icid_pl, va_bdi;
+	uint32_t arg1, arg2, icid_pl, va_bdi;
+	unsigned int res1, res2;
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
 #endif
-	/* The bellow two code lines are there because of compiler warning */
-	/* TODO need to remove the bellow lines when compiler will be fixed*/
-	res1=0;
-	res2=0;
-	/******************************************************************/
 
 	/* Load ICID and PL */
 	__lhbrx(icid_pl, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
@@ -52,7 +48,7 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 		/* call TMAN. */
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
-		__ldw(res1, res2, HWC_ACC_OUT_ADDRESS, 0);
+		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
 #ifdef SL_DEBUG
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
@@ -140,27 +136,19 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 			uint32_t *timer_handle)
 {
 	struct tman_tmi_input_extention extention_params;
-	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_CREATE, res1, res2;
+	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_CREATE;
+	unsigned int res1, res2;
 	uint32_t epid = EPID_TIMER_EVENT_IDX;
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
 #endif
 
-	/* The bellow two code lines are there because of compiler warning */
-	/* TODO need to remove the bellow lines when compiler will be fixed*/
-	res1=0;
-	res2=0;
-	/******************************************************************/
-
 	/* Fill command parameters */
 	__stdw(cmd_type, (uint32_t)tmi_id, HWC_ACC_IN_ADDRESS, 0);
 
-	/* extention_params.opaque_data1 = conf_opaque_data1;
-	todo need to replace that with __st64dw when compiler intrinsic will
-	be ready which will remove one cycle - e_add16i r3,rsp,16*/
+	/* extention_params.opaque_data1 = conf_opaque_data1; */
+	__llstdw(opaque_data1, 0, (void *)(&extention_params.opaque_data1));
 
-	__st64dw_b(opaque_data1,
-		  (uint32_t)(&extention_params.opaque_data1));
 	extention_params.hash = (uint32_t)tman_timer_cb;
 	/* extention_params.opaque_data2_epid =
 			(uint32_t)(opaque_data2 << 16) | epid;
@@ -182,7 +170,7 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		/* call TMAN. */
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
-		__ldw(res1, res2, HWC_ACC_OUT_ADDRESS, 0);
+		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
 #ifdef SL_DEBUG
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
@@ -291,7 +279,7 @@ int32_t tman_query_timer(uint32_t timer_handle,
 	/* performs *state = res1 & 0x03 */
 	/* Optimization: remove 2 cycles of clearing duration upper bits */
 	*((uint8_t *)(state)) = (uint8_t)res1;
-	return (int32_t)(res1);
+	return (int32_t)(res1 & TMAN_TMR_QUERY_STATE_MASK);
 }
 
 void tman_timer_completion_confirmation(uint32_t timer_handle)

@@ -37,7 +37,8 @@ enum parser_verif_cmd_type {
 	PARSER_GEN_PARSE_RES_VERIF_CMDTYPE,
 	PARSER_GEN_PARSE_RES_EXP_VERIF_CMDTYPE,
 	PARSER_PRP_ID_POOL_CREATE_VERIF_CMDTYPE,
-	PARSER_INIT_FOR_VERIF_CMDTYPE
+	PARSER_INIT_FOR_VERIF_CMDTYPE,
+	PARSER_MACROS_VERIF_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((PARSE_MODULE << 16) | \
@@ -63,6 +64,10 @@ enum parser_verif_cmd_type {
 
 #define PARSER_INIT_FOR_VERIF_STR ((PARSE_MODULE << 16) | \
 					PARSER_INIT_FOR_VERIF_CMDTYPE)
+
+#define PARSER_MACROS_STR ((PARSE_MODULE << 16) | \
+					PARSER_MACROS_VERIF_CMDTYPE)
+
 /**************************************************************************//**
 @Description	Parser verification init Command structure.
 
@@ -99,7 +104,7 @@ struct parser_prp_delete_verif_command {
 	uint32_t opcode;
 	int32_t  status;
 	uint8_t  prpid;
-	uint8_t  pad[3];
+	uint8_t  pad[7];
 };
 
 
@@ -124,9 +129,10 @@ struct parser_prp_query_verif_command {
 *//***************************************************************************/
 struct parser_prp_replace_verif_command {
 	uint32_t opcode;
+	int32_t  status;
 	uint32_t parse_profile;
 	uint8_t  prpid;
-	uint8_t  pad[7];
+	uint8_t  pad[3];
 };
 
 /**************************************************************************//**
@@ -150,7 +156,7 @@ struct parser_gen_parser_res_verif_command {
 struct parser_gen_parser_res_exp_verif_command {
 	uint32_t                      opcode;
 	int32_t                       status;
-	uint16_t		      hxs;
+	uint16_t		      		  hxs;
 	uint8_t                       flags;
 	uint8_t                       offset;
 	uint8_t                       pad[4];
@@ -164,6 +170,16 @@ struct parser_gen_parser_res_exp_verif_command {
 struct parser_prp_id_pool_create_verif_command {
 	uint32_t opcode;
 	int32_t  status;
+};
+
+/**************************************************************************//**
+@Description	Parser MACROs Command structure.
+
+		Includes information needed for Parser Commands verification.
+*//***************************************************************************/
+struct parser_macros_command {
+	uint32_t             opcode;
+	uint32_t             macros_struct;
 };
 
 void aiop_init_parser(uint8_t *prpid);

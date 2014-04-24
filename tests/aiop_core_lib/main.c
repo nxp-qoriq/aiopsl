@@ -6,23 +6,23 @@
 #pragma push
 #pragma section code_type ".verif_text"
 #pragma force_active on
-#pragma function_align 256  
+#pragma function_align 256
 #pragma require_prototypes off
 
 extern __VERIF_GLOBAL uint8_t verif_prpid_valid;
 
 int main()
-{	
-	/* Todo - 
+{
+	/* Todo -
 	 * 1. enable next line
 	 * 2. enable project files under ppc + kernel */
 	/*if (sys_is_master_core())*/
 		/*aiop_verif_init_parser();*/
 	/*uint32_t ctscsr_value = 0;
 	SET_CTSCSR0(ctscsr_value);
-         The init parser code 
+         The init parser code
 	aiop_verif_init_parser();
-         CTSEN = 1, set task number to 18, Core Task Scheduler Enable 
+         CTSEN = 1, set task number to 18, Core Task Scheduler Enable
         ctscsr_value = CTSCSR_16_TASKS | CTSCSR_ENABLE;
         SET_CTSCSR0(ctscsr_value);*/
 	verif_prpid_valid = 0;
@@ -32,7 +32,7 @@ int main()
 	aiop_verification_sr();
 	aiop_verification_fm();
 	aiop_verification_fm_temp();
-	
+
 	return 0;
 }
 #pragma pop

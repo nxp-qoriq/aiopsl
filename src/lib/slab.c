@@ -4,7 +4,6 @@
 #include "common/fsl_malloc.h"
 #include "common/spinlock.h"
 #include "common/dbg.h"
-#include "kernel/platform.h"
 #include "slab.h"
 #include "virtual_pools.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
@@ -76,7 +75,7 @@ static inline int find_bpid(uint16_t buff_size,
 }
 
 /*****************************************************************************/
-int slab_find_and_fill_bpid(uint16_t num_buffs,
+int slab_find_and_fill_bpid(uint32_t num_buffs,
                             uint16_t buff_size,
                             uint16_t alignment,
                             uint8_t  mem_pid,
@@ -117,28 +116,30 @@ int slab_find_and_fill_bpid(uint16_t num_buffs,
                 }
         }
 
-        *num_filled_buffs = num_buffs;
-        vpool_add_total_bman_bufs(*bpid, num_buffs);
+        *num_filled_buffs = (int)num_buffs;
+        vpool_add_total_bman_bufs(*bpid, (int32_t)num_buffs);
 
         return 0;
 }
 
 /*****************************************************************************/
-static void free_slab_module_memory()
+static void free_slab_module_memory(struct slab_module_info *slab_module)
 {
-        struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
-
         /* TODO there still some static allocations in VP init
          * need to add them to slab_module_init() and then free them here
+         * TODO check if != NULL before free
          */
-        fsl_os_xfree(slab_module->virtual_pool_struct);
-        fsl_os_xfree(slab_module->callback_func_struct);
-        fsl_os_xfree(slab_module->hw_pools);
+        if (slab_module->virtual_pool_struct)
+        	fsl_os_xfree(slab_module->virtual_pool_struct);
+        if (slab_module->callback_func_struct)
+        	fsl_os_xfree(slab_module->callback_func_struct);
+        if (slab_module->hw_pools)
+        	fsl_os_xfree(slab_module->hw_pools);
         fsl_os_xfree(slab_module);
 }
 
 /*****************************************************************************/
-static inline int sanity_check_slab_create(uint16_t    num_buffs,
+static inline int sanity_check_slab_create(uint32_t    num_buffs,
                                            uint16_t    buff_size,
                                            uint16_t    alignment,
                                            uint8_t     mem_pid,
@@ -157,8 +158,8 @@ static inline int sanity_check_slab_create(uint16_t    num_buffs,
 }
 
 /*****************************************************************************/
-int slab_create(uint16_t    num_buffs,
-                uint16_t    extra_buffs,
+int slab_create(uint32_t    num_buffs,
+                uint32_t    max_buffs,
                 uint16_t    buff_size,
                 uint16_t    prefix_size,
                 uint16_t    postfix_size,
@@ -179,8 +180,10 @@ int slab_create(uint16_t    num_buffs,
 #ifdef DEBUG
         /* Sanity checks */
         error = sanity_check_slab_create(num_buffs, buff_size, alignment, mem_pid, flags);
-        if (error)           return -ENAVAIL;
-        if (extra_buffs > 0) return -ENAVAIL; /* TODO remove it when extra_buffs are supported */
+        if (error)
+        	return -ENAVAIL;
+        if (max_buffs > num_buffs)
+        	return -ENAVAIL; /* TODO remove it when extra_buffs are supported */
 #endif
 
         *((uint32_t *)slab) = 0;
@@ -191,7 +194,7 @@ int slab_create(uint16_t    num_buffs,
         if (error) return error; /* -EINVAL or -ENOMEM */
 
         data  = 0;
-        error = vpool_create_pool(bpid, num_buffs + extra_buffs, num_buffs, 0, release_cb , &data);
+        error = vpool_create_pool(bpid, (int32_t)max_buffs, (int32_t)num_buffs, 0, release_cb , &data);
         if (error)
                 return -ENAVAIL;
         if (data > SLAB_VP_POOL_MAX) {
@@ -268,11 +271,7 @@ static int bpid_init(struct slab_hw_pool_info *hw_pools,
         hw_pools->flags            = 0;
         hw_pools->mem_pid          = bpid.mem_pid;
         hw_pools->buff_size        = SLAB_SIZE_SET(bpid.size);
-        /* TODO check which buff_size I should pass to VP with or without metadata
-         * TODO buff_size should be removed one day*/
-        return vpool_init_total_bman_bufs(bpid.bpid,
-                                          0,
-                                          (uint32_t)bpid.size);
+        return vpool_init_total_bman_bufs(bpid.bpid, 0);
 }
 
 /*****************************************************************************/
@@ -289,17 +288,29 @@ int slab_module_init(void)
 
         slab_module = fsl_os_xmalloc(sizeof(struct slab_module_info),
                                      SLAB_FAST_MEMORY, 1);
-
+        if (slab_module == NULL) {
+		return -ENOMEM;
+        }
+        
+        /* TODO check if != NULL */
         slab_module->num_hw_pools = (uint8_t)(num_bpids & 0xFF);
         slab_module->hw_pools     = fsl_os_xmalloc(sizeof(struct slab_hw_pool_info) * num_bpids, SLAB_DDR_MEMORY, 1);
 
         slab_module->virtual_pool_struct  = fsl_os_xmalloc((sizeof(struct virtual_pool_desc) * SLAB_MAX_NUM_VP), SLAB_FAST_MEMORY, 1);
         slab_module->callback_func_struct = fsl_os_xmalloc((sizeof(struct callback_s) * SLAB_MAX_NUM_VP), SLAB_FAST_MEMORY, 1);
 
+        if (    (slab_module->hw_pools == NULL) || 
+        	(slab_module->virtual_pool_struct == NULL) ||
+        	(slab_module->callback_func_struct == NULL)  ) {
+        	
+                free_slab_module_memory(slab_module);
+		return -ENOMEM;
+        }
+        
         /* TODO vpool_init() API will change to get more allocated by malloc() memories */
         error = vpool_init((uint64_t)(slab_module->virtual_pool_struct), (uint64_t)(slab_module->callback_func_struct), SLAB_MAX_NUM_VP, 0);
         if (error) {
-                free_slab_module_memory();
+                free_slab_module_memory(slab_module);
                 return -ENAVAIL;
         }
 
@@ -307,7 +318,7 @@ int slab_module_init(void)
         while (i < num_bpids) {
                 error = bpid_init(&(slab_module->hw_pools[i]), bpids_arr[i]);
                 if (error) {
-                        free_slab_module_memory();
+                        free_slab_module_memory(slab_module);
                         return -ENAVAIL;
                 }
                 i++;
@@ -321,8 +332,10 @@ int slab_module_init(void)
 /*****************************************************************************/
 void slab_module_free(void)
 {
-        free_slab_module_memory();
+        struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+
         sys_remove_handle(FSL_OS_MOD_SLAB, 0);
+        free_slab_module_memory(slab_module);
 }
 
 /*****************************************************************************/
@@ -341,8 +354,8 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
                                     (uint32_t *)&temp,
                                     &temp) == 0) {
                         /* Modify num_buffs to have the number of available buffers not allocated */
-                        slab_info->num_buffs = (uint16_t)(max_buffs - num_buffs);
-                        slab_info->max_buffs = (uint16_t)max_buffs;
+                        slab_info->num_buffs = (uint32_t)(max_buffs - num_buffs);
+                        slab_info->max_buffs = (uint32_t)max_buffs;
 
                         temp = slab_module->num_hw_pools;
                         for (i = 0; i < temp; i++) {

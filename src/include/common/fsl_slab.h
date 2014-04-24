@@ -50,10 +50,10 @@ struct slab;
 *//***************************************************************************/
 struct slab_debug_info {
 	uint32_t buff_size; /**< Maximal buffer size */
+	uint32_t num_buffs; /**< The number of available buffers */
+	uint32_t max_buffs; /**< The maximal number of buffers inside this pool */
 	uint16_t pool_id;   /**< HW pool ID */
 	uint16_t alignment; /**< Maximal alignment */
-	uint16_t num_buffs; /**< The number of available buffers */
-	uint16_t max_buffs; /**< The maximal number of buffers inside this pool */
 	uint16_t mem_pid;   /**< Memory partition */
 };
 
@@ -69,8 +69,9 @@ typedef int (*slab_release_cb_t)(uint64_t);
 @Description	Create a new buffers pool.
 
 @Param[in]	num_buffs           Number of buffers in new pool.
-@Param[in]	extra_buffs         Set it to 0; Number of extra buffers that
-		can be allocated by this new pool.
+@Param[in]	max_buffs           Maximal number of buffers that
+		can be allocated by this new pool; max_buffs >= num_buffs;
+		Not yet supported.
 @Param[in]	buff_size           Size of buffers in pool.
 @Param[in]	prefix_size         How many bytes to allocate before the data.
 		AIOP: Not supported by AIOP HW pools.
@@ -88,8 +89,8 @@ typedef int (*slab_release_cb_t)(uint64_t);
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
-int slab_create(uint16_t    num_buffs,
-		uint16_t    extra_buffs,
+int slab_create(uint32_t    num_buffs,
+		uint32_t    max_buffs,
 		uint16_t    buff_size,
 		uint16_t    prefix_size,
 		uint16_t    postfix_size,
@@ -106,8 +107,8 @@ int slab_create(uint16_t    num_buffs,
 		AIOP: Not supported by AIOP HW pools.
 
 @Param[in]	num_buffs           Number of buffers in new pool.
-@Param[in]	extra_buffs         Number of extra buffers that can be allocated
-		by this new pool.
+@Param[in]	max_buffs           Maximal number of buffers that can be allocated
+		by this new pool; max_buffs >= num_buffs
 @Param[in]	buff_size           Size of buffers in pool.
 @Param[in]	prefix_size         How many bytes to allocate before the data.
 @Param[in]	postfix_size        How many bytes to allocate after the data.
@@ -119,8 +120,8 @@ int slab_create(uint16_t    num_buffs,
 @Return		0       - on success,
 		-ENAVAIL - resource not available or not found.
  *//***************************************************************************/
-int slab_create_by_address(uint16_t num_buffs,
-			uint16_t extra_buffs,
+int slab_create_by_address(uint32_t num_buffs,
+			uint32_t max_buffs,
 			uint16_t buff_size,
 			uint16_t prefix_size,
 			uint16_t postfix_size,

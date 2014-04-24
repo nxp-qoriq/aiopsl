@@ -18,6 +18,10 @@
  * fdma.h) */
 	/** FDMA Initial Presentation explicit command code */
 #define FDMA_INIT_EXP_CMD		0x00001001
+	/** FDMA Initial Presentation without segments explicit command code */
+#define FDMA_INIT_NO_SEG_CMD		0x00002001
+	/** FDMA Initial Presentation without segments explicit command code */
+#define FDMA_INIT_NO_SEG_EXP_CMD	0x00003001
 	/** FDMA Read ASA segment command code */
 #define FDMA_READ_ASA_CMD		0x00001002
 	/** FDMA Read PTA segment command code */
@@ -36,6 +40,8 @@
 #define FDMA_DISCARD_DEFAULT_WF_CMD	0x00001013
 	/** FDMA Discard frame command code */
 #define FDMA_DISCARD_WF_CMD		0x00002013
+	/** FDMA Discard fd command code */
+#define FDMA_DISCARD_FD_CMD		0x00003013
 	/** FDMA Modify working frame segment command code */
 #define FDMA_MODIFY_CMD			0x00006019
 	/** FDMA Insert working frame segment command code */
@@ -50,6 +56,10 @@
 #define FDMA_REPLACE_PTA_CMD		0x00005019
 	/** FDMA explicit Insert working frame segment command code */
 #define FDMA_INSERT_EXP_DATA_CMD	0x00007019
+	/** FDMA Close working frame segment explicit command code */
+#define FDMA_CLOSE_SEG_EXP_CMD		0x00008019
+	/** FDMA Delete working frame segment explicit command code */
+#define FDMA_DELETE_DATA_EXP_CMD	0x00009019
 	/** FDMA Create Frame command code */
 #define FDMA_CREATE_FRAME_CMD		0x00000100
 	/** FDMA Create FD command code */
@@ -61,6 +71,13 @@
 	/** FDMA Initial frame presentation explicit Command Structure
 	 * identifier */
 #define FDMA_INIT_EXP_CMD_STR	((FDMA_MODULE << 16) | FDMA_INIT_EXP_CMD)
+	/** FDMA Initial frame presentation without segments Command Structure
+	 * identifier */
+#define FDMA_INIT_NO_SEG_CMD_STR ((FDMA_MODULE << 16) | FDMA_INIT_NO_SEG_CMD)
+	/** FDMA Initial frame presentation without segments explicit Command
+	 * Structure identifier */
+#define FDMA_INIT_NO_SEG_EXP_CMD_STR					\
+	((FDMA_MODULE << 16) | FDMA_INIT_NO_SEG_EXP_CMD)
 	/** FDMA Present Data segment Command Structure identifier */
 #define FDMA_PRESENT_CMD_STR	((FDMA_MODULE << 16) | FDMA_PRESENT_CMD)
 	/** FDMA Read ASA segment Command Structure identifier */
@@ -92,6 +109,8 @@
 		FDMA_DISCARD_DEFAULT_WF_CMD)
 	/** FDMA Discard working frame Command Structure identifier */
 #define FDMA_DISCARD_WF_CMD_STR	((FDMA_MODULE << 16) | FDMA_DISCARD_WF_CMD)
+	/** FDMA Discard fd Command Structure identifier */
+#define FDMA_DISCARD_FD_CMD_STR	((FDMA_MODULE << 16) | FDMA_DISCARD_FD_CMD)
 	/** FDMA Terminate Task Command Structure identifier */
 #define FDMA_TERMINATE_TASK_CMD_STR	((FDMA_MODULE << 16) |	\
 		FDMA_TERMINATE_TASK_CMD)
@@ -122,6 +141,13 @@
 /** FDMA Insert explicit working frame segment Command Structure identifier */
 #define FDMA_INSERT_EXP_DATA_CMD_STR ((FDMA_MODULE << 16) | 		\
 		FDMA_INSERT_EXP_DATA_CMD)
+	/** FDMA Delete working frame segment Command Structure identifier */
+#define FDMA_CLOSE_SEG_EXP_CMD_STR ((FDMA_MODULE << 16) | 		\
+		FDMA_CLOSE_SEG_EXP_CMD)
+	/** FDMA Delete working frame segment explicit Command Structure
+	 * identifier */
+#define FDMA_DELETE_DATA_EXP_CMD_STR ((FDMA_MODULE << 16) |		\
+		FDMA_DELETE_DATA_EXP_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
@@ -266,6 +292,63 @@ struct fdma_init_exp_command {
 	uint8_t	pad[1];
 };
 
+/**************************************************************************//**
+@Description	FDMA Initial frame presentation without segments Command
+		structure.
+
+		Includes information needed for FDMA Initial frame presentation
+		without segments command verification.
+		This command works on the default frame (expect a FD at address
+		0x60), and present a data segment only if present_size > 0.
+
+*//***************************************************************************/
+struct fdma_init_no_seg_command {
+		/** FDMA Initial frame presentation  without segments command
+		 * structure identifier. */
+	uint32_t opcode;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[3];
+};
+
+/**************************************************************************//**
+@Description	FDMA Initial frame presentation without segments (explicit)
+		Command structure.
+
+		Includes information needed for FDMA Initial frame presentation
+		without segments explicit command verification.
+
+*//***************************************************************************/
+struct fdma_init_no_seg_exp_command {
+		/** FDMA Initial frame presentation without segments explicit
+		 * command structure identifier. */
+	uint32_t opcode;
+		/** Pointer to the location within the workspace of the FD that
+		 * is to be presented. */
+	uint32_t fd_src;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case AS field is set. */
+	uint16_t icid;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If set - supplied AMQ attributes are used.
+		 * If reset - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t AS;
+		/** Virtual Address. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t VA;
+		/** Privilege Level. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t PL;
+		/** Bypass Datapath Isolation. Frame AMQ attribute.
+		 * Used only in case AS field is set. */
+	uint8_t BDI;
+		/** Command returned handle of the working frame. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+};
 
 /**************************************************************************//**
 @Description	FDMA Present segment Command structure.
@@ -744,6 +827,30 @@ struct fdma_discard_wf_command {
 };
 
 /**************************************************************************//**
+@Description	FDMA Discard FD Segment Command structure.
+
+		Includes information needed for FDMA Discard FD command
+		verification.
+
+*//***************************************************************************/
+struct fdma_discard_fd_command {
+		/** FDMA Discard FD command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location within the workspace of the
+		 * destination FD to be discarded. */
+	uint32_t fd_dst;
+		/** Control:
+		* - 0: Return after discard
+		* - 1: Trigger the Terminate task command right after
+		* the discard. */
+	uint8_t	 TC;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[6];
+};
+
+/**************************************************************************//**
 @Description	FDMA Discard Frame Segment Command structure.
 
 		Includes information needed for FDMA Discard Frame command
@@ -971,9 +1078,6 @@ struct fdma_modify_command {
 	uint16_t offset;
 		/** Replaced size. */
 	uint16_t size;
-		/** Replacing Data. If size > 24 then the replacing data will
-		 * be wrapped. */
-	uint8_t	data[24];
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
@@ -1123,6 +1227,50 @@ struct fdma_delete_segment_data_command {
 		/** 64-bit alignment. */
 	uint8_t	pad[4];
 };
+/**************************************************************************//**
+@Description	FDMA Delete data from Working Frame Segment explicit Command
+		structure.
+
+		Includes information needed for FDMA Delete data from Working
+		Frame Segment explicit command verification.
+
+*//***************************************************************************/
+struct fdma_delete_segment_data_exp_command {
+		/** FDMA Delete data from Working Frame Segment explicit command
+		 * structure identifier. */
+	uint32_t opcode;
+		/**< pointer to the location in workspace for the represented
+		 * frame segment (relevant if SA field is set). */
+	uint32_t ws_dst_rs;
+		/** Offset from the previously presented segment representing
+		* the start point of the deletion. */
+	uint16_t to_offset;
+		/** Deleted segment data size. */
+	uint16_t delete_target_size;
+		/** Number of frame bytes to represent in the segment. Must be
+		 * greater than 0.
+		 * Relevant if SA field is set.*/
+	uint16_t size_rs;
+		/** Command returned segment length.
+		 * Relevant if SA field is set. */
+	uint16_t seg_length_rs;
+		/** Segment Action.
+		 * - 0: keep segment open
+		 * - 1: represent segment
+		 * - 2: close segment */
+	uint8_t	SA;
+		/**< Working frame handle from which the data is being
+		 * deleted.*/
+	uint8_t	 frame_handle;
+		/**< Data segment handle (related to the working frame handle)
+		 * from which the data is being deleted. */
+	uint8_t  seg_handle;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[4];
+};
+
 
 /**************************************************************************//**
 @Description	FDMA Close Working Frame default Segment Command structure.
@@ -1139,6 +1287,27 @@ struct fdma_close_segment_command {
 	int8_t	status;
 		/** 64-bit alignment. */
 	uint8_t	pad[3];
+};
+
+/**************************************************************************//**
+@Description	FDMA Close Working Frame Segment explicit Command structure.
+
+		Includes information needed for FDMA Close Working
+		Frame Segment explicit command verification.
+
+*//***************************************************************************/
+struct fdma_close_segment_exp_command {
+		/** FDMA Close Working Frame Segment explicit command structure
+		 * identifier. */
+	uint32_t opcode;
+		/** Frame handle holding the segment to be closed. */
+	uint8_t frame_handle;
+		/** Segment handle to be closed. */
+	uint8_t seg_handle;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**

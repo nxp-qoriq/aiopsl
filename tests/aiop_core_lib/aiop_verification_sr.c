@@ -21,7 +21,7 @@ void aiop_verification_sr()
 	uint16_t str_size;
 	uint32_t opcode;
 	uint8_t gro_iteration = 0;
-	uint8_t  ipr_iteration = 0;
+	uint8_t ipr_iteration = 0;
 
 
 	/* initialize Additional Dequeue Context */
@@ -113,6 +113,21 @@ void aiop_verification_sr()
 			str_size = verification_virtual_pools(asa_seg_addr);
 			break;
 		}
+		case WRITE_DATA_TO_WS_MODULE:
+		{
+			struct write_data_to_workspace_command *str =
+				(struct write_data_to_workspace_command *)
+					asa_seg_addr;
+			uint8_t i;
+			uint8_t *address = (uint8_t *)(str->ws_dst_rs);
+			for (i = 0; i < str->size; i++)
+				*address++ = str->data[i%32];
+
+			str->status = 0;
+			str_size = (uint16_t)
+				sizeof(struct write_data_to_workspace_command);
+			break;
+		}
 		case IF_MODULE:
 		{
 			struct aiop_if_verif_command *str =
@@ -121,6 +136,7 @@ void aiop_verification_sr()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
+					str->compared_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE)
@@ -146,6 +162,7 @@ void aiop_verification_sr()
 
 			if_result = if_statement_result(
 					str->compared_variable_addr,
+					str->compared_size,
 					str->compared_value, str->cond);
 
 			if (if_result == TERMINATE_FLOW_MODULE)
@@ -160,6 +177,17 @@ void aiop_verification_sr()
 				asa_seg_addr = init_asa_seg_addr +
 							str->false_cmd_offset;
 
+			break;
+		}
+		case UPDATE_ASA_VARIABLE:
+		{
+			struct update_asa_variable_command *str =
+				(struct update_asa_variable_command *)
+						asa_seg_addr;
+			*((uint16_t *)(init_asa_seg_addr + str->asa_offset)) +=
+					str->value;
+			str_size = (uint16_t)
+			       sizeof(struct update_asa_variable_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:

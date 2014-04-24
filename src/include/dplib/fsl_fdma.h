@@ -1168,10 +1168,12 @@ enum fdma_pta_size_type {
 	/** No flags indication. */
 #define FDMA_INIT_NO_FLAGS	0x00000000
 	/** No Data Segment.
-	 * If set - do not present Data segment. Otherwise - present Data. */
+	 * If set - do not present Data segment.
+	 * Otherwise - present Data segment. */
 #define FDMA_INIT_NDS_BIT	0x00000200
 	/** Reference within the frame to present from.
-	 * If set - end of the frame. Otherwise - start of the frame. */
+	 * If set - end of the frame.
+	 * Otherwise - start of the frame. */
 #define FDMA_INIT_SR_BIT	0x00000100
 	/** AMQ attributes (PL, VA, BDI, ICID) Source.
 	 * If set - supplied AMQ attributes are used.
@@ -1595,11 +1597,11 @@ struct fdma_present_segment_params {
 		/**< Number of frame bytes to present (any value including 0).*/
 	uint16_t present_size;
 		/**< Returned parameter:
-		 * A pointer to the number of bytes actually presented (the
-		 * segment actual size). */
+		 * The number of bytes actually presented (the segment actual
+		 * size). */
 	uint16_t seg_length;
 		/**< Returned parameter:
-		 * A pointer to the handle of the presented segment. */
+		 * The handle of the presented segment. */
 	uint8_t  seg_handle;
 		/**< working frame from which to open a segment. */
 	uint8_t	 frame_handle;
@@ -1712,13 +1714,49 @@ struct fdma_insert_segment_data_params {
 		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
 	uint16_t size_rs;
 		/**< Returned parameter:
-		 * A pointer to the number of bytes actually presented (the
-		 * segment actual size). */
+		 * The number of bytes actually presented (the segment actual
+		 * size).
+		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set*/
 	uint16_t seg_length_rs;
 		/**< Working frame handle to which the data is being inserted.*/
 	uint8_t	 frame_handle;
 		/**< Data segment handle (related to the working frame handle)
 		 * to which the data is being inserted. */
+	uint8_t  seg_handle;
+};
+
+/**************************************************************************//**
+@Description	Delete Segment data parameters structure.
+
+*//***************************************************************************/
+struct fdma_delete_segment_data_params {
+		/**< A pointer to the location in workspace for the represented
+		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
+		 *  flag is set). */
+	void	 *ws_dst_rs;
+		/**< \link FDMA_Replace_Flags replace working frame segment
+		 * flags \endlink */
+	uint32_t flags;
+		/**< Offset from the previously presented segment representing
+		 * from where to delete data.
+		 * Must be within the presented segment size. */
+	uint16_t to_offset;
+		/**< Size of the data being deleted from the segment. */
+	uint16_t delete_target_size;
+		/**< Number of frame bytes to represent in the segment. Must be
+		 * greater than 0.
+		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
+	uint16_t size_rs;
+		/**< Returned parameter:
+		 * The number of bytes actually presented (the segment actual
+		 * size).
+		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
+	uint16_t seg_length_rs;
+		/**< Working frame handle from which the data is being
+		 * deleted.*/
+	uint8_t	 frame_handle;
+		/**< Data segment handle (related to the working frame handle)
+		 * from which the data is being deleted. */
 	uint8_t  seg_handle;
 };
 
@@ -2336,6 +2374,30 @@ int32_t fdma_discard_default_frame(uint32_t flags);
 int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
 
 /**************************************************************************//**
+@Function	fdma_discard_fd
+
+@Description	Release the resources associated with a frame
+		descriptor.
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID).
+
+		Implicitly updated values in Task Defaults in case the FD points
+		to the default FD location: frame handle, NDS bit, ASA size (0),
+		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Param[in]	frame - FD address in workspace to be discarded.
+@Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
+		frame flags. \endlink
+
+@Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS,
+		\ref FDMA_PRESENT_FRAME_ERRORS)).
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
+
+/**************************************************************************//**
 @Function	fdma_terminate_task
 
 @Description	End all processing on the associated task and notify the Order
@@ -2728,9 +2790,6 @@ int32_t fdma_insert_default_segment_data(
 			- from_ws_address - <workspace address of the 2 bytes>
 			- insert_size - 2
 
-@Cautions	In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, the
-		segment representation will overwrite the old segment location
-		in workspace. The segment size will remain the same.
 @Cautions	This command may be invoked only on the Data segment.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -2797,6 +2856,40 @@ int32_t fdma_delete_default_segment_data(
 		uint32_t flags);
 
 /**************************************************************************//**
+@Function	fdma_delete_segment_data
+
+@Description	Delete data from a Working Frame (in the FDMA) through a Data
+		segment.
+
+		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set this
+		Service Routine synchronizes the segment data between the
+		Task Workspace and the FDMA.
+
+@Param[in]	params - A pointer to the delete segment data command
+		parameters.
+
+@Return		Status (Success or Failure. (\ref
+		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+
+@remark
+		- This is basically a replace command with
+		to_size = delete_target_size, ws_address = irrelevant (0),
+		size = 0 (replacing 'delete_target_size' bytes with 0 bytes =
+		deletion).
+		- Example: Delete 10 bytes. The default Data segment represents
+		a 100 bytes at offset 0 in the frame (0-99), and the user want
+		to delete 10 bytes after the 24th byte.
+		Parameters:
+			- to_offset - 25 (relative to the presented segment)
+			- delete_target_size - 10
+
+@Cautions	This command may be invoked only on the default Data segment.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_delete_segment_data(
+		struct fdma_delete_segment_data_params *params);
+
+/**************************************************************************//**
 @Function	fdma_close_default_frame_segment
 
 @Description	Closes the default segment in the default frame.
@@ -2814,6 +2907,25 @@ int32_t fdma_delete_default_segment_data(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_close_default_segment(void);
+
+/**************************************************************************//**
+@Function	fdma_close_segment
+
+@Description	Closes a segment in the specified frame.
+		Free the workspace memory associated with the segment.
+		All segment modifications which were not written to the working
+		frame will be lost.
+
+@Param[in]	frame_handle - working frame from which to close the segment
+@Param[in]	seg_handle - The handle of the segment to be closed.
+
+@Return		Status (Success or Failure. (\ref
+		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+
+@Cautions	This command may be invoked only for Data segments.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 
 /**************************************************************************//**
 @Function	fdma_replace_default_frame_asa_segment_data

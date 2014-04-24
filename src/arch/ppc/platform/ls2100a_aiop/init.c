@@ -15,6 +15,7 @@
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
 extern int slab_module_init(void);  extern void slab_module_free(void);
+extern int aiop_sl_init(void);      extern void aiop_sl_free(void);
 
 /* TODO: move to hdr file */
 extern int dpni_drv_probe(struct dprc	*dprc,
@@ -32,7 +33,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (1 * MEGABYTE)   },\
-    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01000400,    0x01000400, (255 * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_DDR1,       MEM_PART_1ST_DDR_NON_CACHEABLE, 0x58000000,    0x58000000, (128 * MEGABYTE) },\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x80000000,    0x80000000, (2 * MEGABYTE)   },\
 }
@@ -42,6 +43,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {slab_module_init,  slab_module_free}, \
     {cmdif_srv_init,    cmdif_srv_free},   \
     {dpni_drv_init,     dpni_drv_free},    \
+    {aiop_sl_init,      aiop_sl_free},     \
     {NULL, NULL} /* never remove! */       \
 }
 

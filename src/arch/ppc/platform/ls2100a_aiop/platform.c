@@ -375,12 +375,11 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
     
-    /* special AIOP registers 
-     Setting number of tasks to 8 in order to have a bugger stack*/
+    /* special AIOP registers */
 #if 0
     // boot sequence is not finished here removed CTSCSR_ENABLE
 #endif
-    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_8_TASKS;
+    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_16_TASKS;
     booke_set_CTSCSR0(CTSCSR_value);
 
 #if 0 /* TODO - complete! */

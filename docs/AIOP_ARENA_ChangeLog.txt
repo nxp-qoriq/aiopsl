@@ -1,3 +1,23 @@
+** AIOP ARENA SL Pre-Alpha v0.3.3  **
+- app_receive_cb.c:     This file has been removed
+- app_process_packet.c: Set EP_PC for EPID 0 by SW.
+
+- aiop_link.lcf:   Remove .receive_cb segment, EPID 0 is setup by SW in aiop_process_packet.
+- aiop_link.lcf:   Added fix to suport macros for __SHRAM and __HOT_CODE, stack size adjusted.
+- types_mw.h:      Added fix to suport macros for __SHRAM and __HOT_CODE. 
+
+- fsl_slab.h:      Changed slab_debug_info.max_buffs to 32 bit
+- cmdif_test.c:    Added CMDIF reflector and Client Server test. This test tests AIOP side Server.
+                   See {aiopls}\build\aiop_t4ls_sim\tests\cmdif_test\README.txt
+- event_mgr.h:     This file has been removed
+- event_mgr.c:     This file has been removed
+- .project aiopsl: Removed event_mgr.c and event_mgr.h
+
+- fsl_slab.h:    Changed num_buffs to be 32 bit and renamed extra_buffs to max_buffs
+- slab.h:        Changed num_buffs to be 32 bit
+- slab.c:        Removed buff_size from CDMA based API      
+- aiop_link.lcf: stack size for init_task changed to maximum allowed size.
+- platform.c:    number of taskes per core changed to 16.
 
 ** AIOP ARENA SL Pre-Alpha v0.3.2  **
 - slab.h:        added slab_refcount_incr(), slab_refcount_decr()

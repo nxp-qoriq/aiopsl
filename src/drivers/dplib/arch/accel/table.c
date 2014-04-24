@@ -16,7 +16,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 {
 	int32_t status;
 	struct table_rule *miss_rule;
-	/* Initialized to one for the simple case where key_size <= 24 */
+	/* Initialized to one for the EM simple case where key_size <= 24 */
 	int                               num_entries_per_rule = 1;
 
 	/* 16 Byte aligned for stqw optimization + HW requirements */
@@ -25,7 +25,6 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	struct table_create_output_message tbl_crt_out_msg
 		__attribute__((aligned(16)));
-	int32_t                           cdma_status;
 
 	struct table_acc_context      *acc_ctx =
 		(struct table_acc_context *)HWC_ACC_IN_ADDRESS;
@@ -102,13 +101,13 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		 * Multiply on e200 is 2 clocks latency, 1 clock throughput */
 	tbl_crt_in_msg.committed_rules = committed_rules;
 
-	cdma_status = cdma_ws_memory_init(tbl_crt_in_msg.reserved,
-			      TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE,
-			      0);
+	status = cdma_ws_memory_init(tbl_crt_in_msg.reserved,
+				     TABLE_CREATE_INPUT_MESSAGE_RESERVED_SPACE,
+				     0);
 
 	/* handle CDMA error */
-	if (cdma_status != CDMA_WS_MEMORY_INIT__SUCCESS)
-		return cdma_status;
+	if (status != CDMA_WS_MEMORY_INIT__SUCCESS)
+		return status;
 
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);

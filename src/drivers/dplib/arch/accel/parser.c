@@ -26,22 +26,24 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 	struct parse_profile_create_params parse_profile_create_params
 						__attribute__((aligned(16)));
 	int32_t status;
-/*	uint16_t prpid_pool[SYS_PRPID_POOL_LENGTH];*/
 
-	status = get_id(ext_prpid_pool_address, SYS_NUM_OF_PRPIDS, prpid);
+	status = get_id(ext_prpid_pool_address, prpid);
 	if (status != 0)		/*TODO check status ??? */
 		return status;
 
 	parse_profile_create_params.parse_profile.reserved1 = 0;
 	parse_profile_create_params.parse_profile.reserved2 = 0;
 
-	parse_profile_create_params.reserved1[0] = 0;
-	parse_profile_create_params.reserved1[1] = PARSER_PRP_CREATE_MTYPE;
-	*(uint16_t *)(parse_profile_create_params.reserved1+2) = 0;
-	parse_profile_create_params.prpid = *prpid;
-	parse_profile_create_params.reserved2[0] = 0;
-	*(uint16_t *)(parse_profile_create_params.reserved2+1) = 0;
-	parse_profile_create_params.parse_profile = *parse_profile;
+	parse_profile_create_params.mtype =
+			((uint32_t)PARSER_PRP_CREATE_MTYPE) << 16;
+	parse_profile_create_params.prpid = ((uint32_t)(*prpid)) << 24;
+
+	status = fdma_copy_data(sizeof (struct parse_profile_record),
+			(FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT),
+			parse_profile,
+			&(parse_profile_create_params.parse_profile));
+	if (status < 0)		/*TODO check status ??? */
+		return status;
 
 	__stqw(PARSER_PRP_CREATE_MTYPE,
 		(((uint32_t)&parse_profile_create_params) << 16), 0, 0,
@@ -52,22 +54,27 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 	return PARSER_STATUS_PASS;
 }
 
-void parser_profile_replace(struct parse_profile_record *parse_profile,
+int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
 				uint8_t prpid)
 {
+	int32_t status;
+
 	struct parse_profile_create_params parse_profile_create_params
 						__attribute__((aligned(16)));
 
 	parse_profile_create_params.parse_profile.reserved1 = 0;
 	parse_profile_create_params.parse_profile.reserved2 = 0;
 
-	parse_profile_create_params.reserved1[0] = 0;
-	parse_profile_create_params.reserved1[1] = PARSER_PRP_CREATE_MTYPE;
-	*(uint16_t *)(parse_profile_create_params.reserved1+2) = 0;
-	parse_profile_create_params.prpid = prpid;
-	parse_profile_create_params.reserved2[0] = 0;
-	*(uint16_t *)(parse_profile_create_params.reserved2+1) = 0;
-	parse_profile_create_params.parse_profile = *parse_profile;
+	parse_profile_create_params.mtype =
+			((uint32_t)PARSER_PRP_CREATE_MTYPE) << 16;
+	parse_profile_create_params.prpid = ((uint32_t)prpid) << 24;
+	
+	status = fdma_copy_data(sizeof (struct parse_profile_record),
+			(FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT),
+			parse_profile,
+			&(parse_profile_create_params.parse_profile));
+	if (status < 0)		/*TODO check status ??? */
+		return status;
 
 	__stqw(PARSER_PRP_CREATE_MTYPE,
 		((uint32_t)&parse_profile_create_params << 16), 0, 0,
@@ -75,7 +82,7 @@ void parser_profile_replace(struct parse_profile_record *parse_profile,
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
-	return;
+	return SUCCESS;
 }
 
 int32_t parser_profile_delete(uint8_t prpid)
@@ -84,14 +91,10 @@ int32_t parser_profile_delete(uint8_t prpid)
 	struct parse_profile_delete_query_params parse_profile_delete_params
 						__attribute__((aligned(16)));
 	int32_t status;
-/*	uint16_t prpid_pool[SYS_PRPID_POOL_LENGTH];*/
 
-	parse_profile_delete_params.reserved1 = 0;
-	parse_profile_delete_params.mtype = PARSER_PRP_DELETE_MTYPE;
-	parse_profile_delete_params.reserved2 = 0;
-	parse_profile_delete_params.prpid = prpid;
-	parse_profile_delete_params.reserved3[0] = 0;
-	*(uint16_t *)(parse_profile_delete_params.reserved3+1) = 0;
+	parse_profile_delete_params.mtype =
+			((uint32_t)PARSER_PRP_DELETE_MTYPE) << 16;
+	parse_profile_delete_params.prpid = ((uint32_t)prpid) << 24;
 
 	__stqw(PARSER_PRP_DELETE_MTYPE,
 		((uint32_t)&parse_profile_delete_params << 16), 0, 0,
@@ -110,12 +113,9 @@ void parser_profile_query(uint8_t prpid,
 	struct parse_profile_delete_query_params parse_profile_query_params
 						__attribute__((aligned(16)));
 
-	parse_profile_query_params.reserved1 = 0;
-	parse_profile_query_params.mtype = PARSER_PRP_QUERY_MTYPE;
-	parse_profile_query_params.reserved2 = 0;
-	parse_profile_query_params.prpid = prpid;
-	parse_profile_query_params.reserved3[0] = 0;
-	*(uint16_t *)(parse_profile_query_params.reserved3+1) = 0;
+	parse_profile_query_params.mtype =
+			((uint32_t)PARSER_PRP_QUERY_MTYPE) << 16;
+	parse_profile_query_params.prpid = ((uint32_t)prpid) << 24;
 
 	__stqw(PARSER_PRP_QUERY_MTYPE,
 		(((uint32_t)&parse_profile_query_params << 16) |
@@ -169,7 +169,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 		((status & PARSER_STATUS_MASK) ==
 			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		(status & PARSER_STATUS_MASK) == 0) {
-		return status;
+		return SUCCESS;
 	} else {
 		status =  PARSER_STATUS_FAIL | status;
 		return status;
@@ -221,7 +221,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		((status & PARSER_STATUS_MASK) ==
 			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		(status & PARSER_STATUS_MASK) == 0) {
-		return status;
+		return SUCCESS;
 	} else {
 		status =  PARSER_STATUS_FAIL | status;
 		return status;
@@ -259,7 +259,7 @@ int32_t parse_result_generate_checksum(
 	if ((status & PARSER_STATUS_MASK) == 0) {
 		*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
-		return status;
+		return SUCCESS;
 	} else {
 		status =  PARSER_STATUS_FAIL | status;
 		return status;

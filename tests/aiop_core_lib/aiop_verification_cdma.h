@@ -104,12 +104,9 @@
 struct cdma_acquire_context_memory_command {
 	uint32_t 	opcode;
 		/**< CDMA cdma_acquire_context_memory Command Structure identifier. */
-	uint32_t	context_size;
-		/**< Size of the Context memory, must match the size
-		of the BMan buffer being acquired using the pool_id. */
 	uint16_t	pool_id;
 		/**< BMan pool ID used for the Acquire Context Memory. */
-	uint8_t		pad1[2];
+	uint8_t		pad1[6];
 		/**< 64-bit alignment. */
 	uint32_t 	context_memory;
 		/**< An address to the Workspace where to return
@@ -428,15 +425,15 @@ struct cdma_access_context_memory_command {
 			the 64 bit address of the Context memory is found. */
 	uint32_t	flags;
 			/**< CDMA flags */
+	uint32_t        refcount_value;
+			/**< Command returned Current value of reference count */
 	uint16_t	offset;
 		/**< An offset (in bytes) from the context_address. */
 	uint16_t	dma_param;
 		/**< DMA Parameters */
-	uint16_t        refcount_value;
-		/**< Command returned Current value of reference count */
 	int8_t  	status;
 		/**< Command returned status. */
-	uint8_t		pad[1];
+	uint8_t		pad[7];
 		/**< 64-bit alignment. */
 };
 

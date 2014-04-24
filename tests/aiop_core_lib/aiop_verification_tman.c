@@ -9,6 +9,7 @@
 #include "aiop_verification.h"
 #include "aiop_verification_tman.h"
 
+extern __VERIF_GLOBAL uint8_t tmi_id;
 
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 {
@@ -28,6 +29,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str->status = tman_create_tmi(
 				str->tmi_mem_base_addr,
 				str->max_num_of_timers, &(str->tmi_id));
+		tmi_id = str->tmi_id;
 		str_size = sizeof(struct tman_tmi_create_command);
 		break;
 	}

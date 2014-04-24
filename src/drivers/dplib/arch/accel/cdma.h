@@ -527,8 +527,6 @@
 		The reference count is set to 1.
 
 @Param[in]	pool_id - BMan pool ID used for the Acquire Context Memory.
-@Param[in]	context_size - Size of the Context memory, must match the size
-		of the BMan buffer being acquired using the pool_id.
 @Param[in]	context_memory - A pointer to the Workspace where to return
 		the acquired 64 bit address of the Context memory.
 
@@ -540,7 +538,6 @@
 
 *//***************************************************************************/
 int32_t cdma_acquire_context_memory(
-		uint32_t context_size,
 		uint16_t pool_id,
 		uint64_t *context_memory);
 
@@ -753,7 +750,7 @@ int32_t cdma_access_context_memory(
 		uint16_t offset,
 		void *ws_address,
 		uint16_t dma_param,
-		uint16_t *refcount_value);
+		uint32_t *refcount_value);
 
 /** @} end of group CDMA_Internal_Functions */
 

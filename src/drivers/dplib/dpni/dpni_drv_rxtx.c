@@ -16,7 +16,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /* TODO - get rid */
 extern __SHRAM struct dpni_drv *nis;
 
-
+#pragma push
+#pragma force_active on
 __HOT_CODE void receive_cb(void)
 {
 	struct dpni_drv *dpni_drv;
@@ -56,7 +57,9 @@ __HOT_CODE void receive_cb(void)
 
 	appidx = (*fd_flc_appidx >> 2);
 	dpni_drv->rx_cbs[appidx](dpni_drv->args[appidx]);
+	fdma_terminate_task();
 }
+#pragma pop
 
 __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 {

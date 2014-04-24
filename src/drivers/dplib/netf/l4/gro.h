@@ -132,6 +132,29 @@ struct tcphdr_gro {
 };
 #pragma pack(pop)
 
+/**************************************************************************//**
+@Description	TCP GRO Optimized Header Structure
+
+		Includes TCP header + Optimized Timestamp option.
+
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct tcphdr_gro_opt {
+	/** TCP structure */
+	struct tcphdr tcp;
+		/** TCP Timestamp first nop */
+	uint8_t	nop1;
+		/** TCP Timestamp second nop */
+	uint8_t	nop2;
+		/** TCP option kind */
+	uint8_t	option_kind;
+		/** TCP option length */
+	uint8_t	option_length;
+		/** TCP timestamp option value of the TCP sending the option. */
+	uint32_t tsval;
+};
+#pragma pack(pop)
+
 /** @} */ /* end of TCP_GRO_INTERNAL_STRUCTS */
 
 
@@ -162,54 +185,6 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 
 
 /**************************************************************************//**
-@Group		GRO_INTERNAL_TIMEOUT_FLAGS GRO Internal Timeout Flags
-
-@Description GRO Timeout Flags.
-
-
-| 0-9 |     10-11    | 12 |   13 - 15   | 16 - 31  |
-|-----|--------------|----|-------------|----------|
-|     |AIOP_priority |TPRI| Granularity |          |
-
-
-Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
-			    TPRI : not set (low priority)
-			    AIOP task priority: low
-@{
-*//***************************************************************************/
-
-
-/* The following defines will be used to set the timeout timer tick size.*/
-/**< 1 uSec timeout timer ticks*/
-#define GRO_MODE_USEC_TO_GRANULARITY		0x00000000
-/**< 10 uSec timeout timer ticks*/
-#define GRO_MODE_10_USEC_TO_GRANULARITY		0x00010000
-/**< 100 uSec timeout timer ticks*/
-#define GRO_MODE_100_USEC_TO_GRANULARITY	0x00020000
-/**< 1 mSec timeout timer ticks*/
-#define GRO_MODE_MSEC_TO_GRANULARITY		0x00030000
-/**< 10 mSec timeout timer ticks*/
-#define GRO_MODE_10_MSEC_TO_GRANULARITY		0x00040000
-/**< 100 mSec timeout timer ticks*/
-#define GRO_MODE_100_MSEC_TO_GRANULARITY	0x00050000
-/**< 1 Sec timeout timer ticks*/
-#define GRO_MODE_SEC_TO_GRANULARITY		0x00060000
-
-/**< If set, timeout priority task is high. */
-#define GRO_MODE_TPRI				0x00080000
-
-/* The following defines will be used to set the AIOP task priority
- * of the created timeout task.*/
-/**< Low priority AIOP task*/
-#define GRO_MODE_LOW_PRIORITY_TASK		0x00000000
-/**< Middle priority AIOP task*/
-#define GRO_MODE_MID_PRIORITY_TASK		0x00100000
-/**< High priority AIOP task*/
-#define GRO_MODE_HIGH_PRIORITY_TASK		0x00200000
-
-/* @} end of group GRO_INTERNAL_TIMEOUT_FLAGS */
-
-/**************************************************************************//**
  @Group	TCP_GRO_INTERNAL_FLAGS TCP GRO Internal Flags
 
  @Description TCP GRO Internal Flags.
@@ -222,8 +197,8 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 	/** If set, TCP GRO is in exclusive mode. Otherwise, TCP GRO is in
 	 * concurrent mode.	*/
 #define TCP_GRO_OSM_EXLUSIVE_MODE	0x00000002
-	/** If set, TCP PSH flag is set -> flush aggregation when possible. */
-#define TCP_GRO_PSH_FLAG_SET		0x00000004
+	/** If set, Flush aggregation immediately. */
+#define TCP_GRO_FLUSH_AGG_SET		0x00000004
 	/** IP header reserved1 ECN bit of the GRO aggregation. */
 #define TCP_GRO_ECN1			0x00010000
 	/** IP header reserved2 ECN bit of the GRO aggregation. */
@@ -258,15 +233,15 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 	/** A segment has started a new aggregation and the aggregation has
 	 * completed. */
 #define	TCP_GRO_SEG_AGG_DONE_NEW_AGG				\
-		(TCP_GRO_SEG_AGG_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+		(TCP_GRO_SEG_AGG_DONE | TCP_GRO_METADATA_USED)
 	/** A segment has started a new aggregation and the aggregation is not
 	 * completed. */
 #define	TCP_GRO_SEG_AGG_NOT_DONE_NEW_AGG			\
-		(TCP_GRO_SEG_AGG_NOT_DONE | TCP_GRO_SEG_AGG_NEW_AGG)
+		(TCP_GRO_SEG_AGG_NOT_DONE | TCP_GRO_METADATA_USED)
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG			\
-	(TCP_GRO_SEG_AGG_DONE_AGG_OPEN | TCP_GRO_SEG_AGG_NEW_AGG)
+	(TCP_GRO_SEG_AGG_DONE_AGG_OPEN | TCP_GRO_METADATA_USED)
 
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_INTERNAL_STATUS */
@@ -318,7 +293,10 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 #define TCP_GRO_TCP_TIMSTAMP_OPTION_KIND	8
 	/* IPV6 ECN_OFFSET */
 #define	TCP_GRO_IPV6_ECN_OFFSET			4
-
+	/* Timer Handle Mask in TIMER FD */
+#define TIMER_HANDLE_MASK			0x00FFFFFF
+	/* TCP Timestamp option NOP value */
+#define TIMESTAMP_NOP_VAL 1
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
 
@@ -337,30 +315,12 @@ Recommended default values: Granularity:GRO_MODE_100_USEC_TO_GRANULARITY
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	gro_init
-
-@Description	Initialize the GRO
-		infrastructure.
-
-		This function should be called once.
-
-		Any other GRO function cannot be called before this function is
-		called.
-
-@Param[in]	timeout_flags - GRO Timeout flags
-		\ref GRO_INTERNAL_TIMEOUT_FLAGS.
-
-@Return		None.
-
-@Cautions	None.
-*//***************************************************************************/
-void gro_init(uint32_t timeout_flags);
-
-/**************************************************************************//**
 @Function	tcp_gro_add_seg_to_aggregation
 
 @Description	Add segment to an existing aggregation.
 
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context.
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	gro_ctx - Pointer to the internal GRO context.
 
@@ -371,6 +331,7 @@ void gro_init(uint32_t timeout_flags);
 @Cautions	None.
 *//***************************************************************************/
 int32_t tcp_gro_add_seg_to_aggregation(
+		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);
 
@@ -396,6 +357,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 @Description	Close an existing aggregation and start a new aggregation with
 		the new segment.
 
+@Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
+		internal context.
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	gro_ctx - Pointer to the internal GRO context.
 
@@ -406,6 +369,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 @Cautions	None.
 *//***************************************************************************/
 int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);
 
@@ -422,12 +386,14 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 @Cautions	None.
 *//***************************************************************************/
 void tcp_gro_timeout_callback(
-		uint64_t tcp_gro_context_addr);
+		uint64_t tcp_gro_context_addr,
+		uint16_t opaque2);
 
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_data_cksum
 
-@Description	Calculate the TCP data checksum.
+@Description	Calculate the TCP data checksum and add it to the accumulated
+		payload checksum (which was calculated previously).
 
 @Return		Calculated data checksum.
 
@@ -457,9 +423,8 @@ void tcp_gro_calc_tcp_header_and_data_cksum(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
-@Description	Calculate the TCP header checksum and add it to the
-		accumulated payload checksum (which was calculated previously)
-		and the header checksum.
+@Description	Calculate the TCP pseudo header checksum and add it to the
+		accumulated payload checksum (which was calculated previously).
 
 @Param[in]	gro_ctx - Pointer to the internal GRO context.
 

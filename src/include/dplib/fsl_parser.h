@@ -1520,11 +1520,11 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 @Param[in]	parse_profile - Parse Profile Record.
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		None.
+@Return		Status - Success or Failure (\ref FDMA_COPY_ERRORS).
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-void parser_profile_replace(struct parse_profile_record *parse_profile,
+int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
 	uint8_t prpid);
 
 /**************************************************************************//**

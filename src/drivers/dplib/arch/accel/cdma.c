@@ -11,19 +11,17 @@
 
 
 int32_t cdma_acquire_context_memory(
-		uint32_t context_size,
 		uint16_t pool_id,
 		uint64_t *context_memory) {
 
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4 = 0;
+	uint32_t arg1, arg2, arg3 = 0, arg4 = 0;
 	uint8_t res1;
 
 	/* prepare command parameters */
 	arg1 = CDMA_ACQUIRE_CONTEXT_MEM_CMD;
 	arg2 = CDMA_ACQUIRE_CONTEXT_MEM_CMD_ARG2((uint32_t)context_memory ,
 			pool_id);
-	arg3 = context_size;
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
@@ -444,7 +442,7 @@ int32_t cdma_access_context_memory(
 		uint16_t offset,
 		void *ws_address,
 		uint16_t dma_param,
-		uint16_t *refcount_value) {
+		uint32_t *refcount_value) {
 
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3, arg4;
@@ -470,7 +468,7 @@ int32_t cdma_access_context_memory(
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-	*refcount_value = *((uint16_t *)(HWC_ACC_OUT_ADDRESS+
+	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
 				CDMA_REF_CNT_OFFSET));
 	
 	return (int32_t)(res1);
@@ -478,7 +476,7 @@ int32_t cdma_access_context_memory(
 	
 	int32_t cdma_refcount_get(
 			uint64_t context_address,
-			uint16_t *refcount_value) {
+			uint32_t *refcount_value) {
 
 	/* command parameters and results */
 	int32_t res1;
@@ -491,7 +489,7 @@ int32_t cdma_access_context_memory(
 		res1 = cdma_refcount_decrement(context_address);
 	
 	/* load command results */
-	*refcount_value = *((uint16_t *)(HWC_ACC_OUT_ADDRESS+
+	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
 					CDMA_REF_CNT_OFFSET));
 
 	return (int32_t)(res1);

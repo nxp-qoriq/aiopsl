@@ -379,14 +379,19 @@ struct tman_tmi_params {
 
 /*! \enum e_tman_query_timer Defines the TMAN query timer state.*/
 enum e_tman_query_timer {
-	/** Timer is non active (in tmi free list) */
+	/** The timer is non active (in free timer list) */
 	TMAN_TIMER_NON_ACTIVE = 0,
-	/** Timer is in expiration queue */
-	TMAN_TIMER_EXPIRATION_QUEUE,
-	/** Timer has not expired */
-	TMAN_TIMER_RUNNING,
-	/** Timer is waiting for confirmation */
-	TMAN_TIMER_PENDING_CONF
+	/** The timer is in non active and waiting for callback confirmation */
+	TMAN_TIMER_NON_ACTIVE_WAIT_CONF,
+	/** The timer is active */
+	TMAN_TIMER_RUNNING = 4,
+	/** The timer is active. The timer has elapsed and waiting for callback
+	 *  confirmation */
+	TMAN_TIMER_RUNNING_WAIT_CONF,
+	/** The timer is being deleted */
+	TMAN_TIMER_BEING_DELETED,
+	/** The timer is being deleted and waiting for callback confirmation */
+	TMAN_TIMER_BEING_DELETED_WAIT_CONF
 };
 
 /* @} end of group TMAN_Modes */
@@ -594,13 +599,13 @@ void tman_timer_completion_confirmation(uint32_t timer_handle);
 /**************************************************************************//**
 @Function	tman_get_timestamp
 
-@Description	This function returns the current TAMN timestamp value.
+@Description	This function returns the current TMAN timestamp value.
 
-@Param[out]	timestamp - The TMAN timestamp value.
+@Param[out]	timestamp - The TMAN timestamp value expressed in micro seconds.
 
 @Return		None.
 
-@Cautions	The TMAN Timestamp do not give the current time as it is not
+@Cautions	The TMAN Timestamp cannot be used for time of day as it is not
 		synchronized to the 1588 clock.
 
 *//***************************************************************************/

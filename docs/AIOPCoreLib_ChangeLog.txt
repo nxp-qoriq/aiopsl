@@ -1,3 +1,35 @@
+SL Pre-Alpha v0.3.3  Change Log
+===============================
+
+fsl_ipr.h: change return value type of ipr_get_reass_frm_cntr function.
+fsl_ipr.h: change flags size in ipr_params (from 4 bytes to 2 bytes).
+fsl_gro.h: Set granularity to a fixed 1mSec.
+fsl_gro.h: change struct tcp_gro_context_params field name: metadata->metadata_addr.
+fsl_fdma.h: Add fdma_close_segment() SR.
+fsl_fdma.h: Add fdma_delete_segment_data() SR.
+fsl_fdma.h: Add fdma_discard_fd() SR.
+dpni_drv_rxtx.c: Added fdma_terminate_task() at the end of function receive_cb().
+The CDMA functions (not include Errors) were updated according to ArchDef 0.7.5:
+1. The size was removed from the acquire command.
+2. The refcount was increased to 32 bits.
+update some intrisic functions due to compiler 275 upgrade.
+system.c: Changed implementation to use ARENA's function slab_find_and_fill_bpid.
+system.c: Changed functions name:
+                                             sys_ctlu_prpid_pool_create -> sys_prpid_pool_create
+                                             sys_ctlu_keyid_pool_create -> sys_keyid_pool_create
+system.c: Added functions aiop_sl_init() and aiop_sl_free().
+fsl_ipf.c: Removed everything related to SFV bit (this bit is not needed).
+ipf.c: Removed everything related to SFV bit (this bit is not needed).
+ipf.h: Some changes in ipf internal structures.
+fsl_parser.h: Changed parser_profile_replace() from void to int32_t and add status returned.
+keygen.h: Some defines updates in order to comply with CTLU spec 0.7.2
+keygen.c: Fixed ENGR310243 (In functions: keygen_kcr_builder_add_protocol_based_generic_fec() & keygen_kcr_builder_add_generic_extract_fec() 
+the extract_size that these functions pass to the CTLU hardware is mistakenly greater by 1 than the required size.)
+tman.c: Changing the tman code to support new compiler changes.
+tman.c: adding mask to the return status of the timer query function
+fsl_tman.h: Changed remarks in tman_get_timestamp function
+fsl_tman.h: Fix in Timer query return tatus codes
+
 SL Pre-Alpha v0.3.2  Change Log
 ===============================
 general.h: remove receive_niid from TLS

@@ -31,29 +31,20 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 {
 
 	uint8_t curr_byte = kb->kcr_length;
-	uint8_t fecid, op0, op1;
 
 	if ((curr_byte + KEYGEN_KCR_CONST_FEC_SIZE) > KEYGEN_KCR_MAX_KCR_SIZE)
 		return KEYGEN_KCR_SIZE_ERR;
 
-	if (num > 16)
-		return KEYGEN_KCR_UDC_FEC_ERR;
-
-	/* Build the FEC */
-	/* User-defined FECID, no mask extension */
-	fecid = KEYGEN_KCR_UDC_FECID << 1;
-	/* OP0 = The number of times the user defined constant is repeated */
-	op0 = (num-1);
-	/* OP1 = User defined constant */
-	op1 = constant;
-
 	/* Update kcr_builder struct */
-	kb->kcr[curr_byte] = fecid;
-	kb->kcr[curr_byte+1] = op0;
-	kb->kcr[curr_byte+2] = op1;
+	/* User-defined FECID, no mask extension */
+	kb->kcr[curr_byte] = KEYGEN_KCR_UDC_FECID << 1;
+	/* The number of times the user defined constant is repeated */
+	kb->kcr[curr_byte+1] = num-1;
+	/* User defined constant */
+	kb->kcr[curr_byte+2] = constant;
 
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
-	kb->kcr_length += 3;
+	kb->kcr_length += KEYGEN_KCR_CONST_FEC_SIZE;
 
 	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
 }
@@ -245,7 +236,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
 		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
 	else
-		op2 = extract_size;
+		op2 = extract_size - 1;
 
 	if (mask) {
 		if (mask->single_mask[0].mask_offset > 0xF ||
@@ -457,7 +448,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
 		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
 	else
-		op2 = extract_size;
+		op2 = extract_size - 1;
 
 	if (mask) {
 		if (mask->single_mask[0].mask_offset > 0xF ||
@@ -675,7 +666,7 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 	int32_t status;
 /*	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];*/
 
-	status = get_id(ext_keyid_pool_address, SYS_NUM_OF_PRPIDS, keyid);
+	status = get_id(ext_keyid_pool_address, keyid);
 
 	if (status != 0)		/* TODO check status ??? */
 		return status;

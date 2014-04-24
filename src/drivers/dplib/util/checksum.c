@@ -6,11 +6,26 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "checksum.h"
+#include "general.h"
 
 uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2)
 {
 	int32_t tmp = arg1 + arg2;
 	return (uint16_t)(tmp + (tmp >> 16));
+}
+
+uint16_t cksum_ones_complement_dec16(
+		register uint16_t arg1, register uint16_t arg2)
+{
+	asm{
+	   se_not   arg2		/* Get the negative value of arg2 */
+	   e_rlwinm arg2, arg2, 0, 16, 31/* Make sure only the lowest 16bit are
+	   	   	   	   	  taken */
+	   se_add   arg2, arg1		/* One's complement of the new value.*/
+	   srawi    arg1, arg2, 16	/* Calculate carry */
+	   se_add   arg1, arg2		/* Add carry */
+	}
+	return arg1;
 }
 
 void cksum_update_uint32(register uint16_t *cs_ptr,

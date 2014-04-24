@@ -16,6 +16,14 @@
 /*#include "dplib/fsl_aiop_parser.h"*/
 
 /**************************************************************************//**
+ @Group		AIOP_GENERAL AIOP General
+
+ @Description	AIOP General macros and functions
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
  @Group		AIOP_General_Definitions AIOP SL General Definitions
 
  @Description	AIOP General Definitions
@@ -38,10 +46,6 @@
 #define FALSE	0
 	/** Logical true */
 #define TRUE	1
-	/**< 0 value */
-#define ZERO	0
-	/** 1 value */
-#define ONE	1
 
 /* Address of end of TLS section */
 extern const uint16_t TLS_SECTION_END_ADDR[];
@@ -132,7 +136,6 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 	/** Presentation Context size */
 #define HWC_PRC_SIZE		0x10
 	/** Address of Storage Profile ID of the default working frame */
-	/* Todo - set SPID address when according to new layout(once decided)*/
 #define HWC_SPID_ADDRESS	0x07
 	/** Address for passing parameters to accelerators */
 #define HWC_ACC_IN_ADDRESS	0x20
@@ -318,9 +321,14 @@ struct presentation_context {
 #define PRC_ASAPO_MASK		0x000F
 	/** ASA presentation address mask */
 #define PRC_ASAPA_MASK		0xFFC0
-	/** Segment Reference (SR) bit mask */
+	/** Segment Reference (SR) bit mask.
+	 * Reference within the frame to present from:
+	 * If set - end of the frame.
+	 * Otherwise - start of the frame. */
 #define PRC_SR_MASK		0x0020
-	/** No Data Segment (NDS) bit mask */
+	/** No Data Segment (NDS) bit mask.
+	 * If set - do not present Data segment.
+	 * Otherwise - present data segment */
 #define PRC_NDS_MASK		0x0010
 #if NAS_NPS_ENABLE
 	/** No PTA Segment (NPS) bit mask */
@@ -690,7 +698,7 @@ struct aiop_default_task_params {
 		 [maske]"i"(_mask2)					\
 		);
 /* Rotate left and mask */
-#define __e_rlwinm(_res, _arg, _shift, _mask1, _mask2)			\
+#define __rlwinm(_res, _arg, _shift, _mask1, _mask2)			\
 	asm ("e_rlwinm %[result], %[argu], %[sh], %[maskb], %[maske]\n"	\
 		:[result]"=r"(_res)					\
 		:[argu]"r"(_arg), [sh]"i"(_shift), [maskb]"i"(_mask1),	\
@@ -715,14 +723,14 @@ struct aiop_default_task_params {
 #define LDW_SWAP(_addr)						\
 	(uint64_t)({register uint64_t *__rR = 0;		\
 	uint32_t temp1, temp2;					\
-	__ldwbrw(temp1, temp2, _addr, 0);			\
+	__ldwbrw(&temp1, &temp2, _addr, 0);			\
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
 #define LLLDW_SWAP(_addr)					\
 	(uint64_t)({register uint64_t __rR = 0;		\
 	uint64_t temp;						\
-	__llldbrw(temp, _addr, 0);				\
+	__llldbrw(&temp, _addr, 0);				\
 	__rR = (uint64_t ) temp; })
 
 #define LH_SWAP_MASK(_addr, _mask)				\
@@ -827,7 +835,7 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
 
 /**************************************************************************//**
-@Group		AIOP_General_Protocols_IPV6_Extensions IPv6 Extensions 
+@Group		AIOP_General_Protocols_IPV6_Extensions IPv6 Extensions
 @{
 *//***************************************************************************/
 #define  IPV6_EXT_HOP_BY_HOP	0 /*!< IPv6 Hop By Hop extension number*/
@@ -852,5 +860,24 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols */
 /** @} */ /* end of AIOP_General_Definitions */
 
+/**************************************************************************//**
+ @Group		General_Functions General Functions
+
+ @Description	General Functions
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@Function	update_random_64bit
+
+@Description	This function updates the random_64bit parameter in the TLS.
+
+@Return		None.
+*//***************************************************************************/
+void update_random_64bit(void);
+
+/** @} */ /* end of General_Functions */
+/** @} */ /* end of AIOP_GENERAL */
 
 #endif /* __GENERAL_H_ */
