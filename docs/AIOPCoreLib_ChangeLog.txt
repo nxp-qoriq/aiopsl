@@ -1,5 +1,15 @@
+SL Pre-Alpha v0.3.3  Change Log
+===============================
+
 fsl_ipr.h: change return value type of ipr_get_reass_frm_cntr function.
 fsl_ipr.h: change flags size in ipr_params (from 4 bytes to 2 bytes).
+fsl_gro.h: Set granularity to a fixed 1mSec.
+fsl_gro.h: change struct tcp_gro_context_params field name: metadata->metadata_addr.
+fsl_fdma.h: Add fdma_close_segment() SR.
+fsl_fdma.h: Add fdma_delete_segment_data() SR.
+fsl_fdma.h: Add fdma_discard_fd() SR.
+
+
 
 SL Pre-Alpha v0.3.2  Change Log
 ===============================

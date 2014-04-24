@@ -21,7 +21,6 @@ __TASK int32_t status_ipf;
 */
 
 extern __VERIF_GLOBAL uint8_t verif_prpid;
-extern struct parse_profile_record verif_parse_profile;
 
 void aiop_verification_fm()
 {
@@ -242,6 +241,7 @@ void aiop_verification_fm()
 void aiop_verif_init_parser()
 {
 	uint8_t i, prpid;
+	struct parse_profile_record verif_parse_profile;
 
 	verif_parse_profile.eth_hxs_config = 0x0;
 	verif_parse_profile.llc_snap_hxs_config = 0x0;

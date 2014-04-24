@@ -161,18 +161,18 @@ static void inst_dealloc(int inst, struct cmdif_srv *srv)
 	unlock_spinlock(&srv->lock);
 }
 
-static uint16_t cmd_id_get()
+__HOT_CODE static uint16_t cmd_id_get()
 {
 	uint64_t data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	return (uint16_t)((data & CMD_ID_MASK) >> CMD_ID_OFF);
 }
 
-static uint32_t cmd_size_get()
+__HOT_CODE static uint32_t cmd_size_get()
 {
 	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
-static uint8_t * cmd_data_get()
+__HOT_CODE static uint8_t * cmd_data_get()
 {
 	return (uint8_t *)fsl_os_phys_to_virt(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
 }
@@ -180,7 +180,7 @@ static uint8_t * cmd_data_get()
 static void cmd_m_name_get(char * name)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	addr += PRC_GET_SEGMENT_OFFSET();
+	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
 
 	/* I expect that name will end by \0 if it has less than 8 chars */
 	if (name != NULL) {
@@ -198,11 +198,33 @@ static uint8_t cmd_inst_id_get()
 	return (uint8_t)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 }
 
-static uint16_t cmd_auth_id_get()
+__HOT_CODE static uint16_t cmd_auth_id_get()
 {
 	uint64_t data = 0;
 	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	return (uint16_t)((data & AUTH_ID_MASK) >> AUTH_ID_OFF);
+}
+
+static int empty_open_cb(uint8_t instance_id, void **dev)
+{
+	UNUSED(instance_id);
+	UNUSED(dev);
+	return -ENODEV;
+}
+
+static int empty_close_cb(void *dev)
+{	
+	UNUSED(dev);
+	return -ENODEV;
+}
+
+static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+{
+	UNUSED(cmd);
+	UNUSED(dev);
+	UNUSED(data);
+	UNUSED(size);
+	return -ENODEV;
 }
 
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
@@ -218,9 +240,18 @@ int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 	if (m_id < 0) {
 		return m_id;
 	} else {
-		srv->ctrl_cb[m_id]  = ops->ctrl_cb;
-		srv->open_cb[m_id]  = ops->open_cb;
-		srv->close_cb[m_id] = ops->close_cb;
+		if (ops->ctrl_cb)
+			srv->ctrl_cb[m_id]  = ops->ctrl_cb;
+		else
+			srv->ctrl_cb[m_id] = empty_ctrl_cb;
+		if (ops->open_cb)
+			srv->open_cb[m_id]  = ops->open_cb;
+		else
+			srv->open_cb[m_id]  = empty_open_cb;
+		if (ops->close_cb)
+			srv->close_cb[m_id] = ops->close_cb;
+		else
+			srv->close_cb[m_id] = empty_close_cb;
 	}
 
 	return 0;
@@ -366,7 +397,7 @@ void cmdif_srv_free(void)
 }
 
 
-static int cmdif_fd_send(int cb_err)
+__HOT_CODE static int cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -385,25 +416,34 @@ static int cmdif_fd_send(int cb_err)
 	 * only the id and not full pointer and keep this information on server side
 	 * TODO what do I need FDMA_ENWF_NO_FLAGS ????*/
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_ENWF_NO_FLAGS);
+					RESP_QID_GET, FDMA_EN_TC_CONDTERM_BITS);
 	return err;
 }
 
-static void sync_cmd_done(int err, uint16_t auth_id, 
-                          struct cmdif_srv *srv, char terminate)
+__HOT_CODE static void sync_cmd_done(uint64_t sync_done, 
+                                     int err, 
+                                     uint16_t auth_id, 
+                                     struct cmdif_srv *srv, 
+                                     char terminate)
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
-
+	uint64_t _sync_done = NULL;
+	
 	pr_debug("err = %d\n",err);
 	pr_debug("auth_id = 0x%x\n",auth_id);
 	pr_debug("sync_resp = 0x%x\n",resp);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
-	if (srv->sync_done[auth_id] == NULL) {
+	if ((sync_done != NULL) || (auth_id == OPEN_AUTH_ID))
+		_sync_done = sync_done;
+	else
+		_sync_done = srv->sync_done[auth_id];
+	
+	if (_sync_done == NULL) {
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
-	} else if(cdma_write(srv->sync_done[auth_id], &resp, 4)) {
+	} else if(cdma_write(_sync_done, &resp, 4)) {
 		pr_err("CDMA write failed, can't finish sync command\n");
 		/** In this case client will fail on timeout */
 	}
@@ -412,18 +452,17 @@ static void sync_cmd_done(int err, uint16_t auth_id,
 }
 
 /** Save the address for polling on synchronous commands */
+#define sync_done_get() LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)
 static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 {
-	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	addr += PRC_GET_SEGMENT_OFFSET() + M_NAME_CHARS;
-
-	srv->sync_done[auth_id] = *((uint64_t *)addr); /* Phys addr for cdma */
+	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
+
 
 #pragma push
 #pragma force_active on
 
-void cmdif_srv_isr(void)
+__HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
 	struct   cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
@@ -442,11 +481,12 @@ void cmdif_srv_isr(void)
 		int      m_id;
 		uint8_t  inst_id;
 		int      new_inst;
+		uint64_t sync_done = sync_done_get();
 		
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			pr_err("No permission to open device 0x%x\n", auth_id);
-			sync_cmd_done(-EPERM, auth_id, srv, TRUE);
+			sync_cmd_done(sync_done, -EPERM, auth_id, srv, TRUE);
 		}
 
 		cmd_m_name_get(&m_name[0]);		
@@ -454,7 +494,7 @@ void cmdif_srv_isr(void)
 		if (m_id < 0) {
 			/* Did not find module with such name */
 			pr_err("No such module %s\n", m_name);
-			sync_cmd_done(-ENODEV, OPEN_AUTH_ID, srv, TRUE);
+			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, TRUE);
 		}
 		
 		inst_id  = cmd_inst_id_get();
@@ -467,7 +507,7 @@ void cmdif_srv_isr(void)
 			
 			sync_done_set((uint16_t)new_inst, srv);
 			err = OPEN_CB(m_id, inst_id, new_inst);
-			sync_cmd_done(err, (uint16_t)new_inst, srv, FALSE);
+			sync_cmd_done(sync_done, err, (uint16_t)new_inst, srv, FALSE);
 			if (err) {
 				pr_err("Open callback failed\n");
 				inst_dealloc(new_inst, srv);
@@ -476,7 +516,7 @@ void cmdif_srv_isr(void)
 			fdma_terminate_task();				
 		} else {
 			/* couldn't find free place for new device */
-			sync_cmd_done(-ENODEV, OPEN_AUTH_ID, srv, FALSE);
+			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("No free entry for new device\n");
 		}
 	} else if (cmd_id & CMD_ID_CLOSE) {
@@ -484,7 +524,7 @@ void cmdif_srv_isr(void)
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* Don't reorder this sequence !!*/
 			err = CLOSE_CB(auth_id);
-			sync_cmd_done(err, auth_id, srv, FALSE);
+			sync_cmd_done(NULL, err, auth_id, srv, FALSE);
 			if (!err) {
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
@@ -494,7 +534,7 @@ void cmdif_srv_isr(void)
 			pr_debug("PASSED close command\n");
 			fdma_terminate_task();
 		} else {
-			sync_cmd_done(-EPERM, auth_id, srv, FALSE);
+			sync_cmd_done(NULL, -EPERM, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else {
@@ -506,7 +546,7 @@ void cmdif_srv_isr(void)
 			err = CTRL_CB(auth_id, cmd_id, size, data);
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
-				sync_cmd_done(err, auth_id, srv, TRUE);
+				sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 			}
 		} else {
 			/* don't bother to send response 
@@ -521,6 +561,10 @@ void cmdif_srv_isr(void)
 	if (SEND_RESP(cmd_id)) {
 		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
+		if (err) {
+			pr_err("Failed to send response auth_id = 0x%x\n", 
+			       auth_id);			
+		}
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");

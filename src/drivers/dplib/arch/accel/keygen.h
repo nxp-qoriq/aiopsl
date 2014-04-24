@@ -145,13 +145,13 @@
 	/** EOM of Opaque0 Field from FCV */
 #define KEYGEN_KCR_EXT_OPAQUE0_EOM	0x18
 	/** EOM of Opaque1 Field from FCV */
-#define KEYGEN_KCR_EXT_OPAQUE1_EOM	0x1C
+#define KEYGEN_KCR_EXT_OPAQUE1_EOM	0x19
 	/** EOM of Opaque2 Field from FCV */
 #define KEYGEN_KCR_EXT_OPAQUE2_EOM	0x18
 	/** EOM of Unique ID Field from FCV */
-#define KEYGEN_KCR_EXT_UNIQUE_ID_EOM	0x20
+#define KEYGEN_KCR_EXT_UNIQUE_ID_EOM	0x1A
 	/** EOM of Timestamp Field from FCV */
-#define KEYGEN_KCR_EXT_TIMESTAMP_EOM	0x20
+#define KEYGEN_KCR_EXT_TIMESTAMP_EOM	0x1A
 	/** EOM of OpaqueIn Field from FCV */
 #define KEYGEN_KCR_EXT_OPAQUE_IN_EOM	0x14
 
@@ -165,7 +165,7 @@
 	/** Basic Extraction Offset of Unique */
 #define KEYGEN_KCR_EXT_UNIQUE_ID_BASIC_EO	0x8
 	/** Basic Extraction Offset of Timestamp */
-#define KEYGEN_KCR_EXT_TIMESTAMP_BASIC_EO	0xA
+#define KEYGEN_KCR_EXT_TIMESTAMP_BASIC_EO	0xC
 	/** Basic Extraction Offset of OpaqueIn */
 #define KEYGEN_KCR_EXT_OPAQUE_IN_BASIC_EO	0x8
 

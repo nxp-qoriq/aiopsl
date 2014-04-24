@@ -5,6 +5,8 @@
 #include "fsl_cdma.h"
 #include "io.h"
 #include "cmdif_client.h"
+#include "general.h"
+#include "fsl_ldpaa_aiop.h"
 
 extern void client_open_cmd(struct cmdif_desc *client, void *sync_done); 
 extern void client_close_cmd(struct cmdif_desc *client); 
@@ -14,7 +16,7 @@ extern void client_no_resp_cmd(struct cmdif_desc *client);
 extern void cmdif_srv_isr();
 
 __SHRAM int received_fd = 0;
-uint32_t    sync_done   = 0; 
+uint64_t    sync_done   = 0; 
 /**< DDR, server accesses it with CDMA, 4 byte is enough */
 __SHRAM struct cmdif_desc client_desc;
 /**< Client descriptor that should be passed to open */
@@ -22,18 +24,14 @@ struct cmdif_dev client_dev;
 
 #define     INVALID_AUTH_ID  1001
 
-#pragma push
-#pragma section code_type ".receivecb_func"
-#pragma force_active on
-#pragma function_align 256  
-#pragma require_prototypes off
-
+void app_receive_cb (void);
 void app_receive_cb (void) 
 {    
 	uint32_t auth_id = 0;
-	int test_id = received_fd % 11;
+	int test_id = received_fd % 13;
+	sync_done = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	
-	cdma_read(&auth_id, fsl_os_virt_to_phys(&sync_done), 4);
+	cdma_read(&auth_id, sync_done, 4);
 	auth_id &= 0x0000FFFF;
 	client_dev.auth_id = (uint16_t)auth_id;
 	client_desc.dev    = &client_dev;
@@ -86,12 +84,18 @@ void app_receive_cb (void)
 		fsl_os_print("EXPECTED RESULT: FAILED \n");
 		fsl_os_print("client_close_cmd should fail\n");
 		client_close_cmd(&client_desc);
-		break;				
+		break;	
+	case 11:
+		fsl_os_print("EXPECTED RESULT: FAILED\n");
+		client_no_resp_cmd(&client_desc); 
+		break;	
+	case 12:
+		fsl_os_print("EXPECTED RESULT: FAILED\n");
+		client_sync_cmd(&client_desc); 
+		break;
 	default:
 		break;
 	}
 	received_fd++;
 	cmdif_srv_isr();
 }
-
-#pragma pop

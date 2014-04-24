@@ -236,7 +236,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
 		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
 	else
-		op2 = extract_size;
+		op2 = extract_size - 1;
 
 	if (mask) {
 		if (mask->single_mask[0].mask_offset > 0xF ||
@@ -448,7 +448,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
 		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
 	else
-		op2 = extract_size;
+		op2 = extract_size - 1;
 
 	if (mask) {
 		if (mask->single_mask[0].mask_offset > 0xF ||
