@@ -18,14 +18,12 @@
 #include "aiop_verification.h"
 #include "aiop_verification_hm.h"
 
-
-struct parse_profile_record verif_parse_profile;
-
 extern __TASK struct aiop_default_task_params default_task_params;
 
 void aiop_hm_init_parser()
 {
 	uint8_t i, prpid;
+	struct parse_profile_record verif_parse_profile;
 
 	verif_parse_profile.eth_hxs_config = 0x0;
 	verif_parse_profile.llc_snap_hxs_config = 0x0;
