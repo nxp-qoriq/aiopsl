@@ -34,6 +34,8 @@
 #define IPSEC_FRAME_ENCRYPT_CMD 			8 | (IPSEC_MODULE << 16)
 #define IPSEC_FRAME_ENCR_DECR_CMD 		   16 | (IPSEC_MODULE << 16)
 
+#define IPSEC_RUN_DESC_DEBUG 				9 | (IPSEC_MODULE << 16)
+
 /** \addtogroup AIOP_FMs_Verification
  *  @{
  */
@@ -252,6 +254,24 @@ struct ipsec_frame_encr_decr_command {
 	uint32_t fm_encr_status_addr;
 	uint32_t fm_decr_status_addr;
 };
+
+/* RTA descriptor debug */
+struct ipsec_run_desc_debug_command {
+	uint32_t opcode;
+	struct ipsec_descriptor_params params;
+	
+	uint64_t descriptor_addr; /* descriptor address */
+    
+	/** Returned Value: presentation context. */
+	struct presentation_context prc;
+
+	int32_t status; /* Function call return status */
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+};
+
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr);
 

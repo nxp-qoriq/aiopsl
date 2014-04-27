@@ -10,6 +10,11 @@
 #include "aiop_verification_ipsec.h"
 #include "ipsec.h"
 
+#include "rta.h"
+#include "protoshared.h"
+#include "sec_app.h"
+#include "ipsec_test_vector.h"
+
 __VERIF_GLOBAL uint64_t sa_desc_handle[32]; /* Global in Shared RAM */
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr)
@@ -206,6 +211,23 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
 		str_size = (uint16_t)sizeof(struct ipsec_frame_encr_decr_command);
 		
+		break;
+	}
+	
+	
+	/* RTA descriptor debug */
+	case IPSEC_RUN_DESC_DEBUG:
+	{
+		struct ipsec_run_desc_debug_command *str =
+				(struct ipsec_run_desc_debug_command *)data_addr;
+		
+			
+		str->status = sec_run_desc(&(str->descriptor_addr));
+			
+		*((int32_t *)(str->status_addr)) = str->status;
+		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
+		str_size = (uint16_t)sizeof(struct ipsec_run_desc_debug_command);
+			
 		break;
 	}
 	
