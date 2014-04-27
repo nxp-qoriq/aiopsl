@@ -1,3 +1,6 @@
+- fsl_slab.h:     API change from slab_free(struct slab *slab) to slab_free(struct slab **slab).
+                  Fixed ENGR00307828.
+
 ** AIOP ARENA SL Pre-Alpha v0.3.3  **
 - app_receive_cb.c:     This file has been removed
 - app_process_packet.c: Set EP_PC for EPID 0 by SW.

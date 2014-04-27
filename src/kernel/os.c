@@ -260,7 +260,7 @@ atomic_loop:
 		/* load and reserve. "var" is the address of the word */
 		lwarx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
-		sub new_value, value, orig_value
+		sub new_value, orig_value, value 
 		stwcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}
