@@ -100,7 +100,8 @@ int32_t tcp_gro_aggregate_seg(
 	/* create timer for the aggregation */
 
 	sr_status = tman_create_timer(params->timeout_params.tmi_id,
-			TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY,
+			TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY |
+			TMAN_CREATE_TIMER_ONE_SHOT,
 			params->limits.timeout_limit,
 			tcp_gro_context_addr,
 			0,
@@ -577,7 +578,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		ste_inc_counter(gro_ctx->params.stats_addr +
 			GRO_STAT_AGG_NUM_CNTR_OFFSET,
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-		/* create zero timer for the new PUSH segment */
+		/* delete the timer since the new segment will be flushed as is
+		 * without additional segments. */
 		sr_status = tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 		gro_ctx->metadata.seg_num = 1;
@@ -597,7 +599,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	if (sr_status != TMAN_REC_TMR_SUCCESS)
 		sr_status = tman_create_timer(
 				params->timeout_params.tmi_id,
-				TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY,
+				TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY |
+				TMAN_CREATE_TIMER_ONE_SHOT,
 				params->limits.timeout_limit,
 				tcp_gro_context_addr,
 				0,
