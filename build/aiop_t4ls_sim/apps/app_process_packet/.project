@@ -107,11 +107,6 @@ aiop_sl		</project>
 			<locationURI>PROJECT_LOC/src/app_process_packet.c</locationURI>
 		</link>
 		<link>
-			<name>src/app_receive_cb.c</name>
-			<type>1</type>
-			<locationURI>PROJECT_LOC/src/app_receive_cb.c</locationURI>
-		</link>
-		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>

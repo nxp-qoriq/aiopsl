@@ -31,7 +31,7 @@ static void cmd_id_set(uint16_t cmd_id)
 static void cmd_m_name_set(const char *name)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	addr += PRC_GET_SEGMENT_OFFSET();
+	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
 
 	/* I expect that name will end by \0 if it has less than 8 chars */
 	if (name != NULL) {
@@ -40,15 +40,6 @@ static void cmd_m_name_set(const char *name)
 			strncpy((char *)addr, name, M_NAME_CHARS);
 		}
 	}
-}
-
-static void cmd_sync_addr_set(void *sync_addr)
-{
-	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	addr += PRC_GET_SEGMENT_OFFSET() + M_NAME_CHARS;
-
-	/* Phys addr for cdma */
-	*((uint64_t *)addr) = fsl_os_virt_to_phys(sync_addr); 
 }
 
 static void cmd_inst_id_set(uint8_t inst_id)
@@ -96,7 +87,6 @@ void client_open_cmd(struct cmdif_desc *client, void *sync_done)
 	const char *module = "ABCABC";	
 	cmd_id_set(cmd_id); 
 	cmd_m_name_set(module);	
-	cmd_sync_addr_set(sync_done);
 	cmd_inst_id_set(3);
 	cmd_auth_id_set(OPEN_AUTH_ID);
 	((struct cmdif_dev *)client->dev)->sync_done = sync_done;

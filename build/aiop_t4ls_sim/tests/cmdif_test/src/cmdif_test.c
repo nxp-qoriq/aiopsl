@@ -11,6 +11,8 @@
 #include "io.h"
 #include "aiop_common.h"
 
+extern void app_receive_cb (void); 
+
 int app_init(void);
 void app_free(void);
 
@@ -75,7 +77,7 @@ static void epid_setup()
 
 	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
 	iowrite32(0, &wrks_addr->epas); 
-	iowrite32(0x00fe0000, &wrks_addr->ep_pc);
+	iowrite32((uint32_t)app_receive_cb, &wrks_addr->ep_pc);
 }
 
 int app_init(void)

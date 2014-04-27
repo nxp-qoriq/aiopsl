@@ -17,6 +17,13 @@ Copyright 2013 Freescale Semiconductor, Inc.
 @{
  *//***************************************************************************/
 
+/**************************************************************************//**
+@Group		CMDIF_SEND_ATTRIBUTES
+
+@Description	The attributes to be used with cmdif_send() 
+
+@{
+*//***************************************************************************/
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
 #define CMDIF_PRI_HIGH		1	/**< High Priority */
 
@@ -24,6 +31,8 @@ Copyright 2013 Freescale Semiconductor, Inc.
 /**< Bit to be used for cmd_id to identify asynchronous commands */
 #define CMDIF_NORESP_CMD	0x1000
 /**< Bit to be used for commands that don't need response */
+
+/* @} end of group FDMA_PRESENT_FRAME_ERRORS */
 
 /**************************************************************************//**
 @Description   Command interface descriptor.
@@ -126,8 +135,8 @@ Each module needs to register to the command interface by
 supplying the following:
 
 @Param[in]	module_name - Module name, it should be a valid string of
-		up to 8 charachters.
-@Param[in]	ops -         A structure with 3 callbacks decscribed above
+		up to 8 characters.
+@Param[in]	ops -         A structure with 3 callbacks described above
 																for open, close and control
 
 @Return		0 on success; error code, otherwise.
@@ -138,7 +147,7 @@ int cmdif_register_module(const char *module_name, struct cmdif_module_ops *ops)
 @Function	cmdif_unregister_module
 
 @Description	Cancel the registration of a module on the server
-		and free the module id acquired during registartion
+		and free the module id acquired during registration
 
 Each module needs to unregister from the command interface
 
@@ -185,9 +194,9 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		be returned inside this descriptor.
 @Param[in]	module_name - Module name
 @Param[in]	instance_id - Instance id which will be passed to open callback
-@Param[in]	async_cb    - Callback to be called on responce of
-		asynchronious command.
-@Param[in]	async_ctx   - Context to be received with asynchronious command
+@Param[in]	async_cb    - Callback to be called on response of
+		asynchronous command.
+@Param[in]	async_ctx   - Context to be received with asynchronous command
 		response inside async_cb().
 @Param[in]	size     - Size of the data.
 @Param[in]	data     - Data of the command or buffer allocated by user which
@@ -220,13 +229,18 @@ int cmdif_close(struct cmdif_desc *cidesc);
 
 @Description	Send command to the module device that was created during
 		cmdif_open().
-
+		
+		This function may be activated in synchronous and asynchronous
+		mode, see \ref CMDIF_SEND_ATTRIBUTES.
+		
 @Param[in]	cidesc   - Command interface descriptor which was setup by
 		cmdif_open().
-@Param[in]	cmd_id   - Id which reperesent command on the module that was
+@Param[in]	cmd_id   - Id which represent command on the module that was
 		registered on Server; Application may use bits 12-0.
+		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	size     - Size of the data.
 @Param[in]	priority - High or low priority queue to be checked.
+		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	data     - Data of the command or buffer allocated by user which
 		will be used inside command.
 		This address should be accessible by Server and Client
@@ -242,8 +256,8 @@ int cmdif_send(struct cmdif_desc *cidesc,
 /**************************************************************************//**
 @Function	cmdif_resp_read
 
-@Description	Check the responce queue for new reponses, de-queue and activate
-		the callback function for each responce
+@Description	Check the response queue for new responses, de-queue and activate
+		the callback function for each response
 
 This function is not blocking; if nothing was found it will return error code
 
