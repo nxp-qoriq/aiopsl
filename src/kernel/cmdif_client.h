@@ -10,6 +10,12 @@
 /**
  * @brief    Structure to be used to access struct cmdif_desc.dev
  */
+
+/* Common settings for Server and Client */
+#define CMD_ID_OPEN        0x8000
+#define CMD_ID_CLOSE       0x4000
+#define OPEN_AUTH_ID       0xFFFF 
+
 struct cmdif_dev {
 	cmdif_cb_t *async_cb;   
 	/*!<  Asynchronous commands callback */
