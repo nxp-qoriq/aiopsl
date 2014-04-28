@@ -102,6 +102,9 @@ int sec_run_desc(uint64_t *descriptor_addr)
 	uint32_t desc_buffer[64] = {0}; // instead of malloc
 	desc = desc_buffer;
 	
+	
+	desc_buffer[0] = 0xDB01DB02; // debug
+	            
 	/* Select descriptor to run */
 	descriptor = IPSEC_PROT_NEW_SHARED_DESC;
 
@@ -156,6 +159,8 @@ int sec_run_desc(uint64_t *descriptor_addr)
 		//run_descriptor_jr(ccsr_reg_bar, desc, &status);
 	//	break;
 	}
+
+	desc_buffer[63] = 0xDB03DB04; // debug
 
 	// Allocate a buffer with CDMA.
 	ret = (int32_t)cdma_acquire_context_memory(
