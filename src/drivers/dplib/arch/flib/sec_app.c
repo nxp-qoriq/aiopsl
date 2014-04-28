@@ -42,14 +42,16 @@ int init_ref_test_vector_ipsec()
 	//[17] 00000000               ptr->@0x0e02003b8
 	//[18] E02003B8
 	
-	rtv.dma_addr_auth_key = 0x0e02003d0;
-	rtv.dma_addr_key = 0x0e02003b8;
 			
 	rtv.cipher_alginfo = OP_PCL_IPSEC_3DES;
 	rtv.key = (uintptr_t)ipsec_test_cipher_key[proto_offset];
 	rtv.cipher_keylen = (unsigned short)ipsec_test_cipher_keylen[proto_offset];
 	//rtv.dma_addr_key = fsl_os_virt_to_phys(ipsec_test_cipher_key[proto_offset]);
 
+	// Put a fixed dummy value as Key pointer
+	rtv.dma_addr_auth_key = 0x0e02003d0;
+	rtv.dma_addr_key = 0x0e02003b8;
+	
 	rtv.block_size = DES_BLOCK_SIZE;
 	rtv.iv_size = rtv.block_size;
 	rtv.icv_size = IPSEC_ICV_MD5_TRUNC_SIZE;
@@ -92,12 +94,12 @@ int sec_run_desc(uint64_t *descriptor_addr)
 	//dma_addr_t ccsr_reg_bar;
 	unsigned bufsize;
 	int ret = 0;
-
+	
 	//ccsr_reg_bar = sys_get_memory_mapped_module_base(
 	//			FSL_OS_MOD_SEC_GEN, 0, E_MAPPED_MEM_TYPE_GEN_REGS);
 	//ASSERT_COND(ccsr_reg_bar);
 
-	uint32_t desc_buffer[64]; // instead of malloc
+	uint32_t desc_buffer[64] = {0}; // instead of malloc
 	desc = desc_buffer;
 	
 	/* Select descriptor to run */
