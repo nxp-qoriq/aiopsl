@@ -85,6 +85,31 @@ int32_t aiop_sl_init(void)
  * the ARENA code */
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init */
+	uint32_t val;
+	uint32_t *addr;
+	
+	val = 1;
+	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0xF8);
+	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
+	                      ((val & 0x0000ff00) <<  8) |
+	                      ((val & 0x00ff0000) >>  8) |
+	                      ((val & 0xff000000) >> 24));
+	
+	val = (uint32_t)&tman_timer_callback;
+	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x100);
+	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
+	                      ((val & 0x0000ff00) <<  8) |
+	                      ((val & 0x00ff0000) >>  8) |
+	                      ((val & 0xff000000) >> 24));
+
+	val = 0x00600040;
+	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108);
+	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
+	                      ((val & 0x0000ff00) <<  8) |
+	                      ((val & 0x00ff0000) >>  8) |
+	                      ((val & 0xff000000) >> 24));
+#if 0 /*TODO - need to delete the above code and enable the bellow if 0 
+	when ENGR00310809 will be fixed */
 	/* TODO - need to change the constant below to - 
 	 *define EPID_TIMER_EVENT_IDX	1 */
 	__stwbr(1,
@@ -98,6 +123,7 @@ int32_t aiop_sl_init(void)
 		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108)); /* EP_FDPA */
 	
 	/* End of TMAN EPID Init */
+#endif
 #else
 	/* TMAN EPID Init */
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
