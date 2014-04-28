@@ -37,7 +37,7 @@ typedef uint64_t            dma_addr_t;
 
 
 /** Task global variable definition */
-#pragma section ".itext_vle"
+#pragma section RX ".itext_vle"
 #define __HOT_CODE __declspec(section ".itext_vle")
 
 

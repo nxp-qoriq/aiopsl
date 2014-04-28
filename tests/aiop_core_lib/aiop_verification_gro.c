@@ -25,6 +25,8 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 
 		str->params.timeout_params.tmi_id =
 				*((uint8_t *)str->tmi_id_addr);
+		str->params.timeout_params.gro_timeout_cb =
+				&gro_timeout_cb_verif;
 
 		str->status = tcp_gro_aggregate_seg(
 				str->tcp_gro_context_addr,

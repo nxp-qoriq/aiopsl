@@ -7,11 +7,25 @@
 *//***************************************************************************/
 #include "system.h"
 #include "id_pool.h"
+
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
+extern void tman_timer_callback(void);
 #else
 #include "slab.h"
 #include "kernel/platform.h"
+
+#include "dbg.h"
+#include "io.h"
+#include "aiop_common.h"
+
+extern void tman_timer_callback(void);
+
+#define WRKS_REGS_GET \
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
+	                                   0,                          \
+	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
+	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
 #endif /* AIOP_VERIF */
 
 /* Global parameters*/
@@ -62,6 +76,36 @@ int32_t aiop_sl_init(void)
 {
 	int32_t status = 0;
 
+/* TODO - remove the AIOP_VERIF section when verification env will include 
+ * the ARENA code */
+#ifdef AIOP_VERIF
+	/* TMAN EPID Init */
+	__stwbr(1, 0, (void *)(SOC_PERIPH_OFF_AIOP_WRKS + 0xF8)); /* EPID = 1 */
+	__stwbr((unsigned int)&tman_timer_callback,
+			0,
+			(void *)(SOC_PERIPH_OFF_AIOP_WRKS + 0x100)); /* EP_PC */
+	__stwbr(0x00600040,
+			0,
+		(void *)(SOC_PERIPH_OFF_AIOP_WRKS + 0x108)); /* EP_FDPA */
+	
+	/* End of TMAN EPID Init */
+#else
+	/* TMAN EPID Init */
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
+
+	iowrite32(1, &wrks_addr->epas); /* EPID = 1 */
+	iowrite32(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
+	
+	pr_info("TMAN is setting EPID = 1\n");
+	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
+	/* End of TMAN EPID Init */
+#endif
+	
 	status = sys_prpid_pool_create();
 	if (status)
 		return status; /* TODO */
