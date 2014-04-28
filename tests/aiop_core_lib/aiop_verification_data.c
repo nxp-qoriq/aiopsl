@@ -48,6 +48,7 @@ void init_verif()
 		init_profile_sram();
 		verif_prpid_valid = 1;
 		gro_timeout_cb_verif(0);
+		tmi_id = 0;
 	}
 
 	/* Need to save running-sum in parse-results LE-> BE */
@@ -65,7 +66,6 @@ void init_verif()
 	status_ipr = 0;
 	tcp_gso_context_addr1[0] = 0;
 	ipf_context_addr1[0] = 0;
-	tmi_id = 0;
 }
 
 __VERIF_PROFILE_SRAM struct  profile_sram profile_sram1;

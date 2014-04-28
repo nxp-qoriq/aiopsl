@@ -33,10 +33,12 @@
  * -------------------------------------
  */
 #define SLAB_VP_POOL_MASK      0x00FFFFFE
-#define SLAB_VP_POOL_MAX       (SLAB_VP_POOL_MASK >> 1) /**< Maximal number to be used as VP id */
+#define SLAB_VP_POOL_MAX       (SLAB_VP_POOL_MASK >> 1) 
+/**< Maximal number to be used as VP id */
 #define SLAB_VP_POOL_SHIFT     1
 #define SLAB_HW_ACCEL_MASK     0xFF000000
-#define SLAB_VP_POOL_GET(SLAB) ((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1))
+#define SLAB_VP_POOL_GET(SLAB) \
+	((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1))
 /**< Returns VP id to be used with virtual pools API */
 
 #define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
@@ -44,6 +46,11 @@
 /**< Real buffer size used by user */
 #define SLAB_SIZE_SET(SIZE)     ((SIZE) + SLAB_HW_META_OFFSET)
 /**< Buffer size that needs to be set for CDMA, including metadata */
+
+#define SLAB_HW_POOL_CREATE(VP) \
+((((VP) & (SLAB_VP_POOL_MASK >> SLAB_VP_POOL_SHIFT)) << SLAB_VP_POOL_SHIFT) \
+	| SLAB_HW_POOL_SET)
+
 /**************************************************************************//**
  @Description   SLAB module defaults macros
 *//***************************************************************************/
