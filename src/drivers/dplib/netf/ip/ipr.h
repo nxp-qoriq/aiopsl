@@ -51,6 +51,7 @@
 #define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
 #define FD_SIZE					sizeof(struct ldpaa_fd)
 #define OCTET_LINK_LIST_MASK	0x07
+#define IPV4_KEY_SIZE			11
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
