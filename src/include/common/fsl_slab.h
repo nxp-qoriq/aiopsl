@@ -142,7 +142,7 @@ int slab_create_by_address(uint32_t num_buffs,
 		-EBUSY  - this slab can't be freed
 		-EINVAL - not a valid slab handle
  *//***************************************************************************/
-int slab_free(struct slab *slab);
+int slab_free(struct slab **slab);
 
 /**************************************************************************//**
 @Function	slab_acquire
