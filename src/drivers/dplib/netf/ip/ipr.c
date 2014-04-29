@@ -927,32 +927,39 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr)
 {
 	uint8_t			delta;
-	void 			*tail_frame_ptr;
-	struct fdma_present_segment_params params;
+	/* allocate the maximum data to be removed */
+	uint8_t			tail_frame_ptr[22];
+	struct fdma_delete_segment_data_params params;
 	
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 	
 	delta = (uint8_t)((uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 
-									(ipv4hdr_ptr->total_length+ipv4hdr_offset));
+							(ipv4hdr_ptr->total_length+ipv4hdr_offset));
 
 	if(delta != 0) {
 		
-		params.flags = FDMA_PRES_SR_BIT;
-		params.frame_handle = (uint8_t) PRC_GET_FRAME_HANDLE();
-		params.offset = delta;
-		params.ws_dst = &tail_frame_ptr;
-		params.present_size = delta;
-/*		fdma_present_frame_segment(&params);
-		fdma_delete_segment_data(0,
-								 delta,
-								 FDMA_REPLACE_SA_CLOSE_BIT,
-								 (uint8_t) PRC_GET_FRAME_HANDLE(),
-								 params->seg_handle,
-								 tail_frame_ptr);
-*/
-		/* todo : take care of Eth CRC */
+		((struct fdma_present_segment_params *)&params)->flags = 
+														  FDMA_PRES_SR_BIT;
+		((struct fdma_present_segment_params *)&params)->frame_handle = 
+											(uint8_t) PRC_GET_FRAME_HANDLE();
+		((struct fdma_present_segment_params *)&params)->offset = delta;
+		((struct fdma_present_segment_params *)&params)->ws_dst =
+															&tail_frame_ptr;
+		((struct fdma_present_segment_params *)&params)->present_size = delta;
+		fdma_present_frame_segment((struct fdma_present_segment_params *)&params);
+
+		params.seg_handle = 
+					((struct fdma_present_segment_params *)&params)->seg_handle;
+		params.frame_handle 	  = (uint8_t) PRC_GET_FRAME_HANDLE();
+		params.flags 			  =  FDMA_REPLACE_SA_CLOSE_BIT;
+		params.delete_target_size = delta;
+		params.to_offset 		  = 0;
+		fdma_delete_segment_data(&params);
+								 
+
+		/* todo : ensure Eth FCS was already removed */
 	}
 	return;
 }

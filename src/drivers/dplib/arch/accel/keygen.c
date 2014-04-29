@@ -7,6 +7,7 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_keygen.h"
+#include "dplib/fsl_cdma.h"
 
 #include "keygen.h"
 #include "system.h"
@@ -15,14 +16,19 @@
 
 extern uint64_t ext_keyid_pool_address;
 
-void keygen_kcr_builder_init(struct kcr_builder *kb)
+int32_t keygen_kcr_builder_init(struct kcr_builder *kb)
 {
-	/* clear NFEC (first byte in the KCR) */
-	kb->kcr[KEYGEN_KCR_NFEC] = 0;
+	int32_t status;
+	
+	/* clear the KCR array */
+	status = cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
+	if (status)
+		return status; /* TODO */
+	
 	/* Initialize KCR length to 1 */
 	kb->kcr_length = 1;
-
-	return;
+	
+	return 0;
 }
 
 
@@ -381,9 +387,6 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 		} /* switch */
 	} /* if */
 	else if (flags & KEYGEN_KCR_GEC_PARSE_RES) {
-		if (aligned_offset > 0x30)
-			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-		else
 		switch (aligned_offset) {
 
 		case (0x00):
@@ -490,22 +493,14 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(
 	switch (extract_field) {
 
 	case (KEYGEN_KCR_EXT_OPAQUE0):
-		if ((offset_in_opaque + extract_size_in_opaque) > 8) {
-			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-		} else {
 		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE0_EOM;
 		op1 = KEYGEN_KCR_EXT_OPAQUE0_BASIC_EO + offset_in_opaque;
 		op2 = extract_size_in_opaque - 1;
-		}
 		break;
 	case (KEYGEN_KCR_EXT_OPAQUE1):
-		if ((offset_in_opaque + extract_size_in_opaque) > 8) {
-			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-		} else {
 		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE1_EOM;
 		op1 = KEYGEN_KCR_EXT_OPAQUE1_BASIC_EO + offset_in_opaque;
 		op2 = extract_size_in_opaque - 1;
-		}
 		break;
 	case (KEYGEN_KCR_EXT_OPAQUE2):
 		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE2_EOM;
@@ -523,7 +518,6 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(
 		op2 = KEYGEN_KCR_EXT_TIMESTAMP_SIZE;
 		break;
 	default:
-		return KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR;
 		break;
 	}
 
