@@ -5,6 +5,49 @@
 
 struct nadk_buf;
 
+/*! Frame descriptor relevant fields as should be set by cmdif */
+struct cmd_fd {
+	union {
+		uint64_t flc;
+		struct {
+			uint8_t dev_h;     /*!< 7 high bits of cmdif_desc.dev */
+			uint8_t err;       /*!< Reserved for error on response */
+			uint16_t auth_id;  /*!< Authentication id */
+			uint16_t cmid;     /*!< Command id */
+			uint16_t reserved; /*!< Reserved fog EPID */
+		} cmd;
+		struct {
+			uint8_t inst_id;    /*!< Module instance id*/
+			uint8_t reserved0;
+			uint16_t auth_id;   /*!< Authentication id */
+			uint16_t cmid;      /*!< Command id */
+			uint16_t reserved1; /*!< Reserved fog EPID */
+		} open;
+		/*!< Open command is always synchronous */
+		struct {
+			uint8_t reserved[2];
+			uint16_t auth_id;   /*!< Authentication id */
+			uint16_t cmid;      /*!< Command id */
+			uint16_t reserved1; /*!< Reserved fog EPID */
+		} close;
+		/*!< Close command is always synchronous*/
+
+	} flc_u;
+
+	union {
+		uint32_t frc;	
+		struct {
+			uint32_t dev_l;   /*!< 32 low bit of cmdif_desc.dev */
+		} cmd;
+	} frc_u;
+	
+	struct {
+		uint8_t err;        /*!< Reserved for error on response */
+		char m_name[M_NAME_CHARS]; /*!< Module name that was registered */
+	} open_data;
+};
+
+
 static void cmd_id_set(uint16_t cmd_id, struct nadk_buf * nb) 
 {
 /*
@@ -129,9 +172,11 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	struct   nadk_buf *nb = NULL;
 	
 	cmd_id_set(cmd_id, nb); 
+	/* TODO sync addr is FD[ADDR] which should be of 9 bytes size */
 	cmd_m_name_set(module_name, nb);	
 	cmd_inst_id_set(instance_id, nb);
 	cmd_auth_id_set(OPEN_AUTH_ID, nb);
+	
 }
 
 
