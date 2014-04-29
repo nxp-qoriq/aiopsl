@@ -34,6 +34,7 @@
 #define IPSEC_FRAME_ENCRYPT_CMD 			8 | (IPSEC_MODULE << 16)
 #define IPSEC_FRAME_ENCR_DECR_CMD 		   16 | (IPSEC_MODULE << 16)
 
+// Temporary workaround commands
 #define IPSEC_RUN_DESC_DEBUG 				9 | (IPSEC_MODULE << 16)
 
 /** \addtogroup AIOP_FMs_Verification
@@ -271,6 +272,7 @@ struct ipsec_run_desc_debug_command {
 	 * Should be defined in the TLS area. */
 	uint32_t status_addr;
 };
+
 
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr);

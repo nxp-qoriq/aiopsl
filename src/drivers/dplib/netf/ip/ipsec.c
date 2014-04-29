@@ -17,6 +17,9 @@
 #include "ipsec.h"
 #include "cdma.h"
 
+/* Use this define to override the RTA and use a fixed debug descriptor */
+#define AIOPSL_IPSEC_DEBUG
+
 //#include "general.h"
 
 /* TODO: temporary fix to pr_debug due to RTA issue */
@@ -189,7 +192,9 @@ int32_t ipsec_generate_encap_sd(
 
 	pdb.innerpdb.ip_hdr_len = params->encparams.ip_hdr_len;
 	pdb.outer_hdr = params->encparams.outer_hdr;
-	
+
+	#ifndef AIOPSL_IPSEC_DEBUG
+
 	/* Call RTA function to build an encap descriptor */
 	if (tunnel_mode) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -214,18 +219,16 @@ int32_t ipsec_generate_encap_sd(
 			(struct alginfo *)(&(params->authdata)) 
 		);
 	}	
-
-#define AIOPSL_IPSEC_DEBUG
-#ifdef AIOPSL_IPSEC_DEBUG
-	/* debug, set first word to a fixed value */
-	ws_shared_desc[0] = 0xDB01DB02;
-#endif
+	#else
+		/* do a debug descriptor */
+		#include "enc_sd_workaround.h"
+	#endif
 	
 	/* Write the descriptor to external memory */
 	return_val = cdma_write(
 			sd_addr, /* ext_address */
 			ws_shared_desc, /* ws_src */
-			(uint16_t)*sd_size); /* uint16_t size */
+			(uint16_t)((*sd_size)<<2)); /* sd_size is in 32-bit words */
 	// TODO: handle error return
 	
 	return 0;
@@ -354,7 +357,9 @@ int32_t ipsec_generate_decap_sd(
 
 	/* uint32_t end_index[0]; */
 	// TODO: asked RTA team to change it, to uint32_t anti_replay[4]
-		
+	
+	#ifndef AIOPSL_IPSEC_DEBUG
+	
 	/* Call RTA function to build an encap descriptor */
 	if (tunnel_mode) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -380,17 +385,16 @@ int32_t ipsec_generate_decap_sd(
 		);
 	}	
 	
-#define AIOPSL_IPSEC_DEBUG
-#ifdef AIOPSL_IPSEC_DEBUG
-	/* debug, set first word to a fixed value */
-	ws_shared_desc[0] = 0xDB01DB02;
-#endif
+	#else
+		/* debug fixed desciptor */
+		#include "dec_sd_workaround.h"
+	#endif
 	               
 	/* Write the descriptor to external memory */
 	return_val = cdma_write(
 			sd_addr, /* ext_address */
 			ws_shared_desc, /* ws_src */
-			(uint16_t)*sd_size); /* uint16_t size */
+			(uint16_t)((*sd_size)<<2)); /* sd_size is in 32-bit words */
 	// TODO: handle error return
 
 	return 0;
