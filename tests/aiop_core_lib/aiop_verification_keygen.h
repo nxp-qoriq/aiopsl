@@ -310,7 +310,7 @@ struct keygen_kcr_builder_add_lookup_result_field_fec_command{
 	struct kcr_builder_fec_mask mask;
 
 	/**  Please refer to \ref FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD */
-	uint8_t extract_field; 
+	enum kcr_builder_ext_lookup_res_field extract_field; 
 
 	/*! size of extraction in case of Opaque0 or Opaque1. */
 	uint8_t extract_size_in_opaque;
