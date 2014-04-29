@@ -7,6 +7,7 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_keygen.h"
+#include "dplib/fsl_cdma.h"
 
 #include "keygen.h"
 #include "system.h"
@@ -17,8 +18,9 @@ extern uint64_t ext_keyid_pool_address;
 
 void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
-	/* clear NFEC (first byte in the KCR) */
-	kb->kcr[KEYGEN_KCR_NFEC] = 0;
+	/* clear the KCR array */
+	cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
+	
 	/* Initialize KCR length to 1 */
 	kb->kcr_length = 1;
 
