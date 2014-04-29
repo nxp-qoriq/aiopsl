@@ -104,7 +104,7 @@ done_sp:
 
     /* Set MSR */
     mfmsr  r6
-    ori    r6, r6, 0x2000
+    ori    r6, r6, 0x0200 /* DE */
     mtmsr  r6
     isync
 

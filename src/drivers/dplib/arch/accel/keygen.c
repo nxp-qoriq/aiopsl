@@ -65,21 +65,19 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 	/* General extraction FECID, mask extension indication */
 	fecid = KEYGEN_KCR_GEC_FECID << 1;
 
-	if ((offset + extract_size) > 8) {
-		return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-	} else {
 	op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE_IN_EOM;
 	op1 = KEYGEN_KCR_EXT_OPAQUE_IN_BASIC_EO + offset;
 	op2 = extract_size - 1;
-	}
 	
 
 	if (mask) {
+/*
 		if (mask->single_mask[0].mask_offset > 0xF ||
 			mask->single_mask[1].mask_offset > 0xF ||
 			mask->single_mask[2].mask_offset > 0xF ||
 			mask->single_mask[3].mask_offset > 0xF)
 			return KEYGEN_KCR_MASK_OFFSET_ERR;
+*/
 
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
@@ -128,7 +126,7 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 	kb->kcr[curr_byte+2] = op1;
 	kb->kcr[curr_byte+3] = op2;
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
-	kb->kcr_length += 4 + mask_bytes;
+	kb->kcr_length += KEYGEN_KCR_LOOKUP_RES_FEC_SIZE + mask_bytes;
 
 	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
 }
@@ -148,14 +146,7 @@ int32_t keygen_kcr_builder_add_protocol_specific_field(enum
 	fecid = (uint8_t)protocol_fecid << 1;
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
-
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
 				(mask->num_of_masks == 3) ? 5 : 7);
@@ -219,32 +210,17 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 	fecid = KEYGEN_KCR_GEC_FECID << 1;
 
 	/* OP0 for Protocol based extraction */
-	if (pr_offset > KEYGEN_KCR_PROTOCOL_MAX_OFFSET)
-		return KEYGEN_KCR_PR_OFFSET_ERR;
-	else
-		op0 = KEYGEN_KCR_OP0_HET_PROTOCOL |
-			  KEYGEN_KCR_PROTOCOL_HVT |
-			  (uint8_t)pr_offset;
+	op0 = KEYGEN_KCR_OP0_HET_PROTOCOL |
+		  KEYGEN_KCR_PROTOCOL_HVT |
+		  (uint8_t)pr_offset;
 
 	/* OP1 = Extract Offset */
-	if (extract_offset > KEYGEN_KCR_MAX_EXTRACT_OFFET)
-		return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-	else
-		op1 = extract_offset;
+	op1 = extract_offset;
 
 	/* OP2 = Extract Size*/
-	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
-		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
-	else
-		op2 = extract_size - 1;
+	op2 = extract_size - 1;
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
@@ -439,24 +415,12 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 	/* OP1 = Extract Offset */
 	extract_offset = offset & KEYGEN_KCR_OFFSET_WITHIN_16_BYTES;
-	if (extract_offset > KEYGEN_KCR_MAX_EXTRACT_OFFET)
-		return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-	else
-		op1 = extract_offset;
+	op1 = extract_offset;
 
 	/* OP2 = Extract Size*/
-	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
-		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
-	else
-		op2 = extract_size - 1;
+	op2 = extract_size - 1;
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
@@ -509,7 +473,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
 }
 
-int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
+int32_t keygen_kcr_builder_add_lookup_result_field_fec(
+	enum kcr_builder_ext_lookup_res_field extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb)
 {
@@ -564,12 +529,6 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
@@ -770,7 +729,8 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 }
 
 
-int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size, uint32_t *hash)
+int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size,
+							uint32_t *hash)
 {
 
 	/* Prepare HW context for TLU accelerator call */

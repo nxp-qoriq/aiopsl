@@ -62,24 +62,6 @@
 
 /** @} */ /* end of FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS */
 
-/**************************************************************************//**
-@Group	FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD \
-	 Key Composition Rule Builder Lookup Result Field Extract
-	 Not available for Rev1.
-@{
-*//***************************************************************************/
-	/** Extract Opaque0 Field from Lookup Result */
-#define KEYGEN_KCR_EXT_OPAQUE0		0x00
-	/** Extract Opaque1 Field from Lookup Result */
-#define KEYGEN_KCR_EXT_OPAQUE1		0x01
-	/** Extract Opaque2 Field from Lookup Result */
-#define KEYGEN_KCR_EXT_OPAQUE2		0x02
-	/** Extract UniqueID Field from Lookup Result */
-#define KEYGEN_KCR_EXT_UNIQUE_ID	0x03
-	/** Extract Timestamp Field from Lookup Result */
-#define	KEYGEN_KCR_EXT_TIMESTAMP	0x04
-/** @} */ /* end of FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD */
-
 
 /**************************************************************************//**
 @Group	FSL_KEYGEN_STATUS Status returned to calling function
@@ -141,11 +123,11 @@
 	/** Protocol Based General Extraction Error */
 #define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002
 	/** Protocol Based General Extraction Parser Result Offset Error */
-#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003
+/*#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003*/
 	/** General Extraction Extract Offset Error */
 #define KEYGEN_KCR_EXTRACT_OFFSET_ERR		0x80000004
 	/** Mask Offset Larger than 0x0F Error */
-#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000005
+/*#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000005*/
 	/** Lookup Result Field Extraction Error */
 #define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006
 	/** Key Composition Rule Size exceeds KCR max size (64 bytes) */
@@ -164,6 +146,27 @@
 
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@enum	kcr_builder_ext_lookup_res_field
+
+@Description	 Key Composition Rule Builder Lookup Result Field Extract
+	 	 Not available for Rev1.
+@{
+*//***************************************************************************/
+enum kcr_builder_ext_lookup_res_field{
+	/** Extract Opaque0 Field from Lookup Result */
+	KEYGEN_KCR_EXT_OPAQUE0 = 0x00,
+	/** Extract Opaque1 Field from Lookup Result */
+	KEYGEN_KCR_EXT_OPAQUE1 = 0x01,
+	/** Extract Opaque2 Field from Lookup Result */
+	KEYGEN_KCR_EXT_OPAQUE2 = 0x02,
+	/** Extract UniqueID Field from Lookup Result */
+	KEYGEN_KCR_EXT_UNIQUE_ID = 0x03,
+	/** Extract Timestamp Field from Lookup Result */
+	KEYGEN_KCR_EXT_TIMESTAMP = 0x04
+};
+/** @} */ /* end of kcr_builder_ext_lookup_res_field */
 
 
 /**************************************************************************//**
@@ -448,7 +451,8 @@ struct	kcr_builder_fec_mask {
 		functions from keygen_kcr_builder() function family.
 
 @Param[in,out]	kb - kcr builder pointer. Must not be null (user should
-		allocate memory for this structure).
+		allocate memory for this structure). Must be aligned to
+		16B boundary.
 
 @Return		None.
 *//***************************************************************************/
@@ -480,6 +484,7 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 
 @Param[in]	offset - Offset in input value given in keygen_gen_key.
 @Param[in]	extract_size - size of extraction. 
+		Please note that (offset + extract_size) must not exceed 8.
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
@@ -531,8 +536,8 @@ int32_t keygen_kcr_builder_add_protocol_specific_field
 		specific offset. Field extraction starts from this offset.
 		Please refer to \ref kcr_builder_parse_result_offset.
 @Param[in]	extract_offset - offset from the beginning of the protocol
-		header.
-@Param[in]	extract_size - size of extraction.
+		header. Must not exceed 0xF.
+@Param[in]	extract_size - size of extraction (1-16 bytes).
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
@@ -571,7 +576,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 		specified offset and size out of the frame or the parse result.
 
 @Param[in]	offset - offset in frame or parse result.
-@Param[in]	extract_size - size of extraction.
+@Param[in]	extract_size - size of extraction (1-16 bytes).
 @Param[in]	flags - Please refer to \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
@@ -606,7 +611,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 @Cautions	This function is not available for rev1.
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
+int32_t keygen_kcr_builder_add_lookup_result_field_fec(
+	enum kcr_builder_ext_lookup_res_field extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
 
@@ -645,6 +651,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
+		(part of struct kcr_builder).
 @Param[out]	keyid - Key ID.
 
 @Return		Please refer to \ref GET_ID_STATUS.
@@ -663,6 +670,7 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
+		(part of struct kcr_builder).
 @Param[in]	keyid - Key ID.
 
 @Return		None.
@@ -698,6 +706,7 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - The key ID.
 @Param[out]	kcr - Key composition rule. Must be aligned to 16B boundary.
+		(part of struct kcr_builder).
 
 @Return		None.
 
