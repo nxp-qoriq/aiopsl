@@ -118,9 +118,10 @@ static void core_ready_for_tasks(void) {
 
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
+
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
-    asm ("wait  \n");
+    __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
 #define DEBUG

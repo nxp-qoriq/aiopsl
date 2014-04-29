@@ -1014,9 +1014,6 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 				 - ((uint8_t *)PRC_GET_SEGMENT_ADDRESS()))
 				+ PRC_GET_SEGMENT_OFFSET());
 
-	/* Clear IPv4 checksum field */
-	ipv4header->hdr_cksum = 0;
-
 	/* Call FDMA for running sum computation */
 	fdma_status = fdma_calculate_default_frame_checksum(offset, ihl,
 							    &running_sum);
@@ -1026,9 +1023,16 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	/* Invalidate Parser Result Gross Running Sum field */
 	pr->gross_running_sum = 0;
 
+	/* Subtract old checksum and invert (this can result in 0x0000 !) */
+	running_sum = cksum_ones_complement_sum16((uint16_t)~running_sum,
+						  ipv4header->hdr_cksum);
+
 	/* Write 1's complement of the 1's complement 16 bit sum into the
 	IPv4 header */
-	ipv4header->hdr_cksum = (uint16_t)~running_sum;
+	if (running_sum)
+		ipv4header->hdr_cksum = running_sum;
+	else
+		ipv4header->hdr_cksum = 0xFFFF;
 
 	/* Update FDMA */
 	if (!(flags & IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
