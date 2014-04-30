@@ -238,7 +238,13 @@ struct ipsec_global_params {
 	uint8_t spinlock; /* Spinlock indicator, for SA counter  */
 };
 
-#define IPSEC_SA_PARAMS_FLAGS_
+#define SAP_STATUS_SOFT_KB_EXPIRED			0x00000001
+#define SAP_STATUS_HARD_KB_EXPIRED			0x00000002
+#define SAP_STATUS_SOFT_PACKET_EXPIRED		0x00000004
+#define SAP_STATUS_HARD_PACKET_EXPIRED		0x00000008
+#define SAP_STATUS_SOFT_SEC_EXPIRED			0x00000010
+#define SAP_STATUS_HARD_SEC_EXPIRED			0x00000020
+
 
 /* SA Descriptor Parameter for Internal Usage */ 
 /* Part 1 */
@@ -247,7 +253,7 @@ struct ipsec_sa_params_part1 {
 	/* 2x4 + 2x2 + 4x1 = 8 + 4 + 4 = 16 bytes */
 	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
-	uint32_t status; /* 	lifetime expiry, semaphores	4-8B */
+	uint32_t status; /* lifetime expiry, semaphores	4-8B */
 	
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */

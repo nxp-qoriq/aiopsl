@@ -43,6 +43,24 @@ enum ipsec_direction {
 	IPSEC_DIRECTION_OUTBOUND = 2 	/*!< Outbound Direction */
 };
 
+/**************************************************************************//**
+ @enum ipsec_status_codes
+
+ @Description	AIOP IPsec Functional Module return codes.
+
+ @{
+*//***************************************************************************/
+enum ipsec_status_codes {
+		/** Success. */
+	IPSEC_SUCCESS = 0,
+	/** Reached Soft Lifetime Kilobyte Limit */
+	IPSEC_KILOBYTE_LIMIT_SOFT = 0x2,
+	/** Reached Hard Lifetime Kilobyte Limit */
+	IPSEC_KILOBYTE_LIMIT_HARD = 0x4,
+	
+};
+
+/* @} end of enum ipsec_status_codes */
 
 /* @} end of IPSEC_ENUM */
 

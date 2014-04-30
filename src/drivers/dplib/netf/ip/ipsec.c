@@ -688,11 +688,24 @@ int32_t ipsec_frame_encrypt(
 	// TODO
 	
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	// TODO
-	
+	return_val = cdma_read(
+			&sap1, /* void *ws_dst */
+			ipsec_handle, /* uint64_t ext_address */
+			sizeof(sap1) /* uint16_t size */
+			);
+
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits have 
 	 * not expired. If expired, return with error and go to END */
 	// TODO
+	if (sap1.status & (
+			SAP_STATUS_HARD_KB_EXPIRED |
+			SAP_STATUS_HARD_PACKET_EXPIRED |
+			SAP_STATUS_HARD_SEC_EXPIRED
+			)
+	) {
+		return_val = IPSEC_KILOBYTE_LIMIT_HARD; // TODO: TMP
+		goto encrypt_end;
+	}
 		
 		/*---------------------*/
 		/* ipsec_frame_encrypt */
@@ -843,7 +856,9 @@ int32_t ipsec_frame_encrypt(
 		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
 		 * (STE increment + accumulate). */
 	//TODO
-
+	
+	encrypt_end:
+	
 	/* 	19.	END */
 	/* 	19.1. Update the encryption status (enc_status) and return status. */
 	/* 	19.2.If started as Concurrent ordering scope, 
