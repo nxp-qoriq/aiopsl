@@ -161,6 +161,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	split_frame_params.present_size = PRC_GET_SEGMENT_LENGTH();
 	split_frame_params.split_size_sf = gso_ctx->split_size;
 	split_frame_params.source_frame_handle = gso_ctx->rem_frame_handle;
+	split_frame_params.spid = *((uint8_t *) HWC_SPID_ADDRESS);
 
 	/* Split remaining frame, put split frame in default FD location*/
 	sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */

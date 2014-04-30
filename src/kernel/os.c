@@ -5,10 +5,10 @@
 #include "common/irq.h"
 #include "common/io.h"
 #include "kernel/smp.h"
-
 #include "inc/console.h"
 #include "inc/mem_mng.h"
 
+extern __TASK uint32_t seed_32bit;
 
 #define __ERR_MODULE__ MODULE_UNKNOWN
 
@@ -42,6 +42,15 @@ msr_enable_fp();
 
     sys_print(tmp_buf);
 #endif /* EMULATOR */
+}
+
+/*****************************************************************************/
+__HOT_CODE  uint32_t fsl_os_rand(void)
+{
+	seed_32bit = (seed_32bit>>1) ^ (-(seed_32bit & 1LL) &
+			0xFBE16801);
+	
+	return seed_32bit;
 }
 
 /*****************************************************************************/

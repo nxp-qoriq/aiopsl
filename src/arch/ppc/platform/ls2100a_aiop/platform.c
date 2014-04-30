@@ -10,7 +10,6 @@
 #include "inc/mem_mng.h"
 #include "inc/sys.h"
 
-
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 #define SYS_MASTER_PART_ID 0
 
@@ -100,8 +99,7 @@ const char *module_strings[] = {
     ,"SRIO"                     /* MODULE_SRIO */
     ,"RMan"                     /* MODULE_RMAN */
 };
-
-
+extern __TASK uint32_t seed_32bit;
 /*****************************************************************************/
 static int get_mem_region_info(e_platform_mem_region     mem_region,
                                t_platform_mem_region_info *p_mem_region_info)
@@ -356,9 +354,11 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
 static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
-    int     err;
+    int     err, i;
     uint32_t CTSCSR_value = 0;;
-
+    uint32_t *seed_mem_ptr;
+    uint32_t core_and_task_id;
+    uint32_t seed;
     ASSERT_COND(pltfrm);
 
     booke_disable_time_base();
@@ -374,7 +374,6 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* Enable the BTB - branches predictor */
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
-    
     /* special AIOP registers */
 #if 0
     // boot sequence is not finished here removed CTSCSR_ENABLE
@@ -402,6 +401,21 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     if (err != E_OK)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
+    core_and_task_id =  ((core_get_id() + 1) << 8);
+    core_and_task_id |= 1; /*add task 0 id*/  
+
+    seed = (core_and_task_id << 16) | core_and_task_id;
+    seed_mem_ptr = &(seed_32bit);
+    
+    *seed_mem_ptr = seed;
+    
+    for (i = 0 ; i < 15; i ++)
+    {
+	    seed_mem_ptr += 512; /*size of each task area*/     
+	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/    
+	    seed = (core_and_task_id << 16) | core_and_task_id;
+	    *seed_mem_ptr = seed;
+    }
     return E_OK;
 }
 

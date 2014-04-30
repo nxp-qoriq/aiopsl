@@ -3087,8 +3087,19 @@ int32_t fdma_copy_data(
 
 		Implicitly updated values in Task Defaults in case the FD
 		address is located in the default FD address
-		(\ref HWC_FD_ADDRESS): ASA size, PTA address,segment length,
-		segment offset, segment handle, NDS bit, frame handle.
+		(\ref HWC_FD_ADDRESS): ASA size(zeroed), PTA address(zeroed),
+		segment length(zeroed), segment offset(zeroed), segment handle,
+		NDS bit(reset), frame handle.
+
+		In case this is the default frame, in order to present a data
+		segment of this frame after the function returns,
+		fdma_present_default_frame_segment() should be called (opens a
+		data segment of the default frame).
+
+		In case this is not the default frame, in order to present a
+		data segment of this frame after the function returns,
+		fdma_present_frame_segment() should be called (opens a
+		data segment of the frame).
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.
@@ -3120,15 +3131,27 @@ int32_t fdma_create_frame(
 @Description	Create a frame from scratch and fill it with user specified
 		data.
 
-		After filling the frame, it will be closed.
+		After filling the frame, it will be closed (i.e. - The working
+		frame will be closed and the FD will be updated in workspace).
 
 		Implicit input parameters in Task Defaults: SPID (Storage
 		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
 
 		Implicitly updated values in Task Defaults in case the FD
 		address is located in the default FD address
-		(\ref HWC_FD_ADDRESS): ASA size, PTA address,segment length,
-		segment offset, NDS bit.
+		(\ref HWC_FD_ADDRESS): ASA size(zeroed), PTA address(zeroed),
+		segment length(zeroed), segment offset(zeroed), NDS bit(reset).
+
+		In case this is the default frame, in order to present a data
+		segment of this frame after the function returns, the
+		presentation context values have to be modified prior to calling
+		fdma_present_default_frame() (opens the default frame and
+		optionally present a segment).
+
+		In case this is not the default frame, in order to present a
+		data segment of this frame after the function returns,
+		fdma_present_frame() should be called (opens the frame and
+		optionally present a segment).
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.
