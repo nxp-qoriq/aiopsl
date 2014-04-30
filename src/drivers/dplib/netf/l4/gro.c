@@ -773,6 +773,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	int32_t sr_status;
 	uint16_t ip_length, outer_ip_offset;
 	uint8_t single_seg;
+	uint32_t timer_handle;
 
 	opaque2 = 0;
 	/* read GRO context*/
@@ -781,8 +782,9 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
 
+	timer_handle = TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS);
 	if (gro_ctx.timer_handle !=
-		(TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS) & TIMER_HANDLE_MASK)) {
+		(timer_handle & TIMER_HANDLE_MASK)) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return;
 	}
