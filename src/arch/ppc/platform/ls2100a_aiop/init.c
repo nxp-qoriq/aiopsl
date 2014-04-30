@@ -58,7 +58,7 @@ int run_apps(void);
 #include "general.h"
 /** Global task params */
 __TASK struct aiop_default_task_params default_task_params;
-__TASK uint32_t seed_32bit;
+
 
 int fill_system_parameters(t_sys_param *sys_param)
 {

@@ -8,7 +8,7 @@
 #include "inc/console.h"
 #include "inc/mem_mng.h"
 
-extern __TASK uint32_t seed_32bit;
+__TASK uint32_t seed_32bit;
 
 #define __ERR_MODULE__ MODULE_UNKNOWN
 
@@ -49,7 +49,7 @@ __HOT_CODE  uint32_t fsl_os_rand(void)
 {
 	seed_32bit = (seed_32bit>>1) ^ (-(seed_32bit & 1LL) &
 			0xFBE16801);
-	
+
 	return seed_32bit;
 }
 
@@ -229,7 +229,7 @@ atomic_loop:
 		/* load and reserve. "var" is the address of the byte */
 		lbarx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
-		sub new_value, orig_value, value 
+		sub new_value, orig_value, value
 		stbcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}
@@ -249,7 +249,7 @@ atomic_loop:
 		/* load and reserve. "var" is the address of the half-word */
 		lharx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
-		sub new_value, orig_value, value 
+		sub new_value, orig_value, value
 		sthcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}
@@ -269,7 +269,7 @@ atomic_loop:
 		/* load and reserve. "var" is the address of the word */
 		lwarx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
-		sub new_value, orig_value, value 
+		sub new_value, orig_value, value
 		stwcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}
