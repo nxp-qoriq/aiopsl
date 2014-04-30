@@ -77,13 +77,11 @@
 	/** Command failed general status bit.
 	A general bit that is set in some errors conditions */
 #define KEYGEN_STATUS_FAIL	0x80000000
-	/** Key Composition Error for Key Generation in MFLU.
-	 * Invalid key composition ID (KID) or Key size error */
-#define KEYGEN_MFLU_STATUS_KCE	\
+	/** Key size Error for Key Generation in MFLU.*/
+#define KEYGEN_MFLU_STATUS_KSE	\
 		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_MFLU << 24) | 0x00000400)
-	/** Key Composition Error for Key Generation in CTLU.
-	 * Invalid key composition ID (KID) or Key size error */
-#define KEYGEN_CTLU_STATUS_KCE	\
+	/** Key size Error for Key Generation in CTLU.*/
+#define KEYGEN_CTLU_STATUS_KSE	\
 		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_CTLU << 24) | 0x00000400)
 	/** Extract Out Of Frame Header Error for Key Generation in MFLU.
 	 * This bit is set if key composition attempts to extract a field which
