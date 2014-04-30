@@ -105,9 +105,9 @@
 
 	/** Command status success. */
 #define KEYGEN_HASH_STATUS_SUCCESS	0x00000000
-	/** Key Size Error for Hash Generation in MFLU */
+	/** Key Size Error (> 124 bytes) for Hash Generation in MFLU */
 #define KEYGEN_MFLU_HASH_STATUS_KSE	KEYGEN_MFLU_STATUS_KCE
-	/** Key Size Error for Hash Generation in CTLU */
+	/** Key Size Error (> 124 bytes) for Hash Generation in CTLU */
 #define KEYGEN_CTLU_HASH_STATUS_KSE	KEYGEN_CTLU_STATUS_KCE
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_HASH_GEN */
@@ -119,17 +119,17 @@
 	/** Successful KCR Builder Operation */
 #define KEYGEN_KCR_SUCCESSFUL_OPERATION		0x00000000
 	/** General Extraction Extract Size Error */
-#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001
+/*#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001*/
 	/** Protocol Based General Extraction Error */
 #define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002
 	/** Protocol Based General Extraction Parser Result Offset Error */
 /*#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003*/
 	/** General Extraction Extract Offset Error */
-#define KEYGEN_KCR_EXTRACT_OFFSET_ERR		0x80000004
+/*#define KEYGEN_KCR_EXTRACT_OFFSET_ERR		0x80000004*/
 	/** Mask Offset Larger than 0x0F Error */
 /*#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000005*/
 	/** Lookup Result Field Extraction Error */
-#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006
+/*#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006*/
 	/** Key Composition Rule Size exceeds KCR max size (64 bytes) */
 #define KEYGEN_KCR_SIZE_ERR			0x80000007
 
@@ -454,9 +454,9 @@ struct	kcr_builder_fec_mask {
 		allocate memory for this structure). Must be aligned to
 		16B boundary.
 
-@Return		None.
+@Return		Status - Success or Failure. (\ref CDMA_WS_MEMORY_INIT_STATUS).
 *//***************************************************************************/
-void keygen_kcr_builder_init(struct kcr_builder *kb);
+int32_t keygen_kcr_builder_init(struct kcr_builder *kb);
 
 
 /**************************************************************************//**
@@ -576,6 +576,10 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 		specified offset and size out of the frame or the parse result.
 
 @Param[in]	offset - offset in frame or parse result.
+		Please note that:
+		in case of extraction from frame offset must not exceed 0xFF.
+		in case of extraction from parse result offset must not exceed
+		0x3F.
 @Param[in]	extract_size - size of extraction (1-16 bytes).
 @Param[in]	flags - Please refer to \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
@@ -601,7 +605,10 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 @Param[in]	offset_in_opaque - Offset in Opaque0 or Opaque1 in lookup
 		result.
 @Param[in]	extract_size_in_opaque - size of extraction in case of Opaque0
-		or Opaque1.
+		or Opaque1. Please note that (offset + extract_size) must not
+		exceed 8.
+		In case of Opaque2 - 1 byte will be extracted.
+		In case of Unique ID or Timestamp - 4 bytes will be extracted.		
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
@@ -755,7 +762,8 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size, uint32_t *hash);
+int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size,
+							uint32_t *hash);
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */

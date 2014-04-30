@@ -649,6 +649,7 @@ int32_t tcp_gro_flush_aggregation(
 	struct ipv6hdr *ipv6;
 	int32_t sr_status;
 	uint16_t ip_length, outer_ip_offset;
+	uint8_t single_seg;
 
 	/* read GRO context*/
 	sr_status = cdma_read_with_mutex(tcp_gro_context_addr,
@@ -664,6 +665,8 @@ int32_t tcp_gro_flush_aggregation(
 	/* delete the timer for this aggregation */
 	sr_status = tman_delete_timer(gro_ctx.timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
 	if (gro_ctx.internal_flags & TCP_GRO_FLUSH_AGG_SET) {
 		/* reset gro context fields */
@@ -734,8 +737,10 @@ int32_t tcp_gro_flush_aggregation(
 	/* update TCP length + checksum */
 	/* update last segment header fields */
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
-	*((struct tcp_gro_last_seg_header_fields *)
-		(&(tcp->acknowledgment_number))) = gro_ctx.last_seg_fields;
+	if (!single_seg)
+		*((struct tcp_gro_last_seg_header_fields *)
+			(&(tcp->acknowledgment_number))) =
+					gro_ctx.last_seg_fields;
 
 	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
 		tcp_gro_calc_tcp_header_cksum(&gro_ctx);
@@ -767,6 +772,8 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	struct ipv6hdr *ipv6;
 	int32_t sr_status;
 	uint16_t ip_length, outer_ip_offset;
+	uint8_t single_seg;
+	uint32_t timer_handle;
 
 	opaque2 = 0;
 	/* read GRO context*/
@@ -775,8 +782,9 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
 
+	timer_handle = TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS);
 	if (gro_ctx.timer_handle !=
-		(TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS) & TIMER_HANDLE_MASK)) {
+		(timer_handle & TIMER_HANDLE_MASK)) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return;
 	}
@@ -789,6 +797,8 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return;
 	}
+
+	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
 	/* write metadata to external memory */
 	sr_status = cdma_write((gro_ctx.params.metadata_addr +
@@ -840,8 +850,10 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	/* update TCP length + checksum */
 	/* update last segment header fields */
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
-	*((struct tcp_gro_last_seg_header_fields *)
-		(&(tcp->acknowledgment_number))) = gro_ctx.last_seg_fields;
+	if (!single_seg)
+		*((struct tcp_gro_last_seg_header_fields *)
+			(&(tcp->acknowledgment_number))) =
+				gro_ctx.last_seg_fields;
 
 	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
 		tcp_gro_calc_tcp_header_cksum(&gro_ctx);
