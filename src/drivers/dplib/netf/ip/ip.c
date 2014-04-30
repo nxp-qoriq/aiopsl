@@ -1051,7 +1051,6 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	uint8_t ah_ext;
 	uint8_t dst_ext;
 	uint8_t frag_ext;
-	uint16_t ipv6_payload; 
 	uint8_t no_extension; 
 
 	no_extension = 0;
@@ -1073,7 +1072,6 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	/* Copy initials IPv6 header */
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
 	current_hdr_size = IPV6_HDR_LENGTH;
-	ipv6_payload = ipv6_hdr->payload_length;
 	next_hdr = ipv6_hdr->next_header;
 
 	/* Skip to next extension header until extension isn't ipv6 header
