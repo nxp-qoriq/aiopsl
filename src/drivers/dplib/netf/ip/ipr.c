@@ -190,9 +190,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
 
-	/* todo remove next line after release Pre-Alpha 0.3 */
-	scope_status.scope_mode = EXCLUSIVE;
-
 	if (scope_status.scope_mode == EXCLUSIVE) {
 		if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
 			osm_status = BYPASS_OSM;
@@ -378,39 +375,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* default frame is now the full reassembled frame */
 	
-    /* Delete timer for this frame */
-    if(rfdc.status & RFDC_VALID) {
-    	/* Delete timer */
- /*   	sr_status = tman_delete_timer(rfdc.timer_handle, 
-    								  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-    	if(sr_status == SUCCESS) {
-*/    		*((uint64_t *)rule.key_desc.em.key) = rfdc.ipv4_key[0];
-    		*(uint64_t *)(rule.key_desc.em.key+8) = rfdc.ipv4_key[1];
-    		/* todo , when CTLU will change implementation, dec ref cnt through
-    		   CDMA should be added. */
-    		table_rule_delete(
-    			TABLE_ACCEL_ID_CTLU,
-    			instance_params.table_id_ipv4,
-    			&rule.key_desc,
-    			IPV4_KEY_SIZE,
-    			NULL);   		
-//    	} else {
-        	/* Early Time Out */
-/*        	cdma_write_release_lock_and_decrement(rfdc_ext_addr,
-        										  &rfdc,
-        										  RFDC_SIZE);
-        	return IPR_ERROR;		  		
-    	} 	
-*/    } else {
-    	/* Early Time Out */
-    	cdma_write_release_lock_and_decrement(rfdc_ext_addr,
-    										  &rfdc,
-    										  RFDC_SIZE);
-    	return IPR_ERROR;
-    }
-
-    rfdc.status &= ~RFDC_VALID;
-    
     /* Increment no of reassembled IPv4 frames in instance
        data structure */
      ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
@@ -797,9 +761,6 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 					(uint8_t *)(&(concatenate_params.frame2)) +
 					sizeof(uint8_t));
 		
-			concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
-			concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
-			concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 			/* Take header size to be removed from FD[FRC] */
 			concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
 		

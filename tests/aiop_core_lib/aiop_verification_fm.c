@@ -28,7 +28,7 @@ void aiop_verification_fm()
 	struct fdma_present_segment_params present_params;
 	uint64_t ext_address;	/* External Data Address */
 	uint64_t initial_ext_address;	/* Initial External Data Address */
-	uint16_t str_size;	/* Command struct Size */
+	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */

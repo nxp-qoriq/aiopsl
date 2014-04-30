@@ -12,7 +12,8 @@
 #define ERROR_OFF	   48
 #define DEV_H_MASK	   0xFF00000000000000 /**< FLC[hash] */
 #define DEV_H_OFF	   56
-#define INST_ID_MASK	   0x000000FF         /**< FRC */
+#define INST_ID_MASK	   DEV_H_MASK         /**< FLC[hash] */
+#define INST_ID_OFF	   DEV_H_OFF
 
 #define CMD_ID_OPEN        0x8000
 #define CMD_ID_CLOSE       0x4000

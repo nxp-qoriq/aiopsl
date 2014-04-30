@@ -198,10 +198,13 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		asynchronous command.
 @Param[in]	async_ctx   - Context to be received with asynchronous command
 		response inside async_cb().
-@Param[in]	size     - Size of the data.
-@Param[in]	data     - Data of the command or buffer allocated by user which
-		will be by open_cb_t().
-		This address should be accessible by Server and Client
+@Param[in]	v_data   - Virtual address of the buffer to be used by command 
+                interface. 
+                This address should be accessible by Server and Client.
+                In case of GPP -> AIOP commands this buffer can be freed only 
+                after cmdif_close().	
+@Param[in]	p_data   - Physical address of the v_data buffer.                 	
+@Param[in]	size     - Size of the v_data buffer.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -209,7 +212,10 @@ int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t instance_id,
 		cmdif_cb_t async_cb,
-		void *async_ctx);
+		void *async_ctx,
+		uint8_t *v_data,
+		uint64_t p_data,
+		uint32_t size);
 
 /**************************************************************************//**
 @Function	cmdif_close
@@ -243,7 +249,8 @@ int cmdif_close(struct cmdif_desc *cidesc);
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	data     - Data of the command or buffer allocated by user which
 		will be used inside command.
-		This address should be accessible by Server and Client
+		This address should be accessible by Server and Client.
+		This should be physical address in case of GPP -> AIOP commands.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -251,7 +258,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		int priority,
-		uint8_t *data);
+		uint64_t data);
 
 /**************************************************************************//**
 @Function	cmdif_resp_read

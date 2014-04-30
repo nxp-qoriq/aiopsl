@@ -45,7 +45,8 @@ static inline int find_bpid(uint16_t buff_size,
         struct  slab_hw_pool_info *hw_pools = slab_module->hw_pools;
 
         /*
-         * TODO access DDR with CDMA !!!!!
+         * TODO access DDR with CDMA ??? 
+         * It's init time but maybe it's important for restart
          */
         for(i = 0; i < num_bpids; i++) {
                 if ((hw_pools[i].mem_pid             == mem_pid) &&
@@ -127,7 +128,6 @@ static void free_slab_module_memory(struct slab_module_info *slab_module)
 {
         /* TODO there still some static allocations in VP init
          * need to add them to slab_module_init() and then free them here
-         * TODO check if != NULL before free
          */
         if (slab_module->virtual_pool_struct)
         	fsl_os_xfree(slab_module->virtual_pool_struct);
@@ -296,7 +296,6 @@ int slab_module_init(void)
 		return -ENOMEM;
         }
         
-        /* TODO check if != NULL */
         slab_module->num_hw_pools = (uint8_t)(num_bpids & 0xFF);
         slab_module->hw_pools     = fsl_os_xmalloc(sizeof(struct slab_hw_pool_info) * num_bpids, SLAB_DDR_MEMORY, 1);
 

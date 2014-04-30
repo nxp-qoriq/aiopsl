@@ -44,10 +44,10 @@ static void cmd_m_name_set(const char *name)
 
 static void cmd_inst_id_set(uint8_t inst_id)
 {
-	uint32_t frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & ~INST_ID_MASK;
-	
-	frc |= inst_id;	
-	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, frc);	
+	uint64_t data = 0;
+	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & ~INST_ID_MASK;
+	data |= (((uint64_t)inst_id) << INST_ID_OFF);
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, data);	
 }
 
 static void cmd_auth_id_set(uint16_t auth_id)
