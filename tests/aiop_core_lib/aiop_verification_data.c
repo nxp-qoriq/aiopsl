@@ -60,7 +60,7 @@ void init_verif()
 		unlock_spinlock(&verif_spin_lock);
 		if (!verif_only_1_task_complete) {
 			do {
-						__e_hwacceli_(YIELD_ACCEL_ID);
+				__e_hwacceli_(YIELD_ACCEL_ID);
 			} while (!verif_only_1_task_complete);
 		}
 	}

@@ -145,10 +145,10 @@ enum e_hm_verif_cmd_type {
 #define HM_POP_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
 
-#define HM_IP_CKSUM_CALCULATE_CMD_STR		((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_IP_CKSUM_CALCULATE_CMD_STR		((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IP_CKSUM_CALCULATE)
 
-#define HM_L4_UDP_TCP_CKSUM_CALC_CMD_STR	((HM_VERIF_ACCEL_ID << 16) | \
+#define HM_L4_UDP_TCP_CKSUM_CALC_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC)
 
 /**************************************************************************//**

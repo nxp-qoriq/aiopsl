@@ -99,6 +99,21 @@ enum table_verif_cmd_type {
 
 
 /**************************************************************************//**
+@Group		AIOP_Table_SRs_Verification_MACROS
+
+@Description	AIOP Table Verification MACROS definitions.
+
+@{
+*//***************************************************************************/
+/* No Flags */
+#define TABLE_VERIF_FLAG_NO_FLAGS		0x00000000
+/** when set, the verification will pass NULL as a pointer to the verified
+ * function instead of old/replaced/deleted result*/
+#define TABLE_VERIF_FLAG_OLD_RESULT_NULL	0x00000001
+
+/** @} */ /* end of AIOP_Table_SRs_Verification_MACROS */
+
+/**************************************************************************//**
 @Group		AIOP_Table_SRs_Verification
 
 @Description	AIOP Table Verification structures definitions.
@@ -140,6 +155,9 @@ struct table_create_command {
 struct table_replace_miss_result_command {
 	/** CTLU Update Miss Rule Command identifier */
 	uint32_t opcode;
+
+	/* Flags for this operation */
+	uint32_t flags;
 
 	/** Miss Rule to update.
 	The structure to be passed must be one of the following:
@@ -270,6 +288,9 @@ struct table_rule_create_replace_command{
 	/** CTLU Table Rule Create identifier */
 	uint32_t opcode;
 
+	/* Flags for this operation */
+	uint32_t flags;
+
 	/** Rule's old result - valid only if replace occurred */
 	struct table_result old_res;
 
@@ -299,6 +320,9 @@ struct table_rule_create_replace_command{
 struct table_rule_delete_command{
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
+
+	/* Flags for this operation */
+	uint32_t flags;
 
 	/** Rule's old result */
 	struct table_result old_res;
