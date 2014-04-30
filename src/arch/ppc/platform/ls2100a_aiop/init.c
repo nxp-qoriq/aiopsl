@@ -118,9 +118,10 @@ static void core_ready_for_tasks(void) {
 
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
+
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
-    asm ("wait  \n");
+    __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
 #define DEBUG
@@ -147,17 +148,17 @@ static void print_dev_desc(struct dprc_dev_desc* dev_desc)
 
 /* TODO: Need to replace this temporary workaround with the actual function.
 /*****************************************************************************/
-static int fill_bpid(uint16_t num_buffs, 
-                              uint16_t buff_size, 
-                              uint16_t alignment, 
+static int fill_bpid(uint16_t num_buffs,
+                              uint16_t buff_size,
+                              uint16_t alignment,
                               uint8_t  mem_partition_id,
                               uint16_t bpid)
-{    
+{
     int        i = 0;
     dma_addr_t addr  = 0;
-    
+
     for (i = 0; i < num_buffs; i++) {
-        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, mem_partition_id, alignment));  
+        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, mem_partition_id, alignment));
         /* Here, we pass virtual BPID, therefore BDI = 0 */
         if (fdma_release_buffer(0, FDMA_RELEASE_NO_FLAGS, bpid, addr)) {
             fsl_os_xfree(fsl_os_phys_to_virt(addr));
@@ -170,7 +171,7 @@ static int fill_bpid(uint16_t num_buffs,
 int run_apps(void)
 {
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
-	int i;	
+	int i;
 	int err = 0, tmp = 0;
 #ifdef MC_INTEGRATED
 	int dev_count;
@@ -193,12 +194,12 @@ int run_apps(void)
 	* This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
 	* This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
-	* all should be placed in PEB. */	
+	* all should be placed in PEB. */
 	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
 	/* TODO - iterate through the device-list:
-	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */	
+	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
-#ifdef MC_INTEGRATED	
+#ifdef MC_INTEGRATED
 	/* TODO: replace hard-coded portal address 10 with configured value */
 	/* TODO : layout file must contain portal ID 10 in order to work. */
 	/* TODO : in this call, can 3rd argument be zero? */
@@ -216,14 +217,14 @@ int run_apps(void)
 		pr_err("Failed to open AIOP root container DP-RC%d.\n", container_id);
 		return(err);
 	}
-    
+
     /* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
-	/* TODO: Currently creating a stub DPBP with ID=1. 
+	/* TODO: Currently creating a stub DPBP with ID=1.
 	 * Open and init calls will be replaced by 'create' when available at MC.
 	 * At that point, the DPBP ID will be provided by MC. */
     dpbp_id = 1;
-	
+
 	assign_res_req.num = dpbp_id;
 	assign_res_req.options = DPRC_RES_REQ_OPT_EXPLICIT;
 	assign_res_req.id_base_align = 1;
@@ -232,30 +233,30 @@ int run_apps(void)
 		pr_err("Failed to assign DP-BP%d.\n", dpbp_id);
 		return err;
 	}
-	
+
 	/* Get the physical portal address for this object.
-	 * The physical portal address is at region_index zero */ 
-	region_index = 0;  
+	 * The physical portal address is at region_index zero */
+	region_index = 0;
     if ((err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) != 0) {
 		pr_err("Failed to get device region for DP-BP%d.\n", dpbp_id);
 		return err;
 	}
 
     dpbp.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
-	
+
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
-		return err;		
+		return err;
 	}
-	
+
 	if ((err = dpbp_enable(&dpbp)) != 0) {
 		pr_err("Failed to enable DP-BP%d.\n", dpbp_id);
-		return err;						
+		return err;
 	}
-	
+
 	if ((err = dpbp_get_attributes(&dpbp, &attr)) != 0) {
 		pr_err("Failed to get attributes from DP-BP%d.\n", dpbp_id);
-		return err;								
+		return err;
 	}
 
 	/* TODO: number and size of buffers should not be hard-coded */
@@ -280,16 +281,16 @@ int run_apps(void)
 		dprc_get_device(&dprc, i, &dev_desc);
 		if (dev_desc.type == DP_DEV_DPNI) {
 			/* TODO: print conditionally based on log level */
-			print_dev_desc(&dev_desc);   	
+			print_dev_desc(&dev_desc);
 
 			if ((err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, &attach_params)) != 0) {
 				pr_err("Failed to probe DP-NI%d.\n", i);
-				return err;  
+				return err;
 			}
 		}
 	}
 #endif
-    
+
 	/* At this stage, all the NIC of AIOP are up and running */
 
 	memset(apps, 0, sizeof(apps));
