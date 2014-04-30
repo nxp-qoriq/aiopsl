@@ -23,7 +23,8 @@ void aiop_verification_sr()
 	uint8_t gro_iteration = 0;
 	uint8_t ipr_iteration = 0;
 
-
+	init_verif();
+	
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
 
@@ -32,8 +33,6 @@ void aiop_verification_sr()
 	init_asa_seg_addr = asa_seg_addr;
 	/* shift size by 6 since the size is in 64bytes (2^6 = 64) quantities */
 	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK) << 6;
-
-	init_verif();
 
 	/* The condition is for back up only.
 	In case the ASA was written correctly the Terminate command will
