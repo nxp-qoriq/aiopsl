@@ -1029,10 +1029,7 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 
 	/* Write 1's complement of the 1's complement 16 bit sum into the
 	IPv4 header */
-	if (running_sum)
-		ipv4header->hdr_cksum = running_sum;
-	else
-		ipv4header->hdr_cksum = 0xFFFF;
+	ipv4header->hdr_cksum = running_sum;
 
 	/* Update FDMA */
 	if (!(flags & IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
