@@ -231,7 +231,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_ICMPV6_DEFAULT();
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_UDP_LITE_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IP_PARSING_ERROR_DEFAULT() ;
-		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_DEFAULT();
+		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_DEFAULT() << 1;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_S_FLAG_DEFAULT();
 		
 		/* Frame Attribute Flags 3 */ 
