@@ -1125,6 +1125,8 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 
 @Description	Queries a rule in the table.
 
+		This function does not update the matched result timestamp.
+
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
 @Param[in]	table_id - Table ID.
@@ -1205,6 +1207,8 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 		user should decrement the Slac/CDMA buffer reference counter
 		after usage.
 
+		This function updates the matched result timestamp.
+
 		Implicit input parameters in Task Defaults: Segment Address,
 		Segment Size and Parse Results.
 
@@ -1231,6 +1235,8 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 @Function	table_lookup_by_key
 
 @Description	Performs a lookup with a key built by the user.
+
+		This function updates the matched result timestamp.
 
 		If opaque0_or_reference result field is a reference pointer,
 		its reference counter will be incremented during this operation.
