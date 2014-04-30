@@ -54,6 +54,7 @@ void init_verif()
 				* the ARENA will initialize the profile sram */
 		init_profile_sram();
 		gro_timeout_cb_verif(0);
+		tmi_id = 0;
 		verif_only_1_task_complete = 1;
 	}
 	else {
@@ -80,7 +81,6 @@ void init_verif()
 	status_ipr = 0;
 	tcp_gso_context_addr1[0] = 0;
 	ipf_context_addr1[0] = 0;
-	tmi_id = 0;
 }
 
 __VERIF_PROFILE_SRAM struct  profile_sram profile_sram1;
