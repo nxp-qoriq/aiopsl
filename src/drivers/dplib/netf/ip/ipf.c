@@ -15,8 +15,11 @@
 #include "ipf.h"
 #include "fdma.h"
 #include "ip.h"
+#include "common/fsl_stdlib.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
+extern __TASK uint32_t seed_32bit;
+
 
 int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
@@ -193,7 +196,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ipv6_frag_hdr->reserved = 0;
 			ipv6_frag_hdr->fragment_offset_flags =
 						IPV6_HDR_M_FLAG_MASK;
-			ipv6_frag_hdr->id = 0x12345678; 
+			ipv6_frag_hdr->id = (uint16_t)fsl_os_rand();
 
 			/* replace ip payload length, replace next header,
 			 * insert IPv6 fragment header
