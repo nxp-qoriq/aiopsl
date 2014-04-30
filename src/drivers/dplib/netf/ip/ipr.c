@@ -310,8 +310,15 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    rfdc.next_index 		   = 0;
 		    rfdc.current_total_length  = 0;
 		    rfdc.first_frag_index 	   = 0;
+		    rfdc.num_of_frags		   = 0;
+		    /* todo check if necessary */
+		    rfdc.biggest_payload	   = 0;
+		    rfdc.current_running_sum   = 0;
+		    rfdc.first_frag_offset     = 0;
+		    rfdc.last_frag_index       = 0;
+		    rfdc.total_in_order_payload = 0;
 		    get_default_amq_attributes(&rfdc.isolation_bits);
-
+		    
 		    /* create Timer in TMAN */
 /*
 		    tman_create_timer(instance_params.tmi_id,
