@@ -75,8 +75,6 @@
 
 	/** Generic Extraction max. extract size */
 #define KEYGEN_KCR_MAX_EXTRACT_SIZE	0xF
-	/** Protocol Based Generic Extraction max. offset in Parse Result */
-#define KEYGEN_KCR_PROTOCOL_MAX_OFFSET	0x3F
 	/** Generic Extraction max. extract offset */
 #define KEYGEN_KCR_MAX_EXTRACT_OFFET	0xF
 	/** 16 Bytes alignment */
@@ -88,7 +86,7 @@
 	/** Maximum KCR size */
 #define KEYGEN_KCR_MAX_KCR_SIZE				64
 	/** Constant FEC size */
-#define KEYGEN_KCR_CONST_FEC_SIZE				3
+#define KEYGEN_KCR_CONST_FEC_SIZE			3
 	/** Protocol Specific FEC size (not including mask) */
 #define KEYGEN_KCR_PROTOCOL_SPECIFIC_FEC_SIZE		1
 	/** Protocol Based Generic FEC size (not including mask) */
@@ -145,13 +143,13 @@
 	/** EOM of Opaque0 Field from FCV */
 #define KEYGEN_KCR_EXT_OPAQUE0_EOM	0x18
 	/** EOM of Opaque1 Field from FCV */
-#define KEYGEN_KCR_EXT_OPAQUE1_EOM	0x1C
+#define KEYGEN_KCR_EXT_OPAQUE1_EOM	0x19
 	/** EOM of Opaque2 Field from FCV */
 #define KEYGEN_KCR_EXT_OPAQUE2_EOM	0x18
 	/** EOM of Unique ID Field from FCV */
-#define KEYGEN_KCR_EXT_UNIQUE_ID_EOM	0x20
+#define KEYGEN_KCR_EXT_UNIQUE_ID_EOM	0x1A
 	/** EOM of Timestamp Field from FCV */
-#define KEYGEN_KCR_EXT_TIMESTAMP_EOM	0x20
+#define KEYGEN_KCR_EXT_TIMESTAMP_EOM	0x1A
 	/** EOM of OpaqueIn Field from FCV */
 #define KEYGEN_KCR_EXT_OPAQUE_IN_EOM	0x14
 
@@ -165,7 +163,7 @@
 	/** Basic Extraction Offset of Unique */
 #define KEYGEN_KCR_EXT_UNIQUE_ID_BASIC_EO	0x8
 	/** Basic Extraction Offset of Timestamp */
-#define KEYGEN_KCR_EXT_TIMESTAMP_BASIC_EO	0xA
+#define KEYGEN_KCR_EXT_TIMESTAMP_BASIC_EO	0xC
 	/** Basic Extraction Offset of OpaqueIn */
 #define KEYGEN_KCR_EXT_OPAQUE_IN_BASIC_EO	0x8
 

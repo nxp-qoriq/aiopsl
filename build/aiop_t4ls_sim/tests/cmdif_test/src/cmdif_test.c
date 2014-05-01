@@ -11,6 +11,8 @@
 #include "io.h"
 #include "aiop_common.h"
 
+extern void app_receive_cb (void); 
+
 int app_init(void);
 void app_free(void);
 
@@ -42,7 +44,9 @@ static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(instance_id);
 	UNUSED(dev);
-	fsl_os_print("open_cb\n");
+	if (instance_id == 0)
+		fsl_os_print("FAILED: open_cb inst_id = 0x%x\n", instance_id);
+	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
@@ -59,7 +63,7 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
 	UNUSED(cmd);
 	UNUSED(size);
 	UNUSED(data);
-	fsl_os_print("ctrl_cb\n");
+	fsl_os_print("ctrl_cb cmd = 0x%x\n", cmd);
 	return 0;
 }
 
@@ -75,7 +79,7 @@ static void epid_setup()
 
 	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
 	iowrite32(0, &wrks_addr->epas); 
-	iowrite32(0x00fe0000, &wrks_addr->ep_pc);
+	iowrite32((uint32_t)app_receive_cb, &wrks_addr->ep_pc);
 }
 
 int app_init(void)

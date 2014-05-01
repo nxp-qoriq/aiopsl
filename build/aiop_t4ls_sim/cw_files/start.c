@@ -104,10 +104,10 @@ done_sp:
 
     /* Set MSR */
     mfmsr  r6
-	ori    r6, r6, 0x0200 /* DE */
+    ori    r6, r6, 0x0200 /* DE */
     mtmsr  r6
     isync
-	
+
     /* Prepare a terminating stack record */
     stwu   r1, -16(r1)       /* LinuxABI required SP to always be 16-byte aligned */
     li     r0, 0x00000000   /* Load up r0 with 0x00000000 */

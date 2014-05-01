@@ -21,7 +21,6 @@ __TASK int32_t status_ipf;
 */
 
 extern __VERIF_GLOBAL uint8_t verif_prpid;
-extern struct parse_profile_record verif_parse_profile;
 
 void aiop_verification_fm()
 {
@@ -29,8 +28,10 @@ void aiop_verification_fm()
 	struct fdma_present_segment_params present_params;
 	uint64_t ext_address;	/* External Data Address */
 	uint64_t initial_ext_address;	/* Initial External Data Address */
-	uint16_t str_size;	/* Command struct Size */
+	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
+	
+	init_verif();
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
@@ -59,8 +60,6 @@ void aiop_verification_fm()
 				* the ni function will be run.
 				* (According to Ilan request) */
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-
-	init_verif();
 
 	/* The Terminate command will finish the verification */
 	do {
@@ -236,6 +235,7 @@ void aiop_verification_fm()
 void aiop_verif_init_parser()
 {
 	uint8_t i, prpid;
+	struct parse_profile_record verif_parse_profile;
 
 	verif_parse_profile.eth_hxs_config = 0x0;
 	verif_parse_profile.llc_snap_hxs_config = 0x0;

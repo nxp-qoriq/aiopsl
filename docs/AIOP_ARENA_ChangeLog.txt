@@ -1,6 +1,20 @@
+- os.c:  Added implementation for fsl_os_rand().
+- init.c: Added seed variable in tls section for each task (seed_32bit).
+- fsl_stdlib.h: Added prototype for fsl_os_rand().
+- platfom.c: in function "pltfrm_init_core_cb" added initialization of seed to each task when
+             initializing the core.
+
+- os.c:           Fixed atomic_decr32(), atomic_decr16(), atomic_decr8(), atomic_incr8()
+- fsl_slab.h:     API change from slab_free(struct slab *slab) to slab_free(struct slab **slab).
+                  Fixed ENGR00307828.
+
 ** AIOP ARENA SL Pre-Alpha v0.3.3  **
+- app_receive_cb.c:     This file has been removed
+- app_process_packet.c: Set EP_PC for EPID 0 by SW.
+
+- aiop_link.lcf:   Remove .receive_cb segment, EPID 0 is setup by SW in aiop_process_packet.
 - aiop_link.lcf:   Added fix to suport macros for __SHRAM and __HOT_CODE, stack size adjusted.
-- types_mw.c:      Added fix to suport macros for __SHRAM and __HOT_CODE. 
+- types_mw.h:      Added fix to suport macros for __SHRAM and __HOT_CODE. 
 
 - fsl_slab.h:      Changed slab_debug_info.max_buffs to 32 bit
 - cmdif_test.c:    Added CMDIF reflector and Client Server test. This test tests AIOP side Server.

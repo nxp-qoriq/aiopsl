@@ -45,7 +45,8 @@ static inline int find_bpid(uint16_t buff_size,
         struct  slab_hw_pool_info *hw_pools = slab_module->hw_pools;
 
         /*
-         * TODO access DDR with CDMA !!!!!
+         * TODO access DDR with CDMA ??? 
+         * It's init time but maybe it's important for restart
          */
         for(i = 0; i < num_bpids; i++) {
                 if ((hw_pools[i].mem_pid             == mem_pid) &&
@@ -127,7 +128,6 @@ static void free_slab_module_memory(struct slab_module_info *slab_module)
 {
         /* TODO there still some static allocations in VP init
          * need to add them to slab_module_init() and then free them here
-         * TODO check if != NULL before free
          */
         if (slab_module->virtual_pool_struct)
         	fsl_os_xfree(slab_module->virtual_pool_struct);
@@ -194,7 +194,8 @@ int slab_create(uint32_t    num_buffs,
         if (error) return error; /* -EINVAL or -ENOMEM */
 
         data  = 0;
-        error = vpool_create_pool(bpid, (int32_t)max_buffs, (int32_t)num_buffs, 0, release_cb , &data);
+        /* TODO add max_buffs to vpool_create_pool when it will be supported */
+        error = vpool_create_pool(bpid, (int32_t)num_buffs, (int32_t)num_buffs, 0, release_cb , &data);
         if (error)
                 return -ENAVAIL;
         if (data > SLAB_VP_POOL_MAX) {
@@ -202,23 +203,24 @@ int slab_create(uint32_t    num_buffs,
                 return -ENAVAIL;
         }
 
-        *((uint32_t *)slab) = ((data & (SLAB_VP_POOL_MASK >> SLAB_VP_POOL_SHIFT)) << SLAB_VP_POOL_SHIFT) | SLAB_HW_POOL_SET;
+        *((uint32_t *)slab) = SLAB_HW_POOL_CREATE(data);
 
         return 0;
 }
 
 /*  TODO use API from VPs  */
 /*****************************************************************************/
-int slab_free(struct slab *slab)
+int slab_free(struct slab **slab)
 {
         struct   slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
-        int      remaining_buffs = (int)((struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct + SLAB_VP_POOL_GET(slab))->committed_bufs;
-        uint16_t bpid = (uint16_t)virtual_bman_pools[((struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct + SLAB_VP_POOL_GET(slab))->bman_array_index].bman_pool_id;
+        int      remaining_buffs = (int)(((struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct) + SLAB_VP_POOL_GET(*slab))->committed_bufs;
+        uint16_t bpid = (uint16_t)virtual_bman_pools[(((struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct) + SLAB_VP_POOL_GET(*slab))->bman_array_index].bman_pool_id;
 
         /* TODO Use VP API for BPID and remaining buffers */
-
-        if (SLAB_IS_HW_POOL(slab)) {
-                if (vpool_release_pool(SLAB_VP_POOL_GET(slab)) != VIRTUAL_POOLS_SUCCESS) {
+        pr_debug("Free from BPID = 0x%x, num_buffs = %d \n", bpid, 
+                 remaining_buffs);
+        if (SLAB_IS_HW_POOL(*slab)) {
+                if (vpool_release_pool(SLAB_VP_POOL_GET(*slab)) != VIRTUAL_POOLS_SUCCESS) {
                         return -EBUSY;
                 } else {
                         /* TODO use VP API to update VP BPID !! */
@@ -229,6 +231,8 @@ int slab_free(struct slab *slab)
         } else {
                 return -EINVAL;
         }
+        
+        *((uint32_t *)slab) = 0; /**< Delete all pool information */
         return 0;
 }
 
@@ -292,7 +296,6 @@ int slab_module_init(void)
 		return -ENOMEM;
         }
         
-        /* TODO check if != NULL */
         slab_module->num_hw_pools = (uint8_t)(num_bpids & 0xFF);
         slab_module->hw_pools     = fsl_os_xmalloc(sizeof(struct slab_hw_pool_info) * num_bpids, SLAB_DDR_MEMORY, 1);
 

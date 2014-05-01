@@ -72,22 +72,60 @@ static int app_test_slab(struct slab *slab, int num_times)
 	return 0;
 }
 
+static int app_test_slab_init() 
+{
+	int        err = 0;
+	dma_addr_t buff = 0;
+	struct slab *my_slab;
+	
+	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, 
+	                  NULL, &my_slab);
+	if (err) return err;
+	
+	err = slab_acquire(my_slab, &buff);
+	if (err) return err;
+	err = slab_release(my_slab, buff);
+	if (err) return err;
+
+	err = slab_free(&my_slab);
+	if (err) return err;
+	
+	/* Must fail because my_slab was freed  */
+	err = slab_acquire(my_slab, &buff);
+	if (!err) return -EEXIST;
+	
+	/* Reuse slab handle test  */
+	err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, 
+	                  NULL, &my_slab);
+	if (err) return err;
+	
+	err = slab_free(&my_slab);
+	if (err) return err;
+
+	return 0;
+}
+
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
 	uint32_t src_addr = 0x10203040;// new ipv4 src_addr
 
 	err = ip_set_nw_src(src_addr);
-	if (err) fdma_terminate_task();
+	if (err) {
+		fsl_os_print("ERROR = %d: ip_set_nw_src(src_addr)\n", err);
+	}
 
 	err = app_test_slab(slab_peb, 4);
-	if (err) fdma_terminate_task();
+	if (err) { 
+		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
+	}
 
 	err = app_test_slab(slab_ddr, 4);
-	if (err) fdma_terminate_task();
+	if (err) { 
+		fsl_os_print("ERROR = %d: app_test_slab(slab_ddr, 4)\n", err);
+	}
 
 	dpni_drv_send(APP_NI_GET(arg));
-	fdma_terminate_task();
 }
 
 /* This is temporal WA for stand alone demo only */
@@ -102,7 +140,7 @@ static void epid_setup()
 
 	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
 	iowrite32(0, &wrks_addr->epas); 
-	iowrite32(0x00fe0000, &wrks_addr->ep_pc);
+	iowrite32((uint32_t)receive_cb, &wrks_addr->ep_pc);
 }
 
 int app_init(void)
@@ -128,6 +166,13 @@ int app_init(void)
 		if (err) return err;
 	}
 
+	/* Test for slab initialization, ignore it unless it fails */
+	err = app_test_slab_init();
+	if (err) {
+		fsl_os_print("ERROR = %d: app_test_slab_init()\n", err);
+		return err;
+	}
+
 	/* DDR SLAB creation */
 	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, NULL, &slab_ddr);
 	if (err) return err;
@@ -151,7 +196,7 @@ int app_init(void)
 		if ((slab_info.num_buffs != slab_info.max_buffs) || (slab_info.num_buffs == 0))
 			return -ENODEV;
 	}
-
+	
 	return 0;
 }
 
@@ -159,6 +204,6 @@ void app_free(void)
 {
 	int err = 0;
 	/* TODO - complete!*/
-	err = slab_free(slab_ddr);
-	err = slab_free(slab_peb);
+	err = slab_free(&slab_ddr);
+	err = slab_free(&slab_peb);
 }

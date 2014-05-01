@@ -183,7 +183,7 @@ inline int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id)
 {
 	int32_t status;
 /*	uint64_t int_id_pool_address;*/
-	int8_t last_id_and_index[2];
+	uint8_t last_id_and_index[2];
 
 /*	int_id_pool_address = ext_id_pool_address;*/
 
@@ -253,7 +253,7 @@ inline int32_t release_id(uint8_t id, uint64_t ext_id_pool_address)
 {
 	int32_t status;
 /*	uint64_t int_id_pool_address;*/
-	int8_t last_id_and_index[2];
+	uint8_t last_id_and_index[2];
 	
 /*	int_id_pool_address = ext_id_pool_address;*/
 

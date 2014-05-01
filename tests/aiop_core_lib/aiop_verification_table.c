@@ -40,10 +40,17 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_replace_miss_result_command *str =
 		(struct table_replace_miss_result_command *) asa_seg_addr;
-	
-		str->status = table_replace_miss_result
-			(str->acc_id, str->table_id, &(str->miss_rule),
-			 &str->old_miss_result);
+
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_replace_miss_result
+				(str->acc_id, str->table_id, &(str->miss_rule),
+				 (void *)0);
+		} else {
+			str->status = table_replace_miss_result
+				(str->acc_id, str->table_id, &(str->miss_rule),
+				 &str->old_miss_result);
+		}
+
 		str_size = sizeof(struct table_replace_miss_result_command);
 		break;
 	}
@@ -113,13 +120,21 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		  (struct table_rule_create_replace_command *)
 		  asa_seg_addr;
 
-		str->status = table_rule_create_or_replace
-			(str->acc_id,
-			 str->table_id, 
-			 (struct table_rule*)str->rule_ptr,
-			 str->key_size,
-			 &str->old_res);
-
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_rule_create_or_replace
+				(str->acc_id,
+				 str->table_id,
+				 (struct table_rule*)str->rule_ptr,
+				 str->key_size,
+				 (void *)0);
+		} else {
+			str->status = table_rule_create_or_replace
+				(str->acc_id,
+				 str->table_id,
+				 (struct table_rule*)str->rule_ptr,
+				 str->key_size,
+				 &str->old_res);
+		}
 		str_size =
 			sizeof(struct table_rule_create_command);
 		break;
@@ -132,12 +147,21 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		  (struct table_rule_create_replace_command *)
 		  asa_seg_addr;
 
-		str->status = table_rule_replace
-			(str->acc_id,
-			str->table_id,
-			(struct table_rule*)str->rule_ptr,
-			str->key_size,
-			&str->old_res);
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_rule_replace
+				(str->acc_id,
+				str->table_id,
+				(struct table_rule*)str->rule_ptr,
+				str->key_size,
+				(void *)0);
+		} else {
+			str->status = table_rule_replace
+				(str->acc_id,
+				str->table_id,
+				(struct table_rule*)str->rule_ptr,
+				str->key_size,
+				&str->old_res);
+		}
 
 		str_size =
 			sizeof(struct table_rule_create_command);
@@ -150,12 +174,21 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_delete_command *str =
 		(struct table_rule_delete_command *) asa_seg_addr;
 
-		str->status = table_rule_delete
-			(str->acc_id,
-			 str->table_id,
-			 (union table_key_desc *)str->key_desc_ptr,
-			 str->key_size,
-			 &str->old_res);
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_rule_delete
+				(str->acc_id,
+				 str->table_id,
+				 (union table_key_desc *)str->key_desc_ptr,
+				 str->key_size,
+				 (void *) 0);
+		} else {
+			str->status = table_rule_delete
+				(str->acc_id,
+				 str->table_id,
+				 (union table_key_desc *)str->key_desc_ptr,
+				 str->key_size,
+				 &str->old_res);
+		}
 
 		str_size =
 			sizeof(struct table_rule_delete_command);
@@ -180,22 +213,6 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 			sizeof(struct table_rule_query_command);
 		break;
 	}
-
-	/* Table Lookup by KeyID Command Verification */
-	case TABLE_LOOKUP_BY_KEYID_CMD_STR:
-	{
-		struct table_lookup_by_keyid_command *str =
-		(struct table_lookup_by_keyid_command *) asa_seg_addr;
-
-		str->status = table_lookup_by_keyid(str->acc_id,
-			str->table_id, 
-			str->key_id, &(str->lookup_result));
-
-		str_size =
-			sizeof(struct table_lookup_by_keyid_command);
-		break;
-	}
-
 	/* Table Lookup with explicit Key Command Verification */
 	case TABLE_LOOKUP_BY_KEY_CMD_STR:
 	{
@@ -212,7 +229,38 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 			sizeof(struct table_lookup_by_key_command);
 		break;
 	}
+	/* Table Lookup by KeyID Default Frame Command Verification */
+	case TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_CMD_STR:
+	{
+		struct table_lookup_by_keyid_default_frame_command *str =
+		(struct table_lookup_by_keyid_default_frame_command *)
+		asa_seg_addr;
 
+		str->status = table_lookup_by_keyid_default_frame(str->acc_id,
+			str->table_id,
+			str->key_id, &(str->lookup_result));
+
+		str_size =
+		  sizeof(struct table_lookup_by_keyid_default_frame_command);
+		break;
+	}
+	/* Table Lookup by KeyID Command Verification */
+	case TABLE_LOOKUP_BY_KEYID_CMD_STR:
+	{
+		struct table_lookup_by_keyid_command *str =
+		(struct table_lookup_by_keyid_command *) asa_seg_addr;
+
+		str->status = table_lookup_by_keyid(str->acc_id,
+						    str->table_id,
+						    str->key_id,
+						    str->flags,
+						    &(str->ndf_params),
+						    &(str->lookup_result));
+
+		str_size =
+			sizeof(struct table_lookup_by_keyid_command);
+		break;
+	}
 	/* Table Query Command Verification */
 	case TABLE_QUERY_DEBUG_CMD_STR:
 	{

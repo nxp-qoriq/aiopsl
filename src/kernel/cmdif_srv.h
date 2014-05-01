@@ -12,13 +12,15 @@
 #define ERROR_OFF	   48
 #define DEV_H_MASK	   0xFF00000000000000 /**< FLC[hash] */
 #define DEV_H_OFF	   56
-#define INST_ID_MASK	   0x000000FF         /**< FRC */
+#define INST_ID_MASK	   DEV_H_MASK         /**< FLC[hash] */
+#define INST_ID_OFF	   DEV_H_OFF
 
 #define CMD_ID_OPEN        0x8000
 #define CMD_ID_CLOSE       0x4000
 #define M_NUM_OF_INSTANCES    1000
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
+#define SYNC_BUFF_RESERVED    1     /**< 1 Byte must be reserved for done bit */
 
 #define OPEN_AUTH_ID          0xFFFF 
 /**< auth_id that will be sent as hash value for open commands */

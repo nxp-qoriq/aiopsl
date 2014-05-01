@@ -42,5 +42,13 @@ void    fsl_os_exit(int status);
 /** @} */ /* end of fsl_os_stdlib_g group */
 /** @} */ /* end of fsl_os_g group */
 
+/**************************************************************************//**
+ @Function      fsl_os_rand
+
+ @Description   returns random number
+
+ @Return        pseudo random number (uint32)
+*//***************************************************************************/
+uint32_t fsl_os_rand(void);
 
 #endif /* __FSL_STDLIB_H */

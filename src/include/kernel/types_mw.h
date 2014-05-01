@@ -31,13 +31,16 @@ typedef uint64_t            dma_addr_t;
 /** Task global variables area */
 #define __TASK __declspec(section ".tdata")
 
+/** Shared-SRAM code location */
+#pragma section RX ".stext_vle"
+#define __WARM_CODE __declspec(section ".stext_vle")
+
 /** Shared-SRAM global variables */
 #pragma section RW ".shdata" ".shbss"
 #define __SHRAM __declspec(section ".shdata")
 
-
-/** Task global variable definition */
-#pragma section ".itext_vle"
+/** i-RAM code location */
+#pragma section RX ".itext_vle"
 #define __HOT_CODE __declspec(section ".itext_vle")
 
 

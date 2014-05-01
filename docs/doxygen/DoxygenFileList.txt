@@ -22,6 +22,7 @@ fsl_parser.h
 fsl_osm.h
 fsl_spinlock.h
 fsl_ste.h
+fsl_stdlib.h
 fsl_tman.h
 dpni_drv.h
 general.h

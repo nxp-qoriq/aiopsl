@@ -23,6 +23,11 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		struct tcp_gro_agg_seg_command *str =
 			(struct tcp_gro_agg_seg_command *)data_addr;
 
+		str->params.timeout_params.tmi_id =
+				*((uint8_t *)str->tmi_id_addr);
+		str->params.timeout_params.gro_timeout_cb =
+				&gro_timeout_cb_verif;
+
 		str->status = tcp_gro_aggregate_seg(
 				str->tcp_gro_context_addr,
 				&(str->params),str->flags);
@@ -104,6 +109,8 @@ void gro_timeout_cb_verif(uint64_t arg)
 	int32_t status;
 	uint32_t flags = 0;
 
+	if (arg == 0)
+		return;
 	status = cdma_read((void *)&str,
 			arg,
 			(uint16_t)sizeof(struct fdma_enqueue_wf_command));

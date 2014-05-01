@@ -66,7 +66,7 @@ struct profile_sram {
 	#define mode_bits1_PTAR  0x80
 	#define mode_bits1_Rsrvd 0x00
 	#define mode_bits1_SGHR  0x00
-	#define mode_bits1_ASAR  0x02
+	#define mode_bits1_ASAR  0x0f
 	
 	#define mode_bits2_BS  0x00
 	#define mode_bits2_FF  0x00

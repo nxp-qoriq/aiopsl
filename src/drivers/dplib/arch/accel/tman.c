@@ -146,12 +146,9 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* Fill command parameters */
 	__stdw(cmd_type, (uint32_t)tmi_id, HWC_ACC_IN_ADDRESS, 0);
 
-	/* extention_params.opaque_data1 = conf_opaque_data1;
-	todo need to replace that with __st64dw when compiler intrinsic will
-	be ready which will remove one cycle - e_add16i r3,rsp,16*/
+	/* extention_params.opaque_data1 = conf_opaque_data1; */
+	__llstdw(opaque_data1, 0, (void *)(&extention_params.opaque_data1));
 
-	__st64dw_b(opaque_data1,
-		  (uint32_t)(&extention_params.opaque_data1));
 	extention_params.hash = (uint32_t)tman_timer_cb;
 	/* extention_params.opaque_data2_epid =
 			(uint32_t)(opaque_data2 << 16) | epid;
