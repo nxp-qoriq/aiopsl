@@ -5,6 +5,14 @@
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
 
+/** Blocking commands don't need response FD */
+#define SYNC_CMD(CMD)	\
+	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)))
+
+int cmdif_is_sync_cmd(uint16_t cmd_id) 
+{
+	 return SYNC_CMD(cmd_id);
+}
 
 int cmdif_open_cmd(struct cmdif_desc *cidesc,
                           const char *m_name,
@@ -67,7 +75,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_sync_done(struct cmdif_desc *cidesc)
+int cmdif_sync_ready(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = (struct cmdif_dev *)cidesc->dev;
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
@@ -75,6 +83,8 @@ int cmdif_sync_done(struct cmdif_desc *cidesc)
 
 int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
+	struct cmdif_dev *dev = (struct cmdif_dev *)cidesc->dev;
+
 	/* release lock as needed */
 	if (cidesc->unlock_cb)
 		cidesc->unlock_cb(cidesc->lock);
@@ -112,10 +122,57 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 	/* acquire lock as needed */
 	if (cidesc->lock_cb)
 		cidesc->lock_cb(cidesc->lock);
+	
+	return 0;
 }
 
 
 int cmdif_close_done(struct cmdif_desc *cidesc)
 {	
 	return cmdif_sync_cmd_done(cidesc);
+}
+
+int cmdif_cmd(struct cmdif_desc *cidesc,
+		uint16_t cmd_id,
+		uint32_t size,
+		uint64_t data,
+		struct cmdif_fd *fd)
+{
+	struct cmdif_dev *dev = (struct cmdif_dev *)cidesc->dev;
+
+	if ((cidesc == NULL) 
+		|| (cidesc->regs == NULL)
+		|| (cidesc->dev == NULL)) {		
+		return -EINVAL;
+	}
+	
+	fd->d_addr = data;
+	fd->d_size = size;
+	fd->u_flc.flc = 0;
+	fd->u_flc.cmd.auth_id = dev->auth_id;
+	fd->u_flc.cmd.cmid = cmd_id;
+	fd->u_flc.cmd.epid = CMDIF_EPID;
+	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
+	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
+	
+	/* acquire lock as needed */
+	if ((cidesc->lock_cb) && !(cmd_id & (CMDIF_ASYNC_CMD | CMDIF_NORESP_CMD)))
+		cidesc->lock_cb(cidesc->lock);
+
+	return 0;
+}
+
+int cmdif_async_cb(struct cmdif_fd *fd) 
+{
+	struct   cmdif_dev *dev = NULL;
+	uint64_t fd_dev         = (uint64_t)(fd->u_frc.cmd.dev_l);
+	
+	fd_dev |= (((uint64_t)(fd->u_flc.cmd.dev_h)) << 32); 
+	dev    = (struct cmdif_dev *)fd_dev;
+	
+	return dev->async_cb(dev->async_ctx, 
+	                     fd->u_flc.cmd.err,
+	                     fd->u_flc.cmd.cmid, 
+	                     fd->d_size, 
+	                     fd->d_addr);
 }

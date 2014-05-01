@@ -70,6 +70,12 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc);
 int cmdif_open_done(struct cmdif_desc *cidesc);
 int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd);
 int cmdif_close_done(struct cmdif_desc *cidesc);
-
+int cmdif_is_sync_cmd(uint16_t cmd_id);
+int cmdif_cmd(struct cmdif_desc *cidesc, 
+              uint16_t cmd_id,
+              uint32_t size,
+              uint64_t data, 
+              struct cmdif_fd *fd);
+int cmdif_async_cb(struct cmdif_fd *fd); 
 
 #endif /* __FSL_CMDIF_FLIB_H */
