@@ -24,6 +24,7 @@ extern void tman_timer_callback(void);
 #include "aiop_common.h"
 
 extern void tman_timer_callback(void);
+extern int ipr_init(void);
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
@@ -145,11 +146,19 @@ int32_t aiop_sl_init(void)
 	
 	status = sys_prpid_pool_create();
 	if (status)
-		return status; /* TODO */
+		return status; /* TODO */	
 
+#ifdef AIOP_VERIF
 	status = sys_keyid_pool_create();
-
-	return status; /* TODO */	
+	return status; /* TODO */
+#else
+	status = sys_keyid_pool_create();
+	if (status)
+		return status; /* TODO */
+	
+	status = ipr_init();
+	return status;
+#endif	
 }
 
 void aiop_sl_free(void)
