@@ -51,6 +51,7 @@
 #define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
 #define FD_SIZE					sizeof(struct ldpaa_fd)
 #define OCTET_LINK_LIST_MASK	0x07
+#define IPV4_KEY_SIZE			11
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
@@ -214,18 +215,21 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 		This function initializes two KeyIDs (one for IPv4 and one
 		for Ipv6) : IPsrc-IPdst-protocol-identification
 
-@Param[in]	max_buffers - maximum number of buffers to be used as
+Implicit:	max_buffers - maximum number of buffers to be used as
 		context buffers for all the instances.\n
 		The size of each buffer should be at least 2240 bytes.\n
 		Buffers should be aligned to 64 bytes.
-@Param[in]	flags - \link IPRInitFlags IPR init flags \endlink
+		flags - \link IPRInitFlags IPR init flags \endlink
 
 
-@Return		None.
+@Return		reflect the return value from slab_find_and_fill_bpid().
+		0       - on success,
+               -ENAVAIL - could not release into bpid
+               -ENOMEM  - not enough memory for mem_partition_id.
 
 @Cautions	None.
 *//***************************************************************************/
-void ipr_init(uint32_t max_buffers, uint32_t flags);
+int ipr_init(void);
 
 /**************************************************************************//**
 @Function	ipr_insert_to_link_list

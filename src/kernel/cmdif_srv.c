@@ -195,7 +195,9 @@ static void cmd_m_name_get(char * name)
 
 static uint8_t cmd_inst_id_get()
 {
-	return (uint8_t)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	uint64_t data = 0;
+	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	return (uint8_t)((data & INST_ID_MASK) >> INST_ID_OFF);
 }
 
 __HOT_CODE static uint16_t cmd_auth_id_get()

@@ -5,10 +5,10 @@
 #include "common/irq.h"
 #include "common/io.h"
 #include "kernel/smp.h"
-
 #include "inc/console.h"
 #include "inc/mem_mng.h"
 
+__TASK uint32_t seed_32bit;
 
 #define __ERR_MODULE__ MODULE_UNKNOWN
 
@@ -42,6 +42,15 @@ msr_enable_fp();
 
     sys_print(tmp_buf);
 #endif /* EMULATOR */
+}
+
+/*****************************************************************************/
+__HOT_CODE  uint32_t fsl_os_rand(void)
+{
+	seed_32bit = (seed_32bit>>1) ^ (-(seed_32bit & 1LL) &
+			0xFBE16801);
+
+	return seed_32bit;
 }
 
 /*****************************************************************************/
@@ -146,10 +155,10 @@ void atomic_incr8(register int8_t *var, register int8_t value)
 	asm{
 atomic_loop:
 		/* load and reserve. "var" is the address of the byte */
-		lharx orig_value, 0, var
+		lbarx orig_value, 0, var
 		/* increment word. "value" is the value to add */
 		add new_value, value, orig_value
-		sthcx. new_value, 0, var /* store new value if still reserved */
+		stbcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}
 }
@@ -218,10 +227,10 @@ void atomic_decr8(register int8_t *var, register int8_t value)
 	asm{
 atomic_loop:
 		/* load and reserve. "var" is the address of the byte */
-		lharx orig_value, 0, var
+		lbarx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
-		sub new_value, value, orig_value
-		sthcx. new_value, 0, var /* store new value if still reserved */
+		sub new_value, orig_value, value
+		stbcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}
 }
@@ -240,7 +249,7 @@ atomic_loop:
 		/* load and reserve. "var" is the address of the half-word */
 		lharx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
-		sub new_value, value, orig_value
+		sub new_value, orig_value, value
 		sthcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}
@@ -260,7 +269,7 @@ atomic_loop:
 		/* load and reserve. "var" is the address of the word */
 		lwarx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
-		sub new_value, orig_value, value 
+		sub new_value, orig_value, value
 		stwcx. new_value, 0, var /* store new value if still reserved */
 		bne - atomic_loop /* loop if lost reservation */
 	}

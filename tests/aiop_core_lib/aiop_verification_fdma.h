@@ -543,9 +543,6 @@ struct fdma_store_frame_command {
 	uint8_t	spid;
 		/** Command returned BDI flag of the Stored frame. */
 	uint8_t	BDI;
-		/** Command returned Bypass the Memory Translation of the Stored
-		 * frame flag. */
-	uint8_t	BMT;
 		/** Command returned Privilege Level of the Stored frame flag.*/
 	uint8_t	PL;
 		/** Command returned Virtual Address of the Stored frame flag.*/
@@ -553,7 +550,7 @@ struct fdma_store_frame_command {
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[3];
+	uint8_t	pad[4];
 };
 
 /**************************************************************************//**
@@ -935,6 +932,9 @@ struct fdma_concatenate_frames_command {
 		/** FDMA Concatenate frames command structure
 		 * identifier. */
 	uint32_t opcode;
+		/** Returned parameter:
+		 * AMQ attributes */
+	struct fdma_amq amq;
 		/** The handle of working frame 1. */
 	uint16_t frame1;
 		/** The handle of working frame 2. */
@@ -959,7 +959,7 @@ struct fdma_concatenate_frames_command {
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[3];
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**

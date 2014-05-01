@@ -16,9 +16,12 @@
 #include "dplib/fsl_parser.h"
 #include "system.h"
 #include "osm.h"
+#include "common/spinlock.h"
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
+__VERIF_GLOBAL uint8_t verif_only_1_task_complete;
+__VERIF_GLOBAL uint8_t verif_spin_lock;
 __VERIF_GLOBAL uint8_t verif_prpid;
 __VERIF_GLOBAL uint8_t tmi_id;
 
@@ -42,14 +45,27 @@ void init_verif()
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
+	lock_spinlock(&verif_spin_lock);
+	
 	if (!verif_prpid_valid){
+		verif_prpid_valid = 1;
+		unlock_spinlock(&verif_spin_lock);
 		aiop_sl_init();
 		aiop_verif_init_parser();
 		/* This is a temporary function and has to be used only until
 				* the ARENA will initialize the profile sram */
 		init_profile_sram();
-		verif_prpid_valid = 1;
 		gro_timeout_cb_verif(0);
+		tmi_id = 0;
+		verif_only_1_task_complete = 1;
+	}
+	else {
+		unlock_spinlock(&verif_spin_lock);
+		if (!verif_only_1_task_complete) {
+			do {
+				__e_hwacceli_(YIELD_ACCEL_ID);
+			} while (!verif_only_1_task_complete);
+		}
 	}
 
 	/* Need to save running-sum in parse-results LE-> BE */
@@ -69,7 +85,6 @@ void init_verif()
 	status_ipsec_decr = 0;
 	tcp_gso_context_addr1[0] = 0;
 	ipf_context_addr1[0] = 0;
-	tmi_id = 0;
 }
 
 __VERIF_PROFILE_SRAM struct  profile_sram profile_sram1;

@@ -44,7 +44,9 @@ static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(instance_id);
 	UNUSED(dev);
-	fsl_os_print("open_cb\n");
+	if (instance_id == 0)
+		fsl_os_print("FAILED: open_cb inst_id = 0x%x\n", instance_id);
+	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
@@ -61,7 +63,7 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
 	UNUSED(cmd);
 	UNUSED(size);
 	UNUSED(data);
-	fsl_os_print("ctrl_cb\n");
+	fsl_os_print("ctrl_cb cmd = 0x%x\n", cmd);
 	return 0;
 }
 
