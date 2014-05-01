@@ -16,7 +16,8 @@ extern void client_no_resp_cmd(struct cmdif_desc *client);
 extern void cmdif_srv_isr();
 
 __SHRAM int received_fd = 0;
-uint64_t    sync_done   = 0; 
+uint64_t sync_done;
+
 /**< DDR, server accesses it with CDMA, 4 byte is enough */
 __SHRAM struct cmdif_desc client_desc;
 /**< Client descriptor that should be passed to open */
@@ -33,8 +34,6 @@ void app_receive_cb (void)
 	
 	cdma_read(&auth_id, sync_done, 4);
 	auth_id &= 0x0000FFFF;
-	client_dev.auth_id = (uint16_t)auth_id;
-	client_desc.dev    = &client_dev;
 	
 	fsl_os_print("\n Starting test number %d\n", test_id);
 	switch (test_id) {

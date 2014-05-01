@@ -112,6 +112,11 @@ aiop_sl		</project>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
 		</link>
 		<link>
+			<name>src/cmdif_client_flib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif_client_flib.c</locationURI>
+		</link>
+		<link>
 			<name>src/cmdif_client_stub.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/cmdif_client_stub.c</locationURI>

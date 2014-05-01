@@ -1,7 +1,6 @@
 #include <fsl_cmdif_flib.h>
 #include <cmdif_client.h>
 #include <errno.h>
-
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
 
@@ -34,7 +33,6 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	if ((m_name == NULL) 
 		|| (cidesc == NULL) 
 		|| (!IS_VLD_OPEN_SIZE(size))
-		|| (cidesc->regs == NULL)
 		|| (cidesc->dev != NULL)) {		
 		return -EINVAL;
 	}

@@ -1,5 +1,3 @@
-#ifndef __CMDIF_CLIENT_H
-#define __CMDIF_CLIENT_H
 
 /* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
@@ -7,7 +5,10 @@
  *  @brief   Cmdif client AIOP<->GPP internal header file
  */
 
+#ifndef __CMDIF_CLIENT_H
+#define __CMDIF_CLIENT_H
 
+#include <fsl_aiop_cmdif.h>
 
 /* Common settings for Server and Client */
 #define CMD_ID_OPEN        0x8000
