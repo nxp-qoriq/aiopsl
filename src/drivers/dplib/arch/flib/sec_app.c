@@ -10,6 +10,9 @@
 #include "cdma.h"
 
 #include "sec_app.h"
+
+#ifndef IPSEC_DONT_USE_SEC_APP
+
 #include "ipsec_test_vector.h"
 
 //enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
@@ -199,4 +202,4 @@ void sec_run_desc_free(void)
     /* TODO - complete!*/
 }
 
-
+#endif /* IPSEC_DONT_USE_SEC_APP */

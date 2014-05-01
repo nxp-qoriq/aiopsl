@@ -37,7 +37,10 @@
 */
 
 #include "rta.h"
+
+#ifndef AIOPSL_IPSEC_DEBUG
 #include "protoshared.h"
+#endif
 
 /* SEC Era version for RTA */
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;

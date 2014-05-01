@@ -229,11 +229,15 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 	return start_pc;
 }
 
+
 static inline int set_move_offset(struct program *program, uint64_t src,
 				  uint16_t src_offset, uint64_t dst,
 				  uint16_t dst_offset, uint16_t *offset,
 				  uint16_t *opt)
 {
+	
+	struct program *dummy = program;  // Yariv, to eliminate warning
+	
 	switch (src) {
 	case (_CONTEXT1):
 	case (_CONTEXT2):

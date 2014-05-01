@@ -3,6 +3,10 @@
 //#include "flib/protoshared.h"
 #include "desc.h"
 #include "jobdesc.h"
+
+#define IPSEC_DONT_USE_SEC_APP
+
+#ifndef IPSEC_DONT_USE_SEC_APP
 #include "protoshared.h"
 
 #define DES_BLOCK_SIZE	8
@@ -133,3 +137,4 @@ static inline void cnstr_jd_ipsec_new_encap(uint32_t *descbuf,
 	PATCH_HDR(phdr, hdr);
 	*bufsize = PROGRAM_FINALIZE();
 }
+#endif /* IPSEC_DONT_USE_SEC_APP */
