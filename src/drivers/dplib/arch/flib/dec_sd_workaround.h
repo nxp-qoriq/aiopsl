@@ -19,7 +19,21 @@ ws_shared_desc[14] = 0x010b1186;
 *sd_size = 15; // In words
 
 /* Insert Key address from application */
+/*
+SEC expects descriptors (including inline value to descriptor command)  
+to be read from memory in LE. This is at 32bit boundary.
+Currently, 64bit address interpretation is as below
+Descriptor n      => MS 32bit
+Descriptor n+1 => LS   32bit
+But both descriptors  n, n+1 is in LE; as LE to BE is done for 
+each entry(32 bit) in descriptor buffer.
+*/
+uint32_t *key_word;
+key_word = (uint32_t *)(&(params->authdata.key));
+ws_shared_desc[12] = LW_SWAP(key_word + 0); // MSW
+ws_shared_desc[13] = LW_SWAP(key_word + 1); // LSW
 
+/*
 uint32_t *swapped_key_ptr;
 uint8_t *input_p;
 uint8_t output[8];
@@ -41,6 +55,7 @@ ws_shared_desc[12] = *swapped_key_ptr;
 
 swapped_key_ptr = (uint32_t *)(&(output[4]));
 ws_shared_desc[13] = *swapped_key_ptr;
+*/
 
 /*
 >>>>>> Dump disassembled DECAP descriptor (Big Endian):

@@ -65,10 +65,22 @@ ws_shared_desc[14] = LW_SWAP(params->encparams.outer_hdr + 4);
 //uint64_t tmp_swapped_key_addr;
 //tmp_swapped_key_addr = LLLDW_SWAP((params->authdata.key));
 
-//uint64_t tmp = 17;
-//uint64_t tmp_swapped;
-//tmp_swapped = LLLDW_SWAP(&tmp);
+/*
+SEC expects descriptors (including inline value to descriptor command)  
+to be read from memory in LE. This is at 32bit boundary.
+Currently, 64bit address interpretation is as below
+Descriptor n      => MS 32bit
+Descriptor n+1 => LS   32bit
+But both descriptors  n, n+1 is in LE; as LE to BE is done for 
+each entry(32 bit) in descriptor buffer.
+*/
 
+uint32_t *key_word;
+key_word = (uint32_t *)(&(params->authdata.key));
+ws_shared_desc[17] = LW_SWAP(key_word + 0); // MSW
+ws_shared_desc[18] = LW_SWAP(key_word + 1); // LSW
+
+/*
 uint32_t *swapped_key_ptr;
 uint8_t *input_p;
 uint8_t output[8];
@@ -90,7 +102,7 @@ ws_shared_desc[17] = *swapped_key_ptr;
 
 swapped_key_ptr = (uint32_t *)(&(output[4]));
 ws_shared_desc[18] = *swapped_key_ptr;
-
+*/
 
 /*
 >>>>>> Dump disassembled  ENCAP descriptor (Big Endian) :
