@@ -372,8 +372,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		return IPR_ERROR;
 	}
 
-	status_insert_to_LL =
-		  ipr_insert_to_link_list(&rfdc, rfdc_ext_addr);
+	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
+												  ipv4hdr_offset,
+												  ipv4hdr_ptr);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
@@ -465,25 +466,21 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 }
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr)
+							     uint64_t rfdc_ext_addr, 
+							     uint16_t ipv4hdr_offset,
+							     struct	ipv4hdr	*ipv4hdr_ptr)
 {
 
 	uint8_t			current_index;
 	uint16_t		frag_offset_shifted;
-	uint16_t		ipv4hdr_offset;
 	uint16_t		current_frag_size;
 	uint16_t		expected_frag_offset;
 	uint16_t		ip_header_size;
 	uint64_t		ext_addr;
 	/* todo reuse ext_addr for current_element_ext_addr */
 	uint64_t		current_element_ext_addr;
-	struct	ipv4hdr		*ipv4hdr_ptr;
 	struct link_list_element	current_element;
 	struct	parse_result	*pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-
-	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ipv4hdr_ptr = (struct ipv4hdr *)
-			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
 	frag_offset_shifted = (ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_MASK)<<3;
 
