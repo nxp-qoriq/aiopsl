@@ -30,6 +30,8 @@ void aiop_verification_fm()
 	uint64_t initial_ext_address;	/* Initial External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
+	
+	init_verif();
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
@@ -58,8 +60,6 @@ void aiop_verification_fm()
 				* the ni function will be run.
 				* (According to Ilan request) */
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-
-	init_verif();
 
 	/* The Terminate command will finish the verification */
 	do {

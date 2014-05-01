@@ -215,18 +215,21 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 		This function initializes two KeyIDs (one for IPv4 and one
 		for Ipv6) : IPsrc-IPdst-protocol-identification
 
-@Param[in]	max_buffers - maximum number of buffers to be used as
+Implicit:	max_buffers - maximum number of buffers to be used as
 		context buffers for all the instances.\n
 		The size of each buffer should be at least 2240 bytes.\n
 		Buffers should be aligned to 64 bytes.
-@Param[in]	flags - \link IPRInitFlags IPR init flags \endlink
+		flags - \link IPRInitFlags IPR init flags \endlink
 
 
-@Return		None.
+@Return		reflect the return value from slab_find_and_fill_bpid().
+		0       - on success,
+               -ENAVAIL - could not release into bpid
+               -ENOMEM  - not enough memory for mem_partition_id.
 
 @Cautions	None.
 *//***************************************************************************/
-void ipr_init(uint32_t max_buffers, uint32_t flags);
+int ipr_init(void);
 
 /**************************************************************************//**
 @Function	ipr_insert_to_link_list
@@ -242,7 +245,9 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr);
+							     uint64_t rfdc_ext_addr, 
+							     uint16_t ipv4hdr_offset,
+							     struct	ipv4hdr	*ipv4hdr_ptr);
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
 

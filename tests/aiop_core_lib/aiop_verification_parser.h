@@ -38,7 +38,8 @@ enum parser_verif_cmd_type {
 	PARSER_GEN_PARSE_RES_EXP_VERIF_CMDTYPE,
 	PARSER_PRP_ID_POOL_CREATE_VERIF_CMDTYPE,
 	PARSER_INIT_FOR_VERIF_CMDTYPE,
-	PARSER_MACROS_VERIF_CMDTYPE
+	PARSER_MACROS_VERIF_CMDTYPE,
+	PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((PARSE_MODULE << 16) | \
@@ -67,6 +68,9 @@ enum parser_verif_cmd_type {
 
 #define PARSER_MACROS_STR ((PARSE_MODULE << 16) | \
 					PARSER_MACROS_VERIF_CMDTYPE)
+
+#define PARSER_GEN_PARSE_RES_CHECKSUM_STR ((PARSE_MODULE << 16) | \
+					PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE)
 
 /**************************************************************************//**
 @Description	Parser verification init Command structure.
@@ -133,6 +137,21 @@ struct parser_prp_replace_verif_command {
 	uint32_t parse_profile;
 	uint8_t  prpid;
 	uint8_t  pad[3];
+};
+
+/**************************************************************************//**
+@Description	Parser Generate Parser Results Checksum Command structure.
+
+		Includes information needed for Parser Commands verification.
+*//***************************************************************************/
+struct parser_gen_parser_res_checksum_verif_command {
+	uint32_t          opcode;
+	int32_t           status;
+	uint16_t		  hxs;
+	uint16_t		  l3_checksum;
+	/*uint16_t		  l4_checksum;*/
+	uint8_t           offset;
+	uint8_t           pad[3];
 };
 
 /**************************************************************************//**

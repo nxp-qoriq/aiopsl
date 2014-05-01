@@ -510,7 +510,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* calculate tcp data checksum for the new frame */
 	agg_checksum = gro_ctx->checksum;
 	gro_ctx->checksum = 0;
-	if ((gro_ctx->internal_flags & ~TCP_GRO_FLUSH_AGG_SET) &&
+	if (~(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) &&
 		(gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM))
 		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
@@ -696,11 +696,6 @@ int32_t tcp_gro_flush_aggregation(
 	/* reset gro context fields */
 	gro_ctx.metadata.seg_num = 0;
 	gro_ctx.internal_flags = 0;
-	/* write gro context back to DDR + release mutex */
-	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
-				CDMA_POSTDMA_MUTEX_RM_BIT,
-				(void *)&gro_ctx,
-				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
@@ -748,6 +743,12 @@ int32_t tcp_gro_flush_aggregation(
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
+
+	/* write gro context back to DDR + release mutex */
+	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+				CDMA_POSTDMA_MUTEX_RM_BIT,
+				(void *)&gro_ctx,
+				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* update statistics */
 	ste_inc_counter(gro_ctx.params.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET
@@ -810,11 +811,6 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	/* reset gro context fields */
 	gro_ctx.metadata.seg_num = 0;
 	gro_ctx.internal_flags = 0;
-	/* write gro context back to DDR + release mutex */
-	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
-				CDMA_POSTDMA_MUTEX_RM_BIT,
-				(void *)&gro_ctx,
-				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
@@ -861,6 +857,12 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
+
+	/* write gro context back to DDR + release mutex */
+	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+				CDMA_POSTDMA_MUTEX_RM_BIT,
+				(void *)&gro_ctx,
+				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* update statistics */
 	ste_inc_counter(gro_ctx.params.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET

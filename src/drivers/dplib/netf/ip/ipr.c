@@ -23,18 +23,39 @@
 #include "ipr.h"
 #include "cdma.h"
 
+#ifdef AIOP_VERIF
+#include "slab_stub.h"
+#else
+#include "slab.h"
+#endif
 
 struct  ipr_global_parameters ipr_global_parameters1;
 
-void ipr_init(uint32_t max_buffers, uint32_t flags)
+int ipr_init(void)
 {
 	struct kcr_builder kb;
+	uint16_t bpid;
+	int num_filled_buffs, status;
+	uint32_t max_buffers = 1000;
+	/* flags: IPR_MODE_TABLE_LOCATION_PEB */
+	uint32_t flags = 0x02000000;
 
-	/* todo call ARENA function for allocating buffers needed to IPR
+	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
-	ipr_global_parameters1.ipr_pool_id = 1;
+	status = slab_find_and_fill_bpid(max_buffers,
+				    IPR_CONTEXT_SIZE,
+	                            8,
+	                            MEM_PART_1ST_DDR_NON_CACHEABLE,
+	                            &num_filled_buffs,
+	                            &bpid);
+	
+	if (status < 0)
+		return status;
+
+	ipr_global_parameters1.ipr_pool_id = (uint8_t)bpid;                            
 	ipr_global_parameters1.ipr_buffer_size = IPR_CONTEXT_SIZE;
-	ipr_global_parameters1.ipr_avail_buffers_cntr = max_buffers;
+	ipr_global_parameters1.ipr_avail_buffers_cntr = \
+			(uint32_t)num_filled_buffs;
 	ipr_global_parameters1.ipr_table_location = (uint8_t)(flags>>24);
 	ipr_global_parameters1.ipr_timeout_flags = (uint8_t)(flags>>16);
 	ipr_global_parameters1.ipr_instance_spin_lock = 0;
@@ -51,6 +72,8 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
 			  &ipr_global_parameters1.ipr_key_id_ipv4);
+	
+	return 0;
 }
 
 int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
@@ -310,8 +333,15 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    rfdc.next_index 		   = 0;
 		    rfdc.current_total_length  = 0;
 		    rfdc.first_frag_index 	   = 0;
+		    rfdc.num_of_frags		   = 0;
+		    /* todo check if necessary */
+		    rfdc.biggest_payload	   = 0;
+		    rfdc.current_running_sum   = 0;
+		    rfdc.first_frag_offset     = 0;
+		    rfdc.last_frag_index       = 0;
+		    rfdc.total_in_order_payload = 0;
 		    get_default_amq_attributes(&rfdc.isolation_bits);
-
+		    
 		    /* create Timer in TMAN */
 /*
 		    tman_create_timer(instance_params.tmi_id,
@@ -342,8 +372,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		return IPR_ERROR;
 	}
 
-	status_insert_to_LL =
-		  ipr_insert_to_link_list(&rfdc, rfdc_ext_addr);
+	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
+												  ipv4hdr_offset,
+												  ipv4hdr_ptr);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
@@ -435,25 +466,21 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 }
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr)
+							     uint64_t rfdc_ext_addr, 
+							     uint16_t ipv4hdr_offset,
+							     struct	ipv4hdr	*ipv4hdr_ptr)
 {
 
 	uint8_t			current_index;
 	uint16_t		frag_offset_shifted;
-	uint16_t		ipv4hdr_offset;
 	uint16_t		current_frag_size;
 	uint16_t		expected_frag_offset;
 	uint16_t		ip_header_size;
 	uint64_t		ext_addr;
 	/* todo reuse ext_addr for current_element_ext_addr */
 	uint64_t		current_element_ext_addr;
-	struct	ipv4hdr		*ipv4hdr_ptr;
 	struct link_list_element	current_element;
 	struct	parse_result	*pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-
-	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ipv4hdr_ptr = (struct ipv4hdr *)
-			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
 	frag_offset_shifted = (ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_MASK)<<3;
 
