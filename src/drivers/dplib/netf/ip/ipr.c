@@ -23,18 +23,39 @@
 #include "ipr.h"
 #include "cdma.h"
 
+#ifdef AIOP_VERIF
+#include "slab_stub.h"
+#else
+#include "slab.h"
+#endif
 
 struct  ipr_global_parameters ipr_global_parameters1;
 
-void ipr_init(uint32_t max_buffers, uint32_t flags)
+int ipr_init(void)
 {
 	struct kcr_builder kb;
+	uint16_t bpid;
+	int num_filled_buffs, status;
+	uint32_t max_buffers = 1000;
+	/* flags: IPR_MODE_TABLE_LOCATION_PEB */
+	uint32_t flags = 0x02000000;
 
-	/* todo call ARENA function for allocating buffers needed to IPR
+	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
-	ipr_global_parameters1.ipr_pool_id = 1;
+	status = slab_find_and_fill_bpid(max_buffers,
+				    IPR_CONTEXT_SIZE,
+	                            8,
+	                            MEM_PART_1ST_DDR_NON_CACHEABLE,
+	                            &num_filled_buffs,
+	                            &bpid);
+	
+	if (status < 0)
+		return status;
+
+	ipr_global_parameters1.ipr_pool_id = (uint8_t)bpid;                            
 	ipr_global_parameters1.ipr_buffer_size = IPR_CONTEXT_SIZE;
-	ipr_global_parameters1.ipr_avail_buffers_cntr = max_buffers;
+	ipr_global_parameters1.ipr_avail_buffers_cntr = \
+			(uint32_t)num_filled_buffs;
 	ipr_global_parameters1.ipr_table_location = (uint8_t)(flags>>24);
 	ipr_global_parameters1.ipr_timeout_flags = (uint8_t)(flags>>16);
 	ipr_global_parameters1.ipr_instance_spin_lock = 0;
@@ -51,6 +72,8 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
 			  &ipr_global_parameters1.ipr_key_id_ipv4);
+	
+	return 0;
 }
 
 int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
