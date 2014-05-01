@@ -510,7 +510,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* calculate tcp data checksum for the new frame */
 	agg_checksum = gro_ctx->checksum;
 	gro_ctx->checksum = 0;
-	if ((gro_ctx->internal_flags & ~TCP_GRO_FLUSH_AGG_SET) &&
+	if (~(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) &&
 		(gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM))
 		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
