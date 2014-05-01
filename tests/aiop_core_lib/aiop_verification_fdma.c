@@ -218,8 +218,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->icid = amq.icid;
 		str->BDI = (uint8_t)
 			(amq.flags & FDMA_ICID_CONTEXT_BDI);
-		str->BMT = (uint8_t)
-			(amq.flags & FDMA_ICID_CONTEXT_BMT);
 		str->PL = (uint8_t)
 			(amq.flags & FDMA_ICID_CONTEXT_PL);
 		str->VA = (uint8_t)
@@ -438,6 +436,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		params.spid	= str->spid;
 		params.trim	= str->trim;
 		str->status = (int8_t)fdma_concatenate_frames(&params);
+		str->amq = params.amq;
 		str_size = (uint16_t)
 				sizeof(struct fdma_concatenate_frames_command);
 		break;
