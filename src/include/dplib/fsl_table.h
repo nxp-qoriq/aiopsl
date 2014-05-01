@@ -314,30 +314,30 @@ A general bit that is set in some errors conditions */
 /** Table function input or output is erroneous  */
 #define TABLE_IO_ERROR		0x80000001
 
-/** CTLU Lookup Miss.
+/** Table Lookup Miss.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
-#define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
-
+#define CTLU_STATUS_MISS	0x00000800
+//todo
 /** Key Composition Error.
  * This status is set when a key composition error occurs, meaning one of the
  * following:
  * - Invalid Key Composition ID was used.
  * - Key Size Error.
  * */
-#define CTLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
+#define TABLE_STATUS_KSE	0x00000400
 
 /** Extract Out Of Frame Header.
  * This status is set if key composition attempts to extract a field which is
  * not in the frame header either because it is placed beyond the first 256
  * bytes of the frame, or because the frame is shorter than the index evaluated
  * for the extraction. */
-#define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
+#define TABLE_STATUS_EOFH	0x00000200
 
 /** Maximum Number Of Chained Lookups Is Reached.
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. */
-#define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
+#define TABLE_STATUS_MNLE	0x00000100
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
@@ -359,31 +359,6 @@ A general bit that is set in some errors conditions */
  * */
 #define CTLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						TABLE_STATUS_MGCF)
-
-/** MFLU Lookup Miss.
- * This status is set when a matching rule is not found. Note that on chained
- * lookups this status is set only if the last lookup results in a miss. */
-#define MFLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_MFLU << 24))
-
-/** Key Composition Error.
- * This status is set when a key composition error occurs meaning one of the
- * following:
- * - Invalid Key Composition ID was used.
- * - Key Size Error.
- * */
-#define MFLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_MFLU << 24))
-
-/** Extract Out Of Frame Header.
- * This status is set if key composition attempts to extract a field which is
- * not in the frame header either because it is placed beyond the first 256
- * bytes of the frame, or because the frame is shorter than the index evaluated
- * for the extraction. */
-#define MFLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_MFLU << 24))
-
-/** Maximum Number Of Chained Lookups Is Reached.
- * This status is set if the number of table lookups performed by the MFLU
- * reached the threshold. */
-#define MFLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_MFLU << 24))
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
