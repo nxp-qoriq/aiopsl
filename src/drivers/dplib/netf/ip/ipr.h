@@ -35,7 +35,9 @@
 #define START_CONCURRENT		0x00000002
 #define	RESET_MF_BIT			0xDFFF
 #define NO_ERROR				0
-#define IPR_CONTEXT_SIZE		2624
+#define IPR_CONTEXT_SIZE		2688
+#define START_OF_LINK_LIST		RFDC_SIZE+RFDC_EXTENSION_SIZE
+#define START_OF_FDS_LIST		START_OF_LINK_LIST+LINK_LIST_SIZE
 #define LINK_LIST_ELEMENT_SIZE	sizeof(struct link_list_element)
 #define LINK_LIST_OCTET_SIZE	8*LINK_LIST_ELEMENT_SIZE
 #define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
@@ -48,7 +50,9 @@
 #define REF_COUNT_ADDR_DUMMY	HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 #define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
 #define RFDC_SIZE				sizeof(struct ipr_rfdc)
-#define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
+#define RFDC_EXTENSION_SIZE		sizeof(struct extended_ipr_rfc)
+#define RFDC_EXTENSION_TRUNCATED_SIZE		(sizeof(struct extended_ipr_rfc)-\
+											sizeof(ipv6_key::extended_ipr_rfc))
 #define FD_SIZE					sizeof(struct ldpaa_fd)
 #define OCTET_LINK_LIST_MASK	0x07
 #define IPV4_KEY_SIZE			11
@@ -95,12 +99,12 @@ struct ipr_instance {
 
 #pragma pack(push,1)
 struct ipr_rfdc{
+	/* 64 bytes */
 	uint64_t	instance_handle;
 	uint32_t	timer_handle;
 	uint16_t	expected_total_length;
 	uint16_t	current_total_length;
 	uint16_t	first_frag_offset;
-//	uint16_t	last_frag_offset;
 	uint16_t	biggest_payload;
 	uint16_t	current_running_sum;
 	uint8_t		first_frag_index;
@@ -119,8 +123,9 @@ struct ipr_rfdc{
 
 #pragma pack(push,1)
 struct extended_ipr_rfc{
-	uint64_t	ipv6_key[4];
-	uint32_t	ipv6_key_cont;
+	/* 64 bytes */
+	uint32_t	ipv6_key[10];
+	uint32_t	res[6];
 };
 #pragma pack(pop)
 
