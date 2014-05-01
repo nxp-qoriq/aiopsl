@@ -17,6 +17,12 @@
 #include "ipsec.h"
 #include "cdma.h"
 
+#ifdef AIOP_VERIF
+#include "slab_stub.h"
+#else
+#include "slab.h"
+#endif /* AIOP_VERIF */
+
 /* Use this define to override the RTA and use a fixed debug descriptor */
 #define AIOPSL_IPSEC_DEBUG
 
@@ -61,6 +67,62 @@ int32_t ipsec_init(uint32_t max_sa_no) {
 
 	return 0;
 } /* End of ipsec_init */
+
+
+/**************************************************************************//**
+*	ipsec_create_instance
+*//****************************************************************************/
+int32_t ipsec_create_instance(
+		uint32_t max_sa_num,
+		ipsec_instance_handle_t *instance_handle)
+{
+	int32_t return_val;
+
+	// max_sa_num for desc BPID size 512, alignment 64 B 
+	// max_sa_num for keys BPID
+	// max_sa_num for IPv6 outer header
+	// max num of tasks for ASA 
+	
+	uint16_t desc_bpid;
+	int num_filled_buffs;
+	
+	/**************************************************************************//**
+	 @Function      slab_find_and_fill_bpid
+
+	 @Param[in]     num_buffs           Number of buffers in new pool.
+	 @Param[in]     buff_size           Size of buffers in pool.
+	 @Param[in]     alignment           Requested alignment for data field (in bytes).
+	                                    AIOP: HW pool supports up to 8 bytes alignment.
+	 @Param[in]     mem_partition_id    Memory partition ID for allocation.
+	                                    AIOP: HW pool supports only PEB and DPAA DDR.
+	 @Param[out]    num_filled_buffs    Number of buffers that we succeeded to fill.
+	 @Param[out]    bpid                Id if the buffer that was filled with new buffers.
+
+	 @Return        0       - on success,
+	               -ENAVAIL - could not release into bpid
+	               -ENOMEM  - not enough memory for mem_partition_id
+	 *//***************************************************************************/
+	
+	/* Descriptor and Instance Buffers */
+	return_val = slab_find_and_fill_bpid(
+			(max_sa_num + 1), /* uint32_t num_buffs */
+            512, /* uint16_t buff_size */
+            64, /* uint16_t alignment */
+            1, /* TODO: TMP. uint8_t  mem_partition_id */
+            &num_filled_buffs, /* int *num_filled_buffs */
+            &desc_bpid); /* uint16_t *bpid */
+	
+	/* Allocate a buffer for the instance */
+	return_val = (int32_t)cdma_acquire_context_memory(
+		desc_bpid,
+		instance_handle); /* context_memory */ 
+	
+	// TODO: check for allocation error
+	
+	return 0; // TMP
+}
+
+
 
 /**************************************************************************//**
 @Function		ipsec_generate_encap_sd 
