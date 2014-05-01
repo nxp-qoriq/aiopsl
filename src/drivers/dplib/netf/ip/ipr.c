@@ -208,16 +208,16 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* todo rule should be aligned to 16 bytes */
 	struct table_rule rule;
 
-	if(PARSER_IS_OUTER_IPV4_DEFAULT()) {
+/*	if(PARSER_IS_OUTER_IPV4_DEFAULT()) { */
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-	} else {
+/*	} else { */
 		/* IPv6 */
 		ipv6hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		ipv6hdr_ptr = (struct ipv6hdr *)
 				(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-	}
+//	}
 //	ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 //	iphdr_ptr = (struct ipv4hdr *)(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 	
