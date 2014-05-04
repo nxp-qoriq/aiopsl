@@ -1,5 +1,5 @@
 /**************************************************************************//**
-@File		aiop_verification_TABLE.h
+@File		aiop_verification_table.h
 
 @Description	This file contains the AIOP Table SW Verification Structures
 
@@ -24,11 +24,12 @@ enum table_verif_cmd_type {
 	TABLE_RULE_REPLACE_VERIF_CMDTYPE,
 	TABLE_RULE_DELETE_VERIF_CMDTYPE,
 	TABLE_RULE_QUERY_VERIF_CMDTYPE,
-	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
+	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
 	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
 	TABLE_HW_ACCEL_ACQUIRE_LOCK_CMDTYPE,
-	TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE
+	TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE,
+	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE
 };
 
 /* CTLU Commands Structure identifiers */
@@ -73,9 +74,14 @@ enum table_verif_cmd_type {
 #define TABLE_RULE_QUERY_CMD_STR	((TABLE_MODULE << 16) | \
 					TABLE_RULE_QUERY_VERIF_CMDTYPE)
 
-/** Table lookup by keyID */
+/** Table lookup by keyID and default frame */
+#define TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_CMD_STR	\
+	((TABLE_MODULE << 16) | \
+	 TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_VERIF_CMDTYPE)
+
+/** Table lookup by keyID and default frame */
 #define TABLE_LOOKUP_BY_KEYID_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
+					TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
 
 /** Table lookup by explicit key */
 #define TABLE_LOOKUP_BY_KEY_CMD_STR		((TABLE_MODULE << 16) | \
@@ -376,33 +382,6 @@ struct table_rule_query_command{
 	enum table_hw_accel_id acc_id;
 };
 
-
-/**************************************************************************//**
-@Description	CTLU Table Lookup by KeyID Command structure.
-
-		Includes information needed for CTLU Table Lookup by KeyID
-		command verification.
-*//***************************************************************************/
-struct table_lookup_by_keyid_command{
-	/** CTLU Lookup by KeyID identifier */
-	uint32_t opcode;
-
-	/** The structure returned to the caller upon a successful lookup */
-	struct table_lookup_result lookup_result;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Key ID */
-	uint8_t key_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
 /**************************************************************************//**
 @Description	CTLU Table Lookup by Explicit Key Command structure.
 
@@ -431,6 +410,64 @@ struct table_lookup_by_key_command{
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
 
+};
+
+/**************************************************************************//**
+@Description	CTLU Table Lookup by KeyID Default Frame Command structure.
+
+		Includes information needed for CTLU Table Lookup by KeyID
+		Default Frame command verification.
+*//***************************************************************************/
+struct table_lookup_by_keyid_default_frame_command{
+	/** CTLU Lookup by KeyID identifier */
+	uint32_t opcode;
+
+	/** The structure returned to the caller upon a successful lookup */
+	struct table_lookup_result lookup_result;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Key ID */
+	uint8_t key_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+/**************************************************************************//**
+@Description	CTLU Table Lookup by KeyID Command structure.
+
+		Includes information needed for CTLU Table Lookup by KeyID
+		command verification.
+*//***************************************************************************/
+struct table_lookup_by_keyid_command{
+	/** CTLU Lookup by KeyID identifier */
+	uint32_t opcode;
+
+	/** The structure returned to the caller upon a successful lookup */
+	struct table_lookup_result lookup_result;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/** Flags to this command */
+	uint32_t flags;
+
+	/** Non Default Parameters for this command */
+	struct table_lookup_non_default_params ndf_params;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Key ID */
+	uint8_t key_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
 };
 
 /**************************************************************************//**
