@@ -425,7 +425,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					    &rule,
 					    keysize);
 			    /* write key in RDFC Extension */
-			    cdma_write(rfdc_ext_addr,
+			    cdma_write(rfdc_ext_addr+RFDC_SIZE,
 			    		   &rule.key_desc.em.key,
 			    		   RFDC_EXTENSION_TRUNCATED_SIZE);
 			    
@@ -625,8 +625,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		ip_header_size = (uint16_t)
 				((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
 		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
-		last_fragment = (uint8_t)(~(ipv4hdr_ptr->flags_and_offset &
-										IPV4_HDR_M_FLAG_MASK));
+		last_fragment = !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK);
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
@@ -638,8 +637,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		ip_header_size = ((uint16_t)((uint32_t)ipv6fraghdr_ptr - 
 							(uint32_t)ipv6hdr_ptr)) + 8;
 		current_frag_size = ipv6hdr_ptr->payload_length - ip_header_size;
-		last_fragment = (uint8_t)(~(ipv6fraghdr_ptr->offset_and_flags & 
-									IPV6_HDR_M_FLAG_MASK));
+		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
+							IPV6_HDR_M_FLAG_MASK);
 	}
 	
 	if (frag_offset_shifted != 0) {
@@ -669,7 +668,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->current_total_length += current_frag_size;
 			
 			if(PARSER_IS_OUTER_IPV4_DEFAULT())
-				check_remove_padding(iphdr_offset,ipv4hdr_ptr);
+				check_remove_padding();
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data();
 
@@ -724,7 +723,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						   LINK_LIST_ELEMENT_SIZE);
 				
 				if(PARSER_IS_OUTER_IPV4_DEFAULT())
-					check_remove_padding(iphdr_offset,ipv4hdr_ptr);
+					check_remove_padding();
 				/* Close current frame before storing FD */
 				fdma_store_default_frame_data();
 
@@ -926,8 +925,9 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length + 
 								  ip_header_size;
-	/* todo update ipv6fraghdr_ptr->next_header to right place */
-	//	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr, 2)=ipv6fraghdr_ptr->next_header;
+	/* Move next header of fragment header to previous extension header */
+	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,FRAGMENT_REQUEST)=
+												ipv6fraghdr_ptr->next_header;
 	/* Remove fragment header extension */
 	fdma_delete_default_segment_data(ipv6fraghdr_offset,
 									 8,
@@ -1109,9 +1109,11 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 	}
 }
 
-void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr)
+void check_remove_padding()
 {
 	uint8_t			delta;
+	uint16_t 		ipv4hdr_offset;
+	struct ipv4hdr *ipv4hdr_ptr;
 	void 			*tail_frame_ptr;
 	struct fdma_present_segment_params params;
 	
@@ -1156,7 +1158,6 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	uint8_t						temp_index_in_octet;
 	uint8_t						new_frag_index_in_octet;
 	uint16_t					temp_total_payload;
-	uint16_t					ipv4hdr_offset;
 	int32_t						sr_status;
 	uint64_t					current_element_ext_addr;
 	uint64_t					temp_element_ext_addr;
@@ -1269,10 +1270,10 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
                 rfdc_ptr->current_total_length += current_frag_size;
                 rfdc_ptr->num_of_frags++;
 				
-				ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+//				ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
 				if(PARSER_IS_OUTER_IPV4_DEFAULT())
-					check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+					check_remove_padding();
 				/* Close current frame before storing FD */
 				fdma_store_default_frame_data();
 
@@ -1406,9 +1407,9 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
         	}
     }
 
-		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+//		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
-		check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+		check_remove_padding();
 		/* Close current frame before storing FD */
 		fdma_store_default_frame_data();
 	
