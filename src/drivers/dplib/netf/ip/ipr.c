@@ -22,6 +22,8 @@
 #include "checksum.h"
 #include "ipr.h"
 #include "cdma.h"
+#include "ip.h"
+
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -246,31 +248,36 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 {
-	uint16_t ipv4hdr_offset;
-	uint16_t ipv6hdr_offset;
+	uint16_t iphdr_offset;
 	uint32_t status_insert_to_LL;
 	uint32_t osm_status;
 	uint64_t rfdc_ext_addr;
 	int32_t  sr_status;
+	uint32_t status;
 	uint8_t	 keysize;
+	void * iphdr_ptr;
 	struct ipr_rfdc rfdc;
-	struct	ipv4hdr	*ipv4hdr_ptr;
-	struct	ipv6hdr	*ipv6hdr_ptr;
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
 	struct table_lookup_result lookup_result;
 	/* todo rule should be aligned to 16 bytes */
 	struct table_rule rule;
 
-/*	if(PARSER_IS_OUTER_IPV4_DEFAULT()) { */
-	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ipv4hdr_ptr = (struct ipv4hdr *)
-			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-/*	} else { */
+	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
+
+
+//	if(PARSER_IS_OUTER_IPV4_DEFAULT()) { 
+	//	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	//	ipv4hdr_ptr = (struct ipv4hdr *)
+	//		(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+//		iphdr_ptr = (struct ipv4hdr *)(ip_offset + PRC_GET_SEGMENT_ADDRESS());
+//	} else {
 		/* IPv6 */
-		ipv6hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		ipv6hdr_ptr = (struct ipv6hdr *)
-				(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+//		ipv6hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+//		ipv6hdr_ptr = (struct ipv6hdr *)
+//				(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+//		iphdr_ptr = (struct ipv6hdr *)(ip_offset + PRC_GET_SEGMENT_ADDRESS());	
 //	}
 //	ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 //	iphdr_ptr = (struct ipv4hdr *)(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -312,12 +319,19 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 	if (check_for_frag_error() == NO_ERROR) {
 		/* Good fragment */
+		if(PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		sr_status = table_lookup_by_keyid_default_frame(
 				TABLE_ACCEL_ID_CTLU,
 				instance_params.table_id_ipv4,
 				ipr_global_parameters1.ipr_key_id_ipv4,
 				&lookup_result);
-		/* todo new ctlu api CTLU_STATUS_SUCCESS*/
+		} else {
+			sr_status = table_lookup_by_keyid_default_frame(
+					TABLE_ACCEL_ID_CTLU,
+					instance_params.table_id_ipv6,
+					ipr_global_parameters1.ipr_key_id_ipv6,
+					&lookup_result);
+		}
 		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
 			rfdc_ext_addr =
@@ -371,16 +385,17 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					0);  */
 		    /* Add entry to TLU table */
 		    /* Generate key */
+		    rule.options = 0;
+		    rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
+		    rule.result.op0_rptr_clp.reference_pointer =
+				    rfdc_ext_addr;
+
+		    if(PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
 				    ipr_global_parameters1.ipr_key_id_ipv4,
 				    0,
 				    &rule.key_desc,
 				    &keysize);
-		    
-		    rule.options = 0;
-		    rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-		    rule.result.op0_rptr_clp.reference_pointer =
-				    rfdc_ext_addr;
 		    table_rule_create(
 				    TABLE_ACCEL_ID_CTLU,
 				    instance_params.table_id_ipv4,
@@ -389,6 +404,41 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    /* store key in RDFC */
 		    rfdc.ipv4_key[0] = *(uint64_t *)rule.key_desc.em.key;
 		    rfdc.ipv4_key[1] = *(uint64_t *)(rule.key_desc.em.key+8);
+		    
+		    /* Increment no of IPv4 open frames in instance
+		       data structure */
+		     ste_inc_counter(instance_handle+
+							 offsetof(struct ipr_instance,
+							 num_of_open_reass_frames_ipv4),
+							 1,
+							 STE_MODE_32_BIT_CNTR_SIZE);
+
+		    } else {
+			    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
+					    ipr_global_parameters1.ipr_key_id_ipv6,
+					    0,
+					    &rule.key_desc,
+					    &keysize);	
+			    table_rule_create(
+					    TABLE_ACCEL_ID_CTLU,
+					    instance_params.table_id_ipv6,
+					    &rule,
+					    keysize);
+			    /* write key in RDFC Extension */
+			    cdma_write(rfdc_ext_addr+RFDC_SIZE,
+			    		   &rule.key_desc.em.key,
+			    		   RFDC_EXTENSION_TRUNCATED_SIZE);
+			    
+			    /* Increment no of IPv6 open frames in instance
+			       data structure */
+			     ste_inc_counter(instance_handle+
+								 offsetof(struct ipr_instance,
+								 num_of_open_reass_frames_ipv6),
+								 1,
+								 STE_MODE_32_BIT_CNTR_SIZE);
+
+		    }
+		    
 		    /* todo release struct rule  or call function for
 		     * gen+add rule */
 		    rfdc.status 			   = RFDC_VALID;
@@ -418,14 +468,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			      &rfdc.timer_handle);
 */
 
-		    /* Increment no of IPv4 open frames in instance
-		       data structure */
-		     ste_inc_counter(instance_handle+
-				     offsetof(struct ipr_instance,
-				     num_of_open_reass_frames_ipv4),
-				     1,
-				     STE_MODE_32_BIT_CNTR_SIZE);
-
 		     if (osm_status == NO_BYPASS_OSM) {
 			/* create nested per reassembled frame */
 			osm_scope_enter_to_exclusive_with_new_scope_id(
@@ -438,8 +480,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
-												  ipv4hdr_offset,
-												  ipv4hdr_ptr);
+												  iphdr_offset,
+												  iphdr_ptr);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
@@ -471,12 +513,21 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* default frame is now the full reassembled frame */
 	
-    /* Increment no of reassembled IPv4 frames in instance
-       data structure */
-     ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
-		    		 	 	 	 	 ipv4_reass_frm_cntr),
-		    		 1,
-		    		 STE_MODE_32_BIT_CNTR_SIZE);
+    if(PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		/* Increment no of reassembled IPv4 frames in instance
+		   data structure */
+		 ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
+										 ipv4_reass_frm_cntr),
+						 1,
+						 STE_MODE_32_BIT_CNTR_SIZE);
+    } else {
+		/* Increment no of reassembled IPv6 frames in instance
+		   data structure */
+		 ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
+										 ipv6_reass_frm_cntr),
+						 1,
+						 STE_MODE_32_BIT_CNTR_SIZE);
+    }
 
 	/* Open segment for reassembled frame */
 	fdma_present_default_frame_segment(
@@ -490,7 +541,12 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Run parser */
 	parse_result_generate_default(0);
 
-	if (ip_header_update_and_l4_validation(&rfdc) == SUCCESS) {
+	if(PARSER_IS_OUTER_IPV4_DEFAULT()) 
+		status = ipv4_header_update_and_l4_validation(&rfdc);
+	else 
+		status = ipv6_header_update_and_l4_validation(&rfdc);		
+	
+	if (status == SUCCESS) {
 		/* L4 checksum is valid */
 		/* Write and release updated 64 first bytes of RFDC */
 		/*CDMA write, unlock, dec ref_cnt and release if
@@ -508,14 +564,23 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 		move_to_correct_ordering_scope2(osm_status);
 
-		/* Decrement no of IPv4 open frames in instance data
-		 * structure */
-		ste_dec_counter(instance_handle+
-				offsetof(struct ipr_instance,
-				num_of_open_reass_frames_ipv4),
-				1,
-				STE_MODE_32_BIT_CNTR_SIZE);
-
+		if(PARSER_IS_OUTER_IPV4_DEFAULT()) {
+			/* Decrement no of IPv4 open frames in instance data
+			 * structure */
+			ste_dec_counter(instance_handle+
+					offsetof(struct ipr_instance,
+					num_of_open_reass_frames_ipv4),
+					1,
+					STE_MODE_32_BIT_CNTR_SIZE);
+		} else {
+			/* Decrement no of IPv6 open frames in instance data
+			 * structure */
+			ste_dec_counter(instance_handle+
+					offsetof(struct ipr_instance,
+					num_of_open_reass_frames_ipv6),
+					1,
+					STE_MODE_32_BIT_CNTR_SIZE);
+		}
 
 		return IPR_REASSEMBLY_SUCCESS;
 	} else {
@@ -532,26 +597,49 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 							     uint64_t rfdc_ext_addr, 
-							     uint16_t ipv4hdr_offset,
-							     struct	ipv4hdr	*ipv4hdr_ptr)
+							     uint16_t iphdr_offset,
+							     void *iphdr_ptr)
 {
 
 	uint8_t			current_index;
+	uint8_t			last_fragment;
 	uint16_t		frag_offset_shifted;
 	uint16_t		current_frag_size;
 	uint16_t		expected_frag_offset;
 	uint16_t		ip_header_size;
+	uint16_t		ipv6fraghdr_offset;
 	uint64_t		ext_addr;
 	/* todo reuse ext_addr for current_element_ext_addr */
 	uint64_t		current_element_ext_addr;
 	struct link_list_element	current_element;
+	struct ipv4hdr			*ipv4hdr_ptr;
+	struct ipv6hdr			*ipv6hdr_ptr;
+	struct ipv6fraghdr		*ipv6fraghdr_ptr;
 	struct	parse_result	*pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
-	frag_offset_shifted = (ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_MASK)<<3;
-
-	ip_header_size = (uint16_t)
-			((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
-	current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
+	if(PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		ipv4hdr_ptr = (struct ipv4hdr *) iphdr_ptr; 
+		frag_offset_shifted = 
+					(ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_IPV4_MASK)<<3;
+	
+		ip_header_size = (uint16_t)
+				((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
+		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
+		last_fragment = !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK);
+	} else {
+		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
+		ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		ipv6fraghdr_ptr = (struct ipv6fraghdr *) ((uint32_t)ipv6hdr_ptr +
+													ipv6fraghdr_offset);
+		frag_offset_shifted =  ipv6fraghdr_ptr->offset_and_flags & 
+							  FRAG_OFFSET_IPV6_MASK;
+	
+		ip_header_size = ((uint16_t)((uint32_t)ipv6fraghdr_ptr - 
+							(uint32_t)ipv6hdr_ptr)) + 8;
+		current_frag_size = ipv6hdr_ptr->payload_length - ip_header_size;
+		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
+							IPV6_HDR_M_FLAG_MASK);
+	}
 	
 	if (frag_offset_shifted != 0) {
 		/* Not first frag */
@@ -562,8 +650,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 		/* Add current frag's running sum for
 		 * L4 checksum check */
-		rfdc_ptr->current_running_sum =
-								cksum_ones_complement_sum16(
+		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
 										  rfdc_ptr->current_running_sum,
 										  pr->running_sum);
 	} else {
@@ -580,7 +667,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->num_of_frags++;
 			rfdc_ptr->current_total_length += current_frag_size;
 			
-			check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+			if(PARSER_IS_OUTER_IPV4_DEFAULT())
+				check_remove_padding();
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data();
 
@@ -591,7 +679,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				       (void *)HWC_FD_ADDRESS,
 				       FD_SIZE);
 
-			if (IS_LAST_FRAGMENT()) {
+			if (last_fragment) {
 				return LAST_FRAG_IN_ORDER;
 			} else {
 				/* Non closing fragment */
@@ -608,7 +696,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		    		rfdc_ptr->status |= OUT_OF_ORDER | ORDER_AND_OOO;
 		    		rfdc_ptr->index_to_out_of_order  = current_index;
 		    		rfdc_ptr->first_frag_index 		 = current_index;
-				    rfdc_ptr->total_in_order_payload = rfdc_ptr->current_total_length;
+				    rfdc_ptr->total_in_order_payload = 
+				    							rfdc_ptr->current_total_length;
 		    	} else {
 		    		rfdc_ptr->status |= OUT_OF_ORDER;		    		
 		    	}
@@ -616,9 +705,10 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				rfdc_ptr->num_of_frags ++;
 				rfdc_ptr->current_total_length += current_frag_size;
 			    rfdc_ptr->next_index = current_index + 1;
-			    rfdc_ptr->biggest_payload = frag_offset_shifted + current_frag_size;
+			    rfdc_ptr->biggest_payload = frag_offset_shifted + 
+			    							current_frag_size;
 
-			    if(IS_LAST_FRAGMENT())
+			    if(last_fragment)
 				    rfdc_ptr->expected_total_length = frag_offset_shifted +
 				    										  current_frag_size;	    
 			    current_element.next_index  = 0;
@@ -632,7 +722,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						   (void *)&current_element,
 						   LINK_LIST_ELEMENT_SIZE);
 				
-				check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+				if(PARSER_IS_OUTER_IPV4_DEFAULT())
+					check_remove_padding();
 				/* Close current frame before storing FD */
 				fdma_store_default_frame_data();
 
@@ -749,7 +840,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 	return SUCCESS;
 }
 
-uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
+uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 {
 	uint16_t	ipv4hdr_offset;
 	uint16_t	new_total_length;
@@ -809,6 +900,47 @@ uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	}
 	return SUCCESS;
 }
+
+uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
+{
+	uint16_t	ipv6hdr_offset;
+	uint16_t	ipv6fraghdr_offset;
+	uint16_t	ip_header_size;
+	uint32_t	fd_length;
+	struct ipv6hdr  	*ipv6hdr_ptr;
+	struct ipv6fraghdr  *ipv6fraghdr_ptr;
+	struct		parse_result *pr =
+				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
+	ipv6hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	ipv6hdr_ptr = (struct ipv6hdr *)
+					(ipv6hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+
+	ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+	ipv6fraghdr_ptr = (struct ipv6fraghdr *) ((uint32_t)ipv6hdr_ptr +
+												ipv6fraghdr_offset);
+	
+	ip_header_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
+					 	 	 	(uint32_t)ipv6hdr_ptr);
+
+	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length + 
+								  ip_header_size;
+	/* Move next header of fragment header to previous extension header */
+	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,FRAGMENT_REQUEST)=
+												ipv6fraghdr_ptr->next_header;
+	/* Remove fragment header extension */
+	fdma_delete_default_segment_data(ipv6fraghdr_offset,
+									 8,
+									 FDMA_REPLACE_SA_REPRESENT_BIT);
+
+	/* Updated FD[length] */
+	fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 8;
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, fd_length);
+
+	return SUCCESS;
+
+}
+
 
 uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 				 	 	 	 	 uint64_t rfdc_ext_addr)
@@ -977,9 +1109,11 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 	}
 }
 
-void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr)
+void check_remove_padding()
 {
 	uint8_t			delta;
+	uint16_t 		ipv4hdr_offset;
+	struct ipv4hdr *ipv4hdr_ptr;
 	void 			*tail_frame_ptr;
 	struct fdma_present_segment_params params;
 	
@@ -1024,7 +1158,6 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	uint8_t						temp_index_in_octet;
 	uint8_t						new_frag_index_in_octet;
 	uint16_t					temp_total_payload;
-	uint16_t					ipv4hdr_offset;
 	int32_t						sr_status;
 	uint64_t					current_element_ext_addr;
 	uint64_t					temp_element_ext_addr;
@@ -1137,9 +1270,10 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
                 rfdc_ptr->current_total_length += current_frag_size;
                 rfdc_ptr->num_of_frags++;
 				
-				ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+//				ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
-				check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+				if(PARSER_IS_OUTER_IPV4_DEFAULT())
+					check_remove_padding();
 				/* Close current frame before storing FD */
 				fdma_store_default_frame_data();
 
@@ -1273,9 +1407,9 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
         	}
     }
 
-		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+//		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
-		check_remove_padding(ipv4hdr_offset,ipv4hdr_ptr);
+		check_remove_padding();
 		/* Close current frame before storing FD */
 		fdma_store_default_frame_data();
 	

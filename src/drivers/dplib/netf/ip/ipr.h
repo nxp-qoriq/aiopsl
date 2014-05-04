@@ -43,7 +43,8 @@
 #define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
 #define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
 #define RFDC_VALID				0x8000
-#define FRAG_OFFSET_MASK		0x1FFF
+#define FRAG_OFFSET_IPV4_MASK	0x1FFF
+#define FRAG_OFFSET_IPV6_MASK   0xFFF8
 #define IPV4_FRAME				0x00000000 /* in RFDC status */
 #define IPV6_FRAME				0x00000001 /* in RFDC status */
 #define INSTANCE_VALID			0x0001
@@ -51,8 +52,7 @@
 #define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
 #define RFDC_SIZE				sizeof(struct ipr_rfdc)
 #define RFDC_EXTENSION_SIZE		sizeof(struct extended_ipr_rfc)
-#define RFDC_EXTENSION_TRUNCATED_SIZE		(sizeof(struct extended_ipr_rfc)-\
-											sizeof(ipv6_key::extended_ipr_rfc))
+#define RFDC_EXTENSION_TRUNCATED_SIZE	40
 #define FD_SIZE					sizeof(struct ldpaa_fd)
 #define OCTET_LINK_LIST_MASK	0x07
 #define IPV4_KEY_SIZE			11
@@ -251,8 +251,8 @@ int ipr_init(void);
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 							     uint64_t rfdc_ext_addr, 
-							     uint16_t ipv4hdr_offset,
-							     struct	ipv4hdr	*ipv4hdr_ptr);
+							     uint16_t iphdr_offset,
+							     void     *iphdr_ptr);
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
 
@@ -283,13 +283,14 @@ inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 		  osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
 }*/
-uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
+uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
+uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();
 
 void ipr_time_out();
 
-void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr);
+void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
