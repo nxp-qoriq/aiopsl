@@ -52,6 +52,8 @@ extern void build_apps_array(struct sys_module_desc *apps);
 int fill_system_parameters(t_sys_param *sys_param);
 int global_init(void);
 int global_post_init(void);
+int tile_init(void);
+int cluster_init(void);
 int run_apps(void);
 
 
@@ -87,6 +89,11 @@ int fill_system_parameters(t_sys_param *sys_param)
            sizeof(struct platform_memory_info)*ARRAY_SIZE(mem_info));
 
     return 0;
+}
+
+int tile_init(void)
+{
+	return 0;
 }
 
 int cluster_init(void)
