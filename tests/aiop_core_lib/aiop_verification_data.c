@@ -20,7 +20,7 @@
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
-__VERIF_GLOBAL uint8_t verif_only_1_task_complete;
+__VERIF_GLOBAL volatile uint8_t verif_only_1_task_complete;
 __VERIF_GLOBAL uint8_t verif_spin_lock;
 __VERIF_GLOBAL uint8_t verif_prpid;
 __VERIF_GLOBAL uint8_t tmi_id;
