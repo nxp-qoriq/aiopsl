@@ -84,6 +84,7 @@ int32_t ipsec_create_instance(
 	// max num of tasks for ASA 
 	
 	uint16_t desc_bpid;
+	uint16_t asa_bpid;
 	int num_filled_buffs;
 	
 	/*
@@ -102,14 +103,25 @@ int32_t ipsec_create_instance(
 	               -ENOMEM  - not enough memory for mem_partition_id
 	 */
 	
+
 	/* Descriptor and Instance Buffers */
 	return_val = slab_find_and_fill_bpid(
 			(max_sa_num + 1), /* uint32_t num_buffs */
-            512, /* uint16_t buff_size */
-            64, /* uint16_t alignment */
-            1, /* TODO: TMP. uint8_t  mem_partition_id */
+			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
+			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
+			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             &num_filled_buffs, /* int *num_filled_buffs */
             &desc_bpid); /* uint16_t *bpid */
+
+	/* ASA Buffers */
+	return_val = slab_find_and_fill_bpid(
+			IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
+			IPSEC_MAX_ASA_SIZE, /* uint16_t buff_size */
+			IPSEC_MAX_ASA_BUF_ALIGN, /* uint16_t alignment */
+			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
+            &num_filled_buffs, /* int *num_filled_buffs */
+            &asa_bpid); /* uint16_t *bpid */
+
 	
 	/* Allocate a buffer for the instance */
 	return_val = (int32_t)cdma_acquire_context_memory(

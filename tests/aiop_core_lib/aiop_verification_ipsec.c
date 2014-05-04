@@ -206,7 +206,7 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			break;
 		
 		/* Decryption */
-		str->fm_decr_status = ipsec_frame_encrypt(
+		str->fm_decr_status = ipsec_frame_decrypt(
 				//*((uint64_t *)(str->ipsec_decr_handle_ptr)),
 				sa_desc_handle[str->decr_sa_desc_id],
 				&str->dec_status		

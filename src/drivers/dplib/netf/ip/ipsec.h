@@ -82,6 +82,15 @@ enum ipsec_cipher_type {
 #define IPSEC_SEC_NEW_BUFFER_MODE 0
 #define IPSEC_SEC_REUSE_BUFFER_MODE 1
 
+#define IPSEC_SA_DESC_BUF_SIZE 512 /* SA descriptor buffer size */
+#define IPSEC_SA_DESC_BUF_ALIGN 64 /* SA descriptor alignment */
+#define IPSEC_KEY_BUF_SIZE 512 /* Key buffer size */
+#define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
+#define IPSEC_MEM_PARTITION_ID MEM_PART_1ST_DDR_NON_CACHEABLE 
+					/* Memory partition ID */
+#define IPSEC_MAX_ASA_SIZE 960 /* Maximum ASA size (960 bytes) */
+#define IPSEC_MAX_ASA_BUF_ALIGN 8 /* ASA buffer alignment */
+
 /*
 * Big-endian systems are systems in which the most significant byte of the word 
 * is stored in the smallest address given and the least significant byte 
