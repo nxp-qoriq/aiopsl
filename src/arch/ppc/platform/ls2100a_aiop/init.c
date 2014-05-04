@@ -89,6 +89,11 @@ int fill_system_parameters(t_sys_param *sys_param)
     return 0;
 }
 
+int cluster_init(void)
+{
+	return 0;
+}
+
 int global_init(void)
 {
     struct sys_module_desc modules[] = GLOBAL_MODULES;
@@ -109,7 +114,7 @@ int global_post_init(void)
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
 	/* Write AIOP boot status */
-	iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98)); //TODO check - maybe this is not correct
+	iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
 
 	return 0;
 }

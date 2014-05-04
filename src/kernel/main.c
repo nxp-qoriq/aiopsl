@@ -6,6 +6,7 @@
 extern int sys_init(void);
 extern void sys_free(void);
 extern int global_init(void);
+extern int cluster_init(void);
 extern int global_post_init(void);
 extern int run_apps(void);
 
@@ -56,10 +57,18 @@ UNUSED(argc);UNUSED(argv);
         return err;
 
     is_master_core = sys_is_master_core();
-    if (is_master_core &&
-        ((err = global_init()) != 0))
-        return err;
-    sys_barrier();
+    if(is_master_core)
+    {
+    	err = cluster_init();
+    	if(err)
+    		return err;
+    	sys_barrier();	
+    	
+    	err = global_init();
+    	if(err)
+    		return err;
+    	sys_barrier();
+    }
 
 #ifdef ARENA_LEGACY_CODE
     if (is_master_core)
