@@ -5,6 +5,7 @@ Table SRs: table_lookup_by_keyid was introduced, supporting non default paramete
 Table SRs: table verification files were updated
 Table SRs: documentation was added
 Table SRs: table status were updated
+Table SRs: Removed ICID Error status
 
 SL Pre-Alpha v0.3.3  Change Log
 ===============================

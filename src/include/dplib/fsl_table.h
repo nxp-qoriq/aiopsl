@@ -317,8 +317,8 @@ A general bit that is set in some errors conditions */
 /** Table Lookup Miss.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
-#define CTLU_STATUS_MISS	0x00000800
-//todo
+#define TABLE_STATUS_MISS	0x00000800
+
 /** Key Composition Error.
  * This status is set when a key composition error occurs, meaning one of the
  * following:
@@ -339,6 +339,13 @@ A general bit that is set in some errors conditions */
  * reached the threshold. */
 #define TABLE_STATUS_MNLE	0x00000100
 
+/* TODO TEMP CODE !! START */
+#define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_KSE	(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
+/* TEMP CODE !! END */
+
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
@@ -354,11 +361,6 @@ A general bit that is set in some errors conditions */
  * being freed up. Once the process ends, the resource may be available for new
  * allocation (availability is not guaranteed). */
 #define CTLU_STATUS_TEMPNOR	(0x00000010 | CTLU_STATUS_NORSC)
-
-/** ICID Protection Is Violated
- * */
-#define CTLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						TABLE_STATUS_MGCF)
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
@@ -376,10 +378,6 @@ A general bit that is set in some errors conditions */
  * allocation (availability is not guaranteed). */
 #define MFLU_STATUS_TEMPNOR	(0x00000010 | MFLU_STATUS_NORSC)
 
-/** ICID Protection Is Violated
- * */
-#define MFLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_MFLU << 24) | \
-						TABLE_STATUS_MGCF)
 /** @} */ /* end of FSL_TABLE_STATUS */
 
 /** @} */ /* end of FSL_TABLE_MACROS */
