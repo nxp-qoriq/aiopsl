@@ -126,17 +126,16 @@ void core_ready_for_tasks(void)
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
-
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
-	
+	   
+    //TODO debug only: mastercore should be the last one to do this 
+    /* Write AIOP boot status (ABCR) */
+    iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
+    
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
-    
-    //TODO debug only: mastercore should be the last one to do this 
-	/* Write AIOP boot status (ABCR) */
-	iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
     
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
