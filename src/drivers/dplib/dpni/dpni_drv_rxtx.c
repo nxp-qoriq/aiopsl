@@ -112,11 +112,11 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	va_bdi = *((uint8_t *)(HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET));
 	if (va_bdi & ADC_BDI_MASK)
 		flags |= FDMA_ENF_BDI_BIT;
-	if (va_bdi & ADC_VA_MASK)
-		flags |= FDMA_ENF_VA_BIT;
+	/*if (va_bdi & ADC_VA_MASK)
+		flags |= FDMA_ENF_VA_BIT;*/
 	icid = LH_SWAP(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
-	if (icid & ADC_PL_MASK)
-		flags |= FDMA_ENF_PL_BIT;
+	/*if (icid & ADC_PL_MASK)
+		flags |= FDMA_ENF_PL_BIT;*/
 	icid &= ADC_ICID_MASK;
 	err = (int)fdma_enqueue_fd_qd(fd, flags, &enqueue_params, icid);
 	return err;

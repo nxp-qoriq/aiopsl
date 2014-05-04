@@ -1292,10 +1292,6 @@ enum fdma_pta_size_type {
 	 * WQID field from ADC). Otherwise - use QD_PRI provided with DMA
 	 * Command. */
 #define FDMA_ENF_PS_BIT		0x00001000
-	/** Virtual Address. */
-#define FDMA_ENF_VA_BIT		0x00002000
-	/** Privilege Level. */
-#define FDMA_ENF_PL_BIT		0x00008000
 	/** Bypass DPAA resource Isolation.
 	 * If set - Isolation is not enabled for this command (the FQID ID
 	 * specified is a real (not virtual) pool ID). Otherwise - Isolation is
