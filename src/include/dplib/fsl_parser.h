@@ -1079,33 +1079,25 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 *//***************************************************************************/
 
 	/** Successful parse SR */
-#define PARSER_STATUS_PASS				0x00000000
+#define PARSER_STATUS_PASS									0x00000000
 	/** Parser SR failed due to FDMA error (TODO return fdma status?) */
-#define PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE	0x80010000
+#define PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE			0x80010000
 	/** Parser SR failed due to Cycle limit exceeded */
-#define PARSER_STATUS_FAIL_CYCLE_LIMIT_EXCCEEDED\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00800000)
+#define PARSER_STATUS_FAIL_CYCLE_LIMIT_EXCCEEDED			0x00800000
 	/** Parser SR failed due to invalid soft parse instruction */
-#define PARSER_STATUS_FAIL_INVALID_SOFT_PARSE_INSTRUCTION\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00400000)
+#define PARSER_STATUS_FAIL_INVALID_SOFT_PARSE_INSTRUCTION	0x00400000
 	/** Parser SR failed due to parsing error */
-#define PARSER_STATUS_FAIL_PARSING_ERROR\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00200000)
+#define PARSER_STATUS_FAIL_PARSING_ERROR					0x00200000
 	/** Parser SR failed due to block limit exceeded */
-#define PARSER_STATUS_FAIL_BLOCK_LIMIT_EXCCEEDED\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00100000)
+#define PARSER_STATUS_FAIL_BLOCK_LIMIT_EXCCEEDED			0x00100000
 	/** L3 checksum validation success */
-#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED\
-			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00080000)
+#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED  	0x00080000
 	/** L3 checksum validation failure */
-#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x000C0000)
+#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION			0x000C0000
 	/** L4 checksum validation success */
-#define PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED\
-			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00020000)
+#define PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED		0x00020000
 	/** L4 checksum validation failure */
-#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00030000)
+#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION			0x00030000
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_STATUS */
 
@@ -1138,11 +1130,11 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 	/** HXS Config Enable
 	When set to 1, it enables soft extension of examination instructions
 	beginning at every protocol HXS configuration Soft Sequence Start*/
-#define PARSER_PRP_HXS_CONFIG_EN		0x8000
+#define PARSER_PRP_HXS_CONFIG_EN			0x8000
 	/** Mask Error reporting
 	0 disable, report error from this HXS to the Parser Error Status \n
 	1 enabled, do not report error */
-#define PARSER_PRP_HXS_CONFIG_ERM		0x1000
+#define PARSER_PRP_HXS_CONFIG_ERM			0x1000
 	/** Enable MTU checking */
 #define PARSER_PRP_PPP_HXS_CONFIG_EMC		0x2000
 	/** MPLS Label Interpretation enable
