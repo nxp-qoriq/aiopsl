@@ -55,6 +55,7 @@ int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
 int run_apps(void);
+void core_ready_for_tasks(void);
 
 
 #include "general.h"
@@ -115,25 +116,27 @@ int global_init(void)
 
 int global_post_init(void)
 {
-	uintptr_t   tmp_reg =
+	return 0;
+}
+
+void core_ready_for_tasks(void) 
+{   
+    uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
-	/* Write AIOP boot status */
-	iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
-
-	return 0;
-}
-
-static void core_ready_for_tasks(void) {
 
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
-
+	
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
+    
+    //TODO debug only: mastercore should be the last one to do this 
+	/* Write AIOP boot status (ABCR) */
+	iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
     
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
@@ -317,6 +320,6 @@ int run_apps(void)
 			apps[i].init();
 	}
 
-	core_ready_for_tasks();
+	//XXX debug only: core_ready_for_tasks();
 	return 0;
 }
