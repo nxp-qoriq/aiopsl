@@ -15,6 +15,7 @@
 #include "dplib/fsl_l4.h"
 #include "fdma.h"
 #include "checksum.h"
+#include "common/fsl_stdlib.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -299,9 +300,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		sr_status = fdma_insert_segment_data(
 				&insert_segment_data_params);
 
-		/* if (PARSER_IS_OUTER_IPV4_DEFAULT()) { */
-			/* TODO - IPv4 - ID generation */
-		/* } */
+		if (PARSER_IS_OUTER_IPV4_DEFAULT())
+			/* IPv4 - ID generation */
+			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();
 
 		}
 
