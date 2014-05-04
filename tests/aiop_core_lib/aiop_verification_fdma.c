@@ -288,8 +288,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
-		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
-		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 
 		if (str->EIS) {
@@ -317,8 +315,6 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
 		((str->TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
-		flags |= ((str->VA) ? FDMA_ENF_VA_BIT : 0x0);
-		flags |= ((str->PL) ? FDMA_ENF_PL_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 
 		if (str->EIS) {
