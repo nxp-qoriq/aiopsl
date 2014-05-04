@@ -164,16 +164,15 @@ int32_t parse_result_generate_default(uint8_t flags)
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 	
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS; 
-	if (((status & PARSER_STATUS_MASK) ==
+	if (!status)
+		return SUCCESS;
+	else if (((status & PARSER_STATUS_MASK) ==
 			PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
-		(status & PARSER_STATUS_MASK) == 0) {
+			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
 		return SUCCESS;
-	} else {
-		status =  PARSER_STATUS_FAIL | status;
+	else 
 		return status;
-	}
 }
 
 int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
@@ -216,16 +215,15 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS; 
-	if (((status & PARSER_STATUS_MASK) ==
+	if (!status)
+		return SUCCESS;
+	else if (((status & PARSER_STATUS_MASK) ==
 			PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
-		(status & PARSER_STATUS_MASK) == 0) {
+			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
 		return SUCCESS;
-	} else {
-		status =  PARSER_STATUS_FAIL | status;
+	else
 		return status;
-	}
 }
 
 int32_t parse_result_generate_checksum(
@@ -261,7 +259,6 @@ int32_t parse_result_generate_checksum(
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
 		return SUCCESS;
 	} else {
-		status =  PARSER_STATUS_FAIL | status;
 		return status;
 	}
 
