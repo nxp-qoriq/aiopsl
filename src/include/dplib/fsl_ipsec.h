@@ -412,6 +412,7 @@ struct ipsec_descriptor_params {
 		the returned instance handle.
 				
 @Param[in]	max_sa_num - maximum number of SAs to be used by this instance
+@Param[in]	tmi_id - TMAN Instance ID to be used for timers creation
 
 @Param[out]	ipsec_handle - IPsec handle to the descriptor database
 		
@@ -420,9 +421,8 @@ struct ipsec_descriptor_params {
 *//****************************************************************************/
 int32_t ipsec_create_instance(
 		uint32_t max_sa_num,
+		uint8_t	  tmi_id,
 		ipsec_instance_handle_t *instance_handle);
-
-
 
 /**************************************************************************//**
 @Function	ipsec_add_sa_descriptor

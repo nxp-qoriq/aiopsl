@@ -74,19 +74,23 @@ int32_t ipsec_init(uint32_t max_sa_no) {
 *//****************************************************************************/
 int32_t ipsec_create_instance(
 		uint32_t max_sa_num,
+		uint8_t	  tmi_id,
 		ipsec_instance_handle_t *instance_handle)
 {
 	int32_t return_val;
-
+	
 	// max_sa_num for desc BPID size 512, alignment 64 B 
 	// max_sa_num for keys BPID
 	// max_sa_num for IPv6 outer header
 	// max num of tasks for ASA 
 	
-	uint16_t desc_bpid;
-	uint16_t asa_bpid;
 	int num_filled_buffs;
 	
+	struct ipsec_instance_params instance; 
+	
+	instance.sa_count = max_sa_num;
+	instance.tmi_id = tmi_id;
+
 	/*
 	 slab_find_and_fill_bpid
 	 num_buffs           Number of buffers in new pool.
@@ -111,8 +115,14 @@ int32_t ipsec_create_instance(
 			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             &num_filled_buffs, /* int *num_filled_buffs */
-            &desc_bpid); /* uint16_t *bpid */
-
+            &(instance.desc_bpid)); /* uint16_t *bpid */
+	
+	if (return_val) {
+		// TODO: call future slab release function per BPID
+		// For all previously requested buffers
+		return return_val;
+	}
+	
 	/* ASA Buffers */
 	return_val = slab_find_and_fill_bpid(
 			IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
@@ -120,16 +130,36 @@ int32_t ipsec_create_instance(
 			IPSEC_MAX_ASA_BUF_ALIGN, /* uint16_t alignment */
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             &num_filled_buffs, /* int *num_filled_buffs */
-            &asa_bpid); /* uint16_t *bpid */
-
+            &(instance.asa_bpid)); /* uint16_t *bpid */
+	
+	if (return_val) {
+		// TODO: call future slab release function per BPID
+		// For all previously requested buffers
+		return return_val;
+	}
 	
 	/* Allocate a buffer for the instance */
 	return_val = (int32_t)cdma_acquire_context_memory(
-		desc_bpid,
+		instance.desc_bpid,
 		instance_handle); /* context_memory */ 
 	
-	// TODO: check for allocation error
-	
+	if (return_val) {
+		// TODO: return with correct error code 
+		return -1;
+	}
+		
+	/* Write the Instance to external memory */
+	return_val = cdma_write(
+			instance_handle, /* ext_address */
+			&instance, /* ws_src */
+			//(uint16_t)(sizeof(instance))); /* size */
+			16); /* size */
+
+	if (return_val) {
+			// TODO: return with correct error code 
+			return -1;
+	}
+		
 	return 0; // TMP
 }
 

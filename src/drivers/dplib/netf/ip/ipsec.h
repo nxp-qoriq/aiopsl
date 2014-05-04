@@ -247,6 +247,15 @@ struct ipsec_global_params {
 	uint8_t spinlock; /* Spinlock indicator, for SA counter  */
 };
 
+/* Instance Parameters structure */
+struct ipsec_instance_params {
+	uint32_t sa_count; /* SA (descriptors) counter. Initialized to max number */
+	uint16_t asa_bpid; /* Buffer pool ID for ASA copy */
+	uint16_t desc_bpid; /* Buffer pool ID for the SA descriptor */
+	uint8_t tmi_id; /* TMAN Instance ID  */
+};
+
+
 #define SAP_STATUS_SOFT_KB_EXPIRED			0x00000001
 #define SAP_STATUS_HARD_KB_EXPIRED			0x00000002
 #define SAP_STATUS_SOFT_PACKET_EXPIRED		0x00000004
