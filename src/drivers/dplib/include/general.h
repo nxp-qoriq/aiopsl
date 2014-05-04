@@ -865,6 +865,13 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols_IPV6_Extensions */
 
 /**************************************************************************//**
+@Group		AIOP_General_Protocols_IPV6_FRAG_HDR_Offsets IPv6 Frag Header
+		Offsets
+@{
+*//***************************************************************************/
+#define IPV6_HDR_M_FLAG_MASK 0x0001 /** Mask for IPv6 Fragment Header M flag */
+
+/**************************************************************************//**
 @Group		AIOP_General_Protocols_TCP_Definitions Transmission Control
 		Protocol (TCP) Definitions
 @{
