@@ -317,8 +317,8 @@ A general bit that is set in some errors conditions */
 /** Table Lookup Miss.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
-#define CTLU_STATUS_MISS	0x00000800
-//todo
+#define TABLE_STATUS_MISS	0x00000800
+
 /** Key Composition Error.
  * This status is set when a key composition error occurs, meaning one of the
  * following:
@@ -338,6 +338,13 @@ A general bit that is set in some errors conditions */
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. */
 #define TABLE_STATUS_MNLE	0x00000100
+
+/* TODO TEMP CODE !! START */
+#define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_KSE	(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
+/* TEMP CODE !! END */
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
