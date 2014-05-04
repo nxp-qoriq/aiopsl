@@ -355,11 +355,6 @@ A general bit that is set in some errors conditions */
  * allocation (availability is not guaranteed). */
 #define CTLU_STATUS_TEMPNOR	(0x00000010 | CTLU_STATUS_NORSC)
 
-/** ICID Protection Is Violated
- * */
-#define CTLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						TABLE_STATUS_MGCF)
-
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
@@ -376,10 +371,6 @@ A general bit that is set in some errors conditions */
  * allocation (availability is not guaranteed). */
 #define MFLU_STATUS_TEMPNOR	(0x00000010 | MFLU_STATUS_NORSC)
 
-/** ICID Protection Is Violated
- * */
-#define MFLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_MFLU << 24) | \
-						TABLE_STATUS_MGCF)
 /** @} */ /* end of FSL_TABLE_STATUS */
 
 /** @} */ /* end of FSL_TABLE_MACROS */
