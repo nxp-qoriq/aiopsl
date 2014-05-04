@@ -41,7 +41,7 @@
 @Group	FSL_KEYGEN_KCR_ATTRIBUTES Key Composition Rule Attributes
 @{
 *//***************************************************************************/
-	/** Generic Extraction from start of frame. */
+	/** Generic Extraction from start of frame */
 #define KEYGEN_KCR_LENGTH		0x40
 
 /** @} */ /* end of FSL_KEYGEN_KCR_ATTRIBUTES */
@@ -53,10 +53,10 @@
 	User should select one of the followings.
 @{
 *//***************************************************************************/
-	/** Generic Extraction from start of frame. */
+	/** Generic Extraction from start of frame */
 #define KEYGEN_KCR_GEC_FRAME		0x80
 
-	/** Generic Extraction from Parser Result. */
+	/** Generic Extraction from Parser Result */
 #define KEYGEN_KCR_GEC_PARSE_RES	0x40
 
 /** @} */ /* end of FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS */
@@ -71,27 +71,15 @@
 @{
 *//***************************************************************************/
 
-	/** Command status success. */
+	/** Command status success */
 #define KEYGEN_STATUS_SUCCESS	0x00000000
-	/** Command failed general status bit.
+	/** Command failed general status bit
 	A general bit that is set in some errors conditions */
-#define KEYGEN_STATUS_FAIL	0x80000000
-	/** Key size Error for Key Generation in MFLU.*/
-#define KEYGEN_MFLU_STATUS_KSE	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_MFLU << 24) | 0x00000400)
-	/** Key size Error for Key Generation in CTLU.*/
-#define KEYGEN_CTLU_STATUS_KSE	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_CTLU << 24) | 0x00000400)
-	/** Extract Out Of Frame Header Error for Key Generation in MFLU.
+#define KEYGEN_STATUS_KSE 		0x00000400
+	/** Extract Out Of Frame Header Error for Key Generation
 	 * This bit is set if key composition attempts to extract a field which
 	 * is not in the frame header */
-#define KEYGEN_MFLU_STATUS_EOFH	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_MFLU << 24) | 0x00000200)
-	/** Extract Out Of Frame Header Error for Key Generation in CTLU.
-	 * This bit is set if key composition attempts to extract a field which
-	 * is not in the frame header */
-#define KEYGEN_CTLU_STATUS_EOFH	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_CTLU << 24) | 0x00000200)
+#define KEYGEN_MFLU_STATUS_EOFH	 0x00000200
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_GENERAL */
 
@@ -100,12 +88,10 @@
 @{
 *//***************************************************************************/
 
-	/** Command status success. */
+	/** Command status success */
 #define KEYGEN_HASH_STATUS_SUCCESS	0x00000000
-	/** Key Size Error (> 124 bytes) for Hash Generation in MFLU */
-#define KEYGEN_MFLU_HASH_STATUS_KSE	KEYGEN_MFLU_STATUS_KCE
-	/** Key Size Error (> 124 bytes) for Hash Generation in CTLU */
-#define KEYGEN_CTLU_HASH_STATUS_KSE	KEYGEN_CTLU_STATUS_KCE
+	/** Key Size Error (> 124 bytes) for Hash Generation */
+#define KEYGEN_HASH_STATUS_KSE	KEYGEN_STATUS_KSE
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_HASH_GEN */
 
@@ -118,7 +104,7 @@
 	/** General Extraction Extract Size Error */
 /*#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001*/
 	/** Protocol Based General Extraction Error */
-#define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002
+#define KEYGEN_KCR_PROTOCOL_GEC_ERR			0x80000002
 	/** Protocol Based General Extraction Parser Result Offset Error */
 /*#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003*/
 	/** General Extraction Extract Offset Error */
@@ -128,7 +114,7 @@
 	/** Lookup Result Field Extraction Error */
 /*#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006*/
 	/** Key Composition Rule Size exceeds KCR max size (64 bytes) */
-#define KEYGEN_KCR_SIZE_ERR			0x80000007
+#define KEYGEN_KCR_SIZE_ERR					0x80000007
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_KCR */
 
