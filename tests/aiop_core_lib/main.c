@@ -10,6 +10,18 @@
 #pragma require_prototypes off
 
 extern __VERIF_GLOBAL uint8_t verif_prpid_valid;
+extern __VERIF_GLOBAL uint8_t verif_only_1_task_complete;
+extern __VERIF_GLOBAL uint8_t verif_spin_lock;
+
+int verif_main()
+{
+	/* initialize stack pointer */
+		aiop_verification_sr();
+		aiop_verification_fm();
+		aiop_verification_fm_temp();
+
+		return 0;
+}
 
 int main()
 {
@@ -26,12 +38,10 @@ int main()
         ctscsr_value = CTSCSR_16_TASKS | CTSCSR_ENABLE;
         SET_CTSCSR0(ctscsr_value);*/
 	verif_prpid_valid = 0;
+	verif_only_1_task_complete = 0;
+	verif_spin_lock = 0;
 
 	__wait();
-/* initialize stack pointer */
-	aiop_verification_sr();
-	aiop_verification_fm();
-	aiop_verification_fm_temp();
 
 	return 0;
 }

@@ -88,6 +88,12 @@ enum fdma_hw_errors {
 		/** Unable to fulfill specified ASAPS on an initial frame
 		 * presentation. Only ASAL amount of annotation was presented.*/
 	FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR = 0xA,
+		/** Unable to present the PTA segment because no PTA segment is
+		 * present in the working frame.*/
+	FDMA_UNABLE_TO_PRESENT_PTA_ERR = 0xB,
+		/** Unable to perform required processing due to received
+		 * FD[FMT]=0x3 (the reserved value). */
+	FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR = 0xD,
 		/** Received non-zero FD[ERR] field from Work Scheduler. */
 	FDMA_FD_ERR = 0xE,
 		/** Frame Handle depletion (max of 6). */
@@ -121,7 +127,12 @@ enum fdma_hw_errors {
 	FDMA_INTERNAL_ERR = 0xA7,
 		/** Storage Profile ICID does not match frame ICID and Storage
 		 * Profile BS=1 error. */
-	FDMA_SPID_ICID_ERR = 0xA8
+	FDMA_SPID_ICID_ERR = 0xA8,
+		/** Shared SRAM memory read Error. */
+	FDMA_SRAM_MEMORY_READ_ERR = 0xA9,
+		/** Profile SRAM memory read Error. */
+	FDMA_PROFILE_SRAM_MEMORY_READ_ERR = 0xAA
+
 };
 
 /* @} end of enum fdma_hw_errors */
@@ -301,6 +312,9 @@ enum fdma_pta_size_type {
  * presentation. Only ASAL amount of annotation was presented.*/
 #define FDMA_PRESENT_FRAME_UNABLE_TO_PRESENT_FULL_ASA_ERR		\
 		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
+/** Received non-zero FD[ERR] field from Work Scheduler. */
+#define FDMA_PRESENT_FRAME_FD_ERR					\
+		FDMA_FD_ERR
 /** Frame Handle depletion (max of 6). */
 #define FDMA_PRESENT_FRAME_FRAME_HANDLE_DEPLETION_ERR			\
 		FDMA_FRAME_HANDLE_DEPLETION_ERR
@@ -350,13 +364,6 @@ enum fdma_pta_size_type {
 /** Unable to fulfill specified segment presentation size. */
 #define FDMA_PRESENT_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR		\
 		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** ASAPO value beyond ASAL in received FD. No ASA presentation possible. */
-#define FDMA_PRESENT_SEGMENT_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR		\
-		FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_PRESENT_SEGMENT_UNABLE_TO_PRESENT_FULL_ASA_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
 /** Frame Handle depletion (max of 6). */
 #define FDMA_PRESENT_SEGMENT_INVALID_FRAME_HANDLE_ERR			\
 		FDMA_INVALID_FRAME_HANDLE_ERR
@@ -454,13 +461,10 @@ enum fdma_pta_size_type {
 /** Unable to fulfill specified segment presentation size. */
 #define FDMA_PRESENT_PTA_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR	\
 		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** ASAPO value beyond ASAL in received FD. No ASA presentation possible. */
-#define FDMA_PRESENT_PTA_SEGMENT_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR	\
-		FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_PRESENT_PTA_SEGMENT_UNABLE_TO_PRESENT_FULL_ASA_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
+/** Unable to present the PTA segment because no PTA segment is
+ * present in the working frame.*/
+#define FDMA_PRESENT_PTA_UNABLE_TO_PRESENT_PTA_ERR			\
+		FDMA_UNABLE_TO_PRESENT_PTA_ERR
 /** Frame Handle depletion (max of 6). */
 #define FDMA_PRESENT_PTA_SEGMENT_INVALID_FRAME_HANDLE_ERR		\
 		FDMA_INVALID_FRAME_HANDLE_ERR
@@ -590,6 +594,9 @@ enum fdma_pta_size_type {
  * Profile BS=1 error. */
 #define FDMA_STORE_FRAME_SPID_ICID_ERR					\
 		FDMA_SPID_ICID_ERR
+/** Profile SRAM memory read Error. */
+#define FDMA_STORE_PROFILE_SRAM_MEMORY_READ_ERR			\
+		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
 
 /* @} end of group FDMA_STORE_FRAME_ERRORS */
 
@@ -620,18 +627,12 @@ enum fdma_pta_size_type {
 /** Invalid DMA command arguments. */
 #define FDMA_ENQUEUE_FRAME_INVALID_DMA_COMMAND_ARGS_ERR			\
 		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Invalid DMA command. */
-#define FDMA_ENQUEUE_FRAME_INVALID_DMA_COMMAND_ERR			\
-		FDMA_INVALID_DMA_COMMAND_ERR
 /** Internal memory ECC uncorrected ECC error. */
 #define FDMA_ENQUEUE_FRAME_INTERNAL_MEMORY_ECC_ERR			\
 		FDMA_INTERNAL_MEMORY_ECC_ERR
 /** Workspace memory read Error. */
 #define FDMA_ENQUEUE_FRAME_WORKSPACE_MEMORY_READ_ERR			\
 		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_ENQUEUE_FRAME_WORKSPACE_MEMORY_WRITE_ERR			\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
 /** System memory read error (permission or ECC). */
 #define FDMA_ENQUEUE_FRAME_SYSTEM_MEMORY_READ_ERR			\
 		FDMA_SYSTEM_MEMORY_READ_ERR
@@ -652,6 +653,9 @@ enum fdma_pta_size_type {
  * Profile BS=1 error. */
 #define FDMA_ENQUEUE_FRAME_SPID_ICID_ERR				\
 		FDMA_SPID_ICID_ERR
+/** Profile SRAM memory read Error. */
+#define FDMA_ENQUEUE_PROFILE_SRAM_MEMORY_READ_ERR			\
+		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
 
 /* @} end of group FDMA_ENQUEUE_FRAME_ERRORS */
 
@@ -690,6 +694,16 @@ enum fdma_pta_size_type {
 /** Success. */
 #define FDMA_DISCARD_FRAME_SUCCESS					\
 		FDMA_SUCCESS
+/** Unable to perform required processing due to received
+* FD[FMT]=0x3 (the reserved value). */
+#define FDMA_DISCARD_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR		\
+		FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR
+/** Received non-zero FD[ERR] field from Work Scheduler. */
+#define FDMA_DISCARD_FD_ERR						\
+		FDMA_FD_ERR
+/** Frame Handle depletion (max of 6). */
+#define FDMA_DISCARD_FRAME_HANDLE_DEPLETION_ERR				\
+		FDMA_FRAME_HANDLE_DEPLETION_ERR
 /** Invalid Frame Handle. */
 #define FDMA_DISCARD_FRAME_INVALID_FRAME_HANDLE_ERR			\
 		FDMA_INVALID_FRAME_HANDLE_ERR
@@ -760,10 +774,9 @@ enum fdma_pta_size_type {
 /** FDMA Internal error, SRU depletion. */
 #define FDMA_REPLICATE_FRAME_INTERNAL_ERR				\
 		FDMA_INTERNAL_ERR
-/** Storage Profile ICID does not match frame ICID and Storage
- * Profile BS=1 error. */
-#define FDMA_REPLICATE_FRAME_SPID_ICID_ERR				\
-		FDMA_SPID_ICID_ERR
+/** Profile SRAM memory read Error. */
+#define FDMA_REPLICATE_PROFILE_SRAM_MEMORY_READ_ERR			\
+		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
 
 /* @} end of group FDMA_REPLICATE_FRAME_ERRORS */
 
@@ -786,6 +799,10 @@ enum fdma_pta_size_type {
  * than frame size. */
 #define FDMA_CONCATENATE_FRAMES_UNABLE_TO_TRIM_ERR			\
 		FDMA_UNABLE_TO_TRIM_ERR
+/** Unable to perform required processing due to received
+* FD[FMT]=0x3 (the reserved value). */
+#define FDMA_CONCATENATE_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR			\
+	FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR
 /** Invalid Frame Handle. */
 #define FDMA_CONCATENATE_FRAMES_INVALID_FRAME_HANDLE_ERR		\
 		FDMA_INVALID_FRAME_HANDLE_ERR
@@ -814,6 +831,9 @@ enum fdma_pta_size_type {
  * Profile BS=1 error. */
 #define FDMA_CONCATENATE_FRAMES_SPID_ICID_ERR				\
 		FDMA_SPID_ICID_ERR
+/** Profile SRAM memory read Error. */
+#define FDMA_CONCATENATE_PROFILE_SRAM_MEMORY_READ_ERR			\
+		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
 
 /* @} end of group FDMA_CONCATENATE_FRAMES_ERRORS */
 
@@ -879,6 +899,9 @@ enum fdma_pta_size_type {
  * Profile BS=1 error. */
 #define FDMA_SPLIT_FRAME_SPID_ICID_ERR					\
 		FDMA_SPID_ICID_ERR
+/** Profile SRAM memory read Error. */
+#define FDMA_SPLIT_PROFILE_SRAM_MEMORY_READ_ERR				\
+		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
 
 /* @} end of group FDMA_SPLIT_FRAME_ERRORS */
 
@@ -1102,6 +1125,9 @@ enum fdma_pta_size_type {
 /** Workspace memory write Error. */
 #define FDMA_COPY_WORKSPACE_MEMORY_WRITE_ERR				\
 		FDMA_WORKSPACE_MEMORY_WRITE_ERR
+/** Shared SRAM memory read Error. */
+#define FDMA_COPY_SRAM_MEMORY_READ_ERR				\
+		FDMA_SRAM_MEMORY_READ_ERR
 
 /* @} end of group FDMA_COPY_ERRORS */
 
@@ -1266,10 +1292,6 @@ enum fdma_pta_size_type {
 	 * WQID field from ADC). Otherwise - use QD_PRI provided with DMA
 	 * Command. */
 #define FDMA_ENF_PS_BIT		0x00001000
-	/** Virtual Address. */
-#define FDMA_ENF_VA_BIT		0x00002000
-	/** Privilege Level. */
-#define FDMA_ENF_PL_BIT		0x00008000
 	/** Bypass DPAA resource Isolation.
 	 * If set - Isolation is not enabled for this command (the FQID ID
 	 * specified is a real (not virtual) pool ID). Otherwise - Isolation is
@@ -1472,8 +1494,6 @@ enum fdma_pta_size_type {
 
 	/** Virtual Address of the Stored frame flag. */
 #define FDMA_ICID_CONTEXT_VA	0x0001
-	/** Bypass the Memory Translation of the Stored frame flag. */
-#define FDMA_ICID_CONTEXT_BMT	0x0002
 	/** Privilege Level of the Stored frame flag. */
 #define FDMA_ICID_CONTEXT_PL	0x0004
 	/** BDI of the Stored frame flag. */
@@ -1532,6 +1552,18 @@ struct segment {
 	uint16_t seg_offset;
 };
 
+/**************************************************************************//**
+@Description	FDMA access management qualifier (AMQs) structure.
+
+*//***************************************************************************/
+struct fdma_amq {
+		/** \link FDMA_ISOLATION_ATTRIBUTES_Flags icid context flags
+		 * \endlink */
+	uint16_t flags;
+		/**
+		 * bits<1-15> : ICID of the Stored frame. */
+	uint16_t icid;
+};
 
 /**************************************************************************//**
 @Description	Frame presentation parameters structure.
@@ -1629,6 +1661,9 @@ struct fdma_concatenate_frames_params {
 		/** \link FDMA_Concatenate_Flags concatenate frames
 		 * flags \endlink */
 	uint32_t  flags;
+		/** Returned parameter:
+		 * AMQ attributes */
+	struct fdma_amq amq;
 		/** The handle of working frame 1. */
 	uint16_t frame1;
 		/** The handle of working frame 2. */
@@ -1758,19 +1793,6 @@ struct fdma_delete_segment_data_params {
 		/**< Data segment handle (related to the working frame handle)
 		 * from which the data is being deleted. */
 	uint8_t  seg_handle;
-};
-
-/**************************************************************************//**
-@Description	FDMA access management qualifier (AMQs) structure.
-
-*//***************************************************************************/
-struct fdma_amq {
-		/** \link FDMA_ISOLATION_ATTRIBUTES_Flags icid context flags
-		 * \endlink */
-	uint16_t flags;
-		/**
-		 * bits<1-15> : ICID of the Stored frame. */
-	uint16_t icid;
 };
 
 /* @} end of group FDMA_Structures */
@@ -3087,8 +3109,19 @@ int32_t fdma_copy_data(
 
 		Implicitly updated values in Task Defaults in case the FD
 		address is located in the default FD address
-		(\ref HWC_FD_ADDRESS): ASA size, PTA address,segment length,
-		segment offset, segment handle, NDS bit, frame handle.
+		(\ref HWC_FD_ADDRESS): ASA size(zeroed), PTA address(zeroed),
+		segment length(zeroed), segment offset(zeroed), segment handle,
+		NDS bit(reset), frame handle.
+
+		In case this is the default frame, in order to present a data
+		segment of this frame after the function returns,
+		fdma_present_default_frame_segment() should be called (opens a
+		data segment of the default frame).
+
+		In case this is not the default frame, in order to present a
+		data segment of this frame after the function returns,
+		fdma_present_frame_segment() should be called (opens a
+		data segment of the frame).
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.
@@ -3120,15 +3153,27 @@ int32_t fdma_create_frame(
 @Description	Create a frame from scratch and fill it with user specified
 		data.
 
-		After filling the frame, it will be closed.
+		After filling the frame, it will be closed (i.e. - The working
+		frame will be closed and the FD will be updated in workspace).
 
 		Implicit input parameters in Task Defaults: SPID (Storage
 		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
 
 		Implicitly updated values in Task Defaults in case the FD
 		address is located in the default FD address
-		(\ref HWC_FD_ADDRESS): ASA size, PTA address,segment length,
-		segment offset, NDS bit.
+		(\ref HWC_FD_ADDRESS): ASA size(zeroed), PTA address(zeroed),
+		segment length(zeroed), segment offset(zeroed), NDS bit(reset).
+
+		In case this is the default frame, in order to present a data
+		segment of this frame after the function returns, the
+		presentation context values have to be modified prior to calling
+		fdma_present_default_frame() (opens the default frame and
+		optionally present a segment).
+
+		In case this is not the default frame, in order to present a
+		data segment of this frame after the function returns,
+		fdma_present_frame() should be called (opens the frame and
+		optionally present a segment).
 
 @Param[in]	fd - Pointer to the frame descriptor of the created frame.
 		On a success return this pointer will point to a valid FD.

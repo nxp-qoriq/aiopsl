@@ -23,22 +23,43 @@
 #include "ipr.h"
 #include "cdma.h"
 
+#ifdef AIOP_VERIF
+#include "slab_stub.h"
+#else
+#include "slab.h"
+#endif
 
-struct  ipr_global_parameters ipr_global_parameters1;
+__SHRAM struct  ipr_global_parameters ipr_global_parameters1;
 
-void ipr_init(uint32_t max_buffers, uint32_t flags)
+int ipr_init(void)
 {
 	struct kcr_builder kb;
+	uint16_t bpid;
+	int num_filled_buffs, status;
+	uint32_t max_buffers = 1000;
+	/* flags: IPR_MODE_TABLE_LOCATION_PEB */
+	uint32_t flags = 0x02000000;
 
-	/* todo call ARENA function for allocating buffers needed to IPR
+	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
-	ipr_global_parameters1.ipr_pool_id = 1;
+	status = slab_find_and_fill_bpid(max_buffers,
+				    IPR_CONTEXT_SIZE,
+	                            8,
+	                            MEM_PART_1ST_DDR_NON_CACHEABLE,
+	                            &num_filled_buffs,
+	                            &bpid);
+	
+	if (status < 0)
+		return status;
+
+	ipr_global_parameters1.ipr_pool_id = (uint8_t)bpid;                            
 	ipr_global_parameters1.ipr_buffer_size = IPR_CONTEXT_SIZE;
-	ipr_global_parameters1.ipr_avail_buffers_cntr = max_buffers;
+	ipr_global_parameters1.ipr_avail_buffers_cntr = \
+			(uint32_t)num_filled_buffs;
 	ipr_global_parameters1.ipr_table_location = (uint8_t)(flags>>24);
 	ipr_global_parameters1.ipr_timeout_flags = (uint8_t)(flags>>16);
 	ipr_global_parameters1.ipr_instance_spin_lock = 0;
-	/* todo for IPv6 */
+	/* For IPv4 */
 	keygen_kcr_builder_init(&kb);
 	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,\
 			NULL , &kb);
@@ -51,6 +72,19 @@ void ipr_init(uint32_t max_buffers, uint32_t flags)
 	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
 			  &ipr_global_parameters1.ipr_key_id_ipv4);
+	/* For IPv6 */
+	keygen_kcr_builder_init(&kb);
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,\
+			NULL , &kb);
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPDST_1_FECID,\
+				NULL , &kb);
+	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPID_1_FECID,\
+					NULL , &kb);
+	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+			  kb.kcr,
+			  &ipr_global_parameters1.ipr_key_id_ipv6);
+	
+	return 0;
 }
 
 int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
@@ -61,12 +95,15 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	int32_t err;
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
 	uint16_t table_location_attr;
+	int table_ipv4_valid = 0;
+	int table_ipv6_valid = 0;
 
 	err = cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
-									  ipr_instance_ptr);
+							ipr_instance_ptr);
 
 	if (err)
 		return err;
+	/* For IPv4 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv4;
 	aggregate_open_frames = max_open_frames;
 	/* Initialize instance parameters */
@@ -75,6 +112,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	if (max_open_frames) {
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
+		/* IPv4 src, IPv4 dst, prot, ID */
 		tbl_params.key_size = 11;
 		table_location =
 		(uint32_t)(ipr_global_parameters1.ipr_table_location<<24)\
@@ -97,18 +135,52 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			cdma_release_context_memory(*ipr_instance_ptr);
 			return err;
 		}
+		table_ipv4_valid = 1;
 	}
+	/* For IPv6 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv6;
 	aggregate_open_frames += max_open_frames;
-	/* todo IPv6 */
+	if (max_open_frames) {
+		tbl_params.committed_rules = max_open_frames;
+		tbl_params.max_rules = max_open_frames;
+		/* IPv6 src, IPv6 dst, ID (4 bytes) */
+		tbl_params.key_size = 36;
+		table_location =
+		(uint32_t)(ipr_global_parameters1.ipr_table_location<<24)\
+		& 0x03000000;
+		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
+		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
+		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT2;		
+		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
+				table_location_attr | \
+				TABLE_ATTRIBUTE_MR_NO_MISS;
+		err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
+				&ipr_instance.table_id_ipv6);
+		if (err != TABLE_STATUS_SUCCESS) {
+			/* todo SR error case */
+			cdma_release_context_memory(*ipr_instance_ptr);
+			return err;
+		}
+		table_ipv6_valid = 1;
+	}	
 	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 	if (ipr_global_parameters1.ipr_avail_buffers_cntr < \
 			aggregate_open_frames) {
 		unlock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 		/* todo SR error case */
 		cdma_release_context_memory(*ipr_instance_ptr);
-		/* todo: error case and case only IPv6 table*/
-		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
+		/* error case */
+		if (table_ipv4_valid)
+			table_delete(TABLE_ACCEL_ID_CTLU, \
+					ipr_instance.table_id_ipv4);
+		if (table_ipv6_valid)
+			table_delete(TABLE_ACCEL_ID_CTLU, \
+					ipr_instance.table_id_ipv6);		
 		return IPR_MAX_BUFFERS_REACHED;
 	}
 	ipr_global_parameters1.ipr_avail_buffers_cntr -= aggregate_open_frames;
@@ -151,14 +223,19 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	/* todo callback function */
 	UNUSED(confirm_delete_cb);
 	UNUSED(delete_arg);
+	
+	ste_barrier();
 
 	err = cdma_read(&ipr_instance, ipr_instance_ptr, IPR_INSTANCE_SIZE);
 	if (err)
 		return err;
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
-	/* todo: error case and case only IPv6 table*/
-	table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
+	/* error case */
+	if (ipr_instance.max_open_frames_ipv4)
+		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
+	if (ipr_instance.max_open_frames_ipv6)
+		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv6);
 	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
 			ipr_instance.max_open_frames_ipv6;
 	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
@@ -170,6 +247,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 {
 	uint16_t ipv4hdr_offset;
+	uint16_t ipv6hdr_offset;
 	uint32_t status_insert_to_LL;
 	uint32_t osm_status;
 	uint64_t rfdc_ext_addr;
@@ -177,21 +255,28 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint8_t	 keysize;
 	struct ipr_rfdc rfdc;
 	struct	ipv4hdr	*ipv4hdr_ptr;
+	struct	ipv6hdr	*ipv6hdr_ptr;
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
 	struct table_lookup_result lookup_result;
 	/* todo rule should be aligned to 16 bytes */
 	struct table_rule rule;
 
+/*	if(PARSER_IS_OUTER_IPV4_DEFAULT()) { */
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-
+/*	} else { */
+		/* IPv6 */
+		ipv6hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		ipv6hdr_ptr = (struct ipv6hdr *)
+				(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+//	}
+//	ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+//	iphdr_ptr = (struct ipv4hdr *)(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+	
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
-
-	/* todo remove next line after release Pre-Alpha 0.3 */
-	scope_status.scope_mode = EXCLUSIVE;
 
 	if (scope_status.scope_mode == EXCLUSIVE) {
 		if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
@@ -227,7 +312,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 	if (check_for_frag_error() == NO_ERROR) {
 		/* Good fragment */
-		sr_status = table_lookup_by_keyid(
+		sr_status = table_lookup_by_keyid_default_frame(
 				TABLE_ACCEL_ID_CTLU,
 				instance_params.table_id_ipv4,
 				ipr_global_parameters1.ipr_key_id_ipv4,
@@ -313,8 +398,15 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    rfdc.next_index 		   = 0;
 		    rfdc.current_total_length  = 0;
 		    rfdc.first_frag_index 	   = 0;
+		    rfdc.num_of_frags		   = 0;
+		    /* todo check if necessary */
+		    rfdc.biggest_payload	   = 0;
+		    rfdc.current_running_sum   = 0;
+		    rfdc.first_frag_offset     = 0;
+		    rfdc.last_frag_index       = 0;
+		    rfdc.total_in_order_payload = 0;
 		    get_default_amq_attributes(&rfdc.isolation_bits);
-
+		    
 		    /* create Timer in TMAN */
 /*
 		    tman_create_timer(instance_params.tmi_id,
@@ -345,8 +437,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		return IPR_ERROR;
 	}
 
-	status_insert_to_LL =
-		  ipr_insert_to_link_list(&rfdc, rfdc_ext_addr);
+	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
+												  ipv4hdr_offset,
+												  ipv4hdr_ptr);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
@@ -378,39 +471,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* default frame is now the full reassembled frame */
 	
-    /* Delete timer for this frame */
-    if(rfdc.status & RFDC_VALID) {
-    	/* Delete timer */
- /*   	sr_status = tman_delete_timer(rfdc.timer_handle, 
-    								  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-    	if(sr_status == SUCCESS) {
-*/    		*((uint64_t *)rule.key_desc.em.key) = rfdc.ipv4_key[0];
-    		*(uint64_t *)(rule.key_desc.em.key+8) = rfdc.ipv4_key[1];
-    		/* todo , when CTLU will change implementation, dec ref cnt through
-    		   CDMA should be added. */
-    		table_rule_delete(
-    			TABLE_ACCEL_ID_CTLU,
-    			instance_params.table_id_ipv4,
-    			&rule.key_desc,
-    			IPV4_KEY_SIZE,
-    			NULL);   		
-//    	} else {
-        	/* Early Time Out */
-/*        	cdma_write_release_lock_and_decrement(rfdc_ext_addr,
-        										  &rfdc,
-        										  RFDC_SIZE);
-        	return IPR_ERROR;		  		
-    	} 	
-*/    } else {
-    	/* Early Time Out */
-    	cdma_write_release_lock_and_decrement(rfdc_ext_addr,
-    										  &rfdc,
-    										  RFDC_SIZE);
-    	return IPR_ERROR;
-    }
-
-    rfdc.status &= ~RFDC_VALID;
-    
     /* Increment no of reassembled IPv4 frames in instance
        data structure */
      ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
@@ -471,25 +531,21 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 }
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr)
+							     uint64_t rfdc_ext_addr, 
+							     uint16_t ipv4hdr_offset,
+							     struct	ipv4hdr	*ipv4hdr_ptr)
 {
 
 	uint8_t			current_index;
 	uint16_t		frag_offset_shifted;
-	uint16_t		ipv4hdr_offset;
 	uint16_t		current_frag_size;
 	uint16_t		expected_frag_offset;
 	uint16_t		ip_header_size;
 	uint64_t		ext_addr;
 	/* todo reuse ext_addr for current_element_ext_addr */
 	uint64_t		current_element_ext_addr;
-	struct	ipv4hdr		*ipv4hdr_ptr;
 	struct link_list_element	current_element;
 	struct	parse_result	*pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-
-	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ipv4hdr_ptr = (struct ipv4hdr *)
-			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
 	frag_offset_shifted = (ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_MASK)<<3;
 
@@ -529,7 +585,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			fdma_store_default_frame_data();
 
 			/* Write FD in external buffer */
-			ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
+			ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
 									rfdc_ptr->next_index*FD_SIZE;
 			cdma_write(ext_addr,
 				       (void *)HWC_FD_ADDRESS,
@@ -570,7 +626,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			    current_element.frag_offset = frag_offset_shifted;
 			    current_element.frag_length = current_frag_size;
 				/* Write my element of link list */
-				current_element_ext_addr = rfdc_ext_addr + RFDC_SIZE +
+				current_element_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST +
 										   current_index*LINK_LIST_ELEMENT_SIZE;
 				cdma_write(current_element_ext_addr,
 						   (void *)&current_element,
@@ -581,8 +637,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				fdma_store_default_frame_data();
 
 				/* Write FD in external buffer */
-				ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
-										current_index*FD_SIZE;
+				ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
+											current_index*FD_SIZE;
 				cdma_write(ext_addr,
 					       (void *)HWC_FD_ADDRESS,
 					       FD_SIZE);
@@ -611,7 +667,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	/* Bring into workspace 2 FDs to be concatenated */
-	fds_to_fetch_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE;
+	fds_to_fetch_addr = rfdc_ext_addr + START_OF_FDS_LIST;
 	cdma_read((void *)fds_to_concatenate,
 			  fds_to_fetch_addr,
 			  FD_SIZE*2);
@@ -773,7 +829,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	
 	if(rfdc_ptr->status & ORDER_AND_OOO) { 
 		if (rfdc_ptr->index_to_out_of_order == 1) {
-			temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE;
+			temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST;
 			cdma_read((void *)HWC_FD_ADDRESS,
 					  temp_ext_addr,
 					  FD_SIZE);
@@ -783,7 +839,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 			/* Open 1rst frame and get frame handle */
 			fdma_present_default_frame_without_segments();
 			current_index = rfdc_ptr->first_frag_index;
-			temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
+			temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
 							current_index*FD_SIZE;
 
 			cdma_read((void *)fds_to_concatenate,
@@ -797,9 +853,6 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 					(uint8_t *)(&(concatenate_params.frame2)) +
 					sizeof(uint8_t));
 		
-			concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
-			concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
-			concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 			/* Take header size to be removed from FD[FRC] */
 			concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
 		
@@ -820,18 +873,18 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	
 		/* Bring 8 elements of LL */
 		octet_index = current_index >> 3;
-		temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
+		temp_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST + 
 						octet_index * 8 * LINK_LIST_ELEMENT_SIZE;
 		cdma_read(link_list,
 				  temp_ext_addr,
 				  8*LINK_LIST_ELEMENT_SIZE);
-		temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE + 
+		temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST + 
 						current_index*FD_SIZE;
 		cdma_read(fds_to_concatenate,
 				  temp_ext_addr,
 				  FD_SIZE);
 		current_index = link_list[current_index&OCTET_LINK_LIST_MASK].next_index;
-		temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE + 
+		temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST + 
 						current_index*FD_SIZE;
 		cdma_read(fds_to_concatenate+1,
 				  temp_ext_addr,
@@ -865,7 +918,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		else {
 			/* Bring 8 elements of LL */
 			octet_index = current_index >> 3;
-			temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
+			temp_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST + 
 							octet_index * 8 * LINK_LIST_ELEMENT_SIZE;
 			cdma_read(link_list,
 					  temp_ext_addr,
@@ -874,7 +927,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 			current_index = link_list[current_index&OCTET_LINK_LIST_MASK].next_index;
 		}
 
-		temp_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
+		temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
 						current_index*FD_SIZE;
 
 		cdma_read((void *)fds_to_concatenate,
@@ -927,39 +980,32 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr)
 {
 	uint8_t			delta;
-	/* allocate the maximum data to be removed */
-	uint8_t			tail_frame_ptr[22];
-	struct fdma_delete_segment_data_params params;
+	void 			*tail_frame_ptr;
+	struct fdma_present_segment_params params;
 	
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 	
 	delta = (uint8_t)((uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 
-							(ipv4hdr_ptr->total_length+ipv4hdr_offset));
+									(ipv4hdr_ptr->total_length+ipv4hdr_offset));
 
 	if(delta != 0) {
 		
-		((struct fdma_present_segment_params *)&params)->flags = 
-														  FDMA_PRES_SR_BIT;
-		((struct fdma_present_segment_params *)&params)->frame_handle = 
-											(uint8_t) PRC_GET_FRAME_HANDLE();
-		((struct fdma_present_segment_params *)&params)->offset = delta;
-		((struct fdma_present_segment_params *)&params)->ws_dst =
-															&tail_frame_ptr;
-		((struct fdma_present_segment_params *)&params)->present_size = delta;
-		fdma_present_frame_segment((struct fdma_present_segment_params *)&params);
-
-		params.seg_handle = 
-					((struct fdma_present_segment_params *)&params)->seg_handle;
-		params.frame_handle 	  = (uint8_t) PRC_GET_FRAME_HANDLE();
-		params.flags 			  =  FDMA_REPLACE_SA_CLOSE_BIT;
-		params.delete_target_size = delta;
-		params.to_offset 		  = 0;
-		fdma_delete_segment_data(&params);
-								 
-
-		/* todo : ensure Eth FCS was already removed */
+		params.flags = FDMA_PRES_SR_BIT;
+		params.frame_handle = (uint8_t) PRC_GET_FRAME_HANDLE();
+		params.offset = delta;
+		params.ws_dst = &tail_frame_ptr;
+		params.present_size = delta;
+/*		fdma_present_frame_segment(&params);
+		fdma_delete_segment_data(0,
+								 delta,
+								 FDMA_REPLACE_SA_CLOSE_BIT,
+								 (uint8_t) PRC_GET_FRAME_HANDLE(),
+								 params->seg_handle,
+								 tail_frame_ptr);
+*/
+		/* todo : take care of Eth CRC */
 	}
 	return;
 }
@@ -994,11 +1040,11 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
     }
 	current_index = rfdc_ptr->next_index;
 //    p_LinkSgEntry = (t_LinkListSGFormat *)(p_IntIpr->intBufAddr + (nextSgIndex << 4));
-	current_element_ext_addr =  rfdc_ext_addr + RFDC_SIZE +
+	current_element_ext_addr =  rfdc_ext_addr + START_OF_LINK_LIST +
     							current_index*LINK_LIST_ELEMENT_SIZE;
     first_frag_index = rfdc_ptr->first_frag_index;
     temp_frag_index  = rfdc_ptr->last_frag_index;
-	temp_element_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
+	temp_element_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST + 
 								LINK_LIST_ELEMENT_SIZE*temp_frag_index;
 //    temp_total_payload = (uint16_t)((p_TempLinkSgEntry->fragOffsetAndAddress.fragOffAndAdd.fragOffset & SG_FRAGOFFSET_MASK)  + p_TempLinkSgEntry->length);
     temp_total_payload = rfdc_ptr->biggest_payload;
@@ -1038,8 +1084,8 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
         	}
         /* Bring 8 elements of the Link List */
         octet_index = temp_frag_index >> 3;
-        octet_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_ELEMENT_SIZE * 8 *
-        															octet_index;
+        octet_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST +
+        						LINK_LIST_ELEMENT_SIZE * 8 * octet_index;
         cdma_read(link_list,
         		  octet_ext_addr,
         		  8*LINK_LIST_ELEMENT_SIZE);
@@ -1082,8 +1128,8 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
                     cdma_write(current_element_ext_addr,
                     		   current_element_ptr,
                     		   LINK_LIST_ELEMENT_SIZE);
-                    temp_element_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_ELEMENT_SIZE * 
-											temp_frag_index;
+                    temp_element_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST +
+                    				LINK_LIST_ELEMENT_SIZE * temp_frag_index;
                     cdma_write(temp_element_ext_addr,
                     		   temp_element_ptr,
                     		   LINK_LIST_ELEMENT_SIZE);
@@ -1098,8 +1144,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 				fdma_store_default_frame_data();
 
 				/* Write FD in external buffer */
-				current_element_ext_addr = rfdc_ext_addr + RFDC_SIZE + 
-										   LINK_LIST_SIZE +
+				current_element_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
 										   current_index*FD_SIZE;
 				cdma_write(current_element_ext_addr,
 					       (void *)HWC_FD_ADDRESS,
@@ -1118,7 +1163,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
                 /* Bring 8 elements of the Link List */
             	/* todo check if compiler add a clock for next line */
                 octet_index = temp_frag_index >> 3;
-                octet_ext_addr = rfdc_ext_addr + RFDC_SIZE +
+                octet_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST +
                 				  LINK_LIST_ELEMENT_SIZE * 8 * octet_index;
                 cdma_read(link_list,
                 		  octet_ext_addr,
@@ -1153,7 +1198,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
                     cdma_write(octet_ext_addr,
                     		   link_list,
                     		   8*LINK_LIST_ELEMENT_SIZE);
-                    new_frag_ext_addr = rfdc_ext_addr + RFDC_SIZE +
+                    new_frag_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST +
                     					LINK_LIST_ELEMENT_SIZE * new_frag_index;
                     cdma_read(link_list,
                     		  new_frag_ext_addr,
@@ -1181,7 +1226,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
                 	cdma_write(octet_ext_addr,
                 		   link_list,
                 		   8*LINK_LIST_ELEMENT_SIZE);
-                    new_frag_ext_addr = rfdc_ext_addr + RFDC_SIZE +
+                    new_frag_ext_addr = rfdc_ext_addr + START_OF_LINK_LIST +
                     					LINK_LIST_ELEMENT_SIZE * new_frag_index;
                     cdma_read(link_list,
                     		  new_frag_ext_addr,
@@ -1235,7 +1280,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		fdma_store_default_frame_data();
 	
 		/* Write FD in external buffer */
-		current_element_ext_addr = rfdc_ext_addr + RFDC_SIZE + LINK_LIST_SIZE +
+		current_element_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
 								   current_index*FD_SIZE;
 		cdma_write(current_element_ext_addr,
 				   (void *)HWC_FD_ADDRESS,

@@ -16,9 +16,12 @@
 #include "dplib/fsl_parser.h"
 #include "system.h"
 #include "osm.h"
+#include "common/spinlock.h"
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
+__VERIF_GLOBAL volatile uint8_t verif_only_1_task_complete;
+__VERIF_GLOBAL uint8_t verif_spin_lock;
 __VERIF_GLOBAL uint8_t verif_prpid;
 __VERIF_GLOBAL uint8_t tmi_id;
 
@@ -33,6 +36,7 @@ __VERIF_TLS int32_t status_ipf;
 __VERIF_TLS int32_t status_ipr;
 
 extern __TASK struct aiop_default_task_params default_task_params;
+extern __TASK uint32_t seed_32bit;
 
 void init_verif()
 {
@@ -40,20 +44,35 @@ void init_verif()
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
+	lock_spinlock(&verif_spin_lock);
+	
 	if (!verif_prpid_valid){
+		verif_prpid_valid = 1;
+		unlock_spinlock(&verif_spin_lock);
 		aiop_sl_init();
 		aiop_verif_init_parser();
 		/* This is a temporary function and has to be used only until
 				* the ARENA will initialize the profile sram */
 		init_profile_sram();
-		verif_prpid_valid = 1;
 		gro_timeout_cb_verif(0);
 		tmi_id = 0;
+		verif_only_1_task_complete = 1;
+	}
+	else {
+		unlock_spinlock(&verif_spin_lock);
+		if (!verif_only_1_task_complete) {
+			do {
+				__e_hwacceli_(YIELD_ACCEL_ID);
+			} while (!verif_only_1_task_complete);
+		}
 	}
 
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
 
+	/* an initialization so we will not have the value 0 */
+	seed_32bit = 5;
+	
 	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.parser_profile_id = verif_prpid;

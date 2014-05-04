@@ -142,14 +142,17 @@ int32_t tcp_gro_aggregate_seg(
 
 	/* calculate tcp checksum */
 	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
+		/* calculate data checksum */
 		gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum(
 				&gro_ctx);
+		/* calculate data + sequence_number checksum */
+		/* The sequence_number is taken from the first segment */
 		gro_ctx.checksum = cksum_ones_complement_sum16(
 				gro_ctx.checksum,
 				(uint16_t)tcp->sequence_number);
-		/*gro_ctx.checksum = cksum_ones_complement_sum16(
+		gro_ctx.checksum = cksum_ones_complement_sum16(
 				gro_ctx.checksum,
-				(uint16_t)(tcp->sequence_number >> 16));*/
+				(uint16_t)(tcp->sequence_number >> 16));
 	}
 
 	/* store aggregated frame */
@@ -510,7 +513,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* calculate tcp data checksum for the new frame */
 	agg_checksum = gro_ctx->checksum;
 	gro_ctx->checksum = 0;
-	if ((gro_ctx->internal_flags & ~TCP_GRO_FLUSH_AGG_SET) &&
+	if (~(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) &&
 		(gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM))
 		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
@@ -696,11 +699,6 @@ int32_t tcp_gro_flush_aggregation(
 	/* reset gro context fields */
 	gro_ctx.metadata.seg_num = 0;
 	gro_ctx.internal_flags = 0;
-	/* write gro context back to DDR + release mutex */
-	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
-				CDMA_POSTDMA_MUTEX_RM_BIT,
-				(void *)&gro_ctx,
-				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
@@ -749,6 +747,12 @@ int32_t tcp_gro_flush_aggregation(
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 
+	/* write gro context back to DDR + release mutex */
+	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+				CDMA_POSTDMA_MUTEX_RM_BIT,
+				(void *)&gro_ctx,
+				(uint16_t)sizeof(struct tcp_gro_context));
+
 	/* update statistics */
 	ste_inc_counter(gro_ctx.params.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET
 			, 1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
@@ -773,6 +777,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	int32_t sr_status;
 	uint16_t ip_length, outer_ip_offset;
 	uint8_t single_seg;
+	uint32_t timer_handle;
 
 	opaque2 = 0;
 	/* read GRO context*/
@@ -781,8 +786,9 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
 
+	timer_handle = TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS);
 	if (gro_ctx.timer_handle !=
-		(TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS) & TIMER_HANDLE_MASK)) {
+		(timer_handle & TIMER_HANDLE_MASK)) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return;
 	}
@@ -808,11 +814,6 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	/* reset gro context fields */
 	gro_ctx.metadata.seg_num = 0;
 	gro_ctx.internal_flags = 0;
-	/* write gro context back to DDR + release mutex */
-	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
-				CDMA_POSTDMA_MUTEX_RM_BIT,
-				(void *)&gro_ctx,
-				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
@@ -860,6 +861,12 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 
+	/* write gro context back to DDR + release mutex */
+	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+				CDMA_POSTDMA_MUTEX_RM_BIT,
+				(void *)&gro_ctx,
+				(uint16_t)sizeof(struct tcp_gro_context));
+
 	/* update statistics */
 	ste_inc_counter(gro_ctx.params.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET
 			, 1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
@@ -894,6 +901,14 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 	/* save original TCP checksum */
 	tcp_cs = tcp->checksum;
 	tcp->checksum = 0;
+	
+	/* Modify default segment (TCP checksum = 0) */
+	/* TODO FDMA ERROR */
+	sr_status = fdma_modify_default_segment_data(
+			(uint16_t)PARSER_GET_L4_OFFSET_DEFAULT() +
+			(uint16_t)offsetof(struct tcphdr, checksum), (uint16_t)(
+			sizeof(tcp->checksum)));
+		
 	tcp_header_length = (tcp->data_offset_reserved &
 				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
 				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
@@ -934,8 +949,8 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 
 	/* Reduce TCP header + Pseudo IP checksum from original TCP checksum.
 	 * The result is the Data checksum */
-	tmp_checksum = cksum_ones_complement_sum16(tcp_cs,
-			(uint16_t)~tmp_checksum);
+	tmp_checksum = ~cksum_ones_complement_sum16(tcp_cs,
+			(uint16_t)tmp_checksum);
 
 	/* Calculate accumulated packet data checksum:
 	 * Add Data checksum from previous segments in the aggregation to the
@@ -954,8 +969,11 @@ void tcp_gro_calc_tcp_header_and_data_cksum(
 
 	tmp_checksum = cksum_ones_complement_sum16(tcp->checksum,
 			gro_ctx->checksum);
+	/* The sequence_number was already taken from the first segment */
 	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
 				(uint16_t)(tcp->sequence_number));
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number >> 16));
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
 			(uint16_t)~((uint16_t)tcp->sequence_number));*/
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
@@ -990,6 +1008,13 @@ void tcp_gro_calc_tcp_header_cksum(
 				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
 	tcp->checksum = 0;
+	
+	/* Modify default segment (TCP checksum = 0) */
+	/* TODO FDMA ERROR */
+	sr_status = fdma_modify_default_segment_data(
+			(uint16_t)PARSER_GET_L4_OFFSET_DEFAULT() +
+			(uint16_t)offsetof(struct tcphdr, checksum), (uint16_t)(
+			sizeof(tcp->checksum)));
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* calculate TCP header + IPsrc + IPdst checksum  */
@@ -1016,7 +1041,8 @@ void tcp_gro_calc_tcp_header_cksum(
 	 * beginning */
 	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
 				(uint16_t)(tcp->sequence_number));
-
+	tmp_checksum = cksum_ones_complement_dec16(tmp_checksum,
+				(uint16_t)(tcp->sequence_number >> 16));
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
 			(uint16_t)(~(uint16_t)(tcp->sequence_number)));*/
 	/*tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,

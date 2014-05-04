@@ -1029,10 +1029,7 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 
 	/* Write 1's complement of the 1's complement 16 bit sum into the
 	IPv4 header */
-	if (running_sum)
-		ipv4header->hdr_cksum = running_sum;
-	else
-		ipv4header->hdr_cksum = 0xFFFF;
+	ipv4header->hdr_cksum = running_sum;
 
 	/* Update FDMA */
 	if (!(flags & IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
@@ -1055,7 +1052,6 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	uint8_t ah_ext;
 	uint8_t dst_ext;
 	uint8_t frag_ext;
-	uint16_t ipv6_payload; 
 	uint8_t no_extension; 
 
 	no_extension = 0;
@@ -1077,7 +1073,6 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	/* Copy initials IPv6 header */
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
 	current_hdr_size = IPV6_HDR_LENGTH;
-	ipv6_payload = ipv6_hdr->payload_length;
 	next_hdr = ipv6_hdr->next_header;
 
 	/* Skip to next extension header until extension isn't ipv6 header
