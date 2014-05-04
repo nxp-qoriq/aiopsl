@@ -28,12 +28,11 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	union  cmdif_data *v_addr = NULL;
 	struct cmdif_dev  *dev = NULL;
 	
-	/* cidesc->dev = NULL is indication for unused cidesc 
-	 * if cidesc->dev != NULL it maybe user error */
+	/* if cidesc->dev != NULL it's ok, 
+	 * it's usefull to keep it in order to let user to free this buffer */
 	if ((m_name == NULL) 
 		|| (cidesc == NULL) 
-		|| (!IS_VLD_OPEN_SIZE(size))
-		|| (cidesc->dev != NULL)) {		
+		|| (!IS_VLD_OPEN_SIZE(size))) {		
 		return -EINVAL;
 	}
 	
@@ -83,6 +82,8 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = (struct cmdif_dev *)cidesc->dev;
 
+	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
+
 	/* release lock as needed */
 	if (cidesc->unlock_cb)
 		cidesc->unlock_cb(cidesc->lock);
@@ -104,9 +105,7 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 {
 	struct cmdif_dev *dev = (struct cmdif_dev *)cidesc->dev;
 
-	if ((cidesc == NULL) 
-		|| (cidesc->regs == NULL)
-		|| (dev == NULL)) {		
+	if ((cidesc == NULL) || (dev == NULL)) {		
 		return -EINVAL;
 	}
 
@@ -138,9 +137,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 {
 	struct cmdif_dev *dev = (struct cmdif_dev *)cidesc->dev;
 
-	if ((cidesc == NULL) 
-		|| (cidesc->regs == NULL)
-		|| (cidesc->dev == NULL)) {		
+	if ((cidesc == NULL) || (cidesc->dev == NULL)) {		
 		return -EINVAL;
 	}
 	

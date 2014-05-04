@@ -46,12 +46,14 @@ void client_open_cmd(struct cmdif_desc *client, void *sync_done)
 	
 	err = cmdif_open_cmd(client, module, 3, NULL, NULL, 
 	                     sync_done, p_data, 26, &fd);
+	
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, fd.u_flc.flc);
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, fd.u_frc.frc);
 	if ((fd.d_addr != NULL) && (fd.d_size > 0)) {
 		v_ptr = fsl_os_phys_to_virt(fd.d_addr);
 		cp_data_to_prc(v_ptr, (int)fd.d_size);
 	}
+	LDPAA_FD_SET_ADDR(HWC_FD_ADDRESS, fd.d_addr);
 }
 
 void client_close_cmd(struct cmdif_desc *client) 
@@ -62,6 +64,8 @@ void client_close_cmd(struct cmdif_desc *client)
 	err = cmdif_close_cmd(client, &fd);
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, fd.u_flc.flc);
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, fd.u_frc.frc);
+	
+	cmdif_close_done(client);
 }
 
 void client_sync_cmd(struct cmdif_desc *client) 
