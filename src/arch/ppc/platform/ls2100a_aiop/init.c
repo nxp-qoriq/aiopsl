@@ -126,12 +126,21 @@ void core_ready_for_tasks(void)
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
+    void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
+    
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
-	   
-    //TODO debug only: mastercore should be the last one to do this 
+
+    if(sys_is_master_core()) {
+	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
+	uint32_t abrr_val = ioread32(abrr) & \
+		(~((uint32_t)sys_get_cores_mask()));
+	
+	while(ioread32(abcr) != abrr_val) {asm{nop}}
+    }
+    
     /* Write AIOP boot status (ABCR) */
-    iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
+    iowrite32((uint32_t)sys_get_cores_mask(), abcr);
     
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
@@ -319,6 +328,5 @@ int run_apps(void)
 			apps[i].init();
 	}
 
-	//XXX debug only: core_ready_for_tasks();
 	return 0;
 }
