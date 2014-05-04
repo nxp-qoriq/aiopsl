@@ -290,7 +290,7 @@ uint32_t check_for_frag_error();
 
 void ipr_time_out();
 
-void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr);
+void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
