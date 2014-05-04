@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>cmdif_test</name>
+	<name>arena_test</name>
 	<comment></comment>
 	<projects>
 		<project location="PARENT-2-PROJECT_LOC/aiopsl">
@@ -102,29 +102,19 @@ aiop_sl		</project>
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
-			<name>src/app_receive_cb.c</name>
-			<type>1</type>
-			<locationURI>PROJECT_LOC/src/app_receive_cb.c</locationURI>
-		</link>
-		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
 		</link>
 		<link>
-			<name>src/cmdif_client_flib.c</name>
+			<name>src/arena_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif_client_flib.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test.c</locationURI>
 		</link>
 		<link>
-			<name>src/cmdif_client_stub.c</name>
+			<name>src/slab_test.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/cmdif_client_stub.c</locationURI>
-		</link>
-		<link>
-			<name>src/cmdif_test.c</name>
-			<type>1</type>
-			<locationURI>PROJECT_LOC/src/cmdif_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/slab_test.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
