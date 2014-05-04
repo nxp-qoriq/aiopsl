@@ -23,7 +23,7 @@ __SHRAM struct cmdif_desc client_desc;
 struct {
 	struct cmdif_dev  client_dev;
 	union  cmdif_data data;
-} sync_done;
+} open_data;
 /**< Format of the data to be passed for cmdif_open(). 
  *   Part of the same buffer will be reused for sync_done */
 
@@ -58,7 +58,7 @@ void app_receive_cb (void)
 		cmdif_sync_cmd_done(&client_desc);
 
 		fsl_os_print("EXPECTED RESULT: PASSED\n");
-		client_open_cmd(&client_desc, &sync_done); 
+		client_open_cmd(&client_desc, &open_data); 
 		break;
 	case 1:
 		cmdif_open_done(&client_desc);
