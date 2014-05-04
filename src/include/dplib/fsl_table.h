@@ -272,6 +272,35 @@
 
 
 /**************************************************************************//**
+@Group	FSL_TABLE_LOOKUP_FLAG_DEFINES Table Lookup Flags
+@{
+*//***************************************************************************/
+	/** Segment Address and Size Non Default
+	If set, the Segment given in the lookup function parameters is used
+	instead of the default segment. Not available for Rev1  */
+#define TABLE_LOOKUP_FLAG_SEG_NON_DEFAULT		0x8000
+
+	/** Parse Result Address Non Default
+	If set, the Parse Result Address given in the lookup function
+	parameters is used instead of the default address. Not available for
+	Rev1 */
+#define TABLE_LOOKUP_FLAG_PRA_NON_DEFAULT		0x4000
+
+	/** Frame Descriptor Address Non Default
+	If set, the Frame Descriptor Address given in the lookup function
+	parameters is used instead of the default address. Not available for
+	Rev1 */
+#define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x2000
+
+	/** Metadata Non Default 
+	If set, the metadata given in the lookup function parameters is used
+	instead of the default metadata which is zeroes. */
+#define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x1000
+
+/** @} */ /* end of FSL_TABLE_LOOKUP_FLAG_DEFINES */
+
+
+/**************************************************************************//**
 @Group	FSL_TABLE_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
@@ -285,10 +314,10 @@ A general bit that is set in some errors conditions */
 /** Table function input or output is erroneous  */
 #define TABLE_IO_ERROR		0x80000001
 
-/** CTLU Lookup Miss.
+/** Table Lookup Miss.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
-#define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
+#define TABLE_STATUS_MISS	0x00000800
 
 /** Key Composition Error.
  * This status is set when a key composition error occurs, meaning one of the
@@ -296,19 +325,26 @@ A general bit that is set in some errors conditions */
  * - Invalid Key Composition ID was used.
  * - Key Size Error.
  * */
-#define CTLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
+#define TABLE_STATUS_KSE	0x00000400
 
 /** Extract Out Of Frame Header.
  * This status is set if key composition attempts to extract a field which is
  * not in the frame header either because it is placed beyond the first 256
  * bytes of the frame, or because the frame is shorter than the index evaluated
  * for the extraction. */
-#define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
+#define TABLE_STATUS_EOFH	0x00000200
 
 /** Maximum Number Of Chained Lookups Is Reached.
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. */
+#define TABLE_STATUS_MNLE	0x00000100
+
+/* TODO TEMP CODE !! START */
+#define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_KSE	(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
 #define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
+/* TEMP CODE !! END */
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
@@ -326,36 +362,6 @@ A general bit that is set in some errors conditions */
  * allocation (availability is not guaranteed). */
 #define CTLU_STATUS_TEMPNOR	(0x00000010 | CTLU_STATUS_NORSC)
 
-/** ICID Protection Is Violated
- * */
-#define CTLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						TABLE_STATUS_MGCF)
-
-/** MFLU Lookup Miss.
- * This status is set when a matching rule is not found. Note that on chained
- * lookups this status is set only if the last lookup results in a miss. */
-#define MFLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_MFLU << 24))
-
-/** Key Composition Error.
- * This status is set when a key composition error occurs meaning one of the
- * following:
- * - Invalid Key Composition ID was used.
- * - Key Size Error.
- * */
-#define MFLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_MFLU << 24))
-
-/** Extract Out Of Frame Header.
- * This status is set if key composition attempts to extract a field which is
- * not in the frame header either because it is placed beyond the first 256
- * bytes of the frame, or because the frame is shorter than the index evaluated
- * for the extraction. */
-#define MFLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_MFLU << 24))
-
-/** Maximum Number Of Chained Lookups Is Reached.
- * This status is set if the number of table lookups performed by the MFLU
- * reached the threshold. */
-#define MFLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_MFLU << 24))
-
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
@@ -372,10 +378,6 @@ A general bit that is set in some errors conditions */
  * allocation (availability is not guaranteed). */
 #define MFLU_STATUS_TEMPNOR	(0x00000010 | MFLU_STATUS_NORSC)
 
-/** ICID Protection Is Violated
- * */
-#define MFLU_STATUS_ICIDE	(0x00000008 | (TABLE_ACCEL_ID_MFLU << 24) | \
-						TABLE_STATUS_MGCF)
 /** @} */ /* end of FSL_TABLE_STATUS */
 
 /** @} */ /* end of FSL_TABLE_MACROS */
@@ -881,6 +883,47 @@ struct table_get_params_output {
 	\endlink for more details. */
 	uint16_t attributes;
 };
+
+
+/**************************************************************************//**
+@Description	Table Lookup Non Default Parameters Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_lookup_non_default_params {
+	/** Segment Address
+	This segment will usually contain the frame header. */
+	uint16_t segment_addr;
+
+	/** Segment Size */
+	uint16_t segment_size;
+
+	/** Parse Result Address */
+	uint16_t parse_result_addr;
+
+	/** Reserved
+	Reserved for compliance with HW format.
+	User should not access this field. */
+	uint16_t reserved0;
+
+	/** Frame Descriptor Address */
+	uint16_t fd_addr;
+
+	/** Reserved
+	Reserved for compliance with HW format.
+	User should not access this field. */
+	uint32_t reserved1;
+
+	/** Reserved
+	Reserved for compliance with HW format.
+	User should not access this field. */
+	uint16_t reserved2;
+
+	/** User Metadata
+	This can contain metadata for the key creation process */
+	uint64_t metadata;
+};
+#pragma pack(pop)
+
 /** @} */ /* end of FSL_TABLE_STRUCTS */
 
 
@@ -1197,51 +1240,18 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 /* ############################# Table Lookups ############################# */
 /* ######################################################################### */
 
-/**************************************************************************//**
-@Function	table_lookup_by_keyid
-
-@Description	Performs a lookup with a predefined key.
-
-		If opaque0_or_reference result field is a reference pointer,
-		its reference counter will be incremented during this operation.
-		user should decrement the Slac/CDMA buffer reference counter
-		after usage.
-
-		This function updates the matched result timestamp.
-
-		Implicit input parameters in Task Defaults: Segment Address,
-		Segment Size and Parse Results.
-
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	keyid - A key ID for the table lookups (key ID specifies
-		how to build a key).
-@Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written.  Must be aligned to
-		16B boundary.
-
-@Return		Please refer to \ref FSL_TABLE_STATUS
-
-@Cautions	In this function the task yields.
-*//***************************************************************************/
-int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
-			      uint16_t table_id,
-			      uint8_t keyid,
-			      struct table_lookup_result *lookup_result);
-
 
 /**************************************************************************//**
 @Function	table_lookup_by_key
 
 @Description	Performs a lookup with a key built by the user.
 
-		This function updates the matched result timestamp.
-
 		If opaque0_or_reference result field is a reference pointer,
 		its reference counter will be incremented during this operation.
 		user should decrement the Slab/CDMA buffer reference counter
 		after usage.
+
+		This function updates the matched result timestamp.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1266,6 +1276,98 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 			    union table_lookup_key_desc key_desc,
 			    uint8_t key_size,
 			    struct table_lookup_result *lookup_result);
+
+
+/**************************************************************************//**
+@Function	table_lookup_by_keyid_default_frame
+
+@Description	Performs a lookup with a predefined key and the default frame.
+
+		In this lookup process a lookup key will be built according to
+		the Key Composition Rule associated with the Key ID supplied as
+		a paremeter to this functions. Default frame header (segment),
+		Parse Result address, and FD address parameters are used in
+		the key creation process.
+
+		This function updates the matched result timestamp.
+
+		If the lookup result contains a pointer to Slab/CDMA buffer
+		(which has a reference counter) and the lookup result type
+		\ref TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
+		will be incremented during this operation.
+		user should decrement the Slab/CDMA buffer reference counter
+		after usage.
+
+		Implicit input parameters in Task Defaults: Segment Address,
+		Segment Size, Frame Descriptor Address and Parse Results.
+
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id - Table ID.
+@Param[in]	keyid - A key ID for the table lookups (key ID specifies
+		how to build a key).
+@Param[out]	lookup_result - Points to a user preallocated memory to which
+		the table lookup result will be written. Must be aligned to
+		16B boundary.
+
+@Return		Please refer to \ref FSL_TABLE_STATUS
+
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
+					    uint16_t table_id,
+					    uint8_t keyid,
+					    struct table_lookup_result
+						   *lookup_result);
+
+
+/**************************************************************************//**
+@Function	table_lookup_by_keyid
+
+@Description	Performs a lookup with a predefined key, a frame, and user
+		metadata.
+
+		In this lookup process a lookup key will be built according to
+		the Key Composition Rule associated with the Key ID supplied as
+		a parameter to this functions. Frame header (Segment), Parse
+		result, FD address and Metadata can explicitly be passed to
+		this function for the key creation process.
+
+		This function updates the matched result timestamp.
+
+		If the lookup result contains a pointer to Slab/CDMA buffer
+		(which has a reference counter) and the lookup result type
+		\ref TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
+		will be incremented during this operation.
+		user should decrement the Slab/CDMA buffer reference counter
+		after usage.
+
+@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id - Table ID.
+@Param[in]	keyid - A key ID for the table lookups (key ID specifies
+		how to build a key).
+@Param[in]	flags - Specifies options to this function, please refer to
+		\ref FSL_TABLE_LOOKUP_FLAG_DEFINES.
+@Param[in]	ndf_params - Non defaults inputs to the key creation process.
+		See structure documentation for more details. Some of the
+		fields in this structures are only valid if appropriate flags
+		were set to this function. Must be aligned to 16B boundary.
+@Param[out]	lookup_result - Points to a user preallocated memory to which
+		the table lookup result will be written. Must be aligned to
+		16B boundary.
+
+@Return		Please refer to \ref FSL_TABLE_STATUS
+
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
+			      uint16_t table_id,
+			      uint8_t keyid,
+			      uint32_t flags,
+			      struct table_lookup_non_default_params
+				     *ndf_params,
+			      struct table_lookup_result *lookup_result);
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */

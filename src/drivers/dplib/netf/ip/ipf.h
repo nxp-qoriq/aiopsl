@@ -80,16 +80,6 @@ struct params_for_restoration {
 	uint8_t pad[6];
 };
 
-/**************************************************************************//**
-@Description	IPv6 Fragment Header.
-*//***************************************************************************/
-struct ipv6_fragment_header {
-	uint8_t  next_header;
-	uint8_t  reserved;
-	uint16_t fragment_offset_flags;
-	uint32_t id;
-};
-
 /** @} */ /* end of IPF_INTERNAL_STRUCTS */
 
 
@@ -100,21 +90,6 @@ struct ipv6_fragment_header {
 
 @{
 *//***************************************************************************/
-/**************************************************************************//**
- @Group	IPF_DEFINES IPF Defines
-
- @Description IPF Defines.
-
- @{
-*//***************************************************************************/
-/** Size of IPv6 Fragment header */
-#define IPV6_FRAGMENT_HEADER_LENGTH  8
-/** Maximum number of restored fragments */
-/*#define MAX_NUM_OF_FRAGMENTS 64 */
-/** Mask for IPv6 Fragment Header M flag */
-#define IPV6_HDR_M_FLAG_MASK 0x0001
-
-/** @} */ /* end of IPF_DEFINES */
 
 /**************************************************************************//**
  @Group	IPF_GENERAL_INT_DEFINITIONS IPF General Internal Definitions

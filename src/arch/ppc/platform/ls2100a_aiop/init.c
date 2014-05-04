@@ -58,7 +58,7 @@ int run_apps(void);
 #include "general.h"
 /** Global task params */
 __TASK struct aiop_default_task_params default_task_params;
-__TASK uint32_t seed_32bit;
+
 
 int fill_system_parameters(t_sys_param *sys_param)
 {
@@ -87,6 +87,11 @@ int fill_system_parameters(t_sys_param *sys_param)
            sizeof(struct platform_memory_info)*ARRAY_SIZE(mem_info));
 
     return 0;
+}
+
+int cluster_init(void)
+{
+	return 0;
 }
 
 int global_init(void)
@@ -119,6 +124,10 @@ static void core_ready_for_tasks(void) {
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
 
+#if (STACK_OVERFLOW_DETECTION == 1)
+    booke_set_spr_DAC2(0x800);
+#endif
+    
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
