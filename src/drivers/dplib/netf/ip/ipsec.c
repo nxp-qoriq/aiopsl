@@ -91,23 +91,6 @@ int32_t ipsec_create_instance(
 	instance.sa_count = max_sa_num;
 	instance.tmi_id = tmi_id;
 
-	/*
-	 slab_find_and_fill_bpid
-	 num_buffs           Number of buffers in new pool.
-	 buff_size           Size of buffers in pool.
-	 alignment           Requested alignment for data field (in bytes).
-	                     AIOP: HW pool supports up to 8 bytes alignment.
-	 mem_partition_id    Memory partition ID for allocation.
-	                     AIOP: HW pool supports only PEB and DPAA DDR.
-	 num_filled_buffs    Number of buffers that we succeeded to fill.
-	 bpid                Id if the buffer that was filled with new buffers.
-
-	 @Return        0       - on success,
-	               -ENAVAIL - could not release into bpid
-	               -ENOMEM  - not enough memory for mem_partition_id
-	 */
-	
-
 	/* Descriptor and Instance Buffers */
 	return_val = slab_find_and_fill_bpid(
 			(max_sa_num + 1), /* uint32_t num_buffs */
@@ -119,7 +102,7 @@ int32_t ipsec_create_instance(
 	
 	if (return_val) {
 		// TODO: call future slab release function per BPID
-		// For all previously requested buffers
+		// for all previously requested buffers
 		return return_val;
 	}
 	
@@ -134,7 +117,7 @@ int32_t ipsec_create_instance(
 	
 	if (return_val) {
 		// TODO: call future slab release function per BPID
-		// For all previously requested buffers
+		// for all previously requested buffers
 		return return_val;
 	}
 	
@@ -150,10 +133,9 @@ int32_t ipsec_create_instance(
 		
 	/* Write the Instance to external memory */
 	return_val = cdma_write(
-			instance_handle, /* ext_address */
+			*instance_handle, /* ext_address */
 			&instance, /* ws_src */
-			//(uint16_t)(sizeof(instance))); /* size */
-			16); /* size */
+			(uint16_t)(sizeof(instance))); /* size */
 
 	if (return_val) {
 			// TODO: return with correct error code 

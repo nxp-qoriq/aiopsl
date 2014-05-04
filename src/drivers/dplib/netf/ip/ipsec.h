@@ -253,6 +253,7 @@ struct ipsec_instance_params {
 	uint16_t asa_bpid; /* Buffer pool ID for ASA copy */
 	uint16_t desc_bpid; /* Buffer pool ID for the SA descriptor */
 	uint8_t tmi_id; /* TMAN Instance ID  */
+	uint8_t reserved; /* reserved; just to make it aligned  */
 };
 
 
