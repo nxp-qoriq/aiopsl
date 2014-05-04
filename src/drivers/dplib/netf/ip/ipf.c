@@ -18,7 +18,6 @@
 #include "common/fsl_stdlib.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
-extern __TASK uint32_t seed_32bit;
 
 
 int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
@@ -143,8 +142,8 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	struct fdma_insert_segment_data_params insert_segment_data_params;
 	struct ipv6hdr *ipv6_hdr;
 	struct ipv6_fragment_header *ipv6_frag_hdr;
-	uint16_t header_length, frag_offset, frag_payload_length;
-	uint16_t ipv6_offset;
+	uint16_t header_length, frag_payload_length, ipv6_offset;
+	uint16_t frag_offset = 0;
 	uint16_t seg_size_rs, modify_size;
 	uint8_t *last_header;
 	uint8_t orig_next_header;
