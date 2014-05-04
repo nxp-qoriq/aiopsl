@@ -12,7 +12,6 @@
 #include "keygen.h"
 #include "system.h"
 #include "id_pool.h"
-#include "parser.h" /* TODO remove! */
 
 extern uint64_t ext_keyid_pool_address;
 
@@ -691,17 +690,17 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     uint64_t opaquein,
-		     union table_key_desc *key,
+		     uint64_t user_metadata,
+		     void *key,
 		     uint8_t *key_size)
 {
-	struct input_message_params input_struct __attribute__((aligned(16)));
+	struct keygen_input_message_params input_struct __attribute__((aligned(16)));
 	uint32_t arg1;
 	
-	if (opaquein) {
+	if (user_metadata) {
 		__stdw(0, 0, 0, &input_struct);
 		__stdw(0, 0, 8, &input_struct);
-		input_struct.opaquein = opaquein;
+		input_struct.opaquein = user_metadata;
 	
 		/* Prepare HW context for TLU accelerator call */
 		arg1 = ((((uint32_t)(&input_struct)) << 16) | (uint32_t)key);
@@ -723,8 +722,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 }
 
 
-int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size,
-							uint32_t *hash)
+int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 {
 
 	/* Prepare HW context for TLU accelerator call */
