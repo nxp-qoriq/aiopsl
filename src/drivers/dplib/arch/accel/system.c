@@ -35,8 +35,8 @@ extern int ipr_init(void);
 #endif /* AIOP_VERIF */
 
 /* Global parameters*/
-uint64_t ext_prpid_pool_address;
-uint64_t ext_keyid_pool_address;
+__SHRAM uint64_t ext_prpid_pool_address;
+__SHRAM uint64_t ext_keyid_pool_address;
 
 int32_t sys_prpid_pool_create(void)
 {
