@@ -86,22 +86,21 @@ int32_t ipsec_create_instance(
 	uint16_t desc_bpid;
 	int num_filled_buffs;
 	
-	/**************************************************************************//**
-	 @Function      slab_find_and_fill_bpid
-
-	 @Param[in]     num_buffs           Number of buffers in new pool.
-	 @Param[in]     buff_size           Size of buffers in pool.
-	 @Param[in]     alignment           Requested alignment for data field (in bytes).
-	                                    AIOP: HW pool supports up to 8 bytes alignment.
-	 @Param[in]     mem_partition_id    Memory partition ID for allocation.
-	                                    AIOP: HW pool supports only PEB and DPAA DDR.
-	 @Param[out]    num_filled_buffs    Number of buffers that we succeeded to fill.
-	 @Param[out]    bpid                Id if the buffer that was filled with new buffers.
+	/*
+	 slab_find_and_fill_bpid
+	 num_buffs           Number of buffers in new pool.
+	 buff_size           Size of buffers in pool.
+	 alignment           Requested alignment for data field (in bytes).
+	                     AIOP: HW pool supports up to 8 bytes alignment.
+	 mem_partition_id    Memory partition ID for allocation.
+	                     AIOP: HW pool supports only PEB and DPAA DDR.
+	 num_filled_buffs    Number of buffers that we succeeded to fill.
+	 bpid                Id if the buffer that was filled with new buffers.
 
 	 @Return        0       - on success,
 	               -ENAVAIL - could not release into bpid
 	               -ENOMEM  - not enough memory for mem_partition_id
-	 *//***************************************************************************/
+	 */
 	
 	/* Descriptor and Instance Buffers */
 	return_val = slab_find_and_fill_bpid(
