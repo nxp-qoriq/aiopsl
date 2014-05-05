@@ -19,7 +19,7 @@ void app_free(void);
 //#define REFLECTOR_DEMO
 
 #ifdef REFLECTOR_DEMO
-extern uint32_t    sync_done;
+uint32_t    sync_done;
 
 /* Client STUB */
 static int my_cmdif_open(struct cmdif_desc *cidesc,
@@ -79,7 +79,11 @@ static void epid_setup()
 
 	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
 	iowrite32(0, &wrks_addr->epas); 
+#ifdef REFLECTOR_DEMO
+	iowrite32((uint32_t)cmdif_srv_isr, &wrks_addr->ep_pc);
+#else
 	iowrite32((uint32_t)app_receive_cb, &wrks_addr->ep_pc);
+#endif	
 }
 
 int app_init(void)
@@ -109,10 +113,8 @@ int app_init(void)
 
 #ifdef REFLECTOR_DEMO
 	err = my_cmdif_open(NULL, module, 0, NULL, NULL);
-#else
-	/* More complex demo that tests client server different commands */
-	epid_setup();
 #endif
+	epid_setup();
 
 	
 	return err;

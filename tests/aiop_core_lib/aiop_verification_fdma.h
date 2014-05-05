@@ -693,10 +693,6 @@ struct fdma_enqueue_frame_command {
 		* - 0 = queueing destination(16bit)
 		* - 1 = fqid (24bit). */
 	uint8_t	EIS;
-		/** Virtual Address. */
-	uint8_t	VA;
-		/** Privilege Level. */
-	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
 		* - 0: Isolation is enabled for this command. The FQID ID
 		* specified is virtual within the specified ICID.
@@ -706,7 +702,7 @@ struct fdma_enqueue_frame_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
@@ -753,10 +749,6 @@ struct fdma_enqueue_frame_exp_command {
 		* - 0 = queueing destination(16bit)
 		* - 1 = fqid (24bit). */
 	uint8_t	EIS;
-		/** Virtual Address. */
-	uint8_t	VA;
-		/** Privilege Level. */
-	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
 		* - 0: Isolation is enabled for this command. The FQID ID
 		* specified is virtual within the specified ICID.
@@ -766,7 +758,7 @@ struct fdma_enqueue_frame_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**

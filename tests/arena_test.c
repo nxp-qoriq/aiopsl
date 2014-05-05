@@ -1,7 +1,14 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
+#include "common/fsl_string.h"
+//#include "fsl_dpni.h"
+//#include "dplib/dpni_drv.h"
 #include "dpni/drv.h"
+#include "fsl_fdma.h"
+#include "general.h"
 #include "fsl_ip.h"
+#include "fsl_cdma.h"
+#include "common/fsl_slab.h"
 #include "kernel/platform.h"
 #include "io.h"
 #include "aiop_common.h"
@@ -15,15 +22,27 @@ void app_free(void);
 /**< Get flow id from callback argument, it's demo specific macro */
 
 
+extern int app_test_slab_init(); 
+extern int app_test_slab(struct slab *slab, int num_times);
+extern __SHRAM struct slab *slab_peb;
+extern __SHRAM struct slab *slab_ddr;
+
+
+
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
-	uint32_t src_addr = 0x10203040;// new ipv4 src_addr
-
-	err = ip_set_nw_src(src_addr);
-	if (err) {
-		fsl_os_print("ERROR = %d: ip_set_nw_src(src_addr)\n", err);
+		
+	err = app_test_slab(slab_peb, 4);
+	if (err) { 
+		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
 	}
+
+	err = app_test_slab(slab_ddr, 4);
+	if (err) { 
+		fsl_os_print("ERROR = %d: app_test_slab(slab_ddr, 4)\n", err);
+	}
+
 	dpni_drv_send(APP_NI_GET(arg));
 }
 
@@ -47,6 +66,7 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
+	struct slab_debug_info slab_info;
 
 	fsl_os_print("Running app_init()\n");
 
@@ -64,6 +84,37 @@ int app_init(void)
 		if (err) return err;
 	}
 	
+	/* Test for slab initialization, ignore it unless it fails */
+	err = app_test_slab_init();
+	if (err) {
+		fsl_os_print("ERROR = %d: app_test_slab_init()\n", err);
+		return err;
+	}
+
+	/* DDR SLAB creation */
+	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, NULL, &slab_ddr);
+	if (err) return err;
+
+	err = slab_debug_info_get(slab_ddr, &slab_info);
+	if (err) {
+		return err;
+	} else {
+		if ((slab_info.num_buffs != slab_info.max_buffs) || (slab_info.num_buffs == 0))
+			return -ENODEV;
+	}
+
+	/* PEB SLAB creation */
+	err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
+	if (err) return err;
+
+	err = slab_debug_info_get(slab_peb, &slab_info);
+	if (err) {
+		return err;
+	} else {
+		if ((slab_info.num_buffs != slab_info.max_buffs) || (slab_info.num_buffs == 0))
+			return -ENODEV;
+	}
+	
 	return 0;
 }
 
@@ -71,4 +122,6 @@ void app_free(void)
 {
 	int err = 0;
 	/* TODO - complete!*/
+	err = slab_free(&slab_ddr);
+	err = slab_free(&slab_peb);
 }

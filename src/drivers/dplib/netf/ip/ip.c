@@ -1056,18 +1056,18 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 
 	no_extension = 0;
 
-	/* fragmentation request (flag = 1) */
-	if (flag){
+	/* Fragment request  */
+	if (flag == FRAGMENT_REQUEST){
 		ah_ext = no_extension;
 		frag_ext = no_extension;
 
-	/* Encapsulation request (flag = 0) */
-	} else {
+	/* HM/Encapsulate request */
+	}else{
 		ah_ext = IPV6_EXT_AH;
 		frag_ext = IPV6_EXT_FRAGMENT;
 	}
 
-	/* destination extension can appear only once on frag. request */
+	/* Destination extension can appear only once on fragment request */
 	dst_ext = IPV6_EXT_DESTINATION;
 
 	/* Copy initials IPv6 header */
@@ -1075,8 +1075,14 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	current_hdr_size = IPV6_HDR_LENGTH;
 	next_hdr = ipv6_hdr->next_header;
 
+	/* Encapsulate request -> return next_hdr_pnt */ 
+	if ((flag == ENCAPSULATE_REQUEST) && (next_hdr == frag_ext))
+	{
+		return (current_hdr_ptr + IPV6_NEXT_HDR_OFFSET);
+	}
+	
 	/* Skip to next extension header until extension isn't ipv6 header
-	 * or until extension is the fragmentation position (depend on flag) */
+	 * or until extension is the fragment position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
 		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
 		(next_hdr == ah_ext) ||
@@ -1094,8 +1100,8 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 		{
 			current_hdr_size = ((current_hdr_size + 1) << 3);
 
-			/* fragmentation request -> disable dst ext */
-			if (flag){
+			/* fragment request -> disable destination extension */
+			if (flag == FRAGMENT_REQUEST){
 				dst_ext = no_extension;
 			}
 			break;
@@ -1109,6 +1115,11 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 
 		case IPV6_EXT_FRAGMENT:
 		{
+			/* Encapsulate request -> return next_hdr_pnt */
+			if (flag == ENCAPSULATE_REQUEST)
+			{
+				return current_hdr_ptr;
+			}
 			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
 			break;
 		}
