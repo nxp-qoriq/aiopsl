@@ -296,7 +296,9 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 	/* Timer Handle Mask in TIMER FD */
 #define TIMER_HANDLE_MASK			0x00FFFFFF
 	/* TCP Timestamp option NOP value */
-#define TIMESTAMP_NOP_VAL 1
+#define TIMESTAMP_NOP_VAL			1
+	/* TCP GRO granularity shift value */
+#define GRO_GRAN_OFFSET				16
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
 
