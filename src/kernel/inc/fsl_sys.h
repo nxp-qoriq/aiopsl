@@ -95,14 +95,14 @@ int sys_init(void);
  @Description   System termination routine.
 
                 This routine releases all internal structures that were
-                initialized by the SYS_Init() routine.
+                initialized by the sys_init() routine.
 
  @Return        None.
 *//***************************************************************************/
 void sys_free(void);
 
 /**************************************************************************//**
- @Function      SYS_AddHandle
+ @Function      sys_add_handle
 
  @Description   Forces a handle for a specific object in the system.
 
@@ -110,11 +110,11 @@ void sys_free(void);
                 and thus bypassing the normal initialization flow.
 
                 The forced handle must be removed as soon as it is not valid
-                anymore, using the SYS_RemoveHandle() routine.
+                anymore, using the sys_remove_handle() routine.
 
- @Param[in]     h_Module    - The object handle;
+ @Param[in]     h_module    - The object handle;
  @Param[in]     module      - The object (module/sub-module) type.
- @Param[in]     numOfIds    - Number of IDs that are passed in the variadic-argument;
+ @Param[in]     num_of_ids    - Number of IDs that are passed in the variadic-argument;
  @Param[in]     ...         - Unique object IDs sequence;
 
  @Return        E_OK on success; Error code otherwise.
@@ -122,10 +122,10 @@ void sys_free(void);
  @Cautions      This routine must not be used in normal flow - it serves only
                 rare and special cases in platform initialization.
 *//***************************************************************************/
-int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module, uint8_t num_of_ids, ... );
+int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module, int num_of_ids, ... );
 
 /**************************************************************************//**
- @Function      SYS_RemoveHandle
+ @Function      sys_remove_handle
 
  @Description   Removes a previously forced handle of a specific object.
 
@@ -133,18 +133,19 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module, uint8_t num
                 were previously forced using the SYS_ForceHandle() routine.
 
  @Param[in]     module      - The object (module/sub-module) type.
- @Param[in]     id          - Unique object ID;
+ @Param[in]     num_of_ids  - Number of IDs that are passed in
+							the variadic-argument.
  @Param[in]     ...         - Unique object IDs sequence;
 
- @Return        None.
+ @Return        E_OK on success; Error code otherwise.
 
  @Cautions      This routine must not be used in normal flow - it serves only
                 rare and special cases in platform initialization.
 *//***************************************************************************/
-void sys_remove_handle(enum fsl_os_module module, uint32_t id, ... );
+int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ... );
 
 /**************************************************************************//**
- @Function      SYS_GetHandle
+ @Function      sys_get_handle
 
  @Description   Returns a specific object handle.
 
@@ -152,27 +153,29 @@ void sys_remove_handle(enum fsl_os_module module, uint32_t id, ... );
                 sub-module in the system.
 
                 For singleton objects, it is recommended to use the
-                SYS_GetUniqueHandle() routine.
+                sys_get_unique_handle() routine.
 
  @Param[in]     module  - Module/sub-module type.
- @Param[in]     id      - For sub-modules, this is the unique object ID;
-                          For modules, this value must always be zero.
- @Param[in]     ...     - Unique object IDs sequence;
+ @Param[in]     num_of_ids  - Number of IDs that are passed in
+								the variadic-argument.
+ @Param[in]     ...     - Unique object IDs sequence. For sub-modules,
+                this is the unique object ID; For modules,
+                this value must always be zero.
 
  @Return        The handle of the specified object if exists;
                 NULL if the object is not known or is not initialized.
 *//***************************************************************************/
-fsl_handle_t sys_get_handle(enum fsl_os_module module, ... );
+fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...);
 
 /**************************************************************************//**
- @Function      SYS_GetUniqueHandle
+ @Function      sys_get_unique_handle
 
  @Description   Returns a specific object handle (for singleton objects).
 
                 This routine may be used to get the handle of any singleton
                 module or sub-module in the system.
 
-                This routine simply calls the SYS_GetHandle() routine with
+                This routine simply calls the sys_get_handle() routine with
                 the \c id parameter set to zero.
 
  @Param[in]     module - Module/sub-module type.
@@ -182,7 +185,7 @@ fsl_handle_t sys_get_handle(enum fsl_os_module module, ... );
 *//***************************************************************************/
 static __inline__ fsl_handle_t sys_get_unique_handle(enum fsl_os_module module)
 {
-    return sys_get_handle(module, 0);
+    return sys_get_handle(module, 1, 0);
 }
 
 
