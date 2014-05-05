@@ -388,7 +388,8 @@ struct	kcr_builder_fec_single_mask {
 	uint8_t	mask;
 
 	/** Mask offset
-	offset value can be between 0x00-0x0F.
+	The offset from the beginning of the extracted header where mask is
+	applied (offset value can be between 0x00-0x0F).
 	It is up to the user to ensure that the offset is not larger than the
 	extracted header. */
 	uint8_t	mask_offset;
