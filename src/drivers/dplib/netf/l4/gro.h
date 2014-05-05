@@ -405,24 +405,6 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
-@Function	tcp_gro_calc_tcp_header_and_data_cksum
-
-@Description	Calculate the TCP header + payload checksum and add it to the
-		accumulated payload checksum (which was calculated previously).
-
-@Param[in]	gro_ctx - Pointer to the internal GRO context.
-@Param[in]	delta_total_length - delta between total packet length and the
-		closing segment length.
-
-@Return		Calculated header checksum.
-
-@Cautions	None.
-*//***************************************************************************/
-void tcp_gro_calc_tcp_header_and_data_cksum(
-		struct tcp_gro_context *gro_ctx,
-		uint16_t delta_total_length);
-
-/**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
 @Description	Calculate the TCP pseudo header checksum and add it to the
