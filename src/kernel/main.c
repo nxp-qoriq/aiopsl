@@ -6,9 +6,12 @@
 extern int sys_init(void);
 extern void sys_free(void);
 extern int global_init(void);
+extern int tile_init(void);
 extern int cluster_init(void);
 extern int global_post_init(void);
 extern int run_apps(void);
+extern void core_ready_for_tasks(void);
+
 
 #ifdef ARENA_LEGACY_CODE
 extern int sys_lo_process (void *lo);
@@ -46,7 +49,13 @@ int main(int argc, char *argv[])
     int err = 0;
     int is_master_core;
 UNUSED(argc);UNUSED(argv);
-
+    
+    /* Initiate small data area pointers at task initialization */
+    asm {
+        mtdcr dcr469,r2 // INITR2
+        mtdcr dcr470,r13// INITR13
+    }
+    
 #if (STACK_OVERFLOW_DETECTION == 1)
     configure_stack_overflow_detection();
 #endif
@@ -56,13 +65,22 @@ UNUSED(argc);UNUSED(argv);
     if (err)
         return err;
 
-    is_master_core = sys_is_master_core();
-    if(is_master_core)
+    /* Only execute if core is a cluster master */
+    if(((get_cpu_id()) % 4) == 0)
     {
     	err = cluster_init();
     	if(err)
     		return err;
-    	sys_barrier();	
+    	sys_barrier();		
+    }
+    
+    is_master_core = sys_is_master_core();
+    if(is_master_core)
+    {
+    	err = tile_init();
+    	if(err)
+    		return err;
+    	sys_barrier();
     	
     	err = global_init();
     	if(err)
@@ -82,22 +100,23 @@ UNUSED(argc);UNUSED(argv);
     	return err;
 #endif
 
-    if (is_master_core &&
-        ((err = global_post_init()) != 0))
-        return err;
-    sys_barrier();
-
-    if (is_master_core)
+    if(is_master_core)
+    {
+    	err = global_post_init();
+    	if(err)
+    		return err;
+    	
     	fsl_os_print("Running applications\n");
-    sys_barrier();
-    
-    if (is_master_core) {
+    	sys_barrier();
+    		
     	err = run_apps();
     	if (err)
     	    return err;
+    	sys_barrier();
     }
-    
 
+    core_ready_for_tasks();
+    
     if (is_master_core)
     	fsl_os_print("complete. freeing resources and going out ...\n");
     sys_barrier();
