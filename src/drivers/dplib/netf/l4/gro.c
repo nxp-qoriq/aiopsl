@@ -100,8 +100,10 @@ int32_t tcp_gro_aggregate_seg(
 	/* create timer for the aggregation */
 
 	sr_status = tman_create_timer(params->timeout_params.tmi_id,
-			TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY |
-			TMAN_CREATE_TIMER_ONE_SHOT,
+			(uint32_t)(
+				(params->timeout_params.granularity <<
+						GRO_GRAN_OFFSET) |
+						TMAN_CREATE_TIMER_ONE_SHOT),
 			params->limits.timeout_limit,
 			tcp_gro_context_addr,
 			0,
@@ -543,7 +545,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 						gro_ctx->last_seg_fields;
 
 	/* write metadata to external memory */
-	sr_status = cdma_write((params->metadata_addr +
+	sr_status = cdma_write((gro_ctx->params.metadata_addr +
 			METADATA_MEMBER1_SIZE), &(gro_ctx->metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
@@ -602,8 +604,9 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	if (sr_status != TMAN_REC_TMR_SUCCESS)
 		sr_status = tman_create_timer(
 				params->timeout_params.tmi_id,
-				TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY |
-				TMAN_CREATE_TIMER_ONE_SHOT,
+				(uint32_t)((params->timeout_params.granularity
+						<< GRO_GRAN_OFFSET) |
+						TMAN_CREATE_TIMER_ONE_SHOT),
 				params->limits.timeout_limit,
 				tcp_gro_context_addr,
 				0,
@@ -901,14 +904,14 @@ uint16_t tcp_gro_calc_tcp_data_cksum(
 	/* save original TCP checksum */
 	tcp_cs = tcp->checksum;
 	tcp->checksum = 0;
-	
+
 	/* Modify default segment (TCP checksum = 0) */
 	/* TODO FDMA ERROR */
 	sr_status = fdma_modify_default_segment_data(
 			(uint16_t)PARSER_GET_L4_OFFSET_DEFAULT() +
 			(uint16_t)offsetof(struct tcphdr, checksum), (uint16_t)(
 			sizeof(tcp->checksum)));
-		
+
 	tcp_header_length = (tcp->data_offset_reserved &
 				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
 				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
@@ -1008,7 +1011,7 @@ void tcp_gro_calc_tcp_header_cksum(
 				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
 	tcp->checksum = 0;
-	
+
 	/* Modify default segment (TCP checksum = 0) */
 	/* TODO FDMA ERROR */
 	sr_status = fdma_modify_default_segment_data(
