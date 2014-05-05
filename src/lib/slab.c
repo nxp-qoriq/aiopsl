@@ -217,8 +217,6 @@ int slab_free(struct slab **slab)
         uint16_t bpid = (uint16_t)virtual_bman_pools[(((struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct) + SLAB_VP_POOL_GET(*slab))->bman_array_index].bman_pool_id;
 
         /* TODO Use VP API for BPID and remaining buffers */
-        pr_debug("Free from BPID = 0x%x, num_buffs = %d \n", bpid, 
-                 remaining_buffs);
         if (SLAB_IS_HW_POOL(*slab)) {
                 if (vpool_release_pool(SLAB_VP_POOL_GET(*slab)) != VIRTUAL_POOLS_SUCCESS) {
                         return -EBUSY;
