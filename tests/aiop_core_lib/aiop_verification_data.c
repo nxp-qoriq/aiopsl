@@ -45,7 +45,7 @@ void init_verif()
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	lock_spinlock(&verif_spin_lock);
-	
+
 	if (!verif_prpid_valid){
 		verif_prpid_valid = 1;
 		unlock_spinlock(&verif_spin_lock);
@@ -72,7 +72,7 @@ void init_verif()
 
 	/* an initialization so we will not have the value 0 */
 	seed_32bit = 5;
-	
+
 	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.parser_profile_id = verif_prpid;
