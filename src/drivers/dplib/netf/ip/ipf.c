@@ -617,8 +617,14 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 			ipv6_hdr = (struct ipv6hdr *)(ipf_ctx->ip_offset
 						+ PRC_GET_SEGMENT_ADDRESS());
 			next_header = ipv6_last_header
-						(ipv6_hdr,FRAGMENT_REQUEST);
-			if (next_header) { /* Ext. headers exist */
+					(ipv6_hdr,LAST_HEADER_BEFORE_FRAG);
+			if (next_header & IPV6_NO_EXTENSION) { 
+				/* No ext. headers */
+				ipf_ctx->ipv6_frag_hdr_offset =
+						ipf_ctx->ip_offset +
+						IPV6_HDR_LENGTH;
+			} else { 
+				/* Ext. headers exist */
 				last_ext_length =
 					*((uint8_t*)(next_header + 1));
 				last_ext_hdr_size =
@@ -627,10 +633,6 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 					(uint8_t)(next_header -
 					PRC_GET_SEGMENT_ADDRESS()
 					+ last_ext_hdr_size);
-			} else { /* No ext. headers */
-				ipf_ctx->ipv6_frag_hdr_offset =
-						ipf_ctx->ip_offset +
-						IPV6_HDR_LENGTH;
 			}
 				
 			if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
