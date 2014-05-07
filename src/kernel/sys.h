@@ -4,9 +4,10 @@
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/list.h"
+#include "common/dbg.h"
 #include "kernel/smp.h"
 #include "kernel/platform.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
