@@ -17,7 +17,46 @@ __SHRAM struct slab *slab_peb = 0;
 __SHRAM struct slab *slab_ddr = 0;
 
 int app_test_slab_init();
+int slab_init();
+int slab_test();
 int app_test_slab(struct slab *slab, int num_times);
+
+int slab_init()
+{
+	int err = 0;
+	struct slab_debug_info slab_info;
+	/* Test for slab initialization, ignore it unless it fails */
+	err = app_test_slab_init();
+	if (err) {
+		fsl_os_print("ERROR = %d: app_test_slab_init()\n", err);
+		return err;
+	}
+
+	/* DDR SLAB creation */
+	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, 
+			          NULL, &slab_ddr);
+	if (err) return err;
+
+	err = slab_debug_info_get(slab_ddr, &slab_info);
+	if (err) {
+		return err;
+	} else {
+		if ((slab_info.num_buffs != slab_info.max_buffs) || 
+		    (slab_info.num_buffs == 0))
+			return -ENODEV;
+	}
+
+	/* PEB SLAB creation */
+	err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
+	if (err) return err;
+
+	err = slab_debug_info_get(slab_peb, &slab_info);
+	if(!err)
+		if ((slab_info.num_buffs != slab_info.max_buffs) || 
+			(slab_info.num_buffs == 0))
+				return -ENODEV;	
+	return err;
+}
 
 int app_test_slab_init() 
 {
@@ -98,4 +137,19 @@ int app_test_slab(struct slab *slab, int num_times)
 	}
 
 	return 0;
+}
+
+int slab_test()
+{
+	int err = 0;
+	err = app_test_slab(slab_peb, 4);
+	if (err) { 
+		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
+	}
+
+	err = app_test_slab(slab_ddr, 4);
+	if (err) { 
+		fsl_os_print("ERROR = %d: app_test_slab(slab_ddr, 4)\n", err);
+	}
+	return err;
 }

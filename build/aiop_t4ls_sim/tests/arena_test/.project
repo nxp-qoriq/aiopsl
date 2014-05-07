@@ -112,6 +112,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test.c</locationURI>
 		</link>
 		<link>
+			<name>src/malloc_test.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/aiopsl/tests/malloc_test.c</locationURI>
+		</link>
+		<link>
 			<name>src/slab_test.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/slab_test.c</locationURI>

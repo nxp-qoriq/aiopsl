@@ -27,7 +27,7 @@
 @Group		AIOP_General_MASKS IPv6 Last Header MASKS
 @{
 *//***************************************************************************/
-#define  IPV6_NO_EXTENSION 0x8000 /*!< IPv6 no extension mask*/
+#define  IPV6_NO_EXTENSION 0x80000000 /*!< IPv6 no extension mask*/
 
 /** @} */ /* end of AIOP_General_MASKS */
 
