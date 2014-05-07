@@ -291,7 +291,7 @@ int slab_free(struct slab **slab)
 }
 
 /*****************************************************************************/
-int slab_acquire(struct slab *slab, uint64_t *buff)
+__HOT_CODE int slab_acquire(struct slab *slab, uint64_t *buff)
 {
 
 #ifdef DEBUG
@@ -305,7 +305,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 }
 
 /*****************************************************************************/
-int slab_release(struct slab *slab, uint64_t buff)
+__HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
 {
 
 	int error = 0;
@@ -439,7 +439,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 }
 
 /*****************************************************************************/
-int slab_refcount_incr(struct slab *slab, uint64_t buff)
+__HOT_CODE int slab_refcount_incr(struct slab *slab, uint64_t buff)
 {
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
@@ -451,7 +451,7 @@ int slab_refcount_incr(struct slab *slab, uint64_t buff)
 }
 
 /*****************************************************************************/
-int slab_refcount_decr(struct slab *slab, uint64_t buff)
+__HOT_CODE int slab_refcount_decr(struct slab *slab, uint64_t buff)
 {
 	return slab_release(slab, buff);
 }
