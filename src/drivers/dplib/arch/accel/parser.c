@@ -15,7 +15,7 @@
 #include "id_pool.h"
 
 
-extern uint64_t ext_prpid_pool_address;
+extern __SHRAM uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -131,7 +131,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct input_message_params input_struct __attribute__((aligned(16)));
+	struct parser_input_message_params input_struct __attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -164,16 +164,15 @@ int32_t parse_result_generate_default(uint8_t flags)
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 	
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS; 
-	if (((status & PARSER_STATUS_MASK) ==
+	if (!status)
+		return SUCCESS;
+	else if (((status & PARSER_STATUS_MASK) ==
 			PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
-		(status & PARSER_STATUS_MASK) == 0) {
+			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
 		return SUCCESS;
-	} else {
-		status =  PARSER_STATUS_FAIL | status;
+	else 
 		return status;
-	}
 }
 
 int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
@@ -183,7 +182,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	/* 8 Byte aligned for stqw optimization */
-	struct input_message_params input_struct __attribute__((aligned(16)));
+	struct parser_input_message_params input_struct __attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -216,16 +215,15 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS; 
-	if (((status & PARSER_STATUS_MASK) ==
+	if (!status)
+		return SUCCESS;
+	else if (((status & PARSER_STATUS_MASK) ==
 			PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
-		(status & PARSER_STATUS_MASK) == 0) {
+			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
 		return SUCCESS;
-	} else {
-		status =  PARSER_STATUS_FAIL | status;
+	else
 		return status;
-	}
 }
 
 int32_t parse_result_generate_checksum(
@@ -236,7 +234,7 @@ int32_t parse_result_generate_checksum(
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct input_message_params input_struct __attribute__((aligned(16)));
+	struct parser_input_message_params input_struct __attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -261,7 +259,6 @@ int32_t parse_result_generate_checksum(
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
 		return SUCCESS;
 	} else {
-		status =  PARSER_STATUS_FAIL | status;
 		return status;
 	}
 

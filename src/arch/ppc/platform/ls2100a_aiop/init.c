@@ -52,7 +52,10 @@ extern void build_apps_array(struct sys_module_desc *apps);
 int fill_system_parameters(t_sys_param *sys_param);
 int global_init(void);
 int global_post_init(void);
+int tile_init(void);
+int cluster_init(void);
 int run_apps(void);
+void core_ready_for_tasks(void);
 
 
 #include "general.h"
@@ -89,6 +92,11 @@ int fill_system_parameters(t_sys_param *sys_param)
     return 0;
 }
 
+int tile_init(void)
+{
+	return 0;
+}
+
 int cluster_init(void)
 {
 	return 0;
@@ -108,22 +116,34 @@ int global_init(void)
 
 int global_post_init(void)
 {
-	uintptr_t   tmp_reg =
+	return 0;
+}
+
+void core_ready_for_tasks(void) 
+{   
+    uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
-	/* Write AIOP boot status */
-	iowrite32((uint32_t)sys_get_cores_mask(), UINT_TO_PTR(tmp_reg + 0x98));
-
-	return 0;
-}
-
-static void core_ready_for_tasks(void) {
-
+    void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
+    
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
 
+#if 0
+    if(sys_is_master_core()) {
+	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
+	uint32_t abrr_val = ioread32(abrr) & \
+		(~((uint32_t)sys_get_cores_mask()));
+	
+	while(ioread32(abcr) != abrr_val) {asm{nop}}
+    }
+#endif
+    
+    /* Write AIOP boot status (ABCR) */
+    iowrite32((uint32_t)sys_get_cores_mask(), abcr);
+    
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
@@ -310,6 +330,5 @@ int run_apps(void)
 			apps[i].init();
 	}
 
-	core_ready_for_tasks();
 	return 0;
 }

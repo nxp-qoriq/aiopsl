@@ -146,7 +146,7 @@ int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 		if (default_task_params.current_scope_level > 1)
 			/** 0 = Parent: Concurrent mode. */
 			default_task_params.scope_mode_level_arr
-			[default_task_params.current_scope_level-2] = 
+			[default_task_params.current_scope_level-2] =
 					CONCURRENT;
 		/** 1 = Child: Exclusive mode. */
 		default_task_params.scope_mode_level_arr
@@ -200,7 +200,7 @@ int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
 		if (default_task_params.current_scope_level > 1)
 			/** 0 = Parent: Concurrent mode. */
 			default_task_params.scope_mode_level_arr
-			[default_task_params.current_scope_level-2] = 
+			[default_task_params.current_scope_level-2] =
 					CONCURRENT;
 		/** 1 = Child: Exclusive mode. */
 		default_task_params.scope_mode_level_arr
@@ -259,7 +259,7 @@ int32_t osm_scope_enter(
 			default_task_params.current_scope_level++;
 			/** 0 = Child: Concurrent mode. */
 			default_task_params.scope_mode_level_arr
-			[default_task_params.current_scope_level-1] = 
+			[default_task_params.current_scope_level-1] =
 					CONCURRENT;
 			return 0;
 		}
@@ -271,12 +271,12 @@ int32_t osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_SCOPE_INC_OP,
 				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			return 1; 
+			return 1;
 		} else {
 			default_task_params.current_scope_level++;
 			/** 0 = Child: Concurrent mode. */
 			default_task_params.scope_mode_level_arr
-			[default_task_params.current_scope_level-1] = 
+			[default_task_params.current_scope_level-1] =
 					CONCURRENT;
 			return 0;
 		}
@@ -328,13 +328,13 @@ int32_t osm_scope_enter(
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
 				default_task_params.scope_mode_level_arr
-				[default_task_params.current_scope_level-2] = 
+				[default_task_params.current_scope_level-2] =
 						CONCURRENT;
 			/** 0 = Child: Concurrent mode. */
 			default_task_params.scope_mode_level_arr
-			[default_task_params.current_scope_level-1] = 
+			[default_task_params.current_scope_level-1] =
 					CONCURRENT;
-					
+
 			return 0;
 		}
 		break;
@@ -352,11 +352,11 @@ int32_t osm_scope_enter(
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
 				default_task_params.scope_mode_level_arr
-				[default_task_params.current_scope_level-2] = 
+				[default_task_params.current_scope_level-2] =
 						CONCURRENT;
 			/** 0 = Child: Concurrent mode. */
 			default_task_params.scope_mode_level_arr
-			[default_task_params.current_scope_level-1] = 
+			[default_task_params.current_scope_level-1] =
 					CONCURRENT;
 			return 0;
 		}
@@ -407,7 +407,7 @@ int32_t osm_scope_enter(
 			/** 1 = Child: Exclusive mode. */
 			default_task_params.scope_mode_level_arr
 			[default_task_params.current_scope_level-1] = EXCLUSIVE;
-			
+
 			return 0;
 		}
 		break;
@@ -424,7 +424,7 @@ int32_t osm_scope_enter(
 			/** 1 = Child: Exclusive mode. */
 			default_task_params.scope_mode_level_arr
 			[default_task_params.current_scope_level-1] = EXCLUSIVE;
-			
+
 			return 0;
 		}
 		break;
@@ -475,7 +475,7 @@ int32_t osm_scope_enter(
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
 				default_task_params.scope_mode_level_arr
-				[default_task_params.current_scope_level-2] = 
+				[default_task_params.current_scope_level-2] =
 						CONCURRENT;
 			/** 1 = Child: Exclusive mode. */
 			default_task_params.scope_mode_level_arr
@@ -498,7 +498,7 @@ int32_t osm_scope_enter(
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
 				default_task_params.scope_mode_level_arr
-				[default_task_params.current_scope_level-2] = 
+				[default_task_params.current_scope_level-2] =
 						CONCURRENT;
 			/** 1 = Child: Exclusive mode. */
 			default_task_params.scope_mode_level_arr

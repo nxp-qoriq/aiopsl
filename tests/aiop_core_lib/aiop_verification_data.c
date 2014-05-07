@@ -36,6 +36,7 @@ __VERIF_TLS int32_t status_ipf;
 __VERIF_TLS int32_t status_ipr;
 
 extern __TASK struct aiop_default_task_params default_task_params;
+extern __TASK uint32_t seed_32bit;
 
 void init_verif()
 {
@@ -44,7 +45,7 @@ void init_verif()
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	lock_spinlock(&verif_spin_lock);
-	
+
 	if (!verif_prpid_valid){
 		verif_prpid_valid = 1;
 		unlock_spinlock(&verif_spin_lock);
@@ -68,6 +69,9 @@ void init_verif()
 
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
+
+	/* an initialization so we will not have the value 0 */
+	seed_32bit = 5;
 
 	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;

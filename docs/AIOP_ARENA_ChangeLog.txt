@@ -1,4 +1,7 @@
-- init.c, main.c: Added stack overflow detection using DAC1/DAC2 registers
+- type_mw.h:     Added define for __WARM_CODE to load code to shared ram
+- aipo_link.lcf: Added .stext and .stext_vle define for code to be placed in shared ram  
+
+- init.c, main.c: Added stack overflow detection using DAC1/DAC2 registers, MCSRR0 stores PC of instruction caused the exception.
 - os.c:  Added implementation for fsl_os_rand().
 - init.c: Added seed variable in tls section for each task (seed_32bit).
 - fsl_stdlib.h: Added prototype for fsl_os_rand().
