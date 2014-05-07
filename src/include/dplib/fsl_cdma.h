@@ -613,7 +613,7 @@ int32_t cdma_ws_memory_init(
 
 
 /*************************************************************************//**
-@Function	cdma_refcount_get 
+@Function	cdma_refcount_get
 
 @Description	This routine returns the current value of reference count.
 
