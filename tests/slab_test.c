@@ -55,6 +55,7 @@ int slab_init()
 		if ((slab_info.num_buffs != slab_info.max_buffs) || 
 			(slab_info.num_buffs == 0))
 				return -ENODEV;	
+	return err;
 }
 
 int app_test_slab_init() 
