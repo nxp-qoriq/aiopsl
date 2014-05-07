@@ -236,7 +236,7 @@ struct tcp_gro_context_metadata {
 struct gro_context_limits {
 		/** Timeout per packet aggregation limit.
 		 * The timeout granularity is specified at
-		 * \ref struct gro_context_timeout_params.granularity. */
+		 * \ref gro_context_timeout_params.granularity. */
 	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit (The size refers to the
 		 * packet headers + payload).
