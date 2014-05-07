@@ -354,6 +354,11 @@ int sys_init(void)
     sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
 
     if (sys.is_partition_master[core_id]) {
+	    
+	/* Initialize memory management */
+	err = sys_init_memory_management();
+	ASSERT_COND(err == E_OK);
+	    
 #ifdef SYS_SMP_SUPPORT
         /* Kick secondary cores on this partition */
 #ifdef SYS_64BIT_ARCH
@@ -390,10 +395,6 @@ int sys_init(void)
 #endif /* SYS_SECONDARY_START */
 #endif /* SYS_64BIT_ARCH */
 #endif /* SYS_SMP_SUPPORT */
-
-        /* Initialize memory management */
-        err = sys_init_memory_management();
-        ASSERT_COND(err == E_OK);
 
 #if 0
         /* Initialize interrupt management */
