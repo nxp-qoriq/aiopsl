@@ -20,7 +20,7 @@ Copyright 2013 Freescale Semiconductor, Inc.
 /**************************************************************************//**
 @Group		CMDIF_SEND_ATTRIBUTES
 
-@Description	The attributes to be used with cmdif_send() 
+@Description	The attributes to be used with cmdif_send()
 
 @{
 *//***************************************************************************/
@@ -56,12 +56,12 @@ struct cmdif_desc {
 	 */
 	void (*lock_cb)(void *lock);
 	/*!<
-	 * Callback for locking the command interface (multiple users scenario);
+	 * Callback for locking the command interface multiple users scenario;
 	 * user must zero it if not needed.
 	 */
 	void (*unlock_cb)(void *lock);
 	/*!<
-	 * Callback for unlocking the command interface (multiple users scenario);
+	 * Callback for unlocking the command interface multiple users scenario;
 	 * user must zero it if not needed.
 	 */
 };
@@ -137,11 +137,11 @@ supplying the following:
 @Param[in]	module_name - Module name, it should be a valid string of
 		up to 8 characters.
 @Param[in]	ops -         A structure with 3 callbacks described above
-																for open, close and control
-
+		for open, close and control
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
-int cmdif_register_module(const char *module_name, struct cmdif_module_ops *ops);
+int cmdif_register_module(const char *module_name,
+			struct cmdif_module_ops *ops);
 
 /**************************************************************************//**
 @Function	cmdif_unregister_module
@@ -201,12 +201,12 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		asynchronous command.
 @Param[in]	async_ctx   - Context to be received with asynchronous command
 		response inside async_cb().
-@Param[in]	v_data   - Virtual address of the buffer to be used by command 
-                interface. 
-                This address should be accessible by Server and Client.
-                In case of GPP -> AIOP commands this buffer can be freed only 
-                after cmdif_close().	
-@Param[in]	p_data   - Physical address of the v_data buffer.                 	
+@Param[in]	v_data   - Virtual address of the buffer to be used by command
+		interface.
+		This address should be accessible by Server and Client.
+		In case of GPP -> AIOP commands this buffer can be freed only
+		after cmdif_close().
+@Param[in]	p_data   - Physical address of the v_data buffer.
 @Param[in]	size     - Size of the v_data buffer.
 
 @Return		0 on success; error code, otherwise.
@@ -238,10 +238,10 @@ int cmdif_close(struct cmdif_desc *cidesc);
 
 @Description	Send command to the module device that was created during
 		cmdif_open().
-		
+
 		This function may be activated in synchronous and asynchronous
 		mode, see \ref CMDIF_SEND_ATTRIBUTES.
-		
+
 @Param[in]	cidesc   - Command interface descriptor which was setup by
 		cmdif_open().
 @Param[in]	cmd_id   - Id which represent command on the module that was
@@ -266,8 +266,8 @@ int cmdif_send(struct cmdif_desc *cidesc,
 /**************************************************************************//**
 @Function	cmdif_resp_read
 
-@Description	Check the response queue for new responses, de-queue and activate
-		the callback function for each response
+@Description	Check the response queue for new responses,
+		de-queue and activate the callback function for each response
 
 This function is not blocking; if nothing was found it will return error code
 
