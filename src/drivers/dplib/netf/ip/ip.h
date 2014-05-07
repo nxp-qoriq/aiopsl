@@ -35,8 +35,8 @@
 @Group		IPV6_LAST_HEADER_Definitions ipv6_last_header flags defines 
 @{
 *//***************************************************************************/
-#define  LAST_HEADER_OFFSET_BEFORE_FRAG 0 /*!< last header offset before frag*/
-#define  LAST_HEADER_OFFSET 1 /*!< last header offset*/
+#define  LAST_HEADER_BEFORE_FRAG 0 /*!< last header offset before frag*/
+#define  LAST_HEADER 1 /*!< last header offset*/
 
 /** @} */ /* end of IPV6_LAST_HEADER_Definitions */
 
