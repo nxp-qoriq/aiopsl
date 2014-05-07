@@ -2,7 +2,6 @@
 #include "common/fsl_stdio.h"
 #include "kernel/smp.h"
 
-
 extern int sys_init(void);
 extern void sys_free(void);
 extern int global_init(void);
@@ -12,10 +11,6 @@ extern int global_post_init(void);
 extern int run_apps(void);
 extern void core_ready_for_tasks(void);
 
-
-#ifdef ARENA_LEGACY_CODE
-extern int sys_lo_process (void *lo);
-#endif
 
 #if (STACK_OVERFLOW_DETECTION == 1)
 static inline void configure_stack_overflow_detection(void)
@@ -59,12 +54,12 @@ UNUSED(argc);UNUSED(argv);
 #if (STACK_OVERFLOW_DETECTION == 1)
     configure_stack_overflow_detection();
 #endif
-
+    
     /* Initialize system */
     err = sys_init();
     if (err)
         return err;
-
+    
     /* Only execute if core is a cluster master */
     if(((get_cpu_id()) % 4) == 0)
     {
@@ -81,24 +76,12 @@ UNUSED(argc);UNUSED(argv);
     	if(err)
     		return err;
     	sys_barrier();
-    	
+
     	err = global_init();
     	if(err)
     		return err;
     	sys_barrier();
     }
-
-#ifdef ARENA_LEGACY_CODE
-    if (is_master_core)
-    	fsl_os_print("Processing layout\n");
-    sys_barrier();
-
-    /* TODO - get the DPL from somewhere .... */
-    err = sys_lo_process(NULL);
-    err = 0; /* TODO - keep this until we have a DPL */
-    if (err)
-    	return err;
-#endif
 
     if(is_master_core)
     {
