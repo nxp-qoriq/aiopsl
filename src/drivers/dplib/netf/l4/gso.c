@@ -199,8 +199,6 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 					updated_ipv4_outer_total_length);
 			outer_ipv4_ptr->total_length =
 					updated_ipv4_outer_total_length;
-			/* IPv4 - ID generation */
-			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();
 		} else {
 			/* IPv6 - update IP length */
 			outer_ipv6_ptr = (struct ipv6hdr *)(
@@ -302,10 +300,12 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		sr_status = fdma_insert_segment_data(
 				&insert_segment_data_params);
 
-		/*if (PARSER_IS_OUTER_IPV4_DEFAULT())
-			 IPv4 - ID generation 
-			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();*/
-
+		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+			/* IPv4 - ID generation */
+			outer_ipv4_ptr = (struct ipv4hdr *)
+			(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
+			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();
+		}
 		}
 
 	/* urgent pointer calculation */
