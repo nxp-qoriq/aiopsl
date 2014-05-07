@@ -80,11 +80,11 @@ inline void osm_task_init(void)
 {
 	/**<	0 = No order scope specified.\n
 		1 = Scope was specified for level 1 of hierarchy */
-	default_task_params.current_scope_level = 
+	default_task_params.current_scope_level =
 			((uint8_t)PRC_GET_OSM_SOURCE_VALUE());
 	/**<	0 = Concurrent mode.\n
 		1 = Exclusive mode. */
-	default_task_params.scope_mode_level_arr[0] = 
+	default_task_params.scope_mode_level_arr[0] =
 			((uint8_t)PRC_GET_OSM_EXECUTION_PHASE_VALUE());
 	/**<	Concurrent (default) Mode in level 2 of hierarchy */
 	default_task_params.scope_mode_level_arr[1] = 0x00;
