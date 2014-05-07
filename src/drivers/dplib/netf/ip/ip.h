@@ -20,16 +20,23 @@
 *//***************************************************************************/
 #define  IPV6_NEXT_HDR_OFFSET 6 /*!< IPv6 next header offset*/
 
-
 /** @} */ /* end of AIOP_General_Protocols_IPV6_HDR_Offsets */
+
+
+/**************************************************************************//**
+@Group		AIOP_General_MASKS IPv6 Last Header MASKS
+@{
+*//***************************************************************************/
+#define  IPV6_NO_EXTENSION 0x8000 /*!< IPv6 no extension mask*/
+
+/** @} */ /* end of AIOP_General_MASKS */
 
 /**************************************************************************//**
 @Group		IPV6_LAST_HEADER_Definitions ipv6_last_header flags defines 
 @{
 *//***************************************************************************/
-#define  FRAGMENT_REQUEST 0 /*!< Fragment request*/
-#define  ENCAPSULATE_REQUEST 1 /*!< Encapsulate request*/
-#define  HM_REQUEST 2 /*!< HM request*/
+#define  LAST_HEADER_BEFORE_FRAG 0 /*!< last header offset before frag*/
+#define  LAST_HEADER 1 /*!< last header offset*/
 
 /** @} */ /* end of IPV6_LAST_HEADER_Definitions */
 
@@ -44,13 +51,14 @@
 /*************************************************************************//**
 @Function	ipv6_last_header
 
-@Description	Return the fragmnetation pointer or the last extension
-		pointer of IPv6 header.
+@Description	Return the pointer to fragment or last extension IPv6 header.
 
 @Param[in]	ipv6_hdr - pointer to IPv6 header
 @Param[in]	flag - (\ref IPV6_LAST_HEADER_Definitions).
 
-@Return		Fragment pointer or last IPv6 extension pointer
+@Return		Pointer to next header of last extension before fragment or last 
+			IPv6 extension pointer (depend on flag).
+  	  	  	The MSB bit indicate whether there is a extension (1=no extension)
 
 @Cautions	The function assume a valid IPv6 frame
 *//***************************************************************************/

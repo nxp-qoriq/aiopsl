@@ -220,9 +220,8 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	/* Check for termination condition due to the current segment.
 	 * In case one of the following conditions is met, add segment to
 	 * aggregation and close the aggregation. */
-	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) {
+	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
-	}
 
 	/* calculate data offset */
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
@@ -312,8 +311,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	uint8_t  data_offset;
 
 	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
-			/* calculate data checksum */
-			gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
+		/* calculate data checksum */
+		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 	}
 
 	/* delete the timer for this aggregation */
@@ -385,8 +384,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 		(&(tcp->acknowledgment_number))) = gro_ctx->last_seg_fields;
 
 	/* calculate tcp header checksum */
-	 if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-		 tcp_gro_calc_tcp_header_cksum(gro_ctx);
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		tcp_gro_calc_tcp_header_cksum(gro_ctx);
 
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
@@ -463,7 +462,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				headers_size;
 		/* save timestap if exist */
 		if (data_offset > TCP_HDR_LENGTH) {
-			/* Timestamp option is optimized with to starting nops */
+			/* Timestamp option is optimized with to starting nops*/
 			if (*((uint8_t *)((uint8_t *)tcp + TCP_HDR_LENGTH)) ==
 					TIMESTAMP_NOP_VAL)
 				gro_ctx->timestamp =
@@ -477,12 +476,14 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		/* Set ECN flags */
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 			/* IPv4 */
-			ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+			ipv4 = (struct ipv4hdr *)
+					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 			gro_ctx->internal_flags |= (*((uint32_t *)ipv4) &
 					TCP_GRO_ECN_MASK);
 		} else {
 			/* IPv6 */
-			ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+			ipv6 = (struct ipv6hdr *)
+					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 			gro_ctx->internal_flags |= (((*((uint32_t *)ipv6)) >>
 					TCP_GRO_IPV6_ECN_OFFSET) &
 					TCP_GRO_ECN_MASK);
@@ -569,7 +570,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		/* Clear gross running sum in parse results */
 		pr->gross_running_sum = 0;
 
-		return (TCP_GRO_SEG_AGG_DONE | TCP_GRO_FLUSH_REQUIRED);
+		return TCP_GRO_SEG_AGG_DONE | TCP_GRO_FLUSH_REQUIRED;
 	}
 
 	/* restore tcp data checksum */

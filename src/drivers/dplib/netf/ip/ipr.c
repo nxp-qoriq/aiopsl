@@ -481,7 +481,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
-												  iphdr_offset,
 												  iphdr_ptr);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
@@ -598,7 +597,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 							     uint64_t rfdc_ext_addr, 
-							     uint16_t iphdr_offset,
 							     void *iphdr_ptr)
 {
 
@@ -629,8 +627,10 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		last_fragment = !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK);
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
-		ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-		ipv6fraghdr_ptr = (struct ipv6fraghdr *) ((uint32_t)ipv6hdr_ptr +
+		/* todo remove following workaroud CR ENGR00312273 */
+		//ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		ipv6fraghdr_offset = 54;
+		ipv6fraghdr_ptr = (struct ipv6fraghdr *) (PRC_GET_SEGMENT_ADDRESS() +
 													ipv6fraghdr_offset);
 		frag_offset_shifted =  ipv6fraghdr_ptr->offset_and_flags & 
 							  FRAG_OFFSET_IPV6_MASK;
@@ -917,8 +917,11 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv6hdr_ptr = (struct ipv6hdr *)
 					(ipv6hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
-	ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-	ipv6fraghdr_ptr = (struct ipv6fraghdr *) ((uint32_t)ipv6hdr_ptr +
+	/* todo remove following workaroud CR ENGR00312273 */
+	//ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+	ipv6fraghdr_offset = 54;
+
+	ipv6fraghdr_ptr = (struct ipv6fraghdr *) (PRC_GET_SEGMENT_ADDRESS() +
 												ipv6fraghdr_offset);
 	
 	ip_header_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
@@ -927,7 +930,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length + 
 								  ip_header_size;
 	/* Move next header of fragment header to previous extension header */
-	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,FRAGMENT_REQUEST)=
+	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,LAST_HEADER_BEFORE_FRAG)=
 												ipv6fraghdr_ptr->next_header;
 	/* Remove fragment header extension */
 	fdma_delete_default_segment_data(ipv6fraghdr_offset,
