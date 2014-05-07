@@ -227,7 +227,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
-			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
+			/* tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG; */
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
 			if (tcp_ptr->urgent_pointer)
@@ -259,7 +259,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
-			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
+			/* tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG; */
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
 			if (tcp_ptr->urgent_pointer)
