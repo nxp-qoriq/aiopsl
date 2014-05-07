@@ -45,17 +45,6 @@ int32_t tcp_gro_aggregate_seg(
 	if (gro_ctx.metadata.seg_num != 0) {
 		status = tcp_gro_add_seg_to_aggregation(
 				tcp_gro_context_addr, params, &gro_ctx);
-		if (status == TCP_GRO_SEG_AGG_DONE) {
-			/* write gro context specific fields (metadata seg_num +
-			 * internal_flags) back to DDR + release mutex */
-
-			/* write metadata to external memory */
-			sr_status = cdma_write(
-				(gro_ctx.params.metadata_addr + METADATA_MEMBER1_SIZE),
-				&(gro_ctx.metadata.seg_num),
-				(uint16_t)(METADATA_MEMBER2_SIZE +
-						METADATA_MEMBER3_SIZE));
-		}
 		/* write entire gro context back to DDR + release
 		 * mutex */
 		sr_status = cdma_write_with_mutex(
