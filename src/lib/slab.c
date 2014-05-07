@@ -16,7 +16,7 @@
 /**< ICID to be used for FDMA release & acquire*/
 
 #define SLAB_ASSERT_COND_RETURN(COND, ERR)  \
-	do { if (!(COND)) return (ERR); } while(0)
+	do { if (!(COND)) return (ERR); } while (0)
 
 #define FOUND_SMALLER_SIZE(A, B) \
 	hw_pools[(A)].buff_size > hw_pools[(B)].buff_size
@@ -42,7 +42,7 @@
 	}                                                      \
 }
 
-/*  TODO use API from VPs  */
+/*  TODO use API from VPs, this is temporal  */
 extern struct virtual_pools_root_desc virtual_pools_root;
 extern struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
 /*****************************************************************************/
@@ -79,7 +79,7 @@ static inline int find_bpid(uint16_t buff_size,
 	 * TODO access DDR with CDMA ???
 	 * It's init time but maybe it's important for restart
 	 */
-	for(i = 0; i < num_bpids; i++) {
+	for (i = 0; i < num_bpids; i++) {
 		if ((hw_pools[i].mem_pid == mem_pid)         &&
 			(hw_pools[i].alignment >= alignment) &&
 			(SLAB_SIZE_GET(hw_pools[i].buff_size) >= buff_size)) {
@@ -137,8 +137,8 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 	for (i = 0; i < num_buffs; i++) {
 
 		addr = (dma_addr_t)fsl_os_xmalloc(new_buff_size,
-																			mem_pid,
-																			new_alignment);
+						mem_pid,
+						new_alignment);
 		if (addr == NULL) {
 			/* Free buffs that we already filled */
 			free_buffs_from_bman_pool(*bpid, i);
@@ -222,10 +222,10 @@ int slab_create(uint32_t    num_buffs,
 #ifdef DEBUG
 	/* Sanity checks */
 	error = sanity_check_slab_create(num_buffs,
-																	buff_size,
-																	alignment,
-																	mem_pid,
-																	flags);
+					buff_size,
+					alignment,
+					mem_pid,
+					flags);
 	if (error)
 		return -ENAVAIL;
 	/* TODO remove it when max_buffs are supported */
@@ -238,12 +238,13 @@ int slab_create(uint32_t    num_buffs,
 	 * Only HW SLAB is supported
 	 */
 	error = slab_find_and_fill_bpid(num_buffs,
-																	buff_size,
-																	alignment,
-																	mem_pid,
-																	(int *)(&data),
-																	&bpid);
-	if (error) return error; /* -EINVAL or -ENOMEM */
+					buff_size,
+					alignment,
+					mem_pid,
+					(int *)(&data),
+					&bpid);
+	if (error)
+		return error; /* -EINVAL or -ENOMEM */
 
 	data  = 0;
 	/* TODO add max_buffs to vpool_create_pool when it will be supported */
@@ -298,9 +299,8 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 #endif
 
 	if (vpool_allocate_buf(SLAB_VP_POOL_GET(slab), buff))
-	{
 		return -ENOMEM;
-	}
+
 	return 0;
 }
 
@@ -313,8 +313,8 @@ int slab_release(struct slab *slab, uint64_t buff)
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 #endif
 	error = vpool_refcount_decrement_and_release(SLAB_VP_POOL_GET(slab),
-																							buff,
-																							NULL);
+							buff,
+							NULL);
 	/* It's OK for buffer not to be released as long as
 	 * there is no cdma_error */
 	if ((error == VIRTUAL_POOLS_BUF_NOT_RELEASED) || (error == 0))
@@ -347,9 +347,8 @@ int slab_module_init(void)
 	slab_m = fsl_os_xmalloc(sizeof(struct slab_module_info),
 				SLAB_FAST_MEMORY,
 				1);
-	if (slab_m == NULL) {
+	if (slab_m == NULL)
 		return -ENOMEM;
-	}
 
 	slab_m->num_hw_pools = (uint8_t)(num_bpids & 0xFF);
 	slab_m->hw_pools     =
@@ -367,9 +366,9 @@ int slab_module_init(void)
 				SLAB_FAST_MEMORY,
 				1);
 
-	if (    (slab_m->hw_pools == NULL) ||
+	if ((slab_m->hw_pools == NULL) ||
 		(slab_m->virtual_pool_struct == NULL) ||
-		(slab_m->callback_func_struct == NULL)  ) {
+		(slab_m->callback_func_struct == NULL)) {
 
 		free_slab_module_memory(slab_m);
 		return -ENOMEM;
