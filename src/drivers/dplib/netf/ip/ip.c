@@ -1056,11 +1056,11 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 
 	no_extension = 0;
 
-	if (flag == LAST_HEADER_OFFSET_BEFORE_FRAG){
+	if (flag == LAST_HEADER_BEFORE_FRAG){
 		ah_ext = no_extension;
 		frag_ext = no_extension;
 
-	/* flag == LAST_HEADER_OFFSET */
+	/* flag == LAST_HEADER */
 	}else{
 		ah_ext = IPV6_EXT_AH;
 		frag_ext = IPV6_EXT_FRAGMENT;
@@ -1094,7 +1094,7 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 			current_hdr_size = ((current_hdr_size + 1) << 3);
 
 			/* Disable destination extension */
-			if (flag == LAST_HEADER_OFFSET_BEFORE_FRAG){
+			if (flag == LAST_HEADER_BEFORE_FRAG){
 				dst_ext = no_extension;
 			}
 			break;
