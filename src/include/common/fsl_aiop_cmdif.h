@@ -208,7 +208,8 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		In case of GPP -> AIOP commands this buffer can be freed only
 		after cmdif_close().
 @Param[in]	p_data		Physical address of the v_data buffer.
-@Param[in]	size		Size of the v_data buffer.
+@Param[in]	size		Size of the v_data buffer. If the size if not
+				enough cmdif_open() will return -ENOMEM.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/

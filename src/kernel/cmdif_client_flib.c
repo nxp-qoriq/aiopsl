@@ -1,6 +1,7 @@
 #include <fsl_cmdif_flib.h>
 #include <cmdif_client.h>
 #include <errno.h>
+
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
 
@@ -30,11 +31,11 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 
 	/* if cidesc->dev != NULL it's ok,
 	 * it's usefull to keep it in order to let user to free this buffer */
-	if ((m_name == NULL)
-		|| (cidesc == NULL)
-		|| (!IS_VLD_OPEN_SIZE(size))) {
+	if ((m_name == NULL) || (cidesc == NULL))
 		return -EINVAL;
-	}
+
+	if (!IS_VLD_OPEN_SIZE(size))
+		return -ENOMEM;
 
 	p_addr = p_data + sizeof(struct cmdif_dev);
 	v_addr = (union cmdif_data *)(v_data + sizeof(struct cmdif_dev));
@@ -196,9 +197,12 @@ int cmdif_async_cb(struct cmdif_fd *fd)
 	fd_dev |= (((uint64_t)(fd->u_flc.cmd.dev_h)) << 32);
 	dev    = (struct cmdif_dev *)fd_dev;
 
-	return dev->async_cb(dev->async_ctx,
-			fd->u_flc.cmd.err,
-			fd->u_flc.cmd.cmid,
-			fd->d_size,
-			fd->d_addr);
+	if (dev->async_cb != NULL)
+		return dev->async_cb(dev->async_ctx,
+		                     fd->u_flc.cmd.err,
+		                     fd->u_flc.cmd.cmid,
+		                     fd->d_size,
+		                     fd->d_addr);
+	else
+		return -EINVAL;
 }
