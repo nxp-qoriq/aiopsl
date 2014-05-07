@@ -3,7 +3,7 @@
 #include "common/io.h"
 #include "kernel/smp.h"
 #include "kernel/platform.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
 #include "common/dbg.h"
@@ -119,15 +119,15 @@ int global_post_init(void)
 	return 0;
 }
 
-void core_ready_for_tasks(void) 
-{   
+void core_ready_for_tasks(void)
+{
     uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
-    
+
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
 
@@ -135,17 +135,17 @@ void core_ready_for_tasks(void)
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
 		(~((uint32_t)sys_get_cores_mask()));
-	
+
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
-    
+
     /* Write AIOP boot status (ABCR) */
     iowrite32((uint32_t)sys_get_cores_mask(), abcr);
-    
+
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
-    
+
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */

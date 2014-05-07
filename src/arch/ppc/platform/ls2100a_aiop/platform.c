@@ -8,7 +8,7 @@
 #include "kernel/smp.h"
 
 #include "inc/mem_mng.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 #define SYS_MASTER_PART_ID 0
@@ -402,17 +402,17 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     core_and_task_id =  ((core_get_id() + 1) << 8);
-    core_and_task_id |= 1; /*add task 0 id*/  
+    core_and_task_id |= 1; /*add task 0 id*/
 
     seed = (core_and_task_id << 16) | core_and_task_id;
     seed_mem_ptr = &(seed_32bit);
-    
+
     *seed_mem_ptr = seed;
-    
+
     for (i = 0 ; i < 15; i ++)
     {
-	    seed_mem_ptr += 512; /*size of each task area*/     
-	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/    
+	    seed_mem_ptr += 512; /*size of each task area*/
+	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 	    seed = (core_and_task_id << 16) | core_and_task_id;
 	    *seed_mem_ptr = seed;
     }
