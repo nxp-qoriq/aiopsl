@@ -191,7 +191,7 @@
 	(uint32_t)((((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |\
 	(_asa_size & PRC_ASAPS_MASK))
 	/** FDMA Initial presentation explicit AMQ command arg4 */
-#define FDMA_INIT_EXP_AMQ_CMD_ARG4(_flags, _icid ,_asa_address, _asa_size)\
+#define FDMA_INIT_EXP_AMQ_CMD_ARG4(_flags, _icid , _asa_address, _asa_size)\
 	(uint32_t)(((uint32_t)(((_icid & ~FDMA_ICID_CONTEXT_BDI) << 16) | \
 	(_flags & FDMA_INIT_BDI_BIT))) |				\
 	(((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |		\
