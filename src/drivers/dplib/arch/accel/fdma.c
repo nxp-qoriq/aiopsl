@@ -373,7 +373,7 @@ int32_t fdma_read_default_frame_asa(
 	if (((int32_t)res1 >= FDMA_SUCCESS) &&
 		((int32_t)res1 != FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR)) {
 
-		prc->asapa_asaps = (((uint16_t)prc->asapa_asaps) & PRC_SR_MASK) |
+		prc->asapa_asaps = (((uint16_t)prc->asapa_asaps) & PRC_SR_MASK)|
 			((uint16_t)((uint32_t)ws_dst) & PRC_ASAPA_MASK) |
 			((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) &
 						PRC_ASAPS_MASK);
@@ -1590,7 +1590,7 @@ int32_t fdma_create_frame(
 	fd->length = 0;
 	fd->offset = 0;
 
-	if ((uint32_t)fd == HWC_FD_ADDRESS){
+	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		PRC_SET_SEGMENT_LENGTH(0);
@@ -1656,7 +1656,7 @@ int32_t fdma_create_fd(
 	fd->length = 0;
 	fd->offset = 0;
 
-	if ((uint32_t)fd == HWC_FD_ADDRESS){
+	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		PRC_SET_SEGMENT_LENGTH(0);

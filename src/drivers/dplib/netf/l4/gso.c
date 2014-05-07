@@ -15,6 +15,7 @@
 #include "dplib/fsl_l4.h"
 #include "fdma.h"
 #include "checksum.h"
+#include "common/fsl_stdlib.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -186,7 +187,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* update IP length */
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-			/* IPv4 - update IP length */
+			/* IPv4 - update IP length + ID generation*/
 			outer_ipv4_ptr = (struct ipv4hdr *)(
 				outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
 			updated_ipv4_outer_total_length =
@@ -226,7 +227,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
-			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
+			/* tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG; */
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
 			if (tcp_ptr->urgent_pointer)
@@ -258,7 +259,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
-			// tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
+			/* tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG; */
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
 			if (tcp_ptr->urgent_pointer)
@@ -299,10 +300,12 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		sr_status = fdma_insert_segment_data(
 				&insert_segment_data_params);
 
-		/* if (PARSER_IS_OUTER_IPV4_DEFAULT()) { */
-			/* TODO - IPv4 - ID generation */
-		/* } */
-
+		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+			/* IPv4 - ID generation */
+			outer_ipv4_ptr = (struct ipv4hdr *)
+			(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
+			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();
+		}
 		}
 
 	/* urgent pointer calculation */
