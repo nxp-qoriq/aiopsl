@@ -38,8 +38,9 @@ int ipr_init(void)
 	struct kcr_builder kb;
 	uint16_t bpid;
 	int num_filled_buffs, status;
-	uint32_t max_buffers = 1000;
-	/* flags: IPR_MODE_TABLE_LOCATION_PEB */
+	/* todo set to 300 due to big latency of malloc in ARENA */
+	uint32_t max_buffers = 300;
+	/* todo flags: IPR_MODE_TABLE_LOCATION_PEB */
 	uint32_t flags = 0x02000000;
 
 	/* call ARENA function for allocating buffers needed to IPR
