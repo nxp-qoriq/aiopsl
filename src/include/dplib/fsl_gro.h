@@ -234,8 +234,9 @@ struct tcp_gro_context_metadata {
 		These limits are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_limits {
-		/** Timeout per packet (in 1 mSec granularity) aggregation
-		 * limit. */
+		/** Timeout per packet aggregation limit.
+		 * The timeout granularity is specified at
+		 * \ref gro_context_timeout_params.granularity. */
 	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit (The size refers to the
 		 * packet headers + payload).
