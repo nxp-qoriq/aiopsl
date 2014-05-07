@@ -106,19 +106,19 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 /* The following defines will be used to set the TMAN timer tick size.*/
 
 	/** 1 uSec timer ticks*/
-#define TCP_GRO_TMAN_CREATE_TIMER_MODE_USEC_GRANULARITY		0x00
+#define TCP_GRO_CREATE_TIMER_MODE_USEC_GRANULARITY		0x00
 	/** 10 uSec timer ticks*/
-#define TCP_GRO_TMAN_CREATE_TIMER_MODE_10_USEC_GRANULARITY	0x01
+#define TCP_GRO_CREATE_TIMER_MODE_10_USEC_GRANULARITY		0x01
 	/** 100 uSec timer ticks*/
-#define TCP_GRO_TMAN_CREATE_TIMER_MODE_100_USEC_GRANULARITY	0x02
+#define TCP_GRO_CREATE_TIMER_MODE_100_USEC_GRANULARITY		0x02
 	/** 1 mSec timer ticks*/
-#define TCP_GRO_TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY		0x03
+#define TCP_GRO_CREATE_TIMER_MODE_MSEC_GRANULARITY		0x03
 	/** 10 mSec timer ticks*/
-#define TCP_GRO_TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY	0x04
+#define TCP_GRO_CREATE_TIMER_MODE_10_MSEC_GRANULARITY		0x04
 	/** 100 mSec timer ticks*/
-#define TCP_GRO_TMAN_CREATE_TIMER_MODE_100_MSEC_GRANULARITY	0x05
+#define TCP_GRO_CREATE_TIMER_MODE_100_MSEC_GRANULARITY		0x05
 	/** 1 Sec timer ticks*/
-#define TCP_GRO_TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY		0x06
+#define TCP_GRO_CREATE_TIMER_MODE_SEC_GRANULARITY		0x06
 
 /** @} */ /* end of TCP_GRO_TIMEOUT_GRANULARITY_FLAGS */
 
@@ -234,8 +234,9 @@ struct tcp_gro_context_metadata {
 		These limits are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_limits {
-		/** Timeout per packet (in 1 mSec granularity) aggregation
-		 * limit. */
+		/** Timeout per packet aggregation limit.
+		 * The timeout granularity is specified at
+		 * \ref struct gro_context_timeout_params.granularity. */
 	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit (The size refers to the
 		 * packet headers + payload).

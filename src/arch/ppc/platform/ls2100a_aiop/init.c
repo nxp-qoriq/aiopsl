@@ -131,6 +131,7 @@ void core_ready_for_tasks(void)
     /* finished boot sequence; now wait for event .... */
     fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
 
+#if 0
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
@@ -138,7 +139,8 @@ void core_ready_for_tasks(void)
 
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
-
+#endif
+    
     /* Write AIOP boot status (ABCR) */
     iowrite32((uint32_t)sys_get_cores_mask(), abcr);
 
