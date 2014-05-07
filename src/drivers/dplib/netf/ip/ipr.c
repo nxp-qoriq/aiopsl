@@ -930,7 +930,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length + 
 								  ip_header_size;
 	/* Move next header of fragment header to previous extension header */
-	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,LAST_HEADER_OFFSET_BEFORE_FRAG)=
+	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,LAST_HEADER_BEFORE_FRAG)=
 												ipv6fraghdr_ptr->next_header;
 	/* Remove fragment header extension */
 	fdma_delete_default_segment_data(ipv6fraghdr_offset,
