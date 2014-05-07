@@ -45,7 +45,7 @@ static inline int find_bpid(uint16_t buff_size,
         struct  slab_hw_pool_info *hw_pools = slab_module->hw_pools;
 
         /*
-         * TODO access DDR with CDMA ??? 
+         * TODO access DDR with CDMA ???
          * It's init time but maybe it's important for restart
          */
         for(i = 0; i < num_bpids; i++) {
@@ -88,7 +88,7 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
         uint16_t   new_buff_size = 0;
         uint16_t   new_alignment = 0;
 
-        struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+        struct slab_module_info *slab_module = sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
         error = find_bpid(buff_size, alignment, mem_pid, slab_module, bpid, &new_buff_size, &new_alignment);
         SLAB_ASSERT_COND_RETURN(error == 0, error);
@@ -212,7 +212,7 @@ int slab_create(uint32_t    num_buffs,
 /*****************************************************************************/
 int slab_free(struct slab **slab)
 {
-        struct   slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+        struct   slab_module_info *slab_module = sys_get_unique_handle(FSL_OS_MOD_SLAB);
         int      remaining_buffs = (int)(((struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct) + SLAB_VP_POOL_GET(*slab))->committed_bufs;
         uint16_t bpid = (uint16_t)virtual_bman_pools[(((struct virtual_pool_desc *)virtual_pools_root.virtual_pool_struct) + SLAB_VP_POOL_GET(*slab))->bman_array_index].bman_pool_id;
 
@@ -229,7 +229,7 @@ int slab_free(struct slab **slab)
         } else {
                 return -EINVAL;
         }
-        
+
         *((uint32_t *)slab) = 0; /**< Delete all pool information */
         return 0;
 }
@@ -293,21 +293,21 @@ int slab_module_init(void)
         if (slab_module == NULL) {
 		return -ENOMEM;
         }
-        
+
         slab_module->num_hw_pools = (uint8_t)(num_bpids & 0xFF);
         slab_module->hw_pools     = fsl_os_xmalloc(sizeof(struct slab_hw_pool_info) * num_bpids, SLAB_DDR_MEMORY, 1);
 
         slab_module->virtual_pool_struct  = fsl_os_xmalloc((sizeof(struct virtual_pool_desc) * SLAB_MAX_NUM_VP), SLAB_FAST_MEMORY, 1);
         slab_module->callback_func_struct = fsl_os_xmalloc((sizeof(struct callback_s) * SLAB_MAX_NUM_VP), SLAB_FAST_MEMORY, 1);
 
-        if (    (slab_module->hw_pools == NULL) || 
+        if (    (slab_module->hw_pools == NULL) ||
         	(slab_module->virtual_pool_struct == NULL) ||
         	(slab_module->callback_func_struct == NULL)  ) {
-        	
+
                 free_slab_module_memory(slab_module);
 		return -ENOMEM;
         }
-        
+
         /* TODO vpool_init() API will change to get more allocated by malloc() memories */
         error = vpool_init((uint64_t)(slab_module->virtual_pool_struct), (uint64_t)(slab_module->callback_func_struct), SLAB_MAX_NUM_VP, 0);
         if (error) {
@@ -333,7 +333,7 @@ int slab_module_init(void)
 /*****************************************************************************/
 void slab_module_free(void)
 {
-        struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+        struct slab_module_info *slab_module = sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
         sys_remove_handle(FSL_OS_MOD_SLAB, 0);
         free_slab_module_memory(slab_module);
@@ -344,7 +344,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 {
         int32_t temp = 0, max_buffs = 0, num_buffs = 0;
         int     i;
-        struct slab_module_info *slab_module = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+        struct slab_module_info *slab_module = sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
         if (slab_info != NULL) {
                 if (vpool_read_pool(SLAB_VP_POOL_GET(slab),

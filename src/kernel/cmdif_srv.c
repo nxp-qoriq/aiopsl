@@ -215,7 +215,7 @@ static int empty_open_cb(uint8_t instance_id, void **dev)
 }
 
 static int empty_close_cb(void *dev)
-{	
+{
 	UNUSED(dev);
 	return -ENODEV;
 }
@@ -232,7 +232,7 @@ static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 {
 
-	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	int    m_id = 0;
 
 	if ((m_name == NULL) || (ops == NULL) || (srv == NULL))
@@ -261,7 +261,7 @@ int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 
 int cmdif_unregister_module(const char *m_name)
 {
-	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	int    m_id = -1;
 
 	/* TODO what if unregister is done during runtime and another thread
@@ -291,7 +291,7 @@ static int epid_setup()
 
 	iowrite32(0, &wrks_addr->epas); /* EPID = 0 */
 	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
-	
+
 #ifndef MC_ITEGRATED
 	/* Default settings */
 	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
@@ -305,7 +305,7 @@ static int epid_setup()
 	data = ioread32(&wrks_addr->ep_osc);
 	if (data != 0x11000005)
 		return -EINVAL;
-	
+
 	pr_info("CMDIF Server is setting EPID = 0\n");
 	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
 	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
@@ -314,7 +314,7 @@ static int epid_setup()
 	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
 	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
 	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
-	
+
 	return 0;
 }
 
@@ -334,7 +334,7 @@ static void srv_memory_free(struct  cmdif_srv *srv)
 		fsl_os_xfree(srv->ctrl_cb);
 	if (srv->open_cb)
 		fsl_os_xfree(srv->open_cb);
-	
+
 	fsl_os_xfree(srv);
 }
 
@@ -343,7 +343,7 @@ int cmdif_srv_init(void)
 	int     err = 0;
 	struct  cmdif_srv *srv = NULL;
 
-	if (sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0))
+	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV))
 		return -ENODEV;
 
 	err = epid_setup();
@@ -372,12 +372,12 @@ int cmdif_srv_init(void)
 		(srv->ctrl_cb == NULL)  || (srv->sync_done == NULL) ||
 		(srv->m_name == NULL)   || (srv->open_cb == NULL)   ||
 		(srv->close_cb == NULL)	) {
-		
+
 		pr_err("No memory for CMDIF Server init");
 		srv_memory_free(srv);
 		return -ENOMEM;
 	}
-	
+
 	memset(srv->m_name,
 	       FREE_MODULE,
 	       sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
@@ -392,7 +392,7 @@ int cmdif_srv_init(void)
 
 void cmdif_srv_free(void)
 {
-	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 
         sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
         srv_memory_free(srv);
@@ -412,7 +412,7 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	pr_debug("Response QID = 0x%x\n",RESP_QID_GET);
 	pr_debug("CB error = %d\n",cb_err);
 
-	/** 
+	/**
 	 * TODO for non sync mode I need *dev to be used on GPP size, is it 8 or 4 bytes ?
 	 * answer: it's 39 bit vaddr will be set by client but maybe I can pass
 	 * only the id and not full pointer and keep this information on server side
@@ -422,15 +422,15 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	return err;
 }
 
-__HOT_CODE static void sync_cmd_done(uint64_t sync_done, 
-                                     int err, 
-                                     uint16_t auth_id, 
-                                     struct cmdif_srv *srv, 
+__HOT_CODE static void sync_cmd_done(uint64_t sync_done,
+                                     int err,
+                                     uint16_t auth_id,
+                                     struct cmdif_srv *srv,
                                      char terminate)
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
-	
+
 	pr_debug("err = %d\n",err);
 	pr_debug("auth_id = 0x%x\n",auth_id);
 	pr_debug("sync_resp = 0x%x\n",resp);
@@ -441,7 +441,7 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		_sync_done = sync_done;
 	else
 		_sync_done = srv->sync_done[auth_id];
-	
+
 	if (_sync_done == NULL) {
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
@@ -467,14 +467,14 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 __HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
-	struct   cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct   cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	int      err    = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
 	if (srv == NULL) {
 		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
 	}
-	
+
 	pr_debug("cmd_id = 0x%x\n",cmd_id);
 	pr_debug("auth_id = 0x%x\n",auth_id);
 
@@ -484,45 +484,45 @@ __HOT_CODE void cmdif_srv_isr(void)
 		uint8_t  inst_id;
 		int      new_inst;
 		uint64_t sync_done = sync_done_get();
-		
+
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			pr_err("No permission to open device 0x%x\n", auth_id);
 			sync_cmd_done(sync_done, -EPERM, auth_id, srv, TRUE);
 		}
 
-		cmd_m_name_get(&m_name[0]);		
+		cmd_m_name_get(&m_name[0]);
 		m_id = module_id_find(m_name, srv);
 		if (m_id < 0) {
 			/* Did not find module with such name */
 			pr_err("No such module %s\n", m_name);
 			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, TRUE);
 		}
-		
+
 		inst_id  = cmd_inst_id_get();
 		new_inst = inst_alloc(srv);
 		if (new_inst >= 0) {
-			
+
 			pr_debug("inst_id = %d\n",inst_id);
 			pr_debug("new_inst = %d\n",new_inst);
 			pr_debug("m_name = %s\n",m_name);
-			
+
 			sync_done_set((uint16_t)new_inst, srv);
 			err = OPEN_CB(m_id, inst_id, new_inst);
 			sync_cmd_done(sync_done, err, (uint16_t)new_inst, srv, FALSE);
 			if (err) {
 				pr_err("Open callback failed\n");
 				inst_dealloc(new_inst, srv);
-			} 
+			}
 			pr_debug("PASSED open command\n");
-			fdma_terminate_task();				
+			fdma_terminate_task();
 		} else {
 			/* couldn't find free place for new device */
 			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("No free entry for new device\n");
 		}
 	} else if (cmd_id & CMD_ID_CLOSE) {
-		
+
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* Don't reorder this sequence !!*/
 			err = CLOSE_CB(auth_id);
@@ -531,7 +531,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
 				 * close the device */
-				inst_dealloc(auth_id, srv);				
+				inst_dealloc(auth_id, srv);
 			}
 			pr_debug("PASSED close command\n");
 			fdma_terminate_task();
@@ -551,9 +551,9 @@ __HOT_CODE void cmdif_srv_isr(void)
 				sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 			}
 		} else {
-			/* don't bother to send response 
+			/* don't bother to send response
 			 * in order not to overload response queue,
-			 * it might be intentional attack 
+			 * it might be intentional attack
 			 * */
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
@@ -564,8 +564,8 @@ __HOT_CODE void cmdif_srv_isr(void)
 		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
 		if (err) {
-			pr_err("Failed to send response auth_id = 0x%x\n", 
-			       auth_id);			
+			pr_err("Failed to send response auth_id = 0x%x\n",
+			       auth_id);
 		}
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
