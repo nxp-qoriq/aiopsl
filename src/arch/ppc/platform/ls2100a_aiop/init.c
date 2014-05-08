@@ -42,6 +42,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 {                                          \
     {slab_module_init,  slab_module_free}, \
     {dpni_drv_init,     dpni_drv_free},    \
+    {cmdif_srv_init,    cmdif_srv_free},   \
     {aiop_sl_init,      aiop_sl_free},     \
     {NULL, NULL} /* never remove! */       \
 }
