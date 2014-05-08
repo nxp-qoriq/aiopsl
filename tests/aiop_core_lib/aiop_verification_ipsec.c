@@ -205,6 +205,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		if (str->fm_encr_status)
 			break;
 		
+		
+		/* Run parser on new (encrypted) frame */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
+		
 		/* Decryption */
 		str->fm_decr_status = ipsec_frame_decrypt(
 				//*((uint64_t *)(str->ipsec_decr_handle_ptr)),
