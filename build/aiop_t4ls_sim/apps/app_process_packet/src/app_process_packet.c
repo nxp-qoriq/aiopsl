@@ -73,6 +73,5 @@ int app_init(void)
 
 void app_free(void)
 {
-	int err = 0;
 	/* TODO - complete!*/
 }
