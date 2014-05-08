@@ -366,7 +366,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			   /* Early Time out */
 			   return IPR_ERROR;
 			}
-		} else if (sr_status == CTLU_STATUS_MISS) {
+		} else if (sr_status == TABLE_STATUS_MISS) {
 			/* Miss */
 		    cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
 				     	 	 	 	    &rfdc_ext_addr);
