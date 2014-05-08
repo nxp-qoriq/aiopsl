@@ -1046,7 +1046,6 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 
 	uint32_t current_hdr_ptr;
-	uint32_t temp_hdr_ptr;
 	uint16_t current_hdr_size;
 	uint8_t current_ver;
 	uint8_t next_hdr;
