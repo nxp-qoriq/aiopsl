@@ -1095,6 +1095,11 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 
 			/* Disable destination extension */
 			if (flag == LAST_HEADER_BEFORE_FRAG){
+				if (*((uint8_t *)(current_hdr_ptr + current_hdr_size)) != \
+														IPV6_EXT_ROUTING)
+				{
+					return current_hdr_ptr;
+				} 
 				dst_ext = no_extension;
 			}
 			break;
