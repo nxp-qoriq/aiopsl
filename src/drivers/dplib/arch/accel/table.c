@@ -486,13 +486,14 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 				     *ndf_params,
 			      struct table_lookup_result *lookup_result)
 {
+	/* optimization 1 clock */
+	uint32_t arg2 = (uint32_t)lookup_result;
+
 	/* Clearing reserved fields */
 	ndf_params->reserved0 = 0;
 	ndf_params->reserved1 = 0;
 	ndf_params->reserved2 = 0;
 
-	/* optimization 1 clock */
-	uint32_t arg2 = (uint32_t)lookup_result;
 	__e_rlwimi(arg2, *((uint32_t *)(ndf_params)), 16, 0, 15);
 
 	/* Prepare HW context for TLU accelerator call */
