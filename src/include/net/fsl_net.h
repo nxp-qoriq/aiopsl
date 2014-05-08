@@ -51,6 +51,18 @@ struct ipv6hdr {
 };
 
 /**************************************************************************//**
+@Description	IPv6 Fragment Header.
+
+		Please refer to RFC 2460 for more details.
+*//***************************************************************************/
+struct ipv6fraghdr {
+	uint8_t  next_header;
+	uint8_t  reserved;
+	uint16_t offset_and_flags;
+	uint32_t id;
+};
+
+/**************************************************************************//**
 @Description	UDP structure.
 
 		Please refer to RFC 768 for more details.

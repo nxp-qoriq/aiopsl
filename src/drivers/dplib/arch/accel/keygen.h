@@ -187,6 +187,22 @@
 @{
 *//***************************************************************************/
 
+/**************************************************************************//**
+@Description	Input message Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct keygen_input_message_params {
+	uint16_t fha;
+	uint16_t frs;
+	uint16_t pra;
+	uint16_t reserved1;
+	uint16_t fda;
+	uint16_t reserved2;
+	uint16_t falugrp;
+	uint16_t gross_running_sum;
+	uint64_t opaquein;
+};
+#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	KEYGEN KCR Builder FEC Mask

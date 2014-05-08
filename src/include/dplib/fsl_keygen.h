@@ -11,7 +11,6 @@
 
 #include "common/types.h"
 #include "general.h"
-#include "fsl_table.h" /* TODO remove! */
 #include "fsl_parser.h"
 
 /* TODO remark on allocations of out params */
@@ -42,25 +41,10 @@
 @Group	FSL_KEYGEN_KCR_ATTRIBUTES Key Composition Rule Attributes
 @{
 *//***************************************************************************/
-	/** Generic Extraction from start of frame. */
+	/** Generic Extraction from start of frame */
 #define KEYGEN_KCR_LENGTH		0x40
 
 /** @} */ /* end of FSL_KEYGEN_KCR_ATTRIBUTES */
-
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS \
-	 Key Composition Rule Builder Generic Extract Flags
-	User should select one of the followings.
-@{
-*//***************************************************************************/
-	/** Generic Extraction from start of frame. */
-#define KEYGEN_KCR_GEC_FRAME		0x80
-
-	/** Generic Extraction from Parser Result. */
-#define KEYGEN_KCR_GEC_PARSE_RES	0x40
-
-/** @} */ /* end of FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS */
 
 
 /**************************************************************************//**
@@ -72,29 +56,15 @@
 @{
 *//***************************************************************************/
 
-	/** Command status success. */
-#define KEYGEN_STATUS_SUCCESS	0x00000000
-	/** Command failed general status bit.
+	/** Command status success */
+#define KEYGEN_STATUS_SUCCESS		0x00000000
+	/** Command failed general status bit
 	A general bit that is set in some errors conditions */
-#define KEYGEN_STATUS_FAIL	0x80000000
-	/** Key Composition Error for Key Generation in MFLU.
-	 * Invalid key composition ID (KID) or Key size error */
-#define KEYGEN_MFLU_STATUS_KCE	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_MFLU << 24) | 0x00000400)
-	/** Key Composition Error for Key Generation in CTLU.
-	 * Invalid key composition ID (KID) or Key size error */
-#define KEYGEN_CTLU_STATUS_KCE	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_CTLU << 24) | 0x00000400)
-	/** Extract Out Of Frame Header Error for Key Generation in MFLU.
+#define KEYGEN_STATUS_KSE 		0x00000400
+	/** Extract Out Of Frame Header Error for Key Generation
 	 * This bit is set if key composition attempts to extract a field which
 	 * is not in the frame header */
-#define KEYGEN_MFLU_STATUS_EOFH	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_MFLU << 24) | 0x00000200)
-	/** Extract Out Of Frame Header Error for Key Generation in CTLU.
-	 * This bit is set if key composition attempts to extract a field which
-	 * is not in the frame header */
-#define KEYGEN_CTLU_STATUS_EOFH	\
-		(KEYGEN_STATUS_FAIL | (KEYGEN_ACCEL_ID_CTLU << 24) | 0x00000200)
+#define KEYGEN_MFLU_STATUS_EOFH	 	0x00000200
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_GENERAL */
 
@@ -103,12 +73,10 @@
 @{
 *//***************************************************************************/
 
-	/** Command status success. */
+	/** Command status success */
 #define KEYGEN_HASH_STATUS_SUCCESS	0x00000000
-	/** Key Size Error (> 124 bytes) for Hash Generation in MFLU */
-#define KEYGEN_MFLU_HASH_STATUS_KSE	KEYGEN_MFLU_STATUS_KCE
-	/** Key Size Error (> 124 bytes) for Hash Generation in CTLU */
-#define KEYGEN_CTLU_HASH_STATUS_KSE	KEYGEN_CTLU_STATUS_KCE
+	/** Key Size Error (> 124 bytes) for Hash Generation */
+#define KEYGEN_HASH_STATUS_KSE	KEYGEN_STATUS_KSE
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_HASH_GEN */
 
@@ -121,7 +89,7 @@
 	/** General Extraction Extract Size Error */
 /*#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001*/
 	/** Protocol Based General Extraction Error */
-#define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002
+/*#define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002*/
 	/** Protocol Based General Extraction Parser Result Offset Error */
 /*#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003*/
 	/** General Extraction Extract Offset Error */
@@ -146,6 +114,22 @@
 
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@enum	kcr_builder_gec_source
+
+@Description	 Key Composition Rule Builder Generic Extract Source
+
+@{
+*//***************************************************************************/
+enum kcr_builder_gec_source{
+	/** Generic Extraction from start of frame */
+	KEYGEN_KCR_GEC_FRAME = 0x0,
+	/** Generic Extraction from Parser Result */
+	KEYGEN_KCR_GEC_PARSE_RES=0x1
+};
+
+/** @} */ /* end of kcr_builder_gec_source */
 
 /**************************************************************************//**
 @enum	kcr_builder_ext_lookup_res_field
@@ -405,7 +389,8 @@ struct	kcr_builder_fec_single_mask {
 	uint8_t	mask;
 
 	/** Mask offset
-	offset value can be between 0x00-0x0F.
+	The offset from the beginning of the extracted header where mask is
+	applied (offset value can be between 0x00-0x0F).
 	It is up to the user to ensure that the offset is not larger than the
 	extracted header. */
 	uint8_t	mask_offset;
@@ -581,7 +566,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 		in case of extraction from parse result offset must not exceed
 		0x3F.
 @Param[in]	extract_size - size of extraction (1-16 bytes).
-@Param[in]	flags - Please refer to \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS
+@Param[in]	gec_source - Please refer to \ref kcr_builder_gec_source.
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
@@ -590,7 +575,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 @Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
-	uint8_t extract_size, uint32_t flags,
+	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
 
 
@@ -731,7 +716,7 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - The key ID to be used for the key extraction.
-@Param[in]	opaquein - OpaqueIn field for key composition.
+@Param[in]	user_metadata - user_metadata field for key composition.
 @Param[out]	key - The key. This structure is allocated by the user and must
 		be aligned to 16B boundary.
 @Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
@@ -742,8 +727,8 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 *//***************************************************************************/
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     uint64_t opaquein,
-		     union table_key_desc *key,
+		     uint64_t user_metadata,
+		     void *key,
 		     uint8_t *key_size);
 
 
@@ -762,8 +747,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size,
-							uint32_t *hash);
+int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash);
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */

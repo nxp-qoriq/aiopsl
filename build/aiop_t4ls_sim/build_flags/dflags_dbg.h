@@ -2,6 +2,7 @@
 #define __DFLAGS_DBG_H
 
 #define DEBUG_LEVEL         2
+#define STACK_OVERFLOW_DETECTION 0
 
 #include "build_flags.h"
 

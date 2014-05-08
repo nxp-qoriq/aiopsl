@@ -12,6 +12,9 @@
 #include "general.h"
 #include "dplib/fsl_cdma.h"
 
+#define __PROFILE_SRAM __declspec(section ".psram_data")
+#pragma section RW ".psram_data" ".psram_bss"
+
 /**************************************************************************//**
 @Group	SYSTEM AIOP_System
 
@@ -24,6 +27,32 @@
 @Group		SYSTEM_MACROS System Macros
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@Group SYS_PARSER_PROFILE_DEFINES Parse Profile Defines
+@{
+*//***************************************************************************/
+#define mode_bits1_PTAR_MASK  0x80
+#define mode_bits1_SGHR_MASK  0x10
+#define mode_bits1_ASAR_MASK  0x0f
+
+#define mode_bits2_BS_MASK  0x80
+#define mode_bits2_FF_MASK  0x30
+#define mode_bits2_VA_MASK  0x04
+#define mode_bits2_DLC_MASK 0x01
+
+#define mode_bits1_PTAR  0x80
+#define mode_bits1_Rsrvd 0x00
+#define mode_bits1_SGHR  0x00
+#define mode_bits1_ASAR  0x0f
+
+#define mode_bits2_BS  0x00
+#define mode_bits2_FF  0x00
+#define mode_bits2_VA  0x00
+#define mode_bits2_DLC 0x00
+
+/** @} */ /* end of SYS_PARSER_PROFILE_DEFINES */
+
 /**************************************************************************//**
 @Group SYS_ID_POOL_LENGTH System ID Pools Length
 @{
@@ -57,6 +86,34 @@
 
 /** @} */ /* end of SYSTEM_MACROS */
 
+/**************************************************************************//**
+@Group		SYSTEM_STRUCTS System Structures
+@{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@Description	Storage Profile Struct
+*//***************************************************************************/
+
+struct storage_profile {
+	uint64_t ip_secific_sp_info; /**< IP-Specific SP Information 	 */
+	uint16_t dl; /**<  DataLength(correction)	 */
+	uint16_t reserved; /**< reserved 	 */
+	uint16_t dhr; /**< DataHeadRoom(correction) */
+	uint8_t  mode_bits1; /**< mode bits 	 */
+	uint8_t  mode_bits2; /**< mode bits 	 */
+	uint16_t pbs1; /**<  Pool Buffer Size	 */
+	uint16_t bpid1; /**<  Bypass Memory Translation	 */
+	uint16_t pbs2; /**<  Pool Buffer Size	 */
+	uint16_t bpid2; /**<  Bypass Memory Translation	 */
+	uint16_t pbs3; /**<  Pool Buffer Size	 */
+	uint16_t bpid3; /**<  Bypass Memory Translation	 */
+	uint16_t pbs4; /**<  Pool Buffer Size	 */
+	uint16_t bpid4; /**<  Bypass Memory Translation	 */
+};
+
+
+/** @} */ /* end of SYSTEM_MACROS */
 
 /**************************************************************************//**
 @Group		SYSTEM_Functions System Functions

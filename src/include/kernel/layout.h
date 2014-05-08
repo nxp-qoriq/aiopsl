@@ -66,8 +66,6 @@ typedef struct sys_lo_mod_params {
 *//***************************************************************************/
 int sys_lo_register_module (struct sys_lo_mod_params *lo_mod_params);
 
-int sys_lo_process (void *lo);
-
 struct node *sys_build_dpl (unsigned int *dpl_bin); /* TODO - review */
 
 /** @} */ /* end of fsl_os_lo_g group */

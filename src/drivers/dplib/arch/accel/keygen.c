@@ -12,9 +12,8 @@
 #include "keygen.h"
 #include "system.h"
 #include "id_pool.h"
-#include "parser.h" /* TODO remove! */
 
-extern uint64_t ext_keyid_pool_address;
+extern __SHRAM uint64_t ext_keyid_pool_address;
 
 int32_t keygen_kcr_builder_init(struct kcr_builder *kb)
 {
@@ -281,7 +280,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 
 
 int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
-	uint8_t extract_size, uint32_t flags,
+	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb)
 {
 	uint8_t curr_byte = kb->kcr_length;
@@ -297,8 +296,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	/* OP0 for General extraction */
 	op0 = 0;
 	aligned_offset = offset & KEYGEN_KCR_16_BYTES_ALIGNMENT;
-	if (flags & KEYGEN_KCR_GEC_FRAME) {
-		/*! Generic extraction from start of frame */
+	if (gec_source == KEYGEN_KCR_GEC_FRAME) {
+		/* Generic extraction from start of frame */
 		switch (aligned_offset) {
 
 		case (0x00):
@@ -386,7 +385,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 		} /* switch */
 	} /* if */
-	else if (flags & KEYGEN_KCR_GEC_PARSE_RES) {
+	else {
+		/* Generic extraction from parse result */
 		switch (aligned_offset) {
 
 		case (0x00):
@@ -412,8 +412,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 		default:
 			break;
 		}
-	} else
-		return KEYGEN_KCR_PROTOCOL_GEC_ERR;
+	}
 
 
 	/* OP1 = Extract Offset */
@@ -691,17 +690,18 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     uint64_t opaquein,
-		     union table_key_desc *key,
+		     uint64_t user_metadata,
+		     void *key,
 		     uint8_t *key_size)
 {
-	struct input_message_params input_struct __attribute__((aligned(16)));
+	struct keygen_input_message_params input_struct 
+					__attribute__((aligned(16)));
 	uint32_t arg1;
 	
-	if (opaquein) {
+	if (user_metadata) {
 		__stdw(0, 0, 0, &input_struct);
 		__stdw(0, 0, 8, &input_struct);
-		input_struct.opaquein = opaquein;
+		input_struct.opaquein = user_metadata;
 	
 		/* Prepare HW context for TLU accelerator call */
 		arg1 = ((((uint32_t)(&input_struct)) << 16) | (uint32_t)key);
@@ -723,8 +723,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 }
 
 
-int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size,
-							uint32_t *hash)
+int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 {
 
 	/* Prepare HW context for TLU accelerator call */

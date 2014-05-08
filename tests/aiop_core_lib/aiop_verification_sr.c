@@ -24,7 +24,7 @@ void aiop_verification_sr()
 	uint8_t ipr_iteration = 0;
 
 	init_verif();
-	
+
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;
 
@@ -43,30 +43,6 @@ void aiop_verification_sr()
 
 		switch (opcode) {
 
-		case GRO_MODULE:
-		{
-			str_size = aiop_verification_gro(asa_seg_addr);
-			if (str_size == sizeof(struct tcp_gro_agg_seg_command))
-				gro_verif_create_next_frame(++gro_iteration);
-			break;
-		}
-		case IPF_MODULE:
-		{
-			str_size = aiop_verification_ipf(asa_seg_addr);
-			break;
-		}
-		case GSO_MODULE:
-		{
-			str_size = aiop_verification_gso(asa_seg_addr);
-			break;
-		}
-		case IPR_MODULE:
-		{
-			ipr_verif_update_frame(ipr_iteration);
-			str_size = aiop_verification_ipr(asa_seg_addr);
-			ipr_iteration ++;
-			break;
-		}
 		case FDMA_MODULE:
 		{
 			str_size = aiop_verification_fdma(asa_seg_addr);

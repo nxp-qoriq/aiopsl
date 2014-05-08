@@ -50,7 +50,7 @@
 /* Address of end of TLS section */
 extern const uint16_t TLS_SECTION_END_ADDR[];
 
-/** @} */ /* end of AIOP_GENERAL_MACROS */
+/** @} */ /* end of AIOP_General_Macros */
 
 
 /**************************************************************************//**
@@ -79,7 +79,7 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 	/** SCDMA accelerator ID */
 #define CDMA_ACCEL_ID			0x0D
 
-/** @} */ /* end of AIOP_ACCELERATORS_IDS */
+/** @} */ /* end of AIOP_Accelerators_IDS */
 
 
 /**************************************************************************//**
@@ -255,9 +255,9 @@ struct additional_dequeue_context {
 *//***************************************************************************/
 
 /** Macro to get ICID field */
-#define ADC_GET_ICID()                              \
-       (LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),             \
-		       ADC_ICID_MASK))
+#define ADC_GET_ICID()							\
+	(LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),		\
+	       ADC_ICID_MASK))
 
 /** @} */ /* end of AIOP_ADC_Getters */
 
@@ -739,7 +739,7 @@ struct aiop_default_task_params {
 	(uint64_t)({register uint64_t __rR = 0;		\
 	uint64_t temp;						\
 	__llldbrw(&temp, _addr, 0);				\
-	__rR = (uint64_t ) temp; })
+	__rR = (uint64_t) temp; })
 
 /** Load 2 bytes with endian swap and mask result.
  * _addr = a constant address. */
@@ -863,6 +863,15 @@ struct aiop_default_task_params {
 #define  IPV6_EXT_FRAGMENT	44 /*!< IPv6 Fragment extension number*/
 
 /** @} */ /* end of AIOP_General_Protocols_IPV6_Extensions */
+
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_IPV6_FRAG_HDR_Offsets IPv6 Frag Header
+		Offsets
+@{
+*//***************************************************************************/
+#define IPV6_HDR_M_FLAG_MASK 0x0001 /** Mask for IPv6 Fragment Header M flag */
+
+/** @} */ /* end of AIOP_General_Protocols_IPV6_FRAG_HDR_Offsets */
 
 /**************************************************************************//**
 @Group		AIOP_General_Protocols_TCP_Definitions Transmission Control

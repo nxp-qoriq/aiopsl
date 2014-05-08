@@ -211,12 +211,18 @@ struct fdma_init_command {
 		/** Number (maximum) of 64B ASA quantities to present (0 for no
 		 * ASA presentation). */
 	uint8_t asa_size;
+		/** No Data Segment:
+		 * - 0: Present data segment.
+		 * - 1: Don't present data segment. */
+	uint8_t NDS;
 		/** Reference within the frame to present from:
 		 * - 0: start of the frame.
 		 * - 1: end of the frame. */
 	uint8_t SR;
 		/** Command returned status. */
 	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 
@@ -693,10 +699,6 @@ struct fdma_enqueue_frame_command {
 		* - 0 = queueing destination(16bit)
 		* - 1 = fqid (24bit). */
 	uint8_t	EIS;
-		/** Virtual Address. */
-	uint8_t	VA;
-		/** Privilege Level. */
-	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
 		* - 0: Isolation is enabled for this command. The FQID ID
 		* specified is virtual within the specified ICID.
@@ -706,7 +708,7 @@ struct fdma_enqueue_frame_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
@@ -753,10 +755,6 @@ struct fdma_enqueue_frame_exp_command {
 		* - 0 = queueing destination(16bit)
 		* - 1 = fqid (24bit). */
 	uint8_t	EIS;
-		/** Virtual Address. */
-	uint8_t	VA;
-		/** Privilege Level. */
-	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
 		* - 0: Isolation is enabled for this command. The FQID ID
 		* specified is virtual within the specified ICID.
@@ -766,7 +764,7 @@ struct fdma_enqueue_frame_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
