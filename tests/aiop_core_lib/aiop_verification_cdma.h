@@ -44,6 +44,8 @@
 	/**< CDMA lock dma read and increment command */
 #define	CDMA_WRITE_RELEASE_LOCK_AND_DEC_CMD 	0x00000b81
 	/**< CDMA write release lock and decrement command */
+#define	CDMA_REFCOUNT_GET_CMD 			0x00000c81
+	/**< CDMA reference count getter command */
 
 
 
@@ -79,6 +81,8 @@
 	/**< CDMA lock dma read and increment command Structure identifier*/
 #define	CDMA_WRITE_RELEASE_LOCK_AND_DEC_CMD_STR ((CDMA_MODULE << 16) | CDMA_WRITE_RELEASE_LOCK_AND_DEC_CMD)
 	/**< CDMA write release lock and decrement command Structure identifier*/
+#define	CDMA_REFCOUNT_GET_CMD_STR ((CDMA_MODULE << 16) | CDMA_REFCOUNT_GET_CMD)
+	/**< CDMA reference count getter command Structure identifier*/
 
 
 /** \addtogroup AIOP_Service_Routines_Verification
@@ -434,6 +438,27 @@ struct cdma_access_context_memory_command {
 	int8_t  	status;
 		/**< Command returned status. */
 	uint8_t		pad[7];
+		/**< 64-bit alignment. */
+};
+
+/**************************************************************************//**
+@Description	CDMA Reference count getter Command Structure.
+
+		Includes information needed for CDMA reference count getter
+		command verification.
+
+*//***************************************************************************/
+struct cdma_refcount_get_command {
+	uint32_t 	opcode;
+		/**< CDMA cdma_refcount_get_command Command Structure identifier. */
+	uint32_t 	context_memory;
+		/**< An address to the Workspace where
+		 * the 64 bit address of the Context memory is found. */
+	uint32_t        refcount_value;
+		/**< Command returned Current value of reference count */
+	int8_t  	status;
+		/**< Command returned status. */
+	uint8_t		pad[3];
 		/**< 64-bit alignment. */
 };
 
