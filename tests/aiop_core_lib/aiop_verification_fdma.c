@@ -40,6 +40,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			((uint16_t)str->asa_size & PRC_ASAPS_MASK);
 		if (str->SR)
 			PRC_SET_SR_BIT();
+		if (str->NDS)
+			PRC_SET_NDS_BIT();
 		prc->ptapa_asapo	=
 			(((uint16_t)(uint32_t)str->pta_address) &
 					PRC_PTAPA_MASK) |

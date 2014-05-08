@@ -63,6 +63,8 @@ enum cmdif_module {
 #define CMDIF_PRI_LOW		0	/**< Low Priority */
 #define CMDIF_PRI_HIGH		1	/**< High Priority */
 
+#if 0
+/* Removed due to API conflicts between MC and AIOP */
 /**************************************************************************//**
  @Group         cmdif_server_g  Command Interface - Server API
 
@@ -148,6 +150,7 @@ int cmdif_register_module(enum cmdif_module module,
 int cmdif_close_dev(void *dev);
 
 /** @} *//* end of cmdif_server_g group */
+#endif // 0
 
 /**************************************************************************//**
  @Group         cmdif_client_g  Command Interface - Client API

@@ -400,14 +400,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/errors.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/fsl_aiop_cmdif.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_aiop_cmdif.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/fsl_cmdif.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/common/fsl_cmdif_server.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_server.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_core.h</name>

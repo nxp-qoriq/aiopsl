@@ -68,6 +68,7 @@
 	do {                  \
 		pr_err(__VA_ARGS__);  \
 		fdma_terminate_task();\
+		return;               \
 	} while (0)
 
 #define IS_VALID_AUTH_ID(ID) \
@@ -450,6 +451,7 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		pr_err("CDMA write failed, can't finish sync command\n");
 		/** In this case client will fail on timeout */
 	}
+
 	if (terminate)
 		fdma_terminate_task();
 }
