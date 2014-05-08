@@ -84,14 +84,17 @@ int32_t aiop_sl_init(void)
 {
 	int32_t status = 0;
 	
+#ifdef AIOP_VERIF
+	/* TMAN EPID Init params*/
+	uint32_t val;
+	uint32_t *addr;
+#endif
+
+
 #ifndef AIOP_VERIF
 	/* Variabled needed for Storage Profile Init */
 	uint16_t buffer_pool_id;
 	int num_filled_buffs;
-
-	/* TMAN EPID Init params*/
-	uint32_t val;
-	uint32_t *addr;
 
 	status = slab_find_and_fill_bpid(300, 2048, 8,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
