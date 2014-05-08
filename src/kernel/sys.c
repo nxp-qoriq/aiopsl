@@ -240,17 +240,6 @@ static int sys_init_platform(struct platform_param *platform_param)
 
     SYS_PLATFORM_INIT_FAIL_CHECK();
 
-#if 0
-    /* For AMP system: kick off other partitions */
-    if (sys.is_master_partition_master[core_id])
-    {
-        sys_kick_spinning_cores(sys.master_cores_mask);
-//todo - remove the following lines (must use appropriate cfg)
-        if (sys.platform_ops.f_enable_cores)
-            sys.platform_ops.f_enable_cores(sys.platform_ops.h_platform, sys.master_cores_mask);
-    }
-#endif /* 0 */
-
     return E_OK;
 }
 
@@ -354,6 +343,11 @@ int sys_init(void)
     sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
 
     if (sys.is_partition_master[core_id]) {
+	    
+	/* Initialize memory management */
+	err = sys_init_memory_management();
+	ASSERT_COND(err == E_OK);
+	    
 #ifdef SYS_SMP_SUPPORT
         /* Kick secondary cores on this partition */
 #ifdef SYS_64BIT_ARCH
@@ -386,14 +380,12 @@ int sys_init(void)
                              0);
 #endif /* CORE_E6500 */
 #else  /*!SYS_SECONDARY_START*/
+#if 0
         sys_kick_spinning_cores(sys.partition_cores_mask, (dma_addr_t)PTR_TO_UINT(__sys_start), 0);
+#endif /* 0 */
 #endif /* SYS_SECONDARY_START */
 #endif /* SYS_64BIT_ARCH */
 #endif /* SYS_SMP_SUPPORT */
-
-        /* Initialize memory management */
-        err = sys_init_memory_management();
-        ASSERT_COND(err == E_OK);
 
 #if 0
         /* Initialize interrupt management */
