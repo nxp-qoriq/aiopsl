@@ -56,6 +56,7 @@
 #define FD_SIZE					sizeof(struct ldpaa_fd)
 #define OCTET_LINK_LIST_MASK	0x07
 #define IPV4_KEY_SIZE			11
+#define IPV6_FIXED_HEADER_SIZE	40
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0

@@ -280,10 +280,10 @@ struct keygen_kcr_builder_add_generic_extract_fec_command{
 	/** 64-bit alignment */
 	uint8_t	pad1[1];
 
-	/** Should be one of \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS:
+	/** Should be one of \ref kcr_builder_gec_source:
 	- KEYGEN_KCR_GEC_FRAME (For Generic Extraction from start of frame)
 	- KEYGEN_KCR_GEC_PARSE_RES (For Generic Extraction from Parser Result) */
-	uint32_t flags;
+	enum kcr_builder_gec_source gec_source;
 
 	/** Command returned status */
 	int32_t  status;
