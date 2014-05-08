@@ -331,7 +331,7 @@ struct write_data_to_workspace_command {
 	uint8_t	pad[5];
 };
 
-
+void aiop_verification_parse();
 void aiop_verification_sr();
 void aiop_verification_fm();
 void aiop_verification_fm_temp();
