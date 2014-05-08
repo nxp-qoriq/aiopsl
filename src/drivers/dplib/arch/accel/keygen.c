@@ -280,7 +280,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 
 
 int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
-	uint8_t extract_size, uint32_t flags,
+	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb)
 {
 	uint8_t curr_byte = kb->kcr_length;
@@ -296,8 +296,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	/* OP0 for General extraction */
 	op0 = 0;
 	aligned_offset = offset & KEYGEN_KCR_16_BYTES_ALIGNMENT;
-	if (flags & KEYGEN_KCR_GEC_FRAME) {
-		/*! Generic extraction from start of frame */
+	if (gec_source == KEYGEN_KCR_GEC_FRAME) {
+		/* Generic extraction from start of frame */
 		switch (aligned_offset) {
 
 		case (0x00):
@@ -385,7 +385,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 		} /* switch */
 	} /* if */
-	else if (flags & KEYGEN_KCR_GEC_PARSE_RES) {
+	else {
+		/* Generic extraction from parse result */
 		switch (aligned_offset) {
 
 		case (0x00):
@@ -411,8 +412,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 		default:
 			break;
 		}
-	} else
-		return KEYGEN_KCR_PROTOCOL_GEC_ERR;
+	}
 
 
 	/* OP1 = Extract Offset */
@@ -694,7 +694,8 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     void *key,
 		     uint8_t *key_size)
 {
-	struct keygen_input_message_params input_struct __attribute__((aligned(16)));
+	struct keygen_input_message_params input_struct 
+					__attribute__((aligned(16)));
 	uint32_t arg1;
 	
 	if (user_metadata) {

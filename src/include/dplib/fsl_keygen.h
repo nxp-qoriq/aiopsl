@@ -48,21 +48,6 @@
 
 
 /**************************************************************************//**
-@Group	FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS \
-	 Key Composition Rule Builder Generic Extract Flags
-	User should select one of the followings.
-@{
-*//***************************************************************************/
-	/** Generic Extraction from start of frame */
-#define KEYGEN_KCR_GEC_FRAME		0x80
-
-	/** Generic Extraction from Parser Result */
-#define KEYGEN_KCR_GEC_PARSE_RES	0x40
-
-/** @} */ /* end of FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS */
-
-
-/**************************************************************************//**
 @Group	FSL_KEYGEN_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
@@ -72,14 +57,14 @@
 *//***************************************************************************/
 
 	/** Command status success */
-#define KEYGEN_STATUS_SUCCESS	0x00000000
+#define KEYGEN_STATUS_SUCCESS		0x00000000
 	/** Command failed general status bit
 	A general bit that is set in some errors conditions */
 #define KEYGEN_STATUS_KSE 		0x00000400
 	/** Extract Out Of Frame Header Error for Key Generation
 	 * This bit is set if key composition attempts to extract a field which
 	 * is not in the frame header */
-#define KEYGEN_MFLU_STATUS_EOFH	 0x00000200
+#define KEYGEN_MFLU_STATUS_EOFH	 	0x00000200
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_GENERAL */
 
@@ -104,7 +89,7 @@
 	/** General Extraction Extract Size Error */
 /*#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001*/
 	/** Protocol Based General Extraction Error */
-#define KEYGEN_KCR_PROTOCOL_GEC_ERR			0x80000002
+/*#define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002*/
 	/** Protocol Based General Extraction Parser Result Offset Error */
 /*#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003*/
 	/** General Extraction Extract Offset Error */
@@ -114,7 +99,7 @@
 	/** Lookup Result Field Extraction Error */
 /*#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006*/
 	/** Key Composition Rule Size exceeds KCR max size (64 bytes) */
-#define KEYGEN_KCR_SIZE_ERR					0x80000007
+#define KEYGEN_KCR_SIZE_ERR			0x80000007
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_KCR */
 
@@ -129,6 +114,22 @@
 
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@enum	kcr_builder_gec_source
+
+@Description	 Key Composition Rule Builder Generic Extract Source
+
+@{
+*//***************************************************************************/
+enum kcr_builder_gec_source{
+	/** Generic Extraction from start of frame */
+	KEYGEN_KCR_GEC_FRAME = 0x0,
+	/** Generic Extraction from Parser Result */
+	KEYGEN_KCR_GEC_PARSE_RES=0x1
+};
+
+/** @} */ /* end of kcr_builder_gec_source */
 
 /**************************************************************************//**
 @enum	kcr_builder_ext_lookup_res_field
@@ -565,7 +566,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 		in case of extraction from parse result offset must not exceed
 		0x3F.
 @Param[in]	extract_size - size of extraction (1-16 bytes).
-@Param[in]	flags - Please refer to \ref FSL_KEYGEN_KCR_BUILDER_GEC_FLAGS
+@Param[in]	gec_source - Please refer to \ref kcr_builder_gec_source.
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
@@ -574,7 +575,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 @Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
-	uint8_t extract_size, uint32_t flags,
+	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
 
 
