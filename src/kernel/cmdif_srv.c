@@ -40,17 +40,17 @@
 /** Malloc array of structs */
 #define ARR_MALLOC_DDR(FIELD, TYPE, NUM) \
 	FIELD = fsl_os_xmalloc(sizeof(TYPE) * (NUM), \
-	                       MEM_PART_1ST_DDR_NON_CACHEABLE, 1)
+			       MEM_PART_1ST_DDR_NON_CACHEABLE, 1)
 
 #define OPEN_CB(M_ID, INST, DEV_ID) \
-	srv->open_cb[M_ID](INST, &srv->inst_dev[DEV_ID])
+	(srv->open_cb[M_ID](INST, &srv->inst_dev[DEV_ID]))
 
 #define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
-	srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
-	CMD_ID, SIZE, DATA)
+	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
+	CMD_ID, SIZE, DATA))
 
 #define CLOSE_CB(AUTH_ID) \
-	srv->close_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID])
+	(srv->close_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID]))
 
 #define FREE_MODULE    '\0'
 #define TAKEN_INSTANCE (void *)0xFFFFFFFF
@@ -60,17 +60,20 @@
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
-	                                   0,                          \
-	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
-	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+					   0,                          \
+					   E_MAPPED_MEM_TYPE_GEN_REGS) \
+					   + SOC_PERIPH_OFF_AIOP_WRKS);
 
 #define PR_ERR_TERMINATE(...) \
-	pr_err(__VA_ARGS__);  \
-	fdma_terminate_task();
+	do {                  \
+		pr_err(__VA_ARGS__);  \
+		fdma_terminate_task();\
+		return;               \
+	} while (0)
 
 #define IS_VALID_AUTH_ID(ID) \
-	(srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
-	(srv->inst_dev[(ID)])
+	((srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
+		(srv->inst_dev[(ID)]))
 
 static int module_id_alloc(const char *m_name, struct cmdif_srv *srv)
 {
@@ -106,11 +109,9 @@ static int module_id_find(const char *m_name, struct cmdif_srv *srv)
 	if (m_name[0] == FREE_MODULE)
 		return -EINVAL;
 
-
 	for (i = 0; i < M_NUM_OF_MODULES; i++) {
-		if (strncmp(srv->m_name[i], m_name, M_NAME_CHARS) == 0) {
+		if (strncmp(srv->m_name[i], m_name, M_NAME_CHARS) == 0)
 			return i;
-		}
 	}
 
 	return -ENAVAIL;
@@ -121,8 +122,11 @@ static int inst_alloc(struct cmdif_srv *srv)
 	int r = 0;
 	int count = 0;
 
+	if (srv == NULL)
+		return -EINVAL;
+
 	lock_spinlock(&srv->lock);
-	/* TODO ask Ehud why MC server has no locks when allocating instance id*/
+	/* TODO need locks when allocating instance id ?*/
 
 	/* randomly pick instance/authentication id*/
 	r = rand() % M_NUM_OF_INSTANCES;
@@ -133,8 +137,8 @@ static int inst_alloc(struct cmdif_srv *srv)
 	/* didn't find empty space yet */
 	if (srv->inst_dev[r]) {
 		count = 0;
-		while (srv->inst_dev[r]
-		       && count < M_NUM_OF_INSTANCES) {
+		while (srv->inst_dev[r] &&
+			count < M_NUM_OF_INSTANCES) {
 			r = r++ % M_NUM_OF_INSTANCES;
 			count++;
 		}
@@ -172,12 +176,13 @@ __HOT_CODE static uint32_t cmd_size_get()
 	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
-__HOT_CODE static uint8_t * cmd_data_get()
+__HOT_CODE static uint8_t *cmd_data_get()
 {
-	return (uint8_t *)fsl_os_phys_to_virt(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
+	uint64_t addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	return (uint8_t *)fsl_os_phys_to_virt(addr);
 }
 
-static void cmd_m_name_get(char * name)
+static void cmd_m_name_get(char *name)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
@@ -215,7 +220,7 @@ static int empty_open_cb(uint8_t instance_id, void **dev)
 }
 
 static int empty_close_cb(void *dev)
-{	
+{
 	UNUSED(dev);
 	return -ENODEV;
 }
@@ -291,7 +296,7 @@ static int epid_setup()
 
 	iowrite32(0, &wrks_addr->epas); /* EPID = 0 */
 	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
-	
+
 #ifndef MC_ITEGRATED
 	/* Default settings */
 	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
@@ -305,7 +310,7 @@ static int epid_setup()
 	data = ioread32(&wrks_addr->ep_osc);
 	if (data != 0x11000005)
 		return -EINVAL;
-	
+
 	pr_info("CMDIF Server is setting EPID = 0\n");
 	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
 	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
@@ -314,7 +319,7 @@ static int epid_setup()
 	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
 	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
 	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
-	
+
 	return 0;
 }
 
@@ -334,7 +339,7 @@ static void srv_memory_free(struct  cmdif_srv *srv)
 		fsl_os_xfree(srv->ctrl_cb);
 	if (srv->open_cb)
 		fsl_os_xfree(srv->open_cb);
-	
+
 	fsl_os_xfree(srv);
 }
 
@@ -353,10 +358,10 @@ int cmdif_srv_init(void)
 	}
 
 	srv = fsl_os_xmalloc(sizeof(struct cmdif_srv), MEM_PART_SH_RAM, 1);
-        if (srv == NULL) {
+	if (srv == NULL) {
 		pr_err("No memory for CMDIF Server init");
 		return -ENOMEM;
-        }
+	}
 
 	/* SHRAM */
 	ARR_MALLOC_SHRAM(srv->inst_dev, void *, M_NUM_OF_INSTANCES);
@@ -368,22 +373,22 @@ int cmdif_srv_init(void)
 	ARR_MALLOC_DDR(srv->open_cb, open_cb_t *, M_NUM_OF_MODULES);
 	ARR_MALLOC_DDR(srv->close_cb, close_cb_t *, M_NUM_OF_MODULES);
 
-	if (	(srv->inst_dev == NULL) || (srv->m_id == NULL)      ||
+	if ((srv->inst_dev == NULL) || (srv->m_id == NULL)      ||
 		(srv->ctrl_cb == NULL)  || (srv->sync_done == NULL) ||
 		(srv->m_name == NULL)   || (srv->open_cb == NULL)   ||
-		(srv->close_cb == NULL)	) {
-		
+		(srv->close_cb == NULL)) {
+
 		pr_err("No memory for CMDIF Server init");
 		srv_memory_free(srv);
 		return -ENOMEM;
 	}
-	
+
 	memset(srv->m_name,
-	       FREE_MODULE,
-	       sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
+	FREE_MODULE,
+	sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
 	memset(srv->inst_dev,
-	       FREE_INSTANCE,
-	       sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
+	FREE_INSTANCE,
+	sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
 	srv->inst_count = 0;
 
 	err = sys_add_handle(srv, FSL_OS_MOD_CMDIF_SRV, 1, 0);
@@ -394,8 +399,10 @@ void cmdif_srv_free(void)
 {
 	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
 
-        sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
-        srv_memory_free(srv);
+	sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+
+	if (srv != NULL)
+		srv_memory_free(srv);
 }
 
 
@@ -409,31 +416,26 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	flc |= ((uint64_t)cb_err) << ERROR_OFF;
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
-	pr_debug("Response QID = 0x%x\n",RESP_QID_GET);
-	pr_debug("CB error = %d\n",cb_err);
+	pr_debug("Response QID = 0x%x\n", RESP_QID_GET);
+	pr_debug("CB error = %d\n", cb_err);
 
-	/** 
-	 * TODO for non sync mode I need *dev to be used on GPP size, is it 8 or 4 bytes ?
-	 * answer: it's 39 bit vaddr will be set by client but maybe I can pass
-	 * only the id and not full pointer and keep this information on server side
-	 * TODO what do I need FDMA_ENWF_NO_FLAGS ????*/
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
 					RESP_QID_GET, FDMA_EN_TC_CONDTERM_BITS);
 	return err;
 }
 
-__HOT_CODE static void sync_cmd_done(uint64_t sync_done, 
-                                     int err, 
-                                     uint16_t auth_id, 
-                                     struct cmdif_srv *srv, 
-                                     char terminate)
+__HOT_CODE static void sync_cmd_done(uint64_t sync_done,
+				int err,
+				uint16_t auth_id,
+				struct cmdif_srv *srv,
+				char terminate)
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
-	
-	pr_debug("err = %d\n",err);
-	pr_debug("auth_id = 0x%x\n",auth_id);
-	pr_debug("sync_resp = 0x%x\n",resp);
+
+	pr_debug("err = %d\n", err);
+	pr_debug("auth_id = 0x%x\n", auth_id);
+	pr_debug("sync_resp = 0x%x\n", resp);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
@@ -441,14 +443,15 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		_sync_done = sync_done;
 	else
 		_sync_done = srv->sync_done[auth_id];
-	
+
 	if (_sync_done == NULL) {
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
-	} else if(cdma_write(_sync_done, &resp, 4)) {
+	} else if (cdma_write(_sync_done, &resp, 4)) {
 		pr_err("CDMA write failed, can't finish sync command\n");
 		/** In this case client will fail on timeout */
 	}
+
 	if (terminate)
 		fdma_terminate_task();
 }
@@ -471,12 +474,11 @@ __HOT_CODE void cmdif_srv_isr(void)
 	int      err    = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
-	if (srv == NULL) {
+	if (srv == NULL)
 		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
-	}
-	
-	pr_debug("cmd_id = 0x%x\n",cmd_id);
-	pr_debug("auth_id = 0x%x\n",auth_id);
+
+	pr_debug("cmd_id = 0x%x\n", cmd_id);
+	pr_debug("auth_id = 0x%x\n", auth_id);
 
 	if (cmd_id & CMD_ID_OPEN) {
 		char     m_name[M_NAME_CHARS + 1];
@@ -484,45 +486,46 @@ __HOT_CODE void cmdif_srv_isr(void)
 		uint8_t  inst_id;
 		int      new_inst;
 		uint64_t sync_done = sync_done_get();
-		
+
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			pr_err("No permission to open device 0x%x\n", auth_id);
 			sync_cmd_done(sync_done, -EPERM, auth_id, srv, TRUE);
 		}
 
-		cmd_m_name_get(&m_name[0]);		
+		cmd_m_name_get(&m_name[0]);
 		m_id = module_id_find(m_name, srv);
 		if (m_id < 0) {
 			/* Did not find module with such name */
 			pr_err("No such module %s\n", m_name);
 			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, TRUE);
 		}
-		
+
 		inst_id  = cmd_inst_id_get();
 		new_inst = inst_alloc(srv);
 		if (new_inst >= 0) {
-			
-			pr_debug("inst_id = %d\n",inst_id);
-			pr_debug("new_inst = %d\n",new_inst);
-			pr_debug("m_name = %s\n",m_name);
-			
+
+			pr_debug("inst_id = %d\n", inst_id);
+			pr_debug("new_inst = %d\n", new_inst);
+			pr_debug("m_name = %s\n", m_name);
+
 			sync_done_set((uint16_t)new_inst, srv);
 			err = OPEN_CB(m_id, inst_id, new_inst);
-			sync_cmd_done(sync_done, err, (uint16_t)new_inst, srv, FALSE);
+			sync_cmd_done(sync_done, err,
+					(uint16_t)new_inst, srv, FALSE);
 			if (err) {
 				pr_err("Open callback failed\n");
 				inst_dealloc(new_inst, srv);
-			} 
+			}
 			pr_debug("PASSED open command\n");
-			fdma_terminate_task();				
+			fdma_terminate_task();
 		} else {
 			/* couldn't find free place for new device */
 			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("No free entry for new device\n");
 		}
 	} else if (cmd_id & CMD_ID_CLOSE) {
-		
+
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* Don't reorder this sequence !!*/
 			err = CLOSE_CB(auth_id);
@@ -531,7 +534,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
 				 * close the device */
-				inst_dealloc(auth_id, srv);				
+				inst_dealloc(auth_id, srv);
 			}
 			pr_debug("PASSED close command\n");
 			fdma_terminate_task();
@@ -551,9 +554,9 @@ __HOT_CODE void cmdif_srv_isr(void)
 				sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 			}
 		} else {
-			/* don't bother to send response 
+			/* don't bother to send response
 			 * in order not to overload response queue,
-			 * it might be intentional attack 
+			 * it might be intentional attack
 			 * */
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
@@ -564,8 +567,8 @@ __HOT_CODE void cmdif_srv_isr(void)
 		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
 		if (err) {
-			pr_err("Failed to send response auth_id = 0x%x\n", 
-			       auth_id);			
+			pr_err("Failed to send response auth_id = 0x%x\n",
+			auth_id);
 		}
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */

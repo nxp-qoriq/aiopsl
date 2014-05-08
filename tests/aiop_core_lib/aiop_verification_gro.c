@@ -65,43 +65,6 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 	return str_size;
 }
 
-void gro_verif_create_next_frame(uint8_t gro_iteration)
-{
-	struct tcphdr *tcp;
-	uint32_t sequence_number;
-	uint16_t headers_size, seg_size;
-	uint8_t  data_offset;
-
-	tcp = ((struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT());
-	sequence_number = tcp->sequence_number;
-	fdma_present_default_frame();
-
-	/* calculate segment size + data offset + headers size*/
-	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	data_offset = (tcp->data_offset_reserved &
-				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
-				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
-				 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
-	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
-
-	switch (gro_iteration)
-	{
-	case 1 :
-	{
-		tcp->sequence_number = sequence_number + seg_size -
-				headers_size;
-		break;
-	}
-	default:
-	{
-		tcp->sequence_number = sequence_number + seg_size -
-						headers_size;
-	}
-	}
-
-
-}
-
 void gro_timeout_cb_verif(uint64_t arg)
 {
 	struct fdma_enqueue_wf_command str;

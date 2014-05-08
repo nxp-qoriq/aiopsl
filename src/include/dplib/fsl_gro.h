@@ -92,6 +92,37 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 
 /** @} */ /* end of TCP_GRO_AGG_FLAGS */
 
+
+/**************************************************************************//**
+ @Group	TCP_GRO_TIMEOUT_GRANULARITY_FLAGS TCP GRO Timeout Granularity Flags
+
+ @Description Flags for the timer granularity value.
+
+ The flags are allowed to be changed per new session only.
+
+ @{
+*//***************************************************************************/
+
+/* The following defines will be used to set the TMAN timer tick size.*/
+
+	/** 1 uSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_USEC_GRANULARITY		0x00
+	/** 10 uSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_10_USEC_GRANULARITY		0x01
+	/** 100 uSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_100_USEC_GRANULARITY		0x02
+	/** 1 mSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_MSEC_GRANULARITY		0x03
+	/** 10 mSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_10_MSEC_GRANULARITY		0x04
+	/** 100 mSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_100_MSEC_GRANULARITY		0x05
+	/** 1 Sec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_SEC_GRANULARITY		0x06
+
+/** @} */ /* end of TCP_GRO_TIMEOUT_GRANULARITY_FLAGS */
+
+
 /** @} */ /* end of TCP_GRO_FLAGS */
 
 /**************************************************************************//**
@@ -203,8 +234,9 @@ struct tcp_gro_context_metadata {
 		These limits are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_limits {
-		/** Timeout per packet (in 1 mSec granularity) aggregation
-		 * limit. */
+		/** Timeout per packet aggregation limit.
+		 * The timeout granularity is specified at
+		 * \ref gro_context_timeout_params.granularity. */
 	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit (The size refers to the
 		 * packet headers + payload).
@@ -229,6 +261,9 @@ struct gro_context_timeout_params {
 		/** Function to call upon Time Out occurrence.
 		 * This function takes one argument. */
 	gro_timeout_cb_t *gro_timeout_cb;
+		/** GRO timer granularity
+		 * (\ref TCP_GRO_TIMEOUT_GRANULARITY_FLAGS). */
+	uint8_t granularity;
 		/** TMAN Instance ID. */
 	uint8_t tmi_id;
 };

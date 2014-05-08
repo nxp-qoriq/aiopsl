@@ -14,11 +14,8 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-	uint32_t flags;
 
 	opcode  = *((uint32_t *) asa_seg_addr);
-	flags = 0x0;
-
 
 	switch (opcode) {
 		/* Key Composition Rule Init Command Verification */
@@ -141,7 +138,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 		
 			str->status = 
 			keygen_kcr_builder_add_generic_extract_fec(str->offset,
-			str->extract_size, str->flags, mask_ptr, (struct kcr_builder *)str->kb_ptr);
+			str->extract_size, str->gec_source, mask_ptr, (struct kcr_builder *)str->kb_ptr);
 
 			str_size =
 			sizeof (struct keygen_kcr_builder_add_generic_extract_fec_command);

@@ -470,24 +470,24 @@ int32_t cdma_access_context_memory(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
 				CDMA_REF_CNT_OFFSET));
-	
+
 	return (int32_t)(res1);
-	}
-	
-	int32_t cdma_refcount_get(
-			uint64_t context_address,
-			uint32_t *refcount_value) {
+}
+
+int32_t cdma_refcount_get(
+		uint64_t context_address,
+		uint32_t *refcount_value) {
 
 	/* command parameters and results */
 	int32_t res1;
-			
+
 	/* Increment ref counter */
 	res1 = cdma_refcount_increment(context_address);
-	
-	if (res1 == CDMA_SUCCESS) 	
+
+	if (res1 == CDMA_SUCCESS)
 		/* Decrement ref counter without release */
 		res1 = cdma_refcount_decrement(context_address);
-	
+
 	/* load command results */
 	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
 					CDMA_REF_CNT_OFFSET));
@@ -495,4 +495,4 @@ int32_t cdma_access_context_memory(
 	return (int32_t)(res1);
 	}
 
-	
+

@@ -1079,33 +1079,25 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 *//***************************************************************************/
 
 	/** Successful parse SR */
-#define PARSER_STATUS_PASS				0x00000000
+#define PARSER_STATUS_PASS									0x00000000
 	/** Parser SR failed due to FDMA error (TODO return fdma status?) */
-#define PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE	0x80010000
+#define PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE		0x80010000
 	/** Parser SR failed due to Cycle limit exceeded */
-#define PARSER_STATUS_FAIL_CYCLE_LIMIT_EXCCEEDED\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00800000)
+#define PARSER_STATUS_FAIL_CYCLE_LIMIT_EXCCEEDED		0x00800000
 	/** Parser SR failed due to invalid soft parse instruction */
-#define PARSER_STATUS_FAIL_INVALID_SOFT_PARSE_INSTRUCTION\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00400000)
+#define PARSER_STATUS_FAIL_INVALID_SOFT_PARSE_INSTRUCTION	0x00400000
 	/** Parser SR failed due to parsing error */
-#define PARSER_STATUS_FAIL_PARSING_ERROR\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00200000)
+#define PARSER_STATUS_FAIL_PARSING_ERROR					0x00200000
 	/** Parser SR failed due to block limit exceeded */
-#define PARSER_STATUS_FAIL_BLOCK_LIMIT_EXCCEEDED\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00100000)
+#define PARSER_STATUS_FAIL_BLOCK_LIMIT_EXCCEEDED		0x00100000
 	/** L3 checksum validation success */
-#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED\
-			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00080000)
+#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED  	0x00080000
 	/** L3 checksum validation failure */
-#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x000C0000)
+#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION		0x000C0000
 	/** L4 checksum validation success */
-#define PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED\
-			((CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00020000)
+#define PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED		0x00020000
 	/** L4 checksum validation failure */
-#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION\
-	(PARSER_STATUS_FAIL | (CTLU_PARSE_CLASSIFY_ACCEL_ID << 24) |0x00030000)
+#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION		0x00030000
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_STATUS */
 
@@ -1483,6 +1475,15 @@ struct parse_profile_record {
 };
 #pragma pack(pop)
 
+/**************************************************************************//**
+@Description	Parser Profile Input to create/replace parse profile commands
+*//***************************************************************************/
+struct parse_profile_input {
+	uint8_t reserved[8];
+	struct parse_profile_record parse_profile;
+};
+
+
 /** @} */ /* end of FSL_PARSER_STRUCTS */
 
 
@@ -1501,14 +1502,16 @@ struct parse_profile_record {
 @Description	Creates Parser Profile which provides a template
 		of parsing actions to be taken.
 
-@Param[in]	parse_profile - Parse Profile Record.
+@Param[in]	parse_profile - Parse Profile Input. User should
+		allocate memory for this structure and fill it.
+		Must be 16 bytes aligned.
 @Param[out]	prpid - Parse Profile ID.
 
 @Return		Status - please refer to \ref GET_ID_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t parser_profile_create(struct parse_profile_record *parse_profile,
+int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 	uint8_t *prpid);
 
 /**************************************************************************//**
@@ -1517,14 +1520,16 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 @Description	Replaces Parser Profile which provides a template
 		of parsing actions to be taken.
 
-@Param[in]	parse_profile - Parse Profile Record.
+@Param[in]	parse_profile - Parse Profile Input. User should
+		allocate memory for this structure and fill it.
+		Must be 16 bytes aligned.
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - Success or Failure (\ref FDMA_COPY_ERRORS).
+@Return		None.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
+void parser_profile_replace(struct parse_profile_input *parse_profile,
 	uint8_t prpid);
 
 /**************************************************************************//**

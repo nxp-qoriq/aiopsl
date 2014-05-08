@@ -211,12 +211,18 @@ struct fdma_init_command {
 		/** Number (maximum) of 64B ASA quantities to present (0 for no
 		 * ASA presentation). */
 	uint8_t asa_size;
+		/** No Data Segment:
+		 * - 0: Present data segment.
+		 * - 1: Don't present data segment. */
+	uint8_t NDS;
 		/** Reference within the frame to present from:
 		 * - 0: start of the frame.
 		 * - 1: end of the frame. */
 	uint8_t SR;
 		/** Command returned status. */
 	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 
@@ -543,9 +549,6 @@ struct fdma_store_frame_command {
 	uint8_t	spid;
 		/** Command returned BDI flag of the Stored frame. */
 	uint8_t	BDI;
-		/** Command returned Bypass the Memory Translation of the Stored
-		 * frame flag. */
-	uint8_t	BMT;
 		/** Command returned Privilege Level of the Stored frame flag.*/
 	uint8_t	PL;
 		/** Command returned Virtual Address of the Stored frame flag.*/
@@ -553,7 +556,7 @@ struct fdma_store_frame_command {
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[3];
+	uint8_t	pad[4];
 };
 
 /**************************************************************************//**
@@ -696,10 +699,6 @@ struct fdma_enqueue_frame_command {
 		* - 0 = queueing destination(16bit)
 		* - 1 = fqid (24bit). */
 	uint8_t	EIS;
-		/** Virtual Address. */
-	uint8_t	VA;
-		/** Privilege Level. */
-	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
 		* - 0: Isolation is enabled for this command. The FQID ID
 		* specified is virtual within the specified ICID.
@@ -709,7 +708,7 @@ struct fdma_enqueue_frame_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
@@ -756,10 +755,6 @@ struct fdma_enqueue_frame_exp_command {
 		* - 0 = queueing destination(16bit)
 		* - 1 = fqid (24bit). */
 	uint8_t	EIS;
-		/** Virtual Address. */
-	uint8_t	VA;
-		/** Privilege Level. */
-	uint8_t	PL;
 		/** Bypass DPAA resource Isolation:
 		* - 0: Isolation is enabled for this command. The FQID ID
 		* specified is virtual within the specified ICID.
@@ -769,7 +764,7 @@ struct fdma_enqueue_frame_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
@@ -935,6 +930,9 @@ struct fdma_concatenate_frames_command {
 		/** FDMA Concatenate frames command structure
 		 * identifier. */
 	uint32_t opcode;
+		/** Returned parameter:
+		 * AMQ attributes */
+	struct fdma_amq amq;
 		/** The handle of working frame 1. */
 	uint16_t frame1;
 		/** The handle of working frame 2. */
@@ -959,7 +957,7 @@ struct fdma_concatenate_frames_command {
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[3];
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**

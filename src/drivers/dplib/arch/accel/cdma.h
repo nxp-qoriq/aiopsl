@@ -267,7 +267,7 @@
 /**************************************************************************//**
 @Group		CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT_STATUS
 
-@Description	CDMA status returned by the 
+@Description	CDMA status returned by the
 		cdma_write_lock_dma_read_and_increment command
 
 @{
@@ -311,7 +311,7 @@
 /**************************************************************************//**
 @Group		CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT_STATUS
 
-@Description	CDMA status returned by the 
+@Description	CDMA status returned by the
 		cdma_write_release_lock_and_decrement command
 
 @{

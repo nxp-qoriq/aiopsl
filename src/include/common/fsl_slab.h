@@ -36,8 +36,8 @@ Copyright 2013 Freescale Semiconductor, Inc.
  *  | Alignment |  Prefix  | Data                      | Postfix   | Alignment |
  *  |  field    |   field  |  field                    |   field   | Padding   |
  *  +-----------+----------+---------------------------+-----------+-----------+
- *  and at the beginning of all bytes, an additional optional padding might reside
- *  to ensure that the first blocks data field is aligned as requested.
+ *  and at the beginning of all bytes, an additional optional padding might
+ *  reside to ensure that the first blocks data field is aligned as requested.
  */
 
 /**************************************************************************//**
@@ -51,7 +51,7 @@ struct slab;
 struct slab_debug_info {
 	uint32_t buff_size; /**< Maximal buffer size */
 	uint32_t num_buffs; /**< The number of available buffers */
-	uint32_t max_buffs; /**< The maximal number of buffers inside this pool */
+	uint32_t max_buffs; /**< Maximal number of buffers inside this pool */
 	uint16_t pool_id;   /**< HW pool ID */
 	uint16_t alignment; /**< Maximal alignment */
 	uint16_t mem_pid;   /**< Memory partition */
@@ -77,15 +77,15 @@ typedef int (*slab_release_cb_t)(uint64_t);
 		AIOP: Not supported by AIOP HW pools.
 @Param[in]	postfix_size        How many bytes to allocate after the data.
 		AIOP: Not supported by AIOP HW pools.
-@Param[in]	alignment           Requested alignment for data field (in bytes).
+@Param[in]	alignment           Requested alignment for data in bytes.
 		AIOP: HW pool supports up to 8 bytes alignment.
 @Param[in]	mem_partition_id    Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default slab creation.
-@Param[in]	release_cb          Function to be called on release of buffer into pool
+@Param[in]	release_cb          Function to be called on release of buffer
 @Param[out]	slab                Handle to new pool is returned through here.
 
-@Return		0       - on success,
+@Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
@@ -107,14 +107,15 @@ int slab_create(uint32_t    num_buffs,
 		AIOP: Not supported by AIOP HW pools.
 
 @Param[in]	num_buffs           Number of buffers in new pool.
-@Param[in]	max_buffs           Maximal number of buffers that can be allocated
-		by this new pool; max_buffs >= num_buffs
+@Param[in]	max_buffs           Maximal number of buffers that can be
+		allocated by this new pool; max_buffs >= num_buffs
 @Param[in]	buff_size           Size of buffers in pool.
 @Param[in]	prefix_size         How many bytes to allocate before the data.
 @Param[in]	postfix_size        How many bytes to allocate after the data.
-@Param[in]	alignment           Requested alignment for data field (in bytes).
+@Param[in]	alignment           Requested alignment for data field in bytes.
+@Param[in]	address             Start address base to be use for allocations
 @Param[in]	flags               Set it 0 for default slab creation.
-@Param[in]	release_cb          Function to be called on release of buffer into pool
+@Param[in]	release_cb          Function to be called on release of buffer
 @Param[out]	slab                Handle to new pool is returned through here.
 
 @Return		0       - on success,
@@ -212,7 +213,7 @@ int slab_refcount_decr(struct slab *slab, uint64_t buff);
 @Param[in]	slab - Handle to memory pool.
 @Param[out]	slab_info - The pointer to place the debug information.
 
-@Return		0      - on success,
+@Return		0       - on success,
 		-EINVAL - invalid parameter.
 *//***************************************************************************/
 int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
