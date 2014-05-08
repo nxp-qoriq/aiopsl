@@ -20,33 +20,24 @@ extern __SHRAM uint64_t ext_prpid_pool_address;
 extern __TASK struct aiop_default_task_params default_task_params;
 
 
-int32_t parser_profile_create(struct parse_profile_record *parse_profile,
+int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 				uint8_t *prpid)
 {
-	struct parse_profile_create_params parse_profile_create_params
-						__attribute__((aligned(16)));
 	int32_t status;
 
 	status = get_id(ext_prpid_pool_address, prpid);
 	if (status != 0)		/*TODO check status ??? */
 		return status;
 
-	parse_profile_create_params.parse_profile.reserved1 = 0;
-	parse_profile_create_params.parse_profile.reserved2 = 0;
+	parse_profile->parse_profile.reserved1 = 0;
+	parse_profile->parse_profile.reserved2 = 0;
 
-	parse_profile_create_params.mtype =
-			((uint32_t)PARSER_PRP_CREATE_MTYPE) << 16;
-	parse_profile_create_params.prpid = ((uint32_t)(*prpid)) << 24;
-
-	status = fdma_copy_data(sizeof (struct parse_profile_record),
-			(FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT),
-			parse_profile,
-			&(parse_profile_create_params.parse_profile));
-	if (status < 0)		/*TODO check status ??? */
-		return status;
+	(uint64_t*)(parse_profile->reserved) = 0;
+	*((uint16_t*)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
+	parse_profile->reserved[4]= *prpid;
 
 	__stqw(PARSER_PRP_CREATE_MTYPE,
-		(((uint32_t)&parse_profile_create_params) << 16), 0, 0,
+		(((uint32_t)parse_profile) << 16), 0, 0,
 		HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
@@ -54,35 +45,23 @@ int32_t parser_profile_create(struct parse_profile_record *parse_profile,
 	return PARSER_STATUS_PASS;
 }
 
-int32_t parser_profile_replace(struct parse_profile_record *parse_profile,
+void parser_profile_replace(struct parse_profile_input *parse_profile,
 				uint8_t prpid)
 {
-	int32_t status;
+	parse_profile->parse_profile.reserved1 = 0;
+	parse_profile->parse_profile.reserved2 = 0;
 
-	struct parse_profile_create_params parse_profile_create_params
-						__attribute__((aligned(16)));
-
-	parse_profile_create_params.parse_profile.reserved1 = 0;
-	parse_profile_create_params.parse_profile.reserved2 = 0;
-
-	parse_profile_create_params.mtype =
-			((uint32_t)PARSER_PRP_CREATE_MTYPE) << 16;
-	parse_profile_create_params.prpid = ((uint32_t)prpid) << 24;
-	
-	status = fdma_copy_data(sizeof (struct parse_profile_record),
-			(FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT),
-			parse_profile,
-			&(parse_profile_create_params.parse_profile));
-	if (status < 0)		/*TODO check status ??? */
-		return status;
+	(uint64_t*)(parse_profile->reserved) = 0;
+	*((uint16_t*)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
+	parse_profile->reserved[4]= prpid;
 
 	__stqw(PARSER_PRP_CREATE_MTYPE,
-		((uint32_t)&parse_profile_create_params << 16), 0, 0,
+		(((uint32_t)parse_profile) << 16), 0, 0,
 		HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
-	return SUCCESS;
+	return;
 }
 
 int32_t parser_profile_delete(uint8_t prpid)
