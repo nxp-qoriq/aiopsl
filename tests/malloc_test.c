@@ -11,11 +11,13 @@ int malloc_test();
 static int allocate_check_mem(int memory_partition, 
 		                      uint32_t num_iterations, uint32_t size,
 		                      void** allocated_pointers );
+/* Number of malloc allocations for each partition */
+#define NUM_TEST_ITER 10
 
 int malloc_test()
 {
-	uint32_t num_iter = 10, size = 0x100;
-	void* allocated_pointers[10];
+	uint32_t num_iter = NUM_TEST_ITER, size = 0x100;
+	void* allocated_pointers[NUM_TEST_ITER];
 	int err = 0;
 	err = allocate_check_mem(0,num_iter,size,allocated_pointers); // allocate from the heap
 	err = allocate_check_mem(MEM_PART_1ST_DDR_NON_CACHEABLE,num_iter,size,
