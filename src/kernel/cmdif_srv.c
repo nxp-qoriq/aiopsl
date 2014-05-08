@@ -121,6 +121,9 @@ static int inst_alloc(struct cmdif_srv *srv)
 	int r = 0;
 	int count = 0;
 
+	if (srv == NULL)
+		return -EINVAL;
+
 	lock_spinlock(&srv->lock);
 	/* TODO need locks when allocating instance id ?*/
 
@@ -133,8 +136,8 @@ static int inst_alloc(struct cmdif_srv *srv)
 	/* didn't find empty space yet */
 	if (srv->inst_dev[r]) {
 		count = 0;
-		while (srv->inst_dev[r]
-		&& count < M_NUM_OF_INSTANCES) {
+		while (srv->inst_dev[r] &&
+			count < M_NUM_OF_INSTANCES) {
 			r = r++ % M_NUM_OF_INSTANCES;
 			count++;
 		}
@@ -396,7 +399,9 @@ void cmdif_srv_free(void)
 	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
 
 	sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
-	srv_memory_free(srv);
+
+	if (srv != NULL)
+		srv_memory_free(srv);
 }
 
 
