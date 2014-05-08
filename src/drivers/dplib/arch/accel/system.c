@@ -84,7 +84,7 @@ int32_t aiop_sl_init(void)
 {
 	int32_t status = 0;
 	
-#ifdef AIOP_VERIF
+#ifndef AIOP_VERIF
 	/* Variabled needed for Storage Profile Init */
 	uint16_t buffer_pool_id;
 	int num_filled_buffs;
@@ -115,7 +115,7 @@ int32_t aiop_sl_init(void)
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	 * 0x0801 --> 0x0108 (little endian) */
 	storage_profile.pbs1 = 0x0108;
-#ifdef AIOP_VERIF
+#ifndef AIOP_VERIF
 	/* __lhbr swaps the bytes for little endian */
 	storage_profile.bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
 #else
@@ -125,7 +125,7 @@ int32_t aiop_sl_init(void)
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	* 0x0801 --> 0x0108 (little endian) */
 	storage_profile.pbs2 = 0x0108;
-#ifdef AIOP_VERIF
+#ifndef AIOP_VERIF
 	/* __lhbr swaps the bytes for little endian */
 	storage_profile.bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
 #else
