@@ -113,6 +113,7 @@ int slab_create(uint32_t    num_buffs,
 @Param[in]	prefix_size         How many bytes to allocate before the data.
 @Param[in]	postfix_size        How many bytes to allocate after the data.
 @Param[in]	alignment           Requested alignment for data field in bytes.
+@Param[in]	address             Start address base to be use for allocations
 @Param[in]	flags               Set it 0 for default slab creation.
 @Param[in]	release_cb          Function to be called on release of buffer
 @Param[out]	slab                Handle to new pool is returned through here.

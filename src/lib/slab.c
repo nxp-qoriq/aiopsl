@@ -120,6 +120,9 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 
 	struct slab_module_info *slab_m = sys_get_handle(FSL_OS_MOD_SLAB, 0);
 
+	if (slab_m == NULL)
+		return -EINVAL;
+
 	error = find_bpid(buff_size,
 			alignment,
 			mem_pid,
@@ -326,6 +329,9 @@ __HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
 static int bpid_init(struct slab_hw_pool_info *hw_pools,
 			struct slab_bpid_info bpid) {
 
+	if (hw_pools == NULL)
+		return -EINVAL;
+
 	hw_pools->pool_id          = bpid.bpid;
 	hw_pools->alignment        = SLAB_DEFAULT_ALIGN;
 	hw_pools->flags            = 0;
@@ -406,7 +412,9 @@ void slab_module_free(void)
 	struct slab_module_info *slab_m = sys_get_handle(FSL_OS_MOD_SLAB, 0);
 
 	sys_remove_handle(FSL_OS_MOD_SLAB, 0);
-	free_slab_module_memory(slab_m);
+
+	if (slab_m != NULL)
+		free_slab_module_memory(slab_m);
 }
 
 /*****************************************************************************/
@@ -416,7 +424,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 	int     i;
 	struct slab_module_info *slab_m = sys_get_handle(FSL_OS_MOD_SLAB, 0);
 
-	if (slab_info != NULL) {
+	if ((slab_info != NULL) && (slab_m != NULL)) {
 		if (vpool_read_pool(SLAB_VP_POOL_GET(slab),
 				&slab_info->pool_id,
 				&temp,

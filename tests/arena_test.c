@@ -22,8 +22,10 @@ void app_free(void);
 /**< Get flow id from callback argument, it's demo specific macro */
 
 
-extern int app_test_slab_init(); 
-extern int app_test_slab(struct slab *slab, int num_times);
+extern int slab_init();
+extern int malloc_test();
+extern int slab_test();
+
 extern __SHRAM struct slab *slab_peb;
 extern __SHRAM struct slab *slab_ddr;
 
@@ -33,16 +35,17 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
 		
-	err = app_test_slab(slab_peb, 4);
+	err = slab_test();
+	
 	if (err) { 
-		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
-	}
-
-	err = app_test_slab(slab_ddr, 4);
+			fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
+		}
+	err = malloc_test();
+	
 	if (err) { 
-		fsl_os_print("ERROR = %d: app_test_slab(slab_ddr, 4)\n", err);
+		fsl_os_print("ERROR = %d: malloc_test failed in runtime phase \n", err);
 	}
-
+	
 	dpni_drv_send(APP_NI_GET(arg));
 }
 
@@ -66,7 +69,7 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
-	struct slab_debug_info slab_info;
+	
 
 	fsl_os_print("Running app_init()\n");
 
@@ -84,37 +87,14 @@ int app_init(void)
 		if (err) return err;
 	}
 	
-	/* Test for slab initialization, ignore it unless it fails */
-	err = app_test_slab_init();
+	err = slab_init();
 	if (err) {
-		fsl_os_print("ERROR = %d: app_test_slab_init()\n", err);
-		return err;
+			fsl_os_print("ERROR = %d: slab_init failed  in init phase()\n", err);
 	}
-
-	/* DDR SLAB creation */
-	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, NULL, &slab_ddr);
-	if (err) return err;
-
-	err = slab_debug_info_get(slab_ddr, &slab_info);
+	err = malloc_test();
 	if (err) {
-		return err;
-	} else {
-		if ((slab_info.num_buffs != slab_info.max_buffs) || (slab_info.num_buffs == 0))
-			return -ENODEV;
-	}
-
-	/* PEB SLAB creation */
-	err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
-	if (err) return err;
-
-	err = slab_debug_info_get(slab_peb, &slab_info);
-	if (err) {
-		return err;
-	} else {
-		if ((slab_info.num_buffs != slab_info.max_buffs) || (slab_info.num_buffs == 0))
-			return -ENODEV;
-	}
-	
+		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
+	} 		
 	return 0;
 }
 

@@ -1,3 +1,8 @@
+- Added a new  application {aiopls}\build\aiop_t4ls_sim\tests\arena_test.
+   It contains slab  functionality (slab create in init pahase and  slab aquire in run-time and slab release)
+   malloc() from the heap and xmalloc() from  DP-DDR, SHARED RAM and PEB memory partitions in init and ruin-time phase. 
+- The demo application app_process_packet contains only basic functionality of precessing a received packet.
+   Slab related test has been moved to arena_test application.
 - type_mw.h:     Added define for __WARM_CODE to load code to shared ram
 - aipo_link.lcf: Added .stext and .stext_vle define for code to be placed in shared ram  
 

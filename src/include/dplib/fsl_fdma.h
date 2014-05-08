@@ -3141,6 +3141,7 @@ int32_t fdma_copy_data(
 @Cautions
 		- In this Service Routine the task yields.
 		- The FD address in workspace must be aligned to 32 bytes.
+		- The frame FD is overwritten in this function.
 *//***************************************************************************/
 int32_t fdma_create_frame(
 		struct ldpaa_fd *fd,
@@ -3192,6 +3193,7 @@ int32_t fdma_create_frame(
 @Cautions
 		- In this Service Routine the task yields.
 		- The FD address in workspace must be aligned to 32 bytes.
+		- The frame FD is overwritten in this function.
 *//***************************************************************************/
 int32_t fdma_create_fd(
 		struct ldpaa_fd *fd,
