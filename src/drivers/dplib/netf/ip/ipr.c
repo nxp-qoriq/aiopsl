@@ -637,7 +637,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	
 		ip_header_size = ((uint16_t)((uint32_t)ipv6fraghdr_ptr - 
 							(uint32_t)ipv6hdr_ptr)) + 8;
-		current_frag_size = ipv6hdr_ptr->payload_length - ip_header_size;
+		current_frag_size = ipv6hdr_ptr->payload_length - ip_header_size + 
+							IPV6_FIXED_HEADER_SIZE;
 		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
 							IPV6_HDR_M_FLAG_MASK);
 	}
@@ -770,6 +771,9 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 	fdma_present_default_frame_without_segments();
 
 	/* Open 2nd frame and get frame handle */
+	/* reset frame2 field because handle is 2 bytes in concatenate
+	   vs 1 byte in present*/
+	concatenate_params.frame2 = 0;
 	fdma_present_frame_without_segments(
 		   fds_to_concatenate+1,
 		   FDMA_INIT_NO_FLAGS,
@@ -791,6 +795,9 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 			  fds_to_fetch_addr,
 			  2*FD_SIZE);
 		/* Open frame and get frame handle */
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		concatenate_params.frame2 = 0;
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,
@@ -825,7 +832,11 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 		cdma_read((void *)fds_to_concatenate,
 			  fds_to_fetch_addr,
 			  FD_SIZE);
-
+		
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		concatenate_params.frame2 = 0;
+		
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,
@@ -982,6 +993,10 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 					  temp_ext_addr,
 					  FD_SIZE);
 			/* Open frame and get frame handle */
+			/* reset frame2 field because handle is 2 bytes in concatenate
+			   vs 1 byte in present*/
+			concatenate_params.frame2 = 0;
+
 			fdma_present_frame_without_segments(
 					fds_to_concatenate,
 					FDMA_INIT_NO_FLAGS,
@@ -1032,6 +1047,9 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		fdma_present_default_frame_without_segments();
 	
 		/* Open 2nd frame and get frame handle */
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		concatenate_params.frame2 = 0;
 		fdma_present_frame_without_segments(
 			   fds_to_concatenate+1,
 			   FDMA_INIT_NO_FLAGS,
@@ -1070,6 +1088,10 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 				  temp_ext_addr,
 				  FD_SIZE);
 		/* Open frame and get frame handle */
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		/* todo move this reset to be done once and not each iteration */
+		concatenate_params.frame2 = 0;
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,
