@@ -1,6 +1,7 @@
 
 #include "common/fsl_malloc.h"
 #include "common/spinlock.h"
+#include "common/dbg.h"
 
 #include "inc/mem_mng_util.h"
 #include "inc/mem_mng.h"
@@ -307,10 +308,10 @@ int sys_unregister_mem_partition(int partition_id)
         /* Print memory leaks for this partition */
         mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
 
-        fsl_os_print("\r\n_memory leaks report - %s:\r\n", partition_info.name);
-        fsl_os_print("------------------------------------------------------------\r\n");
+        pr_info("\r\n_memory leaks report - %s:\r\n", partition_info.name);
+        pr_info("------------------------------------------------------------\r\n");
         mem_mng_check_leaks(sys.mem_mng, partition_id, sys_print_mem_leak);
-        fsl_os_print("------------------------------------------------------------\r\n");
+        pr_info("------------------------------------------------------------\r\n");
     }
 
     err_code = mem_mng_unregister_partition(sys.mem_mng, partition_id);
@@ -395,30 +396,30 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 
     mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
 
-    fsl_os_print("\r\n_memory usage - %s%s:\r\n",
+    pr_info("\r\n_memory usage - %s%s:\r\n",
              partition_info.name,
              ((partition_id == sys.heap_partition_id) ? " (default heap)" : ""));
-    fsl_os_print("------------------------------------------------------------\r\n");
-    fsl_os_print("base address:         0x%08X\r\n", partition_info.base_address);
-    fsl_os_print("total size (KB):      %10lu\r\n", (partition_info.size / 1024));
-    fsl_os_print("current usage (KB):   %10lu\r\n", (partition_info.current_usage / 1024));
-    fsl_os_print("maximum usage (KB):   %10lu\r\n", (partition_info.maximum_usage / 1024));
-    fsl_os_print("total allocations:    %10lu\r\n", partition_info.total_allocations);
-    fsl_os_print("total deallocations:  %10lu\r\n", partition_info.total_deallocations);
-    fsl_os_print("\r\n");
+    pr_info("------------------------------------------------------------\r\n");
+    pr_info("base address:         0x%08X\r\n", partition_info.base_address);
+    pr_info("total size (KB):      %10lu\r\n", (partition_info.size / 1024));
+    pr_info("current usage (KB):   %10lu\r\n", (partition_info.current_usage / 1024));
+    pr_info("maximum usage (KB):   %10lu\r\n", (partition_info.maximum_usage / 1024));
+    pr_info("total allocations:    %10lu\r\n", partition_info.total_allocations);
+    pr_info("total deallocations:  %10lu\r\n", partition_info.total_deallocations);
+    pr_info("\r\n");
 
     if (report_leaks)
     {
-        fsl_os_print("\r\n_memory leaks report - %s:\r\n", partition_info.name);
-        fsl_os_print("------------------------------------------------------------\r\n");
+        pr_info("\r\n_memory leaks report - %s:\r\n", partition_info.name);
+        pr_info("------------------------------------------------------------\r\n");
 
         leaks_count = mem_mng_check_leaks(sys.mem_mng, partition_id, sys_print_mem_leak);
 
         if (!leaks_count)
         {
-            fsl_os_print("no memory leaks were found\r\n");
+            pr_info("no memory leaks were found\r\n");
         }
-        fsl_os_print("\r\n");
+        pr_info("\r\n");
     }
 }
 
@@ -469,10 +470,10 @@ int sys_free_memory_management(void)
         if (leaks_count)
         {
             /* Print memory leaks of early allocations */
-            fsl_os_print("\r\n_memory leaks report - early allocations:\r\n");
-            fsl_os_print("------------------------------------------------------------\r\n");
+            pr_info("\r\n_memory leaks report - early allocations:\r\n");
+            pr_info("------------------------------------------------------------\r\n");
             mem_mng_check_leaks(sys.mem_mng, MEM_MNG_EARLY_PARTITION_ID, sys_print_mem_leak);
-            fsl_os_print("------------------------------------------------------------\r\n");
+            pr_info("------------------------------------------------------------\r\n");
         }
 
         mem_mng_free(sys.mem_mng);
@@ -564,7 +565,7 @@ static void sys_print_mem_leak(void        *p_memory,
     UNUSED(size);
     UNUSED(info);
 
-    fsl_os_print("memory leak: 0x%09p, file: %s (%d)\r\n", p_memory, filename, line);
+    pr_info("memory leak: 0x%09p, file: %s (%d)\r\n", p_memory, filename, line);
 }
 
 

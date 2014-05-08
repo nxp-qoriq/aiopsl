@@ -25,7 +25,7 @@ __SHRAM struct dpni_drv *nis;
 static void discard_rx_cb()
 {
 
-	fsl_os_print("Packet discarded by discard_rx_cb.\n");
+	pr_debug("Packet discarded by discard_rx_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
@@ -34,7 +34,7 @@ static void discard_rx_cb()
 static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
-	fsl_os_print("Packet discarded by discard_rx_app_cb.\n");
+	pr_debug("Packet discarded by discard_rx_app_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
@@ -119,8 +119,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
 		j = ioread32(UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
-		/* TODO: print conditionally based on log level */
-		fsl_os_print("Found NI: EPID[%d].EP_PM = %d\n", i, j);
+		pr_debug("Found NI: EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
 			/* Replace MC NI ID with AIOP NI ID */

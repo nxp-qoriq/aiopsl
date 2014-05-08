@@ -129,7 +129,7 @@ void core_ready_for_tasks(void)
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
     /* finished boot sequence; now wait for event .... */
-    fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
+    pr_info("AIOP completed boot sequence; waiting for events ...\n");
 
 #if 0
     if(sys_is_master_core()) {
@@ -153,26 +153,24 @@ void core_ready_for_tasks(void)
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
-#define DEBUG
-#ifdef DEBUG
+
 static void print_dev_desc(struct dprc_dev_desc* dev_desc)
 {
-	fsl_os_print(" device %d\n");
-	fsl_os_print("***********\n");
-	fsl_os_print("vendor - %x\n", dev_desc->vendor);
+	pr_debug(" device %d\n");
+	pr_debug("***********\n");
+	pr_debug("vendor - %x\n", dev_desc->vendor);
 	if (dev_desc->type == DP_DEV_DPNI)
-		fsl_os_print("type - DP_DEV_DPNI\n");
+		pr_debug("type - DP_DEV_DPNI\n");
 	else if (dev_desc->type == DP_DEV_DPRC)
-		fsl_os_print("type - DP_DEV_DPRC\n");
+		pr_debug("type - DP_DEV_DPRC\n");
 	else if (dev_desc->type == DP_DEV_DPIO)
-		fsl_os_print("type - DP_DEV_DPIO\n");
-	fsl_os_print("id - %d\n", dev_desc->id);
-	fsl_os_print("region_count - %d\n", dev_desc->region_count);
-	fsl_os_print("rev_major - %d\n", dev_desc->rev_major);
-	fsl_os_print("rev_minor - %d\n", dev_desc->rev_minor);
-	fsl_os_print("irq_count - %d\n\n", dev_desc->irq_count);
+		pr_debug("type - DP_DEV_DPIO\n");
+	pr_debug("id - %d\n", dev_desc->id);
+	pr_debug("region_count - %d\n", dev_desc->region_count);
+	pr_debug("rev_major - %d\n", dev_desc->rev_major);
+	pr_debug("rev_minor - %d\n", dev_desc->rev_minor);
+	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 }
-#endif
 
 
 /* TODO: Need to replace this temporary workaround with the actual function.
