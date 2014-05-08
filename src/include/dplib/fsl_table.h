@@ -278,24 +278,24 @@
 	/** Segment Address and Size Non Default
 	If set, the Segment given in the lookup function parameters is used
 	instead of the default segment. Not available for Rev1  */
-#define TABLE_LOOKUP_FLAG_SEG_NON_DEFAULT		0x8000
+#define TABLE_LOOKUP_FLAG_SEG_NON_DEFAULT		0x80000000
 
 	/** Parse Result Address Non Default
 	If set, the Parse Result Address given in the lookup function
 	parameters is used instead of the default address. Not available for
 	Rev1 */
-#define TABLE_LOOKUP_FLAG_PRA_NON_DEFAULT		0x4000
+#define TABLE_LOOKUP_FLAG_PRA_NON_DEFAULT		0x40000000
 
 	/** Frame Descriptor Address Non Default
 	If set, the Frame Descriptor Address given in the lookup function
 	parameters is used instead of the default address. Not available for
 	Rev1 */
-#define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x2000
+#define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x20000000
 
 	/** Metadata Non Default 
 	If set, the metadata given in the lookup function parameters is used
 	instead of the default metadata which is zeroes. */
-#define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x1000
+#define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x10000000
 
 /** @} */ /* end of FSL_TABLE_LOOKUP_FLAG_DEFINES */
 
@@ -341,7 +341,7 @@ A general bit that is set in some errors conditions */
 
 /* TODO TEMP CODE !! START */
 #define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
-#define CTLU_STATUS_KSE	(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
+#define CTLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
 #define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
 #define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
 /* TEMP CODE !! END */

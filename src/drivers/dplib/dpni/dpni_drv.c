@@ -228,45 +228,45 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ET
 
 static int aiop_replace_parser(uint8_t prpid)
 {
-    struct parse_profile_record verif_parse_profile1;
+    struct parse_profile_input verif_parse_profile1 __attribute__((aligned(16)));
     int i, status = 0;
     uint8_t prpid_new = 0;
     
     /* Init basic parse profile */
-    verif_parse_profile1.eth_hxs_config = 0x0;
-    verif_parse_profile1.llc_snap_hxs_config = 0x0;
-    verif_parse_profile1.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
-    verif_parse_profile1.vlan_hxs_config.configured_tpid_1 = 0x0;
-    verif_parse_profile1.vlan_hxs_config.configured_tpid_2 = 0x0;
+    verif_parse_profile1.parse_profile.eth_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
+    verif_parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
+    verif_parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
     /* No MTU checking */
-    verif_parse_profile1.pppoe_ppp_hxs_config = 0x0;
-    verif_parse_profile1.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+    verif_parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
     /* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-    verif_parse_profile1.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
-    verif_parse_profile1.arp_hxs_config = 0x0;
-    verif_parse_profile1.ip_hxs_config = 0x0;
-    verif_parse_profile1.ipv4_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
+    verif_parse_profile1.parse_profile.arp_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.ip_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
     /* Routing header is ignored and the destination address from
      * main header is used instead */
-    verif_parse_profile1.ipv6_hxs_config = 0x0;
-    verif_parse_profile1.gre_hxs_config = 0x0;
-    verif_parse_profile1.minenc_hxs_config = 0x0;
-    verif_parse_profile1.other_l3_shell_hxs_config= 0x0;
+    verif_parse_profile1.parse_profile.ipv6_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.gre_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.minenc_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;
     /* In short Packet, padding is removed from Checksum calculation */
-    verif_parse_profile1.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    verif_parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
     /* In short Packet, padding is removed from Checksum calculation */
-    verif_parse_profile1.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-    verif_parse_profile1.ipsec_hxs_config = 0x0;
-    verif_parse_profile1.sctp_hxs_config = 0x0;
-    verif_parse_profile1.dccp_hxs_config = 0x0;
-    verif_parse_profile1.other_l4_shell_hxs_config = 0x0;
-    verif_parse_profile1.gtp_hxs_config = 0x0;
-    verif_parse_profile1.esp_hxs_config = 0x0;
-    verif_parse_profile1.l5_shell_hxs_config = 0x0;
-    verif_parse_profile1.final_shell_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    verif_parse_profile1.parse_profile.ipsec_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.sctp_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.dccp_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.gtp_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.esp_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
+    verif_parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
     /* Assuming no soft examination parameters */
     for(i=0; i<16; i++)
-        verif_parse_profile1.soft_examination_param_array[i] = 0x0;
+        verif_parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
 
 /*    status = parser_profile_replace(&verif_parse_profile1, prpid); Hagit*/
     parser_profile_replace(&verif_parse_profile1, prpid); /*Hagit */

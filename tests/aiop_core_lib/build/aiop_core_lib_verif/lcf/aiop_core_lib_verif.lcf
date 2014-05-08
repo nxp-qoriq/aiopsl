@@ -88,8 +88,8 @@ SECTIONS
     } > verif_tls
 
     GROUP : {
-       .verif_psram_data   : {}
-       .verif_psram_bss   : {}
+       .psram_data   : {}
+       .psram_bss   : {}
     } > profile_sram
 
 }

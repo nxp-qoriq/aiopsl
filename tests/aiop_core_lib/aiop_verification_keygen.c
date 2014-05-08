@@ -138,7 +138,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 		
 			str->status = 
 			keygen_kcr_builder_add_generic_extract_fec(str->offset,
-			str->extract_size, str->flags, mask_ptr, (struct kcr_builder *)str->kb_ptr);
+			str->extract_size, str->gec_source, mask_ptr, (struct kcr_builder *)str->kb_ptr);
 
 			str_size =
 			sizeof (struct keygen_kcr_builder_add_generic_extract_fec_command);

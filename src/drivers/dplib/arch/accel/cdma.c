@@ -472,11 +472,11 @@ int32_t cdma_access_context_memory(
 				CDMA_REF_CNT_OFFSET));
 
 	return (int32_t)(res1);
-	}
+}
 
-	int32_t cdma_refcount_get(
-			uint64_t context_address,
-			uint32_t *refcount_value) {
+int32_t cdma_refcount_get(
+		uint64_t context_address,
+		uint32_t *refcount_value) {
 
 	/* command parameters and results */
 	int32_t res1;

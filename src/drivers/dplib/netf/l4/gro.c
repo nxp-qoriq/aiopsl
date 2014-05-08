@@ -258,6 +258,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
 		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
+	concat_params.frame1 = 0;
 	/* present aggregated frame */
 	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
 			FDMA_INIT_NO_FLAGS, 0,
@@ -329,6 +330,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	if (gro_ctx->metadata.max_seg_size < seg_size)
 		gro_ctx->metadata.max_seg_size = seg_size;
 
+	concat_params.frame1 = 0;
 	/* present aggregated frame */
 	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
 			FDMA_INIT_NO_FLAGS, 0,
@@ -359,10 +361,10 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	sr_status = fdma_present_default_frame();
 
 	/* run parser if headers were changed */
-	if (gro_ctx->agg_headers_size != headers_size) {
+	/*if (gro_ctx->agg_headers_size != headers_size) {
 		sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
 		tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
-	}
+	}*/
 
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -493,7 +495,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* calculate tcp data checksum for the new frame */
 	agg_checksum = gro_ctx->checksum;
 	gro_ctx->checksum = 0;
-	if (~(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) &&
+	if (!(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) &&
 		(gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM))
 		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
