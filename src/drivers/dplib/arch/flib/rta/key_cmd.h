@@ -26,14 +26,14 @@ static inline unsigned rta_key(struct program *program, uint32_t key_dst,
 	unsigned start_pc = program->current_pc;
 
 	if (key_type != REG_TYPE) {
-		pr_debug("KEY: Incorrect key type. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		//pr_err("KEY: Incorrect key type. SEC PC: %d; Instr: %d\n",
+		//       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
 	if (encrypt_flags & ~key_enc_flags[rta_sec_era]) {
-		pr_debug("KEY: Flag(s) not supported by SEC Era %d\n",
-			 USER_SEC_ERA(rta_sec_era));
+		//pr_err("KEY: Flag(s) not supported by SEC Era %d\n",
+		//       USER_SEC_ERA(rta_sec_era));
 		goto err;
 	}
 
@@ -51,28 +51,28 @@ static inline unsigned rta_key(struct program *program, uint32_t key_dst,
 	/* check parameters */
 	if (is_seq_cmd) {
 		if ((flags & IMMED) || (flags & SGF)) {
-			pr_debug("SEQKEY: Invalid flag. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			//pr_err("SEQKEY: Invalid flag. SEC PC: %d; Instr: %d\n",
+			//       program->current_pc,
+			//       program->current_instruction);
 			goto err;
 		}
 		if ((rta_sec_era <= RTA_SEC_ERA_5) &&
 		    ((flags & VLF) || (flags & AIDF))) {
-			pr_debug("SEQKEY: Flag(s) not supported by SEC Era %d\n",
-				 USER_SEC_ERA(rta_sec_era));
+			//pr_err("SEQKEY: Flag(s) not supported by SEC Era %d\n",
+			//       USER_SEC_ERA(rta_sec_era));
 			goto err;
 		}
 	} else {
 		if ((flags & AIDF) || (flags & VLF)) {
-			pr_debug("KEY: Invalid flag. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			//pr_err("KEY: Invalid flag. SEC PC: %d; Instr: %d\n",
+			//       program->current_pc,
+			//       program->current_instruction);
 			goto err;
 		}
 		if ((flags & SGF) && (flags & IMMED)) {
-			pr_debug("KEY: Invalid flag. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			//pr_err("KEY: Invalid flag. SEC PC: %d; Instr: %d\n",
+			//       program->current_pc,
+			//       program->current_instruction);
 			goto err;
 		}
 	}
@@ -80,23 +80,22 @@ static inline unsigned rta_key(struct program *program, uint32_t key_dst,
 	if ((encrypt_flags & PTS) &&
 	    ((encrypt_flags & ENC) || (encrypt_flags & NWB) ||
 	     (key_dst == _PKE))) {
-		pr_debug("KEY: Invalid flag / destination. SEC PC: %d; Instr: %d\n",
-			 program->current_pc,
-			 program->current_instruction);
+		//pr_err("KEY: Invalid flag / destination. SEC PC: %d; Instr: %d\n",
+		//       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
 	if (key_dst == _AFHA_SBOX) {
 		if (rta_sec_era == RTA_SEC_ERA_7) {
-			pr_debug("KEY: AFHA S-box not supported by SEC Era %d\n",
-				 USER_SEC_ERA(rta_sec_era));
+			//pr_err("KEY: AFHA S-box not supported by SEC Era %d\n",
+			//       USER_SEC_ERA(rta_sec_era));
 			goto err;
 		}
 
 		if (flags & IMMED) {
-			pr_debug("KEY: Invalid flag. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			//pr_err("KEY: Invalid flag. SEC PC: %d; Instr: %d\n",
+			//       program->current_pc,
+			//       program->current_instruction);
 			goto err;
 		}
 
@@ -105,9 +104,9 @@ static inline unsigned rta_key(struct program *program, uint32_t key_dst,
 		 * 258 bytes long, or else a data sequence error is generated.
 		 */
 		if (length != 258) {
-			pr_debug("KEY: Invalid length. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			//pr_err("KEY: Invalid length. SEC PC: %d; Instr: %d\n",
+			//       program->current_pc,
+			//       program->current_instruction);
 			goto err;
 		}
 	}
@@ -130,8 +129,8 @@ static inline unsigned rta_key(struct program *program, uint32_t key_dst,
 		opcode |= KEY_DEST_CLASS2 | KEY_DEST_MDHA_SPLIT;
 		break;
 	default:
-		pr_debug("KEY: Invalid destination. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		//pr_err("KEY: Invalid destination. SEC PC: %d; Instr: %d\n",
+		//       program->current_pc, program->current_instruction);
 		goto err;
 		break;
 	}

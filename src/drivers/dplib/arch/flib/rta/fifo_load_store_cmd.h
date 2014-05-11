@@ -48,8 +48,8 @@ static inline unsigned rta_fifo_load(struct program *program, uint32_t src,
 	unsigned start_pc = program->current_pc;
 
 	if (type_src != REG_TYPE) {
-		pr_debug("SEQ FIFO LOAD: Incorrect data type. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("SEQ FIFO LOAD: Incorrect data type. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
@@ -67,33 +67,33 @@ static inline unsigned rta_fifo_load(struct program *program, uint32_t src,
 	/* Parameters checking */
 	if (is_seq_cmd) {
 		if ((flags & IMMED) || (flags & SGF)) {
-			pr_debug("SEQ FIFO LOAD: Invalid command\n");
+			pr_err("SEQ FIFO LOAD: Invalid command\n");
 			goto err;
 		}
 		if ((rta_sec_era <= RTA_SEC_ERA_5) && (flags & AIDF)) {
-			pr_debug("SEQ FIFO LOAD: Flag(s) not supported by SEC Era %d\n",
-				 USER_SEC_ERA(rta_sec_era));
+			pr_err("SEQ FIFO LOAD: Flag(s) not supported by SEC Era %d\n",
+			       USER_SEC_ERA(rta_sec_era));
 			goto err;
 		}
 		if ((flags & VLF) && ((flags & EXT) || (length >> 16))) {
-			pr_debug("SEQ FIFO LOAD: Invalid usage of VLF\n");
+			pr_err("SEQ FIFO LOAD: Invalid usage of VLF\n");
 			goto err;
 		}
 	} else {
 		if (src == _SKIP) {
-			pr_debug("FIFO LOAD: Invalid src\n");
+			pr_err("FIFO LOAD: Invalid src\n");
 			goto err;
 		}
 		if ((flags & AIDF) || (flags & VLF)) {
-			pr_debug("FIFO LOAD: Invalid command\n");
+			pr_err("FIFO LOAD: Invalid command\n");
 			goto err;
 		}
 		if ((flags & IMMED) && (flags & SGF)) {
-			pr_debug("FIFO LOAD: Invalid usage of SGF and IMM\n");
+			pr_err("FIFO LOAD: Invalid usage of SGF and IMM\n");
 			goto err;
 		}
 		if ((flags & IMMED) && ((flags & EXT) || (length >> 16))) {
-			pr_debug("FIFO LOAD: Invalid usage of EXT and IMM\n");
+			pr_err("FIFO LOAD: Invalid usage of EXT and IMM\n");
 			goto err;
 		}
 	}
@@ -102,8 +102,8 @@ static inline unsigned rta_fifo_load(struct program *program, uint32_t src,
 	ret = __rta_map_opcode(src, fifo_load_table,
 			       fifo_load_table_sz[rta_sec_era], &val);
 	if (ret == -1) {
-		pr_debug("FIFO LOAD: Source value is not supported. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("FIFO LOAD: Source value is not supported. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 	opcode |= val;
@@ -214,8 +214,8 @@ static inline unsigned rta_fifo_store(struct program *program, uint32_t src,
 	unsigned start_pc = program->current_pc;
 
 	if (type_src != REG_TYPE) {
-		pr_debug("SEQ FIFO STORE: Incorrect data type. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("SEQ FIFO STORE: Incorrect data type. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
@@ -230,27 +230,27 @@ static inline unsigned rta_fifo_store(struct program *program, uint32_t src,
 	/* Parameter checking */
 	if (is_seq_cmd) {
 		if ((flags & VLF) && ((length >> 16) || (flags & EXT))) {
-			pr_debug("SEQ FIFO STORE: Invalid usage of VLF\n");
+			pr_err("SEQ FIFO STORE: Invalid usage of VLF\n");
 			goto err;
 		}
 		if (dst) {
-			pr_debug("SEQ FIFO STORE: Invalid command\n");
+			pr_err("SEQ FIFO STORE: Invalid command\n");
 			goto err;
 		}
 		if ((src == _METADATA) && (flags & (CONT | EXT))) {
-			pr_debug("SEQ FIFO STORE: Invalid flags\n");
+			pr_err("SEQ FIFO STORE: Invalid flags\n");
 			goto err;
 		}
 	} else {
 		if (((src == _RNGOFIFO) && ((dst) || (flags & EXT))) ||
 		    (src == _METADATA)) {
-			pr_debug("FIFO STORE: Invalid destination\n");
+			pr_err("FIFO STORE: Invalid destination\n");
 			goto err;
 		}
 	}
 	if ((rta_sec_era == RTA_SEC_ERA_7) && (src == _AFHA_SBOX)) {
-		pr_debug("FIFO STORE: AFHA S-box not supported by SEC Era %d\n",
-			 USER_SEC_ERA(rta_sec_era));
+		pr_err("FIFO STORE: AFHA S-box not supported by SEC Era %d\n",
+		       USER_SEC_ERA(rta_sec_era));
 		goto err;
 	}
 
@@ -258,8 +258,8 @@ static inline unsigned rta_fifo_store(struct program *program, uint32_t src,
 	ret = __rta_map_opcode(src, fifo_store_table,
 			       fifo_store_table_sz[rta_sec_era], &val);
 	if (ret == -1) {
-		pr_debug("FIFO STORE: Source type not supported. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("FIFO STORE: Source type not supported. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 	opcode |= val;
@@ -268,7 +268,7 @@ static inline unsigned rta_fifo_store(struct program *program, uint32_t src,
 		opcode |= (0x1 << FIFOST_TYPE_SHIFT);
 	if (encrypt_flags & EKT) {
 		if (rta_sec_era == RTA_SEC_ERA_1) {
-			pr_debug("FIFO STORE: AES-CCM source types not supported\n");
+			pr_err("FIFO STORE: AES-CCM source types not supported\n");
 			goto err;
 		}
 		opcode |= (0x10 << FIFOST_TYPE_SHIFT);

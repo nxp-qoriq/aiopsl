@@ -13,7 +13,6 @@
 #include "rta/move_cmd.h"
 #include "rta/nfifo_cmd.h"
 #include "rta/operation_cmd.h"
-#include "rta/pdb.h"
 #include "rta/protocol_cmd.h"
 #include "rta/seq_in_out_ptr_cmd.h"
 #include "rta/signature_cmd.h"
@@ -132,8 +131,8 @@
 #define DWORD(val) rta_dword(program, val)
 
 /**
- * @def                ENDIAN_DATA
- * @details            @b ENDIAN_DATA must be called to insert in descriptor buffer
+ * @def                COPY_DATA
+ * @details            @b COPY_DATA must be called to insert in descriptor buffer
  *                     data larger than 64bits.
  *
  * @param[in] data     Input data to be written in descriptor buffer
@@ -142,7 +141,7 @@
  * @return             Descriptor buffer offset where this command is inserted
  *                     (@c unsigned).
  */
-#define ENDIAN_DATA(data, len) rta_endian_data(program, (data), (len))
+#define COPY_DATA(data, len) rta_copy_data(program, (data), (len))
 
 /**
  * @def                SHR_DESC_LEN
@@ -208,8 +207,8 @@ static inline int rta_set_sec_era(enum rta_sec_era era)
 {
 	if (era > MAX_SEC_ERA) {
 		rta_sec_era = DEFAULT_SEC_ERA;
-		pr_debug("Unsupported SEC ERA. Defaulting to ERA %d\n",
-			 DEFAULT_SEC_ERA + 1);
+		pr_err("Unsupported SEC ERA. Defaulting to ERA %d\n",
+		       DEFAULT_SEC_ERA + 1);
 		return -1;
 	}
 

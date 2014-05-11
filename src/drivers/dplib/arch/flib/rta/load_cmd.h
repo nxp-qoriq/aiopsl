@@ -213,8 +213,8 @@ static inline unsigned rta_load(struct program *program, uint64_t src,
 	unsigned start_pc = program->current_pc, i;
 
 	if (dst_type != REG_TYPE) {
-		pr_debug("LOAD: Invalid dst type. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("LOAD: Invalid dst type. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
@@ -227,7 +227,7 @@ static inline unsigned rta_load(struct program *program, uint64_t src,
 		flags |= IMMED;
 
 	if ((length & 0xffffff00) || (offset & 0xffffff00)) {
-		pr_debug("LOAD: Bad length/offset passed. Should be 8 bits\n");
+		pr_err("LOAD: Bad length/offset passed. Should be 8 bits\n");
 		goto err;
 	}
 
@@ -243,27 +243,27 @@ static inline unsigned rta_load(struct program *program, uint64_t src,
 			break;
 		}
 	if (-1 == pos) {
-		pr_debug("LOAD: Invalid dst. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("LOAD: Invalid dst. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
 	if (flags & IMMED) {
 		if (load_dst[pos].imm_src == IMM_NO) {
-			pr_debug("LOAD: Invalid source type. SEC Program Line: %d\n",
-				 program->current_pc);
+			pr_err("LOAD: Invalid source type. SEC Program Line: %d\n",
+			       program->current_pc);
 			goto err;
 		}
 		opcode |= LDST_IMM;
 	} else if (load_dst[pos].imm_src == IMM_MUST) {
-		pr_debug("LOAD IMM: Invalid source type. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("LOAD IMM: Invalid source type. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
 	if (-1 == load_check_len_offset(pos, length, offset)) {
-		pr_debug("LOAD: Invalid length/offset. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("LOAD: Invalid length/offset. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 

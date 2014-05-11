@@ -7,6 +7,8 @@
 
 #include "common/types.h"
 #include "common/spinlock.h"
+#include "common/dbg.h"
+
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
@@ -24,15 +26,36 @@
 #endif /* AIOP_VERIF */
 
 /* Use this define to override the RTA and use a fixed debug descriptor */
-#define AIOPSL_IPSEC_DEBUG
+//#define AIOPSL_IPSEC_DEBUG
 
 //#include "general.h"
 
 /* TODO: temporary fix to pr_debug due to RTA issue */
 //#define pr_debug //
+
 //void dummy_pr_debug (...);
 //void dummy_pr_debug (...) {}
 //#define pr_debug dummy_pr_debug 
+
+//void dummy_pr_err (...);
+//void dummy_pr_err (...) {}
+//#define pr_err dummy_pr_err 
+
+
+#ifndef rta_pr_debug_define
+void rta_pr_debug (...);
+void rta_pr_debug (...) {}
+#define rta_pr_debug_define  
+#endif
+
+#ifndef rta_pr_err_define
+void rta_pr_err (...);
+void rta_pr_err (...) {}
+#define rta_pr_err_define  
+#endif
+
+//#define pr_err rta_pr_err 
+
 
 /* Note: GCC Extension should be enabled to support "typeof"
  * Otherwise it fails compilation of the RTA "ALIGN" macro.
@@ -45,7 +68,9 @@
 #include "rta.h"
 
 #ifndef AIOPSL_IPSEC_DEBUG
-#include "protoshared.h"
+//#include "protoshared.h"
+#include "desc/ipsec.h"
+
 #endif
 
 /* SEC Era version for RTA */
@@ -288,7 +313,6 @@ int32_t ipsec_generate_encap_sd(
 		/* Tunnel mode, SEC "new thread" */	
 		cnstr_shdsc_ipsec_new_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
 			ps, /* unsigned short ps */
 			((struct ipsec_encap_pdb *)(&pdb)), /* struct ipsec_encap_pdb *pdb */
@@ -299,7 +323,6 @@ int32_t ipsec_generate_encap_sd(
 		/* Transport mode, SEC legacy new thread */
 		cnstr_shdsc_ipsec_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
 			ps, /* unsigned short ps */
 			((struct ipsec_encap_pdb *)(&pdb)), /* struct ipsec_encap_pdb *pdb */
@@ -598,6 +621,8 @@ int32_t ipsec_generate_sa_params(
 		/* new/reuse (for ASA copy). TMP */
 	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
+	sap.sap1.output_spid = (uint8_t)(params->spid);
+
 	sap.sap1.soft_byte_limit = params->soft_kilobytes_limit; 
 	sap.sap1.soft_packet_limit = params->soft_packet_limit; 
 	sap.sap1.hard_byte_limit = params->hard_kilobytes_limit; 
@@ -716,6 +741,7 @@ int32_t ipsec_add_sa_descriptor(
 	/*	Prepare descriptor parameters:
 	 * Kilobytes and packets lifetime limits.
 	 * Modes indicators and other flags */
+	
 	
 	/* Store the descriptor parameters to memory (CDMA write). */
 	
@@ -892,7 +918,10 @@ int32_t ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-
+	
+	/* Update the SPID of the new frame (SEC output) in the HW Context*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
+	
 	/* 	11.	FDMA present default frame command (open frame) */
 	return_val = fdma_present_default_frame();
 	
@@ -920,10 +949,10 @@ int32_t ipsec_frame_encrypt(
 					/* uint32_t flags */
 				);
 		
-		/* Re-run parser ??? */
+		/* TODO: Re-run parser ??? */
 		//		parse_result_generate_default(0);
 		
-		/* Update running sum ??? */
+		/* TODO: Update running sum ??? */
 		//		pr->gross_running_sum = 0;
 	}
 
@@ -977,7 +1006,9 @@ int32_t ipsec_frame_decrypt(
 	uint16_t outer_material_length;
 	//uint16_t running_sum;
 	uint64_t *eth_pointer_default;
-			
+		
+	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
+
 	struct dpovrd_general dpovrd;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -990,7 +1021,12 @@ int32_t ipsec_frame_decrypt(
 	 * TODO */
 	
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	// TODO
+	return_val = cdma_read(
+			&sap1, /* void *ws_dst */
+			ipsec_handle, /* uint64_t ext_address */
+			sizeof(sap1) /* uint16_t size */
+			);
+
 	
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits 
 	 * have expired. If expired, return with error. go to END */
@@ -1116,6 +1152,9 @@ int32_t ipsec_frame_decrypt(
 
 	/* 	11.	SEC Doing Decryption */
 
+	/* Update the SPID of the new frame (SEC output) in the HW Context*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
+	
 	// TODO: default segment size change (TBD) */
 
 	/* 	12.	FDMA present default frame command */ 

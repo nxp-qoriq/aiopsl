@@ -232,8 +232,8 @@ static inline unsigned rta_operation(struct program *program,
 			aai &= OP_ALG_AAI_MASK;
 
 			if (-1 ==  (*alg_table[i].aai_func)(aai)) {
-				pr_debug("OPERATION: Bad AAI Type. SEC Program Line: %d\n",
-					 program->current_pc);
+				pr_err("OPERATION: Bad AAI Type. SEC Program Line: %d\n",
+				       program->current_pc);
 				goto err;
 			}
 			opcode |= aai;
@@ -242,8 +242,8 @@ static inline unsigned rta_operation(struct program *program,
 		}
 	}
 	if (!found) {
-		pr_debug("OPERATION: Invalid Command. SEC Program Line: %d\n",
-			 program->current_pc);
+		pr_err("OPERATION: Invalid Command. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
@@ -255,7 +255,7 @@ static inline unsigned rta_operation(struct program *program,
 		opcode |= algo_state;
 		break;
 	default:
-		pr_debug("Invalid Operation Command\n");
+		pr_err("Invalid Operation Command\n");
 		goto err;
 	}
 
@@ -270,7 +270,7 @@ static inline unsigned rta_operation(struct program *program,
 		opcode |= OP_ALG_ICV_ON;
 		break;
 	default:
-		pr_debug("Invalid Operation Command\n");
+		pr_err("Invalid Operation Command\n");
 		goto err;
 	}
 
@@ -285,7 +285,7 @@ static inline unsigned rta_operation(struct program *program,
 		opcode |= OP_ALG_ENCRYPT;
 		break;
 	default:
-		pr_debug("Invalid Operation Command\n");
+		pr_err("Invalid Operation Command\n");
 		goto err;
 	}
 
@@ -483,8 +483,8 @@ static inline unsigned rta_pkha_operation(struct program *program,
 	switch (pkha_func) {
 	case (OP_ALG_PKMODE_CLEARMEM):
 		if (-1 == __rta_pkha_clearmem(op_pkha)) {
-			pr_debug("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
-				 program->current_pc);
+			pr_err("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
+			       program->current_pc);
 			goto err;
 		}
 		break;
@@ -504,21 +504,21 @@ static inline unsigned rta_pkha_operation(struct program *program,
 	case (OP_ALG_PKMODE_ECC_MOD_DBL):
 	case (OP_ALG_PKMODE_ECC_MOD_MUL):
 		if (-1 == __rta_pkha_mod_arithmetic(op_pkha)) {
-			pr_debug("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
-				 program->current_pc);
+			pr_err("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
+			       program->current_pc);
 			goto err;
 		}
 		break;
 	case (OP_ALG_PKMODE_COPY_NSZ):
 	case (OP_ALG_PKMODE_COPY_SSZ):
 		if (-1 == __rta_pkha_copymem(op_pkha)) {
-			pr_debug("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
-				 program->current_pc);
+			pr_err("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
+			       program->current_pc);
 			goto err;
 		}
 		break;
 	default:
-		pr_debug("Invalid Operation Command\n");
+		pr_err("Invalid Operation Command\n");
 		goto err;
 	}
 

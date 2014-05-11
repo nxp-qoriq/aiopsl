@@ -99,22 +99,22 @@ static inline unsigned rta_nfifo_load(struct program *program, uint32_t src,
 	unsigned start_pc = program->current_pc;
 
 	if ((type_src != REG_TYPE) || (type_data != REG_TYPE)) {
-		pr_debug("NFIFO: Incorrect src / data type. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("NFIFO: Incorrect src / data type. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
 	if ((data == _AFHA_SBOX) && (rta_sec_era == RTA_SEC_ERA_7)) {
-		pr_debug("NFIFO: AFHA S-box not supported by SEC Era %d\n",
-			 USER_SEC_ERA(rta_sec_era));
+		pr_err("NFIFO: AFHA S-box not supported by SEC Era %d\n",
+		       USER_SEC_ERA(rta_sec_era));
 		goto err;
 	}
 
 	/* write source field */
 	ret = __rta_map_opcode(src, nfifo_src, nfifo_src_sz[rta_sec_era], &val);
 	if (ret == -1) {
-		pr_debug("NFIFO: Invalid SRC. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("NFIFO: Invalid SRC. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 	opcode |= val;
@@ -122,8 +122,8 @@ static inline unsigned rta_nfifo_load(struct program *program, uint32_t src,
 	/* write type field */
 	ret = __rta_map_opcode(data, nfifo_data, ARRAY_SIZE(nfifo_data), &val);
 	if (ret == -1) {
-		pr_debug("NFIFO: Invalid data. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("NFIFO: Invalid data. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 	opcode |= val;

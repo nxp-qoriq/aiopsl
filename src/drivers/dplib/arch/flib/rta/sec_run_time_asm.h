@@ -3,8 +3,14 @@
 #ifndef __RTA_SEC_RUN_TIME_ASM_H__
 #define __RTA_SEC_RUN_TIME_ASM_H__
 
-#include "../desc.h"
-#include "../compat.h"
+//#include "flib/desc.h"
+#include "desc.h"
+
+/* flib/compat.h is not delivered in kernel */
+#ifndef __KERNEL__
+//#include "flib/compat.h"
+#include "compat.h"
+#endif
 
 #ifndef high_32b
 #define high_32b(x) ((uint32_t)((x) >> 32))
@@ -555,11 +561,11 @@ static inline unsigned rta_program_finalize(struct program *program)
 {
 	/* Descriptor is not allowed to go beyond 64 words size */
 	if (program->current_pc > MAX_CAAM_DESCSIZE)
-		pr_debug("Descriptor Size exceeded max limit of 64 words\n");
+		//pr_err("Descriptor Size exceeded max limit of 64 words\n");
 
 	/* Descriptor is erroneous */
 	if (program->first_error_pc)
-		pr_debug("Descriptor creation error\n");
+		//pr_err("Descriptor creation error\n");
 
 	/* Update descriptor length in shared and job descriptor headers */
 	if (program->shrhdr != NULL) {
@@ -619,8 +625,8 @@ static inline unsigned rta_dword(struct program *program, uint64_t val)
 	return start_pc;
 }
 
-static inline unsigned rta_endian_data(struct program *program, uint8_t *data,
-				       unsigned length)
+static inline unsigned rta_copy_data(struct program *program, uint8_t *data,
+				     unsigned length)
 {
 	unsigned i;
 	unsigned start_pc = program->current_pc;

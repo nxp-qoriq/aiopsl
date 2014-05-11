@@ -6,7 +6,8 @@
 		Copyright 2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#define IPSEC_OVERRIDE_RTA
+
+//#define IPSEC_OVERRIDE_RTA
 
 #include "aiop_verification.h"
 #include "aiop_verification_ipsec.h"
@@ -15,10 +16,12 @@
 #include "rta.h"
 
 #ifndef IPSEC_OVERRIDE_RTA
-#include "protoshared.h"
+//#include "protoshared.h"
+//#include "desc/ipsec.h"
+
 //#endif
-#include "sec_app.h"
-#include "ipsec_test_vector.h"
+//#include "sec_app.h"
+//#include "ipsec_test_vector.h"
 #endif
 
 __VERIF_GLOBAL uint64_t sa_desc_handle[32]; /* Global in Shared RAM */
@@ -224,8 +227,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		break;
 	}
 	
+	
 	#ifndef IPSEC_OVERRIDE_RTA
 	/* RTA descriptor debug */
+	/*
 	case IPSEC_RUN_DESC_DEBUG:
 	{
 		struct ipsec_run_desc_debug_command *str =
@@ -240,7 +245,9 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			
 		break;
 	}
+	*/
 	#endif
+	
 	
 	default:
 	{

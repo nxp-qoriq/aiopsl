@@ -283,6 +283,8 @@ struct ipsec_sa_params_part1 {
 	uint8_t anti_replay_size; /* none/32/64/128	1B */
 	uint8_t sec_buffer_mode; /* new/reuse (for ASA copy). 1B */
 
+	uint8_t output_spid; /* SEC output buffer SPID */
+
 	/* Required at Add descriptor and enc/dec */
 	/* 6x8 = 48 bytes */
 	uint64_t soft_byte_limit; /* soft byte count limit,	8 Bytes */

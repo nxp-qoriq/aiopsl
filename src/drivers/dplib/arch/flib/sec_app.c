@@ -6,12 +6,15 @@
 //#include "common/dbg.h"
 //#include "drivers/fsl_caam.h"
 
+#define IPSEC_DONT_USE_SEC_APP
+
+#ifndef IPSEC_DONT_USE_SEC_APP
+
 #include "dplib/fsl_cdma.h"
 #include "cdma.h"
 
 #include "sec_app.h"
 
-#ifndef IPSEC_DONT_USE_SEC_APP
 
 #include "ipsec_test_vector.h"
 

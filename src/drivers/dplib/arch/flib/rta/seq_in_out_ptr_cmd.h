@@ -37,24 +37,24 @@ static inline unsigned rta_seq_in_ptr(struct program *program, uint64_t src,
 
 	/* Parameters checking */
 	if ((flags & RTO) && (flags & PRE)) {
-		pr_debug("SEQ IN PTR: Invalid usage of RTO and PRE flags\n");
+		pr_err("SEQ IN PTR: Invalid usage of RTO and PRE flags\n");
 		goto err;
 	}
 	if (flags & ~seq_in_ptr_flags[rta_sec_era]) {
-		pr_debug("SEQ IN PTR: Flag(s) not supported by SEC Era %d\n",
-			 USER_SEC_ERA(rta_sec_era));
+		pr_err("SEQ IN PTR: Flag(s) not supported by SEC Era %d\n",
+		       USER_SEC_ERA(rta_sec_era));
 		goto err;
 	}
 	if ((flags & INL) && (flags & RJD)) {
-		pr_debug("SEQ IN PTR: Invalid usage of INL and RJD flags\n");
+		pr_err("SEQ IN PTR: Invalid usage of INL and RJD flags\n");
 		goto err;
 	}
 	if ((src) && (flags & (SOP | RTO | PRE))) {
-		pr_debug("SEQ IN PTR: Invalid usage of RTO or PRE flag\n");
+		pr_err("SEQ IN PTR: Invalid usage of RTO or PRE flag\n");
 		goto err;
 	}
 	if ((flags & SOP) && (flags & (RBS | PRE | RTO | EXT))) {
-		pr_debug("SEQ IN PTR: Invalid usage of SOP and (RBS or PRE or RTO or EXT) flags\n");
+		pr_err("SEQ IN PTR: Invalid usage of SOP and (RBS or PRE or RTO or EXT) flags\n");
 		goto err;
 	}
 
@@ -75,7 +75,7 @@ static inline unsigned rta_seq_in_ptr(struct program *program, uint64_t src,
 		opcode |= SQIN_SOP;
 	if ((length >> 16) || (flags & EXT)) {
 		if (flags & SOP) {
-			pr_debug("SEQ IN PTR: Invalid usage of SOP and EXT flags\n");
+			pr_err("SEQ IN PTR: Invalid usage of SOP and EXT flags\n");
 			goto err;
 		}
 
@@ -111,20 +111,20 @@ static inline unsigned rta_seq_out_ptr(struct program *program, uint64_t dst,
 
 	/* Parameters checking */
 	if (flags & ~seq_out_ptr_flags[rta_sec_era]) {
-		pr_debug("SEQ OUT PTR: Flag(s) not supported by SEC Era %d\n",
-			 USER_SEC_ERA(rta_sec_era));
+		pr_err("SEQ OUT PTR: Flag(s) not supported by SEC Era %d\n",
+		       USER_SEC_ERA(rta_sec_era));
 		goto err;
 	}
 	if ((flags & RTO) && (flags & PRE)) {
-		pr_debug("SEQ OUT PTR: Invalid usage of RTO and PRE flags\n");
+		pr_err("SEQ OUT PTR: Invalid usage of RTO and PRE flags\n");
 		goto err;
 	}
 	if ((dst) && (flags & (RTO | PRE))) {
-		pr_debug("SEQ OUT PTR: Invalid usage of RTO or PRE flag\n");
+		pr_err("SEQ OUT PTR: Invalid usage of RTO or PRE flag\n");
 		goto err;
 	}
 	if ((flags & RST) && !(flags & RTO)) {
-		pr_debug("SEQ OUT PTR: RST flag must be used with RTO flag\n");
+		pr_err("SEQ OUT PTR: RST flag must be used with RTO flag\n");
 		goto err;
 	}
 

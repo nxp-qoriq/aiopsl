@@ -4,10 +4,11 @@
 #include "desc.h"
 #include "jobdesc.h"
 
-#define IPSEC_DONT_USE_SEC_APP
+//#define IPSEC_DONT_USE_SEC_APP
 
 #ifndef IPSEC_DONT_USE_SEC_APP
-#include "protoshared.h"
+//#include "protoshared.h"
+#include "desc/ipsec.h"
 
 #define DES_BLOCK_SIZE	8
 /**< Integer number of bits in given bytes  */
@@ -74,6 +75,8 @@ struct my_ipsec_encap_pdb {
  *      that since a split key is to be used, the size of the split key itself
  *      is specified. Valid algorithm values: one of OP_PCL_IPSEC_*
  */
+
+/*
 static inline void cnstr_jd_ipsec_new_encap(uint32_t *descbuf,
 					       unsigned *bufsize,
 					       unsigned short ps,
@@ -137,4 +140,6 @@ static inline void cnstr_jd_ipsec_new_encap(uint32_t *descbuf,
 	PATCH_HDR(phdr, hdr);
 	*bufsize = PROGRAM_FINALIZE();
 }
+
+*/
 #endif /* IPSEC_DONT_USE_SEC_APP */

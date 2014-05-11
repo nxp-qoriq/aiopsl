@@ -565,8 +565,8 @@ static inline unsigned rta_proto_operation(struct program *program,
 				/* check protoinfo */
 				if (-1 == (*proto_table[i].protoinfo_func)
 						(protoinfo)) {
-					pr_debug("PROTO_DESC: Bad PROTO Type. SEC Program Line: %d\n",
-						 program->current_pc);
+					//pr_err("PROTO_DESC: Bad PROTO Type. SEC Program Line: %d\n",
+					//       program->current_pc);
 					goto err;
 				}
 				found = 1;
@@ -575,8 +575,8 @@ static inline unsigned rta_proto_operation(struct program *program,
 		}
 	}
 	if (!found) {
-		pr_debug("PROTO_DESC: Operation Type Mismatch. SEC Program Line: %d\n",
-			 program->current_pc);
+		//pr_err("PROTO_DESC: Operation Type Mismatch. SEC Program Line: %d\n",
+		//       program->current_pc);
 		goto err;
 	}
 

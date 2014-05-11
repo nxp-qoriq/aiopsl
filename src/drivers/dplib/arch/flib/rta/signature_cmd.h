@@ -19,7 +19,7 @@ static inline unsigned rta_signature(struct program *program,
 		opcode |= sign_type;
 		break;
 	default:
-		pr_debug("SIGNATURE Command: Invalid type selection\n");
+		pr_err("SIGNATURE Command: Invalid type selection\n");
 		goto err;
 	}
 

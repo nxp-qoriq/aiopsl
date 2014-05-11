@@ -241,9 +241,26 @@ do { \
 #endif
 #define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
 
+
+#ifdef pr_info
+#undef pr_info
+#endif
 #define pr_info(...) 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__)
+
+#ifdef pr_warn
+#undef pr_warn
+#endif
 #define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
+
+#ifdef pr_err
+#undef pr_err
+#endif
 #define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
+
+
+#ifdef pr_crit
+#undef pr_crit
+#endif
 #define pr_crit(...)	DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__)
 
 /** @} */ /* end of dump_g group */

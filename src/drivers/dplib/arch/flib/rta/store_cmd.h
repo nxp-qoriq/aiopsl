@@ -70,21 +70,21 @@ static inline unsigned rta_store(struct program *program, uint64_t src,
 
 	/* parameters check */
 	if ((flags & IMMED) && (flags & SGF)) {
-		pr_debug("STORE: Invalid flag. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("STORE: Invalid flag. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 	if ((flags & IMMED) && (offset != 0)) {
-		pr_debug("STORE: Invalid flag. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("STORE: Invalid flag. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
 	if ((flags & SEQ) && ((src == _JOBDESCBUF) || (src == _SHAREDESCBUF) ||
 			      (src == _JOBDESCBUF_EFF) ||
 			      (src == _SHAREDESCBUF_EFF))) {
-		pr_debug("STORE: Invalid SRC type. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("STORE: Invalid SRC type. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
@@ -103,9 +103,9 @@ static inline unsigned rta_store(struct program *program, uint64_t src,
 		ret = __rta_map_opcode((uint32_t)src, store_src_table,
 				       store_src_table_sz[rta_sec_era], &val);
 		if (ret == -1) {
-			pr_debug("STORE: Invalid source. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			pr_err("STORE: Invalid source. SEC PC: %d; Instr: %d\n",
+			       program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 		opcode |= val;
@@ -132,9 +132,9 @@ static inline unsigned rta_store(struct program *program, uint64_t src,
 	/* for STORE, a pointer to where the data will be stored is needed */
 	if (!(flags & SEQ)) {
 		if (type_dst != PTR_DATA) {
-			pr_debug("STORE: Invalid dst type. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			pr_err("STORE: Invalid dst type. SEC PC: %d; Instr: %d\n",
+			       program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 		__rta_out64(program, program->ps, dst);

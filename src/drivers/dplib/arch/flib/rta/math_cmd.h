@@ -79,33 +79,33 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 	unsigned start_pc = program->current_pc;
 
 	if (type_res != REG_TYPE) {
-		pr_debug("MATH: Incorrect result type. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("MATH: Incorrect result type. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
 	if (((op == BSWAP) && (rta_sec_era < RTA_SEC_ERA_4)) ||
 	    ((op == ZBYTE) && (rta_sec_era < RTA_SEC_ERA_2))) {
-		pr_debug("MATH: operation not supported by SEC Era %d. SEC PC: %d; Instr: %d\n",
-			 USER_SEC_ERA(rta_sec_era), program->current_pc,
-			 program->current_instruction);
+		pr_err("MATH: operation not supported by SEC Era %d. SEC PC: %d; Instr: %d\n",
+		       USER_SEC_ERA(rta_sec_era), program->current_pc,
+		       program->current_instruction);
 		goto err;
 	}
 
 	if (options & SWP) {
 		if (rta_sec_era < RTA_SEC_ERA_7) {
-			pr_debug("MATH: operation not supported by SEC Era %d. SEC PC: %d; Instr: %d\n",
-				 USER_SEC_ERA(rta_sec_era), program->current_pc,
-				 program->current_instruction);
+			pr_err("MATH: operation not supported by SEC Era %d. SEC PC: %d; Instr: %d\n",
+			       USER_SEC_ERA(rta_sec_era), program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 
 		if ((options & IFB) ||
 		    ((type_op1 != IMM_DATA) && (type_op2 != IMM_DATA)) ||
 		    ((type_op1 == IMM_DATA) && (type_op2 == IMM_DATA))) {
-			pr_debug("MATH: SWP - invalid configuration. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			pr_err("MATH: SWP - invalid configuration. SEC PC: %d; Instr: %d\n",
+			       program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 	}
@@ -116,8 +116,8 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 	 * or _SEQINSZ as second operand
 	 */
 	if ((op != SHLD) && ((operand1 == _NONE) || (operand2 == _SEQINSZ))) {
-		pr_debug("MATH: Invalid operand. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("MATH: Invalid operand. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
@@ -126,8 +126,8 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 	 * case second operand must be _NONE
 	 */
 	if (((op == ZBYTE) || (op == BSWAP)) && (operand2 != _NONE)) {
-		pr_debug("MATH: Invalid operand2. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("MATH: Invalid operand2. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
@@ -138,9 +138,9 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 		ret = __rta_map_opcode((uint32_t)operand1, math_op1,
 				       math_op1_sz[rta_sec_era], &val);
 		if (ret == -1) {
-			pr_debug("MATH: operand1 not supported. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			pr_err("MATH: operand1 not supported. SEC PC: %d; Instr: %d\n",
+			       program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 		opcode |= val;
@@ -153,9 +153,9 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 		ret = __rta_map_opcode((uint32_t)operand2, math_op2,
 				       math_op2_sz[rta_sec_era], &val);
 		if (ret == -1) {
-			pr_debug("MATH: operand2 not supported. SEC PC: %d; Instr: %d\n",
-				 program->current_pc,
-				 program->current_instruction);
+			pr_err("MATH: operand2 not supported. SEC PC: %d; Instr: %d\n",
+			       program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 		opcode |= val;
@@ -165,8 +165,8 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 	ret = __rta_map_opcode(result, math_result, math_result_sz[rta_sec_era],
 			       &val);
 	if (ret == -1) {
-		pr_debug("MATH: result not supported. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("MATH: result not supported. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 	opcode |= val;
@@ -193,8 +193,8 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 		opcode |= op;
 		break;
 	default:
-		pr_debug("MATH: operator is not supported. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("MATH: operator is not supported. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
@@ -215,8 +215,8 @@ static inline unsigned rta_math(struct program *program, uint64_t operand1,
 		opcode |= MATH_LEN_8BYTE;
 		break;
 	default:
-		pr_debug("MATH: length is not supported. SEC PC: %d; Instr: %d\n",
-			 program->current_pc, program->current_instruction);
+		pr_err("MATH: length is not supported. SEC PC: %d; Instr: %d\n",
+		       program->current_pc, program->current_instruction);
 		goto err;
 	}
 
