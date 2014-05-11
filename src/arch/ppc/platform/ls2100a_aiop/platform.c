@@ -412,7 +412,7 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 
     *seed_mem_ptr = seed;
 
-    for (i = 0 ; i < 15; i ++)
+    for (i = 0 ; i < 16; i ++)
     {
 	    seed_mem_ptr += 512; /*size of each task area*/
 	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/

@@ -128,7 +128,8 @@ void core_ready_for_tasks(void)
 
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
-    /* finished boot sequence; now wait for event .... */
+    /*  finished boot sequence; now wait for event .... */
+    pr_info("CORE ID %d \n", core_get_id());
     pr_info("AIOP completed boot sequence; waiting for events ...\n");
 
 #if 0
