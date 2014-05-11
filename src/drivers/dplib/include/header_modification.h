@@ -35,17 +35,6 @@
 #define IPV6_TC_MASK		0xf00fffff
 #define IPV6_FLOW_MASK		0xfff00000
 
-/** Returns a non-zero value in case TCP or UDP are found */
-#define PARSER_IS_L4_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_3 & (PARSER_ATT_UDP_MASK | PARSER_ATT_TCP_MASK))
-/** Returns a non-zero value in case Inner IP is found (IPv4 or IPv6)
- * (only in case of more than 1 IP header in the frame) */
-#define PARSER_IS_TUNNEL_IP_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_2 & (PARSER_ATT_IPV4_N_MASK |\
-	PARSER_ATT_IPV6_N_MASK))
-
 
 #define PARSER_CLEAR_RUNNING_SUM() \
 (((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum) = 0

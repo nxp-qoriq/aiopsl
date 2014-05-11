@@ -12,6 +12,12 @@
 
 void aiop_verification_sr()
 {
+	init_verif();
+	aiop_verification_parse();
+}
+	
+void aiop_verification_parse()
+{
 	/* Presentation Context */
 	struct presentation_context *PRC;
 	uint32_t asa_seg_addr;	/* ASA Segment Address */
@@ -23,7 +29,6 @@ void aiop_verification_sr()
 	uint8_t gro_iteration = 0;
 	uint8_t ipr_iteration = 0;
 
-	init_verif();
 
 	/* initialize Additional Dequeue Context */
 	PRC = (struct presentation_context *) HWC_PRC_ADDRESS;

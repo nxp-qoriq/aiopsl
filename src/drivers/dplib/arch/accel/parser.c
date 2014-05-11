@@ -32,7 +32,7 @@ int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 	parse_profile->parse_profile.reserved1 = 0;
 	parse_profile->parse_profile.reserved2 = 0;
 
-	(uint64_t*)(parse_profile->reserved) = 0;
+	*((uint64_t*)(parse_profile->reserved)) = 0;
 	*((uint16_t*)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
 	parse_profile->reserved[4]= *prpid;
 
@@ -51,7 +51,7 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 	parse_profile->parse_profile.reserved1 = 0;
 	parse_profile->parse_profile.reserved2 = 0;
 
-	(uint64_t*)(parse_profile->reserved) = 0;
+	*((uint64_t*)(parse_profile->reserved)) = 0;
 	*((uint16_t*)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
 	parse_profile->reserved[4]= prpid;
 
