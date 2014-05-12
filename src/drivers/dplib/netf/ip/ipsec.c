@@ -75,7 +75,6 @@ __SHRAM struct ipsec_global_params global_params;
 * 	ipsec_init
 *//****************************************************************************/
 int32_t ipsec_init(uint32_t max_sa_no) {
-	//pr_err("kkk\n");
 
 	global_params.sa_count = max_sa_no;
 	global_params.asa_bpid = 1; // TMP

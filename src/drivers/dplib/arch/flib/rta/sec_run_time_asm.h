@@ -3,13 +3,11 @@
 #ifndef __RTA_SEC_RUN_TIME_ASM_H__
 #define __RTA_SEC_RUN_TIME_ASM_H__
 
-//#include "flib/desc.h"
-#include "desc.h"
+#include "flib/desc.h"
 
 /* flib/compat.h is not delivered in kernel */
 #ifndef __KERNEL__
-//#include "flib/compat.h"
-#include "compat.h"
+#include "flib/compat.h"
 #endif
 
 #ifndef high_32b
@@ -565,7 +563,7 @@ static inline unsigned rta_program_finalize(struct program *program)
 
 	/* Descriptor is erroneous */
 	if (program->first_error_pc)
-		//pr_err("Descriptor creation error\n");
+		pr_err("Descriptor creation error\n");
 
 	/* Update descriptor length in shared and job descriptor headers */
 	if (program->shrhdr != NULL) {

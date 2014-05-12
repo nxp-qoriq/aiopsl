@@ -3,11 +3,8 @@
 #ifndef __DESC_IPSEC_H__
 #define __DESC_IPSEC_H__
 
-//#include "flib/rta.h"
-#include "rta.h"
-
-//#include "common.h"
-#include "desc/common.h"
+#include "flib/rta.h"
+#include "common.h"
 
 /**
  * @file                 ipsec.h
@@ -794,8 +791,8 @@ static inline void cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf,
 	REFERENCE(phdr);
 
 	if (rta_sec_era < RTA_SEC_ERA_8) {
-		//pr_err("IPsec new mode encap: available only for Era %d or above\n",
-		//       USER_SEC_ERA(RTA_SEC_ERA_8));
+		pr_err("IPsec new mode encap: available only for Era %d or above\n",
+		       USER_SEC_ERA(RTA_SEC_ERA_8));
 		*bufsize = 0;
 		return;
 	}
@@ -878,8 +875,8 @@ static inline void cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf,
 	REFERENCE(phdr);
 
 	if (rta_sec_era < RTA_SEC_ERA_8) {
-		//pr_err("IPsec new mode decap: available only for Era %d or above\n",
-		 //      USER_SEC_ERA(RTA_SEC_ERA_8));
+		pr_err("IPsec new mode decap: available only for Era %d or above\n",
+		       USER_SEC_ERA(RTA_SEC_ERA_8));
 		*bufsize = 0;
 		return;
 	}

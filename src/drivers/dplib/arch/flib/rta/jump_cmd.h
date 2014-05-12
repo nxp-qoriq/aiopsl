@@ -54,21 +54,21 @@ static inline unsigned rta_jump(struct program *program, uint64_t address,
 	unsigned start_pc = program->current_pc;
 
 	if ((address_type != IMM_DATA) && (address_type != PTR_DATA)) {
-		//pr_err("JUMP: Address must be either IMM or PTR\n");
+		pr_err("JUMP: Address must be either IMM or PTR\n");
 		goto err;
 	}
 
 	if (((jump_type == GOSUB) || (jump_type == RETURN)) &&
 	    (rta_sec_era < RTA_SEC_ERA_4)) {
-		//pr_err("JUMP: Jump type not supported by SEC Era %d\n",
-		//       USER_SEC_ERA(rta_sec_era));
+		pr_err("JUMP: Jump type not supported by SEC Era %d\n",
+		       USER_SEC_ERA(rta_sec_era));
 		goto err;
 	}
 
 	if (((jump_type == LOCAL_JUMP_INC) || (jump_type == LOCAL_JUMP_DEC)) &&
 	    (rta_sec_era <= RTA_SEC_ERA_5)) {
-		//pr_err("JUMP_INCDEC: Jump type not supported by SEC Era %d\n",
-		//       USER_SEC_ERA(rta_sec_era));
+		pr_err("JUMP_INCDEC: Jump type not supported by SEC Era %d\n",
+		       USER_SEC_ERA(rta_sec_era));
 		goto err;
 	}
 
@@ -101,8 +101,8 @@ static inline unsigned rta_jump(struct program *program, uint64_t address,
 		opcode |= JUMP_TYPE_LOCAL_DEC;
 		break;
 	default:
-		//pr_err("JUMP: Invalid jump type. SEC Program Line: %d\n",
-		//       program->current_pc);
+		pr_err("JUMP: Invalid jump type. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
@@ -123,8 +123,8 @@ static inline unsigned rta_jump(struct program *program, uint64_t address,
 		opcode |= JUMP_TEST_INVANY;
 		break;
 	default:
-		//pr_err("JUMP: test type not supported. SEC Program Line: %d\n",
-		//       program->current_pc);
+		pr_err("JUMP: test type not supported. SEC Program Line: %d\n",
+		       program->current_pc);
 		goto err;
 	}
 
@@ -137,18 +137,18 @@ static inline unsigned rta_jump(struct program *program, uint64_t address,
 		int ret;
 
 		if (type_src_dst != REG_TYPE) {
-			//pr_err("JUMP_INCDEC: Incorrect SRC_DST type. SEC PC: %d; Instr: %d\n",
-			//       program->current_pc,
-			//       program->current_instruction);
+			pr_err("JUMP_INCDEC: Incorrect SRC_DST type. SEC PC: %d; Instr: %d\n",
+			       program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 
 		ret = __rta_map_opcode(src_dst, jump_src_dst,
 				       ARRAY_SIZE(jump_src_dst), &val);
 		if (ret == -1) {
-			//pr_err("JUMP_INCDEC: SRC_DST not supported. SEC PC: %d; Instr: %d\n",
-			//       program->current_pc,
-			//       program->current_instruction);
+			pr_err("JUMP_INCDEC: SRC_DST not supported. SEC PC: %d; Instr: %d\n",
+			       program->current_pc,
+			       program->current_instruction);
 			goto err;
 		}
 		opcode |= val;
