@@ -217,10 +217,17 @@ struct tcp_gro_stats_cntrs {
 @Description	TCP GRO packet metadata.
 *//***************************************************************************/
 struct tcp_gro_context_metadata {
-		/** Address (in HW buffers) of the segment sizes. This field
-		 * will be updated if \ref TCP_GRO_METADATA_SEGMENT_SIZES is
-		 * set. For each segment, upper SW should allocate 2 bytes (to
-		 * support up to 64KB length segments). */
+		/** Address (in HW buffers) for the segment sizes. This field
+		 * will be used by GRO only if
+		 * \ref TCP_GRO_METADATA_SEGMENT_SIZES is set.
+		 * Upper SW should initialize this variable at
+		 * \ref tcp_gro_context_params.metadata_addr (first 8 bytes) and
+		 * GRO reads it from that location.
+		 * For each segment, upper SW should allocate 2 bytes (to
+		 * support up to 64KB length segments) starting at this
+		 * address. E.g. If max segments per aggregation is 10 segments,
+		 * 20 bytes per aggregation should be allocated starting at this
+		 * address. */
 	uint64_t seg_sizes_addr;
 		/** Number of segments in the aggregation. */
 	uint16_t seg_num;
