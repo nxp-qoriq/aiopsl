@@ -56,6 +56,7 @@
 #define FD_SIZE					sizeof(struct ldpaa_fd)
 #define OCTET_LINK_LIST_MASK	0x07
 #define IPV4_KEY_SIZE			11
+#define IPV6_FIXED_HEADER_SIZE	40
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
@@ -251,7 +252,6 @@ int ipr_init(void);
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 							     uint64_t rfdc_ext_addr, 
-							     uint16_t iphdr_offset,
 							     void     *iphdr_ptr);
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);

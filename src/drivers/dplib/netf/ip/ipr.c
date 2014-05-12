@@ -366,7 +366,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			   /* Early Time out */
 			   return IPR_ERROR;
 			}
-		} else if (sr_status == CTLU_STATUS_MISS) {
+		} else if (sr_status == TABLE_STATUS_MISS) {
 			/* Miss */
 		    cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
 				     	 	 	 	    &rfdc_ext_addr);
@@ -481,7 +481,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
-												  iphdr_offset,
 												  iphdr_ptr);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
@@ -598,7 +597,6 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 							     uint64_t rfdc_ext_addr, 
-							     uint16_t iphdr_offset,
 							     void *iphdr_ptr)
 {
 
@@ -629,15 +627,18 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		last_fragment = !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK);
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
-		ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-		ipv6fraghdr_ptr = (struct ipv6fraghdr *) ((uint32_t)ipv6hdr_ptr +
+		/* todo remove following workaroud CR ENGR00312273 */
+		//ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		ipv6fraghdr_offset = 54;
+		ipv6fraghdr_ptr = (struct ipv6fraghdr *) (PRC_GET_SEGMENT_ADDRESS() +
 													ipv6fraghdr_offset);
 		frag_offset_shifted =  ipv6fraghdr_ptr->offset_and_flags & 
 							  FRAG_OFFSET_IPV6_MASK;
 	
 		ip_header_size = ((uint16_t)((uint32_t)ipv6fraghdr_ptr - 
 							(uint32_t)ipv6hdr_ptr)) + 8;
-		current_frag_size = ipv6hdr_ptr->payload_length - ip_header_size;
+		current_frag_size = ipv6hdr_ptr->payload_length - ip_header_size + 
+							IPV6_FIXED_HEADER_SIZE;
 		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
 							IPV6_HDR_M_FLAG_MASK);
 	}
@@ -770,6 +771,9 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 	fdma_present_default_frame_without_segments();
 
 	/* Open 2nd frame and get frame handle */
+	/* reset frame2 field because handle is 2 bytes in concatenate
+	   vs 1 byte in present*/
+	concatenate_params.frame2 = 0;
 	fdma_present_frame_without_segments(
 		   fds_to_concatenate+1,
 		   FDMA_INIT_NO_FLAGS,
@@ -791,6 +795,9 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 			  fds_to_fetch_addr,
 			  2*FD_SIZE);
 		/* Open frame and get frame handle */
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		concatenate_params.frame2 = 0;
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,
@@ -825,7 +832,11 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 		cdma_read((void *)fds_to_concatenate,
 			  fds_to_fetch_addr,
 			  FD_SIZE);
-
+		
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		concatenate_params.frame2 = 0;
+		
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,
@@ -917,8 +928,11 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv6hdr_ptr = (struct ipv6hdr *)
 					(ipv6hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
-	ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-	ipv6fraghdr_ptr = (struct ipv6fraghdr *) ((uint32_t)ipv6hdr_ptr +
+	/* todo remove following workaroud CR ENGR00312273 */
+	//ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+	ipv6fraghdr_offset = 54;
+
+	ipv6fraghdr_ptr = (struct ipv6fraghdr *) (PRC_GET_SEGMENT_ADDRESS() +
 												ipv6fraghdr_offset);
 	
 	ip_header_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
@@ -927,7 +941,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length + 
 								  ip_header_size;
 	/* Move next header of fragment header to previous extension header */
-	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,FRAGMENT_REQUEST)=
+	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr,LAST_HEADER_BEFORE_FRAG)=
 												ipv6fraghdr_ptr->next_header;
 	/* Remove fragment header extension */
 	fdma_delete_default_segment_data(ipv6fraghdr_offset,
@@ -959,6 +973,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	struct						presentation_context *prc =
 								(struct presentation_context *) HWC_PRC_ADDRESS;
 
+	concatenate_params.flags = FDMA_CONCAT_SF_BIT;
 	
 	if(rfdc_ptr->status & ORDER_AND_OOO) { 
 		if (rfdc_ptr->index_to_out_of_order == 1) {
@@ -971,6 +986,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		
 			/* Open 1rst frame and get frame handle */
 			fdma_present_default_frame_without_segments();
+			concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 			current_index = rfdc_ptr->first_frag_index;
 			temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
 							current_index*FD_SIZE;
@@ -979,6 +995,10 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 					  temp_ext_addr,
 					  FD_SIZE);
 			/* Open frame and get frame handle */
+			/* reset frame2 field because handle is 2 bytes in concatenate
+			   vs 1 byte in present*/
+			concatenate_params.frame2 = 0;
+
 			fdma_present_frame_without_segments(
 					fds_to_concatenate,
 					FDMA_INIT_NO_FLAGS,
@@ -988,7 +1008,6 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		
 			/* Take header size to be removed from FD[FRC] */
 			concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
-		
 			fdma_concatenate_frames(&concatenate_params);
 		
 			num_of_frags = rfdc_ptr->num_of_frags - 2;
@@ -1029,13 +1048,16 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		fdma_present_default_frame_without_segments();
 	
 		/* Open 2nd frame and get frame handle */
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		concatenate_params.frame2 = 0;
 		fdma_present_frame_without_segments(
 			   fds_to_concatenate+1,
 			   FDMA_INIT_NO_FLAGS,
 			   0,
 			   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));
 	
-		concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
+//		concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
 		concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
 		concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 		/* Take header size to be removed from 2nd FD[FRC] */
@@ -1067,6 +1089,10 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 				  temp_ext_addr,
 				  FD_SIZE);
 		/* Open frame and get frame handle */
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		/* todo move this reset to be done once and not each iteration */
+		concatenate_params.frame2 = 0;
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,

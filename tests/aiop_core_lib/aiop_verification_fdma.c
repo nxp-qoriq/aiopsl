@@ -40,6 +40,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			((uint16_t)str->asa_size & PRC_ASAPS_MASK);
 		if (str->SR)
 			PRC_SET_SR_BIT();
+		if (str->NDS)
+			PRC_SET_NDS_BIT();
 		prc->ptapa_asapo	=
 			(((uint16_t)(uint32_t)str->pta_address) &
 					PRC_PTAPA_MASK) |
@@ -727,7 +729,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_create_frame_command *str =
 			(struct fdma_create_frame_command *) asa_seg_addr;
 		str->status = (int8_t)fdma_create_frame(
-				&(str->fd), (void *)(str->data), str->size,
+				(struct ldpaa_fd *)(str->fd_src),
+				(void *)(str->data), str->size,
 				&(str->frame_handle));
 		str_size = (uint16_t)sizeof(struct fdma_create_frame_command);
 		break;
@@ -738,7 +741,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_create_fd_command *str =
 			(struct fdma_create_fd_command *) asa_seg_addr;
 		str->status = (int8_t)fdma_create_fd(
-				&(str->fd), (void *)(str->data), str->size);
+				(struct ldpaa_fd *)(str->fd_src),
+				(void *)(str->data), str->size);
+		str->fd = *((struct ldpaa_fd *)(str->fd_src));
 		str_size = (uint16_t)sizeof(struct fdma_create_fd_command);
 		break;
 	}

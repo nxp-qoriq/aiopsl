@@ -3,6 +3,7 @@
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "common/spinlock.h"
+#include "common/dbg.h"
 
 #include "slob.h"
 
@@ -1064,23 +1065,23 @@ void slob_dump(fsl_handle_t slob)
     int          i;
 
     p_busy_b = p_MM->busy_blocks;
-    fsl_os_print("list of busy blocks:\n");
+    pr_debug("list of busy blocks:\n");
     while (p_busy_b)
     {
-        fsl_os_print("\t0x%p: (%s: b=0x%llx, e=0x%llx)\n", p_busy_b, p_busy_b->name, p_busy_b->base, p_busy_b->end );
+        pr_debug("\t0x%p: (%s: b=0x%llx, e=0x%llx)\n", p_busy_b, p_busy_b->name, p_busy_b->base, p_busy_b->end );
         p_busy_b = p_busy_b->p_next;
     }
 
-    fsl_os_print("\n_lists of free blocks according to alignment:\n");
+    pr_debug("\n_lists of free blocks according to alignment:\n");
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
-        fsl_os_print("%d alignment:\n", (0x1 << i));
+        pr_debug("%d alignment:\n", (0x1 << i));
         p_free_b = p_MM->free_blocks[i];
         while (p_free_b)
         {
-            fsl_os_print("\t0x%p: (b=0x%llx, e=0x%llx)\n", p_free_b, p_free_b->base, p_free_b->end);
+            pr_debug("\t0x%p: (b=0x%llx, e=0x%llx)\n", p_free_b, p_free_b->base, p_free_b->end);
             p_free_b = p_free_b->p_next;
         }
-        fsl_os_print("\n");
+        pr_debug("\n");
     }
 }

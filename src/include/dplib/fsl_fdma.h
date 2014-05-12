@@ -801,7 +801,7 @@ enum fdma_pta_size_type {
 		FDMA_UNABLE_TO_TRIM_ERR
 /** Unable to perform required processing due to received
 * FD[FMT]=0x3 (the reserved value). */
-#define FDMA_CONCATENATE_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR			\
+#define FDMA_CONCATENATE_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR	\
 	FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR
 /** Invalid Frame Handle. */
 #define FDMA_CONCATENATE_FRAMES_INVALID_FRAME_HANDLE_ERR		\
@@ -1769,8 +1769,8 @@ struct fdma_delete_segment_data_params {
 		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
 		 *  flag is set). */
 	void	 *ws_dst_rs;
-		/**< \link FDMA_Replace_Flags replace working frame segment
-		 * flags \endlink */
+		/**< \ref FDMA_Replace_Flags replace working frame segment
+		 * flags. */
 	uint32_t flags;
 		/**< Offset from the previously presented segment representing
 		 * from where to delete data.
@@ -2408,7 +2408,8 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
 		to the default FD location: frame handle, NDS bit, ASA size (0),
 		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
 
-@Param[in]	frame - FD address in workspace to be discarded.
+@Param[in]	fd - A pointer to the location in the workspace of the FD to be
+		discarded.
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
 
@@ -2684,8 +2685,8 @@ int32_t fdma_modify_default_segment_data(
 		represented frame segment (relevant if
 		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 @Param[in]	size_rs - Number of frame bytes to represent in the segment.
- 	 	Must be greater than 0.
- 	 	Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		Must be greater than 0.
+		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
@@ -3140,6 +3141,7 @@ int32_t fdma_copy_data(
 @Cautions
 		- In this Service Routine the task yields.
 		- The FD address in workspace must be aligned to 32 bytes.
+		- The frame FD is overwritten in this function.
 *//***************************************************************************/
 int32_t fdma_create_frame(
 		struct ldpaa_fd *fd,
@@ -3191,6 +3193,7 @@ int32_t fdma_create_frame(
 @Cautions
 		- In this Service Routine the task yields.
 		- The FD address in workspace must be aligned to 32 bytes.
+		- The frame FD is overwritten in this function.
 *//***************************************************************************/
 int32_t fdma_create_fd(
 		struct ldpaa_fd *fd,

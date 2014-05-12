@@ -39,21 +39,17 @@ static int sys_debugger_print(fsl_handle_t unused,
                               uint8_t *p_data,
                               uint32_t size)
 {
-	uint32_t int_flags;
 	int ret;
 
 	UNUSED(unused);
 	UNUSED(size);
 
-	/* Disable interrupts to work-around CW bug */
-	int_flags = spin_lock_irqsave(&(sys.console_lock));
 #ifdef SIMULATOR
 	ret = system_call(4, 1, (int)PTR_TO_UINT(p_data), (int)size, 0);
 #else
 	ret = printf((char *)p_data);
 	fflush(stdout);
 #endif /* SIMULATOR */
-	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 
 	return ret;
 }

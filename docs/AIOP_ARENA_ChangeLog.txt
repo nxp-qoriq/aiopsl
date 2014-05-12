@@ -1,9 +1,33 @@
+
+- aiopsl\.project - added serial folder to project(uart.h, uart.c)
+- init.c - added support for UART on AIOP
+- platform.c - added support fort UART on AIOP, prints will be redirected to UART 0
+- duart.c - added to project, fixed to support uart on AIOP
+- duart.h -added to project
+- fsl_soc_spec.h - wrote hard coded address for DUART
+- fsl_duart.h - fixed doxygen
+
+- aiop_link.lcf:      Added .psram_data .psram_bss for Profile SRAM.
+- fsl_cmdif_server.h: New file for CMDIF server API. Use this API for cmdif_register_module().
+- fsl_cmdif_client.h: New file for CMDIF client API.
+- fsl_aiop_cmdif.h:   The file has been removed.
+- fsl_cmdif.h:        Removed server API, now it includes only AIOP to MC client API which should be used only by dplib drivers.
+
+- Added a new  application {aiopls}\build\aiop_t4ls_sim\tests\arena_test.
+   It contains slab  functionality (slab create in init pahase and  slab aquire in run-time and slab release)
+   malloc() from the heap and xmalloc() from  DP-DDR, SHARED RAM and PEB memory partitions in init and ruin-time phase. 
+- The demo application app_process_packet contains only basic functionality of precessing a received packet.
+   Slab related test has been moved to arena_test application.
+   
+- type_mw.h:     Added define for __WARM_CODE to load code to shared ram
+- aipo_link.lcf: Added .stext and .stext_vle define for code to be placed in shared ram  
+
 - init.c, main.c: Added stack overflow detection using DAC1/DAC2 registers, MCSRR0 stores PC of instruction caused the exception.
-- os.c:  Added implementation for fsl_os_rand().
-- init.c: Added seed variable in tls section for each task (seed_32bit).
-- fsl_stdlib.h: Added prototype for fsl_os_rand().
-- platfom.c: in function "pltfrm_init_core_cb" added initialization of seed to each task when
-             initializing the core.
+- os.c:           Added implementation for fsl_os_rand().
+- init.c:         Added seed variable in tls section for each task (seed_32bit).
+- fsl_stdlib.h:   Added prototype for fsl_os_rand().
+- platfom.c:      in function "pltfrm_init_core_cb" added initialization of seed to each task when
+                  initializing the core.
 
 - os.c:           Fixed atomic_decr32(), atomic_decr16(), atomic_decr8(), atomic_incr8()
 - fsl_slab.h:     API change from slab_free(struct slab *slab) to slab_free(struct slab **slab).

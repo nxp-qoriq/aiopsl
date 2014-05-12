@@ -18,8 +18,7 @@ int verif_main()
 	/* initialize stack pointer */
 		aiop_verification_sr();
 		aiop_verification_fm();
-		aiop_verification_fm_temp();
-
+		aiop_verification_parse();
 		return 0;
 }
 

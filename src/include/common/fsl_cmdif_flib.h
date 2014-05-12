@@ -2,7 +2,7 @@
 #define __FSL_CMDIF_FLIB_H
 
 #include <types.h>
-#include <fsl_aiop_cmdif.h>
+#include <fsl_cmdif_client.h>
 
 /* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
@@ -10,12 +10,12 @@
  *  @brief   Cmdif AIOP<->GPP FLIB header file
  */
 
-/*! 
+/*!
  * The following are the FD fields that are used by CMDIF
  * cmdif_fd.fls, cmdif_fd.frc, cmdif_fd.d_addr, cmdif_fd.d_size
  * should be copied into real FD */
 struct cmdif_fd {
-	/*! FD[FLC] Frame descriptor relevant fields as should be set 
+	/*! FD[FLC] Frame descriptor relevant fields as should be set
 	 * by cmdif client side when sending commands to AIOP server */
 	union {
 		uint64_t flc;
@@ -43,15 +43,15 @@ struct cmdif_fd {
 		/*!< Close command is always synchronous*/
 	} u_flc;
 
-	/*! FD[FRC] Frame descriptor relevant fields as should be set 
+	/*! FD[FRC] Frame descriptor relevant fields as should be set
 	 * by cmdif client side when sending commands to AIOP server */
 	union  {
-		uint32_t frc;	
+		uint32_t frc;
 		struct {
 			uint32_t dev_l;   /*!< 32 low bit of cmdif_desc.dev */
 		} cmd;
 	} u_frc;
-	
+
 	uint32_t d_size; /*!< Data length */
 	uint64_t d_addr; /*!< Data address */
 };
@@ -71,11 +71,11 @@ int cmdif_open_done(struct cmdif_desc *cidesc);
 int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd);
 int cmdif_close_done(struct cmdif_desc *cidesc);
 int cmdif_is_sync_cmd(uint16_t cmd_id);
-int cmdif_cmd(struct cmdif_desc *cidesc, 
+int cmdif_cmd(struct cmdif_desc *cidesc,
               uint16_t cmd_id,
               uint32_t size,
-              uint64_t data, 
+              uint64_t data,
               struct cmdif_fd *fd);
-int cmdif_async_cb(struct cmdif_fd *fd); 
+int cmdif_async_cb(struct cmdif_fd *fd);
 
 #endif /* __FSL_CMDIF_FLIB_H */

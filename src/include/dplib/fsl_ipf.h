@@ -35,7 +35,7 @@
 
 	/** IPF context size definition. */
 #define IPF_CONTEXT_SIZE	64
-	/** IPF context definition. */
+	/** IPF context definition. Must be aligned to 32B.*/
 typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 
 

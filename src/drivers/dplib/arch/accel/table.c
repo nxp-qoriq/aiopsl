@@ -490,6 +490,11 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	uint32_t arg2 = (uint32_t)lookup_result;
 	__e_rlwimi(arg2, *((uint32_t *)(ndf_params)), 16, 0, 15);
 
+	/* Clearing reserved fields */
+	ndf_params->reserved0 = 0;
+	ndf_params->reserved1 = 0;
+	ndf_params->reserved2 = 0;
+
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(flags | TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE, arg2,
 	       table_id | (((uint32_t)keyid) << 16), 0, HWC_ACC_IN_ADDRESS, 0);

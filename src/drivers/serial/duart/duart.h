@@ -1,4 +1,3 @@
-#ifdef ARENA_LEGACY_CODE
 /**
  @File          duart.h
 
@@ -180,7 +179,7 @@ typedef struct t_duart_uart
                                                      function is called */
     int                     enable_fifo;         /**< Enable FIFO mode */
     int                     poll_mode;           /**< flag true if running in poll mode else intr mode */
-    int                     lf2crlf;            /**< In poll mode convert <LF> to <CR LF>  */
+    int                     lf2crlf;            /**< In poll mode convert [LF] to [CR LF]  */
     e_duart_flow_control      flow_control;        /**< Flow control of the channel */
     uint8_t                 *p_tx_buffer;        /**< Current transmitted buffer */
     uint32_t                tx_buffer_size;       /**< The size in bytes needed for the buffer */
@@ -218,5 +217,4 @@ typedef struct t_duart_uart
 
 
 #endif /* __DUART_H */
-#endif
 

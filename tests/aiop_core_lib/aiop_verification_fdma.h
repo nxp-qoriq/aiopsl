@@ -211,12 +211,18 @@ struct fdma_init_command {
 		/** Number (maximum) of 64B ASA quantities to present (0 for no
 		 * ASA presentation). */
 	uint8_t asa_size;
+		/** No Data Segment:
+		 * - 0: Present data segment.
+		 * - 1: Don't present data segment. */
+	uint8_t NDS;
 		/** Reference within the frame to present from:
 		 * - 0: start of the frame.
 		 * - 1: end of the frame. */
 	uint8_t SR;
 		/** Command returned status. */
 	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 
@@ -1527,20 +1533,14 @@ struct fdma_create_frame_command {
 		 * The data MUST be located in workspace prior to calling this
 		 * command. */
 	uint32_t data;
+		/** Address within the workspace of the FD to be created. */
+	uint32_t fd_src;
 		/** Data size to be inserted to the frame. */
 	uint16_t size;
 		/** Command returned frame handle. */
 	uint8_t frame_handle;
 		/** Command returned status. */
 	int8_t  status;
-		/** 64-bit alignment. */
-	uint8_t	pad[4];
-		/** Command returned Frame Descriptor for the created frame.
-		 * The command updates the FD in workspace, and when the ASA is
-		 * written back to the frame, the updated FD will be written to
-		 * the frame as well.
-		 * The FD address in workspace must be aligned to 32 bytes. */
-	struct ldpaa_fd fd;
 };
 
 /**************************************************************************//**
@@ -1558,12 +1558,14 @@ struct fdma_create_fd_command {
 		 * The data MUST be located in workspace prior to calling this
 		 * command. */
 	uint32_t data;
+		/** Address within the workspace of the FD to be created. */
+	uint32_t fd_src;
 		/** Data size to be inserted to the frame. */
 	uint16_t size;
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[5];
+	uint8_t	pad[1];
 		/** Command returned Frame Descriptor for the created frame.
 		 * The command updates the FD in workspace, and when the ASA is
 		 * written back to the frame, the updated FD will be written to

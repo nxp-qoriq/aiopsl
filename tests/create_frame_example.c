@@ -66,7 +66,7 @@ void create_frame_example(uint32_t fqid, uint16_t icid)
 	/* enqueue the frame according to a given fqid and icid */
 	fdma_enqueue_fd_fqid(
 		    &new_fd,
-		    FDMA_ENF_BDI_BIT | FDMA_ENF_VA_BIT | FDMA_ENF_PL_BIT,
+		    FDMA_ENF_BDI_BIT,
 		    fqid,
 		    icid);
 

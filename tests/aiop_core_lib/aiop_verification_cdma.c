@@ -41,14 +41,14 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			str->status = (int8_t)cdma_release_context_memory(*((uint64_t *)(str->context_memory)));
 			str_size = sizeof(struct cdma_release_context_memory_command);
 			break;
-		}	
+		}
 		/* CDMA Read Command Verification */
 		case CDMA_READ_CMD_STR:
 		{
 			struct cdma_read_command *str =
 				(struct cdma_read_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_read(
-					(void *)str->ws_dst, *((uint64_t *)(str->context_memory)), 
+					(void *)str->ws_dst, *((uint64_t *)(str->context_memory)),
 					str->size);
 			str_size = sizeof(struct cdma_read_command);
 			break;
@@ -59,7 +59,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_write_command *str =
 				(struct cdma_write_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_write(
-					*((uint64_t *)(str->context_memory)), (void *)str->ws_src, 
+					*((uint64_t *)(str->context_memory)), (void *)str->ws_src,
 					str->size);
 			str_size = sizeof(struct cdma_write_command);
 			break;
@@ -101,7 +101,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_write_with_mutex_command *str =
 				(struct cdma_write_with_mutex_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_write_with_mutex(
-					*((uint64_t *)(str->context_memory)), str->flags, 
+					*((uint64_t *)(str->context_memory)), str->flags,
 					(void *)str->ws_src, str->size);
 			str_size = sizeof(struct cdma_write_with_mutex_command);
 			break;
@@ -164,7 +164,7 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_ws_memory_init_command *str =
 				(struct cdma_ws_memory_init_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_ws_memory_init(
-					(void *)str->ws_dst, str->size, 
+					(void *)str->ws_dst, str->size,
 					str->data_pattern);
 			str_size = sizeof(struct cdma_ws_memory_init_command);
 			break;
@@ -175,10 +175,21 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			struct cdma_access_context_memory_command *str =
 				(struct cdma_access_context_memory_command *) asa_seg_addr;
 			str->status = (int8_t)cdma_access_context_memory(
-					*((uint64_t *)(str->context_memory)), str->flags, 
-					str->offset, (void *)str->ws_address, 
+					*((uint64_t *)(str->context_memory)), str->flags,
+					str->offset, (void *)str->ws_address,
 					str->dma_param, &(str->refcount_value));
 			str_size = sizeof(struct cdma_access_context_memory_command);
+			break;
+		}
+		/* CDMA access context memory Command Verification */
+		case CDMA_REFCOUNT_GET_CMD_STR:
+		{
+			struct cdma_refcount_get_command *str =
+				(struct cdma_refcount_get_command *) asa_seg_addr;
+			str->status = (int8_t)cdma_refcount_get(
+					*((uint64_t *)(str->context_memory)),
+					&(str->refcount_value));
+			str_size = sizeof(struct cdma_refcount_get_command);
 			break;
 		}
 		default:
