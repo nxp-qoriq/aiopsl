@@ -1,4 +1,5 @@
-
+SL Alpha v0.4  Change Log
+===============================
 
 Table SRs: table_lookup_by_keyid was renamed to table_lookup_by_keyid_default_frame
 Table SRs: table_lookup_by_keyid was introduced, supporting non default parameters
@@ -6,6 +7,8 @@ Table SRs: table verification files were updated
 Table SRs: documentation was added
 Table SRs: table status were updated
 Table SRs: Removed ICID Error status
+GRO: Add granularity field to timeout parameters.
+FDMA: Add concatenate command new output parameter- AMQ attributes.
 
 SL Pre-Alpha v0.3.3  Change Log
 ===============================

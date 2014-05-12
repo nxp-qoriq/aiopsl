@@ -42,6 +42,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 {                                          \
     {slab_module_init,  slab_module_free}, \
     {dpni_drv_init,     dpni_drv_free},    \
+    {cmdif_srv_init,    cmdif_srv_free},   \
     {aiop_sl_init,      aiop_sl_free},     \
     {NULL, NULL} /* never remove! */       \
 }
@@ -127,8 +128,9 @@ void core_ready_for_tasks(void)
 
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
-    /* finished boot sequence; now wait for event .... */
-    fsl_os_print("AIOP completed boot sequence; waiting for events ...\n");
+    /*  finished boot sequence; now wait for event .... */
+    pr_info("CORE ID %d \n", core_get_id());
+    pr_info("AIOP completed boot sequence; waiting for events ...\n");
 
 #if 0
     if(sys_is_master_core()) {
@@ -152,26 +154,24 @@ void core_ready_for_tasks(void)
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
-#define DEBUG
-#ifdef DEBUG
+
 static void print_dev_desc(struct dprc_dev_desc* dev_desc)
 {
-	fsl_os_print(" device %d\n");
-	fsl_os_print("***********\n");
-	fsl_os_print("vendor - %x\n", dev_desc->vendor);
+	pr_debug(" device %d\n");
+	pr_debug("***********\n");
+	pr_debug("vendor - %x\n", dev_desc->vendor);
 	if (dev_desc->type == DP_DEV_DPNI)
-		fsl_os_print("type - DP_DEV_DPNI\n");
+		pr_debug("type - DP_DEV_DPNI\n");
 	else if (dev_desc->type == DP_DEV_DPRC)
-		fsl_os_print("type - DP_DEV_DPRC\n");
+		pr_debug("type - DP_DEV_DPRC\n");
 	else if (dev_desc->type == DP_DEV_DPIO)
-		fsl_os_print("type - DP_DEV_DPIO\n");
-	fsl_os_print("id - %d\n", dev_desc->id);
-	fsl_os_print("region_count - %d\n", dev_desc->region_count);
-	fsl_os_print("rev_major - %d\n", dev_desc->rev_major);
-	fsl_os_print("rev_minor - %d\n", dev_desc->rev_minor);
-	fsl_os_print("irq_count - %d\n\n", dev_desc->irq_count);
+		pr_debug("type - DP_DEV_DPIO\n");
+	pr_debug("id - %d\n", dev_desc->id);
+	pr_debug("region_count - %d\n", dev_desc->region_count);
+	pr_debug("rev_major - %d\n", dev_desc->rev_major);
+	pr_debug("rev_minor - %d\n", dev_desc->rev_minor);
+	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 }
-#endif
 
 
 /* TODO: Need to replace this temporary workaround with the actual function.
@@ -201,7 +201,7 @@ int run_apps(void)
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0, tmp = 0;
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	int dev_count;
 	void *portal_vaddr;
 	/* TODO: replace with memset */
@@ -227,13 +227,13 @@ int run_apps(void)
 	/* TODO - iterate through the device-list:
 	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	/* TODO: replace hard-coded portal address 10 with configured value */
 	/* TODO : layout file must contain portal ID 10 in order to work. */
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
 	portal_vaddr = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-    	                                 (uint32_t)0, E_MAPPED_MEM_TYPE_MC_PORTAL));
+    	                                 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
 
 	/* Open root container in order to create and query for devices */
 	dprc.cidesc.regs = portal_vaddr;
@@ -246,31 +246,14 @@ int run_apps(void)
 		return(err);
 	}
 
-    /* TODO: replace the following dpbp_open&init with dpbp_create when available */
+	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
 	/* TODO: Currently creating a stub DPBP with ID=1.
 	 * Open and init calls will be replaced by 'create' when available at MC.
 	 * At that point, the DPBP ID will be provided by MC. */
-    dpbp_id = 1;
+	dpbp_id = 1;
 
-	assign_res_req.num = dpbp_id;
-	assign_res_req.options = DPRC_RES_REQ_OPT_EXPLICIT;
-	assign_res_req.id_base_align = 1;
-	assign_res_req.type = DP_DEV_DPBP;
-	if ((err = dprc_assign(&dprc, 0, &assign_res_req)) != 0) {
-		pr_err("Failed to assign DP-BP%d.\n", dpbp_id);
-		return err;
-	}
-
-	/* Get the physical portal address for this object.
-	 * The physical portal address is at region_index zero */
-	region_index = 0;
-    if ((err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) != 0) {
-		pr_err("Failed to get device region for DP-BP%d.\n", dpbp_id);
-		return err;
-	}
-
-    dpbp.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
+	dpbp.cidesc.regs = portal_vaddr;
 
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);

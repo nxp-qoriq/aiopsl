@@ -27,7 +27,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	dpni_drv_send(APP_NI_GET(arg));
 }
 
-#ifndef MC_INTEGRATED
+#ifdef AIOP_STAND_ALONE
 /* This is temporal WA for stand alone demo only */
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
@@ -42,7 +42,7 @@ static void epid_setup()
 	iowrite32(0, &wrks_addr->epas);
 	iowrite32((uint32_t)receive_cb, &wrks_addr->ep_pc);
 }
-#endif /* MC_INTEGRATED */
+#endif /* AIOP_STAND_ALONE */
 
 int app_init(void)
 {
@@ -52,10 +52,10 @@ int app_init(void)
 
 	fsl_os_print("Running app_init()\n");
 
-#ifndef MC_INTEGRATED
+#ifdef AIOP_STAND_ALONE
 	/* This is temporal WA for stand alone demo only */
 	epid_setup();
-#endif /* MC_INTEGRATED */
+#endif /* AIOP_STAND_ALONE */
 
 	for (ni = 0; ni < 6; ni++)
 	{

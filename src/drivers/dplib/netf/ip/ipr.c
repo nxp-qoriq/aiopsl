@@ -366,7 +366,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			   /* Early Time out */
 			   return IPR_ERROR;
 			}
-		} else if (sr_status == CTLU_STATUS_MISS) {
+		} else if (sr_status == TABLE_STATUS_MISS) {
 			/* Miss */
 		    cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
 				     	 	 	 	    &rfdc_ext_addr);
@@ -973,6 +973,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	struct						presentation_context *prc =
 								(struct presentation_context *) HWC_PRC_ADDRESS;
 
+	concatenate_params.flags = FDMA_CONCAT_SF_BIT;
 	
 	if(rfdc_ptr->status & ORDER_AND_OOO) { 
 		if (rfdc_ptr->index_to_out_of_order == 1) {
@@ -985,6 +986,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		
 			/* Open 1rst frame and get frame handle */
 			fdma_present_default_frame_without_segments();
+			concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 			current_index = rfdc_ptr->first_frag_index;
 			temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
 							current_index*FD_SIZE;
@@ -1006,7 +1008,6 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		
 			/* Take header size to be removed from FD[FRC] */
 			concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
-		
 			fdma_concatenate_frames(&concatenate_params);
 		
 			num_of_frags = rfdc_ptr->num_of_frags - 2;
@@ -1056,7 +1057,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 			   0,
 			   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));
 	
-		concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
+//		concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
 		concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
 		concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 		/* Take header size to be removed from 2nd FD[FRC] */
