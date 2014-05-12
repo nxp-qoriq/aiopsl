@@ -42,20 +42,6 @@
 //#define pr_err dummy_pr_err 
 
 
-#ifndef rta_pr_debug_define
-void rta_pr_debug (...);
-void rta_pr_debug (...) {}
-#define rta_pr_debug_define  
-#endif
-
-#ifndef rta_pr_err_define
-void rta_pr_err (...);
-void rta_pr_err (...) {}
-#define rta_pr_err_define  
-#endif
-
-//#define pr_err rta_pr_err 
-
 
 /* Note: GCC Extension should be enabled to support "typeof"
  * Otherwise it fails compilation of the RTA "ALIGN" macro.
@@ -78,7 +64,8 @@ __SHRAM struct ipsec_global_params global_params;
 * 	ipsec_init
 *//****************************************************************************/
 int32_t ipsec_init(uint32_t max_sa_no) {
-	
+	//pr_err("kkk\n");
+
 	global_params.sa_count = max_sa_no;
 	global_params.asa_bpid = 1; // TMP
 	global_params.desc_bpid = 1; // TMP
