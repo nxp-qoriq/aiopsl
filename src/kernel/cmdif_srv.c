@@ -237,7 +237,7 @@ static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 {
 
-	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	int    m_id = 0;
 
 	if ((m_name == NULL) || (ops == NULL) || (srv == NULL))
@@ -266,7 +266,7 @@ int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 
 int cmdif_unregister_module(const char *m_name)
 {
-	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	int    m_id = -1;
 
 	/* TODO what if unregister is done during runtime and another thread
@@ -348,7 +348,7 @@ int cmdif_srv_init(void)
 	int     err = 0;
 	struct  cmdif_srv *srv = NULL;
 
-	if (sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0))
+	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV))
 		return -ENODEV;
 
 	err = epid_setup();
@@ -397,7 +397,7 @@ int cmdif_srv_init(void)
 
 void cmdif_srv_free(void)
 {
-	struct cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 
 	sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
 
@@ -470,7 +470,7 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 __HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
-	struct   cmdif_srv *srv = sys_get_handle(FSL_OS_MOD_CMDIF_SRV, 0);
+	struct   cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	int      err    = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
