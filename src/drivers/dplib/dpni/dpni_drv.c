@@ -103,7 +103,6 @@ int dpni_drv_probe(struct dprc	*dprc,
 	struct dpni dpni = { 0 };
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
-	struct dprc_region_desc region_desc;
 	struct dpni_attr attributes;
 
 	/* TODO: replace wrks_addr with global struct */

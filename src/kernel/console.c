@@ -39,7 +39,6 @@ static int sys_debugger_print(fsl_handle_t unused,
                               uint8_t *p_data,
                               uint32_t size)
 {
-	uint32_t int_flags;
 	int ret;
 
 	UNUSED(unused);
