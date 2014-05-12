@@ -83,7 +83,7 @@ int fill_system_parameters(t_sys_param *sys_param)
 
     sys_param->platform_param->clock_in_freq_hz = 100000000;
     sys_param->platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
-    sys_param->platform_param->console_type = PLTFRM_CONSOLE_NONE;
+    sys_param->platform_param->console_type = PLTFRM_CONSOLE_DUART;
     sys_param->platform_param->console_id = 0;
     memcpy(sys_param->platform_param->mem_info,
            mem_info,
@@ -209,12 +209,10 @@ int run_apps(void)
 	struct dpbp dpbp = { 0 };
 	int container_id;
 	struct dprc_dev_desc dev_desc;
-	struct dprc_region_desc region_desc;
 	uint16_t dpbp_id;	// TODO: replace by real dpbp creation
 	struct dpbp_attr attr;
 	uint8_t region_index = 0;
 	struct dpni_attach_cfg attach_params;
-	struct dprc_res_req assign_res_req;
 #endif
 
 

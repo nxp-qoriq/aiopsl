@@ -159,7 +159,7 @@ typedef struct t_duart_uart_param {
 } t_duart_uart_param;
 
 /**************************************************************************//**
- @Function      duart_config
+@Function      duart_config
 
  @Description   Creates DUART channel descriptor according to user parameters.
 
@@ -167,7 +167,7 @@ typedef struct t_duart_uart_param {
                 behavior. Additional parameters can be specified later using
                 DUART advanced configuration functions.
 
- @Param[in]     p_DuartUartParam - Pointer to structure of user-specified parameters.
+ @Param[in]     p_duart_uart_param - Pointer to structure of user-specified parameters.
 
  @Return        DUART channel descriptor. NULL if failed.
 *//***************************************************************************/
@@ -216,7 +216,7 @@ void duart_free(fsl_handle_t duart);
                 Default value is [DEFAULT_rxBufferSize].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - New value for rx BufferSize (in bytes).
+ @Param[in]     new_val  - New value for rx BufferSize (in bytes).
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -231,7 +231,7 @@ int duart_config_rx_buffer_size(fsl_handle_t duart, uint32_t new_val);
                 Default value is [DEFAULT_rxTimeout].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - New value for Rx Timeout. The value sets how many
+ @Param[in]     new_val  - New value for Rx Timeout. The value sets how many
                           times the driver will check for new chars before all
                           bytes are received.
                           - If 0, the driver won't wait for chars to be received.
@@ -252,7 +252,7 @@ int duart_config_rx_timeout(fsl_handle_t duart, int32_t new_val);
                 Default value is [DEFAULT_enModemStatIntr].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, enables the interrupt.
+ @Param[in]     new_val  - If 1, enables the interrupt.
                           If 0, disables the interrupt.
 
  @Return        E_OK on success; Error code otherwise.
@@ -267,7 +267,7 @@ int duart_config_en_modem_stat_intr(fsl_handle_t duart, int new_val);
                 Default value is [DEFAULT_enRecLineStatIntr].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, enables the interrupt.
+ @Param[in]     new_val  - If 1, enables the interrupt.
                           If 0, disables the interrupt.
 
  @Return        E_OK on success; Error code otherwise.
@@ -282,7 +282,7 @@ int duart_config_en_rec_line_stat_intr(fsl_handle_t duart, int new_val);
                 Default value is [DEFAULT_enTransHoldRegEmptyIntr].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, enables the interrupt.
+ @Param[in]     new_val  - If 1, enables the interrupt.
                           If 0, disables the interrupt.
 
  @Return        E_OK on success; Error code otherwise.
@@ -297,7 +297,7 @@ int duart_config_en_trans_hold_reg_empty_intr(fsl_handle_t duart, int new_val);
                 Default value is [DEFAULT_enRecDataAvailIntr].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, enables the interrupt.
+ @Param[in]     new_val  - If 1, enables the interrupt.
                           If 0, disables the interrupt.
 
  @Return        E_OK on success; Error code otherwise.
@@ -313,7 +313,7 @@ int duart_config_en_rec_data_avail_intr(fsl_handle_t duart, int new_val);
                 Default value is [DEFAULT_recTriggerLevel].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - Number of chars before triggering the interrupt.
+ @Param[in]     new_val  - Number of chars before triggering the interrupt.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -330,7 +330,7 @@ int duart_config_rec_trigger_level(fsl_handle_t duart, e_duart_uart_fifo_size ne
                 Default value is [DEFAULT_dmaModeSelect].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, enables DMA mode.
+ @Param[in]     new_val  - If 1, enables DMA mode.
                           If 0, disables DMA mode.
 
  @Return        E_OK on success; Error code otherwise.
@@ -345,7 +345,7 @@ int duart_config_dma_mode_select(fsl_handle_t duart, int new_val);
                 Default value is [DEFAULT_enableFifo].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, enables FIFO mode.
+ @Param[in]     new_val  - If 1, enables FIFO mode.
                           If 0, disables FIFO mode.
 
  @Return        E_OK on success; Error code otherwise.
@@ -363,7 +363,7 @@ int duart_config_enable_fifo(fsl_handle_t duart, int new_val);
                 Default value is [DEFAULT_loopBackMode].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, enables loopback mode.
+ @Param[in]     new_val  - If 1, enables loopback mode.
                           If 0, disables loopback mode.
 
  @Return        E_OK on success; Error code otherwise.
@@ -379,7 +379,7 @@ int duart_config_loop_back_mode(fsl_handle_t duart, int new_val);
                 Default value is [DEFAULT_pollMode].
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, system operates in poll mode.
+ @Param[in]     new_val  - If 1, system operates in poll mode.
                           If 0, system operates in interrupt mode.
 
  @Return        E_OK on success; Error code otherwise.
@@ -396,7 +396,7 @@ int duart_config_poll_mode(fsl_handle_t duart, int new_val);
                 When enabled in Poll mode, converts LF to CR LF.
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal  - If 1, system converts LF to CR LF.
+ @Param[in]     new_val  - If 1, system converts LF to CR LF.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -414,13 +414,13 @@ int duart_config_poll_lf2crlf(fsl_handle_t duart, int new_val);
                 [DEFAULT_numCCEntries].
 
  @Param[in]     duart              - DUART channel descriptor returned by duart_config().
- @Param[in]     *controlChar        - The 8 control characters.
- @Param[in]     *controlCharReject  - 8 Control Char Reject values. If a value
+ @Param[in]     *control_char        - The 8 control characters.
+ @Param[in]     *control_char_reject  - 8 Control Char Reject values. If a value
                                       is zero then the control char in the same
                                       index will not be rejected from the buffer.
                                       If the value is non-zero, the control char
                                       will be rejected.
- @Param[in]     numCCEntries        - Number of control chars. Must be <= 8.
+ @Param[in]     numcc_entries        - Number of control chars. Must be <= 8.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -446,7 +446,7 @@ int duart_config_control_char(fsl_handle_t duart, char *control_char, int *contr
                 This functions is called when the user wishes to transmit data.
 
  @Param[in]     duart  - DUART channel descriptor returned by duart_config().
- @Param[in]     p_Data  - Pointer to a transmit buffer.
+ @Param[in]     p_data  - Pointer to a transmit buffer.
  @Param[in]     size    - Number of characters to send.
 
  @Return        E_OK on success; Error code otherwise.
@@ -467,7 +467,7 @@ int duart_tx(fsl_handle_t duart, uint8_t *p_data, uint32_t size);
                 - A control character has been received.
 
  @Param[in]     duart      - DUART channel descriptor returned by duart_config().
- @Param[in]     p_Buffer    - Points to a buffer which will store the received data.
+ @Param[in]     p_buffer    - Points to a buffer which will store the received data.
  @Param[in]     size        - Number of characters to receive.
 
  @Return        Size of received buffer.
@@ -506,7 +506,7 @@ uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart);
                 Default value is [DEFAULT_lowSpaceAlert].
 
  @Param[in]     duart - DUART channel descriptor returned by duart_config().
- @Param[in]     newVal - The number of empty bytes in the Rx Buffer which will
+ @Param[in]     new_val - The number of empty bytes in the Rx Buffer which will
                          cause an overflow. Once the Rx buffer has this number
                          of empty bytes or less the overflow alert callback
                          function is called.
@@ -521,7 +521,7 @@ int duart_set_low_space_alert(fsl_handle_t duart, uint32_t new_val);
  @Description   Sets the break signal.
 
  @Param[in]     duart - DUART channel descriptor returned by duart_config().
- @Param[in]     breakSignal - indication if to set or clear the break signal option.
+ @Param[in]     break_signal - indication if to set or clear the break signal option.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -533,7 +533,7 @@ int duart_set_break_signal (fsl_handle_t duart, int break_signal);
  @Description   Sets a new value of the baud rate divisor.
 
  @Param[in]     duart   - DUART channel descriptor returned by duart_config().
- @Param[in]     baudRate - New baud rate value
+ @Param[in]     baud_rate - New baud rate value
 
  @Return        E_OK on success; Error code otherwise.
 

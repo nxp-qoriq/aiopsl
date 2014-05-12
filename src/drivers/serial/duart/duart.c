@@ -1,4 +1,3 @@
-#ifdef ARENA_LEGACY_CODE
 /**
 
  @File          duart.c
@@ -25,7 +24,7 @@ static void intr_handler(fsl_handle_t duart)
     uint8_t         intr_status, umcr, umsr, ulsr, data;
     uint8_t         tmp_reg;
 
-    ASSERT_COND(duart);
+
 
     intr_status = ioread8(&p_uart->p_mem_map->UIIR);
     intr_status = (uint8_t)(intr_status & (uint8_t)(DUART_INTR_MASK));
@@ -36,7 +35,7 @@ static void intr_handler(fsl_handle_t duart)
         ulsr = ioread8(&p_uart->p_mem_map->ulsr);
 
         if (ulsr & ULSR_BI)
-            data = ioread8(&p_uart->p_mem_map->URBR);
+            ioread8(&p_uart->p_mem_map->URBR);
 
         /* Overrun error, Receiver FIFO error, Framing Error or Parity Error */
         if (p_uart->f_exceptions &&
@@ -175,10 +174,10 @@ static void intr_handler(fsl_handle_t duart)
 
 /************************************************************************/
 static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
-{	
+{
     t_duart_driver_param  *p_driver_param = p_uart->p_driver_param;
-
     UNUSED(params);
+
     ASSERT_COND(p_driver_param);
 
     if((p_driver_param->baud_rate < BAUD_RATE_MIN_VAL) ||
@@ -751,7 +750,7 @@ int duart_init (fsl_handle_t duart)
 
     iowrite8(tmp_reg, &p_mem_map->ulcr);
 
- 
+
     if (p_driver_param->enable_fifo)
     {
         tmp_reg = (uint8_t)(p_driver_param->enable_fifo);
@@ -835,7 +834,8 @@ int duart_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
         return duart_poll_tx(duart, data, size);
 
     /* Copy data into internal buffer so calling function can use buffer safely */
-    memcpy32(p_uart->p_tx_buffer, data, size);
+
+    memcpy(p_uart->p_tx_buffer, data, size);
 
     p_uart->tx_buffer_count = size;
     p_uart->tx_buffer_pos   = 0;
@@ -1043,4 +1043,3 @@ int duart_dump_regs(fsl_handle_t duart)
     return E_OK;
 }
 #endif /* (DEBUG_ERRORS > 0) */
-#endif
