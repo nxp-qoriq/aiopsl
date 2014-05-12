@@ -131,12 +131,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			nis[aiop_niid].mc_niid = mc_niid;
 #endif
 
-			if ((err = dprc_get_dev_region(dprc, DP_DEV_DPNI, mc_niid, 0, &region_desc)) != 0) {
-				pr_err("Failed to get device region for DP-NI%d.\n", mc_niid);
-				return err;
-			}
-
-			dpni.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
+			dpni.cidesc.regs = dprc->cidesc.regs;
 
 			if ((err = dpni_open(&dpni, mc_niid)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);

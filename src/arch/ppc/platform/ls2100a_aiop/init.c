@@ -128,7 +128,8 @@ void core_ready_for_tasks(void)
 
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
-    /* finished boot sequence; now wait for event .... */
+    /*  finished boot sequence; now wait for event .... */
+    pr_info("CORE ID %d \n", core_get_id());
     pr_info("AIOP completed boot sequence; waiting for events ...\n");
 
 #if 0
@@ -232,7 +233,7 @@ int run_apps(void)
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
 	portal_vaddr = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-    	                                 (uint32_t)0, E_MAPPED_MEM_TYPE_MC_PORTAL));
+    	                                 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
 
 	/* Open root container in order to create and query for devices */
 	dprc.cidesc.regs = portal_vaddr;
@@ -245,31 +246,14 @@ int run_apps(void)
 		return(err);
 	}
 
-    /* TODO: replace the following dpbp_open&init with dpbp_create when available */
+	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
 	/* TODO: Currently creating a stub DPBP with ID=1.
 	 * Open and init calls will be replaced by 'create' when available at MC.
 	 * At that point, the DPBP ID will be provided by MC. */
-    dpbp_id = 1;
+	dpbp_id = 1;
 
-	assign_res_req.num = dpbp_id;
-	assign_res_req.options = DPRC_RES_REQ_OPT_EXPLICIT;
-	assign_res_req.id_base_align = 1;
-	assign_res_req.type = DP_DEV_DPBP;
-	if ((err = dprc_assign(&dprc, 0, &assign_res_req)) != 0) {
-		pr_err("Failed to assign DP-BP%d.\n", dpbp_id);
-		return err;
-	}
-
-	/* Get the physical portal address for this object.
-	 * The physical portal address is at region_index zero */
-	region_index = 0;
-    if ((err = dprc_get_dev_region(&dprc, DP_DEV_DPBP, dpbp_id, region_index, &region_desc)) != 0) {
-		pr_err("Failed to get device region for DP-BP%d.\n", dpbp_id);
-		return err;
-	}
-
-    dpbp.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
+	dpbp.cidesc.regs = portal_vaddr;
 
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);

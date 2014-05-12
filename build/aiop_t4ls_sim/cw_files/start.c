@@ -90,8 +90,10 @@ asm void __sys_start(register int argc, register char **argv, register char **en
     addi   r13, r13, _SDA_BASE_@l
 
     /* Initialize stack pointer (based on core ID) */
+    /* TODO why it was here ???
     cmpwi   r17, 0
     bne     1f
+    */
     lis     r1,    _stack_addr@ha
     addi    r1, r1, _stack_addr@l
     b       done_sp
