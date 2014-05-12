@@ -7,7 +7,7 @@
 
 #include "common/types.h"
 #include "common/spinlock.h"
-#include "common/dbg.h"
+//#include "common/dbg.h"
 
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_parser.h"
@@ -30,19 +30,6 @@
 
 //#include "general.h"
 
-/* TODO: temporary fix to pr_debug due to RTA issue */
-//#define pr_debug //
-
-//void dummy_pr_debug (...);
-//void dummy_pr_debug (...) {}
-//#define pr_debug dummy_pr_debug 
-
-//void dummy_pr_err (...);
-//void dummy_pr_err (...) {}
-//#define pr_err dummy_pr_err 
-
-
-
 /* Note: GCC Extension should be enabled to support "typeof"
  * Otherwise it fails compilation of the RTA "ALIGN" macro.
  * #define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
@@ -51,8 +38,32 @@
  *	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
 */
 
+/* TODO: temporary fix to pr_debug due to RTA issue */
+/* Define dummy print functions to override RTA compilation errors */
+#ifndef pr_debug
+#define use_dummy_pr_debug
+void dummy_pr_debug (...);
+void dummy_pr_debug (...) {}
+#define pr_debug dummy_pr_debug 
+#endif
+
+#ifndef pr_err
+#define use_dummy_pr_err
+void dummy_pr_err (...);
+void dummy_pr_err (...) {}
+#define pr_err dummy_pr_err 
+#endif
+
 #include "rta.h"
 #include "desc/ipsec.h"
+
+#ifdef use_dummy_pr_debug
+#undef pr_debug
+#endif
+
+#ifdef use_dummy_pr_err
+#undef pr_err
+#endif
 
 /* SEC Era version for RTA */
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
@@ -1087,7 +1098,7 @@ int32_t ipsec_frame_decrypt(
 		 * 		AOIPHO indicates the number of bytes of material in the 
 		 * 		Input Frame prior to the actual Outer IP Header.
 		 * 11-0 Outer IP Header Material Length 
-		 * 		Length for the Outer IP Header Material. This value is in words. 
+		 * 		Length for the Outer IP Header Material (in bytes). 
 		 * 		This field indicates the total length of the material that 
 		 * 		includes the Outer IP Header, up to but not including the 
 		 * 		ESP Header.

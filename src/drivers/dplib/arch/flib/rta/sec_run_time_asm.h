@@ -561,7 +561,7 @@ static inline unsigned rta_program_finalize(struct program *program)
 {
 	/* Descriptor is not allowed to go beyond 64 words size */
 	if (program->current_pc > MAX_CAAM_DESCSIZE)
-		//pr_err("Descriptor Size exceeded max limit of 64 words\n");
+		pr_err("Descriptor Size exceeded max limit of 64 words\n");
 
 	/* Descriptor is erroneous */
 	if (program->first_error_pc)

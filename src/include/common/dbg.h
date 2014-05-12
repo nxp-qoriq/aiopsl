@@ -241,7 +241,6 @@ do { \
 #endif
 #define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
 
-
 #ifdef pr_info
 #undef pr_info
 #endif
@@ -252,11 +251,11 @@ do { \
 #endif
 #define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
 
+
 #ifdef pr_err
 #undef pr_err
 #endif
 #define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
-
 
 #ifdef pr_crit
 #undef pr_crit
