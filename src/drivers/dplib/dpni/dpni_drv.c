@@ -24,8 +24,8 @@ __SHRAM struct dpni_drv *nis;
 
 static void discard_rx_cb()
 {
-	
-	fsl_os_print("Packet discarded by discard_rx_cb.\n");
+
+	pr_debug("Packet discarded by discard_rx_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
@@ -34,10 +34,10 @@ static void discard_rx_cb()
 static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
-	fsl_os_print("Packet discarded by discard_rx_app_cb.\n");
+	pr_debug("Packet discarded by discard_rx_app_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-		fdma_terminate_task();  
+		fdma_terminate_task();
 }
 
 int dpni_drv_register_rx_cb (uint16_t		ni_id,
@@ -105,22 +105,21 @@ int dpni_drv_probe(struct dprc	*dprc,
 	uint16_t qdid;
 	struct dprc_region_desc region_desc;
 	struct dpni_attr attributes;
-	
+
 	/* TODO: replace wrks_addr with global struct */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
 		     SOC_PERIPH_OFF_AIOP_WRKS);
 
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
-	for (i = 0; i < 1024; i++) {	
+	for (i = 2; i < 1024; i++) {
 		/* Prepare to read from entry i in EPID table - EPAS reg */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
 		j = ioread32(UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
-		/* TODO: print conditionally based on log level */
-		fsl_os_print("Found NI: EPID[%d].EP_PM = %d\n", i, j);
+		pr_debug("Found NI: EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
 			/* Replace MC NI ID with AIOP NI ID */
@@ -131,14 +130,9 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* Register MC NI ID in AIOP NI table */
 			nis[aiop_niid].mc_niid = mc_niid;
 #endif
-			
-			if ((err = dprc_get_dev_region(dprc, DP_DEV_DPNI, mc_niid, 0, &region_desc)) != 0) {
-				pr_err("Failed to get device region for DP-NI%d.\n", mc_niid);
-				return err;
-			}
 
-			dpni.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
-			
+			dpni.cidesc.regs = dprc->cidesc.regs;
+
 			if ((err = dpni_open(&dpni, mc_niid)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);
 				return err;
@@ -155,7 +149,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
 				return err;
 			}
-	
+
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
 
@@ -163,7 +157,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 				pr_err("Failed to attach parameters to DP-NI%d.\n", mc_niid);
 				return err;
 			}
-			
+
 			/* Enable DPNI before updating the entry point function (EP_PC)
 			 * in order to allow DPNI's attributes to be initialized.
 			 * Frames arriving before the entry point function is updated will be dropped. */
@@ -171,16 +165,16 @@ int dpni_drv_probe(struct dprc	*dprc,
 				pr_err("Failed to enable DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
-			
+
 			/* Now a Storage Profile exists and is associated with the NI */
-						
+
 			/* Register QDID in internal AIOP NI table */
 			if ((err = dpni_get_qdid(&dpni, &qdid)) != 0) {
 				pr_err("Failed to get QDID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
 			nis[aiop_niid].qdid = qdid;
-			
+
 #ifdef NEW_MC_API
 			/* Register SPID in internal AIOP NI table */
 			if ((err = dpni_get_spid(&dpni, &spid)) != 0) {
@@ -188,7 +182,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 				return -ENODEV;
 			}
 			nis[aiop_niid].spid = spid;
-#endif	
+#endif
 
 #if 0
 			/* TODO: need to decide if we should close DPNI at this stage.
@@ -196,12 +190,12 @@ int dpni_drv_probe(struct dprc	*dprc,
 			 */
 			dpni_close(&dpni);
 #endif
-			
+
 			/* TODO: need to initialize additional NI table fields according to DPNI attributes */
-			
+
 			/* Replace discard callback with receive callback */
 			iowrite32(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
-			
+
 			return 0;
 		}
 	}
@@ -231,7 +225,7 @@ static int aiop_replace_parser(uint8_t prpid)
     struct parse_profile_input verif_parse_profile1 __attribute__((aligned(16)));
     int i, status = 0;
     uint8_t prpid_new = 0;
-    
+
     /* Init basic parse profile */
     verif_parse_profile1.parse_profile.eth_hxs_config = 0x0;
     verif_parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
@@ -278,13 +272,13 @@ static int aiop_replace_parser(uint8_t prpid)
 
 int dpni_drv_init(void)
 {
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	uintptr_t	wrks_addr;
 #endif
 	int		    i;
 	int         error = 0;
 
-	
+
 	/* Allocate initernal AIOP NI table */
 	nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
 	if (!nis) {
@@ -313,7 +307,7 @@ int dpni_drv_init(void)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
 
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
 #if 0
 	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */
@@ -325,8 +319,8 @@ int dpni_drv_init(void)
 	for (i = 0; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table */
 		iowrite32((uint32_t)i, ws_regs->epas; 					// TODO: change to LE
-		iowrite32(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE		
-	}	
+		iowrite32(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE
+	}
 #else
 	/* TODO: temporary code. should be removed. */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
@@ -338,7 +332,7 @@ int dpni_drv_init(void)
 		/* Prepare to write to entry i in EPID table - EPAS reg */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 
-		iowrite32(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define		
+		iowrite32(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
 
 #if 0
 		/* TODO : this is a temporary assignment for testing purposes, until MC initialization of EPID table will be operational. */
@@ -347,12 +341,12 @@ int dpni_drv_init(void)
 	}
 #endif
 #endif
-	
-	/* Set PRPID 0 
+
+	/* Set PRPID 0
 	 * TODO it must be prpid for every ni */
 /*    error = aiop_replace_parser(0); Hagit*/
     aiop_replace_parser(0);
-    
+
 	return error;
 }
 
