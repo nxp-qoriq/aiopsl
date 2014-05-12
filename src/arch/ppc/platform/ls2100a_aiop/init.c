@@ -8,9 +8,12 @@
 #include "dplib/fsl_dpni.h"
 #include "common/dbg.h"
 #include "common/fsl_malloc.h"
+#include "common/spinlock.h"
 #include "io.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
+
+__SHRAM uint8_t abcr_lock = 0; 
 
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
@@ -121,6 +124,7 @@ int global_post_init(void)
 
 void core_ready_for_tasks(void)
 {
+    uint32_t abcr_val;
     uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
@@ -129,26 +133,31 @@ void core_ready_for_tasks(void)
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
     /*  finished boot sequence; now wait for event .... */
-    pr_info("CORE ID %d \n", core_get_id());
-    pr_info("AIOP completed boot sequence; waiting for events ...\n");
+    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
 
-#if 0
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
 		(~((uint32_t)sys_get_cores_mask()));
-
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
-#endif
-
+    
     /* Write AIOP boot status (ABCR) */
-    iowrite32((uint32_t)sys_get_cores_mask(), abcr);
+    lock_spinlock(&abcr_lock);
+    abcr_val = ioread32(abcr);
+    abcr_val |= (uint32_t)sys_get_cores_mask();
+    iowrite32(abcr_val, abcr);
+    unlock_spinlock(&abcr_lock);
 
+    {
+	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
+	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
+    }
+    
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
-
+    
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
