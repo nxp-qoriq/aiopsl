@@ -18,6 +18,7 @@ Author: Donio Ron
 #include "arch/cores/fsl_core_booke_regs.h"
 #include "arch/cores/fsl_core_booke.h"
 #include "booke.h"
+#include "dbg.h"
 
 #ifdef CORE_E6500
 #include "clc_ext.h"
@@ -334,13 +335,22 @@ uint32_t booke_get_id(void)
 
     cpu_id = get_cpu_id();
 
+#if defined(AIOP)
+    /* TODO replace with core dependent define */
+    cpu_id = (cpu_id >> 4);
+#endif
+
 #if defined(CORE_E500MC) || defined(CORE_E5500)
 //    cpu_id >>= 5;
 #elif defined(CORE_E6500)
 
 #endif /* defined(CORE_E500MC) || ... */
 
-    ASSERT_COND(cpu_id < INTG_MAX_NUM_OF_CORES);
+    if (cpu_id >= INTG_MAX_NUM_OF_CORES) {
+	    pr_err("Core ID 0x%x is out of range, max = %d \n",
+	           cpu_id,
+	           INTG_MAX_NUM_OF_CORES);
+    }
 
     return cpu_id;
 }

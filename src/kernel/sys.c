@@ -7,7 +7,7 @@
 #include "kernel/smp.h"
 
 #include "sys.h"
-
+#include "dbg.h"
 
 /* Global System Object */
 __SHRAM t_system sys;
@@ -343,11 +343,14 @@ int sys_init(void)
     sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
 
     if (sys.is_partition_master[core_id]) {
-	    
+
 	/* Initialize memory management */
 	err = sys_init_memory_management();
-	ASSERT_COND(err == E_OK);
-	    
+	if (err != 0) {
+		pr_err("Failed sys_init_memory_management\n");
+		return err;
+	}
+
 #ifdef SYS_SMP_SUPPORT
         /* Kick secondary cores on this partition */
 #ifdef SYS_64BIT_ARCH
@@ -399,7 +402,10 @@ int sys_init(void)
 
     /* Initialize Multi-Processing services as needed */
     err = sys_init_multi_processing();
-    ASSERT_COND(err == E_OK);
+    if (err != 0) {
+	    pr_err("Failed sys_init_multi_processing\n");
+	    return err;
+    }
     sys_barrier();
 
 #if 0

@@ -2,7 +2,7 @@
 <launchConfiguration type="com.freescale.cdt.launch.cw.download">
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSExeName" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbsc132:5720"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="42323"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="42324"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSTimeOut" value="60"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.JTAGConfigFile" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.chainSpeedTCK" value="12500"/>
@@ -42,7 +42,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smpTarget" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.systemType" value="com.freescale.cw.system.LS.LS2085AFM"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="true"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLine" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddr" value="-1879047936"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddrExt" value="0"/>
@@ -184,7 +184,7 @@
 </listAttribute>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useMacAddress" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useMemConfigPathList">
-<listEntry value="true"/>
+<listEntry value="false"/>
 </listAttribute>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useNetworkTransferIO" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useSerialTransferIO" value="false"/>

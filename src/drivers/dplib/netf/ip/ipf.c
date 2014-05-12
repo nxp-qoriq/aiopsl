@@ -144,11 +144,22 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	struct ipv6fraghdr *ipv6_frag_hdr;
 	uint16_t header_length, frag_payload_length, ipv6_offset;
 	uint16_t frag_offset = 0;
-	uint16_t seg_size_rs, modify_size;
+	uint16_t modify_size;
+	/*****************************************/
+	/* TODO temporarily removed for simulator 101 workaround
+	uint16_t seg_size_rs;*/
 	uint8_t *last_header;
 	uint8_t orig_next_header;
-	void *ws_dst_rs;
+	/*****************************************/
+	/* TODO temporarily removed for simulator 101 workaround
+	void *ws_dst_rs; */
 
+	/****************************************************/
+	/* TODO Remove!
+	 * Temporary workaround for simulator 101 */
+	struct ipv6fraghdr temp_ipv6_frag_hdr;
+	/****************************************************/
+	
 	if (ipf_ctx->first_frag) {
 		ipv6_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		ipv6_hdr = (struct ipv6hdr *)
@@ -156,23 +167,10 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		ipv6_hdr->payload_length =
 		(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - ipv6_offset -
 		IPV6_HDR_LENGTH + IPV6_FRAGMENT_HEADER_LENGTH;
-/*
-		 Modify payload length field in FDMA
-		status = fdma_modify_default_segment_data(ipv6_offset+4, 2);
-		if (status)
-			return status;  TODO
-*/
+
 		if (~(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS))
 			ipf_ctx->split_size += IPV6_FRAGMENT_HEADER_LENGTH;
 
-		/* Keep the last "next header" of the unfragmentable part */
-/*
-		next_header_offset = PARSER_GET_SHIM1_OFFSET_DEFAULT(); TODO
-		next_header = (uint8_t *)(next_header_offset +
-				PRC_GET_SEGMENT_ADDRESS());  TODO 
-*/
-		/* Replace the last "next header" of the unfragmentable
-		 * part with 44 */
 		ipv6_frag_hdr = (struct ipv6fraghdr *)
 				(ipf_ctx->ipv6_frag_hdr_offset +
 					PRC_GET_SEGMENT_ADDRESS());
@@ -189,18 +187,48 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ipv6_hdr->next_header = IPV6_EXT_FRAGMENT;
 		}
 
+		
+		/**************************************************/
+		/* TODO Remove!
+		 * Temporary workaround for simulator 101 */
+		/* Modify Payload length in ipv6 header & next header field in
+		 * FDMA */
+		status = fdma_modify_default_segment_data(ipv6_offset,
+			(uint16_t)((uint32_t)ipv6_frag_hdr -
+						(uint32_t)ipv6_hdr));
+		if (status)
+			return status;
+		/**************************************************/
+   
 			/* Build IPv6 fragment header */
+		
+		/*****************************************/
+		/* TODO temporarily removed for simulator 101 workaround
 
 			ipv6_frag_hdr->next_header = orig_next_header;
 			ipv6_frag_hdr->reserved = 0;
 			ipv6_frag_hdr->offset_and_flags =
 						IPV6_HDR_M_FLAG_MASK;
-			ipv6_frag_hdr->id = (uint16_t)fsl_os_rand();
+			ipv6_frag_hdr->id = (uint16_t)fsl_os_rand(); */
 
+		/*****************************************/
+		/* TODO Remove!
+		 * Temporary workaround for simulator 101 */	
+			temp_ipv6_frag_hdr.next_header = orig_next_header;
+			temp_ipv6_frag_hdr.reserved = 0;
+			temp_ipv6_frag_hdr.offset_and_flags =
+						IPV6_HDR_M_FLAG_MASK;
+			temp_ipv6_frag_hdr.id = (uint16_t)fsl_os_rand(); 
+			
+			/*********************************************/
+				
 			/* replace ip payload length, replace next header,
 			 * insert IPv6 fragment header
 			 */
-
+			
+			/****************************************************/
+			/* Temporarily removed for simulator 101 workaround
+				 
 			ws_dst_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
 			seg_size_rs = PRC_GET_SEGMENT_LENGTH();
 
@@ -222,15 +250,20 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 					IPV6_FRAGMENT_HEADER_LENGTH),
 				ws_dst_rs,
 				seg_size_rs,
-				FDMA_REPLACE_SA_REPRESENT_BIT);
+				FDMA_REPLACE_SA_REPRESENT_BIT); */
+			
+			/****************************************************/
+			/* TODO Remove!
+			* Temporary workaround for simulator 101 */
+			status = fdma_insert_default_segment_data(
+					ipf_ctx->ipv6_frag_hdr_offset,
+					&temp_ipv6_frag_hdr,
+					IPV6_FRAGMENT_HEADER_LENGTH,
+					FDMA_REPLACE_SA_REPRESENT_BIT);
 
 			if (status) /* TODO */
 				return status;
-		}
-		/* Run parser */
-		status = parse_result_generate_default(PARSER_NO_FLAGS);
-		if (status) /* TODO */
-			return status;
+		
 		ipf_ctx->first_frag = 0;
 	} else {
 	/* Not first fragment */
@@ -282,13 +315,13 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			if (status)
 				return status; /* TODO */
 		}
-
-		/* Run parser */
-		status = parse_result_generate_default(PARSER_NO_FLAGS);
-		if (status) /* TODO */
-			return status;
-
 	}
+	
+	/* Run parser */
+	status = parse_result_generate_default(PARSER_NO_FLAGS);
+	if (status) /* TODO */
+		return status;
+
 	ipf_ctx->prev_frag_offset = frag_offset;
 
 	present_segment_params.flags = FDMA_PRES_NO_FLAGS;

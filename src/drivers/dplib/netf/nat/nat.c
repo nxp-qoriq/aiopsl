@@ -27,7 +27,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 	uint32_t old_header;
 	struct tcphdr *tcp_ptr;
 	struct ipv4hdr *ipv4_ptr;
-	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_OUTER_IPV4_DEFAULT())
+	if (!PARSER_IS_TCP_OR_UDP_DEFAULT() || !PARSER_IS_OUTER_IPV4_DEFAULT())
 		return NO_L4_IP_FOUND_ERROR;
 
 	l4_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
@@ -46,7 +46,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 			cksum_update_uint32(&ipv4_ptr->hdr_cksum,
 					old_header,
 					ipv4_ptr->src_addr);
-			if (!PARSER_IS_TUNNEL_IP_DEFAULT()) {
+			if (!PARSER_IS_TUNNELED_IP_DEFAULT()) {
 				if (PARSER_IS_TCP_DEFAULT())
 					cksum_update_uint32(&tcp_ptr->checksum,
 								old_header,
@@ -64,7 +64,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 			cksum_update_uint32(&ipv4_ptr->hdr_cksum,
 					old_header,
 					ipv4_ptr->dst_addr);
-			if (!PARSER_IS_TUNNEL_IP_DEFAULT()) {
+			if (!PARSER_IS_TUNNELED_IP_DEFAULT()) {
 				if (PARSER_IS_TCP_DEFAULT())
 					cksum_update_uint32(&tcp_ptr->checksum,
 								old_header,
@@ -183,7 +183,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 	uint32_t old_header;
 	struct tcphdr *tcp_ptr;
 	struct ipv6hdr *ipv6_ptr;
-	if (!PARSER_IS_L4_DEFAULT() || !PARSER_IS_OUTER_IPV6_DEFAULT())
+	if (!PARSER_IS_TCP_OR_UDP_DEFAULT() || !PARSER_IS_OUTER_IPV6_DEFAULT())
 		return NO_L4_IP_FOUND_ERROR;
 
 	l4_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT());
@@ -198,7 +198,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 			for(i=0; i<4; i++) {
 				old_header = ipv6_ptr->src_addr[i];
 				ipv6_ptr->src_addr[i] = ip_src_addr[i];
-				if (!PARSER_IS_TUNNEL_IP_DEFAULT()) {
+				if (!PARSER_IS_TUNNELED_IP_DEFAULT()) {
 					if (PARSER_IS_TCP_DEFAULT())
 						cksum_update_uint32(&tcp_ptr->checksum,
 								old_header,
@@ -215,7 +215,7 @@ int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 			for(i=0; i<4; i++) {
 				old_header = ipv6_ptr->dst_addr[i];
 				ipv6_ptr->dst_addr[i] = ip_dst_addr[i];
-				if (!PARSER_IS_TUNNEL_IP_DEFAULT()) {
+				if (!PARSER_IS_TUNNELED_IP_DEFAULT()) {
 					if (PARSER_IS_TCP_DEFAULT())
 						cksum_update_uint32(&tcp_ptr->checksum,
 								old_header,

@@ -65,7 +65,8 @@ struct tcp_gro_last_seg_header_fields {
 struct tcp_gro_context {
 		/** Aggregated packet FD.
 		 * This field must remain at the beginning of the structure due
-		 * to alignment restrictions for FD in workspace.*/
+		 * to alignment restrictions for FD in workspace (The FD adress
+		 * in Workspace must be aligned to 32 bytes). */
 	struct ldpaa_fd agg_fd
 		__attribute__((aligned(sizeof(struct ldpaa_fd))));
 		/** Aggregation parameters */

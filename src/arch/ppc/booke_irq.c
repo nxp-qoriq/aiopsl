@@ -16,7 +16,8 @@
 
 #include "common/types.h"
 #include "common/errors.h"
-//#include "common/irq.h"
+#include "common/dbg.h"
+
 #include "arch/cores/fsl_core_booke_regs.h"
 #include "arch/cores/fsl_core_booke.h"
 #include "booke.h"
@@ -122,14 +123,14 @@ void booke_critical_isr(uint32_t intr_entry)
 {
     if (intr_entry != CRITICAL_INTR)
     {
-        fsl_os_print("core %d int: wrong call to CRITICAL int. handler\n", core_get_id());
+        pr_err("core %d int: wrong call to CRITICAL int. handler\n", core_get_id());
         return;
     }
 
     if (core_intr_table[CRITICAL_INTR_INDEX].active)
         core_intr_table[CRITICAL_INTR_INDEX].f_isr(core_intr_table[CRITICAL_INTR_INDEX].src_handle);
     else
-        fsl_os_print("core %d int: CRITICAL\n", core_get_id());
+	    pr_debug("core %d int: CRITICAL\n", core_get_id());
 
 }
 
@@ -154,112 +155,112 @@ void booke_generic_isr(uint32_t intr_entry)
         if (core_intr_table[CRITICAL_INTR_INDEX].active)
             core_intr_table[CRITICAL_INTR_INDEX].f_isr(core_intr_table[CRITICAL_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: CRITICAL\n", core_get_id());
+            pr_debug("core %d int: CRITICAL\n", core_get_id());
         break;
     case(MACHINE_CHECK_INTR):                           /* IVOR1 200 */
         if (core_intr_table[MACHINE_CHECK_INTR_INDEX].active)
             core_intr_table[MACHINE_CHECK_INTR_INDEX].f_isr(core_intr_table[MACHINE_CHECK_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: MACHINE_CHECK\n", core_get_id());
+            pr_debug("core %d int: MACHINE_CHECK\n", core_get_id());
         break;
     case(DATA_STORAGE_INTR):                            /* IVOR2 300 */
         if (core_intr_table[DATA_STORAGE_INTR_INDEX].active)
             core_intr_table[DATA_STORAGE_INTR_INDEX].f_isr(core_intr_table[DATA_STORAGE_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: DATA_STORAGE\n", core_get_id());
+            pr_debug("core %d int: DATA_STORAGE\n", core_get_id());
         break;
     case(INSTRUCTION_STORAGE_INTR):                     /* IVOR3 400 */
         if (core_intr_table[INSTRUCTION_STORAGE_INTR_INDEX].active)
             core_intr_table[INSTRUCTION_STORAGE_INTR_INDEX].f_isr(core_intr_table[INSTRUCTION_STORAGE_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
+            pr_debug("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
         break;
     case(EXTERNAL_INTR):                                /* IVOR4 500 */
         if (core_intr_table[EXTERNAL_INTR_INDEX].active)
             core_intr_table[EXTERNAL_INTR_INDEX].f_isr(core_intr_table[EXTERNAL_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: EXTERNAL\n", core_get_id());
+            pr_debug("core %d int: EXTERNAL\n", core_get_id());
         break;
     case(ALIGNMENT_INTR):                               /* IVOR5 600 */
         if (core_intr_table[ALIGNMENT_INTR_INDEX].active)
             core_intr_table[ALIGNMENT_INTR_INDEX].f_isr(core_intr_table[ALIGNMENT_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: ALIGNMENT\n", core_get_id());
+            pr_debug("core %d int: ALIGNMENT\n", core_get_id());
         break;
     case(PROGRAM_INTR):                                 /* IVOR6 700 */
         if (core_intr_table[PROGRAM_INTR_INDEX].active)
             core_intr_table[PROGRAM_INTR_INDEX].f_isr(core_intr_table[PROGRAM_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: PROGRAM\n", core_get_id());
+            pr_debug("core %d int: PROGRAM\n", core_get_id());
         break;
     case(SYSTEM_CALL_INTR):                             /* IVOR8 900 */
         if (core_intr_table[SYSTEM_CALL_INTR_INDEX].active)
             core_intr_table[SYSTEM_CALL_INTR_INDEX].f_isr(core_intr_table[SYSTEM_CALL_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: SYSTEM CALL\n", core_get_id());
+            pr_debug("core %d int: SYSTEM CALL\n", core_get_id());
         break;
     case(DECREMENTER_INTR):                             /* IVOR10 1000 */
         if (core_intr_table[DECREMENTER_INTR_INDEX].active)
             core_intr_table[DECREMENTER_INTR_INDEX].f_isr(core_intr_table[DECREMENTER_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: DECREMENTER\n", core_get_id());
+            pr_debug("core %d int: DECREMENTER\n", core_get_id());
         break;
     case(FIXED_INTERVAL_INTR):                          /* IVOR11 1100 */
         if (core_intr_table[FIXED_INTERVAL_INTR_INDEX].active)
             core_intr_table[FIXED_INTERVAL_INTR_INDEX].f_isr(core_intr_table[FIXED_INTERVAL_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: fixed-interval timer\n", core_get_id());
+            pr_debug("core %d int: fixed-interval timer\n", core_get_id());
         break;
     case(WATCHDOG_TIMER_INTR):                          /* IVOR12 1200 */
         if (core_intr_table[WATCHDOG_TIMER_INTR_INDEX].active)
             core_intr_table[WATCHDOG_TIMER_INTR_INDEX].f_isr(core_intr_table[WATCHDOG_TIMER_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: watchdog timer\n", core_get_id());
+            pr_debug("core %d int: watchdog timer\n", core_get_id());
         break;
     case(D_TLB_ERROR_INTR):                             /* IVOR13 1300 */
         if (core_intr_table[D_TLB_ERROR_INTR_INDEX].active)
             core_intr_table[D_TLB_ERROR_INTR_INDEX].f_isr(core_intr_table[D_TLB_ERROR_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: data TLB error\n", core_get_id());
+            pr_debug("core %d int: data TLB error\n", core_get_id());
         break;
     case(I_TLB_ERROR_INTR):                             /* IVOR14 1400 */
         if (core_intr_table[I_TLB_ERROR_INTR_INDEX].active)
             core_intr_table[I_TLB_ERROR_INTR_INDEX].f_isr(core_intr_table[I_TLB_ERROR_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: instruction TLB error\n", core_get_id());
+            pr_debug("core %d int: instruction TLB error\n", core_get_id());
         break;
     case(DEBUG_INTR):                                   /* IVOR15 1500 */
         if (core_intr_table[DEBUG_INTR_INDEX].active)
             core_intr_table[DEBUG_INTR_INDEX].f_isr(core_intr_table[DEBUG_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: debug\n", core_get_id());
+            pr_debug("core %d int: debug\n", core_get_id());
         break;
     case(SPE_APU_INTR):                                 /* IVOR32 1600 */
         if (core_intr_table[SPE_APU_INTR_INDEX].active)
             core_intr_table[SPE_APU_INTR_INDEX].f_isr(core_intr_table[SPE_APU_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: SPE-APU unavailable\n", core_get_id());
+            pr_debug("core %d int: SPE-APU unavailable\n", core_get_id());
         break;
     case(SPE_FLT_DATA_INTR):                            /* IVOR33 1700 */
         if (core_intr_table[SPE_FLT_DATA_INTR_INDEX].active)
             core_intr_table[SPE_FLT_DATA_INTR_INDEX].f_isr(core_intr_table[SPE_FLT_DATA_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: SPE-floating point data\n", core_get_id());
+            pr_debug("core %d int: SPE-floating point data\n", core_get_id());
         break;
     case(SPE_FLT_ROUND_INTR):                           /* IVOR34 1800 */
         if (core_intr_table[SPE_FLT_ROUND_INTR_INDEX].active)
             core_intr_table[SPE_FLT_ROUND_INTR_INDEX].f_isr(core_intr_table[SPE_FLT_ROUND_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: SPE-floating point round\n", core_get_id());
+            pr_debug("core %d int: SPE-floating point round\n", core_get_id());
         break;
     case(PERF_MONITOR_INTR):                            /* IVOR35 1900 */
         if (core_intr_table[PERF_MONITOR_INTR_INDEX].active)
             core_intr_table[PERF_MONITOR_INTR_INDEX].f_isr(core_intr_table[PERF_MONITOR_INTR_INDEX].src_handle);
         else if (print_limit-- > 0)
-            fsl_os_print("core %d int: performance monitor\n", core_get_id());
+            pr_debug("core %d int: performance monitor\n", core_get_id());
         break;
     default:
-        fsl_os_print("e500 undefined interrupt #%x\n", intr_entry);
+	    pr_warn("e500 undefined interrupt #%x\n", intr_entry);
         break;
     }
 }

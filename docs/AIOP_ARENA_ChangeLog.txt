@@ -1,4 +1,13 @@
 
+- aiopsl\.project - added serial folder to project(uart.h, uart.c)
+- init.c - added support for UART on AIOP
+- platform.c - added support fort UART on AIOP, prints will be redirected to UART 0
+- duart.c - added to project, fixed to support uart on AIOP
+- duart.h -added to project
+- fsl_soc_spec.h - wrote hard coded address for DUART
+- fsl_duart.h - fixed doxygen
+
+- aiop_link.lcf:      Added .psram_data .psram_bss for Profile SRAM.
 - fsl_cmdif_server.h: New file for CMDIF server API. Use this API for cmdif_register_module().
 - fsl_cmdif_client.h: New file for CMDIF client API.
 - fsl_aiop_cmdif.h:   The file has been removed.

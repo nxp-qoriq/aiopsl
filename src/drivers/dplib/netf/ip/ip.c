@@ -32,7 +32,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	inner_ip_offset = (uint8_t)(PARSER_GET_INNER_IP_OFFSET_DEFAULT());
 	/* todo need parser to define PARSER_IS_INNER_IP macro */
-	if (!PARSER_IS_TUNNEL_IP_DEFAULT())
+	if (!PARSER_IS_TUNNELED_IP_DEFAULT())
 		return NO_IP_ENCAPSULATION_FOUND_ERROR;
 	outer_ip_offset = (uint8_t)(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 
@@ -1047,6 +1047,7 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;
+	uint16_t last_hdr_size;
 	uint8_t current_ver;
 	uint8_t next_hdr;
 	uint8_t ah_ext;
@@ -1059,7 +1060,8 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 	if (flag == LAST_HEADER_BEFORE_FRAG){
 		ah_ext = no_extension;
 		frag_ext = no_extension;
-
+		last_hdr_size = 0;
+		
 	/* flag == LAST_HEADER */
 	}else{
 		ah_ext = IPV6_EXT_AH;
@@ -1093,15 +1095,26 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 		{
 			current_hdr_size = ((current_hdr_size + 1) << 3);
 
-			/* Disable destination extension */
 			if (flag == LAST_HEADER_BEFORE_FRAG){
+							
+				/* After destination IS NOT routing extension */ 
 				if (*((uint8_t *)(current_hdr_ptr + current_hdr_size)) != \
 														IPV6_EXT_ROUTING)
 				{
-					return current_hdr_ptr;
+					/* Hop by Hop or Routing extensions found */ 
+					if (last_hdr_size)
+					{
+						return (current_hdr_ptr - last_hdr_size);
+					}else{
+						return (((uint32_t)ipv6_hdr + IPV6_NEXT_HDR_OFFSET) \
+							| IPV6_NO_EXTENSION);
+					}
 				} 
+				
+				/* Disable destination extension */
 				dst_ext = no_extension;
 			}
+			
 			break;
 		}
 
@@ -1121,6 +1134,8 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 		default:
 		{
 			current_hdr_size = ((current_hdr_size + 1) << 3);
+			last_hdr_size = current_hdr_size;
+			break;
 		}
 		}
 	}

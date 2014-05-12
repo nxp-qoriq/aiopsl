@@ -25,7 +25,7 @@ __SHRAM struct dpni_drv *nis;
 static void discard_rx_cb()
 {
 
-	fsl_os_print("Packet discarded by discard_rx_cb.\n");
+	pr_debug("Packet discarded by discard_rx_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
@@ -34,7 +34,7 @@ static void discard_rx_cb()
 static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
-	fsl_os_print("Packet discarded by discard_rx_app_cb.\n");
+	pr_debug("Packet discarded by discard_rx_app_cb.\n");
 	/*if discard with terminate return with error then terminator*/
 	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 		fdma_terminate_task();
@@ -103,7 +103,6 @@ int dpni_drv_probe(struct dprc	*dprc,
 	struct dpni dpni = { 0 };
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
-	struct dprc_region_desc region_desc;
 	struct dpni_attr attributes;
 
 	/* TODO: replace wrks_addr with global struct */
@@ -119,8 +118,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
 		j = ioread32(UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
-		/* TODO: print conditionally based on log level */
-		fsl_os_print("Found NI: EPID[%d].EP_PM = %d\n", i, j);
+		pr_debug("Found NI: EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
 			/* Replace MC NI ID with AIOP NI ID */
@@ -132,12 +130,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			nis[aiop_niid].mc_niid = mc_niid;
 #endif
 
-			if ((err = dprc_get_dev_region(dprc, DP_DEV_DPNI, mc_niid, 0, &region_desc)) != 0) {
-				pr_err("Failed to get device region for DP-NI%d.\n", mc_niid);
-				return err;
-			}
-
-			dpni.cidesc.regs = fsl_os_phys_to_virt(region_desc.base_paddr);
+			dpni.cidesc.regs = dprc->cidesc.regs;
 
 			if ((err = dpni_open(&dpni, mc_niid)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);
@@ -278,7 +271,7 @@ static int aiop_replace_parser(uint8_t prpid)
 
 int dpni_drv_init(void)
 {
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	uintptr_t	wrks_addr;
 #endif
 	int		    i;
@@ -313,7 +306,7 @@ int dpni_drv_init(void)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
 
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
 #if 0
 	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */
