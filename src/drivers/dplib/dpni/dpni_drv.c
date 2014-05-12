@@ -272,7 +272,7 @@ static int aiop_replace_parser(uint8_t prpid)
 
 int dpni_drv_init(void)
 {
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	uintptr_t	wrks_addr;
 #endif
 	int		    i;
@@ -307,7 +307,7 @@ int dpni_drv_init(void)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
 
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
 #if 0
 	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */

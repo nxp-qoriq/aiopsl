@@ -297,7 +297,7 @@ static int epid_setup()
 	iowrite32(0, &wrks_addr->epas); /* EPID = 0 */
 	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
 
-#ifndef MC_INTEGRATED
+#ifdef AIOP_STAND_ALONE
 	/* Default settings */
 	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
 	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
