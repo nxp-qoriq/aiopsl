@@ -292,7 +292,7 @@
 	Rev1 */
 #define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x20000000
 
-	/** Metadata Non Default 
+	/** Metadata Non Default
 	If set, the metadata given in the lookup function parameters is used
 	instead of the default metadata which is zeroes. */
 #define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x10000000
