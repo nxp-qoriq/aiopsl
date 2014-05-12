@@ -1018,9 +1018,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 
 		} else {
 		current_index = rfdc_ptr->index_to_out_of_order;
-//		closing_in_order(rfdc_ext_addr,current_index+1);
 		closing_in_order(rfdc_ext_addr,current_index);
-//		num_of_frags = rfdc_ptr->num_of_frags - current_index + 1;
 		current_index = rfdc_ptr->first_frag_index;
 		
 		temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
@@ -1033,6 +1031,8 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		/* reset frame2 field because handle is 2 bytes in concatenate
 		   vs 1 byte in present*/
 		concatenate_params.frame2 = 0;
+
+		concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 
 		fdma_present_frame_without_segments(
 				fds_to_concatenate,
