@@ -3,7 +3,7 @@
 #include "common/io.h"
 #include "kernel/smp.h"
 #include "kernel/platform.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
 #include "common/dbg.h"

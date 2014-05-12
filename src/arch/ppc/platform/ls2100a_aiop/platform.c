@@ -8,7 +8,7 @@
 #include "kernel/smp.h"
 
 #include "inc/mem_mng.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 #define SYS_MASTER_PART_ID 0
@@ -832,6 +832,8 @@ int platform_enable_console(fsl_handle_t h_platform)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     /* Lock DUART handle in system */
+    /*TODO: sys_get_handle in aiop does not support num_of_id > 0
+     * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
     err = sys_add_handle(uart, FSL_OS_MOD_UART, 1, pltfrm->param.console_id);
     if (err != E_OK)
         RETURN_ERROR(MAJOR, err, NO_MSG);
@@ -857,7 +859,9 @@ int platform_disable_console(fsl_handle_t h_platform)
     if (pltfrm->uart)
     {
         /* Unlock DUART handle in system */
-        sys_remove_handle(FSL_OS_MOD_UART, pltfrm->duart_id);
+	/*TODO: sys_get_handle in aiop does not support num_of_id > 0
+	         * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
+        sys_remove_handle(FSL_OS_MOD_UART, 1, pltfrm->duart_id);
 
         /* Free DUART driver */
         duart_free(pltfrm->uart);
