@@ -220,7 +220,7 @@ struct tcp_gro_context_metadata {
 		/** Address (in HW buffers) for the segment sizes. This field
 		 * will be used by GRO only if
 		 * \ref TCP_GRO_METADATA_SEGMENT_SIZES is set.
-		 * Upper SW should initialize this variable at
+		 * Upper SW should initialize this field at
 		 * \ref tcp_gro_context_params.metadata_addr (first 8 bytes) and
 		 * GRO reads it from that location.
 		 * For each segment, upper SW should allocate 2 bytes (to
