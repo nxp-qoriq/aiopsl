@@ -354,12 +354,15 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
 static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
-    int     err, i;
+    int     err = 0, i = 0;
     uint32_t CTSCSR_value = 0;;
-    uint32_t *seed_mem_ptr;
-    uint32_t core_and_task_id;
-    uint32_t seed;
-    ASSERT_COND(pltfrm);
+    uint32_t *seed_mem_ptr = NULL;
+    uint32_t core_and_task_id = 0;
+    uint32_t seed = 0;
+
+    if (pltfrm == NULL) {
+	    return -EINVAL;
+    }
 
     booke_disable_time_base();
     booke_address_broadcast_enable();
@@ -402,17 +405,17 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     core_and_task_id =  ((core_get_id() + 1) << 8);
-    core_and_task_id |= 1; /*add task 0 id*/  
+    core_and_task_id |= 1; /*add task 0 id*/
 
     seed = (core_and_task_id << 16) | core_and_task_id;
     seed_mem_ptr = &(seed_32bit);
-    
+
     *seed_mem_ptr = seed;
-    
-    for (i = 0 ; i < 15; i ++)
+
+    for (i = 0 ; i < 16; i ++)
     {
-	    seed_mem_ptr += 512; /*size of each task area*/     
-	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/    
+	    seed_mem_ptr += 512; /*size of each task area*/
+	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 	    seed = (core_and_task_id << 16) | core_and_task_id;
 	    *seed_mem_ptr = seed;
     }
