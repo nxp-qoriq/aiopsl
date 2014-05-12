@@ -201,7 +201,7 @@ int run_apps(void)
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0, tmp = 0;
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	int dev_count;
 	void *portal_vaddr;
 	/* TODO: replace with memset */
@@ -227,7 +227,7 @@ int run_apps(void)
 	/* TODO - iterate through the device-list:
 	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
-#ifdef MC_INTEGRATED
+#ifndef AIOP_STAND_ALONE
 	/* TODO: replace hard-coded portal address 10 with configured value */
 	/* TODO : layout file must contain portal ID 10 in order to work. */
 	/* TODO : in this call, can 3rd argument be zero? */
