@@ -15,19 +15,16 @@
 
 extern __SHRAM uint64_t ext_keyid_pool_address;
 
-int32_t keygen_kcr_builder_init(struct kcr_builder *kb)
+void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
-	int32_t status;
 
 	/* clear the KCR array */
-	status = cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
-	if (status)
-		return status; /* TODO */
+	cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
+
+	/* TODO status??? */
 
 	/* Initialize KCR length to 1 */
 	kb->kcr_length = 1;
-
-	return 0;
 }
 
 
