@@ -1,3 +1,10 @@
+- fsl_inet.h:                   Renamed inet.h to fsl_inet.h
+- ls2085a_sim_init_params.cfg:  New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- ls2100_sys_test.cfg:          New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- dpl.dtb:                      New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- dpl.dts:                      New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- README.txt:                   Updated app_process_packet with new instructions for MC integrated mode
+
 - init.c, dpni_drv.c, cmdif_srv.c, app_process_packet.c:	define AIOP_STANDALONE to run AIOP standalone. 
 															By default will run in MC integrated mode. 
 
