@@ -38,7 +38,7 @@ struct ipf_context {
 	 * parameter is ignored and the ID is inherited from the original
 	 * fragments. */
 	uint32_t frame_id;
-	/** Flags - Please refer to \ref IPF_Flags */
+	/** Flags - Please refer to \ref IPF_FLAGS */
 	uint32_t flags;
 	/** Original Starting HXS for Parser from Task default */
 	uint16_t parser_starting_hxs;
@@ -66,18 +66,8 @@ struct ipf_context {
 	uint8_t ip_offset;
 	/** IPv6 Fragment header offset	*/
 	uint8_t ipv6_frag_hdr_offset;
-	/* Padding */
+	/** Padding */
 	uint8_t	pad[4];
-};
-
-/**************************************************************************//**
-@Description	Parameters saved in a buffer for original fragments restoration.
-*//***************************************************************************/
-struct params_for_restoration {
-	uint64_t ipv6_fragment_header;
-	uint16_t frag_header_offsets[64];
-	uint16_t ipv6_first_frag_payload_length;
-	uint8_t pad[6];
 };
 
 /** @} */ /* end of IPF_INTERNAL_STRUCTS */
