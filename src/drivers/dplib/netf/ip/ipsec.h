@@ -66,9 +66,11 @@ enum ipsec_cipher_type {
  * 01 : First PDB:Opt IP Hdr Len bytes of Input frame is the
  * 		Outer IP Header Material to be included in Output Frame
  * 10 : PDB contains address to Outer IP Header Material to be
- * 		included in Output Frame (length is PDB:Opt IP Hdr Len
+ * 		included in Output Frame (length is PDB:Opt IP Hdr Len  bytes)
+ * 11 : PDB contains Outer IP Header Material to be included in Output Frame 
+ * 		(length is PDB:Opt IP Hdr Len bytes)
 */
-#define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x04
+#define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x0C
 
 /* 28 (HMO 4 out of 7:0) Sequence Number Rollover control. 
  * 0 : Sequence Number Rollover causes an error

@@ -51,13 +51,29 @@ enum ipsec_direction {
  @{
 *//***************************************************************************/
 enum ipsec_status_codes {
-		/** Success. */
+	/** Success. */
 	IPSEC_SUCCESS = 0,
 	/** Reached Soft Lifetime Kilobyte Limit */
 	IPSEC_KILOBYTE_LIMIT_SOFT = 0x2,
 	/** Reached Hard Lifetime Kilobyte Limit */
 	IPSEC_KILOBYTE_LIMIT_HARD = 0x4,
+	/** Reached Soft Lifetime Packet Limit */
+	IPSEC_PACKET_LIMIT_SOFT = 0x8,
+	/** Reached Hard Lifetime Packet Limit */
+	IPSEC_PACKET_LIMIT_HARD = 0x10,
+	/** Reached Soft Lifetime Seconds Limit */
+	IPSEC_SEC_LIMIT_SOFT = 0x20,
+	/** Reached Hard Lifetime Seconds Limit */
+	IPSEC_SEC_LIMIT_HARD = 0x40,
 	
+	/** Sequence Number overflow */
+	IPSEC_SEC_NUM_OVERFLOW = 0x100,
+	/** Anti Replay Check: Late packet */
+	IPSEC_AR_LATE_PACKET = 0x200,
+	/** Anti Replay Check: Replay packet */
+	IPSEC_AR_REPLAY_PACKET = 0x400,
+	/** ICV comparison failed */
+	IPSEC_ICV_COMPARE_FAIL = 0x800,
 };
 
 /* @} end of enum ipsec_status_codes */

@@ -159,7 +159,7 @@ int32_t ipsec_create_instance(
 			return -1;
 	}
 		
-	return 0; // TMP
+	return IPSEC_SUCCESS; 
 }
 
 
@@ -181,7 +181,6 @@ int32_t ipsec_generate_encap_sd(
 	
 	// RTA TMP params
 	unsigned short ps = 1;
-	//struct ipsec_encap_pdb pdb;
 	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
