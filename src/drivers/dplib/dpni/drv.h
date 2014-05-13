@@ -12,7 +12,7 @@
 #include "net/fsl_net.h"
 #include "dplib/fsl_dprc.h"
 
-int dpni_drv_probe(struct dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid, \
+int dpni_drv_probe(struct dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
 		struct dpni_attach_cfg *attach_params);
 
 #define DPNI_DRV_FLG_PARSE		0x80

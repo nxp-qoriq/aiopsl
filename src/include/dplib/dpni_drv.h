@@ -145,7 +145,8 @@ int dpni_set_rx_tc(struct dpni *dpni,
 
  @Cautions	Allowed only following dpni_attach().
 *//***************************************************************************/
-int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
+int dpni_set_drv_dist(struct dpni *dpni, 
+		const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
 
 /**************************************************************************//**
  @Function	dpni_drv_register_rx_cb
@@ -293,7 +294,7 @@ int dpni_get_send_niid(void);
  @Return	0 on success; error code, otherwise.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_drv_get_primary_mac_addr(uint16_t niid, \
+int dpni_drv_get_primary_mac_addr(uint16_t niid,
 		uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /** @} */ /* end of grp_dpni_aiop group */
