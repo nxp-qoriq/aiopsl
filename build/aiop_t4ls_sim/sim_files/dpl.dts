@@ -22,13 +22,13 @@ Layout is built from 3 different sections: containers, devices, links.
 			num = <int>;		Number of resources;
 			options = <int>; 	Request options
 			id_base_align = <int>;  In case of explicit assignment, this field represents the required base ID for resource allocation;
-						In case of non-explicit assignment, this field indicates the required alignment for the resource ID(s) - use 0 or 1 if there is no alignment requirement.
+			In case of non-explicit assignment, this field indicates the required alignment for the resource ID(s) - use 0 or 1 if there is no alignment requirement.
 		1.1.3 devices - all devices' children are built as follows:
 			dev_name = "<dev>@<id>";
 			portal_id = <int>;
 2. devices - 	all devices' children are named: <dev>@<id> and contains all parameters required for initialization.
 3. links - 	all links' children are representing two devices linked to each other. 
-		
+4. NOTE BPIDs 1-11 are reserved for AIOP, dpbp@1 - dpbp@11 are reserved.		
 ****************************************************************************/
 / {	
 	containers {
@@ -60,21 +60,90 @@ Layout is built from 3 different sections: containers, devices, links.
 				dev@3{
 					dev_name = "dpni@2";
 				};
-                                dev@4{
-                                        dev_name = "dpbp@1";
-                                };
-
+                dev@4{
+                    dev_name = "dpbp@1";
+                };
+                dev@5{
+                    dev_name = "dpbp@2";
+                };
+                dev@6{
+                    dev_name = "dpbp@3";
+                };
+                dev@7{
+                    dev_name = "dpbp@4";
+                };
+                dev@8{
+                    dev_name = "dpbp@5";
+                };
+                dev@9{
+                    dev_name = "dpbp@6";
+                };
+                dev@10{
+                    dev_name = "dpbp@7";
+                };
+                dev@11{
+                    dev_name = "dpbp@8";
+                };
+                dev@12{
+                    dev_name = "dpbp@9";
+                };
+                dev@13{
+                    dev_name = "dpbp@10";
+                };
+                dev@14{
+                    dev_name = "dpbp@11";
+                };
 			};
 		};
 	};
 	devices {
-                dpbp@0 {
-                        compatible = "fsl,dpbp";
-                        buffer_size = <512>;
-                };
+        dpbp@0 {
+            compatible = "fsl,dpbp";
+            buffer_size = <512>;
+        };
 		dpbp@1 {
 			compatible = "fsl,dpbp";
-			buffer_size = <512>;
+			buffer_size = <3080>;
+		};
+		dpbp@2 {
+			compatible = "fsl,dpbp";
+			buffer_size = <1032>;
+		};
+		dpbp@3 {
+			compatible = "fsl,dpbp";
+			buffer_size = <264>;
+		};
+		dpbp@4 {
+			compatible = "fsl,dpbp";
+			buffer_size = <2056>;
+		};
+		dpbp@5 {
+			compatible = "fsl,dpbp";
+			buffer_size = <520>;
+		};
+		dpbp@6 {
+			compatible = "fsl,dpbp";
+			buffer_size = <4104>;
+		};
+		dpbp@7 {
+			compatible = "fsl,dpbp";
+			buffer_size = <264>;
+		};
+		dpbp@8 {
+			compatible = "fsl,dpbp";
+			buffer_size = <520>;
+		};
+		dpbp@9 {
+			compatible = "fsl,dpbp";
+			buffer_size = <1032>;
+		};
+		dpbp@10 {
+			compatible = "fsl,dpbp";
+			buffer_size = <2056>;
+		};
+		dpbp@11 {
+			compatible = "fsl,dpbp";
+			buffer_size = <4104>;
 		};
 		dpni@1{
 			compatible = "fsl,dpni";
