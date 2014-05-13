@@ -22,7 +22,7 @@
 #include "common/errors.h"
 
 /**************************************************************************//**
- @Group		UTILITIES  UTILITIES (ARENA Utilities APIs)
+ @Group		UTILITIES  UTILITIES
 
  @Description	ARENA Utilities APIs
 
