@@ -82,8 +82,8 @@ int     sys_free_interrupt_management(void);
 int     sys_init_multi_processing(void);
 void    sys_free_multi_processing(void);
 void    sys_kick_spinning_cores(uint64_t    cores_mask,
-                                dma_addr_t  core_master_entry,
-                                dma_addr_t  core_guest_entry);
+				dma_addr_t  core_master_entry,
+				dma_addr_t  core_guest_entry);
 
 int     sys_init_cli(void);
 void    sys_free_cli(void);
