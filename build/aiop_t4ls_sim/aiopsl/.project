@@ -720,14 +720,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/fsl_enet.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/net/fsl_inet.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/fsl_inet.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/net/fsl_net.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/fsl_net.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/net/inet.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/inet.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/mem_mng.c</name>
