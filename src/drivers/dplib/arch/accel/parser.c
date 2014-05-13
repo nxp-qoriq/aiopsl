@@ -32,9 +32,9 @@ int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 	parse_profile->parse_profile.reserved1 = 0;
 	parse_profile->parse_profile.reserved2 = 0;
 
-	*((uint64_t*)(parse_profile->reserved)) = 0;
-	*((uint16_t*)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
-	parse_profile->reserved[4]= *prpid;
+	*((uint64_t *)(parse_profile->reserved)) = 0;
+	*((uint16_t *)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
+	parse_profile->reserved[4] = *prpid;
 
 	__stqw(PARSER_PRP_CREATE_MTYPE,
 		(((uint32_t)parse_profile) << 16), 0, 0,
@@ -51,9 +51,9 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 	parse_profile->parse_profile.reserved1 = 0;
 	parse_profile->parse_profile.reserved2 = 0;
 
-	*((uint64_t*)(parse_profile->reserved)) = 0;
-	*((uint16_t*)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
-	parse_profile->reserved[4]= prpid;
+	*((uint64_t *)(parse_profile->reserved)) = 0;
+	*((uint16_t *)(parse_profile->reserved)) = PARSER_PRP_CREATE_MTYPE;
+	parse_profile->reserved[4] = prpid;
 
 	__stqw(PARSER_PRP_CREATE_MTYPE,
 		(((uint32_t)parse_profile) << 16), 0, 0,
@@ -110,7 +110,8 @@ int32_t parse_result_generate_default(uint8_t flags)
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct parser_input_message_params input_struct __attribute__((aligned(16)));
+	struct parser_input_message_params input_struct
+					__attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -141,8 +142,8 @@ int32_t parse_result_generate_default(uint8_t flags)
 	}
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
-	
-	status = *(int32_t *)HWC_ACC_OUT_ADDRESS; 
+
+	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
 	if (!status)
 		return SUCCESS;
 	else if (((status & PARSER_STATUS_MASK) ==
@@ -150,7 +151,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 		((status & PARSER_STATUS_MASK) ==
 			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
 		return SUCCESS;
-	else 
+	else
 		return status;
 }
 
@@ -161,7 +162,8 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	/* 8 Byte aligned for stqw optimization */
-	struct parser_input_message_params input_struct __attribute__((aligned(16)));
+	struct parser_input_message_params input_struct
+				__attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -193,7 +195,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
-	status = *(int32_t *)HWC_ACC_OUT_ADDRESS; 
+	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
 	if (!status)
 		return SUCCESS;
 	else if (((status & PARSER_STATUS_MASK) ==
@@ -213,7 +215,8 @@ int32_t parse_result_generate_checksum(
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct parser_input_message_params input_struct __attribute__((aligned(16)));
+	struct parser_input_message_params input_struct
+					__attribute__((aligned(16)));
 
 	__stdw(0, 0, 0, &input_struct);
 	__stdw(0, 0, 8, &input_struct);
@@ -232,7 +235,7 @@ int32_t parse_result_generate_checksum(
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
-	status = *(int32_t *)HWC_ACC_OUT_ADDRESS; 
+	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
 	if ((status & PARSER_STATUS_MASK) == 0) {
 		*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
