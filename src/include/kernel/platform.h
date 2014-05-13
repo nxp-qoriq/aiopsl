@@ -490,7 +490,7 @@ int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
 
  @{
 *//***************************************************************************/
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 /**************************************************************************//**
  @Function      sys_get_memory_mapped_module_base
 

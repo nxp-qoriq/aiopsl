@@ -3,14 +3,17 @@
 #include "common/io.h"
 #include "kernel/smp.h"
 #include "kernel/platform.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
 #include "common/dbg.h"
 #include "common/fsl_malloc.h"
+#include "common/spinlock.h"
 #include "io.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
+
+__SHRAM uint8_t abcr_lock = 0;
 
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
@@ -83,7 +86,7 @@ int fill_system_parameters(t_sys_param *sys_param)
 
     sys_param->platform_param->clock_in_freq_hz = 100000000;
     sys_param->platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
-    sys_param->platform_param->console_type = PLTFRM_CONSOLE_NONE;
+    sys_param->platform_param->console_type = PLTFRM_CONSOLE_DUART;
     sys_param->platform_param->console_id = 0;
     memcpy(sys_param->platform_param->mem_info,
            mem_info,
@@ -121,6 +124,7 @@ int global_post_init(void)
 
 void core_ready_for_tasks(void)
 {
+    uint32_t abcr_val;
     uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
@@ -129,21 +133,26 @@ void core_ready_for_tasks(void)
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
     /*  finished boot sequence; now wait for event .... */
-    pr_info("CORE ID %d \n", core_get_id());
-    pr_info("AIOP completed boot sequence; waiting for events ...\n");
+    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
 
-#if 0
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
 		(~((uint32_t)sys_get_cores_mask()));
-
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
-#endif
 
     /* Write AIOP boot status (ABCR) */
-    iowrite32((uint32_t)sys_get_cores_mask(), abcr);
+    lock_spinlock(&abcr_lock);
+    abcr_val = ioread32(abcr);
+    abcr_val |= (uint32_t)sys_get_cores_mask();
+    iowrite32(abcr_val, abcr);
+    unlock_spinlock(&abcr_lock);
+
+    {
+	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
+	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
+    }
 
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
@@ -201,7 +210,7 @@ int run_apps(void)
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0, tmp = 0;
-#ifndef AIOP_STAND_ALONE
+#ifndef AIOP_STANDALONE
 	int dev_count;
 	void *portal_vaddr;
 	/* TODO: replace with memset */
@@ -209,12 +218,10 @@ int run_apps(void)
 	struct dpbp dpbp = { 0 };
 	int container_id;
 	struct dprc_dev_desc dev_desc;
-	struct dprc_region_desc region_desc;
 	uint16_t dpbp_id;	// TODO: replace by real dpbp creation
 	struct dpbp_attr attr;
 	uint8_t region_index = 0;
 	struct dpni_attach_cfg attach_params;
-	struct dprc_res_req assign_res_req;
 #endif
 
 
@@ -227,7 +234,7 @@ int run_apps(void)
 	/* TODO - iterate through the device-list:
 	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
-#ifndef AIOP_STAND_ALONE
+#ifndef AIOP_STANDALONE
 	/* TODO: replace hard-coded portal address 10 with configured value */
 	/* TODO : layout file must contain portal ID 10 in order to work. */
 	/* TODO : in this call, can 3rd argument be zero? */
@@ -251,7 +258,7 @@ int run_apps(void)
 	/* TODO: Currently creating a stub DPBP with ID=1.
 	 * Open and init calls will be replaced by 'create' when available at MC.
 	 * At that point, the DPBP ID will be provided by MC. */
-	dpbp_id = 1;
+	dpbp_id = 0;
 
 	dpbp.cidesc.regs = portal_vaddr;
 

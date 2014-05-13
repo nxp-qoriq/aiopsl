@@ -118,7 +118,7 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 	uint16_t   new_buff_size = 0;
 	uint16_t   new_alignment = 0;
 
-	struct slab_module_info *slab_m = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+	struct slab_module_info *slab_m=sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
 	if (slab_m == NULL)
 		return -EINVAL;
@@ -409,7 +409,7 @@ int slab_module_init(void)
 /*****************************************************************************/
 void slab_module_free(void)
 {
-	struct slab_module_info *slab_m = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+        struct slab_module_info *slab_m=sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
 	sys_remove_handle(FSL_OS_MOD_SLAB, 0);
 
@@ -422,7 +422,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 {
 	int32_t temp = 0, m_buffs = 0, num_buffs = 0;
 	int     i;
-	struct slab_module_info *slab_m = sys_get_handle(FSL_OS_MOD_SLAB, 0);
+        struct slab_module_info *slab_m=sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
 	if ((slab_info != NULL) && (slab_m != NULL)) {
 		if (vpool_read_pool(SLAB_VP_POOL_GET(slab),

@@ -1,6 +1,6 @@
 
 #include "common/fsl_string.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 #include "apps.h"
 
 extern int aiop_app_init(void); extern void aiop_app_free(void);

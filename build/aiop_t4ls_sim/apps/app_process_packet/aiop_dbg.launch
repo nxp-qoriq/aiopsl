@@ -156,9 +156,9 @@
 <listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.netMask" value="255.255.255.255"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="None"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.rtospluginname" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.targetos" value="None"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="com.freescale.os.task.aware"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.rtospluginname" value="Task Aware RTOS"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.targetos" value="AIOP"/>
 <listAttribute key="com.freescale.cdt.debug.cw.perCoreResetList"/>
 <listAttribute key="com.freescale.cdt.debug.cw.perProcessorResetList"/>
 <listAttribute key="com.freescale.cdt.debug.cw.runOutOfResetList">
@@ -339,6 +339,7 @@
 <listEntry value="Other Executables"/>
 <listEntry value="Symbolics"/>
 <listEntry value="osawareness"/>
+<listEntry value="TA Initialization"/>
 </listAttribute>
 <booleanAttribute key="com.freescale.sa.dpaa.launch.ENABLE_ANALYSIS" value="false"/>
 <intAttribute key="com.freescale.sa.dpaa.launch.ui.SA_COMMUNICATION_PORT_NUMBER" value="43969"/>

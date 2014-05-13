@@ -1,5 +1,5 @@
 #include "common/fsl_string.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 
 extern int app_init(void); extern void app_free(void);
 
