@@ -1,3 +1,5 @@
+-sys.c:			Added UART multi core support 
+
 - sys.c:			New implementation for sys handle methods. (Add, Get, Remove)
 - sys.h:			New implementation for sys handle methods.
 - fsl_sys.h: 		sys.h which is supplied to customers renamed to fsl_sys.h
