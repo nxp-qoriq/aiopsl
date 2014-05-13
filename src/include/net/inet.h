@@ -22,8 +22,11 @@
 #include "common/errors.h"
 
 /**************************************************************************//**
-@Group          fsl_lib_g   Utility Library
-@{
+ @Group		UTILITIES  UTILITIES (ARENA Utilities APIs)
+
+ @Description	ARENA Utilities APIs
+
+ @{
 *//***************************************************************************/
 /**************************************************************************//**
 @Group          net_utils AIOP Service Layer Network Utilities
@@ -158,7 +161,7 @@ uint32_t htonl(uint32_t hostlong);
 uint32_t ntohl(uint32_t netlong);
 
 /** @} */ /* end of net_utils group */
-/** @} *//* end of fsl_lib_g group */
+/** @} *//* end of ARENA Utilities APIs */
 
 
 #endif /* _INET_H */

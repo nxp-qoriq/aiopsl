@@ -479,9 +479,9 @@ struct	kcr_builder_fec_mask {
 		allocate memory for this structure). Must be aligned to
 		16B boundary.
 
-@Return		Status - Success or Failure. (\ref CDMA_WS_MEMORY_INIT_STATUS).
+@Return		None.
 *//***************************************************************************/
-int32_t keygen_kcr_builder_init(struct kcr_builder *kb);
+void keygen_kcr_builder_init(struct kcr_builder *kb);
 
 
 /**************************************************************************//**
