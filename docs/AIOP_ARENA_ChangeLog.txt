@@ -1,4 +1,7 @@
--sys.c:			Added UART multi core support 
+- init.c, dpni_drv.c, cmdif_srv.c, app_process_packet.c:	define AIOP_STANDALONE to run AIOP standalone. 
+															By default will run in MC integrated mode. 
+
+- sys.c:			Added UART multi core support 
 
 - sys.c:			New implementation for sys handle methods. (Add, Get, Remove)
 - sys.h:			New implementation for sys handle methods.

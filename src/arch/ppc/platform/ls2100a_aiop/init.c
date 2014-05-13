@@ -13,7 +13,7 @@
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
 
-__SHRAM uint8_t abcr_lock = 0; 
+__SHRAM uint8_t abcr_lock = 0;
 
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
@@ -141,7 +141,7 @@ void core_ready_for_tasks(void)
 		(~((uint32_t)sys_get_cores_mask()));
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
-    
+
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
     abcr_val = ioread32(abcr);
@@ -153,11 +153,11 @@ void core_ready_for_tasks(void)
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
     }
-    
+
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
-    
+
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
@@ -210,7 +210,7 @@ int run_apps(void)
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0, tmp = 0;
-#ifndef AIOP_STAND_ALONE
+#ifndef AIOP_STANDALONE
 	int dev_count;
 	void *portal_vaddr;
 	/* TODO: replace with memset */
@@ -234,7 +234,7 @@ int run_apps(void)
 	/* TODO - iterate through the device-list:
 	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
-#ifndef AIOP_STAND_ALONE
+#ifndef AIOP_STANDALONE
 	/* TODO: replace hard-coded portal address 10 with configured value */
 	/* TODO : layout file must contain portal ID 10 in order to work. */
 	/* TODO : in this call, can 3rd argument be zero? */
