@@ -10,6 +10,14 @@ Copyright 2013 Freescale Semiconductor, Inc.
 #define __FSL_CMDIF_SERVER_H
 
 /**************************************************************************//**
+ @Group		LIB LIB (ARENA LIB APIs)
+
+ @Description	ARENA LIB APIs
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
 @Group         cmdif_g  Command Interface API
 
 @Description   AIOP and GPP command interface API
@@ -110,5 +118,6 @@ int cmdif_unregister_module(const char *module_name);
 
 /** @} *//* end of cmdif_server_g group */
 /** @} *//* end of cmdif_g group */
+/** @} *//* end of ARENA LIB APIs */
 
 #endif /* __FSL_CMDIF_SERVER_H */

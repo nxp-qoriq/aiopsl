@@ -13,13 +13,12 @@ Copyright 2013 Freescale Semiconductor, Inc.
 
 
 /**************************************************************************//**
-@ingroup         fsl_lib_g   Utility Library
-@{
- *//***************************************************************************/
-/**************************************************************************//**
-@ingroup         fsl_mm_g
-@{
- *//***************************************************************************/
+ @Group		LIB LIB (ARENA LIB APIs)
+
+ @Description	ARENA LIB APIs
+
+ @{
+*//***************************************************************************/
 
 /**************************************************************************//**
 @Group         slab_g   SLAB
@@ -219,7 +218,6 @@ int slab_refcount_decr(struct slab *slab, uint64_t buff);
 int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 
 /** @} *//* end of slab_g group */
-/** @} *//* end of fsl_mm_g group */
-/** @} *//* end of fsl_lib_g group */
+/** @} *//* end of ARENA LIB APIs */
 
 #endif /* __FSL_SLAB_H */

@@ -30,7 +30,7 @@ extern int ipr_init(void);
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
 						0,                          \
 						E_MAPPED_MEM_TYPE_GEN_REGS) \
-						+ SOC_PERIPH_OFF_AIOP_WRKS);
+						+ SOC_PERIPH_OFF_AIOP_WRKS)
 
 #endif /* AIOP_VERIF */
 
