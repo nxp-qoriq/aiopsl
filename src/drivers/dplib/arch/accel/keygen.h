@@ -13,7 +13,7 @@
 #include "dplib/fsl_keygen.h"
 
 /**************************************************************************//**
-@Group	KEYGEN KEYGEN (Internal)
+@Group	KEYGEN AIOP KEYGEN Internal
 
 @Description	AIOP KEYGEN API
 
