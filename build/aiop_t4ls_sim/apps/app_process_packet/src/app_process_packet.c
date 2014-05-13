@@ -5,6 +5,9 @@
 #include "kernel/platform.h"
 #include "io.h"
 #include "aiop_common.h"
+#include "fsl_parser.h"
+#include "general.h"
+#include "dbg.h"
 
 int app_init(void);
 void app_free(void);
@@ -15,14 +18,39 @@ void app_free(void);
 /**< Get flow id from callback argument, it's demo specific macro */
 
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
-	uint32_t src_addr = 0x10203040;// new ipv4 src_addr
-
+	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
+	uint16_t ipv4hdr_offset = 0;	
+	uint8_t *p_ipv4hdr = 0;
+	uint32_t src_addr = 0x10203040;// new ipv4 src_addr		
+	if (PARSER_IS_OUTER_IPV4_DEFAULT())
+	{
+		fsl_os_print
+		("app_process_packet:Core %d received packet with ipv4 header:\n",
+	    core_get_id());
+		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));
+		for( int i = 0; i < ipv4hdr_length ;i++)
+		{
+			fsl_os_print(" %02x",p_ipv4hdr[i]);
+		}		
+		fsl_os_print("\n");
+	}	
 	err = ip_set_nw_src(src_addr);
 	if (err) {
 		fsl_os_print("ERROR = %d: ip_set_nw_src(src_addr)\n", err);
+	}
+	if (!err && PARSER_IS_OUTER_IPV4_DEFAULT())
+	{
+		fsl_os_print
+		("app_process_packet: Core %d will send a modified packet with ipv4 header:\n"
+		, core_get_id());
+		for( int i = 0; i < ipv4hdr_length ;i++)
+		{
+			fsl_os_print(" %02x",p_ipv4hdr[i]);
+		}				
 	}
 	dpni_drv_send(APP_NI_GET(arg));
 }
