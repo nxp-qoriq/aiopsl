@@ -42,6 +42,7 @@ int ipr_init(void)
 	uint32_t max_buffers = 300;
 	/* todo flags: IPR_MODE_TABLE_LOCATION_PEB */
 	uint32_t flags = 0x02000000;
+	uint8_t  ipr_key_id;
 
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
@@ -74,7 +75,8 @@ int ipr_init(void)
 					NULL , &kb);
 	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
-			  &ipr_global_parameters1.ipr_key_id_ipv4);
+			  &ipr_key_id);
+	ipr_global_parameters1.ipr_key_id_ipv4 = ipr_key_id;
 	/* For IPv6 */
 	keygen_kcr_builder_init(&kb);
 	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,\
@@ -85,7 +87,8 @@ int ipr_init(void)
 					NULL , &kb);
 	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
-			  &ipr_global_parameters1.ipr_key_id_ipv6);
+			  &ipr_key_id);
+	ipr_global_parameters1.ipr_key_id_ipv6 = ipr_key_id;
 	
 	return 0;
 }
