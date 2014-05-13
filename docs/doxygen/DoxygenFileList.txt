@@ -26,3 +26,7 @@ fsl_stdlib.h
 fsl_tman.h
 dpni_drv.h
 general.h
+fsl_cmdif_server.h
+fsl_cmdif_client.h
+fsl_inet.h
+fsl_slab.h
