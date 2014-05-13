@@ -25,9 +25,9 @@
 		(_partition_cores_mask)) & ((0x1 << (_core_id)) - 1)))
 
 #define GET_CORE_SECONDARY_THREADS_MASK(_core_id, _partition_cores_mask)   \
-	(uint32_t)((BUILD_CORE_MASK(_core_id) & (_partition_cores_mask)) ^ \
+	(uint32_t)(((BUILD_CORE_MASK(_core_id) & (_partition_cores_mask)) ^ \
 		(0x1 << (_core_id))) >> (((_core_id)/INTG_THREADS_PER_CORE) * \
-			INTG_THREADS_PER_CORE)
+			INTG_THREADS_PER_CORE))
 
 
 typedef struct t_system {
