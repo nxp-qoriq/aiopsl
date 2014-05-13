@@ -51,7 +51,9 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		{
 			fsl_os_print(" %02x",p_ipv4hdr[i]);
 		}				
+		fsl_os_print("\n");
 	}
+	
 	dpni_drv_send(APP_NI_GET(arg));
 }
 
