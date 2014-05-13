@@ -135,7 +135,7 @@ void sys_free(void);
 		rare and special cases in platform initialization.
 *//***************************************************************************/
 int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
-			int num_of_ids, ... );
+			int num_of_ids, ...);
 
 /**************************************************************************//**
 @Function      sys_remove_handle
@@ -155,7 +155,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
 @Cautions      This routine must not be used in normal flow - it serves only
 		rare and special cases in platform initialization.
 *//***************************************************************************/
-int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ... );
+int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...);
 
 /**************************************************************************//**
 @Function      sys_get_handle
