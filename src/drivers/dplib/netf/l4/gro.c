@@ -474,6 +474,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				gro_ctx->timestamp =
 					((struct tcphdr_gro *)tcp)->tsval;
 			gro_ctx->internal_flags |= TCP_GRO_HAS_TIMESTAMP;
+		} else {
+			gro_ctx->timestamp = 0;
 		}
 
 		/* Set ECN flags */
@@ -606,7 +608,6 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->params = *params;
 	gro_ctx->metadata.seg_num = 1;
 	gro_ctx->metadata.max_seg_size = seg_size;
-	gro_ctx->timestamp = 0;
 
 	/* update seg size */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
