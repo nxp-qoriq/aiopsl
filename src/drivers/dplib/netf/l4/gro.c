@@ -416,6 +416,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	/* zero gro context fields */
 	gro_ctx->metadata.seg_num = 0;
 	gro_ctx->internal_flags = 0;
+	gro_ctx->timestamp = 0;
 
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
@@ -473,6 +474,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				gro_ctx->timestamp =
 					((struct tcphdr_gro *)tcp)->tsval;
 			gro_ctx->internal_flags |= TCP_GRO_HAS_TIMESTAMP;
+		} else {
+			gro_ctx->timestamp = 0;
 		}
 
 		/* Set ECN flags */
@@ -682,6 +685,7 @@ int32_t tcp_gro_flush_aggregation(
 	/* reset gro context fields */
 	gro_ctx.metadata.seg_num = 0;
 	gro_ctx.internal_flags = 0;
+	gro_ctx.timestamp = 0;
 
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
@@ -797,6 +801,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	/* reset gro context fields */
 	gro_ctx.metadata.seg_num = 0;
 	gro_ctx.internal_flags = 0;
+	gro_ctx.timestamp = 0;
 
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */

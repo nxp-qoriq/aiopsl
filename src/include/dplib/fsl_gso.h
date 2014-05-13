@@ -42,7 +42,8 @@
 
 	/** TCP GSO context size definition. */
 #define TCP_GSO_CONTEXT_SIZE	64
-	/** TCP GSO context definition. */
+	/** TCP GSO context definition.
+	 * Must be aligned to 32 bytes. */
 typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 
@@ -159,7 +160,7 @@ int32_t tcp_gso_discard_frame_remainder(
 @Param[in]	mss - Maximum Segment Size.
 @Param[out]	tcp_gso_context_addr - Address to the TCP GSO internal context
 		structure allocated by the user. Internally used by TCP GSO
-		functions. Must be aligned to Frame Descriptor size.
+		functions. Must be aligned to 32 bytes.
 
 @Return		None.
 
