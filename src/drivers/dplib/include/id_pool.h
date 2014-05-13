@@ -123,7 +123,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	uint8_t num_of_writes = 0;
 	uint8_t last_id_in_pool = (uint8_t)(num_of_ids - 1);
 	uint8_t pool[64];
-	
+
 
 	/* Acquire buffer for the pool */
 	if (cdma_acquire_context_memory(buffer_pool_id, &int_id_pool_address)) {
@@ -134,8 +134,8 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 	*ext_id_pool_address = int_id_pool_address;
 
 	/* pool_length_to_fill = num_of_ids + index + last_id_in_pool */
-	pool_length_to_fill = (num_of_ids + 2); 
-	
+	pool_length_to_fill = (num_of_ids + 2);
+
 	while (pool_length_to_fill) {
 		/* Initialize pool in local memory */
 		fill_ids = (pool_length_to_fill < 64) ?
@@ -161,7 +161,7 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 			return ID_POOL_INIT_STATUS_CDMA_WR_ERR_BUF_RELEASED;
 		}
 		num_of_writes++;
-	} 
+	}
 	return ID_POOL_INIT_STATUS_SUCCESS;
 }
 /*************************************************************************//**
@@ -197,11 +197,11 @@ inline int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id)
 		/* check if index < last_id */
 		if (last_id_and_index[1] < (last_id_and_index[0])) {
 			/* Pull id from the pool */
-			status = (cdma_read(id,(uint64_t)
+			status = (cdma_read(id, (uint64_t)
 				(ext_id_pool_address+last_id_and_index[1]+2),
 					1));
 			if (status == CDMA_SUCCESS) {
-				/* Update index, write it back and 
+				/* Update index, write it back and
 				 * release mutex */
 				last_id_and_index[1]++;
 				if (cdma_write_with_mutex(ext_id_pool_address,
@@ -211,7 +211,7 @@ inline int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id)
 					 * try to release mutex if needed and
 					 * return status (???)
 					 * TODO CDMA status */
-					return 
+					return
 					GET_ID_STATUS_CDMA_WR_MUTEX_FAILURE;
 				else
 					return GET_ID_STATUS_SUCCESS;
@@ -221,7 +221,7 @@ inline int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id)
 							(ext_id_pool_address);
 					/* TODO status */
 					return GET_ID_STATUS_CDMA_RD_FAILURE;
-				} 
+				}
 		} else { /* Pool out of range */
 			/* Release mutex */
 			cdma_mutex_lock_release(ext_id_pool_address);
@@ -232,7 +232,7 @@ inline int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id)
 		/* In case of read error, CDMA SR will try to release mutex
 		 * if needed and return status (???)
 		 * TODO CDMA status */
-		return GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE;	
+		return GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE;
 	}
 }
 
@@ -254,7 +254,7 @@ inline int32_t release_id(uint8_t id, uint64_t ext_id_pool_address)
 	int32_t status;
 /*	uint64_t int_id_pool_address;*/
 	uint8_t last_id_and_index[2];
-	
+
 /*	int_id_pool_address = ext_id_pool_address;*/
 
 	/* Read and lock id pool index */
@@ -272,7 +272,7 @@ inline int32_t release_id(uint8_t id, uint64_t ext_id_pool_address)
 				&id,
 				1));
 			if (status == CDMA_SUCCESS) {
-				/* Update index, write it back and 
+				/* Update index, write it back and
 				 * release mutex */
 				if (cdma_write_with_mutex(ext_id_pool_address,
 					CDMA_POSTDMA_MUTEX_RM_BIT,
@@ -291,7 +291,7 @@ inline int32_t release_id(uint8_t id, uint64_t ext_id_pool_address)
 						(ext_id_pool_address))
 					return status; /* TODO */
 				return RELEASE_ID_STATUS_CDMA_WR_FAILURE;
-			} 
+			}
 		} else { /* Pool out of range */
 			if (cdma_mutex_lock_release(ext_id_pool_address))
 				return status; /* TODO */
@@ -302,9 +302,9 @@ inline int32_t release_id(uint8_t id, uint64_t ext_id_pool_address)
 		/* In case of read error, CDMA SR will try to release mutex
 		 * if needed and return status (???)
 		 * TODO CDMA status */
-		return RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE;	
+		return RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE;
 	}
-}	
+}
 
 /** @} */ /* end of ID_POOL_Functions */
 
