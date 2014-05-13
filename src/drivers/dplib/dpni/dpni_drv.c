@@ -7,7 +7,7 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
 #include "kernel/platform.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
 
@@ -103,7 +103,6 @@ int dpni_drv_probe(struct dprc	*dprc,
 	struct dpni dpni = { 0 };
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
-	struct dprc_region_desc region_desc;
 	struct dpni_attr attributes;
 
 	/* TODO: replace wrks_addr with global struct */

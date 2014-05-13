@@ -758,7 +758,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct		presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
-
+	
 	/* Bring into workspace 2 FDs to be concatenated */
 	fds_to_fetch_addr = rfdc_ext_addr + START_OF_FDS_LIST;
 	cdma_read((void *)fds_to_concatenate,
@@ -787,6 +787,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 	concatenate_params.trim   = (uint8_t)fds_to_concatenate[1].frc;
 
 	fdma_concatenate_frames(&concatenate_params);
+		
 	num_of_frags -= 2;
 	while (num_of_frags >= 2) {
 		/* Bring into workspace 2 FDs to be concatenated */
@@ -822,7 +823,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 		concatenate_params.trim  = (uint8_t)fds_to_concatenate[1].frc;
 
 		fdma_concatenate_frames(&concatenate_params);
-
+		
 		num_of_frags -= 2;
 	}
 	if (num_of_frags == 1) {
@@ -848,6 +849,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 		concatenate_params.trim = (uint8_t)fds_to_concatenate[0].frc;
 
 		fdma_concatenate_frames(&concatenate_params);
+		
 	}
 	return SUCCESS;
 }
@@ -909,6 +911,7 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	if ((pr->parse_error_code == PARSER_UDP_CHECKSUM_ERROR) ||
 	    (pr->parse_error_code == PARSER_TCP_CHECKSUM_ERROR)) {
 		/* error in L4 checksum */
+//		return IPR_ERROR;
 	}
 	return SUCCESS;
 }
@@ -1015,8 +1018,33 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 
 		} else {
 		current_index = rfdc_ptr->index_to_out_of_order;
-		closing_in_order(rfdc_ext_addr,current_index+1);
-		num_of_frags = rfdc_ptr->num_of_frags - current_index + 1;
+		closing_in_order(rfdc_ext_addr,current_index);
+		current_index = rfdc_ptr->first_frag_index;
+		
+		temp_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
+						current_index*FD_SIZE;
+
+		cdma_read((void *)fds_to_concatenate,
+				  temp_ext_addr,
+				  FD_SIZE);
+		/* Open frame and get frame handle */
+		/* reset frame2 field because handle is 2 bytes in concatenate
+		   vs 1 byte in present*/
+		concatenate_params.frame2 = 0;
+
+		concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
+
+		fdma_present_frame_without_segments(
+				fds_to_concatenate,
+				FDMA_INIT_NO_FLAGS,
+				0,
+				(uint8_t *)(&(concatenate_params.frame2)) +
+				sizeof(uint8_t));
+	
+		/* Take header size to be removed from FD[FRC] */
+		concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
+		fdma_concatenate_frames(&concatenate_params);
+		num_of_frags = rfdc_ptr->num_of_frags - current_index - 1;
 		octet_index = 255; /* invalid value */
 		}
 	} else {
@@ -1064,7 +1092,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		concatenate_params.trim   = (uint8_t)fds_to_concatenate[1].frc;
 	
 		fdma_concatenate_frames(&concatenate_params);
-		
+				
 		num_of_frags -= 2;
 	}	
 	while (num_of_frags != 0) {
@@ -1102,9 +1130,9 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	
 		/* Take header size to be removed from FD[FRC] */
 		concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
-	
+
 		fdma_concatenate_frames(&concatenate_params);
-	
+
 		num_of_frags -= 1;
 	}
 	

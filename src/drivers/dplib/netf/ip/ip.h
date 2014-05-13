@@ -32,7 +32,7 @@
 /** @} */ /* end of AIOP_General_MASKS */
 
 /**************************************************************************//**
-@Group		IPV6_LAST_HEADER_Definitions ipv6_last_header flags defines 
+@Group		IPV6_LAST_HEADER_Definitions ipv6_last_header flags defines
 @{
 *//***************************************************************************/
 #define  LAST_HEADER_BEFORE_FRAG 0 /*!< last header offset before frag*/
@@ -56,9 +56,10 @@
 @Param[in]	ipv6_hdr - pointer to IPv6 header
 @Param[in]	flag - (\ref IPV6_LAST_HEADER_Definitions).
 
-@Return		Pointer to next header of last extension before fragment or last 
-			IPv6 extension pointer (depend on flag).
-  	  	  	The MSB bit indicate whether there is a extension (1=no extension)
+@Return		Pointer to next header of last extension before fragment or last
+		IPv6 extension pointer (depend on flag).
+		The MSB bit indicate whether there is a extension
+		(1=no extension)
 
 @Cautions	The function assume a valid IPv6 frame
 *//***************************************************************************/

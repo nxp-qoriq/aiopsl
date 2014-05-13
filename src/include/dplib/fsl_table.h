@@ -292,7 +292,7 @@
 	Rev1 */
 #define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x20000000
 
-	/** Metadata Non Default 
+	/** Metadata Non Default
 	If set, the metadata given in the lookup function parameters is used
 	instead of the default metadata which is zeroes. */
 #define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x10000000
@@ -314,7 +314,7 @@ A general bit that is set in some errors conditions */
 /** Table function input or output is erroneous  */
 #define TABLE_IO_ERROR		0x80000001
 
-/** Table Lookup Miss.
+/** Miss Occurred.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
 #define TABLE_STATUS_MISS	0x00000800
@@ -336,15 +336,8 @@ A general bit that is set in some errors conditions */
 
 /** Maximum Number Of Chained Lookups Is Reached.
  * This status is set if the number of table lookups performed by the CTLU
- * reached the threshold. */
+ * reached the threshold. Not supported in Rev1 */
 #define TABLE_STATUS_MNLE	0x00000100
-
-/* TODO TEMP CODE !! START */
-#define CTLU_STATUS_MISS	(0x00000800 | (TABLE_ACCEL_ID_CTLU << 24))
-#define CTLU_STATUS_KSE		(0x00000400 | (TABLE_ACCEL_ID_CTLU << 24))
-#define CTLU_STATUS_EOFH	(0x00000200 | (TABLE_ACCEL_ID_CTLU << 24))
-#define CTLU_STATUS_MNLE	(0x00000100 | (TABLE_ACCEL_ID_CTLU << 24))
-/* TEMP CODE !! END */
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
@@ -951,7 +944,17 @@ struct table_lookup_non_default_params {
 		table identification number to be used for future table
 		references.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS - Success, if
+		\ref TABLE_ATTRIBUTE_MR_MISS was not set in the table
+		attributes.
+		 - \ref TABLE_STATUS_MISS - Success, if
+		\ref TABLE_ATTRIBUTE_MR_MISS was set in the table attributes.
+		 - \ref TABLE_IO_ERROR
+		 - \ref CTLU_STATUS_NORSC
+		 - \ref MFLU_STATUS_NORSC
+		 - \ref CTLU_STATUS_TEMPNOR
+		 - \ref MFLU_STATUS_TEMPNOR
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -975,7 +978,11 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		counter will be decremented (if exists). If not null structure
 		should be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MISS
 
 @Cautions	Not available for MFLU table accelerator.
 		This function should only be called if the table was defined
@@ -993,7 +1000,7 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Function	table_get_params
 
 @Description	A getter for the table parameters.
-		This function does not return the table miss result.
+		\n \n This function does not return the table miss result.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
@@ -1001,7 +1008,10 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Param[out]	tbl_params - Table parameters. Structure should be allocated by
 		the caller to this function.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1022,7 +1032,12 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 		is found. Structure should be allocated by the caller to this
 		function.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MISS
+		 - \ref TABLE_IO_ERROR
 
 @Cautions	Not available for MFLU table accelerator.
 		This function should only be called if the table was defined
@@ -1043,16 +1058,18 @@ int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
 @Function	table_delete
 
 @Description	Deletes a specified table.
-
-		After a table is deleted, all reference counters (if exist)
-		related to the application contexts pointed by the table
+		\n \n After a table is deleted, all reference counters (if
+		exist) related to the application contexts pointed by the table
 		results will be decremented.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1067,9 +1084,8 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 @Function	table_rule_create
 
 @Description	Adds a rule to a specified table.
-
-		If the rule key already exists, the rule will not be added and
-		a status will be returned.
+		\n \n If the rule key already exists, the rule will not be
+		added and a status will be returned.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1080,7 +1096,20 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS - A rule with the same match
+		description (and not aged) is found in the table. No change in
+		the table.
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_NORSC
+		 - \ref MFLU_STATUS_NORSC
+		 - \ref CTLU_STATUS_TEMPNOR
+		 - \ref MFLU_STATUS_TEMPNOR
+		 - \ref TABLE_STATUS_MISS - A rule with the same match
+		description is not found in the table. A new rule was created.
+		 - 0x00000400 - A rule with the same match description (and
+		aged) is found in the table. The rule was replaced.
 
 @Cautions	Not available for MFLU table accelerator in Rev1.
 		In this function the task yields.
@@ -1095,9 +1124,8 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 @Function	table_rule_create_or_replace
 
 @Description	Adds/replaces a rule to a specified table.
-
-		If the rule key already exists, the rule will be replaced by
-		the one specified in the function's parameters. Else, a new
+		\n \n If the rule key already exists, the rule will be replaced
+		by the one specified in the function's parameters. Else, a new
 		rule will be created in the table.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
@@ -1114,7 +1142,16 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 		decremented (if exists). If not null structure should be
 		allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS - Rule was replaced.
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_NORSC
+		 - \ref MFLU_STATUS_NORSC
+		 - \ref CTLU_STATUS_TEMPNOR
+		 - \ref MFLU_STATUS_TEMPNOR
+		 - \ref TABLE_STATUS_MISS - A rule with the same match
+		description is not found in the table. A new rule was created.
 
 @Cautions	Not available for MFLU table accelerator in Rev1.
 		In this function the task yields.
@@ -1130,8 +1167,7 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Function	table_replace_rule
 
 @Description	Replaces a specified rule in the table.
-
-		The rule's key is not modifiable. Caller to this function
+		\n \n The rule's key is not modifiable. Caller to this function
 		supplies the key of the rule to be replaced.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
@@ -1149,7 +1185,12 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		will be decremented (if exists). If not null structure should
 		be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MISS
+
 
 @Cautions	Not available for MFLU table accelerator in Rev1.
 		The key descriptor must be the exact same key descriptor that
@@ -1167,8 +1208,8 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 @Function	table_rule_query
 
 @Description	Queries a rule in the table.
-
-		This function does not update the matched result timestamp.
+		\n \n This function does not update the matched result
+		timestamp.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
@@ -1186,7 +1227,16 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
 		details). Must be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MISS
+		 - \ref TABLE_IO_ERROR
+		 - \ref CTLU_STATUS_TEMPNOR - A rule with the same match
+		description is found in the CTLU table and rule is aged.
+		 - \ref MFLU_STATUS_TEMPNOR - A rule with the same match
+		description is found in the MFLU table and rule is aged.
 
 @Cautions	NOTE: If the result is of type that contains pointer to
 		Slab/CDMA buffer (refer to struct table_rule_result
@@ -1222,7 +1272,11 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		will be decremented (if exists). If not null structure should
 		be allocated by the caller to this function.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MISS
 
 @Cautions	Not available for MFLU table accelerator in Rev1
 		The key descriptor must be the exact same key descriptor that
@@ -1245,11 +1299,10 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 @Function	table_lookup_by_key
 
 @Description	Performs a lookup with a key built by the user.
-
-		If opaque0_or_reference result field is a reference pointer,
-		its reference counter will be incremented during this operation.
-		user should decrement the Slab/CDMA buffer reference counter
-		after usage.
+		\n \n If opaque0_or_reference result field is a reference
+		pointer, its reference counter will be incremented during this
+		operation. user should decrement the Slab/CDMA buffer reference
+		counter after usage.
 
 		This function updates the matched result timestamp.
 
@@ -1266,7 +1319,13 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 		the table lookup result will be written. Must be aligned to 16B
 		boundary.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MNLE
+		 - \ref TABLE_STATUS_KSE
+		 - \ref TABLE_STATUS_MISS
 
 @Cautions	In this function the task yields.
 		This lookup cannot be used for chaining of lookups.
@@ -1282,12 +1341,11 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Function	table_lookup_by_keyid_default_frame
 
 @Description	Performs a lookup with a predefined key and the default frame.
-
-		In this lookup process a lookup key will be built according to
-		the Key Composition Rule associated with the Key ID supplied as
-		a paremeter to this functions. Default frame header (segment),
-		Parse Result address, and FD address parameters are used in
-		the key creation process.
+		\n \n In this lookup process a lookup key will be built
+		according to the Key Composition Rule associated with the Key
+		ID supplied as a paremeter to this functions. Default frame
+		header (segment), Parse Result address, and FD address
+		parameters are used in the key creation process.
 
 		This function updates the matched result timestamp.
 
@@ -1310,7 +1368,14 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 		the table lookup result will be written. Must be aligned to
 		16B boundary.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MNLE
+		 - \ref TABLE_STATUS_KSE
+		 - \ref TABLE_STATUS_EOFH
+		 - \ref TABLE_STATUS_MISS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1357,7 +1422,14 @@ int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		the table lookup result will be written. Must be aligned to
 		16B boundary.
 
-@Return		Please refer to \ref FSL_TABLE_STATUS
+@Return
+		 - \ref TABLE_STATUS_SUCCESS
+		 - \ref MFLU_STATUS_TIDE
+		 - \ref CTLU_STATUS_TIDE
+		 - \ref TABLE_STATUS_MNLE
+		 - \ref TABLE_STATUS_KSE
+		 - \ref TABLE_STATUS_EOFH
+		 - \ref TABLE_STATUS_MISS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/

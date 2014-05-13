@@ -1,5 +1,5 @@
 #include "common/fsl_string.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 
 extern int aiop_pton_init(void); extern void aiop_pton_free(void);
 extern int aiop_ntop_init(void); extern void aiop_ntop_free(void);

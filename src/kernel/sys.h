@@ -4,9 +4,10 @@
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/list.h"
+#include "common/dbg.h"
 #include "kernel/smp.h"
 #include "kernel/platform.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
@@ -15,53 +16,59 @@
 #define SYS_BOOT_SYNC_FLAG_DONE     2
 
 #define BUILD_CORE_MASK(_core_id)  \
-    (((0x1 << INTG_THREADS_PER_CORE) - 1) << (((_core_id)/INTG_THREADS_PER_CORE) * INTG_THREADS_PER_CORE))
+	(((0x1 << INTG_THREADS_PER_CORE) - 1) << \
+		(((_core_id)/INTG_THREADS_PER_CORE)\
+		* INTG_THREADS_PER_CORE))
 
-#define IS_CORE_MASTER(_core_id, _partition_cores_mask) (int)(((_core_id) == 0) ? \
-    1 : !((BUILD_CORE_MASK(_core_id) & (_partition_cores_mask)) & ((0x1 <<(_core_id)) - 1)))
+#define IS_CORE_MASTER(_core_id, _partition_cores_mask) \
+	(int)(((_core_id) == 0)	? 1 : !((BUILD_CORE_MASK(_core_id) & \
+		(_partition_cores_mask)) & ((0x1 << (_core_id)) - 1)))
 
-#define GET_CORE_SECONDARY_THREADS_MASK(_core_id, _partition_cores_mask) \
-    (uint32_t)((BUILD_CORE_MASK(_core_id) & (_partition_cores_mask)) ^ (0x1 << (_core_id))) >> \
-              (((_core_id)/INTG_THREADS_PER_CORE) * INTG_THREADS_PER_CORE)
+#define GET_CORE_SECONDARY_THREADS_MASK(_core_id, _partition_cores_mask)   \
+	(uint32_t)((BUILD_CORE_MASK(_core_id) & (_partition_cores_mask)) ^ \
+		(0x1 << (_core_id))) >> (((_core_id)/INTG_THREADS_PER_CORE) * \
+			INTG_THREADS_PER_CORE)
 
 
 typedef struct t_system {
-    /* Memory management variables */
-    fsl_handle_t                mem_mng;
-    int                         heap_partition_id;
-    uintptr_t                   heap_addr;
-    list_t                      virt_mem_list;
-    struct spinlock             virt_mem_lock;
-    struct spinlock             mem_part_mng_lock;
-    struct spinlock             mem_mng_lock;
+	/* Memory management variables */
+	fsl_handle_t                mem_mng;
+	int                         heap_partition_id;
+	uintptr_t                   heap_addr;
+	list_t                      virt_mem_list;
+	struct spinlock             virt_mem_lock;
+	struct spinlock             mem_part_mng_lock;
+	struct spinlock             mem_mng_lock;
 
-    /* Console variables */
-    fsl_handle_t                console;
-    int                         (*f_console_print)(fsl_handle_t console, uint8_t *p_data, uint32_t size);
-    int                         (*f_console_get)(fsl_handle_t console, uint8_t *p_data, uint32_t size);
-    char                        *p_pre_console_buf;
-    uint32_t                    pre_console_buf_pos;
-    struct spinlock             console_lock;
+	/* Console variables */
+	fsl_handle_t                console;
+	int                         (*f_console_print)(fsl_handle_t console,
+		uint8_t *p_data, uint32_t size);
+	int                         (*f_console_get)(fsl_handle_t console,
+		uint8_t *p_data, uint32_t size);
+	char                        *p_pre_console_buf;
+	uint32_t                    pre_console_buf_pos;
+	uint8_t                     console_lock;
 
-    /* Multi-Processing variables */
-    uint8_t                     partition_id;
-    uint64_t                    partition_cores_mask;
-    uint64_t                    master_cores_mask;
-    int                         is_core_master[INTG_MAX_NUM_OF_CORES];
-    int                         is_partition_master[INTG_MAX_NUM_OF_CORES];
-    int                         is_master_partition_master[INTG_MAX_NUM_OF_CORES];
-    struct spinlock             barrier_lock;
-    volatile uint64_t           barrier_mask;
-    int                         core_failure[INTG_MAX_NUM_OF_CORES];
-    int                         init_fail_count;
+	/* Multi-Processing variables */
+	uint8_t              partition_id;
+	uint64_t             partition_cores_mask;
+	uint64_t             master_cores_mask;
+	int                  is_core_master[INTG_MAX_NUM_OF_CORES];
+	int                  is_partition_master[INTG_MAX_NUM_OF_CORES];
+	int                  is_master_partition_master[INTG_MAX_NUM_OF_CORES];
+	struct spinlock      barrier_lock;
+	volatile uint64_t    barrier_mask;
+	int                  core_failure[INTG_MAX_NUM_OF_CORES];
+	int                  init_fail_count;
 
-    list_t                      forced_objects_list;
+	/*TODO check if need to be removed: list_t*/
+	/*list_t                      forced_objects_list;*/
+	/* boot synchronization variables */
+	volatile uint32_t           boot_sync_flag;
 
-    /* boot synchronization variables */
-    volatile uint32_t           boot_sync_flag;
-
-    /* Platform operations */
-    t_platform_ops              platform_ops;
+	/* Platform operations */
+	t_platform_ops              platform_ops;
 } t_system;
 
 

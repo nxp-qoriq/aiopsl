@@ -39,7 +39,6 @@ static int sys_debugger_print(fsl_handle_t unused,
                               uint8_t *p_data,
                               uint32_t size)
 {
-	uint32_t int_flags;
 	int ret;
 
 	UNUSED(unused);
@@ -104,9 +103,8 @@ int sys_unregister_console(void)
 void sys_print(char *str)
 {
 	uint32_t count;
-	uint32_t int_flags;
 
-	int_flags = spin_lock_irqsave(&(sys.console_lock));
+	lock_spinlock(&(sys.console_lock));
 	count = (uint32_t)strlen(str);
 
 	/* Print to the registered console, if exists */
@@ -120,8 +118,7 @@ void sys_print(char *str)
 
 			if (!sys.p_pre_console_buf) {
 				/* Cannot print error message - will lead to recursion */
-				spin_unlock_irqrestore(&(sys.console_lock),
-				                       int_flags);
+				unlock_spinlock(&(sys.console_lock));
 				fsl_os_exit(1);
 			}
 
@@ -139,8 +136,7 @@ void sys_print(char *str)
 		       str/*sys.print_buf*/, count);
 		sys.pre_console_buf_pos += count;
 	}
-
-	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
+	unlock_spinlock(&(sys.console_lock));
 }
 
 #ifdef ARENA_LEGACY_CODE

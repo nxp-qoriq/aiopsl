@@ -8,7 +8,7 @@
 #include "kernel/smp.h"
 
 #include "inc/mem_mng.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 #define SYS_MASTER_PART_ID 0
@@ -306,7 +306,7 @@ static int disable_l1_cache(t_platform *pltfrm)
     return E_OK;
 }
 
-#ifdef ARENA_LEGACY_CODE
+
 /*****************************************************************************/
 static int console_print_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size)
 {
@@ -328,7 +328,7 @@ static int console_get_line_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint
 
     return (int)count;
 }
-
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 static void pltfrm_enable_local_irq_cb(fsl_handle_t h_platform)
 {
@@ -435,7 +435,7 @@ static int pltfrm_free_core_cb(fsl_handle_t h_platform)
     return E_OK;
 }
 
-#ifdef ARENA_LEGACY_CODE
+
 /*****************************************************************************/
 static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 {
@@ -472,7 +472,6 @@ static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 
     return E_OK;
 }
-#endif
 
 /*****************************************************************************/
 static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
@@ -692,13 +691,10 @@ int platform_init(struct platform_param    *pltfrm_param,
     pltfrm_ops->f_free_timer            = NULL;
     pltfrm_ops->f_init_ipc              = NULL;
     pltfrm_ops->f_free_ipc              = NULL;
-#ifdef ARENA_LEGACY_CODE
+
     pltfrm_ops->f_init_console          = pltfrm_init_console_cb;
     pltfrm_ops->f_free_console          = pltfrm_free_console_cb;
-#else
-    pltfrm_ops->f_init_console          = NULL;
-    pltfrm_ops->f_free_console          = NULL;
-#endif
+
     pltfrm_ops->f_init_mem_partitions   = pltfrm_init_mem_partitions_cb;
     pltfrm_ops->f_free_mem_partitions   = pltfrm_free_mem_partitions_cb;
 #ifdef ARENA_LEGACY_CODE
@@ -781,7 +777,7 @@ uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
     return (pltfrm->param.clock_in_freq_hz * 4);
 }
 
-#ifdef ARENA_LEGACY_CODE
+
 /*****************************************************************************/
 int platform_enable_console(fsl_handle_t h_platform)
 {
@@ -798,7 +794,8 @@ int platform_enable_console(fsl_handle_t h_platform)
     SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), E_NOT_SUPPORTED);
 
     /* Fill DUART configuration parameters */
-    duart_uart_param.base_address       = platform_get_memory_mapped_module_base(pltfrm, FSL_OS_MOD_UART, pltfrm->param.console_id, E_MAPPED_MEM_TYPE_GEN_REGS);
+    /*TODO: the base address is hard coded to uart 0, should be modified*/
+    duart_uart_param.base_address       = SOC_PERIPH_OFF_DUART1;
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
     duart_uart_param.parity             = E_DUART_PARITY_NONE;
@@ -835,6 +832,8 @@ int platform_enable_console(fsl_handle_t h_platform)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     /* Lock DUART handle in system */
+    /*TODO: sys_get_handle in aiop does not support num_of_id > 0
+     * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
     err = sys_add_handle(uart, FSL_OS_MOD_UART, 1, pltfrm->param.console_id);
     if (err != E_OK)
         RETURN_ERROR(MAJOR, err, NO_MSG);
@@ -860,7 +859,9 @@ int platform_disable_console(fsl_handle_t h_platform)
     if (pltfrm->uart)
     {
         /* Unlock DUART handle in system */
-        sys_remove_handle(FSL_OS_MOD_UART, pltfrm->duart_id);
+	/*TODO: sys_get_handle in aiop does not support num_of_id > 0
+	         * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
+        sys_remove_handle(FSL_OS_MOD_UART, 1, pltfrm->duart_id);
 
         /* Free DUART driver */
         duart_free(pltfrm->uart);
@@ -869,4 +870,4 @@ int platform_disable_console(fsl_handle_t h_platform)
 
     return E_OK;
 }
-#endif
+
