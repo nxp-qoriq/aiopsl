@@ -48,7 +48,7 @@ typedef struct t_system {
 		uint8_t *p_data, uint32_t size);
 	char                        *p_pre_console_buf;
 	uint32_t                    pre_console_buf_pos;
-	struct spinlock             console_lock;
+	uint8_t                     console_lock;
 
 	/* Multi-Processing variables */
 	uint8_t              partition_id;

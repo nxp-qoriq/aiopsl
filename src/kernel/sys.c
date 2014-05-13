@@ -16,7 +16,7 @@ __SHRAM t_system sys;
 
 #define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
-				register char **envp);
+                            register char **envp);
 extern void     __sys_start_secondary(void);
 #ifdef CORE_E6500
 extern void     __sys_start_secondary_guest(void);
@@ -124,7 +124,7 @@ static int sys_init_platform(struct platform_param *platform_param)
 			ASSERT_COND(sys.platform_ops.h_platform);
 
 		err = sys_add_handle(sys.platform_ops.h_platform,
-					FSL_OS_MOD_SOC, 1, 0);
+		                     FSL_OS_MOD_SOC, 1, 0);
 		if (err != 0)
 			RETURN_ERROR(MAJOR, err, NO_MSG);
 	}
@@ -291,7 +291,7 @@ int sys_init(void)
 {
 	t_sys_param             sys_param;
 	struct platform_param   platform_param;
-	int       err;
+	int       err, is_master_core;
 	uint32_t        core_id = core_get_id();
 #if (defined(SYS_SMP_SUPPORT) && defined(SYS_64BIT_ARCH))
 	dma_addr_t   *p_master_start_addr;
@@ -306,12 +306,12 @@ int sys_init(void)
 	fill_system_parameters(&sys_param);
 
 	sys.is_partition_master[core_id] = (int)(sys_param.master_cores_mask &
-						(1ULL << core_id));
+		(1ULL << core_id));
 	sys.is_master_partition_master[core_id] = (int)(
 		sys.is_partition_master[core_id] &&
 		(sys_param.partition_id == 0));
 	sys.is_core_master[core_id] = IS_CORE_MASTER(core_id,
-					sys_param.partition_cores_mask);
+	                                             sys_param.partition_cores_mask);
 
 	if (sys.is_partition_master[core_id]) {
 		sys.partition_id         = sys_param.partition_id;
@@ -332,12 +332,12 @@ int sys_init(void)
 
 	if (sys.is_partition_master[core_id]) {
 
-	/* Initialize memory management */
-	err = sys_init_memory_management();
-	if (err != 0) {
-		pr_err("Failed sys_init_memory_management\n");
-		return err;
-	}
+		/* Initialize memory management */
+		err = sys_init_memory_management();
+		if (err != 0) {
+			pr_err("Failed sys_init_memory_management\n");
+			return err;
+		}
 
 #ifdef SYS_SMP_SUPPORT
 		/* Kick secondary cores on this partition */
@@ -345,34 +345,34 @@ int sys_init(void)
 		/* In 64-bit ABI, function name points to function descriptor.
            This descriptor contains the function address. */
 #ifdef CORE_E6500
-	p_master_start_addr = (dma_addr_t *)(__sys_start_secondary);
-	p_guest_start_addr = (dma_addr_t *)(__sys_start_secondary_guest);
+		p_master_start_addr = (dma_addr_t *)(__sys_start_secondary);
+		p_guest_start_addr = (dma_addr_t *)(__sys_start_secondary_guest);
 
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-		(dma_addr_t)PTR_TO_UINT(p_master_start_addr),
-		(dma_addr_t)PTR_TO_UINT(p_guest_start_addr));
+		sys_kick_spinning_cores(sys.partition_cores_mask,
+		                        (dma_addr_t)PTR_TO_UINT(p_master_start_addr),
+		                        (dma_addr_t)PTR_TO_UINT(p_guest_start_addr));
 #else
-	p_master_start_addr = (dma_addr_t *)(__sys_start);
+		p_master_start_addr = (dma_addr_t *)(__sys_start);
 
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-		(dma_addr_t)PTR_TO_UINT(*p_master_start_addr),
-		0);
+		sys_kick_spinning_cores(sys.partition_cores_mask,
+		                        (dma_addr_t)PTR_TO_UINT(*p_master_start_addr),
+		                        0);
 #endif /* CORE_E6500 */
 
 #else /*!SYS_64BIT_ARCH*/
 #ifdef SYS_SECONDARY_START
 #ifdef CORE_E6500
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-		(dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
-		(dma_addr_t)PTR_TO_UINT(__sys_start_secondary_guest));
+		sys_kick_spinning_cores(sys.partition_cores_mask,
+		                        (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
+		                        (dma_addr_t)PTR_TO_UINT(__sys_start_secondary_guest));
 #else /*CORE_E6500*/
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-		(dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
-		0);
+		sys_kick_spinning_cores(sys.partition_cores_mask,
+		                        (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
+		                        0);
 #endif /* CORE_E6500 */
 #else  /*!SYS_SECONDARY_START*/
 #if 0
-        sys_kick_spinning_cores(sys.partition_cores_mask, (dma_addr_t)PTR_TO_UINT(__sys_start), 0);
+		sys_kick_spinning_cores(sys.partition_cores_mask, (dma_addr_t)PTR_TO_UINT(__sys_start), 0);
 #endif /* 0 */
 #endif /* SYS_SECONDARY_START */
 #endif /* SYS_64BIT_ARCH */
@@ -388,13 +388,13 @@ int sys_init(void)
 		sys_init_objects_registry();
 	}
 
-    /* Initialize Multi-Processing services as needed */
-    err = sys_init_multi_processing();
-    if (err != 0) {
-	    pr_err("Failed sys_init_multi_processing\n");
-	    return err;
-    }
-    sys_barrier();
+	/* Initialize Multi-Processing services as needed */
+	err = sys_init_multi_processing();
+	if (err != 0) {
+		pr_err("Failed sys_init_multi_processing\n");
+		return err;
+	}
+	sys_barrier();
 
 #if 0
 	if (sys.is_master_partition_master[core_id] && sys_param.use_cli) {
@@ -409,10 +409,13 @@ int sys_init(void)
 	if (err != 0)
 		return -1;
 
-	if (!sys.console)
-		/* If no platform console, register debugger console */
-		sys_register_debugger_console();
-
+	is_master_core = sys_is_master_core();
+	if(is_master_core)
+	{
+		if (!sys.console)
+			/* If no platform console, register debugger console */
+			sys_register_debugger_console();
+	}
 	return 0;
 }
 
