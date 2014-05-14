@@ -3,6 +3,7 @@ SL Alpha v0.4  Change Log
 IPR: out of order functionality.
 IPR: IPv6 support.
 IPR: concurrent mode support.
+IPR: usage of slab allocator in init.
 Table SRs: table_lookup_by_keyid was renamed to table_lookup_by_keyid_default_frame
 Table SRs: table_lookup_by_keyid was introduced, supporting non default parameters
 Table SRs: table status were updated
@@ -21,10 +22,11 @@ GRO: Add unexpected sequence number support.
 GRO: Add unexpected Ack number support.
 fsl_gro.h: Add granularity field to timeout parameters.
 fsl_fdma.h: Add concatenate command new output parameter- AMQ attributes.
-Keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
-Keygen.c: Fixed ENGR310688 - In keygen_kcr_builder_init, Clear all KCR array instead of only the first byte.
-System.c: Added Storage Profile Initialization.
-System.h: Added storage profile struct and defines.
+keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
+keygen.c: Fixed ENGR310688 - In keygen_kcr_builder_init, Clear all KCR array instead of only the first byte.
+system.c: usage of slab allocator in prpid and keyid pools creation.
+system.c: Added Storage Profile Initialization.
+system.h: Added storage profile struct and defines.
 ipf.c: ipf_discard_frame_remainder is supported.
 ipf.c: IPv4 options headers are supported.
 ipf.c: IPv4 fragmentation of fragments is supported.
