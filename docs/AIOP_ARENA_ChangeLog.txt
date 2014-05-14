@@ -1,3 +1,5 @@
+** AIOP ARENA SL Alpha v0.4 **
+
 - console.c                     Bug fix: removed nested spinlock from: sys_debugger_print()
 - init.c                        AIOP multicore boot: wait for all cores before enabling CTS
 - fsl_inet.h:                   Renamed inet.h to fsl_inet.h
