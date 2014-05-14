@@ -10,8 +10,18 @@ Table SRs: table status were updated
 Table SRs: Removed ICID Error status
 Table SRs: table verification files were updated
 Table SRs: Added function specific return values documentation.
-GRO: Add granularity field to timeout parameters.
-FDMA: Add concatenate command new output parameter- AMQ attributes.
+GRO: Add Timeout limit support.
+GRO: Add IPv4 checksum support.
+GRO: Add TCP checksum support.
+GRO: Add IPv4 ECN support.
+GRO: Add IPv4 timestamp support.
+GRO: Add IPv6 support.
+GRO: Add Metadata support.
+GRO: Add TCP flags support.
+GRO: Add unexpected sequence number support.
+GRO: Add unexpected Ack number support.
+fsl_gro.h: Add granularity field to timeout parameters.
+fsl_fdma.h: Add concatenate command new output parameter- AMQ attributes.
 keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
 keygen.c: Fixed ENGR310688 - In keygen_kcr_builder_init, Clear all KCR array instead of only the first byte.
 system.c: usage of slab allocator in prpid and keyid pools creation.
