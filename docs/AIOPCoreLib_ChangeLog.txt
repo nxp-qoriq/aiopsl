@@ -15,7 +15,10 @@ Keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
 Keygen.c: Fixed ENGR310688 - In keygen_kcr_builder_init, Clear all KCR array instead of only the first byte.
 System.c: Added Storage Profile Initialization.
 System.h: Added storage profile struct and defines.
-Ipf.c: Added support in IPv6 ID
+ipf.c: ipf_discard_frame_remainder is supported.
+ipf.c: IPv4 options headers are supported.
+ipf.c: IPv4 fragmentation of fragments is supported.
+ipf.c: Added support in IPv6 ID
 fsl_keygen.c: Added FSL_KEYGEN_KCR_CREATE_STATUS, FSL_KEYGEN_KCR_DELETE_STATUS
 fsl_keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
 fsl_keygen.c: Some status changes
