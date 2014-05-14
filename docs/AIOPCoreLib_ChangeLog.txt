@@ -9,6 +9,20 @@ Table SRs: table verification files were updated
 Table SRs: Added function specific return values documentation.
 GRO: Add granularity field to timeout parameters.
 FDMA: Add concatenate command new output parameter- AMQ attributes.
+Keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
+Keygen.c: Fixed ENGR310688 - In keygen_kcr_builder_init, Clear all KCR array instead of only the first byte.
+System.c: Added Storage Profile Initialization.
+System.h: Added storage profile struct and defines.
+Ipf.c: Added support in IPv6 ID
+fsl_keygen.c: Added FSL_KEYGEN_KCR_CREATE_STATUS, FSL_KEYGEN_KCR_DELETE_STATUS
+fsl_keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
+fsl_keygen.c: Some status changes
+fsl_keygen.c: Changed FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD defines to enum kcr_builder_ext_lookup_res_field
+fsl_parser.c: Added FSL_PARSER_PRP_CREATE_STATUS, FSL_PARSER_PRP_DELETE_STATUS
+fsl_parser.c: Changed input to parser_profile_create() and parser_profile_replace() to be parse_profile_input struct (according to HW struct)
+fsl_parser.c: Changed parser_profile_replace() from int32_t to void
+fsl_parser.c: Some status changes
+
 
 SL Pre-Alpha v0.3.3  Change Log
 ===============================
