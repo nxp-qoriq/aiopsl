@@ -1,3 +1,5 @@
+- console.c                     Bug fix: removed nested spinlock from: sys_debugger_print()
+- init.c                        AIOP multicore boot: wait for all cores before enabling CTS
 - fsl_inet.h:                   Renamed inet.h to fsl_inet.h
 - ls2085a_sim_init_params.cfg:  New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
 - ls2100_sys_test.cfg:          New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
