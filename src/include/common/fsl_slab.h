@@ -13,7 +13,7 @@ Copyright 2013 Freescale Semiconductor, Inc.
 
 
 /**************************************************************************//**
- @Group		LIB LIB (ARENA LIB APIs)
+ @Group		LIB LIB
 
  @Description	ARENA LIB APIs
 

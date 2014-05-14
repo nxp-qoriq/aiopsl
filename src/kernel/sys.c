@@ -16,7 +16,7 @@ __SHRAM t_system sys;
 
 #define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
-                            register char **envp);
+				register char **envp);
 extern void     __sys_start_secondary(void);
 #ifdef CORE_E6500
 extern void     __sys_start_secondary_guest(void);
@@ -36,12 +36,12 @@ __SHRAM t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
 static void sys_init_objects_registry(void)
 {
 #ifdef ARENA_LEGACY_CODE
-	//memset(sys.modules_info, 0, sizeof(sys.modules_info));
-	//memset(sys.sub_modules_info, 0, sizeof(sys.sub_modules_info));
-	//INIT_LIST(&(sys.forced_objects_list));
-	/*p_forced_object = (t_sys_forced_object_desc *)fsl_os_malloc(
-			sizeof(t_sys_forced_object_desc));*/
-	//sys_init_spinlock(&sys.object_mng_lock);
+	/*memset(sys.modules_info, 0, sizeof(sys.modules_info));
+	memset(sys.sub_modules_info, 0, sizeof(sys.sub_modules_info));
+	INIT_LIST(&(sys.forced_objects_list));
+	p_forced_object = (t_sys_forced_object_desc *)fsl_os_malloc(
+			sizeof(t_sys_forced_object_desc));
+	sys_init_spinlock(&sys.object_mng_lock);*/
 #endif
 }
 
@@ -81,7 +81,7 @@ fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...)
 
 /*****************************************************************************/
 int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
-                   int num_of_ids, ... )
+				int num_of_ids, ...)
 {
 	if ((module >= FSL_OS_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
 		return -EINVAL;
@@ -92,7 +92,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
 }
 
 /*****************************************************************************/
-int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ... )
+int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
 	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
@@ -124,7 +124,7 @@ static int sys_init_platform(struct platform_param *platform_param)
 			ASSERT_COND(sys.platform_ops.h_platform);
 
 		err = sys_add_handle(sys.platform_ops.h_platform,
-		                     FSL_OS_MOD_SOC, 1, 0);
+			FSL_OS_MOD_SOC, 1, 0);
 		if (err != 0)
 			RETURN_ERROR(MAJOR, err, NO_MSG);
 	}
@@ -230,8 +230,7 @@ static int sys_free_platform(void)
 		err = sys.platform_ops.f_free_private(
 			sys.platform_ops.h_platform);
 
-	if (sys.is_partition_master[core_id])
-	{
+	if (sys.is_partition_master[core_id]) {
 		/* Do not change the sequence of calls in this section */
 
 		if (sys.platform_ops.f_free_mem_partitions)
@@ -243,8 +242,8 @@ static int sys_free_platform(void)
 				sys.platform_ops.h_platform);
 
 		/*
-        if (sys.ipc_enabled && sys.platform_ops.f_free_ipc)
-            err = sys.platform_ops.f_free_ipc(sys.platform_ops.h_platform);
+		if (sys.ipc_enabled && sys.platform_ops.f_free_ipc)
+		err = sys.platform_ops.f_free_ipc(sys.platform_ops.h_platform);
 		 */
 	}
 
@@ -311,13 +310,13 @@ int sys_init(void)
 		sys.is_partition_master[core_id] &&
 		(sys_param.partition_id == 0));
 	sys.is_core_master[core_id] = IS_CORE_MASTER(core_id,
-	                                             sys_param.partition_cores_mask);
+					sys_param.partition_cores_mask);
 
 	if (sys.is_partition_master[core_id]) {
 		sys.partition_id         = sys_param.partition_id;
 		sys.partition_cores_mask  = sys_param.partition_cores_mask;
 		sys.master_cores_mask     = sys_param.master_cores_mask;
-		//sys.ipc_enabled          = sys_param.use_ipc;
+		/*sys.ipc_enabled          = sys_param.use_ipc;*/
 	}
 
 #ifdef CORE_E6500
@@ -343,49 +342,48 @@ int sys_init(void)
 		/* Kick secondary cores on this partition */
 #ifdef SYS_64BIT_ARCH
 		/* In 64-bit ABI, function name points to function descriptor.
-           This descriptor contains the function address. */
+		This descriptor contains the function address. */
 #ifdef CORE_E6500
-		p_master_start_addr = (dma_addr_t *)(__sys_start_secondary);
-		p_guest_start_addr = (dma_addr_t *)(__sys_start_secondary_guest);
+	p_master_start_addr = (dma_addr_t *)(__sys_start_secondary);
+	p_guest_start_addr = (dma_addr_t *)(__sys_start_secondary_guest);
 
-		sys_kick_spinning_cores(sys.partition_cores_mask,
-		                        (dma_addr_t)PTR_TO_UINT(p_master_start_addr),
-		                        (dma_addr_t)PTR_TO_UINT(p_guest_start_addr));
+	sys_kick_spinning_cores(sys.partition_cores_mask,
+				(dma_addr_t)PTR_TO_UINT(p_master_start_addr),
+				(dma_addr_t)PTR_TO_UINT(p_guest_start_addr));
 #else
-		p_master_start_addr = (dma_addr_t *)(__sys_start);
+	p_master_start_addr = (dma_addr_t *)(__sys_start);
 
-		sys_kick_spinning_cores(sys.partition_cores_mask,
-		                        (dma_addr_t)PTR_TO_UINT(*p_master_start_addr),
-		                        0);
+	sys_kick_spinning_cores(sys.partition_cores_mask,
+			(dma_addr_t)PTR_TO_UINT(*p_master_start_addr), 0);
 #endif /* CORE_E6500 */
 
 #else /*!SYS_64BIT_ARCH*/
 #ifdef SYS_SECONDARY_START
 #ifdef CORE_E6500
-		sys_kick_spinning_cores(sys.partition_cores_mask,
-		                        (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
-		                        (dma_addr_t)PTR_TO_UINT(__sys_start_secondary_guest));
+	sys_kick_spinning_cores(sys.partition_cores_mask,
+			(dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
+			(dma_addr_t)PTR_TO_UINT(__sys_start_secondary_guest));
 #else /*CORE_E6500*/
-		sys_kick_spinning_cores(sys.partition_cores_mask,
-		                        (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
-		                        0);
+	sys_kick_spinning_cores(sys.partition_cores_mask,
+			(dma_addr_t)PTR_TO_UINT(__sys_start_secondary),	0);
 #endif /* CORE_E6500 */
 #else  /*!SYS_SECONDARY_START*/
 #if 0
-		sys_kick_spinning_cores(sys.partition_cores_mask, (dma_addr_t)PTR_TO_UINT(__sys_start), 0);
+	sys_kick_spinning_cores(sys.partition_cores_mask,
+				(dma_addr_t)PTR_TO_UINT(__sys_start), 0);
 #endif /* 0 */
 #endif /* SYS_SECONDARY_START */
 #endif /* SYS_64BIT_ARCH */
 #endif /* SYS_SMP_SUPPORT */
 
 #if 0
-		/* Initialize interrupt management */
-		err = sys_init_interrupt_management();
-		ASSERT_COND(err == 0);
+	/* Initialize interrupt management */
+	err = sys_init_interrupt_management();
+	ASSERT_COND(err == 0);
 #endif /* 0 */
 
-		/* Initialize the objects registry structures */
-		sys_init_objects_registry();
+	/* Initialize the objects registry structures */
+	sys_init_objects_registry();
 	}
 
 	/* Initialize Multi-Processing services as needed */
@@ -410,8 +408,7 @@ int sys_init(void)
 		return -1;
 
 	is_master_core = sys_is_master_core();
-	if(is_master_core)
-	{
+	if (is_master_core) {
 		if (!sys.console)
 			/* If no platform console, register debugger console */
 			sys_register_debugger_console();

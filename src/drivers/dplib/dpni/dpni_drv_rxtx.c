@@ -125,7 +125,7 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 /* TODO : replace by macros/inline funcs */
 __HOT_CODE int dpni_get_receive_niid(void)
 {
-	return((int)PRC_GET_PARAMETER());
+	return (int)PRC_GET_PARAMETER();
 }
 
 
@@ -140,6 +140,6 @@ __HOT_CODE int dpni_set_send_niid(uint16_t niid)
 /* TODO : replace by macros/inline funcs */
 __HOT_CODE int dpni_get_send_niid(void)
 {
-	return((int)default_task_params.send_niid);
+	return (int)default_task_params.send_niid;
 }
 

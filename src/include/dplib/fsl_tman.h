@@ -57,7 +57,7 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 *//***************************************************************************/
 
 /**************************************************************************//**
- @enum tman_tmi_status
+ @enum tman_tmi_create_status
 
  @Description	AIOP TMAN create TMI command status codes.
 
@@ -71,7 +71,7 @@ enum tman_tmi_create_status {
 	TMAN_TMIID_DEPLETION_ERR = 0x814000FF
 };
 
-/* @} end of enum tman_tmi_status */
+/* @} end of enum tman_tmi_create_status */
 
 /**************************************************************************//**
  @enum tman_timer_create_status
@@ -164,7 +164,7 @@ enum tman_timer_mod_status {
 /* @} end of enum tman_timer_mod_status */
 
 /**************************************************************************//**
- @enum tman_timer_rech_status
+ @enum tman_timer_recharge_status
 
  @Description	AIOP TMAN timer recharge command status codes.
 
@@ -195,7 +195,7 @@ enum tman_timer_recharge_status {
 	TMAN_REC_PERMANENT_ERR = 0x81C00010
 };
 
-/* @} end of enum tman_timer_rech_status */
+/* @} end of enum tman_timer_recharge_status */
 
 /**************************************************************************//**
  @enum tman_timer_query_status

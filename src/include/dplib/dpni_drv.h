@@ -145,41 +145,44 @@ int dpni_set_rx_tc(struct dpni *dpni,
 
  @Cautions	Allowed only following dpni_attach().
 *//***************************************************************************/
-int dpni_set_drv_dist(struct dpni *dpni, const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
+int dpni_set_drv_dist(struct dpni *dpni, 
+		const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
 
 /**************************************************************************//**
  @Function	dpni_drv_register_rx_cb
 
  @Description	Attaches a pointer to a call back function to a NI ID.
-                The callback function will be called when the NI_ID receives a frame
+	The callback function will be called when the NI_ID receives a frame.
 
  @Param[in]	ni_id   The Network Interface ID
- @Param[in]	flow_id Flow ID, it should be between 0 and #DPNI_DRV_MAX_NUM_FLOWS 
- @Param[in]	cb      Callback function for Network Interface specified flow_id
- @Param[in]	arg     Argument that will be passed to callback function 
+ @Param[in]	flow_id Flow ID, it should be between 0 and
+		#DPNI_DRV_MAX_NUM_FLOWS
+ @Param[in]	cb    Callback function for Network Interface specified flow_id
+ @Param[in]	arg   Argument that will be passed to callback function
 
  @Return	OK on success; error code, otherwise.
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
-                            uint16_t        flow_id,
-                            rx_cb_t		    *cb,
-                            dpni_drv_app_arg_t arg);
+			uint16_t        flow_id,
+			rx_cb_t		    *cb,
+			dpni_drv_app_arg_t arg);
 
 /**************************************************************************//**
  @Function	dpni_drv_unregister_rx_cb
 
  @Description	Unregisters a NI callback function by replacing it with a
-                pointer to a discard callback. 
-                The discard callback function will be called when the NI_ID 
-                receives a frame
+		pointer to a discard callback.
+		The discard callback function will be called when the NI_ID
+		receives a frame
 
  @Param[in]	ni_id   The Network Interface ID
- @Param[in]	flow_id Flow ID, it should be between 0 and #DPNI_DRV_MAX_NUM_FLOWS 
+ @Param[in]	flow_id Flow ID, it should be between 0 and
+		#DPNI_DRV_MAX_NUM_FLOWS
 
  @Return	OK on success; error code, otherwise.
 *//***************************************************************************/
 int dpni_drv_unregister_rx_cb(uint16_t		ni_id,
-                             uint16_t		flow_id);
+			uint16_t		flow_id);
 
 /**************************************************************************//**
  @Function	dpni_drv_register_discard_rx_cb
@@ -230,10 +233,10 @@ int dpni_drv_send(uint16_t ni_id);
 
  @Param[in]	ni_id	The Network Interface ID
 	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
-	
+
  @Param[in]	fd	pointer to explicit FD. The assumption is that user
- 	 	used fdma function to creat an explicit FD as 
- 	 	fdma_create_frame 
+		used fdma function to creat an explicit FD as
+		fdma_create_frame
 
  @Return	OK on success; error code, otherwise.
 		For error codes refer to \ref FDMA_ENQUEUE_FD_ERRORS
@@ -255,7 +258,7 @@ int dpni_get_num_of_ni(void);
 /**************************************************************************//**
  @Function	dpni_get_receive_niid
 
- @Description	Get ID of NI on which the default packet arrived. 
+ @Description	Get ID of NI on which the default packet arrived.
 
  @Return	NI_IDs on which the default packet arrived.
 *//***************************************************************************/
@@ -291,7 +294,8 @@ int dpni_get_send_niid(void);
  @Return	0 on success; error code, otherwise.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
+int dpni_drv_get_primary_mac_addr(uint16_t niid,
+		uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /** @} */ /* end of grp_dpni_aiop group */
 /** @} */ /* end of grp_dplib_aiop group */

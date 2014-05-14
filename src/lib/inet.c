@@ -8,7 +8,7 @@
 		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#include "net/inet.h"
+#include "net/fsl_inet.h"
 #include <cstring>
 
 #define IPV4_ADDR_SIZE  4            /**< IPV4 address size in bytes */
