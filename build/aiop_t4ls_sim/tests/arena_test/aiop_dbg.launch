@@ -2,7 +2,7 @@
 <launchConfiguration type="com.freescale.cdt.launch.cw.download">
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSExeName" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbsc136"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="42323"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="40967"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSTimeOut" value="60"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.JTAGConfigFile" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.chainSpeedTCK" value="12500"/>
@@ -158,7 +158,7 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.netMask" value="255.255.255.255"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="None"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.osawareness.rtospluginname" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.targetos" value="None"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.targetos" value="AIOP"/>
 <listAttribute key="com.freescale.cdt.debug.cw.perCoreResetList"/>
 <listAttribute key="com.freescale.cdt.debug.cw.perProcessorResetList"/>
 <listAttribute key="com.freescale.cdt.debug.cw.runOutOfResetList">
