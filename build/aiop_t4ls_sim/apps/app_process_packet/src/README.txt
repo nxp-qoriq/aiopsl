@@ -9,38 +9,36 @@ Setup
    http://gforge.freescale.net/frs/download.php/2041/LS2100_SIM_CTLU-20140418.tbz2
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
-4. Copy the “tio_console” application from aiopsl\misc\setup to the simulator folder.
-5. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
-   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/DPAA_SIM_RELEASE_0_7_0_0101/dtsim_release/linux64
-6. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
-7. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
+4. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
+5. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
 
 ===========================================
 Execution flow
 ===========================================
 1. Build mc_app from mc_release_0.3.2 using CW_DPAA_v10.0.7.
-2. Build app_process_packect from aiopsl using CW_DPAA_v10.0.7.
+2. Build app_process_packet from aiopsl using CW_DPAA_v10.0.7.
 3. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
              -smodel "ls_sim_config_file=ls2100_sys_test.cfg"
 4. Launch mc_app using AFM connection.
-   Don't forget to update update simulator port in debug configuration - 42333.
-5. Run tio console:
-   ./tio_console -hub localhost:42980 -ser duart1_1 duart1_0
+   Don't forget to update simulator server IP and port in debug configuration - 42333.
+5. After MC reaches main(), tun tio console:
+   ./bin/tio_console -hub localhost:42975 -ser duart1_1 duart1_0
 6. Run mc_app untill you'll see "Running MC app, waiting for events ..." on tio console
 7. Launch app_process_packect.
-   Don't forget to update update simulator port in debug configuration - 42333.
+   Don't forget to update simulator server IP and port in debug configuration - 42333.
 8. Push "Multicore Resume" button to run all AIOP cores untill you'll see
    "AIOP <core_id> completed boot sequence; waiting for events ..." for all cores
 9. Run “tio capture”:
-   ./fm_tio_capture -hub localhost:42980 -ser w0_m1 -verbose_level 2
+   ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
 10. Run “tio inject”:
-   ./fm_tio_inject -hub localhost:42980 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
+   ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
    This will send packets to AIOP.
-11. Set break point inside app_process_packet_flow0() and see that
+11. Set break point inside app_process_packet_flow0() and push "Multicore Resume" button to run and see that
     it's activated on each packet.
+12. The packet will also be captured by the tio_capture
 
 ===========================================
 Possible modifications:
@@ -51,7 +49,8 @@ Possible modifications:
 4. The user may use different simulator port
 5. The demo runs in MC integrated mode. In order to get back to AIOP standalone
    mode as it was supported in previous releases, it is required to recompile
-   aiopsl and app_process_packect project with AIOP_STAND_ALONE defined.
+   aiopsl and app_process_packect project with AIOP_STANDALONE defined.
+   Please note that the standalone mode is being phased out and has is no longer verified.
 
 =================
 Important NOTEs:
@@ -67,6 +66,10 @@ ARENA sets the following default values for every NI:
   spid = 0 - Storage profile ID
   MTU = maximal value
 
-Virtual pools
-===========================================
+==========
+ARENA APIs
+==========
 Don't use virtual pools API, use SLAB API as demonstrated inside this demo
+For spinlock, use only: lock_spinlock and unlock_spinlock
+All other spinlock functions will be removed in future release.
+
