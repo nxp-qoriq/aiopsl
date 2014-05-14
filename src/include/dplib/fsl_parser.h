@@ -45,7 +45,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @{
 *//***************************************************************************/
 	/** Routing header present in 2nd IPv6 header */
-#define PARSER_ATT_IPV6_ROUTING_HDR_2               0x0001
+#define PARSER_ATT_IPV6_ROUTING_HDR_2               0x8000
 
 /** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS */
 
