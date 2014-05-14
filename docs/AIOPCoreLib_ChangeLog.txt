@@ -1,6 +1,8 @@
 SL Alpha v0.4  Change Log
 ===============================
-
+IPR: out of order functionality.
+IPR: IPv6 support.
+IPR: concurrent mode support.
 Table SRs: table_lookup_by_keyid was renamed to table_lookup_by_keyid_default_frame
 Table SRs: table_lookup_by_keyid was introduced, supporting non default parameters
 Table SRs: table status were updated
