@@ -184,7 +184,8 @@ int32_t ipsec_generate_encap_sd(
 	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
-		uint32_t *outer_hdr; 
+		//uint32_t *outer_hdr; 
+		uint32_t outer_hdr[5]; 
 	} pdb;	
 	
 	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
@@ -295,7 +296,14 @@ int32_t ipsec_generate_encap_sd(
 	pdb.innerpdb.rsvd2 = 0;
 
 	pdb.innerpdb.ip_hdr_len = params->encparams.ip_hdr_len;
-	pdb.outer_hdr = params->encparams.outer_hdr;
+	//pdb.outer_hdr = params->encparams.outer_hdr;
+
+	// TODO: TMP workaround due to variable size array in the RTA PDB
+	pdb.outer_hdr[0] = *(params->encparams.outer_hdr + 0);
+	pdb.outer_hdr[1] = *(params->encparams.outer_hdr + 1);
+	pdb.outer_hdr[2] = *(params->encparams.outer_hdr + 2);
+	pdb.outer_hdr[3] = *(params->encparams.outer_hdr + 3);
+	pdb.outer_hdr[4] = *(params->encparams.outer_hdr + 4);
 
 	#ifndef AIOPSL_IPSEC_DEBUG
 
