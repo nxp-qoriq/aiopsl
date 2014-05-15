@@ -311,8 +311,8 @@ int sys_init(void)
 		(sys_param.partition_id == 0));
 	sys.is_core_master[core_id] = IS_CORE_MASTER(core_id,
 					sys_param.partition_cores_mask);
-
-	if (sys.is_partition_master[core_id]) {
+	
+	if (sys_is_master_core()) {
 		sys.partition_id         = sys_param.partition_id;
 		sys.partition_cores_mask  = sys_param.partition_cores_mask;
 		sys.master_cores_mask     = sys_param.master_cores_mask;
@@ -322,7 +322,7 @@ int sys_init(void)
 #ifdef CORE_E6500
 	platform_early_init(sys_param.platform_param);
 #else
-	if (sys.is_partition_master[core_id])
+	if (sys_is_master_core())
 		platform_early_init(sys_param.platform_param);
 #endif /* CORE_E6500 */
 
