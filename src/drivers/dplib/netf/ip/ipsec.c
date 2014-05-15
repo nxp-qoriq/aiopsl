@@ -1010,7 +1010,7 @@ int32_t ipsec_frame_decrypt(
 	/* TMP debug code */
 	uint32_t tmp_outer_ip_offset = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 	uint32_t tmp_eth_offset = (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
-	uint32_t tmp_l5_offset = (uint32_t)(PARSER_GET_L5_OFFSET_DEFAULT()); 
+	uint32_t tmp_l5_offset = (uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()); 
 
 	
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
@@ -1117,8 +1117,8 @@ int32_t ipsec_frame_decrypt(
 		 * 		ESP Header.
 		*/
 		outer_material_length = (uint16_t) // TODO: verify this 
-			((uint32_t)PARSER_GET_L5_OFFSET_DEFAULT() 
-					- (uint32_t)PARSER_GET_ETH_OFFSET_DEFAULT()); 
+			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) 
+					- (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT())); 
 		
 		// If this is incorrect, get the IP length from the header wit
 		// PARSER_GET_OUTER_IP_POINTER_DEFAULT()
