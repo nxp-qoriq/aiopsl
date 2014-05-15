@@ -88,12 +88,12 @@ asm void __sys_start(register int argc, register char **argv, register char **en
     addi   r2, r2, _SDA2_BASE_@l
     lis    r13, _SDA_BASE_@ha
     addi   r13, r13, _SDA_BASE_@l
-    mtdcr dcr469,r2 // INITR2
-    mtdcr dcr470,r13// INITR13
 
     /* Initialize stack pointer (based on core ID) */
+    /* TODO why it was here ???
     cmpwi   r17, 0
     bne     1f
+    */
     lis     r1,    _stack_addr@ha
     addi    r1, r1, _stack_addr@l
     b       done_sp
@@ -104,7 +104,7 @@ done_sp:
 
     /* Set MSR */
     mfmsr  r6
-    ori    r6, r6, 0x2000
+    ori    r6, r6, 0x0200 /* DE */
     mtmsr  r6
     isync
 

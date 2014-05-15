@@ -1,5 +1,5 @@
 /**************************************************************************//*
-@File           inet.h
+@File           fsl_inet.h
 
 @Brief          AIOP Service Layer Network Utilities header file
 
@@ -15,15 +15,18 @@
 		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#ifndef _INET_H
-#define _INET_H
+#ifndef _FSL_INET_H
+#define _FSL_INET_H
 
 #include "common/types.h"
 #include "common/errors.h"
 
 /**************************************************************************//**
-@Group          fsl_lib_g   Utility Library
-@{
+ @Group		UTILITIES  UTILITIES
+
+ @Description	ARENA Utilities APIs
+
+ @{
 *//***************************************************************************/
 /**************************************************************************//**
 @Group          net_utils AIOP Service Layer Network Utilities
@@ -158,8 +161,8 @@ uint32_t htonl(uint32_t hostlong);
 uint32_t ntohl(uint32_t netlong);
 
 /** @} */ /* end of net_utils group */
-/** @} *//* end of fsl_lib_g group */
+/** @} *//* end of ARENA Utilities APIs */
 
 
-#endif /* _INET_H */
+#endif /* _FSL_INET_H */
 

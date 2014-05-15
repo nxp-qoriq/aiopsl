@@ -28,8 +28,10 @@ void aiop_verification_fm()
 	struct fdma_present_segment_params present_params;
 	uint64_t ext_address;	/* External Data Address */
 	uint64_t initial_ext_address;	/* Initial External Data Address */
-	uint16_t str_size;	/* Command struct Size */
+	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
+	
+	init_verif();
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
@@ -58,8 +60,6 @@ void aiop_verification_fm()
 				* the ni function will be run.
 				* (According to Ilan request) */
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-
-	init_verif();
 
 	/* The Terminate command will finish the verification */
 	do {
@@ -235,43 +235,43 @@ void aiop_verification_fm()
 void aiop_verif_init_parser()
 {
 	uint8_t i, prpid;
-	struct parse_profile_record verif_parse_profile;
+	struct parse_profile_input verif_parse_profile __attribute__((aligned(16)));
 
-	verif_parse_profile.eth_hxs_config = 0x0;
-	verif_parse_profile.llc_snap_hxs_config = 0x0;
-	verif_parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
-	verif_parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
-	verif_parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
+	verif_parse_profile.parse_profile.eth_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.llc_snap_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
+	verif_parse_profile.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
+	verif_parse_profile.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
 	/* No MTU checking */
-	verif_parse_profile.pppoe_ppp_hxs_config = 0x0;
-	verif_parse_profile.mpls_hxs_config.en_erm_soft_seq_start = 0x0;
+	verif_parse_profile.parse_profile.pppoe_ppp_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.mpls_hxs_config.en_erm_soft_seq_start = 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-	verif_parse_profile.mpls_hxs_config.lie_dnp =
+	verif_parse_profile.parse_profile.mpls_hxs_config.lie_dnp =
 			PARSER_PRP_MPLS_HXS_CONFIG_LIE;
-	verif_parse_profile.arp_hxs_config = 0x0;
-	verif_parse_profile.ip_hxs_config = 0x0;
-	verif_parse_profile.ipv4_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.arp_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.ip_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.ipv4_hxs_config = 0x0;
 	/* Routing header is ignored and the destination address from
 	 * main header is used instead */
-	verif_parse_profile.ipv6_hxs_config = 0x0;
-	verif_parse_profile.gre_hxs_config = 0x0;
-	verif_parse_profile.minenc_hxs_config = 0x0;
-	verif_parse_profile.other_l3_shell_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.ipv6_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.gre_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.minenc_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.other_l3_shell_hxs_config = 0x0;
 	/* In short Packet, padding is removed from Checksum calculation */
-	verif_parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	verif_parse_profile.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
 	/* In short Packet, padding is removed from Checksum calculation */
-	verif_parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-	verif_parse_profile.ipsec_hxs_config = 0x0;
-	verif_parse_profile.sctp_hxs_config = 0x0;
-	verif_parse_profile.dccp_hxs_config = 0x0;
-	verif_parse_profile.other_l4_shell_hxs_config = 0x0;
-	verif_parse_profile.gtp_hxs_config = 0x0;
-	verif_parse_profile.esp_hxs_config = 0x0;
-	verif_parse_profile.l5_shell_hxs_config = 0x0;
-	verif_parse_profile.final_shell_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	verif_parse_profile.parse_profile.ipsec_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.sctp_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.dccp_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.other_l4_shell_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.gtp_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.esp_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.l5_shell_hxs_config = 0x0;
+	verif_parse_profile.parse_profile.final_shell_hxs_config = 0x0;
 	/* Assuming no soft examination parameters */
 	for (i = 0; i < 16; i++)
-		verif_parse_profile.soft_examination_param_array[i] = 0x0;
+		verif_parse_profile.parse_profile.soft_examination_param_array[i] = 0x0;
 	//sys_prpid_pool_create();
 	/* Create the parse_profile and get an id */
 	parser_profile_create(&verif_parse_profile, &prpid);

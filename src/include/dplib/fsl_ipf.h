@@ -35,7 +35,7 @@
 
 	/** IPF context size definition. */
 #define IPF_CONTEXT_SIZE	64
-	/** IPF context definition. */
+	/** IPF context definition. Must be aligned to 32 Bytes.*/
 typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 
 
@@ -153,8 +153,7 @@ int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 		parameter is ignored.
 @Param[out]	ipf_context_addr - Address to the IPF internal context
 		structure allocated by the user. Internally used by
-		IP Fragmentation functions. Must be aligned to Frame Descriptor
-		Size.
+		IP Fragmentation functions. Must be aligned to 32 bytes.
 
 @Return		None.
 

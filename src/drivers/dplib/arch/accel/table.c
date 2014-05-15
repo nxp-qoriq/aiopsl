@@ -437,24 +437,6 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
-			      uint16_t table_id, uint8_t keyid,
-			      struct table_lookup_result *lookup_result)
-{
-
-	/* Prepare HW context for TLU accelerator call */
-	__stqw(TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE,
-	       (uint32_t)lookup_result, table_id | (((uint32_t)keyid) << 16),
-	       0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
-
-	/* Return status */
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
-}
-
-
 int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 			    uint16_t table_id,
 			    union table_lookup_key_desc key_desc,
@@ -477,6 +459,52 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
+
+int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
+			      uint16_t table_id, uint8_t keyid,
+			      struct table_lookup_result *lookup_result)
+{
+
+	/* Prepare HW context for TLU accelerator call */
+	__stqw(TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE,
+	       (uint32_t)lookup_result, table_id | (((uint32_t)keyid) << 16),
+	       0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Table accelerator */
+	__e_hwaccel(acc_id);
+
+	/* Return status */
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+}
+
+
+int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
+			      uint16_t table_id,
+			      uint8_t keyid,
+			      uint32_t flags,
+			      struct table_lookup_non_default_params
+				     *ndf_params,
+			      struct table_lookup_result *lookup_result)
+{
+	/* optimization 1 clock */
+	uint32_t arg2 = (uint32_t)lookup_result;
+	__e_rlwimi(arg2, *((uint32_t *)(ndf_params)), 16, 0, 15);
+
+	/* Clearing reserved fields */
+	ndf_params->reserved0 = 0;
+	ndf_params->reserved1 = 0;
+	ndf_params->reserved2 = 0;
+
+	/* Prepare HW context for TLU accelerator call */
+	__stqw(flags | TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE, arg2,
+	       table_id | (((uint32_t)keyid) << 16), 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Table accelerator */
+	__e_hwaccel(acc_id);
+
+	/* Return status */
+	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+}
 /*****************************************************************************/
 /*				Internal API				     */
 /*****************************************************************************/

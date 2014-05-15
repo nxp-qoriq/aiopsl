@@ -6,12 +6,11 @@
 #include "fsl_cdma.h"
 #include "common/fsl_slab.h"
 #include "kernel/platform.h"
-#include "common/fsl_aiop_cmdif.h"
 #include "cmdif_srv.h"
 #include "io.h"
 #include "aiop_common.h"
 
-extern void app_receive_cb (void); 
+extern void app_receive_cb (void);
 
 int app_init(void);
 void app_free(void);
@@ -19,7 +18,7 @@ void app_free(void);
 //#define REFLECTOR_DEMO
 
 #ifdef REFLECTOR_DEMO
-extern uint32_t    sync_done;
+uint32_t    sync_done;
 
 /* Client STUB */
 static int my_cmdif_open(struct cmdif_desc *cidesc,
@@ -44,7 +43,9 @@ static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(instance_id);
 	UNUSED(dev);
-	fsl_os_print("open_cb\n");
+	if (instance_id == 0)
+		fsl_os_print("FAILED: open_cb inst_id = 0x%x\n", instance_id);
+	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
@@ -61,7 +62,7 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
 	UNUSED(cmd);
 	UNUSED(size);
 	UNUSED(data);
-	fsl_os_print("ctrl_cb\n");
+	fsl_os_print("ctrl_cb cmd = 0x%x\n", cmd);
 	return 0;
 }
 
@@ -76,8 +77,12 @@ static void epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 
 	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
-	iowrite32(0, &wrks_addr->epas); 
+	iowrite32(0, &wrks_addr->epas);
+#ifdef REFLECTOR_DEMO
+	iowrite32((uint32_t)cmdif_srv_isr, &wrks_addr->ep_pc);
+#else
 	iowrite32((uint32_t)app_receive_cb, &wrks_addr->ep_pc);
+#endif
 }
 
 int app_init(void)
@@ -107,12 +112,10 @@ int app_init(void)
 
 #ifdef REFLECTOR_DEMO
 	err = my_cmdif_open(NULL, module, 0, NULL, NULL);
-#else
-	/* More complex demo that tests client server different commands */
-	epid_setup();
 #endif
+	epid_setup();
 
-	
+
 	return err;
 }
 

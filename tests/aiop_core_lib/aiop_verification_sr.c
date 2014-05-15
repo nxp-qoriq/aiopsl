@@ -12,6 +12,12 @@
 
 void aiop_verification_sr()
 {
+	init_verif();
+	aiop_verification_parse();
+}
+	
+void aiop_verification_parse()
+{
 	/* Presentation Context */
 	struct presentation_context *PRC;
 	uint32_t asa_seg_addr;	/* ASA Segment Address */
@@ -33,8 +39,6 @@ void aiop_verification_sr()
 	/* shift size by 6 since the size is in 64bytes (2^6 = 64) quantities */
 	asa_seg_size = (PRC->asapa_asaps & PRC_ASAPS_MASK) << 6;
 
-	init_verif();
-
 	/* The condition is for back up only.
 	In case the ASA was written correctly the Terminate command will
 	finish the verification */
@@ -44,30 +48,6 @@ void aiop_verification_sr()
 
 		switch (opcode) {
 
-		case GRO_MODULE:
-		{
-			str_size = aiop_verification_gro(asa_seg_addr);
-			if (str_size == sizeof(struct tcp_gro_agg_seg_command))
-				gro_verif_create_next_frame(++gro_iteration);
-			break;
-		}
-		case IPF_MODULE:
-		{
-			str_size = aiop_verification_ipf(asa_seg_addr);
-			break;
-		}
-		case GSO_MODULE:
-		{
-			str_size = aiop_verification_gso(asa_seg_addr);
-			break;
-		}
-		case IPR_MODULE:
-		{
-			ipr_verif_update_frame(ipr_iteration);
-			str_size = aiop_verification_ipr(asa_seg_addr);
-			ipr_iteration ++;
-			break;
-		}
 		case FDMA_MODULE:
 		{
 			str_size = aiop_verification_fdma(asa_seg_addr);

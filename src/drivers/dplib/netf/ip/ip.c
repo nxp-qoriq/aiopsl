@@ -32,7 +32,7 @@ int32_t ip_header_decapsulation(uint8_t flags)
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	inner_ip_offset = (uint8_t)(PARSER_GET_INNER_IP_OFFSET_DEFAULT());
 	/* todo need parser to define PARSER_IS_INNER_IP macro */
-	if (!PARSER_IS_TUNNEL_IP_DEFAULT())
+	if (!PARSER_IS_TUNNELED_IP_DEFAULT())
 		return NO_IP_ENCAPSULATION_FOUND_ERROR;
 	outer_ip_offset = (uint8_t)(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 
@@ -326,12 +326,6 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					   IP checksum in FDMA*/
 					ip_cksum_calculate(ipv4hdr_ptr,
 						IP_CKSUM_CALC_MODE_NONE);
-					/* calculate IP checksum */
-//					ipv4_cksum_calculate(ipv4hdr_ptr);
-					/* update IP checksum in FDMA */
-//					fdma_modify_default_segment_data(
-//							      ipv4hdr_offset+10,
-//							      2);
 					/* Invalidate gross running sum */
 					pr->gross_running_sum = 0;
 				} else{
@@ -344,11 +338,6 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 					ip_cksum_calculate(ipv4hdr_ptr,
 						IP_CKSUM_CALC_MODE_NONE);
 					/* calculate IP checksum */
-//					ipv4_cksum_calculate(ipv4hdr_ptr);
-					/* update IP checksum in FDMA */
-//					fdma_modify_default_segment_data(
-//							      ipv4hdr_offset+10,
-//							      2);
 				}
 			} else if (PARSER_IS_TCP_DEFAULT()) {
 				tcphdr_ptr = (struct tcphdr *)
@@ -365,13 +354,6 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 				   IP checksum in FDMA*/
 				ip_cksum_calculate(ipv4hdr_ptr,
 						IP_CKSUM_CALC_MODE_NONE);
-				/* calculate IP checksum */
-//					ipv4_cksum_calculate(ipv4hdr_ptr);
-				/* update IP checksum in FDMA */
-//					fdma_modify_default_segment_data(
-//							      ipv4hdr_offset+10,
-//							      2);
-
 
 				/* Invalidate gross running sum */
 				pr->gross_running_sum = 0;
@@ -384,12 +366,6 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 			   IP checksum in FDMA*/
 			ip_cksum_calculate(ipv4hdr_ptr,
 					IP_CKSUM_CALC_MODE_NONE);
-			/* calculate IP checksum */
-//					ipv4_cksum_calculate(ipv4hdr_ptr);
-			/* update IP checksum in FDMA */
-//					fdma_modify_default_segment_data(
-//							      ipv4hdr_offset+10,
-//							      2);
 		}
 	return SUCCESS;
 	} else {
@@ -608,12 +584,6 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		   IP checksum in FDMA*/
 		ip_cksum_calculate(outer_ipv4hdr_ptr,
 				IP_CKSUM_CALC_MODE_NONE);
-		/* calculate IP checksum */
-//					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
-		/* update IP checksum in FDMA */
-//					fdma_modify_default_segment_data(
-//							   outer_ipv4_offset+10,
-//							   2);
 		return SUCCESS;
 
 	} else if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
@@ -694,12 +664,6 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		   IP checksum in FDMA*/
 		ip_cksum_calculate(outer_ipv4hdr_ptr,
 				IP_CKSUM_CALC_MODE_NONE);
-		/* calculate IP checksum */
-//					ipv4_cksum_calculate(outer_ipv4hdr_ptr);
-		/* update IP checksum in FDMA */
-//					fdma_modify_default_segment_data(
-//							   outer_ipv4_offset+10,
-//							   2);
 
 		return SUCCESS;
 	} else { /* no inner IP */
@@ -888,14 +852,14 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 			udphdr_ptr = (struct udphdr *) ((uint16_t)udp_tcp_offset
 						+ PRC_GET_SEGMENT_ADDRESS());
 
-			if(udphdr_ptr->checksum != 0) {
+			if (udphdr_ptr->checksum != 0) {
 				udp_checksum = udphdr_ptr->checksum;
 				udp_checksum = cksum_accumulative_update_uint32(
 								 udp_checksum,
 								 old_src_add,
 								 src_addr);
 
-			if(udp_checksum == 0)
+			if (udp_checksum == 0)
 				udp_checksum = (uint16_t) ~udp_checksum;
 			udphdr_ptr->checksum = udp_checksum;
 
@@ -959,8 +923,8 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 		if (PARSER_IS_UDP_DEFAULT()) {
 			udphdr_ptr = (struct udphdr *) ((uint16_t)udp_tcp_offset
 						+ PRC_GET_SEGMENT_ADDRESS());
-			
-			if(udphdr_ptr->checksum != 0) {
+
+			if (udphdr_ptr->checksum != 0) {
 				udp_checksum = udphdr_ptr->checksum;
 				udp_checksum = cksum_accumulative_update_uint32(
 								 udp_checksum,
@@ -1014,9 +978,6 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 				 - ((uint8_t *)PRC_GET_SEGMENT_ADDRESS()))
 				+ PRC_GET_SEGMENT_OFFSET());
 
-	/* Clear IPv4 checksum field */
-	ipv4header->hdr_cksum = 0;
-
 	/* Call FDMA for running sum computation */
 	fdma_status = fdma_calculate_default_frame_checksum(offset, ihl,
 							    &running_sum);
@@ -1026,9 +987,13 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	/* Invalidate Parser Result Gross Running Sum field */
 	pr->gross_running_sum = 0;
 
+	/* Subtract old checksum and invert (this can result in 0x0000 !) */
+	running_sum = cksum_ones_complement_sum16((uint16_t)~running_sum,
+						  ipv4header->hdr_cksum);
+
 	/* Write 1's complement of the 1's complement 16 bit sum into the
 	IPv4 header */
-	ipv4header->hdr_cksum = (uint16_t)~running_sum;
+	ipv4header->hdr_cksum = running_sum;
 
 	/* Update FDMA */
 	if (!(flags & IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
@@ -1042,42 +1007,41 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	return SUCCESS;
 }
 
-uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
-
+uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)
+{
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;
+	uint16_t last_hdr_size;
 	uint8_t current_ver;
 	uint8_t next_hdr;
 	uint8_t ah_ext;
 	uint8_t dst_ext;
 	uint8_t frag_ext;
-	uint16_t ipv6_payload; 
-	uint8_t no_extension; 
+	uint8_t no_extension;
 
 	no_extension = 0;
 
-	/* fragmentation request (flag = 1) */
-	if (flag){
+	if (flag == LAST_HEADER_BEFORE_FRAG) {
 		ah_ext = no_extension;
 		frag_ext = no_extension;
+		last_hdr_size = 0;
 
-	/* Encapsulation request (flag = 0) */
+	/* flag == LAST_HEADER */
 	} else {
 		ah_ext = IPV6_EXT_AH;
 		frag_ext = IPV6_EXT_FRAGMENT;
 	}
 
-	/* destination extension can appear only once on frag. request */
+	/* Destination extension can appear only once on fragment request */
 	dst_ext = IPV6_EXT_DESTINATION;
 
 	/* Copy initials IPv6 header */
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
 	current_hdr_size = IPV6_HDR_LENGTH;
-	ipv6_payload = ipv6_hdr->payload_length;
 	next_hdr = ipv6_hdr->next_header;
 
 	/* Skip to next extension header until extension isn't ipv6 header
-	 * or until extension is the fragmentation position (depend on flag) */
+	 * or until extension is the fragment position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
 		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
 		(next_hdr == ah_ext) ||
@@ -1091,20 +1055,36 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 		/* Calculate current extension size  */
 		switch (current_ver) {
 
-		case IPV6_EXT_DESTINATION: 
+		case IPV6_EXT_DESTINATION:
 		{
 			current_hdr_size = ((current_hdr_size + 1) << 3);
 
-			/* fragmentation request -> disable dst ext */
-			if (flag){
+			if (flag == LAST_HEADER_BEFORE_FRAG) {
+				/* After destination IS NOT routing extension */
+				if (*((uint8_t *)(current_hdr_ptr +\
+						current_hdr_size)) != \
+						IPV6_EXT_ROUTING) {
+				/* Hop by Hop or Routing extensions found */
+					if (last_hdr_size) {
+						return current_hdr_ptr -\
+								last_hdr_size;
+					} else {
+						return ((uint32_t)ipv6_hdr +\
+							IPV6_NEXT_HDR_OFFSET) \
+							| IPV6_NO_EXTENSION;
+					}
+				}
+
+				/* Disable destination extension */
 				dst_ext = no_extension;
 			}
+
 			break;
 		}
 
 		case IPV6_EXT_AH:
 		{
-			current_hdr_size = ((current_hdr_size + 2) << 2);	
+			current_hdr_size = ((current_hdr_size + 2) << 2);
 			break;
 		}
 
@@ -1114,17 +1094,21 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag){
 			break;
 		}
 
-		/* Routing or Hop By Hop */ 
+		/* Routing or Hop By Hop */
 		default:
 		{
 			current_hdr_size = ((current_hdr_size + 1) << 3);
+			last_hdr_size = current_hdr_size;
+			break;
 		}
 		}
 	}
 
 	/* return last extension pointer and extension indicator */
-	if (current_hdr_ptr == (uint32_t)ipv6_hdr)
-		return no_extension;
+	if (current_hdr_ptr == (uint32_t)ipv6_hdr) {
+		current_hdr_ptr = ((current_hdr_ptr + IPV6_NEXT_HDR_OFFSET) \
+							| IPV6_NO_EXTENSION);
+	}
 
 	return current_hdr_ptr;
 }

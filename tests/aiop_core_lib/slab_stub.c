@@ -15,14 +15,17 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
                             int      *num_filled_buffs,
                             uint16_t *bpid)
 {
-	num_buffs = alignment = mem_partition_id = 0;
+	/* Assuming fixed value for IPR is 1000 buffers. */
+	UNUSED(alignment);
+	UNUSED(mem_partition_id);
 
-	if (buff_size == (SYS_NUM_OF_PRPIDS+2))
+	if ((buff_size == (SYS_NUM_OF_PRPIDS+2)) || \
+			(num_buffs == 300))
 		*bpid = 1;
 	else
 		*bpid = 2;
 
-	*num_filled_buffs = 1;
+	*num_filled_buffs = (int)num_buffs;
 
 	return 0;
 }

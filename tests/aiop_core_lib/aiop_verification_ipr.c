@@ -30,7 +30,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_init_verif_command *str =
 				(struct ipr_init_verif_command *) asa_seg_addr;
-			ipr_init(str->max_buffers, str->flags);
+			/* ipr_init(str->max_buffers, str->flags); */
+			ipr_init();
 			str_size = sizeof(struct ipr_init_verif_command);
 			break;
 		}

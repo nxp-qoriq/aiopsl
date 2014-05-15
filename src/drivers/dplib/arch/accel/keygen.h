@@ -13,7 +13,7 @@
 #include "dplib/fsl_keygen.h"
 
 /**************************************************************************//**
-@Group	KEYGEN KEYGEN (Internal)
+@Group	KEYGEN AIOP KEYGEN Internal
 
 @Description	AIOP KEYGEN API
 
@@ -75,8 +75,6 @@
 
 	/** Generic Extraction max. extract size */
 #define KEYGEN_KCR_MAX_EXTRACT_SIZE	0xF
-	/** Protocol Based Generic Extraction max. offset in Parse Result */
-#define KEYGEN_KCR_PROTOCOL_MAX_OFFSET	0x3F
 	/** Generic Extraction max. extract offset */
 #define KEYGEN_KCR_MAX_EXTRACT_OFFET	0xF
 	/** 16 Bytes alignment */
@@ -88,7 +86,7 @@
 	/** Maximum KCR size */
 #define KEYGEN_KCR_MAX_KCR_SIZE				64
 	/** Constant FEC size */
-#define KEYGEN_KCR_CONST_FEC_SIZE				3
+#define KEYGEN_KCR_CONST_FEC_SIZE			3
 	/** Protocol Specific FEC size (not including mask) */
 #define KEYGEN_KCR_PROTOCOL_SPECIFIC_FEC_SIZE		1
 	/** Protocol Based Generic FEC size (not including mask) */
@@ -189,6 +187,22 @@
 @{
 *//***************************************************************************/
 
+/**************************************************************************//**
+@Description	Input message Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct keygen_input_message_params {
+	uint16_t fha;
+	uint16_t frs;
+	uint16_t pra;
+	uint16_t reserved1;
+	uint16_t fda;
+	uint16_t reserved2;
+	uint16_t falugrp;
+	uint16_t gross_running_sum;
+	uint64_t opaquein;
+};
+#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	KEYGEN KCR Builder FEC Mask

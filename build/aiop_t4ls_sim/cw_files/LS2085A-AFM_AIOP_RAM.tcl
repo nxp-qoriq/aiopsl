@@ -1,4 +1,4 @@
-set startAddress [evaluate __start]
+set startAddress [evaluate __sys_start]
 
 # chain position for the first AIOP core
 set firstCore		 		27

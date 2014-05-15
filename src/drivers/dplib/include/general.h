@@ -50,7 +50,7 @@
 /* Address of end of TLS section */
 extern const uint16_t TLS_SECTION_END_ADDR[];
 
-/** @} */ /* end of AIOP_GENERAL_MACROS */
+/** @} */ /* end of AIOP_General_Macros */
 
 
 /**************************************************************************//**
@@ -79,7 +79,7 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 	/** SCDMA accelerator ID */
 #define CDMA_ACCEL_ID			0x0D
 
-/** @} */ /* end of AIOP_ACCELERATORS_IDS */
+/** @} */ /* end of AIOP_Accelerators_IDS */
 
 
 /**************************************************************************//**
@@ -255,9 +255,9 @@ struct additional_dequeue_context {
 *//***************************************************************************/
 
 /** Macro to get ICID field */
-#define ADC_GET_ICID()                              \
-       (LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),             \
-		       ADC_ICID_MASK))
+#define ADC_GET_ICID()							\
+	(LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),		\
+	       ADC_ICID_MASK))
 
 /** @} */ /* end of AIOP_ADC_Getters */
 
@@ -708,18 +708,24 @@ struct aiop_default_task_params {
 
 /* Todo - Note to Hw/Compiler team:  * swap intrinsics can be used here */
 
+/** Load 2 bytes with endian swap.
+ * _addr = a constant address.  */
 #define LH_SWAP(_addr)						\
 	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
 	uint16_t temp;						\
 	__lhbrx(temp, _addr);					\
 	__rR = (uint16_t *) temp; })
 
+/** Load 4 bytes with endian swap.
+ * _addr = a constant address. */
 #define LW_SWAP(_addr)						\
 	(uint32_t)({register uint32_t *__rR = 0;		\
 	uint32_t temp;						\
 	__lwbrx(temp, _addr);					\
 	__rR = (uint32_t *) temp; })
 
+/** Load 8 bytes with endian swap of each 4 bytes.
+ * _addr = a constant address. */
 #define LDW_SWAP(_addr)						\
 	(uint64_t)({register uint64_t *__rR = 0;		\
 	uint32_t temp1, temp2;					\
@@ -727,12 +733,16 @@ struct aiop_default_task_params {
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
+/** Load 8 bytes with endian swap.
+ * _addr = a constant address. */
 #define LLLDW_SWAP(_addr)					\
 	(uint64_t)({register uint64_t __rR = 0;		\
 	uint64_t temp;						\
 	__llldbrw(&temp, _addr, 0);				\
-	__rR = (uint64_t ) temp; })
+	__rR = (uint64_t) temp; })
 
+/** Load 2 bytes with endian swap and mask result.
+ * _addr = a constant address. */
 #define LH_SWAP_MASK(_addr, _mask)				\
 	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
 	uint16_t temp;						\
@@ -740,6 +750,8 @@ struct aiop_default_task_params {
 	temp &= _mask;						\
 	__rR = (uint16_t *) temp; })
 
+/** Load 4 bytes with endian swap and mask result.
+ * _addr = a constant address. */
 #define LW_SWAP_MASK(_addr, _mask)				\
 	(uint32_t)({register uint32_t *__rR = 0;		\
 	uint32_t temp;						\
@@ -747,6 +759,8 @@ struct aiop_default_task_params {
 	temp &= _mask;						\
 	__rR = (uint32_t *) temp; })
 
+/** Load 4 bytes with endian swap, mask and shift result.
+ * _addr = a constant address. */
 #define LW_SWAP_MASK_SHIFT(_addr, _mask, _shift)		\
 	(uint32_t)({register uint32_t *__rR = 0;		\
 	uint32_t temp;						\
@@ -755,17 +769,21 @@ struct aiop_default_task_params {
 	temp >>= _shift;					\
 	__rR = (uint32_t *) temp; })
 
+/** Store 2 bytes with endian swap.
+ * _addr = a constant address. */
 #define STH_SWAP(_val, _addr)					\
 	__sthbrx(_val, _addr);
 
+/** Store 4 bytes with endian swap.
+ * _addr = a constant address. */
 #define STW_SWAP(_val, _addr)					\
 	__stwbrx(_val, _addr);
 
+/** Store 8 bytes with endian swap.
+ * _addr = a constant address. */
 #define LLSTDW_SWAP(_val, _addr)				\
 	__llstdbrw(_val, _addr, 0);
 
-#define STQ_SWAP(_val, _addr)					\
-	__stwbrx(_val, _addr);
 
 /** @} */ /* end of AIOP_Inline_Asm */
 
@@ -845,6 +863,15 @@ struct aiop_default_task_params {
 #define  IPV6_EXT_FRAGMENT	44 /*!< IPv6 Fragment extension number*/
 
 /** @} */ /* end of AIOP_General_Protocols_IPV6_Extensions */
+
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_IPV6_FRAG_HDR_Offsets IPv6 Frag Header
+		Offsets
+@{
+*//***************************************************************************/
+#define IPV6_HDR_M_FLAG_MASK 0x0001 /** Mask for IPv6 Fragment Header M flag */
+
+/** @} */ /* end of AIOP_General_Protocols_IPV6_FRAG_HDR_Offsets */
 
 /**************************************************************************//**
 @Group		AIOP_General_Protocols_TCP_Definitions Transmission Control

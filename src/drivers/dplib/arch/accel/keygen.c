@@ -1,28 +1,30 @@
 /**************************************************************************//**
 @File		keygen.c
 
-@Description	This file contains the AIOP SW Key Generation API implementation.
+@Description	This file contains the AIOP SW Key Generation API implementation
 
 		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_keygen.h"
+#include "dplib/fsl_cdma.h"
 
 #include "keygen.h"
 #include "system.h"
 #include "id_pool.h"
-#include "parser.h" /* TODO remove! */
 
-extern uint64_t ext_keyid_pool_address;
+extern __SHRAM uint64_t ext_keyid_pool_address;
 
 void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
-	/* clear NFEC (first byte in the KCR) */
-	kb->kcr[KEYGEN_KCR_NFEC] = 0;
+
+	/* clear the KCR array */
+	cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
+
+	/* TODO status??? */
+
 	/* Initialize KCR length to 1 */
 	kb->kcr_length = 1;
-
-	return;
 }
 
 
@@ -54,8 +56,8 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 					uint8_t extract_size,
 					struct kcr_builder_fec_mask *mask,
 					struct kcr_builder *kb){
-	
-	
+
+
 	uint8_t curr_byte = kb->kcr_length;
 	uint8_t fecid, op0, op1, op2;
 	uint8_t	fec_bytes_num = KEYGEN_KCR_LOOKUP_RES_FEC_SIZE;
@@ -65,21 +67,19 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 	/* General extraction FECID, mask extension indication */
 	fecid = KEYGEN_KCR_GEC_FECID << 1;
 
-	if ((offset + extract_size) > 8) {
-		return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-	} else {
 	op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE_IN_EOM;
 	op1 = KEYGEN_KCR_EXT_OPAQUE_IN_BASIC_EO + offset;
 	op2 = extract_size - 1;
-	}
-	
+
 
 	if (mask) {
+		/*
 		if (mask->single_mask[0].mask_offset > 0xF ||
 			mask->single_mask[1].mask_offset > 0xF ||
 			mask->single_mask[2].mask_offset > 0xF ||
 			mask->single_mask[3].mask_offset > 0xF)
 			return KEYGEN_KCR_MASK_OFFSET_ERR;
+		 */
 
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
@@ -128,7 +128,7 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 	kb->kcr[curr_byte+2] = op1;
 	kb->kcr[curr_byte+3] = op2;
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
-	kb->kcr_length += 4 + mask_bytes;
+	kb->kcr_length += KEYGEN_KCR_LOOKUP_RES_FEC_SIZE + mask_bytes;
 
 	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
 }
@@ -148,14 +148,7 @@ int32_t keygen_kcr_builder_add_protocol_specific_field(enum
 	fecid = (uint8_t)protocol_fecid << 1;
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
-
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
 				(mask->num_of_masks == 3) ? 5 : 7);
@@ -219,32 +212,17 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 	fecid = KEYGEN_KCR_GEC_FECID << 1;
 
 	/* OP0 for Protocol based extraction */
-	if (pr_offset > KEYGEN_KCR_PROTOCOL_MAX_OFFSET)
-		return KEYGEN_KCR_PR_OFFSET_ERR;
-	else
-		op0 = KEYGEN_KCR_OP0_HET_PROTOCOL |
-			  KEYGEN_KCR_PROTOCOL_HVT |
-			  (uint8_t)pr_offset;
+	op0 = KEYGEN_KCR_OP0_HET_PROTOCOL |
+		  KEYGEN_KCR_PROTOCOL_HVT |
+		  (uint8_t)pr_offset;
 
 	/* OP1 = Extract Offset */
-	if (extract_offset > KEYGEN_KCR_MAX_EXTRACT_OFFET)
-		return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-	else
-		op1 = extract_offset;
+	op1 = extract_offset;
 
 	/* OP2 = Extract Size*/
-	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
-		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
-	else
-		op2 = extract_size - 1;
+	op2 = extract_size - 1;
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
@@ -299,7 +277,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 
 
 int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
-	uint8_t extract_size, uint32_t flags,
+	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb)
 {
 	uint8_t curr_byte = kb->kcr_length;
@@ -315,8 +293,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	/* OP0 for General extraction */
 	op0 = 0;
 	aligned_offset = offset & KEYGEN_KCR_16_BYTES_ALIGNMENT;
-	if (flags & KEYGEN_KCR_GEC_FRAME) {
-		/*! Generic extraction from start of frame */
+	if (gec_source == KEYGEN_KCR_GEC_FRAME) {
+		/* Generic extraction from start of frame */
 		switch (aligned_offset) {
 
 		case (0x00):
@@ -404,10 +382,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 		} /* switch */
 	} /* if */
-	else if (flags & KEYGEN_KCR_GEC_PARSE_RES) {
-		if (aligned_offset > 0x30)
-			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-		else
+	else {
+		/* Generic extraction from parse result */
 		switch (aligned_offset) {
 
 		case (0x00):
@@ -433,30 +409,17 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 		default:
 			break;
 		}
-	} else
-		return KEYGEN_KCR_PROTOCOL_GEC_ERR;
+	}
 
 
 	/* OP1 = Extract Offset */
 	extract_offset = offset & KEYGEN_KCR_OFFSET_WITHIN_16_BYTES;
-	if (extract_offset > KEYGEN_KCR_MAX_EXTRACT_OFFET)
-		return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-	else
-		op1 = extract_offset;
+	op1 = extract_offset;
 
 	/* OP2 = Extract Size*/
-	if (extract_size > KEYGEN_KCR_MAX_EXTRACT_SIZE)
-		return KEYGEN_KCR_EXTRACT_SIZE_ERR;
-	else
-		op2 = extract_size - 1;
+	op2 = extract_size - 1;
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
@@ -509,7 +472,8 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
 }
 
-int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
+int32_t keygen_kcr_builder_add_lookup_result_field_fec(
+	enum kcr_builder_ext_lookup_res_field extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb)
 {
@@ -525,22 +489,14 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 	switch (extract_field) {
 
 	case (KEYGEN_KCR_EXT_OPAQUE0):
-		if ((offset_in_opaque + extract_size_in_opaque) > 8) {
-			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-		} else {
 		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE0_EOM;
 		op1 = KEYGEN_KCR_EXT_OPAQUE0_BASIC_EO + offset_in_opaque;
 		op2 = extract_size_in_opaque - 1;
-		}
 		break;
 	case (KEYGEN_KCR_EXT_OPAQUE1):
-		if ((offset_in_opaque + extract_size_in_opaque) > 8) {
-			return KEYGEN_KCR_EXTRACT_OFFSET_ERR;
-		} else {
 		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE1_EOM;
 		op1 = KEYGEN_KCR_EXT_OPAQUE1_BASIC_EO + offset_in_opaque;
 		op2 = extract_size_in_opaque - 1;
-		}
 		break;
 	case (KEYGEN_KCR_EXT_OPAQUE2):
 		op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE2_EOM;
@@ -558,18 +514,11 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(uint8_t extract_field,
 		op2 = KEYGEN_KCR_EXT_TIMESTAMP_SIZE;
 		break;
 	default:
-		return KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR;
 		break;
 	}
 
 
 	if (mask) {
-		if (mask->single_mask[0].mask_offset > 0xF ||
-			mask->single_mask[1].mask_offset > 0xF ||
-			mask->single_mask[2].mask_offset > 0xF ||
-			mask->single_mask[3].mask_offset > 0xF)
-			return KEYGEN_KCR_MASK_OFFSET_ERR;
-
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
 				(mask->num_of_masks == 2) ? 4 :
@@ -738,22 +687,24 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
-		     uint64_t opaquein,
-		     union table_key_desc *key,
+		     uint64_t user_metadata,
+		     void *key,
 		     uint8_t *key_size)
 {
-	struct input_message_params input_struct __attribute__((aligned(16)));
+	struct keygen_input_message_params input_struct
+					__attribute__((aligned(16)));
 	uint32_t arg1;
-	
-	if (opaquein) {
+
+	if (user_metadata) {
 		__stdw(0, 0, 0, &input_struct);
 		__stdw(0, 0, 8, &input_struct);
-		input_struct.opaquein = opaquein;
-	
+		input_struct.opaquein = user_metadata;
+
 		/* Prepare HW context for TLU accelerator call */
 		arg1 = ((((uint32_t)(&input_struct)) << 16) | (uint32_t)key);
 		__stqw((KEYGEN_KEY_GENERATE_EPRS_MTYPE | KEYGEN_OPAQUEIN_VALID),
-			arg1,((uint32_t)keyid) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
+			arg1, ((uint32_t)keyid) << 16, 0,
+				HWC_ACC_IN_ADDRESS, 0);
 	} else {
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_GENERATE_EPRS_MTYPE, ((uint32_t)key),
@@ -770,7 +721,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 }
 
 
-int32_t keygen_gen_hash(union table_key_desc *key, uint8_t key_size, uint32_t *hash)
+int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 {
 
 	/* Prepare HW context for TLU accelerator call */

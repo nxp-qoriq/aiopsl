@@ -65,7 +65,8 @@ struct tcp_gro_last_seg_header_fields {
 struct tcp_gro_context {
 		/** Aggregated packet FD.
 		 * This field must remain at the beginning of the structure due
-		 * to alignment restrictions for FD in workspace.*/
+		 * to alignment restrictions for FD in workspace (The FD adress
+		 * in Workspace must be aligned to 32 bytes). */
 	struct ldpaa_fd agg_fd
 		__attribute__((aligned(sizeof(struct ldpaa_fd))));
 		/** Aggregation parameters */
@@ -296,7 +297,9 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 	/* Timer Handle Mask in TIMER FD */
 #define TIMER_HANDLE_MASK			0x00FFFFFF
 	/* TCP Timestamp option NOP value */
-#define TIMESTAMP_NOP_VAL 1
+#define TIMESTAMP_NOP_VAL			1
+	/* TCP GRO granularity shift value */
+#define GRO_GRAN_OFFSET				16
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
 
@@ -401,24 +404,6 @@ void tcp_gro_timeout_callback(
 *//***************************************************************************/
 uint16_t tcp_gro_calc_tcp_data_cksum(
 		struct tcp_gro_context *gro_ctx);
-
-/**************************************************************************//**
-@Function	tcp_gro_calc_tcp_header_and_data_cksum
-
-@Description	Calculate the TCP header + payload checksum and add it to the
-		accumulated payload checksum (which was calculated previously).
-
-@Param[in]	gro_ctx - Pointer to the internal GRO context.
-@Param[in]	delta_total_length - delta between total packet length and the
-		closing segment length.
-
-@Return		Calculated header checksum.
-
-@Cautions	None.
-*//***************************************************************************/
-void tcp_gro_calc_tcp_header_and_data_cksum(
-		struct tcp_gro_context *gro_ctx,
-		uint16_t delta_total_length);
 
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum

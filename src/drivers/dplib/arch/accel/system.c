@@ -7,16 +7,38 @@
 *//***************************************************************************/
 #include "system.h"
 #include "id_pool.h"
+
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
+
+extern void tman_timer_callback(void);
+/* The offset of the Work Scheduler registers */
+#define AIOP_WRKS_REGISTERS_OFFSET				0x0209d000
+
 #else
 #include "slab.h"
 #include "kernel/platform.h"
+
+#include "dbg.h"
+#include "io.h"
+#include "aiop_common.h"
+
+extern void tman_timer_callback(void);
+extern int ipr_init(void);
+
+#define WRKS_REGS_GET \
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
+						0,                          \
+						E_MAPPED_MEM_TYPE_GEN_REGS) \
+						+ SOC_PERIPH_OFF_AIOP_WRKS)
+
 #endif /* AIOP_VERIF */
 
 /* Global parameters*/
-uint64_t ext_prpid_pool_address;
-uint64_t ext_keyid_pool_address;
+__SHRAM uint64_t ext_prpid_pool_address;
+__SHRAM uint64_t ext_keyid_pool_address;
+
+__PROFILE_SRAM struct  storage_profile storage_profile;
 
 int32_t sys_prpid_pool_create(void)
 {
@@ -27,7 +49,7 @@ int32_t sys_prpid_pool_create(void)
 
 	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
-			&num_filled_buffs,&buffer_pool_id);
+			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		return status;
 
@@ -48,7 +70,7 @@ int32_t sys_keyid_pool_create(void)
 
 	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
-			&num_filled_buffs,&buffer_pool_id);
+			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		return status;
 
@@ -62,13 +84,139 @@ int32_t aiop_sl_init(void)
 {
 	int32_t status = 0;
 
+#ifdef AIOP_VERIF
+	/* TMAN EPID Init params*/
+	uint32_t val;
+	uint32_t *addr;
+#endif
+
+
+#ifndef AIOP_VERIF
+	/* Variabled needed for Storage Profile Init */
+	uint16_t buffer_pool_id;
+	int num_filled_buffs;
+
+	status = slab_find_and_fill_bpid(300, 2048, 8,
+			MEM_PART_1ST_DDR_NON_CACHEABLE,
+			&num_filled_buffs, &buffer_pool_id);
+	if (status < 0)
+		return status;
+#endif
+
+	/* initialize profile sram */
+
+	storage_profile.ip_secific_sp_info = 0;
+	storage_profile.dl = 0;
+	storage_profile.reserved = 0;
+	/* 0x0080 --> 0x8000 (little endian) */
+	storage_profile.dhr = 0x8000;
+	/*storage_profile.dhr = 0x0080; */
+	storage_profile.mode_bits1 = (mode_bits1_PTAR | mode_bits1_SGHR |
+			mode_bits1_ASAR);
+	storage_profile.mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
+			mode_bits2_VA | mode_bits2_DLC);
+	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
+	 * 0x0801 --> 0x0108 (little endian) */
+	storage_profile.pbs1 = 0x0108;
+#ifndef AIOP_VERIF
+	/* __lhbr swaps the bytes for little endian */
+	storage_profile.bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
+#else
+	/* BPID=0 */
+	storage_profile.bpid1 = 0x0000;
+#endif
+	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
+	* 0x0801 --> 0x0108 (little endian) */
+	storage_profile.pbs2 = 0x0108;
+#ifndef AIOP_VERIF
+	/* __lhbr swaps the bytes for little endian */
+	storage_profile.bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
+#else
+	/* BPID=1, 0x0001 --> 0x0100 (little endian) */
+	storage_profile.bpid2 = 0x0100;
+#endif
+	storage_profile.pbs3 = 0x0000;
+	storage_profile.bpid3 = 0x0000;
+	storage_profile.pbs4 = 0x0000;
+	storage_profile.bpid4 = 0x0000;
+
+
+
+/* TODO - remove the AIOP_VERIF section when verification env will include
+ * the ARENA code */
+#ifdef AIOP_VERIF
+	/* TMAN EPID Init */
+
+	val = 1;
+	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0xF8);
+	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
+			((val & 0x0000ff00) <<  8) |
+			((val & 0x00ff0000) >>  8) |
+			((val & 0xff000000) >> 24));
+
+	val = (uint32_t)&tman_timer_callback;
+	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x100);
+	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
+			((val & 0x0000ff00) <<  8) |
+			((val & 0x00ff0000) >>  8) |
+			((val & 0xff000000) >> 24));
+
+	val = 0x00600040;
+	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108);
+	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
+			((val & 0x0000ff00) <<  8) |
+			((val & 0x00ff0000) >>  8) |
+			((val & 0xff000000) >> 24));
+#if 0 /*TODO - need to delete the above code and enable the bellow if 0
+	when ENGR00310809 will be fixed */
+	/* TODO - need to change the constant below to -
+	 *define EPID_TIMER_EVENT_IDX	1 */
+	__stwbr(1,
+		0,
+		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0xF8)); /* EPID = 1 */
+	__stwbr((unsigned int)&tman_timer_callback,
+		0,
+		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x100)); /* EP_PC */
+	__stwbr(0x00600040,
+		0,
+		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108)); /* EP_FDPA */
+
+	/* End of TMAN EPID Init */
+#endif
+#else
+	/* TMAN EPID Init */
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
+
+	/* TODO - need to change the constant below to -
+	 *define EPID_TIMER_EVENT_IDX	1 */
+	iowrite32(1, &wrks_addr->epas); /* EPID = 1 */
+	iowrite32(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
+
+	pr_info("TMAN is setting EPID = 1\n");
+	pr_info("ep_pc = 0x%x\n", ioread32(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x\n", ioread32(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x\n", ioread32(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x\n", ioread32(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x\n", ioread32(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x\n", ioread32(&wrks_addr->ep_spo));
+	/* End of TMAN EPID Init */
+#endif
+
 	status = sys_prpid_pool_create();
 	if (status)
 		return status; /* TODO */
 
+#ifdef AIOP_VERIF
 	status = sys_keyid_pool_create();
+	return status; /* TODO */
+#else
+	status = sys_keyid_pool_create();
+	if (status)
+		return status; /* TODO */
 
-	return status; /* TODO */	
+	status = ipr_init();
+	return status;
+#endif
 }
 
 void aiop_sl_free(void)
@@ -77,7 +225,7 @@ void aiop_sl_free(void)
 
 	cdma_release_context_memory(ext_prpid_pool_address);
 	cdma_release_context_memory(ext_keyid_pool_address);
-	
+
 	/* TODO status ? */
 }
 

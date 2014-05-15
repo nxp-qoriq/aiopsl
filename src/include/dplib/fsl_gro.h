@@ -92,6 +92,37 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 
 /** @} */ /* end of TCP_GRO_AGG_FLAGS */
 
+
+/**************************************************************************//**
+ @Group	TCP_GRO_TIMEOUT_GRANULARITY_FLAGS TCP GRO Timeout Granularity Flags
+
+ @Description Flags for the timer granularity value.
+
+ The flags are allowed to be changed per new session only.
+
+ @{
+*//***************************************************************************/
+
+/* The following defines will be used to set the TMAN timer tick size.*/
+
+	/** 1 uSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_USEC_GRANULARITY		0x00
+	/** 10 uSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_10_USEC_GRANULARITY		0x01
+	/** 100 uSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_100_USEC_GRANULARITY		0x02
+	/** 1 mSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_MSEC_GRANULARITY		0x03
+	/** 10 mSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_10_MSEC_GRANULARITY		0x04
+	/** 100 mSec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_100_MSEC_GRANULARITY		0x05
+	/** 1 Sec timer ticks*/
+#define TCP_GRO_CREATE_TIMER_MODE_SEC_GRANULARITY		0x06
+
+/** @} */ /* end of TCP_GRO_TIMEOUT_GRANULARITY_FLAGS */
+
+
 /** @} */ /* end of TCP_GRO_FLAGS */
 
 /**************************************************************************//**
@@ -186,10 +217,17 @@ struct tcp_gro_stats_cntrs {
 @Description	TCP GRO packet metadata.
 *//***************************************************************************/
 struct tcp_gro_context_metadata {
-		/** Address (in HW buffers) of the segment sizes. This field
-		 * will be updated if \ref TCP_GRO_METADATA_SEGMENT_SIZES is
-		 * set. For each segment, upper SW should allocate 2 bytes (to
-		 * support up to 64KB length segments). */
+		/** Address (in HW buffers) for the segment sizes. This field
+		 * will be used by GRO only if
+		 * \ref TCP_GRO_METADATA_SEGMENT_SIZES is set.
+		 * Upper SW should initialize this field at
+		 * \ref tcp_gro_context_params.metadata_addr (first 8 bytes) and
+		 * GRO reads it from that location.
+		 * For each segment, upper SW should allocate 2 bytes (to
+		 * support up to 64KB length segments) starting at this
+		 * address. E.g. If max segments per aggregation is 10 segments,
+		 * 20 bytes per aggregation should be allocated starting at this
+		 * address. */
 	uint64_t seg_sizes_addr;
 		/** Number of segments in the aggregation. */
 	uint16_t seg_num;
@@ -203,8 +241,9 @@ struct tcp_gro_context_metadata {
 		These limits are allowed to be changed per new session only.
 *//***************************************************************************/
 struct gro_context_limits {
-		/** Timeout per packet (in 1 mSec granularity) aggregation
-		 * limit. */
+		/** Timeout per packet aggregation limit.
+		 * The timeout granularity is specified at
+		 * \ref gro_context_timeout_params.granularity. */
 	uint16_t timeout_limit;
 		/** Maximum aggregated packet size limit (The size refers to the
 		 * packet headers + payload).
@@ -229,6 +268,9 @@ struct gro_context_timeout_params {
 		/** Function to call upon Time Out occurrence.
 		 * This function takes one argument. */
 	gro_timeout_cb_t *gro_timeout_cb;
+		/** GRO timer granularity
+		 * (\ref TCP_GRO_TIMEOUT_GRANULARITY_FLAGS). */
+	uint8_t granularity;
 		/** TMAN Instance ID. */
 	uint8_t tmi_id;
 };

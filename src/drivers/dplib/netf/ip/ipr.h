@@ -35,22 +35,28 @@
 #define START_CONCURRENT		0x00000002
 #define	RESET_MF_BIT			0xDFFF
 #define NO_ERROR				0
-#define IPR_CONTEXT_SIZE		2624
+#define IPR_CONTEXT_SIZE		2688
+#define START_OF_LINK_LIST		RFDC_SIZE+RFDC_EXTENSION_SIZE
+#define START_OF_FDS_LIST		START_OF_LINK_LIST+LINK_LIST_SIZE
 #define LINK_LIST_ELEMENT_SIZE	sizeof(struct link_list_element)
 #define LINK_LIST_OCTET_SIZE	8*LINK_LIST_ELEMENT_SIZE
 #define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
 #define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
 #define RFDC_VALID				0x8000
-#define FRAG_OFFSET_MASK		0x1FFF
+#define FRAG_OFFSET_IPV4_MASK	0x1FFF
+#define FRAG_OFFSET_IPV6_MASK   0xFFF8
 #define IPV4_FRAME				0x00000000 /* in RFDC status */
 #define IPV6_FRAME				0x00000001 /* in RFDC status */
 #define INSTANCE_VALID			0x0001
 #define REF_COUNT_ADDR_DUMMY	HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 #define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
 #define RFDC_SIZE				sizeof(struct ipr_rfdc)
-#define RFDC_SIZE_NO_KEY		sizeof(struct ipr_rfdc)-4
+#define RFDC_EXTENSION_SIZE		sizeof(struct extended_ipr_rfc)
+#define RFDC_EXTENSION_TRUNCATED_SIZE	40
 #define FD_SIZE					sizeof(struct ldpaa_fd)
 #define OCTET_LINK_LIST_MASK	0x07
+#define IPV4_KEY_SIZE			11
+#define IPV6_FIXED_HEADER_SIZE	40
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
@@ -94,12 +100,12 @@ struct ipr_instance {
 
 #pragma pack(push,1)
 struct ipr_rfdc{
+	/* 64 bytes */
 	uint64_t	instance_handle;
 	uint32_t	timer_handle;
 	uint16_t	expected_total_length;
 	uint16_t	current_total_length;
 	uint16_t	first_frag_offset;
-//	uint16_t	last_frag_offset;
 	uint16_t	biggest_payload;
 	uint16_t	current_running_sum;
 	uint8_t		first_frag_index;
@@ -118,8 +124,9 @@ struct ipr_rfdc{
 
 #pragma pack(push,1)
 struct extended_ipr_rfc{
-	uint64_t	ipv6_key[4];
-	uint32_t	ipv6_key_cont;
+	/* 64 bytes */
+	uint32_t	ipv6_key[10];
+	uint32_t	res[6];
 };
 #pragma pack(pop)
 
@@ -214,18 +221,21 @@ Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
 		This function initializes two KeyIDs (one for IPv4 and one
 		for Ipv6) : IPsrc-IPdst-protocol-identification
 
-@Param[in]	max_buffers - maximum number of buffers to be used as
+Implicit:	max_buffers - maximum number of buffers to be used as
 		context buffers for all the instances.\n
 		The size of each buffer should be at least 2240 bytes.\n
 		Buffers should be aligned to 64 bytes.
-@Param[in]	flags - \link IPRInitFlags IPR init flags \endlink
+		flags - \link IPRInitFlags IPR init flags \endlink
 
 
-@Return		None.
+@Return		reflect the return value from slab_find_and_fill_bpid().
+		0       - on success,
+               -ENAVAIL - could not release into bpid
+               -ENOMEM  - not enough memory for mem_partition_id.
 
 @Cautions	None.
 *//***************************************************************************/
-void ipr_init(uint32_t max_buffers, uint32_t flags);
+int ipr_init(void);
 
 /**************************************************************************//**
 @Function	ipr_insert_to_link_list
@@ -241,7 +251,8 @@ void ipr_init(uint32_t max_buffers, uint32_t flags);
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr);
+							     uint64_t rfdc_ext_addr, 
+							     void     *iphdr_ptr);
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
 
@@ -272,13 +283,14 @@ inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 		  osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
 }*/
-uint32_t ip_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
+uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
+uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();
 
 void ipr_time_out();
 
-void check_remove_padding(uint16_t ipv4hdr_offset, struct ipv4hdr *ipv4hdr_ptr);
+void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,

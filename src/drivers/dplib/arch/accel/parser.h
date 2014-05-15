@@ -13,7 +13,7 @@
 #include "dplib/fsl_parser.h"
 
 /**************************************************************************//**
-@Group		PARSER AIOP_Parser Internal
+@Group		PARSER AIOP PARSER Internal
 
 @Description	Freescale AIOP Parser API
 
@@ -101,7 +101,7 @@ struct parse_profile_delete_query_params {
 @Description	Input message Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct input_message_params {
+struct parser_input_message_params {
 	uint16_t fha;
 	uint16_t frs;
 	uint16_t pra;
