@@ -1117,7 +1117,8 @@ int32_t ipsec_frame_decrypt(
 		 * 		ESP Header.
 		*/
 		outer_material_length = (uint16_t) // TODO: verify this 
-			(PARSER_GET_L5_OFFSET_DEFAULT() - PARSER_GET_ETH_OFFSET_DEFAULT()); 
+			((uint32_t)PARSER_GET_L5_OFFSET_DEFAULT() 
+					- (uint32_t)PARSER_GET_ETH_OFFSET_DEFAULT()); 
 		
 		// If this is incorrect, get the IP length from the header wit
 		// PARSER_GET_OUTER_IP_POINTER_DEFAULT()
