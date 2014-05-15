@@ -284,7 +284,6 @@ static int sys_free_platform(void)
 	return err;
 }
 
-
 /*****************************************************************************/
 int sys_init(void)
 {
@@ -394,15 +393,6 @@ int sys_init(void)
 	}
 	sys_barrier();
 
-#if 0
-	if (sys.is_master_partition_master[core_id] && sys_param.use_cli) {
-		/* Initialize CLI */
-		err = sys_init_cli();
-		ASSERT_COND(err == 0);
-	}
-	sys_barrier();
-#endif /* 0 */
-
 	err = sys_init_platform(sys_param.platform_param);
 	if (err != 0)
 		return -1;
@@ -422,12 +412,6 @@ void sys_free(void)
 	uint32_t core_id = core_get_id();
 
 	sys_free_platform();
-
-#if 0
-	if (sys.is_partition_master[core_id])
-		sys_free_cli();
-	sys_barrier();
-#endif /* 0 */
 
 	sys_free_multi_processing();
 	sys_barrier();

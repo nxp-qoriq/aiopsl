@@ -85,11 +85,6 @@ void    sys_kick_spinning_cores(uint64_t    cores_mask,
 				dma_addr_t  core_master_entry,
 				dma_addr_t  core_guest_entry);
 
-int     sys_init_cli(void);
-void    sys_free_cli(void);
-void    sys_run_cli(void);
-void    sys_stop_cli(void);
-
 void    sys_register_debugger_console(void);
 
 
