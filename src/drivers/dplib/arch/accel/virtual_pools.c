@@ -518,6 +518,9 @@ int32_t vpool_refcount_decrement_and_release(
 					*callback_status =
 						callback->
 						callback_func(context_address);
+				else
+					callback->
+						callback_func(context_address);
 				/* Release the buffer */
 				cdma_status = cdma_release_context_memory
 							(context_address);
