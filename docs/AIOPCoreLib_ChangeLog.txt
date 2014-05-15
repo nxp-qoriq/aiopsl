@@ -20,6 +20,13 @@ GRO: Add Metadata support.
 GRO: Add TCP flags support.
 GRO: Add unexpected sequence number support.
 GRO: Add unexpected Ack number support.
+GSO: Add IPv4 checksum support.
+GSO: Add IPv4 option header support.
+GSO: Add IPv4 ID generation support.
+GSO: Add TCP option header support.
+GSO: Add IPv4 option header support.
+GSO: Add TCP Flags support.
+GSO: Add TCP Checksum support.
 fsl_gro.h: Add granularity field to timeout parameters.
 fsl_fdma.h: Add concatenate command new output parameter- AMQ attributes.
 keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
