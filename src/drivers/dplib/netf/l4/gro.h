@@ -94,6 +94,8 @@ struct tcp_gro_context {
 	struct fdma_amq agg_fd_isolation_attributes;
 		/** TMAN Instance ID. */
 	uint32_t timer_handle;
+		/** aggregated checksum */
+	uint16_t checksum;
 		/** Aggregation headers size */
 	uint16_t agg_headers_size;
 };
@@ -128,9 +130,6 @@ struct tcphdr_gro {
 	uint8_t  option_length;
 		/** TCP timestamp option value of the TCP sending the option. */
 	uint32_t tsval;
-		/** TCP timestamp echo reply option value of the TCP sending the
-		 *  option. */
-	uint32_t tsecr;
 };
 #pragma pack(pop)
 
@@ -154,9 +153,6 @@ struct tcphdr_gro_opt {
 	uint8_t	option_length;
 		/** TCP timestamp option value of the TCP sending the option. */
 	uint32_t tsval;
-		/** TCP timestamp echo reply option value of the TCP sending the
-		 *  option. */
-	uint32_t tsecr;
 };
 #pragma pack(pop)
 
@@ -397,17 +393,32 @@ void tcp_gro_timeout_callback(
 		uint16_t opaque2);
 
 /**************************************************************************//**
+@Function	tcp_gro_calc_tcp_data_cksum
+
+@Description	Calculate the TCP data checksum and add it to the accumulated
+		payload checksum (which was calculated previously).
+
+@Return		Calculated data checksum.
+
+@Cautions	None.
+*//***************************************************************************/
+uint16_t tcp_gro_calc_tcp_data_cksum(
+		struct tcp_gro_context *gro_ctx);
+
+/**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
 @Description	Calculate the TCP pseudo header checksum and add it to the
 		accumulated payload checksum (which was calculated previously).
-		The result checksum will be placed in the TCP->checksum field.
 
-@Return		None.
+@Param[in]	gro_ctx - Pointer to the internal GRO context.
+
+@Return		Calculated header checksum.
 
 @Cautions	None.
 *//***************************************************************************/
-void tcp_gro_calc_tcp_header_cksum();
+void tcp_gro_calc_tcp_header_cksum(
+		struct tcp_gro_context *gro_ctx);
 
 /** @} */ /* end of TCP_GRO_INTERNAL_FUNCTIONS */
 

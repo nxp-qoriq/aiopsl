@@ -126,11 +126,11 @@ int32_t tcp_gro_aggregate_seg(
 	gro_ctx.internal_flags |= ecn;
 
 	/* calculate tcp checksum */
-	/*if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
-		 calculate data checksum
+	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
+		/* calculate data checksum */
 		gro_ctx.checksum = tcp_gro_calc_tcp_data_cksum(
 				&gro_ctx);
-	}*/
+	}
 
 	/* store aggregated frame */
 	sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
@@ -255,8 +255,8 @@ int32_t tcp_gro_add_seg_to_aggregation(
 
 	/* segment can be aggregated */
 	/* calculate tcp data checksum */
-	/*if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);*/
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
 	concat_params.frame1 = 0;
 	/* present aggregated frame */
@@ -311,10 +311,10 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	uint16_t outer_ip_offset;
 	uint8_t  data_offset;
 
-	/*if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
-		 calculate data checksum
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
+		/* calculate data checksum */
 		gro_ctx->checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
-	}*/
+	}
 
 	/* delete the timer for this aggregation */
 	tman_delete_timer(gro_ctx->timer_handle,
@@ -385,13 +385,13 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	*((struct tcp_gro_last_seg_header_fields *)
 		(&(tcp->acknowledgment_number))) = gro_ctx->last_seg_fields;
 
-	/* Save headers changes to FDMA */
-	tcp->checksum = 0;
-	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
-	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 	/* calculate tcp header checksum */
 	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-		tcp_gro_calc_tcp_header_cksum();
+		tcp_gro_calc_tcp_header_cksum(gro_ctx);
+
+	/* Save headers changes to FDMA */
+	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
+	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 
 	/* write metadata segment size to external memory */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
@@ -435,7 +435,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	uint8_t data_offset;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	uint16_t headers_size, outer_ip_offset, ip_length, seg_size;
-	/*uint16_t agg_checksum, new_agg_checksum;*/
+	uint16_t agg_checksum, new_agg_checksum;
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
@@ -496,11 +496,11 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	}
 
 	/* calculate tcp data checksum for the new frame */
-	/*agg_checksum = gro_ctx->checksum;
-	gro_ctx->checksum = 0;*/
-	/*if (!(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) &&
+	agg_checksum = gro_ctx->checksum;
+	gro_ctx->checksum = 0;
+	if (!(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) &&
 		(gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM))
-		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);*/
+		new_agg_checksum = tcp_gro_calc_tcp_data_cksum(gro_ctx);
 
 	/* store segment frame */
 	sr_status = fdma_store_default_frame_data();
@@ -550,17 +550,16 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		ipv6->payload_length = ip_length - IPV6_HDR_LENGTH;
 	}
 
-	tcp->checksum = 0;
+	/* update TCP checksum for the aggregated frame */
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
+		gro_ctx->checksum = agg_checksum;
+		tcp_gro_calc_tcp_header_cksum(gro_ctx);
+	}
+
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 			(PARSER_GET_L4_OFFSET_DEFAULT() +
 					TCP_HDR_LENGTH - outer_ip_offset));
-
-	/* update TCP checksum for the aggregated frame */
-	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
-		//gro_ctx->checksum = agg_checksum;
-		tcp_gro_calc_tcp_header_cksum();
-	}
 
 	if (gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET) {
 		/* update statistics */
@@ -580,7 +579,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	}
 
 	/* restore tcp data checksum */
-	/*gro_ctx->checksum = new_agg_checksum;*/
+	gro_ctx->checksum = new_agg_checksum;
 
 	/* recharge timer for the new aggregation */
 	sr_status = tman_recharge_timer(gro_ctx->timer_handle);
@@ -728,13 +727,12 @@ int32_t tcp_gro_flush_aggregation(
 			(&(tcp->acknowledgment_number))) =
 					gro_ctx.last_seg_fields;
 
-	tcp->checksum = 0;
+	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		tcp_gro_calc_tcp_header_cksum(&gro_ctx);
+
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
-
-	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-		tcp_gro_calc_tcp_header_cksum();
 
 	/* write gro context back to DDR + release mutex */
 	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
@@ -844,13 +842,12 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 			(&(tcp->acknowledgment_number))) =
 				gro_ctx.last_seg_fields;
 
-	tcp->checksum = 0;
+	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		tcp_gro_calc_tcp_header_cksum(&gro_ctx);
+
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
-
-	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
-		tcp_gro_calc_tcp_header_cksum();
 
 	/* write gro context back to DDR + release mutex */
 	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
@@ -871,7 +868,87 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 			gro_ctx.params.timeout_params.gro_timeout_cb_arg);
 }
 
-void tcp_gro_calc_tcp_header_cksum()
+uint16_t tcp_gro_calc_tcp_data_cksum(
+		struct tcp_gro_context *gro_ctx)
+{
+	uint16_t tcp_cs, tmp_checksum;
+	uint16_t tcp_offset, ip_pseudo_tcp_length;
+	int32_t sr_status;
+	uint8_t tcp_header_length;
+	struct ipv4hdr *ipv4;
+	struct ipv6hdr *ipv6;
+	struct tcphdr *tcp;
+
+	ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+	ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
+
+	/* offset to TCP header */
+	tcp_offset = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT());
+
+	/* save original TCP checksum */
+	tcp_cs = (uint16_t)tcp->checksum;
+	tcp->checksum = 0;
+
+	/* Modify default segment (TCP checksum = 0) */
+	/* TODO FDMA ERROR */
+	sr_status = fdma_modify_default_segment_data(
+			(uint16_t)PARSER_GET_L4_OFFSET_DEFAULT() +
+			(uint16_t)offsetof(struct tcphdr, checksum), (uint16_t)(
+			sizeof(tcp->checksum)));
+
+	tcp_header_length = (tcp->data_offset_reserved &
+				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
+				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
+				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
+
+	/* calculate TCP header + Pseudo IP checksum  */
+	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		/* IPv4 */
+		/* calculate TCP header + IPsrc + IPdst checksum  */
+		sr_status = fdma_calculate_default_frame_checksum(
+				tcp_offset - IPV4_HDR_ADD_LENGTH,
+				(uint16_t)(tcp_header_length +
+						IPV4_HDR_ADD_LENGTH),
+				&(tcp->checksum));
+		/* calculate additional Pseudo IP checksum (IP protocol +
+		 * tcp length) */
+		ip_pseudo_tcp_length = ipv4->total_length - IPV4_HDR_LENGTH;
+		tmp_checksum = cksum_ones_complement_sum16(
+				(uint16_t)(ipv4->protocol),
+				ip_pseudo_tcp_length);
+	} else {
+		/* IPv6 */
+		/* calculate TCP header + IPsrc + IPdst checksum  */
+		sr_status = fdma_calculate_default_frame_checksum(
+				tcp_offset - IPV6_HDR_ADD_LENGTH,
+				(uint16_t)(tcp_header_length +
+						IPV6_HDR_ADD_LENGTH),
+				&(tcp->checksum));
+		/* calculate additional Pseudo IP checksum (IP protocol +
+		 * tcp length) */
+		ip_pseudo_tcp_length = ipv6->payload_length;
+		tmp_checksum = cksum_ones_complement_sum16(
+				(uint16_t)(ipv6->next_header),
+				ip_pseudo_tcp_length);
+	}
+
+	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum, tcp->checksum);
+
+	/* Reduce TCP header + Pseudo IP checksum from original TCP checksum.
+	 * The result is the Data checksum */
+	tmp_checksum = (uint16_t)(~cksum_ones_complement_sum16(tcp_cs,
+			(uint16_t)tmp_checksum));
+
+	/* Calculate accumulated packet data checksum:
+	 * Add Data checksum from previous segments in the aggregation to the
+	 * data checksum which has just been calculated. */
+	return  cksum_ones_complement_sum16(tmp_checksum,
+			gro_ctx->checksum);
+}
+
+void tcp_gro_calc_tcp_header_cksum(
+		struct tcp_gro_context *gro_ctx)
 {
 	uint8_t tcp_header_length;
 	uint16_t tmp_checksum, tcp_offset, ip_pseudo_tcp_length;
@@ -879,7 +956,6 @@ void tcp_gro_calc_tcp_header_cksum()
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
 	int32_t sr_status;
-	uint16_t data_cks, data_size, data_offset;
 
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
@@ -892,6 +968,15 @@ void tcp_gro_calc_tcp_header_cksum()
 				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
 				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
 				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
+
+	tcp->checksum = 0;
+
+	/* Modify default segment (TCP checksum = 0) */
+	/* TODO FDMA ERROR */
+	sr_status = fdma_modify_default_segment_data(
+			(uint16_t)PARSER_GET_L4_OFFSET_DEFAULT() +
+			(uint16_t)offsetof(struct tcphdr, checksum), (uint16_t)(
+			sizeof(tcp->checksum)));
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* calculate TCP header + IPsrc + IPdst checksum  */
@@ -922,23 +1007,11 @@ void tcp_gro_calc_tcp_header_cksum()
 
 	/* Currently: tmp_checksum = TCP calculated pseudo header checksum */
 
-	data_offset = tcp_offset + (uint16_t)tcp_header_length;
-	data_size = ip_pseudo_tcp_length - (uint16_t)tcp_header_length;
-
-	fdma_calculate_default_frame_checksum(
-			data_offset, data_size, &data_cks);
-
 	/* Accumulate previous segments data checksum with the TCP calculated
 	 * pseudo header checksum.
-	 	 * checksum */
-	 tcp->checksum = (uint16_t)~(cksum_ones_complement_sum16(
-	 			tmp_checksum, data_cks));
-	/* Modify default segment (TCP checksum = 0) */
-	/* TODO FDMA ERROR */
-	sr_status = fdma_modify_default_segment_data(
-			tcp_offset +
-			(uint16_t)offsetof(struct tcphdr, checksum),
-			(uint16_t)(sizeof(tcp->checksum)));
+	 * checksum */
+	tcp->checksum = (uint16_t)~(cksum_ones_complement_sum16(
+			tmp_checksum, gro_ctx->checksum));
 
-	/*gro_ctx->checksum = 0;*/
+	gro_ctx->checksum = 0;
 }
