@@ -1,6 +1,7 @@
 
 #include "common/types.h"
 #include "common/errors.h"
+#include "common/spinlock.h"
 #include "kernel/smp.h"
 
 #include "sys.h"
@@ -23,20 +24,18 @@ int sys_init_multi_processing(void)
 {
     uint32_t core_id = core_get_id();
 
-#ifdef SYS_SMP_SUPPORT
     if (sys.is_partition_master[core_id])
     {
         /* Initialize the central program barrier */
-        sys_init_spinlock(&(sys.barrier_lock));
-
-        sys.barrier_mask = sys.partition_cores_mask;
+	sys.barrier_lock = 0;
+        
+	sys.barrier_mask = sys.partition_cores_mask;
     }
     else
     {
         /* Wait until system barrier is initialized */
         while (!sys.barrier_mask) ;
     }
-#endif /* SYS_SMP_SUPPORT */
 
 /*
     if (sys.ipc_enabled && sys.is_partition_master[core_id])
@@ -153,32 +152,30 @@ void sys_kick_spinning_cores(uint64_t cores_mask,
 }
 #endif /* SYS_SPIN_TABLE_BASE */
 
-
-#ifdef SYS_SMP_SUPPORT
 /*****************************************************************************/
 void sys_barrier(void)
 {
-    uint64_t core_mask = (uint64_t)(1 << core_get_id());
+#ifdef UNDER_CONSTRUCTION
+    const uint64_t core_mask = (uint64_t)(1 << core_get_id());
 
-    sys_lock_spinlock(&(sys.barrier_lock));
+    lock_spinlock(&(sys.barrier_lock));
     /* Mark this core's presence */
     sys.barrier_mask &= ~(core_mask);
 
     if (sys.barrier_mask)
     {
-        sys_unlock_spinlock(&(sys.barrier_lock));
+        unlock_spinlock(&(sys.barrier_lock));
         /* Wait until barrier is reset */
-        while (!(sys.barrier_mask & core_mask)) ;
+        while (!(sys.barrier_mask & core_mask)) {}
     }
     else
     {
         /* Last core to arrive - reset the barrier */
         sys.barrier_mask = sys.partition_cores_mask;
-        sys_unlock_spinlock(&(sys.barrier_lock));
+        unlock_spinlock(&(sys.barrier_lock));
     }
+#endif
 }
-#endif /* SYS_SMP_SUPPORT */
-
 
 /*****************************************************************************/
 int sys_is_core_active(uint32_t core_id)

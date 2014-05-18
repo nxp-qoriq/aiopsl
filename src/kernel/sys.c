@@ -301,21 +301,30 @@ int sys_init(void)
 	memset(&sys_param, 0, sizeof(sys_param));
 	memset(&platform_param, 0, sizeof(platform_param));
 	sys_param.platform_param = &platform_param;
-	fill_system_parameters(&sys_param);
+#if 0
+	//TODO why all cores do this ??
+#endif
+	fill_system_parameters(&sys_param); 
 
 	sys.is_partition_master[core_id] = (int)(sys_param.master_cores_mask &
 		(1ULL << core_id));
 	sys.is_master_partition_master[core_id] = (int)(
 		sys.is_partition_master[core_id] &&
 		(sys_param.partition_id == 0));
+#ifdef UNDER_CONSTRUCTION
 	sys.is_core_master[core_id] = IS_CORE_MASTER(core_id,
-					sys_param.partition_cores_mask);
-	
+					sys_param.partition_cores_mask); //TODO this is not correct
+#endif
 	if (sys_is_master_core()) {
+		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE + SOC_PERIPH_OFF_AIOP_CMGW + 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
+		
 		sys.partition_id         = sys_param.partition_id;
-		sys.partition_cores_mask  = sys_param.partition_cores_mask;
+		sys.partition_cores_mask  = abrr_val;
 		sys.master_cores_mask     = sys_param.master_cores_mask;
 		/*sys.ipc_enabled          = sys_param.use_ipc;*/
+	} else {
+		while(!sys.partition_cores_mask) {}
 	}
 
 #ifdef CORE_E6500

@@ -57,7 +57,7 @@ typedef struct t_system {
 	int                  is_core_master[INTG_MAX_NUM_OF_CORES];
 	int                  is_partition_master[INTG_MAX_NUM_OF_CORES];
 	int                  is_master_partition_master[INTG_MAX_NUM_OF_CORES];
-	struct spinlock      barrier_lock;
+	uint8_t              barrier_lock;
 	volatile uint64_t    barrier_mask;
 	int                  core_failure[INTG_MAX_NUM_OF_CORES];
 	int                  init_fail_count;
