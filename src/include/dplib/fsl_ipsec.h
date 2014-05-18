@@ -44,39 +44,20 @@ enum ipsec_direction {
 };
 
 /**************************************************************************//**
- @enum ipsec_status_codes
+ @enum ipsec_error_codes
 
- @Description	AIOP IPsec Functional Module return codes.
+ @Description	AIOP IPsec Functional Module return status codes.
 
  @{
 *//***************************************************************************/
 enum ipsec_status_codes {
 	/** Success. */
 	IPSEC_SUCCESS = 0,
-	/** Reached Soft Lifetime Kilobyte Limit */
-	IPSEC_KILOBYTE_LIMIT_SOFT = 0x2,
-	/** Reached Hard Lifetime Kilobyte Limit */
-	IPSEC_KILOBYTE_LIMIT_HARD = 0x4,
-	/** Reached Soft Lifetime Packet Limit */
-	IPSEC_PACKET_LIMIT_SOFT = 0x8,
-	/** Reached Hard Lifetime Packet Limit */
-	IPSEC_PACKET_LIMIT_HARD = 0x10,
-	/** Reached Soft Lifetime Seconds Limit */
-	IPSEC_SEC_LIMIT_SOFT = 0x20,
-	/** Reached Hard Lifetime Seconds Limit */
-	IPSEC_SEC_LIMIT_HARD = 0x40,
-	
-	/** Sequence Number overflow */
-	IPSEC_SEC_NUM_OVERFLOW = 0x100,
-	/** Anti Replay Check: Late packet */
-	IPSEC_AR_LATE_PACKET = 0x200,
-	/** Anti Replay Check: Replay packet */
-	IPSEC_AR_REPLAY_PACKET = 0x400,
-	/** ICV comparison failed */
-	IPSEC_ICV_COMPARE_FAIL = 0x800,
+	IPSEC_ERROR = -1,
 };
 
 /* @} end of enum ipsec_status_codes */
+
 
 /* @} end of IPSEC_ENUM */
 
@@ -111,8 +92,8 @@ typedef void (ipsec_lifetime_callback_t) (
 		Use for ipsec_descriptor_params.flags
 *//***************************************************************************/
 
-/** IPsec transport mode (default = tunnel mode) */
-#define IPSEC_FLG_TRANSPORT_MODE		0x00000001
+/** IPsec tunnel mode (transport mode if not set) */
+#define IPSEC_FLG_TUNNEL_MODE		0x00000001
 
 /** Enable Transport mode ESP pad check (default = no check)
  * Valid for transport mode only.
@@ -261,6 +242,34 @@ typedef void (ipsec_lifetime_callback_t) (
 	/**< EKT: Enhanced Encryption of Key */
 #define IPSEC_KEY_TK			0x00008000
 	/**< TK: Encrypted with Trusted Key */
+
+/**************************************************************************//**
+ @Description	AIOP IPsec Encryption/Decryption return codes. Returned by 
+ 	 ipsec_frame_encrypt (*enc_status) or ipsec_frame_decrypt (*dec_status)
+ 	 Multiple bits can be set simultaneously.
+ @{
+*//***************************************************************************/
+/** Reached Soft Lifetime Kilobyte Limit */
+#define IPSEC_STATUS_SOFT_KB_EXPIRED		0x00000001
+/** Reached Hard Lifetime Kilobyte Limit */
+#define IPSEC_STATUS_HARD_KB_EXPIRED		0x00000002
+/** Reached Soft Lifetime Packet Limit */
+#define IPSEC_STATUS_SOFT_PACKET_EXPIRED	0x00000004
+/** Reached Hard Lifetime Packet Limit */
+#define IPSEC_STATUS_HARD_PACKET_EXPIRED	0x00000008
+/** Reached Soft Lifetime Seconds Limit */
+#define IPSEC_STATUS_SOFT_SEC_EXPIRED		0x00000010
+/** Reached Hard Lifetime Seconds Limit */
+#define IPSEC_STATUS_HARD_SEC_EXPIRED		0x00000020
+
+/** Sequence Number overflow */
+#define IPSEC_SEC_NUM_OVERFLOW 				0x00000100
+/** Anti Replay Check: Late packet */
+#define IPSEC_AR_LATE_PACKET 				0x00000200
+/** Anti Replay Check: Replay packet */
+#define IPSEC_AR_REPLAY_PACKET 				0x00000400
+/** ICV comparison failed */
+#define IPSEC_ICV_COMPARE_FAIL 				0x00000800
 
 /** @} */ /* end of FSL_IPSEC_MACROS */
 

@@ -53,6 +53,10 @@ enum ipsec_cipher_type {
 @{
 *//***************************************************************************/
 
+
+/* PS Pointer Size. This bit determines the size of address pointers */
+#define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
+
 #define IPSEC_PROFILE_SRAM_ADDR 0x00030000 /* hard wired address */
 #define IPSEC_STORAGE_PROFILE_SIZE_SHIFT 5 /* 32 bytes */
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
@@ -259,22 +263,24 @@ struct ipsec_instance_params {
 };
 
 
-#define SAP_STATUS_SOFT_KB_EXPIRED			0x00000001
-#define SAP_STATUS_HARD_KB_EXPIRED			0x00000002
-#define SAP_STATUS_SOFT_PACKET_EXPIRED		0x00000004
-#define SAP_STATUS_HARD_PACKET_EXPIRED		0x00000008
-#define SAP_STATUS_SOFT_SEC_EXPIRED			0x00000010
-#define SAP_STATUS_HARD_SEC_EXPIRED			0x00000020
-
 
 /* SA Descriptor Parameter for Internal Usage */ 
 /* Part 1 */
 struct ipsec_sa_params_part1 {
+	/* Required at Add descriptor and enc/dec */
+	/* 6x8 = 48 bytes */
+	uint64_t soft_byte_limit; /* soft byte count limit,	8 Bytes */
+	uint64_t soft_packet_limit; /* soft packet limit, 8B */
+	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
+	uint64_t hard_packet_limit; /* hard packet limit, 8B */
+	uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
+	uint64_t packet_counter; /*	Packets counter, 8B */
+	
 	/* Always required, except timer callback */
 	/* 2x4 + 2x2 + 4x1 = 8 + 4 + 4 = 16 bytes */
 	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
-	uint32_t status; /* lifetime expiry, semaphores	4-8B */
+	uint32_t status; /* lifetime expire, semaphores	4-8B */
 	
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
@@ -286,15 +292,6 @@ struct ipsec_sa_params_part1 {
 	uint8_t sec_buffer_mode; /* new/reuse (for ASA copy). 1B */
 
 	uint8_t output_spid; /* SEC output buffer SPID */
-
-	/* Required at Add descriptor and enc/dec */
-	/* 6x8 = 48 bytes */
-	uint64_t soft_byte_limit; /* soft byte count limit,	8 Bytes */
-	uint64_t soft_packet_limit; /* soft packet limit, 8B */
-	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
-	uint64_t hard_packet_limit; /* hard packet limit, 8B */
-	uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
-	uint64_t packet_counter; /*	Packets counter, 8B */
 	
 	/* Total size = 16 + 48 = 64 bytes */
 };
@@ -609,8 +606,8 @@ int32_t ipsec_generate_decap_sd(
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
 int32_t ipsec_generate_sa_params(
-		ipsec_handle_t *ipsec_handle, /* Parameters area (start of buffer) */
-		struct ipsec_descriptor_params *params);
+		struct ipsec_descriptor_params *params,
+		ipsec_handle_t ipsec_handle); /* Parameters area (start of buffer) */
 
 /**************************************************************************//**
 	 

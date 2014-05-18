@@ -176,11 +176,7 @@ int32_t ipsec_generate_encap_sd(
 {
 	
 	uint8_t cipher_type = 0;
-	uint8_t tunnel_mode = 1; // TODO: TMP
 	int32_t return_val;
-	
-	// RTA TMP params
-	unsigned short ps = 1;
 	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
@@ -308,13 +304,13 @@ int32_t ipsec_generate_encap_sd(
 	#ifndef AIOPSL_IPSEC_DEBUG
 
 	/* Call RTA function to build an encap descriptor */
-	if (tunnel_mode) {
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
 		cnstr_shdsc_ipsec_new_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			(unsigned *)sd_size, /* unsigned *bufsize */
-			ps, /* unsigned short ps */
-			((struct ipsec_encap_pdb *)(&pdb)), /* struct ipsec_encap_pdb *pdb */
+			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			((struct ipsec_encap_pdb *)(&pdb)), /* PDB */
 			(struct alginfo *)(&(params->cipherdata)),
 			(struct alginfo *)(&(params->authdata)) 
 		);
@@ -323,8 +319,8 @@ int32_t ipsec_generate_encap_sd(
 		cnstr_shdsc_ipsec_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			(unsigned *)sd_size, /* unsigned *bufsize */
-			ps, /* unsigned short ps */
-			((struct ipsec_encap_pdb *)(&pdb)), /* struct ipsec_encap_pdb *pdb */
+			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			((struct ipsec_encap_pdb *)(&pdb)), /* PDB */
 			(struct alginfo *)(&(params->cipherdata)),
 			(struct alginfo *)(&(params->authdata)) 
 		);
@@ -357,11 +353,8 @@ int32_t ipsec_generate_decap_sd(
 {
 	
 	uint8_t cipher_type = 0;
-	uint8_t tunnel_mode = 1; // TODO: TMP
 	int32_t return_val;
 	
-	// RTA TMP params
-	unsigned short ps = 1;
 	struct ipsec_decap_pdb pdb;
 
 	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
@@ -471,13 +464,12 @@ int32_t ipsec_generate_decap_sd(
 	#ifndef AIOPSL_IPSEC_DEBUG
 	
 	/* Call RTA function to build an encap descriptor */
-	if (tunnel_mode) {
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
 		cnstr_shdsc_ipsec_new_decap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
-			ps, /* unsigned short ps */
+			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&(params->cipherdata)),
 			(struct alginfo *)(&(params->authdata)) 
@@ -486,9 +478,8 @@ int32_t ipsec_generate_decap_sd(
 		/* Transport mode, SEC legacy new thread */
 		cnstr_shdsc_ipsec_decap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			// TODO: need to agree with RTA if this is a pointer or external buffer address
 			(unsigned *)sd_size, /* unsigned *bufsize */
-			ps, /* unsigned short ps */
+			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&(params->cipherdata)),
 			(struct alginfo *)(&(params->authdata)) 
@@ -592,8 +583,8 @@ int32_t ipsec_generate_flc(
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
 int32_t ipsec_generate_sa_params(
-		ipsec_handle_t *ipsec_handle, /* Parameters area (start of buffer) */
-		struct ipsec_descriptor_params *params) 
+		struct ipsec_descriptor_params *params, 
+		ipsec_handle_t ipsec_handle) /* Parameters area (start of buffer) */
 {
 	int32_t return_val;
 	
@@ -649,7 +640,7 @@ int32_t ipsec_generate_sa_params(
 
 	/* Store to external memory with CDMA */
 	return_val = cdma_write(
-			*ipsec_handle, /* uint64_t ext_address */
+			ipsec_handle, /* uint64_t ext_address */
 			&sap, /* void *ws_src */
 			(uint16_t)(sizeof(sap)) /* uint16_t size */
 			);
@@ -711,8 +702,12 @@ int32_t ipsec_add_sa_descriptor(
 		global_params.desc_bpid,
 		ipsec_handle); /* context_memory */ 
 	
-	// TODO: check for allocation error
-	
+	/* Check for allocation error */
+	if (return_val) {
+		// TODO: decrement SA counter
+		return return_val;
+	}
+		
 	// TODO: Optionally allocate a buffer for the key, if not inline.
 	
 	/* TODO: Clear the buffer area? */
@@ -730,28 +725,44 @@ int32_t ipsec_add_sa_descriptor(
 		return_val = ipsec_generate_encap_sd(sd_addr,params, &sd_size);
 	}
 	
+	/* Check SD generation Error (CDMA error) */
+	if (return_val) goto add_sa_descriptor_error;
+	
 	/* Generate the SEC Flow Context descriptor and write to memory with CDMA */
 	return_val = ipsec_generate_flc(
 			((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE), 
 				/* Flow Context Address in external memory */
 			params->spid, /* Storage Profile ID of the SEC output frame */
 			sd_size); /* Shared descriptor size in words */
-		
+	
+	/* Check FLC generation Error (CDMA error) */
+	if (return_val) goto add_sa_descriptor_error;	
+	
 	/*	Prepare descriptor parameters:
 	 * Kilobytes and packets lifetime limits.
 	 * Modes indicators and other flags */
-	
-	
 	/* Store the descriptor parameters to memory (CDMA write). */
+	return_val = ipsec_generate_sa_params(
+			params,
+			*ipsec_handle); /* Parameters area (start of buffer) */
+	
+	/* Check SA params generation Error (CDMA error) */
+	if (return_val) goto add_sa_descriptor_error;	
 	
 	/* Create one-shot TMAN timers for the soft and hard seconds lifetime 
 	 * limits, with callback to internal function 
 	 * (including the descriptor handle and soft/hard indication arguments). */
 	
-	/* Return handle. */
+	/* Success, handle returened. */
+	return IPSEC_SUCCESS;
 
-	return 0; // TMP
-
+add_sa_descriptor_error:
+	// TODO: decrement SA counter
+	/* Release the buffer */ 
+	cdma_refcount_decrement_and_release(*ipsec_handle); /* context_memory */
+	//TODO: what if CDMA release failed?
+	return return_val; /* Return the previous error */
+	
 } /* End of ipsec_add_sa_descriptor */
 
 /**************************************************************************//**
@@ -768,6 +779,7 @@ int32_t ipsec_del_sa_descriptor(
 		ipsec_handle); /* context_memory */ 
 	
 	if (return_val) { /* error */
+		//TODO: what if CDMA release failed?
 		return -1; // TMP
 	} else { /* success */
 		atomic_incr32((int32_t *)(&(global_params.sa_count)), 1);
@@ -791,7 +803,8 @@ int32_t ipsec_frame_encrypt(
 	uint64_t orig_flc;
 	uint32_t orig_frc;
 	uint64_t *eth_pointer_default;
-	
+	uint32_t byte_count;
+
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
@@ -807,16 +820,25 @@ int32_t ipsec_frame_encrypt(
 			sizeof(sap1) /* uint16_t size */
 			);
 
+	// TODO: check CDMA return status
+	
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits have 
 	 * not expired. If expired, return with error and go to END */
 	// TODO
 	if (sap1.status & (
-			SAP_STATUS_HARD_KB_EXPIRED |
-			SAP_STATUS_HARD_PACKET_EXPIRED |
-			SAP_STATUS_HARD_SEC_EXPIRED
+			IPSEC_STATUS_HARD_KB_EXPIRED |
+			IPSEC_STATUS_HARD_PACKET_EXPIRED |
+			IPSEC_STATUS_HARD_SEC_EXPIRED
 			)
 	) {
-		return_val = IPSEC_KILOBYTE_LIMIT_HARD; // TODO: TMP
+		
+		*enc_status = sap1.status & (
+							IPSEC_STATUS_HARD_KB_EXPIRED |
+							IPSEC_STATUS_HARD_PACKET_EXPIRED |
+							IPSEC_STATUS_HARD_SEC_EXPIRED
+						);
+		
+		return_val = IPSEC_ERROR; // TODO: TMP
 		goto encrypt_end;
 	}
 		
@@ -881,7 +903,8 @@ int32_t ipsec_frame_encrypt(
 	/* 	7.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
-	
+	// TODO: check FDMA return status
+
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
 	
@@ -932,6 +955,12 @@ int32_t ipsec_frame_encrypt(
 		
 	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
+	/* The least significant 6 bytes of the 8-byte FLC in the enqueued FD 
+	 * contain a 2-byte checksum and 4-byte encrypted/decrypted byte count.
+	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } */
+	
+	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
+	
 	
 	/* 	15.	Update the gross running checksum in the Workspace parser results.*/
 	// TODO: is it needed for encryption?
@@ -969,11 +998,17 @@ int32_t ipsec_frame_encrypt(
 		/* 	18.2.	Add byte-count from SEC and one packet count. */
 		/* 	18.3.	Calculate locally if lifetime counters crossed the limits. 
 		 * If yes set flag in the descriptor statistics (CDMA write). */
-		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
+	//sap1.byte_counter
+					
+				
+	/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
 		 * (STE increment + accumulate). */
 	//TODO
 	
-	encrypt_end:
+	
+	return_val = IPSEC_SUCCESS;	
+
+encrypt_end:
 	
 	/* 	19.	END */
 	/* 	19.1. Update the encryption status (enc_status) and return status. */
@@ -983,7 +1018,7 @@ int32_t ipsec_frame_encrypt(
 	//TODO
 	
 	/* 	19.3.	Return */
-	return 0;
+	return return_val;
 } /* End of ipsec_frame_encrypt */
 
 /**************************************************************************//**
@@ -1001,7 +1036,6 @@ int32_t ipsec_frame_decrypt(
 	uint64_t orig_flc; /* Original FLC */
 	uint64_t return_flc; /* SEC returned FLC */
 	uint32_t orig_frc;
-	uint8_t tunnel_mode = 1; // TODO: TMP
 	uint16_t outer_material_length;
 	//uint16_t running_sum;
 	uint64_t *eth_pointer_default;
@@ -1061,7 +1095,9 @@ int32_t ipsec_frame_decrypt(
 				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
 								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
 					
-		if (!tunnel_mode) {
+		/* Transport Mode */
+		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
+	
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint64_t *)PARSER_GET_ETH_POINTER_DEFAULT();
@@ -1085,7 +1121,7 @@ int32_t ipsec_frame_decrypt(
 			/* For decryption in transport mode it is required to update 
 			  * the running sum. */
 			 			
-			}
+		}
 	}
 
 			/*---------------------*/
@@ -1103,7 +1139,7 @@ int32_t ipsec_frame_decrypt(
 	/* For transport mode: IP header length, Next header offset */
 	/* For tunnel mode: 
 	 * IP header length, Actual Outer IP Header Offset (AOIPHO), including L2 */
-	if (tunnel_mode) {
+	if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Prepare DPOVRD */
 		/* 31 OVRD
 		 * 30-20 Reserved
