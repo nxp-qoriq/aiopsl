@@ -804,7 +804,8 @@ int32_t ipsec_frame_encrypt(
 	uint32_t orig_frc;
 	uint64_t *eth_pointer_default;
 	uint32_t byte_count;
-
+	uint16_t checksum;
+	
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
@@ -958,9 +959,8 @@ int32_t ipsec_frame_encrypt(
 	/* The least significant 6 bytes of the 8-byte FLC in the enqueued FD 
 	 * contain a 2-byte checksum and 4-byte encrypted/decrypted byte count.
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } */
-	
+	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
-	
 	
 	/* 	15.	Update the gross running checksum in the Workspace parser results.*/
 	// TODO: is it needed for encryption?
