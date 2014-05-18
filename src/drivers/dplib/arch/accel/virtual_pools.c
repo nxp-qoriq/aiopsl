@@ -29,7 +29,7 @@ int32_t vpool_create_pool(
 
 	uint32_t vpool_id;
 	uint32_t num_of_virtual_pools = virtual_pools_root.num_of_virtual_pools;
-	uint16_t bman_array_index;
+	uint16_t bman_array_index = 0;
 	int i;
 
 	struct virtual_pool_desc *virtual_pool =
@@ -276,7 +276,7 @@ int32_t vpool_add_total_bman_bufs(
 {
 
 	int i;
-	uint16_t bman_array_index;
+	uint16_t bman_array_index = 0;
 
 	#ifdef SL_DEBUG
 		/* Check the arguments correctness */
@@ -308,7 +308,7 @@ int32_t vpool_decr_total_bman_bufs(
 {
 
 	int i;
-	uint16_t bman_array_index;
+	uint16_t bman_array_index = 0;
 
 	#ifdef SL_DEBUG
 		/* Check the arguments correctness */
