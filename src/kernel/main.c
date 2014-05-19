@@ -11,6 +11,7 @@ extern int global_post_init(void);
 extern int run_apps(void);
 extern void core_ready_for_tasks(void);
 
+__SHRAM volatile uint32_t BOOT_GO = 0;
 
 #if (STACK_OVERFLOW_DETECTION == 1)
 static inline void configure_stack_overflow_detection(void)
@@ -54,12 +55,18 @@ UNUSED(argc);UNUSED(argv);
 #if (STACK_OVERFLOW_DETECTION == 1)
     configure_stack_overflow_detection();
 #endif
-
+    
+    if(booke_get_spr_PIR()) {
+	while(!BOOT_GO){}
+    }
+    
     /* Initialize system */
     err = sys_init();
     if (err)
         return err;
-
+    
+    BOOT_GO = 1;
+    
     /* Only execute if core is a cluster master */
     if(((core_get_id()) % 4) == 0)
     {
