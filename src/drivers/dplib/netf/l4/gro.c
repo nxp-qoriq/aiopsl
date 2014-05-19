@@ -848,12 +848,11 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 void tcp_gro_calc_tcp_header_cksum()
 {
 	uint8_t tcp_header_length;
-	uint16_t tmp_checksum, tcp_offset, ip_pseudo_tcp_length;
+	uint16_t tmp_checksum, tcp_offset, pseudo_tcp_length, ipsrc_offset;
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
 	int32_t sr_status;
-	uint16_t data_cks, data_size, data_offset;
 
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
@@ -868,47 +867,30 @@ void tcp_gro_calc_tcp_header_cksum()
 				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-		/* calculate TCP header + IPsrc + IPdst checksum  */
-		sr_status = fdma_calculate_default_frame_checksum(
-				(uint16_t)(tcp_offset - IPV4_HDR_ADD_LENGTH),
-				(uint16_t)(tcp_header_length +
-						IPV4_HDR_ADD_LENGTH),
-				&(tmp_checksum));
-		/* calculate additional Pseudo IP checksum  */
-		ip_pseudo_tcp_length = ipv4->total_length - IPV4_HDR_LENGTH;
+		/* calculate IP source address offset  */
+		ipsrc_offset = (uint16_t)(tcp_offset - IPV4_HDR_ADD_LENGTH);
+		/* calculate TCP length for the pseudo header  */
+		pseudo_tcp_length = ipv4->total_length - IPV4_HDR_LENGTH;
 
 	} else {
-		/* calculate TCP header + IPsrc + IPdst checksum  */
-		sr_status = fdma_calculate_default_frame_checksum(
-				tcp_offset - IPV6_HDR_ADD_LENGTH,
-				(uint16_t)(tcp_header_length +
-						IPV6_HDR_ADD_LENGTH),
-				&(tmp_checksum));
-		/* calculate additional Pseudo IP checksum  */
-		ip_pseudo_tcp_length = ipv6->payload_length;
+		/* calculate IP source address offset  */
+		ipsrc_offset = (uint16_t)(tcp_offset - IPV6_HDR_ADD_LENGTH);
+		/* calculate TCP length for the pseudo header  */
+		pseudo_tcp_length = ipv6->payload_length;
 	}
 
+	/* calculate IPsrc + IPdst + TCP header + Data checksum  */
+	sr_status = fdma_calculate_default_frame_checksum(
+			ipsrc_offset, 0xffff, &(tmp_checksum));
 	/* Add TCP length */
 	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum,
-			ip_pseudo_tcp_length);
-	/* Add TCP Protocol number */
-	tmp_checksum = cksum_ones_complement_sum16(tmp_checksum, TCP_PROTOCOL);
+			pseudo_tcp_length);
+	/* Add TCP Protocol number for the pseudo header and finalize TCP
+	 * checksum. */
+	tcp->checksum = (uint16_t)~cksum_ones_complement_sum16(
+			tmp_checksum, TCP_PROTOCOL);
 
-	/* Currently: tmp_checksum = TCP calculated pseudo header checksum */
-
-	data_offset = tcp_offset + (uint16_t)tcp_header_length;
-	data_size = ip_pseudo_tcp_length - (uint16_t)tcp_header_length;
-
-	fdma_calculate_default_frame_checksum(
-			data_offset, data_size, &data_cks);
-
-	/* Accumulate previous segments data checksum with the TCP calculated
-	 * pseudo header checksum.
-	 	 * checksum */
-	 tcp->checksum = (uint16_t)~(cksum_ones_complement_sum16(
-	 			tmp_checksum, data_cks));
 	/* Modify default segment (TCP checksum = 0) */
-	/* TODO FDMA ERROR */
 	sr_status = fdma_modify_default_segment_data(
 			tcp_offset +
 			(uint16_t)offsetof(struct tcphdr, checksum),
