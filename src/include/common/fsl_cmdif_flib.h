@@ -41,6 +41,7 @@ struct cmdif_fd {
 			uint16_t epid;      /*!< Reserved fog EPID */
 		} close;
 		/*!< Close command is always synchronous*/
+		uint32_t word[2];
 	} u_flc;
 
 	/*! FD[FRC] Frame descriptor relevant fields as should be set
@@ -53,7 +54,10 @@ struct cmdif_fd {
 	} u_frc;
 
 	uint32_t d_size; /*!< Data length */
-	uint64_t d_addr; /*!< Data address */
+	union {
+		uint64_t d_addr; /*!< Data address */
+		uint32_t word[2];
+	}u_addr;
 };
 
 int cmdif_open_cmd(struct cmdif_desc *cidesc,
