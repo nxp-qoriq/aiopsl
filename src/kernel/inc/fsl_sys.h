@@ -72,11 +72,6 @@ uint64_t                master_cores_mask;      /**< Master cores on all
 						configuration for releasing
 						guest partition masters from
 						spin table */
-int                     use_cli;                /**< Flag specifying whether
-						CLI can be used; actual
-						interactive vs non-interactive
-						mode is determined during
-						system start-up */
 int                     use_ipc;                /**< Flag specifying whether
 						IPC (Inter-Partition
 						Communication) service can be
