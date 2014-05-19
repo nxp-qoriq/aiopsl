@@ -22,6 +22,14 @@ struct cmdif_reg {
 	struct qbman_swp   *swp;
 };
 
+static __inline__ void endian_fix(struct cmdif_fd *cfd) 
+{
+	cfd->u_flc.flc     = SWAP_UINT64(cfd->u_flc.flc);
+	cfd->d_size        = SWAP_UINT32(cfd->d_size);
+	cfd->u_frc.frc     = SWAP_UINT32(cfd->u_frc.frc);
+	cfd->u_addr.d_addr = SWAP_UINT64(cfd->u_addr.d_addr);
+}
+
 static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 {
 	struct   cmdif_reg *dev = (struct cmdif_reg *)sdev;
@@ -47,6 +55,11 @@ static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 	qbman_eq_desc_set_fq(&eqdesc, fqid);
 
 	/******************/
+	/* Endianess     */
+	/******************/
+	endian_fix(cfd); // TODO check if needed
+	
+	/******************/
 	/* Copy FD        */
 	/******************/
 	memset(&fd, 0, sizeof(struct qbman_fd));
@@ -56,12 +69,12 @@ static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 	fd.simple.flc_lo  = cfd->u_flc.word[1];
 	fd.simple.addr_hi = cfd->u_addr.word[0];
 	fd.simple.addr_lo = cfd->u_addr.word[1];
+	
 	/******************/
 	/* Try an enqueue */
 	/******************/
 	ret = qbman_swp_enqueue(swp, &eqdesc, (const struct qbman_fd *)&fd);
 	return ret;
-
 }
 
 static int receive_fd(struct cmdif_fd *cfd, int pr, void *sdev)
@@ -110,6 +123,12 @@ static int receive_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 	cfd->u_flc.word[1]  = fd->simple.flc_lo;
 	cfd->u_addr.word[0] = fd->simple.addr_hi;
 	cfd->u_addr.word[1] = fd->simple.addr_lo;
+	
+	/******************/
+	/* Endianess     */
+	/******************/
+	endian_fix(cfd); // TODO check if needed
+
 	return 0;
 }
 
