@@ -10,6 +10,7 @@
 
 #include "mem_mng.h"
 
+__SHRAM uint8_t mem_lock;
 
 #ifdef UNDER_CONSTRUCTION
 //@@@@ todo:
@@ -638,9 +639,11 @@ static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
         p_mem_mng_debug_entry->info = info;
         p_mem_mng_debug_entry->line = line;
         p_mem_mng_debug_entry->size = size;
+        lock_spinlock(&mem_lock);
         int_flags = spin_lock_irqsave(p_mem_mng->lock);
         list_add_to_tail(&p_mem_mng_debug_entry->node, &(p_mem_mng->early_mem_debug_list));
         spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+        unlock_spinlock(&mem_lock);
     }
     else
     {
@@ -656,6 +659,7 @@ static int mem_mng_remove_early_entry(t_mem_mng *p_mem_mng, void *p_memory)
     list_t              *p_debug_iterator, *p_tmp_iterator;
     uint32_t            int_flags;
 
+    lock_spinlock(&mem_lock);
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
     LIST_FOR_EACH_SAFE(p_debug_iterator, p_tmp_iterator, &(p_mem_mng->early_mem_debug_list))
     {
@@ -665,11 +669,13 @@ static int mem_mng_remove_early_entry(t_mem_mng *p_mem_mng, void *p_memory)
         {
             list_del(p_debug_iterator);
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+            unlock_spinlock(&mem_lock);
             p_mem_mng->f_free(p_mem_mng_debug_entry);
             return 1;
         }
     }
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+    unlock_spinlock(&mem_lock);
 
     return 0;
 }
@@ -698,9 +704,11 @@ static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
         p_mem_mng_debug_entry->info = info;
         p_mem_mng_debug_entry->line = line;
         p_mem_mng_debug_entry->size = size;
+        lock_spinlock(&mem_lock);
         int_flags = spin_lock_irqsave(p_partition->lock);
         list_add_to_tail(&p_mem_mng_debug_entry->node, &(p_partition->mem_debug_list));
         spin_unlock_irqrestore(p_partition->lock, int_flags);
+        unlock_spinlock(&mem_lock);
 
         p_partition->info.current_usage += size;
         p_partition->info.total_allocations += 1;
@@ -729,6 +737,7 @@ static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
     list_t              *p_debug_iterator, *p_tmp_iterator;
     uint32_t            int_flags;
 
+    lock_spinlock(&mem_lock);
     int_flags = spin_lock_irqsave(p_partition->lock);
 
     LIST_FOR_EACH_SAFE(p_debug_iterator, p_tmp_iterator, &(p_partition->mem_debug_list))
@@ -742,12 +751,14 @@ static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
 
             list_del(p_debug_iterator);
             spin_unlock_irqrestore(p_partition->lock, int_flags);
+            unlock_spinlock(&mem_lock);
             p_mem_mng->f_free(p_mem_mng_debug_entry);
             return 1;
         }
     }
 
     spin_unlock_irqrestore(p_partition->lock, int_flags);
+    unlock_spinlock(&mem_lock);
 
     return 0;
 }
