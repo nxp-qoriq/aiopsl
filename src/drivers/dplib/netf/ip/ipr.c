@@ -885,10 +885,11 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* L4 checksum Validation */
 	/* prepare gross running sum for L4 checksum validation by parser */
 	gross_running_sum = rfdc_ptr->current_running_sum;
-	gross_running_sum = cksum_accumulative_update_uint32(
-					gross_running_sum,
-					old_ip_checksum,
-					ipv4hdr_ptr->hdr_cksum);
+
+	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
+					(uint16_t)~old_ip_checksum);
+	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
+			ipv4hdr_ptr->hdr_cksum);
 
 	pr->gross_running_sum = gross_running_sum;
 
@@ -903,7 +904,7 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	if ((pr->parse_error_code == PARSER_UDP_CHECKSUM_ERROR) ||
 	    (pr->parse_error_code == PARSER_TCP_CHECKSUM_ERROR)) {
 		/* error in L4 checksum */
-		/* return IPR_ERROR; */
+		return IPR_ERROR;
 	}
 	return SUCCESS;
 }
@@ -1170,31 +1171,35 @@ void check_remove_padding()
 	uint16_t		ipv4hdr_offset;
 	struct ipv4hdr		*ipv4hdr_ptr;
 	void			*tail_frame_ptr;
-	struct fdma_present_segment_params params;
+	struct fdma_delete_segment_data_params params;
+	struct fdma_present_segment_params *present_params_ptr;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
-	delta = (uint8_t)((uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-				(ipv4hdr_ptr->total_length+ipv4hdr_offset));
+	delta = (uint8_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
+			(ipv4hdr_ptr->total_length+ipv4hdr_offset));
 
 	if (delta != 0) {
 
-		params.flags = FDMA_PRES_SR_BIT;
-		params.frame_handle = (uint8_t) PRC_GET_FRAME_HANDLE();
-		params.offset = delta;
-		params.ws_dst = &tail_frame_ptr;
-		params.present_size = delta;
-/*		fdma_present_frame_segment(&params);
-		fdma_delete_segment_data(0,
-					 delta,
-					 FDMA_REPLACE_SA_CLOSE_BIT,
-					 (uint8_t) PRC_GET_FRAME_HANDLE(),
-					 params->seg_handle,
-					 tail_frame_ptr);
-*/
-		/* todo : take care of Eth CRC */
+		present_params_ptr = (struct fdma_present_segment_params *)
+					(&params);
+		present_params_ptr->flags 	 = FDMA_PRES_SR_BIT;
+		present_params_ptr->frame_handle =
+					       (uint8_t) PRC_GET_FRAME_HANDLE();
+		present_params_ptr->offset 	 = delta;
+		present_params_ptr->ws_dst 	 = &tail_frame_ptr;
+		present_params_ptr->present_size = delta;
+		fdma_present_frame_segment(present_params_ptr);		
+
+		params.seg_handle	  = present_params_ptr->seg_handle;
+		params.delete_target_size = delta;
+		params.flags 		  = FDMA_REPLACE_SA_CLOSE_BIT,
+		params.frame_handle	  = (uint8_t) PRC_GET_FRAME_HANDLE(),
+		params.to_offset	  = 0;
+		
+		fdma_delete_segment_data(&params);
 	}
 	return;
 }
