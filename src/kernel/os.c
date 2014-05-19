@@ -120,27 +120,24 @@ void spin_lock_free(spinlock_t lock)
 
 void spin_lock(spinlock_t lock)
 {
-	UNUSED(lock);
-    //sys_lock_spinlock((struct spinlock *)lock);
+	lock_spinlock((uint8_t *)lock);
 }
 
 void spin_unlock(spinlock_t lock)
 {
-	UNUSED(lock);
-    //sys_unlock_spinlock((struct spinlock *)lock);
+	unlock_spinlock((uint8_t *)lock);
 }
 
 uint32_t spin_lock_irqsave(spinlock_t lock)
 {
-	UNUSED(lock);
-    return 0;//sys_lock_intr_spinlock((struct spinlock *)lock);
+	lock_spinlock((uint8_t *)lock);
+	return 0;
 }
 
 void spin_unlock_irqrestore(spinlock_t lock, uint32_t irq_flags)
 {
-	UNUSED(lock);
 	UNUSED(irq_flags);
-	//sys_unlock_intr_spinlock((struct spinlock *)lock, irq_flags);
+	unlock_spinlock((uint8_t *)lock);
 }
 
 /***************************************************************************
