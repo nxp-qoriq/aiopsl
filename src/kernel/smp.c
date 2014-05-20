@@ -6,15 +6,6 @@
 
 #include "sys.h"
 
-
-typedef struct t_spin_table {
-	uint64_t entry_addr;
-	uint64_t r3;
-	uint32_t rsvd1;
-	uint32_t pir;
-} t_spin_table;
-
-
 /* Global System Object */
 extern t_system sys;
 
