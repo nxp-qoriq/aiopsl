@@ -17,7 +17,7 @@
 #include "dplib/fsl_keygen.h"
 #include "dplib/fsl_ste.h"
 #include "net/fsl_net.h"
-#include "common/spinlock.h"
+#include "common/fsl_spinlock.h"
 #include "fdma.h"
 #include "checksum.h"
 #include "ipr.h"

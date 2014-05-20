@@ -2,7 +2,7 @@
 #include "common/errors.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
-#include "common/spinlock.h"
+#include "common/fsl_spinlock.h"
 #include "common/dbg.h"
 #include "slab.h"
 #include "virtual_pools.h"
