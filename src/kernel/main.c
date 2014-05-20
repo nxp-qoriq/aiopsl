@@ -66,7 +66,7 @@ UNUSED(argc);UNUSED(argv);
     	err = cluster_init();
     	if(err)
     		return err;
-    	sys_barrier();
+    	core_memory_barrier();
     }
 
     is_master_core = sys_is_master_core();
@@ -75,12 +75,12 @@ UNUSED(argc);UNUSED(argv);
     	err = tile_init();
     	if(err)
     		return err;
-    	sys_barrier();
+    	core_memory_barrier();
 
     	err = global_init();
     	if(err)
     		return err;
-    	sys_barrier();
+    	core_memory_barrier();
     }
 
     if(is_master_core)
@@ -90,12 +90,12 @@ UNUSED(argc);UNUSED(argv);
     		return err;
 
     	fsl_os_print("Running applications\n");
-    	sys_barrier();
+    	core_memory_barrier();
 
     	err = run_apps();
     	if (err)
     	    return err;
-    	sys_barrier();
+    	core_memory_barrier();
     }
 
     core_ready_for_tasks();

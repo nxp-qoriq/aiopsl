@@ -284,7 +284,6 @@ static int sys_free_platform(void)
 	return err;
 }
 
-
 /*****************************************************************************/
 int sys_init(void)
 {
@@ -302,27 +301,33 @@ int sys_init(void)
 	memset(&sys_param, 0, sizeof(sys_param));
 	memset(&platform_param, 0, sizeof(platform_param));
 	sys_param.platform_param = &platform_param;
-	fill_system_parameters(&sys_param);
+	fill_system_parameters(&sys_param); 
 
 	sys.is_partition_master[core_id] = (int)(sys_param.master_cores_mask &
 		(1ULL << core_id));
 	sys.is_master_partition_master[core_id] = (int)(
 		sys.is_partition_master[core_id] &&
 		(sys_param.partition_id == 0));
+#ifdef UNDER_CONSTRUCTION
 	sys.is_core_master[core_id] = IS_CORE_MASTER(core_id,
 					sys_param.partition_cores_mask);
-
-	if (sys.is_partition_master[core_id]) {
+#endif
+	if (sys_is_master_core()) {
+		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE + SOC_PERIPH_OFF_AIOP_CMGW + 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
+		
 		sys.partition_id         = sys_param.partition_id;
-		sys.partition_cores_mask  = sys_param.partition_cores_mask;
+		sys.partition_cores_mask  = abrr_val;
 		sys.master_cores_mask     = sys_param.master_cores_mask;
 		/*sys.ipc_enabled          = sys_param.use_ipc;*/
+	} else {
+		while(!sys.partition_cores_mask) {}
 	}
 
 #ifdef CORE_E6500
 	platform_early_init(sys_param.platform_param);
 #else
-	if (sys.is_partition_master[core_id])
+	if (sys_is_master_core())
 		platform_early_init(sys_param.platform_param);
 #endif /* CORE_E6500 */
 
@@ -394,15 +399,6 @@ int sys_init(void)
 	}
 	sys_barrier();
 
-#if 0
-	if (sys.is_master_partition_master[core_id] && sys_param.use_cli) {
-		/* Initialize CLI */
-		err = sys_init_cli();
-		ASSERT_COND(err == 0);
-	}
-	sys_barrier();
-#endif /* 0 */
-
 	err = sys_init_platform(sys_param.platform_param);
 	if (err != 0)
 		return -1;
@@ -422,12 +418,6 @@ void sys_free(void)
 	uint32_t core_id = core_get_id();
 
 	sys_free_platform();
-
-#if 0
-	if (sys.is_partition_master[core_id])
-		sys_free_cli();
-	sys_barrier();
-#endif /* 0 */
 
 	sys_free_multi_processing();
 	sys_barrier();

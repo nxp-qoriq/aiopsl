@@ -385,34 +385,35 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					0,
 					&rule.key_desc,
 					&keysize);
-		    table_rule_create(TABLE_ACCEL_ID_CTLU,
+				table_rule_create(TABLE_ACCEL_ID_CTLU,
 				      instance_params.table_id_ipv4,
 				      &rule,
 				      keysize);
-			/* store key in RDFC */
-			rfdc.ipv4_key[0] = *(uint64_t *)rule.key_desc.em.key;
-			rfdc.ipv4_key[1] =
-					*(uint64_t *)(rule.key_desc.em.key+8);
+				/* store key in RDFC */
+				rfdc.ipv4_key[0] =
+					      *(uint64_t *)rule.key_desc.em.key;
+				rfdc.ipv4_key[1] =
+					  *(uint64_t *)(rule.key_desc.em.key+8);
+	
+				/* Increment no of IPv4 open frames in instance
+					data structure */
+				ste_inc_counter(instance_handle+
+						offsetof(struct ipr_instance,
+						num_of_open_reass_frames_ipv4),
+						1,
+						STE_MODE_32_BIT_CNTR_SIZE);
 
-			/* Increment no of IPv4 open frames in instance
-				data structure */
-			ste_inc_counter(instance_handle+
-					offsetof(struct ipr_instance,
-					num_of_open_reass_frames_ipv4),
-					1,
-					STE_MODE_32_BIT_CNTR_SIZE);
-
-		    } else {
-			    keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
+			} else {
+			    keygen_gen_key(
+					 KEYGEN_ACCEL_ID_CTLU,
 					 ipr_global_parameters1.ipr_key_id_ipv6,
-					  0,
-					  &rule.key_desc,
-					  &keysize);
-			    table_rule_create(
-					    TABLE_ACCEL_ID_CTLU,
-					    instance_params.table_id_ipv6,
-					    &rule,
-					    keysize);
+					 0,
+					 &rule.key_desc,
+					 &keysize);
+			    table_rule_create(TABLE_ACCEL_ID_CTLU,
+					      instance_params.table_id_ipv6,
+					      &rule,
+					      keysize);
 			    /* write key in RDFC Extension */
 			    cdma_write(rfdc_ext_addr+RFDC_SIZE,
 					   &rule.key_desc.em.key,
@@ -647,7 +648,9 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  pr->running_sum);
 	} else {
 	/* Set 1rst frag's running sum for L4 checksum check */
-		rfdc_ptr->current_running_sum = pr->gross_running_sum;
+		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
+				  	          rfdc_ptr->current_running_sum,
+				  	          pr->gross_running_sum);
 	}
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {

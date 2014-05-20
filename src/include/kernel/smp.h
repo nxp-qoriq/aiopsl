@@ -294,19 +294,14 @@ static __inline__ void sys_unlock_intr_spinlock(struct spinlock *slock, uint32_t
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Function      core_memory_barrier
+ @Function      sys_barrier
 
  @Description   Forces the program to perform busy-wait cycles until all cores
                 reach this point in the flow.
 
  @Param         None.
 *//***************************************************************************/
-#ifdef SYS_SMP_SUPPORT
 void sys_barrier(void);
-#else  /* not SYS_SMP_SUPPORT */
-/* Single-core mode (not needed) */
-#define sys_barrier()   core_memory_barrier()
-#endif /* SYS_SMP_SUPPORT */
 
 /** @} */ /* end of sys_mp_grp */
 /** @} */ /* end of sys_g */

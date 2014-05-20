@@ -79,9 +79,10 @@ int fill_system_parameters(t_sys_param *sys_param)
 #endif /* DEBUG_NO_MC */
 
     sys_param->partition_id = 0;
-    sys_param->partition_cores_mask = 0x1;
+#ifdef UNDER_CONSTRUCTION
+    //TODO not needed: sys_param->partition_cores_mask |= 0x1 << core_get_id(); //TODO this is not protected
+#endif
     sys_param->master_cores_mask = 0x1;
-    sys_param->use_cli = 0;
     sys_param->use_ipc = 0;
 
     sys_param->platform_param->clock_in_freq_hz = 100000000;
