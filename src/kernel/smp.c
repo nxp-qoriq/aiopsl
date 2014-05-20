@@ -73,6 +73,12 @@ int sys_is_master_core(void)
 }
 
 /*****************************************************************************/
+int sys_is_cluster_master(void)
+{
+    return sys.is_cluster_master[core_get_id()];
+}
+
+/*****************************************************************************/
 uint64_t sys_get_cores_mask(void)
 {
     return sys.active_cores_mask;

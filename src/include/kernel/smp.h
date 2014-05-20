@@ -71,6 +71,20 @@ int sys_is_core_active(uint32_t core_id);
 int sys_is_master_core(void);
 
 /**************************************************************************//**
+ @Function      sys_is_cluster_master
+
+ @Description   Checks if the current core is the cluster master core.
+
+                In SMP configuration, the cluster master core is marked by the 
+                user in the system initialization parameters.
+
+ @Cautions      This macro may be interpreted to a function call. When using
+                it more than once in a code section, consider saving it into a
+                local variable.
+*//***************************************************************************/
+int sys_is_cluster_master(void);
+
+/**************************************************************************//**
  @Function      sys_get_cores_mask
 
  @Description   Returns the system's active cores in a mask format.

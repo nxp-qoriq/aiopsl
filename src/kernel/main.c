@@ -68,7 +68,7 @@ UNUSED(argc);UNUSED(argv);
     BOOT_GO = 1;
     
     /* Only execute if core is a cluster master */
-    if(((core_get_id()) % 4) == 0)
+    if(sys_is_cluster_master())
     {
     	err = cluster_init();
     	if(err)
