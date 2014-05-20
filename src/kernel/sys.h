@@ -60,8 +60,6 @@ int     fill_system_parameters(t_sys_param *sys_param);
 /* Internal system routines */
 int     sys_init_memory_management(void);
 int     sys_free_memory_management(void);
-int     sys_init_interrupt_management(void);
-int     sys_free_interrupt_management(void);
 int     sys_init_multi_processing(void);
 void    sys_free_multi_processing(void);
 

@@ -325,14 +325,8 @@ int sys_init(void)
 			return err;
 		}
 
-#if 0
-	/* Initialize interrupt management */
-	err = sys_init_interrupt_management();
-	ASSERT_COND(err == 0);
-#endif /* 0 */
-
-	/* Initialize the objects registry structures */
-	sys_init_objects_registry();
+		/* Initialize the objects registry structures */
+		sys_init_objects_registry();
 	}
 
 	/* Initialize Multi-Processing services as needed */
@@ -366,11 +360,6 @@ void sys_free(void)
 	if (sys_is_master_core()) {
 		/* Free objects management structures */
 		sys_free_objects_management();
-
-#if 0
-		/* Free interrupt management module */
-		sys_free_interrupt_management();
-#endif /* 0 */
 
 		/* Free memory management module */
 		sys_free_memory_management();
