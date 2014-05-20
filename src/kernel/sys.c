@@ -297,7 +297,9 @@ int sys_init(void)
 	is_master_core = sys_is_master_core();
 	
 	if(is_master_core) {
-		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE + SOC_PERIPH_OFF_AIOP_CMGW + 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
+			+ SOC_PERIPH_OFF_AIOP_CMGW \
+			+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
 		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
 		
 		sys.active_cores_mask  = abrr_val;

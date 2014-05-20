@@ -72,12 +72,6 @@ uint64_t                master_cores_mask;      /**< Master cores on all
 						configuration for releasing
 						guest partition masters from
 						spin table */
-int                     use_ipc;                /**< Flag specifying whether
-						IPC (Inter-Partition
-						Communication) service can be
-						used; when set to '0' IPC
-						service will not be initialized
-						by the system */
 struct platform_param   *platform_param;   /**< Platform specific parameters */
 } t_sys_param;
 
