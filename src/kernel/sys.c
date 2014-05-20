@@ -313,9 +313,6 @@ int sys_init(void)
 		platform_early_init(sys_param.platform_param);
 #endif /* CORE_E6500 */
 
-	/* reset boot_sync_flag */
-	sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
-
 	if (is_master_core) {
 
 		/* Initialize memory management */
