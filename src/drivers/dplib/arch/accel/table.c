@@ -249,7 +249,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, rule, 16, 0, 15);
+	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
 	__stqw(TABLE_RULE_CREATE_RPTR_DEC_MTYPE, arg2, arg3, 0,
 	       HWC_ACC_IN_ADDRESS, 0); /* using RPTR DEC because aging would
@@ -289,7 +289,7 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, rule, 16, 0, 15);
+	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
 
 	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
@@ -336,7 +336,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, rule, 16, 0, 15);
+	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
 
 	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
@@ -368,7 +368,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
-	__e_rlwimi(arg2, key_desc, 16, 0, 15);
+	__e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
 	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
@@ -417,7 +417,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
-	__e_rlwimi(arg2, key_desc, 16, 0, 15);
+	__e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
 
 	if (result) { /* Returning result and thus not decrementing RCOUNT */

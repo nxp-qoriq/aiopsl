@@ -1708,7 +1708,7 @@ int32_t fdma_create_fd(
 {
 	struct additional_dequeue_context *adc =
 		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
-	uint16_t adc_pl_icid = LH_SWAP(&(adc->pl_icid));
+	uint16_t adc_pl_icid = LH_SWAP(0, &(adc->pl_icid));
 
 	amq->flags = 0;
 	amq->icid = adc_pl_icid & ADC_ICID_MASK;
@@ -1735,7 +1735,7 @@ int32_t fdma_create_fd(
 		flags |=  ADC_BDI_MASK;
 	if (amq->flags & FDMA_ICID_CONTEXT_PL)
 		pl_icid |= ADC_PL_MASK;
-	STH_SWAP(pl_icid, &(adc->pl_icid));
+	STH_SWAP(pl_icid, 0, &(adc->pl_icid));
 	adc->fdsrc_va_fca_bdi =
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
