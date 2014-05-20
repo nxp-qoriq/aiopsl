@@ -1,3 +1,4 @@
+#if 0 /* unused code */
 /**************************************************************************//**
             Copyright 2013 Freescale Semiconductor, Inc.
 
@@ -82,3 +83,4 @@ int mutex_trylock(fsl_handle_t lock);
 
 
 #endif /* __FSL_MUTEX_H */
+#endif
