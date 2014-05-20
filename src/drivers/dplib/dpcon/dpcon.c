@@ -1,3 +1,4 @@
+#if 0 /*unused code */
 #include <fsl_dplib_sys.h>
 #include <fsl_cmdif.h>
 #include <fsl_cmdif_mc.h>
@@ -5,7 +6,7 @@
 #include <fsl_dpcon_cmd.h>
 
 #define CMD_PREP(_param, _offset, _width, _type, _arg) \
-	cmd_data.params[_param] |= u64_enc(_offset, _width, _arg); 
+	cmd_data.params[_param] |= u64_enc(_offset, _width, _arg);
 
 #define RSP_READ(_param, _offset, _width, _type, _arg) \
 	*(_arg) = (_type)u64_dec(cmd_data.params[_param], _offset, _width);
@@ -194,3 +195,4 @@ int dpcon_clear_irq_status(struct dpcon *dpcon,
 				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 }
 
+#endif
