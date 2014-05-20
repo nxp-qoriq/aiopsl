@@ -80,9 +80,12 @@ typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, uint8_t *data);
 @Description	Function pointers to be supplied during module registration
  *//***************************************************************************/
 struct cmdif_module_ops {
-	open_cb_t  *open_cb;
+	open_cb_t  *open_cb; 
+	/**< Open callback to be activated after client calls cmdif_open() */
 	close_cb_t *close_cb;
-	ctrl_cb_t  *ctrl_cb;
+	/**< Close callback to be activated after client calls cmdif_close() */
+	ctrl_cb_t  *ctrl_cb;  
+	/**< Control callback to be activated on each command */
 };
 
 /**************************************************************************//**
