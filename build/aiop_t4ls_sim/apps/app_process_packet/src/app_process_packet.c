@@ -8,6 +8,7 @@
 #include "fsl_parser.h"
 #include "general.h"
 #include "dbg.h"
+#include "fsl_cmdif_server.h"
 
 int app_init(void);
 void app_free(void);
@@ -74,12 +75,42 @@ static void epid_setup()
 }
 #endif /* AIOP_STANDALONE */
 
+static int open_cb(uint8_t instance_id, void **dev)
+{
+	UNUSED(dev);
+	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
+	return 0;
+}
+
+static int close_cb(void *dev)
+{
+	UNUSED(dev);
+	fsl_os_print("close_cb\n");
+	return 0;
+}
+
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+{
+	UNUSED(dev);
+	UNUSED(size);
+	UNUSED(data);
+	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data = 0x%x\n", cmd, 
+	             size, (uint32_t)data);
+	return 0;
+}
+
+static struct cmdif_module_ops ops = {
+                               .open_cb = open_cb,
+                               .close_cb = close_cb,
+                               .ctrl_cb = ctrl_cb
+};
+
 int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
-
+	
 	fsl_os_print("Running app_init()\n");
 
 #ifdef AIOP_STANDALONE
@@ -97,7 +128,11 @@ int app_init(void)
 		                              (ni | (flow_id << 16)) /*arg, nic number*/);
 		if (err) return err;
 	}
-
+  
+	err = cmdif_register_module("TEST0", &ops);
+	if (err)
+		fsl_os_print("FAILED cmdif_register_module\n!");
+	
 	return 0;
 }
 

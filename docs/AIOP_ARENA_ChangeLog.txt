@@ -1,3 +1,5 @@
+- app_process_packet.c: Added cmdif_register_module() example.
+
 ** AIOP ARENA SL Alpha v0.4 **
 
 - console.c                     Bug fix: removed nested spinlock from: sys_debugger_print()

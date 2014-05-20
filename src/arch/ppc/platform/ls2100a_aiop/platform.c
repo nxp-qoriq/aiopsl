@@ -351,6 +351,9 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     uint32_t *seed_mem_ptr = NULL;
     uint32_t core_and_task_id = 0;
     uint32_t seed = 0;
+    uint32_t num_of_tasks = 0;
+    uint32_t task_stack_size = 0;
+    uint32_t *WSCR;
 
     if (pltfrm == NULL) {
 	    return -EINVAL;
@@ -394,7 +397,43 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /*------------------------------------------------------*/
     err = init_l1_cache(pltfrm);
     if (err != E_OK)
-        RETURN_ERROR(MAJOR, err, NO_MSG);
+	    RETURN_ERROR(MAJOR, err, NO_MSG);
+
+    /*------------------------------------------------------*/
+    /* Initialize seeds for random function                 */
+    /*------------------------------------------------------*/
+
+    /* Workspace Control Register*/
+    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
+    /* Little endian convert */
+    num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
+    /* task stack size used for pointer calculation,
+       (original size = task_stack_size * 4)
+     */
+    switch(num_of_tasks) {
+    case (0):
+	    num_of_tasks = 1;
+    	    break;
+    case (1):
+	    num_of_tasks = 2;
+    	    task_stack_size = 0x1000;
+    	    break;
+    case (2):
+	    num_of_tasks = 4;
+    	    task_stack_size = 0x800;
+    	    break;
+    case (3):
+	    num_of_tasks = 8;
+    	    task_stack_size = 0x400;
+    	    break;
+    case (4):
+	    num_of_tasks = 16;
+	    task_stack_size = 0x200;
+	    break;
+    default:
+	    return -EINVAL;
+
+    }
 
     core_and_task_id =  ((core_get_id() + 1) << 8);
     core_and_task_id |= 1; /*add task 0 id*/
@@ -404,9 +443,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 
     *seed_mem_ptr = seed;
 
-    for (i = 0 ; i < 15; i ++)
+    /*seed for task 0 is already allocated*/
+    for (i = 0 ; i < num_of_tasks - 1; i ++)
     {
-	    seed_mem_ptr += 512; /*size of each task area*/
+	    seed_mem_ptr += task_stack_size; /*size of each task area*/
 	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 	    seed = (core_and_task_id << 16) | core_and_task_id;
 	    *seed_mem_ptr = seed;
