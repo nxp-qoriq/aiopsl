@@ -306,12 +306,8 @@ int sys_init(void)
 		while(!sys.active_cores_mask) {}
 	}
 
-#ifdef CORE_E6500
-	platform_early_init(sys_param.platform_param);
-#else
 	if (is_master_core)
 		platform_early_init(sys_param.platform_param);
-#endif /* CORE_E6500 */
 
 	if (is_master_core) {
 
