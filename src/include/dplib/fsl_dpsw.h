@@ -3,7 +3,7 @@
  *  @file    fsl_dpsw.h
  *  @brief   Data Path L2 Switch API
  */
-
+#if 0 /* unused code */
 #ifndef __FSL_DPSW_H
 #define __FSL_DPSW_H
 
@@ -1365,3 +1365,4 @@ int dpsw_clear_irq_status(struct dpsw *dpsw,
 /*! @} */
 
 #endif /* __FSL_DPSW_H */
+#endif
