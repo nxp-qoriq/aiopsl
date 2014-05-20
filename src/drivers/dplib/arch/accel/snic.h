@@ -44,7 +44,8 @@ enum  snic_cmds{
 	SNIC_SET_MTU = 0,
 	SNIC_IPR_CREATE_INSTANCE,
 	SNIC_ENABLE_FLAGS,
-	SNIC_SET_QDID
+	SNIC_SET_QDID,
+	SNIC_GET_EPID_PC
 };
 
 /** @} */ /* end of SNIC_MACROS */
