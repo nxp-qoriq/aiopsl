@@ -1,3 +1,4 @@
+#if 0
 /**************************************************************************//*
  @File          dpsw.c
 
@@ -671,7 +672,7 @@ int dpsw_get_irq(struct dpsw *dpsw,
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 	DPSW_CMD_GET_IRQ(CMD_PREP);
-	
+
 	err = cmdif_send(&(dpsw->cidesc), DPSW_CMDID_GET_IRQ,
 				DPSW_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 				(uint8_t *)&cmd_data);
@@ -789,3 +790,4 @@ int dpsw_clear_irq_status(struct dpsw *dpsw,
 				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 }
 
+#endif

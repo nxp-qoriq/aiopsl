@@ -116,9 +116,9 @@ static int sys_init_platform(struct platform_param *platform_param)
 	} while (0)
 
 	int     err = 0;
-	uint32_t    core_id = core_get_id();
+	int is_master_core = sys_is_master_core();
 
-	if (sys.is_partition_master[core_id]) {
+	if (is_master_core) {
 		err = platform_init(platform_param, &(sys.platform_ops));
 		if (err == 0)
 			ASSERT_COND(sys.platform_ops.h_platform);
@@ -154,14 +154,14 @@ static int sys_init_platform(struct platform_param *platform_param)
 		err = sys.platform_ops.f_init_timer(
 			sys.platform_ops.h_platform);
 
-	if ((err == 0) && sys.is_partition_master[core_id]) {
+	if ((err == 0) && is_master_core) {
 		/* Do not change the sequence of calls in this section */
 
 		if (sys.platform_ops.f_init_intr_ctrl)
 			err = sys.platform_ops.f_init_intr_ctrl(
 				sys.platform_ops.h_platform);
 
-		if ((err == 0) && sys.is_master_partition_master[core_id]) {
+		if ((err == 0) && is_master_core) {
 			if (sys.platform_ops.f_init_soc)
 				err = sys.platform_ops.f_init_soc(
 					sys.platform_ops.h_platform);
@@ -179,7 +179,7 @@ static int sys_init_platform(struct platform_param *platform_param)
 		sys.platform_ops.f_enable_local_irq(
 			sys.platform_ops.h_platform);
 
-	if (sys.is_partition_master[core_id]) {
+	if (is_master_core) {
 #if 0
 		/* Do not change the sequence of calls in this section */
 		if ((err == 0) && sys.ipc_enabled &&
@@ -224,13 +224,13 @@ static int sys_init_platform(struct platform_param *platform_param)
 static int sys_free_platform(void)
 {
 	int     err = 0;
-	uint32_t    core_id = core_get_id();
+	int is_master_core = sys_is_master_core();
 
 	if (sys.platform_ops.f_free_private)
 		err = sys.platform_ops.f_free_private(
 			sys.platform_ops.h_platform);
 
-	if (sys.is_partition_master[core_id]) {
+	if (is_master_core) {
 		/* Do not change the sequence of calls in this section */
 
 		if (sys.platform_ops.f_free_mem_partitions)
@@ -253,14 +253,12 @@ static int sys_free_platform(void)
 		err = sys.platform_ops.f_free_timer(
 			sys.platform_ops.h_platform);
 
-	if (sys.is_partition_master[core_id]) {
+	if (is_master_core) {
 		/* Do not change the sequence of calls in this section */
 
-		if (sys.is_master_partition_master) {
-			if (sys.platform_ops.f_free_soc)
-				err = sys.platform_ops.f_free_soc(
-					sys.platform_ops.h_platform);
-		}
+		if (sys.platform_ops.f_free_soc)
+			err = sys.platform_ops.f_free_soc(
+				sys.platform_ops.h_platform);
 
 		if (sys.platform_ops.f_free_intr_ctrl)
 			err = sys.platform_ops.f_free_intr_ctrl(
@@ -273,7 +271,7 @@ static int sys_free_platform(void)
 		err = sys.platform_ops.f_free_core(
 			sys.platform_ops.h_platform);
 
-	if (sys.is_partition_master[core_id]) {
+	if (is_master_core) {
 		err = platform_free(
 			sys.platform_ops.h_platform);
 		sys.platform_ops.h_platform = NULL;
@@ -301,40 +299,35 @@ int sys_init(void)
 	memset(&sys_param, 0, sizeof(sys_param));
 	memset(&platform_param, 0, sizeof(platform_param));
 	sys_param.platform_param = &platform_param;
-	fill_system_parameters(&sys_param); 
+	fill_system_parameters(&sys_param);
 
-	sys.is_partition_master[core_id] = (int)(sys_param.master_cores_mask &
+	sys.is_tile_master[core_id] = (int)(sys_param.master_cores_mask &
 		(1ULL << core_id));
-	sys.is_master_partition_master[core_id] = (int)(
-		sys.is_partition_master[core_id] &&
-		(sys_param.partition_id == 0));
-#ifdef UNDER_CONSTRUCTION
-	sys.is_core_master[core_id] = IS_CORE_MASTER(core_id,
-					sys_param.partition_cores_mask);
-#endif
-	if (sys_is_master_core()) {
+	sys.is_cluster_master[core_id] = ! (core_id % 4); //TODO make sure this is correct
+	
+	is_master_core = sys_is_master_core();
+	
+	if(is_master_core) {
 		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE + SOC_PERIPH_OFF_AIOP_CMGW + 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
 		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
 		
-		sys.partition_id         = sys_param.partition_id;
-		sys.partition_cores_mask  = abrr_val;
-		sys.master_cores_mask     = sys_param.master_cores_mask;
+		sys.active_cores_mask  = abrr_val;
 		/*sys.ipc_enabled          = sys_param.use_ipc;*/
 	} else {
-		while(!sys.partition_cores_mask) {}
+		while(!sys.active_cores_mask) {}
 	}
 
 #ifdef CORE_E6500
 	platform_early_init(sys_param.platform_param);
 #else
-	if (sys_is_master_core())
+	if (is_master_core)
 		platform_early_init(sys_param.platform_param);
 #endif /* CORE_E6500 */
 
 	/* reset boot_sync_flag */
 	sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
 
-	if (sys.is_partition_master[core_id]) {
+	if (is_master_core) {
 
 		/* Initialize memory management */
 		err = sys_init_memory_management();
@@ -403,7 +396,6 @@ int sys_init(void)
 	if (err != 0)
 		return -1;
 
-	is_master_core = sys_is_master_core();
 	if (is_master_core) {
 		if (!sys.console)
 			/* If no platform console, register debugger console */
@@ -415,14 +407,12 @@ int sys_init(void)
 /*****************************************************************************/
 void sys_free(void)
 {
-	uint32_t core_id = core_get_id();
-
 	sys_free_platform();
 
 	sys_free_multi_processing();
 	sys_barrier();
 
-	if (sys.is_partition_master[core_id]) {
+	if (sys_is_master_core()) {
 		/* Free objects management structures */
 		sys_free_objects_management();
 
