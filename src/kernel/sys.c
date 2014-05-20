@@ -292,7 +292,7 @@ int sys_init(void)
 
 	sys.is_tile_master[core_id] = (int)(sys_param.master_cores_mask &
 		(1ULL << core_id));
-	sys.is_cluster_master[core_id] = ! (core_id % 4); //TODO make sure this is correct
+	sys.is_cluster_master[core_id] = ! (core_id % 4);
 	
 	is_master_core = sys_is_master_core();
 	
