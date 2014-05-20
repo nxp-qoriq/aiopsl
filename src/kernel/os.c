@@ -2,6 +2,7 @@
 #include "common/fsl_stdarg.h"
 #include "common/fsl_spinlock.h"
 #include "common/timer.h"
+#include "common/time.h"
 #include "common/irq.h"
 #include "common/io.h"
 #include "kernel/smp.h"
@@ -51,6 +52,30 @@ __HOT_CODE  uint32_t fsl_os_rand(void)
 			0xFBE16801);
 
 	return seed_32bit;
+}
+
+/*****************************************************************************/
+__HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
+{
+
+	UNUSED(tz);
+	volatile uint32_t TSCRU1, TSCRU2, TSCRL;
+
+	TSCRU1 = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
+	                              TSCRU_OFF));
+	TSCRL = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
+	                              TSCRL_OFF));
+	if ((TSCRU2=ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
+		                              TSCRU_OFF))) > TSCRU1 )
+		TSCRL = 0;
+	else if(TSCRU2 < TSCRU1) /*something wrong while reading*/
+		return -1;
+
+
+	tv->tv_sec = TSCRU2;
+	tv->tv_sec = (tv->tv_sec) << 32 | (TSCRL);
+
+	return 0;
 }
 
 /*****************************************************************************/

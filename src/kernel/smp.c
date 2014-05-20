@@ -22,14 +22,12 @@ extern t_system sys;
 /*****************************************************************************/
 int sys_init_multi_processing(void)
 {
-    uint32_t core_id = core_get_id();
-
-    if (sys.is_partition_master[core_id])
+    if (sys_is_master_core())
     {
         /* Initialize the central program barrier */
 	sys.barrier_lock = 0;
         
-	sys.barrier_mask = sys.partition_cores_mask;
+	sys.barrier_mask = sys.active_cores_mask;
     }
     else
     {
@@ -37,21 +35,13 @@ int sys_init_multi_processing(void)
         while (!sys.barrier_mask) ;
     }
 
-/*
-    if (sys.ipc_enabled && sys.is_partition_master[core_id])
-        sys_init_ipc();
-*/
-
     return E_OK;
 }
 
 /*****************************************************************************/
 void sys_free_multi_processing(void)
 {
-/*
-    if (sys.ipc_enabled && sys.is_partition_master[core_get_id()])
-        sys_free_ipc();
-*/
+    /* Stub */
 }
 
 
@@ -180,44 +170,18 @@ void sys_barrier(void)
 /*****************************************************************************/
 int sys_is_core_active(uint32_t core_id)
 {
-    return (int)(((sys.partition_cores_mask & (1ULL << core_id)))?0:1);
+    return (int)(((sys.active_cores_mask & (1ULL << core_id)))?0:1);
 }
 
 /*****************************************************************************/
 int sys_is_master_core(void)
 {
-    return sys.is_partition_master[core_get_id()];
-}
-
-int sys_is_master_thread(void)
-{
-    return sys.is_core_master[core_get_id()];
-}
-
-/*****************************************************************************/
-uint32_t sys_get_core_secondary_threads_mask(void)
-{
-    return GET_CORE_SECONDARY_THREADS_MASK(core_get_id(), sys.partition_cores_mask);
-}
-
-/*****************************************************************************/
-uint8_t sys_get_partition_id(void)
-{
-    return sys.partition_id;
+    return sys.is_tile_master[core_get_id()];
 }
 
 /*****************************************************************************/
 uint64_t sys_get_cores_mask(void)
 {
-#ifdef SYS_SMP_SUPPORT
-    return sys.partition_cores_mask;
-#else /* SYS_SMP_SUPPORT */
-    return (uint64_t)(1 << core_get_id());
-#endif /* SYS_SMP_SUPPORT */
+    return sys.active_cores_mask;
 }
 
-/*****************************************************************************/
-uint64_t sys_get_masters_mask(void)
-{
-    return sys.master_cores_mask;
-}

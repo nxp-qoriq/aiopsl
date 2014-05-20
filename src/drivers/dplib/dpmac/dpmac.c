@@ -1,3 +1,4 @@
+#if 0 /* unused code */
 #include <fsl_dplib_sys.h>
 #include <fsl_cmdif.h>
 #include <fsl_cmdif_mc.h>
@@ -12,7 +13,7 @@ do { \
 #define RSP_READ(_param, _offset, _width, _type, _arg) \
 do { \
 	*(_arg) = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
-}while (0);	
+}while (0);
 
 #define RSP_READ_STRUCT(_param, _offset, _width, _type, _arg) \
 do{\
@@ -57,3 +58,4 @@ int dpmac_adjust_link(struct dpmac *dpmac, struct dpmac_adjust_link_cfg *cfg)
 	                  DPMAC_CMDSZ_ADJUST_LINK, CMDIF_PRI_LOW,
 	                 (uint8_t*)&cmd_data);
 }
+#endif

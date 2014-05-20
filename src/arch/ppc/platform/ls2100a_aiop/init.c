@@ -79,9 +79,6 @@ int fill_system_parameters(t_sys_param *sys_param)
 #endif /* DEBUG_NO_MC */
 
     sys_param->partition_id = 0;
-#ifdef UNDER_CONSTRUCTION
-    //TODO not needed: sys_param->partition_cores_mask |= 0x1 << core_get_id(); //TODO this is not protected
-#endif
     sys_param->master_cores_mask = 0x1;
     sys_param->use_ipc = 0;
 
@@ -126,6 +123,7 @@ int global_post_init(void)
 void core_ready_for_tasks(void)
 {
     uint32_t abcr_val;
+    uint32_t core_id = core_get_id();
     uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
@@ -136,14 +134,14 @@ void core_ready_for_tasks(void)
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
-		(~((uint32_t)sys_get_cores_mask()));
+		(~((uint32_t)(1 << core_get_id())));
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
 
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
     abcr_val = ioread32(abcr);
-    abcr_val |= (uint32_t)sys_get_cores_mask();
+    abcr_val |= (uint32_t)(1 << core_get_id());
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
 

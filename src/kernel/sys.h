@@ -15,20 +15,6 @@
 #define SYS_BOOT_SYNC_FLAG_WAITING  1
 #define SYS_BOOT_SYNC_FLAG_DONE     2
 
-#define BUILD_CORE_MASK(_core_id)  \
-	(((0x1 << INTG_THREADS_PER_CORE) - 1) << \
-		(((_core_id)/INTG_THREADS_PER_CORE)\
-		* INTG_THREADS_PER_CORE))
-
-#define IS_CORE_MASTER(_core_id, _partition_cores_mask) \
-	(int)(((_core_id) == 0)	? 1 : !((BUILD_CORE_MASK(_core_id) & \
-		(_partition_cores_mask)) & ((0x1 << (_core_id)) - 1)))
-
-#define GET_CORE_SECONDARY_THREADS_MASK(_core_id, _partition_cores_mask)   \
-	(uint32_t)(((BUILD_CORE_MASK(_core_id) & (_partition_cores_mask)) ^ \
-		(0x1 << (_core_id))) >> (((_core_id)/INTG_THREADS_PER_CORE) * \
-			INTG_THREADS_PER_CORE))
-
 
 typedef struct t_system {
 	/* Memory management variables */
@@ -51,12 +37,9 @@ typedef struct t_system {
 	uint8_t                     console_lock;
 
 	/* Multi-Processing variables */
-	uint8_t              partition_id;
-	uint64_t             partition_cores_mask;
-	uint64_t             master_cores_mask;
-	int                  is_core_master[INTG_MAX_NUM_OF_CORES];
-	int                  is_partition_master[INTG_MAX_NUM_OF_CORES];
-	int                  is_master_partition_master[INTG_MAX_NUM_OF_CORES];
+	int                  is_tile_master[INTG_MAX_NUM_OF_CORES];
+	int                  is_cluster_master[INTG_MAX_NUM_OF_CORES];
+	uint64_t             active_cores_mask;
 	uint8_t              barrier_lock;
 	volatile uint64_t    barrier_mask;
 	int                  core_failure[INTG_MAX_NUM_OF_CORES];
