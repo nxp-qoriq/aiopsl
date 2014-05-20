@@ -1,3 +1,4 @@
+- spinlock.h                    spinlock.h file renamed to fsl_spinlock.h
 - app_process_packet.c: Added cmdif_register_module() example.
 
 ** AIOP ARENA SL Alpha v0.4 **
