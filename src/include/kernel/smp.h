@@ -71,36 +71,6 @@ int sys_is_core_active(uint32_t core_id);
 int sys_is_master_core(void);
 
 /**************************************************************************//**
- @Function      sys_is_master_thread
-
- @Description   Checks if the current core is the master core.
-
-                In multi-thread configuration, the master core is assigned by
-                the software at run-time.
-
- @Cautions      This macro may be interpreted to a function call. When using
-                it more than once in a code section, consider saving it into a
-                local variable.
-*//***************************************************************************/
-int sys_is_master_thread(void);
-
-/**************************************************************************//**
- @Function      sys_get_core_secondary_threads_mask
-
- @Description   Returns active threads mask belong to the current core
-                It is assumed Master Thread is making the call
-*//***************************************************************************/
-uint32_t sys_get_core_secondary_threads_mask(void);
-
-/**************************************************************************//**
- @Function      sys_get_partition_id
-
- @Description   Returns the system's partition ID, as provided in the system's
-                initialization parameters.
-*//***************************************************************************/
-uint8_t sys_get_partition_id(void);
-
-/**************************************************************************//**
  @Function      sys_get_cores_mask
 
  @Description   Returns the system's active cores in a mask format.
@@ -109,20 +79,6 @@ uint8_t sys_get_partition_id(void);
                 by the next bit to the left, and so on.
 *//***************************************************************************/
 uint64_t sys_get_cores_mask(void);
-
-/**************************************************************************//**
- @Function      sys_get_masters_mask
-
- @Description   Returns the mask of all cores that are masters of their partition.
-
-                Core 0 is marked by the least significant bit, core 1 is marked
-                by the next bit to the left, and so on. Note that each partition
-                has only one master core.
-
-                This function returns the true masters mask only when called
-                in the master partition. Other partitions may ignore this value.
-*//***************************************************************************/
-uint64_t sys_get_masters_mask(void);
 
 /**************************************************************************//**
  @Function      sys_kick_guest_partition
