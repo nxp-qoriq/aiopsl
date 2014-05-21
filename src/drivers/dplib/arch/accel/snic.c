@@ -74,18 +74,23 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 		ipr_instance_val = ipr_instance;
 		return status;
 	case SNIC_SET_MTU:
-		snic_params += (uint16_t)*data;
+		snic_params += *((uint16_t *)data);
 		data += 2;
-		snic_params->snic_ipf_mtu = (uint16_t)*data;
+		snic_params->snic_ipf_mtu = *((uint16_t *)data);
+		return 0;
 	case SNIC_ENABLE_FLAGS:
-		snic_params += (uint16_t)*data;
+		snic_params += *((uint16_t *)data);
 		data += 2;
-		snic_params->snic_enable_flags = (uint16_t)*data;
+		snic_params->snic_enable_flags = *((uint16_t *)data);
+		return 0;
 	case SNIC_SET_QDID:
-		snic_params += (uint16_t)*data;
+		snic_params += *((uint16_t *)data);
 		data += 2;
-		snic_params->qdid = (uint16_t)*data;
-		
+		snic_params->qdid = *((uint16_t *)data);
+		return 0;
+	case SNIC_GET_EPID_PC:
+		*((uint32_t *)data) = (uint32_t)snic_process_packet;
+		return 0;
 	default:
 		return -EINVAL;
 	}
