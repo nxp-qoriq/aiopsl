@@ -52,10 +52,11 @@ int random_test()
 int random_init()
 {
 	int i, l_num_of_cores = 0;
-	uint32_t core_id = core_get_id();
-	uint64_t cores_mask = sys.partition_cores_mask;
 
-	if (sys.is_partition_master[core_id]) {
+	if (sys_is_master_core()) {
+
+		uint64_t cores_mask = sys_get_cores_mask();
+
 		for(i = 0; i < MAX_NUM_OF_CORES; i++ ){
 			if(cores_mask & 0x1){
 				l_num_of_cores ++;

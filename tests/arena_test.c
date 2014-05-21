@@ -1,8 +1,6 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-//#include "fsl_dpni.h"
-//#include "dplib/dpni_drv.h"
 #include "dpni/drv.h"
 #include "fsl_fdma.h"
 #include "general.h"
@@ -73,11 +71,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		random_test_flag = 2;
 		unlock_spinlock(&rnd_lock);
 	}
-
-	if(random_test_flag == 2) {
-		fsl_os_print("random number %d()\n", fsl_os_rand());
-	}
-
 
 	dpni_drv_send(APP_NI_GET(arg));
 }
