@@ -48,7 +48,6 @@ enum  snic_cmds{
 	SNIC_GET_EPID_PC
 };
 
-#define TODO_CMDIF_MOD_SNIC 16 
 /** @} */ /* end of SNIC_MACROS */
 
 /**************************************************************************//**
@@ -79,7 +78,7 @@ void snic_process_packet(void);
 int snic_open_cb(void *dev);
 int snic_close_cb(void *dev);
 int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data);
-int32_t aiop_snic_init(void);
+int aiop_snic_init(void);
 /** @} */ /* end of SNIC */
 
 

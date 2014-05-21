@@ -25,6 +25,7 @@ extern void tman_timer_callback(void);
 
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
+extern int aiop_snic_init(void);
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
@@ -215,6 +216,10 @@ int32_t aiop_sl_init(void)
 		return status; /* TODO */
 
 	status = ipr_init();
+	if (status)
+		return status; /* TODO */
+
+	status = aiop_snic_init();
 	return status;
 #endif
 }

@@ -26,7 +26,6 @@
 #include "osm.h"
 
 #include "dplib/fsl_ipf.h"
-#include "common/fsl_cmdif.h"
 #include "common/fsl_cmdif_server.h"
 
 
@@ -116,7 +115,7 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 	return 0;
 }
 
-int32_t aiop_snic_init(void)
+int aiop_snic_init(void)
 {
 	int status;
 	struct cmdif_module_ops snic_cmd_ops;
@@ -125,8 +124,7 @@ int32_t aiop_snic_init(void)
 	snic_cmd_ops.close_cb = (close_cb_t *)snic_close_cb;
 	snic_cmd_ops.ctrl_cb = (ctrl_cb_t *)snic_ctrl_cb;
 	fsl_os_print("SNIC: register with cmdif module!\n");
-	status = cmdif_register_module((const char *)TODO_CMDIF_MOD_SNIC,
-			&snic_cmd_ops);
+	status = cmdif_register_module("sNIC", &snic_cmd_ops);
 	if(status) {
 		fsl_os_print("SNIC:Failed to register with cmdif module!\n");
 		return status;
