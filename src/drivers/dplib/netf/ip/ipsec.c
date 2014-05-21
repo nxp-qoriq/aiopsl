@@ -14,6 +14,7 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_tman.h"
+#include "dplib/fsl_ste.h"
 #include "header_modification.h"
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"
@@ -805,7 +806,8 @@ int32_t ipsec_frame_encrypt(
 	uint64_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
-	
+	uint32_t tmp_params_status = 0;
+
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
@@ -947,9 +949,26 @@ int32_t ipsec_frame_encrypt(
 	
 	/* 	11.	FDMA present default frame command (open frame) */
 	return_val = fdma_present_default_frame();
+	// TODO: check for FDMA error
 	
 	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	*enc_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	//*enc_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	
+	// TODO: temporary case and values, need to updae
+	switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
+		case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+			*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
+			return_val = -1;
+		case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
+			*enc_status |= IPSEC_AR_LATE_PACKET;
+			return_val = -1;
+		case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
+			*enc_status |= IPSEC_AR_REPLAY_PACKET;
+			return_val = -1;
+		case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
+			*enc_status |= IPSEC_ICV_COMPARE_FAIL;	
+			return_val = -1;
+	}
 	
 	/* 	13.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
@@ -999,10 +1018,36 @@ int32_t ipsec_frame_encrypt(
 		/* 	18.3.	Calculate locally if lifetime counters crossed the limits. 
 		 * If yes set flag in the descriptor statistics (CDMA write). */
 	//sap1.byte_counter
-					
-				
+	if ((byte_count +  sap1.byte_counter) >= sap1.soft_byte_limit) {
+		*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+		tmp_params_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+	}
+	if ((byte_count +  sap1.byte_counter) >= sap1.soft_packet_limit) {
+		*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+		tmp_params_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+	}
+	
+	if ((byte_count +  sap1.byte_counter) >= sap1.hard_byte_limit) {
+		*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+		tmp_params_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+	}
+	if ((byte_count +  sap1.byte_counter) >= sap1.hard_packet_limit) {
+		*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+		tmp_params_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+	}
+	
 	/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
 		 * (STE increment + accumulate). */
+	ste_inc_and_acc_counters(
+			IPSEC_BYTE_COUNTER_ADDR,/* uint64_t counter_addr */
+			byte_count,	/* uint32_t acc_value */
+			/* uint32_t flags */
+			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
+			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
+			STE_MODE_COMPOUND_CNTR_SATURATE |
+			STE_MODE_COMPOUND_ACC_SATURATE)
+			);
+	
 	//TODO
 	
 	

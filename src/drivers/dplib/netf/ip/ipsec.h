@@ -207,6 +207,21 @@ Big Endian
 /* DFV -- DF bit Value */
 #define IPSEC_HMO_DECAP_DFV	0x04
 
+/**************************************************************************//**
+@Description	SEC Returned Status  
+
+		Use for ipsec_decap_params.hmo
+*//***************************************************************************/
+// TODO: TMP values
+/** Sequence Number overflow */
+#define	SEC_SEQ_NUM_OVERFLOW 0xFFFFFFF0
+/** Anti Replay Check: Late packet */
+#define	SEC_AR_LATE_PACKET 0xFFFFFFF1
+/** Anti Replay Check: Replay packet */
+#define	SEC_AR_REPLAY_PACKET 0xFFFFFFF2
+/** ICV comparison failed */
+#define	SEC_ICV_COMPARE_FAIL 0xFFFFFFF3
+
 
 /**************************************************************************//**
 @Description	IPSec handle Type definition
@@ -263,18 +278,27 @@ struct ipsec_instance_params {
 };
 
 
+/* Note: For ste_inc_and_acc_counters function, the accumulator memory address 
+ * should be counter_addr + sizeof(counter) 
+ * In thiis case "accumulator" = byte counter, "counter" = packets counter*/
+#define IPSEC_BYTE_COUNTER_OFFSET 0
+#define IPSEC_STATUS_OFFSET 52
+#define IPSEC_BYTE_COUNTER_ADDR	(ipsec_handle + IPSEC_BYTE_COUNTER_OFFSET)
+#define IPSEC_STATUS_ADDR (ipsec_handle + IPSEC_STATUS_OFFSET)
 
 /* SA Descriptor Parameter for Internal Usage */ 
 /* Part 1 */
 struct ipsec_sa_params_part1 {
 	/* Required at Add descriptor and enc/dec */
 	/* 6x8 = 48 bytes */
+	uint64_t packet_counter; /*	Packets counter, 8B */
+	uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
+	
 	uint64_t soft_byte_limit; /* soft byte count limit,	8 Bytes */
 	uint64_t soft_packet_limit; /* soft packet limit, 8B */
 	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
 	uint64_t hard_packet_limit; /* hard packet limit, 8B */
-	uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
-	uint64_t packet_counter; /*	Packets counter, 8B */
+
 	
 	/* Always required, except timer callback */
 	/* 2x4 + 2x2 + 4x1 = 8 + 4 + 4 = 16 bytes */

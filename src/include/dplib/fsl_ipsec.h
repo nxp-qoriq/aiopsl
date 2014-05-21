@@ -263,7 +263,7 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_STATUS_HARD_SEC_EXPIRED		0x00000020
 
 /** Sequence Number overflow */
-#define IPSEC_SEC_NUM_OVERFLOW 				0x00000100
+#define IPSEC_SEQ_NUM_OVERFLOW 				0x00000100
 /** Anti Replay Check: Late packet */
 #define IPSEC_AR_LATE_PACKET 				0x00000200
 /** Anti Replay Check: Replay packet */
