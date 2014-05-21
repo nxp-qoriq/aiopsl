@@ -987,7 +987,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 		gross_running_sum = pr->gross_running_sum;
 		/* Subtract old fields */
 		cksum_ones_complement_sum16(gross_running_sum,
-					    ~checksum);
+					    (uint16_t)~checksum);
 		/* Add new fields */
 		cksum_ones_complement_sum16(gross_running_sum,
 					    checksum);

@@ -136,7 +136,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 				 &str->old_res);
 		}
 		str_size =
-			sizeof(struct table_rule_create_command);
+			sizeof(struct table_rule_create_replace_command);
 		break;
 	}
 
@@ -164,7 +164,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		}
 
 		str_size =
-			sizeof(struct table_rule_create_command);
+			sizeof(struct table_rule_create_replace_command);
 		break;
 	}
 

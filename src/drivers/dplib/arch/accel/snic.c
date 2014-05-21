@@ -26,7 +26,6 @@
 #include "osm.h"
 
 #include "dplib/fsl_ipf.h"
-#include "common/fsl_cmdif.h"
 #include "common/fsl_cmdif_server.h"
 
 
@@ -39,8 +38,27 @@ __SHRAM ipr_instance_handle_t ipr_instance_val;
 __HOT_CODE void snic_process_packet(void)
 {
 	
-}
+	struct parse_result *pr;
 
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
+	/* Need to save running-sum in parse-results LE-> BE */
+	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
+
+	osm_task_init();
+	/* todo: spid=0?, prpid=0?, starting HXS=0?*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+	default_task_params.parser_profile_id = 0;
+	default_task_params.parser_starting_hxs = 0;
+	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
+			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
+
+	
+	int32_t parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
+	if (parse_status)
+		if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
+					fdma_terminate_task();
+}
 
 int snic_open_cb(void *dev)
 {
@@ -97,7 +115,7 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 	return 0;
 }
 
-int32_t aiop_snic_init(void)
+int aiop_snic_init(void)
 {
 	int status;
 	struct cmdif_module_ops snic_cmd_ops;
@@ -106,8 +124,7 @@ int32_t aiop_snic_init(void)
 	snic_cmd_ops.close_cb = (close_cb_t *)snic_close_cb;
 	snic_cmd_ops.ctrl_cb = (ctrl_cb_t *)snic_ctrl_cb;
 	fsl_os_print("SNIC: register with cmdif module!\n");
-	status = cmdif_register_module((const char *)CMDIF_MOD_SNIC,
-			&snic_cmd_ops);
+	status = cmdif_register_module("sNIC", &snic_cmd_ops);
 	if(status) {
 		fsl_os_print("SNIC:Failed to register with cmdif module!\n");
 		return status;
