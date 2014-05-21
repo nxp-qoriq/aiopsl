@@ -17,11 +17,6 @@ __SHRAM t_system sys;
 #define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
-extern void     __sys_start_secondary(void);
-#ifdef CORE_E6500
-extern void     __sys_start_secondary_guest(void);
-#endif /* CORE_E6500 */
-
 
 typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
@@ -289,12 +284,6 @@ int sys_init(void)
 	struct platform_param   platform_param;
 	int       err, is_master_core;
 	uint32_t        core_id = core_get_id();
-#if (defined(SYS_SMP_SUPPORT) && defined(SYS_64BIT_ARCH))
-	dma_addr_t   *p_master_start_addr;
-#ifdef CORE_E6500
-	dma_addr_t   *p_guest_start_addr;
-#endif /* CORE_E6500 */
-#endif /* SYS_SMP_SUPPORT && SYS_64BIT_ARCH */
 
 	memset(&sys_param, 0, sizeof(sys_param));
 	memset(&platform_param, 0, sizeof(platform_param));
@@ -335,44 +324,6 @@ int sys_init(void)
 			pr_err("Failed sys_init_memory_management\n");
 			return err;
 		}
-
-#ifdef SYS_SMP_SUPPORT
-		/* Kick secondary cores on this partition */
-#ifdef SYS_64BIT_ARCH
-		/* In 64-bit ABI, function name points to function descriptor.
-		This descriptor contains the function address. */
-#ifdef CORE_E6500
-	p_master_start_addr = (dma_addr_t *)(__sys_start_secondary);
-	p_guest_start_addr = (dma_addr_t *)(__sys_start_secondary_guest);
-
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-				(dma_addr_t)PTR_TO_UINT(p_master_start_addr),
-				(dma_addr_t)PTR_TO_UINT(p_guest_start_addr));
-#else
-	p_master_start_addr = (dma_addr_t *)(__sys_start);
-
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-			(dma_addr_t)PTR_TO_UINT(*p_master_start_addr), 0);
-#endif /* CORE_E6500 */
-
-#else /*!SYS_64BIT_ARCH*/
-#ifdef SYS_SECONDARY_START
-#ifdef CORE_E6500
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-			(dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
-			(dma_addr_t)PTR_TO_UINT(__sys_start_secondary_guest));
-#else /*CORE_E6500*/
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-			(dma_addr_t)PTR_TO_UINT(__sys_start_secondary),	0);
-#endif /* CORE_E6500 */
-#else  /*!SYS_SECONDARY_START*/
-#if 0
-	sys_kick_spinning_cores(sys.partition_cores_mask,
-				(dma_addr_t)PTR_TO_UINT(__sys_start), 0);
-#endif /* 0 */
-#endif /* SYS_SECONDARY_START */
-#endif /* SYS_64BIT_ARCH */
-#endif /* SYS_SMP_SUPPORT */
 
 #if 0
 	/* Initialize interrupt management */

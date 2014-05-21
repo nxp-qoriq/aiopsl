@@ -220,7 +220,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd))) +
+	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH_BASE(&(gro_ctx->agg_fd))) +
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
 	/* check aggregated packet size limit */

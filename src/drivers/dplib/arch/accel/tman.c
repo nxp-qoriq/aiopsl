@@ -12,6 +12,7 @@
 #include "dplib/fsl_fdma.h"
 #include "osm.h"
 #include "dplib/fsl_ldpaa.h"
+#include "inline_asm.h"
 #ifdef SL_DEBUG
 	#include "common/errors.h"
 #endif
@@ -27,7 +28,8 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 #endif
 
 	/* Load ICID and PL */
-	__lhbrx(icid_pl, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
+	icid_pl = (uint32_t)
+			__lhbr(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET, (void *)0);
 	/* Load VA and BDI */
 	__lbz_d(va_bdi, HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET);
 
