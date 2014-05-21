@@ -48,6 +48,7 @@ enum  snic_cmds{
 	SNIC_GET_EPID_PC
 };
 
+#define TODO_CMDIF_MOD_SNIC 16 
 /** @} */ /* end of SNIC_MACROS */
 
 /**************************************************************************//**
