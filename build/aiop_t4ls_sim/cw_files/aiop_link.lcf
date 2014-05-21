@@ -19,7 +19,6 @@ MEMORY
     init:                   org = 0x58100000,   len = 0x00100000
     internal_ram:     	    org = 0x58200000,   len = 0x00100000
     heap  :                 org = 0x58300000,   len = 0x00800000
-    spintbl :               org = 0x58d00000,   len = 0x00100000
 }
 
 
@@ -98,7 +97,6 @@ _stack_addr  = ADDR(stack)+SIZEOF(stack);
 _stack_end   = ADDR(stack);
 _heap_addr   = ADDR(heap);
 _heap_end    = ADDR(heap)+SIZEOF(heap);
-_spin_table  = ADDR(spintbl);
 _ssram_addr  = ADDR(shared_ram);
 _ssram_end   = ADDR(shared_ram)+SIZEOF(shared_ram);
 

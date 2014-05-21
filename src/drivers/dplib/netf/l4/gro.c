@@ -220,7 +220,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd))) +
+	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH_BASE(&(gro_ctx->agg_fd))) +
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
 	/* check aggregated packet size limit */
@@ -371,7 +371,9 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 		(&(tcp->acknowledgment_number))) = gro_ctx->last_seg_fields;
 
 	/* Save headers changes to FDMA */
-	tcp->checksum = 0;
+	/* Zero TCP checksum before calculating new TCP checksum. */
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		tcp->checksum = 0;
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
 	/* calculate tcp header checksum */
@@ -528,7 +530,9 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 		ipv6->payload_length = ip_length - IPV6_HDR_LENGTH;
 	}
 
-	tcp->checksum = 0;
+	/* Zero TCP checksum before calculating new TCP checksum. */
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		tcp->checksum = 0;
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 			(PARSER_GET_L4_OFFSET_DEFAULT() +
@@ -702,7 +706,9 @@ int32_t tcp_gro_flush_aggregation(
 			(&(tcp->acknowledgment_number))) =
 					gro_ctx.last_seg_fields;
 
-	tcp->checksum = 0;
+	/* Zero TCP checksum before calculating new TCP checksum. */
+	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		tcp->checksum = 0;
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
@@ -818,7 +824,9 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 			(&(tcp->acknowledgment_number))) =
 				gro_ctx.last_seg_fields;
 
-	tcp->checksum = 0;
+	/* Zero TCP checksum before calculating new TCP checksum. */
+	if (gro_ctx.flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
+		tcp->checksum = 0;
 	/* Save headers changes to FDMA */
 	sr_status = fdma_modify_default_segment_data(outer_ip_offset, (uint16_t)
 	   (PARSER_GET_L4_OFFSET_DEFAULT() + TCP_HDR_LENGTH - outer_ip_offset));
