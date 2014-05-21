@@ -856,15 +856,15 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	uint16_t	ip_hdr_cksum;
 	uint16_t	old_ip_checksum;
 	uint16_t	new_flags_and_offset;
-	uint16_t	gross_running_sum;
+//	uint16_t	gross_running_sum;
 	uint16_t	ip_header_size;
 	struct ipv4hdr  *ipv4hdr_ptr;
-	struct		parse_result *pr =
-				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct		parse_result *pr;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+	
 	/* update IP checksum */
 	ip_header_size = (uint16_t)
 			((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
@@ -884,17 +884,17 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv4hdr_ptr->flags_and_offset = new_flags_and_offset;
 
 	ipv4hdr_ptr->hdr_cksum = ip_hdr_cksum;
-
+		
 	/* L4 checksum Validation */
 	/* prepare gross running sum for L4 checksum validation by parser */
-	gross_running_sum = rfdc_ptr->current_running_sum;
+//	gross_running_sum = rfdc_ptr->current_running_sum;
 
-	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
-					(uint16_t)~old_ip_checksum);
-	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
-			ipv4hdr_ptr->hdr_cksum);
+//	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
+//					(uint16_t)~old_ip_checksum);
+//	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
+//							ipv4hdr_ptr->hdr_cksum);
 
-	pr->gross_running_sum = gross_running_sum;
+	//	pr->gross_running_sum = gross_running_sum;
 
 	/* update FDMA with total length and IP header checksum*/
 	fdma_modify_default_segment_data(ipv4hdr_offset+2, 10);
@@ -902,12 +902,20 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* Updated FD[length] */
 	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset);
 
-	/* Call parser for L4 validation */
-	parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM);
-	if ((pr->parse_error_code == PARSER_UDP_CHECKSUM_ERROR) ||
-	    (pr->parse_error_code == PARSER_TCP_CHECKSUM_ERROR)) {
-		/* error in L4 checksum */
-		return IPR_ERROR;
+	/* Update Gross running sum of the reassembled frame */
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	pr->gross_running_sum = rfdc_ptr->current_running_sum;
+
+	if (PARSER_IS_UDP_DEFAULT() && 
+		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) == 0)) {
+			parse_result_generate_default(0);
+	}
+	else {
+		/* Check L4 checksum */
+		if (parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)){
+			/* error in L4 checksum */
+			return IPR_ERROR;
+		}
 	}
 	return SUCCESS;
 }
@@ -917,7 +925,11 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	uint16_t	ipv6hdr_offset;
 	uint16_t	ipv6fraghdr_offset;
 	uint16_t	ip_header_size;
+	uint16_t	checksum;
+	uint16_t	checksum_new;
+	uint16_t	gross_running_sum;
 	uint32_t	fd_length;
+	uint32_t	l4_update;
 	struct ipv6hdr	*ipv6hdr_ptr;
 	struct ipv6fraghdr  *ipv6fraghdr_ptr;
 	struct		parse_result *pr =
@@ -933,9 +945,19 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	ipv6fraghdr_ptr = (struct ipv6fraghdr *) (PRC_GET_SEGMENT_ADDRESS() +
 						ipv6fraghdr_offset);
-
+			
 	ip_header_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
 						(uint32_t)ipv6hdr_ptr);
+
+	l4_update = 0;
+	if (PARSER_IS_UDP_DEFAULT() && 
+		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) != 0)) {
+		l4_update = 1;
+		fdma_calculate_default_frame_checksum(
+				ipv6hdr_offset,
+				ipv6fraghdr_offset-ipv6hdr_offset+8,
+				&checksum);
+	}
 
 	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length +
 							  ip_header_size;
@@ -950,6 +972,38 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* Updated FD[length] */
 	fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 8;
 	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, fd_length);
+	
+	/* Update Gross running sum of the reassembled frame */
+	pr->gross_running_sum = rfdc_ptr->current_running_sum;
+
+	if (PARSER_IS_UDP_DEFAULT() && 
+		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) != 0)) {
+		/* Check L4 checksum */
+		fdma_calculate_default_frame_checksum(
+				ipv6hdr_offset,
+				ipv6fraghdr_offset-ipv6hdr_offset,
+				&checksum_new);
+
+		gross_running_sum = pr->gross_running_sum;
+		/* Subtract old fields */
+		cksum_ones_complement_sum16(gross_running_sum,
+					    ~checksum);
+		/* Add new fields */
+		cksum_ones_complement_sum16(gross_running_sum,
+					    checksum);
+		
+		pr->gross_running_sum = gross_running_sum;
+		
+		parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM);
+		if ((pr->parse_error_code == PARSER_UDP_CHECKSUM_ERROR)
+				||
+		    (pr->parse_error_code == PARSER_TCP_CHECKSUM_ERROR)) {
+			/* error in L4 checksum */
+			return IPR_ERROR;
+		}
+		} else {
+			parse_result_generate_default(0);		
+		}
 
 	return SUCCESS;
 
