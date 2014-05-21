@@ -5,7 +5,7 @@
 *//***************************************************************************/
 
 #include "common/fsl_string.h"
-#include "common/fsl_spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "common/slob.h"
 
 #include "mem_mng.h"

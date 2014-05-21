@@ -1,5 +1,5 @@
 #include "common/types.h"
-#include "common/fsl_spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 

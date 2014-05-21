@@ -6,7 +6,7 @@
 *//***************************************************************************/
 
 #include "virtual_pools.h"
-#include "common/fsl_spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_cdma.h"
 #include "cdma.h"
 

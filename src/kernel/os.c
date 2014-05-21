@@ -1,6 +1,6 @@
 #include "common/fsl_malloc.h"
 #include "common/fsl_stdarg.h"
-#include "common/fsl_spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "common/timer.h"
 #include "common/time.h"
 #include "common/irq.h"
