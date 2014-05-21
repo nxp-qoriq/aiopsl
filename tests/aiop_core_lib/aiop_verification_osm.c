@@ -25,6 +25,16 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 
 	switch (opcode) {
 	
+	case OSM_INIT_STR:
+	{
+		
+		/*
+		 * TODO: Read TASK_ID, then write it to ORTAR 
+		 */
+		str_size = (uint16_t) sizeof(struct osm_initial_verif_command);
+		break;
+	}
+		
 	case OSM_SCOPE_TRANS_TO_EX_INC_SCOPE_ID_STR:
 	{
 		struct osm_scope_tran_to_ex_inc_scope_id_verif_command *str =

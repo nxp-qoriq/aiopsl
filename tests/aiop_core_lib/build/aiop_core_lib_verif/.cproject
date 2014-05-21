@@ -150,7 +150,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 								</option>
-								<option id="com.freescale.ppc.toolchain.compiler.base.options.optLevel.1286544519" name="Optimization Level" superClass="com.freescale.ppc.toolchain.compiler.base.options.optLevel" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.optlevel.0" valueType="enumerated"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.options.optLevel.1286544519" name="Optimization Level" superClass="com.freescale.ppc.toolchain.compiler.base.options.optLevel" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.optlevel.4" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.asErrors.293686994" name="Treat All Warnings As Errors" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.asErrors" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.undefmacro.347857687" name="Undefined Macro in #if" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.undefmacro" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.notinlined.1868555657" name="Non-Inlined Functions" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.notinlined" value="true" valueType="boolean"/>
@@ -176,6 +176,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extracomma.1474544269" name="Extra Commas" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extracomma" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.structclass.1941294859" name="Inconsistent 'class' / 'struct' Usage" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.structclass" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1090411683" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.coverage.2024262724" name="Generate Code Coverage Files" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.coverage" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1570848850" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.freescale.ppc.toolchain.assembler.1801014957" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler">
