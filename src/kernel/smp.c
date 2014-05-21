@@ -63,7 +63,7 @@ void sys_barrier(void)
 /*****************************************************************************/
 int sys_is_core_active(uint32_t core_id)
 {
-    return (int)(((sys.active_cores_mask & (1ULL << core_id)))?0:1);
+    return (int)(((sys.active_cores_mask & (1ULL << core_id)))?1:0);
 }
 
 /*****************************************************************************/
