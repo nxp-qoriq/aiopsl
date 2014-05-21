@@ -57,7 +57,11 @@ typedef struct t_busy_block
 /* t_MM data structure defines parameters of the MM object */
 typedef struct t_MM
 {
+#ifdef AIOP
+    uint8_t          *lock;
+#else
     fsl_handle_t        lock;
+#endif
 
     t_mem_block      *mem_blocks;     /* List of memory blocks (Memory list) */
     t_busy_block     *busy_blocks;    /* List of busy blocks (Busy list) */
