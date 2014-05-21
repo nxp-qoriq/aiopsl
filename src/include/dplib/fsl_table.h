@@ -832,6 +832,7 @@ struct table_create_params {
 	In a case of LPM table:
 	 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+	In a case of MFLU table, size should not include the priority field.
 
 	Please note that this value is not returned through
 	\ref table_get_params() function. */
@@ -1081,6 +1082,7 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 
 @Return
 		 - \ref TABLE_STATUS_SUCCESS - A rule with the same match
@@ -1122,6 +1124,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	old_res - The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned and its reference counter will be
@@ -1166,6 +1169,7 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	old_res - The result of the replaced rule. If null the replaced
 		rule's result will not be returned and its reference counter
 		will be decremented (if exists). If not null structure should
@@ -1206,6 +1210,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[out]	result - The result of the query. Structure should be allocated
 		by the caller to this function.
 @Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
@@ -1253,6 +1258,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	result - The result of the deleted rule. If null the deleted
 		rule's result will not be returned and its reference counter
 		will be decremented (if exists). If not null structure should
@@ -1301,6 +1307,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
 		the table lookup result will be written. Must be aligned to 16B
 		boundary.
