@@ -935,6 +935,16 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/snic.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/snic.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/snic.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/snic.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/ste.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ste.c</locationURI>
