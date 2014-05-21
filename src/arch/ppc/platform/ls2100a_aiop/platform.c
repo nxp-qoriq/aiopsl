@@ -11,7 +11,6 @@
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
-#define SYS_MASTER_PART_ID 0
 
 /* -------------------------- */
 /*  { MEMORY REGION,               START_ADDR,    SIZE,            mem-ctrl-id } */
@@ -66,9 +65,6 @@ typedef struct t_platform {
     /* Console-related variables */
     fsl_handle_t            uart;
     uint32_t                duart_id;
-
-    /* Multi-core/multi-partition related settings */
-    uint8_t                 partition_id;
 
     uintptr_t               aiop_base;
     uintptr_t               ccsr_base;
@@ -129,14 +125,10 @@ static void print_platform_info(t_platform *pltfrm)
     int         count = 0;
     uint32_t    sys_clock;
     int         is_master_core = sys_is_master_core();
-    int         is_master_partition_master;    /* Master of master partition responsible
-                                               for single resources initialization */
-
-    is_master_partition_master = (int)(is_master_core && (sys_get_partition_id() == SYS_MASTER_PART_ID));
 
     ASSERT_COND(pltfrm);
 
-    if (is_master_partition_master)
+    if (is_master_core)
     {
         /*------------------------------------------*/
         /* Device enable/disable and status display */
@@ -195,7 +187,7 @@ static void print_platform_info(t_platform *pltfrm)
     sys_barrier();
 */
 
-    if (!is_master_partition_master)
+    if (!is_master_core)
         return;
 
     /*------------------------------------------*/
@@ -484,7 +476,7 @@ static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == SYS_MASTER_PART_ID) {
+    if (sys_is_master_core()) {
         /* Master partition - register DUART console */
         err = platform_enable_console(pltfrm);
         if (err != E_OK)
@@ -505,7 +497,7 @@ static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == SYS_MASTER_PART_ID)
+    if (sys_is_master_core())
         platform_disable_console(pltfrm);
 
     sys_unregister_console();
@@ -696,8 +688,6 @@ int platform_init(struct platform_param    *pltfrm_param,
         ASSERT_COND(mem_info->phys_base_addr >= mem_region_info.start_addr);
     }
     pltfrm->num_of_mem_parts = i;
-
-    pltfrm->partition_id = sys_get_partition_id();
 
     /* Identify the program memory */
     err = identify_program_memory(pltfrm->param.mem_info,

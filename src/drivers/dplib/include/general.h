@@ -550,239 +550,84 @@ struct aiop_default_task_params {
 *//***************************************************************************/
 
 
-/* Load Byte And Reserve Indexed */
-#define __lbarx(_res, _disp, _base)			\
-	asm ("lbarx %[result], %[displ], %[base]\n"	\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp),[base]"r"(_base)	\
-		);
-/* Load Halfword And Reserve Indexed */
-#define __lharx(_res, _disp, _base)			\
-	asm ("lharx %[result], %[displ], %[base]\n"	\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp),[base]"r"(_base)	\
-		);
-/* Load Word And Reserve Indexed */
-#define __lwarx(_res, _disp, _base)			\
-	asm ("lwarx %[result], %[displ], %[base]\n"	\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp),[base]"r"(_base)	\
-		);
-/* Store Byte Conditional Indexed */
-#define __stbcx(_res, _disp, _base)			\
-	asm ("stbcx. %[result], %[displ], %[base]\n"	\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp),[base]"r"(_base)	\
-		);
-/* Store HalfWord Conditional Indexed */
-#define __sthcx(_res, _disp, _base)			\
-	asm ("sthcx. %[result], %[displ], %[base]\n"	\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp),[base]"r"(_base)	\
-		);
-/* Store Word Conditional Indexed */
-#define __stwcx(_res, _disp, _base)			\
-	asm ("stwcx. %[result], %[displ], %[base]\n"	\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp),[base]"r"(_base)	\
-		);
 
-
-/* Load Halfword Byte-Reverse Indexed */
-#define __lhbrx(_res, _disp)				\
-	asm ("lhbrx %[result], r0, %[displ]\n"	\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp)			\
-		);
-/* Load Word Byte-reversed */
-#define __lwbrx(_res, _disp)				\
-	asm ("lwbrx %[result], r0, %[displ]\n"		\
-		:[result]"=r"(_res)			\
-		:[displ]"r"(_disp)			\
-		);
-/* Load DoubleWord into Two Words with Byte-Reversal of Words */
-#define __e_ldwbrw_d(_val, _disp)			\
-	asm  ("e_ldwbrw %[value], %[displ](r0)\n"	\
-		:[value]"=r" (_val)			\
-		:[displ]"i" (_disp)			\
-			);
-
-/* Store Halfword Byte-Reverse Indexed */
-#define __sthbrx(_val, _disp)				\
-	asm ("sthbrx %[value], r0, %[displ]\n"	\
-		:					\
-		:[value]"r"(_val), [displ]"r"(_disp)	\
-		);
-/* Store Word Byte-reversed */
-#define __stwbrx(_val, _disp)				\
-	asm ("stwbrx %[value],r0, %[displ]\n"		\
-		:					\
-		:[value]"r"(_val), [displ]"r"(_disp)	\
-		);
-/* Store Double of Two Words with Byte-Reversal of Words */
-#define __e_stdwbrw(_val, _disp)			\
-	asm ("e_stdwbrw %[value], r0, %[displ]\n"	\
-		:					\
-		:[value]"r"(_val), [displ]"r"(_disp)	\
-		);
-/* Store Double of Two Words 64 bit input variable and displacement*/
-#define __st64dw_d(_val, _disp)				\
-	asm ("e_stdw %[value], %[displ](r0)\n"		\
-		:					\
-		:[value]"r" (_val), [displ]"i" (_disp)	\
-		);
-/* Store Double of Two Words 64 bit input variable and base*/
-#define __st64dw_b(_val, _base_reg)				\
-	asm ("e_stdw %[value], 0(%[base])\n"			\
-		:						\
-		:[value]"r" (_val), [base]"r" (_base_reg)	\
-		);
-/* Load Double of Two Words 64 bit input variable and displacement*/
-#define __ld64dw_d(_val, _disp)				\
-	asm ("e_ldw %[value], %[displ](r0)\n"		\
-		:[value]"=r" (_val)			\
-		:[displ]"i" (_disp)			\
-		);
-/* Load Double of Two Words 64 bit input variable and base*/
-#define __ld64dw_b(_val, _base_reg)			\
-	asm ("e_ldw %[value], 0(%[base])\n"		\
-		:[value]"=r" (_val)			\
-		:[base]"r" (_base_reg)			\
-		);
-/* Store word input variable */
-#define __stw_d(_val, _disp)				\
-	asm ("e_stw %[value], %[displ](r0)\n"		\
-		:					\
-		:[value]"r" (_val), [displ]"i" (_disp)	\
-		);
-/* Store half word displacement as input variable */
-#define __sthw_d(_val, _disp)				\
-	asm ("e_sth %[value], %[displ](r0)\n"		\
-		:					\
-		:[value]"r" (_val), [displ]"i" (_disp)	\
-		);
-/* Load byte displacement as input variable */
-#define __lbz_d(_val, _disp)				\
-	asm ("e_lbz %[value], %[displ](r0)\n"		\
-		:					\
-		:[value]"r" (_val), [displ]"i" (_disp)	\
-		);
-#define __stw(_val, _disp, _base_reg)			\
-	asm ("e_stw %[value], %[displ](%[base])\n"	\
-		:					\
-		:[value]"r" (_val), [displ]"i" (_disp), [base]"r" (_base_reg)\
-		);
-/* Store byte input variable */
-#define __se_stb(_val, _base_reg)			\
-	asm ("se_stb %[value], 0(%[base])\n"		\
-		:[base]"=m" (_base_reg)			\
-		:[value]"r" (_val)			\
-		);
-/* Or immediate */
-#define __or(_res, _arg1, _arg2)				\
-	asm ("or %[result], %[argument1], %[argument2]\n"	\
-		:[result]"=r" (_res)				\
-		:[argument1]"r" (_arg1), [argument2]"r" (_arg2)	\
-		);
-/* Or immediate */
-#define __e_or2is(_res, _arg1)				\
-	asm ("e_or2is %[result], %[argument1]\n"	\
-		:[result]"=r" (_res)			\
-		:[argument1]"i" (_arg1)			\
-		);
 /* Rotate left and merge */
+/*
 #define __e_rlwimi(_res, _arg, _shift, _mask1, _mask2)			\
 	asm ("e_rlwimi %[result], %[argu], %[sh], %[maskb], %[maske]\n"	\
 		:[result]"+r"(_res)					\
 		:[argu]"r"(_arg), [sh]"i"(_shift), [maskb]"i"(_mask1),	\
 		 [maske]"i"(_mask2)					\
 		);
-/* Rotate left and mask */
-#define __rlwinm(_res, _arg, _shift, _mask1, _mask2)			\
-	asm ("e_rlwinm %[result], %[argu], %[sh], %[maskb], %[maske]\n"	\
-		:[result]"=r"(_res)					\
-		:[argu]"r"(_arg), [sh]"i"(_shift), [maskb]"i"(_mask1),	\
-		 [maske]"i"(_mask2)					\
-		);
+*/
 
 
 /* Todo - Note to Hw/Compiler team:  * swap intrinsics can be used here */
 
 /** Load 2 bytes with endian swap.
  * _addr = a constant address.  */
-#define LH_SWAP(_addr)						\
-	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
-	uint16_t temp;						\
-	__lhbrx(temp, _addr);					\
-	__rR = (uint16_t *) temp; })
+#define LH_SWAP(_disp, _base) ((uint16_t)__lhbr((uint32_t)_disp, (void *)_base))
 
 /** Load 4 bytes with endian swap.
  * _addr = a constant address. */
-#define LW_SWAP(_addr)						\
-	(uint32_t)({register uint32_t *__rR = 0;		\
-	uint32_t temp;						\
-	__lwbrx(temp, _addr);					\
-	__rR = (uint32_t *) temp; })
+#define LW_SWAP(_disp, _base) ((uint32_t)__lwbr((uint32_t)_disp, (void *)_base))
 
 /** Load 8 bytes with endian swap of each 4 bytes.
  * _addr = a constant address. */
-#define LDW_SWAP(_addr)						\
+#define LDW_SWAP(_disp, _base)					\
 	(uint64_t)({register uint64_t *__rR = 0;		\
-	uint32_t temp1, temp2;					\
-	__ldwbrw(&temp1, &temp2, _addr, 0);			\
+	unsigned int temp1, temp2;					\
+	__ldwbrw(&temp1, &temp2, (uint32_t)_disp, (void *)_base);\
 	__rR = (uint64_t *)					\
 		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
 
 /** Load 8 bytes with endian swap.
  * _addr = a constant address. */
-#define LLLDW_SWAP(_addr)					\
-	(uint64_t)({register uint64_t __rR = 0;		\
+#define LLLDW_SWAP(_disp, _base)				\
+	(uint64_t)({register uint64_t __rR = 0;			\
 	uint64_t temp;						\
-	__llldbrw(&temp, _addr, 0);				\
+	__llldbrw(&temp, (uint32_t)_disp, (void *)_base);	\
 	__rR = (uint64_t) temp; })
 
 /** Load 2 bytes with endian swap and mask result.
  * _addr = a constant address. */
-#define LH_SWAP_MASK(_addr, _mask)				\
+#define LH_SWAP_MASK(_disp, _base, _mask)			\
 	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
-	uint16_t temp;						\
-	__lhbrx(temp, _addr);					\
+	uint16_t temp = LH_SWAP(_disp, _base);			\
 	temp &= _mask;						\
 	__rR = (uint16_t *) temp; })
 
 /** Load 4 bytes with endian swap and mask result.
  * _addr = a constant address. */
-#define LW_SWAP_MASK(_addr, _mask)				\
+#define LW_SWAP_MASK(_disp, _base, _mask)			\
 	(uint32_t)({register uint32_t *__rR = 0;		\
-	uint32_t temp;						\
-	__lwbrx(temp, _addr);					\
+	uint32_t temp = LW_SWAP(_disp, _base);			\
 	temp &= _mask;						\
 	__rR = (uint32_t *) temp; })
 
 /** Load 4 bytes with endian swap, mask and shift result.
  * _addr = a constant address. */
-#define LW_SWAP_MASK_SHIFT(_addr, _mask, _shift)		\
+#define LW_SWAP_MASK_SHIFT(_disp, _base, _mask, _shift)		\
 	(uint32_t)({register uint32_t *__rR = 0;		\
-	uint32_t temp;						\
-	__lwbrx(temp, _addr);					\
+	uint32_t temp = LW_SWAP(_disp, _base);			\
 	temp &= _mask;						\
 	temp >>= _shift;					\
 	__rR = (uint32_t *) temp; })
 
 /** Store 2 bytes with endian swap.
  * _addr = a constant address. */
-#define STH_SWAP(_val, _addr)					\
-	__sthbrx(_val, _addr);
+#define STH_SWAP(_val, _disp, _base) 				\
+	__sthbr(_val, (uint32_t)_disp, (void *)_base)
 
 /** Store 4 bytes with endian swap.
  * _addr = a constant address. */
-#define STW_SWAP(_val, _addr)					\
-	__stwbrx(_val, _addr);
+#define STW_SWAP(_val, _disp, _base)				\
+	__stwbr(_val, (uint32_t)_disp, (void *)_base)
 
 /** Store 8 bytes with endian swap.
  * _addr = a constant address. */
-#define LLSTDW_SWAP(_val, _addr)				\
-	__llstdbrw(_val, _addr, 0);
+#define LLSTDW_SWAP(_val, _disp, _base)				\
+	__llstdbrw(_val, (uint32_t)_disp, (void *)_base)
 
 
 /** @} */ /* end of AIOP_Inline_Asm */
