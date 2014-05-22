@@ -8,6 +8,7 @@
 
 #include "snic.h"
 #include "system.h"
+#include "net/fsl_net.h"
 #include "common/fsl_stdio.h"
 #include "common/errors.h"
 #include "kernel/platform.h"
@@ -39,6 +40,12 @@ __HOT_CODE void snic_process_packet(void)
 {
 	
 	struct parse_result *pr;
+	uint8_t *fd_flc_appidx;
+	uint8_t appidx;
+	struct snic_params *snic;
+	struct fdma_queueing_destination_params enqueue_params;
+	int err;
+	int32_t parse_status;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -47,17 +54,171 @@ __HOT_CODE void snic_process_packet(void)
 
 	osm_task_init();
 	/* todo: spid=0?, prpid=0?, starting HXS=0?*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-	default_task_params.parser_profile_id = 0;
-	default_task_params.parser_starting_hxs = 0;
+	*((uint8_t *)HWC_SPID_ADDRESS) = SNIC_SPID;
+	default_task_params.parser_profile_id = SNIC_PRPID;
+	default_task_params.parser_starting_hxs = SNIC_HXS;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
 	
-	int32_t parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
+	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	if (parse_status)
 		if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
 					fdma_terminate_task();
+
+	/* check if this is ingress or egress */
+	snic = snic_params + PRC_GET_PARAMETER();
+	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
+	appidx = (*fd_flc_appidx >> 2);
+	
+	if (SNIC_IS_INGRESS(appidx)) {
+		/* For ingress may need to do IPR and then Remove Vlan */
+		if (snic->snic_enable_flags & SNIC_IPR_EN) 
+			err = snic_ipr();
+		/*reach here if re-assembly success or regular or IPR disabled*/
+		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
+			l2_pop_vlan();
+		
+	}
+	/* Egress*/
+	else {
+		/* For Egress may need to do add Vlan and then IPF */
+		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
+			snic_add_vlan();
+		
+		if (snic->snic_enable_flags & SNIC_IPF_EN)
+			err = snic_ipf(snic);
+	}
+	
+	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
+	 * the qd_priority is taken from the TLS and that enqueue function \
+	 * always returns*/
+	enqueue_params.qdbin = 0;
+	enqueue_params.qd = snic->qdid;
+	enqueue_params.qd_priority = default_task_params.qd_priority;
+	/* todo error cases */
+	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
+			FDMA_ENWF_NO_FLAGS);
+	fdma_terminate_task();
+}
+
+
+/* Assuming IPF is the last iteration before enqueue (IPF after encryption)*/
+int snic_ipf(struct snic_params *snic)
+{
+	uint16_t ip_offset;
+	uint32_t total_length;
+	struct ipv4hdr *ipv4_hdr;
+	struct ipv6hdr *ipv6_hdr;
+	struct fdma_amq amq;
+	ipf_ctx_t ipf_context_addr
+		__attribute__((aligned(sizeof(struct ldpaa_fd))));
+	uint16_t icid;
+	uint32_t flags = 0;
+	uint8_t va_bdi;
+	int32_t ipf_status;
+	int err;
+	struct fdma_queueing_destination_params enqueue_params;
+
+	ip_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	ipv4_hdr = (struct ipv4hdr *)
+			(ip_offset + PRC_GET_SEGMENT_ADDRESS());
+	/* need to check frame size against MTU */
+	if (PARSER_IS_OUTER_IPV6_DEFAULT())
+	{
+		ipv6_hdr = (struct ipv6hdr *)ipv4_hdr;
+		total_length =
+			(uint32_t)(ipv6_hdr->payload_length 
+					+ 40);
+	}
+	else
+		total_length = (uint32_t)ipv4_hdr->total_length;
+
+	if (total_length > snic->snic_ipf_mtu)
+	{
+		icid = LH_SWAP(HWC_ADC_ADDRESS +
+				ADC_PL_ICID_OFFSET, 0);
+		icid &= ADC_ICID_MASK;
+		va_bdi = *((uint8_t *)(HWC_ADC_ADDRESS +
+				ADC_FDSRC_VA_FCA_BDI_OFFSET));
+		if (va_bdi & ADC_BDI_MASK)
+			flags |= FDMA_ENF_BDI_BIT;
+		amq.flags = (uint16_t)(flags >> 16);
+		amq.icid = icid;
+		
+		ipf_context_init(0, snic->snic_ipf_mtu,
+				ipf_context_addr);
+
+		do {
+			ipf_status =
+			ipf_generate_frag(ipf_context_addr);
+			if (ipf_status)
+				err =
+				(int)fdma_store_frame_data(1, 0,
+						&amq);
+			else
+				err =
+				(int)fdma_store_frame_data(0, 0,
+						&amq);
+			
+			/* for the enqueue set hash from TLS,
+			 * an flags equal 0 meaning that
+			 * the qd_priority is taken from the
+			 * TLS and that enqueue function
+			 * always returns*/
+			enqueue_params.qdbin = 0;
+			enqueue_params.qd = snic->qdid;
+			enqueue_params.qd_priority =
+				default_task_params.qd_priority;
+			/* todo error cases */
+			
+			err =
+			(int)fdma_enqueue_default_fd_qd(icid,
+				flags, &enqueue_params);
+			
+		} while (ipf_status);
+		
+		fdma_terminate_task();
+		return 0;
+	}
+	else
+		return 0;
+}
+
+int snic_ipr(void)
+{
+	int32_t reassemble_status;
+
+	reassemble_status = ipr_reassemble(ipr_instance_val);
+	if (reassemble_status != IPR_REASSEMBLY_REGULAR &&
+		reassemble_status != IPR_REASSEMBLY_SUCCESS)
+	{
+		/* todo: error cases*/
+		fdma_terminate_task();
+		return 0;
+	}
+		
+	else
+		return 0;
+}
+
+int snic_add_vlan(void)
+{
+	uint32_t vlan;
+	struct presentation_context *presentation_context;
+	uint32_t asa_seg_addr;	/* ASA Segment Address */
+
+	/* Get ASA pointer */
+	presentation_context =
+		(struct presentation_context *) HWC_PRC_ADDRESS;
+	asa_seg_addr = (uint32_t)(presentation_context->
+			asapa_asaps & PRC_ASAPA_MASK);
+	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, 0x50)));
+	l2_push_vlan((uint16_t)(vlan>>16));
+	l2_set_vlan_vid((uint16_t)(vlan & VLAN_VID_MASK));
+	l2_set_vlan_pcp((uint8_t)((vlan & VLAN_PCP_MASK) >>
+			VLAN_PCP_SHIFT));
+	return 0;
 }
 
 int snic_open_cb(void *dev)
@@ -123,10 +284,10 @@ int aiop_snic_init(void)
 	snic_cmd_ops.open_cb = (open_cb_t *)snic_open_cb;
 	snic_cmd_ops.close_cb = (close_cb_t *)snic_close_cb;
 	snic_cmd_ops.ctrl_cb = (ctrl_cb_t *)snic_ctrl_cb;
-	fsl_os_print("SNIC: register with cmdif module!\n");
+	pr_info("sNIC: register with cmdif module!\n");
 	status = cmdif_register_module("sNIC", &snic_cmd_ops);
 	if(status) {
-		fsl_os_print("SNIC:Failed to register with cmdif module!\n");
+		pr_info("sNIC:Failed to register with cmdif module!\n");
 		return status;
 	}
 	return 0;
