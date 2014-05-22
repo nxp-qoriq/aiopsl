@@ -65,15 +65,13 @@ UNUSED(argc);UNUSED(argv);
     if (err)
         return err;
     
-    BOOT_GO = 1;
-    
     /* Only execute if core is a cluster master */
     if(sys_is_cluster_master())
     {
     	err = cluster_init();
     	if(err)
     		return err;
-    	core_memory_barrier();
+    	core_memory_barrier(); //TODO remove
     }
 
     is_master_core = sys_is_master_core();
@@ -105,6 +103,8 @@ UNUSED(argc);UNUSED(argv);
     	core_memory_barrier();
     }
 
+    BOOT_GO = 1;
+    
     core_ready_for_tasks();
 
     if (is_master_core)

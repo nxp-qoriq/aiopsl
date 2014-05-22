@@ -646,7 +646,7 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 int platform_early_init(struct platform_param *pltfrm_params)
 {
     /* TODO - complete! */
-UNUSED(pltfrm_params);
+    UNUSED(pltfrm_params);
     return E_OK;
 }
 

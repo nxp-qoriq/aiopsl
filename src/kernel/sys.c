@@ -297,34 +297,34 @@ int sys_init(void)
 		
 		sys.active_cores_mask  = abrr_val;
 		
-		/*sys.ipc_enabled          = sys_param.use_ipc;*/ //TODO do we support IPC ?
+		/*sys.ipc_enabled          = sys_param.use_ipc;*/ //TODO remove all IPC, keep skeleton
 	} else {
-		while(!sys.active_cores_mask) {}
+		while(!sys.active_cores_mask) {} //TODO remove
 	}
 
 	if (is_master_core)
-		platform_early_init(&platform_param); //TODO what goes in here ??
+		platform_early_init(&platform_param);
 
 	if (is_master_core) {
 
 		/* Initialize memory management */
 		err = sys_init_memory_management();
 		if (err != 0) {
-			pr_err("Failed sys_init_memory_management\n"); //XXX can I print before sys_register_debugger_console ??
+			pr_err("Failed sys_init_memory_management\n"); //XXX remove
 			return err;
 		}
 
 		/* Initialize the objects registry structures */
-		sys_init_objects_registry(); //TODO what is this, can I remove it ??
+		sys_init_objects_registry(); //TODO do nothing, Alex will remove this !!
 	}
 
 	/* Initialize Multi-Processing services as needed */
 	err = sys_init_multi_processing();
 	if (err != 0) {
-		pr_err("Failed sys_init_multi_processing\n");
+		pr_err("Failed sys_init_multi_processing\n"); //TODO remove - ask ALEX
 		return err;
 	}
-	sys_barrier();
+	sys_barrier(); //TODO remove
 
 	err = sys_init_platform(&platform_param);
 	if (err != 0)

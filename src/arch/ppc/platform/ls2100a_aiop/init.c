@@ -72,7 +72,7 @@ void fill_system_parameters(struct platform_param *platform_param) //TOOD make t
 
     memset(&platform_param, 0, sizeof(platform_param));
 
-    platform_param->clock_in_freq_hz = 100000000;
+    platform_param->clock_in_freq_hz = 100000000; //TODO check value, maybe we don't need it
     platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
     platform_param->console_type = PLTFRM_CONSOLE_DUART;
     platform_param->console_id = 0;
@@ -138,6 +138,7 @@ void core_ready_for_tasks(void)
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
     }
+
 #endif
     
 #if (STACK_OVERFLOW_DETECTION == 1)
