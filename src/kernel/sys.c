@@ -25,44 +25,6 @@ typedef struct t_sys_forced_object {
 __SHRAM t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
 
 
-/* TODO: Think if it can be part of &(sys.forced_objects_list)*/
-
-/*****************************************************************************/
-static void sys_init_objects_registry(void)
-{
-#ifdef ARENA_LEGACY_CODE
-	/*memset(sys.modules_info, 0, sizeof(sys.modules_info));
-	memset(sys.sub_modules_info, 0, sizeof(sys.sub_modules_info));
-	INIT_LIST(&(sys.forced_objects_list));
-	p_forced_object = (t_sys_forced_object_desc *)fsl_os_malloc(
-			sizeof(t_sys_forced_object_desc));
-	sys_init_spinlock(&sys.object_mng_lock);*/
-#endif
-}
-
-/*****************************************************************************/
-static void sys_free_objects_management(void)
-{
-#ifdef ARENA_LEGACY_CODE
-	/*t_sys_forced_object_desc   *p_forced_object;
-	list_t                  *p_node, *p_temp;*/
-
-	/* Freeing all network devices descriptors */
-	/*LIST_FOR_EACH_SAFE(p_node, p_temp, &(sys.forced_objects_list)) {
-	p_forced_object = LIST_OBJECT(p_node, t_sys_forced_object_desc, node);
-
-	list_del(p_node);
-	fsl_os_free(p_forced_object);
-	}*/
-
-#if 0 /* what is this??? */
-	/* Free the settings cloning information */
-	if (sys.p_clone_scratch_pad)
-		fsl_os_free(sys.p_clone_scratch_pad);
-#endif /* 0 */
-#endif
-}
-
 /*****************************************************************************/
 fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...)
 {
@@ -293,13 +255,13 @@ int sys_init(void)
 	sys.is_tile_master[core_id] = (int)(sys_param.master_cores_mask &
 		(1ULL << core_id));
 	sys.is_cluster_master[core_id] = ! (core_id % 4); //TODO make sure this is correct
-	
+
 	is_master_core = sys_is_master_core();
-	
+
 	if(is_master_core) {
 		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE + SOC_PERIPH_OFF_AIOP_CMGW + 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
 		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
-		
+
 		sys.active_cores_mask  = abrr_val;
 		/*sys.ipc_enabled          = sys_param.use_ipc;*/
 	} else {
@@ -331,8 +293,6 @@ int sys_init(void)
 	ASSERT_COND(err == 0);
 #endif /* 0 */
 
-	/* Initialize the objects registry structures */
-	sys_init_objects_registry();
 	}
 
 	/* Initialize Multi-Processing services as needed */
@@ -364,8 +324,6 @@ void sys_free(void)
 	sys_barrier();
 
 	if (sys_is_master_core()) {
-		/* Free objects management structures */
-		sys_free_objects_management();
 
 #if 0
 		/* Free interrupt management module */
