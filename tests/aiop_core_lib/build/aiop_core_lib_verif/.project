@@ -188,6 +188,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_keygen.h</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/aiop_verification_osm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_osm.c</locationURI>
+		</link>
+		<link>
+			<name>sources/Verification/aiop_verification_osm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_osm.h</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/aiop_verification_parser.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_parser.c</locationURI>

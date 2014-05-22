@@ -9,8 +9,10 @@ Setup
    http://gforge.freescale.net/frs/download.php/2041/LS2100_SIM_CTLU-20140418.tbz2
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
-4. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
-5. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
+4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
+   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/DPAA_SIM_RELEASE_0_7_0_0101/dtsim_release/linux64
+5. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
+6. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
 
 ===========================================
 Execution flow

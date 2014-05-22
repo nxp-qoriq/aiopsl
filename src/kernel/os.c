@@ -57,9 +57,8 @@ __HOT_CODE  uint32_t fsl_os_rand(void)
 /*****************************************************************************/
 __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 {
-
-	UNUSED(tz);
 	volatile uint32_t TSCRU1, TSCRU2, TSCRL;
+	UNUSED(tz);
 
 	TSCRU1 = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
 	                              TSCRU_OFF));

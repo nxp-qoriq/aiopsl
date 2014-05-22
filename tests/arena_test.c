@@ -1,8 +1,6 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-//#include "fsl_dpni.h"
-//#include "dplib/dpni_drv.h"
 #include "dpni/drv.h"
 #include "fsl_fdma.h"
 #include "general.h"
@@ -12,6 +10,7 @@
 #include "kernel/platform.h"
 #include "io.h"
 #include "aiop_common.h"
+#include "common/spinlock.h"
 
 int app_init(void);
 void app_free(void);
@@ -25,27 +24,54 @@ void app_free(void);
 extern int slab_init();
 extern int malloc_test();
 extern int slab_test();
+extern int random_init();
+extern int random_test();
 
 extern __SHRAM struct slab *slab_peb;
 extern __SHRAM struct slab *slab_ddr;
+extern __SHRAM int rnd_ctr;
+extern __SHRAM int num_of_cores;
+extern __SHRAM uint8_t rnd_lock;
+extern __SHRAM int random_test_flag;
 
 
 
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
-		
+	int l_rnd_ctr;
+
 	err = slab_test();
-	
-	if (err) { 
-			fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
-		}
+
+	if (err) {
+		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
+	}
 	err = malloc_test();
-	
-	if (err) { 
+
+	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in runtime phase \n", err);
 	}
-	
+
+	err = random_test();
+
+	if (err) {
+		fsl_os_print("ERROR = %d: random_test failed in runtime phase \n", err);
+	}
+	else{
+		lock_spinlock(&rnd_lock);
+		l_rnd_ctr = rnd_ctr;
+		unlock_spinlock(&rnd_lock);
+
+		fsl_os_print("Number of cores passed checking tls area %d / %d \n",l_rnd_ctr, num_of_cores);
+	}
+
+	if(random_test_flag == 1) {
+		fsl_os_print("random_test passed in runtime phase()\n");
+		lock_spinlock(&rnd_lock);
+		random_test_flag = 2;
+		unlock_spinlock(&rnd_lock);
+	}
+
 	dpni_drv_send(APP_NI_GET(arg));
 }
 
@@ -60,7 +86,7 @@ static void epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 
 	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
-	iowrite32(0, &wrks_addr->epas); 
+	iowrite32(0, &wrks_addr->epas);
 	iowrite32((uint32_t)receive_cb, &wrks_addr->ep_pc);
 }
 
@@ -69,13 +95,13 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
-	
+
 
 	fsl_os_print("Running app_init()\n");
 
 	/* This is temporal WA for stand alone demo only */
 	epid_setup();
-	
+
 	for (ni = 0; ni < 6; ni++)
 	{
 		/* Every ni will have 1 flow */
@@ -86,15 +112,22 @@ int app_init(void)
 		                              (ni | (flow_id << 16)) /*arg, nic number*/);
 		if (err) return err;
 	}
-	
+
 	err = slab_init();
 	if (err) {
-			fsl_os_print("ERROR = %d: slab_init failed  in init phase()\n", err);
+		fsl_os_print("ERROR = %d: slab_init failed  in init phase()\n", err);
 	}
 	err = malloc_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
-	} 		
+	}
+
+	err = random_init();
+	if (err) {
+		fsl_os_print("ERROR = %d: random_test failed in init phase()\n", err);
+	} else {
+		fsl_os_print("random_test passed in init phase()\n");
+	}
 	return 0;
 }
 
