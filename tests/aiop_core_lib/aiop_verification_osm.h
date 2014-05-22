@@ -41,7 +41,8 @@ enum osm_verif_cmd_type {
 	OSM_SCOPE_ENTER_TO_EX_NEW_SCOPE_ID_CMDTYPE,
 	OSM_SCOPE_ENTER_CMDTYPE,
 	OSM_SCOPE_EXIT_CMDTYPE,
-	OSM_GET_SCOPE_CMDTYPE
+	OSM_GET_SCOPE_CMDTYPE,
+	OSM_INIT_CMDTYPE
 };
 
 #define OSM_SCOPE_TRANS_TO_EX_INC_SCOPE_ID_STR  ((OSM_MODULE << 16) | \
@@ -74,6 +75,9 @@ enum osm_verif_cmd_type {
 #define OSM_GET_SCOPE_STR  ((OSM_MODULE << 16) | \
 		OSM_GET_SCOPE_CMDTYPE)
 
+#define OSM_INIT_STR  ((OSM_MODULE << 16) | \
+		OSM_INIT_CMDTYPE)
+
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
  */
@@ -86,6 +90,17 @@ enum osm_verif_cmd_type {
 
  @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@Description	OSM Scope Initial Command structure.
+		
+		This command read TASK_ID from TASKCSR0, then write it to ORTAR 
+		for getting OSM information registers.
+*//***************************************************************************/
+struct osm_initial_verif_command {
+	uint32_t	opcode;
+	uint8_t 	pad[4];
+};
 
 /**************************************************************************//**
 @Description	OSM Scope Transition to Exclusive Command structure.
