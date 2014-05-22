@@ -24,6 +24,7 @@ __HOT_CODE void receive_cb(void)
 	uint8_t *fd_flc_appidx;
 	uint8_t appidx;
 	struct parse_result *pr;
+	int32_t parse_status;
 
 	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
 						* to the send NI structure   */
@@ -42,7 +43,7 @@ __HOT_CODE void receive_cb(void)
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
 	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
-		int32_t parse_status = parse_result_generate_default \
+		parse_status = parse_result_generate_default \
 				(PARSER_NO_FLAGS);
 		if (parse_status) {
 			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {

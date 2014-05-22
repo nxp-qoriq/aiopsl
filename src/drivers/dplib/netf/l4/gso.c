@@ -227,13 +227,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
-			/* tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG; */
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
-			if (tcp_ptr->urgent_pointer)
-				gso_ctx->urgent_pointer -=
-						tcp_ptr->urgent_pointer;
-			else
+			if (!(tcp_ptr->urgent_pointer))
 				/* reset URG */
 				tcp_ptr->flags = tcp_ptr->flags &
 				~NET_HDR_FLD_TCP_FLAGS_URG;
@@ -259,7 +255,6 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* urgent pointer calculation */
 		if (tcp_ptr->urgent_pointer) {
-			/* tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG; */
 			tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
 						gso_ctx->urgent_pointer);
 			if (tcp_ptr->urgent_pointer)
@@ -307,14 +302,6 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();
 		}
 		}
-
-	/* urgent pointer calculation */
-/*	if (gso_ctx->urgent_pointer) {
-		tcp_ptr->flags |= NET_HDR_FLD_TCP_FLAGS_URG;
-		tcp_ptr->urgent_pointer = MIN(gso_ctx->mss,
-					gso_ctx->urgent_pointer);
-		gso_ctx->urgent_pointer -= tcp_ptr->urgent_pointer;
-	} */
 
 	/* Modify default segment */
 		/* TODO FDMA ERROR */
