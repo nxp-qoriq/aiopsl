@@ -2,33 +2,19 @@
 #include "common/gen.h"
 #include "common/errors.h"
 #include "common/fsl_string.h"
+#include "cmdif_srv.h"
 #include "general.h"
-#include "fsl_ldpaa_aiop.h"
+//#include "fsl_ldpaa_aiop.h"
 #include "io.h"
-#include "fsl_fdma.h"
-#include "sys.h"
+//#include "fsl_fdma.h"
+//#include "sys.h"
 #include "fsl_malloc.h"
 #include "dbg.h"
-#include "kernel/fsl_spinlock.h"
-#include "fsl_cdma.h"
-#include "aiop_common.h"
+//#include "spinlock.h"
+//#include "fsl_cdma.h"
+//#include "aiop_common.h"
 #include "errors.h"
-
-#include "cmdif_srv.h"
 #include "fsl_cmdif_flib.h"
-
-/** This is where rx qid should reside */
-#define FQD_CTX_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
-/** Get RX QID from dequeue context */
-#define RESP_QID_GET \
-	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
-/** PL_ICID from Additional Dequeue Context */
-#define PL_ICID_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
-/** Get ICID to send response */
-#define RESP_ICID_GET \
-	LH_SWAP(&PL_ICID_GET)
 
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
@@ -53,23 +39,13 @@
 
 #define SYNC_CMD_RESP_MAKE(ERR, ID)  (0x80000000 | ((ERR) << 16) | (ID))
 
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
-					   0,                          \
-					   E_MAPPED_MEM_TYPE_GEN_REGS) \
-					   + SOC_PERIPH_OFF_AIOP_WRKS);
-
-#define PR_ERR_TERMINATE(...) \
-	do {                  \
-		pr_err(__VA_ARGS__);  \
-		fdma_terminate_task();\
-		return;               \
-	} while (0)
-
 #define IS_VALID_AUTH_ID(ID) \
 	((srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
 		(srv->inst_dev[(ID)]))
 
+struct  cmdif_srv *srv;
+
+#if 0
 static int module_id_alloc(const char *m_name, struct cmdif_srv *srv)
 {
 	int i = 0;
@@ -160,21 +136,19 @@ static void inst_dealloc(int inst, struct cmdif_srv *srv)
 	unlock_spinlock(&srv->lock);
 }
 
-__HOT_CODE static uint16_t cmd_id_get()
+static uint16_t cmd_id_get()
 {
-	uint64_t data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint16_t)((data & CMD_ID_MASK) >> CMD_ID_OFF);
+	return 0;
 }
 
-__HOT_CODE static uint32_t cmd_size_get()
+static uint32_t cmd_size_get()
 {
-	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	return 0;
 }
 
-__HOT_CODE static uint8_t *cmd_data_get()
+static uint8_t *cmd_data_get()
 {
-	uint64_t addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
-	return (uint8_t *)fsl_os_phys_to_virt(addr);
+	return NULL; // TODO (uint8_t *)fsl_os_phys_to_virt(addr);
 }
 
 static void cmd_m_name_get(char *name)
@@ -195,16 +169,12 @@ static void cmd_m_name_get(char *name)
 
 static uint8_t cmd_inst_id_get()
 {
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint8_t)((data & INST_ID_MASK) >> INST_ID_OFF);
+	return 0;
 }
 
-__HOT_CODE static uint16_t cmd_auth_id_get()
+static uint16_t cmd_auth_id_get()
 {
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint16_t)((data & AUTH_ID_MASK) >> AUTH_ID_OFF);
+	return 0;
 }
 
 static int empty_open_cb(uint8_t instance_id, void **dev)
@@ -284,39 +254,26 @@ int cmdif_unregister_module(const char *m_name)
 	}
 }
 
-static int epid_setup()
+static void srv_memory_free(struct  cmdif_srv *srv)
 {
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
-	uint32_t data = 0;
+	if (srv->inst_dev)
+		fsl_os_xfree(srv->inst_dev);
+	if (srv->m_id)
+		fsl_os_xfree(srv->m_id);
+	if (srv->sync_done)
+		fsl_os_xfree(srv->sync_done);
+	if (srv->m_name)
+		fsl_os_xfree(srv->m_name);
+	if (srv->open_cb)
+		fsl_os_xfree(srv->open_cb);
+	if (srv->ctrl_cb)
+		fsl_os_xfree(srv->ctrl_cb);
+	if (srv->open_cb)
+		fsl_os_xfree(srv->open_cb);
 
-	iowrite32(0, &wrks_addr->epas); /* EPID = 0 */
-	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
-
-#ifdef AIOP_STANDALONE
-	/* Default settings */
-	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
-	iowrite32(0x00020300, &wrks_addr->ep_asapa);
-	iowrite32(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32(0x00000000, &wrks_addr->ep_spo);
-#endif
-	/* Set mask for hash to 16 low bits OSRM = 5 */
-	iowrite32(0x11000005, &wrks_addr->ep_osc);
-	data = ioread32(&wrks_addr->ep_osc);
-	if (data != 0x11000005)
-		return -EINVAL;
-
-	pr_info("CMDIF Server is setting EPID = 0\n");
-	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
-	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
-
-	return 0;
+	fsl_os_xfree(srv);
 }
+#endif
 
 static void *fast_malloc(int size)
 {
@@ -337,37 +294,20 @@ static void srv_free(void *ptr)
 int cmdif_srv_init(void)
 {
 	int     err = 0;
-	struct  cmdif_srv *srv = NULL;
-
-	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV))
-		return -ENODEV;
-
-	err = epid_setup();
-	if (err) {
-		pr_err("EPID 0 is not setup correctly \n");
-		return err;
-	}
 
 	srv = cmdif_srv_allocate(fast_malloc, slow_malloc);
-	if (srv == NULL) {
-		pr_err("Not enough memory for server allocation \n");
+	if (srv == NULL)
 		return -ENOMEM;
-	}
-	
-	err = sys_add_handle(srv, FSL_OS_MOD_CMDIF_SRV, 1, 0);
+
 	return err;
 }
 
 void cmdif_srv_free(void)
 {
-	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-
-	sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
-
 	cmdif_srv_deallocate(srv, srv_free);
 }
 
-
+#if 0
 __HOT_CODE static int cmdif_fd_send(int cb_err)
 {
 	int err;
@@ -541,3 +481,4 @@ __HOT_CODE void cmdif_srv_isr(void)
 }
 
 #pragma pop
+#endif

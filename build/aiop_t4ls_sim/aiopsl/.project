@@ -190,6 +190,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/cmdif_srv_flib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/console.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/console.c</locationURI>
@@ -403,6 +408,11 @@
 			<name>aiop_sl/include/common/fsl_cmdif.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/common/fsl_cmdif_flib.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_cmdif_server.h</name>
