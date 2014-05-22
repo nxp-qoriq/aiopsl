@@ -52,7 +52,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MAX_NUM_OF_APPS		10
 
-int fill_system_parameters(t_sys_param *sys_param);
+void fill_system_parameters(struct platform_param *platform_param); //TODO this is already defined in sys.h ...
 int global_init(void);
 int global_post_init(void);
 int tile_init(void);
@@ -66,30 +66,19 @@ void core_ready_for_tasks(void);
 __TASK struct aiop_default_task_params default_task_params;
 
 
-int fill_system_parameters(t_sys_param *sys_param)
+void fill_system_parameters(struct platform_param *platform_param) //TOOD make this static in init.c
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
 
-#ifndef DEBUG_NO_MC
-    { /* TODO - temporary check boot register */
-    	uintptr_t   tmp_reg = 0x00000000 + SOC_PERIPH_OFF_MC;
-    	/* wait for MC command for boot */
-    	while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x08)) & 0x1)) ;
-    }
-#endif /* DEBUG_NO_MC */
+    memset(&platform_param, 0, sizeof(platform_param));
 
-    sys_param->partition_id = 0;
-    sys_param->master_cores_mask = 0x1;
-
-    sys_param->platform_param->clock_in_freq_hz = 100000000;
-    sys_param->platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
-    sys_param->platform_param->console_type = PLTFRM_CONSOLE_DUART;
-    sys_param->platform_param->console_id = 0;
-    memcpy(sys_param->platform_param->mem_info,
+    platform_param->clock_in_freq_hz = 100000000;
+    platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
+    platform_param->console_type = PLTFRM_CONSOLE_DUART;
+    platform_param->console_id = 0;
+    memcpy(platform_param->mem_info,
            mem_info,
            sizeof(struct platform_memory_info)*ARRAY_SIZE(mem_info));
-
-    return 0;
 }
 
 int tile_init(void)

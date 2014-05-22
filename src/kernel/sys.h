@@ -38,7 +38,7 @@ typedef struct t_system {
 	uint64_t             active_cores_mask;
 	uint8_t              barrier_lock;
 	volatile uint64_t    barrier_mask;
-	int                  init_fail_count;
+	int                  init_fail_count; //TODO what is this ??, noone reads this !!
 
 	/*TODO check if need to be removed: list_t*/
 	/*list_t                      forced_objects_list;*/
@@ -48,7 +48,7 @@ typedef struct t_system {
 } t_system;
 
 
-int     fill_system_parameters(t_sys_param *sys_param);
+void fill_system_parameters(struct platform_param *platform_param);
 
 /* Internal system routines */
 int     sys_init_memory_management(void);

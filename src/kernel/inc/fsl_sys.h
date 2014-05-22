@@ -53,30 +53,6 @@ void    (*free) (void);
 };
 
 /**************************************************************************//**
-@Description   System initialization parameters structure
-*//***************************************************************************/
-typedef struct t_sys_param {
-uint8_t                 partition_id;           /**< Partition ID - set to
-						SYS_MASTER_PART_ID
-						on master partition */
-uint64_t                partition_cores_mask;   /**< Cores belonging to
-						this partition,
-						used by SMP configuration
-						for releasing
-						partition's cores from spin
-						table and for execution
-						synchronization via
-						SYS_Barrier() */
-uint64_t                master_cores_mask;      /**< Master cores on all
-						partitions, used by AMP
-						configuration for releasing
-						guest partition masters from
-						spin table */
-struct platform_param   *platform_param;   /**< Platform specific parameters */
-} t_sys_param;
-
-
-/**************************************************************************//**
 @Function      sys_init
 
 @Description   System initialization routine.

@@ -10,7 +10,6 @@
 #include "sys.h"
 #include "dbg.h"
 
-
 /* Global System Object */
 __SHRAM t_system sys;
 
@@ -113,23 +112,30 @@ static int sys_init_platform(struct platform_param *platform_param)
 	int     err = 0;
 	int is_master_core = sys_is_master_core();
 
+	ASSERT_COND(platform_param);
+	
 	if (is_master_core) {
 		err = platform_init(platform_param, &(sys.platform_ops));
-		if (err == 0)
-			ASSERT_COND(sys.platform_ops.h_platform);
-
+		if (err != 0)
+			RETURN_ERROR(MAJOR, err, NO_MSG);
+		
 		err = sys_add_handle(sys.platform_ops.h_platform,
 			FSL_OS_MOD_SOC, 1, 0);
 		if (err != 0)
 			RETURN_ERROR(MAJOR, err, NO_MSG);
 	}
 
+	/* 
+	 * TODO critical point:
+	 * platform_init() must be completed by mastercore before any other 
+	 * core does the following code.
+	 */
+	
+	//TODO why do I need this parameter ??
 	if (err != 0)
-		sys.init_fail_count++;
+		sys.init_fail_count++; 
 
-	sys_barrier();
-
-	SYS_PLATFORM_INIT_FAIL_CHECK();
+	SYS_PLATFORM_INIT_FAIL_CHECK(); //TODO can I replace this with a simple check ??
 
 	if (sys.platform_ops.f_disable_local_irq)
 		sys.platform_ops.f_disable_local_irq(
@@ -139,9 +145,7 @@ static int sys_init_platform(struct platform_param *platform_param)
 		err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
 
 	if (err != 0)
-		sys.init_fail_count++;
-
-	sys_barrier();
+		sys.init_fail_count++; //TODO why
 
 	SYS_PLATFORM_INIT_FAIL_CHECK();
 
@@ -165,8 +169,6 @@ static int sys_init_platform(struct platform_param *platform_param)
 
 	if (err != 0)
 		sys.init_fail_count++;
-
-	sys_barrier();
 
 	SYS_PLATFORM_INIT_FAIL_CHECK();
 
@@ -196,8 +198,6 @@ static int sys_init_platform(struct platform_param *platform_param)
 	if (err != 0)
 		sys.init_fail_count++;
 
-	sys_barrier();
-
 	SYS_PLATFORM_INIT_FAIL_CHECK();
 
 	if (sys.platform_ops.f_init_private)
@@ -206,8 +206,6 @@ static int sys_init_platform(struct platform_param *platform_param)
 
 	if (err != 0)
 		sys.init_fail_count++;
-
-	sys_barrier();
 
 	SYS_PLATFORM_INIT_FAIL_CHECK();
 
@@ -280,18 +278,11 @@ static int sys_free_platform(void)
 /*****************************************************************************/
 int sys_init(void)
 {
-	t_sys_param             sys_param;
-	struct platform_param   platform_param;
+	struct platform_param   platform_param; //TODO only master-core needs it !!
 	int       err, is_master_core;
 	uint32_t        core_id = core_get_id();
 
-	memset(&sys_param, 0, sizeof(sys_param));
-	memset(&platform_param, 0, sizeof(platform_param));
-	sys_param.platform_param = &platform_param;
-	fill_system_parameters(&sys_param);
-
-	sys.is_tile_master[core_id] = (int)(sys_param.master_cores_mask &
-		(1ULL << core_id));
+	sys.is_tile_master[core_id] = (int)(0x1 & (1ULL << core_id)); //TODO make it more flexible ...
 	sys.is_cluster_master[core_id] = ! (core_id % 4);
 	
 	is_master_core = sys_is_master_core();
@@ -302,26 +293,29 @@ int sys_init(void)
 			+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
 		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
 		
+		fill_system_parameters(&platform_param);
+		
 		sys.active_cores_mask  = abrr_val;
+		
 		/*sys.ipc_enabled          = sys_param.use_ipc;*/
 	} else {
 		while(!sys.active_cores_mask) {}
 	}
 
 	if (is_master_core)
-		platform_early_init(sys_param.platform_param);
+		platform_early_init(&platform_param); //TODO what goes in here ??
 
 	if (is_master_core) {
 
 		/* Initialize memory management */
 		err = sys_init_memory_management();
 		if (err != 0) {
-			pr_err("Failed sys_init_memory_management\n");
+			pr_err("Failed sys_init_memory_management\n"); //XXX can I print before sys_register_debugger_console ??
 			return err;
 		}
 
 		/* Initialize the objects registry structures */
-		sys_init_objects_registry();
+		sys_init_objects_registry(); //TODO what is this, can I remove it ??
 	}
 
 	/* Initialize Multi-Processing services as needed */
@@ -332,14 +326,15 @@ int sys_init(void)
 	}
 	sys_barrier();
 
-	err = sys_init_platform(sys_param.platform_param);
+	err = sys_init_platform(&platform_param);
 	if (err != 0)
 		return -1;
 
 	if (is_master_core) {
-		if (!sys.console)
+		if (!sys.console) {
 			/* If no platform console, register debugger console */
 			sys_register_debugger_console();
+		}
 	}
 	return 0;
 }
