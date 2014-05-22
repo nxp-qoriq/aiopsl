@@ -177,13 +177,10 @@ static int sys_init_platform(struct platform_param *platform_param)
 			sys.platform_ops.h_platform);
 
 	if (is_master_core) {
-#if 0
 		/* Do not change the sequence of calls in this section */
-		if ((err == 0) && sys.ipc_enabled &&
-			sys.platform_ops.f_init_ipc)
+		if ((err == 0) && sys.platform_ops.f_init_ipc)
 			err = sys.platform_ops.f_init_ipc(
 				sys.platform_ops.h_platform);
-#endif /* 0 */
 
 		if ((err == 0) && sys.platform_ops.f_init_console)
 			err = sys.platform_ops.f_init_console(
@@ -234,10 +231,10 @@ static int sys_free_platform(void)
 			err = sys.platform_ops.f_free_console(
 				sys.platform_ops.h_platform);
 
-		/*
-		if (sys.ipc_enabled && sys.platform_ops.f_free_ipc)
-		err = sys.platform_ops.f_free_ipc(sys.platform_ops.h_platform);
-		 */
+		if (sys.platform_ops.f_free_ipc)
+			err = sys.platform_ops.f_free_ipc(
+				sys.platform_ops.h_platform);
+		
 	}
 
 	sys_barrier();
@@ -296,35 +293,27 @@ int sys_init(void)
 		fill_system_parameters(&platform_param);
 		
 		sys.active_cores_mask  = abrr_val;
-		
-		/*sys.ipc_enabled          = sys_param.use_ipc;*/ //TODO remove all IPC, keep skeleton
 	} else {
-		while(!sys.active_cores_mask) {} //TODO remove
+		while(!sys.active_cores_mask) {} //TODO remove :-(
 	}
 
-	if (is_master_core)
-		platform_early_init(&platform_param);
-
 	if (is_master_core) {
+		platform_early_init(&platform_param);
 
 		/* Initialize memory management */
 		err = sys_init_memory_management();
 		if (err != 0) {
-			pr_err("Failed sys_init_memory_management\n"); //XXX remove
+			pr_err("Failed sys_init_memory_management\n");
 			return err;
 		}
-
-		/* Initialize the objects registry structures */
-		sys_init_objects_registry(); //TODO do nothing, Alex will remove this !!
 	}
 
 	/* Initialize Multi-Processing services as needed */
 	err = sys_init_multi_processing();
 	if (err != 0) {
-		pr_err("Failed sys_init_multi_processing\n"); //TODO remove - ask ALEX
+		pr_err("Failed sys_init_multi_processing\n");
 		return err;
 	}
-	sys_barrier(); //TODO remove
 
 	err = sys_init_platform(&platform_param);
 	if (err != 0)
