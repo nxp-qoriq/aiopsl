@@ -271,6 +271,11 @@ typedef void (ipsec_lifetime_callback_t) (
 /** ICV comparison failed */
 #define IPSEC_ICV_COMPARE_FAIL 				0x00000800
 
+/** General encryption error */
+#define IPSEC_GEN_ENCR_ERR	 				0x00001000
+/** General decryption error */
+#define IPSEC_GEN_DECR_ERR	 				0x00002000
+
 /** @} */ /* end of FSL_IPSEC_MACROS */
 
 /**************************************************************************//**

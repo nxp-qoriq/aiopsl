@@ -212,16 +212,35 @@ Big Endian
 
 		Use for ipsec_decap_params.hmo
 *//***************************************************************************/
-// TODO: TMP values
-/** Sequence Number overflow */
-#define	SEC_SEQ_NUM_OVERFLOW 0xFFFFFFF0
-/** Anti Replay Check: Late packet */
-#define	SEC_AR_LATE_PACKET 0xFFFFFFF1
-/** Anti Replay Check: Replay packet */
-#define	SEC_AR_REPLAY_PACKET 0xFFFFFFF2
-/** ICV comparison failed */
-#define	SEC_ICV_COMPARE_FAIL 0xFFFFFFF3
+/* SEC Job termination status/error word 
+* bits 31-28      bits 3-0 / bits 7-0 
+* (Source of      (ERRID)  / (Error Code)
+*  the status 
+*  code)
+* -----------     ---------
+* 2h (CCB)	    Ah - ICV check failed
+* -----------     ---------
+* 4h (DECO)		83h - Anti-replay LATE error
+*				84h - Anti-replay REPLAY error
+*				85h - Sequence number overflow
+*/
+/** No Error */
+#define	SEC_NO_ERROR 0x00000000
 
+/** ICV comparison failed */
+#define	SEC_ICV_COMPARE_FAIL 0x2000000A
+
+/** Anti Replay Check: Late packet */
+#define	SEC_AR_LATE_PACKET 0x40000083
+/** Anti Replay Check: Replay packet */
+#define	SEC_AR_REPLAY_PACKET 0x40000084
+/** Sequence Number overflow */
+#define	SEC_SEQ_NUM_OVERFLOW 0x40000085
+
+/* OSM temporary defines */
+/* TODO: should move to general or OSM include file */
+#define IPSEC_OSM_CONCURRENT			0
+#define IPSEC_OSM_EXCLUSIVE				1
 
 /**************************************************************************//**
 @Description	IPSec handle Type definition
@@ -281,9 +300,9 @@ struct ipsec_instance_params {
 /* Note: For ste_inc_and_acc_counters function, the accumulator memory address 
  * should be counter_addr + sizeof(counter) 
  * In thiis case "accumulator" = byte counter, "counter" = packets counter*/
-#define IPSEC_BYTE_COUNTER_OFFSET 0
+#define IPSEC_PACKET_COUNTER_OFFSET 0
 #define IPSEC_STATUS_OFFSET 52
-#define IPSEC_BYTE_COUNTER_ADDR	(ipsec_handle + IPSEC_BYTE_COUNTER_OFFSET)
+#define IPSEC_PACKET_COUNTER_ADDR (ipsec_handle + IPSEC_PACKET_COUNTER_OFFSET)
 #define IPSEC_STATUS_ADDR (ipsec_handle + IPSEC_STATUS_OFFSET)
 
 /* SA Descriptor Parameter for Internal Usage */ 

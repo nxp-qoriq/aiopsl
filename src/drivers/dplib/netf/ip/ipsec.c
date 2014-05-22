@@ -15,6 +15,7 @@
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_ste.h"
+#include "dplib/fsl_osm.h"
 #include "header_modification.h"
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"
@@ -806,15 +807,25 @@ int32_t ipsec_frame_encrypt(
 	uint64_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
-	uint32_t tmp_params_status = 0;
+	uint8_t dont_encrypt = 0;
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
+	struct scope_status_params scope_status;
+
+	*enc_status = 0; /* Initialize */
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
 	 * – Simplified Flow */
 	/* 	1.	If in Concurrent ordering scope, move to Exclusive 
 	 * (increment scope ID). */
-	// TODO
+
+	/* Get OSM status (ordering scope mode and levels) */
+	osm_get_scope(&scope_status);
+
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+	    /* Move to exclusive */
+	    osm_scope_transition_to_exclusive_with_increment_scope_id();
+	}
 	
 	/* 	2.	Read relevant descriptor fields with CDMA. */
 	return_val = cdma_read(
@@ -827,24 +838,39 @@ int32_t ipsec_frame_encrypt(
 	
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits have 
 	 * not expired. If expired, return with error and go to END */
-	// TODO
-	if (sap1.status & (
-			IPSEC_STATUS_HARD_KB_EXPIRED |
-			IPSEC_STATUS_HARD_PACKET_EXPIRED |
-			IPSEC_STATUS_HARD_SEC_EXPIRED
-			)
-	) {
-		
-		*enc_status = sap1.status & (
-							IPSEC_STATUS_HARD_KB_EXPIRED |
-							IPSEC_STATUS_HARD_PACKET_EXPIRED |
-							IPSEC_STATUS_HARD_SEC_EXPIRED
-						);
-		
+	/* The seconds lifetime status is checked in the params[status] 
+	 * and the kilobyte/packet status is checked from the params[counters].
+	 * This is done to avoid doing mutex lock for kilobyte/packet status */
+	/* Seconds Lifetime */
+	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+		*enc_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+	}
+	if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+		*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+		dont_encrypt = 1;
+	}
+	/* KB and Packets soft lifetime */
+	if (sap1.byte_counter >= sap1.soft_byte_limit) {
+		*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+	}
+	if (sap1.packet_counter >= sap1.soft_packet_limit) {
+		*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+	}
+	/* KB and Packets hard lifetime */
+	if (sap1.byte_counter >= sap1.hard_byte_limit) {
+		*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+		dont_encrypt = 1;
+	}
+	if (sap1.packet_counter >= sap1.hard_packet_limit) {
+		*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+		dont_encrypt = 1;
+	}
+	
+	if (dont_encrypt) {
 		return_val = IPSEC_ERROR; // TODO: TMP
 		goto encrypt_end;
 	}
-		
+	
 		/*---------------------*/
 		/* ipsec_frame_encrypt */
 		/*---------------------*/
@@ -953,20 +979,28 @@ int32_t ipsec_frame_encrypt(
 	
 	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	//*enc_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	
-	// TODO: temporary case and values, need to updae
+	// TODO: which errors can happen in encryption?
 	switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
+		case SEC_NO_ERROR:
+			break;
 		case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
 			*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			return_val = -1;
+			break;
 		case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
 			*enc_status |= IPSEC_AR_LATE_PACKET;
 			return_val = -1;
+			break;
 		case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
 			*enc_status |= IPSEC_AR_REPLAY_PACKET;
 			return_val = -1;
+			break;
 		case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
 			*enc_status |= IPSEC_ICV_COMPARE_FAIL;	
+			return_val = -1;
+			break;
+		default:
+			*enc_status |= IPSEC_GEN_ENCR_ERR;	
 			return_val = -1;
 	}
 	
@@ -1015,31 +1049,10 @@ int32_t ipsec_frame_encrypt(
 	/* 	18.	Handle lifetime counters */
 		/* 	18.1.	Read lifetime counters (CDMA) */
 		/* 	18.2.	Add byte-count from SEC and one packet count. */
-		/* 	18.3.	Calculate locally if lifetime counters crossed the limits. 
-		 * If yes set flag in the descriptor statistics (CDMA write). */
-	//sap1.byte_counter
-	if ((byte_count +  sap1.byte_counter) >= sap1.soft_byte_limit) {
-		*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
-		tmp_params_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
-	}
-	if ((byte_count +  sap1.byte_counter) >= sap1.soft_packet_limit) {
-		*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
-		tmp_params_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
-	}
-	
-	if ((byte_count +  sap1.byte_counter) >= sap1.hard_byte_limit) {
-		*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-		tmp_params_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-	}
-	if ((byte_count +  sap1.byte_counter) >= sap1.hard_packet_limit) {
-		*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-		tmp_params_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-	}
-	
-	/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
+		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
 		 * (STE increment + accumulate). */
 	ste_inc_and_acc_counters(
-			IPSEC_BYTE_COUNTER_ADDR,/* uint64_t counter_addr */
+			IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
 			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
@@ -1048,20 +1061,24 @@ int32_t ipsec_frame_encrypt(
 			STE_MODE_COMPOUND_ACC_SATURATE)
 			);
 	
-	//TODO
-	
-	
 	return_val = IPSEC_SUCCESS;	
 
 encrypt_end:
 	
 	/* 	19.	END */
+		
 	/* 	19.1. Update the encryption status (enc_status) and return status. */
+
 	/* 	19.2.If started as Concurrent ordering scope, 
 	 * move from Exclusive to Concurrent 
-	 * (if AAP does that, only register through OSM functions). */
-	//TODO
+	 * TODO: (if AAP does that, only register through OSM functions). */
 	
+	/* Check if started in concurrent mode */
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+		/* Move to Concurrent */
+		osm_scope_relinquish_exclusivity();
+	}
+
 	/* 	19.3.	Return */
 	return return_val;
 } /* End of ipsec_frame_encrypt */
@@ -1084,27 +1101,37 @@ int32_t ipsec_frame_decrypt(
 	uint16_t outer_material_length;
 	//uint16_t running_sum;
 	uint64_t *eth_pointer_default;
-		
-	
+	uint32_t byte_count;
+	uint16_t checksum;
+	uint8_t dont_decrypt = 0;
+
 	/* TMP debug code */
 	uint32_t tmp_outer_ip_offset = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 	uint32_t tmp_eth_offset = (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
 	uint32_t tmp_l5_offset = (uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()); 
-
 	
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
+	struct scope_status_params scope_status;
 
 	struct dpovrd_general dpovrd;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	
+	*dec_status = 0; /* Initialize */
 	
 	/* 	Inbound frame decryption and decapsulation */
 	
 	/* 	TODO: Currently supporting only Tunnel mode simplified flow */
 
 	/* 	1.	If in Concurrent ordering scope, move to Exclusive 
-	 * TODO */
-	
+	/* Get OSM status (ordering scope mode and levels) */
+	osm_get_scope(&scope_status);
+
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+	    /* Move to exclusive */
+	    osm_scope_transition_to_exclusive_with_increment_scope_id();
+	}
+
 	/* 	2.	Read relevant descriptor fields with CDMA. */
 	return_val = cdma_read(
 			&sap1, /* void *ws_dst */
@@ -1116,7 +1143,39 @@ int32_t ipsec_frame_decrypt(
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits 
 	 * have expired. If expired, return with error. go to END */
 	// TODO
-
+	/* The seconds lifetime status is checked in the params[status] 
+	 * and the kilobyte/packet status is checked from the params[counters].
+	 * This is done to avoid doing mutex lock for kilobyte/packet status */
+	/* Seconds Lifetime */
+	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+		*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+	}
+	if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+		*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+		dont_decrypt = 1;
+	}
+	/* KB and Packets soft lifetime */
+	if (sap1.byte_counter >= sap1.soft_byte_limit) {
+		*dec_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+	}
+	if (sap1.packet_counter >= sap1.soft_packet_limit) {
+		*dec_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+	}
+	/* KB and Packets hard lifetime */
+	if (sap1.byte_counter >= sap1.hard_byte_limit) {
+		*dec_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+		dont_decrypt = 1;
+	}
+	if (sap1.packet_counter >= sap1.hard_packet_limit) {
+		*dec_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+		dont_decrypt = 1;
+	}
+	
+	if (dont_decrypt) {
+		return_val = IPSEC_ERROR; // TODO: TMP
+		goto decrypt_end;
+	}
+	
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
@@ -1249,7 +1308,32 @@ int32_t ipsec_frame_decrypt(
 	return_val = fdma_present_default_frame();
 
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	*dec_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	// TODO: which errors can happen in decryption?
+	switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
+		case SEC_NO_ERROR:
+			break;
+		case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+			*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+			return_val = -1;
+			break;
+		case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
+			*dec_status |= IPSEC_AR_LATE_PACKET;
+			return_val = -1;
+			break;
+		case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
+			*dec_status |= IPSEC_AR_REPLAY_PACKET;
+			return_val = -1;
+			break;
+		case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
+			*dec_status |= IPSEC_ICV_COMPARE_FAIL;	
+			return_val = -1;
+			break;
+		default:
+			*dec_status |= IPSEC_GEN_ENCR_ERR;	
+			return_val = -1;
+	}
+
+	
 	
 	/* 	14.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
@@ -1265,12 +1349,15 @@ int32_t ipsec_frame_decrypt(
 	*/
 	// TODO (still not implemented in the simulator)
 	return_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
+	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
 	
 	/* 	16.	Update the gross running checksum in the Workspace parser results.*/
-	pr->gross_running_sum = 
-			(uint16_t)((return_flc & IPSEC_RETURN_FLC_CHECKSUM_BE_MASK)
-					>>IPSEC_RETURN_FLC_CHECKSUM_BE_SHIFT);
-	
+	//pr->gross_running_sum = 
+	//		(uint16_t)((return_flc & IPSEC_RETURN_FLC_CHECKSUM_BE_MASK)
+	//				>>IPSEC_RETURN_FLC_CHECKSUM_BE_SHIFT);
+	pr->gross_running_sum = checksum;
+			
 	// TODO: handle in transport mode
 	
 			/*---------------------*/
@@ -1296,7 +1383,19 @@ int32_t ipsec_frame_decrypt(
 	 * If yes set flag in the descriptor statistics (CDMA write). */
 	/* 	20.4.	Update the kilobytes and/or packets lifetime counters 
 	 * (STE increment + accumulate). */
-	// TODO
+	ste_inc_and_acc_counters(
+			IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
+			byte_count,	/* uint32_t acc_value */
+			/* uint32_t flags */
+			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
+			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
+			STE_MODE_COMPOUND_CNTR_SATURATE |
+			STE_MODE_COMPOUND_ACC_SATURATE)
+			);
+	
+	return_val = IPSEC_SUCCESS;	
+
+decrypt_end:
 	
 	/* 	21.	END */
 	/* 	21.1. Update the encryption status (enc_status) and return status. */
@@ -1305,8 +1404,14 @@ int32_t ipsec_frame_decrypt(
 	 *  (if AAP does that, only register through OSM functions). */
 	// TODO
 	
+	/* Check if started in concurrent mode */
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+		/* Move to Concurrent */
+		osm_scope_relinquish_exclusivity();
+	}
+	
 	/* Return */
-	return 0;
+	return return_val;
 } /* End of ipsec_frame_decrypt */
 
 
