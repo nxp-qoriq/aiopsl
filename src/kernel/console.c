@@ -41,20 +41,27 @@ static int sys_debugger_print(fsl_handle_t unused,
                               uint32_t size)
 {
 	int ret;
-#ifdef MC
+#ifdef AIOP
+	lock_spinlock(&(sys.console_lock));
+#else
 	uint32_t int_flags;
 	/* Disable interrupts to work-around CW bug */
 	int_flags = spin_lock_irqsave(&(sys.console_lock));
 #endif
+
 #ifdef SIMULATOR
 	ret = system_call(4, 1, (int)PTR_TO_UINT(p_data), (int)size, 0);
 #else
 	ret = printf((char *)p_data);
 	fflush(stdout);
 #endif /* SIMULATOR */
-#ifdef MC
+
+#ifdef AIOP
+	unlock_spinlock(&(sys.console_lock));
+#else
 	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 #endif
+
 	UNUSED(unused);
 	UNUSED(size);
 	return ret;
@@ -110,11 +117,11 @@ void sys_print(char *str)
 {
 	uint32_t count;
 
-#ifdef MC
+#ifdef AIOP
+	lock_spinlock(&(sys.console_lock));
+#else
 	uint32_t int_flags;
 	int_flags = spin_lock_irqsave(&(sys.console_lock));
-#else if AIOP
-	lock_spinlock(&(sys.console_lock));
 #endif
 	count = (uint32_t)strlen(str);
 
@@ -129,11 +136,10 @@ void sys_print(char *str)
 
 			if (!sys.p_pre_console_buf) {
 				/* Cannot print error message - will lead to recursion */
-#ifdef MC
-				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
-
-#else if AIOP
+#ifdef AIOP
 				unlock_spinlock(&(sys.console_lock));
+#else
+				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 #endif
 				fsl_os_exit(1);
 			}
@@ -153,11 +159,10 @@ void sys_print(char *str)
 		sys.pre_console_buf_pos += count;
 	}
 
-#ifdef MC
-				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
-
-#else if AIOP
+#ifdef AIOP
 				unlock_spinlock(&(sys.console_lock));
+#else
+				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 #endif
 }
 
