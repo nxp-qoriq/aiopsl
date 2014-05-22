@@ -239,7 +239,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     }
     
 #ifdef AIOP
-    p_new_partition->lock = 0;
+    *(p_new_partition->lock) = 0;
 #endif /* AIOP */
 
     if (!f_user_malloc)

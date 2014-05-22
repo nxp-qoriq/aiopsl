@@ -584,7 +584,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
     }
 
 #ifdef AIOP
-    p_MM->lock = 0;
+    *(p_MM->lock) = 0;
 #endif
     
     /* Initializes counter of free memory to total size */
