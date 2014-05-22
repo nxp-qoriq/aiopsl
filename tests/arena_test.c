@@ -10,7 +10,7 @@
 #include "kernel/platform.h"
 #include "io.h"
 #include "aiop_common.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 
 int app_init(void);
 void app_free(void);
