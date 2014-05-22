@@ -119,6 +119,7 @@ void core_ready_for_tasks(void)
 
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
+#ifndef SINGLE_CORE_WA
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
@@ -137,7 +138,8 @@ void core_ready_for_tasks(void)
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
     }
-
+#endif
+    
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif

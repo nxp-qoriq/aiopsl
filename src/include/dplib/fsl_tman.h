@@ -253,7 +253,7 @@ enum tman_timer_query_status {
  *  expiration task or on the TMI confirmation task. */
 #define TMAN_GET_TIMER_HANDLE(_fd)					\
 	(uint32_t)({register uint32_t *__rR = 0;			\
-	uint32_t frc = (LW_SWAP(((char *)_fd) + FD_FRC_OFFSET));	\
+	uint32_t frc = (LW_SWAP(((char *)_fd) + FD_FRC_OFFSET, 0));	\
 	__rR = (uint32_t *) frc; })
 
 /* @} end of group TMANReturnStatus */

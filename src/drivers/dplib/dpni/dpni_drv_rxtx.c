@@ -31,7 +31,7 @@ __HOT_CODE void receive_cb(void)
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Need to save running-sum in parse-results LE-> BE */
-	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
+	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
 
 	osm_task_init();
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
@@ -114,7 +114,7 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 		flags |= FDMA_ENF_BDI_BIT;
 	/*if (va_bdi & ADC_VA_MASK)
 		flags |= FDMA_ENF_VA_BIT;*/
-	icid = LH_SWAP(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
+	icid = LH_SWAP(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET, 0);
 	/*if (icid & ADC_PL_MASK)
 		flags |= FDMA_ENF_PL_BIT;*/
 	icid &= ADC_ICID_MASK;
