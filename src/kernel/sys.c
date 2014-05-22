@@ -297,7 +297,7 @@ int sys_init(void)
 		
 		sys.active_cores_mask  = abrr_val;
 		
-		/*sys.ipc_enabled          = sys_param.use_ipc;*/
+		/*sys.ipc_enabled          = sys_param.use_ipc;*/ //TODO do we support IPC ?
 	} else {
 		while(!sys.active_cores_mask) {}
 	}
