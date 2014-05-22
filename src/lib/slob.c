@@ -949,9 +949,9 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
     /* insert the new busy block into the list of busy blocks */
     add_busy( p_MM, p_new_busy_b );
 #ifdef AIOP
-        unlock_spinlock(p_MM->lock);
+    unlock_spinlock(p_MM->lock);
 #else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
+    spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
 
     return (hold_base);
