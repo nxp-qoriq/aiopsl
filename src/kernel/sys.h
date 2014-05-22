@@ -40,9 +40,6 @@ typedef struct t_system {
 	volatile uint64_t    barrier_mask;
 	int                  init_fail_count; //TODO what is this ??, noone reads this !!
 
-	/*TODO check if need to be removed: list_t*/
-	/*list_t                      forced_objects_list;*/
-
 	/* Platform operations */
 	t_platform_ops              platform_ops;
 } t_system;
