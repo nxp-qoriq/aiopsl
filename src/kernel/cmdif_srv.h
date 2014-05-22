@@ -3,7 +3,6 @@
 
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
-#include "fsl_cmdif_flib.h"
 
 #define CMD_ID_MASK	   0x00000000FFFF0000 /**< FLC */
 #define CMD_ID_OFF	   16

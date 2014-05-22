@@ -2,7 +2,6 @@
 #include "common/gen.h"
 #include "common/errors.h"
 #include "common/fsl_string.h"
-#include "cmdif_srv.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
 #include "io.h"
@@ -14,6 +13,9 @@
 #include "fsl_cdma.h"
 #include "aiop_common.h"
 #include "errors.h"
+
+#include "cmdif_srv.h"
+#include "fsl_cmdif_flib.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \

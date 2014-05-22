@@ -1,7 +1,12 @@
+#include <fsl_cmdif_flib.h>
 #include <cmdif_srv.h>
 #include <errno.h>
 #include <types.h>
 #include <string.h>
+
+#define FREE_MODULE    '\0'
+#define TAKEN_INSTANCE (void *)0xFFFFFFFF
+#define FREE_INSTANCE  NULL
 
 struct cmdif_srv *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 				void *(*slow_malloc)(int size))
