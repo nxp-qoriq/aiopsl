@@ -1,6 +1,6 @@
 #include "common/types.h"
+#include "kernel/fsl_spinlock.h"
 #include "common/gen.h"
-#include "common/spinlock.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 
@@ -88,7 +88,7 @@ int sys_register_console(fsl_handle_t h_console_dev,
 
 	sys.f_console_get = f_console_get;
 
-	spin_lock_init(&(sys.console_lock));
+	sys.console_lock = 0; /* spinlock init */
 
 	/* Flush pre-console printouts as necessary */
 	if (h_console_dev && sys.p_pre_console_buf) {

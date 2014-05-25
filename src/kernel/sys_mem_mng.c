@@ -1,6 +1,6 @@
 
 #include "common/fsl_malloc.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "common/dbg.h"
 
 #include "inc/mem_mng_util.h"
@@ -51,8 +51,9 @@ extern t_system sys;
 int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64_t size)
 {
     t_sys_virt_mem_map *p_virt_mem_map;
+#ifndef AIOP
     uint32_t        int_flags;
-
+#endif /* AIOP */
     p_virt_mem_map = (t_sys_virt_mem_map *)fsl_os_malloc(sizeof(t_sys_virt_mem_map));
     if (!p_virt_mem_map)
         RETURN_ERROR(MAJOR, E_NO_MEMORY, ("virtual memory mapping entry"));
@@ -63,10 +64,18 @@ int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64
 
     INIT_LIST(&p_virt_mem_map->node);
 
+#ifdef AIOP
+    lock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
     int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
+#endif /* AIOP */
     list_add_to_tail(&p_virt_mem_map->node, &(sys.virt_mem_list));
+#ifdef AIOP
+    unlock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
     spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
-
+#endif /* AIOP */
+    
     return E_OK;
 }
 
@@ -74,17 +83,26 @@ int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64
 /*****************************************************************************/
 int sys_unregister_virt_mem_mapping(uint64_t virt_addr)
 {
+#ifndef AIOP
     uint32_t        int_flags;
+#endif /* AIOP */
     t_sys_virt_mem_map *p_virt_mem_map = sys_find_virt_addr_mapping(virt_addr);
 
     if (!p_virt_mem_map)
         RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("virtual address"));
-
+#ifdef AIOP
+    lock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
     int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
+#endif /* AIOP */
     list_del(&(p_virt_mem_map->node));
     fsl_os_free(p_virt_mem_map);
+#ifdef AIOP
+    unlock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
     spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
-
+#endif /* AIOP */
+    
     return E_OK;
 }
 
@@ -101,10 +119,18 @@ dma_addr_t sys_virt_to_phys(void *virt_addr)
         /* This is optimization - put the latest in the list-head - like a cache */
         if (sys.virt_mem_list.next != &p_virt_mem_map->node)
         {
+#ifdef AIOP
+            lock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
             uint32_t int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
+#endif /* AIOP */
             list_del_and_init(&p_virt_mem_map->node);
             list_add(&p_virt_mem_map->node, &(sys.virt_mem_list));
+#ifdef AIOP
+            unlock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
             spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
+#endif /* AIOP */
         }
         return (dma_addr_t)
             (virt_addr64 - p_virt_mem_map->virt_addr + p_virt_mem_map->phys_addr);
@@ -126,10 +152,18 @@ void * sys_phys_to_virt(dma_addr_t phys_addr)
         /* This is optimization - put the latest in the list-head - like a cache */
         if (sys.virt_mem_list.next != &p_virt_mem_map->node)
         {
+#ifdef AIOP
+            lock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
             uint32_t int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
+#endif /* AIOP */
             list_del_and_init(&p_virt_mem_map->node);
             list_add(&p_virt_mem_map->node, &(sys.virt_mem_list));
+#ifdef AIOP
+            unlock_spinlock(&(sys.virt_mem_lock));
+#else /* not AIOP */
             spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
+#endif /* AIOP */
         }
         return UINT_TO_PTR(phys_addr - p_virt_mem_map->phys_addr + p_virt_mem_map->virt_addr);
     }
@@ -428,11 +462,16 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 int sys_init_memory_management(void)
 {
     t_mem_mng_param mem_mng_param;
-
+#ifdef AIOP
+    sys.virt_mem_lock = 0;
+    sys.mem_mng_lock = 0;
+    sys.mem_part_mng_lock = 0;
+#else /* not AIOP */
     spin_lock_init(&(sys.virt_mem_lock));
     spin_lock_init(&(sys.mem_mng_lock));
-    spin_lock_init(&(sys.mem_part_mng_lock));
-
+    spin_lock_init(&(sys.mem_part_mng_lock)); 
+#endif /* AIOP */
+    
     INIT_LIST(&(sys.virt_mem_list));
 
     /* Initialize memory allocation manager module */
@@ -493,11 +532,18 @@ static void * sys_default_malloc(uint32_t size)
     p = (void *)malloc(size);
     sigsetmask(i);                          /* Set SIGTSTP signal back */
 #else  /* not VERILOG */
+#ifdef AIOP
+    lock_spinlock(&(sys.mem_mng_lock));
+#else /* not AIOP */
     uint32_t    int_flags;
-
     int_flags = spin_lock_irqsave(&(sys.mem_mng_lock));
+#endif /* AIOP */
     p = (void *)malloc(size);
+#ifdef AIOP
+    unlock_spinlock(&(sys.mem_mng_lock));
+#else /* not AIOP */
     spin_unlock_irqrestore(&(sys.mem_mng_lock), int_flags);
+#endif /* AIOP */
 #endif /* not VERILOG */
 
     return p;
@@ -513,11 +559,21 @@ static void sys_default_free(void *p_memory)
     free(p_memory);
     sigsetmask(i);                  /* Set SIGTSTP signal back */
 #else /* not VERILOG */
+#ifndef AIOP
     uint32_t    int_flags;
-
+#endif /* AIOP */
+    
+#ifdef AIOP
+    lock_spinlock(&(sys.mem_mng_lock));
+#else /* not AIOP */
     int_flags = spin_lock_irqsave(&(sys.mem_mng_lock));
+#endif /* AIOP */
     free(p_memory);
+#ifdef AIOP
+    unlock_spinlock(&(sys.mem_mng_lock));
+#else /* not AIOP */
     spin_unlock_irqrestore(&(sys.mem_mng_lock), int_flags);
+#endif /* AIOP */
 #endif /* VERILOG */
 }
 

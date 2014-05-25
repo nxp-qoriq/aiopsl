@@ -6,7 +6,7 @@
 *//***************************************************************************/
 
 #include "common/types.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"

@@ -9,7 +9,7 @@
 #include "sys.h"
 #include "fsl_malloc.h"
 #include "dbg.h"
-#include "spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "aiop_common.h"
 #include "errors.h"

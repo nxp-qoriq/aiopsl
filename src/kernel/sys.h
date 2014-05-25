@@ -22,9 +22,9 @@ typedef struct t_system {
 	int                         heap_partition_id;
 	uintptr_t                   heap_addr;
 	list_t                      virt_mem_list;
-	struct spinlock             virt_mem_lock;
-	struct spinlock             mem_part_mng_lock;
-	struct spinlock             mem_mng_lock;
+	uint8_t                     virt_mem_lock;
+	uint8_t                     mem_part_mng_lock;
+	uint8_t                     mem_mng_lock;
 
 	/* Console variables */
 	fsl_handle_t                console;

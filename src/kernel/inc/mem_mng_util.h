@@ -43,7 +43,11 @@ typedef struct t_mem_mng_param
     void        (*f_early_free)(void *p_addr);
                 /**< Early deallocation routine (before partitions are registered) */
 
+#ifdef AIOP
+    uint8_t *   lock;
+#else /* not AIOP */
     fsl_handle_t    lock;
+#endif /* AIOP */
                 /**< We might not have malloc at the beginning, so we
                      need the spinlock object to be allocated outside of the manager */
 } t_mem_mng_param;

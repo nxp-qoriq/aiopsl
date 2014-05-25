@@ -1,8 +1,9 @@
+#if 0
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 
 #include "sw_slab.h"
 
@@ -655,3 +656,4 @@ void slab_check_leaks(struct slab *slab)
     }
 }
 #endif /* DEBUG_MEM_LEAKS */
+#endif
