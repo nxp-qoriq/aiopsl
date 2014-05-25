@@ -279,8 +279,10 @@ int sys_init(void)
 	int       err, is_master_core;
 	uint32_t        core_id = core_get_id();
 
-	sys.is_tile_master[core_id] = (int)(0x1 & (1ULL << core_id)); //TODO make it more flexible ...
-	sys.is_cluster_master[core_id] = ! (core_id % 4);
+	sys.is_tile_master[core_id] = (uint32_t)(AIOP_TILE_MASTERS_MASK \
+							& (1ULL << core_id));
+	sys.is_cluster_master[core_id] = (uint32_t)(AIOP_CLUSTER_MASTER_MASK \
+							& (1ULL << core_id));
 	
 	is_master_core = sys_is_master_core();
 	

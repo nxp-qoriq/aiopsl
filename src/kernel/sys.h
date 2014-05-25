@@ -11,6 +11,8 @@
 
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
+#define AIOP_TILE_MASTERS_MASK (0x00000001)
+#define AIOP_CLUSTER_MASTER_MASK (0x00001111)
 
 typedef struct t_system {
 	/* Memory management variables */
