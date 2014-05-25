@@ -20,6 +20,7 @@
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"
 #include "cdma.h"
+#include "osm.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -776,9 +777,22 @@ int32_t ipsec_del_sa_descriptor(
 
 	int32_t return_val;
 	
+	// TODO: Read descriptor with CDMA.
+	// TODO Delete the timers; take care of callbacks in the middle of operation.
+	
+	/* Flush all the counter updates that are pending in the 
+	 * statistics engine request queue. */
+	ste_barrier();
+
 	/* Release the buffer */ 
 	return_val = (int32_t)cdma_refcount_decrement_and_release(
 		ipsec_handle); /* context_memory */ 
+	
+	// TODO: 
+	// 1. Check that all frames are closed (reference count)
+	// 2. Add timer delay for tasks that are in an interim state
+	// (called by the application but did npt enter the SL yet)
+	// If there were open frames do another ste_barrier();
 	
 	if (return_val) { /* error */
 		//TODO: what if CDMA release failed?
@@ -787,7 +801,7 @@ int32_t ipsec_del_sa_descriptor(
 		atomic_incr32((int32_t *)(&(global_params.sa_count)), 1);
 		return 0; // TMP
 	}
-
+	
 } /* End of ipsec_del_sa_descriptor */
 
 /**************************************************************************//**
@@ -812,21 +826,15 @@ int32_t ipsec_frame_encrypt(
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 
+	/* Increment the reference counter */
+	return_val = cdma_refcount_increment(ipsec_handle);
+	// TODO: check CDMA return status
+	
 	*enc_status = 0; /* Initialize */
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
 	 * – Simplified Flow */
-	/* 	1.	If in Concurrent ordering scope, move to Exclusive 
-	 * (increment scope ID). */
 
-	/* Get OSM status (ordering scope mode and levels) */
-	osm_get_scope(&scope_status);
-
-	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
-	    /* Move to exclusive */
-	    osm_scope_transition_to_exclusive_with_increment_scope_id();
-	}
-	
 	/* 	2.	Read relevant descriptor fields with CDMA. */
 	return_val = cdma_read(
 			&sap1, /* void *ws_dst */
@@ -973,8 +981,24 @@ int32_t ipsec_frame_encrypt(
 	* exclusive phase of an Ordering Scope.
 	*/
 	//TODO: OS_EX currently set to 0, assuming exclusive mode only
-	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
-		
+	
+	
+	/* Get OSM status (ordering scope mode and levels) */
+	osm_get_scope(&scope_status);
+
+	/* If in Concurrent ordering scope, move to Exclusive 
+	 * (increment scope ID). */ 
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+	    /* Move to exclusive */
+	    osm_scope_transition_to_exclusive_with_increment_scope_id();
+		/* Set OS_EX so AAP will do relinquish */
+		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
+				(IPSEC_AAP_USE_FLC_SP | IPSEC_AAP_OS_EX);
+	} else {
+		/* Call AAP without relinquish */
+		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
+	}
+	
 	/* 	9.	Call the AAP */
 	__e_hwacceli(AAP_SEC_ACCEL_ID);
 	
@@ -984,6 +1008,12 @@ int32_t ipsec_frame_encrypt(
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
 	
+	/* Check if started in concurrent mode */
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+		/* The AAP already did OSM relinquished, so just register that */
+		REGISTER_OSM_CONCURRENT;
+	}
+
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
 	
@@ -1096,16 +1126,10 @@ encrypt_end:
 		
 	/* 	19.1. Update the encryption status (enc_status) and return status. */
 
-	/* 	19.2.If started as Concurrent ordering scope, 
-	 * move from Exclusive to Concurrent 
-	 * TODO: (if AAP does that, only register through OSM functions). */
+	/* Derement the reference counter */
+	return_val = cdma_refcount_decrement(ipsec_handle);
+	// TODO: check CDMA return status
 	
-	/* Check if started in concurrent mode */
-	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
-		/* Move to Concurrent */
-		osm_scope_relinquish_exclusivity();
-	}
-
 	/* 	19.3.	Return */
 	return return_val;
 } /* End of ipsec_frame_encrypt */
@@ -1144,20 +1168,15 @@ int32_t ipsec_frame_decrypt(
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	
+	/* Increment the reference counter */
+	return_val = cdma_refcount_increment(ipsec_handle);
+	// TODO: check CDMA return status
+	
 	*dec_status = 0; /* Initialize */
 	
 	/* 	Inbound frame decryption and decapsulation */
 	
 	/* 	TODO: Currently supporting only Tunnel mode simplified flow */
-
-	/* 	1.	If in Concurrent ordering scope, move to Exclusive 
-	/* Get OSM status (ordering scope mode and levels) */
-	osm_get_scope(&scope_status);
-
-	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
-	    /* Move to exclusive */
-	    osm_scope_transition_to_exclusive_with_increment_scope_id();
-	}
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
 	return_val = cdma_read(
@@ -1331,13 +1350,34 @@ int32_t ipsec_frame_decrypt(
 	* 1 Indicates that the accelerator call is made during the 
 	* exclusive phase of an Ordering Scope.
 	*/
-	//TODO: OS_EX currently set to 0, assuming exclusive mode only
-	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
+	
+	/* Get OSM status (ordering scope mode and levels) */
+	osm_get_scope(&scope_status);
+
+	/* If in Concurrent ordering scope, move to Exclusive 
+	 * (increment scope ID). */ 
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+	    /* Move to exclusive */
+	    osm_scope_transition_to_exclusive_with_increment_scope_id();
+		/* Set OS_EX so AAP will do relinquish */
+		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
+				(IPSEC_AAP_USE_FLC_SP | IPSEC_AAP_OS_EX);
+	} else {
+		/* Call AAP without relinquish */
+		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
+	}
+	
 		
 	/* 	10.	Call the AAP */
 	__e_hwacceli(AAP_SEC_ACCEL_ID);
 
 	/* 	11.	SEC Doing Decryption */
+
+	/* Check if started in concurrent mode */
+	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+		/* The AAP already did OSM relinquished, so just register that */
+		REGISTER_OSM_CONCURRENT;
+	}
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
@@ -1459,6 +1499,10 @@ decrypt_end:
 		/* Move to Concurrent */
 		osm_scope_relinquish_exclusivity();
 	}
+
+	/* Derement the reference counter */
+	return_val = cdma_refcount_decrement(ipsec_handle);
+	// TODO: check CDMA return status
 	
 	/* Return */
 	return return_val;
