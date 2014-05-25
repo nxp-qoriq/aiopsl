@@ -119,6 +119,9 @@ void core_ready_for_tasks(void)
 
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
+    /*  finished boot sequence; now wait for event .... */
+    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
+    
 #ifndef SINGLE_CORE_WA
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
@@ -133,7 +136,7 @@ void core_ready_for_tasks(void)
     abcr_val |= (uint32_t)(1 << core_get_id());
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
-
+    
     {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
@@ -144,9 +147,6 @@ void core_ready_for_tasks(void)
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
-
-    /*  finished boot sequence; now wait for event .... */
-    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
 
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
