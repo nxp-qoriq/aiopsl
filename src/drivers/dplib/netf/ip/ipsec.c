@@ -835,35 +835,49 @@ int32_t ipsec_frame_encrypt(
 			);
 
 	// TODO: check CDMA return status
+
+	/*---------------------*/
+	/* ipsec_frame_encrypt */
+	/*---------------------*/
 	
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits have 
 	 * not expired. If expired, return with error and go to END */
 	/* The seconds lifetime status is checked in the params[status] 
 	 * and the kilobyte/packet status is checked from the params[counters].
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
+	
 	/* Seconds Lifetime */
-	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
-		*enc_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+	if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
+		if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+			*enc_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+		}
+		if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+			*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+			dont_encrypt = 1;
+		}
 	}
-	if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
-		*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
-		dont_encrypt = 1;
+	
+	/* KB lifetime counters */
+	if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+		if (sap1.byte_counter >= sap1.soft_byte_limit) {
+			*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+		}
+		if (sap1.byte_counter >= sap1.hard_byte_limit) {
+			*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+			dont_encrypt = 1;
+		}
 	}
-	/* KB and Packets soft lifetime */
-	if (sap1.byte_counter >= sap1.soft_byte_limit) {
-		*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
-	}
-	if (sap1.packet_counter >= sap1.soft_packet_limit) {
-		*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
-	}
-	/* KB and Packets hard lifetime */
-	if (sap1.byte_counter >= sap1.hard_byte_limit) {
-		*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-		dont_encrypt = 1;
-	}
-	if (sap1.packet_counter >= sap1.hard_packet_limit) {
-		*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-		dont_encrypt = 1;
+	
+	/* Packets lifetime counters*/
+	if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+
+		if (sap1.packet_counter >= sap1.soft_packet_limit) {
+			*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+		}
+		if (sap1.packet_counter >= sap1.hard_packet_limit) {
+			*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+			dont_encrypt = 1;
+		}
 	}
 	
 	if (dont_encrypt) {
@@ -1051,15 +1065,28 @@ int32_t ipsec_frame_encrypt(
 		/* 	18.2.	Add byte-count from SEC and one packet count. */
 		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
 		 * (STE increment + accumulate). */
-	ste_inc_and_acc_counters(
+	
+	if (sap1.flags & 
+			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
+		ste_inc_and_acc_counters(
 			IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
 			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
 			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
 			STE_MODE_COMPOUND_CNTR_SATURATE |
-			STE_MODE_COMPOUND_ACC_SATURATE)
-			);
+			STE_MODE_COMPOUND_ACC_SATURATE));
+	} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+		ste_inc_counter(
+				IPSEC_KB_COUNTER_ADDR,
+				byte_count,
+				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+		ste_inc_counter(
+				IPSEC_PACKET_COUNTER_ADDR,
+				1,
+				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	}
 	
 	return_val = IPSEC_SUCCESS;	
 
@@ -1139,6 +1166,9 @@ int32_t ipsec_frame_decrypt(
 			sizeof(sap1) /* uint16_t size */
 			);
 
+	/*---------------------*/
+	/* ipsec_frame_decrypt */
+	/*---------------------*/
 	
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits 
 	 * have expired. If expired, return with error. go to END */
@@ -1147,29 +1177,39 @@ int32_t ipsec_frame_decrypt(
 	 * and the kilobyte/packet status is checked from the params[counters].
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
 	/* Seconds Lifetime */
-	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
-		*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+	if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
+		if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+			*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+		}
+		if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+			*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+			dont_decrypt = 1;
+		}
 	}
-	if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
-		*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
-		dont_decrypt = 1;
+	
+	/* KB lifetime counters */
+	if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+		if (sap1.byte_counter >= sap1.soft_byte_limit) {
+			*dec_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+		}
+		if (sap1.byte_counter >= sap1.hard_byte_limit) {
+			*dec_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+			dont_decrypt = 1;
+		}
 	}
-	/* KB and Packets soft lifetime */
-	if (sap1.byte_counter >= sap1.soft_byte_limit) {
-		*dec_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+	
+	/* Packets lifetime counters*/
+	if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+
+		if (sap1.packet_counter >= sap1.soft_packet_limit) {
+			*dec_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+		}
+		if (sap1.packet_counter >= sap1.hard_packet_limit) {
+			*dec_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+			dont_decrypt = 1;
+		}
 	}
-	if (sap1.packet_counter >= sap1.soft_packet_limit) {
-		*dec_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
-	}
-	/* KB and Packets hard lifetime */
-	if (sap1.byte_counter >= sap1.hard_byte_limit) {
-		*dec_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-		dont_decrypt = 1;
-	}
-	if (sap1.packet_counter >= sap1.hard_packet_limit) {
-		*dec_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-		dont_decrypt = 1;
-	}
+	
 	
 	if (dont_decrypt) {
 		return_val = IPSEC_ERROR; // TODO: TMP
@@ -1333,8 +1373,6 @@ int32_t ipsec_frame_decrypt(
 			return_val = -1;
 	}
 
-	
-	
 	/* 	14.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
 		
@@ -1383,15 +1421,27 @@ int32_t ipsec_frame_decrypt(
 	 * If yes set flag in the descriptor statistics (CDMA write). */
 	/* 	20.4.	Update the kilobytes and/or packets lifetime counters 
 	 * (STE increment + accumulate). */
-	ste_inc_and_acc_counters(
+	if (sap1.flags & 
+			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
+		ste_inc_and_acc_counters(
 			IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
 			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
 			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
 			STE_MODE_COMPOUND_CNTR_SATURATE |
-			STE_MODE_COMPOUND_ACC_SATURATE)
-			);
+			STE_MODE_COMPOUND_ACC_SATURATE));
+	} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+		ste_inc_counter(
+				IPSEC_KB_COUNTER_ADDR,
+				byte_count,
+				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+		ste_inc_counter(
+				IPSEC_PACKET_COUNTER_ADDR,
+				1,
+				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	}
 	
 	return_val = IPSEC_SUCCESS;	
 

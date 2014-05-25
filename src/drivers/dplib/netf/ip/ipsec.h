@@ -303,6 +303,8 @@ struct ipsec_instance_params {
 #define IPSEC_PACKET_COUNTER_OFFSET 0
 #define IPSEC_STATUS_OFFSET 52
 #define IPSEC_PACKET_COUNTER_ADDR (ipsec_handle + IPSEC_PACKET_COUNTER_OFFSET)
+#define IPSEC_KB_COUNTER_ADDR (IPSEC_PACKET_COUNTER_ADDR + 8)
+
 #define IPSEC_STATUS_ADDR (ipsec_handle + IPSEC_STATUS_OFFSET)
 
 /* SA Descriptor Parameter for Internal Usage */ 
