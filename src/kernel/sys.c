@@ -247,9 +247,9 @@ int sys_init(void)
 	int err = 0, is_master_core;
 	uint32_t core_id = core_get_id();
 
-	sys.is_tile_master[core_id] = (int)(AIOP_TILE_MASTERS_MASK \
+	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
 							& (1ULL << core_id));
-	sys.is_cluster_master[core_id] = (int)(AIOP_CLUSTER_MASTER_MASK \
+	sys.is_cluster_master[core_id] = (int)(SYS_CLUSTER_MASTER_MASK \
 							& (1ULL << core_id));
 
 	is_master_core = sys_is_master_core();
@@ -259,7 +259,7 @@ int sys_init(void)
 		if (err != 0) return -1;
 
 		/* signal all other cores that global initiation is done */
-		sys.boot_sync_flag = 1;
+		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
 	} else {
 		while(!sys.boot_sync_flag) {}
 	}
