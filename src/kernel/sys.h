@@ -40,8 +40,11 @@ typedef struct t_system {
 	uint64_t             active_cores_mask;
 	uint8_t              barrier_lock;
 	volatile uint64_t    barrier_mask;
-	int                  init_fail_count; //TODO what is this ??, noone reads this !!
+	int                  init_fail_count; //TODO what is this ??, no-one reads this !!
 
+	/* boot synchronization variables */
+	volatile uint32_t           boot_sync_flag;
+	
 	/* Platform operations */
 	t_platform_ops              platform_ops;
 } t_system;

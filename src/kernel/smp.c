@@ -13,19 +13,10 @@ extern t_system sys;
 /*****************************************************************************/
 int sys_init_multi_processing(void)
 {
-    if (sys_is_master_core())
-    {
-        /* Initialize the central program barrier */
-	sys.barrier_lock = 0;
-        
-	sys.barrier_mask = sys.active_cores_mask;
-    }
-    else
-    {
-        /* Wait until system barrier is initialized */
-        while (!sys.barrier_mask) ;
-    }
-
+    /* Initialize the central program barrier */
+    sys.barrier_lock = 0;
+    sys.barrier_mask = sys.active_cores_mask;
+ 
     return E_OK;
 }
 

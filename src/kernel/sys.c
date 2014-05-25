@@ -99,7 +99,7 @@ int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
 }
 
 /*****************************************************************************/
-static int sys_init_platform(struct platform_param *platform_param)
+static int sys_init_platform(void) //TODO error checking is twisted
 {
 #define SYS_PLATFORM_INIT_FAIL_CHECK()  \
 	do  {                               \
@@ -111,25 +111,6 @@ static int sys_init_platform(struct platform_param *platform_param)
 
 	int     err = 0;
 	int is_master_core = sys_is_master_core();
-
-	ASSERT_COND(platform_param);
-	
-	if (is_master_core) {
-		err = platform_init(platform_param, &(sys.platform_ops));
-		if (err != 0)
-			RETURN_ERROR(MAJOR, err, NO_MSG);
-		
-		err = sys_add_handle(sys.platform_ops.h_platform,
-			FSL_OS_MOD_SOC, 1, 0);
-		if (err != 0)
-			RETURN_ERROR(MAJOR, err, NO_MSG);
-	}
-
-	/* 
-	 * TODO critical point:
-	 * platform_init() must be completed by mastercore before any other 
-	 * core does the following code.
-	 */
 	
 	//TODO why do I need this parameter ??
 	if (err != 0)
@@ -147,7 +128,7 @@ static int sys_init_platform(struct platform_param *platform_param)
 	if (err != 0)
 		sys.init_fail_count++; //TODO why
 
-	SYS_PLATFORM_INIT_FAIL_CHECK();
+	SYS_PLATFORM_INIT_FAIL_CHECK(); //TODO not sure this is needed
 
 	if (sys.platform_ops.f_init_timer)
 		err = sys.platform_ops.f_init_timer(
@@ -160,10 +141,9 @@ static int sys_init_platform(struct platform_param *platform_param)
 			err = sys.platform_ops.f_init_intr_ctrl(
 				sys.platform_ops.h_platform);
 
-		if ((err == 0) && is_master_core) {
-			if (sys.platform_ops.f_init_soc)
-				err = sys.platform_ops.f_init_soc(
-					sys.platform_ops.h_platform);
+		if ((err == 0) && (sys.platform_ops.f_init_soc)) {
+			err = sys.platform_ops.f_init_soc(
+				sys.platform_ops.h_platform);
 		}
 	}
 
@@ -185,6 +165,11 @@ static int sys_init_platform(struct platform_param *platform_param)
 		if ((err == 0) && sys.platform_ops.f_init_console)
 			err = sys.platform_ops.f_init_console(
 				sys.platform_ops.h_platform);
+		
+		if (!sys.console) {
+			/* If no platform console, register debugger console */
+			sys_register_debugger_console();
+		}
 
 		if (sys.platform_ops.f_init_mem_partitions)
 			err = sys.platform_ops.f_init_mem_partitions(
@@ -272,61 +257,86 @@ static int sys_free_platform(void)
 	return err;
 }
 
-/*****************************************************************************/
-int sys_init(void)
+static void update_active_cores_mask(void)
 {
-	struct platform_param   platform_param; //TODO only master-core needs it !!
-	int       err, is_master_core;
-	uint32_t        core_id = core_get_id();
-
-	sys.is_tile_master[core_id] = (uint32_t)(AIOP_TILE_MASTERS_MASK \
-							& (1ULL << core_id));
-	sys.is_cluster_master[core_id] = (uint32_t)(AIOP_CLUSTER_MASTER_MASK \
-							& (1ULL << core_id));
+	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
+		+ SOC_PERIPH_OFF_AIOP_CMGW \
+		+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+	uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
 	
-	is_master_core = sys_is_master_core();
+	sys.active_cores_mask  = abrr_val;
+}
+
+static int global_sys_init(void) //TODO error checking ...
+{
+	//TODO make sure free order is still correct ...
+	struct platform_param platform_param;
+	int err;
+	ASSERT_COND(sys_is_master_core());
 	
-	if(is_master_core) {
-		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
-			+ SOC_PERIPH_OFF_AIOP_CMGW \
-			+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
-		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
-		
-		fill_system_parameters(&platform_param);
-		
-		sys.active_cores_mask  = abrr_val;
-	} else {
-		while(!sys.active_cores_mask) {} //TODO remove :-(
+	update_active_cores_mask();
+	
+	fill_system_parameters(&platform_param);
+	
+	core_memory_barrier(); //XXX debug only
+	
+	platform_early_init(&platform_param);
+
+	/* Initialize memory management */
+	err = sys_init_memory_management();
+	if (err != 0) {
+		pr_err("Failed sys_init_memory_management\n");
+		return err;
 	}
-
-	if (is_master_core) {
-		platform_early_init(&platform_param);
-
-		/* Initialize memory management */
-		err = sys_init_memory_management();
-		if (err != 0) {
-			pr_err("Failed sys_init_memory_management\n");
-			return err;
-		}
-	}
-
+	
 	/* Initialize Multi-Processing services as needed */
 	err = sys_init_multi_processing();
 	if (err != 0) {
 		pr_err("Failed sys_init_multi_processing\n");
 		return err;
 	}
+	
+	/* Platform init */
+	err = platform_init(&(platform_param), &(sys.platform_ops));
+	if (err != 0)
+		RETURN_ERROR(MAJOR, err, NO_MSG);
+	
+	err = sys_add_handle(sys.platform_ops.h_platform,
+		FSL_OS_MOD_SOC, 1, 0);
+	if (err != 0)
+		RETURN_ERROR(MAJOR, err, NO_MSG);
+	
+	return E_OK;
+}
 
-	err = sys_init_platform(&platform_param);
+/*****************************************************************************/
+int sys_init(void)
+{
+	int       err, is_master_core;
+	uint32_t        core_id = core_get_id();
+
+	sys.is_tile_master[core_id] = (int)(AIOP_TILE_MASTERS_MASK \
+							& (1ULL << core_id));
+	sys.is_cluster_master[core_id] = (int)(AIOP_CLUSTER_MASTER_MASK \
+							& (1ULL << core_id));
+	
+	is_master_core = sys_is_master_core();
+		
+	if(is_master_core) {
+		err = global_sys_init();
+		if (err != 0)
+			RETURN_ERROR(MAJOR, err, NO_MSG);
+		
+		/* signal all other cores that global initiation is done */
+		sys.boot_sync_flag = 1;
+	} else {
+		while(!sys.boot_sync_flag) {}
+	}
+
+	err = sys_init_platform();
 	if (err != 0)
 		return -1;
 
-	if (is_master_core) {
-		if (!sys.console) {
-			/* If no platform console, register debugger console */
-			sys_register_debugger_console();
-		}
-	}
 	return 0;
 }
 
