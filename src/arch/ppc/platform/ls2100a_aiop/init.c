@@ -52,7 +52,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MAX_NUM_OF_APPS		10
 
-void fill_system_parameters(struct platform_param *platform_param); //TODO this is already defined in sys.h ...
+void fill_system_parameters(struct platform_param *platform_param);
 int global_init(void);
 int global_post_init(void);
 int tile_init(void);
@@ -66,7 +66,7 @@ void core_ready_for_tasks(void);
 __TASK struct aiop_default_task_params default_task_params;
 
 
-void fill_system_parameters(struct platform_param *platform_param) //TOOD make this static in init.c
+void fill_system_parameters(struct platform_param *platform_param)
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
 
