@@ -244,8 +244,8 @@ static int global_sys_init(void)
 /*****************************************************************************/
 int sys_init(void)
 {
-	int       err, is_master_core;
-	uint32_t        core_id = core_get_id();
+	int err = 0, is_master_core;
+	uint32_t core_id = core_get_id();
 
 	sys.is_tile_master[core_id] = (int)(AIOP_TILE_MASTERS_MASK \
 							& (1ULL << core_id));
@@ -256,8 +256,7 @@ int sys_init(void)
 
 	if(is_master_core) {
 		err = global_sys_init();
-		if (err != 0)
-			return -1;
+		if (err != 0) return -1;
 
 		/* signal all other cores that global initiation is done */
 		sys.boot_sync_flag = 1;
@@ -266,8 +265,7 @@ int sys_init(void)
 	}
 
 	err = sys_init_platform();
-	if (err != 0)
-		return -1;
+	if (err != 0) return -1;
 
 	return 0;
 }
