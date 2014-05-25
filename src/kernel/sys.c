@@ -61,58 +61,41 @@ int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
 }
 
 /*****************************************************************************/
-static int sys_init_platform(void) //TODO error checking is twisted
+static int sys_init_platform(void)
 {
-#define SYS_PLATFORM_INIT_FAIL_CHECK()  \
-	do  {                               \
-		if (err != 0)                \
-		return err;                 \
-		if (sys.init_fail_count)        \
-		return E_NO_DEVICE;         \
-	} while (0)
-
 	int     err = 0;
 	int is_master_core = sys_is_master_core();
-	
-	//TODO why do I need this parameter ??
-	if (err != 0)
-		sys.init_fail_count++; 
-
-	SYS_PLATFORM_INIT_FAIL_CHECK(); //TODO can I replace this with a simple check ??
 
 	if (sys.platform_ops.f_disable_local_irq)
 		sys.platform_ops.f_disable_local_irq(
 			sys.platform_ops.h_platform);
 
-	if (sys.platform_ops.f_init_core)
+	if (sys.platform_ops.f_init_core) {
 		err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
-
-	if (err != 0)
-		sys.init_fail_count++; //TODO why
-
-	SYS_PLATFORM_INIT_FAIL_CHECK(); //TODO not sure this is needed
-
-	if (sys.platform_ops.f_init_timer)
+		if (err != 0) return -1;
+	}
+	
+	if (sys.platform_ops.f_init_timer) {
 		err = sys.platform_ops.f_init_timer(
 			sys.platform_ops.h_platform);
-
-	if ((err == 0) && is_master_core) {
-		/* Do not change the sequence of calls in this section */
-
-		if (sys.platform_ops.f_init_intr_ctrl)
-			err = sys.platform_ops.f_init_intr_ctrl(
-				sys.platform_ops.h_platform);
-
-		if ((err == 0) && (sys.platform_ops.f_init_soc)) {
-			err = sys.platform_ops.f_init_soc(
-				sys.platform_ops.h_platform);
-		}
+		if (err != 0) return -1;
 	}
 
-	if (err != 0)
-		sys.init_fail_count++;
+	if (is_master_core) {
+		/* Do not change the sequence of calls in this section */
 
-	SYS_PLATFORM_INIT_FAIL_CHECK();
+		if (sys.platform_ops.f_init_intr_ctrl) {
+			err = sys.platform_ops.f_init_intr_ctrl(
+				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
+
+		if (sys.platform_ops.f_init_soc) {
+			err = sys.platform_ops.f_init_soc(
+				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
+	}
 
 	if (sys.platform_ops.f_enable_local_irq)
 		sys.platform_ops.f_enable_local_irq(
@@ -120,38 +103,36 @@ static int sys_init_platform(void) //TODO error checking is twisted
 
 	if (is_master_core) {
 		/* Do not change the sequence of calls in this section */
-		if ((err == 0) && sys.platform_ops.f_init_ipc)
+		if (sys.platform_ops.f_init_ipc) {
 			err = sys.platform_ops.f_init_ipc(
 				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
 
-		if ((err == 0) && sys.platform_ops.f_init_console)
+		if (sys.platform_ops.f_init_console) {
 			err = sys.platform_ops.f_init_console(
 				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
 		
 		if (!sys.console) {
 			/* If no platform console, register debugger console */
 			sys_register_debugger_console();
 		}
 
-		if (sys.platform_ops.f_init_mem_partitions)
+		if (sys.platform_ops.f_init_mem_partitions) {
 			err = sys.platform_ops.f_init_mem_partitions(
 				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
 
 	}
 
-	if (err != 0)
-		sys.init_fail_count++;
-
-	SYS_PLATFORM_INIT_FAIL_CHECK();
-
-	if (sys.platform_ops.f_init_private)
+	if (sys.platform_ops.f_init_private) {
 		err = sys.platform_ops.f_init_private(
 			sys.platform_ops.h_platform);
-
-	if (err != 0)
-		sys.init_fail_count++;
-
-	SYS_PLATFORM_INIT_FAIL_CHECK();
+		if (err != 0) return -1;
+	}
 
 	return 0;
 }
@@ -229,44 +210,33 @@ static void update_active_cores_mask(void)
 	sys.active_cores_mask  = abrr_val;
 }
 
-static int global_sys_init(void) //TODO error checking ...
+static int global_sys_init(void)
 {
-	//TODO make sure free order is still correct ...
 	struct platform_param platform_param;
-	int err;
+	int err = 0;
 	ASSERT_COND(sys_is_master_core());
 	
 	update_active_cores_mask();
 	
 	fill_system_parameters(&platform_param);
 	
-	core_memory_barrier(); //XXX debug only
-	
 	platform_early_init(&platform_param);
 
 	/* Initialize memory management */
 	err = sys_init_memory_management();
-	if (err != 0) {
-		pr_err("Failed sys_init_memory_management\n");
-		return err;
-	}
+	if (err != 0) return err;
 	
 	/* Initialize Multi-Processing services as needed */
 	err = sys_init_multi_processing();
-	if (err != 0) {
-		pr_err("Failed sys_init_multi_processing\n");
-		return err;
-	}
+	if (err != 0) return err;
 	
 	/* Platform init */
 	err = platform_init(&(platform_param), &(sys.platform_ops));
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) return err;
 	
 	err = sys_add_handle(sys.platform_ops.h_platform,
 		FSL_OS_MOD_SOC, 1, 0);
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) return err;
 	
 	return E_OK;
 }
@@ -287,7 +257,7 @@ int sys_init(void)
 	if(is_master_core) {
 		err = global_sys_init();
 		if (err != 0)
-			RETURN_ERROR(MAJOR, err, NO_MSG);
+			return -1;
 
 		/* signal all other cores that global initiation is done */
 		sys.boot_sync_flag = 1;
