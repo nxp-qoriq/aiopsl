@@ -1,3 +1,4 @@
+#if 0
 #ifndef _FSL_DPLIB_TESTS_H
 #define _FSL_DPLIB_TESTS_H
 
@@ -31,3 +32,5 @@
 #endif /* __uboot__ */
 
 #endif /* _FSL_DPLIB_SYS_H */
+
+#endif

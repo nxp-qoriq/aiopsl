@@ -1,3 +1,4 @@
+#if 0
 #ifndef __SW_SLAB_H
 #define __SW_SLAB_H
 
@@ -77,3 +78,5 @@ uint32_t sw_slab_get_num_buffs(struct slab *slab);
 
 
 #endif /* __SW_SLAB_H */
+#endif
+
