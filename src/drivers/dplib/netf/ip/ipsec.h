@@ -305,11 +305,11 @@ struct ipsec_instance_params {
  * should be counter_addr + sizeof(counter) 
  * In thiis case "accumulator" = byte counter, "counter" = packets counter*/
 #define IPSEC_PACKET_COUNTER_OFFSET 0
-#define IPSEC_STATUS_OFFSET 52
+#define IPSEC_STATUS_OFFSET (7*8 + 4)
 #define IPSEC_PACKET_COUNTER_ADDR (ipsec_handle + IPSEC_PACKET_COUNTER_OFFSET)
 #define IPSEC_KB_COUNTER_ADDR (IPSEC_PACKET_COUNTER_ADDR + 8)
-
 #define IPSEC_STATUS_ADDR (ipsec_handle + IPSEC_STATUS_OFFSET)
+#define IPSEC_MAX_TIMESTAMP 0xFFFFFFFFFFFFFFFF
 
 /* SA Descriptor Parameter for Internal Usage */ 
 /* Part 1 */
@@ -318,7 +318,8 @@ struct ipsec_sa_params_part1 {
 	/* 6x8 = 48 bytes */
 	uint64_t packet_counter; /*	Packets counter, 8B */
 	uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
-	
+	uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
+
 	uint64_t soft_byte_limit; /* soft byte count limit,	8 Bytes */
 	uint64_t soft_packet_limit; /* soft packet limit, 8B */
 	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
@@ -349,7 +350,6 @@ struct ipsec_sa_params_part2 {
 	
 	/* Required at Add descriptor and timer callback */
 	/* 2x8 + 3x4 = 16+12 = 28 bytes */
-	uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
 	uint64_t sec_callback_arg; /* SA handle used as argument for the 
 								application callback function. 8B */
 	uint32_t sec_callback_func; /* Application callback function, 

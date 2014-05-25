@@ -624,6 +624,9 @@ int32_t ipsec_generate_sa_params(
 	sap.sap1.byte_counter = 0; /* Encrypted/decrypted bytes counter */
 	sap.sap1.packet_counter = 0; /*	Packets counter */
 	
+
+	
+
 	/* Set valid flag */
 	sap.sap1.valid = 1; /* descriptor valid. */
 	
@@ -638,9 +641,8 @@ int32_t ipsec_generate_sa_params(
 	sap.sap2.hard_tmr_handle = NULL; /* Hard seconds timer handle, TMP */
 
 	/* Get timestamp from TMAN */
-	tman_get_timestamp(&(sap.sap2.timestamp));
+	tman_get_timestamp(&(sap.sap1.timestamp));
 	
-
 	/* Store to external memory with CDMA */
 	return_val = cdma_write(
 			ipsec_handle, /* uint64_t ext_address */
@@ -1518,13 +1520,42 @@ int32_t ipsec_get_lifetime_stats(
 		uint64_t *packets,
 		uint32_t *sec)
 {
-	/* Temporary Implementation */
-	ipsec_handle_t tmp = ipsec_handle;
-	*kilobytes = 0x1234;
-	*packets = 0x5678;
-	*sec = 0xabcd;
 	
-	return 0;
+	int32_t return_val;
+	uint64_t current_timestamp;
+	
+	/* Note: this struct must be equal to the head of ipsec_sa_params_part1 */
+	struct counters_and_timestamp {
+		uint64_t packet_counter; /*	Packets counter, 8B */
+		uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
+		uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
+	} ctrs;
+	
+	/* 	Read relevant descriptor fields with CDMA. */
+	return_val = cdma_read(
+			&ctrs, /* void *ws_dst */
+			ipsec_handle, /* uint64_t ext_address */
+			sizeof(ctrs) /* uint16_t size */
+			);
+	// TODO: check for CDMA error
+
+	*packets = ctrs.packet_counter;
+	*kilobytes =  ctrs.byte_counter;
+	
+	/* Get current timestamp from TMAN (in micro-seconds)*/
+	tman_get_timestamp(&current_timestamp);
+
+	/* Calculate elapsed time in seconds */
+	/* Do shift 20, since 2^20 = 1,048,576 */
+	if (current_timestamp >= ctrs.timestamp) { /* No roll-over */
+		*sec = (uint32_t)((current_timestamp - ctrs.timestamp)>>20);
+	} else { /* Roll-over */
+		*sec = (uint32_t)(
+				(current_timestamp + 
+						(IPSEC_MAX_TIMESTAMP - ctrs.timestamp) + 1)>>20);
+	}
+	
+	return IPSEC_SUCCESS;
 	
 } /* End of ipsec_get_lifetime_stats */
 
