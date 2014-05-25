@@ -43,7 +43,11 @@ typedef struct t_mem_mng_partition
     list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
     list_t                  node;
     t_mem_mng_partition_info   info;           /**< Partition information */
+#ifdef AIOP
+    uint8_t *               lock;
+#else
     fsl_handle_t                lock;
+#endif
 } t_mem_mng_partition;
 
 #define MEM_MNG_PARTITION_OBJECT(p_list)  \
@@ -70,7 +74,12 @@ typedef struct t_mem_mng
     list_t      early_mem_debug_list;
                 /**< List of early memory allocation entries (for debug) */
 
+#ifdef AIOP
+    uint8_t *   lock;
+#else /* not AIOP */
     fsl_handle_t    lock;
+#endif
+    
 } t_mem_mng;
 
 

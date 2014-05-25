@@ -190,6 +190,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/cmdif_srv_flib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/console.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/console.c</locationURI>
@@ -405,6 +410,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/common/fsl_cmdif_flib.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_flib.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/common/fsl_cmdif_server.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_server.h</locationURI>
@@ -473,11 +483,6 @@
 			<name>aiop_sl/include/common/slob.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/slob.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/spinlock.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/spinlock.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/time.h</name>
@@ -595,6 +600,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_fdma.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/dplib/fsl_general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_general.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/dplib/fsl_gro.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_gro.h</locationURI>
@@ -683,6 +693,11 @@
 			<name>aiop_sl/include/kernel/console.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/console.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/kernel/fsl_spinlock.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/fsl_spinlock.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/kernel/layout.h</name>
@@ -810,6 +825,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/include/general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/general.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/include/header_modification.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/header_modification.h</locationURI>
@@ -818,6 +838,11 @@
 			<name>aiop_sl/drivers/dplib/include/id_pool.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/id_pool.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/inline_asm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/inline_asm.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/virtual_pools.h</name>

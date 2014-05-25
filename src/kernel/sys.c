@@ -3,7 +3,7 @@
 #include "common/fsl_string.h"
 #include "common/fsl_stdarg.h"
 #include "common/fsl_malloc.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "kernel/platform.h"
 #include "kernel/smp.h"
 
@@ -23,44 +23,6 @@ typedef struct t_sys_forced_object {
 
 __SHRAM t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
 
-
-/* TODO: Think if it can be part of &(sys.forced_objects_list)*/
-
-/*****************************************************************************/
-static void sys_init_objects_registry(void)
-{
-#ifdef ARENA_LEGACY_CODE
-	/*memset(sys.modules_info, 0, sizeof(sys.modules_info));
-	memset(sys.sub_modules_info, 0, sizeof(sys.sub_modules_info));
-	INIT_LIST(&(sys.forced_objects_list));
-	p_forced_object = (t_sys_forced_object_desc *)fsl_os_malloc(
-			sizeof(t_sys_forced_object_desc));
-	sys_init_spinlock(&sys.object_mng_lock);*/
-#endif
-}
-
-/*****************************************************************************/
-static void sys_free_objects_management(void)
-{
-#ifdef ARENA_LEGACY_CODE
-	/*t_sys_forced_object_desc   *p_forced_object;
-	list_t                  *p_node, *p_temp;*/
-
-	/* Freeing all network devices descriptors */
-	/*LIST_FOR_EACH_SAFE(p_node, p_temp, &(sys.forced_objects_list)) {
-	p_forced_object = LIST_OBJECT(p_node, t_sys_forced_object_desc, node);
-
-	list_del(p_node);
-	fsl_os_free(p_forced_object);
-	}*/
-
-#if 0 /* what is this??? */
-	/* Free the settings cloning information */
-	if (sys.p_clone_scratch_pad)
-		fsl_os_free(sys.p_clone_scratch_pad);
-#endif /* 0 */
-#endif
-}
 
 /*****************************************************************************/
 fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...)
@@ -319,14 +281,14 @@ int sys_init(void)
 							& (1ULL << core_id));
 	sys.is_cluster_master[core_id] = (int)(AIOP_CLUSTER_MASTER_MASK \
 							& (1ULL << core_id));
-	
+
 	is_master_core = sys_is_master_core();
-		
+
 	if(is_master_core) {
 		err = global_sys_init();
 		if (err != 0)
 			RETURN_ERROR(MAJOR, err, NO_MSG);
-		
+
 		/* signal all other cores that global initiation is done */
 		sys.boot_sync_flag = 1;
 	} else {
@@ -349,8 +311,6 @@ void sys_free(void)
 	sys_barrier();
 
 	if (sys_is_master_core()) {
-		/* Free objects management structures */
-		sys_free_objects_management();
 
 		/* Free memory management module */
 		sys_free_memory_management();

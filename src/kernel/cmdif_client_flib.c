@@ -93,13 +93,17 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
-	if ((cidesc == NULL) || (cidesc->dev == NULL))
+	if ((cidesc == NULL) || (cidesc->dev == NULL)) {
+		/* prevent deadlocks */
+		if (cidesc->unlock_cb)
+			cidesc->unlock_cb(cidesc->lock);
+
 		return -EINVAL;
+	}
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	if (dev->sync_done == NULL) {
-		
+	if (dev->sync_done == NULL) {		
 		/* prevent deadlocks */
 		if (cidesc->unlock_cb)
 			cidesc->unlock_cb(cidesc->lock);
