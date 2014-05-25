@@ -320,12 +320,12 @@ static int epid_setup()
 
 static void *fast_malloc(int size)
 {
-	return fsl_os_xmalloc(size, MEM_PART_SH_RAM, 8);
+	return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);
 }
 
 static void *slow_malloc(int size)
 {
-	return fsl_os_xmalloc(size, MEM_PART_1ST_DDR_NON_CACHEABLE, 8);
+	return fsl_os_xmalloc((size_t)size, MEM_PART_1ST_DDR_NON_CACHEABLE, 8);
 }
 
 static void srv_free(void *ptr)
