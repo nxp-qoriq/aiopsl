@@ -70,7 +70,7 @@ void fill_system_parameters(struct platform_param *platform_param) //TOOD make t
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
 
-    memset(&platform_param, 0, sizeof(platform_param));
+    memset(platform_param, 0, sizeof(platform_param));
 
     platform_param->clock_in_freq_hz = 100000000; //TODO check value, maybe we don't need it
     platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
