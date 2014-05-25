@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include <fsl_cmdif_client.h>
+#include <fsl_cmdif_server.h>
 
 /* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
@@ -67,7 +68,7 @@ struct cmdif_fd {
  * Should be used for building frame descriptor for open command.
  *
  * @param[in]	cidesc      - Command interface descriptor
- * @param[in]	m_name      - Module name, up to 8 charachters
+ * @param[in]	m_name      - Module name, up to 8 characters
  * @param[in]	instance_id - Instance id which will be passed to open_cb_t
  * @param[in]	async_cb    - Callback to be called on response of
  *		asynchronous command.
@@ -108,9 +109,9 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc);
 
 /**
  *
- * @brief	Synchronious command done.
+ * @brief	Synchronous command done.
  *
- * Should be used for implementation of cmdif_send() in synchronious mode.
+ * Should be used for implementation of cmdif_send() in synchronous mode.
  * Should the last call before return inside from cmdif_send().
  *
  * @param[in]	cidesc      - Command interface descriptor
@@ -162,14 +163,14 @@ int cmdif_close_done(struct cmdif_desc *cidesc);
 
 /**
  *
- * @brief	Synchronious/Blocking mode indication.
+ * @brief	Synchronous/Blocking mode indication.
  *
- * Should be used for implementation of cmdif_send() in synchronious mode.
+ * Should be used for implementation of cmdif_send() in synchronous mode.
  *
  * @param[in]	cmd_id - Command id that was sent
  *
- * @returns	'0' if command is asynchronious;
- *               not '0' id command is synchronious.
+ * @returns	'0' if command is asynchronous;
+ *               not '0' id command is synchronous.
  *
  */
 int cmdif_is_sync_cmd(uint16_t cmd_id);
@@ -186,8 +187,8 @@ int cmdif_is_sync_cmd(uint16_t cmd_id);
  * @param[in]	data   - Physical address to data
  * @param[out]	fd     - Frame descriptor relevant fields for cmdif
  *
- * @returns	'0' if command is asynchronious;
- *               not '0' if command is synchronious.
+ * @returns	'0' if command is asynchronous;
+ *               not '0' if command is synchronous.
  *
  */
 int cmdif_cmd(struct cmdif_desc *cidesc,
@@ -198,7 +199,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 
 /**
  *
- * @brief	Call asynchronious callback of the received frame descriptor
+ * @brief	Call asynchronous callback of the received frame descriptor
  *
  * @param[in]	fd - Pointer to received frame descriptor
  *
@@ -209,6 +210,12 @@ int cmdif_async_cb(struct cmdif_fd *fd);
 
 struct cmdif_srv *cmdif_srv_allocate(void *(*fast_malloc)(int),
 				     void *(*slow_malloc)(int));
-void cmdif_srv_deallocate(struct  cmdif_srv *srv, void (*free)(void *ptr));
+void cmdif_srv_deallocate(struct  cmdif_srv *srv, 
+                          void (*free)(void *ptr));
+int cmdif_srv_unregister(struct  cmdif_srv *srv, 
+                         const char *m_name);
+int cmdif_srv_register(struct  cmdif_srv *srv, 
+                       const char *m_name, 
+                       struct cmdif_module_ops *ops);
 
 #endif /* __FSL_CMDIF_FLIB_H */

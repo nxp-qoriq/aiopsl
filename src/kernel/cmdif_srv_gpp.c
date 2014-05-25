@@ -46,95 +46,6 @@
 struct  cmdif_srv *srv;
 
 #if 0
-static int module_id_alloc(const char *m_name, struct cmdif_srv *srv)
-{
-	int i = 0;
-	int id = -ENAVAIL;
-
-	if (m_name[0] == FREE_MODULE)
-		return -EINVAL;
-
-	lock_spinlock(&srv->lock);
-
-	for (i = 0; i < M_NUM_OF_MODULES; i++) {
-		if ((srv->m_name[i][0] == FREE_MODULE) && (id < 0)) {
-			id = i;
-		} else if (strncmp(srv->m_name[i], m_name, M_NAME_CHARS) == 0) {
-			unlock_spinlock(&srv->lock);
-			return -EEXIST;
-		}
-	}
-	if (id >= 0) {
-		strncpy(srv->m_name[id], m_name, M_NAME_CHARS);
-		srv->m_name[id][M_NAME_CHARS] = '\0';
-	}
-
-	unlock_spinlock(&srv->lock);
-	return id;
-}
-
-static int module_id_find(const char *m_name, struct cmdif_srv *srv)
-{
-	int i = 0;
-
-	if (m_name[0] == FREE_MODULE)
-		return -EINVAL;
-
-	for (i = 0; i < M_NUM_OF_MODULES; i++) {
-		if (strncmp(srv->m_name[i], m_name, M_NAME_CHARS) == 0)
-			return i;
-	}
-
-	return -ENAVAIL;
-}
-
-static int inst_alloc(struct cmdif_srv *srv)
-{
-	int r = 0;
-	int count = 0;
-
-	if (srv == NULL)
-		return -EINVAL;
-
-	lock_spinlock(&srv->lock);
-	/* TODO need locks when allocating instance id ?*/
-
-	/* randomly pick instance/authentication id*/
-	r = rand() % M_NUM_OF_INSTANCES;
-	while (srv->inst_dev[r] && count < M_NUM_OF_INSTANCES) {
-		r = rand() % M_NUM_OF_INSTANCES;
-		count++;
-	}
-	/* didn't find empty space yet */
-	if (srv->inst_dev[r]) {
-		count = 0;
-		while (srv->inst_dev[r] &&
-			count < M_NUM_OF_INSTANCES) {
-			r = r++ % M_NUM_OF_INSTANCES;
-			count++;
-		}
-	}
-
-	/* didn't find empty space */
-	if (count >= M_NUM_OF_INSTANCES) {
-		unlock_spinlock(&srv->lock);
-		return -ENAVAIL;
-	} else {
-		srv->inst_dev[r] = TAKEN_INSTANCE;
-		srv->inst_count++;
-		unlock_spinlock(&srv->lock);
-		return r;
-	}
-}
-
-static void inst_dealloc(int inst, struct cmdif_srv *srv)
-{
-	lock_spinlock(&srv->lock);
-	srv->inst_dev[inst] = FREE_INSTANCE;
-	srv->sync_done[inst] = NULL;
-	srv->inst_count--;
-	unlock_spinlock(&srv->lock);
-}
 
 static uint16_t cmd_id_get()
 {
@@ -175,83 +86,6 @@ static uint8_t cmd_inst_id_get()
 static uint16_t cmd_auth_id_get()
 {
 	return 0;
-}
-
-static int empty_open_cb(uint8_t instance_id, void **dev)
-{
-	UNUSED(instance_id);
-	UNUSED(dev);
-	return -ENODEV;
-}
-
-static int empty_close_cb(void *dev)
-{
-	UNUSED(dev);
-	return -ENODEV;
-}
-
-static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
-{
-	UNUSED(cmd);
-	UNUSED(dev);
-	UNUSED(data);
-	UNUSED(size);
-	return -ENODEV;
-}
-
-int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
-{
-
-	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-	int    m_id = 0;
-
-	if ((m_name == NULL) || (ops == NULL) || (srv == NULL))
-		return -EINVAL;
-
-	m_id = module_id_alloc(m_name, srv);
-	if (m_id < 0) {
-		return m_id;
-	} else {
-		if (ops->ctrl_cb)
-			srv->ctrl_cb[m_id]  = ops->ctrl_cb;
-		else
-			srv->ctrl_cb[m_id] = empty_ctrl_cb;
-		if (ops->open_cb)
-			srv->open_cb[m_id]  = ops->open_cb;
-		else
-			srv->open_cb[m_id]  = empty_open_cb;
-		if (ops->close_cb)
-			srv->close_cb[m_id] = ops->close_cb;
-		else
-			srv->close_cb[m_id] = empty_close_cb;
-	}
-
-	return 0;
-}
-
-int cmdif_unregister_module(const char *m_name)
-{
-	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-	int    m_id = -1;
-
-	/* TODO what if unregister is done during runtime and another thread
-	 * is using it, is it legal ? spinlocks at runtime ??? */
-	if ((m_name == NULL) || (srv == NULL))
-		return -EINVAL;
-
-	lock_spinlock(&srv->lock);
-	m_id = module_id_find(m_name, srv);
-	if (m_id >= 0) {
-		srv->ctrl_cb[m_id]   = NULL;
-		srv->open_cb[m_id]   = NULL;
-		srv->close_cb[m_id]  = NULL;
-		srv->m_name[m_id][0] = FREE_MODULE;
-		unlock_spinlock(&srv->lock);
-		return 0;
-	} else {
-		unlock_spinlock(&srv->lock);
-		return m_id; /* POSIX error is returned */
-	}
 }
 
 static void srv_memory_free(struct  cmdif_srv *srv)
@@ -305,6 +139,20 @@ int cmdif_srv_init(void)
 void cmdif_srv_free(void)
 {
 	cmdif_srv_deallocate(srv, srv_free);
+}
+
+int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
+{
+	/* Place here lock if required */
+
+	return cmdif_srv_register(srv, m_name, ops);
+}
+
+int cmdif_unregister_module(const char *m_name)
+{
+	/* Place here lock if required */
+
+	return cmdif_srv_unregister(srv, m_name);
 }
 
 #if 0
@@ -365,14 +213,11 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 
+#endif
 
-#pragma push
-#pragma force_active on
-
-__HOT_CODE void cmdif_srv_isr(void)
+void cmdif_srv_cb(struct cmdif_fd *cfd)
 {
 	uint16_t cmd_id = cmd_id_get();
-	struct   cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	int      err    = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
