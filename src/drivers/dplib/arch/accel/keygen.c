@@ -1,7 +1,7 @@
 /**************************************************************************//**
 @File		keygen.c
 
-@Description	This file contains the AIOP SW Key Generation API implementation.
+@Description	This file contains the AIOP SW Key Generation API implementation
 
 		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
@@ -15,19 +15,16 @@
 
 extern __SHRAM uint64_t ext_keyid_pool_address;
 
-int32_t keygen_kcr_builder_init(struct kcr_builder *kb)
+void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
-	int32_t status;
-	
+
 	/* clear the KCR array */
-	status = cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
-	if (status)
-		return status; /* TODO */
-	
+	cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
+
+	/* TODO status??? */
+
 	/* Initialize KCR length to 1 */
 	kb->kcr_length = 1;
-	
-	return 0;
 }
 
 
@@ -59,8 +56,8 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 					uint8_t extract_size,
 					struct kcr_builder_fec_mask *mask,
 					struct kcr_builder *kb){
-	
-	
+
+
 	uint8_t curr_byte = kb->kcr_length;
 	uint8_t fecid, op0, op1, op2;
 	uint8_t	fec_bytes_num = KEYGEN_KCR_LOOKUP_RES_FEC_SIZE;
@@ -73,16 +70,16 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 	op0 = KEYGEN_KCR_OP0_HET_GEC | KEYGEN_KCR_EXT_OPAQUE_IN_EOM;
 	op1 = KEYGEN_KCR_EXT_OPAQUE_IN_BASIC_EO + offset;
 	op2 = extract_size - 1;
-	
+
 
 	if (mask) {
-/*
+		/*
 		if (mask->single_mask[0].mask_offset > 0xF ||
 			mask->single_mask[1].mask_offset > 0xF ||
 			mask->single_mask[2].mask_offset > 0xF ||
 			mask->single_mask[3].mask_offset > 0xF)
 			return KEYGEN_KCR_MASK_OFFSET_ERR;
-*/
+		 */
 
 		/* build fec_mask */
 		mask_bytes = ((mask->num_of_masks == 1) ? 2 :
@@ -694,19 +691,20 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     void *key,
 		     uint8_t *key_size)
 {
-	struct keygen_input_message_params input_struct 
+	struct keygen_input_message_params input_struct
 					__attribute__((aligned(16)));
 	uint32_t arg1;
-	
+
 	if (user_metadata) {
 		__stdw(0, 0, 0, &input_struct);
 		__stdw(0, 0, 8, &input_struct);
 		input_struct.opaquein = user_metadata;
-	
+
 		/* Prepare HW context for TLU accelerator call */
 		arg1 = ((((uint32_t)(&input_struct)) << 16) | (uint32_t)key);
 		__stqw((KEYGEN_KEY_GENERATE_EPRS_MTYPE | KEYGEN_OPAQUEIN_VALID),
-			arg1,((uint32_t)keyid) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
+			arg1, ((uint32_t)keyid) << 16, 0,
+				HWC_ACC_IN_ADDRESS, 0);
 	} else {
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_GENERATE_EPRS_MTYPE, ((uint32_t)key),

@@ -24,6 +24,7 @@ __HOT_CODE void receive_cb(void)
 	uint8_t *fd_flc_appidx;
 	uint8_t appidx;
 	struct parse_result *pr;
+	int32_t parse_status;
 
 	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
 						* to the send NI structure   */
@@ -31,7 +32,7 @@ __HOT_CODE void receive_cb(void)
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Need to save running-sum in parse-results LE-> BE */
-	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM);
+	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
 
 	osm_task_init();
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
@@ -42,7 +43,7 @@ __HOT_CODE void receive_cb(void)
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
 	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
-		int32_t parse_status = parse_result_generate_default \
+		parse_status = parse_result_generate_default \
 				(PARSER_NO_FLAGS);
 		if (parse_status) {
 			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
@@ -114,7 +115,7 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 		flags |= FDMA_ENF_BDI_BIT;
 	/*if (va_bdi & ADC_VA_MASK)
 		flags |= FDMA_ENF_VA_BIT;*/
-	icid = LH_SWAP(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
+	icid = LH_SWAP(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET, 0);
 	/*if (icid & ADC_PL_MASK)
 		flags |= FDMA_ENF_PL_BIT;*/
 	icid &= ADC_ICID_MASK;
@@ -125,7 +126,7 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 /* TODO : replace by macros/inline funcs */
 __HOT_CODE int dpni_get_receive_niid(void)
 {
-	return((int)PRC_GET_PARAMETER());
+	return (int)PRC_GET_PARAMETER();
 }
 
 
@@ -140,6 +141,6 @@ __HOT_CODE int dpni_set_send_niid(uint16_t niid)
 /* TODO : replace by macros/inline funcs */
 __HOT_CODE int dpni_get_send_niid(void)
 {
-	return((int)default_task_params.send_niid);
+	return (int)default_task_params.send_niid;
 }
 

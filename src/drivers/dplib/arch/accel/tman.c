@@ -12,6 +12,7 @@
 #include "dplib/fsl_fdma.h"
 #include "osm.h"
 #include "dplib/fsl_ldpaa.h"
+#include "inline_asm.h"
 #ifdef SL_DEBUG
 	#include "common/errors.h"
 #endif
@@ -27,15 +28,16 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 #endif
 
 	/* Load ICID and PL */
-	__lhbrx(icid_pl, HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET);
+	icid_pl = (uint32_t)
+			__lhbr(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET, (void *)0);
 	/* Load VA and BDI */
 	__lbz_d(va_bdi, HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET);
-	
+
 	/* Isolate ICID */
 	arg1 = ((icid_pl << 16) & 0x7FFF0000) + TMAN_CMDTYPE_TMI_CREATE;
 	/* Add BDI bit */
 	/* Optimization: remove 1 cycle of or using rlwimi */
-	//arg1 = (va_bdi << 31) | arg1;
+	/* equal to arg1 = (va_bdi << 31) | arg1; */
 	__e_rlwimi(arg1, va_bdi, 31, 0, 0);
 	/* Move PL bit to the right offset */
 	icid_pl = (icid_pl << 11) & 0x04000000;
@@ -289,16 +291,18 @@ void tman_timer_completion_confirmation(uint32_t timer_handle)
 
 void tman_get_timestamp(uint64_t *timestamp)
 {
-//	uint64_t temp;
-	
-	/*TODO the bellow line is because of compiler warning please remove 
-	when possible */
-//	temp = 0;
-	
-//	__llldbrw(temp, 0, (void *) TMAN_TMTSTMP_ADDRESS);
-//	*timestamp = temp;
-	*timestamp = *((uint64_t *) TMAN_TMTSTMP_ADDRESS);
+#if 0 /* code in case of little endian registers */
+	uint64_t temp;
 
+	/*TODO the bellow line is because of compiler warning please remove
+	when possible */
+	temp = 0;
+
+	__llldbrw(temp, 0, (void *) TMAN_TMTSTMP_ADDRESS);
+	*timestamp = temp;
+#else
+	*timestamp = *((uint64_t *) TMAN_TMTSTMP_ADDRESS);
+#endif
 }
 
 #pragma push
@@ -308,10 +312,10 @@ void tman_timer_callback(void)
 	tman_cb_t tman_cb;
 	tman_arg_8B_t tman_cb_arg1;
 	tman_arg_2B_t tman_cb_arg2;
-	
+
 	tman_cb = (tman_cb_t)__lwbr(HWC_FD_ADDRESS+FD_HASH_OFFSET, 0);
 	tman_cb_arg1 = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
-	tman_cb_arg2 = 
+	tman_cb_arg2 =
 		(tman_arg_2B_t)__lhbr(HWC_FD_ADDRESS+FD_OPAQUE1_OFFSET, 0);
 	osm_task_init();
 	(*(tman_cb))(tman_cb_arg1, tman_cb_arg2);

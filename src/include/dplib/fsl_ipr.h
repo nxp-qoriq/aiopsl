@@ -333,7 +333,7 @@ struct extended_stats_cntrs {
 		Failure can be one of the following:\n
 		\link FSL_IPRCreateReturnStatus IPR create instance return
 		status \endlink \n
-		\ref FSL_CTLU_STATUS_TBL_CREATE \n
+		\ref FSL_TABLE_STATUS \n
 		\ref CDMA_WRITE_STATUS \n
 		\ref cdma_errors (CDMA_WORKSPACE_MEMORY_READ_ERR,
 		 CDMA_BUFFER_POOL_DEPLETION_ERR,
@@ -391,8 +391,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 @Return		Status -\n
 		\link FSL_IPRReassReturnStatus IP Reassembly Return status
 		\endlink \n
-		\ref FSL_CTLU_STATUS_RULE_CREATE \n
-		\ref FSL_CTLU_STATUS_RULE_DELETE \n
+		\ref FSL_TABLE_STATUS \n
 		\ref cdma_errors \n
 		\ref FDMA_CONCATENATE_FRAMES_ERRORS \n
 		\ref TMANReturnStatus \n

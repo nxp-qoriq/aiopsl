@@ -1,14 +1,52 @@
 SL Alpha v0.4  Change Log
 ===============================
-
+IPR: out of order functionality.
+IPR: IPv6 support.
+IPR: concurrent mode support.
+IPR: usage of slab allocator in init.
 Table SRs: table_lookup_by_keyid was renamed to table_lookup_by_keyid_default_frame
 Table SRs: table_lookup_by_keyid was introduced, supporting non default parameters
-Table SRs: table verification files were updated
-Table SRs: documentation was added
 Table SRs: table status were updated
 Table SRs: Removed ICID Error status
-GRO: Add granularity field to timeout parameters.
-FDMA: Add concatenate command new output parameter- AMQ attributes.
+Table SRs: table verification files were updated
+Table SRs: Added function specific return values documentation.
+GRO: Add Timeout limit support.
+GRO: Add IPv4 checksum support.
+GRO: Add TCP checksum support.
+GRO: Add IPv4 ECN support.
+GRO: Add IPv4 timestamp support.
+GRO: Add IPv6 support.
+GRO: Add Metadata support.
+GRO: Add TCP flags support.
+GRO: Add unexpected sequence number support.
+GRO: Add unexpected Ack number support.
+GSO: Add IPv4 checksum support.
+GSO: Add IPv4 option header support.
+GSO: Add IPv4 ID generation support.
+GSO: Add TCP option header support.
+GSO: Add IPv4 option header support.
+GSO: Add TCP Flags support.
+GSO: Add TCP Checksum support.
+fsl_gro.h: Add granularity field to timeout parameters.
+fsl_fdma.h: Add concatenate command new output parameter- AMQ attributes.
+keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
+keygen.c: Fixed ENGR310688 - In keygen_kcr_builder_init, Clear all KCR array instead of only the first byte.
+system.c: usage of slab allocator in prpid and keyid pools creation.
+system.c: Added Storage Profile Initialization.
+system.h: Added storage profile struct and defines.
+ipf.c: ipf_discard_frame_remainder is supported.
+ipf.c: IPv4 options headers are supported.
+ipf.c: IPv4 fragmentation of fragments is supported.
+ipf.c: Added support in IPv6 ID
+fsl_keygen.c: Added FSL_KEYGEN_KCR_CREATE_STATUS, FSL_KEYGEN_KCR_DELETE_STATUS
+fsl_keygen.c: Turned keygen_kcr_builder_add_generic_extract_fec flags into enum
+fsl_keygen.c: Some status changes
+fsl_keygen.c: Changed FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD defines to enum kcr_builder_ext_lookup_res_field
+fsl_parser.c: Added FSL_PARSER_PRP_CREATE_STATUS, FSL_PARSER_PRP_DELETE_STATUS
+fsl_parser.c: Changed input to parser_profile_create() and parser_profile_replace() to be parse_profile_input struct (according to HW struct)
+fsl_parser.c: Changed parser_profile_replace() from int32_t to void
+fsl_parser.c: Some status changes
+
 
 SL Pre-Alpha v0.3.3  Change Log
 ===============================

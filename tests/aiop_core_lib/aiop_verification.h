@@ -24,6 +24,7 @@
 #include "verification_virtual_pools.h"
 #include "aiop_verification_gso.h"
 #include "aiop_verification_gro.h"
+#include "aiop_verification_osm.h"
 #include "aiop_verification_ipf.h"
 #include "aiop_verification_ipr.h"
 #include "aiop_verification_ipsec.h"
@@ -157,7 +158,8 @@ enum verif_modules_ids {
 	KEYGEN_MODULE,
 	IPSEC_MODULE,
 	WRITE_DATA_TO_WS_MODULE,
-	UPDATE_ASA_VARIABLE
+	UPDATE_ASA_VARIABLE,
+	OSM_MODULE
 };
 
 /**************************************************************************//**

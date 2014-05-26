@@ -9,7 +9,7 @@ fsl_keygen.h
 fsl_fdma.h
 fsl_gso.h
 fsl_gro.h
-fsl_general_errors.h
+errors.h
 fsl_ip.h
 fsl_ipf.h
 fsl_ipr.h
@@ -20,9 +20,13 @@ fsl_ldpaa.h
 fsl_nat.h
 fsl_parser.h
 fsl_osm.h
-fsl_spinlock.h
+fsl_spinlock.h (currently not since it contains a lot of unused functions)
 fsl_ste.h
 fsl_stdlib.h
 fsl_tman.h
 dpni_drv.h
 general.h
+fsl_cmdif_server.h
+fsl_cmdif_client.h
+fsl_inet.h
+fsl_slab.h

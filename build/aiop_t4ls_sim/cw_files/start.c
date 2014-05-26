@@ -32,8 +32,6 @@ extern char         _stack_end[];      /* Address after end byte of stack */
 extern char         _SDA_BASE_[];       /* Small Data Area (<=8 bytes) base address
                                            used for .sdata, .sbss */
 
-extern char         _spin_table[];
-
 int  _master = 0xffffffff;
 
 
@@ -142,17 +140,3 @@ done_sp:
     blrl
 }
 
-void __sys_start_guest(register int argc, register char **argv, register char **envp)
-{
-#pragma unused(argc)
-#pragma unused(argv)
-#pragma unused(envp)
-    /* Jump to spin table code at 0x3ffff800 */
-    __asm__ (
-    "lis    6, _spin_table@ha    \n"
-    "addi   6, 6, _spin_table@l  \n"
-    "addi   6, 6, 0x800  \n"
-    "mtlr   6             \n"
-    "blrl                 \n"
-    );
-}

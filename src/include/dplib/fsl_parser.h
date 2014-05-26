@@ -45,7 +45,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @{
 *//***************************************************************************/
 	/** Routing header present in 2nd IPv6 header */
-#define PARSER_ATT_IPV6_ROUTING_HDR_2               0x0001
+#define PARSER_ATT_IPV6_ROUTING_HDR_2               0x8000
 
 /** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS */
 
@@ -1069,12 +1069,47 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /** @} */ /* end of FSL_PARSER_SETTERS */
 
+/**************************************************************************//**
+@Group	FSL_PARSER_PRP_CREATE_STATUS parse_profile_create function status
+@{
+*//***************************************************************************/
+
+/** Command successful. ID was pulled from pool */
+#define PARSER_PRP_CREATE_GET_ID_STATUS_SUCCESS			0x00000000
+/** Command failed. ID was not fetched from pool due to CDMA write error */
+#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_WR_MUTEX_FAILURE	0x80000001
+/** Command failed. ID was not fetched from pool due to pool out of range */
+#define PARSER_PRP_CREATE_GET_ID_STATUS_POOL_OUT_OF_RANGE	0x80000002
+/** Command failed. ID was not fetched from pool due to CDMA read error */
+#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_RD_FAILURE		0x80000003
+/** Command failed. ID was not fetched from pool due to CDMA read with
+ * mutex error */
+#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE	0x80000004
+
+/** @} */ /* end of FSL_PARSER_PRP_CREATE_STATUS */
+
+/**************************************************************************//**
+@Group	FSL_PARSER_PRP_DELETE_STATUS parse_profile_delete function status
+@{
+*//***************************************************************************/
+
+/** Command successful. ID was returned to pool */
+#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_SUCCESS		  0x00000000
+/** Command failed. ID was not returned to pool due to CDMA write error */
+#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE	  0x80000001
+/** Command failed. ID was not returned to pool due to pool out of range */
+#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE  0x80000002
+/** Command failed. ID was not returned to pool due to CDMA read with
+ * mutex error */
+#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE 0x80000003
+/** Command failed. ID was not returned to pool due to CDMA write with
+ * mutex error */
+#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_CDMA_WR_MUTEX_FAILURE 0x80000004
+
+/** @} */ /* end of FSL_PARSER_PRP_DELETE_STATUS */
 
 /**************************************************************************//**
 @Group AIOP_PARSE_RESULT_GEN_STATUS Parse Result Generation SR Status
-
-@Description Return statuses for Parse Result Generation functions
-
 @{
 *//***************************************************************************/
 
@@ -1087,11 +1122,11 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 	/** Parser SR failed due to invalid soft parse instruction */
 #define PARSER_STATUS_FAIL_INVALID_SOFT_PARSE_INSTRUCTION	0x00400000
 	/** Parser SR failed due to parsing error */
-#define PARSER_STATUS_FAIL_PARSING_ERROR					0x00200000
+#define PARSER_STATUS_FAIL_PARSING_ERROR			0x00200000
 	/** Parser SR failed due to block limit exceeded */
 #define PARSER_STATUS_FAIL_BLOCK_LIMIT_EXCCEEDED		0x00100000
 	/** L3 checksum validation success */
-#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED  	0x00080000
+#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED		0x00080000
 	/** L3 checksum validation failure */
 #define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION		0x000C0000
 	/** L4 checksum validation success */
@@ -1103,7 +1138,6 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 /**************************************************************************//**
 @Group	FSL_PARSER_GEN_PARSE_RESULT_FLAGS Flags for parse_result_generate func.
-
 @{
 *//***************************************************************************/
 /** No flags */
@@ -1507,7 +1541,7 @@ struct parse_profile_input {
 		Must be 16 bytes aligned.
 @Param[out]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref GET_ID_STATUS.
+@Return		Status - please refer to \ref FSL_PARSER_PRP_CREATE_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1539,7 +1573,7 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref RELEASE_ID_STATUS.
+@Return		Status - please refer to \ref FSL_PARSER_PRP_DELETE_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1579,7 +1613,7 @@ void parser_profile_query(uint8_t prpid,
 @Param[in]	flags - Please refer to \ref FSL_PARSER_GEN_PARSE_RESULT_FLAGS.
 
 @Return		Status - please refer to \ref AIOP_PARSE_RESULT_GEN_STATUS.\n
-		
+
 		The exact error code can be discovered by using
 		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
 		\ref FSL_PARSER_ERROR_CODES.
@@ -1611,7 +1645,7 @@ int32_t parse_result_generate_default(uint8_t flags);
 @Param[in]	flags - Please refer to \ref FSL_PARSER_GEN_PARSE_RESULT_FLAGS.
 
 @Return		Status - please refer to \ref AIOP_PARSE_RESULT_GEN_STATUS.\n
-		
+
 		The exact error code can be discovered by using
 		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
 		\ref FSL_PARSER_ERROR_CODES.

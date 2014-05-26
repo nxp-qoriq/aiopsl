@@ -3,6 +3,7 @@
 #include "common/fsl_string.h"
 #include "common/fsl_stdarg.h"
 #include "common/fsl_malloc.h"
+#include "kernel/fsl_spinlock.h"
 #include "kernel/platform.h"
 #include "kernel/smp.h"
 
@@ -12,448 +13,274 @@
 /* Global System Object */
 __SHRAM t_system sys;
 
-extern void     __sys_start(register int argc, register char **argv, register char **envp);
-extern void     __sys_start_secondary(void);
-#ifdef CORE_E6500
-extern void     __sys_start_secondary_guest(void);
-#endif /* CORE_E6500 */
-
+#define NUM_OF_HANDLES 5
+extern void     __sys_start(register int argc, register char **argv,
+				register char **envp);
 
 typedef struct t_sys_forced_object {
-    enum fsl_os_module  module;
-    uint8_t             num_of_ids;
-    uint32_t            id[SYS_MAX_NUM_OF_MODULE_IDS];
-    fsl_handle_t        h_module;
-    list_t              node;
+	fsl_handle_t        h_module;
 } t_sys_forced_object_desc;
 
+__SHRAM t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
+
 
 /*****************************************************************************/
-static void sys_init_objects_registry(void)
+fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...)
 {
-    //memset(sys.modules_info, 0, sizeof(sys.modules_info));
-    //memset(sys.sub_modules_info, 0, sizeof(sys.sub_modules_info));
-    INIT_LIST(&(sys.forced_objects_list));
+	UNUSED(num_of_ids);
+	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+		return NULL;
 
-    //sys_init_spinlock(&sys.object_mng_lock);
+	return sys_handle[module].h_module;
+
 }
 
 /*****************************************************************************/
-static void sys_free_objects_management(void)
+int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
+				int num_of_ids, ...)
 {
-    t_sys_forced_object_desc   *p_forced_object;
-    list_t                  *p_node, *p_temp;
+	if ((module >= FSL_OS_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
+		return -EINVAL;
 
-    /* Freeing all network devices descriptors */
-    LIST_FOR_EACH_SAFE(p_node, p_temp, &(sys.forced_objects_list)) {
-        p_forced_object = LIST_OBJECT(p_node, t_sys_forced_object_desc, node);
+	sys_handle[module].h_module = h_module;
 
-        list_del(p_node);
-        fsl_os_free(p_forced_object);
-    }
-
-#if 0 /* what is this??? */
-    /* Free the settings cloning information */
-    if (sys.p_clone_scratch_pad)
-        fsl_os_free(sys.p_clone_scratch_pad);
-#endif /* 0 */
+	return 0;
 }
 
 /*****************************************************************************/
-fsl_handle_t sys_get_handle(enum fsl_os_module module, ... )
+int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
 {
-    t_sys_forced_object_desc   *p_forced_object;
-    va_list                 arguments;        //A place to store the list of arguments
-    list_t                  *p_node;
-    uint32_t                ids[SYS_MAX_NUM_OF_MODULE_IDS];
-    uint8_t                 i;
+	UNUSED(num_of_ids);
+	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+		return -EINVAL;
 
-    ASSERT_COND(sys.forced_objects_list.next && sys.forced_objects_list.prev);
 
-    va_start(arguments, module); //initializing arguments to store all values
-    for(i = 0; i < SYS_MAX_NUM_OF_MODULE_IDS; i++)
-        ids[i] = va_arg(arguments, uint32_t);
-    va_end(arguments);
+	sys_handle[module].h_module = NULL;
 
-    /* If id equals SYS_NULL_OBJECT_ID, we must return NULL */
-    /* Search in the forced objects list. This list usually serves for
-       storing specific objects that were initialized by the platform. */
-    LIST_FOR_EACH(p_node, &(sys.forced_objects_list)) {
-        p_forced_object = LIST_OBJECT(p_node, t_sys_forced_object_desc, node);
-
-        if (p_forced_object->module == module) {
-            for(i = 0; i < p_forced_object->num_of_ids; i++)
-                if (p_forced_object->id[i] != ids[i])
-                    break;
-
-            if (i == p_forced_object->num_of_ids)
-                return p_forced_object->h_module;
-        }
-    }
-
-    return NULL;
+	return -ENAVAIL;
 }
 
 /*****************************************************************************/
-int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module, uint8_t num_of_ids, ... )
+static int sys_init_platform(void)
 {
-    t_sys_forced_object_desc   *p_forced_object;
-    uint32_t                id;
-    uint8_t                 i;
-    va_list                 arguments;        //A place to store the list of arguments
+	int     err = 0;
+	int is_master_core = sys_is_master_core();
 
-    ASSERT_COND(num_of_ids <= SYS_MAX_NUM_OF_MODULE_IDS && num_of_ids > 0);
+	if (sys.platform_ops.f_disable_local_irq)
+		sys.platform_ops.f_disable_local_irq(
+			sys.platform_ops.h_platform);
 
-    ASSERT_COND((sys.forced_objects_list.next && sys.forced_objects_list.prev) ||
-                (!sys.forced_objects_list.next && !sys.forced_objects_list.prev));
+	if (sys.platform_ops.f_init_core) {
+		err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
+		if (err != 0) return -1;
+	}
+	
+	if (sys.platform_ops.f_init_timer) {
+		err = sys.platform_ops.f_init_timer(
+			sys.platform_ops.h_platform);
+		if (err != 0) return -1;
+	}
 
-    if (!sys.forced_objects_list.next)
-        INIT_LIST(&sys.forced_objects_list);
+	if (is_master_core) {
+		/* Do not change the sequence of calls in this section */
 
-    va_start(arguments, num_of_ids); //initializing arguments to store all values
-    p_forced_object = (t_sys_forced_object_desc *)fsl_os_malloc(sizeof(t_sys_forced_object_desc));
-    if (!p_forced_object) {
-        va_end(arguments);
-        RETURN_ERROR(MAJOR, E_NO_MEMORY, ("forced object descriptor"));
-    }
-    p_forced_object->num_of_ids = num_of_ids;
-    for(i = 0; i < num_of_ids; i++) {
-        id = va_arg(arguments, uint32_t);
-        p_forced_object->id[i] = id;
-    }
-    p_forced_object->module = module;
-    p_forced_object->h_module = h_module;
-    INIT_LIST(&(p_forced_object->node));
-    list_add_to_tail(&(p_forced_object->node), &(sys.forced_objects_list));
-    va_end(arguments);
+		if (sys.platform_ops.f_init_intr_ctrl) {
+			err = sys.platform_ops.f_init_intr_ctrl(
+				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
 
-    return E_OK;
-}
+		if (sys.platform_ops.f_init_soc) {
+			err = sys.platform_ops.f_init_soc(
+				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
+	}
 
-/*****************************************************************************/
-void sys_remove_handle(enum fsl_os_module module, uint32_t id, ... )
-{
-    UNUSED (id);
-    UNUSED (module);
+	if (sys.platform_ops.f_enable_local_irq)
+		sys.platform_ops.f_enable_local_irq(
+			sys.platform_ops.h_platform);
 
-    REPORT_ERROR(MAJOR, E_NOT_SUPPORTED, NO_MSG);
-}
+	if (is_master_core) {
+		/* Do not change the sequence of calls in this section */
+		if (sys.platform_ops.f_init_ipc) {
+			err = sys.platform_ops.f_init_ipc(
+				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
 
-/*****************************************************************************/
-static int sys_init_platform(struct platform_param *platform_param)
-{
-#define SYS_PLATFORM_INIT_FAIL_CHECK()  \
-    do  {                               \
-        if (err != E_OK)                \
-            return err;                 \
-        if (sys.init_fail_count)        \
-            return E_NO_DEVICE;         \
-    } while (0)
+		if (sys.platform_ops.f_init_console) {
+			err = sys.platform_ops.f_init_console(
+				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
+		
+		if (!sys.console) {
+			/* If no platform console, register debugger console */
+			sys_register_debugger_console();
+		}
 
-    int     err = E_OK;
-    uint32_t    core_id = core_get_id();
+		if (sys.platform_ops.f_init_mem_partitions) {
+			err = sys.platform_ops.f_init_mem_partitions(
+				sys.platform_ops.h_platform);
+			if (err != 0) return -1;
+		}
 
-    if (sys.is_partition_master[core_id]) {
-        err = platform_init(platform_param, &(sys.platform_ops));
-        if (err == E_OK)
-            ASSERT_COND(sys.platform_ops.h_platform);
+	}
 
-        err = sys_add_handle(sys.platform_ops.h_platform, FSL_OS_MOD_SOC, 1, 0);
-        if (err != E_OK)
-            RETURN_ERROR(MAJOR, err, NO_MSG);
-    }
+	if (sys.platform_ops.f_init_private) {
+		err = sys.platform_ops.f_init_private(
+			sys.platform_ops.h_platform);
+		if (err != 0) return -1;
+	}
 
-    if (err != E_OK)
-        sys.init_fail_count++;
-
-    sys_barrier();
-
-    SYS_PLATFORM_INIT_FAIL_CHECK();
-
-    if (sys.platform_ops.f_disable_local_irq)
-        sys.platform_ops.f_disable_local_irq(sys.platform_ops.h_platform);
-
-    if (sys.platform_ops.f_init_core)
-        err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
-
-    if (err != E_OK)
-        sys.init_fail_count++;
-
-    sys_barrier();
-
-    SYS_PLATFORM_INIT_FAIL_CHECK();
-
-    if (sys.platform_ops.f_init_timer)
-        err = sys.platform_ops.f_init_timer(sys.platform_ops.h_platform);
-
-    if ((err == E_OK) && sys.is_partition_master[core_id]) {
-        /* Do not change the sequence of calls in this section */
-
-        if (sys.platform_ops.f_init_intr_ctrl)
-            err = sys.platform_ops.f_init_intr_ctrl(sys.platform_ops.h_platform);
-
-        if ((err == E_OK) && sys.is_master_partition_master[core_id]) {
-            if (sys.platform_ops.f_init_soc)
-                err = sys.platform_ops.f_init_soc(sys.platform_ops.h_platform);
-        }
-    }
-
-    if (err != E_OK)
-        sys.init_fail_count++;
-
-    sys_barrier();
-
-    SYS_PLATFORM_INIT_FAIL_CHECK();
-
-    if (sys.platform_ops.f_enable_local_irq)
-        sys.platform_ops.f_enable_local_irq(sys.platform_ops.h_platform);
-
-    if (sys.is_partition_master[core_id]) {
-#if 0
-    	/* Do not change the sequence of calls in this section */
-        if ((err == E_OK) && sys.ipc_enabled && sys.platform_ops.f_init_ipc)
-            err = sys.platform_ops.f_init_ipc(sys.platform_ops.h_platform);
-#endif /* 0 */
-
-        if ((err == E_OK) && sys.platform_ops.f_init_console)
-            err = sys.platform_ops.f_init_console(sys.platform_ops.h_platform);
-
-        if (sys.platform_ops.f_init_mem_partitions)
-            err = sys.platform_ops.f_init_mem_partitions(sys.platform_ops.h_platform);
-
-    }
-
-    if (err != E_OK)
-        sys.init_fail_count++;
-
-    sys_barrier();
-
-    SYS_PLATFORM_INIT_FAIL_CHECK();
-
-    if (sys.platform_ops.f_init_private)
-        err = sys.platform_ops.f_init_private(sys.platform_ops.h_platform);
-
-    if (err != E_OK)
-        sys.init_fail_count++;
-
-    sys_barrier();
-
-    SYS_PLATFORM_INIT_FAIL_CHECK();
-
-    return E_OK;
+	return 0;
 }
 
 
 /*****************************************************************************/
 static int sys_free_platform(void)
 {
-    int     err = E_OK;
-    uint32_t    core_id = core_get_id();
+	int     err = 0;
+	int is_master_core = sys_is_master_core();
 
-    if (sys.platform_ops.f_free_private)
-        err = sys.platform_ops.f_free_private(sys.platform_ops.h_platform);
+	if (sys.platform_ops.f_free_private)
+		err = sys.platform_ops.f_free_private(
+			sys.platform_ops.h_platform);
 
-    if (sys.is_partition_master[core_id])
-    {
-        /* Do not change the sequence of calls in this section */
+	if (is_master_core) {
+		/* Do not change the sequence of calls in this section */
 
-        if (sys.platform_ops.f_free_mem_partitions)
-            err = sys.platform_ops.f_free_mem_partitions(sys.platform_ops.h_platform);
+		if (sys.platform_ops.f_free_mem_partitions)
+			err = sys.platform_ops.f_free_mem_partitions(
+				sys.platform_ops.h_platform);
 
-        if (sys.platform_ops.f_free_console)
-            err = sys.platform_ops.f_free_console(sys.platform_ops.h_platform);
+		if (sys.platform_ops.f_free_console)
+			err = sys.platform_ops.f_free_console(
+				sys.platform_ops.h_platform);
 
-/*
-        if (sys.ipc_enabled && sys.platform_ops.f_free_ipc)
-            err = sys.platform_ops.f_free_ipc(sys.platform_ops.h_platform);
-*/
-    }
+		if (sys.platform_ops.f_free_ipc)
+			err = sys.platform_ops.f_free_ipc(
+				sys.platform_ops.h_platform);
+		
+	}
 
-    sys_barrier();
+	sys_barrier();
 
-    if (sys.platform_ops.f_free_timer)
-        err = sys.platform_ops.f_free_timer(sys.platform_ops.h_platform);
+	if (sys.platform_ops.f_free_timer)
+		err = sys.platform_ops.f_free_timer(
+			sys.platform_ops.h_platform);
 
-    if (sys.is_partition_master[core_id]) {
-        /* Do not change the sequence of calls in this section */
+	if (is_master_core) {
+		/* Do not change the sequence of calls in this section */
 
-        if (sys.is_master_partition_master) {
-            if (sys.platform_ops.f_free_soc)
-                err = sys.platform_ops.f_free_soc(sys.platform_ops.h_platform);
-        }
+		if (sys.platform_ops.f_free_soc)
+			err = sys.platform_ops.f_free_soc(
+				sys.platform_ops.h_platform);
 
-        if (sys.platform_ops.f_free_intr_ctrl)
-            err = sys.platform_ops.f_free_intr_ctrl(sys.platform_ops.h_platform);
-    }
+		if (sys.platform_ops.f_free_intr_ctrl)
+			err = sys.platform_ops.f_free_intr_ctrl(
+				sys.platform_ops.h_platform);
+	}
 
-    sys_barrier();
+	sys_barrier();
 
-    if (sys.platform_ops.f_free_core)
-        err = sys.platform_ops.f_free_core(sys.platform_ops.h_platform);
+	if (sys.platform_ops.f_free_core)
+		err = sys.platform_ops.f_free_core(
+			sys.platform_ops.h_platform);
 
-    if (sys.is_partition_master[core_id]) {
-        err = platform_free(sys.platform_ops.h_platform);
-        sys.platform_ops.h_platform = NULL;
-    }
+	if (is_master_core) {
+		err = platform_free(
+			sys.platform_ops.h_platform);
+		sys.platform_ops.h_platform = NULL;
+	}
 
-    sys_barrier();
+	sys_barrier();
 
-    return err;
+	return err;
 }
 
+static void update_active_cores_mask(void)
+{
+	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
+		+ SOC_PERIPH_OFF_AIOP_CMGW \
+		+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+	uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
+	
+	sys.active_cores_mask  = abrr_val;
+}
+
+static int global_sys_init(void)
+{
+	struct platform_param platform_param;
+	int err = 0;
+	ASSERT_COND(sys_is_master_core());
+	
+	update_active_cores_mask();
+	
+	fill_system_parameters(&platform_param);
+	
+	platform_early_init(&platform_param);
+
+	/* Initialize memory management */
+	err = sys_init_memory_management();
+	if (err != 0) return err;
+	
+	/* Initialize Multi-Processing services as needed */
+	err = sys_init_multi_processing();
+	if (err != 0) return err;
+	
+	/* Platform init */
+	err = platform_init(&(platform_param), &(sys.platform_ops));
+	if (err != 0) return err;
+	
+	err = sys_add_handle(sys.platform_ops.h_platform,
+		FSL_OS_MOD_SOC, 1, 0);
+	if (err != 0) return err;
+	
+	return E_OK;
+}
 
 /*****************************************************************************/
 int sys_init(void)
 {
-    t_sys_param             sys_param;
-    struct platform_param   platform_param;
-    int       err;
-    uint32_t        core_id = core_get_id();
-#if (defined(SYS_SMP_SUPPORT) && defined(SYS_64BIT_ARCH))
-    dma_addr_t   *p_master_start_addr;
-#ifdef CORE_E6500
-    dma_addr_t   *p_guest_start_addr;
-#endif /* CORE_E6500 */
-#endif /* SYS_SMP_SUPPORT && SYS_64BIT_ARCH */
+	int err = 0, is_master_core;
+	uint32_t core_id = core_get_id();
 
-    memset(&sys_param, 0, sizeof(sys_param));
-    memset(&platform_param, 0, sizeof(platform_param));
-    sys_param.platform_param = &platform_param;
-    fill_system_parameters(&sys_param);
+	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
+						& (1ULL << core_id)) ? 1 : 0;
+	sys.is_cluster_master[core_id] = (int)(SYS_CLUSTER_MASTER_MASK \
+						& (1ULL << core_id)) ? 1 : 0;
 
-    sys.is_partition_master[core_id]       = (int)(sys_param.master_cores_mask & (1ULL << core_id));
-    sys.is_master_partition_master[core_id] = (int)(sys.is_partition_master[core_id] && (sys_param.partition_id == 0));
-    sys.is_core_master[core_id]            = IS_CORE_MASTER(core_id, sys_param.partition_cores_mask);
+	is_master_core = sys_is_master_core();
 
-    if (sys.is_partition_master[core_id]) {
-        sys.partition_id         = sys_param.partition_id;
-        sys.partition_cores_mask  = sys_param.partition_cores_mask;
-        sys.master_cores_mask     = sys_param.master_cores_mask;
-        //sys.ipc_enabled          = sys_param.use_ipc;
-    }
+	if(is_master_core) {
+		err = global_sys_init();
+		if (err != 0) return -1;
 
-#ifdef CORE_E6500
-    platform_early_init(sys_param.platform_param);
-#else
-    if (sys.is_partition_master[core_id])
-        platform_early_init(sys_param.platform_param);
-#endif /* CORE_E6500 */
-
-    /* reset boot_sync_flag */
-    sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
-
-    if (sys.is_partition_master[core_id]) {
-
-	/* Initialize memory management */
-	err = sys_init_memory_management();
-	if (err != 0) {
-		pr_err("Failed sys_init_memory_management\n");
-		return err;
+		/* signal all other cores that global initiation is done */
+		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
+	} else {
+		while(!sys.boot_sync_flag) {}
 	}
 
-#ifdef SYS_SMP_SUPPORT
-        /* Kick secondary cores on this partition */
-#ifdef SYS_64BIT_ARCH
-        /* In 64-bit ABI, function name points to function descriptor.
-           This descriptor contains the function address. */
-#ifdef CORE_E6500
-            p_master_start_addr = (dma_addr_t *)(__sys_start_secondary);
-            p_guest_start_addr = (dma_addr_t *)(__sys_start_secondary_guest);
+	err = sys_init_platform();
+	if (err != 0) return -1;
 
-            sys_kick_spinning_cores(sys.partition_cores_mask,
-                                 (dma_addr_t)PTR_TO_UINT(p_master_start_addr),
-                                 (dma_addr_t)PTR_TO_UINT(p_guest_start_addr));
-#else
-        p_master_start_addr = (dma_addr_t *)(__sys_start);
-
-        sys_kick_spinning_cores(sys.partition_cores_mask,
-                             (dma_addr_t)PTR_TO_UINT(*p_master_start_addr),
-                             0);
-#endif /* CORE_E6500 */
-
-#else /*!SYS_64BIT_ARCH*/
-#ifdef SYS_SECONDARY_START
-#ifdef CORE_E6500
-        sys_kick_spinning_cores(sys.partition_cores_mask,
-                     (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
-                     (dma_addr_t)PTR_TO_UINT(__sys_start_secondary_guest));
-#else /*CORE_E6500*/
-        sys_kick_spinning_cores(sys.partition_cores_mask,
-                             (dma_addr_t)PTR_TO_UINT(__sys_start_secondary),
-                             0);
-#endif /* CORE_E6500 */
-#else  /*!SYS_SECONDARY_START*/
-#if 0
-        sys_kick_spinning_cores(sys.partition_cores_mask, (dma_addr_t)PTR_TO_UINT(__sys_start), 0);
-#endif /* 0 */
-#endif /* SYS_SECONDARY_START */
-#endif /* SYS_64BIT_ARCH */
-#endif /* SYS_SMP_SUPPORT */
-
-#if 0
-        /* Initialize interrupt management */
-        err = sys_init_interrupt_management();
-        ASSERT_COND(err == E_OK);
-#endif /* 0 */
-
-        /* Initialize the objects registry structures */
-        sys_init_objects_registry();
-    }
-
-    /* Initialize Multi-Processing services as needed */
-    err = sys_init_multi_processing();
-    if (err != 0) {
-	    pr_err("Failed sys_init_multi_processing\n");
-	    return err;
-    }
-    sys_barrier();
-
-#if 0
-    if (sys.is_master_partition_master[core_id] && sys_param.use_cli) {
-        /* Initialize CLI */
-        err = sys_init_cli();
-        ASSERT_COND(err == E_OK);
-    }
-    sys_barrier();
-#endif /* 0 */
-
-    err = sys_init_platform(sys_param.platform_param);
-    if (err != E_OK)
-        return -1;
-
-    if (!sys.console)
-        /* If no platform console, register debugger console */
-        sys_register_debugger_console();
-
-    return 0;
+	return 0;
 }
 
 /*****************************************************************************/
 void sys_free(void)
 {
-    uint32_t core_id = core_get_id();
+	sys_free_platform();
 
-    sys_free_platform();
+	sys_free_multi_processing();
+	sys_barrier();
 
-#if 0
-    if (sys.is_partition_master[core_id])
-        sys_free_cli();
-    sys_barrier();
-#endif /* 0 */
+	if (sys_is_master_core()) {
 
-    sys_free_multi_processing();
-    sys_barrier();
-
-    if (sys.is_partition_master[core_id]) {
-        /* Free objects management structures */
-        sys_free_objects_management();
-
-#if 0
-        /* Free interrupt management module */
-        sys_free_interrupt_management();
-#endif /* 0 */
-
-        /* Free memory management module */
-        sys_free_memory_management();
-    }
+		/* Free memory management module */
+		sys_free_memory_management();
+	}
 }

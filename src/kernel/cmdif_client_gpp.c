@@ -3,8 +3,27 @@
 #include <cmdif_client.h>
 #include <fsl_cmdif_flib.h>
 
-#define SEND_FD(FD, PR, SEND_DEV)     (int)(PR == PR)
-#define RECEIVE_FD(FD, PR, SEND_DEV)  (int)(PR == PR)
+/*
+ * Pointer to this structure should be passed as cidesc->regs
+ */
+struct cmdif_reg {
+	void   *nadk_dev;
+	/* TODO complete */
+};
+
+static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
+{
+	struct   cmdif_reg *dev = (struct cmdif_reg *)sdev;
+	/* TODO complete */
+	return 0;
+}
+
+static int receive_fd(struct cmdif_fd *cfd, int pr, void *sdev)
+{
+	struct   cmdif_reg *dev = (struct cmdif_reg *)sdev;
+	/* TODO complete */
+	return 0;
+}
 
 int cmdif_open(struct cmdif_desc *cidesc,
 		const char *m_name,
@@ -23,9 +42,10 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	if (err)
 		return err;
 
-	err = SEND_FD(&fd, CMDIF_PRI_LOW, cidesc->regs);
+	err = send_fd(&fd, CMDIF_PRI_LOW, cidesc->regs);
 
-	/* Wait for response from Server */
+	/* Wait for response from Server 
+	 * TODO add timeout */
 	while (!cmdif_sync_ready(cidesc)) {}
 
 	return cmdif_open_done(cidesc);
@@ -41,9 +61,10 @@ int cmdif_close(struct cmdif_desc *cidesc)
 	if (err)
 		return err;
 
-	err = SEND_FD(&fd, CMDIF_PRI_LOW, cidesc->regs);
+	err = send_fd(&fd, CMDIF_PRI_LOW, cidesc->regs);
 
-	/* Wait for response from Server */
+	/* Wait for response from Server 
+	 * TODO add timeout */
 	while (!cmdif_sync_ready(cidesc)) {}
 
 	return cmdif_close_done(cidesc);
@@ -62,10 +83,11 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	if (err)
 		return err;
 
-	err = SEND_FD(&fd, priority, cidesc->regs);
+	err = send_fd(&fd, priority, cidesc->regs);
 
 	if (cmdif_is_sync_cmd(cmd_id)) {
-		/* Wait for response from Server */
+		/* Wait for response from Server 
+		 * TODO add timeout */
 		while (!cmdif_sync_ready(cidesc)) {}
 
 		return cmdif_sync_cmd_done(cidesc);
@@ -82,14 +104,14 @@ int cmdif_resp_read(struct cmdif_desc *cidesc, int priority)
 	if (cidesc == NULL)
 		return -EINVAL;
 
-	err = RECEIVE_FD(&fd, priority, cidesc->regs);
+	err = receive_fd(&fd, priority, cidesc->regs);
 	if (err)
 		return err;
 	while(!err) {
 		err = cmdif_async_cb(&fd);
 		if (err)
 			return err;
-		err = RECEIVE_FD(&fd, priority, cidesc->regs);
+		err = receive_fd(&fd, priority, cidesc->regs);
 	}
 	return 0;
 }

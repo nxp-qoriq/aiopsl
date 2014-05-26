@@ -106,12 +106,12 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
-			options_size = (tcp_ptr->data_offset_reserved >> 
+			options_size = (tcp_ptr->data_offset_reserved >>
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 && !mss_found && (options_ptr<
+			while (*options_ptr != 0 && !mss_found && (options_ptr <
 					l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
@@ -156,13 +156,13 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 						modify_size);
 				return NO_TCP_MSS_FOUND_ERROR;
 			}
-			
-			options_size = (tcp_ptr->data_offset_reserved >> 
+
+			options_size = (tcp_ptr->data_offset_reserved >>
 					TCP_DATA_OFFSET_SHIFT);
 			l5_ptr = (uint8_t *)tcp_ptr + options_size;
 			options_ptr = (uint8_t *)tcp_ptr + TCP_NO_OPTION_SIZE;
 			mss_found = 0;
-			while (*options_ptr != 0 && !mss_found && (options_ptr<
+			while (*options_ptr != 0 && !mss_found && (options_ptr <
 					l5_ptr)) {
 				if (*options_ptr == 2) {
 					mss_found = 1;
@@ -215,11 +215,11 @@ int32_t l4_set_tp_src(uint16_t src_port)
 		pr->gross_running_sum = 0;
 
 		return SUCCESS;
-	} else if(PARSER_IS_UDP_DEFAULT()){
+	} else if (PARSER_IS_UDP_DEFAULT()) {
 		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
 
-		if(udphdr_ptr->checksum != 0) {
+		if (udphdr_ptr->checksum != 0) {
 			cksum_update_uint32(&udphdr_ptr->checksum,
 					    udphdr_ptr->src_port,
 					    src_port);
@@ -231,12 +231,12 @@ int32_t l4_set_tp_src(uint16_t src_port)
 		} else {
 			udphdr_ptr->src_port = src_port;
 			/* update FDMA */
-			fdma_modify_default_segment_data(l4_offset, 2);			
+			fdma_modify_default_segment_data(l4_offset, 2);
 		}
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
-		
+
 		return SUCCESS;
 	} else {
 		return NO_L4_FOUND_ERROR;
@@ -271,27 +271,26 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 		pr->gross_running_sum = 0;
 
 		return SUCCESS;
-	} else if(PARSER_IS_UDP_DEFAULT()){
+	} else if (PARSER_IS_UDP_DEFAULT()) {
 		udphdr_ptr = (struct udphdr *) ((uint16_t)l4_offset
 				+ PRC_GET_SEGMENT_ADDRESS());
-
-		if(udphdr_ptr->checksum != 0) {
-		cksum_update_uint32(&udphdr_ptr->checksum,
+		if (udphdr_ptr->checksum != 0) {
+			cksum_update_uint32(&udphdr_ptr->checksum,
 				    udphdr_ptr->dst_port,
 				    dst_port);
-
-		udphdr_ptr->dst_port = dst_port;
-
-		/* update FDMA */
-		fdma_modify_default_segment_data(l4_offset+2, 6);
-		} else {
 			udphdr_ptr->dst_port = dst_port;
-			fdma_modify_default_segment_data(l4_offset+2, 2);		
-		}
+
+			/* update FDMA */
+			fdma_modify_default_segment_data(l4_offset+2, 6);
+			} else {
+				udphdr_ptr->dst_port = dst_port;
+				fdma_modify_default_segment_data(l4_offset+2,\
+						2);
+			}
 		/* Invalidate gross running sum */
 		pr->gross_running_sum = 0;
 
-		
+
 		return SUCCESS;
 	} else {
 		return NO_L4_FOUND_ERROR;

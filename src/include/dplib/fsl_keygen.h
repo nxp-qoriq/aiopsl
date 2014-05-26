@@ -51,6 +51,46 @@
 @Group	FSL_KEYGEN_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@Group	FSL_KEYGEN_KCR_CREATE_STATUS keygen_kcr_create function status
+@{
+*//***************************************************************************/
+
+/** Command successful. ID was pulled from pool */
+#define KEYGEN_KCR_CREATE_GET_ID_STATUS_SUCCESS			0x00000000
+/** Command failed. ID was not fetched from pool due to CDMA write error */
+#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_WR_MUTEX_FAILURE	0x80000001
+/** Command failed. ID was not fetched from pool due to pool out of range */
+#define KEYGEN_KCR_CREATE_GET_ID_STATUS_POOL_OUT_OF_RANGE	0x80000002
+/** Command failed. ID was not fetched from pool due to CDMA read error */
+#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_RD_FAILURE		0x80000003
+/** Command failed. ID was not fetched from pool due to CDMA read with
+ * mutex error */
+#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE	0x80000004
+
+/** @} */ /* end of FSL_KEYGEN_KCR_CREATE_STATUS */
+
+/**************************************************************************//**
+@Group	FSL_KEYGEN_KCR_DELETE_STATUS keygen_kcr_delete function status
+@{
+*//***************************************************************************/
+
+/** Command successful. ID was returned to pool */
+#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_SUCCESS		  0x00000000
+/** Command failed. ID was not returned to pool due to CDMA write error */
+#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE	  0x80000001
+/** Command failed. ID was not returned to pool due to pool out of range */
+#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE	  0x80000002
+/** Command failed. ID was not returned to pool due to CDMA read with
+ * mutex error */
+#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE 0x80000003
+/** Command failed. ID was not returned to pool due to CDMA write with
+ * mutex error */
+#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_WR_MUTEX_FAILURE 0x80000004
+
+/** @} */ /* end of FSL_KEYGEN_KCR_DELETE_STATUS */
+
 /**************************************************************************//**
 @Group	FSL_KEYGEN_STATUS_GENERAL General status defines
 @{
@@ -58,13 +98,13 @@
 
 	/** Command status success */
 #define KEYGEN_STATUS_SUCCESS		0x00000000
-	/** Command failed general status bit
-	A general bit that is set in some errors conditions */
-#define KEYGEN_STATUS_KSE 		0x00000400
-	/** Extract Out Of Frame Header Error for Key Generation
-	 * This bit is set if key composition attempts to extract a field which
-	 * is not in the frame header */
-#define KEYGEN_MFLU_STATUS_EOFH	 	0x00000200
+	/** Command failed general status bit.
+	A general bit that is set in some errors conditions. */
+#define KEYGEN_STATUS_KSE		0x00000400
+	/** Extract Out Of Frame Header Error for Key Generation.
+	 This bit is set if key composition attempts to extract a field which
+	 is not in the frame header. */
+#define KEYGEN_MFLU_STATUS_EOFH		0x00000200
 
 /** @} */ /* end of FSL_KEYGEN_STATUS_GENERAL */
 
@@ -86,18 +126,18 @@
 *//***************************************************************************/
 	/** Successful KCR Builder Operation */
 #define KEYGEN_KCR_SUCCESSFUL_OPERATION		0x00000000
-	/** General Extraction Extract Size Error */
-/*#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001*/
-	/** Protocol Based General Extraction Error */
-/*#define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002*/
-	/** Protocol Based General Extraction Parser Result Offset Error */
-/*#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003*/
-	/** General Extraction Extract Offset Error */
-/*#define KEYGEN_KCR_EXTRACT_OFFSET_ERR		0x80000004*/
-	/** Mask Offset Larger than 0x0F Error */
-/*#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000005*/
-	/** Lookup Result Field Extraction Error */
-/*#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006*/
+	/*General Extraction Extract Size Error
+#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001
+	Protocol Based General Extraction Error
+#define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002
+	Protocol Based General Extraction Parser Result Offset Error
+#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003
+	General Extraction Extract Offset Error
+#define KEYGEN_KCR_EXTRACT_OFFSET_ERR		0x80000004
+	Mask Offset Larger than 0x0F Error
+#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000005
+	Lookup Result Field Extraction Error
+#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006*/
 	/** Key Composition Rule Size exceeds KCR max size (64 bytes) */
 #define KEYGEN_KCR_SIZE_ERR			0x80000007
 
@@ -122,11 +162,11 @@
 
 @{
 *//***************************************************************************/
-enum kcr_builder_gec_source{
+enum kcr_builder_gec_source {
 	/** Generic Extraction from start of frame */
 	KEYGEN_KCR_GEC_FRAME = 0x0,
 	/** Generic Extraction from Parser Result */
-	KEYGEN_KCR_GEC_PARSE_RES=0x1
+	KEYGEN_KCR_GEC_PARSE_RES = 0x1
 };
 
 /** @} */ /* end of kcr_builder_gec_source */
@@ -134,11 +174,11 @@ enum kcr_builder_gec_source{
 /**************************************************************************//**
 @enum	kcr_builder_ext_lookup_res_field
 
-@Description	 Key Composition Rule Builder Lookup Result Field Extract
-	 	 Not available for Rev1.
+@Description	Key Composition Rule Builder Lookup Result Field Extract
+		Not available for Rev1.
 @{
 *//***************************************************************************/
-enum kcr_builder_ext_lookup_res_field{
+enum kcr_builder_ext_lookup_res_field {
 	/** Extract Opaque0 Field from Lookup Result */
 	KEYGEN_KCR_EXT_OPAQUE0 = 0x00,
 	/** Extract Opaque1 Field from Lookup Result */
@@ -439,9 +479,9 @@ struct	kcr_builder_fec_mask {
 		allocate memory for this structure). Must be aligned to
 		16B boundary.
 
-@Return		Status - Success or Failure. (\ref CDMA_WS_MEMORY_INIT_STATUS).
+@Return		None.
 *//***************************************************************************/
-int32_t keygen_kcr_builder_init(struct kcr_builder *kb);
+void keygen_kcr_builder_init(struct kcr_builder *kb);
 
 
 /**************************************************************************//**
@@ -468,7 +508,7 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 		\ref keygen_gen_key.
 
 @Param[in]	offset - Offset in input value given in keygen_gen_key.
-@Param[in]	extract_size - size of extraction. 
+@Param[in]	extract_size - size of extraction.
 		Please note that (offset + extract_size) must not exceed 8.
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
@@ -585,15 +625,15 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 @Description	This function adds extracted lookup result field
 		Field Extract Command (FEC) for key composition rule (kcr).
 
-@Param[in]	extract_field - Please refer to \ref
-		FSL_KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_FIELD.
+@Param[in]	extract_field - Please refer to
+		\ref kcr_builder_ext_lookup_res_field.
 @Param[in]	offset_in_opaque - Offset in Opaque0 or Opaque1 in lookup
 		result.
 @Param[in]	extract_size_in_opaque - size of extraction in case of Opaque0
 		or Opaque1. Please note that (offset + extract_size) must not
 		exceed 8.
 		In case of Opaque2 - 1 byte will be extracted.
-		In case of Unique ID or Timestamp - 4 bytes will be extracted.		
+		In case of Unique ID or Timestamp - 4 bytes will be extracted.
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
@@ -646,7 +686,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 		(part of struct kcr_builder).
 @Param[out]	keyid - Key ID.
 
-@Return		Please refer to \ref GET_ID_STATUS.
+@Return		Please refer to \ref FSL_KEYGEN_KCR_CREATE_STATUS.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -682,7 +722,7 @@ void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - Key ID.
 
-@Return		Please refer to \ref RELEASE_ID_STATUS
+@Return		Please refer to \ref FSL_KEYGEN_KCR_DELETE_STATUS
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/

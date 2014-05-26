@@ -7,7 +7,7 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
 #include "kernel/platform.h"
-#include "inc/sys.h"
+#include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
 
@@ -103,7 +103,6 @@ int dpni_drv_probe(struct dprc	*dprc,
 	struct dpni dpni = { 0 };
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
-	struct dprc_region_desc region_desc;
 	struct dpni_attr attributes;
 
 	/* TODO: replace wrks_addr with global struct */
@@ -272,7 +271,7 @@ static int aiop_replace_parser(uint8_t prpid)
 
 int dpni_drv_init(void)
 {
-#ifndef AIOP_STAND_ALONE
+#ifndef AIOP_STANDALONE
 	uintptr_t	wrks_addr;
 #endif
 	int		    i;
@@ -307,7 +306,7 @@ int dpni_drv_init(void)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
 
-#ifndef AIOP_STAND_ALONE
+#ifndef AIOP_STANDALONE
 	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
 #if 0
 	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */

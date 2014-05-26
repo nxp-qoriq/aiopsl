@@ -1,3 +1,4 @@
+#if 0
 #ifndef __FSL_SYS_TIMER_H
 #define __FSL_SYS_TIMER_H
 
@@ -131,3 +132,4 @@ void sys_udelay(uint32_t usecs);
 
 
 #endif /* __FSL_SYS_TIMER_H */
+#endif

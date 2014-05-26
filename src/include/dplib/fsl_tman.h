@@ -57,7 +57,7 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 *//***************************************************************************/
 
 /**************************************************************************//**
- @enum tman_tmi_status
+ @enum tman_tmi_create_status
 
  @Description	AIOP TMAN create TMI command status codes.
 
@@ -71,7 +71,7 @@ enum tman_tmi_create_status {
 	TMAN_TMIID_DEPLETION_ERR = 0x814000FF
 };
 
-/* @} end of enum tman_tmi_status */
+/* @} end of enum tman_tmi_create_status */
 
 /**************************************************************************//**
  @enum tman_timer_create_status
@@ -118,7 +118,7 @@ enum tman_timer_delete_status {
 	 * future. */
 	TMAN_DEL_TMR_DEL_ISSUED_ERR = 0x81400056,
 	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation 
+	 * for the last time and it is pending a completion confirmation
 	 * (done by calling the tman_timer_completion_confirmation function) */
 	TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR = 0x81400057,
 	/** Timer is not deleted due to permanent error */
@@ -154,7 +154,7 @@ enum tman_timer_mod_status {
 	 * future. */
 	TMAN_MOD_TMR_DEL_ISSUED_ERR = 0x81400066,
 	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation 
+	 * for the last time and it is pending a completion confirmation
 	 * (done by calling the tman_timer_completion_confirmation function) */
 	TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR = 0x81400067,
 	/** Timer is not modified due to permanent error */
@@ -164,7 +164,7 @@ enum tman_timer_mod_status {
 /* @} end of enum tman_timer_mod_status */
 
 /**************************************************************************//**
- @enum tman_timer_rech_status
+ @enum tman_timer_recharge_status
 
  @Description	AIOP TMAN timer recharge command status codes.
 
@@ -188,14 +188,14 @@ enum tman_timer_recharge_status {
 	 * future. */
 	TMAN_REC_TMR_DEL_ISSUED_ERR = 0x81400076,
 	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation 
+	 * for the last time and it is pending a completion confirmation
 	 * (done by calling the tman_timer_completion_confirmation function) */
 	TMAN_REC_TMR_DEL_ISSUED_CONF_ERR = 0x81400077,
 	/** Timer is not recharged due to permanent error */
 	TMAN_REC_PERMANENT_ERR = 0x81C00010
 };
 
-/* @} end of enum tman_timer_rech_status */
+/* @} end of enum tman_timer_recharge_status */
 
 /**************************************************************************//**
  @enum tman_timer_query_status
@@ -222,7 +222,7 @@ enum tman_timer_query_status {
 	 * future. */
 	TMAN_QUE_TMR_DEL_ISSUED_ERR = 0x81400086,
 	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation 
+	 * for the last time and it is pending a completion confirmation
 	 * (done by calling the tman_timer_completion_confirmation function) */
 	TMAN_QUE_TMR_DEL_ISSUED_CONF_ERR = 0x81400087,
 	/** Timer is not queried due to permanent error */
@@ -253,7 +253,7 @@ enum tman_timer_query_status {
  *  expiration task or on the TMI confirmation task. */
 #define TMAN_GET_TIMER_HANDLE(_fd)					\
 	(uint32_t)({register uint32_t *__rR = 0;			\
-	uint32_t frc = (LW_SWAP(((char *)_fd) + FD_FRC_OFFSET));	\
+	uint32_t frc = (LW_SWAP(((char *)_fd) + FD_FRC_OFFSET, 0));	\
 	__rR = (uint32_t *) frc; })
 
 /* @} end of group TMANReturnStatus */
@@ -458,7 +458,7 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int32_t tman_delete_tmi( tman_cb_t tman_confirm_cb, uint32_t flags,
+int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
 			tman_arg_2B_t conf_opaque_data2);
 

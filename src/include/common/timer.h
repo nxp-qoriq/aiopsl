@@ -1,3 +1,5 @@
+#if 0
+
 /**************************************************************************//**
             Copyright 2013 Freescale Semiconductor, Inc.
 
@@ -143,3 +145,5 @@ void fsl_os_udelay(uint32_t usecs);
 
 
 #endif /* __FSL_TIMER_H */
+
+#endif

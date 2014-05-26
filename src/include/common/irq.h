@@ -1,3 +1,4 @@
+#if 0
 /**************************************************************************//**
             Copyright 2013 Freescale Semiconductor, Inc.
 
@@ -94,3 +95,5 @@ int fsl_os_disable_irq(int irq);
 
 
 #endif /* __FSL_IRQ_H */
+
+#endif

@@ -1,3 +1,4 @@
+#if 0
 /**************************************************************************//**
             Copyright 2013 Freescale Semiconductor, Inc.
 
@@ -128,3 +129,4 @@ enum enet_mode {
 	} while (0)
 
 #endif /* __FSL_ENET_H */
+#endif

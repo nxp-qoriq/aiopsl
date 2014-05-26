@@ -1,5 +1,6 @@
 #include "common/types.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
+#include "common/gen.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 
@@ -39,11 +40,14 @@ static int sys_debugger_print(fsl_handle_t unused,
                               uint8_t *p_data,
                               uint32_t size)
 {
-	uint32_t int_flags;
 	int ret;
-
-	UNUSED(unused);
-	UNUSED(size);
+#ifdef AIOP
+	lock_spinlock(&(sys.console_lock));
+#else
+	uint32_t int_flags;
+	/* Disable interrupts to work-around CW bug */
+	int_flags = spin_lock_irqsave(&(sys.console_lock));
+#endif
 
 #ifdef SIMULATOR
 	ret = system_call(4, 1, (int)PTR_TO_UINT(p_data), (int)size, 0);
@@ -52,6 +56,14 @@ static int sys_debugger_print(fsl_handle_t unused,
 	fflush(stdout);
 #endif /* SIMULATOR */
 
+#ifdef AIOP
+	unlock_spinlock(&(sys.console_lock));
+#else
+	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
+#endif
+
+	UNUSED(unused);
+	UNUSED(size);
 	return ret;
 }
 
@@ -76,7 +88,7 @@ int sys_register_console(fsl_handle_t h_console_dev,
 
 	sys.f_console_get = f_console_get;
 
-	spin_lock_init(&(sys.console_lock));
+	sys.console_lock = 0; /* spinlock init */
 
 	/* Flush pre-console printouts as necessary */
 	if (h_console_dev && sys.p_pre_console_buf) {
@@ -104,9 +116,13 @@ int sys_unregister_console(void)
 void sys_print(char *str)
 {
 	uint32_t count;
-	uint32_t int_flags;
 
+#ifdef AIOP
+	lock_spinlock(&(sys.console_lock));
+#else
+	uint32_t int_flags;
 	int_flags = spin_lock_irqsave(&(sys.console_lock));
+#endif
 	count = (uint32_t)strlen(str);
 
 	/* Print to the registered console, if exists */
@@ -120,8 +136,11 @@ void sys_print(char *str)
 
 			if (!sys.p_pre_console_buf) {
 				/* Cannot print error message - will lead to recursion */
-				spin_unlock_irqrestore(&(sys.console_lock),
-				                       int_flags);
+#ifdef AIOP
+				unlock_spinlock(&(sys.console_lock));
+#else
+				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
+#endif
 				fsl_os_exit(1);
 			}
 
@@ -140,10 +159,14 @@ void sys_print(char *str)
 		sys.pre_console_buf_pos += count;
 	}
 
-	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
+#ifdef AIOP
+				unlock_spinlock(&(sys.console_lock));
+#else
+				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
+#endif
 }
 
-#ifdef ARENA_LEGACY_CODE
+#ifdef MC
 /*****************************************************************************/
 char sys_get_char(void)
 {

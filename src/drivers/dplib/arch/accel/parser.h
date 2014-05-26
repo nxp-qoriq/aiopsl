@@ -13,7 +13,7 @@
 #include "dplib/fsl_parser.h"
 
 /**************************************************************************//**
-@Group		PARSER AIOP_Parser Internal
+@Group		PARSER AIOP PARSER Internal
 
 @Description	Freescale AIOP Parser API
 

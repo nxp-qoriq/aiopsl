@@ -1,3 +1,35 @@
+- init.c:               Added SINGLE_CORE_WA.
+- spinlock.h                    spinlock.h file renamed to fsl_spinlock.h
+- app_process_packet.c: Added cmdif_register_module() example.
+
+** AIOP ARENA SL Alpha v0.4 **
+
+- console.c                     Bug fix: removed nested spinlock from: sys_debugger_print()
+- init.c                        AIOP multicore boot: wait for all cores before enabling CTS
+- fsl_inet.h:                   Renamed inet.h to fsl_inet.h
+- ls2085a_sim_init_params.cfg:  New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- ls2100_sys_test.cfg:          New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- dpl.dtb:                      New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- dpl.dts:                      New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
+- README.txt:                   Updated app_process_packet with new instructions for MC integrated mode
+
+- init.c, dpni_drv.c, cmdif_srv.c, app_process_packet.c:	define AIOP_STANDALONE to run AIOP standalone. 
+															By default will run in MC integrated mode. 
+
+- sys.c:			Added UART multi core support 
+
+- sys.c:			New implementation for sys handle methods. (Add, Get, Remove)
+- sys.h:			New implementation for sys handle methods.
+- fsl_sys.h: 		sys.h which is supplied to customers renamed to fsl_sys.h
+
+- aiopsl\.project:		added serial folder to project(uart.h, uart.c)
+- init.c:				added support for UART on AIOP
+- platform.c:			added support fort UART on AIOP, prints will be redirected to UART 0
+- duart.c:				added to project, fixed to support uart on AIOP
+- duart.h:				added to project
+- fsl_soc_spec.h:		wrote hard coded address for DUART
+- fsl_duart.h:			fixed doxygen
+
 - aiop_link.lcf:      Added .psram_data .psram_bss for Profile SRAM.
 - fsl_cmdif_server.h: New file for CMDIF server API. Use this API for cmdif_register_module().
 - fsl_cmdif_client.h: New file for CMDIF client API.

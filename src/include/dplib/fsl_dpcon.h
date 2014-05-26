@@ -1,3 +1,4 @@
+#if 0
 /* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    fsl_dpcon.h
@@ -180,3 +181,4 @@ int dpcon_clear_irq_status(struct dpcon *dpcon,
 /** @} */
 
 #endif /* __FSL_DPCON_H */
+#endif

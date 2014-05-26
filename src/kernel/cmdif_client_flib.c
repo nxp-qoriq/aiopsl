@@ -1,6 +1,7 @@
 #include <fsl_cmdif_flib.h>
 #include <cmdif_client.h>
 #include <errno.h>
+#include <types.h>
 
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
@@ -46,7 +47,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	fd->u_flc.open.inst_id = instance_id;
 	fd->u_flc.open.epid    = CMDIF_EPID;
 	fd->u_frc.frc          = 0;
-	fd->d_addr             = p_addr;
+	fd->u_addr.d_addr      = p_addr;
 	fd->d_size             = sizeof(union cmdif_data);
 
 	/* acquire lock as needed
@@ -92,13 +93,23 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
-	if ((cidesc == NULL) || (cidesc->dev == NULL))
+	if ((cidesc == NULL) || (cidesc->dev == NULL)) {
+		/* prevent deadlocks */
+		if (cidesc->unlock_cb)
+			cidesc->unlock_cb(cidesc->lock);
+
 		return -EINVAL;
+	}
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	if (dev->sync_done == NULL)
+	if (dev->sync_done == NULL) {		
+		/* prevent deadlocks */
+		if (cidesc->unlock_cb)
+			cidesc->unlock_cb(cidesc->lock);
+		
 		return -EINVAL;
+	}
 
 	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
 
@@ -135,7 +146,7 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->d_addr = NULL;
+	fd->u_addr.d_addr = NULL;
 	fd->d_size = 0;
 	fd->u_flc.flc           = 0;
 	fd->u_flc.close.cmid    = CMD_ID_CLOSE;
@@ -168,7 +179,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->d_addr = data;
+	fd->u_addr.d_addr = data;
 	fd->d_size = size;
 	fd->u_flc.flc = 0;
 	fd->u_flc.cmd.auth_id = dev->auth_id;
@@ -202,7 +213,7 @@ int cmdif_async_cb(struct cmdif_fd *fd)
 		                     fd->u_flc.cmd.err,
 		                     fd->u_flc.cmd.cmid,
 		                     fd->d_size,
-		                     fd->d_addr);
+		                     fd->u_addr.d_addr);
 	else
 		return -EINVAL;
 }

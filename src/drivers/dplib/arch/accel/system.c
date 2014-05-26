@@ -25,12 +25,13 @@ extern void tman_timer_callback(void);
 
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
+extern int aiop_snic_init(void);
 
 #define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
-	                                   0,                          \
-	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
-	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
+						0,                          \
+						E_MAPPED_MEM_TYPE_GEN_REGS) \
+						+ SOC_PERIPH_OFF_AIOP_WRKS)
 
 #endif /* AIOP_VERIF */
 
@@ -49,7 +50,7 @@ int32_t sys_prpid_pool_create(void)
 
 	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
-			&num_filled_buffs,&buffer_pool_id);
+			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		return status;
 
@@ -70,7 +71,7 @@ int32_t sys_keyid_pool_create(void)
 
 	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
-			&num_filled_buffs,&buffer_pool_id);
+			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		return status;
 
@@ -83,7 +84,7 @@ int32_t sys_keyid_pool_create(void)
 int32_t aiop_sl_init(void)
 {
 	int32_t status = 0;
-	
+
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init params*/
 	uint32_t val;
@@ -98,11 +99,11 @@ int32_t aiop_sl_init(void)
 
 	status = slab_find_and_fill_bpid(300, 2048, 8,
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
-			&num_filled_buffs,&buffer_pool_id);
+			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		return status;
 #endif
-	
+
 	/* initialize profile sram */
 
 	storage_profile.ip_secific_sp_info = 0;
@@ -140,36 +141,36 @@ int32_t aiop_sl_init(void)
 	storage_profile.pbs4 = 0x0000;
 	storage_profile.bpid4 = 0x0000;
 
-	
 
-/* TODO - remove the AIOP_VERIF section when verification env will include 
+
+/* TODO - remove the AIOP_VERIF section when verification env will include
  * the ARENA code */
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init */
-	
+
 	val = 1;
 	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0xF8);
 	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
-	                      ((val & 0x0000ff00) <<  8) |
-	                      ((val & 0x00ff0000) >>  8) |
-	                      ((val & 0xff000000) >> 24));
-	
+			((val & 0x0000ff00) <<  8) |
+			((val & 0x00ff0000) >>  8) |
+			((val & 0xff000000) >> 24));
+
 	val = (uint32_t)&tman_timer_callback;
 	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x100);
 	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
-	                      ((val & 0x0000ff00) <<  8) |
-	                      ((val & 0x00ff0000) >>  8) |
-	                      ((val & 0xff000000) >> 24));
+			((val & 0x0000ff00) <<  8) |
+			((val & 0x00ff0000) >>  8) |
+			((val & 0xff000000) >> 24));
 
 	val = 0x00600040;
 	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108);
 	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
-	                      ((val & 0x0000ff00) <<  8) |
-	                      ((val & 0x00ff0000) >>  8) |
-	                      ((val & 0xff000000) >> 24));
-#if 0 /*TODO - need to delete the above code and enable the bellow if 0 
+			((val & 0x0000ff00) <<  8) |
+			((val & 0x00ff0000) >>  8) |
+			((val & 0xff000000) >> 24));
+#if 0 /*TODO - need to delete the above code and enable the bellow if 0
 	when ENGR00310809 will be fixed */
-	/* TODO - need to change the constant below to - 
+	/* TODO - need to change the constant below to -
 	 *define EPID_TIMER_EVENT_IDX	1 */
 	__stwbr(1,
 		0,
@@ -180,31 +181,31 @@ int32_t aiop_sl_init(void)
 	__stwbr(0x00600040,
 		0,
 		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108)); /* EP_FDPA */
-	
+
 	/* End of TMAN EPID Init */
 #endif
 #else
 	/* TMAN EPID Init */
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 
-	/* TODO - need to change the constant below to - 
+	/* TODO - need to change the constant below to -
 	 *define EPID_TIMER_EVENT_IDX	1 */
 	iowrite32(1, &wrks_addr->epas); /* EPID = 1 */
 	iowrite32(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
-	
+
 	pr_info("TMAN is setting EPID = 1\n");
-	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
+	pr_info("ep_pc = 0x%x\n", ioread32(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x\n", ioread32(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x\n", ioread32(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x\n", ioread32(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x\n", ioread32(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x\n", ioread32(&wrks_addr->ep_spo));
 	/* End of TMAN EPID Init */
 #endif
-	
+
 	status = sys_prpid_pool_create();
 	if (status)
-		return status; /* TODO */	
+		return status; /* TODO */
 
 #ifdef AIOP_VERIF
 	status = sys_keyid_pool_create();
@@ -213,10 +214,14 @@ int32_t aiop_sl_init(void)
 	status = sys_keyid_pool_create();
 	if (status)
 		return status; /* TODO */
-	
+
 	status = ipr_init();
+	if (status)
+		return status; /* TODO */
+
+	status = aiop_snic_init();
 	return status;
-#endif	
+#endif
 }
 
 void aiop_sl_free(void)
@@ -225,7 +230,7 @@ void aiop_sl_free(void)
 
 	cdma_release_context_memory(ext_prpid_pool_address);
 	cdma_release_context_memory(ext_keyid_pool_address);
-	
+
 	/* TODO status ? */
 }
 

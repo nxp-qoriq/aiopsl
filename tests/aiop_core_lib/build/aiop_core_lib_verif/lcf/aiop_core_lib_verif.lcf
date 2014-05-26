@@ -94,7 +94,7 @@ SECTIONS
 
 }
 
-TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
+TLS_SECTION_END_ADDR = ADDR(verif_tls)+SIZEOF(verif_tls);
 _stack_addr  = ADDR(stack)+SIZEOF(stack);
 _stack_end   = ADDR(stack);
 _heap_addr   = ADDR(heap);
