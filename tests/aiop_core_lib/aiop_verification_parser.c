@@ -305,8 +305,8 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		((struct parse_result *)str->macros_struct)->routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT(); 
 		((struct parse_result *)str->macros_struct)->nxt_hdr_offset = PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT(); 
-				
+		((struct parse_result *)str->macros_struct)->gross_running_sum = PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT();
+		((struct parse_result *)str->macros_struct)->running_sum = PARSER_GET_RUNNING_SUM_DEFAULT();
 		str_size = sizeof(struct parser_macros_command);
 		break;
 	}
