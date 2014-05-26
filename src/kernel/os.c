@@ -1,7 +1,8 @@
 #include "common/fsl_malloc.h"
 #include "common/fsl_stdarg.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "common/timer.h"
+#include "common/time.h"
 #include "common/irq.h"
 #include "common/io.h"
 #include "kernel/smp.h"
@@ -54,6 +55,29 @@ __HOT_CODE  uint32_t fsl_os_rand(void)
 }
 
 /*****************************************************************************/
+__HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
+{
+	volatile uint32_t TSCRU1, TSCRU2, TSCRL;
+	UNUSED(tz);
+
+	TSCRU1 = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
+	                              TSCRU_OFF));
+	TSCRL = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
+	                              TSCRL_OFF));
+	if ((TSCRU2=ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
+		                              TSCRU_OFF))) > TSCRU1 )
+		TSCRL = 0;
+	else if(TSCRU2 < TSCRU1) /*something wrong while reading*/
+		return -1;
+
+
+	tv->tv_sec = TSCRU2;
+	tv->tv_sec = (tv->tv_sec) << 32 | (TSCRL);
+
+	return 0;
+}
+
+/*****************************************************************************/
 /*                        Spinlock Service Routines                          */
 /*****************************************************************************/
 void lock_spinlock(register uint8_t *spinlock)
@@ -91,56 +115,6 @@ spinlock_loop:
 void unlock_spinlock(
 		uint8_t *spinlock) {
 	*spinlock = 0;
-}
-
-spinlock_t spin_lock_create(void)
-{
-    struct spinlock *p_spinlock = (struct spinlock *)fsl_os_malloc(sizeof(struct spinlock));
-    if (!p_spinlock)
-    {
-        REPORT_ERROR(MAJOR, E_NO_MEMORY, ("spinlock structure"));
-        return NULL;
-    }
-
-    sys_init_spinlock(p_spinlock);
-
-    return p_spinlock;
-}
-
-void spin_lock_init(spinlock_t lock)
-{
-    sys_init_spinlock((struct spinlock *)lock);
-}
-
-void spin_lock_free(spinlock_t lock)
-{
-    if (lock)
-        fsl_os_free(lock);
-}
-
-void spin_lock(spinlock_t lock)
-{
-	UNUSED(lock);
-    //sys_lock_spinlock((struct spinlock *)lock);
-}
-
-void spin_unlock(spinlock_t lock)
-{
-	UNUSED(lock);
-    //sys_unlock_spinlock((struct spinlock *)lock);
-}
-
-uint32_t spin_lock_irqsave(spinlock_t lock)
-{
-	UNUSED(lock);
-    return 0;//sys_lock_intr_spinlock((struct spinlock *)lock);
-}
-
-void spin_unlock_irqrestore(spinlock_t lock, uint32_t irq_flags)
-{
-	UNUSED(lock);
-	UNUSED(irq_flags);
-	//sys_unlock_intr_spinlock((struct spinlock *)lock, irq_flags);
 }
 
 /***************************************************************************

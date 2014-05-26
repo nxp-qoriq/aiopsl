@@ -3,6 +3,7 @@
  *  @file    fsl_dpmac.h
  *  @brief   Data Path MAC Interface API
  */
+#if 0 /* unused code */
 #ifndef __FSL_DPMAC_H
 #define __FSL_DPMAC_H
 
@@ -48,8 +49,8 @@ struct dpmac_mdio_write_cfg {
  * @brief   	Perform MDIO read transaction
  *
  * @param[in]	dpmac	DPMAC object handle
- * @param[in]	cfg	Structure with MDIO transaction parameters 
- * 							
+ * @param[in]	cfg	Structure with MDIO transaction parameters
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpmac_mdio_read(struct dpmac *dpmac, struct dpmac_mdio_read_cfg *cfg);
@@ -59,8 +60,8 @@ int dpmac_mdio_read(struct dpmac *dpmac, struct dpmac_mdio_read_cfg *cfg);
  * @brief   	Perform MDIO write transaction
  *
  * @param[in]	dpmac	DPMAC object handle
- * @param[in]	cfg	Structure with MDIO transaction parameters 
- * 							
+ * @param[in]	cfg	Structure with MDIO transaction parameters
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpmac_mdio_write(struct dpmac *dpmac, struct dpmac_mdio_write_cfg *cfg);
@@ -71,7 +72,7 @@ int dpmac_mdio_write(struct dpmac *dpmac, struct dpmac_mdio_write_cfg *cfg);
  *
  * @param[in]	dpmac		DPMAC object handle
  * @param[in]	cfg		Structure with speed/duplex mode parameters
- * 							
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpmac_adjust_link(struct dpmac *dpmac, struct dpmac_adjust_link_cfg *cfg);
@@ -81,3 +82,4 @@ int dpmac_get_link_state();
 int dpmac_get_link_speed();
 
 #endif /* __FSL_DPMAC_H */
+#endif

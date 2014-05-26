@@ -36,7 +36,7 @@ static void cp_data_to_prc(uint8_t *data, int size)
 	memcpy(addr, data, (size_t)size);
 }
 
-int cmdif_cb(void *async_ctx,
+static int cmdif_cb(void *async_ctx,
              int err,
              uint16_t cmd_id,
              uint32_t size,
@@ -61,11 +61,11 @@ void client_open_cmd(struct cmdif_desc *client, void *sync_done)
 
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, fd.u_flc.flc);
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, fd.u_frc.frc);
-	if ((fd.d_addr != NULL) && (fd.d_size > 0)) {
-		v_ptr = fsl_os_phys_to_virt(fd.d_addr);
+	if ((fd.u_addr.d_addr != NULL) && (fd.d_size > 0)) {
+		v_ptr = fsl_os_phys_to_virt(fd.u_addr.d_addr);
 		cp_data_to_prc(v_ptr, (int)fd.d_size);
 	}
-	LDPAA_FD_SET_ADDR(HWC_FD_ADDRESS, fd.d_addr);
+	LDPAA_FD_SET_ADDR(HWC_FD_ADDRESS, fd.u_addr.d_addr);
 }
 
 void client_close_cmd(struct cmdif_desc *client)

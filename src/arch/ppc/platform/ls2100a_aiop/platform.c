@@ -11,7 +11,6 @@
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
-#define SYS_MASTER_PART_ID 0
 
 /* -------------------------- */
 /*  { MEMORY REGION,               START_ADDR,    SIZE,            mem-ctrl-id } */
@@ -66,9 +65,6 @@ typedef struct t_platform {
     /* Console-related variables */
     fsl_handle_t            uart;
     uint32_t                duart_id;
-
-    /* Multi-core/multi-partition related settings */
-    uint8_t                 partition_id;
 
     uintptr_t               aiop_base;
     uintptr_t               ccsr_base;
@@ -129,14 +125,10 @@ static void print_platform_info(t_platform *pltfrm)
     int         count = 0;
     uint32_t    sys_clock;
     int         is_master_core = sys_is_master_core();
-    int         is_master_partition_master;    /* Master of master partition responsible
-                                               for single resources initialization */
-
-    is_master_partition_master = (int)(is_master_core && (sys_get_partition_id() == SYS_MASTER_PART_ID));
 
     ASSERT_COND(pltfrm);
 
-    if (is_master_partition_master)
+    if (is_master_core)
     {
         /*------------------------------------------*/
         /* Device enable/disable and status display */
@@ -195,7 +187,7 @@ static void print_platform_info(t_platform *pltfrm)
     sys_barrier();
 */
 
-    if (!is_master_partition_master)
+    if (!is_master_core)
         return;
 
     /*------------------------------------------*/
@@ -359,6 +351,9 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     uint32_t *seed_mem_ptr = NULL;
     uint32_t core_and_task_id = 0;
     uint32_t seed = 0;
+    uint32_t num_of_tasks = 0;
+    uint32_t task_stack_size = 0;
+    uint32_t *WSCR;
 
     if (pltfrm == NULL) {
 	    return -EINVAL;
@@ -402,7 +397,43 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /*------------------------------------------------------*/
     err = init_l1_cache(pltfrm);
     if (err != E_OK)
-        RETURN_ERROR(MAJOR, err, NO_MSG);
+	    RETURN_ERROR(MAJOR, err, NO_MSG);
+
+    /*------------------------------------------------------*/
+    /* Initialize seeds for random function                 */
+    /*------------------------------------------------------*/
+
+    /* Workspace Control Register*/
+    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
+    /* Little endian convert */
+    num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
+    /* task stack size used for pointer calculation,
+       (original size = task_stack_size * 4)
+     */
+    switch(num_of_tasks) {
+    case (0):
+	    num_of_tasks = 1;
+    	    break;
+    case (1):
+	    num_of_tasks = 2;
+    	    task_stack_size = 0x1000;
+    	    break;
+    case (2):
+	    num_of_tasks = 4;
+    	    task_stack_size = 0x800;
+    	    break;
+    case (3):
+	    num_of_tasks = 8;
+    	    task_stack_size = 0x400;
+    	    break;
+    case (4):
+	    num_of_tasks = 16;
+	    task_stack_size = 0x200;
+	    break;
+    default:
+	    return -EINVAL;
+
+    }
 
     core_and_task_id =  ((core_get_id() + 1) << 8);
     core_and_task_id |= 1; /*add task 0 id*/
@@ -412,9 +443,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 
     *seed_mem_ptr = seed;
 
-    for (i = 0 ; i < 15; i ++)
+    /*seed for task 0 is already allocated*/
+    for (i = 0 ; i < num_of_tasks - 1; i ++)
     {
-	    seed_mem_ptr += 512; /*size of each task area*/
+	    seed_mem_ptr += task_stack_size; /*size of each task area*/
 	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 	    seed = (core_and_task_id << 16) | core_and_task_id;
 	    *seed_mem_ptr = seed;
@@ -444,7 +476,7 @@ static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == SYS_MASTER_PART_ID) {
+    if (sys_is_master_core()) {
         /* Master partition - register DUART console */
         err = platform_enable_console(pltfrm);
         if (err != E_OK)
@@ -465,7 +497,7 @@ static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-    if (pltfrm->partition_id == SYS_MASTER_PART_ID)
+    if (sys_is_master_core())
         platform_disable_console(pltfrm);
 
     sys_unregister_console();
@@ -614,7 +646,7 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 int platform_early_init(struct platform_param *pltfrm_params)
 {
     /* TODO - complete! */
-UNUSED(pltfrm_params);
+    UNUSED(pltfrm_params);
     return E_OK;
 }
 
@@ -656,8 +688,6 @@ int platform_init(struct platform_param    *pltfrm_param,
         ASSERT_COND(mem_info->phys_base_addr >= mem_region_info.start_addr);
     }
     pltfrm->num_of_mem_parts = i;
-
-    pltfrm->partition_id = sys_get_partition_id();
 
     /* Identify the program memory */
     err = identify_program_memory(pltfrm->param.mem_info,

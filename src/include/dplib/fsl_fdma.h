@@ -2062,7 +2062,7 @@ int32_t fdma_store_default_frame_data(void);
 @Param[in]	frame_handle - Handle to the frame to be closed.
 @Param[in]	spid - storage profile ID used to store frame data if additional
 		buffers are required.
-@Param[out]	isolation_attributes - Isolation attributes structure.
+@Param[out]	amq - AMQ attributes.
 
 @Return
 		- Success or Failure (e.g. FDMA error. (\ref
@@ -2076,7 +2076,7 @@ int32_t fdma_store_default_frame_data(void);
 int32_t fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
-		struct fdma_amq *isolation_attributes);
+		struct fdma_amq *amq);
 
 /**************************************************************************//**
 @Function	fdma_store_and_enqueue_default_frame_fqid

@@ -133,206 +133,272 @@
 /**< Macro to set FD FLC field */
 
 
-	/** Macro to get FD ADDRESS field.*/
+
+/** FD Getters macros. */
+
+
+	/** Macro to get FD ADDRESS field.
+	 * _fd - the FD address in workspace. */
 	/* Todo - 64/49 bit address. Phys to Virt? */
 #define LDPAA_FD_GET_ADDR(_fd)						\
 	(uint64_t)({register uint64_t __rR = 0;				\
 	uint64_t addr;							\
-	addr = (LLLDW_SWAP((uint64_t)(((char *)_fd) + FD_ADDR_OFFSET)));\
+	addr = (LLLDW_SWAP(0, (uint64_t)(((char *)_fd) + FD_ADDR_OFFSET)));\
 	__rR = (uint64_t ) addr; })
-	/** Macro to get FD LENGTH field */
+	/** Macro to get FD LENGTH field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_LENGTH(_fd)					\
 	(uint32_t)({register uint32_t *__rR = 0;			\
-	uint32_t length = (LW_SWAP(((char *)_fd) + FD_MEM_LENGTH_OFFSET));\
+	uint32_t length =						\
+		(LW_SWAP(0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET)));\
 	if (LDPAA_FD_GET_SL(_fd)) {					\
 		length &= FD_LENGTH_MEM_MASK; }				\
 	__rR = (uint32_t *) length; })
-	/** Macro to get FD MEM field */
+	/** Macro to get FD MEM field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_MEM(_fd)						\
-	(uint32_t)(LW_SWAP_MASK_SHIFT(((char *)_fd) + FD_MEM_LENGTH_OFFSET,\
+	(uint32_t)(LW_SWAP_MASK_SHIFT(					\
+		0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET),	\
 			FD_MEM_MASK, FD_MEM_SHIFT))
-	/** Macro to get FD BPID field */
+	/** Macro to get FD BPID field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_BPID(_fd)						\
-	(LH_SWAP_MASK(((char *)_fd) + FD_BPID_OFFSET,			\
+	(LH_SWAP_MASK(0, (uint16_t)(((char *)_fd) + FD_BPID_OFFSET),	\
 				FD_BPID_MASK))
-	/** Macro to get FD IVP field */
+	/** Macro to get FD IVP field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_IVP(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t ivp = *((uint8_t *) (((char *)_fd) + FD_BMP_IVP_OFFSET));\
 	ivp &= FD_IVP_MASK;						\
 	ivp >>= FD_IVP_SHIFT;						\
 	__rR = (uint8_t *) ivp; })
-	/** Macro to get FD BMT field */
+	/** Macro to get FD BMT field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_BMT(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t bmt = *((uint8_t *) (((char *)_fd) + FD_BMP_IVP_OFFSET));\
 	bmt &= FD_BMT_MASK;						\
 	bmt >>= FD_BMT_SHIFT;						\
 	__rR = (uint8_t *) bmt; })
-	/** Macro to get FD OFFSET field */
+	/** Macro to get FD OFFSET field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_OFFSET(_fd)					\
-	(LH_SWAP_MASK((((char *)_fd) + FD_OFFSET_OFFSET),		\
+	(LH_SWAP_MASK(0, (uint16_t)(((char *)_fd) + FD_OFFSET_OFFSET),	\
 			FD_OFFSET_MASK))
-	/** Macro to get FD FMT field */
+	/** Macro to get FD FMT field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_FMT(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t fmt = *((uint8_t *) (((char *)_fd) + FD_SL_FMT_OFFSET));\
 	fmt &= FD_FMT_MASK;						\
 	fmt >>= FD_FMT_SHIFT;						\
 	__rR = (uint8_t *) fmt; })
-	/** Macro to get FD SL field */
+	/** Macro to get FD SL field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_SL(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
-	uint8_t sl = *((uint8_t *) (((char *)_fd) + FD_SL_FMT_OFFSET));\
+	uint8_t sl = *((uint8_t *) (((char *)_fd) + FD_SL_FMT_OFFSET));	\
 	sl &= FD_SL_MASK;						\
 	sl >>= FD_SL_SHIFT;						\
 	__rR = (uint8_t *) sl; })
-	/** Macro to get FD FRC field */
+	/** Macro to get FD FRC field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_FRC(_fd)						\
 	(uint32_t)({register uint32_t *__rR = 0;			\
-	uint32_t frc = (LW_SWAP(((char *)_fd) + FD_FRC_OFFSET));	\
+	uint32_t frc = (LW_SWAP(0, (uint32_t)(((char *)_fd) + FD_FRC_OFFSET)));\
 	__rR = (uint32_t *) frc; })
-	/** Macro to get FD ERR field */
+	/** Macro to get FD ERR field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_ERR(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t err = *((uint8_t *) (((char *)_fd) + FD_ERR_OFFSET));	\
 	__rR = (uint8_t *) err; })
-	/** Macro to get FD VA field */
+	/** Macro to get FD VA field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_VA(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t va = *((uint8_t *) (((char *)_fd) + FD_CBMT_VA_OFFSET));\
 	va &= FD_VA_MASK;						\
 	va >>= FD_VA_SHIFT;						\
 	__rR = (uint8_t *) va; })
-	/** Macro to get FD CBMT field */
+	/** Macro to get FD CBMT field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_CBMT(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t cbmt = *((uint8_t *) (((char *)_fd) + FD_CBMT_VA_OFFSET));\
 	cbmt &= FD_CBMT_MASK;						\
 	cbmt >>= FD_CBMT_SHIFT;						\
 	__rR = (uint8_t *) cbmt; })
-	/** Macro to get FD ASAL field */
+	/** Macro to get FD ASAL field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_ASAL(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t asal = *((uint8_t *) (((char *)_fd) + FD_PTA_PVT_ASA_OFFSET));\
 	asal &= FD_ASAL_MASK;						\
 	__rR = (uint8_t *) asal; })
-	/** Macro to get FD PTV2 field */
+	/** Macro to get FD PTV2 field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_PTV2(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t ptv2 = *((uint8_t *) (((char *)_fd) + FD_PTA_PVT_ASA_OFFSET));\
 	ptv2 &= FD_PTV2_MASK;						\
 	ptv2 >>= FD_PTV2_SHIFT;						\
 	__rR = (uint8_t *) ptv2; })
-	/** Macro to get FD PTV1 field */
+	/** Macro to get FD PTV1 field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_PTV1(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t ptv1 = *((uint8_t *) (((char *)_fd) + FD_PTA_PVT_ASA_OFFSET));\
 	ptv1 &= FD_PTV1_MASK;						\
 	ptv1 >>= FD_PTV1_SHIFT;						\
 	__rR = (uint8_t *) ptv1; })
-	/** Macro to get FD PTA field */
+	/** Macro to get FD PTA field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_PTA(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t pta = *((uint8_t *) (((char *)_fd) + FD_PTA_PVT_ASA_OFFSET));\
 	pta &= FD_PTA_MASK;						\
 	pta >>= FD_PTA_SHIFT;						\
 	__rR = (uint8_t *) pta; })
-	/** Macro to get FD DROPP field */
+	/** Macro to get FD DROPP field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_DROPP(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t dropp = *((uint8_t *) (((char *)_fd) + FD_DD_SC_DROPP_OFFSET));\
 	dropp &= FD_DROPP_MASK;						\
 	__rR = (uint8_t *) dropp; })
-	/** Macro to get FD SC field */
+	/** Macro to get FD SC field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_SC(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t sc = *((uint8_t *) (((char *)_fd) + FD_DD_SC_DROPP_OFFSET));\
 	sc &= FD_SC_MASK;						\
 	sc >>= FD_SC_SHIFT;						\
 	__rR = (uint8_t *) sc; })
-	/** Macro to get FD DD field */
+	/** Macro to get FD DD field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_DD(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t dd = *((uint8_t *) (((char *)_fd) + FD_DD_SC_DROPP_OFFSET));\
 	dd &= FD_DD_MASK;						\
 	dd >>= FD_DD_SHIFT;						\
 	__rR = (uint8_t *) dd; })
-	/** Macro to get FD CS field */
+	/** Macro to get FD CS field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_CS(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t cs = *((uint8_t *) (((char *)_fd) + FD_FLC_DS_AS_CS_OFFSET));\
 	cs &= FD_CS_MASK;						\
 	__rR = (uint8_t *) cs; })
-	/** Macro to get FD AS field */
+	/** Macro to get FD AS field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_AS(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t as = *((uint8_t *) (((char *)_fd) + FD_FLC_DS_AS_CS_OFFSET));\
 	as &= FD_AS_MASK;						\
 	as >>= FD_AS_SHIFT;						\
 	__rR = (uint8_t *) as; })
-	/** Macro to get FD DS field */
+	/** Macro to get FD DS field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_DS(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t ds = *((uint8_t *) (((char *)_fd) + FD_FLC_DS_AS_CS_OFFSET));\
 	ds &= FD_DS_MASK;						\
 	ds >>= FD_DS_SHIFT;						\
 	__rR = (uint8_t *) ds; })
-	/** Macro to get FD FLC field */
+	/** Macro to get FD FLC field.
+	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_FLC(_fd)						\
 	(uint64_t)({register uint64_t __rR = 0;				\
 	uint64_t addr;							\
-	addr = (LLLDW_SWAP((uint64_t)(((char *)_fd)+ FD_FLC_DS_AS_CS_OFFSET)));\
+	addr =								\
+	   (LLLDW_SWAP(0, (uint64_t)(((char *)_fd)+ FD_FLC_DS_AS_CS_OFFSET)));\
 	__rR = (uint64_t ) addr; })
 
-	/** Macro to set FD ADDRESS field */
+
+/** FD Setters macros. */
+
+	/** Macro to set FD ADDRESS field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 	/* Todo - 64/49 bit address. Phys to Virt? */
 #define LDPAA_FD_SET_ADDR(_fd, _val)					\
 	({								\
-	LLSTDW_SWAP(_val, ((uint64_t)(((char *)_fd) + FD_ADDR_OFFSET)));\
+	LLSTDW_SWAP(_val, 0, (uint32_t)(((char *)_fd) + FD_ADDR_OFFSET));\
 	})
-	/** Macro to set FD LENGTH field */
+	/** Macro to set FD LENGTH field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_LENGTH(_fd, _val)					\
 	({uint32_t length;						\
 	if (LDPAA_FD_GET_SL(_fd)) {					\
-		length = (uint32_t)					\
-			(LW_SWAP(((char *)_fd) + FD_MEM_LENGTH_OFFSET));\
+		length = (uint32_t)(LW_SWAP(0,				\
+			(uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET)));\
 		length &= FD_MEM_MASK;					\
-		__e_rlwimi(length, _val, 0, 14, 31);			\
-		STW_SWAP(length, ((char *)_fd) + FD_MEM_LENGTH_OFFSET);	\
+		__e_rlwimi(length, (uint32_t)_val, 0, 14, 31);		\
+		STW_SWAP(length, 0,					\
+			(uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET)); \
 	} else								\
-		STW_SWAP(_val, ((char *)_fd) + FD_MEM_LENGTH_OFFSET);	\
+		STW_SWAP((uint32_t)_val, 0,				\
+			(uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));\
 	})
-	/** Macro to set FD MEM field */
+	/** Macro to set FD MEM field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_MEM(_fd, _val)
-	/** Macro to set FD BPID field */
+	/** Macro to set FD BPID field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_BPID(_fd, _val)
-	/** Macro to set FD IVP field */
+	/** Macro to set FD IVP field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_IVP(_fd, _val)
-	/** Macro to set FD BMT field */
+	/** Macro to set FD BMT field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_BMT(_fd, _val)
-	/** Macro to set FD OFFSET field */
+	/** Macro to set FD OFFSET field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_OFFSET(_fd, _val)
-	/** Macro to set FD FMT field */
+	/** Macro to set FD FMT field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_FMT(_fd, _val)
-	/** Macro to set FD SL field */
+	/** Macro to set FD SL field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_SL(_fd, _val)
-	/** Macro to set FD FRC field */
+	/** Macro to set FD FRC field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_FRC(_fd, _val)					\
-	STW_SWAP(_val, ((char *)_fd) + FD_FRC_OFFSET);
-	/** Macro to set FD ERR field */
+	STW_SWAP(_val, 0, (uint32_t)(((char *)_fd) + FD_FRC_OFFSET));
+	/** Macro to set FD ERR field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_ERR(_fd, _val)                                     \
 	*((uint8_t *) (((char *)_fd) + FD_ERR_OFFSET)) = (uint8_t)_val
-	/** Macro to set FD VA field */
+	/** Macro to set FD VA field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_VA(_fd, _val)
-	/** Macro to set FD ASAL field */
+	/** Macro to set FD ASAL field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_ASAL(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
 		~FD_ASAL_MASK) | (_val & FD_ASAL_MASK)))
-	/** Macro to set FD CBMT field */
+	/** Macro to set FD CBMT field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_CBMT(_fd, _val)
-	/** Macro to set FD PTV2 field */
+	/** Macro to set FD PTV2 field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_PTV2(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
@@ -347,38 +413,54 @@
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
 			~FD_PTA_MASK) | (_val & FD_PTA_MASK)))
-	/** Macro to set FD DROPP field */
+	/** Macro to set FD DROPP field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_DROPP(_fd, _val)
-	/** Macro to set FD SC field */
+	/** Macro to set FD SC field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_SC(_fd, _val)
-	/** Macro to set FD DD field */
+	/** Macro to set FD DD field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_DD(_fd, _val)
-	/** Macro to set FD CS field */
+	/** Macro to set FD CS field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_CS(_fd, _val)
-	/** Macro to set FD AS field */
+	/** Macro to set FD AS field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_AS(_fd, _val)
-	/** Macro to set FD DS field */
+	/** Macro to set FD DS field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_DS(_fd, _val)
-	/** Macro to set FD FLC field */
+	/** Macro to set FD FLC field.
+	 * _fd - the FD address in workspace.
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_FLC(_fd, _val)					\
 	({								\
-	LLSTDW_SWAP(_val,((uint64_t)(((char *)_fd) + FD_FLC_DS_AS_CS_OFFSET)));\
+	LLSTDW_SWAP(							\
+		_val, 0, (uint32_t)(((char *)_fd) + FD_FLC_DS_AS_CS_OFFSET));\
 	})
 
 /* Additional FD Macros */
-	/** Macro to update FD LENGTH
-	  _from_size = new size
-	  _to_size = old size
+	/** Macro to update FD Length.
+	 * _fd - the FD address in workspace.
+	 * _from_size = new size.
+	 * _to_size = old size.
 	 */
 #define LDPAA_FD_UPDATE_LENGTH(_fd, _from_size, _to_size)		\
 	({uint32_t length;						\
-	__lwbrx(length, ((char *)_fd) + FD_MEM_LENGTH_OFFSET);		\
+	length = LW_SWAP(0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));\
 	/* inserting data */						\
 	if (_from_size >= _to_size)					\
 		length += (_from_size - _to_size);			\
 	else /* deleting data */					\
 		length -= (_to_size - _from_size);			\
-	STW_SWAP(length, ((char *)_fd) + FD_MEM_LENGTH_OFFSET); })
+	STW_SWAP(length, 0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));})
 
 /* @} *//* end of LDPAA FD MACROs */
 

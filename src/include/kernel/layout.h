@@ -1,3 +1,4 @@
+#if 0
 /**************************************************************************//**
             Copyright 2013 Freescale Semiconductor, Inc.
 
@@ -73,3 +74,4 @@ struct node *sys_build_dpl (unsigned int *dpl_bin); /* TODO - review */
 
 
 #endif /* __FSL_SYS_LAYOUT_H */
+#endif

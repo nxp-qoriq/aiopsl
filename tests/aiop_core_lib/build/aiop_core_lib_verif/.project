@@ -188,6 +188,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_keygen.h</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/aiop_verification_osm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_osm.c</locationURI>
+		</link>
+		<link>
+			<name>sources/Verification/aiop_verification_osm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_osm.h</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/aiop_verification_parser.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_parser.c</locationURI>
@@ -328,6 +338,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_fdma.h</locationURI>
 		</link>
 		<link>
+			<name>sources/include/dplib/fsl_general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_general.h</locationURI>
+		</link>
+		<link>
 			<name>sources/include/dplib/fsl_gro.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_gro.h</locationURI>
@@ -461,6 +476,11 @@
 			<name>sources/drivers/dplib/include/id_pool.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/id_pool.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/include/inline_asm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/inline_asm.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/include/virtual_pools.h</name>

@@ -5,7 +5,7 @@
 
  @Cautions      None.
  *//***************************************************************************/
-
+#if 0
 #ifndef _FSL_DPCON_CMD_H
 #define _FSL_DPCON_CMD_H
 
@@ -62,7 +62,7 @@
 #define DPCON_RSP_GET_IRQ(_OP) \
 	_OP(0,  32,	32,	uint32_t,		irq_val)\
 	_OP(0,  0,	64,	uint64_t,		irq_paddr)\
-	
+
 /*	param, offset, width,	type,			arg_name */
 #define DPCON_CMD_SET_IRQ_ENABLE(_OP) \
 	_OP(0,	0,	8,	uint8_t,		enable_state) \
@@ -75,7 +75,7 @@
 /*	param, offset, width,	type,			arg_name */
 #define DPCON_RSP_GET_IRQ_ENABLE(_OP) \
 	_OP(0,	0,	8,	uint8_t,		enable_state)
-	
+
 /*	param, offset, width,	type,			arg_name */
 #define DPCON_CMD_SET_IRQ_MASK(_OP) \
 	_OP(0,	0,	32,	uint32_t,		mask) \
@@ -87,7 +87,7 @@
 
 /*	param, offset, width,	type,			arg_name */
 #define DPCON_RSP_GET_IRQ_MASK(_OP) \
-	_OP(0,	0,	32,	uint32_t,		mask) 
+	_OP(0,	0,	32,	uint32_t,		mask)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPCON_CMD_GET_IRQ_STATUS(_OP) \
@@ -102,3 +102,4 @@
 	_OP(0,	0,	32,	uint32_t,		status) \
 	_OP(0,	32,	8,	uint8_t,		irq_index)
 #endif /* _FSL_DPCON_CMD_H */
+#endif

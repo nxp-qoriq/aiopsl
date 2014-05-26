@@ -2,7 +2,6 @@
 #include "common/gen.h"
 #include "common/errors.h"
 #include "common/fsl_string.h"
-#include "cmdif_srv.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
 #include "io.h"
@@ -10,17 +9,20 @@
 #include "sys.h"
 #include "fsl_malloc.h"
 #include "dbg.h"
-#include "spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "aiop_common.h"
 #include "errors.h"
+
+#include "cmdif_srv.h"
+#include "fsl_cmdif_flib.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
-	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET) & 0x01FFFFFF)
+	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
@@ -34,13 +36,6 @@
 /** Blocking commands don't need response FD */
 #define SYNC_CMD(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
-/** Malloc array of structs */
-#define ARR_MALLOC_SHRAM(FIELD, TYPE, NUM) \
-	FIELD = fsl_os_xmalloc(sizeof(TYPE) * (NUM), MEM_PART_SH_RAM, 1)
-/** Malloc array of structs */
-#define ARR_MALLOC_DDR(FIELD, TYPE, NUM) \
-	FIELD = fsl_os_xmalloc(sizeof(TYPE) * (NUM), \
-			       MEM_PART_1ST_DDR_NON_CACHEABLE, 1)
 
 #define OPEN_CB(M_ID, INST, DEV_ID) \
 	(srv->open_cb[M_ID](INST, &srv->inst_dev[DEV_ID]))
@@ -323,24 +318,20 @@ static int epid_setup()
 	return 0;
 }
 
-static void srv_memory_free(struct  cmdif_srv *srv)
+static void *fast_malloc(int size)
 {
-	if (srv->inst_dev)
-		fsl_os_xfree(srv->inst_dev);
-	if (srv->m_id)
-		fsl_os_xfree(srv->m_id);
-	if (srv->sync_done)
-		fsl_os_xfree(srv->sync_done);
-	if (srv->m_name)
-		fsl_os_xfree(srv->m_name);
-	if (srv->open_cb)
-		fsl_os_xfree(srv->open_cb);
-	if (srv->ctrl_cb)
-		fsl_os_xfree(srv->ctrl_cb);
-	if (srv->open_cb)
-		fsl_os_xfree(srv->open_cb);
+	return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);
+}
 
-	fsl_os_xfree(srv);
+static void *slow_malloc(int size)
+{
+	return fsl_os_xmalloc((size_t)size, MEM_PART_1ST_DDR_NON_CACHEABLE, 8);
+}
+
+static void srv_free(void *ptr)
+{
+	if (ptr != NULL)
+		fsl_os_xfree(ptr);
 }
 
 int cmdif_srv_init(void)
@@ -357,40 +348,12 @@ int cmdif_srv_init(void)
 		return err;
 	}
 
-	srv = fsl_os_xmalloc(sizeof(struct cmdif_srv), MEM_PART_SH_RAM, 1);
+	srv = cmdif_srv_allocate(fast_malloc, slow_malloc);
 	if (srv == NULL) {
-		pr_err("No memory for CMDIF Server init");
+		pr_err("Not enough memory for server allocation \n");
 		return -ENOMEM;
 	}
-
-	/* SHRAM */
-	ARR_MALLOC_SHRAM(srv->inst_dev, void *, M_NUM_OF_INSTANCES);
-	ARR_MALLOC_SHRAM(srv->m_id, uint8_t, M_NUM_OF_INSTANCES);
-	ARR_MALLOC_SHRAM(srv->ctrl_cb, ctrl_cb_t *, M_NUM_OF_MODULES);
-	ARR_MALLOC_SHRAM(srv->sync_done, void *, M_NUM_OF_INSTANCES);
-	/* DDR */
-	ARR_MALLOC_DDR(srv->m_name, char[M_NAME_CHARS + 1], M_NUM_OF_MODULES);
-	ARR_MALLOC_DDR(srv->open_cb, open_cb_t *, M_NUM_OF_MODULES);
-	ARR_MALLOC_DDR(srv->close_cb, close_cb_t *, M_NUM_OF_MODULES);
-
-	if ((srv->inst_dev == NULL) || (srv->m_id == NULL)      ||
-		(srv->ctrl_cb == NULL)  || (srv->sync_done == NULL) ||
-		(srv->m_name == NULL)   || (srv->open_cb == NULL)   ||
-		(srv->close_cb == NULL)) {
-
-		pr_err("No memory for CMDIF Server init");
-		srv_memory_free(srv);
-		return -ENOMEM;
-	}
-
-	memset(srv->m_name,
-	FREE_MODULE,
-	sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
-	memset(srv->inst_dev,
-	FREE_INSTANCE,
-	sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
-	srv->inst_count = 0;
-
+	
 	err = sys_add_handle(srv, FSL_OS_MOD_CMDIF_SRV, 1, 0);
 	return err;
 }
@@ -401,8 +364,7 @@ void cmdif_srv_free(void)
 
 	sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
 
-	if (srv != NULL)
-		srv_memory_free(srv);
+	cmdif_srv_deallocate(srv, srv_free);
 }
 
 

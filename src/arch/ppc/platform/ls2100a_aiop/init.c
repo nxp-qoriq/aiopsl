@@ -8,7 +8,7 @@
 #include "dplib/fsl_dpni.h"
 #include "common/dbg.h"
 #include "common/fsl_malloc.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "io.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
@@ -52,7 +52,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MAX_NUM_OF_APPS		10
 
-int fill_system_parameters(t_sys_param *sys_param);
+void fill_system_parameters(struct platform_param *platform_param);
 int global_init(void);
 int global_post_init(void);
 int tile_init(void);
@@ -66,33 +66,19 @@ void core_ready_for_tasks(void);
 __TASK struct aiop_default_task_params default_task_params;
 
 
-int fill_system_parameters(t_sys_param *sys_param)
+void fill_system_parameters(struct platform_param *platform_param)
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
 
-#ifndef DEBUG_NO_MC
-    { /* TODO - temporary check boot register */
-    	uintptr_t   tmp_reg = 0x00000000 + SOC_PERIPH_OFF_MC;
-    	/* wait for MC command for boot */
-    	while (!(ioread32be(UINT_TO_PTR(tmp_reg + 0x08)) & 0x1)) ;
-    }
-#endif /* DEBUG_NO_MC */
+    memset(platform_param, 0, sizeof(platform_param));
 
-    sys_param->partition_id = 0;
-    sys_param->partition_cores_mask = 0x1;
-    sys_param->master_cores_mask = 0x1;
-    sys_param->use_cli = 0;
-    sys_param->use_ipc = 0;
-
-    sys_param->platform_param->clock_in_freq_hz = 100000000;
-    sys_param->platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
-    sys_param->platform_param->console_type = PLTFRM_CONSOLE_DUART;
-    sys_param->platform_param->console_id = 0;
-    memcpy(sys_param->platform_param->mem_info,
+    platform_param->clock_in_freq_hz = 100000000; //TODO check value, maybe we don't need it
+    platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
+    platform_param->console_type = PLTFRM_CONSOLE_DUART;
+    platform_param->console_id = 0;
+    memcpy(platform_param->mem_info,
            mem_info,
            sizeof(struct platform_memory_info)*ARRAY_SIZE(mem_info));
-
-    return 0;
 }
 
 int tile_init(void)
@@ -125,6 +111,7 @@ int global_post_init(void)
 void core_ready_for_tasks(void)
 {
     uint32_t abcr_val;
+    uint32_t core_id = core_get_id();
     uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
@@ -132,31 +119,34 @@ void core_ready_for_tasks(void)
 
     void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
 
+    /*  finished boot sequence; now wait for event .... */
+    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
+    
+#ifndef SINGLE_CORE_WA
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
-		(~((uint32_t)sys_get_cores_mask()));
+		(~((uint32_t)(1 << core_get_id())));
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
 
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
     abcr_val = ioread32(abcr);
-    abcr_val |= (uint32_t)sys_get_cores_mask();
+    abcr_val |= (uint32_t)(1 << core_get_id());
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
-
+    
     {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
     }
 
+#endif
+    
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
-
-    /*  finished boot sequence; now wait for event .... */
-    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
 
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
