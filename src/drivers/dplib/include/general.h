@@ -887,24 +887,6 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_General_Protocols */
 /** @} */ /* end of AIOP_General_Definitions */
 
-/**************************************************************************//**
- @Group		General_Functions General Functions
-
- @Description	General Functions
-
- @{
-*//***************************************************************************/
-
-/**************************************************************************//**
-@Function	update_random_64bit
-
-@Description	This function updates the random_64bit parameter in the TLS.
-
-@Return		None.
-*//***************************************************************************/
-void update_random_64bit(void);
-
-/** @} */ /* end of General_Functions */
 /** @} */ /* end of AIOP_GENERAL */
 
 #endif /* __GENERAL_H_ */
