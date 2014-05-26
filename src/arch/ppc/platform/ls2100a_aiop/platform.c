@@ -373,24 +373,15 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
     /* special AIOP registers */
-#if 0
-    // boot sequence is not finished here removed CTSCSR_ENABLE
-#endif
-    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_16_TASKS;
+    /* Workspace Control Register*/
+    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
+    /* Little endian convert */
+    num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
+    
+    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
+    		                                            (num_of_tasks << 24);
+    
     booke_set_CTSCSR0(CTSCSR_value);
-
-#if 0 /* TODO - complete! */
-    /*------------------------------------------------------*/
-    /* Initialize MMU                                       */
-    /*------------------------------------------------------*/
-    if (pltfrm->param.user_init_hooks.f_init_mmu)
-        err = pltfrm->param.user_init_hooks.f_init_mmu(pltfrm);
-    else
-        err = platform_init_mmu(pltfrm);
-
-    if (err != E_OK)
-        RETURN_ERROR(MAJOR, err, NO_MSG);
-#endif /* 0 */
 
     /*------------------------------------------------------*/
     /* Initialize L1 Cache                                  */
@@ -403,10 +394,6 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* Initialize seeds for random function                 */
     /*------------------------------------------------------*/
 
-    /* Workspace Control Register*/
-    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
-    /* Little endian convert */
-    num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
     /* task stack size used for pointer calculation,
        (original size = task_stack_size * 4)
      */
@@ -645,7 +632,6 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 /*****************************************************************************/
 int platform_early_init(struct platform_param *pltfrm_params)
 {
-    /* TODO - complete! */
     UNUSED(pltfrm_params);
     return E_OK;
 }

@@ -11,7 +11,7 @@
 #include "dbg.h"
 
 /* Global System Object */
-__SHRAM t_system sys;
+__SHRAM t_system sys = {0};
 
 #define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
@@ -218,7 +218,7 @@ static int global_sys_init(void)
 	
 	update_active_cores_mask();
 	
-	fill_system_parameters(&platform_param);
+	fill_platform_parameters(&platform_param);
 	
 	platform_early_init(&platform_param);
 
