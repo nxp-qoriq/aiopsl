@@ -373,12 +373,14 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
     /* special AIOP registers */
-#if 0
-    // boot sequence is not finished here removed CTSCSR_ENABLE
-#endif
-    //TODO take this from cm-gw
-    //TODO check TCNTSTEN
-    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_16_TASKS;
+    /* Workspace Control Register*/
+    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
+    /* Little endian convert */
+    num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
+    
+    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
+    		                                            (num_of_tasks << 24);
+    
     booke_set_CTSCSR0(CTSCSR_value);
 
     /*------------------------------------------------------*/
@@ -392,10 +394,6 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* Initialize seeds for random function                 */
     /*------------------------------------------------------*/
 
-    /* Workspace Control Register*/
-    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
-    /* Little endian convert */
-    num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
     /* task stack size used for pointer calculation,
        (original size = task_stack_size * 4)
      */
