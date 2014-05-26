@@ -252,6 +252,10 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 				ipr_instance_ptr);
 		ipr_instance_val = ipr_instance;
 		return status;
+	case SNIC_IPR_DELETE_INSTANCE:
+		/* todo: parameters to ipr_delete_instance */
+		status = (int)ipr_delete_instance(ipr_instance_val, NULL, NULL);
+		return status;
 	case SNIC_SET_MTU:
 		snic_params += *((uint16_t *)data);
 		data += 2;

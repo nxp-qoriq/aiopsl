@@ -926,6 +926,12 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** Get IPv6 fragment header offset */
 #define PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ipv6_frag_offset)
+/** Get Gross Running Sum */
+#define PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum)
+/** Get Running Sum */
+#define PARSER_GET_RUNNING_SUM_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->running_sum)
 /** Get Parse Error Code */
 #define PARSER_GET_PARSE_ERROR_CODE_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->parse_error_code)
