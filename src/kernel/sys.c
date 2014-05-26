@@ -248,9 +248,9 @@ int sys_init(void)
 	uint32_t core_id = core_get_id();
 
 	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
-							& (1ULL << core_id));
+						& (1ULL << core_id)) ? 1 : 0;
 	sys.is_cluster_master[core_id] = (int)(SYS_CLUSTER_MASTER_MASK \
-							& (1ULL << core_id));
+						& (1ULL << core_id)) ? 1 : 0;
 
 	is_master_core = sys_is_master_core();
 
