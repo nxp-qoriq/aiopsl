@@ -376,21 +376,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 #if 0
     // boot sequence is not finished here removed CTSCSR_ENABLE
 #endif
+    //TODO take this from cm-gw
+    //TODO check TCNTSTEN
     CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_16_TASKS;
     booke_set_CTSCSR0(CTSCSR_value);
-
-#if 0 /* TODO - complete! */
-    /*------------------------------------------------------*/
-    /* Initialize MMU                                       */
-    /*------------------------------------------------------*/
-    if (pltfrm->param.user_init_hooks.f_init_mmu)
-        err = pltfrm->param.user_init_hooks.f_init_mmu(pltfrm);
-    else
-        err = platform_init_mmu(pltfrm);
-
-    if (err != E_OK)
-        RETURN_ERROR(MAJOR, err, NO_MSG);
-#endif /* 0 */
 
     /*------------------------------------------------------*/
     /* Initialize L1 Cache                                  */
@@ -645,7 +634,6 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 /*****************************************************************************/
 int platform_early_init(struct platform_param *pltfrm_params)
 {
-    /* TODO - complete! */
     UNUSED(pltfrm_params);
     return E_OK;
 }
