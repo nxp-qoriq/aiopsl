@@ -12,9 +12,9 @@
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
 
-#define SYS_BOOT_SYNC_FLAG_WAITING  1
-#define SYS_BOOT_SYNC_FLAG_DONE     2
-
+#define SYS_TILE_MASTERS_MASK (0x00000001)
+#define SYS_CLUSTER_MASTER_MASK (0x00001111)
+#define SYS_BOOT_SYNC_FLAG_DONE (1)
 
 typedef struct t_system {
 	/* Memory management variables */
@@ -42,26 +42,20 @@ typedef struct t_system {
 	uint64_t             active_cores_mask;
 	uint8_t              barrier_lock;
 	volatile uint64_t    barrier_mask;
-	int                  core_failure[INTG_MAX_NUM_OF_CORES];
-	int                  init_fail_count;
 
-	/*TODO check if need to be removed: list_t*/
-	/*list_t                      forced_objects_list;*/
 	/* boot synchronization variables */
 	volatile uint32_t           boot_sync_flag;
-
+	
 	/* Platform operations */
 	t_platform_ops              platform_ops;
 } t_system;
 
 
-int     fill_system_parameters(t_sys_param *sys_param);
+void fill_system_parameters(struct platform_param *platform_param);
 
 /* Internal system routines */
 int     sys_init_memory_management(void);
 int     sys_free_memory_management(void);
-int     sys_init_interrupt_management(void);
-int     sys_free_interrupt_management(void);
 int     sys_init_multi_processing(void);
 void    sys_free_multi_processing(void);
 
