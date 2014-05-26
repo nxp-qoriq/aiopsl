@@ -45,7 +45,7 @@ void sys_barrier(void)
     else
     {
         /* Last core to arrive - reset the barrier */
-        sys.barrier_mask = sys.partition_cores_mask;
+        sys.barrier_mask = sys.active_cores_mask;
         unlock_spinlock(&(sys.barrier_lock));
     }
 #endif
