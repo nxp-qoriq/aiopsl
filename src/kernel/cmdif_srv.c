@@ -414,7 +414,12 @@ __HOT_CODE void cmdif_srv_isr(void)
 			pr_debug("PASSED close command\n");
 			fdma_terminate_task();
 		} else {
-			sync_cmd_done(NULL, -EPERM, auth_id, srv, FALSE);
+			/* don't bother to send response
+			 * in order not to overload response queue,
+			 * don't set done bit for invalid auth_id
+			 * it might be intentional attack
+			 * */
+			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else {
@@ -430,7 +435,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 			}
 		} else {
 			/* don't bother to send response
-			 * in order not to overload response queue,
+			 * auth_id is not valid
 			 * it might be intentional attack
 			 * */
 			fdma_store_default_frame_data(); /* Close FDMA */
