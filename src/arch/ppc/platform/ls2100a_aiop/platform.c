@@ -678,7 +678,7 @@ int platform_init(struct platform_param    *pltfrm_param,
     /* Identify the program memory */
     err = identify_program_memory(pltfrm->param.mem_info,
                                   &(pltfrm->prog_runs_from));
-    ASSERT_COND(err == E_OK);
+    if(err != 0) return err;
 
     /* Store CCSR base (for convenience) */
     mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_CCSR);
@@ -729,7 +729,7 @@ int platform_init(struct platform_param    *pltfrm_param,
     pltfrm_ops->f_disable_local_irq     = NULL;
 #endif
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
