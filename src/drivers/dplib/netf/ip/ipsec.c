@@ -6,7 +6,8 @@
 *//***************************************************************************/
 
 #include "common/types.h"
-#include "common/spinlock.h"
+//#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 //#include "common/dbg.h"
 
 #include "dplib/fsl_cdma.h"
@@ -519,9 +520,14 @@ int32_t ipsec_generate_flc(
 	
 	
 	struct ipsec_flow_context flow_context;
-	uint32_t *sp_addr = (uint32_t *)(IPSEC_PROFILE_SRAM_ADDR + 
-							(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
+	//uint32_t *sp_addr = (uint32_t *)(IPSEC_PROFILE_SRAM_ADDR + 
+	//						(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 
+	extern struct storage_profile storage_profile;
+	
+	uint32_t *sp_addr = (uint32_t *)((uint32_t)(&storage_profile) +
+								(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
+	
 	/* Word 0 */
 	flow_context.word0_sdid = 0; //TODO: how to get this value? 
 	flow_context.word0_res = 0; 
@@ -1058,9 +1064,20 @@ int32_t ipsec_frame_encrypt(
 	/* The least significant 6 bytes of the 8-byte FLC in the enqueued FD 
 	 * contain a 2-byte checksum and 4-byte encrypted/decrypted byte count.
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } */
-	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
-	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
+	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
 	
+	/** Load 2 bytes with endian swap.
+	 * The address loaded from memory is calculated as: _displ + _base.
+	 * _displ - a word aligned constant value between 0-1020.
+	 * _base - a variable containing the base address.
+	 * If 'base' is a literal 0, the base address is considered as 0. */
+	//#define LH_SWAP(_disp, _base) ((uint16_t)__lhbr((uint32_t)_disp, (void *)_base))
+	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
+
+	
+	//byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
+	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+
 	/* 	15.	Update the gross running checksum in the Workspace parser results.*/
 	// TODO: is it needed for encryption?
 	
@@ -1149,7 +1166,7 @@ int32_t ipsec_frame_decrypt(
 	uint64_t eth_header[5]; /* Ethernet header place holder, 5*8=40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc; /* Original FLC */
-	uint64_t return_flc; /* SEC returned FLC */
+	//uint64_t return_flc; /* SEC returned FLC */
 	uint32_t orig_frc;
 	uint16_t outer_material_length;
 	//uint16_t running_sum;
@@ -1428,9 +1445,11 @@ int32_t ipsec_frame_decrypt(
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] }
 	*/
 	// TODO (still not implemented in the simulator)
-	return_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
-	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
+	//return_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
+	//byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
+	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
+	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 	
 	/* 	16.	Update the gross running checksum in the Workspace parser results.*/
 	//pr->gross_running_sum = 

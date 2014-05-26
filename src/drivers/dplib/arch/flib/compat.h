@@ -57,15 +57,29 @@
 # define swab32(x) bswap_32(x)
 # define swab64(x) bswap_64(x)
 #elif defined(__EWL__) && defined(AIOP)
+/* Yariv: changed to new LH_SWAP macro format
 static __always_inline uint16_t swab16(uint16_t x)
 {
 	return LH_SWAP(&x);
 }
+*/
+static __always_inline uint16_t swab16(uint16_t x)
+{
+	return LH_SWAP(0,x);
 
+}
+
+/* Yariv: changed to new LW_SWAP macro format
 static __always_inline uint32_t swab32(uint32_t x)
 {
 	return LW_SWAP(&x);
 }
+*/
+static __always_inline uint32_t swab32(uint32_t *x)
+{
+	return LW_SWAP(0,x);
+}
+
 /*
 static __always_inline uint64_t swab64(uint64_t x)
 {

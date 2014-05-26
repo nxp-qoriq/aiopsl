@@ -552,7 +552,8 @@ static inline void __rta__desc_bswap(uint32_t *buff, unsigned buff_len)
 	unsigned i;
 
 	for (i = 0; i < buff_len; i++)
-		buff[i] = swab32(buff[i]);
+		//buff[i] = swab32(buff[i]);
+		buff[i] = swab32(&(buff[i])); // Yariv
 }
 
 static inline unsigned rta_program_finalize(struct program *program)
@@ -688,11 +689,13 @@ static inline void rta_patch_move(struct program *program, unsigned line,
 	uint32_t opcode;
 	unsigned bswap = check_swap && program->bswap;
 
-	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
-
+	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
+	
 	opcode &= (uint32_t)~MOVE_OFFSET_MASK;
 	opcode |= (new_ref << (MOVE_OFFSET_SHIFT + 2)) & MOVE_OFFSET_MASK;
-	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
 }
 
 static inline void rta_patch_jmp(struct program *program, unsigned line,
@@ -701,11 +704,13 @@ static inline void rta_patch_jmp(struct program *program, unsigned line,
 	uint32_t opcode;
 	unsigned bswap = check_swap && program->bswap;
 
-	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
 
 	opcode &= (uint32_t)~JUMP_OFFSET_MASK;
 	opcode |= (new_ref - (line + program->start_pc)) & JUMP_OFFSET_MASK;
-	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
 }
 
 static inline void rta_patch_header(struct program *program, unsigned line,
@@ -714,11 +719,13 @@ static inline void rta_patch_header(struct program *program, unsigned line,
 	uint32_t opcode;
 	unsigned bswap = check_swap && program->bswap;
 
-	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
 
 	opcode &= (uint32_t)~HDR_START_IDX_MASK;
 	opcode |= (new_ref << HDR_START_IDX_SHIFT) & HDR_START_IDX_MASK;
-	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
 }
 
 static inline void rta_patch_load(struct program *program, unsigned line,
@@ -743,7 +750,8 @@ static inline void rta_patch_store(struct program *program, unsigned line,
 	uint32_t opcode;
 	unsigned bswap = check_swap && program->bswap;
 
-	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
 
 	opcode &= (uint32_t)~LDST_OFFSET_MASK;
 
@@ -760,7 +768,8 @@ static inline void rta_patch_store(struct program *program, unsigned line,
 			  LDST_OFFSET_MASK;
 	}
 
-	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
 }
 
 static inline void rta_patch_raw(struct program *program, unsigned line,
@@ -770,11 +779,13 @@ static inline void rta_patch_raw(struct program *program, unsigned line,
 	uint32_t opcode;
 	unsigned bswap = check_swap && program->bswap;
 
-	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
 
 	opcode &= (uint32_t)~mask;
 	opcode |= new_val & mask;
-	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
+	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
 }
 
 static inline int __rta_map_opcode(uint32_t name,
