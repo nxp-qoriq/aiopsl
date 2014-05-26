@@ -802,12 +802,12 @@ int32_t ipsec_del_sa_descriptor(
 	// (called by the application but did npt enter the SL yet)
 	// If there were open frames do another ste_barrier();
 	
-	if (return_val) { /* error */
+	if (return_val != CDMA_REFCOUNT_DECREMENT_TO_ZERO) { /* error */
 		//TODO: what if CDMA release failed?
-		return -1; // TMP
+		return IPSEC_ERROR; // TMP
 	} else { /* success */
 		atomic_incr32((int32_t *)(&(global_params.sa_count)), 1);
-		return 0; // TMP
+		return IPSEC_SUCCESS; // TMP
 	}
 	
 } /* End of ipsec_del_sa_descriptor */
