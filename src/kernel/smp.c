@@ -29,8 +29,7 @@ void sys_free_multi_processing(void)
 /*****************************************************************************/
 void sys_barrier(void)
 {
-#ifdef UNDER_CONSTRUCTION
-    const uint64_t core_mask = (uint64_t)(1 << core_get_id());
+    uint64_t core_mask = (uint64_t)(1 << core_get_id());
 
     lock_spinlock(&(sys.barrier_lock));
     /* Mark this core's presence */
@@ -45,10 +44,9 @@ void sys_barrier(void)
     else
     {
         /* Last core to arrive - reset the barrier */
-        sys.barrier_mask = sys.partition_cores_mask;
+        sys.barrier_mask = sys.active_cores_mask;
         unlock_spinlock(&(sys.barrier_lock));
     }
-#endif
 }
 
 /*****************************************************************************/
