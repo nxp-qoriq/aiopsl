@@ -527,7 +527,7 @@ int32_t ipsec_generate_flc(
 
 	extern struct storage_profile storage_profile;
 	
-	uint32_t *sp_addr = (uint32_t *)((uint32_t)(&storage_profile) +
+	uint64_t *sp_addr = (uint64_t *)((uint32_t)(&storage_profile) +
 								(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 	
 	/* Word 0 */
@@ -580,10 +580,10 @@ int32_t ipsec_generate_flc(
 	* Only The data from offset 0x08 and 0x10 is copied to SEC flow context 
 	*/
 	/* Copy the standard Storage Profile to Flow Context words 8-15 */
-	flow_context.storage_profile[0] = *(sp_addr + 2);
-	flow_context.storage_profile[1] = *(sp_addr + 3);
-	flow_context.storage_profile[2] = *(sp_addr + 4);
-	flow_context.storage_profile[3] = *(sp_addr + 5);
+	flow_context.storage_profile[0] = *(sp_addr + 1);
+	flow_context.storage_profile[1] = *(sp_addr + 2);
+	flow_context.storage_profile[2] = 0;
+	flow_context.storage_profile[3] = 0;
 
 	/* Write the Flow Context to external memory with CDMA */
 	return_val = cdma_write(
