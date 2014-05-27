@@ -52,7 +52,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MAX_NUM_OF_APPS		10
 
-void fill_system_parameters(struct platform_param *platform_param);
+void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
 int global_post_init(void);
 int tile_init(void);
@@ -66,13 +66,13 @@ void core_ready_for_tasks(void);
 __TASK struct aiop_default_task_params default_task_params;
 
 
-void fill_system_parameters(struct platform_param *platform_param)
+void fill_platform_parameters(struct platform_param *platform_param)
 {
     struct platform_memory_info mem_info[] = MEMORY_INFO;
 
     memset(platform_param, 0, sizeof(platform_param));
 
-    platform_param->clock_in_freq_hz = 100000000; //TODO check value, maybe we don't need it
+    platform_param->clock_in_freq_hz = 100000000; //TODO check value
     platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
     platform_param->console_type = PLTFRM_CONSOLE_DUART;
     platform_param->console_id = 0;

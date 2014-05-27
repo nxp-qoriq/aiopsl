@@ -17,7 +17,7 @@ int sys_init_multi_processing(void)
     sys.barrier_lock = 0;
     sys.barrier_mask = sys.active_cores_mask;
  
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
