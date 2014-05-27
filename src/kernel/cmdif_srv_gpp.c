@@ -155,175 +155,105 @@ int cmdif_unregister_module(const char *m_name)
 	return cmdif_srv_unregister(srv, m_name);
 }
 
-#if 0
-__HOT_CODE static int cmdif_fd_send(int cb_err)
+static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 {
-	int err;
-	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-
-	/** ERROR is not overridden by FDMA store */
-	flc &= ~ERROR_MASK;
-	flc |= ((uint64_t)cb_err) << ERROR_OFF;
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
-
-	pr_debug("Response QID = 0x%x\n", RESP_QID_GET);
-	pr_debug("CB error = %d\n", cb_err);
-
-	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_EN_TC_CONDTERM_BITS);
-	return err;
+	/* TODO complete */
+	return 0;
 }
 
-__HOT_CODE static void sync_cmd_done(uint64_t sync_done,
-				int err,
-				uint16_t auth_id,
-				struct cmdif_srv *srv,
-				char terminate)
+void cmdif_srv_cb(struct cmdif_fd *cfd, int pr, void *send_dev)
 {
-	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
-	uint64_t _sync_done = NULL;
-
-	pr_debug("err = %d\n", err);
-	pr_debug("auth_id = 0x%x\n", auth_id);
-	pr_debug("sync_resp = 0x%x\n", resp);
-
-	/* Delete FDMA handle and store user modified data */
-	fdma_store_default_frame_data();
-	if ((sync_done != NULL) || (auth_id == OPEN_AUTH_ID))
-		_sync_done = sync_done;
-	else
-		_sync_done = srv->sync_done[auth_id];
-
-	if (_sync_done == NULL) {
-		pr_err("Can't finish sync command, no valid address\n");
-		/** In this case client will fail on timeout */
-	} else if (cdma_write(_sync_done, &resp, 4)) {
-		pr_err("CDMA write failed, can't finish sync command\n");
-		/** In this case client will fail on timeout */
-	}
-
-	if (terminate)
-		fdma_terminate_task();
-}
-
-/** Save the address for polling on synchronous commands */
-#define sync_done_get() LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)
-static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
-{
-	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
-}
-
-#endif
-
-void cmdif_srv_cb(struct cmdif_fd *cfd)
-{
-	uint16_t cmd_id = cmd_id_get();
-	int      err    = 0;
-	uint16_t auth_id = cmd_auth_id_get();
+	uint16_t cmd_id  = cmdif_srv_cmd_id(cfd);
+	uint16_t auth_id = cmdif_srv_auth_id(cfd);
+	int      err     = 0;
+	struct cmdif_fd  cfd_out;
 
 	if (srv == NULL)
-		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
+		return;
 
-	pr_debug("cmd_id = 0x%x\n", cmd_id);
-	pr_debug("auth_id = 0x%x\n", auth_id);
+	if (cmdif_srv_is_open_cmd(cmd_id)) {
 
-	if (cmd_id & CMD_ID_OPEN) {
-		char     m_name[M_NAME_CHARS + 1];
-		int      m_id;
-		uint8_t  inst_id;
-		int      new_inst;
-		uint64_t sync_done = sync_done_get();
+		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
+			void    *dev = NULL;
+			uint8_t m_id = 0;
 
-		/* OPEN will arrive with hash value 0xffff */
-		if (auth_id != OPEN_AUTH_ID) {
-			pr_err("No permission to open device 0x%x\n", auth_id);
-			sync_cmd_done(sync_done, -EPERM, auth_id, srv, TRUE);
-		}
+			err = cmdif_srv_mod_id_find(srv, cfd, &m_id);
 
-		cmd_m_name_get(&m_name[0]);
-		m_id = module_id_find(m_name, srv);
-		if (m_id < 0) {
-			/* Did not find module with such name */
-			pr_err("No such module %s\n", m_name);
-			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, TRUE);
-		}
-
-		inst_id  = cmd_inst_id_get();
-		new_inst = inst_alloc(srv);
-		if (new_inst >= 0) {
-
-			pr_debug("inst_id = %d\n", inst_id);
-			pr_debug("new_inst = %d\n", new_inst);
-			pr_debug("m_name = %s\n", m_name);
-
-			sync_done_set((uint16_t)new_inst, srv);
-			err = OPEN_CB(m_id, inst_id, new_inst);
-			sync_cmd_done(sync_done, err,
-					(uint16_t)new_inst, srv, FALSE);
 			if (err) {
-				pr_err("Open callback failed\n");
-				inst_dealloc(new_inst, srv);
-			}
-			pr_debug("PASSED open command\n");
-			fdma_terminate_task();
-		} else {
-			/* couldn't find free place for new device */
-			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
-			PR_ERR_TERMINATE("No free entry for new device\n");
-		}
-	} else if (cmd_id & CMD_ID_CLOSE) {
-
-		if (IS_VALID_AUTH_ID(auth_id)) {
-			/* Don't reorder this sequence !!*/
-			err = CLOSE_CB(auth_id);
-			sync_cmd_done(NULL, err, auth_id, srv, FALSE);
-			if (!err) {
-				/* Free instance entry only if we had no error
-				 * otherwise it will be impossible to retry to
-				 * close the device */
-				inst_dealloc(auth_id, srv);
-			}
-			pr_debug("PASSED close command\n");
-			fdma_terminate_task();
-		} else {
-			sync_cmd_done(NULL, -EPERM, auth_id, srv, FALSE);
-			PR_ERR_TERMINATE("Invalid authentication id\n");
-		}
-	} else {
-		uint32_t size	 = cmd_size_get();
-		uint8_t  *data	 = cmd_data_get();
-
-		if (IS_VALID_AUTH_ID(auth_id)) {
-			/* User can ignore data and use presentation context */
-			err = CTRL_CB(auth_id, cmd_id, size, data);
-			if (SYNC_CMD(cmd_id)) {
-				pr_debug("PASSED Synchronous Command\n");
-				sync_cmd_done(NULL, err, auth_id, srv, TRUE);
+				return; /* TODO ??? */
+			} else {
+				err = cmdif_srv_open_cb(srv, auth_id, cmd_id,
+							inst_id, m_id, &dev);
+				if (!err) {
+					/* Place spinlocks here
+					 * cmdif_srv_auth_id_alloc is
+					 * not protected */
+					cmdif_srv_open_done(srv, err, dev, cfd);
+					/* Place spinlocks here
+					 * cmdif_srv_auth_id_alloc is
+					 * not protected */
+				}
 			}
 		} else {
 			/* don't bother to send response
 			 * in order not to overload response queue,
 			 * it might be intentional attack
 			 * */
-			fdma_store_default_frame_data(); /* Close FDMA */
-			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
-	}
 
-	if (SEND_RESP(cmd_id)) {
-		pr_debug("PASSED Asynchronous Command\n");
-		err = cmdif_fd_send(err);
-		if (err) {
-			pr_err("Failed to send response auth_id = 0x%x\n",
-			auth_id);
+		return; /* No FD for response */
+
+	} else if (cmdif_srv_is_close_cmd(cmd_id)) {
+
+		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
+			/* Don't reorder this sequence !!*/
+			err = cmdif_srv_close_cb(srv, auth_id, cmd_id, cfd);
+
+			if (!err) {
+				/* Free instance entry only if we had no error
+				 * otherwise it will be impossible to retry to
+				 * close the device */
+				
+				/* Place spinlocks here
+				 * cmdif_srv_auth_id_alloc is
+				 * not protected */
+				cmdif_srv_close_done(srv, err, auth_id, cfd);
+				/* Place spinlocks here
+				 * cmdif_srv_auth_id_alloc is
+				 * not protected */
+
+
+			}
+		} else {
+			/* don't bother to send response
+			 * in order not to overload response queue,
+			 * it might be intentional attack
+			 * */
 		}
+		return; /* No FD for response */
+
 	} else {
-		/* CMDIF_NORESP_CMD store user modified data but don't send */
-		pr_debug("PASSED No Response Command\n");
-		fdma_store_default_frame_data();
-	}
-	fdma_terminate_task();
-}
+		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
 
-#pragma pop
-#endif
+			err = cmdif_srv_ctrl_cb(srv, auth_id, cmd_id, cfd);
+
+			if (cmdif_srv_is_sync_cmd(cmd_id)) {
+				cmdif_srv_sync_done(srv, err, auth_id);
+			}
+		} else {
+			/* don't bother to send response
+			 * in order not to overload response queue,
+			 * it might be intentional attack
+			 * */
+		}
+	}
+
+	err = cmdif_srv_resp_create(srv, err, cfd, &cfd_out);
+	/* err maybe indication that there is no need to send fd,
+	 * for example if no response is set */
+	if (!err) {
+		err = send_fd(&cfd_out, pr, send_dev);
+	}
+
+	return;
+}

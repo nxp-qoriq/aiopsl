@@ -493,7 +493,7 @@ int sys_init_memory_management(void)
 
     sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
 
-    return E_OK;
+    return 0;
 }
 
 

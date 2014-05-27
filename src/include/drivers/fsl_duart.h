@@ -158,8 +158,21 @@ typedef struct t_duart_uart_param {
                                                      If NULL, no exceptions are reported */
 } t_duart_uart_param;
 
+#ifdef MC
 /**************************************************************************//**
-@Function      duart_config
+ @Description   DUART protocol initialization structure.
+
+                Structure is used when calling sys_get_desc
+                stores the address used for specific uart
+ *//***************************************************************************/
+struct uart_desc {
+    int uart_id;	/**< Defines the uart number [0 - 3] */
+    phys_addr_t paddr;	/**< Physical address of uart memory map */
+    void *vaddr;	/**< Virtual address of uart memory map */
+};
+#endif
+/**************************************************************************//**
+ @Function      duart_config
 
  @Description   Creates DUART channel descriptor according to user parameters.
 
