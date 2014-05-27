@@ -4,7 +4,6 @@
 #include "drivers/fsl_duart.h"
 #include "kernel/console.h"
 #include "kernel/platform.h"
-#include "kernel/timer.h"
 #include "kernel/smp.h"
 
 #include "inc/mem_mng.h"
@@ -377,10 +376,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
     /* Little endian convert */
     num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
-    
+
     CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
     		                                            (num_of_tasks << 24);
-    
+
     booke_set_CTSCSR0(CTSCSR_value);
 
     /*------------------------------------------------------*/

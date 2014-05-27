@@ -14,7 +14,6 @@ Author: Donio Ron
 
 #include "common/types.h"
 #include "common/errors.h"
-#include "common/irq.h"
 #include "arch/cores/fsl_core_booke_regs.h"
 #include "arch/cores/fsl_core_booke.h"
 #include "booke.h"
