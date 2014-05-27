@@ -11,7 +11,7 @@
 #include "dbg.h"
 
 /* Global System Object */
-__SHRAM t_system sys;
+__SHRAM t_system sys = {0};
 
 #define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
@@ -72,13 +72,13 @@ static int sys_init_platform(void)
 
 	if (sys.platform_ops.f_init_core) {
 		err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
-		if (err != 0) return -1;
+		if (err != 0) return err;
 	}
 	
 	if (sys.platform_ops.f_init_timer) {
 		err = sys.platform_ops.f_init_timer(
 			sys.platform_ops.h_platform);
-		if (err != 0) return -1;
+		if (err != 0) return err;
 	}
 
 	if (is_master_core) {
@@ -87,13 +87,13 @@ static int sys_init_platform(void)
 		if (sys.platform_ops.f_init_intr_ctrl) {
 			err = sys.platform_ops.f_init_intr_ctrl(
 				sys.platform_ops.h_platform);
-			if (err != 0) return -1;
+			if (err != 0) return err;
 		}
 
 		if (sys.platform_ops.f_init_soc) {
 			err = sys.platform_ops.f_init_soc(
 				sys.platform_ops.h_platform);
-			if (err != 0) return -1;
+			if (err != 0) return err;
 		}
 	}
 
@@ -106,13 +106,13 @@ static int sys_init_platform(void)
 		if (sys.platform_ops.f_init_ipc) {
 			err = sys.platform_ops.f_init_ipc(
 				sys.platform_ops.h_platform);
-			if (err != 0) return -1;
+			if (err != 0) return err;
 		}
 
 		if (sys.platform_ops.f_init_console) {
 			err = sys.platform_ops.f_init_console(
 				sys.platform_ops.h_platform);
-			if (err != 0) return -1;
+			if (err != 0) return err;
 		}
 		
 		if (!sys.console) {
@@ -123,7 +123,7 @@ static int sys_init_platform(void)
 		if (sys.platform_ops.f_init_mem_partitions) {
 			err = sys.platform_ops.f_init_mem_partitions(
 				sys.platform_ops.h_platform);
-			if (err != 0) return -1;
+			if (err != 0) return err;
 		}
 
 	}
@@ -131,7 +131,7 @@ static int sys_init_platform(void)
 	if (sys.platform_ops.f_init_private) {
 		err = sys.platform_ops.f_init_private(
 			sys.platform_ops.h_platform);
-		if (err != 0) return -1;
+		if (err != 0) return err;
 	}
 
 	return 0;
@@ -218,7 +218,7 @@ static int global_sys_init(void)
 	
 	update_active_cores_mask();
 	
-	fill_system_parameters(&platform_param);
+	fill_platform_parameters(&platform_param);
 	
 	platform_early_init(&platform_param);
 
@@ -238,7 +238,7 @@ static int global_sys_init(void)
 		FSL_OS_MOD_SOC, 1, 0);
 	if (err != 0) return err;
 	
-	return E_OK;
+	return 0;
 }
 
 /*****************************************************************************/
@@ -256,7 +256,7 @@ int sys_init(void)
 
 	if(is_master_core) {
 		err = global_sys_init();
-		if (err != 0) return -1;
+		if (err != 0) return err;
 
 		/* signal all other cores that global initiation is done */
 		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
@@ -265,7 +265,7 @@ int sys_init(void)
 	}
 
 	err = sys_init_platform();
-	if (err != 0) return -1;
+	if (err != 0) return err;
 
 	return 0;
 }

@@ -51,7 +51,7 @@ typedef struct t_system {
 } t_system;
 
 
-void fill_system_parameters(struct platform_param *platform_param);
+void fill_platform_parameters(struct platform_param *platform_param);
 
 /* Internal system routines */
 int     sys_init_memory_management(void);
