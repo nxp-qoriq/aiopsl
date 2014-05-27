@@ -523,9 +523,11 @@ int32_t ipsec_generate_flc(
 	//uint32_t *sp_addr = (uint32_t *)(IPSEC_PROFILE_SRAM_ADDR + 
 	//						(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 
+	
+
 	extern struct storage_profile storage_profile;
 	
-	uint32_t *sp_addr = (uint32_t *)((uint32_t)(&storage_profile) +
+	uint32_t *sp_addr = (uint32_t *)((uint32_t)(&storage_profile)
 								(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 	
 	/* Word 0 */
@@ -569,11 +571,19 @@ int32_t ipsec_generate_flc(
 	/* word 7 */
 	flow_context.word7_oflc_63_32 = 0; /* Not used for AIOP */
 	
+	/* Storage profile format:
+	* 0x00 IP-Specific Storage Profile Information 
+	* 0x08 Frame Format and Data Placement Controls 
+	* 0x10 Buffer Pool 2, Buffer Pool 1 Attributes and Controls 
+	* 0x18 Buffer Pool 4, Buffer Pool 3 Attributes and Controls
+	* 
+	* Only The data from offset 0x08 and 0x10 is copied to SEC flow context 
+	*/
 	/* Copy the standard Storage Profile to Flow Context words 8-15 */
-	flow_context.storage_profile[0] = *(sp_addr + 0);
-	flow_context.storage_profile[1] = *(sp_addr + 1);
-	flow_context.storage_profile[2] = *(sp_addr + 2);
-	flow_context.storage_profile[3] = *(sp_addr + 3);
+	flow_context.storage_profile[0] = *(sp_addr + 2);
+	flow_context.storage_profile[1] = *(sp_addr + 3);
+	flow_context.storage_profile[2] = *(sp_addr + 4);
+	flow_context.storage_profile[3] = *(sp_addr + 5);
 
 	/* Write the Flow Context to external memory with CDMA */
 	return_val = cdma_write(
