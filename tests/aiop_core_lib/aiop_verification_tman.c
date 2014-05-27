@@ -38,16 +38,16 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 	{
 		struct tman_tmi_delete_command *str =
 			(struct tman_tmi_delete_command *) asa_seg_addr;
-		if(str->cb_wo_confirmation)
+		if(str->cb_with_confirmation)
 			str->status = tman_delete_tmi(
-				&verif_tman_callback_no_conf,
+				&verif_tman_callback,
 				str->mode_bits,
 				str->tmi_id,
 				str->conf_opaque_data1,
 				str->conf_opaque_data2);
 		else
 			str->status = tman_delete_tmi(
-				&verif_tman_callback,
+				&verif_tman_callback_no_conf,
 				str->mode_bits,
 				str->tmi_id,
 				str->conf_opaque_data1,
@@ -71,14 +71,14 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 	{
 		struct tman_timer_create_command *str =
 		(struct tman_timer_create_command *) asa_seg_addr;
-		if(str->cb_wo_confirmation)
+		if(str->cb_with_confirmation)
 			str->status = tman_create_timer(
 				str->tmi_id,
 				str->mode_bits,
 				str->duration,
 				str->opaque_data1,
 				str->opaque_data2,
-				&verif_tman_callback_no_conf,
+				&verif_tman_callback,
 				&(str->timer_handle));
 		else
 			str->status = tman_create_timer(
@@ -87,7 +87,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 				str->duration,
 				str->opaque_data1,
 				str->opaque_data2,
-				&verif_tman_callback,
+				&verif_tman_callback_no_conf,
 				&(str->timer_handle));
 		str_size = sizeof(struct tman_timer_create_command);
 		break;
