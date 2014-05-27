@@ -364,7 +364,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_TCP_PACKET_TRUNCATION                    0x69
 	/** TCP checksum is incorrect */
 #define PARSER_TCP_CHECKSUM_ERROR                       0x6A
-	/** TCP flags set together Error
+	/** None of TCP flags are set, or following TCP flags set together:
 	SYN & FIN, SYN & RST, FIN & RST, SYN & FIN & RST */
 #define PARSER_TCP_BAD_FLAGS                            0x6B
 	/** UPD Length Error
