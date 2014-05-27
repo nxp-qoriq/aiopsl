@@ -329,9 +329,9 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		/** In this case client will fail on timeout */
 	}
 
-	pr_debug("_sync_done = 0x%x%x\n", 
-	         (uint32_t)((_sync_done & 0xFF00000000) >> 32), 
-	         (uint32_t)(_sync_done & 0xFFFFFFFF));
+	pr_debug("sync_done high = 0x%x low = 0x%x \n", 
+	         (uint32_t)((sync_done & 0xFF00000000) >> 32), 
+	         (uint32_t)(sync_done & 0xFFFFFFFF));
 	
 	if (terminate)
 		fdma_terminate_task();
@@ -374,14 +374,14 @@ __HOT_CODE void cmdif_srv_isr(void)
 		{
 			int i = 0;
 			uint32_t len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-			uint32_t data = 0;
+			uint8_t  data = 0;
 			uint8_t  *vaddr = NULL;
 			
 			pr_debug("Dump of SEGMENT_ADDRESS 0x%x size %d\n",
 			         PRC_GET_SEGMENT_ADDRESS(), len);
 			DUMP_MEMORY(PRC_GET_SEGMENT_ADDRESS(), len);
 			pr_debug("Read the same by cdma_read\n");
-			pr_debug("sync_done = 0x%x%x\n", 
+			pr_debug("sync_done high = 0x%x low = 0x%x \n", 
 			         (uint32_t)((sync_done & 0xFF00000000) >> 32), 
 			         (uint32_t)(sync_done & 0xFFFFFFFF));
 

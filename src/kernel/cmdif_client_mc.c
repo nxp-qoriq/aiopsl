@@ -22,18 +22,11 @@ struct cmdif_reg {
 	struct qbman_swp   *swp;
 };
 
-static __inline__ void endian_fix(struct cmdif_fd *cfd) 
-{
-	cfd->u_flc.flc     = SWAP_UINT64(cfd->u_flc.flc);
-	cfd->d_size        = SWAP_UINT32(cfd->d_size);
-	cfd->u_frc.frc     = SWAP_UINT32(cfd->u_frc.frc);
-	cfd->u_addr.d_addr = SWAP_UINT64(cfd->u_addr.d_addr);
-}
-
 static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 {
 	struct   cmdif_reg *dev = (struct cmdif_reg *)sdev;
 	struct   qbman_eq_desc eqdesc;
+	struct qbman_eq_response response;
 	uint16_t fqid = 0;
 	int      ret  = 0;
 	struct   qbman_fd fd;
@@ -50,14 +43,9 @@ static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 	/*********************************/
 	qbman_eq_desc_clear(&eqdesc);
 	qbman_eq_desc_set_no_orp(&eqdesc, 1);
-	qbman_eq_desc_set_response(&eqdesc, NULL, 0);
+	qbman_eq_desc_set_response(&eqdesc, fsl_os_virt_to_phys((void*)&response), 0);
 	qbman_eq_desc_set_token(&eqdesc, 0x99);
 	qbman_eq_desc_set_fq(&eqdesc, fqid);
-
-	/******************/
-	/* Endianess     */
-	/******************/
-	endian_fix(cfd); // TODO check if needed
 	
 	/******************/
 	/* Copy FD        */
@@ -127,7 +115,7 @@ static int receive_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 	/******************/
 	/* Endianess     */
 	/******************/
-	endian_fix(cfd); // TODO check if needed
+	//endian_fix(cfd); // TODO check if needed
 
 	return 0;
 }
