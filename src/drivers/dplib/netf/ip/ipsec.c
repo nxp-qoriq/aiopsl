@@ -570,10 +570,10 @@ int32_t ipsec_generate_flc(
 	flow_context.word7_oflc_63_32 = 0; /* Not used for AIOP */
 	
 	/* Copy the standard Storage Profile to Flow Context words 8-15 */
-	flow_context.storage_profile[0] = *(sp_addr +  0);
-	flow_context.storage_profile[1] = *(sp_addr +  8);
-	flow_context.storage_profile[2] = *(sp_addr + 16);
-	flow_context.storage_profile[3] = *(sp_addr + 24);
+	flow_context.storage_profile[0] = *(sp_addr + 0);
+	flow_context.storage_profile[1] = *(sp_addr + 1);
+	flow_context.storage_profile[2] = *(sp_addr + 2);
+	flow_context.storage_profile[3] = *(sp_addr + 3);
 
 	/* Write the Flow Context to external memory with CDMA */
 	return_val = cdma_write(
