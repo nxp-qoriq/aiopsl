@@ -1560,6 +1560,10 @@ int32_t ipsec_get_lifetime_stats(
 		uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
 	} ctrs;
 	
+	/* Increment the reference counter */
+	return_val = cdma_refcount_increment(ipsec_handle);
+	// TODO: check CDMA return status
+	
 	/* 	Read relevant descriptor fields with CDMA. */
 	return_val = cdma_read(
 			&ctrs, /* void *ws_dst */
@@ -1583,6 +1587,10 @@ int32_t ipsec_get_lifetime_stats(
 				(current_timestamp + 
 						(IPSEC_MAX_TIMESTAMP - ctrs.timestamp) + 1)>>20);
 	}
+
+	/* Derement the reference counter */
+	return_val = cdma_refcount_decrement(ipsec_handle);
+	// TODO: check CDMA return status
 	
 	return IPSEC_SUCCESS;
 	
@@ -1597,12 +1605,33 @@ int32_t ipsec_decr_lifetime_counters(
 		uint32_t packets_decr_val
 		)
 {
-	/* Temporary Implementation */
-	ipsec_handle_t tmp = ipsec_handle;
-	uint32_t tmp2 = kilobytes_decr_val;
-	uint32_t tmp3 = packets_decr_val;
+	/* Note: there is no check of counters enable, nor current value.
+	 * Assuming that it is only called appropriately by the upper layer */
+	int32_t return_val;
+
+	/* Increment the reference counter */
+	return_val = cdma_refcount_increment(ipsec_handle);
+	// TODO: check CDMA return status
 	
-	return 0;	
+	if (kilobytes_decr_val) {
+		ste_dec_counter(
+				IPSEC_KB_COUNTER_ADDR,
+				kilobytes_decr_val,
+				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	}
+	
+	if (packets_decr_val) {
+		ste_dec_counter(
+				IPSEC_PACKET_COUNTER_ADDR,
+				packets_decr_val,
+				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	}	
+	
+	/* Derement the reference counter */
+	return_val = cdma_refcount_decrement(ipsec_handle);
+	// TODO: check CDMA return status
+	
+	return IPSEC_SUCCESS;	
 } /* End of ipsec_decr_lifetime_counters */
 
 /**************************************************************************//**
@@ -1614,8 +1643,16 @@ int32_t ipsec_get_seq_num(
 		uint32_t *extended_sequence_number,
 		uint32_t anti_replay_bitmap[4])
 {
+	
+	int32_t return_val;
+	
 	/* Temporary Implementation */
 	ipsec_handle_t tmp = ipsec_handle;
+	
+	/* Increment the reference counter */
+	return_val = cdma_refcount_increment(ipsec_handle);
+	// TODO: check CDMA return status
+	
 	*sequence_number = 0x1234;
 	*extended_sequence_number = 0x5678;
 	anti_replay_bitmap[0] = 0xa;
@@ -1623,15 +1660,16 @@ int32_t ipsec_get_seq_num(
 	anti_replay_bitmap[2] = 0xc;
 	anti_replay_bitmap[3] = 0xd;
 	
-	return 0;	
+	/* Derement the reference counter */
+	return_val = cdma_refcount_decrement(ipsec_handle);
+	// TODO: check CDMA return status
+	
+	return IPSEC_SUCCESS;	
 
 } /* End of ipsec_get_seq_num */
 
 
 /**************************************************************************/
-
-/* TODO: temporary fix to pr_debug due to RTA issue */
-#undef prdebug
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 
