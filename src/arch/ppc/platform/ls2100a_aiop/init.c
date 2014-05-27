@@ -9,7 +9,6 @@
 #include "common/dbg.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
-#include "io.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
 
@@ -143,7 +142,7 @@ void core_ready_for_tasks(void)
     }
 
 #endif
-    
+
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif

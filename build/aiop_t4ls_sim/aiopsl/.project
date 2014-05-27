@@ -355,6 +355,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_core_ppc.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/arch/fsl_endian.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_endian.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/arch/fsl_ldpaa_aiop.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
@@ -378,11 +383,6 @@
 			<name>aiop_sl/include/common/dbg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/dbg.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/endian.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/endian.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/errors.h</name>
