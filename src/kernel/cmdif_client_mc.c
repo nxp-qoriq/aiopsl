@@ -22,6 +22,25 @@ struct cmdif_reg {
 	struct qbman_swp   *swp;
 };
 
+#define MC_C1BL_START_ADDR  0x21010000
+#define MC_C2BL_START_ADDR  0x21011000
+
+static void config_memory()
+{
+	iowrite32(0x00000000, UINT_TO_PTR(MC_C1BL_START_ADDR));
+	iowrite32(0x00000060,UINT_TO_PTR(MC_C1BL_START_ADDR+4)); // DP-DDR
+	//iowrite32(0x0000004c,UINT_TO_PTR(MC_C1BL_START_ADDR+4)); // PEB
+	//iowrite32(0x00000000,UINT_TO_PTR(MC_C1BL_START_ADDR+4)); // DP-SYSTEM
+
+}
+
+static void reset_config_memory()
+{
+	iowrite32(0x00000000, UINT_TO_PTR(MC_C1BL_START_ADDR));
+	iowrite32(0x00000000,UINT_TO_PTR(MC_C1BL_START_ADDR+4));
+
+}
+
 static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 {
 	struct   cmdif_reg *dev = (struct cmdif_reg *)sdev;
@@ -132,8 +151,11 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	struct cmdif_fd fd;
 	int    err = 0;
 
+	config_memory();	
 	err = cmdif_open_cmd(cidesc, m_name, inst_id, async_cb, async_ctx,
 	                     v_data, p_data, size, &fd);
+	reset_config_memory();
+
 	if (err)
 		return err;
 
@@ -141,9 +163,14 @@ int cmdif_open(struct cmdif_desc *cidesc,
 
 	/* Wait for response from Server
 	 * TODO add timeout */
+	config_memory();	
+	
 	while (!cmdif_sync_ready(cidesc)) {}
-
-	return cmdif_open_done(cidesc);
+	err = cmdif_open_done(cidesc);
+	
+	reset_config_memory();
+	
+	return err; 
 }
 
 
@@ -153,6 +180,7 @@ int cmdif_close(struct cmdif_desc *cidesc)
 	int    err = 0;
 
 	err = cmdif_close_cmd(cidesc, &fd);
+	
 	if (err)
 		return err;
 
@@ -160,9 +188,14 @@ int cmdif_close(struct cmdif_desc *cidesc)
 
 	/* Wait for response from Server
 	 * TODO add timeout */
-	while (!cmdif_sync_ready(cidesc)) {}
+	config_memory();
 
-	return cmdif_close_done(cidesc);
+	while (!cmdif_sync_ready(cidesc)) {}
+	err = cmdif_close_done(cidesc);
+	
+	reset_config_memory();
+
+	return err;
 }
 
 int cmdif_send(struct cmdif_desc *cidesc,
@@ -175,6 +208,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	int    err = 0;
 
 	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
+
 	if (err)
 		return err;
 
@@ -183,9 +217,13 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	if (cmdif_is_sync_cmd(cmd_id)) {
 		/* Wait for response from Server
 		 * TODO add timeout */
-		while (!cmdif_sync_ready(cidesc)) {}
+		config_memory();
 
-		return cmdif_sync_cmd_done(cidesc);
+		while (!cmdif_sync_ready(cidesc)) {}		
+		err = cmdif_sync_cmd_done(cidesc);
+		
+		reset_config_memory();
+		return err;
 	}
 
 	return 0;
