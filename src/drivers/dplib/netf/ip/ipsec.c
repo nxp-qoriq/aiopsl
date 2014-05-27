@@ -527,7 +527,7 @@ int32_t ipsec_generate_flc(
 
 	extern struct storage_profile storage_profile;
 	
-	uint32_t *sp_addr = (uint32_t *)((uint32_t)(&storage_profile)
+	uint32_t *sp_addr = (uint32_t *)((uint32_t)(&storage_profile) +
 								(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 	
 	/* Word 0 */
