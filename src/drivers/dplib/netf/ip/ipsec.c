@@ -22,6 +22,7 @@
 #include "ipsec.h"
 #include "cdma.h"
 #include "osm.h"
+#include "system.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -517,7 +518,6 @@ int32_t ipsec_generate_flc(
 {
 	
 	int32_t return_val;
-	
 	
 	struct ipsec_flow_context flow_context;
 	//uint32_t *sp_addr = (uint32_t *)(IPSEC_PROFILE_SRAM_ADDR + 
