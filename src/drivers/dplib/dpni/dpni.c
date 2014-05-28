@@ -54,7 +54,6 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *extract_cfg, str
 			union_cfg[i].num_of_repeats = extract_cfg->extracts[i].extract.constant.num_of_repeats;
 			break;
 		default :
-			pr_err("invalid extract type %d\n", (int)extract_cfg->extracts[i].type);
 			return -EINVAL;
 		}
 	}
@@ -115,7 +114,7 @@ int dpni_close(struct dpni *dpni)
 int dpni_destroy(struct dpni *dpni)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_DESTROY,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_DESTROY,
 			  DPNI_CMDSZ_DESTROY, CMDIF_PRI_LOW, NULL);
 }
 
@@ -124,7 +123,7 @@ int dpni_set_pools(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_POOLS(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_POOLS,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_POOLS,
 			  DPNI_CMDSZ_SET_POOLS, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -137,7 +136,7 @@ int dpni_set_irq(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_IRQ(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_IRQ,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_IRQ,
 			  DPNI_CMDSZ_SET_IRQ, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -149,7 +148,7 @@ int dpni_set_tx_pause_frames(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_TX_PAUSE_FRAMES(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_PAUSE_FRAMES,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_PAUSE_FRAMES,
 			  DPNI_CMDSZ_SET_TX_PAUSE_FRAMES, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -158,7 +157,7 @@ int dpni_set_rx_ignore_pause_frames(struct dpni *dpni, int enable)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_RX_IGNORE_PAUSE_FRAMES(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth,
 			  DPNI_CMDID_SET_RX_IGNORE_PAUSE_FRAMES,
 			  DPNI_CMDSZ_SET_RX_IGNORE_PAUSE_FRAMES, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
@@ -171,35 +170,35 @@ int dpni_attach(struct dpni *dpni, const struct dpni_attach_cfg *cfg)
 	/* prepare command */
 	DPNI_CMD_ATTACH(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_ATTACH, DPNI_CMDSZ_ATTACH,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_ATTACH, DPNI_CMDSZ_ATTACH,
 			  CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 }
 
 int dpni_detach(struct dpni *dpni)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_DETACH, DPNI_CMDSZ_DETACH,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_DETACH, DPNI_CMDSZ_DETACH,
 			  CMDIF_PRI_LOW, NULL);
 }
 
 int dpni_enable(struct dpni *dpni)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_ENABLE, DPNI_CMDSZ_ENABLE,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_ENABLE, DPNI_CMDSZ_ENABLE,
 			  CMDIF_PRI_LOW, NULL);
 }
 
 int dpni_disable(struct dpni *dpni)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_DISABLE,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_DISABLE,
 			  DPNI_CMDSZ_DISABLE, CMDIF_PRI_LOW, NULL);
 }
 
 int dpni_reset(struct dpni *dpni)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_RESET, DPNI_CMDSZ_RESET,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_RESET, DPNI_CMDSZ_RESET,
 			  CMDIF_PRI_LOW, NULL);
 }
 
@@ -207,7 +206,7 @@ int dpni_get_attributes(struct dpni *dpni, struct dpni_attr *attr)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_ATTR,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_ATTR,
 			 DPNI_CMDSZ_GET_ATTR, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -222,7 +221,7 @@ int dpni_get_rx_buffer_layout(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_RX_BUFFER_LAYOUT,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_RX_BUFFER_LAYOUT,
 			 DPNI_CMDSZ_GET_RX_BUFFER_LAYOUT, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -239,7 +238,7 @@ int dpni_set_rx_buffer_layout(struct dpni *dpni,
 
 	DPNI_CMD_SET_RX_BUFFER_LAYOUT(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_RX_BUFFER_LAYOUT,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_RX_BUFFER_LAYOUT,
 			  DPNI_CMDSZ_SET_RX_BUFFER_LAYOUT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -249,7 +248,7 @@ int dpni_get_tx_buffer_layout(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_BUFFER_LAYOUT,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_BUFFER_LAYOUT,
 			 DPNI_CMDSZ_GET_TX_BUFFER_LAYOUT, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -266,7 +265,7 @@ int dpni_set_tx_buffer_layout(struct dpni *dpni,
 
 	DPNI_CMD_SET_TX_BUFFER_LAYOUT(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_BUFFER_LAYOUT,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_BUFFER_LAYOUT,
 			  DPNI_CMDSZ_SET_TX_BUFFER_LAYOUT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -276,7 +275,7 @@ int dpni_get_tx_conf_buffer_layout(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_CONF_BUFFER_LAYOUT,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_CONF_BUFFER_LAYOUT,
 			 DPNI_CMDSZ_GET_TX_CONF_BUFFER_LAYOUT, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -293,7 +292,7 @@ int dpni_set_tx_conf_buffer_layout(struct dpni *dpni,
 
 	DPNI_CMD_SET_TX_CONF_BUFFER_LAYOUT(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_CONF_BUFFER_LAYOUT,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_CONF_BUFFER_LAYOUT,
 			  DPNI_CMDSZ_SET_TX_CONF_BUFFER_LAYOUT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -303,7 +302,7 @@ int dpni_get_l3_CHKSUM_validation(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_L3_CHKSUM_VALIDATION,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_L3_CHKSUM_VALIDATION,
 	                 DPNI_CMDSZ_GET_L3_CHKSUM_VALIDATION, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -320,7 +319,7 @@ int dpni_set_l3_CHKSUM_validation(struct dpni *dpni,
 
 	DPNI_CMD_SET_L3_CHKSUM_VALIDATION(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_L3_CHKSUM_VALIDATION,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_L3_CHKSUM_VALIDATION,
 		                 DPNI_CMDSZ_SET_L3_CHKSUM_VALIDATION, CMDIF_PRI_LOW,
 				 (uint8_t *)&cmd_data);
 }
@@ -330,7 +329,7 @@ int dpni_get_l4_CHKSUM_validation(struct dpni *dpni,
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_L4_CHKSUM_VALIDATION,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_L4_CHKSUM_VALIDATION,
 	                 DPNI_CMDSZ_GET_L4_CHKSUM_VALIDATION, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -347,7 +346,7 @@ int dpni_set_l4_CHKSUM_validation(struct dpni *dpni,
 
 	DPNI_CMD_SET_L4_CHKSUM_VALIDATION(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_L4_CHKSUM_VALIDATION,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_L4_CHKSUM_VALIDATION,
 		                 DPNI_CMDSZ_SET_L4_CHKSUM_VALIDATION, CMDIF_PRI_LOW,
 				 (uint8_t *)&cmd_data);
 }
@@ -357,7 +356,7 @@ int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_QDID,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_QDID,
 			 DPNI_CMDSZ_GET_QDID, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -372,7 +371,7 @@ int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_DATA_OFFSET,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_DATA_OFFSET,
 			 DPNI_CMDSZ_GET_TX_DATA_OFFSET, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -391,7 +390,7 @@ int dpni_get_counter(struct dpni *dpni,
 
 	DPNI_CMD_GET_COUNTER(CMD_PREP);
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_COUNTER,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_COUNTER,
 			 DPNI_CMDSZ_GET_COUNTER, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -409,7 +408,7 @@ int dpni_set_counter(struct dpni *dpni,
 
 	DPNI_CMD_SET_COUNTER(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_COUNTER,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_COUNTER,
 			  DPNI_CMDSZ_GET_COUNTER, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -420,7 +419,7 @@ int dpni_get_link_state(struct dpni *dpni, int *up)
 	int err;
 
 	/* send command to mc*/
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_LINK_STATE,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_LINK_STATE,
 			 DPNI_CMDSZ_GET_LINK_STATE, CMDIF_PRI_LOW, NULL);
 	if (!err)
 		DPNI_RSP_GET_LINK_STATE(RSP_READ);
@@ -431,7 +430,7 @@ int dpni_set_mfl(struct dpni *dpni, uint16_t mfl)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_MFL(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_MFL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_MFL,
 			  DPNI_CMDSZ_SET_MFL, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -441,7 +440,7 @@ int dpni_get_mfl(struct dpni *dpni, uint16_t *mfl)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_MFL,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_MFL,
 			 DPNI_CMDSZ_GET_MFL, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -453,7 +452,7 @@ int dpni_set_mtu(struct dpni *dpni, uint16_t mtu)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_MTU(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_MTU,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_MTU,
 			  DPNI_CMDSZ_SET_MTU, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -463,7 +462,7 @@ int dpni_get_mtu(struct dpni *dpni, uint16_t *mtu)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_MTU,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_MTU,
 			 DPNI_CMDSZ_GET_MTU, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -477,7 +476,7 @@ int dpni_set_multicast_promisc(struct dpni *dpni, int en)
 
 	DPNI_CMD_SET_MULTICAST_PROMISC(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_MCAST_PROMISC,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_MCAST_PROMISC,
 			  DPNI_CMDSZ_SET_MCAST_PROMISC, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -487,7 +486,7 @@ int dpni_get_multicast_promisc(struct dpni *dpni, int *en)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_MCAST_PROMISC,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_MCAST_PROMISC,
 			 DPNI_CMDSZ_GET_MCAST_PROMISC, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -499,7 +498,7 @@ int dpni_set_primary_mac_addr(struct dpni *dpni, const uint8_t addr[6])
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_PRIMARY_MAC_ADDR(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_PRIM_MAC,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_PRIM_MAC,
 			  DPNI_CMDSZ_SET_PRIM_MAC, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -509,7 +508,7 @@ int dpni_get_primary_mac_addr(struct dpni *dpni, uint8_t addr[6])
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_PRIM_MAC,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_PRIM_MAC,
 			 DPNI_CMDSZ_GET_PRIM_MAC, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -522,7 +521,7 @@ int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[6])
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_ADD_MAC_ADDR(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_ADD_MAC_ADDR,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_ADD_MAC_ADDR,
 			  DPNI_CMDSZ_ADD_MAC_ADDR, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -531,14 +530,14 @@ int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[6])
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_REMOVE_MAC_ADDR(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_MAC_ADDR,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_MAC_ADDR,
 			  DPNI_CMDSZ_REMOVE_MAC_ADDR, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
 
 int dpni_clear_mac_table(struct dpni *dpni)
 {
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_CLR_MAC_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_CLR_MAC_TBL,
 			  DPNI_CMDSZ_CLR_MAC_TBL, CMDIF_PRI_LOW, NULL);
 }
 
@@ -546,7 +545,7 @@ int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_ADD_VLAN_ID(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_ADD_VLAN_ID,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_ADD_VLAN_ID,
 			  DPNI_CMDSZ_ADD_VLAN_ID, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -555,14 +554,14 @@ int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vlan_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_REMOVE_VLAN_ID(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_VLAN_ID,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_VLAN_ID,
 			  DPNI_CMDSZ_REMOVE_VLAN_ID, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
 
 int dpni_clear_vlan_table(struct dpni *dpni)
 {
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_CLR_VLAN_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_CLR_VLAN_TBL,
 			  DPNI_CMDSZ_CLR_VLAN_TBL, CMDIF_PRI_LOW, NULL);
 }
 
@@ -575,7 +574,7 @@ int dpni_set_tx_tc(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_SET_TX_TC(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_TC,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_TC,
 			  DPNI_CMDSZ_SET_TX_TC, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -595,7 +594,7 @@ int dpni_set_rx_tc(struct dpni *dpni,
 		return err;
 	DPNI_CMD_SET_RX_TC(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_RX_TC,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_RX_TC,
 			  DPNI_CMDSZ_SET_RX_TC, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -609,7 +608,7 @@ int dpni_set_tx_flow(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_SET_TX_FLOW(CMD_PREP);
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_FLOW,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_TX_FLOW,
 			 DPNI_CMDSZ_SET_TX_FLOW, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -627,7 +626,7 @@ int dpni_get_tx_flow(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_GET_TX_FLOW(CMD_PREP);
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_FLOW,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_TX_FLOW,
 			 DPNI_CMDSZ_GET_TX_FLOW, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -645,7 +644,7 @@ int dpni_set_rx_flow(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_SET_RX_FLOW(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_RX_FLOW,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_RX_FLOW,
 			  DPNI_CMDSZ_SET_RX_FLOW, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -661,7 +660,7 @@ int dpni_get_rx_flow(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_GET_RX_FLOW(CMD_PREP);
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_RX_FLOW,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_RX_FLOW,
 			 DPNI_CMDSZ_GET_RX_FLOW, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -682,14 +681,14 @@ int dpni_set_qos_table(struct dpni *dpni, const struct dpni_qos_tbl_cfg *cfg)
 		return err;
 	DPNI_CMD_SET_QOS_TABLE(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_QOS_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_QOS_TBL,
 			  DPNI_CMDSZ_SET_QOS_TBL, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
 
 int dpni_delete_qos_table(struct dpni *dpni)
 {
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_DELETE_QOS_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_DELETE_QOS_TBL,
 			  DPNI_CMDSZ_DELETE_QOS_TBL, CMDIF_PRI_LOW, NULL);
 }
 
@@ -705,7 +704,7 @@ int dpni_add_qos_entry(struct dpni *dpni,
 
 	DPNI_CMD_ADD_QOS_ENTRY(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_ADD_QOS_ENT,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_ADD_QOS_ENT,
 			  DPNI_CMDSZ_ADD_QOS_ENT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -720,7 +719,7 @@ int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg)
 
 	DPNI_CMD_REMOVE_QOS_ENTRY(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_QOS_ENT,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_QOS_ENT,
 			  DPNI_CMDSZ_REMOVE_QOS_ENT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -728,7 +727,7 @@ int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg)
 int dpni_clear_qos_table(struct dpni *dpni)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_CLR_QOS_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_CLR_QOS_TBL,
 			  DPNI_CMDSZ_CLR_QOS_TBL, CMDIF_PRI_LOW, NULL);
 }
 
@@ -740,7 +739,7 @@ int dpni_set_fs_table(struct dpni *dpni,
 
 	DPNI_CMD_SET_FS_TABLE(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_FS_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_FS_TBL,
 			  DPNI_CMDSZ_SET_FS_TBL, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -749,7 +748,7 @@ int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_DELETE_FS_TABLE(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_DELETE_FS_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_DELETE_FS_TBL,
 			  DPNI_CMDSZ_DELETE_FS_TBL, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -767,7 +766,7 @@ int dpni_add_fs_entry(struct dpni *dpni,
 
 	DPNI_CMD_ADD_FS_ENTRY(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_ADD_FS_ENT,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_ADD_FS_ENT,
 			  DPNI_CMDSZ_ADD_FS_ENT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -784,7 +783,7 @@ int dpni_remove_fs_entry(struct dpni *dpni,
 
 	DPNI_CMD_REMOVE_FS_ENTRY(CMD_PREP);
 
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_FS_ENT,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_REMOVE_FS_ENT,
 			  DPNI_CMDSZ_REMOVE_FS_ENT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -793,7 +792,7 @@ int dpni_clear_fs_table(struct dpni *dpni, uint8_t tc_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_CLEAR_FS_TABLE(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_CLR_FS_TBL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_CLR_FS_TBL,
 			  DPNI_CMDSZ_CLR_FS_TBL, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -808,7 +807,7 @@ int dpni_get_irq(struct dpni *dpni,
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 	DPNI_CMD_GET_IRQ(CMD_PREP);
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ,
 			 DPNI_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -825,7 +824,7 @@ int dpni_get_irq_enable(struct dpni *dpni,
 	int err;
 	DPNI_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ_ENABLE,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ_ENABLE,
 			 DPNI_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -844,7 +843,7 @@ int dpni_set_irq_enable(struct dpni *dpni,
 	DPNI_CMD_SET_IRQ_ENABLE(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_IRQ_ENABLE,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_IRQ_ENABLE,
 			  DPNI_CMDSZ_SET_IRQ_ENABLE, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -855,7 +854,7 @@ int dpni_get_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t *mask)
 	int err;
 	DPNI_CMD_GET_IRQ_MASK(CMD_PREP);
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ_MASK,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ_MASK,
 			 DPNI_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -872,7 +871,7 @@ int dpni_set_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t mask)
 	DPNI_CMD_SET_IRQ_MASK(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_IRQ_MASK,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_IRQ_MASK,
 			  DPNI_CMDSZ_SET_IRQ_MASK, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -883,7 +882,7 @@ int dpni_get_irq_status(struct dpni *dpni, uint8_t irq_index, uint32_t *status)
 	int err;
 	DPNI_CMD_GET_IRQ_STATUS(CMD_PREP);
 
-	err = dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ_STATUS,
+	err = dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_GET_IRQ_STATUS,
 			 DPNI_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -900,7 +899,7 @@ int dpni_clear_irq_status(struct dpni *dpni, uint8_t irq_index, uint32_t status)
 	DPNI_CMD_CLEAR_IRQ_STATUS(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_CLEAR_IRQ_STATUS,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_CLEAR_IRQ_STATUS,
 			  DPNI_CMDSZ_CLEAR_IRQ_STATUS, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -909,7 +908,7 @@ int dpni_set_vlan_filters(struct dpni *dpni, int en)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	DPNI_CMD_SET_VLAN_FILTERS(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_VLAN_FILTERS,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_VLAN_FILTERS,
 			  DPNI_CMDSZ_SET_VLAN_FILTERS, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -919,7 +918,7 @@ int dpni_set_vlan_insertion(struct dpni *dpni, int enable)
 {
 	struct mc_cmd_data cmd_data = { {0} };
 	DPNI_CMD_SET_VLAN_INSERTION(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_VLAN_INSERTION,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_VLAN_INSERTION,
 		DPNI_CMDSZ_SET_VLAN_INSERTION, CMDIF_PRI_LOW,
 		(uint8_t *)&cmd_data);
 }
@@ -928,7 +927,7 @@ int dpni_set_vlan_removal(struct dpni *dpni, int enable)
 {
 	struct mc_cmd_data cmd_data = { {0} };
 	DPNI_CMD_SET_VLAN_REMOVAL(CMD_PREP);
-	return dplib_send(&(dpni->regs), (uint16_t)dpni->auth, DPNI_CMDID_SET_VLAN_REMOVAL,
+	return dplib_send(dpni->regs, (uint16_t)dpni->auth, DPNI_CMDID_SET_VLAN_REMOVAL,
 		DPNI_CMDSZ_SET_VLAN_REMOVAL, CMDIF_PRI_LOW,
 		(uint8_t *)&cmd_data);
 }
