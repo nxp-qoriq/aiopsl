@@ -18,7 +18,12 @@ struct dpbp;
 #else
 #include <fsl_cmdif.h>
 struct dpbp {
-	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
+	void *regs;
+	/*!<
+	 * Pointer to command interface registers (virtual address);
+	 * Must be set by the user
+	 */
+	int auth; /*!< authentication ID */
 };
 #endif
 

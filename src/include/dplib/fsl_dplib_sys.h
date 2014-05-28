@@ -38,6 +38,19 @@
 #include "common/errors.h"
 #include "common/io.h"
 
+
+int dplib_send(void *regs,
+	int auth,
+	uint16_t cmd_id,
+	uint16_t size,
+	int pri,
+	void *cmd_data);
+
+static inline uint64_t virt_to_phys(void *vaddr)
+{
+	return (uint64_t)PTR_TO_UINT(vaddr);
+}
+
 #endif /* __linux__ */
 
 #if (!defined(DECLARE_UINT_CODEC))

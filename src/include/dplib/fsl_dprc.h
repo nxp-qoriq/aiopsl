@@ -12,7 +12,12 @@ struct dprc;
 #else
 #include <fsl_cmdif.h>
 struct dprc {
-	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
+	void *regs;
+	/*!<
+	 * Pointer to command interface registers (virtual address);
+	 * Must be set by the user
+	 */
+	int auth; /*!< authentication ID */
 };
 #endif
 /*!
@@ -23,39 +28,44 @@ struct dprc {
  */
 
 /*!
- * Set this value as the ICID value in dprc_cfg structure when creating a
+ * Set this value as the icid value in dprc_cfg structure when creating a
  * container, in case the ICID is not selected by the user and should be
  * allocated by the DPRC from the pool of ICIDs.
  */
 #define DPRC_GET_ICID_FROM_POOL			(uint16_t)(~(0))
-#define DPRC_GET_PORTAL_ID_FROM_POOL		(int)(~(0))
+/*!
+ * Set this value as the portal_id value in dprc_cfg structure when creating a
+ * container, in case the portal id is not specifically selected by the 
+ * user and should be allocated by the DPRC from the pool of portal ids.
+ */
+#define DPRC_GET_PORTAL_ID_FROM_POOL	(int)(~(0))
 
 /*!
  * @name Resource request options
  */
 #define DPRC_RES_REQ_OPT_EXPLICIT		0x00000001
-/*!< Explicit resource id request - Relevant only for resources
- * request (and not objects). The requested resources are explicit and
- * sequential. The base ID is given at res_req at base_align field */
+/*!< Explicit resource id request - The requested objects/resources 
+ * are explicit and sequential (in case of resources). 
+ * The base ID is given at res_req at base_align field */
 #define DPRC_RES_REQ_OPT_ALIGNED		0x00000002
 /*!< Aligned resources request - Relevant only for resources
  * request (and not objects). Indicates that resources base id should be
- * sequential and aligned to the value given at dprc_res_req base_align field */
+ * sequential and aligned to the value given at dprc_res_req base_align field*/
 #define DPRC_RES_REQ_OPT_PLUGGED		0x00000004
 /*!< Plugged Flag - Relevant only for object assignment request.
  * Indicates that after all objects assigned. An interrupt will be invoked at
  * the relevant GPP. The assigned object will be marked as plugged.
- * plugged objects cant be assigned from their container */
+ * plugged objects can't be assigned from their container */
 /* @} */
 
 /*!
  * @name Container general options
  *
  * These options may be selected at container creation by the container creator
- * and can be retreived using dprc_get_attributes()
+ * and can be retrieved using dprc_get_attributes()
  */
 #define DPRC_CFG_OPT_SPAWN_ALLOWED		0x00000001
-/*!< Spawn Policy Option allowed - Indicates that the new container is allowd
+/*!< Spawn Policy Option allowed - Indicates that the new container is allowed
  * to spawn and have its own child containers. */
 #define DPRC_CFG_OPT_ALLOC_ALLOWED		0x00000002
 /*!< General Container allocation policy - Indicates that the new container is
@@ -65,7 +75,7 @@ struct dprc {
  * override it and set specific quota per resource type. */
 #define DPRC_CFG_OPT_OBJ_CREATE_ALLOWED	0x00000004
 /*!< Object initialization allowed - software context associated with this
- * container is allowed to invoke object intiialization operations. */
+ * container is allowed to invoke object initialization operations. */
 #define DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED	0x00000008
 /*!< Topology change allowed - software context associated with this
  * container is allowed to invoke topology operations, such as attach/detach
@@ -81,9 +91,9 @@ struct dprc {
  * @name Objects Attributes Flags
  */
 #define DPRC_OBJ_STATE_OPEN		0x00000001
-/*!< Opened state - Indicates that an object was opened by at least one owner */
+/*!< Opened state - Indicates that an object is open by at least one owner */
 #define DPRC_OBJ_STATE_PLUGGED		0x00000002
-/*!< Plugged state - Indicates that an object is plugged */
+/*!< Plugged state - Indicates that the object is plugged */
 /* @} */
 
 /*!
@@ -118,7 +128,9 @@ destroyed */
  */
 struct dprc_res_req {
 	char type[16];
-	/*!< Resource/object type: one of DP_RES_ or DP_OBJ_ values;
+	/*!< Resource/object type: Represent as a NULL terminated string.
+	 * This string may received by using dprc_get_pool() to get resource type
+	 * and dprc_get_obj() to get object type.
 	 * Note: it is not possible to assign/unassign DP_OBJ_DPRC objects */
 	uint32_t num;
 	/*!< Number of resources */
@@ -135,13 +147,13 @@ struct dprc_res_req {
 };
 
 /**
- * @brief	Object descriptor, returned from dprc_get_object()
+ * @brief	Object descriptor, returned from dprc_get_obj()
  */
 struct dprc_obj_desc {
 	uint16_t vendor;
 	/*!< Object vendor identifier */
 	char type[16];
-	/*!< Type of object: one of DP_OBJ_ values */
+	/*!< Type of object: NULL terminated string */
 	int id;
 	/*!< ID of logical object resource */
 	uint32_t ver_major;
@@ -189,7 +201,7 @@ struct dprc_res_ids_range_desc {
 	int last_id;
 	/*!< Last resource ID of this range */
 	enum dprc_iter_status iter_status;
-/*!< Iterartion status - should be set to DPRC_ITER_STATUS_FIRST at
+/*!< Iteration status - should be set to DPRC_ITER_STATUS_FIRST at
  * first iteration; while the returned marker is DPRC_ITER_STATUS_MORE,
  * additional iterations are needed, until the returned marker is
  * DPRC_ITER_STATUS_LAST. */
@@ -232,7 +244,7 @@ struct dprc_cfg {
  */
 struct dprc_endpoint {
 	char type[16];
-	/*!< Endpoint object type: one of DP_OBJ_ values */
+	/*!< Endpoint object type: NULL terminated string */
 	int id;
 	/*!< Endpoint object id */
 	int interface_id;
@@ -280,10 +292,10 @@ int dprc_close(struct dprc *dprc);
  * @brief	Creates a child container
  *
  * @param[in]	dprc			DPRC descriptor object
- * @param[in]	cfg			Child container configuration
+ * @param[in]	cfg				Child container configuration
  * @param[out]	child_container_id	Child container ID
  * @param[out]	child_portal_paddr	Base physical address of the
- *					child portal
+ *				child portal
  *
  * @returns	'0' on Success; Error code otherwise.
  */
@@ -300,7 +312,7 @@ int dprc_create_container(struct dprc *dprc,
  *
  * Notes:
  * - All resources and objects of the destroyed container are returned to the
- * parent container or desteroyed if were created be the destroyed container.
+ * parent container or destroyed if were created be the destroyed container.
  * - This function destroy all the child containers of the specified
  *   container prior to destroying the container itself.
  *
@@ -315,8 +327,8 @@ int dprc_create_container(struct dprc *dprc,
 int dprc_destroy_container(struct dprc *dprc, int child_container_id);
 
 /**
- * @brief	Sets allocation policy for a specific resource type in a child
- *		container
+ * @brief	Sets allocation policy for a specific resource/object type in a 
+ * child container
  *
  * Allocation policy determines whether or not a container may allocate
  * resources from its parent. Each container has a 'global' allocation policy
@@ -328,7 +340,7 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  *
  * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the child container
- * @param[in]	res_type		Selects the resource/object type
+ * @param[in]	type		    resource/object type
  * @param[in]	quota			Sets the maximum number of resources of
  *					the selected type that the child
  *					container is allowed to allocate
@@ -346,12 +358,12 @@ int dprc_set_res_quota(struct dprc *dprc,
 		       uint16_t quota);
 
 /**
- * @brief	Gets the allocation policy of a specific resource type in a
- *		child container
+ * @brief	Gets the allocation policy of a specific resource/object type in a 
+ * child container
  *
  * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the child container
- * @param[in]	res_type		Selects the resource/object type
+ * @param[in]	type			resource/object type
  * @param[out]	quota			Holds the maximum number of resources of
  *					the selected type that the child
  *					container is allowed to allocate from
@@ -407,6 +419,9 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id);
  * - DPRC_RES_REQ_OPT_PLUGGED: Relevant only for object assignment,
  *   and indicates that the object must be set to the plugged state.
  *
+ * A container may use this function with its own ID in order to change a
+ * object state to plugged or unplugged.
+ * 
  * If IRQ information has been set in the child DPRC, it will signal an
  * interrupt following every change in its object assignment.
  *
@@ -425,14 +440,8 @@ int dprc_assign(struct dprc *dprc,
  * @brief	Un-assigns objects or resources from a child container
  *		and moves them into this (parent) DPRC.
  *
- * Un-assignment of resources moves arbitrary or explicit resources
- * from the specified child container to the parent container.
- *
  * Un-assignment of objects can succeed only if the object is not in the
  * plugged or opened state.
- *
- * A container may use this function with its own ID in order to change a
- * object state to plugged or unplugged.
  *
  * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the child container
@@ -450,7 +459,7 @@ int dprc_unassign(struct dprc *dprc,
  * @brief	Get the number of dprc's pools
  *
  * @param[in]	 dprc		DPRC descriptor object
- * @param[out]   pool_count	Number of pools.
+ * @param[out]   pool_count	Number of resource pools in the dprc.
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
@@ -459,13 +468,18 @@ int dprc_get_pool_count(struct dprc *dprc, int *pool_count);
 /**
  * @brief	Get the type (string) of a certain dprc's pool 
  *
+ * The pool types retrieved one by one by incrementing
+ * pool_index up to (not including) the value of pool_count returned
+ * from dprc_get_pool_count(). dprc_get_pool_count() must
+ * be called prior to dprc_get_pool().
+ * 
  * @param[in]	 dprc		DPRC descriptor object
- * @param[in]    pool_index	The index of the pool to get its type.
+ * @param[in]    pool_index	Index of the pool to be queried (< pool_count)
  * @param[out]   type		The type of the pool.
  * 
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_get_pool(struct dprc *dprc, int pool_index, char *pool_name);
+int dprc_get_pool(struct dprc *dprc, int pool_index, char *type);
 
 /**
  * @brief	Obtains the number of objects in the DPRC
@@ -480,10 +494,10 @@ int dprc_get_obj_count(struct dprc *dprc, int *obj_count);
 /**
  * @brief	Obtains general information on an object
  *
- * @details	The object descriptors are retrieved one by one by incrementing
- *		obj_index up to (not including) the value of obj_count returned
- *		from dprc_get_obj_count(). dprc_get_obj_count() must
- *		be called prior to dprc_get_object_count().
+ * The object descriptors are retrieved one by one by incrementing
+ * obj_index up to (not including) the value of obj_count returned
+ * from dprc_get_obj_count(). dprc_get_obj_count() must
+ * be called prior to dprc_get_obj().
  *
  * @param[in]	dprc		DPRC descriptor object
  * @param[in]	obj_index	Index of the object to be queried (< obj_count)
@@ -496,8 +510,8 @@ int dprc_get_obj(struct dprc *dprc,
 	struct dprc_obj_desc *obj_desc);
 
 /**
- * @brief	Obtains the number of free  resources that are assigned
- *		to this container, by resource type
+ * @brief	Obtains the number of free resources that are assigned
+ *		to this container, by pool type
  *
  * @param[in]	dprc		DPRC descriptor object
  * @param[in]	type		pool type
@@ -522,6 +536,17 @@ int dprc_get_res_ids(struct dprc *dprc,
 		     	     struct dprc_res_ids_range_desc *range_desc);
 
 /**
+ * @brief	Obtains the physical address of MC portals
+ *
+ * @param[in]	dprc			DPRC descriptor object
+ * @param[in]	portal_id		MC portal id
+ * @param[out]  portal_addr		The physical address of the MC portal id
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dprc_get_portal_paddr(struct dprc *dprc, int portal_id, uint64_t *portal_addr);
+
+/**
  * @brief	Obtains container attributes
  *
  * @param[in]	dprc		DPRC descriptor object
@@ -535,9 +560,9 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes);
  * @brief	Returns region information for a specified object.
  *
  * @param[in]	dprc		DPRC descriptor object
- * @param[in]	obj_type	Object type as returned in dprc_get_object()
+ * @param[in]	obj_type	Object type as returned in dprc_get_obj()
  * @param[in]	obj_id		Unique object instance as returned in
- *				dprc_get_object()
+ *				dprc_get_obj()
  * @param[in]	region_index	The specific region to query
  * @param[out]	region_desc	Returns the requested region descriptor
  *
@@ -563,7 +588,7 @@ int dprc_get_obj_region(struct dprc *dprc,
  * @param[in]	irq_virt_id		irq virtual id - used in case that 
  * 				the user that set the irq is not the one who get the interrupt.
  * 				To support virtualized systems. 
- * 				
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_set_irq(struct dprc *dprc,
@@ -589,7 +614,7 @@ int dprc_set_irq(struct dprc *dprc,
  * @param[out]	irq_virt_id		irq virtual id - used in case that 
  * 				the user that set the irq is not the one who get the interrupt.
  * 				To support virtualized systems. 
- * 				
+ *				
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_irq(struct dprc *dprc,

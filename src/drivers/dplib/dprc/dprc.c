@@ -1,5 +1,4 @@
 #include <fsl_dplib_sys.h>
-#include <fsl_cmdif.h>
 #include <fsl_cmdif_mc.h>
 #include <fsl_dprc.h>
 #include <fsl_dprc_cmd.h>
@@ -19,7 +18,7 @@ int dprc_get_container_id(struct dprc *dprc, int *container_id)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_CONT_ID,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_CONT_ID,
 			 DPRC_CMDSZ_GET_CONT_ID, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -32,18 +31,28 @@ int dprc_get_container_id(struct dprc *dprc, int *container_id)
 int dprc_open(struct dprc *dprc, int container_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
 
 	/* prepare command */
 	DPRC_CMD_OPEN(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_open(&(dprc->cidesc), CMDIF_MOD_DPRC, MC_CMD_OPEN_SIZE,
-			  (uint8_t *)&cmd_data, 0);
+	dprc->auth = 0;
+
+	/* ----------TBD lock------------------ */
+	err = dplib_send(dprc->regs, 0, MC_DPRC_CMDID_OPEN, MC_CMD_OPEN_SIZE,
+	                 CMDIF_PRI_LOW, &cmd_data);
+	if (!err)
+		dprc->auth = (int)mc_cmd_read_auth_id(dprc->regs);
+	/* ----------TBD unlock------------------ */
+
+	return err;
 }
 
 int dprc_close(struct dprc *dprc)
 {
-	return cmdif_close(&(dprc->cidesc));
+	return dplib_send(dprc->regs, 0, MC_CMDID_CLOSE, MC_CMD_CLOSE_SIZE,
+		                 CMDIF_PRI_LOW, NULL);
 }
 
 int dprc_create_container(struct dprc *dprc,
@@ -57,7 +66,7 @@ int dprc_create_container(struct dprc *dprc,
 	/* prepare command */
 	DPRC_CMD_CREATE_CONTAINER(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_CREATE_CONT,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_CREATE_CONT,
 			 DPRC_CMDSZ_CREATE_CONT, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -74,7 +83,7 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id)
 	/* prepare command */
 	DPRC_CMD_DESTROY_CONTAINER(CMD_PREP);
 
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_DESTROY_CONT,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_DESTROY_CONT,
 			  DPRC_CMDSZ_DESTROY_CONT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -86,7 +95,7 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id)
 	/* prepare command */
 	DPRC_CMD_RESET_CONTAINER(CMD_PREP);
 
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_RESET_CONT,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_RESET_CONT,
 			  DPRC_CMDSZ_RESET_CONT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -102,7 +111,7 @@ int dprc_set_res_quota(struct dprc *dprc,
 	DPRC_CMD_SET_RES_QUOTA(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_RES_QUOTA,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_SET_RES_QUOTA,
 			  DPRC_CMDSZ_SET_RES_QUOTA, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -118,7 +127,7 @@ int dprc_get_res_quota(struct dprc *dprc,
 	/* prepare command */
 	DPRC_CMD_GET_RES_QUOTA(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_RES_QUOTA,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_RES_QUOTA,
 			 DPRC_CMDSZ_GET_RES_QUOTA, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -137,7 +146,7 @@ int dprc_assign(struct dprc *dprc,
 
 	DPRC_CMD_ASSIGN(CMD_PREP);
 
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_ASSIGN, DPRC_CMDSZ_ASSIGN,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_ASSIGN, DPRC_CMDSZ_ASSIGN,
 			  CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 }
 
@@ -149,7 +158,7 @@ int dprc_unassign(struct dprc *dprc,
 
 	DPRC_CMD_UNASSIGN(CMD_PREP);
 
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_UNASSIGN,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_UNASSIGN,
 			  DPRC_CMDSZ_UNASSIGN, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -159,7 +168,7 @@ int dprc_get_obj_count(struct dprc *dprc, int *obj_count)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_OBJ_COUNT,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_OBJ_COUNT,
 			 DPRC_CMDSZ_GET_OBJ_COUNT, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -171,14 +180,14 @@ int dprc_get_obj_count(struct dprc *dprc, int *obj_count)
 }
 
 int dprc_get_obj(struct dprc *dprc,
-		    int obj_index,
-		    struct dprc_obj_desc *obj_desc)
+		         int obj_index,
+		         struct dprc_obj_desc *obj_desc)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 	DPRC_CMD_GET_OBJECT(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_OBJECT,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_OBJECT,
 			 DPRC_CMDSZ_GET_OBJECT, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -198,7 +207,7 @@ int dprc_get_res_count(struct dprc *dprc, char *type, int *res_count)
 
 	DPRC_CMD_GET_RES_COUNT(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_RES_COUNT,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_RES_COUNT,
 			 DPRC_CMDSZ_GET_RES_COUNT, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -218,7 +227,7 @@ int dprc_get_res_ids(struct dprc *dprc,
 
 	DPRC_CMD_GET_RES_IDS(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_RES_IDS,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_RES_IDS,
 			 DPRC_CMDSZ_GET_RES_IDS, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -234,7 +243,7 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attr)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_ATTR,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_ATTR,
 			 DPRC_CMDSZ_GET_ATTR, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -258,7 +267,7 @@ int dprc_get_obj_region(struct dprc *dprc,
 	/* prepare command */
 	DPRC_CMD_GET_OBJ_REGION(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_OBJ_REG,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_OBJ_REG,
 			 DPRC_CMDSZ_GET_OBJ_REG, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err) {
@@ -280,7 +289,7 @@ int dprc_get_irq(struct dprc *dprc,
 
 	DPRC_CMD_GET_IRQ(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_IRQ,
 			 DPRC_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -301,7 +310,7 @@ int dprc_set_irq(struct dprc *dprc,
 	DPRC_CMD_SET_IRQ(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_IRQ,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_SET_IRQ,
 			  DPRC_CMDSZ_SET_IRQ, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -315,7 +324,7 @@ int dprc_get_irq_enable(struct dprc *dprc,
 
 	DPRC_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ_ENABLE,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_IRQ_ENABLE,
 			 DPRC_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -334,7 +343,7 @@ int dprc_set_irq_enable(struct dprc *dprc,
 	DPRC_CMD_SET_IRQ_ENABLE(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_IRQ_ENABLE,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_SET_IRQ_ENABLE,
 			  DPRC_CMDSZ_SET_IRQ_ENABLE, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -346,7 +355,7 @@ int dprc_get_irq_mask(struct dprc *dprc, uint8_t irq_index, uint32_t *mask)
 
 	DPRC_CMD_GET_IRQ_MASK(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ_MASK,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_IRQ_MASK,
 			 DPRC_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -363,7 +372,7 @@ int dprc_set_irq_mask(struct dprc *dprc, uint8_t irq_index, uint32_t mask)
 	DPRC_CMD_SET_IRQ_MASK(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_SET_IRQ_MASK,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_SET_IRQ_MASK,
 			  DPRC_CMDSZ_SET_IRQ_MASK, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -375,7 +384,7 @@ int dprc_get_irq_status(struct dprc *dprc, uint8_t irq_index, uint32_t *status)
 
 	DPRC_CMD_GET_IRQ_STATUS(CMD_PREP);
 
-	err = cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_IRQ_STATUS,
+	err = dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_IRQ_STATUS,
 			 DPRC_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -392,7 +401,7 @@ int dprc_clear_irq_status(struct dprc *dprc, uint8_t irq_index, uint32_t status)
 	DPRC_CMD_CLEAR_IRQ_STATUS(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_CLEAR_IRQ_STATUS,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_CLEAR_IRQ_STATUS,
 			  DPRC_CMDSZ_CLEAR_IRQ_STATUS, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -403,7 +412,7 @@ int dprc_get_pool_count(struct dprc *dprc, int *pool_count)
 	int err;
 
 	/* send command to mc*/
-	err =  cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_POOL_COUNT,
+	err =  dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_POOL_COUNT,
 			DPRC_CMDSZ_GET_POOL_COUNT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 	if (!err)
@@ -421,7 +430,7 @@ int dprc_get_pool(struct dprc *dprc, int pool_index, char *type)
 	DPRC_CMD_GET_POOL(CMD_PREP);
 
 	/* send command to mc*/
-	err =  cmdif_send(&(dprc->cidesc), DPRC_CMDID_GET_POOL,
+	err =  dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_POOL,
 			DPRC_CMDSZ_GET_POOL, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 	if (!err)
@@ -431,8 +440,19 @@ int dprc_get_pool(struct dprc *dprc, int pool_index, char *type)
 
 int dprc_get_portal_paddr(struct dprc *dprc, int portal_id, uint64_t *portal_addr)
 {
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+	
+	/* prepare command */
+	DPRC_CMD_GET_PORTAL_PADDR(CMD_PREP);
 
-	return 0;
+	/* send command to mc*/
+	err =  dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_GET_PORTAL_PADDR,
+			DPRC_CMDSZ_GET_PORTAL_PADDR, CMDIF_PRI_LOW,
+			  (uint8_t *)&cmd_data);
+	if (!err)
+		DPRC_RSP_GET_PORTAL_PADDR(RSP_READ);
+	return err;
 }
 
 /* Linkman Commands */
@@ -446,7 +466,7 @@ int dprc_connect(struct dprc *dprc,
 	DPRC_CMD_CONNECT(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_CONNECT,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_CONNECT,
 			  DPRC_CMDSZ_CONNECT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -459,7 +479,7 @@ int dprc_disconnect(struct dprc *dprc, struct dprc_endpoint *endpoint)
 	DPRC_CMD_DISCONNECT(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dprc->cidesc), DPRC_CMDID_DISCONNECT,
+	return dplib_send(&(dprc->regs), (uint16_t)dprc->auth, DPRC_CMDID_DISCONNECT,
 			  DPRC_CMDSZ_DISCONNECT, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
