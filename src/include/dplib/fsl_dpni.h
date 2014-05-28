@@ -22,7 +22,12 @@ struct dpni;
 #else
 #include <fsl_cmdif.h>
 struct dpni {
-	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
+	void *regs;
+	/*!<
+	 * Pointer to command interface registers (virtual address);
+	 * Must be set by the user
+	 */
+	int auth; /*!< authentication ID */
 };
 #endif
 
@@ -253,9 +258,8 @@ int dpni_set_irq(struct dpni *dpni,
  *				to signal the message-based interrupt
  * @param[out]	irq_val		Value to write in order to signal the
  *				message-based interrupt
- * @param[out]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
+ * @param[out]	irq_virt_id		virtual irq number - Used by virtual machines 
+ *   			which don't have message interrupts.
  * 				
  * @returns	'0' on Success; Error code otherwise.
  */
@@ -555,7 +559,7 @@ struct dpni_attr {
 	uint8_t max_qos_key_size;
 	/*!< maximum key size for the QoS look-up */
 	uint8_t max_dist_key_size;
-/*!< maximum key size for the distribution look-up */
+	/*!< maximum key size for the distribution look-up */
 	struct {
 		uint32_t major; /*!< DPNI major version*/
 		uint32_t minor; /*!< DPNI minor version*/
@@ -700,7 +704,7 @@ int dpni_set_tx_conf_buffer_layout(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_l3_cksum_validation(struct dpni *dpni, int en);
+int dpni_set_l3_chksum_validation(struct dpni *dpni, int en);
 
 /**
  *
@@ -711,7 +715,7 @@ int dpni_set_l3_cksum_validation(struct dpni *dpni, int en);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_l3_cksum_validation(struct dpni *dpni, int *en);
+int dpni_get_l3_chksum_validation(struct dpni *dpni, int *en);
 
 /**
  *
@@ -722,7 +726,7 @@ int dpni_get_l3_cksum_validation(struct dpni *dpni, int *en);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_l4_cksum_validation(struct dpni *dpni, int en);
+int dpni_set_l4_chksum_validation(struct dpni *dpni, int en);
 
 /**
  *
@@ -733,7 +737,7 @@ int dpni_set_l4_cksum_validation(struct dpni *dpni, int en);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_l4_cksum_validation(struct dpni *dpni, int *en);
+int dpni_get_l4_chksum_validation(struct dpni *dpni, int *en);
 
 /**
  *
@@ -927,7 +931,6 @@ int dpni_get_primary_mac_addr(struct dpni *dpni, uint8_t addr[6]);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
 
@@ -940,7 +943,6 @@ int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
 
@@ -952,7 +954,6 @@ int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_mac_table(struct dpni *dpni);
 
@@ -976,7 +977,6 @@ int dpni_set_vlan_filters(struct dpni *dpni, int en);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id);
 
@@ -989,7 +989,6 @@ int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vlan_id);
 
@@ -1001,7 +1000,6 @@ int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vlan_id);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_vlan_table(struct dpni *dpni);
 
@@ -1030,10 +1028,23 @@ int dpni_set_tx_tc(struct dpni *dpni,
 	const struct dpni_tx_tc_cfg *cfg);
 
 /**
+ * @brief	distribution mode
+ */
+enum dpni_dist_mode {
+	DPNI_DIST_MODE_NONE = 0,/*!< no distribution */
+	DPNI_DIST_MODE_HASH, /*!< hash-distribution */
+	DPNI_DIST_MODE_FS
+/*!< flow-steering distribution */
+};
+
+/**
  * @brief	Structure representing DPNI RX TC parameters
  */
 struct dpni_rx_tc_cfg {
 	uint16_t dist_size; /*!< set the distribution size */
+	enum dpni_dist_mode dist_mode; /*!< distribution mode */
+	struct dpkg_profile_cfg *extract_cfg;
+/*!< define the extractions to be used for the distribution key */
 /*	struct policing_cfg *params;*/
 /*TODO - add struct ldpaa_flow_ctx	*flc;*/
 };
@@ -1047,6 +1058,9 @@ struct dpni_rx_tc_cfg {
  * @param[in]	cfg - TC parameters
  *
  * @returns	'0' on Success; error code otherwise.
+ *
+ * @warning	Allowed only when DPNI is disabled
+ *
  */
 int dpni_set_rx_tc(struct dpni *dpni,
 	uint8_t tc_id,
@@ -1064,9 +1078,9 @@ int dpni_set_rx_tc(struct dpni *dpni,
 /*!< Modify the tx-confirmation/error queue destination parameters*/
 #define DPNI_TX_FLOW_MOD_OPT_USER_CTX		0x00000008
 /*!< Modify the tx-confirmation/error user-context*/
-#define DPNI_TX_FLOW_MOD_OPT_L3_CKSUM_GEN	0x00000010
+#define DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN	0x00000010
 /*!< Modify the flow's l3 checksum generation */
-#define DPNI_TX_FLOW_MOD_OPT_L4_CKSUM_GEN	0x00000020
+#define DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN	0x00000020
 /*!< Modify the flow's l4 checksum generation */
 /* @} */
 
@@ -1093,11 +1107,11 @@ struct dpni_tx_flow_cfg {
 	 of 'tx_conf_err'= 1 or enqueue-rejection condition ("lossless") */
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_TX_FLOW_MOD_OPT_L3_CKSUM_GEN; enable/disable checksum l3
+	 with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
 	 generation */
 	int l4_chksum_gen;
 /*!< This option maybe used when 'options' set
- with DPNI_TX_FLOW_MOD_OPT_L4_CKSUM_GEN; enable/disable checksum l4
+ with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
  generation */
 };
 
@@ -1214,7 +1228,7 @@ struct dpni_qos_tbl_cfg {
 	/*!< '1' for dropping the frame in case of no match;
 	 '0' for using the 'default_tc' */
 	uint8_t default_tc;
-/*!< will be used in case of no-match and 'drop_frame'=0 */
+/*!< will be used in case of no-match and 'drop_frame'= 0 */
 };
 
 /**
@@ -1226,7 +1240,6 @@ struct dpni_qos_tbl_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_set_qos_table(struct dpni *dpni, const struct dpni_qos_tbl_cfg *cfg);
 
@@ -1238,7 +1251,6 @@ int dpni_set_qos_table(struct dpni *dpni, const struct dpni_qos_tbl_cfg *cfg);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_delete_qos_table(struct dpni *dpni);
 
@@ -1261,7 +1273,6 @@ struct dpni_key_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_add_qos_entry(struct dpni *dpni,
 	const struct dpni_key_cfg *cfg,
@@ -1276,7 +1287,6 @@ int dpni_add_qos_entry(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg);
 
@@ -1288,34 +1298,8 @@ int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_qos_table(struct dpni *dpni);
-
-/**
- * @brief	Structure representing distribution parameters
- */
-struct dpni_dist_cfg {
-	int dist_fs;
-	/*!< '1' for distribution based on flow-steering;
-	 '0' for hash based */
-	struct dpkg_profile_cfg *extract_cfg;
-/*!< define the extractions to be used for the distribution key */
-};
-
-/**
- *
- * @brief	Set the distribution method and key
- *
- * @param[in]	dpni - Pointer to dpni object
- * @param[in]	dist - distribution configuration
- *
- * @returns	'0' on Success; Error code otherwise.
- *
- * @warning	Allowed only following dpni_attach().
- */
-int dpni_set_dist(struct dpni *dpni,
-	const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
 
 /**
  * @brief   DPNI Flow-Steering miss action
@@ -1349,7 +1333,6 @@ struct dpni_fs_tbl_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_set_fs_table(struct dpni *dpni,
 	uint8_t tc_id,
@@ -1364,7 +1347,6 @@ int dpni_set_fs_table(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id);
 
@@ -1379,7 +1361,6 @@ int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_add_fs_entry(struct dpni *dpni,
 	uint8_t tc_id,
@@ -1396,7 +1377,6 @@ int dpni_add_fs_entry(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_remove_fs_entry(struct dpni *dpni,
 	uint8_t tc_id,
@@ -1411,7 +1391,6 @@ int dpni_remove_fs_entry(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_fs_table(struct dpni *dpni, uint8_t tc_id);
 

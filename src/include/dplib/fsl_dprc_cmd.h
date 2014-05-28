@@ -36,6 +36,7 @@
 #define DPRC_CMDID_DISCONNECT			0x168
 #define DPRC_CMDID_GET_POOL			0x169
 #define DPRC_CMDID_GET_POOL_COUNT		0x16A
+#define DPRC_CMDID_GET_PORTAL_PADDR		0x16B
 
 /* Command sizes */
 #define DPRC_CMDSZ_CREATE_CONT			(8 * 2)
@@ -64,10 +65,15 @@
 #define DPRC_CMDSZ_DISCONNECT			(8 * 3)
 #define DPRC_CMDSZ_GET_POOL			(8 * 3)
 #define DPRC_CMDSZ_GET_POOL_COUNT		8
+#define DPRC_CMDSZ_GET_PORTAL_PADDR		(8 * 2)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPRC_CMD_OPEN(_OP) \
 	_OP(0,  0,	32,	int,			container_id)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_GET_CONTAINER_ID(_OP) \
+	_OP(0,  32,	32,	uint32_t,		portal_id)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPRC_RSP_GET_CONTAINER_ID(_OP) \
@@ -489,4 +495,11 @@ do { \
 #define DPRC_RSP_GET_POOL_COUNT(_OP) \
 	_OP(0,	0,	32,	int,		pool_count)
 
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_CMD_GET_PORTAL_PADDR(_OP) \
+	_OP(0,	0,	32,	int,		portal_id)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPRC_RSP_GET_PORTAL_PADDR(_OP) \
+	_OP(1,	0,	64,	uint64_t,		portal_addr)
 #endif /* _FSL_DPRC_CMD_H */
