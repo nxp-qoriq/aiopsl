@@ -34,6 +34,8 @@ __VERIF_TLS int32_t status_gro;
 __VERIF_TLS int32_t status_gso;
 __VERIF_TLS int32_t status_ipf;
 __VERIF_TLS int32_t status_ipr;
+__VERIF_TLS int32_t status_ipsec_encr;
+__VERIF_TLS int32_t status_ipsec_decr;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 extern __TASK uint32_t seed_32bit;
@@ -83,6 +85,8 @@ void init_verif()
 	status_gso = 0;
 	status_ipf = 0;
 	status_ipr = 0;
+	status_ipsec_encr = 0;
+	status_ipsec_decr = 0;
 	tcp_gso_context_addr1[0] = 0;
 	ipf_context_addr1[0] = 0;
 }
