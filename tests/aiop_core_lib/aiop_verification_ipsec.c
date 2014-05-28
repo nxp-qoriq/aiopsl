@@ -188,6 +188,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
 		str_size = (uint16_t)sizeof(struct ipsec_frame_encrypt_command);
 		
+		/* Run parser on new (encrypted) frame 
+		 * This is done for cases when decrypt after encrypt is required */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
+		
 		break;
 	}
 	

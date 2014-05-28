@@ -1564,6 +1564,10 @@ int32_t ipsec_get_lifetime_stats(
 	return_val = cdma_refcount_increment(ipsec_handle);
 	// TODO: check CDMA return status
 	
+	/* Flush all the counter updates that are pending in the 
+	 * statistics engine request queue. */
+	ste_barrier();
+
 	/* 	Read relevant descriptor fields with CDMA. */
 	return_val = cdma_read(
 			&ctrs, /* void *ws_dst */
@@ -1612,6 +1616,10 @@ int32_t ipsec_decr_lifetime_counters(
 	/* Increment the reference counter */
 	return_val = cdma_refcount_increment(ipsec_handle);
 	// TODO: check CDMA return status
+	
+	/* Flush all the counter updates that are pending in the 
+	 * statistics engine request queue. */
+	ste_barrier();
 	
 	if (kilobytes_decr_val) {
 		ste_dec_counter(
