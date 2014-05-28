@@ -154,7 +154,7 @@ int dprc_unassign(struct dprc *dprc,
 			  (uint8_t *)&cmd_data);
 }
 
-int dprc_get_object_count(struct dprc *dprc, int *obj_count)
+int dprc_get_obj_count(struct dprc *dprc, int *obj_count)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
@@ -170,7 +170,7 @@ int dprc_get_object_count(struct dprc *dprc, int *obj_count)
 	return err;
 }
 
-int dprc_get_object(struct dprc *dprc,
+int dprc_get_obj(struct dprc *dprc,
 		    int obj_index,
 		    struct dprc_obj_desc *obj_desc)
 {
@@ -416,7 +416,7 @@ int dprc_get_pool(struct dprc *dprc, int pool_index, char *type)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	
+
 	/* prepare command */
 	DPRC_CMD_GET_POOL(CMD_PREP);
 
