@@ -65,6 +65,8 @@ enum ipsec_cipher_type {
 #define IPSEC_DEC_PDB_HMO_MASK 0xF000
 #define IPSEC_PDB_OPTIONS_MASK 0x00FF
 
+#define IPSEC_DECAP_PDB_ARS_MASK 0xC0 /* PDB options[ARS], bits 7:6 */
+
 /* OPTIONS[3:2] - OIHI: Outer IP Header Included 
  * 00 : No Outer IP Header provided
  * 01 : First PDB:Opt IP Hdr Len bytes of Input frame is the
@@ -305,10 +307,18 @@ struct ipsec_instance_params {
  * should be counter_addr + sizeof(counter) 
  * In thiis case "accumulator" = byte counter, "counter" = packets counter*/
 #define IPSEC_PACKET_COUNTER_OFFSET 0
+#define IPSEC_FLAGS_OFFSET (7*8)
 #define IPSEC_STATUS_OFFSET (7*8 + 4)
 #define IPSEC_PACKET_COUNTER_ADDR (ipsec_handle + IPSEC_PACKET_COUNTER_OFFSET)
 #define IPSEC_KB_COUNTER_ADDR (IPSEC_PACKET_COUNTER_ADDR + 8)
+#define IPSEC_FLAGS_ADDR (ipsec_handle + IPSEC_FLAGS_OFFSET)
 #define IPSEC_STATUS_ADDR (ipsec_handle + IPSEC_STATUS_OFFSET)
+/* Shared descriptor address */
+#define IPSEC_SHARED_DESC_ADDR (ipsec_handle + \
+	IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
+/* PDB address */
+#define IPSEC_PDB_ADDR (IPSEC_SHARED_DESC_ADDR + 4) 
+	
 #define IPSEC_MAX_TIMESTAMP 0xFFFFFFFFFFFFFFFF
 
 /* SA Descriptor Parameter for Internal Usage */ 
