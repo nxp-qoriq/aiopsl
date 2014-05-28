@@ -131,7 +131,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			nis[aiop_niid].mc_niid = mc_niid;
 #endif
 
-			dpni.cidesc.regs = dprc->cidesc.regs;
+			dpni.regs = dprc->regs;
 
 			if ((err = dpni_open(&dpni, mc_niid)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);

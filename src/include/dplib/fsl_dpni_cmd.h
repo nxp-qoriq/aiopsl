@@ -711,7 +711,7 @@ do { \
 	_OP(5,  32,	8,	uint8_t,		extract_cfg->extracts[1].masks[2].mask); \
 	_OP(5,  40,	8,	uint8_t,		extract_cfg->extracts[1].masks[2].offset); \
 	_OP(5,  48,	8,	uint8_t,		extract_cfg->extracts[1].masks[3].mask); \
-	_OP(5,  56,	8,	uint8_t,		extract_cfg->extracts[1].masks[3].offset); \	
+	_OP(5,  56,	8,	uint8_t,		extract_cfg->extracts[1].masks[3].offset); \
 	_OP(7,  0,	8,	enum net_prot,		union_cfg[2].prot); \
 	_OP(7,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[2].type); \
 	_OP(7,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[2].src); \

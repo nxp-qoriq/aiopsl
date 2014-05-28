@@ -246,7 +246,7 @@ int run_apps(void)
     	                                 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
 
 	/* Open root container in order to create and query for devices */
-	dprc.cidesc.regs = portal_vaddr;
+	dprc.regs = portal_vaddr;
 	if ((err = dprc_get_container_id(&dprc, &container_id)) != 0) {
 		pr_err("Failed to get AIOP root container ID.\n");
 		return(err);
@@ -263,7 +263,7 @@ int run_apps(void)
 	 * At that point, the DPBP ID will be provided by MC. */
 	dpbp_id = 0;
 
-	dpbp.cidesc.regs = portal_vaddr;
+	dpbp.regs = portal_vaddr;
 
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
