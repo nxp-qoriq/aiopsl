@@ -104,7 +104,8 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
-
+	int    err = 0;
+	
 	if ((cidesc == NULL) || (cidesc->dev == NULL)) {
 		/* prevent deadlocks */
 		if (cidesc->unlock_cb)
@@ -123,13 +124,14 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 		return -EINVAL;
 	}
 
+	err = ((union  cmdif_data *)(dev->sync_done))->resp.err;
 	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
-
+	
 	/* release lock as needed */
 	if (cidesc->unlock_cb)
 		cidesc->unlock_cb(cidesc->lock);
 
-	return ((union  cmdif_data *)(dev->sync_done))->resp.err;
+	return err;
 }
 
 int cmdif_open_done(struct cmdif_desc *cidesc)

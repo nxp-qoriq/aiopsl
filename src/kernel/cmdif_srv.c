@@ -330,8 +330,8 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n", 
-	         (uint32_t)((sync_done & 0xFF00000000) >> 32), 
-	         (uint32_t)(sync_done & 0xFFFFFFFF));
+	         (uint32_t)((_sync_done & 0xFF00000000) >> 32), 
+	         (uint32_t)(_sync_done & 0xFFFFFFFF));
 	
 	if (terminate)
 		fdma_terminate_task();
@@ -361,6 +361,18 @@ __HOT_CODE void cmdif_srv_isr(void)
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	
+#ifdef DEBUG
+	{
+		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
+		                   PRC_GET_SEGMENT_LENGTH());
+		uint8_t  data = 0;
+
+		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
+		         PRC_GET_SEGMENT_ADDRESS(), len);
+		DUMP_MEMORY(PRC_GET_SEGMENT_ADDRESS(), len);
+	}
+#endif
+		
 	if (cmd_id & CMD_ID_OPEN) {
 		char     m_name[M_NAME_CHARS + 1];
 		int      m_id;
@@ -368,39 +380,10 @@ __HOT_CODE void cmdif_srv_isr(void)
 		int      new_inst;
 		uint64_t sync_done = sync_done_get();
 
-		pr_debug("sync_done 0x%x \n", sync_done);
+		pr_debug("sync_done high = 0x%x low = 0x%x \n", 
+		         (uint32_t)((sync_done & 0xFF00000000) >> 32), 
+		         (uint32_t)(sync_done & 0xFFFFFFFF));
 
-#ifdef DEBUG
-		{
-			int i = 0;
-			uint32_t len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-			uint8_t  data = 0;
-			uint8_t  *vaddr = NULL;
-			
-			pr_debug("Dump of SEGMENT_ADDRESS 0x%x size %d\n",
-			         PRC_GET_SEGMENT_ADDRESS(), len);
-			DUMP_MEMORY(PRC_GET_SEGMENT_ADDRESS(), len);
-			pr_debug("Read the same by cdma_read\n");
-			pr_debug("sync_done high = 0x%x low = 0x%x \n", 
-			         (uint32_t)((sync_done & 0xFF00000000) >> 32), 
-			         (uint32_t)(sync_done & 0xFFFFFFFF));
-
-			for (i = 0; i < len; i++) {
-				cdma_read(&data, sync_done + i, 1);
-				fsl_os_print(" 0x%x\n", data);
-			}
-			pr_debug("Read the same by core\n");
-			vaddr = (uint8_t  *)fsl_os_phys_to_virt(sync_done);
-			if (vaddr != NULL)
-				for (i = 0; i < len; i++) {
-					fsl_os_print("0x%x = 0x%x\n", vaddr + i, 
-					             vaddr[i]);
-				}
-			else
-				pr_err("AIOP core can't access 0x%llx\n", 
-				       sync_done);
-		}
-#endif
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			pr_err("No permission to open device 0x%x\n", auth_id);
@@ -408,7 +391,11 @@ __HOT_CODE void cmdif_srv_isr(void)
 		}
 
 		cmd_m_name_get(&m_name[0]);
+		pr_debug("m_name = %s\n", m_name);
+		
 		m_id = module_id_find(m_name, srv);
+		pr_debug("m_id = %d\n", m_id);
+
 		if (m_id < 0) {
 			/* Did not find module with such name */
 			pr_err("No such module %s\n", m_name);
@@ -421,7 +408,6 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 			pr_debug("inst_id = %d\n", inst_id);
 			pr_debug("new_inst = %d\n", new_inst);
-			pr_debug("m_name = %s\n", m_name);
 
 			sync_done_set((uint16_t)new_inst, srv);
 			err = OPEN_CB(m_id, inst_id, new_inst);

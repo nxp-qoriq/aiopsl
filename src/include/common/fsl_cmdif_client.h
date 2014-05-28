@@ -120,8 +120,8 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 @Param[in]	v_data		Virtual address of the buffer to be used
 		by command interface.
 		This address should be accessible by Server and Client.
-		In case of GPP -> AIOP commands this buffer can be freed only
-		after cmdif_close().
+		For MC->AIOP use buffer from DP-DDR.
+		This buffer can be freed only after cmdif_close().
 @Param[in]	p_data		Physical address of the v_data buffer.
 @Param[in]	size		Size of the v_data buffer. If the size if not
 				enough cmdif_open() will return -ENOMEM.
