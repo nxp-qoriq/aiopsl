@@ -77,6 +77,14 @@ int32_t tcp_gso_generate_seg(
 		/* reset PSH */
 		tcp_ptr->flags = tcp_ptr->flags & ~TCP_GSO_PSH_BIT;
 	}
+	
+	/* Modify default segment (updated TCP flags if needed) */
+		/* TODO FDMA ERROR */
+	if (gso_ctx->internal_flags != 0)
+		sr_status = fdma_modify_default_segment_data(
+			(uint16_t)PARSER_GET_L4_OFFSET_DEFAULT() +
+			(uint16_t)offsetof(struct tcphdr, flags), (uint16_t)(
+			sizeof(tcp_ptr->flags)));
 
 	/* Keep parser's parameters from task defaults */
 	gso_ctx->parser_profile_id =

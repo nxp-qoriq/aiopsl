@@ -250,6 +250,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/list.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/memcpy.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/memcpy.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/slab.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/slab.c</locationURI>
@@ -310,17 +315,7 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/dpcon</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpio</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/dpmac</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -331,11 +326,6 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dprc</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/dpsw</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -465,19 +455,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/io.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/irq.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/irq.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/list.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/mutex.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/mutex.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/slob.h</name>
@@ -488,11 +468,6 @@
 			<name>aiop_sl/include/common/time.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/time.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/timer.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/timer.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/types.h</name>
@@ -520,16 +495,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpbp_cmd.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_dpcon.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpcon.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpcon_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpcon_cmd.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/dplib/fsl_dpio.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpio.h</locationURI>
@@ -550,21 +515,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dplib_sys.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_dplib_tests.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dplib_tests.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpmac.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpmac.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpmac_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpmac_cmd.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/dplib/fsl_dpni.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni.h</locationURI>
@@ -583,11 +533,6 @@
 			<name>aiop_sl/include/dplib/fsl_dprc_cmd.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dprc_cmd.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpsw.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpsw.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_dpsw_cmd.h</name>
@@ -700,11 +645,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/fsl_spinlock.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/kernel/layout.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/layout.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/kernel/platform.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/platform.h</locationURI>
@@ -715,19 +655,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/smp.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/kernel/timer.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/timer.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/kernel/types_mw.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/net/fsl_enet.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/fsl_enet.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/net/fsl_inet.h</name>
@@ -765,19 +695,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpbp/dpbp.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/dpcon/dpcon.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpcon/dpcon.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpio/dpio.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpio/dpio.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/dpmac/dpmac.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpmac/dpmac.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni.c</name>
@@ -813,11 +733,6 @@
 			<name>aiop_sl/drivers/dplib/dprc/dprc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/dpsw/dpsw.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpsw/dpsw.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/checksum.h</name>

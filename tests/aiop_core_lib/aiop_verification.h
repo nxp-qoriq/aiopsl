@@ -27,6 +27,7 @@
 #include "aiop_verification_osm.h"
 #include "aiop_verification_ipf.h"
 #include "aiop_verification_ipr.h"
+#include "aiop_verification_ipsec.h"
 #include "dplib/fsl_ip.h"
 #include "dplib/fsl_ipsec.h"
 #include "dplib/fsl_l2.h"
@@ -55,7 +56,7 @@
 #define STR_SIZE_BIG			0xFFFE
 	/**< Buffer Data chunk size in bytes.
 	 *   Must be > 64 bytes*/
-#define DATA_SIZE	256
+#define DATA_SIZE	320
 	/**< Buffer Data chunk address in workspace. */
 #define WS_DATA_ADDR	0x100
 	/**< IPF Fragment's fragmentation commands mask */
