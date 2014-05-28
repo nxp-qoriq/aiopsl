@@ -59,14 +59,14 @@ int dpio_open(struct dpio *dpio, int dpio_id)
 
 int dpio_close(struct dpio *dpio)
 {
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth, MC_CMDID_CLOSE,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth, MC_CMDID_CLOSE,
 	                  MC_CMD_CLOSE_SIZE, CMDIF_PRI_HIGH, NULL);
 }
 
 int dpio_destroy(struct dpio *dpio)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                  DPIO_CMDID_DESTROY, DPIO_CMDSZ_DESTROY, CMDIF_PRI_LOW,
 	                  NULL);
 }
@@ -74,7 +74,7 @@ int dpio_destroy(struct dpio *dpio)
 int dpio_enable(struct dpio *dpio)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                  DPIO_CMDID_ENABLE, DPIO_CMDSZ_ENABLE, CMDIF_PRI_LOW,
 	                  NULL);
 }
@@ -82,7 +82,7 @@ int dpio_enable(struct dpio *dpio)
 int dpio_disable(struct dpio *dpio)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                  DPIO_CMDID_DISABLE, DPIO_CMDSZ_DISABLE, CMDIF_PRI_LOW,
 	                  NULL);
 }
@@ -92,7 +92,7 @@ int dpio_get_attributes(struct dpio *dpio, struct dpio_attr *attr)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	err = dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                 DPIO_CMDID_GET_ATTR, DPIO_CMDSZ_GET_ATTR,
 	                 CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 	if (!err)
@@ -112,7 +112,7 @@ int dpio_get_irq(struct dpio *dpio,
 
 	DPIO_CMD_GET_IRQ(CMD_PREP);
 
-	err = dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	err = dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                 DPIO_CMDID_GET_IRQ, DPIO_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 	                 &cmd_data);
 	if (!err)
@@ -133,7 +133,7 @@ int dpio_set_irq(struct dpio *dpio,
 	DPIO_CMD_SET_IRQ(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                  DPIO_CMDID_SET_IRQ, DPIO_CMDSZ_SET_IRQ, CMDIF_PRI_LOW,
 	                  (uint8_t *)&cmd_data);
 }
@@ -146,7 +146,7 @@ int dpio_get_irq_enable(struct dpio *dpio,
 	int err;
 	DPIO_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
-	err = dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	err = dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                 DPIO_CMDID_GET_IRQ_ENABLE, DPIO_CMDSZ_GET_IRQ_ENABLE,
 	                 CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 	if (!err)
@@ -165,7 +165,7 @@ int dpio_set_irq_enable(struct dpio *dpio,
 	DPIO_CMD_SET_IRQ_ENABLE(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                  DPIO_CMDID_SET_IRQ_ENABLE, DPIO_CMDSZ_SET_IRQ_ENABLE,
 	                  CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 }
@@ -176,7 +176,7 @@ int dpio_get_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t *mask)
 	int err;
 	DPIO_CMD_GET_IRQ_MASK(CMD_PREP);
 
-	err = dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	err = dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                 DPIO_CMDID_GET_IRQ_MASK, DPIO_CMDSZ_GET_IRQ_MASK,
 	                 CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 	if (!err)
@@ -193,7 +193,7 @@ int dpio_set_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t mask)
 	DPIO_CMD_SET_IRQ_MASK(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                  DPIO_CMDID_SET_IRQ_MASK, DPIO_CMDSZ_SET_IRQ_MASK,
 	                  CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 }
@@ -204,7 +204,7 @@ int dpio_get_irq_status(struct dpio *dpio, uint8_t irq_index, uint32_t *status)
 	int err;
 	DPIO_CMD_GET_IRQ_STATUS(CMD_PREP);
 
-	err = dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	err = dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                 DPIO_CMDID_GET_IRQ_STATUS, DPIO_CMDSZ_GET_IRQ_STATUS,
 	                 CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
 	if (!err)
@@ -221,7 +221,7 @@ int dpio_clear_irq_status(struct dpio *dpio, uint8_t irq_index, uint32_t status)
 	DPIO_CMD_CLEAR_IRQ_STATUS(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpio->regs), (uint16_t)dpio->auth,
+	return dplib_send(dpio->regs, (uint16_t)dpio->auth,
 	                  DPIO_CMDID_CLEAR_IRQ_STATUS,
 	                  DPIO_CMDSZ_CLEAR_IRQ_STATUS, CMDIF_PRI_LOW,
 	                  (uint8_t *)&cmd_data);

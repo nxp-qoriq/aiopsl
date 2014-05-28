@@ -65,21 +65,21 @@ int dpbp_close(struct dpbp *dpbp)
 int dpbp_destroy(struct dpbp *dpbp)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_DESTROY,
+	return dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_DESTROY,
 			  DPBP_CMDSZ_DESTROY, CMDIF_PRI_LOW, NULL);
 }
 
 int dpbp_enable(struct dpbp *dpbp)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_ENABLE, DPBP_CMDSZ_ENABLE,
+	return dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_ENABLE, DPBP_CMDSZ_ENABLE,
 			  CMDIF_PRI_LOW, NULL);
 }
 
 int dpbp_disable(struct dpbp *dpbp)
 {
 	/* send command to mc*/
-	return dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_DISABLE,
+	return dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_DISABLE,
 			  DPBP_CMDSZ_DISABLE, CMDIF_PRI_LOW, NULL);
 }
 
@@ -88,7 +88,7 @@ int dpbp_get_attributes(struct dpbp *dpbp, struct dpbp_attr *attr)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_GET_ATTR,
+	err = dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_GET_ATTR,
 			 DPBP_CMDSZ_GET_ATTR, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -109,7 +109,7 @@ int dpbp_get_irq(struct dpbp *dpbp,
 
 	DPBP_CMD_GET_IRQ(CMD_PREP);
 
-	err = dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ,
+	err = dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ,
 			 DPBP_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -130,7 +130,7 @@ int dpbp_set_irq(struct dpbp *dpbp,
 	DPBP_CMD_SET_IRQ(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_SET_IRQ,
+	return dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_SET_IRQ,
 			  DPBP_CMDSZ_SET_IRQ, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -143,7 +143,7 @@ int dpbp_get_irq_enable(struct dpbp *dpbp,
 	int err;
 	DPBP_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
-	err = dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ_ENABLE,
+	err = dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ_ENABLE,
 			 DPBP_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -162,7 +162,7 @@ int dpbp_set_irq_enable(struct dpbp *dpbp,
 	DPBP_CMD_SET_IRQ_ENABLE(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_SET_IRQ_ENABLE,
+	return dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_SET_IRQ_ENABLE,
 			  DPBP_CMDSZ_SET_IRQ_ENABLE, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -173,7 +173,7 @@ int dpbp_get_irq_mask(struct dpbp *dpbp, uint8_t irq_index, uint32_t *mask)
 	int err;
 	DPBP_CMD_GET_IRQ_MASK(CMD_PREP);
 
-	err = dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ_MASK,
+	err = dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ_MASK,
 			 DPBP_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -190,7 +190,7 @@ int dpbp_set_irq_mask(struct dpbp *dpbp, uint8_t irq_index, uint32_t mask)
 	DPBP_CMD_SET_IRQ_MASK(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_SET_IRQ_MASK,
+	return dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_SET_IRQ_MASK,
 			  DPBP_CMDSZ_SET_IRQ_MASK, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
@@ -202,7 +202,7 @@ int dpbp_get_irq_status(struct dpbp *dpbp, uint8_t irq_index, uint32_t *status)
 
 	DPBP_CMD_GET_IRQ_STATUS(CMD_PREP);
 
-	err = dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ_STATUS,
+	err = dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_GET_IRQ_STATUS,
 			 DPBP_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,
 			 (uint8_t *)&cmd_data);
 	if (!err)
@@ -219,7 +219,7 @@ int dpbp_clear_irq_status(struct dpbp *dpbp, uint8_t irq_index, uint32_t status)
 	DPBP_CMD_CLEAR_IRQ_STATUS(CMD_PREP);
 
 	/* send command to mc*/
-	return dplib_send(&(dpbp->regs), (uint16_t)dpbp->auth, DPBP_CMDID_CLEAR_IRQ_STATUS,
+	return dplib_send(dpbp->regs, (uint16_t)dpbp->auth, DPBP_CMDID_CLEAR_IRQ_STATUS,
 			  DPBP_CMDSZ_CLEAR_IRQ_STATUS, CMDIF_PRI_LOW,
 			  (uint8_t *)&cmd_data);
 }
