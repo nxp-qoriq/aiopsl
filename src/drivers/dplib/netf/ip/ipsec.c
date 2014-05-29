@@ -444,9 +444,11 @@ int32_t ipsec_generate_decap_sd(
 
 	pdb.options = 
 		(uint8_t)(((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK));
-
-	// TODO: Program options[outFMT] for decapsulation
-				
+	
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		pdb.options |= IPSEC_DEC_OPTS_ETU;
+	}
+	
 	//union {
 	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
 	//	uint8_t aoipho;		/* actual outer IP header offset for

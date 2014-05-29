@@ -24,7 +24,7 @@ extern int aiop_sl_init(void);      extern void aiop_sl_free(void);
 extern int dpni_drv_probe(struct dprc	*dprc,
 			  uint16_t	mc_ni_id,
 			  uint16_t	aiop_ni_id,
-                          struct dpni_attach_cfg *attach_params);
+                          struct dpni_pools_cfg *pools_params);
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
@@ -110,7 +110,7 @@ int global_post_init(void)
 
 void core_ready_for_tasks(void)
 {
-    uint32_t abcr_val;
+
     uint32_t core_id = core_get_id();
     uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
@@ -121,8 +121,9 @@ void core_ready_for_tasks(void)
 
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
-    
-#ifndef SINGLE_CORE_WA
+
+#ifdef MULTICORE_WA
+    uint32_t abcr_val;
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
@@ -143,7 +144,6 @@ void core_ready_for_tasks(void)
     }
 
 #endif
-    
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
@@ -154,22 +154,24 @@ void core_ready_for_tasks(void)
 }
 
 
-static void print_dev_desc(struct dprc_dev_desc* dev_desc)
+static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
 	pr_debug(" device %d\n");
 	pr_debug("***********\n");
 	pr_debug("vendor - %x\n", dev_desc->vendor);
-	if (dev_desc->type == DP_DEV_DPNI)
+
+	if (strcmp(dev_desc->type, "dpni") == 0)
 		pr_debug("type - DP_DEV_DPNI\n");
-	else if (dev_desc->type == DP_DEV_DPRC)
+	else if (strcmp(dev_desc->type, "dprc") == 0)
 		pr_debug("type - DP_DEV_DPRC\n");
-	else if (dev_desc->type == DP_DEV_DPIO)
+	else if (strcmp(dev_desc->type, "dpio") == 0)
 		pr_debug("type - DP_DEV_DPIO\n");
 	pr_debug("id - %d\n", dev_desc->id);
 	pr_debug("region_count - %d\n", dev_desc->region_count);
-	pr_debug("rev_major - %d\n", dev_desc->rev_major);
-	pr_debug("rev_minor - %d\n", dev_desc->rev_minor);
+	pr_debug("ver_major - %d\n", dev_desc->ver_major);
+	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
 	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
+
 }
 
 
@@ -207,11 +209,12 @@ int run_apps(void)
 	struct dprc dprc = { 0 };
 	struct dpbp dpbp = { 0 };
 	int container_id;
-	struct dprc_dev_desc dev_desc;
+	struct dprc_obj_desc dev_desc;
 	uint16_t dpbp_id;	// TODO: replace by real dpbp creation
 	struct dpbp_attr attr;
 	uint8_t region_index = 0;
-	struct dpni_attach_cfg attach_params;
+	struct dpni_pools_cfg pools_params;
+	uint16_t buffer_size = 512;
 #endif
 
 
@@ -233,7 +236,7 @@ int run_apps(void)
     	                                 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
 
 	/* Open root container in order to create and query for devices */
-	dprc.cidesc.regs = portal_vaddr;
+	dprc.regs = portal_vaddr;
 	if ((err = dprc_get_container_id(&dprc, &container_id)) != 0) {
 		pr_err("Failed to get AIOP root container ID.\n");
 		return(err);
@@ -250,7 +253,7 @@ int run_apps(void)
 	 * At that point, the DPBP ID will be provided by MC. */
 	dpbp_id = 0;
 
-	dpbp.cidesc.regs = portal_vaddr;
+	dpbp.regs = portal_vaddr;
 
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
@@ -268,30 +271,30 @@ int run_apps(void)
 	}
 
 	/* TODO: number and size of buffers should not be hard-coded */
-	if ((err = fill_bpid(100, attr.buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
+	if ((err = fill_bpid(100, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
 		pr_err("Failed to fill DP-BP%d (BPID=%d) with buffer size %d.\n",
-				dpbp_id, attr.bpid, attr.buffer_size);
+				dpbp_id, attr.bpid, buffer_size);
 		return err;
 	}
 
 	/* Prepare parameters to attach to DPNI object */
-	memset (&attach_params, 0, sizeof(attach_params));
-	attach_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
-	attach_params.dpbp_id[0] = dpbp_id; /*!< DPBPs object id */
+	pools_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
+	pools_params.pools[0].dpbp_id = dpbp_id; /*!< DPBPs object id */
+	pools_params.pools[0].buffer_size = buffer_size;
 
-	if ((err = dprc_get_device_count(&dprc, &dev_count)) != 0) {
+	if ((err = dprc_get_obj_count(&dprc, &dev_count)) != 0) {
 	    pr_err("Failed to get device count for AIOP root container DP-RC%d.\n", container_id);
 	    return err;
 	}
 
 	/* Enable all DPNI devices */
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_device(&dprc, i, &dev_desc);
-		if (dev_desc.type == DP_DEV_DPNI) {
+		dprc_get_obj(&dprc, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpni") == 0) {
 			/* TODO: print conditionally based on log level */
 			print_dev_desc(&dev_desc);
 
-			if ((err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, &attach_params)) != 0) {
+			if ((err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, &pools_params)) != 0) {
 				pr_err("Failed to probe DP-NI%d.\n", i);
 				return err;
 			}
