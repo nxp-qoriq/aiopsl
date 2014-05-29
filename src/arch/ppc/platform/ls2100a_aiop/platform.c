@@ -57,7 +57,6 @@ typedef struct t_platform {
     fsl_handle_t            h_part;
 
     /* Memory-related variables */
-    e_memory_partition_id   prog_runs_from;
     int                     num_of_mem_parts;
     int                     registered_partitions[PLATFORM_MAX_MEM_INFO_ENTRIES];
 
@@ -220,30 +219,6 @@ static void print_platform_info(t_platform *pltfrm)
 
     count += sprintf((char *)&buf[count], "\n");
     fsl_os_print(buf);
-}
-
-/*****************************************************************************/
-static int identify_program_memory(t_platform_memory_info   *p_mem_info,
-                                   e_memory_partition_id    *p_mem_part_id)
-{
-    uint64_t    running_address = PTR_TO_UINT(identify_program_memory);
-    int         i;
-
-    /* NOTE:
-       We assume that the program is running from one of the partitions in the table */
-    for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-        if (p_mem_info[i].size == 0)
-            break;
-
-        if ((running_address >= p_mem_info[i].virt_base_addr) &&
-            (running_address <  p_mem_info[i].virt_base_addr + p_mem_info[i].size)) {
-            *p_mem_part_id = (e_memory_partition_id)p_mem_info[i].mem_partition_id;
-            return E_OK;
-        }
-    }
-
-    /* Not found - should not reach here ! */
-    RETURN_ERROR(MAJOR, E_NOT_FOUND, NO_MSG);
 }
 
 /*****************************************************************************/
@@ -673,11 +648,6 @@ int platform_init(struct platform_param    *pltfrm_param,
         ASSERT_COND(mem_info->phys_base_addr >= mem_region_info.start_addr);
     }
     pltfrm->num_of_mem_parts = i;
-
-    /* Identify the program memory */
-    err = identify_program_memory(pltfrm->param.mem_info,
-                                  &(pltfrm->prog_runs_from));
-    if(err != 0) return err;
 
     /* Store CCSR base (for convenience) */
     mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_CCSR);
