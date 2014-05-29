@@ -84,7 +84,7 @@ enum parser_verif_cmd_type {
 *//***************************************************************************/
 struct parser_init_gross_verif_command {
 	uint32_t	opcode;
-	uint32_t 	status;
+	int32_t 	status;
 };
 
 /**************************************************************************//**
