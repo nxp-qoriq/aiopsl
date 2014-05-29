@@ -168,6 +168,12 @@ int32_t aiop_sl_init(void)
 			((val & 0x0000ff00) <<  8) |
 			((val & 0x00ff0000) >>  8) |
 			((val & 0xff000000) >> 24));
+	val = 0x02000000; /*SET NDS bit*/
+	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x118);
+	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
+			((val & 0x0000ff00) <<  8) |
+			((val & 0x00ff0000) >>  8) |
+			((val & 0xff000000) >> 24));
 #if 0 /*TODO - need to delete the above code and enable the bellow if 0
 	when ENGR00310809 will be fixed */
 	/* TODO - need to change the constant below to -
@@ -181,6 +187,9 @@ int32_t aiop_sl_init(void)
 	__stwbr(0x00600040,
 		0,
 		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108)); /* EP_FDPA */
+	__stwbr(0x02000000,
+		0,
+		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x118)); /* SET NDS bit*/
 
 	/* End of TMAN EPID Init */
 #endif
@@ -192,6 +201,7 @@ int32_t aiop_sl_init(void)
 	 *define EPID_TIMER_EVENT_IDX	1 */
 	iowrite32(1, &wrks_addr->epas); /* EPID = 1 */
 	iowrite32(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
+	iowrite32(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
 
 	pr_info("TMAN is setting EPID = 1\n");
 	pr_info("ep_pc = 0x%x\n", ioread32(&wrks_addr->ep_pc));
