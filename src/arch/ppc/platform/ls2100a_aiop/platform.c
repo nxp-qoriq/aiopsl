@@ -659,11 +659,12 @@ int platform_init(struct platform_param    *pltfrm_param,
 
     pltfrm->partition_id = sys_get_partition_id();
 
+#if 0 /*TODO Do we need this function???*/
     /* Identify the program memory */
     err = identify_program_memory(pltfrm->param.mem_info,
                                   &(pltfrm->prog_runs_from));
     ASSERT_COND(err == E_OK);
-
+#endif
     /* Store CCSR base (for convenience) */
     mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_CCSR);
     ASSERT_COND(mem_index != -1);
