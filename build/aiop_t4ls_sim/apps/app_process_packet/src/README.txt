@@ -21,10 +21,10 @@ Execution flow
              -smodel "ls_sim_config_file=ls2100_sys_test.cfg"
 4. Launch mc_app using AFM connection.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
-5. After MC reaches main(), tun tio console:
+5. After MC reaches main(), turn tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart1_1 duart1_0
-6. Run mc_app untill you'll see "Running MC app, waiting for events ..." on tio console
-7. Launch app_process_packect.
+6. Run mc_app until you'll see "Running MC app, waiting for events ..." on tio console
+7. Launch app_process_packet.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 8. Push "Resume" button to run Single AIOP core and wait until you'll see
    "AIOP <0> completed boot sequence; waiting for events ..." 
@@ -49,7 +49,7 @@ Possible modifications:
 4. The user may use different simulator port
 5. The demo runs in MC integrated mode. In order to get back to AIOP standalone
    mode as it was supported in previous releases, it is required to recompile
-   aiopsl and app_process_packect project with AIOP_STANDALONE defined.
+   aiopsl and app_process_packet project with AIOP_STANDALONE defined.
    Please note that the standalone mode is being phased out and has is no longer verified.
 6. The user may run with elf loader. In order to do that:
    a.	Go to simulator folder and uncomment the lines marked with "#for elf loader" in cfg
