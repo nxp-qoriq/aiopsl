@@ -44,25 +44,33 @@ static int cmdif_wait_resp(struct mc_portal *portal)
 
 struct cmdif_cmd_mapping_entry {
 	enum cmdif_module module;
-	uint16_t cmd_id;
+	uint16_t open_cmd_id;
+	uint16_t create_cmd_id;
 };
 
 int cmdif_open(struct cmdif_desc *cidesc,
-               enum cmdif_module module,
-               int instance_id)
+	       enum cmdif_module module,
+	       int size,
+	       uint8_t *cmd_data,
+	       uint32_t options)
 {
 	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
-	struct mc_cmd_data cmd_data = {{ 0 }};
+	struct mc_cmd_data *data = (struct mc_cmd_data *)cmd_data;
 	uint16_t auth_id;
-	int ret, i;
+	int cmd_id, ret, i;
 
-	const struct cmdif_cmd_mapping_entry cmd_map[] =
-	        { { CMDIF_MOD_DPRC, MC_DPRC_CMDID_OPEN },
-	          { CMDIF_MOD_DPNI, MC_DPNI_CMDID_OPEN },
-	          { CMDIF_MOD_DPIO, MC_DPIO_CMDID_OPEN },
-	          { CMDIF_MOD_DPBP, MC_DPBP_CMDID_OPEN },
-	          { CMDIF_MOD_DPDMUX, MC_DPDMUX_CMDID_OPEN },
-	          { CMDIF_MOD_DPSW, MC_DPSW_CMDID_OPEN } };
+	const struct cmdif_cmd_mapping_entry cmd_map[] = {
+		{ CMDIF_MOD_DPRC, MC_DPRC_CMDID_OPEN, MC_DPRC_CMDID_CREATE },
+		{ CMDIF_MOD_DPNI, MC_DPNI_CMDID_OPEN, MC_DPNI_CMDID_CREATE },
+		{ CMDIF_MOD_DPIO, MC_DPIO_CMDID_OPEN, MC_DPIO_CMDID_CREATE }, {
+			CMDIF_MOD_DPCON, MC_DPCON_CMDID_OPEN,
+			MC_DPCON_CMDID_CREATE },
+		{ CMDIF_MOD_DPBP, MC_DPBP_CMDID_OPEN, MC_DPBP_CMDID_CREATE }, {
+			CMDIF_MOD_DPDMUX, MC_DPDMUX_CMDID_OPEN,
+			MC_DPDMUX_CMDID_CREATE },
+		{ CMDIF_MOD_DPSW, MC_DPSW_CMDID_OPEN, MC_DPSW_CMDID_CREATE },
+		{ CMDIF_MOD_DPCI, MC_DPCI_CMDID_OPEN, MC_DPCI_CMDID_CREATE },
+		{ CMDIF_MOD_DPSECI, MC_DPSECI_CMDID_OPEN, MC_DPSECI_CMDID_CREATE } };
 
 	for (i = 0; i < ARRAY_SIZE(cmd_map); i++)
 		if (cmd_map[i].module == module)
@@ -71,19 +79,20 @@ int cmdif_open(struct cmdif_desc *cidesc,
 		return -ENOTSUP;
 
 	/* clear 'dev' - later it will store the Authentication ID */
-	cidesc->dev = (void*)0;
-
-	/* prepare command param */
-	cmd_data.params[0] = u64_enc(MC_CMD_OPEN_INST_ID_O,
-	                             MC_CMD_OPEN_INST_ID_S, instance_id);
+	cidesc->dev = (void *)0;
 
 	/* acquire lock as needed */
 	if (cidesc->lock_cb)
 		cidesc->lock_cb(cidesc->lock);
 
+	/* open or create */
+	if (options == MC_OPT_CMD_CREATE)
+		cmd_id = cmd_map[i].create_cmd_id;
+	else
+		cmd_id = cmd_map[i].open_cmd_id;
+
 	/* not using cmdif_send - need auth_id back before releasing the lock */
-	mc_cmd_write(portal, cmd_map[i].cmd_id, 0, MC_CMD_OPEN_SIZE,
-	             CMDIF_PRI_LOW, &cmd_data);
+	mc_cmd_write(portal, (uint16_t)cmd_id, 0, (uint8_t)size, CMDIF_PRI_LOW, data);
 
 	ret = cmdif_wait_resp(portal); /* blocking */
 	auth_id = mc_cmd_read_auth_id(portal);
@@ -94,7 +103,7 @@ int cmdif_open(struct cmdif_desc *cidesc,
 
 	if (ret == 0)
 		/* all good - store the Authentication ID in 'dev' */
-		cidesc->dev = (void*)auth_id;
+		cidesc->dev = (void *)((uintptr_t)auth_id);
 
 	return ret;
 }
@@ -102,14 +111,14 @@ int cmdif_open(struct cmdif_desc *cidesc,
 int cmdif_close(struct cmdif_desc *cidesc)
 {
 	return cmdif_send(cidesc, MC_CMDID_CLOSE, MC_CMD_CLOSE_SIZE,
-	                  CMDIF_PRI_HIGH, NULL);
+			  CMDIF_PRI_HIGH, NULL);
 }
 
 int cmdif_send(struct cmdif_desc *cidesc,
-               uint16_t cmd_id,
-               int size,
-               int priority,
-               uint8_t *cmd_data)
+	       uint16_t cmd_id,
+	       int size,
+	       int priority,
+	       uint8_t *cmd_data)
 {
 	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
 	struct mc_cmd_data *data = (struct mc_cmd_data *)cmd_data;
@@ -136,10 +145,10 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	return ret;
 }
 
-#if 1
+#if 0
 int cmdif_get_cmd_data(struct cmdif_desc *cidesc, uint8_t **cmd_data)
 {
-	*cmd_data = (uint8_t*)PTR_MOVE(cidesc->regs, 8);
+	*cmd_data = (uint8_t *)PTR_MOVE(cidesc->regs, 8);
 	return 0;
 }
 #endif
