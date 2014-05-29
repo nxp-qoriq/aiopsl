@@ -649,8 +649,6 @@ int platform_init(struct platform_param    *pltfrm_param,
     }
     pltfrm->num_of_mem_parts = i;
 
-    pltfrm->partition_id = sys_get_partition_id();
-
 #if 0 /*TODO Do we need this function???*/
     /* Identify the program memory */
     err = identify_program_memory(pltfrm->param.mem_info,
