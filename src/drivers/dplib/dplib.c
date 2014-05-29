@@ -1,7 +1,7 @@
 #include <fsl_dplib_sys.h>
 #include <fsl_cmdif_mc.h>
 
-int dplib_status_to_error(enum mc_cmd_status status)
+static int dplib_status_to_error(enum mc_cmd_status status)
 {
 	switch (status) {
 	case MC_CMD_STATUS_OK:
@@ -30,35 +30,50 @@ int dplib_status_to_error(enum mc_cmd_status status)
 		break;
 	}
 
-	/* not expected to reach here */
+	/* Not expected to reach here */
 	return -EINVAL;
 }
 
 int dplib_send(void *regs,
-               int auth,
-               uint16_t cmd_id,
-               uint16_t size,
-               int pri,
-               void *cmd_data)
+	       int *auth,
+	       uint16_t cmd_id,
+	       uint16_t size,
+	       int pri,
+	       void *cmd_data)
 {
+	struct mc_portal *portal = (struct mc_portal *)regs;
 	enum mc_cmd_status status;
-	uint32_t flags;
 
-	/* spin_lock_irqsave(&lock, flags); */
+	if (!regs || !auth)
+		return -EACCES;
 
-	mc_cmd_write((struct mc_portal *)regs, cmd_id, (uint16_t)auth,
-	             (uint8_t)size, pri, (struct mc_cmd_data *)cmd_data);
+	/* --- Call lock function here in case portal is shared --- */
 
-	/* spin until cmd status changes */
+	mc_cmd_write(portal, cmd_id, (uint16_t)(*auth),
+		     (uint8_t)size, pri, (struct mc_cmd_data *)cmd_data);
+
+	/* Spin until status changes */
 	do {
-		status = mc_cmd_read_status((struct mc_portal *)regs);
-		/* ---------------- TBD call wait ------------- */
-	} while (status == MC_CMD_STATUS_READY); // or timeout
+		status = mc_cmd_read_status(portal);
 
-	mc_cmd_read_response((struct mc_portal *)regs,
-	                     (struct mc_cmd_data *)cmd_data);
+		/*
+		 * --- Call wait function here to prevent blocking ---
+		 * Change the loop condition accordingly to exit on timeout.
+		 */
+	} while (status == MC_CMD_STATUS_READY);
 
-	/* spin_unlock_irqrestore(&portal_lock, flags); */
+	/* Read the response back into the command buffer */
+	if (cmd_data)
+		mc_cmd_read_response(portal, (struct mc_cmd_data *)cmd_data);
+
+	/*
+	 * The authentication id is read in create() or open() commands,
+	 * to setup the control session.
+	 */
+	if (0 == (*auth))
+		*auth = (int)mc_cmd_read_auth_id(portal);
+
+	/* --- Call unlock function here in case portal is shared --- */
 
 	return dplib_status_to_error(status);
 }

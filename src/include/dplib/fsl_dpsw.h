@@ -13,9 +13,13 @@
 /*!< Forward declaration */
 struct dpsw;
 #else
-#include <fsl_cmdif.h>
 struct dpsw {
-	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
+	void *regs;
+	/*!<
+	 * Pointer to command interface registers (virtual address);
+	 * Must be set by the user
+	 */
+	int auth; /*!< authentication ID */
 };
 #endif
 
@@ -35,6 +39,7 @@ struct dpsw {
 #define DPSW_MAX_IF		256	/*!< Maximum number of interfaces */
 #define DPSW_MAX_FDB		32	/*!< Maximum number of FDB */
 #define DPSW_MAX_PROT		64	/*!< Max Protocols per rule */
+/* @} */
 
 /**
  * @brief	open L2 switch
@@ -66,40 +71,15 @@ int dpsw_close(struct dpsw *dpsw);
 #define DPSW_OPT_MULTICAST_DIS	0x0000000000000004 /*!< Disable Multicast */
 #define DPSW_OPT_TC_DIS		0x0000000000000008
 /*!< Disable Traffic classes */
+#define DPSW_OPT_CONTROL	0x0000000000000010 /*!< Control Interface */
 /* @} */
-
-/**
- * @brief	L2 switch Interface configuration
- *
- */
-struct dpsw_if_cfg {
-	int external; /*!< Internal or external interface.
-	 Remove when Link manager GPP mode
-	 is supported */
-
-	int phys_if_id; /*!< Physical port ID, relevant only
-	 for external interface type.
-	 Remove when Link manager GPP mode
-	 is supported */
-
-	int iop_id; /*!< WRIOP block identifier */
-	int control; /*!< Control/Data Interface  */
-	uint8_t num_tcs; /*!< The number of egress traffic
-	 classes, Relevant only if traffic
-	 classes are enabled. The valid value is
-	 from 1-8 */
-	uint64_t options; /*!< features (bitmap). DPSW_OPT_*/
-};
 
 /**
  * @brief	L2 switch configuration
  *
  */
 struct dpsw_cfg {
-	uint16_t num_ifs; /*!< Number of external and
-	 internal interfaces */
-	struct dpsw_if_cfg if_cfg[DPSW_MAX_IF];/*!< Array of interface
-	 parameters */
+	uint16_t num_ifs; /*!< Number of external and internal interfaces */
 	/*!< Advanced parameters. Default is zeros */
 	struct {
 		/*!< Enable/Disable L2 switch features (bitmap) */
@@ -110,26 +90,28 @@ struct dpsw_cfg {
 		uint8_t max_fdbs;
 		/*!< Number of FDB entries for default FDB table.
 		 * 0 - indicates default 1024 entries. */
-		uint16_t num_fdb_entries;
+		uint16_t max_fdb_entries;
 		/*!< Default FDB aging time for default FDB table.
 		 * 0 - indicates default 300 seconds */
 		uint16_t fdb_aging_time;
+		/*!< Number of multicast groups in each FDB table
+		 * 0 - indicates default 32  */
+		uint16_t max_fdb_mc_groups;
 	} adv; /*!< use this structure to change default settings */
 };
 
 /**
- * @brief	dpsw_init is a Topology function that initializes L2 switch and
- allocates L2 switch object. As a result of this call
- 1.	FDB allocated having (FDB ID 0)
- 2.	VLAN created (VLAN ID = 1)
+ * @brief	Open object handle, allocate resources and preliminary
+ *		initialization - required before any operation on the object
  *
- * @param[in]	dpsw		L2 switch handle
+ * @param[in]	dpsw - Pointer to dpsw object
+ * @param[in]	cfg - Configuration structure
  *
- * @param[in]    cfg		Configuration parameters
+ * @returns	'0' on Success; Error code otherwise.
  *
- * @returns      Completion status. '0' on Success; Error code otherwise.
+ * @warning	Required before any operation on the object
  */
-int dpsw_init(struct dpsw *dpsw, const struct dpsw_cfg *cfg);
+int dpsw_create(struct dpsw *dpsw, const struct dpsw_cfg *cfg);
 
 /**
  * @brief	a topology Function frees L2 Switch resources
@@ -138,14 +120,18 @@ int dpsw_init(struct dpsw *dpsw, const struct dpsw_cfg *cfg);
  *
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
-int dpsw_done(struct dpsw *dpsw);
+int dpsw_destroy(struct dpsw *dpsw);
 
 /**
  * @brief	L2 switch attributes
  *
  */
 struct dpsw_attr {
-	uint32_t version; /*!< L2 switch Version */
+	int id; /*!< DPSW ID */
+	struct {
+		uint32_t major;
+		uint32_t minor;
+	} version;
 	uint64_t options; /*!< Enable/Disable L2 switch features */
 	uint8_t max_vlans; /*!< Maximum Number of VLANs */
 	uint8_t max_fdbs; /*!< Maximum Number of FDBs */
@@ -229,14 +215,24 @@ int dpsw_set_policer(struct dpsw *dpsw, const struct dpsw_policer_cfg *cfg);
  * @brief	Structure representing buffer depletion configuration
  *		parameters. Assuming only one buffer pool
  *		exist per switch.
- *
  */
 struct dpsw_buffer_depletion_cfg {
-	uint32_t entrance_threshold; /*!<Entrance threshold */
-	uint32_t exit_threshold; /*!< Exit threshold */
-	uint64_t wr_addr; /*!< Address in GPP to write
-	 buffer depletion State Change
-	 Notification Message */
+	uint32_t entrance_threshold;
+	/*!<
+	 * Entrance threshold, the number of buffers in a pool falls below a
+	 * programmable depletion entry threshold
+	 */
+	uint32_t exit_threshold;
+	/*!<
+	 * Exit threshold. When the buffer pool's occupancy rises above a
+	 * programmable depletion exit threshold, the buffer pool exits
+	 * depletion
+	 */
+	uint64_t wr_addr;
+	/*!<
+	 * Address in GPP to write buffer depletion State Change Notification
+	 * Message
+	 */
 };
 
 /**
@@ -254,7 +250,7 @@ struct dpsw_buffer_depletion_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_set_buffer_depletion(struct dpsw *dpsw,
-	const struct dpsw_buffer_depletion_cfg *cfg);
+			      const struct dpsw_buffer_depletion_cfg *cfg);
 
 /**
  * @brief	Function sets target interface for reflected ports.
@@ -277,29 +273,6 @@ enum dpsw_action {
 	DPSW_ACTION_REDIRECT_TO_CTRL
 /*!< Redirect to control port  */
 };
-
-/**
- * @brief	Parser error action configuration
- *
- */
-struct dpsw_parser_error_action_cfg {
-	uint8_t num_prots; /*!< Number of protocols */
-	enum net_prot prot[DPSW_MAX_PROT]; /*!< Set of protocols */
-	enum dpsw_action action; /*!< Action to take */
-};
-
-/**
- * @brief	Function is used to define frame errors that should be
- monitored and corresponding action to take
- *
- * @param[in]	dpsw		L2 switch handle
- *
- * @param[in]	cfg		Error action description
-
- * @returns      Completion status. '0' on Success; Error code otherwise.
- */
-int dpsw_set_parser_error_action(struct dpsw *dpsw,
-	const struct dpsw_parser_error_action_cfg *cfg);
 
 /*!
  * @name Precision Time Protocol (PTP) options
@@ -376,7 +349,7 @@ struct dpsw_tci_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_set_tci(struct dpsw *dpsw,
-	uint16_t if_id,
+		    uint16_t if_id,
 	const struct dpsw_tci_cfg *cfg);
 
 /**
@@ -414,7 +387,7 @@ struct dpsw_stp_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_set_stp(struct dpsw *dpsw,
-	uint16_t if_id,
+		    uint16_t if_id,
 	const struct dpsw_stp_cfg *cfg);
 
 /**
@@ -423,7 +396,7 @@ int dpsw_if_set_stp(struct dpsw *dpsw,
  */
 enum dpsw_accepted_frames {
 	DPSW_ADMIT_ALL = 0,
-	/*!< The device will accept VALN tagged, untagged and
+	/*!< The device will accept VLAN tagged, untagged and
 	 * priority tagged frames
 	 **/
 	DPSW_ADMIT_ONLY_VLAN_TAGGED,
@@ -456,7 +429,7 @@ struct dpsw_accepted_frames_cfg {
  When admit_only_untagged- untagged frames or Priority-Tagged
  frames received on this port will be accepted and assigned
  to a VID based on the PVID and VID Set for this port.
- When admit_all - the device will accept VALN tagged, untagged
+ When admit_all - the device will accept VLAN tagged, untagged
  and priority tagged frames.
  The default is admit_all
  *
@@ -469,7 +442,7 @@ struct dpsw_accepted_frames_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_set_accepted_frames(struct dpsw *dpsw,
-	uint16_t if_id,
+				uint16_t if_id,
 	const struct dpsw_accepted_frames_cfg *cfg);
 
 /**
@@ -487,7 +460,7 @@ int dpsw_if_set_accepted_frames(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_set_accept_all_vlan(struct dpsw *dpsw,
-	uint16_t if_id,
+				uint16_t if_id,
 	int accept_all);
 
 /**
@@ -523,7 +496,7 @@ enum dpsw_counter {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_get_counter(struct dpsw *dpsw,
-	uint16_t if_id,
+			uint16_t if_id,
 	enum dpsw_counter type,
 	uint64_t *counter);
 
@@ -541,7 +514,7 @@ int dpsw_if_get_counter(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_set_counter(struct dpsw *dpsw,
-	uint16_t if_id,
+			uint16_t if_id,
 	enum dpsw_counter type,
 	uint64_t counter);
 
@@ -591,7 +564,7 @@ struct dpsw_tc_map_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_tc_set_map(struct dpsw *dpsw,
-	uint16_t if_id,
+		       uint16_t if_id,
 	const struct dpsw_tc_map_cfg *cfg);
 
 /**
@@ -630,7 +603,7 @@ struct dpsw_reflection_cfg {
  */
 
 int dpsw_if_add_reflection(struct dpsw *dpsw,
-	uint16_t if_id,
+			   uint16_t if_id,
 	const struct dpsw_reflection_cfg *cfg);
 
 /**
@@ -645,14 +618,14 @@ int dpsw_if_add_reflection(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_remove_reflection(struct dpsw *dpsw,
-	uint16_t if_id,
+			      uint16_t if_id,
 	const struct dpsw_reflection_cfg *cfg);
 
 /**
  * @brief	Metering and marking algorithms
  *
  */
-enum metering_algo {
+enum dpsw_metering_algo {
 	DPSW_METERING_ALGO_RFC2698 = 0, /*!< RFC 2698 */
 	DPSW_METERING_ALGO_RFC4115
 /*!< RFC 4115 */
@@ -662,7 +635,7 @@ enum metering_algo {
  * @brief	Metering and marking modes
  *
  */
-enum metering_mode {
+enum dpsw_metering_mode {
 	DPSW_METERING_MODE_COLOR_BLIND = 0, /*!< Color blind mode */
 	DPSW_METERING_MODE_COLOR_AWARE
 /*!< Color aware mode */
@@ -673,7 +646,7 @@ enum metering_mode {
  *
  */
 struct dpsw_metering_cfg {
-	enum metering_algo algo; /*!< Implementation based on
+	enum dpsw_metering_algo algo; /*!< Implementation based on
 	 Metering and marking algorithm */
 	uint32_t cir; /*!< Committed information rate (CIR)
 	 in bits/s */
@@ -682,7 +655,7 @@ struct dpsw_metering_cfg {
 	uint32_t cbs; /*!< Committed burst size (CBS)
 	 in bytes */
 	uint32_t ebs; /*!< Excess bust size (EBS) in bytes */
-	enum metering_mode mode; /*!< Color awareness mode */
+	enum dpsw_metering_mode mode; /*!< Color awareness mode */
 };
 
 /**
@@ -700,7 +673,7 @@ struct dpsw_metering_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_tc_set_metering_marking(struct dpsw *dpsw,
-	uint16_t if_id,
+				    uint16_t if_id,
 	uint8_t tc_id,
 	const struct dpsw_metering_cfg *cfg);
 
@@ -727,7 +700,7 @@ struct dpsw_custom_tpid_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_add_custom_tpid(struct dpsw *dpsw,
-	uint16_t if_id,
+			    uint16_t if_id,
 	const struct dpsw_custom_tpid_cfg *cfg);
 
 /**
@@ -753,7 +726,7 @@ struct dpsw_transmit_rate_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_set_transmit_rate(struct dpsw *dpsw,
-	uint16_t if_id,
+			      uint16_t if_id,
 	const struct dpsw_transmit_rate_cfg *cfg);
 
 /**
@@ -800,7 +773,7 @@ struct dpsw_bandwidth_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_tc_set_bandwidth(struct dpsw *dpsw,
-	uint16_t if_id,
+			     uint16_t if_id,
 	uint8_t tc_id,
 	const struct dpsw_bandwidth_cfg *cfg);
 
@@ -866,7 +839,7 @@ struct dpsw_queue_congestion_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_tc_set_queue_congestion(struct dpsw *dpsw,
-	uint16_t if_id,
+				    uint16_t if_id,
 	uint8_t tc_id,
 	const struct dpsw_queue_congestion_cfg *cfg);
 
@@ -885,7 +858,9 @@ struct dpsw_pfc_cfg {
 	 PFC request message when congestion has been
 	 detected on specified TC queue  */
 	uint32_t initiator_trig; /*!< Bitmap defining Trigger source or sources
-	 for sending PFC request message out.  */
+	 for sending PFC request message out.
+	 DPSW_PFC_TRIG_QUEUE_CNG or DPSW_PFC_TRIG_BUFFER_DPL should be used
+	 */
 	uint16_t pause_quanta; /*!< Pause Quanta to indicate in PFC request
 	 message the amount of quanta time to pause */
 };
@@ -905,7 +880,7 @@ struct dpsw_pfc_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_tc_set_pfc(struct dpsw *dpsw,
-	uint16_t if_id,
+		       uint16_t if_id,
 	uint8_t tc_id,
 	struct dpsw_pfc_cfg *cfg);
 
@@ -936,7 +911,7 @@ struct dpsw_cn_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_tc_set_cn(struct dpsw *dpsw,
-	uint16_t if_id,
+		      uint16_t if_id,
 	uint8_t tc_id,
 	const struct dpsw_cn_cfg *cfg);
 
@@ -945,11 +920,7 @@ int dpsw_if_tc_set_cn(struct dpsw *dpsw,
  *
  */
 struct dpsw_if_attr {
-	int external; /*!< Internal or external Interface */
-	int control; /*!< Control/Data Interface */
-	int iop_id; /*!< WRIOP block identifier */
 	uint8_t num_tcs; /*!< Number of traffic classes */
-	int phys_if_id; /*!< Physical port ID */
 	uint64_t rate; /*!< TX rate in bits per second */
 	uint64_t options; /*!< features (bitmap) */
 };
@@ -966,7 +937,7 @@ struct dpsw_if_attr {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_if_get_attributes(struct dpsw *dpsw,
-	uint16_t if_id,
+			   uint16_t if_id,
 	struct dpsw_if_attr *attr);
 
 /**
@@ -1001,9 +972,52 @@ struct dpsw_macsec_cfg {
  *
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
-dpsw_if_set_macsec(struct dpsw *dpsw,
-	uint16_t if_id,
+int dpsw_if_set_macsec(struct dpsw *dpsw,
+		       uint16_t if_id,
 	const struct dpsw_macsec_cfg *cfg);
+
+/**
+ * @brief	Set Maximum Receive frame length.
+ *
+ * @param[in]	dpsw		L2 switch handle
+ *
+ * @param[in]	if_id		Interface Identifier
+ *
+ * @param[in]	frame_length	MAX Frame Length
+ *
+ * @returns      Completion status. '0' on Success; Error code otherwise.
+ */
+int dpsw_if_set_max_frame_length(struct dpsw *dpsw,
+				 uint16_t	if_id,
+	uint16_t	frame_length);
+
+/**
+ * @brief	Get Maximum Receive frame length.
+ *
+ * @param[in]	dpsw		L2 switch handle
+ *
+ * @param[in]	if_id		Interface Identifier
+ *
+ * @param[out]	frame_length	MAX Frame Length
+ *
+ * @returns      Completion status. '0' on Success; Error code otherwise.
+ */
+int dpsw_if_get_max_frame_length(struct dpsw *dpsw,
+				 uint16_t    if_id,
+	uint16_t    *frame_length);
+
+/**
+ * @brief	Get Current Link state.
+ *
+ * @param[in]	dpsw		L2 switch handle
+ *
+ * @param[in]	if_id		Interface Identifier
+ *
+ * @param[out]	state		Current link state
+ *
+ * @returns      Completion status. '0' on Success; Error code otherwise.
+ */
+int dpsw_if_get_link_state(struct dpsw *dpsw, uint16_t if_id, int *state);
 
 /**
  * @brief	VLAN Configuration
@@ -1014,7 +1028,10 @@ struct dpsw_vlan_cfg {
 };
 
 /**
- * @brief	Adds VLAN to switch
+ * @brief	Adding new VLAN to L2 Switch. Only VLAN ID and FDB ID are
+ *		required parameters here. 12 bit VLAN ID is defined in
+ *		IEEE802.1Q. Duplicate VLAN ID is not allowed to add.
+ *		FDB ID can be shared across multiple VLANs
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1025,7 +1042,7 @@ struct dpsw_vlan_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_vlan_add(struct dpsw *dpsw,
-	uint16_t vlan_id,
+		  uint16_t vlan_id,
 	const struct dpsw_vlan_cfg *cfg);
 
 /**
@@ -1034,15 +1051,16 @@ int dpsw_vlan_add(struct dpsw *dpsw,
  */
 struct dpsw_vlan_if_cfg {
 	uint16_t num_ifs; /*!< The number of ports that are
-	 permanently assigned to the egress
-	 list for this VLAN */
+	 assigned to the egress list for this VLAN */
 	uint16_t if_id[DPSW_MAX_IF]; /*!< The set of ports that are
-	 permanently assigned to the egress
-	 list for this VLAN */
+	 assigned to the egress list for this VLAN */
 };
 
 /**
- * @brief	Adds set of interfaces to specified VLAN
+ * @brief	Adding a set of ports to an existing VLAN. It adds only ports
+ *		not belonging to this VLAN yet, otherwise error will be
+ *		generated and an entire command ignored. API can be called
+ *		many times always having required ports delta.
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1053,12 +1071,15 @@ struct dpsw_vlan_if_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_vlan_add_if(struct dpsw *dpsw,
-	uint16_t vlan_id,
+		     uint16_t vlan_id,
 	const struct dpsw_vlan_if_cfg *cfg);
 
 /**
- * @brief	Adds set of interfaces that should be
- *		transmitted as untagged
+ * @brief	Defining a set of ports that should be transmitted as untagged.
+ *		These ports should already belong to this VLAN. By default all
+ *		ports are transmitted as tagged. Providing un-existing port
+ *		or untagged port that is configured untagged already will
+ *		generate an error and the entire command ignored
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1070,11 +1091,16 @@ int dpsw_vlan_add_if(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_vlan_add_if_untagged(struct dpsw *dpsw,
-	uint16_t vlan_id,
+			      uint16_t vlan_id,
 	const struct dpsw_vlan_if_cfg *cfg);
 
 /**
- * @brief	Add a Set of interfaces for flooding
+ * @brief	Defining a set of ports that should be included in flooding
+ *		when frame with unknown destination uni-cast MAC arrived.
+ *		These ports should belong to this VLAN. By default all ports
+ *		are included into flooding list. Providing un-existing port
+ *		or port that already in the flooding list will generate an
+ *		error and the entire command will be ignored
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1086,11 +1112,13 @@ int dpsw_vlan_add_if_untagged(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_vlan_add_if_flooding(struct dpsw *dpsw,
-	uint16_t vlan_id,
+			      uint16_t vlan_id,
 	const struct dpsw_vlan_if_cfg *cfg);
 
 /**
- * @brief	removes set of interfaces from specified VLAN
+ * @brief	Removing interfaces from an existing VLAN. Ports provided
+ *		by this API have to belong to this VLAN, otherwise an error
+ *		will be returned and an entire command ignored
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1101,12 +1129,15 @@ int dpsw_vlan_add_if_flooding(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_vlan_remove_if(struct dpsw *dpsw,
-	uint16_t vlan_id,
+			uint16_t vlan_id,
 	const struct dpsw_vlan_if_cfg *cfg);
 
 /**
- * @brief	removes set of interfaces transmitting frames as un-tagged
- *		from specified VLAN
+ * @brief	Defining a set of ports that should be converted from
+ *		transmitted as untagged to transmit as tagged.
+ *		Ports provided by API have to belong to this VLAN and
+ *		configured untagged, otherwise an error returned and the
+ *		command ignored
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1117,11 +1148,15 @@ int dpsw_vlan_remove_if(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_vlan_remove_if_untagged(struct dpsw *dpsw,
-	uint16_t vlan_id,
+				 uint16_t vlan_id,
 	const struct dpsw_vlan_if_cfg *cfg);
 
 /**
- * @brief	removes set of flooding interfaces from specified VLAN
+ * @brief	Defining a set of ports that should be removed from flooding
+ *		list.
+ *
+ *		Ports provided by API have to exist and participate in current
+ *		flooding list
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1132,11 +1167,11 @@ int dpsw_vlan_remove_if_untagged(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_vlan_remove_if_flooding(struct dpsw *dpsw,
-	uint16_t vlan_id,
+				 uint16_t vlan_id,
 	const struct dpsw_vlan_if_cfg *cfg);
 
 /**
- * @brief	removes specified VLAN
+ * @brief	Removing an entire VLAN
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1153,7 +1188,6 @@ int dpsw_vlan_remove(struct dpsw *dpsw, uint16_t vlan_id);
 struct dpsw_fdb_cfg {
 	uint16_t num_fdb_entries; /*!< Number of FDB entries */
 	uint16_t fdb_aging_time; /*!< Aging time in seconds */
-	uint16_t num_fdb_static_entries;/*!< number of static entries */
 };
 
 /**
@@ -1164,12 +1198,12 @@ struct dpsw_fdb_cfg {
  *
  * @param[out]	fdb_id		Forwarding Database Identifier
  *
- * @param[out]	cfg		FDB Configuration
+ * @param[in]	cfg		FDB Configuration
  *
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_fdb_add(struct dpsw *dpsw,
-	uint16_t *fdb_id,
+		 uint16_t *fdb_id,
 	const struct dpsw_fdb_cfg *cfg);
 
 /**
@@ -1215,8 +1249,8 @@ struct dpsw_fdb_unicast_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_fdb_add_unicast(struct dpsw *dpsw,
-	uint16_t fdb_id,
-	const struct dpsw_fdb_unicast_cfg *cfg);
+			 uint16_t fdb_id,
+			 const struct dpsw_fdb_unicast_cfg *cfg);
 
 /**
  * @brief	removes an entry from MAC lookup table
@@ -1230,8 +1264,8 @@ int dpsw_fdb_add_unicast(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_fdb_remove_unicast(struct dpsw *dpsw,
-	uint16_t fdb_id,
-	const struct dpsw_fdb_unicast_cfg *cfg);
+			    uint16_t fdb_id,
+			    const struct dpsw_fdb_unicast_cfg *cfg);
 
 /**
  * @brief	Structure representing multi-cast entry configuration
@@ -1245,7 +1279,11 @@ struct dpsw_fdb_multicast_cfg {
 };
 
 /**
- * @brief	adds multicast entry to MAC lookup table
+ * @brief	Adding a set of egress ports to multi-cast group.
+ *		If group doesn't exist, it will be created.
+ *		It adds only ports not belonging to this multicast group yet,
+ *		otherwise error will be generated and an entire command ignored.
+ *		API can be called many times always having required ports delta.
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1256,11 +1294,15 @@ struct dpsw_fdb_multicast_cfg {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_fdb_add_multicast(struct dpsw *dpsw,
-	uint16_t fdb_id,
-	const struct dpsw_fdb_multicast_cfg *cfg);
+			   uint16_t fdb_id,
+			   const struct dpsw_fdb_multicast_cfg *cfg);
 
 /**
- * @brief	removes multicast entry to MAC lookup table
+ * @brief	Removing interfaces from an existing multicast group.
+ *		Ports provided by this API have to exist in the group,
+ *		otherwise an error will be returned and an entire command
+ *		ignored. If there is no interface left in the group,
+ *		an entire group is deleted
  *
  * @param[in]	dpsw		L2 switch handle
  *
@@ -1271,21 +1313,22 @@ int dpsw_fdb_add_multicast(struct dpsw *dpsw,
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_fdb_remove_multicast(struct dpsw *dpsw,
-	uint16_t fdb_id,
-	const struct dpsw_fdb_multicast_cfg *cfg);
+			      uint16_t fdb_id,
+			      const struct dpsw_fdb_multicast_cfg *cfg);
 
 /**
  * @brief	Auto-learning modes
  *
  */
 enum dpsw_fdb_learning_mode {
-	DPSW_FDB_LEARNING_MODE_DIS = 0, /*!< Disable Auto-learning */
-	DPSW_FDB_LEARNING_MODE_HW, /*!< Enable HW auto-Learning */
-	DPSW_FDB_LEARNING_MODE_NON_SECURE, /*!< Enable None secure learning
-	 by CPU */
+	DPSW_FDB_LEARNING_MODE_DIS = 0,
+	/*!< Disable Auto-learning */
+	DPSW_FDB_LEARNING_MODE_HW,
+	/*!< Enable HW auto-Learning */
+	DPSW_FDB_LEARNING_MODE_NON_SECURE,
+	/*!< Enable None secure learning by CPU */
 	DPSW_FDB_LEARNING_MODE_SECURE
-/*!< Enable secure learning
- by CPU */
+	/*!< Enable secure learning by CPU */
 };
 
 /**
@@ -1300,17 +1343,24 @@ enum dpsw_fdb_learning_mode {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_fdb_set_learning_mode(struct dpsw *dpsw,
-	uint16_t fdb_id,
-	enum dpsw_fdb_learning_mode mode);
+			       uint16_t fdb_id,
+			       enum dpsw_fdb_learning_mode mode);
 
 /**
  * @brief	FDB Attributes
  *
  */
 struct dpsw_fdb_attr {
-	uint16_t num_fdb_entries; /*!< Number of FDB entries */
-	uint16_t fdb_aging_time; /*!< Aging time in seconds */
-	uint16_t num_fdb_static_entries;/*!< number of static entries */
+	uint16_t max_fdb_entries;
+	/*!< Number of FDB entries */
+	uint16_t fdb_aging_time;
+	/*!< Aging time in seconds */
+	enum dpsw_fdb_learning_mode learning_mode;
+	/*!< Learning mode */
+	uint16_t num_fdb_mc_groups;
+	/*! Current number of multicast groups */
+	uint16_t max_fdb_mc_groups;
+	/*! Maximum number of multicast groups */
 };
 
 /**
@@ -1325,42 +1375,161 @@ struct dpsw_fdb_attr {
  * @returns      Completion status. '0' on Success; Error code otherwise.
  */
 int dpsw_fdb_get_attributes(struct dpsw *dpsw,
-	uint16_t fdb_id,
-	struct dpsw_fdb_attr *attr);
+			    uint16_t fdb_id,
+			    struct dpsw_fdb_attr *attr);
 
-int dpsw_get_irq(struct dpsw *dpsw,
-                 uint8_t irq_index,
-                 uint64_t *irq_paddr,
-                 uint32_t *irq_val);
+/*!
+ * @name DPSW IRQ Index and Events
+ */
+#define DPSW_IRQ_INDEX_IF		0x0000
+#define DPSW_IRQ_INDEX_L2SW		0x0001
 
+#define DPSW_IRQ_EVENT_LINK_CHANGED	0x0001
+/*!< irq event - Indicates that the link state changed */
+/* @} */
+
+/**
+ * @brief	Sets IRQ information for the DPSW to trigger an interrupt.
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]	irq_index	Identifies the interrupt index to configure;
+ *				Select from DPSW_IRQ_INDEX_ values
+ * @param[in]	irq_paddr	Physical IRQ address that must be written to
+ *				signal a message-based interrupt
+ * @param[in]	irq_val		Value to write into irq_paddr address
+ * @param[in]	user_irq_id	A user defined number associated with this IRQ;
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
 int dpsw_set_irq(struct dpsw *dpsw,
-                 uint8_t irq_index,
-                 uint64_t irq_paddr,
-                 uint32_t irq_val);
+		 uint8_t irq_index,
+		 uint64_t irq_paddr,
+		 uint32_t irq_val,
+		 int user_irq_id);
 
+/**
+ * @brief	Gets IRQ information from the DPSW.
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ *				Select from DPSW_IRQ_INDEX_ values
+ * @param[out]  type		Interrupt type: 0 represents message interrupt
+ *				type (both irq_paddr and irq_val are valid);
+ * @param[out]	irq_paddr	Physical address that must be written in order
+ *				to signal the message-based interrupt
+ * @param[out]	irq_val		Value to write in order to signal the
+ *				message-based interrupt
+ * @param[out]	user_irq_id	A user defined number associated with this IRQ;
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpsw_get_irq(struct dpsw *dpsw,
+		 uint8_t irq_index,
+		 int *type,
+		 uint64_t *irq_paddr,
+		 uint32_t *irq_val,
+		 int *user_irq_id);
+
+/**
+ * @brief	Sets overall interrupt state.
+ *
+ * Allows GPP software to control when interrupts are generated.
+ * Each interrupt can have up to 32 causes.  The enable/disable control's the
+ * overall interrupt state. if the interrupt is disabled no causes will cause
+ * an interrupt.
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ *				Select from DPSW_IRQ_INDEX_ values
+ * @param[in]	enable_state	interrupt state - enable = 1, disable = 0.
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
 int dpsw_set_irq_enable(struct dpsw *dpsw,
-                          uint8_t irq_index,
-                          uint8_t enable_state);
+			uint8_t irq_index,
+			uint8_t enable_state);
 
+/**
+ * @brief	Gets overall interrupt state
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[out]	enable_state	interrupt state - enable = 1, disable = 0.
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
 int dpsw_get_irq_enable(struct dpsw *dpsw,
-                          uint8_t irq_index,
-                          uint8_t *enable_state);
+			uint8_t irq_index,
+			uint8_t *enable_state);
 
+/**
+ * @brief	Sets interrupt mask.
+ *
+ * Every interrupt can have up to 32 causes and the interrupt model supports
+ * masking/unmasking each cause independently
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ *				Select from DPSW_IRQ_INDEX_ values
+ * @param[in]	mask		event mask to trigger interrupt.
+ *				each bit:
+ *					0 = ignore event
+ *					1 = consider event for asserting irq
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
 int dpsw_set_irq_mask(struct dpsw *dpsw,
-                        uint8_t irq_index,
-                        uint32_t mask);
+		      uint8_t irq_index,
+		      uint32_t mask);
 
+/**
+ * @brief	Gets interrupt mask.
+ *
+ * Every interrupt can have up to 32 causes and the interrupt model supports
+ * masking/unmasking each cause independently
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ *				Select from DPSW_IRQ_INDEX_ values
+ * @param[out]	mask		event mask to trigger interrupt
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
 int dpsw_get_irq_mask(struct dpsw *dpsw,
-                        uint8_t irq_index,
-                        uint32_t *mask);
+		      uint8_t irq_index,
+		      uint32_t *mask);
 
+/**
+ * @brief	Gets the current status of any pending interrupts.
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ *				Select from DPSW_IRQ_INDEX_ values
+ * @param[out]	status		interrupts status - one bit per cause
+ *					0 = no interrupt pending
+ *					1 = interrupt pending
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ * */
 int dpsw_get_irq_status(struct dpsw *dpsw,
-                         uint8_t irq_index,
-                         uint32_t *status);
+			uint8_t irq_index,
+			uint32_t *status);
 
+/**
+ * @brief	Clears a pending interrupt's status
+ *
+ * @param[in]	dpsw		DPSW descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ *				Select from DPSW_IRQ_INDEX_ values
+ * @param[out]	status		bits to clear (W1C) - one bit per cause
+ *					0 = don't change
+ *					1 = clear status bit
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ * */
 int dpsw_clear_irq_status(struct dpsw *dpsw,
-                            uint8_t irq_index,
-                            uint32_t status);
+			  uint8_t irq_index,
+			  uint32_t status);
 
 /*! @} */
 
