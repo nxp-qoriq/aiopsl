@@ -167,7 +167,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 
 void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 {
-	struct ldpaa_fd fd ;//__attribute__((aligned(sizeof(struct ldpaa_fd))));
+	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle;
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
@@ -179,7 +179,7 @@ void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 
 void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 {
-	struct ldpaa_fd fd ;//__attribute__((aligned(sizeof(struct ldpaa_fd))));
+	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle;
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
