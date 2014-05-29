@@ -36,7 +36,7 @@ Execution flow
 10. Run “tio inject”:
    ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
    This will send packets to AIOP.
-11. Set break point inside app_process_packet_flow0() and push "Multi core Resume" button to run and see that
+11. Set break point inside app_process_packet_flow0() and push "Resume / Multi core Resume" button to run and see that
     it's activated on each packet.
 12. The packet will also be captured by the tio_capture
 
