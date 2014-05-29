@@ -39,7 +39,8 @@ enum parser_verif_cmd_type {
 	PARSER_PRP_ID_POOL_CREATE_VERIF_CMDTYPE,
 	PARSER_INIT_FOR_VERIF_CMDTYPE,
 	PARSER_MACROS_VERIF_CMDTYPE,
-	PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE
+	PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE,
+	PARSER_INIT_GROSS_VERIF_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((PARSE_MODULE << 16) | \
@@ -71,6 +72,20 @@ enum parser_verif_cmd_type {
 
 #define PARSER_GEN_PARSE_RES_CHECKSUM_STR ((PARSE_MODULE << 16) | \
 					PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE)
+
+#define PARSER_GEN_INIT_GROSS_STR ((PARSE_MODULE << 16) | \
+				PARSER_INIT_GROSS_VERIF_CMDTYPE)
+
+/**************************************************************************//**
+@Description	Parser verification init gross running sum Command structure.
+
+		This command inits the gross running sum field in parse profile result
+		
+*//***************************************************************************/
+struct parser_init_gross_verif_command {
+	uint32_t	opcode;
+	uint32_t 	status;
+};
 
 /**************************************************************************//**
 @Description	Parser verification init Command structure.
