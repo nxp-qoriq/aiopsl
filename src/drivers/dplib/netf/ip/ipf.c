@@ -165,7 +165,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - ipv6_offset -
 		IPV6_HDR_LENGTH + IPV6_FRAGMENT_HEADER_LENGTH;
 
-		if (~(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS)){
+		if (!(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS)){
 			/* Calculate split size for next fragment */
 			ipf_ctx->split_size += IPV6_FRAGMENT_HEADER_LENGTH;
 		} else {
