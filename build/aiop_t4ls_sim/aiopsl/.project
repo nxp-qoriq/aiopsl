@@ -320,6 +320,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dplib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dplib.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpni</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>

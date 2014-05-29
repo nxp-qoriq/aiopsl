@@ -4,9 +4,7 @@ The following file includes the instructions for app_process_packet demo.
 Setup
 ===========================================
 1. Install CW_DPAA_v10.0.7
-2. Download linux version of DPAA_SIM_RELEASE_0_7_0_0101 and overwrite
-   libctlufunc.so.1, libparserfunc.so.0 files by files from the following patch:
-   http://gforge.freescale.net/frs/download.php/2041/LS2100_SIM_CTLU-20140418.tbz2
+2. Download linux version of LS_SIM_RELEASE_0_8_0_0109
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
@@ -17,7 +15,7 @@ Setup
 ===========================================
 Execution flow
 ===========================================
-1. Build mc_app from mc_release_0.3.2 using CW_DPAA_v10.0.7.
+1. Build mc_app from mc_release_0.4 using CW_DPAA_v10.0.7.
 2. Build app_process_packet from aiopsl using CW_DPAA_v10.0.7.
 3. Run simulator:
    ./ccssim2 -port 42333
@@ -30,15 +28,17 @@ Execution flow
 6. Run mc_app untill you'll see "Running MC app, waiting for events ..." on tio console
 7. Launch app_process_packect.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
-8. Push "Multicore Resume" button to run all AIOP cores untill you'll see
-   "AIOP <core_id> completed boot sequence; waiting for events ..." for all cores
+8. Push "Resume" button to run Single AIOP core and wait until you'll see
+   "AIOP <0> completed boot sequence; waiting for events ..." 
+   (for using multi core mode define in preprocessor MULTICORE_WA   [inside CW Project -> Properties->
+	C/C++ Build -> Settings: Preprocessor -> Defined Macros]  and use "multi-core resume" when starting debugger)
 9. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
 10. Run “tio inject”:
    ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
    This will send packets to AIOP.
-11. Set break point inside app_process_packet_flow0() and push "Multicore Resume" button to run and see that
+11. Set break point inside app_process_packet_flow0() and push "Resume / Multi core Resume" button to run and see that
     it's activated on each packet.
 12. The packet will also be captured by the tio_capture
 
@@ -53,6 +53,18 @@ Possible modifications:
    mode as it was supported in previous releases, it is required to recompile
    aiopsl and app_process_packect project with AIOP_STANDALONE defined.
    Please note that the standalone mode is being phased out and has is no longer verified.
+6. The user may run with elf loader. In order to do that:
+   a.	Go to simulator folder and uncomment the lines marked with "#for elf loader" in cfg
+		files: "ls2100_sys_test", "ls2085a_sim_init_params"
+   b.	Copy the "aiop_app.elf" from the build project folder to the simulator folder in same location
+		as the cfg files.
+   c.   For interactive debugging of aiop code, run debug configurations from CW after you'll see
+		"AIOP <0> completed boot sequence; waiting for events ..."
+		Choose the relevant project (app_process_packet) and switch in debug session type to "Attach".
+		in target settings choose AIOP-2 as target and choose edit.
+		(verify that the server port and host name are the same as in simulator). enter edit..., 
+		and un-mark initialization files.
+		
 
 =================
 Important NOTEs:
