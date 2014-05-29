@@ -124,7 +124,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 
 	
 	/* If Gross Running Sum != 0 then it is valid */
-	if (!pr->gross_running_sum) {
+	if (pr->gross_running_sum) {
 		input_struct.gross_running_sum = pr->gross_running_sum;
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
@@ -185,7 +185,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		((uint32_t)starting_offset << 24);
 
 	/* If Gross Running Sum != 0 then it is valid */
-	if (!pr->gross_running_sum) {
+	if (pr->gross_running_sum) {
 		input_struct.gross_running_sum = pr->gross_running_sum;
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
