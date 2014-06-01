@@ -251,7 +251,7 @@ static int init_l1_cache(t_platform *pltfrm)
     /* L1 Cache Init */
     if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_INST_ONLY) {
         booke_icache_enable();
-        booke_icache_flush();
+        /* booke_icache_flush(); //TODO this is not correct !! */
     }
 
     if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY)
