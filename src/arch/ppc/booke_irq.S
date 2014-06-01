@@ -781,26 +781,3 @@ perf_monitor_intr:
 .org  0x1d00
     nop
 
-/*****************************************************************************
-    0x1f00 Dynamic loader for SMP
-*****************************************************************************/
-#ifdef SYS_SECONDARY_START
-.org  0x1f00
-    lis     3, 0
-    lis     4, 0
-    lis     5, 0
-    lis     16,__sys_start_secondary@h
-    ori     16,16,__sys_start_secondary@l
-    mtlr    16
-    blrl
-#else
-.org  0x1f00
-    lis     3, 0
-    lis     4, 0
-    lis     5, 0
-    lis     16,__sys_start@h
-    ori     16,16,__sys_start@l
-    mtlr    16
-    blrl
-#endif /* SYS_SECONDARY_START */
-

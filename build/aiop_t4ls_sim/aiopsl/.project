@@ -180,11 +180,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif_client.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/cmdif_srv.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.c</locationURI>
@@ -250,6 +245,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/list.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/memcpy.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/memcpy.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/slab.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/slab.c</locationURI>
@@ -313,6 +313,11 @@
 			<name>aiop_sl/drivers/dplib/dpio</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dplib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dplib.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpni</name>
