@@ -95,8 +95,10 @@ int32_t ipsec_init(uint32_t max_sa_no) {
 *	ipsec_create_instance
 *//****************************************************************************/
 int32_t ipsec_create_instance(
+		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
-		uint8_t	  tmi_id,
+		uint32_t instance_flags,
+		uint8_t tmi_id,
 		ipsec_instance_handle_t *instance_handle)
 {
 	int32_t return_val;
@@ -522,16 +524,11 @@ int32_t ipsec_generate_flc(
 	int32_t return_val;
 	
 	struct ipsec_flow_context flow_context;
-	//uint32_t *sp_addr = (uint32_t *)(IPSEC_PROFILE_SRAM_ADDR + 
-	//						(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 
-	
-
+	/* TODO: temporary storage profiles implementation */
 	extern struct storage_profile storage_profiles[NUM_OF_SP];
-	
-	uint64_t *sp_addr = (uint64_t *)((uint32_t)(&storage_profiles[0]) +
-								(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
-	
+	uint64_t *sp_addr =  (uint64_t *)(&storage_profiles[spid]);
+			
 	/* Word 0 */
 	flow_context.word0_sdid = 0; //TODO: how to get this value? 
 	flow_context.word0_res = 0; 
