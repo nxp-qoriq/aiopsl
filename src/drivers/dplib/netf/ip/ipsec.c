@@ -108,6 +108,9 @@ int32_t ipsec_create_instance(
 	// max_sa_num for IPv6 outer header
 	// max num of tasks for ASA 
 	
+	uint32_t tmp1 = committed_sa_num; // TODO: TMP, to avoid warnings
+	uint32_t tmp2 = instance_flags; // TODO: TMP, to avoid warnings
+	
 	int num_filled_buffs;
 	
 	struct ipsec_instance_params instance; 
