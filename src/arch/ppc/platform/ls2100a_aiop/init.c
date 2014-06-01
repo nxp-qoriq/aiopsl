@@ -110,9 +110,8 @@ int global_post_init(void)
 
 void core_ready_for_tasks(void)
 {
-
-    uint32_t core_id = core_get_id();
-    uintptr_t   tmp_reg =
+	uint32_t abcr_val;
+	uintptr_t   tmp_reg =
 	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
@@ -123,14 +122,14 @@ void core_ready_for_tasks(void)
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
 
 #ifdef MULTICORE_WA
-    uint32_t abcr_val;
+
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	uint32_t abrr_val = ioread32(abrr) & \
 		(~((uint32_t)(1 << core_get_id())));
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
     }
-
+#endif
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
     abcr_val = ioread32(abcr);
@@ -138,6 +137,8 @@ void core_ready_for_tasks(void)
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
     
+#ifdef MULTICORE_WA
+
     {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
 	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}

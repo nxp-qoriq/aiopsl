@@ -16,7 +16,6 @@
 #ifdef MC
 struct dpbp;
 #else
-#include <fsl_cmdif.h>
 struct dpbp {
 	void *regs;
 	/*!<
@@ -39,7 +38,7 @@ struct dpbp {
  */
 struct dpbp_cfg {
 	int tmp; /* place holder!!!! */
-/* TODO - need to add depletion parameters
+	/* TODO - need to add depletion parameters
  * (either here or in separate routine) */
 };
 
@@ -49,8 +48,8 @@ struct dpbp_cfg {
 struct dpbp_attr {
 	int id; /*!< DPBP id*/
 	uint16_t bpid; /*!< buffer pool id;
-	in case equal to DPBP_BPID_NOT_VALID the bpid isn't valid
-	and must not be used; Only after 'enable' bpid will be valid; */
+	 in case equal to DPBP_BPID_NOT_VALID the bpid isn't valid
+	 and must not be used; Only after 'enable' bpid will be valid; */
 	struct {
 		uint32_t major; /*!< DPBP major version*/
 		uint32_t minor; /*!< DPBP minor version*/
@@ -147,17 +146,15 @@ int dpbp_get_attributes(struct dpbp *dpbp, struct dpbp_attr *attr);
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  *				signal a message-based interrupt
  * @param[in]	irq_val		Value to write into irq_paddr address
- * @param[in]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
- * 				
+ * @param[in]	user_irq_id	A user defined number associated with this IRQ;
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_set_irq(struct dpbp *dpbp,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	uint64_t irq_paddr,
 	uint32_t irq_val,
-	int irq_virt_id);
+	int user_irq_id);
 
 /**
  * @brief	Gets IRQ information from the DPBP.
@@ -170,18 +167,16 @@ int dpbp_set_irq(struct dpbp *dpbp,
  *				to signal the message-based interrupt
  * @param[out]	irq_val		Value to write in order to signal the
  *				message-based interrupt
- * @param[out]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
- * 				
+ * @param[out]	user_irq_id	A user defined number associated with this IRQ;
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_get_irq(struct dpbp *dpbp,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	int *type,
 	uint64_t *irq_paddr,
 	uint32_t *irq_val,
-	int *irq_virt_id);
+	int *user_irq_id);
 
 /**
  * @brief	Sets overall interrupt state.
@@ -198,7 +193,7 @@ int dpbp_get_irq(struct dpbp *dpbp,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_set_irq_enable(struct dpbp *dpbp,
-	uint8_t irq_index,
+			uint8_t irq_index,
 	uint8_t enable_state);
 
 /**
@@ -211,7 +206,7 @@ int dpbp_set_irq_enable(struct dpbp *dpbp,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_get_irq_enable(struct dpbp *dpbp,
-	uint8_t irq_index,
+			uint8_t irq_index,
 	uint8_t *enable_state);
 
 /**
@@ -230,7 +225,7 @@ int dpbp_get_irq_enable(struct dpbp *dpbp,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_set_irq_mask(struct dpbp *dpbp,
-	uint8_t irq_index,
+		      uint8_t irq_index,
 	uint32_t mask);
 
 /**
@@ -246,7 +241,7 @@ int dpbp_set_irq_mask(struct dpbp *dpbp,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_get_irq_mask(struct dpbp *dpbp,
-	uint8_t irq_index,
+		      uint8_t irq_index,
 	uint32_t *mask);
 
 /**
@@ -261,7 +256,7 @@ int dpbp_get_irq_mask(struct dpbp *dpbp,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dpbp_get_irq_status(struct dpbp *dpbp,
-	uint8_t irq_index,
+			uint8_t irq_index,
 	uint32_t *status);
 
 /**
@@ -276,7 +271,7 @@ int dpbp_get_irq_status(struct dpbp *dpbp,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dpbp_clear_irq_status(struct dpbp *dpbp,
-	uint8_t irq_index,
+			  uint8_t irq_index,
 	uint32_t status);
 
 /** @} */

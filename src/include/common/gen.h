@@ -18,7 +18,6 @@
 #define MAKE_UINT64(_h32, _l32)	(((uint64_t)high32 << 32) | (low32))
 
 #define MAKE_UMASK32(_width)	(uint32_t)(((uint64_t)1 << (_width)) - 1)
-#define MAKE_UMASK64(_width)	(uint64_t)(((uint64_t)1 << (_width)) - 1)
 
 
 /*----------------------*/
@@ -151,6 +150,9 @@ static inline uint##w##_t u##w##_rmw(uint##w##_t val, int lsoffset, int width, u
 }
 
 DECLARE_UINT_CODEC(32)
+#if (!defined(DECLARE_UINT_CODEC))
+#define MAKE_UMASK64(_width)	(uint64_t)(((uint64_t)1 << (_width)) - 1)
 DECLARE_UINT_CODEC(64)
+#endif
 
 #endif /* __FSL_SYS_GEN_H */
