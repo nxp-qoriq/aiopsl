@@ -1,6 +1,7 @@
 #ifndef __SYS_H
 #define __SYS_H
 
+#include "common/aiop_common.h"
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/list.h"
@@ -45,6 +46,9 @@ typedef struct t_system {
 
 	/* boot synchronization variables */
 	volatile uint32_t           boot_sync_flag;
+	
+	/* registers base address */
+	struct aiop_tile_regs *     aiop_regs;
 	
 	/* Platform operations */
 	t_platform_ops              platform_ops;

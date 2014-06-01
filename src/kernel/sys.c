@@ -216,6 +216,8 @@ static int global_sys_init(void)
 	int err = 0;
 	ASSERT_COND(sys_is_master_core());
 	
+	sys.aiop_regs = (struct aiop_tile_regs *)(SOC_PERIPH_OFF_AIOP_TILE \
+		                               + 0x02000000); //TODO validate !!
 	update_active_cores_mask();
 	
 	fill_platform_parameters(&platform_param);
