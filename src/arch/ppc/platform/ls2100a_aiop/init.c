@@ -121,7 +121,7 @@ void core_ready_for_tasks(void)
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
 
-#ifdef MULTICORE_WA
+#ifndef SINGLE_CORE_WA
 
     if(sys_is_master_core()) {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
@@ -136,8 +136,8 @@ void core_ready_for_tasks(void)
     abcr_val |= (uint32_t)(1 << core_get_id());
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
-    
-#ifdef MULTICORE_WA
+
+#ifndef SINGLE_CORE_WA
 
     {
 	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
