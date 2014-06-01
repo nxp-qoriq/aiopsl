@@ -172,7 +172,61 @@ int32_t ipsec_create_instance(
 	return IPSEC_SUCCESS; 
 }
 
+/**************************************************************************//**
+*	ipsec_get_buffer (TMP)
+*//****************************************************************************/
+int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t *ipsec_handle
+	);
 
+int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t *ipsec_handle)
+{
+	int32_t return_val;
+	struct ipsec_instance_params instance; 
+	int num_filled_buffs;
+
+	return_val = cdma_read_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
+			&instance, /* void *ws_dst */
+			sizeof(instance) /* uint16_t size */	
+	);
+
+	if (instance.sa_count < instance.committed_sa_num) {
+		return_val = (int32_t)cdma_acquire_context_memory(
+				instance.desc_bpid,
+				ipsec_handle); /* context_memory */
+		instance.sa_count++;
+	} else if (instance.sa_count < instance.max_sa_num) {
+		/* Descriptor and Instance Buffers */
+		return_val = slab_find_and_fill_bpid(
+				1, /* uint32_t num_buffs */
+				IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
+				IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
+				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
+	            &num_filled_buffs, /* int *num_filled_buffs */
+	            &(instance.desc_bpid)); /* uint16_t *bpid */
+		
+		return_val = (int32_t)cdma_acquire_context_memory(
+				instance.desc_bpid,
+				ipsec_handle); /* context_memory */
+		instance.sa_count++;
+	} else {
+		// TODO: Return error
+	}
+	
+	/* Write and release lock */
+	return_val = cdma_write_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
+			&instance, /* void *ws_dst */
+			sizeof(instance) /* uint16_t size */	
+	);
+	
+	return IPSEC_SUCCESS; 
+
+}	
 
 /**************************************************************************//**
 @Function		ipsec_generate_encap_sd 
