@@ -165,10 +165,11 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - ipv6_offset -
 		IPV6_HDR_LENGTH + IPV6_FRAGMENT_HEADER_LENGTH;
 
-		if (~(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS)){
-			/* Calculate split size and frag offset for 
-			 * next fragment */
+		if (!(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS)){
+			/* Calculate split size for next fragment */
 			ipf_ctx->split_size += IPV6_FRAGMENT_HEADER_LENGTH;
+		} else {
+			/* Calculate frag offset for next fragment */
 			frag_payload_length = (uint16_t)
 				LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				(uint16_t)ipf_ctx->ipv6_frag_hdr_offset;
@@ -674,7 +675,7 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 				/* Clear gross running sum in parse results */
 				pr->gross_running_sum = 0;
 				status = ipf_split_ipv6_fragment(
-						ipf_ctx, NULL);
+						ipf_ctx, last_ext_hdr_size);
 				return status; /* TODO */
 			}
 		} else {

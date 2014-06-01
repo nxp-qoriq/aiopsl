@@ -67,6 +67,12 @@ enum ipsec_cipher_type {
 
 #define IPSEC_DECAP_PDB_ARS_MASK 0xC0 /* PDB options[ARS], bits 7:6 */
 
+#define IPSEC_DEC_OPTS_ETU 	0x0001 /** ETU: EtherType Update 
+* If set this has two implications: 
+* - The first PDB:AOIPHO-2 bytes of the Outer IP Header Material 
+* 	are copied to the output frame.validate IP header checksum 
+* - The EtherType field is updated */
+
 /* OPTIONS[3:2] - OIHI: Outer IP Header Included 
  * 00 : No Outer IP Header provided
  * 01 : First PDB:Opt IP Hdr Len bytes of Input frame is the

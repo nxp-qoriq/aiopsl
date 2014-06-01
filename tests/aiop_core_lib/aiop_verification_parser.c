@@ -72,6 +72,19 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 	opcode  = *((uint32_t *) asa_seg_addr);
 
 	switch (opcode) {
+	case PARSER_GEN_INIT_GROSS_STR:
+	{
+		struct parser_init_gross_verif_command *pc =
+						(struct parser_init_gross_verif_command *)
+						asa_seg_addr;
+		struct parse_result *pr = 
+						(struct parse_result *)HWC_PARSE_RES_ADDRESS;
+		pc->status = fdma_calculate_default_frame_checksum(0, 0xFFFF,
+				&pr->gross_running_sum);
+
+		str_size = sizeof(struct parser_init_gross_verif_command);
+		break;
+	}
 	case PARSER_PRP_CREATE_STR:
 	{
 		struct parser_prp_create_verif_command *pc =

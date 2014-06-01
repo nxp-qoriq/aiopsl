@@ -106,6 +106,14 @@
 @{
 *//***************************************************************************/
 
+/* Temporary storage profiles definition */
+#define NUM_OF_SP 2
+
+enum sp_types {
+	SP_DEFAULT = 0, /* Default storage profile */
+	SP_IPSEC, /* IPsec storage profile */
+};
+
 /**************************************************************************//**
 @Description	Storage Profile Struct
 *//***************************************************************************/

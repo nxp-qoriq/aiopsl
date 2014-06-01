@@ -444,9 +444,11 @@ int32_t ipsec_generate_decap_sd(
 
 	pdb.options = 
 		(uint8_t)(((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK));
-
-	// TODO: Program options[outFMT] for decapsulation
-				
+	
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		pdb.options |= IPSEC_DEC_OPTS_ETU;
+	}
+	
 	//union {
 	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
 	//	uint8_t aoipho;		/* actual outer IP header offset for
@@ -525,9 +527,9 @@ int32_t ipsec_generate_flc(
 
 	
 
-	extern struct storage_profile storage_profile;
+	extern struct storage_profile storage_profiles[NUM_OF_SP];
 	
-	uint64_t *sp_addr = (uint64_t *)((uint32_t)(&storage_profile) +
+	uint64_t *sp_addr = (uint64_t *)((uint32_t)(&storage_profiles[0]) +
 								(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 	
 	/* Word 0 */
