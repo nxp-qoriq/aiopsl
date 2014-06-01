@@ -40,7 +40,7 @@ static inline uint64_t virt_to_phys(void *vaddr)
 	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
 }
 
-#define cpu_to_le64 CPU_TO_LE64
+#define cpu_to_le64 swap_uint64
 
 #endif /* __linux__ */
 
