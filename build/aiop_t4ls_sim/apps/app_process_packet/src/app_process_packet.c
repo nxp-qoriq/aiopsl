@@ -9,6 +9,7 @@
 #include "general.h"
 #include "dbg.h"
 #include "fsl_cmdif_server.h"
+#include "dplib/fsl_cdma.h"
 
 int app_init(void);
 void app_free(void);
@@ -89,13 +90,16 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	UNUSED(dev);
 	UNUSED(size);
 	UNUSED(data);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data = 0x%x\n", cmd, 
-	             size, (uint32_t)data);
+	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n", 
+	             cmd, 
+	             size, 
+	             (uint32_t)((data & 0xFF00000000) >> 32), 
+	             (uint32_t)(data & 0xFFFFFFFF));
 	return 0;
 }
 
@@ -112,6 +116,13 @@ int app_init(void)
 	dma_addr_t buff = 0;
 	
 	fsl_os_print("Running app_init()\n");
+
+	cdma_write(0x6000482000, &ni, 4);
+	ni =0xbbbbbbb;
+	cdma_write(0x6000482000, &ni, 4);
+	ni = 0;
+	cdma_read(&ni, 0x6000482000, 4);
+	fsl_os_print("ni = 0x%x\n", ni);
 
 #ifdef AIOP_STANDALONE
 	/* This is temporal WA for stand alone demo only */
