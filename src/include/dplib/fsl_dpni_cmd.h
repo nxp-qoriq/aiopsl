@@ -9,12 +9,16 @@
 #ifndef _FSL_DPNI_CMD_H
 #define _FSL_DPNI_CMD_H
 
-#define MC_CMD_EXTRACT_DATA_PARAMS		24
+#define MC_CMD_EXTRACT_DATA_PARAMS		25
 struct extract_data {
 	uint64_t params[MC_CMD_EXTRACT_DATA_PARAMS];
 };
 
 /* cmd IDs */
+#define MC_CMDID_CLOSE				0x800
+#define MC_DPNI_CMDID_OPEN			0x801
+#define MC_DPNI_CMDID_CREATE			0x901
+
 #define DPNI_CMDID_GET_L3_CHKSUM_VALIDATION	0x120
 #define DPNI_CMDID_SET_L3_CHKSUM_VALIDATION	0x121
 #define DPNI_CMDID_GET_L4_CHKSUM_VALIDATION	0x122
@@ -85,6 +89,8 @@ struct extract_data {
 
 
 /* cmd sizes */
+#define MC_CMD_OPEN_SIZE			8
+#define MC_CMD_CLOSE_SIZE			0
 #define DPNI_CMDSZ_CREATE			(8 * 6)
 #define DPNI_CMDSZ_DESTROY			0
 #define DPNI_CMDSZ_RESET			0
@@ -208,7 +214,7 @@ do { \
 	_OP(0,	0,	8,	uint8_t,		irq_index); \
 	_OP(0,  32,	32,	uint32_t,		irq_val); \
 	_OP(1,  0,	64,	uint64_t,		irq_paddr); \
-	_OP(2,  0,	32,	int,			irq_virt_id); \
+	_OP(2,  0,	32,	int,			user_irq_id); \
 } while (0)
 
 /*	param, offset, width,	type,			arg_name */
@@ -467,7 +473,7 @@ do { \
 	_OP(0,	0,	16,	uint16_t,		cfg->dist_size); \
 	_OP(0,	16,	8,	uint8_t,		tc_id); \
 	_OP(0,	24,	4,	enum dpni_dist_mode,	cfg->dist_mode); \
-	_OP(6,	0,	64,	uint64_t,		ext_paddr); /* TODO - size??*/\
+	_OP(6,	0,	64,	uint64_t,		ext_paddr); \
 } while (0)
 
 /*	param, offset, width,	type,		arg_name */
@@ -543,7 +549,7 @@ do { \
 do { \
 	_OP(0,	0,	32,	int,		cfg->drop_frame); \
 	_OP(0,	32,	8,	uint8_t,	cfg->default_tc); \
-	_OP(6,	0,	64,	uint64_t,	ext_paddr); /*TODO - size??*/\
+	_OP(6,	0,	64,	uint64_t,	ext_paddr); \
 } while (0)
 
 /*	param, offset, width,	type,			arg_name */
@@ -568,7 +574,7 @@ do { \
 do { \
 	_OP(0,	0,	4,	enum dpni_fs_miss_action, cfg->miss_action); \
 	_OP(0,	16,	8,	uint8_t,		tc_id); \
-	_OP(0,	48,	16,	uint16_t,		cfg->default_flow_id); \
+	_OP(0,	48,	16,	uint16_t,		cfg->default_flow_id);\
 } while (0)
 
 /*	param, offset, width,	type,			arg_name */
@@ -607,7 +613,7 @@ do { \
 do { \
 	_OP(0,	0,	32,	uint32_t,		irq_val); \
 	_OP(1,	0,	64,	uint64_t,		irq_paddr); \
-	_OP(2,  0,	32,	int,			irq_virt_id); \
+	_OP(2,  0,	32,	int,			user_irq_id); \
 	_OP(2,	32,	32,	int,			type); \
 } while (0)
 
@@ -675,139 +681,5 @@ do { \
 /*	param, offset, width,	type,			arg_name */
 #define DPNI_RSP_GET_L4_CHKSUM_VALIDATION(_OP) \
 	_OP(0,	0,	1,	int,			en)
-
-/*	param, offset, width,	type,	  		arg_name */
-#define DPNI_EXT_EXTRACT_CFG(_OP) \
-do { \
-	_OP(0,	0,	8,	uint8_t,		extract_cfg->num_extracts); \
-	_OP(1,  0,	8,	enum net_prot,		union_cfg[0].prot); \
-	_OP(1,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[0].type); \
-	_OP(1,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[0].src); \
-	_OP(1,  16,	8,	uint8_t,		union_cfg[0].constant); \
-	_OP(1,  24,	8,	uint8_t,		union_cfg[0].num_of_repeats); \
-	_OP(1,  32,	8,	uint8_t,		union_cfg[0].num_of_byte_masks); \
-	_OP(1,  40,	8,	uint8_t,		extract_cfg->extracts[0].type); \
-	_OP(1,  48,	8,	uint8_t,		extract_cfg->extracts[0].num_of_byte_masks); \
-	_OP(2,  0,	8,	uint8_t,		extract_cfg->extracts[0].masks[0].mask); \
-	_OP(2,  8,	8,	uint8_t,		extract_cfg->extracts[0].masks[0].offset); \
-	_OP(2,  16,	8,	uint8_t,		extract_cfg->extracts[0].masks[1].mask); \
-	_OP(2,  24,	8,	uint8_t,		extract_cfg->extracts[0].masks[1].offset); \
-	_OP(2,  32,	8,	uint8_t,		extract_cfg->extracts[0].masks[2].mask); \
-	_OP(2,  40,	8,	uint8_t,		extract_cfg->extracts[0].masks[2].offset); \
-	_OP(2,  48,	8,	uint8_t,		extract_cfg->extracts[0].masks[3].mask); \
-	_OP(2,  56,	8,	uint8_t,		extract_cfg->extracts[0].masks[3].offset); \
-	_OP(4,  0,	8,	enum net_prot,		union_cfg[1].prot); \
-	_OP(4,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[1].type); \
-	_OP(4,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[1].src); \
-	_OP(4,  16,	8,	uint8_t,		union_cfg[1].constant); \
-	_OP(4,  24,	8,	uint8_t,		union_cfg[1].num_of_repeats); \
-	_OP(4,  32,	8,	uint8_t,		union_cfg[1].num_of_byte_masks); \
-	_OP(4,  40,	8,	uint8_t,		extract_cfg->extracts[1].type); \
-	_OP(4,  48,	8,	uint8_t,		extract_cfg->extracts[1].num_of_byte_masks); \
-	_OP(5,  0,	8,	uint8_t,		extract_cfg->extracts[1].masks[0].mask); \
-	_OP(5,  8,	8,	uint8_t,		extract_cfg->extracts[1].masks[0].offset); \
-	_OP(5,  16,	8,	uint8_t,		extract_cfg->extracts[1].masks[1].mask); \
-	_OP(5,  24,	8,	uint8_t,		extract_cfg->extracts[1].masks[1].offset); \
-	_OP(5,  32,	8,	uint8_t,		extract_cfg->extracts[1].masks[2].mask); \
-	_OP(5,  40,	8,	uint8_t,		extract_cfg->extracts[1].masks[2].offset); \
-	_OP(5,  48,	8,	uint8_t,		extract_cfg->extracts[1].masks[3].mask); \
-	_OP(5,  56,	8,	uint8_t,		extract_cfg->extracts[1].masks[3].offset); \
-	_OP(7,  0,	8,	enum net_prot,		union_cfg[2].prot); \
-	_OP(7,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[2].type); \
-	_OP(7,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[2].src); \
-	_OP(7,  16,	8,	uint8_t,		union_cfg[2].constant); \
-	_OP(7,  24,	8,	uint8_t,		union_cfg[2].num_of_repeats); \
-	_OP(7,  32,	8,	uint8_t,		union_cfg[2].num_of_byte_masks); \
-	_OP(7,  40,	8,	uint8_t,		extract_cfg->extracts[2].type); \
-	_OP(7,  48,	8,	uint8_t,		extract_cfg->extracts[2].num_of_byte_masks); \
-	_OP(8,  0,	8,	uint8_t,		extract_cfg->extracts[2].masks[0].mask); \
-	_OP(8,  8,	8,	uint8_t,		extract_cfg->extracts[2].masks[0].offset); \
-	_OP(8,  16,	8,	uint8_t,		extract_cfg->extracts[2].masks[1].mask); \
-	_OP(8,  24,	8,	uint8_t,		extract_cfg->extracts[2].masks[1].offset); \
-	_OP(8,  32,	8,	uint8_t,		extract_cfg->extracts[2].masks[2].mask); \
-	_OP(8,  40,	8,	uint8_t,		extract_cfg->extracts[2].masks[2].offset); \
-	_OP(8,  48,	8,	uint8_t,		extract_cfg->extracts[2].masks[3].mask); \
-	_OP(8,  56,	8,	uint8_t,		extract_cfg->extracts[2].masks[3].offset); \
-	_OP(10,  0,	8,	enum net_prot,		union_cfg[3].prot); \
-	_OP(10,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[3].type); \
-	_OP(10,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[3].src); \
-	_OP(10,  16,	8,	uint8_t,		union_cfg[3].constant); \
-	_OP(10,  24,	8,	uint8_t,		union_cfg[3].num_of_repeats); \
-	_OP(10,  32,	8,	uint8_t,		union_cfg[3].num_of_byte_masks); \
-	_OP(10,  40,	8,	uint8_t,		extract_cfg->extracts[3].type); \
-	_OP(10,  48,	8,	uint8_t,		extract_cfg->extracts[3].num_of_byte_masks); \
-	_OP(11,  0,	8,	uint8_t,		extract_cfg->extracts[3].masks[0].mask); \
-	_OP(11,  8,	8,	uint8_t,		extract_cfg->extracts[3].masks[0].offset); \
-	_OP(11,  16,	8,	uint8_t,		extract_cfg->extracts[3].masks[1].mask); \
-	_OP(11,  24,	8,	uint8_t,		extract_cfg->extracts[3].masks[1].offset); \
-	_OP(11,  32,	8,	uint8_t,		extract_cfg->extracts[3].masks[2].mask); \
-	_OP(11,  40,	8,	uint8_t,		extract_cfg->extracts[3].masks[2].offset); \
-	_OP(11,  48,	8,	uint8_t,		extract_cfg->extracts[3].masks[3].mask); \
-	_OP(11,  56,	8,	uint8_t,		extract_cfg->extracts[3].masks[3].offset); \
-	_OP(13,  0,	8,	enum net_prot,		union_cfg[4].prot); \
-	_OP(13,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[4].type); \
-	_OP(13,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[4].src); \
-	_OP(13,  16,	8,	uint8_t,		union_cfg[4].constant); \
-	_OP(13,  24,	8,	uint8_t,		union_cfg[4].num_of_repeats); \
-	_OP(13,  32,	8,	uint8_t,		union_cfg[4].num_of_byte_masks); \
-	_OP(13,  40,	8,	uint8_t,		extract_cfg->extracts[4].type); \
-	_OP(13,  48,	8,	uint8_t,		extract_cfg->extracts[4].num_of_byte_masks); \
-	_OP(14,  0,	8,	uint8_t,		extract_cfg->extracts[4].masks[0].mask); \
-	_OP(14,  8,	8,	uint8_t,		extract_cfg->extracts[4].masks[0].offset); \
-	_OP(14,  16,	8,	uint8_t,		extract_cfg->extracts[4].masks[1].mask); \
-	_OP(14,  24,	8,	uint8_t,		extract_cfg->extracts[4].masks[1].offset); \
-	_OP(14,  32,	8,	uint8_t,		extract_cfg->extracts[4].masks[2].mask); \
-	_OP(14,  40,	8,	uint8_t,		extract_cfg->extracts[4].masks[2].offset); \
-	_OP(14,  48,	8,	uint8_t,		extract_cfg->extracts[4].masks[3].mask); \
-	_OP(14,  56,	8,	uint8_t,		extract_cfg->extracts[4].masks[3].offset); \
-	_OP(16,  0,	8,	enum net_prot,		union_cfg[5].prot); \
-	_OP(16,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[5].type); \
-	_OP(16,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[5].src); \
-	_OP(16,  16,	8,	uint8_t,		union_cfg[5].constant); \
-	_OP(16,  24,	8,	uint8_t,		union_cfg[5].num_of_repeats); \
-	_OP(16,  32,	8,	uint8_t,		union_cfg[5].num_of_byte_masks); \
-	_OP(16,  40,	8,	uint8_t,		extract_cfg->extracts[5].type); \
-	_OP(16,  48,	8,	uint8_t,		extract_cfg->extracts[5].num_of_byte_masks); \
-	_OP(17,  0,	8,	uint8_t,		extract_cfg->extracts[5].masks[0].mask); \
-	_OP(17,  8,	8,	uint8_t,		extract_cfg->extracts[5].masks[0].offset); \
-	_OP(17,  16,	8,	uint8_t,		extract_cfg->extracts[5].masks[1].mask); \
-	_OP(17,  24,	8,	uint8_t,		extract_cfg->extracts[5].masks[1].offset); \
-	_OP(17,  32,	8,	uint8_t,		extract_cfg->extracts[5].masks[2].mask); \
-	_OP(17,  40,	8,	uint8_t,		extract_cfg->extracts[5].masks[2].offset); \
-	_OP(17,  48,	8,	uint8_t,		extract_cfg->extracts[5].masks[3].mask); \
-	_OP(17,  56,	8,	uint8_t,		extract_cfg->extracts[5].masks[3].offset); \
-	_OP(19,  0,	8,	enum net_prot,		union_cfg[6].prot); \
-	_OP(19,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[6].type); \
-	_OP(19,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[6].src); \
-	_OP(19,  16,	8,	uint8_t,		union_cfg[6].constant); \
-	_OP(19,  24,	8,	uint8_t,		union_cfg[6].num_of_repeats); \
-	_OP(19,  32,	8,	uint8_t,		union_cfg[6].num_of_byte_masks); \
-	_OP(19,  40,	8,	uint8_t,		extract_cfg->extracts[6].type); \
-	_OP(19,  48,	8,	uint8_t,		extract_cfg->extracts[6].num_of_byte_masks); \
-	_OP(20,  0,	8,	uint8_t,		extract_cfg->extracts[6].masks[0].mask); \
-	_OP(20,  8,	8,	uint8_t,		extract_cfg->extracts[6].masks[0].offset); \
-	_OP(20,  16,	8,	uint8_t,		extract_cfg->extracts[6].masks[1].mask); \
-	_OP(20,  24,	8,	uint8_t,		extract_cfg->extracts[6].masks[1].offset); \
-	_OP(20,  32,	8,	uint8_t,		extract_cfg->extracts[6].masks[2].mask); \
-	_OP(20,  40,	8,	uint8_t,		extract_cfg->extracts[6].masks[2].offset); \
-	_OP(20,  48,	8,	uint8_t,		extract_cfg->extracts[6].masks[3].mask); \
-	_OP(20,  56,	8,	uint8_t,		extract_cfg->extracts[6].masks[3].offset); \
-	_OP(22,  0,	8,	enum net_prot,		union_cfg[7].prot); \
-	_OP(22,  8,	4,	enum dpkg_extract_from_hdr_type,union_cfg[7].type); \
-	_OP(22,  12,	4,	enum dpkg_extract_from_context_type,union_cfg[7].src); \
-	_OP(22,  16,	8,	uint8_t,		union_cfg[7].constant); \
-	_OP(22,  24,	8,	uint8_t,		union_cfg[7].num_of_repeats); \
-	_OP(22,  32,	8,	uint8_t,		union_cfg[7].num_of_byte_masks); \
-	_OP(22,  40,	8,	uint8_t,		extract_cfg->extracts[7].type); \
-	_OP(22,  48,	8,	uint8_t,		extract_cfg->extracts[7].num_of_byte_masks); \
-	_OP(22,  0,	8,	uint8_t,		extract_cfg->extracts[7].masks[0].mask); \
-	_OP(22,  8,	8,	uint8_t,		extract_cfg->extracts[7].masks[0].offset); \
-	_OP(22,  16,	8,	uint8_t,		extract_cfg->extracts[7].masks[1].mask); \
-	_OP(22,  24,	8,	uint8_t,		extract_cfg->extracts[7].masks[1].offset); \
-	_OP(22,  32,	8,	uint8_t,		extract_cfg->extracts[7].masks[2].mask); \
-	_OP(22,  40,	8,	uint8_t,		extract_cfg->extracts[7].masks[2].offset); \
-	_OP(22,  48,	8,	uint8_t,		extract_cfg->extracts[7].masks[3].mask); \
-	_OP(22,  56,	8,	uint8_t,		extract_cfg->extracts[7].masks[3].offset); \
-} while (0)
 
 #endif /* _FSL_DPNI_CMD_H */

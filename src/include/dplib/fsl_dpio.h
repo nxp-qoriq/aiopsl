@@ -16,7 +16,6 @@
 #ifdef MC
 struct dpio;
 #else
-#include <fsl_cmdif.h>
 struct dpio {
 	void *regs;
 	/*!<
@@ -31,15 +30,13 @@ struct dpio {
  * @brief	DPIO notification channel mode
  */
 enum dpio_channel_mode {
-	DPIO_NO_CHANNEL = 0, /*!< No notification channel support */
+	DPIO_NO_CHANNEL = 0,
+	/*!< No notification channel support */
 	DPIO_LOCAL_CHANNEL,
-/*!< notifications associated with this dpio will be received by the
- * dedicated channel of this dpio */
-#if 0
-DPIO_REMOTE_CHANNEL,
-/*!< notifications associated with this dpio will be forward to a
- * notification channel of a remote dpio */
-#endif
+	/*!<
+	 * Notifications associated with this dpio will be received by the
+	 * dedicated channel of this dpio
+	 */
 };
 
 /**
@@ -50,16 +47,14 @@ struct dpio_cfg {
 	/*!< select the channel mode */
 	uint8_t num_priorities;
 /*!< 1-8; relevant only for 'DPIO_LOCAL_CHANNEL' */
-#if 0
-int dpio_id;/*!< remote DPIO object id */
-#endif
 };
 
 /**
  * @brief	structure representing attributes parameters
  */
 struct dpio_attr {
-	int id; /*!< DPIO id */
+	int id;
+	/*!< DPIO id */
 	uint64_t qbman_portal_ce_paddr;
 	/*!< physical address of the sw-portal cache-enabled area */
 	uint64_t qbman_portal_ci_paddr;
@@ -68,17 +63,17 @@ struct dpio_attr {
 	/*!< sw-portal-id */
 	enum dpio_channel_mode channel_mode; /*!< channel mode */
 	uint8_t num_priorities;
-/*!< 1-8; relevant only for 'DPIO_LOCAL_CHANNEL' */
+	/*!< 1-8; relevant only for 'DPIO_LOCAL_CHANNEL' */
 	struct {
 		uint32_t major; /*!< DPIO major version*/
 		uint32_t minor; /*!< DPIO minor version*/
-	} version; /*!< DPIO version */
-/* TODO - irq??? */
+	} version;
+	/*!< DPIO version */
 };
 
 /**
- * @brief	Open object handle, allocate resources and preliminary initialization -
- *		required before any operation on the object
+ * @brief	Open object handle, allocate resources and preliminary
+ *		initialization - required before any operation on the object
  *
  * @param[in]	dpio - Pointer to dpio object
  * @param[in]	cfg - Configuration structure
@@ -166,17 +161,15 @@ int dpio_get_attributes(struct dpio *dpio, struct dpio_attr *attr);
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  *				signal a message-based interrupt
  * @param[in]	irq_val		Value to write into irq_paddr address
- * @param[in]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
- * 				
+ * @param[in]	user_irq_id	A user defined number associated with this IRQ;
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpio_set_irq(struct dpio *dpio,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	uint64_t irq_paddr,
 	uint32_t irq_val,
-	int irq_virt_id);
+	int user_irq_id);
 
 /**
  * @brief	Gets IRQ information from the DPIO.
@@ -189,18 +182,16 @@ int dpio_set_irq(struct dpio *dpio,
  *				to signal the message-based interrupt
  * @param[out]	irq_val		Value to write in order to signal the
  *				message-based interrupt
- * @param[out]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
- * 				
+ * @param[out]	user_irq_id	A user defined number associated with this IRQ;
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpio_get_irq(struct dpio *dpio,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	int *type,
 	uint64_t *irq_paddr,
 	uint32_t *irq_val,
-	int *irq_virt_id);
+	int *user_irq_id);
 
 /**
  * @brief	Sets overall interrupt state.
@@ -217,7 +208,7 @@ int dpio_get_irq(struct dpio *dpio,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpio_set_irq_enable(struct dpio *dpio,
-	uint8_t irq_index,
+			uint8_t irq_index,
 	uint8_t enable_state);
 
 /**
@@ -230,7 +221,7 @@ int dpio_set_irq_enable(struct dpio *dpio,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpio_get_irq_enable(struct dpio *dpio,
-	uint8_t irq_index,
+			uint8_t irq_index,
 	uint8_t *enable_state);
 
 /**
@@ -248,9 +239,7 @@ int dpio_get_irq_enable(struct dpio *dpio,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq_mask(struct dpio *dpio,
-	uint8_t irq_index,
-	uint32_t mask);
+int dpio_set_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -264,9 +253,7 @@ int dpio_set_irq_mask(struct dpio *dpio,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_mask(struct dpio *dpio,
-	uint8_t irq_index,
-	uint32_t *mask);
+int dpio_get_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
@@ -279,9 +266,7 @@ int dpio_get_irq_mask(struct dpio *dpio,
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpio_get_irq_status(struct dpio *dpio,
-	uint8_t irq_index,
-	uint32_t *status);
+int dpio_get_irq_status(struct dpio *dpio, uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
@@ -295,9 +280,8 @@ int dpio_get_irq_status(struct dpio *dpio,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dpio_clear_irq_status(struct dpio *dpio,
-	uint8_t irq_index,
+			  uint8_t irq_index,
 	uint32_t status);
-
 
 /** @} */
 
