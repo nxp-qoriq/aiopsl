@@ -103,24 +103,24 @@ int32_t ipsec_create_instance(
 {
 	int32_t return_val;
 	
-	// max_sa_num for desc BPID size 512, alignment 64 B 
-	// max_sa_num for keys BPID
-	// max_sa_num for IPv6 outer header
+	// committed_sa_num for desc BPID size 512, alignment 64 B 
+	// committed_sa_num for keys BPID
+	// committed_sa_num for IPv6 outer header (TBD)
 	// max num of tasks for ASA 
-	
-	uint32_t tmp1 = committed_sa_num; // TODO: TMP, to avoid warnings
-	uint32_t tmp2 = instance_flags; // TODO: TMP, to avoid warnings
 	
 	int num_filled_buffs;
 	
 	struct ipsec_instance_params instance; 
-	
-	instance.sa_count = max_sa_num;
+
+	instance.committed_sa_num = committed_sa_num;
+	instance.max_sa_num = max_sa_num;
+	instance.sa_count = 0;
+	instance.instance_flags = instance_flags;
 	instance.tmi_id = tmi_id;
 
 	/* Descriptor and Instance Buffers */
 	return_val = slab_find_and_fill_bpid(
-			(max_sa_num + 1), /* uint32_t num_buffs */
+			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
@@ -155,7 +155,7 @@ int32_t ipsec_create_instance(
 	
 	if (return_val) {
 		// TODO: return with correct error code 
-		return -1;
+		return IPSEC_ERROR;
 	}
 		
 	/* Write the Instance to external memory */
@@ -166,7 +166,7 @@ int32_t ipsec_create_instance(
 
 	if (return_val) {
 			// TODO: return with correct error code 
-			return -1;
+			return IPSEC_ERROR;
 	}
 		
 	return IPSEC_SUCCESS; 

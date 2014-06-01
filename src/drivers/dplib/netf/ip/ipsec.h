@@ -301,11 +301,13 @@ struct ipsec_global_params {
 
 /* Instance Parameters structure */
 struct ipsec_instance_params {
+	uint32_t committed_sa_num; /* Committed SAs (descriptors) */
+	uint32_t max_sa_num; /* Maximum SAs (descriptors) */
 	uint32_t sa_count; /* SA (descriptors) counter. Initialized to max number */
+	uint32_t instance_flags; /* Flags place holder */
 	uint16_t asa_bpid; /* Buffer pool ID for ASA copy */
 	uint16_t desc_bpid; /* Buffer pool ID for the SA descriptor */
 	uint8_t tmi_id; /* TMAN Instance ID  */
-	uint8_t reserved; /* reserved; just to make it aligned  */
 };
 
 
