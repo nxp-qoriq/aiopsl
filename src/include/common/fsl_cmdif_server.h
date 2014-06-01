@@ -74,7 +74,7 @@ User provides this function. Driver invokes it for all runtime commands
 
 @Return		OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, uint8_t *data);
+typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, uint64_t data);
 
 /**************************************************************************//**
 @Description	Function pointers to be supplied during module registration

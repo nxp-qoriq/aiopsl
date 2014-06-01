@@ -10,6 +10,10 @@
 #define _FSL_DPIO_CMD_H
 
 /* cmd IDs */
+#define MC_CMDID_CLOSE					0x800
+#define MC_DPIO_CMDID_OPEN				0x803
+#define MC_DPIO_CMDID_CREATE				0x903
+
 #define DPIO_CMDID_RESET				0x112
 #define DPIO_CMDID_DESTROY				0x113
 #define DPIO_CMDID_ENABLE				0x114
@@ -25,6 +29,8 @@
 #define DPIO_CMDID_CLEAR_IRQ_STATUS			0x11E
 
 /* cmd sizes */
+#define MC_CMD_OPEN_SIZE				8
+#define MC_CMD_CLOSE_SIZE				0
 #define DPIO_CMDSZ_RESET				0
 #define DPIO_CMDSZ_CREATE				8
 #define DPIO_CMDSZ_DESTROY				0
@@ -70,7 +76,7 @@ do { \
 	_OP(0,  0,	8,	uint8_t,	irq_index);\
 	_OP(0,  32,	32,	uint32_t,	irq_val);\
 	_OP(1,  0,	64,	uint64_t,	irq_paddr);\
-	_OP(2,  0,	32,	int,		irq_virt_id); \
+	_OP(2,  0,	32,	int,		user_irq_id); \
 } while (0)
 
 /*	param, offset, width,	type,			arg_name */
@@ -82,7 +88,7 @@ do { \
 do { \
 	_OP(0,	0,	32,	uint32_t,		irq_val); \
 	_OP(1,	0,	64,	uint64_t,		irq_paddr); \
-	_OP(2,  0,	32,	int,			irq_virt_id); \
+	_OP(2,  0,	32,	int,			user_irq_id); \
 	_OP(2,	32,	32,	int,			type); \
 } while (0)
 

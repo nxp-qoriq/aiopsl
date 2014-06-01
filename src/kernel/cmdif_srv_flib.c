@@ -106,7 +106,7 @@ static int empty_close_cb(void *dev)
 	return -ENODEV;
 }
 
-static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	UNUSED(cmd);
 	UNUSED(dev);
