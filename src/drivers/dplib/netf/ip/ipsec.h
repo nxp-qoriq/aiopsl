@@ -250,9 +250,9 @@ Big Endian
 #define IPSEC_OSM_CONCURRENT			0
 #define IPSEC_OSM_EXCLUSIVE				1
 
-#define REGISTER_OSM_CONCURRENT \
-		default_task_params.scope_mode_level_arr \
-       	   [default_task_params.current_scope_level-1] = CONCURRENT
+//#define REGISTER_OSM_CONCURRENT \
+//		default_task_params.scope_mode_level_arr \
+//       	   [default_task_params.current_scope_level-1] = CONCURRENT
 
 /**************************************************************************//**
 @Description	IPSec handle Type definition
