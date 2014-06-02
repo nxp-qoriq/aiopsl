@@ -215,9 +215,7 @@ static int global_sys_init(void)
 	struct platform_param platform_param;
 	int err = 0;
 	ASSERT_COND(sys_is_master_core());
-	
-	sys.aiop_regs = (struct aiop_tile_regs *)(SOC_PERIPH_OFF_AIOP_TILE \
-		                               + 0x02000000); //TODO validate !!
+
 	update_active_cores_mask();
 	
 	fill_platform_parameters(&platform_param);
@@ -235,6 +233,10 @@ static int global_sys_init(void)
 	/* Platform init */
 	err = platform_init(&(platform_param), &(sys.platform_ops));
 	if (err != 0) return err;
+	
+	sys.aiop_regs = (struct aiop_tile_regs *) \
+	               sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, \
+	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 	
 	err = sys_add_handle(sys.platform_ops.h_platform,
 		FSL_OS_MOD_SOC, 1, 0);
