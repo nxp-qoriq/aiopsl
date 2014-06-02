@@ -643,11 +643,23 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 		/* Add current frag's running sum for
 		 * L4 checksum check */
+		if (pr->gross_running_sum == 0) {
+			fdma_calculate_default_frame_checksum(0,
+												  0xffff,
+												  &pr->gross_running_sum);
+			parse_result_generate_default(0);
+		}
+	
 		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
 						  rfdc_ptr->current_running_sum,
 						  pr->running_sum);
 	} else {
-	/* Set 1rst frag's running sum for L4 checksum check */
+		
+		if (pr->gross_running_sum == 0)
+			fdma_calculate_default_frame_checksum(0,
+												  0xffff,
+												  &pr->gross_running_sum);
+		/* Set 1rst frag's running sum for L4 checksum check */
 		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
 				  	          rfdc_ptr->current_running_sum,
 				  	          pr->gross_running_sum);
@@ -856,10 +868,9 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	uint16_t	ip_hdr_cksum;
 	uint16_t	old_ip_checksum;
 	uint16_t	new_flags_and_offset;
-//	uint16_t	gross_running_sum;
 	uint16_t	ip_header_size;
 	struct ipv4hdr  *ipv4hdr_ptr;
-	struct		parse_result *pr;
+	struct parse_result *pr;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
@@ -885,17 +896,6 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	ipv4hdr_ptr->hdr_cksum = ip_hdr_cksum;
 		
-	/* L4 checksum Validation */
-	/* prepare gross running sum for L4 checksum validation by parser */
-//	gross_running_sum = rfdc_ptr->current_running_sum;
-
-//	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
-//					(uint16_t)~old_ip_checksum);
-//	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
-//							ipv4hdr_ptr->hdr_cksum);
-
-	//	pr->gross_running_sum = gross_running_sum;
-
 	/* update FDMA with total length and IP header checksum*/
 	fdma_modify_default_segment_data(ipv4hdr_offset+2, 10);
 
@@ -906,15 +906,16 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	pr->gross_running_sum = rfdc_ptr->current_running_sum;
 
+	/* L4 checksum Validation */
 	if (PARSER_IS_UDP_DEFAULT() && 
-		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) == 0)) {
+		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+3) == 0)) {
 			parse_result_generate_default(0);
 	}
 	else {
 		/* Check L4 checksum */
 		if (parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)){
 			/* error in L4 checksum */
-			return IPR_ERROR;
+	//		return IPR_ERROR;
 		}
 	}
 	return SUCCESS;

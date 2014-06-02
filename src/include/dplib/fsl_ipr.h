@@ -85,11 +85,9 @@ struct ipr_params {
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint16_t  flags;
+	uint32_t  flags;
 	/** tmi id to be used for timers creations */
 	uint8_t	  tmi_id;
-	/** 32-bit alignment. */
-	uint8_t  pad[1];
 };
 
 /**************************************************************************//**
