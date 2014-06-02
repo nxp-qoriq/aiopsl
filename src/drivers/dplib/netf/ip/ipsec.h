@@ -250,9 +250,9 @@ Big Endian
 #define IPSEC_OSM_CONCURRENT			0
 #define IPSEC_OSM_EXCLUSIVE				1
 
-#define REGISTER_OSM_CONCURRENT \
-		default_task_params.scope_mode_level_arr \
-       	   [default_task_params.current_scope_level-1] = CONCURRENT
+//#define REGISTER_OSM_CONCURRENT \
+//		default_task_params.scope_mode_level_arr \
+//       	   [default_task_params.current_scope_level-1] = CONCURRENT
 
 /**************************************************************************//**
 @Description	IPSec handle Type definition
@@ -301,13 +301,19 @@ struct ipsec_global_params {
 
 /* Instance Parameters structure */
 struct ipsec_instance_params {
+	uint32_t sa_count; /* SA (descriptors) counter. Initialized to max number */
 	uint32_t committed_sa_num; /* Committed SAs (descriptors) */
 	uint32_t max_sa_num; /* Maximum SAs (descriptors) */
-	uint32_t sa_count; /* SA (descriptors) counter. Initialized to max number */
 	uint32_t instance_flags; /* Flags place holder */
 	uint16_t asa_bpid; /* Buffer pool ID for ASA copy */
 	uint16_t desc_bpid; /* Buffer pool ID for the SA descriptor */
 	uint8_t tmi_id; /* TMAN Instance ID  */
+};
+
+/* Instance Parameters structure */
+struct ipsec_global_instance_params {
+	uint32_t instance_count; /* instances counter */
+	uint32_t spinlock; /* spinlock */
 };
 
 
@@ -634,12 +640,14 @@ int32_t ipsec_init(uint32_t max_sa_no);
 @Return		Status
 
 *//****************************************************************************/
+/*
 int32_t ipsec_create_instance(
 		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
 		uint32_t instance_flags,
 		uint8_t tmi_id,
 		ipsec_instance_handle_t *instance_handle);
+*/
 
 /**************************************************************************//**
 @Function		ipsec_generate_flc 
