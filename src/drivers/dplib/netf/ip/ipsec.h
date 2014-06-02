@@ -301,11 +301,13 @@ struct ipsec_global_params {
 
 /* Instance Parameters structure */
 struct ipsec_instance_params {
+	uint32_t committed_sa_num; /* Committed SAs (descriptors) */
+	uint32_t max_sa_num; /* Maximum SAs (descriptors) */
 	uint32_t sa_count; /* SA (descriptors) counter. Initialized to max number */
+	uint32_t instance_flags; /* Flags place holder */
 	uint16_t asa_bpid; /* Buffer pool ID for ASA copy */
 	uint16_t desc_bpid; /* Buffer pool ID for the SA descriptor */
 	uint8_t tmi_id; /* TMAN Instance ID  */
-	uint8_t reserved; /* reserved; just to make it aligned  */
 };
 
 
@@ -618,8 +620,14 @@ int32_t ipsec_init(uint32_t max_sa_no);
 		All SAs belonging to this instance should be called with 
 		the returned instance handle.
 				
-@Param[in]	max_sa_num - maximum number of SAs to be used by this instance
+@Param[in]	committed_sa_num - committed number of SAs for this instance.
+			Resources for this number of SAs are preallocated, and
+			respective ipsec_add_sa_descriptor() cannot fail on depletion.
+@Param[in]	max_sa_num - maximum number of SAs to be used by this instance.
+			Resources for additional SAs are allocated at run time on, and
+			respective ipsec_add_sa_descriptor() may fail on depletion.
 @Param[in]	tmi_id - TMAN Instance ID to be used for timers creation
+@Param[in]	instance_flags - control flags. Set to 0.
 
 @Param[out]	ipsec_handle - IPsec handle to the descriptor database
 		
@@ -627,8 +635,10 @@ int32_t ipsec_init(uint32_t max_sa_no);
 
 *//****************************************************************************/
 int32_t ipsec_create_instance(
+		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
-		uint8_t	  tmi_id,
+		uint32_t instance_flags,
+		uint8_t tmi_id,
 		ipsec_instance_handle_t *instance_handle);
 
 /**************************************************************************//**

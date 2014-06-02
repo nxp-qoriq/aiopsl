@@ -143,10 +143,9 @@ __HOT_CODE static uint32_t cmd_size_get()
 	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
-__HOT_CODE static uint8_t *cmd_data_get()
+__HOT_CODE static uint64_t cmd_data_get()
 {
-	uint64_t addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
-	return (uint8_t *)fsl_os_phys_to_virt(addr);
+	return LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 }
 
 static void cmd_m_name_get(char *name)
@@ -449,7 +448,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 		}
 	} else {
 		uint32_t size	 = cmd_size_get();
-		uint8_t  *data	 = cmd_data_get();
+		uint64_t data	 = cmd_data_get();
 
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* User can ignore data and use presentation context */

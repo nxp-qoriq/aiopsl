@@ -26,9 +26,6 @@
 #define ENOTSUP		95
 #endif
 
-#define PTR_TO_UINT(_ptr)       ((uintptr_t)(_ptr))
-#define PTR_MOVE(_ptr, _offset)	(void *)((uint8_t *)(_ptr) + (_offset))
-
 #define ioread64(_p)	    readq(_p)
 #define iowrite64(_v, _p)   writeq(_v, _p)
 
@@ -38,22 +35,15 @@
 #include "common/errors.h"
 #include "common/io.h"
 
-
-int dplib_send(void *regs,
-	int auth,
-	uint16_t cmd_id,
-	uint16_t size,
-	int pri,
-	void *cmd_data);
-
 static inline uint64_t virt_to_phys(void *vaddr)
 {
-	return (uint64_t)PTR_TO_UINT(vaddr);
+	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
 }
+
+#define cpu_to_le64 CPU_TO_LE64
 
 #endif /* __linux__ */
 
-#if (!defined(DECLARE_UINT_CODEC))
 
 #define MAKE_UMASK64(_width) \
 	((uint64_t)((_width) < 64 ? ((uint64_t)1 << (_width)) - 1 : -1))
@@ -67,6 +57,11 @@ static inline uint64_t u64_dec(uint64_t val, int lsoffset, int width)
 	return (uint64_t)((val >> lsoffset) & MAKE_UMASK64(width));
 }
 
-#endif
+int dplib_send(void *regs,
+	       int *auth,
+	uint16_t cmd_id,
+	uint16_t size,
+	int pri,
+	void *cmd_data);
 
 #endif /* _FSL_DPLIB_SYS_H */

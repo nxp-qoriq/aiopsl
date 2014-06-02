@@ -95,27 +95,32 @@ int32_t ipsec_init(uint32_t max_sa_no) {
 *	ipsec_create_instance
 *//****************************************************************************/
 int32_t ipsec_create_instance(
+		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
-		uint8_t	  tmi_id,
+		uint32_t instance_flags,
+		uint8_t tmi_id,
 		ipsec_instance_handle_t *instance_handle)
 {
 	int32_t return_val;
 	
-	// max_sa_num for desc BPID size 512, alignment 64 B 
-	// max_sa_num for keys BPID
-	// max_sa_num for IPv6 outer header
+	// committed_sa_num for desc BPID size 512, alignment 64 B 
+	// committed_sa_num for keys BPID
+	// committed_sa_num for IPv6 outer header (TBD)
 	// max num of tasks for ASA 
 	
 	int num_filled_buffs;
 	
 	struct ipsec_instance_params instance; 
-	
-	instance.sa_count = max_sa_num;
+
+	instance.committed_sa_num = committed_sa_num;
+	instance.max_sa_num = max_sa_num;
+	instance.sa_count = 0;
+	instance.instance_flags = instance_flags;
 	instance.tmi_id = tmi_id;
 
 	/* Descriptor and Instance Buffers */
 	return_val = slab_find_and_fill_bpid(
-			(max_sa_num + 1), /* uint32_t num_buffs */
+			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
@@ -150,7 +155,7 @@ int32_t ipsec_create_instance(
 	
 	if (return_val) {
 		// TODO: return with correct error code 
-		return -1;
+		return IPSEC_ERROR;
 	}
 		
 	/* Write the Instance to external memory */
@@ -161,13 +166,67 @@ int32_t ipsec_create_instance(
 
 	if (return_val) {
 			// TODO: return with correct error code 
-			return -1;
+			return IPSEC_ERROR;
 	}
 		
 	return IPSEC_SUCCESS; 
 }
 
+/**************************************************************************//**
+*	ipsec_get_buffer (TMP)
+*//****************************************************************************/
+int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t *ipsec_handle
+	);
 
+int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t *ipsec_handle)
+{
+	int32_t return_val;
+	struct ipsec_instance_params instance; 
+	int num_filled_buffs;
+
+	return_val = cdma_read_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
+			&instance, /* void *ws_dst */
+			sizeof(instance) /* uint16_t size */	
+	);
+
+	if (instance.sa_count < instance.committed_sa_num) {
+		return_val = (int32_t)cdma_acquire_context_memory(
+				instance.desc_bpid,
+				ipsec_handle); /* context_memory */
+		instance.sa_count++;
+	} else if (instance.sa_count < instance.max_sa_num) {
+		/* Descriptor and Instance Buffers */
+		return_val = slab_find_and_fill_bpid(
+				1, /* uint32_t num_buffs */
+				IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
+				IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
+				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
+	            &num_filled_buffs, /* int *num_filled_buffs */
+	            &(instance.desc_bpid)); /* uint16_t *bpid */
+		
+		return_val = (int32_t)cdma_acquire_context_memory(
+				instance.desc_bpid,
+				ipsec_handle); /* context_memory */
+		instance.sa_count++;
+	} else {
+		// TODO: Return error
+	}
+	
+	/* Write and release lock */
+	return_val = cdma_write_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
+			&instance, /* void *ws_dst */
+			sizeof(instance) /* uint16_t size */	
+	);
+	
+	return IPSEC_SUCCESS; 
+
+}	
 
 /**************************************************************************//**
 @Function		ipsec_generate_encap_sd 
@@ -522,16 +581,11 @@ int32_t ipsec_generate_flc(
 	int32_t return_val;
 	
 	struct ipsec_flow_context flow_context;
-	//uint32_t *sp_addr = (uint32_t *)(IPSEC_PROFILE_SRAM_ADDR + 
-	//						(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
 
-	
-
+	/* TODO: temporary storage profiles implementation */
 	extern struct storage_profile storage_profiles[NUM_OF_SP];
-	
-	uint64_t *sp_addr = (uint64_t *)((uint32_t)(&storage_profiles[0]) +
-								(spid<<IPSEC_STORAGE_PROFILE_SIZE_SHIFT));
-	
+	uint64_t *sp_addr =  (uint64_t *)(&storage_profiles[spid]);
+			
 	/* Word 0 */
 	flow_context.word0_sdid = 0; //TODO: how to get this value? 
 	flow_context.word0_res = 0; 
