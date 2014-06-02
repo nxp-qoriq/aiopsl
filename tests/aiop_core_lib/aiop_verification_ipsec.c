@@ -47,6 +47,24 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		str_size = (uint16_t)sizeof(struct ipsec_init_command);
 		break;
 	}
+	
+	case IPSEC_CREATE_INSTANCE_CMD:
+	{
+		struct ipsec_create_instance_command *str =
+			(struct ipsec_create_instance_command *)data_addr;
+		
+		str->status = ipsec_create_instance(
+				str->committed_sa_num,
+				str->max_sa_num,
+				str->instance_flags,
+				str->tmi_id,
+				&(str->instance_handle)
+			);
+		*((int32_t *)(str->status_addr)) = str->status;
+		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
+		str_size = (uint16_t)sizeof(struct ipsec_create_instance_command);
+		break;
+	}
 
 	case IPSEC_ADD_SA_DESCRIPTOR_CMD:
 	{
@@ -63,6 +81,7 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 				&(str->params),
 				//(uint64_t *)(str->ipsec_handle_ptr)
 				//(uint64_t *)(&(sa_desc_handle[str->sa_desc_id]))
+				str->instance_handle,
 				&ws_sa_desc_handle
 				);
 

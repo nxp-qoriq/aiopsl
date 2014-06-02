@@ -103,6 +103,38 @@ int32_t ipsec_create_instance(
 		uint8_t tmi_id,
 		ipsec_instance_handle_t *instance_handle)
 {
+	
+	int32_t return_val;
+	uint32_t tmp1 = committed_sa_num;
+	uint32_t tmp2 = max_sa_num;
+	uint32_t tmp3 = instance_flags;
+	uint8_t tmp4 = tmi_id; 
+	
+	return_val = ipsec_init(committed_sa_num);
+	
+	*instance_handle = NULL;
+	
+	return IPSEC_SUCCESS; 
+
+}
+	
+/**************************************************************************//**
+*	ipsec_create_instance
+*//****************************************************************************/
+int32_t ipsec_create_instance_real (
+			uint32_t committed_sa_num,
+			uint32_t max_sa_num,
+			uint32_t instance_flags,
+			uint8_t tmi_id,
+			ipsec_instance_handle_t *instance_handle);
+	
+int32_t ipsec_create_instance_real (
+		uint32_t committed_sa_num,
+		uint32_t max_sa_num,
+		uint32_t instance_flags,
+		uint8_t tmi_id,
+		ipsec_instance_handle_t *instance_handle)
+{
 	int32_t return_val;
 	
 	// committed_sa_num for desc BPID size 512, alignment 64 B 
@@ -910,6 +942,7 @@ int32_t ipsec_generate_sa_params(
 
 int32_t ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
+		ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle)
 {
 
@@ -917,6 +950,8 @@ int32_t ipsec_add_sa_descriptor(
 	uint64_t sd_addr;
 	uint32_t sd_size; /* shared descriptor size, set by the RTA */
 	
+	ipsec_instance_handle_t tmp1 = instance_handle;
+
 	/* Create a shared descriptor */
 	
 	/* Check if SAs counter reached zero */
