@@ -135,21 +135,6 @@ int dpni_set_rx_tc(struct dpni *dpni,
 		   const struct dpni_rx_tc_cfg *cfg);
 
 /**************************************************************************//**
-@Function	dpni_drv_set_dist
-
-@Description	Set the distribution method and key
-
-@Param[in]	dpni - Pointer to dpni object
-@Param[in]	dist - distribution params
-
-@Return	'0' on Success; Error code otherwise.
-
-@Cautions	Allowed only following dpni_attach().
-*//***************************************************************************/
-int dpni_set_drv_dist(struct dpni *dpni,
-		const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
-
-/**************************************************************************//**
 @Function	dpni_drv_register_rx_cb
 
 @Description	Attaches a pointer to a call back function to a NI ID.

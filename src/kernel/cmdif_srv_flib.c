@@ -17,9 +17,17 @@
 #define ENAVAIL		119	/*!< Resource not available, or not found */
 #endif
 
+#define UNUSED(_x)	((void)(_x))
+
 #define FREE_MODULE    '\0'
-#define TAKEN_INSTANCE (void *)0xFFFFFFFF
-#define FREE_INSTANCE  NULL
+#define FREE_INSTANCE  (M_NUM_OF_MODULES) 
+
+static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
+{
+	int i = 0;
+	for (i = 0; i < size; i++) 
+		ptr[i] = val;
+}
 
 struct cmdif_srv *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 				void *(*slow_malloc)(int size))
@@ -48,12 +56,16 @@ struct cmdif_srv *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 		return NULL;
 	}
 
-	memset(srv->m_name,
-	       FREE_MODULE,
-	       sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
-	memset(srv->inst_dev,
-	       FREE_INSTANCE,
-	       sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
+	my_memset((uint8_t *)srv->m_name,
+	          FREE_MODULE,
+	          sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
+	my_memset((uint8_t *)srv->inst_dev,
+	          NULL,
+	          sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
+	my_memset(srv->m_id,
+	          FREE_INSTANCE,
+	          M_NUM_OF_INSTANCES);
+
 	srv->inst_count = 0;
 
 	return srv;
@@ -83,16 +95,23 @@ void cmdif_srv_deallocate(struct  cmdif_srv *srv, void (*free)(void *ptr))
 
 static int empty_open_cb(uint8_t instance_id, void **dev)
 {
+	UNUSED(instance_id);
+	UNUSED(dev);
 	return -ENODEV;
 }
 
 static int empty_close_cb(void *dev)
 {
+	UNUSED(dev);
 	return -ENODEV;
 }
 
-static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
+	UNUSED(cmd);
+	UNUSED(dev);
+	UNUSED(size);
+	UNUSED(data);
 	return -ENODEV;
 }
 
@@ -182,51 +201,4 @@ int cmdif_srv_unregister(struct  cmdif_srv *srv, const char *m_name)
 	} else {
 		return m_id; /* POSIX error is returned */
 	}
-}
-
-static int inst_alloc(struct cmdif_srv *srv)
-{
-	int r = 0;
-	int count = 0;
-
-	if (srv == NULL)
-		return -EINVAL;
-
-	/*TODO lock_spinlock(&srv->lock);*/
-	/* TODO need locks when allocating instance id ?*/
-
-	/* randomly pick instance/authentication id*/
-	/* TODO need rand from gpp ?? */
-	r = rand() % M_NUM_OF_INSTANCES;
-	while (srv->inst_dev[r] && count < M_NUM_OF_INSTANCES) {
-		r = rand() % M_NUM_OF_INSTANCES;
-		count++;
-	}
-	/* didn't find empty space yet */
-	if (srv->inst_dev[r]) {
-		count = 0;
-		while (srv->inst_dev[r] &&
-			count < M_NUM_OF_INSTANCES) {
-			r = r++ % M_NUM_OF_INSTANCES;
-			count++;
-		}
-	}
-
-	/* didn't find empty space */
-	if (count >= M_NUM_OF_INSTANCES) {
-		/*TODO unlock_spinlock(&srv->lock);*/
-		return -ENAVAIL;
-	} else {
-		srv->inst_dev[r] = TAKEN_INSTANCE;
-		srv->inst_count++;
-		/*TODO unlock_spinlock(&srv->lock);*/
-		return r;
-	}
-}
-
-static void inst_dealloc(int inst, struct cmdif_srv *srv)
-{
-	srv->inst_dev[inst] = FREE_INSTANCE;
-	srv->sync_done[inst] = NULL;
-	srv->inst_count--;
 }
