@@ -310,6 +310,12 @@ struct ipsec_instance_params {
 	uint8_t tmi_id; /* TMAN Instance ID  */
 };
 
+/* Instance Parameters structure */
+struct ipsec_global_instance_params {
+	uint32_t instance_count; /* instances counter */
+	uint32_t spinlock; /* spinlock */
+};
+
 
 /* Note: For ste_inc_and_acc_counters function, the accumulator memory address 
  * should be counter_addr + sizeof(counter) 

@@ -75,6 +75,8 @@ enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /* Global parameters */
 __SHRAM struct ipsec_global_params global_params;
+__SHRAM struct ipsec_global_instance_params global_instance_params;
+
 
 /**************************************************************************//**
 * 	ipsec_init
@@ -135,18 +137,32 @@ int32_t ipsec_create_instance(
 	
 	/* TODO: ASA buffers should be shared for all instances */
 	/* ASA Buffers */
-	return_val = slab_find_and_fill_bpid(
-			IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
-			IPSEC_MAX_ASA_SIZE, /* uint16_t buff_size */
-			IPSEC_MAX_ASA_BUF_ALIGN, /* uint16_t alignment */
-			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
-            &num_filled_buffs, /* int *num_filled_buffs */
-            &(instance.asa_bpid)); /* uint16_t *bpid */
 	
-	if (return_val) {
-		// TODO: call future slab release function per BPID
-		// for all previously requested buffers
-		return -ENOMEM;
+	/* Check if instances counter is zero */
+	/* If yes allocate ASA buffers */
+	lock_spinlock((uint8_t *)&global_instance_params.spinlock);
+		
+	if (global_instance_params.instance_count == 0) {
+		global_instance_params.instance_count++;
+		unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
+		
+		return_val = slab_find_and_fill_bpid(
+				IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
+				IPSEC_MAX_ASA_SIZE, /* uint16_t buff_size */
+				IPSEC_MAX_ASA_BUF_ALIGN, /* uint16_t alignment */
+				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
+	            &num_filled_buffs, /* int *num_filled_buffs */
+	            &(instance.asa_bpid)); /* uint16_t *bpid */
+		
+		if (return_val) {
+			// TODO: call future slab release function per BPID
+			// for all previously requested buffers
+			return -ENOMEM;
+		}
+
+	} else {
+		global_instance_params.instance_count++;
+		unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
 	}
 	
 	/* Allocate a buffer for the instance */
@@ -199,6 +215,28 @@ int32_t ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 		/* TODO: check for CDMA errors. Mind reference count zero status */
 		
 		/* TODO: return "committed + 1" buffers back to the slab */
+		
+		/* Check if instances counter is zero */
+		/* If yes return ASA buffers to the slab */
+		lock_spinlock((uint8_t *)&global_instance_params.spinlock);
+		
+		/* Error if instance counter is already zero */
+		if (global_instance_params.instance_count == 0) {
+			/* EPERM = 1, Operation not permitted */
+			return -EPERM; /* TODO: what is the correct error code? */
+		}
+				
+		global_instance_params.instance_count--;
+		
+		/* This is the last instance */
+		if (global_instance_params.instance_count == 0) {
+			unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
+			
+			/* TODO: return IPSEC_MAX_NUM_OF_TASKS buffers back to the slab */
+		
+		} else {
+			unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
+		}
 		
 		return IPSEC_SUCCESS;		
 	} else {
@@ -774,7 +812,7 @@ int32_t ipsec_generate_flc(
 	// TODO: handle error return
 	
 	return 0; // TMP
-}
+} /* End of ipsec_generate_flc */
 
 
 /**************************************************************************//**
@@ -820,9 +858,6 @@ int32_t ipsec_generate_sa_params(
 		
 	sap.sap1.byte_counter = 0; /* Encrypted/decrypted bytes counter */
 	sap.sap1.packet_counter = 0; /*	Packets counter */
-	
-
-	
 
 	/* Set valid flag */
 	sap.sap1.valid = 1; /* descriptor valid. */
@@ -848,7 +883,7 @@ int32_t ipsec_generate_sa_params(
 			);
 	
 	return 0; // TODO
-}
+} /* End of ipsec_generate_sa_params */
 
 /**************************************************************************//**
 *	ipsec_add_sa_descriptor
@@ -1884,15 +1919,6 @@ int32_t ipsec_get_seq_num(
 			anti_replay_bitmap[3] = 0x0;	
 	}
 		
-	
-/*	
-	*sequence_number = 0x1234;
-	*extended_sequence_number = 0x5678;
-	anti_replay_bitmap[0] = 0xa;
-	anti_replay_bitmap[1] = 0xb;
-	anti_replay_bitmap[2] = 0xc;
-	anti_replay_bitmap[3] = 0xd;
-*/	
 	/* Derement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
