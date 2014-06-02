@@ -640,12 +640,14 @@ int32_t ipsec_init(uint32_t max_sa_no);
 @Return		Status
 
 *//****************************************************************************/
+/*
 int32_t ipsec_create_instance(
 		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
 		uint32_t instance_flags,
 		uint8_t tmi_id,
 		ipsec_instance_handle_t *instance_handle);
+*/
 
 /**************************************************************************//**
 @Function		ipsec_generate_flc 
