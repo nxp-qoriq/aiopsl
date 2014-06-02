@@ -112,9 +112,9 @@ int32_t ipsec_create_instance(
 	
 	struct ipsec_instance_params instance; 
 
+	instance.sa_count = 0;
 	instance.committed_sa_num = committed_sa_num;
 	instance.max_sa_num = max_sa_num;
-	instance.sa_count = 0;
 	instance.instance_flags = instance_flags;
 	instance.tmi_id = tmi_id;
 
@@ -130,9 +130,10 @@ int32_t ipsec_create_instance(
 	if (return_val) {
 		// TODO: call future slab release function per BPID
 		// for all previously requested buffers
-		return return_val;
+		return -ENOMEM;
 	}
 	
+	/* TODO: ASA buffers should be shared for all instances */
 	/* ASA Buffers */
 	return_val = slab_find_and_fill_bpid(
 			IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
@@ -145,7 +146,7 @@ int32_t ipsec_create_instance(
 	if (return_val) {
 		// TODO: call future slab release function per BPID
 		// for all previously requested buffers
-		return return_val;
+		return -ENOMEM;
 	}
 	
 	/* Allocate a buffer for the instance */
@@ -172,6 +173,42 @@ int32_t ipsec_create_instance(
 	return IPSEC_SUCCESS; 
 }
 
+
+/**************************************************************************//**
+*	ipsec_create_instance
+*//****************************************************************************/
+int32_t ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
+
+int32_t ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
+{
+	int32_t return_val;
+	uint32_t sa_count;
+
+	return_val = cdma_read_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
+			&sa_count, /* void *ws_dst */
+			sizeof(sa_count) /* uint16_t size */	
+	);
+
+	/* Check if all SAs were deleted */
+	if (sa_count == 0) {
+		
+		/* Release the instance buffer */ 
+		return_val = cdma_refcount_decrement_and_release(instance_handle);
+		/* TODO: check for CDMA errors. Mind reference count zero status */
+		
+		/* TODO: return "committed + 1" buffers back to the slab */
+		
+		return IPSEC_SUCCESS;		
+	} else {
+		/* TODO: handle a case of instance delete before SAs full delete */
+		
+		/* EPERM = 1, Operation not permitted */
+		return -EPERM; /* TODO: what is the correct error code? */
+	}
+}
+
 /**************************************************************************//**
 *	ipsec_get_buffer (TMP)
 *//****************************************************************************/
@@ -194,11 +231,31 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 	);
 
 	if (instance.sa_count < instance.committed_sa_num) {
+		instance.sa_count++;
+		/* Write and release lock */
+		return_val = cdma_write_with_mutex(
+				instance_handle, /* uint64_t ext_address */
+				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
+				&instance.sa_count, /* void *ws_dst */
+				sizeof(instance.sa_count) /* uint16_t size */	
+		);
+		
 		return_val = (int32_t)cdma_acquire_context_memory(
 				instance.desc_bpid,
 				ipsec_handle); /* context_memory */
-		instance.sa_count++;
+
+		/* Check if CDMA allocation failed */
+		if (return_val) goto get_buffer_alloc_err;
+		
 	} else if (instance.sa_count < instance.max_sa_num) {
+		instance.sa_count++;
+		/* Write and release lock */
+		return_val = cdma_write_with_mutex(
+				instance_handle, /* uint64_t ext_address */
+				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
+				&instance.sa_count, /* void *ws_dst */
+				sizeof(instance.sa_count) /* uint16_t size */	
+		);
 		/* Descriptor and Instance Buffers */
 		return_val = slab_find_and_fill_bpid(
 				1, /* uint32_t num_buffs */
@@ -207,26 +264,94 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
 	            &num_filled_buffs, /* int *num_filled_buffs */
 	            &(instance.desc_bpid)); /* uint16_t *bpid */
-		
+
+		/* Check if Slab has no buffers */
+		if (return_val) goto get_buffer_alloc_err;
+
 		return_val = (int32_t)cdma_acquire_context_memory(
 				instance.desc_bpid,
 				ipsec_handle); /* context_memory */
-		instance.sa_count++;
+		
+		/* Check if CDMA allocation failed */
+		if (return_val) goto get_buffer_alloc_err;
+
 	} else {
-		// TODO: Return error
+		/* Release lock */
+		return_val = cdma_mutex_lock_release(instance_handle);
+		return -ENOMEM;
 	}
-	
-	/* Write and release lock */
-	return_val = cdma_write_with_mutex(
-			instance_handle, /* uint64_t ext_address */
-			CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
-			&instance, /* void *ws_dst */
-			sizeof(instance) /* uint16_t size */	
-	);
 	
 	return IPSEC_SUCCESS; 
 
-}	
+get_buffer_alloc_err:
+	return_val = cdma_read_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
+			&instance.sa_count, /* void *ws_dst */
+			sizeof(instance.sa_count) /* uint16_t size */	
+	);
+	
+	instance.sa_count--;
+	
+	return_val = cdma_write_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
+			&instance.sa_count, /* void *ws_dst */
+			sizeof(instance.sa_count) /* uint16_t size */	
+	);
+	
+	return -ENOMEM;
+} /* End of ipsec_get_buffer */
+
+/**************************************************************************//**
+*	ipsec_release_buffer (TMP)
+*//****************************************************************************/
+int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t ipsec_handle
+	);
+
+int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t ipsec_handle)
+{
+	int32_t return_val;
+	struct ipsec_instance_params instance; 
+
+	return_val = cdma_read_with_mutex(
+			instance_handle, /* uint64_t ext_address */
+			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
+			&instance, /* void *ws_dst */
+			sizeof(instance) /* uint16_t size */	
+	);
+
+	if (instance.sa_count > 0) {
+		/* Release the buffer */ 
+		return_val = cdma_refcount_decrement_and_release(ipsec_handle); 
+		/* TODO: check for CDMA errors. Mind reference count zero status */
+				
+		/* If buffer taken from 'max' quanta, need to return to slab */
+		if (instance.sa_count > instance.committed_sa_num) {
+		
+			/* TODO: return one buffer back to the slab */
+		}
+		
+		instance.sa_count--;
+		
+		/* Write (just the counter ) and release lock */
+		return_val = cdma_write_with_mutex(
+				instance_handle, /* uint64_t ext_address */
+				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
+				&instance.sa_count, /* void *ws_dst */
+				sizeof(instance.sa_count) /* uint16_t size */	
+		);
+		return IPSEC_SUCCESS;
+	} else {
+		/* Release lock */
+		return_val = cdma_mutex_lock_release(instance_handle);
+		/* EPERM = 1, Operation not permitted */
+		return -EPERM; /* TODO: what is the correct error code? */
+	}
+} /* End of ipsec_release_buffer */	
+		
 
 /**************************************************************************//**
 @Function		ipsec_generate_encap_sd 
