@@ -1768,7 +1768,8 @@ int32_t fdma_concatenate_frames(
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 – Success.
-@Retval		ENOMEM - Failed due to buffer pool depletion.
+@Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
+		\ref FDMA_SPLIT_PSA_CLOSE_FRAME_BIT flag is set).
 @Retval		EINVAL - Last split is not possible.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_SPLIT_PSA_PRESENT_BIT flag is set).
