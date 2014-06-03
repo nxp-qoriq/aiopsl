@@ -104,8 +104,6 @@
 	temp >>= _shift;					\
 	__rR = (uint32_t *) temp; })
 
-
-
 /** Load 8 bytes.
  * The address loaded from memory is calculated as: _displ + _base.
  * _displ - a word aligned constant value between 0-1020.
@@ -116,6 +114,7 @@
 	uint64_t temp;						\
 	__llldw(&temp, (uint32_t)_disp, (void *)_base);		\
 	__rR = (uint64_t) temp; })
+
 /** Store 2 bytes with endian swap.
  * The memory address being stored is calculated as: _displ + _base.
  * _displ - a word aligned constant value between 0-1020.
@@ -143,23 +142,6 @@
 #define LLSTDW_SWAP(_val, _disp, _base)				\
 	__llstdbrw(_val, (uint32_t)_disp, (void *)_base)
 
-
-/*TODO: chose what is better to use */
-/** Store 2 bytes.
- * The memory address being stored is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _val - 16bit value to be stored.*/
-#define STH(_val, _disp, _base)  ({*(_base + _disp) = _val;})
-
-/** Store 4 bytes.
- * The memory address being stored is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _val - 32bit value to be stored.*/
-#define STW(_val, _disp, _base)	 ({*(_base + _disp) = _val;})
 
 /** Store 8 bytes.
  * The memory address being stored is calculated as: _displ + _base.
@@ -196,9 +178,9 @@
 #define CPU_TO_LE32(val, addr)  STW_SWAP(val, 0, addr)
 #define CPU_TO_LE64(val, addr)  LLSTDW_SWAP(val, 0, addr)
 
-#define CPU_TO_BE16(val, addr)	STH(val, 0, addr)
-#define CPU_TO_BE32(val, addr)	STW(val, 0, addr)
-#define CPU_TO_BE64(val, addr)	LLSTDW(val, 0, addr)
+#define CPU_TO_BE16(val, addr)	{ *addr = val }
+#define CPU_TO_BE32(val, addr)	{ *addr = val }
+#define CPU_TO_BE64(val, addr)	LLSTDW(val, 0, addr) /*TODO: check if compiler is using intrinsic by default (opt 4) */
 
 /* read */
 #define LE16_TO_CPU(addr)        LH_SWAP(0, addr)
@@ -211,8 +193,8 @@
 
 #else  /* CORE_IS_LITTLE_ENDIAN */
 /* write */
-#define CPU_TO_LE16(val, addr)	STH(val, 0, addr)
-#define CPU_TO_LE32(val, addr)	STW(val, 0, addr)
+#define CPU_TO_LE16(val, addr)	{ *addr = val }
+#define CPU_TO_LE32(val, addr)	{ *addr = val }
 #define CPU_TO_LE64(val, addr)	LLSTDW(val, 0, addr)
 
 #define CPU_TO_BE16(val, addr)  STH_SWAP(val, 0, addr)
@@ -232,27 +214,6 @@
 
 
 /* @} */
-
-/**************************************************************************//**
- @Function      swap_uint64
-
- @Description   Returns the byte-swapped value of a given 64-bit value.
-
- @Param[in]     val - The 64-bit value.
-
- @Return        The byte-swapped value of the parameter.
-*//***************************************************************************/
-static inline uint64_t swap_uint64(uint64_t val)
-{
-    return (uint64_t)(((val & 0x00000000000000ffULL) << 56) |
-                      ((val & 0x000000000000ff00ULL) << 40) |
-                      ((val & 0x0000000000ff0000ULL) << 24) |
-                      ((val & 0x00000000ff000000ULL) <<  8) |
-                      ((val & 0x000000ff00000000ULL) >>  8) |
-                      ((val & 0x0000ff0000000000ULL) >> 24) |
-                      ((val & 0x00ff000000000000ULL) >> 40) |
-                      ((val & 0xff00000000000000ULL) >> 56));
-}
 
 /** @} */ /* end of AIOP_GENERAL */
 
