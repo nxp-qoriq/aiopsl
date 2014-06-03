@@ -981,7 +981,7 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	/* Call FDMA for running sum computation */
 	fdma_status = fdma_calculate_default_frame_checksum(offset, ihl,
 							    &running_sum);
-	if (fdma_status != FDMA_CHECKSUM_SUCCESS)
+	if (fdma_status != SUCCESS)
 		return fdma_status;
 
 	/* Invalidate Parser Result Gross Running Sum field */
@@ -1000,7 +1000,7 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 		fdma_status = fdma_modify_default_segment_data(offset +
 				offsetof(struct ipv4hdr, hdr_cksum),
 				sizeof((struct ipv4hdr *)0)->hdr_cksum);
-		if (fdma_status != FDMA_CHECKSUM_SUCCESS)
+		if (fdma_status != SUCCESS)
 			return fdma_status;
 	}
 
