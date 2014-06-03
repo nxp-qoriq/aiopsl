@@ -77,7 +77,7 @@ int32_t tcp_gso_generate_seg(
 		/* reset PSH */
 		tcp_ptr->flags = tcp_ptr->flags & ~TCP_GSO_PSH_BIT;
 	}
-	
+
 	/* Modify default segment (updated TCP flags if needed) */
 		/* TODO FDMA ERROR */
 	if (gso_ctx->internal_flags != 0)
@@ -174,7 +174,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 	/* Split remaining frame, put split frame in default FD location*/
 	sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-	if (sr_status == FDMA_SPLIT_FRAME_UNABLE_TO_SPLIT_ERR) {
+	if (sr_status == (-EINVAL)) {
 		/* last segment */
 		spid = *((uint8_t *)HWC_SPID_ADDRESS);
 		/* store remaining FD */
