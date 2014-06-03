@@ -1,7 +1,6 @@
 #ifndef __FSL_DPKG_H_
 #define __FSL_DPKG_H_
 
-//#include "common/types.h"
 #include <fsl_net.h>
 
 /*!
@@ -86,6 +85,20 @@ struct dpkg_extract {
 			enum net_prot prot;
 			/*!< One of the headers supported by CTLU */
 
+			enum dpkg_extract_from_hdr_type type;
+			/*!< Defines the type of header extraction:
+			 DPKG_FROM_HDR: use size & offset
+			 below;
+			 DPKG_FROM_FIELD: use field, size
+			 & offset below;
+			 DPKG_FULL_FIELD: use field below
+			 */
+
+			uint32_t field;
+			/*!< One of the supported fields (NH_FLD_) */
+			uint8_t size; /*!< Size in byte */
+			uint8_t offset; /*!< Byte offset */
+
 			uint8_t hdr_index;
 			/*!< Clear for cases not listed below;
 			 Used for protocols that may have more
@@ -98,20 +111,6 @@ struct dpkg_extract {
 			 NET_PROT_IPv4(0, HDR_INDEX_LAST);
 			 NET_PROT_IPv6(0, HDR_INDEX_LAST);
 			 */
-
-			enum dpkg_extract_from_hdr_type type;
-			/*!< Defines the type of header extraction:
-			 DPKG_FROM_HDR: use size & offset
-			 below;
-			 DPKG_FROM_FIELD: use field, size
-			 & offset below;
-			 DPKG_FULL_FIELD: use field below
-			 */
-
-			net_hdr_fld_t field;
-			/*!< One of the supported fields. */
-			uint8_t size; /*!< Size in byte */
-			uint8_t offset; /*!< Byte offset */
 		} from_hdr; /*!< used when type = DPKG_EXTRACT_FROM_HDR */
 		struct {
 			uint8_t size; /*!< Size in byte */

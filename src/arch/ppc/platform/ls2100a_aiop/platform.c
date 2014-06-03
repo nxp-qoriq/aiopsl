@@ -4,7 +4,6 @@
 #include "drivers/fsl_duart.h"
 #include "kernel/console.h"
 #include "kernel/platform.h"
-#include "kernel/timer.h"
 #include "kernel/smp.h"
 
 #include "inc/mem_mng.h"
@@ -58,7 +57,6 @@ typedef struct t_platform {
     fsl_handle_t            h_part;
 
     /* Memory-related variables */
-    e_memory_partition_id   prog_runs_from;
     int                     num_of_mem_parts;
     int                     registered_partitions[PLATFORM_MAX_MEM_INFO_ENTRIES];
 
@@ -224,30 +222,6 @@ static void print_platform_info(t_platform *pltfrm)
 }
 
 /*****************************************************************************/
-static int identify_program_memory(t_platform_memory_info   *p_mem_info,
-                                   e_memory_partition_id    *p_mem_part_id)
-{
-    uint64_t    running_address = PTR_TO_UINT(identify_program_memory);
-    int         i;
-
-    /* NOTE:
-       We assume that the program is running from one of the partitions in the table */
-    for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-        if (p_mem_info[i].size == 0)
-            break;
-
-        if ((running_address >= p_mem_info[i].virt_base_addr) &&
-            (running_address <  p_mem_info[i].virt_base_addr + p_mem_info[i].size)) {
-            *p_mem_part_id = (e_memory_partition_id)p_mem_info[i].mem_partition_id;
-            return E_OK;
-        }
-    }
-
-    /* Not found - should not reach here ! */
-    RETURN_ERROR(MAJOR, E_NOT_FOUND, NO_MSG);
-}
-
-/*****************************************************************************/
 static int find_mem_region_index(t_platform_memory_info  *mem_info,
                                  e_platform_mem_region   mem_region)
 {
@@ -277,7 +251,6 @@ static int init_l1_cache(t_platform *pltfrm)
     /* L1 Cache Init */
     if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_INST_ONLY) {
         booke_icache_enable();
-        booke_icache_flush();
     }
 
     if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY)
@@ -343,17 +316,74 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
 #endif
 
 /*****************************************************************************/
+static int init_random_seed(uint32_t num_of_tasks)
+{
+	volatile uint32_t *seed_mem_ptr = NULL;
+	uint32_t core_and_task_id = 0;
+	uint32_t seed = 0;
+	uint32_t task_stack_size = 0;
+	int i;
+	/*------------------------------------------------------*/
+	/* Initialize seeds for random function                 */
+	/*------------------------------------------------------*/
+
+	/* task stack size used for pointer calculation,
+	       (original size = task_stack_size * 4)
+	       num_of_tasks received as bit and translated
+	       to integer in switch.
+	 */
+	switch(num_of_tasks) {
+	case (0):
+			    num_of_tasks = 1;
+	break;
+	case (1):
+			    num_of_tasks = 2;
+	task_stack_size = 0x1000;
+	break;
+	case (2):
+			    num_of_tasks = 4;
+	task_stack_size = 0x800;
+	break;
+	case (3):
+			    num_of_tasks = 8;
+	task_stack_size = 0x400;
+	break;
+	case (4):
+			    num_of_tasks = 16;
+	task_stack_size = 0x200;
+	break;
+	default:
+		return -EINVAL;
+
+	}
+
+	core_and_task_id =  ((core_get_id() + 1) << 8);
+	core_and_task_id |= 1; /*add task 0 id*/
+
+	seed = (core_and_task_id << 16) | core_and_task_id;
+	seed_mem_ptr = &(seed_32bit);
+
+	*seed_mem_ptr = seed;
+	/*seed for task 0 is already allocated*/
+	for (i = 0; i < num_of_tasks - 1; i ++)
+	{
+		seed_mem_ptr += task_stack_size; /*size of each task area*/
+		core_and_task_id ++; /*increment the task id accordingly to its tls section*/
+		seed = (core_and_task_id << 16) | core_and_task_id;
+		*seed_mem_ptr = seed;
+	}
+
+	return 0;
+
+}
+/*****************************************************************************/
 static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
     int     err = 0, i = 0;
-    uint32_t CTSCSR_value = 0;;
-    uint32_t *seed_mem_ptr = NULL;
-    uint32_t core_and_task_id = 0;
-    uint32_t seed = 0;
-    uint32_t num_of_tasks = 0;
-    uint32_t task_stack_size = 0;
+    uint32_t CTSCSR_value = 0;
     uint32_t *WSCR;
+    uint32_t WSCR_tasks_bit = 0;
 
     if (pltfrm == NULL) {
 	    return -EINVAL;
@@ -373,24 +403,15 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
     /* special AIOP registers */
-#if 0
-    // boot sequence is not finished here removed CTSCSR_ENABLE
-#endif
-    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | CTSCSR_16_TASKS;
+    /* Workspace Control Register*/
+    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
+    /* Little endian convert */
+    WSCR_tasks_bit = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
+
+    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
+    		                          (WSCR_tasks_bit << 24);
+
     booke_set_CTSCSR0(CTSCSR_value);
-
-#if 0 /* TODO - complete! */
-    /*------------------------------------------------------*/
-    /* Initialize MMU                                       */
-    /*------------------------------------------------------*/
-    if (pltfrm->param.user_init_hooks.f_init_mmu)
-        err = pltfrm->param.user_init_hooks.f_init_mmu(pltfrm);
-    else
-        err = platform_init_mmu(pltfrm);
-
-    if (err != E_OK)
-        RETURN_ERROR(MAJOR, err, NO_MSG);
-#endif /* 0 */
 
     /*------------------------------------------------------*/
     /* Initialize L1 Cache                                  */
@@ -399,61 +420,14 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     if (err != E_OK)
 	    RETURN_ERROR(MAJOR, err, NO_MSG);
 
-    /*------------------------------------------------------*/
-    /* Initialize seeds for random function                 */
-    /*------------------------------------------------------*/
+    /*initialize random seeds*/
+    err = init_random_seed(WSCR_tasks_bit);
 
-    /* Workspace Control Register*/
-    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
-    /* Little endian convert */
-    num_of_tasks = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
-    /* task stack size used for pointer calculation,
-       (original size = task_stack_size * 4)
-     */
-    switch(num_of_tasks) {
-    case (0):
-	    num_of_tasks = 1;
-    	    break;
-    case (1):
-	    num_of_tasks = 2;
-    	    task_stack_size = 0x1000;
-    	    break;
-    case (2):
-	    num_of_tasks = 4;
-    	    task_stack_size = 0x800;
-    	    break;
-    case (3):
-	    num_of_tasks = 8;
-    	    task_stack_size = 0x400;
-    	    break;
-    case (4):
-	    num_of_tasks = 16;
-	    task_stack_size = 0x200;
-	    break;
-    default:
-	    return -EINVAL;
+    if (err != E_OK)
+    	    RETURN_ERROR(MAJOR, err, NO_MSG);
 
-    }
-
-    core_and_task_id =  ((core_get_id() + 1) << 8);
-    core_and_task_id |= 1; /*add task 0 id*/
-
-    seed = (core_and_task_id << 16) | core_and_task_id;
-    seed_mem_ptr = &(seed_32bit);
-
-    *seed_mem_ptr = seed;
-
-    /*seed for task 0 is already allocated*/
-    for (i = 0 ; i < num_of_tasks - 1; i ++)
-    {
-	    seed_mem_ptr += task_stack_size; /*size of each task area*/
-	    core_and_task_id ++; /*increment the task id accordingly to its tls section*/
-	    seed = (core_and_task_id << 16) | core_and_task_id;
-	    *seed_mem_ptr = seed;
-    }
     return E_OK;
 }
-
 /*****************************************************************************/
 static int pltfrm_free_core_cb(fsl_handle_t h_platform)
 {
@@ -645,8 +619,7 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 /*****************************************************************************/
 int platform_early_init(struct platform_param *pltfrm_params)
 {
-    /* TODO - complete! */
-UNUSED(pltfrm_params);
+    UNUSED(pltfrm_params);
     return E_OK;
 }
 
@@ -689,11 +662,12 @@ int platform_init(struct platform_param    *pltfrm_param,
     }
     pltfrm->num_of_mem_parts = i;
 
+#if 0 /*TODO Do we need this function???*/
     /* Identify the program memory */
     err = identify_program_memory(pltfrm->param.mem_info,
                                   &(pltfrm->prog_runs_from));
     ASSERT_COND(err == E_OK);
-
+#endif
     /* Store CCSR base (for convenience) */
     mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_CCSR);
     ASSERT_COND(mem_index != -1);
@@ -743,7 +717,7 @@ int platform_init(struct platform_param    *pltfrm_param,
     pltfrm_ops->f_disable_local_irq     = NULL;
 #endif
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/

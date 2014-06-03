@@ -122,25 +122,35 @@ int32_t parse_result_generate_default(uint8_t flags)
 		((uint32_t)flags << 8) |
 		((uint32_t)default_task_params.parser_starting_hxs << 13);
 
-	/* If L4 checksum validation is required,
-	 * Check if Gross Running Sum calculation is needed */
-	if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
-		if (!pr->gross_running_sum)
-			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
-						&pr->gross_running_sum))
-				return
-				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+	
+	/* If Gross Running Sum != 0 then it is valid */
+	if (pr->gross_running_sum) {
 		input_struct.gross_running_sum = pr->gross_running_sum;
-
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
 				arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
 	} else {
-	__stqw(PARSER_GEN_PARSE_RES_MTYPE, (uint32_t)HWC_PARSE_RES_ADDRESS, 0,
-						arg1, HWC_ACC_IN_ADDRESS, 0);
+		/* If L4 checksum validation is required, calculate it first */
+		if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
+			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						&pr->gross_running_sum))
+				return
+				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+			input_struct.gross_running_sum = pr->gross_running_sum;
+			arg2 = ((uint32_t)(&input_struct) << 16) |
+				(uint32_t)HWC_PARSE_RES_ADDRESS;
+			__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
+				arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
+		} else {
+			/* Gross Running Sum == 0 and validation is not
+			 * required */
+			__stqw(PARSER_GEN_PARSE_RES_MTYPE,
+			(uint32_t)HWC_PARSE_RES_ADDRESS, 0, arg1,
+			HWC_ACC_IN_ADDRESS, 0);
+		}
 	}
-
+	
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
@@ -174,23 +184,32 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		((uint32_t)starting_hxs << 13) |
 		((uint32_t)starting_offset << 24);
 
-	/* If L4 checksum validation is required,
-	 * Check if Gross Running Sum calculation is needed */
-	if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
-		if (!pr->gross_running_sum)
-			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
-						&pr->gross_running_sum))
-				return
-				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+	/* If Gross Running Sum != 0 then it is valid */
+	if (pr->gross_running_sum) {
 		input_struct.gross_running_sum = pr->gross_running_sum;
-
 		arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
 				arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
 	} else {
-	__stqw(PARSER_GEN_PARSE_RES_MTYPE, (uint32_t)HWC_PARSE_RES_ADDRESS, 0,
-						arg1, HWC_ACC_IN_ADDRESS, 0);
+		/* If L4 checksum validation is required, calculate it first */
+		if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
+			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						&pr->gross_running_sum))
+				return
+				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+			input_struct.gross_running_sum = pr->gross_running_sum;
+			arg2 = ((uint32_t)(&input_struct) << 16) |
+				(uint32_t)HWC_PARSE_RES_ADDRESS;
+			__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
+				arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
+		} else {
+			/* Gross Running Sum == 0 and validation is not
+			 * required */
+			__stqw(PARSER_GEN_PARSE_RES_MTYPE,
+			(uint32_t)HWC_PARSE_RES_ADDRESS, 0, arg1,
+			HWC_ACC_IN_ADDRESS, 0);
+		}
 	}
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);

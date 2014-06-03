@@ -49,8 +49,8 @@ void app_receive_cb (void)
 	int test_id = received_fd % 13;
 	struct cmdif_dev  *dev = (struct cmdif_dev *)client_desc.dev;
 	uint16_t auth_id = 0;
-	union  cmdif_data resp;
 	int err = 0;
+	union  cmdif_data resp;
 
 	fsl_os_print("\n Starting test number %d\n", test_id);
 	switch (test_id) {
@@ -61,7 +61,9 @@ void app_receive_cb (void)
 		client_open_cmd(&client_desc, &open_data);
 		break;
 	case 1:
+		SYNC_DONE_TEST;
 		cmdif_open_done(&client_desc);
+		
 		/* CDMA is required only because this client is tested on AIOP
 		 * AIOP writes data using CDMA therefore need to read with cdma */
 		sync_done_read(&resp, &client_desc);
@@ -90,7 +92,6 @@ void app_receive_cb (void)
 		dev->auth_id = auth_id;
 		break;
 	case 5:
-		SYNC_DONE_TEST;
 		cmdif_sync_cmd_done(&client_desc);
 
 		fsl_os_print("EXPECTED RESULT: FAILED \n");
@@ -127,7 +128,6 @@ void app_receive_cb (void)
 		client_close_cmd(&client_desc);
 		break;
 	case 11:
-		SYNC_DONE_TEST;
 		cmdif_close_done(&client_desc);
 
 		fsl_os_print("EXPECTED RESULT: FAILED\n");

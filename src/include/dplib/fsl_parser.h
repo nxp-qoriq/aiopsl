@@ -364,7 +364,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_TCP_PACKET_TRUNCATION                    0x69
 	/** TCP checksum is incorrect */
 #define PARSER_TCP_CHECKSUM_ERROR                       0x6A
-	/** TCP flags set together Error
+	/** None of TCP flags are set, or following TCP flags set together:
 	SYN & FIN, SYN & RST, FIN & RST, SYN & FIN & RST */
 #define PARSER_TCP_BAD_FLAGS                            0x6B
 	/** UPD Length Error
@@ -926,6 +926,12 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** Get IPv6 fragment header offset */
 #define PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ipv6_frag_offset)
+/** Get Gross Running Sum */
+#define PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum)
+/** Get Running Sum */
+#define PARSER_GET_RUNNING_SUM_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->running_sum)
 /** Get Parse Error Code */
 #define PARSER_GET_PARSE_ERROR_CODE_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->parse_error_code)
