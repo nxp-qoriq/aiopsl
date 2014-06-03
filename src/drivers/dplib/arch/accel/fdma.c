@@ -1580,7 +1580,6 @@ int32_t fdma_create_frame(
 {
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
-	int32_t status;
 
 	/* *fd = {0};*/
 	fd->addr = 0;
@@ -1637,7 +1636,6 @@ int32_t fdma_create_fd(
 	struct fdma_insert_segment_data_params insert_params;
 	struct fdma_amq amq;
 	uint8_t spid;
-	int32_t status;
 
 	/* *fd = {0};*/
 	fd->addr = 0;
