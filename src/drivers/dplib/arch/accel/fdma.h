@@ -598,9 +598,12 @@
 		Implicitly updated values in Task Defaults: frame handle, NDS
 		bit, ASA size (0), PTA address(\ref PRC_PTA_NOT_LOADED_ADDRESS).
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_default_frame_without_segments(void);
@@ -626,9 +629,12 @@ int32_t fdma_present_default_frame_without_segments(void);
 		Used only in case \ref FDMA_INIT_AS_BIT is set.
 @Param[out]	frame_handle - A handle to the opened working frame.
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_frame_without_segments(
@@ -650,12 +656,16 @@ int32_t fdma_present_frame_without_segments(
 @Param[out]	dst - A pointer to the location in the workspace where to return
 		the acquired 64 bit buffer address.
 
-@Return		Status - Success or Failure (\ref FDMA_ACQUIRE_BUFFER_ERRORS).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions	This command is not intended to be used in a normal datapath,
 		but more of a get out of jail card where access to BMan buffers
 		is required when operating on a frame while not using the
 		provided FDMA working frame commands.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_acquire_buffer(
@@ -676,12 +686,13 @@ int32_t fdma_acquire_buffer(
 @Param[in]	bpid - Buffer pool ID used for the Release Buffer.
 @Param[out]	addr - Buffer address to be released.
 
-@Return		Status - Success or Failure (\ref FDMA_RELEASE_BUFFER_ERRORS).
+@Return		Success (0).
 
 @Cautions	This command is not intended to be used in a normal datapath,
 		but more of a get out of jail card where access to BMan buffers
 		is required when operating on a frame while not using the
 		provided FDMA working frame commands.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_release_buffer(
