@@ -178,8 +178,8 @@
 #define CPU_TO_LE32(val, addr)  STW_SWAP(val, 0, addr)
 #define CPU_TO_LE64(val, addr)  LLSTDW_SWAP(val, 0, addr)
 
-#define CPU_TO_BE16(val, addr)	{ *addr = val }
-#define CPU_TO_BE32(val, addr)	{ *addr = val }
+#define CPU_TO_BE16(val, addr)	({ *addr = val; })
+#define CPU_TO_BE32(val, addr)	({ *addr = val; })
 #define CPU_TO_BE64(val, addr)	LLSTDW(val, 0, addr) /*TODO: check if compiler is using intrinsic by default (opt 4) */
 
 /* read */
@@ -193,8 +193,8 @@
 
 #else  /* CORE_IS_LITTLE_ENDIAN */
 /* write */
-#define CPU_TO_LE16(val, addr)	{ *addr = val }
-#define CPU_TO_LE32(val, addr)	{ *addr = val }
+#define CPU_TO_LE16(val, addr)	({ *addr = val; })
+#define CPU_TO_LE32(val, addr)	({ *addr = val; })
 #define CPU_TO_LE64(val, addr)	LLSTDW(val, 0, addr)
 
 #define CPU_TO_BE16(val, addr)  STH_SWAP(val, 0, addr)
@@ -212,7 +212,12 @@
 
 #endif /* CORE_IS_LITTLE_ENDIAN */
 
-
+/** return 8 bytes with endian swap.
+ * _val - 64bit value to be swaped. */
+#define swap_uint64(_val) (uint64_t)({register uint64_t __rR = 0;	\
+	uint64_t addr;						\
+	addr = (LLLDW_SWAP(0, (uint64_t)(&_val) ));		\
+	__rR = (uint64_t ) addr; })
 /* @} */
 
 /** @} */ /* end of AIOP_GENERAL */
