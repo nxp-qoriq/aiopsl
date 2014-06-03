@@ -1596,18 +1596,12 @@ int32_t fdma_create_frame(
 		PRC_SET_SEGMENT_LENGTH(0);
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_RESET_NDS_BIT();
-		status = fdma_present_default_frame();
-		if (status != FDMA_SUCCESS)
-			return status;
+		fdma_present_default_frame();
 
-		status = fdma_insert_default_segment_data(0, data, size,
+		fdma_insert_default_segment_data(0, data, size,
 				FDMA_REPLACE_SA_CLOSE_BIT);
 
-		if (status != FDMA_SUCCESS)
-			return status;
-
 		*frame_handle = PRC_GET_FRAME_HANDLE();
-		return FDMA_SUCCESS;
 	} else {
 		present_frame_params.fd_src = (void *)fd;
 		present_frame_params.asa_size = 0;
@@ -1617,9 +1611,7 @@ int32_t fdma_create_frame(
 		present_frame_params.present_size = 0;
 		present_frame_params.seg_offset = 0;
 
-		status = fdma_present_frame(&present_frame_params);
-		if (status != FDMA_SUCCESS)
-			return status;
+		fdma_present_frame(&present_frame_params);
 
 		insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
 		insert_params.frame_handle = present_frame_params.frame_handle;
@@ -1628,13 +1620,12 @@ int32_t fdma_create_frame(
 		insert_params.seg_handle = present_frame_params.seg_handle;
 		insert_params.to_offset = 0;
 
-		status = fdma_insert_segment_data(&insert_params);
-		if (status != FDMA_SUCCESS)
-			return status;
+		fdma_insert_segment_data(&insert_params);
 
 		*frame_handle = present_frame_params.frame_handle;
-		return FDMA_SUCCESS;
 	}
+
+	return FDMA_SUCCESS;;
 }
 
 int32_t fdma_create_fd(
@@ -1662,14 +1653,10 @@ int32_t fdma_create_fd(
 		PRC_SET_SEGMENT_LENGTH(0);
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_RESET_NDS_BIT();
-		status = fdma_present_default_frame();
-		if (status != FDMA_SUCCESS)
-			return status;
+		fdma_present_default_frame();
 
-		status = fdma_insert_default_segment_data(0, data, size,
+		fdma_insert_default_segment_data(0, data, size,
 				FDMA_REPLACE_SA_CLOSE_BIT);
-		if (status != FDMA_SUCCESS)
-			return status;
 
 		return fdma_store_default_frame_data();
 	} else {
@@ -1681,9 +1668,7 @@ int32_t fdma_create_fd(
 		present_frame_params.present_size = 0;
 		present_frame_params.seg_offset = 0;
 
-		status = fdma_present_frame(&present_frame_params);
-		if (status != FDMA_SUCCESS)
-			return status;
+		fdma_present_frame(&present_frame_params);
 
 		insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
 		insert_params.frame_handle = present_frame_params.frame_handle;
@@ -1692,9 +1677,7 @@ int32_t fdma_create_fd(
 		insert_params.seg_handle = present_frame_params.seg_handle;
 		insert_params.to_offset = 0;
 
-		status = fdma_insert_segment_data(&insert_params);
-		if (status != FDMA_SUCCESS)
-			return status;
+		fdma_insert_segment_data(&insert_params);
 
 		spid = *((uint8_t *)HWC_SPID_ADDRESS);
 		return fdma_store_frame_data(present_frame_params.frame_handle,
