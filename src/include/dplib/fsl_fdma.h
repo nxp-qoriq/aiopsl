@@ -205,7 +205,7 @@ enum fdma_split_psa_options {
 		/** Present segment from the split frame,
 		 * keep split working frame open. */
 	FDMA_SPLIT_PSA_PRESENT_BIT =	0x00000400,
-		/** Do not present, close split working frame. */
+		/** Do not present, store and close split working frame. */
 	FDMA_SPLIT_PSA_CLOSE_FRAME_BIT = 0x00000800
 };
 
@@ -286,897 +286,6 @@ enum fdma_pta_size_type {
 
 
 /**************************************************************************//**
- @Group		FDMA_Commands_Errors FDMA Commands Errors
-
- @Description	FDMA Commands Errors
-
- @{
-*//***************************************************************************/
-
-/**************************************************************************//**
-@Group		FDMA_PRESENT_FRAME_ERRORS
-
-@Description	FDMA Errors Status returned from Present Frame command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_PRESENT_FRAME_SUCCESS FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_PRESENT_FRAME_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** ASAPO value beyond ASAL in received FD. No ASA presentation possible. */
-#define FDMA_PRESENT_FRAME_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR		\
-		FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_PRESENT_FRAME_UNABLE_TO_PRESENT_FULL_ASA_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
-/** Received non-zero FD[ERR] field from Work Scheduler. */
-#define FDMA_PRESENT_FRAME_FD_ERR					\
-		FDMA_FD_ERR
-/** Frame Handle depletion (max of 6). */
-#define FDMA_PRESENT_FRAME_FRAME_HANDLE_DEPLETION_ERR			\
-		FDMA_FRAME_HANDLE_DEPLETION_ERR
-/** Segment Handle depletion (max of 8). */
-#define FDMA_PRESENT_FRAME_SEGMENT_HANDLE_DEPLETION_ERR			\
-		FDMA_SEGMENT_HANDLE_DEPLETION_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_PRESENT_FRAME_INVALID_DMA_COMMAND_ARGS_ERR			\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Received non-zero FD[ERR] field from Work Scheduler.
- *  This Error can occur only on autonomous frame presentation (not on
- *  commanded frame presentation). */
-#define FDMA_PRESENT_FRAME_FD_ERR					\
-		FDMA_FD_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_PRESENT_FRAME_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_PRESENT_FRAME_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_PRESENT_FRAME_WORKSPACE_MEMORY_WRITE_ERR			\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_PRESENT_FRAME_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_PRESENT_FRAME_STRUCTURAL_ERR				\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_PRESENT_FRAME_INTERNAL_ERR					\
-		FDMA_INTERNAL_ERR
-
-/* @} end of group FDMA_PRESENT_FRAME_ERRORS */
-
-
-/**************************************************************************//**
-@Group		FDMA_PRESENT_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Present Data Segment command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_PRESENT_SEGMENT_SUCCESS					\
-		FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_PRESENT_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** Frame Handle depletion (max of 6). */
-#define FDMA_PRESENT_SEGMENT_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Segment Handle depletion (max of 8). */
-#define FDMA_PRESENT_SEGMENT_SEGMENT_HANDLE_DEPLETION_ERR		\
-		FDMA_SEGMENT_HANDLE_DEPLETION_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_PRESENT_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR		\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_PRESENT_SEGMENT_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_PRESENT_SEGMENT_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_PRESENT_SEGMENT_WORKSPACE_MEMORY_WRITE_ERR			\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_PRESENT_SEGMENT_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_PRESENT_SEGMENT_FRAME_STRUCTURAL_ERR			\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_PRESENT_SEGMENT_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-/** The segment handle does not represent a Data segment. */
-#define FDMA_PRESENT_SEGMENT_NO_DATA_SEGMENT_HANDLE			\
-		FDMA_NO_DATA_SEGMENT_HANDLE
-
-/* @} end of group FDMA_PRESENT_SEGMENT_ERRORS */
-
-
-/**************************************************************************//**
-@Group		FDMA_PRESENT_ASA_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Present ASA Segment command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_PRESENT_ASA_SEGMENT_SUCCESS				\
-		FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_PRESENT_ASA_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** ASAPO value beyond ASAL in received FD. No ASA presentation possible. */
-#define FDMA_PRESENT_ASA_SEGMENT_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR	\
-		FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_PRESENT_ASA_SEGMENT_UNABLE_TO_PRESENT_FULL_ASA_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
-/** Frame Handle depletion (max of 6). */
-#define FDMA_PRESENT_ASA_SEGMENT_INVALID_FRAME_HANDLE_ERR		\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Segment Handle depletion (max of 8). */
-#define FDMA_PRESENT_ASA_SEGMENT_SEGMENT_HANDLE_DEPLETION_ERR		\
-		FDMA_SEGMENT_HANDLE_DEPLETION_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_PRESENT_ASA_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR		\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_PRESENT_ASA_SEGMENT_INTERNAL_MEMORY_ECC_ERR		\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_PRESENT_ASA_SEGMENT_WORKSPACE_MEMORY_READ_ERR		\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_PRESENT_ASA_SEGMENT_WORKSPACE_MEMORY_WRITE_ERR		\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_PRESENT_ASA_SEGMENT_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_PRESENT_ASA_SEGMENT_FRAME_STRUCTURAL_ERR			\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_PRESENT_ASA_SEGMENT_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-
-/* @} end of group FDMA_PRESENT_ASA_SEGMENT_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_PRESENT_PTA_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Present PTA Segment command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_PRESENT_PTA_SEGMENT_SUCCESS				\
-		FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_PRESENT_PTA_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** Unable to present the PTA segment because no PTA segment is
- * present in the working frame.*/
-#define FDMA_PRESENT_PTA_UNABLE_TO_PRESENT_PTA_ERR			\
-		FDMA_UNABLE_TO_PRESENT_PTA_ERR
-/** Frame Handle depletion (max of 6). */
-#define FDMA_PRESENT_PTA_SEGMENT_INVALID_FRAME_HANDLE_ERR		\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Segment Handle depletion (max of 8). */
-#define FDMA_PRESENT_PTA_SEGMENT_SEGMENT_HANDLE_DEPLETION_ERR		\
-		FDMA_SEGMENT_HANDLE_DEPLETION_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_PRESENT_PTA_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR		\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_PRESENT_PTA_SEGMENT_INTERNAL_MEMORY_ECC_ERR		\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_PRESENT_PTA_SEGMENT_WORKSPACE_MEMORY_READ_ERR		\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_PRESENT_PTA_SEGMENT_WORKSPACE_MEMORY_WRITE_ERR		\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_PRESENT_PTA_SEGMENT_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_PRESENT_PTA_SEGMENT_FRAME_STRUCTURAL_ERR			\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_PRESENT_PTA_SEGMENT_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-/** Invalid PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS). */
-#define FDMA_PRESENT_PTA_SEGMENT_INVALID_PTA_ADDRESS			\
-		FDMA_INVALID_PTA_ADDRESS
-
-/* @} end of group FDMA_PRESENT_PTA_SEGMENT_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_EXTEND_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Extend Segment command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_EXTEND_SEGMENT_SUCCESS					\
-		FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_EXTEND_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_EXTEND_SEGMENT_UNABLE_TO_PRESENT_FULL_ASA_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
-/** Invalid Frame Handle. */
-#define FDMA_EXTEND_SEGMENT_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Invalid Segment Handle. */
-#define FDMA_EXTEND_SEGMENT_INVALID_SEGMENT_HANDLE_ERR			\
-		FDMA_INVALID_SEGMENT_HANDLE_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_EXTEND_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR		\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_EXTEND_SEGMENT_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_EXTEND_SEGMENT_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_EXTEND_SEGMENT_WORKSPACE_MEMORY_WRITE_ERR			\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_EXTEND_SEGMENT_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_EXTEND_SEGMENT_FRAME_STRUCTURAL_ERR			\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_EXTEND_SEGMENT_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-
-/* @} end of group FDMA_EXTEND_SEGMENT_ERRORS */
-
-
-/**************************************************************************//**
-@Group		FDMA_STORE_FRAME_ERRORS
-
-@Description	FDMA Errors Status returned from Store Frame command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_STORE_FRAME_SUCCESS					\
-		FDMA_SUCCESS
-/** Failed due to buffer pool depletion. */
-#define FDMA_STORE_FRAME_BUFFER_POOL_DEPLETION_ERR			\
-		FDMA_BUFFER_POOL_DEPLETION_ERR
-/** Frame Store failed, single buffer frame full and Storage
- * Profile FF is set to 10. */
-#define FDMA_STORE_FRAME_FRAME_STORE_ERR				\
-		FDMA_FRAME_STORE_ERR
-/** Invalid Frame Handle. */
-#define FDMA_STORE_FRAME_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_STORE_FRAME_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_STORE_FRAME_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_STORE_FRAME_WORKSPACE_MEMORY_WRITE_ERR			\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_STORE_FRAME_SYSTEM_MEMORY_READ_ERR				\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** System memory write error (permission or ECC). */
-#define FDMA_STORE_FRAME_SYSTEM_MEMORY_WRITE_ERR			\
-		FDMA_SYSTEM_MEMORY_WRITE_ERR
-/** QMan enqueue error (access violation). */
-#define FDMA_STORE_FRAME_QMAN_ENQUEUE_ERR				\
-		FDMA_QMAN_ENQUEUE_ERR
-/** Frame structural error (invalid S/G bits settings, hop
- * limit). */
-#define FDMA_STORE_FRAME_FRAME_STRUCTURAL_ERR				\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_STORE_FRAME_INTERNAL_ERR FDMA_INTERNAL_ERR
-/** Storage Profile ICID does not match frame ICID and Storage
- * Profile BS=1 error. */
-#define FDMA_STORE_FRAME_SPID_ICID_ERR					\
-		FDMA_SPID_ICID_ERR
-/** Profile SRAM memory read Error. */
-#define FDMA_STORE_PROFILE_SRAM_MEMORY_READ_ERR			\
-		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
-
-/* @} end of group FDMA_STORE_FRAME_ERRORS */
-
-
-/**************************************************************************//**
-@Group		FDMA_ENQUEUE_FRAME_ERRORS
-
-@Description	FDMA Errors Status returned from Enqueue working frame command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_ENQUEUE_FRAME_SUCCESS					\
-	FDMA_SUCCESS
-/** Enqueue failed due to QMan enqueue rejection. */
-#define FDMA_ENQUEUE_FRAME_ENQUEUE_FAILED_ERR				\
-		FDMA_ENQUEUE_FAILED_ERR
-/** Failed due to buffer pool depletion. */
-#define FDMA_ENQUEUE_FRAME_BUFFER_POOL_DEPLETION_ERR			\
-		FDMA_BUFFER_POOL_DEPLETION_ERR
-/** Frame Store failed, single buffer frame full and Storage
- * Profile FF is set to 10. */
-#define FDMA_ENQUEUE_FRAME_FRAME_STORE_ERR				\
-		FDMA_FRAME_STORE_ERR
-/** Invalid Frame Handle. */
-#define FDMA_ENQUEUE_FRAME_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_ENQUEUE_FRAME_INVALID_DMA_COMMAND_ARGS_ERR			\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_ENQUEUE_FRAME_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_ENQUEUE_FRAME_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_ENQUEUE_FRAME_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** System memory write error (permission or ECC). */
-#define FDMA_ENQUEUE_FRAME_SYSTEM_MEMORY_WRITE_ERR			\
-		FDMA_SYSTEM_MEMORY_WRITE_ERR
-/** QMan enqueue error (access violation). */
-#define FDMA_ENQUEUE_FRAME_QMAN_ENQUEUE_ERR				\
-		FDMA_QMAN_ENQUEUE_ERR
-/** Frame structural error (invalid S/G bits settings, hop
- * limit). */
-#define FDMA_ENQUEUE_FRAME_FRAME_STRUCTURAL_ERR				\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_ENQUEUE_FRAME_INTERNAL_ERR					\
-		FDMA_INTERNAL_ERR
-/** Storage Profile ICID does not match frame ICID and Storage
- * Profile BS=1 error. */
-#define FDMA_ENQUEUE_FRAME_SPID_ICID_ERR				\
-		FDMA_SPID_ICID_ERR
-/** Profile SRAM memory read Error. */
-#define FDMA_ENQUEUE_PROFILE_SRAM_MEMORY_READ_ERR			\
-		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
-
-/* @} end of group FDMA_ENQUEUE_FRAME_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_ENQUEUE_FD_ERRORS
-
-@Description	FDMA Errors Status returned from Enqueue FD command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_ENQUEUE_FD_SUCCESS						\
-	FDMA_SUCCESS
-/** Enqueue failed due to QMan enqueue rejection. */
-#define FDMA_ENQUEUE_FD_ENQUEUE_FAILED_ERR				\
-		FDMA_ENQUEUE_FAILED_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_ENQUEUE_FD_INVALID_DMA_COMMAND_ARGS_ERR			\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Workspace memory read Error. */
-#define FDMA_ENQUEUE_FD_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** QMan enqueue error (access violation). */
-#define FDMA_ENQUEUE_FD_QMAN_ENQUEUE_ERR				\
-		FDMA_QMAN_ENQUEUE_ERR
-
-/* @} end of group FDMA_ENQUEUE_FD_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_DISCARD_FRAME_ERRORS
-
-@Description	FDMA Errors Status returned from Discard Working Frame command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_DISCARD_FRAME_SUCCESS					\
-		FDMA_SUCCESS
-/** Unable to perform required processing due to received
-* FD[FMT]=0x3 (the reserved value). */
-#define FDMA_DISCARD_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR		\
-		FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR
-/** Received non-zero FD[ERR] field from Work Scheduler. */
-#define FDMA_DISCARD_FD_ERR						\
-		FDMA_FD_ERR
-/** Frame Handle depletion (max of 6). */
-#define FDMA_DISCARD_FRAME_HANDLE_DEPLETION_ERR				\
-		FDMA_FRAME_HANDLE_DEPLETION_ERR
-/** Invalid Frame Handle. */
-#define FDMA_DISCARD_FRAME_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_DISCARD_FRAME_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_DISCARD_FRAME_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_DISCARD_FRAME_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** Frame structural error (invalid S/G bits settings, hop
- * limit). */
-#define FDMA_DISCARD_FRAME_FRAME_STRUCTURAL_ERR				\
-		FDMA_FRAME_STRUCTURAL_ERR
-
-/* @} end of group FDMA_DISCARD_FRAME_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_REPLICATE_FRAME_ERRORS
-
-@Description	FDMA Errors Status returned from Replicate Working Frame command
-
-@{
-*//***************************************************************************/
-
-/** Success. */
-#define FDMA_REPLICATE_FRAME_SUCCESS					\
-	FDMA_SUCCESS
-/** Enqueue failed due to QMan enqueue rejection. */
-#define FDMA_REPLICATE_FRAME_ENQUEUE_FAILED_ERR				\
-		FDMA_ENQUEUE_FAILED_ERR
-/** Failed due to buffer pool depletion. */
-#define FDMA_REPLICATE_FRAME_BUFFER_POOL_DEPLETION_ERR			\
-		FDMA_BUFFER_POOL_DEPLETION_ERR
-/** Frame Store failed, single buffer frame full and Storage
- * Profile FF is set to 10. */
-#define FDMA_REPLICATE_FRAME_FRAME_STORE_ERR				\
-		FDMA_FRAME_STORE_ERR
-/** Frame Handle depletion (max of 6). */
-#define FDMA_REPLICATE_FRAME_FRAME_HANDLE_DEPLETION_ERR			\
-		FDMA_FRAME_HANDLE_DEPLETION_ERR
-/** Invalid Frame Handle. */
-#define FDMA_REPLICATE_FRAME_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_REPLICATE_FRAME_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_REPLICATE_FRAME_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_REPLICATE_FRAME_WORKSPACE_MEMORY_WRITE_ERR			\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_REPLICATE_FRAME_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** System memory write error (permission or ECC). */
-#define FDMA_REPLICATE_FRAME_SYSTEM_MEMORY_WRITE_ERR			\
-		FDMA_SYSTEM_MEMORY_WRITE_ERR
-/** QMan enqueue error (access violation). */
-#define FDMA_REPLICATE_FRAME_QMAN_ENQUEUE_ERR				\
-		FDMA_QMAN_ENQUEUE_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_REPLICATE_FRAME_FRAME_STRUCTURAL_ERR			\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_REPLICATE_FRAME_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-/** Profile SRAM memory read Error. */
-#define FDMA_REPLICATE_PROFILE_SRAM_MEMORY_READ_ERR			\
-		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
-
-/* @} end of group FDMA_REPLICATE_FRAME_ERRORS */
-
-
-/**************************************************************************//**
-@Group		FDMA_CONCATENATE_FRAMES_ERRORS
-
-@Description	FDMA Errors Status returned from Concatenate Working Frames
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_CONCATENATE_FRAMES_SUCCESS					\
-		FDMA_SUCCESS
-/** Failed due to buffer pool depletion. */
-#define FDMA_CONCATENATE_FRAMES_BUFFER_POOL_DEPLETION_ERR		\
-		FDMA_BUFFER_POOL_DEPLETION_ERR
-/** Unable to trim frame to concatenate, trim size is larger
- * than frame size. */
-#define FDMA_CONCATENATE_FRAMES_UNABLE_TO_TRIM_ERR			\
-		FDMA_UNABLE_TO_TRIM_ERR
-/** Unable to perform required processing due to received
-* FD[FMT]=0x3 (the reserved value). */
-#define FDMA_CONCATENATE_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR	\
-	FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR
-/** Invalid Frame Handle. */
-#define FDMA_CONCATENATE_FRAMES_INVALID_FRAME_HANDLE_ERR		\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_CONCATENATE_FRAMES_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_CONCATENATE_FRAMES_WORKSPACE_MEMORY_READ_ERR		\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_CONCATENATE_FRAMES_WORKSPACE_MEMORY_WRITE_ERR		\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_CONCATENATE_FRAMES_SYSTEM_MEMORY_READ_ERR			\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** System memory write error (permission or ECC). */
-#define FDMA_CONCATENATE_FRAMES_SYSTEM_MEMORY_WRITE_ERR			\
-		FDMA_SYSTEM_MEMORY_WRITE_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_CONCATENATE_FRAMES_FRAME_STRUCTURAL_ERR			\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_CONCATENATE_FRAMES_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-/** Storage Profile ICID does not match frame ICID and Storage
- * Profile BS=1 error. */
-#define FDMA_CONCATENATE_FRAMES_SPID_ICID_ERR				\
-		FDMA_SPID_ICID_ERR
-/** Profile SRAM memory read Error. */
-#define FDMA_CONCATENATE_PROFILE_SRAM_MEMORY_READ_ERR			\
-		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
-
-/* @} end of group FDMA_CONCATENATE_FRAMES_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_SPLIT_FRAME_ERRORS
-
-@Description	FDMA Errors Status returned from Split Working Frame command
-
-@{
-*//***************************************************************************/
-
-/** Success. */
-#define FDMA_SPLIT_FRAME_SUCCESS					\
-		FDMA_SUCCESS
-/** Failed due to buffer pool depletion. */
-#define FDMA_SPLIT_FRAME_BUFFER_POOL_DEPLETION_ERR			\
-		FDMA_BUFFER_POOL_DEPLETION_ERR
-/** Unable to split frame, split size is larger than frame
- * size or no SF bit found. */
-#define FDMA_SPLIT_FRAME_UNABLE_TO_SPLIT_ERR				\
-		FDMA_UNABLE_TO_SPLIT_ERR
-/** Frame Store failed, single buffer frame full and Storage
- * Profile FF is set to 10. */
-#define FDMA_SPLIT_FRAME_FRAME_STORE_ERR				\
-		FDMA_FRAME_STORE_ERR
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_SPLIT_FRAME_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR		\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** Frame Handle depletion (max of 6). */
-#define FDMA_SPLIT_FRAME_FRAME_HANDLE_DEPLETION_ERR			\
-		FDMA_FRAME_HANDLE_DEPLETION_ERR
-/** Invalid Frame Handle. */
-#define FDMA_SPLIT_FRAME_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Segment Handle depletion (max of 8). */
-#define FDMA_SPLIT_FRAME_SEGMENT_HANDLE_DEPLETION_ERR			\
-		FDMA_SEGMENT_HANDLE_DEPLETION_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_SPLIT_FRAME_INVALID_DMA_COMMAND_ARGS_ERR			\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_SPLIT_FRAME_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_SPLIT_FRAME_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_SPLIT_FRAME_WORKSPACE_MEMORY_WRITE_ERR			\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_SPLIT_FRAME_SYSTEM_MEMORY_READ_ERR				\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** System memory write error (permission or ECC). */
-#define FDMA_SPLIT_FRAME_SYSTEM_MEMORY_WRITE_ERR			\
-		FDMA_SYSTEM_MEMORY_WRITE_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_SPLIT_FRAME_FRAME_STRUCTURAL_ERR				\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_SPLIT_FRAME_INTERNAL_ERR					\
-		FDMA_INTERNAL_ERR
-/** Storage Profile ICID does not match frame ICID and Storage
- * Profile BS=1 error. */
-#define FDMA_SPLIT_FRAME_SPID_ICID_ERR					\
-		FDMA_SPID_ICID_ERR
-/** Profile SRAM memory read Error. */
-#define FDMA_SPLIT_PROFILE_SRAM_MEMORY_READ_ERR				\
-		FDMA_PROFILE_SRAM_MEMORY_READ_ERR
-
-/* @} end of group FDMA_SPLIT_FRAME_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_TRIM_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Trim Segment Presentation
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_TRIM_SEGMENT_SUCCESS					\
-		FDMA_SUCCESS
-/** Invalid Frame Handle. */
-#define FDMA_TRIM_SEGMENT_INVALID_FRAME_HANDLE_ERR			\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Invalid Segment Handle. */
-#define FDMA_TRIM_SEGMENT_INVALID_SEGMENT_HANDLE_ERR			\
-		FDMA_INVALID_SEGMENT_HANDLE_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_TRIM_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR			\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_TRIM_SEGMENT_INTERNAL_MEMORY_ECC_ERR			\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_TRIM_SEGMENT_WORKSPACE_MEMORY_READ_ERR			\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_TRIM_SEGMENT_INTERNAL_ERR					\
-		FDMA_INTERNAL_ERR
-
-/* @} end of group FDMA_TRIM_SEGMENT_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_REPLACE_DATA_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Replace Data Segment
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_REPLACE_DATA_SEGMENT_SUCCESS				\
-		FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_REPLACE_DATA_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_REPLACE_DATA_SEGMENT_UNABLE_TO_PRESENT_FULL_ASA_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
-/** Invalid Frame Handle. */
-#define FDMA_REPLACE_DATA_SEGMENT_INVALID_FRAME_HANDLE_ERR		\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Invalid Segment Handle. */
-#define FDMA_REPLACE_DATA_SEGMENT_INVALID_SEGMENT_HANDLE_ERR		\
-		FDMA_INVALID_SEGMENT_HANDLE_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_REPLACE_DATA_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR		\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_REPLACE_DATA_SEGMENT_INTERNAL_MEMORY_ECC_ERR		\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_REPLACE_DATA_SEGMENT_WORKSPACE_MEMORY_READ_ERR		\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_REPLACE_DATA_SEGMENT_WORKSPACE_MEMORY_WRITE_ERR		\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_REPLACE_DATA_SEGMENT_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-/** The segment handle does not represent a Data segment. */
-#define FDMA_REPLACE_DATA_SEGMENT_NO_DATA_SEGMENT_HANDLE		\
-		FDMA_NO_DATA_SEGMENT_HANDLE
-
-/* @} end of group FDMA_REPLACE_DATA_SEGMENT_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_REPLACE_ASA_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Replace ASA Segment
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_REPLACE_ASA_SEGMENT_SUCCESS				\
-		FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_REPLACE_ASA_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_REPLACE_ASA_SEGMENT_UNABLE_TO_PRESENT_FULL_ASA_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
-/** Invalid Frame Handle. */
-#define FDMA_REPLACE_ASA_SEGMENT_INVALID_FRAME_HANDLE_ERR		\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Invalid Segment Handle. */
-#define FDMA_REPLACE_ASA_SEGMENT_INVALID_SEGMENT_HANDLE_ERR		\
-		FDMA_INVALID_SEGMENT_HANDLE_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_REPLACE_ASA_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR		\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_REPLACE_ASA_SEGMENT_INTERNAL_MEMORY_ECC_ERR		\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_REPLACE_ASA_SEGMENT_WORKSPACE_MEMORY_READ_ERR		\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_REPLACE_ASA_SEGMENT_WORKSPACE_MEMORY_WRITE_ERR		\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_REPLACE_ASA_SEGMENT_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-
-/* @} end of group FDMA_REPLACE_ASA_SEGMENT_ERRORS */
-
-
-/**************************************************************************//**
-@Group		FDMA_REPLACE_PTA_SEGMENT_ERRORS
-
-@Description	FDMA Errors Status returned from Replace PTA Segment
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_REPLACE_PTA_SEGMENT_SUCCESS				\
-		FDMA_SUCCESS
-/** Unable to fulfill specified segment presentation size. */
-#define FDMA_REPLACE_PTA_SEGMENT_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR
-/** Unable to fulfill specified ASAPS on an initial frame
- * presentation. Only ASAL amount of annotation was presented.*/
-#define FDMA_REPLACE_PTA_SEGMENT_UNABLE_TO_PRESENT_FULL_ASA_ERR	\
-		FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR
-/** Invalid Frame Handle. */
-#define FDMA_REPLACE_PTA_SEGMENT_INVALID_FRAME_HANDLE_ERR		\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Invalid Segment Handle. */
-#define FDMA_REPLACE_PTA_SEGMENT_INVALID_SEGMENT_HANDLE_ERR		\
-		FDMA_INVALID_SEGMENT_HANDLE_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_REPLACE_PTA_SEGMENT_INVALID_DMA_COMMAND_ARGS_ERR		\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_REPLACE_PTA_SEGMENT_INTERNAL_MEMORY_ECC_ERR		\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_REPLACE_PTA_SEGMENT_WORKSPACE_MEMORY_READ_ERR		\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_REPLACE_PTA_SEGMENT_WORKSPACE_MEMORY_WRITE_ERR		\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_REPLACE_PTA_SEGMENT_INTERNAL_ERR				\
-		FDMA_INTERNAL_ERR
-/** Invalid PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS). */
-#define FDMA_REPLACE_PTA_SEGMENT_INVALID_PTA_ADDRESS			\
-		FDMA_INVALID_PTA_ADDRESS
-
-/* @} end of group FDMA_REPLACE_PTA_SEGMENT_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_CHECKSUM_ERRORS
-
-@Description	FDMA Errors Status returned from Calculate Checksum
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_CHECKSUM_SUCCESS						\
-		FDMA_SUCCESS
-/** Invalid Frame Handle. */
-#define FDMA_CHECKSUM_INVALID_FRAME_HANDLE_ERR				\
-		FDMA_INVALID_FRAME_HANDLE_ERR
-/** Invalid DMA command arguments. */
-#define FDMA_CHECKSUM_INVALID_DMA_COMMAND_ARGS_ERR			\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Internal memory ECC uncorrected ECC error. */
-#define FDMA_CHECKSUM_INTERNAL_MEMORY_ECC_ERR				\
-		FDMA_INTERNAL_MEMORY_ECC_ERR
-/** Workspace memory read Error. */
-#define FDMA_CHECKSUM_WORKSPACE_MEMORY_READ_ERR				\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** System memory read error (permission or ECC). */
-#define FDMA_CHECKSUM_SYSTEM_MEMORY_READ_ERR				\
-		FDMA_SYSTEM_MEMORY_READ_ERR
-/** Frame structural error (invalid S/G bits settings, hop limit). */
-#define FDMA_CHECKSUM_FRAME_STRUCTURAL_ERR				\
-		FDMA_FRAME_STRUCTURAL_ERR
-/** FDMA Internal error, SRU depletion. */
-#define FDMA_CHECKSUM_INTERNAL_ERR					\
-		FDMA_INTERNAL_ERR
-
-/* @} end of group FDMA_CHECKSUM_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_COPY_ERRORS
-
-@Description	FDMA Errors Status returned from Calculate Checksum
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_COPY_SUCCESS						\
-		FDMA_SUCCESS
-/** Invalid DMA command arguments. */
-#define FDMA_COPY_INVALID_DMA_COMMAND_ARGS_ERR				\
-		FDMA_INVALID_DMA_COMMAND_ARGS_ERR
-/** Workspace memory read Error. */
-#define FDMA_COPY_WORKSPACE_MEMORY_READ_ERR				\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_COPY_WORKSPACE_MEMORY_WRITE_ERR				\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-/** Shared SRAM memory read Error. */
-#define FDMA_COPY_SRAM_MEMORY_READ_ERR				\
-		FDMA_SRAM_MEMORY_READ_ERR
-
-/* @} end of group FDMA_COPY_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_ACQUIRE_BUFFER_ERRORS
-
-@Description	FDMA Errors Status returned from Acquire buffer
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_ACQUIRE_SUCCESS						\
-		FDMA_SUCCESS
-/**Failed due to buffer pool depletion. */
-#define FDMA_ACQUIRE_BUFFER_POOL_DEPLETION_ERR				\
-		FDMA_BUFFER_POOL_DEPLETION_ERR
-/** Workspace memory read Error. */
-#define FDMA_ACQUIRE_WORKSPACE_MEMORY_READ_ERR				\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_ACQUIRE_WORKSPACE_MEMORY_WRITE_ERR				\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-
-/* @} end of group FDMA_ACQUIRE_BUFFER_ERRORS */
-
-/**************************************************************************//**
-@Group		FDMA_RELEASE_BUFFER_ERRORS
-
-@Description	FDMA Errors Status returned from Acquire buffer
-		command
-
-@{
-*//***************************************************************************/
-/** Success. */
-#define FDMA_RELEASE_SUCCESS						\
-		FDMA_SUCCESS
-/** Workspace memory read Error. */
-#define FDMA_RELEASE_WORKSPACE_MEMORY_READ_ERR				\
-		FDMA_WORKSPACE_MEMORY_READ_ERR
-/** Workspace memory write Error. */
-#define FDMA_RELEASE_WORKSPACE_MEMORY_WRITE_ERR				\
-		FDMA_WORKSPACE_MEMORY_WRITE_ERR
-
-/* @} end of group FDMA_RELEASE_BUFFER_ERRORS */
-
-/* @} end of group FDMA_Commands_Errors */
-
-/**************************************************************************//**
  @Group		FDMA_Commands_Flags FDMA Commands Flags
 
  @Description	FDMA Commands Flags
@@ -1191,7 +300,7 @@ enum fdma_pta_size_type {
 
 @{
 *//***************************************************************************/
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_INIT_NO_FLAGS	0x00000000
 	/** No Data Segment.
 	 * If set - do not present Data segment.
@@ -1226,7 +335,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_PRES_NO_FLAGS	0x00000000
 	/** Reference within the frame to present from (This field is ignored
 	 * when presenting PTA or ASA segments).
@@ -1243,7 +352,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_EXT_NO_FLAGS	0x00000000
 	/** The type of segment to present. Only one option may be choose from
 	 * \ref fdma_st_options. */
@@ -1259,7 +368,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_ENWF_NO_FLAGS	0x00000000
 	/** Terminate Control options. Only one option may be choose from
 	 * \ref fdma_enqueue_tc_options. */
@@ -1281,7 +390,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_ENF_NO_FLAGS	0x00000000
 	/** Terminate Control options. Only one option may be choose from
 	 * \ref fdma_enqueue_tc_options. */
@@ -1310,7 +419,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_DIS_NO_FLAGS	0x00000000
 	/** Terminate Control.
 	 * If set - Trigger the Terminate task command right after the discard.
@@ -1335,7 +444,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_REPLIC_NO_FLAGS	0x00000000
 	/** Enqueue the replicated frame to the provided Queueing Destination.
 	 * Release destination frame handle is implicit when enqueueing.
@@ -1366,7 +475,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_CONCAT_NO_FLAGS	0x00000000
 	/** Set SF bit on SGE of the original frames. Note, this will force the
 	 * usage of SG format on the concatenated frame.
@@ -1388,7 +497,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_SPLIT_NO_FLAGS	0x00000000
 	/** AIOP FDMA copy frame annotations options. Only one option may be
 	 * choose from \ref fdma_cfa_options. */
@@ -1415,7 +524,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_REPLACE_NO_FLAGS	0x00000000
 	/** Segment action options. Only one option may be
 	 * choose from \ref fdma_replace_sa_options. */
@@ -1431,7 +540,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_COPY_NO_FLAGS	0x00000000
 	/** Source Memory:.
 	 * If set - Copy source memory address is in the workspace.
@@ -1454,7 +563,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_ACQUIRE_NO_FLAGS	0x00000000
 	/** Bypass DPAA resource Isolation:
 	 * If reset - Isolation is enabled for this command. The pool ID
@@ -1473,7 +582,7 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** No flags indication. */
+	/** Default command configuration. */
 #define FDMA_RELEASE_NO_FLAGS	0x00000000
 	/** Bypass DPAA resource Isolation:
 	 * If reset - Isolation is enabled for this command. The pool ID
@@ -1831,9 +940,18 @@ struct fdma_delete_segment_data_params {
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(not relevant if the NDS bit in the presentation context is set,
+		or if the Data size in the presentation context is 0).
+@Retval		EIO - Unable to fulfill specified ASA segment presentation size
+		(not relevant if the ASA size in the presentation context is 0).
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_default_frame(void);
@@ -1857,9 +975,17 @@ int32_t fdma_present_default_frame(void);
 @Param[in,out]	params - A pointer to the Initial frame presentation command
 		parameters.
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(not relevant if the NDS bit flag in the function parameters is
+		set, or if the Data size in the function parameters is 0).
+@Retval		EIO - Unable to fulfill specified ASA segment presentation size
+		(not relevant if the ASA size in the function parameters is 0).
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_frame(
@@ -1885,10 +1011,15 @@ int32_t fdma_present_frame(
 @Param[in]	present_size - Number of frame bytes to present (any value
 		including 0).
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_SEGMENT_ERRORS).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(not relevant if the present_size in the function parameters is
+		0).
 
 @Cautions	This command may be invoked only for Data segments.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_default_frame_segment(
@@ -1906,10 +1037,15 @@ int32_t fdma_present_default_frame_segment(
 @Param[in]	params - A pointer to the Present frame segment command
 		parameters.
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_SEGMENT_ERRORS).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(not relevant if the present_size in the function parameters is
+		0).
 
 @Cautions	This command may be invoked only for Data segments.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_frame_segment(
@@ -1937,13 +1073,18 @@ int32_t fdma_present_frame_segment(
 		than 0). Contains the number of 64B quantities to present
 		because the Frame ASAL field is specified in 64B units.
 
-@Return		Success or Failure (e.g. DMA error, No HW Annotation. (\ref
-		FDMA_PRESENT_ASA_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified ASA segment presentation size
+		(not relevant if the present_size in the function parameters is
+		0).
 
 @remark		The ASA segment handle value is fixed \ref FDMA_ASA_SEG_HANDLE.
 
 @Cautions	The HW must have previously opened the frame with an
 		automatic initial presentation or initial presentation command.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_read_default_frame_asa(
@@ -1965,8 +1106,7 @@ int32_t fdma_read_default_frame_asa(
 @Param[in]	ws_dst - A pointer to the location in workspace for the
 		presented PTA segment.
 
-@Return		Success or Failure (e.g. DMA error, No SW Annotation. (\ref
-		FDMA_PRESENT_PTA_SEGMENT_ERRORS)).
+@Return		Success (0).
 
 @remark		The PTA segment handle value is fixed \ref FDMA_PTA_SEG_HANDLE.
 
@@ -1974,6 +1114,7 @@ int32_t fdma_read_default_frame_asa(
 
 @Cautions	The HW must have previously opened the frame with an
 		automatic initial presentation or initial presentation command.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_read_default_frame_pta(void *ws_dst);
@@ -1998,8 +1139,11 @@ int32_t fdma_read_default_frame_pta(void *ws_dst);
 @Param[in]	flags - \link FDMA_EXT_Flags extend segment mode
 		bits. \endlink
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_EXTEND_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment extend size.
+@Retval		EIO - Unable to fulfill specified ASA segment extend size.
 
 @remark		The extended data to be presented does not have to be
 		sequential relative to the current presented segment.
@@ -2007,6 +1151,7 @@ int32_t fdma_read_default_frame_pta(void *ws_dst);
 		after this command the default segment values in the
 		presentation context will not be valid.
 
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_extend_default_segment_presentation(
@@ -2021,7 +1166,8 @@ int32_t fdma_extend_default_segment_presentation(
 @Function	fdma_store_default_frame_data
 
 @Description	Write out modified default Working Frame to the backing storage
-		in system memory described by the Frame Descriptor.
+		in system memory described by the Frame Descriptor and close the
+		working frame.
 
 		Existing FD buffers are used to store data.
 
@@ -2034,13 +1180,16 @@ int32_t fdma_extend_default_segment_presentation(
 		Implicit input parameters in Task Defaults: frame handle,
 		spid (storage profile ID).
 
-@Return
-		- Success or Failure (e.g. FDMA error. (\ref
-		FDMA_STORE_FRAME_ERRORS)).
-		- Update FD.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@remark		FD is updated.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_default_frame_data(void);
@@ -2049,7 +1198,8 @@ int32_t fdma_store_default_frame_data(void);
 @Function	fdma_store_frame_data
 
 @Description	Write out modified Working Frame to the backing storage
-		in system memory described by the Frame Descriptor.
+		in system memory described by the Frame Descriptor and close the
+		working frame.
 
 		Existing FD buffers are used to store data.
 
@@ -2064,13 +1214,16 @@ int32_t fdma_store_default_frame_data(void);
 		buffers are required.
 @Param[out]	amq - AMQ attributes.
 
-@Return
-		- Success or Failure (e.g. FDMA error. (\ref
-		FDMA_STORE_FRAME_ERRORS)).
-		- Update FD.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@remark		FD is updated.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_frame_data(
@@ -2108,13 +1261,17 @@ int32_t fdma_store_frame_data(
 @Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
 		bits. \endlink
 
-@Return		Status (if enqueue succeeded or failed.
-		(\ref FDMA_ENQUEUE_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions
 		- Function may not return.
 		- All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_and_enqueue_default_frame_fqid(
@@ -2150,13 +1307,17 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 @Param[in]	fqid - frame queue ID for the enqueue.
 @Param[in]	spid - Storage Profile ID used to store frame data.
 
-@Return		Status (if enqueue succeeded or failed.
-		(\ref FDMA_ENQUEUE_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions
 		- Function may not return.
 		- All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_and_enqueue_frame_fqid(
@@ -2195,13 +1356,17 @@ int32_t fdma_store_and_enqueue_frame_fqid(
 @Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
 		bits. \endlink
 
-@Return		Status (if enqueue succeeded or failed. (\ref
-		FDMA_ENQUEUE_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions
 		- Function may not return.
 		- All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_and_enqueue_default_frame_qd(
@@ -2240,13 +1405,17 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 @Param[in]	qdp - Pointer to the queueing destination parameters.
 @Param[in]	spid - Storage Profile ID used to store frame data.
 
-@Return		Status (if enqueue succeeded or failed. (\ref
-		FDMA_ENQUEUE_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions
 		- Function may not return.
 		- All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_store_and_enqueue_frame_qd(
@@ -2272,10 +1441,13 @@ int32_t fdma_store_and_enqueue_frame_qd(
 @Param[in]	fqid - frame queue ID for the enqueue.
 
 
-@Return		Status (if enqueue succeeded or failed. (\ref
-		FDMA_ENQUEUE_FD_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_default_fd_fqid(
@@ -2302,6 +1474,7 @@ int32_t fdma_enqueue_default_fd_fqid(
 		FDMA_ENQUEUE_FD_ERRORS)).
 
 @Cautions	Function may not return.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_fd_fqid(
@@ -2327,10 +1500,13 @@ int32_t fdma_enqueue_fd_fqid(
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
 
 
-@Return		Status (if enqueue succeeded or failed. (\ref
-		FDMA_ENQUEUE_FD_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_default_fd_qd(
@@ -2353,10 +1529,13 @@ int32_t fdma_enqueue_default_fd_qd(
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
 @Param[in]	icid - ICID of the FD to enqueue.
 
-@Return		Status (if enqueue succeeded or failed. (\ref
-		FDMA_ENQUEUE_FD_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_enqueue_fd_qd(
@@ -2375,8 +1554,12 @@ int32_t fdma_enqueue_fd_qd(
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard frame flags.
 		\endlink
 
-@Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_discard_default_frame(uint32_t flags);
@@ -2389,8 +1572,12 @@ int32_t fdma_discard_default_frame(uint32_t flags);
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
 
-@Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
@@ -2413,9 +1600,12 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
 
-@Return		Status (Success or Failure. (\ref FDMA_DISCARD_FRAME_ERRORS,
-		\ref FDMA_PRESENT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
@@ -2433,6 +1623,7 @@ int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 		or discard the input frame before calling Terminate task
 		command to avoid buffer leak.
 		- Function does not return
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 void fdma_terminate_task(void);
@@ -2459,10 +1650,13 @@ void fdma_terminate_task(void);
 @Param[out]	frame_handle2 - Handle of the replicated frame (when no enqueue
 		selected).
 
-Handle of the replicated frame (when no enqueue selected)
+@Return		0 on Success, or negative value on error.
 
-@Return		Status (Success or Failure. (\ref FDMA_REPLICATE_FRAME_ERRORS))
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_replicate_frame_fqid(
@@ -2496,10 +1690,13 @@ int32_t fdma_replicate_frame_fqid(
 @Param[out]	frame_handle2 - Handle of the replicated frame (when no enqueue
 		was selected).
 
-Handle of the replicated frame (when no enqueue selected)
+@Return		0 on Success, or negative value on error.
 
-@Return		Status (Success or Failure. (\ref FDMA_REPLICATE_FRAME_ERRORS))
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_replicate_frame_qd(
@@ -2528,8 +1725,11 @@ int32_t fdma_replicate_frame_qd(
 
 @Param[in,out]	params - A pointer to the Concatenate frames command parameters.
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_CONCATENATE_FRAMES_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
 
 @remark		Frame annotation of the first frame becomes the frame annotation
 		of the concatenated frame
@@ -2541,6 +1741,7 @@ int32_t fdma_replicate_frame_qd(
 		- In case frame2 handle parameter is the default frame handle,
 		all Task default variables will not be valid after the service
 		routine.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_concatenate_frames(
@@ -2556,12 +1757,21 @@ int32_t fdma_concatenate_frames(
 		must be Closed.
 
 		In case the fd destination parameter points to the default FD
-		address, the service routine will update Task defaults
-		variables according to command parameters.
+		address, the service routine will update the Task
+		defaults variables according to command parameters.
+
+		In case \ref FDMA_SPLIT_SM_BIT flag is not set, the service
+		routine updates the split frame fd.length field.
 
 @Param[in,out]	params - A pointer to the Split frame command parameters
 
-@Return		Status (Success or Failure. (\ref FDMA_SPLIT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
+@Retval		EINVAL - Last split is not possible.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(relevant if \ref FDMA_SPLIT_PSA_PRESENT_BIT flag is set).
 
 @remark
 		- The first fd is updated to reflect the remainder of the
@@ -2572,6 +1782,7 @@ int32_t fdma_concatenate_frames(
 
 @remark		If split size is >= frame size then an error will be returned.
 
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_split_frame(
@@ -2599,7 +1810,7 @@ int32_t fdma_split_frame(
 		representing the new start of the segment (head trim).
 @Param[in]	size - New segment size in bytes.
 
-@Return		Status (Success or Failure. (\ref FDMA_TRIM_SEGMENT_ERRORS)).
+@Return		Success (0).
 
 @remark		Example: Trim segment to 20 bytes at offset 10.
 		The default Data segment represents a 100 bytes at offset 0 in
@@ -2611,6 +1822,7 @@ int32_t fdma_split_frame(
 			- size - 20
 
 @Cautions	This command may be invoked only for Data segments.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_trim_default_segment_presentation(
@@ -2636,8 +1848,7 @@ int32_t fdma_trim_default_segment_presentation(
 		Must be within the presented segment size.
 @Param[in]	size - The Working Frame modified size.
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		Success (0).
 
 @remark		Example: Modify 14 bytes. The default Data segment represents a
 		100 bytes at offset 0 in the frame (0-99) and the user has
@@ -2648,6 +1859,7 @@ int32_t fdma_trim_default_segment_presentation(
 			- size - 14
 
 @Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_modify_default_segment_data(
@@ -2690,8 +1902,11 @@ int32_t fdma_modify_default_segment_data(
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 
 @remark		Example: Modify 14 bytes + insert 2 bytes. The default Data
 		segment represents a 100 bytes at offset 0 in the frame (0-99)
@@ -2704,6 +1919,7 @@ int32_t fdma_modify_default_segment_data(
 			- from_size - 16
 
 @Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_replace_default_segment_data(
@@ -2740,8 +1956,11 @@ int32_t fdma_replace_default_segment_data(
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 
 @remark
 		- This is basically a replace command with
@@ -2777,6 +1996,7 @@ int32_t fdma_replace_default_segment_data(
 		segment representation will overwrite the old segment location
 		in workspace. The segment size will remain the same.
 @Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_insert_default_segment_data(
@@ -2798,8 +2018,11 @@ int32_t fdma_insert_default_segment_data(
 @Param[in]	params - A pointer to the insert segment data command
 		parameters.
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 
 @remark
 		- This is basically a replace command with
@@ -2814,6 +2037,7 @@ int32_t fdma_insert_default_segment_data(
 			- insert_size - 2
 
 @Cautions	This command may be invoked only on the Data segment.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_insert_segment_data(
@@ -2843,8 +2067,11 @@ int32_t fdma_insert_segment_data(
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 
 @remark
 		- This is basically a replace command with
@@ -2871,6 +2098,7 @@ int32_t fdma_insert_segment_data(
 		length reduced by delete_target_size bytes.
 
 @Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_delete_default_segment_data(
@@ -2891,8 +2119,11 @@ int32_t fdma_delete_default_segment_data(
 @Param[in]	params - A pointer to the delete segment data command
 		parameters.
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 
 @remark
 		- This is basically a replace command with
@@ -2907,6 +2138,7 @@ int32_t fdma_delete_default_segment_data(
 			- delete_target_size - 10
 
 @Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_delete_segment_data(
@@ -2923,10 +2155,10 @@ int32_t fdma_delete_segment_data(
 		Implicit input parameters in Task Defaults: frame handle,
 		segment handle.
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		Success (0).
 
 @Cautions	This command may be invoked only for Data segments.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_close_default_segment(void);
@@ -2942,10 +2174,10 @@ int32_t fdma_close_default_segment(void);
 @Param[in]	frame_handle - working frame from which to close the segment
 @Param[in]	seg_handle - The handle of the segment to be closed.
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_DATA_SEGMENT_ERRORS)).
+@Return		Success (0).
 
 @Cautions	This command may be invoked only for Data segments.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
@@ -2987,9 +2219,13 @@ int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		Status (Success or Failure. (\ref
-		FDMA_REPLACE_ASA_SEGMENT_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified ASA segment presentation size
+		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_replace_default_asa_segment_data(
@@ -3035,12 +2271,12 @@ int32_t fdma_replace_default_asa_segment_data(
 @Param[in]	size_type - Replacing segment size type of the PTA
 		(\ref fdma_pta_size_type).
 
-@Return		Status - Success or Failure. (\ref
-		FDMA_REPLACE_PTA_SEGMENT_ERRORS).
+@Return		Success (0).
 
 @remark		The length of the represented PTA can be read directly from the
 		FD.
 
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_replace_default_pta_segment_data(
@@ -3062,10 +2298,11 @@ int32_t fdma_replace_default_pta_segment_data(
 @Param[out]	checksum - Ones complement sum over the specified range of the
 		working frame.
 
-@Return		Status - Success or Failure (\ref FDMA_CHECKSUM_ERRORS).
+@Return		Success (0).
 
 @Cautions	The h/w must have previously opened the frame with an
 		initial presentation or initial presentation command.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_calculate_default_frame_checksum(
@@ -3087,10 +2324,11 @@ int32_t fdma_calculate_default_frame_checksum(
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
 		memory to store the copied data (limited to 20 bits).
 
-@Return		Status - Success or Failure (\ref FDMA_COPY_ERRORS).
+@Return		Success (0).
 
 @Cautions	If source and destination regions overlap then this is a
 		destructive copy.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_copy_data(
@@ -3132,16 +2370,13 @@ int32_t fdma_copy_data(
 @Param[in]	size - data size.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
-@Return
-		- Status - Success or Failure (\ref FDMA_PRESENT_FRAME_ERRORS,
-		\ref FDMA_REPLACE_DATA_SEGMENT_ERRORS, \ref
-		FDMA_STORE_FRAME_ERRORS)).
-		- Update FD.
+@Return		Success (0).
 
 @Cautions
 		- In this Service Routine the task yields.
 		- The FD address in workspace must be aligned to 32 bytes.
 		- The frame FD is overwritten in this function.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int32_t fdma_create_frame(
 		struct ldpaa_fd *fd,
@@ -3184,16 +2419,18 @@ int32_t fdma_create_frame(
 		frame.
 @Param[in]	size - data size.
 
-@Return
-		- Status - Success or Failure (\ref FDMA_PRESENT_FRAME_ERRORS,
-		\ref FDMA_REPLACE_DATA_SEGMENT_ERRORS, \ref
-		FDMA_STORE_FRAME_ERRORS)).
-		- Update FD.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@remark		FD is updated.
 
 @Cautions
 		- In this Service Routine the task yields.
 		- The FD address in workspace must be aligned to 32 bytes.
 		- The frame FD is overwritten in this function.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int32_t fdma_create_fd(
 		struct ldpaa_fd *fd,
