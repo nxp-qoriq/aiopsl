@@ -273,6 +273,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/include/arch</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/include/common</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -311,6 +316,11 @@
 			<name>sources/drivers/dplib/util</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/include/arch/fsl_ldpaa_aiop.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/common/spinlock.h</name>
