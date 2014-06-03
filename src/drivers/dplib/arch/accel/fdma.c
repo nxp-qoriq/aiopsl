@@ -393,7 +393,7 @@ int32_t fdma_read_default_frame_pta(
 	int8_t  res1;
 
 	if (((uint16_t)((uint32_t)ws_dst)) == PRC_PTA_NOT_LOADED_ADDRESS)
-		return FDMA_INVALID_PTA_ADDRESS;
+		fdma_handle_fatal_errors(FDMA_INVALID_PTA_ADDRESS);
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			FDMA_ST_PTA_SEGMENT_BIT);
@@ -916,7 +916,8 @@ int32_t fdma_split_frame(
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
 	if ((res1 == FDMA_SUCCESS) ||
-		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)) {
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR) ||
+		(res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)) {
 		params->split_frame_handle = *((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET));
 		if (params->flags & FDMA_SPLIT_PSA_PRESENT_BIT) {
@@ -964,7 +965,18 @@ int32_t fdma_split_frame(
 		    !(params->flags & FDMA_SPLIT_SM_BIT))
 			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
 					params->split_size_sf);
+
+		if ((res1 == FDMA_SUCCESS))
+			return SUCCESS;
+		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
+			return -EIO;
+		else
+			return -ENOMEM;
 	}
+	else if (res1 == FDMA_UNABLE_TO_SPLIT_ERR)
+		return -EINVAL;
+	else
+		fdma_handle_fatal_errors(res1);
 
 	return (int32_t)(res1);
 }
@@ -1004,7 +1016,7 @@ int32_t fdma_modify_default_segment_data(
 	/* This command may be invoked only on Data segment */
 	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(
 			PRC_GET_HANDLES(), FDMA_REPLACE_SA_OPEN_BIT);
@@ -1042,7 +1054,7 @@ int32_t fdma_replace_default_segment_data(
 	/* This command may be invoked only on Data segment */
 	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
@@ -1092,7 +1104,7 @@ int32_t fdma_insert_default_segment_data(
 	/* This command may be invoked only on Data segment */
 	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, 0);
@@ -1145,7 +1157,7 @@ int32_t fdma_insert_segment_data(
 	/* This command may be invoked only on Data segment */
 	if ((params->seg_handle == FDMA_ASA_SEG_HANDLE) ||
 	    (params->seg_handle == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_EXP_CMD_ARG1(params->seg_handle,
 			params->frame_handle, params->flags);
@@ -1205,7 +1217,7 @@ int32_t fdma_delete_default_segment_data(
 	/* This command may be invoked only on Data segment */
 	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, delete_target_size);
@@ -1256,7 +1268,7 @@ int32_t fdma_delete_segment_data(
 	/* This command may be invoked only on Data segment */
 	if ((params->seg_handle == FDMA_ASA_SEG_HANDLE) ||
 	    (params->seg_handle == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_DELETE_CMD_ARG1(params->seg_handle, params->frame_handle,
 			params->flags);
@@ -1316,7 +1328,7 @@ int32_t fdma_close_default_segment(void)
 	seg_handle = PRC_GET_SEGMENT_HANDLE();
 	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
 	    (seg_handle == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(PRC_GET_FRAME_HANDLE(), seg_handle);
 	/* store command parameters */
@@ -1344,7 +1356,7 @@ int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 	/* This command may be invoked only on Data segment */
 	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
 	    (seg_handle == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(frame_handle, seg_handle);
 	/* store command parameters */
@@ -1430,7 +1442,7 @@ int32_t fdma_replace_default_pta_segment_data(
 	if ((flags & FDMA_REPLACE_SA_REPRESENT_BIT) &&
 		(((uint16_t)((uint32_t)ws_dst_rs)) ==
 				PRC_PTA_NOT_LOADED_ADDRESS))
-			return FDMA_INVALID_PTA_ADDRESS;
+		fdma_handle_fatal_errors(FDMA_INVALID_PTA_ADDRESS);
 
 	arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
 			FDMA_PTA_SEG_HANDLE, PRC_GET_HANDLES(), flags);
@@ -1719,5 +1731,98 @@ int32_t fdma_create_fd(
 	STH_SWAP(pl_icid, 0, &(adc->pl_icid));
 	adc->fdsrc_va_fca_bdi =
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
+}
+
+void fdma_handle_fatal_errors(int32_t status){
+
+	/*TODO Fatal error*/
+	switch(status) {
+	case FDMA_UNABLE_TO_TRIM_ERR:
+		handle_fatal_error((char *)FDMA_UNABLE_TO_TRIM_ERR);
+		break;
+	case FDMA_FRAME_STORE_ERR:
+		handle_fatal_error((char *)FDMA_FRAME_STORE_ERR);
+		break;
+	case FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR:
+		handle_fatal_error(
+			(char *)FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR);
+		break;
+	case FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR:
+		handle_fatal_error(
+			(char *)FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR);
+		break;
+	case FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR:
+		handle_fatal_error((char *)FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR);
+		break;
+	case FDMA_UNABLE_TO_PRESENT_PTA_ERR:
+		handle_fatal_error((char *)FDMA_UNABLE_TO_PRESENT_PTA_ERR);
+		break;
+	case FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR:
+		handle_fatal_error(
+			(char *)FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR);
+		break;
+	case FDMA_FD_ERR:
+		handle_fatal_error((char *)FDMA_FD_ERR);
+		break;
+	case FDMA_FRAME_HANDLE_DEPLETION_ERR:
+		handle_fatal_error((char *)FDMA_FRAME_HANDLE_DEPLETION_ERR);
+		break;
+	case FDMA_INVALID_FRAME_HANDLE_ERR:
+		handle_fatal_error((char *)FDMA_INVALID_FRAME_HANDLE_ERR);
+		break;
+	case FDMA_SEGMENT_HANDLE_DEPLETION_ERR:
+		handle_fatal_error((char *)FDMA_SEGMENT_HANDLE_DEPLETION_ERR);
+		break;
+	case FDMA_INVALID_SEGMENT_HANDLE_ERR:
+		handle_fatal_error((char *)FDMA_INVALID_SEGMENT_HANDLE_ERR);
+		break;
+	case FDMA_INVALID_DMA_COMMAND_ARGS_ERR:
+		handle_fatal_error((char *)FDMA_INVALID_DMA_COMMAND_ARGS_ERR);
+		break;
+	case FDMA_INVALID_DMA_COMMAND_ERR:
+		handle_fatal_error((char *)FDMA_INVALID_DMA_COMMAND_ERR);
+		break;
+	case FDMA_INTERNAL_MEMORY_ECC_ERR:
+		handle_fatal_error((char *)FDMA_INTERNAL_MEMORY_ECC_ERR);
+		break;
+	case FDMA_WORKSPACE_MEMORY_READ_ERR:
+		handle_fatal_error((char *)FDMA_WORKSPACE_MEMORY_READ_ERR);
+		break;
+	case FDMA_WORKSPACE_MEMORY_WRITE_ERR:
+		handle_fatal_error((char *)FDMA_WORKSPACE_MEMORY_WRITE_ERR);
+		break;
+	case FDMA_SYSTEM_MEMORY_READ_ERR:
+		handle_fatal_error((char *)FDMA_SYSTEM_MEMORY_READ_ERR);
+		break;
+	case FDMA_SYSTEM_MEMORY_WRITE_ERR:
+		handle_fatal_error((char *)FDMA_SYSTEM_MEMORY_WRITE_ERR);
+		break;
+	case FDMA_QMAN_ENQUEUE_ERR:
+		handle_fatal_error((char *)FDMA_QMAN_ENQUEUE_ERR);
+		break;
+	case FDMA_FRAME_STRUCTURAL_ERR:
+		handle_fatal_error((char *)FDMA_FRAME_STRUCTURAL_ERR);
+		break;
+	case FDMA_INTERNAL_ERR:
+		handle_fatal_error((char *)FDMA_INTERNAL_ERR);
+		break;
+	case FDMA_SPID_ICID_ERR:
+		handle_fatal_error((char *)FDMA_SPID_ICID_ERR);
+		break;
+	case FDMA_SRAM_MEMORY_READ_ERR:
+		handle_fatal_error((char *)FDMA_SRAM_MEMORY_READ_ERR);
+		break;
+	case FDMA_PROFILE_SRAM_MEMORY_READ_ERR:
+		handle_fatal_error((char *)FDMA_PROFILE_SRAM_MEMORY_READ_ERR);
+		break;
+	case FDMA_NO_DATA_SEGMENT_HANDLE:
+		handle_fatal_error((char *)FDMA_NO_DATA_SEGMENT_HANDLE);
+		break;
+	case FDMA_INVALID_PTA_ADDRESS:
+		handle_fatal_error((char *)FDMA_INVALID_PTA_ADDRESS);
+		break;
+	default:
+		handle_fatal_error((char *)0);
+       }
 }
 
