@@ -10,8 +10,12 @@
 #define _FSL_DPIO_CMD_H
 
 /* cmd IDs */
-#define DPIO_CMDID_INIT					0x112
-#define DPIO_CMDID_DONE					0x113
+#define MC_CMDID_CLOSE					0x800
+#define MC_DPIO_CMDID_OPEN				0x803
+#define MC_DPIO_CMDID_CREATE				0x903
+
+#define DPIO_CMDID_RESET				0x112
+#define DPIO_CMDID_DESTROY				0x113
 #define DPIO_CMDID_ENABLE				0x114
 #define DPIO_CMDID_DISABLE				0x115
 #define DPIO_CMDID_GET_ATTR				0x116
@@ -25,13 +29,16 @@
 #define DPIO_CMDID_CLEAR_IRQ_STATUS			0x11E
 
 /* cmd sizes */
-#define DPIO_CMDSZ_INIT					8
-#define DPIO_CMDSZ_DONE					0
+#define MC_CMD_OPEN_SIZE				8
+#define MC_CMD_CLOSE_SIZE				0
+#define DPIO_CMDSZ_RESET				0
+#define DPIO_CMDSZ_CREATE				8
+#define DPIO_CMDSZ_DESTROY				0
 #define DPIO_CMDSZ_ENABLE				0
 #define DPIO_CMDSZ_DISABLE				0
-#define DPIO_CMDSZ_GET_ATTR				(8 * 3)
-#define DPIO_CMDSZ_SET_IRQ				(8 * 2)
-#define DPIO_CMDSZ_GET_IRQ				(8 * 2)
+#define DPIO_CMDSZ_GET_ATTR				(8 * 4)
+#define DPIO_CMDSZ_SET_IRQ				(8 * 3)
+#define DPIO_CMDSZ_GET_IRQ				(8 * 3)
 #define DPIO_CMDSZ_SET_IRQ_ENABLE			8
 #define DPIO_CMDSZ_GET_IRQ_ENABLE			8
 #define DPIO_CMDSZ_SET_IRQ_MASK				8
@@ -40,23 +47,37 @@
 #define DPIO_CMDSZ_CLEAR_IRQ_STATUS			8
 
 /*	param, offset, width,	type,			arg_name */
-#define DPIO_CMD_INIT(_OP) \
-/*	_OP(0,  0,	16,	int,		cfg->dpio_id) TODO - remove?*/\
-	_OP(0,  16,	2,	enum dpio_channel_mode,	cfg->channel_mode)\
-	_OP(0,  32,	8,	uint8_t,		cfg->num_priorities)\
+#define DPIO_CMD_OPEN(_OP) \
+	_OP(0,  0,	32,	int,			dpio_id)
+
+/*	param, offset, width,	type,		arg_name */
+#define DPIO_CMD_CREATE(_OP) \
+do { \
+	_OP(0,  16,	2,	enum dpio_channel_mode,	cfg->channel_mode);\
+	_OP(0,  32,	8,	uint8_t,		cfg->num_priorities);\
+} while (0)
 
 /*	param, offset, width,	type,		arg_name */
 #define DPIO_RSP_GET_ATTR(_OP) \
-	_OP(0,  16,	16,	uint16_t,	attr->qbman_portal_id)\
-	_OP(0,  32,	8,	uint8_t,	attr->num_priorities)\
-	_OP(1,  0,	64,	dma_addr_t,	attr->qbman_portal_ce_paddr)\
-	_OP(2,  0,	64,	dma_addr_t,	attr->qbman_portal_ci_paddr)\
+do { \
+	_OP(0,  0,	32,	int,		attr->id);\
+	_OP(0,  32,	16,	uint16_t,	attr->qbman_portal_id);\
+	_OP(0,  48,	8,	uint8_t,	attr->num_priorities);\
+	_OP(0,  56,	4,	enum dpio_channel_mode,	attr->channel_mode);\
+	_OP(1,  0,	64,	uint64_t,	attr->qbman_portal_ce_paddr);\
+	_OP(2,  0,	64,	uint64_t,	attr->qbman_portal_ci_paddr);\
+	_OP(3,  0,	32,	uint32_t,		attr->version.major);\
+	_OP(3,  32,	32,	uint32_t,		attr->version.minor);\
+} while (0)
 
 /*	param, offset, width,	type,		arg_name */
 #define DPIO_CMD_SET_IRQ(_OP) \
-	_OP(0,  0,	8,	uint8_t,	irq_index)\
-	_OP(0,  32,	32,	uint32_t,	irq_val)\
-	_OP(0,  0,	64,	uint64_t,	irq_paddr)\
+do { \
+	_OP(0,  0,	8,	uint8_t,	irq_index);\
+	_OP(0,  32,	32,	uint32_t,	irq_val);\
+	_OP(1,  0,	64,	uint64_t,	irq_paddr);\
+	_OP(2,  0,	32,	int,		user_irq_id); \
+} while (0)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_CMD_GET_IRQ(_OP) \
@@ -64,13 +85,19 @@
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_RSP_GET_IRQ(_OP) \
-	_OP(0,	0,	32,	uint32_t,		irq_val) \
-	_OP(1,	0,	64,	uint64_t,		irq_paddr)
+do { \
+	_OP(0,	0,	32,	uint32_t,		irq_val); \
+	_OP(1,	0,	64,	uint64_t,		irq_paddr); \
+	_OP(2,  0,	32,	int,			user_irq_id); \
+	_OP(2,	32,	32,	int,			type); \
+} while (0)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_CMD_SET_IRQ_ENABLE(_OP) \
-	_OP(0,	0,	8,	uint8_t,		enable_state) \
-	_OP(0,	32,	8,	uint8_t,		irq_index)
+do { \
+	_OP(0,	0,	8,	uint8_t,		enable_state); \
+	_OP(0,	32,	8,	uint8_t,		irq_index);\
+} while (0)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_CMD_GET_IRQ_ENABLE(_OP) \
@@ -79,11 +106,13 @@
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_RSP_GET_IRQ_ENABLE(_OP) \
 	_OP(0,	0,	8,	uint8_t,		enable_state)
-	
+
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_CMD_SET_IRQ_MASK(_OP) \
-	_OP(0,	0,	32,	uint32_t,		mask) \
-	_OP(0,	32,	8,	uint8_t,		irq_index)
+do { \
+	_OP(0,	0,	32,	uint32_t,		mask); \
+	_OP(0,	32,	8,	uint8_t,		irq_index);\
+} while (0)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_CMD_GET_IRQ_MASK(_OP) \
@@ -91,7 +120,7 @@
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_RSP_GET_IRQ_MASK(_OP) \
-	_OP(0,	0,	32,	uint32_t,		mask) 
+	_OP(0,	0,	32,	uint32_t,		mask)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_CMD_GET_IRQ_STATUS(_OP) \
@@ -99,11 +128,13 @@
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_RSP_GET_IRQ_STATUS(_OP) \
-	_OP(0,	0,	32,	uint32_t,		status) \
+	_OP(0,	0,	32,	uint32_t,		status)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPIO_CMD_CLEAR_IRQ_STATUS(_OP) \
-	_OP(0,	0,	32,	uint32_t,		status) \
-	_OP(0,	32,	8,	uint8_t,		irq_index)
+do { \
+	_OP(0,	0,	32,	uint32_t,		status); \
+	_OP(0,	32,	8,	uint8_t,		irq_index);\
+} while (0)
 
 #endif /* _FSL_DPIO_CMD_H */

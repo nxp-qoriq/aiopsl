@@ -13,18 +13,18 @@ struct mc_portal {
 };
 
 enum mc_cmd_status {
-	MC_CMD_STATUS_OK = 0x0, /**< passed */
-	MC_CMD_STATUS_READY = 0x1, /**< Ready to be processed */
-	MC_CMD_STATUS_AUTH_ERR = 0x3, /**< Authentication error */
-	MC_CMD_STATUS_NO_PRIVILEGE = 0x4,
-	MC_CMD_STATUS_DMA_ERR = 0x5,
-	MC_CMD_STATUS_CONFIG_ERR = 0x6,
-	MC_CMD_STATUS_TIMEOUT = 0x7,
-	MC_CMD_STATUS_NO_RESOURCE = 0x8,
-	MC_CMD_STATUS_NO_MEMORY = 0x9,
-	MC_CMD_STATUS_BUSY = 0xA,
-	MC_CMD_STATUS_UNSUPPORTED_OP = 0xB,
-	MC_CMD_STATUS_INVALID_STATE = 0xC
+	MC_CMD_STATUS_OK = 0x0, /*!< Completed successfully */
+	MC_CMD_STATUS_READY = 0x1, /*!< Ready to be processed */
+	MC_CMD_STATUS_AUTH_ERR = 0x3, /*!< Authentication error */
+	MC_CMD_STATUS_NO_PRIVILEGE = 0x4, /*!< No privilege */
+	MC_CMD_STATUS_DMA_ERR = 0x5, /*!< DMA or I/O error */
+	MC_CMD_STATUS_CONFIG_ERR = 0x6, /*!< Configuration error */
+	MC_CMD_STATUS_TIMEOUT = 0x7, /*!< Operation timed out */
+	MC_CMD_STATUS_NO_RESOURCE = 0x8, /*!< No resources */
+	MC_CMD_STATUS_NO_MEMORY = 0x9, /*!< No memory available */
+	MC_CMD_STATUS_BUSY = 0xA, /*!< Device is busy */
+	MC_CMD_STATUS_UNSUPPORTED_OP = 0xB, /*!< Unsupported operation */
+	MC_CMD_STATUS_INVALID_STATE = 0xC /*!< Invalid state */
 };
 
 #define MC_CMD_HDR_CMDID_O	52	/* Command ID field offset */
@@ -35,34 +35,25 @@ enum mc_cmd_status {
 #define MC_CMD_HDR_SIZE_S	6	/* Size field size */
 #define MC_CMD_HDR_STATUS_O	16	/* Status field offset */
 #define MC_CMD_HDR_STATUS_S	8	/* Status field size*/
-#define MC_CMD_HDR_PRI_O	12	/* Priority field offset */
+#define MC_CMD_HDR_PRI_O	15	/* Priority field offset */
 #define MC_CMD_HDR_PRI_S	1	/* Priority field size */
 
 #define MC_CMD_HDR_READ_STATUS(_hdr) \
-	(enum mc_cmd_status)u64_dec((_hdr), MC_CMD_HDR_STATUS_O, MC_CMD_HDR_STATUS_S)
+	((enum mc_cmd_status)u64_dec((_hdr), \
+		MC_CMD_HDR_STATUS_O, MC_CMD_HDR_STATUS_S))
+
 #define MC_CMD_HDR_READ_AUTHID(_hdr) \
-	(uint16_t)u64_dec((_hdr), MC_CMD_HDR_AUTHID_O, MC_CMD_HDR_AUTHID_S)
+	((uint16_t)u64_dec((_hdr), MC_CMD_HDR_AUTHID_O, MC_CMD_HDR_AUTHID_S))
 
-#define MC_CMDID_CLOSE		0x800
-#define MC_DPNI_CMDID_OPEN	0x801
-#define MC_DPSW_CMDID_OPEN	0x802
-#define MC_DPIO_CMDID_OPEN	0x803
-#define MC_DPBP_CMDID_OPEN	0x804
-#define MC_DPRC_CMDID_OPEN	0x805
-#define MC_DPDMUX_CMDID_OPEN	0x806
-
-#define MC_CMD_OPEN_SIZE	8
-#define MC_CMD_CLOSE_SIZE	0
-
-#define MC_CMD_OPEN_INST_ID_O	0
-#define MC_CMD_OPEN_INST_ID_S	16
+#define MC_CMD_PRI_LOW		0 /*!< Low Priority command indication */
+#define MC_CMD_PRI_HIGH		1 /*!< High Priority command indication */
 
 static inline void mc_cmd_write(struct mc_portal *portal,
-                                uint16_t cmd_id,
-                                uint16_t auth_id,
-                                uint8_t size,
-                                int pri,
-                                struct mc_cmd_data *cmd_data)
+				uint16_t cmd_id,
+	uint16_t auth_id,
+	uint8_t size,
+	int pri,
+	struct mc_cmd_data *cmd_data)
 {
 	uint64_t hdr;
 	int i;
@@ -72,15 +63,15 @@ static inline void mc_cmd_write(struct mc_portal *portal,
 	hdr |= u64_enc(MC_CMD_HDR_SIZE_O, MC_CMD_HDR_SIZE_S, size);
 	hdr |= u64_enc(MC_CMD_HDR_PRI_O, MC_CMD_HDR_PRI_S, pri);
 	hdr |= u64_enc(MC_CMD_HDR_STATUS_O, MC_CMD_HDR_STATUS_S,
-	               MC_CMD_STATUS_READY);
+			MC_CMD_STATUS_READY);
 
 	if (cmd_data)
 		/* copy command parameters into the portal */
 		for (i = 0; i < MC_CMD_NUM_OF_PARAMS; i++)
 			iowrite64(cmd_data->params[i],
-			          &(portal->data.params[i]));
+				  &(portal->data.params[i]));
 	else
-		/* zero all parameters (optional, consider skipping it) */
+		/* zero all parameters */
 		for (i = 0; i < MC_CMD_NUM_OF_PARAMS; i++)
 			iowrite64(0, &(portal->data.params[i]));
 
@@ -103,7 +94,7 @@ static inline uint16_t mc_cmd_read_auth_id(struct mc_portal *portal)
 }
 
 static inline void mc_cmd_read_response(struct mc_portal *portal,
-                                        struct mc_cmd_data *resp)
+					struct mc_cmd_data *resp)
 {
 	int i;
 

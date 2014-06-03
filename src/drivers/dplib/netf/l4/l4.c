@@ -314,7 +314,7 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 	if (!pr->gross_running_sum) {
 		hw_status = fdma_calculate_default_frame_checksum(0, 0xFFFF,
 					&pr->gross_running_sum);
-		if (FDMA_CHECKSUM_SUCCESS != hw_status)
+		if (SUCCESS != hw_status)
 			return hw_status;
 	}
 
@@ -325,7 +325,7 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 			0,
 			&l3checksum_dummy,
 			&l4checksum);
-	if (PARSER_STATUS_PASS != hw_status)
+	if (0 != hw_status)
 		return hw_status;
 
 	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
@@ -355,7 +355,7 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 	if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
 		hw_status = fdma_modify_default_segment_data(l4offset,
 				sizeof((struct udphdr *)0)->checksum);
-		if (hw_status != FDMA_CHECKSUM_SUCCESS)
+		if (hw_status != SUCCESS)
 			return hw_status;
 	}
 

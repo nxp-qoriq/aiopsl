@@ -364,7 +364,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_TCP_PACKET_TRUNCATION                    0x69
 	/** TCP checksum is incorrect */
 #define PARSER_TCP_CHECKSUM_ERROR                       0x6A
-	/** TCP flags set together Error
+	/** None of TCP flags are set, or following TCP flags set together:
 	SYN & FIN, SYN & RST, FIN & RST, SYN & FIN & RST */
 #define PARSER_TCP_BAD_FLAGS                            0x6B
 	/** UPD Length Error
@@ -926,6 +926,12 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** Get IPv6 fragment header offset */
 #define PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ipv6_frag_offset)
+/** Get Gross Running Sum */
+#define PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum)
+/** Get Running Sum */
+#define PARSER_GET_RUNNING_SUM_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->running_sum)
 /** Get Parse Error Code */
 #define PARSER_GET_PARSE_ERROR_CODE_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->parse_error_code)
@@ -1068,73 +1074,6 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 	(default_task_params.parser_starting_hxs = (uint8_t)_val)
 
 /** @} */ /* end of FSL_PARSER_SETTERS */
-
-/**************************************************************************//**
-@Group	FSL_PARSER_PRP_CREATE_STATUS parse_profile_create function status
-@{
-*//***************************************************************************/
-
-/** Command successful. ID was pulled from pool */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_SUCCESS			0x00000000
-/** Command failed. ID was not fetched from pool due to CDMA write error */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_WR_MUTEX_FAILURE	0x80000001
-/** Command failed. ID was not fetched from pool due to pool out of range */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_POOL_OUT_OF_RANGE	0x80000002
-/** Command failed. ID was not fetched from pool due to CDMA read error */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_RD_FAILURE		0x80000003
-/** Command failed. ID was not fetched from pool due to CDMA read with
- * mutex error */
-#define PARSER_PRP_CREATE_GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE	0x80000004
-
-/** @} */ /* end of FSL_PARSER_PRP_CREATE_STATUS */
-
-/**************************************************************************//**
-@Group	FSL_PARSER_PRP_DELETE_STATUS parse_profile_delete function status
-@{
-*//***************************************************************************/
-
-/** Command successful. ID was returned to pool */
-#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_SUCCESS		  0x00000000
-/** Command failed. ID was not returned to pool due to CDMA write error */
-#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE	  0x80000001
-/** Command failed. ID was not returned to pool due to pool out of range */
-#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE  0x80000002
-/** Command failed. ID was not returned to pool due to CDMA read with
- * mutex error */
-#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE 0x80000003
-/** Command failed. ID was not returned to pool due to CDMA write with
- * mutex error */
-#define FSL_PARSER_PRP_DELETE_RELEASE_ID_STATUS_CDMA_WR_MUTEX_FAILURE 0x80000004
-
-/** @} */ /* end of FSL_PARSER_PRP_DELETE_STATUS */
-
-/**************************************************************************//**
-@Group AIOP_PARSE_RESULT_GEN_STATUS Parse Result Generation SR Status
-@{
-*//***************************************************************************/
-
-	/** Successful parse SR */
-#define PARSER_STATUS_PASS									0x00000000
-	/** Parser SR failed due to FDMA error (TODO return fdma status?) */
-#define PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE		0x80010000
-	/** Parser SR failed due to Cycle limit exceeded */
-#define PARSER_STATUS_FAIL_CYCLE_LIMIT_EXCCEEDED		0x00800000
-	/** Parser SR failed due to invalid soft parse instruction */
-#define PARSER_STATUS_FAIL_INVALID_SOFT_PARSE_INSTRUCTION	0x00400000
-	/** Parser SR failed due to parsing error */
-#define PARSER_STATUS_FAIL_PARSING_ERROR			0x00200000
-	/** Parser SR failed due to block limit exceeded */
-#define PARSER_STATUS_FAIL_BLOCK_LIMIT_EXCCEEDED		0x00100000
-	/** L3 checksum validation success */
-#define PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED		0x00080000
-	/** L3 checksum validation failure */
-#define PARSER_STATUS_FAIL_L3_CHECKSUM_VALIDATION		0x000C0000
-	/** L4 checksum validation success */
-#define PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED		0x00020000
-	/** L4 checksum validation failure */
-#define PARSER_STATUS_FAIL_L4_CHECKSUM_VALIDATION		0x00030000
-
-/** @} */ /* end of AIOP_PARSE_RESULT_GEN_STATUS */
 
 /**************************************************************************//**
 @Group	FSL_PARSER_GEN_PARSE_RESULT_FLAGS Flags for parse_result_generate func.
@@ -1541,7 +1480,10 @@ struct parse_profile_input {
 		Must be 16 bytes aligned.
 @Param[out]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref FSL_PARSER_PRP_CREATE_STATUS.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		ENOSPC - No more Parse Profiles are available (all 64 are taken)
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1573,7 +1515,10 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 
 @Param[in]	prpid - Parse Profile ID.
 
-@Return		Status - please refer to \ref FSL_PARSER_PRP_DELETE_STATUS.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		ENAVAIL - All Parse Profiles are already deleted.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -1612,13 +1557,20 @@ void parser_profile_query(uint8_t prpid,
 
 @Param[in]	flags - Please refer to \ref FSL_PARSER_GEN_PARSE_RESULT_FLAGS.
 
-@Return		Status - please refer to \ref AIOP_PARSE_RESULT_GEN_STATUS.\n
-
+@Return		0 on Success, or negative value on error.
 		The exact error code can be discovered by using
 		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
 		\ref FSL_PARSER_ERROR_CODES.
 
+@Retval		0 – Success
+@Retval		EIO - Parsing Error
+@Retval		EIO - L3 Checksum Validation Error
+@Retval		EIO - L4 Checksum Validation Error
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of 256 bytes before completing all parsing)
+
 @Cautions	In this function the task yields.
+ 	 	This function may result in a fatal error.
 *//***************************************************************************/
 int32_t parse_result_generate_default(uint8_t flags);
 
@@ -1644,13 +1596,20 @@ int32_t parse_result_generate_default(uint8_t flags);
 		Presentation Context [SEGMENT ADDRESS])
 @Param[in]	flags - Please refer to \ref FSL_PARSER_GEN_PARSE_RESULT_FLAGS.
 
-@Return		Status - please refer to \ref AIOP_PARSE_RESULT_GEN_STATUS.\n
-
+@Return		0 on Success, or negative value on error.
 		The exact error code can be discovered by using
 		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
 		\ref FSL_PARSER_ERROR_CODES.
 
+@Retval		0 – Success
+@Retval		EIO - Parsing Error
+@Retval		EIO - L3 Checksum Validation Error
+@Retval		EIO - L4 Checksum Validation Error
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of 256 bytes before completing all parsing)
+
 @Cautions	In this function the task yields.
+ 	 	This function may result in a fatal error.
 *//***************************************************************************/
 int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);

@@ -176,6 +176,23 @@
 
 /** @} */ /* end of KEYGEN_KCR */
 
+/**************************************************************************//**
+@Group	FSL_KEYGEN_HW_STATUS_GENERAL General HW status defines
+@{
+*//***************************************************************************/
+
+	/** Command status success */
+#define KEYGEN_HW_STATUS_SUCCESS		0x00000000
+	/** Command failed general status bit.
+	A general bit that is set in some errors conditions. */
+#define KEYGEN_HW_STATUS_KSE			0x00000400
+	/** Extract Out Of Frame Header Error for Key Generation.
+	 This bit is set if key composition attempts to extract a field which
+	 is not in the frame header. */
+#define KEYGEN_HW_STATUS_EOFH			0x00000200
+
+/** @} */ /* end of FSL_KEYGEN_HW_STATUS_GENERAL */
+
 /** @} */ /* end of KEYGEN_MACROS */
 
 
@@ -248,6 +265,17 @@ struct	keygen_hw_fec_mask {
 #pragma pack(pop)
 
 /** @} */ /* end of KEYGEN_STRUCTS */
+
+/**************************************************************************//**
+@Function	keygen_handle_fatal_errors
+
+@Description  	Handles keygen fatal errors.
+
+@Param[in]	Status.
+
+@Return		None.
+*//***************************************************************************/
+void keygen_handle_fatal_errors(int32_t status);
 
 /** @} */ /* end of KEYGEN */
 

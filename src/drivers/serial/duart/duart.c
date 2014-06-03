@@ -7,7 +7,6 @@
 
 #include "common/fsl_malloc.h"
 #include "common/fsl_string.h"
-#include "common/irq.h"
 #include "common/dbg.h"
 #include "common/io.h"
 #include "common/gen.h"

@@ -3,16 +3,15 @@
 #include "common/fsl_string.h"
 #include "common/fsl_stdarg.h"
 #include "common/fsl_malloc.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "kernel/platform.h"
 #include "kernel/smp.h"
 
 #include "sys.h"
 #include "dbg.h"
 
-
 /* Global System Object */
-__SHRAM t_system sys;
+__SHRAM t_system sys = {0};
 
 #define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
@@ -24,44 +23,6 @@ typedef struct t_sys_forced_object {
 
 __SHRAM t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
 
-
-/* TODO: Think if it can be part of &(sys.forced_objects_list)*/
-
-/*****************************************************************************/
-static void sys_init_objects_registry(void)
-{
-#ifdef ARENA_LEGACY_CODE
-	/*memset(sys.modules_info, 0, sizeof(sys.modules_info));
-	memset(sys.sub_modules_info, 0, sizeof(sys.sub_modules_info));
-	INIT_LIST(&(sys.forced_objects_list));
-	p_forced_object = (t_sys_forced_object_desc *)fsl_os_malloc(
-			sizeof(t_sys_forced_object_desc));
-	sys_init_spinlock(&sys.object_mng_lock);*/
-#endif
-}
-
-/*****************************************************************************/
-static void sys_free_objects_management(void)
-{
-#ifdef ARENA_LEGACY_CODE
-	/*t_sys_forced_object_desc   *p_forced_object;
-	list_t                  *p_node, *p_temp;*/
-
-	/* Freeing all network devices descriptors */
-	/*LIST_FOR_EACH_SAFE(p_node, p_temp, &(sys.forced_objects_list)) {
-	p_forced_object = LIST_OBJECT(p_node, t_sys_forced_object_desc, node);
-
-	list_del(p_node);
-	fsl_os_free(p_forced_object);
-	}*/
-
-#if 0 /* what is this??? */
-	/* Free the settings cloning information */
-	if (sys.p_clone_scratch_pad)
-		fsl_os_free(sys.p_clone_scratch_pad);
-#endif /* 0 */
-#endif
-}
 
 /*****************************************************************************/
 fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...)
@@ -100,116 +61,78 @@ int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
 }
 
 /*****************************************************************************/
-static int sys_init_platform(struct platform_param *platform_param)
+static int sys_init_platform(void)
 {
-#define SYS_PLATFORM_INIT_FAIL_CHECK()  \
-	do  {                               \
-		if (err != 0)                \
-		return err;                 \
-		if (sys.init_fail_count)        \
-		return E_NO_DEVICE;         \
-	} while (0)
-
 	int     err = 0;
 	int is_master_core = sys_is_master_core();
-
-	if (is_master_core) {
-		err = platform_init(platform_param, &(sys.platform_ops));
-		if (err == 0)
-			ASSERT_COND(sys.platform_ops.h_platform);
-
-		err = sys_add_handle(sys.platform_ops.h_platform,
-			FSL_OS_MOD_SOC, 1, 0);
-		if (err != 0)
-			RETURN_ERROR(MAJOR, err, NO_MSG);
-	}
-
-	if (err != 0)
-		sys.init_fail_count++;
-
-	sys_barrier();
-
-	SYS_PLATFORM_INIT_FAIL_CHECK();
 
 	if (sys.platform_ops.f_disable_local_irq)
 		sys.platform_ops.f_disable_local_irq(
 			sys.platform_ops.h_platform);
 
-	if (sys.platform_ops.f_init_core)
+	if (sys.platform_ops.f_init_core) {
 		err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
-
-	if (err != 0)
-		sys.init_fail_count++;
-
-	sys_barrier();
-
-	SYS_PLATFORM_INIT_FAIL_CHECK();
-
-	if (sys.platform_ops.f_init_timer)
+		if (err != 0) return err;
+	}
+	
+	if (sys.platform_ops.f_init_timer) {
 		err = sys.platform_ops.f_init_timer(
 			sys.platform_ops.h_platform);
-
-	if ((err == 0) && is_master_core) {
-		/* Do not change the sequence of calls in this section */
-
-		if (sys.platform_ops.f_init_intr_ctrl)
-			err = sys.platform_ops.f_init_intr_ctrl(
-				sys.platform_ops.h_platform);
-
-		if ((err == 0) && is_master_core) {
-			if (sys.platform_ops.f_init_soc)
-				err = sys.platform_ops.f_init_soc(
-					sys.platform_ops.h_platform);
-		}
+		if (err != 0) return err;
 	}
 
-	if (err != 0)
-		sys.init_fail_count++;
+	if (is_master_core) {
+		/* Do not change the sequence of calls in this section */
 
-	sys_barrier();
+		if (sys.platform_ops.f_init_intr_ctrl) {
+			err = sys.platform_ops.f_init_intr_ctrl(
+				sys.platform_ops.h_platform);
+			if (err != 0) return err;
+		}
 
-	SYS_PLATFORM_INIT_FAIL_CHECK();
+		if (sys.platform_ops.f_init_soc) {
+			err = sys.platform_ops.f_init_soc(
+				sys.platform_ops.h_platform);
+			if (err != 0) return err;
+		}
+	}
 
 	if (sys.platform_ops.f_enable_local_irq)
 		sys.platform_ops.f_enable_local_irq(
 			sys.platform_ops.h_platform);
 
 	if (is_master_core) {
-#if 0
 		/* Do not change the sequence of calls in this section */
-		if ((err == 0) && sys.ipc_enabled &&
-			sys.platform_ops.f_init_ipc)
+		if (sys.platform_ops.f_init_ipc) {
 			err = sys.platform_ops.f_init_ipc(
 				sys.platform_ops.h_platform);
-#endif /* 0 */
+			if (err != 0) return err;
+		}
 
-		if ((err == 0) && sys.platform_ops.f_init_console)
+		if (sys.platform_ops.f_init_console) {
 			err = sys.platform_ops.f_init_console(
 				sys.platform_ops.h_platform);
+			if (err != 0) return err;
+		}
+		
+		if (!sys.console) {
+			/* If no platform console, register debugger console */
+			sys_register_debugger_console();
+		}
 
-		if (sys.platform_ops.f_init_mem_partitions)
+		if (sys.platform_ops.f_init_mem_partitions) {
 			err = sys.platform_ops.f_init_mem_partitions(
 				sys.platform_ops.h_platform);
+			if (err != 0) return err;
+		}
 
 	}
 
-	if (err != 0)
-		sys.init_fail_count++;
-
-	sys_barrier();
-
-	SYS_PLATFORM_INIT_FAIL_CHECK();
-
-	if (sys.platform_ops.f_init_private)
+	if (sys.platform_ops.f_init_private) {
 		err = sys.platform_ops.f_init_private(
 			sys.platform_ops.h_platform);
-
-	if (err != 0)
-		sys.init_fail_count++;
-
-	sys_barrier();
-
-	SYS_PLATFORM_INIT_FAIL_CHECK();
+		if (err != 0) return err;
+	}
 
 	return 0;
 }
@@ -236,10 +159,10 @@ static int sys_free_platform(void)
 			err = sys.platform_ops.f_free_console(
 				sys.platform_ops.h_platform);
 
-		/*
-		if (sys.ipc_enabled && sys.platform_ops.f_free_ipc)
-		err = sys.platform_ops.f_free_ipc(sys.platform_ops.h_platform);
-		 */
+		if (sys.platform_ops.f_free_ipc)
+			err = sys.platform_ops.f_free_ipc(
+				sys.platform_ops.h_platform);
+		
 	}
 
 	sys_barrier();
@@ -277,81 +200,73 @@ static int sys_free_platform(void)
 	return err;
 }
 
+static void update_active_cores_mask(void)
+{
+	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
+		+ SOC_PERIPH_OFF_AIOP_CMGW \
+		+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+	uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
+	
+	sys.active_cores_mask  = abrr_val;
+}
+
+static int global_sys_init(void)
+{
+	struct platform_param platform_param;
+	int err = 0;
+	ASSERT_COND(sys_is_master_core());
+	
+	update_active_cores_mask();
+	
+	fill_platform_parameters(&platform_param);
+	
+	platform_early_init(&platform_param);
+
+	/* Initialize memory management */
+	err = sys_init_memory_management();
+	if (err != 0) return err;
+	
+	/* Initialize Multi-Processing services as needed */
+	err = sys_init_multi_processing();
+	if (err != 0) return err;
+	
+	/* Platform init */
+	err = platform_init(&(platform_param), &(sys.platform_ops));
+	if (err != 0) return err;
+	
+	err = sys_add_handle(sys.platform_ops.h_platform,
+		FSL_OS_MOD_SOC, 1, 0);
+	if (err != 0) return err;
+	
+	return 0;
+}
+
 /*****************************************************************************/
 int sys_init(void)
 {
-	t_sys_param             sys_param;
-	struct platform_param   platform_param;
-	int       err, is_master_core;
-	uint32_t        core_id = core_get_id();
+	int err = 0, is_master_core;
+	uint32_t core_id = core_get_id();
 
-	memset(&sys_param, 0, sizeof(sys_param));
-	memset(&platform_param, 0, sizeof(platform_param));
-	sys_param.platform_param = &platform_param;
-	fill_system_parameters(&sys_param);
+	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
+						& (1ULL << core_id)) ? 1 : 0;
+	sys.is_cluster_master[core_id] = (int)(SYS_CLUSTER_MASTER_MASK \
+						& (1ULL << core_id)) ? 1 : 0;
 
-	sys.is_tile_master[core_id] = (int)(sys_param.master_cores_mask &
-		(1ULL << core_id));
-	sys.is_cluster_master[core_id] = ! (core_id % 4); //TODO make sure this is correct
-	
 	is_master_core = sys_is_master_core();
-	
+
 	if(is_master_core) {
-		uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE + SOC_PERIPH_OFF_AIOP_CMGW + 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
-		uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
-		
-		sys.active_cores_mask  = abrr_val;
-		/*sys.ipc_enabled          = sys_param.use_ipc;*/
+		err = global_sys_init();
+		if (err != 0) return err;
+
+		/* signal all other cores that global initiation is done */
+		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
 	} else {
-		while(!sys.active_cores_mask) {}
+		while(!sys.boot_sync_flag) {}
 	}
 
-#ifdef CORE_E6500
-	platform_early_init(sys_param.platform_param);
-#else
-	if (is_master_core)
-		platform_early_init(sys_param.platform_param);
-#endif /* CORE_E6500 */
+	err = sys_init_platform();
+	if (err != 0) return err;
 
-	/* reset boot_sync_flag */
-	sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
-
-	if (is_master_core) {
-
-		/* Initialize memory management */
-		err = sys_init_memory_management();
-		if (err != 0) {
-			pr_err("Failed sys_init_memory_management\n");
-			return err;
-		}
-
-#if 0
-	/* Initialize interrupt management */
-	err = sys_init_interrupt_management();
-	ASSERT_COND(err == 0);
-#endif /* 0 */
-
-	/* Initialize the objects registry structures */
-	sys_init_objects_registry();
-	}
-
-	/* Initialize Multi-Processing services as needed */
-	err = sys_init_multi_processing();
-	if (err != 0) {
-		pr_err("Failed sys_init_multi_processing\n");
-		return err;
-	}
-	sys_barrier();
-
-	err = sys_init_platform(sys_param.platform_param);
-	if (err != 0)
-		return -1;
-
-	if (is_master_core) {
-		if (!sys.console)
-			/* If no platform console, register debugger console */
-			sys_register_debugger_console();
-	}
 	return 0;
 }
 
@@ -364,13 +279,6 @@ void sys_free(void)
 	sys_barrier();
 
 	if (sys_is_master_core()) {
-		/* Free objects management structures */
-		sys_free_objects_management();
-
-#if 0
-		/* Free interrupt management module */
-		sys_free_interrupt_management();
-#endif /* 0 */
 
 		/* Free memory management module */
 		sys_free_memory_management();

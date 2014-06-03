@@ -2,7 +2,7 @@
 #include "common/errors.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "common/dbg.h"
 
 #include "slob.h"
@@ -572,14 +572,21 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
     {
         RETURN_ERROR(MAJOR, E_NO_MEMORY, NO_MSG);
     }
-
+#ifdef AIOP
+    p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+#else
     p_MM->lock = spin_lock_create();
+#endif
     if (!p_MM->lock)
     {
         fsl_os_free(p_MM);
         RETURN_ERROR(MAJOR, E_NO_MEMORY, ("MM spinlock!"));
     }
 
+#ifdef AIOP
+    *(p_MM->lock) = 0;
+#endif
+    
     /* Initializes counter of free memory to total size */
     p_MM->free_mem_size = size;
 
@@ -647,8 +654,13 @@ void slob_free(fsl_handle_t slob)
         fsl_os_free(p_block);
     }
 
-    if (p_MM->lock)
+    if (p_MM->lock) {
+#ifdef AIOP
+	fsl_os_free((void *) p_MM->lock);
+#else
         spin_lock_free(p_MM->lock);
+#endif
+    }
 
     /* release memory allocated for MM object itself */
     fsl_os_free(p_MM);
@@ -661,7 +673,9 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     t_free_block *p_free_b;
     t_busy_block *p_new_busy_b;
     uint64_t    hold_base, hold_end, j, i = 0;
+#ifndef AIOP
     uint32_t    int_flags;
+#endif
 
     /* checks that alignment value is greater then zero */
     if (alignment == 0)
@@ -691,7 +705,11 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
         return (slob_get_greater_alignment(p_MM, size, alignment, name));
     }
 
+#ifdef AIOP
+    lock_spinlock(p_MM->lock);
+#else
     int_flags = spin_lock_irqsave(p_MM->lock);
+#endif
     /* look for a block of the size greater or equal to the required size. */
     p_free_b = p_MM->free_blocks[i];
     while ( p_free_b && (p_free_b->end - p_free_b->base) < size )
@@ -700,7 +718,11 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     /* If such block is found */
     if ( !p_free_b )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else 
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -710,14 +732,22 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     /* init a new busy block */
     if ((p_new_busy_b = create_busy_block(hold_base, size, name)) == NULL)
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else 
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free ( p_MM, hold_base, hold_end ) != E_OK )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else 
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -726,7 +756,11 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
 
     /* insert the new busy block into the list of busy blocks */
     add_busy ( p_MM, p_new_busy_b );
+#ifdef AIOP
+    unlock_spinlock(p_MM->lock);
+#else 
     spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
 
     return (hold_base);
 }
@@ -737,12 +771,18 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
     t_MM        *p_MM = (t_MM *)slob;
     t_free_block *p_free_b;
     t_busy_block *p_new_busy_b;
+#ifndef AIOP
     uint32_t    int_flags;
+#endif
     int         block_is_free = 0;
 
     ASSERT_COND(p_MM);
 
+#ifdef AIOP
+    lock_spinlock(p_MM->lock);
+#else
     int_flags = spin_lock_irqsave(p_MM->lock);
+#endif
     p_free_b = p_MM->free_blocks[0]; /* The biggest free blocks are in the
                                       free list with alignment 1 */
 
@@ -759,21 +799,33 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
 
     if ( !block_is_free )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* init a new busy block */
     if ((p_new_busy_b = create_busy_block(base, size, name)) == NULL)
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free ( p_MM, base, base+size ) != E_OK )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -782,7 +834,11 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
 
     /* insert the new busy block into the list of busy blocks */
     add_busy ( p_MM, p_new_busy_b );
+#ifdef AIOP
+    unlock_spinlock(p_MM->lock);
+#else
     spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
 
     return (base);
 }
@@ -794,7 +850,9 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
     t_free_block *p_free_b;
     t_busy_block *p_new_busy_b;
     uint64_t    hold_base, hold_end, j = alignment, i=0;
+#ifndef AIOP
     uint32_t    int_flags;
+#endif
 
     ASSERT_COND(p_MM);
 
@@ -811,7 +869,11 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
         return (uint64_t)(ILLEGAL_BASE);
     }
 
+#ifdef AIOP
+    lock_spinlock(p_MM->lock);
+#else
     int_flags = spin_lock_irqsave(p_MM->lock);
+#endif
     p_free_b = p_MM->free_blocks[i];
 
     /* look for the first block that contains the minimum
@@ -824,7 +886,11 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
     /* If such block is found */
     if ( !p_free_b )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -843,7 +909,11 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
         /* If such block is found */
         if ( !p_free_b )
         {
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
             return (uint64_t)(ILLEGAL_BASE);
         }
 
@@ -854,14 +924,22 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
     /* init a new busy block */
     if ((p_new_busy_b = create_busy_block(hold_base, size, name)) == NULL)
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free( p_MM, hold_base, hold_end ) != E_OK )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -870,7 +948,11 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
 
     /* insert the new busy block into the list of busy blocks */
     add_busy( p_MM, p_new_busy_b );
+#ifdef AIOP
+    unlock_spinlock(p_MM->lock);
+#else
     spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
 
     return (hold_base);
 }
@@ -881,7 +963,9 @@ uint64_t slob_put(fsl_handle_t slob, uint64_t base)
     t_MM        *p_MM = (t_MM *)slob;
     t_busy_block *p_busy_b, *p_prev_busy_b;
     uint64_t    size;
+#ifndef AIOP
     uint32_t    int_flags;
+#endif
 
     ASSERT_COND(p_MM);
 
@@ -890,7 +974,11 @@ uint64_t slob_put(fsl_handle_t slob, uint64_t base)
      */
     p_prev_busy_b = 0;
 
+#ifdef AIOP
+    lock_spinlock(p_MM->lock);
+#else
     int_flags = spin_lock_irqsave(p_MM->lock);
+#endif
     p_busy_b = p_MM->busy_blocks;
     while ( p_busy_b && base != p_busy_b->base )
     {
@@ -900,13 +988,21 @@ uint64_t slob_put(fsl_handle_t slob, uint64_t base)
 
     if ( !p_busy_b )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(0);
     }
 
     if ( add_free( p_MM, p_busy_b->base, p_busy_b->end ) != E_OK )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(0);
     }
 
@@ -922,7 +1018,11 @@ uint64_t slob_put(fsl_handle_t slob, uint64_t base)
     p_MM->free_mem_size += size;
 
     fsl_os_free(p_busy_b);
+#ifdef AIOP
+    unlock_spinlock(p_MM->lock);
+#else
     spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
 
     return (size);
 }
@@ -932,28 +1032,46 @@ uint64_t slob_put_force(fsl_handle_t slob, uint64_t base, uint64_t size)
 {
     t_MM        *p_MM = (t_MM *)slob;
     uint64_t    end = base + size;
+#ifndef AIOP
     uint32_t    int_flags;
+#endif
 
     ASSERT_COND(p_MM);
 
+#ifdef AIOP
+    lock_spinlock(p_MM->lock);
+#else
     int_flags = spin_lock_irqsave(p_MM->lock);
+#endif
 
     if ( cut_busy( p_MM, base, end ) != E_OK )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(0);
     }
 
     if ( add_free ( p_MM, base, end ) != E_OK )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         return (uint64_t)(0);
     }
 
     /* Adding the deallocated memory size to free memory size */
     p_MM->free_mem_size += size;
 
+#ifdef AIOP
+    unlock_spinlock(p_MM->lock);
+#else
     spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
 
     return (size);
 }
@@ -964,21 +1082,31 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
     t_MM        *p_MM = (t_MM *)slob;
     t_mem_block  *p_mem_b, *p_new_mem_b;
     int     err_code;
+#ifndef AIOP
     uint32_t    int_flags;
+#endif
 
     ASSERT_COND(p_MM);
 
     /* find a last block in the list of memory blocks to insert a new
      * memory block
      */
+#ifdef AIOP
+    lock_spinlock(p_MM->lock);
+#else
     int_flags = spin_lock_irqsave(p_MM->lock);
+#endif
 
     p_mem_b = p_MM->mem_blocks;
     while ( p_mem_b->p_next )
     {
         if ( base >= p_mem_b->base && base < p_mem_b->end )
         {
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
             RETURN_ERROR(MAJOR, E_ALREADY_EXISTS, NO_MSG);
         }
         p_mem_b = p_mem_b->p_next;
@@ -986,14 +1114,22 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
     /* check for a last memory block */
     if ( base >= p_mem_b->base && base < p_mem_b->end )
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         RETURN_ERROR(MAJOR, E_ALREADY_EXISTS, NO_MSG);
     }
 
     /* create a new memory block */
     if ((p_new_mem_b = create_new_block(base, size)) == NULL)
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         RETURN_ERROR(MAJOR, E_NO_MEMORY, NO_MSG);
     }
 
@@ -1004,7 +1140,11 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
     err_code = add_free(p_MM, base, base+size);
     if (err_code)
     {
+#ifdef AIOP
+        unlock_spinlock(p_MM->lock);
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
         p_mem_b->p_next = 0;
         fsl_os_free(p_new_mem_b);
         return (err_code);
@@ -1013,7 +1153,11 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
     /* Adding the new block size to free memory size */
     p_MM->free_mem_size += size;
 
-    spin_unlock_irqrestore(p_MM->lock, int_flags);
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
 
     return (E_OK);
 }

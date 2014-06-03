@@ -32,7 +32,11 @@
 #define IPSEC_GET_SEQ_NUM_CMD				6 | (IPSEC_MODULE << 16)
 #define IPSEC_FRAME_DECRYPT_CMD				7 | (IPSEC_MODULE << 16)
 #define IPSEC_FRAME_ENCRYPT_CMD 			8 | (IPSEC_MODULE << 16)
+#define IPSEC_CREATE_INSTANCE_CMD 			10 | (IPSEC_MODULE << 16)
 #define IPSEC_FRAME_ENCR_DECR_CMD 		   16 | (IPSEC_MODULE << 16)
+
+// Temporary workaround commands
+#define IPSEC_RUN_DESC_DEBUG 				9 | (IPSEC_MODULE << 16)
 
 /** \addtogroup AIOP_FMs_Verification
  *  @{
@@ -63,6 +67,24 @@ struct ipsec_init_command {
 	 * Should be defined in the TLS area. */
 	uint32_t status_addr;
 };
+
+struct ipsec_create_instance_command {
+	uint32_t opcode;
+	uint32_t committed_sa_num;
+	uint32_t max_sa_num;
+	uint32_t instance_flags;
+	uint8_t tmi_id;
+	uint64_t instance_handle;
+	
+	/** Returned Value: presentation context. */
+	struct presentation_context prc;
+
+	int32_t status; /* Function call return status */
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+};
 	
 /**************************************************************************//**
 @Description	IPsec Add SA Descriptor Command structure.
@@ -71,9 +93,14 @@ struct ipsec_init_command {
 struct ipsec_add_sa_descriptor_command {
 	uint32_t opcode;
 	struct ipsec_descriptor_params params;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
-	uint64_t descriptor_addr; /* descriptor address */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	
+	uint64_t instance_handle;
 
+	uint64_t descriptor_addr; /* descriptor address */
+    uint8_t outer_ip_header[80]; /* outer IP header */
+    
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
 
@@ -90,7 +117,8 @@ struct ipsec_add_sa_descriptor_command {
 *//****************************************************************************/
 struct ipsec_del_sa_descriptor_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
 
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
@@ -108,7 +136,8 @@ struct ipsec_del_sa_descriptor_command {
 *//****************************************************************************/
 struct ipsec_get_lifetime_stats_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
 
 	uint64_t kilobytes;
 	uint64_t packets;
@@ -130,7 +159,9 @@ struct ipsec_get_lifetime_stats_command {
 *//****************************************************************************/
 struct ipsec_decr_lifetime_counters_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	
 	uint32_t kilobytes_decr_val;
 	uint32_t packets_decr_val;
 		
@@ -150,8 +181,9 @@ struct ipsec_decr_lifetime_counters_command {
 *//****************************************************************************/
 struct ipsec_get_seq_num_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
-	
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+
 	uint32_t sequence_number;
 	uint32_t extended_sequence_number;
 	uint32_t anti_replay_bitmap[4];
@@ -172,7 +204,9 @@ struct ipsec_get_seq_num_command {
 *//****************************************************************************/
 struct ipsec_frame_decrypt_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+
 	uint32_t dec_status; /* SEC Decryption status */
 	
 	/** Returned Value: presentation context. */
@@ -194,7 +228,9 @@ struct ipsec_frame_decrypt_command {
 *//****************************************************************************/
 struct ipsec_frame_encrypt_command {
 	uint32_t opcode;
-	uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+
 	uint32_t enc_status; /* SEC Encryption status */
 	
 	/** Returned Value: presentation context. */
@@ -217,8 +253,12 @@ struct ipsec_frame_encrypt_command {
 *//****************************************************************************/
 struct ipsec_frame_encr_decr_command {
 	uint32_t opcode;
-	uint32_t ipsec_encr_handle_ptr; /* pointer of encr. descriptor handle */
-	uint32_t ipsec_decr_handle_ptr; /* pointer of decr. descriptor handle */
+	//uint32_t ipsec_encr_handle_ptr; /* pointer of encr. descriptor handle */
+	//uint32_t ipsec_decr_handle_ptr; /* pointer of decr. descriptor handle */
+	
+	uint32_t encr_sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	uint32_t decr_sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+	
 	uint32_t enc_status; /* SEC Encryption status */
 	uint32_t dec_status; /* SEC Decryption status */
 
@@ -236,6 +276,25 @@ struct ipsec_frame_encr_decr_command {
 	uint32_t fm_encr_status_addr;
 	uint32_t fm_decr_status_addr;
 };
+
+/* RTA descriptor debug */
+struct ipsec_run_desc_debug_command {
+	uint32_t opcode;
+	struct ipsec_descriptor_params params;
+	
+	uint64_t descriptor_addr; /* descriptor address */
+    
+	/** Returned Value: presentation context. */
+	struct presentation_context prc;
+
+	int32_t status; /* Function call return status */
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+};
+
+
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr);
 

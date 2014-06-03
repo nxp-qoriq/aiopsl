@@ -85,11 +85,9 @@ struct ipr_params {
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint16_t  flags;
+	uint32_t  flags;
 	/** tmi id to be used for timers creations */
 	uint8_t	  tmi_id;
-	/** 32-bit alignment. */
-	uint8_t  pad[1];
 };
 
 /**************************************************************************//**
@@ -199,9 +197,9 @@ struct extended_stats_cntrs {
 @Description IP reassembly flags.
 
 
-|      0      |      1     |      2     | 3-31 |
-|-------------|------------|------------|------|
-|Extended_stat|IPv4_TO_type|IPv6_TO_type|      |
+|      0      |      1     |      2     | 3 |      4-5       | 6-31 |
+|-------------|------------|------------|---|----------------|------|
+|Extended_stat|IPv4_TO_type|IPv6_TO_type|   | Table Location |      |
 \n
 
 @{
@@ -217,6 +215,16 @@ struct extended_stats_cntrs {
 #define IPR_MODE_IPV6_TO_TYPE			0x20000000
 /** If set, extended statistics is enabled */
 #define IPR_MODE_EXTENDED_STATS_EN		0x80000000
+
+/** Tables are located in dedicated RAM */
+#define IPR_MODE_TABLE_LOCATION_INT		0x00000000
+/** Tables are located in Packet Express Buffer table */
+#define IPR_MODE_TABLE_LOCATION_PEB		0x08000000
+/** Tables are located in DDR1 */
+#define IPR_MODE_TABLE_LOCATION_EXT1	0x04000000
+/** Tables are located in DDR2 */
+#define IPR_MODE_TABLE_LOCATION_EXT2	0x0C000000
+
 
 /* @} end of group FSL_IPRInsModeBits */
 

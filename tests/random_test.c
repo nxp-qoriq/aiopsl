@@ -3,7 +3,7 @@
 #include "kernel/platform.h"
 #include "platform_aiop_spec.h"
 #include "kernel/smp.h"
-#include "common/spinlock.h"
+#include "kernel/fsl_spinlock.h"
 #include "sys.h"
 
 int random_test();

@@ -20,9 +20,13 @@
 #ifdef MC
 struct dpni;
 #else
-#include <fsl_cmdif.h>
 struct dpni {
-	struct cmdif_desc cidesc; /*!< Descriptor for command portal */
+	void *regs;
+	/*!<
+	 * Pointer to command interface registers (virtual address);
+	 * Must be set by the user
+	 */
+	int auth; /*!< authentication ID */
 };
 #endif
 
@@ -42,11 +46,11 @@ struct dpni {
 #define DPNI_MAX_DPBP				8
 /*!< Maximum number of bm-pools */
 
-#define DPNI_ALL_TCS				(-1)
+#define DPNI_ALL_TCS				(uint8_t)(-1)
 /*!< All traffic classes considered */
-#define DPNI_ALL_TC_FLOWS			(-1)
+#define DPNI_ALL_TC_FLOWS			(uint16_t)(-1)
 /*!< All flows within traffic classes considered */
-#define DPNI_NEW_FLOW_ID			(-1)
+#define DPNI_NEW_FLOW_ID			(uint16_t)(-1)
 /*!< Generate new flow id */
 #define DPNI_VFQID_NOT_VALID			(-1)
 /*!< Invalid virtual FQID  */
@@ -76,14 +80,13 @@ struct dpni_flc_cfg {
 
 /**
  *
- * @brief	Open object handle - Required before any operation on the object
+ * @brief	Open object handle
  *
  * @param[in]	dpni - Pointer to dpni object
  * @param[in]	dpni_id - DPNI unique ID
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Required before any operation on the object
  */
 int dpni_open(struct dpni *dpni, int dpni_id);
 
@@ -104,10 +107,12 @@ int dpni_close(struct dpni *dpni);
  */
 #define DPNI_OPT_ALLOW_DIST_KEY_PER_TC		0x00000001
 /*!< allow different dist-key per TC */
-#define DPNI_OPT_CHKSM_VALID_DISABLED		0x00000002
-/*!< checksum validation disable */
-#define DPNI_OPT_TX_CONF_DISABLED		0x00000004
-/*!< tx-confirmation disable */
+#define DPNI_OPT_TX_CONF_DISABLED		0x00000002
+/*!< No Tx-confirmation at all */
+#define DPNI_OPT_PRIVATE_TX_CONF_ERR_DISABLED	0x00000004
+/*!< private tx-confirmation/err disable */
+#define DPNI_OPT_QOS				0x00000008
+/*!< QoS support */
 #define DPNI_OPT_DIST_HASH			0x00000010
 /*!< hash based distribution support */
 #define DPNI_OPT_DIST_FS			0x00000020
@@ -132,6 +137,8 @@ int dpni_close(struct dpni *dpni);
 /*!< GSO support */
 #define DPNI_OPT_IPSEC				0x00008000
 /*!< IPSec transport support */
+#define DPNI_OPT_VLAN_MANIPULATION		0x00010000
+/*!< vlan manipulation support */
 /* @} */
 
 /**
@@ -150,12 +157,15 @@ enum dpni_type {
 struct dpni_cfg {
 	enum dpni_type type; /*!< DPNI Type */
 	uint8_t mac_addr[6]; /*!< Primary mac address */
+	enum net_prot start_hdr;
+	/*!< Valid only in the case 'type = DPNI_TYPE_NI';
+	 * In NIC case will be set to NET_PROT_ETH */
 	struct {
 		uint64_t options;
 		/*!< Mask of available options; use 'DPNI_OPT_XXX' */
 		uint8_t max_senders;
 		/*!< maximum number of different senders; will be used as the
-		 * number of dedicated tx flows; '0' will e treated as '1' */
+		 * number of dedicated tx flows; '0' will be treated as '1' */
 		uint8_t max_tcs;
 		/*!< maximum number of traffic-classes;
 		 will affect both Tx & Rx; '0' will e treated as '1' */
@@ -177,27 +187,25 @@ struct dpni_cfg {
 		 QoS table; '0' will be treated as
 		 'DPNI_MAX_QOS_ENTRIES' */
 		uint8_t max_qos_key_size;
-		/*!< maximum key size for the QoS look-up; '0' will be treate
+		/*!< maximum key size for the QoS look-up; '0' will be treated
 		 * as '24' which enough for IPv4 5-tuple */
 		uint8_t max_dist_key_size;
 	/*!< maximum key size for the distribution; '0' will be treated as
 	 '24' which enough for IPv4 5-tuple */
 	} adv; /*!< use this structure to change default settings */
 };
-
 /**
- *
- * @brief	Will allocate resources and preliminary initialization
+ * @brief	Open object handle, allocate resources and preliminary initialization -
+ *		required before any operation on the object
  *
  * @param[in]	dpni - Pointer to dpni object
- * @param[in]	cfg - configuration parameters
+ * @param[in]	cfg - Configuration structure
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	This function should be called only once during
- *		lifetime of the object
+ * @warning	Required before any operation on the object
  */
-int dpni_init(struct dpni *dpni, const struct dpni_cfg *cfg);
+int dpni_create(struct dpni *dpni, const struct dpni_cfg *cfg);
 
 /**
  *
@@ -207,25 +215,146 @@ int dpni_init(struct dpni *dpni, const struct dpni_cfg *cfg);
  *
  * @returns	'0' on Success; error code otherwise.
  */
-int dpni_done(struct dpni *dpni);
+int dpni_destroy(struct dpni *dpni);
+
+/*!
+ * @name DPNI IRQ Index and Events
+ */
+#define DPNI_IRQ_INDEX				0
+/*!< Irq index */
+#define DPNI_IRQ_EVENT_LINK_CHANGED		0x00000001
+/*!< irq event - Indicates that the link state changed */
+/* @} */
 
 /**
+ * @brief	Sets IRQ information for the DPNI to trigger an interrupt.
  *
- * @brief	Sets IRQ information for the dpni object
- *		(required for DPNI to signal events).
- *
- * @param[in]	dpni - Pointer to dpni object
- * @param[in]	irq_index - identifies the specific IRQ to configure
- * @param[in]	irq_paddr - physical IRQ address that must be written
- *		to signal the interrupt
- * @param[in]	irq_val - IRQ value to write into the IRQ address
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	irq_index	Identifies the interrupt index to configure.
+ * @param[in]	irq_paddr	Physical IRQ address that must be written to
+ *				signal a message-based interrupt
+ * @param[in]	irq_val		Value to write into irq_paddr address
+ * @param[in]	user_irq_id	A user defined number associated with this IRQ;
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_irq(struct dpni *dpni,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	uint64_t irq_paddr,
-	uint32_t irq_val);
+	uint32_t irq_val,
+	int user_irq_id);
+
+/**
+ * @brief	Gets IRQ information from the DPNI.
+ *
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[out]  type		Interrupt type: 0 represents message interrupt
+ *				type (both irq_paddr and irq_val are valid);
+ * @param[out]	irq_paddr	Physical address that must be written in order
+ *				to signal the message-based interrupt
+ * @param[out]	irq_val		Value to write in order to signal the
+ *				message-based interrupt
+ * @param[out]	user_irq_id	A user defined number associated with this IRQ;
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_irq(struct dpni *dpni,
+		 uint8_t irq_index,
+	int *type,
+	uint64_t *irq_paddr,
+	uint32_t *irq_val,
+	int *user_irq_id);
+
+/**
+ * @brief	Sets overall interrupt state.
+ *
+ * Allows GPP software to control when interrupts are generated.
+ * Each interrupt can have up to 32 causes.  The enable/disable control's the
+ * overall interrupt state. if the interrupt is disabled no causes will cause
+ * an interrupt.
+ *
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[in]	enable_state	interrupt state - enable = 1, disable = 0.
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_irq_enable(struct dpni *dpni,
+			uint8_t irq_index,
+	uint8_t enable_state);
+
+/**
+ * @brief	Gets overall interrupt state
+ *
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[out]	enable_state	interrupt state - enable = 1, disable = 0.
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_irq_enable(struct dpni *dpni,
+			uint8_t irq_index,
+	uint8_t *enable_state);
+
+/**
+ * @brief	Sets interrupt mask.
+ *
+ * Every interrupt can have up to 32 causes and the interrupt model supports
+ * masking/unmasking each cause independently
+ *
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[in]	mask		event mask to trigger interrupt.
+ *				each bit:
+ *					0 = ignore event
+ *					1 = consider event for asserting irq
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t mask);
+
+/**
+ * @brief	Gets interrupt mask.
+ *
+ * Every interrupt can have up to 32 causes and the interrupt model supports
+ * masking/unmasking each cause independently
+ *
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[out]	mask		event mask to trigger interrupt
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t *mask);
+
+/**
+ * @brief	Gets the current status of any pending interrupts.
+ *
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[out]	status		interrupts status - one bit per cause
+ *					0 = no interrupt pending
+ *					1 = interrupt pending
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ * */
+int dpni_get_irq_status(struct dpni *dpni, uint8_t irq_index, uint32_t *status);
+
+/**
+ * @brief	Clears a pending interrupt's status
+ *
+ * @param[in]	dpni		DPNI descriptor object
+ * @param[in]   irq_index	The interrupt index to configure;
+ * @param[out]	status		bits to clear (W1C) - one bit per cause
+ *					0 = don't change
+ *					1 = clear status bit
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ * */
+int dpni_clear_irq_status(struct dpni *dpni,
+			  uint8_t irq_index,
+	uint32_t status);
 
 /**
  *
@@ -249,7 +378,7 @@ int dpni_set_irq(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_pause_frames(struct dpni *dpni,
-	uint8_t priority,
+			     uint8_t priority,
 	uint16_t pause_time,
 	uint16_t thresh_time);
 
@@ -264,6 +393,31 @@ int dpni_set_tx_pause_frames(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_rx_ignore_pause_frames(struct dpni *dpni, int enable);
+
+/**
+ * @brief	Structure representing DPNI pools parameters
+ */
+struct dpni_pools_cfg {
+	uint8_t num_dpbp; /*!< number of DPBPs */
+	struct {
+		uint16_t dpbp_id; /*!< DPBPs object id */
+		uint16_t buffer_size; /*!< buffer size */
+	} pools[DPNI_MAX_DPBP];
+};
+
+/**
+ *
+ * @brief	Set the pools
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	cfg - pools configuration
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ *
+ * @warning	Allowed only when DPNI is disabled
+ *
+ */
+int dpni_set_pools(struct dpni *dpni, const struct dpni_pools_cfg *cfg);
 
 /**
  * @brief   DPNI destination types
@@ -284,11 +438,8 @@ enum dpni_dest {
  */
 struct dpni_dest_cfg {
 	enum dpni_dest type; /*!< destination type */
-	uint16_t dpio_id;
-	/*!< DPIO object id; must have a notification channel
-	 * (either local or remote) */
-	uint16_t dpcon_id;
-	/*!< DPCON object id */
+	uint16_t id;
+	/*!< either DPIO id or DPCON id depends on the channel type */
 	uint8_t priority;
 /*!< 0-1 or 0-7 (depends on the channel type) to select the priority(work-queue)
  within the channel (not relevant for the 'NONE' case) */
@@ -298,9 +449,7 @@ struct dpni_dest_cfg {
  * @brief	Structure representing DPNI attach parameters
  */
 struct dpni_attach_cfg {
-	uint8_t num_dpbp; /*!< number of DPBPs */
-	uint16_t dpbp_id[DPNI_MAX_DPBP]; /*!< DPBPs object id */
-/* TODO - add struct ldpaa_flow_ctx	*flc; */
+	/* TODO - add struct ldpaa_flow_ctx	*flc; */
 	uint64_t rx_user_ctx;
 	/*!< User context; will be received with the FD in case of Rx
 	 frame; can be override by calling 'dpni_set_rx_flow' */
@@ -329,6 +478,9 @@ struct dpni_attach_cfg {
  * @param[in]	cfg - Attach configuration
  *
  * @returns	'0' on Success; Error code otherwise.
+ *
+ * @warning	Allowed only when DPNI is disabled
+ *
  */
 int dpni_attach(struct dpni *dpni, const struct dpni_attach_cfg *cfg);
 
@@ -339,72 +491,11 @@ int dpni_attach(struct dpni *dpni, const struct dpni_attach_cfg *cfg);
  * @param[in]	dpni - Pointer to dpni object
  *
  * @returns	'0' on Success; Error code otherwise.
+ *
+ * @warning	Allowed only when DPNI is disabled
+ *
  */
 int dpni_detach(struct dpni *dpni);
-
-/**
- * @brief	DPNI link types
- *
- */
-enum dpni_link_type {
-	DPNI_LINK_TYPE_DPMAC = 1, /*!< Attached to DPMAC */
-	DPNI_LINK_TYPE_DPSW, /*!< Attached to DPSW */
-	DPNI_LINK_TYPE_DPDMUX, /*!< Attached to DPDMUX */
-	DPNI_LINK_TYPE_DPLAG, /*!< Attached to DPLAG */
-	DPNI_LINK_TYPE_DPNI
-/*!< Attached to DPNI */
-};
-
-/**
- * @brief	Structure representing DPNI attach link parameters
- *
- * To be removed!!!!
- */
-struct dpni_attach_link_cfg {
-	enum dpni_link_type link_type; /*!< Linked object type */
-	union {
-		struct {
-			uint16_t id;/*!< DPMAC object id */
-		} dpmac;
-		struct {
-			uint16_t id;/*!< DPSW object id */
-			uint8_t if_id;
-		/*!< DPSW interface-id to be linked to */
-		} dpsw;
-		struct {
-			uint16_t id;/*!< DPDMUX object id */
-			uint8_t if_id;
-		/*!< DPDMUX interface-id to be linked to */
-		} dpdmux;
-		struct {
-			uint16_t id;/*!< DPLAG object id */
-		} dplag;
-		struct {
-			uint16_t id;/*!< DPNI object id */
-		} dpni;
-	} u;
-};
-
-/**
- *
- * @brief	Attach the NI to the link side
- *
- * @param[in]	dpni - Pointer to dpni object
- * @param[in]	cfg - Link attachment configuration
- *
- * @returns	'0' on Success; Error code otherwise.
- */
-int dpni_attach_link(struct dpni *dpni, const struct dpni_attach_link_cfg *cfg);
-
-/**
- *
- * @brief	Detach the NI from the link side
- *
- * @param[in]	dpni - Pointer to dpni object
- *
- * @returns	'0' on Success; Error code otherwise.
- */
-int dpni_detach_link(struct dpni *dpni);
 
 /**
  *
@@ -440,12 +531,35 @@ int dpni_reset(struct dpni *dpni);
  * @brief	Structure representing attributes parameters
  */
 struct dpni_attr {
+	int id; /*!< DPNI ID */
+	enum dpni_type type; /*!< DPNI Type */
+	enum net_prot start_hdr;
+	/*!< Valid only in the case 'type = DPNI_TYPE_NI';
+	 * In NIC case will be set to NET_PROT_ETH */
 	uint64_t options; /*!< reflect the value as was given in the
+	 initialization phase */
+	uint8_t max_senders; /*!< reflect the value as was given in the
 	 initialization phase */
 	uint8_t max_tcs; /*!< reflect the value as was given in the
 	 initialization phase */
 	uint16_t max_dist_per_tc[DPNI_MAX_TC]; /*!< reflect the value
 	 as was given in the initialization phase */
+	uint8_t max_unicast_filters;
+	/*!< maximum number of unicast filters */
+	uint8_t max_multicast_filters;
+	/*!< maximum number of multicast filters */
+	uint8_t max_vlan_filters;
+	/*!< maximum number of vlan filters */
+	uint8_t max_qos_entries;
+	/*!< if 'max_tcs>1', declare the maximum entries for the  QoS table */
+	uint8_t max_qos_key_size;
+	/*!< maximum key size for the QoS look-up */
+	uint8_t max_dist_key_size;
+	/*!< maximum key size for the distribution look-up */
+	struct {
+		uint32_t major; /*!< DPNI major version*/
+		uint32_t minor; /*!< DPNI minor version*/
+	} version; /*!< DPNI version */
 };
 
 /**
@@ -460,25 +574,25 @@ struct dpni_attr {
 int dpni_get_attributes(struct dpni *dpni, struct dpni_attr *attr);
 
 /*!
- * @name DPNI Rx buffer layout modification options
+ * @name DPNI buffer layout modification options
  *
  */
-#define DPNI_RX_LAYOUT_MOD_OPT_TIMESTAMP		0x00000001
+#define DPNI_LAYOUT_MOD_OPT_TIMESTAMP		0x00000001
 /*!< Modify the time-stamp setting */
-#define DPNI_RX_LAYOUT_MOD_OPT_PARSER_RESULT		0x00000002
-/*!< Modify the parser-result setting */
-#define DPNI_RX_LAYOUT_MOD_OPT_FRAME_STATUS		0x00000004
+#define DPNI_LAYOUT_MOD_OPT_PARSER_RESULT	0x00000002
+/*!< Modify the parser-result setting; Not applicable in TX */
+#define DPNI_LAYOUT_MOD_OPT_FRAME_STATUS	0x00000004
 /*!< Modify the frame-status setting */
-#define DPNI_RX_LAYOUT_MOD_OPT_PRIVATE_DATA_SIZE	0x00000008
+#define DPNI_LAYOUT_MOD_OPT_PRIVATE_DATA_SIZE	0x00000008
 /*!< Modify the private-data-size setting */
-#define DPNI_RX_LAYOUT_MOD_OPT_DATA_ALIGN		0x00000010
+#define DPNI_LAYOUT_MOD_OPT_DATA_ALIGN		0x00000010
 /*!< Modify the data-alignment setting */
 /* @} */
 
 /**
- * @brief	Structure representing DPNI RX buffer layout
+ * @brief	Structure representing DPNI buffer layout
  */
-struct dpni_rx_buffer_layout {
+struct dpni_buffer_layout {
 	uint32_t options;
 	/*!< the flags that represent the modification that are required to be
 	 done for the buffer layout; use 'DPNI_RX_LAYOUT_MOD_OPT_xxx' */
@@ -509,7 +623,7 @@ struct dpni_rx_buffer_layout {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_rx_buffer_layout(struct dpni *dpni,
-	struct dpni_rx_buffer_layout *layout);
+			      struct dpni_buffer_layout *layout);
 
 /**
  *
@@ -523,7 +637,103 @@ int dpni_get_rx_buffer_layout(struct dpni *dpni,
  * @warning	Allowed only when DPNI is disabled
  */
 int dpni_set_rx_buffer_layout(struct dpni *dpni,
-	struct dpni_rx_buffer_layout *layout);
+			      struct dpni_buffer_layout *layout);
+
+/**
+ *
+ * @brief	Retrieve the TX buffer layout settings.
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[out]	layout - buffer's layout
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_tx_buffer_layout(struct dpni *dpni,
+			      struct dpni_buffer_layout *layout);
+
+/**
+ *
+ * @brief	Set the TX buffer layout settings.
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	layout - buffer's layout
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ *
+ * @warning	Allowed only when DPNI is disabled
+ */
+int dpni_set_tx_buffer_layout(struct dpni *dpni,
+			      struct dpni_buffer_layout *layout);
+
+/**
+ *
+ * @brief	Retrieve the TX-Conf buffer layout settings.
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[out]	layout - buffer's layout
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_tx_conf_buffer_layout(struct dpni *dpni,
+				   struct dpni_buffer_layout *layout);
+
+/**
+ *
+ * @brief	Set the TX-Conf buffer layout settings.
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	layout - buffer's layout
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ *
+ * @warning	Allowed only when DPNI is disabled
+ */
+int dpni_set_tx_conf_buffer_layout(struct dpni *dpni,
+				   struct dpni_buffer_layout *layout);
+
+/**
+ *
+ * @brief	Enable/disable L3 checksum validation
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	en - enable/disable checksum validation
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_l3_chksum_validation(struct dpni *dpni, int en);
+
+/**
+ *
+ * @brief	Get L3 checksum validation mode
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[out]	en - enable/disable checksum validation
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_l3_chksum_validation(struct dpni *dpni, int *en);
+
+/**
+ *
+ * @brief	Enable/disable L4 checksum validation
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	en - enable/disable checksum validation
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_l4_chksum_validation(struct dpni *dpni, int en);
+
+/**
+ *
+ * @brief	Get L4 checksum validation mode
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[out]	en - enable/disable checksum validation
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_l4_chksum_validation(struct dpni *dpni, int *en);
 
 /**
  *
@@ -590,7 +800,7 @@ enum dpni_counter {
  * @returns        '0' on Success; Error code otherwise.
  */
 int dpni_get_counter(struct dpni *dpni,
-	enum dpni_counter counter,
+		     enum dpni_counter counter,
 	uint64_t *value);
 
 /**
@@ -605,7 +815,7 @@ int dpni_get_counter(struct dpni *dpni,
  * @returns        '0' on Success; Error code otherwise.
  */
 int dpni_set_counter(struct dpni *dpni,
-	enum dpni_counter counter,
+		     enum dpni_counter counter,
 	uint64_t value);
 
 /**
@@ -717,7 +927,6 @@ int dpni_get_primary_mac_addr(struct dpni *dpni, uint8_t addr[6]);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
 
@@ -730,7 +939,6 @@ int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
 
@@ -742,22 +950,19 @@ int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_mac_table(struct dpni *dpni);
 
 /**
  *
- * @brief	Add VLAN-id filter
+ * @brief	Enable/Disable VLAN filtering mode
  *
  * @param[in]	dpni - Pointer to dpni object
- * @param[in]	vlan_id - VLAN ID
+ * @param[in]	en - '1' for enabling/'0' for disabling
  *
  * @returns	'0' on Success; Error code otherwise.
- *
- * @warning	Allowed only following dpni_attach().
  */
-int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id);
+int dpni_set_vlan_filters(struct dpni *dpni, int en);
 
 /**
  *
@@ -768,7 +973,18 @@ int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
+ */
+int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id);
+
+/**
+ *
+ * @brief	Remove VLAN-id filter
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	vlan_id - VLAN ID
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ *
  */
 int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vlan_id);
 
@@ -780,7 +996,6 @@ int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vlan_id);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_vlan_table(struct dpni *dpni);
 
@@ -805,14 +1020,27 @@ struct dpni_tx_tc_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_tc(struct dpni *dpni,
-	uint8_t tc_id,
+		   uint8_t tc_id,
 	const struct dpni_tx_tc_cfg *cfg);
+
+/**
+ * @brief	distribution mode
+ */
+enum dpni_dist_mode {
+	DPNI_DIST_MODE_NONE = 0,/*!< no distribution */
+	DPNI_DIST_MODE_HASH, /*!< hash-distribution */
+	DPNI_DIST_MODE_FS
+/*!< flow-steering distribution */
+};
 
 /**
  * @brief	Structure representing DPNI RX TC parameters
  */
 struct dpni_rx_tc_cfg {
 	uint16_t dist_size; /*!< set the distribution size */
+	enum dpni_dist_mode dist_mode; /*!< distribution mode */
+	struct dpkg_profile_cfg *extract_cfg;
+/*!< define the extractions to be used for the distribution key */
 /*	struct policing_cfg *params;*/
 /*TODO - add struct ldpaa_flow_ctx	*flc;*/
 };
@@ -826,9 +1054,12 @@ struct dpni_rx_tc_cfg {
  * @param[in]	cfg - TC parameters
  *
  * @returns	'0' on Success; error code otherwise.
+ *
+ * @warning	Allowed only when DPNI is disabled
+ *
  */
 int dpni_set_rx_tc(struct dpni *dpni,
-	uint8_t tc_id,
+		   uint8_t tc_id,
 	const struct dpni_rx_tc_cfg *cfg);
 
 /*!
@@ -843,9 +1074,9 @@ int dpni_set_rx_tc(struct dpni *dpni,
 /*!< Modify the tx-confirmation/error queue destination parameters*/
 #define DPNI_TX_FLOW_MOD_OPT_USER_CTX		0x00000008
 /*!< Modify the tx-confirmation/error user-context*/
-#define DPNI_TX_FLOW_MOD_OPT_L3_CKSUM_GEN	0x00000010
+#define DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN	0x00000010
 /*!< Modify the flow's l3 checksum generation */
-#define DPNI_TX_FLOW_MOD_OPT_L4_CKSUM_GEN	0x00000020
+#define DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN	0x00000020
 /*!< Modify the flow's l4 checksum generation */
 /* @} */
 
@@ -872,11 +1103,11 @@ struct dpni_tx_flow_cfg {
 	 of 'tx_conf_err'= 1 or enqueue-rejection condition ("lossless") */
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_TX_FLOW_MOD_OPT_L3_CKSUM_GEN; enable/disable checksum l3
+	 with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
 	 generation */
 	int l4_chksum_gen;
 /*!< This option maybe used when 'options' set
- with DPNI_TX_FLOW_MOD_OPT_L4_CKSUM_GEN; enable/disable checksum l4
+ with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
  generation */
 };
 
@@ -895,7 +1126,7 @@ struct dpni_tx_flow_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_flow(struct dpni *dpni,
-	uint16_t *flow_id,
+		     uint16_t *flow_id,
 	const struct dpni_tx_flow_cfg *cfg);
 
 /**
@@ -912,7 +1143,7 @@ int dpni_set_tx_flow(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_tx_flow(struct dpni *dpni,
-	uint16_t flow_id,
+		     uint16_t flow_id,
 	struct dpni_tx_flow_cfg *cfg,
 	uint32_t *fqid);
 
@@ -959,7 +1190,7 @@ struct dpni_rx_flow_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_rx_flow(struct dpni *dpni,
-	uint8_t tc_id,
+		     uint8_t tc_id,
 	uint16_t flow_id,
 	const struct dpni_rx_flow_cfg *cfg);
 
@@ -978,7 +1209,7 @@ int dpni_set_rx_flow(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_rx_flow(struct dpni *dpni,
-	uint8_t tc_id,
+		     uint8_t tc_id,
 	uint16_t flow_id,
 	struct dpni_rx_flow_cfg *cfg,
 	uint32_t *fqid);
@@ -993,7 +1224,7 @@ struct dpni_qos_tbl_cfg {
 	/*!< '1' for dropping the frame in case of no match;
 	 '0' for using the 'default_tc' */
 	uint8_t default_tc;
-/*!< will be used in case of no-match and 'drop_frame'=0 */
+/*!< will be used in case of no-match and 'drop_frame'= 0 */
 };
 
 /**
@@ -1005,7 +1236,6 @@ struct dpni_qos_tbl_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_set_qos_table(struct dpni *dpni, const struct dpni_qos_tbl_cfg *cfg);
 
@@ -1017,7 +1247,6 @@ int dpni_set_qos_table(struct dpni *dpni, const struct dpni_qos_tbl_cfg *cfg);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_delete_qos_table(struct dpni *dpni);
 
@@ -1040,10 +1269,9 @@ struct dpni_key_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_add_qos_entry(struct dpni *dpni,
-	const struct dpni_key_cfg *cfg,
+		       const struct dpni_key_cfg *cfg,
 	uint8_t tc_id);
 
 /**
@@ -1055,7 +1283,6 @@ int dpni_add_qos_entry(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg);
 
@@ -1067,34 +1294,8 @@ int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_qos_table(struct dpni *dpni);
-
-/**
- * @brief	Structure representing distribution parameters
- */
-struct dpni_dist_cfg {
-	int dist_fs;
-	/*!< '1' for distribution based on flow-steering;
-	 '0' for hash based */
-	struct dpkg_profile_cfg *extract_cfg;
-/*!< define the extractions to be used for the distribution key */
-};
-
-/**
- *
- * @brief	Set the distribution method and key
- *
- * @param[in]	dpni - Pointer to dpni object
- * @param[in]	dist - distribution configuration
- *
- * @returns	'0' on Success; Error code otherwise.
- *
- * @warning	Allowed only following dpni_attach().
- */
-int dpni_set_dist(struct dpni *dpni,
-	const struct dpni_dist_cfg dist[DPNI_MAX_TC]);
 
 /**
  * @brief   DPNI Flow-Steering miss action
@@ -1128,10 +1329,9 @@ struct dpni_fs_tbl_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_set_fs_table(struct dpni *dpni,
-	uint8_t tc_id,
+		      uint8_t tc_id,
 	const struct dpni_fs_tbl_cfg *cfg);
 
 /**
@@ -1143,7 +1343,6 @@ int dpni_set_fs_table(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id);
 
@@ -1158,10 +1357,9 @@ int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id);
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_add_fs_entry(struct dpni *dpni,
-	uint8_t tc_id,
+		      uint8_t tc_id,
 	const struct dpni_key_cfg *cfg,
 	uint16_t flow_id);
 
@@ -1175,10 +1373,9 @@ int dpni_add_fs_entry(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_remove_fs_entry(struct dpni *dpni,
-	uint8_t tc_id,
+			 uint8_t tc_id,
 	const struct dpni_key_cfg *cfg);
 
 /**
@@ -1190,39 +1387,8 @@ int dpni_remove_fs_entry(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  *
- * @warning	Allowed only following dpni_attach().
  */
 int dpni_clear_fs_table(struct dpni *dpni, uint8_t tc_id);
-
-
-int dpni_get_irq(struct dpni *dpni,
-                 uint8_t irq_index,
-                 uint64_t *irq_paddr,
-                 uint32_t *irq_val);
-
-int dpni_set_irq_enable(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint8_t enable_state);
-
-int dpni_get_irq_enable(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint8_t *enable_state);
-
-int dpni_set_irq_mask(struct dpni *dpni,
-                        uint8_t irq_index,
-                        uint32_t mask);
-
-int dpni_get_irq_mask(struct dpni *dpni,
-                        uint8_t irq_index,
-                        uint32_t *mask);
-
-int dpni_get_irq_status(struct dpni *dpni,
-                         uint8_t irq_index,
-                         uint32_t *status);
-
-int dpni_clear_irq_status(struct dpni *dpni,
-                            uint8_t irq_index,
-                            uint32_t status);
 
 /** @} */
 

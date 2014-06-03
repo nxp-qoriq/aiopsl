@@ -33,6 +33,13 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	/** Level 4 in scope_id */
 #define OSM_SCOPE_ID_LEVEL_4		0xffffffff
 
+/* Macros */
+#define REGISTER_OSM_CONCURRENT \
+              default_task_params.scope_mode_level_arr \
+                 [default_task_params.current_scope_level-1] = CONCURRENT
+#define REGISTER_OSM_EXCLUSIVE \
+              default_task_params.scope_mode_level_arr \
+                 [default_task_params.current_scope_level-1] = EXCLUSIVE
 
 /* OSM Commands OP */
 

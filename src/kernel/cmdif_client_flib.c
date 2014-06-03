@@ -10,6 +10,13 @@
 #define SYNC_CMD(CMD)	\
 	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)))
 
+static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
+{
+	int i = 0;
+	for (i = 0; i < size; i++) 
+		ptr[i] = val;
+}
+
 int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
 	return SYNC_CMD(cmd_id);
@@ -32,12 +39,17 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 
 	/* if cidesc->dev != NULL it's ok,
 	 * it's usefull to keep it in order to let user to free this buffer */
-	if ((m_name == NULL) || (cidesc == NULL))
+	if ((m_name == NULL) 
+		|| (cidesc == NULL) 
+		|| (v_data == NULL) 
+		|| (p_data == NULL))
 		return -EINVAL;
 
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
 
+	my_memset(v_data, 0, size);
+	
 	p_addr = p_data + sizeof(struct cmdif_dev);
 	v_addr = (union cmdif_data *)(v_data + sizeof(struct cmdif_dev));
 
@@ -79,12 +91,12 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 	struct cmdif_dev *dev = NULL;
 
 	if ((cidesc == NULL) || (cidesc->dev == NULL))
-		return -EINVAL;
+		return 0; /* Don't use POSIX on purpose */
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
 	if (dev->sync_done == NULL)
-		return -EINVAL;
+		return 0; /* Don't use POSIX on purpose */
 
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
@@ -92,14 +104,19 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
+	int    err = 0;
+	
+	if ((cidesc == NULL) || (cidesc->dev == NULL)) {
+		/* prevent deadlocks */
+		if (cidesc->unlock_cb)
+			cidesc->unlock_cb(cidesc->lock);
 
-	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
+	}
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	if (dev->sync_done == NULL) {
-		
+	if (dev->sync_done == NULL) {		
 		/* prevent deadlocks */
 		if (cidesc->unlock_cb)
 			cidesc->unlock_cb(cidesc->lock);
@@ -107,13 +124,14 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 		return -EINVAL;
 	}
 
+	err = ((union  cmdif_data *)(dev->sync_done))->resp.err;
 	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
-
+	
 	/* release lock as needed */
 	if (cidesc->unlock_cb)
 		cidesc->unlock_cb(cidesc->lock);
 
-	return ((union  cmdif_data *)(dev->sync_done))->resp.err;
+	return err;
 }
 
 int cmdif_open_done(struct cmdif_desc *cidesc)

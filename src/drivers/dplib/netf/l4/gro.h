@@ -305,13 +305,6 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 	/* TCP GRO granularity shift value */
 #define GRO_GRAN_OFFSET				16
 
-/** Macro to get FD LENGTH field according to a base value*/
-#define LDPAA_FD_GET_LENGTH_BASE(_fd)					\
-	(uint32_t)({register uint32_t *__rR = 0;			\
-	uint32_t length = (LW_SWAP(0, (void *)(((char *)_fd) + FD_MEM_LENGTH_OFFSET)));\
-	if (LDPAA_FD_GET_SL(_fd)) {					\
-		length &= FD_LENGTH_MEM_MASK; }				\
-	__rR = (uint32_t *) length; })
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
 

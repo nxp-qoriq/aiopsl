@@ -61,6 +61,14 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				ipv4_hdr->total_length,
 				ip_total_length);
 		ipv4_hdr->total_length = ip_total_length;
+
+		/* Calculate frag offset for next fragment */
+		if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS){
+			header_length = (uint16_t)
+			(ipv4_hdr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2;
+			payload_length = ip_total_length - header_length;
+			ipf_ctx->prev_frag_offset += (payload_length>>3);
+		}
 	} else {
 	/* Not first fragment */
 		ipv4_offset = ipf_ctx->ip_offset;
@@ -79,11 +87,12 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			header_length = (uint16_t)
 			(ipv4_hdr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2;
 			payload_length = ip_total_length - header_length;
-			frag_offset =
-			ipf_ctx->prev_frag_offset + (payload_length>>3);
+			frag_offset = ipf_ctx->prev_frag_offset;
+			ipf_ctx->prev_frag_offset += (payload_length>>3);
 		} else {
 		frag_offset = ipf_ctx->prev_frag_offset +
 					(ipf_ctx->mtu_payload_length>>3);
+		ipf_ctx->prev_frag_offset = frag_offset;
 		}
 	}
 	/* Update frag offset, M flag=1, checksum, length */
@@ -102,7 +111,6 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	status = fdma_modify_default_segment_data(ipv4_offset, 12);
 	if (status)
 		return status; /* TODO*/
-	ipf_ctx->prev_frag_offset = frag_offset;
 
 	present_segment_params.flags = FDMA_PRES_NO_FLAGS;
 	present_segment_params.frame_handle = ipf_ctx->rem_frame_handle;
@@ -156,15 +164,17 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		ipv6_hdr->payload_length =
 		(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - ipv6_offset -
 		IPV6_HDR_LENGTH + IPV6_FRAGMENT_HEADER_LENGTH;
-/*
-		 Modify payload length field in FDMA
-		status = fdma_modify_default_segment_data(ipv6_offset+4, 2);
-		if (status)
-			return status;  TODO
-*/
-		if (~(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS))
-			ipf_ctx->split_size += IPV6_FRAGMENT_HEADER_LENGTH;
 
+		if (!(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS)){
+			/* Calculate split size for next fragment */
+			ipf_ctx->split_size += IPV6_FRAGMENT_HEADER_LENGTH;
+		} else {
+			/* Calculate frag offset for next fragment */
+			frag_payload_length = (uint16_t)
+				LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
+				(uint16_t)ipf_ctx->ipv6_frag_hdr_offset;
+			ipf_ctx->prev_frag_offset = (frag_payload_length>>3);
+		}
 		/* Replace the last "next header" of the unfragmentable
 		 * part with 44 */
 		ipv6_frag_hdr = (struct ipv6fraghdr *)
@@ -174,8 +184,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				(ipv6_offset + IPV6_HDR_LENGTH)) {
 			/*ext headers exist */
 			last_header = (uint8_t *)
-					((uint32_t)ipv6_frag_hdr -
-							last_ext_hdr_size);
+				((uint32_t)ipv6_frag_hdr - last_ext_hdr_size);
 			orig_next_header = *last_header;
 			*(last_header) = IPV6_EXT_FRAGMENT;
 		} else { /* no ext headers */
@@ -184,11 +193,9 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		}
 
 			/* Build IPv6 fragment header */
-
 			ipv6_frag_hdr->next_header = orig_next_header;
 			ipv6_frag_hdr->reserved = 0;
-			ipv6_frag_hdr->offset_and_flags =
-						IPV6_HDR_M_FLAG_MASK;
+			ipv6_frag_hdr->offset_and_flags = IPV6_HDR_M_FLAG_MASK;
 			ipv6_frag_hdr->id = (uint16_t)fsl_os_rand();
 
 			/* replace ip payload length, replace next header,
@@ -236,8 +243,8 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				(uint16_t)ipf_ctx->ipv6_frag_hdr_offset -
 				IPV6_FRAGMENT_HEADER_LENGTH;
-			frag_offset = ipf_ctx->prev_frag_offset +
-					(frag_payload_length>>3);
+			frag_offset = ipf_ctx->prev_frag_offset;
+			ipf_ctx->prev_frag_offset += (frag_payload_length>>3);
 
 			ipv6_frag_hdr = (struct ipv6fraghdr *)
 					(ipf_ctx->ipv6_frag_hdr_offset +
@@ -255,6 +262,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		} else {
 			frag_offset = ipf_ctx->prev_frag_offset +
 					(ipf_ctx->mtu_payload_length>>3);
+			ipf_ctx->prev_frag_offset = frag_offset;
 			ipv6_frag_hdr = (struct ipv6fraghdr *)
 					(ipf_ctx->ipv6_frag_hdr_offset +
 						PRC_GET_SEGMENT_ADDRESS());
@@ -271,8 +279,6 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	status = parse_result_generate_default(PARSER_NO_FLAGS);
 	if (status) /* TODO */
 		return status;
-
-	ipf_ctx->prev_frag_offset = frag_offset;
 
 	present_segment_params.flags = FDMA_PRES_NO_FLAGS;
 	present_segment_params.frame_handle = ipf_ctx->rem_frame_handle;
@@ -327,11 +333,9 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		ip_header_length = (uint16_t)
 		(ipv4_hdr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2;
-		payload_length = (uint16_t)
-			LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
+		payload_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 			ipv4_offset - ip_header_length;
-		frag_offset = ipf_ctx->prev_frag_offset +
-				(payload_length>>3);
+		frag_offset = ipf_ctx->prev_frag_offset;
 	} else {
 		frag_offset = ipf_ctx->prev_frag_offset +
 			(ipf_ctx->mtu_payload_length>>3);
@@ -342,9 +346,8 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ipv4_hdr->flags_and_offset,
 			frag_offset);
 	ipv4_hdr->flags_and_offset = frag_offset;
-	ip_total_length = (uint16_t)
-			LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			ipv4_offset;
+	ip_total_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
+						ipv4_offset;
 	cksum_update_uint32(&ipv4_hdr->hdr_cksum,
 			ipv4_hdr->total_length,
 			ip_total_length);
@@ -378,22 +381,31 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 					ipf_ctx->rem_frame_handle;
 	/*	split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);*/
 
+	/* In case of fragments restoration need to store the frame in order
+	 * to get updated FD[length] */
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-					FDMA_SPLIT_PSA_PRESENT_BIT |
+				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
 					FDMA_SPLIT_SM_BIT;
 		split_frame_params.split_size_sf = 0;
 
 		/* Split remaining frame, put split frame in default FD
 		 * location*/
 		status = fdma_split_frame(&split_frame_params);
-		if (status == FDMA_SPLIT_FRAME_UNABLE_TO_SPLIT_ERR) {
+		if (status == (-EINVAL)) {
 			/* last fragment, no split happened */
 			status = ipf_ipv4_last_frag(ipf_ctx);
 			return status; /* TODO*/
 		} else if (status) {
 				return status; /* TODO*/
 		} else {
+			/* Present frame */
+			status = fdma_present_default_frame();
+/*
+			if (status)
+				return status;  TODO
+*/
+
 			status = ipf_after_split_ipv4_fragment(ipf_ctx);
 			if (status)
 				return status; /* TODO*/
@@ -468,8 +480,7 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 			LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 			(uint16_t)(ipf_ctx->ipv6_frag_hdr_offset) -
 			IPV6_FRAGMENT_HEADER_LENGTH;
-		frag_offset = ipf_ctx->prev_frag_offset +
-				(payload_length>>3);
+		frag_offset = ipf_ctx->prev_frag_offset;
 	} else {
 		frag_offset = ipf_ctx->prev_frag_offset +
 			(ipf_ctx->mtu_payload_length>>3);
@@ -510,22 +521,31 @@ int32_t ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 					ipf_ctx->rem_frame_handle;
 /*		split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);*/
 
+	/* In case of fragments restoration need to store the frame in order
+	 * to get updated FD[length] */
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-					FDMA_SPLIT_PSA_PRESENT_BIT |
+				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
 					FDMA_SPLIT_SM_BIT;
 		split_frame_params.split_size_sf = 0;
 
 		/* Split remaining frame, put split frame in default FD
 		 * location*/
 		status = fdma_split_frame(&split_frame_params);
-		if (status == FDMA_SPLIT_FRAME_UNABLE_TO_SPLIT_ERR) {
+		if (status == (-EINVAL)) {
 			/* last fragment, no split happened */
 			status = ipf_ipv6_last_frag(ipf_ctx);
 			return status; /* TODO*/
 		} else if (status) {
 				return status; /* TODO*/
 		} else {
+			/* Present frame */
+			status = fdma_present_default_frame();
+/*
+			if (status)
+				return status;  TODO
+*/
+
 			status = ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
 			if (status)
@@ -626,7 +646,8 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 				/* Clear gross running sum in parse results */
 				pr->gross_running_sum = 0;
 
-				status = ipf_split_ipv6_fragment(ipf_ctx, NULL);
+				status = ipf_split_ipv6_fragment
+						(ipf_ctx, last_ext_hdr_size);
 				return status; /* TODO */
 			} else {
 				/* Split according to MTU */

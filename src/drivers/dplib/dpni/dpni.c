@@ -1,204 +1,390 @@
 #include <fsl_dplib_sys.h>
-#include <fsl_cmdif.h>
 #include <fsl_cmdif_mc.h>
 #include <fsl_dpni.h>
 #include <fsl_dpni_cmd.h>
 
 #define CMD_PREP(_param, _offset, _width, _type, _arg) \
-	cmd_data.params[_param] |= u64_enc(_offset, _width, _arg); \
+	(cmd_data.params[_param] |= u64_enc((_offset), (_width), (_arg)))
 
 #define RSP_READ(_param, _offset, _width, _type, _arg) \
-	*(_arg) = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
+	(*(_arg) = (_type)u64_dec(cmd_data.params[_param], (_offset), (_width)))
 
 #define RSP_READ_STRUCT(_param, _offset, _width, _type, _arg) \
-	_arg = (_type)u64_dec(cmd_data.params[_param], _offset, _width);\
+	(_arg = (_type)u64_dec(cmd_data.params[_param], (_offset), (_width)))
 
-int dpni_open(struct dpni *dpni, int dpni_id)
+static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
+				       struct extract_data *data)
 {
-	return cmdif_open(&(dpni->cidesc), CMDIF_MOD_DPNI, (uint16_t)dpni_id);
+	int i, j;
+	int offset = 0;
+	int param = 1;
+	struct {
+		enum net_prot prot;
+		enum dpkg_extract_from_hdr_type type;
+		uint32_t field;
+		uint8_t size;
+		uint8_t offset;
+		uint8_t hdr_index;
+		enum dpkg_extract_from_context_type src;
+		uint8_t constant;
+		uint8_t num_of_repeats;
+	} u_cfg[DPKG_MAX_NUM_OF_EXTRACTS];
+
+	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
+		switch (cfg->extracts[i].type) {
+		case DPKG_EXTRACT_FROM_HDR:
+			u_cfg[i].prot = cfg->extracts[i].extract.from_hdr.prot;
+			u_cfg[i].type = cfg->extracts[i].extract.from_hdr.type;
+			u_cfg[i].field =
+				cfg->extracts[i].extract.from_hdr.field;
+			u_cfg[i].size = cfg->extracts[i].extract.from_hdr.size;
+			u_cfg[i].offset =
+				cfg->extracts[i].extract.from_hdr.offset;
+			u_cfg[i].hdr_index =
+				cfg->extracts[i].extract.from_hdr.hdr_index;
+			break;
+		case DPKG_EXTRACT_FROM_DATA:
+			u_cfg[i].size =
+				cfg->extracts[i].extract.from_data.size;
+			u_cfg[i].offset =
+				cfg->extracts[i].extract.from_data.offset;
+			break;
+		case DPKG_EXTRACT_FROM_CONTEXT:
+			u_cfg[i].src =
+				cfg->extracts[i].extract.from_context.src;
+			u_cfg[i].size =
+				cfg->extracts[i].extract.from_context.size;
+			u_cfg[i].offset =
+				cfg->extracts[i].extract.from_context.offset;
+			break;
+		case DPKG_EXTRACT_CONSTANT:
+			u_cfg[i].constant =
+				cfg->extracts[i].extract.constant.constant;
+			u_cfg[i].num_of_repeats =
+				cfg->extracts[i].
+					extract.constant.num_of_repeats;
+			break;
+		default:
+			return -EINVAL;
+		}
+	}
+	data->params[0] |= u64_enc(0, 8, cfg->num_extracts);
+	data->params[0] = cpu_to_le64(data->params[0]);
+
+	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
+		data->params[param] |= u64_enc(0, 8, u_cfg[i].prot);
+		data->params[param] |= u64_enc(8, 4, u_cfg[i].type);
+		data->params[param] |= u64_enc(12, 4, u_cfg[i].src);
+		data->params[param] |= u64_enc(16, 8, u_cfg[i].size);
+		data->params[param] |= u64_enc(24, 8, u_cfg[i].offset);
+		data->params[param] |= u64_enc(32, 32, u_cfg[i].field);
+		data->params[param] = cpu_to_le64(data->params[param]);
+		param++;
+		data->params[param] |= u64_enc(0, 8, u_cfg[i].hdr_index);
+		data->params[param] |= u64_enc(8, 8, u_cfg[i].constant);
+		data->params[param] |= u64_enc(16, 8, u_cfg[i].num_of_repeats);
+		data->params[param] |= u64_enc(
+			24, 8, cfg->extracts[i].num_of_byte_masks);
+		data->params[param] |= u64_enc(32, 4, cfg->extracts[i].type);
+		data->params[param] = cpu_to_le64(data->params[param]);
+		param++;
+		for (j = 0; j < 4; j++) {
+			data->params[param] |= u64_enc(
+				(offset), 8, cfg->extracts[i].masks[j].mask);
+			data->params[param] |= u64_enc(
+				(offset + 8), 8,
+				cfg->extracts[i].masks[j].offset);
+			offset += 16;
+		}
+		data->params[param] = cpu_to_le64(data->params[param]);
+		param++;
+	}
+
+	return 0;
 }
 
-int dpni_close(struct dpni *dpni)
-{
-	return cmdif_close(&(dpni->cidesc));
-}
-
-int dpni_init(struct dpni *dpni, const struct dpni_cfg *cfg)
+int dpni_create(struct dpni *dpni, const struct dpni_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
 	/* prepare command */
-	DPNI_CMD_INIT(CMD_PREP);
+	DPNI_CMD_CREATE(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_INIT, DPNI_CMDSZ_INIT,
-				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+	/* clear 'auth' - later it will store the Authentication ID */
+	dpni->auth = 0;
+
+	/* send command to mc*/
+	return dplib_send(dpni->regs, &(dpni->auth), MC_DPNI_CMDID_CREATE,
+				DPNI_CMDSZ_CREATE, MC_CMD_PRI_LOW, &cmd_data);
 }
 
-int dpni_done(struct dpni *dpni)
+int dpni_open(struct dpni *dpni, int dpni_id)
 {
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	/* prepare command */
+	DPNI_CMD_OPEN(CMD_PREP);
+
+	/* clear 'auth' - later it will store the Authentication ID */
+	dpni->auth = 0;
+
 	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_DONE, DPNI_CMDSZ_DONE,
-				CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), MC_DPNI_CMDID_OPEN,
+				MC_CMD_OPEN_SIZE, MC_CMD_PRI_LOW, &cmd_data);
+}
+
+int dpni_close(struct dpni *dpni)
+{
+	return dplib_send(dpni->regs, &(dpni->auth), MC_CMDID_CLOSE,
+				MC_CMD_CLOSE_SIZE, MC_CMD_PRI_HIGH, NULL);
+}
+
+int dpni_destroy(struct dpni *dpni)
+{
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_DESTROY,
+				DPNI_CMDSZ_DESTROY, MC_CMD_PRI_LOW, NULL);
+}
+
+int dpni_set_pools(struct dpni *dpni, const struct dpni_pools_cfg *cfg)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	DPNI_CMD_SET_POOLS(CMD_PREP);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_POOLS,
+				DPNI_CMDSZ_SET_POOLS, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_set_irq(struct dpni *dpni,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	uint64_t irq_paddr,
-	uint32_t irq_val)
+	uint32_t irq_val,
+	int user_irq_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_SET_IRQ(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_IRQ,
-				DPNI_CMDSZ_SET_IRQ, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_IRQ,
+				DPNI_CMDSZ_SET_IRQ, MC_CMD_PRI_LOW, &cmd_data);
 }
 
 int dpni_set_tx_pause_frames(struct dpni *dpni,
-	uint8_t priority,
+			     uint8_t priority,
 	uint16_t pause_time,
 	uint16_t thresh_time)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_SET_TX_PAUSE_FRAMES(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_TX_PAUSE_FRAMES,
-				DPNI_CMDSZ_SET_TX_PAUSE_FRAMES, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_TX_PAUSE_FRAMES,
+				DPNI_CMDSZ_SET_TX_PAUSE_FRAMES, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_set_rx_ignore_pause_frames(struct dpni *dpni, int enable)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_SET_RX_IGNORE_PAUSE_FRAMES(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc),
+
+	return dplib_send(dpni->regs, &(dpni->auth),
 				DPNI_CMDID_SET_RX_IGNORE_PAUSE_FRAMES,
 				DPNI_CMDSZ_SET_RX_IGNORE_PAUSE_FRAMES,
-				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+				MC_CMD_PRI_LOW, &cmd_data);
 }
 
 int dpni_attach(struct dpni *dpni, const struct dpni_attach_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
-	/* prepare command */
 	DPNI_CMD_ATTACH(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_ATTACH,
-				DPNI_CMDSZ_ATTACH, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_ATTACH,
+				DPNI_CMDSZ_ATTACH, MC_CMD_PRI_LOW, &cmd_data);
 }
 
 int dpni_detach(struct dpni *dpni)
 {
-	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_DETACH,
-				DPNI_CMDSZ_DETACH, CMDIF_PRI_LOW, NULL);
-}
-
-int dpni_attach_link(struct dpni *dpni, const struct dpni_attach_link_cfg *cfg)
-{
-	struct mc_cmd_data cmd_data = { { 0 } };
-
-	/* prepare command */
-	DPNI_CMD_ATTACH_LINK(CMD_PREP);
-	/* link_type */
-	switch (cfg->link_type) {
-	case DPNI_LINK_TYPE_DPMAC:
-		cmd_data.params[0] |= u64_enc(16, 16, cfg->u.dpmac.id);
-		break;
-
-	case DPNI_LINK_TYPE_DPSW:
-		cmd_data.params[0] |= u64_enc(8, 8, cfg->u.dpsw.if_id);
-		cmd_data.params[0] |= u64_enc(16, 16, cfg->u.dpsw.id);
-		break;
-
-	case DPNI_LINK_TYPE_DPDMUX:
-		cmd_data.params[0] |= u64_enc(8, 8, cfg->u.dpdmux.if_id);
-		cmd_data.params[0] |= u64_enc(16, 16, cfg->u.dpdmux.id);
-		break;
-
-	case DPNI_LINK_TYPE_DPLAG:
-		cmd_data.params[0] |= u64_enc(16, 16, cfg->u.dplag.id);
-		break;
-
-	case DPNI_LINK_TYPE_DPNI:
-		cmd_data.params[0] |= u64_enc(16, 16, cfg->u.dpni.id);
-		break;
-
-	default:
-		break;
-	}
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_ATTACH_LINK,
-				DPNI_CMDSZ_ATTACH_LINK, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
-}
-
-int dpni_detach_link(struct dpni *dpni)
-{
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_DETACH_LINK,
-				DPNI_CMDSZ_DETACH_LINK, CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_DETACH,
+				DPNI_CMDSZ_DETACH, MC_CMD_PRI_LOW, NULL);
 }
 
 int dpni_enable(struct dpni *dpni)
 {
-
-	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_ENABLE,
-				DPNI_CMDSZ_ENABLE, CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_ENABLE,
+				DPNI_CMDSZ_ENABLE, MC_CMD_PRI_LOW, NULL);
 }
 
 int dpni_disable(struct dpni *dpni)
 {
-	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_DISABLE,
-				DPNI_CMDSZ_DISABLE, CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_DISABLE,
+				DPNI_CMDSZ_DISABLE, MC_CMD_PRI_LOW, NULL);
 }
 
 int dpni_reset(struct dpni *dpni)
 {
-	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_RESET, DPNI_CMDSZ_RESET,
-				CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_RESET,
+				DPNI_CMDSZ_RESET, MC_CMD_PRI_LOW, NULL);
 }
 
 int dpni_get_attributes(struct dpni *dpni, struct dpni_attr *attr)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_ATTR,
-				DPNI_CMDSZ_GET_ATTR, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
-	if (!err) {
-		/* retrieve response parameters */
+
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_ATTR,
+			 DPNI_CMDSZ_GET_ATTR, MC_CMD_PRI_LOW,
+				&cmd_data);
+	if (!err)
 		DPNI_RSP_GET_ATTR(RSP_READ_STRUCT);
-	}
+
 	return err;
 }
 
 int dpni_get_rx_buffer_layout(struct dpni *dpni,
-	struct dpni_rx_buffer_layout *layout)
+			      struct dpni_buffer_layout *layout)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_RX_BUFFER_LAYOUT,
-				DPNI_CMDSZ_GET_RX_BUFFER_LAYOUT, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
-	if (!err) {
-		/* retrieve response parameters */
+
+	err = dplib_send(dpni->regs, &(dpni->auth),
+			 DPNI_CMDID_GET_RX_BUFFER_LAYOUT,
+				DPNI_CMDSZ_GET_RX_BUFFER_LAYOUT,
+				MC_CMD_PRI_LOW, &cmd_data);
+	if (!err)
 		DPNI_RSP_GET_RX_BUFFER_LAYOUT(RSP_READ_STRUCT);
-	}
+
 	return err;
 }
 
 int dpni_set_rx_buffer_layout(struct dpni *dpni,
-	struct dpni_rx_buffer_layout *layout)
+			      struct dpni_buffer_layout *layout)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
 	DPNI_CMD_SET_RX_BUFFER_LAYOUT(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_RX_BUFFER_LAYOUT,
-				DPNI_CMDSZ_SET_RX_BUFFER_LAYOUT, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_RX_BUFFER_LAYOUT,
+				DPNI_CMDSZ_SET_RX_BUFFER_LAYOUT,
+				MC_CMD_PRI_LOW, &cmd_data);
+}
+
+int dpni_get_tx_buffer_layout(struct dpni *dpni,
+			      struct dpni_buffer_layout *layout)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = dplib_send(dpni->regs, &(dpni->auth),
+			 DPNI_CMDID_GET_TX_BUFFER_LAYOUT,
+				DPNI_CMDSZ_GET_TX_BUFFER_LAYOUT,
+				MC_CMD_PRI_LOW, &cmd_data);
+	if (!err)
+		DPNI_RSP_GET_TX_BUFFER_LAYOUT(RSP_READ_STRUCT);
+
+	return err;
+}
+
+int dpni_set_tx_buffer_layout(struct dpni *dpni,
+			      struct dpni_buffer_layout *layout)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	DPNI_CMD_SET_TX_BUFFER_LAYOUT(CMD_PREP);
+
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_TX_BUFFER_LAYOUT,
+				DPNI_CMDSZ_SET_TX_BUFFER_LAYOUT,
+				MC_CMD_PRI_LOW, &cmd_data);
+}
+
+int dpni_get_tx_conf_buffer_layout(struct dpni *dpni,
+				   struct dpni_buffer_layout *layout)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = dplib_send(dpni->regs, &(dpni->auth),
+			 DPNI_CMDID_GET_TX_CONF_BUFFER_LAYOUT,
+				DPNI_CMDSZ_GET_TX_CONF_BUFFER_LAYOUT,
+				MC_CMD_PRI_LOW, &cmd_data);
+	if (!err)
+		DPNI_RSP_GET_TX_CONF_BUFFER_LAYOUT(RSP_READ_STRUCT);
+
+	return err;
+}
+
+int dpni_set_tx_conf_buffer_layout(struct dpni *dpni,
+				   struct dpni_buffer_layout *layout)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	DPNI_CMD_SET_TX_CONF_BUFFER_LAYOUT(CMD_PREP);
+
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_TX_CONF_BUFFER_LAYOUT,
+				DPNI_CMDSZ_SET_TX_CONF_BUFFER_LAYOUT,
+				MC_CMD_PRI_LOW, &cmd_data);
+}
+
+int dpni_get_l3_chksum_validation(struct dpni *dpni, int *en)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = dplib_send(dpni->regs, &(dpni->auth),
+			 DPNI_CMDID_GET_L3_CHKSUM_VALIDATION,
+				DPNI_CMDSZ_GET_L3_CHKSUM_VALIDATION,
+				MC_CMD_PRI_LOW, &cmd_data);
+	if (!err)
+		DPNI_RSP_GET_L3_CHKSUM_VALIDATION(RSP_READ);
+
+	return err;
+}
+
+int dpni_set_l3_chksum_validation(struct dpni *dpni, int en)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	DPNI_CMD_SET_L3_CHKSUM_VALIDATION(CMD_PREP);
+
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_L3_CHKSUM_VALIDATION,
+				DPNI_CMDSZ_SET_L3_CHKSUM_VALIDATION,
+				MC_CMD_PRI_LOW, &cmd_data);
+}
+
+int dpni_get_l4_chksum_validation(struct dpni *dpni, int *en)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = dplib_send(dpni->regs, &(dpni->auth),
+			 DPNI_CMDID_GET_L4_CHKSUM_VALIDATION,
+				DPNI_CMDSZ_GET_L4_CHKSUM_VALIDATION,
+				MC_CMD_PRI_LOW, &cmd_data);
+	if (!err) {
+		/* retrieve response parameters */
+		DPNI_RSP_GET_L4_CHKSUM_VALIDATION(RSP_READ);
+	}
+	return err;
+}
+
+int dpni_set_l4_chksum_validation(struct dpni *dpni, int en)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	DPNI_CMD_SET_L4_CHKSUM_VALIDATION(CMD_PREP);
+
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_L4_CHKSUM_VALIDATION,
+				DPNI_CMDSZ_SET_L4_CHKSUM_VALIDATION,
+				MC_CMD_PRI_LOW, &cmd_data);
 }
 
 int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid)
@@ -206,13 +392,12 @@ int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_QDID,
-				DPNI_CMDSZ_GET_QDID, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
-	if (!err) {
-		/* retrieve response parameters */
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_QDID,
+			 DPNI_CMDSZ_GET_QDID, MC_CMD_PRI_LOW,
+				&cmd_data);
+	if (!err)
 		DPNI_RSP_GET_QDID(RSP_READ);
-	}
+
 	return err;
 }
 
@@ -221,9 +406,10 @@ int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_TX_DATA_OFFSET,
-				DPNI_CMDSZ_GET_TX_DATA_OFFSET, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth),
+			 DPNI_CMDID_GET_TX_DATA_OFFSET,
+				DPNI_CMDSZ_GET_TX_DATA_OFFSET, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err) {
 		/* retrieve response parameters */
 		DPNI_RSP_GET_TX_DATA_OFFSET(RSP_READ);
@@ -232,7 +418,7 @@ int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset)
 }
 
 int dpni_get_counter(struct dpni *dpni,
-	enum dpni_counter counter,
+		     enum dpni_counter counter,
 	uint64_t *value)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
@@ -240,27 +426,26 @@ int dpni_get_counter(struct dpni *dpni,
 
 	DPNI_CMD_GET_COUNTER(CMD_PREP);
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_COUNTER,
-				DPNI_CMDSZ_GET_COUNTER, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
-	if (!err) {
-		/* retrieve response parameters */
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_COUNTER,
+			 DPNI_CMDSZ_GET_COUNTER, MC_CMD_PRI_LOW,
+				&cmd_data);
+	if (!err)
 		DPNI_RSP_GET_COUNTER(RSP_READ);
-	}
+
 	return err;
 }
 
 int dpni_set_counter(struct dpni *dpni,
-	enum dpni_counter counter,
+		     enum dpni_counter counter,
 	uint64_t value)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
 	DPNI_CMD_SET_COUNTER(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_COUNTER,
-				DPNI_CMDSZ_GET_COUNTER, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_COUNTER,
+				DPNI_CMDSZ_GET_COUNTER, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_get_link_state(struct dpni *dpni, int *up)
@@ -269,21 +454,23 @@ int dpni_get_link_state(struct dpni *dpni, int *up)
 	int err;
 
 	/* send command to mc*/
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_LINK_STATE,
-				DPNI_CMDSZ_GET_LINK_STATE, CMDIF_PRI_LOW,
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_LINK_STATE,
+			 DPNI_CMDSZ_GET_LINK_STATE, MC_CMD_PRI_LOW,
 				NULL);
 	if (!err)
 		DPNI_RSP_GET_LINK_STATE(RSP_READ);
+
 	return err;
 }
 
 int dpni_set_mfl(struct dpni *dpni, uint16_t mfl)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_SET_MFL(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_MFL,
-				DPNI_CMDSZ_SET_MFL, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_MFL,
+				DPNI_CMDSZ_SET_MFL, MC_CMD_PRI_LOW, &cmd_data);
 }
 
 int dpni_get_mfl(struct dpni *dpni, uint16_t *mfl)
@@ -291,21 +478,22 @@ int dpni_get_mfl(struct dpni *dpni, uint16_t *mfl)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_MFL,
-				DPNI_CMDSZ_GET_MFL, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_MFL,
+			 DPNI_CMDSZ_GET_MFL, MC_CMD_PRI_LOW, &cmd_data);
 	if (!err)
 		DPNI_RSP_GET_MFL(RSP_READ);
+
 	return err;
 }
 
 int dpni_set_mtu(struct dpni *dpni, uint16_t mtu)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_SET_MTU(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_MTU,
-				DPNI_CMDSZ_SET_MTU, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_MTU,
+				DPNI_CMDSZ_SET_MTU, MC_CMD_PRI_LOW, &cmd_data);
 }
 
 int dpni_get_mtu(struct dpni *dpni, uint16_t *mtu)
@@ -313,9 +501,8 @@ int dpni_get_mtu(struct dpni *dpni, uint16_t *mtu)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_MTU,
-				DPNI_CMDSZ_GET_MTU, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_MTU,
+			 DPNI_CMDSZ_GET_MTU, MC_CMD_PRI_LOW, &cmd_data);
 	if (!err)
 		DPNI_RSP_GET_MTU(RSP_READ);
 	return err;
@@ -327,9 +514,10 @@ int dpni_set_multicast_promisc(struct dpni *dpni, int en)
 
 	DPNI_CMD_SET_MULTICAST_PROMISC(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_MCAST_PROMISC,
-				DPNI_CMDSZ_SET_MCAST_PROMISC, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_MCAST_PROMISC,
+				DPNI_CMDSZ_SET_MCAST_PROMISC, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_get_multicast_promisc(struct dpni *dpni, int *en)
@@ -337,21 +525,25 @@ int dpni_get_multicast_promisc(struct dpni *dpni, int *en)
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_MCAST_PROMISC,
-				DPNI_CMDSZ_GET_MCAST_PROMISC, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth),
+			 DPNI_CMDID_GET_MCAST_PROMISC,
+				DPNI_CMDSZ_GET_MCAST_PROMISC, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_GET_MULTICAST_PROMISC(RSP_READ);
+
 	return err;
 }
 
 int dpni_set_primary_mac_addr(struct dpni *dpni, const uint8_t addr[6])
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_SET_PRIMARY_MAC_ADDR(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_PRIM_MAC,
-				DPNI_CMDSZ_SET_PRIM_MAC, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_PRIM_MAC,
+				DPNI_CMDSZ_SET_PRIM_MAC, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_get_primary_mac_addr(struct dpni *dpni, uint8_t addr[6])
@@ -359,69 +551,74 @@ int dpni_get_primary_mac_addr(struct dpni *dpni, uint8_t addr[6])
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_PRIM_MAC,
-				DPNI_CMDSZ_GET_PRIM_MAC, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_PRIM_MAC,
+			 DPNI_CMDSZ_GET_PRIM_MAC, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_GET_PRIMARY_MAC_ADDR(RSP_READ_STRUCT);
-	/* TODO - check */
+
 	return err;
 }
 
 int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[6])
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_ADD_MAC_ADDR(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_ADD_MAC_ADDR,
-				DPNI_CMDSZ_ADD_MAC_ADDR, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_ADD_MAC_ADDR,
+				DPNI_CMDSZ_ADD_MAC_ADDR, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[6])
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_REMOVE_MAC_ADDR(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_REMOVE_MAC_ADDR,
-				DPNI_CMDSZ_REMOVE_MAC_ADDR, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_REMOVE_MAC_ADDR,
+				DPNI_CMDSZ_REMOVE_MAC_ADDR, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_clear_mac_table(struct dpni *dpni)
 {
-
-	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_CLR_MAC_TBL,
-				DPNI_CMDSZ_CLR_MAC_TBL, CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_CLR_MAC_TBL,
+				DPNI_CMDSZ_CLR_MAC_TBL, MC_CMD_PRI_LOW, NULL);
 }
 
 int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_ADD_VLAN_ID(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_ADD_VLAN_ID,
-				DPNI_CMDSZ_ADD_VLAN_ID, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_ADD_VLAN_ID,
+				DPNI_CMDSZ_ADD_VLAN_ID, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vlan_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_REMOVE_VLAN_ID(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_REMOVE_VLAN_ID,
-				DPNI_CMDSZ_REMOVE_VLAN_ID, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_REMOVE_VLAN_ID,
+				DPNI_CMDSZ_REMOVE_VLAN_ID, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_clear_vlan_table(struct dpni *dpni)
 {
-
-	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_CLR_VLAN_TBL,
-				DPNI_CMDSZ_CLR_VLAN_TBL, CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_CLR_VLAN_TBL,
+				DPNI_CMDSZ_CLR_VLAN_TBL, MC_CMD_PRI_LOW, NULL);
 }
 
 int dpni_set_tx_tc(struct dpni *dpni,
-	uint8_t tc_id,
+		   uint8_t tc_id,
 	const struct dpni_tx_tc_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
@@ -429,62 +626,73 @@ int dpni_set_tx_tc(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_SET_TX_TC(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_TX_TC,
-				DPNI_CMDSZ_SET_TX_TC, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_TX_TC,
+				DPNI_CMDSZ_SET_TX_TC, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_set_rx_tc(struct dpni *dpni,
-	uint8_t tc_id,
+		   uint8_t tc_id,
 	const struct dpni_rx_tc_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+	struct extract_data ext_data = { { 0 } };
+	uint64_t ext_paddr = virt_to_phys(&ext_data);
+	int err;
 
 	/* prepare command */
+	err = build_extract_cfg_extention(cfg->extract_cfg, &ext_data);
+	if (err)
+		return err;
+
 	DPNI_CMD_SET_RX_TC(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_RX_TC,
-				DPNI_CMDSZ_SET_RX_TC, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_RX_TC,
+				DPNI_CMDSZ_SET_RX_TC, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_set_tx_flow(struct dpni *dpni,
-	uint16_t *flow_id,
+		     uint16_t *flow_id,
 	const struct dpni_tx_flow_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+
 	/* prepare command */
 	DPNI_CMD_SET_TX_FLOW(CMD_PREP);
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_TX_FLOW,
-				DPNI_CMDSZ_SET_TX_FLOW, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_TX_FLOW,
+			 DPNI_CMDSZ_SET_TX_FLOW, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_SET_TX_FLOW(RSP_READ_STRUCT);
+
 	return err;
 }
 
 int dpni_get_tx_flow(struct dpni *dpni,
-	uint16_t flow_id,
+		     uint16_t flow_id,
 	struct dpni_tx_flow_cfg *cfg,
 	uint32_t *fqid)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+
 	/* prepare command */
 	DPNI_CMD_GET_TX_FLOW(CMD_PREP);
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_TX_FLOW,
-				DPNI_CMDSZ_GET_TX_FLOW, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_TX_FLOW,
+			 DPNI_CMDSZ_GET_TX_FLOW, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_GET_TX_FLOW(RSP_READ_STRUCT);
+
 	return err;
 }
 
 int dpni_set_rx_flow(struct dpni *dpni,
-	uint8_t tc_id,
+		     uint8_t tc_id,
 	uint16_t flow_id,
 	const struct dpni_rx_flow_cfg *cfg)
 {
@@ -493,13 +701,13 @@ int dpni_set_rx_flow(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_SET_RX_FLOW(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_RX_FLOW,
-				DPNI_CMDSZ_SET_RX_FLOW, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_RX_FLOW,
+				DPNI_CMDSZ_SET_RX_FLOW, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_get_rx_flow(struct dpni *dpni,
-	uint8_t tc_id,
+		     uint8_t tc_id,
 	uint16_t flow_id,
 	struct dpni_rx_flow_cfg *cfg,
 	uint32_t *fqid)
@@ -509,134 +717,168 @@ int dpni_get_rx_flow(struct dpni *dpni,
 	/* prepare command */
 	DPNI_CMD_GET_RX_FLOW(CMD_PREP);
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_RX_FLOW,
-				DPNI_CMDSZ_SET_RX_FLOW, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_RX_FLOW,
+			 DPNI_CMDSZ_GET_RX_FLOW, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_GET_RX_FLOW(RSP_READ_STRUCT);
+
 	return err;
 }
 
 int dpni_set_qos_table(struct dpni *dpni, const struct dpni_qos_tbl_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+	struct extract_data ext_data = { { 0 } };
+	uint64_t ext_paddr = virt_to_phys(&ext_data);
+	int err;
+
+	/* prepare command */
+	err = build_extract_cfg_extention(cfg->extract_cfg, &ext_data);
+	if (err)
+		return err;
+
 	DPNI_CMD_SET_QOS_TABLE(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_QOS_TBL,
-				DPNI_CMDSZ_SET_QOS_TBL, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_QOS_TBL,
+				DPNI_CMDSZ_SET_QOS_TBL, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_delete_qos_table(struct dpni *dpni)
 {
-
-	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_DELETE_QOS_TBL,
-				DPNI_CMDSZ_DELETE_QOS_TBL, CMDIF_PRI_LOW, NULL);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_DELETE_QOS_TBL,
+				DPNI_CMDSZ_DELETE_QOS_TBL, MC_CMD_PRI_LOW,
+				NULL);
 }
 
 int dpni_add_qos_entry(struct dpni *dpni,
-	const struct dpni_key_cfg *cfg,
+		       const struct dpni_key_cfg *cfg,
 	uint8_t tc_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+	uint64_t key_paddr, mask_paddr = 0;
+
+	key_paddr = virt_to_phys(cfg->key);
+	if (cfg->mask)
+		mask_paddr = virt_to_phys(cfg->mask);
+
 	DPNI_CMD_ADD_QOS_ENTRY(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_ADD_QOS_ENT,
-				DPNI_CMDSZ_ADD_QOS_ENT, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_ADD_QOS_ENT,
+				DPNI_CMDSZ_ADD_QOS_ENT, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+	uint64_t key_paddr, mask_paddr = 0;
+
+	key_paddr = virt_to_phys(cfg->key);
+	if (cfg->mask)
+		mask_paddr = virt_to_phys(cfg->mask);
+
 	DPNI_CMD_REMOVE_QOS_ENTRY(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_REMOVE_QOS_ENT,
-				DPNI_CMDSZ_REMOVE_QOS_ENT, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_REMOVE_QOS_ENT,
+				DPNI_CMDSZ_REMOVE_QOS_ENT, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_clear_qos_table(struct dpni *dpni)
 {
-
 	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_CLR_QOS_TBL,
-				DPNI_CMDSZ_CLR_QOS_TBL, CMDIF_PRI_LOW, NULL);
-}
-
-int dpni_set_dist(struct dpni *dpni,
-	const struct dpni_dist_cfg dist[DPNI_MAX_TC])
-{
-	struct mc_cmd_data cmd_data = { { 0 } };
-	DPNI_CMD_SET_DIST(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_DIST,
-				DPNI_CMDSZ_SET_DIST, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_CLR_QOS_TBL,
+				DPNI_CMDSZ_CLR_QOS_TBL, MC_CMD_PRI_LOW, NULL);
 }
 
 int dpni_set_fs_table(struct dpni *dpni,
-	uint8_t tc_id,
+		      uint8_t tc_id,
 	const struct dpni_fs_tbl_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
 	DPNI_CMD_SET_FS_TABLE(CMD_PREP);
 
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_FS_TBL,
-				DPNI_CMDSZ_SET_FS_TBL, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_FS_TBL,
+				DPNI_CMDSZ_SET_FS_TBL, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_DELETE_FS_TABLE(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_DELETE_FS_TBL,
-				DPNI_CMDSZ_DELETE_FS_TBL, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_DELETE_FS_TBL,
+				DPNI_CMDSZ_DELETE_FS_TBL, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_add_fs_entry(struct dpni *dpni,
-	uint8_t tc_id,
+		      uint8_t tc_id,
 	const struct dpni_key_cfg *cfg,
 	uint16_t flow_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+	uint64_t key_paddr, mask_paddr = 0;
+
+	key_paddr = virt_to_phys(cfg->key);
+	if (cfg->mask)
+		mask_paddr = virt_to_phys(cfg->mask);
+
 	DPNI_CMD_ADD_FS_ENTRY(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_ADD_FS_ENT,
-				DPNI_CMDSZ_ADD_FS_ENT, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_ADD_FS_ENT,
+				DPNI_CMDSZ_ADD_FS_ENT, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_remove_fs_entry(struct dpni *dpni,
-	uint8_t tc_id,
+			 uint8_t tc_id,
 	const struct dpni_key_cfg *cfg)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+	uint64_t key_paddr, mask_paddr = 0;
+
+	key_paddr = virt_to_phys(cfg->key);
+	if (cfg->mask)
+		mask_paddr = virt_to_phys(cfg->mask);
+
 	DPNI_CMD_REMOVE_FS_ENTRY(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_REMOVE_FS_ENT,
-				DPNI_CMDSZ_REMOVE_FS_ENT, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_REMOVE_FS_ENT,
+				DPNI_CMDSZ_REMOVE_FS_ENT, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_clear_fs_table(struct dpni *dpni, uint8_t tc_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
+
 	DPNI_CMD_CLEAR_FS_TABLE(CMD_PREP);
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_CLR_FS_TBL,
-				DPNI_CMDSZ_CLR_FS_TBL, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_CLR_FS_TBL,
+				DPNI_CMDSZ_CLR_FS_TBL, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
 int dpni_get_irq(struct dpni *dpni,
-                 uint8_t irq_index,
-                 uint64_t *irq_paddr,
-                 uint32_t *irq_val)
+		 uint8_t irq_index,
+	int *type,
+	uint64_t *irq_paddr,
+	uint32_t *irq_val,
+	int *user_irq_id)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+
 	DPNI_CMD_GET_IRQ(CMD_PREP);
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_IRQ,
-				DPNI_CMDSZ_GET_IRQ, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_IRQ,
+			 DPNI_CMDSZ_GET_IRQ, MC_CMD_PRI_LOW, &cmd_data);
 	if (!err)
 		DPNI_RSP_GET_IRQ(RSP_READ);
 
@@ -644,16 +886,17 @@ int dpni_get_irq(struct dpni *dpni,
 }
 
 int dpni_get_irq_enable(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint8_t *enable_state)
+			uint8_t irq_index,
+	uint8_t *enable_state)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+
 	DPNI_CMD_GET_IRQ_ENABLE(CMD_PREP);
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_IRQ_ENABLE,
-				DPNI_CMDSZ_GET_IRQ_ENABLE, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_IRQ_ENABLE,
+			 DPNI_CMDSZ_GET_IRQ_ENABLE, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_GET_IRQ_ENABLE(RSP_READ);
 
@@ -661,8 +904,8 @@ int dpni_get_irq_enable(struct dpni *dpni,
 }
 
 int dpni_set_irq_enable(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint8_t enable_state)
+			uint8_t irq_index,
+	uint8_t enable_state)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
@@ -670,30 +913,27 @@ int dpni_set_irq_enable(struct dpni *dpni,
 	DPNI_CMD_SET_IRQ_ENABLE(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_IRQ_ENABLE, DPNI_CMDSZ_SET_IRQ_ENABLE,
-				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_IRQ_ENABLE,
+				DPNI_CMDSZ_SET_IRQ_ENABLE, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
-int dpni_get_irq_mask(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint32_t *mask)
+int dpni_get_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t *mask)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
 	DPNI_CMD_GET_IRQ_MASK(CMD_PREP);
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_IRQ_MASK,
-				DPNI_CMDSZ_GET_IRQ_MASK, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_IRQ_MASK,
+			 DPNI_CMDSZ_GET_IRQ_MASK, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_GET_IRQ_MASK(RSP_READ);
 
 	return err;
 }
 
-int dpni_set_irq_mask(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint32_t mask)
+int dpni_set_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t mask)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
@@ -701,21 +941,21 @@ int dpni_set_irq_mask(struct dpni *dpni,
 	DPNI_CMD_SET_IRQ_MASK(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_SET_IRQ_MASK, DPNI_CMDSZ_SET_IRQ_MASK,
-				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_SET_IRQ_MASK,
+				DPNI_CMDSZ_SET_IRQ_MASK, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
-int dpni_get_irq_status(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint32_t *status)
+int dpni_get_irq_status(struct dpni *dpni, uint8_t irq_index, uint32_t *status)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 	int err;
+
 	DPNI_CMD_GET_IRQ_STATUS(CMD_PREP);
 
-	err = cmdif_send(&(dpni->cidesc), DPNI_CMDID_GET_IRQ_STATUS,
-				DPNI_CMDSZ_GET_IRQ_STATUS, CMDIF_PRI_LOW,
-				(uint8_t *)&cmd_data);
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_IRQ_STATUS,
+			 DPNI_CMDSZ_GET_IRQ_STATUS, MC_CMD_PRI_LOW,
+				&cmd_data);
 	if (!err)
 		DPNI_RSP_GET_IRQ_STATUS(RSP_READ);
 
@@ -723,8 +963,8 @@ int dpni_get_irq_status(struct dpni *dpni,
 }
 
 int dpni_clear_irq_status(struct dpni *dpni,
-                          uint8_t irq_index,
-                          uint32_t status)
+			  uint8_t irq_index,
+	uint32_t status)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };
 
@@ -732,7 +972,20 @@ int dpni_clear_irq_status(struct dpni *dpni,
 	DPNI_CMD_CLEAR_IRQ_STATUS(CMD_PREP);
 
 	/* send command to mc*/
-	return cmdif_send(&(dpni->cidesc), DPNI_CMDID_CLEAR_IRQ_STATUS, DPNI_CMDSZ_CLEAR_IRQ_STATUS,
-				CMDIF_PRI_LOW, (uint8_t *)&cmd_data);
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_CLEAR_IRQ_STATUS,
+				DPNI_CMDSZ_CLEAR_IRQ_STATUS, MC_CMD_PRI_LOW,
+				&cmd_data);
 }
 
+int dpni_set_vlan_filters(struct dpni *dpni, int en)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+
+	DPNI_CMD_SET_VLAN_FILTERS(CMD_PREP);
+
+	return dplib_send(dpni->regs, &(dpni->auth),
+				DPNI_CMDID_SET_VLAN_FILTERS,
+				DPNI_CMDSZ_SET_VLAN_FILTERS, MC_CMD_PRI_LOW,
+				&cmd_data);
+}
