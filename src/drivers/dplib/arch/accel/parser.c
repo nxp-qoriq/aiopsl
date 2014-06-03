@@ -22,7 +22,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 void parser_handle_fatal_errors(int32_t status){
 	switch(status) {
 	case PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED:
-		return handle_fatal_error
+		handle_fatal_error
 			((char *)PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
 		break;
 	case PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION:
