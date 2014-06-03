@@ -12,6 +12,7 @@
 #include "common/types.h"
 #include "dplib/fsl_ipr.h"
 #include "dplib/fsl_osm.h"
+#include "dplib/fsl_tman.h"
 #include "fdma.h"
 
 
@@ -57,6 +58,10 @@
 #define OCTET_LINK_LIST_MASK	0x07
 #define IPV4_KEY_SIZE			11
 #define IPV6_FIXED_HEADER_SIZE	40
+#define IPR_TIMEOUT_FLAGS	TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY | \
+				TMAN_CREATE_TIMER_MODE_TPRI | \
+				TMAN_CREATE_TIMER_ONE_SHOT | \
+				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
@@ -81,10 +86,7 @@ struct ipr_instance {
 	/** function to call upon Time Out occurrence for ipv6 */
 	ipr_timeout_cb_t *ipv6_timeout_cb;
 	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint16_t  	flags;
-	/* TMAN Instance ID */
-	uint8_t		tmi_id;
-	uint8_t		reserved;
+	uint32_t  	flags;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv4_arg;
@@ -96,6 +98,10 @@ struct ipr_instance {
 	uint32_t	num_of_open_reass_frames_ipv6;
 	uint32_t	ipv4_reass_frm_cntr;
 	uint32_t	ipv6_reass_frm_cntr;
+	/* TMAN Instance ID */
+	uint8_t		tmi_id;
+	uint8_t		reserved;
+	uint16_t	bpid;
 };
 
 #pragma pack(push,1)
@@ -141,76 +147,15 @@ struct link_list_element{
 
 
 /**************************************************************************//**
-@Group		IPR_Internal Internal IPR functions & Definitions
+@Group		IPR_Internal Internal IPR functions
 
 @Description	Internal IP reassembly
 
 @{
 *//***************************************************************************/
 
-/**************************************************************************//**
-@Group		IPRInitFlags IPR init flags
-
-@Description	IP reassembly init flags.
 
 
-|   0   |   1   |  2-5 |      6-7      |
-|-------|-------|------|---------------|
-|IPv4_EN|IPv6_EN|      | Table_location|
-\n
-| 8 | 9 |     10-11    | 12 |   13 - 15   | 16 - 31  |
-|---|---|--------------|----|-------------|----------|
-|   |   |AIOP_priority |TPRI| Granularity |          |
-
-Recommended default values: Granularity:IPR_MODE_100_USEC_TO_GRANULARITY
-			    TPRI : not set (low priority)
-			    AIOP task priority: low
-@{
-*//***************************************************************************/
-
-/** If set, IPR supports reassembly of IPv4 frames*/
-#define IPR_IPV4_EN				0x80000000
-/** If set, IPR supports reassembly of IPv6 frames*/
-#define IPR_IPV6_EN				0x40000000
-
-/* The following defines will be used to set the timeout timer tick size.*/
-/** 1 uSec timeout timer ticks*/
-#define IPR_MODE_USEC_TO_GRANULARITY		0x00000000
-/** 10 uSec timeout timer ticks*/
-#define IPR_MODE_10_USEC_TO_GRANULARITY		0x00010000
-/** 100 uSec timeout timer ticks*/
-#define IPR_MODE_100_USEC_TO_GRANULARITY	0x00020000
-/** 1 mSec timeout timer ticks*/
-#define IPR_MODE_MSEC_TO_GRANULARITY		0x00030000
-/** 10 mSec timeout timer ticks*/
-#define IPR_MODE_10_MSEC_TO_GRANULARITY		0x00040000
-/** 100 mSec timeout timer ticks*/
-#define IPR_MODE_100_MSEC_TO_GRANULARITY	0x00050000
-/** 1 Sec timeout timer ticks*/
-#define IPR_MODE_SEC_TO_GRANULARITY		0x00060000
-
-/** If set, timeout priority task is high. */
-#define IPR_MODE_TPRI				0x00080000
-
-/* The following defines will be used to set the AIOP task priority
-	of the created timeout task.*/
-/** Low priority AIOP task*/
-#define IPR_MODE_LOW_PRIORITY_TASK		0x00000000
-/** Middle priority AIOP task*/
-#define IPR_MODE_MID_PRIORITY_TASK		0x00100000
-/** High priority AIOP task*/
-#define IPR_MODE_HIGH_PRIORITY_TASK		0x00200000
-
-/** Tables are located in dedicated RAM */
-#define IPR_MODE_TABLE_LOCATION_INT		0x00000000
-/** Tables are located in Packet Express Buffer table */
-#define IPR_MODE_TABLE_LOCATION_PEB		0x02000000
-/** Tables are located in DDR1 */
-#define IPR_MODE_TABLE_LOCATION_EXT1		0x03000000
-/** Tables are located in DDR2 */
-#define IPR_MODE_TABLE_LOCATION_EXT2		0x04000000
-
-/* @} end of group IPRInitFlags */
 
 /**************************************************************************//**
 @Function	ipr_init
@@ -302,24 +247,10 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 *//***************************************************************************/
 
 struct ipr_global_parameters {
-/** Initialized to max_buffers and will be decremented upon each
- * create instance */
-uint32_t ipr_avail_buffers_cntr;
-/** Size of the allocated buffers by the ARENA. These buffers are associated to
-    the ipr_pool_id */
-uint16_t ipr_buffer_size;
-/** save ipr table location */
-uint8_t  ipr_table_location;
-uint8_t  ipr_timeout_flags;
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
-/** Pool id returned by the ARENA allocator to be used as context buffer pool */
-uint8_t  ipr_pool_id;
-uint8_t  ipr_instance_spin_lock;
-uint8_t res;
 };
 
-/* @} end of group IPR_Internal */
 /* @} end of group FSL_IPR */
 
 #endif /* __AIOP_IPR_H */

@@ -39,7 +39,8 @@ extern int aiop_snic_init(void);
 __SHRAM uint64_t ext_prpid_pool_address;
 __SHRAM uint64_t ext_keyid_pool_address;
 
-__PROFILE_SRAM struct  storage_profile storage_profile;
+//__PROFILE_SRAM struct  storage_profile storage_profile;
+__PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 
 int32_t sys_prpid_pool_create(void)
 {
@@ -104,41 +105,80 @@ int32_t aiop_sl_init(void)
 
 	/* initialize profile sram */
 
-	storage_profile.ip_secific_sp_info = 0;
-	storage_profile.dl = 0;
-	storage_profile.reserved = 0;
+	/* Default Storage Profile */
+	storage_profiles[SP_DEFAULT].ip_secific_sp_info = 0;
+	storage_profiles[SP_DEFAULT].dl = 0;
+	storage_profiles[SP_DEFAULT].reserved = 0;
 	/* 0x0080 --> 0x8000 (little endian) */
-	storage_profile.dhr = 0x8000;
-	/*storage_profile.dhr = 0x0080; */
-	storage_profile.mode_bits1 = (mode_bits1_PTAR | mode_bits1_SGHR |
+	storage_profiles[SP_DEFAULT].dhr = 0x8000;
+	/*storage_profiles[SP_DEFAULT].dhr = 0x0080; */
+	storage_profiles[SP_DEFAULT].mode_bits1 = (mode_bits1_PTAR | mode_bits1_SGHR |
 			mode_bits1_ASAR);
-	storage_profile.mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
+	storage_profiles[SP_DEFAULT].mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
 			mode_bits2_VA | mode_bits2_DLC);
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	 * 0x0801 --> 0x0108 (little endian) */
-	storage_profile.pbs1 = 0x0108;
+	storage_profiles[SP_DEFAULT].pbs1 = 0x0108;
 #ifndef AIOP_VERIF
 	/* __lhbr swaps the bytes for little endian */
-	storage_profile.bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
+	storage_profiles[SP_DEFAULT].bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
 #else
 	/* BPID=0 */
-	storage_profile.bpid1 = 0x0000;
+	storage_profiles[SP_DEFAULT].bpid1 = 0x0000;
 #endif
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	* 0x0801 --> 0x0108 (little endian) */
-	storage_profile.pbs2 = 0x0108;
+	storage_profiles[SP_DEFAULT].pbs2 = 0x0108;
 #ifndef AIOP_VERIF
 	/* __lhbr swaps the bytes for little endian */
-	storage_profile.bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
+	storage_profiles[SP_DEFAULT].bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
 #else
 	/* BPID=1, 0x0001 --> 0x0100 (little endian) */
-	storage_profile.bpid2 = 0x0100;
+	storage_profiles[SP_DEFAULT].bpid2 = 0x0100;
 #endif
-	storage_profile.pbs3 = 0x0000;
-	storage_profile.bpid3 = 0x0000;
-	storage_profile.pbs4 = 0x0000;
-	storage_profile.bpid4 = 0x0000;
-
+	storage_profiles[SP_DEFAULT].pbs3 = 0x0000;
+	storage_profiles[SP_DEFAULT].bpid3 = 0x0000;
+	storage_profiles[SP_DEFAULT].pbs4 = 0x0000;
+	storage_profiles[SP_DEFAULT].bpid4 = 0x0000;
+	
+	/*****************************************************/
+	/* IPsec Storage Profile */
+	/*****************************************************/
+	storage_profiles[SP_IPSEC].ip_secific_sp_info = 0;
+	storage_profiles[SP_IPSEC].dl = 0;
+	storage_profiles[SP_IPSEC].reserved = 0;
+	/* 0x0080 --> 0x8000 (little endian) */
+	storage_profiles[SP_IPSEC].dhr = 0x0000;
+		
+	/*storage_profiles[SP_IPSEC].dhr = 0x0080; */
+	storage_profiles[SP_IPSEC].mode_bits1 = (mode_bits1_PTAR | 
+			mode_bits1_SGHR ); /* No ASA */
+	storage_profiles[SP_IPSEC].mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
+			mode_bits2_VA | mode_bits2_DLC);
+	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
+	 * 0x0801 --> 0x0108 (little endian) */
+	storage_profiles[SP_IPSEC].pbs1 = 0x0108;
+#ifndef AIOP_VERIF
+	/* __lhbr swaps the bytes for little endian */
+	storage_profiles[SP_IPSEC].bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
+#else
+	/* BPID=0 */
+	storage_profiles[SP_IPSEC].bpid1 = 0x0000;
+#endif
+	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
+	* 0x0801 --> 0x0108 (little endian) */
+	storage_profiles[SP_IPSEC].pbs2 = 0x0108;
+#ifndef AIOP_VERIF
+	/* __lhbr swaps the bytes for little endian */
+	storage_profiles[SP_IPSEC].bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
+#else
+	/* BPID=1, 0x0001 --> 0x0100 (little endian) */
+	storage_profiles[SP_IPSEC].bpid2 = 0x0100;
+#endif
+	storage_profiles[SP_IPSEC].pbs3 = 0x0000;
+	storage_profiles[SP_IPSEC].bpid3 = 0x0000;
+	storage_profiles[SP_IPSEC].pbs4 = 0x0000;
+	storage_profiles[SP_IPSEC].bpid4 = 0x0000;
 
 
 /* TODO - remove the AIOP_VERIF section when verification env will include

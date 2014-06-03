@@ -20,7 +20,6 @@
 #ifdef MC
 struct dpni;
 #else
-#include <fsl_cmdif.h>
 struct dpni {
 	void *regs;
 	/*!<
@@ -235,17 +234,15 @@ int dpni_destroy(struct dpni *dpni);
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  *				signal a message-based interrupt
  * @param[in]	irq_val		Value to write into irq_paddr address
- * @param[in]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
- * 				
+ * @param[in]	user_irq_id	A user defined number associated with this IRQ;
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_irq(struct dpni *dpni,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	uint64_t irq_paddr,
 	uint32_t irq_val,
-	int irq_virt_id);
+	int user_irq_id);
 
 /**
  * @brief	Gets IRQ information from the DPNI.
@@ -258,17 +255,16 @@ int dpni_set_irq(struct dpni *dpni,
  *				to signal the message-based interrupt
  * @param[out]	irq_val		Value to write in order to signal the
  *				message-based interrupt
- * @param[out]	irq_virt_id		virtual irq number - Used by virtual machines 
- *   			which don't have message interrupts.
- * 				
+ * @param[out]	user_irq_id	A user defined number associated with this IRQ;
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_irq(struct dpni *dpni,
-	uint8_t irq_index,
+		 uint8_t irq_index,
 	int *type,
 	uint64_t *irq_paddr,
 	uint32_t *irq_val,
-	int *irq_virt_id);
+	int *user_irq_id);
 
 /**
  * @brief	Sets overall interrupt state.
@@ -285,7 +281,7 @@ int dpni_get_irq(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_irq_enable(struct dpni *dpni,
-	uint8_t irq_index,
+			uint8_t irq_index,
 	uint8_t enable_state);
 
 /**
@@ -298,7 +294,7 @@ int dpni_set_irq_enable(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_irq_enable(struct dpni *dpni,
-	uint8_t irq_index,
+			uint8_t irq_index,
 	uint8_t *enable_state);
 
 /**
@@ -357,7 +353,7 @@ int dpni_get_irq_status(struct dpni *dpni, uint8_t irq_index, uint32_t *status);
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dpni_clear_irq_status(struct dpni *dpni,
-	uint8_t irq_index,
+			  uint8_t irq_index,
 	uint32_t status);
 
 /**
@@ -382,7 +378,7 @@ int dpni_clear_irq_status(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_pause_frames(struct dpni *dpni,
-	uint8_t priority,
+			     uint8_t priority,
 	uint16_t pause_time,
 	uint16_t thresh_time);
 
@@ -627,7 +623,7 @@ struct dpni_buffer_layout {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_rx_buffer_layout(struct dpni *dpni,
-	struct dpni_buffer_layout *layout);
+			      struct dpni_buffer_layout *layout);
 
 /**
  *
@@ -641,7 +637,7 @@ int dpni_get_rx_buffer_layout(struct dpni *dpni,
  * @warning	Allowed only when DPNI is disabled
  */
 int dpni_set_rx_buffer_layout(struct dpni *dpni,
-	struct dpni_buffer_layout *layout);
+			      struct dpni_buffer_layout *layout);
 
 /**
  *
@@ -653,7 +649,7 @@ int dpni_set_rx_buffer_layout(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_tx_buffer_layout(struct dpni *dpni,
-	struct dpni_buffer_layout *layout);
+			      struct dpni_buffer_layout *layout);
 
 /**
  *
@@ -667,7 +663,7 @@ int dpni_get_tx_buffer_layout(struct dpni *dpni,
  * @warning	Allowed only when DPNI is disabled
  */
 int dpni_set_tx_buffer_layout(struct dpni *dpni,
-	struct dpni_buffer_layout *layout);
+			      struct dpni_buffer_layout *layout);
 
 /**
  *
@@ -679,7 +675,7 @@ int dpni_set_tx_buffer_layout(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_tx_conf_buffer_layout(struct dpni *dpni,
-	struct dpni_buffer_layout *layout);
+				   struct dpni_buffer_layout *layout);
 
 /**
  *
@@ -693,7 +689,7 @@ int dpni_get_tx_conf_buffer_layout(struct dpni *dpni,
  * @warning	Allowed only when DPNI is disabled
  */
 int dpni_set_tx_conf_buffer_layout(struct dpni *dpni,
-	struct dpni_buffer_layout *layout);
+				   struct dpni_buffer_layout *layout);
 
 /**
  *
@@ -804,7 +800,7 @@ enum dpni_counter {
  * @returns        '0' on Success; Error code otherwise.
  */
 int dpni_get_counter(struct dpni *dpni,
-	enum dpni_counter counter,
+		     enum dpni_counter counter,
 	uint64_t *value);
 
 /**
@@ -819,7 +815,7 @@ int dpni_get_counter(struct dpni *dpni,
  * @returns        '0' on Success; Error code otherwise.
  */
 int dpni_set_counter(struct dpni *dpni,
-	enum dpni_counter counter,
+		     enum dpni_counter counter,
 	uint64_t value);
 
 /**
@@ -1024,7 +1020,7 @@ struct dpni_tx_tc_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_tc(struct dpni *dpni,
-	uint8_t tc_id,
+		   uint8_t tc_id,
 	const struct dpni_tx_tc_cfg *cfg);
 
 /**
@@ -1063,7 +1059,7 @@ struct dpni_rx_tc_cfg {
  *
  */
 int dpni_set_rx_tc(struct dpni *dpni,
-	uint8_t tc_id,
+		   uint8_t tc_id,
 	const struct dpni_rx_tc_cfg *cfg);
 
 /*!
@@ -1130,7 +1126,7 @@ struct dpni_tx_flow_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_flow(struct dpni *dpni,
-	uint16_t *flow_id,
+		     uint16_t *flow_id,
 	const struct dpni_tx_flow_cfg *cfg);
 
 /**
@@ -1147,7 +1143,7 @@ int dpni_set_tx_flow(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_tx_flow(struct dpni *dpni,
-	uint16_t flow_id,
+		     uint16_t flow_id,
 	struct dpni_tx_flow_cfg *cfg,
 	uint32_t *fqid);
 
@@ -1194,7 +1190,7 @@ struct dpni_rx_flow_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_rx_flow(struct dpni *dpni,
-	uint8_t tc_id,
+		     uint8_t tc_id,
 	uint16_t flow_id,
 	const struct dpni_rx_flow_cfg *cfg);
 
@@ -1213,7 +1209,7 @@ int dpni_set_rx_flow(struct dpni *dpni,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_rx_flow(struct dpni *dpni,
-	uint8_t tc_id,
+		     uint8_t tc_id,
 	uint16_t flow_id,
 	struct dpni_rx_flow_cfg *cfg,
 	uint32_t *fqid);
@@ -1275,7 +1271,7 @@ struct dpni_key_cfg {
  *
  */
 int dpni_add_qos_entry(struct dpni *dpni,
-	const struct dpni_key_cfg *cfg,
+		       const struct dpni_key_cfg *cfg,
 	uint8_t tc_id);
 
 /**
@@ -1335,7 +1331,7 @@ struct dpni_fs_tbl_cfg {
  *
  */
 int dpni_set_fs_table(struct dpni *dpni,
-	uint8_t tc_id,
+		      uint8_t tc_id,
 	const struct dpni_fs_tbl_cfg *cfg);
 
 /**
@@ -1363,7 +1359,7 @@ int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id);
  *
  */
 int dpni_add_fs_entry(struct dpni *dpni,
-	uint8_t tc_id,
+		      uint8_t tc_id,
 	const struct dpni_key_cfg *cfg,
 	uint16_t flow_id);
 
@@ -1379,7 +1375,7 @@ int dpni_add_fs_entry(struct dpni *dpni,
  *
  */
 int dpni_remove_fs_entry(struct dpni *dpni,
-	uint8_t tc_id,
+			 uint8_t tc_id,
 	const struct dpni_key_cfg *cfg);
 
 /**

@@ -6,6 +6,14 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "general.h"
+#include "dplib/fsl_fdma.h"
 
 /** Global task params */
 __TASK struct aiop_default_task_params default_task_params;
+
+void handle_fatal_error(char *message)
+{
+       uint32_t status;
+       status = -1 + (uint32_t)message;
+       fdma_terminate_task();
+}

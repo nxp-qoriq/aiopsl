@@ -10,6 +10,10 @@
 #define _FSL_DPRC_CMD_H
 
 /* Command IDs */
+#define MC_CMDID_CLOSE				0x800
+#define MC_DPRC_CMDID_OPEN			0x805
+#define MC_DPRC_CMDID_CREATE			0x905
+
 #define DPRC_CMDID_CREATE_CONT			0x151
 #define DPRC_CMDID_DESTROY_CONT			0x152
 #define DPRC_CMDID_GET_CONT_ID			0x830
@@ -39,6 +43,8 @@
 #define DPRC_CMDID_GET_PORTAL_PADDR		0x16B
 
 /* Command sizes */
+#define MC_CMD_OPEN_SIZE			8
+#define MC_CMD_CLOSE_SIZE			0
 #define DPRC_CMDSZ_CREATE_CONT			(8 * 2)
 #define DPRC_CMDSZ_DESTROY_CONT			8
 #define DPRC_CMDSZ_GET_CONT_ID			8
@@ -239,6 +245,7 @@ do { \
 
 /*	param, offset, width,	type,			arg_name */
 #define DPRC_CMD_GET_RES_COUNT(_OP) \
+do { \
 	_OP(1,  0,	8,	char,			type[0]);\
 	_OP(1,  8,	8,	char,			type[1]);\
 	_OP(1,  16,	8,	char,			type[2]);\
@@ -255,7 +262,8 @@ do { \
 	_OP(2,  40,	8,	char,			type[13]);\
 	_OP(2,  48,	8,	char,			type[14]);\
 	_OP(2,  56,	8,	char,			type[15]);\
-	
+} while (0)
+
 /*	param, offset, width,	type,			arg_name */
 #define DPRC_RSP_GET_RES_COUNT(_OP) \
 	_OP(0,	0,	32,	int,			res_count)
@@ -341,7 +349,7 @@ do { \
 	_OP(0,	32,	8,	uint8_t,		irq_index); \
 	_OP(0,	0,	32,	uint32_t,		irq_val); \
 	_OP(1,	0,	64,	uint64_t,		irq_paddr);\
-	_OP(2,  0,	32,	int,			irq_virt_id); \
+	_OP(2,  0,	32,	int,			user_irq_id); \
 } while (0)
 
 /*	param, offset, width,	type,			arg_name */
@@ -353,7 +361,7 @@ do { \
 do { \
 	_OP(0,	0,	32,	uint32_t,		irq_val); \
 	_OP(1,	0,	64,	uint64_t,		irq_paddr);\
-	_OP(2,  0,	32,	int,			irq_virt_id); \
+	_OP(2,  0,	32,	int,			user_irq_id); \
 	_OP(2,	32,	32,	int,			type); \
 } while (0)
 

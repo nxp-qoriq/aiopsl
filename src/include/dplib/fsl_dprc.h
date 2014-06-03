@@ -10,7 +10,6 @@
 #ifdef MC
 struct dprc;
 #else
-#include <fsl_cmdif.h>
 struct dprc {
 	void *regs;
 	/*!<
@@ -35,7 +34,7 @@ struct dprc {
 #define DPRC_GET_ICID_FROM_POOL			(uint16_t)(~(0))
 /*!
  * Set this value as the portal_id value in dprc_cfg structure when creating a
- * container, in case the portal id is not specifically selected by the 
+ * container, in case the portal id is not specifically selected by the
  * user and should be allocated by the DPRC from the pool of portal ids.
  */
 #define DPRC_GET_PORTAL_ID_FROM_POOL	(int)(~(0))
@@ -44,8 +43,8 @@ struct dprc {
  * @name Resource request options
  */
 #define DPRC_RES_REQ_OPT_EXPLICIT		0x00000001
-/*!< Explicit resource id request - The requested objects/resources 
- * are explicit and sequential (in case of resources). 
+/*!< Explicit resource id request - The requested objects/resources
+ * are explicit and sequential (in case of resources).
  * The base ID is given at res_req at base_align field */
 #define DPRC_RES_REQ_OPT_ALIGNED		0x00000002
 /*!< Aligned resources request - Relevant only for resources
@@ -119,7 +118,7 @@ struct dprc {
  * this container is destroyed */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000011
 /*!< Irq event - Indicates that on one of the container's opened object is
-destroyed */
+ destroyed */
 /* @} */
 
 /**
@@ -128,22 +127,26 @@ destroyed */
  */
 struct dprc_res_req {
 	char type[16];
-	/*!< Resource/object type: Represent as a NULL terminated string.
-	 * This string may received by using dprc_get_pool() to get resource type
-	 * and dprc_get_obj() to get object type.
-	 * Note: it is not possible to assign/unassign DP_OBJ_DPRC objects */
+	/*!<
+	 * Resource/object type: Represent as a NULL terminated string.
+	 * This string may received by using dprc_get_pool() to get resource
+	 * type and dprc_get_obj() to get object type.
+	 * Note: it is not possible to assign/unassign DP_OBJ_DPRC objects
+	 */
 	uint32_t num;
 	/*!< Number of resources */
 	uint32_t options;
 	/*!< Request options: combination of DPRC_RES_REQ_OPT_ options */
 	int id_base_align;
-/*!<
- * In case of explicit assignment (DPRC_RES_REQ_OPT_EXPLICIT is set at option),
- * this field represents the required base ID for resource allocation;
- * In case of aligned assignment (DPRC_RES_REQ_OPT_ALIGNED is set at option),
- * this field indicates the required alignment for the resource ID(s) -
- * use 0 if there is no alignment or explicit id requirements.
- */
+	/*!<
+	 * In case of explicit assignment (DPRC_RES_REQ_OPT_EXPLICIT is set at
+	 * option), this field represents the required base ID for resource
+	 * allocation;
+	 * In case of aligned assignment (DPRC_RES_REQ_OPT_ALIGNED is set at
+	 * option), this field indicates the required alignment for the
+	 * resource ID(s) - use 0 if there is no alignment or explicit id
+	 * requirements.
+	 */
 };
 
 /**
@@ -165,7 +168,7 @@ struct dprc_obj_desc {
 	uint8_t region_count;
 	/*!< Number of mappable regions supported by the object */
 	uint32_t state;
-/*!< Object state: combination of DPRC_OBJ_STATE_ states */
+	/*!< Object state: combination of DPRC_OBJ_STATE_ states */
 };
 
 /**
@@ -175,7 +178,7 @@ struct dprc_region_desc {
 	uint64_t base_paddr;
 	/*!< Region base physical address */
 	uint32_t size;
-/*!< Region size (in bytes) */
+	/*!< Region size (in bytes) */
 };
 
 /**
@@ -188,7 +191,7 @@ enum dprc_iter_status {
 	DPRC_ITER_STATUS_MORE = 1,
 	/*!< Indicates more/next iteration is needed */
 	DPRC_ITER_STATUS_LAST = 2
-/*!< Indicates last iteration */
+	/*!< Indicates last iteration */
 };
 
 /**
@@ -201,10 +204,12 @@ struct dprc_res_ids_range_desc {
 	int last_id;
 	/*!< Last resource ID of this range */
 	enum dprc_iter_status iter_status;
-/*!< Iteration status - should be set to DPRC_ITER_STATUS_FIRST at
- * first iteration; while the returned marker is DPRC_ITER_STATUS_MORE,
- * additional iterations are needed, until the returned marker is
- * DPRC_ITER_STATUS_LAST. */
+	/*!<
+	 * Iteration status - should be set to DPRC_ITER_STATUS_FIRST at
+	 * first iteration; while the returned marker is DPRC_ITER_STATUS_MORE,
+	 * additional iterations are needed, until the returned marker is
+	 * DPRC_ITER_STATUS_LAST
+	 */
 };
 
 /**
@@ -218,11 +223,12 @@ struct dprc_attributes {
 	int portal_id;
 	/*!< Container's portal ID */
 	uint64_t options;
-/*!< Container's options as set at container's creation */
+	/*!< Container's options as set at container's creation */
 	struct {
 		uint32_t major; /*!< DPRC major version*/
 		uint32_t minor; /*!< DPRC minor version*/
-	} version; /*!< DPRC version */
+	} version;
+	/*!< DPRC version */
 };
 
 /**
@@ -234,9 +240,9 @@ struct dprc_cfg {
 	 * will be allocated by the DPRC */
 	int portal_id;
 	/*!< portal id; if set to DPRC_GET_PORTAL_ID_FROM_POOL, a free portal id
-		 * will be allocated by the DPRC */
+	 * will be allocated by the DPRC */
 	uint64_t options;
-/*!< Combination of DPRC_CFG_OPT_ options */
+	/*!< Combination of DPRC_CFG_OPT_ options */
 };
 
 /**
@@ -301,8 +307,8 @@ int dprc_close(struct dprc *dprc);
  */
 int dprc_create_container(struct dprc *dprc,
 			  struct dprc_cfg *cfg,
-			  int *child_container_id,
-			  uint64_t *child_portal_paddr);
+	int *child_container_id,
+	uint64_t *child_portal_paddr);
 
 /**
  * @brief	Destroys a child container.
@@ -327,7 +333,7 @@ int dprc_create_container(struct dprc *dprc,
 int dprc_destroy_container(struct dprc *dprc, int child_container_id);
 
 /**
- * @brief	Sets allocation policy for a specific resource/object type in a 
+ * @brief	Sets allocation policy for a specific resource/object type in a
  * child container
  *
  * Allocation policy determines whether or not a container may allocate
@@ -354,12 +360,12 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  */
 int dprc_set_res_quota(struct dprc *dprc,
 		       int child_container_id,
-		       char *type,
-		       uint16_t quota);
+	char *type,
+	uint16_t quota);
 
 /**
- * @brief	Gets the allocation policy of a specific resource/object type in a 
- * child container
+ * @brief	Gets the allocation policy of a specific resource/object type
+ *		in a child container
  *
  * @param[in]	dprc			DPRC descriptor object
  * @param[in]	child_container_id	ID of the child container
@@ -375,8 +381,8 @@ int dprc_set_res_quota(struct dprc *dprc,
  */
 int dprc_get_res_quota(struct dprc *dprc,
 		       int child_container_id,
-		       char *type,
-		       uint16_t *quota);
+	char *type,
+	uint16_t *quota);
 
 /**
  * @brief	Resets a child container.
@@ -421,7 +427,7 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id);
  *
  * A container may use this function with its own ID in order to change a
  * object state to plugged or unplugged.
- * 
+ *
  * If IRQ information has been set in the child DPRC, it will signal an
  * interrupt following every change in its object assignment.
  *
@@ -434,7 +440,7 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id);
  */
 int dprc_assign(struct dprc *dprc,
 		int container_id,
-		struct dprc_res_req *res_req);
+	struct dprc_res_req *res_req);
 
 /**
  * @brief	Un-assigns objects or resources from a child container
@@ -453,7 +459,7 @@ int dprc_assign(struct dprc *dprc,
  */
 int dprc_unassign(struct dprc *dprc,
 		  int child_container_id,
-		  struct dprc_res_req *res_req);
+	struct dprc_res_req *res_req);
 
 /**
  * @brief	Get the number of dprc's pools
@@ -466,17 +472,17 @@ int dprc_unassign(struct dprc *dprc,
 int dprc_get_pool_count(struct dprc *dprc, int *pool_count);
 
 /**
- * @brief	Get the type (string) of a certain dprc's pool 
+ * @brief	Get the type (string) of a certain dprc's pool
  *
  * The pool types retrieved one by one by incrementing
  * pool_index up to (not including) the value of pool_count returned
  * from dprc_get_pool_count(). dprc_get_pool_count() must
  * be called prior to dprc_get_pool().
- * 
+ *
  * @param[in]	 dprc		DPRC descriptor object
  * @param[in]    pool_index	Index of the pool to be queried (< pool_count)
  * @param[out]   type		The type of the pool.
- * 
+ *
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dprc_get_pool(struct dprc *dprc, int pool_index, char *type);
@@ -506,7 +512,7 @@ int dprc_get_obj_count(struct dprc *dprc, int *obj_count);
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_obj(struct dprc *dprc,
-	int obj_index,
+		 int obj_index,
 	struct dprc_obj_desc *obj_desc);
 
 /**
@@ -532,8 +538,8 @@ int dprc_get_res_count(struct dprc *dprc, char *type, int *res_count);
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_ids(struct dprc *dprc,
-		     	     char *type,
-		     	     struct dprc_res_ids_range_desc *range_desc);
+		     char *type,
+	struct dprc_res_ids_range_desc *range_desc);
 
 /**
  * @brief	Obtains the physical address of MC portals
@@ -544,7 +550,9 @@ int dprc_get_res_ids(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_portal_paddr(struct dprc *dprc, int portal_id, uint64_t *portal_addr);
+int dprc_get_portal_paddr(struct dprc *dprc,
+			  int portal_id,
+	uint64_t *portal_addr);
 
 /**
  * @brief	Obtains container attributes
@@ -570,9 +578,9 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes);
  */
 int dprc_get_obj_region(struct dprc *dprc,
 			char *obj_type,
-			int obj_id,
-			uint8_t region_index,
-			struct dprc_region_desc *region_desc);
+	int obj_id,
+	uint8_t region_index,
+	struct dprc_region_desc *region_desc);
 
 /**
  * @brief	Sets IRQ information for the DPRC to trigger an interrupt.
@@ -585,17 +593,15 @@ int dprc_get_obj_region(struct dprc *dprc,
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  *				signal a message-based interrupt
  * @param[in]	irq_val		Value to write into irq_paddr address
- * @param[in]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
+ * @param[in]	user_irq_id	A user defined number associated with this IRQ;
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_set_irq(struct dprc *dprc,
 		 uint8_t irq_index,
-		 uint64_t irq_paddr,
-		 uint32_t irq_val,
-		 int irq_virt_id);
+	uint64_t irq_paddr,
+	uint32_t irq_val,
+	int user_irq_id);
 
 /**
  * @brief	Gets IRQ information from the DPRC.
@@ -611,18 +617,16 @@ int dprc_set_irq(struct dprc *dprc,
  *				to signal the message-based interrupt
  * @param[out]	irq_val		Value to write in order to signal the
  *				message-based interrupt
- * @param[out]	irq_virt_id		irq virtual id - used in case that 
- * 				the user that set the irq is not the one who get the interrupt.
- * 				To support virtualized systems. 
- *				
+ * @param[out]	user_irq_id	A user defined number associated with this IRQ;
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_irq(struct dprc *dprc,
 		 uint8_t irq_index,
-		 int *type,
-		 uint64_t *irq_paddr,
-		 uint32_t *irq_val,
-		 int *irq_virt_id);
+	int *type,
+	uint64_t *irq_paddr,
+	uint32_t *irq_val,
+	int *user_irq_id);
 
 /**
  * @brief	Sets overall interrupt state.
@@ -640,7 +644,7 @@ int dprc_get_irq(struct dprc *dprc,
  */
 int dprc_set_irq_enable(struct dprc *dprc,
 			uint8_t irq_index,
-			uint8_t enable_state);
+	uint8_t enable_state);
 
 /**
  * @brief	Gets overall interrupt state
@@ -653,7 +657,7 @@ int dprc_set_irq_enable(struct dprc *dprc,
  */
 int dprc_get_irq_enable(struct dprc *dprc,
 			uint8_t irq_index,
-			uint8_t *enable_state);
+	uint8_t *enable_state);
 
 /**
  * @brief	Sets interrupt mask.
@@ -670,9 +674,7 @@ int dprc_get_irq_enable(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_set_irq_mask(struct dprc *dprc,
-		      uint8_t irq_index,
-		      uint32_t mask);
+int dprc_set_irq_mask(struct dprc *dprc, uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -686,24 +688,20 @@ int dprc_set_irq_mask(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_irq_mask(struct dprc *dprc,
-		      uint8_t irq_index,
-		      uint32_t *mask);
+int dprc_get_irq_mask(struct dprc *dprc, uint8_t irq_index, uint32_t *mask);
 
- /**
-  * @brief	Gets the current status of any pending interrupts.
-  *
-  * @param[in]	 dprc		DPRC descriptor object
-  * @param[in]   irq_index	The interrupt index to configure
-  * @param[out]	 status		Interrupts status - one bit per cause
-  *					0 = no interrupt pending
-  *					1 = interrupt pending
-  *
-  * @returns	'0' on Success; Error code otherwise.
-  * */
-int dprc_get_irq_status(struct dprc *dprc,
-			 uint8_t irq_index,
-			 uint32_t *status);
+/**
+ * @brief	Gets the current status of any pending interrupts.
+ *
+ * @param[in]	 dprc		DPRC descriptor object
+ * @param[in]   irq_index	The interrupt index to configure
+ * @param[out]	 status		Interrupts status - one bit per cause
+ *					0 = no interrupt pending
+ *					1 = interrupt pending
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ * */
+int dprc_get_irq_status(struct dprc *dprc, uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
@@ -717,8 +715,8 @@ int dprc_get_irq_status(struct dprc *dprc,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dprc_clear_irq_status(struct dprc *dprc,
-			    uint8_t irq_index,
-			    uint32_t status);
+			  uint8_t irq_index,
+	uint32_t status);
 
 /**
  * @brief	Connects two endpoints to create a network link between them
@@ -730,8 +728,8 @@ int dprc_clear_irq_status(struct dprc *dprc,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dprc_connect(struct dprc *dprc,
-			 struct dprc_endpoint *endpoint1,
-			 struct dprc_endpoint *endpoint2);
+		 struct dprc_endpoint *endpoint1,
+	struct dprc_endpoint *endpoint2);
 
 /**
  * @brief	Disconnects one endpoint to remove its network link
