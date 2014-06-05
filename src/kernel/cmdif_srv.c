@@ -15,7 +15,7 @@
 #include "errors.h"
 
 #include "cmdif_srv.h"
-#include "fsl_cmdif_flib.h"
+#include "fsl_cmdif_flib_s.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \

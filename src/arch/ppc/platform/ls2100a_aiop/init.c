@@ -64,7 +64,7 @@ void core_ready_for_tasks(void);
 
 #include "general.h"
 /** Global task params */
-__TASK struct aiop_default_task_params default_task_params;
+extern __TASK struct aiop_default_task_params default_task_params;
 
 
 void fill_platform_parameters(struct platform_param *platform_param)
