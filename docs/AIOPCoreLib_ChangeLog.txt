@@ -1,3 +1,5 @@
+Table SRs: Changed MFLU key descriptors structures (also for lookup) to match the new HW form.
+
 SL Alpha v0.4  Change Log
 ===============================
 IPR: out of order functionality.

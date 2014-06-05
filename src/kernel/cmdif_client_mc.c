@@ -62,6 +62,7 @@ static int init_dpci(void)
 {
 	struct dpci_cfg dpci_cfg;
 	struct dpci_dest_cfg dest_cfg;
+	struct dpci_mc_amq amq;
 	int err = 0;
 	struct dpci_mc_internal_info info;
 	fsl_handle_t resman = NULL;
@@ -70,6 +71,7 @@ static int init_dpci(void)
 	if (regs.dpci == NULL) {
 		memset(&regs.dpci_attr, 0, sizeof(struct dpci_attr));
 		memset(&dpci_cfg, 0, sizeof(struct dpci_cfg));
+		memset(&amq, 0, sizeof(struct dpci_mc_amq));
 
 		resman = (struct resman *)sys_get_unique_handle(FSL_OS_MOD_RESMAN);		
 		if (resman == NULL)
@@ -97,6 +99,9 @@ static int init_dpci(void)
 		err |= dpci_set_rx_queue(regs.dpci, 0, &dest_cfg,0xAAAAAAAABBBBBBBB);
 		dest_cfg.priority = 2;
 		err |= dpci_set_rx_queue(regs.dpci, 1, &dest_cfg,0xABCDABCDABCDABCD);
+		amq.bdi = 1;
+		err |= dpci_set_amq(regs.dpci, &amq);
+
 		err |= dpci_enable(regs.dpci);
 		err |= dpci_get_attributes(regs.dpci, &regs.dpci_attr);
 	}

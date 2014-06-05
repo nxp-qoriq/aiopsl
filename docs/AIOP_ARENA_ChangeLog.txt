@@ -1,3 +1,5 @@
+- fsl_cmdif_server.h:          API change in ctrl_cb_t, data is physical address.
+
 ** AIOP ARENA SL Alpha v0.4.1_update01 **
 - Updated API to synch with MC FW v0.4
 ** AIOP ARENA SL Alpha v0.4.1 **

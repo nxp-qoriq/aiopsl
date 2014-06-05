@@ -9,6 +9,7 @@
 #include "general.h"
 #include "dbg.h"
 #include "fsl_cmdif_server.h"
+#include "dplib/fsl_cdma.h"
 
 int app_init(void);
 void app_free(void);
@@ -89,13 +90,16 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	UNUSED(dev);
 	UNUSED(size);
 	UNUSED(data);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data = 0x%x\n", cmd, 
-	             size, (uint32_t)data);
+	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n", 
+	             cmd, 
+	             size, 
+	             (uint32_t)((data & 0xFF00000000) >> 32), 
+	             (uint32_t)(data & 0xFFFFFFFF));
 	return 0;
 }
 
