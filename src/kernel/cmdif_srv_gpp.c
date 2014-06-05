@@ -2,7 +2,6 @@
 #include "common/gen.h"
 #include "common/errors.h"
 #include "common/fsl_string.h"
-#include "cmdif_srv.h"
 #include "general.h"
 //#include "fsl_ldpaa_aiop.h"
 #include "io.h"
@@ -14,7 +13,9 @@
 //#include "fsl_cdma.h"
 //#include "aiop_common.h"
 #include "errors.h"
-#include "fsl_cmdif_flib.h"
+#include "cmdif_srv.h"
+#include "fsl_cmdif_flib_s.h"
+#include "fsl_cmdif_client.h"
 
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
@@ -161,99 +162,70 @@ static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 	return 0;
 }
 
-void cmdif_srv_cb(struct cmdif_fd *cfd, int pr, void *send_dev)
+int cmdif_srv_cb(struct cmdif_fd *cfd, int pr, void *send_dev)
 {
-	uint16_t cmd_id  = cmdif_srv_cmd_id(cfd);
-	uint16_t auth_id = cmdif_srv_auth_id(cfd);
-	int      err     = 0;
+	int    err = 0;
 	struct cmdif_fd  cfd_out;
 
 	if (srv == NULL)
-		return;
-
-	if (cmdif_srv_is_open_cmd(cmd_id)) {
-
-		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
-			void    *dev = NULL;
-			uint8_t m_id = 0;
-
-			err = cmdif_srv_mod_id_find(srv, cfd, &m_id);
-
-			if (err) {
-				return; /* TODO ??? */
-			} else {
-				err = cmdif_srv_open_cb(srv, auth_id, cmd_id,
-							inst_id, m_id, &dev);
-				if (!err) {
-					/* Place spinlocks here
-					 * cmdif_srv_auth_id_alloc is
-					 * not protected */
-					cmdif_srv_open_done(srv, err, dev, cfd);
-					/* Place spinlocks here
-					 * cmdif_srv_auth_id_alloc is
-					 * not protected */
-				}
-			}
-		} else {
-			/* don't bother to send response
-			 * in order not to overload response queue,
-			 * it might be intentional attack
-			 * */
-		}
-
-		return; /* No FD for response */
-
-	} else if (cmdif_srv_is_close_cmd(cmd_id)) {
-
-		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
-			/* Don't reorder this sequence !!*/
-			err = cmdif_srv_close_cb(srv, auth_id, cmd_id, cfd);
-
-			if (!err) {
-				/* Free instance entry only if we had no error
-				 * otherwise it will be impossible to retry to
-				 * close the device */
-				
-				/* Place spinlocks here
-				 * cmdif_srv_auth_id_alloc is
-				 * not protected */
-				cmdif_srv_close_done(srv, err, auth_id, cfd);
-				/* Place spinlocks here
-				 * cmdif_srv_auth_id_alloc is
-				 * not protected */
+		return -ENODEV;
 
 
-			}
-		} else {
-			/* don't bother to send response
-			 * in order not to overload response queue,
-			 * it might be intentional attack
-			 * */
-		}
-		return; /* No FD for response */
+	/* Call ctrl cb; if no perm cfd_out will be invalid */
+	err = cmdif_srv_cmd(srv, auth_id, cmd_id, cfd, &cfd_out);
+	/* don't bother to send response
+	 * in order not to overload response queue,
+	 * it might be intentional attack
+	 * */
+	if (err == -EPERM)
+		return err;
+	
+	err = send_fd(&cfd_out, pr, send_dev);
+	
+	return err;
+}
 
-	} else {
-		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
+int cmdif_session_open(struct cmdif_desc *cidesc,
+                       const char *m_name,
+                       uint8_t inst_id,
+                       uint8_t *v_data,
+                       uint64_t p_data,
+                       uint32_t size,
+                       uint16_t *auth_id)
+{
+	int      err = 0;
+	
+	/*Call open_cb , Store dev */
+	err = cmdif_srv_open(srv, m_name, inst_id, v_data, p_data, 
+	                     size, auth_id);
+	
+	/*Send information to AIOP */
+	err = cmdif_send(cidesc, CMD_ID_NOTIFY_OPEN, size, CMDIF_PRI_LOW,
+	                 p_data);
+	
+	/*Check that AIOP received it */
+	err = cmdif_srv_open_done(srv, *auth_id);
+	
+	return err;
+	
+}
 
-			err = cmdif_srv_ctrl_cb(srv, auth_id, cmd_id, cfd);
-
-			if (cmdif_srv_is_sync_cmd(cmd_id)) {
-				cmdif_srv_sync_done(srv, err, auth_id);
-			}
-		} else {
-			/* don't bother to send response
-			 * in order not to overload response queue,
-			 * it might be intentional attack
-			 * */
-		}
-	}
-
-	err = cmdif_srv_resp_create(srv, err, cfd, &cfd_out);
-	/* err maybe indication that there is no need to send fd,
-	 * for example if no response is set */
-	if (!err) {
-		err = send_fd(&cfd_out, pr, send_dev);
-	}
-
-	return;
+int cmdif_session_close(struct cmdif_desc *cidesc, 
+                        uint16_t auth_id)
+{
+	int      err = 0;
+	uint16_t auth_id = 0;
+	
+	/*Call close_cb , place dpci_id, auth_id inside p_data */
+	err = cmdif_srv_close(srv, auth_id, &p_data, &v_data, &size);
+	
+	/*Send information to AIOP */
+	err = cmdif_send(cidesc, CMD_ID_NOTIFY_CLOSE, size, CMDIF_PRI_LOW, 
+	                 p_data);
+	
+	/*Check that AIOP received it */
+	err = cmdif_srv_close_done(v_data);
+	
+	return err;
+	
 }
