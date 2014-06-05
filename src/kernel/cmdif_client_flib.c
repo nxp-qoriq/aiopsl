@@ -1,4 +1,4 @@
-#include <fsl_cmdif_flib.h>
+#include <fsl_cmdif_flib_c.h>
 #include <cmdif_client.h>
 #include <errno.h>
 #include <types.h>
@@ -62,12 +62,6 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	fd->u_addr.d_addr      = p_addr;
 	fd->d_size             = sizeof(union cmdif_data);
 
-	/* acquire lock as needed
-	 * acquire lock before modifying any user data in order to avoid
-	 * garbage data in case of race condition */
-	if (cidesc->lock_cb)
-		cidesc->lock_cb(cidesc->lock);
-
 	dev = (struct cmdif_dev *)v_data;
 	dev->async_cb  = async_cb;
 	dev->async_ctx = async_ctx;
@@ -106,30 +100,17 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
 	
-	if ((cidesc == NULL) || (cidesc->dev == NULL)) {
-		/* prevent deadlocks */
-		if (cidesc->unlock_cb)
-			cidesc->unlock_cb(cidesc->lock);
-
+	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
-	}
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	if (dev->sync_done == NULL) {		
-		/* prevent deadlocks */
-		if (cidesc->unlock_cb)
-			cidesc->unlock_cb(cidesc->lock);
-		
+	if (dev->sync_done == NULL)			
 		return -EINVAL;
-	}
 
 	err = ((union  cmdif_data *)(dev->sync_done))->resp.err;
 	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
 	
-	/* release lock as needed */
-	if (cidesc->unlock_cb)
-		cidesc->unlock_cb(cidesc->lock);
 
 	return err;
 }
@@ -160,16 +141,12 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->u_addr.d_addr = NULL;
-	fd->d_size = 0;
+	fd->u_addr.d_addr       = NULL;
+	fd->d_size              = 0;
 	fd->u_flc.flc           = 0;
 	fd->u_flc.close.cmid    = CMD_ID_CLOSE;
 	fd->u_flc.close.auth_id = dev->auth_id;
 	fd->u_flc.open.epid     = CMDIF_EPID;
-
-	/* acquire lock as needed */
-	if (cidesc->lock_cb)
-		cidesc->lock_cb(cidesc->lock);
 
 	return 0;
 }
@@ -193,19 +170,14 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->u_addr.d_addr = data;
-	fd->d_size = size;
-	fd->u_flc.flc = 0;
+	fd->u_addr.d_addr     = data;
+	fd->d_size            = size;
+	fd->u_flc.flc         = 0;
 	fd->u_flc.cmd.auth_id = dev->auth_id;
-	fd->u_flc.cmd.cmid = cmd_id;
-	fd->u_flc.cmd.epid = CMDIF_EPID;
+	fd->u_flc.cmd.cmid    = cmd_id;
+	fd->u_flc.cmd.epid  = CMDIF_EPID;
 	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
 	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
-
-	/* acquire lock as needed */
-	if ((cidesc->lock_cb) &&
-		(!(cmd_id & (CMDIF_ASYNC_CMD | CMDIF_NORESP_CMD))))
-		cidesc->lock_cb(cidesc->lock);
 
 	return 0;
 }

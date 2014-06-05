@@ -2,7 +2,7 @@
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
 #include "common/fsl_cmdif_client.h"
-#include "common/fsl_cmdif_flib.h"
+#include "common/fsl_cmdif_flib_c.h"
 #include "fsl_cdma.h"
 #include "io.h"
 #include "cmdif_client.h"
