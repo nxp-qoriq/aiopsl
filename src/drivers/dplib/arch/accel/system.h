@@ -10,7 +10,6 @@
 #define __SYSTEM_H_
 
 #include "general.h"
-#include "dplib/fsl_cdma.h"
 
 #define __PROFILE_SRAM __declspec(section ".psram_data")
 #pragma section RW ".psram_data" ".psram_bss"
