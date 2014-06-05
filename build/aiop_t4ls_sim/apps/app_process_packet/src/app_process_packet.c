@@ -117,13 +117,6 @@ int app_init(void)
 	
 	fsl_os_print("Running app_init()\n");
 
-	cdma_write(0x6000482000, &ni, 4);
-	ni =0xbbbbbbb;
-	cdma_write(0x6000482000, &ni, 4);
-	ni = 0;
-	cdma_read(&ni, 0x6000482000, 4);
-	fsl_os_print("ni = 0x%x\n", ni);
-
 #ifdef AIOP_STANDALONE
 	/* This is temporal WA for stand alone demo only */
 	epid_setup();
