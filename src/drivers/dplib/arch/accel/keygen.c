@@ -15,13 +15,26 @@
 
 extern __SHRAM uint64_t ext_keyid_pool_address;
 
+void keygen_handle_fatal_errors(int32_t status){
+	switch(status) {
+	case KEYGEN_HW_STATUS_KSE:
+		handle_fatal_error((char *)KEYGEN_HW_STATUS_KSE); /*TODO Fatal error*/
+		break;
+	case KEYGEN_HW_STATUS_EOFH:
+		handle_fatal_error((char *)KEYGEN_HW_STATUS_EOFH); /*TODO Fatal error*/ 
+		break;
+	default:
+		handle_fatal_error((char *)status); /*TODO Fatal error*/ 
+		break;
+	}
+}
+
+
 void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
 
 	/* clear the KCR array */
 	cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
-
-	/* TODO status??? */
 
 	/* Initialize KCR length to 1 */
 	kb->kcr_length = 1;
@@ -35,7 +48,7 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 	uint8_t curr_byte = kb->kcr_length;
 
 	if ((curr_byte + KEYGEN_KCR_CONST_FEC_SIZE) > KEYGEN_KCR_MAX_KCR_SIZE)
-		return KEYGEN_KCR_SIZE_ERR;
+		return -EINVAL;
 
 	/* Update kcr_builder struct */
 	/* User-defined FECID, no mask extension */
@@ -48,7 +61,7 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
 	kb->kcr_length += KEYGEN_KCR_CONST_FEC_SIZE;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+	return 0;
 }
 
 
@@ -87,7 +100,7 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 				(mask->num_of_masks == 3) ? 5 : 7);
 		fec_bytes_num = fec_bytes_num + mask_bytes;
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 
 		fecid = fecid | KEYGEN_KCR_MASK_EXT;
 
@@ -119,7 +132,7 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 		}
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 	}
 
 	/* Update kcr_builder struct */
@@ -130,7 +143,7 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
 	kb->kcr_length += KEYGEN_KCR_LOOKUP_RES_FEC_SIZE + mask_bytes;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+	return 0;
 }
 
 
@@ -154,7 +167,7 @@ int32_t keygen_kcr_builder_add_protocol_specific_field(enum
 				(mask->num_of_masks == 3) ? 5 : 7);
 		fec_bytes_num = fec_bytes_num + mask_bytes;
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 
 		fecid = fecid | KEYGEN_KCR_MASK_EXT;
 
@@ -186,14 +199,14 @@ int32_t keygen_kcr_builder_add_protocol_specific_field(enum
 		}
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 	}
 	/* Update kcr_builder struct */
 	kb->kcr[curr_byte] = fecid;
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
 	kb->kcr_length += fec_bytes_num;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+	return 0;
 }
 
 
@@ -229,7 +242,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 				(mask->num_of_masks == 3) ? 5 : 7);
 		fec_bytes_num = fec_bytes_num + mask_bytes;
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 
 		fecid = fecid | KEYGEN_KCR_MASK_EXT;
 
@@ -261,7 +274,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 		}
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 	}
 
 	/* Update kcr_builder struct */
@@ -272,7 +285,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
 	kb->kcr_length += fec_bytes_num;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+	return 0;
 }
 
 
@@ -426,7 +439,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 				(mask->num_of_masks == 3) ? 5 : 7);
 		fec_bytes_num = fec_bytes_num + mask_bytes;
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 
 		fecid = fecid | KEYGEN_KCR_MASK_EXT;
 
@@ -458,7 +471,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 		}
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 	}
 
 	/* Update kcr_builder struct */
@@ -469,7 +482,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
 	kb->kcr_length += fec_bytes_num;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+	return 0;
 }
 
 int32_t keygen_kcr_builder_add_lookup_result_field_fec(
@@ -525,7 +538,7 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(
 				(mask->num_of_masks == 3) ? 5 : 7);
 		fec_bytes_num = fec_bytes_num + mask_bytes;
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 
 		fecid = fecid | KEYGEN_KCR_MASK_EXT;
 
@@ -557,7 +570,7 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(
 		}
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 	}
 
 	/* Update kcr_builder struct */
@@ -568,7 +581,7 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(
 	kb->kcr[KEYGEN_KCR_NFEC] += 1;
 	kb->kcr_length += 4 + mask_bytes;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
+	return 0;
 }
 
 
@@ -582,7 +595,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 	if (mask) {
 		fec_bytes_num = fec_bytes_num + 2;
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 
 		kb->kcr[curr_byte] = (KEYGEN_KCR_VF_FECID << 1) |
 				     KEYGEN_KCR_MASK_EXT;
@@ -591,7 +604,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 		kb->kcr[curr_byte+3] = mask;
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
-			return KEYGEN_KCR_SIZE_ERR;
+			return -EINVAL;
 
 		kb->kcr[curr_byte] = KEYGEN_KCR_VF_FECID << 1;
 		kb->kcr[curr_byte+1] = 0x0;
@@ -603,8 +616,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 	kb->kcr[0] += 1;
 	kb->kcr_length += fec_bytes_num;
 
-	return KEYGEN_KCR_SUCCESSFUL_OPERATION;
-
+	return 0;
 }
 
 
@@ -617,7 +629,7 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 
 	status = get_id(ext_keyid_pool_address, keyid);
 
-	if (status != 0)		/* TODO check status ??? */
+	if (status != 0)
 		return status;
 
 	/* Prepare HW context for TLU accelerator call */
@@ -629,7 +641,7 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 	__e_hwaccel(acc_id);
 
 	/* Return status */
-	return KEYGEN_STATUS_SUCCESS;
+	return 0;
 }
 
 
@@ -666,7 +678,7 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 	__e_hwaccel(acc_id);
 
 	status = release_id(keyid, ext_keyid_pool_address);
-	/*TODO check status ??? */
+
 	return status;
 }
 
@@ -691,6 +703,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     void *key,
 		     uint8_t *key_size)
 {
+	int32_t status;
 	struct keygen_input_message_params input_struct
 					__attribute__((aligned(16)));
 	uint32_t arg1;
@@ -717,12 +730,19 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 	*key_size = *(((uint8_t *)HWC_ACC_OUT_ADDRESS) + 5);
 
 	/* Return status */
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == KEYGEN_HW_STATUS_SUCCESS)
+		return 0;
+	
+	keygen_handle_fatal_errors(status);
+	return (-1);
 }
 
 
 int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 {
+
+	int32_t status;
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_HASH_GEN_KEY_MTYPE, ((uint32_t)key) << 16,
@@ -734,6 +754,11 @@ int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 	*hash = *((uint32_t *)HWC_ACC_OUT_ADDRESS2);
 
 	/* Return status */
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == KEYGEN_HW_STATUS_SUCCESS)
+		return 0;
+
+	keygen_handle_fatal_errors(status);
+	return (-1);
 }
 
