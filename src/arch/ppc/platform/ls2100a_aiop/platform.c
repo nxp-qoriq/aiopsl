@@ -389,8 +389,6 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 	    return -EINVAL;
     }
 
-    //TODO init HID0/1 registers !!!
-
     /*------------------------------------------------------*/
     /* Initialize PPC interrupts vector                     */
     /*------------------------------------------------------*/
