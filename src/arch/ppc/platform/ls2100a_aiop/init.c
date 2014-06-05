@@ -147,6 +147,15 @@ void core_ready_for_tasks(void)
     booke_set_spr_DAC2(0x800);
 #endif
 
+    //TODO not tested !!
+    //TODO what about disabling ws ??
+    if(sys_is_master_core()) {
+	uint32_t val;
+	val = ioread32(&aiop_regs->ws_regs.cfg);
+	val |= 3; /* enable all */
+	iowrite32(val, &aiop_regs->ws_regs.cfg);
+    }
+    
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
