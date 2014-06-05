@@ -12,6 +12,7 @@
 #include "io.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
+#include "common/aiop_common.h"
 
 __SHRAM uint8_t abcr_lock = 0;
 
@@ -116,7 +117,9 @@ void core_ready_for_tasks(void)
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
-    void* abcr = UINT_TO_PTR(tmp_reg + 0x98);
+    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)tmp_reg;
+	
+    uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
 
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
@@ -124,7 +127,7 @@ void core_ready_for_tasks(void)
 #ifndef SINGLE_CORE_WA
 
     if(sys_is_master_core()) {
-	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
+	uint32_t *abrr = &aiop_regs->cmgw_regs.abrr;
 	uint32_t abrr_val = ioread32(abrr) & \
 		(~((uint32_t)(1 << core_get_id())));
 	while(ioread32(abcr) != abrr_val) {asm{nop}}

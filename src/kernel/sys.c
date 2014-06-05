@@ -234,10 +234,6 @@ static int global_sys_init(void)
 	err = platform_init(&(platform_param), &(sys.platform_ops));
 	if (err != 0) return err;
 	
-	sys.aiop_regs = (struct aiop_tile_regs *) \
-	               sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, \
-	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
-	
 	err = sys_add_handle(sys.platform_ops.h_platform,
 		FSL_OS_MOD_SOC, 1, 0);
 	if (err != 0) return err;
