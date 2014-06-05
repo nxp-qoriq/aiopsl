@@ -51,18 +51,22 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in runtime phase \n", err);
 	}
+	
+	if(random_test_flag == 0)
+	{
 
-	err = random_test();
+		err = random_test();
 
-	if (err) {
-		fsl_os_print("ERROR = %d: random_test failed in runtime phase \n", err);
-	}
-	else{
-		lock_spinlock(&rnd_lock);
-		l_rnd_ctr = rnd_ctr;
-		unlock_spinlock(&rnd_lock);
+		if (err) {
+			fsl_os_print("ERROR = %d: random_test failed in runtime phase \n", err);
+		}
+		else{
+			lock_spinlock(&rnd_lock);
+			l_rnd_ctr = rnd_ctr;
+			unlock_spinlock(&rnd_lock);
 
-		fsl_os_print("Number of cores passed checking tls area %d / %d \n",l_rnd_ctr, num_of_cores);
+			fsl_os_print("Number of cores passed checking tls area %d / %d \n",l_rnd_ctr, num_of_cores);
+		}
 	}
 
 	if(random_test_flag == 1) {

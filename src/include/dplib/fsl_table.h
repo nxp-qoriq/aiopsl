@@ -265,6 +265,8 @@
 #define TABLE_KEY_MFLU_SIZE			0x38
 	/** MFLU key mask field size in bytes */
 #define TABLE_KEY_MFLU_MASK_SIZE		0x38
+	/** MFLU priority field size in bytes */
+#define TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE	0x4
 	/** MFLU Key Descriptor Reserved1 field size in bytes */
 #define TABLE_KEY_MFLU_RESERVED1_SIZE		8
 
@@ -585,19 +587,19 @@ struct table_key_desc_lpm_ipv6 {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_key_desc_mflu {
-	/** Key */
-	uint8_t  key[TABLE_KEY_MFLU_SIZE];
+	/** MFLU Lookup Key & Priority
+	This should point on a memory location containing concatenation of the
+	following fields (by the same order):
+	 - Lookup Key - Size of this field must be within 4-56 byte.
+	 - Priority - Priority determines the selection between two rule that
+	match in the MFLU lookup. 0x00000000 is the highest priority. This
+	field size is 4 bytes. */
+	uint8_t  key[TABLE_KEY_MFLU_SIZE + TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE];
 
 	/** Reserved
 	Reserved for compliance with HW format.
 	User should not access this field. */
 	uint32_t reserved0;
-
-	/** Priority
-	Priority determines the selection between two rule that match in the
-	MFLU lookup.
-	0x00000000 is the highest priority.*/
-	uint32_t priority;
 
 	/** Key mask
 	Each byte in the mask must have contiguous 1's in the MSbits.
@@ -613,7 +615,7 @@ struct table_key_desc_mflu {
 	/** Reserved
 	Reserved for compliance with HW format.
 	User should not access this field. */
-	uint8_t  reserved[TABLE_KEY_MFLU_RESERVED1_SIZE];
+	uint8_t  reserved1[TABLE_KEY_MFLU_RESERVED1_SIZE];
 };
 #pragma pack(pop)
 
@@ -767,29 +769,6 @@ struct table_lookup_key_desc_lpm_ipv6 {
 
 
 /**************************************************************************//**
-@Description	MFLU Key Descriptor Structure
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct table_lookup_key_desc_mflu {
-	/** Lookup Key */
-	uint8_t  key[TABLE_KEY_MFLU_SIZE];
-
-	/** Reserved
-	Reserved for compliance with HW format.
-	User should not access this field. */
-	uint32_t reserved0;
-
-	/** Maximum Priority
-	defines the maximum priority for the lookup operation.
-	Rules with lower priority will not be matched. 0 is the lowest
-	priority, 0xFFFFFFFF is the highest priority.
-	For lookup of all priorities assign 0 to this field. */
-	uint32_t max_priority;
-};
-#pragma pack(pop)
-
-
-/**************************************************************************//**
 @Description	Table Lookup Key Descriptor
 *//***************************************************************************/
 union table_lookup_key_desc {
@@ -810,10 +789,17 @@ union table_lookup_key_desc {
 	\ref TABLE_KEY_LPM_IPV6_SIZE key size. */
 	struct table_lookup_key_desc_lpm_ipv6 *lpm_ipv6;
 
-	/** MFLU Key Descriptor
+	/** MFLU Lookup Key & Match Maximum Priority
+	This should point on a memory location containing concatenation of the
+	following fields (by the same order):
+	 - Lookup Key - Size of this field must be within 4-56 byte.
+	 - Maximum Priority - defines the maximum priority to be matched in the
+	lookup operation. Rules with lower priority will not be matched. 0 is
+	the lowest priority, 0xFFFFFFFF is the highest priority. For lookup of
+	all priorities assign 0 to this field. This field size is 4 bytes.
 	Should only be used with MFLU Hardware Table Accelerator and tables
 	of type \ref TABLE_ATTRIBUTE_TYPE_MFLU. */
-	struct table_lookup_key_desc_mflu     *mflu;
+	void                                  *mflu_key;
 };
 
 
@@ -846,6 +832,7 @@ struct table_create_params {
 	In a case of LPM table:
 	 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+	In a case of MFLU table, size should not include the priority field.
 
 	Please note that this value is not returned through
 	\ref table_get_params() function. */
@@ -1095,6 +1082,7 @@ int32_t table_delete(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 
 @Return
 		 - \ref TABLE_STATUS_SUCCESS - A rule with the same match
@@ -1136,6 +1124,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	old_res - The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned and its reference counter will be
@@ -1180,6 +1169,7 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	old_res - The result of the replaced rule. If null the replaced
 		rule's result will not be returned and its reference counter
 		will be decremented (if exists). If not null structure should
@@ -1220,6 +1210,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[out]	result - The result of the query. Structure should be allocated
 		by the caller to this function.
 @Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
@@ -1267,6 +1258,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	result - The result of the deleted rule. If null the deleted
 		rule's result will not be returned and its reference counter
 		will be decremented (if exists). If not null structure should
@@ -1315,6 +1307,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+		In a case of MFLU table, size should include the priority field.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
 		the table lookup result will be written. Must be aligned to 16B
 		boundary.
