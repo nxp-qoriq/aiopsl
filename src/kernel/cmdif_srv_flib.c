@@ -1,4 +1,4 @@
-#include <fsl_cmdif_flib.h>
+#include <fsl_cmdif_flib_s.h>
 #include <cmdif_srv.h>
 #include <errno.h>
 #include <types.h>

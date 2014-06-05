@@ -400,9 +400,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/fsl_cmdif_flib.h</name>
+			<name>aiop_sl/include/common/fsl_cmdif_flib_s.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_flib.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_flib_s.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_cmdif_server.h</name>
