@@ -389,10 +389,6 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 	    return -EINVAL;
     }
 
-    booke_disable_time_base();
-    booke_address_broadcast_enable();
-    booke_address_bus_streaming_enable();
-
     /*------------------------------------------------------*/
     /* Initialize PPC interrupts vector                     */
     /*------------------------------------------------------*/
