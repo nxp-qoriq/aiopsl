@@ -32,7 +32,8 @@
 
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
-	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) & CMDIF_ASYNC_CMD))
+	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) != CMD_ID_NOTIFY_CLOSE) && \
+		((CMD) != CMD_ID_NOTIFY_OPEN) && ((CMD) & CMDIF_ASYNC_CMD))
 /** Blocking commands don't need response FD */
 #define SYNC_CMD(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
@@ -372,7 +373,27 @@ __HOT_CODE void cmdif_srv_isr(void)
 	}
 #endif
 		
-	if (cmd_id & CMD_ID_OPEN) {
+	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
+		
+		/* Support for AIOP -> GPP */
+		if (IS_VALID_AUTH_ID(auth_id)) { 
+			sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+		} else {
+			fdma_store_default_frame_data(); /* Close FDMA */
+			PR_ERR_TERMINATE("Invalid authentication id\n");
+		}
+		
+	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
+		
+		/* Support for AIOP -> GPP */
+		if (IS_VALID_AUTH_ID(auth_id)) { 
+			sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+		} else {
+			fdma_store_default_frame_data(); /* Close FDMA */
+			PR_ERR_TERMINATE("Invalid authentication id\n");
+		}
+		
+	} else if (cmd_id & CMD_ID_OPEN) {
 		char     m_name[M_NAME_CHARS + 1];
 		int      m_id;
 		uint8_t  inst_id;

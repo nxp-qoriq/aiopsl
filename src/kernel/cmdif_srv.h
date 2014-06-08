@@ -18,6 +18,8 @@
 
 #define CMD_ID_OPEN           0x8000
 #define CMD_ID_CLOSE          0x4000
+#define CMD_ID_NOTIFY_OPEN    0xF000 /**< Internal for cmdif command */
+#define CMD_ID_NOTIFY_CLOSE   0xE000 /**< Internal for cmdif command */
 #define M_NUM_OF_INSTANCES    512
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
