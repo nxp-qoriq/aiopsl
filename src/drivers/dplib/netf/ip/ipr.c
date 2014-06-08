@@ -930,7 +930,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	l4_update = 0;
 	if (PARSER_IS_UDP_DEFAULT() && 
-		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) != 0)) {
+		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+3) != 0)) {
 		l4_update = 1;
 		fdma_calculate_default_frame_checksum(
 				ipv6hdr_offset,

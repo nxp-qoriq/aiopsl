@@ -118,6 +118,7 @@ void core_ready_for_tasks(void)
     struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)tmp_reg;
 	
     uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
+    uint32_t *abrr = &aiop_regs->cmgw_regs.abrr;
 
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
@@ -125,7 +126,6 @@ void core_ready_for_tasks(void)
 #ifndef SINGLE_CORE_WA
 
     if(sys_is_master_core()) {
-	uint32_t *abrr = &aiop_regs->cmgw_regs.abrr;
 	uint32_t abrr_val = ioread32(abrr) & \
 		(~((uint32_t)(1 << core_get_id())));
 	while(ioread32(abcr) != abrr_val) {asm{nop}}
@@ -139,12 +139,7 @@ void core_ready_for_tasks(void)
     unlock_spinlock(&abcr_lock);
 
 #ifndef SINGLE_CORE_WA
-
-    {
-	void* abrr = UINT_TO_PTR(tmp_reg + 0x90);
-	while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
-    }
-
+    while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
 #endif
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
