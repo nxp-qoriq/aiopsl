@@ -2,121 +2,24 @@
 #include "common/gen.h"
 #include "common/errors.h"
 #include "common/fsl_string.h"
-#include "cmdif_srv.h"
 #include "general.h"
-//#include "fsl_ldpaa_aiop.h"
 #include "io.h"
-//#include "fsl_fdma.h"
-//#include "sys.h"
 #include "fsl_malloc.h"
-#include "dbg.h"
-//#include "spinlock.h"
-//#include "fsl_cdma.h"
-//#include "aiop_common.h"
 #include "errors.h"
-#include "fsl_cmdif_flib.h"
+#include "cmdif_srv.h"
+#include "fsl_cmdif_flib_s.h"
+#include "fsl_cmdif_client.h"
 
-/** Blocking commands don't need response FD */
-#define SEND_RESP(CMD)	\
-	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) & CMDIF_ASYNC_CMD))
-/** Blocking commands don't need response FD */
-#define SYNC_CMD(CMD)	\
-	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
-
-#define OPEN_CB(M_ID, INST, DEV_ID) \
-	(srv->open_cb[M_ID](INST, &srv->inst_dev[DEV_ID]))
-
-#define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
-	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
-	CMD_ID, SIZE, DATA))
-
-#define CLOSE_CB(AUTH_ID) \
-	(srv->close_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID]))
-
-#define FREE_MODULE    '\0'
-#define TAKEN_INSTANCE (void *)0xFFFFFFFF
-#define FREE_INSTANCE  NULL
-
-#define SYNC_CMD_RESP_MAKE(ERR, ID)  (0x80000000 | ((ERR) << 16) | (ID))
-
-#define IS_VALID_AUTH_ID(ID) \
-	((srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
-		(srv->inst_dev[(ID)]))
-
-struct  cmdif_srv *srv;
-
-#if 0
-
-static uint16_t cmd_id_get()
-{
-	return 0;
-}
-
-static uint32_t cmd_size_get()
-{
-	return 0;
-}
-
-static uint8_t *cmd_data_get()
-{
-	return NULL; // TODO (uint8_t *)fsl_os_phys_to_virt(addr);
-}
-
-static void cmd_m_name_get(char *name)
-{
-	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
-
-	/* I expect that name will end by \0 if it has less than 8 chars */
-	if (name != NULL) {
-		name[0] = '\0';
-		if ((PRC_GET_SEGMENT_LENGTH() >= M_NAME_CHARS) &&
-			(addr != NULL)) {
-			strncpy(name, (const char *)addr, M_NAME_CHARS);
-		}
-		name[M_NAME_CHARS] = '\0';
-	}
-}
-
-static uint8_t cmd_inst_id_get()
-{
-	return 0;
-}
-
-static uint16_t cmd_auth_id_get()
-{
-	return 0;
-}
-
-static void srv_memory_free(struct  cmdif_srv *srv)
-{
-	if (srv->inst_dev)
-		fsl_os_xfree(srv->inst_dev);
-	if (srv->m_id)
-		fsl_os_xfree(srv->m_id);
-	if (srv->sync_done)
-		fsl_os_xfree(srv->sync_done);
-	if (srv->m_name)
-		fsl_os_xfree(srv->m_name);
-	if (srv->open_cb)
-		fsl_os_xfree(srv->open_cb);
-	if (srv->ctrl_cb)
-		fsl_os_xfree(srv->ctrl_cb);
-	if (srv->open_cb)
-		fsl_os_xfree(srv->open_cb);
-
-	fsl_os_xfree(srv);
-}
-#endif
+void *srv;
 
 static void *fast_malloc(int size)
 {
-	return fsl_os_xmalloc(size, MEM_PART_SH_RAM, 8);
+	return NULL;
 }
 
 static void *slow_malloc(int size)
 {
-	return fsl_os_xmalloc(size, MEM_PART_1ST_DDR_NON_CACHEABLE, 8);
+	return NULL;
 }
 
 static void srv_free(void *ptr)
@@ -161,99 +64,65 @@ static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 	return 0;
 }
 
-void cmdif_srv_cb(struct cmdif_fd *cfd, int pr, void *send_dev)
+int cmdif_srv_cb(struct cmdif_fd *cfd, int pr, void *send_dev)
 {
-	uint16_t cmd_id  = cmdif_srv_cmd_id(cfd);
-	uint16_t auth_id = cmdif_srv_auth_id(cfd);
-	int      err     = 0;
+	int    err = 0;
 	struct cmdif_fd  cfd_out;
 
 	if (srv == NULL)
-		return;
-
-	if (cmdif_srv_is_open_cmd(cmd_id)) {
-
-		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
-			void    *dev = NULL;
-			uint8_t m_id = 0;
-
-			err = cmdif_srv_mod_id_find(srv, cfd, &m_id);
-
-			if (err) {
-				return; /* TODO ??? */
-			} else {
-				err = cmdif_srv_open_cb(srv, auth_id, cmd_id,
-							inst_id, m_id, &dev);
-				if (!err) {
-					/* Place spinlocks here
-					 * cmdif_srv_auth_id_alloc is
-					 * not protected */
-					cmdif_srv_open_done(srv, err, dev, cfd);
-					/* Place spinlocks here
-					 * cmdif_srv_auth_id_alloc is
-					 * not protected */
-				}
-			}
-		} else {
-			/* don't bother to send response
-			 * in order not to overload response queue,
-			 * it might be intentional attack
-			 * */
-		}
-
-		return; /* No FD for response */
-
-	} else if (cmdif_srv_is_close_cmd(cmd_id)) {
-
-		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
-			/* Don't reorder this sequence !!*/
-			err = cmdif_srv_close_cb(srv, auth_id, cmd_id, cfd);
-
-			if (!err) {
-				/* Free instance entry only if we had no error
-				 * otherwise it will be impossible to retry to
-				 * close the device */
-				
-				/* Place spinlocks here
-				 * cmdif_srv_auth_id_alloc is
-				 * not protected */
-				cmdif_srv_close_done(srv, err, auth_id, cfd);
-				/* Place spinlocks here
-				 * cmdif_srv_auth_id_alloc is
-				 * not protected */
+		return -ENODEV;
 
 
-			}
-		} else {
-			/* don't bother to send response
-			 * in order not to overload response queue,
-			 * it might be intentional attack
-			 * */
-		}
-		return; /* No FD for response */
+	/* Call ctrl cb; if no perm cfd_out will be invalid */
+	err = cmdif_srv_cmd(srv, cfd, &cfd_out);
+	/* don't bother to send response
+	 * in order not to overload response queue,
+	 * it might be intentional attack
+	 * */
+	if (err == -EPERM)
+		return err;
+	
+	err = send_fd(&cfd_out, pr, send_dev);
+	
+	return err;
+}
 
-	} else {
-		if (cmdif_srv_is_vld_auth_id(srv, auth_id, cmd_id)) {
+int cmdif_session_open(struct cmdif_desc *cidesc,
+                       const char *m_name,
+                       uint8_t inst_id,
+                       uint8_t *v_data,
+                       uint64_t p_data,
+                       uint32_t size,
+                       uint16_t *auth_id)
+{
+	int      err = 0;
+	
+	/*Call open_cb , Store dev */
+	err = cmdif_srv_open(srv, m_name, inst_id, v_data, p_data, 
+	                     size, auth_id, dpci_id);
+	
+	/*Send information to AIOP */
+	err = cmdif_send(cidesc, CMD_ID_NOTIFY_OPEN, size, CMDIF_PRI_LOW,
+	                 p_data);
+	
+	
+	return err;
+	
+}
 
-			err = cmdif_srv_ctrl_cb(srv, auth_id, cmd_id, cfd);
-
-			if (cmdif_srv_is_sync_cmd(cmd_id)) {
-				cmdif_srv_sync_done(srv, err, auth_id);
-			}
-		} else {
-			/* don't bother to send response
-			 * in order not to overload response queue,
-			 * it might be intentional attack
-			 * */
-		}
-	}
-
-	err = cmdif_srv_resp_create(srv, err, cfd, &cfd_out);
-	/* err maybe indication that there is no need to send fd,
-	 * for example if no response is set */
-	if (!err) {
-		err = send_fd(&cfd_out, pr, send_dev);
-	}
-
-	return;
+int cmdif_session_close(struct cmdif_desc *cidesc, 
+                        uint16_t auth_id)
+{
+	int      err = 0;
+	uint16_t auth_id = 0;
+	
+	/*Call close_cb , place dpci_id, auth_id inside p_data */
+	err = cmdif_srv_close(srv, auth_id, &p_data, &v_data, &size);
+	
+	/*Send information to AIOP */
+	err = cmdif_send(cidesc, CMD_ID_NOTIFY_CLOSE, size, CMDIF_PRI_LOW, 
+	                 p_data);
+		
+	return err;
+	
 }
