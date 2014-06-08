@@ -93,7 +93,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	status = slab_find_and_fill_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
-					MEM_PART_1ST_DDR_NON_CACHEABLE,
+					MEM_PART_DP_DDR,
 					&num_filled_buffs,
 					&bpid);
 

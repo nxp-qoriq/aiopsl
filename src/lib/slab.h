@@ -58,12 +58,12 @@
 
 #define SLAB_BPIDS_ARR	\
 	{ \
-	{3,	256,    MEM_PART_1ST_DDR_NON_CACHEABLE}, \
-	{5,	512,    MEM_PART_1ST_DDR_NON_CACHEABLE}, \
-	{2,	1024,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
-	{4,	2048,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
-	{1,	3072,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
-	{6,	4096,   MEM_PART_1ST_DDR_NON_CACHEABLE}, \
+	{3,	256,    MEM_PART_DP_DDR}, \
+	{5,	512,    MEM_PART_DP_DDR}, \
+	{2,	1024,   MEM_PART_DP_DDR}, \
+	{4,	2048,   MEM_PART_DP_DDR}, \
+	{1,	3072,   MEM_PART_DP_DDR}, \
+	{6,	4096,   MEM_PART_DP_DDR}, \
 	{7,	256,    MEM_PART_PEB},                   \
 	{8,	512,    MEM_PART_PEB},                   \
 	{9,	1024,   MEM_PART_PEB},                   \
@@ -73,7 +73,7 @@
 
 
 #define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
-#define SLAB_DDR_MEMORY         MEM_PART_1ST_DDR_NON_CACHEABLE
+#define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP         1000
 

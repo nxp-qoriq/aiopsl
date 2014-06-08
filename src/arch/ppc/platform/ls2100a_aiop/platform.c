@@ -16,12 +16,10 @@
 /*  { MEMORY REGION,               START_ADDR,    SIZE,            mem-ctrl-id } */
 /*    -------------                ----------     ----             -----------   */
 #define PLATFORM_MEMORY_REGIONS { \
-    { PLTFRM_MEM_RGN_WS,         { 0x00000000,    (2*KILOBYTE),    PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_IRAM,       { 0x00fe0000,    (128*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
     { PLTFRM_MEM_RGN_AIOP,       { 0x02000000,    (384*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
     { PLTFRM_MEM_RGN_CCSR,       { 0x08000000,    (16*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
     { PLTFRM_MEM_RGN_PEB,        { 0x80000000,    (6*MEGABYTE),    PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_DDR1,       { 0x50000000,    (256*MEGABYTE),  PLTFRM_MEM_NONE   } }, \
+    { PLTFRM_MEM_RGN_DP_DDR,       { 0x50000000,    (256*MEGABYTE),  PLTFRM_MEM_NONE   } }, \
     { PLTFRM_MEM_RGN_SHRAM,      { 0x01000000,    (256*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
     { PLTFRM_MEM_RGN_MC_PORTALS, { 0x80c000000LL, (64*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
 }
@@ -503,14 +501,16 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         memset(name, 0, sizeof(name));
 
         switch (p_mem_info->mem_partition_id) {
-        case MEM_PART_1ST_DDR_NON_CACHEABLE:
-            sprintf(name, "%s", "DDR #1 non cacheable");
+        case MEM_PART_DP_DDR:
+            sprintf(name, "%s", "DP_DDR");
             register_partition = 1;
             break;
+            /*
         case MEM_PART_2ND_DDR_NON_CACHEABLE:
             sprintf(name, "%s", "DDR #2 (AIOP) non cacheable");
             register_partition = 1;
             break;
+            */
         case MEM_PART_SH_RAM:
             sprintf(name, "%s", "Shared-SRAM");
             register_partition = 1;
