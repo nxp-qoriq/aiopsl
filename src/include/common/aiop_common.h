@@ -1,4 +1,5 @@
 #ifndef __AIOP_COMMON_H
+#define __AIOP_COMMON_H
 
 
 #define AIOP_ATU_NUM_OF_WINDOWS         8

@@ -13,7 +13,6 @@
 /* Global System Object */
 __SHRAM t_system sys = {0};
 
-#define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
 
@@ -215,7 +214,7 @@ static int global_sys_init(void)
 	struct platform_param platform_param;
 	int err = 0;
 	ASSERT_COND(sys_is_master_core());
-	
+
 	update_active_cores_mask();
 	
 	fill_platform_parameters(&platform_param);

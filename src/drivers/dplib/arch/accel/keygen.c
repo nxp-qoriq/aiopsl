@@ -666,8 +666,7 @@ int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 			uint8_t keyid)
 {
 	int32_t status;
-/*	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];*/
-	uint8_t fake_kcr __attribute__((aligned(16))) = 0;
+	volatile uint8_t fake_kcr __attribute__((aligned(16))) = 0;
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE,

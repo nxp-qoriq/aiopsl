@@ -1,4 +1,5 @@
 Table SRs: Changed MFLU key descriptors structures (also for lookup) to match the new HW form.
+l4.c: l4_udp_tcp_cksum_calc - fixed ENGR316722
 
 SL Alpha v0.4  Change Log
 ===============================

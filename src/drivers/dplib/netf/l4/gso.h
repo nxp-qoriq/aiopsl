@@ -66,8 +66,12 @@ struct tcp_gso_context {
 	uint8_t	first_seg;
 	/** IP offset */
 	uint8_t	ip_offset;
+	/** TCP offset */
+	uint8_t	tcp_offset;
+	/** IPv4 */
+	uint8_t	ipv4;
 	/** Padding */
-	uint8_t	pad[6];
+	uint8_t	pad[4];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */

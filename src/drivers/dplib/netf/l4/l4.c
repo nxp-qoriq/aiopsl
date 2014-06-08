@@ -339,6 +339,16 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 		/* Write checksum to TCP header */
 		tcph->checksum = l4checksum;
+
+		/* Update FDMA */
+		if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
+			hw_status = fdma_modify_default_segment_data(l4offset +
+					offsetof(struct tcphdr, checksum),
+					sizeof((struct tcphdr *)0)->checksum);
+			if (hw_status != SUCCESS)
+				return hw_status;
+		}
+
 	} /* TCP */
 	else {
 		/* Point to the UDP header */
@@ -349,15 +359,16 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 		/* Write checksum to UDP header */
 		udph->checksum = l4checksum;
-	} /* UDP */
 
-	/* Update FDMA */
-	if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
-		hw_status = fdma_modify_default_segment_data(l4offset,
-				sizeof((struct udphdr *)0)->checksum);
-		if (hw_status != SUCCESS)
-			return hw_status;
-	}
+		/* Update FDMA */
+		if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
+			hw_status = fdma_modify_default_segment_data(l4offset +
+					offsetof(struct udphdr, checksum),
+					sizeof((struct udphdr *)0)->checksum);
+			if (hw_status != SUCCESS)
+				return hw_status;
+		}
+	} /* UDP */
 
 	return SUCCESS;
 }
