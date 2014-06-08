@@ -215,7 +215,7 @@ static int global_sys_init(void)
 	struct platform_param platform_param;
 	int err = 0;
 	ASSERT_COND(sys_is_master_core());
-	
+
 	update_active_cores_mask();
 	
 	fill_platform_parameters(&platform_param);
