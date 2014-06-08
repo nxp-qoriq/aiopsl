@@ -10,6 +10,8 @@
 #include "dplib/fsl_fdma.h"
 #include "fdma.h"
 
+/* TODO - remove / move to errors.h*/
+#define EBADFD	77
 
 int32_t fdma_present_default_frame(void)
 {
@@ -35,7 +37,8 @@ int32_t fdma_present_default_frame(void)
 		flags |= FDMA_INIT_NAS_BIT;*/
 	if (PRC_GET_ASA_SIZE() == 0)
 		flags |= FDMA_INIT_NAS_BIT;
-	arg4 = FDMA_INIT_CMD_ARG4(prc->asapa_asaps & ~PRC_SR_MASK);
+	arg4 = FDMA_INIT_CMD_ARG4(prc->asapa_asaps &
+			~(PRC_SR_MASK|PRC_NDS_MASK));
 
 
 	if (PRC_GET_PTA_ADDRESS() == PRC_PTA_NOT_LOADED_ADDRESS)
@@ -55,8 +58,9 @@ int32_t fdma_present_default_frame(void)
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	if ((((int32_t)res1) >= FDMA_SUCCESS) &&
-		((int32_t)res1 != FDMA_FD_ERR)) {
+	if ((res1 == FDMA_SUCCESS) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)) {
 		prc->seg_length = *((uint16_t *) (HWC_ACC_OUT_ADDRESS2));
 		prc->handles =
 			(((*((uint8_t *)
@@ -67,18 +71,29 @@ int32_t fdma_present_default_frame(void)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET))) &
 			PRC_SEGMENT_HANDLE_MASK);
 
+
+		if ((res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR))
+			prc->asapa_asaps = (prc->asapa_asaps & ~PRC_ASAPS_MASK) |
+				(uint16_t)(LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS));
+
 #if NAS_NPS_ENABLE
 		(flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
 				PRC_RESET_NAS_BIT();
 		(flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
 				PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else /* FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR or
+			FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
+			return -EIO;
 	}
 
-	if (((int32_t)res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR) ||
-		((int32_t)res1 == FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR))
-		prc->asapa_asaps = (prc->asapa_asaps & ~PRC_ASAPS_MASK) |
-			(uint16_t)(LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS));
+	if (res1 == FDMA_FD_ERR)
+		return -EBADFD;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -133,13 +148,14 @@ int32_t fdma_present_frame(
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (((int32_t)res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR) ||
-		((int32_t)res1 == FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR))
+	if ((int32_t)res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)
 		arg4 = (arg4 & ~PRC_ASAPS_MASK) |
 			(uint32_t)(LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS));
 
-	if ((((int32_t)res1) >= FDMA_SUCCESS) &&
-		((int32_t)res1 != FDMA_FD_ERR)) {
+	if ((res1 == FDMA_SUCCESS) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)) {
+
 		params->frame_handle = *((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET));
 		if (!(params->flags & FDMA_INIT_NDS_BIT)) {
@@ -188,7 +204,19 @@ int32_t fdma_present_frame(
 		(params->flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
 						PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else /* FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR or
+			FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
+			return -EIO;
 	}
+
+	if (res1 == FDMA_FD_ERR)
+		return -EBADFD;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -211,7 +239,7 @@ int32_t fdma_present_default_frame_without_segments(void)
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	if (((int32_t)res1) >= FDMA_SUCCESS) {
+	if (res1 == FDMA_SUCCESS) {
 		PRC_SET_FRAME_HANDLE(*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)));
 		PRC_SET_NDS_BIT();
@@ -221,7 +249,15 @@ int32_t fdma_present_default_frame_without_segments(void)
 		PRC_SET_NAS_BIT();
 		PRC_SET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+
+		return SUCCESS;
 	}
+
+	if (res1 == FDMA_FD_ERR)
+		return -EBADFD;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -254,7 +290,7 @@ int32_t fdma_present_frame_without_segments(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	if (((int32_t)res1) >= FDMA_SUCCESS) {
+	if (res1 == FDMA_SUCCESS) {
 		*frame_handle = *((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET));
 		if ((uint32_t)fd == HWC_FD_ADDRESS) {
@@ -267,8 +303,15 @@ int32_t fdma_present_frame_without_segments(
 			PRC_SET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
 		}
+		return SUCCESS;
 	}
-	return (int32_t)(res1);
+
+	if (res1 == FDMA_FD_ERR)
+		return -EBADFD;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
+	return (int32_t)res1;
 }
 
 int32_t fdma_present_default_frame_segment(
@@ -300,7 +343,8 @@ int32_t fdma_present_default_frame_segment(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	if ((int32_t)res1 >= FDMA_SUCCESS) {
+	if ((res1 == FDMA_SUCCESS) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)){
 		PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
 		PRC_SET_SEGMENT_OFFSET(offset);
 		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
@@ -311,7 +355,14 @@ int32_t fdma_present_default_frame_segment(
 			PRC_SET_SR_BIT();
 		else
 			PRC_RESET_SR_BIT();
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -341,6 +392,14 @@ int32_t fdma_present_frame_segment(
 	params->seg_handle = *((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
 			FDMA_SEG_HANDLE_OFFSET));
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
+		return -EIO;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -370,8 +429,8 @@ int32_t fdma_read_default_frame_asa(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	if (((int32_t)res1 >= FDMA_SUCCESS) &&
-		((int32_t)res1 != FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR)) {
+	if ((res1 == FDMA_SUCCESS) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)) {
 
 		prc->asapa_asaps = (((uint16_t)prc->asapa_asaps) & PRC_SR_MASK)|
 			((uint16_t)((uint32_t)ws_dst) & PRC_ASAPA_MASK) |
@@ -381,7 +440,15 @@ int32_t fdma_read_default_frame_asa(
 #if NAS_NPS_ENABLE
 	PRC_RESET_NAS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -407,13 +474,19 @@ int32_t fdma_read_default_frame_pta(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-	if (((int32_t)res1 >= FDMA_SUCCESS) &&
-		((int32_t)res1 != FDMA_UNABLE_TO_PRESENT_PTA_ERR)) {
+	if (res1 == FDMA_SUCCESS) {
 		PRC_SET_PTA_ADDRESS((uint16_t)((uint32_t)ws_dst));
 #if NAS_NPS_ENABLE
 	PRC_RESET_NPS_BIT();
 #endif /*NAS_NPS_ENABLE*/
+		return SUCCESS;
 	}
+
+	if (res1 == FDMA_UNABLE_TO_PRESENT_PTA_ERR)
+		return -EIO;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -447,7 +520,17 @@ int32_t fdma_extend_default_segment_presentation(
 		else
 			PRC_SET_SEGMENT_LENGTH(*((uint16_t *)
 					(HWC_ACC_OUT_ADDRESS2)));
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
+			return -EIO;
+		else	/* FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -468,6 +551,14 @@ int32_t fdma_store_default_frame_data(void)
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -498,6 +589,14 @@ int32_t fdma_store_frame_data(
 		(((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) &
 			(FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_VA)) |
 		(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -523,6 +622,15 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -547,6 +655,15 @@ int32_t fdma_store_and_enqueue_frame_fqid(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -577,6 +694,16 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -606,6 +733,16 @@ int32_t fdma_store_and_enqueue_frame_qd(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -631,6 +768,13 @@ int32_t fdma_enqueue_default_fd_fqid(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -658,6 +802,13 @@ int32_t fdma_enqueue_fd_fqid(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -687,6 +838,13 @@ int32_t fdma_enqueue_default_fd_qd(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -718,6 +876,13 @@ int32_t fdma_enqueue_fd_qd(
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -736,6 +901,14 @@ int32_t fdma_discard_default_frame(uint32_t flags)
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_FD_ERR)
+		return -EBADFD;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -757,6 +930,14 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_FD_ERR)
+		return -EBADFD;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -767,7 +948,7 @@ int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
 
 	status = fdma_present_frame_without_segments(fd, FDMA_INIT_NO_FLAGS,
 			0, &frame_handle);
-	if (status != FDMA_SUCCESS)
+	if (status != SUCCESS)
 		return status;
 
 	return fdma_discard_frame(frame_handle, flags);
@@ -811,6 +992,15 @@ int32_t fdma_replicate_frame_fqid(
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	*frame_handle2 = *((uint8_t *) (FDMA_REPLIC_FRAME_HANDLE_OFFSET));
 
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -843,6 +1033,15 @@ int32_t fdma_replicate_frame_qd(
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	*frame_handle2 = *((uint8_t *) (FDMA_REPLIC_FRAME_HANDLE_OFFSET));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+		return -EBUSY;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -881,6 +1080,15 @@ int32_t fdma_concatenate_frames(
 			(FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_VA)) |
 			(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
 	}
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+	else if (res1 == FDMA_FD_ERR)
+		return -EBADFD;
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -970,10 +1178,11 @@ int32_t fdma_split_frame(
 			return SUCCESS;
 		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
 			return -EIO;
-		else
+		else	/* FDMA_BUFFER_POOL_DEPLETION_ERR */
 			return -ENOMEM;
 	}
-	else if (res1 == FDMA_UNABLE_TO_SPLIT_ERR)
+
+	if (res1 == FDMA_UNABLE_TO_SPLIT_ERR)
 		return -EINVAL;
 	else
 		fdma_handle_fatal_errors(res1);
@@ -999,8 +1208,13 @@ int32_t fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	/* Update Task Defaults */
-	if (res1 == FDMA_SUCCESS)
+	if (res1 == FDMA_SUCCESS){
+		PRC_SET_SEGMENT_OFFSET(offset);
 		PRC_SET_SEGMENT_LENGTH(size);
+		return SUCCESS;
+	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1031,6 +1245,11 @@ int32_t fdma_modify_default_segment_data(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1082,7 +1301,14 @@ int32_t fdma_replace_default_segment_data(
 
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1140,7 +1366,15 @@ int32_t fdma_insert_default_segment_data(
 
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -1196,7 +1430,15 @@ int32_t fdma_insert_segment_data(
 		if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
 			(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
 			PRC_SET_NDS_BIT();
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -1251,7 +1493,14 @@ int32_t fdma_delete_default_segment_data(
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
 
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -1312,7 +1561,14 @@ int32_t fdma_delete_segment_data(
 				PRC_SET_NDS_BIT();
 		}
 
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -1341,8 +1597,12 @@ int32_t fdma_close_default_segment(void)
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
+	if (res1 == FDMA_SUCCESS){
 		PRC_SET_NDS_BIT();
+		return SUCCESS;
+	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1369,8 +1629,12 @@ int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
+	if (res1 == FDMA_SUCCESS){
 		PRC_SET_NDS_BIT();
+		return SUCCESS;
+	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1425,6 +1689,13 @@ int32_t fdma_replace_default_asa_segment_data(
 			LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS) + (uint8_t)from_size -
 							(uint8_t)to_size);
 
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)
+		return -EIO;
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -1477,7 +1748,14 @@ int32_t fdma_replace_default_pta_segment_data(
 			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, FD_PTV1_MASK);
 			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, FD_PTV2_MASK);
 		}
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_PTA_ERR*/
+			return -EIO;
 	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1504,6 +1782,11 @@ int32_t fdma_calculate_default_frame_checksum(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	*checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+FDMA_CHECKSUM_OFFSET));
 
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -1528,6 +1811,11 @@ int32_t fdma_copy_data(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1555,6 +1843,13 @@ int32_t fdma_acquire_buffer(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+		return -ENOMEM;
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
 	return (int32_t)(res1);
 }
 
@@ -1580,6 +1875,11 @@ int32_t fdma_release_buffer(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		return SUCCESS;
+
+	fdma_handle_fatal_errors((int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1636,7 +1936,7 @@ int32_t fdma_create_frame(
 		*frame_handle = present_frame_params.frame_handle;
 	}
 
-	return FDMA_SUCCESS;;
+	return SUCCESS;;
 }
 
 int32_t fdma_create_fd(
