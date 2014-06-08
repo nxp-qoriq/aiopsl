@@ -184,17 +184,31 @@ __HOT_CODE static uint16_t cmd_auth_id_get()
 }
 
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
-{
-	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-
+{	 
+	struct cmdif_srv_aiop *srv_aiop = \
+		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
+	struct cmdif_srv *srv = NULL;
+	
+	if (srv_aiop == NULL) {
+		return -ENODEV;
+	}
+	srv = srv_aiop->srv;
+	
 	/* Place here lock if required */
-
+	
 	return cmdif_srv_register(srv, m_name, ops);
 }
 
 int cmdif_unregister_module(const char *m_name)
 {
-	struct cmdif_srv *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
+	struct cmdif_srv_aiop *srv_aiop = \
+		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
+	struct cmdif_srv *srv = NULL;
+	
+	if (srv_aiop == NULL) {
+		return -ENODEV;
+	}
+	srv = srv_aiop->srv;
 
 	/* Place here lock if required */
 
@@ -397,7 +411,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 		
 		/* Support for AIOP -> GPP */
 		if (IS_VALID_AUTH_ID(auth_id)) { 
-			sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+			sync_cmd_done(NULL, -ENOTSUP, auth_id, srv, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
