@@ -46,105 +46,6 @@
 
 /** @} */ /* end of FSL_KEYGEN_KCR_ATTRIBUTES */
 
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS Status returned to calling function
-@{
-*//***************************************************************************/
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_KCR_CREATE_STATUS keygen_kcr_create function status
-@{
-*//***************************************************************************/
-
-/** Command successful. ID was pulled from pool */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_SUCCESS			0x00000000
-/** Command failed. ID was not fetched from pool due to CDMA write error */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_WR_MUTEX_FAILURE	0x80000001
-/** Command failed. ID was not fetched from pool due to pool out of range */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_POOL_OUT_OF_RANGE	0x80000002
-/** Command failed. ID was not fetched from pool due to CDMA read error */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_RD_FAILURE		0x80000003
-/** Command failed. ID was not fetched from pool due to CDMA read with
- * mutex error */
-#define KEYGEN_KCR_CREATE_GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE	0x80000004
-
-/** @} */ /* end of FSL_KEYGEN_KCR_CREATE_STATUS */
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_KCR_DELETE_STATUS keygen_kcr_delete function status
-@{
-*//***************************************************************************/
-
-/** Command successful. ID was returned to pool */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_SUCCESS		  0x00000000
-/** Command failed. ID was not returned to pool due to CDMA write error */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_WR_FAILURE	  0x80000001
-/** Command failed. ID was not returned to pool due to pool out of range */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_POOL_OUT_OF_RANGE	  0x80000002
-/** Command failed. ID was not returned to pool due to CDMA read with
- * mutex error */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE 0x80000003
-/** Command failed. ID was not returned to pool due to CDMA write with
- * mutex error */
-#define KEYGEN_KCR_DELETE_RELEASE_ID_STATUS_CDMA_WR_MUTEX_FAILURE 0x80000004
-
-/** @} */ /* end of FSL_KEYGEN_KCR_DELETE_STATUS */
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS_GENERAL General status defines
-@{
-*//***************************************************************************/
-
-	/** Command status success */
-#define KEYGEN_STATUS_SUCCESS		0x00000000
-	/** Command failed general status bit.
-	A general bit that is set in some errors conditions. */
-#define KEYGEN_STATUS_KSE		0x00000400
-	/** Extract Out Of Frame Header Error for Key Generation.
-	 This bit is set if key composition attempts to extract a field which
-	 is not in the frame header. */
-#define KEYGEN_MFLU_STATUS_EOFH		0x00000200
-
-/** @} */ /* end of FSL_KEYGEN_STATUS_GENERAL */
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS_HASH_GEN Hash Generation status defines
-@{
-*//***************************************************************************/
-
-	/** Command status success */
-#define KEYGEN_HASH_STATUS_SUCCESS	0x00000000
-	/** Key Size Error (> 124 bytes) for Hash Generation */
-#define KEYGEN_HASH_STATUS_KSE	KEYGEN_STATUS_KSE
-
-/** @} */ /* end of FSL_KEYGEN_STATUS_HASH_GEN */
-
-/**************************************************************************//**
-@Group	FSL_KEYGEN_STATUS_KCR Status returned from Key Composition Rule Builder
-@{
-*//***************************************************************************/
-	/** Successful KCR Builder Operation */
-#define KEYGEN_KCR_SUCCESSFUL_OPERATION		0x00000000
-	/*General Extraction Extract Size Error
-#define KEYGEN_KCR_EXTRACT_SIZE_ERR		0x80000001
-	Protocol Based General Extraction Error
-#define KEYGEN_KCR_PROTOCOL_GEC_ERR		0x80000002
-	Protocol Based General Extraction Parser Result Offset Error
-#define KEYGEN_KCR_PR_OFFSET_ERR		0x80000003
-	General Extraction Extract Offset Error
-#define KEYGEN_KCR_EXTRACT_OFFSET_ERR		0x80000004
-	Mask Offset Larger than 0x0F Error
-#define KEYGEN_KCR_MASK_OFFSET_ERR		0x80000005
-	Lookup Result Field Extraction Error
-#define KEYGEN_KCR_BUILDER_EXT_LOOKUP_RES_ERR	0x80000006*/
-	/** Key Composition Rule Size exceeds KCR max size (64 bytes) */
-#define KEYGEN_KCR_SIZE_ERR			0x80000007
-
-/** @} */ /* end of FSL_KEYGEN_STATUS_KCR */
-
-/** @} */ /* end of FSL_KEYGEN_STATUS */
-
 /** @} */ /* end of FSL_KEYGEN_MACROS */
 
 /**************************************************************************//**
@@ -494,7 +395,10 @@ void keygen_kcr_builder_init(struct kcr_builder *kb);
 @Param[in]	num - Number of replications (1-16) of the constant in the key.
 @Param[in,out]	kb - kcr builder pointer.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 					  struct kcr_builder *kb);
@@ -515,7 +419,10 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 		this parameter should be NULL.
 @Param[in,out]	kb - kcr builder pointer.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 					uint8_t extract_size,
@@ -544,7 +451,10 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 		The user can call keygen_kcr_builder_add_valid_field_fec
 		function in order to get indications of which fec's are valid.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_protocol_specific_field
 		(enum kcr_builder_protocol_fecid protocol_fecid,
@@ -583,7 +493,10 @@ int32_t keygen_kcr_builder_add_protocol_specific_field
 		The user can call keygen_kcr_builder_add_valid_field_fec
 		function in order to get indications of which fec's are valid.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 	enum kcr_builder_parse_result_offset pr_offset,
@@ -612,7 +525,10 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 		this parameter should be NULL.
 @Param[in,out]	kb - kcr builder pointer.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
@@ -639,7 +555,10 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 		this parameter should be NULL.
 @Param[in,out]	kb - kcr builder pointer.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 
 @Cautions	This function is not available for rev1.
 *//***************************************************************************/
@@ -670,7 +589,10 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(
 @Param[in]	mask - 1 byte mask.
 @Param[in,out]	kb - kcr builder pointer.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_KCR.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 					 struct kcr_builder *kb);
@@ -679,14 +601,17 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 /**************************************************************************//**
 @Function	keygen_kcr_create
 
-@Description	Creates key composition rule.
+@Description	Creates key composition rule. Up to 256 rules are supported.
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
 		(part of struct kcr_builder).
 @Param[out]	keyid - Key ID.
 
-@Return		Please refer to \ref FSL_KEYGEN_KCR_CREATE_STATUS.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		ENOSPC - No more KCR's are available (all 256 are taken).
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -722,7 +647,10 @@ void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - Key ID.
 
-@Return		Please refer to \ref FSL_KEYGEN_KCR_DELETE_STATUS
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		ENAVAIL - All KCR's are already deleted.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
@@ -761,9 +689,10 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 		be aligned to 16B boundary.
 @Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_GENERAL
+@Return		0 on Success.
 
 @Cautions	In this function the task yields.
+ 	 	This function may result in a fatal error.
 *//***************************************************************************/
 int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
@@ -783,9 +712,10 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 @Param[out]	hash - The hash result. Must be allocated by the caller to this
 		function.
 
-@Return		Please refer to \ref FSL_KEYGEN_STATUS_HASH_GEN
+@Return		0 on Success.
 
 @Cautions	In this function the task yields.
+ 	 	This function may result in a fatal error.
 *//***************************************************************************/
 int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash);
 

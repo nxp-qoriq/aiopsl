@@ -1,6 +1,7 @@
 #include "common/types.h"
 #include "common/fsl_malloc.h"
 #include "common/fsl_string.h"
+#include "common/aiop_common.h"
 #include "drivers/fsl_duart.h"
 #include "kernel/console.h"
 #include "kernel/platform.h"
@@ -382,16 +383,13 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     t_platform  *pltfrm = (t_platform *)h_platform;
     int     err = 0, i = 0;
     uint32_t CTSCSR_value = 0;
-    uint32_t *WSCR;
     uint32_t WSCR_tasks_bit = 0;
-
+    struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *) \
+	                               (SOC_PERIPH_OFF_AIOP_TILE + 0x02000000);
+    
     if (pltfrm == NULL) {
 	    return -EINVAL;
     }
-
-    booke_disable_time_base();
-    booke_address_broadcast_enable();
-    booke_address_bus_streaming_enable();
 
     /*------------------------------------------------------*/
     /* Initialize PPC interrupts vector                     */
@@ -403,10 +401,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
     /* special AIOP registers */
+    
     /* Workspace Control Register*/
-    WSCR = UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE + 0x02000000 + 0x20);
     /* Little endian convert */
-    WSCR_tasks_bit = ((((uint32_t) *WSCR) & 0xff000000) >> 24);
+    WSCR_tasks_bit = (aiop_regs->cmgw_regs.wscr & 0xff000000) >> 24;
 
     CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
     		                          (WSCR_tasks_bit << 24);

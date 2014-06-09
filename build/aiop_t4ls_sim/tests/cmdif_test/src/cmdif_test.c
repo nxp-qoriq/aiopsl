@@ -56,7 +56,7 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	UNUSED(dev);
 	UNUSED(cmd);

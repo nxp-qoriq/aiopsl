@@ -19,6 +19,21 @@ extern __SHRAM uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
+void parser_handle_fatal_errors(int32_t status){
+	switch(status) {
+	case PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED:
+		handle_fatal_error
+			((char *)PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
+		break;
+	case PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION:
+		handle_fatal_error
+		((char *)PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
+		break;
+	default:
+		handle_fatal_error((char *)status); /*TODO Fatal error */
+		break;
+	}
+}
 
 int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 				uint8_t *prpid)
@@ -26,7 +41,7 @@ int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 	int32_t status;
 
 	status = get_id(ext_prpid_pool_address, prpid);
-	if (status != 0)		/*TODO check status ??? */
+	if (status != 0)
 		return status;
 
 	parse_profile->parse_profile.reserved1 = 0;
@@ -42,7 +57,7 @@ int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
-	return PARSER_STATUS_PASS;
+	return 0;
 }
 
 void parser_profile_replace(struct parse_profile_input *parse_profile,
@@ -82,7 +97,6 @@ int32_t parser_profile_delete(uint8_t prpid)
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = release_id(prpid, ext_prpid_pool_address);
-	/*TODO check status ??? */
 	return status;
 }
 
@@ -133,10 +147,8 @@ int32_t parse_result_generate_default(uint8_t flags)
 	} else {
 		/* If L4 checksum validation is required, calculate it first */
 		if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
-			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
-						&pr->gross_running_sum))
-				return
-				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+			fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						&pr->gross_running_sum);
 			input_struct.gross_running_sum = pr->gross_running_sum;
 			arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
@@ -154,15 +166,26 @@ int32_t parse_result_generate_default(uint8_t flags)
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if (!status)
-		return SUCCESS;
-	else if (((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
-		((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
-		return SUCCESS;
-	else
-		return status;
+	if (status == PARSER_HW_STATUS_SUCCESS)
+		return 0;
+	else if ((status == PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED)
+		||
+		(status == PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
+		return 0;
+
+	switch(status) {
+	case PARSER_HW_STATUS_PARSING_ERROR:
+		return -EIO;
+	case PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED:
+		return -ENOSPC;
+	case PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR:
+		return -EIO;
+	case PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR:
+		return -EIO;
+	default:
+		parser_handle_fatal_errors(status);
+		return (-1);
+	}
 }
 
 int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
@@ -194,10 +217,8 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	} else {
 		/* If L4 checksum validation is required, calculate it first */
 		if (flags & PARSER_VALIDATE_L4_CHECKSUM) {
-			if (fdma_calculate_default_frame_checksum(0, 0xFFFF,
-						&pr->gross_running_sum))
-				return
-				PARSER_STATUS_FAIL_RUNNING_SUM_FDMA_FAILURE;
+			fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						&pr->gross_running_sum);
 			input_struct.gross_running_sum = pr->gross_running_sum;
 			arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;
@@ -215,15 +236,26 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if (!status)
-		return SUCCESS;
-	else if (((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
-		((status & PARSER_STATUS_MASK) ==
-			PARSER_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
-		return SUCCESS;
-	else
-		return status;
+	if (status == PARSER_HW_STATUS_SUCCESS)
+		return 0;
+	else if ((status == PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED)
+		||
+		(status == PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
+		return 0;
+
+	switch(status) {
+	case PARSER_HW_STATUS_PARSING_ERROR:
+		return -EIO;
+	case PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED:
+		return -ENOSPC;
+	case PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR:
+		return -EIO;
+	case PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR:
+		return -EIO;
+	default:
+		parser_handle_fatal_errors(status);
+		return (-1);
+	}
 }
 
 int32_t parse_result_generate_checksum(
@@ -255,14 +287,20 @@ int32_t parse_result_generate_checksum(
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if ((status & PARSER_STATUS_MASK) == 0) {
+	if (status == PARSER_HW_STATUS_SUCCESS) {
 		*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
-		return SUCCESS;
-	} else {
-		return status;
+		return 0;
 	}
-
+		switch(status) {
+		case PARSER_HW_STATUS_PARSING_ERROR:
+			return -EIO;
+		case PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED:
+			return -ENOSPC;
+		default:
+			parser_handle_fatal_errors(status);
+			return (-1);
+		}
 }
 
 

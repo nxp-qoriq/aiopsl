@@ -312,10 +312,8 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {
-		hw_status = fdma_calculate_default_frame_checksum(0, 0xFFFF,
-					&pr->gross_running_sum);
-		if (FDMA_CHECKSUM_SUCCESS != hw_status)
-			return hw_status;
+		fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						      &pr->gross_running_sum);
 	}
 
 	/* Call parser */
@@ -325,7 +323,7 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 			0,
 			&l3checksum_dummy,
 			&l4checksum);
-	if (PARSER_STATUS_PASS != hw_status)
+	if (0 != hw_status)
 		return hw_status;
 
 	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
@@ -339,6 +337,14 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 		/* Write checksum to TCP header */
 		tcph->checksum = l4checksum;
+
+		/* Update FDMA */
+		if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
+			fdma_modify_default_segment_data(l4offset +
+					offsetof(struct tcphdr, checksum),
+					sizeof((struct tcphdr *)0)->checksum);
+		}
+
 	} /* TCP */
 	else {
 		/* Point to the UDP header */
@@ -349,15 +355,14 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 		/* Write checksum to UDP header */
 		udph->checksum = l4checksum;
-	} /* UDP */
 
-	/* Update FDMA */
-	if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
-		hw_status = fdma_modify_default_segment_data(l4offset,
-				sizeof((struct udphdr *)0)->checksum);
-		if (hw_status != FDMA_CHECKSUM_SUCCESS)
-			return hw_status;
-	}
+		/* Update FDMA */
+		if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
+			fdma_modify_default_segment_data(l4offset +
+					offsetof(struct udphdr, checksum),
+					sizeof((struct udphdr *)0)->checksum);
+		}
+	} /* UDP */
 
 	return SUCCESS;
 }

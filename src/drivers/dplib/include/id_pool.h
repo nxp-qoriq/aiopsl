@@ -13,6 +13,7 @@
 #include "dplib/fsl_cdma.h"
 #include "cdma.h"
 
+
 /**************************************************************************//**
 @Group	ID_POOL ID Pool (Internal)
 
@@ -20,73 +21,6 @@
 
 @{
 *//***************************************************************************/
-
-/**************************************************************************//**
-@Group		ID_POOL_MACROS
-
-@Description	AIOP ID Pool Macros
-
-@{
-*//***************************************************************************/
-/**************************************************************************//**
-@Group	INIT_ID_POOL_STATUS Status returned from id_pool_init function
-@{
-*//***************************************************************************/
-/** ID pool was initialized successfully. */
-#define ID_POOL_INIT_STATUS_SUCCESS				0x00000000
-/** ID pool initialization failure.
- * Buffer was not acquired due to CDMA error. */
-#define ID_POOL_INIT_STATUS_CDMA_ERR_NO_BUFFER_ACQUIRED		0x80000001
-/** ID pool initialization failure.
- * Write to context buffer failed but buffer was not released due to
- * CDMA error.*/
-#define ID_POOL_INIT_STATUS_CDMA_WR_ERR_BUF_NOT_RELEASED	0x80000002
-/** ID pool initialization failure.
- * Write to context buffer failed but buffer was released */
-#define ID_POOL_INIT_STATUS_CDMA_WR_ERR_BUF_RELEASED		0x80000003
-
-/** @} */ /* end of INIT_ID_POOL_STATUS */
-
-/**************************************************************************//**
-@Group	GET_ID_STATUS Status returned from get_id function
-@{
-*//***************************************************************************/
-
-/** Command successful. ID was pulled from pool */
-#define GET_ID_STATUS_SUCCESS				0x00000000
-/** Command failed. ID was not fetched from pool due to CDMA write error */
-#define GET_ID_STATUS_CDMA_WR_MUTEX_FAILURE		0x80000001
-/** Command failed. ID was not fetched from pool due to pool out of range */
-#define GET_ID_STATUS_POOL_OUT_OF_RANGE			0x80000002
-/** Command failed. ID was not fetched from pool due to CDMA read error */
-#define GET_ID_STATUS_CDMA_RD_FAILURE			0x80000003
-/** Command failed. ID was not fetched from pool due to CDMA read with
- * mutex error */
-#define GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE		0x80000004
-
-/** @} */ /* end of GET_ID_STATUS */
-
-/**************************************************************************//**
-@Group	RELEASE_ID_STATUS Status returned from release_id function
-@{
-*//***************************************************************************/
-
-/** Command successful. ID was returned to pool */
-#define RELEASE_ID_STATUS_SUCCESS			0x00000000
-/** Command failed. ID was not returned to pool due to CDMA write error */
-#define RELEASE_ID_STATUS_CDMA_WR_FAILURE		0x80000001
-/** Command failed. ID was not returned to pool due to pool out of range */
-#define RELEASE_ID_STATUS_POOL_OUT_OF_RANGE		0x80000002
-/** Command failed. ID was not returned to pool due to CDMA read with
- * mutex error */
-#define RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE		0x80000003
-/** Command failed. ID was not returned to pool due to CDMA write with
- * mutex error */
-#define RELEASE_ID_STATUS_CDMA_WR_MUTEX_FAILURE		0x80000004
-
-/** @} */ /* end of RELEASE_ID_STATUS */
-
-/** @} */ /* end of ID_POOL_MACROS */
 
 /**************************************************************************//**
 @Group		ID_POOL_Functions
@@ -108,62 +42,15 @@
 
 @Param[out]	ext_id_pool_address - External id pool address.
 
-@Return		Status - Success or Failure. (\ref INIT_ID_POOL_STATUS).
+@Return		0 on Success.
 
 @Cautions	In this function the task yields.
+ 	 	This function may result in a fatal error.
 *//***************************************************************************/
-inline int32_t id_pool_init(uint16_t num_of_ids,
+int32_t id_pool_init(uint16_t num_of_ids,
 			 uint16_t buffer_pool_id,
-			 uint64_t *ext_id_pool_address)
-{
-	int i;
-	uint64_t int_id_pool_address;
-	uint16_t fill_ids;
-	uint16_t pool_length_to_fill;
-	uint8_t num_of_writes = 0;
-	uint8_t last_id_in_pool = (uint8_t)(num_of_ids - 1);
-	uint8_t pool[64];
+			 uint64_t *ext_id_pool_address);
 
-
-	/* Acquire buffer for the pool */
-	if (cdma_acquire_context_memory(buffer_pool_id, &int_id_pool_address)) {
-		/* Todo return CDMA status with Accell ID? -*/
-		return ID_POOL_INIT_STATUS_CDMA_ERR_NO_BUFFER_ACQUIRED;
-	}
-	/* store the address in the global parameter */
-	*ext_id_pool_address = int_id_pool_address;
-
-	/* pool_length_to_fill = num_of_ids + index + last_id_in_pool */
-	pool_length_to_fill = (num_of_ids + 2);
-
-	while (pool_length_to_fill) {
-		/* Initialize pool in local memory */
-		fill_ids = (pool_length_to_fill < 64) ?
-						pool_length_to_fill : 64;
-		for (i = 0; i < fill_ids; i++)
-			pool[i] = (uint8_t)((num_of_writes<<6) + i - 2);
-		if (num_of_writes == 0) {
-			pool[0] = last_id_in_pool;
-			pool[1] = 0; /* index */
-		}
-		pool_length_to_fill = pool_length_to_fill - fill_ids;
-		/* Write pool to external memory */
-		if (cdma_write((int_id_pool_address + (num_of_writes<<6)), pool,
-								fill_ids)) {
-			/* In case cdma_write failed, need to release
-			 * the buffer */
-			if (cdma_release_context_memory(int_id_pool_address)) {
-				/* Todo return CDMA status with Accell ID? */
-				return
-			       ID_POOL_INIT_STATUS_CDMA_WR_ERR_BUF_NOT_RELEASED;
-			}
-			/* Todo return CDMA status with Accell ID? */
-			return ID_POOL_INIT_STATUS_CDMA_WR_ERR_BUF_RELEASED;
-		}
-		num_of_writes++;
-	}
-	return ID_POOL_INIT_STATUS_SUCCESS;
-}
 /*************************************************************************//**
 @Function	get_id
 
@@ -175,66 +62,15 @@ inline int32_t id_pool_init(uint16_t num_of_ids,
 
 @Param[out]	id - id pulled from the pool.
 
-@Return		Status - Success or Failure. (\ref GET_ID_STATUS).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		ENOSPC - Pool out of range, no more ID's are available.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id)
-{
-	int32_t status;
-/*	uint64_t int_id_pool_address;*/
-	uint8_t last_id_and_index[2];
+int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id);
 
-/*	int_id_pool_address = ext_id_pool_address;*/
-
-	/* Read and lock id pool num_of_IDs + index */
-	status = (cdma_read_with_mutex(ext_id_pool_address,
-				     CDMA_PREDMA_MUTEX_WRITE_LOCK,
-				     last_id_and_index,
-				     2));
-
-	if (status == CDMA_SUCCESS) {
-		/* check if index < last_id */
-		if (last_id_and_index[1] < (last_id_and_index[0])) {
-			/* Pull id from the pool */
-			status = (cdma_read(id, (uint64_t)
-				(ext_id_pool_address+last_id_and_index[1]+2),
-					1));
-			if (status == CDMA_SUCCESS) {
-				/* Update index, write it back and
-				 * release mutex */
-				last_id_and_index[1]++;
-				if (cdma_write_with_mutex(ext_id_pool_address,
-					CDMA_POSTDMA_MUTEX_RM_BIT,
-					last_id_and_index, 2))
-					/* In case of write error, CDMA SR will
-					 * try to release mutex if needed and
-					 * return status (???)
-					 * TODO CDMA status */
-					return
-					GET_ID_STATUS_CDMA_WR_MUTEX_FAILURE;
-				else
-					return GET_ID_STATUS_SUCCESS;
-				} else { /* CDMA read error */
-					/* Release mutex */
-					cdma_mutex_lock_release
-							(ext_id_pool_address);
-					/* TODO status */
-					return GET_ID_STATUS_CDMA_RD_FAILURE;
-				}
-		} else { /* Pool out of range */
-			/* Release mutex */
-			cdma_mutex_lock_release(ext_id_pool_address);
-			/* TODO status */
-			return GET_ID_STATUS_POOL_OUT_OF_RANGE;
-		}
-	} else { /* CDMA read with mutex error */
-		/* In case of read error, CDMA SR will try to release mutex
-		 * if needed and return status (???)
-		 * TODO CDMA status */
-		return GET_ID_STATUS_CDMA_RD_MUTEX_FAILURE;
-	}
-}
 
 /*************************************************************************//**
 @Function	release_id
@@ -245,66 +81,14 @@ inline int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id)
 
 @Param[in]	id - id pushed into the pool.
 
-@Return		Status - Success or Failure. (\ref RELEASE_ID_STATUS).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		ENAVAIL - All ID's already returned to pool.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int32_t release_id(uint8_t id, uint64_t ext_id_pool_address)
-{
-	int32_t status;
-/*	uint64_t int_id_pool_address;*/
-	uint8_t last_id_and_index[2];
-
-/*	int_id_pool_address = ext_id_pool_address;*/
-
-	/* Read and lock id pool index */
-	status = (cdma_read_with_mutex(ext_id_pool_address,
-				     CDMA_PREDMA_MUTEX_WRITE_LOCK,
-				     last_id_and_index,
-				     2));
-
-	if (status == CDMA_SUCCESS) {
-		last_id_and_index[1]--;
-		if (last_id_and_index[1] >= 0) {
-			/* Return id to the pool */
-			status = (cdma_write
-				((ext_id_pool_address+last_id_and_index[1]+2),
-				&id,
-				1));
-			if (status == CDMA_SUCCESS) {
-				/* Update index, write it back and
-				 * release mutex */
-				if (cdma_write_with_mutex(ext_id_pool_address,
-					CDMA_POSTDMA_MUTEX_RM_BIT,
-					last_id_and_index, 2))
-					/* In case of write error, CDMA SR will
-					 * try to release mutex if needed and
-					 * return status (???)
-					 * TODO CDMA status */
-					return
-					RELEASE_ID_STATUS_CDMA_WR_MUTEX_FAILURE;
-				else
-					return RELEASE_ID_STATUS_SUCCESS;
-			} else { /* CDMA write error */
-				/* Release mutex */
-				if (cdma_mutex_lock_release
-						(ext_id_pool_address))
-					return status; /* TODO */
-				return RELEASE_ID_STATUS_CDMA_WR_FAILURE;
-			}
-		} else { /* Pool out of range */
-			if (cdma_mutex_lock_release(ext_id_pool_address))
-				return status; /* TODO */
-			else
-				return RELEASE_ID_STATUS_POOL_OUT_OF_RANGE;
-		}
-	} else { /* CDMA read with mutex error */
-		/* In case of read error, CDMA SR will try to release mutex
-		 * if needed and return status (???)
-		 * TODO CDMA status */
-		return RELEASE_ID_STATUS_CDMA_RD_MUTEX_FAILURE;
-	}
-}
+ int32_t release_id(uint8_t id, uint64_t ext_id_pool_address);
 
 /** @} */ /* end of ID_POOL_Functions */
 

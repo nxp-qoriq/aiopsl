@@ -7,6 +7,7 @@
 *//***************************************************************************/
 #include "system.h"
 #include "id_pool.h"
+#include "dplib/fsl_cdma.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -53,13 +54,12 @@ int32_t sys_prpid_pool_create(void)
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
-		return status;
+		handle_fatal_error((char *)status); /*TODO Fatal error*/
 
-
-	status = id_pool_init(SYS_NUM_OF_PRPIDS, buffer_pool_id,
+	id_pool_init(SYS_NUM_OF_PRPIDS, buffer_pool_id,
 					&ext_prpid_pool_address);
 
-		return status;
+	return 0;
 }
 
 
@@ -74,12 +74,11 @@ int32_t sys_keyid_pool_create(void)
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
-		return status;
+		handle_fatal_error((char *)status); /*TODO Fatal error*/
 
-
-	status = id_pool_init(SYS_NUM_OF_KEYIDS, buffer_pool_id,
+	id_pool_init(SYS_NUM_OF_KEYIDS, buffer_pool_id,
 					&ext_keyid_pool_address);
-	return status;
+	return 0;
 }
 
 int32_t aiop_sl_init(void)
@@ -94,7 +93,7 @@ int32_t aiop_sl_init(void)
 
 
 #ifndef AIOP_VERIF
-	/* Variabled needed for Storage Profile Init */
+	/* Variables needed for Storage Profile Init */
 	uint16_t buffer_pool_id;
 	int num_filled_buffs;
 
@@ -102,7 +101,7 @@ int32_t aiop_sl_init(void)
 			MEM_PART_1ST_DDR_NON_CACHEABLE,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
-		return status;
+		handle_fatal_error((char *)status); /*TODO Fatal error*/
 #endif
 
 	/* initialize profile sram */
@@ -253,17 +252,12 @@ int32_t aiop_sl_init(void)
 	/* End of TMAN EPID Init */
 #endif
 
-	status = sys_prpid_pool_create();
-	if (status)
-		return status; /* TODO */
+	sys_prpid_pool_create();
 
 #ifdef AIOP_VERIF
-	status = sys_keyid_pool_create();
-	return status; /* TODO */
+	sys_keyid_pool_create();
 #else
-	status = sys_keyid_pool_create();
-	if (status)
-		return status; /* TODO */
+	sys_keyid_pool_create();
 
 	status = ipr_init();
 	if (status)
@@ -272,6 +266,7 @@ int32_t aiop_sl_init(void)
 	status = aiop_snic_init();
 	return status;
 #endif
+	return 0;
 }
 
 void aiop_sl_free(void)

@@ -1,65 +1,15 @@
-#ifndef __FSL_CMDIF_FLIB_H
-#define __FSL_CMDIF_FLIB_H
+#ifndef __FSL_CMDIF_FLIB_C_H
+#define __FSL_CMDIF_FLIB_C_H
 
 #include <types.h>
 #include <fsl_cmdif_client.h>
-#include <fsl_cmdif_server.h>
+#include <fsl_cmdif_fd.h>
 
 /* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
- *  @file    fsl_cmdif_flib.h
- *  @brief   Cmdif AIOP<->GPP FLIB header file
+ *  @file    fsl_cmdif_flib_c.h
+ *  @brief   Cmdif AIOP<->GPP FLIB header file fro client
  */
-
-/*!
- * The following are the FD fields that are used by CMDIF
- * cmdif_fd.fls, cmdif_fd.frc, cmdif_fd.d_addr, cmdif_fd.d_size
- * should be copied into real FD */
-struct cmdif_fd {
-	/*! FD[FLC] Frame descriptor relevant fields as should be set
-	 * by cmdif client side when sending commands to AIOP server */
-	union {
-		uint64_t flc;
-		struct {
-			uint8_t dev_h;     /*!< 7 high bits of cmdif_desc.dev */
-			uint8_t err;       /*!< Reserved for error on response*/
-			uint16_t auth_id;  /*!< Authentication id */
-			uint16_t cmid;     /*!< Command id */
-			uint16_t epid;     /*!< Reserved fog EPID */
-		} cmd;
-		struct {
-			uint8_t inst_id;    /*!< Module instance id*/
-			uint8_t reserved0;
-			uint16_t auth_id;   /*!< Authentication id */
-			uint16_t cmid;      /*!< Command id */
-			uint16_t epid;      /*!< Reserved fog EPID */
-		} open;
-		/*!< Open command is always synchronous */
-		struct {
-			uint8_t reserved[2];
-			uint16_t auth_id;   /*!< Authentication id */
-			uint16_t cmid;      /*!< Command id */
-			uint16_t epid;      /*!< Reserved fog EPID */
-		} close;
-		/*!< Close command is always synchronous*/
-		uint32_t word[2];
-	} u_flc;
-
-	/*! FD[FRC] Frame descriptor relevant fields as should be set
-	 * by cmdif client side when sending commands to AIOP server */
-	union  {
-		uint32_t frc;
-		struct {
-			uint32_t dev_l;   /*!< 32 low bit of cmdif_desc.dev */
-		} cmd;
-	} u_frc;
-
-	uint32_t d_size; /*!< Data length */
-	union {
-		uint64_t d_addr; /*!< Data address */
-		uint32_t word[2];
-	}u_addr;
-};
 
 /**
  *
@@ -208,14 +158,5 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
  */
 int cmdif_async_cb(struct cmdif_fd *fd);
 
-struct cmdif_srv *cmdif_srv_allocate(void *(*fast_malloc)(int),
-				     void *(*slow_malloc)(int));
-void cmdif_srv_deallocate(struct  cmdif_srv *srv, 
-                          void (*free)(void *ptr));
-int cmdif_srv_unregister(struct  cmdif_srv *srv, 
-                         const char *m_name);
-int cmdif_srv_register(struct  cmdif_srv *srv, 
-                       const char *m_name, 
-                       struct cmdif_module_ops *ops);
 
 #endif /* __FSL_CMDIF_FLIB_H */
