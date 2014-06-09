@@ -26,42 +26,19 @@ static int dpci_dicovery()
 {
 	int dev_count;
 	void *p_vaddr;
-	struct dprc dprc;
-	int container_id;
 	struct dprc_obj_desc dev_desc;
 	int err = 0;
 	int i = 0;
-	
-	memset(&dprc, 0, sizeof(struct dprc));
-	
-	/* TODO: replace hard-coded portal address 1 with configured value */
-	/* TODO : layout file must contain portal ID 1 in order to work. */
-	/* TODO : in this call, can 3rd argument be zero? */
-	/* Get virtual address of MC portal */
-	p_vaddr = \
-	UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-    	                             (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
-
-	/* Open root container in order to create and query for devices */
-	dprc.regs = p_vaddr;
-	if ((err = dprc_get_container_id(&dprc, &container_id)) != 0) {
-		pr_err("Failed to get AIOP root container ID.\n");
-		return(err);
-	}
-	if ((err = dprc_open(&dprc, container_id)) != 0) {
-		pr_err("Failed to open AIOP root container DP-RC%d.\n", 
-		       container_id);
-		return(err);
-	}
-	
-	if ((err = dprc_get_obj_count(&dprc, &dev_count)) != 0) {
-	    pr_err("Failed to get device count for root container DP-RC%d.\n", 
-	           container_id);
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+			
+	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+	    pr_err("Failed to get device count for RC auth_d = %d\n", 
+	           dprc->auth);
 	    return err;
 	}
 
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(&dprc, i, &dev_desc);
+		dprc_get_obj(dprc, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpci") == 0) {			
 			pr_debug(" device %d\n");
 			pr_debug("***********\n");
