@@ -207,8 +207,9 @@ int32_t fdma_present_frame(
 
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
-		else /* FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR or
-			FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
+		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
+			return -EIO;
+		else /*FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
 			return -EIO;
 	}
 
@@ -1190,7 +1191,7 @@ int32_t fdma_split_frame(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
+void fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
 {
 	/* command parameters and results */
 	uint32_t arg1, arg2;
@@ -1211,15 +1212,12 @@ int32_t fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
 	if (res1 == FDMA_SUCCESS){
 		PRC_SET_SEGMENT_OFFSET(offset);
 		PRC_SET_SEGMENT_LENGTH(size);
-		return SUCCESS;
 	}
-
-	fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_modify_default_segment_data(
+void fdma_modify_default_segment_data(
 		uint16_t offset,
 		uint16_t size)
 {
@@ -1246,12 +1244,8 @@ int32_t fdma_modify_default_segment_data(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-
-	fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
+	if (res1 != FDMA_SUCCESS)
+		fdma_handle_fatal_errors((int32_t)res1);
 }
 
 int32_t fdma_replace_default_segment_data(
@@ -1573,7 +1567,7 @@ int32_t fdma_delete_segment_data(
 }
 
 
-int32_t fdma_close_default_segment(void)
+void fdma_close_default_segment(void)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -1597,17 +1591,13 @@ int32_t fdma_close_default_segment(void)
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS){
+	if (res1 == FDMA_SUCCESS)
 		PRC_SET_NDS_BIT();
-		return SUCCESS;
-	}
-
-	fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
+void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -1629,14 +1619,10 @@ int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS){
+	if (res1 == FDMA_SUCCESS)
 		PRC_SET_NDS_BIT();
-		return SUCCESS;
-	}
-
-	fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
+	else
+		fdma_handle_fatal_errors((int32_t)res1);
 }
 
 int32_t fdma_replace_default_asa_segment_data(
@@ -1760,7 +1746,7 @@ int32_t fdma_replace_default_pta_segment_data(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_calculate_default_frame_checksum(
+void fdma_calculate_default_frame_checksum(
 		uint16_t offset,
 		uint16_t size,
 		uint16_t *checksum)
@@ -1782,15 +1768,11 @@ int32_t fdma_calculate_default_frame_checksum(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	*checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+FDMA_CHECKSUM_OFFSET));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-
-	fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
+	if (res1 != FDMA_SUCCESS)
+		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_copy_data(
+void fdma_copy_data(
 		uint16_t copy_size,
 		uint32_t flags,
 		void *src,
@@ -1812,12 +1794,8 @@ int32_t fdma_copy_data(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-
-	fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
+	if (res1 != FDMA_SUCCESS)
+		fdma_handle_fatal_errors((int32_t)res1);
 }
 
 int32_t fdma_acquire_buffer(
@@ -1853,7 +1831,7 @@ int32_t fdma_acquire_buffer(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_release_buffer(
+void fdma_release_buffer(
 		uint16_t icid,
 		uint32_t flags,
 		uint16_t bpid,
@@ -1876,15 +1854,11 @@ int32_t fdma_release_buffer(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-
-	fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
+	if (res1 != FDMA_SUCCESS)
+		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_create_frame(
+void fdma_create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
 		uint16_t size,
@@ -1935,8 +1909,6 @@ int32_t fdma_create_frame(
 
 		*frame_handle = present_frame_params.frame_handle;
 	}
-
-	return SUCCESS;;
 }
 
 int32_t fdma_create_fd(
