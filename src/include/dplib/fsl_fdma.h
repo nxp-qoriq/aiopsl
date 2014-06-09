@@ -1374,8 +1374,10 @@ int32_t fdma_enqueue_default_fd_fqid(
 @Param[in]	fqid - frame queue ID for the enqueue.
 @Param[in]	icid - ICID of the FD to enqueue.
 
-@Return		Status (if enqueue succeeded or failed. (\ref
-		FDMA_ENQUEUE_FD_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.

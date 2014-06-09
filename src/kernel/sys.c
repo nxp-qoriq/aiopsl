@@ -13,7 +13,6 @@
 /* Global System Object */
 __SHRAM t_system sys = {0};
 
-#define NUM_OF_HANDLES 5
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
 

@@ -207,6 +207,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			/* Parser results are already updated */
 			gso_ctx->first_seg = 0;
 
+			outer_ip_offset = (uint8_t)
+					(PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
+
 			tcp_ptr = (struct tcphdr *)(
 					PARSER_GET_L4_POINTER_DEFAULT());
 

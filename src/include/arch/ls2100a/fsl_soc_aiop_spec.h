@@ -31,17 +31,15 @@ enum fsl_os_module {
 	FSL_OS_MOD_SOC = 0,
 
 	FSL_OS_MOD_CMDIF_SRV,
+	FSL_OS_MOD_CMDIF_CL,
 	FSL_OS_MOD_SLAB,
 	FSL_OS_MOD_UART,
 	FSL_OS_MOD_CMGW,
-	/*The above modules used for sys_handle*/
 	FSL_OS_MOD_DPRC,
 	FSL_OS_MOD_DPNI,
 	FSL_OS_MOD_DPIO,
 	FSL_OS_MOD_DPSP,
 	FSL_OS_MOD_DPSW,
-
-
 
 	FSL_OS_MOD_MC_PORTAL,
 
