@@ -787,7 +787,7 @@ int32_t fdma_acquire_buffer(
 @Param[in]	bpid - Buffer pool ID used for the Release Buffer.
 @Param[out]	addr - Buffer address to be released.
 
-@Return		Success (0).
+@Return		None.
 
 @Cautions	This command is not intended to be used in a normal datapath,
 		but more of a get out of jail card where access to BMan buffers
@@ -796,7 +796,7 @@ int32_t fdma_acquire_buffer(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_release_buffer(
+void fdma_release_buffer(
 		uint16_t icid,
 		uint32_t flags,
 		uint16_t bpid,
