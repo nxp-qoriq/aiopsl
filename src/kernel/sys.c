@@ -281,6 +281,13 @@ int sys_init(void)
 /*****************************************************************************/
 void sys_free(void)
 {
+#ifdef AIOP_ENABLE_WS
+	if (sys_is_master_core()) {
+		//TODO disable ws
+		aiop_ws_enable(aiop_regs, AIOP_WS_DISABLE);
+	}
+#endif
+	
 	sys_free_platform();
 
 	sys_free_multi_processing();

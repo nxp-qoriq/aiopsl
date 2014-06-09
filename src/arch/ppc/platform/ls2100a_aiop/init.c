@@ -109,6 +109,54 @@ int global_post_init(void)
 	return 0;
 }
 
+#ifdef AIOP_ENABLE_WS
+/**************************************************************************//**
+ @Description   AIOP work scheduler enablement mode
+ *//***************************************************************************/
+enum aiop_ws_en_mode {
+	AIOP_WS_DISABLE = 0, /* Disable work scheduler from receiving tasks */
+	AIOP_WS_ENABLE_QMAN = 1, /* Enable work scheduler to receive tasks from QMan only */
+	AIOP_WS_ENABLE_TMAN = 2, /* Enable work scheduler to receive tasks from TMan only */
+	AIOP_WS_ENABLE_ALL = 3
+/* Enable work scheduler to receive tasks from both QMan and TMan */
+};
+
+static int aiop_ws_enable(struct aiop_tile_regs *aiop_regs,
+                   enum aiop_ws_en_mode en_mode)
+{
+	struct aiop_ws_regs *ws_regs = &aiop_regs->ws_regs;
+	uint32_t val;
+
+	val = ioread32(&ws_regs->cfg);
+
+	switch (en_mode) {
+	case AIOP_WS_DISABLE:
+		val &= ~AIOP_WS_ENABLE_ALL;
+		break;
+
+	case AIOP_WS_ENABLE_QMAN:
+		val |= AIOP_WS_ENABLE_QMAN;
+		break;
+
+	case AIOP_WS_ENABLE_TMAN:
+		val |= AIOP_WS_ENABLE_TMAN;
+		break;
+
+	case AIOP_WS_ENABLE_ALL:
+		val |= AIOP_WS_ENABLE_ALL;
+		break;
+
+	default:
+		pr_err("Unsupported work scheduler enablement mode");
+		return -EINVAL;
+	}
+
+	iowrite32(val, &ws_regs->cfg);
+
+	return 0;
+}
+#endif
+
 void core_ready_for_tasks(void)
 {
     uint32_t abcr_val;
@@ -139,18 +187,17 @@ void core_ready_for_tasks(void)
 #ifndef SINGLE_CORE_WA
     while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
 #endif
+    
+#ifdef AIOP_ENABLE_WS
+    if(sys_is_master_core()) {
+	    //TODO check return value
+    	aiop_ws_enable(aiop_regs, AIOP_WS_ENABLE_ALL);
+    }
+#endif
+    
 #if (STACK_OVERFLOW_DETECTION == 1)
     booke_set_spr_DAC2(0x800);
 #endif
-
-    //TODO not tested !!
-    //TODO what about disabling ws ??
-    if(sys_is_master_core()) {
-	uint32_t val;
-	val = ioread32(&aiop_regs->ws_regs.cfg);
-	val |= 3; /* enable all */
-	iowrite32(val, &aiop_regs->ws_regs.cfg);
-    }
     
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
