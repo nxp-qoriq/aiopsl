@@ -213,6 +213,7 @@ static int global_sys_init(void)
 {
 	struct platform_param platform_param;
 	int err = 0;
+	uintptr_t   aiop_base_addr;
 	ASSERT_COND(sys_is_master_core());
 
 	update_active_cores_mask();
@@ -235,6 +236,13 @@ static int global_sys_init(void)
 	
 	err = sys_add_handle(sys.platform_ops.h_platform,
 		FSL_OS_MOD_SOC, 1, 0);
+	if (err != 0) return err;
+	
+	aiop_base_addr = sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+	                                      0,
+	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
+	err = sys_add_handle( (fsl_handle_t)aiop_base_addr, 
+	                                           FSL_OS_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
 	
 	return 0;

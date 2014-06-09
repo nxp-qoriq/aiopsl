@@ -384,8 +384,8 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     int     err = 0, i = 0;
     uint32_t CTSCSR_value = 0;
     uint32_t WSCR_tasks_bit = 0;
-    struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *) \
-	                               (SOC_PERIPH_OFF_AIOP_TILE + 0x02000000);
+    struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *) 
+	                               sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);    
     
     if (pltfrm == NULL) {
 	    return -EINVAL;
