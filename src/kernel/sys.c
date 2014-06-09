@@ -241,8 +241,9 @@ static int global_sys_init(void)
 	aiop_base_addr = sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
+	
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr, 
-	                                           FSL_OS_MOD_AIOP_TILE, 1, 0);
+	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
 	
 	return 0;
