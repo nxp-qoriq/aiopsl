@@ -10,7 +10,7 @@
 #ifndef __FSL_GENERAL_H_
 #define __FSL_GENERAL_H_
 
-#include "arch/fsl_endian.h"
+#include "fsl_endian.h"
 #include "dplib/fsl_ldpaa.h"
 #include "null.h"
 /*#include "dplib/fsl_aiop_parser.h"*/

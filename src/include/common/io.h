@@ -9,9 +9,7 @@
 #define __FSL_IO_H
 
 #include "common/types.h"
-#include "arch/fsl_endian.h"
-
-/*TODO: return the "inline"to R/W function when the CQ ENGR00316360 solved */
+#include "fsl_endian.h"
 
 static inline uint8_t ioread8(const volatile uint8_t *addr)
 {
@@ -22,47 +20,47 @@ static inline uint8_t ioread8(const volatile uint8_t *addr)
 
 static uint16_t ioread16(const volatile uint16_t *addr)
 {
-	uint16_t ret = LE16_TO_CPU(addr);
+	uint16_t ret = LH_SWAP(0, addr);
 	core_memory_barrier();
 	return ret;
 }
 
 static uint16_t ioread16be(const volatile uint16_t *addr)
 {
-	uint16_t ret = BE16_TO_CPU(addr);
+	uint16_t ret = BE16_TO_CPU(*addr);
 	core_memory_barrier();
 	return ret;
 }
 
 static uint32_t ioread32(const volatile uint32_t *addr)
 {
-	uint32_t ret = LE32_TO_CPU(addr);
+	uint32_t ret = LW_SWAP(0, addr);
 	core_memory_barrier();
 	return ret;
 }
 
 static uint32_t ioread32be(const volatile uint32_t *addr)
 {
-	uint32_t ret = BE32_TO_CPU(addr);
+	uint32_t ret = BE32_TO_CPU(*addr);
 	core_memory_barrier();
 	return ret;
 }
 
 static uint64_t ioread64(const volatile uint64_t *addr)
 {
-	uint64_t ret = LE64_TO_CPU(addr);
+	uint64_t ret = LLLDW_SWAP(0, addr);
 	core_memory_barrier();
 	return ret;
 }
 
 static uint64_t ioread64be(const volatile uint64_t *addr)
 {
-	uint64_t ret = BE64_TO_CPU(addr);
+	uint64_t ret = BE64_TO_CPU(*addr);
 	core_memory_barrier();
 	return ret;
 }
 
-static inline void iowrite8(uint8_t val, volatile uint8_t *addr)
+static void iowrite8(uint8_t val, volatile uint8_t *addr)
 {
 	*addr = val;
 	core_memory_barrier();
@@ -70,37 +68,37 @@ static inline void iowrite8(uint8_t val, volatile uint8_t *addr)
 
 static void iowrite16(uint16_t val, volatile uint16_t *addr)
 {
-	CPU_TO_LE16(val, addr);
+	STH_SWAP(val, 0, addr);
 	core_memory_barrier();
 }
 
 static void iowrite16be(uint16_t val, volatile uint16_t *addr)
 {
-	CPU_TO_BE16(val, addr);
+	*addr = CPU_TO_BE16(val);
 	core_memory_barrier();
 }
 
 static void iowrite32(uint32_t val, volatile uint32_t *addr)
 {
-	CPU_TO_LE32(val, addr);
+	STW_SWAP(val, 0, addr);
 	core_memory_barrier();
 }
 
 static void iowrite32be(uint32_t val, volatile uint32_t *addr)
 {
-	CPU_TO_BE32(val, addr);
+	*addr = CPU_TO_BE32(val);
 	core_memory_barrier();
 }
 
 static void iowrite64(uint64_t val, volatile uint64_t *addr)
 {
-	CPU_TO_LE64(val, addr);
+	LLSTDW_SWAP(val, 0, addr);
 	core_memory_barrier();
 }
 
 static void iowrite64be(uint64_t val, volatile uint64_t *addr)
 {
-	CPU_TO_BE64(val, addr);
+	*addr = CPU_TO_BE64(val);
 	core_memory_barrier();
 }
 
