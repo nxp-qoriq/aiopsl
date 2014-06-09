@@ -312,10 +312,8 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {
-		hw_status = fdma_calculate_default_frame_checksum(0, 0xFFFF,
-					&pr->gross_running_sum);
-		if (SUCCESS != hw_status)
-			return hw_status;
+		fdma_calculate_default_frame_checksum(0, 0xFFFF,
+						      &pr->gross_running_sum);
 	}
 
 	/* Call parser */
@@ -342,11 +340,9 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 		/* Update FDMA */
 		if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
-			hw_status = fdma_modify_default_segment_data(l4offset +
+			fdma_modify_default_segment_data(l4offset +
 					offsetof(struct tcphdr, checksum),
 					sizeof((struct tcphdr *)0)->checksum);
-			if (hw_status != SUCCESS)
-				return hw_status;
 		}
 
 	} /* TCP */
@@ -362,11 +358,9 @@ int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
 
 		/* Update FDMA */
 		if (!(flags & L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
-			hw_status = fdma_modify_default_segment_data(l4offset +
+			fdma_modify_default_segment_data(l4offset +
 					offsetof(struct udphdr, checksum),
 					sizeof((struct udphdr *)0)->checksum);
-			if (hw_status != SUCCESS)
-				return hw_status;
 		}
 	} /* UDP */
 
