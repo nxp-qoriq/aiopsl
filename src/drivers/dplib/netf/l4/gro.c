@@ -674,6 +674,7 @@ int32_t tcp_gro_flush_aggregation(
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();
+	PRC_RESET_NDS_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
@@ -793,6 +794,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();
+	PRC_RESET_NDS_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
