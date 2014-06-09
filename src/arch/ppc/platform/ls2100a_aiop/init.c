@@ -187,12 +187,11 @@ static int fill_bpid(uint16_t num_buffs,
     dma_addr_t addr  = 0;
 
     for (i = 0; i < num_buffs; i++) {
-        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, mem_partition_id, alignment));
+        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, 
+                                                  mem_partition_id, 
+                                                  alignment));
         /* Here, we pass virtual BPID, therefore BDI = 0 */
-        if (fdma_release_buffer(0, FDMA_RELEASE_NO_FLAGS, bpid, addr)) {
-            fsl_os_xfree(fsl_os_phys_to_virt(addr));
-            return -ENAVAIL;
-        }
+        fdma_release_buffer(0, FDMA_RELEASE_NO_FLAGS, bpid, addr);        
     }
     return 0;
 }
