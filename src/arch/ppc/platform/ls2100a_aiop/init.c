@@ -16,6 +16,7 @@
 
 __SHRAM uint8_t abcr_lock = 0;
 
+extern int cmdif_client_init();     extern void cmdif_client_free();
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
 extern int slab_module_init(void);  extern void slab_module_free(void);
@@ -46,6 +47,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 {                                          \
     {slab_module_init,  slab_module_free}, \
     {dpni_drv_init,     dpni_drv_free},    \
+    {cmdif_client_init, cmdif_client_free},\
     {cmdif_srv_init,    cmdif_srv_free},   \
     {aiop_sl_init,      aiop_sl_free},     \
     {NULL, NULL} /* never remove! */       \
