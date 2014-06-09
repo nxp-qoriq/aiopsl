@@ -90,6 +90,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>id_pool.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/id_pool.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -145,6 +150,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/mc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/serial</name>
 			<type>2</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/serial</locationURI>
@@ -178,6 +188,16 @@
 			<name>aiop_sl/include/net</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/cmdif_client.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/cmdif_client_flib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_flib.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif_srv.c</name>
@@ -345,6 +365,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/mc/mc_init.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/mc_init.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/arch/cores</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -395,14 +420,24 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/errors.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/fsl_cmdif.h</name>
+			<name>aiop_sl/include/common/fsl_cmdif_client.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_client.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/fsl_cmdif_flib.h</name>
+			<name>aiop_sl/include/common/fsl_cmdif_fd.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_flib.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_fd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/common/fsl_cmdif_flib_c.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_flib_c.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/common/fsl_cmdif_flib_s.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_flib_s.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_cmdif_server.h</name>
@@ -788,6 +823,11 @@
 			<name>aiop_sl/drivers/dplib/util/checksum.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/util/general.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/arch/cores/fsl_core_booke.h</name>

@@ -1,3 +1,10 @@
+- mc_init.c:                   New driver for common MC objects creation.
+- fsl_cmdif_fd.h:              New file for client & server CMDIF flibs, describes command interface Frame Descriptor
+- fsl_cmdif_flib_c.h:          New file for client CMDIF flibs
+- fsl_cmdif_flib_s.h:          New file for server CMDIF flibs
+- fsl_cmdif_flib.h:            Replaced this file by 2 new files fsl_cmdif_flib_c.h and fsl_cmdif_flib_s.h
+- fsl_cmdif_server.h:          API change in ctrl_cb_t, data is physical address.
+
 ** AIOP ARENA SL Alpha v0.4.1_update01 **
 - Updated API to synch with MC FW v0.4
 ** AIOP ARENA SL Alpha v0.4.1 **

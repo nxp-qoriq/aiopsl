@@ -1,8 +1,8 @@
 #ifndef __CMDIF_SRV_H
 #define __CMDIF_SRV_H
 
-#include "fsl_cmdif_server.h"
-#include "fsl_cmdif_client.h"
+#include <fsl_cmdif_server.h>
+#include <fsl_cmdif_client.h>
 
 #define CMD_ID_MASK	   0x00000000FFFF0000 /**< FLC */
 #define CMD_ID_OFF	   16
@@ -18,6 +18,8 @@
 
 #define CMD_ID_OPEN           0x8000
 #define CMD_ID_CLOSE          0x4000
+#define CMD_ID_NOTIFY_OPEN    0xF000 /**< Internal for cmdif command */
+#define CMD_ID_NOTIFY_CLOSE   0xE000 /**< Internal for cmdif command */
 #define M_NUM_OF_INSTANCES    512
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
@@ -45,12 +47,9 @@ struct cmdif_srv {
 	/**< converts auth_id to module for cb, SHRAM */
 	uint16_t     inst_count;
 	/**< counter for instance handlers */
-	uint8_t      lock;
-	/**< cmdif spinlock used for module id allocation */
 };
 
 int cmdif_srv_init(void);
 void cmdif_srv_free(void);
-void cmdif_srv_isr(void);
 
 #endif /* __CMDIF_SRV_H */

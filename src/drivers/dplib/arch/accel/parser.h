@@ -56,6 +56,31 @@
 #define PARSER_STATUS_MASK	0xFFFF0000
 
 
+/**************************************************************************//**
+@Group AIOP_PARSE_RESULT_GEN_HW_STATUS Parse Result Generation HW Status
+@{
+*//***************************************************************************/
+	/** Command status success */
+#define PARSER_HW_STATUS_SUCCESS				0x00000000
+	/** Parser SR failed due to Cycle limit exceeded */
+#define PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED			0x00800000
+	/** Parser SR failed due to invalid soft parse instruction */
+#define PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION		0x00400000
+	/** Parser SR failed due to parsing error */
+#define PARSER_HW_STATUS_PARSING_ERROR				0x00200000
+	/** Parser SR failed due to block limit exceeded */
+#define PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED			0x00100000
+	/** L3 checksum validation success */
+#define PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED	0x00080000
+	/** L3 checksum validation failure */
+#define PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR	0x000C0000
+	/** L4 checksum validation success */
+#define PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x00020000
+	/** L4 checksum validation failure */
+#define PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR	0x00030000
+
+/** @} */ /* end of AIOP_PARSE_RESULT_GEN_HW_STATUS */
+
 /** @} */ /* end of PARSER_DEFINES */
 
 /** @} */ /* end of PARSER_MACROS */
@@ -143,24 +168,37 @@ struct parser_input_message_params {
 @Param[out]	l4_checksum - L4 checksum calculated by the parser. Must not be
 		NULL.
 
-@Return		Status - please refer to \ref AIOP_PARSE_RESULT_GEN_STATUS.\n
-		Note: In the current version of this function, the returned
-		status does not indicate of frame parsing errors.
-		This will be supported in the future.
-		Meanwhile, user should use PARSER_IS_PARSING_ERROR_DEFAULT()
-		in order to find out whether parsing error has occurred.
+@Return		0 on Success, or negative value on error.
 		The exact error code can be discovered by using
-		PARSER_GET_PARSE_ERROR_CODE_DEFAULT().
+		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
+		\ref FSL_PARSER_ERROR_CODES.
+
+@Retval		0 – Success
+@Retval		EIO - Parsing Error
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of 256 bytes before completing all parsing)
 
 @Cautions	In this function the task yields.
 		This function expects gross running sum field to be valid.
 		l3 & l4 checksum pointers must not be NULL.
+		This function may result in a fatal error.
 *//***************************************************************************/
 int32_t parse_result_generate_checksum(
 		enum parser_starting_hxs_code starting_hxs,
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum
 );
+
+/**************************************************************************//**
+@Function	parser_handle_fatal_errors
+
+@Description  	Handles keygen fatal errors.
+
+@Param[in]	Status.
+
+@Return		None.
+*//***************************************************************************/
+void parser_handle_fatal_errors(int32_t status);
 
 /** @} */ /* end of PARSER */
 

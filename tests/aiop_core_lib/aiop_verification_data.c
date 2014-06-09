@@ -27,12 +27,15 @@ __VERIF_GLOBAL uint8_t tmi_id;
 
 __VERIF_TLS ipf_ctx_t ipf_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
+__VERIF_TLS ipf_ctx_t ipf_context_addr2
+	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS tcp_gso_ctx_t tcp_gso_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS int32_t status;
 __VERIF_TLS int32_t status_gro;
 __VERIF_TLS int32_t status_gso;
-__VERIF_TLS int32_t status_ipf;
+__VERIF_TLS int32_t status_ipf1;
+__VERIF_TLS int32_t status_ipf2;
 __VERIF_TLS int32_t status_ipr;
 __VERIF_TLS int32_t status_ipsec_encr;
 __VERIF_TLS int32_t status_ipsec_decr;
@@ -83,7 +86,8 @@ void init_verif()
 	status = 0;
 	status_gro = 0;
 	status_gso = 0;
-	status_ipf = 0;
+	status_ipf1 = 0;
+	status_ipf2 = 0;
 	status_ipr = 0;
 	status_ipsec_encr = 0;
 	status_ipsec_decr = 0;

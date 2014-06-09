@@ -241,7 +241,7 @@ struct ipr_get_reass_frm_cntr_command {
 		/**< Command structure identifier. */
 	int32_t					status;
 	uint32_t				flags;
-	uint32_t				*reass_frm_cntr;
+	uint32_t				reass_frm_cntr;
 #if CLOSED_MODEL	
 	ipr_instance_handle_t			ipr_instance;
 	uint8_t					ipr_instance_ref;
