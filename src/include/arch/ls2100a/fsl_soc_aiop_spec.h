@@ -40,6 +40,8 @@ enum fsl_os_module {
 	FSL_OS_MOD_DPIO,
 	FSL_OS_MOD_DPSP,
 	FSL_OS_MOD_DPSW,
+	
+	FSL_OS_MOD_AIOP_TILE,
 
 	FSL_OS_MOD_MC_PORTAL,
 	FSL_OS_MOD_AIOP_RC,   /**< AIOP root container from DPL */

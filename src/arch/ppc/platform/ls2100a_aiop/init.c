@@ -116,13 +116,9 @@ int global_post_init(void)
 
 void core_ready_for_tasks(void)
 {
-	uint32_t abcr_val;
-	uintptr_t   tmp_reg =
-	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-	                                      0,
-	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
-
-    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)tmp_reg;
+    uint32_t abcr_val;
+    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
+	                              sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	
     uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
     uint32_t *abrr = &aiop_regs->cmgw_regs.abrr;

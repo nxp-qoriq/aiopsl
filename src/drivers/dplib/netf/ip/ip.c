@@ -965,7 +965,6 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 {
 	uint16_t running_sum;
-	int32_t  fdma_status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Calculate header size */
@@ -979,10 +978,7 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 				+ PRC_GET_SEGMENT_OFFSET());
 
 	/* Call FDMA for running sum computation */
-	fdma_status = fdma_calculate_default_frame_checksum(offset, ihl,
-							    &running_sum);
-	if (fdma_status != SUCCESS)
-		return fdma_status;
+	fdma_calculate_default_frame_checksum(offset, ihl, &running_sum);
 
 	/* Invalidate Parser Result Gross Running Sum field */
 	pr->gross_running_sum = 0;
@@ -997,11 +993,9 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 
 	/* Update FDMA */
 	if (!(flags & IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
-		fdma_status = fdma_modify_default_segment_data(offset +
+		fdma_modify_default_segment_data(offset +
 				offsetof(struct ipv4hdr, hdr_cksum),
 				sizeof((struct ipv4hdr *)0)->hdr_cksum);
-		if (fdma_status != SUCCESS)
-			return fdma_status;
 	}
 
 	return SUCCESS;
