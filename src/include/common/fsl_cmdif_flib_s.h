@@ -12,7 +12,7 @@
  */
 
 void *cmdif_srv_allocate(void *(*fast_malloc)(int),
-				     void *(*slow_malloc)(int));
+                         void *(*slow_malloc)(int));
 
 void cmdif_srv_deallocate(void *srv, 
                           void (*free)(void *ptr));

@@ -13,19 +13,29 @@
 void cmdif_client_free();
 int cmdif_client_init();
 
-static int session_get(const char *module_name, 
+static int session_get(const char *m_name, 
                        uint8_t ins_id, 
                        uint32_t dpci_id, 
                        struct cmdif_desc *cidesc)
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
+	if (	(cl->gpp[0].ins_id == ins_id) && 
+		(cl->gpp[0].dpci_id == dpci_id) &&
+		(strncmp((const char *)&cl->gpp[0].m_name[0], 
+		         m_name, 
+		         M_NAME_CHARS) == 0)) {
+		/* TODO AIOP need physical address !!!! cidesc->dev = */ 
+		cidesc->regs = (void *)dpci_id; /* TODO change it to GPP */
+		
+	}
+
+	return 0;
 }
 
-static int dpci_dicovery()
+static int dpci_discovery()
 {
 	int dev_count;
-	void *p_vaddr;
 	struct dprc_obj_desc dev_desc;
 	int err = 0;
 	int i = 0;
@@ -55,6 +65,7 @@ static int dpci_dicovery()
 		}
 	}
 
+	return err;
 }
 
 int cmdif_client_init()
@@ -75,7 +86,7 @@ int cmdif_client_init()
 	
 	
 #ifndef AIOP_STANDALONE
-	dpci_dicovery();
+	dpci_discovery();
 #endif
 	
 	err = sys_add_handle(cl, FSL_OS_MOD_CMDIF_CL, 1, 0);
@@ -103,10 +114,18 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
 	
-	if ((v_data == NULL) || (p_data == NULL) || (size > 0))
+	if ((v_data != NULL) || (p_data != NULL) || (size > 0))
 		return -EINVAL; /* Buffer allocated by GPP */
 	
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
+	if (err != 0)
+		return err;
+	
+	dev = (struct cmdif_dev *)cidesc->dev;
+	dev->async_cb  = async_cb;
+	dev->async_ctx = async_ctx;
+	
+	return err;
 }
 
 int cmdif_send(struct cmdif_desc *cidesc,

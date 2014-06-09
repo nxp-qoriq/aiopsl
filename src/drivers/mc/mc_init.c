@@ -9,9 +9,11 @@
 #include "errors.h"
 #include "dplib/fsl_dprc.h"
 
+int mc_obj_init();
+void mc_obj_free();
+
 static int aiop_container_init()
 {
-	int dev_count;
 	void *p_vaddr;
 	int err = 0;
 	int i = 0;
@@ -37,15 +39,16 @@ static int aiop_container_init()
 	dprc->regs = p_vaddr;
 	if ((err = dprc_get_container_id(dprc, &container_id)) != 0) {
 		pr_err("Failed to get AIOP root container ID.\n");
-		return(err);
+		return err;
 	}
 	if ((err = dprc_open(dprc, container_id)) != 0) {
 		pr_err("Failed to open AIOP root container DP-RC%d.\n", 
 		       container_id);
-		return(err);
+		return err;
 	}
 	
-	err = sys_add_handle(dprc, FSL_OS_MOD_AIOP_RC, 1, 0);	
+	err = sys_add_handle(dprc, FSL_OS_MOD_AIOP_RC, 1, 0);
+	return err;
 }
 
 static void aiop_container_free()
@@ -61,7 +64,11 @@ static void aiop_container_free()
 
 int mc_obj_init()
 {
-	aiop_container_init();
+	int err = 0;
+	
+	err |= aiop_container_init();
+	
+	return err;
 	
 }
 
