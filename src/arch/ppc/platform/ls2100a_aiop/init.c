@@ -16,6 +16,7 @@
 
 __SHRAM uint8_t abcr_lock = 0;
 
+extern int mc_obj_init();           extern void mc_obj_free();
 extern int cmdif_client_init();     extern void cmdif_client_free();
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
@@ -45,6 +46,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                     \
 {                                          \
+    {mc_obj_init,       mc_obj_free},      \
     {slab_module_init,  slab_module_free}, \
     {dpni_drv_init,     dpni_drv_free},    \
     {cmdif_client_init, cmdif_client_free},\
@@ -67,7 +69,6 @@ void core_ready_for_tasks(void);
 #include "general.h"
 /** Global task params */
 extern __TASK struct aiop_default_task_params default_task_params;
-
 
 void fill_platform_parameters(struct platform_param *platform_param)
 {
