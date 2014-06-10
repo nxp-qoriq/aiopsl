@@ -11,7 +11,7 @@
 #include "fsl_cdma.h"
 #include "errors.h"
 #include "cmdif_client.h"
-#include "fsl_cmdif_flib.h"
+#include "fsl_cmdif_flib_c.h"
 
 /* The purpose of this code is to modify the defaults FD in WS
  * in order to test Server.
@@ -43,8 +43,8 @@ static int cmdif_cb(void *async_ctx,
              uint64_t data)
 {
 
-	fsl_os_print("Async CB: err = %d cmd = 0x%x size = 0x%x data = 0x%ull async_ctx = 0x%x\n",
-	             err, cmd_id, size, data, async_ctx);
+	fsl_os_print("PASSED Async CB: err = %d cmd = 0x%x size = 0x%x data = 0x%x async_ctx = 0x%x\n",
+	             err, cmd_id, size, (uint32_t)data, async_ctx);
 	return 0;
 }
 
@@ -66,6 +66,7 @@ void client_open_cmd(struct cmdif_desc *client, void *sync_done)
 		cp_data_to_prc(v_ptr, (int)fd.d_size);
 	}
 	LDPAA_FD_SET_ADDR(HWC_FD_ADDRESS, fd.u_addr.d_addr);
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, fd.d_size);
 }
 
 void client_close_cmd(struct cmdif_desc *client)

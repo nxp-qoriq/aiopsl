@@ -19,7 +19,7 @@ void aiop_init_parser(uint8_t *prpid)
 {
 	uint8_t i;
 	struct parse_profile_input verif_parse_profile1 __attribute__((aligned(16)));
-	
+
 	/* Init basic parse profile */
 	verif_parse_profile1.parse_profile.eth_hxs_config = 0x0;
 	verif_parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
@@ -68,17 +68,30 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-	
+
 	opcode  = *((uint32_t *) asa_seg_addr);
 
 	switch (opcode) {
+	case PARSER_GEN_INIT_GROSS_STR:
+	{
+		struct parser_init_gross_verif_command *pc =
+						(struct parser_init_gross_verif_command *)
+						asa_seg_addr;
+		struct parse_result *pr =
+						(struct parse_result *)HWC_PARSE_RES_ADDRESS;
+		fdma_calculate_default_frame_checksum(0, 0xFFFF,
+				&pr->gross_running_sum);
+
+		str_size = sizeof(struct parser_init_gross_verif_command);
+		break;
+	}
 	case PARSER_PRP_CREATE_STR:
 	{
 		struct parser_prp_create_verif_command *pc =
 				(struct parser_prp_create_verif_command *)
 				asa_seg_addr;
 
-		pc->status = 
+		pc->status =
 			parser_profile_create(
 			(struct parse_profile_input *)pc->parse_profile,
 			&pc->prpid);
@@ -181,14 +194,14 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 	{
 		struct parser_macros_command *str =
 		(struct parser_macros_command *) asa_seg_addr;
-		
-		/* Next header offset */ 
+
+		/* Next header offset */
 		((struct parse_result *)str->macros_struct)->nxt_hdr = PARSER_GET_NEXT_HEADER_DEFAULT();
-		
-		/* Frame Attribute Flags Extension */ 
+
+		/* Frame Attribute Flags Extension */
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_extension = PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT();
-		
-		/* Frame Attribute Flags 1 */ 
+
+		/* Frame Attribute Flags 1 */
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_SHIM_SOFT_PARSING_ERROR_DEFAULT();
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_PARSING_ERROR_DEFAULT();
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_DEFAULT();
@@ -213,8 +226,8 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_MPLS_PARSING_ERROR_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ARP_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ARP_PARSING_ERROR_DEFAULT();
-		
-		/* Frame Attribute Flags 2 */ 
+
+		/* Frame Attribute Flags 2 */
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_L2_UNKNOWN_PROTOCOL_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_L2_SOFT_PARSING_ERROR_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_DEFAULT() ;
@@ -247,8 +260,8 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IP_PARSING_ERROR_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_DEFAULT();
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_S_FLAG_DEFAULT();
-		
-		/* Frame Attribute Flags 3 */ 
+
+		/* Frame Attribute Flags 3 */
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_MIN_ENCAP_PARSING_ERROR_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_GRE_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_GRE_R_BIT_SET_DEFAULT() ;
@@ -281,11 +294,11 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_CAPWAP_DATA_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_L5_SOFT_PARSING_ERROR_DEFAULT() ;
 		((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT();
-		
+
 		/* Offsets */
-		((struct parse_result *)str->macros_struct)->shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->shim_offset_2 = PARSER_GET_SHIM2_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->ip_pid_offset = PARSER_GET_IP_PID_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->ip_pid_offset = PARSER_GET_IP_PID_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->eth_offset = PARSER_GET_ETH_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->llc_snap_offset = PARSER_GET_LLC_SNAP_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->vlan_tci1_offset = PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT();
@@ -293,21 +306,21 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		((struct parse_result *)str->macros_struct)->last_etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->pppoe_offset = PARSER_GET_PPPOE_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->mpls_offset_1 = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->mpls_offset_n = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT(); 
-		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT(); 
-		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_ARP_OFFSET_DEFAULT(); 
-		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_INNER_IP_OFFSET_DEFAULT(); 
-		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_MINENCAP_OFFSET_DEFAULT(); 
-		((struct parse_result *)str->macros_struct)->gre_offset = PARSER_GET_GRE_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->mpls_offset_n = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_ARP_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_INNER_IP_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_MINENCAP_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->gre_offset = PARSER_GET_GRE_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->gtp_esp_ipsec_offset = PARSER_GET_L5_OFFSET_DEFAULT(); 
-		((struct parse_result *)str->macros_struct)->routing_hdr_offset1 = PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT(); 
-		((struct parse_result *)str->macros_struct)->routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->gtp_esp_ipsec_offset = PARSER_GET_L5_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->routing_hdr_offset1 = PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
+		((struct parse_result *)str->macros_struct)->routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->nxt_hdr_offset = PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->gross_running_sum = PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT();
 		((struct parse_result *)str->macros_struct)->running_sum = PARSER_GET_RUNNING_SUM_DEFAULT();
-		((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT(); 
+		((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
 
 		str_size = sizeof(struct parser_macros_command);
 		break;

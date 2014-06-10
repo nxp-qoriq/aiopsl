@@ -1,145 +1,144 @@
-#include <fsl_dplib_sys.h>
-#include <fsl_cmdif.h>
-#include <fsl_cmdif_mc.h>
+#include "common/types.h"
+#include "common/gen.h"
+#include "common/errors.h"
+#include "common/fsl_string.h"
+#include "common/fsl_malloc.h"
+#include "general.h"
+#include "sys.h"
+#include "dbg.h"
+#include "errors.h"
+#include "cmdif_client_aiop.h"
+#include "dplib/fsl_dprc.h"
 
-static int cmdif_wait_resp(struct mc_portal *portal)
+void cmdif_client_free();
+int cmdif_client_init();
+
+static int session_get(const char *m_name, 
+                       uint8_t ins_id, 
+                       uint32_t dpci_id, 
+                       struct cmdif_desc *cidesc)
 {
-	enum mc_cmd_status status;
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
-	/* wait for MC to complete command */
-	do {
-		status = mc_cmd_read_status(portal);
-	} while (status == MC_CMD_STATUS_READY);
-
-	switch (status) {
-	case MC_CMD_STATUS_OK:
-		return 0;
-	case MC_CMD_STATUS_AUTH_ERR:
-		return -EACCES; /* Authentication error */
-	case MC_CMD_STATUS_NO_PRIVILEGE:
-		return -EPERM; /* Permission denied */
-	case MC_CMD_STATUS_DMA_ERR:
-		return -EIO; /* Input/Output error */
-	case MC_CMD_STATUS_CONFIG_ERR:
-		return -EINVAL; /* Device not configured */
-	case MC_CMD_STATUS_TIMEOUT:
-		return -ETIMEDOUT; /* Operation timed out */
-	case MC_CMD_STATUS_NO_RESOURCE:
-		return -ENAVAIL; /* Resource temporarily unavailable */
-	case MC_CMD_STATUS_NO_MEMORY:
-		return -ENOMEM; /* Cannot allocate memory */
-	case MC_CMD_STATUS_BUSY:
-		return -EBUSY; /* Device busy */
-	case MC_CMD_STATUS_UNSUPPORTED_OP:
-		return -ENOTSUP; /* Operation not supported by device */
-	case MC_CMD_STATUS_INVALID_STATE:
-		return -ENODEV; /* Invalid device state */
-	default:
-		break;
+	if (	(cl->gpp[0].ins_id == ins_id) && 
+		(cl->gpp[0].dpci_id == dpci_id) &&
+		(strncmp((const char *)&cl->gpp[0].m_name[0], 
+		         m_name, 
+		         M_NAME_CHARS) == 0)) {
+		/* TODO AIOP need physical address !!!! cidesc->dev = */ 
+		cidesc->regs = (void *)dpci_id; /* TODO change it to GPP */
+		
 	}
 
-	/* not expected to reach here */
-	return -EINVAL;
+	return 0;
 }
 
-struct cmdif_cmd_mapping_entry {
-	enum cmdif_module module;
-	uint16_t cmd_id;
-};
+static int dpci_discovery()
+{
+	int dev_count;
+	struct dprc_obj_desc dev_desc;
+	int err = 0;
+	int i = 0;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+			
+	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+	    pr_err("Failed to get device count for RC auth_d = %d\n", 
+	           dprc->auth);
+	    return err;
+	}
+
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(dprc, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpci") == 0) {			
+			pr_debug(" device %d\n");
+			pr_debug("***********\n");
+			pr_debug("vendor - %x\n", dev_desc.vendor);
+			pr_debug("type - %s\n", dev_desc.type);
+			pr_debug("id - %d\n", dev_desc.id);
+			pr_debug("region_count - %d\n", dev_desc.region_count);
+			pr_debug("state - %d\n", dev_desc.state);
+			pr_debug("ver_major - %d\n", dev_desc.ver_major);
+			pr_debug("ver_minor - %d\n", dev_desc.ver_minor);
+			pr_debug("irq_count - %d\n\n", dev_desc.irq_count);
+			
+			/* TODO query about DPCI*/
+		}
+	}
+
+	return err;
+}
+
+int cmdif_client_init()
+{
+	int err = 0;
+	struct cmdif_cl *cl = fsl_os_xmalloc(sizeof(struct cmdif_cl), 
+	                                     MEM_PART_SH_RAM, 
+	                                     8);
+	if (cl == NULL) {
+		pr_err("No memory for client handle\n");
+		return -ENOMEM;
+	}
+	
+	memset(cl, 0, sizeof(struct cmdif_cl));
+	
+	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL))
+		return -ENODEV;
+	
+	
+#ifndef AIOP_STANDALONE
+	dpci_discovery();
+#endif
+	
+	err = sys_add_handle(cl, FSL_OS_MOD_CMDIF_CL, 1, 0);
+	if (err != 0) {
+		pr_err("Can't add client handle\n");
+		return err;
+	}
+	return 0;
+}
+
+void cmdif_client_free()
+{
+	
+}
 
 int cmdif_open(struct cmdif_desc *cidesc,
-               enum cmdif_module module,
-               int instance_id)
+		const char *module_name,
+		uint8_t ins_id,
+		cmdif_cb_t async_cb,
+		void *async_ctx,
+		uint8_t *v_data,
+		uint64_t p_data,
+		uint32_t size)
 {
-	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
-	struct mc_cmd_data cmd_data = {{ 0 }};
-	uint16_t auth_id;
-	int ret, i;
-
-	const struct cmdif_cmd_mapping_entry cmd_map[] =
-	        { { CMDIF_MOD_DPRC, MC_DPRC_CMDID_OPEN },
-	          { CMDIF_MOD_DPNI, MC_DPNI_CMDID_OPEN },
-	          { CMDIF_MOD_DPIO, MC_DPIO_CMDID_OPEN },
-	          { CMDIF_MOD_DPBP, MC_DPBP_CMDID_OPEN },
-	          { CMDIF_MOD_DPDMUX, MC_DPDMUX_CMDID_OPEN },
-	          { CMDIF_MOD_DPSW, MC_DPSW_CMDID_OPEN } };
-
-	for (i = 0; i < ARRAY_SIZE(cmd_map); i++)
-		if (cmd_map[i].module == module)
-			break;
-	if (i == ARRAY_SIZE(cmd_map))
-		return -ENOTSUP;
-
-	/* clear 'dev' - later it will store the Authentication ID */
-	cidesc->dev = (void*)0;
-
-	/* prepare command param */
-	cmd_data.params[0] = u64_enc(MC_CMD_OPEN_INST_ID_O,
-	                             MC_CMD_OPEN_INST_ID_S, instance_id);
-
-	/* acquire lock as needed */
-	if (cidesc->lock_cb)
-		cidesc->lock_cb(cidesc->lock);
-
-	/* not using cmdif_send - need auth_id back before releasing the lock */
-	mc_cmd_write(portal, cmd_map[i].cmd_id, 0, MC_CMD_OPEN_SIZE,
-	             CMDIF_PRI_LOW, &cmd_data);
-
-	ret = cmdif_wait_resp(portal); /* blocking */
-	auth_id = mc_cmd_read_auth_id(portal);
-
-	/* release lock as needed */
-	if (cidesc->unlock_cb)
-		cidesc->unlock_cb(cidesc->lock);
-
-	if (ret == 0)
-		/* all good - store the Authentication ID in 'dev' */
-		cidesc->dev = (void*)auth_id;
-
-	return ret;
-}
-
-int cmdif_close(struct cmdif_desc *cidesc)
-{
-	return cmdif_send(cidesc, MC_CMDID_CLOSE, MC_CMD_CLOSE_SIZE,
-	                  CMDIF_PRI_HIGH, NULL);
+	struct cmdif_dev *dev = NULL;
+	int    err = 0;
+	
+	if ((v_data != NULL) || (p_data != NULL) || (size > 0))
+		return -EINVAL; /* Buffer allocated by GPP */
+	
+	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
+	if (err != 0)
+		return err;
+	
+	dev = (struct cmdif_dev *)cidesc->dev;
+	dev->async_cb  = async_cb;
+	dev->async_ctx = async_ctx;
+	
+	return err;
 }
 
 int cmdif_send(struct cmdif_desc *cidesc,
-               uint16_t cmd_id,
-               int size,
-               int priority,
-               uint8_t *cmd_data)
+		uint16_t cmd_id,
+		uint32_t size,
+		int priority,
+		uint64_t data)
 {
-	struct mc_portal *portal = (struct mc_portal *)cidesc->regs;
-	struct mc_cmd_data *data = (struct mc_cmd_data *)cmd_data;
-	uint16_t auth_id = (uint16_t)PTR_TO_UINT(cidesc->dev);
-	int ret;
+	UNUSED(cidesc);
+	UNUSED(cmd_id);
+	UNUSED(size);
+	UNUSED(priority);
+	UNUSED(data);
 
-	/* acquire external lock as needed */
-	if (cidesc->lock_cb)
-		cidesc->lock_cb(cidesc->lock);
-
-	mc_cmd_write(portal, cmd_id, auth_id, (uint8_t)size, priority, data);
-	/*pr_debug("GPP sent cmd (BE) 0x%08x%08x\n",
-	 (uint32_t)(swap_uint64(dev->regs->header)>>32),
-	 (uint32_t)swap_uint64(dev->regs->header));
-	 */
-	ret = cmdif_wait_resp(portal); /* blocking */
-	if (ret == 0)
-		mc_cmd_read_response(portal, data);
-
-	/* release lock as needed */
-	if (cidesc->unlock_cb)
-		cidesc->unlock_cb(cidesc->lock);
-
-	return ret;
+	return -ENOTSUP;
 }
-
-#if 1
-int cmdif_get_cmd_data(struct cmdif_desc *cidesc, uint8_t **cmd_data)
-{
-	*cmd_data = (uint8_t*)PTR_MOVE(cidesc->regs, 8);
-	return 0;
-}
-#endif

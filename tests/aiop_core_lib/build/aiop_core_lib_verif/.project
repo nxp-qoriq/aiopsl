@@ -273,6 +273,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>sources/include/arch</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/include/common</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -311,6 +316,11 @@
 			<name>sources/drivers/dplib/util</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/include/arch/fsl_ldpaa_aiop.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
 			<name>sources/include/common/spinlock.h</name>
@@ -426,6 +436,11 @@
 			<name>sources/drivers/dplib/arch/accel</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/flib</name>
+			<type>2</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/flib</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/ppc</name>
@@ -546,6 +561,11 @@
 			<name>sources/drivers/dplib/util/general.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/util/id_pool.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/id_pool.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/cdma.c</name>

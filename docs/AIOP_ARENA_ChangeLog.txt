@@ -1,9 +1,20 @@
-- init.c:               Added SINGLE_CORE_WA.
+- mc_init.c:                   New driver for common MC objects creation.
+- fsl_cmdif_fd.h:              New file for client & server CMDIF flibs, describes command interface Frame Descriptor
+- fsl_cmdif_flib_c.h:          New file for client CMDIF flibs
+- fsl_cmdif_flib_s.h:          New file for server CMDIF flibs
+- fsl_cmdif_flib.h:            Replaced this file by 2 new files fsl_cmdif_flib_c.h and fsl_cmdif_flib_s.h
+- fsl_cmdif_server.h:          API change in ctrl_cb_t, data is physical address.
+
+** AIOP ARENA SL Alpha v0.4.1_update01 **
+- Updated API to synch with MC FW v0.4
+** AIOP ARENA SL Alpha v0.4.1 **
+- spinlock fix for multi core.
+
+- init.c:               Added MULTICORE_WA.
 - spinlock.h                    spinlock.h file renamed to fsl_spinlock.h
 - app_process_packet.c: Added cmdif_register_module() example.
 
 ** AIOP ARENA SL Alpha v0.4 **
-
 - console.c                     Bug fix: removed nested spinlock from: sys_debugger_print()
 - init.c                        AIOP multicore boot: wait for all cores before enabling CTS
 - fsl_inet.h:                   Renamed inet.h to fsl_inet.h

@@ -1,4 +1,4 @@
-#include <fsl_cmdif_flib.h>
+#include <fsl_cmdif_flib_s.h>
 #include <cmdif_srv.h>
 #include <errno.h>
 #include <types.h>
@@ -29,7 +29,7 @@ static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
 		ptr[i] = val;
 }
 
-struct cmdif_srv *cmdif_srv_allocate(void *(*fast_malloc)(int size),
+void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 				void *(*slow_malloc)(int size))
 {
 	struct cmdif_srv *srv = fast_malloc(sizeof(struct cmdif_srv));
@@ -71,8 +71,10 @@ struct cmdif_srv *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 	return srv;
 }
 
-void cmdif_srv_deallocate(struct  cmdif_srv *srv, void (*free)(void *ptr))
+void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
 {
+	struct  cmdif_srv *srv = (struct  cmdif_srv *)_srv; 
+	
 	if (srv != NULL) {
 		if (srv->inst_dev)
 			free(srv->inst_dev);
@@ -106,7 +108,7 @@ static int empty_close_cb(void *dev)
 	return -ENODEV;
 }
 
-static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint8_t *data)
+static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	UNUSED(cmd);
 	UNUSED(dev);
@@ -166,7 +168,7 @@ static int module_id_find(struct cmdif_srv *srv, const char *m_name)
 	return -ENAVAIL;
 }
 
-int cmdif_srv_register(struct  cmdif_srv *srv, 
+int cmdif_srv_register(void *srv, 
                        const char *m_name, 
                        struct cmdif_module_ops *ops)
 {
@@ -176,7 +178,7 @@ int cmdif_srv_register(struct  cmdif_srv *srv,
 	if ((m_name == NULL) || (ops == NULL) || (srv == NULL))
 		return -EINVAL;
 
-	m_id = module_id_alloc(srv, m_name, ops);
+	m_id = module_id_alloc((struct cmdif_srv *)srv, m_name, ops);
 	
 	if (m_id < 0)
 		return m_id;
@@ -184,19 +186,19 @@ int cmdif_srv_register(struct  cmdif_srv *srv,
 	return 0;
 }
 
-int cmdif_srv_unregister(struct  cmdif_srv *srv, const char *m_name)
+int cmdif_srv_unregister(void *srv, const char *m_name)
 {
 	int    m_id = -1;
 
 	if ((m_name == NULL) || (srv == NULL))
 		return -EINVAL;
 
-	m_id = module_id_find(srv, m_name);
+	m_id = module_id_find((struct cmdif_srv *)srv, m_name);
 	if (m_id >= 0) {
-		srv->ctrl_cb[m_id]   = NULL;
-		srv->open_cb[m_id]   = NULL;
-		srv->close_cb[m_id]  = NULL;
-		srv->m_name[m_id][0] = FREE_MODULE;
+		((struct cmdif_srv *)srv)->ctrl_cb[m_id]   = NULL;
+		((struct cmdif_srv *)srv)->open_cb[m_id]   = NULL;
+		((struct cmdif_srv *)srv)->close_cb[m_id]  = NULL;
+		((struct cmdif_srv *)srv)->m_name[m_id][0] = FREE_MODULE;
 		return 0;
 	} else {
 		return m_id; /* POSIX error is returned */

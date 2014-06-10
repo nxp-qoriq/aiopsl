@@ -94,18 +94,6 @@ int sys_is_cluster_master(void);
 *//***************************************************************************/
 uint64_t sys_get_cores_mask(void);
 
-/**************************************************************************//**
- @Function      sys_kick_guest_partition
-
- @Description   TODO
-
- @Param[in]     coresMask       - TODO
- @Param[in]     physBaseAddr    - TODO
-
- @Return        E_OK on success; Error code otherwise.
-*//***************************************************************************/
-int sys_kick_guest_partition(uint64_t cores_mask, dma_addr_t phys_base_addr);
-
 /* @} */ /* end of general collection */
 
 /**************************************************************************//**

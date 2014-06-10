@@ -32,6 +32,8 @@ Copyright 2013 Freescale Semiconductor, Inc.
 
 @{
  *//***************************************************************************/
+struct cmdif_desc;
+struct cmdif_fd;
 
 /**************************************************************************//**
 @Description	Open callback
@@ -74,7 +76,7 @@ User provides this function. Driver invokes it for all runtime commands
 
 @Return		OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, uint8_t *data);
+typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, uint64_t data);
 
 /**************************************************************************//**
 @Description	Function pointers to be supplied during module registration
@@ -103,7 +105,7 @@ supplying the following:
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
 int cmdif_register_module(const char *module_name,
-			struct cmdif_module_ops *ops);
+                          struct cmdif_module_ops *ops);
 
 /**************************************************************************//**
 @Function	cmdif_unregister_module
@@ -118,6 +120,19 @@ Each module needs to unregister from the command interface
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
 int cmdif_unregister_module(const char *module_name);
+
+int cmdif_session_open(struct cmdif_desc *cidesc,
+                       const char *m_name,
+                       uint8_t inst_id,
+                       uint8_t *v_data,
+                       uint64_t p_data,
+                       uint32_t size,
+                       uint16_t *auth_id);
+
+int cmdif_session_close(struct cmdif_desc *cidesc, 
+                        uint16_t auth_id);
+
+int cmdif_srv_cb(struct cmdif_fd *cfd, int pr, void *send_dev);
 
 /** @} *//* end of cmdif_server_g group */
 /** @} *//* end of cmdif_g group */

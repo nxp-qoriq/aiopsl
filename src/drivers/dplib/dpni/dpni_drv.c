@@ -93,7 +93,7 @@ int dpni_drv_disable (uint16_t ni_id)
 int dpni_drv_probe(struct dprc	*dprc,
 		   uint16_t	mc_niid,
 		   uint16_t	aiop_niid,
-                   struct dpni_attach_cfg *attach_params)
+                   struct dpni_pools_cfg *pools_params)
 {
 	uintptr_t wrks_addr;
 	int i;
@@ -104,6 +104,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
 	struct dpni_attr attributes;
+	struct dpni_attach_cfg attach_params;
 
 	/* TODO: replace wrks_addr with global struct */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
@@ -130,7 +131,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			nis[aiop_niid].mc_niid = mc_niid;
 #endif
 
-			dpni.cidesc.regs = dprc->cidesc.regs;
+			dpni.regs = dprc->regs;
 
 			if ((err = dpni_open(&dpni, mc_niid)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);
@@ -151,9 +152,14 @@ int dpni_drv_probe(struct dprc	*dprc,
 
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
-
-			if ((err = dpni_attach(&dpni, attach_params)) != 0) {
+			memset (&attach_params, 0, sizeof(attach_params));
+			if ((err = dpni_attach(&dpni, &attach_params)) != 0) {
 				pr_err("Failed to attach parameters to DP-NI%d.\n", mc_niid);
+				return err;
+			}
+
+			if ((err = dpni_set_pools(&dpni, pools_params)) != 0) {
+				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;
 			}
 

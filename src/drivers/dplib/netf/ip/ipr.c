@@ -11,7 +11,6 @@
 #include "system.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
-#include "dplib/fsl_tman.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/fsl_table.h"
 #include "dplib/fsl_keygen.h"
@@ -36,33 +35,9 @@ __SHRAM struct  ipr_global_parameters ipr_global_parameters1;
 int ipr_init(void)
 {
 	struct kcr_builder kb;
-	uint16_t bpid;
-	int num_filled_buffs, status;
-	/* todo set to 300 due to big latency of malloc in ARENA */
-	uint32_t max_buffers = 300;
-	/* todo flags: IPR_MODE_TABLE_LOCATION_PEB */
-	uint32_t flags = 0x02000000;
+	int    status;
 	uint8_t  ipr_key_id;
 
-	/* call ARENA function for allocating buffers needed to IPR
-	 * processing (create_slab ) */
-	status = slab_find_and_fill_bpid(max_buffers,
-					IPR_CONTEXT_SIZE,
-					8,
-					MEM_PART_1ST_DDR_NON_CACHEABLE,
-					&num_filled_buffs,
-					&bpid);
-
-	if (status < 0)
-		return status;
-
-	ipr_global_parameters1.ipr_pool_id = (uint8_t)bpid;
-	ipr_global_parameters1.ipr_buffer_size = IPR_CONTEXT_SIZE;
-	ipr_global_parameters1.ipr_avail_buffers_cntr = \
-			(uint32_t)num_filled_buffs;
-	ipr_global_parameters1.ipr_table_location = (uint8_t)(flags>>24);
-	ipr_global_parameters1.ipr_timeout_flags = (uint8_t)(flags>>16);
-	ipr_global_parameters1.ipr_instance_spin_lock = 0;
 	/* For IPv4 */
 	keygen_kcr_builder_init(&kb);
 	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPSRC_1_FECID,
@@ -73,9 +48,12 @@ int ipr_init(void)
 					NULL , &kb);
 	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPID_1_FECID,
 					NULL , &kb);
-	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+	status = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
 			  &ipr_key_id);
+	if (status < 0) {
+		/* todo  Fatal */
+	}
 	ipr_global_parameters1.ipr_key_id_ipv4 = ipr_key_id;
 	/* For IPv6 */
 	keygen_kcr_builder_init(&kb);
@@ -89,7 +67,10 @@ int ipr_init(void)
 			  kb.kcr,
 			  &ipr_key_id);
 	ipr_global_parameters1.ipr_key_id_ipv6 = ipr_key_id;
-
+	
+	if (status < 0) {
+		/* todo  Fatal */
+	}
 	return 0;
 }
 
@@ -101,17 +82,36 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	int32_t err;
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
 	uint16_t table_location_attr;
+	uint16_t bpid;
 	int table_ipv4_valid = 0;
-	int table_ipv6_valid = 0;
+	int num_filled_buffs, status;
 
-	err = cdma_acquire_context_memory(ipr_global_parameters1.ipr_pool_id,
+	aggregate_open_frames = ipr_params_ptr->max_open_frames_ipv4 +
+				ipr_params_ptr->max_open_frames_ipv6 + 1;
+	/* call ARENA function for allocating buffers needed to IPR
+	 * processing (create_slab ) */
+	status = slab_find_and_fill_bpid(aggregate_open_frames,
+					IPR_CONTEXT_SIZE,
+					8,
+					MEM_PART_1ST_DDR_NON_CACHEABLE,
+					&num_filled_buffs,
+					&bpid);
+
+	if (status < 0)
+		return status;
+	
+	if(num_filled_buffs != aggregate_open_frames)
+		return IPR_MAX_BUFFERS_REACHED;
+
+	err = cdma_acquire_context_memory(bpid,
 					  ipr_instance_ptr);
-
 	if (err)
 		return err;
+
+	ipr_instance.bpid = bpid;
+
 	/* For IPv4 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv4;
-	aggregate_open_frames = max_open_frames;
 	/* Initialize instance parameters */
 	ipr_instance.table_id_ipv4 = 0;
 	ipr_instance.table_id_ipv6 = 0;
@@ -120,9 +120,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.max_rules = max_open_frames;
 		/* IPv4 src, IPv4 dst, prot, ID */
 		tbl_params.key_size = 11;
-		table_location =
-		(uint32_t)(ipr_global_parameters1.ipr_table_location<<24)\
-		& 0x03000000;
+		table_location = ipr_params_ptr->flags & 0x0C000000;
 		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
@@ -145,15 +143,12 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	}
 	/* For IPv6 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv6;
-	aggregate_open_frames += max_open_frames;
 	if (max_open_frames) {
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
 		/* IPv6 src, IPv6 dst, ID (4 bytes) */
 		tbl_params.key_size = 36;
-		table_location =
-		(uint32_t)(ipr_global_parameters1.ipr_table_location<<24)\
-		& 0x03000000;
+		table_location = ipr_params_ptr->flags & 0x0C000000;
 		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
@@ -170,27 +165,13 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		if (err != TABLE_STATUS_SUCCESS) {
 			/* todo SR error case */
 			cdma_release_context_memory(*ipr_instance_ptr);
+			if (table_ipv4_valid)
+				table_delete(TABLE_ACCEL_ID_CTLU,
+					     ipr_instance.table_id_ipv4);
 			return err;
 		}
-		table_ipv6_valid = 1;
 	}
-	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
-	if (ipr_global_parameters1.ipr_avail_buffers_cntr < \
-			aggregate_open_frames) {
-		unlock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
-		/* todo SR error case */
-		cdma_release_context_memory(*ipr_instance_ptr);
-		/* error case */
-		if (table_ipv4_valid)
-			table_delete(TABLE_ACCEL_ID_CTLU, \
-					ipr_instance.table_id_ipv4);
-		if (table_ipv6_valid)
-			table_delete(TABLE_ACCEL_ID_CTLU, \
-					ipr_instance.table_id_ipv6);
-		return IPR_MAX_BUFFERS_REACHED;
-	}
-	ipr_global_parameters1.ipr_avail_buffers_cntr -= aggregate_open_frames;
-	unlock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
+
 	/* Initialize instance parameters */
 	ipr_instance.extended_stats_addr = ipr_params_ptr->extended_stats_addr;
 	ipr_instance.max_open_frames_ipv4 = \
@@ -244,9 +225,6 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv6);
 	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
 			ipr_instance.max_open_frames_ipv6;
-	lock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
-	ipr_global_parameters1.ipr_avail_buffers_cntr += aggregate_open_frames;
-	unlock_spinlock(&ipr_global_parameters1.ipr_instance_spin_lock);
 	return SUCCESS;
 }
 
@@ -355,7 +333,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		} else if (sr_status == TABLE_STATUS_MISS) {
 			/* Miss */
 			cdma_acquire_context_memory(
-					ipr_global_parameters1.ipr_pool_id,
+					instance_params.bpid,
 					&rfdc_ext_addr);
 			/* Lock RFDC + increment reference count*/
 			cdma_access_context_memory(
@@ -450,7 +428,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    /* create Timer in TMAN */
 /*
 		    tman_create_timer(instance_params.tmi_id,
-			      ipr_global_parameters1.ipr_timeout_flags,
+			      ,
 			      instance_params.timeout_value_ipv4,
 			      (tman_arg_8B_t) rfdc_ext_addr,
 			      (tman_arg_2B_t) NULL,
@@ -643,11 +621,23 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 		/* Add current frag's running sum for
 		 * L4 checksum check */
+		if (pr->gross_running_sum == 0) {
+			fdma_calculate_default_frame_checksum(0,
+												  0xffff,
+												  &pr->gross_running_sum);
+			parse_result_generate_default(0);
+		}
+	
 		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
 						  rfdc_ptr->current_running_sum,
 						  pr->running_sum);
 	} else {
-	/* Set 1rst frag's running sum for L4 checksum check */
+		
+		if (pr->gross_running_sum == 0)
+			fdma_calculate_default_frame_checksum(0,
+												  0xffff,
+												  &pr->gross_running_sum);
+		/* Set 1rst frag's running sum for L4 checksum check */
 		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
 				  	          rfdc_ptr->current_running_sum,
 				  	          pr->gross_running_sum);
@@ -856,15 +846,14 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	uint16_t	ip_hdr_cksum;
 	uint16_t	old_ip_checksum;
 	uint16_t	new_flags_and_offset;
-//	uint16_t	gross_running_sum;
 	uint16_t	ip_header_size;
 	struct ipv4hdr  *ipv4hdr_ptr;
-	struct		parse_result *pr;
+	struct parse_result *pr;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-	
+
 	/* update IP checksum */
 	ip_header_size = (uint16_t)
 			((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
@@ -884,17 +873,6 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv4hdr_ptr->flags_and_offset = new_flags_and_offset;
 
 	ipv4hdr_ptr->hdr_cksum = ip_hdr_cksum;
-		
-	/* L4 checksum Validation */
-	/* prepare gross running sum for L4 checksum validation by parser */
-//	gross_running_sum = rfdc_ptr->current_running_sum;
-
-//	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
-//					(uint16_t)~old_ip_checksum);
-//	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
-//							ipv4hdr_ptr->hdr_cksum);
-
-	//	pr->gross_running_sum = gross_running_sum;
 
 	/* update FDMA with total length and IP header checksum*/
 	fdma_modify_default_segment_data(ipv4hdr_offset+2, 10);
@@ -906,15 +884,16 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	pr->gross_running_sum = rfdc_ptr->current_running_sum;
 
+	/* L4 checksum Validation */
 	if (PARSER_IS_UDP_DEFAULT() && 
-		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) == 0)) {
+		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+3) == 0)) {
 			parse_result_generate_default(0);
 	}
 	else {
 		/* Check L4 checksum */
 		if (parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)){
 			/* error in L4 checksum */
-			return IPR_ERROR;
+	//		return IPR_ERROR;
 		}
 	}
 	return SUCCESS;
@@ -951,7 +930,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	l4_update = 0;
 	if (PARSER_IS_UDP_DEFAULT() && 
-		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) != 0)) {
+		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+3) != 0)) {
 		l4_update = 1;
 		fdma_calculate_default_frame_checksum(
 				ipv6hdr_offset,

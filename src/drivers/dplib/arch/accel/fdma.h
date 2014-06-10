@@ -585,6 +585,107 @@
 
 /** @}*/ /* end of group AIOP_PRC_Definitions */
 
+/** \addtogroup FDMA_Enumerations
+ *  @{
+ */
+
+/**************************************************************************//**
+ @enum fdma_hw_errors
+
+ @Description	AIOP FDMA Hardware Error codes.
+
+ @{
+*//***************************************************************************/
+enum fdma_hw_errors {
+		/** Success. */
+	FDMA_SUCCESS = E_OK,
+		/** Enqueue failed due to QMan enqueue rejection. */
+	FDMA_ENQUEUE_FAILED_ERR = 0x1,
+		/** Failed due to buffer pool depletion. */
+	FDMA_BUFFER_POOL_DEPLETION_ERR = 0x2,
+		/** Unable to split frame, split size is larger than frame
+		 * size or no SF bit found. */
+	FDMA_UNABLE_TO_SPLIT_ERR = 0x4,
+		/** Unable to trim frame to concatenate, trim size is larger
+		 * than frame size. */
+	FDMA_UNABLE_TO_TRIM_ERR = 0x6,
+		/** Frame Store failed, single buffer frame full and Storage
+		 * Profile FF is set to 10. */
+	FDMA_FRAME_STORE_ERR = 0x7,
+		/** Unable to fulfill specified segment presentation size. */
+	FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR = 0x8,
+		/** ASAPO value beyond ASAL in received FD. No ASA presentation
+		 * possible. */
+	FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR = 0x9,
+		/** Unable to fulfill specified ASAPS on an initial frame
+		 * presentation. Only ASAL amount of annotation was presented.*/
+	FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR = 0xA,
+		/** Unable to present the PTA segment because no PTA segment is
+		 * present in the working frame.*/
+	FDMA_UNABLE_TO_PRESENT_PTA_ERR = 0xB,
+		/** Unable to perform required processing due to received
+		 * FD[FMT]=0x3 (the reserved value). */
+	FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR = 0xD,
+		/** Received non-zero FD[ERR] field from Work Scheduler. */
+	FDMA_FD_ERR = 0xE,
+		/** Frame Handle depletion (max of 6). */
+	FDMA_FRAME_HANDLE_DEPLETION_ERR = 0x80,
+		/** Invalid Frame Handle. */
+	FDMA_INVALID_FRAME_HANDLE_ERR = 0x81,
+		/** Segment Handle depletion (max of 8). */
+	FDMA_SEGMENT_HANDLE_DEPLETION_ERR = 0x82,
+		/** Invalid Segment Handle. */
+	FDMA_INVALID_SEGMENT_HANDLE_ERR = 0x83,
+		/** Invalid DMA command arguments. */
+	FDMA_INVALID_DMA_COMMAND_ARGS_ERR = 0x86,
+		/** Invalid DMA command. */
+	FDMA_INVALID_DMA_COMMAND_ERR = 0x87,
+		/** Internal memory ECC uncorrected ECC error. */
+	FDMA_INTERNAL_MEMORY_ECC_ERR = 0xA0,
+		/** Workspace memory read Error. */
+	FDMA_WORKSPACE_MEMORY_READ_ERR = 0xA1,
+		/** Workspace memory write Error. */
+	FDMA_WORKSPACE_MEMORY_WRITE_ERR = 0xA2,
+		/** System memory read error (permission or ECC). */
+	FDMA_SYSTEM_MEMORY_READ_ERR = 0xA3,
+		/** System memory write error (permission or ECC). */
+	FDMA_SYSTEM_MEMORY_WRITE_ERR = 0xA4,
+		/** QMan enqueue error (access violation). */
+	FDMA_QMAN_ENQUEUE_ERR = 0xA5,
+		/** Frame structural error (invalid S/G bits settings, hop
+		 * limit). */
+	FDMA_FRAME_STRUCTURAL_ERR = 0xA6,
+		/** FDMA Internal error, SRU depletion. */
+	FDMA_INTERNAL_ERR = 0xA7,
+		/** Storage Profile ICID does not match frame ICID and Storage
+		 * Profile BS=1 error. */
+	FDMA_SPID_ICID_ERR = 0xA8,
+		/** Shared SRAM memory read Error. */
+	FDMA_SRAM_MEMORY_READ_ERR = 0xA9,
+		/** Profile SRAM memory read Error. */
+	FDMA_PROFILE_SRAM_MEMORY_READ_ERR = 0xAA
+
+};
+
+/* @} end of enum fdma_hw_errors */
+
+/**************************************************************************//**
+ @enum fdma_sw_errors
+
+ @Description	AIOP FDMA Software Error codes.
+
+ @{
+*//***************************************************************************/
+enum fdma_sw_errors {
+		/** The segment handle does not represent a Data segment. */
+	FDMA_NO_DATA_SEGMENT_HANDLE = 0x80000070,
+		/** Invalid PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS). */
+	FDMA_INVALID_PTA_ADDRESS = 0x80000071
+};
+
+/* @} end of enum fdma_sw_errors */
+
+/** @}*/ /* end of group FDMA_Enumerations */
 
 /**************************************************************************//**
 @Function	fdma_present_default_frame_without_segments
@@ -598,9 +699,12 @@
 		Implicitly updated values in Task Defaults: frame handle, NDS
 		bit, ASA size (0), PTA address(\ref PRC_PTA_NOT_LOADED_ADDRESS).
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_default_frame_without_segments(void);
@@ -626,9 +730,12 @@ int32_t fdma_present_default_frame_without_segments(void);
 		Used only in case \ref FDMA_INIT_AS_BIT is set.
 @Param[out]	frame_handle - A handle to the opened working frame.
 
-@Return		Status - Success or Failure (e.g. DMA error. (\ref
-		FDMA_PRESENT_FRAME_ERRORS)).
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 – Success.
+@Retval		EBADFD - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_present_frame_without_segments(
@@ -650,12 +757,16 @@ int32_t fdma_present_frame_without_segments(
 @Param[out]	dst - A pointer to the location in the workspace where to return
 		the acquired 64 bit buffer address.
 
-@Return		Status - Success or Failure (\ref FDMA_ACQUIRE_BUFFER_ERRORS).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions	This command is not intended to be used in a normal datapath,
 		but more of a get out of jail card where access to BMan buffers
 		is required when operating on a frame while not using the
 		provided FDMA working frame commands.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int32_t fdma_acquire_buffer(
@@ -676,18 +787,33 @@ int32_t fdma_acquire_buffer(
 @Param[in]	bpid - Buffer pool ID used for the Release Buffer.
 @Param[out]	addr - Buffer address to be released.
 
-@Return		Status - Success or Failure (\ref FDMA_RELEASE_BUFFER_ERRORS).
+@Return		None.
 
 @Cautions	This command is not intended to be used in a normal datapath,
 		but more of a get out of jail card where access to BMan buffers
 		is required when operating on a frame while not using the
 		provided FDMA working frame commands.
+@Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_release_buffer(
+void fdma_release_buffer(
 		uint16_t icid,
 		uint32_t flags,
 		uint16_t bpid,
 		uint64_t addr);
+
+/**************************************************************************//**
+@Function	fdma_handle_fatal_errors
+
+@Description	Handle FDMA fatal errors..
+
+@Param[in]	status - FDMA fatal status.
+
+@Return		None.
+
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+void fdma_handle_fatal_errors(int32_t status);
+
 
 #endif /* __FDMA_H_ */

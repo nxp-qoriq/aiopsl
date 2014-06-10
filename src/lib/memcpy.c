@@ -1,11 +1,10 @@
-#ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/gen.h"
 #include "common/fsl_string.h"
 #include "common/io.h"
 
-
+#ifdef ARENA_LEGACY_CODE
 void *memcpy32(void* p_dst, void* p_src, uint32_t size)
 {
     uint32_t left_align;
@@ -506,6 +505,7 @@ void * memset64(void* p_dst, uint8_t val, uint32_t size)
     return p_dst;
 }
 #endif
+#endif
 
 void mem_disp(uint8_t *p, int size)
 {
@@ -570,4 +570,3 @@ void mem_disp(uint8_t *p, int size)
         fsl_os_print("\r\n");
     }
 }
-#endif

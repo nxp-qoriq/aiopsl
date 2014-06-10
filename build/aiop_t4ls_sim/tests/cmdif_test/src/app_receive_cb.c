@@ -2,7 +2,7 @@
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
 #include "common/fsl_cmdif_client.h"
-#include "common/fsl_cmdif_flib.h"
+#include "common/fsl_cmdif_flib_c.h"
 #include "fsl_cdma.h"
 #include "io.h"
 #include "cmdif_client.h"
@@ -61,7 +61,9 @@ void app_receive_cb (void)
 		client_open_cmd(&client_desc, &open_data);
 		break;
 	case 1:
+		SYNC_DONE_TEST;
 		cmdif_open_done(&client_desc);
+		
 		/* CDMA is required only because this client is tested on AIOP
 		 * AIOP writes data using CDMA therefore need to read with cdma */
 		sync_done_read(&resp, &client_desc);

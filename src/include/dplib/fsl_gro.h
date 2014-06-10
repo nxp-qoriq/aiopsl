@@ -58,6 +58,15 @@ typedef uint8_t tcp_gro_ctx_t[TCP_GRO_CONTEXT_SIZE];
  *//***************************************************************************/
 typedef void (gro_timeout_cb_t)(uint64_t arg);
 
+
+	/** TCP GRO metadata segment sizes address setting macro.
+	 * _metadata_addr - address (in HW buffers) of the TCP GRO aggregation
+	 * metadata structure, in which the _seg_sizes_addr will be set.
+	 * _seg_sizes_addr - segment sizes external address (in HW buffers) to
+	 * be set.
+	 * */
+#define TCP_GRO_SET_METADATA_SEG_SIZES_ADDR(_metadata_addr, _seg_sizes_addr)\
+		cdma_write(_metadata_addr, &_seg_sizes_addr, 8)
 /** @} */ /* end of GRO_GENERAL_DEFINITIONS */
 
 /**************************************************************************//**
@@ -227,7 +236,9 @@ struct tcp_gro_context_metadata {
 		 * support up to 64KB length segments) starting at this
 		 * address. E.g. If max segments per aggregation is 10 segments,
 		 * 20 bytes per aggregation should be allocated starting at this
-		 * address. */
+		 * address.
+		 * This field can be set by using
+		 * \ref TCP_GRO_SET_METADATA_SEG_SIZES_ADDR macro.*/
 	uint64_t seg_sizes_addr;
 		/** Number of segments in the aggregation. */
 	uint16_t seg_num;

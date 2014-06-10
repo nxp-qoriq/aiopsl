@@ -43,6 +43,21 @@ enum ipsec_direction {
 	IPSEC_DIRECTION_OUTBOUND = 2 	/*!< Outbound Direction */
 };
 
+/**************************************************************************//**
+ @enum ipsec_error_codes
+
+ @Description	AIOP IPsec Functional Module return status codes.
+
+ @{
+*//***************************************************************************/
+enum ipsec_status_codes {
+	/** Success. */
+	IPSEC_SUCCESS = 0,
+	IPSEC_ERROR = -1,
+};
+
+/* @} end of enum ipsec_status_codes */
+
 
 /* @} end of IPSEC_ENUM */
 
@@ -59,6 +74,7 @@ enum ipsec_direction {
 
 *//***************************************************************************/
 typedef uint64_t ipsec_handle_t;
+typedef uint64_t ipsec_instance_handle_t;
 
 /**************************************************************************//**
 @Description	Lifetime callback function type definition
@@ -76,8 +92,8 @@ typedef void (ipsec_lifetime_callback_t) (
 		Use for ipsec_descriptor_params.flags
 *//***************************************************************************/
 
-/** IPsec transport mode (default = tunnel mode) */
-#define IPSEC_FLG_TRANSPORT_MODE		0x00000001
+/** IPsec tunnel mode (transport mode if not set) */
+#define IPSEC_FLG_TUNNEL_MODE		0x00000001
 
 /** Enable Transport mode ESP pad check (default = no check)
  * Valid for transport mode only.
@@ -136,6 +152,12 @@ typedef void (ipsec_lifetime_callback_t) (
 /** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
  * IP header */
 #define IPSEC_ENC_OPTS_DTTL 		0x0200
+
+/* Sequence Number Rollover control.
+ * This control permits a Sequence Number Rollover
+ * If not set, a Sequence Number Rollover causes an error */
+#define IPSEC_ENC_OPTS_SNR_EN  	0x0100	
+
 
 /**************************************************************************//**
 @Description	IPSec ESP Decapsulation options
@@ -220,6 +242,39 @@ typedef void (ipsec_lifetime_callback_t) (
 	/**< EKT: Enhanced Encryption of Key */
 #define IPSEC_KEY_TK			0x00008000
 	/**< TK: Encrypted with Trusted Key */
+
+/**************************************************************************//**
+ @Description	AIOP IPsec Encryption/Decryption return codes. Returned by 
+ 	 ipsec_frame_encrypt (*enc_status) or ipsec_frame_decrypt (*dec_status)
+ 	 Multiple bits can be set simultaneously.
+ @{
+*//***************************************************************************/
+/** Reached Soft Lifetime Kilobyte Limit */
+#define IPSEC_STATUS_SOFT_KB_EXPIRED		0x00000001
+/** Reached Hard Lifetime Kilobyte Limit */
+#define IPSEC_STATUS_HARD_KB_EXPIRED		0x00000002
+/** Reached Soft Lifetime Packet Limit */
+#define IPSEC_STATUS_SOFT_PACKET_EXPIRED	0x00000004
+/** Reached Hard Lifetime Packet Limit */
+#define IPSEC_STATUS_HARD_PACKET_EXPIRED	0x00000008
+/** Reached Soft Lifetime Seconds Limit */
+#define IPSEC_STATUS_SOFT_SEC_EXPIRED		0x00000010
+/** Reached Hard Lifetime Seconds Limit */
+#define IPSEC_STATUS_HARD_SEC_EXPIRED		0x00000020
+
+/** Sequence Number overflow */
+#define IPSEC_SEQ_NUM_OVERFLOW 				0x00000100
+/** Anti Replay Check: Late packet */
+#define IPSEC_AR_LATE_PACKET 				0x00000200
+/** Anti Replay Check: Replay packet */
+#define IPSEC_AR_REPLAY_PACKET 				0x00000400
+/** ICV comparison failed */
+#define IPSEC_ICV_COMPARE_FAIL 				0x00000800
+
+/** General encryption error */
+#define IPSEC_GEN_ENCR_ERR	 				0x00001000
+/** General decryption error */
+#define IPSEC_GEN_DECR_ERR	 				0x00002000
 
 /** @} */ /* end of FSL_IPSEC_MACROS */
 
@@ -334,8 +389,9 @@ struct alg_info {
 *//***************************************************************************/
 struct ipsec_descriptor_params {
 	
-	enum ipsec_direction ipsec_direction; 	/**< Descriptor direction */
-	
+	//enum ipsec_direction direction; 	/**< Descriptor direction */
+	int32_t direction; 	/**< Descriptor direction */
+
 	uint32_t flags; /**< Miscellaneous control flags */
 	
 	union {
@@ -377,6 +433,35 @@ struct ipsec_descriptor_params {
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Function	ipsec_create_instance
+
+@Description	This creates an instance for an IPsec application.
+		It should be called once when the application goes up.
+		All SAs belonging to this instance should be called with 
+		the returned instance handle.
+				
+@Param[in]	committed_sa_num - committed number of SAs for this instance.
+			Resources for this number of SAs are preallocated, and
+			respective ipsec_add_sa_descriptor() cannot fail on depletion.
+@Param[in]	max_sa_num - maximum number of SAs to be used by this instance.
+			Resources for additional SAs are allocated at run time on, and
+			respective ipsec_add_sa_descriptor() may fail on depletion.
+@Param[in]	tmi_id - TMAN Instance ID to be used for timers creation
+@Param[in]	instance_flags - control flags. Set to 0.
+
+@Param[out]	ipsec_handle - IPsec handle to the descriptor database
+		
+@Return		Status
+
+*//****************************************************************************/
+int32_t ipsec_create_instance(
+		uint32_t committed_sa_num,
+		uint32_t max_sa_num,
+		uint32_t instance_flags,
+		uint8_t tmi_id,
+		ipsec_instance_handle_t *instance_handle);
+
+/**************************************************************************//**
 @Function	ipsec_add_sa_descriptor
 
 @Description	This function performs add SA for encapsulation:
@@ -393,6 +478,7 @@ struct ipsec_descriptor_params {
 *//****************************************************************************/
 int32_t ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
+		ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle);
 
 

@@ -1,4 +1,4 @@
-#include <fsl_cmdif_flib.h>
+#include <fsl_cmdif_flib_c.h>
 #include <cmdif_client.h>
 #include <errno.h>
 #include <types.h>
@@ -9,6 +9,13 @@
 /** Blocking commands don't need response FD */
 #define SYNC_CMD(CMD)	\
 	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)))
+
+static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
+{
+	int i = 0;
+	for (i = 0; i < size; i++) 
+		ptr[i] = val;
+}
 
 int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
@@ -32,12 +39,17 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 
 	/* if cidesc->dev != NULL it's ok,
 	 * it's usefull to keep it in order to let user to free this buffer */
-	if ((m_name == NULL) || (cidesc == NULL))
+	if ((m_name == NULL) 
+		|| (cidesc == NULL) 
+		|| (v_data == NULL) 
+		|| (p_data == NULL))
 		return -EINVAL;
 
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
 
+	my_memset(v_data, 0, size);
+	
 	p_addr = p_data + sizeof(struct cmdif_dev);
 	v_addr = (union cmdif_data *)(v_data + sizeof(struct cmdif_dev));
 
@@ -49,12 +61,6 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	fd->u_frc.frc          = 0;
 	fd->u_addr.d_addr      = p_addr;
 	fd->d_size             = sizeof(union cmdif_data);
-
-	/* acquire lock as needed
-	 * acquire lock before modifying any user data in order to avoid
-	 * garbage data in case of race condition */
-	if (cidesc->lock_cb)
-		cidesc->lock_cb(cidesc->lock);
 
 	dev = (struct cmdif_dev *)v_data;
 	dev->async_cb  = async_cb;
@@ -79,12 +85,12 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 	struct cmdif_dev *dev = NULL;
 
 	if ((cidesc == NULL) || (cidesc->dev == NULL))
-		return -EINVAL;
+		return 0; /* Don't use POSIX on purpose */
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
 	if (dev->sync_done == NULL)
-		return -EINVAL;
+		return 0; /* Don't use POSIX on purpose */
 
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
@@ -92,32 +98,21 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
-
-	if ((cidesc == NULL) || (cidesc->dev == NULL)) {
-		/* prevent deadlocks */
-		if (cidesc->unlock_cb)
-			cidesc->unlock_cb(cidesc->lock);
-
+	int    err = 0;
+	
+	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
-	}
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	if (dev->sync_done == NULL) {		
-		/* prevent deadlocks */
-		if (cidesc->unlock_cb)
-			cidesc->unlock_cb(cidesc->lock);
-		
+	if (dev->sync_done == NULL)			
 		return -EINVAL;
-	}
 
+	err = ((union  cmdif_data *)(dev->sync_done))->resp.err;
 	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
+	
 
-	/* release lock as needed */
-	if (cidesc->unlock_cb)
-		cidesc->unlock_cb(cidesc->lock);
-
-	return ((union  cmdif_data *)(dev->sync_done))->resp.err;
+	return err;
 }
 
 int cmdif_open_done(struct cmdif_desc *cidesc)
@@ -146,16 +141,12 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->u_addr.d_addr = NULL;
-	fd->d_size = 0;
+	fd->u_addr.d_addr       = NULL;
+	fd->d_size              = 0;
 	fd->u_flc.flc           = 0;
 	fd->u_flc.close.cmid    = CMD_ID_CLOSE;
 	fd->u_flc.close.auth_id = dev->auth_id;
 	fd->u_flc.open.epid     = CMDIF_EPID;
-
-	/* acquire lock as needed */
-	if (cidesc->lock_cb)
-		cidesc->lock_cb(cidesc->lock);
 
 	return 0;
 }
@@ -179,19 +170,14 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->u_addr.d_addr = data;
-	fd->d_size = size;
-	fd->u_flc.flc = 0;
+	fd->u_addr.d_addr     = data;
+	fd->d_size            = size;
+	fd->u_flc.flc         = 0;
 	fd->u_flc.cmd.auth_id = dev->auth_id;
-	fd->u_flc.cmd.cmid = cmd_id;
-	fd->u_flc.cmd.epid = CMDIF_EPID;
+	fd->u_flc.cmd.cmid    = cmd_id;
+	fd->u_flc.cmd.epid  = CMDIF_EPID;
 	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
 	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
-
-	/* acquire lock as needed */
-	if ((cidesc->lock_cb) &&
-		(!(cmd_id & (CMDIF_ASYNC_CMD | CMDIF_NORESP_CMD))))
-		cidesc->lock_cb(cidesc->lock);
 
 	return 0;
 }
