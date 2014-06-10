@@ -315,11 +315,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke_irq.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ppc/include</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/arch/ppc/platform</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -713,11 +708,6 @@
 			<name>aiop_sl/kernel/mem_mng/mem_mng.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/mem_mng/mem_mng.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/include/fsl_endian.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_endian.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop</name>

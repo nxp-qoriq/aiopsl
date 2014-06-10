@@ -9,7 +9,7 @@
 #define __FSL_IO_H
 
 #include "common/types.h"
-#include "fsl_endian.h"
+#include "inc/fsl_endian.h"
 
 static inline uint8_t ioread8(const volatile uint8_t *addr)
 {

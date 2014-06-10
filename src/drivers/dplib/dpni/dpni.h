@@ -9,7 +9,7 @@
 #ifndef _DPNI_H
 #define _DPNI_H
 
-#include "fsl_endian.h"
+#include "inc/fsl_endian.h"
 #include "common/fsl_cmdif.h"
 #include "dplib/fsl_dpni.h"
 
