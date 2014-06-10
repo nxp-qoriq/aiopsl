@@ -16,6 +16,7 @@
 #ifndef __FSL_SWAB_H_
 #define __FSL_SWAB_H_
 #include "common/types.h"
+#include "common/fsl_core.h"
 
 /**
  * reverses bytes of each halfword in unsigned int expression to return an
@@ -162,14 +163,14 @@
 /** return 2 bytes with endian swap.
  * _val - 16 bit value to be swaped. */
 
-static uint64_t swap_uint16(uint16_t val)
+static uint16_t swap_uint16(uint16_t val)
 {
 	return LH_SWAP(0, &val );
 }
 
  /** return 4 bytes with endian swap.
   * _val - 32 bit value to be swaped. */
-static uint64_t swap_uint32(uint32_t val)
+static uint32_t swap_uint32(uint32_t val)
 {
 	return LW_SWAP(0, &val );
 }

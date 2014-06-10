@@ -9,8 +9,6 @@
 
 #ifndef __FSL_ENDIAN_H_
 #define __FSL_ENDIAN_H_
-#include "common/types.h"
-#include "common/fsl_core.h"
 #include "fsl_swab.h"
 
 
@@ -29,6 +27,29 @@
                 byte-swap macros instead.
  @{
 *//***************************************************************************/
+/*Defines to use intrinsics with store and swap*/
+#ifdef CORE_IS_BIG_ENDIAN
+
+#define STORE_CPU_TO_LE16(val, addr)	STH_SWAP(val, 0, &addr);
+#define STORE_CPU_TO_LE32(val, addr)	STW_SWAP(val, 0, &addr);
+#define STORE_CPU_TO_LE64(val, addr)	LLSTDW_SWAP(val, 0, &addr);
+
+#define STORE_CPU_TO_BE16(val, addr)	({ addr = val; })
+#define STORE_CPU_TO_BE32(val, addr)	({ addr = val; })
+#define STORE_CPU_TO_BE64(val, addr)	({ addr = val; })
+
+
+#else  /* CORE_IS_LITTLE_ENDIAN */
+
+#define STORE_CPU_TO_LE16(val, addr)	({ addr = val; })
+#define STORE_CPU_TO_LE32(val, addr)	({ addr = val; })
+#define STORE_CPU_TO_LE64(val, addr)	({ addr = val; })
+
+#define STORE_CPU_TO_BE16(val, addr)	STH_SWAP(val, 0, &addr);
+#define STORE_CPU_TO_BE32(val, addr)	STW_SWAP(val, 0, &addr);
+#define STORE_CPU_TO_BE64(val, addr)	LLSTDW_SWAP(val, 0, &addr);
+
+#endif /* CORE_IS_LITTLE_ENDIAN */
 
 
 
