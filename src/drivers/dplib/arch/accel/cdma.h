@@ -105,306 +105,61 @@
 #define CDMA_ACCESS_CONTEXT_MEM_CMD_ARG2(_dma_param, _ws_address) \
 	(uint32_t)((_dma_param << 16) | (_ws_address & 0x0000FFFF))
 
-/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* ++++++++++++++++++++++++  Status/Errors Per Command +++++++++++++++++++*/
-/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/* CDMA Command indications */
+/* Decrement reference count caused the reference count to go to zero. */
+#define ZERO_REFCOUNT			0x03
 
 /**************************************************************************//**
- @Group		CDMA_Internal_Commands_Satus CDMA Internal Commands Status
+ @enum cdma_errors
 
- @Description	CDMA internal commands return status
+ @Description	AIOP CDMA Error codes.
 
  @{
 *//***************************************************************************/
+enum cdma_errors {
+		/** Success. */
+	CDMA_SUCCESS = E_OK,
+		/** Failed due to buffer pool depletion. */
+	CDMA_BUFFER_POOL_DEPLETION_ERR = 0x2,
+		/** Decrement reference count caused the reference count to
+		 * go to zero. (not an error) */
+	CDMA_REFCOUNT_DECREMENT_TO_ZERO = 0x3,
+		/** Mutex lock failed on a Try Lock request. */
+	CDMA_MUTEX_LOCK_FAILED = 0x5,
+		/** Mutex lock depletion (max of 4 reached for the task). */
+	CDMA_MUTEX_DEPLETION_ERR = 0x84,
+		/** Invalid DMA command arguments. */
+	CDMA_INVALID_DMA_COMMAND_ARGS_ERR = 0x86,
+		/** Invalid DMA command. */
+	CDMA_INVALID_DMA_COMMAND_ERR = 0x87,
+		/** Increment reference count failed, count is at max value.*/
+	CDMA_REFCOUNT_INCREMENT_ERR = 0x90,
+		/** Decrement reference count failed, count is at zero. */
+	CDMA_REFCOUNT_DECREMENT_ERR = 0x91,
+		/** Invalid reference count operation, address is not base
+		 * address.*/
+	CDMA_REFCOUNT_INVALID_OPERATION_ERR = 0x92,
+		/** Invalid mutex lock request,
+		 * the task already has a mutex on this address */
+	CDMA_INVALID_MUTEX_LOCK_REQ_ERR = 0x93,
+		/** Invalid mutex lock release, address not found in active
+		 * mutex lock list. */
+	CDMA_INVALID_MUTEX_RELEASE_ERR = 0x95,
+		/** Internal memory ECC uncorrectable ECC error. */
+	CDMA_INTERNAL_MEMORY_ECC_ERR = 0xA0,
+		/** Workspace memory read Error. */
+	CDMA_WORKSPACE_MEMORY_READ_ERR = 0xA1,
+		/** Workspace memory write Error. */
+	CDMA_WORKSPACE_MEMORY_WRITE_ERR = 0xA2,
+		/** System memory read error (permission or ECC). */
+	CDMA_SYSTEM_MEMORY_READ_ERR = 0xA3,
+		/** System memory write error (permission or ECC). */
+	CDMA_SYSTEM_MEMORY_WRITE_ERR = 0xA4,
+		/** Internal error (SRU depletion). */
+	CDMA_INTERNAL_ERR = 0xA7
+};
 
-/**************************************************************************//**
-@Group		CDMA_ACQUIRE_CONTEXT_MEMORY_STATUS
-
-@Description	CDMA status returned by the cdma_acquire_context_memory command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_ACQUIRE_CONTEXT_MEMORY__SUCCESS CDMA_SUCCESS
-/* failed due to buffer pool depletion */
-#define CDMA_ACQUIRE_CONTEXT_MEMORY__BUFFER_POOL_DEPLETION_ERR \
-			CDMA_BUFFER_POOL_DEPLETION_ERR
-/*  Workspace memory read Error */
-#define CDMA_ACQUIRE_CONTEXT_MEMORY__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* Workspace memory write Error */
-#define CDMA_ACQUIRE_CONTEXT_MEMORY__WORKSPACE_MEMORY_WRITE_ERR \
-			CDMA_WORKSPACE_MEMORY_WRITE_ERR
-/* External memory write error */
-#define CDMA_ACQUIRE_CONTEXT_MEMORY__EXTERNAL_MEMORY_WRITE_ERR \
-			CDMA_EXTERNAL_MEMORY_WRITE_ERR
-
-/* @} end of group CDMA_ACQUIRE_CONTEXT_MEMORY_STATUS */
-
-/**************************************************************************//**
-@Group		CDMA_RELEASE_CONTEXT_MEMORY_STATUS
-
-@Description	CDMA status returned by the cdma_release_context_memory command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_RELEASE_CONTEXT_MEMORY__SUCCESS CDMA_SUCCESS
-/* 0xA0: Internal memory ECC uncorrected ECC error */
-#define CDMA_RELEASE_CONTEXT_MEMORY__INTERNAL_MEMORY_ECC_ERR \
-			CDMA_INTERNAL_MEMORY_ECC_ERR
-/* 0xA1: Workspace memory read Error */
-#define CDMA_RELEASE_CONTEXT_MEMORY__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* 0xA3: System memory read error (permission or ECC) */
-#define CDMA_RELEASE_CONTEXT_MEMORY__EXTERNAL_MEMORY_READ_ERR \
-			CDMA_EXTERNAL_MEMORY_READ_ERR
-
-/* @} end of group CDMA_RELEASE_CONTEXT_MEMORY_STATUS */
-
-/**************************************************************************//**
-@Group		CDMA_REFCOUNT_DECREMENT_AND_RELEASE_STATUS
-
-@Description	CDMA status returned by the cdma_refcount_decrement_and_release
-		command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__SUCCESS CDMA_SUCCESS
-/** Decrement reference count caused the reference count to
- * go to zero. (not an error) */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__REFCOUNT_DECREMENT_TO_ZERO \
-			CDMA_REFCOUNT_DECREMENT_TO_ZERO
-/** Decrement reference count failed, count is at zero. */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__REFCOUNT_DECREMENT_ERR \
-			CDMA_REFCOUNT_DECREMENT_ERR
-/* 0xA0: Internal memory ECC uncorrected ECC error */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__INTERNAL_MEMORY_ECC_ERR \
-			CDMA_INTERNAL_MEMORY_ECC_ERR
-/* Workspace memory write Error */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__WORKSPACE_MEMORY_WRITE_ERR \
-			CDMA_WORKSPACE_MEMORY_WRITE_ERR
-/* 0xA1: Workspace memory read Error */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* External memory write error */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__EXTERNAL_MEMORY_WRITE_ERR \
-			CDMA_EXTERNAL_MEMORY_WRITE_ERR
-/* 0xA3: System memory read error (permission or ECC) */
-#define CDMA_REFCOUNT_DECREMENT_AND_RELEASE__EXTERNAL_MEMORY_READ_ERR \
-			CDMA_EXTERNAL_MEMORY_READ_ERR
-
-/* @} end of group CDMA_REFCOUNT_DECREMENT_AND_RELEASE_STATUS */
-
-/**************************************************************************//**
-@Group		CDMA_REFCOUNT_INCREMENT_STATUS
-
-@Description	CDMA status returned by the cdma_refcount_increment command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_REFCOUNT_INCREMENT__SUCCESS CDMA_SUCCESS
-/** Increment reference count failed, count is at max value.*/
-#define CDMA_REFCOUNT_INCREMENT__REFCOUNT_INCREMENT_ERR \
-			CDMA_REFCOUNT_INCREMENT_ERR
-/** Invalid reference count operation, address is not base address.*/
-#define CDMA_REFCOUNT_INCREMENT__REFCOUNT_INVALID_OPERATION_ERR \
-			CDMA_REFCOUNT_INVALID_OPERATION_ERR
-/* 0xA0: Internal memory ECC uncorrected ECC error */
-#define CDMA_REFCOUNT_INCREMENT__INTERNAL_MEMORY_ECC_ERR \
-			CDMA_INTERNAL_MEMORY_ECC_ERR
-/* Workspace memory write Error */
-#define CDMA_REFCOUNT_INCREMENT__WORKSPACE_MEMORY_WRITE_ERR \
-			CDMA_WORKSPACE_MEMORY_WRITE_ERR
-/* 0xA1: Workspace memory read Error */
-#define CDMA_REFCOUNT_INCREMENT__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* External memory write error */
-#define CDMA_REFCOUNT_INCREMENT__EXTERNAL_MEMORY_WRITE_ERR \
-			CDMA_EXTERNAL_MEMORY_WRITE_ERR
-/* 0xA3: System memory read error (permission or ECC) */
-#define CDMA_REFCOUNT_INCREMENT__EXTERNAL_MEMORY_READ_ERR \
-			CDMA_EXTERNAL_MEMORY_READ_ERR
-
-/* @} end of group CDMA_REFCOUNT_INCREMENT_STATUS */
-
-/**************************************************************************//**
-@Group		CDMA_REFCOUNT_DECREMENT_STATUS
-
-@Description	CDMA status returned by the cdma_refcount_decrement command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_REFCOUNT_DECREMENT__SUCCESS CDMA_SUCCESS
-/** Decrement reference count caused the reference count to
- * go to zero. (not an error) */
-#define CDMA_REFCOUNT_DECREMENT__REFCOUNT_DECREMENT_TO_ZERO \
-			CDMA_REFCOUNT_DECREMENT_TO_ZERO
-/** Decrement reference count failed, count is at zero. */
-#define CDMA_REFCOUNT_DECREMENT__REFCOUNT_DECREMENT_ERR \
-			CDMA_REFCOUNT_DECREMENT_ERR
-/* 0xA0: Internal memory ECC uncorrected ECC error */
-#define CDMA_REFCOUNT_DECREMENT__INTERNAL_MEMORY_ECC_ERR \
-			CDMA_INTERNAL_MEMORY_ECC_ERR
-/* Workspace memory write Error */
-#define CDMA_REFCOUNT_DECREMENT__WORKSPACE_MEMORY_WRITE_ERR \
-			CDMA_WORKSPACE_MEMORY_WRITE_ERR
-/* 0xA1: Workspace memory read Error */
-#define CDMA_REFCOUNT_DECREMENT__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* External memory write error */
-#define CDMA_REFCOUNT_DECREMENT__EXTERNAL_MEMORY_WRITE_ERR \
-			CDMA_EXTERNAL_MEMORY_WRITE_ERR
-/* 0xA3: System memory read error (permission or ECC) */
-#define CDMA_REFCOUNT_DECREMENT__EXTERNAL_MEMORY_READ_ERR \
-			CDMA_EXTERNAL_MEMORY_READ_ERR
-
-/* @} end of group CDMA_REFCOUNT_DECREMENT_STATUS */
-
-/**************************************************************************//**
-@Group		CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT_STATUS
-
-@Description	CDMA status returned by the
-		cdma_write_lock_dma_read_and_increment command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__SUCCESS CDMA_SUCCESS
-/** Bound Check failed, DMA access outside the Context boundaries.*/
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__BOUND_CHECK_ERR \
-			CDMA_BOUND_CHECK_ERR
-/** Mutex lock depletion (max of 4 reached for the task). */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__MUTEX_DEPLETION_ERR \
-			CDMA_MUTEX_DEPLETION_ERR
-/** 0x93 invalid mutex lock request,
- * the task already has a mutex on this address */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__INVALID_MUTEX_LOCK_REQ_ERR \
-			CDMA_INVALID_MUTEX_LOCK_REQ_ERR
-/** Increment reference count failed, count is at max value.*/
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__REFCOUNT_INCREMENT_ERR \
-			CDMA_REFCOUNT_INCREMENT_ERR
-/** Invalid reference count operation, address is not base address.*/
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__REFCOUNT_INVALID_OPERATION_ERR \
-			CDMA_REFCOUNT_INVALID_OPERATION_ERR
-/* 0xA0: Internal memory ECC uncorrected ECC error */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__INTERNAL_MEMORY_ECC_ERR \
-			CDMA_INTERNAL_MEMORY_ECC_ERR
-/* 0xA1: Workspace memory read Error */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* Workspace memory write Error */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__WORKSPACE_MEMORY_WRITE_ERR \
-			CDMA_WORKSPACE_MEMORY_WRITE_ERR
-/* External memory write error */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__EXTERNAL_MEMORY_WRITE_ERR \
-			CDMA_EXTERNAL_MEMORY_WRITE_ERR
-/* 0xA3: System memory read error (permission or ECC) */
-#define CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT__EXTERNAL_MEMORY_READ_ERR \
-			CDMA_EXTERNAL_MEMORY_READ_ERR
-
-/* @} end of group CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT_STATUS */
-
-/**************************************************************************//**
-@Group		CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT_STATUS
-
-@Description	CDMA status returned by the
-		cdma_write_release_lock_and_decrement command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__SUCCESS CDMA_SUCCESS
-/* Invalid mutex lock release, address not found in active mutex lock list. */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__INVALID_MUTEX_RELEASE_ERR \
-			CDMA_INVALID_MUTEX_RELEASE_ERR
-/** Decrement reference count caused the reference count to
- * go to zero. (not an error) */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__REFCOUNT_DECREMENT_TO_ZERO \
-			CDMA_REFCOUNT_DECREMENT_TO_ZERO
-/** Decrement reference count failed, count is at zero. */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__REFCOUNT_DECREMENT_ERR \
-			CDMA_REFCOUNT_DECREMENT_ERR
-/* 0xA0: Internal memory ECC uncorrected ECC error */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__INTERNAL_MEMORY_ECC_ERR \
-			CDMA_INTERNAL_MEMORY_ECC_ERR
-/* Workspace memory write Error */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__WORKSPACE_MEMORY_WRITE_ERR \
-			CDMA_WORKSPACE_MEMORY_WRITE_ERR
-/* 0xA1: Workspace memory read Error */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* External memory write error */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__EXTERNAL_MEMORY_WRITE_ERR \
-			CDMA_EXTERNAL_MEMORY_WRITE_ERR
-/* 0xA3: System memory read error (permission or ECC) */
-#define CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT__EXTERNAL_MEMORY_READ_ERR \
-			CDMA_EXTERNAL_MEMORY_READ_ERR
-/* @} end of group CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT_STATUS */
-
-/* TODO: add to the code a check if DMA failed and release the mutex */
-
-/**************************************************************************//**
-@Group		CDMA_ACCESS_CONTEXT_MEMORY_STATUS
-
-@Description	CDMA status returned by the cdma_access_context_memory command
-
-@{
-*//***************************************************************************/
-/* Success */
-#define CDMA_ACCESS_CONTEXT_MEMORY__SUCCESS CDMA_SUCCESS
-/** Bound Check failed, DMA access outside the Context boundaries.*/
-#define CDMA_ACCESS_CONTEXT_MEMORY__BOUND_CHECK_ERR \
-			CDMA_BOUND_CHECK_ERR
-/** Mutex lock depletion (max of 4 reached for the task). */
-#define CDMA_ACCESS_CONTEXT_MEMORY__MUTEX_DEPLETION_ERR \
-			CDMA_MUTEX_DEPLETION_ERR
-/** 0x93 invalid mutex lock request,
- * the task already has a mutex on this address */
-#define CDMA_ACCESS_CONTEXT_MEMORY__INVALID_MUTEX_LOCK_REQ_ERR \
-			CDMA_INVALID_MUTEX_LOCK_REQ_ERR
-/* Invalid mutex lock release, address not found in active mutex lock list. */
-#define CDMA_ACCESS_CONTEXT_MEMORY__INVALID_MUTEX_RELEASE_ERR \
-			CDMA_INVALID_MUTEX_RELEASE_ERR
-/** Increment reference count failed, count is at max value.*/
-#define CDMA_ACCESS_CONTEXT_MEMORY__REFCOUNT_INCREMENT_ERR \
-			CDMA_REFCOUNT_INCREMENT_ERR
-/** Invalid reference count operation, address is not base address.*/
-#define CDMA_ACCESS_CONTEXT_MEMORY__REFCOUNT_INVALID_OPERATION_ERR \
-			CDMA_REFCOUNT_INVALID_OPERATION_ERR
-/** Decrement reference count caused the reference count to
- * go to zero. (not an error) */
-#define CDMA_ACCESS_CONTEXT_MEMORY__REFCOUNT_DECREMENT_TO_ZERO \
-			CDMA_REFCOUNT_DECREMENT_TO_ZERO
-/** Decrement reference count failed, count is at zero. */
-#define CDMA_ACCESS_CONTEXT_MEMORY__REFCOUNT_DECREMENT_ERR \
-			CDMA_REFCOUNT_DECREMENT_ERR
-/* 0xA0: Internal memory ECC uncorrected ECC error */
-#define CDMA_ACCESS_CONTEXT_MEMORY__INTERNAL_MEMORY_ECC_ERR \
-			CDMA_INTERNAL_MEMORY_ECC_ERR
-/* 0xA1: Workspace memory read Error */
-#define CDMA_ACCESS_CONTEXT_MEMORY__WORKSPACE_MEMORY_READ_ERR \
-			CDMA_WORKSPACE_MEMORY_READ_ERR
-/* Workspace memory write Error */
-#define CDMA_ACCESS_CONTEXT_MEMORY__WORKSPACE_MEMORY_WRITE_ERR \
-			CDMA_WORKSPACE_MEMORY_WRITE_ERR
-/* External memory write error */
-#define CDMA_ACCESS_CONTEXT_MEMORY__EXTERNAL_MEMORY_WRITE_ERR \
-			CDMA_EXTERNAL_MEMORY_WRITE_ERR
-/* 0xA3: System memory read error (permission or ECC) */
-#define CDMA_ACCESS_CONTEXT_MEMORY__EXTERNAL_MEMORY_READ_ERR \
-			CDMA_EXTERNAL_MEMORY_READ_ERR
-
-/* @} end of group CDMA_ACCESS_CONTEXT_MEMORY_STATUS */
-
-/* @} end of group CDMA_Internal_Commands_Satus */
-
-/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* ^^^^^^^^^^^^^^^^^^ End of Status/Errors Per Command ^^^^^^^^^^^^^^^^^^^*/
-/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/* @} end of enum cdma_errors */
 
 /**************************************************************************//**
  @Group		CDMA_Internal_Commands_Flags CDMA Internal Commands Flags
@@ -530,11 +285,14 @@
 @Param[in]	context_memory - A pointer to the Workspace where to return
 		the acquired 64 bit address of the Context memory.
 
-@Return		Status - Success or Failure.
-		(\ref CDMA_ACQUIRE_CONTEXT_MEMORY_STATUS)
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 - Success
+@Retval		ENOSPC - Failed due to buffer pool depletion.
 
 @Cautions	The maximum legal pool_id value is 0x03FF.
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
 int32_t cdma_acquire_context_memory(
@@ -550,8 +308,7 @@ int32_t cdma_acquire_context_memory(
 
 @Param[in]	context_address - Address of Context memory.
 
-@Return		Status - Success or Failure.
-		(\ref CDMA_RELEASE_CONTEXT_MEMORY_STATUS).
+@Return		None.
 
 @remark		This command should be used after task calls to
 		cdma_refcount_decrement() routine and as a result, a
@@ -559,9 +316,10 @@ int32_t cdma_acquire_context_memory(
 
 @Cautions	A mutex lock (if exists) will not be released.
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_release_context_memory(
+void cdma_release_context_memory(
 		uint64_t context_address);
 
 
@@ -576,8 +334,11 @@ int32_t cdma_release_context_memory(
 
 @Param[in]	context_address - A pointer to the Context address.
 
-@Return		Status - Success or Failure.
-		(\ref CDMA_REFCOUNT_DECREMENT_AND_RELEASE_STATUS).
+@Return		0 on Success, or positive value on indication.
+
+@Retval		0 - Success
+@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
+		count to go to zero. (not an error).
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context.
@@ -585,6 +346,7 @@ int32_t cdma_release_context_memory(
 @Cautions	If the context memory is released when the reference count
 		drops to zero, a mutex lock (if exists) will not be released.
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
 int32_t cdma_refcount_decrement_and_release(
@@ -599,16 +361,16 @@ int32_t cdma_refcount_decrement_and_release(
 
 @Param[in]	context_address - A pointer to the Context memory.
 
-@Return		Status - Success or Failure.
-		(\ref CDMA_REFCOUNT_INCREMENT_STATUS).
+@Return		None.
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context memory.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_refcount_increment(
+void cdma_refcount_increment(
 		uint64_t context_address);
 
 
@@ -621,13 +383,17 @@ int32_t cdma_refcount_increment(
 
 @Param[in]	context_address - A pointer to the Context memory.
 
-@Return		Status - Success or Failure.
-		(\ref CDMA_REFCOUNT_DECREMENT_STATUS).
+@Return		0 on Success, or positive value on indication.
+
+@Retval		0 - Success
+@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
+		count to go to zero. (not an error).
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
 int32_t cdma_refcount_decrement(
@@ -654,16 +420,16 @@ int32_t cdma_refcount_decrement(
 		address is used to read data access and mutex write lock take.
 @Param[in]	size - Read data access size, in bytes.
 
-@Return		Status - Success or Failure (e.g. DMA error (\ref
-		CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT_STATUS)).
+@Return		None.
 
 @remark		None.
 
 @Cautions	The maximum legal access size (in bytes) is 0x3FFF.
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_write_lock_dma_read_and_increment(
+void cdma_write_lock_dma_read_and_increment(
 		void *ws_dst,
 		uint64_t context_address,
 		uint16_t size);
@@ -686,13 +452,17 @@ int32_t cdma_write_lock_dma_read_and_increment(
 @Param[in]	ws_src - A pointer to the Workspace.
 @Param[in]	size - Write data access size, in bytes.
 
-@Return		Status - Success or Failure (e.g. DMA error (\ref
-		CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT_STATUS)).
+@Return		0 on Success, or positive value on indication.
+
+@Retval		0 - Success
+@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
+		count to go to zero. (not an error).
 
 @remark		None.
 
 @Cautions	The maximum legal access size (in bytes) is 0x3FFF.
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
 int32_t cdma_write_release_lock_and_decrement(
@@ -727,8 +497,13 @@ int32_t cdma_write_release_lock_and_decrement(
 		DMA Parameters \endlink.
 @Param[out]	refcount_value - Current value of reference count.
 
-@Return		Status - Success or Failure (e.g. DMA error (\ref
-		CDMA_ACCESS_CONTEXT_MEMORY_STATUS)).
+@Return		0 on Success, negative value on error or positive value on
+		indication.
+
+@Retval		0 - Success
+@Retval		EBUSY - Mutex Lock lock failed on a Try Lock request.
+@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
+		count to go to zero. (not an error).
 
 @remark
 		- All reference count features are possible only if the
@@ -742,6 +517,7 @@ int32_t cdma_write_release_lock_and_decrement(
 @Cautions	If the context memory is released when the reference count
 		drops to zero, a mutex lock (if exists) will not be released.
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
 int32_t cdma_access_context_memory(
@@ -751,6 +527,19 @@ int32_t cdma_access_context_memory(
 		void *ws_address,
 		uint16_t dma_param,
 		uint32_t *refcount_value);
+
+
+/*************************************************************************//**
+@Function	cdma_handle_fatal_errors
+
+@Description	This routine gets cdma error status and call to 
+		handle_fatal_error function accordantly.
+
+@Param[in]	status - error status.
+
+*//***************************************************************************/
+void cdma_handle_fatal_errors(
+		uint8_t status);
 
 /** @} end of group CDMA_Internal_Functions */
 
