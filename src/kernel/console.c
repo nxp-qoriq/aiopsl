@@ -88,7 +88,11 @@ int sys_register_console(fsl_handle_t h_console_dev,
 
 	sys.f_console_get = f_console_get;
 
+#ifdef AIOP
 	sys.console_lock = 0; /* spinlock init */
+#else
+    spin_lock_init(&(sys.console_lock));
+#endif
 
 	/* Flush pre-console printouts as necessary */
 	if (h_console_dev && sys.p_pre_console_buf) {
