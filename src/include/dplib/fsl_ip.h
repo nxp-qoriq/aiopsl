@@ -222,6 +222,51 @@
 int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		uint32_t ip_src_addr, uint32_t ip_dst_addr);
 
+/*************************************************************************//**
+@Function	ipv4_ttl_dec_modification
+
+@Description	Decrement TTL in the outer IPv4 header (if exists).
+
+		It automatically generates the IP checksum.
+
+		The function assumes the original UDP/TCP checksum to be valid.
+
+		Implicit input parameters in task defaults: frame handle,
+			segment handle, parser_profile_id, parser_starting_hxs.
+		Implicitly updated values in task defaults: segment length,
+								segment address.
+
+@Return		Success or Failure (There was no IPv4 header in the frame).
+
+@Cautions	The parse results must be updated before
+		calling this operation.
+		In this function, the task yields.
+
+*//***************************************************************************/
+int ipv4_ttl_dec_modification(void);
+
+/*************************************************************************//**
+@Function	ipv6_hop_limit_dec_modification
+
+@Description	Decrement hop limit in the outer IPv6 header (if exists).
+
+		It automatically generates the IP checksum.
+
+		The function assumes the original UDP/TCP checksum to be valid.
+
+		Implicit input parameters in task defaults: frame handle,
+			segment handle, parser_profile_id, parser_starting_hxs.
+		Implicitly updated values in task defaults: segment length,
+								segment address.
+
+@Return		Success or Failure (There was no IPv4 header in the frame).
+
+@Cautions	The parse results must be updated before
+		calling this operation.
+		In this function, the task yields.
+
+*//***************************************************************************/
+int ipv6_hop_limit_dec_modification(void);
 
 /*************************************************************************//**
 @Function	ipv6_header_modification
