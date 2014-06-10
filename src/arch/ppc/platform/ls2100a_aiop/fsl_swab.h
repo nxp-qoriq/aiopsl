@@ -183,5 +183,47 @@ static uint64_t swap_uint64(uint64_t val)
 	return LLLDW_SWAP(0, &val );
 }
 
+
+/*Defines to use intrinsics with store and swap*/
+#ifdef CORE_IS_BIG_ENDIAN
+
+#define STORE_CPU_TO_LE16(val, addr)	STH_SWAP(val, 0, addr)
+#define STORE_CPU_TO_LE32(val, addr)	STW_SWAP(val, 0, addr)
+#define STORE_CPU_TO_LE64(val, addr)	LLSTDW_SWAP(val, 0, addr)
+
+#define STORE_CPU_TO_BE16(val, addr)	({ *addr = val; })
+#define STORE_CPU_TO_BE32(val, addr)	({ *addr = val; })
+#define STORE_CPU_TO_BE64(val, addr)	({ *addr = val; })
+
+#define LOAD_LE16_TO_CPU(addr)		LH_SWAP(0, addr)
+#define LOAD_LE32_TO_CPU(addr)		LW_SWAP(0, addr)
+#define LOAD_LE64_TO_CPU(addr)		LLLDW_SWAP(0, addr)
+
+#define LOAD_BE16_TO_CPU(addr)		((uint16_t)(*addr))
+#define LOAD_BE32_TO_CPU(addr)		((uint32_t)(*addr))
+#define LOAD_BE64_TO_CPU(addr)		((uint64_t)(*addr))
+
+
+#else  /* CORE_IS_LITTLE_ENDIAN */
+
+#define STORE_CPU_TO_LE16(val, addr)	({ *addr = val; })
+#define STORE_CPU_TO_LE32(val, addr)	({ *addr = val; })
+#define STORE_CPU_TO_LE64(val, addr)	({ *addr = val; })
+
+#define STORE_CPU_TO_BE16(val, addr)	STH_SWAP(val, 0, addr)
+#define STORE_CPU_TO_BE32(val, addr)	STW_SWAP(val, 0, addr)
+#define STORE_CPU_TO_BE64(val, addr)	LLSTDW_SWAP(val, 0, addr)
+
+#define LOAD_LE16_TO_CPU(addr)		((uint16_t)(*addr))
+#define LOAD_LE32_TO_CPU(addr)		((uint32_t)(*addr))
+#define LOAD_LE64_TO_CPU(addr)		((uint64_t)(*addr))
+
+#define LOAD_BE16_TO_CPU(addr)		LH_SWAP(0, addr)
+#define LOAD_BE32_TO_CPU(addr)		LW_SWAP(0, addr)
+#define LOAD_BE64_TO_CPU(addr)		LLLDW_SWAP(0, addr)
+
+#endif /* CORE_IS_LITTLE_ENDIAN */
+
+
 #endif
 /** @} */ /* end of Endian */

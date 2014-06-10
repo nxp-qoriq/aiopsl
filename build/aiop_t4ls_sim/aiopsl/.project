@@ -180,6 +180,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_endian.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_endian.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/kernel</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
