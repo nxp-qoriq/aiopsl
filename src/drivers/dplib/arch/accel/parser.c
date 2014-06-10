@@ -19,22 +19,6 @@ extern __SHRAM uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-void parser_handle_fatal_errors(int32_t status){
-	switch(status) {
-	case PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED:
-		handle_fatal_error
-			((char *)PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
-		break;
-	case PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION:
-		handle_fatal_error
-		((char *)PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
-		break;
-	default:
-		handle_fatal_error((char *)status); /*TODO Fatal error */
-		break;
-	}
-}
-
 int32_t parser_profile_create(struct parse_profile_input *parse_profile,
 				uint8_t *prpid)
 {
@@ -166,25 +150,27 @@ int32_t parse_result_generate_default(uint8_t flags)
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if (status == PARSER_HW_STATUS_SUCCESS)
+	if (status == PARSER_HW_STATUS_SUCCESS) {
 		return 0;
-	else if ((status == PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED)
-		||
-		(status == PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
+	} else if ((status ==
+			PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
+		(status ==
+			PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
+		(status ==
+			PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED)) {
 		return 0;
-
-	switch(status) {
-	case PARSER_HW_STATUS_PARSING_ERROR:
-		return -EIO;
-	case PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED:
-		return -ENOSPC;
-	case PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR:
-		return -EIO;
-	case PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR:
-		return -EIO;
-	default:
-		parser_handle_fatal_errors(status);
+	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
+		handle_fatal_error((char *)
+			PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
 		return (-1);
+	} else if (status & PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION) {
+		handle_fatal_error((char *)
+			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
+		return (-1);
+	} else if (status & PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED) {
+		return -ENOSPC;
+	} else {
+		return -EIO;
 	}
 }
 
@@ -236,25 +222,27 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if (status == PARSER_HW_STATUS_SUCCESS)
+	if (status == PARSER_HW_STATUS_SUCCESS) {
 		return 0;
-	else if ((status == PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED)
-		||
-		(status == PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))
+	} else if ((status ==
+			PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
+		(status ==
+			PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
+		(status ==
+			PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED)) {
 		return 0;
-
-	switch(status) {
-	case PARSER_HW_STATUS_PARSING_ERROR:
-		return -EIO;
-	case PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED:
-		return -ENOSPC;
-	case PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR:
-		return -EIO;
-	case PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR:
-		return -EIO;
-	default:
-		parser_handle_fatal_errors(status);
+	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
+		handle_fatal_error((char *)
+			PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
 		return (-1);
+	} else if (status & PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION) {
+		handle_fatal_error((char *)
+			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
+		return (-1);
+	} else if (status & PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED) {
+		return -ENOSPC;
+	} else {
+		return -EIO;
 	}
 }
 
@@ -291,16 +279,19 @@ int32_t parse_result_generate_checksum(
 		*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
 		return 0;
+	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
+		handle_fatal_error((char *)
+			PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
+		return (-1);
+	} else if (status & PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION) {
+		handle_fatal_error((char *)
+			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
+		return (-1);
+	} else if (status & PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED) {
+		return -ENOSPC;
+	} else {
+		return -EIO;
 	}
-		switch(status) {
-		case PARSER_HW_STATUS_PARSING_ERROR:
-			return -EIO;
-		case PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED:
-			return -ENOSPC;
-		default:
-			parser_handle_fatal_errors(status);
-			return (-1);
-		}
 }
 
 
