@@ -13,7 +13,7 @@
 #define CMDIF_MN_SESSIONS	50 /**< Maximal number of sessions */
 #define CMDIF_NUM_PR  		2
 
-struct cmdif_sdev {
+struct cmdif_reg {
 	int id;
 	/**< DPCI id as known by GPP side */
 	uint8_t num_of_pr;
@@ -29,8 +29,10 @@ struct cmdif_cl {
 		/**< Physical address of buffer allocated by GPP */
 		char m_name[M_NAME_CHARS + 1];
 		/**< Module application name */
-		struct cmdif_sdev *sdev;
+		struct cmdif_reg *regs;
 		/**< Send device, to be placed as cidesc.reg */
+		struct cmdif_dev *dev;
+		/**< To be placed as cidesc.dev */
 		void *dpci_dev;
 		/**< Open AIOP dpci device */
 		uint16_t auth_id;

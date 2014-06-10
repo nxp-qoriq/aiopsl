@@ -8,22 +8,29 @@
 #include "dbg.h"
 #include "errors.h"
 #include "cmdif_client_aiop.h"
+#include "fsl_cmdif_fd.h"
+#include "fsl_cmdif_flib_c.h"
 #include "dplib/fsl_dprc.h"
 #include "fsl_fdma.h"
+#include "fsl_cdma.h"
 
 void cmdif_client_free();
 int cmdif_client_init();
 
+#define CMDIF_TIMEOUT  0x100000
 
-static int send_fd(int pr, void *_sdev)
+static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 {
 	int      err = 0;
 	uint32_t fqid = 0;
-	struct cmdif_sdev *sdev = (struct cmdif_sdev *)_sdev;
+	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
 	
-	if ((sdev == NULL) || (sdev->num_of_pr <= pr))
+	if ((sdev == NULL) || (sdev->num_of_pr <= pr) || (fd == NULL))
 		return -EINVAL;
-	fqid = ((struct cmdif_sdev *)sdev)->fqid[pr];	
+	
+	/* TODO copy fields from FD */
+	
+	fqid = ((struct cmdif_reg *)sdev)->fqid[pr];	
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
 					fqid, FDMA_EN_TC_CONDTERM_BITS);
 	if (err) {
@@ -39,18 +46,21 @@ static int session_get(const char *m_name,
                        struct cmdif_desc *cidesc)
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
-
-	if (	(cl->gpp[0].ins_id == ins_id) && 
-		(cl->gpp[0].sdev->id == dpci_id) && 
-		(strncmp((const char *)&(cl->gpp[0].m_name[0]), 
-		         m_name, 
-		         M_NAME_CHARS) == 0)) {
-		/* TODO AIOP need physical address !!!! cidesc->dev = */ 
-		cidesc->regs = (void *)dpci_id; /* TODO change it to GPP */
-		
+	int i = 0;
+	
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if (	(cl->gpp[i].ins_id == ins_id) && 
+			(cl->gpp[i].regs->id == dpci_id) && 
+			(strncmp((const char *)&(cl->gpp[i].m_name[0]), 
+			         m_name, 
+			         M_NAME_CHARS) == 0)) {
+			cidesc->regs = (void *)cl->gpp[i].regs;
+			cidesc->dev  = (void *)cl->gpp[i].dev;
+			return 0;
+		}
 	}
 
-	return 0;
+	return -ENAVAIL;
 }
 
 static int dpci_discovery()
@@ -103,14 +113,18 @@ int cmdif_client_init()
 	memset(cl, 0, sizeof(struct cmdif_cl));
 	
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		cl->gpp[i].sdev = fsl_os_xmalloc(sizeof(struct cmdif_sdev), 
+		cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg), 
 		                                 MEM_PART_SH_RAM, 
 		                                 8);
-		if (cl->gpp[i].sdev == NULL) {
+		cl->gpp[i].dev = fsl_os_xmalloc(sizeof(struct cmdif_dev), 
+		                                 MEM_PART_SH_RAM, 
+		                                 8);
+		if ((cl->gpp[i].regs == NULL) || (cl->gpp[i].dev == NULL)) {
 			pr_err("No memory for client handle\n");
 			return -ENOMEM;
 		}		
-		memset(cl->gpp[i].sdev, 0, sizeof(struct cmdif_sdev));
+		memset(cl->gpp[i].regs, 0, sizeof(struct cmdif_reg));
+		memset(cl->gpp[i].dev, 0, sizeof(struct cmdif_dev));
 	}
 	
 	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL))
@@ -138,8 +152,10 @@ void cmdif_client_free()
 		fsl_os_xfree(cl);
 	
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if (cl->gpp[i].sdev != NULL) 
-			fsl_os_xfree(cl->gpp[i].sdev);
+		if (cl->gpp[i].regs != NULL) 
+			fsl_os_xfree(cl->gpp[i].regs);
+		if (cl->gpp[i].dev != NULL) 
+			fsl_os_xfree(cl->gpp[i].dev);
 	}
 	
 }
@@ -157,7 +173,7 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	int    err = 0;
 	
 	if ((v_data != NULL) || (p_data != NULL) || (size > 0))
-		return -EINVAL; /* Buffer allocated by GPP */
+		return -EINVAL; /* Buffer are allocated by GPP */
 	
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
 	if (err != 0)
@@ -176,10 +192,28 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		int pr,
 		uint64_t data)
 {
-	UNUSED(cmd_id);
-	UNUSED(size);
-	UNUSED(data);
+	struct   cmdif_fd fd;
+	int      err = 0;
+	int      t   = 0;
+	union cmdif_data done;
+	
+	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
 
-	send_fd(pr, cidesc->regs);
-	return -ENOTSUP;
+	err = send_fd(&fd, pr, cidesc->regs); /* TODO handle error ?*/
+	
+	if (cmdif_is_sync_cmd(cmd_id)) {
+		do {
+			cdma_read(&done, 
+			          ((struct cmdif_dev *)cidesc->dev)->p_sync_done, 
+			          4);
+			t++;
+		} while ((done.resp.done == 0) && (t < CMDIF_TIMEOUT));
+		
+		if (done.resp.done == 0)
+			return -ETIMEDOUT;
+		else
+			return done.resp.err;
+	}
+	
+	return 0;
 }
