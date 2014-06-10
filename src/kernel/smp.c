@@ -27,10 +27,10 @@ void sys_free_multi_processing(void)
 }
 
 /*****************************************************************************/
+#pragma optimization_level 1
 void sys_barrier(void)
 {
-#ifdef UNDER_CONSTRUCTION
-    const uint64_t core_mask = (uint64_t)(1 << core_get_id());
+    uint64_t core_mask = (uint64_t)(1 << core_get_id());
 
     lock_spinlock(&(sys.barrier_lock));
     /* Mark this core's presence */
@@ -48,8 +48,8 @@ void sys_barrier(void)
         sys.barrier_mask = sys.active_cores_mask;
         unlock_spinlock(&(sys.barrier_lock));
     }
-#endif
 }
+#pragma optimization_level reset
 
 /*****************************************************************************/
 int sys_is_core_active(uint32_t core_id)
