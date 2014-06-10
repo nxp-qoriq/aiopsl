@@ -1010,7 +1010,11 @@ int32_t fdma_read_default_frame_asa(
 @Param[in]	ws_dst - A pointer to the location in workspace for the
 		presented PTA segment.
 
-@Return		Success (0).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to present PTA segment (no PTA segment in working
+		frame).
 
 @remark		The PTA segment handle value is fixed \ref FDMA_PTA_SEG_HANDLE.
 
@@ -1374,8 +1378,10 @@ int32_t fdma_enqueue_default_fd_fqid(
 @Param[in]	fqid - frame queue ID for the enqueue.
 @Param[in]	icid - ICID of the FD to enqueue.
 
-@Return		Status (if enqueue succeeded or failed. (\ref
-		FDMA_ENQUEUE_FD_ERRORS)).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
@@ -1716,7 +1722,7 @@ int32_t fdma_split_frame(
 		representing the new start of the segment (head trim).
 @Param[in]	size - New segment size in bytes.
 
-@Return		Success (0).
+@Return		None.
 
 @remark		Example: Trim segment to 20 bytes at offset 10.
 		The default Data segment represents a 100 bytes at offset 0 in
@@ -1731,7 +1737,7 @@ int32_t fdma_split_frame(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_trim_default_segment_presentation(
+void fdma_trim_default_segment_presentation(
 		uint16_t offset, uint16_t size);
 
 
@@ -1754,7 +1760,7 @@ int32_t fdma_trim_default_segment_presentation(
 		Must be within the presented segment size.
 @Param[in]	size - The Working Frame modified size.
 
-@Return		Success (0).
+@Return		None.
 
 @remark		Example: Modify 14 bytes. The default Data segment represents a
 		100 bytes at offset 0 in the frame (0-99) and the user has
@@ -1768,7 +1774,7 @@ int32_t fdma_trim_default_segment_presentation(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_modify_default_segment_data(
+void fdma_modify_default_segment_data(
 		uint16_t offset,
 		uint16_t size);
 
@@ -2064,13 +2070,13 @@ int32_t fdma_delete_segment_data(
 		Implicit input parameters in Task Defaults: frame handle,
 		segment handle.
 
-@Return		Success (0).
+@Return		None.
 
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_close_default_segment(void);
+void fdma_close_default_segment(void);
 
 /**************************************************************************//**
 @Function	fdma_close_segment
@@ -2083,13 +2089,13 @@ int32_t fdma_close_default_segment(void);
 @Param[in]	frame_handle - working frame from which to close the segment
 @Param[in]	seg_handle - The handle of the segment to be closed.
 
-@Return		Success (0).
+@Return		None.
 
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
+void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 
 /**************************************************************************//**
 @Function	fdma_replace_default_frame_asa_segment_data
@@ -2180,7 +2186,12 @@ int32_t fdma_replace_default_asa_segment_data(
 @Param[in]	size_type - Replacing segment size type of the PTA
 		(\ref fdma_pta_size_type).
 
-@Return		Success (0).
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to present PTA segment (no PTA segment in working
+		frame)(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is
+		set).
 
 @remark		The length of the represented PTA can be read directly from the
 		FD.
@@ -2207,14 +2218,14 @@ int32_t fdma_replace_default_pta_segment_data(
 @Param[out]	checksum - Ones complement sum over the specified range of the
 		working frame.
 
-@Return		Success (0).
+@Return		None.
 
 @Cautions	The h/w must have previously opened the frame with an
 		initial presentation or initial presentation command.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_calculate_default_frame_checksum(
+void fdma_calculate_default_frame_checksum(
 		uint16_t offset,
 		uint16_t size,
 		uint16_t *checksum);
@@ -2233,14 +2244,14 @@ int32_t fdma_calculate_default_frame_checksum(
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
 		memory to store the copied data (limited to 20 bits).
 
-@Return		Success (0).
+@Return		None.
 
 @Cautions	If source and destination regions overlap then this is a
 		destructive copy.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_copy_data(
+void fdma_copy_data(
 		uint16_t copy_size,
 		uint32_t flags,
 		void *src,
@@ -2279,7 +2290,7 @@ int32_t fdma_copy_data(
 @Param[in]	size - data size.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
-@Return		Success (0).
+@Return		None.
 
 @Cautions
 		- In this Service Routine the task yields.
@@ -2287,7 +2298,7 @@ int32_t fdma_copy_data(
 		- The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int32_t fdma_create_frame(
+void fdma_create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
 		uint16_t size,

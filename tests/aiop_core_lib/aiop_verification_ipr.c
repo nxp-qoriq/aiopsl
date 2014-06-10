@@ -196,7 +196,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 			str->status = ipr_get_reass_frm_cntr(
 					verif_ipr_instance_handle,
 					str->flags,
-					str->reass_frm_cntr);
+					&str->reass_frm_cntr);
 			str_size = sizeof(struct ipr_get_reass_frm_cntr_command);
 			break;
 		}

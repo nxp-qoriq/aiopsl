@@ -1,7 +1,9 @@
 #include <errno.h>
 #include <types.h>
 #include <cmdif_client.h>
-#include <fsl_cmdif_flib.h>
+#include <fsl_cmdif_flib_c.h>
+
+int32_t nadk_send(struct nadk_dev *dev, void *vq, struct nadk_buf *buf[], uint32_t num);
 
 /*
  * Pointer to this structure should be passed as cidesc->regs
@@ -11,10 +13,28 @@ struct cmdif_reg {
 	/* TODO complete */
 };
 
+
 static int send_fd(struct cmdif_fd *cfd, int pr, void *sdev)
 {
 	struct   cmdif_reg *dev = (struct cmdif_reg *)sdev;
-	/* TODO complete */
+	struct   nadk_buf nbuf;
+	void     *vq = NULL;
+	
+	/* Copy FD fields into NASDK buff 
+	 * cfd->u_frc.frc; 
+	 * cfd->d_size; 
+	 * cfd->u_flc.flc; 
+	 * cfd->u_addr.addr;
+	 * TODO complete
+	 * */
+	nbuf.length = cfd->d_size;
+	
+	/* Find queue according to priority 
+	 * TODO implement */
+	vq = find_queue(dev->nadk_dev, pr);
+	
+	nadk_send(dev->nadk_dev, vq, &nbuf, 1);
+	
 	return 0;
 }
 
