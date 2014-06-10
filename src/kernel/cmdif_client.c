@@ -14,16 +14,23 @@
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
 
-void cmdif_client_free();
-int cmdif_client_init();
 
 #define CMDIF_TIMEOUT  0x100000
+
+void cmdif_client_free();
+int cmdif_client_init();
 
 static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 {
 	int      err = 0;
-	uint32_t fqid = 0;
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
+	struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
+	uint32_t fqid = sdev->fqid[pr];
+	uint16_t icid = 0;
+	
+	fdma_enqueue_fd_fqid(&_fd, FDMA_EN_TC_CONDTERM_BITS | FDMA_ENF_BDI_BIT, 
+	                     fqid, icid);
+	/* TODO FDMA_ENF_BDI_BIT ??? */
 	
 	if ((sdev == NULL) || (sdev->num_of_pr <= pr) || (fd == NULL))
 		return -EINVAL;
