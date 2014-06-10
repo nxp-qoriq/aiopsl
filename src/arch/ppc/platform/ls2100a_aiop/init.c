@@ -13,9 +13,13 @@
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
 #include "common/aiop_common.h"
+#include "common/errors.h"
+
 
 __SHRAM uint8_t abcr_lock = 0;
 
+extern int mc_obj_init();           extern void mc_obj_free();
+extern int cmdif_client_init();     extern void cmdif_client_free();
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
 extern int slab_module_init(void);  extern void slab_module_free(void);
@@ -44,8 +48,10 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                     \
 {                                          \
+    {mc_obj_init,       mc_obj_free},      \
     {slab_module_init,  slab_module_free}, \
     {dpni_drv_init,     dpni_drv_free},    \
+    {cmdif_client_init, cmdif_client_free},\
     {cmdif_srv_init,    cmdif_srv_free},   \
     {aiop_sl_init,      aiop_sl_free},     \
     {NULL, NULL} /* never remove! */       \
@@ -65,7 +71,6 @@ void core_ready_for_tasks(void);
 #include "general.h"
 /** Global task params */
 extern __TASK struct aiop_default_task_params default_task_params;
-
 
 void fill_platform_parameters(struct platform_param *platform_param)
 {
@@ -111,13 +116,9 @@ int global_post_init(void)
 
 void core_ready_for_tasks(void)
 {
-	uint32_t abcr_val;
-	uintptr_t   tmp_reg =
-	    sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-	                                      0,
-	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
-
-    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)tmp_reg;
+    uint32_t abcr_val;
+    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
+	                              sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	
     uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
     uint32_t *abrr = &aiop_regs->cmgw_regs.abrr;
@@ -186,12 +187,11 @@ static int fill_bpid(uint16_t num_buffs,
     dma_addr_t addr  = 0;
 
     for (i = 0; i < num_buffs; i++) {
-        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, mem_partition_id, alignment));
+        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size, 
+                                                  mem_partition_id, 
+                                                  alignment));
         /* Here, we pass virtual BPID, therefore BDI = 0 */
-        if (fdma_release_buffer(0, FDMA_RELEASE_NO_FLAGS, bpid, addr)) {
-            fsl_os_xfree(fsl_os_phys_to_virt(addr));
-            return -ENAVAIL;
-        }
+        fdma_release_buffer(0, FDMA_RELEASE_NO_FLAGS, bpid, addr);        
     }
     return 0;
 }
@@ -203,17 +203,15 @@ int run_apps(void)
 	int err = 0, tmp = 0;
 #ifndef AIOP_STANDALONE
 	int dev_count;
-	void *portal_vaddr;
 	/* TODO: replace with memset */
-	struct dprc dprc = { 0 };
 	struct dpbp dpbp = { 0 };
-	int container_id;
 	struct dprc_obj_desc dev_desc;
 	uint16_t dpbp_id;	// TODO: replace by real dpbp creation
 	struct dpbp_attr attr;
 	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
 	uint16_t buffer_size = 512;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 #endif
 
 
@@ -227,24 +225,11 @@ int run_apps(void)
 	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
 #ifndef AIOP_STANDALONE
-	/* TODO: replace hard-coded portal address 10 with configured value */
-	/* TODO : layout file must contain portal ID 10 in order to work. */
-	/* TODO : in this call, can 3rd argument be zero? */
-	/* Get virtual address of MC portal */
-	portal_vaddr = UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-    	                                 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
-
-	/* Open root container in order to create and query for devices */
-	dprc.regs = portal_vaddr;
-	if ((err = dprc_get_container_id(&dprc, &container_id)) != 0) {
-		pr_err("Failed to get AIOP root container ID.\n");
-		return(err);
+	if (dprc == NULL)
+	{
+		pr_err("Don't find AIOP root container \n");
+		return -ENODEV;
 	}
-	if ((err = dprc_open(&dprc, container_id)) != 0) {
-		pr_err("Failed to open AIOP root container DP-RC%d.\n", container_id);
-		return(err);
-	}
-
 	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
 	/* TODO: Currently creating a stub DPBP with ID=1.
@@ -252,7 +237,7 @@ int run_apps(void)
 	 * At that point, the DPBP ID will be provided by MC. */
 	dpbp_id = 0;
 
-	dpbp.regs = portal_vaddr;
+	dpbp.regs = dprc->regs;
 
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
@@ -281,19 +266,20 @@ int run_apps(void)
 	pools_params.pools[0].dpbp_id = dpbp_id; /*!< DPBPs object id */
 	pools_params.pools[0].buffer_size = buffer_size;
 
-	if ((err = dprc_get_obj_count(&dprc, &dev_count)) != 0) {
-	    pr_err("Failed to get device count for AIOP root container DP-RC%d.\n", container_id);
+	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+	    pr_err("Failed to get device count for AIOP RC auth_id = %d.\n", 
+	           dprc->auth);
 	    return err;
 	}
 
 	/* Enable all DPNI devices */
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(&dprc, i, &dev_desc);
+		dprc_get_obj(dprc, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			/* TODO: print conditionally based on log level */
 			print_dev_desc(&dev_desc);
 
-			if ((err = dpni_drv_probe(&dprc, (uint16_t)dev_desc.id, (uint16_t)i, &pools_params)) != 0) {
+			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, (uint16_t)i, &pools_params)) != 0) {
 				pr_err("Failed to probe DP-NI%d.\n", i);
 				return err;
 			}

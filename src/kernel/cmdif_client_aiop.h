@@ -20,7 +20,9 @@ struct cmdif_cl {
 		/**< Authentication ID to be used for session with server*/
 		uint32_t dpci_id;
 		/**< DPCI id as known by GPP side */
-	} gpp[10];
+		uint8_t ins_id;
+		uint64_t p_addr;
+	} gpp[10]; /* TODO 10 by macro */
 	struct {
 		uint32_t dpci_id;
 		/**< DPCI id as known by GPP side */

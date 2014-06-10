@@ -266,17 +266,6 @@ struct	keygen_hw_fec_mask {
 
 /** @} */ /* end of KEYGEN_STRUCTS */
 
-/**************************************************************************//**
-@Function	keygen_handle_fatal_errors
-
-@Description  	Handles keygen fatal errors.
-
-@Param[in]	Status.
-
-@Return		None.
-*//***************************************************************************/
-void keygen_handle_fatal_errors(int32_t status);
-
 /** @} */ /* end of KEYGEN */
 
 #endif /* __KEYGEN_H */

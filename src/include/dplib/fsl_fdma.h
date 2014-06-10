@@ -1834,12 +1834,6 @@ void fdma_modify_default_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_insert_default_segment_data(
-		uint16_t to_offset,
-		void	 *from_ws_src,
-		uint16_t insert_size,
-		uint32_t flags);
-
 int32_t fdma_replace_default_segment_data(
 		uint16_t to_offset,
 		uint16_t to_size,
@@ -1920,6 +1914,12 @@ int32_t fdma_replace_default_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
+int32_t fdma_insert_default_segment_data(
+		uint16_t to_offset,
+		void	 *from_ws_src,
+		uint16_t insert_size,
+		uint32_t flags);
+
 /**************************************************************************//**
 @Function	fdma_insert_segment_data
 
