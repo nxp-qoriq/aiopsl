@@ -689,7 +689,10 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 		be aligned to 16B boundary.
 @Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
 
-@Return		0 on Success.
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EIO - Extract Out Of Frame Header.
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.

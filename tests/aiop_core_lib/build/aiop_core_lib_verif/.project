@@ -68,11 +68,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>id_pool.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/id_pool.c</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -566,6 +561,11 @@
 			<name>sources/drivers/dplib/util/general.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/util/id_pool.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/id_pool.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/cdma.c</name>

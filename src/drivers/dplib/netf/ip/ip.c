@@ -251,6 +251,56 @@ int32_t ip_header_decapsulation(uint8_t flags)
 	return SUCCESS;
 }
 
+int ipv4_ttl_dec_modification(void)
+{
+	struct   ipv4hdr *ipv4hdr_ptr;
+	uint16_t ipv4hdr_offset;
+	uint32_t old_ttl, new_ttl;
+
+	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		ipv4hdr_ptr = (struct ipv4hdr *)
+				(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+
+		old_ttl = *(uint32_t *)(&ipv4hdr_ptr->ttl);
+		ipv4hdr_ptr->ttl = ipv4hdr_ptr->ttl - 1;
+		new_ttl = *(uint32_t *)(&ipv4hdr_ptr->ttl);
+		/* update IP checksum */
+		cksum_update_uint32(&ipv4hdr_ptr->hdr_cksum,
+				    old_ttl,
+				    new_ttl);
+		/* update IP header in FDMA */
+		fdma_modify_default_segment_data(ipv4hdr_offset + 8, 1);
+		/* no need to invalidate gross running sum since IPv4 header 
+		 * checksum was also updated*/
+		return SUCCESS;
+	}
+	else
+		return NO_IP_HDR_ERROR;
+}
+
+int ipv6_hop_limit_dec_modification(void)
+{
+	struct   ipv6hdr *ipv6hdr_ptr;
+	struct   parse_result *pr =
+				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	uint16_t ipv6hdr_offset;
+
+	if (PARSER_IS_OUTER_IPV6_DEFAULT()) {
+		ipv6hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		ipv6hdr_ptr = (struct ipv6hdr *)
+				(ipv6hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+		ipv6hdr_ptr->hop_limit = ipv6hdr_ptr->hop_limit - 1;
+		/* update IP header in FDMA */
+		fdma_modify_default_segment_data(ipv6hdr_offset + 7, 1);
+		/* Invalidate gross running sum */
+		pr->gross_running_sum = 0;
+		return SUCCESS;
+	}
+	else
+		return NO_IP_HDR_ERROR;
+}
+
 int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		uint32_t ip_src_addr, uint32_t ip_dst_addr)
 {
@@ -965,7 +1015,6 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 {
 	uint16_t running_sum;
-	int32_t  fdma_status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Calculate header size */
@@ -979,10 +1028,7 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 				+ PRC_GET_SEGMENT_OFFSET());
 
 	/* Call FDMA for running sum computation */
-	fdma_status = fdma_calculate_default_frame_checksum(offset, ihl,
-							    &running_sum);
-	if (fdma_status != SUCCESS)
-		return fdma_status;
+	fdma_calculate_default_frame_checksum(offset, ihl, &running_sum);
 
 	/* Invalidate Parser Result Gross Running Sum field */
 	pr->gross_running_sum = 0;
@@ -997,11 +1043,9 @@ int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 
 	/* Update FDMA */
 	if (!(flags & IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA)) {
-		fdma_status = fdma_modify_default_segment_data(offset +
+		fdma_modify_default_segment_data(offset +
 				offsetof(struct ipv4hdr, hdr_cksum),
 				sizeof((struct ipv4hdr *)0)->hdr_cksum);
-		if (fdma_status != SUCCESS)
-			return fdma_status;
 	}
 
 	return SUCCESS;
