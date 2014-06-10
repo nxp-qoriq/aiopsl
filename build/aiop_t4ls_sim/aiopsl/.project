@@ -150,6 +150,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/mc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/serial</name>
 			<type>2</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/serial</locationURI>
@@ -358,6 +363,11 @@
 			<name>aiop_sl/drivers/dplib/util</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/mc/mc_init.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/mc_init.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/arch/cores</name>

@@ -10,7 +10,6 @@
  */
 /***************************************************************************/
 void __sys_start(register int argc, register char **argv, register char **envp);
-void __sys_start_guest(register int argc, register char **argv, register char **envp);
 void _ExitProcess(void);
 __declspec(weak) extern void abort(void);
 __declspec(weak) extern void exit(int status);
