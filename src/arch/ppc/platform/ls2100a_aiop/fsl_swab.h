@@ -157,8 +157,25 @@
 	__llstdw(_val, (uint32_t)_disp, (void *)_base)
 
 
+/** @} */ /* end of Endian_Macros */
+
+/** return 2 bytes with endian swap.
+ * _val - 16 bit value to be swaped. */
+
+static uint64_t swap_uint16(uint16_t val)
+{
+	return LH_SWAP(0, &val );
+}
+
+ /** return 4 bytes with endian swap.
+  * _val - 32 bit value to be swaped. */
+static uint64_t swap_uint32(uint32_t val)
+{
+	return LW_SWAP(0, &val );
+}
+
 /** return 8 bytes with endian swap.
- * _val - 64bit value to be swaped. */
+ * _val - 64 bit value to be swaped. */
 
 static uint64_t swap_uint64(uint64_t val)
 {
@@ -166,3 +183,4 @@ static uint64_t swap_uint64(uint64_t val)
 }
 
 #endif
+/** @} */ /* end of Endian */

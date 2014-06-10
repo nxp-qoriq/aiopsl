@@ -317,7 +317,7 @@
 		<link>
 			<name>aiop_sl/arch/ppc/include</name>
 			<type>2</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include</locationURI>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform</name>
@@ -388,11 +388,6 @@
 			<name>aiop_sl/include/arch/fsl_core_ppc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_core_ppc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/fsl_endian.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_endian.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/arch/fsl_ldpaa_aiop.h</name>
@@ -718,6 +713,11 @@
 			<name>aiop_sl/kernel/mem_mng/mem_mng.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/mem_mng/mem_mng.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/include/fsl_endian.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_endian.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop</name>
