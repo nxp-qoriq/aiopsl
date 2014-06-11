@@ -11,7 +11,16 @@
 /** Global task params */
 __TASK struct aiop_default_task_params default_task_params;
 
+/* TODO - once the ARENA implementation is ready move this (verification)
+ * implementation to aiop_verification_data.c*/
 void handle_fatal_error(char *message)
+{
+       uint32_t status;
+       status = -1 + (uint32_t)message;
+       fdma_terminate_task();
+}
+
+void exception_handler(char *filename, uint32_t line, char *message)
 {
        uint32_t status;
        status = -1 + (uint32_t)message;
