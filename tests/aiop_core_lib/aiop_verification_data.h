@@ -23,20 +23,20 @@
 
 /*
 struct profile_sram {
-	uint64_t ip_secific_sp_info; *< IP-Specific SP Information 	 
-	uint16_t dl; *<  DataLength(correction)	 
-	uint16_t reserved; *< reserved 	 
-	uint16_t dhr; *< DataHeadRoom(correction) 
-	uint8_t  mode_bits1; *< mode bits 	 
-	uint8_t  mode_bits2; *< mode bits 	 
-	uint16_t pbs1; *<  Pool Buffer Size	 
-	uint16_t bpid1; *<  Bypass Memory Translation	 
-	uint16_t pbs2; *<  Pool Buffer Size	 
-	uint16_t bpid2; *<  Bypass Memory Translation	 
-	uint16_t pbs3; *<  Pool Buffer Size	 
-	uint16_t bpid3; *<  Bypass Memory Translation	 
-	uint16_t pbs4; *<  Pool Buffer Size	 
-	uint16_t bpid4; *<  Bypass Memory Translation	 
+	uint64_t ip_secific_sp_info; *< IP-Specific SP Information
+	uint16_t dl; *<  DataLength(correction)
+	uint16_t reserved; *< reserved
+	uint16_t dhr; *< DataHeadRoom(correction)
+	uint8_t  mode_bits1; *< mode bits
+	uint8_t  mode_bits2; *< mode bits
+	uint16_t pbs1; *<  Pool Buffer Size
+	uint16_t bpid1; *<  Bypass Memory Translation
+	uint16_t pbs2; *<  Pool Buffer Size
+	uint16_t bpid2; *<  Bypass Memory Translation
+	uint16_t pbs3; *<  Pool Buffer Size
+	uint16_t bpid3; *<  Bypass Memory Translation
+	uint16_t pbs4; *<  Pool Buffer Size
+	uint16_t bpid4; *<  Bypass Memory Translation
 };
 */
 
@@ -71,7 +71,7 @@ struct profile_sram {
 	#define mode_bits1_Rsrvd 0x00
 	#define mode_bits1_SGHR  0x00
 	#define mode_bits1_ASAR  0x0f
-	
+
 	#define mode_bits2_BS  0x00
 	#define mode_bits2_FF  0x00
 	#define mode_bits2_VA  0x00

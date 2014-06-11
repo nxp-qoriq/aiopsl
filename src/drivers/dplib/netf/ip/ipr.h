@@ -69,7 +69,6 @@
 #define CONCURRENT				0
 #define EXCLUSIVE				1
 
-#define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
 #define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
 
 #pragma pack(push,1)
@@ -209,15 +208,18 @@ int ipr_init(void);
 
 @Param[in]	rfdc_ptr - pointer to RFDC in workspace (on stack)
 @Param[in]	rfdc_ext_addr - pointer to RFDC in external memory.
+@Param[in]	iphdr_ptr - pointer to IP header.
+@Param[in]	frame_is_ipv4 - frame is Ipv4 or Ipv6.
 
-@Return		Status - Success or Failure.
+@Return		Status.
 
 @Cautions	None.
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-							     uint64_t rfdc_ext_addr, 
-							     void     *iphdr_ptr);
+				 uint64_t rfdc_ext_addr, 
+				 void *iphdr_ptr,
+				 uint32_t frame_is_ipv4);
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
 
@@ -258,9 +260,10 @@ void ipr_time_out();
 void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
-					  uint16_t frag_offset_shifted); 
+		      uint32_t frame_is_ipv4,uint16_t current_frag_size,
+		      uint16_t frag_offset_shifted);
 
+uint32_t is_last_fragment(uint32_t frame_is_ipv4);
 
 /**************************************************************************//**
 @Description	IPR Global parameters
