@@ -123,8 +123,10 @@ void core_ready_for_tasks(void)
 
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
-
+    
     sys_barrier();
+    
+    sys.runtime_flag = 1;
     
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
