@@ -9,7 +9,7 @@
 #ifndef _FSL_SNIC_CMD_H
 #define _FSL_SNIC_CMD_H
 
-#define SNIC_CMD_NUM_OF_PARAMS	10
+#define SNIC_CMD_NUM_OF_PARAMS	16
 
 struct snic_cmd_data {
 	uint64_t params[SNIC_CMD_NUM_OF_PARAMS];

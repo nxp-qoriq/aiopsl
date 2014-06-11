@@ -55,7 +55,7 @@
 /**************************************************************************//**
 @Description	AIOP snic parameters
 *//***************************************************************************/
-#pragma pack(push, 1)
+
 struct snic_params {
 	/** IPR instance is per snic */
 	ipr_instance_handle_t ipr_instance_val;
@@ -68,7 +68,6 @@ struct snic_params {
 	/** valid */
 	uint32_t valid;
 };
-#pragma pack(pop)
 
 /** @} */ /* end of SNIC_STRUCTS */
 
