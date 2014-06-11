@@ -36,7 +36,7 @@ int32_t tcp_gro_aggregate_seg(
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
 	/* read GRO context*/
-	sr_status = cdma_read_with_mutex(tcp_gro_context_addr,
+	cdma_read_with_mutex(tcp_gro_context_addr,
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
@@ -47,7 +47,7 @@ int32_t tcp_gro_aggregate_seg(
 				tcp_gro_context_addr, params, &gro_ctx);
 		/* write entire gro context back to DDR + release
 		 * mutex */
-		sr_status = cdma_write_with_mutex(
+		cdma_write_with_mutex(
 			tcp_gro_context_addr,
 			CDMA_POSTDMA_MUTEX_RM_BIT,
 			(void *)&gro_ctx,
@@ -58,10 +58,10 @@ int32_t tcp_gro_aggregate_seg(
 
 	/* read segment sizes address */
 	if (flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
-		sr_status = cdma_read(&(gro_ctx.metadata.seg_sizes_addr),
+		cdma_read(&(gro_ctx.metadata.seg_sizes_addr),
 				params->metadata_addr,
 				(uint16_t)METADATA_MEMBER1_SIZE);
-		sr_status = cdma_write(gro_ctx.metadata.seg_sizes_addr,
+		cdma_write(gro_ctx.metadata.seg_sizes_addr,
 				&seg_size, (uint16_t)sizeof(seg_size));
 		gro_ctx.metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
 	}
@@ -133,7 +133,7 @@ int32_t tcp_gro_aggregate_seg(
 	/* copy default FD to gro context */
 	gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 	/* write gro context back to DDR + release mutex */
-	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+	cdma_write_with_mutex(tcp_gro_context_addr,
 			CDMA_POSTDMA_MUTEX_RM_BIT,
 			(void *)&gro_ctx,
 			(uint16_t)sizeof(struct tcp_gro_context));
@@ -275,7 +275,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 
 	/* write metadata segment size to external memory */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
-		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr,
+		cdma_write(gro_ctx->metadata.seg_sizes_addr,
 				&seg_size, (uint16_t)sizeof(seg_size));
 		gro_ctx->metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
 	}
@@ -304,6 +304,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	/* delete the timer for this aggregation */
 	tman_delete_timer(gro_ctx->timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+	gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -382,12 +384,11 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 
 	/* write metadata segment size to external memory */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
-		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr,
+		cdma_write(gro_ctx->metadata.seg_sizes_addr,
 				&seg_size, (uint16_t)sizeof(seg_size));
 	}
 	/* write metadata to external memory */
-	sr_status = cdma_write(
-			(gro_ctx->params.metadata_addr + METADATA_MEMBER1_SIZE),
+	cdma_write((gro_ctx->params.metadata_addr + METADATA_MEMBER1_SIZE),
 			&(gro_ctx->metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
@@ -508,8 +509,8 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 						gro_ctx->last_seg_fields;
 
 	/* write metadata to external memory */
-	sr_status = cdma_write((gro_ctx->params.metadata_addr +
-			METADATA_MEMBER1_SIZE), &(gro_ctx->metadata.seg_num),
+	cdma_write((gro_ctx->params.metadata_addr + METADATA_MEMBER1_SIZE),
+			&(gro_ctx->metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
 
@@ -550,8 +551,11 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		/* delete the timer since the new segment will be flushed as is
 		 * without additional segments. */
-		sr_status = tman_delete_timer(gro_ctx->timer_handle,
+		tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+
 		gro_ctx->metadata.seg_num = 1;
 
 		/* Clear gross running sum in parse results */
@@ -590,10 +594,10 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 
 	/* update seg size */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
-		sr_status = cdma_read(&(gro_ctx->metadata.seg_sizes_addr),
+		cdma_read(&(gro_ctx->metadata.seg_sizes_addr),
 				params->metadata_addr ,
 				(uint16_t)METADATA_MEMBER1_SIZE);
-		sr_status = cdma_write(gro_ctx->metadata.seg_sizes_addr,
+		cdma_write(gro_ctx->metadata.seg_sizes_addr,
 				&(gro_ctx->metadata.max_seg_size),
 				(uint16_t)
 					sizeof(gro_ctx->metadata.max_seg_size));
@@ -620,7 +624,7 @@ int32_t tcp_gro_flush_aggregation(
 	uint8_t single_seg;
 
 	/* read GRO context*/
-	sr_status = cdma_read_with_mutex(tcp_gro_context_addr,
+	cdma_read_with_mutex(tcp_gro_context_addr,
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
@@ -631,17 +635,31 @@ int32_t tcp_gro_flush_aggregation(
 	}
 
 	/* delete the timer for this aggregation */
-	sr_status = tman_delete_timer(gro_ctx.timer_handle,
+	tman_delete_timer(gro_ctx.timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
+	gro_ctx.timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
+
+	/* prepare presentation context fields for frame presentation. */
+	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
+				DEFAULT_SEGMENT_HEADOOM_SIZE);
+	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+	PRC_SET_SEGMENT_OFFSET(0);
+	PRC_RESET_SR_BIT();
+	PRC_RESET_NDS_BIT();
+	PRC_SET_ASA_SIZE(0);
+	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 
 	if (gro_ctx.internal_flags & TCP_GRO_FLUSH_AGG_SET) {
 		/* reset gro context fields */
 		gro_ctx.metadata.seg_num = 0;
 		gro_ctx.internal_flags = 0;
+		gro_ctx.timestamp = 0;
 		/* write gro context back to DDR + release mutex */
-		sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+		cdma_write_with_mutex(tcp_gro_context_addr,
 				CDMA_POSTDMA_MUTEX_RM_BIT,
 				(void *)&gro_ctx,
 				(uint16_t)sizeof(struct tcp_gro_context));
@@ -656,8 +674,7 @@ int32_t tcp_gro_flush_aggregation(
 	}
 
 	/* write metadata to external memory */
-	sr_status = cdma_write((gro_ctx.params.metadata_addr +
-		METADATA_MEMBER1_SIZE),
+	cdma_write((gro_ctx.params.metadata_addr + METADATA_MEMBER1_SIZE),
 		&(gro_ctx.metadata.seg_num),
 		(uint16_t)(METADATA_MEMBER2_SIZE +
 				METADATA_MEMBER3_SIZE));
@@ -669,15 +686,6 @@ int32_t tcp_gro_flush_aggregation(
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
-	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-			DEFAULT_SEGMENT_HEADOOM_SIZE);
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	PRC_SET_SEGMENT_OFFSET(0);
-	PRC_RESET_SR_BIT();
-	PRC_RESET_NDS_BIT();
-	PRC_SET_ASA_SIZE(0);
-	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	sr_status = fdma_present_default_frame();
 
 	/* run parser since we don't know which scenario preceded
@@ -718,7 +726,7 @@ int32_t tcp_gro_flush_aggregation(
 		tcp_gro_calc_tcp_header_cksum();
 
 	/* write gro context back to DDR + release mutex */
-	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+	cdma_write_with_mutex(tcp_gro_context_addr,
 				CDMA_POSTDMA_MUTEX_RM_BIT,
 				(void *)&gro_ctx,
 				(uint16_t)sizeof(struct tcp_gro_context));
@@ -751,7 +759,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 
 	opaque2 = 0;
 	/* read GRO context*/
-	sr_status = cdma_read_with_mutex(tcp_gro_context_addr,
+	cdma_read_with_mutex(tcp_gro_context_addr,
 			CDMA_PREDMA_MUTEX_WRITE_LOCK,
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
@@ -775,8 +783,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
 	/* write metadata to external memory */
-	sr_status = cdma_write((gro_ctx.params.metadata_addr +
-					METADATA_MEMBER1_SIZE),
+	cdma_write((gro_ctx.params.metadata_addr + METADATA_MEMBER1_SIZE),
 			&(gro_ctx.metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
@@ -837,7 +844,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 		tcp_gro_calc_tcp_header_cksum();
 
 	/* write gro context back to DDR + release mutex */
-	sr_status = cdma_write_with_mutex(tcp_gro_context_addr,
+	cdma_write_with_mutex(tcp_gro_context_addr,
 				CDMA_POSTDMA_MUTEX_RM_BIT,
 				(void *)&gro_ctx,
 				(uint16_t)sizeof(struct tcp_gro_context));

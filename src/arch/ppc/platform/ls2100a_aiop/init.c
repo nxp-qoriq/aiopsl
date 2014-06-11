@@ -9,7 +9,6 @@
 #include "common/dbg.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
-#include "io.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
 #include "common/aiop_common.h"
@@ -121,19 +120,12 @@ void core_ready_for_tasks(void)
 	                              sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	
     uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
-    uint32_t *abrr = &aiop_regs->cmgw_regs.abrr;
 
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
 
-#ifndef SINGLE_CORE_WA
-
-    if(sys_is_master_core()) {
-	uint32_t abrr_val = ioread32(abrr) & \
-		(~((uint32_t)(1 << core_get_id())));
-	while(ioread32(abcr) != abrr_val) {asm{nop}}
-    }
-#endif
+    sys_barrier();
+    
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
     abcr_val = ioread32(abcr);
@@ -141,10 +133,12 @@ void core_ready_for_tasks(void)
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
 
-#ifndef SINGLE_CORE_WA
-    while(ioread32(abcr) != ioread32(abrr)) {asm{nop}}
-#endif
 #if (STACK_OVERFLOW_DETECTION == 1)
+    /*
+     *  NOTE:
+     *  Any access to the stack (read/write) following this line will cause
+     *  a stack-overflow violation and an exception will occur.
+     */
     booke_set_spr_DAC2(0x800);
 #endif
 
