@@ -1,7 +1,9 @@
 /**************************************************************************//**
- @Group		ENDIAN
+ @Group		SWAB
 
- @Description	General macros and functions
+ @Description	General macros and functions - used for SWAp Bytes
+ 	 	 The following macros are used to speed up byte reverse
+ 	 	 functionality in store and load.
 
  @{
 *//***************************************************************************/
