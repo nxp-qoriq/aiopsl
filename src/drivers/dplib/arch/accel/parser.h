@@ -78,6 +78,9 @@
 #define PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x00020000
 	/** L4 checksum validation failure */
 #define PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR	0x00030000
+	/** L3 & L4 checksum validation success */
+#define PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x000A0000
+
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_HW_STATUS */
 
@@ -188,17 +191,6 @@ int32_t parse_result_generate_checksum(
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum
 );
-
-/**************************************************************************//**
-@Function	parser_handle_fatal_errors
-
-@Description  	Handles keygen fatal errors.
-
-@Param[in]	Status.
-
-@Return		None.
-*//***************************************************************************/
-void parser_handle_fatal_errors(int32_t status);
 
 /** @} */ /* end of PARSER */
 

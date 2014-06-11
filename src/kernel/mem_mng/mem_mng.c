@@ -4,6 +4,7 @@
  @Description   Implementation of the memory allocation management module.
 *//***************************************************************************/
 
+#include "common/gen.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "common/slob.h"
@@ -12,6 +13,7 @@
 #endif /* AIOP */
 
 #include "mem_mng.h"
+
 
 #ifdef UNDER_CONSTRUCTION
 //@@@@ todo:
@@ -452,9 +454,9 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
             }
         }
 #ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
+        unlock_spinlock(p_mem_mng->lock);
 #else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
         return count;
     }
@@ -760,7 +762,7 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_ite
     list_del(p_partition_iterator);
     if (p_partition->lock) {
 #ifdef AIOP
-	fsl_os_free((void *) p_partition->lock);
+	    fsl_os_free((void *) p_partition->lock);
 #else
         spin_lock_free(p_partition->lock);
 #endif

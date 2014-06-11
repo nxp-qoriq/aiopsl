@@ -14,7 +14,7 @@
 #elif defined(__EWL__) && defined(AIOP)
 #include "general.h"
 #elif defined(__EWL__) && defined(MC)
-#include "common/endian.h"
+#include "fsl_endian.h"
 #else
 #error Environment not supported!
 #endif

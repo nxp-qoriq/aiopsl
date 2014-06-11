@@ -24,16 +24,6 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 	opcode  = *((uint32_t *) asa_seg_addr);
 
 	switch (opcode) {
-	
-	case OSM_INIT_STR:
-	{
-		
-		/*
-		 * TODO: Read TASK_ID, then write it to ORTAR 
-		 */
-		str_size = (uint16_t) sizeof(struct osm_initial_verif_command);
-		break;
-	}
 		
 	case OSM_SCOPE_TRANS_TO_EX_INC_SCOPE_ID_STR:
 	{
@@ -158,8 +148,21 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		struct osm_get_scope_verif_command *str =
 			(struct osm_get_scope_verif_command *) asa_seg_addr;
 		
-		osm_get_scope((struct scope_status_params *)str->scope_status);
+		/* initialize TASK_ID (=0) in ORTAR to enable OSM registers */
+		uint32_t *osm_reg =(uint32_t *)OSM_REG_ORTAR;
+		*osm_reg = 0;
 		
+		osm_get_scope((struct scope_status_params *)str->scope_status);
+
+		((struct osm_registers *)str->scope_status)->ortdr0 = OSM_REG_ORTDR0();
+		((struct osm_registers *)str->scope_status)->ortdr1 = OSM_REG_ORTDR1();
+		((struct osm_registers *)str->scope_status)->ortdr2 = OSM_REG_ORTDR2();
+		((struct osm_registers *)str->scope_status)->ortdr3 = OSM_REG_ORTDR3();
+		((struct osm_registers *)str->scope_status)->ortdr4 = OSM_REG_ORTDR4();
+		((struct osm_registers *)str->scope_status)->ortdr5 = OSM_REG_ORTDR5();
+		((struct osm_registers *)str->scope_status)->ortdr6 = OSM_REG_ORTDR6();
+		((struct osm_registers *)str->scope_status)->ortdr7 = OSM_REG_ORTDR7();
+
 		str_size = (uint16_t)sizeof(struct osm_get_scope_verif_command);
 		break;
 	}
