@@ -25,6 +25,14 @@ int32_t cdma_acquire_context_memory(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0); */
+	/*__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0); */
+	/*__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS+4)) = arg2;
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS+8)) = arg3;  */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -32,15 +40,10 @@ int32_t cdma_acquire_context_memory(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
-	if (((int32_t)res1) == CDMA_BUFFER_POOL_DEPLETION_ERR)
-		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
-	return -1;
+	return (int32_t)(res1);
 }
 
-void cdma_release_context_memory(
+int32_t cdma_release_context_memory(
 		uint64_t context_address) {
 
 	/* command parameters and results */
@@ -54,6 +57,11 @@ void cdma_release_context_memory(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -61,11 +69,10 @@ void cdma_release_context_memory(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
-void cdma_read(
+int32_t cdma_read(
 		void *ws_dst,
 		uint64_t ext_address,
 		uint16_t size) {
@@ -82,6 +89,11 @@ void cdma_read(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -89,11 +101,10 @@ void cdma_read(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
-void cdma_write(
+int32_t cdma_write(
 		uint64_t ext_address,
 		void *ws_src,
 		uint16_t size) {
@@ -110,6 +121,11 @@ void cdma_write(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -117,11 +133,10 @@ void cdma_write(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
-void cdma_mutex_lock_take(
+int32_t cdma_mutex_lock_take(
 		uint64_t mutex_id,
 		uint32_t flags) {
 
@@ -137,6 +152,11 @@ void cdma_mutex_lock_take(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -144,11 +164,10 @@ void cdma_mutex_lock_take(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
-void cdma_mutex_lock_release(
+int32_t cdma_mutex_lock_release(
 		uint64_t mutex_id) {
 
 	/* command parameters and results */
@@ -163,6 +182,11 @@ void cdma_mutex_lock_release(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -170,11 +194,10 @@ void cdma_mutex_lock_release(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
-void cdma_read_with_mutex(
+int32_t cdma_read_with_mutex(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_dst,
@@ -192,6 +215,11 @@ void cdma_read_with_mutex(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -199,11 +227,10 @@ void cdma_read_with_mutex(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
-void cdma_write_with_mutex(
+int32_t cdma_write_with_mutex(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_src,
@@ -221,6 +248,11 @@ void cdma_write_with_mutex(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -228,11 +260,10 @@ void cdma_write_with_mutex(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
-void cdma_refcount_increment(
+int32_t cdma_refcount_increment(
 		uint64_t context_address) {
 
 	/* command parameters and results */
@@ -254,8 +285,7 @@ void cdma_refcount_increment(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);;
+	return (int32_t)(res1);
 }
 
 int32_t cdma_refcount_decrement(
@@ -280,13 +310,7 @@ int32_t cdma_refcount_decrement(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
-	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
-		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
-	return -1;
+	return (int32_t)(res1);
 }
 
 int32_t cdma_refcount_decrement_and_release(
@@ -311,15 +335,10 @@ int32_t cdma_refcount_decrement_and_release(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
-	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
-		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
-	return -1;
+	return (int32_t)(res1);
 }
 
-void cdma_write_lock_dma_read_and_increment(
+int32_t cdma_write_lock_dma_read_and_increment(
 		void *ws_dst,
 		uint64_t context_address,
 		uint16_t size){
@@ -337,6 +356,11 @@ void cdma_write_lock_dma_read_and_increment(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -344,8 +368,8 @@ void cdma_write_lock_dma_read_and_increment(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
+
 }
 
 int32_t cdma_write_release_lock_and_decrement(
@@ -366,6 +390,11 @@ int32_t cdma_write_release_lock_and_decrement(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -373,15 +402,10 @@ int32_t cdma_write_release_lock_and_decrement(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
-	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
-		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
-	return -1;
-}
+	return (int32_t)(res1);
 
-void cdma_ws_memory_init(
+}
+int32_t cdma_ws_memory_init(
 		void *ws_dst,
 		uint16_t size,
 		uint32_t data_pattern) {
@@ -397,6 +421,11 @@ void cdma_ws_memory_init(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS + 8)) = arg3; */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -404,8 +433,7 @@ void cdma_ws_memory_init(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+	return (int32_t)(res1);
 }
 
 int32_t cdma_access_context_memory(
@@ -429,6 +457,11 @@ int32_t cdma_access_context_memory(
 
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* Todo - Note to HW/Compiler team:
+	stqw intrinsic can be used here (__stqw with 4 arg is not working).
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS + 8, 0); */
 
 	/* call CDMA */
 	__e_hwacceli_(CDMA_ACCEL_ID);
@@ -438,82 +471,28 @@ int32_t cdma_access_context_memory(
 	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
 				CDMA_REF_CNT_OFFSET));
 
-
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
-	if ((((int32_t)res1) == (CDMA_REFCOUNT_DECREMENT_TO_ZERO)) ||
-	(((int32_t)res1) == (CDMA_MUTEX_LOCK_FAILED)))
-		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
-	return -1;
+	return (int32_t)(res1);
 }
 
-void cdma_refcount_get(
+int32_t cdma_refcount_get(
 		uint64_t context_address,
 		uint32_t *refcount_value) {
 
-	/* Increment ref counter */
-	cdma_refcount_increment(context_address);
+	/* command parameters and results */
+	int32_t res1;
 
-	/* Decrement ref counter without release */
-	cdma_refcount_decrement(context_address);
-	
+	/* Increment ref counter */
+	res1 = cdma_refcount_increment(context_address);
+
+	if (res1 == CDMA_SUCCESS)
+		/* Decrement ref counter without release */
+		res1 = cdma_refcount_decrement(context_address);
+
 	/* load command results */
 	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
 					CDMA_REF_CNT_OFFSET));
-}
 
-void cdma_handle_fatal_errors(
-		uint8_t status) {
-       switch(status) {
-       case CDMA_MUTEX_DEPLETION_ERR:
-	       handle_fatal_error((char *)CDMA_MUTEX_DEPLETION_ERR); /*TODO Fatal error*/
-	       break; 
-       case CDMA_INVALID_DMA_COMMAND_ARGS_ERR:
-	       handle_fatal_error((char *)CDMA_INVALID_DMA_COMMAND_ARGS_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_INVALID_DMA_COMMAND_ERR:
-	       handle_fatal_error((char *)CDMA_INVALID_DMA_COMMAND_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_REFCOUNT_INCREMENT_ERR:
-       	       handle_fatal_error((char *)CDMA_REFCOUNT_INCREMENT_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_REFCOUNT_DECREMENT_ERR:
-       	       handle_fatal_error((char *)CDMA_REFCOUNT_DECREMENT_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_REFCOUNT_INVALID_OPERATION_ERR:
-       	       handle_fatal_error((char *)CDMA_REFCOUNT_INVALID_OPERATION_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_INVALID_MUTEX_LOCK_REQ_ERR:
-       	       handle_fatal_error((char *)CDMA_INVALID_MUTEX_LOCK_REQ_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_INVALID_MUTEX_RELEASE_ERR:
-       	       handle_fatal_error((char *)CDMA_INVALID_MUTEX_RELEASE_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_INTERNAL_MEMORY_ECC_ERR:
-       	       handle_fatal_error((char *)CDMA_INTERNAL_MEMORY_ECC_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_WORKSPACE_MEMORY_READ_ERR:
-               handle_fatal_error((char *)CDMA_WORKSPACE_MEMORY_READ_ERR); /*TODO Fatal error*/
-               break;
-       case CDMA_WORKSPACE_MEMORY_WRITE_ERR:
-	       handle_fatal_error((char *)CDMA_WORKSPACE_MEMORY_WRITE_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_SYSTEM_MEMORY_READ_ERR:
-	       handle_fatal_error((char *)CDMA_SYSTEM_MEMORY_READ_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_SYSTEM_MEMORY_WRITE_ERR:
-               handle_fatal_error((char *)CDMA_SYSTEM_MEMORY_WRITE_ERR); /*TODO Fatal error*/
-               break;
-       case CDMA_INTERNAL_ERR:
-               handle_fatal_error((char *)CDMA_INTERNAL_ERR); /*TODO Fatal error*/
-               break;
-       default:
-	       handle_fatal_error((char *)status); /*TODO Fatal error*/
-	       break;
-       }
-}
-
-
+	return (int32_t)(res1);
+	}
 
 
