@@ -30,6 +30,7 @@ void sys_free_multi_processing(void)
 #pragma optimization_level 1
 void sys_barrier(void)
 {
+#ifndef SINGLE_CORE_WA
     uint64_t core_mask = (uint64_t)(1 << core_get_id());
 
     lock_spinlock(&(sys.barrier_lock));
@@ -48,6 +49,7 @@ void sys_barrier(void)
         sys.barrier_mask = sys.active_cores_mask;
         unlock_spinlock(&(sys.barrier_lock));
     }
+#endif /* SINGLE_CORE_WA */
 }
 #pragma optimization_level reset
 
