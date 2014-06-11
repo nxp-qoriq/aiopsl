@@ -29,29 +29,6 @@
 @{
 *//***************************************************************************/
 
-
-/**************************************************************************//**
-@Group	SNIC_EN_FLAGS snic enable flags
-@{
-*//***************************************************************************/
-	/** snic enable flags */
-/*#define SNIC_IPR_EN			0x0001
-#define SNIC_VLAN_REMOVE_EN		0x0002
-#define SNIC_VLAN_ADD_EN		0x0004
-#define SNIC_IPF_EN			0x0008*/
-
-/** @} */ /* end of SNIC_EN_FLAGS */
-
-/*enum  snic_cmds{
-	SNIC_SET_MTU = 0,
-	SNIC_IPR_CREATE_INSTANCE,
-	SNIC_IPR_DELETE_INSTANCE,
-	SNIC_ENABLE_FLAGS,
-	SNIC_SET_QDID,
-	SNIC_REGISTER,
-	SNIC_UNREGISTER
-};*/
-
 #define SNIC_PRPID	0
 #define SNIC_HXS	0
 #define SNIC_SPID	0
