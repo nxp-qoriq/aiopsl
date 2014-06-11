@@ -125,14 +125,14 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
  //           else 
  //           	ipr_instance = str->ipr_instance;
 
-			str->status = ipr_modify_max_reass_frm_size(
+			ipr_modify_max_reass_frm_size(
 					verif_ipr_instance_handle,
 					str->max_reass_frm_size);
 			str_size = sizeof(struct ipr_modify_max_reass_frm_size_command);
 			break;
 		}
 		/* IPR modify min fragment size Command Verification */
-		case IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_CMD_STR:
+		case IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_IPV4_CMD_STR:
 		{
 			struct ipr_modify_min_frag_size_command *str =
 				(struct ipr_modify_min_frag_size_command *) asa_seg_addr;
@@ -142,12 +142,29 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
  //           else 
  //           	ipr_instance = str->ipr_instance;
 
-			str->status = ipr_modify_min_frag_size(
+			ipr_modify_min_frag_size_ipv4(
 					verif_ipr_instance_handle,
 					str->min_frag_size);
 			str_size = sizeof(struct ipr_modify_min_frag_size_command);
 			break;
 		}
+		case IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_IPV6_CMD_STR:
+		{
+			struct ipr_modify_min_frag_size_command *str =
+				(struct ipr_modify_min_frag_size_command *) asa_seg_addr;
+ //           if(str->ipr_instance_ref)
+ //           	ipr_instance = 
+ //           		(ipr_instance_handle_t)*((uint32_t *) str->ipr_instance);
+ //           else 
+ //           	ipr_instance = str->ipr_instance;
+
+			ipr_modify_min_frag_size_ipv6(
+					verif_ipr_instance_handle,
+					str->min_frag_size);
+			str_size = sizeof(struct ipr_modify_min_frag_size_command);
+			break;
+		}
+
 		/* IPR modify IPv4 TO value Command Verification */
 		case IPR_MODIFY_TO_VALUE_IPV4_CMD_STR:
 		{
@@ -159,7 +176,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
             else 
             	ipr_instance = str->ipr_instance;
 */
-			str->status = ipr_modify_timeout_value_ipv4(
+			ipr_modify_timeout_value_ipv4(
 					verif_ipr_instance_handle,
 					str->reasm_timeout_value_ipv4);
 			str_size = sizeof(struct ipr_modify_timeout_value_ipv4_command);
@@ -176,7 +193,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
             else 
             	ipr_instance = str->ipr_instance;
 */
-			str->status = ipr_modify_timeout_value_ipv6(
+			ipr_modify_timeout_value_ipv6(
 					verif_ipr_instance_handle,
 					str->reasm_timeout_value_ipv6);
 			str_size = sizeof(struct ipr_modify_timeout_value_ipv6_command);
@@ -193,10 +210,10 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
             else 
             	ipr_instance = str->ipr_instance;
 */
-			str->status = ipr_get_reass_frm_cntr(
+			ipr_get_reass_frm_cntr(
 					verif_ipr_instance_handle,
 					str->flags,
-					str->reass_frm_cntr);
+					&str->reass_frm_cntr);
 			str_size = sizeof(struct ipr_get_reass_frm_cntr_command);
 			break;
 		}

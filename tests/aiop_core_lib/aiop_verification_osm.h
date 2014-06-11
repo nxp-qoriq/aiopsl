@@ -21,6 +21,26 @@
  @{
 *//***************************************************************************/
 
+/* OSM Register - ORTAR */
+#define	OSM_REG_ORTAR 	0x0209c020
+
+#define OSM_REG_ORTDR0()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr0)
+#define OSM_REG_ORTDR1()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr1)
+#define OSM_REG_ORTDR2()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr2)
+#define OSM_REG_ORTDR3()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr3)
+#define OSM_REG_ORTDR4()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr4)
+#define OSM_REG_ORTDR5()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr5)
+#define OSM_REG_ORTDR6()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr6)
+#define OSM_REG_ORTDR7()\
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr7)
+
 /**************************************************************************//**
  @Group		AIOP_OSM_SRs_Verification
 
@@ -41,8 +61,7 @@ enum osm_verif_cmd_type {
 	OSM_SCOPE_ENTER_TO_EX_NEW_SCOPE_ID_CMDTYPE,
 	OSM_SCOPE_ENTER_CMDTYPE,
 	OSM_SCOPE_EXIT_CMDTYPE,
-	OSM_GET_SCOPE_CMDTYPE,
-	OSM_INIT_CMDTYPE
+	OSM_GET_SCOPE_CMDTYPE
 };
 
 #define OSM_SCOPE_TRANS_TO_EX_INC_SCOPE_ID_STR  ((OSM_MODULE << 16) | \
@@ -75,9 +94,6 @@ enum osm_verif_cmd_type {
 #define OSM_GET_SCOPE_STR  ((OSM_MODULE << 16) | \
 		OSM_GET_SCOPE_CMDTYPE)
 
-#define OSM_INIT_STR  ((OSM_MODULE << 16) | \
-		OSM_INIT_CMDTYPE)
-
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
  */
@@ -91,16 +107,19 @@ enum osm_verif_cmd_type {
  @{
 *//***************************************************************************/
 
-/**************************************************************************//**
-@Description	OSM Scope Initial Command structure.
-		
-		This command read TASK_ID from TASKCSR0, then write it to ORTAR 
-		for getting OSM information registers.
-*//***************************************************************************/
-struct osm_initial_verif_command {
-	uint32_t	opcode;
-	uint8_t 	pad[4];
+struct osm_registers {
+	uint32_t 	scope_status;
+	uint32_t 	ortdr0;
+	uint32_t 	ortdr1;
+	uint32_t 	ortdr2;
+	uint32_t 	ortdr3;
+	uint32_t 	ortdr4;
+	uint32_t 	ortdr5;
+	uint32_t 	ortdr6;
+	uint32_t 	ortdr7;
+	uint8_t		pad[4];
 };
+
 
 /**************************************************************************//**
 @Description	OSM Scope Transition to Exclusive Command structure.
@@ -225,7 +244,6 @@ struct osm_get_scope_verif_command {
 	uint32_t	opcode;
 	uint32_t 	scope_status;
 };
-
 
 /** @} */ /* end of AIOP_OSM_SRs_Verification */
 

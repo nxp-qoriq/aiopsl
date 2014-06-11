@@ -151,15 +151,10 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 		addr = fsl_os_virt_to_phys((void *)addr);
 
 		/* Isolation is enabled */
-		if (fdma_release_buffer(SLAB_FDMA_ICID,
-					FDMA_RELEASE_NO_FLAGS,
-					*bpid,
-					addr)) {
-			fsl_os_xfree(fsl_os_phys_to_virt(addr));
-			/* Free buffs that we already filled */
-			free_buffs_from_bman_pool(*bpid, i);
-			return -ENAVAIL;
-		}
+		fdma_release_buffer(SLAB_FDMA_ICID,
+		                    FDMA_RELEASE_NO_FLAGS,
+		                    *bpid,
+		                    addr); 
 	}
 
 	*num_filled_buffs = (int)num_buffs;

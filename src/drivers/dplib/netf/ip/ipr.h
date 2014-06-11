@@ -62,48 +62,67 @@
 				TMAN_CREATE_TIMER_MODE_TPRI | \
 				TMAN_CREATE_TIMER_ONE_SHOT | \
 				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK
+#define IPV4_VALID		0x00000001	/* In IPR instance */
+#define IPV6_VALID		0x00000002	/* In IPR instance */
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT				0
 #define EXCLUSIVE				1
 
-#define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
 #define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
 
+#pragma pack(push,1)
 struct ipr_instance {
 	uint64_t	extended_stats_addr;
-	/** maximum concurrently IPv4 open frames. */
-	uint16_t	table_id_ipv4;
-	uint16_t	table_id_ipv6;
-	uint32_t    max_open_frames_ipv4;
-	uint32_t  	max_open_frames_ipv6;
-	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
-	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
-	uint16_t  	timeout_value_ipv4;/** reass timeout value for ipv4 */
-	uint16_t  	timeout_value_ipv6;/** reass timeout value for ipv6 */
-	/** function to call upon Time Out occurrence for ipv4 */
-	ipr_timeout_cb_t *ipv4_timeout_cb;
-	/** function to call upon Time Out occurrence for ipv6 */
-	ipr_timeout_cb_t *ipv6_timeout_cb;
-	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint32_t  	flags;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv4_arg;
 	/** Argument to be passed upon invocation of the IPv6 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
-	/** Number of frames that started reassembly but didn't complete it yet */
-	uint32_t	num_of_open_reass_frames_ipv4;
-	uint32_t	num_of_open_reass_frames_ipv6;
-	uint32_t	ipv4_reass_frm_cntr;
-	uint32_t	ipv6_reass_frm_cntr;
+	/** function to call upon Time Out occurrence for ipv4 */
+	ipr_timeout_cb_t *ipv4_timeout_cb;
+	/** function to call upon Time Out occurrence for ipv6 */
+	ipr_timeout_cb_t *ipv6_timeout_cb;
+	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
+	uint32_t  	flags;
+	/* CTLU table ID for IPv4 frames */
+	uint16_t	table_id_ipv4;
+	/* CTLU table ID for IPv6 frames */
+	uint16_t	table_id_ipv6;
+	/** maximum reassembled frame size */
+	uint16_t  	max_reass_frm_size;
+	/* BPID to fetch buffers from */
+	uint16_t	bpid;
+	/** minimum fragment size allowed for IPv4 frames*/
+	uint16_t  	min_frag_size_ipv4;
+	/** minimum fragment size allowed for IPv4 frames*/
+	uint16_t  	min_frag_size_ipv6;
+	/** reass timeout value for ipv4 */
+	uint16_t  	timeout_value_ipv4;
+	/** reass timeout value for ipv6 */
+	uint16_t  	timeout_value_ipv6;
 	/* TMAN Instance ID */
 	uint8_t		tmi_id;
-	uint8_t		reserved;
-	uint16_t	bpid;
+	uint8_t		reserved[3];
 };
+#pragma pack(pop)
 
+struct ipr_instance_extension{
+	uint64_t	delete_arg;
+	ipr_del_cb_t 	*confirm_delete_cb;
+	uint32_t	ipv4_reass_frm_cntr;
+	uint32_t	ipv6_reass_frm_cntr;
+	/** Number of frames that IPv4 started reassembly
+	    but didn't complete it yet */
+	uint32_t	num_of_open_reass_frames_ipv4;
+	/** Number of frames that IPv6 started reassembly
+	    but didn't complete it yet */
+	uint32_t	num_of_open_reass_frames_ipv6;
+	/* todo remove 2 following parameters */
+	uint32_t	max_open_frames_ipv4;
+	uint32_t	max_open_frames_ipv6;
+};
 #pragma pack(push,1)
 struct ipr_rfdc{
 	/* 64 bytes */
@@ -189,15 +208,18 @@ int ipr_init(void);
 
 @Param[in]	rfdc_ptr - pointer to RFDC in workspace (on stack)
 @Param[in]	rfdc_ext_addr - pointer to RFDC in external memory.
+@Param[in]	iphdr_ptr - pointer to IP header.
+@Param[in]	frame_is_ipv4 - frame is Ipv4 or Ipv6.
 
-@Return		Status - Success or Failure.
+@Return		Status.
 
 @Cautions	None.
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-							     uint64_t rfdc_ext_addr, 
-							     void     *iphdr_ptr);
+				 uint64_t rfdc_ext_addr, 
+				 void *iphdr_ptr,
+				 uint32_t frame_is_ipv4);
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
 
@@ -238,9 +260,10 @@ void ipr_time_out();
 void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
-					  uint16_t frag_offset_shifted); 
+		      uint32_t frame_is_ipv4,uint16_t current_frag_size,
+		      uint16_t frag_offset_shifted);
 
+uint32_t is_last_fragment(uint32_t frame_is_ipv4);
 
 /**************************************************************************//**
 @Description	IPR Global parameters

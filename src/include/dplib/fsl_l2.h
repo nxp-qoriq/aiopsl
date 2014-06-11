@@ -192,6 +192,36 @@ void l2_set_dl_dst(uint8_t *dst_addr);
 *//***************************************************************************/
 void l2_push_vlan(uint16_t ethertype);
 
+/*************************************************************************//**
+@Function	l2_push_and_set_vlan
+
+@Description	Push and set a new outer VLAN tag.\n
+
+		This function assumes the presence of an Ethernet header.
+
+		The parse results are updated automatically at the end of
+		this operation.
+
+		The gross running sum of the frame becomes invalid after calling
+		this function.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+		Implicit output parameters in Task Defaults: parser_starting_hxs
+
+
+@Param[in]	vlan_tag -  Indicates the vlan tag value.
+
+@Return		None.
+
+@Cautions	The parse results must be updated before calling this operation.
+		If an ethernet header is present, it is assumed to be located at
+		the beginning of the segment (offset 0 from segment address).
+		If there is no ethernet header, the vlan is inserted at the
+		beginning of the segment.
+*//***************************************************************************/
+void l2_push_and_set_vlan(uint32_t vlan_tag);
+
 
 /*************************************************************************//**
 @Function	l2_pop_vlan

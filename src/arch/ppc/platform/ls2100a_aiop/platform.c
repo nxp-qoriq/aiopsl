@@ -6,6 +6,7 @@
 #include "kernel/console.h"
 #include "kernel/platform.h"
 #include "kernel/smp.h"
+#include "common/io.h"
 
 #include "inc/mem_mng.h"
 #include "inc/fsl_sys.h"
@@ -317,10 +318,12 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
 /*****************************************************************************/
 static int init_random_seed(uint32_t num_of_tasks)
 {
-	volatile uint32_t *seed_mem_ptr = NULL;
+	uint32_t *seed_mem_ptr = NULL;
 	uint32_t core_and_task_id = 0;
 	uint32_t seed = 0;
 	uint32_t task_stack_size = 0;
+	uint32_t sum_stack = 0;
+
 	int i;
 	/*------------------------------------------------------*/
 	/* Initialize seeds for random function                 */
@@ -359,17 +362,15 @@ static int init_random_seed(uint32_t num_of_tasks)
 	core_and_task_id =  ((core_get_id() + 1) << 8);
 	core_and_task_id |= 1; /*add task 0 id*/
 
-	seed = (core_and_task_id << 16) | core_and_task_id;
-	seed_mem_ptr = &(seed_32bit);
-
-	*seed_mem_ptr = seed;
+	seed_32bit = (core_and_task_id << 16) | core_and_task_id;
 	/*seed for task 0 is already allocated*/
 	for (i = 0; i < num_of_tasks - 1; i ++)
 	{
-		seed_mem_ptr += task_stack_size; /*size of each task area*/
+		sum_stack += task_stack_size; /*size of each task area*/
+		seed_mem_ptr = &(seed_32bit) + sum_stack;
 		core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 		seed = (core_and_task_id << 16) | core_and_task_id;
-		*seed_mem_ptr = seed;
+		iowrite32be(seed, seed_mem_ptr);
 	}
 
 	return 0;
@@ -382,8 +383,8 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     int     err = 0, i = 0;
     uint32_t CTSCSR_value = 0;
     uint32_t WSCR_tasks_bit = 0;
-    struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *) \
-	                               (SOC_PERIPH_OFF_AIOP_TILE + 0x02000000);
+    struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *) 
+	                               sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);    
     
     if (pltfrm == NULL) {
 	    return -EINVAL;

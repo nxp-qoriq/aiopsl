@@ -39,8 +39,11 @@ static inline uint64_t virt_to_phys(void *vaddr)
 {
 	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
 }
-
+#ifdef AIOP
+#define cpu_to_le64 swap_uint64
+#else
 #define cpu_to_le64 CPU_TO_LE64
+#endif
 
 #endif /* __linux__ */
 

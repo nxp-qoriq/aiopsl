@@ -77,7 +77,8 @@ int ipr_init(void)
 int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			    ipr_instance_handle_t *ipr_instance_ptr)
 {
-	struct ipr_instance ipr_instance;
+	struct ipr_instance	      ipr_instance;
+	struct ipr_instance_extension ipr_instance_ext;
 	struct table_create_params tbl_params;
 	int32_t err;
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
@@ -115,7 +116,10 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	/* Initialize instance parameters */
 	ipr_instance.table_id_ipv4 = 0;
 	ipr_instance.table_id_ipv6 = 0;
+	ipr_instance.flags = 0;
 	if (max_open_frames) {
+		ipr_instance.flags |= IPV4_VALID;
+		ipr_instance_ext.max_open_frames_ipv4 = max_open_frames;
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
 		/* IPv4 src, IPv4 dst, prot, ID */
@@ -144,6 +148,8 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	/* For IPv6 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv6;
 	if (max_open_frames) {
+		ipr_instance.flags |= IPV6_VALID;
+		ipr_instance_ext.max_open_frames_ipv6 = max_open_frames;
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
 		/* IPv6 src, IPv6 dst, ID (4 bytes) */
@@ -173,13 +179,11 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	}
 
 	/* Initialize instance parameters */
+	ipr_instance.flags = 0;
 	ipr_instance.extended_stats_addr = ipr_params_ptr->extended_stats_addr;
-	ipr_instance.max_open_frames_ipv4 = \
-			ipr_params_ptr->max_open_frames_ipv4;
-	ipr_instance.max_open_frames_ipv6 = \
-			ipr_params_ptr->max_open_frames_ipv6;
 	ipr_instance.max_reass_frm_size = ipr_params_ptr->max_reass_frm_size;
-	ipr_instance.min_frag_size = ipr_params_ptr->min_frag_size;
+	ipr_instance.min_frag_size_ipv4 = ipr_params_ptr->min_frag_size_ipv4;
+	ipr_instance.min_frag_size_ipv6 = ipr_params_ptr->min_frag_size_ipv6;
 	ipr_instance.timeout_value_ipv4 = ipr_params_ptr->timeout_value_ipv4;
 	ipr_instance.timeout_value_ipv6 = ipr_params_ptr->timeout_value_ipv6;
 	ipr_instance.ipv4_timeout_cb = ipr_params_ptr->ipv4_timeout_cb;
@@ -187,25 +191,35 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	ipr_instance.cb_timeout_ipv4_arg = ipr_params_ptr->cb_timeout_ipv4_arg;
 	ipr_instance.cb_timeout_ipv6_arg = ipr_params_ptr->cb_timeout_ipv6_arg;
 	ipr_instance.flags = ipr_params_ptr->flags;
-	ipr_instance.num_of_open_reass_frames_ipv4 = 0;
-	ipr_instance.num_of_open_reass_frames_ipv6 = 0;
-	ipr_instance.ipv4_reass_frm_cntr = 0;
-	ipr_instance.ipv6_reass_frm_cntr = 0;
 	ipr_instance.tmi_id = ipr_params_ptr->tmi_id;
-	err = cdma_write(*ipr_instance_ptr, &ipr_instance, IPR_INSTANCE_SIZE);
-	if (err)
-		return err;
-	else
-		return IPR_CREATE_INSTANCE_SUCCESS;
+	
+	/* Write ipr instance data structure */
+	cdma_write(*ipr_instance_ptr, &ipr_instance, IPR_INSTANCE_SIZE);
+	
+	/* Initialization of ipr instance extension parameters */
+	ipr_instance_ext.confirm_delete_cb = 0;
+	ipr_instance_ext.delete_arg	   = 0;
+	ipr_instance_ext.num_of_open_reass_frames_ipv4 = 0;
+	ipr_instance_ext.num_of_open_reass_frames_ipv6 = 0;
+	ipr_instance_ext.ipv4_reass_frm_cntr = 0;
+	ipr_instance_ext.ipv6_reass_frm_cntr = 0;
+	
+	/* Write ipr instance extension data structure */
+	cdma_write((*ipr_instance_ptr)+sizeof(struct ipr_instance),
+		   &ipr_instance_ext,
+		   sizeof(struct ipr_instance_extension));
+
+	return IPR_CREATE_INSTANCE_SUCCESS;
 }
 
 int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 			    ipr_del_cb_t *confirm_delete_cb,
 			    ipr_del_arg_t delete_arg)
 {
-	struct ipr_instance ipr_instance;
-	uint32_t aggregate_open_frames;
-	int32_t err;
+	struct ipr_instance	      ipr_instance;
+	struct ipr_instance_extension ipr_instance_ext;
+	uint64_t		      ipr_instance_extension_ptr;
+	uint32_t		      aggregate_open_frames;
 
 	/* todo callback function */
 	UNUSED(confirm_delete_cb);
@@ -213,18 +227,24 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 	ste_barrier();
 
-	err = cdma_read(&ipr_instance, ipr_instance_ptr, IPR_INSTANCE_SIZE);
-	if (err)
-		return err;
+	cdma_read(&ipr_instance, ipr_instance_ptr, IPR_INSTANCE_SIZE);
+	
+	ipr_instance_extension_ptr = ((uint64_t)ipr_instance_ptr) +
+				     sizeof(struct ipr_instance);
+	cdma_read(&ipr_instance_ext,
+		  ipr_instance_extension_ptr,
+		  IPR_INSTANCE_SIZE);
+	
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
 	/* error case */
-	if (ipr_instance.max_open_frames_ipv4)
+	if (ipr_instance.flags & IPV4_VALID)
 		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
-	if (ipr_instance.max_open_frames_ipv6)
+	if (ipr_instance.flags & IPV6_VALID)
 		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv6);
-	aggregate_open_frames = ipr_instance.max_open_frames_ipv4 + \
-			ipr_instance.max_open_frames_ipv6;
+	/* todo Ask Ilan if we can remove this */
+	aggregate_open_frames = ipr_instance_ext.max_open_frames_ipv4 +
+				ipr_instance_ext.max_open_frames_ipv6;
 	return SUCCESS;
 }
 
@@ -233,6 +253,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint16_t iphdr_offset;
 	uint32_t status_insert_to_LL;
 	uint32_t osm_status;
+	uint32_t frame_is_ipv4;
 	uint64_t rfdc_ext_addr;
 	int32_t  sr_status;
 	uint32_t status;
@@ -285,7 +306,11 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 	if (check_for_frag_error() == NO_ERROR) {
 		/* Good fragment */
-		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		if (PARSER_IS_OUTER_IPV4_DEFAULT())
+			frame_is_ipv4 = 1;
+		else
+			frame_is_ipv4 = 0;
+		if (frame_is_ipv4) {
 			sr_status = table_lookup_by_keyid_default_frame(
 				TABLE_ACCEL_ID_CTLU,
 				instance_params.table_id_ipv4,
@@ -356,7 +381,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			rule.result.op0_rptr_clp.reference_pointer =
 								 rfdc_ext_addr;
 
-			if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+			if (frame_is_ipv4) {
 				keygen_gen_key(
 					KEYGEN_ACCEL_ID_CTLU,
 					ipr_global_parameters1.ipr_key_id_ipv4,
@@ -375,11 +400,13 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	
 				/* Increment no of IPv4 open frames in instance
 					data structure */
-				ste_inc_counter(instance_handle+
-						offsetof(struct ipr_instance,
-						num_of_open_reass_frames_ipv4),
-						1,
-						STE_MODE_32_BIT_CNTR_SIZE);
+				ste_inc_counter(
+					 instance_handle+
+					 sizeof(struct ipr_instance)+
+					 offsetof(struct ipr_instance_extension,
+					 num_of_open_reass_frames_ipv4),
+					 1,
+					 STE_MODE_32_BIT_CNTR_SIZE);
 
 			} else {
 			    keygen_gen_key(
@@ -399,8 +426,10 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 			    /* Increment no of IPv6 open frames in instance
 			       data structure */
-			     ste_inc_counter(instance_handle+
-					 offsetof(struct ipr_instance,
+			     ste_inc_counter(
+					 instance_handle+
+					 sizeof(struct ipr_instance)+
+					 offsetof(struct ipr_instance_extension,
 					 num_of_open_reass_frames_ipv6),
 					 1,
 					 STE_MODE_32_BIT_CNTR_SIZE);
@@ -426,15 +455,15 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			get_default_amq_attributes(&rfdc.isolation_bits);
 
 		    /* create Timer in TMAN */
-/*
-		    tman_create_timer(instance_params.tmi_id,
-			      ,
-			      instance_params.timeout_value_ipv4,
-			      (tman_arg_8B_t) rfdc_ext_addr,
-			      (tman_arg_2B_t) NULL,
-			      (tman_cb_t) ipr_time_out,
-			      &rfdc.timer_handle);
-*/
+
+	/*	    tman_create_timer(instance_params.tmi_id,
+				      IPR_TIMEOUT_FLAGS,
+				      instance_params.timeout_value_ipv4,
+				      (tman_arg_8B_t) rfdc_ext_addr,
+				      (tman_arg_2B_t) NULL,
+				      (tman_cb_t) ipr_time_out,
+				      &rfdc.timer_handle);
+	 */
 
 		     if (osm_status == NO_BYPASS_OSM) {
 			/* create nested per reassembled frame */
@@ -448,7 +477,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
-							iphdr_ptr);
+						      iphdr_ptr, frame_is_ipv4);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
@@ -480,17 +509,21 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* default frame is now the full reassembled frame */
 
-	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+	if (frame_is_ipv4) {
 		/* Increment no of reassembled IPv4 frames in instance
 		   data structure */
-		ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
+		ste_inc_counter(instance_handle+
+				sizeof(struct ipr_instance)+
+				offsetof(struct ipr_instance_extension,
 				 ipv4_reass_frm_cntr),
 				 1,
 				 STE_MODE_32_BIT_CNTR_SIZE);
 	} else {
 		/* Increment no of reassembled IPv6 frames in instance
 		   data structure */
-		ste_inc_counter(instance_handle+offsetof(struct ipr_instance,
+		ste_inc_counter(instance_handle+
+				sizeof(struct ipr_instance)+
+				offsetof(struct ipr_instance_extension,
 				ipv6_reass_frm_cntr),
 				1,
 				STE_MODE_32_BIT_CNTR_SIZE);
@@ -508,7 +541,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Run parser */
 	parse_result_generate_default(0);
 
-	if (PARSER_IS_OUTER_IPV4_DEFAULT())
+	if (frame_is_ipv4)
 		status = ipv4_header_update_and_l4_validation(&rfdc);
 	else
 		status = ipv6_header_update_and_l4_validation(&rfdc);
@@ -531,11 +564,12 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 		move_to_correct_ordering_scope2(osm_status);
 
-		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		if (frame_is_ipv4) {
 			/* Decrement no of IPv4 open frames in instance data
 			 * structure */
 			ste_dec_counter(instance_handle+
-					offsetof(struct ipr_instance,
+					sizeof(struct ipr_instance)+
+					offsetof(struct ipr_instance_extension,
 					num_of_open_reass_frames_ipv4),
 					1,
 					STE_MODE_32_BIT_CNTR_SIZE);
@@ -543,7 +577,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			/* Decrement no of IPv6 open frames in instance data
 			 * structure */
 			ste_dec_counter(instance_handle+
-					offsetof(struct ipr_instance,
+					sizeof(struct ipr_instance)+
+					offsetof(struct ipr_instance_extension,
 					num_of_open_reass_frames_ipv6),
 					1,
 					STE_MODE_32_BIT_CNTR_SIZE);
@@ -564,7 +599,8 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
-				 void *iphdr_ptr)
+				 void *iphdr_ptr,
+				 uint32_t frame_is_ipv4)
 {
 
 	uint8_t			current_index;
@@ -584,7 +620,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	struct	parse_result	*pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
-	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+	if (frame_is_ipv4) {
 		ipv4hdr_ptr = (struct ipv4hdr *) iphdr_ptr;
 		frag_offset_shifted =
 		    (ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_IPV4_MASK)<<3;
@@ -651,7 +687,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->num_of_frags++;
 			rfdc_ptr->current_total_length += current_frag_size;
 
-			if (PARSER_IS_OUTER_IPV4_DEFAULT())
+			if (frame_is_ipv4)
 				check_remove_padding();
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data();
@@ -726,7 +762,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		} else {
 			/* Out of order handling */
 			return out_of_order(rfdc_ptr, rfdc_ext_addr,
-					ipv4hdr_ptr, current_frag_size,
+					frame_is_ipv4, current_frag_size,
 					frag_offset_shifted);
 	}
 	/* to be removed */
@@ -1242,7 +1278,7 @@ void check_remove_padding()
 
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-		  struct ipv4hdr *ipv4hdr_ptr, uint16_t current_frag_size,
+		  uint32_t frame_is_ipv4, uint16_t current_frag_size,
 		  uint16_t frag_offset_shifted)
 {
 	uint8_t				current_index;
@@ -1254,7 +1290,6 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	uint8_t				temp_index_in_octet;
 	uint8_t				new_frag_index_in_octet;
 	uint16_t			temp_total_payload;
-	int32_t				sr_status;
 	uint64_t			current_element_ext_addr;
 	uint64_t			temp_element_ext_addr;
 	uint64_t			new_frag_ext_addr;
@@ -1279,14 +1314,15 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	if (frag_offset_shifted >= temp_total_payload) {
 		/* Bigger than last */
 		temp_element_ptr = link_list;
-		sr_status = cdma_read((void *)temp_element_ptr,
-				  temp_element_ext_addr,
-				  LINK_LIST_ELEMENT_SIZE);
+		cdma_read((void *)temp_element_ptr,
+			  temp_element_ext_addr,
+			  LINK_LIST_ELEMENT_SIZE);
 		if (LAST_FRAG_ARRIVED()) {
 			/* Error */
 			/* return IPR_ERROR; */
 		}
-		if (IS_LAST_FRAGMENT())
+//		if (IS_LAST_FRAGMENT())
+		if(is_last_fragment(frame_is_ipv4))
 			rfdc_ptr->expected_total_length = frag_offset_shifted +
 							  current_frag_size;
 
@@ -1308,7 +1344,8 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 				   LINK_LIST_ELEMENT_SIZE);
 	} else {
 		/* Smaller than last */
-		if (IS_LAST_FRAGMENT()) {
+//		if (IS_LAST_FRAGMENT()) {
+		if(is_last_fragment(frame_is_ipv4)) {
 			/* Current fragment is smaller than last but is marked
 			 * as last : Error */
 		}
@@ -1531,68 +1568,93 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	}
 }
 
-int32_t ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,
+void ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,
 					  uint16_t max_reass_frm_size)
 {
-	int sr_status;
-
-	sr_status = cdma_write(ipr_instance+offsetof(struct ipr_instance,
-						    max_reass_frm_size),
-				&max_reass_frm_size,
-				sizeof(max_reass_frm_size));
-	return sr_status;
+	cdma_write(ipr_instance+offsetof(struct ipr_instance,
+		    max_reass_frm_size),
+		   &max_reass_frm_size,
+		   sizeof(max_reass_frm_size));
+	return;
 }
 
-int32_t ipr_modify_min_frag_size(ipr_instance_handle_t ipr_instance,
-				 uint16_t min_frag_size)
+void ipr_modify_min_frag_size_ipv4(ipr_instance_handle_t ipr_instance,
+				      uint16_t min_frag_size)
 {
-	int sr_status;
-
-	sr_status = cdma_write(ipr_instance+
-				offsetof(struct ipr_instance, min_frag_size),
-				&min_frag_size,
-				sizeof(min_frag_size));
-	return sr_status;
+	cdma_write(ipr_instance+
+		   offsetof(struct ipr_instance,min_frag_size_ipv4),
+		   &min_frag_size,
+		   sizeof(min_frag_size));
+	return;
 }
 
-int32_t ipr_modify_timeout_value_ipv4(ipr_instance_handle_t ipr_instance,
+void ipr_modify_min_frag_size_ipv6(ipr_instance_handle_t ipr_instance,
+				      uint16_t min_frag_size)
+{
+	cdma_write(ipr_instance+
+		   offsetof(struct ipr_instance,min_frag_size_ipv6),
+		   &min_frag_size,
+		   sizeof(min_frag_size));
+	return;
+}
+
+void ipr_modify_timeout_value_ipv4(ipr_instance_handle_t ipr_instance,
 				      uint16_t reasm_timeout_value_ipv4)
 {
-	int sr_status;
-
-	sr_status = cdma_write(ipr_instance+
-			   offsetof(struct ipr_instance, timeout_value_ipv4),
-			   &reasm_timeout_value_ipv4,
-			   sizeof(reasm_timeout_value_ipv4));
-	return sr_status;
+	cdma_write(ipr_instance+
+		   offsetof(struct ipr_instance, timeout_value_ipv4),
+		   &reasm_timeout_value_ipv4,
+		   sizeof(reasm_timeout_value_ipv4));
+	return;
 }
 
-int32_t ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
+void ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
 				      uint16_t reasm_timeout_value_ipv6)
 {
-	int sr_status;
 
-	sr_status = cdma_write(ipr_instance+
-			   offsetof(struct ipr_instance, timeout_value_ipv6),
-			   &reasm_timeout_value_ipv6,
-			   sizeof(reasm_timeout_value_ipv6));
-	return sr_status;
+	cdma_write(ipr_instance+
+		   offsetof(struct ipr_instance, timeout_value_ipv6),
+		   &reasm_timeout_value_ipv6,
+		   sizeof(reasm_timeout_value_ipv6));
+	return;
 }
 
-int32_t ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
+void ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 				uint32_t flags, uint32_t *reass_frm_cntr)
 {
-	int sr_status;
 
 	if (flags & IPR_STATS_IP_VERSION)
-		sr_status = cdma_read(reass_frm_cntr,
-				 ipr_instance+offsetof(struct ipr_instance,
-							ipv4_reass_frm_cntr),
-				 sizeof(*reass_frm_cntr));
+		cdma_read(reass_frm_cntr,
+			  ipr_instance+sizeof(struct ipr_instance)+
+			  offsetof(struct ipr_instance_extension,
+			  ipv4_reass_frm_cntr),
+			  sizeof(*reass_frm_cntr));
 	else
-		sr_status =  cdma_read(reass_frm_cntr,
-				ipr_instance+offsetof(struct ipr_instance,
-						ipv6_reass_frm_cntr),
-				sizeof(*reass_frm_cntr));
-	return sr_status;
+		cdma_read(reass_frm_cntr,
+			  ipr_instance+sizeof(ipr_instance)+
+			  offsetof(struct ipr_instance_extension,
+				   ipv6_reass_frm_cntr),
+			  sizeof(*reass_frm_cntr));
+	return;
+}
+
+uint32_t is_last_fragment(uint32_t frame_is_ipv4)
+{
+	struct ipv4hdr		*ipv4hdr_ptr;
+	struct ipv6fraghdr	*ipv6fraghdr_ptr;
+	uint16_t		ipv6fraghdr_offset;
+	
+	if (frame_is_ipv4) {
+		/* IPv4 */
+	       ipv4hdr_ptr = PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+	       return (!(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK));
+	} else {
+		/* IPv6 */
+		ipv6fraghdr_offset =
+				PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
+			     (PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
+
+	      return(!(ipv6fraghdr_ptr->offset_and_flags&IPV6_HDR_M_FLAG_MASK));
+	}
 }

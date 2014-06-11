@@ -48,7 +48,8 @@ enum e_ipr_verif_cmd_type {
 	IPR_CMDTYPE_DELETE_INSTANCE,
 	IPR_CMDTYPE_REASSEMBLE,
 	IPR_CMDTYPE_MODIFY_REASS_FRM_SIZE,
-	IPR_CMDTYPE_MODIFY_MIN_FRAG_SIZE,
+	IPR_CMDTYPE_MODIFY_MIN_FRAG_SIZE_IPV4,
+	IPR_CMDTYPE_MODIFY_MIN_FRAG_SIZE_IPV6,
 	IPR_CMDTYPE_MODIFY_TO_VALUE_IPV4,
 	IPR_CMDTYPE_MODIFY_TO_VALUE_IPV6,
 	IPR_CMDTYPE_GET_REASS_FRM_CNTR
@@ -71,8 +72,11 @@ enum e_ipr_verif_cmd_type {
 #define IPR_MODIFY_REASS_FRM_SIZE_CMD_STR ((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_MODIFY_REASS_FRM_SIZE)
 
-#define IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_CMD_STR	((IPR_MODULE << 16)  | \
-		(uint32_t)IPR_CMDTYPE_MODIFY_MIN_FRAG_SIZE)
+#define IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_IPV4_CMD_STR	((IPR_MODULE << 16)  | \
+		(uint32_t)IPR_CMDTYPE_MODIFY_MIN_FRAG_SIZE_IPV4)
+
+#define IPR_MODIFY_MODIFY_MIN_FRAG_SIZE_IPV6_CMD_STR	((IPR_MODULE << 16)  | \
+		(uint32_t)IPR_CMDTYPE_MODIFY_MIN_FRAG_SIZE_IPV6)
 
 #define IPR_MODIFY_TO_VALUE_IPV4_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_MODIFY_TO_VALUE_IPV4)
@@ -241,7 +245,7 @@ struct ipr_get_reass_frm_cntr_command {
 		/**< Command structure identifier. */
 	int32_t					status;
 	uint32_t				flags;
-	uint32_t				*reass_frm_cntr;
+	uint32_t				reass_frm_cntr;
 #if CLOSED_MODEL	
 	ipr_instance_handle_t			ipr_instance;
 	uint8_t					ipr_instance_ref;
