@@ -650,6 +650,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_parser.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/dplib/fsl_snic_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_snic_cmd.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/dplib/fsl_ste.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_ste.h</locationURI>
