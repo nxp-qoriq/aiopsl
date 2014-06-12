@@ -26,18 +26,18 @@ static void discard_rx_cb()
 {
 
 	pr_debug("Packet discarded by discard_rx_cb.\n");
-	/*if discard with terminate return with error then terminator*/
-	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-		fdma_terminate_task();
+	/*Discard frame and terminate task*/
+	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+	fdma_terminate_task();
 }
 
 static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
 	pr_debug("Packet discarded by discard_rx_app_cb.\n");
-	/*if discard with terminate return with error then terminator*/
-	if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-		fdma_terminate_task();
+	/*Discard frame and terminate task*/
+	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+	fdma_terminate_task();
 }
 
 int dpni_drv_register_rx_cb (uint16_t		ni_id,
