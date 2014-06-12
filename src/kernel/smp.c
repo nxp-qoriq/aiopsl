@@ -78,8 +78,13 @@ uint64_t sys_get_cores_mask(void)
 }
 
 /*****************************************************************************/
-uint32_t sys_get_cores_num(void)
+uint32_t sys_get_num_of_cores(void)
 {
     return 0;
 }
 
+/*****************************************************************************/
+uint32_t sys_get_max_num_of_cores(void)
+{
+    return 0;
+}
