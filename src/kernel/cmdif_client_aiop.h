@@ -10,7 +10,7 @@
 
 #include "cmdif_client.h"
 
-#define CMDIF_MN_SESSIONS	50 /**< Maximal number of sessions */
+#define CMDIF_MN_SESSIONS	20 /**< Maximal number of sessions */
 #define CMDIF_NUM_PR  		2
 
 struct cmdif_reg {
