@@ -13,9 +13,14 @@ __TASK uint32_t seed_32bit;
 
 #define MAX_UDELAY   50000000
 
+#define SIGN	2
+#define LARGE	4
+
 #define BUF_SIZE    128
 
-
+static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args);
+static char *number(char *str, uint64_t num, int base, int size, int type, size_t *max_size);
+static int num_digits(uint32_t num);
 /*****************************************************************************/
 void fsl_os_exit(int status)
 {
@@ -28,6 +33,7 @@ void fsl_os_print(char *format, ...)
 #ifndef EMULATOR_FINAL
     va_list args;
     char    tmp_buf[BUF_SIZE];
+    int err;
 
     va_start(args, format);
 #ifdef SYS_64BIT_ARCH
@@ -36,13 +42,194 @@ extern void msr_enable_fp(void);
 msr_enable_fp();
 #endif /* defined(__GNUC__) */
 #endif /* SYS_64BIT_ARCH */
-    vsnprintf (tmp_buf, BUF_SIZE, format, args);
-    va_end(args);
+	err = vsnprintf_light (tmp_buf, BUF_SIZE, format, args);
+	va_end(args);
 
-    sys_print(tmp_buf);
+	if(err < 0)
+		sys_print("error while printing\n");
+	else
+		sys_print(tmp_buf);
 #endif /* EMULATOR */
 }
+#pragma optimization_level 0
+static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args)
+{
+	uint64_t num;
+	int  base;
+	char *str;
+	int flags = 0;
+	int field_width;
+	size--;
+	for(str = buf; *fmt && size; ++fmt) {
+		if(*fmt != '%') {
+			*str++ = *fmt;
+			size--;
+			continue;
+		}
 
+		++fmt;
+		field_width = 0;
+		base = 10;
+		switch(*fmt) {
+		case 'c':
+			field_width = 1;
+			if(size)
+			{
+				*str++ = (unsigned char)va_arg(args,int); size--;
+			}
+			continue;
+
+
+		case 'X':
+			flags |= LARGE;
+		case 'x':
+			base = 16;
+		case 'd':
+		case 'l':
+			if(*fmt == 'l'){
+				switch(*(fmt + 1)){
+
+				case 'l':/*support %ll*/
+					++fmt;
+					num = va_arg(args,unsigned long long);
+					if ((-num >= 10000000000) ||
+						(num >= 10000000000)) /*print all long long digits*/
+						field_width = 18;
+					else
+						field_width = num_digits((uint32_t)num);
+					break;
+				case 'u':/*support %lu*/
+					++fmt;
+					num = va_arg(args,unsigned long);
+					field_width = num_digits((uint32_t)num);
+					break;
+				default: /*support l*/
+					num = va_arg(args,unsigned long);
+					field_width = num_digits((uint32_t)num);
+					break;
+				}
+
+
+
+				switch(*(fmt+1)){
+				case 'X':
+					flags |= LARGE;
+				case 'x':
+					base = 16;
+					++fmt;
+					break;
+				default:
+					break;
+				}
+
+
+			}
+			else{	/*d, x, X*/
+				if (*(fmt) == 'd'){
+					flags |= SIGN;
+					num = va_arg(args,long);
+				}else{
+					num = va_arg(args,unsigned long);
+				}
+				field_width = num_digits((uint32_t)num);
+			}
+
+			break; /*start convert number to string*/
+
+		default: /*special inputs are not supported*/
+			return -EINVAL;
+		}
+
+		/*start convert number to string*/
+
+		str = number(str,num,base,field_width,flags,&size);
+		flags = 0;
+	}
+
+	*str = '\0';
+	return str - buf;
+}
+
+static char *number(char *str, uint64_t num, int base, int size, int type, size_t *max_size)
+{
+	char sign,tmp[20] = {'\0'};
+	const char *digits="0123456789abcdef";
+	int i;
+	size_t msize;
+
+	msize = *max_size;
+
+	if(type & LARGE)
+		digits = "0123456789ABCDEF";
+
+	sign = 0;
+	if(type & SIGN) {
+		if(num < 0) {
+			sign = '-';
+			num = -num;
+			size--;
+		}
+	}
+
+	if(base == 16)
+		size -= 2;
+
+	i = 0;
+	if(num == 0)
+		tmp[i++] = '0';
+	else while(num != 0) {
+		tmp[i++] = digits[(num) % (unsigned) base];
+		num /= base;
+	}
+
+
+	if(sign && msize)
+	{ *str++ = sign; msize--; }
+
+
+	while(i-- > 0 && msize)
+	{ *str++ = tmp[i]; msize--; }
+
+	while(size-- > 0 && msize)
+	{ *str++ = ' '; msize--; }
+
+	*max_size = msize;
+	return str;
+}
+
+
+
+static int num_digits(uint32_t num)
+{
+    if (num < 0) return num_digits(-num) + 1;
+
+    if (num >= 10000) {
+        if (num >= 10000000) {
+            if (num >= 100000000) {
+                if (num >= 1000000000)
+                    return 10;
+                return 9;
+            }
+            return 8;
+        }
+        if (num >= 100000) {
+            if (num >= 1000000)
+                return 7;
+            return 6;
+        }
+        return 5;
+    }
+    if (num >= 100) {
+        if (num >= 1000)
+            return 4;
+        return 3;
+    }
+    if (num >= 10)
+        return 2;
+    return 1;
+}
+
+#pragma optimization_level reset
 /*****************************************************************************/
 __HOT_CODE  uint32_t fsl_os_rand(void)
 {
