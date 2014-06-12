@@ -1,4 +1,11 @@
-Table SRs: Changed MFLU key descriptors structures (also for lookup) to match the new HW form.
+Table SRs: API - Changed MFLU key descriptors structures (also for lookup) to match the new HW form.
+Table SRs: API - Exceptions handling in all functions.
+Table SRs: API - return type of functions that does not return errors due to exception handling was changed to void.
+Table SRs: API - status returned from functions were changed.
+
+Table SRs: table_create() implementation - table_calc_num_entries_per_rule() was introduced to reduce cyclomatic complexity.
+Table SRs: table_create() implementation - removed cdma error check since function will return void.
+
 l4.c: l4_udp_tcp_cksum_calc - fixed ENGR316722
 
 SL Alpha v0.4  Change Log
