@@ -58,6 +58,8 @@ struct tcp_gso_context {
 	uint16_t seg_address;
 	/** default segment length for split command parameters */
 	uint16_t seg_length;
+	/** default segment offset for split command parameters */
+	uint16_t seg_offset;
 	/** Task default Parser Profile ID */
 	uint8_t parser_profile_id;
 	/** Remaining frame handle. */
@@ -71,7 +73,7 @@ struct tcp_gso_context {
 	/** IPv4 */
 	uint8_t	ipv4;
 	/** Padding */
-	uint8_t	pad[4];
+	uint8_t	pad[2];
 };
 
 /** @} */ /* end of TCP_GSO_INTERNAL_STRUCTS */
