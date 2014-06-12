@@ -216,6 +216,8 @@ static int global_sys_init(void)
 	uintptr_t   aiop_base_addr;
 	ASSERT_COND(sys_is_master_core());
 
+	sys.runtime_flag = 0;
+	
 	update_active_cores_mask();
 	
 	fill_platform_parameters(&platform_param);

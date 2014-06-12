@@ -9,6 +9,9 @@
 #define __FSL_LDPAA_ARCH_H
 
 
+#include "fsl_ldpaa.h"
+#include "fsl_endian.h"
+
 /**************************************************************************//**
  @Group         ldpaa_g  LDPAA API
 
