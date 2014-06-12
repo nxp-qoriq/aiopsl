@@ -34,15 +34,15 @@ static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	/* TODO copy fields from FD */
 	
 	fqid = ((struct cmdif_reg *)sdev)->fqid[pr];	
-	fdma_enqueue_fd_fqid(&_fd, FDMA_EN_TC_CONDTERM_BITS | FDMA_ENF_BDI_BIT, 
+	err = fdma_enqueue_fd_fqid(&_fd, FDMA_EN_TC_RET_BITS | FDMA_ENF_BDI_BIT, 
 	                     fqid, icid);
 	/* TODO FDMA_ENF_BDI_BIT ICID 
 	 * take it from dequeue context ??? */
 	
 	if (err) {
 		pr_err("Failed to send response\n");
-		fdma_terminate_task();
 	}
+	
 	return err;
 }
 

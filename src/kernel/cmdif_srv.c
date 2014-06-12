@@ -317,7 +317,10 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_EN_TC_CONDTERM_BITS);
+					RESP_QID_GET, FDMA_EN_TC_RET_BITS);
+	if (err)
+		pr_err("Failed to send response\n");	
+
 	return err;
 }
 
@@ -529,15 +532,12 @@ __HOT_CODE void cmdif_srv_isr(void)
 	if (SEND_RESP(cmd_id)) {
 		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
-		if (err) {
-			pr_err("Failed to send response auth_id = 0x%x\n",
-			auth_id);
-		}
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");
 		fdma_store_default_frame_data();
 	}
+	
 	fdma_terminate_task();
 }
 
