@@ -108,10 +108,16 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 			status = -ENOMEM;
 			break;
 		case (CTLU_HW_STATUS_TEMPNOR):
-			status = - EAGAIN;
+			/* TODO Rev2 - consider to change it to EAGAIN. it is
+			 * now ENOMEM since in Rev1 it may take a very long
+			 * time until rules are released. */
+			status = -ENOMEM;
 			break;
 		case (MFLU_HW_STATUS_TEMPNOR):
-			status = - EAGAIN;
+			/* TODO Rev2 - consider to change it to EAGAIN. it is
+			 * now ENOMEM since in Rev1 it may take a very long
+			 * time until rules are released. */
+			status = -ENOMEM;
 			break;
 		default:
 			table_fatal_status_handler(status);
@@ -288,10 +294,16 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 		status = -ENOMEM;
 		break;
 	case (CTLU_HW_STATUS_TEMPNOR):
-		status = -EAGAIN;
+		/* TODO Rev2 - consider to change it to EAGAIN. it is now
+		 * ENOMEM since in Rev1 it may take a very long time until
+		 * rules are released. */
+		status = -ENOMEM;
 		break;
 	case (MFLU_HW_STATUS_TEMPNOR):
-		status = -EAGAIN;
+		/* TODO Rev2 - consider to change it to EAGAIN. it is now
+		 * ENOMEM since in Rev1 it may take a very long time until
+		 * rules are released. */
+		status = -ENOMEM;
 		break;
 	default:
 		/* Call fatal error handler */
