@@ -86,5 +86,5 @@ uint32_t sys_get_num_of_cores(void)
 /*****************************************************************************/
 uint32_t sys_get_max_num_of_cores(void)
 {
-    return 0;
+    return 16;
 }
