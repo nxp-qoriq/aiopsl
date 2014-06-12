@@ -6,6 +6,7 @@
 #include "kernel/smp.h"
 #include "inc/console.h"
 #include "inc/mem_mng.h"
+#include "sys.h"
 
 __TASK uint32_t seed_32bit;
 
@@ -14,12 +15,12 @@ __TASK uint32_t seed_32bit;
 #define MAX_UDELAY   50000000
 
 #define SIGN	2
-#define LARGE	4
 
-#define BUF_SIZE    128
+#define BUF_SIZE    80
 
-static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args);
-static char *number(char *str, uint64_t num, int base, int size, int type, size_t *max_size);
+extern t_system sys;
+static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
+static char *number(char *str, uint64_t num, uint8_t base, int size, uint8_t type, size_t *max_size);
 static int num_digits(uint32_t num);
 /*****************************************************************************/
 void fsl_os_exit(int status)
@@ -31,33 +32,33 @@ void fsl_os_exit(int status)
 void fsl_os_print(char *format, ...)
 {
 #ifndef EMULATOR_FINAL
-    va_list args;
-    char    tmp_buf[BUF_SIZE];
-    int err;
+	va_list args;
+	char    tmp_buf[BUF_SIZE];
 
-    va_start(args, format);
+	va_start(args, format);
 #ifdef SYS_64BIT_ARCH
 #if defined(__GNUC__)
 extern void msr_enable_fp(void);
 msr_enable_fp();
 #endif /* defined(__GNUC__) */
 #endif /* SYS_64BIT_ARCH */
-	err = vsnprintf_light (tmp_buf, BUF_SIZE, format, args);
-	va_end(args);
-
-	if(err < 0)
-		sys_print("error while printing\n");
+	if(sys.runtime_flag)
+		vsnprintf_lite(tmp_buf, BUF_SIZE, format, args);
 	else
-		sys_print(tmp_buf);
+		vsnprintf(tmp_buf, BUF_SIZE, format, args);
+
+	va_end(args);
+	sys_print(tmp_buf);
 #endif /* EMULATOR */
 }
-#pragma optimization_level 0
-static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args)
+
+static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 {
 	uint64_t num;
-	int  base;
+	uint8_t  base;
 	char *str;
-	int flags = 0;
+	const char *s;
+	uint8_t flags = 0;
 	int field_width;
 	size--;
 	for(str = buf; *fmt && size; ++fmt) {
@@ -75,20 +76,27 @@ static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args
 			field_width = 1;
 			if(size)
 			{
-				*str++ = (unsigned char)va_arg(args,int); size--;
+				*str++ = (unsigned char)va_arg(args,int);
+				size--;
 			}
 			continue;
 
+		case 's':
+			s = va_arg(args,char*);
+			if(!s)
+				break;
+			while(*s != '\0' && size) {
+				*str++ = *s++;
+				size--;
+			}
+			continue;
 
-		case 'X':
-			flags |= LARGE;
 		case 'x':
 			base = 16;
 		case 'd':
 		case 'l':
 			if(*fmt == 'l'){
 				switch(*(fmt + 1)){
-
 				case 'l':/*support %ll*/
 					++fmt;
 					num = va_arg(args,unsigned long long);
@@ -98,11 +106,6 @@ static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args
 					else
 						field_width = num_digits((uint32_t)num);
 					break;
-				case 'u':/*support %lu*/
-					++fmt;
-					num = va_arg(args,unsigned long);
-					field_width = num_digits((uint32_t)num);
-					break;
 				default: /*support l*/
 					num = va_arg(args,unsigned long);
 					field_width = num_digits((uint32_t)num);
@@ -111,15 +114,9 @@ static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args
 
 
 
-				switch(*(fmt+1)){
-				case 'X':
-					flags |= LARGE;
-				case 'x':
+				if(*(fmt+1) == 'x'){
 					base = 16;
 					++fmt;
-					break;
-				default:
-					break;
 				}
 
 
@@ -137,7 +134,15 @@ static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args
 			break; /*start convert number to string*/
 
 		default: /*special inputs are not supported*/
-			return -EINVAL;
+			if(size){
+			*str++ = '%';
+			size--;
+			}
+			if(size){
+			*str++ = *fmt;
+			size--;
+			}
+			continue;
 		}
 
 		/*start convert number to string*/
@@ -150,17 +155,14 @@ static int vsnprintf_light(char *buf, size_t size, const char *fmt, va_list args
 	return str - buf;
 }
 
-static char *number(char *str, uint64_t num, int base, int size, int type, size_t *max_size)
+static char *number(char *str, uint64_t num, uint8_t base, int size, uint8_t type, size_t *max_size)
 {
-	char sign,tmp[20] = {'\0'};
+	char sign,tmp[18] = {'\0'};
 	const char *digits="0123456789abcdef";
-	int i;
+	uint8_t i;
 	size_t msize;
 
 	msize = *max_size;
-
-	if(type & LARGE)
-		digits = "0123456789ABCDEF";
 
 	sign = 0;
 	if(type & SIGN) {
@@ -189,9 +191,6 @@ static char *number(char *str, uint64_t num, int base, int size, int type, size_
 
 	while(i-- > 0 && msize)
 	{ *str++ = tmp[i]; msize--; }
-
-	while(size-- > 0 && msize)
-	{ *str++ = ' '; msize--; }
 
 	*max_size = msize;
 	return str;
@@ -229,7 +228,7 @@ static int num_digits(uint32_t num)
     return 1;
 }
 
-#pragma optimization_level reset
+
 /*****************************************************************************/
 __HOT_CODE  uint32_t fsl_os_rand(void)
 {
