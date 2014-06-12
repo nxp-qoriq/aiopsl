@@ -1350,7 +1350,7 @@ int32_t ipsec_frame_encrypt(
 				0, /* uint16_t to_offset */
 				eth_header, /* void	 *from_ws_src */
 				eth_length, /* uint16_t insert_size */
-				FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT 
+				FDMA_REPLACE_SA_REPRESENT_BIT 
 					/* uint32_t flags */
 				);
 		

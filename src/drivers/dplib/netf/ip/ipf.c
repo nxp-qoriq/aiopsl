@@ -376,7 +376,7 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	 * to get updated FD[length] */
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
+				/*FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |*/
 					FDMA_SPLIT_SM_BIT;
 		split_frame_params.split_size_sf = 0;
 
@@ -513,7 +513,7 @@ int32_t ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 	 * to get updated FD[length] */
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
+				/*FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |*/
 					FDMA_SPLIT_SM_BIT;
 		split_frame_params.split_size_sf = 0;
 
