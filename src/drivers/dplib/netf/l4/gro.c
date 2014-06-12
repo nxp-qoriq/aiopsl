@@ -305,6 +305,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	tman_delete_timer(gro_ctx->timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
+	gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
@@ -549,8 +551,11 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		/* delete the timer since the new segment will be flushed as is
 		 * without additional segments. */
-		sr_status = tman_delete_timer(gro_ctx->timer_handle,
+		tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+
 		gro_ctx->metadata.seg_num = 1;
 
 		/* Clear gross running sum in parse results */
@@ -630,8 +635,10 @@ int32_t tcp_gro_flush_aggregation(
 	}
 
 	/* delete the timer for this aggregation */
-	sr_status = tman_delete_timer(gro_ctx.timer_handle,
+	tman_delete_timer(gro_ctx.timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+	gro_ctx.timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 

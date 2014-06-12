@@ -304,6 +304,8 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 #define TIMESTAMP_NOP_VAL			1
 	/* TCP GRO granularity shift value */
 #define GRO_GRAN_OFFSET				16
+	/* Invalid timer handle */
+#define TCP_GRO_INVALID_TMAN_HANDLE		0xFFFFFFFF
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
