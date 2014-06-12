@@ -604,12 +604,12 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 {
 
 	uint8_t			current_index;
-	uint8_t			last_fragment;
 	uint16_t		frag_offset_shifted;
 	uint16_t		current_frag_size;
 	uint16_t		expected_frag_offset;
 	uint16_t		ip_header_size;
 	uint16_t		ipv6fraghdr_offset;
+	uint32_t		last_fragment;
 	uint64_t		ext_addr;
 	/* todo reuse ext_addr for current_element_ext_addr */
 	uint64_t		current_element_ext_addr;
@@ -628,8 +628,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		ip_header_size = (uint16_t)
 			  ((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
 		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
-		last_fragment =
-			!(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK);
+		last_fragment = !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK);
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		/* todo remove following workaround CR ENGR00312273 */
@@ -645,7 +644,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		current_frag_size = ipv6hdr_ptr->payload_length -
 				ip_header_size + IPV6_FIXED_HEADER_SIZE;
 		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
-					IPV6_HDR_M_FLAG_MASK);
+				IPV6_HDR_M_FLAG_MASK);
 	}
 
 	if (frag_offset_shifted != 0) {
@@ -762,7 +761,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		} else {
 			/* Out of order handling */
 			return out_of_order(rfdc_ptr, rfdc_ext_addr,
-					frame_is_ipv4, current_frag_size,
+					last_fragment, current_frag_size,
 					frag_offset_shifted);
 	}
 	/* to be removed */
@@ -937,17 +936,16 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 {
-	uint16_t	ipv6hdr_offset;
-	uint16_t	ipv6fraghdr_offset;
-	uint16_t	ip_header_size;
-	uint16_t	checksum;
-	uint16_t	checksum_new;
-	uint16_t	gross_running_sum;
-	uint32_t	fd_length;
-	uint32_t	l4_update;
-	struct ipv6hdr	*ipv6hdr_ptr;
-	struct ipv6fraghdr  *ipv6fraghdr_ptr;
-	struct		parse_result *pr =
+	uint16_t		ipv6hdr_offset;
+	uint16_t		ipv6fraghdr_offset;
+	uint16_t		ip_header_size;
+	uint16_t		checksum;
+	uint16_t		gross_running_sum;
+	uint32_t		fd_length;
+	uint32_t		l4_update;
+	struct ipv6hdr		*ipv6hdr_ptr;
+	struct ipv6fraghdr	*ipv6fraghdr_ptr;
+	struct	parse_result 	*pr =
 				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	ipv6hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -964,7 +962,6 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ip_header_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
 						(uint32_t)ipv6hdr_ptr);
 
-	l4_update = 0;
 	if (PARSER_IS_UDP_DEFAULT() && 
 		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+3) != 0)) {
 		l4_update = 1;
@@ -972,6 +969,8 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 				ipv6hdr_offset,
 				ipv6fraghdr_offset-ipv6hdr_offset+8,
 				&checksum);
+	} else {
+		l4_update = 0;		
 	}
 
 	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length +
@@ -989,26 +988,25 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, fd_length);
 	
 	/* Update Gross running sum of the reassembled frame */
-	pr->gross_running_sum = rfdc_ptr->current_running_sum;
+	/* Subtract old IPv6 header (fixed until frag header) */
+	gross_running_sum = cksum_ones_complement_sum16(
+					rfdc_ptr->current_running_sum,
+					(uint16_t)~checksum);
 
-	if (PARSER_IS_UDP_DEFAULT() && 
-		(*((uint16_t*)PARSER_GET_L4_POINTER_DEFAULT()+2) != 0)) {
-		/* Check L4 checksum */
-		fdma_calculate_default_frame_checksum(
-				ipv6hdr_offset,
-				ipv6fraghdr_offset-ipv6hdr_offset,
-				&checksum_new);
+	/* Calculate checksum of new IPv6 header */
+	fdma_calculate_default_frame_checksum(
+			ipv6hdr_offset,
+			ipv6fraghdr_offset-ipv6hdr_offset,
+			&checksum);
 
-		gross_running_sum = pr->gross_running_sum;
-		/* Subtract old fields */
-		cksum_ones_complement_sum16(gross_running_sum,
-					    (uint16_t)~checksum);
-		/* Add new fields */
-		cksum_ones_complement_sum16(gross_running_sum,
-					    checksum);
-		
-		pr->gross_running_sum = gross_running_sum;
-		
+	/* Add new fields */
+	gross_running_sum = cksum_ones_complement_sum16(
+						     gross_running_sum,
+						     checksum);
+	
+	pr->gross_running_sum = gross_running_sum;
+
+	if (l4_update) {
 		parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM);
 		if ((pr->parse_error_code == PARSER_UDP_CHECKSUM_ERROR)
 				||
@@ -1016,9 +1014,9 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 			/* error in L4 checksum */
 			return IPR_ERROR;
 		}
-		} else {
-			parse_result_generate_default(0);		
-		}
+	} else {
+			parse_result_generate_default(0);
+	}
 
 	return SUCCESS;
 
@@ -1049,9 +1047,9 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 			cdma_read((void *)HWC_FD_ADDRESS,
 					  temp_ext_addr,
 					  FD_SIZE);
-		/* Copy 1rst FD to default frame FD's place */
-		/* *((struct ldpaa_fd *)(HWC_FD_ADDRESS)) =
-		 * fds_to_concatenate[0];*/
+			/* Copy 1rst FD to default frame FD's place */
+			/* *((struct ldpaa_fd *)(HWC_FD_ADDRESS)) =
+			 * fds_to_concatenate[0];*/
 
 			/* Open 1rst frame and get frame handle */
 			fdma_present_default_frame_without_segments();
@@ -1278,7 +1276,7 @@ void check_remove_padding()
 
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-		  uint32_t frame_is_ipv4, uint16_t current_frag_size,
+		  uint32_t last_fragment, uint16_t current_frag_size,
 		  uint16_t frag_offset_shifted)
 {
 	uint8_t				current_index;
@@ -1321,8 +1319,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 			/* Error */
 			/* return IPR_ERROR; */
 		}
-//		if (IS_LAST_FRAGMENT())
-		if(is_last_fragment(frame_is_ipv4))
+		if(last_fragment)
 			rfdc_ptr->expected_total_length = frag_offset_shifted +
 							  current_frag_size;
 
@@ -1344,8 +1341,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 				   LINK_LIST_ELEMENT_SIZE);
 	} else {
 		/* Smaller than last */
-//		if (IS_LAST_FRAGMENT()) {
-		if(is_last_fragment(frame_is_ipv4)) {
+		if(last_fragment) {
 			/* Current fragment is smaller than last but is marked
 			 * as last : Error */
 		}
@@ -1636,25 +1632,4 @@ void ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 				   ipv6_reass_frm_cntr),
 			  sizeof(*reass_frm_cntr));
 	return;
-}
-
-uint32_t is_last_fragment(uint32_t frame_is_ipv4)
-{
-	struct ipv4hdr		*ipv4hdr_ptr;
-	struct ipv6fraghdr	*ipv6fraghdr_ptr;
-	uint16_t		ipv6fraghdr_offset;
-	
-	if (frame_is_ipv4) {
-		/* IPv4 */
-	       ipv4hdr_ptr = PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-	       return (!(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK));
-	} else {
-		/* IPv6 */
-		ipv6fraghdr_offset =
-				PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
-			     (PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
-
-	      return(!(ipv6fraghdr_ptr->offset_and_flags&IPV6_HDR_M_FLAG_MASK));
-	}
 }

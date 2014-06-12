@@ -1,21 +1,16 @@
-#include "common/types.h"
 #include "common/fsl_string.h"
 #include "common/io.h"
-#include "kernel/smp.h"
-#include "kernel/platform.h"
-#include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
-#include "common/dbg.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
-#include "common/aiop_common.h"
-#include "common/errors.h"
-
+#include "sys.h"
 
 __SHRAM uint8_t abcr_lock = 0;
+
+extern t_system sys;
 
 extern int mc_obj_init();           extern void mc_obj_free();
 extern int cmdif_client_init();     extern void cmdif_client_free();
@@ -123,8 +118,10 @@ void core_ready_for_tasks(void)
 
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
-
+    
     sys_barrier();
+    
+    sys.runtime_flag = 1;
     
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);

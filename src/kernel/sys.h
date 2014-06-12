@@ -46,6 +46,7 @@ typedef struct t_system {
 
 	/* boot synchronization variables */
 	volatile uint32_t           boot_sync_flag;
+	volatile uint32_t           runtime_flag;
 	
 	/* Platform operations */
 	t_platform_ops              platform_ops;
