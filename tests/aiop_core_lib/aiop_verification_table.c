@@ -42,13 +42,15 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		(struct table_replace_miss_result_command *) asa_seg_addr;
 
 		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
-			str->status = table_replace_miss_result
-				(str->acc_id, str->table_id, &(str->miss_rule),
-				 (void *)0);
+			table_replace_miss_result(str->acc_id,
+						  str->table_id,
+						  &(str->miss_rule),
+						  (void *)0);
 		} else {
-			str->status = table_replace_miss_result
-				(str->acc_id, str->table_id, &(str->miss_rule),
-				 &str->old_miss_result);
+			table_replace_miss_result(str->acc_id,
+						  str->table_id,
+						  &(str->miss_rule),
+						  &str->old_miss_result);
 		}
 
 		str_size = sizeof(struct table_replace_miss_result_command);
@@ -60,10 +62,9 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct ctlu_table_get_params_command *str =
 		(struct ctlu_table_get_params_command *) asa_seg_addr;
-		
-		str->status = table_get_params(str->acc_id,
-					       str->table_id,
-					      &str->table_get_params_out);
+
+		table_get_params(str->acc_id, str->table_id,
+				 &str->table_get_params_out);
 
 		str_size = sizeof(struct ctlu_table_get_params_command);
 		break;
@@ -75,10 +76,8 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_get_miss_result_command *str =
 		(struct table_get_miss_result_command *) asa_seg_addr;
 		
-		str->status = table_get_miss_result
-				(str->acc_id,
-				 str->table_id,
-				 &(str->miss_rule));
+		table_get_miss_result(str->acc_id, str->table_id,
+				      &(str->miss_rule));
 
 		str_size = sizeof(struct table_get_miss_result_command);
 		break;
@@ -90,8 +89,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_delete_command *str =
 		(struct table_delete_command *) asa_seg_addr;
 		
-		str->status = table_delete(str->acc_id,
-						str->table_id);
+		table_delete(str->acc_id, str->table_id);
 
 		str_size = sizeof(struct table_delete_command);
 		break;

@@ -37,8 +37,7 @@ void l2_header_remove(void)
 
 	size_to_be_removed = (uint16_t) (last_offset - first_offset);
 
-	fdma_flags =
-	    (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT);
+	fdma_flags = (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT);
 	if ((prc->seg_length - size_to_be_removed) >= 128) {
 		fdma_delete_default_segment_data((uint16_t)first_offset,
 						 size_to_be_removed,
@@ -78,8 +77,7 @@ int32_t l2_vlan_header_remove()
 		last_offset = PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT();
 		size_to_be_removed = (uint16_t)(last_offset - first_offset + 2);
 
-		fdma_flags =
-			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
+		fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT;
 		/* Remove all VLAN headers */
 		if ((prc->seg_length - size_to_be_removed) >= 128) {
 			fdma_delete_default_segment_data((uint16_t)first_offset,
@@ -218,8 +216,6 @@ int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
 
 void l2_push_vlan(uint16_t ethertype)
 {
-	uint32_t fdma_flags;
-	uint16_t vlan_offset;
 	uint32_t inserted_vlan = 0;
 	uint32_t *inserted_vlan_ptr;
 	struct   parse_result *pr =
@@ -228,21 +224,31 @@ void l2_push_vlan(uint16_t ethertype)
 	inserted_vlan_ptr = &inserted_vlan;
 	*((uint16_t *)inserted_vlan_ptr) = ethertype;
 
-	vlan_offset = 12;
-
-	fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
-
-	fdma_insert_default_segment_data(vlan_offset,
+	fdma_insert_default_segment_data(12,
 					inserted_vlan_ptr,
 					4,
-					fdma_flags);
+					FDMA_REPLACE_SA_REPRESENT_BIT);
 
-		/* Re-run parser */
-		parse_result_generate_default(0);
-		/* Mark running sum as invalid */
-		pr->gross_running_sum = 0;
+	/* Re-run parser */
+	parse_result_generate_default(0);
+	/* Mark running sum as invalid */
+	pr->gross_running_sum = 0;
+}
 
-		return;
+void l2_push_and_set_vlan(uint32_t vlan_tag)
+{
+	struct   parse_result *pr =
+				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
+	fdma_insert_default_segment_data(12,
+					&vlan_tag,
+					4,
+					FDMA_REPLACE_SA_REPRESENT_BIT);
+
+	/* Re-run parser */
+	parse_result_generate_default(0);
+	/* Mark running sum as invalid */
+	pr->gross_running_sum = 0;
 }
 
 int32_t l2_pop_vlan()
@@ -258,8 +264,7 @@ int32_t l2_pop_vlan()
 		vlan_offset = (uint16_t)
 			      (PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 2;
 
-		fdma_flags =
-			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
+		fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT;
 		/* Remove all VLAN headers */
 		if (prc->seg_length >= 132) {
 			fdma_delete_default_segment_data(vlan_offset,

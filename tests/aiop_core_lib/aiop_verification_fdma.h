@@ -592,10 +592,6 @@ struct fdma_enqueue_wf_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -641,10 +637,6 @@ struct fdma_enqueue_wf_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -787,11 +779,11 @@ struct fdma_discard_default_wf_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	uint8_t	 TC;
+	/*uint8_t	 TC;*/
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[2];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -816,9 +808,11 @@ struct fdma_discard_wf_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	uint8_t	 TC;
+	/*uint8_t	 TC;*/
 		/** Command returned status. */
 	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
@@ -838,11 +832,11 @@ struct fdma_discard_fd_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	uint8_t	 TC;
+	/*uint8_t	 TC;*/
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[6];
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -901,13 +895,13 @@ struct fdma_replicate_frames_command {
 		 * Release destination frame handle is implicit when enqueueing.
 		 * - 0: replicate only
 		 * - 1: replicate and enqueue */
-	uint8_t	ENQ;
+	/*uint8_t	ENQ;*/
 		/** The source frame resources are released after the
 		 * replication.
 		 * Release source frame handle is implicit when discarding.
 		 * - 0: keep source frame
 		 * - 1: discard source frame and release frame handle */
-	uint8_t	DSF;
+	/*uint8_t	DSF;*/
 		/** Frame annotation copy option:
 		 * - 0: do not copy annotations.
 		 * - 1: copy ASA.
@@ -920,6 +914,8 @@ struct fdma_replicate_frames_command {
 	uint8_t frame_handle2;
 		/** Command returned status. */
 	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1016,8 +1012,7 @@ struct fdma_split_frame_command {
 		 * - 0: do not present segment from the split frame, keep split
 		 * working frame open.
 		 * - 1: present segment from the split frame, keep split working
-		 * frame open.
-		 * - 2: do not present, close split working frame. */
+		 * frame open. */
 	uint8_t PSA;
 		/** Frame split mode:
 		 * - 0: Split is performed at the split_size_sf value.
@@ -1114,7 +1109,6 @@ struct fdma_replace_command {
 		(flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		* - 0: keep segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1145,7 +1139,6 @@ struct fdma_insert_segment_data_command {
 		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		* - 0: keep segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1188,7 +1181,6 @@ struct fdma_insert_segment_data_exp_command {
 		 * from which the data is being inserted. */
 	uint8_t  seg_handle;
 		/** Segment Action.
-		* - 0: keep segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1216,7 +1208,6 @@ struct fdma_delete_segment_data_command {
 		 * Relevant if SA field is set. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		 * - 0: keep segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;
@@ -1253,7 +1244,6 @@ struct fdma_delete_segment_data_exp_command {
 		 * Relevant if SA field is set. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		 * - 0: keep segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;

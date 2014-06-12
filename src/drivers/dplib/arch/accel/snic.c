@@ -21,7 +21,7 @@
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_fdma.h"
-#include "dplib/fsl_ipr.h"
+#include "dplib/fsl_dplib_sys.h"
 
 #include "general.h"
 #include "osm.h"
@@ -29,12 +29,15 @@
 #include "dplib/fsl_ipf.h"
 #include "common/fsl_cmdif_server.h"
 
+#define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
+	_arg = (_type)u64_dec(swap_uint64(cmd_data->params[_param]), _offset, _width);
+
+#define SNIC_RSP_PREP(_param, _offset, _width, _type, _arg) \
+	cmd_data->params[_param] |= swap_uint64(u64_enc(_offset, _width, _arg));
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-__SHRAM struct snic_params *snic_params;
-
-__SHRAM ipr_instance_handle_t ipr_instance_val;
+__SHRAM struct snic_params snic_params[MAX_SNIC_NO];
 
 __HOT_CODE void snic_process_packet(void)
 {
@@ -74,7 +77,7 @@ __HOT_CODE void snic_process_packet(void)
 	if (SNIC_IS_INGRESS(appidx)) {
 		/* For ingress may need to do IPR and then Remove Vlan */
 		if (snic->snic_enable_flags & SNIC_IPR_EN) 
-			err = snic_ipr();
+			err = snic_ipr(snic);
 		/*reach here if re-assembly success or regular or IPR disabled*/
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
@@ -185,11 +188,11 @@ int snic_ipf(struct snic_params *snic)
 		return 0;
 }
 
-int snic_ipr(void)
+int snic_ipr(struct snic_params *snic)
 {
 	int32_t reassemble_status;
 
-	reassemble_status = ipr_reassemble(ipr_instance_val);
+	reassemble_status = ipr_reassemble(snic->ipr_instance_val);
 	if (reassemble_status != IPR_REASSEMBLY_REGULAR &&
 		reassemble_status != IPR_REASSEMBLY_SUCCESS)
 	{
@@ -238,9 +241,13 @@ int snic_close_cb(void *dev)
 
 int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 {
-	int status;
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
+	uint16_t snic_id, ipf_mtu, snic_flags, qdid;
+	int i;
+	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)data;
+	struct ipr_params ipr_params;
+	uint32_t snic_ep_pc;
 
 	UNUSED(dev);
 	UNUSED(size);
@@ -248,31 +255,50 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 	switch(cmd)
 	{
 	case SNIC_IPR_CREATE_INSTANCE:
-		status = (int)ipr_create_instance((struct ipr_params*)data, 
+		SNIC_IPR_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
+		
+		ipr_create_instance(&ipr_params, 
 				ipr_instance_ptr);
-		ipr_instance_val = ipr_instance;
-		return status;
+		snic_params[snic_id].ipr_instance_val = ipr_instance;
+		return 0;
 	case SNIC_IPR_DELETE_INSTANCE:
 		/* todo: parameters to ipr_delete_instance */
-		status = (int)ipr_delete_instance(ipr_instance_val, NULL, NULL);
-		return status;
+		SNIC_IPR_DELETE_INSTANCE_CMD(SNIC_CMD_READ);
+		ipr_delete_instance(snic_params[snic_id].ipr_instance_val,
+				NULL, NULL);
+		return 0;
 	case SNIC_SET_MTU:
-		snic_params += *((uint16_t *)data);
-		data += 2;
-		snic_params->snic_ipf_mtu = *((uint16_t *)data);
+		SNIC_CMD_MTU(SNIC_CMD_READ);
+		snic_params[snic_id].snic_ipf_mtu = ipf_mtu;
 		return 0;
 	case SNIC_ENABLE_FLAGS:
-		snic_params += *((uint16_t *)data);
-		data += 2;
-		snic_params->snic_enable_flags = *((uint16_t *)data);
+		SNIC_ENABLE_FLAGS_CMD(SNIC_CMD_READ);
+		snic_params[snic_id].snic_enable_flags = snic_flags;
 		return 0;
 	case SNIC_SET_QDID:
-		snic_params += *((uint16_t *)data);
-		data += 2;
-		snic_params->qdid = *((uint16_t *)data);
+		SNIC_SET_QDID_CMD(SNIC_CMD_READ);
+		snic_params[snic_id].qdid = qdid;
 		return 0;
-	case SNIC_GET_EPID_PC:
-		*((uint32_t *)data) = (uint32_t)snic_process_packet;
+	case SNIC_REGISTER:
+		snic_ep_pc = (uint32_t)snic_process_packet;
+		for (i=0; i < MAX_SNIC_NO; i++)
+		{
+			if (snic_params[i].valid)
+			{
+				snic_params[i].valid = FALSE;
+				snic_id = (uint16_t)i;
+				break;
+			}
+		}
+		if (i== MAX_SNIC_NO)
+			*((uint16_t *)data) = 0xFFFF;
+		else
+			*((uint16_t *)data) = snic_id;
+		SNIC_REGISTER_CMD(SNIC_RSP_PREP);
+		return 0;
+	case SNIC_UNREGISTER:
+		SNIC_UNREGISTER_CMD(SNIC_CMD_READ);
+		snic_params[snic_id].valid = TRUE;
 		return 0;
 	default:
 		return -EINVAL;
@@ -282,7 +308,7 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 
 int aiop_snic_init(void)
 {
-	int status;
+	int status, i;
 	struct cmdif_module_ops snic_cmd_ops;
 	
 	snic_cmd_ops.open_cb = (open_cb_t *)snic_open_cb;
@@ -294,5 +320,7 @@ int aiop_snic_init(void)
 		pr_info("sNIC:Failed to register with cmdif module!\n");
 		return status;
 	}
+	for (i=0; i < MAX_SNIC_NO; i++)
+		snic_params[i].valid = TRUE;
 	return 0;
 }

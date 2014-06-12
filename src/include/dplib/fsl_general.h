@@ -10,7 +10,7 @@
 #ifndef __FSL_GENERAL_H_
 #define __FSL_GENERAL_H_
 
-
+#include "fsl_endian.h"
 #include "dplib/fsl_ldpaa.h"
 #include "null.h"
 /*#include "dplib/fsl_aiop_parser.h"*/
@@ -490,118 +490,6 @@ struct aiop_default_task_params {
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
 
-/**************************************************************************//**
- @Group		AIOP_Endian_Macros
-
- @Description	Endian Swap Macros
-
- @{
-*//***************************************************************************/
-
-/** Load 2 bytes with endian swap.
- * The address loaded from memory is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0. */
-#define LH_SWAP(_disp, _base) ((uint16_t)__lhbr((uint32_t)_disp, (void *)_base))
-
-/** Load 4 bytes with endian swap.
- * The address loaded from memory is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0. */
-#define LW_SWAP(_disp, _base) ((uint32_t)__lwbr((uint32_t)_disp, (void *)_base))
-
-/** Load 8 bytes with endian swap of each 4 bytes.
- * The address loaded from memory is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0. */
-#define LDW_SWAP(_disp, _base)					\
-	(uint64_t)({register uint64_t __rR = 0;			\
-	unsigned int temp1, temp2;				\
-	__ldwbrw(&temp1, &temp2, (uint32_t)_disp, (void *)_base);\
-	__rR = (uint64_t)					\
-		((((uint64_t)temp1) << 32) | (uint64_t)temp2); })
-
-/** Load 8 bytes with endian swap.
- * The address loaded from memory is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0. */
-#define LLLDW_SWAP(_disp, _base)				\
-	(uint64_t)({register uint64_t __rR = 0;			\
-	uint64_t temp;						\
-	__llldbrw(&temp, (uint32_t)_disp, (void *)_base);	\
-	__rR = (uint64_t) temp; })
-
-/** Load 2 bytes with endian swap and mask result
- * The address loaded from memory is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _mask - mask value. */
-#define LH_SWAP_MASK(_disp, _base, _mask)			\
-	(uint16_t)(uint32_t)({register uint16_t *__rR = 0;	\
-	uint16_t temp = LH_SWAP(_disp, _base);			\
-	temp &= _mask;						\
-	__rR = (uint16_t *) temp; })
-
-/** Load 4 bytes with endian swap and mask result.
- * The address loaded from memory is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _mask - mask value. */
-#define LW_SWAP_MASK(_disp, _base, _mask)			\
-	(uint32_t)({register uint32_t *__rR = 0;		\
-	uint32_t temp = LW_SWAP(_disp, _base);			\
-	temp &= _mask;						\
-	__rR = (uint32_t *) temp; })
-
-/** Load 4 bytes with endian swap, mask and shift result.
- * The address loaded from memory is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _mask - mask value.
- * _shift - shift value.*/
-#define LW_SWAP_MASK_SHIFT(_disp, _base, _mask, _shift)		\
-	(uint32_t)({register uint32_t *__rR = 0;		\
-	uint32_t temp = LW_SWAP(_disp, _base);			\
-	temp &= _mask;						\
-	temp >>= _shift;					\
-	__rR = (uint32_t *) temp; })
-
-/** Store 2 bytes with endian swap.
- * The memory address being stored is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _val - 16bit value to be stored.*/
-#define STH_SWAP(_val, _disp, _base) 				\
-	__sthbr(_val, (uint32_t)_disp, (void *)_base)
-
-/** Store 4 bytes with endian swap.
- * The memory address being stored is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _val - 32bit value to be stored.*/
-#define STW_SWAP(_val, _disp, _base)				\
-	__stwbr(_val, (uint32_t)_disp, (void *)_base)
-
-/** Store 8 bytes with endian swap.
- * The memory address being stored is calculated as: _displ + _base.
- * _displ - a word aligned constant value between 0-1020.
- * _base - a variable containing the base address.
- * If 'base' is a literal 0, the base address is considered as 0.
- * _val - 64bit value to be stored. */
-#define LLSTDW_SWAP(_val, _disp, _base)				\
-	__llstdbrw(_val, (uint32_t)_disp, (void *)_base)
-
-
-/** @} */ /* end of AIOP_Endian_Macros */
 
 /** @} */ /* end of AIOP_General_Definitions */
 
