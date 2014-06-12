@@ -77,3 +77,9 @@ uint64_t sys_get_cores_mask(void)
     return sys.active_cores_mask;
 }
 
+/*****************************************************************************/
+uint32_t sys_get_cores_num(void)
+{
+    return 0;
+}
+
