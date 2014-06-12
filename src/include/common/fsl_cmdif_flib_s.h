@@ -41,16 +41,15 @@ int cmdif_srv_open(void *srv,
                    const char *m_name, 
                    uint8_t inst_id, 
                    void * v_data, 
-                   uint64_t p_data, 
                    uint32_t size, 
                    uint16_t *auth_id,
-                   uint32_t dpci_id);
+                   uint32_t dev_id);
 
 int cmdif_srv_close(void *srv, 
                     uint16_t auth_id, 
-                    uint64_t *p_data, 
-                    void **v_data, 
-                    int *size);
+                    void *v_data, 
+                    int size,
+                    uint32_t dev_id);
 
 int cmdif_srv_cmd(void *srv, 
                   struct cmdif_fd *cfd, 

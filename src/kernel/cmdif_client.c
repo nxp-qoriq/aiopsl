@@ -109,9 +109,16 @@ int cmdif_client_init()
 {
 	int err = 0;
 	int i   = 0;
-	struct cmdif_cl *cl = fsl_os_xmalloc(sizeof(struct cmdif_cl), 
-	                                     MEM_PART_1ST_DDR_NON_CACHEABLE, 
-	                                     8);
+	struct cmdif_cl *cl = NULL;
+	
+	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL)) {
+		pr_err("Client had been already setup\n");
+		return -ENODEV;
+	}
+
+	cl = fsl_os_xmalloc(sizeof(struct cmdif_cl), 
+	                    MEM_PART_1ST_DDR_NON_CACHEABLE, 
+	                    8);
 	if (cl == NULL) {
 		pr_err("No memory for client handle\n");
 		return -ENOMEM;
@@ -133,10 +140,7 @@ int cmdif_client_init()
 		memset(cl->gpp[i].regs, 0, sizeof(struct cmdif_reg));
 		memset(cl->gpp[i].dev, 0, sizeof(struct cmdif_dev));
 	}
-	
-	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL))
-		return -ENODEV;
-	
+		
 	
 #ifndef AIOP_STANDALONE
 	dpci_discovery();

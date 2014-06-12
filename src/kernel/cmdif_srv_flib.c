@@ -204,3 +204,105 @@ int cmdif_srv_unregister(void *srv, const char *m_name)
 		return m_id; /* POSIX error is returned */
 	}
 }
+
+static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
+{
+	int r = 0;
+	int count = 0;
+	
+	if (srv == NULL)
+		return -EINVAL;
+
+	/* TODO remove random from flibs ??*/
+	r = rand() % M_NUM_OF_INSTANCES;
+	while ((srv->m_id[r] != FREE_INSTANCE) && 
+		(count < M_NUM_OF_INSTANCES)) {
+		r = rand() % M_NUM_OF_INSTANCES;
+		count++;
+	}
+
+	/* didn't find empty space yet */
+	if (srv->m_id[r] != FREE_INSTANCE) {
+		count = 0;
+		while ((srv->m_id[r] != FREE_INSTANCE) &&
+			(count < M_NUM_OF_INSTANCES)) {
+			r = r++ % M_NUM_OF_INSTANCES;
+			count++;
+		}
+	}
+	
+	/* didn't find empty space */
+	if (count >= M_NUM_OF_INSTANCES) {
+		return -ENAVAIL;
+	} else {
+		srv->m_id[r] = m_id;
+		srv->inst_count++;
+		return r;
+	}
+}
+
+static void inst_dealloc(int inst, struct cmdif_srv *srv)
+{
+	srv->m_id[inst] = FREE_INSTANCE;
+	srv->inst_count--;
+}
+
+int cmdif_srv_open(void *_srv, 
+                   const char *m_name, 
+                   uint8_t inst_id, 
+                   void * v_data, 
+                   uint32_t size, 
+                   uint16_t *auth_id,
+                   uint32_t dpci_id)
+{
+	int    err = 0;
+	int    m_id = 0;
+	int    id = 0;
+	struct cmdif_srv * srv = (struct cmdif_srv *)_srv;
+	void   *dev = NULL;
+	struct cmdif_session_data *data = v_data;
+	
+	if (size < sizeof(struct cmdif_session_data))
+		return -ENOMEM;
+
+	/* TODO errors handling 
+	 * Store phys/virt buffers */
+	m_id = module_id_find(srv, m_name);
+	if (m_id < 0)
+		return m_id;
+	
+	err = srv->open_cb[m_id](inst_id, &dev);
+	id = inst_alloc(srv, (uint8_t)m_id);
+	if (id < 0)
+		return id;
+	
+	srv->inst_dev[id] = dev;
+	*auth_id = (uint16_t)id;
+	
+	data->dev_id  = dpci_id;
+        data->auth_id = *auth_id;
+        data->inst_id = inst_id;
+      	strncpy(&data->m_name[0], m_name, M_NAME_CHARS);
+      	data->m_name[M_NAME_CHARS] = '\0';
+
+      	return 0;
+}
+
+int cmdif_srv_close(void *srv, 
+                    uint16_t auth_id, 
+                    void *v_data, 
+                    int size,
+                    uint32_t dpci_id)
+{
+	int    err = 0;
+	struct cmdif_session_data *data = v_data;
+
+	if (size < sizeof(struct cmdif_session_data))
+		return -ENOMEM;
+	
+	inst_dealloc(auth_id, srv);
+	data->auth_id = auth_id;
+	data->dev_id  = dpci_id; /* 1 DPCI = 1 Server */	
+	
+	return -ENOTSUP;
+}

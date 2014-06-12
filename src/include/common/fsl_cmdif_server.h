@@ -124,7 +124,7 @@ int cmdif_unregister_module(const char *module_name);
 int cmdif_session_open(struct cmdif_desc *cidesc,
                        const char *m_name,
                        uint8_t inst_id,
-                       uint8_t *v_data,
+                       void *v_data,
                        uint64_t p_data,
                        uint32_t size,
                        uint16_t *auth_id);
