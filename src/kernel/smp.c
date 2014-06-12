@@ -77,3 +77,14 @@ uint64_t sys_get_cores_mask(void)
     return sys.active_cores_mask;
 }
 
+/*****************************************************************************/
+uint32_t sys_get_num_of_cores(void)
+{
+    return sys.num_of_active_cores;
+}
+
+/*****************************************************************************/
+uint32_t sys_get_max_num_of_cores(void)
+{
+    return INTG_MAX_NUM_OF_CORES;
+}

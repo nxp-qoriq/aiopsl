@@ -41,11 +41,13 @@ typedef struct t_system {
 	int                  is_tile_master[INTG_MAX_NUM_OF_CORES];
 	int                  is_cluster_master[INTG_MAX_NUM_OF_CORES];
 	uint64_t             active_cores_mask;
+	uint32_t             num_of_active_cores;
 	uint8_t              barrier_lock;
 	volatile uint64_t    barrier_mask;
 
 	/* boot synchronization variables */
 	volatile uint32_t           boot_sync_flag;
+	volatile uint32_t           runtime_flag;
 	
 	/* Platform operations */
 	t_platform_ops              platform_ops;
