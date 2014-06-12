@@ -80,16 +80,7 @@ uint64_t sys_get_cores_mask(void)
 /*****************************************************************************/
 uint32_t sys_get_num_of_cores(void)
 {
-    uint64_t cores_mask = sys_get_cores_mask();
-    uint32_t count;
-    
-    for(count = 0; cores_mask > 0; cores_mask >>= 1)
-    {
-	    if(cores_mask & 1 == 1)
-		    count ++;
-    }
-    
-    return count;
+    return sys.num_of_active_cores;
 }
 
 /*****************************************************************************/
