@@ -213,7 +213,7 @@ static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 	if (srv == NULL)
 		return -EINVAL;
 
-	/* TODO remove random from flibs ??*/
+	/* TODO remove random from flibs ?? */
 	r = rand() % M_NUM_OF_INSTANCES;
 	while ((srv->m_id[r] != FREE_INSTANCE) && 
 		(count < M_NUM_OF_INSTANCES)) {
@@ -291,7 +291,7 @@ int cmdif_srv_open(void *_srv,
 int cmdif_srv_close(void *srv, 
                     uint16_t auth_id, 
                     void *v_data, 
-                    int size,
+                    uint32_t size,
                     uint32_t dpci_id)
 {
 	int    err = 0;

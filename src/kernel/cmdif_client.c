@@ -22,24 +22,23 @@ int cmdif_client_init();
 
 static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 {
-	int      err = 0;
+	int    err = 0;
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
 	struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
-	uint32_t fqid = sdev->fqid[pr];
+	uint32_t fqid = 0;
 	uint16_t icid = 0;
-	
-	fdma_enqueue_fd_fqid(&_fd, FDMA_EN_TC_CONDTERM_BITS | FDMA_ENF_BDI_BIT, 
-	                     fqid, icid);
-	/* TODO FDMA_ENF_BDI_BIT ??? */
-	
+		
 	if ((sdev == NULL) || (sdev->num_of_pr <= pr) || (fd == NULL))
 		return -EINVAL;
 	
 	/* TODO copy fields from FD */
 	
 	fqid = ((struct cmdif_reg *)sdev)->fqid[pr];	
-	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					fqid, FDMA_EN_TC_CONDTERM_BITS);
+	fdma_enqueue_fd_fqid(&_fd, FDMA_EN_TC_CONDTERM_BITS | FDMA_ENF_BDI_BIT, 
+	                     fqid, icid);
+	/* TODO FDMA_ENF_BDI_BIT ICID 
+	 * take it from dequeue context ??? */
+	
 	if (err) {
 		pr_err("Failed to send response\n");
 		fdma_terminate_task();
@@ -68,41 +67,6 @@ static int session_get(const char *m_name,
 	}
 
 	return -ENAVAIL;
-}
-
-static int dpci_discovery()
-{
-	int dev_count;
-	struct dprc_obj_desc dev_desc;
-	int err = 0;
-	int i = 0;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-			
-	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
-	    pr_err("Failed to get device count for RC auth_d = %d\n", 
-	           dprc->auth);
-	    return err;
-	}
-
-	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(dprc, i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpci") == 0) {			
-			pr_debug(" device %d\n");
-			pr_debug("***********\n");
-			pr_debug("vendor - %x\n", dev_desc.vendor);
-			pr_debug("type - %s\n", dev_desc.type);
-			pr_debug("id - %d\n", dev_desc.id);
-			pr_debug("region_count - %d\n", dev_desc.region_count);
-			pr_debug("state - %d\n", dev_desc.state);
-			pr_debug("ver_major - %d\n", dev_desc.ver_major);
-			pr_debug("ver_minor - %d\n", dev_desc.ver_minor);
-			pr_debug("irq_count - %d\n\n", dev_desc.irq_count);
-			
-			/* TODO query about DPCI*/
-		}
-	}
-
-	return err;
 }
 
 int cmdif_client_init()
@@ -141,10 +105,6 @@ int cmdif_client_init()
 		memset(cl->gpp[i].dev, 0, sizeof(struct cmdif_dev));
 	}
 		
-	
-#ifndef AIOP_STANDALONE
-	dpci_discovery();
-#endif
 	
 	err = sys_add_handle(cl, FSL_OS_MOD_CMDIF_CL, 1, 0);
 	if (err != 0) {

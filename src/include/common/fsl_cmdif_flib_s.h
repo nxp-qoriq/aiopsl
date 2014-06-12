@@ -48,7 +48,7 @@ int cmdif_srv_open(void *srv,
 int cmdif_srv_close(void *srv, 
                     uint16_t auth_id, 
                     void *v_data, 
-                    int size,
+                    uint32_t size,
                     uint32_t dev_id);
 
 int cmdif_srv_cmd(void *srv, 
