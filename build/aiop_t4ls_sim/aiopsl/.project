@@ -335,6 +335,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dpci</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpio</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -733,6 +738,11 @@
 			<name>aiop_sl/drivers/dplib/dpbp/dpbp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpbp/dpbp.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/dpci/dpci.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpci/dpci.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpio/dpio.c</name>
