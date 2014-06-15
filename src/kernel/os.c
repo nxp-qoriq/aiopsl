@@ -121,7 +121,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 
 
 			}
-			else{	/*d, x, X*/
+			else{	/*d, x*/
 				if (*(fmt) == 'd'){
 					flags |= SIGN;
 					num = va_arg(args,long);
@@ -243,6 +243,7 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 {
 	volatile uint32_t TSCRU1, TSCRU2, TSCRL;
 	UNUSED(tz);
+	uint64_t temp_val = 0;
 
 	TSCRU1 = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
 	                              TSCRU_OFF));
@@ -254,9 +255,12 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 	else if(TSCRU2 < TSCRU1) /*something wrong while reading*/
 		return -1;
 
+	temp_val = (uint64_t)(TSCRU2) << 32;
+	temp_val |= (TSCRL);
+	temp_val = temp_val / 1000;
+	tv->tv_usec = (uint32_t)temp_val;
+	tv->tv_sec = temp_val / 1000000;
 
-	tv->tv_sec = TSCRU2;
-	tv->tv_sec = (tv->tv_sec) << 32 | (TSCRL);
 
 	return 0;
 }
