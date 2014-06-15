@@ -616,7 +616,7 @@ struct obsolete_flow_context {
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_init(uint32_t max_sa_no);
+int ipsec_init(uint32_t max_sa_no);
 
 /**************************************************************************//**
 @Function	ipsec_create_instance
