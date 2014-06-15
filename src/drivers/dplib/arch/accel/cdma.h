@@ -105,9 +105,6 @@
 #define CDMA_ACCESS_CONTEXT_MEM_CMD_ARG2(_dma_param, _ws_address) \
 	(uint32_t)((_dma_param << 16) | (_ws_address & 0x0000FFFF))
 
-/* CDMA Command indications */
-/* Decrement reference count caused the reference count to go to zero. */
-#define ZERO_REFCOUNT			0x03
 
 /**************************************************************************//**
  @enum cdma_errors
@@ -337,8 +334,8 @@ void cdma_release_context_memory(
 @Return		0 on Success, or positive value on indication.
 
 @Retval		0 - Success
-@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
-		count to go to zero. (not an error).
+@Retval		CDMA_REFCOUNT_DECREMENT_TO_ZERO - Decrement reference count
+		caused the reference count to go to zero. (not an error).
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context.
@@ -386,8 +383,8 @@ void cdma_refcount_increment(
 @Return		0 on Success, or positive value on indication.
 
 @Retval		0 - Success
-@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
-		count to go to zero. (not an error).
+@Retval		CDMA_REFCOUNT_DECREMENT_TO_ZERO - Decrement reference count
+		caused the reference count to go to zero. (not an error).
 
 @remark		Only possible if the address provided with the command is the
 		address of the Context.
@@ -455,8 +452,8 @@ void cdma_write_lock_dma_read_and_increment(
 @Return		0 on Success, or positive value on indication.
 
 @Retval		0 - Success
-@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
-		count to go to zero. (not an error).
+@Retval		CDMA_REFCOUNT_DECREMENT_TO_ZERO - Decrement reference count
+		caused the reference count to go to zero. (not an error).
 
 @remark		None.
 
@@ -502,8 +499,8 @@ int32_t cdma_write_release_lock_and_decrement(
 
 @Retval		0 - Success
 @Retval		EBUSY - Mutex Lock lock failed on a Try Lock request.
-@Retval		ZERO_REFCOUNT - Decrement reference count caused the reference
-		count to go to zero. (not an error).
+@Retval		CDMA_REFCOUNT_DECREMENT_TO_ZERO - Decrement reference count
+		caused the reference count to go to zero. (not an error).
 
 @remark
 		- All reference count features are possible only if the
