@@ -98,8 +98,9 @@ uint16_t verification_virtual_pools(uint32_t asa_seg_addr)
 		{
 			struct vpool_refcount_increment_cmd *str =
 				(struct vpool_refcount_increment_cmd *)asa_seg_addr;
-			str->status = vpool_refcount_increment(
+			vpool_refcount_increment(
 					*((uint64_t *)str->context_address_ptr));
+			str->status = 0;
 			str_size = sizeof(struct vpool_refcount_increment_cmd);
 			break;
 		}
