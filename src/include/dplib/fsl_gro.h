@@ -149,6 +149,8 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x3)
+	/** The aggregation was discarded due to buffer pool depletion. */
+#define	TCP_GRO_AGG_DISCARDED		(TCP_GRO_MODULE_STATUS_ID | 0x4)
 
 
 	/** A new aggregation has started with the current segment.
@@ -161,6 +163,18 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
 #define	TCP_GRO_FLUSH_REQUIRED		0x20
+	/** The segment could not start an aggregation since no timers are
+	 * available. This status is returned along with \ref
+	 * TCP_GRO_FLUSH_REQUIRED which means the segment is waiting to be
+	 * flushed (call \ref tcp_gro_flush_aggregation()).
+	 * This status bit can be return only as part of a combined status with
+	 * one of the above statuses. */
+#define	TCP_GRO_TIMER_UNAVAIL		0x30
+	/** The segment was discarded due to buffer pool depletion.
+	 * This status bit can be return only as part of a combined status with
+	 * one of the above statuses. */
+#define	TCP_GRO_SEG_DISCARDED		0x40
+
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
@@ -220,6 +234,10 @@ struct tcp_gro_stats_cntrs {
 		 * This counter is valid when extended statistics mode is
 		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	agg_flush_request_num_cntr;
+		/** Counts the number of discarded segments.
+		 * This counter is valid when extended statistics mode is
+		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
+	uint32_t	agg_discarded_seg_num_cntr;
 };
 
 /**************************************************************************//**
