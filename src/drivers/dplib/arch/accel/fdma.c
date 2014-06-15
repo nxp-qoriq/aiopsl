@@ -884,7 +884,7 @@ int32_t fdma_enqueue_fd_qd(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_discard_default_frame(uint32_t flags)
+void fdma_discard_default_frame(uint32_t flags)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -900,17 +900,11 @@ int32_t fdma_discard_default_frame(uint32_t flags)
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-	else if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
-	else
+	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
 }
 
-int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
+void fdma_discard_frame(uint16_t frame, uint32_t flags)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -929,14 +923,8 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-	else if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
-	else
+	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
 }
 
 int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
@@ -949,13 +937,15 @@ int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
 	if (status != SUCCESS)
 		return status;
 
-	return fdma_discard_frame(frame_handle, flags);
+	fdma_discard_frame(frame_handle, flags);
+
+	return SUCCESS;
 }
 
-void fdma_force_discard_frame(struct ldpaa_fd *fd, uint8_t frame_handle)
+void fdma_force_discard_fd(struct ldpaa_fd *fd)
 {
 	LDPAA_FD_SET_ERR(fd, 0);
-	fdma_discard_frame(frame_handle, FDMA_DIS_NO_FLAGS);
+	fdma_discard_fd(fd, FDMA_DIS_NO_FLAGS);
 }
 
 void fdma_terminate_task(void)
