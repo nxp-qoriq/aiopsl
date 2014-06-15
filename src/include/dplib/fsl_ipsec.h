@@ -454,7 +454,7 @@ struct ipsec_descriptor_params {
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_create_instance(
+int ipsec_create_instance(
 		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
 		uint32_t instance_flags,
@@ -476,7 +476,7 @@ int32_t ipsec_create_instance(
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_add_sa_descriptor(
+int ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
 		ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle);
@@ -494,7 +494,7 @@ int32_t ipsec_add_sa_descriptor(
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
+int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
 
 /**************************************************************************//**
 @Function	ipsec_get_lifetime_stats
@@ -510,7 +510,7 @@ int32_t ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_get_lifetime_stats(
+int ipsec_get_lifetime_stats(
 		ipsec_handle_t ipsec_handle,
 		uint64_t *kilobytes,
 		uint64_t *packets,
@@ -531,7 +531,7 @@ int32_t ipsec_get_lifetime_stats(
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_decr_lifetime_counters(
+int ipsec_decr_lifetime_counters(
 		ipsec_handle_t ipsec_handle,
 		uint32_t kilobytes_decr_val,
 		uint32_t packets_decr_val
@@ -556,7 +556,7 @@ int32_t ipsec_decr_lifetime_counters(
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_get_seq_num(
+int ipsec_get_seq_num(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *sequence_number,
 		uint32_t *extended_sequence_number,
@@ -590,7 +590,7 @@ int32_t ipsec_get_seq_num(
 		 - This function does not support input frames which are IPv6
 		jumbograms.
 *//****************************************************************************/
-int32_t ipsec_frame_decrypt(
+int ipsec_frame_decrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *dec_status
 		);
@@ -621,7 +621,7 @@ int32_t ipsec_frame_decrypt(
 		 - This function does not support encrypted frames which are
 		IPv6 jumbograms.
 *//****************************************************************************/
-int32_t ipsec_frame_encrypt(
+int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *enc_status
 		);

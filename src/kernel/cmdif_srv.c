@@ -347,9 +347,8 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	if (_sync_done == NULL) {
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
-	} else if (cdma_write(_sync_done, &resp, 4)) {
-		pr_err("CDMA write failed, can't finish sync command\n");
-		/** In this case client will fail on timeout */
+	} else {
+		cdma_write(_sync_done, &resp, 4);
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n", 
@@ -409,11 +408,26 @@ __HOT_CODE void cmdif_srv_isr(void)
 	{
 		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 		                   PRC_GET_SEGMENT_LENGTH());
-		uint8_t  data = 0;
+		uint8_t  *p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
-		         PRC_GET_SEGMENT_ADDRESS(), len);
-		DUMP_MEMORY(PRC_GET_SEGMENT_ADDRESS(), len);
+		         p, len);
+		while (len > 15)
+		{
+			fsl_os_print("0x%x: %x %x %x %x\r\n",
+			             p, *(uint32_t *)p, *(uint32_t *)(p + 4),
+			             *(uint32_t *)(p + 8), *(uint32_t *)(p + 12));
+			len -= 16;
+			p += 16;
+		}
+		while (len > 3)
+		{
+			fsl_os_print("0x%x: %x\r\n",
+			             p, *(uint32_t *)p);
+			len -= 4;
+			p += 4;
+		}
+
 	}
 #endif
 		
