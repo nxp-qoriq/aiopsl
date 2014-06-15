@@ -5,14 +5,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef ENOTSUP
-#define ENOTSUP		95	/*!< Operation not supported */
-#endif
-
-#ifndef ETIMEDOUT
-#define ETIMEDOUT	110	/*!< Operation timed out */
-#endif
-
 #ifndef ENAVAIL
 #define ENAVAIL		119	/*!< Resource not available, or not found */
 #endif
@@ -22,6 +14,14 @@
 #define FREE_MODULE    '\0'
 #define FREE_INSTANCE  (M_NUM_OF_MODULES) 
 
+#define SEND_RESP(CMD)	\
+	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) != CMD_ID_NOTIFY_CLOSE) && \
+		((CMD) != CMD_ID_NOTIFY_OPEN) && ((CMD) & CMDIF_ASYNC_CMD))
+
+#define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
+	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
+	CMD_ID, SIZE, DATA))
+
 static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
 {
 	int i = 0;
@@ -30,7 +30,7 @@ static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
 }
 
 void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
-				void *(*slow_malloc)(int size))
+			 void *(*slow_malloc)(int size))
 {
 	struct cmdif_srv *srv = fast_malloc(sizeof(struct cmdif_srv));
 
@@ -249,24 +249,26 @@ static void inst_dealloc(int inst, struct cmdif_srv *srv)
 
 int cmdif_srv_open(void *_srv, 
                    const char *m_name, 
-                   uint8_t inst_id, 
-                   void * v_data, 
+                   uint8_t inst_id,  
+                   uint32_t dpci_id,
                    uint32_t size, 
-                   uint16_t *auth_id,
-                   uint32_t dpci_id)
+                   void * v_data,                   
+                   uint16_t *auth_id)
 {
 	int    err = 0;
 	int    m_id = 0;
 	int    id = 0;
-	struct cmdif_srv * srv = (struct cmdif_srv *)_srv;
-	void   *dev = NULL;
+	struct cmdif_srv *srv = (struct cmdif_srv *)_srv;
 	struct cmdif_session_data *data = v_data;
+	void   *dev = NULL;
 	
-	if (size < sizeof(struct cmdif_session_data))
-		return -ENOMEM;
+	if ((v_data != NULL) && (size < sizeof(struct cmdif_session_data)))
+		return -EINVAL;
 
-	/* TODO errors handling 
-	 * Store phys/virt buffers */
+	if (auth_id == NULL)
+		return -EINVAL;
+		
+	/* TODO errors handling */
 	m_id = module_id_find(srv, m_name);
 	if (m_id < 0)
 		return m_id;
@@ -279,20 +281,22 @@ int cmdif_srv_open(void *_srv,
 	srv->inst_dev[id] = dev;
 	*auth_id = (uint16_t)id;
 	
-	data->dev_id  = dpci_id;
-        data->auth_id = *auth_id;
-        data->inst_id = inst_id;
-      	strncpy(&data->m_name[0], m_name, M_NAME_CHARS);
-      	data->m_name[M_NAME_CHARS] = '\0';
-
+	if (data != NULL) {
+		data->dev_id  = dpci_id;
+		data->auth_id = *auth_id;
+		data->inst_id = inst_id;
+		strncpy(&data->m_name[0], m_name, M_NAME_CHARS);
+		data->m_name[M_NAME_CHARS] = '\0';
+	}
+	
       	return 0;
 }
 
 int cmdif_srv_close(void *srv, 
-                    uint16_t auth_id, 
-                    void *v_data, 
+                    uint16_t auth_id,                     
+                    uint32_t dpci_id,
                     uint32_t size,
-                    uint32_t dpci_id)
+                    void *v_data)
 {
 	int    err = 0;
 	struct cmdif_session_data *data = v_data;
@@ -300,9 +304,40 @@ int cmdif_srv_close(void *srv,
 	if (size < sizeof(struct cmdif_session_data))
 		return -ENOMEM;
 	
+	/* TODO to be completed 
+	 * Error checking ! */
 	inst_dealloc(auth_id, srv);
-	data->auth_id = auth_id;
-	data->dev_id  = dpci_id; /* 1 DPCI = 1 Server */	
+	if (data != NULL) {
+		data->auth_id = auth_id;
+		data->dev_id  = dpci_id; /* 1 DPCI = 1 Server */	
+	}
+	return -ENODEV;
+}
+
+int cmdif_srv_cmd(void *_srv, 
+                  struct cmdif_fd *cfd, 
+                  struct cmdif_fd *cfd_out, 
+                  uint8_t *send_resp)
+{
+	int    err = 0;
+	struct cmdif_srv * srv = (struct cmdif_srv *)_srv;
+
+	if ((cfd == NULL) || (srv == NULL) || (send_resp == NULL))
+		return -EINVAL;
 	
-	return -ENOTSUP;
+	*send_resp = SEND_RESP(cfd->u_flc.cmd.cmid);
+	
+	if (*send_resp && (cfd_out == NULL))
+		return -EINVAL;
+
+	
+	err = CTRL_CB(cfd->u_flc.cmd.auth_id, cfd->u_flc.cmd.cmid, \
+	              cfd->d_size, cfd->u_addr.d_addr);
+
+	if (*send_resp) {
+		*cfd_out = *cfd;
+		cfd_out->u_flc.cmd.err = (uint8_t)err;
+	}
+	
+	return 0;
 }
