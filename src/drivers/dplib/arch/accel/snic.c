@@ -35,6 +35,16 @@
 #define SNIC_RSP_PREP(_param, _offset, _width, _type, _arg) \
 	cmd_data->params[_param] |= swap_uint64(u64_enc(_offset, _width, _arg));
 
+/** This is where FQD CTX should reside */
+#define FQD_CTX_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
+/** Get sNIC ID from dequeue context */
+#define SNIC_ID_GET \
+	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFF)
+/** Get sNIC modes from dequeue context */
+#define SNIC_IS_INGRESS_GET \
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x80000000)
+
 extern __TASK struct aiop_default_task_params default_task_params;
 
 __SHRAM struct snic_params snic_params[MAX_SNIC_NO];
@@ -43,8 +53,6 @@ __HOT_CODE void snic_process_packet(void)
 {
 
 	struct parse_result *pr;
-	uint8_t *fd_flc_appidx;
-	uint8_t appidx;
 	struct snic_params *snic;
 	struct fdma_queueing_destination_params enqueue_params;
 	int err;
@@ -60,9 +68,6 @@ __HOT_CODE void snic_process_packet(void)
 	*((uint8_t *)HWC_SPID_ADDRESS) = SNIC_SPID;
 	default_task_params.parser_profile_id = SNIC_PRPID;
 	default_task_params.parser_starting_hxs = SNIC_HXS;
-	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
-			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
-
 
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	if (parse_status){
@@ -70,12 +75,13 @@ __HOT_CODE void snic_process_packet(void)
 		fdma_terminate_task();
 	}
 
-	/* check if this is ingress or egress */
-	snic = snic_params + PRC_GET_PARAMETER();
-	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
-	appidx = (*fd_flc_appidx >> 2);
+	/* get sNIC ID */
+	snic = snic_params + SNIC_ID_GET;
 
-	if (SNIC_IS_INGRESS(appidx)) {
+	if (SNIC_IS_INGRESS_GET) {
+		/* snic uses only 1 QDID so we need to have different 
+		 * qd/priority for ingress than for egress */
+		default_task_params.qd_priority = 8;
 		/* For ingress may need to do IPR and then Remove Vlan */
 		if (snic->snic_enable_flags & SNIC_IPR_EN)
 			err = snic_ipr(snic);
@@ -86,6 +92,9 @@ __HOT_CODE void snic_process_packet(void)
 	}
 	/* Egress*/
 	else {
+		default_task_params.qd_priority = ((*((uint8_t *)
+				(HWC_ADC_ADDRESS + 
+				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
 			snic_add_vlan();
