@@ -654,7 +654,7 @@ int32_t ipsec_create_instance(
 
 @Description	Generate SEC Flow Context Descriptor
 *//***************************************************************************/
-int32_t ipsec_generate_flc(
+void ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
 		uint16_t spid, /* Storage Profile ID of the SEC output frame */
 		uint32_t sd_size /* Shared descriptor Length */
@@ -665,7 +665,7 @@ int32_t ipsec_generate_flc(
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
-int32_t ipsec_generate_encap_sd(
+void ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size /* Shared descriptor Length */
@@ -676,7 +676,7 @@ int32_t ipsec_generate_encap_sd(
 
 @Description	Generate SEC Shared Descriptor for Decapsulation
 *//***************************************************************************/
-int32_t ipsec_generate_decap_sd(
+void ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size /* Shared descriptor Length */
@@ -688,7 +688,7 @@ int32_t ipsec_generate_decap_sd(
 
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
-int32_t ipsec_generate_sa_params(
+void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params,
 		ipsec_handle_t ipsec_handle); /* Parameters area (start of buffer) */
 

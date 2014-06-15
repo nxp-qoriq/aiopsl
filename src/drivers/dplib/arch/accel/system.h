@@ -91,7 +91,7 @@
 
 enum sp_types {
 	SP_DEFAULT = 0, /* Default storage profile */
-	SP_IPSEC, /* IPsec storage profile */
+	SP_IPSEC /* IPsec storage profile */
 };
 
 /**************************************************************************//**
