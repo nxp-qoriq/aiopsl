@@ -411,28 +411,21 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 /***************************************************************************
  * vpool_release_buf
  ***************************************************************************/
-int32_t vpool_release_buf(uint32_t virtual_pool_id,
+// TODO: change to void
+void vpool_release_buf(uint32_t virtual_pool_id,
 		uint64_t context_address)
 {
-	int32_t return_val;
-	int32_t cdma_status;
 
-	cdma_status = cdma_release_context_memory(context_address);
+	cdma_release_context_memory(context_address);
 
-	if (!cdma_status) {
-		return_val = __vpool_internal_release_buf(virtual_pool_id);
-		return return_val;
-	} else {
-		/* Keep original CDMA return value */
-		return VIRTUAL_POOLS_BUF_NOT_RELEASED | cdma_status;
-	}
-
+	__vpool_internal_release_buf(virtual_pool_id);
+	
 } /* End of vpool_release_buf */
 
 /***************************************************************************
  * __vpool_internal_release_buf
  ***************************************************************************/
-int32_t __vpool_internal_release_buf(uint32_t virtual_pool_id)
+void __vpool_internal_release_buf(uint32_t virtual_pool_id)
 {
 
 	// TODO: remove this if moving to handle
@@ -455,7 +448,6 @@ int32_t __vpool_internal_release_buf(uint32_t virtual_pool_id)
 
 	unlock_spinlock((uint8_t *)&virtual_pool->spinlock);
 
-	return VIRTUAL_POOLS_SUCCESS;
 } /* End of __vpool_internal_release_buf */
 
 
@@ -475,7 +467,6 @@ int32_t vpool_refcount_decrement_and_release(
 		uint64_t context_address,
 		int32_t *callback_status)
 {
-	int32_t return_val;
 	int32_t cdma_status;
 	int32_t release = FALSE;
 	int32_t no_callback = TRUE;
@@ -505,14 +496,13 @@ int32_t vpool_refcount_decrement_and_release(
 		if (callback->callback_func != NULL) {
 			no_callback = FALSE;
 			/* Decrement ref counter without release */
+			/* Note: if the reference count was already at zero 
+			 * (so CDMA returned with decrement error) the CDMA 
+			 * function will not return */
 			cdma_status = cdma_refcount_decrement(context_address);
 
-			/* It is considered OK both if the reference count
-			 * got to zero or was already at zero
-			 * (so CDMA returned with decrement error). */
-			if ((cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) ||
-				(cdma_status == CDMA_REFCOUNT_DECREMENT_ERR)
-				) {
+			/* Check if the reference count got to zero. */
+			if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
 				/* Call the callback function */
 				if (callback_status != NULL)
 					*callback_status =
@@ -522,11 +512,8 @@ int32_t vpool_refcount_decrement_and_release(
 					callback->
 						callback_func(context_address);
 				/* Release the buffer */
-				cdma_status = cdma_release_context_memory
-							(context_address);
-				if (!cdma_status) {
-					release = TRUE;
-				}
+				cdma_release_context_memory	(context_address);
+				release = TRUE;
 			}
 		}
 	}
@@ -540,26 +527,18 @@ int32_t vpool_refcount_decrement_and_release(
 		 * (so CDMA returned with decrement error). */
 		if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
 			release = TRUE;
-			cdma_status = 0;
-		} else if (cdma_status == CDMA_REFCOUNT_DECREMENT_ERR) {
-			/* Release the buffer */
-			cdma_status = cdma_release_context_memory
-						(context_address);
-			if (!cdma_status) {
-				release = TRUE;
-			}
-		}
+		} 
 	}
 
 	/* TODO: the return value is inconsistent with
 	cdma_refcount_decrement_and_release */
 
 	if (release) {
-		return_val = __vpool_internal_release_buf(virtual_pool_id);
-		return return_val;
+		__vpool_internal_release_buf(virtual_pool_id);
+		return VIRTUAL_POOLS_SUCCESS;
 	} else {
-		/* Keep CDMA return value in case of error */
-		return VIRTUAL_POOLS_BUF_NOT_RELEASED | cdma_status;
+		/* Return special status for the slab */
+		return VIRTUAL_POOLS_BUF_NOT_RELEASED;
 	}
 } /* End of vpool_refcount_decrement_and_release */
 
