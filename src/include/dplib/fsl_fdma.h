@@ -334,13 +334,13 @@ enum fdma_pta_size_type {
 #ifdef REV2
 	* Terminate Control.
 	 * If set - Trigger the Terminate task command right after the discard.
-	 * Otherwise - Return after discard. */
+	 * Otherwise - Return after discard.
 #define FDMA_DIS_WF_TC_BIT	0x00000100
 	* Frame Source: Discard working frame (using frame handle).
 #define FDMA_DIS_FS_HANDLE_BIT	0x0000
 	* Frame Source: Discard Frame (using frame FD).
 #define FDMA_DIS_FS_FD_BIT	0x0200
-*/
+
 #endif /* REV2 */
 
 
