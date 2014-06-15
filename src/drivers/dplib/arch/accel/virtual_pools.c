@@ -454,9 +454,9 @@ void __vpool_internal_release_buf(uint32_t virtual_pool_id)
 /***************************************************************************
  * vpool_refcount_increment
  ***************************************************************************/
-int32_t vpool_refcount_increment(uint64_t context_address)
+void vpool_refcount_increment(uint64_t context_address)
 {
-	return cdma_refcount_increment(context_address);
+	cdma_refcount_increment(context_address);
 }
 
 /***************************************************************************
