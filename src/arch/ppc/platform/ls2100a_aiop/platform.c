@@ -13,23 +13,6 @@
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 
-/* -------------------------- */
-/*  { MEMORY REGION,               START_ADDR,    SIZE,            mem-ctrl-id } */
-/*    -------------                ----------     ----             -----------   */
-#define PLATFORM_MEMORY_REGIONS { \
-    { PLTFRM_MEM_RGN_AIOP,       { 0x02000000,    (384*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_CCSR,       { 0x08000000,    (16*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_PEB,        { 0x80000000,    (6*MEGABYTE),    PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_DP_DDR,       { 0x50000000,    (256*MEGABYTE),  PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_SHRAM,      { 0x01000000,    (256*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_MC_PORTALS, { 0x80c000000LL, (64*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
-}
-
-enum platform_mem_ctrl {
-    PLTFRM_MEM_NONE = 0,
-    PLTFRM_MEM_NOR_FLASH
-};
-
 
 typedef struct t_platform_mem_region_info {
     uint64_t    start_addr;
@@ -94,27 +77,6 @@ const char *module_strings[] = {
     ,"RMan"                     /* MODULE_RMAN */
 };
 extern __TASK uint32_t seed_32bit;
-/*****************************************************************************/
-static int get_mem_region_info(e_platform_mem_region     mem_region,
-                               t_platform_mem_region_info *p_mem_region_info)
-{
-    t_platform_mem_region_desc mem_regions[] = PLATFORM_MEMORY_REGIONS;
-    uint32_t                num_of_mem_regions, i;
-
-    SANITY_CHECK_RETURN_ERROR(p_mem_region_info, EINVAL);
-
-    num_of_mem_regions = ARRAY_SIZE(mem_regions);
-
-    for (i = 0; i < num_of_mem_regions; i++)
-        if (mem_regions[i].mem_region == mem_region)
-        {
-            /* Found memory region, now return requested info */
-            *p_mem_region_info = mem_regions[i].info;
-            return E_OK;
-        }
-
-    return ERROR_CODE(E_NOT_FOUND);
-}
 
 /*****************************************************************************/
 static void print_platform_info(t_platform *pltfrm)
@@ -651,13 +613,6 @@ int platform_init(struct platform_param    *pltfrm_param,
         mem_info = pltfrm->param.mem_info + i;
         if (!mem_info->size)
             break;
-
-        /* Check the range  - only verify start address fits into the real region bounds,
-           don't check the size. It is possible to define region of larger than actual size
-           to save number of MMU TLB entries. */
-        err = get_mem_region_info((e_platform_mem_region)mem_info->mem_region_id, &mem_region_info);
-        ASSERT_COND(err == E_OK);
-        ASSERT_COND(mem_info->phys_base_addr >= mem_region_info.start_addr);
     }
     pltfrm->num_of_mem_parts = i;
 
