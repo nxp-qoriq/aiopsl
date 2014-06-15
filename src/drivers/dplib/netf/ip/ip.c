@@ -271,7 +271,7 @@ int ipv4_ttl_dec_modification(void)
 				    new_ttl);
 		/* update IP header in FDMA */
 		fdma_modify_default_segment_data(ipv4hdr_offset + 8, 1);
-		/* no need to invalidate gross running sum since IPv4 header 
+		/* no need to invalidate gross running sum since IPv4 header
 		 * checksum was also updated*/
 		return SUCCESS;
 	}
@@ -606,8 +606,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 						+ (uint16_t)ipv4_header_size;
 
 		/* Insert IPv4 header*/
-		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT |
-					FDMA_REPLACE_SA_REPRESENT_BIT);
+		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT);
 
 		fdma_insert_default_segment_data(
 						    inner_ipv4_offset,
@@ -687,8 +686,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		}
 
 		/* Insert IPv4 header*/
-		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
-					FDMA_REPLACE_SA_REPRESENT_BIT);
+		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT);
 
 		fdma_insert_default_segment_data(inner_ipv6_offset,
 						 (void *)ipv4_header_ptr,
@@ -795,8 +793,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags, void *ipv6header,
 		}
 
 		/* Insert IPv6 header */
-		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
-					FDMA_REPLACE_SA_REPRESENT_BIT);
+		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT);
 
 		fdma_insert_default_segment_data(inner_ipv4_offset,
 						 (void *)ipv6_header_ptr,
@@ -839,8 +836,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags, void *ipv6header,
 
 		ipv6_header_ptr->vsn_traffic_flow = vsn_traffic_flow;
 
-		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_OPEN_BIT|
-					FDMA_REPLACE_SA_REPRESENT_BIT);
+		fdma_flags = (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT);
 
 		ipv6_header_ptr->payload_length =
 					inner_ipv6hdr_ptr->payload_length +

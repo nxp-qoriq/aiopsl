@@ -1,5 +1,6 @@
 #include <fsl_cmdif_flib_c.h>
 #include <cmdif_client.h>
+#include <string.h>
 #include <errno.h>
 #include <types.h>
 
@@ -10,12 +11,6 @@
 #define SYNC_CMD(CMD)	\
 	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)))
 
-static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
-{
-	int i = 0;
-	for (i = 0; i < size; i++) 
-		ptr[i] = val;
-}
 
 int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
@@ -48,7 +43,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
 
-	my_memset(v_data, 0, size);
+	memset(v_data, 0, size);
 	
 	p_addr = p_data + sizeof(struct cmdif_dev);
 	v_addr = (union cmdif_data *)(v_data + sizeof(struct cmdif_dev));
