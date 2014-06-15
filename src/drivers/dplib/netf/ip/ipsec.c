@@ -81,7 +81,7 @@ __SHRAM struct ipsec_global_instance_params global_instance_params;
 /**************************************************************************//**
 * 	ipsec_init
 *//****************************************************************************/
-int32_t ipsec_init(uint32_t max_sa_no) {
+int ipsec_init(uint32_t max_sa_no) {
 
 	global_params.sa_count = max_sa_no;
 	global_params.asa_bpid = 1; // TMP
@@ -96,7 +96,7 @@ int32_t ipsec_init(uint32_t max_sa_no) {
 /**************************************************************************//**
 *	ipsec_create_instance
 *//****************************************************************************/
-int32_t ipsec_create_instance(
+int ipsec_create_instance(
 		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
 		uint32_t instance_flags,
@@ -104,7 +104,7 @@ int32_t ipsec_create_instance(
 		ipsec_instance_handle_t *instance_handle)
 {
 	
-	int32_t return_val;
+	int return_val;
 	uint32_t tmp1 = committed_sa_num;
 	uint32_t tmp2 = max_sa_num;
 	uint32_t tmp3 = instance_flags;
@@ -121,14 +121,14 @@ int32_t ipsec_create_instance(
 /**************************************************************************//**
 *	ipsec_create_instance
 *//****************************************************************************/
-int32_t ipsec_create_instance_real (
+int ipsec_create_instance_real (
 			uint32_t committed_sa_num,
 			uint32_t max_sa_num,
 			uint32_t instance_flags,
 			uint8_t tmi_id,
 			ipsec_instance_handle_t *instance_handle);
 	
-int32_t ipsec_create_instance_real (
+int ipsec_create_instance_real (
 		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
 		uint32_t instance_flags,
@@ -220,9 +220,9 @@ int32_t ipsec_create_instance_real (
 /**************************************************************************//**
 *	ipsec_create_instance
 *//****************************************************************************/
-int32_t ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
+int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
 
-int32_t ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
+int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 {
 	int32_t return_val;
 	uint32_t sa_count;
@@ -277,14 +277,14 @@ int32_t ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 /**************************************************************************//**
 *	ipsec_get_buffer (TMP)
 *//****************************************************************************/
-int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
+int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle
 	);
 
-int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
+int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle)
 {
-	int32_t return_val;
+	int return_val;
 	struct ipsec_instance_params instance; 
 	int num_filled_buffs;
 
@@ -305,7 +305,7 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 				sizeof(instance.sa_count) /* uint16_t size */	
 		);
 		
-		return_val = (int32_t)cdma_acquire_context_memory(
+		return_val = (int)cdma_acquire_context_memory(
 				instance.desc_bpid,
 				ipsec_handle); /* context_memory */
 
@@ -333,7 +333,7 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		/* Check if Slab has no buffers */
 		if (return_val) goto get_buffer_alloc_err;
 
-		return_val = (int32_t)cdma_acquire_context_memory(
+		return_val = (int)cdma_acquire_context_memory(
 				instance.desc_bpid,
 				ipsec_handle); /* context_memory */
 		
@@ -371,11 +371,11 @@ get_buffer_alloc_err:
 /**************************************************************************//**
 *	ipsec_release_buffer (TMP)
 *//****************************************************************************/
-int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
+int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle
 	);
 
-int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
+int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle)
 {
 	int32_t return_val;
@@ -907,13 +907,13 @@ void ipsec_generate_sa_params(
  * (Outer IP change)	TBD 
 */
 
-int32_t ipsec_add_sa_descriptor(
+int ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
 		ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle)
 {
 
-	int32_t return_val;
+	int return_val;
 	uint64_t sd_addr;
 	uint32_t sd_size; /* shared descriptor size, set by the RTA */
 	
@@ -936,7 +936,7 @@ int32_t ipsec_add_sa_descriptor(
 	/* Allocate a buffer for the FM parameters, 
 	 * Flow Context and Shared Descriptor with CDMA. */
 	/* allocate a buffer with the CDMA */
-	return_val = (int32_t)cdma_acquire_context_memory(
+	return_val = (int)cdma_acquire_context_memory(
 		//0, /* TMP size; will be removed in future arch def */
 		global_params.desc_bpid,
 		ipsec_handle); /* context_memory */ 
@@ -999,11 +999,11 @@ add_sa_descriptor_error:
 /**************************************************************************//**
 *	ipsec_del_sa_descriptor
 *//****************************************************************************/
-int32_t ipsec_del_sa_descriptor(
+int ipsec_del_sa_descriptor(
 		ipsec_handle_t ipsec_handle)
 {
 
-	int32_t return_val;
+	int return_val;
 	
 	// TODO: Read descriptor with CDMA.
 	// TODO Delete the timers; take care of callbacks in the middle of operation.
@@ -1013,7 +1013,7 @@ int32_t ipsec_del_sa_descriptor(
 	ste_barrier();
 
 	/* Release the buffer */ 
-	return_val = (int32_t)cdma_refcount_decrement_and_release(
+	return_val = (int)cdma_refcount_decrement_and_release(
 		ipsec_handle); /* context_memory */ 
 	
 	// TODO: 
@@ -1035,12 +1035,12 @@ int32_t ipsec_del_sa_descriptor(
 /**************************************************************************//**
 * ipsec_frame_encrypt
 *//****************************************************************************/
-int32_t ipsec_frame_encrypt(
+int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *enc_status
 		)
 {
-	int32_t return_val;
+	int return_val;
 	uint8_t *last_etype_pointer;
 	uint64_t eth_header[5]; /* Ethernet header place holder, 5*8=40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
@@ -1373,12 +1373,12 @@ encrypt_end:
 /**************************************************************************//**
 * ipsec_frame_decrypt
 *//****************************************************************************/
-int32_t ipsec_frame_decrypt(
+int ipsec_frame_decrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *dec_status
 		)
 {
-	int32_t return_val;
+	int return_val;
 	uint8_t *last_etype_pointer;
 	uint64_t eth_header[5]; /* Ethernet header place holder, 5*8=40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
@@ -1749,14 +1749,14 @@ decrypt_end:
 /**************************************************************************//**
 	ipsec_get_lifetime_stats
 *//****************************************************************************/
-int32_t ipsec_get_lifetime_stats(
+int ipsec_get_lifetime_stats(
 		ipsec_handle_t ipsec_handle,
 		uint64_t *kilobytes,
 		uint64_t *packets,
 		uint32_t *sec)
 {
 	
-	int32_t return_val;
+	int return_val;
 	uint64_t current_timestamp;
 	
 	/* Note: this struct must be equal to the head of ipsec_sa_params_part1 */
@@ -1808,7 +1808,7 @@ int32_t ipsec_get_lifetime_stats(
 /**************************************************************************//**
 	ipsec_decr_lifetime_counters
 *//****************************************************************************/
-int32_t ipsec_decr_lifetime_counters(
+int ipsec_decr_lifetime_counters(
 		ipsec_handle_t ipsec_handle,
 		uint32_t kilobytes_decr_val,
 		uint32_t packets_decr_val
@@ -1816,7 +1816,7 @@ int32_t ipsec_decr_lifetime_counters(
 {
 	/* Note: there is no check of counters enable, nor current value.
 	 * Assuming that it is only called appropriately by the upper layer */
-	int32_t return_val;
+	int return_val;
 
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
@@ -1849,14 +1849,14 @@ int32_t ipsec_decr_lifetime_counters(
 /**************************************************************************//**
 	ipsec_get_seq_num
 *//****************************************************************************/
-int32_t ipsec_get_seq_num(
+int ipsec_get_seq_num(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *sequence_number,
 		uint32_t *extended_sequence_number,
 		uint32_t anti_replay_bitmap[4])
 {
 	
-	int32_t return_val;
+	int return_val;
 	struct ipsec_decap_pdb decap_pdb;
 	
 	/* Increment the reference counter */
