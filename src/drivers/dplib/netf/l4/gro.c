@@ -269,7 +269,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 
 	concat_params.frame1 = 0;
 	/* present aggregated frame */
-	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
+	fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
 			FDMA_INIT_NO_FLAGS, 0,
 			(uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
 	/* concatenate frames and store aggregated packet */
@@ -278,6 +278,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
 	concat_params.flags = FDMA_CONCAT_PCA_BIT;
 	/*concat_params.flags = FDMA_CONCAT_NO_FLAGS;*/
+	/* TODO - handle error */
 	sr_status = fdma_concatenate_frames(&concat_params);
 	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
 			*((uint8_t *)HWC_SPID_ADDRESS),
@@ -338,7 +339,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 
 	concat_params.frame1 = 0;
 	/* present aggregated frame */
-	sr_status = fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
+	fdma_present_frame_without_segments(&(gro_ctx->agg_fd),
 			FDMA_INIT_NO_FLAGS, 0,
 			(uint8_t *)(&(concat_params.frame1)) + sizeof(uint8_t));
 
@@ -353,6 +354,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	concat_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
 	concat_params.flags = FDMA_CONCAT_PCA_BIT;
 	/*concat_params.flags = FDMA_CONCAT_NO_FLAGS;*/
+	/* TODO - handle error */
 	sr_status = fdma_concatenate_frames(&concat_params);
 
 	/* store aggregated frame*/
@@ -364,7 +366,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx->agg_fd;
 
 	/* present default FD (the aggregated FD) */
-	sr_status = fdma_present_default_frame();
+	fdma_present_default_frame();
 
 	/* run parser if headers were changed */
 	/*if (gro_ctx->agg_headers_size != headers_size) {
@@ -503,6 +505,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	}
 
 	/* store segment frame */
+	/* TODO - handle error */
 	sr_status = fdma_store_default_frame_data();
 
 	/* replace between default_FD and agg_FD (segment <--> agg frame) */
@@ -511,12 +514,13 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->agg_fd = tmp_fd;
 
 	/* present frame (default_FD(agg_FD)) +  present header */
-	sr_status = fdma_present_default_frame();
+	fdma_present_default_frame();
 
 	/* run parser if headers were changed */
 	if ((gro_ctx->agg_headers_size != headers_size) ||
 	    (old_agg_timestamp !=
 		(gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP))) {
+		/* TODO - handle error */
 		sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
 		tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 	}
@@ -586,7 +590,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* recharge timer for the new aggregation */
 	sr_status = tman_recharge_timer(gro_ctx->timer_handle);
 
-	if (sr_status != TMAN_REC_TMR_SUCCESS)
+	if (sr_status != SUCCESS) {
 		sr_status = tman_create_timer(
 				params->timeout_params.tmi_id,
 				(uint32_t)((params->timeout_params.granularity
@@ -598,6 +602,13 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 				&tcp_gro_timeout_callback,
 				&(gro_ctx->timer_handle));
 
+		/* no more timers available */
+		/* TODO - handle error */
+		if (sr_status == -ENAVAIL){
+			/*cdma_mutex_lock_release(tcp_gro_context_addr);*/
+			return sr_status;
+		}
+	}
 	/* update statistics */
 	ste_inc_and_acc_counters(params->stats_addr +
 			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
@@ -685,7 +696,7 @@ int32_t tcp_gro_flush_aggregation(
 		/* Copy aggregated FD to default FD location and prepare
 		 * aggregated FD parameters in Presentation Context */
 		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
-		sr_status = fdma_present_default_frame();
+		fdma_present_default_frame();
 		/* Clear gross running sum in parse results */
 		pr->gross_running_sum = 0;
 
@@ -705,11 +716,17 @@ int32_t tcp_gro_flush_aggregation(
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
-	sr_status = fdma_present_default_frame();
+	fdma_present_default_frame();
 
 	/* run parser since we don't know which scenario preceded
 	 * the flush call */
 	sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
+
+	/* parsing error */
+	if (sr_status != SUCCESS) {
+		cdma_mutex_lock_release(tcp_gro_context_addr);
+		return sr_status;
+	}
 
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -824,9 +841,10 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
-	sr_status = fdma_present_default_frame();
+	fdma_present_default_frame();
 
 	/* run parser */
+	/* TODO - handle error */
 	sr_status = parse_result_generate_default(PARSER_NO_FLAGS);
 
 	/* update IP length + checksum */
