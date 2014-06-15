@@ -376,7 +376,7 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	 * to get updated FD[length] */
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
+				/*FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |*/
 					FDMA_SPLIT_SM_BIT;
 		split_frame_params.split_size_sf = 0;
 
@@ -513,7 +513,7 @@ int32_t ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 	 * to get updated FD[length] */
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
+				/*FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |*/
 					FDMA_SPLIT_SM_BIT;
 		split_frame_params.split_size_sf = 0;
 
@@ -736,8 +736,9 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr)
 {
 	struct ipf_context *ipf_ctx = (struct ipf_context *)ipf_context_addr;
-	return fdma_discard_frame(
+	fdma_discard_frame(
 			ipf_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	return SUCCESS;
 }
 
 void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr)

@@ -341,8 +341,8 @@ int32_t tcp_gso_discard_frame_remainder(
 {
 	struct tcp_gso_context *gso_ctx =
 			(struct tcp_gso_context *)tcp_gso_context_addr;
-	return fdma_discard_frame(
-			gso_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	fdma_discard_frame(gso_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	return SUCCESS;
 }
 
 void tcp_gso_context_init(

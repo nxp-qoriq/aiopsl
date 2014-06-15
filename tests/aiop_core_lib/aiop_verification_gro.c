@@ -81,8 +81,7 @@ void gro_timeout_cb_verif(uint64_t arg)
 		fdma_terminate_task();
 
 	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
-	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
-	((str.TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
+	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
 
 	if (str.EIS) {

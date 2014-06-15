@@ -78,6 +78,8 @@
 #define DEFAULT_SEGMENT_HEADOOM_SIZE	128
 	/** Default Segment size. */
 #define DEFAULT_SEGMENT_SIZE		256
+	/* TODO - remove / move to errors.h*/
+#define EBADFD	77
 
 /* @} end of group FDMA_Commands_Definitions */
 

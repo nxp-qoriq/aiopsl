@@ -37,8 +37,7 @@ void l2_header_remove(void)
 
 	size_to_be_removed = (uint16_t) (last_offset - first_offset);
 
-	fdma_flags =
-	    (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT);
+	fdma_flags = (uint32_t)(FDMA_REPLACE_SA_REPRESENT_BIT);
 	if ((prc->seg_length - size_to_be_removed) >= 128) {
 		fdma_delete_default_segment_data((uint16_t)first_offset,
 						 size_to_be_removed,
@@ -78,8 +77,7 @@ int32_t l2_vlan_header_remove()
 		last_offset = PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT();
 		size_to_be_removed = (uint16_t)(last_offset - first_offset + 2);
 
-		fdma_flags =
-			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
+		fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT;
 		/* Remove all VLAN headers */
 		if ((prc->seg_length - size_to_be_removed) >= 128) {
 			fdma_delete_default_segment_data((uint16_t)first_offset,
@@ -266,8 +264,7 @@ int32_t l2_pop_vlan()
 		vlan_offset = (uint16_t)
 			      (PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 2;
 
-		fdma_flags =
-			FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT;
+		fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT;
 		/* Remove all VLAN headers */
 		if (prc->seg_length >= 132) {
 			fdma_delete_default_segment_data(vlan_offset,
