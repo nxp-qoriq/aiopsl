@@ -11,6 +11,11 @@
  *  @brief   Cmdif AIOP<->GPP FLIB header file for server
  */
 
+#define CMD_ID_NOTIFY_OPEN    0xF000 
+/*!< Special command for cmdif_session_open() */
+#define CMD_ID_NOTIFY_CLOSE   0xE000 
+/*!< Special command for cmdif_session_close() */
+
 /**
  *
  * @brief	Allocate server handle to be used by server FLIBs.

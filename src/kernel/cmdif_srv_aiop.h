@@ -13,5 +13,7 @@ struct cmdif_srv_aiop {
 };
 
 void cmdif_srv_isr(void);
+int cmdif_srv_init(void);
+void cmdif_srv_free(void);
 
 #endif /* __CMDIF_SRV_H */
