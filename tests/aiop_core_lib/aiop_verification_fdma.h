@@ -42,6 +42,8 @@
 #define FDMA_DISCARD_WF_CMD		0x00002013
 	/** FDMA Discard fd command code */
 #define FDMA_DISCARD_FD_CMD		0x00003013
+	/** FDMA Force discard fd command code */
+#define FDMA_FORCE_DISCARD_FD_CMD	0x00004013
 	/** FDMA Modify working frame segment command code */
 #define FDMA_MODIFY_CMD			0x00006019
 	/** FDMA Insert working frame segment command code */
@@ -111,6 +113,9 @@
 #define FDMA_DISCARD_WF_CMD_STR	((FDMA_MODULE << 16) | FDMA_DISCARD_WF_CMD)
 	/** FDMA Discard fd Command Structure identifier */
 #define FDMA_DISCARD_FD_CMD_STR	((FDMA_MODULE << 16) | FDMA_DISCARD_FD_CMD)
+	/** FDMA Force Discard fd Command Structure identifier */
+#define FDMA_FORCE_DISCARD_FD_CMD_STR					\
+	((FDMA_MODULE << 16) | FDMA_FORCE_DISCARD_FD_CMD)
 	/** FDMA Terminate Task Command Structure identifier */
 #define FDMA_TERMINATE_TASK_CMD_STR	((FDMA_MODULE << 16) |	\
 		FDMA_TERMINATE_TASK_CMD)
@@ -823,6 +828,30 @@ struct fdma_discard_wf_command {
 
 *//***************************************************************************/
 struct fdma_discard_fd_command {
+		/** FDMA Discard FD command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location within the workspace of the
+		 * destination FD to be discarded. */
+	uint32_t fd_dst;
+		/** Control:
+		* - 0: Return after discard
+		* - 1: Trigger the Terminate task command right after
+		* the discard. */
+	/*uint8_t	 TC;*/
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Force Discard FD Segment Command structure.
+
+		Includes information needed for FDMA Force Discard FD command
+		verification.
+
+*//***************************************************************************/
+struct fdma_force_discard_fd_command {
 		/** FDMA Discard FD command structure identifier. */
 	uint32_t opcode;
 		/** A pointer to the location within the workspace of the

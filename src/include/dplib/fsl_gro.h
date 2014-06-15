@@ -346,11 +346,10 @@ struct tcp_gro_context_params {
 
 @Retval		GRO Status - please refer to \ref TCP_GRO_AGGREGATE_STATUS.
 @Retval		EBADFD - Received segment FD contain errors (FD.err != 0).
-		Recommendation is to either force discard of the frame (call
-		\ref fdma_force_discard_frame) or enqueue the frame.
+		Recommendation is to discard the frame or enqueue the frame.
 		The frame was not aggregated.
-@Retval		ENOMEM - Received segment cannot be stored due to buffer pool
-		depletion.
+@Retval		ENOMEM - Received segment cannot be stored/aggregated due to
+		buffer pool depletion.
 		Recommendation is to discard the frame.
 		The frame was not aggregated.
 @Retval		ENAVAIL - There are no more timers that are available in this
@@ -387,9 +386,14 @@ int32_t tcp_gro_aggregate_seg(
 		internal context. The user should allocate \ref tcp_gro_ctx_t in
 		this address.
 
-@Return		Status, please refer to \ref TCP_GRO_FLUSH_STATUS,
-		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
-		\ref TMANReturnStatus for more details.
+@Return		GRO Status, or negative value on error.
+
+@Retval		GRO Status - please refer to \ref TCP_GRO_FLUSH_STATUS.
+@Retval		EIO - Parsing Error.
+		Recommendation is to discard the frame or enqueue the frame.
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of 256 bytes before completing all parsing).
+		Recommendation is to discard the frame or enqueue the frame.
 
 @Cautions	No frame should reside at the default frame location in
 		workspace before this function is called.

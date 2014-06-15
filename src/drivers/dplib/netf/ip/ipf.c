@@ -736,8 +736,9 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr)
 {
 	struct ipf_context *ipf_ctx = (struct ipf_context *)ipf_context_addr;
-	return fdma_discard_frame(
+	fdma_discard_frame(
 			ipf_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	return SUCCESS;
 }
 
 void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr)

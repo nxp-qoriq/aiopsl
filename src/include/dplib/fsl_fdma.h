@@ -334,13 +334,13 @@ enum fdma_pta_size_type {
 #ifdef REV2
 	* Terminate Control.
 	 * If set - Trigger the Terminate task command right after the discard.
-	 * Otherwise - Return after discard. */
+	 * Otherwise - Return after discard.
 #define FDMA_DIS_WF_TC_BIT	0x00000100
 	* Frame Source: Discard working frame (using frame handle).
 #define FDMA_DIS_FS_HANDLE_BIT	0x0000
 	* Frame Source: Discard Frame (using frame FD).
 #define FDMA_DIS_FS_FD_BIT	0x0200
-*/
+
 #endif /* REV2 */
 
 
@@ -859,8 +859,12 @@ struct fdma_delete_segment_data_params {
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the NDS bit in the presentation context is set,
 		or if the Data size in the presentation context is 0).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 @Retval		EIO - Unable to fulfill specified ASA segment presentation size
 		(not relevant if the ASA size in the presentation context is 0).
+		This error is caused since the requested presentation exceeded
+		frame ASA end.
 @Retval		EBADFD - Received frame with non-zero FD[err] field.
 
 
@@ -894,8 +898,12 @@ int32_t fdma_present_default_frame(void);
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the NDS bit flag in the function parameters is
 		set, or if the Data size in the function parameters is 0).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 @Retval		EIO - Unable to fulfill specified ASA segment presentation size
 		(not relevant if the ASA size in the function parameters is 0).
+		This error is caused since the requested presentation exceeded
+		frame ASA end.
 @Retval		EBADFD - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
@@ -930,6 +938,8 @@ int32_t fdma_present_frame(
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the present_size in the function parameters is
 		0).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This function may result in a fatal error.
@@ -956,6 +966,8 @@ int32_t fdma_present_default_frame_segment(
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the present_size in the function parameters is
 		0).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This function may result in a fatal error.
@@ -992,6 +1004,8 @@ int32_t fdma_present_frame_segment(
 @Retval		EIO - Unable to fulfill specified ASA segment presentation size
 		(not relevant if the present_size in the function parameters is
 		0).
+		This error is caused since the requested presentation exceeded
+		frame ASA end.
 
 @remark		The ASA segment handle value is fixed \ref FDMA_ASA_SEG_HANDLE.
 
@@ -1060,7 +1074,11 @@ int32_t fdma_read_default_frame_pta(void *ws_dst);
 
 @Retval		0 – Success.
 @Retval		EIO - Unable to fulfill specified data segment extend size.
+		This error is caused since the requested presentation exceeded
+		frame data end.
 @Retval		EIO - Unable to fulfill specified ASA segment extend size.
+		This error is caused since the requested presentation exceeded
+		frame ASA end.
 
 @remark		The extended data to be presented does not have to be
 		sequential relative to the current presented segment.
@@ -1473,15 +1491,12 @@ int32_t fdma_enqueue_fd_qd(
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard frame flags.
 		\endlink
 
-@Return		0 on Success, or negative value on error.
-
-@Retval		0 – Success.
-@Retval		EBADFD - Received frame with non-zero FD[err] field.
+@Return		None.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_discard_default_frame(uint32_t flags);
+void fdma_discard_default_frame(uint32_t flags);
 /**************************************************************************//**
 @Function	fdma_discard_frame
 
@@ -1491,15 +1506,12 @@ int32_t fdma_discard_default_frame(uint32_t flags);
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
 
-@Return		0 on Success, or negative value on error.
-
-@Retval		0 – Success.
-@Retval		EBADFD - Received frame with non-zero FD[err] field.
+@Return		None.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_discard_frame(uint16_t frame, uint32_t flags);
+void fdma_discard_frame(uint16_t frame, uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_discard_fd
@@ -1543,14 +1555,13 @@ int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 
 @Param[in]	fd - A pointer to the location in the workspace of the FD to be
 		discarded.
-@Param[in]	frame_handle - Frame handle to be discarded.
 
-@Return		None
+@Return		None.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_force_discard_frame(struct ldpaa_fd *fd, uint8_t frame_handle);
+void fdma_force_discard_fd(struct ldpaa_fd *fd);
 
 /**************************************************************************//**
 @Function	fdma_terminate_task
@@ -1715,6 +1726,8 @@ int32_t fdma_concatenate_frames(
 @Retval		EINVAL - Last split is not possible.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_SPLIT_PSA_PRESENT_BIT flag is set).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @remark
 		- The first fd is updated to reflect the remainder of the
@@ -1850,6 +1863,8 @@ void fdma_modify_default_segment_data(
 @Retval		0 – Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @remark		Example: Modify 14 bytes + insert 2 bytes. The default Data
 		segment represents a 100 bytes at offset 0 in the frame (0-99)
@@ -1904,6 +1919,8 @@ int32_t fdma_replace_default_segment_data(
 @Retval		0 – Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @remark
 		- This is basically a replace command with
@@ -1969,6 +1986,8 @@ int32_t fdma_insert_default_segment_data(
 @Retval		0 – Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @remark
 		- This is basically a replace command with
@@ -2018,6 +2037,8 @@ int32_t fdma_insert_segment_data(
 @Retval		0 – Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @remark
 		- This is basically a replace command with
@@ -2070,6 +2091,8 @@ int32_t fdma_delete_default_segment_data(
 @Retval		0 – Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		This error is caused since the requested presentation exceeded
+		frame data end.
 
 @remark
 		- This is basically a replace command with
@@ -2170,6 +2193,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 @Retval		0 – Success.
 @Retval		EIO - Unable to fulfill specified ASA segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		This error is caused since the requested presentation exceeded
+		frame ASA end.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
