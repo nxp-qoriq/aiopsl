@@ -90,39 +90,40 @@ int cmdif_srv_cb(struct cmdif_fd *cfd, int pr, void *send_dev)
 int cmdif_session_open(struct cmdif_desc *cidesc,
                        const char *m_name,
                        uint8_t inst_id,
-                       uint8_t *v_data,
+                       void *v_data,
                        uint64_t p_data,
                        uint32_t size,
                        uint16_t *auth_id)
 {
 	int      err = 0;
+	uint32_t dpci_id = 0; /* TODO Get DPCI id of GPP server */
 	
 	/*Call open_cb , Store dev */
-	err = cmdif_srv_open(srv, m_name, inst_id, v_data, p_data, 
+	err = cmdif_srv_open(srv, m_name, inst_id, v_data, 
 	                     size, auth_id, dpci_id);
 	
 	/*Send information to AIOP */
 	err = cmdif_send(cidesc, CMD_ID_NOTIFY_OPEN, size, CMDIF_PRI_LOW,
 	                 p_data);
-	
-	
-	return err;
-	
+		
+	return err;	
 }
 
-int cmdif_session_close(struct cmdif_desc *cidesc, 
-                        uint16_t auth_id)
+int cmdif_session_close(struct cmdif_desc *cidesc,
+                        uint16_t auth_id,
+                        void *v_data,
+                        uint64_t p_data,
+                        uint32_t size)
 {
 	int      err = 0;
-	uint16_t auth_id = 0;
+	uint32_t dpci_id = 0; /* TODO Get DPCI id of GPP server */
 	
 	/*Call close_cb , place dpci_id, auth_id inside p_data */
-	err = cmdif_srv_close(srv, auth_id, &p_data, &v_data, &size);
+	err = cmdif_srv_close(srv, auth_id, v_data, size, dpci_id);
 	
 	/*Send information to AIOP */
 	err = cmdif_send(cidesc, CMD_ID_NOTIFY_CLOSE, size, CMDIF_PRI_LOW, 
 	                 p_data);
 		
-	return err;
-	
+	return err;	
 }

@@ -199,7 +199,18 @@ static int sys_free_platform(void)
 	return err;
 }
 
-static void update_active_cores_mask(void)
+static uint32_t count_cores(uint64_t cores_mask)
+{
+    uint32_t count;   
+    for(count = 0; cores_mask > 0; cores_mask >>= 1) {
+	if(cores_mask & 1 == 1)
+	    count ++;
+    }
+    
+    return count;
+}
+
+static void fill_system_parameters()
 {
 	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
 		+ SOC_PERIPH_OFF_AIOP_CMGW \
@@ -207,6 +218,8 @@ static void update_active_cores_mask(void)
 	uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
 	
 	sys.active_cores_mask  = abrr_val;
+	
+	sys.num_of_active_cores = count_cores(sys.active_cores_mask);
 }
 
 static int global_sys_init(void)
@@ -218,7 +231,7 @@ static int global_sys_init(void)
 
 	sys.runtime_flag = 0;
 	
-	update_active_cores_mask();
+	fill_system_parameters();
 	
 	fill_platform_parameters(&platform_param);
 	

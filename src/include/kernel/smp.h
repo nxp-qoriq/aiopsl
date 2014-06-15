@@ -94,6 +94,20 @@ int sys_is_cluster_master(void);
 *//***************************************************************************/
 uint64_t sys_get_cores_mask(void);
 
+/**************************************************************************//**
+ @Function      sys_get_num_of_cores
+
+ @Description   Returns the number of active cores in the system.
+*//***************************************************************************/
+uint32_t sys_get_num_of_cores(void);
+
+/**************************************************************************//**
+ @Function      sys_get_max_num_of_cores
+
+ @Description   Returns the maximum number of cores in the system.
+*//***************************************************************************/
+uint32_t sys_get_max_num_of_cores(void);
+
 /* @} */ /* end of general collection */
 
 /**************************************************************************//**

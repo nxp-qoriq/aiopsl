@@ -33,6 +33,12 @@ int32_t tcp_gro_aggregate_seg(
 	uint16_t seg_size;
 	uint8_t data_offset;
 
+	/* If segment FD contain errors (FD[err] != 0) return the frame to
+	 * the user. */
+	if (LDPAA_FD_GET_ERR(HWC_FD_ADDRESS))
+		return -EBADFD;
+
+
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
 	/* read GRO context*/
@@ -93,6 +99,12 @@ int32_t tcp_gro_aggregate_seg(
 			&tcp_gro_timeout_callback,
 			&(gro_ctx.timer_handle));
 
+	/* no more timers available */
+	if (sr_status == -ENAVAIL){
+		cdma_mutex_lock_release(tcp_gro_context_addr);
+		return sr_status;
+	}
+
 	/* initialize gro context fields */
 	gro_ctx.params = *params;
 	gro_ctx.flags = flags;
@@ -129,6 +141,13 @@ int32_t tcp_gro_aggregate_seg(
 	sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
 			*(uint8_t *)HWC_SPID_ADDRESS,
 			&(gro_ctx.agg_fd_isolation_attributes));
+
+	if (sr_status == -ENOMEM){
+
+		cdma_mutex_lock_release(tcp_gro_context_addr);
+		return sr_status;
+	}
+
 
 	/* copy default FD to gro context */
 	gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);

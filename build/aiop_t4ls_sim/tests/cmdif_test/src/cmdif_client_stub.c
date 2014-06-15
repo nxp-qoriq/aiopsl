@@ -56,9 +56,20 @@ void client_open_cmd(struct cmdif_desc *client, void *sync_done)
 	int        err = 0;
 	uint8_t    *v_ptr = NULL;
 
-	err = cmdif_open_cmd(client, module, 3, cmdif_cb, NULL,
-	                     sync_done, p_data, 26, &fd);
-
+	err = cmdif_open_cmd(client, 
+	                     module, 
+	                     3, 
+	                     cmdif_cb, 
+	                     NULL,
+	                     sync_done, 
+	                     p_data, 
+	                     (sizeof(struct cmdif_dev) + 
+	                	     sizeof(union cmdif_data)), 
+	                     &fd);
+	if (err) {
+		fsl_os_print("FAILED client_open_cmd\n");
+		return;
+	}
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, fd.u_flc.flc);
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, fd.u_frc.frc);
 	if ((fd.u_addr.d_addr != NULL) && (fd.d_size > 0)) {

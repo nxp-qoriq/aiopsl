@@ -333,6 +333,8 @@ struct tcp_gro_context_params {
 		Pre-condition - The segment to be aggregated should be located
 		in the default frame location in workspace.
 
+		Implicit input parameters in Task Defaults: spid.
+
 @Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
 		internal context.
 		The user should allocate \ref tcp_gro_ctx_t in
@@ -340,9 +342,22 @@ struct tcp_gro_context_params {
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	flags - Please refer to \ref TCP_GRO_AGG_FLAGS.
 
-@Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
-		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
-		\ref TMANReturnStatus for more details.
+@Return		GRO Status, or negative value on error.
+
+@Retval		GRO Status - please refer to \ref TCP_GRO_AGGREGATE_STATUS.
+@Retval		EBADFD - Received segment FD contain errors (FD.err != 0).
+		Recommendation is to either force discard of the frame (call
+		\ref fdma_force_discard_frame) or enqueue the frame.
+		The frame was not aggregated.
+@Retval		ENOMEM - Received segment cannot be stored due to buffer pool
+		depletion.
+		Recommendation is to discard the frame.
+		The frame was not aggregated.
+@Retval		ENAVAIL - There are no more timers that are available in this
+		TMI.
+		Recommendation is to discard the frame.
+
+
 
 @Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins.
