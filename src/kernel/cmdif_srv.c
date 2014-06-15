@@ -317,7 +317,10 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_EN_TC_CONDTERM_BITS);
+					RESP_QID_GET, FDMA_EN_TC_RET_BITS);
+	if (err)
+		pr_err("Failed to send response\n");	
+
 	return err;
 }
 
@@ -364,6 +367,23 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 
+static void notify_open(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+{
+	struct cmdif_srv *srv = aiop_srv->srv;
+
+	/* Support for AIOP -> GPP */
+	
+	sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+}
+
+static void notify_close(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+{
+	struct cmdif_srv *srv = aiop_srv->srv;
+
+	/* Support for AIOP -> GPP */
+		
+	sync_cmd_done(NULL, -ENOTSUP, auth_id, srv, TRUE);	
+}
 
 #pragma push
 #pragma force_active on
@@ -398,20 +418,17 @@ __HOT_CODE void cmdif_srv_isr(void)
 #endif
 		
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
-		
 		/* Support for AIOP -> GPP */
 		if (IS_VALID_AUTH_ID(auth_id)) { 
-			sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+			notify_open(aiop_srv, auth_id);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 		
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
-		
-		/* Support for AIOP -> GPP */
 		if (IS_VALID_AUTH_ID(auth_id)) { 
-			sync_cmd_done(NULL, -ENOTSUP, auth_id, srv, TRUE);
+			notify_close(aiop_srv, auth_id);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
@@ -515,15 +532,12 @@ __HOT_CODE void cmdif_srv_isr(void)
 	if (SEND_RESP(cmd_id)) {
 		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
-		if (err) {
-			pr_err("Failed to send response auth_id = 0x%x\n",
-			auth_id);
-		}
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");
 		fdma_store_default_frame_data();
 	}
+	
 	fdma_terminate_task();
 }
 

@@ -104,7 +104,7 @@ struct ipr_instance {
 	uint16_t  	timeout_value_ipv6;
 	/* TMAN Instance ID */
 	uint8_t		tmi_id;
-	uint8_t		reserved[3];
+	uint8_t		res[3];
 };
 #pragma pack(pop)
 
@@ -143,7 +143,9 @@ struct ipr_rfdc{
 	uint16_t	total_in_order_payload;
 	struct 		fdma_amq isolation_bits; // 4 bytes
 	uint64_t	ipv4_key[2];
-	uint32_t	res1[3];
+	uint16_t	iphdr_offset;
+	uint16_t	ipv6_fraghdr_offset;
+	uint32_t	res1[2];
 };
 #pragma pack(pop)
 
@@ -260,10 +262,8 @@ void ipr_time_out();
 void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-		      uint32_t frame_is_ipv4,uint16_t current_frag_size,
+		      uint32_t last_fragment,uint16_t current_frag_size,
 		      uint16_t frag_offset_shifted);
-
-uint32_t is_last_fragment(uint32_t frame_is_ipv4);
 
 /**************************************************************************//**
 @Description	IPR Global parameters

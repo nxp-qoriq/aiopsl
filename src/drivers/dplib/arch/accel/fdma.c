@@ -10,9 +10,6 @@
 #include "dplib/fsl_fdma.h"
 #include "fdma.h"
 
-/* TODO - remove / move to errors.h*/
-#define EBADFD	77
-
 int32_t fdma_present_default_frame(void)
 {
 	/* Presentation Context Pointer */
@@ -887,7 +884,7 @@ int32_t fdma_enqueue_fd_qd(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_discard_default_frame(uint32_t flags)
+void fdma_discard_default_frame(uint32_t flags)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -903,17 +900,11 @@ int32_t fdma_discard_default_frame(uint32_t flags)
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-	else if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
-	else
+	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
 }
 
-int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
+void fdma_discard_frame(uint16_t frame, uint32_t flags)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -932,14 +923,8 @@ int32_t fdma_discard_frame(uint16_t frame, uint32_t flags)
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-	else if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
-	else
+	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
-
-	return (int32_t)(res1);
 }
 
 int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
@@ -952,7 +937,15 @@ int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
 	if (status != SUCCESS)
 		return status;
 
-	return fdma_discard_frame(frame_handle, flags);
+	fdma_discard_frame(frame_handle, flags);
+
+	return SUCCESS;
+}
+
+void fdma_force_discard_fd(struct ldpaa_fd *fd)
+{
+	LDPAA_FD_SET_ERR(fd, 0);
+	fdma_discard_fd(fd, FDMA_DIS_NO_FLAGS);
 }
 
 void fdma_terminate_task(void)
@@ -1157,8 +1150,7 @@ int32_t fdma_split_frame(
 		}
 		/* Update Task Defaults */
 		else if ((((uint32_t)params->fd_dst) == HWC_FD_ADDRESS) &&
-			((params->flags & (FDMA_SPLIT_PSA_PRESENT_BIT |
-					FDMA_SPLIT_PSA_CLOSE_FRAME_BIT)) == 0)){
+			((params->flags & (FDMA_SPLIT_PSA_PRESENT_BIT)) == 0)){
 				prc->handles =
 					((params->split_frame_handle << 4) &
 					PRC_FRAME_HANDLE_MASK);
@@ -1231,7 +1223,7 @@ void fdma_modify_default_segment_data(
 		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(
-			PRC_GET_HANDLES(), FDMA_REPLACE_SA_OPEN_BIT);
+			PRC_GET_HANDLES(), FDMA_REPLACE_NO_FLAGS);
 	arg2 = FDMA_REPLACE_CMD_ARG2(offset, size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(
 			(PRC_GET_SEGMENT_ADDRESS() + offset), size);

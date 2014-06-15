@@ -208,16 +208,11 @@ int32_t ipsec_create_instance_real (
 	}
 		
 	/* Write the Instance to external memory */
-	return_val = cdma_write(
+	cdma_write(
 			*instance_handle, /* ext_address */
 			&instance, /* ws_src */
 			(uint16_t)(sizeof(instance))); /* size */
 
-	if (return_val) {
-			// TODO: return with correct error code 
-			return IPSEC_ERROR;
-	}
-		
 	return IPSEC_SUCCESS; 
 }
 
@@ -232,7 +227,7 @@ int32_t ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 	int32_t return_val;
 	uint32_t sa_count;
 
-	return_val = cdma_read_with_mutex(
+	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
 			&sa_count, /* void *ws_dst */
@@ -293,7 +288,7 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 	struct ipsec_instance_params instance; 
 	int num_filled_buffs;
 
-	return_val = cdma_read_with_mutex(
+	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
 			&instance, /* void *ws_dst */
@@ -303,7 +298,7 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 	if (instance.sa_count < instance.committed_sa_num) {
 		instance.sa_count++;
 		/* Write and release lock */
-		return_val = cdma_write_with_mutex(
+		cdma_write_with_mutex(
 				instance_handle, /* uint64_t ext_address */
 				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 				&instance.sa_count, /* void *ws_dst */
@@ -320,7 +315,7 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 	} else if (instance.sa_count < instance.max_sa_num) {
 		instance.sa_count++;
 		/* Write and release lock */
-		return_val = cdma_write_with_mutex(
+		cdma_write_with_mutex(
 				instance_handle, /* uint64_t ext_address */
 				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 				&instance.sa_count, /* void *ws_dst */
@@ -347,14 +342,14 @@ int32_t ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 
 	} else {
 		/* Release lock */
-		return_val = cdma_mutex_lock_release(instance_handle);
+		cdma_mutex_lock_release(instance_handle);
 		return -ENOMEM;
 	}
 	
 	return IPSEC_SUCCESS; 
 
 get_buffer_alloc_err:
-	return_val = cdma_read_with_mutex(
+	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
 			&instance.sa_count, /* void *ws_dst */
@@ -363,7 +358,7 @@ get_buffer_alloc_err:
 	
 	instance.sa_count--;
 	
-	return_val = cdma_write_with_mutex(
+	cdma_write_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 			&instance.sa_count, /* void *ws_dst */
@@ -386,7 +381,7 @@ int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 	int32_t return_val;
 	struct ipsec_instance_params instance; 
 
-	return_val = cdma_read_with_mutex(
+	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
 			&instance, /* void *ws_dst */
@@ -407,7 +402,7 @@ int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		instance.sa_count--;
 		
 		/* Write (just the counter ) and release lock */
-		return_val = cdma_write_with_mutex(
+		cdma_write_with_mutex(
 				instance_handle, /* uint64_t ext_address */
 				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 				&instance.sa_count, /* void *ws_dst */
@@ -416,7 +411,7 @@ int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		return IPSEC_SUCCESS;
 	} else {
 		/* Release lock */
-		return_val = cdma_mutex_lock_release(instance_handle);
+		cdma_mutex_lock_release(instance_handle);
 		/* EPERM = 1, Operation not permitted */
 		return -EPERM; /* TODO: what is the correct error code? */
 	}
@@ -428,14 +423,13 @@ int32_t ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
-int32_t ipsec_generate_encap_sd(
+void ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size) /* Shared descriptor Length */
 {
 	
 	uint8_t cipher_type = 0;
-	int32_t return_val;
 	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
@@ -560,8 +554,6 @@ int32_t ipsec_generate_encap_sd(
 	pdb.outer_hdr[3] = *(params->encparams.outer_hdr + 3);
 	pdb.outer_hdr[4] = *(params->encparams.outer_hdr + 4);
 
-	#ifndef AIOPSL_IPSEC_DEBUG
-
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -584,19 +576,12 @@ int32_t ipsec_generate_encap_sd(
 			(struct alginfo *)(&(params->authdata)) 
 		);
 	}	
-	#else
-		/* do a debug descriptor */
-		#include "enc_sd_workaround.h"
-	#endif
 	
 	/* Write the descriptor to external memory */
-	return_val = cdma_write(
+	cdma_write(
 			sd_addr, /* ext_address */
 			ws_shared_desc, /* ws_src */
 			(uint16_t)((*sd_size)<<2)); /* sd_size is in 32-bit words */
-	// TODO: handle error return
-	
-	return 0;
 	
 } /* End of ipsec_generate_encap_sd */
 
@@ -605,14 +590,13 @@ int32_t ipsec_generate_encap_sd(
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
-int32_t ipsec_generate_decap_sd(
+void ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size) /* Shared descriptor Length */
 {
 	
 	uint8_t cipher_type = 0;
-	int32_t return_val;
 	
 	struct ipsec_decap_pdb pdb;
 
@@ -719,10 +703,6 @@ int32_t ipsec_generate_decap_sd(
 	pdb.anti_replay[2] = 0;
 	pdb.anti_replay[3] = 0;
 
-	/* uint32_t end_index[0]; */
-	// TODO: asked RTA team to change it, to uint32_t anti_replay[4]
-	
-	#ifndef AIOPSL_IPSEC_DEBUG
 	
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
@@ -747,19 +727,12 @@ int32_t ipsec_generate_decap_sd(
 		);
 	}	
 	
-	#else
-		/* debug fixed desciptor */
-		#include "dec_sd_workaround.h"
-	#endif
-	               
 	/* Write the descriptor to external memory */
-	return_val = cdma_write(
+	cdma_write(
 			sd_addr, /* ext_address */
 			ws_shared_desc, /* ws_src */
 			(uint16_t)((*sd_size)<<2)); /* sd_size is in 32-bit words */
-	// TODO: handle error return
-
-	return 0;
+	
 } /* End of ipsec_generate_decap_sd */
 
 /**************************************************************************//**
@@ -767,13 +740,11 @@ int32_t ipsec_generate_decap_sd(
 
 @Description	Generate SEC Flow Context Descriptor
 *//***************************************************************************/
-int32_t ipsec_generate_flc(
+void ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
 		uint16_t spid, /* Storage Profile ID of the SEC output frame */
 		uint32_t sd_size) /* Shared descriptor Length  in words*/
 {
-	
-	int32_t return_val;
 	
 	struct ipsec_flow_context flow_context;
 
@@ -837,13 +808,11 @@ int32_t ipsec_generate_flc(
 	flow_context.storage_profile[3] = 0;
 
 	/* Write the Flow Context to external memory with CDMA */
-	return_val = cdma_write(
+	cdma_write(
 			flc_address, /* ext_address */
 			&flow_context, /* ws_src */
 			IPSEC_FLOW_CONTEXT_SIZE); /* uint16_t size */
-	// TODO: handle error return
 	
-	return 0; // TMP
 } /* End of ipsec_generate_flc */
 
 
@@ -852,11 +821,10 @@ int32_t ipsec_generate_flc(
 
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
-int32_t ipsec_generate_sa_params(
+void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params, 
 		ipsec_handle_t ipsec_handle) /* Parameters area (start of buffer) */
 {
-	int32_t return_val;
 	
 	struct ipsec_sa_params sap;
 	
@@ -908,13 +876,12 @@ int32_t ipsec_generate_sa_params(
 	tman_get_timestamp(&(sap.sap1.timestamp));
 	
 	/* Store to external memory with CDMA */
-	return_val = cdma_write(
+	cdma_write(
 			ipsec_handle, /* uint64_t ext_address */
 			&sap, /* void *ws_src */
 			(uint16_t)(sizeof(sap)) /* uint16_t size */
 			);
 	
-	return 0; // TODO
 } /* End of ipsec_generate_sa_params */
 
 /**************************************************************************//**
@@ -992,34 +959,26 @@ int32_t ipsec_add_sa_descriptor(
 	/* The RTA creates the descriptor and stores it in the memory 
 		with CDMA commands. */
 	if (params->direction == IPSEC_DIRECTION_INBOUND) {
-		return_val = ipsec_generate_decap_sd(sd_addr,params, &sd_size);
+		ipsec_generate_decap_sd(sd_addr,params, &sd_size);
 	} else {
-		return_val = ipsec_generate_encap_sd(sd_addr,params, &sd_size);
+		ipsec_generate_encap_sd(sd_addr,params, &sd_size);
 	}
 	
-	/* Check SD generation Error (CDMA error) */
-	if (return_val) goto add_sa_descriptor_error;
 	
 	/* Generate the SEC Flow Context descriptor and write to memory with CDMA */
-	return_val = ipsec_generate_flc(
+	ipsec_generate_flc(
 			((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE), 
 				/* Flow Context Address in external memory */
 			params->spid, /* Storage Profile ID of the SEC output frame */
 			sd_size); /* Shared descriptor size in words */
 	
-	/* Check FLC generation Error (CDMA error) */
-	if (return_val) goto add_sa_descriptor_error;	
-	
 	/*	Prepare descriptor parameters:
 	 * Kilobytes and packets lifetime limits.
 	 * Modes indicators and other flags */
 	/* Store the descriptor parameters to memory (CDMA write). */
-	return_val = ipsec_generate_sa_params(
+	ipsec_generate_sa_params(
 			params,
 			*ipsec_handle); /* Parameters area (start of buffer) */
-	
-	/* Check SA params generation Error (CDMA error) */
-	if (return_val) goto add_sa_descriptor_error;	
 	
 	/* Create one-shot TMAN timers for the soft and hard seconds lifetime 
 	 * limits, with callback to internal function 
@@ -1096,8 +1055,7 @@ int32_t ipsec_frame_encrypt(
 	struct scope_status_params scope_status;
 
 	/* Increment the reference counter */
-	return_val = cdma_refcount_increment(ipsec_handle);
-	// TODO: check CDMA return status
+	cdma_refcount_increment(ipsec_handle);
 	
 	*enc_status = 0; /* Initialize */
 	
@@ -1105,13 +1063,11 @@ int32_t ipsec_frame_encrypt(
 	 * – Simplified Flow */
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	return_val = cdma_read(
+	cdma_read(
 			&sap1, /* void *ws_dst */
 			ipsec_handle, /* uint64_t ext_address */
 			sizeof(sap1) /* uint16_t size */
 			);
-
-	// TODO: check CDMA return status
 
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
@@ -1350,7 +1306,7 @@ int32_t ipsec_frame_encrypt(
 				0, /* uint16_t to_offset */
 				eth_header, /* void	 *from_ws_src */
 				eth_length, /* uint16_t insert_size */
-				FDMA_REPLACE_SA_REPRESENT_BIT|FDMA_REPLACE_SA_OPEN_BIT 
+				FDMA_REPLACE_SA_REPRESENT_BIT 
 					/* uint32_t flags */
 				);
 		
@@ -1449,8 +1405,7 @@ int32_t ipsec_frame_decrypt(
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	
 	/* Increment the reference counter */
-	return_val = cdma_refcount_increment(ipsec_handle);
-	// TODO: check CDMA return status
+	cdma_refcount_increment(ipsec_handle);
 	
 	*dec_status = 0; /* Initialize */
 	
@@ -1459,7 +1414,7 @@ int32_t ipsec_frame_decrypt(
 	/* 	TODO: Currently supporting only Tunnel mode simplified flow */
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	return_val = cdma_read(
+	cdma_read(
 			&sap1, /* void *ws_dst */
 			ipsec_handle, /* uint64_t ext_address */
 			sizeof(sap1) /* uint16_t size */
@@ -1812,7 +1767,7 @@ int32_t ipsec_get_lifetime_stats(
 	} ctrs;
 	
 	/* Increment the reference counter */
-	return_val = cdma_refcount_increment(ipsec_handle);
+	cdma_refcount_increment(ipsec_handle);
 	// TODO: check CDMA return status
 	
 	/* Flush all the counter updates that are pending in the 
@@ -1820,13 +1775,12 @@ int32_t ipsec_get_lifetime_stats(
 	ste_barrier();
 
 	/* 	Read relevant descriptor fields with CDMA. */
-	return_val = cdma_read(
+	cdma_read(
 			&ctrs, /* void *ws_dst */
 			ipsec_handle, /* uint64_t ext_address */
 			sizeof(ctrs) /* uint16_t size */
 			);
-	// TODO: check for CDMA error
-
+	
 	*packets = ctrs.packet_counter;
 	*kilobytes =  ctrs.byte_counter;
 	
@@ -1865,8 +1819,7 @@ int32_t ipsec_decr_lifetime_counters(
 	int32_t return_val;
 
 	/* Increment the reference counter */
-	return_val = cdma_refcount_increment(ipsec_handle);
-	// TODO: check CDMA return status
+	cdma_refcount_increment(ipsec_handle);
 	
 	/* Flush all the counter updates that are pending in the 
 	 * statistics engine request queue. */
@@ -1907,16 +1860,14 @@ int32_t ipsec_get_seq_num(
 	struct ipsec_decap_pdb decap_pdb;
 	
 	/* Increment the reference counter */
-	return_val = cdma_refcount_increment(ipsec_handle);
-	// TODO: check CDMA return status
+	cdma_refcount_increment(ipsec_handle);
 	
 	/* 	Read the PDB from the descriptor with CDMA. */
-	return_val = cdma_read(
+	cdma_read(
 			&decap_pdb, /* void *ws_dst */
 			IPSEC_PDB_ADDR, /* uint64_t ext_address */
 			sizeof(decap_pdb) /* uint16_t size */
 	);
-	// TODO: check CDMA return status
 	
 	/* Return swapped values (little to big endian conversion) */
 	*extended_sequence_number = LW_SWAP(0,&decap_pdb.seq_num_ext_hi);

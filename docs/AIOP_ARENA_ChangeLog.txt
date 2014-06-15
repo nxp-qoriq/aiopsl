@@ -1,3 +1,11 @@
+- smp.h/c               new API added: sys_get_num_of_cores() and sys_get_max_num_of_cores()
+- os.c:                 implementation for vsnprintf_lite to reduce stack size in fsl_os_print
+
+- io.h:					iowrite/read were changed to call new defines for endianess support with intrinsics.
+- fsl_endian.h:			new implementation to endian.h, support endianess treatment.
+- endian.h: 			removed.
+- fsl_swab.h			architecture dependent to support swap bytes for read/write operations.
+
 - mc_init.c:                   New driver for common MC objects creation.
 - fsl_cmdif_fd.h:              New file for client & server CMDIF flibs, describes command interface Frame Descriptor
 - fsl_cmdif_flib_c.h:          New file for client CMDIF flibs

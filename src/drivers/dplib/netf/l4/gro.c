@@ -33,6 +33,12 @@ int32_t tcp_gro_aggregate_seg(
 	uint16_t seg_size;
 	uint8_t data_offset;
 
+	/* If segment FD contain errors (FD[err] != 0) return the frame to
+	 * the user. */
+	if (LDPAA_FD_GET_ERR(HWC_FD_ADDRESS))
+		return -EBADFD;
+
+
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
 	/* read GRO context*/
@@ -93,6 +99,12 @@ int32_t tcp_gro_aggregate_seg(
 			&tcp_gro_timeout_callback,
 			&(gro_ctx.timer_handle));
 
+	/* no more timers available */
+	if (sr_status == -ENAVAIL){
+		cdma_mutex_lock_release(tcp_gro_context_addr);
+		return sr_status;
+	}
+
 	/* initialize gro context fields */
 	gro_ctx.params = *params;
 	gro_ctx.flags = flags;
@@ -129,6 +141,13 @@ int32_t tcp_gro_aggregate_seg(
 	sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
 			*(uint8_t *)HWC_SPID_ADDRESS,
 			&(gro_ctx.agg_fd_isolation_attributes));
+
+	if (sr_status == -ENOMEM){
+
+		cdma_mutex_lock_release(tcp_gro_context_addr);
+		return sr_status;
+	}
+
 
 	/* copy default FD to gro context */
 	gro_ctx.agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
@@ -304,6 +323,8 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	/* delete the timer for this aggregation */
 	tman_delete_timer(gro_ctx->timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+	gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -549,8 +570,11 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		/* delete the timer since the new segment will be flushed as is
 		 * without additional segments. */
-		sr_status = tman_delete_timer(gro_ctx->timer_handle,
+		tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+
 		gro_ctx->metadata.seg_num = 1;
 
 		/* Clear gross running sum in parse results */
@@ -630,8 +654,10 @@ int32_t tcp_gro_flush_aggregation(
 	}
 
 	/* delete the timer for this aggregation */
-	sr_status = tman_delete_timer(gro_ctx.timer_handle,
+	tman_delete_timer(gro_ctx.timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+
+	gro_ctx.timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 

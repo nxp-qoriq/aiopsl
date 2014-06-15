@@ -53,7 +53,7 @@ enum ipsec_direction {
 enum ipsec_status_codes {
 	/** Success. */
 	IPSEC_SUCCESS = 0,
-	IPSEC_ERROR = -1,
+	IPSEC_ERROR = -1
 };
 
 /* @} end of enum ipsec_status_codes */

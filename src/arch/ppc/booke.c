@@ -334,12 +334,9 @@ uint32_t booke_get_id(void)
 
     cpu_id = get_cpu_id();
 
-#if defined(AIOP)
-    /* TODO replace with core dependent define */
-    cpu_id = (cpu_id >> 4);
-#endif
-
-#if defined(CORE_E500MC) || defined(CORE_E5500)
+#if defined(CORE_E200)
+    cpu_id >>= 4;
+#elif defined(CORE_E500MC) || defined(CORE_E5500)
 //    cpu_id >>= 5;
 #elif defined(CORE_E6500)
 

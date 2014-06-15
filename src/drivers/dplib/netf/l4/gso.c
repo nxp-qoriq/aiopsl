@@ -43,6 +43,7 @@ int32_t tcp_gso_generate_seg(
 		/* Restore PRC parameters */
 		PRC_SET_SEGMENT_ADDRESS(gso_ctx->seg_address);
 		PRC_SET_SEGMENT_LENGTH(gso_ctx->seg_length);
+		PRC_SET_SEGMENT_OFFSET(gso_ctx->seg_offset);
 
 		/* Call to tcp_gso_split_segment */
 		return tcp_gso_split_segment(gso_ctx);
@@ -90,6 +91,7 @@ int32_t tcp_gso_generate_seg(
 	/* Keep PRC parameters */
 	gso_ctx->seg_address = PRC_GET_SEGMENT_ADDRESS();
 	gso_ctx->seg_length = PRC_GET_SEGMENT_LENGTH();
+	gso_ctx->seg_offset = PRC_GET_SEGMENT_OFFSET();
 
 	gso_ctx->headers_size = (uint16_t)
 		((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) +
@@ -339,8 +341,8 @@ int32_t tcp_gso_discard_frame_remainder(
 {
 	struct tcp_gso_context *gso_ctx =
 			(struct tcp_gso_context *)tcp_gso_context_addr;
-	return fdma_discard_frame(
-			gso_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	fdma_discard_frame(gso_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	return SUCCESS;
 }
 
 void tcp_gso_context_init(
