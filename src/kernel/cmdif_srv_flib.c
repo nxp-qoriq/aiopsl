@@ -22,13 +22,6 @@
 	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
 	CMD_ID, SIZE, DATA))
 
-static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
-{
-	int i = 0;
-	for (i = 0; i < size; i++) 
-		ptr[i] = val;
-}
-
 void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 			 void *(*slow_malloc)(int size))
 {
@@ -56,13 +49,13 @@ void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 		return NULL;
 	}
 
-	my_memset((uint8_t *)srv->m_name,
+	memset((uint8_t *)srv->m_name,
 	          FREE_MODULE,
 	          sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
-	my_memset((uint8_t *)srv->inst_dev,
+	memset((uint8_t *)srv->inst_dev,
 	          NULL,
 	          sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
-	my_memset(srv->m_id,
+	memset(srv->m_id,
 	          FREE_INSTANCE,
 	          M_NUM_OF_INSTANCES);
 
