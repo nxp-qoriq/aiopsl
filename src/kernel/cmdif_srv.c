@@ -347,9 +347,8 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	if (_sync_done == NULL) {
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
-	} else if (cdma_write(_sync_done, &resp, 4)) {
-		pr_err("CDMA write failed, can't finish sync command\n");
-		/** In this case client will fail on timeout */
+	} else {
+		cdma_write(_sync_done, &resp, 4);
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n", 
