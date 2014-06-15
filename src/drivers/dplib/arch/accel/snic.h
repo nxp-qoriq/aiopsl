@@ -33,9 +33,6 @@
 #define SNIC_HXS	0
 #define SNIC_SPID	0
 
-#define SNIC_IS_EGRESS(appidx) ((appidx & 0x1) == 0x0)
-#define SNIC_IS_INGRESS(appidx) ((appidx & 0x1) == 0x1)
-
 #define VLAN_VID_MASK	0x00000FFF
 #define VLAN_PCP_MASK	0x0000E000
 #define VLAN_PCP_SHIFT	13
