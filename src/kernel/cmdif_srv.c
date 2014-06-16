@@ -22,7 +22,7 @@
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
-	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
@@ -256,7 +256,7 @@ static void *fast_malloc(int size)
 
 static void *slow_malloc(int size)
 {
-	return fsl_os_xmalloc((size_t)size, MEM_PART_1ST_DDR_NON_CACHEABLE, 8);
+	return fsl_os_xmalloc((size_t)size, MEM_PART_DP_DDR, 8);
 }
 
 static void srv_free(void *ptr)

@@ -33,6 +33,13 @@ struct snic_cmd_data {
 #define SNIC_UNREGISTER          6
 
 /* todo cmd sizes */
+#define SNIC_CMDSZ_SET_MTU             8
+#define SNIC_CMDSZ_IPR_CREATE_INSTANCE (8*8)
+#define SNIC_CMDSZ_IPR_DELETE_INSTANCE 8
+#define SNIC_CMDSZ_ENABLE_FLAGS        8
+#define SNIC_CMDSZ_SET_QDID            8
+#define SNIC_CMDSZ_REGISTER            8
+#define SNIC_CMDSZ_UNREGISTER          8
 
 /*	param, offset, width,	type,			arg_name */
 #define SNIC_CMD_MTU(_OP) \

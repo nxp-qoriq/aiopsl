@@ -25,6 +25,8 @@
 #endif
 
 __VERIF_GLOBAL uint64_t sa_desc_handle[32]; /* Global in Shared RAM */
+extern __TASK struct aiop_default_task_params default_task_params;
+
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 {
@@ -180,6 +182,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		struct ipsec_frame_decrypt_command *str =
 			(struct ipsec_frame_decrypt_command *)data_addr;
 		
+		default_task_params.parser_starting_hxs = str->starting_hxs;
+		/* Run parser, in case the starting HXS changed */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
+		
 		str->status = ipsec_frame_decrypt(
 				//*((uint64_t *)(str->ipsec_handle_ptr)),
 				sa_desc_handle[str->sa_desc_id],
@@ -196,6 +202,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	{
 		struct ipsec_frame_encrypt_command *str =
 			(struct ipsec_frame_encrypt_command *)data_addr;
+		
+		default_task_params.parser_starting_hxs = str->starting_hxs;
+		/* Run parser, in case the starting HXS changed */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
 		
 		str->status = ipsec_frame_encrypt(
 				//*((uint64_t *)(str->ipsec_handle_ptr)),
@@ -218,6 +228,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	{
 		struct ipsec_frame_encr_decr_command *str =
 			(struct ipsec_frame_encr_decr_command *)data_addr;
+		
+		default_task_params.parser_starting_hxs = str->starting_hxs;
+		/* Run parser, in case the starting HXS changed */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
 		
 		/* Encryption */
 		str->fm_encr_status = ipsec_frame_encrypt(
