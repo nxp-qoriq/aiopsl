@@ -296,7 +296,7 @@ int ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl)
 		return NO_IP_HDR_ERROR;
 }
 
-int ipv4_ttl_dec_modification(void)
+int ipv4_dec_ttl_modification(void)
 {
 	struct   ipv4hdr *ipv4hdr_ptr;
 	uint16_t ipv4hdr_offset;
@@ -366,7 +366,7 @@ int ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit,
 		return NO_IP_HDR_ERROR;
 }
 
-int ipv6_hop_limit_dec_modification(void)
+int ipv6_dec_hop_limit_modification(void)
 {
 	struct   ipv6hdr *ipv6hdr_ptr;
 	struct   parse_result *pr =

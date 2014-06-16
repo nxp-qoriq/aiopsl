@@ -280,7 +280,7 @@ int ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl);
 
 
 /*************************************************************************//**
-@Function	ipv4_ttl_dec_modification
+@Function	ipv4_dec_ttl_modification
 
 @Description	Decrement TTL in the outer IPv4 header (if exists).
 
@@ -300,7 +300,7 @@ int ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl);
 		In this function, the task yields.
 
 *//***************************************************************************/
-int ipv4_ttl_dec_modification(void);
+int ipv4_dec_ttl_modification(void);
 
 /*************************************************************************//**
 @Function	ipv6_header_modification
@@ -370,7 +370,7 @@ int ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit,
 		uint32_t flow_label);
 
 /*************************************************************************//**
-@Function	ipv6_hop_limit_dec_modification
+@Function	ipv6_dec_hop_limit_modification
 
 @Description	Decrement hop limit in the outer IPv6 header (if exists).
 
@@ -390,7 +390,7 @@ int ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit,
 		In this function, the task yields.
 
 *//***************************************************************************/
-int ipv6_hop_limit_dec_modification(void);
+int ipv6_dec_hop_limit_modification(void);
 
 /*************************************************************************//**
 @Function	ipv4_header_encapsulation
