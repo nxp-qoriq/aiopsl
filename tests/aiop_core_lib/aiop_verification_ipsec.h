@@ -38,6 +38,11 @@
 // Temporary workaround commands
 #define IPSEC_RUN_DESC_DEBUG 				9 | (IPSEC_MODULE << 16)
 
+#define IPSEC_PARSER_HXS_ENET 0x00
+#define IPSEC_PARSER_HXS_IP   0x06
+#define IPSEC_PARSER_HXS_IPV4 0x07
+#define IPSEC_PARSER_HXS_IPV6 0x08
+
 /** \addtogroup AIOP_FMs_Verification
  *  @{
  */
@@ -209,6 +214,9 @@ struct ipsec_frame_decrypt_command {
 
 	uint32_t dec_status; /* SEC Decryption status */
 	
+	uint16_t starting_hxs; /* parser starting HXS.
+	 	 	 	 	 	 	 * use one IPSEC_PARSER_HXS_* */
+	
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
 	
@@ -232,6 +240,9 @@ struct ipsec_frame_encrypt_command {
 	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
 
 	uint32_t enc_status; /* SEC Encryption status */
+	
+	uint16_t starting_hxs; /* parser starting HXS.
+	 	 	 	 	 	 	 * use one IPSEC_PARSER_HXS_* */
 	
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
@@ -262,6 +273,9 @@ struct ipsec_frame_encr_decr_command {
 	uint32_t enc_status; /* SEC Encryption status */
 	uint32_t dec_status; /* SEC Decryption status */
 
+	uint16_t starting_hxs; /* parser starting HXS.
+	 	 	 	 	 	 	 * use one IPSEC_PARSER_HXS_* */
+	
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
 
