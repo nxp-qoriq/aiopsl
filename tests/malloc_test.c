@@ -20,7 +20,7 @@ int malloc_test()
 	void* allocated_pointers[NUM_TEST_ITER];
 	int err = 0;
 	err = allocate_check_mem(0,num_iter,size,allocated_pointers); // allocate from the heap
-	err = allocate_check_mem(MEM_PART_1ST_DDR_NON_CACHEABLE,num_iter,size,
+	err = allocate_check_mem(MEM_PART_DP_DDR,num_iter,size,
 			                 allocated_pointers);
 	err = allocate_check_mem(MEM_PART_SH_RAM,num_iter,size,allocated_pointers);
 	err = allocate_check_mem(MEM_PART_PEB,num_iter,size,allocated_pointers);	
