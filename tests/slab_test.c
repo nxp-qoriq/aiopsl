@@ -97,10 +97,8 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 	uint64_t data2 = 0;
 	int      err = 0;
 
-	err = cdma_write(buff, &data1, 8);
-	if (err) return err;
-	err = cdma_read(&data2, buff, 8);
-	if (err) return err;
+	cdma_write(buff, &data1, 8);
+	cdma_read(&data2, buff, 8);
 
 	if (data1 != data2) {
 		slab_release(slab, buff);

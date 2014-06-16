@@ -35,7 +35,7 @@ int32_t cdma_acquire_context_memory(
 	if (((int32_t)res1) == CDMA_SUCCESS)
 		return 0;
 	if (((int32_t)res1) == CDMA_BUFFER_POOL_DEPLETION_ERR)
-		return (int32_t)(res1);
+		return -ENOSPC;
 	cdma_handle_fatal_errors(res1);
 	return -1;
 }
@@ -441,9 +441,10 @@ int32_t cdma_access_context_memory(
 
 	if (((int32_t)res1) == CDMA_SUCCESS)
 		return 0;
-	if ((((int32_t)res1) == (CDMA_REFCOUNT_DECREMENT_TO_ZERO)) ||
-	(((int32_t)res1) == (CDMA_MUTEX_LOCK_FAILED)))
+	if (((int32_t)res1) == (CDMA_REFCOUNT_DECREMENT_TO_ZERO))
 		return (int32_t)(res1);
+	if (((int32_t)res1) == (CDMA_MUTEX_LOCK_FAILED))
+		return -EBUSY;
 	cdma_handle_fatal_errors(res1);
 	return -1;
 }

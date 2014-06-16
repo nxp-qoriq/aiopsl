@@ -22,7 +22,7 @@
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
-	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
