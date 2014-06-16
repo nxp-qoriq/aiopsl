@@ -296,17 +296,17 @@ int32_t l2_pop_vlan()
 
 
 
-void l2_push_ipv4_arp_request_update_l2(
+/*void l2_push_ipv4_arp_request_update_l2(
 		uint8_t *sender_hw_addr,
 		uint32_t sender_ip,
 		uint32_t dest_ip)
 {
-	/* TODO - implement */
+	 TODO - implement
 }
 
 void l2_arp_response(uint8_t *local_hw_addr)
 {
-	/* TODO - implement */
+	 TODO - implement
 }
 
 void l2_set_fields(
@@ -314,6 +314,6 @@ void l2_set_fields(
 		uint8_t *dest_hw_addr,
 		uint16_t l2_proto)
 {
-	/* TODO - implement */
-}
+	 TODO - implement
+}*/
 
