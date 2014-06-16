@@ -1,21 +1,16 @@
-#include "common/types.h"
 #include "common/fsl_string.h"
 #include "common/io.h"
-#include "kernel/smp.h"
-#include "kernel/platform.h"
-#include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
-#include "common/dbg.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
-#include "common/aiop_common.h"
-#include "common/errors.h"
-
+#include "sys.h"
 
 __SHRAM uint8_t abcr_lock = 0;
+
+extern t_system sys;
 
 extern int mc_obj_init();           extern void mc_obj_free();
 extern int cmdif_client_init();     extern void cmdif_client_free();
@@ -35,13 +30,11 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MEMORY_INFO                                                                                           \
 {   /* Region ID                Memory partition ID             Phys. Addr.    Virt. Addr.  Size            */\
-    {PLTFRM_MEM_RGN_WS,         MEM_PART_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_IRAM,       MEM_PART_INVALID,               0x00fe0000,    0x00fe0000, (128 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (1 * MEGABYTE)   },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_DDR1,       MEM_PART_1ST_DDR_NON_CACHEABLE, 0x58000000,    0x58000000, (128 * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR, 				0x58000000,    0x58000000, (128 * MEGABYTE) },\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x80000000,    0x80000000, (2 * MEGABYTE)   },\
 }
 
@@ -108,6 +101,16 @@ int global_init(void)
     return 0;
 }
 
+void global_free(void)
+{
+	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	int i;
+
+	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+		if (modules[i].free)
+			modules[i].free();
+}
+
 int global_post_init(void)
 {
 	return 0;
@@ -122,9 +125,17 @@ void core_ready_for_tasks(void)
     uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
 
     /*  finished boot sequence; now wait for event .... */
-    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
-
+    pr_info("AIOP %d completed boot sequence\n", core_get_id());
+    
     sys_barrier();
+    
+    if(sys_is_master_core()) {
+        pr_info("AIOP boot finished; ready for tasks...\n");
+    }
+    
+    sys_barrier();
+    
+    sys.runtime_flag = 1;
     
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);

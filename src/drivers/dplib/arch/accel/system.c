@@ -51,7 +51,7 @@ int32_t sys_prpid_pool_create(void)
 
 
 	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
-			MEM_PART_1ST_DDR_NON_CACHEABLE,
+			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		handle_fatal_error((char *)status); /*TODO Fatal error*/
@@ -71,7 +71,7 @@ int32_t sys_keyid_pool_create(void)
 
 
 	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
-			MEM_PART_1ST_DDR_NON_CACHEABLE,
+			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		handle_fatal_error((char *)status); /*TODO Fatal error*/
@@ -98,7 +98,7 @@ int32_t aiop_sl_init(void)
 	int num_filled_buffs;
 
 	status = slab_find_and_fill_bpid(300, 2048, 8,
-			MEM_PART_1ST_DDR_NON_CACHEABLE,
+			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		handle_fatal_error((char *)status); /*TODO Fatal error*/

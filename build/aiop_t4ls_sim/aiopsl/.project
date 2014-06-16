@@ -335,6 +335,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dpci</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpio</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -580,6 +585,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_fdma.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/dplib/fsl_frame_operations.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_frame_operations.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/dplib/fsl_general.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_general.h</locationURI>
@@ -648,6 +658,11 @@
 			<name>aiop_sl/include/dplib/fsl_parser.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_parser.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/dplib/fsl_snic_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_snic_cmd.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_ste.h</name>
@@ -730,6 +745,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpbp/dpbp.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dpci/dpci.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpci/dpci.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpio/dpio.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpio/dpio.c</locationURI>
@@ -798,6 +818,11 @@
 			<name>aiop_sl/drivers/dplib/include/virtual_pools.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/netf/general</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/ip</name>
@@ -973,6 +998,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/virtual_pools.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/virtual_pools.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/netf/general/frame_operations.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/general/frame_operations.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/ip/ip.c</name>

@@ -10,24 +10,36 @@
 
 #include "cmdif_client.h"
 
+#define CMDIF_MN_SESSIONS	20 /**< Maximal number of sessions */
+#define CMDIF_NUM_PR  		2
+
+struct cmdif_reg {
+	int id;
+	/**< DPCI id as known by GPP side */
+	uint8_t num_of_pr;
+	/**< number of priorities */
+	uint16_t fqid[CMDIF_NUM_PR];
+	/**< Will be accessed by CMDIF_PRI_LOW/HIGH*/
+};
 
 /* To be allocated on DDR */
 struct cmdif_cl {
 	struct {
-		char *m_name[M_NAME_CHARS + 1];
-		/**< pointer to arrays of module name per module, DDR */
+		uint64_t p_addr;
+		/**< Physical address of buffer allocated by GPP */
+		char m_name[M_NAME_CHARS + 1];
+		/**< Module application name */
+		struct cmdif_reg *regs;
+		/**< Send device, to be placed as cidesc.reg */
+		struct cmdif_dev *dev;
+		/**< To be placed as cidesc.dev */
+		void *dpci_dev;
+		/**< Open AIOP dpci device */
 		uint16_t auth_id;
 		/**< Authentication ID to be used for session with server*/
-		uint32_t dpci_id;
-		/**< DPCI id as known by GPP side */
 		uint8_t ins_id;
-		uint64_t p_addr;
-	} gpp[10]; /* TODO 10 by macro */
-	struct {
-		uint32_t dpci_id;
-		/**< DPCI id as known by GPP side */
-		void *attr;		
-	} dpci[10];
+		/**< Instanse id that was used for open */
+	} gpp[CMDIF_MN_SESSIONS]; 
 };
 
 

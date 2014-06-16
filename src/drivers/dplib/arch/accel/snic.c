@@ -10,6 +10,7 @@
 #include "system.h"
 #include "net/fsl_net.h"
 #include "common/fsl_stdio.h"
+#include "common/fsl_string.h"
 #include "common/errors.h"
 #include "kernel/platform.h"
 #include "io.h"
@@ -21,6 +22,7 @@
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_fdma.h"
+#include "dplib/fsl_dplib_sys.h"
 
 #include "general.h"
 #include "osm.h"
@@ -28,6 +30,21 @@
 #include "dplib/fsl_ipf.h"
 #include "common/fsl_cmdif_server.h"
 
+#define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
+	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);
+
+#define SNIC_RSP_PREP(_param, _offset, _width, _type, _arg) \
+	cmd_data->params[_param] |= u64_enc(_offset, _width, _arg);
+
+/** This is where FQD CTX should reside */
+#define FQD_CTX_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
+/** Get sNIC ID from dequeue context */
+#define SNIC_ID_GET \
+	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFF)
+/** Get sNIC modes from dequeue context */
+#define SNIC_IS_INGRESS_GET \
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x80000000)
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -35,10 +52,8 @@ __SHRAM struct snic_params snic_params[MAX_SNIC_NO];
 
 __HOT_CODE void snic_process_packet(void)
 {
-	
+
 	struct parse_result *pr;
-	uint8_t *fd_flc_appidx;
-	uint8_t appidx;
 	struct snic_params *snic;
 	struct fdma_queueing_destination_params enqueue_params;
 	int err;
@@ -54,39 +69,41 @@ __HOT_CODE void snic_process_packet(void)
 	*((uint8_t *)HWC_SPID_ADDRESS) = SNIC_SPID;
 	default_task_params.parser_profile_id = SNIC_PRPID;
 	default_task_params.parser_starting_hxs = SNIC_HXS;
-	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
-			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
-	
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
-	if (parse_status)
-		if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-					fdma_terminate_task();
+	if (parse_status){
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
 
-	/* check if this is ingress or egress */
-	snic = snic_params + PRC_GET_PARAMETER();
-	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
-	appidx = (*fd_flc_appidx >> 2);
-	
-	if (SNIC_IS_INGRESS(appidx)) {
+	/* get sNIC ID */
+	snic = snic_params + SNIC_ID_GET;
+
+	if (SNIC_IS_INGRESS_GET) {
+		/* snic uses only 1 QDID so we need to have different
+		 * qd/priority for ingress than for egress */
+		default_task_params.qd_priority = 8;
 		/* For ingress may need to do IPR and then Remove Vlan */
-		if (snic->snic_enable_flags & SNIC_IPR_EN) 
+		if (snic->snic_enable_flags & SNIC_IPR_EN)
 			err = snic_ipr(snic);
 		/*reach here if re-assembly success or regular or IPR disabled*/
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
-		
+
 	}
 	/* Egress*/
 	else {
+		default_task_params.qd_priority = ((*((uint8_t *)
+				(HWC_ADC_ADDRESS +
+				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
 			snic_add_vlan();
-		
+
 		if (snic->snic_enable_flags & SNIC_IPF_EN)
 			err = snic_ipf(snic);
 	}
-	
+
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
@@ -125,7 +142,7 @@ int snic_ipf(struct snic_params *snic)
 	{
 		ipv6_hdr = (struct ipv6hdr *)ipv4_hdr;
 		total_length =
-			(uint32_t)(ipv6_hdr->payload_length 
+			(uint32_t)(ipv6_hdr->payload_length
 					+ 40);
 	}
 	else
@@ -142,7 +159,7 @@ int snic_ipf(struct snic_params *snic)
 			flags |= FDMA_ENF_BDI_BIT;
 		amq.flags = (uint16_t)(flags >> 16);
 		amq.icid = icid;
-		
+
 		ipf_context_init(0, snic->snic_ipf_mtu,
 				ipf_context_addr);
 
@@ -157,7 +174,7 @@ int snic_ipf(struct snic_params *snic)
 				err =
 				(int)fdma_store_frame_data(0, 0,
 						&amq);
-			
+
 			/* for the enqueue set hash from TLS,
 			 * an flags equal 0 meaning that
 			 * the qd_priority is taken from the
@@ -168,13 +185,13 @@ int snic_ipf(struct snic_params *snic)
 			enqueue_params.qd_priority =
 				default_task_params.qd_priority;
 			/* todo error cases */
-			
+
 			err =
 			(int)fdma_enqueue_default_fd_qd(icid,
 				flags, &enqueue_params);
-			
+
 		} while (ipf_status);
-		
+
 		fdma_terminate_task();
 		return 0;
 	}
@@ -194,7 +211,7 @@ int snic_ipr(struct snic_params *snic)
 		fdma_terminate_task();
 		return 0;
 	}
-		
+
 	else
 		return 0;
 }
@@ -211,14 +228,11 @@ int snic_add_vlan(void)
 	asa_seg_addr = (uint32_t)(presentation_context->
 			asapa_asaps & PRC_ASAPA_MASK);
 	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, 0x50)));
-	l2_push_vlan((uint16_t)(vlan>>16));
-	l2_set_vlan_vid((uint16_t)(vlan & VLAN_VID_MASK));
-	l2_set_vlan_pcp((uint8_t)((vlan & VLAN_PCP_MASK) >>
-			VLAN_PCP_SHIFT));
+	l2_push_and_set_vlan(vlan);
 	return 0;
 }
 
-int snic_open_cb(void *dev)
+static int snic_open_cb(void *dev)
 {
 	/* TODO: */
 	UNUSED(dev);
@@ -226,72 +240,70 @@ int snic_open_cb(void *dev)
 }
 
 
-int snic_close_cb(void *dev)
+static int snic_close_cb(void *dev)
 {
 	/* TODO: */
 	UNUSED(dev);
 	return 0;
 }
 
-int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
+static int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint64_t data)
 {
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
-	uint16_t snic_id;
+	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid;
 	int i;
+	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)PRC_GET_SEGMENT_ADDRESS();
+	struct ipr_params ipr_params;
+	uint32_t snic_ep_pc;
 
 	UNUSED(dev);
-	UNUSED(size);
-	
+	UNUSED(data);
+
 	switch(cmd)
 	{
 	case SNIC_IPR_CREATE_INSTANCE:
-		snic_id = *((uint16_t *)data);
-		ipr_create_instance((struct ipr_params*)data, 
+		SNIC_IPR_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
+
+		ipr_create_instance(&ipr_params,
 				ipr_instance_ptr);
 		snic_params[snic_id].ipr_instance_val = ipr_instance;
 		return 0;
 	case SNIC_IPR_DELETE_INSTANCE:
 		/* todo: parameters to ipr_delete_instance */
-		snic_id = *((uint16_t *)data);
+		SNIC_IPR_DELETE_INSTANCE_CMD(SNIC_CMD_READ);
 		ipr_delete_instance(snic_params[snic_id].ipr_instance_val,
 				NULL, NULL);
 		return 0;
 	case SNIC_SET_MTU:
-		snic_id = *((uint16_t *)data);
-		data += 2;
-		snic_params[snic_id].snic_ipf_mtu = *((uint16_t *)data);
+		SNIC_CMD_MTU(SNIC_CMD_READ);
+		snic_params[snic_id].snic_ipf_mtu = ipf_mtu;
 		return 0;
 	case SNIC_ENABLE_FLAGS:
-		snic_id = *((uint16_t *)data);
-		data += 2;
-		snic_params[snic_id].snic_enable_flags = *((uint16_t *)data);
+		SNIC_ENABLE_FLAGS_CMD(SNIC_CMD_READ);
+		snic_params[snic_id].snic_enable_flags = snic_flags;
 		return 0;
 	case SNIC_SET_QDID:
-		snic_id = *((uint16_t *)data);
-		data += 2;
-		snic_params[snic_id].qdid = *((uint16_t *)data);
+		SNIC_SET_QDID_CMD(SNIC_CMD_READ);
+		snic_params[snic_id].qdid = qdid;
 		return 0;
 	case SNIC_REGISTER:
-		*((uint32_t *)data) = (uint32_t)snic_process_packet;
-		data +=4;
+		snic_ep_pc = (uint32_t)snic_process_packet;
 		for (i=0; i < MAX_SNIC_NO; i++)
 		{
-			if (snic_params[i].valid)
+			if (!snic_params[i].valid)
 			{
-				snic_params[i].valid = FALSE;
+				snic_params[i].valid = TRUE;
 				snic_id = (uint16_t)i;
 				break;
 			}
 		}
-		if (i== MAX_SNIC_NO)
-			*((uint16_t *)data) = 0xFFFF;
-		else
-			*((uint16_t *)data) = snic_id;
+		SNIC_REGISTER_CMD(SNIC_RSP_PREP);
+		fdma_modify_default_segment_data(0, size);
 		return 0;
 	case SNIC_UNREGISTER:
-		snic_id = *((uint16_t *)data);
-		snic_params[snic_id].valid = TRUE;
+		SNIC_UNREGISTER_CMD(SNIC_CMD_READ);
+		memset(&snic_params[snic_id], 0, sizeof(struct snic_params));
 		return 0;
 	default:
 		return -EINVAL;
@@ -303,7 +315,7 @@ int aiop_snic_init(void)
 {
 	int status, i;
 	struct cmdif_module_ops snic_cmd_ops;
-	
+
 	snic_cmd_ops.open_cb = (open_cb_t *)snic_open_cb;
 	snic_cmd_ops.close_cb = (close_cb_t *)snic_close_cb;
 	snic_cmd_ops.ctrl_cb = (ctrl_cb_t *)snic_ctrl_cb;
@@ -313,7 +325,6 @@ int aiop_snic_init(void)
 		pr_info("sNIC:Failed to register with cmdif module!\n");
 		return status;
 	}
-	for (i=0; i < MAX_SNIC_NO; i++)
-		snic_params[i].valid = TRUE;
+	memset(snic_params, 0, sizeof(snic_params));
 	return 0;
 }

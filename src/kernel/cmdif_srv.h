@@ -18,8 +18,10 @@
 
 #define CMD_ID_OPEN           0x8000
 #define CMD_ID_CLOSE          0x4000
-#define CMD_ID_NOTIFY_OPEN    0xF000 /**< Internal for cmdif command */
-#define CMD_ID_NOTIFY_CLOSE   0xE000 /**< Internal for cmdif command */
+#define CMD_ID_NOTIFY_OPEN    0xF000 
+/**< Special command for cmdif_session_open() */
+#define CMD_ID_NOTIFY_CLOSE   0xE000 
+/**< Special command for cmdif_session_open() */
 #define M_NUM_OF_INSTANCES    512
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
@@ -37,7 +39,7 @@ struct cmdif_srv {
 	/**< close(de-init) callbacks, one per module, DDR*/
 	ctrl_cb_t    **ctrl_cb;
 	/**< execution callbacks one per module, SHRAM */
-	fsl_handle_t *inst_dev;
+	void         **inst_dev;
 	/**< array of instances handels(converted from the authentication ID)
 	 * in the size of M_NUM_OF_INSTANCES, SHRAM */
 	uint64_t     *sync_done;
@@ -47,6 +49,14 @@ struct cmdif_srv {
 	/**< converts auth_id to module for cb, SHRAM */
 	uint16_t     inst_count;
 	/**< counter for instance handlers */
+};
+
+struct cmdif_session_data {
+        uint32_t dev_id;
+        /**< CI device id, DPCI id */
+        uint16_t auth_id;
+        uint8_t  inst_id;           
+        char     m_name[M_NAME_CHARS + 1]; 
 };
 
 int cmdif_srv_init(void);

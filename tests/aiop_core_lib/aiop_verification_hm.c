@@ -119,6 +119,28 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			break;
 		}
 
+		/* HM IPv4 Mangle Command Verification */
+		case HM_IPV4_MANGLE_CMD_STR:
+		{
+			struct hm_ipv4_mangle_command *str =
+			(struct hm_ipv4_mangle_command *) asa_seg_addr;
+			str->status = ipv4_mangle(str->flags,
+					str->dscp,
+					str->ttl);
+			str_size = sizeof(struct hm_ipv4_mangle_command);
+			break;
+		}
+
+		/* HM IPv4 decrement TTL Command Verification */
+		case HM_IPV4_DEC_TTL_CMD_STR:
+		{
+			struct hm_ipv4_dec_ttl_command *str =
+			(struct hm_ipv4_dec_ttl_command *) asa_seg_addr;
+			str->status = ipv4_dec_ttl_modification();
+			str_size = sizeof(struct hm_ipv4_dec_ttl_command);
+			break;
+		}
+
 		/* HM IPv6 Header Modification Command Verification */
 		case HM_IPV6_MODIFICATION_CMD_STR:
 		{
@@ -130,6 +152,29 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 					str->ip_src_addr,
 					str->ip_dst_addr);
 			str_size = sizeof(struct hm_ipv6_modification_command);
+			break;
+		}
+
+		/* HM IPv6 Mangle Command Verification */
+		case HM_IPV6_MANGLE_CMD_STR:
+		{
+			struct hm_ipv6_mangle_command *str =
+			(struct hm_ipv6_mangle_command *) asa_seg_addr;
+			str->status = ipv6_mangle(str->flags,
+					str->dscp,
+					str->hop_limit,
+					str->flow_label);
+			str_size = sizeof(struct hm_ipv6_mangle_command);
+			break;
+		}
+
+		/* HM IPv6 decrement Hop Limit Command Verification */
+		case HM_IPV6_DEC_HOP_LIMIT_CMD_STR:
+		{
+			struct hm_ipv6_dec_hop_limit_command *str =
+			(struct hm_ipv6_dec_hop_limit_command *) asa_seg_addr;
+			str->status = ipv6_dec_hop_limit_modification();
+			str_size = sizeof(struct hm_ipv6_dec_hop_limit_command);
 			break;
 		}
 
@@ -314,6 +359,16 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			(struct hm_push_vlan_command *) asa_seg_addr;
 			l2_push_vlan(str->ethertype);
 			str_size = sizeof(struct hm_push_vlan_command);
+			break;
+		}
+
+		/* HM push and set VLAN Command Verification */
+		case HM_PUSH_AND_SET_VLAN_CMD_STR:
+		{
+			struct hm_push_and_set_vlan_command *str =
+			(struct hm_push_and_set_vlan_command *) asa_seg_addr;
+			l2_push_and_set_vlan(str->vlan_tag);
+			str_size = sizeof(struct hm_push_and_set_vlan_command);
 			break;
 		}
 
