@@ -450,8 +450,7 @@ __HOT_CODE int slab_refcount_incr(struct slab *slab, uint64_t buff)
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 #endif
-	if (cdma_refcount_increment(buff))
-		return -EFAULT;
+	cdma_refcount_increment(buff);		
 
 	return 0;
 }

@@ -35,16 +35,24 @@
 #define SNIC_RSP_PREP(_param, _offset, _width, _type, _arg) \
 	cmd_data->params[_param] |= swap_uint64(u64_enc(_offset, _width, _arg));
 
+/** This is where FQD CTX should reside */
+#define FQD_CTX_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
+/** Get sNIC ID from dequeue context */
+#define SNIC_ID_GET \
+	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFF)
+/** Get sNIC modes from dequeue context */
+#define SNIC_IS_INGRESS_GET \
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x80000000)
+
 extern __TASK struct aiop_default_task_params default_task_params;
 
 __SHRAM struct snic_params snic_params[MAX_SNIC_NO];
 
 __HOT_CODE void snic_process_packet(void)
 {
-	
+
 	struct parse_result *pr;
-	uint8_t *fd_flc_appidx;
-	uint8_t appidx;
 	struct snic_params *snic;
 	struct fdma_queueing_destination_params enqueue_params;
 	int err;
@@ -60,39 +68,41 @@ __HOT_CODE void snic_process_packet(void)
 	*((uint8_t *)HWC_SPID_ADDRESS) = SNIC_SPID;
 	default_task_params.parser_profile_id = SNIC_PRPID;
 	default_task_params.parser_starting_hxs = SNIC_HXS;
-	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
-			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
-	
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
-	if (parse_status)
-		if (fdma_discard_default_frame(FDMA_DIS_WF_TC_BIT))
-					fdma_terminate_task();
+	if (parse_status){
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
 
-	/* check if this is ingress or egress */
-	snic = snic_params + PRC_GET_PARAMETER();
-	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
-	appidx = (*fd_flc_appidx >> 2);
-	
-	if (SNIC_IS_INGRESS(appidx)) {
+	/* get sNIC ID */
+	snic = snic_params + SNIC_ID_GET;
+
+	if (SNIC_IS_INGRESS_GET) {
+		/* snic uses only 1 QDID so we need to have different 
+		 * qd/priority for ingress than for egress */
+		default_task_params.qd_priority = 8;
 		/* For ingress may need to do IPR and then Remove Vlan */
-		if (snic->snic_enable_flags & SNIC_IPR_EN) 
+		if (snic->snic_enable_flags & SNIC_IPR_EN)
 			err = snic_ipr(snic);
 		/*reach here if re-assembly success or regular or IPR disabled*/
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
-		
+
 	}
 	/* Egress*/
 	else {
+		default_task_params.qd_priority = ((*((uint8_t *)
+				(HWC_ADC_ADDRESS + 
+				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
 			snic_add_vlan();
-		
+
 		if (snic->snic_enable_flags & SNIC_IPF_EN)
 			err = snic_ipf(snic);
 	}
-	
+
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
@@ -131,7 +141,7 @@ int snic_ipf(struct snic_params *snic)
 	{
 		ipv6_hdr = (struct ipv6hdr *)ipv4_hdr;
 		total_length =
-			(uint32_t)(ipv6_hdr->payload_length 
+			(uint32_t)(ipv6_hdr->payload_length
 					+ 40);
 	}
 	else
@@ -148,7 +158,7 @@ int snic_ipf(struct snic_params *snic)
 			flags |= FDMA_ENF_BDI_BIT;
 		amq.flags = (uint16_t)(flags >> 16);
 		amq.icid = icid;
-		
+
 		ipf_context_init(0, snic->snic_ipf_mtu,
 				ipf_context_addr);
 
@@ -163,7 +173,7 @@ int snic_ipf(struct snic_params *snic)
 				err =
 				(int)fdma_store_frame_data(0, 0,
 						&amq);
-			
+
 			/* for the enqueue set hash from TLS,
 			 * an flags equal 0 meaning that
 			 * the qd_priority is taken from the
@@ -174,13 +184,13 @@ int snic_ipf(struct snic_params *snic)
 			enqueue_params.qd_priority =
 				default_task_params.qd_priority;
 			/* todo error cases */
-			
+
 			err =
 			(int)fdma_enqueue_default_fd_qd(icid,
 				flags, &enqueue_params);
-			
+
 		} while (ipf_status);
-		
+
 		fdma_terminate_task();
 		return 0;
 	}
@@ -200,7 +210,7 @@ int snic_ipr(struct snic_params *snic)
 		fdma_terminate_task();
 		return 0;
 	}
-		
+
 	else
 		return 0;
 }
@@ -251,13 +261,13 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 
 	UNUSED(dev);
 	UNUSED(size);
-	
+
 	switch(cmd)
 	{
 	case SNIC_IPR_CREATE_INSTANCE:
 		SNIC_IPR_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
-		
-		ipr_create_instance(&ipr_params, 
+
+		ipr_create_instance(&ipr_params,
 				ipr_instance_ptr);
 		snic_params[snic_id].ipr_instance_val = ipr_instance;
 		return 0;
@@ -310,7 +320,7 @@ int aiop_snic_init(void)
 {
 	int status, i;
 	struct cmdif_module_ops snic_cmd_ops;
-	
+
 	snic_cmd_ops.open_cb = (open_cb_t *)snic_open_cb;
 	snic_cmd_ops.close_cb = (close_cb_t *)snic_close_cb;
 	snic_cmd_ops.ctrl_cb = (ctrl_cb_t *)snic_ctrl_cb;
