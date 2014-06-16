@@ -135,12 +135,12 @@ int32_t create_fd(
 	}
 }
 
-void create_arp_request(
+/*void create_arp_request(
 		struct ldpaa_fd *fd,
 		uint8_t *sender_hw_addr,
 		uint32_t sender_ip,
 		uint32_t dest_ip,
 		uint8_t *frame_handle)
 {
-	/* TODO - implement */
-}
+	 TODO - implement
+}*/
