@@ -69,16 +69,13 @@ void gro_timeout_cb_verif(uint64_t arg)
 {
 	struct fdma_enqueue_wf_command str;
 	struct fdma_queueing_destination_params qdp;
-	int32_t status;
+	//int32_t status;
 	uint32_t flags = 0;
 
 	if (arg == 0)
 		return;
-	status = cdma_read((void *)&str,
-			arg,
+	cdma_read((void *)&str, arg,
 			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
-	if (status != CDMA_READ__SUCCESS)
-		fdma_terminate_task();
 
 	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
 	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);

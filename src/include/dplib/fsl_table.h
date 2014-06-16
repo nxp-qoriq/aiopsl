@@ -531,7 +531,7 @@ struct table_key_desc_mflu {
 	/** MFLU Lookup Key & Priority
 	This should point on a memory location containing concatenation of the
 	following fields (by the same order):
-	 - Lookup Key - Size of this field must be within 4-56 byte.
+	 - Lookup Key - Size of this field must be within 1-56 byte.
 	 - Priority - Priority determines the selection between two rule that
 	match in the MFLU lookup. 0x00000000 is the highest priority. This
 	field size is 4 bytes. */
@@ -733,7 +733,7 @@ union table_lookup_key_desc {
 	/** MFLU Lookup Key & Match Maximum Priority
 	This should point on a memory location containing concatenation of the
 	following fields (by the same order):
-	 - Lookup Key - Size of this field must be within 4-56 byte.
+	 - Lookup Key - Size of this field must be within 1-56 byte.
 	 - Maximum Priority - defines the maximum priority to be matched in the
 	lookup operation. Rules with lower priority will not be matched. 0 is
 	the lowest priority, 0xFFFFFFFF is the highest priority. For lookup of
