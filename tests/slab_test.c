@@ -33,7 +33,7 @@ int slab_init()
 	}
 
 	/* DDR SLAB creation */
-	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, 
+	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0, 
 			          NULL, &slab_ddr);
 	if (err) return err;
 
@@ -64,7 +64,7 @@ int app_test_slab_init()
 	dma_addr_t buff = 0;
 	struct slab *my_slab;
 	
-	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, 
+	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0, 
 	                  NULL, &my_slab);
 	if (err) return err;
 	
@@ -81,7 +81,7 @@ int app_test_slab_init()
 	if (!err) return -EEXIST;
 	
 	/* Reuse slab handle test  */
-	err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_1ST_DDR_NON_CACHEABLE, 0, 
+	err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0, 
 	                  NULL, &my_slab);
 	if (err) return err;
 	
@@ -97,10 +97,8 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 	uint64_t data2 = 0;
 	int      err = 0;
 
-	err = cdma_write(buff, &data1, 8);
-	if (err) return err;
-	err = cdma_read(&data2, buff, 8);
-	if (err) return err;
+	cdma_write(buff, &data1, 8);
+	cdma_read(&data2, buff, 8);
 
 	if (data1 != data2) {
 		slab_release(slab, buff);
