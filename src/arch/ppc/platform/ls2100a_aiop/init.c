@@ -103,6 +103,16 @@ int global_init(void)
     return 0;
 }
 
+void global_free(void)
+{
+	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	int i;
+
+	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+		if (modules[i].free)
+			modules[i].free();
+}
+
 int global_post_init(void)
 {
 	return 0;
