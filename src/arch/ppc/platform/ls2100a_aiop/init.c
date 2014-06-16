@@ -125,7 +125,13 @@ void core_ready_for_tasks(void)
     uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
 
     /*  finished boot sequence; now wait for event .... */
-    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
+    pr_info("AIOP %d completed boot sequence\n", core_get_id());
+    
+    sys_barrier();
+    
+    if(sys_is_master_core()) {
+        pr_info("AIOP boot finished; ready for tasks...\n");
+    }
     
     sys_barrier();
     
