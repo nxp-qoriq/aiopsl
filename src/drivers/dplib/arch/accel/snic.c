@@ -227,10 +227,7 @@ int snic_add_vlan(void)
 	asa_seg_addr = (uint32_t)(presentation_context->
 			asapa_asaps & PRC_ASAPA_MASK);
 	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, 0x50)));
-	l2_push_vlan((uint16_t)(vlan>>16));
-	l2_set_vlan_vid((uint16_t)(vlan & VLAN_VID_MASK));
-	l2_set_vlan_pcp((uint8_t)((vlan & VLAN_PCP_MASK) >>
-			VLAN_PCP_SHIFT));
+	l2_push_and_set_vlan(vlan);
 	return 0;
 }
 
