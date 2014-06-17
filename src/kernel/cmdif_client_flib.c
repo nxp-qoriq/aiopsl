@@ -7,9 +7,12 @@
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
 
+/** Server special command indication */
+#define SPECIAL_CMD	0xC000
+
 /** Blocking commands don't need response FD */
 #define SYNC_CMD(CMD)	\
-	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)))
+	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)) || (CMD & SPECIAL_CMD))
 
 
 int cmdif_is_sync_cmd(uint16_t cmd_id)

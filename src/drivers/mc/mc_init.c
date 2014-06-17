@@ -99,7 +99,7 @@ static int dpci_discovery()
 			
 #ifndef OLD_DPCI
 			if (dpci_tbl == NULL) {
-				dpci_tbl = fsl_os_xmalloc(sizeof(struct dpci), 
+				dpci_tbl = fsl_os_xmalloc(sizeof(struct dpci_obj), 
 				                          MEM_PART_SH_RAM, 
 					                  1);
 				if (dpci_tbl == NULL) {
