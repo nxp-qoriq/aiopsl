@@ -145,9 +145,6 @@
 #define not_MSR_PMM     ~(MSR_PMM)
 #define not_MSR_PR      ~(MSR_PR)
 
-#define MSR_GS          0x10000000
-#define not_MSR_GS      ~(MSR_GS)
-
 /* MMU registers */
 /* MAS0 */
 #define MAS0_TLBSEL         0x10000000

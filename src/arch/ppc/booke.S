@@ -34,8 +34,6 @@
 .global asm_prefix(msr_restoree_eand_ce)
 
 /* E500MC MSR */
-.global asm_prefix(msr_enable_gs)
-.global asm_prefix(msr_disable_gs)
 .global asm_prefix(msr_enable_pr)
 .global asm_prefix(msr_disable_pr)
 
@@ -232,18 +230,6 @@ asm_prefix(msr_disable_pmm):
     msync
     blr
 
-/*  Clear GS bit in the E500MC MSR */
-/*  void MSR_DisableGS(void) */
-asm_prefix(msr_disable_gs):
-    mfmsr       3
-    addis       4, 0, not_MSR_GS@h     /* load not_MSR_GS mask to 4 */
-    ori         4, 4, not_MSR_GS@l
-    and         4, 3, 4
-    mtmsr       4
-    isync
-    msync
-    blr
-
 /*  Clear PR bit in the E500MC MSR */
 /*  void MSR_DisablePR(void) */
 asm_prefix(msr_disable_pr):
@@ -251,18 +237,6 @@ asm_prefix(msr_disable_pr):
     addis       4, 0, not_MSR_PR@h     /* load not_MSR_PR mask to 4 */
     ori         4, 4, not_MSR_PR@l
     and         4, 3, 4
-    mtmsr       4
-    isync
-    msync
-    blr
-
-/*  Set GS bit in the E500MC MSR*/
-/*  void MSR_EnableGS(void) */
-asm_prefix(msr_enable_gs):
-    mfmsr       3
-    addis       4, 0, MSR_GS@h          /* load MSR_GS mask to 4 */
-    ori         4, 4, MSR_GS@l
-    or          4, 3, 4
     mtmsr       4
     isync
     msync

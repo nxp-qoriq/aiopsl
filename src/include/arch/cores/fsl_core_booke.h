@@ -369,8 +369,6 @@ void        msr_enable_pmm(void);
 void        msr_disable_pmm(void);
 
 /* E500MC MSR */
-void        msr_enable_gs(void);
-void        msr_disable_gs(void);
 void        msr_enable_pr(void);
 void        msr_disable_pr(void);
 
