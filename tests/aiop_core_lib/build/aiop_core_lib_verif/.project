@@ -348,6 +348,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_fdma.h</locationURI>
 		</link>
 		<link>
+			<name>sources/include/dplib/fsl_frame_operations.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_frame_operations.h</locationURI>
+		</link>
+		<link>
 			<name>sources/include/dplib/fsl_general.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_general.h</locationURI>
@@ -533,6 +538,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/netf/general</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/netf/ip</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -671,6 +681,11 @@
 			<name>sources/drivers/dplib/arch/ppc/booke.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/booke.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/netf/general/frame_operations.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/netf/general/frame_operations.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/ip/ip.c</name>

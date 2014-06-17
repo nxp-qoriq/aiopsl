@@ -54,4 +54,9 @@ enum fsl_os_module {
 /** @} */ /* end of ls2100a_g group */
 
 
+/* Offsets relative to CCSR base */
+#define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
+#define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
+#define SOC_PERIPH_OFF_AIOP_CMGW        0x0
+
 #endif /* __FSL_SOC_AIOP_SPEC_H */
