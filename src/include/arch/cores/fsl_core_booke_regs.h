@@ -329,8 +329,6 @@
 #define SVR         1023    /* System version register */
 #define ILLEGAL     333     /* For test only */
 
-#define SCCSRBAR    1022    /* Shifted CCSRBAR register - valid for e6500 core */
-
 /* Hardware Debug Control Registers */
 #define HDBCR0      976
 #define HDBCR1      977

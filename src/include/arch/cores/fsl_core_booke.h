@@ -596,8 +596,6 @@ uint32_t booke_get_spr_ILLEGAL(void);         /* [999]        System version reg
 void booke_set_spr_ILLEGAL(uint32_t newvalue);/* [999]        System version register */
 void e500_illegal_inst(void);
 
-uint32_t booke_get_spr_SCCSRBAR(void);        /* [1022]       Shifted CCSRBAR register (on e6500) */
-
 uint32_t booke_get_spr_HDBCR0(void);
 void booke_set_spr_HDBCR0(uint32_t newvalue);
 uint32_t booke_get_spr_HDBCR2(void);
