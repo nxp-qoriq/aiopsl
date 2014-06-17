@@ -370,14 +370,18 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	split_frame_params.present_size = PRC_GET_SEGMENT_LENGTH();
 	split_frame_params.source_frame_handle =
 					ipf_ctx->rem_frame_handle;
-	/*	split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);*/
 
 	/* In case of fragments restoration need to store the frame in order
 	 * to get updated FD[length] */
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
+#ifdef REV2
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-				/*FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |*/
+				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
 					FDMA_SPLIT_SM_BIT;
+#else
+		split_frame_params.flags = FDMA_CFA_COPY_BIT |
+						FDMA_SPLIT_SM_BIT;
+#endif
 		split_frame_params.split_size_sf = 0;
 
 		/* Split remaining frame, put split frame in default FD
@@ -390,6 +394,12 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 		} else if (status) {
 				return status; /* TODO*/
 		} else {
+#ifndef REV2
+			/* Store frame so FD will be updated */
+			status = fdma_store_default_frame_data();
+			if (status)
+				return status; /* TODO*/
+#endif
 			/* Present frame */
 			status = fdma_present_default_frame();
 /*
@@ -597,6 +607,7 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 		/* Keep PRC parameters */
 		ipf_ctx->prc_seg_address = PRC_GET_SEGMENT_ADDRESS();
 		ipf_ctx->prc_seg_length = PRC_GET_SEGMENT_LENGTH();
+		ipf_ctx->prc_seg_offset = PRC_GET_SEGMENT_OFFSET();
 		/* Keep frame's ip offset */
 		ipf_ctx->ip_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 
@@ -720,6 +731,7 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 		/* Restore original PRC parameters */
 		PRC_SET_SEGMENT_ADDRESS(ipf_ctx->prc_seg_address);
 		PRC_SET_SEGMENT_LENGTH(ipf_ctx->prc_seg_length);
+		PRC_SET_SEGMENT_OFFSET(ipf_ctx->prc_seg_offset);
 
 		/* Clear gross running sum in parse results */
 		pr->gross_running_sum = 0;
