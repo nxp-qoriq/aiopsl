@@ -58,6 +58,7 @@ int tile_init(void);
 int cluster_init(void);
 int run_apps(void);
 void core_ready_for_tasks(void);
+void global_free(void);
 
 
 #include "general.h"
