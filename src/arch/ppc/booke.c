@@ -19,11 +19,6 @@ Author: Donio Ron
 #include "booke.h"
 #include "dbg.h"
 
-#ifdef CORE_E6500
-#include "clc_ext.h"
-#endif /* CORE_E6500 */
-
-
 #ifdef CORE_E500V2
 extern void save_core_regs(uint32_t bptr_addr);
 extern void booke_recover_deep_sleep_mode();
