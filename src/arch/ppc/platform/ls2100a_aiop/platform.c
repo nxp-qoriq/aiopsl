@@ -588,7 +588,6 @@ int platform_init(struct platform_param    *pltfrm_param,
                   t_platform_ops           *pltfrm_ops)
 {
     t_platform      *pltfrm;
-    int             err;
     int             i, mem_index;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
@@ -607,7 +606,7 @@ int platform_init(struct platform_param    *pltfrm_param,
        user's partition definition is within actual physical
        addresses range. */
     for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-        t_platform_mem_region_info  mem_region_info;
+        /* t_platform_mem_region_info  mem_region_info; */
         t_platform_memory_info      *mem_info;
 
         mem_info = pltfrm->param.mem_info + i;
