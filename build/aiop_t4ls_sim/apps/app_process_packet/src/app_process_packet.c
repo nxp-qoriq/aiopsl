@@ -4,7 +4,6 @@
 #include "fsl_ip.h"
 #include "kernel/platform.h"
 #include "io.h"
-#include "aiop_common.h"
 #include "fsl_parser.h"
 #include "general.h"
 #include "dbg.h"

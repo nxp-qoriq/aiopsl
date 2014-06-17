@@ -120,7 +120,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 			status = -ENOMEM;
 			break;
 		default:
-			table_fatal_status_handler(status);
+			table_exception_handler(__FILE__, __LINE__, status);
 			break;
 		}
 	}
@@ -187,8 +187,8 @@ void table_get_params(enum table_hw_accel_id acc_id,
 
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (!status)
-		table_fatal_status_handler(status);
+	if (status)
+		table_exception_handler(__FILE__, __LINE__, status);
 
 	return;
 }
@@ -207,7 +207,8 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 		exception_handler(__FILE__,
 				  __LINE__,
 				  "Table get miss result failed due to non"
-				  "-existance of a miss result in the table. ");
+				  "-existance of a miss result in the table.\n"
+				 );
 
 	return;
 }
@@ -226,8 +227,8 @@ void table_delete(enum table_hw_accel_id acc_id,
 
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (!status)
-		table_fatal_status_handler(status);
+	if (status)
+		table_exception_handler(__FILE__, __LINE__, status);
 
 	return;
 }
@@ -307,7 +308,7 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	}
 	return status;
@@ -379,7 +380,7 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	} /* Switch */
 
@@ -441,7 +442,7 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	} /* Switch */
 
@@ -522,7 +523,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	} /* Switch */
 
@@ -569,7 +570,7 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	} /* Switch */
 
@@ -604,7 +605,7 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 	case (TABLE_HW_STATUS_MISS):
 		break;
 	default:
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	} /* Switch */
 	return status;
@@ -637,7 +638,7 @@ int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	} /* Switch */
 
@@ -683,7 +684,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_fatal_status_handler(status);
+		table_exception_handler(__FILE__, __LINE__, status);
 		break;
 	} /* Switch */
 
@@ -731,24 +732,26 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 }
 
 
-void table_fatal_status_handler(int32_t status){
+void table_exception_handler(char *filename, uint32_t line, int32_t status){
 
 	switch (status) {
 	case (TABLE_HW_STATUS_MNLE):
-		handle_fatal_error("Maximum number of chained lookups reached"
-				   ".\n");
+		exception_handler(filename, line,
+				  "Maximum number of chained lookups reached"
+				  ".\n");
 		break;
 	case (TABLE_HW_STATUS_KSE):
-		handle_fatal_error("Key size error.\n");
+		exception_handler(filename, line, "Key size error.\n");
 		break;
 	case (MFLU_HW_STATUS_TIDE):
-		handle_fatal_error("Invalid MFLU table ID.\n");
+		exception_handler(filename, line, "Invalid MFLU table ID.\n");
 		break;
 	case (CTLU_HW_STATUS_TIDE):
-		handle_fatal_error("Invalid CTLU table ID.\n");
+		exception_handler(filename, line, "Invalid CTLU table ID.\n");
 		break;
 	default:
-		handle_fatal_error("Unknown or Invalid status.\n");
+		exception_handler(filename, line, "Unknown or Invalid status."
+						  "\n");
 		break;
 	}
 
