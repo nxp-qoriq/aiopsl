@@ -22,7 +22,7 @@
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
-	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFFFFFF)
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
@@ -288,8 +288,16 @@ int cmdif_srv_init(void)
 		return -ENOMEM;
 	}
 	srv_aiop->srv =srv;
+	srv_aiop->dpci_tbl = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	
 	err = sys_add_handle(srv_aiop, FSL_OS_MOD_CMDIF_SRV, 1, 0);
+	
+	if (srv_aiop->dpci_tbl == NULL)
+	{
+		pr_err("No DPCI table \n");
+		return -ENODEV;
+	}
+
 	return err;
 }
 
@@ -303,21 +311,31 @@ void cmdif_srv_free(void)
 }
 
 
-__HOT_CODE static int cmdif_fd_send(int cb_err)
+__HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-
+	uint32_t fqid = RESP_QID_GET;
+#ifndef OLD_DPCI	
+	uint8_t  ind = 0;
+	uint8_t  pr  = 0;
+#endif
 	/** ERROR is not overridden by FDMA store */
 	flc &= ~ERROR_MASK;
 	flc |= ((uint64_t)cb_err) << ERROR_OFF;
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
-	pr_debug("Response QID = 0x%x\n", RESP_QID_GET);
+
+#ifndef OLD_DPCI
+	ind = (uint8_t)(fqid >> 1);
+	pr  = (uint8_t)(fqid & 1);
+	fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+#endif
+	pr_debug("Response ID = 0x%x\n", fqid);
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_EN_TC_RET_BITS);
+		fqid, FDMA_EN_TC_RET_BITS);
 	if (err)
 		pr_err("Failed to send response\n");	
 
@@ -545,7 +563,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	if (SEND_RESP(cmd_id)) {
 		pr_debug("PASSED Asynchronous Command\n");
-		err = cmdif_fd_send(err);
+		err = cmdif_fd_send(err, aiop_srv);
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");
