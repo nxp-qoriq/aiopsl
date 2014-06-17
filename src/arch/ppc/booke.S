@@ -1594,11 +1594,6 @@ asm_prefix(booke_set_spr_SVR):
     mtspr   SVR,3           /* 1023 */  /* System version register */
     blr
 
-.global    asm_prefix(booke_get_spr_SCCSRBAR)
-asm_prefix(booke_get_spr_SCCSRBAR):
-    mfspr   3, SCCSRBAR     /* 1022 */  /* Shifted CCSRBAR register */
-    blr
-
 .global    asm_prefix(booke_get_spr_HDBCR0)
 asm_prefix(booke_get_spr_HDBCR0):
     mfspr   3, HDBCR0
