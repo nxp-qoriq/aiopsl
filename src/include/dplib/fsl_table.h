@@ -102,7 +102,7 @@
 @{
 *//***************************************************************************/
 	/** Internal table (located in dedicated RAM), Not available for
-	 * MFLU Table HW Accelerator */
+	 * MFLU Table HW Accelerator. Not available for Rev1. */
 #define TABLE_ATTRIBUTE_LOCATION_INT	0x0200
 
 	/** Packet Express Buffer table (Exact memory region is specified by
