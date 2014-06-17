@@ -171,19 +171,10 @@ uint32_t booke_get_id(void)
 {
     uint32_t cpu_id = 0;
 
-#ifdef E500v2_CORE_SIMULATION
-    return 0;
-#endif /* E500v2_CORE_SIMULATION */
-
     cpu_id = get_cpu_id();
-
-#if defined(CORE_E200)
+#ifdef CORE_E200_Z490
     cpu_id >>= 4;
-#elif defined(CORE_E500MC) || defined(CORE_E5500)
-//    cpu_id >>= 5;
-#elif defined(CORE_E6500)
-
-#endif /* defined(CORE_E500MC) || ... */
+#endif
 
     if (cpu_id >= INTG_MAX_NUM_OF_CORES) {
 	    pr_err("Core ID 0x%x is out of range, max = %d \n",
