@@ -34,7 +34,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (1 * MEGABYTE)   },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR, 				0x58000000,    0x58000000, (128 * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR, 		0x58000000,    0x58000000, (128 * MEGABYTE) },\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x80000000,    0x80000000, (2 * MEGABYTE)   },\
 }
 
@@ -161,7 +161,7 @@ void core_ready_for_tasks(void)
 
 static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
-	pr_debug(" device %d\n");
+	pr_debug(" device %d\n", dev_desc->id);
 	pr_debug("***********\n");
 	pr_debug("vendor - %x\n", dev_desc->vendor);
 

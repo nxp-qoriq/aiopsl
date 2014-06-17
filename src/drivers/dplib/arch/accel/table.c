@@ -373,10 +373,10 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		status = -ENOMEM;
 		break;
 	case (CTLU_HW_STATUS_TEMPNOR):
-		status = -EAGAIN;
+		status = -ENOMEM;
 		break;
 	case (MFLU_HW_STATUS_TEMPNOR):
-		status = -EAGAIN;
+		status = -ENOMEM;
 		break;
 	default:
 		/* Call fatal error handler */
