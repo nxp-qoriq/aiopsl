@@ -286,7 +286,6 @@ asm_prefix(msr_enable_pr):
 .global asm_prefix(l1dcache_enable),        asm_prefix(l1dcache_disable)
 .global asm_prefix(l1icache_enable),        asm_prefix(l1icache_disable)
 .global asm_prefix(l1dcache_invalidate),    asm_prefix(l1icache_invalidate)
-.global asm_prefix(l1dcache_invalidate_and_clear),    asm_prefix(l1icache_invalidate_and_clear)
 .global asm_prefix(l1dcache_flush),         asm_prefix(l1icache_flush)
 .global asm_prefix(l1icache_is_enabled),         asm_prefix(l1icache_is_enabled)
 .global asm_prefix(l1dcache_is_enabled),         asm_prefix(l1dcache_is_enabled)
@@ -368,41 +367,11 @@ asm_prefix(l1dcache_invalidate):
     isync
     blr
 
-/* Data cache invalidate and lock flash clear */
-asm_prefix(l1dcache_invalidate_and_clear):
-    msync
-    isync
-    mfspr       3, L1CSR0
-    ori         3, 3, L1CSR0_CFI       /* set invalidate bit at L1CSR0 */
-    ori         3, 3, L1CSR0_CLFR      /* set cache lock flash clear bit at L1CSR0 */
-    mtspr       L1CSR0, 3
-1:
-    mfspr       3, L1CSR0
-    andi.       3, 3, L1CSR0_CFI
-    bne         1b
-    isync
-    blr
-
 /* Instruction cache invalidate */
 asm_prefix(l1icache_invalidate):
     isync
     mfspr       3, L1CSR1
     ori         3, 3, L1CSR1_ICFI      /* set invalidate bit at L1CSR1 */
-    mtspr       L1CSR1, 3
-1:
-    mfspr       3, L1CSR1
-    andi.       3, 3, L1CSR1_ICFI
-    bne         1b
-    isync
-    blr
-
-
-/* Instruction cache invalidate and lock flash clear */
-asm_prefix(l1icache_invalidate_and_clear):
-    isync
-    mfspr       3, L1CSR1
-    ori         3, 3, L1CSR1_ICFI      /* set invalidate bit at L1CSR1 */
-    ori         3, 3, L1CSR1_ICLFR     /* set cache lock flash clear bit at L1CSR */
     mtspr       L1CSR1, 3
 1:
     mfspr       3, L1CSR1

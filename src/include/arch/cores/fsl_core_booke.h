@@ -141,79 +141,6 @@ void booke_dcache_set_stash_id(uint8_t stash_id);
 *//***************************************************************************/
 uint8_t booke_dcache_get_stash_id(void);
 
-#if defined(CORE_E500MC) || defined(CORE_E5500)
-/**************************************************************************//**
- @Description   BOOKE L2 Cache Operation Mode
-*//***************************************************************************/
-typedef enum booke_l2cache_mode {
-    E_L2_CACHE_MODE_DATA_ONLY      = 0x00000001,   /**< Cache data only */
-    E_L2_CACHE_MODE_INST_ONLY      = 0x00000002,   /**< Cache instructions only */
-    E_L2_CACHE_MODE_DATA_AND_INST  = 0x00000003    /**< Cache data and instructions */
-} booke_l2cache_mode;
-
-
-int booke_is_l2icache_enabled(void);
-int booke_is_l2dcache_enabled(void);
-
-/**************************************************************************//**
- @Function      booke_l2cache_enable
-
- @Description   Enables the cache for memory pages that are not cache inhibited.
-
- @param[in]     mode - L2 cache mode: data only, instruction only or instruction and data.
-
- @Return        None.
-
- @Cautions      This routine must be call only ONCE for both caches. I.e. it is
-                not possible to call this routine for i-cache and than to call
-                again for d-cache; The second call will override the first one.
-*//***************************************************************************/
-void booke_l2cache_enable(booke_l2cache_mode mode);
-
-/**************************************************************************//**
- @Function      booke_l2cache_disable
-
- @Description   Disables the cache (data instruction or both).
-
- @Return        None.
-
-*//***************************************************************************/
-void booke_l2cache_disable(void);
-
-/**************************************************************************//**
- @Function      booke_l2cache_flush
-
- @Description   Flushes the cache.
-
- @Return        None.
-*//***************************************************************************/
-void booke_l2cache_flush(void);
-
-/**************************************************************************//**
- @Function      booke_l2cache_set_stash_id
-
- @Description   Set Stash Id
-
- @Param[in]     stashId     the stash id to be set.
-
- @Return        None.
-*//***************************************************************************/
-void booke_l2cache_set_stash_id(uint8_t stash_id);
-#endif /* defined(CORE_E500MC) || ... */
-
-#ifdef CORE_E6500
-/**************************************************************************//**
- @Function      E6500_GetCcsrBase
-
- @Description   Obtain SoC CCSR base address
-
- @Param[in]     None.
-
- @Return        Physical CCSR base address.
-*//***************************************************************************/
-dma_addr_t e6500_get_ccsr_base(void);
-#endif /* CORE_E6500 */
-
 /**************************************************************************//**
  @Function      booke_address_bus_streaming_enable
 
@@ -391,10 +318,6 @@ static inline void booke_local_irq_restore(uint32_t flags)
  */
 void        l1dcache_invalidate (void);
 void        l1icache_invalidate(void);
-#if defined(CORE_E500MC) || defined(CORE_E6500)
-void        l1dcache_invalidate_and_clear (void);
-void        l1icache_invalidate_and_clear(void);
-#endif /* defined(CORE_E500MC) || ... */
 void        l1dcache_enable(void);
 void        l1icache_enable(void);
 void        l1dcache_disable(void);
