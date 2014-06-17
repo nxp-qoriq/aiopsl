@@ -30,13 +30,11 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MEMORY_INFO                                                                                           \
 {   /* Region ID                Memory partition ID             Phys. Addr.    Virt. Addr.  Size            */\
-    {PLTFRM_MEM_RGN_WS,         MEM_PART_INVALID,               0x00000000,    0x00000000, (2   * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_IRAM,       MEM_PART_INVALID,               0x00fe0000,    0x00fe0000, (128 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (1 * MEGABYTE)   },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_DDR1,       MEM_PART_1ST_DDR_NON_CACHEABLE, 0x58000000,    0x58000000, (128 * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR, 				0x58000000,    0x58000000, (128 * MEGABYTE) },\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x80000000,    0x80000000, (2 * MEGABYTE)   },\
 }
 
@@ -127,7 +125,13 @@ void core_ready_for_tasks(void)
     uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
 
     /*  finished boot sequence; now wait for event .... */
-    pr_info("AIOP %d completed boot sequence; waiting for events ...\n", core_get_id());
+    pr_info("AIOP %d completed boot sequence\n", core_get_id());
+    
+    sys_barrier();
+    
+    if(sys_is_master_core()) {
+        pr_info("AIOP boot finished; ready for tasks...\n");
+    }
     
     sys_barrier();
     

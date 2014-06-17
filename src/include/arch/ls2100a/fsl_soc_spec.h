@@ -30,6 +30,15 @@
 #define FSL_OS_NUM_MODULES  FSL_OS_MOD_DUMMY_LAST
 
 /* Offsets relative to CCSR base */
+
+#define SOC_PERIPH_OFF_DUART1           0x021C0500
+#define SOC_PERIPH_OFF_DUART2           0x021C0600
+#define SOC_PERIPH_OFF_DUART3           0x021d0500
+#define SOC_PERIPH_OFF_DUART4           0x021d0600
+
+
+#if 0
+
 #define SOC_PERIPH_OFF_LAW              0x00000c00
 #define SOC_PERIPH_OFF_PM1              0x00004000
 #define SOC_PERIPH_OFF_DDR1             0x00008000
@@ -83,19 +92,26 @@
 /* Offsets relative to QBMan portals base */
 #define SOC_PERIPH_OFF_PORTALS_CE_AREA  0x0000000        /* cache enabled area */
 #define SOC_PERIPH_OFF_PORTALS_CI_AREA  0x1000000        /* cache inhibited area */
+#endif
 /* Offsets relative to MC portals base */
 #define SOC_PERIPH_OFF_PORTALS_MC_AREA  0x0000000
 
+#define SOC_PERIPH_MC_PORTAL_SIZE       0x10000
+
+#if 0
 #define SOC_PERIPH_CE_PORTAL_SIZE       0x4000
 #define SOC_PERIPH_CI_PORTAL_SIZE       0x1000
-#define SOC_PERIPH_MC_PORTAL_SIZE       0x10000
+
 
 #define SOC_PERIPH_OFF_PORTALS_CE(_prtl) \
     (SOC_PERIPH_OFF_PORTALS_CE_AREA + SOC_PERIPH_CE_PORTAL_SIZE * (_prtl))
 #define SOC_PERIPH_OFF_PORTALS_CI(_prtl) \
     (SOC_PERIPH_OFF_PORTALS_CI_AREA + SOC_PERIPH_CI_PORTAL_SIZE * (_prtl))
+#endif
+
 #define SOC_PERIPH_OFF_PORTALS_MC(_prtl) \
     (SOC_PERIPH_OFF_PORTALS_MC_AREA + SOC_PERIPH_MC_PORTAL_SIZE * (_prtl))
+
 
 
 /**************************************************************************//**
@@ -110,9 +126,17 @@
 /** @} */ /* end of ls2100a_g group */
 
 
+
 /*****************************************************************************
  INTEGRATION-SPECIFIC MODULE CODES
 ******************************************************************************/
+#define MODULE_UNKNOWN          0x00000000
+#define MODULE_SLOB             0x00020000
+#define MODULE_SOC_PLATFORM     0x00050000
+#define MODULE_DUART            0x000a0000
+
+
+#if 0
 #define MODULE_UNKNOWN          0x00000000
 #define MODULE_SLAB             0x00010000
 #define MODULE_SLOB             0x00020000
@@ -142,6 +166,8 @@
 #define MODULE_DPIO             0x00290000
 #define MODULE_DPSP             0x002a0000
 #define MODULE_LINKMAN          0x002b0000
+
+#endif
 
 
 #endif /* __FSL_SOC_SPEC_H */

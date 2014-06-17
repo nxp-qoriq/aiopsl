@@ -71,11 +71,6 @@ asm void __sys_start(register int argc, register char **argv, register char **en
 {
 	nofralloc
 
-    /* Init command line arguments */
-    mr     r14, argc
-    mr     r15, argv
-    mr     r16, envp
-
     /* Store core ID */
     mfpir  r17
     /*"srwi   17, 17, 5 \n"*/
@@ -127,9 +122,9 @@ done_sp:
     lis    r6, main@ha
     addi   r6, r6, main@l
     mtlr   r6
-    mr     r3, r14
-    mr     r4, r15
-    mr     r5, r16
+    mr     r3, argc /* Init command line arguments */
+    mr     r4, argv
+    mr     r5, envp
     blrl
 
     /* Exit program */
