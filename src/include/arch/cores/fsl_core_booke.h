@@ -411,18 +411,6 @@ uint32_t    l1icache_line_lock(uint32_t addr);
 void        l1cache_broad_cast_enable(void);
 void        l1cache_broad_cast_disable(void);
 
-void booke_set_doze_mode(void);
-void booke_set_nap_mode(void);
-void booke_set_sleep_mode(void);
-void booke_set_jog_mode(void);
-int booke_set_deep_sleep_mode(uint32_t bptr_address);
-
-void booke_recover_doze_mode(void);
-void booke_recover_nap_mode(void);
-void booke_recover_sleep_mode(void);
-void booke_recover_jog_mode(void);
-
-
 /* assembly routines prototypes for user reference only */
 
 uint32_t    get_cr(void);
