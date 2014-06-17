@@ -2,7 +2,6 @@
 #define __CMDIF_SRV_H
 
 #include <fsl_cmdif_server.h>
-#include <fsl_cmdif_client.h>
 
 #define CMD_ID_MASK	   0x00000000FFFF0000 /**< FLC */
 #define CMD_ID_OFF	   16
@@ -18,10 +17,6 @@
 
 #define CMD_ID_OPEN           0x8000
 #define CMD_ID_CLOSE          0x4000
-#define CMD_ID_NOTIFY_OPEN    0xF000 
-/**< Special command for cmdif_session_open() */
-#define CMD_ID_NOTIFY_CLOSE   0xE000 
-/**< Special command for cmdif_session_open() */
 #define M_NUM_OF_INSTANCES    512
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
@@ -58,8 +53,5 @@ struct cmdif_session_data {
         uint8_t  inst_id;           
         char     m_name[M_NAME_CHARS + 1]; 
 };
-
-int cmdif_srv_init(void);
-void cmdif_srv_free(void);
 
 #endif /* __CMDIF_SRV_H */
