@@ -193,7 +193,7 @@ static inline int sanity_check_slab_create(uint32_t    num_buffs,
 	SLAB_ASSERT_COND_RETURN(flags == 0,      -EINVAL);
 
 	SLAB_ASSERT_COND_RETURN(is_power_of_2(alignment), -EINVAL);
-	SLAB_ASSERT_COND_RETURN(((mem_pid == MEM_PART_1ST_DDR_NON_CACHEABLE) ||
+	SLAB_ASSERT_COND_RETURN(((mem_pid == MEM_PART_DP_DDR) ||
 		(mem_pid == MEM_PART_PEB)), -EINVAL);
 	return 0;
 }
@@ -450,8 +450,7 @@ __HOT_CODE int slab_refcount_incr(struct slab *slab, uint64_t buff)
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 #endif
-	if (cdma_refcount_increment(buff))
-		return -EFAULT;
+	cdma_refcount_increment(buff);		
 
 	return 0;
 }

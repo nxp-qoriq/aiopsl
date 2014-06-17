@@ -33,7 +33,8 @@ static int sync_done_read(union  cmdif_data *resp, struct cmdif_desc *client)
 {
 	struct cmdif_dev  *dev = (struct cmdif_dev *)client->dev;
 	uint64_t sync_addr = fsl_os_virt_to_phys(dev->sync_done);
-	return cdma_read(resp, sync_addr, sizeof(union cmdif_data));
+	cdma_read(resp, sync_addr, sizeof(union cmdif_data));
+	return 0;
 }
 
 #define SYNC_DONE_TEST \

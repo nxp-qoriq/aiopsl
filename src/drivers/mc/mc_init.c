@@ -8,6 +8,7 @@
 #include "dbg.h"
 #include "errors.h"
 #include "dplib/fsl_dprc.h"
+#include "dplib/fsl_dpci.h"
 
 int mc_obj_init();
 void mc_obj_free();
@@ -61,18 +62,83 @@ static void aiop_container_free()
 		fsl_os_xfree(dprc);		
 }
 
+static int dpci_discovery()
+{
+	int dev_count;
+	struct dprc_obj_desc dev_desc;
+	int err = 0;
+	int i = 0;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dpci *dpci;
+	struct dpci_dest_cfg dest_cfg;
+	int ind = 0;
+	
+	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+	    pr_err("Failed to get device count for RC auth_d = %d\n", 
+	           dprc->auth);
+	    return err;
+	}
+
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(dprc, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpci") == 0) {			
+			pr_debug(" Found DPCI device\n");
+			pr_debug("***********\n");
+			pr_debug("vendor - %x\n", dev_desc.vendor);
+			pr_debug("type - %s\n", dev_desc.type);
+			pr_debug("id - %d\n", dev_desc.id);
+			pr_debug("region_count - %d\n", dev_desc.region_count);
+			pr_debug("state - %d\n", dev_desc.state);
+			pr_debug("ver_major - %d\n", dev_desc.ver_major);
+			pr_debug("ver_minor - %d\n", dev_desc.ver_minor);
+			pr_debug("irq_count - %d\n\n", dev_desc.irq_count);
+#if NEW_DPCI			
+			dpci = fsl_os_xmalloc(sizeof(struct dpci), 
+			                      MEM_PART_1ST_DDR_NON_CACHEABLE, 
+			                      8);
+			/* TODO store dpci somewhere */
+			if (dpci == NULL) {
+				pr_err("No memory for dpci \n");
+				return -ENOMEM;
+			}
+			
+			dpci->regs = dprc->regs;
+			err |= dpci_open(dpci, dev_desc.id);			
+			dest_cfg.type = DPCI_DEST_NONE;
+			dest_cfg.priority = 0;
+			err |= dpci_set_rx_queue(dpci, 0, &dest_cfg, ind);
+			dest_cfg.priority = 1;
+			err |= dpci_set_rx_queue(dpci, 1, &dest_cfg, ind);
+			err |= dpci_enable(dpci);
+			if (err) {
+				pr_err("Failed dpci initialization \n");
+				return -ENODEV;
+			}
+#endif
+			ind++;
+		}
+	}
+
+	return err;
+}
 
 int mc_obj_init()
 {
 	int err = 0;
-	
-	err |= aiop_container_init();
-	
+
+#ifndef AIOP_STANDALONE
+	err |= aiop_container_init();	
+	err |= dpci_discovery(); /* must be after aiop_container_init */ 
+#endif
 	return err;
 	
 }
 
 void mc_obj_free()
 {
+#ifndef AIOP_STANDALONE
 	aiop_container_free();
+	
+	/* TODO DPCI close ??? */
+#endif
 }

@@ -22,7 +22,7 @@
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
-	(uint16_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
@@ -256,7 +256,7 @@ static void *fast_malloc(int size)
 
 static void *slow_malloc(int size)
 {
-	return fsl_os_xmalloc((size_t)size, MEM_PART_1ST_DDR_NON_CACHEABLE, 8);
+	return fsl_os_xmalloc((size_t)size, MEM_PART_DP_DDR, 8);
 }
 
 static void srv_free(void *ptr)
@@ -317,7 +317,10 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_EN_TC_CONDTERM_BITS);
+					RESP_QID_GET, FDMA_EN_TC_RET_BITS);
+	if (err)
+		pr_err("Failed to send response\n");	
+
 	return err;
 }
 
@@ -344,9 +347,8 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	if (_sync_done == NULL) {
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
-	} else if (cdma_write(_sync_done, &resp, 4)) {
-		pr_err("CDMA write failed, can't finish sync command\n");
-		/** In this case client will fail on timeout */
+	} else {
+		cdma_write(_sync_done, &resp, 4);
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n", 
@@ -364,6 +366,23 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 
+static void notify_open(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+{
+	struct cmdif_srv *srv = aiop_srv->srv;
+
+	/* Support for AIOP -> GPP */
+	
+	sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+}
+
+static void notify_close(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+{
+	struct cmdif_srv *srv = aiop_srv->srv;
+
+	/* Support for AIOP -> GPP */
+		
+	sync_cmd_done(NULL, -ENOTSUP, auth_id, srv, TRUE);	
+}
 
 #pragma push
 #pragma force_active on
@@ -389,29 +408,41 @@ __HOT_CODE void cmdif_srv_isr(void)
 	{
 		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 		                   PRC_GET_SEGMENT_LENGTH());
-		uint8_t  data = 0;
+		uint8_t  *p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
-		         PRC_GET_SEGMENT_ADDRESS(), len);
-		DUMP_MEMORY(PRC_GET_SEGMENT_ADDRESS(), len);
+		         p, len);
+		while (len > 15)
+		{
+			fsl_os_print("0x%x: %x %x %x %x\r\n",
+			             p, *(uint32_t *)p, *(uint32_t *)(p + 4),
+			             *(uint32_t *)(p + 8), *(uint32_t *)(p + 12));
+			len -= 16;
+			p += 16;
+		}
+		while (len > 3)
+		{
+			fsl_os_print("0x%x: %x\r\n",
+			             p, *(uint32_t *)p);
+			len -= 4;
+			p += 4;
+		}
+
 	}
 #endif
 		
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
-		
 		/* Support for AIOP -> GPP */
 		if (IS_VALID_AUTH_ID(auth_id)) { 
-			sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+			notify_open(aiop_srv, auth_id);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 		
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
-		
-		/* Support for AIOP -> GPP */
 		if (IS_VALID_AUTH_ID(auth_id)) { 
-			sync_cmd_done(NULL, -ENOTSUP, auth_id, srv, TRUE);
+			notify_close(aiop_srv, auth_id);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
@@ -515,15 +546,12 @@ __HOT_CODE void cmdif_srv_isr(void)
 	if (SEND_RESP(cmd_id)) {
 		pr_debug("PASSED Asynchronous Command\n");
 		err = cmdif_fd_send(err);
-		if (err) {
-			pr_err("Failed to send response auth_id = 0x%x\n",
-			auth_id);
-		}
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");
 		fdma_store_default_frame_data();
 	}
+	
 	fdma_terminate_task();
 }
 

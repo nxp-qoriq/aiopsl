@@ -47,7 +47,11 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_L2_HEADER_REMOVE,
 	HM_CMDTYPE_VLAN_HEADER_REMOVE,
 	HM_CMDTYPE_IPV4_MODIFICATION,
+	HM_CMDTYPE_IPV4_MANGLE,
+	HM_CMDTYPE_IPV4_DEC_TTL,
 	HM_CMDTYPE_IPV6_MODIFICATION,
+	HM_CMDTYPE_IPV6_MANGLE,
+	HM_CMDTYPE_IPV6_DEC_HOP_LIMIT,
 	HM_CMDTYPE_IPV4_ENCAPSULATION,
 	HM_CMDTYPE_IPV6_ENCAPSULATION,
 	HM_CMDTYPE_EXT_IPV4_ENCAPSULATION,
@@ -66,6 +70,7 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_SET_TP_SRC,
 	HM_CMDTYPE_SET_TP_DST,
 	HM_CMDTYPE_PUSH_VLAN,
+	HM_CMDTYPE_PUSH_AND_SET_VLAN,
 	HM_CMDTYPE_POP_VLAN,
 	HM_CMDTYPE_IP_CKSUM_CALCULATE,
 	HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC
@@ -85,8 +90,20 @@ enum e_hm_verif_cmd_type {
 #define HM_IPV4_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV4_MODIFICATION)
 
+#define HM_IPV4_MANGLE_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_IPV4_MANGLE)
+
+#define HM_IPV4_DEC_TTL_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_IPV4_DEC_TTL)
+
 #define HM_IPV6_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV6_MODIFICATION)
+
+#define HM_IPV6_MANGLE_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_IPV6_MANGLE)
+
+#define HM_IPV6_DEC_HOP_LIMIT_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_IPV6_DEC_HOP_LIMIT)
 
 #define HM_IPV4_ENCAPSULATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV4_ENCAPSULATION)
@@ -141,6 +158,9 @@ enum e_hm_verif_cmd_type {
 
 #define HM_PUSH_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_PUSH_VLAN)
+
+#define HM_PUSH_AND_SET_VLAN_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_PUSH_AND_SET_VLAN)
 
 #define HM_POP_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
@@ -204,6 +224,32 @@ struct hm_ipv4_modification_command {
 };
 
 /**************************************************************************//**
+@Description	HM IPv4 Mangle Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_ipv4_mangle_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	int		status;
+	uint8_t		flags;
+	uint8_t		dscp;
+	uint8_t		ttl;
+	uint8_t		pad;
+};
+
+/**************************************************************************//**
+@Description	HM IPv4 decrement TTL Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_ipv4_dec_ttl_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	int		status;
+};
+
+/**************************************************************************//**
 @Description	HM IPv6 Header Modification Command structure.
 
 		Includes information needed for HM Command verification.
@@ -218,6 +264,33 @@ struct hm_ipv6_modification_command {
 	uint8_t		ip_src_addr[16];
 	uint8_t		ip_dst_addr[16];
 	uint8_t		pad[2];
+};
+
+/**************************************************************************//**
+@Description	HM IPv6 Mangle Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_ipv6_mangle_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	int		status;
+	uint32_t	flow_label;
+	uint8_t		flags;
+	uint8_t		dscp;
+	uint8_t		hop_limit;
+	uint8_t		pad;
+};
+
+/**************************************************************************//**
+@Description	HM IPv6 decrement Hop Limit Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_ipv6_dec_hop_limit_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	int		status;
 };
 
 /**************************************************************************//**
@@ -407,6 +480,17 @@ struct hm_push_vlan_command {
 		/**< Command structure identifier. */
 	uint16_t	ethertype;
 	uint8_t		pad[2];
+};
+
+/**************************************************************************//**
+@Description	HM push and set VLAN Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_push_and_set_vlan_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint32_t	vlan_tag;
 };
 
 /**************************************************************************//**

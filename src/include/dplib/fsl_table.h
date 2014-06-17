@@ -309,69 +309,10 @@
 /** Command successful */
 #define TABLE_STATUS_SUCCESS	0x00000000
 
-/** Command failed general status bit.
-A general bit that is set in some errors conditions */
-#define TABLE_STATUS_MGCF	0x80000000
-
-/** Table function input or output is erroneous  */
-#define TABLE_IO_ERROR		0x80000001
-
 /** Miss Occurred.
  * This status is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. */
 #define TABLE_STATUS_MISS	0x00000800
-
-/** Key Composition Error.
- * This status is set when a key composition error occurs, meaning one of the
- * following:
- * - Invalid Key Composition ID was used.
- * - Key Size Error.
- * */
-#define TABLE_STATUS_KSE	0x00000400
-
-/** Extract Out Of Frame Header.
- * This status is set if key composition attempts to extract a field which is
- * not in the frame header either because it is placed beyond the first 256
- * bytes of the frame, or because the frame is shorter than the index evaluated
- * for the extraction. */
-#define TABLE_STATUS_EOFH	0x00000200
-
-/** Maximum Number Of Chained Lookups Is Reached.
- * This status is set if the number of table lookups performed by the CTLU
- * reached the threshold. Not supported in Rev1 */
-#define TABLE_STATUS_MNLE	0x00000100
-
-/** Invalid Table ID.
- * This status is set if the lookup table associated with the TID is not
- * initialized. */
-#define CTLU_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						TABLE_STATUS_MGCF)
-
-/** Resource is not available
- * */
-#define CTLU_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						TABLE_STATUS_MGCF)
-/** Resource Is Temporarily Not Available.
- * Temporarily Not Available occurs if an other resource is in the process of
- * being freed up. Once the process ends, the resource may be available for new
- * allocation (availability is not guaranteed). */
-#define CTLU_STATUS_TEMPNOR	(0x00000010 | CTLU_STATUS_NORSC)
-
-/** Invalid Table ID.
- * This status is set if the lookup table associated with the TID is not
- * initialized. */
-#define MFLU_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_MFLU << 24) | \
-						TABLE_STATUS_MGCF)
-
-/** Resource is not available
- * */
-#define MFLU_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_MFLU << 24) | \
-						TABLE_STATUS_MGCF)
-/** Resource Is Temporarily Not Available.
- * Temporarily Not Available occurs if an other resource is in the process of
- * being freed up. Once the process ends, the resource may be available for new
- * allocation (availability is not guaranteed). */
-#define MFLU_STATUS_TEMPNOR	(0x00000010 | MFLU_STATUS_NORSC)
 
 /** @} */ /* end of FSL_TABLE_STATUS */
 
@@ -590,7 +531,7 @@ struct table_key_desc_mflu {
 	/** MFLU Lookup Key & Priority
 	This should point on a memory location containing concatenation of the
 	following fields (by the same order):
-	 - Lookup Key - Size of this field must be within 4-56 byte.
+	 - Lookup Key - Size of this field must be within 1-56 byte.
 	 - Priority - Priority determines the selection between two rule that
 	match in the MFLU lookup. 0x00000000 is the highest priority. This
 	field size is 4 bytes. */
@@ -792,7 +733,7 @@ union table_lookup_key_desc {
 	/** MFLU Lookup Key & Match Maximum Priority
 	This should point on a memory location containing concatenation of the
 	following fields (by the same order):
-	 - Lookup Key - Size of this field must be within 4-56 byte.
+	 - Lookup Key - Size of this field must be within 1-56 byte.
 	 - Maximum Priority - defines the maximum priority to be matched in the
 	lookup operation. Rules with lower priority will not be matched. 0 is
 	the lowest priority, 0xFFFFFFFF is the highest priority. For lookup of
@@ -937,7 +878,6 @@ struct table_lookup_non_default_params {
 		attributes.
 		 - \ref TABLE_STATUS_MISS - Success, if
 		\ref TABLE_ATTRIBUTE_MR_MISS was set in the table attributes.
-		 - \ref TABLE_IO_ERROR
 		 - \ref CTLU_STATUS_NORSC
 		 - \ref MFLU_STATUS_NORSC
 		 - \ref CTLU_STATUS_TEMPNOR
@@ -977,10 +917,10 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 		table attributes).
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
-				  uint16_t table_id,
-				  struct table_result *new_miss_result,
-				  struct table_result *old_miss_result);
+void table_replace_miss_result(enum table_hw_accel_id acc_id,
+			       uint16_t table_id,
+			       struct table_result *new_miss_result,
+			       struct table_result *old_miss_result);
 
 
 /**************************************************************************//**
@@ -995,16 +935,13 @@ int32_t table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Param[out]	tbl_params - Table parameters. Structure should be allocated by
 		the caller to this function.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
+@Return		None.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_get_params(enum table_hw_accel_id acc_id,
-			 uint16_t table_id,
-			 struct table_get_params_output *tbl_params);
+void table_get_params(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_get_params_output *tbl_params);
 
 
 /**************************************************************************//**
@@ -1019,12 +956,7 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 		is found. Structure should be allocated by the caller to this
 		function.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MISS
-		 - \ref TABLE_IO_ERROR
+@Return		None.
 
 @Cautions	Not available for MFLU table accelerator.
 		This function should only be called if the table was defined
@@ -1036,9 +968,9 @@ int32_t table_get_params(enum table_hw_accel_id acc_id,
 		counter of the buffer.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
-			      uint16_t table_id,
-			      struct table_result *miss_result);
+void table_get_miss_result(enum table_hw_accel_id acc_id,
+			   uint16_t table_id,
+			   struct table_result *miss_result);
 
 
 /**************************************************************************//**
@@ -1053,15 +985,12 @@ int32_t table_get_miss_result(enum table_hw_accel_id acc_id,
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
+@Return		None.
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_delete(enum table_hw_accel_id acc_id,
-		     uint16_t table_id);
+void table_delete(enum table_hw_accel_id acc_id,
+		  uint16_t table_id);
 
 
 /* ######################################################################### */

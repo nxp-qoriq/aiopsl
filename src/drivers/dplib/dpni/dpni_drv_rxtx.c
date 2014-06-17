@@ -47,11 +47,9 @@ __HOT_CODE void receive_cb(void)
 				(PARSER_NO_FLAGS);
 		if (parse_status) {
 			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
-				/* if discard with terminate return with error \
-				 * then terminator */
-				if (fdma_discard_default_frame\
-						(FDMA_DIS_WF_TC_BIT))
-					fdma_terminate_task();
+				/* Discard frame and terminate task */
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+				fdma_terminate_task();
 			}
 		}
 	}
