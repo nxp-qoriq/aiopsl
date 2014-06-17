@@ -393,6 +393,8 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		inserted to the partially reassembled frame.\n
 		When called for a closing fragment, reassembly is done.\n
 		The reassembled frame is returned to the caller.
+		This function assumes the fragment is presented from
+		the beginning of the frame.
 
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
