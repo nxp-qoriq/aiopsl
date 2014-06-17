@@ -230,7 +230,6 @@ asm_prefix(msr_disable_pmm):
     msync
     blr
 
-/*  Clear PR bit in the E500MC MSR */
 /*  void MSR_DisablePR(void) */
 asm_prefix(msr_disable_pr):
     mfmsr       3
@@ -242,7 +241,6 @@ asm_prefix(msr_disable_pr):
     msync
     blr
 
-/*  Set PR bit in the E500MC MSR*/
 /*  void MSR_EnablePR(void) */
 asm_prefix(msr_enable_pr):
     mfmsr       3
