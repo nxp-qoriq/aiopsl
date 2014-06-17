@@ -81,7 +81,7 @@ int cmdif_client_init()
 	}
 
 	cl = fsl_os_xmalloc(sizeof(struct cmdif_cl), 
-						MEM_PART_DP_DDR, 
+			    MEM_PART_DP_DDR, 
 	                    8);
 	if (cl == NULL) {
 		pr_err("No memory for client handle\n");

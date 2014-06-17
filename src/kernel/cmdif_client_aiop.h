@@ -9,6 +9,7 @@
 #define __CMDIF_CLIENT_AIOP_H
 
 #include "cmdif_client.h"
+#include "dplib/fsl_dpci.h"
 
 #define CMDIF_MN_SESSIONS	20 /**< Maximal number of sessions */
 #define CMDIF_NUM_PR  		2
