@@ -460,7 +460,6 @@ asm_prefix(l1icache_line_unlock):
 *****************************************************************************/
 .global asm_prefix(booke_tlb_write)
 .global asm_prefix(booke_tlb_write5)
-.global asm_prefix(e500mc_tlb_write)
 .global asm_prefix(booke_tlb_read)
 .global asm_prefix(booke_tlb_read5)
 .global asm_prefix(booke_tlb1_invalidate)
@@ -495,74 +494,6 @@ asm_prefix(booke_tlb_write5):
     mtspr       MAS3, 6
     isync
     mtspr       MAS7, 7
-    tlbwe
-    isync
-    blr
-#endif
-
-/* Used by C routine MMU_TlbEntryWrite, mmu.c.*/
-#ifdef SYS_64BIT_ARCH
-asm_prefix(e500mc_tlb_write):
-    /* configure masX registers values */
-    ld          4, 0(3)
-    mtspr       MAS0, 4
-    isync
-    ld          4, 8(3)
-    mtspr       MAS1, 4
-    isync
-    ld          4, 16(3)
-    mtspr       MAS2, 4
-    isync
-    ld          4, 24(3)
-    mtspr       MAS3, 4
-    isync
-    ld          4, 32(3)
-    mtspr       MAS4, 4
-    isync
-    ld          4, 40(3)
-    mtspr       MAS5, 4
-    isync
-    ld          4, 48(3)
-    mtspr       MAS6, 4
-    isync
-    ld          4, 56(3)
-    mtspr       MAS7, 4
-    isync
-    ld          4, 64(3)
-    mtspr       MAS8, 4
-    tlbwe
-    isync
-    blr
-
-#else
-asm_prefix(e500mc_tlb_write):
-    /* configure masX registers values */
-    lwz         4, 0(3)
-    mtspr       MAS0, 4
-    isync
-    lwz         4, 4(3)
-    mtspr       MAS1, 4
-    isync
-    lwz         4, 8(3)
-    mtspr       MAS2, 4
-    isync
-    lwz         4, 12(3)
-    mtspr       MAS3, 4
-    isync
-    lwz         4, 16(3)
-    mtspr       MAS4, 4
-    isync
-    lwz         4, 20(3)
-    mtspr       MAS5, 4
-    isync
-    lwz         4, 24(3)
-    mtspr       MAS6, 4
-    isync
-    lwz         4, 28(3)
-    mtspr       MAS7, 4
-    isync
-    lwz         4, 32(3)
-    mtspr       MAS8, 4
     tlbwe
     isync
     blr

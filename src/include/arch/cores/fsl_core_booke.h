@@ -370,15 +370,6 @@ void        msr_disable_pmm(void);
 void        msr_enable_pr(void);
 void        msr_disable_pr(void);
 
-void        e500_tlb_write(uintptr_t mas0, uintptr_t mas1, uintptr_t mas2, uintptr_t mas3);
-void        e500_tlb_write5(uintptr_t mas0, uintptr_t mas1, uintptr_t mas2, uintptr_t mas3, uintptr_t mas7);
-void        e500mc_tlb_write(uintptr_t mas[]);
-void        e500_tlb_read(uintptr_t *array_addr, uintptr_t mas0, uintptr_t mas2);
-void        e500_tlb_read5(uintptr_t *array_addr, uintptr_t mas0, uintptr_t mas2);
-void        e500mc_tlb_read(uintptr_t *array_addr, uintptr_t mas0, uintptr_t mas2);
-void        e500_tlb1_invalidate(void);
-
-
 uint32_t    L1Ctl_write(uintptr_t address, uint32_t value);
 
 
