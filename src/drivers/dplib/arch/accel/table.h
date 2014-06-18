@@ -290,9 +290,9 @@ A general bit that is set in some errors conditions */
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_create_input_message {
-	/** Table Type
+	/** Table Attributes
 	Includes IEX, MRES & AGT bits */
-	uint16_t type;
+	uint16_t attributes;
 
 	/** ICID (including BDI) */
 	uint16_t icid;

@@ -34,18 +34,18 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	/* Load frequent parameters into registers */
 	uint8_t                           key_size = tbl_params->key_size;
-	uint16_t                          type = tbl_params->attributes;
+	uint16_t                          attr = tbl_params->attributes;
 	uint32_t                          max_rules = tbl_params->max_rules;
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
 
 	/* Calculate the number of entries each rule occupies */
 	num_entries_per_rule = table_calc_num_entries_per_rule(
-					type & TABLE_ATTRIBUTE_TYPE_MASK,
+					attr & TABLE_ATTRIBUTE_TYPE_MASK,
 					key_size);
 
 	/* Prepare input message */
-	tbl_crt_in_msg.type = type;
+	tbl_crt_in_msg.attributes = attr;
 	tbl_crt_in_msg.icid = TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK;
 	tbl_crt_in_msg.max_rules = max_rules;
 	tbl_crt_in_msg.max_entries =
@@ -74,7 +74,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	/* Add miss result to the table if needed and if an error did not occur
 	 * during table creation */
-	if (!status && ((tbl_params->attributes & TABLE_ATTRIBUTE_MR_MASK) ==
+	if (!status && ((attr & TABLE_ATTRIBUTE_MR_MASK) ==
 			TABLE_ATTRIBUTE_MR_MISS)) {
 		/* Re-assignment of the structure is done because of stack
 		 * limitations of the service layer - assertion of sizes is
