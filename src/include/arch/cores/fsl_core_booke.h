@@ -590,40 +590,8 @@ void booke_set_spr_HDBCR2(uint32_t newvalue);
 uint32_t booke_get_spr_HDBCR7(void);
 void booke_set_spr_HDBCR7(uint32_t newvalue);
 
-/* Performance Monitoring */
-uint32_t e500_get_pmc0(void);
-void e500_set_pmc0(uint32_t newvalue);
-uint32_t e500_get_pmc1(void);
-void e500_set_pmc1(uint32_t newvalue);
-uint32_t e500_get_pmc2(void);
-void e500_set_pmc2(uint32_t newvalue);
-uint32_t e500_get_pmc3(void);
-void e500_set_pmc3(uint32_t newvalue);
-uint32_t e500_get_pml_ca0(void);
-void e500_set_pml_ca0(uint32_t newvalue);
-uint32_t e500_get_pml_ca1(void);
-void e500_set_pml_ca1(uint32_t newvalue);
-uint32_t e500_get_pml_ca2(void);
-void e500_set_pml_ca2(uint32_t newvalue);
-uint32_t e500_get_pml_ca3(void);
-void e500_set_pml_ca3(uint32_t newvalue);
-uint32_t e500_get_pml_cb0(void);
-void e500_setPML_CB0(uint32_t newvalue);
-uint32_t e500_get_pml_cb1(void);
-void e500_setPML_CB1(uint32_t newvalue);
-uint32_t e500_get_pml_cb2(void);
-void e500_setPML_CB2(uint32_t newvalue);
-uint32_t e500_get_pml_cb3(void);
-void e500_setPML_CB3(uint32_t newvalue);
-uint32_t e500_get_pmgc0 (void);
-void e500_set_pmgc0 (uint32_t newvalue);
-
-/* Threads management*/
-void e500_disable_secondary_threads(uint32_t secondary_threads_mask);
-void e500_enable_secondary_threads(uint32_t secondary_threads_mask);
-
+#ifdef CORE_E200
 /* E200-AIOP special regs */
-
 // Number of tasks as they defined by CTSCSR register.
 #define CTSCSR_ENABLE 0x80000000
 #define CTSCSR_1_TASKS 0  
@@ -635,6 +603,7 @@ void e500_enable_secondary_threads(uint32_t secondary_threads_mask);
 
 uint32_t booke_get_CTSCSR0(void);            /* [464]  CTS gen control and status reg 0. */
 void booke_set_CTSCSR0(uint32_t newvalue);   /* [464]  CTS gen control and status reg 0. */
+#endif /* CORE_E200 */
 
 /** @} */ /* end of booke_init_grp group */
 /** @} */ /* end of booke_grp group */
