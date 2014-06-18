@@ -11,7 +11,6 @@
 #include "common/fsl_slab.h"
 #include "kernel/platform.h"
 #include "io.h"
-#include "aiop_common.h"
 
 __SHRAM struct slab *slab_peb = 0;
 __SHRAM struct slab *slab_ddr = 0;

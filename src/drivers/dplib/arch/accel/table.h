@@ -713,7 +713,7 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
-void table_fatal_status_handler(int32_t status);
+void table_exception_handler(char *filename, uint32_t line, int32_t status);
 
 
 /**************************************************************************//**

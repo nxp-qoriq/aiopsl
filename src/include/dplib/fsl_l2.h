@@ -239,17 +239,6 @@ int32_t l2_pop_vlan(void);
 
 
 
-/* Assuming a default segment is presented starting with the ETH header and
- * the parse results are updated.
- * Update L2 header fields + insert an ARP header.
- * Present segment.
- * Update Parse results.
- * TODO - add documentation */
-void l2_push_ipv4_arp_request_update_l2(
-		uint8_t *sender_hw_addr,
-		uint32_t sender_ip,
-		uint32_t dest_ip);
-
 /* Create ARP response from an ARP request.
  * Update L2 header fields.
  * Assuming a default segment is presented starting with the ETH header and
@@ -260,10 +249,9 @@ void l2_arp_response(uint8_t *local_hw_addr);
 /* Update ETH fields (MAC source, MAC destination, Ethertype).
  * Assuming a default segment is presented with parse results updated.
  * TODO - add documentation*/
-void l2_set_fields(
-		uint8_t *sender_hw_addr,
-		uint8_t *dest_hw_addr,
-		uint16_t l2_proto);
+void l2_set_hwaddr_fields(
+		uint8_t *local_hw_addr,
+		uint8_t *dest_hw_addr);
 
 /* @} end of group FSL_HM_L2_Functions */
 /* @} end of group AIOP_L2_HM */
