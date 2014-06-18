@@ -740,6 +740,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/flib</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpbp/dpbp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpbp/dpbp.c</locationURI>
@@ -1000,6 +1005,31 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/virtual_pools.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/flib/compat.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/flib/compat.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/flib/desc</name>
+			<type>2</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/flib/desc</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/flib/desc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/flib/desc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/flib/rta</name>
+			<type>2</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/flib/rta</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/flib/rta.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/flib/rta.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/netf/general/frame_operations.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/general/frame_operations.c</locationURI>
@@ -1028,6 +1058,16 @@
 			<name>aiop_sl/drivers/dplib/netf/ip/ipr.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipr.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/netf/ip/ipsec.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/netf/ip/ipsec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/ip/ipsec.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf/l2/l2.c</name>
