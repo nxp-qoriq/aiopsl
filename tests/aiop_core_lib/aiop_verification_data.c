@@ -25,6 +25,7 @@ __VERIF_GLOBAL uint8_t verif_spin_lock;
 __VERIF_GLOBAL uint8_t verif_prpid;
 __VERIF_GLOBAL uint8_t tmi_id;
 
+__VERIF_TLS uint32_t fatal_fqid;
 __VERIF_TLS ipf_ctx_t ipf_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS ipf_ctx_t ipf_context_addr2
