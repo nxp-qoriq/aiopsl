@@ -6,7 +6,6 @@
 		Copyright 2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-
 //#define IPSEC_OVERRIDE_RTA
 
 #include "aiop_verification.h"
@@ -27,6 +26,9 @@
 __VERIF_GLOBAL uint64_t sa_desc_handle[32]; /* Global in Shared RAM */
 extern __TASK struct aiop_default_task_params default_task_params;
 
+extern __SHRAM uint64_t ipsec_debug_buf_addr; /* Global in Shared RAM */
+extern __SHRAM uint32_t ipsec_debug_buf_size; /* Global in Shared RAM */
+extern __SHRAM uint32_t ipsec_debug_buf_offset; /* Global in Shared RAM */
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 {
@@ -54,6 +56,10 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	{
 		struct ipsec_create_instance_command *str =
 			(struct ipsec_create_instance_command *)data_addr;
+		
+		ipsec_debug_buf_addr = NULL;
+		ipsec_debug_buf_size = 0;
+		ipsec_debug_buf_offset = 0;
 		
 		str->status = ipsec_create_instance(
 				str->committed_sa_num,
@@ -183,6 +189,8 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_frame_decrypt_command *)data_addr;
 		
 		default_task_params.parser_starting_hxs = str->starting_hxs;
+		/* Run parser, in case the starting HXS changed */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
 		
 		str->status = ipsec_frame_decrypt(
 				//*((uint64_t *)(str->ipsec_handle_ptr)),
@@ -202,7 +210,9 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_frame_encrypt_command *)data_addr;
 		
 		default_task_params.parser_starting_hxs = str->starting_hxs;
-
+		/* Run parser, in case the starting HXS changed */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
+		
 		str->status = ipsec_frame_encrypt(
 				//*((uint64_t *)(str->ipsec_handle_ptr)),
 				sa_desc_handle[str->sa_desc_id],
@@ -226,7 +236,9 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_frame_encr_decr_command *)data_addr;
 		
 		default_task_params.parser_starting_hxs = str->starting_hxs;
-
+		/* Run parser, in case the starting HXS changed */ 
+		parse_result_generate_default (PARSER_NO_FLAGS);
+		
 		/* Encryption */
 		str->fm_encr_status = ipsec_frame_encrypt(
 				//*((uint64_t *)(str->ipsec_encr_handle_ptr)),
@@ -278,6 +290,21 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	}
 	*/
 	#endif
+	
+	case IPSEC_CREATE_DEBUG_BUFFER_CMD:
+	{
+		struct ipsec_create_debug_buffer_command *str =
+			(struct ipsec_create_debug_buffer_command *)data_addr;
+		
+		ipsec_debug_buf_addr = str->buffer_addr;
+		ipsec_debug_buf_size = str->buffer_size;
+		
+		str->status = 0;
+		*((int32_t *)(str->status_addr)) = str->status;
+		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
+		str_size = (uint16_t)sizeof(struct ipsec_create_debug_buffer_command);
+		break;
+	}
 	
 	
 	default:

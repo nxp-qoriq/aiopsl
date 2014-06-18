@@ -2,9 +2,11 @@
 #include "common/errors.h"
 #include "common/io.h"
 #include "kernel/platform.h"
-#include "platform_aiop_spec.h"
 #include "common/fsl_slab.h"
 
+#if defined (LS2100A) && defined (AIOP) 
+#include "ls2100a_aiop/platform_aiop_spec.h"
+#endif
 
 int malloc_test();
 
@@ -20,7 +22,7 @@ int malloc_test()
 	void* allocated_pointers[NUM_TEST_ITER];
 	int err = 0;
 	err = allocate_check_mem(0,num_iter,size,allocated_pointers); // allocate from the heap
-	err = allocate_check_mem(MEM_PART_1ST_DDR_NON_CACHEABLE,num_iter,size,
+	err = allocate_check_mem(MEM_PART_DP_DDR,num_iter,size,
 			                 allocated_pointers);
 	err = allocate_check_mem(MEM_PART_SH_RAM,num_iter,size,allocated_pointers);
 	err = allocate_check_mem(MEM_PART_PEB,num_iter,size,allocated_pointers);	

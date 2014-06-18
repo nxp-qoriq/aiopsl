@@ -20,15 +20,15 @@
 
 
 /* New Aggregation */
-int32_t tcp_gro_aggregate_seg(
+int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		uint32_t flags)
 {
 	struct tcp_gro_context gro_ctx;
 	struct tcphdr *tcp;
-	int32_t status;
-	int32_t sr_status;
+	int status;
+	int sr_status;
 	uint32_t ecn;
 	uint16_t seg_size;
 	uint8_t data_offset;
@@ -166,7 +166,7 @@ int32_t tcp_gro_aggregate_seg(
 }
 
 /* Add segment to an existing aggregation */
-int32_t tcp_gro_add_seg_to_aggregation(
+int tcp_gro_add_seg_to_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx)
@@ -176,7 +176,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	struct fdma_concatenate_frames_params concat_params;
 	uint32_t timestamp;
 	uint32_t ecn;
-	int32_t  sr_status;
+	int  sr_status;
 	uint16_t headers_size;
 	uint16_t seg_size;
 	uint16_t aggregated_size;
@@ -283,19 +283,44 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	/* Report to the user that due to a concatenation failure (due to buffer
 	 * pool depletion) the aggregation was discarded. */
 	if (sr_status != SUCCESS){
+		struct fdma_split_frame_params split_params;
+		split_params.flags = FDMA_SPLIT_NO_FLAGS;
+		split_params.fd_dst = (struct ldpaa_fd *)HWC_FD_ADDRESS;
+		/* since concatenate does not update the FD's length, the
+		 * following size is the aggregation size before the
+		 * concatenation. */
+		split_params.split_size_sf =
+			(uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd)));
+		split_params.source_frame_handle =
+				(uint8_t)(concat_params.frame1);
+		fdma_split_frame(&split_params);
+		/* discard the single frame, which is the second part of the
+		 * split. */
 		fdma_discard_frame(concat_params.frame1, FDMA_DIS_NO_FLAGS);
-		/* update statistics */
-		ste_inc_counter(gro_ctx->params.stats_addr +
+		sr_status = fdma_store_default_frame_data();
+		if (sr_status != SUCCESS) {
+			/* discard the aggregation, which is the first part of
+			 * the split. */
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			/* update statistics */
+			ste_inc_counter(gro_ctx->params.stats_addr +
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET,
-				gro_ctx->metadata.seg_num,
+				(uint32_t)(gro_ctx->metadata.seg_num + 1),
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-		/* zero gro context fields */
-		gro_ctx->metadata.seg_num = 0;
-		gro_ctx->internal_flags = 0;
-		gro_ctx->timestamp = 0;
-		/* Clear gross running sum in parse results */
-		pr->gross_running_sum = 0;
-		return TCP_GRO_AGG_DISCARDED;
+			/* zero gro context fields */
+			gro_ctx->metadata.seg_num = 0;
+			gro_ctx->internal_flags = 0;
+			gro_ctx->timestamp = 0;
+			/* Clear gross running sum in parse results */
+			pr->gross_running_sum = 0;
+			return TCP_GRO_AGG_DISCARDED;
+		} else {
+			ste_inc_counter(gro_ctx->params.stats_addr +
+				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
+				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+			gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
+			return (TCP_GRO_FLUSH_REQUIRED | TCP_GRO_SEG_DISCARDED);
+		}
 	}
 	/* update gro context fields */
 	gro_ctx->last_ack = tcp->acknowledgment_number;
@@ -321,7 +346,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 }
 
 /* Add segment to aggregation and close aggregation. */
-int32_t tcp_gro_add_seg_and_close_aggregation(
+int tcp_gro_add_seg_and_close_aggregation(
 		struct tcp_gro_context *gro_ctx)
 {
 	struct tcphdr *tcp;
@@ -329,7 +354,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	struct ipv6hdr *ipv6;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct fdma_concatenate_frames_params concat_params;
-	int32_t sr_status;
+	int sr_status, status;
 	uint16_t seg_size, headers_size, ip_length;
 	uint16_t outer_ip_offset;
 	uint8_t  data_offset;
@@ -371,31 +396,45 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	/* Report to the user that due to a concatenation failure (due to buffer
 	 * pool depletion) the aggregation was discarded. */
 	if (sr_status != SUCCESS){
+		struct fdma_split_frame_params split_params;
+		split_params.flags =
+			FDMA_SPLIT_PSA_PRESENT_BIT | FDMA_CFA_COPY_BIT;
+		split_params.fd_dst = (struct ldpaa_fd *)HWC_FD_ADDRESS;
+		/* since concatenate does not update the FD's length, the
+		 * following size is the aggregation size before the
+		 * concatenation. */
+		split_params.split_size_sf =
+			(uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd)));
+		split_params.source_frame_handle =
+				(uint8_t)(concat_params.frame1);
+		split_params.seg_dst = (void *)PRC_GET_SEGMENT_ADDRESS();
+		split_params.seg_offset = PRC_GET_SEGMENT_OFFSET();
+		split_params.present_size = PRC_GET_SEGMENT_LENGTH();
+		fdma_split_frame(&split_params);
+		/* discard the single frame, which is the second part of the
+		 * split. */
 		fdma_discard_frame(concat_params.frame1, FDMA_DIS_NO_FLAGS);
-		/* update statistics */
 		ste_inc_counter(gro_ctx->params.stats_addr +
-				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET,
-				gro_ctx->metadata.seg_num,
-				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-
-		/* zero gro context fields */
-		gro_ctx->metadata.seg_num = 0;
-		gro_ctx->internal_flags = 0;
-		gro_ctx->timestamp = 0;
-		/* Clear gross running sum in parse results */
-		pr->gross_running_sum = 0;
-		return TCP_GRO_AGG_DISCARDED;
+			GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
+			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+		gro_ctx->metadata.seg_num--;
+		status = TCP_GRO_DISCARD_SEG_SET;
+		/* aggregation continue without the single segment. */
+	} else {
+		status = SUCCESS;
 	}
 	/* store aggregated frame*/
 	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
 				*((uint8_t *)HWC_SPID_ADDRESS),
 				&(gro_ctx->agg_fd_isolation_attributes));
 */
-	/* copy aggregated FD to default FD */
-	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx->agg_fd;
+	if (!(gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET)) {
+		/* copy aggregated FD to default FD */
+		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx->agg_fd;
 
-	/* present default FD (the aggregated FD) */
-	fdma_present_default_frame();
+		/* present default FD (the aggregated FD) */
+		fdma_present_default_frame();
+	}
 
 	/* run parser if headers were changed */
 	/*if (gro_ctx->agg_headers_size != headers_size) {
@@ -459,12 +498,12 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
 
-	return TCP_GRO_SEG_AGG_DONE;
+	return (TCP_GRO_SEG_AGG_DONE | status);
 }
 
 /* Close an existing aggregation and start a new aggregation with the new
  * segment. */
-int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+int tcp_gro_close_aggregation_and_open_new_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx)
@@ -477,7 +516,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
-	int32_t sr_status;
+	int sr_status;
 	uint32_t old_agg_timestamp;
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -699,7 +738,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	return TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG;
 }
 
-int32_t tcp_gro_flush_aggregation(
+int tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr)
 {
 	struct tcp_gro_context gro_ctx;

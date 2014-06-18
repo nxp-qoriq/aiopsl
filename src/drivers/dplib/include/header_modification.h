@@ -35,6 +35,15 @@
 #define IPV6_TC_MASK		0xf00fffff
 #define IPV6_FLOW_MASK		0xfff00000
 
+/* ARP definitions */
+#define ARPHDR_ETHER_PRO_TYPE	1
+#define ARPHDR_IPV4_PRO_TYPE	0x800
+#define ARPHDR_ETH_ADDR_LEN	6
+#define ARPHDR_IPV4_ADDR_LEN	4
+#define	ARP_REQUEST_OP		1
+#define	ARP_REPLY_OP		2
+#define ARP_PKT_MIN_LEN 	64
+
 
 #define PARSER_CLEAR_RUNNING_SUM() \
 (((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum) = 0

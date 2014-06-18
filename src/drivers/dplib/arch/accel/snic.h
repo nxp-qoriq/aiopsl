@@ -69,9 +69,6 @@ struct snic_params {
 /** @} */ /* end of SNIC_STRUCTS */
 
 void snic_process_packet(void);
-int snic_open_cb(void *dev);
-int snic_close_cb(void *dev);
-int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data);
 int aiop_snic_init(void);
 int snic_ipf(struct snic_params *snic);
 int snic_ipr(struct snic_params *snic);

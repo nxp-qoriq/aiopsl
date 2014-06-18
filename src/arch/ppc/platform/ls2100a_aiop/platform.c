@@ -13,25 +13,6 @@
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 
-/* -------------------------- */
-/*  { MEMORY REGION,               START_ADDR,    SIZE,            mem-ctrl-id } */
-/*    -------------                ----------     ----             -----------   */
-#define PLATFORM_MEMORY_REGIONS { \
-    { PLTFRM_MEM_RGN_WS,         { 0x00000000,    (2*KILOBYTE),    PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_IRAM,       { 0x00fe0000,    (128*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_AIOP,       { 0x02000000,    (384*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_CCSR,       { 0x08000000,    (16*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_PEB,        { 0x80000000,    (6*MEGABYTE),    PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_DDR1,       { 0x50000000,    (256*MEGABYTE),  PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_SHRAM,      { 0x01000000,    (256*KILOBYTE),  PLTFRM_MEM_NONE   } }, \
-    { PLTFRM_MEM_RGN_MC_PORTALS, { 0x80c000000LL, (64*MEGABYTE),   PLTFRM_MEM_NONE   } }, \
-}
-
-enum platform_mem_ctrl {
-    PLTFRM_MEM_NONE = 0,
-    PLTFRM_MEM_NOR_FLASH
-};
-
 
 typedef struct t_platform_mem_region_info {
     uint64_t    start_addr;
@@ -96,27 +77,6 @@ const char *module_strings[] = {
     ,"RMan"                     /* MODULE_RMAN */
 };
 extern __TASK uint32_t seed_32bit;
-/*****************************************************************************/
-static int get_mem_region_info(e_platform_mem_region     mem_region,
-                               t_platform_mem_region_info *p_mem_region_info)
-{
-    t_platform_mem_region_desc mem_regions[] = PLATFORM_MEMORY_REGIONS;
-    uint32_t                num_of_mem_regions, i;
-
-    SANITY_CHECK_RETURN_ERROR(p_mem_region_info, EINVAL);
-
-    num_of_mem_regions = ARRAY_SIZE(mem_regions);
-
-    for (i = 0; i < num_of_mem_regions; i++)
-        if (mem_regions[i].mem_region == mem_region)
-        {
-            /* Found memory region, now return requested info */
-            *p_mem_region_info = mem_regions[i].info;
-            return E_OK;
-        }
-
-    return ERROR_CODE(E_NOT_FOUND);
-}
 
 /*****************************************************************************/
 static void print_platform_info(t_platform *pltfrm)
@@ -504,14 +464,16 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         memset(name, 0, sizeof(name));
 
         switch (p_mem_info->mem_partition_id) {
-        case MEM_PART_1ST_DDR_NON_CACHEABLE:
-            sprintf(name, "%s", "DDR #1 non cacheable");
+        case MEM_PART_DP_DDR:
+            sprintf(name, "%s", "DP_DDR");
             register_partition = 1;
             break;
+            /*
         case MEM_PART_2ND_DDR_NON_CACHEABLE:
             sprintf(name, "%s", "DDR #2 (AIOP) non cacheable");
             register_partition = 1;
             break;
+            */
         case MEM_PART_SH_RAM:
             sprintf(name, "%s", "Shared-SRAM");
             register_partition = 1;
@@ -626,7 +588,6 @@ int platform_init(struct platform_param    *pltfrm_param,
                   t_platform_ops           *pltfrm_ops)
 {
     t_platform      *pltfrm;
-    int             err;
     int             i, mem_index;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
@@ -645,19 +606,12 @@ int platform_init(struct platform_param    *pltfrm_param,
        user's partition definition is within actual physical
        addresses range. */
     for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-        t_platform_mem_region_info  mem_region_info;
+        /* t_platform_mem_region_info  mem_region_info; */
         t_platform_memory_info      *mem_info;
 
         mem_info = pltfrm->param.mem_info + i;
         if (!mem_info->size)
             break;
-
-        /* Check the range  - only verify start address fits into the real region bounds,
-           don't check the size. It is possible to define region of larger than actual size
-           to save number of MMU TLB entries. */
-        err = get_mem_region_info((e_platform_mem_region)mem_info->mem_region_id, &mem_region_info);
-        ASSERT_COND(err == E_OK);
-        ASSERT_COND(mem_info->phys_base_addr >= mem_region_info.start_addr);
     }
     pltfrm->num_of_mem_parts = i;
 

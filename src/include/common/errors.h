@@ -15,7 +15,7 @@
 #include "common/fsl_stdio.h"
 #include "common/fsl_stdlib.h"
 #include "common/fsl_core.h"
-#include "arch/fsl_soc.h"
+#include "soc_db/fsl_soc.h"
 
 
 /**************************************************************************//**
@@ -218,7 +218,7 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #endif /* ERROR_STATIC_LEVEL */
 #endif /* !ERROR_DYNAMIC_LEVEL */
 
-#define PRINT_FORMAT        "[CPU%02d, %s:%d %s]"
+#define PRINT_FORMAT        "[CPU %d, %s:%d %s]"
 #define PRINT_FMT_PARAMS    core_get_id(), __FILE__, __LINE__, __FUNCTION__
 
 #if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))

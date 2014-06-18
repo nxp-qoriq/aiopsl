@@ -91,6 +91,20 @@ struct tcphdr {
 	uint16_t urgent_pointer;	/*!< Urgent pointer */
 };
 
+#pragma pack(push,1)
+struct arphdr
+{
+	uint16_t	hw_type;
+	uint16_t	pro_type;
+	uint8_t		hw_addr_len;
+	uint8_t		pro_addr_len;
+	uint16_t	operation;
+	uint8_t		src_hw_addr[6];
+	uint32_t	src_pro_addr;
+	uint8_t		dst_hw_addr[6];
+	uint32_t	dst_pro_addr;
+};
+#pragma pack(pop)
 
 /*****************************************************************************/
 /*                Protocol fields                                            */

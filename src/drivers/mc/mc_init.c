@@ -9,6 +9,7 @@
 #include "errors.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpci.h"
+#include "fsl_mc_init.h"
 
 int mc_obj_init();
 void mc_obj_free();
@@ -62,15 +63,18 @@ static void aiop_container_free()
 		fsl_os_xfree(dprc);		
 }
 
+
 static int dpci_discovery()
 {
 	int dev_count;
 	struct dprc_obj_desc dev_desc;
 	int err = 0;
 	int i = 0;
+	uint8_t p = 0;;
 	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpci *dpci;
 	struct dpci_dest_cfg dest_cfg;
+	struct dpci_obj *dpci_tbl = NULL;
 	int ind = 0;
 	
 	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
@@ -92,34 +96,63 @@ static int dpci_discovery()
 			pr_debug("ver_major - %d\n", dev_desc.ver_major);
 			pr_debug("ver_minor - %d\n", dev_desc.ver_minor);
 			pr_debug("irq_count - %d\n\n", dev_desc.irq_count);
-#if NEW_DPCI			
-			dpci = fsl_os_xmalloc(sizeof(struct dpci), 
-			                      MEM_PART_1ST_DDR_NON_CACHEABLE, 
-			                      8);
-			/* TODO store dpci somewhere */
-			if (dpci == NULL) {
-				pr_err("No memory for dpci \n");
-				return -ENOMEM;
+			
+#ifndef OLD_DPCI
+			if (dpci_tbl == NULL) {
+				dpci_tbl = fsl_os_xmalloc(sizeof(struct dpci_obj), 
+				                          MEM_PART_SH_RAM, 
+					                  1);
+				if (dpci_tbl == NULL) {
+					pr_err("No memory for %d DPCIs\n", 
+					       DPCI_OBJ_MN);
+					return -ENOMEM;
+				}
+				err = sys_add_handle(dpci_tbl, 
+				                     FSL_OS_MOD_DPCI_TBL, 
+				                     1, 
+				                     0);
+				if (err != 0) {
+					pr_err("No FSL_OS_MOD_DPCI_TBL\n");
+					return err;					
+				}
+					
 			}
 			
+			dpci = &dpci_tbl->dpci[ind];			
 			dpci->regs = dprc->regs;
-			err |= dpci_open(dpci, dev_desc.id);			
+			err |= dpci_open(dpci, dev_desc.id);
+			/* Set priorities 0 and 1 */
 			dest_cfg.type = DPCI_DEST_NONE;
-			dest_cfg.priority = 0;
-			err |= dpci_set_rx_queue(dpci, 0, &dest_cfg, ind);
-			dest_cfg.priority = 1;
-			err |= dpci_set_rx_queue(dpci, 1, &dest_cfg, ind);
+			for (p = 0; p < 2; p++) {
+				dest_cfg.priority = p + 1;
+				err |= dpci_set_rx_queue(dpci, 
+				                         p, 
+				                         &dest_cfg, 
+				                         (ind << 1) | p);				
+			}
 			err |= dpci_enable(dpci);
+			err |= dpci_get_attributes(dpci, &dpci_tbl->attr[ind]);
 			if (err) {
 				pr_err("Failed dpci initialization \n");
 				return -ENODEV;
 			}
-#endif
+			dpci_tbl->count++;			
+#endif			
 			ind++;
 		}
 	}
 
 	return err;
+}
+
+static void dpci_discovery_free()
+{
+	void *dpci_tbl = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	
+	sys_remove_handle(FSL_OS_MOD_DPCI_TBL, 0);
+	
+	if (dpci_tbl != NULL)
+		fsl_os_xfree(dpci_tbl);		
 }
 
 int mc_obj_init()
@@ -138,7 +171,7 @@ void mc_obj_free()
 {
 #ifndef AIOP_STANDALONE
 	aiop_container_free();
-	
+	dpci_discovery_free();
 	/* TODO DPCI close ??? */
 #endif
 }

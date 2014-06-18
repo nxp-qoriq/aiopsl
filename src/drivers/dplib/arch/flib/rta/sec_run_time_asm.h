@@ -702,11 +702,17 @@ static inline void rta_patch_jmp(struct program *program, unsigned line,
 				 unsigned new_ref, unsigned check_swap)
 {
 	uint32_t opcode;
+	uint32_t temp;
+
 	unsigned bswap = check_swap && program->bswap;
 
 	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
-	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
-
+	//opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
+	
+	// Yariv : workaround for compiler optimization level 4 issue
+	temp = program->buffer[line];
+	opcode = bswap ? swab32(&temp) : program->buffer[line]; 
+	
 	opcode &= (uint32_t)~JUMP_OFFSET_MASK;
 	opcode |= (new_ref - (line + program->start_pc)) & JUMP_OFFSET_MASK;
 	//program->buffer[line] = bswap ? swab32(opcode) : opcode;

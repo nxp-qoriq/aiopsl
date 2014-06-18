@@ -16,13 +16,14 @@
 
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
+#include "cmdif_client_aiop.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
-	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0x01FFFFFF)
+	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFFFFFF)
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
 	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
@@ -49,16 +50,16 @@
 	(srv->close_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID]))
 
 #define FREE_MODULE    '\0'
-#define FREE_INSTANCE  (M_NUM_OF_MODULES) 
+#define FREE_INSTANCE  (M_NUM_OF_MODULES)
 
 #define SYNC_CMD_RESP_MAKE(ERR, ID)  (0x80000000 | \
 	(((ERR) << 16) & 0x00FF0000) | (ID))
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
-					   0,                          \
-					   E_MAPPED_MEM_TYPE_GEN_REGS) \
-					   + SOC_PERIPH_OFF_AIOP_WRKS);
+					0,                          \
+					E_MAPPED_MEM_TYPE_GEN_REGS) \
+					+ SOC_PERIPH_OFF_AIOP_WRKS);
 
 #define PR_ERR_TERMINATE(...) \
 	do {                  \
@@ -69,7 +70,7 @@
 
 #define IS_VALID_AUTH_ID(ID) \
 	((srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
-	 (srv->m_id != NULL) && (srv->m_id[(ID)] < M_NUM_OF_MODULES))
+	(srv->m_id != NULL) && (srv->m_id[(ID)] < M_NUM_OF_MODULES))
 
 static int module_id_find(const char *m_name, struct cmdif_srv *srv)
 {
@@ -91,7 +92,7 @@ static int inst_alloc(struct cmdif_srv_aiop *aiop_srv, uint8_t m_id)
 	int r = 0;
 	int count = 0;
 	struct cmdif_srv *srv = (struct cmdif_srv *)aiop_srv->srv;
-	
+
 	if (srv == NULL)
 		return -EINVAL;
 
@@ -184,18 +185,18 @@ __HOT_CODE static uint16_t cmd_auth_id_get()
 }
 
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
-{	 
+{
 	struct cmdif_srv_aiop *srv_aiop = \
 		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	struct cmdif_srv *srv = NULL;
-	
+
 	if (srv_aiop == NULL) {
 		return -ENODEV;
 	}
 	srv = srv_aiop->srv;
-	
+
 	/* Place here lock if required */
-	
+
 	return cmdif_srv_register(srv, m_name, ops);
 }
 
@@ -204,7 +205,7 @@ int cmdif_unregister_module(const char *m_name)
 	struct cmdif_srv_aiop *srv_aiop = \
 		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	struct cmdif_srv *srv = NULL;
-	
+
 	if (srv_aiop == NULL) {
 		return -ENODEV;
 	}
@@ -256,7 +257,7 @@ static void *fast_malloc(int size)
 
 static void *slow_malloc(int size)
 {
-	return fsl_os_xmalloc((size_t)size, MEM_PART_1ST_DDR_NON_CACHEABLE, 8);
+	return fsl_os_xmalloc((size_t)size, MEM_PART_DP_DDR, 8);
 }
 
 static void srv_free(void *ptr)
@@ -270,7 +271,7 @@ int cmdif_srv_init(void)
 	int  err = 0;
 	void *srv = NULL;
 	struct cmdif_srv_aiop *srv_aiop = NULL;
-	
+
 	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV))
 		return -ENODEV;
 
@@ -282,14 +283,22 @@ int cmdif_srv_init(void)
 
 	srv_aiop = fast_malloc(sizeof(struct cmdif_srv_aiop));
 	srv = cmdif_srv_allocate(fast_malloc, slow_malloc);
-	
+
 	if ((srv == NULL) || (srv_aiop == NULL)) {
 		pr_err("Not enough memory for server allocation \n");
 		return -ENOMEM;
 	}
 	srv_aiop->srv =srv;
-	
+	srv_aiop->dpci_tbl = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
 	err = sys_add_handle(srv_aiop, FSL_OS_MOD_CMDIF_SRV, 1, 0);
+
+	if (srv_aiop->dpci_tbl == NULL)
+	{
+		pr_err("No DPCI table \n");
+		return -ENODEV;
+	}
+
 	return err;
 }
 
@@ -303,23 +312,33 @@ void cmdif_srv_free(void)
 }
 
 
-__HOT_CODE static int cmdif_fd_send(int cb_err)
+__HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-
+	uint32_t fqid = RESP_QID_GET;
+#ifndef OLD_DPCI
+	uint8_t  ind = 0;
+	uint8_t  pr  = 0;
+#endif
 	/** ERROR is not overridden by FDMA store */
 	flc &= ~ERROR_MASK;
 	flc |= ((uint64_t)cb_err) << ERROR_OFF;
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
-	pr_debug("Response QID = 0x%x\n", RESP_QID_GET);
+
+#ifndef OLD_DPCI
+	ind = (uint8_t)(fqid >> 1);
+	pr  = (uint8_t)(fqid & 1);
+	fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+#endif
+	pr_debug("Response ID = 0x%x\n", fqid);
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-					RESP_QID_GET, FDMA_EN_TC_RET_BITS);
+		fqid, FDMA_EN_TC_RET_BITS);
 	if (err)
-		pr_err("Failed to send response\n");	
+		pr_err("Failed to send response\n");
 
 	return err;
 }
@@ -351,10 +370,10 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		cdma_write(_sync_done, &resp, 4);
 	}
 
-	pr_debug("sync_done high = 0x%x low = 0x%x \n", 
-	         (uint32_t)((_sync_done & 0xFF00000000) >> 32), 
-	         (uint32_t)(_sync_done & 0xFFFFFFFF));
-	
+	pr_debug("sync_done high = 0x%x low = 0x%x \n",
+		 (uint32_t)((_sync_done & 0xFF00000000) >> 32),
+		 (uint32_t)(_sync_done & 0xFFFFFFFF));
+
 	if (terminate)
 		fdma_terminate_task();
 }
@@ -366,22 +385,61 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 
-static void notify_open(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl) 
+{
+	int i = 0;
+	struct dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	*dpci_tbl = dt;
+	
+	if (dt == NULL)
+		return -1;
+	
+	for (i = 0; i < dt->count; i++) {
+		if (dt->attr[i].peer_id == dpci_id) 
+			return i;
+	}
+	return -1;
+}
+static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 {
 	struct cmdif_srv *srv = aiop_srv->srv;
-
-	/* Support for AIOP -> GPP */
+	struct cmdif_session_data *data = \
+		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	int ind = 0;
+	struct dpci_obj *dpci_tbl = NULL;
 	
-	sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
+		pr_err("Segment length is too small\n");
+		return -EINVAL;
+	}
+	
+	if (cl->count >= CMDIF_MN_SESSIONS) {
+		pr_err("Too many sessions\n");
+		return -ENOSPC;
+	}
+	
+	cl->gpp[cl->count].ins_id           = data->inst_id;
+	cl->gpp[cl->count].dev->auth_id     = data->auth_id;
+	cl->gpp[cl->count].dev->p_sync_done = cmd_data_get();
+	cl->gpp[cl->count].dev->sync_done   = NULL; /* Not used in AIOP */
+	strncpy(&cl->gpp[cl->count].m_name[0], &data->m_name[0], M_NAME_CHARS);
+	cl->gpp[cl->count].m_name[M_NAME_CHARS] = '\0';
+	ind = find_dpci((uint8_t)data->dev_id, &dpci_tbl);
+	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
+	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
+	cl->count++;
+	
+	return 0;
 }
 
-static void notify_close(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+static int notify_close(struct cmdif_srv_aiop *aiop_srv)
 {
 	struct cmdif_srv *srv = aiop_srv->srv;
 
 	/* Support for AIOP -> GPP */
-		
-	sync_cmd_done(NULL, -ENOTSUP, auth_id, srv, TRUE);	
+
+	return -ENOTSUP;
 }
 
 #pragma push
@@ -400,64 +458,66 @@ __HOT_CODE void cmdif_srv_isr(void)
 		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
 
 	srv = aiop_srv->srv;
-	
+
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
-	
+
 #ifdef DEBUG
 	{
 		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
-		                   PRC_GET_SEGMENT_LENGTH());
+				   PRC_GET_SEGMENT_LENGTH());
 		uint8_t  *p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
-		         p, len);
+			 p, len);
 		while (len > 15)
 		{
 			fsl_os_print("0x%x: %x %x %x %x\r\n",
-			             p, *(uint32_t *)p, *(uint32_t *)(p + 4),
-			             *(uint32_t *)(p + 8), *(uint32_t *)(p + 12));
+				     p, *(uint32_t *)p, *(uint32_t *)(p + 4),
+				     *(uint32_t *)(p + 8), *(uint32_t *)(p + 12));
 			len -= 16;
 			p += 16;
 		}
 		while (len > 3)
 		{
 			fsl_os_print("0x%x: %x\r\n",
-			             p, *(uint32_t *)p);
+				     p, *(uint32_t *)p);
 			len -= 4;
 			p += 4;
 		}
 
 	}
 #endif
-		
+
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
-		if (IS_VALID_AUTH_ID(auth_id)) { 
-			notify_open(aiop_srv, auth_id);
+		if (IS_VALID_AUTH_ID(auth_id)) {
+			err = notify_open(aiop_srv);
+			sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
-		
+
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
-		if (IS_VALID_AUTH_ID(auth_id)) { 
-			notify_close(aiop_srv, auth_id);
+		if (IS_VALID_AUTH_ID(auth_id)) {
+			err = notify_close(aiop_srv);
+			sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
-		
-	} else if (cmd_id & CMD_ID_OPEN) {
+
+	} else if (cmd_id == CMD_ID_OPEN) {
 		char     m_name[M_NAME_CHARS + 1];
 		int      m_id;
 		uint8_t  inst_id;
 		int      new_inst;
 		uint64_t sync_done = sync_done_get();
 
-		pr_debug("sync_done high = 0x%x low = 0x%x \n", 
-		         (uint32_t)((sync_done & 0xFF00000000) >> 32), 
-		         (uint32_t)(sync_done & 0xFFFFFFFF));
+		pr_debug("sync_done high = 0x%x low = 0x%x \n",
+			 (uint32_t)((sync_done & 0xFF00000000) >> 32),
+			 (uint32_t)(sync_done & 0xFFFFFFFF));
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
@@ -467,7 +527,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 		cmd_m_name_get(&m_name[0]);
 		pr_debug("m_name = %s\n", m_name);
-		
+
 		m_id = module_id_find(m_name, srv);
 		pr_debug("m_id = %d\n", m_id);
 
@@ -499,7 +559,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
 			PR_ERR_TERMINATE("No free entry for new device\n");
 		}
-	} else if (cmd_id & CMD_ID_CLOSE) {
+	} else if (cmd_id == CMD_ID_CLOSE) {
 
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* Don't reorder this sequence !!*/
@@ -545,13 +605,13 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	if (SEND_RESP(cmd_id)) {
 		pr_debug("PASSED Asynchronous Command\n");
-		err = cmdif_fd_send(err);
+		err = cmdif_fd_send(err, aiop_srv);
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");
 		fdma_store_default_frame_data();
 	}
-	
+
 	fdma_terminate_task();
 }
 
