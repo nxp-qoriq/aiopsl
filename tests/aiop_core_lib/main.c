@@ -1,7 +1,7 @@
 #include "aiop_verification.h"
 #include "kernel/smp.h"
 
-#define __wait()	asm ("wait  \n"	)
+//#define __wait()	asm ("wait  \n"	)
 
 #pragma push
 #pragma section code_type ".verif_text"
@@ -24,6 +24,7 @@ int verif_main()
 
 int main()
 {
+	uint32_t ctscsr_value;
 	/* Todo -
 	 * 1. enable next line
 	 * 2. enable project files under ppc + kernel */
@@ -39,8 +40,9 @@ int main()
 	verif_prpid_valid = 0;
 	verif_only_1_task_complete = 0;
 	verif_spin_lock = 0;
-
-	__wait();
+	ctscsr_value = CTSCSR_8_TASKS | CTSCSR_ENABLE;
+	SET_CTSCSR0(ctscsr_value);
+	__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 
 	return 0;
 }
