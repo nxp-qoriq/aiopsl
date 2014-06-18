@@ -117,8 +117,16 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 		Must be initialized by gso_context_init() prior to the first
 		call. Must be aligned to Frame Descriptor size.
 
-@Return		Status, please refer to \ref TCP_GSO_GENERATE_SEG_STATUS or
-		\ref fdma_hw_errors or \ref fdma_sw_errors for more details.
+@Return		GSO Status (\ref TCP_GSO_GENERATE_SEG_STATUS), or
+		negative value on error.
+
+@Retval		EBADFD - Received packet FD contain errors (FD.err != 0).
+		Recommendation is to either force discard of the frame (call
+		\ref fdma_force_discard_frame) or enqueue the frame.
+		The packet was not segmented.
+@Retval		ENOMEM - Received packet cannot be stored due to buffer pool
+		depletion. Recommendation is to discard the frame.
+		The packet was not segmented.
 
 @Cautions	None.
 *//***************************************************************************/
@@ -136,7 +144,7 @@ int32_t tcp_gso_generate_seg(
 @Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
 		Must be aligned to Frame Descriptor size.
 
-@Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
+@Return	0 - Success
 
 @Cautions	Following this function no packet resides in the default frame
 		location in the task defaults.
