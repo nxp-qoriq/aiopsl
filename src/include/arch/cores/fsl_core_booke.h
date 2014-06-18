@@ -14,10 +14,13 @@
 
 #include "common/types.h"
 
-
+#ifndef CORE_E200_Z490
 #define core_dcache_enable      booke_dcache_enable
+#endif /* CORE_E200_Z490 */
 #define core_icache_enable      booke_icache_enable
+#ifndef CORE_E200_Z490
 #define core_dcache_disable     booke_dcache_disable
+#endif /* CORE_E200_Z490 */
 #define core_icache_disable     booke_icache_disable
 #define core_get_id             booke_get_id
 #define core_test_and_set       booke_test_and_set
@@ -44,7 +47,7 @@
  @{
 *//***************************************************************************/
 
-
+#ifndef CORE_E200_Z490
 /**************************************************************************//**
  @Function      booke_dcache_enable
 
@@ -63,6 +66,7 @@ void booke_dcache_enable(void);
  @Return        '1'(Enabled)/'0'(Disabled)
 *//***************************************************************************/
 int booke_is_dcache_enabled(void);
+#endif /* CORE_E200_Z490 */
 
 /**************************************************************************//**
  @Function      booke_is_icache_enabled
@@ -83,6 +87,7 @@ int booke_is_icache_enabled(void);
 *//***************************************************************************/
 void booke_icache_enable(void);
 
+#ifndef CORE_E200_Z490
 /**************************************************************************//**
  @Function      booke_dcache_disable
 
@@ -91,6 +96,7 @@ void booke_icache_enable(void);
  @Return        None.
 *//***************************************************************************/
 void booke_dcache_disable(void);
+#endif /* CORE_E200_Z490 */ 
 
 /**************************************************************************//**
  @Function      booke_icache_disable
@@ -119,6 +125,7 @@ void booke_dcache_flush(void);
 *//***************************************************************************/
 void booke_icache_flush(void);
 
+#ifndef CORE_E200_Z490
 /**************************************************************************//**
  @Function      booke_dcache_set_stash_id
 
@@ -140,6 +147,7 @@ void booke_dcache_set_stash_id(uint8_t stash_id);
  @Return        Stash ID.
 *//***************************************************************************/
 uint8_t booke_dcache_get_stash_id(void);
+#endif /* CORE_E200_Z490 */
 
 /**************************************************************************//**
  @Function      booke_address_bus_streaming_enable

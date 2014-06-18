@@ -27,6 +27,7 @@ int booke_is_icache_enabled(void)
     return !!l1icache_is_enabled();
 }
 
+#ifndef CORE_E200_Z490
 /*----------------------------------*/
 /*  Is Data Cache Enabled           */
 /*----------------------------------*/
@@ -43,6 +44,7 @@ void booke_dcache_enable(void)
     l1dcache_invalidate();
     l1dcache_enable();
 }
+#endif /* CORE_E200_Z490 */
 
 /*----------------------------------*/
 /*  Instruction Cache Enable        */
@@ -53,6 +55,7 @@ void booke_icache_enable(void)
     l1icache_enable();
 }
 
+#ifndef CORE_E200_Z490
 /*----------------------------------*/
 /*  Data Cache Disable              */
 /*----------------------------------*/
@@ -65,6 +68,7 @@ void booke_dcache_disable(void)
    l1dcache_disable();
    core_local_irq_restore(int_flags);
 }
+#endif /* CORE_E200_Z490 */
 
 /*----------------------------------*/
 /*  Instruction Cache Disable       */
@@ -79,6 +83,7 @@ void booke_icache_disable(void)
     core_local_irq_restore(int_flags);
 }
 
+#ifndef CORE_E200_Z490
 /*----------------------------------*/
 /*  Data Cache Flush                */
 /*----------------------------------*/
@@ -86,6 +91,7 @@ void booke_dcache_flush(void)
 {
     l1dcache_flush();
 }
+#endif /* CORE_E200_Z490 */
 
 /*----------------------------------*/
 /*  Instruction Cache Flush         */
@@ -95,6 +101,7 @@ void booke_icache_flush(void)
     l1icache_flush();
 }
 
+#ifndef CORE_E200_Z490
 /*----------------------------------*/
 /*  Data Cache Set Stash Id         */
 /*----------------------------------*/
@@ -118,6 +125,7 @@ uint8_t booke_dcache_get_stash_id(void)
 
     return (uint8_t)reg;
 }
+#endif /* CORE_E200_Z490 */
 
 /*****************************************************************************/
 void booke_enable_time_base(void)
