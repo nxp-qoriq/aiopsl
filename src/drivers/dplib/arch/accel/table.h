@@ -666,10 +666,9 @@ struct table_acc_context {
 		This function does not increment the reference count for the
 		miss result returned.
 *//***************************************************************************/
-int32_t table_query_debug(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_params_query_output_message *output
-			 );
+int table_query_debug(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_params_query_output_message *output);
 
 /**************************************************************************//**
 @Function	table_hw_accel_acquire_lock
@@ -684,7 +683,7 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
+int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 
 
 /**************************************************************************//**

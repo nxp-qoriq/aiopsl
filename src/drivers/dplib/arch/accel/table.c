@@ -10,9 +10,9 @@
 #include "dplib/fsl_table.h"
 #include "table.h"
 
-int32_t table_create(enum table_hw_accel_id acc_id,
-		     struct table_create_params *tbl_params,
-		     uint16_t *table_id)
+int table_create(enum table_hw_accel_id acc_id,
+		 struct table_create_params *tbl_params,
+		 uint16_t *table_id)
 {
 	int32_t           status;
 	struct table_rule *miss_rule;
@@ -234,10 +234,10 @@ void table_delete(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_create(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_rule *rule,
-			  uint8_t key_size)
+int table_rule_create(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_rule *rule,
+		      uint8_t key_size)
 {
 	int32_t status;
 	struct table_old_result aged_res __attribute__((aligned(16)));
@@ -315,11 +315,11 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
-				     uint16_t table_id,
-				     struct table_rule *rule,
-				     uint8_t key_size,
-				     struct table_result *old_res)
+int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+				 uint16_t table_id,
+				 struct table_rule *rule,
+				 uint8_t key_size,
+				 struct table_result *old_res)
 {
 	int32_t status;
 
@@ -388,11 +388,11 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_replace(enum table_hw_accel_id acc_id,
-			   uint16_t table_id,
-			   struct table_rule *rule,
-			   uint8_t key_size,
-			   struct table_result *old_res)
+int table_rule_replace(enum table_hw_accel_id acc_id,
+		       uint16_t table_id,
+		       struct table_rule *rule,
+		       uint8_t key_size,
+		       struct table_result *old_res)
 {
 	int32_t status;
 
@@ -450,12 +450,12 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_query(enum table_hw_accel_id acc_id,
-			 uint16_t table_id,
-			 union table_key_desc *key_desc,
-			 uint8_t key_size,
-			 struct table_result *result,
-			 uint32_t *timestamp)
+int table_rule_query(enum table_hw_accel_id acc_id,
+		     uint16_t table_id,
+		     union table_key_desc *key_desc,
+		     uint8_t key_size,
+		     struct table_result *result,
+		     uint32_t *timestamp)
 {
 	int32_t status;
 	struct table_entry entry __attribute__((aligned(16)));
@@ -531,11 +531,11 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_delete(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  union table_key_desc *key_desc,
-			  uint8_t key_size,
-			  struct table_result *result)
+int table_rule_delete(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      union table_key_desc *key_desc,
+		      uint8_t key_size,
+		      struct table_result *result)
 {
 	int32_t status;
 
@@ -578,11 +578,11 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
-			    uint16_t table_id,
-			    union table_lookup_key_desc key_desc,
-			    uint8_t key_size,
-			    struct table_lookup_result *lookup_result)
+int table_lookup_by_key(enum table_hw_accel_id acc_id,
+			uint16_t table_id,
+			union table_lookup_key_desc key_desc,
+			uint8_t key_size,
+			struct table_lookup_result *lookup_result)
 {
 	int32_t status;
 	/* optimization 1 clock */
@@ -612,9 +612,11 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
-			      uint16_t table_id, uint8_t keyid,
-			      struct table_lookup_result *lookup_result)
+int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
+					uint16_t table_id,
+					uint8_t keyid,
+					struct table_lookup_result
+					       *lookup_result)
 {
 	int32_t status;
 
@@ -646,13 +648,13 @@ int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
-			      uint16_t table_id,
-			      uint8_t keyid,
-			      uint32_t flags,
-			      struct table_lookup_non_default_params
-				     *ndf_params,
-			      struct table_lookup_result *lookup_result)
+int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  uint8_t keyid,
+			  uint32_t flags,
+			  struct table_lookup_non_default_params
+				 *ndf_params,
+			  struct table_lookup_result *lookup_result)
 {
 	int32_t status;
 
@@ -695,7 +697,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 /*****************************************************************************/
 /*				Internal API				     */
 /*****************************************************************************/
-int32_t table_query_debug(enum table_hw_accel_id acc_id,
+int table_query_debug(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
 			  struct table_params_query_output_message *output)
 {
@@ -711,7 +713,7 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
+int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
 {
 	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
