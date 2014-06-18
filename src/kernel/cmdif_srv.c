@@ -24,13 +24,6 @@
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
 	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFFFFFF)
-/** PL_ICID from Additional Dequeue Context */
-#define PL_ICID_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
-/** Get ICID to send response */
-#define RESP_ICID_GET \
-	LH_SWAP(&PL_ICID_GET)
-
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) != CMD_ID_NOTIFY_CLOSE) && \
@@ -56,7 +49,7 @@
 	(((ERR) << 16) & 0x00FF0000) | (ID))
 
 #define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
 					0,                          \
 					E_MAPPED_MEM_TYPE_GEN_REGS) \
 					+ SOC_PERIPH_OFF_AIOP_WRKS);
@@ -221,7 +214,7 @@ static int epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 	uint32_t data = 0;
 
-	iowrite32(0, &wrks_addr->epas); /* EPID = 0 */
+	iowrite32(0, &wrks_addr->epas); /* EPID = 0 reserved for server */
 	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
 
 #ifdef AIOP_STANDALONE
