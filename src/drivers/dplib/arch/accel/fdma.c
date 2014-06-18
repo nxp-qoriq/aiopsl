@@ -1255,7 +1255,7 @@ void fdma_modify_segment_data(
 			frame_handle, seg_handle, FDMA_REPLACE_NO_FLAGS);
 	arg2 = FDMA_REPLACE_CMD_ARG2(offset, size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(
-			((uint32_t)from_ws_src + offset), size);
+			((uint32_t)from_ws_src), size);
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
