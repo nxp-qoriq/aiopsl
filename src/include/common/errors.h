@@ -15,7 +15,7 @@
 #include "common/fsl_stdio.h"
 #include "common/fsl_stdlib.h"
 #include "common/fsl_core.h"
-#include "arch/fsl_soc.h"
+#include "soc_db/fsl_soc.h"
 
 
 /**************************************************************************//**

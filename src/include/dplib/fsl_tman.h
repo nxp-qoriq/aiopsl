@@ -427,7 +427,7 @@ enum e_tman_query_timer {
 		Please note that the total number of instances that are
 		allowed by the TMan is up to 252.
 *//***************************************************************************/
-int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
+int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id);
 
 
@@ -458,7 +458,7 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
+int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
 			tman_arg_2B_t conf_opaque_data2);
 
@@ -478,7 +478,7 @@ int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int32_t tman_query_tmi(uint8_t tmi_id,
+int tman_query_tmi(uint8_t tmi_id,
 			struct tman_tmi_params *output_ptr);
 
 /**************************************************************************//**
@@ -503,7 +503,7 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
+int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 			uint16_t duration, tman_arg_8B_t opaque_data1,
 			tman_arg_2B_t opaque_data2, tman_cb_t tman_timer_cb,
 			uint32_t *timer_handle);
@@ -523,7 +523,7 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int32_t tman_delete_timer(uint32_t timer_handle, uint32_t flags);
+int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 /**************************************************************************//**
 @Function	tman_increase_timer_duration
@@ -546,7 +546,7 @@ int32_t tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int32_t tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
+int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 
 /**************************************************************************//**
 @Function	tman_recharge_timer
@@ -560,7 +560,7 @@ int32_t tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int32_t tman_recharge_timer(uint32_t timer_handle);
+int tman_recharge_timer(uint32_t timer_handle);
 
 /**************************************************************************//**
 @Function	tman_query_timer
@@ -576,7 +576,7 @@ int32_t tman_recharge_timer(uint32_t timer_handle);
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int32_t tman_query_timer(uint32_t timer_handle,
+int tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state);
 
 /**************************************************************************//**

@@ -1,10 +1,13 @@
 #include "common/errors.h"
 #include "common/io.h"
 #include "kernel/platform.h"
-#include "platform_aiop_spec.h"
 #include "kernel/smp.h"
 #include "kernel/fsl_spinlock.h"
 #include "sys.h"
+
+#if defined (AIOP) && defined (LS2100A)
+#include "ls2100a_aiop/platform_aiop_spec.h"
+#endif
 
 int random_test();
 int random_init();
