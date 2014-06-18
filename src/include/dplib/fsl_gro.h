@@ -151,6 +151,11 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x3)
 	/** The aggregation was discarded due to buffer pool depletion. */
 #define	TCP_GRO_AGG_DISCARDED		(TCP_GRO_MODULE_STATUS_ID | 0x4)
+	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
+	 * user when possible.
+	 * This status bit can be return as a stand alone status, or as part of
+	 * a combined status with one of the above statuses. */
+#define	TCP_GRO_FLUSH_REQUIRED		(TCP_GRO_MODULE_STATUS_ID | 0x20)
 
 
 	/** A new aggregation has started with the current segment.
@@ -158,11 +163,6 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
 #define	TCP_GRO_METADATA_USED		0x10
-	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
-	 * user when possible.
-	 * This status bit can be return only as part of a combined status with
-	 * one of the above statuses. */
-#define	TCP_GRO_FLUSH_REQUIRED		0x20
 	/** The segment could not start an aggregation since no timers are
 	 * available. This status is returned along with \ref
 	 * TCP_GRO_FLUSH_REQUIRED which means the segment is waiting to be
@@ -399,6 +399,9 @@ int32_t tcp_gro_aggregate_seg(
 
 		The aggregated packet will reside at the default frame location
 		when this function returns.
+
+		Implicitly updated values in Task Defaults:  frame handle,
+		segment handle, segment address, segment offset, segment length.
 
 @Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
 		internal context. The user should allocate \ref tcp_gro_ctx_t in

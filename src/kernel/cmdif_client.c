@@ -28,12 +28,14 @@ static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	uint32_t fqid = 0;
 	uint16_t icid = 0;
 		
-	if ((sdev == NULL) || (sdev->num_of_pr <= pr) || (fd == NULL))
+	if ((sdev == NULL) 				|| 
+		(sdev->attr->num_of_priorities <= pr)	|| 
+		(fd == NULL))
 		return -EINVAL;
 	
 	/* TODO copy fields from FD */
 	
-	fqid = ((struct cmdif_reg *)sdev)->fqid[pr];	
+	fqid = sdev->attr->dpci_prio_attr[pr].tx_qid;	
 	err = fdma_enqueue_fd_fqid(&_fd, FDMA_EN_TC_RET_BITS | FDMA_ENF_BDI_BIT, 
 	                     fqid, icid);
 	/* TODO FDMA_ENF_BDI_BIT ICID 
@@ -56,7 +58,7 @@ static int session_get(const char *m_name,
 	
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		if (	(cl->gpp[i].ins_id == ins_id) && 
-			(cl->gpp[i].regs->id == dpci_id) && 
+			(cl->gpp[i].regs->attr->peer_id == dpci_id) && 
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]), 
 			         m_name, 
 			         M_NAME_CHARS) == 0)) {

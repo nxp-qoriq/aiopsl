@@ -1823,6 +1823,52 @@ void fdma_modify_default_segment_data(
 		uint16_t size);
 
 /**************************************************************************//**
+@Function	fdma_modify_segment_data
+
+@Description	Modifies data in the Data segment in a Working Frame (in the
+		FDMA).
+
+		This Service Routine updates the FDMA that certain data in the
+		presented segment was modified. The updated data is located in
+		the same place the old data was located at in the segment
+		presentation in workspace.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+
+@Param[in]	frame_handle - Working frame handle in which the data is being
+		modified.
+@Param[in]	seg_handle - Data segment handle (related to the working frame
+		handle) in which the data is being modified.
+@Param[in]	offset - The offset from the previously presented segment
+		representing the start point of the modification.
+		Must be within the presented segment size.
+@Param[in]	size - The Working Frame modified size.
+@Param[in]	from_ws_src - a pointer to the workspace location from which
+		the segment data starts.
+
+@Return		None.
+
+@remark		Example: Modify 14 bytes. The default Data segment represents a
+		100 bytes at offset 0 in the frame (0-99) and the user has
+		updated bytes 11-24 (14 bytes) at their original location in the
+		segment presentation in workspace.
+		Parameters:
+			- offset - 11 (relative to the presented segment)
+			- size - 14
+
+@Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+void fdma_modify_segment_data(
+		uint8_t frame_handle,
+		uint8_t seg_handle,
+		uint16_t offset,
+		uint16_t size,
+		void	 *from_ws_src);
+
+/**************************************************************************//**
 @Function	fdma_replace_default_segment_data
 
 @Description	Replace modified data in the default Data segment in the default
