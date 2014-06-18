@@ -72,7 +72,7 @@ struct tcp_gro_agg_seg_command {
 	struct presentation_context prc;
 		/** Returned Value:
 		 * Iteration return status. */
-	int32_t status;
+	int status;
 		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
@@ -94,7 +94,7 @@ struct tcp_gro_flush_agg_command {
 	uint32_t opcode;
 		/** Returned Value:
 		 * Iteration return status. */
-	int32_t status;
+	int status;
 		/** Address (in HW buffers) of the TCP GRO internal context.
 		The user should allocate \ref tcp_gro_ctx_t in this address.
 		The user should zero the \ref tcp_gro_ctx_t allocated space once
