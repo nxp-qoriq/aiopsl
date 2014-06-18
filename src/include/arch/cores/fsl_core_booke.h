@@ -537,13 +537,6 @@ void booke_set_spr_L1CSR1(uint32_t newvalue); /* [1011]       L1 cache control a
 uint32_t booke_get_spr_L1CSR2(void);          /* [606]        L1 cache control and status register 2 1 */
 void booke_set_spr_L1CSR2(uint32_t newvalue); /* [606]        L1 cache control and status register 2 1 */
 
-uint32_t e500mc_get_spr_L2CFG0(void);          /* [519]        L2 cache configuration register 0 */
-void e500mc_set_spr_L2CFG0(uint32_t newvalue); /* [519]        L2 cache configuration register 0 */
-uint32_t e500mc_get_spr_L2CSR0(void);          /* [1017]       L2 cache control and status register 0 1 */
-void e500mc_set_spr_L2CSR0(uint32_t newvalue); /* [1017]       L2 cache control and status register 0 1 */
-uint32_t e500mc_get_spr_L2CSR1(void);          /* [1018]       L2 cache control and status register 1 1 */
-void e500mc_set_spr_L2CSR1(uint32_t newvalue); /* [1018]       L2 cache control and status register 1 1 */
-
 uint32_t booke_get_spr_MAS0(void);            /* [624]        MMU assist register 0 1 */
 void booke_set_spr_MAS0(uint32_t newvalue);   /* [624]        MMU assist register 0 1 */
 uint32_t booke_get_spr_MAS1(void);            /* [625]        MMU assist register 1 1 */

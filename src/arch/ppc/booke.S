@@ -1280,37 +1280,6 @@ asm_prefix(booke_set_spr_L1CSR2):
     msync
     blr
 
-.global    asm_prefix(e500mc_get_spr_L2CFG0)
-asm_prefix(e500mc_get_spr_L2CFG0):
-    mfspr   3,L2CFG0        /* 519 */   /* L2 cache configuration register 0 */
-    blr
-
-.global    asm_prefix(e500mc_set_spr_L2CFG0)
-asm_prefix(e500mc_set_spr_L2CFG0):
-    mtspr   L2CFG0,3        /* 519 */   /* L2 cache configuration register 0 */
-    blr
-
-.global    asm_prefix(e500mc_get_spr_L2CSR0)
-asm_prefix(e500mc_get_spr_L2CSR0):
-    mfspr   3,L2CSR0        /* 1017 */  /* L2 cache control and status register 0 1 */
-    blr
-
-.global    asm_prefix(e500mc_set_spr_L2CSR0)
-asm_prefix(e500mc_set_spr_L2CSR0):
-    mtspr   L2CSR0,3        /* 1017 */  /* L2 cache control and status register 0 1 */
-    blr
-
-.global    asm_prefix(e500mc_get_spr_L2CSR1)
-asm_prefix(e500mc_get_spr_L2CSR1):
-    mfspr   3,L2CSR1        /* 1018 */  /* L2 cache control and status register 1 1 */
-    blr
-
-.global    asm_prefix(e500mc_set_spr_L2CSR1)
-asm_prefix(e500mc_set_spr_L2CSR1):
-    mtspr   L2CSR1,3        /* 1018 */  /* L2 cache control and status register 1 1 */
-    blr
-
-
 .global    asm_prefix(booke_get_spr_MAS0)
 asm_prefix(booke_get_spr_MAS0):
     mfspr   3,MAS0          /* 624 */   /* MMU assist register 0 1 */
