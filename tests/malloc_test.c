@@ -2,9 +2,11 @@
 #include "common/errors.h"
 #include "common/io.h"
 #include "kernel/platform.h"
-#include "platform_aiop_spec.h"
 #include "common/fsl_slab.h"
 
+#if defined (LS2100A) && defined (AIOP) 
+#include "ls2100a_aiop/platform_aiop_spec.h"
+#endif
 
 int malloc_test();
 
