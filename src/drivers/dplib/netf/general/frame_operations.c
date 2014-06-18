@@ -46,6 +46,8 @@ int32_t create_frame(
 		/* Update segment address and length in the presentation
 		 * context */
 		PRC_SET_SEGMENT_ADDRESS((uint32_t)data);
+		if (size > DEFAULT_SEGMENT_SIZE)
+			size = DEFAULT_SEGMENT_SIZE;
 		PRC_SET_SEGMENT_LENGTH(size);
 		/* Re-run parser */
 		status = parse_result_generate_default(0);
