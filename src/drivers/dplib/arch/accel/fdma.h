@@ -714,7 +714,7 @@ enum fdma_sw_errors {
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_default_frame_without_segments(void);
+int fdma_present_default_frame_without_segments(void);
 
 /**************************************************************************//**
 @Function	fdma_present_frame_without_segments
@@ -745,7 +745,7 @@ int32_t fdma_present_default_frame_without_segments(void);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_frame_without_segments(
+int fdma_present_frame_without_segments(
 		struct ldpaa_fd *fd,
 		uint32_t flags,
 		uint16_t icid,
@@ -776,7 +776,7 @@ int32_t fdma_present_frame_without_segments(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_default_frame_default_segment();
+int fdma_present_default_frame_default_segment();
 
 /**************************************************************************//**
 @Function	fdma_acquire_buffer
@@ -803,7 +803,7 @@ int32_t fdma_present_default_frame_default_segment();
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_acquire_buffer(
+int fdma_acquire_buffer(
 		uint16_t icid,
 		uint32_t flags,
 		uint16_t bpid,

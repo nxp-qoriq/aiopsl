@@ -385,7 +385,7 @@ struct tcp_gro_context_params {
 		in the default frame area.
 
 *//***************************************************************************/
-int32_t tcp_gro_aggregate_seg(
+int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		uint32_t flags);
@@ -419,7 +419,7 @@ int32_t tcp_gro_aggregate_seg(
 @Cautions	No frame should reside at the default frame location in
 		workspace before this function is called.
 *//***************************************************************************/
-int32_t tcp_gro_flush_aggregation(
+int tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr);
 
 /** @} */ /* end of GRO_Functions */

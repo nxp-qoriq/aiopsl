@@ -20,15 +20,15 @@
 
 
 /* New Aggregation */
-int32_t tcp_gro_aggregate_seg(
+int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		uint32_t flags)
 {
 	struct tcp_gro_context gro_ctx;
 	struct tcphdr *tcp;
-	int32_t status;
-	int32_t sr_status;
+	int status;
+	int sr_status;
 	uint32_t ecn;
 	uint16_t seg_size;
 	uint8_t data_offset;
@@ -166,7 +166,7 @@ int32_t tcp_gro_aggregate_seg(
 }
 
 /* Add segment to an existing aggregation */
-int32_t tcp_gro_add_seg_to_aggregation(
+int tcp_gro_add_seg_to_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx)
@@ -176,7 +176,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 	struct fdma_concatenate_frames_params concat_params;
 	uint32_t timestamp;
 	uint32_t ecn;
-	int32_t  sr_status;
+	int  sr_status;
 	uint16_t headers_size;
 	uint16_t seg_size;
 	uint16_t aggregated_size;
@@ -346,7 +346,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 }
 
 /* Add segment to aggregation and close aggregation. */
-int32_t tcp_gro_add_seg_and_close_aggregation(
+int tcp_gro_add_seg_and_close_aggregation(
 		struct tcp_gro_context *gro_ctx)
 {
 	struct tcphdr *tcp;
@@ -354,7 +354,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 	struct ipv6hdr *ipv6;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct fdma_concatenate_frames_params concat_params;
-	int32_t sr_status, status;
+	int sr_status, status;
 	uint16_t seg_size, headers_size, ip_length;
 	uint16_t outer_ip_offset;
 	uint8_t  data_offset;
@@ -503,7 +503,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 
 /* Close an existing aggregation and start a new aggregation with the new
  * segment. */
-int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+int tcp_gro_close_aggregation_and_open_new_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx)
@@ -516,7 +516,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
-	int32_t sr_status;
+	int sr_status;
 	uint32_t old_agg_timestamp;
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -738,7 +738,7 @@ int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
 	return TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG;
 }
 
-int32_t tcp_gro_flush_aggregation(
+int tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr)
 {
 	struct tcp_gro_context gro_ctx;
