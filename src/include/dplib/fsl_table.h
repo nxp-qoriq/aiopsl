@@ -224,11 +224,30 @@
 
 @{
 *//***************************************************************************/
+	/* Timestamp, aging and aged rule removal per rule are disabled.
+	Rule's timestamp field is cleared. */
+
 	/** Timestamp is disabled for this rule*/
 #define	TABLE_RULE_TIMESTAMP_NONE	0x00
 
+
+	/* Enables timestamp update and aging per rule. Aged rule removal per
+	rule is disabled.
+	Initial value of Rule's timestamp field is set when the rule is created
+	or replaced.
+	The rule's timestamp field is updated to the current timestamp when
+	the rule is matched during lookup command.
+	Aging */
+
 	/** Enables timestamp update per rule. */
 #define	TABLE_RULE_TIMESTAMP_ENABLE	0x80
+
+	/* Enables timestamp, aging, and auto aged rule removal per rule.
+	Aging is described in \ref FSL_TABLE_ATTRIBUTE_AGT.
+	NOTE: This option is not supported for Rev1.
+	NOTE: This option must not be used unless at table creation
+	\ref FSL_TABLE_ATTRIBUTE_TYPE was set to TABLE_ATTRIBUTE_TYPE_EM.
+	(i.e. this options is available only in exact match tables). */
 
 	/** Enables timestamp update per rule and aging.
 	 * Aging is described in \ref FSL_TABLE_ATTRIBUTE_AGT.
@@ -885,9 +904,9 @@ struct table_lookup_non_default_params {
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_create(enum table_hw_accel_id acc_id,
-		     struct table_create_params *tbl_params,
-		     uint16_t *table_id);
+int table_create(enum table_hw_accel_id acc_id,
+		 struct table_create_params *tbl_params,
+		 uint16_t *table_id);
 
 
 /**************************************************************************//**
@@ -1031,10 +1050,10 @@ void table_delete(enum table_hw_accel_id acc_id,
 @Cautions	Not available for MFLU table accelerator in Rev1.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_create(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_rule *rule,
-			  uint8_t key_size);
+int table_rule_create(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_rule *rule,
+		      uint8_t key_size);
 
 
 /**************************************************************************//**
@@ -1074,11 +1093,11 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 @Cautions	Not available for MFLU table accelerator in Rev1.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
-				     uint16_t table_id,
-				     struct table_rule *rule,
-				     uint8_t key_size,
-				     struct table_result *old_res);
+int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+				 uint16_t table_id,
+				 struct table_rule *rule,
+				 uint8_t key_size,
+				 struct table_result *old_res);
 
 
 /**************************************************************************//**
@@ -1116,11 +1135,11 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		was used for the rule creation (not including reserved fields).
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_replace(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_rule *rule,
-			  uint8_t key_size,
-			  struct table_result *old_res);
+int table_rule_replace(enum table_hw_accel_id acc_id,
+		       uint16_t table_id,
+		       struct table_rule *rule,
+		       uint8_t key_size,
+		       struct table_result *old_res);
 
 
 /**************************************************************************//**
@@ -1165,12 +1184,12 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 		the reference counter please refer to table lookup function.
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_query(enum table_hw_accel_id acc_id,
-			 uint16_t table_id,
-			 union table_key_desc *key_desc,
-			 uint8_t key_size,
-			 struct table_result *result,
-			 uint32_t *timestamp);
+int table_rule_query(enum table_hw_accel_id acc_id,
+		     uint16_t table_id,
+		     union table_key_desc *key_desc,
+		     uint8_t key_size,
+		     struct table_result *result,
+		     uint32_t *timestamp);
 
 
 /**************************************************************************//**
@@ -1204,11 +1223,11 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		was used for the rule creation (not including reserved fields).
 		In this function the task yields.
 *//***************************************************************************/
-int32_t table_rule_delete(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  union table_key_desc *key_desc,
-			  uint8_t key_size,
-			  struct table_result *result);
+int table_rule_delete(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      union table_key_desc *key_desc,
+		      uint8_t key_size,
+		      struct table_result *result);
 
 
 /* ######################################################################### */
@@ -1252,11 +1271,11 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 		This lookup cannot be used for chaining of lookups.
 *//***************************************************************************/
-int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
-			    uint16_t table_id,
-			    union table_lookup_key_desc key_desc,
-			    uint8_t key_size,
-			    struct table_lookup_result *lookup_result);
+int table_lookup_by_key(enum table_hw_accel_id acc_id,
+			uint16_t table_id,
+			union table_lookup_key_desc key_desc,
+			uint8_t key_size,
+			struct table_lookup_result *lookup_result);
 
 
 /**************************************************************************//**
@@ -1301,11 +1320,11 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
-					    uint16_t table_id,
-					    uint8_t keyid,
-					    struct table_lookup_result
-						   *lookup_result);
+int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
+					uint16_t table_id,
+					uint8_t keyid,
+					struct table_lookup_result
+					       *lookup_result);
 
 
 /**************************************************************************//**
@@ -1355,13 +1374,13 @@ int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
-			      uint16_t table_id,
-			      uint8_t keyid,
-			      uint32_t flags,
-			      struct table_lookup_non_default_params
-				     *ndf_params,
-			      struct table_lookup_result *lookup_result);
+int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  uint8_t keyid,
+			  uint32_t flags,
+			  struct table_lookup_non_default_params
+				 *ndf_params,
+			  struct table_lookup_result *lookup_result);
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */
