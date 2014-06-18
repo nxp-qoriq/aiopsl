@@ -511,6 +511,19 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		break;
 	}
 	/* FDMA Replace Command Verification */
+	case FDMA_MODIFY_SEG_CMD_STR:
+	{
+		struct fdma_modify_seg_command *str =
+			(struct fdma_modify_seg_command *) asa_seg_addr;
+
+		fdma_modify_segment_data(str->frame_handle, str->seg_handle,
+			str->offset, str->size, (void *)(str->from_ws_src));
+		str->status = SUCCESS;
+		str_size = (uint16_t)
+				sizeof(struct fdma_modify_seg_command);
+		break;
+	}
+	/* FDMA Replace Command Verification */
 	case FDMA_REPLACE_CMD_STR:
 	{
 		struct fdma_replace_command *str =
