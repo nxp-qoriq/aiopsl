@@ -70,7 +70,7 @@ static int dpci_discovery()
 	struct dprc_obj_desc dev_desc;
 	int err = 0;
 	int i = 0;
-	int p = 0;;
+	uint8_t p = 0;;
 	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpci *dpci;
 	struct dpci_dest_cfg dest_cfg;
@@ -99,7 +99,7 @@ static int dpci_discovery()
 			
 #ifndef OLD_DPCI
 			if (dpci_tbl == NULL) {
-				dpci_tbl = fsl_os_xmalloc(sizeof(struct dpci), 
+				dpci_tbl = fsl_os_xmalloc(sizeof(struct dpci_obj), 
 				                          MEM_PART_SH_RAM, 
 					                  1);
 				if (dpci_tbl == NULL) {

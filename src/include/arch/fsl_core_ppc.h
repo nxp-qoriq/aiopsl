@@ -11,7 +11,7 @@
 #ifndef __FSL_CORE_PPC_H
 #define __FSL_CORE_PPC_H
 
-#include "arch/fsl_soc.h"
+#include "soc_db/fsl_soc.h"
 
 
 #define CORE_IS_BIG_ENDIAN

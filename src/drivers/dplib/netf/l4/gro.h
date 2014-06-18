@@ -345,7 +345,7 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t tcp_gro_add_seg_to_aggregation(
+int tcp_gro_add_seg_to_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);
@@ -363,7 +363,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t tcp_gro_add_seg_and_close_aggregation(
+int tcp_gro_add_seg_and_close_aggregation(
 		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
@@ -383,7 +383,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+int tcp_gro_close_aggregation_and_open_new_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);

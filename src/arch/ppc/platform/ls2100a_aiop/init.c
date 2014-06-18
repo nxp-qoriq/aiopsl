@@ -53,11 +53,13 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
+void global_free(void);
 int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
 int run_apps(void);
 void core_ready_for_tasks(void);
+void global_free(void);
 
 
 #include "general.h"
