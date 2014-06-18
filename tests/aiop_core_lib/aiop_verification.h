@@ -159,7 +159,8 @@ enum verif_modules_ids {
 	IPSEC_MODULE,
 	WRITE_DATA_TO_WS_MODULE,
 	UPDATE_ASA_VARIABLE,
-	OSM_MODULE
+	OSM_MODULE,
+	EXCEPTION_MODULE
 };
 
 /**************************************************************************//**
@@ -332,6 +333,21 @@ struct write_data_to_workspace_command {
 	int8_t	status;
 		/** 64-bit alignment. */
 	uint8_t	pad[5];
+};
+
+/**************************************************************************//**
+@Description	Write fatal FQID to workspace TLS Command structure.
+
+		Includes information needed for writing fqid to workspace TLS
+		(as a preceding step for a replace command).
+
+*//***************************************************************************/
+struct write_fatal_fqid_to_workspace_tls_command {
+		/** Write Data to workspace command structure identifier. */
+	uint32_t opcode;
+		/**
+		 * FQID to save in TLS. */
+	uint32_t fqid;
 };
 
 void aiop_verification_parse();

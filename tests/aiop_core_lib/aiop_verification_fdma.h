@@ -44,8 +44,10 @@
 #define FDMA_DISCARD_FD_CMD		0x00003013
 	/** FDMA Force discard fd command code */
 #define FDMA_FORCE_DISCARD_FD_CMD	0x00004013
-	/** FDMA Modify working frame segment command code */
+	/** FDMA Modify default segment command code */
 #define FDMA_MODIFY_CMD			0x00006019
+	/** FDMA Modify segment command code */
+#define FDMA_MODIFY_SEG_CMD		0x0000A019
 	/** FDMA Insert working frame segment command code */
 #define FDMA_INSERT_DATA_CMD		0x00001019
 	/** FDMA Delete working frame segment command code */
@@ -127,8 +129,10 @@
 #define FDMA_SPLIT_CMD_STR	((FDMA_MODULE << 16) | FDMA_SPLIT_CMD)
 	/** FDMA Trim working frame segment Command Structure identifier */
 #define FDMA_TRIM_CMD_STR	((FDMA_MODULE << 16) | FDMA_TRIM_CMD)
-	/** FDMA Modify working frame segment Command Structure identifier */
+	/** FDMA Modify default segment Command Structure identifier */
 #define FDMA_MODIFY_CMD_STR	((FDMA_MODULE << 16) | FDMA_MODIFY_CMD)
+	/** FDMA Modify segment Command Structure identifier */
+#define FDMA_MODIFY_SEG_CMD_STR	((FDMA_MODULE << 16) | FDMA_MODIFY_SEG_CMD)
 	/** FDMA Replace working frame segment Command Structure identifier */
 #define FDMA_REPLACE_CMD_STR	((FDMA_MODULE << 16) | FDMA_REPLACE_CMD)
 	/** FDMA Insert working frame segment Command Structure identifier */
@@ -1082,9 +1086,9 @@ struct fdma_trim_command {
 };
 
 /**************************************************************************//**
-@Description	FDMA Modify Working Frame Segment Command structure.
+@Description	FDMA Modify Default Segment Command structure.
 
-		Includes information needed for FDMA Modify Working Frame
+		Includes information needed for FDMA Modify default
 		Segment command verification. This command updates the FDMA that
 		certain data in the presented segment was modified. The updated
 		data is located in the same place the old data was located at in
@@ -1104,6 +1108,39 @@ struct fdma_modify_command {
 	int8_t	status;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Modify Segment Command structure.
+
+		Includes information needed for FDMA Modify
+		Segment command verification. This command updates the FDMA that
+		certain data in the presented segment was modified. The updated
+		data is located in the same place the old data was located at in
+		the segment presentation in workspace.
+
+*//***************************************************************************/
+struct fdma_modify_seg_command {
+		/** FDMA Modify Working Frame Segment command structure
+		* identifier. */
+	uint32_t opcode;
+		/** Pointer to the workspace start location of the modified data
+		* in the Data segment. */
+	uint32_t from_ws_src;
+		/** Offset from the previously presented segment representing
+		 * the start point of the replacement. */
+	uint16_t offset;
+		/** Replaced size. */
+	uint16_t size;
+		/** Working frame handle in which the data is being modified.*/
+	uint8_t	 frame_handle;
+		/** Data segment handle (related to the working frame handle)
+		 * in which the data is being modified. */
+	uint8_t  seg_handle;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**

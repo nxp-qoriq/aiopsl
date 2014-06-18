@@ -145,9 +145,6 @@
 #define not_MSR_PMM     ~(MSR_PMM)
 #define not_MSR_PR      ~(MSR_PR)
 
-#define MSR_GS          0x10000000
-#define not_MSR_GS      ~(MSR_GS)
-
 /* MMU registers */
 /* MAS0 */
 #define MAS0_TLBSEL         0x10000000
@@ -328,8 +325,6 @@
 #define SPEFSCR     512     /* Signal processing and embedded floating-point status and control register 1 */
 #define SVR         1023    /* System version register */
 #define ILLEGAL     333     /* For test only */
-
-#define SCCSRBAR    1022    /* Shifted CCSRBAR register - valid for e6500 core */
 
 /* Hardware Debug Control Registers */
 #define HDBCR0      976

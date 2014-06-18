@@ -13,6 +13,8 @@
 #include "aiop_verification.h"
 #include "system.h"
 
+extern __VERIF_TLS uint32_t fatal_fqid;
+
 /*
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
 __TASK ipf_ctx_t ipf_context_addr;
@@ -30,7 +32,7 @@ void aiop_verification_fm()
 	uint64_t initial_ext_address;	/* Initial External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
-	
+
 	init_verif();
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
@@ -208,6 +210,17 @@ void aiop_verification_fm()
 					str->false_cmd_offset;
 			}
 
+			break;
+		}
+		case EXCEPTION_MODULE:
+		{
+			struct write_fatal_fqid_to_workspace_tls_command *str =
+			   (struct write_fatal_fqid_to_workspace_tls_command *)
+						((uint32_t)data_addr);
+			fatal_fqid = str->fqid;
+			str_size = (uint16_t)
+			  sizeof(
+			     struct write_fatal_fqid_to_workspace_tls_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:

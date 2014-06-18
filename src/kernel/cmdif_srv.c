@@ -400,7 +400,7 @@ static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl)
 	}
 	return -1;
 }
-static int notify_open(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 {
 	struct cmdif_srv *srv = aiop_srv->srv;
 	struct cmdif_session_data *data = \
@@ -430,18 +430,16 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
 	cl->count++;
 	
-	/* Support for AIOP -> GPP */
-
-	sync_cmd_done(NULL, 0, auth_id, srv, TRUE);
+	return 0;
 }
 
-static int notify_close(struct cmdif_srv_aiop *aiop_srv, uint16_t auth_id)
+static int notify_close(struct cmdif_srv_aiop *aiop_srv)
 {
 	struct cmdif_srv *srv = aiop_srv->srv;
 
 	/* Support for AIOP -> GPP */
 
-	sync_cmd_done(NULL, -ENOTSUP, auth_id, srv, TRUE);
+	return -ENOTSUP;
 }
 
 #pragma push
@@ -494,7 +492,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (IS_VALID_AUTH_ID(auth_id)) {
-			err = notify_open(aiop_srv, auth_id);
+			err = notify_open(aiop_srv);
 			sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
@@ -503,7 +501,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
 		if (IS_VALID_AUTH_ID(auth_id)) {
-			err = notify_close(aiop_srv, auth_id);
+			err = notify_close(aiop_srv);
 			sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
