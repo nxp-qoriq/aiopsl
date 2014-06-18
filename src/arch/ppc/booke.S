@@ -32,8 +32,6 @@
 .global asm_prefix(msr_enable_pmm)
 .global asm_prefix(msr_disable_pmm)
 .global asm_prefix(msr_restoree_eand_ce)
-
-/* E500MC MSR */
 .global asm_prefix(msr_enable_pr)
 .global asm_prefix(msr_disable_pr)
 
