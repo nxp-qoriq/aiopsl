@@ -582,7 +582,6 @@ uint32_t booke_get_spr_SVR(void);             /* [1023]       System version reg
 void booke_set_spr_SVR(uint32_t newvalue);    /* [1023]       System version register */
 uint32_t booke_get_spr_ILLEGAL(void);         /* [999]        System version register */
 void booke_set_spr_ILLEGAL(uint32_t newvalue);/* [999]        System version register */
-void e500_illegal_inst(void);
 
 uint32_t booke_get_spr_HDBCR0(void);
 void booke_set_spr_HDBCR0(uint32_t newvalue);
