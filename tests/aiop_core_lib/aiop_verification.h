@@ -360,6 +360,7 @@ uint32_t if_statement_result(
 		uint32_t size,
 		int64_t compared_value,
 		uint8_t cond);
+void timeout_cb_verif(uint64_t arg);
 
 
 /** @} */ /* end of AIOP_Verification */

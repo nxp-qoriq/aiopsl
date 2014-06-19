@@ -15,12 +15,13 @@
 #include "system.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
-
+#define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
 /* TODO - get rid */
 __SHRAM struct dpni_drv *nis;
+__SHRAM int num_of_nis;
 
 static void discard_rx_cb()
 {
@@ -122,6 +123,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 		pr_debug("Found NI: EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
+			num_of_nis ++;
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32(aiop_niid, UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
@@ -138,12 +140,22 @@ int dpni_drv_probe(struct dprc	*dprc,
 				return err;
 			}
 
+			/* Save dpni regs and authentication ID in internal AIOP NI table */
+			nis[aiop_niid].dpni = dpni;
+
 			/* Register MAC address in internal AIOP NI table */
 			if ((err = dpni_get_primary_mac_addr(&dpni, mac_addr)) != 0) {
 				pr_err("Failed to get MAC address for DP-NI%d\n", mc_niid);
 				return err;
 			}
 			memcpy(nis[aiop_niid].mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+
+			/* Register Broadcast MAC address*/
+			if ((err = dpni_add_mac_addr(&dpni, ETH_BROADCAST_ADDR)) != 0) {
+				pr_err("Failed to add MAC address for DP-NI%d\n", mc_niid);
+				return err;
+			}
+
 
 			if ((err = dpni_get_attributes(&dpni, &attributes)) != 0) {
 				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
@@ -212,8 +224,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 
 int dpni_get_num_of_ni (void)
 {
-	/* TODO - complete here. should count the "real" number of NIs */
-	return 1;
+	return num_of_nis;
 }
 
 
@@ -224,6 +235,25 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ET
 	return 0;
 }
 
+int dpni_drv_add_mac_addr(uint16_t ni_id,
+                          const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_add_mac_addr(&(dpni_drv->dpni), mac_addr);
+}
+
+int dpni_drv_remove_mac_addr(uint16_t ni_id,
+                             const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_remove_mac_addr(&(dpni_drv->dpni), mac_addr);
+}
 
 static int aiop_replace_parser(uint8_t prpid)
 {
@@ -284,6 +314,7 @@ int dpni_drv_init(void)
 	int         error = 0;
 
 
+	num_of_nis = 0;
 	/* Allocate initernal AIOP NI table */
 	nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
 	if (!nis) {
