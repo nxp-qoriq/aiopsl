@@ -401,6 +401,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int ind = 0;
+	int link_up = 0;
 	struct dpci_obj *dpci_tbl = NULL;
 	
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
@@ -428,7 +429,17 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
 	
-	if (!dpci_tbl->attr[ind].attach_link || !dpci_tbl->attr[ind].enable) {
+	if (dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up)) {
+		pr_err("Failed to get DPCI link status\n");
+		return -EACCES;
+	}
+	
+	/* TODO remove it after  dpci_get_link_state() is fixed */
+	link_up = 1; 
+	
+	if (!dpci_tbl->attr[ind].attach_link || 
+		!dpci_tbl->attr[ind].enable  ||
+		!link_up) {
 		pr_err("DPCI is not enabled or not linked to other DPCI\n");
 		return -EACCES; /*Invalid device state*/
 	}
@@ -588,12 +599,10 @@ __HOT_CODE void cmdif_srv_isr(void)
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else {
-		uint32_t size	 = cmd_size_get();
-		uint64_t data	 = cmd_data_get();
-
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* User can ignore data and use presentation context */
-			err = CTRL_CB(auth_id, cmd_id, size, data);
+			err = CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
+			              cmd_data_get());
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
 				sync_cmd_done(NULL, err, auth_id, srv, TRUE);

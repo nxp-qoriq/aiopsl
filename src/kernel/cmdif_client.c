@@ -16,7 +16,7 @@
 #include "fsl_endian.h"
 #include "fsl_general.h"
 
-#define CMDIF_TIMEOUT     0x100000
+#define CMDIF_TIMEOUT     0x10000000
 
 /** BDI */
 #define BDI_GET \
@@ -34,6 +34,11 @@
 					0,                          \
 					E_MAPPED_MEM_TYPE_GEN_REGS) \
 					+ SOC_PERIPH_OFF_AIOP_WRKS);
+
+/* TODO get rid of it */
+__SHRAM static struct ldpaa_fd _fd \
+__attribute__((aligned(sizeof(struct ldpaa_fd))));
+
 
 void cmdif_client_free();
 int cmdif_client_init();
@@ -77,7 +82,6 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 {
 	int    err = 0;
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
-	struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint32_t fqid = 0;
 	uint32_t flags = FDMA_EN_TC_RET_BITS;
 	
@@ -256,7 +260,8 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 			t++;
 		} while ((done.resp.done == 0) && (t < CMDIF_TIMEOUT));
 		
-		if (done.resp.done == 0)
+		done.resp.done = 0;
+		if (t >= CMDIF_TIMEOUT)
 			return -ETIMEDOUT;
 		else
 			return done.resp.err;

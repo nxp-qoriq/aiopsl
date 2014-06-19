@@ -187,7 +187,7 @@
 @{
 *//***************************************************************************/
 	/** Table query output message reserved space */
-#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	16
+#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	20
 
 /** @} */ /* end of TABLE_QUERY */
 
