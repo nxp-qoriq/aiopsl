@@ -10,12 +10,14 @@
 
 #include "aiop_verification.h"
 
+extern __VERIF_TLS uint32_t fatal_fqid;
+
 void aiop_verification_sr()
 {
 	init_verif();
 	aiop_verification_parse();
 }
-	
+
 void aiop_verification_parse()
 {
 	/* Presentation Context */
@@ -97,7 +99,7 @@ void aiop_verification_parse()
 		{
 			str_size = aiop_verification_osm(asa_seg_addr);
 			break;
-		}	
+		}
 		case WRITE_DATA_TO_WS_MODULE:
 		{
 			struct write_data_to_workspace_command *str =
@@ -162,6 +164,17 @@ void aiop_verification_parse()
 				asa_seg_addr = init_asa_seg_addr +
 							str->false_cmd_offset;
 
+			break;
+		}
+		case EXCEPTION_MODULE:
+		{
+			struct write_fatal_fqid_to_workspace_tls_command *str =
+			    (struct write_fatal_fqid_to_workspace_tls_command *)
+						asa_seg_addr;
+			fatal_fqid = str->fqid;
+			str_size = (uint16_t)
+			    sizeof
+			     (struct write_fatal_fqid_to_workspace_tls_command);
 			break;
 		}
 		case UPDATE_ASA_VARIABLE:

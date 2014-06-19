@@ -13,40 +13,102 @@
 #include "dplib/fsl_dprc.h"
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
+#include "fsl_endian.h"
+#include "fsl_general.h"
 
+#define CMDIF_TIMEOUT     0x100000
 
-#define CMDIF_TIMEOUT  0x100000
+/** BDI */
+#define BDI_GET \
+((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
+	& ADC_BDI_MASK)
+/** PL_ICID from Additional Dequeue Context */
+#define PL_ICID_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
+/** Get ICID to send response */
+#define ICID_GET \
+	(LH_SWAP(0, &PL_ICID_GET) & ADC_ICID_MASK)
+
+#define WRKS_REGS_GET \
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
+					0,                          \
+					E_MAPPED_MEM_TYPE_GEN_REGS) \
+					+ SOC_PERIPH_OFF_AIOP_WRKS);
 
 void cmdif_client_free();
 int cmdif_client_init();
+void cmdif_cl_isr();
 
-static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
+static int epid_setup()
+{
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
+	uint32_t data = 0;
+
+	iowrite32(CMDIF_EPID, &wrks_addr->epas); /* EPID = 2 */
+	iowrite32(PTR_TO_UINT(cmdif_cl_isr), &wrks_addr->ep_pc);
+
+#ifdef AIOP_STANDALONE
+	/* Default settings */
+	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
+	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
+	iowrite32(0x00020300, &wrks_addr->ep_asapa);
+	iowrite32(0x010001c0, &wrks_addr->ep_spa);
+	iowrite32(0x00000000, &wrks_addr->ep_spo);
+#endif
+	/* Set mask for hash to 16 low bits OSRM = 5 */
+	iowrite32(0x11000005, &wrks_addr->ep_osc);
+	data = ioread32(&wrks_addr->ep_osc);
+	if (data != 0x11000005)
+		return -EINVAL;
+
+	pr_info("CMDIF Server is setting EPID = %d\n", CMDIF_EPID);
+	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
+
+	return 0;
+}
+
+__HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 {
 	int    err = 0;
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
 	struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint32_t fqid = 0;
-	uint16_t icid = 0;
-		
-	if ((sdev == NULL) || (sdev->num_of_pr <= pr) || (fd == NULL))
+	uint32_t flags = FDMA_EN_TC_RET_BITS;
+	
+	if ((sdev == NULL) 				|| 
+		(sdev->attr->num_of_priorities <= pr)	|| 
+		(fd == NULL))
 		return -EINVAL;
 	
-	/* TODO copy fields from FD */
+	/* Copy fields from FD  */
+	_fd.addr   = CPU_TO_LE64(fd->u_addr.d_addr);
+	_fd.flc    = CPU_TO_LE64(fd->u_flc.flc);
+	_fd.frc    = CPU_TO_LE32(fd->u_frc.frc);
+	_fd.length = CPU_TO_LE32(fd->d_size);
+	_fd.control = 0;
+	_fd.offset  = 0;	
 	
-	fqid = ((struct cmdif_reg *)sdev)->fqid[pr];	
-	err = fdma_enqueue_fd_fqid(&_fd, FDMA_EN_TC_RET_BITS | FDMA_ENF_BDI_BIT, 
-	                     fqid, icid);
-	/* TODO FDMA_ENF_BDI_BIT ICID 
-	 * take it from dequeue context ??? */
+	fqid = sdev->attr->dpci_prio_attr[pr].tx_qid;
 	
+	if (BDI_GET != 0)
+		flags |= FDMA_ENF_BDI_BIT;
+	
+	err = fdma_enqueue_fd_fqid(&_fd, flags , fqid, ICID_GET);		
 	if (err) {
 		pr_err("Failed to send response\n");
+		return -EIO;
 	}
 	
 	return err;
 }
 
-static int session_get(const char *m_name, 
+__HOT_CODE static int session_get(const char *m_name, 
                        uint8_t ins_id, 
                        uint32_t dpci_id, 
                        struct cmdif_desc *cidesc)
@@ -56,7 +118,7 @@ static int session_get(const char *m_name,
 	
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		if (	(cl->gpp[i].ins_id == ins_id) && 
-			(cl->gpp[i].regs->id == dpci_id) && 
+			(cl->gpp[i].regs->attr->peer_id == dpci_id) && 
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]), 
 			         m_name, 
 			         M_NAME_CHARS) == 0)) {
@@ -81,7 +143,7 @@ int cmdif_client_init()
 	}
 
 	cl = fsl_os_xmalloc(sizeof(struct cmdif_cl), 
-						MEM_PART_DP_DDR, 
+			    MEM_PART_DP_DDR, 
 	                    8);
 	if (cl == NULL) {
 		pr_err("No memory for client handle\n");
@@ -89,6 +151,11 @@ int cmdif_client_init()
 	}
 	
 	memset(cl, 0, sizeof(struct cmdif_cl));
+	
+#if 0
+	/* TODO add this after dpni epid will start from 3 */
+	epid_setup();
+#endif
 	
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg), 
@@ -131,7 +198,7 @@ void cmdif_client_free()
 	
 }
 
-int cmdif_open(struct cmdif_desc *cidesc,
+__HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t ins_id,
 		cmdif_cb_t async_cb,
@@ -157,7 +224,7 @@ int cmdif_open(struct cmdif_desc *cidesc,
 	return err;
 }
 
-int cmdif_send(struct cmdif_desc *cidesc,
+__HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		int pr,
@@ -169,8 +236,17 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	union cmdif_data done;
 	
 	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
-
-	err = send_fd(&fd, pr, cidesc->regs); /* TODO handle error ?*/
+	if (err) {
+		pr_err("Failed to build command\n");
+		return -EINVAL;
+	}
+	
+	err = send_fd(&fd, pr, cidesc->regs); 
+	
+	if (err) {
+		pr_err("Failed to send command\n");
+		return -EINVAL;
+	}
 	
 	if (cmdif_is_sync_cmd(cmd_id)) {
 		do {
@@ -188,3 +264,25 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	
 	return 0;
 }
+
+#pragma push
+#pragma force_active on
+__HOT_CODE void cmdif_cl_isr(void)
+{
+	int err = 0;
+	struct cmdif_fd fd;
+	
+	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	
+	err = cmdif_async_cb(&fd);
+	if (err) {
+		pr_err("Asynchronous callback returned error %d", err);
+	}
+	fdma_store_default_frame_data();
+	fdma_terminate_task();
+}
+#pragma pop
+

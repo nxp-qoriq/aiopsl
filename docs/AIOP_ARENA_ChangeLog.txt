@@ -1,3 +1,7 @@
+- src\include\arch\ls2100a\platform_aiop_spec.h: Rename: 
+                                MEM_PART_1ST_DDR_NON_CACHEABLE->MEM_PART_DP_DDR
+								MEM_PART_2ND_DDR_NON_CACHEABLE ->MEM_PART_SYSTEM_DDR
+								Changed usage of old constants into new ones all over source files.								
 - src\include\common\errors.h:   update pr_debug define to work in runtime mode  with vsnprintf_lite.
 
 - smp.h/c:              new API added: sys_get_num_of_cores() and sys_get_max_num_of_cores()

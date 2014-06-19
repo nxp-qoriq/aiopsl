@@ -290,9 +290,9 @@ A general bit that is set in some errors conditions */
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_create_input_message {
-	/** Table Type
+	/** Table Attributes
 	Includes IEX, MRES & AGT bits */
-	uint16_t type;
+	uint16_t attributes;
 
 	/** ICID (including BDI) */
 	uint16_t icid;
@@ -666,10 +666,9 @@ struct table_acc_context {
 		This function does not increment the reference count for the
 		miss result returned.
 *//***************************************************************************/
-int32_t table_query_debug(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_params_query_output_message *output
-			 );
+int table_query_debug(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_params_query_output_message *output);
 
 /**************************************************************************//**
 @Function	table_hw_accel_acquire_lock
@@ -684,7 +683,7 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
+int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 
 
 /**************************************************************************//**
@@ -713,7 +712,7 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
-void table_fatal_status_handler(int32_t status);
+void table_exception_handler(char *filename, uint32_t line, int32_t status);
 
 
 /**************************************************************************//**

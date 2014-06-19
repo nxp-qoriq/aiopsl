@@ -100,7 +100,8 @@ enum ipsec_cipher_type {
 #define IPSEC_SA_DESC_BUF_ALIGN 64 /* SA descriptor alignment */
 #define IPSEC_KEY_BUF_SIZE 512 /* Key buffer size */
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
-#define IPSEC_MEM_PARTITION_ID MEM_PART_1ST_DDR_NON_CACHEABLE 
+//#define IPSEC_MEM_PARTITION_ID MEM_PART_1ST_DDR_NON_CACHEABLE 
+#define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
 #define IPSEC_MAX_ASA_SIZE 960 /* Maximum ASA size (960 bytes) */
 #define IPSEC_MAX_ASA_BUF_ALIGN 8 /* ASA buffer alignment */

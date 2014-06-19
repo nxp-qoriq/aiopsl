@@ -10,6 +10,7 @@
 #include "system.h"
 #include "net/fsl_net.h"
 #include "common/fsl_stdio.h"
+#include "common/fsl_string.h"
 #include "common/errors.h"
 #include "kernel/platform.h"
 #include "io.h"
@@ -30,10 +31,10 @@
 #include "common/fsl_cmdif_server.h"
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
-	_arg = (_type)u64_dec(swap_uint64(cmd_data->params[_param]), _offset, _width);
+	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);
 
 #define SNIC_RSP_PREP(_param, _offset, _width, _type, _arg) \
-	cmd_data->params[_param] |= swap_uint64(u64_enc(_offset, _width, _arg));
+	cmd_data->params[_param] |= u64_enc(_offset, _width, _arg);
 
 /** This is where FQD CTX should reside */
 #define FQD_CTX_GET \
@@ -79,7 +80,7 @@ __HOT_CODE void snic_process_packet(void)
 	snic = snic_params + SNIC_ID_GET;
 
 	if (SNIC_IS_INGRESS_GET) {
-		/* snic uses only 1 QDID so we need to have different 
+		/* snic uses only 1 QDID so we need to have different
 		 * qd/priority for ingress than for egress */
 		default_task_params.qd_priority = 8;
 		/* For ingress may need to do IPR and then Remove Vlan */
@@ -93,7 +94,7 @@ __HOT_CODE void snic_process_packet(void)
 	/* Egress*/
 	else {
 		default_task_params.qd_priority = ((*((uint8_t *)
-				(HWC_ADC_ADDRESS + 
+				(HWC_ADC_ADDRESS +
 				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
@@ -231,7 +232,7 @@ int snic_add_vlan(void)
 	return 0;
 }
 
-int snic_open_cb(void *dev)
+static int snic_open_cb(void *dev)
 {
 	/* TODO: */
 	UNUSED(dev);
@@ -239,25 +240,25 @@ int snic_open_cb(void *dev)
 }
 
 
-int snic_close_cb(void *dev)
+static int snic_close_cb(void *dev)
 {
 	/* TODO: */
 	UNUSED(dev);
 	return 0;
 }
 
-int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
+static int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint64_t data)
 {
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
-	uint16_t snic_id, ipf_mtu, snic_flags, qdid;
+	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid;
 	int i;
-	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)data;
+	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct ipr_params ipr_params;
 	uint32_t snic_ep_pc;
 
 	UNUSED(dev);
-	UNUSED(size);
+	UNUSED(data);
 
 	switch(cmd)
 	{
@@ -290,22 +291,19 @@ int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint8_t *data)
 		snic_ep_pc = (uint32_t)snic_process_packet;
 		for (i=0; i < MAX_SNIC_NO; i++)
 		{
-			if (snic_params[i].valid)
+			if (!snic_params[i].valid)
 			{
-				snic_params[i].valid = FALSE;
+				snic_params[i].valid = TRUE;
 				snic_id = (uint16_t)i;
 				break;
 			}
 		}
-		if (i== MAX_SNIC_NO)
-			*((uint16_t *)data) = 0xFFFF;
-		else
-			*((uint16_t *)data) = snic_id;
 		SNIC_REGISTER_CMD(SNIC_RSP_PREP);
+		fdma_modify_default_segment_data(0, size);
 		return 0;
 	case SNIC_UNREGISTER:
 		SNIC_UNREGISTER_CMD(SNIC_CMD_READ);
-		snic_params[snic_id].valid = TRUE;
+		memset(&snic_params[snic_id], 0, sizeof(struct snic_params));
 		return 0;
 	default:
 		return -EINVAL;
@@ -327,7 +325,6 @@ int aiop_snic_init(void)
 		pr_info("sNIC:Failed to register with cmdif module!\n");
 		return status;
 	}
-	for (i=0; i < MAX_SNIC_NO; i++)
-		snic_params[i].valid = TRUE;
+	memset(snic_params, 0, sizeof(snic_params));
 	return 0;
 }

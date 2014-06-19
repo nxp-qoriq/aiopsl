@@ -10,7 +10,7 @@
 #include "dplib/fsl_fdma.h"
 #include "fdma.h"
 
-int32_t fdma_present_default_frame(void)
+int fdma_present_default_frame(void)
 {
 	/* Presentation Context Pointer */
 	struct presentation_context *prc =
@@ -93,7 +93,7 @@ int32_t fdma_present_default_frame(void)
 	return (int32_t)(res1);
 }
 
-int32_t fdma_present_frame(
+int fdma_present_frame(
 		struct fdma_present_frame_params *params)
 {
 	/* Presentation Context Pointer */
@@ -214,7 +214,7 @@ int32_t fdma_present_frame(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_present_default_frame_without_segments(void)
+int fdma_present_default_frame_without_segments(void)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -253,7 +253,7 @@ int32_t fdma_present_default_frame_without_segments(void)
 	return (int32_t)(res1);
 }
 
-int32_t fdma_present_frame_without_segments(
+int fdma_present_frame_without_segments(
 		struct ldpaa_fd *fd,
 		uint32_t flags,
 		uint16_t icid,
@@ -304,7 +304,7 @@ int32_t fdma_present_frame_without_segments(
 	return (int32_t)res1;
 }
 
-int32_t fdma_present_default_frame_segment(
+int fdma_present_default_frame_segment(
 		uint32_t flags,
 		void	 *ws_dst,
 		uint16_t offset,
@@ -355,7 +355,43 @@ int32_t fdma_present_default_frame_segment(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_present_frame_segment(
+int fdma_present_default_frame_default_segment()
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
+			(FDMA_ST_DATA_SEGMENT_BIT));
+	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)PRC_GET_SEGMENT_ADDRESS(),
+			PRC_GET_SEGMENT_OFFSET());
+	arg3 = FDMA_PRESENT_CMD_ARG3(PRC_GET_SEGMENT_LENGTH());
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
+
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if ((res1 == FDMA_SUCCESS) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)){
+		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
+		PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+						FDMA_SEG_HANDLE_OFFSET)));
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return -EIO;
+	}
+
+	fdma_handle_fatal_errors((int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
+int fdma_present_frame_segment(
 		struct fdma_present_segment_params *params)
 {
 	/* command parameters and results */
@@ -389,7 +425,7 @@ int32_t fdma_present_frame_segment(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_read_default_frame_asa(
+int fdma_read_default_frame_asa(
 		void	 *ws_dst,
 		uint16_t offset,
 		uint16_t present_size)
@@ -436,7 +472,7 @@ int32_t fdma_read_default_frame_asa(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_read_default_frame_pta(
+int fdma_read_default_frame_pta(
 		void *ws_dst)
 {
 	/* command parameters and results */
@@ -472,7 +508,7 @@ int32_t fdma_read_default_frame_pta(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_extend_default_segment_presentation(
+int fdma_extend_default_segment_presentation(
 		uint16_t extend_size,
 		void	 *ws_dst,
 		uint32_t flags)
@@ -514,7 +550,7 @@ int32_t fdma_extend_default_segment_presentation(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_store_default_frame_data(void)
+int fdma_store_default_frame_data(void)
 {
 	/* command parameters and results */
 	uint32_t arg1;
@@ -540,7 +576,7 @@ int32_t fdma_store_default_frame_data(void)
 	return (int32_t)(res1);
 }
 
-int32_t fdma_store_frame_data(
+int fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
 		struct fdma_amq *amq)
@@ -576,7 +612,7 @@ int32_t fdma_store_frame_data(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_store_and_enqueue_default_frame_fqid(
+int fdma_store_and_enqueue_default_frame_fqid(
 		uint32_t fqid,
 		uint32_t flags)
 {
@@ -608,7 +644,7 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_store_and_enqueue_frame_fqid(
+int fdma_store_and_enqueue_frame_fqid(
 		uint8_t  frame_handle,
 		uint32_t flags,
 		uint32_t fqid,
@@ -640,7 +676,7 @@ int32_t fdma_store_and_enqueue_frame_fqid(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_store_and_enqueue_default_frame_qd(
+int fdma_store_and_enqueue_default_frame_qd(
 		struct fdma_queueing_destination_params *qdp,
 		uint32_t	flags)
 {
@@ -677,7 +713,7 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_store_and_enqueue_frame_qd(
+int fdma_store_and_enqueue_frame_qd(
 		uint8_t  frame_handle,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *qdp,
@@ -714,7 +750,7 @@ int32_t fdma_store_and_enqueue_frame_qd(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_enqueue_default_fd_fqid(
+int fdma_enqueue_default_fd_fqid(
 		uint16_t icid,
 		uint32_t flags,
 		uint32_t fqid)
@@ -745,7 +781,7 @@ int32_t fdma_enqueue_default_fd_fqid(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_enqueue_fd_fqid(
+int fdma_enqueue_fd_fqid(
 		struct ldpaa_fd *fd,
 		uint32_t flags,
 		uint32_t fqid,
@@ -777,7 +813,7 @@ int32_t fdma_enqueue_fd_fqid(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_enqueue_default_fd_qd(
+int fdma_enqueue_default_fd_qd(
 		uint16_t icid,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params)
@@ -811,7 +847,7 @@ int32_t fdma_enqueue_default_fd_qd(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_enqueue_fd_qd(
+int fdma_enqueue_fd_qd(
 		struct ldpaa_fd *fd,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params,
@@ -889,7 +925,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags)
 		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
+int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
 {
 	uint8_t frame_handle;
 	int32_t status;
@@ -921,7 +957,7 @@ void fdma_terminate_task(void)
 	__e_hwacceli_(FODMA_ACCEL_ID);
 }
 
-int32_t fdma_replicate_frame_fqid(
+int fdma_replicate_frame_fqid(
 		uint8_t	frame_handle1,
 		uint8_t	spid,
 		uint32_t fqid,
@@ -958,7 +994,7 @@ int32_t fdma_replicate_frame_fqid(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_replicate_frame_qd(
+int fdma_replicate_frame_qd(
 		uint8_t	frame_handle1,
 		uint8_t	spid,
 		struct fdma_queueing_destination_params *enqueue_params,
@@ -998,7 +1034,7 @@ int32_t fdma_replicate_frame_qd(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_concatenate_frames(
+int fdma_concatenate_frames(
 		struct fdma_concatenate_frames_params *params)
 {
 	/* command parameters and results */
@@ -1044,7 +1080,7 @@ int32_t fdma_concatenate_frames(
 }
 
 
-int32_t fdma_split_frame(
+int fdma_split_frame(
 		struct fdma_split_frame_params *params)
 {
 	/* Presentation Context Pointer */
@@ -1055,8 +1091,17 @@ int32_t fdma_split_frame(
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_SPLIT_CMD_ARG1(params->spid, params->source_frame_handle,
-			params->flags);
+#ifdef REV2
+	if (((uint32_t)params->fd_dst) == HWC_FD_ADDRESS)
+		arg1 = FDMA_SPLIT_CMD_ARG1(*((uint8_t *)HWC_SPID_ADDRESS),
+				params->source_frame_handle, params->flags);
+	else
+		arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
+				params->source_frame_handle, params->flags);
+#endif /* REV2 */
+	arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
+				params->source_frame_handle, params->flags);
+
 	arg2 = FDMA_SPLIT_CMD_ARG2((uint32_t)(params->seg_dst),
 			params->seg_offset);
 	arg3 = FDMA_SPLIT_CMD_ARG3(params->present_size);
@@ -1190,7 +1235,39 @@ void fdma_modify_default_segment_data(
 		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_replace_default_segment_data(
+void fdma_modify_segment_data(
+		uint8_t frame_handle,
+		uint8_t seg_handle,
+		uint16_t offset,
+		uint16_t size,
+		void	 *from_ws_src)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+
+	/* This command may be invoked only on Data segment */
+	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
+	    (seg_handle == FDMA_PTA_SEG_HANDLE))
+		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
+	/* prepare command parameters */
+	arg1 = FDMA_MODIFY_CMD_ARG1(
+			frame_handle, seg_handle, FDMA_REPLACE_NO_FLAGS);
+	arg2 = FDMA_REPLACE_CMD_ARG2(offset, size);
+	arg3 = FDMA_REPLACE_CMD_ARG3(
+			((uint32_t)from_ws_src), size);
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 != FDMA_SUCCESS)
+		fdma_handle_fatal_errors((int32_t)res1);
+}
+
+int fdma_replace_default_segment_data(
 		uint16_t to_offset,
 		uint16_t to_size,
 		void	 *from_ws_src,
@@ -1247,7 +1324,7 @@ int32_t fdma_replace_default_segment_data(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_insert_default_segment_data(
+int fdma_insert_default_segment_data(
 		uint16_t to_offset,
 		void	 *from_ws_src,
 		uint16_t insert_size,
@@ -1310,7 +1387,7 @@ int32_t fdma_insert_default_segment_data(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_insert_segment_data(
+int fdma_insert_segment_data(
 		struct fdma_insert_segment_data_params *params)
 {
 	/* Presentation Context Pointer */
@@ -1372,7 +1449,7 @@ int32_t fdma_insert_segment_data(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_delete_default_segment_data(
+int fdma_delete_default_segment_data(
 		uint16_t to_offset,
 		uint16_t delete_target_size,
 		uint32_t flags)
@@ -1432,7 +1509,7 @@ int32_t fdma_delete_default_segment_data(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_delete_segment_data(
+int fdma_delete_segment_data(
 		struct fdma_delete_segment_data_params *params)
 {
 	/* Presentation Context Pointer */
@@ -1553,7 +1630,7 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_replace_default_asa_segment_data(
+int fdma_replace_default_asa_segment_data(
 		uint16_t to_offset,
 		uint16_t to_size,
 		void	 *from_ws_src,
@@ -1611,7 +1688,7 @@ int32_t fdma_replace_default_asa_segment_data(
 	return (int32_t)(res1);
 }
 
-int32_t fdma_replace_default_pta_segment_data(
+int fdma_replace_default_pta_segment_data(
 		uint32_t flags,
 		void	 *from_ws_src,
 		void	 *ws_dst_rs,
@@ -1718,7 +1795,7 @@ void fdma_copy_data(
 		fdma_handle_fatal_errors((int32_t)res1);
 }
 
-int32_t fdma_acquire_buffer(
+int fdma_acquire_buffer(
 		uint16_t icid,
 		uint32_t flags,
 		uint16_t bpid,
@@ -1772,115 +1849,6 @@ void fdma_release_buffer(
 
 	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
-}
-
-void fdma_create_frame(
-		struct ldpaa_fd *fd,
-		void *data,
-		uint16_t size,
-		uint8_t *frame_handle)
-{
-	struct fdma_present_frame_params present_frame_params;
-	struct fdma_insert_segment_data_params insert_params;
-
-	/* *fd = {0};*/
-	fd->addr = 0;
-	fd->control = 0;
-	fd->flc = 0;
-	fd->frc = 0;
-	fd->length = 0;
-	fd->offset = 0;
-
-	if ((uint32_t)fd == HWC_FD_ADDRESS) {
-		PRC_SET_ASA_SIZE(0);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		PRC_SET_SEGMENT_LENGTH(0);
-		PRC_SET_SEGMENT_OFFSET(0);
-		PRC_RESET_NDS_BIT();
-		fdma_present_default_frame();
-
-		fdma_insert_default_segment_data(0, data, size,
-				FDMA_REPLACE_SA_CLOSE_BIT);
-
-		*frame_handle = PRC_GET_FRAME_HANDLE();
-	} else {
-		present_frame_params.fd_src = (void *)fd;
-		present_frame_params.asa_size = 0;
-		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
-		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
-		present_frame_params.present_size = 0;
-		present_frame_params.seg_offset = 0;
-
-		fdma_present_frame(&present_frame_params);
-
-		insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
-		insert_params.frame_handle = present_frame_params.frame_handle;
-		insert_params.from_ws_src = data;
-		insert_params.insert_size = size;
-		insert_params.seg_handle = present_frame_params.seg_handle;
-		insert_params.to_offset = 0;
-
-		fdma_insert_segment_data(&insert_params);
-
-		*frame_handle = present_frame_params.frame_handle;
-	}
-}
-
-int32_t fdma_create_fd(
-		struct ldpaa_fd *fd,
-		void *data,
-		uint16_t size)
-{
-	struct fdma_present_frame_params present_frame_params;
-	struct fdma_insert_segment_data_params insert_params;
-	struct fdma_amq amq;
-	uint8_t spid;
-
-	/* *fd = {0};*/
-	fd->addr = 0;
-	fd->control = 0;
-	fd->flc = 0;
-	fd->frc = 0;
-	fd->length = 0;
-	fd->offset = 0;
-
-	if ((uint32_t)fd == HWC_FD_ADDRESS) {
-		PRC_SET_ASA_SIZE(0);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		PRC_SET_SEGMENT_LENGTH(0);
-		PRC_SET_SEGMENT_OFFSET(0);
-		PRC_RESET_NDS_BIT();
-		fdma_present_default_frame();
-
-		fdma_insert_default_segment_data(0, data, size,
-				FDMA_REPLACE_SA_CLOSE_BIT);
-
-		return fdma_store_default_frame_data();
-	} else {
-		present_frame_params.fd_src = (void *)fd;
-		present_frame_params.asa_size = 0;
-		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
-		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
-		present_frame_params.present_size = 0;
-		present_frame_params.seg_offset = 0;
-
-		fdma_present_frame(&present_frame_params);
-
-		insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
-		insert_params.frame_handle = present_frame_params.frame_handle;
-		insert_params.from_ws_src = data;
-		insert_params.insert_size = size;
-		insert_params.seg_handle = present_frame_params.seg_handle;
-		insert_params.to_offset = 0;
-
-		fdma_insert_segment_data(&insert_params);
-
-		spid = *((uint8_t *)HWC_SPID_ADDRESS);
-		return fdma_store_frame_data(present_frame_params.frame_handle,
-				spid, &amq);
-	}
 }
 
 /* Todo - enable inline when inline works correctly+move definition to .h file*/

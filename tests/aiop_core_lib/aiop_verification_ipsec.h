@@ -37,6 +37,7 @@
 
 // Temporary workaround commands
 #define IPSEC_RUN_DESC_DEBUG 				9 | (IPSEC_MODULE << 16)
+#define IPSEC_CREATE_DEBUG_BUFFER_CMD		17 | (IPSEC_MODULE << 16)
 
 #define IPSEC_PARSER_HXS_ENET 0x00
 #define IPSEC_PARSER_HXS_IP   0x06
@@ -308,6 +309,23 @@ struct ipsec_run_desc_debug_command {
 	uint32_t status_addr;
 };
 
+
+/* Create debug buffer */
+struct ipsec_create_debug_buffer_command {
+	uint32_t opcode;
+	
+	uint64_t buffer_addr; /* buffer address */
+	uint32_t buffer_size;
+	
+	/** Returned Value: presentation context. */
+	struct presentation_context prc;
+
+	int32_t status; /* Function call return status */
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+};
 
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr);

@@ -9,7 +9,12 @@
 
 #ifndef __FSL_ENDIAN_H_
 #define __FSL_ENDIAN_H_
-#include "fsl_swab.h"
+
+#if defined(LS2100A) && defined (AIOP)
+#include "ls2100a_aiop/fsl_swab.h"
+#elif defined(LS2100A) && defined (MC)
+#include "ls2100a_mc/fsl_swab.h"
+#endif
 
 
 

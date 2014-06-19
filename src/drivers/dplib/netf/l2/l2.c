@@ -292,3 +292,18 @@ int32_t l2_pop_vlan()
 		return NO_VLAN_ERROR;
 	}
 }
+
+/*
+void l2_arp_response(uint8_t *local_hw_addr)
+{
+	 TODO - implement
+}
+
+void l2_set_hwaddr_fields(
+		uint8_t *sender_hw_addr,
+		uint8_t *dest_hw_addr)
+{
+	 TODO - implement
+}
+*/
+

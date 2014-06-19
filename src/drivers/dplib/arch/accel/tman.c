@@ -17,7 +17,7 @@
 	#include "common/errors.h"
 #endif
 
-int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
+int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
 {
 	/* command parameters and results */
@@ -58,10 +58,10 @@ int32_t tman_create_tmi(uint64_t tmi_mem_base_addr,
 	} while (res1 & TMAN_TMI_TMP_ERR_MASK);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
-	return (int32_t)(res1);
+	return (int)(res1);
 }
 
-int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
+int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
 			tman_arg_2B_t conf_opaque_data2)
 {
@@ -100,10 +100,10 @@ int32_t tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
 	} while (res1 & TMAN_TMI_TMP_ERR_MASK);
-	return (int32_t)(res1);
+	return (int)(res1);
 }
 
-int32_t tman_query_tmi(uint8_t tmi_id,
+int tman_query_tmi(uint8_t tmi_id,
 			struct tman_tmi_params *output_ptr)
 {
 	/* command parameters and results */
@@ -129,10 +129,10 @@ int32_t tman_query_tmi(uint8_t tmi_id,
 	/* Optimization: remove one cycle compared to and statement */
 	/* Erase PL and BDI from output_ptr */
 	*(uint8_t *)(&output_ptr->max_num_of_timers) = 0;
-	return (int32_t)(res1);
+	return (int)(res1);
 }
 
-int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
+int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 			uint16_t duration, tman_arg_8B_t opaque_data1,
 			tman_arg_2B_t opaque_data2, tman_cb_t tman_timer_cb,
 			uint32_t *timer_handle)
@@ -180,10 +180,10 @@ int32_t tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2) ||
 			(res1 == TMAN_TMR_TMP_ERR3));
 	*timer_handle = res2;
-	return (int32_t)(res1);
+	return (int)(res1);
 }
 
-int32_t tman_delete_timer(uint32_t timer_handle, uint32_t flags)
+int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 {
 	uint32_t res1;
 #ifdef SL_DEBUG
@@ -204,10 +204,10 @@ int32_t tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
 	} while (res1 == TMAN_TMR_TMP_ERR2);
-	return (int32_t)(res1);
+	return (int)(res1);
 }
 
-int32_t tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
+int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_MODIFY, res1;
 #ifdef SL_DEBUG
@@ -231,10 +231,10 @@ int32_t tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
 	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2));
-	return (int32_t)(res1);
+	return (int)(res1);
 }
 
-int32_t tman_recharge_timer(uint32_t timer_handle)
+int tman_recharge_timer(uint32_t timer_handle)
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_RECHARGE, res1;
 #ifdef SL_DEBUG
@@ -254,10 +254,10 @@ int32_t tman_recharge_timer(uint32_t timer_handle)
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
 	} while (res1 == TMAN_TMR_TMP_ERR2);
-	return (int32_t)(res1);
+	return (int)(res1);
 }
 
-int32_t tman_query_timer(uint32_t timer_handle,
+int tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state)
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_QUERY, res1;
@@ -281,7 +281,7 @@ int32_t tman_query_timer(uint32_t timer_handle,
 	/* performs *state = res1 & 0x03 */
 	/* Optimization: remove 2 cycles of clearing duration upper bits */
 	*((uint8_t *)(state)) = (uint8_t)res1;
-	return (int32_t)(res1 & TMAN_TMR_QUERY_STATE_MASK);
+	return (int)(res1 & TMAN_TMR_QUERY_STATE_MASK);
 }
 
 void tman_timer_completion_confirmation(uint32_t timer_handle)

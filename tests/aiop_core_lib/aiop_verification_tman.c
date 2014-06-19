@@ -5,6 +5,7 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_tman.h"
+#include "dplib/fsl_frame_operations.h"
 
 #include "aiop_verification.h"
 #include "aiop_verification_tman.h"
@@ -171,7 +172,7 @@ void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 	uint8_t frame_handle;
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
-	fdma_create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
+	create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
 			(uint32_t)opaque2, spid);
 }
@@ -183,7 +184,7 @@ void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 	uint8_t frame_handle;
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
-	fdma_create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
+	create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,

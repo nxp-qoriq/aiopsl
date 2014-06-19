@@ -1,14 +1,10 @@
-#include "common/types.h"
-#include "common/gen.h"
-#include "common/errors.h"
-#include "common/fsl_string.h"
-#include "general.h"
-#include "io.h"
-#include "fsl_malloc.h"
-#include "errors.h"
-#include "cmdif_srv.h"
-#include "fsl_cmdif_flib_s.h"
-#include "fsl_cmdif_client.h"
+#include <errno.h>
+#include <types.h>
+#include <fsl_cmdif_flib_s.h>
+#include <fsl_cmdif_client.h>
+
+int cmdif_srv_init(void);
+void cmdif_srv_free(void);
 
 void *srv;
 
@@ -32,19 +28,9 @@ static uint64_t virt_to_phys(void *ptr)
 
 static void srv_free(void *ptr)
 {
-	if (ptr != NULL)
-		fsl_os_xfree(ptr);
+	/* TODO */
+	return;
 }
-
-int32_t nadk_send(struct nadk_dev *dev, void *vq, struct nadk_buf *buf[], uint32_t num);
-
-/*
- * Pointer to this structure should be passed as cidesc->regs
- */
-struct cmdif_reg {
-	void   *nadk_dev;
-	/* TODO complete */
-};
 
 
 static int receive_fd(struct cmdif_fd *cfd, int pr, void *sdev)
@@ -147,11 +133,11 @@ int cmdif_srv_cb(int pr, void *send_dev)
 }
 
 int cmdif_session_open(struct cmdif_desc *cidesc,
-		       const char *m_name,
-		       uint8_t inst_id,
-		       uint32_t size,
-		       void *v_data,
-		       uint16_t *auth_id)
+		const char *m_name,
+		uint8_t inst_id,
+		uint32_t size,
+		void *v_data,
+		uint16_t *auth_id)
 {
 	int      err = 0;
 	uint32_t dpci_id = 0; /* TODO Get DPCI id of GPP server */

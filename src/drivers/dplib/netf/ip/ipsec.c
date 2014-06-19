@@ -77,6 +77,12 @@ enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 __SHRAM struct ipsec_global_params global_params;
 __SHRAM struct ipsec_global_instance_params global_instance_params;
 
+#ifdef AIOP_VERIF
+__SHRAM uint64_t ipsec_debug_buf_addr; /* Global in Shared RAM */
+__SHRAM uint32_t ipsec_debug_buf_size; /* Global in Shared RAM */
+__SHRAM uint32_t ipsec_debug_buf_offset; /* Global in Shared RAM */
+#endif
+
 
 /**************************************************************************//**
 * 	ipsec_init
@@ -1146,6 +1152,19 @@ int ipsec_frame_encrypt(
 		eth_header[3] = *(eth_pointer_default + 3);
 		eth_header[4] = *(eth_pointer_default + 4);
 		
+		//TODO: debug info
+#ifdef AIOP_VERIF
+		if (ipsec_debug_buf_addr != NULL) {
+			/* Write the debug info to external memory */
+			cdma_write(
+				(ipsec_debug_buf_addr + ipsec_debug_buf_offset), /* ext_address */
+				&eth_header, /* ws_src */
+				40); /* size */
+			if (ipsec_debug_buf_offset <= (ipsec_debug_buf_size-64)) {
+				ipsec_debug_buf_offset += 64;
+			}
+		}
+#endif		
 		/* Ethernet header length and indicator */ 
 		eth_length = (uint8_t)(
 						(uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
@@ -1300,6 +1319,20 @@ int ipsec_frame_encrypt(
 	
 	/* 	16.	If L2 header existed in the original frame, add it back: */
 	if (eth_length) {
+		//TODO: debug info
+#ifdef AIOP_VERIF
+		if (ipsec_debug_buf_addr != NULL) {
+			/* Write the debug info to external memory */
+			cdma_write(
+				(ipsec_debug_buf_addr + ipsec_debug_buf_offset), /* ext_address */
+				&eth_header, /* ws_src */
+				40); /* size */
+			if (ipsec_debug_buf_offset <= (ipsec_debug_buf_size-64)) {
+				ipsec_debug_buf_offset += 64;
+			}
+		}
+#endif
+		
 		/* Note: The Ethertype was already updated before removing the 
 		 * L2 header */
 		return_val = fdma_insert_default_segment_data(

@@ -19,6 +19,7 @@
 *//***************************************************************************/
 
 #define CORE_E200
+#define CORE_E200_Z490
 
 #define INTG_MAX_NUM_OF_CORES   16
 #define INTG_THREADS_PER_CORE   1
@@ -44,7 +45,8 @@ enum fsl_os_module {
 	FSL_OS_MOD_AIOP_TILE,
 
 	FSL_OS_MOD_MC_PORTAL,
-	FSL_OS_MOD_AIOP_RC,   /**< AIOP root container from DPL */
+	FSL_OS_MOD_AIOP_RC,    /**< AIOP root container from DPL */
+	FSL_OS_MOD_DPCI_TBL,   /**< AIOP DPCI table from DPL */
 	
 	FSL_OS_MOD_LAYOUT, /* TODO - review *//**< layout */
 
