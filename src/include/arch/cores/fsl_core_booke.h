@@ -14,10 +14,13 @@
 
 #include "common/types.h"
 
-
+#ifndef CORE_E200_Z490
 #define core_dcache_enable      booke_dcache_enable
+#endif /* CORE_E200_Z490 */
 #define core_icache_enable      booke_icache_enable
+#ifndef CORE_E200_Z490
 #define core_dcache_disable     booke_dcache_disable
+#endif /* CORE_E200_Z490 */
 #define core_icache_disable     booke_icache_disable
 #define core_get_id             booke_get_id
 #define core_test_and_set       booke_test_and_set
@@ -44,7 +47,7 @@
  @{
 *//***************************************************************************/
 
-
+#ifndef CORE_E200_Z490
 /**************************************************************************//**
  @Function      booke_dcache_enable
 
@@ -63,6 +66,7 @@ void booke_dcache_enable(void);
  @Return        '1'(Enabled)/'0'(Disabled)
 *//***************************************************************************/
 int booke_is_dcache_enabled(void);
+#endif /* CORE_E200_Z490 */
 
 /**************************************************************************//**
  @Function      booke_is_icache_enabled
@@ -83,6 +87,7 @@ int booke_is_icache_enabled(void);
 *//***************************************************************************/
 void booke_icache_enable(void);
 
+#ifndef CORE_E200_Z490
 /**************************************************************************//**
  @Function      booke_dcache_disable
 
@@ -91,6 +96,7 @@ void booke_icache_enable(void);
  @Return        None.
 *//***************************************************************************/
 void booke_dcache_disable(void);
+#endif /* CORE_E200_Z490 */ 
 
 /**************************************************************************//**
  @Function      booke_icache_disable
@@ -119,6 +125,7 @@ void booke_dcache_flush(void);
 *//***************************************************************************/
 void booke_icache_flush(void);
 
+#ifndef CORE_E200_Z490
 /**************************************************************************//**
  @Function      booke_dcache_set_stash_id
 
@@ -140,79 +147,7 @@ void booke_dcache_set_stash_id(uint8_t stash_id);
  @Return        Stash ID.
 *//***************************************************************************/
 uint8_t booke_dcache_get_stash_id(void);
-
-#if defined(CORE_E500MC) || defined(CORE_E5500)
-/**************************************************************************//**
- @Description   BOOKE L2 Cache Operation Mode
-*//***************************************************************************/
-typedef enum booke_l2cache_mode {
-    E_L2_CACHE_MODE_DATA_ONLY      = 0x00000001,   /**< Cache data only */
-    E_L2_CACHE_MODE_INST_ONLY      = 0x00000002,   /**< Cache instructions only */
-    E_L2_CACHE_MODE_DATA_AND_INST  = 0x00000003    /**< Cache data and instructions */
-} booke_l2cache_mode;
-
-
-int booke_is_l2icache_enabled(void);
-int booke_is_l2dcache_enabled(void);
-
-/**************************************************************************//**
- @Function      booke_l2cache_enable
-
- @Description   Enables the cache for memory pages that are not cache inhibited.
-
- @param[in]     mode - L2 cache mode: data only, instruction only or instruction and data.
-
- @Return        None.
-
- @Cautions      This routine must be call only ONCE for both caches. I.e. it is
-                not possible to call this routine for i-cache and than to call
-                again for d-cache; The second call will override the first one.
-*//***************************************************************************/
-void booke_l2cache_enable(booke_l2cache_mode mode);
-
-/**************************************************************************//**
- @Function      booke_l2cache_disable
-
- @Description   Disables the cache (data instruction or both).
-
- @Return        None.
-
-*//***************************************************************************/
-void booke_l2cache_disable(void);
-
-/**************************************************************************//**
- @Function      booke_l2cache_flush
-
- @Description   Flushes the cache.
-
- @Return        None.
-*//***************************************************************************/
-void booke_l2cache_flush(void);
-
-/**************************************************************************//**
- @Function      booke_l2cache_set_stash_id
-
- @Description   Set Stash Id
-
- @Param[in]     stashId     the stash id to be set.
-
- @Return        None.
-*//***************************************************************************/
-void booke_l2cache_set_stash_id(uint8_t stash_id);
-#endif /* defined(CORE_E500MC) || ... */
-
-#ifdef CORE_E6500
-/**************************************************************************//**
- @Function      E6500_GetCcsrBase
-
- @Description   Obtain SoC CCSR base address
-
- @Param[in]     None.
-
- @Return        Physical CCSR base address.
-*//***************************************************************************/
-dma_addr_t e6500_get_ccsr_base(void);
-#endif /* CORE_E6500 */
+#endif /* CORE_E200_Z490 */
 
 /**************************************************************************//**
  @Function      booke_address_bus_streaming_enable
@@ -391,10 +326,6 @@ static inline void booke_local_irq_restore(uint32_t flags)
  */
 void        l1dcache_invalidate (void);
 void        l1icache_invalidate(void);
-#if defined(CORE_E500MC) || defined(CORE_E6500)
-void        l1dcache_invalidate_and_clear (void);
-void        l1icache_invalidate_and_clear(void);
-#endif /* defined(CORE_E500MC) || ... */
 void        l1dcache_enable(void);
 void        l1icache_enable(void);
 void        l1dcache_disable(void);
@@ -410,18 +341,6 @@ uint32_t    l1dcache_line_lock(uint32_t addr);
 uint32_t    l1icache_line_lock(uint32_t addr);
 void        l1cache_broad_cast_enable(void);
 void        l1cache_broad_cast_disable(void);
-
-void booke_set_doze_mode(void);
-void booke_set_nap_mode(void);
-void booke_set_sleep_mode(void);
-void booke_set_jog_mode(void);
-int booke_set_deep_sleep_mode(uint32_t bptr_address);
-
-void booke_recover_doze_mode(void);
-void booke_recover_nap_mode(void);
-void booke_recover_sleep_mode(void);
-void booke_recover_jog_mode(void);
-
 
 /* assembly routines prototypes for user reference only */
 
@@ -456,21 +375,8 @@ void        msr_enable_de(void);
 void        msr_disable_de(void);
 void        msr_enable_pmm(void);
 void        msr_disable_pmm(void);
-
-/* E500MC MSR */
-void        msr_enable_gs(void);
-void        msr_disable_gs(void);
 void        msr_enable_pr(void);
 void        msr_disable_pr(void);
-
-void        e500_tlb_write(uintptr_t mas0, uintptr_t mas1, uintptr_t mas2, uintptr_t mas3);
-void        e500_tlb_write5(uintptr_t mas0, uintptr_t mas1, uintptr_t mas2, uintptr_t mas3, uintptr_t mas7);
-void        e500mc_tlb_write(uintptr_t mas[]);
-void        e500_tlb_read(uintptr_t *array_addr, uintptr_t mas0, uintptr_t mas2);
-void        e500_tlb_read5(uintptr_t *array_addr, uintptr_t mas0, uintptr_t mas2);
-void        e500mc_tlb_read(uintptr_t *array_addr, uintptr_t mas0, uintptr_t mas2);
-void        e500_tlb1_invalidate(void);
-
 
 uint32_t    L1Ctl_write(uintptr_t address, uint32_t value);
 
@@ -631,13 +537,6 @@ void booke_set_spr_L1CSR1(uint32_t newvalue); /* [1011]       L1 cache control a
 uint32_t booke_get_spr_L1CSR2(void);          /* [606]        L1 cache control and status register 2 1 */
 void booke_set_spr_L1CSR2(uint32_t newvalue); /* [606]        L1 cache control and status register 2 1 */
 
-uint32_t e500mc_get_spr_L2CFG0(void);          /* [519]        L2 cache configuration register 0 */
-void e500mc_set_spr_L2CFG0(uint32_t newvalue); /* [519]        L2 cache configuration register 0 */
-uint32_t e500mc_get_spr_L2CSR0(void);          /* [1017]       L2 cache control and status register 0 1 */
-void e500mc_set_spr_L2CSR0(uint32_t newvalue); /* [1017]       L2 cache control and status register 0 1 */
-uint32_t e500mc_get_spr_L2CSR1(void);          /* [1018]       L2 cache control and status register 1 1 */
-void e500mc_set_spr_L2CSR1(uint32_t newvalue); /* [1018]       L2 cache control and status register 1 1 */
-
 uint32_t booke_get_spr_MAS0(void);            /* [624]        MMU assist register 0 1 */
 void booke_set_spr_MAS0(uint32_t newvalue);   /* [624]        MMU assist register 0 1 */
 uint32_t booke_get_spr_MAS1(void);            /* [625]        MMU assist register 1 1 */
@@ -683,9 +582,6 @@ uint32_t booke_get_spr_SVR(void);             /* [1023]       System version reg
 void booke_set_spr_SVR(uint32_t newvalue);    /* [1023]       System version register */
 uint32_t booke_get_spr_ILLEGAL(void);         /* [999]        System version register */
 void booke_set_spr_ILLEGAL(uint32_t newvalue);/* [999]        System version register */
-void e500_illegal_inst(void);
-
-uint32_t booke_get_spr_SCCSRBAR(void);        /* [1022]       Shifted CCSRBAR register (on e6500) */
 
 uint32_t booke_get_spr_HDBCR0(void);
 void booke_set_spr_HDBCR0(uint32_t newvalue);
@@ -694,40 +590,8 @@ void booke_set_spr_HDBCR2(uint32_t newvalue);
 uint32_t booke_get_spr_HDBCR7(void);
 void booke_set_spr_HDBCR7(uint32_t newvalue);
 
-/* Performance Monitoring */
-uint32_t e500_get_pmc0(void);
-void e500_set_pmc0(uint32_t newvalue);
-uint32_t e500_get_pmc1(void);
-void e500_set_pmc1(uint32_t newvalue);
-uint32_t e500_get_pmc2(void);
-void e500_set_pmc2(uint32_t newvalue);
-uint32_t e500_get_pmc3(void);
-void e500_set_pmc3(uint32_t newvalue);
-uint32_t e500_get_pml_ca0(void);
-void e500_set_pml_ca0(uint32_t newvalue);
-uint32_t e500_get_pml_ca1(void);
-void e500_set_pml_ca1(uint32_t newvalue);
-uint32_t e500_get_pml_ca2(void);
-void e500_set_pml_ca2(uint32_t newvalue);
-uint32_t e500_get_pml_ca3(void);
-void e500_set_pml_ca3(uint32_t newvalue);
-uint32_t e500_get_pml_cb0(void);
-void e500_setPML_CB0(uint32_t newvalue);
-uint32_t e500_get_pml_cb1(void);
-void e500_setPML_CB1(uint32_t newvalue);
-uint32_t e500_get_pml_cb2(void);
-void e500_setPML_CB2(uint32_t newvalue);
-uint32_t e500_get_pml_cb3(void);
-void e500_setPML_CB3(uint32_t newvalue);
-uint32_t e500_get_pmgc0 (void);
-void e500_set_pmgc0 (uint32_t newvalue);
-
-/* Threads management*/
-void e500_disable_secondary_threads(uint32_t secondary_threads_mask);
-void e500_enable_secondary_threads(uint32_t secondary_threads_mask);
-
+#ifdef CORE_E200
 /* E200-AIOP special regs */
-
 // Number of tasks as they defined by CTSCSR register.
 #define CTSCSR_ENABLE 0x80000000
 #define CTSCSR_1_TASKS 0  
@@ -739,6 +603,7 @@ void e500_enable_secondary_threads(uint32_t secondary_threads_mask);
 
 uint32_t booke_get_CTSCSR0(void);            /* [464]  CTS gen control and status reg 0. */
 void booke_set_CTSCSR0(uint32_t newvalue);   /* [464]  CTS gen control and status reg 0. */
+#endif /* CORE_E200 */
 
 /** @} */ /* end of booke_init_grp group */
 /** @} */ /* end of booke_grp group */
