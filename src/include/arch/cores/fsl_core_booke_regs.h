@@ -1,5 +1,5 @@
 /**************************************************************************//**
- @File          fsl_core_booke.h
+ @File          fsl_core_booke_regs.h
 
  @Description   BOOKE external definitions prototypes
                 This file is not included by the BOOKE
