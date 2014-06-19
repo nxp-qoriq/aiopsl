@@ -39,7 +39,7 @@ Execution flow
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
 10. Run “tio inject”:
-   ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
+   ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file arena_test_40.pcap -verbose_level 2
    This will send packets to AIOP.
 11. Set break point inside app_process_packet_flow0() and push "Resume / Multi core Resume" button to run and see that
     it's activated on each packet.

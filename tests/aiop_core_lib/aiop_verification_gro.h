@@ -72,7 +72,7 @@ struct tcp_gro_agg_seg_command {
 	struct presentation_context prc;
 		/** Returned Value:
 		 * Iteration return status. */
-	int32_t status;
+	int status;
 		/** Workspace address of the last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t status_addr;
@@ -94,7 +94,7 @@ struct tcp_gro_flush_agg_command {
 	uint32_t opcode;
 		/** Returned Value:
 		 * Iteration return status. */
-	int32_t status;
+	int status;
 		/** Address (in HW buffers) of the TCP GRO internal context.
 		The user should allocate \ref tcp_gro_ctx_t in this address.
 		The user should zero the \ref tcp_gro_ctx_t allocated space once
@@ -121,7 +121,6 @@ struct tcp_gro_flush_agg_command {
 
 uint16_t  aiop_verification_gro(uint32_t data_addr);
 void gro_verif_create_next_frame(uint8_t gro_iteration);
-void gro_timeout_cb_verif(uint64_t arg);
 
 /** @} */ /* end of AIOP_GRO_Verification */
 

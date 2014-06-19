@@ -109,9 +109,9 @@
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.freescale.ppc.toolchain.compiler.550517216" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1177934181" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_t4ls_sim/build_flags&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/platform/ls2100a_aiop&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/platform/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2100a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/cores&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
@@ -214,7 +214,6 @@
 							<tool id="com.freescale.ppc.toolchain.compiler.298265697" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler.550517216">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1123700427" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2100a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>

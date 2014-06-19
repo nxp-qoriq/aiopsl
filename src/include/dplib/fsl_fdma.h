@@ -871,7 +871,7 @@ struct fdma_delete_segment_data_params {
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_default_frame(void);
+int fdma_present_default_frame(void);
 
 /**************************************************************************//**
 @Function	fdma_present_frame
@@ -909,7 +909,7 @@ int32_t fdma_present_default_frame(void);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_frame(
+int fdma_present_frame(
 		struct fdma_present_frame_params *params);
 
 /**************************************************************************//**
@@ -945,7 +945,7 @@ int32_t fdma_present_frame(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_default_frame_segment(
+int fdma_present_default_frame_segment(
 		uint32_t flags,
 		void	 *ws_dst,
 		uint16_t offset,
@@ -973,7 +973,7 @@ int32_t fdma_present_default_frame_segment(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_frame_segment(
+int fdma_present_frame_segment(
 		struct fdma_present_segment_params *params);
 
 /**************************************************************************//**
@@ -1014,7 +1014,7 @@ int32_t fdma_present_frame_segment(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_read_default_frame_asa(
+int fdma_read_default_frame_asa(
 		void	 *ws_dst,
 		uint16_t offset,
 		uint16_t present_size);
@@ -1048,7 +1048,7 @@ int32_t fdma_read_default_frame_asa(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_read_default_frame_pta(void *ws_dst);
+int fdma_read_default_frame_pta(void *ws_dst);
 
 /**************************************************************************//**
 @Function	fdma_extend_default_segment_presentation
@@ -1089,7 +1089,7 @@ int32_t fdma_read_default_frame_pta(void *ws_dst);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_extend_default_segment_presentation(
+int fdma_extend_default_segment_presentation(
 		uint16_t extend_size,
 		void	 *ws_dst,
 		uint32_t flags);
@@ -1127,7 +1127,7 @@ int32_t fdma_extend_default_segment_presentation(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_store_default_frame_data(void);
+int fdma_store_default_frame_data(void);
 
 /**************************************************************************//**
 @Function	fdma_store_frame_data
@@ -1161,7 +1161,7 @@ int32_t fdma_store_default_frame_data(void);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_store_frame_data(
+int fdma_store_frame_data(
 		uint8_t frame_handle,
 		uint8_t spid,
 		struct fdma_amq *amq);
@@ -1209,7 +1209,7 @@ int32_t fdma_store_frame_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_store_and_enqueue_default_frame_fqid(
+int fdma_store_and_enqueue_default_frame_fqid(
 		uint32_t fqid,
 		uint32_t flags);
 
@@ -1255,7 +1255,7 @@ int32_t fdma_store_and_enqueue_default_frame_fqid(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_store_and_enqueue_frame_fqid(
+int fdma_store_and_enqueue_frame_fqid(
 		uint8_t  frame_handle,
 		uint32_t flags,
 		uint32_t fqid,
@@ -1304,7 +1304,7 @@ int32_t fdma_store_and_enqueue_frame_fqid(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_store_and_enqueue_default_frame_qd(
+int fdma_store_and_enqueue_default_frame_qd(
 		struct fdma_queueing_destination_params *qdp,
 		uint32_t	flags);
 
@@ -1353,7 +1353,7 @@ int32_t fdma_store_and_enqueue_default_frame_qd(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_store_and_enqueue_frame_qd(
+int fdma_store_and_enqueue_frame_qd(
 		uint8_t  frame_handle,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *qdp,
@@ -1385,7 +1385,7 @@ int32_t fdma_store_and_enqueue_frame_qd(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_enqueue_default_fd_fqid(
+int fdma_enqueue_default_fd_fqid(
 		uint16_t icid,
 		uint32_t flags,
 		uint32_t fqid);
@@ -1414,7 +1414,7 @@ int32_t fdma_enqueue_default_fd_fqid(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_enqueue_fd_fqid(
+int fdma_enqueue_fd_fqid(
 		struct ldpaa_fd *fd,
 		uint32_t flags,
 		uint32_t fqid,
@@ -1446,7 +1446,7 @@ int32_t fdma_enqueue_fd_fqid(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_enqueue_default_fd_qd(
+int fdma_enqueue_default_fd_qd(
 		uint16_t icid,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params);
@@ -1475,7 +1475,7 @@ int32_t fdma_enqueue_default_fd_qd(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_enqueue_fd_qd(
+int fdma_enqueue_fd_qd(
 		struct ldpaa_fd *fd,
 		uint32_t flags,
 		struct fdma_queueing_destination_params *enqueue_params,
@@ -1539,7 +1539,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
+int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_force_discard_frame
@@ -1612,7 +1612,7 @@ void fdma_terminate_task(void);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_replicate_frame_fqid(
+int fdma_replicate_frame_fqid(
 		uint8_t	frame_handle1,
 		uint8_t	spid,
 		uint32_t fqid,
@@ -1652,7 +1652,7 @@ int32_t fdma_replicate_frame_fqid(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_replicate_frame_qd(
+int fdma_replicate_frame_qd(
 		uint8_t	frame_handle1,
 		uint8_t	spid,
 		struct fdma_queueing_destination_params *enqueue_params,
@@ -1697,7 +1697,7 @@ int32_t fdma_replicate_frame_qd(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_concatenate_frames(
+int fdma_concatenate_frames(
 		struct fdma_concatenate_frames_params *params);
 
 /**************************************************************************//**
@@ -1741,7 +1741,7 @@ int32_t fdma_concatenate_frames(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_split_frame(
+int fdma_split_frame(
 		struct fdma_split_frame_params *params);
 
 /**************************************************************************//**
@@ -1926,7 +1926,7 @@ void fdma_modify_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_replace_default_segment_data(
+int fdma_replace_default_segment_data(
 		uint16_t to_offset,
 		uint16_t to_size,
 		void	 *from_ws_src,
@@ -2008,7 +2008,7 @@ int32_t fdma_replace_default_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_insert_default_segment_data(
+int fdma_insert_default_segment_data(
 		uint16_t to_offset,
 		void	 *from_ws_src,
 		uint16_t insert_size,
@@ -2051,7 +2051,7 @@ int32_t fdma_insert_default_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_insert_segment_data(
+int fdma_insert_segment_data(
 		struct fdma_insert_segment_data_params *params);
 
 /**************************************************************************//**
@@ -2114,7 +2114,7 @@ int32_t fdma_insert_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_delete_default_segment_data(
+int fdma_delete_default_segment_data(
 		uint16_t to_offset,
 		uint16_t delete_target_size,
 		uint32_t flags);
@@ -2156,7 +2156,7 @@ int32_t fdma_delete_default_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_delete_segment_data(
+int fdma_delete_segment_data(
 		struct fdma_delete_segment_data_params *params);
 
 /**************************************************************************//**
@@ -2245,7 +2245,7 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_replace_default_asa_segment_data(
+int fdma_replace_default_asa_segment_data(
 		uint16_t to_offset,
 		uint16_t to_size,
 		void	 *from_ws_src,
@@ -2301,7 +2301,7 @@ int32_t fdma_replace_default_asa_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_replace_default_pta_segment_data(
+int fdma_replace_default_pta_segment_data(
 		uint32_t flags,
 		void	 *from_ws_src,
 		void	 *ws_dst_rs,

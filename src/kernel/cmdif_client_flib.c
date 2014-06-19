@@ -4,6 +4,10 @@
 #include <errno.h>
 #include <types.h>
 
+#ifndef AIOP
+#define __HOT_CODE 
+#endif
+
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
 
@@ -15,7 +19,7 @@
 	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)) || (CMD & SPECIAL_CMD))
 
 
-int cmdif_is_sync_cmd(uint16_t cmd_id)
+__HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
 	return SYNC_CMD(cmd_id);
 }
@@ -78,7 +82,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_sync_ready(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_ready(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -93,7 +97,7 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
 
-int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
@@ -155,7 +159,7 @@ int cmdif_close_done(struct cmdif_desc *cidesc)
 	return cmdif_sync_cmd_done(cidesc);
 }
 
-int cmdif_cmd(struct cmdif_desc *cidesc,
+__HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		uint64_t data,
@@ -180,7 +184,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_async_cb(struct cmdif_fd *fd)
+__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 {
 	struct   cmdif_dev *dev = NULL;
 	uint64_t fd_dev         = 0;
