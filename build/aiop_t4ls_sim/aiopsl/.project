@@ -740,6 +740,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/mem_mng/mem_mng.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/ppc/include/fsl_core_booke_regs.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_booke_regs.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/ppc/include/fsl_core_ppc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_ppc.h</locationURI>
@@ -878,11 +883,6 @@
 			<name>aiop_sl/include/arch/cores/fsl_core_booke.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/cores/fsl_core_booke.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/cores/fsl_core_booke_regs.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/cores/fsl_core_booke_regs.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/fsl_soc_aiop_spec.h</name>
