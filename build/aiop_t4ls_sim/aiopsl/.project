@@ -455,11 +455,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_server.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/fsl_core.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_core.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/fsl_malloc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_malloc.h</locationURI>
