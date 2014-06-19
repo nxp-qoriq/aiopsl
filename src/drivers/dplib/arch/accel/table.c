@@ -183,7 +183,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 	tbl_params->current_rules = output.current_rules;
 	tbl_params->committed_rules = output.committed_rules;
 	tbl_params->max_rules = output.max_rules;
-	tbl_params->attributes = output.type;
+	tbl_params->attributes = output.attr;
 
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);

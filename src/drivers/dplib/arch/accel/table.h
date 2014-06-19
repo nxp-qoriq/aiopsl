@@ -187,7 +187,7 @@
 @{
 *//***************************************************************************/
 	/** Table query output message reserved space */
-#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	16
+#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	20
 
 /** @} */ /* end of TABLE_QUERY */
 
@@ -338,9 +338,9 @@ struct	table_create_output_message {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_params_query_output_message {
-	/** Table Type
-	Includes IEX, MRES & AGT bits */
-	uint16_t type;
+	/** Table attributes
+	Includes Type IEX, MRES & AGT bits */
+	uint16_t attr;
 
 	/* ICID (including BDI) */
 	uint16_t icid;
