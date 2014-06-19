@@ -354,13 +354,13 @@ int tcp_gro_add_seg_and_close_aggregation(
 	struct ipv6hdr *ipv6;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct fdma_concatenate_frames_params concat_params;
-	int sr_status, status;
+	int sr_status, status, timer_status;
 	uint16_t seg_size, headers_size, ip_length;
 	uint16_t outer_ip_offset;
 	uint8_t  data_offset;
 
 	/* delete the timer for this aggregation */
-	tman_delete_timer(gro_ctx->timer_handle,
+	timer_status = tman_delete_timer(gro_ctx->timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
 	gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
@@ -498,7 +498,18 @@ int tcp_gro_add_seg_and_close_aggregation(
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
 
-	return (TCP_GRO_SEG_AGG_DONE | status);
+	/* A timer has expired but did not take the lock yet.
+	 * Update GRO context fields and wait for the timer to handle the
+	 * aggregation.
+	 * in such a case the aggregated frame will remain at the gro_ctx and
+	 * will not return as the default frame.*/
+	if (timer_status != SUCCESS){
+		fdma_store_default_frame_data();
+		gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
+		return (TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status);
+	} else {
+		return (TCP_GRO_SEG_AGG_DONE | status);
+	}
 }
 
 /* Close an existing aggregation and start a new aggregation with the new
@@ -516,7 +527,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
-	int sr_status;
+	int sr_status, status;
 	uint32_t old_agg_timestamp;
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -645,15 +656,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		ste_inc_counter(gro_ctx->params.stats_addr +
 			GRO_STAT_AGG_NUM_CNTR_OFFSET,
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-		/* delete the timer since the new segment will be flushed as is
-		 * without additional segments. */
-		tman_delete_timer(gro_ctx->timer_handle,
-				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
-		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
-		gro_ctx->timestamp = 0;
-		/* Clear gross running sum in parse results */
-		pr->gross_running_sum = 0;
 		/* If the segment requires a flush but it was already discarded,
 		 * report the discard since a flush is not required anymore. */
 		/* Report to the user the segment was discarded. */
@@ -663,11 +666,39 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 			gro_ctx->metadata.seg_num = 0;
 			gro_ctx->internal_flags = 0;
-			return TCP_GRO_SEG_AGG_DONE | TCP_GRO_SEG_DISCARDED;
+			status = TCP_GRO_SEG_DISCARDED;
 		} else { /* Report to the user a flush is required. */
 			gro_ctx->metadata.seg_num = 1;
-			return TCP_GRO_SEG_AGG_DONE | TCP_GRO_FLUSH_REQUIRED;
+			status = TCP_GRO_FLUSH_REQUIRED;
 		}
+		/* delete the timer since the new segment will be flushed as is
+		 * without additional segments. */
+		sr_status = tman_delete_timer(gro_ctx->timer_handle,
+				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+		if (sr_status != SUCCESS) {
+			/* Only one frame - should be handled by timeout so we
+			 * return the FD to the GRO context.
+			 * In case the new segment was not discarded, we have 2
+			 * frames - we return the aggregated frame and a flush
+			 * flag - the flush function will start but not do
+			 * anything since it also tries to delete the timer and
+			 * it will fail and leave it to the timer. */
+			if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET) {
+				fdma_store_default_frame_data();
+				gro_ctx->agg_fd =
+					*((struct ldpaa_fd *)HWC_FD_ADDRESS);
+			}
+			return TCP_GRO_SEG_AGG_DONE |
+					TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
+					status;
+		}
+
+		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+		gro_ctx->timestamp = 0;
+		/* Clear gross running sum in parse results */
+		pr->gross_running_sum = 0;
+
+		return TCP_GRO_SEG_AGG_DONE | status;
 	}
 
 	/* Done handling aggregated packet.
@@ -748,6 +779,7 @@ int tcp_gro_flush_aggregation(
 	struct ipv6hdr *ipv6;
 	uint16_t ip_length, outer_ip_offset;
 	uint8_t single_seg;
+	int sr_status;
 
 	/* read GRO context*/
 	cdma_read_with_mutex(tcp_gro_context_addr,
@@ -761,8 +793,14 @@ int tcp_gro_flush_aggregation(
 	}
 
 	/* delete the timer for this aggregation */
-	tman_delete_timer(gro_ctx.timer_handle,
+	sr_status = tman_delete_timer(gro_ctx.timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+	/* if the timer cannot be deleted, the timer will handle the
+	 * aggregation.  */
+	if (sr_status != SUCCESS) {
+		cdma_mutex_lock_release(tcp_gro_context_addr);
+		return TCP_GRO_FLUSH_TIMER_IN_PROCESS;
+	}
 
 	gro_ctx.timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 

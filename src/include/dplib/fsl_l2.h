@@ -236,22 +236,56 @@ void l2_push_and_set_vlan(uint32_t vlan_tag);
  *//***************************************************************************/
 int32_t l2_pop_vlan(void);
 
+/*************************************************************************//**
+ @Function	l2_arp_response
 
+ @Description	Creates an ARP Response frame from an ARP Request frame. This
+		function Updates both ETH and ARP header fields to create an ARP
+		Response frame.
 
+		The function assumes the ARP Request source frame is the default
+		frame, and that the parse results are updated.
 
-/* Create ARP response from an ARP request.
- * Update L2 header fields.
- * Assuming a default segment is presented starting with the ETH header and
- * the parse results are updated.
- * TODO - add documentation */
-void l2_arp_response(uint8_t *local_hw_addr);
+		The gross running sum of the frame becomes invalid after calling
+		this function.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+
+ @Return	None.
+
+ @Cautions
+ 	 	 - The parse results must be updated before calling this
+ 	 	 operation.
+ 	 	 - This function assumes the presence of the ETH header and ARP
+ 	 	 Request header.
+ *//***************************************************************************/
+void l2_arp_response();
 
 /* Update ETH fields (MAC source, MAC destination, Ethertype).
  * Assuming a default segment is presented with parse results updated.
  * TODO - add documentation*/
-void l2_set_hwaddr_fields(
-		uint8_t *local_hw_addr,
-		uint8_t *dest_hw_addr);
+/*************************************************************************//**
+ @Function	l2_set_hw_src_dst
+
+ @Description	Sets ETH HW source and destination addresses. The function
+		assumes the ETH source frame is the default frame, and that the
+		parse results are updated.
+
+		The gross running sum of the frame becomes invalid after calling
+		this function.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+
+ @Return	None.
+
+ @Cautions
+ 	 	 - The parse results must be updated before calling this
+ 	 	 operation.
+ 	 	 - This function assumes the presence of the ETH header.
+ *//***************************************************************************/
+void l2_set_hw_src_dst(uint8_t *dest_hw_addr);
 
 /* @} end of group FSL_HM_L2_Functions */
 /* @} end of group AIOP_L2_HM */

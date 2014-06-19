@@ -187,7 +187,7 @@
 @{
 *//***************************************************************************/
 	/** Table query output message reserved space */
-#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	16
+#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	20
 
 /** @} */ /* end of TABLE_QUERY */
 
@@ -236,6 +236,11 @@ A general bit that is set in some errors conditions */
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. Not supported in Rev1 */
 #define TABLE_HW_STATUS_MNLE	0x00000100
+
+/** Policer Initialization Entry Error.
+ * Might be used in CTLU/MFLU to indicate other stuff.
+ * */
+#define TABLE_HW_STATUS_PIEE	0x00000400 
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
@@ -338,9 +343,9 @@ struct	table_create_output_message {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_params_query_output_message {
-	/** Table Type
-	Includes IEX, MRES & AGT bits */
-	uint16_t type;
+	/** Table attributes
+	Includes Type IEX, MRES & AGT bits */
+	uint16_t attr;
 
 	/* ICID (including BDI) */
 	uint16_t icid;

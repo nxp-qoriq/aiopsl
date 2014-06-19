@@ -183,7 +183,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 	tbl_params->current_rules = output.current_rules;
 	tbl_params->committed_rules = output.committed_rules;
 	tbl_params->max_rules = output.max_rules;
-	tbl_params->attributes = output.type;
+	tbl_params->attributes = output.attr;
 
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -282,10 +282,10 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		 * found in the table. */
 		status = -EIO;
 		break;
-	// TODO #DEFINES
-	case (0x00000400):
+	case (TABLE_HW_STATUS_PIEE):
 		/* A rule with the same match description (and aged) is found
-		 * in the table. The rule is replaced. */
+		 * in the table. The rule is replaced. Output message is
+		 * valid if command MTYPE is w/o RPTR counter decrement.*/
 		status = TABLE_STATUS_SUCCESS;
 		break;
 	case (CTLU_HW_STATUS_NORSC):
@@ -495,7 +495,7 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 		*result = entry.body.mflu_result.result;
 		break;
 	default:
-		/* Call fatal error handler TODO*/
+		/* Call fatal error handler */
 		exception_handler(__FILE__,
 				  __LINE__,
 				  "Unknown result entry type. ");
@@ -712,7 +712,7 @@ int table_query_debug(enum table_hw_accel_id acc_id,
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
-
+/* TODO may not work in Rev1 due to HW issue - need to check with HW*/
 int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
 {
 	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
