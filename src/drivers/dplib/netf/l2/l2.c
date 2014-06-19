@@ -7,13 +7,14 @@
 		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
-#include "general.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_cdma.h"
-
+#include "dplib/dpni_drv.h"
+#include "net/fsl_net.h"
 #include "header_modification.h"
+#include "general.h"
 
 
 void l2_header_remove(void)
@@ -293,17 +294,72 @@ int32_t l2_pop_vlan()
 	}
 }
 
-/*
-void l2_arp_response(uint8_t *local_hw_addr)
+
+void l2_arp_response()
 {
-	 TODO - implement
+	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
+	uint8_t *ethhdr = PARSER_GET_ETH_POINTER_DEFAULT();
+	struct arphdr *arp_hdr = (struct arphdr *)
+			PARSER_GET_ARP_POINTER_DEFAULT();
+	uint32_t temp_ip;
+
+	/* get local HW address */
+	dpni_drv_get_primary_mac_addr(
+			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
+	/* set ETH destination address */
+	*((uint32_t *)ethhdr) = *((uint32_t *)(arp_hdr->src_hw_addr));
+	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(arp_hdr->src_hw_addr + 4));
+	/* set ETH source address */
+	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
+
+	/* set ARP HW destination address */
+	*((uint32_t *)(arp_hdr->dst_hw_addr)) =
+			*((uint32_t *)(arp_hdr->src_hw_addr));
+	*((uint16_t *)(arp_hdr->dst_hw_addr + 4)) =
+				*((uint16_t *)(arp_hdr->src_hw_addr + 4));
+	/* set ARP ETH source address */
+	*((uint32_t *)(arp_hdr->src_hw_addr)) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(arp_hdr->src_hw_addr)) =
+			*((uint16_t *)(local_hw_addr+4));
+
+	/* switch ARP IP addresses */
+	temp_ip = arp_hdr->src_pro_addr;
+	arp_hdr->src_pro_addr = arp_hdr->dst_pro_addr;
+	arp_hdr->dst_pro_addr = temp_ip;
+
+	/* set ARP operation to ARP Reply */
+	arp_hdr->operation = ARP_REPLY_OP;
+
+	fdma_modify_default_segment_data(PARSER_GET_ETH_OFFSET_DEFAULT(),
+			(NET_HDR_FLD_ETH_ADDR_SIZE + ARP_HDR_LEN));
+
+	/* Mark running sum as invalid */
+	pr->gross_running_sum = 0;
 }
 
-void l2_set_hwaddr_fields(
-		uint8_t *sender_hw_addr,
-		uint8_t *dest_hw_addr)
+void l2_set_hw_src_dst(uint8_t *dest_hw_addr)
 {
-	 TODO - implement
+	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
+	uint8_t *ethhdr = PARSER_GET_ETH_POINTER_DEFAULT();
+
+	/* get local HW address */
+	dpni_drv_get_primary_mac_addr(
+			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
+	/* set ETH destination address */
+	*((uint32_t *)ethhdr) = *((uint32_t *)(dest_hw_addr));
+	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(dest_hw_addr + 4));
+	/* set ETH source address */
+	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
+
+	fdma_modify_default_segment_data(PARSER_GET_ETH_OFFSET_DEFAULT(),
+				(NET_HDR_FLD_ETH_ADDR_SIZE));
+
+	/* Mark running sum as invalid */
+	pr->gross_running_sum = 0;
 }
-*/
+
 
