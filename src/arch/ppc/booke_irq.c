@@ -18,7 +18,7 @@
 #include "common/errors.h"
 #include "common/dbg.h"
 
-#include "arch/cores/fsl_core_booke_regs.h"
+#include "ppc/include/fsl_core_booke_regs.h"
 #include "ppc/include/fsl_core_booke.h"
 #include "booke.h"
 
