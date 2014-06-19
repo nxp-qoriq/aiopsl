@@ -21,15 +21,8 @@
  @{
 *//***************************************************************************/
 
-#ifndef DEBUG_FSL_OS_MALLOC
-/**************************************************************************//**
- @Group         fsl_mm_g   Memory Manager
 
- @Description   Prototypes, externals and typedefs for system-supplied
-                (external) routines
 
- @{
-*//***************************************************************************/
 /**************************************************************************//**
  @Function      fsl_os_malloc
 
@@ -56,27 +49,11 @@ void * fsl_os_malloc(size_t size);
 *//***************************************************************************/
 void *fsl_os_xmalloc(size_t size, int mem_partition_id, uint32_t alignment);
 
-#else /* DEBUG_FSL_OS_MALLOC */
-void * fsl_os_malloc_debug(size_t size, char *fname, int line);
-
-void *fsl_os_xmalloc_debug(size_t size,
-                           int      mem_partition_id,
-                           uint32_t alignment,
-                           char     *fname,
-                           int      line);
-
-#define fsl_os_malloc(sz) \
-    fsl_os_malloc_debug((sz), __FILE__, __LINE__)
-
-#define fsl_os_xmalloc(sz, memt, al) \
-   fsl_os_xmalloc_debug((sz), (memt), (al), __FILE__, __LINE__)
-#endif /* !DEBUG_FSL_OS_MALLOC */
-
 /**************************************************************************//**
  @Function      fsl_os_xfree
 
  @Description   Frees the memory block pointed to by "p".
-                Only for memory allocated byfsl_os_xmalloc().
+                Only for memory allocated by fsl_os_xmalloc().
 
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
@@ -90,79 +67,6 @@ void fsl_os_xfree(void *mem);
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
 void fsl_os_free(void *mem);
-
-
-/**************************************************************************//**
- @Function      fsl_os_buff_acquire
-
- @Description   Get a block of memory from a segment.
-
- @Param[in]     pool_id     An ID of the pool (or memory segment).
- @Param[out]    buff        The buffer to be returned.
-
- @Return        E_OK on success, error code otherwise.
- *//***************************************************************************/
-int fsl_os_buff_acquire(int pool_id, uint64_t *buff);
-
-/**************************************************************************//**
- @Function      fsl_os_buff_release
-
- @Description   Put a block of memory back to a segment.
-
- @Param[in]     pool_id     An ID of the pool (or memory segment).
- @Param[in]     buff        A pointer to a buffer to release.
-
- @Return        E_OK on success, error code otherwise.
- *//***************************************************************************/
-int fsl_os_buff_release(int pool_id, uint64_t buff);
-
-/**************************************************************************//**
- @Function      fsl_os_buff_dec_refcnt_n_release
-
- @Description   TODO
-
- @Param[in]     pool_id     An ID of the pool (or memory segment).
- @Param[in]     buff        A pointer to a buffer to release.
-
- @Return        E_OK on success, error code otherwise.
- *//***************************************************************************/
-int fsl_os_buff_dec_refcnt_n_release(int pool_id, uint64_t buff);
-
-/**************************************************************************//**
- @Function      fsl_os_buff_inc_refcnt
-
- @Description   TODO
-
- @Param[in]     pool_id     An ID of the pool (or memory segment).
- @Param[in]     buff        A pointer to a buffer to increment its reference-counter.
-
- @Return        E_OK on success, error code otherwise.
- *//***************************************************************************/
-int fsl_os_buff_inc_refcnt(int pool_id, uint64_t buff);
-
-/**************************************************************************//**
- @Function      fsl_os_buff_get_size
-
- @Description   TODO
-
- @Param[in]     pool_id     An ID of the pool (or memory segment).
-
- @Return        TODO
- *//***************************************************************************/
-uint32_t fsl_os_buff_get_size(int pool_id);
-
-/**************************************************************************//**
- @Function      fsl_os_buff_get_num_of_blocks
-
- @Description   TODO
-
- @Param[in]     pool_id     An ID of the pool (or memory segment).
-
- @Return        TODO
- *//***************************************************************************/
-uint32_t fsl_os_buff_get_num_buffs(int pool_id);
-
-/** @} */ /* end of fsl_mm_g group */
 
 /** @} */ /* end of fsl_lib_g  group */
 

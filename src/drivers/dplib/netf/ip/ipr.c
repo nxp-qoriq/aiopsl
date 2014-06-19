@@ -254,7 +254,9 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint64_t rfdc_ext_addr;
 	int32_t  sr_status;
 	uint32_t status;
+	uint16_t timeout_value;
 	uint8_t	 keysize;
+	uint8_t  ipv6_key[36];
 	void	*iphdr_ptr;
 	struct ipr_rfdc rfdc;
 	struct ipr_instance instance_params;
@@ -405,7 +407,10 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					 1,
 					 STE_MODE_32_BIT_CNTR_SIZE);
 
+				rfdc.status = RFDC_VALID | IPV4_FRAME;
+
 			} else {
+			    /* IPv6 */
 			    keygen_gen_key(
 					 KEYGEN_ACCEL_ID_CTLU,
 					 ipr_global_parameters1.ipr_key_id_ipv6,
@@ -417,9 +422,11 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					      &rule,
 					      keysize);
 			    /* write key in RDFC Extension */
-			    cdma_write(rfdc_ext_addr+RFDC_SIZE,
-					   &rule.key_desc.em.key,
-					   RFDC_EXTENSION_TRUNCATED_SIZE);
+			    cdma_write(rfdc_ext_addr+RFDC_SIZE+
+					    offsetof(struct extended_ipr_rfdc,
+					    ipv6_key),
+					&rule.key_desc.em.key,
+					RFDC_EXTENSION_TRUNCATED_SIZE);
 
 			    /* Increment no of IPv6 open frames in instance
 			       data structure */
@@ -430,12 +437,13 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 					 num_of_open_reass_frames_ipv6),
 					 1,
 					 STE_MODE_32_BIT_CNTR_SIZE);
+			     
+				rfdc.status = RFDC_VALID | IPV6_FRAME;
 
 		    }
 
 		    /* todo release struct rule  or call function for
 		     * gen+add rule */
-			rfdc.status			= RFDC_VALID;
 			rfdc.instance_handle		= instance_handle;
 			rfdc.expected_total_length	= 0;
 			rfdc.index_to_out_of_order	= 0;
@@ -446,22 +454,25 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 			/* todo check if necessary */
 			rfdc.biggest_payload		= 0;
 			rfdc.current_running_sum	= 0;
-			rfdc.first_frag_offset		= 0;
 			rfdc.last_frag_index		= 0;
 			rfdc.total_in_order_payload	= 0;
 			get_default_amq_attributes(&rfdc.isolation_bits);
 
 		    /* create Timer in TMAN */
 
-	/*	    tman_create_timer(instance_params.tmi_id,
+		    if(frame_is_ipv4)
+			    timeout_value = instance_params.timeout_value_ipv4;
+		    else
+			    timeout_value = instance_params.timeout_value_ipv6;
+			
+/*		    tman_create_timer(instance_params.tmi_id,
 				      IPR_TIMEOUT_FLAGS,
-				      instance_params.timeout_value_ipv4,
+				      timeout_value,
 				      (tman_arg_8B_t) rfdc_ext_addr,
 				      (tman_arg_2B_t) NULL,
 				      (tman_cb_t) ipr_time_out,
 				      &rfdc.timer_handle);
-	 */
-
+*/
 		     if (osm_status == NO_BYPASS_OSM) {
 			/* create nested per reassembled frame */
 			osm_scope_enter_to_exclusive_with_new_scope_id(
@@ -478,11 +489,16 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
-		if (instance_params.flags &
-				IPR_MODE_IPV4_TO_TYPE) {
+		if(frame_is_ipv4) {
+			if (instance_params.flags & IPR_MODE_IPV4_TO_TYPE) {
 			/* recharge timer in case of time out
 			 * between fragments */
-			/* tman_recharge_timer(rfdc.timer_handle); */
+//				tman_recharge_timer(rfdc.timer_handle);
+			}
+		} else if (instance_params.flags & IPR_MODE_IPV6_TO_TYPE) {
+			/* recharge timer in case of time out
+			 * between fragments */
+//				tman_recharge_timer(rfdc.timer_handle);	
 		}
 		/* Write and release updated 64 first bytes
 		 * of RFDC */
@@ -507,6 +523,12 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* default frame is now the full reassembled frame */
 
 	if (frame_is_ipv4) {
+		table_rule_delete(TABLE_ACCEL_ID_CTLU,
+				  instance_params.table_id_ipv4,
+				  (union table_key_desc *)&rfdc.ipv4_key,
+				  IPV4_KEY_SIZE,
+				  NULL);
+
 		/* Increment no of reassembled IPv4 frames in instance
 		   data structure */
 		ste_inc_counter(instance_handle+
@@ -516,6 +538,17 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 				 1,
 				 STE_MODE_32_BIT_CNTR_SIZE);
 	} else {
+		cdma_read(&ipv6_key,
+			  rfdc_ext_addr+RFDC_SIZE+
+				  offsetof(struct extended_ipr_rfdc,ipv6_key),
+			  IPV6_KEY_SIZE);
+		table_rule_delete(TABLE_ACCEL_ID_CTLU,
+				  instance_params.table_id_ipv6,
+				  (union table_key_desc *)&ipv6_key,
+				  IPV6_KEY_SIZE,
+				  NULL);
+
+
 		/* Increment no of reassembled IPv6 frames in instance
 		   data structure */
 		ste_inc_counter(instance_handle+
@@ -527,12 +560,7 @@ int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	/* Open segment for reassembled frame */
-	fdma_present_default_frame_segment(
-				FDMA_PRES_NO_FLAGS,
-				(void *)((uint32_t)TLS_SECTION_END_ADDR +
-				DEFAULT_SEGMENT_HEADOOM_SIZE),
-				0,
-				DEFAULT_SEGMENT_SIZE);
+	fdma_present_default_frame_default_segment();
 	/* FD length is still not updated */
 
 	/* Parser is not re-run here, and iphdr offset will be retrieved
@@ -667,6 +695,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  pr->running_sum);
 	} else {
 		/* First fragment (frag_offset == 0) */
+// todo remove following comment when CQENGR318933  is resolved
+//		rfdc_ptr->status |= FIRST_ARRIVED;
 		if (pr->gross_running_sum == 0)
 			fdma_calculate_default_frame_checksum(
 							0,
@@ -749,7 +779,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				   (void *)&current_element,
 				   LINK_LIST_ELEMENT_SIZE);
 
-		if (PARSER_IS_OUTER_IPV4_DEFAULT())
+		if (frame_is_ipv4)
 			check_remove_padding();
 		/* Close current frame before storing FD */
 		fdma_store_default_frame_data();
@@ -1198,11 +1228,10 @@ uint32_t check_for_frag_error()
 	return SUCCESS;
 }
 
-void ipr_time_out()
+void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 {
-	/* Restore isolation bits
-	 * set_default_amq_attributes(rfdc_ptr->isolation_bits);
-	 */
+	UNUSED(opaque_not_used);
+	UNUSED(rfdc_ext_addr);
 
 }
 
