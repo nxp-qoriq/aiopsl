@@ -358,3 +358,35 @@ uint32_t if_statement_result(
 	return if_result;
 }
 
+void timeout_cb_verif(uint64_t arg)
+{
+	struct fdma_enqueue_wf_command str;
+	struct fdma_queueing_destination_params qdp;
+	//int32_t status;
+	uint32_t flags = 0;
+
+	if (arg == 0)
+		return;
+	cdma_read((void *)&str, arg,
+			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
+
+	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
+	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
+
+	if (str.EIS) {
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_fqid(
+				str.qd_fqid, flags);
+	} else{
+		qdp.qd = (uint16_t)(str.qd_fqid);
+		qdp.qdbin = str.qdbin;
+		qdp.qd_priority = str.qd_priority;
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_qd(
+					&qdp, flags);
+	}
+	fdma_terminate_task();
+}
+
+
