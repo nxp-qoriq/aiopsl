@@ -204,6 +204,8 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 #define TCP_GRO_OSM_EXLUSIVE_MODE	0x00000002
 	/** If set, Flush aggregation immediately. */
 #define TCP_GRO_FLUSH_AGG_SET		0x00000004
+	/** If set, the segment was discarded. */
+#define TCP_GRO_DISCARD_SEG_SET		0x00000008
 	/** IP header reserved1 ECN bit of the GRO aggregation. */
 #define TCP_GRO_ECN1			0x00010000
 	/** IP header reserved2 ECN bit of the GRO aggregation. */
@@ -293,6 +295,9 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 	/* agg_flush_request_num_cntr counter offset in statistics structure */
 #define GRO_STAT_AGG_FLUSH_REQUEST_NUM_CNTR_OFFSET			\
 	offsetof(struct tcp_gro_stats_cntrs, agg_flush_request_num_cntr)
+	/* agg_discarded_seg_num_cntr counter offset in statistics structure */
+#define GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET			\
+	offsetof(struct tcp_gro_stats_cntrs, agg_discarded_seg_num_cntr)
 
 	/* TCP Timestamp option kind */
 #define TCP_GRO_TCP_TIMSTAMP_OPTION_KIND	8
@@ -304,6 +309,8 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 #define TIMESTAMP_NOP_VAL			1
 	/* TCP GRO granularity shift value */
 #define GRO_GRAN_OFFSET				16
+	/* Invalid timer handle */
+#define TCP_GRO_INVALID_TMAN_HANDLE		0xFFFFFFFF
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_DEFINITIONS */
 
@@ -338,7 +345,7 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t tcp_gro_add_seg_to_aggregation(
+int tcp_gro_add_seg_to_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);
@@ -356,7 +363,7 @@ int32_t tcp_gro_add_seg_to_aggregation(
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t tcp_gro_add_seg_and_close_aggregation(
+int tcp_gro_add_seg_and_close_aggregation(
 		struct tcp_gro_context *gro_ctx);
 
 /**************************************************************************//**
@@ -376,7 +383,7 @@ int32_t tcp_gro_add_seg_and_close_aggregation(
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t tcp_gro_close_aggregation_and_open_new_aggregation(
+int tcp_gro_close_aggregation_and_open_new_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx);

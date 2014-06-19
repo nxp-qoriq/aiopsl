@@ -100,7 +100,8 @@ enum ipsec_cipher_type {
 #define IPSEC_SA_DESC_BUF_ALIGN 64 /* SA descriptor alignment */
 #define IPSEC_KEY_BUF_SIZE 512 /* Key buffer size */
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
-#define IPSEC_MEM_PARTITION_ID MEM_PART_1ST_DDR_NON_CACHEABLE 
+//#define IPSEC_MEM_PARTITION_ID MEM_PART_1ST_DDR_NON_CACHEABLE 
+#define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
 #define IPSEC_MAX_ASA_SIZE 960 /* Maximum ASA size (960 bytes) */
 #define IPSEC_MAX_ASA_BUF_ALIGN 8 /* ASA buffer alignment */
@@ -616,7 +617,7 @@ struct obsolete_flow_context {
 @Return		Status
 
 *//****************************************************************************/
-int32_t ipsec_init(uint32_t max_sa_no);
+int ipsec_init(uint32_t max_sa_no);
 
 /**************************************************************************//**
 @Function	ipsec_create_instance
@@ -654,7 +655,7 @@ int32_t ipsec_create_instance(
 
 @Description	Generate SEC Flow Context Descriptor
 *//***************************************************************************/
-int32_t ipsec_generate_flc(
+void ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
 		uint16_t spid, /* Storage Profile ID of the SEC output frame */
 		uint32_t sd_size /* Shared descriptor Length */
@@ -665,7 +666,7 @@ int32_t ipsec_generate_flc(
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
-int32_t ipsec_generate_encap_sd(
+void ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size /* Shared descriptor Length */
@@ -676,7 +677,7 @@ int32_t ipsec_generate_encap_sd(
 
 @Description	Generate SEC Shared Descriptor for Decapsulation
 *//***************************************************************************/
-int32_t ipsec_generate_decap_sd(
+void ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size /* Shared descriptor Length */
@@ -688,7 +689,7 @@ int32_t ipsec_generate_decap_sd(
 
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
-int32_t ipsec_generate_sa_params(
+void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params,
 		ipsec_handle_t ipsec_handle); /* Parameters area (start of buffer) */
 

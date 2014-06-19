@@ -1,0 +1,23 @@
+################################################################################
+# These macros are used by makefiles and argument files.
+# When a space is included in the path and quotes (") cannot be used,
+# a _ESCAPE version of the macro is added that escapes the space with backslash (\).
+################################################################################
+
+export ProjDirPath=C:/Data/projects/ucode/GIT/aiopsl/build/aiop_t4ls_sim/apps/ipsec_fm_demo
+export AIOP_T4LS_SIM=C:/Data/projects/ucode/GIT/aiopsl/build/aiop_t4ls_sim
+export PAToolsBaseDirEnv=$(CWInstallLocationEnv)/LS
+export INCLUDE=C:/Data/projects/ucode/GIT/aiopsl/src/include
+export PAToolsDirEnv=$(CWInstallLocationEnv)/LS/PA_Tools/Command_Line_Tools
+export ARCH=C:/Data/projects/ucode/GIT/aiopsl/src/include/arch
+export PLATFORM=C:/Data/projects/ucode/GIT/aiopsl/src/arch/ppc/platform
+export AIOPSL=C:/Data/projects/ucode/GIT/aiopsl/build/aiop_t4ls_sim/aiopsl
+export GNU_Make_Install_DirEnv=$(CWInstallLocationEnv)/gnu/bin
+export CWInstallLocationEnv=C:/Freescale/CW_DPAA_v10.0.7
+export BUILD_FLAGS=C:/Data/projects/ucode/GIT/aiopsl/build/aiop_t4ls_sim/build_flags
+export CW_FILES=C:/Data/projects/ucode/GIT/aiopsl/build/aiop_t4ls_sim/cw_files
+export SRC=C:/Data/projects/ucode/GIT/aiopsl/src
+export ARCH1=C:/Data/projects/ucode/GIT/aiopsl/src/drivers/dplib/arch
+export DPLIB=C:/Data/projects/ucode/GIT/aiopsl/src/drivers/dplib
+export DRIVERS=C:/Data/projects/ucode/GIT/aiopsl/src/drivers
+export OUT=C:/Data/projects/ucode/GIT/aiopsl/build/aiop_t4ls_sim/aiopsl/out

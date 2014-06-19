@@ -9,7 +9,7 @@
 
 #include "common/types.h"
 #include "common/errors.h"
-#include "arch/fsl_soc.h"
+#include "soc_db/fsl_soc.h"
 
 
 /**************************************************************************//**
@@ -41,13 +41,7 @@ typedef enum cache_mode {
 *//***************************************************************************/
 typedef enum mapped_mem_type {
     E_MAPPED_MEM_TYPE_GEN_REGS,
-//    E_MAPPED_MEM_TYPE_ATMU_REGS,
-//    E_MAPPED_MEM_TYPE_PCI_MSI_REGS,
     E_MAPPED_MEM_TYPE_MII_MNG_REGS,
-//    E_MAPPED_MEM_TYPE_TDM_DMA_REGS,
-//    E_MAPPED_MEM_TYPE_MURAM,
-//    E_MAPPED_MEM_TYPE_SI_RAM,
-//    E_MAPPED_MEM_TYPE_PAR_IO_INTR_REGS,
     E_MAPPED_MEM_TYPE_MC_PORTAL,
     E_MAPPED_MEM_TYPE_CE_PORTAL,
     E_MAPPED_MEM_TYPE_CI_PORTAL
@@ -180,9 +174,9 @@ typedef int (t_rx_conf_ipc_port_function)(fsl_handle_t h_ipc_port,
 
 
 #if defined(LS2100A) && defined(MC)
-#include "arch/ls2100a/platform_mc_spec.h"
+#include "ls2100a_mc/platform_mc_spec.h"
 #elif defined(LS2100A) && defined(AIOP)
-#include "arch/ls2100a/platform_aiop_spec.h"
+#include "ls2100a_aiop/platform_aiop_spec.h"
 #else
 #error "Platform specific header file not defined"
 #endif /* specific platform select */
@@ -194,7 +188,7 @@ typedef int (t_rx_conf_ipc_port_function)(fsl_handle_t h_ipc_port,
  @Description   Initializes the platform object according to the user's
                 parameters and the board design and constraints.
 
- @Param[in]     p_EarlyParams - Pointer to platform early configuration parameters.
+ @Param[in]     p_platform_params - Pointer to platform early configuration parameters.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -206,8 +200,8 @@ int platform_early_init(struct platform_param *p_platform_params);
  @Description   Creates the platform object and fills the platform operations
                 structure, for later use by the system.
 
- @Param[in]     p_PlatformParam - Pointer to platform configuration parameters.
- @Param[out]    p_PlatformOps   - Pointer to platform operations structure,
+ @Param[in]     p_platform_param - Pointer to platform configuration parameters.
+ @Param[out]    p_platform_ops   - Pointer to platform operations structure,
                                   that should be filled by this routine.
 
  @Return        E_OK on success; Error code otherwise.
@@ -220,7 +214,7 @@ int platform_init(struct platform_param    *p_platform_param,
 
  @Description   Releases the platform object and all its allocated resources.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -231,8 +225,8 @@ int platform_free(fsl_handle_t h_platform);
 
  @Description   Retrieves the revision information of the device.
 
- @Param[in]     h_Platform      - Platform object handle.
- @Param[out]    p_ChipRevInfo   - Returns the revision information structure.
+ @Param[in]     h_platform      - Platform object handle.
+ @Param[out]    p_chip_rev_info   - Returns the revision information structure.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -243,7 +237,7 @@ int platform_get_chip_rev_info(fsl_handle_t h_platform, t_chip_rev_info *p_chip_
 
  @Description   Get the base address of a memory-mapped object.
 
- @Param[in]     h_Platform  - Platform object handle.
+ @Param[in]     h_platform  - Platform object handle.
  @Param[in]     module      - Object type (usually a sub-module type)
  @Param[in]     id          - Object identifier
 
@@ -259,7 +253,7 @@ uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
 
  @Description   Gets the core clock frequency of the device.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
 
  @Return        The core clock frequency (Hz).
 *//***************************************************************************/
@@ -270,7 +264,7 @@ uint32_t platform_get_core_clk(fsl_handle_t h_platform);
 
  @Description   Gets the system bus frequency of the device.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
 
  @Return        The system bus frequency (Hz).
 *//***************************************************************************/
@@ -281,7 +275,7 @@ uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform);
 
  @Description   Gets the local bus frequency of the device.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
 
  @Return        The DDR clock frequency (Hz).
 *//***************************************************************************/
@@ -292,7 +286,7 @@ uint32_t platform_get_ddr_clk(fsl_handle_t h_platform);
 
  @Description   Gets the local bus frequency of the device.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
 
  @Return        The local bus frequency (Hz).
 *//***************************************************************************/
@@ -303,7 +297,7 @@ uint32_t platform_get_local_bus_clk(fsl_handle_t h_platform);
 
  @Description   Gets the input clock frequency of a given controller object.
 
- @Param[in]     h_Platform  - Platform object handle.
+ @Param[in]     h_platform  - Platform object handle.
  @Param[in]     module      - Controller object type (usually a sub-module type)
  @Param[in]     id          - Controller object identifier
 
@@ -318,11 +312,11 @@ uint32_t platform_get_controller_clk(fsl_handle_t     h_platform,
 
  @Description   Gets the platform's interrupt ID of a given controller object.
 
- @Param[in]     h_Platform      - Platform object handle.
+ @Param[in]     h_platform      - Platform object handle.
  @Param[in]     module          - Controller object type (usually a sub-module type)
  @Param[in]     id              - Controller object identifier
- @Param[in]     intrType        - Interrupt type selection
- @Param[in]     intrRelatedId   - Specific ID that may be related to some
+ @Param[in]     intr_type        - Interrupt type selection
+ @Param[in]     intr_related_id   - Specific ID that may be related to some
                                   interrupt types
 
  @Return        The interrupt ID of a given controller object;
@@ -340,8 +334,8 @@ int platform_get_interrupt_id(fsl_handle_t        h_platform,
 
  @Description   Returns the name of a given bus transaction source.
 
- @Param[in]     h_Platform  - Platform object handle.
- @Param[in]     transSrc    - The requested transaction source.
+ @Param[in]     h_platform  - Platform object handle.
+ @Param[in]     trans_src    - The requested transaction source.
 
  @Return        The name (string) of the given transaction source.
 *//***************************************************************************/
@@ -353,11 +347,11 @@ char * platform_get_transaction_source_name(fsl_handle_t h_platform, e_trans_src
  @Description   Retrieves the base address and size of a local access window that
                 is associated with a given controller object.
 
- @Param[in]     h_Platform  - Platform object handle.
+ @Param[in]     h_platform  - Platform object handle.
  @Param[in]     module      - Controller object type (usually a sub-module type)
  @Param[in]     id          - Controller object identifier
- @Param[out]    p_BaseAddr  - Returns the physical base address of the local access window
- @Param[out]    p_Size      - Returns the size of the local access window
+ @Param[out]    p_base_addr  - Returns the physical base address of the local access window
+ @Param[out]    p_size      - Returns the size of the local access window
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -372,9 +366,9 @@ int platform_get_local_access_window_info(fsl_handle_t      h_platform,
 
  @Description   Sets a selected LED on the board to on/off state.
 
- @Param[in]     h_Platform  - Platform object handle.
+ @Param[in]     h_platform  - Platform object handle.
  @Param[in]     led         - LED color selection
- @Param[in]     ledOn       - '1' to turn the LED on; '0' to turn it off.
+ @Param[in]     led_on       - '1' to turn the LED on; '0' to turn it off.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -386,7 +380,7 @@ int platform_set_led(fsl_handle_t h_platform, e_led_color led, int led_on);
 
  @Description   Initialize MAC for MII access only.
 
- @Param[in]     h_Platform  - Platform object handle.
+ @Param[in]     h_platform  - Platform object handle.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -398,7 +392,7 @@ int platform_init_mac_for_mii_access(fsl_handle_t h_platform);
  @Description   Free a MAC device that was previously initialized for
                 MII access only.
 
- @Param[in]     h_Platform  - Platform object handle.
+ @Param[in]     h_platform  - Platform object handle.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -411,13 +405,13 @@ int platform_free_mac_for_mii_access(fsl_handle_t h_platform);
                 Usually used when firmware is using the external request as an
                 interrupt signal for controlling the block without CPU involved.
 
-@Param[in]      h_Platform      - Platform object handle.
+@Param[in]      h_platform      - Platform object handle.
 @Param[in]      module          - Controller object type (usually a sub-module type)
 @Param[in]      id              - Controller object identifier
-@Param[in]      intrType        - Interrupt type selection
-@Param[in]      intrRelatedId   - Specific ID that may be related to some
+@Param[in]      intr_type        - Interrupt type selection
+@Param[in]      intr_related_id   - Specific ID that may be related to some
                                   interrupt types
-@Param[in]      extReqNum       - External request number.
+@Param[in]      ext_req_num       - External request number.
 
 
  @Return        E_OK on success; Error code otherwise.
@@ -434,7 +428,7 @@ int platform_connect_external_request(fsl_handle_t            h_platform,
 
  @Description   Enables the platform's console.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -445,7 +439,7 @@ int platform_enable_console(fsl_handle_t h_platform);
 
  @Description   Disables the platform's console.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/
@@ -456,7 +450,7 @@ int platform_disable_console(fsl_handle_t h_platform);
 
  @Description   Sets SERDES loopback for the specified module.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
  @Param[in]     module     - Controller object type (usually a sub-module type)
  @Param[in]     id         - Controller object identifier
 
@@ -471,7 +465,7 @@ int platform_set_serdes_loopback (fsl_handle_t    h_platform,
 
  @Description   Clears SERDES loopback for the specified module.
 
- @Param[in]     h_Platform - Platform object handle.
+ @Param[in]     h_platform - Platform object handle.
  @Param[in]     module     - Controller object type (usually a sub-module type)
  @Param[in]     id         - Controller object identifier
 
@@ -498,7 +492,7 @@ int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
 
  @Param[in]     module          - Object type (usually a sub-module type)
  @Param[in]     id              - Object identifier
- @Param[in]     mappedMemType   - Type of memory-mapped object, used to
+ @Param[in]     mapped_mem_type   - Type of memory-mapped object, used to
                                   distinguish between different base types
                                   of the same object, e.g. PCI and PCI ATMU
 
@@ -521,8 +515,8 @@ static __inline__ uintptr_t sys_get_memory_mapped_module_base(enum fsl_os_module
 
  @Param[in]     module          - Controller object type (usually a sub-module type)
  @Param[in]     id              - Controller object identifier
- @Param[in]     intrType        - Interrupt type selection
- @Param[in]     intrRelatedId   - Specific ID that may be related to some
+ @Param[in]     intr_type        - Interrupt type selection
+ @Param[in]     intr_related_id   - Specific ID that may be related to some
                                   interrupt types
 
  @Return        The interrupt ID of a given controller object;
@@ -587,7 +581,7 @@ static __inline__ uint32_t sys_get_system_bus_clk(void)
 
  @Description   Retrieves the revision information of the device.
 
- @Param[out]    p_ChipRevInfo - Returns the revision information structure.
+ @Param[out]    p_chip_rev_info - Returns the revision information structure.
 
  @Return        E_OK on success; Error code otherwise.
 *//***************************************************************************/

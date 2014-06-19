@@ -149,6 +149,13 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x3)
+	/** The aggregation was discarded due to buffer pool depletion. */
+#define	TCP_GRO_AGG_DISCARDED		(TCP_GRO_MODULE_STATUS_ID | 0x4)
+	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
+	 * user when possible.
+	 * This status bit can be return as a stand alone status, or as part of
+	 * a combined status with one of the above statuses. */
+#define	TCP_GRO_FLUSH_REQUIRED		(TCP_GRO_MODULE_STATUS_ID | 0x20)
 
 
 	/** A new aggregation has started with the current segment.
@@ -156,11 +163,18 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
 #define	TCP_GRO_METADATA_USED		0x10
-	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
-	 * user when possible.
+	/** The segment could not start an aggregation since no timers are
+	 * available. This status is returned along with \ref
+	 * TCP_GRO_FLUSH_REQUIRED which means the segment is waiting to be
+	 * flushed (call \ref tcp_gro_flush_aggregation()).
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
-#define	TCP_GRO_FLUSH_REQUIRED		0x20
+#define	TCP_GRO_TIMER_UNAVAIL		0x30
+	/** The segment was discarded due to buffer pool depletion.
+	 * This status bit can be return only as part of a combined status with
+	 * one of the above statuses. */
+#define	TCP_GRO_SEG_DISCARDED		0x40
+
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
 
@@ -220,6 +234,10 @@ struct tcp_gro_stats_cntrs {
 		 * This counter is valid when extended statistics mode is
 		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
 	uint32_t	agg_flush_request_num_cntr;
+		/** Counts the number of discarded segments.
+		 * This counter is valid when extended statistics mode is
+		 * enabled (\ref TCP_GRO_EXTENDED_STATS_EN)*/
+	uint32_t	agg_discarded_seg_num_cntr;
 };
 
 /**************************************************************************//**
@@ -333,6 +351,8 @@ struct tcp_gro_context_params {
 		Pre-condition - The segment to be aggregated should be located
 		in the default frame location in workspace.
 
+		Implicit input parameters in Task Defaults: spid.
+
 @Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
 		internal context.
 		The user should allocate \ref tcp_gro_ctx_t in
@@ -340,9 +360,21 @@ struct tcp_gro_context_params {
 @Param[in]	params - Pointer to the TCP GRO aggregation parameters.
 @Param[in]	flags - Please refer to \ref TCP_GRO_AGG_FLAGS.
 
-@Return		Status, please refer to \ref TCP_GRO_AGGREGATE_STATUS,
-		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
-		\ref TMANReturnStatus for more details.
+@Return		GRO Status, or negative value on error.
+
+@Retval		GRO Status - please refer to \ref TCP_GRO_AGGREGATE_STATUS.
+@Retval		EBADFD - Received segment FD contain errors (FD.err != 0).
+		Recommendation is to discard the frame or enqueue the frame.
+		The frame was not aggregated.
+@Retval		ENOMEM - Received segment cannot be stored/aggregated due to
+		buffer pool depletion.
+		Recommendation is to discard the frame.
+		The frame was not aggregated.
+@Retval		ENAVAIL - There are no more timers that are available in this
+		TMI.
+		Recommendation is to discard the frame.
+
+
 
 @Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins.
@@ -353,7 +385,7 @@ struct tcp_gro_context_params {
 		in the default frame area.
 
 *//***************************************************************************/
-int32_t tcp_gro_aggregate_seg(
+int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		uint32_t flags);
@@ -368,18 +400,26 @@ int32_t tcp_gro_aggregate_seg(
 		The aggregated packet will reside at the default frame location
 		when this function returns.
 
+		Implicitly updated values in Task Defaults:  frame handle,
+		segment handle, segment address, segment offset, segment length.
+
 @Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
 		internal context. The user should allocate \ref tcp_gro_ctx_t in
 		this address.
 
-@Return		Status, please refer to \ref TCP_GRO_FLUSH_STATUS,
-		\ref fdma_hw_errors, \ref fdma_sw_errors, \ref cdma_errors or
-		\ref TMANReturnStatus for more details.
+@Return		GRO Status, or negative value on error.
+
+@Retval		GRO Status - please refer to \ref TCP_GRO_FLUSH_STATUS.
+@Retval		EIO - Parsing Error.
+		Recommendation is to discard the frame or enqueue the frame.
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of 256 bytes before completing all parsing).
+		Recommendation is to discard the frame or enqueue the frame.
 
 @Cautions	No frame should reside at the default frame location in
 		workspace before this function is called.
 *//***************************************************************************/
-int32_t tcp_gro_flush_aggregation(
+int tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr);
 
 /** @} */ /* end of GRO_Functions */

@@ -138,10 +138,8 @@ enum VIRTUAL_POOLS_STATUS {
 
 @Param[in]	virtual_pool_id - virtual pool ID. 
 
-@Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
-			
 *//***************************************************************************/
-int32_t __vpool_internal_release_buf (uint32_t virtual_pool_id);
+void __vpool_internal_release_buf (uint32_t virtual_pool_id);
 
 /* This part was originally in the file fsl_aiop_virtual_pools.h */
 
@@ -195,7 +193,7 @@ int32_t vpool_allocate_buf(uint32_t virtual_pool_id,
 @Cautions	This function yields 
 
 *//***************************************************************************/
-int32_t vpool_release_buf(uint32_t virtual_pool_id, 
+void vpool_release_buf(uint32_t virtual_pool_id, 
 		uint64_t context_address);
 
 /*************************************************************************//**
@@ -206,15 +204,12 @@ int32_t vpool_release_buf(uint32_t virtual_pool_id,
 
 @Param[in]	context_address - Address of the Context buffer.
 
-@Return		Status - Success or Failure. 
-		(\ref cdma_errors VIRTUAL_POOLS_STATUS).
-
 @remark		The provided context_address must be of a valid Context buffer.
 
 @Cautions	This function yields.
 
 *//***************************************************************************/
-int32_t vpool_refcount_increment(
+void vpool_refcount_increment(
 		uint64_t context_address);
 
 /*************************************************************************//**

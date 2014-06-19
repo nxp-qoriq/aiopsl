@@ -75,6 +75,34 @@
 
 /* @} end of group HMIPv4ModeBits */
 
+/**************************************************************************//**
+@Group		HMIPv4MangleBits IPv4 header modification mode bits
+
+@{
+*//***************************************************************************/
+
+	/** If set, set DSCP field */
+#define IPV4_MANGLE_DSCP 0x01
+	/** If set, set Time to Live field */
+#define IPV4_MANGLE_TTL 0x02
+
+/* @} end of group HMIPv4MangleBits */
+
+/**************************************************************************//**
+@Group		HMIPv6MangleBits IPv6 header modification mode bits
+
+@{
+*//***************************************************************************/
+
+	/** If set, set DSCP field */
+#define IPV6_MANGLE_DSCP 0x01
+	/** If set, set hop limit field */
+#define IPV6_MANGLE_HOP_LIMIT 0x02
+	/** If set, set hop limit field */
+#define IPV6_MANGLE_FLOW_LABEL 0x04
+
+/* @} end of group HMIPv6MangleBits */
+
 
 /**************************************************************************//**
 @Group		HMIPv6ModeBits IPv6 header modification mode bits
@@ -222,6 +250,57 @@
 int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		uint32_t ip_src_addr, uint32_t ip_dst_addr);
 
+/*************************************************************************//**
+@Function	ipv4_mangle
+
+@Description	Replace DSCP and/or TTL fields in the outer IPv4 header 
+		(if exists).
+
+		It automatically generates the IP checksum.
+
+		Implicit input parameters in task defaults: frame handle,
+			segment handle, parser_profile_id, parser_starting_hxs.
+		Implicitly updated values in task defaults: segment length,
+								segment address.
+
+
+@Param[in]	flags - \link HMIPv4MangleBits IPv4 modification mode bits
+			\endlink. At least one bit must be set in flags.
+@Param[in]	dscp - dscp header to be replaced (6 bits).
+@Param[in]	ttl  - time to live field to be replaced.
+
+@Return		Success or Failure (There was no IPv4 header in the frame).
+
+@Cautions	The parse results must be updated before
+		calling this operation.
+		In this function, the task yields.
+
+*//***************************************************************************/
+int ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl);
+
+
+/*************************************************************************//**
+@Function	ipv4_dec_ttl_modification
+
+@Description	Decrement TTL in the outer IPv4 header (if exists).
+
+		It automatically generates the IP checksum.
+
+		The function assumes the original UDP/TCP checksum to be valid.
+
+		Implicit input parameters in task defaults: frame handle,
+			segment handle, parser_profile_id, parser_starting_hxs.
+		Implicitly updated values in task defaults: segment length,
+								segment address.
+
+@Return		Success or Failure (There was no IPv4 header in the frame).
+
+@Cautions	The parse results must be updated before
+		calling this operation.
+		In this function, the task yields.
+
+*//***************************************************************************/
+int ipv4_dec_ttl_modification(void);
 
 /*************************************************************************//**
 @Function	ipv6_header_modification
@@ -261,6 +340,57 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 				    uint32_t flow_label, uint8_t *ip_src_addr,
 				    uint8_t *ip_dst_addr);
 
+/*************************************************************************//**
+@Function	ipv6_mangle
+
+@Description	Replace any combination of DSCP/hop limit/flow_label fields
+		in the outer IPv6 header (if exists).
+
+		It automatically generates the IP checksum.
+
+		Implicit input parameters in task defaults: frame handle,
+			segment handle, parser_profile_id, parser_starting_hxs.
+		Implicitly updated values in task defaults: segment length,
+								segment address.
+
+@Param[in]	flags - \link HMIPv6MangleBits IPv6 modification mode bits
+			\endlink. At least one bit must be set in flags.
+@Param[in]	dscp - dscp header to be replaced (6 bits).
+@Param[in]	hop_limit  - hop_limit field to be replaced.
+@Param[in]	flow_label - flow_label field to be replaced (20 bits).
+
+@Return		Success or Failure (There was no IPv6 header in the frame).
+
+@Cautions	The parse results must be updated before
+		calling this operation.
+		In this function, the task yields.
+
+*//***************************************************************************/
+int ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit, 
+		uint32_t flow_label);
+
+/*************************************************************************//**
+@Function	ipv6_dec_hop_limit_modification
+
+@Description	Decrement hop limit in the outer IPv6 header (if exists).
+
+		It automatically generates the IP checksum.
+
+		The function assumes the original UDP/TCP checksum to be valid.
+
+		Implicit input parameters in task defaults: frame handle,
+			segment handle, parser_profile_id, parser_starting_hxs.
+		Implicitly updated values in task defaults: segment length,
+								segment address.
+
+@Return		Success or Failure (There was no IPv6 header in the frame).
+
+@Cautions	The parse results must be updated before
+		calling this operation.
+		In this function, the task yields.
+
+*//***************************************************************************/
+int ipv6_dec_hop_limit_modification(void);
 
 /*************************************************************************//**
 @Function	ipv4_header_encapsulation

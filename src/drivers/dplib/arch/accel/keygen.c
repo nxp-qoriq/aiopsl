@@ -15,21 +15,6 @@
 
 extern __SHRAM uint64_t ext_keyid_pool_address;
 
-void keygen_handle_fatal_errors(int32_t status){
-	switch(status) {
-	case KEYGEN_HW_STATUS_KSE:
-		handle_fatal_error((char *)KEYGEN_HW_STATUS_KSE); /*TODO Fatal error*/
-		break;
-	case KEYGEN_HW_STATUS_EOFH:
-		handle_fatal_error((char *)KEYGEN_HW_STATUS_EOFH); /*TODO Fatal error*/ 
-		break;
-	default:
-		handle_fatal_error((char *)status); /*TODO Fatal error*/ 
-		break;
-	}
-}
-
-
 void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
 
@@ -625,7 +610,6 @@ int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 			uint8_t *keyid)
 {
 	int32_t status;
-/*	uint16_t keyid_pool[SYS_KEYID_POOL_LENGTH];*/
 
 	status = get_id(ext_keyid_pool_address, keyid);
 
@@ -732,9 +716,14 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == KEYGEN_HW_STATUS_SUCCESS)
 		return 0;
+	else if (status == KEYGEN_HW_STATUS_EOFH)
+		return -EIO;
+	else if (status == KEYGEN_HW_STATUS_KSE)
+		handle_fatal_error((char *)KEYGEN_HW_STATUS_KSE); /*TODO Fatal error*/
+	else 
+		handle_fatal_error((char *)status); /*TODO Fatal error*/ 
 	
-	keygen_handle_fatal_errors(status);
-	return (-1);
+	return (-1);	
 }
 
 
@@ -756,8 +745,11 @@ int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == KEYGEN_HW_STATUS_SUCCESS)
 		return 0;
+	else if (status == KEYGEN_HW_STATUS_KSE)
+		handle_fatal_error((char *)KEYGEN_HW_STATUS_KSE); /*TODO Fatal error*/
+	else
+		handle_fatal_error((char *)status); /*TODO Fatal error*/ 
 
-	keygen_handle_fatal_errors(status);
 	return (-1);
 }
 

@@ -27,8 +27,8 @@
                 to support.
 *//***************************************************************************/
 typedef enum memory_partition_id {
-    MEM_PART_1ST_DDR_NON_CACHEABLE = 1,/**< Primary DDR non-cacheable memory partition */
-    MEM_PART_2ND_DDR_NON_CACHEABLE,    /**< Secondary DDR non-cacheable memory partition */
+    MEM_PART_DP_DDR = 1,/**< Primary DDR non-cacheable memory partition */
+    MEM_PART_SYSTEM_DDR,    /**< Secondary DDR non-cacheable memory partition */
     MEM_PART_CPC_SRAM,                 /**< CPC SRAM cacheable memory partition */
     MEM_PART_SH_RAM,                   /**< Shared-SRAM memory */
     MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
@@ -48,10 +48,8 @@ typedef enum platform_console_type {
 *//***************************************************************************/
 typedef enum platform_mem_region {
     PLTFRM_MEM_RGN_NONE = 0,
-    PLTFRM_MEM_RGN_DDR1,
-    PLTFRM_MEM_RGN_DDR2,
-    PLTFRM_MEM_RGN_WS,
-    PLTFRM_MEM_RGN_IRAM,
+    PLTFRM_MEM_RGN_DP_DDR,
+    PLTFRM_MEM_RGN_SYSTEM_DDR,
     PLTFRM_MEM_RGN_SHRAM,
     PLTFRM_MEM_RGN_AIOP,
     PLTFRM_MEM_RGN_CCSR,

@@ -1,17 +1,10 @@
 #include <fsl_cmdif_flib_s.h>
+#include <fsl_cmdif_client.h>
 #include <cmdif_srv.h>
 #include <errno.h>
 #include <types.h>
 #include <string.h>
 #include <stdlib.h>
-
-#ifndef ENOTSUP
-#define ENOTSUP		95	/*!< Operation not supported */
-#endif
-
-#ifndef ETIMEDOUT
-#define ETIMEDOUT	110	/*!< Operation timed out */
-#endif
 
 #ifndef ENAVAIL
 #define ENAVAIL		119	/*!< Resource not available, or not found */
@@ -22,15 +15,16 @@
 #define FREE_MODULE    '\0'
 #define FREE_INSTANCE  (M_NUM_OF_MODULES) 
 
-static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
-{
-	int i = 0;
-	for (i = 0; i < size; i++) 
-		ptr[i] = val;
-}
+#define SEND_RESP(CMD)	\
+	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) != CMD_ID_NOTIFY_CLOSE) && \
+		((CMD) != CMD_ID_NOTIFY_OPEN) && ((CMD) & CMDIF_ASYNC_CMD))
+
+#define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
+	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
+	CMD_ID, SIZE, DATA))
 
 void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
-				void *(*slow_malloc)(int size))
+			 void *(*slow_malloc)(int size))
 {
 	struct cmdif_srv *srv = fast_malloc(sizeof(struct cmdif_srv));
 
@@ -56,13 +50,13 @@ void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 		return NULL;
 	}
 
-	my_memset((uint8_t *)srv->m_name,
+	memset((uint8_t *)srv->m_name,
 	          FREE_MODULE,
 	          sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
-	my_memset((uint8_t *)srv->inst_dev,
+	memset((uint8_t *)srv->inst_dev,
 	          NULL,
 	          sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
-	my_memset(srv->m_id,
+	memset(srv->m_id,
 	          FREE_INSTANCE,
 	          M_NUM_OF_INSTANCES);
 
@@ -203,4 +197,141 @@ int cmdif_srv_unregister(void *srv, const char *m_name)
 	} else {
 		return m_id; /* POSIX error is returned */
 	}
+}
+
+static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
+{
+	int r = 0;
+	int count = 0;
+	
+	if (srv == NULL)
+		return -EINVAL;
+
+	/* TODO remove random from flibs ?? */
+	r = rand() % M_NUM_OF_INSTANCES;
+	while ((srv->m_id[r] != FREE_INSTANCE) && 
+		(count < M_NUM_OF_INSTANCES)) {
+		r = rand() % M_NUM_OF_INSTANCES;
+		count++;
+	}
+
+	/* didn't find empty space yet */
+	if (srv->m_id[r] != FREE_INSTANCE) {
+		count = 0;
+		while ((srv->m_id[r] != FREE_INSTANCE) &&
+			(count < M_NUM_OF_INSTANCES)) {
+			r = r++ % M_NUM_OF_INSTANCES;
+			count++;
+		}
+	}
+	
+	/* didn't find empty space */
+	if (count >= M_NUM_OF_INSTANCES) {
+		return -ENAVAIL;
+	} else {
+		srv->m_id[r] = m_id;
+		srv->inst_count++;
+		return r;
+	}
+}
+
+static void inst_dealloc(int inst, struct cmdif_srv *srv)
+{
+	srv->m_id[inst] = FREE_INSTANCE;
+	srv->inst_count--;
+}
+
+int cmdif_srv_open(void *_srv, 
+                   const char *m_name, 
+                   uint8_t inst_id,  
+                   uint32_t dpci_id,
+                   uint32_t size, 
+                   void * v_data,                   
+                   uint16_t *auth_id)
+{
+	int    err = 0;
+	int    m_id = 0;
+	int    id = 0;
+	struct cmdif_srv *srv = (struct cmdif_srv *)_srv;
+	struct cmdif_session_data *data = v_data;
+	void   *dev = NULL;
+	
+	if ((v_data != NULL) && (size < sizeof(struct cmdif_session_data)))
+		return -EINVAL;
+
+	if (auth_id == NULL)
+		return -EINVAL;
+		
+	/* TODO errors handling */
+	m_id = module_id_find(srv, m_name);
+	if (m_id < 0)
+		return m_id;
+	
+	err = srv->open_cb[m_id](inst_id, &dev);
+	id = inst_alloc(srv, (uint8_t)m_id);
+	if (id < 0)
+		return id;
+	
+	srv->inst_dev[id] = dev;
+	*auth_id = (uint16_t)id;
+	
+	if (data != NULL) {
+		data->dev_id  = dpci_id;
+		data->auth_id = *auth_id;
+		data->inst_id = inst_id;
+		strncpy(&data->m_name[0], m_name, M_NAME_CHARS);
+		data->m_name[M_NAME_CHARS] = '\0';
+	}
+	
+      	return 0;
+}
+
+int cmdif_srv_close(void *srv, 
+                    uint16_t auth_id,                     
+                    uint32_t dpci_id,
+                    uint32_t size,
+                    void *v_data)
+{
+	int    err = 0;
+	struct cmdif_session_data *data = v_data;
+
+	if (size < sizeof(struct cmdif_session_data))
+		return -ENOMEM;
+	
+	/* TODO to be completed 
+	 * Error checking ! */
+	inst_dealloc(auth_id, srv);
+	if (data != NULL) {
+		data->auth_id = auth_id;
+		data->dev_id  = dpci_id; /* 1 DPCI = 1 Server */	
+	}
+	return -ENODEV;
+}
+
+int cmdif_srv_cmd(void *_srv, 
+                  struct cmdif_fd *cfd, 
+                  struct cmdif_fd *cfd_out, 
+                  uint8_t *send_resp)
+{
+	int    err = 0;
+	struct cmdif_srv * srv = (struct cmdif_srv *)_srv;
+
+	if ((cfd == NULL) || (srv == NULL) || (send_resp == NULL))
+		return -EINVAL;
+	
+	*send_resp = SEND_RESP(cfd->u_flc.cmd.cmid);
+	
+	if (*send_resp && (cfd_out == NULL))
+		return -EINVAL;
+
+	
+	err = CTRL_CB(cfd->u_flc.cmd.auth_id, cfd->u_flc.cmd.cmid, \
+	              cfd->d_size, cfd->u_addr.d_addr);
+
+	if (*send_resp) {
+		*cfd_out = *cfd;
+		cfd_out->u_flc.cmd.err = (uint8_t)err;
+	}
+	
+	return 0;
 }

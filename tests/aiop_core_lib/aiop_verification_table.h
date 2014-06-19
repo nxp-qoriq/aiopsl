@@ -175,9 +175,6 @@ struct table_replace_miss_result_command {
 	/** The old miss result */
 	struct table_result old_miss_result;
 
-	/** Command returned status. */
-	int32_t  status;
-
 	/** Table ID */
 	uint16_t table_id;
 
@@ -196,11 +193,8 @@ struct ctlu_table_get_params_command {
 	/** CTLU Table Get Parameters Command identifier */
 	uint32_t opcode;
 
-	/*! Table get params output*/
+	/** Table get params output*/
 	struct table_get_params_output table_get_params_out;
-
-	/** Command returned status */
-	int32_t  status;
 
 	/** Table ID */
 	uint16_t table_id;
@@ -226,9 +220,6 @@ struct table_get_miss_result_command {
 	- struct aiop_ctlu_result_opaque */
 	struct table_result miss_rule;
 
-	/** Command returned status */
-	int32_t  status;
-
 	/** Table ID */
 	uint16_t table_id;
 
@@ -245,9 +236,6 @@ struct table_get_miss_result_command {
 struct table_delete_command {
 	/** CTLU Table Delete Command identifier */
 	uint32_t opcode;
-
-	/** Command returned status */
-	int32_t  status;
 
 	/** Table ID */
 	uint16_t table_id;

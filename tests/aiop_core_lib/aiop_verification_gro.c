@@ -26,7 +26,7 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		str->params.timeout_params.tmi_id =
 				*((uint8_t *)str->tmi_id_addr);
 		str->params.timeout_params.gro_timeout_cb =
-				&gro_timeout_cb_verif;
+				&timeout_cb_verif;
 
 		str->status = tcp_gro_aggregate_seg(
 				str->tcp_gro_context_addr,
@@ -63,41 +63,6 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 	}
 
 	return str_size;
-}
-
-void gro_timeout_cb_verif(uint64_t arg)
-{
-	struct fdma_enqueue_wf_command str;
-	struct fdma_queueing_destination_params qdp;
-	int32_t status;
-	uint32_t flags = 0;
-
-	if (arg == 0)
-		return;
-	status = cdma_read((void *)&str,
-			arg,
-			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
-	if (status != CDMA_READ__SUCCESS)
-		fdma_terminate_task();
-
-	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
-	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) :
-	((str.TC == 2) ? (FDMA_EN_TC_CONDTERM_BITS) : 0x0));
-	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
-
-	if (str.EIS) {
-		str.status = (int8_t)
-			fdma_store_and_enqueue_default_frame_fqid(
-				str.qd_fqid, flags);
-	} else{
-		qdp.qd = (uint16_t)(str.qd_fqid);
-		qdp.qdbin = str.qdbin;
-		qdp.qd_priority = str.qd_priority;
-		str.status = (int8_t)
-			fdma_store_and_enqueue_default_frame_qd(
-					&qdp, flags);
-	}
-	fdma_terminate_task();
 }
 
 

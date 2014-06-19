@@ -28,6 +28,8 @@
 #define FDMA_READ_PTA_CMD		0x00002002
 	/** FDMA Present Data segment explicit command code */
 #define FDMA_PRESENT_EXP_CMD		0x00003002
+	/** FDMA Present Default Data segment with task defaults command code */
+#define FDMA_PRESENT_DEF_CMD		0x00004002
 	/** FDMA Store default working frame command code */
 #define FDMA_STORE_DEFAULT_WF_CMD	0x00001010
 	/** FDMA Store working frame command code */
@@ -42,8 +44,12 @@
 #define FDMA_DISCARD_WF_CMD		0x00002013
 	/** FDMA Discard fd command code */
 #define FDMA_DISCARD_FD_CMD		0x00003013
-	/** FDMA Modify working frame segment command code */
+	/** FDMA Force discard fd command code */
+#define FDMA_FORCE_DISCARD_FD_CMD	0x00004013
+	/** FDMA Modify default segment command code */
 #define FDMA_MODIFY_CMD			0x00006019
+	/** FDMA Modify segment command code */
+#define FDMA_MODIFY_SEG_CMD		0x0000A019
 	/** FDMA Insert working frame segment command code */
 #define FDMA_INSERT_DATA_CMD		0x00001019
 	/** FDMA Delete working frame segment command code */
@@ -80,6 +86,10 @@
 	((FDMA_MODULE << 16) | FDMA_INIT_NO_SEG_EXP_CMD)
 	/** FDMA Present Data segment Command Structure identifier */
 #define FDMA_PRESENT_CMD_STR	((FDMA_MODULE << 16) | FDMA_PRESENT_CMD)
+	/** FDMA Present Default Data segment with task defaults Command
+	 * Structure identifier */
+#define FDMA_PRESENT_DEF_SEG_CMD_STR					\
+	((FDMA_MODULE << 16) | FDMA_PRESENT_DEF_CMD)
 	/** FDMA Read ASA segment Command Structure identifier */
 #define FDMA_READ_ASA_CMD_STR	((FDMA_MODULE << 16) | FDMA_READ_ASA_CMD)
 	/** FDMA Read PTA segment Command Structure identifier */
@@ -111,6 +121,9 @@
 #define FDMA_DISCARD_WF_CMD_STR	((FDMA_MODULE << 16) | FDMA_DISCARD_WF_CMD)
 	/** FDMA Discard fd Command Structure identifier */
 #define FDMA_DISCARD_FD_CMD_STR	((FDMA_MODULE << 16) | FDMA_DISCARD_FD_CMD)
+	/** FDMA Force Discard fd Command Structure identifier */
+#define FDMA_FORCE_DISCARD_FD_CMD_STR					\
+	((FDMA_MODULE << 16) | FDMA_FORCE_DISCARD_FD_CMD)
 	/** FDMA Terminate Task Command Structure identifier */
 #define FDMA_TERMINATE_TASK_CMD_STR	((FDMA_MODULE << 16) |	\
 		FDMA_TERMINATE_TASK_CMD)
@@ -122,8 +135,10 @@
 #define FDMA_SPLIT_CMD_STR	((FDMA_MODULE << 16) | FDMA_SPLIT_CMD)
 	/** FDMA Trim working frame segment Command Structure identifier */
 #define FDMA_TRIM_CMD_STR	((FDMA_MODULE << 16) | FDMA_TRIM_CMD)
-	/** FDMA Modify working frame segment Command Structure identifier */
+	/** FDMA Modify default segment Command Structure identifier */
 #define FDMA_MODIFY_CMD_STR	((FDMA_MODULE << 16) | FDMA_MODIFY_CMD)
+	/** FDMA Modify segment Command Structure identifier */
+#define FDMA_MODIFY_SEG_CMD_STR	((FDMA_MODULE << 16) | FDMA_MODIFY_SEG_CMD)
 	/** FDMA Replace working frame segment Command Structure identifier */
 #define FDMA_REPLACE_CMD_STR	((FDMA_MODULE << 16) | FDMA_REPLACE_CMD)
 	/** FDMA Insert working frame segment Command Structure identifier */
@@ -357,9 +372,9 @@ struct fdma_init_no_seg_exp_command {
 };
 
 /**************************************************************************//**
-@Description	FDMA Present segment Command structure.
+@Description	FDMA Present default segment Command structure.
 
-		Includes information needed for FDMA Present segment
+		Includes information needed for FDMA Present default segment
 		command verification.
 
 *//***************************************************************************/
@@ -386,6 +401,24 @@ struct fdma_present_command {
 	int8_t  status;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Present default segment Command structure.
+
+		Includes information needed for FDMA Present default segment
+		with task default command verification.
+
+*//***************************************************************************/
+struct fdma_present_default_seg_command {
+		/** FDMA Present segment command structure identifier. */
+	uint32_t opcode;
+		/** Command returned segment length. */
+	uint16_t seg_length;
+		/** Command returned segment handle. */
+	uint8_t seg_handle;
+		/** Command returned status. */
+	int8_t  status;
 };
 
 /**************************************************************************//**
@@ -592,10 +625,6 @@ struct fdma_enqueue_wf_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -641,10 +670,6 @@ struct fdma_enqueue_wf_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -787,11 +812,11 @@ struct fdma_discard_default_wf_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	uint8_t	 TC;
+	/*uint8_t	 TC;*/
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[2];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -816,9 +841,11 @@ struct fdma_discard_wf_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	uint8_t	 TC;
+	/*uint8_t	 TC;*/
 		/** Command returned status. */
 	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
@@ -838,11 +865,35 @@ struct fdma_discard_fd_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	uint8_t	 TC;
+	/*uint8_t	 TC;*/
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[6];
+	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Force Discard FD Segment Command structure.
+
+		Includes information needed for FDMA Force Discard FD command
+		verification.
+
+*//***************************************************************************/
+struct fdma_force_discard_fd_command {
+		/** FDMA Discard FD command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the location within the workspace of the
+		 * destination FD to be discarded. */
+	uint32_t fd_dst;
+		/** Control:
+		* - 0: Return after discard
+		* - 1: Trigger the Terminate task command right after
+		* the discard. */
+	/*uint8_t	 TC;*/
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -901,13 +952,13 @@ struct fdma_replicate_frames_command {
 		 * Release destination frame handle is implicit when enqueueing.
 		 * - 0: replicate only
 		 * - 1: replicate and enqueue */
-	uint8_t	ENQ;
+	/*uint8_t	ENQ;*/
 		/** The source frame resources are released after the
 		 * replication.
 		 * Release source frame handle is implicit when discarding.
 		 * - 0: keep source frame
 		 * - 1: discard source frame and release frame handle */
-	uint8_t	DSF;
+	/*uint8_t	DSF;*/
 		/** Frame annotation copy option:
 		 * - 0: do not copy annotations.
 		 * - 1: copy ASA.
@@ -920,6 +971,8 @@ struct fdma_replicate_frames_command {
 	uint8_t frame_handle2;
 		/** Command returned status. */
 	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -1016,8 +1069,7 @@ struct fdma_split_frame_command {
 		 * - 0: do not present segment from the split frame, keep split
 		 * working frame open.
 		 * - 1: present segment from the split frame, keep split working
-		 * frame open.
-		 * - 2: do not present, close split working frame. */
+		 * frame open. */
 	uint8_t PSA;
 		/** Frame split mode:
 		 * - 0: Split is performed at the split_size_sf value.
@@ -1058,9 +1110,9 @@ struct fdma_trim_command {
 };
 
 /**************************************************************************//**
-@Description	FDMA Modify Working Frame Segment Command structure.
+@Description	FDMA Modify Default Segment Command structure.
 
-		Includes information needed for FDMA Modify Working Frame
+		Includes information needed for FDMA Modify default
 		Segment command verification. This command updates the FDMA that
 		certain data in the presented segment was modified. The updated
 		data is located in the same place the old data was located at in
@@ -1080,6 +1132,39 @@ struct fdma_modify_command {
 	int8_t	status;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Modify Segment Command structure.
+
+		Includes information needed for FDMA Modify
+		Segment command verification. This command updates the FDMA that
+		certain data in the presented segment was modified. The updated
+		data is located in the same place the old data was located at in
+		the segment presentation in workspace.
+
+*//***************************************************************************/
+struct fdma_modify_seg_command {
+		/** FDMA Modify Working Frame Segment command structure
+		* identifier. */
+	uint32_t opcode;
+		/** Pointer to the workspace start location of the modified data
+		* in the Data segment. */
+	uint32_t from_ws_src;
+		/** Offset from the previously presented segment representing
+		 * the start point of the replacement. */
+	uint16_t offset;
+		/** Replaced size. */
+	uint16_t size;
+		/** Working frame handle in which the data is being modified.*/
+	uint8_t	 frame_handle;
+		/** Data segment handle (related to the working frame handle)
+		 * in which the data is being modified. */
+	uint8_t  seg_handle;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
@@ -1114,7 +1199,6 @@ struct fdma_replace_command {
 		(flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		* - 0: keep segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1145,7 +1229,6 @@ struct fdma_insert_segment_data_command {
 		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		* - 0: keep segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1188,7 +1271,6 @@ struct fdma_insert_segment_data_exp_command {
 		 * from which the data is being inserted. */
 	uint8_t  seg_handle;
 		/** Segment Action.
-		* - 0: keep segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1216,7 +1298,6 @@ struct fdma_delete_segment_data_command {
 		 * Relevant if SA field is set. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		 * - 0: keep segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;
@@ -1253,7 +1334,6 @@ struct fdma_delete_segment_data_exp_command {
 		 * Relevant if SA field is set. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
-		 * - 0: keep segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;

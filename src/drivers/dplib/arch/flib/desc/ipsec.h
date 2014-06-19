@@ -216,7 +216,7 @@ struct ipsec_encap_pdb {
 	uint32_t spi;
 	uint16_t rsvd2;
 	uint16_t ip_hdr_len;
-	uint32_t ip_hdr[0]; /* optional IP Header content */
+	//uint32_t ip_hdr[0]; /* optional IP Header content */
 };
 
 /**

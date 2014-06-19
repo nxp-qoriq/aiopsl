@@ -78,6 +78,8 @@
 #define DEFAULT_SEGMENT_HEADOOM_SIZE	128
 	/** Default Segment size. */
 #define DEFAULT_SEGMENT_SIZE		256
+	/* TODO - remove / move to errors.h*/
+#define EBADFD	77
 
 /* @} end of group FDMA_Commands_Definitions */
 
@@ -346,6 +348,11 @@
 #define FDMA_REPLACE_CMD_ARG1(_handles, _flags)				\
 	(uint32_t)((FDMA_GET_PRC_SEGMENT_HANDLE(_handles)) |		\
 	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
+	(_flags) | FDMA_REPLACE_CMD)
+
+/** FDMA Replace working frame segment command arg1 */
+#define FDMA_MODIFY_CMD_ARG1(_frame_handle, _seg_handle, _flags)	\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |		\
 	(_flags) | FDMA_REPLACE_CMD)
 
 /** FDMA explicit Replace working frame segment command arg1 */
@@ -707,7 +714,7 @@ enum fdma_sw_errors {
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_default_frame_without_segments(void);
+int fdma_present_default_frame_without_segments(void);
 
 /**************************************************************************//**
 @Function	fdma_present_frame_without_segments
@@ -738,11 +745,38 @@ int32_t fdma_present_default_frame_without_segments(void);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_present_frame_without_segments(
+int fdma_present_frame_without_segments(
 		struct ldpaa_fd *fd,
 		uint32_t flags,
 		uint16_t icid,
 		uint8_t *frame_handle);
+
+/**************************************************************************//**
+@Function	fdma_present_default_frame_default_segment
+
+@Description	Open a segment of the default working frame and copy the
+		segment data into the specified location in the workspace.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment length, segment address, segment offset.
+
+		Implicitly updated values in Task Defaults: segment length,
+		segment handle.
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - Unable to fulfill specified data segment presentation size
+		(not relevant if the present_size in the function parameters is
+		0).
+		This error is caused since the requested presentation exceeded
+		frame data end.
+
+@Cautions	This command may be invoked only for Data segments.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_present_default_frame_default_segment();
 
 /**************************************************************************//**
 @Function	fdma_acquire_buffer
@@ -769,7 +803,7 @@ int32_t fdma_present_frame_without_segments(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int32_t fdma_acquire_buffer(
+int fdma_acquire_buffer(
 		uint16_t icid,
 		uint32_t flags,
 		uint16_t bpid,

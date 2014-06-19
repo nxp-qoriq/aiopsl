@@ -46,6 +46,8 @@ struct ipf_context {
 	uint16_t prc_seg_address;
 	/** Original segment length from PRC */
 	uint16_t prc_seg_length;
+	/** default segment offset for split command parameters */
+	uint16_t prc_seg_offset;
 	/** Remaining payload length (for split by MTU) */
 	uint16_t remaining_payload_length;
 	/** MTU payload length (for split by MTU) */
@@ -67,7 +69,7 @@ struct ipf_context {
 	/** IPv6 Fragment header offset	*/
 	uint8_t ipv6_frag_hdr_offset;
 	/** Padding */
-	uint8_t	pad[4];
+	uint8_t	pad[2];
 };
 
 /** @} */ /* end of IPF_INTERNAL_STRUCTS */

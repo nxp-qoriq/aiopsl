@@ -19,6 +19,9 @@
 #include "parser.h"
 ////////#include "gro.h"
 
+/* TODO - remove / move to errors.h*/
+#define EBADFD	77
+
 extern __TASK struct aiop_default_task_params default_task_params;
 
 int32_t tcp_gso_generate_seg(
@@ -43,6 +46,7 @@ int32_t tcp_gso_generate_seg(
 		/* Restore PRC parameters */
 		PRC_SET_SEGMENT_ADDRESS(gso_ctx->seg_address);
 		PRC_SET_SEGMENT_LENGTH(gso_ctx->seg_length);
+		PRC_SET_SEGMENT_OFFSET(gso_ctx->seg_offset);
 
 		/* Call to tcp_gso_split_segment */
 		return tcp_gso_split_segment(gso_ctx);
@@ -90,6 +94,7 @@ int32_t tcp_gso_generate_seg(
 	/* Keep PRC parameters */
 	gso_ctx->seg_address = PRC_GET_SEGMENT_ADDRESS();
 	gso_ctx->seg_length = PRC_GET_SEGMENT_LENGTH();
+	gso_ctx->seg_offset = PRC_GET_SEGMENT_OFFSET();
 
 	gso_ctx->headers_size = (uint16_t)
 		((uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT()) +
@@ -99,16 +104,19 @@ int32_t tcp_gso_generate_seg(
 				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE)));
 	gso_ctx->split_size = gso_ctx->headers_size + gso_ctx->mss;
 
-	sr_status = fdma_store_default_frame_data(); /* TODO FDMA ERROR */
-	if (sr_status)
-		return sr_status; /* TODO */
+	sr_status = fdma_store_default_frame_data();
+	if (sr_status == (-ENOMEM))
+		return sr_status; /* Received packet cannot be stored due to
+		buffer pool depletion.*/
 
 	/* Copy default FD to remaining_FD in GSO ctx */
 	gso_ctx->rem_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 
-	/* TODO FDMA ERROR */
 	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd),
 			FDMA_INIT_NO_FLAGS, 0, &(gso_ctx->rem_frame_handle));
+	if (sr_status == (-EBADFD))
+		return sr_status; /* Received packet FD contain errors
+		(FD.err != 0).*/
 
 	/* Call to tcp_gso_split_segment */
 	return tcp_gso_split_segment(gso_ctx);
@@ -151,7 +159,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		/* Copy remaining FD to default FD */
 		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gso_ctx->rem_fd;
 		/* present frame + header segment */
-		sr_status = fdma_present_default_frame(); /* TODO FDMA ERROR */
+		fdma_present_default_frame();
 
 		status = TCP_GSO_GEN_SEG_STATUS_DONE;
 
@@ -264,8 +272,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		present_segment_params.frame_handle = gso_ctx->rem_frame_handle;
 		present_segment_params.offset = 0;
 		present_segment_params.present_size = 0;
-		/* TODO FDMA ERROR */
-		sr_status = fdma_present_frame_segment(&present_segment_params);
+		fdma_present_frame_segment(&present_segment_params);
 
 		/* Insert header to the remaining frame + close segment  */
 		insert_segment_data_params.from_ws_src =
@@ -301,15 +308,12 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 	/* Run parser */
 	/* Update TCP checksum + Calculate IPv4 checksum */
-		/* TODO PARSER ERROR */
-	sr_status = parse_result_generate_checksum(
+	parse_result_generate_checksum(
 			(enum parser_starting_hxs_code)
 				   default_task_params.parser_starting_hxs,
 			0,
-			//&l3checksum,
-			//&(tcp_ptr->checksum));
-			&(tcp_ptr->checksum),
-			&l3checksum);
+			&l3checksum,
+			&(tcp_ptr->checksum));
 
 	/* Invalidate Parser Result Gross Running Sum field */
 	pr->gross_running_sum = 0;
@@ -339,9 +343,10 @@ int32_t tcp_gso_discard_frame_remainder(
 {
 	struct tcp_gso_context *gso_ctx =
 			(struct tcp_gso_context *)tcp_gso_context_addr;
-	return fdma_discard_frame(
-			gso_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	fdma_discard_frame(gso_ctx->rem_frame_handle, FDMA_DIS_NO_FLAGS);
+	return SUCCESS;
 }
+
 
 void tcp_gso_context_init(
 		uint32_t flags,

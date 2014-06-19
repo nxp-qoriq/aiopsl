@@ -1,23 +1,25 @@
 #include <fsl_cmdif_flib_c.h>
 #include <cmdif_client.h>
+#include <string.h>
 #include <errno.h>
 #include <types.h>
+
+#ifndef AIOP
+#define __HOT_CODE 
+#endif
 
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
 
+/** Server special command indication */
+#define SPECIAL_CMD	0xC000
+
 /** Blocking commands don't need response FD */
 #define SYNC_CMD(CMD)	\
-	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)))
+	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)) || (CMD & SPECIAL_CMD))
 
-static void my_memset(uint8_t *ptr, uint8_t val, uint32_t size)
-{
-	int i = 0;
-	for (i = 0; i < size; i++) 
-		ptr[i] = val;
-}
 
-int cmdif_is_sync_cmd(uint16_t cmd_id)
+__HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
 	return SYNC_CMD(cmd_id);
 }
@@ -48,7 +50,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
 
-	my_memset(v_data, 0, size);
+	memset(v_data, 0, size);
 	
 	p_addr = p_data + sizeof(struct cmdif_dev);
 	v_addr = (union cmdif_data *)(v_data + sizeof(struct cmdif_dev));
@@ -80,7 +82,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_sync_ready(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_ready(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -95,7 +97,7 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
 
-int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
@@ -157,7 +159,7 @@ int cmdif_close_done(struct cmdif_desc *cidesc)
 	return cmdif_sync_cmd_done(cidesc);
 }
 
-int cmdif_cmd(struct cmdif_desc *cidesc,
+__HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		uint64_t data,
@@ -182,7 +184,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_async_cb(struct cmdif_fd *fd)
+__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 {
 	struct   cmdif_dev *dev = NULL;
 	uint64_t fd_dev         = 0;

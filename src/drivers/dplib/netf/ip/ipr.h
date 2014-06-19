@@ -27,83 +27,104 @@
 #define OUT_OF_ORDER			0x0001
 #define ORDER_AND_OOO			0x0002
 #define	MAX_NUM_OF_FRAGS 		64
-#define	FRAG_OK_REASS_NOT_COMPL	0
+#define	FRAG_OK_REASS_NOT_COMPL		0
 #define LAST_FRAG_IN_ORDER		1
-#define LAST_FRAG_OUT_OF_ORDER	2
-#define FRAG_ERROR				3
+#define LAST_FRAG_OUT_OF_ORDER		2
+#define FRAG_ERROR			3
 #define NO_BYPASS_OSM			0x00000000
-#define	BYPASS_OSM				0x00000001
+#define	BYPASS_OSM			0x00000001
 #define START_CONCURRENT		0x00000002
 #define	RESET_MF_BIT			0xDFFF
-#define NO_ERROR				0
+#define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2688
 #define START_OF_LINK_LIST		RFDC_SIZE+RFDC_EXTENSION_SIZE
 #define START_OF_FDS_LIST		START_OF_LINK_LIST+LINK_LIST_SIZE
-#define LINK_LIST_ELEMENT_SIZE	sizeof(struct link_list_element)
-#define LINK_LIST_OCTET_SIZE	8*LINK_LIST_ELEMENT_SIZE
+#define LINK_LIST_ELEMENT_SIZE		sizeof(struct link_list_element)
+#define LINK_LIST_OCTET_SIZE		8*LINK_LIST_ELEMENT_SIZE
 #define LINK_LIST_SIZE			LINK_LIST_ELEMENT_SIZE*MAX_NUM_OF_FRAGS
 #define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
-#define RFDC_VALID				0x8000
-#define FRAG_OFFSET_IPV4_MASK	0x1FFF
-#define FRAG_OFFSET_IPV6_MASK   0xFFF8
-#define IPV4_FRAME				0x00000000 /* in RFDC status */
-#define IPV6_FRAME				0x00000001 /* in RFDC status */
+#define RFDC_VALID			0x8000 /* in RFDC status */
+#define IPV4_FRAME			0x0000 /* in RFDC status */
+#define IPV6_FRAME			0x0001 /* in RFDC status */
+#define FIRST_ARRIVED			0x0002 /* in RFDC status */
+#define FRAG_OFFSET_IPV4_MASK		0x1FFF
+#define FRAG_OFFSET_IPV6_MASK		0xFFF8
 #define INSTANCE_VALID			0x0001
-#define REF_COUNT_ADDR_DUMMY	HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+#define REF_COUNT_ADDR_DUMMY		HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 #define IPR_INSTANCE_SIZE		sizeof(struct ipr_instance)
-#define RFDC_SIZE				sizeof(struct ipr_rfdc)
-#define RFDC_EXTENSION_SIZE		sizeof(struct extended_ipr_rfc)
+#define RFDC_SIZE			sizeof(struct ipr_rfdc)
+#define RFDC_EXTENSION_SIZE		sizeof(struct extended_ipr_rfdc)
 #define RFDC_EXTENSION_TRUNCATED_SIZE	40
-#define FD_SIZE					sizeof(struct ldpaa_fd)
-#define OCTET_LINK_LIST_MASK	0x07
+#define FD_SIZE				sizeof(struct ldpaa_fd)
+#define OCTET_LINK_LIST_MASK		0x07
 #define IPV4_KEY_SIZE			11
-#define IPV6_FIXED_HEADER_SIZE	40
+#define IPV6_KEY_SIZE			36
+#define IPV6_FIXED_HEADER_SIZE		40
 #define IPR_TIMEOUT_FLAGS	TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY | \
 				TMAN_CREATE_TIMER_MODE_TPRI | \
 				TMAN_CREATE_TIMER_ONE_SHOT | \
 				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK
+#define IPV4_VALID		0x00000001	/* In IPR instance */
+#define IPV6_VALID		0x00000002	/* In IPR instance */
 
 /* todo should move to general or OSM include file */
-#define CONCURRENT				0
-#define EXCLUSIVE				1
+#define CONCURRENT			0
+#define EXCLUSIVE			1
 
-#define IS_LAST_FRAGMENT() !(ipv4hdr_ptr->flags_and_offset & IPV4_HDR_M_FLAG_MASK)
-#define LAST_FRAG_ARRIVED()	rfdc_ptr->expected_total_length
+#define LAST_FRAG_ARRIVED()		rfdc_ptr->expected_total_length
 
+#pragma pack(push,1)
 struct ipr_instance {
 	uint64_t	extended_stats_addr;
-	/** maximum concurrently IPv4 open frames. */
-	uint16_t	table_id_ipv4;
-	uint16_t	table_id_ipv6;
-	uint32_t    max_open_frames_ipv4;
-	uint32_t  	max_open_frames_ipv6;
-	uint16_t  	max_reass_frm_size;	/** maximum reassembled frame size */
-	uint16_t  	min_frag_size;	/** minimum fragment size allowed */
-	uint16_t  	timeout_value_ipv4;/** reass timeout value for ipv4 */
-	uint16_t  	timeout_value_ipv6;/** reass timeout value for ipv6 */
-	/** function to call upon Time Out occurrence for ipv4 */
-	ipr_timeout_cb_t *ipv4_timeout_cb;
-	/** function to call upon Time Out occurrence for ipv6 */
-	ipr_timeout_cb_t *ipv6_timeout_cb;
-	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
-	uint32_t  	flags;
 	/** Argument to be passed upon invocation of the IPv4 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv4_arg;
 	/** Argument to be passed upon invocation of the IPv6 callback
 	    function*/
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
-	/** Number of frames that started reassembly but didn't complete it yet */
-	uint32_t	num_of_open_reass_frames_ipv4;
-	uint32_t	num_of_open_reass_frames_ipv6;
-	uint32_t	ipv4_reass_frm_cntr;
-	uint32_t	ipv6_reass_frm_cntr;
+	/** function to call upon Time Out occurrence for ipv4 */
+	ipr_timeout_cb_t *ipv4_timeout_cb;
+	/** function to call upon Time Out occurrence for ipv6 */
+	ipr_timeout_cb_t *ipv6_timeout_cb;
+	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
+	uint32_t  	flags;
+	/* CTLU table ID for IPv4 frames */
+	uint16_t	table_id_ipv4;
+	/* CTLU table ID for IPv6 frames */
+	uint16_t	table_id_ipv6;
+	/** maximum reassembled frame size */
+	uint16_t  	max_reass_frm_size;
+	/* BPID to fetch buffers from */
+	uint16_t	bpid;
+	/** minimum fragment size allowed for IPv4 frames*/
+	uint16_t  	min_frag_size_ipv4;
+	/** minimum fragment size allowed for IPv4 frames*/
+	uint16_t  	min_frag_size_ipv6;
+	/** reass timeout value for ipv4 */
+	uint16_t  	timeout_value_ipv4;
+	/** reass timeout value for ipv6 */
+	uint16_t  	timeout_value_ipv6;
 	/* TMAN Instance ID */
 	uint8_t		tmi_id;
-	uint8_t		reserved;
-	uint16_t	bpid;
+	uint8_t		res[3];
 };
+#pragma pack(pop)
 
+struct ipr_instance_extension{
+	uint64_t	delete_arg;
+	ipr_del_cb_t 	*confirm_delete_cb;
+	uint32_t	ipv4_reass_frm_cntr;
+	uint32_t	ipv6_reass_frm_cntr;
+	/** Number of frames that IPv4 started reassembly
+	    but didn't complete it yet */
+	uint32_t	num_of_open_reass_frames_ipv4;
+	/** Number of frames that IPv6 started reassembly
+	    but didn't complete it yet */
+	uint32_t	num_of_open_reass_frames_ipv6;
+	/* todo remove 2 following parameters */
+	uint32_t	max_open_frames_ipv4;
+	uint32_t	max_open_frames_ipv6;
+};
 #pragma pack(push,1)
 struct ipr_rfdc{
 	/* 64 bytes */
@@ -111,7 +132,7 @@ struct ipr_rfdc{
 	uint32_t	timer_handle;
 	uint16_t	expected_total_length;
 	uint16_t	current_total_length;
-	uint16_t	first_frag_offset;
+	uint16_t	res;
 	uint16_t	biggest_payload;
 	uint16_t	current_running_sum;
 	uint8_t		first_frag_index;
@@ -119,17 +140,19 @@ struct ipr_rfdc{
 	uint8_t		next_index;
 	uint8_t		index_to_out_of_order;
 	uint8_t		num_of_frags;
-	uint8_t		res;
+	uint8_t		res1;
 	uint16_t	status;
 	uint16_t	total_in_order_payload;
 	struct 		fdma_amq isolation_bits; // 4 bytes
 	uint64_t	ipv4_key[2];
-	uint32_t	res1[3];
+	uint16_t	iphdr_offset;
+	uint16_t	ipv6_fraghdr_offset;
+	uint32_t	res2[2];
 };
 #pragma pack(pop)
 
 #pragma pack(push,1)
-struct extended_ipr_rfc{
+struct extended_ipr_rfdc{
 	/* 64 bytes */
 	uint32_t	ipv6_key[10];
 	uint32_t	res[6];
@@ -189,15 +212,18 @@ int ipr_init(void);
 
 @Param[in]	rfdc_ptr - pointer to RFDC in workspace (on stack)
 @Param[in]	rfdc_ext_addr - pointer to RFDC in external memory.
+@Param[in]	iphdr_ptr - pointer to IP header.
+@Param[in]	frame_is_ipv4 - frame is Ipv4 or Ipv6.
 
-@Return		Status - Success or Failure.
+@Return		Status.
 
 @Cautions	None.
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-							     uint64_t rfdc_ext_addr, 
-							     void     *iphdr_ptr);
+				 uint64_t rfdc_ext_addr, 
+				 void *iphdr_ptr,
+				 uint32_t frame_is_ipv4);
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
 
@@ -233,14 +259,13 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error();
 
-void ipr_time_out();
+void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t dummy);
 
 void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
-					  struct ipv4hdr *ipv4hdr_ptr,uint16_t current_frag_size,
-					  uint16_t frag_offset_shifted); 
-
+		      uint32_t last_fragment,uint16_t current_frag_size,
+		      uint16_t frag_offset_shifted);
 
 /**************************************************************************//**
 @Description	IPR Global parameters

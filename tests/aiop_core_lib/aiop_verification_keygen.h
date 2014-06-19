@@ -415,11 +415,8 @@ struct keygen_kcr_query_command{
 	/** Key ID */
 	uint8_t key_id;
 
-	/** Key Composition Rule size */
-	uint8_t size;
-	
 	/** 64-bit alignment */
-	uint8_t	pad[2];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**

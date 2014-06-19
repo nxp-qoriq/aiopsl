@@ -67,7 +67,10 @@ struct ipr_params {
 		/** maximum concurrently IPv6 open frames */
 	uint32_t  max_open_frames_ipv6;
 	uint16_t  max_reass_frm_size;	/** maximum reassembled frame size */
-	uint16_t  min_frag_size;	/** minimum fragment size allowed */
+	/** minimum fragment size allowed for IPv4 frames */
+	uint16_t  min_frag_size_ipv4;
+	/** minimum fragment size allowed for IPv6 frames */
+	uint16_t  min_frag_size_ipv6;
 	/** reass timeout value for ipv4.
 	 * The value given here is in units of 10 ms */
 	uint16_t  timeout_value_ipv4;
@@ -390,6 +393,8 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		inserted to the partially reassembled frame.\n
 		When called for a closing fragment, reassembly is done.\n
 		The reassembled frame is returned to the caller.
+		This function assumes the fragment is presented from
+		the beginning of the frame.
 
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
@@ -427,33 +432,45 @@ int32_t ipr_reassemble(ipr_instance_handle_t ipr_instance);
 @Param[in]	ipr_instance - The IPR instance handle.
 @Param[in]	max_reass_frm_size - New maximum reassembled frame size.
 
-@Return		Success or Failure.
-		Failure can be one of the following:
-		\ref CDMA_READ_WITH_MUTEX_STATUS \n
-		\ref CDMA_WRITE_WITH_MUTEX_STATUS \n
+@Return		None
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
-int32_t ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,
+void ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,
 				      uint16_t max_reass_frm_size);
 
 /**************************************************************************//**
-@Function	ipr_modify_min_frag_size
+@Function	ipr_modify_min_frag_size_ipv4
 
-@Description	Update min_frag_size parameter for the specified instance.
+@Description	Update min_frag_size parameter for IPv4 frames
+		for the specified instance.
 
 @Param[in]	ipr_instance - The IPR instance handle.
 @Param[in]	min_frag_size - New minimum fragment size.
 
-@Return		Success or Failure.
-		Failure can be one of the following:
-		\ref CDMA_READ_WITH_MUTEX_STATUS \n
-		\ref CDMA_WRITE_WITH_MUTEX_STATUS \n
+@Return		None
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
-int32_t ipr_modify_min_frag_size(ipr_instance_handle_t ipr_instance,
-				 uint16_t min_frag_size);
+void ipr_modify_min_frag_size_ipv4(ipr_instance_handle_t ipr_instance,
+				   uint16_t min_frag_size);
+
+/**************************************************************************//**
+@Function	ipr_modify_min_frag_size_ipv6
+
+@Description	Update min_frag_size parameter for IPv6 frames
+		for the specified instance.
+
+@Param[in]	ipr_instance - The IPR instance handle.
+@Param[in]	min_frag_size - New minimum fragment size.
+
+@Return		None
+
+@Cautions	In this function, the task yields.
+*//***************************************************************************/
+void ipr_modify_min_frag_size_ipv6(ipr_instance_handle_t ipr_instance,
+				   uint16_t min_frag_size);
+
 
 /**************************************************************************//**
 @Function	ipr_modify_timeout_value_ipv4
@@ -464,14 +481,11 @@ int32_t ipr_modify_min_frag_size(ipr_instance_handle_t ipr_instance,
 @Param[in]	ipr_instance - The IPR instance handle.
 @Param[in]	reasm_timeout_value_ipv4 - New reassembly timeout value for ipv4
 
-@Return		Success or Failure.
-		Failure can be one of the following:
-		\ref CDMA_READ_WITH_MUTEX_STATUS \n
-		\ref CDMA_WRITE_WITH_MUTEX_STATUS \n
+@Return		None
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
-int32_t ipr_modify_timeout_value_ipv4(ipr_instance_handle_t ipr_instance,
+void ipr_modify_timeout_value_ipv4(ipr_instance_handle_t ipr_instance,
 				      uint16_t reasm_timeout_value_ipv4);
 
 /**************************************************************************//**
@@ -483,14 +497,11 @@ int32_t ipr_modify_timeout_value_ipv4(ipr_instance_handle_t ipr_instance,
 @Param[in]	ipr_instance - The IPR instance handle.
 @Param[in]	reasm_timeout_value_ipv6 - New reassembly timeout value for ipv6
 
-@Return		Success or Failure.
-		Failure can be one of the following:
-		\ref CDMA_READ_WITH_MUTEX_STATUS \n
-		\ref CDMA_WRITE_WITH_MUTEX_STATUS \n
+@Return		None
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
-int32_t ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
+void ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
 				      uint16_t reasm_timeout_value_ipv6);
 
 /**************************************************************************//**
@@ -504,12 +515,11 @@ int32_t ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
 @Param[out]	reass_frm_cntr - The number of IPv4/IPv6 reassembled frames
 		for this instance.
 
-@Return		Success or Failure.
-		Failure can be one of the \ref CDMA_READ_STATUS
+@Return		None
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
+void ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 				uint32_t flags, uint32_t *reass_frm_cntr);
 
 /* @} end of group FSL_IPR_Functions */

@@ -6,6 +6,7 @@
 #include "kernel/smp.h"
 #include "inc/console.h"
 #include "inc/mem_mng.h"
+#include "sys.h"
 
 __TASK uint32_t seed_32bit;
 
@@ -13,8 +14,15 @@ __TASK uint32_t seed_32bit;
 
 #define MAX_UDELAY   50000000
 
-#define BUF_SIZE    128
+#define SIGN	2
 
+#define BUF_SIZE    80
+
+static const char* digits="0123456789abcdef";
+
+extern t_system sys;
+static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
+static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size);
 
 /*****************************************************************************/
 void fsl_os_exit(int status)
@@ -26,21 +34,173 @@ void fsl_os_exit(int status)
 void fsl_os_print(char *format, ...)
 {
 #ifndef EMULATOR_FINAL
-    va_list args;
-    char    tmp_buf[BUF_SIZE];
+	va_list args;
+	char    tmp_buf[BUF_SIZE];
 
-    va_start(args, format);
+	va_start(args, format);
 #ifdef SYS_64BIT_ARCH
 #if defined(__GNUC__)
 extern void msr_enable_fp(void);
 msr_enable_fp();
 #endif /* defined(__GNUC__) */
 #endif /* SYS_64BIT_ARCH */
-    vsnprintf (tmp_buf, BUF_SIZE, format, args);
-    va_end(args);
+	if(sys.runtime_flag)
+		vsnprintf_lite(tmp_buf, BUF_SIZE, format, args);
+	else
+		vsnprintf(tmp_buf, BUF_SIZE, format, args);
 
-    sys_print(tmp_buf);
+	va_end(args);
+	sys_print(tmp_buf);
 #endif /* EMULATOR */
+}
+
+static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
+{
+	uint64_t num;
+	uint8_t  base;
+	char *str;
+	const char *s;
+	uint8_t flags = 0;
+	size--;
+	for(str = buf; *fmt && size; ++fmt) {
+		if(*fmt != '%') {
+			*str++ = *fmt;
+			size--;
+			continue;
+		}
+
+		++fmt;
+		base = 10;
+		switch(*fmt) {
+		case 'c':
+			if(size)
+			{
+				*str++ = (unsigned char)va_arg(args,int);
+				size--;
+			}
+			continue;
+
+		case 's':
+			s = va_arg(args,char*);
+			if(!s)
+				break;
+			while(*s != '\0' && size) {
+				*str++ = *s++;
+				size--;
+			}
+			continue;
+
+		case 'x':
+			base = 16;
+		case 'd':
+		case 'l':
+			if(*fmt == 'l'){
+				switch(*(fmt + 1)){
+				case 'l':/*support %ll*/
+					++fmt;
+					num = va_arg(args,unsigned long long);
+					break;
+				default: /*support l*/
+					num = va_arg(args,unsigned long);
+					break;
+				}
+
+
+
+				if(*(fmt+1) == 'x'){
+					base = 16;
+					++fmt;
+				}
+
+
+			}
+			else{	/*d, x*/
+				if (*(fmt) == 'd'){
+					flags |= SIGN;
+					num = va_arg(args,int);
+				}else{
+					num = va_arg(args,unsigned long);
+				}
+			}
+
+			break; /*start convert number to string*/
+
+		default: /*special inputs are not supported*/
+			if(size){
+			*str++ = '%';
+			size--;
+			}
+			if(size){
+			*str++ = *fmt;
+			size--;
+			}
+			continue;
+		}
+
+		/*start convert number to string*/
+
+		str = number(str, num, base,flags, &size);
+		flags = 0;
+	}
+
+	*str = '\0';
+	return str - buf;
+}
+
+
+static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size)
+{
+	uint64_t tmp_num;
+	char *ptr_start, *ptr_end, tmp_char;
+	uint8_t i;
+	size_t msize;
+
+	msize = *max_size;
+	tmp_num = num;
+
+
+	if(type & SIGN) {
+		if((int)num < 0 && msize) {
+			*str++ = '-';
+			num = -num;
+			msize --;
+		}
+	}
+
+	i = 0;
+	if(msize){
+		if(num == 0)
+			*str++ = '0';
+		else {
+			while(tmp_num != 0) {	/*count number of digits*/
+				tmp_num /= base;
+				i++;
+			}
+
+			ptr_start = str; /*remember start pointer*/
+			while(num != 0){
+
+				if(i <= msize)
+					*str++ = digits[(num) % (unsigned) base];
+				else
+					i--;
+
+				num /= base;
+			}
+			msize -= i;	/* reduce wrote digits from total buf size*/
+			ptr_end = str;  /*remember end pointer*/
+			ptr_end --;
+			while(ptr_start < ptr_end){
+				tmp_char = *ptr_start;
+				*ptr_start++ = *ptr_end;
+				*ptr_end-- = tmp_char;
+			}
+		}
+	}
+
+
+	*max_size = msize;
+	return str;
 }
 
 /*****************************************************************************/
@@ -57,6 +217,7 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 {
 	volatile uint32_t TSCRU1, TSCRU2, TSCRL;
 	UNUSED(tz);
+	uint64_t temp_val = 0;
 
 	TSCRU1 = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
 	                              TSCRU_OFF));
@@ -68,9 +229,12 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 	else if(TSCRU2 < TSCRU1) /*something wrong while reading*/
 		return -1;
 
+	temp_val = (uint64_t)(TSCRU2) << 32;
+	temp_val |= (TSCRL);
+	temp_val = temp_val / 1000;
+	tv->tv_usec = (uint32_t)temp_val;
+	tv->tv_sec = temp_val / 1000000;
 
-	tv->tv_sec = TSCRU2;
-	tv->tv_sec = (tv->tv_sec) << 32 | (TSCRL);
 
 	return 0;
 }
@@ -253,6 +417,23 @@ atomic_loop:
 }
 
 #ifdef DEBUG_FSL_OS_MALLOC
+void * fsl_os_malloc_debug(size_t size, char *fname, int line);
+
+void *fsl_os_xmalloc_debug(size_t size,
+                           int      mem_partition_id,
+                           uint32_t alignment,
+                           char     *fname,
+                           int      line);
+#endif
+
+#if 0
+#define fsl_os_malloc(sz) \
+    fsl_os_malloc_debug((sz), __FILE__, __LINE__)
+
+#define fsl_os_xmalloc(sz, memt, al) \
+   fsl_os_xmalloc_debug((sz), (memt), (al), __FILE__, __LINE__)
+#endif
+
 /*****************************************************************************/
 void * fsl_os_malloc_debug(size_t size, char *fname, int line)
 {
@@ -269,19 +450,31 @@ void *fsl_os_xmalloc_debug(size_t     size,
     return sys_mem_alloc(partition_id, size, alignment, "", fname, line);
 }
 
-#else /* not DEBUG_FSL_OS_MALLOC */
 /*****************************************************************************/
+#ifdef DEBUG_FSL_OS_MALLOC
+void * fsl_os_malloc(size_t size)
+{
+	return  fsl_os_malloc_debug(size, __FILE__, __LINE__);
+}
+#else	
 void * fsl_os_malloc(size_t size)
 {
     return sys_mem_alloc(SYS_DEFAULT_HEAP_PARTITION, size, 0, "", "", 0);
 }
+#endif
 
 /*****************************************************************************/
+#ifdef DEBUG_FSL_OS_MALLOC
+void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
+{
+	return fsl_os_xmalloc_debug(size, partition_id, alignment, __FILE__, __LINE__);
+}
+#else
 void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 {
     return sys_mem_alloc(partition_id, size, alignment, "", "", 0);
 }
-#endif /* not DEBUG_FSL_OS_MALLOC */
+#endif	
 
 
 /*****************************************************************************/

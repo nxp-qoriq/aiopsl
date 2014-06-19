@@ -200,6 +200,77 @@
 
 /** @} */ /* end of TABLE_PARAMS_REPLACE */
 
+
+/**************************************************************************//**
+@Group	TABLE_STATUS Status returned to calling function
+@{
+*//***************************************************************************/
+/** Command successful */
+#define TABLE_HW_STATUS_SUCCESS	TABLE_STATUS_SUCCESS
+
+/** Command failed general status bit.
+A general bit that is set in some errors conditions */
+#define TABLE_HW_STATUS_MGCF	0x80000000
+
+/** Miss Occurred.
+ * This status is set when a matching rule is not found. Note that on chained
+ * lookups this status is set only if the last lookup results in a miss. */
+#define TABLE_HW_STATUS_MISS	TABLE_STATUS_MISS
+
+/** Key Composition Error.
+ * This status is set when a key composition error occurs, meaning one of the
+ * following:
+ * - Invalid Key Composition ID was used.
+ * - Key Size Error.
+ * */
+#define TABLE_HW_STATUS_KSE	0x00000400
+
+/** Extract Out Of Frame Header.
+ * This status is set if key composition attempts to extract a field which is
+ * not in the frame header either because it is placed beyond the first 256
+ * bytes of the frame, or because the frame is shorter than the index evaluated
+ * for the extraction. */
+#define TABLE_HW_STATUS_EOFH	0x00000200
+
+/** Maximum Number Of Chained Lookups Is Reached.
+ * This status is set if the number of table lookups performed by the CTLU
+ * reached the threshold. Not supported in Rev1 */
+#define TABLE_HW_STATUS_MNLE	0x00000100
+
+/** Invalid Table ID.
+ * This status is set if the lookup table associated with the TID is not
+ * initialized. */
+#define CTLU_HW_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_CTLU << 24) | \
+						TABLE_HW_STATUS_MGCF)
+
+/** Resource is not available
+ * */
+#define CTLU_HW_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
+						TABLE_HW_STATUS_MGCF)
+/** Resource Is Temporarily Not Available.
+ * Temporarily Not Available occurs if an other resource is in the process of
+ * being freed up. Once the process ends, the resource may be available for new
+ * allocation (availability is not guaranteed). */
+#define CTLU_HW_STATUS_TEMPNOR	(0x00000010 | CTLU_HW_STATUS_NORSC)
+
+/** Invalid Table ID.
+ * This status is set if the lookup table associated with the TID is not
+ * initialized. */
+#define MFLU_HW_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_MFLU << 24) | \
+						TABLE_HW_STATUS_MGCF)
+
+/** Resource is not available
+ * */
+#define MFLU_HW_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_MFLU << 24) | \
+						TABLE_HW_STATUS_MGCF)
+/** Resource Is Temporarily Not Available.
+ * Temporarily Not Available occurs if an other resource is in the process of
+ * being freed up. Once the process ends, the resource may be available for new
+ * allocation (availability is not guaranteed). */
+#define MFLU_HW_STATUS_TEMPNOR	(0x00000010 | MFLU_HW_STATUS_NORSC)
+
+/** @} */ /* end of TABLE_STATUS */
+
 /** @} */ /* end of TABLE_MACROS */
 
 
@@ -219,9 +290,9 @@
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_create_input_message {
-	/** Table Type
+	/** Table Attributes
 	Includes IEX, MRES & AGT bits */
-	uint16_t type;
+	uint16_t attributes;
 
 	/** ICID (including BDI) */
 	uint16_t icid;
@@ -595,10 +666,9 @@ struct table_acc_context {
 		This function does not increment the reference count for the
 		miss result returned.
 *//***************************************************************************/
-int32_t table_query_debug(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_params_query_output_message *output
-			 );
+int table_query_debug(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_params_query_output_message *output);
 
 /**************************************************************************//**
 @Function	table_hw_accel_acquire_lock
@@ -613,7 +683,7 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
+int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 
 
 /**************************************************************************//**
@@ -629,6 +699,39 @@ int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
 void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
+
+
+/**************************************************************************//**
+@Function	table_fatal_status_handler
+
+@Description	Handler for the status returned from the Table API functions.
+
+@Param[in]	status - Status to be handled be this function.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void table_exception_handler(char *filename, uint32_t line, int32_t status);
+
+
+/**************************************************************************//**
+@Function	table_calc_num_entries_per_rule
+
+@Description	This function calculates and returns the maximum number of
+		table entries needed per rule for a specific key size and
+		table type.
+
+@Param[in]	type - Table.
+@Param[in]	key_size - Key size.
+
+@Return		The maximum number of entries needed per rule for a specific
+		key size and table type.
+
+@Cautions	This function calls the exception handler in a case of invalid
+		table type.
+*//***************************************************************************/
+int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 
 /** @} */ /* end of TABLE_Functions */
 
