@@ -21,7 +21,7 @@ void dpni_drv_free(void);
 
 /* TODO - get rid */
 __SHRAM struct dpni_drv *nis;
-__SHRAM uint32_t num_of_nis;
+__SHRAM int num_of_nis;
 
 static void discard_rx_cb()
 {
