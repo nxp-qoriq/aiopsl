@@ -400,11 +400,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/mc_init.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/arch/cores</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/arch/fsl_cmdif_mc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_cmdif_mc.h</locationURI>
