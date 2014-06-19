@@ -60,7 +60,7 @@ void init_verif()
 		/* This is a temporary function and has to be used only until
 				* the ARENA will initialize the profile sram */
 /*		init_profile_sram();*/
-		gro_timeout_cb_verif(0);
+		timeout_cb_verif(0);
 		tmi_id = 0;
 		verif_only_1_task_complete = 1;
 	}
