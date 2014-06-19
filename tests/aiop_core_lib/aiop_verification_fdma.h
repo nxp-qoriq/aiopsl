@@ -28,6 +28,8 @@
 #define FDMA_READ_PTA_CMD		0x00002002
 	/** FDMA Present Data segment explicit command code */
 #define FDMA_PRESENT_EXP_CMD		0x00003002
+	/** FDMA Present Default Data segment with task defaults command code */
+#define FDMA_PRESENT_DEF_CMD		0x00004002
 	/** FDMA Store default working frame command code */
 #define FDMA_STORE_DEFAULT_WF_CMD	0x00001010
 	/** FDMA Store working frame command code */
@@ -84,6 +86,10 @@
 	((FDMA_MODULE << 16) | FDMA_INIT_NO_SEG_EXP_CMD)
 	/** FDMA Present Data segment Command Structure identifier */
 #define FDMA_PRESENT_CMD_STR	((FDMA_MODULE << 16) | FDMA_PRESENT_CMD)
+	/** FDMA Present Default Data segment with task defaults Command
+	 * Structure identifier */
+#define FDMA_PRESENT_DEF_SEG_CMD_STR					\
+	((FDMA_MODULE << 16) | FDMA_PRESENT_DEF_CMD)
 	/** FDMA Read ASA segment Command Structure identifier */
 #define FDMA_READ_ASA_CMD_STR	((FDMA_MODULE << 16) | FDMA_READ_ASA_CMD)
 	/** FDMA Read PTA segment Command Structure identifier */
@@ -366,9 +372,9 @@ struct fdma_init_no_seg_exp_command {
 };
 
 /**************************************************************************//**
-@Description	FDMA Present segment Command structure.
+@Description	FDMA Present default segment Command structure.
 
-		Includes information needed for FDMA Present segment
+		Includes information needed for FDMA Present default segment
 		command verification.
 
 *//***************************************************************************/
@@ -395,6 +401,24 @@ struct fdma_present_command {
 	int8_t  status;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Present default segment Command structure.
+
+		Includes information needed for FDMA Present default segment
+		with task default command verification.
+
+*//***************************************************************************/
+struct fdma_present_default_seg_command {
+		/** FDMA Present segment command structure identifier. */
+	uint32_t opcode;
+		/** Command returned segment length. */
+	uint16_t seg_length;
+		/** Command returned segment handle. */
+	uint8_t seg_handle;
+		/** Command returned status. */
+	int8_t  status;
 };
 
 /**************************************************************************//**
