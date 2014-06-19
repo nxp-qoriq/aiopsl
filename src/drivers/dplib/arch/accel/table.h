@@ -237,6 +237,11 @@ A general bit that is set in some errors conditions */
  * reached the threshold. Not supported in Rev1 */
 #define TABLE_HW_STATUS_MNLE	0x00000100
 
+/** Policer Initialization Entry Error.
+ * Might be used in CTLU/MFLU to indicate other stuff.
+ * */
+#define TABLE_HW_STATUS_PIEE	0x00000400 
+
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
  * initialized. */
