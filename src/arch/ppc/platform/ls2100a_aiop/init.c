@@ -83,7 +83,16 @@ void fill_platform_parameters(struct platform_param *platform_param)
 
 int tile_init(void)
 {
-	return 0;
+    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
+	                      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+    uint32_t val;
+    
+    /* ws enable */
+    val = ioread32(&aiop_regs->ws_regs.cfg);
+    val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
+    iowrite32(val, &aiop_regs->ws_regs.cfg);
+    
+    return 0;
 }
 
 int cluster_init(void)
@@ -118,54 +127,6 @@ int global_post_init(void)
 	return 0;
 }
 
-#ifdef AIOP_ENABLE_WS
-/**************************************************************************//**
- @Description   AIOP work scheduler enablement mode
- *//***************************************************************************/
-enum aiop_ws_en_mode {
-	AIOP_WS_DISABLE = 0, /* Disable work scheduler from receiving tasks */
-	AIOP_WS_ENABLE_QMAN = 1, /* Enable work scheduler to receive tasks from QMan only */
-	AIOP_WS_ENABLE_TMAN = 2, /* Enable work scheduler to receive tasks from TMan only */
-	AIOP_WS_ENABLE_ALL = 3
-/* Enable work scheduler to receive tasks from both QMan and TMan */
-};
-
-static int aiop_ws_enable(struct aiop_tile_regs *aiop_regs,
-                   enum aiop_ws_en_mode en_mode)
-{
-	struct aiop_ws_regs *ws_regs = &aiop_regs->ws_regs;
-	uint32_t val;
-
-	val = ioread32(&ws_regs->cfg);
-
-	switch (en_mode) {
-	case AIOP_WS_DISABLE:
-		val &= ~AIOP_WS_ENABLE_ALL;
-		break;
-
-	case AIOP_WS_ENABLE_QMAN:
-		val |= AIOP_WS_ENABLE_QMAN;
-		break;
-
-	case AIOP_WS_ENABLE_TMAN:
-		val |= AIOP_WS_ENABLE_TMAN;
-		break;
-
-	case AIOP_WS_ENABLE_ALL:
-		val |= AIOP_WS_ENABLE_ALL;
-		break;
-
-	default:
-		pr_err("Unsupported work scheduler enablement mode");
-		return -EINVAL;
-	}
-
-	iowrite32(val, &ws_regs->cfg);
-
-	return 0;
-}
-#endif
-
 void core_ready_for_tasks(void)
 {
     uint32_t abcr_val;
@@ -193,14 +154,6 @@ void core_ready_for_tasks(void)
     abcr_val |= (uint32_t)(1 << core_get_id());
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
-
-    
-#ifdef AIOP_ENABLE_WS
-    if(sys_is_master_core()) {
-	    //TODO check return value
-    	aiop_ws_enable(aiop_regs, AIOP_WS_ENABLE_ALL);
-    }
-#endif
     
 #if (STACK_OVERFLOW_DETECTION == 1)
     /*
