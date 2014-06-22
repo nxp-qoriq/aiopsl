@@ -288,4 +288,32 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid,
 /** @} */ /* end of grp_dplib_aiop group */
 
 
+/**************************************************************************//**
+@Function	dpni_drv_add_mac_address
+
+@Description	Adds unicast/multicast filter MAC address.
+
+@Param[in]	ni_id	The Network Interface ID
+
+@Param[in]	mac_addr	MAC address to be added to NI unicast/multicast
+				filter.
+@Return	0 on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_add_mac_addr(uint16_t ni_id,
+          		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
+
+/**************************************************************************//**
+@Function	dpni_drv_remove_mac_address
+
+@Description	Removes unicast/multicast filter MAC address.
+
+@Param[in]	ni_id	The Network Interface ID
+
+@Param[in]	mac_addr	MAC address to be removed from NI
+				unicast/multicast filter.
+
+@Return	0 on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_remove_mac_addr(uint16_t ni_id,
+          		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 #endif /* __DPNI_DRV_H */

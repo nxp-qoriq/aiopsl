@@ -136,6 +136,19 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = (uint16_t)sizeof(struct fdma_present_command);
 		break;
 	}
+	/* FDMA Present segment Command Verification */
+	case FDMA_PRESENT_DEF_SEG_CMD_STR:
+	{
+		struct fdma_present_default_seg_command *str =
+			(struct fdma_present_default_seg_command *)asa_seg_addr;
+		str->status =
+			(int8_t)fdma_present_default_frame_default_segment();
+		str->seg_length = PRC_GET_SEGMENT_LENGTH();
+		str->seg_handle = PRC_GET_SEGMENT_HANDLE();
+		str_size = (uint16_t)
+			sizeof(struct fdma_present_default_seg_command);
+		break;
+	}
 	/* FDMA Read ASA segment Command Verification */
 	case FDMA_READ_ASA_CMD_STR:
 	{
