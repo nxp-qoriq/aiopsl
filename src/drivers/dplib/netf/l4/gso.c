@@ -24,7 +24,7 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int32_t tcp_gso_generate_seg(
+int tcp_gso_generate_seg(
 		tcp_gso_ctx_t tcp_gso_context_addr)
 {
 	struct tcp_gso_context *gso_ctx =
@@ -338,7 +338,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	return status; /* Todo - return valid status*/
 	}
 
-int32_t tcp_gso_discard_frame_remainder(
+int tcp_gso_discard_frame_remainder(
 		tcp_gso_ctx_t tcp_gso_context_addr)
 {
 	struct tcp_gso_context *gso_ctx =

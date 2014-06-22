@@ -7,7 +7,7 @@
 #include "common/gen.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
-#include "common/slob.h"
+#include "fsl_slob.h"
 #ifdef AIOP
 #include "common/fsl_malloc.h"
 #endif /* AIOP */

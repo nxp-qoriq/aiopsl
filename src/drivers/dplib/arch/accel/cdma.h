@@ -292,7 +292,7 @@ enum cdma_errors {
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_acquire_context_memory(
+int cdma_acquire_context_memory(
 		uint16_t pool_id,
 		uint64_t *context_memory);
 
@@ -346,7 +346,7 @@ void cdma_release_context_memory(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_refcount_decrement_and_release(
+int cdma_refcount_decrement_and_release(
 		uint64_t context_address);
 
 
@@ -393,7 +393,7 @@ void cdma_refcount_increment(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_refcount_decrement(
+int cdma_refcount_decrement(
 		uint64_t context_address);
 
 
@@ -462,7 +462,7 @@ void cdma_write_lock_dma_read_and_increment(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_write_release_lock_and_decrement(
+int cdma_write_release_lock_and_decrement(
 		uint64_t context_address,
 		void *ws_src,
 		uint16_t size);
@@ -517,7 +517,7 @@ int32_t cdma_write_release_lock_and_decrement(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int32_t cdma_access_context_memory(
+int cdma_access_context_memory(
 		uint64_t context_address,
 		uint32_t flags,
 		uint16_t offset,
