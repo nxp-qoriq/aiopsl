@@ -10,7 +10,7 @@
 #define __SYS_MP_H
 
 #include "common/types.h"
-#include "common/fsl_core.h"
+#include "inc/fsl_core.h"
 
 
 /**************************************************************************//**

@@ -14,7 +14,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_stdlib.h"
-#include "common/fsl_core.h"
+#include "inc/fsl_core.h"
 #include "soc_db/fsl_soc.h"
 
 

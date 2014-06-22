@@ -4,9 +4,10 @@ fsl_ipr.h: API - several functions (modify) to become void instead of int.
 Table SRs: API - Changed MFLU key descriptors structures (also for lookup) to match the new HW form.
 Table SRs: API - Exceptions handling in all functions.
 Table SRs: API - return type of functions that does not return errors due to exception handling was changed to void.
-Table SRs: API - status value returned from functions were changed.
+Table SRs: API - status value returned from functions were changed + documentation.
 Table SRs: API - Add documentation that TABLE_ATTRIBUTE_LOCATION_INT is not supported for Rev1.
-Table SRs: API - Functions that returned int32_t not return int.
+Table SRs: API - Functions that returned int32_t now return int.
+Table SRs: API - Removed remarks regarding not suppoting MFLU rule operations in Rev1.
 Table SRs: table_create() implementation - table_calc_num_entries_per_rule() was introduced to reduce cyclomatic complexity.
 Table SRs: table_create() implementation - removed cdma error check since function will return void.
 
