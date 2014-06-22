@@ -1475,8 +1475,7 @@ struct parse_profile_input {
 @Description	Creates Parser Profile which provides a template
 		of parsing actions to be taken.
 
-@Param[in]	parse_profile - Parse Profile Input. User should
-		allocate memory for this structure and fill it.
+@Param[in]	parse_profile - Parse Profile Input the user should fill.
 		Must be 16 bytes aligned.
 @Param[out]	prpid - Parse Profile ID.
 
