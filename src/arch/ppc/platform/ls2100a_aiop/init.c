@@ -42,7 +42,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 {                                          \
     {mc_obj_init,       mc_obj_free},      \
     {slab_module_init,  slab_module_free}, \
-    {cmdif_client_init, cmdif_client_free},\
+    {cmdif_client_init, cmdif_client_free}, /* must be before srv */\
     {cmdif_srv_init,    cmdif_srv_free},   \
     {aiop_sl_init,      aiop_sl_free},     \
     {dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/   \
@@ -86,12 +86,12 @@ int tile_init(void)
     struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
 	                      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
     uint32_t val;
-    
+
     /* ws enable */
     val = ioread32(&aiop_regs->ws_regs.cfg);
     val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
     iowrite32(val, &aiop_regs->ws_regs.cfg);
-    
+
     return 0;
 }
 
@@ -154,7 +154,7 @@ void core_ready_for_tasks(void)
     abcr_val |= (uint32_t)(1 << core_get_id());
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
-    
+
 #if (STACK_OVERFLOW_DETECTION == 1)
     /*
      *  NOTE:
@@ -163,7 +163,7 @@ void core_ready_for_tasks(void)
      */
     booke_set_spr_DAC2(0x800);
 #endif
-    
+
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
     booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
     __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
