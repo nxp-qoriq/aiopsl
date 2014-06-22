@@ -378,17 +378,17 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 /** Find dpci index and get dpci table */
-static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl) 
+static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl)
 {
 	int i = 0;
 	struct dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	*dpci_tbl = dt;
-	
+
 	if (dt == NULL)
 		return -1;
-	
+
 	for (i = 0; i < dt->count; i++) {
-		if (dt->attr[i].peer_id == dpci_id) 
+		if (dt->attr[i].peer_id == dpci_id)
 			return i;
 	}
 	return -1;
@@ -403,12 +403,13 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	int ind = 0;
 	int link_up = 0;
 	struct dpci_obj *dpci_tbl = NULL;
-	
+
+	pr_debug("Got notify open for AIOP client \n");
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
 		pr_err("Segment length is too small\n");
 		return -EINVAL;
 	}
-	
+
 	if (cl->count >= CMDIF_MN_SESSIONS) {
 		pr_err("Too many sessions\n");
 		return -ENOSPC;
@@ -420,6 +421,8 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		return -ENAVAIL;
 	}
 
+	pr_debug("Found dpci peer id at index %d \n", ind);
+
 	cl->gpp[cl->count].ins_id           = data->inst_id;
 	cl->gpp[cl->count].dev->auth_id     = data->auth_id;
 	cl->gpp[cl->count].dev->p_sync_done = cmd_data_get();
@@ -428,24 +431,27 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	cl->gpp[cl->count].m_name[M_NAME_CHARS] = '\0';
 	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
-	
+
+#if 0
+	/* Removed it in order not to call MC inside task
+	 * TODO consider if this is the right thing to do ? */
 	if (dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up)) {
 		pr_err("Failed to get DPCI link status\n");
 		return -EACCES;
 	}
-	
+#endif
 	/* TODO remove it after  dpci_get_link_state() is fixed */
-	link_up = 1; 
-	
-	if (!dpci_tbl->attr[ind].attach_link || 
+	link_up = 1;
+
+	if (!dpci_tbl->attr[ind].attach_link ||
 		!dpci_tbl->attr[ind].enable  ||
 		!link_up) {
 		pr_err("DPCI is not enabled or not linked to other DPCI\n");
 		return -EACCES; /*Invalid device state*/
 	}
-	
+
 	cl->count++;
-	
+
 	return 0;
 }
 

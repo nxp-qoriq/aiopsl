@@ -76,6 +76,7 @@ static int dpci_discovery()
 	struct dpci_dest_cfg dest_cfg;
 	struct dpci_obj *dpci_tbl = NULL;
 	int ind = 0;
+	int link_up = 0;
 	
 	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
 	    pr_err("Failed to get device count for RC auth_d = %d\n", 
@@ -136,6 +137,15 @@ static int dpci_discovery()
 				pr_err("Failed dpci initialization \n");
 				return -ENODEV;
 			}
+			err = dpci_get_link_state(&dpci_tbl->dpci[ind], 
+			                          &link_up);
+			if (err || !link_up) {
+				pr_warn("Failed to get DPCI link is not up\n");
+				/* TODO return -EACCES; 
+				 * There is bug in get link state therefore 
+				 * meanwhile just notify about it */
+			}
+
 			dpci_tbl->count++;			
 #endif			
 			ind++;
