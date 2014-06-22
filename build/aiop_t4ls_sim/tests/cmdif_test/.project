@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/out</value>
+					<value>${ProjDirPath}/integ_out</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -115,6 +115,11 @@ aiop_sl		</project>
 			<name>src/cmdif_client_stub.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/cmdif_client_stub.c</locationURI>
+		</link>
+		<link>
+			<name>src/cmdif_integration_test.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/cmdif_integration_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/cmdif_test.c</name>
