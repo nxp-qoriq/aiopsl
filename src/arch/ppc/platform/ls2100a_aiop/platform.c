@@ -1,7 +1,7 @@
 #include "common/types.h"
 #include "common/fsl_malloc.h"
 #include "common/fsl_string.h"
-#include "common/aiop_common.h"
+#include "aiop_common.h"
 #include "drivers/fsl_duart.h"
 #include "kernel/console.h"
 #include "kernel/platform.h"

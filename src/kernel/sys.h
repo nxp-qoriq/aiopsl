@@ -1,7 +1,7 @@
 #ifndef __SYS_H
 #define __SYS_H
 
-#include "common/aiop_common.h"
+#include "aiop_common.h"
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/list.h"
