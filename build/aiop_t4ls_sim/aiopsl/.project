@@ -430,6 +430,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_soc.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/arch/ls2085_aiop</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/common/dbg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/dbg.h</locationURI>
@@ -888,6 +893,11 @@
 			<name>aiop_sl/drivers/dpmng/controllers/aiop</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/arch/ls2085_aiop/fsl_platform.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/ls2085_aiop/fsl_platform.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/fsl_soc_aiop_spec.h</name>
