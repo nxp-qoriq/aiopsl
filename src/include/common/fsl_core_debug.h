@@ -12,6 +12,8 @@
 #ifndef __FSL_CORE_DEBUG_H
 #define __FSL_CORE_DEBUG_H
 
+#include "inc/fsl_core.h"
+
 /**************************************************************************//**
  @Function      core_get_id_debug
 
@@ -19,6 +21,8 @@
 
  @Return        Core ID.
 *//***************************************************************************/
-uint32_t core_get_id_debug(void);
+uint32_t core_get_id_debug(void) {
+	return core_get_id();
+};
 
 #endif /* __FSL_CORE_DEBUG_H */
