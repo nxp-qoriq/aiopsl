@@ -65,6 +65,8 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
                               uint64_t data)
 {
 	int err = 0;
+	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
+
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
 	             cmd,
@@ -79,18 +81,12 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 		                 NULL, NULL, 0);
 		break;
 	case NORESP_CMD:
-		uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
-		/* Must be no response because it's on the same dpci */
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64, 0, p_data);
 		break;
 	case ASYNC_CMD:
-		uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
-		/* Must be no response because it's on the same dpci */
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64, 0, p_data);
 		break;
 	case SYNC_CMD:
-		uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
-		/* Must be no response because it's on the same dpci */
 		err = cmdif_send(&cidesc, 0xa, 64, 0, p_data);
 		break;
 	default:
