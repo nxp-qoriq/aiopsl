@@ -113,7 +113,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
-	for (i = 2; i < 1024; i++) {
+	for (i = 3; i < 1024; i++) {
 		/* Prepare to read from entry i in EPID table - EPAS reg */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 

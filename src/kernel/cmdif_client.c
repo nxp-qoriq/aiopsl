@@ -158,10 +158,11 @@ int cmdif_client_init()
 
 	memset(cl, 0, sizeof(struct cmdif_cl));
 
-#if 0
-	/* TODO add this after dpni epid will start from 3 */
-	epid_setup();
-#endif
+	err = epid_setup();
+	if (err) {
+		pr_err("Failed to setup EPID 2 for AIOP client\n");
+		return -ENODEV;
+	}
 
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg),
@@ -283,6 +284,9 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+
+	pr_debug("AIOP client received response for command 0x%x\n",
+	         fd.u_flc.cmd.cmid);
 
 	err = cmdif_async_cb(&fd);
 	if (err) {

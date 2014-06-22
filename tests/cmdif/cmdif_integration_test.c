@@ -18,6 +18,10 @@ void app_free(void);
 /**< Get NI from callback argument, it's demo specific macro */
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
+#define OPEN_CMD	0x100
+#define NORESP_CMD	0x101
+#define ASYNC_CMD	0x102
+#define SYNC_CMD 	0x103
 
 __SHRAM struct cmdif_desc cidesc;
 uint8_t send_data[64];
@@ -57,7 +61,8 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
+__HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
+                              uint64_t data)
 {
 	int err = 0;
 	UNUSED(dev);
@@ -68,15 +73,25 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	             (uint32_t)(data & 0xFFFFFFFF));
 
 	switch (cmd & ~CMDIF_NORESP_CMD) {
-	case 0x100:
+	case OPEN_CMD:
 		cidesc.regs = 0; /* DPCI 0 is used by MC */
 		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
 		                 NULL, NULL, 0);
 		break;
-	case 0x101:
+	case NORESP_CMD:
 		uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
 		/* Must be no response because it's on the same dpci */
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64, 0, p_data);
+		break;
+	case ASYNC_CMD:
+		uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
+		/* Must be no response because it's on the same dpci */
+		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64, 0, p_data);
+		break;
+	case SYNC_CMD:
+		uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
+		/* Must be no response because it's on the same dpci */
+		err = cmdif_send(&cidesc, 0xa, 64, 0, p_data);
 		break;
 	default:
 		break;
