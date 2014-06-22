@@ -1,7 +1,7 @@
-- dpni_drv.c:      aiop_replace_parser removed and profile_parser_init ws added to initialize 
+- dpni_drv.c:      aiop_replace_parser removed and profile_parser_init was added to initialize 
                    default prpid for NI'S 
 - io.h:            inline was added to all iowrite/read calls (supported in CW 10.0.8 and higher)
-- dpni_drv.c/h:    Added support for dpni_drv_add/remove_mac
+- dpni_drv.c/h:    Added support for dpni_drv_add/remove_mac, broadcast MAC is added to all ni's by default.
 
 - src\include\arch\ls2100a\platform_aiop_spec.h: Rename: 
                                 MEM_PART_1ST_DDR_NON_CACHEABLE->MEM_PART_DP_DDR
