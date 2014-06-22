@@ -24,13 +24,6 @@
 /** Get RX QID from dequeue context */
 #define RESP_QID_GET \
 	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFFFFFF)
-/** PL_ICID from Additional Dequeue Context */
-#define PL_ICID_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
-/** Get ICID to send response */
-#define RESP_ICID_GET \
-	LH_SWAP(&PL_ICID_GET)
-
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) != CMD_ID_NOTIFY_CLOSE) && \
@@ -56,7 +49,7 @@
 	(((ERR) << 16) & 0x00FF0000) | (ID))
 
 #define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
+	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
 					0,                          \
 					E_MAPPED_MEM_TYPE_GEN_REGS) \
 					+ SOC_PERIPH_OFF_AIOP_WRKS);
@@ -221,7 +214,7 @@ static int epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 	uint32_t data = 0;
 
-	iowrite32(0, &wrks_addr->epas); /* EPID = 0 */
+	iowrite32(0, &wrks_addr->epas); /* EPID = 0 reserved for server */
 	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
 
 #ifdef AIOP_STANDALONE
@@ -384,7 +377,7 @@ static void sync_done_set(uint16_t auth_id, struct   cmdif_srv *srv)
 {
 	srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
-
+/** Find dpci index and get dpci table */
 static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl) 
 {
 	int i = 0;
@@ -400,6 +393,7 @@ static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl)
 	}
 	return -1;
 }
+
 static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 {
 	struct cmdif_srv *srv = aiop_srv->srv;
@@ -407,6 +401,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int ind = 0;
+	int link_up = 0;
 	struct dpci_obj *dpci_tbl = NULL;
 	
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
@@ -418,16 +413,37 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		pr_err("Too many sessions\n");
 		return -ENOSPC;
 	}
-	
+
+	ind = find_dpci((uint8_t)data->dev_id, &dpci_tbl);
+	if (ind < 0) {
+		pr_err("Not found DPCI peer %d\n", data->dev_id);
+		return -ENAVAIL;
+	}
+
 	cl->gpp[cl->count].ins_id           = data->inst_id;
 	cl->gpp[cl->count].dev->auth_id     = data->auth_id;
 	cl->gpp[cl->count].dev->p_sync_done = cmd_data_get();
 	cl->gpp[cl->count].dev->sync_done   = NULL; /* Not used in AIOP */
 	strncpy(&cl->gpp[cl->count].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[cl->count].m_name[M_NAME_CHARS] = '\0';
-	ind = find_dpci((uint8_t)data->dev_id, &dpci_tbl);
 	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
+	
+	if (dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up)) {
+		pr_err("Failed to get DPCI link status\n");
+		return -EACCES;
+	}
+	
+	/* TODO remove it after  dpci_get_link_state() is fixed */
+	link_up = 1; 
+	
+	if (!dpci_tbl->attr[ind].attach_link || 
+		!dpci_tbl->attr[ind].enable  ||
+		!link_up) {
+		pr_err("DPCI is not enabled or not linked to other DPCI\n");
+		return -EACCES; /*Invalid device state*/
+	}
+	
 	cl->count++;
 	
 	return 0;
@@ -583,12 +599,10 @@ __HOT_CODE void cmdif_srv_isr(void)
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else {
-		uint32_t size	 = cmd_size_get();
-		uint64_t data	 = cmd_data_get();
-
 		if (IS_VALID_AUTH_ID(auth_id)) {
 			/* User can ignore data and use presentation context */
-			err = CTRL_CB(auth_id, cmd_id, size, data);
+			err = CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
+			              cmd_data_get());
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
 				sync_cmd_done(NULL, err, auth_id, srv, TRUE);

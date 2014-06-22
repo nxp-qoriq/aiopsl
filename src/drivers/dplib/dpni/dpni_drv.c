@@ -15,12 +15,13 @@
 #include "system.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
-
+#define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
 /* TODO - get rid */
 __SHRAM struct dpni_drv *nis;
+__SHRAM int num_of_nis;
 
 static void discard_rx_cb()
 {
@@ -122,6 +123,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 		pr_debug("Found NI: EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
+			num_of_nis ++;
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32(aiop_niid, UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
@@ -138,12 +140,22 @@ int dpni_drv_probe(struct dprc	*dprc,
 				return err;
 			}
 
+			/* Save dpni regs and authentication ID in internal AIOP NI table */
+			nis[aiop_niid].dpni = dpni;
+
 			/* Register MAC address in internal AIOP NI table */
 			if ((err = dpni_get_primary_mac_addr(&dpni, mac_addr)) != 0) {
 				pr_err("Failed to get MAC address for DP-NI%d\n", mc_niid);
 				return err;
 			}
 			memcpy(nis[aiop_niid].mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+
+			/* Register Broadcast MAC address*/
+			if ((err = dpni_add_mac_addr(&dpni, ETH_BROADCAST_ADDR)) != 0) {
+				pr_err("Failed to add MAC address for DP-NI%d\n", mc_niid);
+				return err;
+			}
+
 
 			if ((err = dpni_get_attributes(&dpni, &attributes)) != 0) {
 				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
@@ -212,8 +224,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 
 int dpni_get_num_of_ni (void)
 {
-	/* TODO - complete here. should count the "real" number of NIs */
-	return 1;
+	return num_of_nis;
 }
 
 
@@ -224,55 +235,69 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ET
 	return 0;
 }
 
-
-static int aiop_replace_parser(uint8_t prpid)
+int dpni_drv_add_mac_addr(uint16_t ni_id,
+                          const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-    struct parse_profile_input verif_parse_profile1 __attribute__((aligned(16)));
-    int i, status = 0;
-    uint8_t prpid_new = 0;
+	struct dpni_drv *dpni_drv;
 
-    /* Init basic parse profile */
-    verif_parse_profile1.parse_profile.eth_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
-    verif_parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
-    verif_parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
-    /* No MTU checking */
-    verif_parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
-    /* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-    verif_parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
-    verif_parse_profile1.parse_profile.arp_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.ip_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
-    /* Routing header is ignored and the destination address from
-     * main header is used instead */
-    verif_parse_profile1.parse_profile.ipv6_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.gre_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.minenc_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;
-    /* In short Packet, padding is removed from Checksum calculation */
-    verif_parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-    /* In short Packet, padding is removed from Checksum calculation */
-    verif_parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-    verif_parse_profile1.parse_profile.ipsec_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.sctp_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.dccp_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.gtp_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.esp_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
-    verif_parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
-    /* Assuming no soft examination parameters */
-    for(i=0; i<16; i++)
-        verif_parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
-
-/*    status = parser_profile_replace(&verif_parse_profile1, prpid); Hagit*/
-    parser_profile_replace(&verif_parse_profile1, prpid); /*Hagit */
-/*    return status; Hagit*/
-    return 0;/*Hagit */
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_add_mac_addr(&(dpni_drv->dpni), mac_addr);
 }
 
+int dpni_drv_remove_mac_addr(uint16_t ni_id,
+                             const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_remove_mac_addr(&(dpni_drv->dpni), mac_addr);
+}
+
+static int parser_profile_init(uint8_t *prpid)
+{
+    struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
+    int i;
+
+    /* Init basic parse profile */
+    parse_profile1.parse_profile.eth_hxs_config = 0x0;
+    parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
+    parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
+    parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
+    parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
+    /* No MTU checking */
+    parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
+    parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+    /* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
+    parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
+    parse_profile1.parse_profile.arp_hxs_config = 0x0;
+    parse_profile1.parse_profile.ip_hxs_config = 0x0;
+    parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
+    /* Routing header is ignored and the destination address from
+     * main header is used instead */
+    parse_profile1.parse_profile.ipv6_hxs_config = 0x0;
+    parse_profile1.parse_profile.gre_hxs_config = 0x0;
+    parse_profile1.parse_profile.minenc_hxs_config = 0x0;
+    parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;
+    /* In short Packet, padding is removed from Checksum calculation */
+    parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    /* In short Packet, padding is removed from Checksum calculation */
+    parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+    parse_profile1.parse_profile.ipsec_hxs_config = 0x0;
+    parse_profile1.parse_profile.sctp_hxs_config = 0x0;
+    parse_profile1.parse_profile.dccp_hxs_config = 0x0;
+    parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
+    parse_profile1.parse_profile.gtp_hxs_config = 0x0;
+    parse_profile1.parse_profile.esp_hxs_config = 0x0;
+    parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
+    parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
+    /* Assuming no soft examination parameters */
+    for(i=0; i<16; i++)
+        parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
+
+    return parser_profile_create(&(parse_profile1), prpid);
+}
 
 
 int dpni_drv_init(void)
@@ -282,14 +307,21 @@ int dpni_drv_init(void)
 #endif
 	int		    i;
 	int         error = 0;
+	uint8_t prpid;
 
 
+	num_of_nis = 0;
 	/* Allocate initernal AIOP NI table */
 	nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
 	if (!nis) {
 	    return -ENOMEM;
 	}
 
+	error = parser_profile_init(&prpid);
+	if(error){
+		pr_err("parser profile initialization failed %d\n", error);
+		return error;
+	}
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
@@ -301,7 +333,7 @@ int dpni_drv_init(void)
 		dpni_drv->mc_niid      = 0;
 #endif
 		dpni_drv->spid         = 0;
-		dpni_drv->prpid        = 0;
+		dpni_drv->prpid        = prpid; /*parser profile id from parser_profile_init()*/
 		dpni_drv->starting_hxs = 0; //ETH HXS
 		dpni_drv->qdid         = 0;
 		dpni_drv->flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | DPNI_DRV_FLG_MTU_ENABLE;
@@ -347,10 +379,7 @@ int dpni_drv_init(void)
 #endif
 #endif
 
-	/* Set PRPID 0
-	 * TODO it must be prpid for every ni */
-/*    error = aiop_replace_parser(0); Hagit*/
-    aiop_replace_parser(0);
+
 
 	return error;
 }

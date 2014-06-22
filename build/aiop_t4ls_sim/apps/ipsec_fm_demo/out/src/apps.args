@@ -1,0 +1,96 @@
+-sym dwarf-2
+-sym full
+-msgstyle parseable
+-proc zen
+-big
+-fp soft
+-model absolute
+-abi eabi
+-sdata 8
+-sdata2 8
+-vle
+-enc ascii
+-prefix
+"$(BUILD_FLAGS)/dflags_dbg.h"
+-c
+-nostdinc
+-nosyspath
+-i
+"$(SRC)/include"
+-i
+"$(PLATFORM)/ls2100a_aiop"
+-i
+"$(ARCH)/ls2100a"
+-i
+"$(SRC)/kernel"
+-i
+"$(ProjDirPath)/src"
+-i
+"$(DPLIB)/include"
+-i
+"$(DRIVERS)/dplib"
+-i
+"$(ARCH1)/accel"
+-i
+"$(AIOP_T4LS_SIM)/build_flags"
+-I-
+-I"$(PAToolsBaseDirEnv)/PA_Support/ewl/EWL_C/include/pa"
+-I-
+-I"$(PAToolsBaseDirEnv)/PA_Support/ewl/EWL_C/include"
+-I-
+-I"$(PAToolsBaseDirEnv)/PA_Support/ewl/EWL_Runtime/Runtime_PA/Include"
+-I-
+-I"$(INCLUDE)/common"
+-I-
+-I"$(INCLUDE)/dplib"
+-I-
+-I"$(INCLUDE)/net"
+-I-
+-I"$(INCLUDE)/arch"
+-disable_extensions off
+-warn illpragmas
+-warn unwanted
+-warn extended
+-warn hidevirtual
+-warn implicitconv
+-warn impl_int2float
+-warn impl_float2int
+-warn impl_signedunsigned
+-warn ptrintconv
+-warn unusedarg
+-warn unusedvar
+-warn missingreturn
+-warn unusedexpr
+-warn extracomma
+-warn emptydecl
+-warn structclass
+-warn filecaps
+-warn sysfilecaps
+-warn notinlined
+-opt level=0
+-opt speed
+-inline on
+-inline nobottomup
+-align powerpc
+-func_align 4
+-spe_vector
+-pooldata off
+-common off
+-use_lmw_stmw on
+-novolatileasm
+-schedule off
+-opt nopeephole
+-use_isel on
+-ppc_asm_to_vle
+-gen_ld_std
+-Cpp_Exceptions off
+-RTTI off
+-bool off
+-wchar_t off
+-requireprotos
+-lang c99
+-enum int
+-char unsigned
+-str nopool
+-str reuse
+-ipa off

@@ -187,7 +187,7 @@
 @{
 *//***************************************************************************/
 	/** Table query output message reserved space */
-#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	16
+#define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	20
 
 /** @} */ /* end of TABLE_QUERY */
 
@@ -236,6 +236,11 @@ A general bit that is set in some errors conditions */
  * This status is set if the number of table lookups performed by the CTLU
  * reached the threshold. Not supported in Rev1 */
 #define TABLE_HW_STATUS_MNLE	0x00000100
+
+/** Policer Initialization Entry Error.
+ * Might be used in CTLU/MFLU to indicate other stuff.
+ * */
+#define TABLE_HW_STATUS_PIEE	0x00000400 
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not
@@ -290,9 +295,9 @@ A general bit that is set in some errors conditions */
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_create_input_message {
-	/** Table Type
+	/** Table Attributes
 	Includes IEX, MRES & AGT bits */
-	uint16_t type;
+	uint16_t attributes;
 
 	/** ICID (including BDI) */
 	uint16_t icid;
@@ -338,9 +343,9 @@ struct	table_create_output_message {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_params_query_output_message {
-	/** Table Type
-	Includes IEX, MRES & AGT bits */
-	uint16_t type;
+	/** Table attributes
+	Includes Type IEX, MRES & AGT bits */
+	uint16_t attr;
 
 	/* ICID (including BDI) */
 	uint16_t icid;
@@ -666,10 +671,9 @@ struct table_acc_context {
 		This function does not increment the reference count for the
 		miss result returned.
 *//***************************************************************************/
-int32_t table_query_debug(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_params_query_output_message *output
-			 );
+int table_query_debug(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_params_query_output_message *output);
 
 /**************************************************************************//**
 @Function	table_hw_accel_acquire_lock
@@ -684,7 +688,7 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
+int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 
 
 /**************************************************************************//**
