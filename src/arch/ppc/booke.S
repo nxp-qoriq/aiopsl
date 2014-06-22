@@ -1,5 +1,5 @@
 
-#include "arch/cores/fsl_core_booke_regs.h"
+#include "include/fsl_core_booke_regs.h"
 #include "booke.h"
 
 

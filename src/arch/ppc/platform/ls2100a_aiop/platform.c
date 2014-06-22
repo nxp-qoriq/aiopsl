@@ -6,7 +6,7 @@
 #include "kernel/console.h"
 #include "kernel/platform.h"
 #include "kernel/smp.h"
-#include "common/io.h"
+#include "fsl_io.h"
 
 #include "inc/mem_mng.h"
 #include "inc/fsl_sys.h"

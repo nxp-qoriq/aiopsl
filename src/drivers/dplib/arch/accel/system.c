@@ -20,8 +20,8 @@ extern void tman_timer_callback(void);
 #include "slab.h"
 #include "kernel/platform.h"
 
-#include "dbg.h"
-#include "io.h"
+#include "fsl_dbg.h"
+#include "fsl_io.h"
 #include "aiop_common.h"
 
 extern void tman_timer_callback(void);

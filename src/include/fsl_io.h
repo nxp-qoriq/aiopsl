@@ -104,48 +104,6 @@ static inline void iowrite64be(uint64_t val, volatile uint64_t *addr)
 }
 
 /**************************************************************************//**
- @Function      memcpy32
-
- @Description   Copies one memory buffer into another one in 4-byte chunks!
- Which should be more efficient than byte by byte.
-
- For large buffers (over 60 bytes) this function is about 4 times
- more efficient than the trivial memory copy. For short buffers
- it is reduced to the trivial copy and may be a bit worse.
-
- @Param[in]     pDst    - The address of the destination buffer.
- @Param[in]     pSrc    - The address of the source buffer.
- @Param[in]     size    - The number of bytes that will be copied from pSrc to pDst.
-
- @Return        pDst (the address of the destination buffer).
-
- @Cautions      There is no parameter or boundary checking! It is up to the user
- to supply non-null parameters as source & destination and size
- that actually fits into the destination buffer.
- *//***************************************************************************/
-void *io2iocpy32(void* p_dst, void* p_src, uint32_t size);
-void *io2memcpy32(void* p_dst, void* p_src, uint32_t size);
-void *mem2iocpy32(void* p_dst, void* p_src, uint32_t size);
-
-/**************************************************************************//**
- @Function      iomemset32
-
- @Description   Sets all bytes of a memory buffer to a specific value, in
- 4-byte chunks.
-
- @Param[in]     pDst    - The address of the destination buffer.
- @Param[in]     val     - Value to set destination bytes to.
- @Param[in]     size    - The number of bytes that will be set to val.
-
- @Return        pDst (the address of the destination buffer).
-
- @Cautions      There is no parameter or boundary checking! It is up to the user
- to supply non null parameter as destination and size
- that actually fits into the destination buffer.
- *//***************************************************************************/
-void *iomemset32(void* p_dst, uint8_t val, uint32_t size);
-
-/**************************************************************************//**
  @Function      fsl_os_phys_to_virt
 
  @Description   Translates a physical address to the matching virtual address.

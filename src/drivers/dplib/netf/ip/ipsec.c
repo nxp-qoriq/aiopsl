@@ -8,7 +8,7 @@
 #include "common/types.h"
 //#include "common/spinlock.h"
 #include "kernel/fsl_spinlock.h"
-//#include "common/dbg.h"
+//#include "fsl_dbg.h"
 
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_parser.h"

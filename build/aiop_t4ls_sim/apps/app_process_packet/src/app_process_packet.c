@@ -3,10 +3,10 @@
 #include "dpni/drv.h"
 #include "fsl_ip.h"
 #include "kernel/platform.h"
-#include "io.h"
+#include "fsl_io.h"
 #include "fsl_parser.h"
 #include "general.h"
-#include "dbg.h"
+#include "fsl_dbg.h"
 #include "fsl_cmdif_server.h"
 #include "dplib/fsl_cdma.h"
 

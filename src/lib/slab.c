@@ -3,12 +3,12 @@
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
-#include "common/dbg.h"
+#include "fsl_dbg.h"
 #include "slab.h"
 #include "virtual_pools.h"
 #include "fdma.h"
 /**< TODO: need to place fdma_release_buffer() in separate .h file */
-#include "io.h"
+#include "fsl_io.h"
 #include "cdma.h"
 
 /* TODO need to read the ICID from somewhere */

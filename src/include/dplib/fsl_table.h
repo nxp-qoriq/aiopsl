@@ -891,18 +891,13 @@ struct table_lookup_non_default_params {
 		table identification number to be used for future table
 		references.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS - Success, if
-		\ref TABLE_ATTRIBUTE_MR_MISS was not set in the table
-		attributes.
-		 - \ref TABLE_STATUS_MISS - Success, if
-		\ref TABLE_ATTRIBUTE_MR_MISS was set in the table attributes.
-		 - \ref CTLU_STATUS_NORSC
-		 - \ref MFLU_STATUS_NORSC
-		 - \ref CTLU_STATUS_TEMPNOR
-		 - \ref MFLU_STATUS_TEMPNOR
+@Return		0 on success, or negative value on error.
+
+@Retval		0 - Success.
+@Retval		ENOMEM - Error, Not enough memory is available.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_create(enum table_hw_accel_id acc_id,
 		 struct table_create_params *tbl_params,
@@ -924,17 +919,14 @@ int table_create(enum table_hw_accel_id acc_id,
 		counter will be decremented (if exists). If not null structure
 		should be allocated by the caller to this function.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MISS
+@Return		None.
 
 @Cautions	Not available for MFLU table accelerator.
-		This function should only be called if the table was defined
+@Cautions	This function should only be called if the table was defined
 		with a miss result (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
-		In this function the task yields.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_replace_miss_result(enum table_hw_accel_id acc_id,
 			       uint16_t table_id,
@@ -957,6 +949,7 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Return		None.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_get_params(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
@@ -978,14 +971,15 @@ void table_get_params(enum table_hw_accel_id acc_id,
 @Return		None.
 
 @Cautions	Not available for MFLU table accelerator.
-		This function should only be called if the table was defined
+@Cautions	This function should only be called if the table was defined
 		with a miss result (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
-		NOTE: If the result is of type that contains pointer to
+@Cautions	NOTE: If the result is of type that contains pointer to
 		Slab/CDMA buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
 		counter of the buffer.
-		In this function the task yields.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_get_miss_result(enum table_hw_accel_id acc_id,
 			   uint16_t table_id,
@@ -1007,6 +1001,7 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 @Return		None.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_delete(enum table_hw_accel_id acc_id,
 		  uint16_t table_id);
@@ -1032,23 +1027,15 @@ void table_delete(enum table_hw_accel_id acc_id,
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 		In a case of MFLU table, size should include the priority field.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS - A rule with the same match
-		description (and not aged) is found in the table. No change in
-		the table.
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_NORSC
-		 - \ref MFLU_STATUS_NORSC
-		 - \ref CTLU_STATUS_TEMPNOR
-		 - \ref MFLU_STATUS_TEMPNOR
-		 - \ref TABLE_STATUS_MISS - A rule with the same match
-		description is not found in the table. A new rule was created.
-		 - 0x00000400 - A rule with the same match description (and
-		aged) is found in the table. The rule was replaced.
+@Return		0 on success, or negative value on error.
 
-@Cautions	Not available for MFLU table accelerator in Rev1.
-		In this function the task yields.
+@Retval		0 - Success.
+@Retval		ENOMEM - Error, Not enough memory is available.
+@Retval		EIO - Error, A valid rule with the same key descriptor is found
+		in the table. No change was made to the table.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_create(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
@@ -1079,19 +1066,16 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		decremented (if exists). If not null structure should be
 		allocated by the caller to this function.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS - Rule was replaced.
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_NORSC
-		 - \ref MFLU_STATUS_NORSC
-		 - \ref CTLU_STATUS_TEMPNOR
-		 - \ref MFLU_STATUS_TEMPNOR
-		 - \ref TABLE_STATUS_MISS - A rule with the same match
-		description is not found in the table. A new rule was created.
+@Return		0 or positive value on success. Negative value on error.
 
-@Cautions	Not available for MFLU table accelerator in Rev1.
-		In this function the task yields.
+@Retval		0 - Success.  A rule with the same key descriptor was found in
+		the table. The rule was replaced.
+@Retval		TABLE_STATUS_MISS - Success, A rule with the same key descriptor
+		was not found in the table. A new rule is created.
+@Retval		ENOMEM - Error, Not enough memory is available.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 uint16_t table_id,
@@ -1123,17 +1107,17 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		will be decremented (if exists). If not null structure should
 		be allocated by the caller to this function.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MISS
+@Return		0 on success or negative value on error.
 
+@Retval		0 - Success.
+@Retval		EIO - Error, a rule with the same key descriptor is not found
+		in the table.
 
-@Cautions	Not available for MFLU table accelerator in Rev1.
-		The key descriptor must be the exact same key descriptor that
-		was used for the rule creation (not including reserved fields).
-		In this function the task yields.
+@Cautions	The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including
+		reserved/priority fields).
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_replace(enum table_hw_accel_id acc_id,
 		       uint16_t table_id,
@@ -1166,23 +1150,19 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
 		details). Must be allocated by the caller to this function.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MISS
-		 - \ref TABLE_IO_ERROR
-		 - \ref CTLU_STATUS_TEMPNOR - A rule with the same match
-		description is found in the CTLU table and rule is aged.
-		 - \ref MFLU_STATUS_TEMPNOR - A rule with the same match
-		description is found in the MFLU table and rule is aged.
+@Return		0 on success, TABLE_STATUS_MISS on miss.
+
+@Retval		0 - Success.
+@Retval		TABLE_STATUS_MISS - A rule with the same key descriptor is not
+		found in the table.
 
 @Cautions	NOTE: If the result is of type that contains pointer to
 		Slab/CDMA buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
 		counter of the buffer. For query functions that does increment
 		the reference counter please refer to table lookup function.
-		In this function the task yields.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_query(enum table_hw_accel_id acc_id,
 		     uint16_t table_id,
@@ -1212,16 +1192,17 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 		will be decremented (if exists). If not null structure should
 		be allocated by the caller to this function.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MISS
+@Return		0 on success or negative value on error.
 
-@Cautions	Not available for MFLU table accelerator in Rev1
-		The key descriptor must be the exact same key descriptor that
-		was used for the rule creation (not including reserved fields).
-		In this function the task yields.
+@Retval		0 - Success.
+@Retval		EIO - Error, a rule with the same key descriptor is not found
+		in the table.
+
+@Cautions	The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including
+		reserved/priority fields).
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_delete(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
@@ -1260,16 +1241,15 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 		the table lookup result will be written. Must be aligned to 16B
 		boundary.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MNLE
-		 - \ref TABLE_STATUS_KSE
-		 - \ref TABLE_STATUS_MISS
+@Return		0 on success, TABLE_STATUS_MISS on miss.
+
+@Retval		0 - Success.
+@Retval		TABLE_STATUS_MISS - A match was not found during the lookup
+		operation.
 
 @Cautions	In this function the task yields.
-		This lookup cannot be used for chaining of lookups.
+@Cautions	This lookup cannot be used for chaining of lookups.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_lookup_by_key(enum table_hw_accel_id acc_id,
 			uint16_t table_id,
@@ -1303,22 +1283,25 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	keyid - A key ID for the table lookups (key ID specifies
-		how to build a key).
+@Param[in]	keyid - A Key Composition Rule ID for the table lookups (Key
+		Composition Rule specifies how to build a key).
 @Param[out]	lookup_result - Points to a user preallocated memory to which
 		the table lookup result will be written. Must be aligned to
 		16B boundary.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MNLE
-		 - \ref TABLE_STATUS_KSE
-		 - \ref TABLE_STATUS_EOFH
-		 - \ref TABLE_STATUS_MISS
+@Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
+		error occurred.
+
+@Retval		0 - Success.
+@Retval		TABLE_STATUS_MISS - A match was not found during the lookup
+		operation.
+@Retval		EIO - Error, Key composition attempted to extract a field which
+		is not in the frame header either because it is placed beyond
+		the first 256 bytes of the frame, or because the frame is
+		shorter than the index evaluated for the extraction.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 					uint16_t table_id,
@@ -1351,8 +1334,8 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	keyid - A key ID for the table lookups (key ID specifies
-		how to build a key).
+@Param[in]	keyid - A Key Composition Rule ID for the table lookups (Key
+		Composition Rule specifies how to build a key)
 @Param[in]	flags - Specifies options to this function, please refer to
 		\ref FSL_TABLE_LOOKUP_FLAG_DEFINES.
 @Param[in]	ndf_params - Non defaults inputs to the key creation process.
@@ -1363,16 +1346,19 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		the table lookup result will be written. Must be aligned to
 		16B boundary.
 
-@Return
-		 - \ref TABLE_STATUS_SUCCESS
-		 - \ref MFLU_STATUS_TIDE
-		 - \ref CTLU_STATUS_TIDE
-		 - \ref TABLE_STATUS_MNLE
-		 - \ref TABLE_STATUS_KSE
-		 - \ref TABLE_STATUS_EOFH
-		 - \ref TABLE_STATUS_MISS
+@Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
+		error occurred.
+
+@Retval		0 - Success.
+@Retval		TABLE_STATUS_MISS - A match was not found during the lookup
+		operation.
+@Retval		EIO - Error, Key composition attempted to extract a field which
+		is not in the frame header either because it is placed beyond
+		the first 256 bytes of the frame, or because the frame is
+		shorter than the index evaluated for the extraction.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,

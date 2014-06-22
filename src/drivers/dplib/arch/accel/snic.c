@@ -13,11 +13,11 @@
 #include "common/fsl_string.h"
 #include "common/errors.h"
 #include "kernel/platform.h"
-#include "io.h"
+#include "fsl_io.h"
 #include "aiop_common.h"
 #include "fsl_parser.h"
 #include "general.h"
-#include "dbg.h"
+#include "fsl_dbg.h"
 
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_l2.h"

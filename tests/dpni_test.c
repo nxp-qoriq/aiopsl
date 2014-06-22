@@ -1,12 +1,12 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "common/io.h"
+#include "fsl_io.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
 #include "stdlib.h"
 #include "dplib/dpni_drv.h"
-#include "common/dbg.h"
+#include "fsl_dbg.h"
 #include "fsl_fdma.h"
 
 int dpni_test_init(void);

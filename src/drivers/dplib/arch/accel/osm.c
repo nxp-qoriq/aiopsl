@@ -11,7 +11,7 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 
 
-int32_t osm_scope_transition_to_exclusive_with_increment_scope_id(void)
+int osm_scope_transition_to_exclusive_with_increment_scope_id(void)
 {
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_OP,
@@ -24,7 +24,7 @@ int32_t osm_scope_transition_to_exclusive_with_increment_scope_id(void)
 	}
 }
 
-int32_t osm_scope_transition_to_exclusive_with_new_scope_id(
+int osm_scope_transition_to_exclusive_with_new_scope_id(
 		uint32_t scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
@@ -65,7 +65,7 @@ int32_t osm_scope_transition_to_exclusive_with_new_scope_id(
 		}
 }
 
-int32_t osm_scope_transition_to_concurrent_with_increment_scope_id(void)
+int osm_scope_transition_to_concurrent_with_increment_scope_id(void)
 {
 
 	/* call OSM */
@@ -79,7 +79,7 @@ int32_t osm_scope_transition_to_concurrent_with_increment_scope_id(void)
 		}
 }
 
-int32_t osm_scope_transition_to_concurrent_with_new_scope_id(
+int osm_scope_transition_to_concurrent_with_new_scope_id(
 		uint32_t scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
@@ -129,7 +129,7 @@ void osm_scope_relinquish_exclusivity(void)
 	REGISTER_OSM_CONCURRENT;
 }
 
-int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void)
+int osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 {
 
 	/* call OSM */
@@ -149,7 +149,7 @@ int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 	}
 }
 
-int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
+int osm_scope_enter_to_exclusive_with_new_scope_id(
 		uint32_t child_scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
@@ -202,7 +202,7 @@ int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
 	}
 }
 
-int32_t osm_scope_enter(
+int osm_scope_enter(
 		uint32_t scope_enter_flags,
 		uint32_t child_scope_id) {
 

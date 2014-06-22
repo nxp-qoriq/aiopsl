@@ -130,7 +130,7 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 @Cautions	None.
 *//***************************************************************************/
-int32_t tcp_gso_generate_seg(
+int tcp_gso_generate_seg(
 		tcp_gso_ctx_t tcp_gso_context_addr);
 
 /**************************************************************************//**
@@ -152,7 +152,7 @@ int32_t tcp_gso_generate_seg(
 		TCP_GSO_GEN_SEG_STATUS_IN_PROCESS status is returned from
 		gso_generate_tcp_seg() function call.
 *//***************************************************************************/
-int32_t tcp_gso_discard_frame_remainder(
+int tcp_gso_discard_frame_remainder(
 		tcp_gso_ctx_t tcp_gso_context_addr);
 
 /**************************************************************************//**

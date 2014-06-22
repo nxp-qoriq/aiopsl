@@ -14,7 +14,7 @@
 #define __SLOB_H
 
 #include "common/errors.h"
-#include "common/slob.h"
+#include "fsl_slob.h"
 
 
 #define __ERR_MODULE__  MODULE_SLOB

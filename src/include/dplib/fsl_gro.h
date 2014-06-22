@@ -148,32 +148,44 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 #define	TCP_GRO_SEG_AGG_NOT_DONE	(TCP_GRO_MODULE_STATUS_ID | 0x2)
 	/** A segment has started new aggregation, and the previous aggregation
 	 * is completed. */
-#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x3)
+#define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x4)
 	/** The aggregation was discarded due to buffer pool depletion. */
-#define	TCP_GRO_AGG_DISCARDED		(TCP_GRO_MODULE_STATUS_ID | 0x4)
+#define	TCP_GRO_AGG_DISCARDED		(TCP_GRO_MODULE_STATUS_ID | 0x8)
 	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
 	 * user when possible.
 	 * This status bit can be return as a stand alone status, or as part of
 	 * a combined status with one of the above statuses. */
-#define	TCP_GRO_FLUSH_REQUIRED		(TCP_GRO_MODULE_STATUS_ID | 0x20)
+#define	TCP_GRO_FLUSH_REQUIRED		(TCP_GRO_MODULE_STATUS_ID | 0x10)
+/** The aggregation timer has expired.
+	 * The aggregation will be returned via timer callback.
+	 * This status is return when a timer has expired but has not yet got
+	 * the gro context. Since the timer has already expired it is getting
+	 * precedence in returning the aggregation.
+	 * This status bit can be return as a stand alone status (in this case
+	 * no aggregated frame exists in the default frame location), or as part
+	 * of a combined status with one of the above statuses (in this case
+	 * an aggregated frame exists in the default frame location, and another
+	 * frame exists, which will be flushed by the timeout
+	 * callback). */
+#define	TCP_GRO_SEG_AGG_TIMER_IN_PROCESS (TCP_GRO_MODULE_STATUS_ID | 0x20)
 
 
 	/** A new aggregation has started with the current segment.
 	 * The metadata address was used by tcp_gro_aggregate_seg().
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
-#define	TCP_GRO_METADATA_USED		0x10
+#define	TCP_GRO_METADATA_USED			0x40
 	/** The segment could not start an aggregation since no timers are
 	 * available. This status is returned along with \ref
 	 * TCP_GRO_FLUSH_REQUIRED which means the segment is waiting to be
 	 * flushed (call \ref tcp_gro_flush_aggregation()).
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
-#define	TCP_GRO_TIMER_UNAVAIL		0x30
+#define	TCP_GRO_TIMER_UNAVAIL			0x80
 	/** The segment was discarded due to buffer pool depletion.
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
-#define	TCP_GRO_SEG_DISCARDED		0x40
+#define	TCP_GRO_SEG_DISCARDED			0xA0
 
 
 /** @} */ /* end of TCP_GRO_AGGREGATE_STATUS */
@@ -190,6 +202,8 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 #define	TCP_GRO_FLUSH_AGG_DONE	SUCCESS
 	/** No aggregation exists for the session. */
 #define	TCP_GRO_FLUSH_NO_AGG	(TCP_GRO_MODULE_STATUS_ID | 0x1)
+
+#define	TCP_GRO_FLUSH_TIMER_IN_PROCESS	TCP_GRO_SEG_AGG_TIMER_IN_PROCESS
 
 /** @} */ /* end of TCP_GRO_FLUSH_STATUS */
 
