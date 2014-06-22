@@ -1,3 +1,14 @@
+
+- io.h:             moved from include/common to include/fsl_io.h
+                    update include paths in all c and h files in aiop git.
+
+- fsl_dbg.h:        created to expose pr_debug, pr_info, etc to the users.
+- dbg.h:            split to dbg.h and fsl_dbg.h, move from include/common/dbg.h to krenel/inc/dbg.h 
+                    pr_error, pr_debug etc moved to fsl_debug which is exposed to users and in innclude/fsl_debug.h
+                    all the include paths updated accordingly.
+- .project:         updated to know fsl_dbg.h and fsl_io.h
+
+
 - dpni_drv.c:      aiop_replace_parser removed and profile_parser_init was added to initialize 
                    default prpid for NI'S 
 - io.h:            inline was added to all iowrite/read calls (supported in CW 10.0.8 and higher)
@@ -17,6 +28,8 @@
 - fsl_endian.h:                new implementation to endian.h, support endianess treatment.
 - endian.h:                    removed.
 - fsl_swab.h:                  architecture dependent to support swap bytes for read/write operations.
+                               .cproject for new project should be aware about the path to arch:
+                               src\arch\ppc\platform\ls2100a_aiop
 
 - mc_init.c:                   New driver for common MC objects creation.
 - fsl_cmdif_fd.h:              New file for client & server CMDIF flibs, describes command interface Frame Descriptor
