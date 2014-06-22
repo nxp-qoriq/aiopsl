@@ -121,7 +121,6 @@ struct tcp_gro_flush_agg_command {
 
 uint16_t  aiop_verification_gro(uint32_t data_addr);
 void gro_verif_create_next_frame(uint8_t gro_iteration);
-void gro_timeout_cb_verif(uint64_t arg);
 
 /** @} */ /* end of AIOP_GRO_Verification */
 

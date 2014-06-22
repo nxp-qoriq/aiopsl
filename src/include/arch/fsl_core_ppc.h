@@ -19,9 +19,6 @@
 #if defined(CORE_E200)
 #include "arch/cores/fsl_core_booke.h"
 #define CORE_CACHELINE_SIZE     32
-#elif defined(CORE_E6500)
-#include "arch/cores/fsl_core_booke.h"
-#define CORE_CACHELINE_SIZE     64
 #else
 #error "core not defined"
 #endif /* defined(CORE_E300) || ... */

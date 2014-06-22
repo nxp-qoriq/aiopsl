@@ -32,10 +32,6 @@
 .global asm_prefix(msr_enable_pmm)
 .global asm_prefix(msr_disable_pmm)
 .global asm_prefix(msr_restoree_eand_ce)
-
-/* E500MC MSR */
-.global asm_prefix(msr_enable_gs)
-.global asm_prefix(msr_disable_gs)
 .global asm_prefix(msr_enable_pr)
 .global asm_prefix(msr_disable_pr)
 
@@ -232,19 +228,6 @@ asm_prefix(msr_disable_pmm):
     msync
     blr
 
-/*  Clear GS bit in the E500MC MSR */
-/*  void MSR_DisableGS(void) */
-asm_prefix(msr_disable_gs):
-    mfmsr       3
-    addis       4, 0, not_MSR_GS@h     /* load not_MSR_GS mask to 4 */
-    ori         4, 4, not_MSR_GS@l
-    and         4, 3, 4
-    mtmsr       4
-    isync
-    msync
-    blr
-
-/*  Clear PR bit in the E500MC MSR */
 /*  void MSR_DisablePR(void) */
 asm_prefix(msr_disable_pr):
     mfmsr       3
@@ -256,19 +239,6 @@ asm_prefix(msr_disable_pr):
     msync
     blr
 
-/*  Set GS bit in the E500MC MSR*/
-/*  void MSR_EnableGS(void) */
-asm_prefix(msr_enable_gs):
-    mfmsr       3
-    addis       4, 0, MSR_GS@h          /* load MSR_GS mask to 4 */
-    ori         4, 4, MSR_GS@l
-    or          4, 3, 4
-    mtmsr       4
-    isync
-    msync
-    blr
-
-/*  Set PR bit in the E500MC MSR*/
 /*  void MSR_EnablePR(void) */
 asm_prefix(msr_enable_pr):
     mfmsr       3
@@ -286,7 +256,6 @@ asm_prefix(msr_enable_pr):
 .global asm_prefix(l1dcache_enable),        asm_prefix(l1dcache_disable)
 .global asm_prefix(l1icache_enable),        asm_prefix(l1icache_disable)
 .global asm_prefix(l1dcache_invalidate),    asm_prefix(l1icache_invalidate)
-.global asm_prefix(l1dcache_invalidate_and_clear),    asm_prefix(l1icache_invalidate_and_clear)
 .global asm_prefix(l1dcache_flush),         asm_prefix(l1icache_flush)
 .global asm_prefix(l1icache_is_enabled),         asm_prefix(l1icache_is_enabled)
 .global asm_prefix(l1dcache_is_enabled),         asm_prefix(l1dcache_is_enabled)
@@ -368,41 +337,11 @@ asm_prefix(l1dcache_invalidate):
     isync
     blr
 
-/* Data cache invalidate and lock flash clear */
-asm_prefix(l1dcache_invalidate_and_clear):
-    msync
-    isync
-    mfspr       3, L1CSR0
-    ori         3, 3, L1CSR0_CFI       /* set invalidate bit at L1CSR0 */
-    ori         3, 3, L1CSR0_CLFR      /* set cache lock flash clear bit at L1CSR0 */
-    mtspr       L1CSR0, 3
-1:
-    mfspr       3, L1CSR0
-    andi.       3, 3, L1CSR0_CFI
-    bne         1b
-    isync
-    blr
-
 /* Instruction cache invalidate */
 asm_prefix(l1icache_invalidate):
     isync
     mfspr       3, L1CSR1
     ori         3, 3, L1CSR1_ICFI      /* set invalidate bit at L1CSR1 */
-    mtspr       L1CSR1, 3
-1:
-    mfspr       3, L1CSR1
-    andi.       3, 3, L1CSR1_ICFI
-    bne         1b
-    isync
-    blr
-
-
-/* Instruction cache invalidate and lock flash clear */
-asm_prefix(l1icache_invalidate_and_clear):
-    isync
-    mfspr       3, L1CSR1
-    ori         3, 3, L1CSR1_ICFI      /* set invalidate bit at L1CSR1 */
-    ori         3, 3, L1CSR1_ICLFR     /* set cache lock flash clear bit at L1CSR */
     mtspr       L1CSR1, 3
 1:
     mfspr       3, L1CSR1
@@ -519,7 +458,6 @@ asm_prefix(l1icache_line_unlock):
 *****************************************************************************/
 .global asm_prefix(booke_tlb_write)
 .global asm_prefix(booke_tlb_write5)
-.global asm_prefix(e500mc_tlb_write)
 .global asm_prefix(booke_tlb_read)
 .global asm_prefix(booke_tlb_read5)
 .global asm_prefix(booke_tlb1_invalidate)
@@ -554,74 +492,6 @@ asm_prefix(booke_tlb_write5):
     mtspr       MAS3, 6
     isync
     mtspr       MAS7, 7
-    tlbwe
-    isync
-    blr
-#endif
-
-/* Used by C routine MMU_TlbEntryWrite, mmu.c.*/
-#ifdef SYS_64BIT_ARCH
-asm_prefix(e500mc_tlb_write):
-    /* configure masX registers values */
-    ld          4, 0(3)
-    mtspr       MAS0, 4
-    isync
-    ld          4, 8(3)
-    mtspr       MAS1, 4
-    isync
-    ld          4, 16(3)
-    mtspr       MAS2, 4
-    isync
-    ld          4, 24(3)
-    mtspr       MAS3, 4
-    isync
-    ld          4, 32(3)
-    mtspr       MAS4, 4
-    isync
-    ld          4, 40(3)
-    mtspr       MAS5, 4
-    isync
-    ld          4, 48(3)
-    mtspr       MAS6, 4
-    isync
-    ld          4, 56(3)
-    mtspr       MAS7, 4
-    isync
-    ld          4, 64(3)
-    mtspr       MAS8, 4
-    tlbwe
-    isync
-    blr
-
-#else
-asm_prefix(e500mc_tlb_write):
-    /* configure masX registers values */
-    lwz         4, 0(3)
-    mtspr       MAS0, 4
-    isync
-    lwz         4, 4(3)
-    mtspr       MAS1, 4
-    isync
-    lwz         4, 8(3)
-    mtspr       MAS2, 4
-    isync
-    lwz         4, 12(3)
-    mtspr       MAS3, 4
-    isync
-    lwz         4, 16(3)
-    mtspr       MAS4, 4
-    isync
-    lwz         4, 20(3)
-    mtspr       MAS5, 4
-    isync
-    lwz         4, 24(3)
-    mtspr       MAS6, 4
-    isync
-    lwz         4, 28(3)
-    mtspr       MAS7, 4
-    isync
-    lwz         4, 32(3)
-    mtspr       MAS8, 4
     tlbwe
     isync
     blr
@@ -1408,37 +1278,6 @@ asm_prefix(booke_set_spr_L1CSR2):
     msync
     blr
 
-.global    asm_prefix(e500mc_get_spr_L2CFG0)
-asm_prefix(e500mc_get_spr_L2CFG0):
-    mfspr   3,L2CFG0        /* 519 */   /* L2 cache configuration register 0 */
-    blr
-
-.global    asm_prefix(e500mc_set_spr_L2CFG0)
-asm_prefix(e500mc_set_spr_L2CFG0):
-    mtspr   L2CFG0,3        /* 519 */   /* L2 cache configuration register 0 */
-    blr
-
-.global    asm_prefix(e500mc_get_spr_L2CSR0)
-asm_prefix(e500mc_get_spr_L2CSR0):
-    mfspr   3,L2CSR0        /* 1017 */  /* L2 cache control and status register 0 1 */
-    blr
-
-.global    asm_prefix(e500mc_set_spr_L2CSR0)
-asm_prefix(e500mc_set_spr_L2CSR0):
-    mtspr   L2CSR0,3        /* 1017 */  /* L2 cache control and status register 0 1 */
-    blr
-
-.global    asm_prefix(e500mc_get_spr_L2CSR1)
-asm_prefix(e500mc_get_spr_L2CSR1):
-    mfspr   3,L2CSR1        /* 1018 */  /* L2 cache control and status register 1 1 */
-    blr
-
-.global    asm_prefix(e500mc_set_spr_L2CSR1)
-asm_prefix(e500mc_set_spr_L2CSR1):
-    mtspr   L2CSR1,3        /* 1018 */  /* L2 cache control and status register 1 1 */
-    blr
-
-
 .global    asm_prefix(booke_get_spr_MAS0)
 asm_prefix(booke_get_spr_MAS0):
     mfspr   3,MAS0          /* 624 */   /* MMU assist register 0 1 */
@@ -1623,11 +1462,6 @@ asm_prefix(booke_get_spr_SVR):
 .global    asm_prefix(booke_set_spr_SVR)
 asm_prefix(booke_set_spr_SVR):
     mtspr   SVR,3           /* 1023 */  /* System version register */
-    blr
-
-.global    asm_prefix(booke_get_spr_SCCSRBAR)
-asm_prefix(booke_get_spr_SCCSRBAR):
-    mfspr   3, SCCSRBAR     /* 1022 */  /* Shifted CCSRBAR register */
     blr
 
 .global    asm_prefix(booke_get_spr_HDBCR0)

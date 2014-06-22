@@ -10,9 +10,9 @@
 #include "dplib/fsl_table.h"
 #include "table.h"
 
-int32_t table_create(enum table_hw_accel_id acc_id,
-		     struct table_create_params *tbl_params,
-		     uint16_t *table_id)
+int table_create(enum table_hw_accel_id acc_id,
+		 struct table_create_params *tbl_params,
+		 uint16_t *table_id)
 {
 	int32_t           status;
 	struct table_rule *miss_rule;
@@ -34,18 +34,18 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	/* Load frequent parameters into registers */
 	uint8_t                           key_size = tbl_params->key_size;
-	uint16_t                          type = tbl_params->attributes;
+	uint16_t                          attr = tbl_params->attributes;
 	uint32_t                          max_rules = tbl_params->max_rules;
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
 
 	/* Calculate the number of entries each rule occupies */
 	num_entries_per_rule = table_calc_num_entries_per_rule(
-					type & TABLE_ATTRIBUTE_TYPE_MASK,
+					attr & TABLE_ATTRIBUTE_TYPE_MASK,
 					key_size);
 
 	/* Prepare input message */
-	tbl_crt_in_msg.type = type;
+	tbl_crt_in_msg.attributes = attr;
 	tbl_crt_in_msg.icid = TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK;
 	tbl_crt_in_msg.max_rules = max_rules;
 	tbl_crt_in_msg.max_entries =
@@ -74,7 +74,7 @@ int32_t table_create(enum table_hw_accel_id acc_id,
 
 	/* Add miss result to the table if needed and if an error did not occur
 	 * during table creation */
-	if (!status && ((tbl_params->attributes & TABLE_ATTRIBUTE_MR_MASK) ==
+	if (!status && ((attr & TABLE_ATTRIBUTE_MR_MASK) ==
 			TABLE_ATTRIBUTE_MR_MISS)) {
 		/* Re-assignment of the structure is done because of stack
 		 * limitations of the service layer - assertion of sizes is
@@ -183,7 +183,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 	tbl_params->current_rules = output.current_rules;
 	tbl_params->committed_rules = output.committed_rules;
 	tbl_params->max_rules = output.max_rules;
-	tbl_params->attributes = output.type;
+	tbl_params->attributes = output.attr;
 
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
@@ -234,10 +234,10 @@ void table_delete(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_create(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_rule *rule,
-			  uint8_t key_size)
+int table_rule_create(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_rule *rule,
+		      uint8_t key_size)
 {
 	int32_t status;
 	struct table_old_result aged_res __attribute__((aligned(16)));
@@ -282,10 +282,10 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 		 * found in the table. */
 		status = -EIO;
 		break;
-	// TODO #DEFINES
-	case (0x00000400):
+	case (TABLE_HW_STATUS_PIEE):
 		/* A rule with the same match description (and aged) is found
-		 * in the table. The rule is replaced. */
+		 * in the table. The rule is replaced. Output message is
+		 * valid if command MTYPE is w/o RPTR counter decrement.*/
 		status = TABLE_STATUS_SUCCESS;
 		break;
 	case (CTLU_HW_STATUS_NORSC):
@@ -315,11 +315,11 @@ int32_t table_rule_create(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
-				     uint16_t table_id,
-				     struct table_rule *rule,
-				     uint8_t key_size,
-				     struct table_result *old_res)
+int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+				 uint16_t table_id,
+				 struct table_rule *rule,
+				 uint8_t key_size,
+				 struct table_result *old_res)
 {
 	int32_t status;
 
@@ -388,11 +388,11 @@ int32_t table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_replace(enum table_hw_accel_id acc_id,
-			   uint16_t table_id,
-			   struct table_rule *rule,
-			   uint8_t key_size,
-			   struct table_result *old_res)
+int table_rule_replace(enum table_hw_accel_id acc_id,
+		       uint16_t table_id,
+		       struct table_rule *rule,
+		       uint8_t key_size,
+		       struct table_result *old_res)
 {
 	int32_t status;
 
@@ -450,12 +450,12 @@ int32_t table_rule_replace(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_query(enum table_hw_accel_id acc_id,
-			 uint16_t table_id,
-			 union table_key_desc *key_desc,
-			 uint8_t key_size,
-			 struct table_result *result,
-			 uint32_t *timestamp)
+int table_rule_query(enum table_hw_accel_id acc_id,
+		     uint16_t table_id,
+		     union table_key_desc *key_desc,
+		     uint8_t key_size,
+		     struct table_result *result,
+		     uint32_t *timestamp)
 {
 	int32_t status;
 	struct table_entry entry __attribute__((aligned(16)));
@@ -495,7 +495,7 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 		*result = entry.body.mflu_result.result;
 		break;
 	default:
-		/* Call fatal error handler TODO*/
+		/* Call fatal error handler */
 		exception_handler(__FILE__,
 				  __LINE__,
 				  "Unknown result entry type. ");
@@ -531,11 +531,11 @@ int32_t table_rule_query(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_rule_delete(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  union table_key_desc *key_desc,
-			  uint8_t key_size,
-			  struct table_result *result)
+int table_rule_delete(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      union table_key_desc *key_desc,
+		      uint8_t key_size,
+		      struct table_result *result)
 {
 	int32_t status;
 
@@ -578,11 +578,11 @@ int32_t table_rule_delete(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
-			    uint16_t table_id,
-			    union table_lookup_key_desc key_desc,
-			    uint8_t key_size,
-			    struct table_lookup_result *lookup_result)
+int table_lookup_by_key(enum table_hw_accel_id acc_id,
+			uint16_t table_id,
+			union table_lookup_key_desc key_desc,
+			uint8_t key_size,
+			struct table_lookup_result *lookup_result)
 {
 	int32_t status;
 	/* optimization 1 clock */
@@ -612,9 +612,11 @@ int32_t table_lookup_by_key(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
-			      uint16_t table_id, uint8_t keyid,
-			      struct table_lookup_result *lookup_result)
+int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
+					uint16_t table_id,
+					uint8_t keyid,
+					struct table_lookup_result
+					       *lookup_result)
 {
 	int32_t status;
 
@@ -646,13 +648,13 @@ int32_t table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 }
 
 
-int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
-			      uint16_t table_id,
-			      uint8_t keyid,
-			      uint32_t flags,
-			      struct table_lookup_non_default_params
-				     *ndf_params,
-			      struct table_lookup_result *lookup_result)
+int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  uint8_t keyid,
+			  uint32_t flags,
+			  struct table_lookup_non_default_params
+				 *ndf_params,
+			  struct table_lookup_result *lookup_result)
 {
 	int32_t status;
 
@@ -695,7 +697,7 @@ int32_t table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 /*****************************************************************************/
 /*				Internal API				     */
 /*****************************************************************************/
-int32_t table_query_debug(enum table_hw_accel_id acc_id,
+int table_query_debug(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
 			  struct table_params_query_output_message *output)
 {
@@ -710,8 +712,8 @@ int32_t table_query_debug(enum table_hw_accel_id acc_id,
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
-
-int32_t table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
+/* TODO may not work in Rev1 due to HW issue - need to check with HW*/
+int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
 {
 	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 

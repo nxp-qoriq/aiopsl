@@ -13,6 +13,8 @@
 #include "aiop_verification.h"
 #include "system.h"
 
+extern __VERIF_TLS uint32_t fatal_fqid;
+
 /*
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
 __TASK ipf_ctx_t ipf_context_addr;
@@ -30,7 +32,7 @@ void aiop_verification_fm()
 	uint64_t initial_ext_address;	/* Initial External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
-	
+
 	init_verif();
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
@@ -210,6 +212,17 @@ void aiop_verification_fm()
 
 			break;
 		}
+		case EXCEPTION_MODULE:
+		{
+			struct write_fatal_fqid_to_workspace_tls_command *str =
+			   (struct write_fatal_fqid_to_workspace_tls_command *)
+						((uint32_t)data_addr);
+			fatal_fqid = str->fqid;
+			str_size = (uint16_t)
+			  sizeof(
+			     struct write_fatal_fqid_to_workspace_tls_command);
+			break;
+		}
 		case TERMINATE_FLOW_MODULE:
 		default:
 		{
@@ -344,4 +357,36 @@ uint32_t if_statement_result(
 
 	return if_result;
 }
+
+void timeout_cb_verif(uint64_t arg)
+{
+	struct fdma_enqueue_wf_command str;
+	struct fdma_queueing_destination_params qdp;
+	//int32_t status;
+	uint32_t flags = 0;
+
+	if (arg == 0)
+		return;
+	cdma_read((void *)&str, arg,
+			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
+
+	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
+	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
+
+	if (str.EIS) {
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_fqid(
+				str.qd_fqid, flags);
+	} else{
+		qdp.qd = (uint16_t)(str.qd_fqid);
+		qdp.qdbin = str.qdbin;
+		qdp.qd_priority = str.qd_priority;
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_qd(
+					&qdp, flags);
+	}
+	fdma_terminate_task();
+}
+
 

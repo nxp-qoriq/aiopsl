@@ -162,7 +162,7 @@ int cmdif_close(struct cmdif_desc *cidesc);
 @Param[in]	cidesc     Command interface descriptor which was setup by
 		cmdif_open().
 @Param[in]	cmd_id     Id which represent command on the module that was
-		registered on Server; Application may use bits 12-0.
+		registered on Server; Application may use bits 11-0.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	size       Size of the data.
 @Param[in]	priority   High or low priority queue to be checked.

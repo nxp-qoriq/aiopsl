@@ -1,0 +1,32 @@
+"./src/ipsec_fm_demo_c.obj"
+"./src/apps_c.obj"
+-sym dwarf-2
+-sym full
+-msgstyle parseable
+-proc zen
+-big
+-fp soft
+-model absolute
+-abi eabi
+-sdata 8
+-sdata2 8
+-nostdlib
+-lcf
+"$(CW_FILES)/aiop_link.lcf"
+-tune_relocations
+-m __sys_start
+-char unsigned
+-application
+-heapsize 32
+-stacksize 32
+-map
+-listclosure
+-mapunused
+-listdwarf
+-genbinary none
+-srec
+-sreclength 26
+-sreceol unix 
+-l"$(CW_FILES)/librt_E200z446_VLE.a"
+-l"$(CW_FILES)/libc_E200z446_VLE.a"
+-l"$(OUT)/aiopsl.a"
