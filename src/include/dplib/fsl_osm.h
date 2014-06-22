@@ -149,7 +149,7 @@ struct scope_status_params {
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t osm_scope_transition_to_exclusive_with_increment_scope_id(void);
+int osm_scope_transition_to_exclusive_with_increment_scope_id(void);
 
 
 /*************************************************************************//**
@@ -175,7 +175,7 @@ int32_t osm_scope_transition_to_exclusive_with_increment_scope_id(void);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t osm_scope_transition_to_exclusive_with_new_scope_id(
+int osm_scope_transition_to_exclusive_with_new_scope_id(
 		uint32_t scope_id);
 
 
@@ -199,7 +199,7 @@ int32_t osm_scope_transition_to_exclusive_with_new_scope_id(
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t osm_scope_transition_to_concurrent_with_increment_scope_id(void);
+int osm_scope_transition_to_concurrent_with_increment_scope_id(void);
 
 
 /*************************************************************************//**
@@ -226,7 +226,7 @@ int32_t osm_scope_transition_to_concurrent_with_increment_scope_id(void);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t osm_scope_transition_to_concurrent_with_new_scope_id(
+int osm_scope_transition_to_concurrent_with_new_scope_id(
 		uint32_t scope_id);
 
 
@@ -272,7 +272,7 @@ void osm_scope_relinquish_exclusivity(void);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void);
+int osm_scope_enter_to_exclusive_with_increment_scope_id(void);
 
 
 /*************************************************************************//**
@@ -297,7 +297,7 @@ int32_t osm_scope_enter_to_exclusive_with_increment_scope_id(void);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
+int osm_scope_enter_to_exclusive_with_new_scope_id(
 		uint32_t child_scope_id);
 
 
@@ -361,7 +361,7 @@ int32_t osm_scope_enter_to_exclusive_with_new_scope_id(
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t osm_scope_enter(
+int osm_scope_enter(
 		uint32_t scope_enter_flags,
 		uint32_t child_scope_id);
 
