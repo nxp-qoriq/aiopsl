@@ -1,5 +1,5 @@
 #include "common/errors.h"
-#include "common/io.h"
+#include "fsl_io.h"
 #include "kernel/platform.h"
 #include "kernel/smp.h"
 #include "kernel/fsl_spinlock.h"

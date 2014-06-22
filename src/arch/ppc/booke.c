@@ -17,7 +17,7 @@ Author: Donio Ron
 #include "arch/cores/fsl_core_booke_regs.h"
 #include "arch/cores/fsl_core_booke.h"
 #include "booke.h"
-#include "dbg.h"
+#include "fsl_dbg.h"
 
 /*----------------------------------*/
 /*  Is Instruction Cache Enabled    */

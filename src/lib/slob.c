@@ -4,7 +4,7 @@
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
-#include "common/dbg.h"
+#include "fsl_dbg.h"
 
 #include "slob.h"
 

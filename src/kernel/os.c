@@ -2,7 +2,7 @@
 #include "common/fsl_stdarg.h"
 #include "kernel/fsl_spinlock.h"
 #include "common/time.h"
-#include "common/io.h"
+#include "fsl_io.h"
 #include "kernel/smp.h"
 #include "inc/console.h"
 #include "inc/mem_mng.h"

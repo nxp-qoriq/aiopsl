@@ -1,6 +1,6 @@
 #include "fsl_malloc.h"
 #include "common/errors.h"
-#include "common/io.h"
+#include "fsl_io.h"
 #include "kernel/platform.h"
 #include "common/fsl_slab.h"
 

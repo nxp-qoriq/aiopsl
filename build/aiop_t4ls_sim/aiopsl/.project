@@ -185,9 +185,19 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_dbg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_dbg.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/fsl_endian.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_endian.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/fsl_io.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_io.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/kernel</name>
@@ -430,11 +440,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/aiop_common.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/dbg.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/dbg.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/errors.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/errors.h</locationURI>
@@ -503,11 +508,6 @@
 			<name>aiop_sl/include/common/gen.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/gen.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/io.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/io.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/list.h</name>

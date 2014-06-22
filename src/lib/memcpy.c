@@ -2,7 +2,7 @@
 #include "common/errors.h"
 #include "common/gen.h"
 #include "common/fsl_string.h"
-#include "common/io.h"
+#include "fsl_io.h"
 
 #ifdef ARENA_LEGACY_CODE
 void *memcpy32(void* p_dst, void* p_src, uint32_t size)

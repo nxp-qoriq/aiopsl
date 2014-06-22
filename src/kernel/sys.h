@@ -5,7 +5,7 @@
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/list.h"
-#include "common/dbg.h"
+#include "fsl_dbg.h"
 #include "kernel/smp.h"
 #include "kernel/platform.h"
 #include "inc/fsl_sys.h"

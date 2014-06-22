@@ -7,7 +7,7 @@
 #include "common/fsl_slab.h"
 #include "kernel/platform.h"
 #include "cmdif_srv.h"
-#include "io.h"
+#include "fsl_io.h"
 #include "aiop_common.h"
 
 extern void app_receive_cb (void);

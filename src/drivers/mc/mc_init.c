@@ -5,7 +5,7 @@
 #include "common/fsl_malloc.h"
 #include "general.h"
 #include "sys.h"
-#include "dbg.h"
+#include "fsl_dbg.h"
 #include "errors.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpci.h"

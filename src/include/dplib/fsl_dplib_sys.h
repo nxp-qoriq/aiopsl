@@ -33,7 +33,7 @@
 
 #include "common/types.h"
 #include "common/errors.h"
-#include "common/io.h"
+#include "fsl_io.h"
 
 static inline uint64_t virt_to_phys(void *vaddr)
 {
