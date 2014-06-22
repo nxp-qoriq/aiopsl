@@ -4,8 +4,8 @@
 
  @Description   LS2100A Pltform external definitions and structures.
 *//***************************************************************************/
-#ifndef __FSL_PLATFORM_H
-#define __FSL_PLATFORM_H
+#ifndef __FSL_PLATFORM_AIOP_H
+#define __FSL_PLATFORM_AIOP_H
 
 /**************************************************************************//**
  @Description   Memory Partition Identifiers
@@ -24,5 +24,5 @@ typedef enum memory_partition_id {
 } e_memory_partition_id;
 
 
-#endif /* __FSL_PLATFORM_H */
+#endif /* __FSL_PLATFORM_AIOP_H */
 

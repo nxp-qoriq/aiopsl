@@ -10,6 +10,7 @@
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpci.h"
 #include "fsl_mc_init.h"
+#include "ls2085_aiop/fsl_platform.h"
 
 int mc_obj_init();
 void mc_obj_free();

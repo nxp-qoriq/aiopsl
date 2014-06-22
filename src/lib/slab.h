@@ -11,6 +11,7 @@
 
 #include "common/fsl_slab.h"
 #include "kernel/platform.h"
+#include "ls2085_aiop/fsl_platform.h"
 
 #define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 
