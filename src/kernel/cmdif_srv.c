@@ -286,11 +286,15 @@ int cmdif_srv_init(void)
 
 	err = sys_add_handle(srv_aiop, FSL_OS_MOD_CMDIF_SRV, 1, 0);
 
+#ifndef OLD_DPCI
 	if (srv_aiop->dpci_tbl == NULL)
 	{
-		pr_err("No DPCI table \n");
+		pr_err("No DPCI table on AIOP, CMDIF is not functional \n");
+		pr_info("All AIOP DPCIs should be defined in DPL\n");
+		pr_info("All AIOP DPCIs should have peer before AIOP boot\n");
 		return -ENODEV;
 	}
+#endif
 
 	return err;
 }
