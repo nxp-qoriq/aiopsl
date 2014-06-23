@@ -230,8 +230,6 @@ struct hm_ipv4_modification_command {
 *//***************************************************************************/
 struct hm_ipv4_mangle_command {
 	uint32_t	opcode;
-		/**< Command structure identifier. */
-	int		status;
 	uint8_t		flags;
 	uint8_t		dscp;
 	uint8_t		ttl;
@@ -245,8 +243,6 @@ struct hm_ipv4_mangle_command {
 *//***************************************************************************/
 struct hm_ipv4_dec_ttl_command {
 	uint32_t	opcode;
-		/**< Command structure identifier. */
-	int		status;
 };
 
 /**************************************************************************//**
@@ -273,8 +269,6 @@ struct hm_ipv6_modification_command {
 *//***************************************************************************/
 struct hm_ipv6_mangle_command {
 	uint32_t	opcode;
-		/**< Command structure identifier. */
-	int		status;
 	uint32_t	flow_label;
 	uint8_t		flags;
 	uint8_t		dscp;
@@ -289,8 +283,6 @@ struct hm_ipv6_mangle_command {
 *//***************************************************************************/
 struct hm_ipv6_dec_hop_limit_command {
 	uint32_t	opcode;
-		/**< Command structure identifier. */
-	int		status;
 };
 
 /**************************************************************************//**

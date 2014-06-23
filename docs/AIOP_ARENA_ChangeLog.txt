@@ -1,3 +1,4 @@
+- fsl_dbg           added device querrys: dbg_get_core_id(), dbg_get_num_of_cores(), dbg_get_max_num_of_cores()
 - gen.h:            moved from include/common to kernel/inc/fsl_gen.h
                     include paths updated accordingly.
 - io.h:             moved from include/common to include/fsl_io.h
