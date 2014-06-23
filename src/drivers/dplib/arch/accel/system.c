@@ -8,6 +8,7 @@
 #include "system.h"
 #include "id_pool.h"
 #include "dplib/fsl_cdma.h"
+#include "fsl_platform.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
