@@ -5,6 +5,7 @@
 #include "drivers/fsl_duart.h"
 #include "kernel/console.h"
 #include "kernel/platform.h"
+#include "ls2085_aiop/fsl_platform.h"
 #include "kernel/smp.h"
 #include "fsl_io.h"
 

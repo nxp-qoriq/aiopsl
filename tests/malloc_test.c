@@ -2,6 +2,7 @@
 #include "common/errors.h"
 #include "fsl_io.h"
 #include "kernel/platform.h"
+#include "ls2085_aiop/fsl_platform.h"
 #include "common/fsl_slab.h"
 
 #if defined (LS2100A) && defined (AIOP) 

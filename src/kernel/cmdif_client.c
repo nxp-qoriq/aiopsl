@@ -15,6 +15,7 @@
 #include "fsl_cdma.h"
 #include "fsl_endian.h"
 #include "fsl_general.h"
+#include "ls2085_aiop/fsl_platform.h"
 
 #define CMDIF_TIMEOUT     0x10000000
 

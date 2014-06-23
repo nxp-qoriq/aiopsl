@@ -1,4 +1,4 @@
-
+- fsl_dbg           added device querrys: dbg_get_core_id(), dbg_get_num_of_cores(), dbg_get_max_num_of_cores()
 - io.h:             moved from include/common to include/fsl_io.h
                     update include paths in all c and h files in aiop git.
 

@@ -13,7 +13,7 @@
 #include "fsl_cdma.h"
 #include "aiop_common.h"
 #include "errors.h"
-
+#include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
 #include "cmdif_client_aiop.h"
