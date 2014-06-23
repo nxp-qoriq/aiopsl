@@ -137,23 +137,13 @@ int32_t aiop_sl_init(void)
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	 * 0x0801 --> 0x0108 (little endian) */
 	storage_profiles[SP_IPSEC].pbs1 = 0x0108;
-#ifndef AIOP_VERIF
-	/* __lhbr swaps the bytes for little endian */
-	storage_profiles[SP_IPSEC].bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
-#else
 	/* BPID=0 */
 	storage_profiles[SP_IPSEC].bpid1 = 0x0000;
-#endif
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	* 0x0801 --> 0x0108 (little endian) */
 	storage_profiles[SP_IPSEC].pbs2 = 0x0108;
-#ifndef AIOP_VERIF
-	/* __lhbr swaps the bytes for little endian */
-	storage_profiles[SP_IPSEC].bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
-#else
-	/* BPID=1, 0x0001 --> 0x0100 (little endian) */
-	storage_profiles[SP_IPSEC].bpid2 = 0x0100;
-#endif
+	/* BPID=0 */
+	storage_profiles[SP_IPSEC].bpid2 = 0x0000;
 	storage_profiles[SP_IPSEC].pbs3 = 0x0000;
 	storage_profiles[SP_IPSEC].bpid3 = 0x0000;
 	storage_profiles[SP_IPSEC].pbs4 = 0x0000;
