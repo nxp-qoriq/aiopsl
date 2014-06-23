@@ -190,9 +190,19 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_dbg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_dbg.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/fsl_endian.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_endian.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/fsl_io.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_io.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/kernel</name>
