@@ -500,11 +500,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_string.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/gen.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/gen.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/list.h</locationURI>

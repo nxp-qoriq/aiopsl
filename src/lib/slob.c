@@ -1,6 +1,6 @@
 #include "common/types.h"
 #include "common/errors.h"
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
