@@ -253,8 +253,7 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 /*************************************************************************//**
 @Function	ipv4_mangle
 
-@Description	Replace DSCP and/or TTL fields in the outer IPv4 header 
-		(if exists).
+@Description	Replace DSCP and/or TTL fields in the outer IPv4 header.
 
 		It automatically generates the IP checksum.
 
@@ -269,20 +268,18 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 @Param[in]	dscp - dscp header to be replaced (6 bits).
 @Param[in]	ttl  - time to live field to be replaced.
 
-@Return		Success or Failure (There was no IPv4 header in the frame).
-
 @Cautions	The parse results must be updated before
 		calling this operation.
 		In this function, the task yields.
 
 *//***************************************************************************/
-int ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl);
+void ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl);
 
 
 /*************************************************************************//**
 @Function	ipv4_dec_ttl_modification
 
-@Description	Decrement TTL in the outer IPv4 header (if exists).
+@Description	Decrement TTL in the outer IPv4 header.
 
 		It automatically generates the IP checksum.
 
@@ -293,14 +290,12 @@ int ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl);
 		Implicitly updated values in task defaults: segment length,
 								segment address.
 
-@Return		Success or Failure (There was no IPv4 header in the frame).
-
 @Cautions	The parse results must be updated before
 		calling this operation.
 		In this function, the task yields.
 
 *//***************************************************************************/
-int ipv4_dec_ttl_modification(void);
+void ipv4_dec_ttl_modification(void);
 
 /*************************************************************************//**
 @Function	ipv6_header_modification
@@ -344,7 +339,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 @Function	ipv6_mangle
 
 @Description	Replace any combination of DSCP/hop limit/flow_label fields
-		in the outer IPv6 header (if exists).
+		in the outer IPv6 header).
 
 		It automatically generates the IP checksum.
 
@@ -359,20 +354,18 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 @Param[in]	hop_limit  - hop_limit field to be replaced.
 @Param[in]	flow_label - flow_label field to be replaced (20 bits).
 
-@Return		Success or Failure (There was no IPv6 header in the frame).
-
 @Cautions	The parse results must be updated before
 		calling this operation.
 		In this function, the task yields.
 
 *//***************************************************************************/
-int ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit, 
+void ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit, 
 		uint32_t flow_label);
 
 /*************************************************************************//**
 @Function	ipv6_dec_hop_limit_modification
 
-@Description	Decrement hop limit in the outer IPv6 header (if exists).
+@Description	Decrement hop limit in the outer IPv6 header.
 
 		It automatically generates the IP checksum.
 
@@ -383,14 +376,12 @@ int ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit,
 		Implicitly updated values in task defaults: segment length,
 								segment address.
 
-@Return		Success or Failure (There was no IPv6 header in the frame).
-
 @Cautions	The parse results must be updated before
 		calling this operation.
 		In this function, the task yields.
 
 *//***************************************************************************/
-int ipv6_dec_hop_limit_modification(void);
+void ipv6_dec_hop_limit_modification(void);
 
 /*************************************************************************//**
 @Function	ipv4_header_encapsulation
