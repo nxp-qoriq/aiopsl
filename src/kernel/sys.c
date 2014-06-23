@@ -8,7 +8,7 @@
 #include "kernel/smp.h"
 
 #include "sys.h"
-#include "dbg.h"
+#include "fsl_dbg.h"
 
 /* Global System Object */
 __SHRAM t_system sys = {0};

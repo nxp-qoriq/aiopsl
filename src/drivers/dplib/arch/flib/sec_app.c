@@ -3,7 +3,7 @@
 //#include "common/fsl_malloc.h"
 //#include "kernel/platform.h"
 
-//#include "common/dbg.h"
+//#include "fsl_dbg.h"
 //#include "drivers/fsl_caam.h"
 
 #define IPSEC_DONT_USE_SEC_APP

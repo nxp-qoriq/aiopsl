@@ -8,6 +8,7 @@
 #include "general.h"
 #include "fsl_dbg.h"
 #include "fsl_cmdif_server.h"
+#include "fsl_cmdif_client.h"
 #include "dplib/fsl_cdma.h"
 
 int app_init(void);
@@ -17,63 +18,34 @@ void app_free(void);
 /**< Get NI from callback argument, it's demo specific macro */
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
+#define OPEN_CMD	0x100
+#define NORESP_CMD	0x101
+#define ASYNC_CMD	0x102
+#define SYNC_CMD 	0x103
 
+__SHRAM struct cmdif_desc cidesc;
+uint8_t send_data[64];
 
 __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
-	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
-	uint16_t ipv4hdr_offset = 0;
-	uint8_t *p_ipv4hdr = 0;
-	uint32_t src_addr = 0x10203040;// new ipv4 src_addr
-	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-	{
-		fsl_os_print
-		("app_process_packet:Core %d received packet with ipv4 header:\n",
-	    core_get_id());
-		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));
-		for( int i = 0; i < ipv4hdr_length ;i ++)
-		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
-		}
-		fsl_os_print("\n");
-	}
-	err = ip_set_nw_src(src_addr);
-	if (err) {
-		fsl_os_print("ERROR = %d: ip_set_nw_src(src_addr)\n", err);
-	}
-	if (!err && PARSER_IS_OUTER_IPV4_DEFAULT())
-	{
-		fsl_os_print
-		("app_process_packet: Core %d will send a modified packet with ipv4 header:\n"
-		, core_get_id());
-		for( int i = 0; i < ipv4hdr_length ;i ++)
-		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
-		}
-		fsl_os_print("\n");
-	}
-
-	dpni_drv_send(APP_NI_GET(arg));
+	fsl_os_print("Core %d received packet\n", core_get_id());
+	err = dpni_drv_send(APP_NI_GET(arg));
 }
 
-#ifdef AIOP_STANDALONE
-/* This is temporal WA for stand alone demo only */
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
-	                                   0,                          \
-	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
-	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
-static void epid_setup()
+static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
+             uint32_t size, uint64_t data)
 {
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
-
-	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
-	iowrite32(0, &wrks_addr->epas);
-	iowrite32((uint32_t)receive_cb, &wrks_addr->ep_pc);
+	UNUSED(cmd_id);
+	UNUSED(async_ctx);
+	fsl_os_print("ASYNC CB data high = 0x%x low = 0x%x size = 0x%x\n",
+	         (uint32_t)((data & 0xFF00000000) >> 32),
+	         (uint32_t)(data & 0xFFFFFFFF), size);
+	if (err != 0) {
+		fsl_os_print("ERROR inside async_cb\n");
+	}
+	return err;
 }
-#endif /* AIOP_STANDALONE */
 
 static int open_cb(uint8_t instance_id, void **dev)
 {
@@ -89,16 +61,37 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
+__HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
+                              uint64_t data)
 {
+	int err = 0;
+	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
+
 	UNUSED(dev);
-	UNUSED(size);
-	UNUSED(data);
 	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
 	             cmd,
 	             size,
 	             (uint32_t)((data & 0xFF00000000) >> 32),
 	             (uint32_t)(data & 0xFFFFFFFF));
+
+	switch (cmd & ~CMDIF_NORESP_CMD) {
+	case OPEN_CMD:
+		cidesc.regs = 0; /* DPCI 0 is used by MC */
+		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
+		                 NULL, NULL, 0);
+		break;
+	case NORESP_CMD:
+		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64, 0, p_data);
+		break;
+	case ASYNC_CMD:
+		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64, 0, p_data);
+		break;
+	case SYNC_CMD:
+		err = cmdif_send(&cidesc, 0xa, 64, 0, p_data);
+		break;
+	default:
+		break;
+	}
 	return 0;
 }
 
@@ -115,11 +108,6 @@ int app_init(void)
 	dma_addr_t buff = 0;
 
 	fsl_os_print("Running app_init()\n");
-
-#ifdef AIOP_STANDALONE
-	/* This is temporal WA for stand alone demo only */
-	epid_setup();
-#endif /* AIOP_STANDALONE */
 
 	for (ni = 0; ni < 6; ni++)
 	{

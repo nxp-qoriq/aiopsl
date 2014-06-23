@@ -111,8 +111,8 @@ static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	return -ENODEV;
 }
 
-static int module_id_alloc( struct cmdif_srv *srv, const char *m_name, 
-                            struct cmdif_module_ops *ops)
+static int module_id_alloc(struct cmdif_srv *srv, const char *m_name,
+                           struct cmdif_module_ops *ops)
 {
 	int i = 0;
 	int id = -ENAVAIL;
@@ -262,12 +262,14 @@ int cmdif_srv_open(void *_srv,
 	if (auth_id == NULL)
 		return -EINVAL;
 		
-	/* TODO errors handling */
 	m_id = module_id_find(srv, m_name);
 	if (m_id < 0)
 		return m_id;
 	
 	err = srv->open_cb[m_id](inst_id, &dev);
+	if (err)
+		return err;
+	
 	id = inst_alloc(srv, (uint8_t)m_id);
 	if (id < 0)
 		return id;

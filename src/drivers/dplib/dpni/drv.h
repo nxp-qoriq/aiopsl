@@ -18,6 +18,7 @@ int dpni_drv_probe(struct dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
 #define DPNI_DRV_FLG_PARSE		0x80
 #define DPNI_DRV_FLG_PARSER_DIS		0x40
 #define DPNI_DRV_FLG_MTU_ENABLE		0x20
+#define DPNI_EPID_START			3
 
 struct dpni_drv {
 	/** network interface ID which is equal to this entry's index in the NI

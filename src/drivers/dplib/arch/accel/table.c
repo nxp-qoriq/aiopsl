@@ -810,7 +810,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 	default:
 		exception_handler(__FILE__,
 				  __LINE__,
-				  "UNknown table type.");
+				  "Unknown table type.");
 		break;
 	}
 

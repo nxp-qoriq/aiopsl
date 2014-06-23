@@ -185,9 +185,19 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_dbg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_dbg.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/fsl_endian.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_endian.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/fsl_io.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_io.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/kernel</name>
@@ -265,6 +275,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/fsl_slob.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/fsl_slob.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/inet.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/inet.c</locationURI>
@@ -323,6 +338,11 @@
 			<name>aiop_sl/arch/ppc/booke_irq.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke_irq.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/include</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform</name>
@@ -395,19 +415,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/mc_init.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/arch/cores</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/arch/fsl_cmdif_mc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_cmdif_mc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/fsl_core_ppc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_core_ppc.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/arch/fsl_ldpaa_aiop.h</name>
@@ -423,11 +433,6 @@
 			<name>aiop_sl/include/common/aiop_common.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/aiop_common.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/dbg.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/dbg.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/errors.h</name>
@@ -460,9 +465,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_server.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/fsl_core.h</name>
+			<name>aiop_sl/include/common/fsl_core_debug.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_core.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_core_debug.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_malloc.h</name>
@@ -500,19 +505,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/gen.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/io.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/io.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/list.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/slob.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/slob.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/time.h</name>
@@ -740,6 +735,21 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/mem_mng/mem_mng.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/ppc/include/fsl_core_booke.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_booke.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/include/fsl_core_booke_regs.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_booke_regs.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/include/fsl_core_ppc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_ppc.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -868,16 +878,6 @@
 			<name>aiop_sl/drivers/dplib/util/general.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/cores/fsl_core_booke.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/cores/fsl_core_booke.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/cores/fsl_core_booke_regs.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/cores/fsl_core_booke_regs.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/fsl_soc_aiop_spec.h</name>

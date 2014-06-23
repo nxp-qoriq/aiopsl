@@ -1,13 +1,14 @@
 #ifndef __SYS_H
 #define __SYS_H
 
-#include "common/aiop_common.h"
+#include "aiop_common.h"
 #include "common/types.h"
 #include "common/errors.h"
 #include "common/list.h"
-#include "common/dbg.h"
+#include "fsl_dbg.h"
 #include "kernel/smp.h"
 #include "kernel/platform.h"
+#include "ls2085_aiop/fsl_platform.h"
 #include "inc/fsl_sys.h"
 
 
