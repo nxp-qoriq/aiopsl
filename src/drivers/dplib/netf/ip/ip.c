@@ -1188,9 +1188,7 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)
 
 			if (flag == LAST_HEADER_BEFORE_FRAG) {
 				/* After destination IS NOT routing extension */
-				if (*((uint8_t *)(current_hdr_ptr +\
-						current_hdr_size)) != \
-						IPV6_EXT_ROUTING) {
+				if (next_hdr != IPV6_EXT_ROUTING) {
 				/* Hop by Hop or Routing extensions found */
 					if (last_hdr_size) {
 						return current_hdr_ptr -\
