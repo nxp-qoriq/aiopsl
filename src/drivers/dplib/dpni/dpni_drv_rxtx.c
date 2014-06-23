@@ -35,6 +35,8 @@ __HOT_CODE void receive_cb(void)
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
 
 	osm_task_init();
+	/* This SPID assignment may be redundent since before store we take 
+	 * the TX SPID*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
 	default_task_params.parser_profile_id = dpni_drv->prpid;
 	default_task_params.parser_starting_hxs \
@@ -69,6 +71,8 @@ __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 	dpni_drv = nis + ni_id; /* calculate pointer
 					* to the send NI structure   */
 
+	/* take SPID from TX NIC*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
 	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
 		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu))
 			return DPNI_DRV_MTU_ERR;
@@ -108,6 +112,8 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	 *  TLS */
 	/* TODO maybe in future HW the fdma_enqueue_fd_qd command will support
 	 * taking ICID and relevant bits from default values */
+	/* It is more accurate taking the ICID from the SPID but in AIOP 
+	 * it should be the same value as the default */
 	va_bdi = *((uint8_t *)(HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET));
 	if (va_bdi & ADC_BDI_MASK)
 		flags |= FDMA_ENF_BDI_BIT;
