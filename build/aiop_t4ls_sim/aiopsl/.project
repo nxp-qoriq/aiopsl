@@ -155,11 +155,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dpmng</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/mc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -190,9 +185,19 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_dbg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_dbg.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/fsl_endian.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_endian.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/fsl_io.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_io.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/kernel</name>
@@ -405,11 +410,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dpmng/controllers</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/mc/mc_init.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/mc_init.c</locationURI>
@@ -430,14 +430,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_soc.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/arch/ls2085_aiop</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/dbg.h</name>
+			<name>aiop_sl/include/common/aiop_common.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/dbg.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/aiop_common.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/errors.h</name>
@@ -508,11 +503,6 @@
 			<name>aiop_sl/include/common/gen.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/gen.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/io.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/io.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/list.h</name>
@@ -890,16 +880,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dpmng/controllers/aiop</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/ls2085_aiop/fsl_platform.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/ls2085_aiop/fsl_platform.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2100a_aiop/fsl_soc_aiop_spec.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2100a_aiop/fsl_soc_aiop_spec.h</locationURI>
@@ -1128,11 +1108,6 @@
 			<name>aiop_sl/drivers/dplib/netf/nat/nat.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/nat/nat.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dpmng/controllers/aiop/aiop_common.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dpmng/controllers/aiop/aiop_common.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
