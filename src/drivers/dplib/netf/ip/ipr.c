@@ -22,7 +22,7 @@
 #include "ipr.h"
 #include "cdma.h"
 #include "ip.h"
-
+#include "fsl_platform.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"

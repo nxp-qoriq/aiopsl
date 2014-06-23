@@ -23,6 +23,7 @@
 #include "cdma.h"
 #include "osm.h"
 #include "system.h"
+#include "fsl_platform.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
