@@ -61,6 +61,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				ipv4_hdr->total_length,
 				ip_total_length);
 		ipv4_hdr->total_length = ip_total_length;
+		ipf_ctx->prev_frag_offset = frag_offset;
 
 		/* Calculate frag offset for next fragment */
 		if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS){
