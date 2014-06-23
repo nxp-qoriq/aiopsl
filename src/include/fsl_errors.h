@@ -79,4 +79,6 @@
 #define ENAVAIL		119	/*!< Resource not available, or not found */
 #endif
 
+#undef ENOERR			/* Prevent usage */
+
 #endif /* __FSL_ERRORS_H */
