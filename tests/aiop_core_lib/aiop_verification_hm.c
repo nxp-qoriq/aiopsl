@@ -124,9 +124,9 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv4_mangle_command *str =
 			(struct hm_ipv4_mangle_command *) asa_seg_addr;
-			str->status = ipv4_mangle(str->flags,
-					str->dscp,
-					str->ttl);
+			ipv4_mangle(str->flags,
+				str->dscp,
+				str->ttl);
 			str_size = sizeof(struct hm_ipv4_mangle_command);
 			break;
 		}
@@ -136,7 +136,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv4_dec_ttl_command *str =
 			(struct hm_ipv4_dec_ttl_command *) asa_seg_addr;
-			str->status = ipv4_dec_ttl_modification();
+			ipv4_dec_ttl_modification();
 			str_size = sizeof(struct hm_ipv4_dec_ttl_command);
 			break;
 		}
@@ -160,10 +160,10 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv6_mangle_command *str =
 			(struct hm_ipv6_mangle_command *) asa_seg_addr;
-			str->status = ipv6_mangle(str->flags,
-					str->dscp,
-					str->hop_limit,
-					str->flow_label);
+			ipv6_mangle(str->flags,
+				str->dscp,
+				str->hop_limit,
+				str->flow_label);
 			str_size = sizeof(struct hm_ipv6_mangle_command);
 			break;
 		}
@@ -173,7 +173,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_ipv6_dec_hop_limit_command *str =
 			(struct hm_ipv6_dec_hop_limit_command *) asa_seg_addr;
-			str->status = ipv6_dec_hop_limit_modification();
+			ipv6_dec_hop_limit_modification();
 			str_size = sizeof(struct hm_ipv6_dec_hop_limit_command);
 			break;
 		}
