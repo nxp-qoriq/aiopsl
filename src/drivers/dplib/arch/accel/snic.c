@@ -313,7 +313,7 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint64_t data)
 
 int aiop_snic_init(void)
 {
-	int status, i;
+	int status;
 	struct cmdif_module_ops snic_cmd_ops;
 
 	snic_cmd_ops.open_cb = (open_cb_t *)snic_open_cb;
