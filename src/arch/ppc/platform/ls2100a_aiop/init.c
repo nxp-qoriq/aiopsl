@@ -226,7 +226,7 @@ int run_apps(void)
 	struct dpbp_attr attr;
 	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
-	uint16_t buffer_size = 512;
+	uint16_t buffer_size = 2048;
 	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 #endif
 
