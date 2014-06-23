@@ -10,6 +10,8 @@
 #define __FSL_DBG_H
 
 #include "inc/dbg.h"
+#include "inc/fsl_core.h"
+#include "kernel/smp.h"
 
 #ifdef pr_debug
 #undef pr_debug
@@ -81,8 +83,31 @@
 *//***************************************************************************/
 #define pr_crit(...)	DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__)
 
-/** @} */ /* end of dump_g group */
-/** @} */ /* end of gen_g group */
+/**************************************************************************//**
+ @Function      dbg_get_core_id
 
+ @Description   Returns the core ID in the system.
+
+ @Return        Core ID.
+*//***************************************************************************/
+#define dbg_get_core_id()    core_get_id()
+
+/**************************************************************************//**
+ @Function      dbg_get_num_of_cores
+
+ @Description   Returns the core ID in the system.
+
+ @Return        Core ID.
+*//***************************************************************************/
+#define dbg_get_num_of_cores()    sys_get_num_of_cores()
+
+/**************************************************************************//**
+ @Function      dbg_get_max_num_of_cores
+
+ @Description   Returns the core ID in the system.
+
+ @Return        Core ID.
+*//***************************************************************************/
+#define dbg_get_max_num_of_cores()    sys_get_max_num_of_cores()
 
 #endif /* __FSL_DBG_H */
