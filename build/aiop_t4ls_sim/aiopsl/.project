@@ -240,6 +240,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/error.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/inc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/main.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/main.c</locationURI>
@@ -705,11 +710,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/platform.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/kernel/smp.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/smp.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/kernel/types_mw.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
@@ -723,6 +723,41 @@
 			<name>aiop_sl/include/net/fsl_net.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/fsl_net.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/console.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/console.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/dbg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/dbg.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_core.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_core.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_smp.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_smp.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_sys.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sys.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/mem_mng.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/mem_mng.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/mem_mng_util.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/mem_mng_util.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/mem_mng.c</name>
