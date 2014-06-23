@@ -1,6 +1,6 @@
 #ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
-//#include "common/errors.h"
+//#include "fsl_errors.h"
 #include "kernel/layout.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"

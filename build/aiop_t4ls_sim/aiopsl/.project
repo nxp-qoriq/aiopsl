@@ -195,6 +195,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_endian.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_errors.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_errors.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/fsl_io.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_io.h</locationURI>
@@ -433,11 +438,6 @@
 			<name>aiop_sl/include/common/aiop_common.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/aiop_common.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/errors.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/errors.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_cmdif_client.h</name>

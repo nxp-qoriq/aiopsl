@@ -15,7 +15,7 @@
  */
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "fsl_dbg.h"
 
 #include "ppc/include/fsl_core_booke_regs.h"

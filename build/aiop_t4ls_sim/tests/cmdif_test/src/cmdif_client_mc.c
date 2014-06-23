@@ -1,5 +1,5 @@
 #include "common/fsl_string.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "common/types.h"
 #include "fsl_io.h"
 #include "inc/fsl_gen.h"

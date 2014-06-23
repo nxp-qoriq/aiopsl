@@ -7,7 +7,7 @@
 #define __DUART_H
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "drivers/fsl_duart.h"
 
 
