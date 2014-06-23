@@ -11,7 +11,7 @@
 
 #include "inc/dbg.h"
 #include "inc/fsl_core.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 
 #ifdef pr_debug
 #undef pr_debug

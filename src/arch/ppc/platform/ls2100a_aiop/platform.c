@@ -6,7 +6,7 @@
 #include "kernel/console.h"
 #include "kernel/platform.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 #include "fsl_io.h"
 
 #include "inc/mem_mng.h"

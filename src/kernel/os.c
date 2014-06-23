@@ -3,7 +3,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "common/time.h"
 #include "fsl_io.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 #include "inc/console.h"
 #include "inc/mem_mng.h"
 #include "sys.h"

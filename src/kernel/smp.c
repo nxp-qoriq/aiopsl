@@ -2,7 +2,7 @@
 #include "common/types.h"
 #include "common/errors.h"
 #include "kernel/fsl_spinlock.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 
 #include "sys.h"
 

@@ -6,7 +6,7 @@
 #include "common/errors.h"
 #include "common/list.h"
 #include "fsl_dbg.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 #include "kernel/platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "inc/fsl_sys.h"
