@@ -11,7 +11,7 @@
 #include "net/fsl_net.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "kernel/platform.h"
 #include "fsl_io.h"
 #include "aiop_common.h"

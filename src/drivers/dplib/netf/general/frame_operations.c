@@ -7,7 +7,7 @@
 *//***************************************************************************/
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "dplib/fsl_frame_operations.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"

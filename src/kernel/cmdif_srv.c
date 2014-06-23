@@ -1,6 +1,6 @@
 #include "common/types.h"
-#include "common/gen.h"
-#include "common/errors.h"
+#include "inc/fsl_gen.h"
+#include "fsl_errors.h"
 #include "common/fsl_string.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
@@ -12,7 +12,6 @@
 #include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "aiop_common.h"
-#include "errors.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
@@ -286,11 +285,15 @@ int cmdif_srv_init(void)
 
 	err = sys_add_handle(srv_aiop, FSL_OS_MOD_CMDIF_SRV, 1, 0);
 
+#ifndef OLD_DPCI
 	if (srv_aiop->dpci_tbl == NULL)
 	{
-		pr_err("No DPCI table \n");
+		pr_err("No DPCI table on AIOP, CMDIF is not functional \n");
+		pr_info("All AIOP DPCIs should be defined in DPL\n");
+		pr_info("All AIOP DPCIs should have peer before AIOP boot\n");
 		return -ENODEV;
 	}
+#endif
 
 	return err;
 }

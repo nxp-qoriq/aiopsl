@@ -2,7 +2,7 @@
 #define __FSL_SYS_MEM_MNG_H
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 
 
 /**************************************************************************//**
