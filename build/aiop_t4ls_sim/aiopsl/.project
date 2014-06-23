@@ -740,6 +740,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_core.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/inc/fsl_mem_mng.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_mem_mng.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/inc/fsl_smp.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_smp.h</locationURI>
@@ -748,11 +753,6 @@
 			<name>aiop_sl/kernel/inc/fsl_sys.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sys.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/inc/mem_mng.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/mem_mng.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/inc/mem_mng_util.h</name>
