@@ -4,7 +4,7 @@
 #include "fsl_dbg.h"
 
 #include "inc/mem_mng_util.h"
-#include "inc/mem_mng.h"
+#include "fsl_mem_mng.h"
 #include "sys.h"
 
 

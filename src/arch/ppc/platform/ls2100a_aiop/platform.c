@@ -9,7 +9,7 @@
 #include "fsl_smp.h"
 #include "fsl_io.h"
 
-#include "inc/mem_mng.h"
+#include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM

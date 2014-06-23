@@ -1,5 +1,5 @@
-#ifndef __SYS_MEM_MNG_H
-#define __SYS_MEM_MNG_H
+#ifndef __FSL_SYS_MEM_MNG_H
+#define __FSL_SYS_MEM_MNG_H
 
 #include "common/types.h"
 #include "common/errors.h"
@@ -197,4 +197,4 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks);
 /** @} */ /* end of sys_grp */
 
 
-#endif /* __SYS_MEM_MNG_H */
+#endif /* __FSL_SYS_MEM_MNG_H */
