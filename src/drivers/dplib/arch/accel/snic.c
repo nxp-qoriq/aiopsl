@@ -12,7 +12,7 @@
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
 #include "fsl_errors.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "fsl_io.h"
 #include "aiop_common.h"
 #include "fsl_parser.h"

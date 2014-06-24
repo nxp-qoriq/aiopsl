@@ -9,7 +9,7 @@
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
 #include "common/fsl_slab.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_io.h"
 

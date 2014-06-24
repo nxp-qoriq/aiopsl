@@ -4,7 +4,7 @@
 #include "common/fsl_stdarg.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "fsl_smp.h"
 
 #include "sys.h"

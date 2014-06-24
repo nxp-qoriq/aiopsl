@@ -6,7 +6,7 @@
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
