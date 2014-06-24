@@ -1,7 +1,7 @@
 /**************************************************************************//**
             Copyright 2013 Freescale Semiconductor, Inc.
 
- @File          list.h
+ @File          fsl_list.h
 
  @Description   External prototypes for list
 *//***************************************************************************/

@@ -1,3 +1,4 @@
+- list.h:           moved to src/lib/fsl_list.h, all includes updated accordingly.
 - dpl.dts:          change MAC address for dpni 2 to 00:00:02:00:00:02 (dpl.dtb was updated accordingly)
 - errors.h:         split to errors.h and fsl_errors.h for users. errors.h moved to src/kernel/inc, all include paths
                     updated accordingly.
