@@ -53,10 +53,10 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	v_addr = (union cmdif_data *)(v_data + sizeof(struct cmdif_dev));
 
 	fd->u_flc.flc          = 0;
-	fd->u_flc.open.cmid    = CPU_TO_BE16(CMD_ID_OPEN);
-	fd->u_flc.open.auth_id = CPU_TO_BE16(OPEN_AUTH_ID);
+	fd->u_flc.open.cmid    = CPU_TO_SRV16(CMD_ID_OPEN);
+	fd->u_flc.open.auth_id = CPU_TO_SRV16(OPEN_AUTH_ID);
 	fd->u_flc.open.inst_id = instance_id;
-	fd->u_flc.open.epid    = CPU_TO_BE16(CMDIF_EPID);
+	fd->u_flc.open.epid    = CPU_TO_SRV16(CMDIF_EPID);
 	fd->u_frc.frc          = 0;
 	fd->u_addr.d_addr      = p_addr;
 	fd->d_size             = sizeof(union cmdif_data);
@@ -143,9 +143,9 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 	fd->u_addr.d_addr       = NULL;
 	fd->d_size              = 0;
 	fd->u_flc.flc           = 0;
-	fd->u_flc.close.cmid    = CPU_TO_BE16(CMD_ID_CLOSE);
+	fd->u_flc.close.cmid    = CPU_TO_SRV16(CMD_ID_CLOSE);
 	fd->u_flc.close.auth_id = dev->auth_id;
-	fd->u_flc.open.epid     = CPU_TO_BE16(CMDIF_EPID);
+	fd->u_flc.open.epid     = CPU_TO_SRV16(CMDIF_EPID);
 
 	return 0;
 }
@@ -173,8 +173,8 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 	fd->d_size            = size;
 	fd->u_flc.flc         = 0;
 	fd->u_flc.cmd.auth_id = dev->auth_id;
-	fd->u_flc.cmd.cmid    = CPU_TO_BE16(cmd_id);
-	fd->u_flc.cmd.epid    = CPU_TO_BE16(CMDIF_EPID);
+	fd->u_flc.cmd.cmid    = CPU_TO_SRV16(cmd_id);
+	fd->u_flc.cmd.epid    = CPU_TO_SRV16(CMDIF_EPID);
 	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
 	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
 
@@ -196,7 +196,7 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 	if (dev->async_cb != NULL)
 		return dev->async_cb(dev->async_ctx,
 		                     fd->u_flc.cmd.err,
-		                     CPU_TO_BE16(fd->u_flc.cmd.cmid),
+		                     CPU_TO_SRV16(fd->u_flc.cmd.cmid),
 		                     fd->d_size,
 		                     fd->u_addr.d_addr);
 	else

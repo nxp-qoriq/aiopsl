@@ -244,6 +244,11 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	int      t   = 0;
 	union cmdif_data done;
 
+	if (cmdif_is_sync_cmd(cmd_id)){
+		pr_err("Sync command is not supported on AIOP\n");
+		return -ENOTSUP;
+	}
+
 	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
 	if (err) {
 		pr_err("Failed to build command\n");

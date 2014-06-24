@@ -7,4 +7,6 @@
 #error "AIOP core must be big endian\n!"
 #endif
 
+#define CPU_TO_SRV16 CPU_TO_BE16
+
 #endif /* __CMDIF_H */
