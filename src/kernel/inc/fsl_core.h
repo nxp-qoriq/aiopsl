@@ -15,7 +15,7 @@
 #include "common/types.h"
 
 #ifdef SOC_PPC_CORE
-#include "ppc/include/fsl_core_ppc.h"
+#include "fsl_core_ppc.h"
 #else
 #error "core is not defined!"
 #endif /* SOC_PPC_CORE */

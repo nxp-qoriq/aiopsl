@@ -435,11 +435,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/arch/fsl_soc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_soc.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/aiop_common.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/aiop_common.h</locationURI>

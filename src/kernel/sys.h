@@ -4,7 +4,7 @@
 #include "aiop_common.h"
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "common/list.h"
+#include "fsl_list.h"
 #include "fsl_dbg.h"
 #include "fsl_smp.h"
 #include "platform.h"
