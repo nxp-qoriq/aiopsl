@@ -2,7 +2,7 @@
 #include "common/fsl_stdio.h"
 #include "dpni/drv.h"
 #include "fsl_ip.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "fsl_io.h"
 #include "fsl_parser.h"
 #include "general.h"

@@ -31,19 +31,6 @@
 #include "slab.h"
 #endif /* AIOP_VERIF */
 
-/* Use this define to override the RTA and use a fixed debug descriptor */
-//#define AIOPSL_IPSEC_DEBUG
-
-//#include "general.h"
-
-/* Note: GCC Extension should be enabled to support "typeof"
- * Otherwise it fails compilation of the RTA "ALIGN" macro.
- * #define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
- * Alternative usage is "__typeof__":
- * #define ALIGN(x, a) \
- *	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
-*/
-
 /* TODO: temporary fix to pr_debug due to RTA issue */
 /* Define dummy print functions to override RTA compilation errors */
 #ifndef pr_debug
@@ -225,7 +212,7 @@ int ipsec_create_instance_real (
 
 
 /**************************************************************************//**
-*	ipsec_create_instance
+*	ipsec_delete_instance
 *//****************************************************************************/
 int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
 
@@ -1584,12 +1571,10 @@ int ipsec_frame_decrypt(
 		 * 		includes the Outer IP Header, up to but not including the 
 		 * 		ESP Header.
 		*/
-		outer_material_length = (uint16_t) // TODO: verify this 
-			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) 
-					- (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT())); 
-		
-		// If this is incorrect, get the IP length from the header wit
-		// PARSER_GET_OUTER_IP_POINTER_DEFAULT()
+		outer_material_length = (uint16_t)
+			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
+				(uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT()) +
+				eth_length); 
 				
 		dpovrd.tunnel_decap.word = 
 				IPSEC_DPOVRD_OVRD |
@@ -1635,7 +1620,6 @@ int ipsec_frame_decrypt(
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
 	}
-	
 		
 	/* 	10.	Call the AAP */
 	__e_hwacceli(AAP_SEC_ACCEL_ID);

@@ -15,7 +15,7 @@
 #include "common/fsl_stdio.h"
 #include "common/fsl_stdlib.h"
 #include "inc/fsl_core.h"
-#include "soc_db/fsl_soc.h"
+#include "fsl_soc.h"
 
 
 //TODO: obsolete - do not use in new code !!!

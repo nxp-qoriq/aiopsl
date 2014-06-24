@@ -446,7 +446,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	/* TODO remove it after  dpci_get_link_state() is fixed */
 	link_up = 1;
 
-	if (!dpci_tbl->attr[ind].attach_link ||
+	if (!dpci_tbl->attr[ind].peer_attached ||
 		!dpci_tbl->attr[ind].enable  ||
 		!link_up) {
 		pr_err("DPCI is not enabled or not linked to other DPCI\n");
