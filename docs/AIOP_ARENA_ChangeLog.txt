@@ -1,3 +1,7 @@
+- fsl_malloc.h 		moved to src/include/fsl_malloc.h , all includes are updated accordingly.
+                    Remove functions: fsl_os_malloc_debug(), fsl_os_xmalloc_debug(),
+					fsl_os_buff_get_num_of_blocks(), fsl_os_buff_get_size(), fsl_os_buff_inc_refcnt(),
+					fsl_os_buff_dec_refcnt_n_release(), fsl_os_buff_release(), fsl_os_buff_acquire().
 - time.h:           moved to kernel/inc/fsl_time.h
 - dpni_drv.h:       split to src/include/dplib/fsl_dpni_drv.h and src/drivers/dplib/include/dpni_drv.h
                     fsl_dpni_drv.h (exposed to users) all includes updated accordingly
