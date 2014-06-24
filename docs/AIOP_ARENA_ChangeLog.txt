@@ -1,3 +1,4 @@
+- time.h:           moved to kernel/inc/fsl_time.h
 - dpni_drv.h:       split to src/include/dplib/fsl_dpni_drv.h and src/drivers/dplib/include/dpni_drv.h
                     fsl_dpni_drv.h (exposed to users) all includes updated accordingly
 
