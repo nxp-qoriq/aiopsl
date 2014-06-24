@@ -1,7 +1,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "net/fsl_inet.h"
 
 #define MAX_IPV4_STR_LEN    16              /**< Maximal size of string representation for IPV4 address*/
