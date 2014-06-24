@@ -80,7 +80,11 @@ struct ipsec_create_instance_command {
 	uint32_t max_sa_num;
 	uint32_t instance_flags;
 	uint8_t tmi_id;
-	uint64_t instance_handle;
+	
+	uint32_t instance_id;
+	uint64_t instance_addr; /* descriptor address */
+	
+	//uint64_t instance_handle;
 	
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
@@ -101,8 +105,9 @@ struct ipsec_add_sa_descriptor_command {
 	struct ipsec_descriptor_params params;
 	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
 	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
-	
-	uint64_t instance_handle;
+
+	//uint64_t instance_handle;
+	uint32_t instance_id;
 
 	uint64_t descriptor_addr; /* descriptor address */
     uint8_t outer_ip_header[80]; /* outer IP header */
