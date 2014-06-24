@@ -6,10 +6,10 @@
 #include "kernel/console.h"
 #include "kernel/platform.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 #include "fsl_io.h"
 
-#include "inc/mem_mng.h"
+#include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM

@@ -8,7 +8,7 @@
 
 #include "dplib/fsl_gso.h"
 #include "dplib/fsl_ldpaa.h"
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 
 
 /** \addtogroup FSL_AIOP_GSO

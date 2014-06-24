@@ -5,7 +5,7 @@
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "kernel/platform.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 
 #include "sys.h"
 #include "fsl_dbg.h"

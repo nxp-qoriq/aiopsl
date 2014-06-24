@@ -9,7 +9,7 @@
 #define __FSL_SOC_H
 
 #include "common/types.h"
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 
 
 #if defined(LS2100A)

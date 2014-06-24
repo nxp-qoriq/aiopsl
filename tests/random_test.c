@@ -1,4 +1,4 @@
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "fsl_io.h"
 #include "kernel/platform.h"
 #include "kernel/smp.h"

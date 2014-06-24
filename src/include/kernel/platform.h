@@ -8,8 +8,9 @@
 #define __FSL_PLATFORM_H
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "fsl_soc.h"
+
 
 
 /**************************************************************************//**

@@ -4,6 +4,7 @@
 #include "dplib/fsl_dprc.h"
 #include "stdlib.h"
 #include "kernel/platform.h"
+#include "ls2085_aiop/fsl_platform.h"
 
 int dprc_test_init(void);
 void dprc_test_free(void);

@@ -13,7 +13,7 @@ Author: Donio Ron
 #define __ERR_MODULE__  MODULE_UNKNOWN
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "fsl_core_booke_regs.h"
 #include "fsl_core_booke.h"
 #include "booke.h"

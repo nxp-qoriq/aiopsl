@@ -9,6 +9,10 @@
 #ifndef _FSL_DPCI_CMD_H
 #define _FSL_DPCI_CMD_H
 
+/* DPCI Version */
+#define DPCI_VER_MAJOR				1
+#define DPCI_VER_MINOR				0
+
 /* cmd IDs */
 #define MC_CMDID_CLOSE					0x800
 #define MC_DPCI_CMDID_OPEN				0x807
@@ -84,18 +88,18 @@ do { \
 #define DPCI_RSP_GET_ATTR(_OP) \
 do { \
 	_OP(0,  0,	32,	int,		attr->id);\
-	_OP(0,  32,	8,	uint8_t,	attr->attach_link);\
+	_OP(0,  32,	8,	uint8_t,	attr->peer_attached);\
 	_OP(0,  40,	8,	uint8_t,	attr->peer_id);\
 	_OP(1,  0,	8,	uint8_t,	attr->num_of_priorities);\
 	_OP(1,  9,	1,	int,		attr->enable);\
-	_OP(2,  0,	16,	uint16_t, attr->dpci_prio_attr[0].tx_qid);\
-	_OP(2,  16,	16,	uint16_t, attr->dpci_prio_attr[0].rx_qid);\
-	_OP(2,  32,	16,	uint16_t, attr->dpci_prio_attr[1].tx_qid);\
-	_OP(2,  48,	16,	uint16_t, attr->dpci_prio_attr[1].rx_qid);\
-	_OP(3,  0,	64,	uint64_t, attr->dpci_prio_attr[0].rx_user_ctx);\
-	_OP(4,  0,	64,	uint64_t, attr->dpci_prio_attr[1].rx_user_ctx);\
-	_OP(5,  0,	32,	uint32_t,		attr->version.major);\
-	_OP(5,  32,	32,	uint32_t,		attr->version.minor);\
+	_OP(2,  0,	32,	uint32_t, attr->dpci_prio_attr[0].tx_qid);\
+	_OP(2,  32,	32,	uint32_t, attr->dpci_prio_attr[0].rx_qid);\
+	_OP(3,  0,	32,	uint32_t, attr->dpci_prio_attr[1].tx_qid);\
+	_OP(3,  32,	32,	uint32_t, attr->dpci_prio_attr[1].rx_qid);\
+	_OP(4,  0,	64,	uint64_t, attr->dpci_prio_attr[0].rx_user_ctx);\
+	_OP(5,  0,	64,	uint64_t, attr->dpci_prio_attr[1].rx_user_ctx);\
+	_OP(6,  0,	32,	uint32_t,		attr->version.major);\
+	_OP(6,  32,	32,	uint32_t,		attr->version.minor);\
 } while (0)
 
 /*	param, offset, width,	type,		arg_name */

@@ -6,7 +6,7 @@
  @Description   General errors and events reporting utilities.
 *//***************************************************************************/
 #if (defined(DEBUG_ERRORS) && (DEBUG_ERRORS > 0))
-#include "common/errors.h"
+#include "fsl_errors.h"
 
 
 const char *dbg_level_strings[] = {

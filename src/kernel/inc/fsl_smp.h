@@ -1,13 +1,13 @@
 /**
 
- @File          smp.h
+ @File          fsl_smp.h
 
  @Description   Definitions and functions for initializing and operating
                 multi-processing services.
 
 *//***************************************************************************/
-#ifndef __SYS_MP_H
-#define __SYS_MP_H
+#ifndef __FSL_SYS_MP_H
+#define __FSL_SYS_MP_H
 
 #include "common/types.h"
 #include "inc/fsl_core.h"
@@ -132,4 +132,4 @@ void sys_barrier(void);
 /** @} */ /* end of sys_g */
 
 
-#endif /* __SYS_MP_H */
+#endif /* __FSL_SYS_MP_H */
