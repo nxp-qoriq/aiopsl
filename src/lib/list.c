@@ -5,7 +5,7 @@
  @Description   Implementation of list.
 *//***************************************************************************/
 
-#include "common/list.h"
+#include "fsl_list.h"
 
 
 void list_append(list_t *p_new_list, list_t *p_head)
