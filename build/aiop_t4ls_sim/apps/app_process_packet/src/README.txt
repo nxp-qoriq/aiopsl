@@ -3,8 +3,8 @@ The following file includes the instructions for app_process_packet demo.
 ===========================================
 Setup
 ===========================================
-1. Install CW_DPAA_v10.0.7
-2. Download linux version of LS_SIM_RELEASE_0_8_0_0109
+1. Install CW_APP_v10.0.8
+2. Download linux version of LS_SIM_RELEASE_0_8_0_0112
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
@@ -15,8 +15,8 @@ Setup
 ===========================================
 Execution flow
 ===========================================
-1. Build mc_app from mc_release_0.4 using CW_DPAA_v10.0.7.
-2. Build app_process_packet from aiopsl using CW_DPAA_v10.0.7.
+1. Build mc_app from mc_release_0.4.1 using CW_APP_v10.0.8.
+2. Build app_process_packet from aiopsl using CW_APP_v10.0.8.
 3. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
