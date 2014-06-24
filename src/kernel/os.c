@@ -1,4 +1,4 @@
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "common/fsl_stdarg.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_time.h"

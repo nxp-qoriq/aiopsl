@@ -205,6 +205,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_io.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_malloc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_malloc.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/kernel</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -463,11 +468,6 @@
 			<name>aiop_sl/include/common/fsl_cmdif_server.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_server.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/fsl_malloc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_malloc.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_slab.h</name>

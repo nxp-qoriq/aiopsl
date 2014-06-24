@@ -2,7 +2,7 @@
 #include "fsl_io.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"

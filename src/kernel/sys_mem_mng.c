@@ -1,5 +1,5 @@
 
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
 
