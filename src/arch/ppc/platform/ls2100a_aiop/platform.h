@@ -9,7 +9,8 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "soc_db/fsl_soc.h"
+#include "fsl_soc.h"
+
 
 
 /**************************************************************************//**
@@ -173,10 +174,10 @@ typedef int (t_rx_conf_ipc_port_function)(fsl_handle_t h_ipc_port,
                                                 uint8_t  *p_buffer);
 
 
-#if defined(LS2100A) && defined(MC)
-#include "ls2100a_mc/platform_mc_spec.h"
-#elif defined(LS2100A) && defined(AIOP)
-#include "ls2100a_aiop/platform_aiop_spec.h"
+#if defined(MC)
+#include "platform_mc_spec.h"
+#elif defined(AIOP)
+#include "platform_aiop_spec.h"
 #else
 #error "Platform specific header file not defined"
 #endif /* specific platform select */
