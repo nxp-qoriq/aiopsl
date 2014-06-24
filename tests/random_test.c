@@ -1,7 +1,7 @@
 #include "fsl_errors.h"
 #include "fsl_io.h"
-#include "kernel/platform.h"
-#include "kernel/smp.h"
+#include "platform.h"
+#include "fsl_smp.h"
 #include "kernel/fsl_spinlock.h"
 #include "sys.h"
 
