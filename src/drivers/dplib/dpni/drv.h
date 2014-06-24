@@ -8,7 +8,7 @@
 #define __DRV_H
 
 #include "common/types.h"
-#include "dplib/dpni_drv.h"
+#include "dplib/fsl_dpni_drv.h"
 #include "net/fsl_net.h"
 #include "dplib/fsl_dprc.h"
 

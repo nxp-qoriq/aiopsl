@@ -440,11 +440,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/aiop_common.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/aiop_common.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/fsl_cmdif_client.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_client.h</locationURI>
@@ -468,11 +463,6 @@
 			<name>aiop_sl/include/common/fsl_cmdif_server.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_server.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/fsl_core_debug.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_core_debug.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_malloc.h</name>
@@ -513,11 +503,6 @@
 			<name>aiop_sl/include/common/types.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/types.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/dpni_drv.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_cdma.h</name>
@@ -563,6 +548,11 @@
 			<name>aiop_sl/include/dplib/fsl_dpni_cmd.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/dplib/fsl_dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_dprc.h</name>
@@ -838,6 +828,11 @@
 			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/general.h</name>

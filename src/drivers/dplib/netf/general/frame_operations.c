@@ -11,7 +11,7 @@
 #include "dplib/fsl_frame_operations.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "dplib/dpni_drv.h"
+#include "dplib/fsl_dpni_drv.h"
 #include "net/fsl_net.h"
 #include "header_modification.h"
 #include "fdma.h"

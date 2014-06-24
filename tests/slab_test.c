@@ -1,8 +1,6 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-//#include "fsl_dpni.h"
-#include "dplib/dpni_drv.h"
 #include "dpni/drv.h"
 #include "fsl_fdma.h"
 #include "general.h"
@@ -33,7 +31,7 @@ int slab_init()
 	}
 
 	/* DDR SLAB creation */
-	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0, 
+	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
 			          NULL, &slab_ddr);
 	if (err) return err;
 
@@ -41,7 +39,7 @@ int slab_init()
 	if (err) {
 		return err;
 	} else {
-		if ((slab_info.num_buffs != slab_info.max_buffs) || 
+		if ((slab_info.num_buffs != slab_info.max_buffs) ||
 		    (slab_info.num_buffs == 0))
 			return -ENODEV;
 	}
@@ -52,22 +50,22 @@ int slab_init()
 
 	err = slab_debug_info_get(slab_peb, &slab_info);
 	if(!err)
-		if ((slab_info.num_buffs != slab_info.max_buffs) || 
+		if ((slab_info.num_buffs != slab_info.max_buffs) ||
 			(slab_info.num_buffs == 0))
-				return -ENODEV;	
+				return -ENODEV;
 	return err;
 }
 
-int app_test_slab_init() 
+int app_test_slab_init()
 {
 	int        err = 0;
 	dma_addr_t buff = 0;
 	struct slab *my_slab;
-	
-	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0, 
+
+	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
 	                  NULL, &my_slab);
 	if (err) return err;
-	
+
 	err = slab_acquire(my_slab, &buff);
 	if (err) return err;
 	err = slab_release(my_slab, buff);
@@ -75,16 +73,16 @@ int app_test_slab_init()
 
 	err = slab_free(&my_slab);
 	if (err) return err;
-	
+
 	/* Must fail because my_slab was freed  */
 	err = slab_acquire(my_slab, &buff);
 	if (!err) return -EEXIST;
-	
+
 	/* Reuse slab handle test  */
-	err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0, 
+	err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
 	                  NULL, &my_slab);
 	if (err) return err;
-	
+
 	err = slab_free(&my_slab);
 	if (err) return err;
 
@@ -141,12 +139,12 @@ int slab_test()
 {
 	int err = 0;
 	err = app_test_slab(slab_peb, 4);
-	if (err) { 
+	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
 	}
 
 	err = app_test_slab(slab_ddr, 4);
-	if (err) { 
+	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_ddr, 4)\n", err);
 	}
 	return err;
