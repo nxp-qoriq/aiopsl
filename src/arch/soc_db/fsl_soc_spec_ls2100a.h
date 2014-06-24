@@ -8,10 +8,10 @@
 #define __FSL_SOC_SPEC_H
 
 #include "common/types.h"
-#if defined(AIOP) && defined(LS2100A)
-#include "ls2100a_aiop/fsl_soc_aiop_spec.h"
-#elif defined(MC) && defined(LS2100A)
-#include "ls2100a_mc/fsl_soc_mc_spec.h"
+#if defined(AIOP)
+#include "fsl_soc_aiop_spec.h"
+#elif defined(MC) 
+#include "fsl_soc_mc_spec.h"
 #elif defined(GPP)
 #include "fsl_soc_gpp_spec.h"
 #else

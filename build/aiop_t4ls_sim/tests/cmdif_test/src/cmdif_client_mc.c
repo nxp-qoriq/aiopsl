@@ -1,9 +1,9 @@
 #include "common/fsl_string.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "common/types.h"
-#include "common/io.h"
-#include "common/gen.h"
-#include "common/dbg.h"
+#include "fsl_io.h"
+#include "inc/fsl_gen.h"
+#include "fsl_dbg.h"
 #include "common/fsl_cmdif_flib.h"
 
 #include "arch/fsl_soc.h"

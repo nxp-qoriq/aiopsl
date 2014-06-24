@@ -1,10 +1,10 @@
 #include "common/types.h"
-#include "common/errors.h"
-#include "common/gen.h"
+#include "fsl_errors.h"
+#include "inc/fsl_gen.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
-#include "common/dbg.h"
+#include "fsl_dbg.h"
 
 #include "slob.h"
 

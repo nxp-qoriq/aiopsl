@@ -11,13 +11,13 @@
 #include "net/fsl_net.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "common/errors.h"
-#include "kernel/platform.h"
-#include "io.h"
+#include "fsl_errors.h"
+#include "platform.h"
+#include "fsl_io.h"
 #include "aiop_common.h"
 #include "fsl_parser.h"
 #include "general.h"
-#include "dbg.h"
+#include "fsl_dbg.h"
 
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_l2.h"
@@ -313,7 +313,7 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint64_t data)
 
 int aiop_snic_init(void)
 {
-	int status, i;
+	int status;
 	struct cmdif_module_ops snic_cmd_ops;
 
 	snic_cmd_ops.open_cb = (open_cb_t *)snic_open_cb;

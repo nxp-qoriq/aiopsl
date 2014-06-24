@@ -2,10 +2,10 @@
 #include "common/fsl_stdarg.h"
 #include "kernel/fsl_spinlock.h"
 #include "common/time.h"
-#include "common/io.h"
-#include "kernel/smp.h"
+#include "fsl_io.h"
+#include "fsl_smp.h"
 #include "inc/console.h"
-#include "inc/mem_mng.h"
+#include "fsl_mem_mng.h"
 #include "sys.h"
 
 __TASK uint32_t seed_32bit;

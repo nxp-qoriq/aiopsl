@@ -1,5 +1,5 @@
 #include "aiop_verification.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 
 //#define __wait()	asm ("wait  \n"	)
 

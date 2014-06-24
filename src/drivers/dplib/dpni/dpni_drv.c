@@ -1,16 +1,16 @@
 #include "common/types.h"
-#include "common/dbg.h"
+#include "fsl_dbg.h"
 #include "common/fsl_string.h"
 #include "common/fsl_malloc.h"
-#include "common/io.h"
+#include "fsl_io.h"
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
-
+#include "ls2085_aiop/fsl_platform.h"
 #include "drv.h"
 #include "system.h"
 
@@ -113,7 +113,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
-	for (i = 2; i < 1024; i++) {
+	for (i = DPNI_EPID_START; i < 1024; i++) {
 		/* Prepare to read from entry i in EPID table - EPAS reg */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 
@@ -353,7 +353,7 @@ int dpni_drv_init(void)
 	                                                     E_MAPPED_MEM_TYPE_GEN_REGS);
 	ws_regs = &aiop_tile_regs->ws_regs;
 	/* TODO: replace 1024 w/ constant */
-	for (i = 0; i < 1024; i++) {
+	for (i = DPNI_EPID_START; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table */
 		iowrite32((uint32_t)i, ws_regs->epas; 					// TODO: change to LE
 		iowrite32(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE
@@ -365,7 +365,7 @@ int dpni_drv_init(void)
 
 
 	/* TODO: replace 1024 w/ constant */
-	for (i = 0; i < 1024; i++) {
+	for (i = DPNI_EPID_START; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table - EPAS reg */
 		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 

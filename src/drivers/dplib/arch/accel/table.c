@@ -14,7 +14,8 @@ int table_create(enum table_hw_accel_id acc_id,
 		 struct table_create_params *tbl_params,
 		 uint16_t *table_id)
 {
-	int32_t           status;
+	int32_t           crt_status;
+	int32_t           miss_status;
 	struct table_rule *miss_rule;
 	int               num_entries_per_rule;
 
@@ -66,16 +67,45 @@ int table_create(enum table_hw_accel_id acc_id,
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
-	/* Get new Table ID */
-	*table_id = (((struct table_create_output_message *)acc_ctx->
-		output_pointer)->tid);
+	/* Get status */
+	crt_status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	/* Translate status */
+	switch (crt_status) {
+	case (TABLE_STATUS_SUCCESS):
+		break;
+	case (CTLU_HW_STATUS_NORSC):
+		crt_status = -ENOMEM;
+		break;
+	case (MFLU_HW_STATUS_NORSC):
+		crt_status = -ENOMEM;
+		break;
+	case (CTLU_HW_STATUS_TEMPNOR):
+		/* TODO Rev2 - consider to change it to EAGAIN. it is
+		 * now ENOMEM since in Rev1 it may take a very long
+		 * time until rules are released. */
+		crt_status = -ENOMEM;
+		break;
+	case (MFLU_HW_STATUS_TEMPNOR):
+		/* TODO Rev2 - consider to change it to EAGAIN. it is
+		 * now ENOMEM since in Rev1 it may take a very long
+		 * time until rules are released. */
+		crt_status = -ENOMEM;
+		break;
+	default:
+		table_exception_handler(__FILE__, __LINE__, crt_status);
+		break;
+	}
+
+	if (crt_status >= 0)
+	/* Get new Table ID */
+		*table_id = (((struct table_create_output_message *)acc_ctx->
+			      output_pointer)->tid);
 
 	/* Add miss result to the table if needed and if an error did not occur
 	 * during table creation */
-	if (!status && ((attr & TABLE_ATTRIBUTE_MR_MASK) ==
-			TABLE_ATTRIBUTE_MR_MISS)) {
+	if ((crt_status >= 0) &&
+	    ((attr & TABLE_ATTRIBUTE_MR_MASK) == TABLE_ATTRIBUTE_MR_MISS)) {
 		/* Re-assignment of the structure is done because of stack
 		 * limitations of the service layer - assertion of sizes is
 		 * done on table.h */
@@ -92,40 +122,17 @@ int table_create(enum table_hw_accel_id acc_id,
 		/* Copy miss result  - First 4 bytes */
 		*((uint32_t *)(&(miss_rule->result))) =
 				*((uint32_t *)&tbl_params->miss_result);
-		status = table_rule_create(acc_id, *table_id, miss_rule, 0);
+		miss_status = table_rule_create(acc_id,
+						*table_id,
+						miss_rule,
+						0);
 
-		if (status)
+		if (miss_status)
 			exception_handler(__FILE__,
 					  __LINE__,
 					  "Table miss rule creation failed. ");
-	} else if (status) {
-		/* HW Status from table creation might be non zero*/
-		switch (status) {
-		case (CTLU_HW_STATUS_NORSC):
-			status = -ENOMEM;
-			break;
-		case (MFLU_HW_STATUS_NORSC):
-			status = -ENOMEM;
-			break;
-		case (CTLU_HW_STATUS_TEMPNOR):
-			/* TODO Rev2 - consider to change it to EAGAIN. it is
-			 * now ENOMEM since in Rev1 it may take a very long
-			 * time until rules are released. */
-			status = -ENOMEM;
-			break;
-		case (MFLU_HW_STATUS_TEMPNOR):
-			/* TODO Rev2 - consider to change it to EAGAIN. it is
-			 * now ENOMEM since in Rev1 it may take a very long
-			 * time until rules are released. */
-			status = -ENOMEM;
-			break;
-		default:
-			table_exception_handler(__FILE__, __LINE__, status);
-			break;
-		}
 	}
-
-	return status;
+	return crt_status;
 }
 
 
@@ -810,7 +817,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 	default:
 		exception_handler(__FILE__,
 				  __LINE__,
-				  "UNknown table type.");
+				  "Unknown table type.");
 		break;
 	}
 
