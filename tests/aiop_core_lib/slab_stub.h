@@ -11,7 +11,7 @@
 #include "common/types.h"
 #include "fsl_errors.h"
 #include "dplib/fsl_ldpaa.h"
-#include "kernel/platform.h"
+#include "platform.h"
 
 #define MEM_PART_1ST_DDR_NON_CACHEABLE 1
 
