@@ -1,6 +1,6 @@
 #include "common/types.h"
 #include "inc/fsl_gen.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "common/fsl_string.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
@@ -12,7 +12,6 @@
 #include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "aiop_common.h"
-#include "errors.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
@@ -447,7 +446,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	/* TODO remove it after  dpci_get_link_state() is fixed */
 	link_up = 1;
 
-	if (!dpci_tbl->attr[ind].attach_link ||
+	if (!dpci_tbl->attr[ind].peer_attached ||
 		!dpci_tbl->attr[ind].enable  ||
 		!link_up) {
 		pr_err("DPCI is not enabled or not linked to other DPCI\n");

@@ -1,15 +1,15 @@
 #include "common/types.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "common/fsl_string.h"
 #include "aiop_common.h"
 #include "drivers/fsl_duart.h"
 #include "kernel/console.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 #include "fsl_io.h"
 
-#include "inc/mem_mng.h"
+#include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM

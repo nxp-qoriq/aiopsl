@@ -10,7 +10,7 @@
 #define __FSL_TMAN_H
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 
 
 /**************************************************************************//**

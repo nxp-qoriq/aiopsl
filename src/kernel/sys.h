@@ -3,11 +3,11 @@
 
 #include "aiop_common.h"
 #include "common/types.h"
-#include "common/errors.h"
-#include "common/list.h"
+#include "fsl_errors.h"
+#include "fsl_list.h"
 #include "fsl_dbg.h"
-#include "kernel/smp.h"
-#include "kernel/platform.h"
+#include "fsl_smp.h"
+#include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "inc/fsl_sys.h"
 

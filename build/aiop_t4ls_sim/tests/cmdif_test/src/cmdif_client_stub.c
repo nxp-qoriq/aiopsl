@@ -1,6 +1,6 @@
 #include "common/types.h"
 #include "inc/fsl_gen.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "common/fsl_string.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
@@ -9,7 +9,6 @@
 #include "sys.h"
 #include "fsl_dbg.h"
 #include "fsl_cdma.h"
-#include "errors.h"
 #include "cmdif_client.h"
 #include "fsl_cmdif_flib_c.h"
 

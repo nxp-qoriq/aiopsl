@@ -7,7 +7,7 @@
 #define __MEM_MNG_H
 
 #include "inc/mem_mng_util.h"
-#include "common/list.h"
+#include "fsl_list.h"
 
 
 #define __ERR_MODULE__  MODULE_UNKNOWN

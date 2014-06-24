@@ -24,6 +24,8 @@
 #endif
 
 __VERIF_GLOBAL uint64_t sa_desc_handle[32]; /* Global in Shared RAM */
+__VERIF_GLOBAL uint64_t verif_instance_handle[32]; /* Global in Shared RAM */
+
 extern __TASK struct aiop_default_task_params default_task_params;
 
 extern __SHRAM uint64_t ipsec_debug_buf_addr; /* Global in Shared RAM */
@@ -35,6 +37,7 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
 	uint64_t ws_sa_desc_handle; /* Temporary Workspace place holder*/
+	uint64_t ws_verif_instance_handle; /* Temporary Workspace place holder*/
 
 	opcode  = *((uint32_t *) data_addr);
 
@@ -66,8 +69,13 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 				str->max_sa_num,
 				str->instance_flags,
 				str->tmi_id,
-				&(str->instance_handle)
+				//&(str->instance_handle)
+				&ws_verif_instance_handle
 			);
+		
+		verif_instance_handle[str->instance_id] = ws_verif_instance_handle;
+		str->instance_addr = ws_verif_instance_handle;
+		
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str_size = (uint16_t)sizeof(struct ipsec_create_instance_command);
@@ -87,16 +95,13 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		
 		str->status = ipsec_add_sa_descriptor(
 				&(str->params),
-				//(uint64_t *)(str->ipsec_handle_ptr)
-				//(uint64_t *)(&(sa_desc_handle[str->sa_desc_id]))
-				str->instance_handle,
+				//str->instance_handle,
+				verif_instance_handle[str->instance_id],
 				&ws_sa_desc_handle
 				);
 
 		sa_desc_handle[str->sa_desc_id] = ws_sa_desc_handle;
 		
-		//str->descriptor_addr = *((uint64_t *)(str->ipsec_handle_ptr));
-		//str->descriptor_addr = sa_desc_handle[str->sa_desc_id];
 		str->descriptor_addr = ws_sa_desc_handle;
 		
 		*((int32_t *)(str->status_addr)) = str->status;
@@ -112,7 +117,6 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_del_sa_descriptor_command *)data_addr;
 		
 		str->status = ipsec_del_sa_descriptor(
-				//*((uint64_t *)(str->ipsec_handle_ptr))
 				sa_desc_handle[str->sa_desc_id]
 				);
 		
@@ -149,7 +153,6 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 			(struct ipsec_decr_lifetime_counters_command *)data_addr;
 		
 		str->status = ipsec_decr_lifetime_counters(
-				//*((uint64_t *)(str->ipsec_handle_ptr)),
 				sa_desc_handle[str->sa_desc_id],
 				str->kilobytes_decr_val,
 				str->packets_decr_val

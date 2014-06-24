@@ -401,6 +401,20 @@ int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid)
 	return err;
 }
 
+int dpni_get_spid(struct dpni *dpni, uint16_t *spid)
+{
+	struct mc_cmd_data cmd_data = { { 0 } };
+	int err;
+
+	err = dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_GET_SPID,
+			 DPNI_CMDSZ_GET_SPID, MC_CMD_PRI_LOW,
+				&cmd_data);
+	if (!err)
+		DPNI_RSP_GET_SPID(RSP_READ);
+
+	return err;
+}
+
 int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset)
 {
 	struct mc_cmd_data cmd_data = { { 0 } };

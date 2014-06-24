@@ -32,8 +32,6 @@ struct extract_data {
 #define DPNI_CMDID_SET_RX_TC			0x12A
 #define DPNI_CMDID_SET_TX_FLOW			0x12B
 #define DPNI_CMDID_GET_TX_FLOW			0x12C
-#define DPNI_CMDID_SET_RX_FLOW			0x154
-#define DPNI_CMDID_GET_RX_FLOW			0x155
 #define DPNI_CMDID_RESET			0x12D
 #define DPNI_CMDID_GET_ATTR			0x12E
 #define DPNI_CMDID_GET_QDID			0x12F
@@ -75,7 +73,6 @@ struct extract_data {
 #define DPNI_CMDID_GET_MTU			0x153
 #define DPNI_CMDID_GET_RX_BUFFER_LAYOUT		0x154
 #define DPNI_CMDID_SET_RX_BUFFER_LAYOUT		0x155
-
 #define DPNI_CMDID_GET_IRQ			0x156
 #define DPNI_CMDID_SET_IRQ_ENABLE		0x157
 #define DPNI_CMDID_GET_IRQ_ENABLE		0x158
@@ -83,10 +80,13 @@ struct extract_data {
 #define DPNI_CMDID_GET_IRQ_MASK			0x15A
 #define DPNI_CMDID_GET_IRQ_STATUS		0x15B
 #define DPNI_CMDID_CLEAR_IRQ_STATUS		0x15C
-#define DPNI_CMDID_GET_TX_BUFFER_LAYOUT		0x15E
+#define DPNI_CMDID_GET_TX_BUFFER_LAYOUT		0x15D
 #define DPNI_CMDID_SET_TX_BUFFER_LAYOUT		0x15E
 #define DPNI_CMDID_GET_TX_CONF_BUFFER_LAYOUT	0x15F
 
+#define DPNI_CMDID_GET_SPID			0x160
+#define DPNI_CMDID_SET_RX_FLOW			0x161
+#define DPNI_CMDID_GET_RX_FLOW			0x162
 
 /* cmd sizes */
 #define MC_CMD_OPEN_SIZE			8
@@ -106,6 +106,7 @@ struct extract_data {
 #define DPNI_CMDSZ_GET_CFG			(8 * 2)
 #define DPNI_CMDSZ_GET_ATTR			(8 * 5)
 #define DPNI_CMDSZ_GET_QDID			8
+#define DPNI_CMDSZ_GET_SPID			8
 #define DPNI_CMDSZ_GET_RX_BUFFER_LAYOUT		(8 * 2)
 #define DPNI_CMDSZ_SET_RX_BUFFER_LAYOUT		(8 * 2)
 #define DPNI_CMDSZ_GET_TX_BUFFER_LAYOUT		(8 * 2)
@@ -338,6 +339,10 @@ do { \
 /*	param, offset, width,	type,			arg_name */
 #define DPNI_RSP_GET_QDID(_OP) \
 	_OP(0,	0,	16,	uint16_t,		qdid)
+
+/*	param, offset, width,	type,			arg_name */
+#define DPNI_RSP_GET_SPID(_OP) \
+	_OP(0,	0,	16,	uint16_t,		spid)
 
 /*	param, offset, width,	type,			arg_name */
 #define DPNI_RSP_GET_TX_DATA_OFFSET(_OP) \

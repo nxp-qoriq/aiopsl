@@ -7,7 +7,7 @@
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
 #include "common/fsl_slab.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "fsl_io.h"
 #include "aiop_common.h"
 #include "kernel/fsl_spinlock.h"

@@ -19,7 +19,7 @@ extern void tman_timer_callback(void);
 
 #else
 #include "slab.h"
-#include "kernel/platform.h"
+#include "platform.h"
 
 #include "fsl_dbg.h"
 #include "fsl_io.h"

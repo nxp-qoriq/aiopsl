@@ -11,7 +11,7 @@
 
 #include "inc/dbg.h"
 #include "inc/fsl_core.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 
 #ifdef pr_debug
 #undef pr_debug
@@ -95,18 +95,18 @@
 /**************************************************************************//**
  @Function      dbg_get_num_of_cores
 
- @Description   Returns the core ID in the system.
+ @Description   Returns the number of active cores in the system.
 
- @Return        Core ID.
+ @Return        number of active cores.
 *//***************************************************************************/
 #define dbg_get_num_of_cores()    sys_get_num_of_cores()
 
 /**************************************************************************//**
  @Function      dbg_get_max_num_of_cores
 
- @Description   Returns the core ID in the system.
+ @Description   Returns the number of existing cores in the system.
 
- @Return        Core ID.
+ @Return        number of existing cores.
 *//***************************************************************************/
 #define dbg_get_max_num_of_cores()    sys_get_max_num_of_cores()
 

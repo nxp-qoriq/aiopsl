@@ -11,13 +11,13 @@
 #ifndef __FSL_CORE_PPC_H
 #define __FSL_CORE_PPC_H
 
-#include "soc_db/fsl_soc.h"
+#include "fsl_soc.h"
 
 
 #define CORE_IS_BIG_ENDIAN
 
 #if defined(CORE_E200)
-#include "ppc/include/fsl_core_booke.h"
+#include "fsl_core_booke.h"
 #define CORE_CACHELINE_SIZE     32
 #else
 #error "core not defined"
