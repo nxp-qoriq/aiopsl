@@ -29,6 +29,7 @@ struct dpci {
 #endif
 
 #define DPCI_PRIO_NUM		2
+#define DPCI_VFQID_NOT_VALID	(uint32_t)(-1)
 
 /**
  *
@@ -184,9 +185,9 @@ int dpci_reset(struct dpci *dpci);
  * @brief	Structure representing priority attributes parameters
  */
 struct dpci_prio_attr {
-	uint16_t tx_qid;
+	uint32_t tx_qid;
 	/*!< QID to be used for sending frames towards the AIOP */
-	uint16_t rx_qid;
+	uint32_t rx_qid;
 	/*!< QID to be used for reciving frames from the AIOP */
 	uint64_t rx_user_ctx;
 	/*!< User context to be received with the frames FD on the RX queue */
@@ -200,8 +201,8 @@ struct dpci_attr {
 	/*!< DPCI id */
 	int enable;
 	/*!< enable */
-	uint8_t attach_link;
-	/*!< DPCI attached to another DPCI*/
+	uint8_t peer_attached;
+	/*!< DPCI is attached to a peer DPCI*/
 	uint8_t peer_id;
 	/*!< DPCI peer id */
 	uint8_t num_of_priorities;
