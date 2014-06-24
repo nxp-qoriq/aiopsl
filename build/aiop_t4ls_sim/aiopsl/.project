@@ -495,11 +495,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_string.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/time.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/time.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/types.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/types.h</locationURI>
@@ -728,6 +723,11 @@
 			<name>aiop_sl/kernel/inc/fsl_sys.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sys.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_time.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_time.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/inc/mem_mng_util.h</name>
