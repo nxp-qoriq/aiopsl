@@ -16,7 +16,7 @@
 #include "checksum.h"
 #include "header_modification.h"
 #include "ip.h"
-#include "common/time.h"
+#include "fsl_time.h"
 
 
 int32_t ip_header_decapsulation(uint8_t flags)
