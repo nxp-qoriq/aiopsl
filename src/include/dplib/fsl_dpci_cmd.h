@@ -62,7 +62,7 @@
 /*	param, offset, width,	type,		arg_name */
 #define DPCI_CMD_CREATE(_OP) \
 do { \
-	_OP(0,  0,	8,	uint8_t,	cfg->num_of_Priorities);\
+	_OP(0,  0,	8,	uint8_t,	cfg->num_of_priorities);\
 } while (0)
 
 /*	param, offset, width,	type,		arg_name */
