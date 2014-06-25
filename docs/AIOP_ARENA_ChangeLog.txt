@@ -1,3 +1,4 @@
+- src/include/common/slob.h			moved to src/lib/fsl_slob.h
 - fsl_slab.h		moved to src/include/lib/fsl_slab.h , all includes are updated accordingly.
 - fsl_malloc.h 		moved to src/include/fsl_malloc.h , all includes are updated accordingly.
                     Remove functions: fsl_os_malloc_debug(), fsl_os_xmalloc_debug(),
