@@ -72,6 +72,8 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_PUSH_VLAN,
 	HM_CMDTYPE_PUSH_AND_SET_VLAN,
 	HM_CMDTYPE_POP_VLAN,
+	HM_CMDTYPE_ARP_RESPONSE,
+	HM_CMDTYPE_SET_L2_SRC_DST,
 	HM_CMDTYPE_IP_CKSUM_CALCULATE,
 	HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC
 };
@@ -164,6 +166,12 @@ enum e_hm_verif_cmd_type {
 
 #define HM_POP_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
+
+#define HM_ARP_RESPONSE_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_ARP_RESPONSE)
+
+#define HM_SET_L2_SRC_DST_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_SET_L2_SRC_DST)
 
 #define HM_IP_CKSUM_CALCULATE_CMD_STR		((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IP_CKSUM_CALCULATE)
@@ -492,6 +500,30 @@ struct hm_push_and_set_vlan_command {
 *//***************************************************************************/
 struct hm_pop_vlan_command {
 	uint32_t	opcode;
+		/**< Command structure identifier. */
+	int32_t		status;
+};
+
+/**************************************************************************//**
+@Description	HM ARP Response Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_arp_response_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	int32_t		status;
+};
+
+/**************************************************************************//**
+@Description	HM Set L2 source and destination addresses Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_set_l2_src_dst_command {
+	uint32_t	opcode;
+		/**< Target MAC address. */
+	uint8_t target_hw_addr[6];
 		/**< Command structure identifier. */
 	int32_t		status;
 };
