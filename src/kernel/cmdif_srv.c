@@ -327,7 +327,14 @@ __HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 	ind = (uint8_t)(fqid >> 1);
 	pr  = (uint8_t)(fqid & 1);
 	fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+	 /* Do it only if queue is not there yet */
+	if (fqid == 0xFFFFFFFF) {
+		err = dpci_get_attributes(&aiop_srv->dpci_tbl->dpci[ind],
+		                          &aiop_srv->dpci_tbl->attr[ind]);
+		fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+	}
 #endif
+
 	pr_debug("Response ID = 0x%x\n", fqid);
 	pr_debug("CB error = %d\n", cb_err);
 
@@ -436,24 +443,19 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
 
-#ifdef DEBUG
-#if 0
+	/* TODO check with Ehud about  dpci_get_attributes() */
+#if 0 //#ifdef DEBUG //TODO debug why it fails on MC when MC is server
 	 /* DEBUG in order not to call MC inside task */
-	 err = dpci_get_link_state(&dpci_tbl->dpci[ind],
-	                           &link_up);
+	 err = dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up);
 	 if (err) {
 		 pr_err("Failed to get dpci_get_link_state\n");
 	 }
 #endif
-	 /* This should not happen because the queues must be there */
+	 /* Do it only if queues are not there */
 	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == 0xFFFFFFFF) {
-		 pr_debug("TX queues are not valid, will try again!\n");
 		 err = dpci_get_attributes(&dpci_tbl->dpci[ind],
 		                           &dpci_tbl->attr[ind]);
-		 pr_debug("Got tx 0x%x\n",
-		          dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid);
 	 }
-#endif
 
 	if (!dpci_tbl->attr[ind].peer_attached ||
 		!dpci_tbl->attr[ind].enable  ||
