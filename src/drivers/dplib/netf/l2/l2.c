@@ -333,13 +333,13 @@ void l2_arp_response()
 	arp_hdr->operation = ARP_REPLY_OP;
 
 	fdma_modify_default_segment_data(PARSER_GET_ETH_OFFSET_DEFAULT(),
-			(NET_HDR_FLD_ETH_ADDR_SIZE + ARP_HDR_LEN));
+			(ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN));
 
 	/* Mark running sum as invalid */
 	pr->gross_running_sum = 0;
 }
 
-void l2_set_hw_src_dst(uint8_t *dest_hw_addr)
+void l2_set_hw_src_dst(uint8_t *target_hw_addr)
 {
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
@@ -349,14 +349,14 @@ void l2_set_hw_src_dst(uint8_t *dest_hw_addr)
 	dpni_drv_get_primary_mac_addr(
 			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
 	/* set ETH destination address */
-	*((uint32_t *)ethhdr) = *((uint32_t *)(dest_hw_addr));
-	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(dest_hw_addr + 4));
+	*((uint32_t *)ethhdr) = *((uint32_t *)(target_hw_addr));
+	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(target_hw_addr + 4));
 	/* set ETH source address */
 	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
 	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
 
 	fdma_modify_default_segment_data(PARSER_GET_ETH_OFFSET_DEFAULT(),
-				(NET_HDR_FLD_ETH_ADDR_SIZE));
+		(NET_HDR_FLD_ETH_ADDR_SIZE + NET_HDR_FLD_ETH_ADDR_SIZE));
 
 	/* Mark running sum as invalid */
 	pr->gross_running_sum = 0;

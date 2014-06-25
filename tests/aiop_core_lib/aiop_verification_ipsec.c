@@ -42,18 +42,18 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	opcode  = *((uint32_t *) data_addr);
 
 	switch (opcode) {
-	case IPSEC_INIT_CMD:
-	{
-		struct ipsec_init_command *str =
-			(struct ipsec_init_command *)data_addr;
-		
-		str->status = ipsec_init(
-				str->max_sa_no);
-		*((int32_t *)(str->status_addr)) = str->status;
-		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
-		str_size = (uint16_t)sizeof(struct ipsec_init_command);
-		break;
-	}
+//	case IPSEC_INIT_CMD:
+//	{
+//		struct ipsec_init_command *str =
+//			(struct ipsec_init_command *)data_addr;
+//		
+//		str->status = ipsec_init(
+//				str->max_sa_no);
+//		*((int32_t *)(str->status_addr)) = str->status;
+//		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
+//		str_size = (uint16_t)sizeof(struct ipsec_init_command);
+//		break;
+//	}
 	
 	case IPSEC_CREATE_INSTANCE_CMD:
 	{
@@ -69,7 +69,6 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 				str->max_sa_num,
 				str->instance_flags,
 				str->tmi_id,
-				//&(str->instance_handle)
 				&ws_verif_instance_handle
 			);
 		
@@ -79,6 +78,21 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str_size = (uint16_t)sizeof(struct ipsec_create_instance_command);
+		break;
+	}
+
+	case IPSEC_DELETE_INSTANCE_CMD:
+	{
+		struct ipsec_delete_instance_command *str =
+			(struct ipsec_delete_instance_command *)data_addr;
+		
+		str->status = ipsec_delete_instance(
+				verif_instance_handle[str->instance_id]
+				);
+				
+		*((int32_t *)(str->status_addr)) = str->status;
+		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
+		str_size = (uint16_t)sizeof(struct ipsec_delete_instance_command);
 		break;
 	}
 
@@ -95,7 +109,6 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		
 		str->status = ipsec_add_sa_descriptor(
 				&(str->params),
-				//str->instance_handle,
 				verif_instance_handle[str->instance_id],
 				&ws_sa_desc_handle
 				);
