@@ -127,6 +127,34 @@ int global_post_init(void)
 	return 0;
 }
 
+#if (STACK_OVERFLOW_DETECTION == 1)
+static inline void config_runtime_stack_overflow_detection(
+		                                    struct aiop_tile_regs * aiop_regs)
+{
+    switch(ioread32(&aiop_regs->cmgw_regs.wscr))
+    {
+    case 0: /* 1 Task */
+    	booke_set_spr_DAC2(0x8000);
+    	break;
+    case 1: /* 2 Tasks */
+    	booke_set_spr_DAC2(0x4000);
+    	break;
+    case 2: /* 4 Tasks */
+    	booke_set_spr_DAC2(0x2000);
+    	break;
+    case 3: /* 8 Tasks */
+    	booke_set_spr_DAC2(0x1000);
+    	break;
+    case 4: /* 16 Tasks */
+    	booke_set_spr_DAC2(0x800);
+    	break;
+    default:
+    	//TODO complete
+    	break;
+    }
+}
+#endif /* STACK_OVERFLOW_DETECTION */
+
 void core_ready_for_tasks(void)
 {
     uint32_t abcr_val;
@@ -161,7 +189,7 @@ void core_ready_for_tasks(void)
      *  Any access to the stack (read/write) following this line will cause
      *  a stack-overflow violation and an exception will occur.
      */
-    booke_set_spr_DAC2(0x800);
+    config_runtime_stack_overflow_detection(aiop_regs);
 #endif
 
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
