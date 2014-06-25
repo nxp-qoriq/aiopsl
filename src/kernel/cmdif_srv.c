@@ -437,12 +437,14 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
 
 #ifdef DEBUG
+#if 0
 	 /* DEBUG in order not to call MC inside task */
 	 err = dpci_get_link_state(&dpci_tbl->dpci[ind],
 	                           &link_up);
 	 if (err) {
 		 pr_err("Failed to get dpci_get_link_state\n");
 	 }
+#endif
 	 /* This should not happen because the queues must be there */
 	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == 0xFFFFFFFF) {
 		 pr_debug("TX queues are not valid, will try again!\n");
