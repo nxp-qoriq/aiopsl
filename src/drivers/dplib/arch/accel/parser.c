@@ -19,7 +19,7 @@ extern __SHRAM uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int32_t parser_profile_create(struct parse_profile_input *parse_profile,
+int parser_profile_create(struct parse_profile_input *parse_profile,
 				uint8_t *prpid)
 {
 	int32_t status;
@@ -63,7 +63,7 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 	return;
 }
 
-int32_t parser_profile_delete(uint8_t prpid)
+int parser_profile_delete(uint8_t prpid)
 {
 
 	struct parse_profile_delete_query_params parse_profile_delete_params
@@ -103,7 +103,7 @@ void parser_profile_query(uint8_t prpid,
 	return;
 }
 
-int32_t parse_result_generate_default(uint8_t flags)
+int parse_result_generate_default(uint8_t flags)
 {
 	uint32_t arg1, arg2;
 	int32_t status;
@@ -174,7 +174,7 @@ int32_t parse_result_generate_default(uint8_t flags)
 	}
 }
 
-int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
+int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags)
 {
 	uint32_t arg1, arg2;
@@ -246,7 +246,7 @@ int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	}
 }
 
-int32_t parse_result_generate_checksum(
+int parse_result_generate_checksum(
 		enum parser_starting_hxs_code starting_hxs,
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum)
