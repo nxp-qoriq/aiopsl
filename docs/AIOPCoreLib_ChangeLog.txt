@@ -1,3 +1,22 @@
+SL TAG v0.4.1.update_02
+===============================
+
+Added the following HM routines:
+	ipv4_ts_opt_modification()
+	ipv4_mangle()
+	ipv4_dec_ttl_modification()
+	ipv6_mangle()
+	ipv6_dec_hop_limit_modification()
+	l2_push_and_set_vlan()
+	
+Added snic files for supporting command interface, Vlan insert/remove, IPR and IPF.
+	snic.c
+	snic.h
+	
+Change in dpni_drv_send()	- setting SPID from theDPNI structure.
+
+system.c - change the setting of BPID for storage profile - now BPID=0 and no allocation is needed (Arena allocates buffers to this BPID).
+
 fsl_ipr.h: API - add min_frag_size_ipv6, flags change from 2 bytes to 4 bytes.
 fsl_ipr.h: API - several functions (modify) to become void instead of int. 
 

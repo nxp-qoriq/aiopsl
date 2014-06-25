@@ -1,6 +1,6 @@
 #ifdef ARENA_LEGACY_CODE
 #include "common/types.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 
 #include "dpl/fdt.h"
 #include "dpl/libfdt.h"

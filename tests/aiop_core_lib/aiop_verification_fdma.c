@@ -523,6 +523,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				sizeof(struct fdma_modify_command);
 		break;
 	}
+#ifdef REV2
 	/* FDMA Replace Command Verification */
 	case FDMA_MODIFY_SEG_CMD_STR:
 	{
@@ -536,6 +537,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				sizeof(struct fdma_modify_seg_command);
 		break;
 	}
+#endif /*REV2*/
 	/* FDMA Replace Command Verification */
 	case FDMA_REPLACE_CMD_STR:
 	{

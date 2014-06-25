@@ -1,6 +1,6 @@
 //#include "common/fsl_string.h"
 //#include "common/fsl_stdio.h"
-//#include "common/fsl_malloc.h"
+//#include "fsl_malloc.h"
 //#include "kernel/platform.h"
 
 //#include "fsl_dbg.h"

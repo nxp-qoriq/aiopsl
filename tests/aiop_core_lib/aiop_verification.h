@@ -34,7 +34,7 @@
 #include "dplib/fsl_l4.h"
 #include "dplib/fsl_nat.h"
 #include "dplib/fsl_osm.h"
-#include "dplib/dpni_drv.h"
+#include "dplib/fsl_dpni_drv.h"
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_dplib_sys.h"
 #include "dplib/fsl_dpni_cmd.h"
