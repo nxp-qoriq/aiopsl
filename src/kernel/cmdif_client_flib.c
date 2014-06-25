@@ -3,10 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <types.h>
-
-#ifndef AIOP
-#define __HOT_CODE 
-#endif
+#include <cmdif.h>
 
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
@@ -41,9 +38,9 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 
 	/* if cidesc->dev != NULL it's ok,
 	 * it's usefull to keep it in order to let user to free this buffer */
-	if ((m_name == NULL) 
-		|| (cidesc == NULL) 
-		|| (v_data == NULL) 
+	if ((m_name == NULL)
+		|| (cidesc == NULL)
+		|| (v_data == NULL)
 		|| (p_data == NULL))
 		return -EINVAL;
 
@@ -51,15 +48,15 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 		return -ENOMEM;
 
 	memset(v_data, 0, size);
-	
+
 	p_addr = p_data + sizeof(struct cmdif_dev);
 	v_addr = (union cmdif_data *)(v_data + sizeof(struct cmdif_dev));
 
 	fd->u_flc.flc          = 0;
-	fd->u_flc.open.cmid    = CMD_ID_OPEN;
-	fd->u_flc.open.auth_id = OPEN_AUTH_ID;
+	fd->u_flc.open.cmid    = CPU_TO_SRV16(CMD_ID_OPEN);
+	fd->u_flc.open.auth_id = CPU_TO_SRV16(OPEN_AUTH_ID);
 	fd->u_flc.open.inst_id = instance_id;
-	fd->u_flc.open.epid    = CMDIF_EPID;
+	fd->u_flc.open.epid    = CPU_TO_SRV16(CMDIF_EPID);
 	fd->u_frc.frc          = 0;
 	fd->u_addr.d_addr      = p_addr;
 	fd->d_size             = sizeof(union cmdif_data);
@@ -101,18 +98,18 @@ __HOT_CODE int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
-	
+
 	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	if (dev->sync_done == NULL)			
+	if (dev->sync_done == NULL)
 		return -EINVAL;
 
 	err = ((union  cmdif_data *)(dev->sync_done))->resp.err;
 	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
-	
+
 
 	return err;
 }
@@ -146,9 +143,9 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 	fd->u_addr.d_addr       = NULL;
 	fd->d_size              = 0;
 	fd->u_flc.flc           = 0;
-	fd->u_flc.close.cmid    = CMD_ID_CLOSE;
+	fd->u_flc.close.cmid    = CPU_TO_SRV16(CMD_ID_CLOSE);
 	fd->u_flc.close.auth_id = dev->auth_id;
-	fd->u_flc.open.epid     = CMDIF_EPID;
+	fd->u_flc.open.epid     = CPU_TO_SRV16(CMDIF_EPID);
 
 	return 0;
 }
@@ -176,8 +173,8 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 	fd->d_size            = size;
 	fd->u_flc.flc         = 0;
 	fd->u_flc.cmd.auth_id = dev->auth_id;
-	fd->u_flc.cmd.cmid    = cmd_id;
-	fd->u_flc.cmd.epid  = CMDIF_EPID;
+	fd->u_flc.cmd.cmid    = CPU_TO_SRV16(cmd_id);
+	fd->u_flc.cmd.epid    = CPU_TO_SRV16(CMDIF_EPID);
 	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
 	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
 
@@ -199,7 +196,7 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 	if (dev->async_cb != NULL)
 		return dev->async_cb(dev->async_ctx,
 		                     fd->u_flc.cmd.err,
-		                     fd->u_flc.cmd.cmid,
+		                     CPU_TO_SRV16(fd->u_flc.cmd.cmid),
 		                     fd->d_size,
 		                     fd->u_addr.d_addr);
 	else
