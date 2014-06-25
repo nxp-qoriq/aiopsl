@@ -278,6 +278,8 @@ void l2_arp_response();
 		Implicit input parameters in Task Defaults: frame handle,
 		segment handle, segment address.
 
+@Param[in]	target_hw_addr -  Target MAC address.
+
  @Return	None.
 
  @Cautions
@@ -285,7 +287,7 @@ void l2_arp_response();
  	 	 operation.
  	 	 - This function assumes the presence of the ETH header.
  *//***************************************************************************/
-void l2_set_hw_src_dst(uint8_t *dest_hw_addr);
+void l2_set_hw_src_dst(uint8_t *target_hw_addr);
 
 /* @} end of group FSL_HM_L2_Functions */
 /* @} end of group AIOP_L2_HM */
