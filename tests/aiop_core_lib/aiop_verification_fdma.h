@@ -70,6 +70,10 @@
 #define FDMA_CREATE_FRAME_CMD		0x00000100
 	/** FDMA Create FD command code */
 #define FDMA_CREATE_FD_CMD		0x00000101
+	/** FDMA Create ARP Request Broadcast Frame command code */
+#define FDMA_CREATE_FRAME_ARP_REQ_BRD_CMD 0x00000102
+/** FDMA Create ARP Request Frame command code */
+#define FDMA_CREATE_FRAME_ARP_REQ_CMD	0x00000103
 
 /* FDMA Commands Structure identifiers */
 	/** FDMA Initial frame presentation Command Structure identifier */
@@ -179,6 +183,13 @@
 	/** FDMA Create FD command Structure identifier */
 #define FDMA_CREATE_FD_CMD_STR ((FDMA_MODULE << 16) | 		\
 		FDMA_CREATE_FD_CMD)
+	/** FDMA Create ARP Request Broadcast Frame command Structure
+	 * identifier */
+#define FDMA_CREATE_FRAME_ARP_REQ_BRD_CMD_STR ((FDMA_MODULE << 16) | 	\
+		FDMA_CREATE_FRAME_ARP_REQ_BRD_CMD)
+	/** FDMA Create ARP Request Frame command  Structure identifier. */
+#define FDMA_CREATE_FRAME_ARP_REQ_CMD_STR ((FDMA_MODULE << 16) | 	\
+		FDMA_CREATE_FRAME_ARP_REQ_CMD)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -1653,6 +1664,57 @@ struct fdma_create_fd_command {
 		 * The FD address in workspace must be aligned to 32 bytes. */
 	struct ldpaa_fd fd;
 };
+
+/**************************************************************************//**
+@Description	FDMA Create ARP Request Broadcast Frame Command structure.
+
+		Includes information needed for Create ARP Request Broadcast
+		Frame data command verification.
+
+*//***************************************************************************/
+struct fdma_create_arp_request_broadcast_frame_command {
+		/** Create ARP Request Broadcast Frame command structure
+		 * identifier. */
+	uint32_t opcode;
+		/** Address within the workspace of the FD to be created. */
+	uint32_t fd_src;
+		/** Local IP Address. */
+	uint32_t local_ip;
+		/** Target IP Address. */
+	uint32_t target_ip;
+		/** Command returned frame handle. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[6];
+};
+
+/**************************************************************************//**
+@Description	FDMA Create ARP Request Frame Command structure.
+
+		Includes information needed for Create ARP Request
+		Frame data command verification.
+
+*//***************************************************************************/
+struct fdma_create_arp_request_frame_command {
+		/** Create ARP Request Frame command structure
+		 * identifier. */
+	uint32_t opcode;
+		/** Address within the workspace of the FD to be created. */
+	uint32_t fd_src;
+		/** Local IP Address. */
+	uint32_t local_ip;
+		/** Target IP Address. */
+	uint32_t target_ip;
+		/** Target MAC Address. */
+	uint8_t target_eth[6];
+		/** Command returned frame handle. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+};
+
 
 /** @} */ /* end of AIOP_FDMA_SRs_Verification */
 

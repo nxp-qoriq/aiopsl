@@ -295,6 +295,16 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/time.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/time.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/time.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/time.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/fsl_list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/fsl_list.h</locationURI>

@@ -140,10 +140,26 @@ int create_fd(
 	}
 }
 
+int create_arp_request_broadcast(
+		struct ldpaa_fd *fd,
+		uint32_t local_ip,
+		uint32_t target_ip,
+		uint8_t *frame_handle)
+{
+
+	uint8_t target_eth[6];
+	*((uint32_t *)target_eth) = (uint32_t)BROADCAST_MAC;
+	*((uint16_t *)(target_eth+4)) = (uint16_t)BROADCAST_MAC;
+
+	return create_arp_request(
+		fd, local_ip, target_ip, (uint8_t *)target_eth, frame_handle);
+}
+
 int create_arp_request(
 		struct ldpaa_fd *fd,
 		uint32_t local_ip,
-		uint32_t dest_ip,
+		uint32_t target_ip,
+		uint8_t *target_eth,
 		uint8_t *frame_handle)
 {
 	uint8_t arp_data[ARP_PKT_MIN_LEN];
@@ -157,8 +173,8 @@ int create_arp_request(
 			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
 
 	/* set ETH destination address */
-	*((uint32_t *)ethhdr) = UNKNOWN_MAC;
-	*((uint16_t *)(ethhdr+4)) = (uint16_t)UNKNOWN_MAC;
+	*((uint32_t *)ethhdr) = *((uint32_t *)target_eth);
+	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(target_eth+4));
 	/* set ETH source address */
 	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
 	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
@@ -185,8 +201,8 @@ int create_arp_request(
 	*(uint32_t *)(arp_hdr->dst_hw_addr[0]) = 0;
 	*(uint16_t *)(arp_hdr->dst_hw_addr[4]) = 0;
 	/* set ARP protocol (IPv4) address */
-	arp_hdr->dst_pro_addr = dest_ip;
+	arp_hdr->dst_pro_addr = target_ip;
 
-	return create_frame(fd, (void *)arp_hdr, ARP_PKT_MIN_LEN,frame_handle);
+	return create_frame(
+			fd, (void *)arp_data, ARP_PKT_MIN_LEN, frame_handle);
 }
-

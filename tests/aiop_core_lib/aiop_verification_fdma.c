@@ -781,6 +781,34 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = (uint16_t)sizeof(struct fdma_create_fd_command);
 		break;
 	}
+	/* FDMA create ARP request broadcast frame Command Verification */
+	case FDMA_CREATE_FRAME_ARP_REQ_BRD_CMD_STR:
+	{
+		struct fdma_create_arp_request_broadcast_frame_command *str =
+		    (struct fdma_create_arp_request_broadcast_frame_command *)
+		    	    asa_seg_addr;
+		str->status = (int8_t)create_arp_request_broadcast(
+				(struct ldpaa_fd *)(str->fd_src),
+				str->local_ip, str->target_ip,
+				&(str->frame_handle));
+		str_size = (uint16_t)sizeof(
+			struct fdma_create_arp_request_broadcast_frame_command);
+		break;
+	}
+	/* FDMA create ARP request frame Command Verification */
+	case FDMA_CREATE_FRAME_ARP_REQ_CMD_STR:
+	{
+		struct fdma_create_arp_request_frame_command *str =
+			(struct fdma_create_arp_request_frame_command *)
+				asa_seg_addr;
+		str->status = (int8_t)create_arp_request(
+				(struct ldpaa_fd *)(str->fd_src),
+				str->local_ip, str->target_ip, str->target_eth,
+				&(str->frame_handle));
+		str_size = (uint16_t)sizeof(
+			struct fdma_create_arp_request_frame_command);
+		break;
+	}
 	default:
 	{
 		return STR_SIZE_ERR;
