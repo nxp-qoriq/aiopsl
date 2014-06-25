@@ -200,7 +200,43 @@
 
 /* @} end of group HMIPCksumCalcModeBits */
 
+
+/**************************************************************************//**
+@Group		IPv4TimestampOptions IPv4 time-stamp options
+
+@{
+*//***************************************************************************/
+
+#define IP_TS_OPT_INC_OVERFLOW  0x01
+/* @} end of group IPv4TimestampOptions */
+
 /* @} end of group HM_IP_Modes */
+
+/**************************************************************************//**
+ @Group		IPv4_TS_OPT_Getters_Setters
+
+ @Description	IPv4 time-stamp option Getters/Setters
+
+ @{
+*//***************************************************************************/
+
+#define TS_OPT_GET_FIRST_WORD() *((uint32_t *)ip_opt_ptr)
+#define TS_OPT_GET_LENGTH() *(ip_opt_ptr + 1)
+#define TS_OPT_GET_PTR() *(ip_opt_ptr + 2)
+#define TS_OPT_GET_OVRFLOW_FLAG() *(ip_opt_ptr + 3)
+#define TS_OPT_SET_PTR(var) \
+do { \
+	ptr_next_ts += var; \
+	*(ip_opt_ptr + 2) = ptr_next_ts; \
+} while (0)
+#define TS_OPT_SET_OVRFLOW_FLAG() *(ip_opt_ptr + 3) = overflow_flag
+
+#define TS_OPT_GET_FLAG() overflow_flag & 0xf
+#define AIOP_IPOPT_TS_TSONLY    0  /* timestamps only */
+#define AIOP_IPOPT_TS_TSANDADDR 1  /* timestamps and addresses */
+#define AIOP_IPOPT_TS_PRESPEC   3  /* specified modules only */
+
+/* @} end of group IPv4_TS_OPT_Getters_Setters */
 
 /**************************************************************************//**
 @Group		FSL_HM_IP_Functions HM IP related functions
@@ -296,6 +332,44 @@ void ipv4_mangle(uint8_t flags, uint8_t dscp, uint8_t ttl);
 
 *//***************************************************************************/
 void ipv4_dec_ttl_modification(void);
+
+/*************************************************************************//**
+@Function	ipv4_ts_opt_modification
+
+@Description	IPv4 header time stamp option modification. This function 
+		updates the time stamp in the time-stamp option field and
+		check for errors according to RFC 791.
+
+		It automatically generates the IP checksum.
+
+		The function assumes the original UDP/TCP checksum to be valid.
+
+		Implicit input parameters in task defaults: frame handle,
+			segment handle, parser_profile_id, parser_starting_hxs.
+		Implicitly updated values in task defaults: segment length,
+								segment address.
+@Param[in]	ipv4_hdr - pointer to the ipv4 header in WRKS.
+@Param[in]	ip_opt_ptr - pointer to the IPv4 time-stamp option in WRKS.	
+@Param[in]	ip_address - needed in case IP address and time-stamp needed to
+		be updated together. (according to flag field)
+
+@Return		0 on Success, positive for status or negative value on error.
+
+@Retval		0 – Success.
+@Retval		EIO - option length < 4.
+@Retval		ENOSPC - there is no enough room to insert time-stamp
+		or pointer value is less than 5.
+@Retval		ENODEV - there is overflow on the overflow counter itself. 
+@Retval		\link IPv4TimestampOptions The overflow counter was incremented
+		since opt.ptr<opt.length and no time stamp was inserted.\endlink
+
+@Cautions	The parse results must be updated before
+		calling this operation.
+		In this function, the task yields.
+
+*//***************************************************************************/
+int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr, 
+		uint32_t ip_address);
 
 /*************************************************************************//**
 @Function	ipv6_header_modification

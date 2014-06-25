@@ -141,6 +141,21 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			break;
 		}
 
+		/* HM IPv4 time-stamp option Command Verification */
+		case HM_IPV4_TS_OPT_CMD_STR:
+		{
+			struct ipv4hdr *ipv4_hdr_ptr = 
+					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+			/* assuming IP TS OPT comes as the first option */
+			uint8_t *ip_opt_ptr = (uint8_t *)ipv4_hdr_ptr + 20;
+			struct hm_ipv4_ts_opt_command *str =
+			(struct hm_ipv4_ts_opt_command *) asa_seg_addr;
+			str->status = ipv4_ts_opt_modification(ipv4_hdr_ptr,
+					ip_opt_ptr, str->ip_address);
+			str_size = sizeof(struct hm_ipv4_ts_opt_command);
+			break;
+		}
+
 		/* HM IPv6 Header Modification Command Verification */
 		case HM_IPV6_MODIFICATION_CMD_STR:
 		{
