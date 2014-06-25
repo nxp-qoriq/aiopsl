@@ -287,7 +287,7 @@ int cmdif_srv_open(void *_srv,
 
 	/* Sending */
 	if (data != NULL) {
-		data->dev_id  = CPU_TO_CL32(dpci_id);
+		data->dev_id  = CPU_TO_SRV32(dpci_id);
 		data->auth_id = *auth_id;
 		data->inst_id = inst_id;
 		strncpy(&data->m_name[0], m_name, M_NAME_CHARS);

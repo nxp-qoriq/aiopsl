@@ -11,7 +11,4 @@
 #define CPU_TO_SRV16(val) rte_bswap16(val)
 #define CPU_TO_SRV32(val) rte_bswap32(val)
 
-#define CPU_TO_CL16(val) rte_bswap16(val)
-#define CPU_TO_CL32(val) rte_bswap32(val)
-
 #endif /* __CMDIF_H */

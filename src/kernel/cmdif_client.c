@@ -245,23 +245,16 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	int      t   = 0;
 	union cmdif_data done;
 
-	if (cmdif_is_sync_cmd(cmd_id)){
-		pr_err("Sync command is not supported on AIOP\n");
+	if (cmdif_is_sync_cmd(cmd_id))
 		return -ENOTSUP;
-	}
 
 	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
-	if (err) {
-		pr_err("Failed to build command\n");
+	if (err)
 		return -EINVAL;
-	}
 
 	err = send_fd(&fd, pr, cidesc->regs);
-
-	if (err) {
-		pr_err("Failed to send command\n");
+	if (err)
 		return -EINVAL;
-	}
 
 	if (cmdif_is_sync_cmd(cmd_id)) {
 		do {
@@ -299,7 +292,8 @@ __HOT_CODE void cmdif_cl_isr(void)
 
 	err = cmdif_async_cb(&fd);
 	if (err) {
-		pr_err("Asynchronous callback returned error %d", err);
+		pr_debug("Async callback cmd 0x%x returned error %d", \
+		         fd.u_flc.cmd.cmid, err);
 	}
 	fdma_store_default_frame_data();
 	fdma_terminate_task();
