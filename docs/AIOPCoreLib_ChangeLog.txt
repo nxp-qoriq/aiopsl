@@ -17,6 +17,8 @@ Change in dpni_drv_send()	- setting SPID from theDPNI structure.
 
 system.c - change the setting of BPID for storage profile - now BPID=0 and no allocation is needed (Arena allocates buffers to this BPID).
 
+ipr: call to function slab_find_and_fill_bpid() inside function ipr_create_instance() instead of in function ipr_init().
+
 fsl_ipr.h: API - add min_frag_size_ipv6, flags change from 2 bytes to 4 bytes.
 fsl_ipr.h: API - several functions (modify) to become void instead of int. 
 
