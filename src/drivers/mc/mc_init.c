@@ -2,7 +2,7 @@
 #include "inc/fsl_gen.h"
 #include "fsl_errors.h"
 #include "common/fsl_string.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "general.h"
 #include "sys.h"
 #include "fsl_dbg.h"

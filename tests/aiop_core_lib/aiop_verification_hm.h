@@ -49,6 +49,7 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_IPV4_MODIFICATION,
 	HM_CMDTYPE_IPV4_MANGLE,
 	HM_CMDTYPE_IPV4_DEC_TTL,
+	HM_CMDTYPE_IPV4_TS_OPT,
 	HM_CMDTYPE_IPV6_MODIFICATION,
 	HM_CMDTYPE_IPV6_MANGLE,
 	HM_CMDTYPE_IPV6_DEC_HOP_LIMIT,
@@ -95,6 +96,9 @@ enum e_hm_verif_cmd_type {
 
 #define HM_IPV4_DEC_TTL_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV4_DEC_TTL)
+
+#define HM_IPV4_TS_OPT_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_IPV4_TS_OPT)
 
 #define HM_IPV6_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV6_MODIFICATION)
@@ -243,6 +247,17 @@ struct hm_ipv4_mangle_command {
 *//***************************************************************************/
 struct hm_ipv4_dec_ttl_command {
 	uint32_t	opcode;
+};
+
+/**************************************************************************//**
+@Description	HM IPv4 time stamp option Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_ipv4_ts_opt_command {
+	uint32_t	opcode;
+	int		status;
+	uint32_t	ip_address;
 };
 
 /**************************************************************************//**

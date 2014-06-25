@@ -1,7 +1,7 @@
 #include "common/types.h"
 #include "fsl_dbg.h"
 #include "common/fsl_string.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "fsl_io.h"
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_fdma.h"

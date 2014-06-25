@@ -1,5 +1,5 @@
 #include "common/types.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "common/fsl_string.h"
 #include "aiop_common.h"
 #include "drivers/fsl_duart.h"

@@ -4,7 +4,7 @@
 #include "fsl_fdma.h"
 #include "general.h"
 #include "fsl_cdma.h"
-#include "common/fsl_slab.h"
+#include "fsl_slab.h"
 #include "platform.h"
 #include "cmdif_srv.h"
 #include "fsl_io.h"

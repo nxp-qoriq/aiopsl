@@ -1,3 +1,14 @@
+- fsl_malloc.h 		moved to src/include/fsl_malloc.h , all includes are updated accordingly.
+                    Remove functions: fsl_os_malloc_debug(), fsl_os_xmalloc_debug(),
+					fsl_os_buff_get_num_of_blocks(), fsl_os_buff_get_size(), fsl_os_buff_inc_refcnt(),
+					fsl_os_buff_dec_refcnt_n_release(), fsl_os_buff_release(), fsl_os_buff_acquire().
+- time.h:           moved to kernel/inc/fsl_time.h
+- dpni_drv.h:       split to src/include/dplib/fsl_dpni_drv.h and src/drivers/dplib/include/dpni_drv.h
+                    fsl_dpni_drv.h (exposed to users) all includes updated accordingly
+
+- fsl_io.h:         added workaround to iowrite64 for disabling inline, CQ ENGR00319764
+
+- README.txt        updated to support working with ELF loader by default
 - list.h:           moved to src/lib/fsl_list.h, all includes updated accordingly.
 - dpl.dts:          change MAC address for dpni 2 to 00:00:02:00:00:02 (dpl.dtb was updated accordingly)
 - errors.h:         split to errors.h and fsl_errors.h for users. errors.h moved to src/kernel/inc, all include paths

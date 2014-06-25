@@ -3,7 +3,7 @@
 //#include "fsl_errors.h"
 #include "kernel/layout.h"
 #include "common/fsl_string.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 
 #include "sys.h"
 #include "dpl/dtc.h"

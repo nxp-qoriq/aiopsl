@@ -750,6 +750,19 @@ int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid);
 
 /**
  *
+ * @brief	Get the AIOP's SPID that represent this NI
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[out]	spid - aiop's storage-profile
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ *
+ * @warning	Only relevant for AIOP.
+ */
+int dpni_get_spid(struct dpni *dpni, uint16_t *spid);
+
+/**
+ *
  * @brief	Get the tx data offset
  *
  * @param[in]	dpni - Pointer to dpni object

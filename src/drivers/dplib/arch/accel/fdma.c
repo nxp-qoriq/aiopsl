@@ -1211,7 +1211,7 @@ void fdma_modify_default_segment_data(
 		uint16_t size)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3;
+	uint32_t arg1, arg2, arg3, arg4;
 	int8_t res1;
 
 	/* This command may be invoked only on Data segment */
@@ -1219,13 +1219,24 @@ void fdma_modify_default_segment_data(
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
 		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
+#ifdef REV2
 	arg1 = FDMA_REPLACE_CMD_ARG1(
 			PRC_GET_HANDLES(), FDMA_REPLACE_NO_FLAGS);
+#else
+	arg1 = FDMA_REPLACE_CMD_ARG1(
+			PRC_GET_HANDLES(), FDMA_REPLACE_SA_REPRESENT_BIT);
+#endif /*REV2*/
 	arg2 = FDMA_REPLACE_CMD_ARG2(offset, size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(
 			(PRC_GET_SEGMENT_ADDRESS() + offset), size);
+#ifdef REV2
+	arg4 = 0;
+#else
+	arg4 = FDMA_REPLACE_CMD_ARG4(
+			PRC_GET_SEGMENT_ADDRESS(), PRC_GET_SEGMENT_LENGTH());
+#endif /*REV2*/
 	/* store command parameters */
-	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
@@ -1235,6 +1246,7 @@ void fdma_modify_default_segment_data(
 		fdma_handle_fatal_errors((int32_t)res1);
 }
 
+#ifdef REV2
 void fdma_modify_segment_data(
 		uint8_t frame_handle,
 		uint8_t seg_handle,
@@ -1266,6 +1278,7 @@ void fdma_modify_segment_data(
 	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
 }
+#endif /* REV2*/
 
 int fdma_replace_default_segment_data(
 		uint16_t to_offset,
