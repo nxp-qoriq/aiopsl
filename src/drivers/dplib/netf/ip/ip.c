@@ -334,7 +334,6 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 	if (ptr_next_ts < 5)
 		return -ENOSPC;
 	fdma_size = (uint16_t)((uint32_t)ip_opt_ptr - (uint32_t)ipv4_hdr);
-	fdma_size += 4;
 	if (ptr_next_ts > length)
 	{
 		if ((overflow_flag & 0xf0) == 0xf0)
@@ -350,6 +349,7 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 					    old_val,
 					    new_val);
 			/* including first word from TS option */
+			fdma_size += 4;
 			fdma_modify_default_segment_data(ipv4_offset,
 					fdma_size);
 			return IP_TS_OPT_INC_OVERFLOW;
@@ -368,7 +368,6 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 				return -ENOSPC;
 			*ts_ptr = ut;
 			TS_OPT_SET_PTR(4);
-			fdma_size += 4;
 			/* need updating IPv4 header checksum */
 			/* rfc says old val must be 0 */
 			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
@@ -382,7 +381,6 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 			*ts_ptr++ = ip_address;
 			*ts_ptr = ut;
 			TS_OPT_SET_PTR(8);
-			fdma_size += 8;
 			/* need updating IPv4 header checksum */
 			/* rfc says old val must be 0 */
 			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
@@ -401,19 +399,21 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 				ts_ptr++;
 				*ts_ptr = ut;
 				TS_OPT_SET_PTR(8);
-				fdma_size += 8;
 				/* need updating IPv4 header checksum */
 				/* rfc says old val must be 0 */
 				cksum_update_uint32(&ipv4_hdr->hdr_cksum,
 						    0,
 						    ut);
 			}
+			else
+				return SUCCESS;
 			break;
 		default:
 			break;
 		}
 	}
 	
+	fdma_size += ptr_next_ts - 1;
 	fdma_modify_default_segment_data(ipv4_offset, fdma_size);
 	return SUCCESS;
 }

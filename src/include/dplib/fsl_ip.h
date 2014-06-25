@@ -224,7 +224,11 @@
 #define TS_OPT_GET_LENGTH() *(ip_opt_ptr + 1)
 #define TS_OPT_GET_PTR() *(ip_opt_ptr + 2)
 #define TS_OPT_GET_OVRFLOW_FLAG() *(ip_opt_ptr + 3)
-#define TS_OPT_SET_PTR(var) *(ip_opt_ptr + 2) = ptr_next_ts + var
+#define TS_OPT_SET_PTR(var) \
+do { \
+	ptr_next_ts += var; \
+	*(ip_opt_ptr + 2) = ptr_next_ts; \
+} while (0)
 #define TS_OPT_SET_OVRFLOW_FLAG() *(ip_opt_ptr + 3) = overflow_flag
 
 #define TS_OPT_GET_FLAG() overflow_flag & 0xf
