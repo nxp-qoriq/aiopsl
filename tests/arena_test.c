@@ -6,7 +6,7 @@
 #include "general.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
-#include "common/fsl_slab.h"
+#include "fsl_slab.h"
 #include "platform.h"
 #include "fsl_io.h"
 #include "aiop_common.h"
