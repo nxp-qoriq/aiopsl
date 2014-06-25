@@ -404,8 +404,9 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int ind = 0;
-	int link_up = 0;
+	int link_up = 1;
 	struct dpci_obj *dpci_tbl = NULL;
+	int err = 0;
 
 	pr_debug("Got notify open for AIOP client \n");
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
@@ -435,16 +436,22 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
 
-#if 0
-	/* Removed it in order not to call MC inside task
-	 * TODO consider if this is the right thing to do ? */
-	if (dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up)) {
-		pr_err("Failed to get DPCI link status\n");
-		return -EACCES;
-	}
+#ifdef DEBUG
+	 /* DEBUG in order not to call MC inside task */
+	 err = dpci_get_link_state(&dpci_tbl->dpci[ind],
+	                           &link_up);
+	 if (err) {
+		 pr_err("Failed to get dpci_get_link_state\n");
+	 }
+	 /* This should not happen because the queues must be there */
+	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == 0xFFFFFFFF) {
+		 pr_debug("TX queues are not valid, will try again!\n");
+		 err = dpci_get_attributes(&dpci_tbl->dpci[ind],
+		                           &dpci_tbl->attr[ind]);
+		 pr_debug("Got tx 0x%x\n",
+		          dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid);
+	 }
 #endif
-	/* TODO remove it after  dpci_get_link_state() is fixed */
-	link_up = 1;
 
 	if (!dpci_tbl->attr[ind].peer_attached ||
 		!dpci_tbl->attr[ind].enable  ||
