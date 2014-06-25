@@ -1,6 +1,9 @@
 #ifndef __CMDIF_H
 #define __CMDIF_H
 
+#include <nadk_types.h>
+#include <nadk_byteorder.h>
+
 #ifndef __HOT_CODE
 #define __HOT_CODE
 #endif
