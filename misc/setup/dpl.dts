@@ -199,13 +199,11 @@ Layout is built from 3 different sections: containers, objects, links.
 		};
 		dpci@2{
 			compatible = "fsl,dpci";
-			aiop_ref_id = <1>;
-			priorities = <1 2>;
+			num_of_priorities = <2>;
 		};
 		dpci@3{
 			compatible = "fsl,dpci";
-			aiop_ref_id = <1>;
-			priorities = <1 2>;
+			num_of_priorities = <2>;
 		};
 	};
 	links {
