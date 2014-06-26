@@ -49,7 +49,9 @@ Add file fsl_frame_operations:
 	Add the following Frame operations routines:	
 		create_arp_request_broadcast()
 		create_arp_request()
-		
+
+Change file general.h to fsl_general.h.
+
 		
 		
 
