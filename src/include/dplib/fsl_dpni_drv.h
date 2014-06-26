@@ -19,7 +19,6 @@
 @{
 *//***************************************************************************/
 
-
 /**************************************************************************//**
 @Function	dpni_drv_register_rx_cb
 
@@ -55,7 +54,7 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 @Return	OK on success; error code, otherwise.
 *//***************************************************************************/
 int dpni_drv_unregister_rx_cb(uint16_t		ni_id,
-			uint16_t		flow_id);
+                              uint16_t		flow_id);
 
 /**************************************************************************//**
 @Function	dpni_get_receive_niid
@@ -131,4 +130,37 @@ int dpni_drv_add_mac_addr(uint16_t ni_id,
 *//***************************************************************************/
 int dpni_drv_remove_mac_addr(uint16_t ni_id,
           		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
+
+/**************************************************************************//**
+@Function	dpni_drv_send
+
+@Description	Network Interface send (AIOP enqueue) function.
+
+@Param[in]	ni_id   The Network Interface ID
+	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
+
+@Return	OK on success; error code, otherwise.
+		For error codes refer to \ref FDMA_ENQUEUE_FRAME_ERRORS
+		and \ref DPNI_DRV_STATUS.
+*//***************************************************************************/
+int dpni_drv_send(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_explicit_send
+
+@Description	Network Interface explicit send (AIOP enqueue) function.
+
+@Param[in]	ni_id	The Network Interface ID
+	Implicit: Queuing Destination Priority (qd_priority) in the TLS.
+
+@Param[in]	fd	pointer to explicit FD. The assumption is that user
+		used fdma function to create an explicit FD as
+		fdma_create_frame
+
+@Return	OK on success; error code, otherwise.
+		For error codes refer to \ref FDMA_ENQUEUE_FD_ERRORS
+		and \ref DPNI_DRV_STATUS.
+*//***************************************************************************/
+int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
+
 #endif /* __FSL_DPNI_DRV_H */
