@@ -47,7 +47,7 @@
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int32_t id_pool_init(uint16_t num_of_ids,
+int id_pool_init(uint16_t num_of_ids,
 			 uint16_t buffer_pool_id,
 			 uint64_t *ext_id_pool_address);
 
@@ -69,7 +69,7 @@ int32_t id_pool_init(uint16_t num_of_ids,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id);
+int get_id(uint64_t ext_id_pool_address, uint8_t *id);
 
 
 /*************************************************************************//**
@@ -88,7 +88,7 @@ int32_t get_id(uint64_t ext_id_pool_address, uint8_t *id);
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
- int32_t release_id(uint8_t id, uint64_t ext_id_pool_address);
+int release_id(uint8_t id, uint64_t ext_id_pool_address);
 
 /** @} */ /* end of ID_POOL_Functions */
 

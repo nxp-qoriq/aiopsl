@@ -50,7 +50,7 @@ extern __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
 /* Storage profiles array */
 __PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 
-int32_t sys_prpid_pool_create(void)
+int sys_prpid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
@@ -70,7 +70,7 @@ int32_t sys_prpid_pool_create(void)
 }
 
 
-int32_t sys_keyid_pool_create(void)
+int sys_keyid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
@@ -88,7 +88,7 @@ int32_t sys_keyid_pool_create(void)
 	return 0;
 }
 
-int32_t aiop_sl_init(void)
+int aiop_sl_init(void)
 {
 	int32_t status = 0;
 	//extern struct ipsec_global_instance_params ipsec_global_instance_params;

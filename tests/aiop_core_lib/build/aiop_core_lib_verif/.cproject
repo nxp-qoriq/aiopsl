@@ -239,7 +239,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="sources/drivers/dplib/kernel/sys_mem_mng.c|sources/drivers/dplib/kernel/smp.c|sources/drivers/dplib/kernel/mem_mng.c|sources/drivers/dplib/kernel/console.c|sources/drivers/dplib/arch/ppc/booke.S|sources/drivers/dplib/arch/ppc/booke.c|sources/drivers/dplib/kernel/sys.c|Project_Settings/Linker_Files/MPC5643L_FLASH.lcf|Sources/Other/Compiler/compiler_example_1.c|Project_Settings/Startup_Code/MPC5643L_init_flash.c|Temp_Sources/Compiler/compiler_example_2.c|Sources/Other/Compiler/compiler_example_2.c|Sources/sources/fsl_aiop_cdma.c|MPC5643L_readme.txt|Sources/sources/aiop_verification.h|Prefix/MPC5643L_FLASH_VLE_DPM.prefix|Temp_Sources/Compiler/compiler_example_1.c|Sources/Other/temp.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="sources/drivers/dplib/kernel/sys_mem_mng.c|sources/drivers/dplib/kernel/smp.c|sources/drivers/dplib/kernel/mem_mng.c|sources/drivers/dplib/kernel/console.c|sources/drivers/dplib/arch/ppc/booke.S|sources/drivers/dplib/arch/ppc/booke.c|Project_Settings/Linker_Files/MPC5643L_FLASH.lcf|Sources/Other/Compiler/compiler_example_1.c|Project_Settings/Startup_Code/MPC5643L_init_flash.c|Temp_Sources/Compiler/compiler_example_2.c|Sources/Other/Compiler/compiler_example_2.c|Sources/sources/fsl_aiop_cdma.c|MPC5643L_readme.txt|Sources/sources/aiop_verification.h|Prefix/MPC5643L_FLASH_VLE_DPM.prefix|Temp_Sources/Compiler/compiler_example_1.c|Sources/Other/temp.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

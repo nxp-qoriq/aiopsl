@@ -119,7 +119,7 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 		Presented segment size is large enough to include these 8 bytes
 		in addition to any existing headers presented.
 *//***************************************************************************/
-int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr);
+int ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 
 /**************************************************************************//**
 @Function	ipf_discard_frame_remainder
@@ -139,7 +139,7 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 		IPF_GEN_FRAG_STATUS_IN_PROCESS status is returned from \ref
 		ipf_generate_frag() function call.
 *//***************************************************************************/
-int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
+int ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 
 /**************************************************************************//**
 @Function	ipf_context_init
