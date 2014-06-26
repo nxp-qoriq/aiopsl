@@ -104,6 +104,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 	struct dpni dpni = { 0 };
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
+	uint8_t spid;
 	struct dpni_attr attributes;
 	struct dpni_attach_cfg attach_params;
 
@@ -194,7 +195,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 
 #ifdef NEW_MC_API
 			/* Register SPID in internal AIOP NI table */
-			if ((err = dpni_get_spid(&dpni, &spid)) != 0) {
+			if ((err = dpni_get_spid(&dpni,(uint16_t *) &spid)) != 0) {
 				pr_err("Failed to get SPID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
