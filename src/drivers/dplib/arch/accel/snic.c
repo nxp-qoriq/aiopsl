@@ -28,7 +28,7 @@
 #include "osm.h"
 
 #include "dplib/fsl_ipf.h"
-#include "common/fsl_cmdif_server.h"
+#include "fsl_cmdif_server.h"
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
 	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);
