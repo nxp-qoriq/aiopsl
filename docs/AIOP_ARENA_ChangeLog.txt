@@ -1,6 +1,15 @@
 ** AIOP SL v0.4.1.update_02 **
 
-- fsl_cmdif_*.h     All CMDIF API has been moved from src/include/common to src/include/kernel
+- cmdif_integration_test.c  Added test for AIOP client.
+
+- dpl.dts             Updated DPL with DPCI devices and set icid for GPP container to 0.
+- cmdif_client_flib.c Updated the code to support GPP and MC architectures. 
+- cmdif.h             Added architecture dependant files per architecture ls2100a_aiop, ls2100a_gpp.
+- cmdif_srv_flib.c    Added CMDIF server FLIB code which implements fsl_cmdif_flib_s.h API.
+- fsl_cmdif_*.h       All CMDIF API has been moved from src/include/common to src/include/kernel.
+- cmdif_client.c      Added AIOP asynchronious client for GPP server.
+- cmdif_srv.c         Updated AIOP server to support new DPCI (MC 0.4.2).
+
 - src/include/common/slob.h			moved to src/lib/fsl_slob.h
 - fsl_slab.h		moved to src/include/lib/fsl_slab.h , all includes are updated accordingly.
 - fsl_malloc.h 		moved to src/include/fsl_malloc.h , all includes are updated accordingly.
