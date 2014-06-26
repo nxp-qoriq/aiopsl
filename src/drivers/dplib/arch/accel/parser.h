@@ -186,7 +186,7 @@ struct parser_input_message_params {
 		l3 & l4 checksum pointers must not be NULL.
 		This function may result in a fatal error.
 *//***************************************************************************/
-int32_t parse_result_generate_checksum(
+int parse_result_generate_checksum(
 		enum parser_starting_hxs_code starting_hxs,
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum
