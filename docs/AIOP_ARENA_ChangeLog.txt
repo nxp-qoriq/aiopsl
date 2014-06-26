@@ -1,3 +1,6 @@
+dpni_drv.c:         Added multicore support to dpni_drv_unregister_rx_cb and dpni_drv_register_rx_cb
+                    added fix for storing spid
+drv.h:              uint8_t dpni_lock was added to support multicore
 - src/include/common/slob.h			moved to src/lib/fsl_slob.h
 - fsl_slab.h		moved to src/include/lib/fsl_slab.h , all includes are updated accordingly.
 - fsl_malloc.h 		moved to src/include/fsl_malloc.h , all includes are updated accordingly.
