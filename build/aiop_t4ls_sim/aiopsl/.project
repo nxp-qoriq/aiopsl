@@ -205,7 +205,17 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_io.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_malloc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_malloc.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/kernel</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/lib</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -283,6 +293,16 @@
 			<name>aiop_sl/kernel/sys_mem_mng.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/time.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/time.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/time.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/time.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/fsl_list.h</name>
@@ -440,11 +460,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/aiop_common.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/aiop_common.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/fsl_cmdif_client.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_client.h</locationURI>
@@ -470,21 +485,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_cmdif_server.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/fsl_core_debug.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_core_debug.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/fsl_malloc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_malloc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/common/fsl_slab.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_slab.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/fsl_stdarg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_stdarg.h</locationURI>
@@ -505,19 +505,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/fsl_string.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/time.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/time.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common/types.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/common/types.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/dpni_drv.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_cdma.h</name>
@@ -563,6 +553,11 @@
 			<name>aiop_sl/include/dplib/fsl_dpni_cmd.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/dplib/fsl_dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_dprc.h</name>
@@ -700,6 +695,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/lib/fsl_slab.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_slab.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/net/fsl_inet.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/net/fsl_inet.h</locationURI>
@@ -738,6 +738,11 @@
 			<name>aiop_sl/kernel/inc/fsl_sys.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sys.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_time.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_time.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/inc/mem_mng_util.h</name>
@@ -838,6 +843,11 @@
 			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/general.h</name>

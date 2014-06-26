@@ -435,7 +435,7 @@ struct ipsec_descriptor_params {
 /**************************************************************************//**
 @Function	ipsec_create_instance
 
-@Description	This creates an instance for an IPsec application.
+@Description  This function creates an instance for an IPsec application.
 		It should be called once when the application goes up.
 		All SAs belonging to this instance should be called with 
 		the returned instance handle.
@@ -449,7 +449,7 @@ struct ipsec_descriptor_params {
 @Param[in]	tmi_id - TMAN Instance ID to be used for timers creation
 @Param[in]	instance_flags - control flags. Set to 0.
 
-@Param[out]	ipsec_handle - IPsec handle to the descriptor database
+@Param[out]	instance_handle - instance handle 
 		
 @Return		Status
 
@@ -460,6 +460,20 @@ int ipsec_create_instance(
 		uint32_t instance_flags,
 		uint8_t tmi_id,
 		ipsec_instance_handle_t *instance_handle);
+
+/**************************************************************************//**
+@Function	ipsec_delete_instance
+
+@Description  This function deletes an instance of an IPsec application.
+		It should be called once, only after all SA descriptors belonging 
+		to this instance were deleted.
+				
+@Param[out]	instance_handle - instance handle 
+		
+@Return		Status
+
+*//****************************************************************************/
+int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
 
 /**************************************************************************//**
 @Function	ipsec_add_sa_descriptor

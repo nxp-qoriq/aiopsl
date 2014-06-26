@@ -90,8 +90,10 @@ static inline void iowrite32be(uint32_t val, volatile uint32_t *addr)
 	STORE_CPU_TO_BE32(val, addr);
 	core_memory_barrier();
 }
-
-static inline void iowrite64(uint64_t val, volatile uint64_t *addr)
+/*
+ * TODO: remove "__attribute__((never_inline))" when CQ ENGR00319764 solved
+ */
+static inline void iowrite64(uint64_t val, volatile uint64_t *addr) __attribute__((never_inline))
 {
 	STORE_CPU_TO_LE64(val, addr);
 	core_memory_barrier();

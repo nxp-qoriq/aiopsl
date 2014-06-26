@@ -1822,7 +1822,8 @@ void fdma_modify_default_segment_data(
 		uint16_t offset,
 		uint16_t size);
 
-/**************************************************************************//**
+#ifdef REV2
+**************************************************************************//**
 @Function	fdma_modify_segment_data
 
 @Description	Modifies data in the Data segment in a Working Frame (in the
@@ -1860,13 +1861,14 @@ void fdma_modify_default_segment_data(
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
+*//***************************************************************************
 void fdma_modify_segment_data(
 		uint8_t frame_handle,
 		uint8_t seg_handle,
 		uint16_t offset,
 		uint16_t size,
 		void	 *from_ws_src);
+#endif /*REV2*/
 
 /**************************************************************************//**
 @Function	fdma_replace_default_segment_data

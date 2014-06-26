@@ -9,7 +9,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "fsl_slob.h"
 #ifdef AIOP
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #endif /* AIOP */
 
 #include "mem_mng.h"

@@ -2,7 +2,7 @@
 #include "inc/fsl_gen.h"
 #include "kernel/fsl_spinlock.h"
 #include "common/fsl_string.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 
 #include "inc/console.h"
 #include "sys.h"

@@ -10,6 +10,12 @@
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
 #include "dplib/fsl_cdma.h"
+#include "cmdif.h"
+
+#ifndef CMDIF_TEST_WITH_MC_SRV
+//#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
+#warning "If test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
+#endif
 
 int app_init(void);
 void app_free(void);
@@ -92,7 +98,7 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	default:
 		break;
 	}
-	return 0;
+	return err;
 }
 
 static struct cmdif_module_ops ops = {

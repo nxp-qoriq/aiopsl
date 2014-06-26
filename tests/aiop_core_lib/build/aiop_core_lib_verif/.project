@@ -508,24 +508,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/kernel/console.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/console.c</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/kernel/mem_mng.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/mem_mng/mem_mng.c</locationURI>
-		</link>
-		<link>
 			<name>sources/drivers/dplib/kernel/os.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/os.c</locationURI>
-		</link>
-		<link>
-			<name>sources/drivers/dplib/kernel/smp.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/smp.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/kernel/sys.c</name>
@@ -533,9 +518,19 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/sys.c</locationURI>
 		</link>
 		<link>
-			<name>sources/drivers/dplib/kernel/sys_mem_mng.c</name>
+			<name>sources/drivers/dplib/kernel/sys.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/sys_mem_mng.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/sys.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/time.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/time.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/time.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/time.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/netf/general</name>

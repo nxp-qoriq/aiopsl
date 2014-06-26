@@ -10,6 +10,9 @@
 #include "dplib/fsl_cdma.h"
 #include "fsl_platform.h"
 
+#include "dplib/fsl_ipsec.h"
+#include "ipsec.h"
+
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
 
@@ -41,7 +44,10 @@ extern int aiop_snic_init(void);
 __SHRAM uint64_t ext_prpid_pool_address;
 __SHRAM uint64_t ext_keyid_pool_address;
 
-//__PROFILE_SRAM struct  storage_profile storage_profile;
+/* IPsec Instance global parameters */
+extern __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
+
+/* Storage profiles array */
 __PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 
 int sys_prpid_pool_create(void)
@@ -85,13 +91,18 @@ int sys_keyid_pool_create(void)
 int aiop_sl_init(void)
 {
 	int32_t status = 0;
+	//extern struct ipsec_global_instance_params ipsec_global_instance_params;
 
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init params*/
 	uint32_t val;
 	uint32_t *addr;
 #endif
-
+	
+	/* Initialize IPsec instance global parameters */
+	ipsec_global_instance_params.instance_count = 0;
+	ipsec_global_instance_params.spinlock = 0;
+	
 	/* initialize profile sram */
 
 	/* Default Storage Profile */
