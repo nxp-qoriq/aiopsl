@@ -2,7 +2,7 @@
 #include "fsl_malloc.h"
 #include "common/fsl_string.h"
 #include "aiop_common.h"
-#include "drivers/fsl_duart.h"
+#include "fsl_duart.h"
 #include "kernel/console.h"
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"

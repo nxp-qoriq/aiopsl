@@ -8,7 +8,7 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "drivers/fsl_duart.h"
+#include "fsl_duart.h"
 
 
 #define __ERR_MODULE__  MODULE_DUART
