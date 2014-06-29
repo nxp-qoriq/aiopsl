@@ -104,24 +104,18 @@ ASSERT_STRUCT_SIZE(SIZEOF_IPF_CONTEXT, IPF_CONTEXT_SIZE);
 /** @} */ /* end of IPF_INTERNAL_MACROS */
 
 
-/*inline*/ int32_t ipf_restore_orig_fragment(struct ipf_context *ipf_ctx);
-/*inline */int32_t ipf_after_split_ipv6_fragment(struct ipf_context *ipf_ctx,
+/*inline*/ int ipf_restore_orig_fragment(struct ipf_context *ipf_ctx);
+/*inline */int ipf_after_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 						uint32_t last_ext_hdr_size);
-/*inline*/ int32_t ipf_after_split_ipv4_fragment(struct ipf_context *ipf_ctx);
-/*inline*/ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx);
-/*inline*/ int32_t ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
+/*inline*/ int ipf_after_split_ipv4_fragment(struct ipf_context *ipf_ctx);
+/*inline*/ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx);
+/*inline*/ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 						uint32_t last_ext_hdr_size);
-/*inline*/ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx);
-/*inline*/int32_t ipf_ipv4_last_frag(struct ipf_context *ipf_ctx);
-/*inline*/int32_t ipf_ipv6_last_frag(struct ipf_context *ipf_ctx);
+/*inline*/ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx);
+/*inline*/int ipf_ipv4_last_frag(struct ipf_context *ipf_ctx);
+/*inline*/int ipf_ipv6_last_frag(struct ipf_context *ipf_ctx);
 
-/*
-int32_t ipf_insert_ipv6_frag_header(struct ipf_context *ipf_ctx,
-		uint16_t frag_hdr_offset);
-*/
 
 /** @} */ /* end of AIOP_IPF_INTERNAL */
 
-
-
-#endif /* __GSO_H */
+#endif /* __IPF_H */

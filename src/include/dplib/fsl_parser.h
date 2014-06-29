@@ -1475,8 +1475,7 @@ struct parse_profile_input {
 @Description	Creates Parser Profile which provides a template
 		of parsing actions to be taken.
 
-@Param[in]	parse_profile - Parse Profile Input. User should
-		allocate memory for this structure and fill it.
+@Param[in]	parse_profile - Parse Profile Input the user should fill.
 		Must be 16 bytes aligned.
 @Param[out]	prpid - Parse Profile ID.
 
@@ -1487,7 +1486,7 @@ struct parse_profile_input {
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t parser_profile_create(struct parse_profile_input *parse_profile,
+int parser_profile_create(struct parse_profile_input *parse_profile,
 	uint8_t *prpid);
 
 /**************************************************************************//**
@@ -1522,7 +1521,7 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t parser_profile_delete(uint8_t prpid);
+int parser_profile_delete(uint8_t prpid);
 
 /**************************************************************************//**
 @Function	parser_profile_query
@@ -1572,7 +1571,7 @@ void parser_profile_query(uint8_t prpid,
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int32_t parse_result_generate_default(uint8_t flags);
+int parse_result_generate_default(uint8_t flags);
 
 /**************************************************************************//**
 @Function	parse_result_generate
@@ -1611,7 +1610,7 @@ int32_t parse_result_generate_default(uint8_t flags);
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int32_t parse_result_generate(enum parser_starting_hxs_code starting_hxs,
+int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);
 
 /** @} */ /* end of FSL_PARSER_Functions */

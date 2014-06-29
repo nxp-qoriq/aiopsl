@@ -22,14 +22,14 @@ __HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
 }
 
 int cmdif_open_cmd(struct cmdif_desc *cidesc,
-			  const char *m_name,
-			  uint8_t instance_id,
-			  cmdif_cb_t async_cb,
-			  void *async_ctx,
-			  uint8_t *v_data,
-			  uint64_t p_data,
-			  uint32_t size,
-			  struct cmdif_fd *fd)
+			const char *m_name,
+			uint8_t instance_id,
+			cmdif_cb_t async_cb,
+			void *async_ctx,
+			uint8_t *v_data,
+			uint64_t p_data,
+			uint32_t size,
+			struct cmdif_fd *fd)
 {
 	uint64_t p_addr = NULL;
 	int      i = 0;
@@ -195,10 +195,10 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 
 	if (dev->async_cb != NULL)
 		return dev->async_cb(dev->async_ctx,
-		                     fd->u_flc.cmd.err,
-		                     CPU_TO_SRV16(fd->u_flc.cmd.cmid),
-		                     fd->d_size,
-		                     fd->u_addr.d_addr);
+				fd->u_flc.cmd.err,
+				CPU_TO_SRV16(fd->u_flc.cmd.cmid),
+				fd->d_size,
+				fd->u_addr.d_addr);
 	else
 		return -EINVAL;
 }

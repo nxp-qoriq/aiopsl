@@ -206,6 +206,11 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 #define TCP_GRO_FLUSH_AGG_SET		0x00000004
 	/** If set, the segment was discarded. */
 #define TCP_GRO_DISCARD_SEG_SET		0x00000008
+	/** If set, there is a timer which already expired in process for the
+	 * current aggregation. A new segment which arrives in this status will
+	 * be returned as is since the gro context should be cleared by former
+	 * aggregation. */
+#define TCP_GRO_AGG_TIMER_IN_PROCESS	0x00000010
 	/** IP header reserved1 ECN bit of the GRO aggregation. */
 #define TCP_GRO_ECN1			0x00010000
 	/** IP header reserved2 ECN bit of the GRO aggregation. */

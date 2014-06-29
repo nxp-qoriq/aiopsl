@@ -50,10 +50,10 @@ struct cmdif_session_data {
 	/** Must remain in this order because of client side */
 	uint8_t  done;      /*!< Reserved for done on response */
 	int8_t   err;       /*!< Reserved for done on response */
-        uint16_t auth_id;
-        uint32_t dev_id;    /*!< CI device id, DPCI id */
-        uint8_t  inst_id;
-        char     m_name[M_NAME_CHARS + 1];
+	uint16_t auth_id;
+	uint32_t dev_id;    /*!< CI device id, DPCI id */
+	uint8_t  inst_id;
+	char     m_name[M_NAME_CHARS + 1];
 };
 
 #endif /* __CMDIF_SRV_H */
