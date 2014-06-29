@@ -220,9 +220,10 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 	time_t sec;  /* time in seconds*/
 	UNUSED(tz);
 
+#ifdef DEBUG
 	if(tv == NULL)
 		return -EACCES;
-
+#endif
 	usec = _gettime();
 
 	if(usec < 0)
@@ -235,22 +236,9 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 	return 0;
 }
 
-/*****************************************************************************/
-__HOT_CODE time_t fsl_os_time(time_t *t)
+__HOT_CODE uint32_t fsl_os_current_time(void)
 {
-	time_t su_time;
-
-	su_time = _gettime();
-
-	if(su_time < 0)
-		su_time = -1;
-	else
-	su_time = su_time / 1000000;
-
-	if(t != NULL)
-		*t = su_time;
-
-	return su_time;
+	return 0;
 }
 
 /*****************************************************************************/

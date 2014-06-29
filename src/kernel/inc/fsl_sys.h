@@ -14,6 +14,7 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
+#include "fsl_soc_aiop_spec.h"
 
 
 /**************************************************************************//**
