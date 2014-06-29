@@ -210,6 +210,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_malloc.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_time.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_time.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/kernel</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -733,11 +738,6 @@
 			<name>aiop_sl/kernel/inc/fsl_sys.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sys.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/inc/fsl_time.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_time.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/inc/mem_mng_util.h</name>
