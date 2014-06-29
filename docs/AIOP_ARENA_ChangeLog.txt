@@ -1,5 +1,6 @@
 ** AIOP SL v0.4.1.update_02 **
-
+fsl_duart.h:        moved from src/include/drivers to src/drivers/serial/include/fsl_duart.h
+                    include paths updated accordingly.
 fsl_sys.h:          added include for fsl_soc_aiop_spec.h to solve compilation error.
 arena_test.c:       added test for fsl_os_gettimeofday()
 fsl_time.h:         Added implementation for fsl_os_gettimeofday(). added stub for fsl_os_current_time()
