@@ -1,4 +1,6 @@
-fsl_sys:            added include for fsl_soc_aiop_spec.h to solve compilation error.
+** AIOP SL v0.4.1.update_02 **
+
+fsl_sys.h:          added include for fsl_soc_aiop_spec.h to solve compilation error.
 arena_test.c:       added test for fsl_os_gettimeofday()
 fsl_time.h:         Added implementation for fsl_os_gettimeofday(). added stub for fsl_os_current_time()
 time.c:             added internal _gettime() method, used by time function to receive time since epoch
@@ -7,7 +9,6 @@ time.c:             added internal _gettime() method, used by time function to r
 dpni_drv.c:         Added multicore support to dpni_drv_unregister_rx_cb and dpni_drv_register_rx_cb
                     added fix for storing spid
 drv.h:              uint8_t dpni_lock was added to support multicore
-** AIOP SL v0.4.1.update_02 **
 
 - cmdif_integration_test.c  Added test for AIOP client.
 
