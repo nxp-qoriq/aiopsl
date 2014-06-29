@@ -52,7 +52,21 @@ Add file fsl_frame_operations:
 
 Change file general.h to fsl_general.h.
 
-		
+IPF:
+- Add IPv6 support
+- Add fragments restoration feature
+- Fixed ENGR00319625
+
+KEYGEN:
+- Changed keygen_kcr_builder_init() to void
+	
+PARSER:
+- Fixed ENGR315932 	
+- Add macros:
+	PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT
+	PARSER_GET_RUNNING_SUM_DEFAULT
+
+Added file id_pool.c
 		
 
 SL Alpha v0.4  Change Log
