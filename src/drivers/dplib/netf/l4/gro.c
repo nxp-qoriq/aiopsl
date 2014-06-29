@@ -791,17 +791,20 @@ int tcp_gro_flush_aggregation(
 		return TCP_GRO_FLUSH_NO_AGG;
 	}
 
-	/* delete the timer for this aggregation */
-	sr_status = tman_delete_timer(gro_ctx.timer_handle,
-			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-	/* if the timer cannot be deleted, the timer will handle the
-	 * aggregation.  */
-	if (sr_status != SUCCESS) {
-		cdma_mutex_lock_release(tcp_gro_context_addr);
-		return TCP_GRO_FLUSH_TIMER_IN_PROCESS;
+	if (gro_ctx.timer_handle != TCP_GRO_INVALID_TMAN_HANDLE){
+		/* delete the timer for this aggregation */
+		sr_status = tman_delete_timer(gro_ctx.timer_handle,
+				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
+		/* if the timer cannot be deleted, the timer will handle the
+		 * aggregation.  */
+		if (sr_status != SUCCESS) {
+			cdma_mutex_lock_release(tcp_gro_context_addr);
+			return TCP_GRO_FLUSH_TIMER_IN_PROCESS;
+		}
+
+		gro_ctx.timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 	}
 
-	gro_ctx.timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
