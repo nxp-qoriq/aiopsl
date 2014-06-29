@@ -3,7 +3,7 @@
 #include "common/fsl_string.h"
 #include "aiop_common.h"
 #include "fsl_duart.h"
-#include "kernel/console.h"
+#include "inc/console.h"
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_smp.h"

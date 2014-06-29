@@ -1,4 +1,7 @@
 ** AIOP SL v0.4.1.update_02 **
+src/include/kernel/console.h:         removed
+src/include/dplib/fsl_dpsw_cmd.h:     removed
+
 fsl_duart.h:        moved from src/include/drivers to src/drivers/serial/include/fsl_duart.h
                     include paths updated accordingly.
 fsl_sys.h:          added include for fsl_soc_aiop_spec.h to solve compilation error.
