@@ -205,7 +205,7 @@ struct additional_dequeue_context {
 
 /** Macro to get ICID field */
 #define ADC_GET_ICID()							\
-	(LH_SWAP_MASK((HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),		\
+	(LH_SWAP_MASK(0, (HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET),	\
 	       ADC_ICID_MASK))
 
 /** @} */ /* end of AIOP_ADC_Getters */

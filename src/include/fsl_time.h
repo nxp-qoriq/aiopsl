@@ -45,10 +45,11 @@ typedef struct timezone {
 /**************************************************************************//**
  @Function   fsl_os_gettimeofday
 
- @Description  Gets time of day
+ @Description  Gets time of day returns the time as the number of seconds and 
+	microseconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
 
 @Param[in]  tv - if not null the tv struct is filled
-@Param[in]  tx - if not null the tz struct is filled
+@Param[in]  tx - obsolete, should be null
 
 
  @Return   standard POSIX error code
@@ -58,18 +59,15 @@ int fsl_os_gettimeofday(timeval *tv, timezone *tz);
 
 
 /**************************************************************************//**
- @Function   fsl_os_time
+ @Function   fsl_os_current_time
 
- @Decription returns the time as the number of seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+ @Description  not implemented yet
 
- @Param[in]  t - If t is non-NULL, the return value is also stored in the memory pointed by t.
-
- @Return   On success, the value of time in seconds since the Epoch is returned.
-           On error, ((time_t) -1) is returned
+ @Return   0, not implemented yet
 
 *//***************************************************************************/
-time_t fsl_os_time(time_t *t);
 
+uint32_t fsl_os_current_time(void);
 /** @} */ /* end of aiopsl_time_queries group */
 
 #endif /* __FSL_TIME_H */

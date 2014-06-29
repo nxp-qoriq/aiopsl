@@ -172,7 +172,6 @@ Layout is built from 3 different sections: containers, objects, links.
 			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER";
 			max_tcs = <0>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
-			dist_key_variety = <0>;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
 			max_vlan_filters = <0>;
@@ -189,7 +188,6 @@ Layout is built from 3 different sections: containers, objects, links.
 			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER";
 			max_tcs = <0>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
-			dist_key_variety = <0>;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
 			max_vlan_filters = <0>;
