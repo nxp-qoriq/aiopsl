@@ -13,7 +13,7 @@
 #include "cmdif.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
-//#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
+#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
 
