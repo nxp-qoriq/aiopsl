@@ -1,12 +1,13 @@
 #include "common/types.h"
 #include "fsl_dbg.h"
 #include "common/fsl_string.h"
-#include "common/fsl_malloc.h"
+#include "kernel/fsl_spinlock.h"
+#include "fsl_malloc.h"
 #include "fsl_io.h"
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "inc/fsl_sys.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
@@ -50,9 +51,10 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	dpni_drv->args[flow_id] = arg;
 	dpni_drv->rx_cbs[flow_id] = cb;
-
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -63,8 +65,9 @@ int dpni_drv_unregister_rx_cb (uint16_t		ni_id,
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	dpni_drv->rx_cbs[flow_id] = &discard_rx_app_cb;
-
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -104,6 +107,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 	struct dpni dpni = { 0 };
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
+	uint16_t spid;
 	struct dpni_attr attributes;
 	struct dpni_attach_cfg attach_params;
 
@@ -192,14 +196,13 @@ int dpni_drv_probe(struct dprc	*dprc,
 			}
 			nis[aiop_niid].qdid = qdid;
 
-#ifdef NEW_MC_API
 			/* Register SPID in internal AIOP NI table */
 			if ((err = dpni_get_spid(&dpni, &spid)) != 0) {
 				pr_err("Failed to get SPID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
-			nis[aiop_niid].spid = spid;
-#endif
+			nis[aiop_niid].spid = (uint8_t)spid; /*TODO: change to uint16_t in nis table for the next release*/
+
 
 #if 0
 			/* TODO: need to decide if we should close DPNI at this stage.

@@ -10,7 +10,7 @@
 #define __FSL_FDMA_H
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "dplib/fsl_ldpaa.h"
 
 
@@ -43,8 +43,6 @@
 #define FDMA_PTA_SEG_HANDLE	0xF
 	/** HW annotation segment handle */
 #define FDMA_ASA_SEG_HANDLE	0xE
-	/** Segment reference bit mask   */
-#define FDMA_SEG_REF_MASK	0x1
 
 /* @} end of group FDMA_General_Definitions */
 
@@ -535,44 +533,46 @@ enum fdma_pta_size_type {
  @{
 *//***************************************************************************/
 
-/**************************************************************************//**
+/*
+*************************************************************************
 @Description	Working Frame structure.
 
 		Includes a presented frame information.
 
-*//***************************************************************************/
+*************************************************************************
 struct working_frame {
-		/** A pointer to Frame descriptor in workspace.
-		 * The FD address in workspace must be aligned to 32 bytes. */
+		* A pointer to Frame descriptor in workspace.
+		 * The FD address in workspace must be aligned to 32 bytes.
 	struct ldpaa_fd *fd;
-		/** Handle to the HW working frame */
+		* Handle to the HW working frame
 	uint8_t frame_handle;
 };
 
 
-/**************************************************************************//**
+*************************************************************************
 @Description	Segment structure.
 
 		Includes a presented segment information.
 
-*//***************************************************************************/
+*************************************************************************
 struct segment {
-		/** A pointer to the Working Frame holding the segment */
+		* A pointer to the Working Frame holding the segment
 	struct working_frame *wf;
-		/** A pointer to the address within the workspace of the
-			 * presented segment.*/
+		* A pointer to the address within the workspace of the
+			 * presented segment.
 	void *ws_address;
-		/** The number of segments bytes presented */
+		* The number of segments bytes presented
 	uint16_t seg_length;
-		/** Handle to the presented segment. */
+		* Handle to the presented segment.
 	uint8_t	 seg_handle;
 
-		/** Segment flags \ref FDMA_PRES_Flags */
+		* Segment flags \ref FDMA_PRES_Flags
 	uint8_t	 flags;
-		/** Segment offset in the frame relative to the
-		 * \ref FDMA_PRES_SR_BIT flag */
+		* Segment offset in the frame relative to the
+		 * \ref FDMA_PRES_SR_BIT flag
 	uint16_t seg_offset;
 };
+*/
 
 /**************************************************************************//**
 @Description	FDMA access management qualifier (AMQs) structure.
@@ -1822,7 +1822,8 @@ void fdma_modify_default_segment_data(
 		uint16_t offset,
 		uint16_t size);
 
-/**************************************************************************//**
+#ifdef REV2
+**************************************************************************//**
 @Function	fdma_modify_segment_data
 
 @Description	Modifies data in the Data segment in a Working Frame (in the
@@ -1860,13 +1861,14 @@ void fdma_modify_default_segment_data(
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
+*//***************************************************************************
 void fdma_modify_segment_data(
 		uint8_t frame_handle,
 		uint8_t seg_handle,
 		uint16_t offset,
 		uint16_t size,
 		void	 *from_ws_src);
+#endif /*REV2*/
 
 /**************************************************************************//**
 @Function	fdma_replace_default_segment_data

@@ -8,7 +8,7 @@
 #define __DRV_H
 
 #include "common/types.h"
-#include "dplib/dpni_drv.h"
+#include "dplib/fsl_dpni_drv.h"
 #include "net/fsl_net.h"
 #include "dplib/fsl_dprc.h"
 
@@ -47,7 +47,8 @@ struct dpni_drv {
 	uint8_t             prpid;
 	/** \ref DPNI_DRV_DEFINES */
 	uint8_t             flags;
-
+	/* lock for multi-core support */
+	uint8_t             dpni_lock;
 	/** call back application function */
 	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
 	/** call back application argument */

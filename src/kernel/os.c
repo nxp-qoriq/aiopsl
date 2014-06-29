@@ -1,11 +1,12 @@
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "common/fsl_stdarg.h"
 #include "kernel/fsl_spinlock.h"
-#include "common/time.h"
+#include "aiop_common.h"
+#include "time.h"
 #include "fsl_io.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 #include "inc/console.h"
-#include "inc/mem_mng.h"
+#include "fsl_mem_mng.h"
 #include "sys.h"
 
 __TASK uint32_t seed_32bit;
@@ -215,28 +216,41 @@ __HOT_CODE  uint32_t fsl_os_rand(void)
 /*****************************************************************************/
 __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 {
-	volatile uint32_t TSCRU1, TSCRU2, TSCRL;
+	time_t usec; /* time in microseconds since epoch*/
+	time_t sec;  /* time in seconds*/
 	UNUSED(tz);
-	uint64_t temp_val = 0;
 
-	TSCRU1 = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
-	                              TSCRU_OFF));
-	TSCRL = ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
-	                              TSCRL_OFF));
-	if ((TSCRU2=ioread32(UINT_TO_PTR(SOC_PERIPH_OFF_AIOP_TILE +
-		                              TSCRU_OFF))) > TSCRU1 )
-		TSCRL = 0;
-	else if(TSCRU2 < TSCRU1) /*something wrong while reading*/
+	if(tv == NULL)
+		return -EACCES;
+
+	usec = _gettime();
+
+	if(usec < 0)
 		return -1;
 
-	temp_val = (uint64_t)(TSCRU2) << 32;
-	temp_val |= (TSCRL);
-	temp_val = temp_val / 1000;
-	tv->tv_usec = (uint32_t)temp_val;
-	tv->tv_sec = temp_val / 1000000;
-
+	sec = (usec / 1000000);
+	tv->tv_usec = (suseconds_t)(usec - (sec * 1000000));
+	tv->tv_sec = sec;
 
 	return 0;
+}
+
+/*****************************************************************************/
+__HOT_CODE time_t fsl_os_time(time_t *t)
+{
+	time_t su_time;
+
+	su_time = _gettime();
+
+	if(su_time < 0)
+		su_time = -1;
+	else
+	su_time = su_time / 1000000;
+
+	if(t != NULL)
+		*t = su_time;
+
+	return su_time;
 }
 
 /*****************************************************************************/
@@ -456,7 +470,7 @@ void * fsl_os_malloc(size_t size)
 {
 	return  fsl_os_malloc_debug(size, __FILE__, __LINE__);
 }
-#else	
+#else
 void * fsl_os_malloc(size_t size)
 {
     return sys_mem_alloc(SYS_DEFAULT_HEAP_PARTITION, size, 0, "", "", 0);
@@ -474,7 +488,7 @@ void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 {
     return sys_mem_alloc(partition_id, size, alignment, "", "", 0);
 }
-#endif	
+#endif
 
 
 /*****************************************************************************/

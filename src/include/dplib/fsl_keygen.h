@@ -400,7 +400,7 @@ void keygen_kcr_builder_init(struct kcr_builder *kb);
 @Retval		0 – Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
+int keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 					  struct kcr_builder *kb);
 
 
@@ -424,7 +424,7 @@ int32_t keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 @Retval		0 – Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
+int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 					uint8_t extract_size,
 					struct kcr_builder_fec_mask *mask,
 					struct kcr_builder *kb);
@@ -456,7 +456,7 @@ int32_t keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 @Retval		0 – Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_protocol_specific_field
+int keygen_kcr_builder_add_protocol_specific_field
 		(enum kcr_builder_protocol_fecid protocol_fecid,
 		struct kcr_builder_fec_mask *mask,
 		struct kcr_builder *kb);
@@ -498,7 +498,7 @@ int32_t keygen_kcr_builder_add_protocol_specific_field
 @Retval		0 – Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
+int keygen_kcr_builder_add_protocol_based_generic_fec(
 	enum kcr_builder_parse_result_offset pr_offset,
 	uint8_t extract_offset, uint8_t extract_size,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
@@ -530,7 +530,7 @@ int32_t keygen_kcr_builder_add_protocol_based_generic_fec(
 @Retval		0 – Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
+int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
 
@@ -562,7 +562,7 @@ int32_t keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 @Cautions	This function is not available for rev1.
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_lookup_result_field_fec(
+int keygen_kcr_builder_add_lookup_result_field_fec(
 	enum kcr_builder_ext_lookup_res_field extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
@@ -594,7 +594,7 @@ int32_t keygen_kcr_builder_add_lookup_result_field_fec(
 @Retval		0 – Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
+int keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 					 struct kcr_builder *kb);
 
 
@@ -615,7 +615,7 @@ int32_t keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t keygen_kcr_create(enum keygen_hw_accel_id acc_id,
+int keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 			uint8_t *kcr,
 			uint8_t *keyid);
 
@@ -654,7 +654,7 @@ void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int32_t keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
+int keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 			uint8_t keyid);
 
 
@@ -697,7 +697,7 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
+int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
 		     uint64_t user_metadata,
 		     void *key,
@@ -720,7 +720,7 @@ int32_t keygen_gen_key(enum keygen_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int32_t keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash);
+int keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash);
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */

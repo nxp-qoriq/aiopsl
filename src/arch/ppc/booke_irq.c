@@ -15,11 +15,11 @@
  */
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "fsl_dbg.h"
 
-#include "ppc/include/fsl_core_booke_regs.h"
-#include "ppc/include/fsl_core_booke.h"
+#include "fsl_core_booke_regs.h"
+#include "fsl_core_booke.h"
 #include "booke.h"
 
 

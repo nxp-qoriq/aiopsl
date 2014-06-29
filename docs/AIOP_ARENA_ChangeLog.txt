@@ -1,10 +1,45 @@
-- fsl_dbg           added device querrys: dbg_get_core_id(), dbg_get_num_of_cores(), dbg_get_max_num_of_cores()
+dpni_drv.c:         Added multicore support to dpni_drv_unregister_rx_cb and dpni_drv_register_rx_cb
+                    added fix for storing spid
+drv.h:              uint8_t dpni_lock was added to support multicore
+** AIOP SL v0.4.1.update_02 **
+
+- cmdif_integration_test.c  Added test for AIOP client.
+
+- dpl.dts             Updated DPL with DPCI devices and set icid for GPP container to 0.
+- cmdif_client_flib.c Updated the code to support GPP and MC architectures. 
+- cmdif.h             Added architecture dependant files per architecture ls2100a_aiop, ls2100a_gpp.
+- cmdif_srv_flib.c    Added CMDIF server FLIB code which implements fsl_cmdif_flib_s.h API.
+- fsl_cmdif_*.h       All CMDIF API has been moved from src/include/common to src/include/kernel.
+- cmdif_client.c      Added AIOP asynchronious client for GPP server.
+- cmdif_srv.c         Updated AIOP server to support new DPCI (MC 0.4.2).
+
+- src/include/common/slob.h			moved to src/lib/fsl_slob.h
+- fsl_slab.h		moved to src/include/lib/fsl_slab.h , all includes are updated accordingly.
+- fsl_malloc.h 		moved to src/include/fsl_malloc.h , all includes are updated accordingly.
+                    Remove functions: fsl_os_malloc_debug(), fsl_os_xmalloc_debug(),
+					fsl_os_buff_get_num_of_blocks(), fsl_os_buff_get_size(), fsl_os_buff_inc_refcnt(),
+					fsl_os_buff_dec_refcnt_n_release(), fsl_os_buff_release(), fsl_os_buff_acquire().
+- time.h:           moved to kernel/inc/fsl_time.h
+- dpni_drv.h:       split to src/include/dplib/fsl_dpni_drv.h and src/drivers/dplib/include/dpni_drv.h
+                    fsl_dpni_drv.h (exposed to users) all includes updated accordingly
+
+- fsl_io.h:         added workaround to iowrite64 for disabling inline, CQ ENGR00319764
+
+- README.txt        updated to support working with ELF loader by default
+- list.h:           moved to src/lib/fsl_list.h, all includes updated accordingly.
+- dpl.dts:          change MAC address for dpni 2 to 00:00:02:00:00:02 (dpl.dtb was updated accordingly)
+- errors.h:         split to errors.h and fsl_errors.h for users. errors.h moved to src/kernel/inc, all include paths
+                    updated accordingly.
+
+- fsl_dbg           added device query: dbg_get_core_id(), dbg_get_num_of_cores(), dbg_get_max_num_of_cores()
+- gen.h:            moved from include/common to kernel/inc/fsl_gen.h
+                    include paths updated accordingly.
 - io.h:             moved from include/common to include/fsl_io.h
                     update include paths in all c and h files in aiop git.
 
 - fsl_dbg.h:        created to expose pr_debug, pr_info, etc to the users.
 - dbg.h:            split to dbg.h and fsl_dbg.h, move from include/common/dbg.h to krenel/inc/dbg.h 
-                    pr_error, pr_debug etc moved to fsl_debug which is exposed to users and in innclude/fsl_debug.h
+                    pr_error, pr_debug etc moved to fsl_debug which is exposed to users and in innclude/fsl_dbg.h
                     all the include paths updated accordingly.
 - .project:         updated to know fsl_dbg.h and fsl_io.h
 

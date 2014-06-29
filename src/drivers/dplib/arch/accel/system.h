@@ -141,7 +141,7 @@ struct storage_profile {
 		In this function the task yields.
 		This function may result in a fatal error.
 *//***************************************************************************/
-int32_t sys_prpid_pool_create(void);
+int sys_prpid_pool_create(void);
 
 /*************************************************************************//**
 @Function	sys_keyid_pool_create
@@ -157,7 +157,7 @@ int32_t sys_prpid_pool_create(void);
 		In this function the task yields.
 		This function may result in a fatal error.
 *//***************************************************************************/
-int32_t sys_keyid_pool_create(void);
+int sys_keyid_pool_create(void);
 
 /*************************************************************************//**
 @Function	aiop_sl_init
@@ -173,7 +173,7 @@ int32_t sys_keyid_pool_create(void);
 		In this function the task yields.
 		This function may result in a fatal error.
 *//***************************************************************************/
-int32_t aiop_sl_init(void);
+int aiop_sl_init(void);
 
 /*************************************************************************//**
 @Function	aiop_sl_free

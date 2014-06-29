@@ -4,10 +4,11 @@
 #include "dpni/drv.h"
 #include "fsl_fdma.h"
 #include "general.h"
+#include "fsl_time.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
-#include "common/fsl_slab.h"
-#include "kernel/platform.h"
+#include "fsl_slab.h"
+#include "platform.h"
 #include "fsl_io.h"
 #include "aiop_common.h"
 #include "kernel/fsl_spinlock.h"
@@ -40,6 +41,8 @@ __SHRAM uint8_t dpni_ctr; /*counts number of packets received before removing br
 __SHRAM uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
 __SHRAM uint8_t packet_number;
 __SHRAM uint8_t packet_lock;
+__SHRAM uint8_t time_lock;
+__SHRAM time_t global_time;
 
 __SHRAM int test_error;
 __SHRAM uint8_t test_error_lock;
@@ -51,6 +54,10 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	int core_id;
 	char *eth_ptr;
 
+	timeval tv;
+	timezone tz;
+	time_t t;
+	time_t local_time;
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 
@@ -60,7 +67,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
 
-		err = slab_test();
+	err = slab_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
 		local_test_error |= err;
@@ -97,7 +104,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Random test passed in runtime phase()\n");
 
 		lock_spinlock(&rnd_lock);
-		random_test_flag = 2;
+		random_test_flag ++;
 		unlock_spinlock(&rnd_lock);
 	}
 
@@ -145,6 +152,38 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		else {
 			fsl_os_print("dpni success - broadcast packets received during the test\n");
 		}
+
+
+	err = fsl_os_gettimeofday(&tv, &tz);
+	if(err){
+		fsl_os_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
+		local_test_error |= err;
+	}else {
+		fsl_os_print("timeofday is: %ll seconds and: %l microseconds \n",tv.tv_sec, tv.tv_usec);
+
+		local_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+		lock_spinlock(&time_lock);
+		if(local_time > global_time)
+		{
+			fsl_os_print("time test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
+			global_time = local_time;
+		}
+		else
+		{
+			fsl_os_print("ERROR = %d: time test failed in runtime phase \n", err);
+			local_test_error |= 0x01;
+		}
+		unlock_spinlock(&time_lock);
+	}
+
+	err = (int)fsl_os_time(&t);
+	if(err < 0){
+		fsl_os_print("ERROR = %d: fsl_os_time failed in runtime phase \n", err);
+		local_test_error |= err;
+	}else {
+		fsl_os_print("time in seconds: %ll, \n",t);
+	}
+
 
 
 

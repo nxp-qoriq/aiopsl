@@ -5,6 +5,7 @@
 #include <types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <cmdif.h>
 
 #ifndef ENAVAIL
 #define ENAVAIL		119	/*!< Resource not available, or not found */
@@ -13,7 +14,7 @@
 #define UNUSED(_x)	((void)(_x))
 
 #define FREE_MODULE    '\0'
-#define FREE_INSTANCE  (M_NUM_OF_MODULES) 
+#define FREE_INSTANCE  (M_NUM_OF_MODULES)
 
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) != CMD_ID_NOTIFY_CLOSE) && \
@@ -23,8 +24,16 @@
 	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
 	CMD_ID, SIZE, DATA))
 
+/** Blocking commands don't need response FD */
+#define SYNC_CMD(CMD)	\
+	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
+
+#define IS_VALID_AUTH_ID(ID) \
+	((srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
+	(srv->m_id != NULL) && (srv->m_id[(ID)] < M_NUM_OF_MODULES))
+
 void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
-			 void *(*slow_malloc)(int size))
+			void *(*slow_malloc)(int size))
 {
 	struct cmdif_srv *srv = fast_malloc(sizeof(struct cmdif_srv));
 
@@ -51,14 +60,14 @@ void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 	}
 
 	memset((uint8_t *)srv->m_name,
-	          FREE_MODULE,
-	          sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
+		FREE_MODULE,
+		sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
 	memset((uint8_t *)srv->inst_dev,
-	          NULL,
-	          sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
+		NULL,
+		sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
 	memset(srv->m_id,
-	          FREE_INSTANCE,
-	          M_NUM_OF_INSTANCES);
+		FREE_INSTANCE,
+		M_NUM_OF_INSTANCES);
 
 	srv->inst_count = 0;
 
@@ -67,8 +76,8 @@ void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 
 void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
 {
-	struct  cmdif_srv *srv = (struct  cmdif_srv *)_srv; 
-	
+	struct  cmdif_srv *srv = (struct  cmdif_srv *)_srv;
+
 	if (srv != NULL) {
 		if (srv->inst_dev)
 			free(srv->inst_dev);
@@ -111,8 +120,8 @@ static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	return -ENODEV;
 }
 
-static int module_id_alloc(struct cmdif_srv *srv, const char *m_name,
-                           struct cmdif_module_ops *ops)
+static int module_id_alloc( struct cmdif_srv *srv, const char *m_name,
+			struct cmdif_module_ops *ops)
 {
 	int i = 0;
 	int id = -ENAVAIL;
@@ -131,7 +140,7 @@ static int module_id_alloc(struct cmdif_srv *srv, const char *m_name,
 	if (id >= 0) {
 		strncpy(srv->m_name[id], m_name, M_NAME_CHARS);
 		srv->m_name[id][M_NAME_CHARS] = '\0';
-		
+
 		srv->ctrl_cb[id]  = empty_ctrl_cb;
 		srv->open_cb[id]  = empty_open_cb;
 		srv->close_cb[id] = empty_close_cb;
@@ -162,9 +171,9 @@ static int module_id_find(struct cmdif_srv *srv, const char *m_name)
 	return -ENAVAIL;
 }
 
-int cmdif_srv_register(void *srv, 
-                       const char *m_name, 
-                       struct cmdif_module_ops *ops)
+int cmdif_srv_register(void *srv,
+		const char *m_name,
+		struct cmdif_module_ops *ops)
 {
 
 	int    m_id = 0;
@@ -173,7 +182,7 @@ int cmdif_srv_register(void *srv,
 		return -EINVAL;
 
 	m_id = module_id_alloc((struct cmdif_srv *)srv, m_name, ops);
-	
+
 	if (m_id < 0)
 		return m_id;
 
@@ -203,13 +212,13 @@ static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 {
 	int r = 0;
 	int count = 0;
-	
+
 	if (srv == NULL)
 		return -EINVAL;
 
 	/* TODO remove random from flibs ?? */
 	r = rand() % M_NUM_OF_INSTANCES;
-	while ((srv->m_id[r] != FREE_INSTANCE) && 
+	while ((srv->m_id[r] != FREE_INSTANCE) &&
 		(count < M_NUM_OF_INSTANCES)) {
 		r = rand() % M_NUM_OF_INSTANCES;
 		count++;
@@ -224,7 +233,7 @@ static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 			count++;
 		}
 	}
-	
+
 	/* didn't find empty space */
 	if (count >= M_NUM_OF_INSTANCES) {
 		return -ENAVAIL;
@@ -241,13 +250,13 @@ static void inst_dealloc(int inst, struct cmdif_srv *srv)
 	srv->inst_count--;
 }
 
-int cmdif_srv_open(void *_srv, 
-                   const char *m_name, 
-                   uint8_t inst_id,  
-                   uint32_t dpci_id,
-                   uint32_t size, 
-                   void * v_data,                   
-                   uint16_t *auth_id)
+int cmdif_srv_open(void *_srv,
+		const char *m_name,
+		uint8_t inst_id,
+		uint32_t dpci_id,
+		uint32_t size,
+		void * v_data,
+		uint16_t *auth_id)
 {
 	int    err = 0;
 	int    m_id = 0;
@@ -255,85 +264,97 @@ int cmdif_srv_open(void *_srv,
 	struct cmdif_srv *srv = (struct cmdif_srv *)_srv;
 	struct cmdif_session_data *data = v_data;
 	void   *dev = NULL;
-	
+
 	if ((v_data != NULL) && (size < sizeof(struct cmdif_session_data)))
 		return -EINVAL;
 
 	if (auth_id == NULL)
 		return -EINVAL;
-		
+
+	/* TODO errors handling */
 	m_id = module_id_find(srv, m_name);
 	if (m_id < 0)
 		return m_id;
-	
+
 	err = srv->open_cb[m_id](inst_id, &dev);
-	if (err)
-		return err;
-	
 	id = inst_alloc(srv, (uint8_t)m_id);
 	if (id < 0)
 		return id;
-	
-	srv->inst_dev[id] = dev;
+
+	srv->inst_dev[id]  = dev;
+	srv->sync_done[id] = (uint64_t)v_data;
 	*auth_id = (uint16_t)id;
-	
+
+	/* Sending */
 	if (data != NULL) {
-		data->dev_id  = dpci_id;
+		data->dev_id  = CPU_TO_SRV32(dpci_id);
 		data->auth_id = *auth_id;
 		data->inst_id = inst_id;
 		strncpy(&data->m_name[0], m_name, M_NAME_CHARS);
 		data->m_name[M_NAME_CHARS] = '\0';
 	}
-	
-      	return 0;
+
+	return 0;
 }
 
-int cmdif_srv_close(void *srv, 
-                    uint16_t auth_id,                     
-                    uint32_t dpci_id,
-                    uint32_t size,
-                    void *v_data)
+int cmdif_srv_close(void *srv,
+		uint16_t auth_id,
+		uint32_t dpci_id,
+		uint32_t size,
+		void *v_data)
 {
 	int    err = 0;
 	struct cmdif_session_data *data = v_data;
 
 	if (size < sizeof(struct cmdif_session_data))
 		return -ENOMEM;
-	
-	/* TODO to be completed 
+
+	/* TODO to be completed
 	 * Error checking ! */
 	inst_dealloc(auth_id, srv);
 	if (data != NULL) {
 		data->auth_id = auth_id;
-		data->dev_id  = dpci_id; /* 1 DPCI = 1 Server */	
+		data->dev_id  = dpci_id; /* 1 DPCI = 1 Server */
 	}
 	return -ENODEV;
 }
 
-int cmdif_srv_cmd(void *_srv, 
-                  struct cmdif_fd *cfd, 
-                  struct cmdif_fd *cfd_out, 
-                  uint8_t *send_resp)
+int cmdif_srv_cmd(void *_srv,
+		struct cmdif_fd *cfd,
+		struct cmdif_fd *cfd_out,
+		uint8_t *send_resp)
 {
 	int    err = 0;
 	struct cmdif_srv * srv = (struct cmdif_srv *)_srv;
 
 	if ((cfd == NULL) || (srv == NULL) || (send_resp == NULL))
 		return -EINVAL;
-	
+
+	if (!IS_VALID_AUTH_ID(cfd->u_flc.cmd.auth_id))
+		return -EPERM;
+
 	*send_resp = SEND_RESP(cfd->u_flc.cmd.cmid);
-	
+
 	if (*send_resp && (cfd_out == NULL))
 		return -EINVAL;
 
-	
 	err = CTRL_CB(cfd->u_flc.cmd.auth_id, cfd->u_flc.cmd.cmid, \
-	              cfd->d_size, cfd->u_addr.d_addr);
+		cfd->d_size, cfd->u_addr.d_addr);
 
-	if (*send_resp) {
+	if (SYNC_CMD(cfd->u_flc.cmd.cmid)) {
+		if (srv->sync_done[cfd->u_flc.cmd.auth_id]) {
+			struct cmdif_session_data *sync_done = \
+				(struct cmdif_session_data *)\
+				srv->sync_done[cfd->u_flc.cmd.auth_id];
+			sync_done->err = (int8_t)err;
+			sync_done->done = 1;
+			sync_done->auth_id = cfd->u_flc.cmd.auth_id;
+		}
+
+	} else if (*send_resp) {
 		*cfd_out = *cfd;
 		cfd_out->u_flc.cmd.err = (uint8_t)err;
 	}
-	
+
 	return 0;
 }

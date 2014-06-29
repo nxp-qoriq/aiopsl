@@ -4,12 +4,12 @@
  @Description   Implementation of the memory allocation management module.
 *//***************************************************************************/
 
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_slob.h"
 #ifdef AIOP
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #endif /* AIOP */
 
 #include "mem_mng.h"

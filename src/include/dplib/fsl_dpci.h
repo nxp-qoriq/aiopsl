@@ -29,6 +29,7 @@ struct dpci {
 #endif
 
 #define DPCI_PRIO_NUM		2
+#define DPCI_VFQID_NOT_VALID	(uint32_t)(-1)
 
 /**
  *
@@ -58,7 +59,7 @@ int dpci_close(struct dpci *dpci);
  * @brief	Structure representing DPCI configuration
  */
 struct dpci_cfg {
-	uint8_t num_of_Priorities;
+	uint8_t num_of_priorities;
 };
 
 /**
@@ -116,6 +117,7 @@ struct dpci_dest_cfg {
 /*!<
  * 0-1 or 0-7 (depends on the channel type) to select the priority
  * (work-queue) within the channel (not relevant for the 'NONE' case)
+ * in AIOP only this field will be used to choose the WQ inside the channel
  */
 };
 
@@ -124,10 +126,9 @@ struct dpci_dest_cfg {
  * @brief	Attach the DPCI to the application
  *
  * @param[in]	dpci - Pointer to dpci object
- * @param[in]	priority - priority of requests to AIOP and of the returning
- *		queue (rx queue); use 0xFF to configure all priorities
+ * @param[in]	priority - relative number to the DPCI priorities 0-num_of priorities configured in the dpci_create() call ; use 0xFF to configure all priorities
  *		identically.
- * @param[in]	dest_cfg - attach configuration
+ * @param[in]	dest_cfg - entry point configuration
  * @param[in]	rx_user_ctx - User context; will be received with the
  *		FD in Rx.
  *
@@ -157,6 +158,8 @@ int dpci_free_rx_queue(struct dpci *dpci, uint8_t priority);
  * @param[in]	dpci - Pointer to dpci object
  *
  * @returns	'0' on Success; Error code otherwise.
+ * @warning	This function must be called before trying to send any data on the DPCI queues
+ *
  */
 int dpci_enable(struct dpci *dpci);
 
@@ -184,9 +187,9 @@ int dpci_reset(struct dpci *dpci);
  * @brief	Structure representing priority attributes parameters
  */
 struct dpci_prio_attr {
-	uint16_t tx_qid;
+	uint32_t tx_qid;
 	/*!< QID to be used for sending frames towards the AIOP */
-	uint16_t rx_qid;
+	uint32_t rx_qid;
 	/*!< QID to be used for reciving frames from the AIOP */
 	uint64_t rx_user_ctx;
 	/*!< User context to be received with the frames FD on the RX queue */
@@ -199,9 +202,9 @@ struct dpci_attr {
 	int id;
 	/*!< DPCI id */
 	int enable;
-	/*!< enable */
-	uint8_t attach_link;
-	/*!< DPCI attached to another DPCI*/
+	/*!< enable- only if DPCI is enabled, data can be recived on his rx queues */
+	uint8_t peer_attached;
+	/*!< DPCI is attached to a peer DPCI*/
 	uint8_t peer_id;
 	/*!< DPCI peer id */
 	uint8_t num_of_priorities;
@@ -229,11 +232,17 @@ int dpci_get_attributes(struct dpci *dpci, struct dpci_attr *attr);
 /**
  *
  * @brief	Retrieve the DPCI state of the link to other DPCI .
- *
+ *			
+ *			Each DPCI can be connected to a different DPCI, together they create a 'link', 
+ * 			each one is defining an entry point for a different entity, in order to use the 
+ * 			DPCI tx and rx queues the link state need to be up
+ * 			 
  * @param[in]	dpci - Pointer to dpci object
  * @param[out]	up - link status
  *
  * @returns	'0' on Success; Error code otherwise.
+ *   
+ * 
  */
 int dpci_get_link_state(struct dpci *dpci, int *up);
 
@@ -243,7 +252,7 @@ int dpci_get_link_state(struct dpci *dpci, int *up);
 #define DPCI_IRQ_INDEX				0
 /*!< Irq index */
 #define DPCI_IRQ_EVENT_LINK_CHANGED		0x00000001
-/*!< irq event - Indicates that the link state changed */
+/*!< irq event - Indicates that the DPCI link state changed */
 /* @} */
 
 /**

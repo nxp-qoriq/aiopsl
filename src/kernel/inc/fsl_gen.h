@@ -1,5 +1,5 @@
  /**************************************************************************//**
- @File          gen.h
+ @File          fsl_gen.h
 
  @Description   General FSL OS Standard Definitions
 *//***************************************************************************/
@@ -15,9 +15,14 @@
 
 #define PTR_MOVE(_ptr, _offset)	(void*)((uint8_t*)(_ptr) + (_offset))
 
-#define MAKE_UINT64(_h32, _l32)	(((uint64_t)high32 << 32) | (low32))
+#define MAKE_UINT64(_h32, _l32)	(((uint64_t)_h32 << 32) | (_l32))
+#define UINT32_LO(_w64)		((uint32_t)_w64)
+#define UINT32_HI(_w64)		(uint32_t)((_w64)>>32)
 
 #define MAKE_UMASK32(_width)	(uint32_t)(((uint64_t)1 << (_width)) - 1)
+#define MAKE_UMASK64(_width)	((uint64_t)((_width) < 64 ? ((uint64_t)1 << (_width)) - 1 \
+                                 : -1))
+
 
 
 /*----------------------*/

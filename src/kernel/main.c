@@ -1,6 +1,6 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 
 extern int sys_init(void);
 extern void sys_free(void);

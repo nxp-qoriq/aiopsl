@@ -34,7 +34,7 @@ void aiop_hm_init_parser()
 	verif_parse_profile.parse_profile.pppoe_ppp_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-	verif_parse_profile.parse_profile.mpls_hxs_config.lie_dnp = 
+	verif_parse_profile.parse_profile.mpls_hxs_config.lie_dnp =
 			PARSER_PRP_MPLS_HXS_CONFIG_LIE;
 	verif_parse_profile.parse_profile.arp_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.ip_hxs_config = 0x0;
@@ -138,6 +138,21 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			(struct hm_ipv4_dec_ttl_command *) asa_seg_addr;
 			ipv4_dec_ttl_modification();
 			str_size = sizeof(struct hm_ipv4_dec_ttl_command);
+			break;
+		}
+
+		/* HM IPv4 time-stamp option Command Verification */
+		case HM_IPV4_TS_OPT_CMD_STR:
+		{
+			struct ipv4hdr *ipv4_hdr_ptr = 
+					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+			/* assuming IP TS OPT comes as the first option */
+			uint8_t *ip_opt_ptr = (uint8_t *)ipv4_hdr_ptr + 20;
+			struct hm_ipv4_ts_opt_command *str =
+			(struct hm_ipv4_ts_opt_command *) asa_seg_addr;
+			str->status = ipv4_ts_opt_modification(ipv4_hdr_ptr,
+					ip_opt_ptr, str->ip_address);
+			str_size = sizeof(struct hm_ipv4_ts_opt_command);
 			break;
 		}
 
@@ -379,6 +394,26 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			(struct hm_pop_vlan_command *) asa_seg_addr;
 			str->status = l2_pop_vlan();
 			str_size = sizeof(struct hm_pop_vlan_command);
+			break;
+		}
+		/* HM pop VLAN Command Verification */
+		case HM_ARP_RESPONSE_CMD_STR:
+		{
+			struct hm_arp_response_command *str =
+				(struct hm_arp_response_command *)asa_seg_addr;
+			l2_arp_response();
+			str->status = SUCCESS;
+			str_size = sizeof(struct hm_arp_response_command);
+			break;
+		}
+		/* HM pop VLAN Command Verification */
+		case HM_SET_L2_SRC_DST_CMD_STR:
+		{
+			struct hm_set_l2_src_dst_command *str =
+			    (struct hm_set_l2_src_dst_command *)asa_seg_addr;
+			l2_set_hw_src_dst(str->target_hw_addr);
+			str->status = SUCCESS;
+			str_size = sizeof(struct hm_set_l2_src_dst_command);
 			break;
 		}
 		case HM_IP_CKSUM_CALCULATE_CMD_STR:

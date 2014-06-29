@@ -20,7 +20,7 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 
 
-int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
+int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
 
@@ -39,7 +39,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 }
 
 
-/*inline */int32_t ipf_after_split_ipv4_fragment(struct ipf_context *ipf_ctx)
+/*inline */int ipf_after_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
 	struct fdma_present_segment_params present_segment_params;
@@ -61,6 +61,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				ipv4_hdr->total_length,
 				ip_total_length);
 		ipv4_hdr->total_length = ip_total_length;
+		ipf_ctx->prev_frag_offset = frag_offset;
 
 		/* Calculate frag offset for next fragment */
 		if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS){
@@ -140,7 +141,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	return status;
 }
 
-/*inline*/ int32_t ipf_after_split_ipv6_fragment(struct ipf_context *ipf_ctx,
+/*inline*/ int ipf_after_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 						uint32_t last_ext_hdr_size)
 {
 	int32_t	status;
@@ -300,7 +301,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	return status;
 }
 
-/*inline*/int32_t ipf_ipv4_last_frag(struct ipf_context *ipf_ctx)
+/*inline*/int ipf_ipv4_last_frag(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
 	struct fdma_amq isolation_attributes;
@@ -359,7 +360,7 @@ int32_t ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 }
 
 
-int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
+int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
 	struct fdma_split_frame_params split_frame_params;
@@ -445,7 +446,7 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	}
 }
 
-/*inline*/int32_t ipf_ipv6_last_frag(struct ipf_context *ipf_ctx)
+/*inline*/int ipf_ipv6_last_frag(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
 	struct fdma_amq isolation_attributes;
@@ -505,7 +506,7 @@ int32_t ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	return IPF_GEN_FRAG_STATUS_DONE;
 }
 
-int32_t ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
+int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 					uint32_t last_ext_hdr_size)
 {
 	int32_t	status;
@@ -597,7 +598,7 @@ int32_t ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 }
 
 
-int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
+int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 {
 	struct ipf_context *ipf_ctx = (struct ipf_context *)ipf_context_addr;
 
@@ -758,7 +759,7 @@ int32_t ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 	}
 }
 
-int32_t ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr)
+int ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr)
 {
 	struct ipf_context *ipf_ctx = (struct ipf_context *)ipf_context_addr;
 	fdma_discard_frame(

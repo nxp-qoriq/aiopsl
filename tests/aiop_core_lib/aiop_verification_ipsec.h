@@ -33,6 +33,7 @@
 #define IPSEC_FRAME_DECRYPT_CMD				7 | (IPSEC_MODULE << 16)
 #define IPSEC_FRAME_ENCRYPT_CMD 			8 | (IPSEC_MODULE << 16)
 #define IPSEC_CREATE_INSTANCE_CMD 			10 | (IPSEC_MODULE << 16)
+#define IPSEC_DELETE_INSTANCE_CMD 			11 | (IPSEC_MODULE << 16)
 #define IPSEC_FRAME_ENCR_DECR_CMD 		   16 | (IPSEC_MODULE << 16)
 
 // Temporary workaround commands
@@ -74,13 +75,40 @@ struct ipsec_init_command {
 	uint32_t status_addr;
 };
 
+/**************************************************************************//**
+@Description	IPsec Create Instance Command structure.
+
+*//****************************************************************************/
 struct ipsec_create_instance_command {
 	uint32_t opcode;
 	uint32_t committed_sa_num;
 	uint32_t max_sa_num;
 	uint32_t instance_flags;
 	uint8_t tmi_id;
-	uint64_t instance_handle;
+	
+	uint32_t instance_id;
+	uint64_t instance_addr; /* descriptor address */
+	
+	//uint64_t instance_handle;
+	
+	/** Returned Value: presentation context. */
+	struct presentation_context prc;
+
+	int32_t status; /* Function call return status */
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+};
+
+/**************************************************************************//**
+@Description	IPsec Delete Instance Command structure.
+
+*//****************************************************************************/
+struct ipsec_delete_instance_command {
+	uint32_t opcode;
+
+	uint32_t instance_id;
 	
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
@@ -92,6 +120,7 @@ struct ipsec_create_instance_command {
 	uint32_t status_addr;
 };
 	
+
 /**************************************************************************//**
 @Description	IPsec Add SA Descriptor Command structure.
 
@@ -101,8 +130,9 @@ struct ipsec_add_sa_descriptor_command {
 	struct ipsec_descriptor_params params;
 	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
 	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
-	
-	uint64_t instance_handle;
+
+	//uint64_t instance_handle;
+	uint32_t instance_id;
 
 	uint64_t descriptor_addr; /* descriptor address */
     uint8_t outer_ip_header[80]; /* outer IP header */

@@ -395,6 +395,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 	sr_status = fdma_concatenate_frames(&concat_params);
 	/* Report to the user that due to a concatenation failure (due to buffer
 	 * pool depletion) the aggregation was discarded. */
+	status = SUCCESS;
 	if (sr_status != SUCCESS){
 		struct fdma_split_frame_params split_params;
 		split_params.flags =
@@ -418,17 +419,15 @@ int tcp_gro_add_seg_and_close_aggregation(
 			GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		gro_ctx->metadata.seg_num--;
-		status = TCP_GRO_DISCARD_SEG_SET;
+		status = TCP_GRO_SEG_DISCARDED;
 		/* aggregation continue without the single segment. */
-	} else {
-		status = SUCCESS;
 	}
 	/* store aggregated frame*/
 	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
 				*((uint8_t *)HWC_SPID_ADDRESS),
 				&(gro_ctx->agg_fd_isolation_attributes));
 */
-	if (!(gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET)) {
+	else { /* relocate aggregation in default location */
 		/* copy aggregated FD to default FD */
 		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx->agg_fd;
 

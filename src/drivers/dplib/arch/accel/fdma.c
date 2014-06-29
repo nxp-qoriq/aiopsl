@@ -1235,6 +1235,7 @@ void fdma_modify_default_segment_data(
 		fdma_handle_fatal_errors((int32_t)res1);
 }
 
+#ifdef REV2
 void fdma_modify_segment_data(
 		uint8_t frame_handle,
 		uint8_t seg_handle,
@@ -1266,6 +1267,7 @@ void fdma_modify_segment_data(
 	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
 }
+#endif /* REV2*/
 
 int fdma_replace_default_segment_data(
 		uint16_t to_offset,

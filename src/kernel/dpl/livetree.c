@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "common/types.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "common/fsl_string.h"
 
 #include "dpl/dtc.h"

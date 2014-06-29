@@ -211,7 +211,7 @@
     } while (0)
 #endif /* DEBUG_ERRORS > 0 */
 
-#include "common/errors.h"
+#include "fsl_errors.h"
 
 #if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
 /* No debug/error/event messages at all */

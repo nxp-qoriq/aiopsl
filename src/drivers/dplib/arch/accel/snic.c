@@ -11,8 +11,8 @@
 #include "net/fsl_net.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "common/errors.h"
-#include "kernel/platform.h"
+#include "fsl_errors.h"
+#include "platform.h"
 #include "fsl_io.h"
 #include "aiop_common.h"
 #include "fsl_parser.h"
@@ -28,7 +28,7 @@
 #include "osm.h"
 
 #include "dplib/fsl_ipf.h"
-#include "common/fsl_cmdif_server.h"
+#include "fsl_cmdif_server.h"
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
 	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);

@@ -11,11 +11,8 @@
 
 #include "inc/dbg.h"
 #include "inc/fsl_core.h"
-#include "kernel/smp.h"
+#include "fsl_smp.h"
 
-#ifdef pr_debug
-#undef pr_debug
-#endif
 /**************************************************************************//**
  @Function      pr_debug(...)
 
@@ -27,9 +24,6 @@
 *//***************************************************************************/
 #define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
 
-#ifdef pr_info
-#undef pr_info
-#endif
 /**************************************************************************//**
  @Function      pr_info(...)
 
@@ -41,9 +35,6 @@
 *//***************************************************************************/
 #define pr_info(...) 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__)
 
-#ifdef pr_warn
-#undef pr_warn
-#endif
 /**************************************************************************//**
  @Function      pr_warn(...)
 
@@ -55,9 +46,6 @@
 *//***************************************************************************/
 #define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
 
-#ifdef pr_err
-#undef pr_err
-#endif
 /**************************************************************************//**
  @Function      pr_err(...)
 
@@ -69,9 +57,6 @@
 *//***************************************************************************/
 #define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
 
-#ifdef pr_crit
-#undef pr_crit
-#endif
 /**************************************************************************//**
  @Function      pr_err(...)
 
@@ -95,18 +80,18 @@
 /**************************************************************************//**
  @Function      dbg_get_num_of_cores
 
- @Description   Returns the core ID in the system.
+ @Description   Returns the number of active cores in the system.
 
- @Return        Core ID.
+ @Return        number of active cores.
 *//***************************************************************************/
 #define dbg_get_num_of_cores()    sys_get_num_of_cores()
 
 /**************************************************************************//**
  @Function      dbg_get_max_num_of_cores
 
- @Description   Returns the core ID in the system.
+ @Description   Returns the number of existing cores in the system.
 
- @Return        Core ID.
+ @Return        number of existing cores.
 *//***************************************************************************/
 #define dbg_get_max_num_of_cores()    sys_get_max_num_of_cores()
 

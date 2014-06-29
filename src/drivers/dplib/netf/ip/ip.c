@@ -16,6 +16,7 @@
 #include "checksum.h"
 #include "header_modification.h"
 #include "ip.h"
+#include "fsl_time.h"
 
 
 int32_t ip_header_decapsulation(uint8_t flags)
@@ -312,6 +313,109 @@ void ipv4_dec_ttl_modification(void)
 	 * checksum was also updated */
 	/* update IP header in FDMA including check-sum */
 	fdma_modify_default_segment_data(ipv4hdr_offset + 8, 4);
+}
+
+int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr, 
+		uint32_t ip_address)
+{
+	uint8_t length = TS_OPT_GET_LENGTH();
+	uint8_t ptr_next_ts = TS_OPT_GET_PTR();
+	uint8_t overflow_flag = TS_OPT_GET_OVRFLOW_FLAG();
+	uint16_t ipv4_offset = (uint16_t)((uint32_t)ipv4_hdr 
+			- PRC_GET_SEGMENT_ADDRESS());
+	uint32_t old_val, new_val, ut;
+	uint16_t fdma_size;
+	struct timeval tv = {0,0};
+	uint32_t *ts_ptr;
+
+	if (length < 4)
+		return -EIO;
+		
+	if (ptr_next_ts < 5)
+		return -ENOSPC;
+	fdma_size = (uint16_t)((uint32_t)ip_opt_ptr - (uint32_t)ipv4_hdr);
+	if (ptr_next_ts > length)
+	{
+		if ((overflow_flag & 0xf0) == 0xf0)
+			return -ENODEV;
+		else
+		{
+			overflow_flag += 0x10;
+			old_val = TS_OPT_GET_FIRST_WORD();
+			TS_OPT_SET_OVRFLOW_FLAG();
+			new_val = TS_OPT_GET_FIRST_WORD();
+			/* need updating IPv4 header checksum */
+			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+					    old_val,
+					    new_val);
+			/* including first word from TS option */
+			fdma_size += 4;
+			fdma_modify_default_segment_data(ipv4_offset,
+					fdma_size);
+			return IP_TS_OPT_INC_OVERFLOW;
+		}
+	}
+	else
+	{
+		fsl_os_gettimeofday(&tv, NULL);
+		ut = (uint32_t)((tv.tv_sec % 86400) * 1000 + tv.tv_usec/1000);
+		ts_ptr = (uint32_t *)(ip_opt_ptr + ptr_next_ts - 1);
+		switch (TS_OPT_GET_FLAG())
+		{
+		case AIOP_IPOPT_TS_TSONLY:
+			/* if length - (ptr_next_ts - 1) >= 4 it is ok */
+			if ((length - ptr_next_ts) < 3 )
+				return -ENOSPC;
+			*ts_ptr = ut;
+			TS_OPT_SET_PTR(4);
+			/* need updating IPv4 header checksum */
+			/* rfc says old val must be 0 */
+			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+					    0,
+					    ut);
+			break;
+		case AIOP_IPOPT_TS_TSANDADDR:
+			/* if length - (ptr_next_ts - 1) >= 8 it is ok */
+			if ((length - ptr_next_ts) < 7 )
+				return -ENOSPC;
+			*ts_ptr++ = ip_address;
+			*ts_ptr = ut;
+			TS_OPT_SET_PTR(8);
+			/* need updating IPv4 header checksum */
+			/* rfc says old val must be 0 */
+			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+					    0,
+					    ip_address);
+			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+					    0,
+					    ut);
+			break;
+		case AIOP_IPOPT_TS_PRESPEC:
+			/* if length - (ptr_next_ts - 1) >= 8 it is ok */
+			if ((length - ptr_next_ts) < 7 )
+				return -ENOSPC;
+			if (*ts_ptr == ip_address)
+			{
+				ts_ptr++;
+				*ts_ptr = ut;
+				TS_OPT_SET_PTR(8);
+				/* need updating IPv4 header checksum */
+				/* rfc says old val must be 0 */
+				cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+						    0,
+						    ut);
+			}
+			else
+				return SUCCESS;
+			break;
+		default:
+			break;
+		}
+	}
+	
+	fdma_size += ptr_next_ts - 1;
+	fdma_modify_default_segment_data(ipv4_offset, fdma_size);
+	return SUCCESS;
 }
 
 void ipv6_mangle(uint8_t flags, uint8_t dscp, uint8_t hop_limit, 

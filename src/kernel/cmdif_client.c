@@ -1,12 +1,11 @@
 #include "common/types.h"
-#include "common/gen.h"
-#include "common/errors.h"
+#include "inc/fsl_gen.h"
+#include "fsl_errors.h"
 #include "common/fsl_string.h"
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "general.h"
 #include "sys.h"
 #include "fsl_dbg.h"
-#include "errors.h"
 #include "cmdif_client_aiop.h"
 #include "fsl_cmdif_fd.h"
 #include "fsl_cmdif_flib_c.h"
@@ -36,7 +35,8 @@
 					E_MAPPED_MEM_TYPE_GEN_REGS) \
 					+ SOC_PERIPH_OFF_AIOP_WRKS);
 
-/* TODO get rid of it ?*/
+/* TODO get rid of it !
+ * Should move to stack */
 __TASK static struct ldpaa_fd _fd \
 __attribute__((aligned(sizeof(struct ldpaa_fd))));
 
@@ -104,7 +104,7 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	if (BDI_GET != 0)
 		flags |= FDMA_ENF_BDI_BIT;
 
-	pr_debug("Sending to fqid 0x%x fdma flags = 0x%x", fqid, flags);
+	pr_debug("Sending to fqid 0x%x fdma flags = 0x%x\n", fqid, flags);
 
 	err = fdma_enqueue_fd_fqid(&_fd, flags , fqid, ICID_GET);
 	if (err) {
@@ -222,8 +222,10 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		return -EINVAL; /* Buffer are allocated by GPP */
 
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
-	if (err != 0)
+	if (err != 0) {
+		pr_err("Session not found\n");
 		return err;
+	}
 
 	dev = (struct cmdif_dev *)cidesc->dev;
 	dev->async_cb  = async_cb;
@@ -243,18 +245,16 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	int      t   = 0;
 	union cmdif_data done;
 
+	if (cmdif_is_sync_cmd(cmd_id))
+		return -ENOTSUP;
+
 	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
-	if (err) {
-		pr_err("Failed to build command\n");
+	if (err)
 		return -EINVAL;
-	}
 
 	err = send_fd(&fd, pr, cidesc->regs);
-
-	if (err) {
-		pr_err("Failed to send command\n");
+	if (err)
 		return -EINVAL;
-	}
 
 	if (cmdif_is_sync_cmd(cmd_id)) {
 		do {
@@ -264,6 +264,7 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 			t++;
 		} while ((done.resp.done == 0) && (t < CMDIF_TIMEOUT));
 
+		pr_debug("PASSED sync cmd 0x%x \n", cmd_id);
 		done.resp.done = 0;
 		if (t >= CMDIF_TIMEOUT)
 			return -ETIMEDOUT;
@@ -271,6 +272,7 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 			return done.resp.err;
 	}
 
+	pr_debug("PASSED no response cmd 0x%x \n", cmd_id);
 	return 0;
 }
 
@@ -286,12 +288,12 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
-	pr_debug("AIOP client received response for command 0x%x\n",
-	         fd.u_flc.cmd.cmid);
+	pr_debug("PASSED async cmd 0x%x\n", fd.u_flc.cmd.cmid);
 
 	err = cmdif_async_cb(&fd);
 	if (err) {
-		pr_err("Asynchronous callback returned error %d", err);
+		pr_debug("Async callback cmd 0x%x returned error %d", \
+		         fd.u_flc.cmd.cmid, err);
 	}
 	fdma_store_default_frame_data();
 	fdma_terminate_task();
