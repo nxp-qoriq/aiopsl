@@ -27,7 +27,9 @@ void app_free(void);
 #define OPEN_CMD	0x100
 #define NORESP_CMD	0x101
 #define ASYNC_CMD	0x102
-#define SYNC_CMD 	0x103
+#define SYNC_CMD 	(0x103 & CMDIF_NORESP_CMD)
+#define ASYNC_N_CMD	0x104
+#define OPEN_N_CMD	0x105
 
 __SHRAM struct cmdif_desc cidesc;
 uint8_t send_data[64];
@@ -79,18 +81,51 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	             size,
 	             (uint32_t)((data & 0xFF00000000) >> 32),
 	             (uint32_t)(data & 0xFFFFFFFF));
+}
 
-	switch (cmd & ~CMDIF_NORESP_CMD) {
+__HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
+                              uint64_t data)
+{
+	int err = 0;
+	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
+
+	UNUSED(dev);
+	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
+	             cmd,
+	             size,
+	             (uint32_t)((data & 0xFF00000000) >> 32),
+	             (uint32_t)(data & 0xFFFFFFFF));
+
+	switch (cmd) {
 	case OPEN_CMD:
 		cidesc.regs = 0; /* DPCI 0 is used by MC */
 		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
 		                 NULL, NULL, 0);
+		break;
+	case OPEN_N_CMD:
+		cidesc.regs = 0; /* DPCI 0 is used by MC */
+		err |= cmdif_open(&cidesc, "IRA0", 0, async_cb, cidesc.regs,
+		                 NULL, NULL, 0);
+		err |= cmdif_open(&cidesc, "IRA3", 0, async_cb, cidesc.regs,
+		                 NULL, NULL, 0);
+		err |= cmdif_open(&cidesc, "IRA2", 0, async_cb, cidesc.regs,
+		                 NULL, NULL, 0);
+		if (err) {
+			fsl_os_print("failed to cmdif_open()\n");
+			return err;
+		}
 		break;
 	case NORESP_CMD:
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64, 0, p_data);
 		break;
 	case ASYNC_CMD:
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64, 0, p_data);
+		break;
+	case ASYNC_N_CMD:
+		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, 64, 0, p_data);
+		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, 64, 1, p_data);
+		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, 64, 0, p_data);
+		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, 64, 1, p_data);
 		break;
 	case SYNC_CMD:
 		err = cmdif_send(&cidesc, 0xa, 64, 0, p_data);
@@ -101,17 +136,15 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	return err;
 }
 
-static struct cmdif_module_ops ops = {
-                               .open_cb = open_cb,
-                               .close_cb = close_cb,
-                               .ctrl_cb = ctrl_cb
-};
 
 int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
+	char       module[10];
+	int        i = 0;
+	struct cmdif_module_ops ops;
 
 	fsl_os_print("Running app_init()\n");
 
@@ -126,9 +159,22 @@ int app_init(void)
 		if (err) return err;
 	}
 
-	err = cmdif_register_module("TEST0", &ops);
-	if (err)
-		fsl_os_print("FAILED cmdif_register_module\n!");
+
+	for (i = 0; i < 20; i++) {
+		ops.close_cb = close_cb;
+		ops.open_cb = open_cb;
+		if (i == 0)
+			ops.ctrl_cb = ctrl_cb0; /* TEST0 is used for srv tests*/
+		else
+			ops.ctrl_cb = ctrl_cb;
+		snprintf(module, sizeof(module), "TEST%d", i);
+		err = cmdif_register_module(module, &ops);
+		if (err) {
+			fsl_os_print("FAILED cmdif_register_module %s\n!",
+			             module);
+			return err;
+		}
+	}
 
 	return 0;
 }

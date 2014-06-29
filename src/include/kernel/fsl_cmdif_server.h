@@ -72,7 +72,10 @@ User provides this function. Driver invokes it for all runtime commands
 		module open callback
 @Param[in]	cmd -  Id of command
 @Param[in]	size - Size of the data
-@Param[in]	data - Data of the command
+@Param[in]	data - Data of the command - physical address.
+		AIOP server will pass here address to the start of presentation
+		segment - physical address is the same as virtual.
+		On AIOP use fdma_modify_default_segment_data() if needed.
 
 @Return		OK on success; error code, otherwise.
  *//***************************************************************************/

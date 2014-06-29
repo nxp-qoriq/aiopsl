@@ -14,6 +14,8 @@ dpni_drv.c:         Added multicore support to dpni_drv_unregister_rx_cb and dpn
                     added fix for storing spid
 drv.h:              uint8_t dpni_lock was added to support multicore
 
+- fsl_cmdif_server.h  Added documentation for ctrl_cb_t.
+                      AIOP server will pass as data address to the start of presentation segment.
 - README.txt          Move to LS_SIM_m0116.
 - fsl_sys:            added include for fsl_soc_aiop_spec.h to solve compilation error.
 - arena_test.c:       added test for fsl_os_gettimeofday()
