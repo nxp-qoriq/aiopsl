@@ -82,7 +82,9 @@ int tcp_gro_aggregate_seg(
 	/* Flush Aggregation */
 	if ((tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) ||
 	    (params->limits.seg_num_limit <= 1)	||
-	    (params->limits.packet_size_limit <= seg_size))
+	    (params->limits.packet_size_limit <= seg_size) ||
+	    (gro_ctx.internal_flags & (
+		TCP_GRO_AGG_TIMER_IN_PROCESS | TCP_GRO_FLUSH_AGG_SET)))
 		return TCP_GRO_SEG_AGG_DONE;
 
 	/* Aggregate */
@@ -505,6 +507,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 	if (timer_status != SUCCESS){
 		fdma_store_default_frame_data();
 		gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
+		gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
 		return (TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status);
 	} else {
 		return (TCP_GRO_SEG_AGG_DONE | status);
@@ -687,6 +690,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 				gro_ctx->agg_fd =
 					*((struct ldpaa_fd *)HWC_FD_ADDRESS);
 			}
+			gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
 			return TCP_GRO_SEG_AGG_DONE |
 					TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
 					status;
@@ -798,7 +802,12 @@ int tcp_gro_flush_aggregation(
 		/* if the timer cannot be deleted, the timer will handle the
 		 * aggregation.  */
 		if (sr_status != SUCCESS) {
-			cdma_mutex_lock_release(tcp_gro_context_addr);
+			gro_ctx.internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
+			/* write gro context back to DDR + release mutex */
+			cdma_write_with_mutex(tcp_gro_context_addr,
+				CDMA_POSTDMA_MUTEX_RM_BIT,
+				(void *)&gro_ctx,
+				(uint16_t)sizeof(struct tcp_gro_context));
 			return TCP_GRO_FLUSH_TIMER_IN_PROCESS;
 		}
 
