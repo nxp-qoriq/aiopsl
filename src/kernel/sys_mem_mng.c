@@ -1,10 +1,10 @@
 
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
 
 #include "inc/mem_mng_util.h"
-#include "inc/mem_mng.h"
+#include "fsl_mem_mng.h"
 #include "sys.h"
 
 

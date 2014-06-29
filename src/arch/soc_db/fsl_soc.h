@@ -9,13 +9,13 @@
 #define __FSL_SOC_H
 
 #include "common/types.h"
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 
 
 #if defined(LS2100A)
-#include "soc_db/fsl_soc_spec_ls2100a.h"
+#include "fsl_soc_spec_ls2100a.h"
 #elif defined(LS1080A)
-#include "soc_db/fsl_soc_spec_ls1080a.h"
+#include "fsl_soc_spec_ls1080a.h"
 #else
 #error "unable to proceed without chip-definition"
 #endif /* chip select */

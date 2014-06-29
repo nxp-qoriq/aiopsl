@@ -1,15 +1,13 @@
 #include "common/types.h"
-#include "common/gen.h"
-#include "common/errors.h"
+#include "inc/fsl_gen.h"
+#include "fsl_errors.h"
 #include "common/fsl_string.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
 #include "fsl_io.h"
 #include "fsl_fdma.h"
-#include "sys.h"
 #include "fsl_dbg.h"
 #include "fsl_cdma.h"
-#include "errors.h"
 #include "cmdif_client.h"
 #include "fsl_cmdif_flib_c.h"
 
@@ -56,15 +54,15 @@ void client_open_cmd(struct cmdif_desc *client, void *sync_done)
 	int        err = 0;
 	uint8_t    *v_ptr = NULL;
 
-	err = cmdif_open_cmd(client, 
-	                     module, 
-	                     3, 
-	                     cmdif_cb, 
+	err = cmdif_open_cmd(client,
+	                     module,
+	                     3,
+	                     cmdif_cb,
 	                     NULL,
-	                     sync_done, 
-	                     p_data, 
-	                     (sizeof(struct cmdif_dev) + 
-	                	     sizeof(union cmdif_data)), 
+	                     sync_done,
+	                     p_data,
+	                     (sizeof(struct cmdif_dev) +
+	                	     sizeof(union cmdif_data)),
 	                     &fd);
 	if (err) {
 		fsl_os_print("FAILED client_open_cmd\n");

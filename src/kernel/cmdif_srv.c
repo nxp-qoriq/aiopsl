@@ -1,6 +1,6 @@
 #include "common/types.h"
-#include "common/gen.h"
-#include "common/errors.h"
+#include "inc/fsl_gen.h"
+#include "fsl_errors.h"
 #include "common/fsl_string.h"
 #include "general.h"
 #include "fsl_ldpaa_aiop.h"
@@ -12,7 +12,6 @@
 #include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "aiop_common.h"
-#include "errors.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
@@ -286,11 +285,15 @@ int cmdif_srv_init(void)
 
 	err = sys_add_handle(srv_aiop, FSL_OS_MOD_CMDIF_SRV, 1, 0);
 
+#ifndef OLD_DPCI
 	if (srv_aiop->dpci_tbl == NULL)
 	{
-		pr_err("No DPCI table \n");
+		pr_err("No DPCI table on AIOP, CMDIF is not functional \n");
+		pr_info("All AIOP DPCIs should be defined in DPL\n");
+		pr_info("All AIOP DPCIs should have peer before AIOP boot\n");
 		return -ENODEV;
 	}
+#endif
 
 	return err;
 }
@@ -324,7 +327,14 @@ __HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 	ind = (uint8_t)(fqid >> 1);
 	pr  = (uint8_t)(fqid & 1);
 	fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+	 /* Do it only if queue is not there yet */
+	if (fqid == 0xFFFFFFFF) {
+		err = dpci_get_attributes(&aiop_srv->dpci_tbl->dpci[ind],
+		                          &aiop_srv->dpci_tbl->attr[ind]);
+		fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+	}
 #endif
+
 	pr_debug("Response ID = 0x%x\n", fqid);
 	pr_debug("CB error = %d\n", cb_err);
 
@@ -401,8 +411,9 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int ind = 0;
-	int link_up = 0;
+	int link_up = 1;
 	struct dpci_obj *dpci_tbl = NULL;
+	int err = 0;
 
 	pr_debug("Got notify open for AIOP client \n");
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
@@ -432,18 +443,21 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
 	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
 
-#if 0
-	/* Removed it in order not to call MC inside task
-	 * TODO consider if this is the right thing to do ? */
-	if (dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up)) {
-		pr_err("Failed to get DPCI link status\n");
-		return -EACCES;
-	}
+	/* TODO check with Ehud about  dpci_get_attributes() */
+#if 0 //#ifdef DEBUG //TODO debug why it fails on MC when MC is server
+	 /* DEBUG in order not to call MC inside task */
+	 err = dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up);
+	 if (err) {
+		 pr_err("Failed to get dpci_get_link_state\n");
+	 }
 #endif
-	/* TODO remove it after  dpci_get_link_state() is fixed */
-	link_up = 1;
+	 /* Do it only if queues are not there */
+	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == 0xFFFFFFFF) {
+		 err = dpci_get_attributes(&dpci_tbl->dpci[ind],
+		                           &dpci_tbl->attr[ind]);
+	 }
 
-	if (!dpci_tbl->attr[ind].attach_link ||
+	if (!dpci_tbl->attr[ind].peer_attached ||
 		!dpci_tbl->attr[ind].enable  ||
 		!link_up) {
 		pr_err("DPCI is not enabled or not linked to other DPCI\n");

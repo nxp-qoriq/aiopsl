@@ -10,6 +10,9 @@
 #include "dplib/fsl_cdma.h"
 #include "fsl_platform.h"
 
+#include "dplib/fsl_ipsec.h"
+#include "ipsec.h"
+
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
 
@@ -19,7 +22,7 @@ extern void tman_timer_callback(void);
 
 #else
 #include "slab.h"
-#include "kernel/platform.h"
+#include "platform.h"
 
 #include "fsl_dbg.h"
 #include "fsl_io.h"
@@ -41,10 +44,13 @@ extern int aiop_snic_init(void);
 __SHRAM uint64_t ext_prpid_pool_address;
 __SHRAM uint64_t ext_keyid_pool_address;
 
-//__PROFILE_SRAM struct  storage_profile storage_profile;
+/* IPsec Instance global parameters */
+extern __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
+
+/* Storage profiles array */
 __PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 
-int32_t sys_prpid_pool_create(void)
+int sys_prpid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
@@ -64,7 +70,7 @@ int32_t sys_prpid_pool_create(void)
 }
 
 
-int32_t sys_keyid_pool_create(void)
+int sys_keyid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
@@ -82,29 +88,21 @@ int32_t sys_keyid_pool_create(void)
 	return 0;
 }
 
-int32_t aiop_sl_init(void)
+int aiop_sl_init(void)
 {
 	int32_t status = 0;
+	//extern struct ipsec_global_instance_params ipsec_global_instance_params;
 
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init params*/
 	uint32_t val;
 	uint32_t *addr;
 #endif
-
-
-#ifndef AIOP_VERIF
-	/* Variables needed for Storage Profile Init */
-	uint16_t buffer_pool_id;
-	int num_filled_buffs;
-
-	status = slab_find_and_fill_bpid(300, 2048, 8,
-			MEM_PART_DP_DDR,
-			&num_filled_buffs, &buffer_pool_id);
-	if (status < 0)
-		handle_fatal_error((char *)status); /*TODO Fatal error*/
-#endif
-
+	
+	/* Initialize IPsec instance global parameters */
+	ipsec_global_instance_params.instance_count = 0;
+	ipsec_global_instance_params.spinlock = 0;
+	
 	/* initialize profile sram */
 
 	/* Default Storage Profile */
@@ -121,23 +119,13 @@ int32_t aiop_sl_init(void)
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	 * 0x0801 --> 0x0108 (little endian) */
 	storage_profiles[SP_DEFAULT].pbs1 = 0x0108;
-#ifndef AIOP_VERIF
-	/* __lhbr swaps the bytes for little endian */
-	storage_profiles[SP_DEFAULT].bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
-#else
 	/* BPID=0 */
 	storage_profiles[SP_DEFAULT].bpid1 = 0x0000;
-#endif
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	* 0x0801 --> 0x0108 (little endian) */
 	storage_profiles[SP_DEFAULT].pbs2 = 0x0108;
-#ifndef AIOP_VERIF
-	/* __lhbr swaps the bytes for little endian */
-	storage_profiles[SP_DEFAULT].bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
-#else
-	/* BPID=1, 0x0001 --> 0x0100 (little endian) */
-	storage_profiles[SP_DEFAULT].bpid2 = 0x0100;
-#endif
+	/* BPID=0 */
+	storage_profiles[SP_DEFAULT].bpid2 = 0x0000;
 	storage_profiles[SP_DEFAULT].pbs3 = 0x0000;
 	storage_profiles[SP_DEFAULT].bpid3 = 0x0000;
 	storage_profiles[SP_DEFAULT].pbs4 = 0x0000;
@@ -160,23 +148,13 @@ int32_t aiop_sl_init(void)
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	 * 0x0801 --> 0x0108 (little endian) */
 	storage_profiles[SP_IPSEC].pbs1 = 0x0108;
-#ifndef AIOP_VERIF
-	/* __lhbr swaps the bytes for little endian */
-	storage_profiles[SP_IPSEC].bpid1 = (uint16_t)(__lhbr(0, &buffer_pool_id));
-#else
 	/* BPID=0 */
 	storage_profiles[SP_IPSEC].bpid1 = 0x0000;
-#endif
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	* 0x0801 --> 0x0108 (little endian) */
 	storage_profiles[SP_IPSEC].pbs2 = 0x0108;
-#ifndef AIOP_VERIF
-	/* __lhbr swaps the bytes for little endian */
-	storage_profiles[SP_IPSEC].bpid2 = (uint16_t)(__lhbr(0, &buffer_pool_id));
-#else
-	/* BPID=1, 0x0001 --> 0x0100 (little endian) */
-	storage_profiles[SP_IPSEC].bpid2 = 0x0100;
-#endif
+	/* BPID=0 */
+	storage_profiles[SP_IPSEC].bpid2 = 0x0000;
 	storage_profiles[SP_IPSEC].pbs3 = 0x0000;
 	storage_profiles[SP_IPSEC].bpid3 = 0x0000;
 	storage_profiles[SP_IPSEC].pbs4 = 0x0000;

@@ -7,7 +7,7 @@
 #define __MEM_MNG_UTIL_H
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 
 
 /**************************************************************************//**

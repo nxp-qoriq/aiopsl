@@ -1,9 +1,9 @@
 #include "fsl_malloc.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "fsl_io.h"
-#include "kernel/platform.h"
+#include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "common/fsl_slab.h"
+#include "fsl_slab.h"
 
 #if defined (LS2100A) && defined (AIOP) 
 #include "ls2100a_aiop/platform_aiop_spec.h"

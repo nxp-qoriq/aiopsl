@@ -31,19 +31,6 @@
 #include "slab.h"
 #endif /* AIOP_VERIF */
 
-/* Use this define to override the RTA and use a fixed debug descriptor */
-//#define AIOPSL_IPSEC_DEBUG
-
-//#include "general.h"
-
-/* Note: GCC Extension should be enabled to support "typeof"
- * Otherwise it fails compilation of the RTA "ALIGN" macro.
- * #define ALIGN(x, a) (((x) + ((typeof(x))(a) - 1)) & ~((typeof(x))(a) - 1))
- * Alternative usage is "__typeof__":
- * #define ALIGN(x, a) \
- *	(((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
-*/
-
 /* TODO: temporary fix to pr_debug due to RTA issue */
 /* Define dummy print functions to override RTA compilation errors */
 #ifndef pr_debug
@@ -75,8 +62,8 @@ void dummy_pr_err (...) {}
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /* Global parameters */
-__SHRAM struct ipsec_global_params global_params;
-__SHRAM struct ipsec_global_instance_params global_instance_params;
+//__SHRAM struct ipsec_global_params global_params;
+__SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
 
 #ifdef AIOP_VERIF
 __SHRAM uint64_t ipsec_debug_buf_addr; /* Global in Shared RAM */
@@ -88,22 +75,29 @@ __SHRAM uint32_t ipsec_debug_buf_offset; /* Global in Shared RAM */
 /**************************************************************************//**
 * 	ipsec_init
 *//****************************************************************************/
-int ipsec_init(uint32_t max_sa_no) {
-
-	global_params.sa_count = max_sa_no;
-	global_params.asa_bpid = 1; // TMP
-	global_params.desc_bpid = 1; // TMP
-	global_params.tmi = 1; // TMP
-	global_params.spinlock = 0;
-
-	return 0;
-} /* End of ipsec_init */
+//int ipsec_init(uint32_t max_sa_no) {
+//
+//	global_params.sa_count = max_sa_no;
+//	global_params.asa_bpid = 1; // TMP
+//	global_params.desc_bpid = 1; // TMP
+//	global_params.tmi = 1; // TMP
+//	global_params.spinlock = 0;
+//
+//	return 0;
+//} /* End of ipsec_init */
 
 
 /**************************************************************************//**
 *	ipsec_create_instance
 *//****************************************************************************/
-int ipsec_create_instance(
+int ipsec_create_instance_dummy(
+		uint32_t committed_sa_num,
+		uint32_t max_sa_num,
+		uint32_t instance_flags,
+		uint8_t tmi_id,
+		ipsec_instance_handle_t *instance_handle);
+
+int ipsec_create_instance_dummy(
 		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
 		uint32_t instance_flags,
@@ -128,14 +122,7 @@ int ipsec_create_instance(
 /**************************************************************************//**
 *	ipsec_create_instance
 *//****************************************************************************/
-int ipsec_create_instance_real (
-			uint32_t committed_sa_num,
-			uint32_t max_sa_num,
-			uint32_t instance_flags,
-			uint8_t tmi_id,
-			ipsec_instance_handle_t *instance_handle);
-	
-int ipsec_create_instance_real (
+int ipsec_create_instance (
 		uint32_t committed_sa_num,
 		uint32_t max_sa_num,
 		uint32_t instance_flags,
@@ -179,11 +166,11 @@ int ipsec_create_instance_real (
 	
 	/* Check if instances counter is zero */
 	/* If yes allocate ASA buffers */
-	lock_spinlock((uint8_t *)&global_instance_params.spinlock);
+	lock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 		
-	if (global_instance_params.instance_count == 0) {
-		global_instance_params.instance_count++;
-		unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
+	if (ipsec_global_instance_params.instance_count == 0) {
+		ipsec_global_instance_params.instance_count++;
+		unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 		
 		return_val = slab_find_and_fill_bpid(
 				IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
@@ -200,8 +187,8 @@ int ipsec_create_instance_real (
 		}
 
 	} else {
-		global_instance_params.instance_count++;
-		unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
+		ipsec_global_instance_params.instance_count++;
+		unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 	}
 	
 	/* Allocate a buffer for the instance */
@@ -225,22 +212,20 @@ int ipsec_create_instance_real (
 
 
 /**************************************************************************//**
-*	ipsec_create_instance
+*	ipsec_delete_instance
 *//****************************************************************************/
-int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
-
 int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 {
 	int32_t return_val;
 	uint32_t sa_count;
 
-	cdma_read_with_mutex(
-			instance_handle, /* uint64_t ext_address */
-			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
+	cdma_read(
 			&sa_count, /* void *ws_dst */
-			sizeof(sa_count) /* uint16_t size */	
-	);
+			instance_handle, /* uint64_t ext_address */
+			sizeof(sa_count) /* uint16_t size */
+			);
 
+	
 	/* Check if all SAs were deleted */
 	if (sa_count == 0) {
 		
@@ -252,27 +237,27 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 		
 		/* Check if instances counter is zero */
 		/* If yes return ASA buffers to the slab */
-		lock_spinlock((uint8_t *)&global_instance_params.spinlock);
+		lock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 		
 		/* Error if instance counter is already zero */
-		if (global_instance_params.instance_count == 0) {
+		if (ipsec_global_instance_params.instance_count == 0) {
 			/* EPERM = 1, Operation not permitted */
 			return -EPERM; /* TODO: what is the correct error code? */
 		}
 				
-		global_instance_params.instance_count--;
+		ipsec_global_instance_params.instance_count--;
 		
-		/* This is the last instance */
-		if (global_instance_params.instance_count == 0) {
-			unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
+		/* Check if this is the last instance */
+		if (ipsec_global_instance_params.instance_count == 0) {
+			unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 			
 			/* TODO: return IPSEC_MAX_NUM_OF_TASKS buffers back to the slab */
 		
 		} else {
-			unlock_spinlock((uint8_t *)&global_instance_params.spinlock);
+			unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 		}
 		
-		return IPSEC_SUCCESS;		
+		return IPSEC_SUCCESS;
 	} else {
 		/* TODO: handle a case of instance delete before SAs full delete */
 		
@@ -282,12 +267,8 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 }
 
 /**************************************************************************//**
-*	ipsec_get_buffer (TMP)
+*	ipsec_get_buffer
 *//****************************************************************************/
-int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
-		ipsec_handle_t *ipsec_handle
-	);
-
 int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle)
 {
@@ -376,12 +357,8 @@ get_buffer_alloc_err:
 } /* End of ipsec_get_buffer */
 
 /**************************************************************************//**
-*	ipsec_release_buffer (TMP)
+*	ipsec_release_buffer
 *//****************************************************************************/
-int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
-		ipsec_handle_t ipsec_handle
-	);
-
 int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle)
 {
@@ -415,7 +392,7 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 				&instance.sa_count, /* void *ws_dst */
 				sizeof(instance.sa_count) /* uint16_t size */	
 		);
-		return IPSEC_SUCCESS;
+		return return_val;
 	} else {
 		/* Release lock */
 		cdma_mutex_lock_release(instance_handle);
@@ -830,10 +807,13 @@ void ipsec_generate_flc(
 *//***************************************************************************/
 void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params, 
-		ipsec_handle_t ipsec_handle) /* Parameters area (start of buffer) */
+		ipsec_handle_t ipsec_handle, /* Parameters area (start of buffer) */
+		ipsec_instance_handle_t instance_handle)
 {
 	
 	struct ipsec_sa_params sap;
+	
+	sap.sap1.instance_handle = instance_handle; 
 	
 	/* Descriptor Part #1 */
 	sap.sap1.flags = params->flags; // TMP 
@@ -924,29 +904,30 @@ int ipsec_add_sa_descriptor(
 	uint64_t sd_addr;
 	uint32_t sd_size; /* shared descriptor size, set by the RTA */
 	
-	ipsec_instance_handle_t tmp1 = instance_handle;
-
 	/* Create a shared descriptor */
 	
-	/* Check if SAs counter reached zero */
-	/* If not, decrement SA counter. If yes return with error */
-	lock_spinlock((uint8_t *)&global_params.spinlock);
-		
-	if (global_params.sa_count == 0) {
-		unlock_spinlock((uint8_t *)&global_params.spinlock);
-		return -1; // TODO add error code
-	} else {
-		global_params.sa_count--;
-		unlock_spinlock((uint8_t *)&global_params.spinlock);
-	}
-	
-	/* Allocate a buffer for the FM parameters, 
-	 * Flow Context and Shared Descriptor with CDMA. */
-	/* allocate a buffer with the CDMA */
-	return_val = (int)cdma_acquire_context_memory(
-		//0, /* TMP size; will be removed in future arch def */
-		global_params.desc_bpid,
-		ipsec_handle); /* context_memory */ 
+//	/* Check if SAs counter reached zero */
+//	/* If not, decrement SA counter. If yes return with error */
+//	lock_spinlock((uint8_t *)&global_params.spinlock);
+//		
+//	if (global_params.sa_count == 0) {
+//		unlock_spinlock((uint8_t *)&global_params.spinlock);
+//		return -1; // TODO add error code
+//	} else {
+//		global_params.sa_count--;
+//		unlock_spinlock((uint8_t *)&global_params.spinlock);
+//	}
+//	
+//	/* Allocate a buffer for the FM parameters, 
+//	 * Flow Context and Shared Descriptor with CDMA. */
+//	/* allocate a buffer with the CDMA */
+//	return_val = (int)cdma_acquire_context_memory(
+//		//0, /* TMP size; will be removed in future arch def */
+//		global_params.desc_bpid,
+//		ipsec_handle); /* context_memory */ 
+
+	return_val = ipsec_get_buffer(instance_handle,
+			ipsec_handle);
 	
 	/* Check for allocation error */
 	if (return_val) {
@@ -956,8 +937,6 @@ int ipsec_add_sa_descriptor(
 		
 	// TODO: Optionally allocate a buffer for the key, if not inline.
 	
-	/* TODO: Clear the buffer area? */
-	 
 	/* Shared Descriptor address (adjacent to the flow context) */ 
 	sd_addr = ((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE + 
 			IPSEC_FLOW_CONTEXT_SIZE); 
@@ -985,21 +964,15 @@ int ipsec_add_sa_descriptor(
 	/* Store the descriptor parameters to memory (CDMA write). */
 	ipsec_generate_sa_params(
 			params,
-			*ipsec_handle); /* Parameters area (start of buffer) */
+			*ipsec_handle, /* Parameters area (start of buffer) */
+			instance_handle);
 	
 	/* Create one-shot TMAN timers for the soft and hard seconds lifetime 
 	 * limits, with callback to internal function 
 	 * (including the descriptor handle and soft/hard indication arguments). */
 	
-	/* Success, handle returened. */
+	/* Success, handle returned. */
 	return IPSEC_SUCCESS;
-
-add_sa_descriptor_error:
-	// TODO: decrement SA counter
-	/* Release the buffer */ 
-	cdma_refcount_decrement_and_release(*ipsec_handle); /* context_memory */
-	//TODO: what if CDMA release failed?
-	return return_val; /* Return the previous error */
 	
 } /* End of ipsec_add_sa_descriptor */
 
@@ -1011,7 +984,8 @@ int ipsec_del_sa_descriptor(
 {
 
 	int return_val;
-	
+	ipsec_instance_handle_t instance_handle;
+
 	// TODO: Read descriptor with CDMA.
 	// TODO Delete the timers; take care of callbacks in the middle of operation.
 	
@@ -1019,9 +993,18 @@ int ipsec_del_sa_descriptor(
 	 * statistics engine request queue. */
 	ste_barrier();
 
+	/* Read the instance handle from params area */
+	cdma_read(
+			&instance_handle, /* void *ws_dst */
+			(ipsec_handle + (offsetof(struct ipsec_sa_params_part1,
+					 instance_handle))), /* uint64_t ext_address */
+			sizeof(instance_handle) /* uint16_t size */
+			);
+	
 	/* Release the buffer */ 
-	return_val = (int)cdma_refcount_decrement_and_release(
-		ipsec_handle); /* context_memory */ 
+	//return_val = (int)cdma_refcount_decrement_and_release(
+	//	ipsec_handle); /* context_memory */ 
+	return_val = ipsec_release_buffer(instance_handle, ipsec_handle);
 	
 	// TODO: 
 	// 1. Check that all frames are closed (reference count)
@@ -1030,11 +1013,10 @@ int ipsec_del_sa_descriptor(
 	// If there were open frames do another ste_barrier();
 	
 	if (return_val != CDMA_REFCOUNT_DECREMENT_TO_ZERO) { /* error */
-		//TODO: what if CDMA release failed?
-		return IPSEC_ERROR; // TMP
+		return IPSEC_ERROR; /* Trying to delete before all frames done */
 	} else { /* success */
-		atomic_incr32((int32_t *)(&(global_params.sa_count)), 1);
-		return IPSEC_SUCCESS; // TMP
+		//atomic_incr32((int32_t *)(&(global_params.sa_count)), 1);
+		return IPSEC_SUCCESS; 
 	}
 	
 } /* End of ipsec_del_sa_descriptor */
@@ -1584,12 +1566,10 @@ int ipsec_frame_decrypt(
 		 * 		includes the Outer IP Header, up to but not including the 
 		 * 		ESP Header.
 		*/
-		outer_material_length = (uint16_t) // TODO: verify this 
-			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) 
-					- (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT())); 
-		
-		// If this is incorrect, get the IP length from the header wit
-		// PARSER_GET_OUTER_IP_POINTER_DEFAULT()
+		outer_material_length = (uint16_t)
+			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
+				(uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT()) +
+				eth_length); 
 				
 		dpovrd.tunnel_decap.word = 
 				IPSEC_DPOVRD_OVRD |
@@ -1635,7 +1615,6 @@ int ipsec_frame_decrypt(
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
 	}
-	
 		
 	/* 	10.	Call the AAP */
 	__e_hwacceli(AAP_SEC_ACCEL_ID);

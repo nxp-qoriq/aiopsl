@@ -10,11 +10,11 @@ Copyright 2013 Freescale Semiconductor, Inc.
 #define __FSL_CMDIF_CLIENT_H
 
 /**************************************************************************//**
- @Group		LIB LIB
+@Group		LIB LIB
 
- @Description	ARENA LIB APIs
+@Description	ARENA LIB APIs
 
- @{
+@{
 *//***************************************************************************/
 
 /**************************************************************************//**

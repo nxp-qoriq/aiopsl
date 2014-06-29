@@ -356,7 +356,9 @@ struct ipsec_sa_params_part1 {
 	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
 	uint32_t status; /* lifetime expire, semaphores	4-8B */
-	
+
+	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
+
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
 	
@@ -368,7 +370,8 @@ struct ipsec_sa_params_part1 {
 
 	uint8_t output_spid; /* SEC output buffer SPID */
 	
-	/* Total size = 16 + 48 = 64 bytes */
+	/* Total size = */
+	/* 8*8 (64) + 2*4 (8) + 2*2 (4) + 5*1 (5) = 81 bytes */
 };
 /* Part 2 */
 struct ipsec_sa_params_part2 {
@@ -383,7 +386,7 @@ struct ipsec_sa_params_part2 {
 	uint32_t soft_tmr_handle; /* Soft seconds timer handle, 4B */
 	uint32_t hard_tmr_handle; /* Hard seconds timer handle, 4B */
 	
-	/* Total size = 28 bytes */
+	/* Total size = 8 + 3*4 (12) = 20 bytes */
 };
 
 /* Total size for part 1 + part 2 = 64+28 = 92 bytes */
@@ -691,13 +694,33 @@ void ipsec_generate_decap_sd(
 *//***************************************************************************/
 void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params,
-		ipsec_handle_t ipsec_handle); /* Parameters area (start of buffer) */
+		ipsec_handle_t ipsec_handle, /* Parameters area (start of buffer) */
+		ipsec_instance_handle_t instance_handle);
 
 /**************************************************************************//**
-	 
-******************************************************************************	
+*	ipsec_get_buffer
+*	
+*	@Description	Allocates a buffer for the IPsec parameters	according 
+*			to the instance parameters and increments the instance counters 
+*	
+*//****************************************************************************/
+int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t *ipsec_handle
+	);
 
-/*
+
+/**************************************************************************//**
+*	ipsec_release_buffer
+*	@Description	release a buffer and decrements the instance counters 
+*		
+*//****************************************************************************/
+int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
+		ipsec_handle_t ipsec_handle
+	);
+
+
+/**************************************************************************//**
+******************************************************************************/
 
 
 /** @} */ /* end of FSL_IPSEC_Functions */

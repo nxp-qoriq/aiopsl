@@ -11,7 +11,7 @@
 #define __AIOP_VERIFICATION_GSO_H_
 
 #include "dplib/fsl_ldpaa.h"
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 #include "general.h"
 #include "gso.h"
 #include "dplib/fsl_parser.h"

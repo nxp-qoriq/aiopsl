@@ -1,3 +1,28 @@
+SL TAG v0.4.1.update_02
+===============================
+
+Retrn statuses type is changed to int (instead of int32_t).
+
+Added the following HM routines:
+	ipv4_ts_opt_modification()
+	ipv4_mangle()
+	ipv4_dec_ttl_modification()
+	ipv6_mangle()
+	ipv6_dec_hop_limit_modification()
+	l2_push_and_set_vlan()
+	l2_arp_response()
+	l2_set_hw_src_dst()
+	
+Added snic files for supporting command interface, Vlan insert/remove, IPR and IPF.
+	snic.c
+	snic.h
+	
+Change in dpni_drv_send()	- setting SPID from theDPNI structure.
+
+system.c - change the setting of BPID for storage profile - now BPID=0 and no allocation is needed (Arena allocates buffers to this BPID).
+
+ipr: call to function slab_find_and_fill_bpid() inside function ipr_create_instance() instead of in function ipr_init().
+
 fsl_ipr.h: API - add min_frag_size_ipv6, flags change from 2 bytes to 4 bytes.
 fsl_ipr.h: API - several functions (modify) to become void instead of int. 
 
@@ -12,6 +37,23 @@ Table SRs: table_create() implementation - table_calc_num_entries_per_rule() was
 Table SRs: table_create() implementation - removed cdma error check since function will return void.
 
 l4.c: l4_udp_tcp_cksum_calc - fixed ENGR316722
+
+FDMA:
+Update FDMA API according to descoped features in CCB TKT213227
+
+Frame Operations:
+Add file fsl_frame_operations:
+	Move to fsl_frame_operations.h:
+		create_frame()  (instead of fdma_create_frame())
+		create_fd() (instead of fdma_create_fd())
+	Add the following Frame operations routines:	
+		create_arp_request_broadcast()
+		create_arp_request()
+
+Change file general.h to fsl_general.h.
+
+		
+		
 
 SL Alpha v0.4  Change Log
 ===============================

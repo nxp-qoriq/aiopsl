@@ -10,7 +10,7 @@
 #define __FSL_FRAME_OPERATIONS_H
 
 #include "common/types.h"
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "dplib/fsl_ldpaa.h"
 
 
@@ -18,6 +18,14 @@
  @Group		FSL_AIOP_FRAME_OPERATIONS AIOP Frame Operations
 
  @Description	FSL AIOP Frame Operations
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+ @Group		FRAME_OPERSTIONS_Functions Frame Operations Functions
+
+ @Description	Frame Operations Functions
 
  @{
 *//***************************************************************************/
@@ -129,10 +137,10 @@ int create_fd(
 		uint16_t size);
 
 /**************************************************************************//**
-@Function	create_arp_request
+@Function	create_arp_request_broadcast
 
-@Description	Create an ARP Request frame from scratch. This function creates
-		a new frame with ETH + ARP Request headers.
+@Description	Create an ARP Request broadcast frame from scratch. This
+		function creates a new frame with ETH + ARP Request headers.
 
 		Implicit input parameters in Task Defaults: SPID (Storage
 		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
@@ -155,7 +163,62 @@ int create_fd(
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
-@Param[in]	dest_ip - destination IPv4 address.
+@Param[in]	target_ip - destination IPv4 address.
+@Param[in]	flags - please refer to \ref FRAME_OPERSTIONS_ARP_Flags.
+@Param[out]	frame_handle - Pointer to the opened working frame handle.
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 – Success
+@Retval		EIO - Parsing Error(Relevant in case this is the default frame).
+		Recommendation is to discard the frame.
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of 256 bytes before completing all parsing). (Relevant in case
+		this is the default frame).
+		Recommendation is to discard the frame.
+
+@Cautions
+		- In this Service Routine the task yields.
+		- The FD address in workspace must be aligned to 32 bytes.
+		- The frame FD is overwritten in this function.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int create_arp_request_broadcast(
+		struct ldpaa_fd *fd,
+		uint32_t local_ip,
+		uint32_t target_ip,
+		uint8_t *frame_handle);
+
+/**************************************************************************//**
+@Function	create_arp_request
+
+@Description	Create an ARP Request frame from scratch. This function creates
+		a new frame with ETH + ARP Request headers. It can be used for
+		creating a unicast or multicast frames.
+
+		Implicit input parameters in Task Defaults: SPID (Storage
+		Profile ID), task default AMQ attributes (ICID, PL, VA, BDI).
+
+		Implicitly updated values in Task Defaults in case the FD
+		address is located in the default FD address
+		(\ref HWC_FD_ADDRESS): ASA size(zeroed), PTA address(zeroed),
+		segment length(zeroed), segment offset(zeroed), segment handle,
+		NDS bit(reset), frame handle.
+
+		In case this is the default frame, a default segment will be
+		presented, and the parse results will be updated.
+
+		In case this is not the default frame, in order to present a
+		data segment of this frame after the function returns,
+		fdma_present_frame_segment() should be called (opens a
+		data segment of the frame).
+
+@Param[in]	fd - Pointer to the frame descriptor of the created frame.
+		On a success return this pointer will point to a valid FD.
+		The FD address in workspace must be aligned to 32 bytes.
+@Param[in]	local_ip - local IPv4 address.
+@Param[in]	target_ip - destination IPv4 address.
+@Param[in]	target_eth - target MAC address.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.
@@ -177,8 +240,11 @@ int create_fd(
 int create_arp_request(
 		struct ldpaa_fd *fd,
 		uint32_t local_ip,
-		uint32_t dest_ip,
+		uint32_t target_ip,
+		uint8_t *target_eth,
 		uint8_t *frame_handle);
+
+/* @} end of group FRAME_OPERSTIONS_Functions */
 
 /** @} */ /* end of FSL_AIOP_FRAME_OPERATIONS */
 

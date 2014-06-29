@@ -11,7 +11,7 @@
 #define __AIOP_VERIFICATION_IPF_H_
 
 #include "dplib/fsl_ldpaa.h"
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 #include "general.h"
 #include "ipf.h"
 #include "dplib/fsl_parser.h"

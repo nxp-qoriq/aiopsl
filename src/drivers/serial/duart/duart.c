@@ -5,11 +5,11 @@
 @Description   DUART specific routines.
  *//***************************************************************************/
 
-#include "common/fsl_malloc.h"
+#include "fsl_malloc.h"
 #include "common/fsl_string.h"
 #include "fsl_dbg.h"
 #include "fsl_io.h"
-#include "common/gen.h"
+#include "inc/fsl_gen.h"
 
 #include "duart.h"
 

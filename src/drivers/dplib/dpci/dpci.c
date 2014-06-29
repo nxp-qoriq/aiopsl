@@ -93,7 +93,7 @@ int dpci_get_link_state(struct dpci *dpci, int *up)
 	/* send command to mc*/
 	err = dplib_send(dpci->regs, &(dpci->auth), DPCI_CMDID_GET_LINK_STATE,
 			 DPCI_CMDSZ_GET_LINK_STATE, MC_CMD_PRI_LOW,
-				NULL);
+				&cmd_data);
 	if (!err)
 		DPCI_RSP_GET_LINK_STATE(RSP_READ);
 

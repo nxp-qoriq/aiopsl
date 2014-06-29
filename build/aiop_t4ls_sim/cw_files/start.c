@@ -37,10 +37,12 @@ int  _master = 0xffffffff;
 /*****************************************************************************/
 static void __init_bss(void)
 {
-	__bss_init_info *bii = _bss_init_info;
+    __bss_init_info *bii = _bss_init_info;
 
-    if (bii->size)
+    while(bii->size) {
         memset(bii->addr, 0, bii->size);
+        bii++;
+    }
 }
 
 

@@ -13,7 +13,7 @@
 #ifndef __SLOB_H
 #define __SLOB_H
 
-#include "common/errors.h"
+#include "fsl_errors.h"
 #include "fsl_slob.h"
 
 
