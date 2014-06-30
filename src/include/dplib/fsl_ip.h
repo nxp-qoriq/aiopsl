@@ -283,7 +283,7 @@ do { \
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
+int ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		uint32_t ip_src_addr, uint32_t ip_dst_addr);
 
 /*************************************************************************//**
@@ -405,7 +405,7 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
+int ipv6_header_modification(uint8_t flags, uint8_t tc,
 				    uint32_t flow_label, uint8_t *ip_src_addr,
 				    uint8_t *ip_dst_addr);
 
@@ -496,7 +496,7 @@ void ipv6_dec_hop_limit_modification(void);
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t ipv4_header_encapsulation(uint8_t flags,
+int ipv4_header_encapsulation(uint8_t flags,
 				void *ipv4header, uint8_t ipv4_header_size);
 
 
@@ -536,7 +536,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t ipv6_header_encapsulation(uint8_t flags,
+int ipv6_header_encapsulation(uint8_t flags,
 				void *ipv6header, uint8_t ipv6_header_size);
 
 /*************************************************************************//**
@@ -559,7 +559,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags,
 @Cautions	The parse results must be updated before calling this
 		operation.
 *//***************************************************************************/
-int32_t ip_header_decapsulation(uint8_t flags);
+int ip_header_decapsulation(uint8_t flags);
 
 
 
@@ -581,7 +581,7 @@ int32_t ip_header_decapsulation(uint8_t flags);
 		This function assumes the original IP checksum is valid.
 
 *//***************************************************************************/
-int32_t ip_set_nw_src(uint32_t src_addr);
+int ip_set_nw_src(uint32_t src_addr);
 
 
 /*************************************************************************//**
@@ -602,7 +602,7 @@ int32_t ip_set_nw_src(uint32_t src_addr);
 		This function assumes the original IP checksum is valid.
 
 *//***************************************************************************/
-int32_t ip_set_nw_dst(uint32_t dst_addr);
+int ip_set_nw_dst(uint32_t dst_addr);
 
 /**************************************************************************//**
 @Function	ip_cksum_calculate
@@ -631,7 +631,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr);
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
+int ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
 
 /* @} end of group FSL_HM_IP_Functions */
 /* @} end of group AIOP_IP_HM */
