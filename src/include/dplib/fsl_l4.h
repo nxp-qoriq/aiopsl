@@ -149,7 +149,7 @@
 @Cautions	The parse results must be updated before calling this
 		operation.
 *//***************************************************************************/
-int32_t l4_udp_header_modification(uint8_t flags,
+int l4_udp_header_modification(uint8_t flags,
 		uint16_t udp_src_port, uint16_t udp_dst_port);
 
 
@@ -185,7 +185,7 @@ int32_t l4_udp_header_modification(uint8_t flags,
 @Cautions	The parse results must be updated before
 		calling this operation.
 *//***************************************************************************/
-int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
+int l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		uint16_t tcp_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta, uint16_t tcp_mss);
 
@@ -206,7 +206,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		operation.\n
 		This function assumes the original TCP header checksum is valid.
 *//***************************************************************************/
-int32_t l4_set_tp_src(uint16_t src_port);
+int l4_set_tp_src(uint16_t src_port);
 
 
 /*************************************************************************//**
@@ -227,7 +227,7 @@ int32_t l4_set_tp_src(uint16_t src_port);
 		This function assumes the original TCP header checksum is valid.
 
 *//***************************************************************************/
-int32_t l4_set_tp_dst(uint16_t dst_port);
+int l4_set_tp_dst(uint16_t dst_port);
 
 
 /**************************************************************************//**
@@ -258,7 +258,7 @@ int32_t l4_set_tp_dst(uint16_t dst_port);
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int32_t l4_udp_tcp_cksum_calc(uint8_t flags);
+int l4_udp_tcp_cksum_calc(uint8_t flags);
 /* @} end of group FSL_HM_L4_Functions */
 /* @} end of group AIOP_L4_HM */
 /* @} end of group AIOP_L4 */

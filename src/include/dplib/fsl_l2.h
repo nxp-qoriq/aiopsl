@@ -104,7 +104,7 @@ void l2_header_remove(void);
  In this function, the task yields
 
  *//***************************************************************************/
-int32_t l2_vlan_header_remove(void);
+int l2_vlan_header_remove(void);
 
 /*************************************************************************//**
  @Function	l2_set_vlan_vid
@@ -116,7 +116,7 @@ int32_t l2_vlan_header_remove(void);
  @Return		Success or Failure (There was no VLAN in the frame).
 
  *//***************************************************************************/
-int32_t l2_set_vlan_vid(uint16_t vlan_vid);
+int l2_set_vlan_vid(uint16_t vlan_vid);
 
 /*************************************************************************//**
  @Function	l2_set_vlan_pcp
@@ -128,7 +128,7 @@ int32_t l2_set_vlan_vid(uint16_t vlan_vid);
  @Return		Success or Failure (There was no VLAN in the frame).
 
  *//***************************************************************************/
-int32_t l2_set_vlan_pcp(uint8_t vlan_pcp);
+int l2_set_vlan_pcp(uint8_t vlan_pcp);
 
 /*************************************************************************//**
  @Function	l2_set_dl_src
@@ -234,7 +234,7 @@ void l2_push_and_set_vlan(uint32_t vlan_tag);
  @Cautions	The parse results must be updated before calling this operation.
  This function assumes the presence of the ethernet header.
  *//***************************************************************************/
-int32_t l2_pop_vlan(void);
+int l2_pop_vlan(void);
 
 /*************************************************************************//**
  @Function	l2_arp_response
