@@ -1,9 +1,6 @@
+#include <cmdif.h>
 #include <fsl_cmdif_flib_c.h>
 #include <cmdif_client.h>
-#include <string.h>
-#include <errno.h>
-#include <types.h>
-#include <cmdif.h>
 
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))

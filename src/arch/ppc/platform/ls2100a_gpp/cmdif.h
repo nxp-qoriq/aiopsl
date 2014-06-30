@@ -1,6 +1,10 @@
 #ifndef __CMDIF_H
 #define __CMDIF_H
 
+#include <errno.h>
+#include <types.h>
+#include <string.h>
+#include <stdlib.h>
 #include <nadk_types.h>
 #include <nadk_byteorder.h>
 
