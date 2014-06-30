@@ -19,10 +19,9 @@ void app_free(void);
 /**< Get flow id from callback argument, it's demo specific macro */
 
 
-/*
+
 __TASK ipf_ctx_t ipf_context_addr
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
-*/
 
 
 __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
@@ -37,7 +36,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	int32_t ipf_status;
 /*	uint16_t bpid = LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);*/
 	
-	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));
+/*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
 
 	mtu = 0x40;
 
