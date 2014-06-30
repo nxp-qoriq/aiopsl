@@ -55,8 +55,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	char *eth_ptr;
 
 	timeval tv;
-	timezone tz;
-	time_t t;
+
 	time_t local_time;
 	uint8_t local_packet_number;
 	int local_test_error = 0;
@@ -154,7 +153,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 
 
-	err = fsl_os_gettimeofday(&tv, &tz);
+	err = fsl_os_gettimeofday(&tv,NULL);
 	if(err){
 		fsl_os_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
@@ -175,15 +174,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 		unlock_spinlock(&time_lock);
 	}
-
-	err = (int)fsl_os_time(&t);
-	if(err < 0){
-		fsl_os_print("ERROR = %d: fsl_os_time failed in runtime phase \n", err);
-		local_test_error |= err;
-	}else {
-		fsl_os_print("time in seconds: %ll, \n",t);
-	}
-
 
 
 

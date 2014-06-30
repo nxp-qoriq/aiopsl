@@ -105,6 +105,7 @@ int aiop_sl_init(void)
 	
 	/* initialize profile sram */
 
+#ifdef AIOP_VERIF
 	/* Default Storage Profile */
 	storage_profiles[SP_DEFAULT].ip_secific_sp_info = 0;
 	storage_profiles[SP_DEFAULT].dl = 0;
@@ -159,6 +160,7 @@ int aiop_sl_init(void)
 	storage_profiles[SP_IPSEC].bpid3 = 0x0000;
 	storage_profiles[SP_IPSEC].pbs4 = 0x0000;
 	storage_profiles[SP_IPSEC].bpid4 = 0x0000;
+#endif
 
 
 /* TODO - remove the AIOP_VERIF section when verification env will include

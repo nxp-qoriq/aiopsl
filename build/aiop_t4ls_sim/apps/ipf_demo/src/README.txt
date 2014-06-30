@@ -4,11 +4,11 @@ The following file includes the instructions for app_process_packet demo.
 Setup
 ===========================================
 1. Install CW_APP_v10.0.8
-2. Download linux version of LS_SIM_m0116
+2. Download linux version of LS_SIM_RELEASE_0_8_0_0112
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
-   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_m0116/dtsim_release/linux64
+   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/DPAA_SIM_RELEASE_0_8_0_0112/dtsim_release/linux64
 5. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
 6. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
 
@@ -50,8 +50,8 @@ Possible modifications:
    mode as it was supported in previous releases, it is required to recompile
    aiopsl and app_process_packet project with AIOP_STANDALONE defined.
    Please note that the standalone mode is being phased out and has is no longer verified.
-6. The user may run without elf loader. In order to do that go to simulator folder and
-   comment the lines marked with "#for elf loader" in cfg files:
+6. The user may run without elf loader. In order to do that go to simulator folder and 
+   comment the lines marked with "#for elf loader" in cfg files: 
    "ls2100_sys_test" and "ls2085a_sim_init_params"
 
 =================

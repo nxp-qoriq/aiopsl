@@ -67,7 +67,7 @@ static int epid_setup()
 	if (data != 0x11000005)
 		return -EINVAL;
 
-	pr_info("CMDIF Server is setting EPID = %d\n", CMDIF_EPID);
+	pr_info("CMDIF Client is setting EPID = %d\n", CMDIF_EPID);
 	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
 	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
 	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));

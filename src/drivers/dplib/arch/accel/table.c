@@ -667,7 +667,7 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;
-	__e_rlwimi(arg2, *((uint32_t *)(ndf_params)), 16, 0, 15);
+	__e_rlwimi(arg2, ((uint32_t)ndf_params), 16, 0, 15);
 
 	/* Clearing reserved fields */
 	ndf_params->reserved0 = 0;

@@ -1,12 +1,36 @@
+** AIOP SL v0.4.1.update_02 **
+src/include/kernel/console.h:         removed
+src/include/dplib/fsl_dpsw_cmd.h:     removed
+
+fsl_duart.h:        moved from src/include/drivers to src/drivers/serial/include/fsl_duart.h
+                    include paths updated accordingly.
+fsl_sys.h:          added include for fsl_soc_aiop_spec.h to solve compilation error.
+arena_test.c:       added test for fsl_os_gettimeofday()
+fsl_time.h:         Added implementation for fsl_os_gettimeofday(). added stub for fsl_os_current_time()
+time.c:             added internal _gettime() method, used by time function to receive time since epoch
+                    in microseconds for CM GW TS registers
+
 dpni_drv.c:         Added multicore support to dpni_drv_unregister_rx_cb and dpni_drv_register_rx_cb
                     added fix for storing spid
 drv.h:              uint8_t dpni_lock was added to support multicore
-** AIOP SL v0.4.1.update_02 **
+
+- fsl_cmdif_server.h  Added documentation for ctrl_cb_t.
+                      AIOP server will pass as data address to the start of presentation segment.
+- README.txt          Move to LS_SIM_m0116.
+- fsl_sys:            added include for fsl_soc_aiop_spec.h to solve compilation error.
+- arena_test.c:       added test for fsl_os_gettimeofday()
+- fsl_time.h:         Added implementation for fsl_os_gettimeofday(). added stub for fsl_os_current_time()
+- time.c:             added internal _gettime() method, used by time function to receive time since epoch
+                      in microseconds for CM GW TS registers
+
+- dpni_drv.c:         Added multicore support to dpni_drv_unregister_rx_cb and dpni_drv_register_rx_cb
+                      added fix for storing spid
+- drv.h:              uint8_t dpni_lock was added to support multicore
 
 - cmdif_integration_test.c  Added test for AIOP client.
 
 - dpl.dts             Updated DPL with DPCI devices and set icid for GPP container to 0.
-- cmdif_client_flib.c Updated the code to support GPP and MC architectures. 
+- cmdif_client_flib.c Updated the code to support GPP and MC architectures.
 - cmdif.h             Added architecture dependant files per architecture ls2100a_aiop, ls2100a_gpp.
 - cmdif_srv_flib.c    Added CMDIF server FLIB code which implements fsl_cmdif_flib_s.h API.
 - fsl_cmdif_*.h       All CMDIF API has been moved from src/include/common to src/include/kernel.
@@ -38,25 +62,25 @@ drv.h:              uint8_t dpni_lock was added to support multicore
                     update include paths in all c and h files in aiop git.
 
 - fsl_dbg.h:        created to expose pr_debug, pr_info, etc to the users.
-- dbg.h:            split to dbg.h and fsl_dbg.h, move from include/common/dbg.h to krenel/inc/dbg.h 
+- dbg.h:            split to dbg.h and fsl_dbg.h, move from include/common/dbg.h to krenel/inc/dbg.h
                     pr_error, pr_debug etc moved to fsl_debug which is exposed to users and in innclude/fsl_dbg.h
                     all the include paths updated accordingly.
 - .project:         updated to know fsl_dbg.h and fsl_io.h
 
 
-- dpni_drv.c:      aiop_replace_parser removed and profile_parser_init was added to initialize 
-                   default prpid for NI'S 
+- dpni_drv.c:      aiop_replace_parser removed and profile_parser_init was added to initialize
+                   default prpid for NI'S
 - io.h:            inline was added to all iowrite/read calls (supported in CW 10.0.8 and higher)
 - dpni_drv.c/h:    Added support for dpni_drv_add/remove_mac, broadcast MAC is added to all ni's by default.
 
-- src\include\arch\ls2100a\platform_aiop_spec.h: Rename: 
+- src\include\arch\ls2100a\platform_aiop_spec.h: Rename:
                                 MEM_PART_1ST_DDR_NON_CACHEABLE->MEM_PART_DP_DDR
 								MEM_PART_2ND_DDR_NON_CACHEABLE ->MEM_PART_SYSTEM_DDR
-								Changed usage of old constants into new ones all over source files.								
+								Changed usage of old constants into new ones all over source files.
 - src\include\common\errors.h:   update pr_debug define to work in runtime mode  with vsnprintf_lite.
 
 - smp.h/c:              new API added: sys_get_num_of_cores() and sys_get_max_num_of_cores()
-- os.c:	                Implementation for vsnprintf_lite to reduce stack size in fsl_os_print, will be used in runtime. 
+- os.c:	                Implementation for vsnprintf_lite to reduce stack size in fsl_os_print, will be used in runtime.
                         vsnprintf_lite supports only: "%c", "%s", "%x", "%d", "%l", "%lx", "%ll", "%llx".
 
 - io.h:                        iowrite/read were changed to call new defines for endianess support with intrinsics.
@@ -92,10 +116,10 @@ drv.h:              uint8_t dpni_lock was added to support multicore
 - dpl.dts:                      New file at aiopsl\build\aiop_t4ls_sim\sim_files, see README.txt inside app_process_packet.
 - README.txt:                   Updated app_process_packet with new instructions for MC integrated mode
 
-- init.c, dpni_drv.c, cmdif_srv.c, app_process_packet.c:      define AIOP_STANDALONE to run AIOP standalone. 
-                            By default will run in MC integrated mode. 
+- init.c, dpni_drv.c, cmdif_srv.c, app_process_packet.c:      define AIOP_STANDALONE to run AIOP standalone.
+                            By default will run in MC integrated mode.
 
-- sys.c:                    Added UART multi core support 
+- sys.c:                    Added UART multi core support
 
 - sys.c:                    New implementation for sys handle methods. (Add, Get, Remove)
 - sys.h:                    New implementation for sys handle methods.
@@ -117,12 +141,12 @@ drv.h:              uint8_t dpni_lock was added to support multicore
 
 - Added a new  application {aiopls}\build\aiop_t4ls_sim\tests\arena_test.
    It contains slab  functionality (slab create in init pahase and  slab aquire in run-time and slab release)
-   malloc() from the heap and xmalloc() from  DP-DDR, SHARED RAM and PEB memory partitions in init and ruin-time phase. 
+   malloc() from the heap and xmalloc() from  DP-DDR, SHARED RAM and PEB memory partitions in init and ruin-time phase.
 - The demo application app_process_packet contains only basic functionality of precessing a received packet.
    Slab related test has been moved to arena_test application.
-   
+
 - type_mw.h:     Added define for __WARM_CODE to load code to shared ram
-- aipo_link.lcf: Added .stext and .stext_vle define for code to be placed in shared ram  
+- aipo_link.lcf: Added .stext and .stext_vle define for code to be placed in shared ram
 
 - init.c, main.c: Added stack overflow detection using DAC1/DAC2 registers, MCSRR0 stores PC of instruction caused the exception.
 - os.c:           Added implementation for fsl_os_rand().
@@ -141,7 +165,7 @@ drv.h:              uint8_t dpni_lock was added to support multicore
 
 - aiop_link.lcf:   Remove .receive_cb segment, EPID 0 is setup by SW in aiop_process_packet.
 - aiop_link.lcf:   Added fix to suport macros for __SHRAM and __HOT_CODE, stack size adjusted.
-- types_mw.h:      Added fix to suport macros for __SHRAM and __HOT_CODE. 
+- types_mw.h:      Added fix to suport macros for __SHRAM and __HOT_CODE.
 
 - fsl_slab.h:      Changed slab_debug_info.max_buffs to 32 bit
 - cmdif_test.c:    Added CMDIF reflector and Client Server test. This test tests AIOP side Server.
@@ -152,7 +176,7 @@ drv.h:              uint8_t dpni_lock was added to support multicore
 
 - fsl_slab.h:    Changed num_buffs to be 32 bit and renamed extra_buffs to max_buffs
 - slab.h:        Changed num_buffs to be 32 bit
-- slab.c:        Removed buff_size from CDMA based API      
+- slab.c:        Removed buff_size from CDMA based API
 - aiop_link.lcf: stack size for init_task changed to maximum allowed size.
 - platform.c:    number of taskes per core changed to 16.
 
@@ -162,20 +186,20 @@ drv.h:              uint8_t dpni_lock was added to support multicore
 
 - start.c:      added support for small data sections.
 - slab.h:       added static table of BPID, size, mem partition; DDR sizes 256 - 4096, PEB sizes 256 - 4096.
-- init.c/h:     added implementation and declaration for: ntohs, ntohl, htons, htonl. Codding style update.      
+- init.c/h:     added implementation and declaration for: ntohs, ntohl, htons, htonl. Codding style update.
 - dpni_drv.c/h: placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
 - init.c:       placed MC-dependent code under #ifdef MC_INTEGRATED to enable running in standalone AIOP environment
 - dpni_drv.c/h: fixed dpni_get_primary_mac_addr() bug, API modified
 - dpni_test.c:  fixed dpni_get_primary_mac_addr() bug, API modified
 
 ** AIOP ARENA SL Pre-Alpha 0.3.1 **
-- dpni_test.c:  new demo application that works with the DPNI object. 
+- dpni_test.c:  new demo application that works with the DPNI object.
 - dpni_drv.c/h: added DPNI support - DPNI discovery and enablement.
 - dpni_drv.c/h: added dpni_drv_unregister_rx_cb(), dpni_drv_get_primary_mac_addr().
-- os.c: added workaround for fsl_os_printf stack overflow issue 
+- os.c: added workaround for fsl_os_printf stack overflow issue
 - event_mgr.h: fixed typo in evm_deregister_callback() function name.
 - slab.c:  Fixed ENGR00303738. slab_release() calls vpool_refcount_decrement_and_release()instead of vpool_release_buff()
-- slab.h:  Added slab_find_and_fill_bpid() SL internal API 
+- slab.h:  Added slab_find_and_fill_bpid() SL internal API
 
 ** AIOP ARENA SL Pre-Alpha 0.3 **
 - .cproject app_process_packet: Set small data and small data2 to 0 at PowerPC CPU settings
@@ -194,11 +218,11 @@ drv.h:              uint8_t dpni_lock was added to support multicore
 - slab.h:        AIOP HW SLAB implementation
 - slab.c:        AIOP HW SLAB implementation
 
-** AIOP ARENA Feb 4, 2014 ** 
+** AIOP ARENA Feb 4, 2014 **
 - Changed i_ram to start at 0xfe0000 in aiop_link.lcf in order to match simulator
 - Removed evm_register_callback stub in order to avoid conflict with app level stub implementation.
 
-** AIOP ARENA V1.1 Change Log ** 
+** AIOP ARENA V1.1 Change Log **
 - Added a new sample CW project app_process_packet that is located under {aiopsl}\build\aiop_t4ls_sim\apps\app_process_packet.
 - aiop_link.lcf: Updated tls memory inside aiop_link.lcf that is located under {aiopsl}\build\aiop_t4ls_sim\cw_files.
 - dpni_drv.c: Modified dpni_drv_init() inside dpni_drv.c that is located under {aiopsl}\src\drivers\dplib\dpni.
@@ -207,4 +231,4 @@ drv.h:              uint8_t dpni_lock was added to support multicore
   Added CTSCSR0[CTSEN] = 1 right before run_apps().
 - platform.c : Modified pltfrm_init_core_cb() inside platform.c that is located under {aiopsl}\src\arch\ppc\platform\ls2100a_aiop.
   Removed CTSCSR0[CTSEN] = 1.
-- Updated preprocessor settings in all ARENA demos to use dflags_dbg.h.    
+- Updated preprocessor settings in all ARENA demos to use dflags_dbg.h.

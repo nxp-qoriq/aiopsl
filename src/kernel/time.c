@@ -18,6 +18,6 @@ __HOT_CODE time_t _gettime(void)
 		return -1;
 
 	temp_val = (uint64_t)(TSCRU2) << 32;
-	temp_val |= (TSCRL);
+	temp_val |= (TSCRL); /*temp_val holds time in nanoseconds*/
 	return (temp_val / 1000); /*convert to microseconds*/
 }

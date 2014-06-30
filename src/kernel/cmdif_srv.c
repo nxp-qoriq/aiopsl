@@ -141,7 +141,7 @@ __HOT_CODE static uint32_t cmd_size_get()
 
 __HOT_CODE static uint64_t cmd_data_get()
 {
-	return LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	return (uint64_t)PRC_GET_SEGMENT_ADDRESS();
 }
 
 static void cmd_m_name_get(char *name)
