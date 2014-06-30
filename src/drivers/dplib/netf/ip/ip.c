@@ -19,7 +19,7 @@
 #include "fsl_time.h"
 
 
-int32_t ip_header_decapsulation(uint8_t flags)
+int ip_header_decapsulation(uint8_t flags)
 {
 	uint8_t inner_ip_offset, outer_ip_offset, size_to_be_removed;
 	uint16_t etype_offset, mpls_offset;
@@ -474,7 +474,7 @@ void ipv6_dec_hop_limit_modification(void)
 	pr->gross_running_sum = 0;
 }
 
-int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
+int ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		uint32_t ip_src_addr, uint32_t ip_dst_addr)
 {
 	uint16_t ipv4hdr_offset;
@@ -595,7 +595,7 @@ int32_t ipv4_header_modification(uint8_t flags, uint8_t tos, uint16_t id,
 		return NO_IP_HDR_ERROR; }
 }
 
-int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
+int ipv6_header_modification(uint8_t flags, uint8_t tc,
 				    uint32_t flow_label, uint8_t *ip_src_addr,
 				    uint8_t *ip_dst_addr)
 {
@@ -720,7 +720,7 @@ int32_t ipv6_header_modification(uint8_t flags, uint8_t tc,
 	     }
 }
 
-int32_t ipv4_header_encapsulation(uint8_t flags,
+int ipv4_header_encapsulation(uint8_t flags,
 				  void *ipv4header, uint8_t ipv4_header_size)
 {
 	struct ipv4hdr *inner_ipv4hdr_ptr;
@@ -892,7 +892,7 @@ int32_t ipv4_header_encapsulation(uint8_t flags,
 	}
 }
 
-int32_t ipv6_header_encapsulation(uint8_t flags, void *ipv6header,
+int ipv6_header_encapsulation(uint8_t flags, void *ipv6header,
 				  uint8_t ipv6_header_size)
 {
 	struct ipv4hdr *inner_ipv4hdr_ptr;
@@ -1036,7 +1036,7 @@ int32_t ipv6_header_encapsulation(uint8_t flags, void *ipv6header,
 	}
 }
 
-int32_t ip_set_nw_src(uint32_t src_addr)
+int ip_set_nw_src(uint32_t src_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;
@@ -1108,7 +1108,7 @@ int32_t ip_set_nw_src(uint32_t src_addr)
 
 }
 
-int32_t ip_set_nw_dst(uint32_t dst_addr)
+int ip_set_nw_dst(uint32_t dst_addr)
 {
 	uint16_t ipv4hdr_offset;
 	uint16_t udp_tcp_offset;
@@ -1181,7 +1181,7 @@ int32_t ip_set_nw_dst(uint32_t dst_addr)
 }
 
 
-int32_t ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
+int ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 {
 	uint16_t running_sum;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;

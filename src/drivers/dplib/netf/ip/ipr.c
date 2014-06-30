@@ -74,7 +74,7 @@ int ipr_init(void)
 	return 0;
 }
 
-int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
+int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			    ipr_instance_handle_t *ipr_instance_ptr)
 {
 	struct ipr_instance	      ipr_instance;
@@ -212,7 +212,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	return IPR_CREATE_INSTANCE_SUCCESS;
 }
 
-int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
+int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 			    ipr_del_cb_t *confirm_delete_cb,
 			    ipr_del_arg_t delete_arg)
 {
@@ -245,7 +245,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	return SUCCESS;
 }
 
-int32_t ipr_reassemble(ipr_instance_handle_t instance_handle)
+int ipr_reassemble(ipr_instance_handle_t instance_handle)
 {
 	uint16_t iphdr_offset;
 	uint32_t status_insert_to_LL;
