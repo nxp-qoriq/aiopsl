@@ -116,19 +116,6 @@ int dpci_set_rx_queue(struct dpci *dpci,
 				&cmd_data);
 }
 
-int dpci_free_rx_queue(struct dpci *dpci, uint8_t priority)
-{
-	struct mc_cmd_data cmd_data = { { 0 } };
-
-	/* prepare command */
-	DPCI_CMD_FREE_RX_QUEUE(CMD_PREP);
-
-	/* send command to mc*/
-	return dplib_send(dpci->regs, &(dpci->auth), DPCI_CMDID_FREE_RX_QUEUE,
-				DPCI_CMDSZ_FREE_RX_QUEUE, MC_CMD_PRI_LOW,
-				&cmd_data);
-}
-
 int dpci_get_irq(struct dpci *dpci,
 		 uint8_t irq_index,
 	int *type,

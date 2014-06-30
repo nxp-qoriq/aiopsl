@@ -81,6 +81,7 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	             size,
 	             (uint32_t)((data & 0xFF00000000) >> 32),
 	             (uint32_t)(data & 0xFFFFFFFF));
+	return 0;
 }
 
 __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
