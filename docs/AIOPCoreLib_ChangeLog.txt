@@ -67,7 +67,9 @@ PARSER:
 	PARSER_GET_RUNNING_SUM_DEFAULT
 
 Added file id_pool.c
-		
+
+CDMA:
+fsl_cdma.h: API - several functions (modify) to become void instead of int. 		
 
 SL Alpha v0.4  Change Log
 ===============================
