@@ -52,7 +52,7 @@ Add file fsl_frame_operations:
 
 Change file general.h to fsl_general.h.
 
-		
+fsl_cdma.h: API - several functions (modify) to become void instead of int.	
 		
 
 SL Alpha v0.4  Change Log
