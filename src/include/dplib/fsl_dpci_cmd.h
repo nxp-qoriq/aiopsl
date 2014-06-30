@@ -1,3 +1,6 @@
+/*
+* Copyright (c) 2014 Freescale Semiconductor, Inc. All rights reserved.
+*/
 /**************************************************************************//*
  @File          fsl_dpci_cmd.h
 
@@ -10,7 +13,7 @@
 #define _FSL_DPCI_CMD_H
 
 /* DPCI Version */
-#define DPCI_VER_MAJOR				1
+#define DPCI_VER_MAJOR				2
 #define DPCI_VER_MINOR				0
 
 /* cmd IDs */
@@ -20,7 +23,6 @@
 
 #define DPCI_CMDID_DESTROY				0x182
 #define DPCI_CMDID_SET_RX_QUEUE				0x184
-#define DPCI_CMDID_FREE_RX_QUEUE			0x185
 #define DPCI_CMDID_ENABLE				0x186
 #define DPCI_CMDID_DISABLE				0x187
 #define DPCI_CMDID_RESET				0x188
@@ -41,7 +43,6 @@
 #define DPCI_CMDSZ_CREATE				8
 #define DPCI_CMDSZ_DESTROY				0
 #define DPCI_CMDSZ_SET_RX_QUEUE				(8 * 2)
-#define DPCI_CMDSZ_FREE_RX_QUEUE			8
 #define DPCI_CMDSZ_ENABLE				0
 #define DPCI_CMDSZ_DISABLE				0
 #define DPCI_CMDSZ_RESET				0
@@ -76,10 +77,6 @@ do { \
 	_OP(1,  0,	64,	uint64_t,	rx_user_ctx);\
 } while (0)
 
-/*	param, offset, width,	type,		arg_name */
-#define DPCI_CMD_FREE_RX_QUEUE(_OP) \
-	_OP(0,  0,	8,	uint8_t,	priority)
-
 /*	param, offset, width,	type,			arg_name */
 #define DPCI_RSP_GET_LINK_STATE(_OP) \
 	_OP(0,	0,	1,	int,			up)
@@ -91,7 +88,6 @@ do { \
 	_OP(0,  32,	8,	uint8_t,	attr->peer_attached);\
 	_OP(0,  40,	8,	uint8_t,	attr->peer_id);\
 	_OP(1,  0,	8,	uint8_t,	attr->num_of_priorities);\
-	_OP(1,  9,	1,	int,		attr->enable);\
 	_OP(2,  0,	32,	uint32_t, attr->dpci_prio_attr[0].tx_qid);\
 	_OP(2,  32,	32,	uint32_t, attr->dpci_prio_attr[0].rx_qid);\
 	_OP(3,  0,	32,	uint32_t, attr->dpci_prio_attr[1].tx_qid);\

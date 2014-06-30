@@ -1,4 +1,6 @@
-/* Copyright 2014 Freescale Semiconductor, Inc. */
+/*
+* Copyright (c) 2014 Freescale Semiconductor, Inc. All rights reserved.
+*/
 /*!
  *  @file    fsl_dpci.h
  *  @brief   Data Path Command Interface API
@@ -141,18 +143,6 @@ int dpci_set_rx_queue(struct dpci *dpci,
 
 /**
  *
- * @brief	Dettach the DPCI to the application
- *
- * @param[in]	dpci - Pointer to dpci object
- * @param[in]	priority - priority to dettach
- *
- * @returns	'0' on Success; Error code otherwise.
- */
-
-int dpci_free_rx_queue(struct dpci *dpci, uint8_t priority);
-
-/**
- *
  * @brief	Enable the DCPI, will allow sending and receiving frames.
  *
  * @param[in]	dpci - Pointer to dpci object
@@ -201,8 +191,6 @@ struct dpci_prio_attr {
 struct dpci_attr {
 	int id;
 	/*!< DPCI id */
-	int enable;
-	/*!< enable- only if DPCI is enabled, data can be recived on his rx queues */
 	uint8_t peer_attached;
 	/*!< DPCI is attached to a peer DPCI*/
 	uint8_t peer_id;
@@ -232,17 +220,17 @@ int dpci_get_attributes(struct dpci *dpci, struct dpci_attr *attr);
 /**
  *
  * @brief	Retrieve the DPCI state of the link to other DPCI .
- *			
- *			Each DPCI can be connected to a different DPCI, together they create a 'link', 
- * 			each one is defining an entry point for a different entity, in order to use the 
+ *
+ *			Each DPCI can be connected to a different DPCI, together they create a 'link',
+ * 			each one is defining an entry point for a different entity, in order to use the
  * 			DPCI tx and rx queues the link state need to be up
- * 			 
+ *
  * @param[in]	dpci - Pointer to dpci object
  * @param[out]	up - link status
  *
  * @returns	'0' on Success; Error code otherwise.
- *   
- * 
+ *
+ *
  */
 int dpci_get_link_state(struct dpci *dpci, int *up);
 
