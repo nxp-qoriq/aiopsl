@@ -321,8 +321,8 @@ void l2_arp_response()
 				*((uint16_t *)(arp_hdr->src_hw_addr + 4));
 	/* set ARP ETH source address */
 	*((uint32_t *)(arp_hdr->src_hw_addr)) = *((uint32_t *)local_hw_addr);
-	*((uint16_t *)(arp_hdr->src_hw_addr)) =
-			*((uint16_t *)(local_hw_addr+4));
+	*((uint16_t *)(arp_hdr->src_hw_addr + 4)) =
+			*((uint16_t *)(local_hw_addr + 4));
 
 	/* switch ARP IP addresses */
 	temp_ip = arp_hdr->src_pro_addr;
