@@ -308,11 +308,11 @@ void l2_arp_response()
 	dpni_drv_get_primary_mac_addr(
 			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
 	/* set ETH destination address */
-	*((uint32_t *)ethhdr) = *((uint32_t *)(arp_hdr->src_hw_addr));
-	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(arp_hdr->src_hw_addr + 4));
+	*((uint32_t *)(&ethhdr[0])) = *((uint32_t *)(arp_hdr->src_hw_addr));
+	*((uint16_t *)(&ethhdr[4])) = *((uint16_t *)(arp_hdr->src_hw_addr + 4));
 	/* set ETH source address */
-	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
-	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
+	*((uint32_t *)(&ethhdr[6])) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(&ethhdr[10])) = *((uint16_t *)(local_hw_addr+4));
 
 	/* set ARP HW destination address */
 	*((uint32_t *)(arp_hdr->dst_hw_addr)) =
@@ -349,11 +349,11 @@ void l2_set_hw_src_dst(uint8_t *target_hw_addr)
 	dpni_drv_get_primary_mac_addr(
 			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
 	/* set ETH destination address */
-	*((uint32_t *)ethhdr) = *((uint32_t *)(target_hw_addr));
-	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(target_hw_addr + 4));
+	*((uint32_t *)(&ethhdr[0])) = *((uint32_t *)(target_hw_addr));
+	*((uint16_t *)(&ethhdr[4])) = *((uint16_t *)(target_hw_addr + 4));
 	/* set ETH source address */
-	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
-	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
+	*((uint32_t *)(&ethhdr[6])) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(&ethhdr[10])) = *((uint16_t *)(local_hw_addr+4));
 
 	fdma_modify_default_segment_data(PARSER_GET_ETH_OFFSET_DEFAULT(),
 		(NET_HDR_FLD_ETH_ADDR_SIZE + NET_HDR_FLD_ETH_ADDR_SIZE));
