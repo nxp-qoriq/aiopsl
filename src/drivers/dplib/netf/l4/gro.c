@@ -821,7 +821,7 @@ int tcp_gro_flush_aggregation(
 
 	/* prepare presentation context fields for frame presentation. */
 	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-				DEFAULT_SEGMENT_HEADOOM_SIZE);
+				DEFAULT_SEGMENT_HEADROOM_SIZE);
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();
@@ -973,7 +973,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	 * parameters in Presentation Context */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
 	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-			DEFAULT_SEGMENT_HEADOOM_SIZE);
+			DEFAULT_SEGMENT_HEADROOM_SIZE);
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();
