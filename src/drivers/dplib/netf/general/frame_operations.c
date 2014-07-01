@@ -173,13 +173,13 @@ int create_arp_request(
 			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
 
 	/* set ETH destination address */
-	*((uint32_t *)ethhdr) = *((uint32_t *)target_eth);
-	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(target_eth+4));
+	*((uint32_t *)(&ethhdr[0])) = *((uint32_t *)target_eth);
+	*((uint16_t *)(&ethhdr[4])) = *((uint16_t *)(target_eth+4));
 	/* set ETH source address */
-	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
-	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
+	*((uint32_t *)(&ethhdr[6])) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(&ethhdr[10])) = *((uint16_t *)(local_hw_addr+4));
 	/* set ETH ARP EtherType */
-	*((uint16_t *)(ethhdr+12)) = ARP_ETHERTYPE;
+	*((uint16_t *)(&ethhdr[12])) = ARP_ETHERTYPE;
 
 	/* set ARP HW type */
 	arp_hdr->hw_type = ARPHDR_ETHER_PRO_TYPE;
