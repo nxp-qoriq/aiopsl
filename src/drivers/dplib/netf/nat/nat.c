@@ -18,7 +18,7 @@
 #include "header_modification.h"
 
 
-int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
+int nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 		uint32_t ip_dst_addr, uint16_t l4_src_port,
 		uint16_t l4_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta)
@@ -174,7 +174,7 @@ int32_t nat_ipv4(uint8_t flags, uint32_t ip_src_addr,
 
 }
 
-int32_t nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
+int nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 		uint32_t *ip_dst_addr, uint16_t l4_src_port,
 		uint16_t l4_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta)

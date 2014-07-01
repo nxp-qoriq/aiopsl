@@ -354,7 +354,7 @@ struct extended_stats_cntrs {
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
-int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
+int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			    ipr_instance_handle_t *ipr_instance_ptr);
 
 
@@ -380,7 +380,7 @@ int32_t ipr_create_instance(struct ipr_params *ipr_params_ptr,
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
-int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
+int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 			    ipr_del_cb_t *confirm_delete_cb,
 			    ipr_del_arg_t delete_arg);
 
@@ -420,7 +420,7 @@ int32_t ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		In this function, the task yields.
 
 *//***************************************************************************/
-int32_t ipr_reassemble(ipr_instance_handle_t ipr_instance);
+int ipr_reassemble(ipr_instance_handle_t ipr_instance);
 
 /**************************************************************************//**
 @Function	ipr_modify_max_reass_frm_size

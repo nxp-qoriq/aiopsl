@@ -19,7 +19,7 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int32_t l4_udp_header_modification(uint8_t flags,
+int l4_udp_header_modification(uint8_t flags,
 		uint16_t udp_src_port, uint16_t udp_dst_port)
 {
 	uint8_t udp_offset;
@@ -53,7 +53,7 @@ int32_t l4_udp_header_modification(uint8_t flags,
 	return SUCCESS;
 }
 
-int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
+int l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		uint16_t tcp_dst_port, int16_t tcp_seq_num_delta,
 		int16_t tcp_ack_num_delta, uint16_t tcp_mss)
 {
@@ -188,7 +188,7 @@ int32_t l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 }
 
 
-int32_t l4_set_tp_src(uint16_t src_port)
+int l4_set_tp_src(uint16_t src_port)
 {
 	uint16_t l4_offset;
 	struct   tcphdr *tcphdr_ptr;
@@ -244,7 +244,7 @@ int32_t l4_set_tp_src(uint16_t src_port)
 
 }
 
-int32_t l4_set_tp_dst(uint16_t dst_port)
+int l4_set_tp_dst(uint16_t dst_port)
 {
 	uint16_t l4_offset;
 	struct   tcphdr *tcphdr_ptr;
@@ -299,7 +299,7 @@ int32_t l4_set_tp_dst(uint16_t dst_port)
 }
 
 
-int32_t l4_udp_tcp_cksum_calc(uint8_t flags)
+int l4_udp_tcp_cksum_calc(uint8_t flags)
 {
 	uint16_t	l3checksum_dummy;
 	uint16_t	l4checksum;

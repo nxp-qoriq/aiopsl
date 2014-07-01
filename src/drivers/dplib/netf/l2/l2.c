@@ -61,7 +61,7 @@ void l2_header_remove(void)
 	return;
 }
 
-int32_t l2_vlan_header_remove()
+int l2_vlan_header_remove()
 {
 	uint32_t fdma_flags;
 	uint8_t  first_offset, last_offset;
@@ -151,7 +151,7 @@ void l2_set_dl_dst(uint8_t *dst_addr)
 	fdma_modify_default_segment_data(eth_dmac_offset, 6);
 }
 
-int32_t l2_set_vlan_vid(uint16_t vlan_vid)
+int l2_set_vlan_vid(uint16_t vlan_vid)
 {
 	uint32_t *vlan_ptr, constructed_vlan;
 	uint8_t vlan_offset;
@@ -183,7 +183,7 @@ int32_t l2_set_vlan_vid(uint16_t vlan_vid)
 }
 
 
-int32_t l2_set_vlan_pcp(uint8_t vlan_pcp)
+int l2_set_vlan_pcp(uint8_t vlan_pcp)
 {
 	uint32_t *vlan_ptr, constructed_vlan;
 	uint8_t vlan_offset;
@@ -252,7 +252,7 @@ void l2_push_and_set_vlan(uint32_t vlan_tag)
 	pr->gross_running_sum = 0;
 }
 
-int32_t l2_pop_vlan()
+int l2_pop_vlan()
 {
 	uint32_t fdma_flags;
 	uint16_t vlan_offset;

@@ -458,9 +458,8 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	 }
 
 	if (!dpci_tbl->attr[ind].peer_attached ||
-		!dpci_tbl->attr[ind].enable  ||
 		!link_up) {
-		pr_err("DPCI is not enabled or not linked to other DPCI\n");
+		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
 

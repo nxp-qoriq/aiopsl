@@ -27,7 +27,7 @@ void app_free(void);
 #define OPEN_CMD	0x100
 #define NORESP_CMD	0x101
 #define ASYNC_CMD	0x102
-#define SYNC_CMD 	(0x103 & CMDIF_NORESP_CMD)
+#define SYNC_CMD 	(0x103 | CMDIF_NORESP_CMD)
 #define ASYNC_N_CMD	0x104
 #define OPEN_N_CMD	0x105
 
@@ -81,6 +81,7 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	             size,
 	             (uint32_t)((data & 0xFF00000000) >> 32),
 	             (uint32_t)(data & 0xFFFFFFFF));
+	return 0;
 }
 
 __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,

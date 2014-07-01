@@ -15,7 +15,7 @@ Setup
 ===========================================
 Execution flow
 ===========================================
-1. Build mc_app from mc_release_0.4.1 using CW_APP_v10.0.8.
+1. Build mc_app using CW_APP_v10.0.8.
 2. Build app_process_packet from aiopsl using CW_APP_v10.0.8.
 3. Copy resulting ELF file from the build project folder(aiop_app.elf) to simulator folder (same location as cfg files).
 4. Run simulator:
@@ -65,13 +65,10 @@ ARENA sets the following default values for every NI:
 ===========================================
   profile_id = 0 - only parser profile id 0 is supported
   QDID = 0 - Queueing destination for the enqueue
-  spid = 0 - Storage profile ID
   MTU = maximal value
 
 ==========
 ARENA APIs
 ==========
-Don't use virtual pools API, use SLAB API as demonstrated inside this demo
-For spinlock, use only: lock_spinlock and unlock_spinlock
-All other spinlock functions will be removed in future release.
+Don't use virtual pools API, use SLAB API as demonstrated inside this demo.
 
