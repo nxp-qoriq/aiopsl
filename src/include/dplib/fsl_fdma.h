@@ -43,6 +43,10 @@
 #define FDMA_PTA_SEG_HANDLE	0xF
 	/** HW annotation segment handle */
 #define FDMA_ASA_SEG_HANDLE	0xE
+	/** Default Segment headroom size. */
+#define DEFAULT_SEGMENT_HEADROOM_SIZE	128
+	/** Default Segment size. */
+#define DEFAULT_SEGMENT_SIZE		256
 
 /* @} end of group FDMA_General_Definitions */
 
