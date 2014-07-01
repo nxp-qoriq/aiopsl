@@ -364,9 +364,9 @@ enum table_hw_accel_id {
 /** @} */ /* end of FSL_CTLU_Enumerations */
 
 /**************************************************************************//**
-@Group		FSL_CTLU_STRUCTS CTLU Structures
+@Group		FSL_TABLE_STRUCTS Table Structures
 
-@Description	Freescale AIOP CTLU Structures
+@Description	Freescale AIOP Table Structures
 
 @{
 *//***************************************************************************/
