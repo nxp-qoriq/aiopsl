@@ -27,7 +27,7 @@ void app_free(void);
 #define OPEN_CMD	0x100
 #define NORESP_CMD	0x101
 #define ASYNC_CMD	0x102
-#define SYNC_CMD 	(0x103 & CMDIF_NORESP_CMD)
+#define SYNC_CMD 	(0x103 | CMDIF_NORESP_CMD)
 #define ASYNC_N_CMD	0x104
 #define OPEN_N_CMD	0x105
 
