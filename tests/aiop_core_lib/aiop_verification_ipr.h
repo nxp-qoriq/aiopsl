@@ -113,9 +113,10 @@ struct ipr_init_verif_command {
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
 struct ipr_create_instance_command {
-	uint32_t				opcode;
+	uint32_t		opcode;
 		/**< Command structure identifier. */
 	int32_t			status;
+	uint32_t		instance_index;
 	struct ipr_params	ipr_params;
 #ifdef CLOSE_MODEL
 	ipr_instance_handle_t	ipr_instance;
@@ -136,6 +137,7 @@ struct ipr_delete_instance_command {
 	int32_t				status;
 	ipr_del_cb_t			*confirm_delete_cb;
 	ipr_del_arg_t			delete_arg;
+	uint32_t			instance_index;
 #ifdef CLOSE_MODEL
 	ipr_instance_handle_t		ipr_instance;
 	uint8_t				ipr_instance_ref;
@@ -149,9 +151,10 @@ struct ipr_delete_instance_command {
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
 struct ipr_reassemble_command {
-	uint32_t				opcode;
+	uint32_t	opcode;
 		/**< Command structure identifier. */
-	int32_t					status;
+	int32_t		status;
+	uint32_t	instance_index;
 #ifdef CLOSE_MODEL
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
@@ -165,10 +168,11 @@ struct ipr_reassemble_command {
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
 struct ipr_modify_max_reass_frm_size_command {
-	uint32_t				opcode;
+	uint32_t	opcode;
 		/**< Command structure identifier. */
-	int32_t					status;
-	uint16_t				max_reass_frm_size;
+	int32_t		status;
+	uint16_t	max_reass_frm_size;
+	uint32_t	instance_index;
 #if CLOSED_MODEL	
 	ipr_instance_handle_t			ipr_instance;
 	uint8_t					ipr_instance_ref;
@@ -184,10 +188,11 @@ struct ipr_modify_max_reass_frm_size_command {
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
 struct ipr_modify_min_frag_size_command {
-	uint32_t				opcode;
+	uint32_t	opcode;
 		/**< Command structure identifier. */
-	int32_t					status;
-	uint16_t				min_frag_size;
+	int32_t		status;
+	uint16_t	min_frag_size;
+	uint32_t	instance_index;
 #if CLOSED_MODEL	
 	ipr_instance_handle_t			ipr_instance;
 	uint8_t					ipr_instance_ref;
@@ -203,10 +208,11 @@ struct ipr_modify_min_frag_size_command {
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
 struct ipr_modify_timeout_value_ipv4_command {
-	uint32_t				opcode;
+	uint32_t	opcode;
 		/**< Command structure identifier. */
-	int32_t					status;
-	uint16_t				reasm_timeout_value_ipv4;
+	int32_t		status;
+	uint16_t	reasm_timeout_value_ipv4;
+	uint32_t	instance_index;
 #if CLOSED_MODEL	
 	ipr_instance_handle_t			ipr_instance;
 	uint8_t					ipr_instance_ref;
@@ -222,10 +228,11 @@ struct ipr_modify_timeout_value_ipv4_command {
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
 struct ipr_modify_timeout_value_ipv6_command {
-	uint32_t				opcode;
+	uint32_t	opcode;
 		/**< Command structure identifier. */
-	int32_t					status;
-	uint16_t				reasm_timeout_value_ipv6;
+	int32_t		status;
+	uint16_t	reasm_timeout_value_ipv6;
+	uint32_t	instance_index;
 #if CLOSED_MODEL	
 	ipr_instance_handle_t			ipr_instance;
 	uint8_t					ipr_instance_ref;
@@ -241,11 +248,12 @@ struct ipr_modify_timeout_value_ipv6_command {
 		Includes information needed for IPR Command verification.
 *//***************************************************************************/
 struct ipr_get_reass_frm_cntr_command {
-	uint32_t				opcode;
+	uint32_t	opcode;
 		/**< Command structure identifier. */
-	int32_t					status;
-	uint32_t				flags;
-	uint32_t				reass_frm_cntr;
+	int32_t		status;
+	uint32_t	flags;
+	uint32_t	reass_frm_cntr;
+	uint32_t	instance_index;
 #if CLOSED_MODEL	
 	ipr_instance_handle_t			ipr_instance;
 	uint8_t					ipr_instance_ref;
