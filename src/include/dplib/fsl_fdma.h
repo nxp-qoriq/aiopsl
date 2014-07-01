@@ -639,25 +639,25 @@ struct fdma_present_frame_params {
 
 *//***************************************************************************/
 struct fdma_present_segment_params {
-		/**< \link FDMA_PRES_Flags Present segment flags \endlink */
+		/** \link FDMA_PRES_Flags Present segment flags \endlink */
 	uint32_t flags;
-		/**< A pointer to the location in workspace for the presented
+		/** A pointer to the location in workspace for the presented
 		 * frame segment. */
 	void	 *ws_dst;
-		/**< Location within the presented frame to start presenting
+		/** Location within the presented frame to start presenting
 		 * from. Must be within the bound of the frame. Relative to
 		\ref FDMA_PRES_SR_BIT flag. */
 	uint16_t offset;
-		/**< Number of frame bytes to present (any value including 0).*/
+		/** Number of frame bytes to present (any value including 0).*/
 	uint16_t present_size;
-		/**< Returned parameter:
+		/** Returned parameter:
 		 * The number of bytes actually presented (the segment actual
 		 * size). */
 	uint16_t seg_length;
-		/**< Returned parameter:
+		/** Returned parameter:
 		 * The handle of the presented segment. */
 	uint8_t  seg_handle;
-		/**< working frame from which to open a segment. */
+		/** working frame from which to open a segment. */
 	uint8_t	 frame_handle;
 };
 
@@ -666,7 +666,7 @@ struct fdma_present_segment_params {
 
 *//***************************************************************************/
 struct fdma_queueing_destination_params {
-		/**< Queueing destination for the enqueue. */
+		/** Queueing destination for the enqueue. */
 	uint16_t qd;
 		/** Distribution hash value passed to QMan for distribution
 		 * purpose on the enqueue. */
@@ -732,7 +732,7 @@ struct fdma_split_frame_params {
 	uint16_t seg_length;
 		/** The handle of the source working frame. */
 	uint8_t  source_frame_handle;
-		/**< Returned parameter:
+		/** Returned parameter:
 		 * A pointer to the handle of the split working frame. */
 	uint8_t  split_frame_handle;
 		/** Returned parameter:
@@ -750,34 +750,34 @@ struct fdma_split_frame_params {
 
 *//***************************************************************************/
 struct fdma_insert_segment_data_params {
-		/**< a pointer to the workspace location from which the inserted
+		/** a pointer to the workspace location from which the inserted
 		 * segment data starts. */
 	void	 *from_ws_src;
-		/**< A pointer to the location in workspace for the represented
+		/** A pointer to the location in workspace for the represented
 		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
 		 *  flag is set). */
 	void	 *ws_dst_rs;
-		/**< \link FDMA_Replace_Flags replace working frame segment
+		/** \link FDMA_Replace_Flags replace working frame segment
 		 * flags \endlink */
 	uint32_t flags;
-		/**< Offset from the previously presented segment representing
+		/** Offset from the previously presented segment representing
 		 * where to insert the data.
 		 * Must be within the presented segment size. */
 	uint16_t to_offset;
-		/**< Size of the data being inserted to the segment. */
+		/** Size of the data being inserted to the segment. */
 	uint16_t insert_size;
-		/**< Number of frame bytes to represent in the segment. Must be
+		/** Number of frame bytes to represent in the segment. Must be
 		 * greater than 0.
 		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
 	uint16_t size_rs;
-		/**< Returned parameter:
+		/** Returned parameter:
 		 * The number of bytes actually presented (the segment actual
 		 * size).
 		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set*/
 	uint16_t seg_length_rs;
-		/**< Working frame handle to which the data is being inserted.*/
+		/** Working frame handle to which the data is being inserted.*/
 	uint8_t	 frame_handle;
-		/**< Data segment handle (related to the working frame handle)
+		/** Data segment handle (related to the working frame handle)
 		 * to which the data is being inserted. */
 	uint8_t  seg_handle;
 };
@@ -787,32 +787,32 @@ struct fdma_insert_segment_data_params {
 
 *//***************************************************************************/
 struct fdma_delete_segment_data_params {
-		/**< A pointer to the location in workspace for the represented
+		/** A pointer to the location in workspace for the represented
 		 * frame segment (relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT
 		 *  flag is set). */
 	void	 *ws_dst_rs;
-		/**< \ref FDMA_Replace_Flags replace working frame segment
+		/** \ref FDMA_Replace_Flags replace working frame segment
 		 * flags. */
 	uint32_t flags;
-		/**< Offset from the previously presented segment representing
+		/** Offset from the previously presented segment representing
 		 * from where to delete data.
 		 * Must be within the presented segment size. */
 	uint16_t to_offset;
-		/**< Size of the data being deleted from the segment. */
+		/** Size of the data being deleted from the segment. */
 	uint16_t delete_target_size;
-		/**< Number of frame bytes to represent in the segment. Must be
+		/** Number of frame bytes to represent in the segment. Must be
 		 * greater than 0.
 		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
 	uint16_t size_rs;
-		/**< Returned parameter:
+		/** Returned parameter:
 		 * The number of bytes actually presented (the segment actual
 		 * size).
 		 * Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.*/
 	uint16_t seg_length_rs;
-		/**< Working frame handle from which the data is being
+		/** Working frame handle from which the data is being
 		 * deleted.*/
 	uint8_t	 frame_handle;
-		/**< Data segment handle (related to the working frame handle)
+		/** Data segment handle (related to the working frame handle)
 		 * from which the data is being deleted. */
 	uint8_t  seg_handle;
 };
