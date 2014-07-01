@@ -691,9 +691,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 				fdma_store_default_frame_data();
 				gro_ctx->agg_fd =
 					*((struct ldpaa_fd *)HWC_FD_ADDRESS);
-				return TCP_GRO_SEG_AGG_DONE |
-					TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
-					status;
+				return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
+						status;
 			} else { /* in this case, flush the second segment */
 				return TCP_GRO_SEG_AGG_DONE | status;
 			}
