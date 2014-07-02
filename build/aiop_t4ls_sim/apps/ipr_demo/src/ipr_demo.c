@@ -10,7 +10,8 @@
 /*#include "fsl_cmdif_server.h"*/
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_fdma.h"
-
+#include "dplib/fsl_ip.h"
+#include "dplib/fsl_l4.h"
 
 int app_init(void);
 void app_free(void);
@@ -20,24 +21,30 @@ void app_free(void);
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
 
+#define IPR_DEMO_WITH_HM	0x80
+#define IPR_DEMO_WITHOUT_HM	0x00
+
 /* Global IPR var in Shared RAM */
 __SHRAM ipr_instance_handle_t ipr_instance_val;
 
 __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
-	int      err = 0;
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
-	uint32_t src_addr = 0x10203040;// new ipv4 src_addr
 	
-	int32_t reassemble_status;
+	uint8_t ipr_demo_flags = IPR_DEMO_WITHOUT_HM;
+	
+	uint32_t ip_dst_addr = 0x73bcdc90; // new ipv4 dst_addr
+	uint16_t udp_dst_port = 0xd720; //new udp dest port
+	int reassemble_status, hm_status;
 	
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
 		fsl_os_print
-		("ipr_demo:Core %d received fragment with ipv4 header:\n",
-	    core_get_id());
+		("ipr_demo: Core %d received fragment with ipv4 header:\n",
+					core_get_id());
+
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));
 		for( int i = 0; i < ipv4hdr_length ;i ++)
@@ -47,12 +54,39 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("\n");
 	}
 
+	if (ipr_demo_flags == IPR_DEMO_WITH_HM)
+	{
+		hm_status = ip_set_nw_dst(ip_dst_addr);
+		if (hm_status)
+			fsl_os_print("ERROR = %d: ip_set_nw_src\n", hm_status);
+		else
+			fsl_os_print
+			("ipr_demo: Core %d modified fragment's IP dest to 0x%x\n",
+				core_get_id(), ip_dst_addr);
+	}
+	
 	reassemble_status = ipr_reassemble(ipr_instance_val);
+		
 	if (reassemble_status == IPR_REASSEMBLY_SUCCESS)
 	{
+		if (ipr_demo_flags == IPR_DEMO_WITH_HM)
+		{
+			hm_status = l4_udp_header_modification(
+				(L4_UDP_MODIFY_MODE_L4_CHECKSUM | L4_UDP_MODIFY_MODE_UDPDST),
+				0, udp_dst_port);
+			if (hm_status)
+				fsl_os_print("ERROR = %d: l4_udp_header_modification\n", hm_status);
+			else
+				fsl_os_print
+				("ipr_demo: Core %d modified reassembled frame udp dest to 0x%x\n",
+					core_get_id(), udp_dst_port);
+		}
+
 		fsl_os_print
-		("ipr_demo:: Core %d will send a reassembled frame with ipv4 header:\n"
-		, core_get_id());
+		("ipr_demo: Core %d will send a reassembled frame with ipv4 header:\n"
+					, core_get_id());
+			
+	
 		for( int i = 0; i < ipv4hdr_length ;i ++)
 		{
 			fsl_os_print(" %x",p_ipv4hdr[i]);
@@ -147,7 +181,6 @@ int app_init(void)
 		fsl_os_print("ERROR: ipr_create_instance() failed\n");
 
 	ipr_instance_val = ipr_instance;
-
 
 #ifdef AIOP_STANDALONE
 	/* This is temporal WA for stand alone demo only */
