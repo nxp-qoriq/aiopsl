@@ -3,11 +3,10 @@
 
 #include "dplib/fsl_dpci.h"
 
-#define DPCI_OBJ_MN	20 /**< Maximal number of dpci objects */
 
 struct dpci_obj {
-	struct dpci_attr attr[DPCI_OBJ_MN];
-	struct dpci      dpci[DPCI_OBJ_MN];
+	struct dpci_attr *attr;
+	struct dpci      *dpci;
 	int    count;
 };
 

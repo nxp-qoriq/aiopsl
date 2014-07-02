@@ -14,6 +14,8 @@
 int mc_obj_init();
 void mc_obj_free();
 
+#define DPCI_LOW_PR  1
+
 static int aiop_container_init()
 {
 	void *p_vaddr;
@@ -66,16 +68,17 @@ static void aiop_container_free()
 
 static int dpci_discovery()
 {
-	int dev_count;
 	struct dprc_obj_desc dev_desc;
-	int err = 0;
-	int i = 0;
-	uint8_t p = 0;;
 	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpci *dpci;
 	struct dpci_dest_cfg dest_cfg;
 	struct dpci_obj *dpci_tbl = NULL;
-	int ind = 0;
+	int ind        = 0;
+	int dev_count  = 0;
+	int dpci_count = 0;
+	int err        = 0;
+	int i          = 0;
+	uint8_t p      = 0;;
 
 	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
 	    pr_err("Failed to get device count for RC auth_d = %d\n",
@@ -83,6 +86,51 @@ static int dpci_discovery()
 	    return err;
 	}
 
+	/* First count how many DPCI objects we have */
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(dprc, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpci") == 0) {
+			dpci_count++;
+		}
+	}
+
+	if (dpci_count > 0) {
+		i = sizeof(struct dpci_obj); /* use for size */
+		dpci_tbl = fsl_os_xmalloc((uint32_t)i, MEM_PART_SH_RAM, 1);
+		if (dpci_tbl == NULL) {
+			pr_err("No memory for %d DPCIs\n", dpci_count);
+			return -ENOMEM;
+		}
+		memset(dpci_tbl, 0, (uint32_t)i);
+
+		i = sizeof(struct dpci_attr) * dpci_count; /* use for size */
+		dpci_tbl->attr = fsl_os_xmalloc((uint32_t)i, MEM_PART_SH_RAM, 1);
+		if (dpci_tbl->attr == NULL) {
+			pr_err("No memory for %d DPCIs\n", dpci_count);
+			return -ENOMEM;
+		}
+		memset(dpci_tbl->attr, 0, (uint32_t)i);
+
+		i = sizeof(struct dpci) * dpci_count; /* use for size */
+		dpci_tbl->dpci = fsl_os_xmalloc((uint32_t)i, MEM_PART_SH_RAM, 1);
+		if (dpci_tbl->dpci == NULL) {
+			pr_err("No memory for %d DPCIs\n", dpci_count);
+			return -ENOMEM;
+		}
+		memset(dpci_tbl->dpci, 0, (uint32_t)i);
+
+		err = sys_add_handle(dpci_tbl,
+		                     FSL_OS_MOD_DPCI_TBL,
+		                     1,
+		                     0);
+		if (err != 0) {
+			pr_err("FSL_OS_MOD_DPCI_TBL sys_add_handle failed\n");
+			return err;
+		}
+
+	}
+
+	ind = 0;
 	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(dprc, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpci") == 0) {
@@ -97,52 +145,39 @@ static int dpci_discovery()
 			pr_debug("ver_minor - %d\n", dev_desc.ver_minor);
 			pr_debug("irq_count - %d\n\n", dev_desc.irq_count);
 
-#ifndef OLD_DPCI
-			if (dpci_tbl == NULL) {
-				dpci_tbl = fsl_os_xmalloc(sizeof(struct dpci_obj),
-				                          MEM_PART_SH_RAM,
-					                  1);
-				if (dpci_tbl == NULL) {
-					pr_err("No memory for %d DPCIs\n",
-					       DPCI_OBJ_MN);
-					return -ENOMEM;
+			if (ind < dpci_count) {
+				dpci = &dpci_tbl->dpci[ind];
+				dpci->regs = dprc->regs;
+				err |= dpci_open(dpci, dev_desc.id);
+				/* Set priorities 0 and 1
+				 * 0 is high priority
+				 * 1 is low priority
+				 * Making sure that low priority is at index 0*/
+				dest_cfg.type = DPCI_DEST_NONE;
+				for (p = 0; p <= DPCI_LOW_PR; p++) {
+					dest_cfg.priority = DPCI_LOW_PR - p;
+					err |= dpci_set_rx_queue(dpci,
+					                         p,
+					                         &dest_cfg,
+					                         (ind << 1) | p);
 				}
-				err = sys_add_handle(dpci_tbl,
-				                     FSL_OS_MOD_DPCI_TBL,
-				                     1,
-				                     0);
-				if (err != 0) {
-					pr_err("No FSL_OS_MOD_DPCI_TBL\n");
-					return err;
+				err |= dpci_enable(dpci);
+				err |= dpci_get_attributes(dpci,
+				                           &dpci_tbl->attr[ind]);
+				if (err) {
+					pr_err("Failed dpci initialization \n");
+					dpci_tbl->count = ind;
+					return -ENODEV;
 				}
-
+				ind++;
+			} else {
+				dpci_tbl->count = ind;
+				return 0;
 			}
-
-			dpci = &dpci_tbl->dpci[ind];
-			dpci->regs = dprc->regs;
-			err |= dpci_open(dpci, dev_desc.id);
-			/* Set priorities 0 and 1 */
-			dest_cfg.type = DPCI_DEST_NONE;
-			for (p = 0; p < 2; p++) {
-				dest_cfg.priority = p + 1;
-				err |= dpci_set_rx_queue(dpci,
-				                         p,
-				                         &dest_cfg,
-				                         (ind << 1) | p);
-			}
-			err |= dpci_enable(dpci);
-			err |= dpci_get_attributes(dpci, &dpci_tbl->attr[ind]);
-			if (err) {
-				pr_err("Failed dpci initialization \n");
-				return -ENODEV;
-			}
-
-			dpci_tbl->count++;
-#endif
-			ind++;
 		}
 	}
 
+	dpci_tbl->count = ind;
 	return err;
 }
 
