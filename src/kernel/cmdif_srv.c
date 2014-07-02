@@ -91,9 +91,9 @@ static int inst_alloc(struct cmdif_srv_aiop *aiop_srv, uint8_t m_id)
 	lock_spinlock(&aiop_srv->lock);
 
 	/* randomly pick instance/authentication id*/
-	r = rand() % M_NUM_OF_INSTANCES;
+	r = fsl_os_rand() % M_NUM_OF_INSTANCES;
 	while ((srv->m_id[r] != FREE_INSTANCE) && (count < M_NUM_OF_INSTANCES)) {
-		r = rand() % M_NUM_OF_INSTANCES;
+		r = fsl_os_rand() % M_NUM_OF_INSTANCES;
 		count++;
 	}
 	/* didn't find empty space yet */
@@ -547,9 +547,9 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	} else if (cmd_id == CMD_ID_OPEN) {
 		char     m_name[M_NAME_CHARS + 1];
-		int      m_id;
-		uint8_t  inst_id;
-		int      new_inst;
+		int      m_id      = 0;
+		uint8_t  inst_id   = 0;
+		int      new_inst  = 0;
 		uint64_t sync_done = sync_done_get();
 
 		pr_debug("sync_done high = 0x%x low = 0x%x \n",
