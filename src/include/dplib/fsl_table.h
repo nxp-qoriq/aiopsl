@@ -364,9 +364,9 @@ enum table_hw_accel_id {
 /** @} */ /* end of FSL_CTLU_Enumerations */
 
 /**************************************************************************//**
-@Group		FSL_CTLU_STRUCTS CTLU Structures
+@Group		FSL_TABLE_STRUCTS Table Structures
 
-@Description	Freescale AIOP CTLU Structures
+@Description	Freescale AIOP Table Structures
 
 @{
 *//***************************************************************************/
@@ -775,7 +775,8 @@ struct table_create_params {
 	/** Max Number Of Rules
 	The max number of rules this table can contain. This number is not
 	guaranteed in contrast to committed_rules. Meaning, trying to add a
-	rule to a table that already contains committed_rules might fail. */
+	rule to a table that already contains committed_rules might fail.
+	NOTE: This field must not be 0. */
 	uint32_t max_rules;
 
 	/** Miss Result

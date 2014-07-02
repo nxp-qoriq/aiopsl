@@ -8,14 +8,16 @@
 #include "aiop_verification_ipr.h"
 #include "aiop_verification_data.h"
 
-extern __VERIF_GLOBAL uint64_t verif_ipr_instance_handle;
+extern __VERIF_GLOBAL uint64_t verif_ipr_instance_handle[16];
 
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 {
 	
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-	uint64_t ipr_instance_handle; 
+	uint64_t ipr_instance_handle;
+	struct scope_status_params scope_status;
+
 
 #ifdef CLOSE_MODEL
 	ipr_instance_handle_t ipr_instance;
@@ -47,7 +49,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 					&(str->ipr_params),
 					&ipr_instance_handle);
 
-			verif_ipr_instance_handle = ipr_instance_handle;
+			verif_ipr_instance_handle[str->instance_index] =
+							ipr_instance_handle;
 			str_size = sizeof(struct ipr_create_instance_command);
 			break;
 		}
@@ -56,8 +59,13 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		{
 			struct ipr_reassemble_command *str =
 				(struct ipr_reassemble_command *) asa_seg_addr;
-			str->status = ipr_reassemble(verif_ipr_instance_handle);
+			str->status = 
+		ipr_reassemble(verif_ipr_instance_handle[str->instance_index]);
 			str_size = sizeof(struct ipr_reassemble_command);
+			/* Get OSM status (ordering scope mode and levels) */
+			osm_get_scope(&scope_status);
+			if(scope_status.scope_mode == CONCURRENT)
+		osm_scope_transition_to_exclusive_with_increment_scope_id();
 			break;
 		}
 #ifdef CLOSE_MODEL
@@ -108,9 +116,9 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 //				ipr_instance = str->ipr_instance;
 
 			str->status = ipr_delete_instance(
-					verif_ipr_instance_handle,
-					str->confirm_delete_cb,
-					str->delete_arg);
+				verif_ipr_instance_handle[str->instance_index],
+				str->confirm_delete_cb,
+				str->delete_arg);
 			str_size = sizeof(struct ipr_delete_instance_command);
 			break;
 		}
@@ -126,8 +134,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
  //           	ipr_instance = str->ipr_instance;
 
 			ipr_modify_max_reass_frm_size(
-					verif_ipr_instance_handle,
-					str->max_reass_frm_size);
+				verif_ipr_instance_handle[str->instance_index],
+				str->max_reass_frm_size);
 			str_size = sizeof(struct ipr_modify_max_reass_frm_size_command);
 			break;
 		}
@@ -143,8 +151,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
  //           	ipr_instance = str->ipr_instance;
 
 			ipr_modify_min_frag_size_ipv4(
-					verif_ipr_instance_handle,
-					str->min_frag_size);
+				verif_ipr_instance_handle[str->instance_index],
+				str->min_frag_size);
 			str_size = sizeof(struct ipr_modify_min_frag_size_command);
 			break;
 		}
@@ -159,8 +167,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
  //           	ipr_instance = str->ipr_instance;
 
 			ipr_modify_min_frag_size_ipv6(
-					verif_ipr_instance_handle,
-					str->min_frag_size);
+				verif_ipr_instance_handle[str->instance_index],
+				str->min_frag_size);
 			str_size = sizeof(struct ipr_modify_min_frag_size_command);
 			break;
 		}
@@ -177,8 +185,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
             	ipr_instance = str->ipr_instance;
 */
 			ipr_modify_timeout_value_ipv4(
-					verif_ipr_instance_handle,
-					str->reasm_timeout_value_ipv4);
+				verif_ipr_instance_handle[str->instance_index],
+				str->reasm_timeout_value_ipv4);
 			str_size = sizeof(struct ipr_modify_timeout_value_ipv4_command);
 			break;
 		}
@@ -194,8 +202,8 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
             	ipr_instance = str->ipr_instance;
 */
 			ipr_modify_timeout_value_ipv6(
-					verif_ipr_instance_handle,
-					str->reasm_timeout_value_ipv6);
+				verif_ipr_instance_handle[str->instance_index],
+				str->reasm_timeout_value_ipv6);
 			str_size = sizeof(struct ipr_modify_timeout_value_ipv6_command);
 			break;
 		}
@@ -211,9 +219,9 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
             	ipr_instance = str->ipr_instance;
 */
 			ipr_get_reass_frm_cntr(
-					verif_ipr_instance_handle,
-					str->flags,
-					&str->reass_frm_cntr);
+				verif_ipr_instance_handle[str->instance_index],
+				str->flags,
+				&str->reass_frm_cntr);
 			str_size = sizeof(struct ipr_get_reass_frm_cntr_command);
 			break;
 		}
