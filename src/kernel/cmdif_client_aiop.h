@@ -32,9 +32,11 @@ struct cmdif_cl {
 		uint8_t ins_id;
 		/**< Instanse id that was used for open */
 	} gpp[CMDIF_MN_SESSIONS];
-	
+
 	uint8_t count;
 	/**< Count the number of sessions */
+	uint8_t lock;
+	/**< Lock for adding & removing new entries */
 };
 
 
