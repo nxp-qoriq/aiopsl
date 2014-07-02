@@ -131,7 +131,8 @@ static int dpci_discovery()
 	}
 
 	ind = 0;
-	for (i = 0; i < dev_count; i++) {
+	i   = 0;
+	while ((i < dev_count) && (ind < dpci_count)) {
 		dprc_get_obj(dprc, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpci") == 0) {
 			pr_debug(" Found DPCI device\n");
@@ -145,36 +146,32 @@ static int dpci_discovery()
 			pr_debug("ver_minor - %d\n", dev_desc.ver_minor);
 			pr_debug("irq_count - %d\n\n", dev_desc.irq_count);
 
-			if (ind < dpci_count) {
-				dpci = &dpci_tbl->dpci[ind];
-				dpci->regs = dprc->regs;
-				err |= dpci_open(dpci, dev_desc.id);
-				/* Set priorities 0 and 1
-				 * 0 is high priority
-				 * 1 is low priority
-				 * Making sure that low priority is at index 0*/
-				dest_cfg.type = DPCI_DEST_NONE;
-				for (p = 0; p <= DPCI_LOW_PR; p++) {
-					dest_cfg.priority = DPCI_LOW_PR - p;
-					err |= dpci_set_rx_queue(dpci,
-					                         p,
-					                         &dest_cfg,
-					                         (ind << 1) | p);
-				}
-				err |= dpci_enable(dpci);
-				err |= dpci_get_attributes(dpci,
-				                           &dpci_tbl->attr[ind]);
-				if (err) {
-					pr_err("Failed dpci initialization \n");
-					dpci_tbl->count = ind;
-					return -ENODEV;
-				}
-				ind++;
-			} else {
-				dpci_tbl->count = ind;
-				return 0;
+			dpci = &dpci_tbl->dpci[ind];
+			dpci->regs = dprc->regs;
+			err |= dpci_open(dpci, dev_desc.id);
+			/* Set priorities 0 and 1
+			 * 0 is high priority
+			 * 1 is low priority
+			 * Making sure that low priority is at index 0*/
+			dest_cfg.type = DPCI_DEST_NONE;
+			for (p = 0; p <= DPCI_LOW_PR; p++) {
+				dest_cfg.priority = DPCI_LOW_PR - p;
+				err |= dpci_set_rx_queue(dpci,
+				                         p,
+				                         &dest_cfg,
+				                         (ind << 1) | p);
 			}
+			err |= dpci_enable(dpci);
+			err |= dpci_get_attributes(dpci,
+			                           &dpci_tbl->attr[ind]);
+			if (err) {
+				pr_err("Failed dpci initialization \n");
+				dpci_tbl->count = ind;
+				return -ENODEV;
+			}
+			ind++;
 		}
+		i++;
 	}
 
 	dpci_tbl->count = ind;
