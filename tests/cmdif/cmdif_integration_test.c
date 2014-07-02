@@ -11,6 +11,7 @@
 #include "fsl_cmdif_client.h"
 #include "dplib/fsl_cdma.h"
 #include "cmdif.h"
+#include "fsl_fdma.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -88,6 +89,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               uint64_t data)
 {
 	int err = 0;
+	int i   = 0;
 	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
 
 	UNUSED(dev);
@@ -132,6 +134,12 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = cmdif_send(&cidesc, 0xa, 64, 0, p_data);
 		break;
 	default:
+		if ((size > 0) && (data != NULL)) {
+			for (i = 0; i < MIN(size, 64); i++) {
+				((uint8_t *)data)[i] = 0xDA;
+			}
+		}
+		fdma_modify_default_segment_data(0, (uint16_t)size);
 		break;
 	}
 	return err;
