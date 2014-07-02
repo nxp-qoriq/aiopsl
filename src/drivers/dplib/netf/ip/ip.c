@@ -367,7 +367,13 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 			if ((length - ptr_next_ts) < 3 )
 				return -ENOSPC;
 			*ts_ptr = ut;
+			old_val = TS_OPT_GET_FIRST_WORD();
 			TS_OPT_SET_PTR(4);
+			new_val = TS_OPT_GET_FIRST_WORD();
+			/* need updating IPv4 header checksum */
+			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+					    old_val,
+					    new_val);
 			/* need updating IPv4 header checksum */
 			/* rfc says old val must be 0 */
 			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
@@ -380,7 +386,13 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 				return -ENOSPC;
 			*ts_ptr++ = ip_address;
 			*ts_ptr = ut;
+			old_val = TS_OPT_GET_FIRST_WORD();
 			TS_OPT_SET_PTR(8);
+			new_val = TS_OPT_GET_FIRST_WORD();
+			/* need updating IPv4 header checksum */
+			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+					    old_val,
+					    new_val);
 			/* need updating IPv4 header checksum */
 			/* rfc says old val must be 0 */
 			cksum_update_uint32(&ipv4_hdr->hdr_cksum,
@@ -398,7 +410,13 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 			{
 				ts_ptr++;
 				*ts_ptr = ut;
+				old_val = TS_OPT_GET_FIRST_WORD();
 				TS_OPT_SET_PTR(8);
+				new_val = TS_OPT_GET_FIRST_WORD();
+				/* need updating IPv4 header checksum */
+				cksum_update_uint32(&ipv4_hdr->hdr_cksum,
+						    old_val,
+						    new_val);
 				/* need updating IPv4 header checksum */
 				/* rfc says old val must be 0 */
 				cksum_update_uint32(&ipv4_hdr->hdr_cksum,

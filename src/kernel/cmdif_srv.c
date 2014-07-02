@@ -411,6 +411,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int ind = 0;
+	int count = 0;
 	int link_up = 1;
 	struct dpci_obj *dpci_tbl = NULL;
 	int err = 0;
@@ -421,11 +422,6 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		return -EINVAL;
 	}
 
-	if (cl->count >= CMDIF_MN_SESSIONS) {
-		pr_err("Too many sessions\n");
-		return -ENOSPC;
-	}
-
 	ind = find_dpci((uint8_t)data->dev_id, &dpci_tbl);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
@@ -434,14 +430,23 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 
 	pr_debug("Found dpci peer id at index %d \n", ind);
 
-	cl->gpp[cl->count].ins_id           = data->inst_id;
-	cl->gpp[cl->count].dev->auth_id     = data->auth_id;
-	cl->gpp[cl->count].dev->p_sync_done = cmd_data_get();
-	cl->gpp[cl->count].dev->sync_done   = NULL; /* Not used in AIOP */
-	strncpy(&cl->gpp[cl->count].m_name[0], &data->m_name[0], M_NAME_CHARS);
-	cl->gpp[cl->count].m_name[M_NAME_CHARS] = '\0';
-	cl->gpp[cl->count].regs->dpci_dev = &dpci_tbl->dpci[ind];
-	cl->gpp[cl->count].regs->attr     = &dpci_tbl->attr[ind];
+	lock_spinlock(&cl->lock);
+	count = cl->count;
+	if (count >= CMDIF_MN_SESSIONS) {
+		pr_err("Too many sessions\n");
+		unlock_spinlock(&cl->lock);
+		return -ENOSPC;
+	}
+	cl->gpp[count].ins_id           = data->inst_id;
+	cl->gpp[count].dev->auth_id     = data->auth_id;
+	cl->gpp[count].dev->p_sync_done = cmd_data_get();
+	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
+	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
+	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
+	cl->gpp[count].regs->dpci_dev = &dpci_tbl->dpci[ind];
+	cl->gpp[count].regs->attr     = &dpci_tbl->attr[ind];
+	cl->count++;
+	unlock_spinlock(&cl->lock);
 
 	/* TODO check with Ehud about  dpci_get_attributes() */
 #if 0 //#ifdef DEBUG //TODO debug why it fails on MC when MC is server
@@ -462,9 +467,6 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
-
-	cl->count++;
-
 	return 0;
 }
 

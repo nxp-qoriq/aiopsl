@@ -678,22 +678,24 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		sr_status = tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 		if (sr_status != SUCCESS) {
+			gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
 			/* Only one frame - should be handled by timeout so we
 			 * return the FD to the GRO context.
 			 * In case the new segment was not discarded, we have 2
 			 * frames - we return the aggregated frame and a flush
-			 * flag - the flush function will start but not do
-			 * anything since it also tries to delete the timer and
-			 * it will fail and leave it to the timer. */
+			 * flag (for the single segment) - the flush function
+			 * will start but not do anything since it also tries to
+			 * delete the timer and it will fail and leave it to the
+			 * timer. */
 			if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET) {
 				fdma_store_default_frame_data();
 				gro_ctx->agg_fd =
 					*((struct ldpaa_fd *)HWC_FD_ADDRESS);
+				return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
+						status;
+			} else { /* in this case, flush the second segment */
+				return TCP_GRO_SEG_AGG_DONE | status;
 			}
-			gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
-			return TCP_GRO_SEG_AGG_DONE |
-					TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
-					status;
 		}
 
 		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
@@ -819,7 +821,7 @@ int tcp_gro_flush_aggregation(
 
 	/* prepare presentation context fields for frame presentation. */
 	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-				DEFAULT_SEGMENT_HEADOOM_SIZE);
+				DEFAULT_SEGMENT_HEADROOM_SIZE);
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();
@@ -971,7 +973,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	 * parameters in Presentation Context */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
 	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-			DEFAULT_SEGMENT_HEADOOM_SIZE);
+			DEFAULT_SEGMENT_HEADROOM_SIZE);
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();

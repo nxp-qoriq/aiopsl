@@ -658,8 +658,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		/* todo remove following workaround CR ENGR00312273 */
-	/*ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();*/
-		ipv6fraghdr_offset = 54;
+		ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+	//	ipv6fraghdr_offset = 54;
 		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
 			       (PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
 		frag_offset_shifted = ipv6fraghdr_ptr->offset_and_flags &
@@ -695,8 +695,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  pr->running_sum);
 	} else {
 		/* First fragment (frag_offset == 0) */
-// todo remove following comment when CQENGR318933  is resolved
-//		rfdc_ptr->status |= FIRST_ARRIVED;
+		rfdc_ptr->status |= FIRST_ARRIVED;
 		if (pr->gross_running_sum == 0)
 			fdma_calculate_default_frame_checksum(
 							0,

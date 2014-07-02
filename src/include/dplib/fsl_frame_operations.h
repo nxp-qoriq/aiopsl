@@ -46,7 +46,9 @@
 		NDS bit(reset), frame handle.
 
 		In case this is the default frame, a default segment will be
-		presented, and the parse results will be updated.
+		presented, task defaults segment address and
+		segment length(max(size, \ref DEFAULT_SEGMENT_SIZE)) will
+		be implicitly updated, and the parse results will be updated.
 
 		In case this is not the default frame, in order to present a
 		data segment of this frame after the function returns,

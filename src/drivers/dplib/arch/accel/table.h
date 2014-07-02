@@ -240,7 +240,7 @@ A general bit that is set in some errors conditions */
 /** Policer Initialization Entry Error.
  * Might be used in CTLU/MFLU to indicate other stuff.
  * */
-#define TABLE_HW_STATUS_PIEE	0x00000400 
+#define TABLE_HW_STATUS_PIEE	0x00000040 
 
 /** Invalid Table ID.
  * This status is set if the lookup table associated with the TID is not

@@ -35,8 +35,8 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.SVuninitialized" value="false"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.coreIndex" value="11"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.homogeneousMulticore" value="true"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="C:\Data\projects\ucode\GIT\aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value=""/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.simulator" value="CCSSIM2 ISS"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smpTarget" value="true"/>
@@ -136,12 +136,12 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Host App Path" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Processor Attr Name" value="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.EPPC Debugger.processor"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.RSESystemIdentifier" value="T4240LS_T4240LSSimulator_download_RSESystem_Group"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.140616151307+0300"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.140408163205+0300"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.core.settings.useLastRSESystemGenerated" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.wizardSystemNameHint" value="T4240LS_Download"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.debuggerAddress" value="127.0.0.1"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.disableIO" value="false"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.ethCtrl" value="Ethernet Controller 1"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.ethCtrl" value="UEC1"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeInitScripts" value="true"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executePerCoresReset" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executePerprocessorReset" value="false"/>
@@ -149,11 +149,11 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.gateway" value="127.0.0.1"/>
 <listAttribute key="com.freescale.cdt.debug.cw.initPathList">
-<listEntry value="C:\Data\projects\ucode\GIT\aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl"/>
+<listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.macAddress" value="**-**-**-**-**-**"/>
 <listAttribute key="com.freescale.cdt.debug.cw.memConfigPathList">
-<listEntry value=""/>
+<listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.netMask" value="255.255.255.255"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="com.freescale.os.task.aware"/>
@@ -353,7 +353,7 @@
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_REGISTER_BOOKKEEPING" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_RESTORE_WATCHPOINTS" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_VARIABLE_BOOKKEEPING" value="false"/>
-<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;phys_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;virt_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base-*[0]-[0]-free_blocks-*p_MM-p_MM-slob_get-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;start_addr-info-[0]-mem_regions-get_mem_region_info-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;size-mem_region_info-platform_init-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;start_addr-mem_region_info-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-global_post_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-fill_system_parameters-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
+<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;return_val-ipsec_add_sa_descriptor-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-fill_system_parameters-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-global_post_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;start_addr-mem_region_info-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;size-mem_region_info-platform_init-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;start_addr-info-[0]-mem_regions-get_mem_region_info-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base-*[0]-[0]-free_blocks-*p_MM-p_MM-slob_get-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;virt_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;phys_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;sd_addr-ipsec_add_sa_descriptor-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;return_val-ipsec_create_instance-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
 <stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="out/aiop_app.elf"/>
