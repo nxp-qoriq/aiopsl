@@ -150,7 +150,8 @@ int ipsec_create_instance (
 	return_val = slab_find_and_fill_bpid(
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
-			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
+			//IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
+			8, /* uint16_t alignment */ // TODO: slab does not support 64 bytes aligned buffers
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             &num_filled_buffs, /* int *num_filled_buffs */
             &(instance.desc_bpid)); /* uint16_t *bpid */
@@ -1031,11 +1032,11 @@ int ipsec_frame_encrypt(
 {
 	int return_val;
 	uint8_t *last_etype_pointer;
-	uint64_t eth_header[5]; /* Ethernet header place holder, 5*8=40 bytes */ 
+	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc;
 	uint32_t orig_frc;
-	uint64_t *eth_pointer_default;
+	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_encrypt = 0;
@@ -1127,32 +1128,18 @@ int ipsec_frame_encrypt(
 		
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
-		eth_pointer_default = (uint64_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 		
-		eth_header[0] = *(eth_pointer_default + 0);
-		eth_header[1] = *(eth_pointer_default + 1);
-		eth_header[2] = *(eth_pointer_default + 2);
-		eth_header[3] = *(eth_pointer_default + 3);
-		eth_header[4] = *(eth_pointer_default + 4);
-		
-		//TODO: debug info
-#ifdef AIOP_VERIF
-		if (ipsec_debug_buf_addr != NULL) {
-			/* Write the debug info to external memory */
-			cdma_write(
-				(ipsec_debug_buf_addr + ipsec_debug_buf_offset), /* ext_address */
-				&eth_header, /* ws_src */
-				40); /* size */
-			if (ipsec_debug_buf_offset <= (ipsec_debug_buf_size-64)) {
-				ipsec_debug_buf_offset += 64;
-			}
-		}
-#endif		
 		/* Ethernet header length and indicator */ 
 		eth_length = (uint8_t)(
 						(uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
 								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
-				
+
+		eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+	
+		for (int i = 0 ; i < eth_length; i++) {
+			eth_header[i] = *(eth_pointer_default + i);
+		}
+			
 		/* Remove L2 Header */	
 		/* Note: The gross running sum of the frame becomes invalid 
 		 * after calling this function.
@@ -1396,14 +1383,14 @@ int ipsec_frame_decrypt(
 {
 	int return_val;
 	uint8_t *last_etype_pointer;
-	uint64_t eth_header[5]; /* Ethernet header place holder, 5*8=40 bytes */ 
+	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc; /* Original FLC */
 	//uint64_t return_flc; /* SEC returned FLC */
 	uint32_t orig_frc;
 	uint16_t outer_material_length;
 	//uint16_t running_sum;
-	uint64_t *eth_pointer_default;
+	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_decrypt = 0;
@@ -1514,13 +1501,12 @@ int ipsec_frame_decrypt(
 	
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
-			eth_pointer_default = (uint64_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-			
-			eth_header[0] = *(eth_pointer_default + 0);
-			eth_header[1] = *(eth_pointer_default + 1);
-			eth_header[2] = *(eth_pointer_default + 2);
-			eth_header[3] = *(eth_pointer_default + 3);
-			eth_header[4] = *(eth_pointer_default + 4);
+			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+		
+			for (int i = 0 ; i < eth_length; i++) {
+				eth_header[i] = *(eth_pointer_default + i);
+			}
+				
 			
 			/* Ethernet header length and indicator */ 
 					
