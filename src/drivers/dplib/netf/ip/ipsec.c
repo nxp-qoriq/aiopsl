@@ -1398,7 +1398,8 @@ int ipsec_frame_decrypt(
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_decrypt = 0;
-
+	int i;
+	
 	/* TMP debug code */
 	uint32_t tmp_outer_ip_offset = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 	uint32_t tmp_eth_offset = (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
@@ -1507,7 +1508,7 @@ int ipsec_frame_decrypt(
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 		
-			for (int i = 0 ; i < eth_length; i++) {
+			for (i = 0 ; i < eth_length; i++) {
 				eth_header[i] = *(eth_pointer_default + i);
 			}
 				
