@@ -14,7 +14,7 @@
 #include "fsl_fdma.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
-#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
+//#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
 
@@ -82,6 +82,13 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	             size,
 	             (uint32_t)((data & 0xFF00000000) >> 32),
 	             (uint32_t)(data & 0xFFFFFFFF));
+	/*
+	 * TODO add more test scenarios for AIOP server
+	 * 1. async response with error
+	 * 2. high low priority, high must be served before low
+	 * 3.
+	 * TODO add more test scenarios for AIOP client
+	 * */
 	return 0;
 }
 
@@ -119,19 +126,25 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		}
 		break;
 	case NORESP_CMD:
-		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64, 0, p_data);
+		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64,
+		                 CMDIF_PRI_LOW, p_data);
 		break;
 	case ASYNC_CMD:
-		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64, 0, p_data);
+		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64,
+		                 CMDIF_PRI_LOW, p_data);
 		break;
 	case ASYNC_N_CMD:
-		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, 64, 0, p_data);
-		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, 64, 1, p_data);
-		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, 64, 0, p_data);
-		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, 64, 1, p_data);
+		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, 64,
+		                  CMDIF_PRI_LOW, p_data);
+		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, 64,
+		                  CMDIF_PRI_HIGH, p_data);
+		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, 64,
+		                  CMDIF_PRI_LOW, p_data);
+		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, 64,
+		                  CMDIF_PRI_HIGH, p_data);
 		break;
 	case SYNC_CMD:
-		err = cmdif_send(&cidesc, 0xa, 64, 0, p_data);
+		err = cmdif_send(&cidesc, 0xa, 64, CMDIF_PRI_LOW, p_data);
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {

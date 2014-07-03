@@ -1,14 +1,56 @@
+*******************************************************************************
+README for cmdif_integ_dbg target
+this is the latest demo
+*******************************************************************************
+
+===========================================
+Build
+===========================================
+0. Use aiop sldevelop git and mc develop git
+1. Build mc\build\mc_t4ls_sim\tests\cmdif_aiop target gpp_srv_dbg
+2. Open aiopsl\src\arch\ppc\platform\ls2100a_aiop\cmdif.h and uncomment #define CMDIF_TEST_WITH_MC_SRV
+3. Build aiopsl\build\aiop_t4ls_sim\tests\cmdif_test target cmdif_integ_dbg
+
+===========================================
+Setup
+===========================================
+1. Copy dpl.dtb from mc\tests\cmdif_gpp\dpl.dtb
+2. Modify this line in simulator ls2100_sys_test.cfg file as follows:
+   type=10 vc=25 addr_h=0x0 addr_l=0x1f800000 mem_space=0x10 cmdif_integ_dbg.elf  #for elf loader
+3. Copy aiopsl\build\aiop_t4ls_sim\tests\cmdif_test\integ_out\cmdif_integ_dbg.elf
+   into simulator folder
+
+===========================================
+Execution flow
+===========================================
+1. Run mc\build\mc_t4ls_sim\tests\cmdif_aiop gpp_srv_dbg.launch
+2. Wait untill you'll see "MC is in busy waiting..."
+3. Pause move to line right after while(1){} and push Run.
+4. You'll see a lot of debug prints.
+5. At the end you should see "Massive TEST PASSED!!!!" + "MC is in busy waiting..."
+   and MC is again in the while(1) {} loop.
+
+
+
+
+
+
+*******************************************************************************
+README for cmdif_dbg target only for AIOP_STANDALONE single core mode
+don't run it, it's an old demo
+*******************************************************************************
+
 The following file includes the instructions for cmdif_test demo.
 
 This demo has 2 mode:
-1. REFLECTOR_DEMO  
+1. REFLECTOR_DEMO
    This mode is set by #define REFLECTOR_DEMO inside cmdif_test.c.
-   In this mode the server will receive asyncronious command and will send the 
-   same FD as responce inro fqid as specified inside dequueue context. 
+   In this mode the server will receive asyncronious command and will send the
+   same FD as responce inro fqid as specified inside dequueue context.
 2. Client Server test
-   This mode is set by undefining REFLECTOR_DEMO by 
+   This mode is set by undefining REFLECTOR_DEMO by
    /* #define REFLECTOR_DEMO */ inside cmdif_test.c
-   In this mode the server will receive variouse kinds of commands. 
+   In this mode the server will receive variouse kinds of commands.
    The user should follow the outprints for PASS/FAIL.
 
 ===============================================================================
@@ -41,13 +83,13 @@ Execution flow
 ===========================================
 1. Run the demo and get till the core is at waiting state
 2. Start enqueueing FDs with FD[FLC] set as described above.
-3. 
-3.1 For REFLECTOR_DEMO see that cmdif_srv_isr() is called on every FD and 
+3.
+3.1 For REFLECTOR_DEMO see that cmdif_srv_isr() is called on every FD and
     the FD is sent back according to Frame Queue Context as received from QMan.
-   
+
     For Client Server demo see that app_receive_cb() is called on every FD.
-    The demo counts FDs and simulates different commands according to this 
-    number. 
+    The demo counts FDs and simulates different commands according to this
+    number.
 
 =================
 Important NOTEs:
