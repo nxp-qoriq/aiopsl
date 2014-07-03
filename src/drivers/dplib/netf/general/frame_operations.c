@@ -205,6 +205,15 @@ int create_arp_request(
 	/* set ARP protocol (IPv4) address */
 	arp_hdr->dst_pro_addr = target_ip;
 
+	/* zero additional packet data since ARP has a minimum packet length of
+	 * 64 bytes (ARP_PKT_MIN_LEN). */
+	*((uint16_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 2]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 6]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 10]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 14]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 18]) = 0;
+
 	return create_frame(
 			fd, (void *)arp_data, ARP_PKT_MIN_LEN, frame_handle);
 }

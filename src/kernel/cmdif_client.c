@@ -15,6 +15,7 @@
 #include "fsl_endian.h"
 #include "fsl_general.h"
 #include "ls2085_aiop/fsl_platform.h"
+#include "fsl_spinlock.h"
 
 #define CMDIF_TIMEOUT     0x10000000
 
@@ -123,18 +124,25 @@ __HOT_CODE static int session_get(const char *m_name,
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
-	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if (	(cl->gpp[i].ins_id == ins_id) &&
+	/* TODO if sync mode is supported
+	 * Sharing the same auth_id will require management of opened or not
+	 * there won't be 2 cidesc with same auth_id because
+	 * the same sync buffer is going to be used for 2 cidesc
+	 * but as for today we don't suppot sync on AIOP client */
+	lock_spinlock(&cl->lock);
+	for (i = 0; i < cl->count; i++) {
+		if ((cl->gpp[i].ins_id == ins_id) &&
 			(cl->gpp[i].regs->attr->peer_id == dpci_id) &&
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
 			         m_name,
 			         M_NAME_CHARS) == 0)) {
 			cidesc->regs = (void *)cl->gpp[i].regs;
 			cidesc->dev  = (void *)cl->gpp[i].dev;
+			unlock_spinlock(&cl->lock);
 			return 0;
 		}
 	}
-
+	unlock_spinlock(&cl->lock);
 	return -ENAVAIL;
 }
 
@@ -150,7 +158,7 @@ int cmdif_client_init()
 	}
 
 	cl = fsl_os_xmalloc(sizeof(struct cmdif_cl),
-			    MEM_PART_DP_DDR,
+	                    MEM_PART_SH_RAM,
 	                    8);
 	if (cl == NULL) {
 		pr_err("No memory for client handle\n");

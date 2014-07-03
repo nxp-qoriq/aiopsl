@@ -1,41 +1,48 @@
-The following file includes the instructions for app_process_packet demo.
+The following file includes the instructions for ipr_demo.
 
 ===========================================
 Setup
 ===========================================
 1. Install CW_APP_v10.0.8
-2. Download linux version of LS_SIM_RELEASE_0_8_0_0112
+2. Download linux version of LS_SIM_RELEASE_0_8_0_0116
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
+   comment the lines marked with "#for elf loader" in cfg files: 
+   "ls2100_sys_test" and "ls2085a_sim_init_params"
+   (you may need to change "localhost" to your Linux machine name).
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
-   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/DPAA_SIM_RELEASE_0_8_0_0112/dtsim_release/linux64
+   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/DPAA_SIM_RELEASE_0_8_0_0116/dtsim_release/linux64
 5. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
-6. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
+6. Copy “reassembled_frame.pcap" from aiopsl\misc\setup into to simulator folder
 
 ===========================================
 Execution flow
 ===========================================
-1. Build mc_app from mc_release_0.4.1 using CW_APP_v10.0.8.
-2. Build app_process_packet from aiopsl using CW_APP_v10.0.8.
-3. Copy resulting ELF file from the build project folder(aiop_app.elf) to simulator folder (same location as cfg files).
-4. Run simulator:
+1. Build mc_app from mc_release_0.4.2 using CW_APP_v10.0.8.
+2. Build ipf_demo from aiopsl using CW_APP_v10.0.8.
+3. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
              -smodel "ls_sim_config_file=ls2100_sys_test.cfg"
-5. Launch mc_app using AFM connection.
-   Don't forget to update simulator server IP and port in debug configuration - 42333.
-6. Attach app_process_packet (make sure to un-mark initialization files).
-7. After MC reaches main(), turn tio console:
+4. Launch mc_app using AFM connection.
+	Init file: mc\build\mc_t4ls_sim\mc_app\CFG\LS2085A-AFM_MC_RAM.tcl.
+	Mem file: mc\build\mc_t4ls_sim\mc_app\CFG\LS2085A-AFM_MC.mem
+   Don't forget to update simulator server IP and port in debug configuration.
+5. After MC reaches main(), turn tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart1_1 duart1_0
-8. Run mc_app.
-   Don't forget to update simulator server IP and port in debug configuration - 42333.
+6. Run mc_app.
+7. Launch ipf_demo using AFM connection.
+	Init file: aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP_RAM
+	Mem file: aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP.mem
+   Don't forget to update simulator server IP and port in debug configuration. 
+8. Run aiop (multi-core resume).
 9. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
-10. Run “tio inject”:
-   ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
+10. Run “tio inject” to inject all 4 fragments:
+   ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file reassembled_frame.pcap -verbose_level 2
    This will send packets to AIOP.
-11. Set break point inside app_process_packet_flow0() and push "Resume / Multi core Resume" button to run and see that
+11. Set break point inside app_process_packet_flow0() and push "Multi core Resume" button to run and see that
     it's activated on each packet.
 12. The packet will also be captured by the tio_capture
 
@@ -49,10 +56,7 @@ Possible modifications:
 5. The demo runs in MC integrated mode. In order to get back to AIOP standalone
    mode as it was supported in previous releases, it is required to recompile
    aiopsl and app_process_packet project with AIOP_STANDALONE defined.
-   Please note that the standalone mode is being phased out and has is no longer verified.
-6. The user may run without elf loader. In order to do that go to simulator folder and 
-   comment the lines marked with "#for elf loader" in cfg files: 
-   "ls2100_sys_test" and "ls2085a_sim_init_params"
+   Please note that the standalone mode is being phased out and has is no longer verified. 
 
 =================
 Important NOTEs:
