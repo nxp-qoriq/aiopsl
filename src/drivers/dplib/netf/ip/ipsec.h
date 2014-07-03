@@ -106,6 +106,21 @@ enum ipsec_cipher_type {
 #define IPSEC_MAX_ASA_SIZE 960 /* Maximum ASA size (960 bytes) */
 #define IPSEC_MAX_ASA_BUF_ALIGN 8 /* ASA buffer alignment */
 
+/**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
+#define IPSEC_ALIGN_64(ADDRESS, ALIGNMENT)           \
+        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
+        								(~(((uint64_t)(ALIGNMENT)) - 1)))
+
+#define IPSEC_DESC_ALIGN(ADDRESS) \
+	IPSEC_ALIGN_64((ADDRESS), IPSEC_SA_DESC_BUF_ALIGN)
+
+#define IPSEC_FLC_ADDR(ADDRESS) \
+	IPSEC_DESC_ALIGN((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE)
+
+#define IPSEC_SD_ADDR(ADDRESS) \
+	IPSEC_DESC_ALIGN((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE \
+										+ IPSEC_FLOW_CONTEXT_SIZE)
+
 /*
 * Big-endian systems are systems in which the most significant byte of the word 
 * is stored in the smallest address given and the least significant byte 
