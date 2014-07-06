@@ -92,7 +92,7 @@ asm void __sys_start(register int argc, register char **argv, register char **en
     addi    r1, r1, _stack_addr@l
     b       done_sp
 
-1:
+1: //TODO why is this here ??? (1)
 done_sp:
     /* Memory access is safe now */
 
@@ -108,16 +108,18 @@ done_sp:
     stw    r0,  0(r1)        /* SysVr4 Supp indicated that initial back chain word should be null */
     li     r0, 0xffffffff   /* Load up r0 with 0xffffffff */
     stw    r0, 4(r1)         /* Make an illegal return address of 0xffffffff */
-
-    /* Identify master core (first to arrive) */
-    lis     r19, _master@ha
-    addi    r19, r19, _master@l
-    lwz     r18, 0(r19)
-    cmpwi   r18, 0xffffffff
-    bne     1f
-    stw     r17, 0(r19)   /* Store master core in _master and in r18 */
-    mr      r18, r17
+   
+    /* master-core clears bss sections while others wait */
+	lis     r19, _master@ha
+	addi    r19, r19, _master@l
+    cmpwi   r17, 0
+    bne     halt
     bl      __init_bss   /* Initialize bss section (master core only) */
+    stw     r17, 0(r19)
+halt:
+	lwz     r18, 0(r19)
+	cmpwi   r18, 0
+	bne     halt
 
     /* Branch to main program */
 1:
