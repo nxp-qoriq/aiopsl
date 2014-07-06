@@ -250,7 +250,7 @@ int run_apps(void)
 	/* TODO: replace with memset */
 	struct dpbp dpbp = { 0 };
 	struct dprc_obj_desc dev_desc;
-	uint16_t dpbp_id;	// TODO: replace by real dpbp creation
+	int dpbp_id = -1;	// TODO: replace by real dpbp creation
 	struct dpbp_attr attr;
 	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
@@ -276,10 +276,27 @@ int run_apps(void)
 	}
 	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
-	/* TODO: Currently creating a stub DPBP with ID=1.
-	 * Open and init calls will be replaced by 'create' when available at MC.
-	 * At that point, the DPBP ID will be provided by MC. */
-	dpbp_id = 0;
+
+	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+		       dprc->auth);
+		return err;
+	}
+
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(dprc, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			/* TODO: print conditionally based on log level */
+			pr_info("Found First DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
+			dpbp_id	= dev_desc.id;
+			break;
+		}
+	}
+
+	if(dpbp_id < 0){
+		pr_err("DP-BP not found in the container.\n");
+		return -EAGAIN;
+	}
 
 	dpbp.regs = dprc->regs;
 
@@ -307,14 +324,9 @@ int run_apps(void)
 
 	/* Prepare parameters to attach to DPNI object */
 	pools_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
-	pools_params.pools[0].dpbp_id = dpbp_id; /*!< DPBPs object id */
+	pools_params.pools[0].dpbp_id = (uint16_t)dpbp_id; /*!< DPBPs object id */
 	pools_params.pools[0].buffer_size = buffer_size;
 
-	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
-	    pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
-	           dprc->auth);
-	    return err;
-	}
 
 	/* Enable all DPNI devices */
 	for (i = 0; i < dev_count; i++) {
