@@ -113,9 +113,6 @@ Layout is built from 3 different sections: containers, objects, links.
 					obj_name = "dpbp@10";
 				};
 				obj@14{
-					obj_name = "dpbp@11";
-				};
-				obj@15{
 					obj_name = "dpci@3";
 				};
 			};
@@ -158,9 +155,6 @@ Layout is built from 3 different sections: containers, objects, links.
 			compatible = "fsl,dpbp";
 		};
 		dpbp@10 {
-			compatible = "fsl,dpbp";
-		};
-		dpbp@11 {
 			compatible = "fsl,dpbp";
 		};
 		dpni@1{
