@@ -102,14 +102,14 @@ aiop_sl		</project>
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
-			<name>src/ipsec_fm_demo.c</name>
-			<type>1</type>
-			<locationURI>PROJECT_LOC/src/ipsec_fm_demo.c</locationURI>
-		</link>
-		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+		</link>
+		<link>
+			<name>src/ipsec_fm_demo.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/ipsec_fm_demo.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
