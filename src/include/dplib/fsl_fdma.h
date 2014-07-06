@@ -458,14 +458,14 @@ enum fdma_pta_size_type {
 	/** Default command configuration. */
 #define FDMA_COPY_NO_FLAGS	0x00000000
 	/** Source Memory:.
-	 * If set - Copy source memory address is in the workspace.
-	 * Otherwise - Copy source memory address is in the AIOP Shared
-	 * Memory. */
+	 * If set - Copy source memory address is in the AIOP Shared
+	 * Memory.
+	 * Otherwise - Copy source memory address is in the workspace. */
 #define FDMA_COPY_SM_BIT	0x00000100
 	/** Destination Memory:.
-	 * If set - Copy destination memory address is in the workspace.
-	 * Otherwise - Copy destination memory address is in the AIOP Shared
-	 * Memory. */
+	 * If set - Copy destination memory address is in the AIOP Shared
+	 * Memory.
+	 * Otherwise - Copy destination memory address is in the workspace. */
 #define FDMA_COPY_DM_BIT	0x00000200
 
 /* @} end of group FDMA_Copy_Flags */
