@@ -4,6 +4,7 @@
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_dprc.h"
+#include "dplib/fsl_dpbp.h"
 #include "fsl_dbg.h"
 #include "slab.h"
 #include "virtual_pools.h"
@@ -349,6 +350,9 @@ int slab_module_init(void)
 
 #ifndef AIOP_STANDALONE
 	struct dprc_obj_desc dev_desc;
+	struct dpbp dpbp = { 0 };
+	struct dpbp_attr attr;
+	int dpbp_id = -1;
 	int dev_count;
 	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
@@ -389,12 +393,31 @@ int slab_module_init(void)
 		dprc_get_obj(dprc, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			if( num_bpids >= ARRAY_SIZE(bpids_arr)) {
-				pr_err("To many BPID's were received in the container\n");
+				pr_err("Too many BPID's were received in the container\n");
 				break;
 			}
-			/* TODO: print conditionally based on log level */
-			pr_info("found DPBP ID: %d\n",dev_desc.id);
-			bpids_arr[num_bpids].bpid = (uint16_t) dev_desc.id; /*Update found BP-ID*/
+
+			dpbp_id = dev_desc.id;
+			dpbp.regs = dprc->regs;
+
+			if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
+					pr_err("Failed to open DP-BP%d.\n", dpbp_id);
+					return err;
+			}
+
+			if ((err = dpbp_enable(&dpbp)) != 0) {
+				pr_err("Failed to enable DP-BP%d.\n", dpbp_id);
+				return err;
+			}
+
+			if ((err = dpbp_get_attributes(&dpbp, &attr)) != 0) {
+				pr_err("Failed to get attributes from DP-BP%d.\n", dpbp_id);
+				return err;
+			}
+
+
+			pr_info("found DPBP ID: %d, with BPID %d\n",dpbp_id, attr.bpid);
+			bpids_arr[num_bpids].bpid = attr.bpid; /*Update found BP-ID*/
 			num_bpids++;
 		}
 	}

@@ -250,7 +250,7 @@ int run_apps(void)
 	/* TODO: replace with memset */
 	struct dpbp dpbp = { 0 };
 	struct dprc_obj_desc dev_desc;
-	int dpbp_id = -1;	// TODO: replace by real dpbp creation
+	int dpbp_id = -1;
 	struct dpbp_attr attr;
 	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
