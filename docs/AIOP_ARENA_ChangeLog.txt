@@ -1,3 +1,8 @@
+- init.c: getting first BPBP from container to use for frame buffers
+- slab.c: adding slabs initialization for bpids received from container.
+- slab.h: updating the slab struct to be organized due to block size priority.
+
+
 ** AIOP SL v0.4.1.update_02 **
 - dpl.dts:For         To support of adding multicast mac addresses. the following options should be added to
                       the the dpni in layout file:
