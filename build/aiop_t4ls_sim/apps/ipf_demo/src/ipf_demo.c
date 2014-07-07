@@ -160,6 +160,8 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
+	
+	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
 
 	fsl_os_print("Running app_init()\n");
 
@@ -177,6 +179,11 @@ int app_init(void)
 		                              app_process_packet_flow0, /* callback for flow_id*/
 		                              (ni | (flow_id << 16)) /*arg, nic number*/);
 		if (err) return err;
+	
+		err = dpni_drv_set_mfl((uint16_t)ni/*ni_id*/,
+		                        mfl /* Max frame length*/);
+		if (err) return err;
+
 	}
 
 /*
