@@ -360,8 +360,9 @@ void ipv4_dec_ttl_modification(void);
 @Retval		ENOSPC - there is no enough room to insert time-stamp
 		or pointer value is less than 5.
 @Retval		ENODEV - there is overflow on the overflow counter itself. 
-@Retval		\link IPv4TimestampOptions The overflow counter was incremented
-		since opt.ptr<opt.length and no time stamp was inserted.\endlink
+@Retval		\ref IPv4TimestampOptions IPv4 time-stamp options 
+		The overflow counter was incremented since opt.ptr<opt.length
+		and no time stamp was inserted.
 
 @Cautions	The parse results must be updated before
 		calling this operation.
