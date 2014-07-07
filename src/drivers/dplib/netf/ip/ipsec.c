@@ -6,10 +6,7 @@
 *//***************************************************************************/
 
 #include "common/types.h"
-//#include "common/spinlock.h"
 #include "kernel/fsl_spinlock.h"
-//#include "fsl_dbg.h"
-
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_fdma.h"
@@ -18,18 +15,25 @@
 #include "dplib/fsl_ste.h"
 #include "dplib/fsl_osm.h"
 #include "header_modification.h"
-#include "dplib/fsl_ipsec.h"
-#include "ipsec.h"
+
 #include "cdma.h"
 #include "osm.h"
 #include "system.h"
 #include "fsl_platform.h"
+#include "fdma.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
 #else
 #include "slab.h"
 #endif /* AIOP_VERIF */
+
+#pragma push
+	/* make all following functions go into .itext_vle */
+#pragma section code_type ".itext_vle"
+
+#include "dplib/fsl_ipsec.h"
+#include "ipsec.h"
 
 /* TODO: temporary fix to pr_debug due to RTA issue */
 /* Define dummy print functions to override RTA compilation errors */
@@ -73,53 +77,6 @@ __SHRAM uint32_t ipsec_debug_buf_offset; /* Global in Shared RAM */
 
 
 /**************************************************************************//**
-* 	ipsec_init
-*//****************************************************************************/
-//int ipsec_init(uint32_t max_sa_no) {
-//
-//	global_params.sa_count = max_sa_no;
-//	global_params.asa_bpid = 1; // TMP
-//	global_params.desc_bpid = 1; // TMP
-//	global_params.tmi = 1; // TMP
-//	global_params.spinlock = 0;
-//
-//	return 0;
-//} /* End of ipsec_init */
-
-
-/**************************************************************************//**
-*	ipsec_create_instance
-*//****************************************************************************/
-int ipsec_create_instance_dummy(
-		uint32_t committed_sa_num,
-		uint32_t max_sa_num,
-		uint32_t instance_flags,
-		uint8_t tmi_id,
-		ipsec_instance_handle_t *instance_handle);
-
-int ipsec_create_instance_dummy(
-		uint32_t committed_sa_num,
-		uint32_t max_sa_num,
-		uint32_t instance_flags,
-		uint8_t tmi_id,
-		ipsec_instance_handle_t *instance_handle)
-{
-	
-	int return_val;
-	uint32_t tmp1 = committed_sa_num;
-	uint32_t tmp2 = max_sa_num;
-	uint32_t tmp3 = instance_flags;
-	uint8_t tmp4 = tmi_id; 
-	
-	return_val = ipsec_init(committed_sa_num);
-	
-	*instance_handle = NULL;
-	
-	return IPSEC_SUCCESS; 
-
-}
-	
-/**************************************************************************//**
 *	ipsec_create_instance
 *//****************************************************************************/
 int ipsec_create_instance (
@@ -151,7 +108,8 @@ int ipsec_create_instance (
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			//IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
-			8, /* uint16_t alignment */ // TODO: slab does not support 64 bytes aligned buffers
+			//8, /* uint16_t alignment */ // TODO: slab does not support 64 bytes aligned buffers
+			1, /* uint16_t alignment = 1, i.e. no alignment requirements */ 
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             &num_filled_buffs, /* int *num_filled_buffs */
             &(instance.desc_bpid)); /* uint16_t *bpid */
@@ -808,7 +766,7 @@ void ipsec_generate_flc(
 *//***************************************************************************/
 void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params, 
-		ipsec_handle_t ipsec_handle, /* Parameters area (start of buffer) */
+		ipsec_handle_t desc_addr, /* Parameters area */
 		ipsec_instance_handle_t instance_handle)
 {
 	
@@ -865,7 +823,7 @@ void ipsec_generate_sa_params(
 	
 	/* Store to external memory with CDMA */
 	cdma_write(
-			ipsec_handle, /* uint64_t ext_address */
+			desc_addr, /* uint64_t ext_address */
 			&sap, /* void *ws_src */
 			(uint16_t)(sizeof(sap)) /* uint16_t size */
 			);
@@ -1234,6 +1192,10 @@ int ipsec_frame_encrypt(
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
+	
+	/* Update the default segment length for the new frame  in 
+	 * the presentation context */
+	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	
 	/* 	11.	FDMA present default frame command (open frame) */
 	return_val = fdma_present_default_frame();
@@ -1623,8 +1585,10 @@ int ipsec_frame_decrypt(
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
 	
-	// TODO: default segment size change (TBD) */
-
+	/* Update the default segment length for the new frame  in 
+	 * the presentation context */
+	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+	
 	/* 	12.	FDMA present default frame command */ 
 	return_val = fdma_present_default_frame();
 
@@ -1921,6 +1885,8 @@ int ipsec_get_seq_num(
 
 
 /**************************************************************************/
+
+#pragma pop 
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 
