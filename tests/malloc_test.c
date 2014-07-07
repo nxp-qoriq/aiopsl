@@ -5,13 +5,13 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_slab.h"
 
-#if defined (LS2100A) && defined (AIOP) 
-#include "ls2100a_aiop/platform_aiop_spec.h"
+#if defined (LS2085A) && defined (AIOP)
+#include "ls2085a_aiop/platform_aiop_spec.h"
 #endif
 
 int malloc_test();
 
-static int allocate_check_mem(int memory_partition, 
+static int allocate_check_mem(int memory_partition,
 		                      uint32_t num_iterations, uint32_t size,
 		                      void** allocated_pointers );
 /* Number of malloc allocations for each partition */
@@ -26,15 +26,15 @@ int malloc_test()
 	err = allocate_check_mem(MEM_PART_DP_DDR,num_iter,size,
 			                 allocated_pointers);
 	err = allocate_check_mem(MEM_PART_SH_RAM,num_iter,size,allocated_pointers);
-	err = allocate_check_mem(MEM_PART_PEB,num_iter,size,allocated_pointers);	
+	err = allocate_check_mem(MEM_PART_PEB,num_iter,size,allocated_pointers);
 	return err;
 }
 
-static int allocate_check_mem(int  memory_partition, 
+static int allocate_check_mem(int  memory_partition,
 		                      uint32_t num_iter, uint32_t size,
 		                      void **allocated_pointers)
 {
-	
+
 	int i = 0;
 	uint32_t value = 0xdeadbeef,expected_value = 0xdeadbeef;
 	if(memory_partition == 0)
@@ -48,16 +48,16 @@ static int allocate_check_mem(int  memory_partition,
 			iowrite32(value,allocated_pointers[i]);
 			value = ioread32(allocated_pointers[i]);
 			if(value != expected_value) {
-				fsl_os_print("malloc from the heap has failed, address %x\n", 
+				fsl_os_print("malloc from the heap has failed, address %x\n",
 						PTR_TO_UINT(allocated_pointers[i]));
 				return -E_NO_MEMORY;
-			}	
+			}
 		}
 		for(i = 0 ; i < num_iter; i++)
 		{
 			fsl_os_free(allocated_pointers[i]);
 		}
-		
+
 	}
 	else // xmalloc case
 	{
@@ -69,15 +69,15 @@ static int allocate_check_mem(int  memory_partition,
 			iowrite32(value,allocated_pointers[i]);
 			value = ioread32(allocated_pointers[i]);
 			if(value != expected_value) {
-				fsl_os_print("malloc from mem part %d has failed, address %x\n", 
+				fsl_os_print("malloc from mem part %d has failed, address %x\n",
 						memory_partition,PTR_TO_UINT(allocated_pointers[i]));
 				return -E_NO_MEMORY;
-			}	
+			}
 		}
 		for(i = 0 ; i < num_iter; i++)
 		{
 			fsl_os_xfree(allocated_pointers[i]);
 		}
 	}
-	return E_OK;		
+	return E_OK;
 }

@@ -2,7 +2,7 @@
 
  @File          fsl_soc_aiop_spec.h
 
- @Description   LS2100A external definitions and structures.
+ @Description   LS2085A external definitions and structures.
 *//***************************************************************************/
 #ifndef __FSL_SOC_AIOP_SPEC_H
 #define __FSL_SOC_AIOP_SPEC_H
@@ -11,9 +11,9 @@
 
 
 /**************************************************************************//**
- @Group         ls2100a_g LS2100A Application Programming Interface
+ @Group         ls2085a_g LS2085A Application Programming Interface
 
- @Description   LS2100A Chip functions,definitions and enums.
+ @Description   LS2085A Chip functions,definitions and enums.
 
  @{
 *//***************************************************************************/
@@ -41,19 +41,19 @@ enum fsl_os_module {
 	FSL_OS_MOD_DPIO,
 	FSL_OS_MOD_DPSP,
 	FSL_OS_MOD_DPSW,
-	
+
 	FSL_OS_MOD_AIOP_TILE,
 
 	FSL_OS_MOD_MC_PORTAL,
 	FSL_OS_MOD_AIOP_RC,    /**< AIOP root container from DPL */
 	FSL_OS_MOD_DPCI_TBL,   /**< AIOP DPCI table from DPL */
-	
+
 	FSL_OS_MOD_LAYOUT, /* TODO - review *//**< layout */
 
 	FSL_OS_MOD_DUMMY_LAST
 };
 
-/** @} */ /* end of ls2100a_g group */
+/** @} */ /* end of ls2085a_g group */
 
 
 /* Offsets relative to CCSR base */

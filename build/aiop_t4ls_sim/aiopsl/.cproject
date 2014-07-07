@@ -50,8 +50,8 @@
 									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke_irq.S"/>
 									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke_irq.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/platform/ls2100a_aiop/init.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/platform/ls2100a_aiop/platform.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/platform/ls2085a_aiop/init.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/platform/ls2085a_aiop/platform.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni_drv.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif_client.c"/>
@@ -112,7 +112,6 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/ppc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/ppc/platform&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/ppc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/ppc/platform/ls2100a_aiop&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/kernel/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/kernel/dpl&quot;"/>
@@ -157,6 +156,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/net&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/arch&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/ppc/platform/ls2085a_aiop&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.debugging.c.428256618" name="Compile Only, Do Not Link" superClass="com.freescale.ppc.toolchain.compiler.base.debugging.c" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extended.783193360" name="Extended Error Checking" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extended" value="true" valueType="boolean"/>
