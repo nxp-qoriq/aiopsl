@@ -9,6 +9,7 @@
 #include "fsl_dbg.h"
 /*#include "fsl_cmdif_server.h"*/
 #include "dplib/fsl_cdma.h"
+#include "dplib/fsl_l2.h"
 
 int app_init(void);
 void app_free(void);
@@ -18,7 +19,8 @@ void app_free(void);
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
 
-
+#define IPF_DEMO_WITH_HM	0x80
+#define IPF_DEMO_WITHOUT_HM	0x00
 
 __TASK ipf_ctx_t ipf_context_addr
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
@@ -30,15 +32,16 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
-	uint32_t src_addr = 0x10203040;// new ipv4 src_addr
 	
+	uint8_t ipf_demo_flags = IPF_DEMO_WITHOUT_HM;
+	uint32_t vlan_tag1 = 0x81008a6b;	
+	uint32_t vlan_tag2 = 0x8100c78d;	
 	uint16_t mtu;
-	int32_t ipf_status;
-/*	uint16_t bpid = LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);*/
+	int ipf_status;
 	
 /*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
 
-	mtu = 0x40;
+	mtu = 64;
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -53,21 +56,41 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 		fsl_os_print("\n");
 	}
+	
+	if (ipf_demo_flags == IPF_DEMO_WITH_HM)
+	{
+		l2_push_and_set_vlan(vlan_tag1);
+		fsl_os_print
+			("ipr_demo: Core %d inserted vlan 0x%x to frame\n",
+				core_get_id(), vlan_tag1);
+	}
+	
 	ipf_context_init(0, mtu, ipf_context_addr);
 	fsl_os_print("ipf_demo: ipf_context_init done, MTU = %d\n", mtu);
 	
 	do {
 		ipf_status = ipf_generate_frag(ipf_context_addr);
+/*
+		if (ipf_demo_flags == IPF_DEMO_WITH_HM)
+		{
+			l2_push_and_set_vlan(vlan_tag2);
+			fsl_os_print
+				("ipr_demo: Core %d inserted vlan 0x%x to fragment\n",
+				core_get_id(), vlan_tag2);
+		}
+*/
+		
 		if (ipf_status > 0){
 			fsl_os_print
-				("ipf_demo: Core %d will send a fragment with ipv4 header:\n"
-					, core_get_id());
+			("ipf_demo: Core %d will send a fragment with ipv4 header:\n"
+				, core_get_id());
 			for( int i = 0; i < ipv4hdr_length ;i ++)
 			{
 				fsl_os_print(" %x",p_ipv4hdr[i]);
 			}
-				fsl_os_print("\n");	
+			fsl_os_print("\n");	
 		}
+		
 		dpni_drv_send(APP_NI_GET(arg));
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
 
