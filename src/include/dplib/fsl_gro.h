@@ -153,7 +153,7 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x4)
 	/** The aggregation was discarded due to buffer pool depletion. (This
 	 * status is returned only when there was no other option to continue
-	 * working with the aggregation). */
+	 * processing the aggregated frame due to the buffer pool depletion). */
 #define	TCP_GRO_AGG_DISCARDED		(TCP_GRO_MODULE_STATUS_ID | 0x8)
 	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
 	 * user when possible.

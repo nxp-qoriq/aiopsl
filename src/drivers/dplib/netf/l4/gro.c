@@ -301,7 +301,9 @@ int tcp_gro_add_seg_to_aggregation(
 		sr_status = fdma_store_default_frame_data();
 		if (sr_status != SUCCESS) {
 			/* discard the aggregation, which is the first part of
-			 * the split. */
+			 * the split. The reason of discarding in this case is
+			 * since the frame cannot be stored and therefore cannot
+			 * be further processed by upper SW. */
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			/* update statistics */
 			ste_inc_counter(gro_ctx->params.stats_addr +
