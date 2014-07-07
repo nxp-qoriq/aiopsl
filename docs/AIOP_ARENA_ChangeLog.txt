@@ -1,3 +1,7 @@
+- build\aiop_t4ls_sim\aiopsl\.cproject                        Update paths in user and system include
+- build\aiop_t4ls_sim\apps\app_process_packet\.cproject       Update paths in user and system include
+- build\aiop_t4ls_sim\tests\arena_test\.cproject              Update paths in user and system include
+
 - dpni_drv.c/fsl_dpni_drv.h: adding support for api to dpni_drv_set_mfl(uint16_t ni_id, const uint16_t mfl) 
                              and dpni_drv_get_mfl(uint16_t ni_id, uint16_t *mfl)
 
