@@ -38,6 +38,13 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint8_t frame_before_encr[256] = {0};
 	uint8_t *eth_pointer_byte = 0;
 	uint32_t handle_high, handle_low;
+	uint64_t kilobytes;
+	uint64_t packets;
+	uint32_t sec;
+	uint32_t sequence_number;
+	uint32_t extended_sequence_number;
+	uint32_t anti_replay_bitmap[4];
+	uint32_t val_high, val_low;
 
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -144,8 +151,74 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 	
 	if (!err)
-		fsl_os_print("SUCCESS: frame after decryption the same as origin\n");
+		fsl_os_print("\nSUCCESS: frame after decryption the same as origin\n\n");
 	
+	
+	/* Read statistics */
+	err = ipsec_get_lifetime_stats(
+			ws_desc_handle_outbound,
+			&kilobytes,
+			&packets,
+			&sec);
+	fsl_os_print("IPsec Demo: Encryption ipsec_get_lifetime_stats():\n");
+	val_high = 
+			(uint32_t)((kilobytes & 0xffffffff00000000)>>32);
+	val_low = 
+			(uint32_t)(kilobytes & 0x00000000ffffffff);
+	fsl_os_print("kilobytes = 0x%x_0x%x,", val_high, val_low);
+	
+	val_high = 
+			(uint32_t)((packets & 0xffffffff00000000)>>32);
+	val_low = 
+			(uint32_t)(packets & 0x00000000ffffffff);
+	fsl_os_print("packets = 0x%x_0x%x, seconds = %d\n",
+			val_high, val_low, sec);
+	
+	err = ipsec_get_seq_num(
+			ws_desc_handle_outbound,
+			&sequence_number,
+			&extended_sequence_number,
+			anti_replay_bitmap);
+	fsl_os_print("IPsec Demo: Encryption ipsec_get_seq_num():\n");
+	fsl_os_print("sequence_number = 0x%x, esn = 0x%x\n",
+				sequence_number, extended_sequence_number);
+	fsl_os_print("bitmap[0:3] = 0x%x, 0x%x, 0x%x, 0x%x\n",
+			anti_replay_bitmap[0], anti_replay_bitmap[1], 
+			anti_replay_bitmap[2], anti_replay_bitmap[3]);
+
+	
+	err = ipsec_get_lifetime_stats(
+			ws_desc_handle_inbound,
+			&kilobytes,
+			&packets,
+			&sec);
+	fsl_os_print("IPsec Demo: decryption ipsec_get_lifetime_stats():\n");
+	
+	val_high = 
+			(uint32_t)((kilobytes & 0xffffffff00000000)>>32);
+	val_low = 
+			(uint32_t)(kilobytes & 0x00000000ffffffff);
+	fsl_os_print("kilobytes = 0x%x_0x%x,", val_high, val_low);
+	
+	val_high = 
+			(uint32_t)((packets & 0xffffffff00000000)>>32);
+	val_low = 
+			(uint32_t)(packets & 0x00000000ffffffff);
+	fsl_os_print("packets = 0x%x_0x%x, seconds = %d\n",
+			val_high, val_low, sec);
+
+	
+	err = ipsec_get_seq_num(
+			ws_desc_handle_inbound,
+			&sequence_number,
+			&extended_sequence_number,
+			anti_replay_bitmap);
+	fsl_os_print("IPsec Demo: decryption ipsec_get_seq_num():\n");
+	fsl_os_print("sequence_number = 0x%x, esn = 0x%x\n",
+				sequence_number, extended_sequence_number);
+	fsl_os_print("bitmap[0:3] = 0x%x, 0x%x, 0x%x, 0x%x\n",
+			anti_replay_bitmap[0], anti_replay_bitmap[1], 
+			anti_replay_bitmap[2], anti_replay_bitmap[3]);
 	
 	fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n", 
 			core_get_id(), frame_number);
@@ -401,7 +474,10 @@ int ipsec_app_init(void)
 	
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
-	params.flags = IPSEC_FLG_TUNNEL_MODE; /**< Miscellaneous control flags */
+	//params.flags = IPSEC_FLG_TUNNEL_MODE; /**< Miscellaneous control flags */
+	params.flags = IPSEC_FLG_TUNNEL_MODE |
+			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN; 
+			/**< Miscellaneous control flags */
 	
 	params.encparams.ip_nh = 0x0;
 	params.encparams.options = 0x0;
@@ -465,7 +541,9 @@ int ipsec_app_init(void)
 	
 	/* Inbound (decryption) parameters */
 	params.direction = IPSEC_DIRECTION_INBOUND; /**< Descriptor direction */
-	params.flags = IPSEC_FLG_TUNNEL_MODE; /**< Miscellaneous control flags */
+	params.flags = IPSEC_FLG_TUNNEL_MODE |
+			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN; 
+			/**< Miscellaneous control flags */
 	
 	params.decparams.options = 0x0;
 	params.decparams.seq_num_ext_hi = 0x0;
