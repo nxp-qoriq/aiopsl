@@ -28,6 +28,7 @@ extern int malloc_test();
 extern int slab_test();
 extern int random_init();
 extern int random_test();
+extern int memory_test();
 
 extern __SHRAM struct slab *slab_peb;
 extern __SHRAM struct slab *slab_ddr;
@@ -64,8 +65,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	local_packet_number = packet_number;
 	packet_number++;
 	unlock_spinlock(&packet_lock);
-	core_id = (int)core_get_id();
-
+	core_id = (int)core_get_id();	
 	err = slab_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
@@ -82,7 +82,16 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Malloc test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
 		local_test_error |= err;
 	}
-
+	
+	err = memory_test();
+	
+	if (err) {
+			fsl_os_print("ERROR = %d: memory_test failed in runtime phase \n", err);
+		} else {
+			fsl_os_print("Memory  test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
+			local_test_error |= err;
+		}
+	
 	if(random_test_flag == 0)
 	{
 		err = random_test();
@@ -219,7 +228,7 @@ int app_init(void)
 	dma_addr_t buff = 0;
 
 
-	fsl_os_print("Running app_init()\n");
+	fsl_os_print("Running AIOP arena app_init()\n");
 
 	/* This is temporal WA for stand alone demo only */
 	epid_setup();
@@ -252,11 +261,22 @@ int app_init(void)
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_init failed  in init phase()\n", err);
 	}
+	else
+		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
+	err = memory_test();
+
+	if (err) {
+		fsl_os_print("ERROR = %d: memory_test failed in init phase()\n", err);
+	}
+	else
+		fsl_os_print("memory_test succeeded  in init phase()\n", err);
+
 	err = malloc_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
 	}
-
+	else
+		fsl_os_print("malloc_test succeeded  in init phase()\n", err);
 	err = random_init();
 	if (err) {
 		fsl_os_print("ERROR = %d: random_test failed in init phase()\n", err);
