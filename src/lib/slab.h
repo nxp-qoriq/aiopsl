@@ -59,17 +59,16 @@
 
 #define SLAB_BPIDS_ARR	\
 	{ \
-	{3,	256,    MEM_PART_DP_DDR}, \
-	{5,	512,    MEM_PART_DP_DDR}, \
-	{2,	1024,   MEM_PART_DP_DDR}, \
-	{4,	2048,   MEM_PART_DP_DDR}, \
-	{1,	3072,   MEM_PART_DP_DDR}, \
-	{6,	4096,   MEM_PART_DP_DDR}, \
-	{7,	256,    MEM_PART_PEB},                   \
-	{8,	512,    MEM_PART_PEB},                   \
-	{9,	1024,   MEM_PART_PEB},                   \
-	{10,	2048,   MEM_PART_PEB},                   \
-	{11,	4096,   MEM_PART_PEB}                    \
+	{1,	4096,    MEM_PART_DP_DDR}, \
+	{2,	2048,    MEM_PART_DP_DDR}, \
+	{3,	1024,   MEM_PART_DP_DDR},  \
+	{4,	512,   MEM_PART_DP_DDR},   \
+	{5,	256,   MEM_PART_DP_DDR},   \
+	{6,	4096,    MEM_PART_PEB},    \
+	{7,	2048,    MEM_PART_PEB},    \
+	{8,	1024,   MEM_PART_PEB},     \
+	{9,	512,   MEM_PART_PEB},      \
+	{10,	256,   MEM_PART_PEB}       \
 	}
 
 
