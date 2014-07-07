@@ -860,30 +860,12 @@ int ipsec_add_sa_descriptor(
 {
 
 	int return_val;
-	uint64_t sd_addr;
+	//uint64_t sd_addr;
 	uint32_t sd_size; /* shared descriptor size, set by the RTA */
+	ipsec_handle_t desc_addr;
 	
 	/* Create a shared descriptor */
 	
-//	/* Check if SAs counter reached zero */
-//	/* If not, decrement SA counter. If yes return with error */
-//	lock_spinlock((uint8_t *)&global_params.spinlock);
-//		
-//	if (global_params.sa_count == 0) {
-//		unlock_spinlock((uint8_t *)&global_params.spinlock);
-//		return -1; // TODO add error code
-//	} else {
-//		global_params.sa_count--;
-//		unlock_spinlock((uint8_t *)&global_params.spinlock);
-//	}
-//	
-//	/* Allocate a buffer for the FM parameters, 
-//	 * Flow Context and Shared Descriptor with CDMA. */
-//	/* allocate a buffer with the CDMA */
-//	return_val = (int)cdma_acquire_context_memory(
-//		//0, /* TMP size; will be removed in future arch def */
-//		global_params.desc_bpid,
-//		ipsec_handle); /* context_memory */ 
 
 	return_val = ipsec_get_buffer(instance_handle,
 			ipsec_handle);
@@ -896,25 +878,24 @@ int ipsec_add_sa_descriptor(
 		
 	// TODO: Optionally allocate a buffer for the key, if not inline.
 	
-	/* Shared Descriptor address (adjacent to the flow context) */ 
-	//sd_addr = ((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE + 
-	//		IPSEC_FLOW_CONTEXT_SIZE); 
-	sd_addr = IPSEC_SD_ADDR(*ipsec_handle);
+	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
+	
 	
 	/* Build a shared descriptor with the RTA library */
 	/* The RTA creates the descriptor and stores it in the memory 
 		with CDMA commands. */
 	if (params->direction == IPSEC_DIRECTION_INBOUND) {
-		ipsec_generate_decap_sd(sd_addr,params, &sd_size);
+		ipsec_generate_decap_sd(IPSEC_SD_ADDR(desc_addr),params, &sd_size);
 	} else {
-		ipsec_generate_encap_sd(sd_addr,params, &sd_size);
+		ipsec_generate_encap_sd(IPSEC_SD_ADDR(desc_addr),params, &sd_size);
 	}
 	
 	
 	/* Generate the SEC Flow Context descriptor and write to memory with CDMA */
 	ipsec_generate_flc(
 			//((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE), 
-			IPSEC_FLC_ADDR(*ipsec_handle), 
+			//IPSEC_FLC_ADDR(*ipsec_handle), 
+			IPSEC_FLC_ADDR(desc_addr), 
 				/* Flow Context Address in external memory */
 			params->spid, /* Storage Profile ID of the SEC output frame */
 			sd_size); /* Shared descriptor size in words */
@@ -925,7 +906,8 @@ int ipsec_add_sa_descriptor(
 	/* Store the descriptor parameters to memory (CDMA write). */
 	ipsec_generate_sa_params(
 			params,
-			*ipsec_handle, /* Parameters area (start of buffer) */
+			//*ipsec_handle, /* Parameters area (start of buffer) */
+			desc_addr, /* Parameters area (start of buffer) */
 			instance_handle);
 	
 	/* Create one-shot TMAN timers for the soft and hard seconds lifetime 
@@ -946,10 +928,13 @@ int ipsec_del_sa_descriptor(
 
 	int return_val;
 	ipsec_instance_handle_t instance_handle;
+	ipsec_handle_t desc_addr;
 
 	// TODO: Read descriptor with CDMA.
 	// TODO Delete the timers; take care of callbacks in the middle of operation.
 	
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
+
 	/* Flush all the counter updates that are pending in the 
 	 * statistics engine request queue. */
 	ste_barrier();
@@ -957,8 +942,10 @@ int ipsec_del_sa_descriptor(
 	/* Read the instance handle from params area */
 	cdma_read(
 			&instance_handle, /* void *ws_dst */
-			(ipsec_handle + (offsetof(struct ipsec_sa_params_part1,
-					 instance_handle))), /* uint64_t ext_address */
+			//(ipsec_handle + (offsetof(struct ipsec_sa_params_part1,
+			//(desc_addr + (offsetof(struct ipsec_sa_params_part1,
+			//		 instance_handle))), /* uint64_t ext_address */
+			IPSEC_INSTANCE_HANDLE_ADDR(desc_addr),		 
 			sizeof(instance_handle) /* uint16_t size */
 			);
 	
@@ -1001,7 +988,8 @@ int ipsec_frame_encrypt(
 	uint16_t checksum;
 	uint8_t dont_encrypt = 0;
 	int i;
-	
+	ipsec_handle_t desc_addr;
+
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 
@@ -1012,11 +1000,14 @@ int ipsec_frame_encrypt(
 	
 	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
 	 * – Simplified Flow */
+	
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
 	cdma_read(
 			&sap1, /* void *ws_dst */
-			ipsec_handle, /* uint64_t ext_address */
+			//ipsec_handle, /* uint64_t ext_address */
+			desc_addr, /* uint64_t ext_address */
 			sizeof(sap1) /* uint16_t size */
 			);
 
@@ -1122,8 +1113,9 @@ int ipsec_frame_encrypt(
 	
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
 	//LDPAA_FD_SET_FLC(HWC_FD_ADDRESS,(ipsec_handle + IPSEC_INTERNAL_PARMS_SIZE));	
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(ipsec_handle));	
-
+	//LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(ipsec_handle));	
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
+	
 	/* Clear FD[FRC], so DPOVRD takes no action */
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, 0);
 	
@@ -1304,7 +1296,8 @@ int ipsec_frame_encrypt(
 	if (sap1.flags & 
 			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
 		ste_inc_and_acc_counters(
-			IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
+			//IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
+			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
 			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
@@ -1313,12 +1306,14 @@ int ipsec_frame_encrypt(
 			STE_MODE_COMPOUND_ACC_SATURATE));
 	} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
 		ste_inc_counter(
-				IPSEC_KB_COUNTER_ADDR,
+				//IPSEC_KB_COUNTER_ADDR,
+				IPSEC_KB_COUNTER_ADDR(desc_addr),
 				byte_count,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
 		ste_inc_counter(
-				IPSEC_PACKET_COUNTER_ADDR,
+				//IPSEC_PACKET_COUNTER_ADDR,
+				IPSEC_PACKET_COUNTER_ADDR(desc_addr),
 				1,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}
@@ -1361,12 +1356,8 @@ int ipsec_frame_decrypt(
 	uint16_t checksum;
 	uint8_t dont_decrypt = 0;
 	int i;
-	
-	/* TMP debug code */
-	uint32_t tmp_outer_ip_offset = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
-	uint32_t tmp_eth_offset = (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
-	uint32_t tmp_l5_offset = (uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()); 
-	
+	ipsec_handle_t desc_addr;
+
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 
@@ -1383,10 +1374,13 @@ int ipsec_frame_decrypt(
 	
 	/* 	TODO: Currently supporting only Tunnel mode simplified flow */
 
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
+
 	/* 	2.	Read relevant descriptor fields with CDMA. */
 	cdma_read(
 			&sap1, /* void *ws_dst */
-			ipsec_handle, /* uint64_t ext_address */
+			//ipsec_handle, /* uint64_t ext_address */
+			desc_addr, /* uint64_t ext_address */
 			sizeof(sap1) /* uint16_t size */
 			);
 
@@ -1500,8 +1494,7 @@ int ipsec_frame_decrypt(
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	//LDPAA_FD_SET_FLC(HWC_FD_ADDRESS,(ipsec_handle + IPSEC_INTERNAL_PARMS_SIZE));	
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(ipsec_handle));	
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
 
 	
 	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
@@ -1671,7 +1664,8 @@ int ipsec_frame_decrypt(
 	if (sap1.flags & 
 			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
 		ste_inc_and_acc_counters(
-			IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
+			//IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
+			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
 			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
@@ -1680,12 +1674,14 @@ int ipsec_frame_decrypt(
 			STE_MODE_COMPOUND_ACC_SATURATE));
 	} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
 		ste_inc_counter(
-				IPSEC_KB_COUNTER_ADDR,
+				//IPSEC_KB_COUNTER_ADDR,
+				IPSEC_KB_COUNTER_ADDR(desc_addr),
 				byte_count,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
 		ste_inc_counter(
-				IPSEC_PACKET_COUNTER_ADDR,
+				//IPSEC_PACKET_COUNTER_ADDR,
+				IPSEC_PACKET_COUNTER_ADDR(desc_addr),
 				1,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}
@@ -1728,7 +1724,8 @@ int ipsec_get_lifetime_stats(
 	
 	int return_val;
 	uint64_t current_timestamp;
-	
+	ipsec_handle_t desc_addr;
+
 	/* Note: this struct must be equal to the head of ipsec_sa_params_part1 */
 	struct counters_and_timestamp {
 		uint64_t packet_counter; /*	Packets counter, 8B */
@@ -1739,7 +1736,9 @@ int ipsec_get_lifetime_stats(
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
 	// TODO: check CDMA return status
-	
+
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
+
 	/* Flush all the counter updates that are pending in the 
 	 * statistics engine request queue. */
 	ste_barrier();
@@ -1747,7 +1746,8 @@ int ipsec_get_lifetime_stats(
 	/* 	Read relevant descriptor fields with CDMA. */
 	cdma_read(
 			&ctrs, /* void *ws_dst */
-			ipsec_handle, /* uint64_t ext_address */
+			//ipsec_handle, /* uint64_t ext_address */
+			desc_addr, /* uint64_t ext_address */
 			sizeof(ctrs) /* uint16_t size */
 			);
 	
@@ -1787,24 +1787,28 @@ int ipsec_decr_lifetime_counters(
 	/* Note: there is no check of counters enable, nor current value.
 	 * Assuming that it is only called appropriately by the upper layer */
 	int return_val;
+	ipsec_handle_t desc_addr;
 
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
 	
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
+
 	/* Flush all the counter updates that are pending in the 
 	 * statistics engine request queue. */
 	ste_barrier();
 	
 	if (kilobytes_decr_val) {
 		ste_dec_counter(
-				IPSEC_KB_COUNTER_ADDR,
+				//IPSEC_KB_COUNTER_ADDR,
+				IPSEC_KB_COUNTER_ADDR(desc_addr),
 				kilobytes_decr_val,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}
 	
 	if (packets_decr_val) {
 		ste_dec_counter(
-				IPSEC_PACKET_COUNTER_ADDR,
+				IPSEC_PACKET_COUNTER_ADDR(desc_addr),
 				packets_decr_val,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}	
@@ -1828,14 +1832,18 @@ int ipsec_get_seq_num(
 	
 	int return_val;
 	struct ipsec_decap_pdb decap_pdb;
-	
+	ipsec_handle_t desc_addr;
+
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
 	
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
+
 	/* 	Read the PDB from the descriptor with CDMA. */
 	cdma_read(
 			&decap_pdb, /* void *ws_dst */
-			IPSEC_PDB_ADDR, /* uint64_t ext_address */
+			//IPSEC_PDB_ADDR, /* uint64_t ext_address */
+			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
 			sizeof(decap_pdb) /* uint16_t size */
 	);
 	
