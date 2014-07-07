@@ -132,6 +132,34 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
           		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /**************************************************************************//**
+@Function	dpni_drv_set_mfl
+
+@Description	Set the maximum received frame length.
+
+@Param[in]	ni_id	The Network Interface ID
+
+@Param[in]	mfl	MFL length.
+
+@Return	0 on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_set_mfl(uint16_t ni_id,
+                          const uint16_t mfl);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_mfl
+
+@Description	Get the maximum received frame length.
+
+@Param[in]	ni_id	The Network Interface ID
+
+@Param[in]	*mfl	pointer to store MFL length.
+
+@Return	0 on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_get_mfl(uint16_t ni_id,
+                          uint16_t *mfl);
+
+/**************************************************************************//**
 @Function	dpni_drv_send
 
 @Description	Network Interface send (AIOP enqueue) function.

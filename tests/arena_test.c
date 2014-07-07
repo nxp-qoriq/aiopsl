@@ -199,9 +199,11 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			fsl_os_print("1 packet was sent with removed MAC address\n");
 			fsl_os_print("Only 39 (0-38) packets should be received\n");
 			fsl_os_print("ARENA Test Finished SUCCESSFULLY\n");
+			fsl_os_exit(0);
 		}
 		else {
 			fsl_os_print("ERROR found during ARENA test\n");
+			fsl_os_exit(-1);
 		}
 	}
 }

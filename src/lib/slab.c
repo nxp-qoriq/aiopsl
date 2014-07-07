@@ -3,6 +3,8 @@
 #include "common/fsl_string.h"
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
+#include "dplib/fsl_dprc.h"
+#include "dplib/fsl_dpbp.h"
 #include "fsl_dbg.h"
 #include "slab.h"
 #include "virtual_pools.h"
@@ -154,7 +156,7 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 		fdma_release_buffer(SLAB_FDMA_ICID,
 		                    FDMA_RELEASE_NO_FLAGS,
 		                    *bpid,
-		                    addr); 
+		                    addr);
 	}
 
 	*num_filled_buffs = (int)num_buffs;
@@ -344,13 +346,96 @@ int slab_module_init(void)
 	int      num_bpids = ARRAY_SIZE(bpids_arr);
 	struct   slab_module_info *slab_m = NULL;
 	int      i = 0;
-	int      error = 0;
+	int      err = 0;
+
+#ifndef AIOP_STANDALONE
+	struct dprc_obj_desc dev_desc;
+	struct dpbp dpbp = { 0 };
+	struct dpbp_attr attr;
+	int dpbp_id = -1;
+	int dev_count;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+
+	/*Calling MC to get bpid's*/
+	if (dprc == NULL)
+	{
+		pr_err("Don't find AIOP root container \n");
+		return -ENODEV;
+	}
+
+
+	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+		       dprc->auth);
+		return err;
+	}
+
+
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(dprc, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			/* TODO: print conditionally based on log level */
+			pr_info("Found First DPBP ID: %d, Skipping, will be used for frame buffers\n",dev_desc.id);
+			num_bpids = 1;
+			break;
+		}
+	}
+
+	if(num_bpids != 1) { /*Check if first dpbp was found*/
+		pr_err("DP-BP not found in the container.\n");
+		return -EAGAIN;
+	}
+
+	num_bpids = 0; /*for now we save the first dpbp for later use.*/
+	/*Continue to search for dpbp's*/
+	for (i = i+1; i < dev_count; i++) {
+		dprc_get_obj(dprc, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			if( num_bpids >= ARRAY_SIZE(bpids_arr)) {
+				pr_err("Too many BPID's were received in the container\n");
+				break;
+			}
+
+			dpbp_id = dev_desc.id;
+			dpbp.regs = dprc->regs;
+
+			if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
+					pr_err("Failed to open DP-BP%d.\n", dpbp_id);
+					return err;
+			}
+
+			if ((err = dpbp_enable(&dpbp)) != 0) {
+				pr_err("Failed to enable DP-BP%d.\n", dpbp_id);
+				return err;
+			}
+
+			if ((err = dpbp_get_attributes(&dpbp, &attr)) != 0) {
+				pr_err("Failed to get attributes from DP-BP%d.\n", dpbp_id);
+				return err;
+			}
+
+
+			pr_info("found DPBP ID: %d, with BPID %d\n",dpbp_id, attr.bpid);
+			bpids_arr[num_bpids].bpid = attr.bpid; /*Update found BP-ID*/
+			num_bpids++;
+		}
+	}
+
+	if(num_bpids == 0) {
+		pr_err("DP-BP not found in the container.\n");
+		return -EAGAIN;
+	}
+
+
+#endif
 
 	slab_m = fsl_os_xmalloc(sizeof(struct slab_module_info),
 				SLAB_FAST_MEMORY,
 				1);
 	if (slab_m == NULL)
 		return -ENOMEM;
+
 
 	slab_m->num_hw_pools = (uint8_t)(num_bpids & 0xFF);
 	slab_m->hw_pools     =
@@ -378,19 +463,21 @@ int slab_module_init(void)
 
 	/* TODO vpool_init() API will change to get more allocated
 	 * by malloc() memories */
-	error = vpool_init((uint64_t)(slab_m->virtual_pool_struct),
+	err = vpool_init((uint64_t)(slab_m->virtual_pool_struct),
 			(uint64_t)(slab_m->callback_func_struct),
 			SLAB_MAX_NUM_VP,
 			0);
-	if (error) {
+	if (err) {
 		free_slab_module_memory(slab_m);
 		return -ENAVAIL;
 	}
 
 	/* Set BPIDs */
+	i = 0;
+
 	while (i < num_bpids) {
-		error = bpid_init(&(slab_m->hw_pools[i]), bpids_arr[i]);
-		if (error) {
+		err = bpid_init(&(slab_m->hw_pools[i]), bpids_arr[i]);
+		if (err) {
 			free_slab_module_memory(slab_m);
 			return -ENAVAIL;
 		}
@@ -398,8 +485,8 @@ int slab_module_init(void)
 	}
 
 	/* Add to all system handles */
-	error = sys_add_handle(slab_m, FSL_OS_MOD_SLAB, 1, 0);
-	return error;
+	err = sys_add_handle(slab_m, FSL_OS_MOD_SLAB, 1, 0);
+	return err;
 }
 
 /*****************************************************************************/
@@ -450,7 +537,7 @@ __HOT_CODE int slab_refcount_incr(struct slab *slab, uint64_t buff)
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 #endif
-	cdma_refcount_increment(buff);		
+	cdma_refcount_increment(buff);
 
 	return 0;
 }
