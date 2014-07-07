@@ -1,8 +1,6 @@
-build\aiop_t4ls_sim\aiopsl\.cproject                        Update paths in user and system include
-build\aiop_t4ls_sim\apps\app_process_packet\.cproject       Update paths in user and system include
-build\aiop_t4ls_sim\tests\arena_test\.cproject              Update paths in user and system include
-
-
+- build\aiop_t4ls_sim\aiopsl\.cproject                        Update paths in user and system include
+- build\aiop_t4ls_sim\apps\app_process_packet\.cproject       Update paths in user and system include
+- build\aiop_t4ls_sim\tests\arena_test\.cproject              Update paths in user and system include
 
 - dpl.dts/dtb:        updated, one dpbp entry removed
 - init.c:             getting first DPBP from container to use for frame buffers
