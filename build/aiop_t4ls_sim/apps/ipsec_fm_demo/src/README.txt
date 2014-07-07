@@ -22,7 +22,7 @@ Setup
 ===========================================
 1. Install CW_APP_v10.0.8
 2. Download linux version of LS_SIM_m0116
-3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
+3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2085a_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
    setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_m0116/dtsim_release/linux64
@@ -38,7 +38,7 @@ Execution flow
 4. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
-             -smodel "ls_sim_config_file=ls2100_sys_test.cfg"
+             -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"
 5. Launch mc_app using AFM connection.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 6. Attach app_process_packet (make sure to un-mark initialization files).
@@ -61,7 +61,7 @@ Possible modifications:
 ===========================================
 1. The user may add application additional initialization inside app_init()
 2. The user may add packet processing code inside app_process_packet()
-3. The user may use different tio port and update it inside ls2100_sys_test.cfg
+3. The user may use different tio port and update it inside ls2085a_sys_test.cfg
 4. The user may use different simulator port
 5. The demo runs in MC integrated mode. In order to get back to AIOP standalone
    mode as it was supported in previous releases, it is required to recompile

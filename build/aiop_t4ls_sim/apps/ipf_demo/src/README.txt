@@ -5,7 +5,7 @@ Setup
 ===========================================
 1. Install CW_APP_v10.0.8
 2. Download linux version of LS_SIM_RELEASE_0_8_0_0116
-3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2100_sys_test.cfg
+3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2085a_sys_test.cfg
    from aiopsl\build\aiop_t4ls_sim\sim_files.
    comment the lines marked with "#for elf loader" in cfg files: 
    "ls2100_sys_test" and "ls2085a_sim_init_params"
@@ -23,7 +23,7 @@ Execution flow
 3. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
-             -smodel "ls_sim_config_file=ls2100_sys_test.cfg"
+             -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"
 4. Launch mc_app using AFM connection.
 	Init file: mc\build\mc_t4ls_sim\mc_app\CFG\LS2085A-AFM_MC_RAM.tcl.
 	Mem file: mc\build\mc_t4ls_sim\mc_app\CFG\LS2085A-AFM_MC.mem
@@ -51,7 +51,7 @@ Possible modifications:
 ===========================================
 1. The user may add application additional initialization inside app_init()
 2. The user may add packet processing code inside app_process_packet()
-3. The user may use different tio port and update it inside ls2100_sys_test.cfg
+3. The user may use different tio port and update it inside ls2085a_sys_test.cfg
 4. The user may use different simulator port
 5. The demo runs in MC integrated mode. In order to get back to AIOP standalone
    mode as it was supported in previous releases, it is required to recompile
