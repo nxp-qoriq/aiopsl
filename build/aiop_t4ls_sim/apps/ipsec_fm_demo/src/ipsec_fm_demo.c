@@ -259,16 +259,37 @@ int ipsec_app_init(void)
 	uint32_t outer_ip_header[5];
 	struct slab *slab_handle = NULL;
 	uint32_t handle_high, handle_low;
+	int i;
 
 	uint64_t cipher_key_addr;
 	uint64_t auth_key_addr; 
 	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
-	uint8_t auth_key[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+	uint8_t auth_key[128];
+	uint32_t cipher_alg;
+	uint32_t cipher_keylen; 
+	uint32_t auth_alg;
+	uint32_t auth_keylen; 
+	uint32_t algs;
 	
+	enum key_types {
+		NULL_ENCRYPTION = 0,
+		 AES128_SHA256
+	};
+	
+	/* Set the required algorithms here */
+	//algs = NULL_ENCRYPTION;
+	algs = AES128_SHA256;
+
+
 	ipsec_instance_handle_t ws_instance_handle = 0;
 
 	ipsec_handle_t ws_desc_handle_outbound = 0;
 	ipsec_handle_t ws_desc_handle_inbound = 0; 
+	
+	for (i=0; i<128; i++) {
+		auth_key[i] = (uint8_t)i;
+	}
+	
 	
 	frame_number = 0;
 	
@@ -343,6 +364,32 @@ int ipsec_app_init(void)
 			&auth_key, /* ws_src */
 			16); /* uint16_t size */
 	
+	switch (algs) {
+		case NULL_ENCRYPTION:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_NULL\n");	
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_MD5_96\n");	
+			cipher_alg = IPSEC_CIPHER_NULL;
+			cipher_keylen = 0x0; 
+			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
+			auth_keylen = 16; 
+			break;
+		case AES128_SHA256:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");	
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA2_256_128\n");	
+			cipher_alg = IPSEC_CIPHER_AES_CBC;
+			cipher_keylen = 16;
+			auth_alg = IPSEC_AUTH_HMAC_SHA2_256_128;
+			auth_keylen = 64;
+			break;
+		default:
+			fsl_os_print("Cipher Algorithm (default): IPSEC_CIPHER_NULL\n");	
+			fsl_os_print("Authentication Algorithm (default): IPSEC_AUTH_HMAC_MD5_96\n");	
+			cipher_alg = IPSEC_CIPHER_NULL;
+			cipher_keylen = 0x0; 
+			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
+			auth_keylen = 16; 
+	}
+	
 	/* Encryption Descriptor Parameters */
 	
 	/* Outer IP header */
@@ -368,14 +415,18 @@ int ipsec_app_init(void)
 	params.encparams.cbc.iv[2] = 0;
 	params.encparams.cbc.iv[3] = 0;
 
-	params.cipherdata.algtype = IPSEC_CIPHER_NULL;
+//	params.cipherdata.algtype = IPSEC_CIPHER_NULL;
+	params.cipherdata.algtype = cipher_alg;
 	params.cipherdata.key = cipher_key_addr;
-	params.cipherdata.keylen = 0x0; 
+//	params.cipherdata.keylen = 0x0; 
+	params.cipherdata.keylen = cipher_keylen; 
 	params.cipherdata.key_enc_flags = 0x0;
 	
-	params.authdata.algtype = IPSEC_AUTH_HMAC_MD5_96;
+//	params.authdata.algtype = IPSEC_AUTH_HMAC_MD5_96;
+	params.authdata.algtype = auth_alg;
 	params.authdata.key = auth_key_addr;
-	params.authdata.keylen = 16; 
+//	params.authdata.keylen = 16; 
+	params.authdata.keylen = auth_keylen; 
 	params.authdata.key_enc_flags = 0x0;
 	
 	params.soft_kilobytes_limit = 0xffffffffffffffff; 
@@ -419,7 +470,8 @@ int ipsec_app_init(void)
 	params.decparams.options = 0x0;
 	params.decparams.seq_num_ext_hi = 0x0;
 	params.decparams.seq_num = 0x0;
-	
+
+	/*
 	params.cipherdata.algtype = IPSEC_CIPHER_NULL;
 	params.cipherdata.key = cipher_key_addr;
 	params.cipherdata.keylen = 0x0; 
@@ -428,6 +480,16 @@ int ipsec_app_init(void)
 	params.authdata.algtype = IPSEC_AUTH_HMAC_MD5_96;
 	params.authdata.key = auth_key_addr;
 	params.authdata.keylen = 16; 
+	params.authdata.key_enc_flags = 0x0;
+	*/
+	params.cipherdata.algtype = cipher_alg;
+	params.cipherdata.key = cipher_key_addr;
+	params.cipherdata.keylen = cipher_keylen; 
+	params.cipherdata.key_enc_flags = 0x0;
+	
+	params.authdata.algtype = auth_alg;
+	params.authdata.key = auth_key_addr;
+	params.authdata.keylen = auth_keylen; 
 	params.authdata.key_enc_flags = 0x0;
 	
 	params.soft_kilobytes_limit = 0xffffffffffffffff; 
@@ -475,12 +537,16 @@ void ipsec_print_frame(void) {
 	int i;
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	
+	fsl_os_print("Printing Frame. FD[len] = %d, Seg Len = %d\n", 
+			frame_len, seg_len);
 
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
 	for(i = 0; ((i<frame_len) && (i<seg_len));i ++)
 	{
 		if ((i%16) == 0) {
+			fsl_os_print("00");
 			if (i<16)
 				fsl_os_print("0");
 			fsl_os_print("%x  ",(i));
