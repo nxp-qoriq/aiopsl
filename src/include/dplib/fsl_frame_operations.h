@@ -65,7 +65,7 @@
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Parsing Error(Relevant in case this is the default frame).
 		Recommendation is to discard the frame.
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
@@ -122,7 +122,7 @@ int create_frame(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @remark		FD is updated.
@@ -166,12 +166,11 @@ int create_fd(
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
 @Param[in]	target_ip - destination IPv4 address.
-@Param[in]	flags - please refer to \ref FRAME_OPERSTIONS_ARP_Flags.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Parsing Error(Relevant in case this is the default frame).
 		Recommendation is to discard the frame.
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
@@ -225,7 +224,7 @@ int create_arp_request_broadcast(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Parsing Error(Relevant in case this is the default frame).
 		Recommendation is to discard the frame.
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
