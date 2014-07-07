@@ -1,3 +1,6 @@
+- dpni_drv.c/fsl_dpni_drv.h: adding support for api to dpni_drv_set_mfl(uint16_t ni_id, const uint16_t mfl) 
+                             and dpni_drv_get_mfl(uint16_t ni_id, uint16_t *mfl)
+
 - dpl.dts/dtb:        updated, one dpbp entry removed
 - init.c:             getting first DPBP from container to use for frame buffers
 - slab.c:             adding slabs initialization for bpids received from container.
