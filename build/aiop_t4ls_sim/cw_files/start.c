@@ -75,7 +75,6 @@ asm void __sys_start(register int argc, register char **argv, register char **en
 
     /* Store core ID */
     mfpir  r17
-    /*"srwi   17, 17, 5 \n"*/
 
     /* Initialize small data area pointers */
     lis    r2, _SDA2_BASE_@ha
@@ -86,11 +85,9 @@ asm void __sys_start(register int argc, register char **argv, register char **en
     /* Initialize stack pointer (based on core ID) */
     lis     r1,    _stack_addr@ha
     addi    r1, r1, _stack_addr@l
-    b       done_sp
 
-done_sp:
     /* Memory access is safe now */
-
+    
     /* Set MSR */
     mfmsr  r6
     ori    r6, r6, 0x0200 /* DE */
@@ -112,12 +109,11 @@ done_sp:
     bl      __init_bss   /* Initialize bss section (master core only) */
     stw     r17, 0(r19)
 halt:
-	lwz     r18, 0(r19)
-	cmpwi   r18, 0
-	bne     halt
+    lwz     r18, 0(r19)
+    cmpwi   r18, 0
+    bne     halt
 
     /* Branch to main program */
-1:
     lis    r6, main@ha
     addi   r6, r6, main@l
     mtlr   r6
