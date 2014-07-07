@@ -68,8 +68,8 @@ int fdma_present_default_frame(void)
 
 
 		if ((res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR))
-			prc->asapa_asaps = (prc->asapa_asaps & ~PRC_ASAPS_MASK) |
-				(uint16_t)(LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS));
+			prc->asapa_asaps = (prc->asapa_asaps & ~PRC_ASAPS_MASK)
+				| (uint16_t)(LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS));
 
 #if NAS_NPS_ENABLE
 		(flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
@@ -332,7 +332,7 @@ int fdma_present_default_frame_segment(
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if ((res1 == FDMA_SUCCESS) ||
-		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)){
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)) {
 		PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
 		PRC_SET_SEGMENT_OFFSET(offset);
 		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
@@ -376,7 +376,7 @@ int fdma_present_default_frame_default_segment()
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if ((res1 == FDMA_SUCCESS) ||
-		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)){
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)) {
 		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
 		PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
 						FDMA_SEG_HANDLE_OFFSET)));
@@ -1149,7 +1149,7 @@ int fdma_split_frame(
 		}
 		/* Update Task Defaults */
 		else if ((((uint32_t)params->fd_dst) == HWC_FD_ADDRESS) &&
-			((params->flags & (FDMA_SPLIT_PSA_PRESENT_BIT)) == 0)){
+			((params->flags & (FDMA_SPLIT_PSA_PRESENT_BIT)) == 0)) {
 				prc->handles =
 					((params->split_frame_handle << 4) &
 					PRC_FRAME_HANDLE_MASK);
@@ -1198,12 +1198,12 @@ void fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	/* Update Task Defaults */
-	if (res1 == FDMA_SUCCESS){
+	if (res1 == FDMA_SUCCESS) {
 		PRC_SET_SEGMENT_OFFSET(offset);
 		PRC_SET_SEGMENT_LENGTH(size);
-	}
-	else
+	} else {
 		fdma_handle_fatal_errors((int32_t)res1);
+	}
 }
 
 void fdma_modify_default_segment_data(
@@ -1891,10 +1891,10 @@ void fdma_release_buffer(
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
-void fdma_handle_fatal_errors(int32_t status){
-
+void fdma_handle_fatal_errors(int32_t status)
+{
 	/*TODO Fatal error*/
-	switch(status) {
+	switch (status) {
 	case FDMA_UNABLE_TO_TRIM_ERR:
 		handle_fatal_error((char *)FDMA_UNABLE_TO_TRIM_ERR);
 		break;
@@ -1981,6 +1981,6 @@ void fdma_handle_fatal_errors(int32_t status){
 		break;
 	default:
 		handle_fatal_error((char *)0);
-       }
+	}
 }
 

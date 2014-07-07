@@ -939,8 +939,9 @@ int ipsec_add_sa_descriptor(
 	// TODO: Optionally allocate a buffer for the key, if not inline.
 	
 	/* Shared Descriptor address (adjacent to the flow context) */ 
-	sd_addr = ((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE + 
-			IPSEC_FLOW_CONTEXT_SIZE); 
+	//sd_addr = ((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE + 
+	//		IPSEC_FLOW_CONTEXT_SIZE); 
+	sd_addr = IPSEC_SD_ADDR(*ipsec_handle);
 	
 	/* Build a shared descriptor with the RTA library */
 	/* The RTA creates the descriptor and stores it in the memory 
@@ -954,7 +955,8 @@ int ipsec_add_sa_descriptor(
 	
 	/* Generate the SEC Flow Context descriptor and write to memory with CDMA */
 	ipsec_generate_flc(
-			((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE), 
+			//((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE), 
+			IPSEC_FLC_ADDR(*ipsec_handle), 
 				/* Flow Context Address in external memory */
 			params->spid, /* Storage Profile ID of the SEC output frame */
 			sd_size); /* Shared descriptor size in words */
@@ -1040,7 +1042,8 @@ int ipsec_frame_encrypt(
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_encrypt = 0;
-
+	int i;
+	
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 
@@ -1136,7 +1139,7 @@ int ipsec_frame_encrypt(
 
 		eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
-		for (int i = 0 ; i < eth_length; i++) {
+		for (i = 0 ; i < eth_length; i++) {
 			eth_header[i] = *(eth_pointer_default + i);
 		}
 			
@@ -1160,8 +1163,9 @@ int ipsec_frame_encrypt(
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS,(ipsec_handle + IPSEC_INTERNAL_PARMS_SIZE));	
-	
+	//LDPAA_FD_SET_FLC(HWC_FD_ADDRESS,(ipsec_handle + IPSEC_INTERNAL_PARMS_SIZE));	
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(ipsec_handle));	
+
 	/* Clear FD[FRC], so DPOVRD takes no action */
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, 0);
 	
@@ -1394,7 +1398,8 @@ int ipsec_frame_decrypt(
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_decrypt = 0;
-
+	int i;
+	
 	/* TMP debug code */
 	uint32_t tmp_outer_ip_offset = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 	uint32_t tmp_eth_offset = (uint32_t)((uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
@@ -1503,7 +1508,7 @@ int ipsec_frame_decrypt(
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 		
-			for (int i = 0 ; i < eth_length; i++) {
+			for (i = 0 ; i < eth_length; i++) {
 				eth_header[i] = *(eth_pointer_default + i);
 			}
 				
@@ -1533,7 +1538,9 @@ int ipsec_frame_decrypt(
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS,(ipsec_handle + IPSEC_INTERNAL_PARMS_SIZE));	
+	//LDPAA_FD_SET_FLC(HWC_FD_ADDRESS,(ipsec_handle + IPSEC_INTERNAL_PARMS_SIZE));	
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(ipsec_handle));	
+
 	
 	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
 	/* For transport mode: IP header length, Next header offset */

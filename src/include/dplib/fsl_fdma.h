@@ -134,7 +134,7 @@ enum fdma_enqueue_tc_options {
 		 * frame will be discarded.	*/
 	FDMA_EN_TC_TERM_BITS = 0x0400,
 #ifdef REV2
-		* Conditional Terminate: trigger the Terminate task command
+		/* Conditional Terminate : trigger the Terminate task command
 		 * only if the enqueue succeeded. If the enqueue failed, the
 		 * frame handle is not released and the command returns with an
 		 * error code.	*/
@@ -151,13 +151,12 @@ enum fdma_enqueue_tc_options {
 
 		When this command is invoked on annotation segments (PTA or ASA)
 		they always remain open (i.e. setting
-		\ref FDMA_REPLACE_SA_CLOSE_BIT has no effect and behaves the
-		same as setting \ref FDMA_REPLACE_SA_OPEN_BIT).
+		\ref FDMA_REPLACE_SA_CLOSE_BIT has no effect).
  @{
 *//***************************************************************************/
 enum fdma_replace_sa_options {
 #ifdef REV2
-		* Keep the segment open */
+		/* Keep the segment open */
 	FDMA_REPLACE_SA_OPEN_BIT =	0x0000,
 #endif /* REV2 */
 		/** Re-present the segment in workspace */
@@ -165,8 +164,7 @@ enum fdma_replace_sa_options {
 		/** Close the replaced segment to free the workspace memory
 		 * associated with the segment.
 		 * This option is not relevant for replacing ASA/PTA. If it as
-		 * chosen for replacing ASA/PTA it will be treated as
-		 * \ref FDMA_REPLACE_SA_OPEN_BIT. */
+		 * chosen for replacing ASA/PTA it will be ignored. */
 	FDMA_REPLACE_SA_CLOSE_BIT =	0x0200
 };
 
@@ -334,13 +332,13 @@ enum fdma_pta_size_type {
 	/** Default command configuration. */
 #define FDMA_DIS_NO_FLAGS	0x00000000
 #ifdef REV2
-	* Terminate Control.
+	/* Terminate Control.
 	 * If set - Trigger the Terminate task command right after the discard.
-	 * Otherwise - Return after discard.
+	 * Otherwise - Return after discard.*/
 #define FDMA_DIS_WF_TC_BIT	0x00000100
-	* Frame Source: Discard working frame (using frame handle).
+	/* Frame Source: Discard working frame (using frame handle).*/
 #define FDMA_DIS_FS_HANDLE_BIT	0x0000
-	* Frame Source: Discard Frame (using frame FD).
+	/* Frame Source: Discard Frame (using frame FD).*/
 #define FDMA_DIS_FS_FD_BIT	0x0200
 
 #endif /* REV2 */
@@ -360,21 +358,21 @@ enum fdma_pta_size_type {
 	/** Default command configuration. */
 #define FDMA_REPLIC_NO_FLAGS	0x00000000
 #ifdef REV2
-	* Enqueue the replicated frame to the provided Queueing Destination.
+	/* Enqueue the replicated frame to the provided Queueing Destination.
 	 * Release destination frame handle is implicit when enqueueing.
 	 * If set - replicate and enqueue. Otherwise - replicate only. */
 #define FDMA_REPLIC_ENQ_BIT	0x00000400
-	* The source frame resources are released after the replication.
+	/* The source frame resources are released after the replication.
 	 * Release source frame handle is implicit when discarding.
 	 * If set - discard source frame and release frame handle.
 	 * Otherwise - keep source frame. */
 #define FDMA_REPLIC_DSF_BIT	0x00000800
-#endif /* REV2 */
 	/** Enqueue Priority source.
 	 * Relevant for Queuing Destination Selection.
 	 * If set - use QD_PRI from h/w context.
 	 * Otherwise - use QD_PRI provided with DMA Command. */
 #define FDMA_REPLIC_PS_BIT	0x00001000
+#endif /* REV2 */
 	/** AIOP FDMA copy frame annotations options. Only one option may be
 	 * choose from \ref fdma_cfa_options. */
 #define FDMA_REPLICATE_CFA	fdma_cfa_options
@@ -458,14 +456,14 @@ enum fdma_pta_size_type {
 	/** Default command configuration. */
 #define FDMA_COPY_NO_FLAGS	0x00000000
 	/** Source Memory:.
-	 * If set - Copy source memory address is in the workspace.
-	 * Otherwise - Copy source memory address is in the AIOP Shared
-	 * Memory. */
+	 * If set - Copy source memory address is in the AIOP Shared
+	 * Memory.
+	 * Otherwise - Copy source memory address is in the workspace. */
 #define FDMA_COPY_SM_BIT	0x00000100
 	/** Destination Memory:.
-	 * If set - Copy destination memory address is in the workspace.
-	 * Otherwise - Copy destination memory address is in the AIOP Shared
-	 * Memory. */
+	 * If set - Copy destination memory address is in the AIOP Shared
+	 * Memory.
+	 * Otherwise - Copy destination memory address is in the workspace. */
 #define FDMA_COPY_DM_BIT	0x00000200
 
 /* @} end of group FDMA_Copy_Flags */
@@ -859,7 +857,7 @@ struct fdma_delete_segment_data_params {
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the NDS bit in the presentation context is set,
 		or if the Data size in the presentation context is 0).
@@ -898,7 +896,7 @@ int fdma_present_default_frame(void);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the NDS bit flag in the function parameters is
 		set, or if the Data size in the function parameters is 0).
@@ -938,7 +936,7 @@ int fdma_present_frame(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the present_size in the function parameters is
 		0).
@@ -966,7 +964,7 @@ int fdma_present_default_frame_segment(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the present_size in the function parameters is
 		0).
@@ -1004,7 +1002,7 @@ int fdma_present_frame_segment(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified ASA segment presentation size
 		(not relevant if the present_size in the function parameters is
 		0).
@@ -1039,7 +1037,7 @@ int fdma_read_default_frame_asa(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to present PTA segment (no PTA segment in working
 		frame).
 
@@ -1076,7 +1074,7 @@ int fdma_read_default_frame_pta(void *ws_dst);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment extend size.
 		This error is caused since the requested presentation exceeded
 		frame data end.
@@ -1121,7 +1119,7 @@ int fdma_extend_default_segment_presentation(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @remark		FD is updated.
@@ -1155,7 +1153,7 @@ int fdma_store_default_frame_data(void);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @remark		FD is updated.
@@ -1202,7 +1200,7 @@ int fdma_store_frame_data(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
@@ -1248,7 +1246,7 @@ int fdma_store_and_enqueue_default_frame_fqid(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
@@ -1297,7 +1295,7 @@ int fdma_store_and_enqueue_frame_fqid(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
@@ -1346,7 +1344,7 @@ int fdma_store_and_enqueue_default_frame_qd(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
@@ -1382,7 +1380,7 @@ int fdma_store_and_enqueue_frame_qd(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
@@ -1411,7 +1409,7 @@ int fdma_enqueue_default_fd_fqid(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
@@ -1443,7 +1441,7 @@ int fdma_enqueue_fd_fqid(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
@@ -1472,7 +1470,7 @@ int fdma_enqueue_default_fd_qd(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
 @Cautions	Function may not return.
@@ -1488,7 +1486,8 @@ int fdma_enqueue_fd_qd(
 /**************************************************************************//**
 @Function	fdma_discard_default_frame
 
-@Description	Release the resources associated with the default working frame.
+@Description	Release the resources associated with the default working
+		frame.
 
 		Implicit input parameters in Task Defaults: frame handle.
 
@@ -1537,7 +1536,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBADFD - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
@@ -1596,7 +1595,7 @@ void fdma_terminate_task(void);
 
 @Param[in]	frame_handle1 - Handle of the source frame.
 @Param[in]	spid - Storage Profile used to store frame data of the
-		destination frame if \ref FDMA_REPLIC_ENQ_BIT is selected, also
+		destination frame if enqueue is selected, also
 		used to determine ICID and memory attributes of the replicated
 		frame.
 @Param[in]	fqid - frame queue ID for the enqueue.
@@ -1609,7 +1608,7 @@ void fdma_terminate_task(void);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
@@ -1636,7 +1635,7 @@ int fdma_replicate_frame_fqid(
 
 @Param[in]	frame_handle1 - Handle of the source frame.
 @Param[in]	spid - Storage Profile used to store frame data of the
-		destination frame if \ref FDMA_REPLIC_ENQ_BIT is selected, also
+		destination frame if enqueue is selected, also
 		used to determine ICID and memory attributes of the replicated
 		frame.
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
@@ -1649,7 +1648,7 @@ int fdma_replicate_frame_fqid(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
@@ -1684,7 +1683,7 @@ int fdma_replicate_frame_qd(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
 		\ref FDMA_CONCAT_PCA_BIT flag is set).
 
@@ -1724,9 +1723,9 @@ int fdma_concatenate_frames(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
-		\ref FDMA_SPLIT_PSA_CLOSE_FRAME_BIT flag is set).
+		closing split frame).
 @Retval		EINVAL - Last split is not possible.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_SPLIT_PSA_PRESENT_BIT flag is set).
@@ -1827,7 +1826,7 @@ void fdma_modify_default_segment_data(
 		uint16_t size);
 
 #ifdef REV2
-**************************************************************************//**
+/*
 @Function	fdma_modify_segment_data
 
 @Description	Modifies data in the Data segment in a Working Frame (in the
@@ -1865,7 +1864,7 @@ void fdma_modify_default_segment_data(
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-*//***************************************************************************
+*/
 void fdma_modify_segment_data(
 		uint8_t frame_handle,
 		uint8_t seg_handle,
@@ -1912,7 +1911,7 @@ void fdma_modify_segment_data(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
@@ -1968,7 +1967,7 @@ int fdma_replace_default_segment_data(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
@@ -2035,7 +2034,7 @@ int fdma_insert_default_segment_data(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
@@ -2086,7 +2085,7 @@ int fdma_insert_segment_data(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
@@ -2140,7 +2139,7 @@ int fdma_delete_default_segment_data(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
@@ -2242,7 +2241,7 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified ASA segment presentation size
 		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
@@ -2296,7 +2295,7 @@ int fdma_replace_default_asa_segment_data(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to present PTA segment (no PTA segment in working
 		frame)(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is
 		set).

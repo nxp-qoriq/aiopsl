@@ -348,7 +348,7 @@
 
 /** FDMA Replace working frame segment command arg1 */
 #define FDMA_MODIFY_CMD_ARG1(_frame_handle, _seg_handle, _flags)	\
-	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |		\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
 	(_flags) | FDMA_REPLACE_CMD)
 
 /** FDMA explicit Replace working frame segment command arg1 */
@@ -704,7 +704,7 @@ enum fdma_sw_errors {
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBADFD - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
@@ -735,7 +735,7 @@ int fdma_present_default_frame_without_segments(void);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EBADFD - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
@@ -761,7 +761,7 @@ int fdma_present_frame_without_segments(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		EIO - Unable to fulfill specified data segment presentation size
 		(not relevant if the present_size in the function parameters is
 		0).
@@ -789,7 +789,7 @@ int fdma_present_default_frame_default_segment();
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions	This command is not intended to be used in a normal datapath,
