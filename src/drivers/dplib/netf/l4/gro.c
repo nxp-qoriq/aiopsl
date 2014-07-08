@@ -603,6 +603,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->agg_fd = tmp_fd;
 
 	/* present frame (default_FD(agg_FD)) +  present header */
+	if (PRC_GET_SEGMENT_LENGTH() < gro_ctx->agg_headers_size)
+		PRC_SET_SEGMENT_LENGTH(gro_ctx->agg_headers_size);
 	fdma_present_default_frame();
 
 	/* run parser if headers were changed */
