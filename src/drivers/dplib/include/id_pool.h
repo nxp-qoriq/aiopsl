@@ -58,13 +58,11 @@ int id_pool_init(uint16_t num_of_ids,
 
 @Param[in]	ext_id_pool_address - External id pool address.
 
-@Param[in]	num_of_ids - Number of IDs to be initialized in the pool.
-
 @Param[out]	id - id pulled from the pool.
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		ENOSPC - Pool out of range, no more ID's are available.
 
 @Cautions	In this function the task yields.
@@ -83,7 +81,7 @@ int get_id(uint64_t ext_id_pool_address, uint8_t *id);
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		ENAVAIL - All ID's already returned to pool.
 
 @Cautions	In this function the task yields.

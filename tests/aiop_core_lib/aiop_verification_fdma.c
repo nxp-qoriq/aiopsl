@@ -417,7 +417,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 
 		/*flags |= ((str->DSF) ? FDMA_REPLIC_DSF_BIT : 0x0);*/
 		/*flags |= ((str->ENQ) ? FDMA_REPLIC_ENQ_BIT : 0x0);*/
-		flags |= ((str->PS) ? FDMA_REPLIC_PS_BIT : 0x0);
+		/*flags |= ((str->PS) ? FDMA_REPLIC_PS_BIT : 0x0);*/
 		flags |= (str->CFA == 3) ?
 			FDMA_CFA_COPY_BIT :
 			((str->CFA == 2) ?

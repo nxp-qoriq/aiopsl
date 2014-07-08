@@ -258,6 +258,28 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 	return dpni_remove_mac_addr(&(dpni_drv->dpni), mac_addr);
 }
 
+int dpni_drv_set_mfl(uint16_t ni_id,
+                          const uint16_t mfl)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_set_mfl(&(dpni_drv->dpni), mfl);
+}
+
+int dpni_drv_get_mfl(uint16_t ni_id,
+                          uint16_t *mfl)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_mfl(&(dpni_drv->dpni), mfl);
+}
+
+
+
 static int parser_profile_init(uint8_t *prpid)
 {
     struct parse_profile_input parse_profile1 __attribute__((aligned(16)));

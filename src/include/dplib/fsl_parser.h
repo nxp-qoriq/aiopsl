@@ -1475,9 +1475,10 @@ struct parse_profile_input {
 @Description	Creates Parser Profile which provides a template
 		of parsing actions to be taken.
 
-@Param[in]	parse_profile - Parse Profile Input the user should fill.
+@Param[in]	parse_profile - Parse Profile Input the user should fill
+		(located in the workspace).
 		Must be 16 bytes aligned.
-@Param[out]	prpid - Parse Profile ID.
+@Param[out]	prpid - Parse Profile ID (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
@@ -1496,7 +1497,7 @@ int parser_profile_create(struct parse_profile_input *parse_profile,
 		of parsing actions to be taken.
 
 @Param[in]	parse_profile - Parse Profile Input. User should
-		allocate memory for this structure and fill it.
+		locate this structure in the workspace and fill it.
 		Must be 16 bytes aligned.
 @Param[in]	prpid - Parse Profile ID.
 
@@ -1528,9 +1529,9 @@ int parser_profile_delete(uint8_t prpid);
 
 @Description	Returns Parser Profile Entry for a provided Parser Profile ID.
 
-@Param[in]	prpid - Parse Profile ID.
-@Param[out]	parse_profile - Points to a user preallocated memory to which
-		the parse profile entry will be written.
+@Param[in]	prpid - Parse Profile ID (located in the workspace).
+@Param[out]	parse_profile - Points to a user preallocated memory in the
+ 	 	workspace to which the parse profile entry will be written.
 
 @Return		None.
 

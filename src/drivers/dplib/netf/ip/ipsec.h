@@ -114,12 +114,19 @@ enum ipsec_cipher_type {
 #define IPSEC_DESC_ALIGN(ADDRESS) \
 	IPSEC_ALIGN_64((ADDRESS), IPSEC_SA_DESC_BUF_ALIGN)
 
-#define IPSEC_FLC_ADDR(ADDRESS) \
-	IPSEC_DESC_ALIGN((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE)
+/* Aligned Descriptor Address (parameters area start) */
+#define IPSEC_DESC_ADDR(ADDRESS) IPSEC_DESC_ALIGN(ADDRESS)
+
+//#define IPSEC_FLC_ADDR(ADDRESS) \
+//	IPSEC_DESC_ALIGN((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE)
+#define IPSEC_FLC_ADDR(ADDRESS) ((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE)
+
+//#define IPSEC_SD_ADDR(ADDRESS) \
+//	IPSEC_DESC_ALIGN((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE \
+//										+ IPSEC_FLOW_CONTEXT_SIZE)
 
 #define IPSEC_SD_ADDR(ADDRESS) \
-	IPSEC_DESC_ALIGN((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE \
-										+ IPSEC_FLOW_CONTEXT_SIZE)
+	((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
 
 /*
 * Big-endian systems are systems in which the most significant byte of the word 
@@ -336,18 +343,39 @@ struct ipsec_global_instance_params {
 /* Note: For ste_inc_and_acc_counters function, the accumulator memory address 
  * should be counter_addr + sizeof(counter) 
  * In thiis case "accumulator" = byte counter, "counter" = packets counter*/
-#define IPSEC_PACKET_COUNTER_OFFSET 0
-#define IPSEC_FLAGS_OFFSET (7*8)
-#define IPSEC_STATUS_OFFSET (7*8 + 4)
-#define IPSEC_PACKET_COUNTER_ADDR (ipsec_handle + IPSEC_PACKET_COUNTER_OFFSET)
-#define IPSEC_KB_COUNTER_ADDR (IPSEC_PACKET_COUNTER_ADDR + 8)
-#define IPSEC_FLAGS_ADDR (ipsec_handle + IPSEC_FLAGS_OFFSET)
-#define IPSEC_STATUS_ADDR (ipsec_handle + IPSEC_STATUS_OFFSET)
+//#define IPSEC_PACKET_COUNTER_OFFSET 0
+//#define IPSEC_FLAGS_OFFSET (7*8)
+//#define IPSEC_STATUS_OFFSET (7*8 + 4)
+//#define IPSEC_PACKET_COUNTER_ADDR (ipsec_handle + IPSEC_PACKET_COUNTER_OFFSET)
+//#define IPSEC_KB_COUNTER_ADDR (IPSEC_PACKET_COUNTER_ADDR + 8)
+//#define IPSEC_FLAGS_ADDR (ipsec_handle + IPSEC_FLAGS_OFFSET)
+//#define IPSEC_STATUS_ADDR (ipsec_handle + IPSEC_STATUS_OFFSET)
+
+#define IPSEC_PACKET_COUNTER_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, packet_counter)))
+
+#define IPSEC_KB_COUNTER_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, byte_counter)))
+
+#define IPSEC_FLAGS_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, flags)))
+
+#define IPSEC_STATUS_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, status)))
+
+#define IPSEC_INSTANCE_HANDLE_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, instance_handle)))
+
+
 /* Shared descriptor address */
-#define IPSEC_SHARED_DESC_ADDR (ipsec_handle + \
+//#define IPSEC_SHARED_DESC_ADDR (ipsec_handle + \
+//	IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
+#define IPSEC_SHARED_DESC_ADDR(ADDRESS) (ADDRESS + \
 	IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
+
 /* PDB address */
-#define IPSEC_PDB_ADDR (IPSEC_SHARED_DESC_ADDR + 4) 
+//#define IPSEC_PDB_ADDR (IPSEC_SHARED_DESC_ADDR + 4) 
+#define IPSEC_PDB_ADDR(ADDRESS) (IPSEC_SHARED_DESC_ADDR(ADDRESS) + 4) 
 	
 #define IPSEC_MAX_TIMESTAMP 0xFFFFFFFFFFFFFFFF
 
@@ -412,6 +440,9 @@ struct ipsec_sa_params {
 };
 
 
+
+//#define IPSEC_PACKET_COUNTER_ADDR(ADDRESS) 16
+//#define IPSEC_KB_COUNTER_ADDR 20
 
 /* SEC Flow Context Descriptor */ 
 struct sec_flow_context {
@@ -636,37 +667,6 @@ struct obsolete_flow_context {
 
 *//****************************************************************************/
 int ipsec_init(uint32_t max_sa_no);
-
-/**************************************************************************//**
-@Function	ipsec_create_instance
-
-@Description	This creates an instance for an IPsec application.
-		It should be called once when the application goes up.
-		All SAs belonging to this instance should be called with 
-		the returned instance handle.
-				
-@Param[in]	committed_sa_num - committed number of SAs for this instance.
-			Resources for this number of SAs are preallocated, and
-			respective ipsec_add_sa_descriptor() cannot fail on depletion.
-@Param[in]	max_sa_num - maximum number of SAs to be used by this instance.
-			Resources for additional SAs are allocated at run time on, and
-			respective ipsec_add_sa_descriptor() may fail on depletion.
-@Param[in]	tmi_id - TMAN Instance ID to be used for timers creation
-@Param[in]	instance_flags - control flags. Set to 0.
-
-@Param[out]	ipsec_handle - IPsec handle to the descriptor database
-		
-@Return		Status
-
-*//****************************************************************************/
-/*
-int32_t ipsec_create_instance(
-		uint32_t committed_sa_num,
-		uint32_t max_sa_num,
-		uint32_t instance_flags,
-		uint8_t tmi_id,
-		ipsec_instance_handle_t *instance_handle);
-*/
 
 /**************************************************************************//**
 @Function		ipsec_generate_flc 
