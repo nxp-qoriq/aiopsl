@@ -35,8 +35,8 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.SVuninitialized" value="false"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.coreIndex" value="11"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.homogeneousMulticore" value="true"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="C:\Data\projects\ucode\GIT\aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.simulator" value="CCSSIM2 ISS"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smpTarget" value="true"/>
@@ -136,12 +136,12 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Host App Path" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Processor Attr Name" value="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.EPPC Debugger.processor"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.RSESystemIdentifier" value="T4240LS_T4240LSSimulator_download_RSESystem_Group"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.140408163205+0300"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.140616151307+0300"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.core.settings.useLastRSESystemGenerated" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.wizardSystemNameHint" value="T4240LS_Download"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.debuggerAddress" value="127.0.0.1"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.disableIO" value="false"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.ethCtrl" value="UEC1"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.ethCtrl" value="Ethernet Controller 1"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeInitScripts" value="true"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executePerCoresReset" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executePerprocessorReset" value="false"/>
@@ -149,11 +149,11 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.gateway" value="127.0.0.1"/>
 <listAttribute key="com.freescale.cdt.debug.cw.initPathList">
-<listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
+<listEntry value="C:\Data\projects\ucode\GIT\aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.macAddress" value="**-**-**-**-**-**"/>
 <listAttribute key="com.freescale.cdt.debug.cw.memConfigPathList">
-<listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
+<listEntry value=""/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.netMask" value="255.255.255.255"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="com.freescale.os.task.aware"/>

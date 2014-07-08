@@ -60,8 +60,8 @@ const char *module_strings[] = {
     ,"MEM"                      /* MODULE_MEM */
     ,"MM"                       /* MODULE_MM */
     ,"CORE"                     /* MODULE_CORE */
-    ,"SoC"                      /* MODULE_LS2100A */
-    ,"SoC-platform"             /* MODULE_LS2100A_PLATFORM */
+    ,"SoC"                      /* MODULE_LS2085A */
+    ,"SoC-platform"             /* MODULE_LS2085A_PLATFORM */
     ,"PM"                       /* MODULE_PM */
     ,"MMU"                      /* MODULE_MMU */
     ,"PIC"                      /* MODULE_PIC */
@@ -346,9 +346,9 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     int     err = 0, i = 0;
     uint32_t CTSCSR_value = 0;
     uint32_t WSCR_tasks_bit = 0;
-    struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *) 
-	                               sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);    
-    
+    struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
+	                               sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+
     if (pltfrm == NULL) {
 	    return -EINVAL;
     }
@@ -363,10 +363,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
 #endif /* DEBUG */
     /* special AIOP registers */
-    
+
     /* Workspace Control Register*/
     WSCR_tasks_bit = LOAD_LE32_TO_CPU(&aiop_regs->cmgw_regs.wscr) & 0x000000ff;
-    
+
     CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
     		                          (WSCR_tasks_bit << 24);
 

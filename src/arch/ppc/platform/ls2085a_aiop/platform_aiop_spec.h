@@ -2,16 +2,16 @@
 
  @File          platform_aiop_spec.h
 
- @Description   LS2100A Pltform external definitions and structures.
+ @Description   LS2085A Pltform external definitions and structures.
 *//***************************************************************************/
 #ifndef __FSL_PLATFORM_AIOP_SPEC_H
 #define __FSL_PLATFORM_AIOP_SPEC_H
 
 
 /**************************************************************************//**
- @Group         ls2100a_g LS2100A Application Programming Interface
+ @Group         ls2085a_g LS2085A Application Programming Interface
 
- @Description   LS2100A Chip functions,definitions and enums.
+ @Description   LS2085A Chip functions,definitions and enums.
 
  @{
 *//***************************************************************************/
@@ -53,7 +53,7 @@ struct platform_param {
     struct platform_memory_info     mem_info[PLATFORM_MAX_MEM_INFO_ENTRIES];
 };
 
-/** @} */ /* end of ls2100a_g group */
+/** @} */ /* end of ls2085a_g group */
 
 
 
