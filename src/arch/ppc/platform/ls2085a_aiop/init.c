@@ -295,7 +295,7 @@ int run_apps(void)
 
 	if(dpbp_id < 0){
 		pr_err("DP-BP not found in the container.\n");
-		return -EAGAIN;
+		return -ENAVAIL;
 	}
 
 	dpbp.regs = dprc->regs;

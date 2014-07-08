@@ -152,8 +152,9 @@ int ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 		In case \ref IPF_RESTORE_ORIGINAL_FRAGMENTS flag is set, this
 		parameter is ignored.
 @Param[out]	ipf_context_addr - Address to the IPF internal context
-		structure allocated by the user. Internally used by
-		IP Fragmentation functions. Must be aligned to 32 bytes.
+		structure located in the workspace by the user.
+		Internally used by IP Fragmentation functions.
+		Must be aligned to 32 bytes.
 
 @Return		None.
 

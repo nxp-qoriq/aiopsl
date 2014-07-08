@@ -628,7 +628,7 @@ int keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
 		(part of struct kcr_builder (located in the workspace)).
-@Param[in]	keyid - Key ID (located in the workspace).
+@Param[in]	keyid - Key ID.
 
 @Return		None.
 
@@ -683,8 +683,7 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Description	Extracts a key from a frame and returns it.
 
 @Param[in]	acc_id - Accelerator ID.
-@Param[in]	keyid - The key ID to be used for the key extraction
-		(located in the workspace).
+@Param[in]	keyid - The key ID to be used for the key extraction.
 @Param[in]	user_metadata - user_metadata field for key composition.
 @Param[out]	key - The key. This structure should be located in the workspace
  	 	and must be aligned to 16B boundary.
@@ -713,7 +712,7 @@ int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 @Param[in]	key - The key to generate hash from (located in the workspace).
 		Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
-@Param[out]	hash - The hash result. Must be located in the workspace.
+@Param[out]	hash - The hash result.
 
 @Return		0 on Success.
 
