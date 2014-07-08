@@ -5,8 +5,8 @@
 #include "kernel/fsl_spinlock.h"
 #include "sys.h"
 
-#if defined (AIOP) && defined (LS2100A)
-#include "ls2100a_aiop/platform_aiop_spec.h"
+#if defined (AIOP) && defined (LS2085A)
+#include "ls2085a_aiop/platform_aiop_spec.h"
 #endif
 
 int random_test();

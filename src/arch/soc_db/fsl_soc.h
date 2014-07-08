@@ -12,8 +12,8 @@
 #include "inc/fsl_gen.h"
 
 
-#if defined(LS2100A)
-#include "fsl_soc_spec_ls2100a.h"
+#if defined(LS2085A)
+#include "fsl_soc_spec_ls2085a.h"
 #elif defined(LS1080A)
 #include "fsl_soc_spec_ls1080a.h"
 #else

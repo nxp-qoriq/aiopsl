@@ -2,7 +2,7 @@
 
  @File          fsl_soc_spec.h
 
- @Description   LS2100A external definitions and structures.
+ @Description   LS2085A external definitions and structures.
 *//***************************************************************************/
 #ifndef __FSL_SOC_SPEC_H
 #define __FSL_SOC_SPEC_H
@@ -10,7 +10,7 @@
 #include "common/types.h"
 #if defined(AIOP)
 #include "fsl_soc_aiop_spec.h"
-#elif defined(MC) 
+#elif defined(MC)
 #include "fsl_soc_mc_spec.h"
 #elif defined(GPP)
 #include "fsl_soc_gpp_spec.h"
@@ -20,9 +20,9 @@
 
 
 /**************************************************************************//**
- @Group         ls2100a_g LS2100A Application Programming Interface
+ @Group         ls2085a_g LS2085A Application Programming Interface
 
- @Description   LS2100A Chip functions,definitions and enums.
+ @Description   LS2085A Chip functions,definitions and enums.
 
  @{
 *//***************************************************************************/
@@ -55,15 +55,15 @@
 
 
 /**************************************************************************//**
- @Group         ls2100a_init_g LS2100A Initialization Unit
+ @Group         ls2085a_init_g LS2085A Initialization Unit
 
- @Description   LS2100A initialization unit API functions, definitions and enums
+ @Description   LS2085A initialization unit API functions, definitions and enums
 
  @{
 *//***************************************************************************/
 
-/** @} */ /* end of ls2100a_init_g group */
-/** @} */ /* end of ls2100a_g group */
+/** @} */ /* end of ls2085a_init_g group */
+/** @} */ /* end of ls2085a_g group */
 
 
 
