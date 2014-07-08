@@ -376,9 +376,9 @@ struct	kcr_builder_fec_mask {
 		This function should be called before any call to other
 		functions from keygen_kcr_builder() function family.
 
-@Param[in,out]	kb - kcr builder pointer. Must not be null (user should
-		allocate memory for this structure). Must be aligned to
-		16B boundary.
+@Param[in,out]	kb - kcr builder pointer.
+		Must be located in the workspace.
+		Must be aligned to 16B boundary.
 
 @Return		None.
 *//***************************************************************************/
@@ -393,11 +393,11 @@ void keygen_kcr_builder_init(struct kcr_builder *kb);
 
 @Param[in]	constant - 1 bytes of user defined constant.
 @Param[in]	num - Number of replications (1-16) of the constant in the key.
-@Param[in,out]	kb - kcr builder pointer.
+@Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
@@ -417,11 +417,11 @@ int keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
-@Param[in,out]	kb - kcr builder pointer.
+@Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
@@ -441,7 +441,7 @@ int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
-@Param[in,out]	kb - kcr builder pointer.
+@Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
 		Note that extraction will take place only if there is no
 		parsing error related to this fecid.
@@ -453,7 +453,7 @@ int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int keygen_kcr_builder_add_protocol_specific_field
@@ -476,7 +476,7 @@ int keygen_kcr_builder_add_protocol_specific_field
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
-@Param[in,out]	kb - kcr builder pointer.
+@Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
 		Note that extraction (using \ref keygen_gen_key) will take place
 		only if all following conditions are met:
@@ -495,7 +495,7 @@ int keygen_kcr_builder_add_protocol_specific_field
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int keygen_kcr_builder_add_protocol_based_generic_fec(
@@ -523,11 +523,11 @@ int keygen_kcr_builder_add_protocol_based_generic_fec(
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
-@Param[in,out]	kb - kcr builder pointer.
+@Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
@@ -553,11 +553,11 @@ int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
 		this parameter should be NULL.
-@Param[in,out]	kb - kcr builder pointer.
+@Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 
 @Cautions	This function is not available for rev1.
@@ -587,11 +587,11 @@ int keygen_kcr_builder_add_lookup_result_field_fec(
 		instead (in this case valid bit = 0)).
 
 @Param[in]	mask - 1 byte mask.
-@Param[in,out]	kb - kcr builder pointer.
+@Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
 int keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
@@ -605,12 +605,12 @@ int keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
-		(part of struct kcr_builder).
-@Param[out]	keyid - Key ID.
+		(part of struct kcr_builder (located in the workspace)).
+@Param[out]	keyid - Key ID (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		ENOSPC - No more KCR's are available (all 256 are taken).
 
 @Cautions	In this function the task yields.
@@ -627,8 +627,8 @@ int keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	kcr - Key composition rule. Must be aligned to 16B boundary.
-		(part of struct kcr_builder).
-@Param[in]	keyid - Key ID.
+		(part of struct kcr_builder (located in the workspace)).
+@Param[in]	keyid - Key ID (located in the workspace).
 
 @Return		None.
 
@@ -645,11 +645,11 @@ void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 @Description	Deletes key composition rule.
 
 @Param[in]	acc_id - Accelerator ID.
-@Param[in]	keyid - Key ID.
+@Param[in]	keyid - Key ID (located in the workspace).
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		ENAVAIL - All KCR's are already deleted.
 
 @Cautions	In this function the task yields.
@@ -664,9 +664,9 @@ int keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 @Description	Returns the key composition rule of a given key ID.
 
 @Param[in]	acc_id - Accelerator ID.
-@Param[in]	keyid - The key ID.
+@Param[in]	keyid - The key ID (located in the workspace).
 @Param[out]	kcr - Key composition rule. Must be aligned to 16B boundary.
-		(part of struct kcr_builder).
+		(part of struct kcr_builder (located in the workspace)).
 
 @Return		None.
 
@@ -683,15 +683,16 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Description	Extracts a key from a frame and returns it.
 
 @Param[in]	acc_id - Accelerator ID.
-@Param[in]	keyid - The key ID to be used for the key extraction.
+@Param[in]	keyid - The key ID to be used for the key extraction
+		(located in the workspace).
 @Param[in]	user_metadata - user_metadata field for key composition.
-@Param[out]	key - The key. This structure is allocated by the user and must
-		be aligned to 16B boundary.
-@Param[out]	key_size - Key size in bytes. Must be allocated by the caller.
+@Param[out]	key - The key. This structure should be located in the workspace
+ 	 	and must be aligned to 16B boundary.
+@Param[out]	key_size - Key size in bytes.
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Extract Out Of Frame Header.
 
 @Cautions	In this function the task yields.
@@ -709,11 +710,10 @@ int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 
 @Description	Generates a hash value from a given key.
 
-@Param[in]	key - The key to generate hash from. Must be aligned to 16B
-		boundary.
+@Param[in]	key - The key to generate hash from (located in the workspace).
+		Must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
-@Param[out]	hash - The hash result. Must be allocated by the caller to this
-		function.
+@Param[out]	hash - The hash result. Must be located in the workspace.
 
 @Return		0 on Success.
 
