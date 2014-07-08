@@ -293,6 +293,8 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		/* A rule with the same match description (and aged) is found
 		 * in the table. The rule is replaced. Output message is
 		 * valid if command MTYPE is w/o RPTR counter decrement.*/
+		/* TODO this should go to exception path once aging is
+		 * removed */
 		status = TABLE_STATUS_SUCCESS;
 		break;
 	case (CTLU_HW_STATUS_NORSC):
@@ -476,63 +478,70 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
-	switch (entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK) {
-	case (TABLE_ENTRY_ENTYPE_EME16):
-		*timestamp = entry.body.eme16.timestamp;
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*result = entry.body.eme16.result;
-		break;
-	case (TABLE_ENTRY_ENTYPE_EME24):
-		*timestamp = entry.body.eme24.timestamp;
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*result = entry.body.eme24.result;
-		break;
-	case (TABLE_ENTRY_ENTYPE_LPM_RES):
-		*timestamp = entry.body.lpm_res.timestamp;
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*result = entry.body.lpm_res.result;
-		break;
-	case (TABLE_ENTRY_ENTYPE_MFLU_RES):
-		*timestamp = entry.body.mflu_result.timestamp;
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*result = entry.body.mflu_result.result;
-		break;
-	default:
-		/* Call fatal error handler */
-		exception_handler(__FILE__,
-				  __LINE__,
-				  "Unknown result entry type. ");
-		break;
-	} /* Switch */
-
-	/* Status Handling*/
+	/* get HW status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
-		break;
-	case (TABLE_HW_STATUS_MISS):
-		/* A rule with the same match description is not found in the
-		 * table. */
-		break;
-	case (CTLU_HW_STATUS_TEMPNOR):
-		/* A rule with the same match description is found  and rule
-		 * is aged. */
-		status = TABLE_STATUS_MISS;
-		break;
-	case (MFLU_HW_STATUS_TEMPNOR):
-		/* A rule with the same match description is found  and rule
-		 * is aged. */
-		status = TABLE_STATUS_MISS;
-		break;
-	default:
-		/* Call fatal error handler */
-		table_exception_handler(__FILE__, __LINE__, status);
-		break;
-	} /* Switch */
+
+	if (status == TABLE_HW_STATUS_SUCCESS) {
+		/* Copy result and timestamp */
+		switch (entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK) {
+		case (TABLE_ENTRY_ENTYPE_EME16):
+			*timestamp = entry.body.eme16.timestamp;
+			/* STQW optimization is not done here so we do not force
+			   alignment */
+			*result = entry.body.eme16.result;
+			break;
+		case (TABLE_ENTRY_ENTYPE_EME24):
+			*timestamp = entry.body.eme24.timestamp;
+			/* STQW optimization is not done here so we do not force
+			   alignment */
+			*result = entry.body.eme24.result;
+			break;
+		case (TABLE_ENTRY_ENTYPE_LPM_RES):
+			*timestamp = entry.body.lpm_res.timestamp;
+			/* STQW optimization is not done here so we do not force
+			   alignment */
+			*result = entry.body.lpm_res.result;
+			break;
+		case (TABLE_ENTRY_ENTYPE_MFLU_RES):
+			*timestamp = entry.body.mflu_result.timestamp;
+			/* STQW optimization is not done here so we do not force
+			   alignment */
+			*result = entry.body.mflu_result.result;
+			break;
+		default:
+			/* Call fatal error handler */
+			exception_handler(__FILE__,
+					  __LINE__,
+					  "Unknown result entry type. ");
+			break;
+		} /* Switch */
+	} else {
+		/* Status Handling*/
+		switch (status) {
+		case (TABLE_HW_STATUS_MISS):
+			/* A rule with the same match description is not found
+			 * in the table. */
+			break;
+		case (CTLU_HW_STATUS_TEMPNOR):
+			/* A rule with the same match description is found and
+			 * rule is aged. */
+			/* TODO this should go to exception path once aging is
+			 * removed */
+			status = TABLE_STATUS_MISS;
+			break;
+		case (MFLU_HW_STATUS_TEMPNOR):
+			/* A rule with the same match description is found and
+			 * rule is aged. */
+			/* TODO this should go to exception path once aging is
+			 * removed */
+			status = TABLE_STATUS_MISS;
+			break;
+		default:
+			/* Call fatal error handler */
+			table_exception_handler(__FILE__, __LINE__, status);
+			break;
+		} /* Switch */
+	}
 
 	return status;
 }
