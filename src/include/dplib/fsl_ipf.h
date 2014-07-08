@@ -108,8 +108,8 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 @Param[in]	ipf_context_addr - Address to the IPF internal context. Must
 		be initialized by ipf_context_init() prior to the first call.
 
-@Return		Status. Please refer to \ref IPF_GENERATE_FRAG_STATUS or
-		\ref fdma_hw_errors or \ref fdma_sw_errors for more details.
+@Return		Status. (\ref IPF_GENERATE_FRAG_STATUS or negative value on
+		error.)
 
 @Cautions	1. In the output fragment, ASA & PTA are not presented.
 		2. No support in IPv6 jumbograms.
@@ -131,7 +131,7 @@ int ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 
 @Param[in]	ipf_context_addr - Address to the IPF internal context.
 
-@Return		Status of the operation (\ref FDMA_DISCARD_FRAME_ERRORS).
+@Return		Status of the operation (0 - Success).
 
 @Cautions	Following this function no packet resides in the default frame
 		location in the task defaults.
