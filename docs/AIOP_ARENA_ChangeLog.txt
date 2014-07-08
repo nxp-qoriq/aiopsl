@@ -1,3 +1,47 @@
+        Update all aiop_sl git to use ls2085a instead of ls2100
+        Rename/remove ls2100 directories/files
+        update all paths and project files accordingly.
+        list of affected files bellow.
+{ /*ls2100a -> ls2085a*/
+- build\aiop_t4ls_sim\aiopsl\.cproject
+- build\aiop_t4ls_sim\aiopsl\.project
+- build\aiop_t4ls_sim\apps\app_process_packet\.cproject
+- build\aiop_t4ls_sim\apps\app_process_packet\Referenced Systems\AFM_Target.rse.xml
+- build\aiop_t4ls_sim\apps\app_process_packet\src\README.txt
+- build\aiop_t4ls_sim\apps\ipf_demo\.cproject
+- build\aiop_t4ls_sim\apps\ipf_demo\Referenced Systems\AFM_Target.rse.xml
+- build\aiop_t4ls_sim\apps\ipf_demo\src\README.txt
+- build\aiop_t4ls_sim\apps\ipr_demo\.cproject
+- build\aiop_t4ls_sim\apps\ipr_demo\Referenced Systems\AFM_Target.rse.xml
+- build\aiop_t4ls_sim\apps\ipr_demo\src\README.txt
+- build\aiop_t4ls_sim\apps\ipsec_fm_demo\.cproject
+- build\aiop_t4ls_sim\apps\ipsec_fm_demo\src\README.txt
+- build\aiop_t4ls_sim\build_flags\build_flags.h
+- build\aiop_t4ls_sim\cw_files\aiop_link.lcf
+- build\aiop_t4ls_sim\sim_files\ls2085a_sys_test.cfg
+- build\aiop_t4ls_sim\tests\arena_test\.cproject
+- build\aiop_t4ls_sim\tests\arena_test\Referenced Systems\AFM_Target.rse.xml
+- build\aiop_t4ls_sim\tests\arena_test\src\README.txt
+- build\aiop_t4ls_sim\tests\cmdif_test\.cproject
+- build\aiop_t4ls_sim\tests\cmdif_test\CFG\LS2085A-AFM_AIOP.mem
+- build\aiop_t4ls_sim\tests\cmdif_test\CFG\LS2085A-AFM_AIOP_RAM.tcl
+- build\aiop_t4ls_sim\tests\cmdif_test\Referenced Systems\AFM_Target.rse.xml
+- build\aiop_t4ls_sim\tests\inet_test\.cproject
+- src\arch\ppc\platform\ls2085a_aiop\cmdif.h
+- src\arch\ppc\platform\ls2085a_aiop\fsl_soc_aiop_spec.h
+- src\arch\ppc\platform\ls2085a_aiop\fsl_swab.h
+- src\arch\ppc\platform\ls2085a_aiop\init.c
+- src\arch\ppc\platform\ls2085a_aiop\platform.c
+- src\arch\ppc\platform\ls2085a_aiop\platform.h
+- src\arch\ppc\platform\ls2085a_aiop\platform_aiop_spec.h
+- src\arch\ppc\platform\ls2085a_gpp\cmdif.h
+- src\arch\soc_db\fsl_soc.h
+- src\arch\soc_db\fsl_soc_spec_ls2085a.h
+- tests\aiop_core_lib\build\aiop_core_lib_verif\.cproject
+- tests\malloc_test.c
+- tests\random_test.c
+} /*ls2100a -> ls2085a*/
+
 - build\aiop_t4ls_sim\aiopsl\.cproject                        Update paths in user and system include
 - build\aiop_t4ls_sim\apps\app_process_packet\.cproject       Update paths in user and system include
 - build\aiop_t4ls_sim\tests\arena_test\.cproject              Update paths in user and system include
