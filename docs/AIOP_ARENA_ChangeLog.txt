@@ -1,3 +1,7 @@
+- aiopsl/build/aiop_t4ls_sim: changed to aiopsl/build/aiop_sim 
+                              This change involved files related to all the projects in AIOP
+                              (.xml, .cproject, .launch, .project files)
+
 - init.c:             update real physical addresses for PEB and DP_DDR, move PEB memory area by 2 MB to avoid ovelapping with MC
 - arena_test.c:       add memory_test.
         Update all aiop_sl git to use ls2085a instead of ls2100
