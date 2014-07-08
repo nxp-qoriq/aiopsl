@@ -54,11 +54,7 @@ void booke_generic_irq_init(void)
 /*****************************************************************/
 void booke_critical_isr(uint32_t intr_entry)
 {
-    if (intr_entry != CRITICAL_INTR)
-    {
-        pr_err("core %d int: wrong call to CRITICAL int. handler\n", core_get_id());
-        return;
-    }
+    pr_err("core %d int: booke_critical_isr\n", core_get_id());
 }
 
 /*****************************************************************/
@@ -74,63 +70,145 @@ void booke_critical_isr(uint32_t intr_entry)
 /*****************************************************************/
 void booke_generic_isr(uint32_t intr_entry)
 {
-#pragma unused(intr_entry)
-    //TODO complete
-    pr_debug("core %d - generic interrupt\n", core_get_id());
+   static int print_limit = 3;
+
+	switch(intr_entry)
+	{
+	case(CRITICAL_INTR):
+			pr_debug("core %d int: CRITICAL\n", core_get_id());
+		break;
+	case(MACHINE_CHECK_INTR):
+			pr_debug("core %d int: MACHINE_CHECK\n", core_get_id());
+		break;
+	case(DATA_STORAGE_INTR):
+			pr_debug("core %d int: DATA_STORAGE\n", core_get_id());
+		break;
+	case(INSTRUCTION_STORAGE_INTR):
+			pr_debug("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
+		break;
+	case(EXTERNAL_INTR):
+			pr_debug("core %d int: EXTERNAL\n", core_get_id());
+		break;
+	case(ALIGNMENT_INTR):
+			pr_debug("core %d int: ALIGNMENT\n", core_get_id());
+		break;
+	case(PROGRAM_INTR):
+			pr_debug("core %d int: PROGRAM\n", core_get_id());
+		break;
+	case(SYSTEM_CALL_INTR):
+			pr_debug("core %d int: SYSTEM CALL\n", core_get_id());
+		break;
+	case(DEBUG_INTR):
+			pr_debug("core %d int: debug\n", core_get_id());
+		break;
+	case(SPE_FLT_DATA_INTR):
+			pr_debug("core %d int: SPE-floating point data\n", core_get_id());
+		break;
+	case(SPE_FLT_ROUND_INTR):
+			pr_debug("core %d int: SPE-floating point round\n", core_get_id());
+		break;
+	case(PERF_MONITOR_INTR):
+			pr_debug("core %d int: performance monitor\n", core_get_id());
+		break;
+	case(0): //TODO 
+			pr_debug("core %d int: CTS interrupt\n", core_get_id());
+		break;
+	default:
+		pr_warn("undefined interrupt #%x\n", intr_entry);
+		break;
+	}
+	
+	while(1){}
 }
 
 asm static void branch_table(void) {
-  nofralloc
+    nofralloc
 
-    b  critical_irq /* Critical Input Interrupt (Offset 0x00) */
+    b  exception_irq //critical_irq /* Critical Input Interrupt (Offset 0x00) */
     nop
     nop
     nop
-    b  mechinecheck_irq /* Machine Check Interrupt (Offset 0x10) */
+    .align 0x10
+    b  exception_irq //mechinecheck_irq /* Machine Check Interrupt (Offset 0x10) */
     nop
     nop
     nop
-    b  data_stor_irq /* Data Storage Interrupt (Offset 0x20) */
+    .align 0x10
+    b  exception_irq //data_stor_irq /* Data Storage Interrupt (Offset 0x20) */
+    nop
+    nop
+    nop    
+    .align 0x10
+    b  exception_irq //inst_stor_irq /* Instruction Storage Interrupt (Offset 0x30) */
     nop
     nop
     nop
-    b  inst_stor_irq /* Instruction Storage Interrupt (Offset 0x30) */
+    .align 0x10
+    b  exception_irq //ext_irq /* External Input Interrupt (Offset 0x40) */
     nop
     nop
     nop
-    b  ext_irq /* External Input Interrupt (Offset 0x40) */
+    .align 0x10
+    b  exception_irq //alignment_irq /* Alignment Interrupt (Offset 0x50) */
     nop
     nop
     nop
-    b  alignment_irq /* Alignment Interrupt (Offset 0x50) */
+    .align 0x10
+    b  exception_irq //program_irq /* Program Interrupt (Offset 0x60) */
     nop
     nop
     nop
-    b  program_irq /* Program Interrupt (Offset 0x60) */
+    .align 0x10
+    b  exception_irq //dbg_irq /* TODO: should be perf-mon */
     nop
     nop
     nop
-    b  dbg_irq /* TODO: should be perf-mon */
+    .align 0x10
+    b  exception_irq //sys_call_irq /* System Call Interrupt (Offset 0x80) */
     nop
     nop
     nop
-    b  sys_call_irq /* System Call Interrupt (Offset 0x80) */
+    .align 0x10
+    b  exception_irq //dbg_irq /* Debug Interrupt (Offset 0x90) */
     nop
     nop
     nop
-    b  dbg_irq /* Debug Interrupt (Offset 0x90) */
+    .align 0x10
+    b exception_irq //fp_data_irq /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
     nop
     nop
     nop
-    b fp_data_irq /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
+    .align 0x10
+    b exception_irq //fp_round_irq /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
     nop
     nop
     nop
-    b fp_round_irq /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
     nop
     nop
     nop
-    b cts_irq /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
+    nop
+    nop
+    nop
+    nop 
+    nop 
+    nop
+    .align 0x10
+    b exception_irq //cts_irq /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
+        
+    /* generic exception */ //TODO
+    .align 0x100
+exception_irq:
+    li       r0, 0x0000
+    lis      r0, 0x0000
+    mtspr    DBCR0, r0 /* disable stack overflow exceptions */
+    mtmsr    r0; //TODO not sure about this
+    li       rsp, 0x7ff0
+    li       r3, 0
+    lis      r4,booke_generic_isr@h
+    ori      r4,r4,booke_generic_isr@l
+    mtlr     r4
+    blrl
+    se_illegal
     
     /* Critical Input Interrupt (Offset 0x00) */
     .align 0x100
@@ -160,7 +238,7 @@ critical_irq:
     mfspr    r0,59
     stw      r0,32(rsp)
 
-    li  r3,CRITICAL_INTR
+    li  r3,CRITICAL_INTR //TODO different value
     lis r4,booke_critical_isr@h
     ori r4,r4,booke_critical_isr@l
     mtlr    r4
@@ -191,7 +269,7 @@ critical_irq:
     lwz      r0,8(rsp)
     addi     rsp,rsp,80
     rfci
-
+    
     /* Machine Check Interrupt (Offset 0x10) */
     .align 0x100
 mechinecheck_irq:
@@ -220,7 +298,7 @@ mechinecheck_irq:
     mfspr    r0,571
     stw      r0,32(rsp)
 
-    li  r3,MACHINE_CHECK_INTR //TODO this is wrong
+    li  r3,MACHINE_CHECK_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -280,7 +358,7 @@ data_stor_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,DATA_STORAGE_INTR
+    li  r3,DATA_STORAGE_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -340,7 +418,7 @@ inst_stor_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,INSTRUCTION_STORAGE_INTR
+    li  r3,INSTRUCTION_STORAGE_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -400,7 +478,7 @@ ext_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,EXTERNAL_INTR
+    li  r3,EXTERNAL_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -471,7 +549,7 @@ alignment_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,ALIGNMENT_INTR
+    li  r3,ALIGNMENT_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -531,7 +609,7 @@ program_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,PROGRAM_INTR
+    li  r3,PROGRAM_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -593,7 +671,7 @@ sys_call_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,0x0900
+    li  r3,SYSTEM_CALL_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -653,7 +731,7 @@ dbg_irq:
     mfspr    r0,59
     stw      r0,32(rsp)
 
-    li  r3,0x1000
+    li  r3,DEBUG_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -713,7 +791,7 @@ fp_data_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,0x1200
+    li  r3,SPE_FLT_DATA_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -773,7 +851,7 @@ fp_round_irq:
     mfsrr1   r0
     stw      r0,32(rsp)
 
-    li  r3,0x1300
+    li  r3,SPE_FLT_ROUND_INTR //TODO different value
     lis r4,booke_generic_isr@h
     ori r4,r4,booke_generic_isr@l
     mtlr    r4
@@ -808,7 +886,7 @@ fp_round_irq:
     /* Core Task Scheduler (CTS) Task Watchdog Timer Interrupt (Offset 0xF0) */
     .align 0x100
 cts_irq:
-    se_illegal
+    se_illegal //TODO
 }
 
 asm void booke_init_interrupt_vector(void)
