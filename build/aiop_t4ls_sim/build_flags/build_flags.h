@@ -21,7 +21,7 @@
 #define DISABLE_ASSERTIONS
 #endif /* (DEBUG_LEVEL > 0) */
 
-#define LS2100A
+#define LS2085A
 #define AIOP
 #define SOC_PPC_CORE
 /*#define SYS_SMP_SUPPORT*/

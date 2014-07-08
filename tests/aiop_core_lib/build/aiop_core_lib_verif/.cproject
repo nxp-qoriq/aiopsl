@@ -111,7 +111,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_t4ls_sim/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2085_aiop&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/platform/&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/platform/ls2100a_aiop&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/platform/ls2085a_aiop&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>

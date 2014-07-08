@@ -186,8 +186,10 @@ int tcp_gro_add_seg_to_aggregation(
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 
 	/* Check for termination conditions due to the current segment.
-	 * In case one of the following conditions is met, close the aggregation
-	 * and start a new aggregation with the current segment */
+	 * In case one of the following conditions is met, either:
+	 * - add the segment to the aggregation and close the aggregation
+	 * - close the aggregation and start a new aggregation with the
+	 * current segment. */
 	/* 1. Segment sequence number is not the expected sequence number  */
 	if (gro_ctx->next_seq != tcp->sequence_number) {
 		/* update statistics */
@@ -205,7 +207,7 @@ int tcp_gro_add_seg_to_aggregation(
 	 * timestamp value.
 	 * 4. Segment ACK number is less than the ACK number of the previously
 	 * coalesced segment.
-	 * 5. PHS flag is set for the aggregation from the previous segment */
+	 * 5. PSH flag is set for the aggregation from the previous segment */
 	ecn = *((uint32_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
 	if (PARSER_IS_OUTER_IPV6_DEFAULT())
 		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
@@ -231,12 +233,6 @@ int tcp_gro_add_seg_to_aggregation(
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
 
-	/* Check for termination condition due to the current segment.
-	 * In case one of the following conditions is met, add segment to
-	 * aggregation and close the aggregation. */
-	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
-		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
-
 	/* calculate data offset */
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 
@@ -244,7 +240,7 @@ int tcp_gro_add_seg_to_aggregation(
 	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd))) +
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
-	/* check aggregated packet size limit */
+	/* 6. check aggregated packet size limit */
 	if (aggregated_size > gro_ctx->params.limits.packet_size_limit)
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
@@ -256,7 +252,7 @@ int tcp_gro_add_seg_to_aggregation(
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
-	/* check segment number limit */
+	/* 7. check segment number limit */
 	if ((gro_ctx->metadata.seg_num + 1) ==
 			gro_ctx->params.limits.seg_num_limit){
 		/* update statistics */
@@ -267,7 +263,13 @@ int tcp_gro_add_seg_to_aggregation(
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
 
-	/* segment can be aggregated */
+	/* 8. Check for termination condition due to the current segment PSH
+	 * flag. */
+	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
+		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
+
+
+	/* Segment can be aggregated */
 
 	concat_params.frame1 = 0;
 	/* present aggregated frame */
