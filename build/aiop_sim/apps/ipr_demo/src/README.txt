@@ -6,7 +6,7 @@ Setup
 1. Install CW_APP_v10.0.8
 2. Download linux version of LS_SIM_RELEASE_0_8_0_0116
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2085a_sys_test.cfg
-   from aiopsl\build\aiop_t4ls_sim\sim_files.
+   from aiopsl\build\aiop_sim\sim_files.
    comment the lines marked with "#for elf loader" in cfg files: 
    "ls2100_sys_test" and "ls2085a_sim_init_params"
    (you may need to change "localhost" to your Linux machine name).
@@ -32,8 +32,8 @@ Execution flow
    ./bin/tio_console -hub localhost:42975 -ser duart1_1 duart1_0
 6. Run mc_app.
 7. Launch ipr_demo using AFM connection.
-	Init file: aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP_RAM
-	Mem file: aiopsl\build\aiop_t4ls_sim\cw_files\LS2085A-AFM_AIOP.mem
+	Init file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM
+	Mem file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP.mem
    Don't forget to update simulator server IP and port in debug configuration. 
 8. Run aiop (multi-core resume).
 9. Run “tio capture”:

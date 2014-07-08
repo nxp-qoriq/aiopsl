@@ -11,7 +11,7 @@ Setup
 1. Install CW_DPAA_v10.0.7
 2. Download linux version of LS_SIM_RELEASE_0_8_0_0109
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2085a_sys_test.cfg
-   from aiopsl\build\aiop_t4ls_sim\sim_files.
+   from aiopsl\build\aiop_sim\sim_files.
 4. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
 5. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
 
