@@ -1,16 +1,15 @@
 /*
  *
  * @File          booke_irq.c
- * TODO rewrite
- * @Description   This is an E500 specific implementation. 
- *                This file contain the PPC general interrupt routines.
- *                The functions in this file export a general INT Service routine.
- *
+ * 
+ * @Description   This is an E200 z490 specific implementation. 
+ *                This file contain the PPC general exception 
+ *                interrupt routines.
  *
  * @Cautions
  *
  *
- * Author: Donio Ron .
+ * Author: Danny Shultz.
  *
  */
 
@@ -40,25 +39,8 @@ void booke_generic_irq_init(void)
     booke_init_interrupt_vector();
 }
 
-
 /*****************************************************************/
-/* routine:       booke_critical_isr                             */
-/*                                                               */
-/* description:                                                  */
-/*    Internal routine, called by the critical interrupt handler */
-/*    to indicate the occurrence of an critical INT.             */
-/*                                                               */
-/* arguments:                                                    */
-/*    intrEntry (In) - The interrupt handler original address.   */
-/*                                                               */
-/*****************************************************************/
-void booke_critical_isr(uint32_t intr_entry)
-{
-    pr_err("core %d int: booke_critical_isr\n", core_get_id());
-}
-
-/*****************************************************************/
-/* routine:       booke_generic_isr                              */
+/* routine:       booke_generic_exception_isr                              */
 /*                                                               */
 /* description:                                                  */
 /*    Internal routine, called by the main interrupt handler     */
@@ -68,50 +50,48 @@ void booke_critical_isr(uint32_t intr_entry)
 /*    intrEntry (In) - The interrupt handler original address.   */
 /*                                                               */
 /*****************************************************************/
-void booke_generic_isr(uint32_t intr_entry)
+void booke_generic_exception_isr(uint32_t intr_entry)
 {
-   static int print_limit = 3;
-
 	switch(intr_entry)
 	{
-	case(CRITICAL_INTR):
-			pr_debug("core %d int: CRITICAL\n", core_get_id());
+	case(0x00):
+		pr_debug("core %d int: CRITICAL\n", core_get_id());
 		break;
-	case(MACHINE_CHECK_INTR):
-			pr_debug("core %d int: MACHINE_CHECK\n", core_get_id());
+	case(0x10):
+		pr_debug("core %d int: MACHINE_CHECK\n", core_get_id());
 		break;
-	case(DATA_STORAGE_INTR):
-			pr_debug("core %d int: DATA_STORAGE\n", core_get_id());
+	case(0x20):
+		pr_debug("core %d int: DATA_STORAGE\n", core_get_id());
 		break;
-	case(INSTRUCTION_STORAGE_INTR):
-			pr_debug("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
+	case(0x30):
+		pr_debug("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
 		break;
-	case(EXTERNAL_INTR):
-			pr_debug("core %d int: EXTERNAL\n", core_get_id());
+	case(0x40):
+		pr_debug("core %d int: EXTERNAL\n", core_get_id());
 		break;
-	case(ALIGNMENT_INTR):
-			pr_debug("core %d int: ALIGNMENT\n", core_get_id());
+	case(0x50):
+		pr_debug("core %d int: ALIGNMENT\n", core_get_id());
 		break;
-	case(PROGRAM_INTR):
-			pr_debug("core %d int: PROGRAM\n", core_get_id());
+	case(0x60):
+		pr_debug("core %d int: PROGRAM\n", core_get_id());
 		break;
-	case(SYSTEM_CALL_INTR):
-			pr_debug("core %d int: SYSTEM CALL\n", core_get_id());
+	case(0x70):
+		pr_debug("core %d int: SYSTEM CALL\n", core_get_id());
 		break;
-	case(DEBUG_INTR):
-			pr_debug("core %d int: debug\n", core_get_id());
+	case(0x80):
+		pr_debug("core %d int: debug\n", core_get_id());
 		break;
-	case(SPE_FLT_DATA_INTR):
-			pr_debug("core %d int: SPE-floating point data\n", core_get_id());
+	case(0x90):
+		pr_debug("core %d int: SPE-floating point data\n", core_get_id());
 		break;
-	case(SPE_FLT_ROUND_INTR):
-			pr_debug("core %d int: SPE-floating point round\n", core_get_id());
+	case(0xA0):
+		pr_debug("core %d int: SPE-floating point round\n", core_get_id());
 		break;
-	case(PERF_MONITOR_INTR):
-			pr_debug("core %d int: performance monitor\n", core_get_id());
+	case(0xB0):
+		pr_debug("core %d int: performance monitor\n", core_get_id());
 		break;
-	case(0): //TODO 
-			pr_debug("core %d int: CTS interrupt\n", core_get_id());
+	case(0xF0): 
+		pr_debug("core %d int: CTS interrupt\n", core_get_id());
 		break;
 	default:
 		pr_warn("undefined interrupt #%x\n", intr_entry);
@@ -123,776 +103,98 @@ void booke_generic_isr(uint32_t intr_entry)
 
 asm static void branch_table(void) {
     nofralloc
+    
+    /* Critical Input Interrupt (Offset 0x00) */
+    li  r3, 0x00
+    b  exception_irq
+    
+    /* Machine Check Interrupt (Offset 0x10) */
+    .align 0x10
+    li  r3, 0x10
+    b  exception_irq
+    
+    /* Data Storage Interrupt (Offset 0x20) */
+    .align 0x10
+    li  r3, 0x20
+    b  exception_irq
 
-    b  exception_irq //critical_irq /* Critical Input Interrupt (Offset 0x00) */
-    nop
-    nop
-    nop
+    /* Instruction Storage Interrupt (Offset 0x30) */
     .align 0x10
-    b  exception_irq //mechinecheck_irq /* Machine Check Interrupt (Offset 0x10) */
-    nop
-    nop
-    nop
+    li  r3, 0x30
+    b  exception_irq
+
+    /* External Input Interrupt (Offset 0x40) */
     .align 0x10
-    b  exception_irq //data_stor_irq /* Data Storage Interrupt (Offset 0x20) */
-    nop
-    nop
-    nop    
+    li  r3, 0x40
+    b  exception_irq
+
+    /* Alignment Interrupt (Offset 0x50) */
     .align 0x10
-    b  exception_irq //inst_stor_irq /* Instruction Storage Interrupt (Offset 0x30) */
-    nop
-    nop
-    nop
+    li  r3, 0x50
+    b  exception_irq
+    
+    /* Program Interrupt (Offset 0x60) */
     .align 0x10
-    b  exception_irq //ext_irq /* External Input Interrupt (Offset 0x40) */
-    nop
-    nop
-    nop
+    li  r3, 0x60
+    b  exception_irq
+    
+    /* Performance Monitor Interrupt (Offset 0x70) */
     .align 0x10
-    b  exception_irq //alignment_irq /* Alignment Interrupt (Offset 0x50) */
-    nop
-    nop
-    nop
+    li  r3, 0x70
+    b  exception_irq 
+    
+    /* System Call Interrupt (Offset 0x80) */
     .align 0x10
-    b  exception_irq //program_irq /* Program Interrupt (Offset 0x60) */
-    nop
-    nop
-    nop
+    li  r3, 0x80
+    b  exception_irq 
+    
+    /* Debug Interrupt (Offset 0x90) */
     .align 0x10
-    b  exception_irq //dbg_irq /* TODO: should be perf-mon */
-    nop
-    nop
-    nop
+    li  r3, 0x90
+    b  exception_irq
+    
+    /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
     .align 0x10
-    b  exception_irq //sys_call_irq /* System Call Interrupt (Offset 0x80) */
-    nop
-    nop
-    nop
+    li  r3, 0xA0
+    b exception_irq
+    
+    /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
     .align 0x10
-    b  exception_irq //dbg_irq /* Debug Interrupt (Offset 0x90) */
-    nop
-    nop
-    nop
+    li  r3, 0xB0
+    b exception_irq
+
+    /* place holder (Offset 0xC0) */
     .align 0x10
-    b exception_irq //fp_data_irq /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
-    nop
-    nop
-    nop
-    .align 0x10
-    b exception_irq //fp_round_irq /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
-    nop
-    nop
-    nop
-    .align 0x10
-    nop /* place holder (Offset 0xC0) */
-    nop
-    nop
-    nop
-    .align 0x10
-    nop /* place holder (Offset 0xD0) */
-    nop
     nop 
-    nop 
+
+    /* place holder (Offset 0xD0) */
     .align 0x10
-    nop /* place holder (Offset 0xE0) */
-    nop
     nop 
-    nop 
+
+    /* place holder (Offset 0xE0) */
     .align 0x10
-    b exception_irq //cts_irq /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
+    nop 
+
+    /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
+    .align 0x10
+    li  r3, 0xF0
+    b exception_irq
         
-    /* generic exception */ //TODO
+    /***************************************************/
+    /*** generic exception *****************************/
+    /***************************************************/
     .align 0x100
 exception_irq:
     li       r0, 0x0000
-    lis      r0, 0x0000
+    lis      r0, 0x0000 //TODO is this needed ??
     mtspr    DBCR0, r0 /* disable stack overflow exceptions */
     mtmsr    r0; //TODO not sure about this
     li       rsp, 0x7ff0
-    li       r3, 0
-    lis      r4,booke_generic_isr@h
-    ori      r4,r4,booke_generic_isr@l
+    lis      r4,booke_generic_exception_isr@h
+    ori      r4,r4,booke_generic_exception_isr@l
     mtlr     r4
-    blrl
+    blrl 	 //TODO check: maybe blr will do the trick !! (instead of blrl)
     se_illegal
-    
-    /* Critical Input Interrupt (Offset 0x00) */
-    .align 0x100
-critical_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfspr    r0,58
-    stw      r0,28(rsp)
-    mfspr    r0,59
-    stw      r0,32(rsp)
-
-    li  r3,CRITICAL_INTR //TODO different value
-    lis r4,booke_critical_isr@h
-    ori r4,r4,booke_critical_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtspr    59,r0
-    lwz      r0,28(rsp)
-    mtspr    58,r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfci
-    
-    /* Machine Check Interrupt (Offset 0x10) */
-    .align 0x100
-mechinecheck_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfspr    r0,570
-    stw      r0,28(rsp)
-    mfspr    r0,571
-    stw      r0,32(rsp)
-
-    li  r3,MACHINE_CHECK_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtspr    571,r0
-    lwz      r0,28(rsp)
-    mtspr    570,r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfmci
-
-    /* Data Storage Interrupt (Offset 0x20) */
-    .align 0x100
-data_stor_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,DATA_STORAGE_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-
-    /* Instruction Storage Interrupt (Offset 0x30) */
-    .align 0x100
-inst_stor_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,INSTRUCTION_STORAGE_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-
-    /* External Input Interrupt (Offset 0x40) */
-    .align 0x100
-ext_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,EXTERNAL_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-#if 0 /* TODO - put back!!! */
-#ifndef DISABLE_TASKLETS
-    addis   r10, 0, sys_bottom_half@h
-    ori     r10, r10, sys_bottom_half@l
-    mtspr   LR, r10
-    addi    r1, r1, -(2 * LEN_OF_REG)
-    blr
-    addi    r1, r1, (2 * LEN_OF_REG)
-#endif /* DISABLE_TASKLETS */
-#endif /* 0 */
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-
-    /* Alignment Interrupt (Offset 0x50) */
-    .align 0x100
-alignment_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,ALIGNMENT_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-
-    /* Program Interrupt (Offset 0x60) */
-    .align 0x100
-program_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,PROGRAM_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-
-    //TODO Performance Monitor Interrupt (Offset 0x70)
-    
-    /* System Call Interrupt (Offset 0x80) */
-    .align 0x100
-sys_call_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,SYSTEM_CALL_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-    
-    /* Debug Interrupt (Offset 0x90) */
-    .align 0x100
-dbg_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfspr    r0,58
-    stw      r0,28(rsp)
-    mfspr    r0,59
-    stw      r0,32(rsp)
-
-    li  r3,DEBUG_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtspr    59,r0
-    lwz      r0,28(rsp)
-    mtspr    58,r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfci
-    
-    /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
-    .align 0x100
-fp_data_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,SPE_FLT_DATA_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-    
-    /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
-    .align 0x100
-fp_round_irq:
-    stwu     rsp,-80(rsp)
-    stw      r0,8(rsp)
-    mfctr    r0
-    stw      r0,12(rsp)
-    mfxer    r0
-    stw      r0,16(rsp)
-    mfcr     r0
-    stw      r0,20(rsp)
-    mflr     r0
-    stw      r0,24(rsp)
-    stw      r3,40(rsp)
-    stw      r4,44(rsp)
-    stw      r5,48(rsp)
-    stw      r6,52(rsp)
-    stw      r7,56(rsp)
-    stw      r8,60(rsp)
-    stw      r9,64(rsp)
-    stw      r10,68(rsp)
-    stw      r11,72(rsp)
-    stw      r12,76(rsp)
-    mfsrr0   r0
-    stw      r0,28(rsp)
-    mfsrr1   r0
-    stw      r0,32(rsp)
-
-    li  r3,SPE_FLT_ROUND_INTR //TODO different value
-    lis r4,booke_generic_isr@h
-    ori r4,r4,booke_generic_isr@l
-    mtlr    r4
-    blrl
-
-    lwz      r0,32(rsp)
-    mtsrr1   r0
-    lwz      r0,28(rsp)
-    mtsrr0   r0
-    lwz      r3,40(rsp)
-    lwz      r4,44(rsp)
-    lwz      r5,48(rsp)
-    lwz      r6,52(rsp)
-    lwz      r7,56(rsp)
-    lwz      r8,60(rsp)
-    lwz      r9,64(rsp)
-    lwz      r10,68(rsp)
-    lwz      r11,72(rsp)
-    lwz      r12,76(rsp)
-    lwz      r0,24(rsp)
-    mtlr     r0
-    lwz      r0,20(rsp)
-    mtcrf    0xff,r0
-    lwz      r0,16(rsp)
-    mtxer    r0
-    lwz      r0,12(rsp)
-    mtctr    r0
-    lwz      r0,8(rsp)
-    addi     rsp,rsp,80
-    rfi
-    
-    /* Core Task Scheduler (CTS) Task Watchdog Timer Interrupt (Offset 0xF0) */
-    .align 0x100
-cts_irq:
-    se_illegal //TODO
 }
 
 asm void booke_init_interrupt_vector(void)
