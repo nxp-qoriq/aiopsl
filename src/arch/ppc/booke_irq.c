@@ -20,7 +20,7 @@
 #pragma push
 #pragma section code_type ".interrupt_vector"
 #pragma force_active on
-#pragma function_align 256 //TODO cache line size in AIOP is 32 (L1_CACHE_LINE_SIZE)
+#pragma function_align 256 /* IVPR must be aligned to 256 bytes */
 
 void booke_init_interrupt_vector(void);
 
@@ -180,7 +180,7 @@ asm static void branch_table(void) {
     .align 0x10
     li  r3, 0xF0
     b exception_irq
-        
+    
     /***************************************************/
     /*** generic exception *****************************/
     /***************************************************/
@@ -188,9 +188,16 @@ asm static void branch_table(void) {
 exception_irq:
     li       r0, 0x0000
     lis      r0, 0x0000 //TODO is this needed ??
+    /* disable exceptions and interrupts */
     mtspr    DBCR0, r0 /* disable stack overflow exceptions */
+    /* disable debug and interrupts in MSR */
     mtmsr    r0; //TODO not sure about this
-    li       rsp, 0x7ff0
+    /* update stack overflow detection to 1-task (0x8000) XXX not sure if needed*/ 
+    se_bgeni r4,16
+    mtspr    DAC2,r4
+    /* clear stack pointer */
+    li       rsp, 0x7ff0 //TODO this kills the stack
+    /* branch to isr */
     lis      r4,booke_generic_exception_isr@h
     ori      r4,r4,booke_generic_exception_isr@l
     mtlr     r4
@@ -200,8 +207,8 @@ exception_irq:
 
 asm void booke_init_interrupt_vector(void)
 {
-    li      r3, 0x0000                   /* load up 3 with 0x00000000 */
     lis     r3,branch_table@h
+    ori     r3,r3,branch_table@l
     mtspr   IVPR,r3
 }
 
