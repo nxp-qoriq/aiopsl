@@ -356,7 +356,7 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /*------------------------------------------------------*/
     /* Initialize PPC interrupts vector                     */
     /*------------------------------------------------------*/
-    //booke_generic_irq_init();
+    booke_generic_irq_init();
 
 #ifndef DEBUG
     /* Enable the BTB - branches predictor */
