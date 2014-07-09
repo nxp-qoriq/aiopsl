@@ -184,24 +184,24 @@ asm static void branch_table(void) {
     /***************************************************/
     /*** generic exception *****************************/
     /***************************************************/
-    .align 0x100 //TODO why not L1_CACHE_LINE_SIZE
+    .align 0x100
 exception_irq:
     li       r0, 0x0000
-    lis      r0, 0x0000 //TODO is this needed ??
+    lis      r0, 0x0000
     /* disable exceptions and interrupts */
     mtspr    DBCR0, r0 /* disable stack overflow exceptions */
     /* disable debug and interrupts in MSR */
-    mtmsr    r0; //TODO not sure about this
-    /* update stack overflow detection to 1-task (0x8000) XXX not sure if needed*/ 
+    mtmsr    r0;
+    /* update stack overflow detection to 1-task (0x8000) */ 
     se_bgeni r4,16
     mtspr    DAC2,r4
     /* clear stack pointer */
-    li       rsp, 0x7ff0 //TODO this kills the stack
+    li       rsp, 0x7ff0
     /* branch to isr */
     lis      r4,booke_generic_exception_isr@h
     ori      r4,r4,booke_generic_exception_isr@l
     mtlr     r4
-    blrl 	 //TODO check: maybe blr will do the trick !! (instead of blrl)
+    blrl
     se_illegal
 }
 
