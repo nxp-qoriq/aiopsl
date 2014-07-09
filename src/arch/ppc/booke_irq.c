@@ -20,7 +20,7 @@
 #pragma push
 #pragma section code_type ".interrupt_vector"
 #pragma force_active on
-#pragma function_align 256
+#pragma function_align 256 //TODO cache line size in AIOP is 32 (L1_CACHE_LINE_SIZE)
 
 void booke_init_interrupt_vector(void);
 
@@ -28,8 +28,8 @@ void booke_init_interrupt_vector(void);
 /* routine:       booke_generic_irq_init                         */
 /*                                                               */
 /* description:                                                  */
-/*        On the BOOKE the Ivor's need to initialize to point to */
-/*        right address.                                         */
+/*        Initialization of pointers to the exception handlers.  */
+/*                                                               */
 /* arguments:                                                    */
 /*    None.                                                      */
 /*                                                               */
@@ -40,14 +40,15 @@ void booke_generic_irq_init(void)
 }
 
 /*****************************************************************/
-/* routine:       booke_generic_exception_isr                              */
+/* routine:       booke_generic_exception_isr                    */
 /*                                                               */
 /* description:                                                  */
 /*    Internal routine, called by the main interrupt handler     */
 /*    to indicate the occurrence of an INT.                      */
 /*                                                               */
 /* arguments:                                                    */
-/*    intrEntry (In) - The interrupt handler original address.   */
+/*    intrEntry (In) - The interrupt handler original offset     */
+/*                     from IVPR register.                       */
 /*                                                               */
 /*****************************************************************/
 void booke_generic_exception_isr(uint32_t intr_entry)
@@ -183,7 +184,7 @@ asm static void branch_table(void) {
     /***************************************************/
     /*** generic exception *****************************/
     /***************************************************/
-    .align 0x100
+    .align 0x100 //TODO why not L1_CACHE_LINE_SIZE
 exception_irq:
     li       r0, 0x0000
     lis      r0, 0x0000 //TODO is this needed ??
