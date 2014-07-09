@@ -183,15 +183,21 @@ asm static void branch_table(void) {
     nop
     nop
     nop
+    .align 0x10
+    nop /* place holder (Offset 0xC0) */
     nop
     nop
     nop
-    nop
-    nop
+    .align 0x10
+    nop /* place holder (Offset 0xD0) */
     nop
     nop 
     nop 
+    .align 0x10
+    nop /* place holder (Offset 0xE0) */
     nop
+    nop 
+    nop 
     .align 0x10
     b exception_irq //cts_irq /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
         
