@@ -758,6 +758,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->params = *params;
 	gro_ctx->metadata.seg_num = 1;
 	gro_ctx->metadata.max_seg_size = seg_size;
+	gro_ctx->agg_headers_size = headers_size;
 
 	/* update seg size */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
