@@ -682,7 +682,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		sr_status = tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 		if (sr_status != SUCCESS) {
-			gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
+			gro_ctx->internal_flags |= TCP_GRO_AGG_TIMER_IN_PROCESS;
 			/* Only one frame - should be handled by timeout so we
 			 * return the FD to the GRO context.
 			 * In case the new segment was not discarded, we have 2
@@ -1045,7 +1045,6 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 
 void tcp_gro_calc_tcp_header_cksum()
 {
-	uint8_t tcp_header_length;
 	uint16_t tmp_checksum, tcp_offset, pseudo_tcp_length, ipsrc_offset;
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
@@ -1058,10 +1057,6 @@ void tcp_gro_calc_tcp_header_cksum()
 	/* offset to TCP header */
 	tcp_offset = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 	/* TCP header length */
-	tcp_header_length = (tcp->data_offset_reserved &
-				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
-				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
-				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* calculate IP source address offset  */
