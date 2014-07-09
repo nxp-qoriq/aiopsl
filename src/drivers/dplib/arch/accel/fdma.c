@@ -1163,7 +1163,7 @@ int fdma_split_frame(
 		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) &&
 		    (params->source_frame_handle == PRC_GET_FRAME_HANDLE()) &&
 		    !(params->flags & FDMA_SPLIT_SM_BIT))
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
+			LDPAA_FD_UPDATE_LENGTH((uint32_t)params->fd_dst, 0,
 					params->split_size_sf);
 
 		if ((res1 == FDMA_SUCCESS))

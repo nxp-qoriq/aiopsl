@@ -1,4 +1,5 @@
 Table SRs: API - Added a note to table_create() parameters that max rules must not be 0.
+Table SRs: API - Added notes that some of the pointer must point to structures in the workspace (e.g. not SRAM).
 
 
 
