@@ -1401,7 +1401,8 @@ int fdma_enqueue_default_fd_fqid(
 		After completion, the Enqueue Frame command can
 		terminate the task or return.
 
-@Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
+@Param[in]	fd - Pointer to the location in workspace of the Frame
+		Descriptor to be enqueued.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	fqid - frame queue ID for the enqueue.
@@ -1462,7 +1463,8 @@ int fdma_enqueue_default_fd_qd(
 		After completion, the Enqueue Frame command can
 		terminate the task or return.
 
-@Param[in]	fd - Pointer to the Frame Descriptor to be enqueued.
+@Param[in]	fd - Pointer to the location in workspace of the Frame
+		Descriptor to be enqueued.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
