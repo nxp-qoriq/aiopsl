@@ -97,7 +97,7 @@ int tile_init(void)
     	return -EFAULT;
     }
 
-    return ENOERR;
+    return 0;
 }
 
 int cluster_init(void)
