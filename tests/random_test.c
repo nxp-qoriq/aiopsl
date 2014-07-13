@@ -70,10 +70,6 @@ int random_init()
 		num_of_cores = l_num_of_cores;
 		if(l_num_of_cores <= 0 || l_num_of_cores > MAX_NUM_OF_CORES)
 			return -EINVAL;
-		else{
-			rnd_ctr ++;
-			rnd_seed[core_get_id()] = seed_32bit;
-		}
 	}
 	return 0;
 }

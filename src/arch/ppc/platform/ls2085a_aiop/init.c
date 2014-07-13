@@ -87,12 +87,17 @@ int tile_init(void)
 	                      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
     uint32_t val;
 
-    /* ws enable */
-    val = ioread32(&aiop_regs->ws_regs.cfg);
-    val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
-    iowrite32(val, &aiop_regs->ws_regs.cfg);
+    if(aiop_regs) {
+        /* ws enable */
+        val = ioread32(&aiop_regs->ws_regs.cfg);
+        val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
+        iowrite32(val, &aiop_regs->ws_regs.cfg);
+    }
+    else {
+    	return -EFAULT;
+    }
 
-    return 0;
+    return ENOERR;
 }
 
 int cluster_init(void)
