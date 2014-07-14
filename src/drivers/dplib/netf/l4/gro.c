@@ -102,7 +102,7 @@ int tcp_gro_aggregate_seg(
 			&(gro_ctx.timer_handle));
 
 	/* no more timers available */
-	if (sr_status == -ENAVAIL){
+	if (sr_status == -ENAVAIL) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return sr_status;
 	}
@@ -144,8 +144,7 @@ int tcp_gro_aggregate_seg(
 			*(uint8_t *)HWC_SPID_ADDRESS,
 			&(gro_ctx.agg_fd_isolation_attributes));
 
-	if (sr_status == -ENOMEM){
-
+	if (sr_status == -ENOMEM) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return sr_status;
 	}
@@ -187,8 +186,10 @@ int tcp_gro_add_seg_to_aggregation(
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 
 	/* Check for termination conditions due to the current segment.
-	 * In case one of the following conditions is met, close the aggregation
-	 * and start a new aggregation with the current segment */
+	 * In case one of the following conditions is met, either:
+	 * - add the segment to the aggregation and close the aggregation
+	 * - close the aggregation and start a new aggregation with the
+	 * current segment. */
 	/* 1. Segment sequence number is not the expected sequence number  */
 	if (gro_ctx->next_seq != tcp->sequence_number) {
 		/* update statistics */
@@ -206,7 +207,7 @@ int tcp_gro_add_seg_to_aggregation(
 	 * timestamp value.
 	 * 4. Segment ACK number is less than the ACK number of the previously
 	 * coalesced segment.
-	 * 5. PHS flag is set for the aggregation from the previous segment */
+	 * 5. PSH flag is set for the aggregation from the previous segment */
 	ecn = *((uint32_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
 	if (PARSER_IS_OUTER_IPV6_DEFAULT())
 		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
@@ -232,12 +233,6 @@ int tcp_gro_add_seg_to_aggregation(
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
 
-	/* Check for termination condition due to the current segment.
-	 * In case one of the following conditions is met, add segment to
-	 * aggregation and close the aggregation. */
-	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
-		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
-
 	/* calculate data offset */
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 
@@ -245,7 +240,7 @@ int tcp_gro_add_seg_to_aggregation(
 	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd))) +
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
-	/* check aggregated packet size limit */
+	/* 6. check aggregated packet size limit */
 	if (aggregated_size > gro_ctx->params.limits.packet_size_limit)
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
@@ -257,7 +252,7 @@ int tcp_gro_add_seg_to_aggregation(
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
-	/* check segment number limit */
+	/* 7. check segment number limit */
 	if ((gro_ctx->metadata.seg_num + 1) ==
 			gro_ctx->params.limits.seg_num_limit){
 		/* update statistics */
@@ -268,7 +263,13 @@ int tcp_gro_add_seg_to_aggregation(
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
 
-	/* segment can be aggregated */
+	/* 8. Check for termination condition due to the current segment PSH
+	 * flag. */
+	if (tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH)
+		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
+
+
+	/* Segment can be aggregated */
 
 	concat_params.frame1 = 0;
 	/* present aggregated frame */
@@ -284,7 +285,7 @@ int tcp_gro_add_seg_to_aggregation(
 	sr_status = fdma_concatenate_frames(&concat_params);
 	/* Report to the user that due to a concatenation failure (due to buffer
 	 * pool depletion) the aggregation was discarded. */
-	if (sr_status != SUCCESS){
+	if (sr_status != SUCCESS) {
 		struct fdma_split_frame_params split_params;
 		split_params.flags = FDMA_SPLIT_NO_FLAGS;
 		split_params.fd_dst = (struct ldpaa_fd *)HWC_FD_ADDRESS;
@@ -302,7 +303,9 @@ int tcp_gro_add_seg_to_aggregation(
 		sr_status = fdma_store_default_frame_data();
 		if (sr_status != SUCCESS) {
 			/* discard the aggregation, which is the first part of
-			 * the split. */
+			 * the split. The reason of discarding in this case is
+			 * since the frame cannot be stored and therefore cannot
+			 * be further processed by upper SW. */
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			/* update statistics */
 			ste_inc_counter(gro_ctx->params.stats_addr +
@@ -321,7 +324,7 @@ int tcp_gro_add_seg_to_aggregation(
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 			gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
-			return (TCP_GRO_FLUSH_REQUIRED | TCP_GRO_SEG_DISCARDED);
+			return TCP_GRO_FLUSH_REQUIRED | TCP_GRO_SEG_DISCARDED;
 		}
 	}
 	/* update gro context fields */
@@ -398,7 +401,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 	/* Report to the user that due to a concatenation failure (due to buffer
 	 * pool depletion) the aggregation was discarded. */
 	status = SUCCESS;
-	if (sr_status != SUCCESS){
+	if (sr_status != SUCCESS) {
 		struct fdma_split_frame_params split_params;
 		split_params.flags =
 			FDMA_SPLIT_PSA_PRESENT_BIT | FDMA_CFA_COPY_BIT;
@@ -504,13 +507,13 @@ int tcp_gro_add_seg_and_close_aggregation(
 	 * aggregation.
 	 * in such a case the aggregated frame will remain at the gro_ctx and
 	 * will not return as the default frame.*/
-	if (timer_status != SUCCESS){
+	if (timer_status != SUCCESS) {
 		fdma_store_default_frame_data();
 		gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 		gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
-		return (TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status);
+		return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status;
 	} else {
-		return (TCP_GRO_SEG_AGG_DONE | status);
+		return TCP_GRO_SEG_AGG_DONE | status;
 	}
 }
 
@@ -589,7 +592,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	sr_status = fdma_store_default_frame_data();
 	/* Segment cannot be stored due to buffer pool depletion.
 	 * Discard the frame and report the user. */
-	if (sr_status != SUCCESS){
+	if (sr_status != SUCCESS) {
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		gro_ctx->internal_flags |= TCP_GRO_DISCARD_SEG_SET ;
 	}
@@ -600,6 +603,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->agg_fd = tmp_fd;
 
 	/* present frame (default_FD(agg_FD)) +  present header */
+	if (PRC_GET_SEGMENT_LENGTH() < gro_ctx->agg_headers_size)
+		PRC_SET_SEGMENT_LENGTH(gro_ctx->agg_headers_size);
 	fdma_present_default_frame();
 
 	/* run parser if headers were changed */
@@ -648,9 +653,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 					TCP_HDR_LENGTH - outer_ip_offset));
 
 	/* update TCP checksum for the aggregated frame */
-	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM) {
+	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
 		tcp_gro_calc_tcp_header_cksum();
-	}
 
 	if (gro_ctx->internal_flags &
 			(TCP_GRO_FLUSH_AGG_SET | TCP_GRO_DISCARD_SEG_SET)) {
@@ -662,7 +666,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		/* If the segment requires a flush but it was already discarded,
 		 * report the discard since a flush is not required anymore. */
 		/* Report to the user the segment was discarded. */
-		if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET){
+		if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET) {
 			ste_inc_counter(gro_ctx->params.stats_addr +
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
@@ -678,22 +682,24 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		sr_status = tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 		if (sr_status != SUCCESS) {
+			gro_ctx->internal_flags |= TCP_GRO_AGG_TIMER_IN_PROCESS;
 			/* Only one frame - should be handled by timeout so we
 			 * return the FD to the GRO context.
 			 * In case the new segment was not discarded, we have 2
 			 * frames - we return the aggregated frame and a flush
-			 * flag - the flush function will start but not do
-			 * anything since it also tries to delete the timer and
-			 * it will fail and leave it to the timer. */
+			 * flag (for the single segment) - the flush function
+			 * will start but not do anything since it also tries to
+			 * delete the timer and it will fail and leave it to the
+			 * timer. */
 			if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET) {
 				fdma_store_default_frame_data();
 				gro_ctx->agg_fd =
 					*((struct ldpaa_fd *)HWC_FD_ADDRESS);
+				return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
+						status;
+			} else { /* in this case, flush the second segment */
+				return TCP_GRO_SEG_AGG_DONE | status;
 			}
-			gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
-			return TCP_GRO_SEG_AGG_DONE |
-					TCP_GRO_SEG_AGG_TIMER_IN_PROCESS |
-					status;
 		}
 
 		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
@@ -725,7 +731,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		/* No more timers available.
 		 * Report the user this segment should be flushed due to
 		 * timer unavailability. */
-		if (sr_status == -ENAVAIL){
+		if (sr_status == -ENAVAIL) {
 
 			/* update statistics */
 			ste_inc_counter(gro_ctx->params.stats_addr +
@@ -752,6 +758,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->params = *params;
 	gro_ctx->metadata.seg_num = 1;
 	gro_ctx->metadata.max_seg_size = seg_size;
+	gro_ctx->agg_headers_size = headers_size;
 
 	/* update seg size */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
@@ -795,7 +802,7 @@ int tcp_gro_flush_aggregation(
 		return TCP_GRO_FLUSH_NO_AGG;
 	}
 
-	if (gro_ctx.timer_handle != TCP_GRO_INVALID_TMAN_HANDLE){
+	if (gro_ctx.timer_handle != TCP_GRO_INVALID_TMAN_HANDLE) {
 		/* delete the timer for this aggregation */
 		sr_status = tman_delete_timer(gro_ctx.timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
@@ -819,7 +826,7 @@ int tcp_gro_flush_aggregation(
 
 	/* prepare presentation context fields for frame presentation. */
 	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-				DEFAULT_SEGMENT_HEADOOM_SIZE);
+				DEFAULT_SEGMENT_HEADROOM_SIZE);
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();
@@ -971,7 +978,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	 * parameters in Presentation Context */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
 	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-			DEFAULT_SEGMENT_HEADOOM_SIZE);
+			DEFAULT_SEGMENT_HEADROOM_SIZE);
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	PRC_SET_SEGMENT_OFFSET(0);
 	PRC_RESET_SR_BIT();
@@ -1038,7 +1045,6 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 
 void tcp_gro_calc_tcp_header_cksum()
 {
-	uint8_t tcp_header_length;
 	uint16_t tmp_checksum, tcp_offset, pseudo_tcp_length, ipsrc_offset;
 	struct tcphdr *tcp;
 	struct ipv4hdr *ipv4;
@@ -1051,10 +1057,6 @@ void tcp_gro_calc_tcp_header_cksum()
 	/* offset to TCP header */
 	tcp_offset = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT());
 	/* TCP header length */
-	tcp_header_length = (tcp->data_offset_reserved &
-				NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
-				(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
-				NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* calculate IP source address offset  */

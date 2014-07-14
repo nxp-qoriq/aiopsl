@@ -40,18 +40,20 @@ int create_frame(
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		PRC_SET_SEGMENT_LENGTH(0);
 		PRC_SET_SEGMENT_OFFSET(0);
+		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
+						DEFAULT_SEGMENT_HEADROOM_SIZE);
 		PRC_RESET_NDS_BIT();
 		PRC_RESET_SR_BIT();
 		/* present frame with empty segment */
 		fdma_present_default_frame();
 		/* Insert data to the frame */
-		fdma_insert_default_segment_data(0, data, size, 0);
-		/* Update segment address and length in the presentation
-		 * context */
-		PRC_SET_SEGMENT_ADDRESS((uint32_t)data);
+		/* Update segment length in the presentation
+		 * context and represent the segment in the presentation area */
 		if (size > DEFAULT_SEGMENT_SIZE)
 			size = DEFAULT_SEGMENT_SIZE;
 		PRC_SET_SEGMENT_LENGTH(size);
+		fdma_insert_default_segment_data(0, data, size,
+				FDMA_REPLACE_SA_REPRESENT_BIT);
 		/* Re-run parser */
 		status = parse_result_generate_default(0);
 		/* Mark running sum as invalid */
@@ -173,13 +175,13 @@ int create_arp_request(
 			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
 
 	/* set ETH destination address */
-	*((uint32_t *)ethhdr) = *((uint32_t *)target_eth);
-	*((uint16_t *)(ethhdr+4)) = *((uint16_t *)(target_eth+4));
+	*((uint32_t *)(&ethhdr[0])) = *((uint32_t *)target_eth);
+	*((uint16_t *)(&ethhdr[4])) = *((uint16_t *)(target_eth+4));
 	/* set ETH source address */
-	*((uint32_t *)(ethhdr+6)) = *((uint32_t *)local_hw_addr);
-	*((uint16_t *)(ethhdr+10)) = *((uint16_t *)(local_hw_addr+4));
+	*((uint32_t *)(&ethhdr[6])) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(&ethhdr[10])) = *((uint16_t *)(local_hw_addr+4));
 	/* set ETH ARP EtherType */
-	*((uint16_t *)(ethhdr+12)) = ARP_ETHERTYPE;
+	*((uint16_t *)(&ethhdr[12])) = ARP_ETHERTYPE;
 
 	/* set ARP HW type */
 	arp_hdr->hw_type = ARPHDR_ETHER_PRO_TYPE;
@@ -192,16 +194,25 @@ int create_arp_request(
 	/* set ARP operation (ARP REQUEST) */
 	arp_hdr->operation = ARP_REQUEST_OP;
 	/* set ARP sender HW address */
-	*(uint32_t *)(arp_hdr->src_hw_addr[0]) = *((uint32_t *)local_hw_addr);
-	*(uint16_t *)(arp_hdr->src_hw_addr[4]) =
+	*((uint32_t *)arp_hdr->src_hw_addr) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(arp_hdr->src_hw_addr + 4)) =
 			*((uint16_t *)(local_hw_addr+4));
 	/* set ARP sender protocol (IPv4) address */
 	arp_hdr->src_pro_addr = local_ip;
 	/* set ARP destination HW address (unknown at this point) */
-	*(uint32_t *)(arp_hdr->dst_hw_addr[0]) = 0;
-	*(uint16_t *)(arp_hdr->dst_hw_addr[4]) = 0;
+	*((uint32_t *)arp_hdr->dst_hw_addr) = 0;
+	*((uint16_t *)(arp_hdr->dst_hw_addr + 4)) = 0;
 	/* set ARP protocol (IPv4) address */
 	arp_hdr->dst_pro_addr = target_ip;
+
+	/* zero additional packet data since ARP has a minimum packet length of
+	 * 64 bytes (ARP_PKT_MIN_LEN). */
+	*((uint16_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 2]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 6]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 10]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 14]) = 0;
+	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 18]) = 0;
 
 	return create_frame(
 			fd, (void *)arp_data, ARP_PKT_MIN_LEN, frame_handle);

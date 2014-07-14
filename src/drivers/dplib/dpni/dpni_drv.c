@@ -124,10 +124,10 @@ int dpni_drv_probe(struct dprc	*dprc,
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
 		j = ioread32(UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
-		pr_debug("Found NI: EPID[%d].EP_PM = %d\n", i, j);
+		pr_debug("EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
-			num_of_nis ++;
+
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32(aiop_niid, UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
@@ -215,7 +215,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 
 			/* Replace discard callback with receive callback */
 			iowrite32(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
-
+			num_of_nis ++;
 			return 0;
 		}
 	}
@@ -257,6 +257,28 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 	dpni_drv = nis + ni_id;
 	return dpni_remove_mac_addr(&(dpni_drv->dpni), mac_addr);
 }
+
+int dpni_drv_set_mfl(uint16_t ni_id,
+                          const uint16_t mfl)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_set_mfl(&(dpni_drv->dpni), mfl);
+}
+
+int dpni_drv_get_mfl(uint16_t ni_id,
+                          uint16_t *mfl)
+{
+	struct dpni_drv *dpni_drv;
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_mfl(&(dpni_drv->dpni), mfl);
+}
+
+
 
 static int parser_profile_init(uint8_t *prpid)
 {

@@ -24,8 +24,6 @@
 @{
 *//***************************************************************************/
 
-#define OUT_OF_ORDER			0x0001
-#define ORDER_AND_OOO			0x0002
 #define	MAX_NUM_OF_FRAGS 		64
 #define	FRAG_OK_REASS_NOT_COMPL		0
 #define LAST_FRAG_IN_ORDER		1
@@ -45,8 +43,10 @@
 #define SIZE_TO_INIT 			RFDC_SIZE+LINK_LIST_SIZE
 #define RFDC_VALID			0x8000 /* in RFDC status */
 #define IPV4_FRAME			0x0000 /* in RFDC status */
-#define IPV6_FRAME			0x0001 /* in RFDC status */
-#define FIRST_ARRIVED			0x0002 /* in RFDC status */
+#define IPV6_FRAME			0x4000 /* in RFDC status */
+#define FIRST_ARRIVED			0x2000 /* in RFDC status */
+#define OUT_OF_ORDER			0x0001 /* in RFDC status */
+#define ORDER_AND_OOO			0x0002 /* in RFDC status */
 #define FRAG_OFFSET_IPV4_MASK		0x1FFF
 #define FRAG_OFFSET_IPV6_MASK		0xFFF8
 #define INSTANCE_VALID			0x0001

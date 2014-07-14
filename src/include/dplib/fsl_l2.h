@@ -252,13 +252,13 @@ int l2_pop_vlan(void);
 		Implicit input parameters in Task Defaults: frame handle,
 		segment handle, segment address.
 
- @Return	None.
+@Return		None.
 
- @Cautions
- 	 	 - The parse results must be updated before calling this
- 	 	 operation.
- 	 	 - This function assumes the presence of the ETH header and ARP
- 	 	 Request header.
+@Cautions
+		- The parse results must be updated before calling this
+		operation.
+		- This function assumes the presence of the ETH header and ARP
+		Request header.
  *//***************************************************************************/
 void l2_arp_response();
 
@@ -280,12 +280,12 @@ void l2_arp_response();
 
 @Param[in]	target_hw_addr -  Target MAC address.
 
- @Return	None.
+@Return		None.
 
- @Cautions
- 	 	 - The parse results must be updated before calling this
- 	 	 operation.
- 	 	 - This function assumes the presence of the ETH header.
+@Cautions
+		- The parse results must be updated before calling this
+		operation.
+		- This function assumes the presence of the ETH header.
  *//***************************************************************************/
 void l2_set_hw_src_dst(uint8_t *target_hw_addr);
 

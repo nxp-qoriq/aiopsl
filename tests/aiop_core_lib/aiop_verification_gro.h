@@ -64,9 +64,6 @@ struct tcp_gro_agg_seg_command {
 	uint64_t tcp_gro_context_addr;
 		/** Pointer to the TCP GRO aggregation parameters. */
 	struct tcp_gro_context_params params;
-	/* Todo - should we add:
-	 * 	3. global task defaults. */
-
 		/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;
@@ -100,9 +97,6 @@ struct tcp_gro_flush_agg_command {
 		The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins. */
 	uint64_t tcp_gro_context_addr;
-	/* Todo - should we add:
-	 *
-	 * 3. global task defaults */
 		/** Returned Value:
 		 * presentation context. */
 	struct presentation_context prc;

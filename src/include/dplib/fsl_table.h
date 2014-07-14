@@ -364,9 +364,9 @@ enum table_hw_accel_id {
 /** @} */ /* end of FSL_CTLU_Enumerations */
 
 /**************************************************************************//**
-@Group		FSL_CTLU_STRUCTS CTLU Structures
+@Group		FSL_TABLE_STRUCTS Table Structures
 
-@Description	Freescale AIOP CTLU Structures
+@Description	Freescale AIOP Table Structures
 
 @{
 *//***************************************************************************/
@@ -775,7 +775,8 @@ struct table_create_params {
 	/** Max Number Of Rules
 	The max number of rules this table can contain. This number is not
 	guaranteed in contrast to committed_rules. Meaning, trying to add a
-	rule to a table that already contains committed_rules might fail. */
+	rule to a table that already contains committed_rules might fail.
+	NOTE: This field must not be 0. */
 	uint32_t max_rules;
 
 	/** Miss Result
@@ -1020,7 +1021,9 @@ void table_delete(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	rule - The rule to be added. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1054,7 +1057,9 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	rule - The rule to be added. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1096,7 +1101,9 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - Table rule, contains the rule's key descriptor, with
 		which the rule to be replaced will be found and contain the
-		rule result to be replaced. Must be aligned to 16B boundary.
+		rule result to be replaced. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1136,8 +1143,9 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Key Descriptor of the rule to be queried. Must be
-		aligned to 16B boundary.
+@Param[in]	key_desc - Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1180,8 +1188,9 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Key Descriptor of the rule to be queried. Must be
-		aligned to 16B boundary.
+@Param[in]	key_desc - Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1230,16 +1239,18 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Lookup Key Descriptor of the rule to be queried.
-		Must be aligned to 16B boundary.
+@Param[in]	key_desc - Lookup Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 		In a case of MFLU table, size should include the priority field.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written. Must be aligned to 16B
-		boundary.
+		the table lookup result will be written.  The structure pointed
+		by this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss.
 
@@ -1286,8 +1297,9 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Param[in]	keyid - A Key Composition Rule ID for the table lookups (Key
 		Composition Rule specifies how to build a key).
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written. Must be aligned to
-		16B boundary.
+		the table lookup result will be written. The structure pointed
+		by this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
 		error occurred.
@@ -1341,10 +1353,13 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 @Param[in]	ndf_params - Non defaults inputs to the key creation process.
 		See structure documentation for more details. Some of the
 		fields in this structures are only valid if appropriate flags
-		were set to this function. Must be aligned to 16B boundary.
-@Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written. Must be aligned to
+		were set to this function. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
+@Param[out]	lookup_result - Points to a user preallocated memory to which
+		the table lookup result will be written. The structure pointed
+		by this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
 		error occurred.

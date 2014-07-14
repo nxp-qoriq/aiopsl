@@ -11,7 +11,7 @@
 #include "cmdif_client.h"
 #include "dplib/fsl_dpci.h"
 
-#define CMDIF_MN_SESSIONS	20 /**< Maximal number of sessions */
+#define CMDIF_MN_SESSIONS	64 /**< Maximal number of sessions */
 #define CMDIF_NUM_PR  		2
 
 struct cmdif_reg {
@@ -32,9 +32,11 @@ struct cmdif_cl {
 		uint8_t ins_id;
 		/**< Instanse id that was used for open */
 	} gpp[CMDIF_MN_SESSIONS];
-	
+
 	uint8_t count;
 	/**< Count the number of sessions */
+	uint8_t lock;
+	/**< Lock for adding & removing new entries */
 };
 
 

@@ -11,6 +11,28 @@
 
 #include "common/types.h"
 
+/**************************************************************************//**
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		FSL_IPR IPR
+
+@Description	AIOP IP reassembly functions macros and definitions
+
+@{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@Group	IPR_MACROS IPR Macros
+
+@Description	IPR Macros
+
+@{
+*//***************************************************************************/
 
 /**************************************************************************//**
 @Description	IPR Instance handle Type definition
@@ -50,6 +72,15 @@ typedef void /*__noreturn*/ (ipr_del_cb_t) (ipr_del_arg_t arg);
 typedef void /*__noreturn*/ (ipr_timeout_cb_t) (ipr_timeout_arg_t arg,
 						uint32_t flags);
 
+/* @} end of group IPR_MACROS */
+
+/**************************************************************************//**
+@Group		IPR_STRUCTS IPR Data Structures
+
+@Description	AIOP IP reassembly Data Structures
+
+@{
+*//***************************************************************************/
 
 /**************************************************************************//**
 @Description	IPR Parameters
@@ -170,21 +201,6 @@ struct extended_stats_cntrs {
 
 
 };
-
-/**************************************************************************//**
- @Group		NETF NETF (Network Libraries)
-
- @Description	AIOP Accelerator APIs
-
- @{
-*//***************************************************************************/
-/**************************************************************************//**
-@Group		FSL_IPR IPR
-
-@Description	AIOP IP reassembly functions macros and definitions
-
-@{
-*//***************************************************************************/
 
 /**************************************************************************//**
 @Group		FSL_IPR_Modes_And_Flags IPR Modes And Flags
@@ -322,6 +338,9 @@ struct extended_stats_cntrs {
 /* @} end of group FSL_IPRTOCallbackFlags */
 /* @} end of group FSL_IPR_Modes_And_Flags */
 
+/* @} end of group IPR_STRUCTS */
+
+
 /**************************************************************************//**
 @Group		FSL_IPR_Functions IPR functions
 
@@ -336,8 +355,10 @@ struct extended_stats_cntrs {
 @Description	Creates an IPR instance.\n
 
 @Param[in]	ipr_params_ptr - pointer to IPR params structure \ref ipr_params
+		This pointer should points within workspace.
 @Param[out]	ipr_instance_ptr - Pointer to the IPR Instance handle to be used
 		by the caller to invoke IP reassembly functions.
+		This pointer should points within workspace.
 
 
 @Return		Success or Failure.\n
@@ -512,7 +533,8 @@ void ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
 @Param[in]	flags - \link FSL_IPRStatsFlags flags \endlink
 @Param[out]	reass_frm_cntr - The number of IPv4/IPv6 reassembled frames
 		for this instance.
-
+		This pointer should points within workspace.
+		
 @Return		None
 
 @Cautions	None.

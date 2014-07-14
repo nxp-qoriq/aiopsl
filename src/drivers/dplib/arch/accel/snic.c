@@ -247,7 +247,7 @@ static int snic_close_cb(void *dev)
 	return 0;
 }
 
-static int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint64_t data)
+static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
@@ -299,7 +299,7 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint16_t size, uint64_t data)
 			}
 		}
 		SNIC_REGISTER_CMD(SNIC_RSP_PREP);
-		fdma_modify_default_segment_data(0, size);
+		fdma_modify_default_segment_data(0, (uint16_t)size);
 		return 0;
 	case SNIC_UNREGISTER:
 		SNIC_UNREGISTER_CMD(SNIC_CMD_READ);

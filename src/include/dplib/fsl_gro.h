@@ -49,8 +49,8 @@ typedef uint8_t tcp_gro_ctx_t[TCP_GRO_CONTEXT_SIZE];
 
 /**************************************************************************//**
 @Description	User callback function, called after aggregation timeout is
-		expired.
-		The user provides this function and the GRO process invokes it.
+		expired. The user provides this function and the GRO process
+		invokes it.
 
 @Param[in]	arg - Address (in HW buffers) of the argument to the callback
 		function.
@@ -142,14 +142,18 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 @{
 *//***************************************************************************/
 
-	/** A segment was aggregated and the aggregation is completed. */
+	/** A segment was aggregated and the aggregation is completed.
+	 * The aggregated frame is located in the default frame location. */
 #define	TCP_GRO_SEG_AGG_DONE		(TCP_GRO_MODULE_STATUS_ID | 0x1)
 	/** A segment was aggregated and the aggregation is not completed. */
 #define	TCP_GRO_SEG_AGG_NOT_DONE	(TCP_GRO_MODULE_STATUS_ID | 0x2)
 	/** A segment has started new aggregation, and the previous aggregation
-	 * is completed. */
+	 * is completed. The aggregated frame is located in the default frame
+	 * location. */
 #define	TCP_GRO_SEG_AGG_DONE_AGG_OPEN	(TCP_GRO_MODULE_STATUS_ID | 0x4)
-	/** The aggregation was discarded due to buffer pool depletion. */
+	/** The aggregation was discarded due to buffer pool depletion. (This
+	 * status is returned only when there was no other option to continue
+	 * processing the aggregated frame due to the buffer pool depletion). */
 #define	TCP_GRO_AGG_DISCARDED		(TCP_GRO_MODULE_STATUS_ID | 0x8)
 	/** A flush call (\ref tcp_gro_flush_aggregation()) is required by the
 	 * user when possible.
@@ -164,9 +168,9 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	 * This status bit can be return as a stand alone status (in this case
 	 * no aggregated frame exists in the default frame location), or as part
 	 * of a combined status with one of the above statuses (in this case
-	 * an aggregated frame exists in the default frame location, and another
-	 * frame exists, which will be flushed by the timeout
-	 * callback). */
+	 * an aggregated frame may exists in the default frame location (depends
+	 * on the combined status), and another frame exists, which will be
+	 * flushed by the timeout callback). */
 #define	TCP_GRO_SEG_AGG_TIMER_IN_PROCESS (TCP_GRO_MODULE_STATUS_ID | 0x20)
 
 
@@ -176,9 +180,7 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 	 * one of the above statuses. */
 #define	TCP_GRO_METADATA_USED			0x40
 	/** The segment could not start an aggregation since no timers are
-	 * available. This status is returned along with \ref
-	 * TCP_GRO_FLUSH_REQUIRED which means the segment is waiting to be
-	 * flushed (call \ref tcp_gro_flush_aggregation()).
+	 * available.
 	 * This status bit can be return only as part of a combined status with
 	 * one of the above statuses. */
 #define	TCP_GRO_TIMER_UNAVAIL			0x80

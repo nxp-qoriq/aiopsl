@@ -166,10 +166,10 @@ struct parser_input_message_params {
 @Param[in]	starting_offset - Offset from the presented segment where
 		parsing is to start. (Segment is presented in:
 		Presentation Context [SEGMENT ADDRESS])
-@Param[out]	l3_checksum - L3 checksum calculated by the parser. Must not be
-		NULL.
-@Param[out]	l4_checksum - L4 checksum calculated by the parser. Must not be
-		NULL.
+@Param[out]	l3_checksum - L3 checksum calculated by the parser
+		(located in the workspace). Must not be NULL.
+@Param[out]	l4_checksum - L4 checksum calculated by the parser
+		(located in the workspace). Must not be NULL.
 
 @Return		0 on Success, or negative value on error.
 		The exact error code can be discovered by using

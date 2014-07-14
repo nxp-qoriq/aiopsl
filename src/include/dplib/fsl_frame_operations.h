@@ -46,14 +46,17 @@
 		NDS bit(reset), frame handle.
 
 		In case this is the default frame, a default segment will be
-		presented, and the parse results will be updated.
+		presented, task defaults segment address and
+		segment length(max(size, \ref DEFAULT_SEGMENT_SIZE)) will
+		be implicitly updated, and the parse results will be updated.
 
 		In case this is not the default frame, in order to present a
 		data segment of this frame after the function returns,
 		fdma_present_frame_segment() should be called (opens a
 		data segment of the frame).
 
-@Param[in]	fd - Pointer to the frame descriptor of the created frame.
+@Param[in]	fd - Pointer to the workspace location of the frame descriptor
+		of the created frame.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
@@ -63,7 +66,7 @@
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Parsing Error(Relevant in case this is the default frame).
 		Recommendation is to discard the frame.
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
@@ -111,7 +114,8 @@ int create_frame(
 		fdma_present_frame() should be called (opens the frame and
 		optionally present a segment).
 
-@Param[in]	fd - Pointer to the frame descriptor of the created frame.
+@Param[in]	fd - Pointer to the workspace location of the frame descriptor
+		of the created frame.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
@@ -120,7 +124,7 @@ int create_frame(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success.
+@Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @remark		FD is updated.
@@ -159,17 +163,17 @@ int create_fd(
 		fdma_present_frame_segment() should be called (opens a
 		data segment of the frame).
 
-@Param[in]	fd - Pointer to the frame descriptor of the created frame.
+@Param[in]	fd - Pointer to the workspace location of the frame descriptor
+		of the created frame.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
 @Param[in]	target_ip - destination IPv4 address.
-@Param[in]	flags - please refer to \ref FRAME_OPERSTIONS_ARP_Flags.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Parsing Error(Relevant in case this is the default frame).
 		Recommendation is to discard the frame.
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
@@ -213,7 +217,8 @@ int create_arp_request_broadcast(
 		fdma_present_frame_segment() should be called (opens a
 		data segment of the frame).
 
-@Param[in]	fd - Pointer to the frame descriptor of the created frame.
+@Param[in]	fd - Pointer to the workspace location of the frame descriptor
+		of the created frame.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
@@ -223,7 +228,7 @@ int create_arp_request_broadcast(
 
 @Return		0 on Success, or negative value on error.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Parsing Error(Relevant in case this is the default frame).
 		Recommendation is to discard the frame.
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit

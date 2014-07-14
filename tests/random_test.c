@@ -5,8 +5,8 @@
 #include "kernel/fsl_spinlock.h"
 #include "sys.h"
 
-#if defined (AIOP) && defined (LS2100A)
-#include "ls2100a_aiop/platform_aiop_spec.h"
+#if defined (AIOP) && defined (LS2085A)
+#include "ls2085a_aiop/platform_aiop_spec.h"
 #endif
 
 int random_test();
@@ -70,10 +70,6 @@ int random_init()
 		num_of_cores = l_num_of_cores;
 		if(l_num_of_cores <= 0 || l_num_of_cores > MAX_NUM_OF_CORES)
 			return -EINVAL;
-		else{
-			rnd_ctr ++;
-			rnd_seed[core_get_id()] = seed_32bit;
-		}
 	}
 	return 0;
 }
