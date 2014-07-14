@@ -299,30 +299,30 @@ int run_apps(void)
 	}
 
 	if(dpbp_id < 0){
-		pr_err("DP-BP not found in the container.\n");
+		pr_err("DPBP not found in the container.\n");
 		return -ENAVAIL;
 	}
 
 	dpbp.regs = dprc->regs;
 
 	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
-		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
+		pr_err("Failed to open DPBP-%d.\n", dpbp_id);
 		return err;
 	}
 
 	if ((err = dpbp_enable(&dpbp)) != 0) {
-		pr_err("Failed to enable DP-BP%d.\n", dpbp_id);
+		pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
 		return err;
 	}
 
 	if ((err = dpbp_get_attributes(&dpbp, &attr)) != 0) {
-		pr_err("Failed to get attributes from DP-BP%d.\n", dpbp_id);
+		pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
 		return err;
 	}
 
 	/* TODO: number and size of buffers should not be hard-coded */
 	if ((err = fill_bpid(100, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
-		pr_err("Failed to fill DP-BP%d (BPID=%d) with buffer size %d.\n",
+		pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
 				dpbp_id, attr.bpid, buffer_size);
 		return err;
 	}
@@ -341,7 +341,7 @@ int run_apps(void)
 			print_dev_desc(&dev_desc);
 
 			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, (uint16_t)i, &pools_params)) != 0) {
-				pr_err("Failed to probe DP-NI%d.\n", i);
+				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}
 		}
