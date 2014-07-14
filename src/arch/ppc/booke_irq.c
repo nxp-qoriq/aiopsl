@@ -186,15 +186,14 @@ asm static void branch_table(void) {
     /***************************************************/
     .align 0x100
 exception_irq:
-    li       r0, 0x0000
-    lis      r0, 0x0000
+    li       r0, 0x00000000
     /* disable exceptions and interrupts */
-    mtspr    DBCR0, r0 /* disable stack overflow exceptions */ //TODO check if this is needed
+    mtspr    DBCR0, r0
+    mtspr    DBCR2, r0
     /* disable debug and interrupts in MSR */
-    mfmsr    r6 //TODO debug only //TODO look at: CE, EE, ME, DE, PMM and RI
     mtmsr    r0 //TODO not sure about this //TODO disable interrupts //TODO look at: CE, EE, ME, DE, PMM and RI
     isync
-    /* update stack overflow detection to 1-task (0x8000) XXX not sure if needed*/ 
+    /* update stack overflow detection to 1-task (0x8000) */ 
     se_bgeni r4,16
     mtspr    DAC2,r4
     /* clear stack pointer */
