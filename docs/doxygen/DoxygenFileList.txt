@@ -30,3 +30,5 @@ fsl_cmdif_server.h
 fsl_cmdif_client.h
 fsl_inet.h
 fsl_slab.h
+fsl_malloc.h
+fsl_platform.h
