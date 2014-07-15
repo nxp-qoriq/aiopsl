@@ -213,45 +213,6 @@ __HOT_CODE  uint32_t fsl_os_rand(void)
 	return seed_32bit;
 }
 
-__HOT_CODE static inline uint64_t divu3(uint64_t n) {
-	uint64_t q, r;
-	q = (n >> 2) + (n >> 4); // q = n*0.0101 (approx).
-	q = q + (q >> 4); // q = n*0.01010101.
-	q = q + (q >> 8);
-	q = q + (q >> 16);
-	r = n - q*3; // 0 <= r <= 15.
-	return q + (11*r >> 5); // Returning q + r/3.
-
-}
-
-__HOT_CODE static inline uint64_t divu5(uint64_t n) {
-	uint64_t q, r;
-	q = (n >> 3) + (n >> 4);
-	q = q + (q >> 4);
-	q = q + (q >> 8);
-	q = q + (q >> 16);
-	r = n - q*5;
-	return q + (13*r >> 6);
-}
-
-__HOT_CODE static inline uint64_t divu9(uint64_t n) {
-	uint64_t q, r;
-	q = n - (n >> 3);
-	q = q + (q >> 6);
-	q = q + (q>>12) + (q>>24);
-	q = q >> 3;
-	r = n - q*9;
-	return q + ((r + 7) >> 4);
-}
-__HOT_CODE static inline uint64_t divu1000(uint64_t n) {
-	uint64_t q, r, t;
-	t = (n >> 7) + (n >> 8) + (n >> 12);
-	q = (n >> 1) + t + (n >> 15) + (t >> 11) + (t >> 14);
-	q = q >> 9;
-	r = n - q*1000;
-	return q + ((r + 24) >> 10);
-}
-
 
 /*****************************************************************************/
 __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
@@ -279,7 +240,7 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 
 __HOT_CODE int fsl_get_time_ms(uint32_t *time)
 {
-	time_t time_us, temp;
+	uint64_t time_us, temp;
 
 #ifdef DEBUG
 	if(time == NULL)
@@ -288,13 +249,14 @@ __HOT_CODE int fsl_get_time_ms(uint32_t *time)
 	time_us = _gettime();
 
 	if(time_us < 0)
-		return -ENAVAIL;
+		return (int)time_us;
 
 
-	temp = divu1000(time_us) % 86400000;
+	temp = (time_us/1000) % 86400000;
 
 	*time =  (uint32_t) temp;
 #if 0
+
 	/*24 H = 86400000 milliseconds (24x60x60x1000) = (2^10)x(3^3)x(5^5) */
 	temp = time_us >> 10; /* time / (2 ^ 10)*/
 	temp = divu5(divu5(divu5(divu5(divu5(divu3(divu9(temp)))))));
@@ -307,7 +269,7 @@ __HOT_CODE int fsl_get_time_ms(uint32_t *time)
 
 int fsl_get_time_since_epoch_ms(uint64_t *time)
 {
-	time_t time_us;
+	uint64_t time_us;
 
 #ifdef DEBUG
 	if(time == NULL)
@@ -316,9 +278,9 @@ int fsl_get_time_since_epoch_ms(uint64_t *time)
 	time_us = _gettime();
 
 	if(time_us < 0)
-		return -ENAVAIL;
+		return (int)time_us;
 
-	*time = divu1000(time_us);
+	*time = time_us/1000;
 
 	return 0;
 }
