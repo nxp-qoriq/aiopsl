@@ -80,6 +80,11 @@ static int dpci_discovery()
 	int i          = 0;
 	uint8_t p      = 0;;
 
+	if (dprc == NULL) {
+		pr_err("No AIOP root container \n");
+		return -ENODEV;
+	}
+	
 	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
 	    pr_err("Failed to get device count for RC auth_d = %d\n",
 	           dprc->auth);
@@ -95,6 +100,8 @@ static int dpci_discovery()
 	}
 
 	if (dpci_count > 0) {
+		memset(&dest_cfg, 0, sizeof(struct dpci_dest_cfg));
+
 		i = sizeof(struct dpci_obj); /* use for size */
 		dpci_tbl = fsl_os_xmalloc((uint32_t)i, MEM_PART_SH_RAM, 1);
 		if (dpci_tbl == NULL) {
