@@ -1,10 +1,9 @@
-/**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
-
+/**************************************************************************//**        
  @File          fsl_malloc.h
 
- @Description   Prototypes, externals and typedefs for system-supplied
-                (external) routines
+ @Description   Prototypes, externals and typedefs for dynamic  memory allocation.
+ 
+		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_MALLOC_H
@@ -14,14 +13,11 @@
 
 
 /**************************************************************************//**
- @Group         fsl_lib_g   Utility Library 
- @Description   Prototypes, externals and typedefs for system-supplied
-                (external) routines
+ @Group         system_mem_management_id   System Memory Management
+ @Description   Prototypes, externals and typedefs for system  memory management.
 
  @{
 *//***************************************************************************/
-
-
 
 /**************************************************************************//**
  @Function      fsl_os_malloc
@@ -52,7 +48,7 @@ void *fsl_os_xmalloc(size_t size, int mem_partition_id, uint32_t alignment);
 /**************************************************************************//**
  @Function      fsl_os_xfree
 
- @Description   Frees the memory block pointed to by "p".
+ @Description   Frees the memory block pointed to by "mem".
                 Only for memory allocated by fsl_os_xmalloc().
 
  @Param[in]     mem     A pointer to the memory block.
@@ -62,13 +58,13 @@ void fsl_os_xfree(void *mem);
 /**************************************************************************//**
  @Function      fsl_os_free
 
- @Description   frees the memory block pointed to by "p".
+ @Description   frees the memory block pointed to by "mem".
 
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
 void fsl_os_free(void *mem);
 
-/** @} */ /* end of fsl_lib_g  group */
+/** @} */ /* end of sytem_mem_management_id  group */
 
 
 #endif /* __FSL_MALLOC_H */
