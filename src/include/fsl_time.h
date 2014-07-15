@@ -1,8 +1,6 @@
 /**************************************************************************//**
  @file          fsl_time.h
 
- @brief         AIOP Service Layer Time Queries routines
-
  @details       Contains AIOP SL Time Queries routines API declarations.
 
  @@internal
@@ -17,8 +15,9 @@
 #include "common/types.h"
 #include "fsl_errors.h"
 
+
 /**************************************************************************//**
- @Group       aiopsl_time_queries TIME QUERIES
+ @Group		time_g Time Queries
 
  @Description   The AIOP Service Layer Time Queries group provides
  		standard time queries functions
@@ -94,7 +93,7 @@ int fsl_get_time_since_epoch_ms(uint64_t *time);
 
 *//***************************************************************************/
 uint32_t fsl_os_current_time(void);
-/** @} */ /* end of aiopsl_time_queries group */
+/** @} */ /* end of time_g Time Queries group */
 
 #endif /* __FSL_TIME_H */
 

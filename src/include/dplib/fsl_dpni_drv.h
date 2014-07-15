@@ -11,8 +11,9 @@
 #include "dplib/fsl_ldpaa.h"
 #include "dpni_drv.h"
 
+
 /**************************************************************************//**
-@Group		grp_dplib_aiop	DPLIB
+@Group		dpni_g DPNI
 
 @Description	Contains initialization APIs and runtime control APIs for DPNI
 
@@ -98,9 +99,6 @@ int dpni_get_send_niid(void);
 int dpni_drv_get_primary_mac_addr(uint16_t niid,
 		uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
-/** @} */ /* end of grp_dpni_aiop group */
-/** @} */ /* end of grp_dplib_aiop group */
-
 
 /**************************************************************************//**
 @Function	dpni_drv_add_mac_address
@@ -168,8 +166,9 @@ int dpni_drv_get_mfl(uint16_t ni_id,
 	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
 
 @Return	OK on success; error code, otherwise.
-		For error codes refer to \ref FDMA_ENQUEUE_FRAME_ERRORS
-		and \ref DPNI_DRV_STATUS.
+		For error codes refer to
+		\ref FDMA_ENQUEUE_FRAME_ERRORS
+		\ref DPNI_DRV_STATUS.
 *//***************************************************************************/
 int dpni_drv_send(uint16_t ni_id);
 
@@ -191,4 +190,5 @@ int dpni_drv_send(uint16_t ni_id);
 *//***************************************************************************/
 int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
 
+/** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

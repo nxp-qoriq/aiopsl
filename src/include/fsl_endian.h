@@ -13,10 +13,10 @@
 
 #include "fsl_swab.h"
 
-
-
 /**************************************************************************//**
- @Collection    Little-Endian Conversion Macros
+@Group		accessor_g Accessor API
+
+ @Description   Little-Endian Conversion Macros
 
                 These macros convert given parameters to or from Little-Endian
                 format. Use these macros when you want to read or write a specific
@@ -61,7 +61,7 @@
 #define BE64_TO_CPU(val)        CPU_TO_BE64(val)
 
 
-/** @} */ /* end of fsl_lib_endian_g group */
+/** @} *//* end of accessor_g Accessor API group */
 
 
 #endif /* __FSL_ENDIAN_H */

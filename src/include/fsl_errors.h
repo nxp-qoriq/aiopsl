@@ -13,9 +13,8 @@
 #include "inc/errors.h"
 
 
-
 /**************************************************************************//**
- @Group         Errors
+ @Group         error_g Error Handling
 
  @Description   Error return defines.
 
@@ -80,5 +79,7 @@
 #endif
 
 #undef ENOERR			/* Prevent usage */
+
+/** @} */ /* end of error_g Error Handling group */
 
 #endif /* __FSL_ERRORS_H */
