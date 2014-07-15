@@ -219,11 +219,13 @@ static int epid_setup()
 #ifdef AIOP_STANDALONE
 	/* Default settings */
 	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
-	iowrite32(0x00020300, &wrks_addr->ep_asapa);
 	iowrite32(0x010001c0, &wrks_addr->ep_spa);
 	iowrite32(0x00000000, &wrks_addr->ep_spo);
 #endif
+	/* no PTA presentation is required (even if there is a PTA)*/
+	iowrite32(0x0000ffc0, &wrks_addr->ep_ptapa);
+	/* set epid ASA presentation size to 0 */
+	iowrite32(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits OSRM = 5 */
 	iowrite32(0x11000005, &wrks_addr->ep_osc);
 	data = ioread32(&wrks_addr->ep_osc);
