@@ -14,23 +14,13 @@
 
 
 /**************************************************************************//**
-@Group		FSL OS Interface (System call hooks)
+@Group         fsl_os_g  FSL OS Interface (System call hooks)
 
 @Description   Prototypes, externals and typedefs for system-supplied
                 (external) routines
 
 @{
 *//***************************************************************************/
-
-/**************************************************************************//**
-@Function      fsl_os_exit
-
-@Description   Stop execution and report status (where it is applicable)
-
-@Param[in]     status - exit status
-*//***************************************************************************/
-void    fsl_os_exit(int status);
-
 
 /**************************************************************************//**
 @Function      fsl_os_rand
