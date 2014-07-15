@@ -1,3 +1,5 @@
+- os.c:             Update implementation for time queries 
+- time.c/h:         Update implementation for time queries
 
 - cmdif_srv.c         Fixed EP table setup no PTA and no ASA, see ENGR00322744
 - cmdif_client.c      Fixed EP table setup no PTA and no ASA, see ENGR00322744
