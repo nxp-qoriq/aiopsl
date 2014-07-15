@@ -1,9 +1,7 @@
 /**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
+ @file          fsl_dbg.h
 
- @File          fsl_dbg.h
-
- @Description   Debug mode definitions.
+ @Description   Debug mode definitions
 *//***************************************************************************/
 
 #ifndef __FSL_DBG_H
@@ -14,13 +12,22 @@
 #include "fsl_smp.h"
 
 /**************************************************************************//**
+ @Group			FSL_DEBUG_GROUP debug functions
+
+ @Description	FSL AIOP Spinlock macros and functions
+
+ @{
+*//***************************************************************************/
+
+
+/**************************************************************************//**
  @Function      pr_debug(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
- 	 	 to the print. used to print debug info.
- 	 	 Debug Levels for Errors and Events are attached to the print.
+                to the print. used to print debug info.
+                Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String an VA ARGS to print.
+ @Param[in]     String as VA ARGS to print.
 *//***************************************************************************/
 #define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
 
@@ -28,10 +35,10 @@
  @Function      pr_info(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
- 	 	 to the print. used to print debug info.
- 	 	 Debug Levels for Errors and Events are attached to the print.
+                to the print. used to print debug info.
+                Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String an VA ARGS to print.
+ @Param[in]     String as VA ARGS to print.
 *//***************************************************************************/
 #define pr_info(...) 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__)
 
@@ -39,10 +46,10 @@
  @Function      pr_warn(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
- 	 	 to the print. used to print debug info.
- 	 	 Debug Levels for Errors and Events are attached to the print.
+                to the print. used to print debug info.
+                Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String an VA ARGS to print.
+ @Param[in]     String as VA ARGS to print.
 *//***************************************************************************/
 #define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
 
@@ -50,10 +57,10 @@
  @Function      pr_err(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
- 	 	 to the print. used to print debug info.
- 	 	 Debug Levels for Errors and Events are attached to the print.
+                to the print. used to print debug info.
+                Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String an VA ARGS to print.
+ @Param[in]     String as VA ARGS to print.
 *//***************************************************************************/
 #define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
 
@@ -61,10 +68,10 @@
  @Function      pr_err(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
- 	 	 to the print. used to print debug info.
- 	 	 Debug Levels for Errors and Events are attached to the print.
+                to the print. used to print debug info.
+                Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String an VA ARGS to print.
+ @Param[in]     String as VA ARGS to print.
 *//***************************************************************************/
 #define pr_crit(...)	DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__)
 
@@ -94,5 +101,7 @@
  @Return        number of existing cores.
 *//***************************************************************************/
 #define dbg_get_max_num_of_cores()    sys_get_max_num_of_cores()
+
+/** @} */ /* end of debug functions */
 
 #endif /* __FSL_DBG_H */
