@@ -1,3 +1,15 @@
+updated doxygen for:
+	src\include\common\fsl_stdio.h
+	src\include\common\fsl_stdlib.h
+	src\include\dplib\fsl_dpni_drv.h
+	src\include\fsl_endian.h
+	src\include\fsl_errors.h
+	src\include\fsl_io.h
+	src\include\fsl_time.h
+	src\include\net\fsl_inet.h
+
+- fsl_stdlib:       fsl_os_exit moved to errors.h
+
 - os.c:             Update implementation for time queries 
 - time.c/h:         Update implementation for time queries
 
