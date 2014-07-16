@@ -81,7 +81,7 @@ static int module_id_find(const char *m_name, struct cmdif_srv *srv)
 
 static int inst_alloc(struct cmdif_srv_aiop *aiop_srv, uint8_t m_id)
 {
-	int r = 0;
+	uint32_t r = 0;
 	int count = 0;
 	struct cmdif_srv *srv = (struct cmdif_srv *)aiop_srv->srv;
 
@@ -114,7 +114,7 @@ static int inst_alloc(struct cmdif_srv_aiop *aiop_srv, uint8_t m_id)
 		srv->m_id[r] = m_id;
 		srv->inst_count++;
 		unlock_spinlock(&aiop_srv->lock);
-		return r;
+		return (int)r;
 	}
 }
 
@@ -437,7 +437,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		pr_err("No client handle\n");
 		return -ENODEV;
 	}
-	
+
 	lock_spinlock(&cl->lock);
 	count = cl->count;
 	if (count >= CMDIF_MN_SESSIONS) {
