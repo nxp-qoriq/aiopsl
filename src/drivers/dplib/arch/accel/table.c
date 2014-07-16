@@ -289,14 +289,14 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		 * found in the table. */
 		status = -EIO;
 		break;
+	/* Redirected to exception handler since aging is removed
 	case (TABLE_HW_STATUS_PIEE):
-		/* A rule with the same match description (and aged) is found
+		 * A rule with the same match description (and aged) is found
 		 * in the table. The rule is replaced. Output message is
-		 * valid if command MTYPE is w/o RPTR counter decrement.*/
-		/* TODO this should go to exception path once aging is
-		 * removed */
+		 * valid if command MTYPE is w/o RPTR counter decrement.*
 		status = TABLE_STATUS_SUCCESS;
-		break;
+		break;	
+	*/
 	case (CTLU_HW_STATUS_NORSC):
 		status = -ENOMEM;
 		break;
@@ -522,20 +522,26 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 			/* A rule with the same match description is not found
 			 * in the table. */
 			break;
+
+		/* Redirected to exception handler since aging is removed
 		case (CTLU_HW_STATUS_TEMPNOR):
-			/* A rule with the same match description is found and
-			 * rule is aged. */
-			/* TODO this should go to exception path once aging is
-			 * removed */
+			* A rule with the same match description is found and
+			 * rule is aged. *
 			status = TABLE_STATUS_MISS;
 			break;
+		*/
+
+		/* Redirected to exception handler since aging is removed - If
+		aging is enabled once again, please check that it is indeed
+		supported for MFLU, elsewhere it still needs to go to exception
+		path.
 		case (MFLU_HW_STATUS_TEMPNOR):
 			/* A rule with the same match description is found and
-			 * rule is aged. */
-			/* TODO this should go to exception path once aging is
-			 * removed */
+			 * rule is aged. *
 			status = TABLE_STATUS_MISS;
 			break;
+		*/
+
 		default:
 			/* Call fatal error handler */
 			table_exception_handler(__FILE__, __LINE__, status);
