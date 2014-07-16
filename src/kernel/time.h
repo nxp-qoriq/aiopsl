@@ -21,11 +21,14 @@
                (1588).
 
 
-@Return        on success: time as the number of microseconds since the Epoch,
-               1970-01-01 00:00:00 +0000 (UTC).
-               -1 otherwise.
+@Param[in]     time - on success: time is stored in the pointer as the number of
+               microseconds since the Epoch,
+               1970-01-01 00:00:00 +0000 (UTC)
+@Return          standard POSIX error code.
+ 	 	 For error posix refer to
+		\ref error_g
 *//***************************************************************************/
-uint64_t _gettime(void);
+int _gettime(uint64_t *time);
 
 
 __HOT_CODE static inline uint64_t divu3(uint64_t n) {

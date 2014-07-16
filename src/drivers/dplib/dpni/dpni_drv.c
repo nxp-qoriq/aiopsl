@@ -332,7 +332,7 @@ int dpni_drv_init(void)
 #endif
 	int		    i;
 	int         error = 0;
-	uint8_t prpid;
+	uint8_t prpid = 0;
 
 
 	num_of_nis = 0;
