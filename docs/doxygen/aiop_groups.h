@@ -1,12 +1,4 @@
 /**
- @Group	fsl_lib_g   Utility Library 
- @{
-	@Group FSL_AIOP_SPINLOCK  Spin-locks
-	@{ @}
- @}
- */ /* end of fsl_lib_g group */
-
-/**
 @Group	grp_dplib_aiop	DPLIB
  @{
 	@Group	dpni_g	DPNI
@@ -41,12 +33,18 @@
  @{
 	@Group mem_mng_g_id Memory Management
 	@{
-		@Group system_mem_management_id System Memory Management
+		@Group malloc_g_id Dynamic Memory Allocation
 		@{ @}
 		
 		@Group slab_g SLAB
 		@{ @}
 	@}
+	
+	@Group Synchronization_g_id Synchronization
+	@{ @}
+	
+	@Group cmdif_g Command Interface API
+	@{ @}
  @}
  */  /* end of kernel_g group */
  

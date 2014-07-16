@@ -8,9 +8,9 @@
 #define __FSL_LIB_SPINLOCK_H
 
 /**************************************************************************//**
- @Group			FSL_AIOP_SPINLOCK Spin-locks
+ @Group			Synchronization_g_id Synchronization
 
- @Description	FSL AIOP Spin-lock macros and functions
+ @Description	System synchronization macros and functions
 
  @{
 *//***************************************************************************/
@@ -73,7 +73,7 @@ void unlock_spinlock(uint8_t *spinlock);
 /** @} end of group Spinlock_Functions */
 
 /**************************************************************************//**
-@Group			atomic_operations atomic operations
+@Group			atomic_operations Atomic operations
 
 @Description	atomic increment / decrement operations
 
