@@ -2,12 +2,7 @@
  @file          fsl_time.h
 
  @details       Contains AIOP SL Time Queries routines API declarations.
-
- @@internal
- @requirements CR:ENGR00272897
- @implements   See CR's Analysis information
- @warning      POSIX used for the API, however, no full POSIX implementation is guaranteed
-*//***************************************************************************/
+ *//***************************************************************************/
 
 #ifndef __FSL_TIME_H
 #define __FSL_TIME_H
@@ -65,7 +60,9 @@ int fsl_os_gettimeofday(timeval *tv, timezone *tz);
 
 @Param[in]  time - if not null the time is filled
 
-@Return   standard POSIX error code
+ @Return   standard POSIX error code.
+ 	 	 For error posix refer to
+		\ref error_g
 
 *//***************************************************************************/
 int fsl_get_time_ms(uint32_t *time);
@@ -78,7 +75,9 @@ int fsl_get_time_ms(uint32_t *time);
 
 @Param[in]  time - if not null the time is filled
 
-@Return   standard POSIX error code
+ @Return   standard POSIX error code.
+ 	 	 For error posix refer to
+		\ref error_g
 
 *//***************************************************************************/
 int fsl_get_time_since_epoch_ms(uint64_t *time);

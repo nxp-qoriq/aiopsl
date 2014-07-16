@@ -3,7 +3,6 @@
 
 @Description	This file contains AIOP and MC endian macros.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 
