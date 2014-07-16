@@ -34,7 +34,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (16 * MEGABYTE)   },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,                0x6018000000,    0x58000000, (256 * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,                0x6018000000,    0x58000000, (128 * MEGABYTE) },\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x4c00200000,    0x80200000, (2 * MEGABYTE)   },\
 }
 
