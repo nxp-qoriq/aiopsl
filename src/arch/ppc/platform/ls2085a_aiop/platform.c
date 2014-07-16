@@ -352,6 +352,10 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     if (pltfrm == NULL) {
 	    return -EINVAL;
     }
+    
+    if (aiop_regs == NULL) {
+    	return -EFAULT;
+    }
 
     /*------------------------------------------------------*/
     /* Initialize PPC interrupts vector                     */

@@ -1,19 +1,29 @@
-The following file includes the instructions for ipr_demo.
+The following file includes the instructions for ipf_demo.
 
 ===========================================
 Setup
 ===========================================
 1. Install CW_APP_v10.0.8
-2. Download linux version of LS_SIM_RELEASE_0_8_0_0116
+2. Download linux version of LS_SIM???????????
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2085a_sys_test.cfg
    from aiopsl\build\aiop_sim\sim_files.
    comment the lines marked with "#for elf loader" in cfg files: 
    "ls2100_sys_test" and "ls2085a_sim_init_params"
    (you may need to change "localhost" to your Linux machine name).
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
-   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/DPAA_SIM_RELEASE_0_8_0_0116/dtsim_release/linux64
+   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/DPAA_SIM_RELEASE_???????/dtsim_release/linux64
 5. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
-6. Copy “reassembled_frame.pcap" from aiopsl\misc\setup into to simulator folder
+6. Copy following pcap files from aiopsl\misc\setup into to simulator folder:
+ 	reassembled_frame.pcap
+ 	frag1.pcap
+ 	frag2.pcap
+ 	frag3.pcap
+ 	frag4.pcap
+ 	frag1_hm.pcap
+ 	frag2_hm.pcap
+ 	frag3_hm.pcap
+ 	frag4_hm.pcap
+ 7. Set ipf_demo_flags in ipf_demo.c either to IPF_DEMO_WITH_HM ot IPF_DEMO_WITHOUT_HM. 
 
 ===========================================
 Execution flow
@@ -39,12 +49,18 @@ Execution flow
 9. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
-10. Run “tio inject” to inject all 4 fragments:
+10. Run “tio inject” to inject the input frame (reassembled_frame.pcap):
    ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file reassembled_frame.pcap -verbose_level 2
    This will send packets to AIOP.
 11. Set break point inside app_process_packet_flow0() and push "Multi core Resume" button to run and see that
     it's activated on each packet.
-12. The packet will also be captured by the tio_capture
+12. The 4 fragments will also be captured by the tio_capture.
+13. In the simulator directory you will get a pcap output file: w0_m1.pcap.
+	This file should imclude the 4 output fragments, which must be identical to:
+	frag1.pcap, frag2.pcap, frag3.pcap, frag4.pcap in case you run with IPF_DEMO_WITHOUT_HM
+	or to
+	frag1_hm.pcap, frag2_hm.pcap, frag3_hm.pcap, frag4_hm.pcap in case you run with IPF_DEMO_WITH_HM.
+	
 
 ===========================================
 Possible modifications:
