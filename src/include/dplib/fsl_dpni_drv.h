@@ -11,8 +11,9 @@
 #include "dplib/fsl_ldpaa.h"
 #include "dpni_drv.h"
 
+
 /**************************************************************************//**
-@Group		grp_dplib_aiop	DPLIB
+@Group		dpni_g DPNI
 
 @Description	Contains initialization APIs and runtime control APIs for DPNI
 
@@ -33,6 +34,8 @@
 @Param[in]	arg   Argument that will be passed to callback function
 
 @Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
 			uint16_t        flow_id,
@@ -52,6 +55,8 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 		#DPNI_DRV_MAX_NUM_FLOWS
 
 @Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_unregister_rx_cb(uint16_t		ni_id,
                               uint16_t		flow_id);
@@ -72,6 +77,8 @@ int dpni_get_receive_niid(void);
 @Description	Set the NI ID on which the packet should be sent.
 
 @Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
 int dpni_set_send_niid(uint16_t niid);
@@ -82,6 +89,8 @@ int dpni_set_send_niid(uint16_t niid);
 @Description	Get ID of NI on which the default packet should be sent.
 
 @Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
 int dpni_get_send_niid(void);
@@ -93,13 +102,12 @@ int dpni_get_send_niid(void);
 @Description	Get Primary MAC address of NI.
 
 @Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
 int dpni_drv_get_primary_mac_addr(uint16_t niid,
 		uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
-
-/** @} */ /* end of grp_dpni_aiop group */
-/** @} */ /* end of grp_dplib_aiop group */
 
 
 /**************************************************************************//**
@@ -112,6 +120,8 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid,
 @Param[in]	mac_addr	MAC address to be added to NI unicast/multicast
 				filter.
 @Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_add_mac_addr(uint16_t ni_id,
           		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
@@ -127,6 +137,8 @@ int dpni_drv_add_mac_addr(uint16_t ni_id,
 				unicast/multicast filter.
 
 @Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_remove_mac_addr(uint16_t ni_id,
           		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
@@ -141,6 +153,8 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 @Param[in]	mfl	MFL length.
 
 @Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_set_mfl(uint16_t ni_id,
                           const uint16_t mfl);
@@ -155,6 +169,8 @@ int dpni_drv_set_mfl(uint16_t ni_id,
 @Param[in]	*mfl	pointer to store MFL length.
 
 @Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_get_mfl(uint16_t ni_id,
                           uint16_t *mfl);
@@ -168,8 +184,8 @@ int dpni_drv_get_mfl(uint16_t ni_id,
 	Implicit: Queueing Destination Priority (qd_priority) in the TLS.
 
 @Return	OK on success; error code, otherwise.
-		For error codes refer to \ref FDMA_ENQUEUE_FRAME_ERRORS
-		and \ref DPNI_DRV_STATUS.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_send(uint16_t ni_id);
 
@@ -186,9 +202,10 @@ int dpni_drv_send(uint16_t ni_id);
 		fdma_create_frame
 
 @Return	OK on success; error code, otherwise.
-		For error codes refer to \ref FDMA_ENQUEUE_FD_ERRORS
-		and \ref DPNI_DRV_STATUS.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
 int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
 
+/** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

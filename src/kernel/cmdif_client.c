@@ -57,11 +57,13 @@ static int epid_setup()
 #ifdef AIOP_STANDALONE
 	/* Default settings */
 	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
-	iowrite32(0x00020300, &wrks_addr->ep_asapa);
 	iowrite32(0x010001c0, &wrks_addr->ep_spa);
 	iowrite32(0x00000000, &wrks_addr->ep_spo);
 #endif
+	/* no PTA presentation is required (even if there is a PTA)*/
+	iowrite32(0x0000ffc0, &wrks_addr->ep_ptapa);
+	/* set epid ASA presentation size to 0 */
+	iowrite32(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits OSRM = 5 */
 	iowrite32(0x11000005, &wrks_addr->ep_osc);
 	data = ioread32(&wrks_addr->ep_osc);
@@ -124,11 +126,17 @@ __HOT_CODE static int session_get(const char *m_name,
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
+	/* TODO place it under debug ? */
+	if (cl == NULL) {
+		return -ENODEV;
+	}
+
 	/* TODO if sync mode is supported
 	 * Sharing the same auth_id will require management of opened or not
 	 * there won't be 2 cidesc with same auth_id because
 	 * the same sync buffer is going to be used for 2 cidesc
-	 * but as for today we don't suppot sync on AIOP client */
+	 * but as for today we don't support sync on AIOP client 
+	 * that's why it is working */
 	lock_spinlock(&cl->lock);
 	for (i = 0; i < cl->count; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&
@@ -202,14 +210,14 @@ void cmdif_client_free()
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
-	if (cl != NULL)
+	if (cl != NULL) {
+		for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+			if (cl->gpp[i].regs != NULL)
+				fsl_os_xfree(cl->gpp[i].regs);
+			if (cl->gpp[i].dev != NULL)
+				fsl_os_xfree(cl->gpp[i].dev);
+		}
 		fsl_os_xfree(cl);
-
-	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if (cl->gpp[i].regs != NULL)
-			fsl_os_xfree(cl->gpp[i].regs);
-		if (cl->gpp[i].dev != NULL)
-			fsl_os_xfree(cl->gpp[i].dev);
 	}
 
 }

@@ -33,7 +33,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
 	
-	uint8_t ipr_demo_flags = IPR_DEMO_WITHOUT_HM;
+	uint8_t ipr_demo_flags = IPR_DEMO_WITH_HM;
 	
 	uint32_t ip_dst_addr = 0x73bcdc90; // new ipv4 dst_addr
 	uint16_t udp_dst_port = 0xd720; //new udp dest port

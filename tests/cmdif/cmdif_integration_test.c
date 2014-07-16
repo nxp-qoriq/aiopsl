@@ -31,6 +31,7 @@ void app_free(void);
 #define SYNC_CMD 	(0x103 | CMDIF_NORESP_CMD)
 #define ASYNC_N_CMD	0x104
 #define OPEN_N_CMD	0x105
+#define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
 
 __SHRAM struct cmdif_desc cidesc;
 uint8_t send_data[64];
@@ -108,12 +109,12 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 	switch (cmd) {
 	case OPEN_CMD:
-		cidesc.regs = 0; /* DPCI 0 is used by MC */
+		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
 		                 NULL, NULL, 0);
 		break;
 	case OPEN_N_CMD:
-		cidesc.regs = 0; /* DPCI 0 is used by MC */
+		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		err |= cmdif_open(&cidesc, "IRA0", 0, async_cb, cidesc.regs,
 		                 NULL, NULL, 0);
 		err |= cmdif_open(&cidesc, "IRA3", 0, async_cb, cidesc.regs,

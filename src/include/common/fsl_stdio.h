@@ -1,7 +1,5 @@
 /**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
-
- @File          fsl_stdio.h
+ @File		fsl_stdio.h
 
  @Description   Prototypes, externals and typedefs for system-supplied
                 (external) routines
@@ -14,13 +12,10 @@
 
 
 /**************************************************************************//**
- @ingroup         fsl_lib_g
- @{
- *//***************************************************************************/
-/**************************************************************************//**
- @Group         fsl_os_stdio_g  STDIO API
+ @Group         fsl_os_g  FSL OS Interface (System call hooks)
 
- @Description   Console output functions
+ @Description   Prototypes, externals and typedefs for system-supplied
+                (external) routines
 
  @{
 *//***************************************************************************/
@@ -31,7 +26,7 @@
  @Description   print a formated string.
 
  @Param[in]     str - string to print.
- 
+
 		The format string is a character string, beginning and ending
 		in its initial shift state, if any. The format string is
 		composed of zero or more directives: ordinary characters (not
@@ -48,12 +43,11 @@
 		%llx 	Prints a 32 bit value in hexadecimal form
 		%lx 	Prints a 64 bit value in hexadecimal form
 
- @Return       none 
+ @Return       none
 *//***************************************************************************/
 void fsl_os_print(char *str, ...);
 
-/** @} */ /* end of fsl_os_stdio_g group */
-/** @} *//* end of fsl_lib_g group */
+/** @} *//* end of fsl_os_g FSL OS Interface (System call hooks) group */
 
 
 #endif /* __FSL_STDIO_H */

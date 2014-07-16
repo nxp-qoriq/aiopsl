@@ -219,11 +219,13 @@ static int epid_setup()
 #ifdef AIOP_STANDALONE
 	/* Default settings */
 	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
-	iowrite32(0x00020300, &wrks_addr->ep_asapa);
 	iowrite32(0x010001c0, &wrks_addr->ep_spa);
 	iowrite32(0x00000000, &wrks_addr->ep_spo);
 #endif
+	/* no PTA presentation is required (even if there is a PTA)*/
+	iowrite32(0x0000ffc0, &wrks_addr->ep_ptapa);
+	/* set epid ASA presentation size to 0 */
+	iowrite32(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits OSRM = 5 */
 	iowrite32(0x11000005, &wrks_addr->ep_osc);
 	data = ioread32(&wrks_addr->ep_osc);
@@ -430,6 +432,12 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 
 	pr_debug("Found dpci peer id at index %d \n", ind);
 
+	/* TODO place it under debug ? */
+	if (cl == NULL) {
+		pr_err("No client handle\n");
+		return -ENODEV;
+	}
+	
 	lock_spinlock(&cl->lock);
 	count = cl->count;
 	if (count >= CMDIF_MN_SESSIONS) {
@@ -462,8 +470,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		                           &dpci_tbl->attr[ind]);
 	 }
 
-	if (!dpci_tbl->attr[ind].peer_attached ||
-		!link_up) {
+	if (!dpci_tbl->attr[ind].peer_attached || !link_up) {
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
