@@ -273,6 +273,9 @@ int cmdif_srv_open(void *_srv,
 		return m_id;
 
 	err = srv->open_cb[m_id](inst_id, &dev);
+	if (err)
+		return err;
+
 	id = inst_alloc(srv, (uint8_t)m_id);
 	if (id < 0)
 		return id;
@@ -323,13 +326,13 @@ int cmdif_srv_cmd(void *_srv,
 	int    err = 0;
 	struct cmdif_srv * srv = (struct cmdif_srv *)_srv;
 	struct cmdif_fd in_cfd;
-	
+
 	if ((cfd == NULL) || (srv == NULL) || (send_resp == NULL))
 		return -EINVAL;
 
 	/* This is required because flc is a struct */
 	in_cfd.u_flc.flc = CPU_TO_BE64(cfd->u_flc.flc);
-	
+
 	if (!IS_VALID_AUTH_ID(in_cfd.u_flc.cmd.auth_id))
 		return -EPERM;
 
