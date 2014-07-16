@@ -48,6 +48,7 @@ static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
 {
 	UNUSED(cmd_id);
 	UNUSED(async_ctx);
+	fsl_os_print("PASSED ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	fsl_os_print("ASYNC CB data high = 0x%x low = 0x%x size = 0x%x\n",
 	         (uint32_t)((data & 0xFF00000000) >> 32),
 	         (uint32_t)(data & 0xFFFFFFFF), size);

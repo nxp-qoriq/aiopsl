@@ -7,6 +7,7 @@
 #include "sys.h"
 #include "fsl_dbg.h"
 #include "cmdif_client_aiop.h"
+#include "cmdif.h"
 #include "fsl_cmdif_fd.h"
 #include "fsl_cmdif_flib_c.h"
 #include "dplib/fsl_dprc.h"
@@ -288,7 +289,7 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 			return done.resp.err;
 	}
 
-	pr_debug("PASSED no response cmd 0x%x \n", cmd_id);
+	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);
 	return 0;
 }
 
@@ -304,13 +305,15 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
-	pr_debug("PASSED async cmd 0x%x\n", fd.u_flc.cmd.cmid);
-
 	err = cmdif_async_cb(&fd);
 	if (err) {
 		pr_debug("Async callback cmd 0x%x returned error %d", \
 		         fd.u_flc.cmd.cmid, err);
 	}
+	
+	pr_debug("PASSED got async response for cmd 0x%x\n", \
+	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
+
 	fdma_store_default_frame_data();
 	fdma_terminate_task();
 }

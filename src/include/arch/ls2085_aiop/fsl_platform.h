@@ -9,7 +9,7 @@
 #define __FSL_PLATFORM_AIOP_H
 
 /**************************************************************************//**
- @Group         system_mem_management_id   System Memory Management
+ @Group         mem_mng_g_id Memory Management
  @Description   Prototypes, externals and typedefs for system  memory management.
 
  @{

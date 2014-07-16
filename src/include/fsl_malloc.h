@@ -13,7 +13,7 @@
 
 
 /**************************************************************************//**
- @Group         system_mem_management_id   System Memory Management
+ @Group         malloc_g_id   Dynamic Memory Allocation
  @Description   Prototypes, externals and typedefs for system  memory management.
 
  @{
