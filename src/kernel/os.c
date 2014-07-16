@@ -219,16 +219,17 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 {
 	time_t usec; /* time in microseconds since epoch*/
 	time_t sec;  /* time in seconds*/
+	int err;
 	UNUSED(tz);
 
 #ifdef DEBUG
 	if(tv == NULL)
 		return -EACCES;
 #endif
-	usec = _gettime();
+	err = _gettime(&usec);
 
-	if(usec < 0)
-		return -1;
+	if(err < 0)
+		return err;
 
 	sec = (usec / 1000000);
 	tv->tv_usec = (suseconds_t)(usec - (sec * 1000000));
@@ -241,15 +242,16 @@ __HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
 __HOT_CODE int fsl_get_time_ms(uint32_t *time)
 {
 	uint64_t time_us, temp;
+	int err;
 
 #ifdef DEBUG
 	if(time == NULL)
 		return -EACCES;
 #endif
-	time_us = _gettime();
+	err = _gettime(&time_us);
 
-	if(time_us < 0)
-		return (int)time_us;
+	if(err < 0)
+		return err;
 
 
 	temp = (time_us/1000) % 86400000;
@@ -270,15 +272,16 @@ __HOT_CODE int fsl_get_time_ms(uint32_t *time)
 int fsl_get_time_since_epoch_ms(uint64_t *time)
 {
 	uint64_t time_us;
+	int err;
 
 #ifdef DEBUG
 	if(time == NULL)
 		return -EACCES;
 #endif
-	time_us = _gettime();
+	 err = _gettime(&time_us);
 
-	if(time_us < 0)
-		return (int)time_us;
+	if(err < 0)
+		return err;
 
 	*time = time_us/1000;
 
