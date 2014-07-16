@@ -3,14 +3,6 @@
 
 @Description    Contains AIOP SL Network Utilities API functions declarations.
 
-@@internal
-@requirements   CR:ENGR00272890 CR:ENGR00272889
-
-@warning        POSIX used for the API, however, no full POSIX implementation
-		is guaranteed
-
-
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef _FSL_INET_H
@@ -56,13 +48,6 @@
 		family.
 		-1 if af does not contain a valid address family
 
-@internal
-@requirements   CR:ENGR00272889
-@implements     See CR's Analysis information
-@warning        POSIX used for the API, however, no full POSIX implementation is
-		guaranteed; Groups of zeros replaced by :: and dotted-quad
-		notation for AF_INET6 are not supported
-
 *//***************************************************************************/
 int inet_pton(int af, const char *src, void *dst);
 
@@ -89,12 +74,6 @@ int inet_pton(int af, const char *src, void *dst);
 		NULL is returned if size is not big enough or if af does not
 		contain a valid address family
 
-@internal
-@requirements   CR:ENGR00272890
-@implements     See CR's Analysis information
-@warning        POSIX used for the API, however, no full POSIX implementation is
-		guaranteed. Groups of zeros replaced by :: and dotted-quad
-		notation for AF_INET6 are not supported.
 *//***************************************************************************/
 const char *inet_ntop(int af, const void *src, char *dst, size_t size);
 

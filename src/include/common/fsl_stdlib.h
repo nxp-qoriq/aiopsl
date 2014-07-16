@@ -1,6 +1,4 @@
 /**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
-
 @File          fsl_stdlib.h
 
 @Description   Prototypes, externals and typedefs for system-supplied

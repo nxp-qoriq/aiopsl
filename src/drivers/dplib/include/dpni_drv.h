@@ -165,7 +165,7 @@ int dpni_drv_register_discard_rx_cb(
 /**************************************************************************//**
 @Function	dpni_get_num_of_ni
 
-@Description	Returns the number of NI_ISs in the system.  Called by the AIOP
+@Description	Returns the number of NI_IDs in the system.  Called by the AIOP
 		applications to learn the maximum number of available network
 		interfaces.
 
