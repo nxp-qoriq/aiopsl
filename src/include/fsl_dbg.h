@@ -14,7 +14,7 @@
 /**************************************************************************//**
  @Group			FSL_DEBUG_GROUP debug functions
 
- @Description	FSL AIOP Spinlock macros and functions
+ @Description	FSL AIOP debug macros
 
  @{
 *//***************************************************************************/
@@ -35,7 +35,7 @@
  @Function      pr_info(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
-                to the print. used to print debug info.
+                to the print. used to print info messages.
                 Debug Levels for Errors and Events are attached to the print.
 
  @Param[in]     String as VA ARGS to print.
@@ -46,7 +46,7 @@
  @Function      pr_warn(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
-                to the print. used to print debug info.
+                to the print. used to print warnings info.
                 Debug Levels for Errors and Events are attached to the print.
 
  @Param[in]     String as VA ARGS to print.
@@ -57,7 +57,7 @@
  @Function      pr_err(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
-                to the print. used to print debug info.
+                to the print. used to print errors info.
                 Debug Levels for Errors and Events are attached to the print.
 
  @Param[in]     String as VA ARGS to print.
@@ -65,10 +65,10 @@
 #define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
 
 /**************************************************************************//**
- @Function      pr_err(...)
+ @Function      pr_crit(...)
 
  @Description   Macro to add level trace, CPU number and other parameters
-                to the print. used to print debug info.
+                to the print. used to print critical debug info.
                 Debug Levels for Errors and Events are attached to the print.
 
  @Param[in]     String as VA ARGS to print.

@@ -1,3 +1,5 @@
+- fsl_spinlock.h      Doxygen update
+- fsl_dbg.h           Doxygen update
 updated doxygen for:
 	src\include\common\fsl_stdio.h
 	src\include\common\fsl_stdlib.h
