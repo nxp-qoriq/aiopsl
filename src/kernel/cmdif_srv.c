@@ -432,6 +432,12 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 
 	pr_debug("Found dpci peer id at index %d \n", ind);
 
+	/* TODO place it under debug ? */
+	if (cl == NULL) {
+		pr_err("No client handle\n");
+		return -ENODEV;
+	}
+	
 	lock_spinlock(&cl->lock);
 	count = cl->count;
 	if (count >= CMDIF_MN_SESSIONS) {
@@ -464,8 +470,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		                           &dpci_tbl->attr[ind]);
 	 }
 
-	if (!dpci_tbl->attr[ind].peer_attached ||
-		!link_up) {
+	if (!dpci_tbl->attr[ind].peer_attached || !link_up) {
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
