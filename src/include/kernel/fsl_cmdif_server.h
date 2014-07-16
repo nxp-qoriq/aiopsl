@@ -10,14 +10,6 @@ Copyright 2013 Freescale Semiconductor, Inc.
 #define __FSL_CMDIF_SERVER_H
 
 /**************************************************************************//**
-@Group		LIB LIB
-
-@Description	ARENA LIB APIs
-
-@{
-*//***************************************************************************/
-
-/**************************************************************************//**
 @Group         cmdif_g  Command Interface API
 
 @Description   AIOP and GPP command interface API
@@ -33,7 +25,6 @@ Copyright 2013 Freescale Semiconductor, Inc.
 @{
  *//***************************************************************************/
 struct cmdif_desc;
-struct cmdif_fd;
 
 /**************************************************************************//**
 @Description	Open callback
@@ -180,6 +171,5 @@ int cmdif_srv_cb(int pr, void *send_dev);
 
 /** @} *//* end of cmdif_server_g group */
 /** @} *//* end of cmdif_g group */
-/** @} *//* end of ARENA LIB APIs */
 
 #endif /* __FSL_CMDIF_SERVER_H */
