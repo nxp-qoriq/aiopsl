@@ -148,12 +148,14 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 
 @Description	Close session on server and notify client about it
 
-@Param[in]	cidesc  - Already open connection descriptor towards second side
-@Param[in]	size    - Size of v_data buffer
-@Param[in]	auth_id - Session id as returned by server.
-@Param[out]	v_data  - Buffer allocated by user. If not NULL this buffer
+@Param[in]	cidesc   - Already open connection descriptor towards second side
+@Param[in]	size     - Size of v_data buffer
+@Param[in]	auth_id  - Session id as returned by server.
+@Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
-@Param[in]	p_data  - Physical address of v_data.
+@Param[in]	p_data   - Physical address of v_data.
+@Param[in]	send_dev - Transport device used for server (nadk device).
+		Device used for send and receive of frame descriptor.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -161,7 +163,8 @@ int cmdif_session_close(struct cmdif_desc *cidesc,
 			uint16_t auth_id,
 			uint32_t size,
 			void *v_data,
-			uint64_t p_data);
+			uint64_t p_data,
+			void *send_dev);
 
 /**************************************************************************//**
 @Function	cmdif_srv_cb
