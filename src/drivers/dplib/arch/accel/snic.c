@@ -58,6 +58,7 @@ __HOT_CODE void snic_process_packet(void)
 	struct fdma_queueing_destination_params enqueue_params;
 	int err;
 	int32_t parse_status;
+	uint16_t snic_id;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -77,7 +78,9 @@ __HOT_CODE void snic_process_packet(void)
 	}
 
 	/* get sNIC ID */
-	snic = snic_params + SNIC_ID_GET;
+	snic_id = SNIC_ID_GET;
+	ASSERT_COND(snic_id < MAX_SNIC_NO);
+	snic = snic_params + snic_id;
 
 	if (SNIC_IS_INGRESS_GET) {
 		/* snic uses only 1 QDID so we need to have different

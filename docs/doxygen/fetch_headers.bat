@@ -24,7 +24,7 @@ echo Fetching header files for doxygen:
 
 cd ..\..
 for /f "tokens=*" %%a in (docs\doxygen\DoxygenFileList.txt) do (
-	(echo %%a | find /I ".h" >NULL) && (
+	(echo %%a | find /I ".h" > null) && (
 		echo %%a
 		del /F /Q docs\doxygen\%%a 2> null
 		
