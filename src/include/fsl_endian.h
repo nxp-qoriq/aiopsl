@@ -31,13 +31,13 @@
 
 #ifdef CORE_IS_BIG_ENDIAN
 
-#define CPU_TO_LE16(val)	swap_uint16(val)
-#define CPU_TO_LE32(val)	swap_uint32(val)
-#define CPU_TO_LE64(val)	swap_uint64(val)
+#define CPU_TO_LE16(val)	swap_uint16(val) /** <CPU to Little Endian conversion  */
+#define CPU_TO_LE32(val)	swap_uint32(val) /** <CPU to Little Endian conversion  */
+#define CPU_TO_LE64(val)	swap_uint64(val) /** <CPU to Little Endian conversion  */
 
-#define CPU_TO_BE16(val)	((uint16_t)(val))
-#define CPU_TO_BE32(val)	((uint32_t)(val))
-#define CPU_TO_BE64(val)	((uint64_t)(val))
+#define CPU_TO_BE16(val)	((uint16_t)(val)) /** <CPU to Big Endian conversion  */
+#define CPU_TO_BE32(val)	((uint32_t)(val)) /** <CPU to Big Endian conversion  */
+#define CPU_TO_BE64(val)	((uint64_t)(val)) /** <CPU to Big Endian conversion  */
 
 #else  /* CORE_IS_LITTLE_ENDIAN */
 
@@ -51,13 +51,13 @@
 
 #endif /* CORE_IS_LITTLE_ENDIAN */
 
-#define LE16_TO_CPU(val)        CPU_TO_LE16(val)
-#define LE32_TO_CPU(val)        CPU_TO_LE32(val)
-#define LE64_TO_CPU(val)        CPU_TO_LE64(val)
+#define LE16_TO_CPU(val)        CPU_TO_LE16(val) /** <Little Endian to CPU conversion  */
+#define LE32_TO_CPU(val)        CPU_TO_LE32(val) /** <Little Endian to CPU conversion  */
+#define LE64_TO_CPU(val)        CPU_TO_LE64(val) /** <Little Endian to CPU conversion  */
 
-#define BE16_TO_CPU(val)        CPU_TO_BE16(val)
-#define BE32_TO_CPU(val)        CPU_TO_BE32(val)
-#define BE64_TO_CPU(val)        CPU_TO_BE64(val)
+#define BE16_TO_CPU(val)        CPU_TO_BE16(val) /** <Big Endian to CPU conversion  */
+#define BE32_TO_CPU(val)        CPU_TO_BE32(val) /** <Big Endian to CPU conversion  */
+#define BE64_TO_CPU(val)        CPU_TO_BE64(val) /** <Big Endian to CPU conversion  */
 
 
 /** @} *//* end of accessor_g Accessor API group */

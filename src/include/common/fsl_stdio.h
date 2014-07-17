@@ -12,39 +12,44 @@
 
 
 /**************************************************************************//**
- @Group         fsl_os_g  FSL OS Interface (System call hooks)
+@Group         fsl_os_g  FSL OS Interface (System call hooks)
 
- @Description   Prototypes, externals and typedefs for system-supplied
+@Description   Prototypes, externals and typedefs for system-supplied
                 (external) routines
 
- @{
+@{
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Function      fsl_os_print
+@Function      fsl_os_print
 
- @Description   print a formated string.
+@Description   Print formated string with arguments received with it.
+               The print function is limited to 80 bytes of the formatted string length.
+               This function has two modes of operation.  It automatically toggles
+               between the two modes depending on whether the function is called
+               during initialization or at run time.
 
- @Param[in]     str - string to print.
+               Initialization stage - During AIOP initialization the full formatting
+               feature set is used, similar to printf from the C standard library.
 
-		The format string is a character string, beginning and ending
-		in its initial shift state, if any. The format string is
-		composed of zero or more directives: ordinary characters (not
-		%), which are copied unchanged to the output stream; and
-		conversion specifications, each of which results in fetching
-		zero or more subsequent arguments. Each conversion
-		specification is introduced by the character %.
-		The arguments must correspond properly (after type promotion)
-		with the conversion specifier.
-		The following command characters are supported:
-		%d	Prints an integer in decimal form
-		%x 	Prints and integer in hexadecimal form
-		%s 	Prints a string
-		%llx 	Prints a 32 bit value in hexadecimal form
-		%lx 	Prints a 64 bit value in hexadecimal form
+               Run time stage - in this stage the AIOP uses a lite print and
+               supports only a subset of the formatting features as follows:
 
- @Return       none
+               %c     Prints a char.
+               %d     Prints an integer in decimal form
+               %x     Prints an integer in hexadecimal form
+               %s     Prints a string
+               %l     Prints unsigned 32 bit value.
+               %ll    Prints unsigned 64 bit value.
+               %lx    Prints a 32 bit value in hexadecimal form
+               %llx   Prints a 64 bit value in hexadecimal form
+               *No support for special settings like %02x, etc at runtime.
+
+@Param[in]     str - string to print.
+
+@Return       none
 *//***************************************************************************/
+
 void fsl_os_print(char *str, ...);
 
 /** @} *//* end of fsl_os_g FSL OS Interface (System call hooks) group */
