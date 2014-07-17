@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW FDMA API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "common/types.h"

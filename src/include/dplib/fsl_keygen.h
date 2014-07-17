@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP Software Key Generation API
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_KEYGEN_H

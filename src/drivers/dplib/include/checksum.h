@@ -3,7 +3,6 @@
 
 @Description	This file contains checksum utilities
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __CHECKSUM_H

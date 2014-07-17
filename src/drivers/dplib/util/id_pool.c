@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW ID pool implementation.
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "id_pool.h"

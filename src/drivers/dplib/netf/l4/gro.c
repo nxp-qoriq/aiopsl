@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW TCP GRO API implementation
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "net/fsl_net.h"

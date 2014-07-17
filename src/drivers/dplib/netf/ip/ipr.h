@@ -3,7 +3,6 @@
 
 @Description   This file contains IPR internal functions and definitions
 
-	       Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __AIOP_IPR_H

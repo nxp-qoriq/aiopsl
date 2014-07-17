@@ -1,5 +1,4 @@
 
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    cmdif_client.h
  *  @brief   Cmdif client AIOP<->GPP internal header file

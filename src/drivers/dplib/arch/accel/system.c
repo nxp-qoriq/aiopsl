@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW system interface.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "system.h"
 #include "id_pool.h"

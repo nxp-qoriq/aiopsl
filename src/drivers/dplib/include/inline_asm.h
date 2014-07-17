@@ -4,7 +4,6 @@
 @Description	This file contains AIOP SW internal inline assembler
 		definitions.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 

@@ -3,7 +3,6 @@
 
 @Description   This file contains the AIOP SW IP Reassembly API
 
-	       Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_IPR_H
