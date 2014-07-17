@@ -87,8 +87,8 @@ void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
 			free(srv->open_cb);
 		if (srv->ctrl_cb)
 			free(srv->ctrl_cb);
-		if (srv->open_cb)
-			free(srv->open_cb);
+		if (srv->close_cb)
+			free(srv->close_cb);
 
 		free(srv);
 	}

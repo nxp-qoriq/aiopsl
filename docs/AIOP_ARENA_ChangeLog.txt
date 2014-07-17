@@ -1,3 +1,4 @@
+- fsl_cmdif_server.h  API changes at cmdif_session_open() cmdif_session_close()
 - fsl_spinlock.h      Doxygen update
 - fsl_dbg.h           Doxygen update
 updated doxygen for:
@@ -12,7 +13,7 @@ updated doxygen for:
 
 - fsl_stdlib:       fsl_os_exit moved to errors.h
 
-- os.c:             Update implementation for time queries 
+- os.c:             Update implementation for time queries
 - time.c/h:         Update implementation for time queries
 
 - cmdif_srv.c         Fixed EP table setup no PTA and no ASA, see ENGR00322744
