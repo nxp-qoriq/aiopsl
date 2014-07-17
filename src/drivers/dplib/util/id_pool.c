@@ -97,8 +97,11 @@ int release_id(uint8_t id, uint64_t ext_id_pool_address)
 				last_id_and_index,
 				2);
 
-	last_id_and_index[1]--;
-	if (last_id_and_index[1] >= 0) {
+	if (last_id_and_index[1] == 0) { /* Pool out of range */
+		cdma_mutex_lock_release(ext_id_pool_address);
+		return -ENAVAIL;
+	} else {
+		last_id_and_index[1]--;
 		/* Return id to the pool */
 		cdma_write((ext_id_pool_address+last_id_and_index[1]+2),
 				&id,
@@ -108,8 +111,5 @@ int release_id(uint8_t id, uint64_t ext_id_pool_address)
 					CDMA_POSTDMA_MUTEX_RM_BIT,
 					last_id_and_index, 2);
 		return 0;
-	} else { /* Pool out of range */
-		cdma_mutex_lock_release(ext_id_pool_address);
-		return -ENAVAIL;
 	}
 }
