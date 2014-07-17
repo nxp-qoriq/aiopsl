@@ -1,6 +1,3 @@
-/*
-* Copyright (c) 2014 Freescale Semiconductor, Inc. All rights reserved.
-*/
 /**************************************************************************//*
  @File          fsl_dpci_cmd.h
 

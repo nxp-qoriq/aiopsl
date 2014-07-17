@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP snic source code.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "snic.h"

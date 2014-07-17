@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP Software Table API
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_TABLE_H

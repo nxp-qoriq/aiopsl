@@ -1,4 +1,3 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_MOVE_CMD_H__
 #define __RTA_MOVE_CMD_H__

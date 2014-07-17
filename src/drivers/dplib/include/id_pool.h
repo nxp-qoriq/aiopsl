@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW ID pool interface.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __ID_POOL_H_

@@ -4,7 +4,6 @@
 @Description	This file contains the layer 4 header modification API
 		implementation.
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "general.h"

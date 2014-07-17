@@ -4,7 +4,6 @@
 @Description	This file contains the AIOP SW Frame Operations API
 		implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_fdma.h"

@@ -3,7 +3,6 @@
 
 @Description   This file contains the AIOP SW TMAN definitions
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __AIOP_TMAN_H

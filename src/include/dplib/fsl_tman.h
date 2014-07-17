@@ -3,7 +3,6 @@
 
 @Description   This file contains the AIOP SW TMAN API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_TMAN_H

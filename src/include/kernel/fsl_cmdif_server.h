@@ -1,6 +1,4 @@
 /**************************************************************************//**
-Copyright 2013 Freescale Semiconductor, Inc.
-
 @File          fsl_cmdif_server.h
 
 @Description   AIOP to GPP cmdif API

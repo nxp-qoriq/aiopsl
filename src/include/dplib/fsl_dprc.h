@@ -1,4 +1,3 @@
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    fsl_dprc.h
  *  @brief   Data Path Resource Container API
