@@ -39,6 +39,8 @@ int l4_udp_header_modification(uint8_t flags,
 		if (udp_ptr->checksum == 0) {
 			/* TODO checksum 0.6 API
 			cksum_calc_udp_tcp_checksum(); */
+			/* Modify the segment */
+			fdma_modify_default_segment_data(udp_offset, 8);
 			l4_udp_tcp_cksum_calc(
 				L4_UDP_TCP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA);
 		} else {
