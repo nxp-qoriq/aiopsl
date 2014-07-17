@@ -1,6 +1,25 @@
 @echo off
 
-echo Copyright (c) 2014 Freescale Semiconductor, Inc. All rights reserved.
+echo                   ####
+echo                ##########
+echo             ##########  ....          Freescale Semiconductor Inc.
+echo                ####  ..........       Copyright (c) 2013
+echo                   ..........  ####
+echo                      ....  ##########
+echo                         ##########
+echo                     ....   ####
+echo                  ..........
+echo               ..........  ####
+echo           ####   ....  ##########
+echo        ##########   ##########
+echo     ##########  ....   ####
+echo        ####  ..........
+echo           ..........
+echo       ####   ....
+echo    ##########
+echo ##########
+echo    ####
+
 echo Fetching header files for doxygen:
 
 cd ..\..
