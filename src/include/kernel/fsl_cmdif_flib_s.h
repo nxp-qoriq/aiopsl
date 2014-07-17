@@ -1,3 +1,8 @@
+/*!
+ *  @file    fsl_cmdif_flib_s.h
+ *  @brief   Cmdif AIOP<->GPP FLIB header file for server
+ */
+
 #ifndef __FSL_CMDIF_FLIB_H
 #define __FSL_CMDIF_FLIB_H
 
@@ -5,11 +10,21 @@
 #include <fsl_cmdif_server.h>
 #include <fsl_cmdif_fd.h>
 
-/* Copyright 2013 Freescale Semiconductor, Inc. */
-/*!
- *  @file    fsl_cmdif_flib_s.h
- *  @brief   Cmdif AIOP<->GPP FLIB header file for server
- */
+/**************************************************************************//**
+@Group         cmdif_g  Command Interface API
+
+@Description   AIOP and GPP command interface API
+
+@{
+ *//***************************************************************************/
+
+/**************************************************************************//**
+@Group         cmdif_flib_g  Command Interface - FLIB API
+
+@Description   API to be used for FD based command interface implementation
+
+@{
+ *//***************************************************************************/
 
 #define CMD_ID_NOTIFY_OPEN    0xF000
 /*!< Special command for cmdif_session_open() */
@@ -162,5 +177,8 @@ int cmdif_srv_cmd(void *srv,
 		struct cmdif_fd *cfd,
 		struct cmdif_fd *cfd_out,
 		uint8_t *send_resp);
+
+/** @} *//* end of cmdif_flib_g group */
+/** @} *//* end of cmdif_g group */
 
 #endif /* __FSL_CMDIF_FLIB_H */

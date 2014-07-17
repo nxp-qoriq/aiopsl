@@ -269,9 +269,8 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_CREATE_RPTR_DEC_MTYPE, arg2, arg3, 0,
-	       HWC_ACC_IN_ADDRESS, 0); /* using RPTR DEC because aging would
-	       have removed this entry with DEC if it would arrived on time */
+	/* Not using RPTR DEC because aging is disabled */
+	__stqw(TABLE_RULE_CREATE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -289,14 +288,14 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		 * found in the table. */
 		status = -EIO;
 		break;
+	/* Redirected to exception handler since aging is removed
 	case (TABLE_HW_STATUS_PIEE):
-		/* A rule with the same match description (and aged) is found
+		 * A rule with the same match description (and aged) is found
 		 * in the table. The rule is replaced. Output message is
-		 * valid if command MTYPE is w/o RPTR counter decrement.*/
-		/* TODO this should go to exception path once aging is
-		 * removed */
+		 * valid if command MTYPE is w/o RPTR counter decrement.*
 		status = TABLE_STATUS_SUCCESS;
-		break;
+		break;	
+	*/
 	case (CTLU_HW_STATUS_NORSC):
 		status = -ENOMEM;
 		break;
@@ -354,24 +353,21 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
+	       HWC_ACC_IN_ADDRESS, 0);
 
-	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
-		__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwaccel(acc_id);
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*old_res = hw_old_res.result;
-	} else {
-		__stqw(TABLE_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE, arg2, arg3,
-		       0, HWC_ACC_IN_ADDRESS, 0);
-		__e_hwaccel(acc_id);
-	}
+	/* Accelerator call*/
+	__e_hwaccel(acc_id);
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	switch (status) {
 	case (TABLE_HW_STATUS_SUCCESS):
+		/* Replace occurred */
+		if (old_res)
+			/* STQW optimization is not done here so we do not
+			 * force alignment */
+			*old_res = hw_old_res.result;
 		break;
 	case (TABLE_HW_STATUS_MISS):
 		break;
@@ -427,24 +423,19 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__stqw(TABLE_RULE_REPLACE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
-	if (old_res) { /* Returning result and thus not decrementing RCOUNT */
-		__stqw(TABLE_RULE_REPLACE_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwaccel(acc_id);
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*old_res = hw_old_res.result;
-	} else {
-		__stqw(TABLE_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwaccel(acc_id);
-	}
+	/* Accelerator call */
+	__e_hwaccel(acc_id);
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	switch (status) {
 	case (TABLE_HW_STATUS_SUCCESS):
+		if (old_res)
+			/* STQW optimization is not done here so we do not
+			 * force alignment */
+			*old_res = hw_old_res.result;
 		break;
 	case (TABLE_HW_STATUS_MISS):
 		status = -EIO;
@@ -522,20 +513,26 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 			/* A rule with the same match description is not found
 			 * in the table. */
 			break;
+
+		/* Redirected to exception handler since aging is removed
 		case (CTLU_HW_STATUS_TEMPNOR):
-			/* A rule with the same match description is found and
-			 * rule is aged. */
-			/* TODO this should go to exception path once aging is
-			 * removed */
+			* A rule with the same match description is found and
+			 * rule is aged. *
 			status = TABLE_STATUS_MISS;
 			break;
+		*/
+
+		/* Redirected to exception handler since aging is removed - If
+		aging is enabled once again, please check that it is indeed
+		supported for MFLU, elsewhere it still needs to go to exception
+		path.
 		case (MFLU_HW_STATUS_TEMPNOR):
 			/* A rule with the same match description is found and
-			 * rule is aged. */
-			/* TODO this should go to exception path once aging is
-			 * removed */
+			 * rule is aged. *
 			status = TABLE_STATUS_MISS;
 			break;
+		*/
+
 		default:
 			/* Call fatal error handler */
 			table_exception_handler(__FILE__, __LINE__, status);
@@ -561,24 +558,19 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 	__e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
 	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	__stqw(TABLE_RULE_DELETE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
-	if (result) { /* Returning result and thus not decrementing RCOUNT */
-		__stqw(TABLE_RULE_DELETE_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwaccel(acc_id);
-		/* STQW optimization is not done here so we do not force
-		   alignment */
-		*result = old_res.result;
-	} else {
-		__stqw(TABLE_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE, arg2, arg3, 0,
-		       HWC_ACC_IN_ADDRESS, 0);
-		__e_hwaccel(acc_id);
-	}
+	/* Accelerator call */
+	__e_hwaccel(acc_id);
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	switch (status) {
 	case (TABLE_HW_STATUS_SUCCESS):
+		if (result)
+			/* STQW optimization is not done here so we do not
+			 * force alignment */
+			*result = old_res.result;
 		break;
 	case (TABLE_HW_STATUS_MISS):
 		/* Rule was not found */
