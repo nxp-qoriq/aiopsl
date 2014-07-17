@@ -306,7 +306,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	int32_t	status;
 	struct fdma_amq isolation_attributes;
 	struct ipv4hdr *ipv4_hdr;
-	uint16_t payload_length, ip_header_length, ip_total_length;
+	uint16_t ip_total_length;
 	uint16_t frag_offset, ipv4_offset;
 	uint8_t spid;
 
@@ -326,10 +326,11 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	ipv4_hdr = (struct ipv4hdr *)
 		(ipv4_offset + PRC_GET_SEGMENT_ADDRESS());
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
-		ip_header_length = (uint16_t)
+/*		ip_header_length = (uint16_t)
 		(ipv4_hdr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2;
 		payload_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 			ipv4_offset - ip_header_length;
+*/
 		frag_offset = ipf_ctx->prev_frag_offset;
 	} else {
 		frag_offset = ipf_ctx->prev_frag_offset +
@@ -452,7 +453,6 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	struct fdma_amq isolation_attributes;
 	struct ipv6hdr *ipv6_hdr;
 	struct ipv6fraghdr *ipv6_frag_hdr;
-	uint16_t payload_length;
 	uint16_t ipv6_offset;
 	uint16_t modify_size, frag_offset;
 	uint8_t spid;
@@ -478,10 +478,12 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	/* Update frag offset, M flag=0 */
 
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
+/*
 		payload_length = (uint16_t)
 			LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 			(uint16_t)(ipf_ctx->ipv6_frag_hdr_offset) -
 			IPV6_FRAGMENT_HEADER_LENGTH;
+*/
 		frag_offset = ipf_ctx->prev_frag_offset;
 	} else {
 		frag_offset = ipf_ctx->prev_frag_offset +
