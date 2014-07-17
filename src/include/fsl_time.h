@@ -20,10 +20,11 @@
  @{
 *//***************************************************************************/
 
-typedef uint64_t time_t;
+typedef uint64_t time_t; /**< type of time used in fsl_os_gettimeofday(),
+                              will be removed in future release. */
 
 /* type suseconds_t for microseconds [0,1000000]*/
-typedef uint32_t suseconds_t;
+typedef uint32_t suseconds_t; /**< type of microseconds, will be removed in future release */
 
 
 typedef struct timeval{
@@ -43,8 +44,8 @@ typedef struct timezone {
 @Description  Gets time of day returns the time as the number of seconds and
 	microseconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
 
-@Param[in]  tv - if not null the tv struct is filled
-@Param[in]  tx - obsolete, should be null
+ @Param[out]  tv - if not null, tv struct is filled with seconds since epoch
+ @Param[out]  tz - obsolete, should be null (not supported)
 
 
 @Return   standard POSIX error code
@@ -55,10 +56,11 @@ int fsl_os_gettimeofday(timeval *tv, timezone *tz);
 /**************************************************************************//**
 @Function   fsl_get_time_ms
 
-@Description  returns the time as the number of milliseconds
+ @Description  Function returns the time as the number of milliseconds
 		since midnight (UTC).
 
-@Param[in]  time - if not null the time is filled
+ @Param[out]  time - if not null, time is filled with milliseconds since
+                     midnight UTC.
 
  @Return   standard POSIX error code.
  	 	 For error posix refer to
@@ -73,7 +75,8 @@ int fsl_get_time_ms(uint32_t *time);
 @Description  returns the time as the number of milliseconds since epoch,
 		1970-01-01 00:00:00 +0000 (UTC).
 
-@Param[in]  time - if not null the time is filled
+ @Param[out]  time - if not null, time is filled with milliseconds since
+                     epoch UTC.
 
  @Return   standard POSIX error code.
  	 	 For error posix refer to
