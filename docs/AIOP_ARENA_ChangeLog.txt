@@ -1,3 +1,10 @@
+- dpni_drv.c:        read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- time.c:            read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- platform.c:        read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- kernel\fsl_io_ccsr.h: added to make an envelop to ioread/write's from ccsr using iowrite32_ccsr/ioread32_ccsr defines.
+
+- aiopsl\misc\tools\instruction_trace:  added tool (script and readme) to save instruction trace in to a file.
+
 - fsl_cmdif_server.h  API changes at cmdif_session_open() cmdif_session_close()
 - fsl_spinlock.h      Doxygen update
 - fsl_dbg.h           Doxygen update
