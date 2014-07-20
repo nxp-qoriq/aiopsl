@@ -446,7 +446,7 @@ static int notify_open()
 	}
 	cl->gpp[count].ins_id           = data->inst_id;
 	cl->gpp[count].dev->auth_id     = data->auth_id;
-	cl->gpp[count].dev->p_sync_done = cmd_data_get();
+	cl->gpp[count].dev->p_sync_done = sync_done_get();
 	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
 	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
