@@ -1,6 +1,6 @@
 #include "time.h"
 #include "aiop_common.h"
-#include "fsl_endian.h"
+#include "fsl_io_ccsr.h"
 #include "fsl_sys.h"
 
 __HOT_CODE int _gettime(uint64_t *time)
@@ -16,9 +16,9 @@ __HOT_CODE int _gettime(uint64_t *time)
 		return -ENAVAIL;
 #endif
 
-	TSCRU1 = LOAD_LE32_TO_CPU(&aiop_regs->cmgw_regs.tscru);
-	TSCRL = LOAD_LE32_TO_CPU(&aiop_regs->cmgw_regs.tscrl);
-	if ((TSCRU2=LOAD_LE32_TO_CPU(&aiop_regs->cmgw_regs.tscru)) > TSCRU1 )
+	TSCRU1 = ioread32_ccsr(&aiop_regs->cmgw_regs.tscru);
+	TSCRL = ioread32_ccsr(&aiop_regs->cmgw_regs.tscrl);
+	if ((TSCRU2=ioread32_ccsr(&aiop_regs->cmgw_regs.tscru)) > TSCRU1 )
 		TSCRL = 0;
 	else if(TSCRU2 < TSCRU1) /*something wrong while reading*/
 		return -EACCES;

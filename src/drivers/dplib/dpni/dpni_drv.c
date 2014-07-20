@@ -380,8 +380,8 @@ int dpni_drv_init(void)
 	/* TODO: replace 1024 w/ constant */
 	for (i = DPNI_EPID_START; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table */
-		iowrite32((uint32_t)i, ws_regs->epas; 					// TODO: change to LE
-		iowrite32(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE
+		iowrite32_ccsr((uint32_t)i, ws_regs->epas);	// TODO: change to LE
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE
 	}
 #else
 	/* TODO: temporary code. should be removed. */

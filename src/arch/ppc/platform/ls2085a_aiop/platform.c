@@ -7,7 +7,7 @@
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_smp.h"
-#include "fsl_io.h"
+#include "fsl_io_ccsr.h"
 
 #include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
@@ -352,7 +352,7 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     if (pltfrm == NULL) {
 	    return -EINVAL;
     }
-    
+
     if (aiop_regs == NULL) {
     	return -EFAULT;
     }
@@ -369,7 +369,7 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* special AIOP registers */
 
     /* Workspace Control Register*/
-    WSCR_tasks_bit = LOAD_LE32_TO_CPU(&aiop_regs->cmgw_regs.wscr) & 0x000000ff;
+    WSCR_tasks_bit = ioread32_ccsr(&aiop_regs->cmgw_regs.wscr) & 0x000000ff;
 
     CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
     		                          (WSCR_tasks_bit << 24);
