@@ -13,6 +13,7 @@
 #include "dplib/fsl_dpbp.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "drv.h"
+#include "aiop_common.h"
 #include "system.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
