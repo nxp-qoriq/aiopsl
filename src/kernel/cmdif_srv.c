@@ -16,6 +16,7 @@
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
 #include "cmdif_client_aiop.h"
+#include "fsl_io_ccsr.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
@@ -213,33 +214,33 @@ static int epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 	uint32_t data = 0;
 
-	iowrite32(0, &wrks_addr->epas); /* EPID = 0 reserved for server */
-	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
+	iowrite32_ccsr(0, &wrks_addr->epas); /* EPID = 0 reserved for server */
+	iowrite32_ccsr(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
 
 #ifdef AIOP_STANDALONE
 	/* Default settings */
-	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32(0x00000000, &wrks_addr->ep_spo);
+	iowrite32_ccsr(0x00600040, &wrks_addr->ep_fdpa);
+	iowrite32_ccsr(0x010001c0, &wrks_addr->ep_spa);
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_spo);
 #endif
 	/* no PTA presentation is required (even if there is a PTA)*/
-	iowrite32(0x0000ffc0, &wrks_addr->ep_ptapa);
+	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
 	/* set epid ASA presentation size to 0 */
-	iowrite32(0x00000000, &wrks_addr->ep_asapa);
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits OSRM = 5 */
-	iowrite32(0x11000005, &wrks_addr->ep_osc);
-	data = ioread32(&wrks_addr->ep_osc);
+	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
 	if (data != 0x11000005)
 		return -EINVAL;
 
 	pr_info("CMDIF Server is setting EPID = 0\n");
-	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
-	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
+	pr_info("ep_pc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_osc));
 
 	return 0;
 }

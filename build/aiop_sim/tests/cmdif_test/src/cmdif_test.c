@@ -7,6 +7,7 @@
 #include "platform.h"
 #include "cmdif_srv.h"
 #include "fsl_io.h"
+#include "fsl_io_ccsr.h"
 #include "aiop_common.h"
 
 extern void app_receive_cb (void);
@@ -76,11 +77,11 @@ static void epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 
 	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
-	iowrite32(0, &wrks_addr->epas);
+	iowrite32_ccsr(0, &wrks_addr->epas);
 #ifdef REFLECTOR_DEMO
-	iowrite32((uint32_t)cmdif_srv_isr, &wrks_addr->ep_pc);
+	iowrite32_ccsr((uint32_t)cmdif_srv_isr, &wrks_addr->ep_pc);
 #else
-	iowrite32((uint32_t)app_receive_cb, &wrks_addr->ep_pc);
+	iowrite32_ccsr((uint32_t)app_receive_cb, &wrks_addr->ep_pc);
 #endif
 }
 
