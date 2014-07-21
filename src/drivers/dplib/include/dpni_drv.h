@@ -57,6 +57,14 @@ struct dpni_stats {
 *//***************************************************************************/
 typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
 
+/**************************************************************************//**
+@Function	discard_rx_cb
+
+@Description	Default call back function to discard frame and terminate task.
+
+@Return	None.
+*//***************************************************************************/
+void discard_rx_cb();
 
 /**************************************************************************//**
 @Function	dpni_drv_enable

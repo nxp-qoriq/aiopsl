@@ -1,5 +1,5 @@
 #include "common/fsl_string.h"
-#include "fsl_io.h"
+#include "fsl_io_ccsr.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
 #include "fsl_malloc.h"
@@ -18,6 +18,8 @@ extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
 extern int slab_module_init(void);  extern void slab_module_free(void);
 extern int aiop_sl_init(void);      extern void aiop_sl_free(void);
+extern void discard_rx_cb();
+extern void tman_timer_callback(void);
 
 /* TODO: move to hdr file */
 extern int dpni_drv_probe(struct dprc	*dprc,
@@ -40,6 +42,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                     \
 {                                          \
+    {epid_drv_init,     epid_drv_free},    \
     {mc_obj_init,       mc_obj_free},      \
     {slab_module_init,  slab_module_free}, \
     {cmdif_client_init, cmdif_client_free}, /* must be before srv */\
@@ -60,7 +63,8 @@ int cluster_init(void);
 int run_apps(void);
 void core_ready_for_tasks(void);
 void global_free(void);
-
+int epid_drv_init(void);
+void epid_drv_free(void);
 
 #include "general.h"
 /** Global task params */
@@ -359,4 +363,45 @@ int run_apps(void)
 	}
 
 	return 0;
+}
+
+int epid_drv_init(void)
+{
+	int i;
+
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+		                                   0,
+		                                   E_MAPPED_MEM_TYPE_GEN_REGS)
+		                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+
+	/*TODO: Add cmd interface server epid initialization here*/
+
+	iowrite32_ccsr(EPID_TIMER_EVENT_IDX, &wrks_addr->epas); /* EPID = 1 */
+	iowrite32_ccsr(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
+	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
+
+	pr_info("TMAN is setting EPID = %d\n", EPID_TIMER_EVENT_IDX);
+	pr_info("ep_pc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spo));
+
+
+	/*TODO: Add cmd interface client epid initialization here*/
+
+	/* Initialize EPID-table with discard_rx_cb for all NI's entries (EP_PC field) */
+	for (i = DPNI_EPID_START; i < EPID_TABLE_SIZE; i++) {
+		/* Prepare to write to entry i in EPID table - EPAS reg */
+		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
+
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+	}
+	return 0;
+}
+
+void epid_drv_free(void)
+{
 }

@@ -150,6 +150,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dpmng</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/mc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -446,6 +451,11 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/util</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dpmng/controllers</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -925,6 +935,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/id_pool.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dpmng/controllers/aiop</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/mc/include/fsl_mc_init.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/include/fsl_mc_init.h</locationURI>
@@ -1188,6 +1203,11 @@
 			<name>aiop_sl/drivers/dplib/netf/nat/nat.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/netf/nat/nat.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dpmng/controllers/aiop/aiop_common.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dpmng/controllers/aiop/aiop_common.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
