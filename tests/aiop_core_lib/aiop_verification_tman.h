@@ -56,8 +56,10 @@ enum e_tman_cmd_type {
 #define TMAN_TIMER_DELETE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_DELETE)
 
+#ifdef REV2
 #define TMAN_TIMER_INC_DURATION_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_INC_DURATION)
+#endif
 
 #define TMAN_TIMER_RECHARGE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_RECHARGE)
@@ -113,7 +115,7 @@ struct tman_tmi_delete_command {
 struct tman_tmi_query_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
-	uint8_t		pad[4];
+	uint8_t		pad[12];
 	struct tman_tmi_params tmi_params;
 	int32_t		status;
 	uint8_t		tmi_id;
@@ -153,6 +155,8 @@ struct tman_timer_delete_command {
 	uint32_t	timer_handle;
 };
 
+
+#ifdef REV2
 /**************************************************************************//**
 @Description	TMAN timer increase duration Command structure.
 
@@ -166,6 +170,7 @@ struct tman_timer_increase_duration_command {
 	uint16_t	duration;
 	uint8_t		pad[2];
 };
+#endif
 
 /**************************************************************************//**
 @Description	TMAN timer recharge Command structure.

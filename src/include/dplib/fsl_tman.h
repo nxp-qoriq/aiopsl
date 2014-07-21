@@ -3,6 +3,7 @@
 
 @Description   This file contains the AIOP SW TMAN API
 
+		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_TMAN_H
@@ -47,191 +48,6 @@ typedef uint16_t tman_arg_2B_t;
 typedef void /*__noreturn*/ (*tman_cb_t) (
 					tman_arg_8B_t arg1,
 					tman_arg_2B_t arg2);
-
-/**************************************************************************//**
-@Group		TMANReturnStatus TMAN functions return status
-
-@Description	AIOP TMAN functions return status
-@{
-*//***************************************************************************/
-
-/**************************************************************************//**
- @enum tman_tmi_create_status
-
- @Description	AIOP TMAN create TMI command status codes.
-
- @{
-*//***************************************************************************/
-enum tman_tmi_create_status {
-	/** Success. */
-	TMAN_TMI_CREATE_SUCCESS = E_OK,
-	/** All TMIs are used. A TMI must be deleted before a new one can
-		be created. */
-	TMAN_TMIID_DEPLETION_ERR = 0x814000FF
-};
-
-/* @} end of enum tman_tmi_create_status */
-
-/**************************************************************************//**
- @enum tman_timer_create_status
-
- @Description	AIOP TMAN create timer command status codes.
-
- @{
-*//***************************************************************************/
-enum tman_timer_create_status {
-	/** Success. */
-	TMAN_TMR_CREATE_SUCCESS = E_OK,
-	/** illegal Timer Create Fields Description[DURATION] */
-	TMAN_ILLEGAL_DURATION_VAL_ERR = 0x81400010,
-	/** A non active TMI was provided as an input */
-	TMAN_TMI_NOT_ACTIVE_ERR = 0x81C00010,
-	/** No more available timers in the TMI */
-	TMAN_TMR_DEPLETION_ERR = 0x81C00020
-};
-
-/* @} end of enum tman_timer_create_status */
-
-/**************************************************************************//**
- @enum tman_timer_delete_status
-
- @Description	AIOP TMAN delete timer command status codes.
-
- @{
-*//***************************************************************************/
-enum tman_timer_delete_status {
-	/** Success. */
-	TMAN_DEL_TMR_DELETE_SUCCESS = E_OK,
-	/** A non active timer was provided as an input */
-	TMAN_DEL_TMR_NOT_ACTIVE_ERR = 0x81400050,
-	/** The one shot timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_DEL_CCP_WAIT_ERR = 0x81400051,
-	/** The periodic timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_DEL_PERIODIC_CCP_WAIT_ERR = 0x81400055,
-	/** A delete command was already issued for this timer and the TMAN is
-	 * in the process of deleting the timer. The timer will elapse in the
-	 * future. */
-	TMAN_DEL_TMR_DEL_ISSUED_ERR = 0x81400056,
-	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation
-	 * (done by calling the tman_timer_completion_confirmation function) */
-	TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR = 0x81400057,
-	/** Timer is not deleted due to permanent error */
-	TMAN_DEL_PERMANENT_ERR = 0x81C00010
-};
-
-/* @} end of enum tman_timer_delete_status */
-
-/**************************************************************************//**
- @enum tman_timer_mod_status
-
- @Description	AIOP TMAN increase timer duration command status codes.
-
- @{
-*//***************************************************************************/
-enum tman_timer_mod_status {
-	/** Success. */
-	TMAN_MOD_TMR_SUCCESS = E_OK,
-	/** illegal Timer Create Fields Description[DURATION] */
-	TMAN_MOD_ILLEGAL_DURATION_VAL_ERR = 0x81400010,
-	/** A non active timer was provided as an input */
-	TMAN_MOD_TMR_NOT_ACTIVE_ERR = 0x81400060,
-	/** The one shot timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_MOD_CCP_WAIT_ERR = 0x81400061,
-	/** The periodic timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_MOD_PERIODIC_CCP_WAIT_ERR = 0x81400065,
-	/** A delete command was already issued for this timer and the TMAN is
-	 * in the process of deleting the timer. The timer will elapse in the
-	 * future. */
-	TMAN_MOD_TMR_DEL_ISSUED_ERR = 0x81400066,
-	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation
-	 * (done by calling the tman_timer_completion_confirmation function) */
-	TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR = 0x81400067,
-	/** Timer is not modified due to permanent error */
-	TMAN_MOD_PERMANENT_ERR = 0x81C00010
-};
-
-/* @} end of enum tman_timer_mod_status */
-
-/**************************************************************************//**
- @enum tman_timer_recharge_status
-
- @Description	AIOP TMAN timer recharge command status codes.
-
- @{
-*//***************************************************************************/
-enum tman_timer_recharge_status {
-	/** Success. */
-	TMAN_REC_TMR_SUCCESS = E_OK,
-	/** A non active timer was provided as an input */
-	TMAN_REC_TMR_NOT_ACTIVE_ERR = 0x81400070,
-	/** The one shot timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_REC_CCP_WAIT_ERR = 0x81400071,
-	/** The periodic timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_REC_PERIODIC_CCP_WAIT_ERR = 0x81400075,
-	/** A delete command was already issued for this timer and the TMAN is
-	 * in the process of deleting the timer. The timer will elapse in the
-	 * future. */
-	TMAN_REC_TMR_DEL_ISSUED_ERR = 0x81400076,
-	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation
-	 * (done by calling the tman_timer_completion_confirmation function) */
-	TMAN_REC_TMR_DEL_ISSUED_CONF_ERR = 0x81400077,
-	/** Timer is not recharged due to permanent error */
-	TMAN_REC_PERMANENT_ERR = 0x81C00010
-};
-
-/* @} end of enum tman_timer_recharge_status */
-
-/**************************************************************************//**
- @enum tman_timer_query_status
-
- @Description	AIOP TMAN timer query command status codes.
-
- @{
-*//***************************************************************************/
-enum tman_timer_query_status {
-	/** Success. */
-	TMAN_QUE_TMR_SUCCESS = E_OK,
-	/** A non active timer was provided as an input */
-	TMAN_QUE_TMR_NOT_ACTIVE_ERR = 0x81400080,
-	/** The one shot timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_QUE_CCP_WAIT_ERR = 0x81400081,
-	/** The periodic timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_QUE_PERIODIC_CCP_WAIT_ERR = 0x81400085,
-	/** A delete command was already issued for this timer and the TMAN is
-	 * in the process of deleting the timer. The timer will elapse in the
-	 * future. */
-	TMAN_QUE_TMR_DEL_ISSUED_ERR = 0x81400086,
-	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation
-	 * (done by calling the tman_timer_completion_confirmation function) */
-	TMAN_QUE_TMR_DEL_ISSUED_CONF_ERR = 0x81400087,
-	/** Timer is not queried due to permanent error */
-	TMAN_QUE_PERMANENT_ERR = 0x81C00010
-};
-
-/* @} end of enum tman_timer_query_status */
-
-
-/* @} end of group TMANReturnStatus */
 
 
 /**************************************************************************//**
@@ -297,9 +113,11 @@ struct tman_tmi_params {
 @{
 *//***************************************************************************/
 
+#ifdef REV2
 	/** If set, TMI active timers will be deleted without creating new
 	     expiration tasks. */
 #define TMAN_INS_DELETE_MODE_WO_EXPIRATION 0x1011
+#endif
 	/** If set, TMI active timers should be forced into the expiration
 	     queue although their expiration time was not reached yet. */
 #define TMAN_INS_DELETE_MODE_FORCE_EXP 0x1012
@@ -417,7 +235,10 @@ enum e_tman_query_timer {
 		The size of the allocated memory should be 64*max_num_of_timers
 		bytes. The allocated memory should be 64 byte aligned.\n
 @Param[in]	max_num_of_timers - maximum number of timers associated
-		to this instance.
+		to this instance. This number must be bigger than 4 and smaller
+		than (2^24)-1.
+		This variable should be 3 timers larger than the actual maximum
+		number of timers needed in this TMI.
 @Param[out]	tmi_id - TMAN instance ID (TMI ID).
 
 @Return		Success or Failure (There is no available TMI ID).
@@ -440,6 +261,9 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		(confirmation task).
 		This latter starts running the function represented by the
 		confirmation_epid.
+		All the timer expiration tasks that were already scheduled by
+		the TMAN before this function was called should be confirmed
+		using the function tman_timer_completion_confirmation.
 
 
 @Param[in]	tman_confirm_cb - A callback function used for
@@ -471,6 +295,8 @@ int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 @Param[in,out]	output_ptr  - pointer to a \link tman_tmi_params
 		TMI params structure \endlink
 		where the instance's parameters will be returned.
+		The pointer must be a 16 Bytes aligned pointer to the workspace
+		memory.
 
 @Return		Success or Failure(in case instance_id is not valid)
 
@@ -489,6 +315,8 @@ int tman_query_tmi(uint8_t tmi_id,
 @Param[in]	flags - \link TMANTimerCreateModeBits TMAN timer create
 		flags \endlink
 @Param[in]	duration - Timer duration time (the number of timer ticks).
+		The duration must have a value larger than 10 ticks and smaller
+		than 2^16-10 ticks.
 @Param[in]	opaque_data1 - Data to be associated with to the created task.
 @Param[in]	opaque_data2 - Data to be associated with to the created task.
 @Param[in]	tman_timer_cb - A callback function used for the task created
@@ -524,6 +352,7 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 *//***************************************************************************/
 int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
+#ifdef REV2
 /**************************************************************************//**
 @Function	tman_increase_timer_duration
 
@@ -546,6 +375,7 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 *//***************************************************************************/
 int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
+#endif
 
 /**************************************************************************//**
 @Function	tman_recharge_timer
@@ -605,7 +435,9 @@ void tman_timer_completion_confirmation(uint32_t timer_handle);
 @Return		None.
 
 @Cautions	The TMAN Timestamp cannot be used for time of day as it is not
-		synchronized to the 1588 clock.
+		synchronized to the 1588 clock. The TMAN Timestamp value is
+		counted	from the time TMAN was initialized (set the INIT bit in
+		the TMINIT register).
 
 *//***************************************************************************/
 void tman_get_timestamp(uint64_t *timestamp);

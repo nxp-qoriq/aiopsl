@@ -140,71 +140,24 @@ int aiop_sl_init(void)
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init */
 
-	val = 1;
+	val = 1; /* EPID = 1 */
 	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0xF8);
-	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
-			((val & 0x0000ff00) <<  8) |
-			((val & 0x00ff0000) >>  8) |
-			((val & 0xff000000) >> 24));
+	*addr = val;
 
-	val = (uint32_t)&tman_timer_callback;
+	val = (uint32_t)&tman_timer_callback; /* EP_PC */
 	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x100);
-	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
-			((val & 0x0000ff00) <<  8) |
-			((val & 0x00ff0000) >>  8) |
-			((val & 0xff000000) >> 24));
+	*addr = val;
 
-	val = 0x00600040;
+	val = 0x00600040; /* EP_FDPA */
 	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108);
-	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
-			((val & 0x0000ff00) <<  8) |
-			((val & 0x00ff0000) >>  8) |
-			((val & 0xff000000) >> 24));
+	*addr = val;
 	val = 0x02000000; /*SET NDS bit*/
 	addr = (uint32_t *)(AIOP_WRKS_REGISTERS_OFFSET + 0x118);
-	*addr = (uint32_t)(((val & 0x000000ff) << 24) |
-			((val & 0x0000ff00) <<  8) |
-			((val & 0x00ff0000) >>  8) |
-			((val & 0xff000000) >> 24));
-#if 0 /*TODO - need to delete the above code and enable the bellow if 0
-	when ENGR00310809 will be fixed */
-	/* TODO - need to change the constant below to -
-	 *define EPID_TIMER_EVENT_IDX	1 */
-	__stwbr(1,
-		0,
-		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0xF8)); /* EPID = 1 */
-	__stwbr((unsigned int)&tman_timer_callback,
-		0,
-		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x100)); /* EP_PC */
-	__stwbr(0x00600040,
-		0,
-		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x108)); /* EP_FDPA */
-	__stwbr(0x02000000,
-		0,
-		(void *)(AIOP_WRKS_REGISTERS_OFFSET + 0x118)); /* SET NDS bit*/
-
-	/* End of TMAN EPID Init */
-#endif
-#else
-	/* TMAN EPID Init */
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
-
-	/* TODO - need to change the constant below to -
-	 *define EPID_TIMER_EVENT_IDX	1 */
-	iowrite32(1, &wrks_addr->epas); /* EPID = 1 */
-	iowrite32(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
-	iowrite32(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
-
-	pr_info("TMAN is setting EPID = 1\n");
-	pr_info("ep_pc = 0x%x\n", ioread32(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x\n", ioread32(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x\n", ioread32(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x\n", ioread32(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x\n", ioread32(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x\n", ioread32(&wrks_addr->ep_spo));
+	*addr = val;
 	/* End of TMAN EPID Init */
 #endif
 
+	
 	sys_prpid_pool_create();
 
 #ifdef AIOP_VERIF
