@@ -6,6 +6,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "platform.h"
 #include "fsl_smp.h"
+#include "fsl_io_ccsr.h"
 
 #include "sys.h"
 #include "fsl_dbg.h"
@@ -215,7 +216,7 @@ static void fill_system_parameters()
 	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
 		+ SOC_PERIPH_OFF_AIOP_CMGW \
 		+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
-	uint32_t abrr_val = ioread32(UINT_TO_PTR(reg_base + 0x90));
+	uint32_t abrr_val = ioread32_ccsr(UINT_TO_PTR(reg_base + 0x90));
 	
 	sys.active_cores_mask  = abrr_val;
 	
