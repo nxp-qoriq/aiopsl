@@ -21,17 +21,6 @@
 
 #define CMDIF_TIMEOUT     0x10000000
 
-/** BDI */
-#define BDI_GET \
-((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
-	& ADC_BDI_MASK)
-/** PL_ICID from Additional Dequeue Context */
-#define PL_ICID_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
-/** Get ICID to send response */
-#define ICID_GET \
-	(LH_SWAP(0, &PL_ICID_GET) & ADC_ICID_MASK)
-
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
 					0,                          \
@@ -275,10 +264,18 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		return -EINVAL;
 
 	if (cmdif_is_sync_cmd(cmd_id)) {
+
+		uint64_t p_sync = \
+			((struct cmdif_dev *)cidesc->dev)->p_sync_done;
+
 		do {
+			/* Same as
 			cdma_read(&done,
 			          ((struct cmdif_dev *)cidesc->dev)->p_sync_done,
-			          4);
+			          4); */
+			fdma_dma_data(4, ICID_GET, &done,
+			              p_sync, FDMA_DMA_DA_SYS_TO_WS_BIT);
+
 			t++;
 		} while ((done.resp.done == 0) && (t < CMDIF_TIMEOUT));
 
