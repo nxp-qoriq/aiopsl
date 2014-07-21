@@ -377,6 +377,7 @@ int epid_drv_init(void)
 
 	/*TODO: Add cmd interface server epid initialization here*/
 
+	/* TMAN epid initialization */
 	iowrite32_ccsr(EPID_TIMER_EVENT_IDX, &wrks_addr->epas); /* EPID = 1 */
 	iowrite32_ccsr(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
 	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
