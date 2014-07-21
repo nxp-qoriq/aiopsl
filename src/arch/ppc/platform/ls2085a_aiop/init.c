@@ -7,6 +7,7 @@
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
 #include "sys.h"
+#include "fsl_io_ccsr.h"
 
 __SHRAM uint8_t abcr_lock = 0;
 
@@ -89,9 +90,9 @@ int tile_init(void)
 
     if(aiop_regs) {
         /* ws enable */
-        val = ioread32(&aiop_regs->ws_regs.cfg);
+        val = ioread32_ccsr(&aiop_regs->ws_regs.cfg);
         val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
-        iowrite32(val, &aiop_regs->ws_regs.cfg);
+        iowrite32_ccsr(val, &aiop_regs->ws_regs.cfg);
     }
     else {
     	return -EFAULT;
@@ -136,7 +137,7 @@ int global_post_init(void)
 static inline void config_runtime_stack_overflow_detection(
 		                                    struct aiop_tile_regs * aiop_regs)
 {
-    switch(ioread32(&aiop_regs->cmgw_regs.wscr))
+    switch(ioread32_ccsr(&aiop_regs->cmgw_regs.wscr))
     {
     case 0: /* 1 Task */
     	booke_set_spr_DAC2(0x8000);
@@ -183,7 +184,7 @@ void core_ready_for_tasks(void)
 
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
-    abcr_val = ioread32(abcr);
+    abcr_val = ioread32_ccsr(abcr);
     abcr_val |= (uint32_t)(1 << core_get_id());
     iowrite32(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
