@@ -361,6 +361,7 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	pr_debug("err = %d\n", err);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	pr_debug("sync_resp = 0x%x\n", resp);
+	pr_debug("icid = 0x%x\n", ICID_GET);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
@@ -373,7 +374,9 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
-		cdma_write(_sync_done, &resp, 4);
+		/* Same as cdma_write(_sync_done, &resp, 4); */
+		fdma_dma_data(4, ICID_GET, &resp,
+		              _sync_done, FDMA_DMA_DA_WS_TO_SYS_BIT);
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n",
