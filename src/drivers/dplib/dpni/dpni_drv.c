@@ -24,7 +24,7 @@ void dpni_drv_free(void);
 __SHRAM struct dpni_drv *nis;
 __SHRAM int num_of_nis;
 
-static void discard_rx_cb()
+void discard_rx_cb()
 {
 
 	pr_debug("Packet discarded by discard_rx_cb.\n");
@@ -327,9 +327,6 @@ static int parser_profile_init(uint8_t *prpid)
 
 int dpni_drv_init(void)
 {
-#ifndef AIOP_STANDALONE
-	uintptr_t	wrks_addr;
-#endif
 	int		    i;
 	int         error = 0;
 	uint8_t prpid = 0;
@@ -368,44 +365,6 @@ int dpni_drv_init(void)
 		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)
 			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
 	}
-
-#ifndef AIOP_STANDALONE
-	/* Initialize EPID-table with discard_rx_cb for all entries (EP_PC field) */
-#if 0
-	/* TODO: following code can not currently compile on AIOP, need to port over  MC definitions */
-	aiop_tile_regs = (struct aiop_tile_regs *)sys_get_memory_mapped_module_base(FSL_OS_MOD_AIOP,
-	                                                     0,
-	                                                     E_MAPPED_MEM_TYPE_GEN_REGS);
-	ws_regs = &aiop_tile_regs->ws_regs;
-	/* TODO: replace 1024 w/ constant */
-	for (i = DPNI_EPID_START; i < 1024; i++) {
-		/* Prepare to write to entry i in EPID table */
-		iowrite32_ccsr((uint32_t)i, ws_regs->epas);	// TODO: change to LE
-		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE
-	}
-#else
-	/* TODO: temporary code. should be removed. */
-	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
-	             SOC_PERIPH_OFF_AIOP_WRKS);
-
-
-	/* TODO: replace 1024 w/ constant */
-	for (i = DPNI_EPID_START; i < 1024; i++) {
-		/* Prepare to write to entry i in EPID table - EPAS reg */
-		iowrite32_ccsr((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
-
-		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
-
-#if 0
-		/* TODO : this is a temporary assignment for testing purposes, until MC initialization of EPID table will be operational. */
-		iowrite32_ccsr((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
-#endif
-	}
-#endif
-#endif
-
-
-
 	return error;
 }
 

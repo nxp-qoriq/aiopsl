@@ -539,7 +539,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 	struct slab_module_info *slab_m = \
 		sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
-	if ((slab_info != NULL) && (slab_m != NULL)) {
+	if ((slab_info != NULL) && (slab_m != NULL) && SLAB_IS_HW_POOL(slab)) {
 		if (vpool_read_pool(SLAB_VP_POOL_GET(slab),
 				&slab_info->pool_id,
 				&temp,
