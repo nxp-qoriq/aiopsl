@@ -190,7 +190,7 @@ void core_ready_for_tasks(void)
     lock_spinlock(&abcr_lock);
     abcr_val = ioread32_ccsr(abcr);
     abcr_val |= (uint32_t)(1 << core_get_id());
-    iowrite32(abcr_val, abcr);
+    iowrite32_ccsr(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
 
 #if (STACK_OVERFLOW_DETECTION == 1)
