@@ -1,3 +1,4 @@
+- slab.c:            Fixed ENGR00312975 slab_debug_info_get() command should estimate the slab whether is valid
 - cmdif_client.c:    read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
 - cmdif_srv.c:       read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
 - dpni_drv.c:        read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
