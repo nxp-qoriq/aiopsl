@@ -3,7 +3,6 @@
 
 @Description   This file contains the AIOP SW Parser API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __PARSER_H

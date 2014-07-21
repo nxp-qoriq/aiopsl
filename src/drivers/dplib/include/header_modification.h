@@ -3,8 +3,6 @@
 
 @Description	This file contains the AIOP Header Modification internal API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
-
 *//***************************************************************************/
 
 #ifndef __HEADER_MODIFICATION_H

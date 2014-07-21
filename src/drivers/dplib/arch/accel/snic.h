@@ -3,7 +3,6 @@
 
 @Description   This file contains the snic include file.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __SNIC_H

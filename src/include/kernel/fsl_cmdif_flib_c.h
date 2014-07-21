@@ -1,3 +1,8 @@
+/*!
+ *  @file    fsl_cmdif_flib_c.h
+ *  @brief   Cmdif AIOP<->GPP FLIB header file fro client
+ */
+
 #ifndef __FSL_CMDIF_FLIB_C_H
 #define __FSL_CMDIF_FLIB_C_H
 
@@ -5,11 +10,21 @@
 #include <fsl_cmdif_client.h>
 #include <fsl_cmdif_fd.h>
 
-/* Copyright 2013 Freescale Semiconductor, Inc. */
-/*!
- *  @file    fsl_cmdif_flib_c.h
- *  @brief   Cmdif AIOP<->GPP FLIB header file fro client
- */
+/**************************************************************************//**
+@Group         cmdif_g  Command Interface API
+
+@Description   AIOP and GPP command interface API
+
+@{
+ *//***************************************************************************/
+
+/**************************************************************************//**
+@Group         cmdif_flib_g  Command Interface - FLIB API
+
+@Description   API to be used for FD based command interface implementation
+
+@{
+ *//***************************************************************************/
 
 /**
  *
@@ -158,5 +173,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
  */
 int cmdif_async_cb(struct cmdif_fd *fd);
 
+/** @} *//* end of cmdif_flib_g group */
+/** @} *//* end of cmdif_g group */
 
 #endif /* __FSL_CMDIF_FLIB_H */

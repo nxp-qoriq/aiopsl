@@ -7,6 +7,7 @@
 #include "sys.h"
 #include "fsl_dbg.h"
 #include "cmdif_client_aiop.h"
+#include "cmdif.h"
 #include "fsl_cmdif_fd.h"
 #include "fsl_cmdif_flib_c.h"
 #include "dplib/fsl_dprc.h"
@@ -16,6 +17,7 @@
 #include "fsl_general.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_spinlock.h"
+#include "fsl_io_ccsr.h"
 
 #define CMDIF_TIMEOUT     0x10000000
 
@@ -51,31 +53,33 @@ static int epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 	uint32_t data = 0;
 
-	iowrite32(CMDIF_EPID, &wrks_addr->epas); /* EPID = 2 */
-	iowrite32(PTR_TO_UINT(cmdif_cl_isr), &wrks_addr->ep_pc);
+	iowrite32_ccsr(CMDIF_EPID, &wrks_addr->epas); /* EPID = 2 */
+	iowrite32_ccsr(PTR_TO_UINT(cmdif_cl_isr), &wrks_addr->ep_pc);
 
 #ifdef AIOP_STANDALONE
 	/* Default settings */
-	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
-	iowrite32(0x00020300, &wrks_addr->ep_asapa);
-	iowrite32(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32(0x00000000, &wrks_addr->ep_spo);
+	iowrite32_ccsr(0x00600040, &wrks_addr->ep_fdpa);
+	iowrite32_ccsr(0x010001c0, &wrks_addr->ep_spa);
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_spo);
 #endif
+	/* no PTA presentation is required (even if there is a PTA)*/
+	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
+	/* set epid ASA presentation size to 0 */
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits OSRM = 5 */
-	iowrite32(0x11000005, &wrks_addr->ep_osc);
-	data = ioread32(&wrks_addr->ep_osc);
+	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
 	if (data != 0x11000005)
 		return -EINVAL;
 
 	pr_info("CMDIF Client is setting EPID = %d\n", CMDIF_EPID);
-	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
-	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
+	pr_info("ep_pc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_osc));
 
 	return 0;
 }
@@ -124,11 +128,17 @@ __HOT_CODE static int session_get(const char *m_name,
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
+	/* TODO place it under debug ? */
+	if (cl == NULL) {
+		return -ENODEV;
+	}
+
 	/* TODO if sync mode is supported
 	 * Sharing the same auth_id will require management of opened or not
 	 * there won't be 2 cidesc with same auth_id because
 	 * the same sync buffer is going to be used for 2 cidesc
-	 * but as for today we don't suppot sync on AIOP client */
+	 * but as for today we don't support sync on AIOP client
+	 * that's why it is working */
 	lock_spinlock(&cl->lock);
 	for (i = 0; i < cl->count; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&
@@ -202,14 +212,14 @@ void cmdif_client_free()
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
-	if (cl != NULL)
+	if (cl != NULL) {
+		for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+			if (cl->gpp[i].regs != NULL)
+				fsl_os_xfree(cl->gpp[i].regs);
+			if (cl->gpp[i].dev != NULL)
+				fsl_os_xfree(cl->gpp[i].dev);
+		}
 		fsl_os_xfree(cl);
-
-	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if (cl->gpp[i].regs != NULL)
-			fsl_os_xfree(cl->gpp[i].regs);
-		if (cl->gpp[i].dev != NULL)
-			fsl_os_xfree(cl->gpp[i].dev);
 	}
 
 }
@@ -280,7 +290,7 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 			return done.resp.err;
 	}
 
-	pr_debug("PASSED no response cmd 0x%x \n", cmd_id);
+	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);
 	return 0;
 }
 
@@ -296,13 +306,15 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
-	pr_debug("PASSED async cmd 0x%x\n", fd.u_flc.cmd.cmid);
-
 	err = cmdif_async_cb(&fd);
 	if (err) {
 		pr_debug("Async callback cmd 0x%x returned error %d", \
 		         fd.u_flc.cmd.cmid, err);
 	}
+
+	pr_debug("PASSED got async response for cmd 0x%x\n", \
+	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
+
 	fdma_store_default_frame_data();
 	fdma_terminate_task();
 }

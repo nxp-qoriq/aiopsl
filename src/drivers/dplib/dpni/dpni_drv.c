@@ -3,7 +3,7 @@
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_malloc.h"
-#include "fsl_io.h"
+#include "fsl_io_ccsr.h"
 #include "dplib/fsl_dpni.h"
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
@@ -119,17 +119,17 @@ int dpni_drv_probe(struct dprc	*dprc,
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
 	for (i = DPNI_EPID_START; i < 1024; i++) {
 		/* Prepare to read from entry i in EPID table - EPAS reg */
-		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
+		iowrite32_ccsr((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
-		j = ioread32(UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
+		j = ioread32_ccsr(UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
 		pr_debug("EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
 
 			/* Replace MC NI ID with AIOP NI ID */
-			iowrite32(aiop_niid, UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
+			iowrite32_ccsr(aiop_niid, UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
 
 #if 0
 			/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
@@ -214,7 +214,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* TODO: need to initialize additional NI table fields according to DPNI attributes */
 
 			/* Replace discard callback with receive callback */
-			iowrite32(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
+			iowrite32_ccsr(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
 			num_of_nis ++;
 			return 0;
 		}
@@ -332,7 +332,7 @@ int dpni_drv_init(void)
 #endif
 	int		    i;
 	int         error = 0;
-	uint8_t prpid;
+	uint8_t prpid = 0;
 
 
 	num_of_nis = 0;
@@ -380,8 +380,8 @@ int dpni_drv_init(void)
 	/* TODO: replace 1024 w/ constant */
 	for (i = DPNI_EPID_START; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table */
-		iowrite32((uint32_t)i, ws_regs->epas; 					// TODO: change to LE
-		iowrite32(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE
+		iowrite32_ccsr((uint32_t)i, ws_regs->epas);	// TODO: change to LE
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), ws_regs->ep_pc); 	// TODO: change to LE
 	}
 #else
 	/* TODO: temporary code. should be removed. */
@@ -392,13 +392,13 @@ int dpni_drv_init(void)
 	/* TODO: replace 1024 w/ constant */
 	for (i = DPNI_EPID_START; i < 1024; i++) {
 		/* Prepare to write to entry i in EPID table - EPAS reg */
-		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
+		iowrite32_ccsr((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
 
-		iowrite32(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
 
 #if 0
 		/* TODO : this is a temporary assignment for testing purposes, until MC initialization of EPID table will be operational. */
-		iowrite32((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
+		iowrite32_ccsr((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x104));
 #endif
 	}
 #endif

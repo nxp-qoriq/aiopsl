@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW IP Reassembly implementation.
 
-		Copyright 2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 

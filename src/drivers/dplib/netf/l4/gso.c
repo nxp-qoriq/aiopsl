@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW TCP GSO API implementation
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_gso.h"

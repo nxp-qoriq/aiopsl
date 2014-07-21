@@ -4,7 +4,6 @@
 @Description	This file contains the layer 2 header modification API
 		implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_parser.h"

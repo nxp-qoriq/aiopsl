@@ -4,7 +4,6 @@
 @Description	This file contains the ip header modification API
 		implementation.
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "general.h"
@@ -325,7 +324,6 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 			- PRC_GET_SEGMENT_ADDRESS());
 	uint32_t old_val, new_val, ut;
 	uint16_t fdma_size;
-	struct timeval tv = {0,0};
 	uint32_t *ts_ptr;
 
 	if (length < 4)
@@ -357,8 +355,7 @@ int ipv4_ts_opt_modification(struct ipv4hdr *ipv4_hdr, uint8_t *ip_opt_ptr,
 	}
 	else
 	{
-		fsl_os_gettimeofday(&tv, NULL);
-		ut = (uint32_t)((tv.tv_sec % 86400) * 1000 + tv.tv_usec/1000);
+		fsl_get_time_ms(&ut);
 		ts_ptr = (uint32_t *)(ip_opt_ptr + ptr_next_ts - 1);
 		switch (TS_OPT_GET_FLAG())
 		{
