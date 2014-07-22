@@ -299,11 +299,11 @@ __HOT_CODE void cmdif_cl_isr(void)
 	struct cmdif_fd fd;
 
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	fd.u_addr.d_addr = (uint64_t)PRC_GET_SEGMENT_ADDRESS(); /* Same as srv*/
+	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
-	err = cmdif_async_cb(&fd);
+	err = cmdif_async_cb(&fd, (void *)PRC_GET_SEGMENT_ADDRESS());
 	if (err) {
 		pr_debug("Async callback cmd 0x%x returned error %d", \
 		         fd.u_flc.cmd.cmid, err);

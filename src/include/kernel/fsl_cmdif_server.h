@@ -60,7 +60,9 @@ User provides this function. Driver invokes it for all runtime commands
 @Param[in]	dev -  A handle of the device which was returned after
 		module open callback
 @Param[in]	cmd -  Id of command
-@Param[in]	size - Size of the data
+@Param[in]	size - Size of the data.
+		On the AIOP side use PRC_GET_SEGMENT_LENGTH() to determine the
+		size of presented data.
 @Param[in]	data - Data of the command - physical address.
 		AIOP server will pass here address to the start of presentation
 		segment - physical address is the same as virtual.

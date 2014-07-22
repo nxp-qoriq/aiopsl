@@ -82,8 +82,12 @@ that had been sent through cidesc.
 @Param[in]	async_ctx   User context that was setup during cmdif_open()
 @Param[in]	err         Error as returned by server
 @Param[in]	cmd_id      Id of command
-@Param[in]	size        Size of the data
-@Param[in]	data        Data of the command
+@Param[in]	size        Size of the data.
+		On the AIOP side use PRC_GET_SEGMENT_LENGTH() to determine the
+		size of presented data.
+@Param[in]	data        Data of the command.
+		On the AIOP side it is the pointer to segment presentation
+		address; use fdma_modify_default_segment_data() if needed.
 
 
 @Return		OK on success; error code, otherwise.
