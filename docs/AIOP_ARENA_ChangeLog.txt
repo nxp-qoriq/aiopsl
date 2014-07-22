@@ -1,4 +1,5 @@
-- cmdif_client.c:     Pass PRC_GET_SEGMENT_ADDRESS to cmdif_cb_t, same as for AIOP server.
+- init.c:            Adding epid_drv_init module to initialize epid table for tman, cmd-intr, nis.
+- cmdif_client.c:    Pass PRC_GET_SEGMENT_ADDRESS to cmdif_cb_t, same as for AIOP server.
 - aiop_common.h:     enum for epid table was added.
 
 
