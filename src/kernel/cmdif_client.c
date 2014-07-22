@@ -299,7 +299,7 @@ __HOT_CODE void cmdif_cl_isr(void)
 	struct cmdif_fd fd;
 
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	fd.u_addr.d_addr = (uint64_t)PRC_GET_SEGMENT_ADDRESS(); /* Same as srv*/
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
