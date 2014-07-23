@@ -23,6 +23,7 @@
 #pragma function_align 256 /* IVPR must be aligned to 256 bytes */
 
 void booke_init_interrupt_vector(void);
+void booke_generic_exception_isr(uint32_t intr_entry);
 
 /*****************************************************************/
 /* routine:       booke_generic_irq_init                         */
