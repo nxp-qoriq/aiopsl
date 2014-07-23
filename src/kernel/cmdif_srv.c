@@ -209,42 +209,6 @@ int cmdif_unregister_module(const char *m_name)
 	return cmdif_srv_unregister(srv, m_name);
 }
 
-static int epid_setup()
-{
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
-	uint32_t data = 0;
-
-	iowrite32_ccsr(0, &wrks_addr->epas); /* EPID = 0 reserved for server */
-	iowrite32_ccsr(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
-
-#ifdef AIOP_STANDALONE
-	/* Default settings */
-	iowrite32_ccsr(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32_ccsr(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32_ccsr(0x00000000, &wrks_addr->ep_spo);
-#endif
-	/* no PTA presentation is required (even if there is a PTA)*/
-	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
-	/* set epid ASA presentation size to 0 */
-	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
-	/* Set mask for hash to 16 low bits OSRM = 5 */
-	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
-	data = ioread32_ccsr(&wrks_addr->ep_osc);
-	if (data != 0x11000005)
-		return -EINVAL;
-
-	pr_info("CMDIF Server is setting EPID = 0\n");
-	pr_info("ep_pc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spo));
-	pr_info("ep_osc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_osc));
-
-	return 0;
-}
-
 static void *fast_malloc(int size)
 {
 	return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);
@@ -269,12 +233,6 @@ int cmdif_srv_init(void)
 
 	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV))
 		return -ENODEV;
-
-	err = epid_setup();
-	if (err) {
-		pr_err("EPID 0 is not setup correctly \n");
-		return err;
-	}
 
 	srv_aiop = fast_malloc(sizeof(struct cmdif_srv_aiop));
 	srv = cmdif_srv_allocate(fast_malloc, slow_malloc);
