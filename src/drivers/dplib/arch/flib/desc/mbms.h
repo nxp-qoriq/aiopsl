@@ -1,4 +1,3 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __DESC_MBMS_H__
 #define __DESC_MBMS_H__

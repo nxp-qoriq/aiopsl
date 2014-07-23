@@ -28,6 +28,7 @@ extern int malloc_test();
 extern int slab_test();
 extern int random_init();
 extern int random_test();
+extern int memory_test();
 
 extern __SHRAM struct slab *slab_peb;
 extern __SHRAM struct slab *slab_ddr;
@@ -35,7 +36,7 @@ extern __SHRAM int rnd_ctr;
 extern __SHRAM int num_of_cores;
 extern __SHRAM uint8_t rnd_lock;
 extern __SHRAM int random_test_flag;
-
+extern __TASK uint32_t	seed_32bit;
 __SHRAM uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
 __SHRAM uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
 __SHRAM uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
@@ -54,8 +55,9 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	int core_id;
 	char *eth_ptr;
 
-	timeval tv;
 
+	uint64_t time_ms_since_epoch = 0;
+	uint32_t time_ms = 0;
 	time_t local_time;
 	uint8_t local_packet_number;
 	int local_test_error = 0;
@@ -65,7 +67,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	packet_number++;
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
-
+	fsl_os_print("seed %x\n",seed_32bit);
 	err = slab_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
@@ -82,6 +84,15 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Malloc test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
 		local_test_error |= err;
 	}
+	
+	err = memory_test();
+
+	if (err) {
+			fsl_os_print("ERROR = %d: memory_test failed in runtime phase \n", err);
+		} else {
+			fsl_os_print("Memory  test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
+			local_test_error |= err;
+		}
 
 	if(random_test_flag == 0)
 	{
@@ -153,14 +164,20 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 
 
-	err = fsl_os_gettimeofday(&tv,NULL);
+
+	err = fsl_get_time_ms(&time_ms);
+	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
+
 	if(err){
 		fsl_os_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
 	}else {
-		fsl_os_print("timeofday is: %ll seconds and: %l microseconds \n",tv.tv_sec, tv.tv_usec);
 
-		local_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+		fsl_os_print("time ms is: %d milliseconds \n",time_ms);
+		fsl_os_print("time since epoch is: %ll milliseconds\n",time_ms_since_epoch);
+
+
+		local_time = time_ms_since_epoch;
 		lock_spinlock(&time_lock);
 		if(local_time > global_time)
 		{
@@ -221,7 +238,7 @@ int app_init(void)
 	dma_addr_t buff = 0;
 
 
-	fsl_os_print("Running app_init()\n");
+	fsl_os_print("Running AIOP arena app_init()\n");
 
 	/* This is temporal WA for stand alone demo only */
 	epid_setup();
@@ -254,11 +271,22 @@ int app_init(void)
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_init failed  in init phase()\n", err);
 	}
+	else
+		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
+	err = memory_test();
+
+	if (err) {
+		fsl_os_print("ERROR = %d: memory_test failed in init phase()\n", err);
+	}
+	else
+		fsl_os_print("memory_test succeeded  in init phase()\n", err);
+
 	err = malloc_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
 	}
-
+	else
+		fsl_os_print("malloc_test succeeded  in init phase()\n", err);
 	err = random_init();
 	if (err) {
 		fsl_os_print("ERROR = %d: random_test failed in init phase()\n", err);

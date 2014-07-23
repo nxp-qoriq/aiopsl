@@ -215,12 +215,6 @@ uint64_t booke_get_time_base_time(void);
 
 void booke_generic_irq_init(void);
 
-int booke_set_intr(int ppc_intr_src,
-                   void (*isr)(void *arg),
-                   void *arg);
-
-int booke_clear_intr(int ppc_intr_src);
-
 /**************************************************************************//**
  @Function      booke_generic_isr
 

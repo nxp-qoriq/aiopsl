@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW general checksum functions.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "checksum.h"
 #include "general.h"

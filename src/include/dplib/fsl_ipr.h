@@ -3,7 +3,6 @@
 
 @Description   This file contains the AIOP SW IP Reassembly API
 
-	       Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_IPR_H
@@ -355,8 +354,10 @@ struct extended_stats_cntrs {
 @Description	Creates an IPR instance.\n
 
 @Param[in]	ipr_params_ptr - pointer to IPR params structure \ref ipr_params
+		This pointer should points within workspace.
 @Param[out]	ipr_instance_ptr - Pointer to the IPR Instance handle to be used
 		by the caller to invoke IP reassembly functions.
+		This pointer should points within workspace.
 
 
 @Return		Success or Failure.\n
@@ -531,7 +532,8 @@ void ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
 @Param[in]	flags - \link FSL_IPRStatsFlags flags \endlink
 @Param[out]	reass_frm_cntr - The number of IPv4/IPv6 reassembled frames
 		for this instance.
-
+		This pointer should points within workspace.
+		
 @Return		None
 
 @Cautions	None.

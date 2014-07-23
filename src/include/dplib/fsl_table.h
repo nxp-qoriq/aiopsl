@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP Software Table API
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_TABLE_H
@@ -45,13 +44,11 @@
 	- Type field (Exact Match, Longest Prefix Match, etc..)
 	- Location (External/PEB/Internal) field
 	- Miss result options field
-	- Aging Threshold field
 
 	For more details of each one of the sub fields, please refer to:
 	- \ref FSL_TABLE_ATTRIBUTE_TYPE
 	- \ref FSL_TABLE_ATTRIBUTE_LOCATION
 	- \ref FSL_TABLE_ATTRIBUTE_MR
-	- \ref FSL_TABLE_ATTRIBUTE_AGT
 @{
 *//***************************************************************************/
 
@@ -150,41 +147,6 @@
 
 /** @} */ /* end of FSL_TABLE_ATTRIBUTE_MR */
 
-
-/**************************************************************************//**
-@Group	FSL_TABLE_ATTRIBUTE_AGT Table Aging Threshold Attribute
-
-@Description	Table Aging Threshold
-
-	These macros specifies Aging Threshold attribute mask and and offset of
-	the sub field.
-	Aging Threshold is used for removal of aged rules in the table.
-	This feature is only enabled to table rules in which
-	TABLE_RULE_TIMESTAMP_AGT_ENABLE is enabled in rule[options].
-	If enabled, and Current timestamp - rule[timestamp] > 2^AGT (where AGT
-	is the value configured in this sub field ) the aging
-	function removes the lookup table rule from the lookup table.
-	The units in which timestamp is measured are determined according to
-	CTLU IOP_CTLU_TIMESTAMP_WINDOW register configuration.
-	The sub field is specified by TABLE_ATTRIBUTE_AGT_MASK and
-	\ref TABLE_ATTRIBUTE_AGT_OFFSET (The mask determines the size and
-	position of the field).
-	NOTE: This field must be cleared unless \ref
-	FSL_TABLE_ATTRIBUTE_TYPE is set to TBL_ATTRIBUTE_TYPE_EM
-	(i.e. This field can only be used in exact match tables).
-
-@Cautions	This feature is currently only available for CTLU Table
-		Accelerator.
-@{
-*//***************************************************************************/
-	/** Aging Threshold Mask */
-#define TABLE_ATTRIBUTE_AGT_MASK	0x001F
-
-	/** Aging Threshold field offset */
-#define TABLE_ATTRIBUTE_AGT_OFFSET	0
-
-/** @} */ /* end of FSL_TABLE_ATTRIBUTE_AGT */
-
 /** @} */ /* end of FSL_TABLE_ATTRIBUTES */
 
 
@@ -224,37 +186,16 @@
 
 @{
 *//***************************************************************************/
-	/* Timestamp, aging and aged rule removal per rule are disabled.
-	Rule's timestamp field is cleared. */
 
-	/** Timestamp is disabled for this rule*/
+	/** Timestamp is disabled for this rule.
+	Rule's timestamp field is cleared. */
 #define	TABLE_RULE_TIMESTAMP_NONE	0x00
 
-
-	/* Enables timestamp update and aging per rule. Aged rule removal per
-	rule is disabled.
+	/** Enables timestamp update per rule.
 	Initial value of Rule's timestamp field is set when the rule is created
-	or replaced.
-	The rule's timestamp field is updated to the current timestamp when
-	the rule is matched during lookup command.
-	Aging */
-
-	/** Enables timestamp update per rule. */
+	or replaced. The rule's timestamp field is updated to the current
+	timestamp when the rule is matched during lookup command.*/
 #define	TABLE_RULE_TIMESTAMP_ENABLE	0x80
-
-	/* Enables timestamp, aging, and auto aged rule removal per rule.
-	Aging is described in \ref FSL_TABLE_ATTRIBUTE_AGT.
-	NOTE: This option is not supported for Rev1.
-	NOTE: This option must not be used unless at table creation
-	\ref FSL_TABLE_ATTRIBUTE_TYPE was set to TABLE_ATTRIBUTE_TYPE_EM.
-	(i.e. this options is available only in exact match tables). */
-
-	/** Enables timestamp update per rule and aging.
-	 * Aging is described in \ref FSL_TABLE_ATTRIBUTE_AGT.
-	 * NOTE: This option must not be used unless at table creation
-	 * \ref FSL_TABLE_ATTRIBUTE_TYPE was set to TABLE_ATTRIBUTE_TYPE_EM.
-	 * (i.e. this options is available only in exact match tables). */
-#define TABLE_RULE_TIMESTAMP_AGT_ENABLE	0xC0
 
 /** @} *//* end of FSL_TABLE_RULE_OPTIONS_TIMESTAMP */
 
@@ -419,8 +360,8 @@ union table_result_op0_refptr_clp {
 
 	/** Reference Pointer
 	A pointer to Slab/CDMA acquired buffer (which has reference counter).
-	The Table Hardware can increment or decrement the reference counter of
-	the Slab/CDMA buffer on certain operations (please refer to \link
+	The Table Hardware can increment the reference counter of the
+	Slab/CDMA buffer on certain operations (please refer to \link
 	FSL_TABLE_Functions Table functions documentation\endlink).\n
 	Returned as part of lookup result. */
 	uint64_t reference_pointer;
@@ -916,9 +857,8 @@ int table_create(enum table_hw_accel_id acc_id,
 @Param[in]	new_miss_result - A default result that is chosen when no match
 		is found.
 @Param[in, out]	old_miss_result - The replaced miss result. If null the old
-		miss result will not be returned and the old result reference
-		counter will be decremented (if exists). If not null structure
-		should be allocated by the caller to this function.
+		miss result will not be returned. If not null, structure should
+		be allocated by the caller to this function.
 
 @Return		None.
 
@@ -991,9 +931,10 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 @Function	table_delete
 
 @Description	Deletes a specified table.
-		\n \n After a table is deleted, all reference counters (if
-		exist) related to the application contexts pointed by the table
-		results will be decremented.
+		\n \n When the function returns the table is logically deleted.
+		It is not guaranteed that all the memory associated with
+		the table is released when the function returns, as the process
+		of releasing the memory may take some time.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1002,6 +943,9 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 @Return		None.
 
 @Cautions	In this function the task yields.
+@Cautions	If the table contains table_result of type \ref
+		TABLE_RESULT_TYPE_REFERENCE the table should be empty when this
+		function is called.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_delete(enum table_hw_accel_id acc_id,
@@ -1021,7 +965,9 @@ void table_delete(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	rule - The rule to be added. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1055,7 +1001,9 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added. Must be aligned to 16B boundary.
+@Param[in]	rule - The rule to be added. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1063,8 +1011,7 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	old_res - The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
-		will not be returned and its reference counter will be
-		decremented (if exists). If not null structure should be
+		will not be returned. If not null, structure should be
 		allocated by the caller to this function.
 
 @Return		0 or positive value on success. Negative value on error.
@@ -1097,16 +1044,17 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Param[in]	table_id - Table ID.
 @Param[in]	rule - Table rule, contains the rule's key descriptor, with
 		which the rule to be replaced will be found and contain the
-		rule result to be replaced. Must be aligned to 16B boundary.
+		rule result to be replaced. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	old_res - The result of the replaced rule. If null the replaced
-		rule's result will not be returned and its reference counter
-		will be decremented (if exists). If not null structure should
-		be allocated by the caller to this function.
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
 
 @Return		0 on success or negative value on error.
 
@@ -1137,8 +1085,9 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Key Descriptor of the rule to be queried. Must be
-		aligned to 16B boundary.
+@Param[in]	key_desc - Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
@@ -1160,8 +1109,7 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 @Cautions	NOTE: If the result is of type that contains pointer to
 		Slab/CDMA buffer (refer to struct table_rule_result
 		documentation) this function will not increment the reference
-		counter of the buffer. For query functions that does increment
-		the reference counter please refer to table lookup function.
+		counter of the buffer.
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
@@ -1181,17 +1129,17 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Key Descriptor of the rule to be queried. Must be
-		aligned to 16B boundary.
+@Param[in]	key_desc - Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 		In a case of MFLU table, size should include the priority field.
 @Param[in, out]	result - The result of the deleted rule. If null the deleted
-		rule's result will not be returned and its reference counter
-		will be decremented (if exists). If not null structure should
-		be allocated by the caller to this function.
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
 
 @Return		0 on success or negative value on error.
 
@@ -1200,8 +1148,8 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 		in the table.
 
 @Cautions	The key descriptor must be the exact same key descriptor that
-		was used for the rule creation (not including
-		reserved/priority fields).
+		was used for the rule creation (not including reserved/priority
+		fields).
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
@@ -1223,24 +1171,25 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 @Description	Performs a lookup with a key built by the user.
 		\n \n If opaque0_or_reference result field is a reference
 		pointer, its reference counter will be incremented during this
-		operation. user should decrement the Slab/CDMA buffer reference
-		counter after usage.
+		operation.
 
 		This function updates the matched result timestamp.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Lookup Key Descriptor of the rule to be queried.
-		Must be aligned to 16B boundary.
+@Param[in]	key_desc - Lookup Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
 @Param[in]	key_size - Key size in bytes.
 		In a case of LPM table:
 		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 		In a case of MFLU table, size should include the priority field.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written. Must be aligned to 16B
-		boundary.
+		the table lookup result will be written. The structure pointed
+		by this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss.
 
@@ -1275,8 +1224,6 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 		(which has a reference counter) and the lookup result type
 		\ref TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
 		will be incremented during this operation.
-		user should decrement the Slab/CDMA buffer reference counter
-		after usage.
 
 		Implicit input parameters in Task Defaults: Segment Address,
 		Segment Size, Frame Descriptor Address and Parse Results.
@@ -1287,8 +1234,9 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Param[in]	keyid - A Key Composition Rule ID for the table lookups (Key
 		Composition Rule specifies how to build a key).
 @Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written. Must be aligned to
-		16B boundary.
+		the table lookup result will be written. The structure pointed
+		by this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
 		error occurred.
@@ -1329,8 +1277,6 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		(which has a reference counter) and the lookup result type
 		\ref TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
 		will be incremented during this operation.
-		user should decrement the Slab/CDMA buffer reference counter
-		after usage.
 
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1342,10 +1288,13 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 @Param[in]	ndf_params - Non defaults inputs to the key creation process.
 		See structure documentation for more details. Some of the
 		fields in this structures are only valid if appropriate flags
-		were set to this function. Must be aligned to 16B boundary.
-@Param[out]	lookup_result - Points to a user preallocated memory to which
-		the table lookup result will be written. Must be aligned to
+		were set to this function. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
+@Param[out]	lookup_result - Points to a user preallocated memory to which
+		the table lookup result will be written. The structure pointed
+		by this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
 		error occurred.

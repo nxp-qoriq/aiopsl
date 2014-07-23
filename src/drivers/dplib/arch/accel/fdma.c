@@ -4,7 +4,6 @@
 @Description	This file contains the AIOP SW Frame Operations API
 		implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_fdma.h"
@@ -1163,7 +1162,7 @@ int fdma_split_frame(
 		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) &&
 		    (params->source_frame_handle == PRC_GET_FRAME_HANDLE()) &&
 		    !(params->flags & FDMA_SPLIT_SM_BIT))
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
+			LDPAA_FD_UPDATE_LENGTH((uint32_t)params->fd_dst, 0,
 					params->split_size_sf);
 
 		if ((res1 == FDMA_SUCCESS))
@@ -1796,6 +1795,33 @@ void fdma_copy_data(
 	if (res1 != FDMA_SUCCESS)
 		fdma_handle_fatal_errors((int32_t)res1);
 }
+
+void fdma_dma_data(
+		uint16_t copy_size,
+		uint16_t icid,
+		void *loc_addr,
+		uint64_t sys_addr,
+		uint32_t flags)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2;
+	int8_t res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_DMA_CMD_ARG1(icid, flags);
+	arg2 = FDMA_DMA_CMD_ARG2(copy_size, (uint32_t)loc_addr);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__llstdw(sys_addr, HWC_ACC_IN_ADDRESS3, 0);
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 != FDMA_SUCCESS)
+		fdma_handle_fatal_errors((int32_t)res1);
+}
+
 
 int fdma_acquire_buffer(
 		uint16_t icid,

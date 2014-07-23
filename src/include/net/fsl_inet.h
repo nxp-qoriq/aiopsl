@@ -1,18 +1,8 @@
 /**************************************************************************//*
 @File           fsl_inet.h
 
-@Brief          AIOP Service Layer Network Utilities header file
-
 @Description    Contains AIOP SL Network Utilities API functions declarations.
 
-@@internal
-@requirements   CR:ENGR00272890 CR:ENGR00272889
-@implements     See CR's Analysis information
-@warning        POSIX used for the API, however, no full POSIX implementation
-		is guaranteed
-
-
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef _FSL_INET_H
@@ -22,14 +12,7 @@
 #include "fsl_errors.h"
 
 /**************************************************************************//**
- @Group		UTILITIES  UTILITIES
-
- @Description	ARENA Utilities APIs
-
- @{
-*//***************************************************************************/
-/**************************************************************************//**
-@Group          net_utils AIOP Service Layer Network Utilities
+@Group          net_utils_g AIOP Service Layer Network Utilities
 
 @Description    The AIOP Service Layer Network Utilities group provides
 		standard network manipulation functions
@@ -59,18 +42,11 @@
 @Param[out]     dst - pointer to network address structure
 
 @Return         error or success value as defined below
-@Retval         1 on success (network address was successfully converted)
-@Retval         0 is returned if src doesn't contain a character string
+		1 on success (network address was successfully converted)
+		0 is returned if src doesn't contain a character string
 		representing valid network address in the specified address
 		family.
-@Retval        -1 if af does not contain a valid address family
-
-@internal
-@requirements   CR:ENGR00272889
-@implements     See CR's Analysis information
-@warning        POSIX used for the API, however, no full POSIX implementation is
-		guaranteed; Groups of zeros replaced by :: and dotted-quad
-		notation for AF_INET6 are not supported
+		-1 if af does not contain a valid address family
 
 *//***************************************************************************/
 int inet_pton(int af, const char *src, void *dst);
@@ -94,16 +70,10 @@ int inet_pton(int af, const char *src, void *dst);
 @Param[in]      size - number of buffers available in dst buffer
 
 @Return         error or success value as defined below
-@Retval         non-NULL pointer to destination is returned on success
-@Retval         NULL is returned if size is not big enough or if af does not
+		non-NULL pointer to destination is returned on success
+		NULL is returned if size is not big enough or if af does not
 		contain a valid address family
 
-@internal
-@requirements   CR:ENGR00272890
-@implements     See CR's Analysis information
-@warning        POSIX used for the API, however, no full POSIX implementation is
-		guaranteed. Groups of zeros replaced by :: and dotted-quad
-		notation for AF_INET6 are not supported.
 *//***************************************************************************/
 const char *inet_ntop(int af, const void *src, char *dst, size_t size);
 
@@ -160,9 +130,7 @@ uint32_t htonl(uint32_t hostlong);
 *//***************************************************************************/
 uint32_t ntohl(uint32_t netlong);
 
-/** @} */ /* end of net_utils group */
-/** @} *//* end of ARENA Utilities APIs */
-
+/** @} */ /* end of net_utils_g group */
 
 #endif /* _FSL_INET_H */
 

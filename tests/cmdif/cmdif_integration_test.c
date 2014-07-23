@@ -14,7 +14,7 @@
 #include "fsl_fdma.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
-//#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
+#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
 
@@ -31,6 +31,7 @@ void app_free(void);
 #define SYNC_CMD 	(0x103 | CMDIF_NORESP_CMD)
 #define ASYNC_N_CMD	0x104
 #define OPEN_N_CMD	0x105
+#define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
 
 __SHRAM struct cmdif_desc cidesc;
 uint8_t send_data[64];
@@ -47,6 +48,7 @@ static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
 {
 	UNUSED(cmd_id);
 	UNUSED(async_ctx);
+	fsl_os_print("PASSED ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	fsl_os_print("ASYNC CB data high = 0x%x low = 0x%x size = 0x%x\n",
 	         (uint32_t)((data & 0xFF00000000) >> 32),
 	         (uint32_t)(data & 0xFFFFFFFF), size);
@@ -86,8 +88,9 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	 * TODO add more test scenarios for AIOP server
 	 * 1. async response with error
 	 * 2. high low priority, high must be served before low
-	 * 3.
+	 * 3. verify data modified by server & client
 	 * TODO add more test scenarios for AIOP client
+	 * 1. verify data modified by server & client
 	 * */
 	return 0;
 }
@@ -108,12 +111,12 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 	switch (cmd) {
 	case OPEN_CMD:
-		cidesc.regs = 0; /* DPCI 0 is used by MC */
+		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
 		                 NULL, NULL, 0);
 		break;
 	case OPEN_N_CMD:
-		cidesc.regs = 0; /* DPCI 0 is used by MC */
+		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		err |= cmdif_open(&cidesc, "IRA0", 0, async_cb, cidesc.regs,
 		                 NULL, NULL, 0);
 		err |= cmdif_open(&cidesc, "IRA3", 0, async_cb, cidesc.regs,

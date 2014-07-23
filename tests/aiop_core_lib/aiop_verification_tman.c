@@ -104,6 +104,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_timer_delete_command);
 		break;
 	}
+#ifdef REV2
 	/* TMAN timer increase duration Command Verification */
 	case TMAN_TIMER_INC_DURATION_CMD_STR:
 	{
@@ -115,6 +116,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_timer_increase_duration_command);
 		break;
 	}
+#endif
 	/* TMAN timer recharge Command Verification */
 	case TMAN_TIMER_RECHARGE_CMD_STR:
 	{

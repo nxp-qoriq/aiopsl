@@ -1,4 +1,3 @@
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    fsl_dpio.h
  *  @brief   Data Path I/O Portal API

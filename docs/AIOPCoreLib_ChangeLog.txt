@@ -1,4 +1,7 @@
 Table SRs: API - Added a note to table_create() parameters that max rules must not be 0.
+Table SRs: API - Added notes that some of the pointer must point to structures in the workspace (e.g. not SRAM).
+Table SRs: API - Aging and auto removal of rules because of aging were removed from the API due to inputs that these are unnecessary. 
+Table SRs: API - Removal of reference counter auto-decrement due to TKT216018 and due to that in some cases the decrement is better done outside of the function performance wise.(e.g. IPR)
 
 
 

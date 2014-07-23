@@ -1,4 +1,3 @@
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_COMPAT_H__
 #define __RTA_COMPAT_H__

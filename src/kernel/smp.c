@@ -27,6 +27,10 @@ void sys_free_multi_processing(void)
 }
 
 /*****************************************************************************/
+/*
+ * TODO This pragma is a workaround for issue ENGR00315635, 
+ * should be fixed in CW 10.0.10
+ */
 #pragma optimization_level 1
 void sys_barrier(void)
 {

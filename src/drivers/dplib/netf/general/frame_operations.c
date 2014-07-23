@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW FDMA API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "common/types.h"
@@ -194,14 +193,14 @@ int create_arp_request(
 	/* set ARP operation (ARP REQUEST) */
 	arp_hdr->operation = ARP_REQUEST_OP;
 	/* set ARP sender HW address */
-	*(uint32_t *)(arp_hdr->src_hw_addr[0]) = *((uint32_t *)local_hw_addr);
-	*(uint16_t *)(arp_hdr->src_hw_addr[4]) =
+	*((uint32_t *)arp_hdr->src_hw_addr) = *((uint32_t *)local_hw_addr);
+	*((uint16_t *)(arp_hdr->src_hw_addr + 4)) =
 			*((uint16_t *)(local_hw_addr+4));
 	/* set ARP sender protocol (IPv4) address */
 	arp_hdr->src_pro_addr = local_ip;
 	/* set ARP destination HW address (unknown at this point) */
-	*(uint32_t *)(arp_hdr->dst_hw_addr[0]) = 0;
-	*(uint16_t *)(arp_hdr->dst_hw_addr[4]) = 0;
+	*((uint32_t *)arp_hdr->dst_hw_addr) = 0;
+	*((uint16_t *)(arp_hdr->dst_hw_addr + 4)) = 0;
 	/* set ARP protocol (IPv4) address */
 	arp_hdr->dst_pro_addr = target_ip;
 

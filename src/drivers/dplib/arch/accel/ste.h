@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP statistics API.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __AIOP_LIB_STATISTICS_H

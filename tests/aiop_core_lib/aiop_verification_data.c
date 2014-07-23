@@ -4,7 +4,6 @@
 @Description	This file contains the AIOP SW Verification Data
 		needed for the test
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "common/types.h"

@@ -3,7 +3,6 @@
 
 @Description	To Be Removed !!!
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "slab_stub.h"
 #include "system.h"

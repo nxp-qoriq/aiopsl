@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP FDMA SRs SW Verification.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_fdma.h"

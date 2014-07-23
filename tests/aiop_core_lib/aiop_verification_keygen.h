@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP Keygen SW Verification Structures
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __AIOP_VERIFICATION_KEYGEN_H_

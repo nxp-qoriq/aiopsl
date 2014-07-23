@@ -87,8 +87,8 @@ void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
 			free(srv->open_cb);
 		if (srv->ctrl_cb)
 			free(srv->ctrl_cb);
-		if (srv->open_cb)
-			free(srv->open_cb);
+		if (srv->close_cb)
+			free(srv->close_cb);
 
 		free(srv);
 	}
@@ -273,6 +273,9 @@ int cmdif_srv_open(void *_srv,
 		return m_id;
 
 	err = srv->open_cb[m_id](inst_id, &dev);
+	if (err)
+		return err;
+
 	id = inst_alloc(srv, (uint8_t)m_id);
 	if (id < 0)
 		return id;
@@ -317,39 +320,47 @@ int cmdif_srv_close(void *srv,
 
 int cmdif_srv_cmd(void *_srv,
 		struct cmdif_fd *cfd,
+		void   *v_addr,
 		struct cmdif_fd *cfd_out,
 		uint8_t *send_resp)
 {
 	int    err = 0;
 	struct cmdif_srv * srv = (struct cmdif_srv *)_srv;
+	struct cmdif_fd in_cfd;
 
 	if ((cfd == NULL) || (srv == NULL) || (send_resp == NULL))
 		return -EINVAL;
 
-	if (!IS_VALID_AUTH_ID(cfd->u_flc.cmd.auth_id))
+	/* This is required because flc is a struct */
+	in_cfd.u_flc.flc = CPU_TO_BE64(cfd->u_flc.flc);
+
+	if (!IS_VALID_AUTH_ID(in_cfd.u_flc.cmd.auth_id))
 		return -EPERM;
 
-	*send_resp = SEND_RESP(cfd->u_flc.cmd.cmid);
+	*send_resp = SEND_RESP(in_cfd.u_flc.cmd.cmid);
 
 	if (*send_resp && (cfd_out == NULL))
 		return -EINVAL;
 
-	err = CTRL_CB(cfd->u_flc.cmd.auth_id, cfd->u_flc.cmd.cmid, \
-		cfd->d_size, cfd->u_addr.d_addr);
+	err = CTRL_CB(in_cfd.u_flc.cmd.auth_id, \
+	              in_cfd.u_flc.cmd.cmid, \
+	              cfd->d_size, \
+	              (uint64_t)((v_addr != NULL) ? v_addr : cfd->u_addr.d_addr));
 
-	if (SYNC_CMD(cfd->u_flc.cmd.cmid)) {
-		if (srv->sync_done[cfd->u_flc.cmd.auth_id]) {
+	if (SYNC_CMD(in_cfd.u_flc.cmd.cmid)) {
+		if (srv->sync_done[in_cfd.u_flc.cmd.auth_id]) {
 			struct cmdif_session_data *sync_done = \
 				(struct cmdif_session_data *)\
-				srv->sync_done[cfd->u_flc.cmd.auth_id];
+				srv->sync_done[in_cfd.u_flc.cmd.auth_id];
 			sync_done->err = (int8_t)err;
 			sync_done->done = 1;
-			sync_done->auth_id = cfd->u_flc.cmd.auth_id;
+			sync_done->auth_id = in_cfd.u_flc.cmd.auth_id;
 		}
 
 	} else if (*send_resp) {
 		*cfd_out = *cfd;
-		cfd_out->u_flc.cmd.err = (uint8_t)err;
+		in_cfd.u_flc.cmd.err = (uint8_t)err;
+		cfd_out->u_flc.flc   = CPU_TO_BE64(in_cfd.u_flc.flc);
 	}
 
 	return 0;

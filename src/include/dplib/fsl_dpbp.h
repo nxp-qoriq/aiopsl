@@ -1,4 +1,3 @@
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    fsl_dpbp.h
  *  @brief   Data Path Buffer Pool API

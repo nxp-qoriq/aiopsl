@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW IP Reassembly implementation.
 
-		Copyright 2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 
@@ -657,9 +656,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				IPV4_HDR_M_FLAG_MASK);
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
-		/* todo remove following workaround CR ENGR00312273 */
-		ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-	//	ipv6fraghdr_offset = 54;
+		ipv6fraghdr_offset =
+				PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
 		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
 			       (PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
 		frag_offset_shifted = ipv6fraghdr_ptr->offset_and_flags &
@@ -705,11 +703,10 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
 				  	          rfdc_ptr->current_running_sum,
 				  	          pr->gross_running_sum);
-		rfdc_ptr->iphdr_offset = (uint16_t )
-			   ((uint32_t)iphdr_ptr - PRC_GET_SEGMENT_ADDRESS());
+		/* Get IP offset */
+		rfdc_ptr->iphdr_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		if (!frame_is_ipv4)
-			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;
-
+			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;		
 	}
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {
@@ -808,10 +805,6 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 			     __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint64_t	fds_to_fetch_addr;
 	struct		fdma_concatenate_frames_params concatenate_params;
-	struct		parse_result *pr =
-				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct		presentation_context *prc =
-				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	/* Bring into workspace 2 FDs to be concatenated */
 	fds_to_fetch_addr = rfdc_ext_addr + START_OF_FDS_LIST;
@@ -918,6 +911,8 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	uint16_t	ip_header_size;
 	struct ipv4hdr  *ipv4hdr_ptr;
 	struct parse_result *pr;
+	struct	presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	ipv4hdr_offset = rfdc_ptr->iphdr_offset;
 	ipv4hdr_ptr = (struct ipv4hdr *)
@@ -947,7 +942,8 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	fdma_modify_default_segment_data(ipv4hdr_offset+2, 10);
 
 	/* Updated FD[length] */
-	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset);
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset+ 
+					   prc->seg_offset);
 
 	/* Update Gross running sum of the reassembled frame */
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -956,7 +952,7 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* Run Parser and check L4 checksum if needed */
 	if (parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)){
 		/* error in L4 checksum */
-//		return IPR_ERROR;
+		return IPR_ERROR;
 	}
 	return SUCCESS;
 }
@@ -965,49 +961,58 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 {
 	uint16_t		ipv6hdr_offset;
 	uint16_t		ipv6fraghdr_offset;
-	uint16_t		ip_header_size;
+	uint16_t		ipv6_frag_extension_size;
 	uint16_t		checksum;
 	uint16_t		gross_running_sum;
-	uint32_t		fd_length;
+	uint16_t		size;
+	uint16_t		ipv6_payload_length;
 	struct ipv6hdr		*ipv6hdr_ptr;
 	struct ipv6fraghdr	*ipv6fraghdr_ptr;
 	struct	parse_result 	*pr =
 				   (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct	presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	ipv6hdr_offset = rfdc_ptr->iphdr_offset;
 	ipv6hdr_ptr = (struct ipv6hdr *)
 				(ipv6hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
-	/* todo remove following workaround CR ENGR00312273 */
-	/*ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT(); */
-//	ipv6fraghdr_offset = 54;
 	ipv6fraghdr_offset = rfdc_ptr->ipv6_fraghdr_offset;
 	
 	ipv6fraghdr_ptr = (struct ipv6fraghdr *) (PRC_GET_SEGMENT_ADDRESS() +
 						ipv6fraghdr_offset);
 			
-	ip_header_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
-						(uint32_t)ipv6hdr_ptr);
-
+	ipv6_frag_extension_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
+				(uint32_t)ipv6hdr_ptr) - IPV6_FIXED_HEADER_SIZE;
+	
 	fdma_calculate_default_frame_checksum(
 				ipv6hdr_offset,
 				ipv6fraghdr_offset-ipv6hdr_offset+8,
 				&checksum);
 
-	ipv6hdr_ptr->payload_length = rfdc_ptr->current_total_length +
-							  ip_header_size;
+	ipv6_payload_length = rfdc_ptr->current_total_length +
+				ipv6_frag_extension_size;
+	ipv6hdr_ptr->payload_length = ipv6_payload_length;
 	/* Move next header of fragment header to previous extension header */
-	*(uint8_t *)ipv6_last_header(ipv6hdr_ptr, LAST_HEADER_BEFORE_FRAG) =
-						ipv6fraghdr_ptr->next_header;
-	/* Remove fragment header extension */
-	fdma_delete_default_segment_data(ipv6fraghdr_offset,
-					 8,
-					 FDMA_REPLACE_SA_REPRESENT_BIT);
+	*(uint8_t *)(ipv6_last_header(ipv6hdr_ptr, LAST_HEADER_BEFORE_FRAG) &
+			0x7FFFFFFF) = ipv6fraghdr_ptr->next_header;
+
+	/* Remove fragment header extension and update FDMA cache */
+	size = ipv6fraghdr_offset-ipv6hdr_offset;
+
+	fdma_replace_default_segment_data(ipv6hdr_offset,
+					  size+8,
+					  (void *)ipv6hdr_ptr,
+					  size,
+					  (void *)prc->seg_address,
+					  prc->seg_length,
+					  FDMA_REPLACE_SA_REPRESENT_BIT);
 
 	/* Updated FD[length] */
-	fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - 8;
-	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, fd_length);
-	
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, ipv6_payload_length +
+					    ipv6fraghdr_offset +
+					    prc->seg_offset);
+
 	/* Update Gross running sum of the reassembled frame */
 	/* Subtract old IPv6 header (fixed until frag header) */
 	gross_running_sum = cksum_ones_complement_sum16(
@@ -1017,19 +1022,18 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* Calculate checksum of new IPv6 header */
 	fdma_calculate_default_frame_checksum(
 			ipv6hdr_offset,
-			ipv6fraghdr_offset-ipv6hdr_offset,
+			size,
 			&checksum);
 
 	/* Add new fields */
-	gross_running_sum = cksum_ones_complement_sum16(
-						     gross_running_sum,
-						     checksum);
+	gross_running_sum = cksum_ones_complement_sum16(gross_running_sum,
+							checksum);
 
 	pr->gross_running_sum = gross_running_sum;
 
 	if(parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)) {
 			/* error in L4 checksum */
-			return IPR_ERROR;
+//			return IPR_ERROR;
 		}
 	return SUCCESS;
 }
@@ -1046,10 +1050,6 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	struct				ldpaa_fd fds_to_concatenate[2] \
 			      __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	struct		fdma_concatenate_frames_params concatenate_params;
-	struct		parse_result *pr =
-				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct		presentation_context *prc =
-				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	concatenate_params.flags = FDMA_CONCAT_SF_BIT;
 
@@ -1553,7 +1553,8 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		}
 	}
 
-	check_remove_padding();
+	if (PARSER_IS_OUTER_IPV4_DEFAULT())
+		check_remove_padding();
 	/* Close current frame before storing FD */
 	fdma_store_default_frame_data();
 
