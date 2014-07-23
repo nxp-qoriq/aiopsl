@@ -25,8 +25,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	int32_t	status;
 
 	status = fdma_store_default_frame_data();
-	if (status)
-		return status; /* TODO */
+	if (status < 0)
+		return -ENOMEM;
+	
 	/* Copy default FD to remaining_FD in IPF ctx */
 	ipf_ctx->rem_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 
@@ -35,7 +36,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 						FDMA_PRES_NO_FLAGS, 0,
 						&(ipf_ctx->rem_frame_handle));
 
-	return status;
+	return SUCCESS;
 }
 
 
@@ -104,9 +105,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	ipv4_hdr->flags_and_offset = flags_and_offset;
 
 	/* Run parser */
-	status = parse_result_generate_default(PARSER_NO_FLAGS);
-	if (status) /* TODO */
-		return status;
+	parse_result_generate_default(PARSER_NO_FLAGS);
 
 	/* Modify 12 first header fields in FDMA */
 	fdma_modify_default_segment_data(ipv4_offset, 12);
@@ -116,9 +115,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	present_segment_params.offset = 0;
 	present_segment_params.present_size = 0;
 	/* present empty segment of the remaining frame */
-	status = fdma_present_frame_segment(&present_segment_params);
-	if (status)
-		return status; /* TODO*/
+	fdma_present_frame_segment(&present_segment_params);
 
 	if (ipf_ctx->first_frag) {
 		/* TODO Handle options */
@@ -135,10 +132,10 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 					(void *)PRC_GET_SEGMENT_ADDRESS();
 	insert_segment_data_params.seg_handle =
 				present_segment_params.seg_handle;
-	/* Insert the header to the remaining frame,
-	 * close segment */
-	status = fdma_insert_segment_data(&insert_segment_data_params);
-	return status;
+	/* Insert the header to the remaining frame, close segment */
+	fdma_insert_segment_data(&insert_segment_data_params);
+	
+	return SUCCESS;
 }
 
 /*inline*/ int ipf_after_split_ipv6_fragment(struct ipf_context *ipf_ctx,
@@ -212,7 +209,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				seg_size_rs = seg_size_rs +
 						IPV6_FRAGMENT_HEADER_LENGTH;
 
-			status = fdma_replace_default_segment_data(
+			fdma_replace_default_segment_data(
 				ipv6_offset,
 				(uint16_t)
 				((uint32_t)ipv6_frag_hdr - (uint32_t)ipv6_hdr),
@@ -223,9 +220,6 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				ws_dst_rs,
 				seg_size_rs,
 				FDMA_REPLACE_SA_REPRESENT_BIT);
-
-			if (status) /* TODO */
-				return status;
 		}
 		ipf_ctx->first_frag = 0;
 	} else {
@@ -272,7 +266,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	}
 	/* Run parser */
 	status = parse_result_generate_default(PARSER_NO_FLAGS);
-	if (status) /* TODO */
+	if (status < 0)
 		return status;
 
 	present_segment_params.flags = FDMA_PRES_NO_FLAGS;
@@ -280,9 +274,8 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	present_segment_params.offset = 0;
 	present_segment_params.present_size = 0;
 	/* present empty segment of the remaining frame */
-	status = fdma_present_frame_segment(&present_segment_params);
-	if (status)
-		return status; /* TODO*/
+	fdma_present_frame_segment(&present_segment_params);
+
 	header_length = (uint16_t)(ipf_ctx->ipv6_frag_hdr_offset) +
 						IPV6_FRAGMENT_HEADER_LENGTH;
 
@@ -296,9 +289,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	insert_segment_data_params.seg_handle =
 		present_segment_params.seg_handle;
 	/* Insert the header to the remaining frame, close segment */
-	status = fdma_insert_segment_data(&insert_segment_data_params);
+	fdma_insert_segment_data(&insert_segment_data_params);
 
-	return status;
+	return SUCCESS;
 }
 
 /*inline*/int ipf_ipv4_last_frag(struct ipf_context *ipf_ctx)
@@ -313,14 +306,13 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	spid = *((uint8_t *)HWC_SPID_ADDRESS);
 	status = fdma_store_frame_data(ipf_ctx->rem_frame_handle, spid,
 		 &isolation_attributes);
-	if (status)
-		return status; /* TODO */
+	if (status < 0)
+		return -ENOMEM;
+	
 	/* Copy remaining_FD to default FD */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = ipf_ctx->rem_fd;
 	/* present fragment + header segment */
-	status = fdma_present_default_frame();
-	if (status)
-		return status; /* TODO */
+	fdma_present_default_frame();
 
 	ipv4_offset = ipf_ctx->ip_offset;
 	ipv4_hdr = (struct ipv4hdr *)
@@ -350,9 +342,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	ipv4_hdr->total_length = ip_total_length;
 
 	/* Run parser */
-	status = parse_result_generate_default(PARSER_NO_FLAGS);
-	if (status) /* TODO */
-		return status;
+	parse_result_generate_default(PARSER_NO_FLAGS);
 
 	/* Modify 12 first header fields in FDMA */
 	fdma_modify_default_segment_data((uint16_t)ipv4_offset, 12);
@@ -393,9 +383,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 			/* last fragment, no split happened */
 			status = ipf_ipv4_last_frag(ipf_ctx);
 			return status; /* TODO*/
-		} else if (status) {
-				return status; /* TODO*/
-		} else {
+		} else { /* TODO status*/
 #ifndef REV2
 			/* Store frame so FD will be updated */
 			status = fdma_store_default_frame_data();
@@ -403,11 +391,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 				return status; /* TODO*/
 #endif
 			/* Present frame */
-			status = fdma_present_default_frame();
-/*
-			if (status)
-				return status;  TODO
-*/
+			fdma_present_default_frame();
 
 			status = ipf_after_split_ipv4_fragment(ipf_ctx);
 			if (status)
@@ -429,9 +413,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 
 			/* Split remaining frame, put split frame in default FD
 			 * location*/
-			status = fdma_split_frame(&split_frame_params);
-			if (status)
-				return status; /* TODO*/
+			fdma_split_frame(&split_frame_params);
 
 			status = ipf_after_split_ipv4_fragment(ipf_ctx);
 			if (status)
@@ -442,7 +424,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 		} else {
 		/* Last Fragment */
 			status = ipf_ipv4_last_frag(ipf_ctx);
-			return status;
+			return status; /* TODO*/
 		}
 	}
 }
@@ -460,14 +442,13 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	spid = *((uint8_t *)HWC_SPID_ADDRESS);
 	status = fdma_store_frame_data(ipf_ctx->rem_frame_handle, spid,
 		 &isolation_attributes);
-	if (status)
-		return status; /* TODO */
+	if (status < 0)
+		return -ENOMEM;
+	
 	/* Copy remaining_FD to default FD */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = ipf_ctx->rem_fd;
 	/* present fragment + header segment */
-	status = fdma_present_default_frame();
-	if (status)
-		return status; /* TODO */
+	fdma_present_default_frame();
 
 	ipv6_offset = ipf_ctx->ip_offset;
 	ipv6_hdr = (struct ipv6hdr *)
@@ -497,7 +478,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 			ipv6_offset - IPV6_HDR_LENGTH;
 	/* Run parser */
 	status = parse_result_generate_default(PARSER_NO_FLAGS);
-	if (status) /* TODO */
+	if (status < 0)
 		return status;
 
 	/* Modify header fields in FDMA */
@@ -544,9 +525,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 			/* last fragment, no split happened */
 			status = ipf_ipv6_last_frag(ipf_ctx);
 			return status; /* TODO*/
-		} else if (status) {
-				return status; /* TODO*/
-		} else {
+		} else { /* TODO status */
 #ifndef REV2
 			/* Store frame so FD will be updated */
 			status = fdma_store_default_frame_data();
@@ -554,11 +533,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 				return status; /* TODO*/
 #endif
 			/* Present frame */
-			status = fdma_present_default_frame();
-			/*
-			if (status)
-				return status;  TODO
-*/
+			fdma_present_default_frame();
 
 			status = ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
@@ -581,9 +556,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 
 			/* Split remaining frame, put split frame in default FD
 			 * location*/
-			status = fdma_split_frame(&split_frame_params);
-			if (status)
-				return status; /* TODO*/
+			fdma_split_frame(&split_frame_params);
 
 			status = ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
@@ -594,7 +567,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 		} else {
 			/* Last Fragment */
 			status = ipf_ipv6_last_frag(ipf_ctx);
-			return status;
+			return status; /* TODO*/
 		}
 	}
 }
