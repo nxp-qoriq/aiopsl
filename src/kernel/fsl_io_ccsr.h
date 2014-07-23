@@ -17,13 +17,9 @@
  @{
 *//***************************************************************************/
 
-#ifdef CCSR_BE
+
 #define ioread32_ccsr(addr)             ioread32be(addr)
 #define iowrite32_ccsr(val, addr)       iowrite32be(val, addr)
-#else
-#define ioread32_ccsr(addr)             ioread32(addr)
-#define iowrite32_ccsr(val, addr)       iowrite32(val, addr)
-#endif
 
 
 /** @} */ /* end of accessor_g Accessor API group */
