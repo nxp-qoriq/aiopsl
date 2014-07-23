@@ -3,7 +3,6 @@
 
  @Description   Prototypes, externals and typedefs for dynamic  memory allocation.
  
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_MALLOC_H

@@ -5,7 +5,6 @@
 
 @Cautions      None.
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "net/fsl_inet.h"

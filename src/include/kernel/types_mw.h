@@ -1,6 +1,4 @@
  /**************************************************************************//**
- Copyright 2013 Freescale Semiconductor, Inc.
-
  @File          types_mw.h
 
  @Description   TODO

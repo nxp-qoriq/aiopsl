@@ -1,6 +1,4 @@
 /**************************************************************************//**
-Copyright 2013 Freescale Semiconductor, Inc.
-
 @File          fsl_cmdif_server.h
 
 @Description   AIOP to GPP cmdif API
@@ -62,7 +60,9 @@ User provides this function. Driver invokes it for all runtime commands
 @Param[in]	dev -  A handle of the device which was returned after
 		module open callback
 @Param[in]	cmd -  Id of command
-@Param[in]	size - Size of the data
+@Param[in]	size - Size of the data.
+		On the AIOP side use PRC_GET_SEGMENT_LENGTH() to determine the
+		size of presented data.
 @Param[in]	data - Data of the command - physical address.
 		AIOP server will pass here address to the start of presentation
 		segment - physical address is the same as virtual.
@@ -148,12 +148,14 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 
 @Description	Close session on server and notify client about it
 
-@Param[in]	cidesc  - Already open connection descriptor towards second side
-@Param[in]	size    - Size of v_data buffer
-@Param[in]	auth_id - Session id as returned by server.
-@Param[out]	v_data  - Buffer allocated by user. If not NULL this buffer
+@Param[in]	cidesc   - Already open connection descriptor towards second side
+@Param[in]	size     - Size of v_data buffer
+@Param[in]	auth_id  - Session id as returned by server.
+@Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
-@Param[in]	p_data  - Physical address of v_data.
+@Param[in]	p_data   - Physical address of v_data.
+@Param[in]	send_dev - Transport device used for server (nadk device).
+		Device used for send and receive of frame descriptor.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -161,7 +163,8 @@ int cmdif_session_close(struct cmdif_desc *cidesc,
 			uint16_t auth_id,
 			uint32_t size,
 			void *v_data,
-			uint64_t p_data);
+			uint64_t p_data,
+			void *send_dev);
 
 /**************************************************************************//**
 @Function	cmdif_srv_cb

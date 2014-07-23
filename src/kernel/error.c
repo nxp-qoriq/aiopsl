@@ -1,6 +1,4 @@
 /**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
-
  @File          error.c
 
  @Description   General errors and events reporting utilities.

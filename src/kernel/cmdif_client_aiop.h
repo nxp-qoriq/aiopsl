@@ -1,5 +1,4 @@
 
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    cmdif_client.h
  *  @brief   Cmdif client AIOP<->GPP internal header file
@@ -10,6 +9,17 @@
 
 #include "cmdif_client.h"
 #include "dplib/fsl_dpci.h"
+
+/** BDI */
+#define BDI_GET \
+((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
+	& ADC_BDI_MASK)
+/** PL_ICID from Additional Dequeue Context */
+#define PL_ICID_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
+/** Get ICID to send response */
+#define ICID_GET \
+	(LH_SWAP(0, &PL_ICID_GET) & ADC_ICID_MASK)
 
 #define CMDIF_MN_SESSIONS	64 /**< Maximal number of sessions */
 #define CMDIF_NUM_PR  		2

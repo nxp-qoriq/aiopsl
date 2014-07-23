@@ -3,7 +3,6 @@
  
  @Description   This file contains typedefs for dynamic memory allocation.
  
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #ifndef __FSL_PLATFORM_AIOP_H
 #define __FSL_PLATFORM_AIOP_H

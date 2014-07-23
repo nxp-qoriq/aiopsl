@@ -3,7 +3,6 @@
 
 @Description	This file contains AIOP SW external general definitions.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 

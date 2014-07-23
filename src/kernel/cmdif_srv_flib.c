@@ -320,6 +320,7 @@ int cmdif_srv_close(void *srv,
 
 int cmdif_srv_cmd(void *_srv,
 		struct cmdif_fd *cfd,
+		void   *v_addr,
 		struct cmdif_fd *cfd_out,
 		uint8_t *send_resp)
 {
@@ -341,8 +342,10 @@ int cmdif_srv_cmd(void *_srv,
 	if (*send_resp && (cfd_out == NULL))
 		return -EINVAL;
 
-	err = CTRL_CB(in_cfd.u_flc.cmd.auth_id, in_cfd.u_flc.cmd.cmid, \
-	              cfd->d_size, cfd->u_addr.d_addr);
+	err = CTRL_CB(in_cfd.u_flc.cmd.auth_id, \
+	              in_cfd.u_flc.cmd.cmid, \
+	              cfd->d_size, \
+	              (uint64_t)((v_addr != NULL) ? v_addr : cfd->u_addr.d_addr));
 
 	if (SYNC_CMD(in_cfd.u_flc.cmd.cmid)) {
 		if (srv->sync_done[in_cfd.u_flc.cmd.auth_id]) {

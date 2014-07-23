@@ -1,5 +1,5 @@
 #include "common/fsl_string.h"
-#include "fsl_io.h"
+#include "fsl_io_ccsr.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpni.h"
 #include "fsl_malloc.h"
@@ -7,6 +7,7 @@
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
 #include "dplib/fsl_dpbp.h"
 #include "sys.h"
+#include "fsl_io_ccsr.h"
 
 __SHRAM uint8_t abcr_lock = 0;
 
@@ -18,6 +19,11 @@ extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);     extern void dpni_drv_free(void);
 extern int slab_module_init(void);  extern void slab_module_free(void);
 extern int aiop_sl_init(void);      extern void aiop_sl_free(void);
+
+extern void discard_rx_cb();
+extern void tman_timer_callback(void);
+extern void cmdif_cl_isr(void);
+extern void cmdif_srv_isr(void);
 
 /* TODO: move to hdr file */
 extern int dpni_drv_probe(struct dprc	*dprc,
@@ -40,6 +46,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                     \
 {                                          \
+    {epid_drv_init,     epid_drv_free},    \
     {mc_obj_init,       mc_obj_free},      \
     {slab_module_init,  slab_module_free}, \
     {cmdif_client_init, cmdif_client_free}, /* must be before srv */\
@@ -60,7 +67,8 @@ int cluster_init(void);
 int run_apps(void);
 void core_ready_for_tasks(void);
 void global_free(void);
-
+int epid_drv_init(void);
+void epid_drv_free(void);
 
 #include "general.h"
 /** Global task params */
@@ -89,9 +97,9 @@ int tile_init(void)
 
     if(aiop_regs) {
         /* ws enable */
-        val = ioread32(&aiop_regs->ws_regs.cfg);
+        val = ioread32_ccsr(&aiop_regs->ws_regs.cfg);
         val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
-        iowrite32(val, &aiop_regs->ws_regs.cfg);
+        iowrite32_ccsr(val, &aiop_regs->ws_regs.cfg);
     }
     else {
     	return -EFAULT;
@@ -136,7 +144,7 @@ int global_post_init(void)
 static inline void config_runtime_stack_overflow_detection(
 		                                    struct aiop_tile_regs * aiop_regs)
 {
-    switch(ioread32(&aiop_regs->cmgw_regs.wscr))
+    switch(ioread32_ccsr(&aiop_regs->cmgw_regs.wscr))
     {
     case 0: /* 1 Task */
     	booke_set_spr_DAC2(0x8000);
@@ -183,9 +191,9 @@ void core_ready_for_tasks(void)
 
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
-    abcr_val = ioread32(abcr);
+    abcr_val = ioread32_ccsr(abcr);
     abcr_val |= (uint32_t)(1 << core_get_id());
-    iowrite32(abcr_val, abcr);
+    iowrite32_ccsr(abcr_val, abcr);
     unlock_spinlock(&abcr_lock);
 
 #if (STACK_OVERFLOW_DETECTION == 1)
@@ -359,4 +367,93 @@ int run_apps(void)
 	}
 
 	return 0;
+}
+
+static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
+                            uint32_t epid,
+                            void (*isr_cb)(void))
+{
+	uint32_t data = 0;
+	int      err = 0;
+
+	iowrite32_ccsr(epid, &wrks_addr->epas); /* EPID = 2 */
+	iowrite32_ccsr(PTR_TO_UINT(isr_cb), &wrks_addr->ep_pc);
+
+#ifdef AIOP_STANDALONE
+	/* Default settings */
+	iowrite32_ccsr(0x00600040, &wrks_addr->ep_fdpa);
+	iowrite32_ccsr(0x010001c0, &wrks_addr->ep_spa);
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_spo);
+#endif
+
+	/* no PTA presentation is required (even if there is a PTA)*/
+	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
+	/* set epid ASA presentation size to 0 */
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
+	/* Set mask for hash to 16 low bits OSRM = 5 */
+	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
+	if (data != 0x11000005)
+		err |= -EINVAL;
+
+	pr_info("CMDIF is setting EPID = %d\n", epid);
+	pr_info("ep_pc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_osc));
+
+	if (err) {
+		pr_err("Failed to setup EPID %d\n", epid);
+		/* No return err here in order to setup the rest of EPIDs */
+	}
+	return err;
+}
+
+int epid_drv_init(void)
+{
+	int i = 0;
+	int err = 0;
+
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+		                                   0,
+		                                   E_MAPPED_MEM_TYPE_GEN_REGS)
+		                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+
+	/* CMDIF server epid initialization here*/
+	err |= cmdif_epid_setup(wrks_addr, CMDIF_EPID_SERVER, cmdif_srv_isr);
+
+	/* TMAN epid initialization */
+	iowrite32_ccsr(EPID_TIMER_EVENT_IDX, &wrks_addr->epas); /* EPID = 1 */
+	iowrite32_ccsr(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
+	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
+
+	pr_info("TMAN is setting EPID = %d\n", EPID_TIMER_EVENT_IDX);
+	pr_info("ep_pc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spo));
+
+
+	/* CMDIF interface client epid initialization here*/
+	err |= cmdif_epid_setup(wrks_addr, CMDIF_EPID_CLIENT, cmdif_cl_isr);
+
+	/* Initialize EPID-table with discard_rx_cb for all NI's entries (EP_PC field) */
+	for (i = DPNI_EPID_START; i < EPID_TABLE_SIZE; i++) {
+		/* Prepare to write to entry i in EPID table - EPAS reg */
+		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
+
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+	}
+
+	return err;
+}
+
+void epid_drv_free(void)
+{
 }

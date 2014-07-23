@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW Table API implementation.
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_cdma.h"

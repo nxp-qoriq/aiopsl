@@ -17,19 +17,9 @@
 #include "fsl_general.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_spinlock.h"
+#include "fsl_io_ccsr.h"
 
 #define CMDIF_TIMEOUT     0x10000000
-
-/** BDI */
-#define BDI_GET \
-((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
-	& ADC_BDI_MASK)
-/** PL_ICID from Additional Dequeue Context */
-#define PL_ICID_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
-/** Get ICID to send response */
-#define ICID_GET \
-	(LH_SWAP(0, &PL_ICID_GET) & ADC_ICID_MASK)
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
@@ -46,42 +36,6 @@ __attribute__((aligned(sizeof(struct ldpaa_fd))));
 void cmdif_client_free();
 int cmdif_client_init();
 void cmdif_cl_isr();
-
-static int epid_setup()
-{
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
-	uint32_t data = 0;
-
-	iowrite32(CMDIF_EPID, &wrks_addr->epas); /* EPID = 2 */
-	iowrite32(PTR_TO_UINT(cmdif_cl_isr), &wrks_addr->ep_pc);
-
-#ifdef AIOP_STANDALONE
-	/* Default settings */
-	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32(0x00000000, &wrks_addr->ep_spo);
-#endif
-	/* no PTA presentation is required (even if there is a PTA)*/
-	iowrite32(0x0000ffc0, &wrks_addr->ep_ptapa);
-	/* set epid ASA presentation size to 0 */
-	iowrite32(0x00000000, &wrks_addr->ep_asapa);
-	/* Set mask for hash to 16 low bits OSRM = 5 */
-	iowrite32(0x11000005, &wrks_addr->ep_osc);
-	data = ioread32(&wrks_addr->ep_osc);
-	if (data != 0x11000005)
-		return -EINVAL;
-
-	pr_info("CMDIF Client is setting EPID = %d\n", CMDIF_EPID);
-	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
-	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
-
-	return 0;
-}
 
 __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 {
@@ -136,7 +90,7 @@ __HOT_CODE static int session_get(const char *m_name,
 	 * Sharing the same auth_id will require management of opened or not
 	 * there won't be 2 cidesc with same auth_id because
 	 * the same sync buffer is going to be used for 2 cidesc
-	 * but as for today we don't support sync on AIOP client 
+	 * but as for today we don't support sync on AIOP client
 	 * that's why it is working */
 	lock_spinlock(&cl->lock);
 	for (i = 0; i < cl->count; i++) {
@@ -175,12 +129,6 @@ int cmdif_client_init()
 	}
 
 	memset(cl, 0, sizeof(struct cmdif_cl));
-
-	err = epid_setup();
-	if (err) {
-		pr_err("Failed to setup EPID 2 for AIOP client\n");
-		return -ENODEV;
-	}
 
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg),
@@ -274,10 +222,18 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		return -EINVAL;
 
 	if (cmdif_is_sync_cmd(cmd_id)) {
+
+		uint64_t p_sync = \
+			((struct cmdif_dev *)cidesc->dev)->p_sync_done;
+
 		do {
+			/* Same as
 			cdma_read(&done,
 			          ((struct cmdif_dev *)cidesc->dev)->p_sync_done,
-			          4);
+			          4); */
+			fdma_dma_data(4, ICID_GET, &done,
+			              p_sync, FDMA_DMA_DA_SYS_TO_WS_BIT);
+
 			t++;
 		} while ((done.resp.done == 0) && (t < CMDIF_TIMEOUT));
 
@@ -305,12 +261,12 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
-	err = cmdif_async_cb(&fd);
+	err = cmdif_async_cb(&fd, (void *)PRC_GET_SEGMENT_ADDRESS());
 	if (err) {
 		pr_debug("Async callback cmd 0x%x returned error %d", \
 		         fd.u_flc.cmd.cmid, err);
 	}
-	
+
 	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 

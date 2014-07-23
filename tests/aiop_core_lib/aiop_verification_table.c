@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP CTLU SRs SW Verification
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "aiop_verification.h"
 #include "aiop_verification_table.h"

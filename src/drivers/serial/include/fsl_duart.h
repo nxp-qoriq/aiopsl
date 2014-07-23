@@ -1,6 +1,4 @@
 /**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
-
  @File          fsl_duart.h
 
  @Description   DUART UART external structures and definitions.

@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW TCP GRO API implementation
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "net/fsl_net.h"
@@ -608,12 +607,14 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	fdma_present_default_frame();
 
 	/* run parser if headers were changed */
-	if ((gro_ctx->agg_headers_size != headers_size) ||
+	/*if ((gro_ctx->agg_headers_size != headers_size) ||
 	    (old_agg_timestamp !=
 		(gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP))) {
 		parse_result_generate_default(PARSER_NO_FLAGS);
 		tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
-	}
+	}*/
+	parse_result_generate_default(PARSER_NO_FLAGS);
+	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 
 	/* update last segment header fields */
 	if (gro_ctx->metadata.seg_num > 1)

@@ -166,6 +166,9 @@ int cmdif_srv_close(void *srv,
  *
  * @param[in]	srv       - Server handle allocated by cmdif_srv_allocate()
  * @param[in]	cfd       - CMDIF input frame descriptor
+ * @param[in]	v_addr    - Virtual address to be used for ctrl cb.
+ * 		This is workaround for SMMU disable mode, set it to NULL if
+ * 		fd->u_addr.d_addr can be used as is.
  * @param[out]	cfd_out   - CMDIF output frame descriptor,
  *                          if response is required
  * @param[out]	send_resp - Response indication. If set to 1 the response FD
@@ -175,6 +178,7 @@ int cmdif_srv_close(void *srv,
  */
 int cmdif_srv_cmd(void *srv,
 		struct cmdif_fd *cfd,
+		void   *v_addr,
 		struct cmdif_fd *cfd_out,
 		uint8_t *send_resp);
 

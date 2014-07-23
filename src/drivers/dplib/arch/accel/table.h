@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW Table API
 
-		Copyright 2013-2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __TABLE_H

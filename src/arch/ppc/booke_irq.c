@@ -23,6 +23,7 @@
 #pragma function_align 256 /* IVPR must be aligned to 256 bytes */
 
 void booke_init_interrupt_vector(void);
+void booke_generic_exception_isr(uint32_t intr_entry);
 
 /*****************************************************************/
 /* routine:       booke_generic_irq_init                         */
@@ -186,12 +187,14 @@ asm static void branch_table(void) {
     /***************************************************/
     .align 0x100
 exception_irq:
-    li       r0, 0x0000
-    lis      r0, 0x0000
+    li       r0, 0x00000000
     /* disable exceptions and interrupts */
-    mtspr    DBCR0, r0 /* disable stack overflow exceptions */
+    mtspr    DBSR, r0
+    mtspr    DBCR0, r0
+    mtspr    DBCR2, r0
     /* disable debug and interrupts in MSR */
-    mtmsr    r0;
+    mtmsr    r0
+    isync
     /* update stack overflow detection to 1-task (0x8000) */ 
     se_bgeni r4,16
     mtspr    DAC2,r4

@@ -1,6 +1,27 @@
+- fsl_cmdif_flib_s.h API chnage at cmdif_srv_cmd() to support virtual aadresses when SMMU is disabled.
+- fsl_cmdif_flib_c.h API chnage at cmdif_async_cb() to support virtual aadresses when SMMU is disabled.
+- cmdif.h            Move CMDIF_EPID define from cmdif_clien.h to cmdif.h architecture dependent file.
+- init.c:            Adding epid_drv_init module to initialize epid table for tman, cmd-intr, nis.
+- cmdif_client.c:    Pass PRC_GET_SEGMENT_ADDRESS to cmdif_cb_t, same as for AIOP server.
+- aiop_common.h:     enum for epid table was added.
+
+
+- cmdif_client.c:    Replaced cdma_read/write by fdma_dma_data for SMMU support.
+- cmdif_srv.c:       Replaced cdma_read/write by fdma_dma_data for SMMU support.
+- slab.c:            Fixed ENGR00312975 slab_debug_info_get() command should estimate the slab whether is valid
+- cmdif_client.c:    read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- cmdif_srv.c:       read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- dpni_drv.c:        read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- time.c:            read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- platform.c:        read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
+- kernel\fsl_io_ccsr.h: added to make an envelop to ioread/write's from ccsr using iowrite32_ccsr/ioread32_ccsr defines.
+
+- aiopsl\misc\tools\instruction_trace:  added tool (script and readme) to save instruction trace in to a file.
+
 - fsl_cmdif_server.h  API changes at cmdif_session_open() cmdif_session_close()
 - fsl_spinlock.h      Doxygen update
 - fsl_dbg.h           Doxygen update
+
 updated doxygen for:
 	src\include\common\fsl_stdio.h
 	src\include\common\fsl_stdlib.h
@@ -19,11 +40,12 @@ updated doxygen for:
 - cmdif_srv.c         Fixed EP table setup no PTA and no ASA, see ENGR00322744
 - cmdif_client.c      Fixed EP table setup no PTA and no ASA, see ENGR00322744
 
-- init.c:             Set PLTFRM_MEM_RGN_CCSR size to 16 MB, MEM_PART_DP_DDR to 256 MB according to ATU windows' size.          
+- init.c:             Set PLTFRM_MEM_RGN_CCSR size to 16 MB, MEM_PART_DP_DDR to 256 MB according to ATU windows' size.
 - aiop_link.lcf:      Set dp-ddr segment size to 256 MB ( according to AIOP memory map)
 - aiopsl/build/aiop_t4ls_sim: changed to aiopsl/build/aiop_sim
                               This change involved files related to all the projects in AIOP
                               (.xml, .cproject, .launch, .project files)
+
 - init.c:             update real physical addresses for PEB and DP_DDR, move PEB memory area by 2 MB to avoid ovelapping with MC
 - arena_test.c:       add memory_test.
         Update all aiop_sl git to use ls2085a instead of ls2100
@@ -73,13 +95,23 @@ updated doxygen for:
 - build\aiop_t4ls_sim\aiopsl\.cproject                        Update paths in user and system include
 - build\aiop_t4ls_sim\apps\app_process_packet\.cproject       Update paths in user and system include
 - build\aiop_t4ls_sim\tests\arena_test\.cproject              Update paths in user and system include
-- dpni_drv.c/fsl_dpni_drv.h: adding support for api to dpni_drv_set_mfl(uint16_t ni_id, const uint16_t mfl) 
+
+- dpni_drv.c/fsl_dpni_drv.h: adding support for api to dpni_drv_set_mfl(uint16_t ni_id, const uint16_t mfl)
+                             and dpni_drv_get_mfl(uint16_t ni_id, uint16_t *mfl)
 
 - dpl.dts/dtb:        updated, one dpbp entry removed
 - init.c:             getting first DPBP from container to use for frame buffers
 - slab.c:             adding slabs initialization for bpids received from container.
 - slab.h:             updating the slab struct to be organized due to block size priority.
 
+
+- cmdif_integration_test.c  Added test for data modification.
+
+- cmdif_srv.c           Use fsl_os_rand() instead of rand().
+- mc_init.c             Updated dpci discovery table size to be dynamic according to number of DPCIs.
+- cmdif_client.c        Fixed multitask support for cmdif_open on AIOP client. Moved client table to SHRAM.
+- ls2100a_gpp/cmdif.h   Moved platform dependent includes from cmdif flibs into this file.
+- ls2100a_aiop/cmdif.h  Moved platform dependent includes from cmdif flibs into this file.
 
 ** AIOP SL v0.4.1.update_02 **
 - dpl.dts:For         To support of adding multicast mac addresses. the following options should be added to

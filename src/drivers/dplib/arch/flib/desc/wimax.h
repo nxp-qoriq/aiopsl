@@ -1,4 +1,3 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __DESC_WIMAX_H__
 #define __DESC_WIMAX_H__

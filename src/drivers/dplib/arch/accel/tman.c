@@ -14,7 +14,7 @@
 #include "dplib/fsl_ldpaa.h"
 #include "inline_asm.h"
 #ifdef SL_DEBUG
-#include "fsl_errors.h"
+	#include "common/errors.h"
 #endif
 
 int tman_create_tmi(uint64_t tmi_mem_base_addr,
@@ -22,7 +22,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 {
 	/* command parameters and results */
 	uint32_t arg1, arg2, icid_pl, va_bdi;
-	unsigned int res1, res2;
+	unsigned int res1, res2, *tmi_state_ptr;
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
 #endif
@@ -46,6 +46,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/* Store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	__st64dw_d(tmi_mem_base_addr, HWC_ACC_IN_ADDRESS + 8);
+	/* The next loop waits until the TMI Creation logic is not busy */
 	do {
 		/* call TMAN. */
 		__e_hwacceli(TMAN_ACCEL_ID);
@@ -55,17 +56,31 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
-	} while (res1 & TMAN_TMI_TMP_ERR_MASK);
+	} while (res1 == TMAN_TMI_CREATE_BUSY);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
-	return (int)(res1);
+	if (res1 == TMAN_TMR_DEPLETION_ERR)
+		return (int)(-ENOSPC);
+	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_TMSTATE_ADDRESS
+			+ ((*tmi_id)<<5));
+	while ((*tmi_state_ptr != TMAN_TMI_BUS_ERR) &&
+			(*tmi_state_ptr != TMAN_TMI_ACTIVE))
+	{
+		/* YIELD. May not be optimized due to CTS behavior*/
+		__e_hwacceli(YIELD_ACCEL_ID);
+	}
+	if (*tmi_state_ptr == TMAN_TMI_BUS_ERR)
+		tman_exception_handler(__FILE__, __LINE__,
+				(int)TMAN_TMI_CREATE_BUS_ERR);
+	return (int)(TMAN_TMI_CREATE_SUCCESS);
 }
 
 int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
 			tman_arg_2B_t conf_opaque_data2)
 {
-	struct tman_tmi_input_extention extention_params;
+	struct tman_tmi_input_extention extention_params
+		__attribute__((aligned(TMAN_EXT_PARAM_ALIGNMENT)));
 	/* command parameters and results */
 	uint32_t res1, epid = EPID_TIMER_EVENT_IDX;
 #ifdef SL_DEBUG
@@ -90,6 +105,7 @@ int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	*arg1 = (uint32_t)(&extention_params);
 	Optimization: remove 1 cycle of address calc */
 	__sthw_d(&extention_params, HWC_ACC_IN_ADDRESS + 0xA);
+	/* The next loop waits until the TMI deletion logic is not busy */
 	do {
 		/* call TMAN. */
 		__e_hwacceli(TMAN_ACCEL_ID);
@@ -99,8 +115,13 @@ int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
-	} while (res1 & TMAN_TMI_TMP_ERR_MASK);
-	return (int)(res1);
+		/* check each loop instance to verify if in the time of the
+		 * command another task did'nt deleted the same TMI */
+		if ((res1 & TMAN_TMI_STATE_MASK) != TMAN_TMI_ACTIVE)
+			tman_exception_handler(__FILE__, __LINE__, (int)res1);
+	} while (res1 & TMAN_TMI_DEL_TMP_ERR_MASK);
+	
+	return (int)(TMAN_TMI_DEL_SUCCESS);
 }
 
 int tman_query_tmi(uint8_t tmi_id,
@@ -125,19 +146,30 @@ int tman_query_tmi(uint8_t tmi_id,
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
-	} while (res1 & TMAN_TMI_TMP_ERR_MASK);
+	} while (res1 & TMAN_TMI_QUERY_TMP_ERR_MASK); 
 	/* Optimization: remove one cycle compared to and statement */
 	/* Erase PL and BDI from output_ptr */
 	*(uint8_t *)(&output_ptr->max_num_of_timers) = 0;
-	return (int)(res1);
+	if (!((res1) & TMAN_FAIL_BIT_MASK))
+			return (int)(TMAN_TMI_QUERY_SUCCESS);
+	if ((res1 & TMAN_TMI_STATE_MASK) == TMAN_TMI_NOT_ACTIVE)
+		return (int)(ENAVAIL);
+	if ((res1 & TMAN_TMI_STATE_MASK) == TMAN_TMI_BUS_ERR)
+		tman_exception_handler(__FILE__, __LINE__, 
+				(int)TMAN_TMI_CREATE_BUS_ERR);
+	/* In case TMI is being deleted or being created */
+	return (int)(EACCES);
 }
 
+/* The below pragma is to remove compilation warning:"return value expected" */
+#pragma warn_missingreturn off
 int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 			uint16_t duration, tman_arg_8B_t opaque_data1,
 			tman_arg_2B_t opaque_data2, tman_cb_t tman_timer_cb,
 			uint32_t *timer_handle)
 {
-	struct tman_tmi_input_extention extention_params;
+	struct tman_tmi_input_extention extention_params
+		__attribute__((aligned(TMAN_EXT_PARAM_ALIGNMENT)));
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_CREATE;
 	unsigned int res1, res2;
 	uint32_t epid = EPID_TIMER_EVENT_IDX;
@@ -177,11 +209,19 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
-	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2) ||
-			(res1 == TMAN_TMR_TMP_ERR3));
+	} while (res1 == TMAN_TMR_TMP_ERR1);
+	/*Todo need to see if to remove the loop and to treat this as a fatal
+	 * error */
+
 	*timer_handle = res2;
-	return (int)(res1);
+	if (!((res1) & TMAN_FAIL_BIT_MASK))
+			return (int)(TMAN_TMR_CREATE_SUCCESS);
+	if ((res1 == TMAN_TMR_CONF_WAIT_ERR) ||
+			(res1 == TMAN_TMR_DEPLETION_ERR))
+				return (int)(-ENOSPC);
+	tman_exception_handler(__FILE__, __LINE__, (int)res1);
 }
+#pragma warn_missingreturn on
 
 int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 {
@@ -207,6 +247,7 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	return (int)(res1);
 }
 
+#ifdef REV2
 int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_MODIFY, res1;
@@ -233,6 +274,7 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2));
 	return (int)(res1);
 }
+#endif
 
 int tman_recharge_timer(uint32_t timer_handle)
 {
@@ -244,44 +286,38 @@ int tman_recharge_timer(uint32_t timer_handle)
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	do {
-		/* call TMAN. */
-		__e_hwacceli(TMAN_ACCEL_ID);
-		/* Load command results */
-		res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-#ifdef SL_DEBUG
-		cnt++;
-		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
-#endif
-	} while (res1 == TMAN_TMR_TMP_ERR2);
-	return (int)(res1);
+	/* call TMAN. */
+	__e_hwacceli(TMAN_ACCEL_ID);
+	/* Load command results */
+	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+	if (!((res1) & TMAN_FAIL_BIT_MASK))
+			return (int)(TMAN_REC_TMR_SUCCESS);
+	if (res1 == TMAN_REC_TMR_CURR_ELAPSE)
+		return (int)(-ETIMEDOUT);
+//	fatal - TMAN_REC_TMR_NOT_ACTIVE_ERR, TMAN_REC_TMR_BUSY and all TMI states
+	return (int)(-ETIMEDOUT);
 }
 
 int tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state)
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_QUERY, res1;
-#ifdef SL_DEBUG
-	uint32_t cnt = 0;
-#endif
 
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	do {
-		/* call TMAN. */
-		__e_hwacceli(TMAN_ACCEL_ID);
-		/* Load command results */
-		res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-#ifdef SL_DEBUG
-		cnt++;
-		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
-#endif
-	} while (res1 == TMAN_TMR_TMP_ERR2);
-	/* performs *state = res1 & 0x03 */
-	/* Optimization: remove 2 cycles of clearing duration upper bits */
-	*((uint8_t *)(state)) = (uint8_t)res1;
-	return (int)(res1 & TMAN_TMR_QUERY_STATE_MASK);
+	/* call TMAN. */
+	__e_hwacceli(TMAN_ACCEL_ID);
+	/* Load command results */
+	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+
+	if ((res1 & 0x4) == 0)
+		res1 &= 0x1;
+	else
+		res1 &= TMAN_TMR_QUERY_STATE_MASK;
+	
+	*state = (enum e_tman_query_timer)res1;
+	return (int)(TMAN_TMR_QUERY_SUCCESS);
 }
 
 void tman_timer_completion_confirmation(uint32_t timer_handle)
@@ -291,18 +327,7 @@ void tman_timer_completion_confirmation(uint32_t timer_handle)
 
 void tman_get_timestamp(uint64_t *timestamp)
 {
-#if 0 /* code in case of little endian registers */
-	uint64_t temp;
-
-	/*TODO the bellow line is because of compiler warning please remove
-	when possible */
-	temp = 0;
-
-	__llldbrw(temp, 0, (void *) TMAN_TMTSTMP_ADDRESS);
-	*timestamp = temp;
-#else
 	*timestamp = *((uint64_t *) TMAN_TMTSTMP_ADDRESS);
-#endif
 }
 
 #pragma push
@@ -323,3 +348,104 @@ void tman_timer_callback(void)
 }
 
 #pragma pop
+
+void tman_exception_handler(char *filename, uint32_t line, int32_t status)
+{
+
+	/*TODO Fatal error*/
+	switch(status) {
+	case TMAN_TMIID_DEPLETION_ERR:
+		exception_handler(filename, line,
+				"All TMIs are used. A TMI must be deleted \
+				before a new one can be created.");
+		break;
+	case TMAN_ILLEGAL_DURATION_VAL_ERR:
+		exception_handler(filename, line,
+				"Illegal Timer duration.\
+				The duration must have a value larger than 10 \
+				ticks and smaller than 2^16-10 ticks.");
+		break;
+	case TMAN_TMI_NOT_ACTIVE:
+		exception_handler(filename, line,
+				"A non active TMI was provided as an input.");
+		break;
+	case TMAN_TMR_DEPLETION_ERR:
+		exception_handler(filename, line,
+				"No more available timers in the TMI.");
+		break;
+
+	case TMAN_DEL_TMR_NOT_ACTIVE_ERR:
+		exception_handler(filename, line,
+				"A non active timer was provided as an input.");
+		break;
+	case TMAN_DEL_CCP_WAIT_ERR:
+		exception_handler(filename, line,
+				"The one shot timer has expired but it is \
+				pending a completion confirmation (done by \
+				calling the tman_timer_completion_confirmation \
+				function).");
+		break;
+	case TMAN_DEL_PERIODIC_CCP_WAIT_ERR:
+		exception_handler(filename, line,
+				"The periodic timer has expired but it is \
+				pending a completion confirmation (done by \
+				calling the tman_timer_completion_confirmation \
+				function).");
+		break;
+	case TMAN_DEL_TMR_DEL_ISSUED_ERR:
+		exception_handler(filename, line,
+				"A delete command was already issued for this \
+				timer and the TMAN is in the process of \
+				deleting the timer. The timer will elapse in \
+				the future.");
+		break;
+	case TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR:
+		exception_handler(filename, line,
+				"A delete command was already issued. The \
+				timer has already elapsed for the last time \
+				and it is pending a completion confirmation \
+				(done by calling the \
+				tman_timer_completion_confirmation function)");
+		break;
+
+	case TMAN_MOD_TMR_NOT_ACTIVE_ERR:
+		exception_handler(filename, line,
+				"A non active timer was provided as an input.");
+		break;
+	case TMAN_MOD_CCP_WAIT_ERR:
+		exception_handler(filename, line,
+				"The one shot timer has expired but it is \
+				pending a completion confirmation (done by \
+				calling the tman_timer_completion_confirmation \
+				function).");
+		break;
+	case TMAN_MOD_PERIODIC_CCP_WAIT_ERR:
+		exception_handler(filename, line,
+				"The periodic timer has expired but it is \
+				pending a completion confirmation (done by \
+				calling the tman_timer_completion_confirmation \
+				function).");
+		break;
+	case TMAN_MOD_TMR_DEL_ISSUED_ERR:
+		exception_handler(filename, line,
+				"A delete command was already issued for this \
+				timer and the TMAN is in the process of \
+				deleting the timer. The timer will elapse in \
+				the future.");
+		break;
+	case TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR:
+		exception_handler(filename, line,
+				"A delete command was already issued. The \
+				timer has already elapsed for the last time \
+				and it is pending a completion confirmation \
+				(done by calling the \
+				tman_timer_completion_confirmation function)");
+		break;
+
+
+	default:
+		exception_handler(filename, line,
+				"UNKNOWN error occurred");
+       }
+}
+

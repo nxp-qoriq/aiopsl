@@ -1,5 +1,4 @@
 
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    cmdif_client.h
  *  @brief   Cmdif client AIOP<->GPP internal header file
@@ -15,11 +14,6 @@
 #define CMD_ID_CLOSE       0x4000
 #define OPEN_AUTH_ID       0xFFFF
 #define M_NAME_CHARS       8     /*!< Not including \0 */
-#ifdef AIOP
-#define CMDIF_EPID         2     /*!< EPID to be used for client cb on AIOP */
-#else
-#define CMDIF_EPID         0     /*!< EPID to be used for sending cmd to AIOP */
-#endif
 
 struct cmdif_dev {
 	uint64_t   p_sync_done;
