@@ -189,17 +189,17 @@ asm static void branch_table(void) {
 exception_irq:
     li       r0, 0x00000000
     /* disable exceptions and interrupts */
-    mtspr    DBSR, r0 //TODO maybe save it before clearing it ... ??? not reacting ???
+    mtspr    DBSR, r0
     mtspr    DBCR0, r0
     mtspr    DBCR2, r0
     /* disable debug and interrupts in MSR */
-    mtmsr    r0 //TODO not sure about this //TODO disable interrupts //TODO look at: CE, EE, ME, DE, PMM and RI
+    mtmsr    r0
     isync
     /* update stack overflow detection to 1-task (0x8000) */ 
     se_bgeni r4,16
     mtspr    DAC2,r4
     /* clear stack pointer */
-    li       rsp, 0x7ff0 //TODO this is not correct, what if task is not #0 !!!
+    li       rsp, 0x7ff0
     /* branch to isr */
     lis      r4,booke_generic_exception_isr@h
     ori      r4,r4,booke_generic_exception_isr@l
