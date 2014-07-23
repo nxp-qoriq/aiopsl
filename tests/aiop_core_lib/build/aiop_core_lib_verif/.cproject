@@ -36,7 +36,7 @@
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.694405016" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
 							<builder buildPath="${ProjDirPath}/RAM" id="com.freescale.ppc.toolchain.builder.441436400" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
 							<tool id="com.freescale.ppc.toolchain.linker.1401545175" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker">
-								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.1464270349" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__start" valueType="string"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.1464270349" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__sys_start" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.codeAddress.2116258729" name="Code Address" superClass="com.freescale.ppc.toolchain.linker.base.input.codeAddress" value="0x2000" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.dataAddress.444228488" name="Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.dataAddress" value="0x0" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.smallDataAddress.605047707" name="Small Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.smallDataAddress" value="0x0" valueType="string"/>
@@ -51,10 +51,7 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1509767408" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.1048527672" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
 									<listOptionValue builtIn="false" value="lib/__ppc_eabi_init.c"/>
-									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_cdma.c"/>
-									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_checksum.c"/>
-									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ctlu.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_data.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_fdma.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_fm.c"/>
@@ -85,17 +82,27 @@
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipf.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipr.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipsec.c"/>
-									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/ip/ipv4_checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l2/l2.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/gro.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/gso.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/l4.c"/>
-									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/l4/l4_checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipsec.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_keygen.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_osm.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_sr.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_table.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/slab_stub.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/keygen.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/flib/sec_app.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/kernel/sys.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/kernel/time.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/general/frame_operations.c"/>
+									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/id_pool.c"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.926178335" name="List Closure" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.1607589974" name="List Unused Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="false" valueType="boolean"/>
