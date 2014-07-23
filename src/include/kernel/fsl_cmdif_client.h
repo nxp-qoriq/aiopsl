@@ -1,6 +1,4 @@
 /**************************************************************************//**
-Copyright 2013 Freescale Semiconductor, Inc.
-
 @File          fsl_cmdif_client.h
 
 @Description   AIOP to GPP cmdif API
@@ -8,14 +6,6 @@ Copyright 2013 Freescale Semiconductor, Inc.
 
 #ifndef __FSL_CMDIF_CLIENT_H
 #define __FSL_CMDIF_CLIENT_H
-
-/**************************************************************************//**
-@Group		LIB LIB
-
-@Description	ARENA LIB APIs
-
-@{
-*//***************************************************************************/
 
 /**************************************************************************//**
 @Group         cmdif_g  Command Interface API
@@ -92,8 +82,12 @@ that had been sent through cidesc.
 @Param[in]	async_ctx   User context that was setup during cmdif_open()
 @Param[in]	err         Error as returned by server
 @Param[in]	cmd_id      Id of command
-@Param[in]	size        Size of the data
-@Param[in]	data        Data of the command
+@Param[in]	size        Size of the data.
+		On the AIOP side use PRC_GET_SEGMENT_LENGTH() to determine the
+		size of presented data.
+@Param[in]	data        Data of the command.
+		On the AIOP side it is the pointer to segment presentation
+		address; use fdma_modify_default_segment_data() if needed.
 
 
 @Return		OK on success; error code, otherwise.
@@ -199,6 +193,5 @@ int cmdif_resp_read(struct cmdif_desc *cidesc, int priority);
 
 /** @} *//* end of cmdif_client_g group */
 /** @} *//* end of cmdif_g group */
-/** @} *//* end of ARENA LIB APIs */
 
 #endif /* __FSL_CMDIF_CLIENT_H */

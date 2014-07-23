@@ -28,5 +28,15 @@ fsl_dpni_drv.h
 general.h
 fsl_cmdif_server.h
 fsl_cmdif_client.h
+fsl_cmdif_flib_s.h
+fsl_cmdif_flib_c.h
+fsl_cmdif_fd.h
 fsl_inet.h
 fsl_slab.h
+fsl_io.h
+fsl_stdio.h
+fsl_time.h
+fsl_endian.h
+fsl_malloc.h
+fsl_platform.h
+fsl_dbg.h

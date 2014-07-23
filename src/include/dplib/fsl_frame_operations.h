@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW Frame Operations API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_FRAME_OPERATIONS_H

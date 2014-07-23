@@ -7,7 +7,6 @@
 		using any other means since the STE is not synchronized with
 		the CDMA.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_STE_H

@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP GSO SW Verification Structures.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_gso.h"

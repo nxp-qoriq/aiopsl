@@ -137,6 +137,8 @@
 #define FDMA_CKS_CMD			0x0000001A
 	/** FDMA Copy data command code */
 #define FDMA_COPY_CMD			0x00000040
+/** FDMA DMA data command code */
+#define FDMA_DMA_CMD			0x00000070
 	/** FDMA Acquire buffer command code */
 #define FDMA_ACQUIRE_BUFFER_CMD		0x00000072
 	/** FDMA Release buffer command code */
@@ -395,6 +397,14 @@
 	/** FDMA Copy data command arg1 */
 #define FDMA_COPY_CMD_ARG1(_copy_size, _flags)				\
 	(uint32_t)((((uint32_t)_copy_size) << 16) | _flags | FDMA_COPY_CMD)
+
+	/** FDMA DMA data command arg1 */
+#define FDMA_DMA_CMD_ARG1(_icid, _flags)				\
+	(uint32_t)(((((uint32_t)_icid) & 0x7FFF) << 16) | _flags | FDMA_DMA_CMD)
+/** FDMA DMA data command arg2 */
+#define FDMA_DMA_CMD_ARG2(_copy_size, _loc_address)			\
+	(uint32_t)(((((uint32_t)_copy_size) & 0xFFF) << 20) |		\
+		((uint32_t)_loc_address & 0xFFFFF))
 
 	/** FDMA Acquire buffer command arg1 */
 #define FDMA_ACQUIRE_CMD_ARG1(_icid, _flags)				\

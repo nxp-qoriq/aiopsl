@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP IPsec SW Verification Commands
 
-		Copyright 2014 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 //#define IPSEC_OVERRIDE_RTA

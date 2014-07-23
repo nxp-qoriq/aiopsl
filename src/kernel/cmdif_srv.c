@@ -16,6 +16,7 @@
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
 #include "cmdif_client_aiop.h"
+#include "fsl_io_ccsr.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
@@ -81,7 +82,7 @@ static int module_id_find(const char *m_name, struct cmdif_srv *srv)
 
 static int inst_alloc(struct cmdif_srv_aiop *aiop_srv, uint8_t m_id)
 {
-	int r = 0;
+	uint32_t r = 0;
 	int count = 0;
 	struct cmdif_srv *srv = (struct cmdif_srv *)aiop_srv->srv;
 
@@ -114,7 +115,7 @@ static int inst_alloc(struct cmdif_srv_aiop *aiop_srv, uint8_t m_id)
 		srv->m_id[r] = m_id;
 		srv->inst_count++;
 		unlock_spinlock(&aiop_srv->lock);
-		return r;
+		return (int)r;
 	}
 }
 
@@ -213,31 +214,33 @@ static int epid_setup()
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
 	uint32_t data = 0;
 
-	iowrite32(0, &wrks_addr->epas); /* EPID = 0 reserved for server */
-	iowrite32(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
+	iowrite32_ccsr(0, &wrks_addr->epas); /* EPID = 0 reserved for server */
+	iowrite32_ccsr(PTR_TO_UINT(cmdif_srv_isr), &wrks_addr->ep_pc);
 
 #ifdef AIOP_STANDALONE
 	/* Default settings */
-	iowrite32(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32(0x000002c0, &wrks_addr->ep_ptapa);
-	iowrite32(0x00020300, &wrks_addr->ep_asapa);
-	iowrite32(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32(0x00000000, &wrks_addr->ep_spo);
+	iowrite32_ccsr(0x00600040, &wrks_addr->ep_fdpa);
+	iowrite32_ccsr(0x010001c0, &wrks_addr->ep_spa);
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_spo);
 #endif
+	/* no PTA presentation is required (even if there is a PTA)*/
+	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
+	/* set epid ASA presentation size to 0 */
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits OSRM = 5 */
-	iowrite32(0x11000005, &wrks_addr->ep_osc);
-	data = ioread32(&wrks_addr->ep_osc);
+	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
 	if (data != 0x11000005)
 		return -EINVAL;
 
 	pr_info("CMDIF Server is setting EPID = 0\n");
-	pr_info("ep_pc = 0x%x \n", ioread32(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32(&wrks_addr->ep_spo));
-	pr_info("ep_osc = 0x%x \n", ioread32(&wrks_addr->ep_osc));
+	pr_info("ep_pc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_osc));
 
 	return 0;
 }
@@ -358,6 +361,7 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	pr_debug("err = %d\n", err);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	pr_debug("sync_resp = 0x%x\n", resp);
+	pr_debug("icid = 0x%x\n", ICID_GET);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
@@ -370,7 +374,9 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
-		cdma_write(_sync_done, &resp, 4);
+		/* Same as cdma_write(_sync_done, &resp, 4); */
+		fdma_dma_data(4, ICID_GET, &resp,
+		              _sync_done, FDMA_DMA_DA_WS_TO_SYS_BIT);
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n",
@@ -404,9 +410,8 @@ static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl)
 	return -1;
 }
 
-static int notify_open(struct cmdif_srv_aiop *aiop_srv)
+static int notify_open()
 {
-	struct cmdif_srv *srv = aiop_srv->srv;
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
@@ -430,6 +435,12 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 
 	pr_debug("Found dpci peer id at index %d \n", ind);
 
+	/* TODO place it under debug ? */
+	if (cl == NULL) {
+		pr_err("No client handle\n");
+		return -ENODEV;
+	}
+
 	lock_spinlock(&cl->lock);
 	count = cl->count;
 	if (count >= CMDIF_MN_SESSIONS) {
@@ -439,7 +450,7 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 	}
 	cl->gpp[count].ins_id           = data->inst_id;
 	cl->gpp[count].dev->auth_id     = data->auth_id;
-	cl->gpp[count].dev->p_sync_done = cmd_data_get();
+	cl->gpp[count].dev->p_sync_done = sync_done_get();
 	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
 	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
@@ -462,18 +473,15 @@ static int notify_open(struct cmdif_srv_aiop *aiop_srv)
 		                           &dpci_tbl->attr[ind]);
 	 }
 
-	if (!dpci_tbl->attr[ind].peer_attached ||
-		!link_up) {
+	if (!dpci_tbl->attr[ind].peer_attached || !link_up) {
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
 	return 0;
 }
 
-static int notify_close(struct cmdif_srv_aiop *aiop_srv)
+static int notify_close()
 {
-	struct cmdif_srv *srv = aiop_srv->srv;
-
 	/* Support for AIOP -> GPP */
 
 	return -ENOTSUP;
@@ -529,7 +537,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (IS_VALID_AUTH_ID(auth_id)) {
-			err = notify_open(aiop_srv);
+			err = notify_open();
 			sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
@@ -538,7 +546,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
 		if (IS_VALID_AUTH_ID(auth_id)) {
-			err = notify_close(aiop_srv);
+			err = notify_close();
 			sync_cmd_done(NULL, err, auth_id, srv, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */

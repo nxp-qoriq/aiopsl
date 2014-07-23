@@ -1,15 +1,22 @@
 /**
-
  @File          fsl_platform.h
-
- @Description   LS2100A Pltform external definitions and structures.
+ 
+ @Description   This file contains typedefs for dynamic memory allocation.
+ 
 *//***************************************************************************/
 #ifndef __FSL_PLATFORM_AIOP_H
 #define __FSL_PLATFORM_AIOP_H
 
 /**************************************************************************//**
- @Description   Memory Partition Identifiers
+ @Group         mem_mng_g_id Memory Management
+ @Description   Prototypes, externals and typedefs for system  memory management.
 
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+ @Description   Memory Partition Identifiers.
+                Used as a parameter for fsl_os_xmalloc() and fsl_os_malloc(). 
                 Note that not all memory partitions are supported by all
                 platforms. Every platform may select which memory partitions
                 to support.
@@ -23,6 +30,6 @@ typedef enum memory_partition_id {
     MEM_PART_INVALID                   /**< Invalid memory partition */
 } e_memory_partition_id;
 
-
+/** @} */ /* end of sytem_mem_management_id  group */
 #endif /* __FSL_PLATFORM_AIOP_H */
 

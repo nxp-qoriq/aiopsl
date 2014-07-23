@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW FDMA API
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_FDMA_H
@@ -169,6 +168,26 @@ enum fdma_replace_sa_options {
 };
 
 /* @} end of enum fdma_replace_sa_options */
+
+/**************************************************************************//**
+ @enum fdma_dma_data_access_options
+
+ @Description	AIOP FDMA DMA Data Access command options.
+
+ @{
+*//***************************************************************************/
+enum fdma_dma_data_access_options {
+		/** system memory read to workspace write */
+	FDMA_DMA_DA_SYS_TO_WS_BIT =	0x00000000,
+		/** workspace read to system memory write */
+	FDMA_DMA_DA_WS_TO_SYS_BIT =	0x00000100,
+		/** system memory read to AIOP Shared Memory write */
+	FDMA_DMA_DA_SYS_TO_SRAM_BIT =	0x00000200,
+		/** AIOP Shared Memory read to system memory write */
+	FDMA_DMA_DA_SRAM_TO_SYS_BIT =	0x00000300
+};
+
+/* @} end of enum fdma_dma_data_access_options */
 
 /**************************************************************************//**
  @enum fdma_pta_size_type
@@ -467,6 +486,30 @@ enum fdma_pta_size_type {
 #define FDMA_COPY_DM_BIT	0x00000200
 
 /* @} end of group FDMA_Copy_Flags */
+
+/**************************************************************************//**
+@Group		FDMA_DMA_Flags
+
+@Description	FDMA DMA data flags
+
+@{
+*//***************************************************************************/
+
+	/** Default command configuration. */
+#define FDMA_DMA_NO_FLAGS	0x00000000
+	/** DMA Data Access options. */
+#define FDMA_DMA_DA		fdma_dma_data_access_options
+	/** Virtual Address. Frame AMQ attribute.
+	 * The DMA uses this memory attribute to make the access. */
+#define FDMA_DMA_VA_BIT		0x00002000
+	/** Bypass the Memory Translation. Frame AMQ attribute.
+	 * The DMA uses this memory attribute to make the access. */
+#define FDMA_DMA_BMT_BIT	0x00004000
+	/** Privilege Level. Frame AMQ attribute.
+	 * The DMA uses this memory attribute to make the access. */
+#define FDMA_DMA_PL_BIT		0x00008000
+
+/* @} end of group FDMA_DMA_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_ACQUIRE_BUFFER_Flags
@@ -2365,6 +2408,35 @@ void fdma_copy_data(
 		uint32_t flags,
 		void *src,
 		void *dst);
+
+/**************************************************************************//**
+@Function	fdma_dma_data
+
+@Description	Provide direct access to any system memory data. Transfer system
+		memory data to/from the task workspace/AIOP shared memory.
+
+@Param[in]	copy_size - Number of bytes to copy (limited to 12 bits).
+@Param[in]	icid - Memory Access ICID. The DMA uses the provided Isolation
+		Context to make the access.
+@Param[in]	loc_addr - A pointer to the source/target location in Workspace
+		or AIOP Shared Memory for DMA data. Workspace address is
+		limited to 16 bits. AIOP Shared Memory address is limited to 20
+		bits.
+@Param[in]	sys_addr - System memory source/target address for DMA data.
+@Param[in]	flags - Please refer to \link fdma_dma_data_access_options DMA
+		command flags \endlink.
+
+@Return		None.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+void fdma_dma_data(
+		uint16_t copy_size,
+		uint16_t icid,
+		void *loc_addr,
+		uint64_t sys_addr,
+		uint32_t flags);
 
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */
