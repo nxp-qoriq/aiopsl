@@ -14,7 +14,7 @@
 #include "fsl_fdma.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
-//#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
+#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
 
@@ -88,8 +88,9 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	 * TODO add more test scenarios for AIOP server
 	 * 1. async response with error
 	 * 2. high low priority, high must be served before low
-	 * 3.
+	 * 3. verify data modified by server & client
 	 * TODO add more test scenarios for AIOP client
+	 * 1. verify data modified by server & client
 	 * */
 	return 0;
 }
