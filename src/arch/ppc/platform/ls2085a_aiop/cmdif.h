@@ -22,4 +22,6 @@
 #define CPU_TO_SRV32(val) CPU_TO_LE32(val)
 #endif
 
+#define CMDIF_EPID         2    /*!< EPID to be used for setting by client */
+
 #endif /* __CMDIF_H */
