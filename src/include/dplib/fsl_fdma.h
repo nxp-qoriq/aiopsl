@@ -2423,8 +2423,8 @@ void fdma_copy_data(
 		limited to 16 bits. AIOP Shared Memory address is limited to 20
 		bits.
 @Param[in]	sys_addr - System memory source/target address for DMA data.
-@Param[in]	flags - Please refer to \link fdma_dma_data_access_options DMA
-		command flags \endlink.
+@Param[in]	flags - Please refer to \link FDMA_DMA_Flags DMA command flags
+		\endlink.
 
 @Return		None.
 
