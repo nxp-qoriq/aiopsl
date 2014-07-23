@@ -107,8 +107,6 @@ int ipsec_create_instance (
 	return_val = slab_find_and_fill_bpid(
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
-			//IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
-			//8, /* uint16_t alignment */ // TODO: slab does not support 64 bytes aligned buffers
 			1, /* uint16_t alignment = 1, i.e. no alignment requirements */ 
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             &num_filled_buffs, /* int *num_filled_buffs */
@@ -183,7 +181,6 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 			instance_handle, /* uint64_t ext_address */
 			sizeof(sa_count) /* uint16_t size */
 			);
-
 	
 	/* Check if all SAs were deleted */
 	if (sa_count == 0) {
@@ -692,9 +689,17 @@ void ipsec_generate_flc(
 	struct ipsec_flow_context flow_context;
 
 	/* TODO: temporary storage profiles implementation */
-	extern struct storage_profile storage_profiles[NUM_OF_SP];
-	uint64_t *sp_addr =  (uint64_t *)(&storage_profiles[spid]);
-			
+	//extern struct storage_profile storage_profiles[NUM_OF_SP];
+	extern struct storage_profile storage_profile;
+	//uint64_t *sp_addr =  (uint64_t *)(&storage_profiles[spid]);
+	int i;
+	
+	struct storage_profile *sp_addr = &storage_profile;
+	uint8_t *sp_byte;
+	
+	sp_addr += spid;
+	sp_byte = (uint8_t *)sp_addr;
+	
 	/* Word 0 */
 	flow_context.word0_sdid = 0; //TODO: how to get this value? 
 	flow_context.word0_res = 0; 
@@ -745,11 +750,12 @@ void ipsec_generate_flc(
 	* Only The data from offset 0x08 and 0x10 is copied to SEC flow context 
 	*/
 	/* Copy the standard Storage Profile to Flow Context words 8-15 */
-	flow_context.storage_profile[0] = *(sp_addr + 1);
-	flow_context.storage_profile[1] = *(sp_addr + 2);
-	flow_context.storage_profile[2] = 0;
-	flow_context.storage_profile[3] = 0;
-
+	/* No need to for the first 8 bytes, so start from 8 */
+	for (i = 8; i < 32; i++) {
+		*((uint8_t *)((uint8_t *)flow_context.storage_profile + i - 8)) = 
+				*(sp_byte + i); 
+	}
+	
 	/* Write the Flow Context to external memory with CDMA */
 	cdma_write(
 			flc_address, /* ext_address */
@@ -893,8 +899,6 @@ int ipsec_add_sa_descriptor(
 	
 	/* Generate the SEC Flow Context descriptor and write to memory with CDMA */
 	ipsec_generate_flc(
-			//((*ipsec_handle) + IPSEC_INTERNAL_PARMS_SIZE), 
-			//IPSEC_FLC_ADDR(*ipsec_handle), 
 			IPSEC_FLC_ADDR(desc_addr), 
 				/* Flow Context Address in external memory */
 			params->spid, /* Storage Profile ID of the SEC output frame */
@@ -906,7 +910,6 @@ int ipsec_add_sa_descriptor(
 	/* Store the descriptor parameters to memory (CDMA write). */
 	ipsec_generate_sa_params(
 			params,
-			//*ipsec_handle, /* Parameters area (start of buffer) */
 			desc_addr, /* Parameters area (start of buffer) */
 			instance_handle);
 	
@@ -950,8 +953,6 @@ int ipsec_del_sa_descriptor(
 			);
 	
 	/* Release the buffer */ 
-	//return_val = (int)cdma_refcount_decrement_and_release(
-	//	ipsec_handle); /* context_memory */ 
 	return_val = ipsec_release_buffer(instance_handle, ipsec_handle);
 	
 	// TODO: 
@@ -1112,8 +1113,6 @@ int ipsec_frame_encrypt(
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	//LDPAA_FD_SET_FLC(HWC_FD_ADDRESS,(ipsec_handle + IPSEC_INTERNAL_PARMS_SIZE));	
-	//LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(ipsec_handle));	
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
 	
 	/* Clear FD[FRC], so DPOVRD takes no action */
@@ -1625,8 +1624,6 @@ int ipsec_frame_decrypt(
 	*/
 	// TODO (still not implemented in the simulator)
 	//return_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
-	//byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 	
@@ -1746,7 +1743,6 @@ int ipsec_get_lifetime_stats(
 	/* 	Read relevant descriptor fields with CDMA. */
 	cdma_read(
 			&ctrs, /* void *ws_dst */
-			//ipsec_handle, /* uint64_t ext_address */
 			desc_addr, /* uint64_t ext_address */
 			sizeof(ctrs) /* uint16_t size */
 			);

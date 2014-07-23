@@ -1,3 +1,8 @@
+/*!
+ *  @file    fsl_cmdif_flib_c.h
+ *  @brief   Cmdif AIOP<->GPP FLIB header file fro client
+ */
+
 #ifndef __FSL_CMDIF_FLIB_C_H
 #define __FSL_CMDIF_FLIB_C_H
 
@@ -5,11 +10,21 @@
 #include <fsl_cmdif_client.h>
 #include <fsl_cmdif_fd.h>
 
-/* Copyright 2013 Freescale Semiconductor, Inc. */
-/*!
- *  @file    fsl_cmdif_flib_c.h
- *  @brief   Cmdif AIOP<->GPP FLIB header file fro client
- */
+/**************************************************************************//**
+@Group         cmdif_g  Command Interface API
+
+@Description   AIOP and GPP command interface API
+
+@{
+ *//***************************************************************************/
+
+/**************************************************************************//**
+@Group         cmdif_flib_g  Command Interface - FLIB API
+
+@Description   API to be used for FD based command interface implementation
+
+@{
+ *//***************************************************************************/
 
 /**
  *
@@ -152,11 +167,16 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
  * @brief	Call asynchronous callback of the received frame descriptor
  *
  * @param[in]	fd - Pointer to received frame descriptor
+ * @param[in]	v_addr - Virtual address to be used for async cb.
+ * 		This is workaround for SMMU disable mode, set it to NULL if
+ * 		fd->u_addr.d_addr can be used as is.
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int cmdif_async_cb(struct cmdif_fd *fd);
+int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr);
 
+/** @} *//* end of cmdif_flib_g group */
+/** @} *//* end of cmdif_g group */
 
 #endif /* __FSL_CMDIF_FLIB_H */

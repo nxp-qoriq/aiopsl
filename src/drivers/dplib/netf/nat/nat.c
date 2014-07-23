@@ -4,7 +4,6 @@
 @Description	This file contains the NAT header modification API
 		implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "general.h"

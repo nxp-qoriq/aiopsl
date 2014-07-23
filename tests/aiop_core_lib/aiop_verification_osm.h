@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP OSM SW Verification Structures.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 

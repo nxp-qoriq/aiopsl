@@ -1,6 +1,4 @@
-/*
-* Copyright (c) 2014 Freescale Semiconductor, Inc. All rights reserved.
-*/
+
 /*!
  *  @file    fsl_dpci.h
  *  @brief   Data Path Command Interface API

@@ -53,7 +53,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	fd->u_flc.open.cmid    = CPU_TO_SRV16(CMD_ID_OPEN);
 	fd->u_flc.open.auth_id = CPU_TO_SRV16(OPEN_AUTH_ID);
 	fd->u_flc.open.inst_id = instance_id;
-	fd->u_flc.open.epid    = CPU_TO_SRV16(CMDIF_EPID);
+	fd->u_flc.open.epid    = CPU_TO_BE16(CMDIF_EPID); /* Used by HW */
 	fd->u_frc.frc          = 0;
 	fd->u_addr.d_addr      = p_addr;
 	fd->d_size             = sizeof(union cmdif_data);
@@ -72,6 +72,9 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	}
 	if (i < M_NAME_CHARS)
 		v_addr->send.m_name[i] = '\0';
+
+	/* This is required because flc is a struct */
+	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
 
 	return 0;
 }
@@ -142,7 +145,10 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 	fd->u_flc.flc           = 0;
 	fd->u_flc.close.cmid    = CPU_TO_SRV16(CMD_ID_CLOSE);
 	fd->u_flc.close.auth_id = dev->auth_id;
-	fd->u_flc.open.epid     = CPU_TO_SRV16(CMDIF_EPID);
+	fd->u_flc.close.epid    = CPU_TO_BE16(CMDIF_EPID); /* Used by HW */
+
+	/* This is required because flc is a struct */
+	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
 
 	return 0;
 }
@@ -171,20 +177,33 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 	fd->u_flc.flc         = 0;
 	fd->u_flc.cmd.auth_id = dev->auth_id;
 	fd->u_flc.cmd.cmid    = CPU_TO_SRV16(cmd_id);
-	fd->u_flc.cmd.epid    = CPU_TO_SRV16(CMDIF_EPID);
+	fd->u_flc.cmd.epid    = CPU_TO_BE16(CMDIF_EPID); /* Used by HW */
 	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
 	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
+
+	/* This is required because flc is a struct but HW treats it as
+	 * 8 byte LE.
+	 * Therefore if CPU is LE which means that swap is not done
+	 * by QMAN driver, we need to do it here */
+	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
 
 	return 0;
 }
 
-__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
+__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
 {
 	struct   cmdif_dev *dev = NULL;
 	uint64_t fd_dev         = 0;
 
 	if (fd == NULL)
 		return -EINVAL;
+
+
+	/* This is required because flc is a struct but HW treats it as
+	 * 8 byte LE.
+	 * Therefore if CPU is LE which means that swap is not done
+	 * by QMAN driver, we need to do it here */
+	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
 
 	fd_dev = (uint64_t)(fd->u_frc.cmd.dev_l);
 	fd_dev |= (((uint64_t)(fd->u_flc.cmd.dev_h)) << 32);
@@ -195,7 +214,7 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 				fd->u_flc.cmd.err,
 				CPU_TO_SRV16(fd->u_flc.cmd.cmid),
 				fd->d_size,
-				fd->u_addr.d_addr);
+				(uint64_t)((v_addr != NULL) ? v_addr : fd->u_addr.d_addr));
 	else
 		return -EINVAL;
 }

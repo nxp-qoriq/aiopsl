@@ -33,7 +33,7 @@ Setup
 Execution flow
 ===========================================
 1. Build mc_app using CW_APP_v10.0.8.
-2. Build app_process_packet from aiopsl using CW_APP_v10.0.8.
+2. Build ipsec_fm_demofrom aiopsl using CW_APP_v10.0.8.
 3. Copy resulting ELF file from the build project folder(aiop_app.elf) to simulator folder (same location as cfg files).
 4. Run simulator:
    ./ccssim2 -port 42333
@@ -41,7 +41,7 @@ Execution flow
              -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"
 5. Launch mc_app using AFM connection.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
-6. Attach app_process_packet (make sure to un-mark initialization files).
+6. Attach ipsec_fm_demo(make sure to un-mark initialization files).
 7. After MC reaches main(), turn tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart1_1 duart1_0
 8. Run mc_app.
@@ -65,7 +65,7 @@ Possible modifications:
 4. The user may use different simulator port
 5. The demo runs in MC integrated mode. In order to get back to AIOP standalone
    mode as it was supported in previous releases, it is required to recompile
-   aiopsl and app_process_packet project with AIOP_STANDALONE defined.
+   aiopsl and ipsec_fm_demoproject with AIOP_STANDALONE defined.
    Please note that the standalone mode is being phased out and has is no longer verified.
 6. The user may run without elf loader. In order to do that go to simulator folder and
    comment the lines marked with "#for elf loader" in cfg files:

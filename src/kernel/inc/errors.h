@@ -1,6 +1,4 @@
 /**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
-
  @File          errors.h
 
  @Description   Error definitions.
@@ -19,6 +17,16 @@
 
 
 //TODO: obsolete - do not use in new code !!!
+
+
+/**************************************************************************//**
+@Function      fsl_os_exit
+
+@Description   Stop execution and report status (where it is applicable)
+
+@Param[in]     status - exit status
+*//***************************************************************************/
+void    fsl_os_exit(int status);
 
 /**************************************************************************//**
  @Description    Error Type Enumeration

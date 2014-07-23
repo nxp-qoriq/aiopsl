@@ -1,6 +1,4 @@
 /**************************************************************************//**
-Copyright 2013 Freescale Semiconductor, Inc.
-
 @File          fsl_cmdif_server.h
 
 @Description   AIOP to GPP cmdif API
@@ -8,14 +6,6 @@ Copyright 2013 Freescale Semiconductor, Inc.
 
 #ifndef __FSL_CMDIF_SERVER_H
 #define __FSL_CMDIF_SERVER_H
-
-/**************************************************************************//**
-@Group		LIB LIB
-
-@Description	ARENA LIB APIs
-
-@{
-*//***************************************************************************/
 
 /**************************************************************************//**
 @Group         cmdif_g  Command Interface API
@@ -33,7 +23,6 @@ Copyright 2013 Freescale Semiconductor, Inc.
 @{
  *//***************************************************************************/
 struct cmdif_desc;
-struct cmdif_fd;
 
 /**************************************************************************//**
 @Description	Open callback
@@ -71,7 +60,9 @@ User provides this function. Driver invokes it for all runtime commands
 @Param[in]	dev -  A handle of the device which was returned after
 		module open callback
 @Param[in]	cmd -  Id of command
-@Param[in]	size - Size of the data
+@Param[in]	size - Size of the data.
+		On the AIOP side use PRC_GET_SEGMENT_LENGTH() to determine the
+		size of presented data.
 @Param[in]	data - Data of the command - physical address.
 		AIOP server will pass here address to the start of presentation
 		segment - physical address is the same as virtual.
@@ -129,14 +120,17 @@ int cmdif_unregister_module(const char *module_name);
 
 @Description	Open session on server and notify client about it
 
-@Param[in]	cidesc  - Already open connection descriptor towards second side
-@Param[in]	m_name  - Name of the module as registered
+@Param[in]	cidesc   - Already open connection descriptor towards second side
+@Param[in]	m_name   - Name of the module as registered
 		by cmdif_register_module()
-@Param[in]	inst_id - Instance id which will be passed to #open_cb_t
-@Param[in]	size    - Size of v_data buffer
-@Param[out]	v_data  - Buffer allocated by user. If not NULL this buffer
+@Param[in]	inst_id  - Instance id which will be passed to #open_cb_t
+@Param[in]	size     - Size of v_data buffer
+@Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
-@Param[out]	auth_id - Session id as returned by server.
+@Param[in]	p_data   - Physical address of v_data.
+@Param[in]	send_dev - Transport device to be used for server (nadk device).
+		Device used for send and receive of frame descriptor.
+@Param[out]	auth_id  - Session id as returned by server.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -145,6 +139,8 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 		uint8_t inst_id,
 		uint32_t size,
 		void *v_data,
+		uint64_t p_data,
+		void *send_dev,
 		uint16_t *auth_id);
 
 /**************************************************************************//**
@@ -152,18 +148,23 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 
 @Description	Close session on server and notify client about it
 
-@Param[in]	cidesc  - Already open connection descriptor towards second side
-@Param[in]	size    - Size of v_data buffer
-@Param[in]	auth_id - Session id as returned by server.
-@Param[out]	v_data  - Buffer allocated by user. If not NULL this buffer
+@Param[in]	cidesc   - Already open connection descriptor towards second side
+@Param[in]	size     - Size of v_data buffer
+@Param[in]	auth_id  - Session id as returned by server.
+@Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
+@Param[in]	p_data   - Physical address of v_data.
+@Param[in]	send_dev - Transport device used for server (nadk device).
+		Device used for send and receive of frame descriptor.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
 int cmdif_session_close(struct cmdif_desc *cidesc,
 			uint16_t auth_id,
 			uint32_t size,
-			void *v_data);
+			void *v_data,
+			uint64_t p_data,
+			void *send_dev);
 
 /**************************************************************************//**
 @Function	cmdif_srv_cb
@@ -180,6 +181,5 @@ int cmdif_srv_cb(int pr, void *send_dev);
 
 /** @} *//* end of cmdif_server_g group */
 /** @} *//* end of cmdif_g group */
-/** @} *//* end of ARENA LIB APIs */
 
 #endif /* __FSL_CMDIF_SERVER_H */
