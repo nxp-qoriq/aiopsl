@@ -258,6 +258,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/slab_stub.h</locationURI>
 		</link>
 		<link>
+			<name>sources/Verification/start.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/build/aiop_sim/cw_files/start.c</locationURI>
+		</link>
+		<link>
 			<name>sources/Verification/verification_virtual_pools.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/verification_virtual_pools.c</locationURI>
