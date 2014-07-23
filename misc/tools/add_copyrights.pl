@@ -34,7 +34,7 @@ sub add_copyrights
 	system "touch copyrights_files_$$.txt";
 	
     #system "bash -c \"/usr/bin/find $root_dir -type f -name \\\"*.asm\\\" > copyrights_files_$$.txt\"";	
-    #system "bash -c \"/usr/bin/find $root_dir -type f -name \\\"*.S\\\" >> copyrights_files_$$.txt\"";	
+    system "bash -c \"/usr/bin/find $root_dir -type f -name \\\"*.S\\\" >> copyrights_files_$$.txt\"";	
 	system "bash -c \"/usr/bin/find $root_dir -type f -name \\\"*.c\\\" >> copyrights_files_$$.txt\"";
 	system "bash -c \"/usr/bin/find $root_dir -type f -name \\\"*.h\\\" >> copyrights_files_$$.txt\"";
 	system "bash -c \"/usr/bin/find $root_dir -type f -name \\\"*.cc\\\" >> copyrights_files_$$.txt\"";
