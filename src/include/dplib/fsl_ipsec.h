@@ -340,8 +340,9 @@ struct ipsec_encap_params {
  * @Description   Salt and counter fields for IPsec CTR decapsulation
 *//***************************************************************************/
 struct ipsec_decap_ctr_params {
-	uint32_t salt;
-	uint32_t ctr_initial;
+	//uint32_t salt;
+	//uint32_t ctr_initial;
+	uint32_t ctr_nonce;
 };
 
 /**************************************************************************//**
