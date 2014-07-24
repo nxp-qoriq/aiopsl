@@ -146,7 +146,7 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 	fd->u_flc.close.cmid    = CPU_TO_SRV16(CMD_ID_CLOSE);
 	fd->u_flc.close.auth_id = dev->auth_id;
 	fd->u_flc.close.epid    = CPU_TO_BE16(CMDIF_EPID); /* Used by HW */
-	
+
 	/* This is required because flc is a struct */
 	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
 
@@ -181,16 +181,16 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
 	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
 
-	/* This is required because flc is a struct but HW treats it as 
+	/* This is required because flc is a struct but HW treats it as
 	 * 8 byte LE.
-	 * Therefore if CPU is LE which means that swap is not done 
+	 * Therefore if CPU is LE which means that swap is not done
 	 * by QMAN driver, we need to do it here */
 	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
 
 	return 0;
 }
 
-__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
+__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
 {
 	struct   cmdif_dev *dev = NULL;
 	uint64_t fd_dev         = 0;
@@ -199,9 +199,9 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 		return -EINVAL;
 
 
-	/* This is required because flc is a struct but HW treats it as 
+	/* This is required because flc is a struct but HW treats it as
 	 * 8 byte LE.
-	 * Therefore if CPU is LE which means that swap is not done 
+	 * Therefore if CPU is LE which means that swap is not done
 	 * by QMAN driver, we need to do it here */
 	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
 
@@ -214,7 +214,7 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 				fd->u_flc.cmd.err,
 				CPU_TO_SRV16(fd->u_flc.cmd.cmid),
 				fd->d_size,
-				fd->u_addr.d_addr);
+				(uint64_t)((v_addr != NULL) ? v_addr : fd->u_addr.d_addr));
 	else
 		return -EINVAL;
 }

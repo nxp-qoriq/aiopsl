@@ -243,21 +243,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 }
 
-/* This is temporal WA for stand alone demo only */
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
-	                                   0,                          \
-	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
-	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
-static void epid_setup()
-{
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
-
-	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
-	iowrite32(0, &wrks_addr->epas);
-	iowrite32((uint32_t)receive_cb, &wrks_addr->ep_pc);
-}
-
 int app_init(void)
 {
 	int        err  = 0;
@@ -266,9 +251,6 @@ int app_init(void)
 
 
 	fsl_os_print("Running AIOP arena app_init()\n");
-
-	/* This is temporal WA for stand alone demo only */
-	epid_setup();
 
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{

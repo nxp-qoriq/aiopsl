@@ -310,11 +310,12 @@ int tman_query_timer(uint32_t timer_handle,
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-	/* performs *state = res1 & 0x07 */
-	/* Optimization: remove 2 cycles of clearing duration upper bits 
-	 * This assumes the enum is uint8_t (was verified with the compiler
-	 * team) */
-	res1 &= TMAN_TMR_QUERY_STATE_MASK;
+
+	if ((res1 & 0x4) == 0)
+		res1 &= 0x1;
+	else
+		res1 &= TMAN_TMR_QUERY_STATE_MASK;
+	
 	*state = (enum e_tman_query_timer)res1;
 	return (int)(TMAN_TMR_QUERY_SUCCESS);
 }
