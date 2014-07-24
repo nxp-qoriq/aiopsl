@@ -6,8 +6,6 @@
  @Cautions	Please note that the parse results must be updated before
  calling functions defined in this file.
 
- Copyright 2013 Freescale Semiconductor, Inc.
-
  *//***************************************************************************/
 
 #ifndef __FSL_L2_H

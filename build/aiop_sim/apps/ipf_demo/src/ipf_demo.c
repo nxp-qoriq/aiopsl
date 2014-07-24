@@ -33,7 +33,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
 	
-	uint8_t ipf_demo_flags = IPF_DEMO_WITHOUT_HM;
+	uint8_t ipf_demo_flags = IPF_DEMO_WITH_HM;
 	uint32_t vlan_tag1 = 0x81008a6b;	
 	uint32_t vlan_tag2 = 0x8100c78d;	
 	uint16_t mtu;
@@ -41,7 +41,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	
 /*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
 
-	mtu = 64;
+	mtu = 1500;
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -70,7 +70,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	
 	do {
 		ipf_status = ipf_generate_frag(ipf_context_addr);
-/*
+
 		if (ipf_demo_flags == IPF_DEMO_WITH_HM)
 		{
 			l2_push_and_set_vlan(vlan_tag2);
@@ -78,7 +78,6 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				("ipr_demo: Core %d inserted vlan 0x%x to fragment\n",
 				core_get_id(), vlan_tag2);
 		}
-*/
 		
 		if (ipf_status > 0){
 			fsl_os_print

@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW Statistics API implementation.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "general.h"

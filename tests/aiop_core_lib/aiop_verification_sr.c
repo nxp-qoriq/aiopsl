@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW Verification Engine
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_fdma.h"

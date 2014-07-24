@@ -12,7 +12,7 @@ set spReg					8193
 set spInitialValue 			0xf
 
 # AIOP Boot Release Request Register (ABRR)
-mem 0x02080090 = 0xffff0000
+mem 0x02080090 = 0x0000FFFF
 
 # set PC reg for all AIOP cores, less the first core 
 for {set core [expr $firstCore + 1]} {$core<=$lastCore} {incr core} {

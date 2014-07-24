@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP SW task default params.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 #include "general.h"
 #include "dplib/fsl_fdma.h"

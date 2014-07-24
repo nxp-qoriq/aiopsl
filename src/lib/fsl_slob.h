@@ -1,6 +1,4 @@
 /**************************************************************************//**
-            Copyright 2013 Freescale Semiconductor, Inc.
-
  @File          slob.h
 
  @Description   Memory Manager Application Programming Interface

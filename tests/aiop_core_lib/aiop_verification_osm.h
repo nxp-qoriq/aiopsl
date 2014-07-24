@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP OSM SW Verification Structures.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 
@@ -108,7 +107,8 @@ enum osm_verif_cmd_type {
 *//***************************************************************************/
 
 struct osm_registers {
-	uint32_t 	scope_status;
+	uint32_t	scope_status;
+	uint32_t 	reserved;
 	uint32_t 	ortdr0;
 	uint32_t 	ortdr1;
 	uint32_t 	ortdr2;
@@ -117,7 +117,6 @@ struct osm_registers {
 	uint32_t 	ortdr5;
 	uint32_t 	ortdr6;
 	uint32_t 	ortdr7;
-	uint8_t		pad[4];
 };
 
 

@@ -3,7 +3,6 @@
 
 @Description   This file contains the AIOP SW IP Reassembly API
 
-	       Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #ifndef __FSL_IPR_H
@@ -414,6 +413,7 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		inserted to the partially reassembled frame.\n
 		When called for a closing fragment, reassembly is done.\n
 		The reassembled frame is returned to the caller.
+		If exists, L4 checksum is checked.
 
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).

@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP FDMA SRs SW Verification.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_fdma.h"
@@ -733,6 +732,21 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				(void *)str->src, (void *)str->dst);
 		str->status = SUCCESS;
 		str_size = (uint16_t)sizeof(struct fdma_copy_command);
+		break;
+	}
+	/* FDMA DMA Data Command Verification */
+	case FDMA_DMA_CMD_STR:
+	{
+		struct fdma_dma_data_command *str =
+			(struct fdma_dma_data_command *) asa_seg_addr;
+		flags |= str->DA << 8;
+		flags |= ((str->VA) ? FDMA_DMA_VA_BIT : 0x0);
+		flags |= ((str->BMT) ? FDMA_DMA_BMT_BIT : 0x0);
+		flags |= ((str->PL) ? FDMA_DMA_PL_BIT : 0x0);
+		fdma_dma_data(str->copy_size, str->icid, (void *)str->loc_addr,
+				str->sys_addr, flags);
+		str->status = SUCCESS;
+		str_size = (uint16_t)sizeof(struct fdma_dma_data_command);
 		break;
 	}
 	/* FDMA Acquire Buffer Verification */

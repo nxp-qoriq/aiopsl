@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP OSM SRs SW Verification.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 #include "dplib/fsl_osm.h"

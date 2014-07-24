@@ -1,6 +1,4 @@
 /**************************************************************************//**
-Copyright 2013 Freescale Semiconductor, Inc.
-
 @File          fsl_slab.h
 
 @Description   External prototypes for the buffer pool manager
@@ -10,15 +8,6 @@ Copyright 2013 Freescale Semiconductor, Inc.
 #define __FSL_SLAB_H
 
 #include "common/types.h"
-
-
-/**************************************************************************//**
- @Group		LIB LIB
-
- @Description	ARENA LIB APIs
-
- @{
-*//***************************************************************************/
 
 /**************************************************************************//**
 @Group         slab_g   SLAB
@@ -218,6 +207,5 @@ int slab_refcount_decr(struct slab *slab, uint64_t buff);
 int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 
 /** @} *//* end of slab_g group */
-/** @} *//* end of ARENA LIB APIs */
 
 #endif /* __FSL_SLAB_H */

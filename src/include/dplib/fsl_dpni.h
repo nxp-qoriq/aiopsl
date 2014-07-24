@@ -1,4 +1,3 @@
-/* Copyright 2013 Freescale Semiconductor, Inc. */
 /*!
  *  @file    fsl_dpni.h
  *  @brief   Data Path Network Interface API

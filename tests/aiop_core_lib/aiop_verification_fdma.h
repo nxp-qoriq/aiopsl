@@ -3,7 +3,6 @@
 
 @Description	This file contains the AIOP FDMA SW Verification Structures.
 
-		Copyright 2013 Freescale Semiconductor, Inc.
 *//***************************************************************************/
 
 
@@ -171,6 +170,8 @@
 #define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
 	/** FDMA Copy data command Structure identifier */
 #define FDMA_COPY_CMD_STR	((FDMA_MODULE << 16) | FDMA_COPY_CMD)
+	/** FDMA DMA data command Structure identifier */
+#define FDMA_DMA_CMD_STR	((FDMA_MODULE << 16) | FDMA_DMA_CMD)
 	/** FDMA Acquire buffer command Structure identifier */
 #define FDMA_ACQUIRE_BUFFER_CMD_STR 	((FDMA_MODULE << 16) | 	\
 		FDMA_ACQUIRE_BUFFER_CMD)
@@ -1546,6 +1547,48 @@ struct fdma_copy_command {
 		- 0: Workspace.
 		- 1: AIOP Shared Memory. */
 	uint8_t DM;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA DMA Data Command structure.
+
+		Includes information needed for FDMA DMA data command
+		verification.
+
+*//***************************************************************************/
+struct fdma_dma_data_command {
+		/** FDMA DMA Data command structure identifier. */
+	uint32_t opcode;
+		/** A pointer to the source/target location in Workspace or AIOP
+		 * Shared Memory for DMA data. Workspace address is limited to
+		 * 16 bits. AIOP Shared Memory address is limited to 20 bits. */
+	uint32_t loc_addr;
+		/** System memory source/target address for DMA data. */
+	uint64_t sys_addr;
+		/** Number of bytes to copy. */
+	uint16_t copy_size;
+		/** Memory Access ICID. The DMA uses the provided Isolation
+		 * Context to make the access. */
+	uint16_t icid;
+		/** DMA Data Access:
+		 * 0 - system memory read to workspace write.
+		 * 1 - workspace read to system memory write.
+		 * 2 - system memory read to AIOP Shared Memory write.
+		 * 3 - AIOP Shared Memory read to system memory write. */
+	uint8_t DA;
+		/** Virtual Address. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t VA;
+		/** Bypass the Memory Translation. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t BMT;
+		/** Privilege Level. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t PL;
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
