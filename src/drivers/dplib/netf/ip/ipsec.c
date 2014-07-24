@@ -422,7 +422,7 @@ void ipsec_generate_encap_sd(
 			/*	uint32_t ctr_initial; */
 			/*	uint32_t iv[2]; */
 			pdb.innerpdb.ctr.ctr_nonce = params->encparams.ctr.ctr_nonce;
-			pdb.innerpdb.ctr.ctr_initial = 0;
+			pdb.innerpdb.ctr.ctr_initial = 1;
 			pdb.innerpdb.ctr.iv[0] = params->encparams.ctr.iv[0];
 			pdb.innerpdb.ctr.iv[1] = params->encparams.ctr.iv[1];
 			break;
@@ -584,8 +584,9 @@ void ipsec_generate_decap_sd(
 		case CIPHER_TYPE_CTR:
 			/* uint32_t salt; */
 			/* uint32_t ctr_initial; */
-			pdb.ctr.salt = params->decparams.ctr.salt;
-			pdb.ctr.ctr_initial = params->decparams.ctr.ctr_initial;
+			//pdb.ctr.salt = params->decparams.ctr.salt;
+			pdb.ctr.salt = params->decparams.ctr.ctr_nonce; // TODO: need to fix RTA to "nonce" instead of "salt" 
+			pdb.ctr.ctr_initial = 1;
 			break;
 		case CIPHER_TYPE_CCM:
 			/* uint32_t salt; */
