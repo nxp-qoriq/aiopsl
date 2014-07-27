@@ -83,8 +83,10 @@ int tcp_gro_aggregate_seg(
 	    (params->limits.seg_num_limit <= 1)	||
 	    (params->limits.packet_size_limit <= seg_size) ||
 	    (gro_ctx.internal_flags & (
-		TCP_GRO_AGG_TIMER_IN_PROCESS | TCP_GRO_FLUSH_AGG_SET)))
+		TCP_GRO_AGG_TIMER_IN_PROCESS | TCP_GRO_FLUSH_AGG_SET))) {
+		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return TCP_GRO_SEG_AGG_DONE;
+	}
 
 	/* Aggregate */
 	/* create timer for the aggregation */
@@ -103,7 +105,7 @@ int tcp_gro_aggregate_seg(
 	/* no more timers available */
 	if (sr_status == -ENAVAIL) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
-		return sr_status;
+		return TCP_GRO_SEG_AGG_DONE | TCP_GRO_TIMER_UNAVAIL;
 	}
 
 	/* initialize gro context fields */
