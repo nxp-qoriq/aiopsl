@@ -785,6 +785,13 @@ void ipsec_generate_sa_params(
 	sap.sap1.flags = params->flags; // TMP 
 		/* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
+	
+	/* Add inbound/outbound indication to the flags field */
+	/* Inbound indication is 0, so no action */
+	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
+		sap.sap1.flags |= IPSEC_FLG_DIR_OUTBOUND;
+	}
+		
 	sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
 
 	/* UDP Encap for transport mode */
@@ -1828,58 +1835,98 @@ int ipsec_get_seq_num(
 {
 	
 	int return_val;
-	struct ipsec_decap_pdb decap_pdb;
 	ipsec_handle_t desc_addr;
+	uint32_t params_flags;
 
+	union {
+		struct ipsec_encap_pdb encap_pdb;
+		struct ipsec_decap_pdb decap_pdb;
+	} pdb;
+	
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
-	/* 	Read the PDB from the descriptor with CDMA. */
+	/* Read he descriptor flags to identify the direction */
 	cdma_read(
-			&decap_pdb, /* void *ws_dst */
-			//IPSEC_PDB_ADDR, /* uint64_t ext_address */
-			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
-			sizeof(decap_pdb) /* uint16_t size */
+			&params_flags, /* void *ws_dst */
+			IPSEC_FLAGS_ADDR(desc_addr), /* uint64_t ext_address */
+			sizeof(params_flags) /* uint16_t size */
 	);
 	
-	/* Return swapped values (little to big endian conversion) */
-	*extended_sequence_number = LW_SWAP(0,&decap_pdb.seq_num_ext_hi);
-	*sequence_number = LW_SWAP(0,&decap_pdb.seq_num);
-
-	switch (decap_pdb.options & IPSEC_DECAP_PDB_ARS_MASK) {
-		case IPSEC_DEC_OPTS_ARSNONE:
-			anti_replay_bitmap[0] = 0x0;
-			anti_replay_bitmap[1] = 0x0;
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;
-			break;
-		case IPSEC_DEC_OPTS_ARS32:
-			anti_replay_bitmap[0] = LW_SWAP(0,&decap_pdb.anti_replay[0]);
-			anti_replay_bitmap[1] = 0x0;
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;
-			break;
-		case IPSEC_DEC_OPTS_ARS64:
-			anti_replay_bitmap[0] = LW_SWAP(0,&decap_pdb.anti_replay[0]);
-			anti_replay_bitmap[1] = LW_SWAP(0,&decap_pdb.anti_replay[1]);
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;
-			break;		
-		case IPSEC_DEC_OPTS_ARS128:	
-			anti_replay_bitmap[0] = LW_SWAP(0,&decap_pdb.anti_replay[0]);
-			anti_replay_bitmap[1] = LW_SWAP(0,&decap_pdb.anti_replay[1]);
-			anti_replay_bitmap[2] = LW_SWAP(0,&decap_pdb.anti_replay[2]);
-			anti_replay_bitmap[3] = LW_SWAP(0,&decap_pdb.anti_replay[3]);
-			break;
-		default:
-			anti_replay_bitmap[0] = 0x0;
-			anti_replay_bitmap[1] = 0x0;
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;	
-	}
+	/* Outbound (encapsulation) PDB format */
+	if (params_flags & IPSEC_FLG_DIR_OUTBOUND) {
+		/* 	Read the PDB from the descriptor with CDMA. */
+		cdma_read(
+			&pdb.encap_pdb, /* void *ws_dst */
+			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
+			sizeof(pdb.encap_pdb) /* uint16_t size */
+		);
 		
+		/* Return swapped values (little to big endian conversion) */
+		*extended_sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num_ext_hi));
+		*sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num));
+		
+		/* No anti-replay bitmap for encap, so just return zero */
+		anti_replay_bitmap[0] = 0x0;
+		anti_replay_bitmap[1] = 0x0;
+		anti_replay_bitmap[2] = 0x0;
+		anti_replay_bitmap[3] = 0x0;
+	} else {
+	/* Inbound (decapsulation) PDB format */
+				
+		/* 	Read the PDB from the descriptor with CDMA. */
+		cdma_read(
+			&(pdb.decap_pdb), /* void *ws_dst */
+			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
+			sizeof(pdb.decap_pdb) /* uint16_t size */
+		);
+	
+		/* Return swapped values (little to big endian conversion) */
+		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
+		*sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num));
+
+		switch (pdb.decap_pdb.options & IPSEC_DECAP_PDB_ARS_MASK) {
+			case IPSEC_DEC_OPTS_ARSNONE:
+				anti_replay_bitmap[0] = 0x0;
+				anti_replay_bitmap[1] = 0x0;
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;
+				break;
+			case IPSEC_DEC_OPTS_ARS32:
+				anti_replay_bitmap[0] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[0]));
+				anti_replay_bitmap[1] = 0x0;
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;
+				break;
+			case IPSEC_DEC_OPTS_ARS64:
+				anti_replay_bitmap[0] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[0]));
+				anti_replay_bitmap[1] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[1]));
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;
+				break;		
+			case IPSEC_DEC_OPTS_ARS128:	
+				anti_replay_bitmap[0] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[0]));
+				anti_replay_bitmap[1] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[1]));
+				anti_replay_bitmap[2] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[2]));
+				anti_replay_bitmap[3] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[3]));
+				break;
+			default:
+				anti_replay_bitmap[0] = 0x0;
+				anti_replay_bitmap[1] = 0x0;
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;	
+		}
+	}
+	
 	/* Derement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status

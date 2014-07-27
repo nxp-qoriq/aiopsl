@@ -53,6 +53,10 @@ enum ipsec_cipher_type {
 @{
 *//***************************************************************************/
 
+/* Inbound/Outbound Flag (most significant bit) */
+#define IPSEC_FLG_DIR_INBOUND  0x00000000 
+#define IPSEC_FLG_DIR_OUTBOUND 0x80000000 
+
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
 
