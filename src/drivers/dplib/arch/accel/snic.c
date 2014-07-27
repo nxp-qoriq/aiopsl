@@ -59,14 +59,19 @@ __HOT_CODE void snic_process_packet(void)
 	int32_t parse_status;
 	uint16_t snic_id;
 
+	/* get sNIC ID */
+	snic_id = SNIC_ID_GET;
+	ASSERT_COND(snic_id < MAX_SNIC_NO);
+	snic = snic_params + snic_id;
+
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
 
 	osm_task_init();
-	/* todo: spid=0?, prpid=0?, starting HXS=0?*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = SNIC_SPID;
+	/* todo: prpid=0?, starting HXS=0?*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = snic->spid;
 	default_task_params.parser_profile_id = SNIC_PRPID;
 	default_task_params.parser_starting_hxs = SNIC_HXS;
 
@@ -75,11 +80,6 @@ __HOT_CODE void snic_process_packet(void)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		fdma_terminate_task();
 	}
-
-	/* get sNIC ID */
-	snic_id = SNIC_ID_GET;
-	ASSERT_COND(snic_id < MAX_SNIC_NO);
-	snic = snic_params + snic_id;
 
 	if (SNIC_IS_INGRESS_GET) {
 		/* snic uses only 1 QDID so we need to have different
@@ -253,10 +253,11 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
-	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid;
+	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid, spid;
 	int i;
 	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)PRC_GET_SEGMENT_ADDRESS();
-	struct ipr_params ipr_params;
+	struct ipr_params ipr_params = {0};
+	struct ipr_params *cfg = &ipr_params;
 	uint32_t snic_ep_pc;
 
 	UNUSED(dev);
@@ -288,6 +289,10 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	case SNIC_SET_QDID:
 		SNIC_SET_QDID_CMD(SNIC_CMD_READ);
 		snic_params[snic_id].qdid = qdid;
+		return 0;
+	case SNIC_SET_SPID:
+		SNIC_SET_SPID_CMD(SNIC_CMD_READ);
+		snic_params[snic_id].spid = (uint8_t)spid;
 		return 0;
 	case SNIC_REGISTER:
 		snic_ep_pc = (uint32_t)snic_process_packet;
