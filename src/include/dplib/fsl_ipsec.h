@@ -568,6 +568,9 @@ int ipsec_decr_lifetime_counters(
 		* For 64-entry only the first two 32 bit words are valid.
 		* For 128-entry all four words are valid.
 
+@Cautions	anti_replay_bitmap is relevant for inbound (decapsulation) only,
+			and should be ignored for outbound (encapsulation).
+
 @Return		Status
 
 *//****************************************************************************/
