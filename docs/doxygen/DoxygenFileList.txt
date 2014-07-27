@@ -25,7 +25,8 @@ fsl_ste.h
 fsl_stdlib.h
 fsl_tman.h
 fsl_dpni_drv.h
-general.h
+fsl_general.h
+fsl_frame_operations.h
 fsl_cmdif_server.h
 fsl_cmdif_client.h
 fsl_cmdif_flib_s.h

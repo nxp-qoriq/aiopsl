@@ -8,8 +8,8 @@ Demo possible modifications:
 ===========================================
 Setup
 ===========================================
-1. Install CW_DPAA_v10.0.7
-2. Download linux version of LS_SIM_RELEASE_0_8_0_0109
+1. Install Code Warrior (see Release Note for the compatible CW version).
+2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2085a_sys_test.cfg
    from aiopsl\build\aiop_sim\sim_files.
 4. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
@@ -18,8 +18,8 @@ Setup
 ===========================================
 Execution flow
 ===========================================
-1. Build mc_app from mc_release_0.4 using CW_DPAA_v10.0.7.
-2. Build app_process_packet from aiopsl using CW_DPAA_v10.0.7.
+1. Build mc_app from mc.
+2. Build arena_test from aiopsl.
 3. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
@@ -81,13 +81,6 @@ ARENA sets the following default values for every NI:
   QDID = 0 - Queueing destination for the enqueue
   spid = 0 - Storage profile ID
   MTU = maximal value
-
-BMAN pools
-===========================================
-Please note that BMAN pool ID 1 is used by parser initialization routine.
-
-Virtual pools
-===========================================
 
 ==========
 ARENA APIs

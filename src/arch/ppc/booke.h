@@ -5,13 +5,8 @@
 #ifndef __BOOKE_H
 #define __BOOKE_H
 
-
 /* Assembly syntax - different for 64 and 32-bit */
-#ifdef SYS_64BIT_ARCH
-#define asm_prefix(_name)    .##_name
-#else
 #define asm_prefix(_name)    _name
-#endif
 
 /*******************
 * interrupt vector
