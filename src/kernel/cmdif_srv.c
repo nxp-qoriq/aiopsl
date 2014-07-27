@@ -315,6 +315,7 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
+	uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
 
 	pr_debug("err = %d\n", err);
 	pr_debug("auth_id = 0x%x\n", auth_id);
@@ -332,9 +333,12 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
-		/* Same as cdma_write(_sync_done, &resp, 4); */
-		fdma_dma_data(4, ICID_GET, &resp,
-		              _sync_done, FDMA_DMA_DA_WS_TO_SYS_BIT);
+		/* Same as cdma_write(_sync_done, &resp, 4);
+		 * TODO BMT (from FD), VA (from FD), PL (from ADC)
+		 * copy it from somewhere
+		 * I think I should use this frame BMT because all FDs
+		 * including cmdif_open() FD are set the same */
+		fdma_dma_data(4, ICID_GET, &resp, _sync_done, flags);
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n",

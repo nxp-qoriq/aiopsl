@@ -137,7 +137,10 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 
 	/*
 	 * It's an easy implementation
-	 * TODO icid != 0 for fdma_release_buffer  ??
+	 * TODO copy icid  for fdma_release_buffer
+	 * TODO copy bdi for fdma_release_buffer
+	 * TODO need to check from where to copy it ?
+	 *      FDMA CFG register or maybe ARENA should have such information ?
 	 */
 	*num_filled_buffs = 0;
 	for (i = 0; i < num_buffs; i++) {
