@@ -371,11 +371,13 @@ void ipsec_generate_encap_sd(
 	
 	uint8_t cipher_type = 0;
 	uint8_t nat_nuc_option = 0;
-
+	int i; // TMP for outer header copy
+	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
 		//uint32_t *outer_hdr; 
-		uint32_t outer_hdr[5]; 
+		//uint32_t outer_hdr[5]; 
+		uint32_t outer_hdr[34]; // TMP: 40+96=134 bytes for IPv6 header & ext. 
 	} pdb;	
 	
 	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
@@ -498,12 +500,17 @@ void ipsec_generate_encap_sd(
 	//pdb.outer_hdr = params->encparams.outer_hdr;
 
 	// TODO: TMP workaround due to variable size array in the RTA PDB
+	/*
 	pdb.outer_hdr[0] = *(params->encparams.outer_hdr + 0);
 	pdb.outer_hdr[1] = *(params->encparams.outer_hdr + 1);
 	pdb.outer_hdr[2] = *(params->encparams.outer_hdr + 2);
 	pdb.outer_hdr[3] = *(params->encparams.outer_hdr + 3);
 	pdb.outer_hdr[4] = *(params->encparams.outer_hdr + 4);
-
+	*/
+	for (i = 0; i < ((params->encparams.ip_hdr_len)/4); i++) {
+		pdb.outer_hdr[0] = *(params->encparams.outer_hdr + i);
+	}
+	
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
