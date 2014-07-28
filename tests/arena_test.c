@@ -23,6 +23,9 @@ void app_free(void);
 /**< Get flow id from callback argument, it's demo specific macro */
 
 
+#define MAX_NUM_OF_CORES	16
+#define MAX_NUM_OF_TASKS	16
+
 extern int slab_init();
 extern int malloc_test();
 extern int slab_test();
@@ -32,10 +35,9 @@ extern int memory_test();
 
 extern __SHRAM struct slab *slab_peb;
 extern __SHRAM struct slab *slab_ddr;
-extern __SHRAM int rnd_ctr;
 extern __SHRAM int num_of_cores;
-extern __SHRAM uint8_t rnd_lock;
-extern __SHRAM int random_test_flag;
+extern __SHRAM int num_of_tasks;
+extern __SHRAM uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
 extern __TASK uint32_t	seed_32bit;
 __SHRAM uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
 __SHRAM uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
@@ -50,12 +52,9 @@ __SHRAM uint8_t test_error_lock;
 
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
-	int      err = 0, ni, i;
-	int l_rnd_ctr;
+	int      err = 0, ni, i, j;
 	int core_id;
 	char *eth_ptr;
-
-
 	uint64_t time_ms_since_epoch = 0;
 	uint32_t time_ms = 0;
 	time_t local_time;
@@ -67,13 +66,12 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	packet_number++;
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
-	fsl_os_print("seed %x\n",seed_32bit);
 	err = slab_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("Slab test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
+		fsl_os_print("Slab test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
 
 	err = malloc_test();
@@ -81,43 +79,33 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in runtime phase \n", err);
 	} else {
-		fsl_os_print("Malloc test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
+		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 		local_test_error |= err;
 	}
-	
+
 	err = memory_test();
 
 	if (err) {
-			fsl_os_print("ERROR = %d: memory_test failed in runtime phase \n", err);
-		} else {
-			fsl_os_print("Memory  test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
-			local_test_error |= err;
-		}
-
-	if(random_test_flag == 0)
-	{
-		err = random_test();
-		if (err) {
-			fsl_os_print("ERROR = %d: random_test failed in runtime phase \n", err);
-			local_test_error |= err;
-		}
-		else{
-			lock_spinlock(&rnd_lock);
-			l_rnd_ctr = rnd_ctr;
-			unlock_spinlock(&rnd_lock);
-
-			fsl_os_print("Random test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
-			fsl_os_print("Number of cores passed checking tls area %d/%d\n",l_rnd_ctr, num_of_cores);
-		}
-	}
-	if(random_test_flag == 1) {
-		fsl_os_print("Random test passed in runtime phase()\n");
-
-		lock_spinlock(&rnd_lock);
-		random_test_flag ++;
-		unlock_spinlock(&rnd_lock);
+		fsl_os_print("ERROR = %d: memory_test failed in runtime phase \n", err);
+	} else {
+		fsl_os_print("Memory  test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+		local_test_error |= err;
 	}
 
+	/*Random Test*/
+
+	err = random_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: random_test failed in runtime phase \n", err);
+		local_test_error |= err;
+	}
+	else{
+		fsl_os_print("seed %x\n",seed_32bit);
+		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+	}
+
+
+	/*DPNI test*/
 	if(dpni_ctr == 5) /*disable mac after 3 injected packets, one of first 3 packets is broadcast*/
 	{
 		lock_spinlock(&dpni_lock);
@@ -179,9 +167,9 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 		local_time = time_ms_since_epoch;
 		lock_spinlock(&time_lock);
-		if(local_time > global_time)
+		if(local_time >= global_time)
 		{
-			fsl_os_print("time test passed for packet number %d, on CPU %d\n", local_packet_number, core_id);
+			fsl_os_print("time test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 			global_time = local_time;
 		}
 		else
@@ -203,10 +191,49 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	if(local_packet_number == 38 ){ /*40 packets (0 - 39) with one broadcast after the broadcast is dissabled */
 		if (test_error == 0)
 		{
+			int not_active_task = 0;
 			fsl_os_print("No errors were found during injection of 40 packets\n");
 			fsl_os_print("1 packet was sent with removed MAC address\n");
 			fsl_os_print("Only 39 (0-38) packets should be received\n");
-			fsl_os_print("ARENA Test Finished SUCCESSFULLY\n");
+			fsl_os_print("Test executed with %d cores and %d tasks per core\n", num_of_cores, num_of_tasks);
+			fsl_os_print("Cores/Tasks processed packets during the test:\n");
+			fsl_os_print("CORE/TASK ");
+			for(i = 0; i < num_of_tasks; i++)
+				fsl_os_print("  %d ",i);
+
+			for(i = 0; i < num_of_cores; i++)
+			{
+				if(i < 10)
+					fsl_os_print("\nCore  %d:  ", i);
+				else
+					fsl_os_print("\nCore %d:  ", i);
+				for(j = 0; j < num_of_tasks; j++)
+				{
+					if(rnd_seed[i][j] == 0)
+					{
+						not_active_task ++;
+
+						if(j < 10)
+							fsl_os_print("  X ");
+						else
+							fsl_os_print("   X ");
+					}
+					else
+					{
+						if(j <10)
+							fsl_os_print("  V ");
+						else
+							fsl_os_print("   V ");
+					}
+				}
+			}
+
+			if(not_active_task > 0){
+				fsl_os_print("\nWARNING: Not all the tasks were active during the test!\n");
+
+			}
+
+			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
 			fsl_os_exit(0);
 		}
 		else {
@@ -214,21 +241,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			fsl_os_exit(-1);
 		}
 	}
-}
-
-/* This is temporal WA for stand alone demo only */
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
-	                                   0,                          \
-	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
-	                                   + SOC_PERIPH_OFF_AIOP_WRKS);
-static void epid_setup()
-{
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)WRKS_REGS_GET;
-
-	/* EPID = 0 is saved for cmdif, need to set it for stand alone demo */
-	iowrite32(0, &wrks_addr->epas);
-	iowrite32((uint32_t)receive_cb, &wrks_addr->ep_pc);
 }
 
 int app_init(void)
@@ -239,9 +251,6 @@ int app_init(void)
 
 
 	fsl_os_print("Running AIOP arena app_init()\n");
-
-	/* This is temporal WA for stand alone demo only */
-	epid_setup();
 
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{

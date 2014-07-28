@@ -88,9 +88,9 @@ that had been sent through cidesc.
 @Param[in]	data        Data of the command.
 		On the AIOP side it is the pointer to segment presentation
 		address; use fdma_modify_default_segment_data() if needed.
-
-
 @Return		OK on success; error code, otherwise.
+@Cautions	Please make sure to modify only #size bytes of the data.
+		Automatic expansion of the buffer is not available.
  *//***************************************************************************/
 typedef int (cmdif_cb_t)(void *async_ctx,
 			int err,

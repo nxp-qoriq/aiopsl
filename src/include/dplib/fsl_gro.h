@@ -386,10 +386,6 @@ struct tcp_gro_context_params {
 		buffer pool depletion.
 		Recommendation is to discard the frame.
 		The frame was not aggregated.
-@Retval		ENAVAIL - There are no more timers that are available in this
-		TMI.
-		Recommendation is to discard the frame.
-
 
 
 @Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once

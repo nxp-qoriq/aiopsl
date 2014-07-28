@@ -1,3 +1,7 @@
+- fsl_cmdif_client.h Added Cautions - automatic expansion of the buffer is not available
+- arena_test.c:      updated to show which task/core was active during the test. (multi task should be supported in next simulator - 118)
+- fsl_io_ccsr.h:     #ifdef CCSR_BE removed to use big endian convention to access ccsr in AIOP.
+
 - fsl_cmdif_flib_s.h API chnage at cmdif_srv_cmd() to support virtual aadresses when SMMU is disabled.
 - fsl_cmdif_flib_c.h API chnage at cmdif_async_cb() to support virtual aadresses when SMMU is disabled.
 - cmdif.h            Move CMDIF_EPID define from cmdif_clien.h to cmdif.h architecture dependent file.

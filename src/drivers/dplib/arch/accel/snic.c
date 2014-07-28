@@ -55,9 +55,13 @@ __HOT_CODE void snic_process_packet(void)
 	struct parse_result *pr;
 	struct snic_params *snic;
 	struct fdma_queueing_destination_params enqueue_params;
-	int err;
 	int32_t parse_status;
 	uint16_t snic_id;
+
+	/* get sNIC ID */
+	snic_id = SNIC_ID_GET;
+	ASSERT_COND(snic_id < MAX_SNIC_NO);
+	snic = snic_params + snic_id;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -65,8 +69,8 @@ __HOT_CODE void snic_process_packet(void)
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
 
 	osm_task_init();
-	/* todo: spid=0?, prpid=0?, starting HXS=0?*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = SNIC_SPID;
+	/* todo: prpid=0?, starting HXS=0?*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = snic->spid;
 	default_task_params.parser_profile_id = SNIC_PRPID;
 	default_task_params.parser_starting_hxs = SNIC_HXS;
 
@@ -76,18 +80,13 @@ __HOT_CODE void snic_process_packet(void)
 		fdma_terminate_task();
 	}
 
-	/* get sNIC ID */
-	snic_id = SNIC_ID_GET;
-	ASSERT_COND(snic_id < MAX_SNIC_NO);
-	snic = snic_params + snic_id;
-
 	if (SNIC_IS_INGRESS_GET) {
 		/* snic uses only 1 QDID so we need to have different
 		 * qd/priority for ingress than for egress */
 		default_task_params.qd_priority = 8;
 		/* For ingress may need to do IPR and then Remove Vlan */
 		if (snic->snic_enable_flags & SNIC_IPR_EN)
-			err = snic_ipr(snic);
+			snic_ipr(snic);
 		/*reach here if re-assembly success or regular or IPR disabled*/
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
@@ -103,7 +102,7 @@ __HOT_CODE void snic_process_packet(void)
 			snic_add_vlan();
 
 		if (snic->snic_enable_flags & SNIC_IPF_EN)
-			err = snic_ipf(snic);
+			snic_ipf(snic);
 	}
 
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
@@ -113,7 +112,7 @@ __HOT_CODE void snic_process_packet(void)
 	enqueue_params.qd = snic->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	/* todo error cases */
-	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
+	fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
 	fdma_terminate_task();
 }
@@ -133,7 +132,6 @@ int snic_ipf(struct snic_params *snic)
 	uint32_t flags = 0;
 	uint8_t va_bdi;
 	int32_t ipf_status;
-	int err;
 	struct fdma_queueing_destination_params enqueue_params;
 
 	ip_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -169,13 +167,9 @@ int snic_ipf(struct snic_params *snic)
 			ipf_status =
 			ipf_generate_frag(ipf_context_addr);
 			if (ipf_status)
-				err =
-				(int)fdma_store_frame_data(1, 0,
-						&amq);
+				fdma_store_frame_data(1, 0, &amq);
 			else
-				err =
-				(int)fdma_store_frame_data(0, 0,
-						&amq);
+				fdma_store_frame_data(0, 0, &amq);
 
 			/* for the enqueue set hash from TLS,
 			 * an flags equal 0 meaning that
@@ -188,8 +182,7 @@ int snic_ipf(struct snic_params *snic)
 				default_task_params.qd_priority;
 			/* todo error cases */
 
-			err =
-			(int)fdma_enqueue_default_fd_qd(icid,
+			fdma_enqueue_default_fd_qd(icid,
 				flags, &enqueue_params);
 
 		} while (ipf_status);
@@ -253,14 +246,17 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
-	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid;
+	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid, spid;
 	int i;
 	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)PRC_GET_SEGMENT_ADDRESS();
-	struct ipr_params ipr_params;
+	struct ipr_params ipr_params = {0};
+	struct ipr_params *cfg = &ipr_params;
 	uint32_t snic_ep_pc;
 
 	UNUSED(dev);
 	UNUSED(data);
+
+	ipr_params.flags |= IPR_MODE_TABLE_LOCATION_PEB;
 
 	switch(cmd)
 	{
@@ -288,6 +284,10 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	case SNIC_SET_QDID:
 		SNIC_SET_QDID_CMD(SNIC_CMD_READ);
 		snic_params[snic_id].qdid = qdid;
+		return 0;
+	case SNIC_SET_SPID:
+		SNIC_SET_SPID_CMD(SNIC_CMD_READ);
+		snic_params[snic_id].spid = (uint8_t)spid;
 		return 0;
 	case SNIC_REGISTER:
 		snic_ep_pc = (uint32_t)snic_process_packet;
