@@ -370,7 +370,8 @@ void ipsec_generate_encap_sd(
 {
 	
 	uint8_t cipher_type = 0;
-	
+	uint8_t nat_nuc_option = 0;
+
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
 		//uint32_t *outer_hdr; 
@@ -455,15 +456,24 @@ void ipsec_generate_encap_sd(
 			pdb.innerpdb.cbc.iv[3] = 0;
 	}
 	
+	/* NAT and NUC Options for tunnel mode encapsulation */
+	/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
+	/* Bit 0 : NUC Enable NAT UDP Checksum */
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		if (params->flags & IPSEC_ENC_OPTS_NAT_EN)
+				nat_nuc_option = IPSEC_ENC_PDB_OPTIONS_NAT; 
+		if (params->flags & IPSEC_ENC_OPTS_NUC_EN)
+				nat_nuc_option |= IPSEC_ENC_PDB_OPTIONS_NUC;
+	}
+	
 	pdb.innerpdb.hmo = 
 		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
 	pdb.innerpdb.options = 
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
-		IPSEC_ENC_PDB_OPTIONS_OIHI_PDB /* outer header from PDB */ 
+		IPSEC_ENC_PDB_OPTIONS_OIHI_PDB | /* outer header from PDB */
+		nat_nuc_option
 		);
 
-	// TODO: Program options[outFMT] for decapsulation
-	
 	//union {
 	//	uint8_t ip_nh;	/* next header for legacy mode */
 	//	uint8_t rsvd;	/* reserved for new mode */

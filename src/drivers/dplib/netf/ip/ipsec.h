@@ -87,6 +87,12 @@ enum ipsec_cipher_type {
 */
 #define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x0C
 
+/* NAT and NUC Options for tunnel mode encapsulation */
+/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
+/* Bit 0 : NUC Enable NAT UDP Checksum */
+#define IPSEC_ENC_PDB_OPTIONS_NAT 0x02
+#define IPSEC_ENC_PDB_OPTIONS_NUC 0x01
+
 /* 28 (HMO 4 out of 7:0) Sequence Number Rollover control. 
  * 0 : Sequence Number Rollover causes an error
  * 1 : Sequence Number Rollover permitted
