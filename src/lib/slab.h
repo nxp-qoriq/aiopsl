@@ -106,6 +106,8 @@ struct slab_hw_pool_info {
 @Description   Information to be kept about SLAB module
 *//***************************************************************************/
 struct slab_module_info {
+	uint32_t cdma_cfg;
+	/**< Keep here cdma amq and BDI bits in BE format */
 	struct  slab_hw_pool_info *hw_pools;
 	/**< List of BMAN pools */
 	void    *virtual_pool_struct;

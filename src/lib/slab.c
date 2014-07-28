@@ -9,13 +9,16 @@
 #include "slab.h"
 #include "virtual_pools.h"
 #include "fdma.h"
-/**< TODO: need to place fdma_release_buffer() in separate .h file */
 #include "fsl_io.h"
 #include "cdma.h"
+#include "fsl_io_ccsr.h"
+#include "aiop_common.h"
 
-/* TODO need to read the ICID from somewhere */
-#define SLAB_FDMA_ICID  0
+#define SLAB_FDMA_ICID  (uint16_t)((slab_m->cdma_cfg) & CDMA_ICID_MASK)
 /**< ICID to be used for FDMA release & acquire*/
+
+#define SLAB_FDMA_BDI  ((slab_m->cdma_cfg) & CDMA_BDI_BIT)
+/**< BDI to be used for FDMA release & acquire*/
 
 #define SLAB_ASSERT_COND_RETURN(COND, ERR)  \
 	do { if (!(COND)) return (ERR); } while (0)
@@ -48,16 +51,14 @@
 extern struct virtual_pools_root_desc virtual_pools_root;
 extern struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
 /*****************************************************************************/
-static void free_buffs_from_bman_pool(uint16_t bpid, int num_buffs)
+static void free_buffs_from_bman_pool(uint16_t bpid, int num_buffs,
+                                      uint16_t icid, uint32_t flags)
 {
 	int      i;
 	uint64_t addr = 0;
 
 	for (i = 0; i < num_buffs; i++) {
-		fdma_acquire_buffer(SLAB_FDMA_ICID,
-				FDMA_ACQUIRE_NO_FLAGS,
-				bpid,
-				&addr);
+		fdma_acquire_buffer(icid, flags, bpid, &addr);
 		addr = (uint64_t)fsl_os_phys_to_virt(addr);
 		fsl_os_xfree((void *)addr);
 	}
@@ -119,6 +120,8 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 	dma_addr_t addr  = 0;
 	uint16_t   new_buff_size = 0;
 	uint16_t   new_alignment = 0;
+	uint32_t   flags = FDMA_ACQUIRE_NO_FLAGS;
+	uint16_t   icid  = 0;
 
 	struct slab_module_info *slab_m = \
 		sys_get_unique_handle(FSL_OS_MOD_SLAB);
@@ -135,13 +138,10 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 			&new_alignment);
 	SLAB_ASSERT_COND_RETURN(error == 0, error);
 
-	/*
-	 * It's an easy implementation
-	 * TODO copy icid  for fdma_release_buffer
-	 * TODO copy bdi for fdma_release_buffer
-	 * TODO need to check from where to copy it ?
-	 *      FDMA CFG register or maybe ARENA should have such information ?
-	 */
+	icid = SLAB_FDMA_ICID;
+	if (SLAB_FDMA_BDI)
+		flags |= FDMA_ACQUIRE_BDI_BIT;
+
 	*num_filled_buffs = 0;
 	for (i = 0; i < num_buffs; i++) {
 
@@ -149,15 +149,18 @@ int slab_find_and_fill_bpid(uint32_t num_buffs,
 						mem_pid,
 						new_alignment);
 		if (addr == NULL) {
-			/* Free buffs that we already filled */
-			free_buffs_from_bman_pool(*bpid, i);
+			/* Free buffs that we already filled
+			 * TODO replace it with
+			 * *num_filled_buffs = (int)num_buffs; when max_buffs
+			 * will be supported */
+			free_buffs_from_bman_pool(*bpid, i, icid, flags);
 			return -ENOMEM;
 		}
 		addr = fsl_os_virt_to_phys((void *)addr);
 
 		/* Isolation is enabled */
-		fdma_release_buffer(SLAB_FDMA_ICID,
-		                    FDMA_RELEASE_NO_FLAGS,
+		fdma_release_buffer(icid,
+		                    flags,
 		                    *bpid,
 		                    addr);
 	}
@@ -276,15 +279,22 @@ int slab_free(struct slab **slab)
 	/* TODO Use VP API for BPID and remaining buffers */
 	int      remaining_buffs = VP_REMAINING_BUFFS(*slab);
 	uint16_t bpid = VP_BPID_GET(*slab);
-
 	if (SLAB_IS_HW_POOL(*slab)) {
 		if (vpool_release_pool(SLAB_VP_POOL_GET(*slab)) != 0) {
 			return -EBUSY;
 		} else {
+			struct slab_module_info *slab_m = \
+				sys_get_unique_handle(FSL_OS_MOD_SLAB);
+			uint32_t flags = FDMA_ACQUIRE_NO_FLAGS;
+
+			if (SLAB_FDMA_BDI)
+				flags |= FDMA_ACQUIRE_BDI_BIT;
+
 			/* TODO use VP API to update VP BPID !! */
 			vpool_decr_total_bman_bufs(bpid, remaining_buffs);
 			/* Free all the remaining buffers for VP */
-			free_buffs_from_bman_pool(bpid, remaining_buffs);
+			free_buffs_from_bman_pool(bpid, remaining_buffs, \
+			                          SLAB_FDMA_ICID, flags);
 		}
 	} else {
 		return -EINVAL;
@@ -454,6 +464,9 @@ int slab_module_init(void)
 	struct   slab_module_info *slab_m = NULL;
 	int      i = 0;
 	int      err = 0;
+	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *)\
+		sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0,
+		                                  E_MAPPED_MEM_TYPE_GEN_REGS);
 
 #ifndef AIOP_STANDALONE
 	err = dpbp_discovery(&bpids_arr[0], ARRAY_SIZE(bpids_arr), &num_bpids);
@@ -516,6 +529,11 @@ int slab_module_init(void)
 		}
 		i++;
 	}
+
+	/* CDMA CFG register needed for filling BPID */
+	slab_m->cdma_cfg = ioread32_ccsr(&ccsr->cdma_regs.cfg);
+	pr_debug("CDMA CFG register = 0x%x addr = 0x%x\n", slab_m->cdma_cfg, \
+	         (uint32_t)&ccsr->cdma_regs.cfg);
 
 	/* Add to all system handles */
 	err = sys_add_handle(slab_m, FSL_OS_MOD_SLAB, 1, 0);

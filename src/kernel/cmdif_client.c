@@ -21,12 +21,6 @@
 
 #define CMDIF_TIMEOUT     0x10000000
 
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
-					0,                          \
-					E_MAPPED_MEM_TYPE_GEN_REGS) \
-					+ SOC_PERIPH_OFF_AIOP_WRKS);
-
 /* TODO get rid of it !
  * Should move to stack */
 __TASK static struct ldpaa_fd _fd \
