@@ -55,7 +55,6 @@ __HOT_CODE void snic_process_packet(void)
 	struct parse_result *pr;
 	struct snic_params *snic;
 	struct fdma_queueing_destination_params enqueue_params;
-	int err;
 	int32_t parse_status;
 	uint16_t snic_id;
 
@@ -87,7 +86,7 @@ __HOT_CODE void snic_process_packet(void)
 		default_task_params.qd_priority = 8;
 		/* For ingress may need to do IPR and then Remove Vlan */
 		if (snic->snic_enable_flags & SNIC_IPR_EN)
-			err = snic_ipr(snic);
+			snic_ipr(snic);
 		/*reach here if re-assembly success or regular or IPR disabled*/
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
@@ -103,7 +102,7 @@ __HOT_CODE void snic_process_packet(void)
 			snic_add_vlan();
 
 		if (snic->snic_enable_flags & SNIC_IPF_EN)
-			err = snic_ipf(snic);
+			snic_ipf(snic);
 	}
 
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
@@ -113,7 +112,7 @@ __HOT_CODE void snic_process_packet(void)
 	enqueue_params.qd = snic->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	/* todo error cases */
-	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
+	fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
 	fdma_terminate_task();
 }
@@ -133,7 +132,6 @@ int snic_ipf(struct snic_params *snic)
 	uint32_t flags = 0;
 	uint8_t va_bdi;
 	int32_t ipf_status;
-	int err;
 	struct fdma_queueing_destination_params enqueue_params;
 
 	ip_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -169,13 +167,9 @@ int snic_ipf(struct snic_params *snic)
 			ipf_status =
 			ipf_generate_frag(ipf_context_addr);
 			if (ipf_status)
-				err =
-				(int)fdma_store_frame_data(1, 0,
-						&amq);
+				fdma_store_frame_data(1, 0, &amq);
 			else
-				err =
-				(int)fdma_store_frame_data(0, 0,
-						&amq);
+				fdma_store_frame_data(0, 0, &amq);
 
 			/* for the enqueue set hash from TLS,
 			 * an flags equal 0 meaning that
@@ -188,8 +182,7 @@ int snic_ipf(struct snic_params *snic)
 				default_task_params.qd_priority;
 			/* todo error cases */
 
-			err =
-			(int)fdma_enqueue_default_fd_qd(icid,
+			fdma_enqueue_default_fd_qd(icid,
 				flags, &enqueue_params);
 
 		} while (ipf_status);
