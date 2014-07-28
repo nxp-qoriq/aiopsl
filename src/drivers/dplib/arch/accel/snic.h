@@ -63,6 +63,9 @@ struct snic_params {
 	uint16_t qdid;
 	/** valid */
 	uint32_t valid;
+	/** Storage profile ID */
+	uint8_t spid;
+	uint8_t res[3];
 };
 
 /** @} */ /* end of SNIC_STRUCTS */

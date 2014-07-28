@@ -326,7 +326,8 @@ struct ipsec_encap_params {
 	uint32_t seq_num_ext_hi; /**< Extended sequence number */
 	uint32_t seq_num;	/**< Initial sequence number */
 	uint32_t spi; 	/**< Security Parameter Index */
-	uint16_t ip_hdr_len; /**< IP header length */
+	uint16_t ip_hdr_len; /**< IP header length in bytes.
+		Should include additional 8 bytes if UDP encapsulation is enabled */
 	uint32_t *outer_hdr; /**< optional IP and UDP Header content */
 	union {
 		struct ipsec_encap_cbc_params cbc;

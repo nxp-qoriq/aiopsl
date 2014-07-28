@@ -370,11 +370,14 @@ void ipsec_generate_encap_sd(
 {
 	
 	uint8_t cipher_type = 0;
+	uint8_t nat_nuc_option = 0;
+	int i; // TMP for outer header copy
 	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
 		//uint32_t *outer_hdr; 
-		uint32_t outer_hdr[5]; 
+		//uint32_t outer_hdr[5]; 
+		uint32_t outer_hdr[34]; // TMP: 40+96=134 bytes for IPv6 header & ext. 
 	} pdb;	
 	
 	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
@@ -455,15 +458,24 @@ void ipsec_generate_encap_sd(
 			pdb.innerpdb.cbc.iv[3] = 0;
 	}
 	
+	/* NAT and NUC Options for tunnel mode encapsulation */
+	/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
+	/* Bit 0 : NUC Enable NAT UDP Checksum */
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		if (params->flags & IPSEC_ENC_OPTS_NAT_EN)
+				nat_nuc_option = IPSEC_ENC_PDB_OPTIONS_NAT; 
+		if (params->flags & IPSEC_ENC_OPTS_NUC_EN)
+				nat_nuc_option |= IPSEC_ENC_PDB_OPTIONS_NUC;
+	}
+	
 	pdb.innerpdb.hmo = 
 		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
 	pdb.innerpdb.options = 
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
-		IPSEC_ENC_PDB_OPTIONS_OIHI_PDB /* outer header from PDB */ 
+		IPSEC_ENC_PDB_OPTIONS_OIHI_PDB | /* outer header from PDB */
+		nat_nuc_option
 		);
 
-	// TODO: Program options[outFMT] for decapsulation
-	
 	//union {
 	//	uint8_t ip_nh;	/* next header for legacy mode */
 	//	uint8_t rsvd;	/* reserved for new mode */
@@ -488,12 +500,17 @@ void ipsec_generate_encap_sd(
 	//pdb.outer_hdr = params->encparams.outer_hdr;
 
 	// TODO: TMP workaround due to variable size array in the RTA PDB
+	/*
 	pdb.outer_hdr[0] = *(params->encparams.outer_hdr + 0);
 	pdb.outer_hdr[1] = *(params->encparams.outer_hdr + 1);
 	pdb.outer_hdr[2] = *(params->encparams.outer_hdr + 2);
 	pdb.outer_hdr[3] = *(params->encparams.outer_hdr + 3);
 	pdb.outer_hdr[4] = *(params->encparams.outer_hdr + 4);
-
+	*/
+	for (i = 0; i < ((params->encparams.ip_hdr_len)/4); i++) {
+		pdb.outer_hdr[0] = *(params->encparams.outer_hdr + i);
+	}
+	
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
