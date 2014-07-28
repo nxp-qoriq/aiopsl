@@ -39,7 +39,8 @@ enum parser_verif_cmd_type {
 	PARSER_INIT_FOR_VERIF_CMDTYPE,
 	PARSER_MACROS_VERIF_CMDTYPE,
 	PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE,
-	PARSER_INIT_GROSS_VERIF_CMDTYPE
+	PARSER_INIT_GROSS_VERIF_CMDTYPE,
+	PARSER_SET_PRPID_HXS_VERIF_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((PARSE_MODULE << 16) | \
@@ -74,6 +75,9 @@ enum parser_verif_cmd_type {
 
 #define PARSER_GEN_INIT_GROSS_STR ((PARSE_MODULE << 16) | \
 				PARSER_INIT_GROSS_VERIF_CMDTYPE)
+
+#define PARSER_SET_PRPID_HXS_STR ((PARSE_MODULE << 16) | \
+		PARSER_SET_PRPID_HXS_VERIF_CMDTYPE)
 
 /**************************************************************************//**
 @Description	Parser verification init gross running sum Command structure.
@@ -212,6 +216,18 @@ struct parser_prp_id_pool_create_verif_command {
 struct parser_macros_command {
 	uint32_t             opcode;
 	uint32_t             macros_struct;
+};
+
+/**************************************************************************//**
+@Description	Parser Set prpid & hxs Command structure.
+
+		Includes information needed for Parser Commands verification.
+*//***************************************************************************/
+struct parser_set_prpid_hxs_command {
+	uint32_t             opcode;
+	uint8_t              prpid;
+	uint16_t             starting_hxs;
+	uint8_t 			 pad;
 };
 
 void aiop_init_parser(uint8_t *prpid);
