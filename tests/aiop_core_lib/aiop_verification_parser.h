@@ -162,9 +162,9 @@ struct parser_gen_parser_res_checksum_verif_command {
 	int32_t           status;
 	uint16_t		  hxs;
 	uint16_t		  l3_checksum;
-	/*uint16_t		  l4_checksum;*/
+	uint16_t		  l4_checksum;
 	uint8_t           offset;
-	uint8_t           pad[3];
+	uint8_t           pad;
 };
 
 /**************************************************************************//**

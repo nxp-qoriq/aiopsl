@@ -134,7 +134,6 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 	}
 	case PARSER_GEN_PARSE_RES_CHECKSUM_STR:
 	{
-		uint16_t l4_checksum;
 		struct parser_gen_parser_res_checksum_verif_command *gpr =
 			(struct parser_gen_parser_res_checksum_verif_command *)
 			asa_seg_addr;
@@ -142,7 +141,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 						(enum parser_starting_hxs_code)gpr->hxs,
 							gpr->offset,
 							&gpr->l3_checksum,
-							&l4_checksum);
+							&gpr->l4_checksum);
 		str_size = sizeof(struct parser_gen_parser_res_checksum_verif_command);
 		break;
 	}
