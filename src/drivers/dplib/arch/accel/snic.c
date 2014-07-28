@@ -263,6 +263,8 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	UNUSED(dev);
 	UNUSED(data);
 
+	ipr_params.flags |= IPR_MODE_TABLE_LOCATION_PEB;
+
 	switch(cmd)
 	{
 	case SNIC_IPR_CREATE_INSTANCE:
