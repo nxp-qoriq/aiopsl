@@ -8,6 +8,7 @@
 #include "dplib/fsl_dpbp.h"
 #include "sys.h"
 #include "fsl_io_ccsr.h"
+#include "slab.h"
 
 __SHRAM uint8_t abcr_lock = 0;
 
