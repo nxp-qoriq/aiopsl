@@ -16,7 +16,7 @@ Setup
 ===========================================
 1. Install Code Warrior (see Release Note for the compatible CW version).
 2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
-3. 3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
+3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
    from the source tree at: aiopsl/build/aiop_sim/sim_files. 
    into the simulator folder at: dtsim_release/linux64/
    comment the lines marked with "#for elf loader".
