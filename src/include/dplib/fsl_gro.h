@@ -419,14 +419,7 @@ int tcp_gro_aggregate_seg(
 		internal context. The user should allocate \ref tcp_gro_ctx_t in
 		this address.
 
-@Return		GRO Status, or negative value on error.
-
-@Retval		GRO Status - please refer to \ref TCP_GRO_FLUSH_STATUS.
-@Retval		EIO - Parsing Error.
-		Recommendation is to discard the frame or enqueue the frame.
-@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of 256 bytes before completing all parsing).
-		Recommendation is to discard the frame or enqueue the frame.
+@Return		GRO Status - please refer to \ref TCP_GRO_FLUSH_STATUS.
 
 @Cautions	No frame should reside at the default frame location in
 		workspace before this function is called.

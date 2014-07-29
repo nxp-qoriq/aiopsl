@@ -105,6 +105,12 @@
 #define CDMA_ACCESS_CONTEXT_MEM_CMD_ARG2(_dma_param, _ws_address) \
 	(uint32_t)((_dma_param << 16) | (_ws_address & 0x0000FFFF))
 
+/* CDMA CFG register bits */
+#define CDMA_BDI_BIT		0x00080000
+#define CDMA_PL_BIT		0x00040000
+#define CDMA_BMT_BIT		0x00020000
+#define CDMA_VA_BIT		0x00010000
+#define CDMA_ICID_MASK		0x00007FFF
 
 /**************************************************************************//**
  @enum cdma_errors
@@ -529,7 +535,7 @@ int cdma_access_context_memory(
 /*************************************************************************//**
 @Function	cdma_handle_fatal_errors
 
-@Description	This routine gets cdma error status and call to 
+@Description	This routine gets cdma error status and call to
 		handle_fatal_error function accordantly.
 
 @Param[in]	status - error status.

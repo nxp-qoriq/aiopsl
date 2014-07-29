@@ -62,6 +62,9 @@ void init_verif()
 		timeout_cb_verif(0);
 		tmi_id = 0;
 		verif_only_1_task_complete = 1;
+		
+		/* an initialization so we will not have the value 0 */
+		seed_32bit = 5;
 	}
 	else {
 		unlock_spinlock(&verif_spin_lock);
@@ -74,9 +77,6 @@ void init_verif()
 
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
-
-	/* an initialization so we will not have the value 0 */
-	seed_32bit = 5;
 
 	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;

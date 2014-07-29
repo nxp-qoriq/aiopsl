@@ -1,3 +1,4 @@
+- slab.c             Read AIOP ICID and BDI from CDMA CFG register.
 - fsl_cmdif_client.h Added Cautions - automatic expansion of the buffer is not available
 - arena_test.c:      updated to show which task/core was active during the test. (multi task should be supported in next simulator - 118)
 - fsl_io_ccsr.h:     #ifdef CCSR_BE removed to use big endian convention to access ccsr in AIOP.
