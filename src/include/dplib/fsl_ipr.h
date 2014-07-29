@@ -418,6 +418,11 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
 
+		Implicitly updated values in task defaults: segment length,
+							    segment address,
+							    segment offset
+
+
 @Param[in]	ipr_instance - The IPR instance handle.
 
 @Return		Status -\n
