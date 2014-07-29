@@ -263,6 +263,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct table_lookup_result lookup_result;
 	/* todo rule should be aligned to 16 bytes */
 	struct table_rule rule;
+	struct	presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -559,6 +561,11 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	/* Open segment for reassembled frame */
+	/* todo Retrieve original seg length,seg addr and seg offset
+	 * from EPID table */
+	prc->seg_address = 0x140;
+	prc->seg_length = 256;
+	prc->seg_offset = 0;
 	fdma_present_default_frame_default_segment();
 	/* FD length is still not updated */
 
@@ -1639,7 +1646,7 @@ void ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 			  sizeof(*reass_frm_cntr));
 	else
 		cdma_read(reass_frm_cntr,
-			  ipr_instance+sizeof(ipr_instance)+
+			  ipr_instance+sizeof(struct ipr_instance)+
 			  offsetof(struct ipr_instance_extension,
 				   ipv6_reass_frm_cntr),
 			  sizeof(*reass_frm_cntr));

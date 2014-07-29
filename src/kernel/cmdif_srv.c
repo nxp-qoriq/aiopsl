@@ -48,12 +48,6 @@
 #define SYNC_CMD_RESP_MAKE(ERR, ID)  (0x80000000 | \
 	(((ERR) << 16) & 0x00FF0000) | (ID))
 
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
-					0,                          \
-					E_MAPPED_MEM_TYPE_GEN_REGS) \
-					+ SOC_PERIPH_OFF_AIOP_WRKS);
-
 #define PR_ERR_TERMINATE(...) \
 	do {                  \
 		pr_err(__VA_ARGS__);  \
@@ -458,7 +452,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 	struct cmdif_srv_aiop *aiop_srv = \
 		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
 	struct cmdif_srv *srv = NULL;
-	int      err    = 0;
+	int err = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
 	if ((aiop_srv == NULL) || (aiop_srv->srv == NULL))

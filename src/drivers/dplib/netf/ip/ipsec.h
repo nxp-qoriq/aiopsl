@@ -53,6 +53,10 @@ enum ipsec_cipher_type {
 @{
 *//***************************************************************************/
 
+/* Inbound/Outbound Flag (most significant bit) */
+#define IPSEC_FLG_DIR_INBOUND  0x00000000 
+#define IPSEC_FLG_DIR_OUTBOUND 0x80000000 
+
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
 
@@ -82,6 +86,12 @@ enum ipsec_cipher_type {
  * 		(length is PDB:Opt IP Hdr Len bytes)
 */
 #define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x0C
+
+/* NAT and NUC Options for tunnel mode encapsulation */
+/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
+/* Bit 0 : NUC Enable NAT UDP Checksum */
+#define IPSEC_ENC_PDB_OPTIONS_NAT 0x02
+#define IPSEC_ENC_PDB_OPTIONS_NUC 0x01
 
 /* 28 (HMO 4 out of 7:0) Sequence Number Rollover control. 
  * 0 : Sequence Number Rollover causes an error
