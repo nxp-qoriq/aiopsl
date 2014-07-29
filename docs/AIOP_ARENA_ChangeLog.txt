@@ -1,3 +1,4 @@
+- mc_init.c          Moved AIOP<->MC dpci creation from DPL to AIOP dpci init. It should not be exposed to users.
 - slab.c             Read AIOP ICID and BDI from CDMA CFG register.
 - fsl_cmdif_client.h Added Cautions - automatic expansion of the buffer is not available
 - arena_test.c:      updated to show which task/core was active during the test. (multi task should be supported in next simulator - 118)
