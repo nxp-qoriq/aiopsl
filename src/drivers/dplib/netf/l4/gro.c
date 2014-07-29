@@ -103,7 +103,7 @@ int tcp_gro_aggregate_seg(
 			&(gro_ctx.timer_handle));
 
 	/* no more timers available */
-	if (sr_status == -ENAVAIL) {
+	if (sr_status == -ENOSPC) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return TCP_GRO_SEG_AGG_DONE | TCP_GRO_TIMER_UNAVAIL;
 	}
@@ -734,7 +734,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		/* No more timers available.
 		 * Report the user this segment should be flushed due to
 		 * timer unavailability. */
-		if (sr_status == -ENAVAIL) {
+		if (sr_status == -ENOSPC) {
 
 			/* update statistics */
 			ste_inc_counter(gro_ctx->params.stats_addr +
