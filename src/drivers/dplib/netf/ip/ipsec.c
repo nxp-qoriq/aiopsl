@@ -658,7 +658,7 @@ void ipsec_generate_decap_sd(
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
 	} else {
-		/* Transprt mode */
+		/* Transport mode */
 		/* If ESP pad checking is not required output frame is only the LDU */
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
