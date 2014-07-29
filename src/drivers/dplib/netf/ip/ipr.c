@@ -397,7 +397,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					      *(uint64_t *)rule.key_desc.em.key;
 				rfdc.ipv4_key[1] =
 					  *(uint64_t *)(rule.key_desc.em.key+8);
-	
+
 				/* Increment no of IPv4 open frames in instance
 					data structure */
 				ste_inc_counter(
@@ -563,9 +563,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Open segment for reassembled frame */
 	/* todo Retrieve original seg length,seg addr and seg offset
 	 * from EPID table */
-	prc->seg_address = 0x140;
-	prc->seg_length = 256;
-	prc->seg_offset = 0;
+	prc->seg_address = rfdc.seg_addr;
+	prc->seg_length  = rfdc.seg_length;
+	prc->seg_offset  = rfdc.seg_offset;
 	fdma_present_default_frame_default_segment();
 	/* FD length is still not updated */
 
@@ -650,6 +650,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	struct ipv6fraghdr		*ipv6fraghdr_ptr;
 	struct	parse_result	*pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct	presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	if (frame_is_ipv4) {
 		ipv4hdr_ptr = (struct ipv4hdr *) iphdr_ptr;
@@ -701,6 +703,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	} else {
 		/* First fragment (frag_offset == 0) */
 		rfdc_ptr->status |= FIRST_ARRIVED;
+		/* Save PRC params for presentation of the reassembled frame */
+		rfdc_ptr->seg_addr   = prc->seg_address;
+		rfdc_ptr->seg_length = prc->seg_length;
+		rfdc_ptr->seg_offset = prc->seg_offset;
+
 		if (pr->gross_running_sum == 0)
 			fdma_calculate_default_frame_checksum(
 							0,
@@ -713,7 +720,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		/* Get IP offset */
 		rfdc_ptr->iphdr_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		if (!frame_is_ipv4)
-			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;		
+			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;
 	}
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {

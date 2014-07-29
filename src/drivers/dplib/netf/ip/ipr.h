@@ -105,7 +105,7 @@ struct ipr_instance {
 	uint16_t  	timeout_value_ipv6;
 	/* TMAN Instance ID */
 	uint8_t		tmi_id;
-	uint8_t		res[3];
+	uint8_t		res[9];
 };
 #pragma pack(pop)
 
@@ -146,7 +146,10 @@ struct ipr_rfdc{
 	uint64_t	ipv4_key[2];
 	uint16_t	iphdr_offset;
 	uint16_t	ipv6_fraghdr_offset;
-	uint32_t	res2[2];
+	uint16_t	seg_addr;
+	uint16_t	seg_length;
+	uint16_t	seg_offset;
+	uint8_t		res2;
 };
 #pragma pack(pop)
 
