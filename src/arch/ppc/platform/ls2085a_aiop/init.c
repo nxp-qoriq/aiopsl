@@ -242,13 +242,22 @@ static int fill_bpid(uint16_t num_buffs,
 {
     int        i = 0;
     dma_addr_t addr  = 0;
+    struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
+    uint16_t icid = 0;
+    uint32_t flags = FDMA_RELEASE_NO_FLAGS;
+
+    /* Use the same flags as for slab */
+    if (slab_m) {
+	    icid  = slab_m->icid;
+	    flags = slab_m->fdma_flags;
+    }
 
     for (i = 0; i < num_buffs; i++) {
         addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size,
                                                   mem_partition_id,
                                                   alignment));
         /* Here, we pass virtual BPID, therefore BDI = 0 */
-        fdma_release_buffer(0, FDMA_RELEASE_NO_FLAGS, bpid, addr);
+        fdma_release_buffer(icid, flags, bpid, addr);
     }
     return 0;
 }
