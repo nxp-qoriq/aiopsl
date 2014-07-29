@@ -39,12 +39,7 @@ void fsl_os_print(char *format, ...)
 	char    tmp_buf[BUF_SIZE];
 
 	va_start(args, format);
-#ifdef SYS_64BIT_ARCH
-#if defined(__GNUC__)
-extern void msr_enable_fp(void);
-msr_enable_fp();
-#endif /* defined(__GNUC__) */
-#endif /* SYS_64BIT_ARCH */
+
 	if(sys.runtime_flag)
 		vsnprintf_lite(tmp_buf, BUF_SIZE, format, args);
 	else

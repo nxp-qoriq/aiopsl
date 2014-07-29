@@ -21,12 +21,6 @@
 
 #define CMDIF_TIMEOUT     0x10000000
 
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,         \
-					0,                          \
-					E_MAPPED_MEM_TYPE_GEN_REGS) \
-					+ SOC_PERIPH_OFF_AIOP_WRKS);
-
 /* TODO get rid of it !
  * Should move to stack */
 __TASK static struct ldpaa_fd _fd \
@@ -231,6 +225,13 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 			cdma_read(&done,
 			          ((struct cmdif_dev *)cidesc->dev)->p_sync_done,
 			          4); */
+			/* Same as cdma_write(_sync_done, &resp, 4);
+			 * TODO BMT (from FD), VA (from FD), PL (from ADC)
+			 * copy it from somewhere
+			 * I think I should use this frame BMT because all FDs
+			 * including cmdif_open() FD are set the same
+			 * Anyway this is relevant only for sync mode
+			 * which is not supported by AIOP client */
 			fdma_dma_data(4, ICID_GET, &done,
 			              p_sync, FDMA_DMA_DA_SYS_TO_WS_BIT);
 
