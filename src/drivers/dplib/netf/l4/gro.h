@@ -258,9 +258,22 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 /** ECN mask value of the IP header of the GRO aggregation.
  * The Mask should be used on the GRO internal flags \ref TCP_GRO_INTERNAL_FLAGS
  * in order to get the ECN value of the first segment. */
-#define TCP_GRO_ECN_MASK	0x00030000
+#define TCP_GRO_ECN_MASK	0x00003000
 
 /** @} */ /* end of TCP_GRO_INTERNAL_MASKS */
+
+/**************************************************************************//**
+ @Group	TCP_GRO_INTERNAL_OFFSETS TCP GRO Internal Offsets
+
+ @Description TCP GRO Internal Offsets.
+
+ @{
+*//***************************************************************************/
+
+/** GRO ECN offset value. */
+#define TCP_GRO_ECN_OFFSET	4
+
+/** @} */ /* end of TCP_GRO_INTERNAL_OFFSETS */
 
 
 /**************************************************************************//**

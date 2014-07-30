@@ -145,6 +145,7 @@ int tcp_gro_aggregate_seg(
 	ecn = *((uint32_t *)(PARSER_GET_OUTER_IP_POINTER_DEFAULT()));
 	if (PARSER_IS_OUTER_IPV6_DEFAULT())
 		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
+	ecn = ecn >> TCP_GRO_ECN_OFFSET;
 	ecn = ecn & TCP_GRO_ECN_MASK;
 	gro_ctx.internal_flags |= ecn;
 
@@ -220,6 +221,7 @@ int tcp_gro_add_seg_to_aggregation(
 	ecn = *((uint32_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
 	if (PARSER_IS_OUTER_IPV6_DEFAULT())
 		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
+	ecn >>= TCP_GRO_ECN_OFFSET;
 	ecn &= TCP_GRO_ECN_MASK;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
@@ -594,14 +596,15 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 			/* IPv4 */
 			ipv4 = (struct ipv4hdr *)
 					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-			gro_ctx->internal_flags |= (*((uint32_t *)ipv4) &
+			gro_ctx->internal_flags |=
+				((*((uint32_t *)ipv4) >> TCP_GRO_ECN_OFFSET) &
 					TCP_GRO_ECN_MASK);
 		} else {
 			/* IPv6 */
 			ipv6 = (struct ipv6hdr *)
 					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 			gro_ctx->internal_flags |= (((*((uint32_t *)ipv6)) >>
-					TCP_GRO_IPV6_ECN_OFFSET) &
+			       (TCP_GRO_IPV6_ECN_OFFSET + TCP_GRO_ECN_OFFSET)) &
 					TCP_GRO_ECN_MASK);
 		}
 	}
