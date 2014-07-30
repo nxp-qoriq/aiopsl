@@ -142,7 +142,8 @@ struct ipr_rfdc{
 	uint8_t		res1;
 	uint16_t	status;
 	uint16_t	total_in_order_payload;
-	struct 		fdma_amq isolation_bits; // 4 bytes
+	/* 4 next bytes can move to extension */
+	struct 		fdma_amq isolation_bits; 
 	uint64_t	ipv4_key[2];
 	uint16_t	iphdr_offset;
 	uint16_t	ipv6_fraghdr_offset;
