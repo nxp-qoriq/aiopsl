@@ -53,14 +53,12 @@ struct tcp_gro_last_seg_header_fields {
 /**************************************************************************//**
 @Description	TCP GRO Internal Context.
 *//***************************************************************************/
-/* Currently the struct size is 128 bytes.
- * The fixed definition size is 128 bytes.
+/* The fixed definition size is 128 bytes.
  * In case additional fields are added to the struct we can either:
  * Modify the fixed size
  * OR
- * Remove un-needed fields such as the limits (we get them every time)
- * and the timeout_flags and tmi_id of the timeout parameters (16 bytes
- * of un-needed bytes currently)*/
+ * Remove unneeded fields (e.g. the metadata structure takes 4 bytes for
+ * alignment only). */
 
 struct tcp_gro_context {
 		/** Aggregated packet FD.
@@ -69,33 +67,64 @@ struct tcp_gro_context {
 		 * in Workspace must be aligned to 32 bytes). */
 	struct ldpaa_fd agg_fd
 		__attribute__((aligned(sizeof(struct ldpaa_fd))));
-		/** Aggregation parameters */
-	struct tcp_gro_context_params params;
+		/** Address (in HW buffers) of the TCP GRO aggregation metadata
+		 * buffer (\ref tcp_gro_context_metadata)
+		 * Upper layer SW should always send a metadata buffer address
+		 * to tcp_gro_aggregate_seg().
+		 * After tcp_gro_aggregate_seg() returns \ref
+		 * TCP_GRO_METADATA_USED bit in the status, the following call
+		 * to tcp_gro_aggregate_seg() should send an address to a new
+		 * metadata buffer.
+		 * */
+	uint64_t metadata_addr;
+		/** Address (in HW buffers) of the TCP GRO statistics counters
+		 *  (\ref tcp_gro_stats_cntrs).
+		 *  The user should zero the statistics once it is allocated. */
+	uint64_t stats_addr;
+		/** Address (in HW buffers) of the callback function parameter
+		 * argument on timeout.
+		 * On timeout, GRO will call upper layer callback function with
+		 * this parameter. */
+	uint64_t gro_timeout_cb_arg;
+		/** Aggregated packet metadata  */
+	struct tcp_gro_context_metadata metadata;
 		/** Last Segment header fields which we need to update in the
 		 * aggregated packet. */
 	struct tcp_gro_last_seg_header_fields last_seg_fields;
-		/** Aggregated packet metadata  */
-	struct tcp_gro_context_metadata metadata;
-		/** Internal TCP GRO flags */
-	uint32_t internal_flags;
-		/** Next expected sequence number. */
-	uint32_t next_seq;
-		/** Last received acknowledgment number. */
-	uint32_t last_ack;
-		/** Aggregated packet timestamp value. */
-	uint32_t timestamp;
-		/** TCP GRO aggregation flags */
-	uint32_t flags;
 		/** Aggregated packet isolation attributes.
 		 * Todo - in case all the segments have the same isolation
 		 * attributes there is no need to save this structure since the
 		 * attributes can be taken from the new segment Additional
 		 * Dequeue Context area. */
 	struct fdma_amq agg_fd_isolation_attributes;
+		/** Function to call upon Time Out occurrence.
+			 * This function takes one argument. */
+	gro_timeout_cb_t *gro_timeout_cb;
+		/** Aggregated packet timestamp value. */
+	uint32_t timestamp;
+		/** Next expected sequence number. */
+	uint32_t next_seq;
+		/** TCP GRO aggregation flags */
+	uint32_t flags;
 		/** TMAN Instance ID. */
 	uint32_t timer_handle;
-		/** Aggregation headers size */
-	uint16_t agg_headers_size;
+		/** Internal TCP GRO flags */
+	uint16_t internal_flags;
+		/** First segment presentation size */
+	uint16_t prc_segment_length;
+		/** First segment presentation offset */
+	uint16_t prc_segment_offset;
+		/** First segment presentation address */
+	uint16_t prc_segment_addr;
+	/** Maximum aggregated packet size limit (The size refers to the
+		 * packet headers + payload).
+		 * A single segment size cannot oversize this limit. */
+	uint16_t packet_size_limit;
+		/** Maximum aggregated segments per packet limit.
+		 * 0/1 are an illegal values. */
+	uint8_t	seg_num_limit;
+		/* padding*/
+	uint8_t pad[13];
 };
 
 
@@ -211,11 +240,11 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 	 * be returned as is since the gro context should be cleared by former
 	 * aggregation. */
 #define TCP_GRO_AGG_TIMER_IN_PROCESS	0x00000010
-	/** IP header reserved1 ECN bit of the GRO aggregation. */
+	/** IP header reserved1 ECN bit of the GRO aggregation.
 #define TCP_GRO_ECN1			0x00010000
-	/** IP header reserved2 ECN bit of the GRO aggregation. */
+	* IP header reserved2 ECN bit of the GRO aggregation.
 #define TCP_GRO_ECN2			0x00020000
-
+*/
 /** @} */ /* end of TCP_GRO_INTERNAL_FLAGS */
 
 /**************************************************************************//**

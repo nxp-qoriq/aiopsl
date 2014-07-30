@@ -29,14 +29,13 @@ int tcp_gro_aggregate_seg(
 	int status;
 	int sr_status;
 	uint32_t ecn;
-	uint16_t seg_size;
+	uint16_t seg_size, agg_headers_size;
 	uint8_t data_offset;
 
 	/* If segment FD contain errors (FD[err] != 0) return the frame to
 	 * the user. */
 	if (LDPAA_FD_GET_ERR(HWC_FD_ADDRESS))
 		return -EBADFD;
-
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
@@ -109,18 +108,27 @@ int tcp_gro_aggregate_seg(
 	}
 
 	/* initialize gro context fields */
-	gro_ctx.params = *params;
+	gro_ctx.gro_timeout_cb = params->timeout_params.gro_timeout_cb;
+	gro_ctx.gro_timeout_cb_arg = params->timeout_params.gro_timeout_cb_arg;
+	gro_ctx.packet_size_limit = params->limits.packet_size_limit;
+	gro_ctx.seg_num_limit = params->limits.seg_num_limit;
+	gro_ctx.metadata_addr = params->metadata_addr;
+	gro_ctx.stats_addr = params->stats_addr;
 	gro_ctx.flags = flags;
-	gro_ctx.last_ack = tcp->acknowledgment_number;
+	gro_ctx.last_seg_fields.acknowledgment_number =
+			tcp->acknowledgment_number;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
 			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
 			 NET_HDR_FLD_TCP_DATA_OFFSET_SHIFT_VALUE);
 
-	gro_ctx.agg_headers_size = (uint16_t)
+	gro_ctx.prc_segment_length = PRC_GET_SEGMENT_LENGTH();
+	gro_ctx.prc_segment_offset = PRC_GET_SEGMENT_OFFSET();
+	gro_ctx.prc_segment_addr = PRC_GET_SEGMENT_ADDRESS();
+
+	agg_headers_size = (uint16_t)
 			(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
-	gro_ctx.next_seq = tcp->sequence_number + seg_size -
-			gro_ctx.agg_headers_size;
+	gro_ctx.next_seq = tcp->sequence_number + seg_size - agg_headers_size;
 	/* in case there is an option it must be a timestamp option */
 	if (data_offset > TCP_HDR_LENGTH) {
 		/* Timestamp option is optimized with to starting nops */
@@ -160,7 +168,7 @@ int tcp_gro_aggregate_seg(
 			(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* update statistics */
-	ste_inc_counter(gro_ctx.params.stats_addr +
+	ste_inc_counter(gro_ctx.stats_addr +
 		GRO_STAT_SEG_NUM_CNTR_OFFSET,
 		1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
@@ -195,7 +203,7 @@ int tcp_gro_add_seg_to_aggregation(
 	if (gro_ctx->next_seq != tcp->sequence_number) {
 		/* update statistics */
 		if (gro_ctx->flags & TCP_GRO_EXTENDED_STATS_EN)
-			ste_inc_counter(gro_ctx->params.stats_addr +
+			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_UNEXPECTED_SEQ_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
@@ -229,7 +237,8 @@ int tcp_gro_add_seg_to_aggregation(
 
 	if (((gro_ctx->internal_flags & TCP_GRO_ECN_MASK) != ecn)	||
 		(gro_ctx->timestamp != timestamp)			||
-		(gro_ctx->last_ack > tcp->acknowledgment_number)	||
+		(gro_ctx->last_seg_fields.acknowledgment_number >
+					tcp->acknowledgment_number)	||
 		(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET))
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
@@ -242,23 +251,23 @@ int tcp_gro_add_seg_to_aggregation(
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
 	/* 6. check aggregated packet size limit */
-	if (aggregated_size > gro_ctx->params.limits.packet_size_limit)
+	if (aggregated_size > gro_ctx->packet_size_limit)
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
-	else if (aggregated_size == gro_ctx->params.limits.packet_size_limit) {
+	else if (aggregated_size == gro_ctx->packet_size_limit) {
 		/* update statistics */
 		if (gro_ctx->flags & TCP_GRO_EXTENDED_STATS_EN)
-			ste_inc_counter(gro_ctx->params.stats_addr +
+			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_MAX_PACKET_SIZE_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
 	/* 7. check segment number limit */
 	if ((gro_ctx->metadata.seg_num + 1) ==
-			gro_ctx->params.limits.seg_num_limit){
+			gro_ctx->seg_num_limit){
 		/* update statistics */
 		if (gro_ctx->flags & TCP_GRO_EXTENDED_STATS_EN)
-			ste_inc_counter(gro_ctx->params.stats_addr +
+			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_MAX_SEG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
@@ -309,7 +318,7 @@ int tcp_gro_add_seg_to_aggregation(
 			 * be further processed by upper SW. */
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			/* update statistics */
-			ste_inc_counter(gro_ctx->params.stats_addr +
+			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET,
 				(uint32_t)(gro_ctx->metadata.seg_num + 1),
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
@@ -321,7 +330,7 @@ int tcp_gro_add_seg_to_aggregation(
 			pr->gross_running_sum = 0;
 			return TCP_GRO_AGG_DISCARDED;
 		} else {
-			ste_inc_counter(gro_ctx->params.stats_addr +
+			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 			gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
@@ -329,7 +338,6 @@ int tcp_gro_add_seg_to_aggregation(
 		}
 	}
 	/* update gro context fields */
-	gro_ctx->last_ack = tcp->acknowledgment_number;
 	gro_ctx->next_seq = gro_ctx->next_seq + seg_size - headers_size;
 	gro_ctx->last_seg_fields = *((struct tcp_gro_last_seg_header_fields *)
 			(&(tcp->acknowledgment_number)));
@@ -344,7 +352,7 @@ int tcp_gro_add_seg_to_aggregation(
 		gro_ctx->metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
 	}
 	/* update statistics */
-	ste_inc_counter(gro_ctx->params.stats_addr +
+	ste_inc_counter(gro_ctx->stats_addr +
 			GRO_STAT_SEG_NUM_CNTR_OFFSET,
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
@@ -421,7 +429,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 		/* discard the single frame, which is the second part of the
 		 * split. */
 		fdma_discard_frame(concat_params.frame1, FDMA_DIS_NO_FLAGS);
-		ste_inc_counter(gro_ctx->params.stats_addr +
+		ste_inc_counter(gro_ctx->stats_addr +
 			GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		gro_ctx->metadata.seg_num--;
@@ -482,13 +490,13 @@ int tcp_gro_add_seg_and_close_aggregation(
 				&seg_size, (uint16_t)sizeof(seg_size));
 	}
 	/* write metadata to external memory */
-	cdma_write((gro_ctx->params.metadata_addr + METADATA_MEMBER1_SIZE),
+	cdma_write((gro_ctx->metadata_addr + METADATA_MEMBER1_SIZE),
 			&(gro_ctx->metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
 
 	/* update statistics */
-	ste_inc_and_acc_counters(gro_ctx->params.stats_addr +
+	ste_inc_and_acc_counters(gro_ctx->stats_addr +
 			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
 			STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
 			STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
@@ -528,7 +536,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct tcphdr *tcp;
 	uint8_t data_offset;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	uint16_t headers_size, outer_ip_offset, ip_length, seg_size;
+	uint16_t headers_size, outer_ip_offset, ip_length, seg_size,
+		prc_segment_length;
 	/*uint16_t agg_checksum, new_agg_checksum;*/
 	struct ipv4hdr *ipv4;
 	struct ipv6hdr *ipv6;
@@ -539,8 +548,15 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 
+	/* We save the prc segment length for future use. The size may be
+	 * different due to headers size differences.
+	 * We do not save prc segment offset since each segment arrives with
+	 * the same offset value. */
+	prc_segment_length = PRC_GET_SEGMENT_LENGTH();
+
 	/* initialize gro_context parameters */
-	old_agg_timestamp = gro_ctx->internal_flags & TCP_GRO_HAS_TIMESTAMP;
+	old_agg_timestamp = (uint32_t)(gro_ctx->internal_flags) &
+			TCP_GRO_HAS_TIMESTAMP;
 	gro_ctx->internal_flags = 0;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
@@ -553,7 +569,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		(params->limits.packet_size_limit <= seg_size)) {
 		gro_ctx->internal_flags |= TCP_GRO_FLUSH_AGG_SET;
 	} else {
-		gro_ctx->last_ack = tcp->acknowledgment_number;
+		gro_ctx->last_seg_fields.acknowledgment_number =
+				tcp->acknowledgment_number;
 		gro_ctx->next_seq = tcp->sequence_number +
 				(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				headers_size;
@@ -604,8 +621,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->agg_fd = tmp_fd;
 
 	/* present frame (default_FD(agg_FD)) +  present header */
-	if (PRC_GET_SEGMENT_LENGTH() < gro_ctx->agg_headers_size)
-		PRC_SET_SEGMENT_LENGTH(gro_ctx->agg_headers_size);
+	PRC_SET_SEGMENT_LENGTH(gro_ctx->prc_segment_length);
 	fdma_present_default_frame();
 
 	/* run parser if headers were changed */
@@ -625,7 +641,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 						gro_ctx->last_seg_fields;
 
 	/* write metadata to external memory */
-	cdma_write((gro_ctx->params.metadata_addr + METADATA_MEMBER1_SIZE),
+	cdma_write((gro_ctx->metadata_addr + METADATA_MEMBER1_SIZE),
 			&(gro_ctx->metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
@@ -662,7 +678,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	if (gro_ctx->internal_flags &
 			(TCP_GRO_FLUSH_AGG_SET | TCP_GRO_DISCARD_SEG_SET)) {
 		/* update statistics */
-		ste_inc_counter(gro_ctx->params.stats_addr +
+		ste_inc_counter(gro_ctx->stats_addr +
 			GRO_STAT_AGG_NUM_CNTR_OFFSET,
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
@@ -670,7 +686,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		 * report the discard since a flush is not required anymore. */
 		/* Report to the user the segment was discarded. */
 		if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET) {
-			ste_inc_counter(gro_ctx->params.stats_addr +
+			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 			gro_ctx->metadata.seg_num = 0;
@@ -737,7 +753,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		if (sr_status == -ENOSPC) {
 
 			/* update statistics */
-			ste_inc_counter(gro_ctx->params.stats_addr +
+			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
@@ -758,10 +774,15 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 			STE_MODE_COMPOUND_ACC_SATURATE);
 
 	/* initialize gro context fields */
-	gro_ctx->params = *params;
+	gro_ctx->gro_timeout_cb = params->timeout_params.gro_timeout_cb;
+	gro_ctx->gro_timeout_cb_arg = params->timeout_params.gro_timeout_cb_arg;
+	gro_ctx->packet_size_limit = params->limits.packet_size_limit;
+	gro_ctx->seg_num_limit = params->limits.seg_num_limit;
+	gro_ctx->metadata_addr = params->metadata_addr;
+	gro_ctx->stats_addr = params->stats_addr;
 	gro_ctx->metadata.seg_num = 1;
 	gro_ctx->metadata.max_seg_size = seg_size;
-	gro_ctx->agg_headers_size = headers_size;
+	gro_ctx->prc_segment_length = prc_segment_length;
 
 	/* update seg size */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
@@ -828,10 +849,9 @@ int tcp_gro_flush_aggregation(
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
 	/* prepare presentation context fields for frame presentation. */
-	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-				DEFAULT_SEGMENT_HEADROOM_SIZE);
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	PRC_SET_SEGMENT_OFFSET(0);
+	PRC_SET_SEGMENT_ADDRESS(gro_ctx.prc_segment_addr);
+	PRC_SET_SEGMENT_LENGTH(gro_ctx.prc_segment_length);
+	PRC_SET_SEGMENT_OFFSET(gro_ctx.prc_segment_offset);
 	PRC_RESET_SR_BIT();
 	PRC_RESET_NDS_BIT();
 	PRC_SET_ASA_SIZE(0);
@@ -859,7 +879,7 @@ int tcp_gro_flush_aggregation(
 	}
 
 	/* write metadata to external memory */
-	cdma_write((gro_ctx.params.metadata_addr + METADATA_MEMBER1_SIZE),
+	cdma_write((gro_ctx.metadata_addr + METADATA_MEMBER1_SIZE),
 		&(gro_ctx.metadata.seg_num),
 		(uint16_t)(METADATA_MEMBER2_SIZE +
 				METADATA_MEMBER3_SIZE));
@@ -917,10 +937,10 @@ int tcp_gro_flush_aggregation(
 				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* update statistics */
-	ste_inc_counter(gro_ctx.params.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET
+	ste_inc_counter(gro_ctx.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET
 			, 1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 	if (gro_ctx.flags & TCP_GRO_EXTENDED_STATS_EN)
-		ste_inc_counter(gro_ctx.params.stats_addr +
+		ste_inc_counter(gro_ctx.stats_addr +
 			GRO_STAT_AGG_FLUSH_REQUEST_NUM_CNTR_OFFSET,
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
@@ -967,7 +987,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
 	/* write metadata to external memory */
-	cdma_write((gro_ctx.params.metadata_addr + METADATA_MEMBER1_SIZE),
+	cdma_write((gro_ctx.metadata_addr + METADATA_MEMBER1_SIZE),
 			&(gro_ctx.metadata.seg_num),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
@@ -980,10 +1000,9 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	/* Copy aggregated FD to default FD location and prepare aggregated FD
 	 * parameters in Presentation Context */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx.agg_fd;
-	PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-			DEFAULT_SEGMENT_HEADROOM_SIZE);
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	PRC_SET_SEGMENT_OFFSET(0);
+	PRC_SET_SEGMENT_ADDRESS(gro_ctx.prc_segment_addr);
+	PRC_SET_SEGMENT_LENGTH(gro_ctx.prc_segment_length);
+	PRC_SET_SEGMENT_OFFSET(gro_ctx.prc_segment_offset);
 	PRC_RESET_SR_BIT();
 	PRC_RESET_NDS_BIT();
 	PRC_SET_ASA_SIZE(0);
@@ -1034,16 +1053,15 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 				(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* update statistics */
-	ste_inc_counter(gro_ctx.params.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET
+	ste_inc_counter(gro_ctx.stats_addr + GRO_STAT_AGG_NUM_CNTR_OFFSET
 			, 1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 	if (gro_ctx.flags & TCP_GRO_EXTENDED_STATS_EN)
-		ste_inc_counter(gro_ctx.params.stats_addr +
+		ste_inc_counter(gro_ctx.stats_addr +
 			GRO_STAT_AGG_TIMEOUT_CNTR_OFFSET,
 			1, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
 	/* call user callback function*/
-	gro_ctx.params.timeout_params.gro_timeout_cb(
-			gro_ctx.params.timeout_params.gro_timeout_cb_arg);
+	gro_ctx.gro_timeout_cb(gro_ctx.gro_timeout_cb_arg);
 }
 
 void tcp_gro_calc_tcp_header_cksum()
