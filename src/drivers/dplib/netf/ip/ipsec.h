@@ -99,6 +99,21 @@ enum ipsec_cipher_type {
 */
 #define IPSEC_ENC_PDB_HMO_SNR 0x10
 
+/*
+3 	OUT_FMT 	Output Frame format:
+	0 - All Input Frame fields copied to Output Frame
+	1 - Output Frame is just the decapsulated PDU
+2 	AOFL 	Adjust Output Frame Length
+	0 - Don't adjust output frame length 
+	-- output frame length reflects output frame actually written to memory,
+		including the padding, Pad Length, and Next Header fields.
+	1 - Adjust output frame length -- subtract the length of the padding, 
+		the Pad Length, and the Next Header
+		byte from the output frame length reported to the frame consumer.
+	If outFMT==0, this bit is reserved and must be zero.
+*/
+#define IPSEC_DEC_PDB_OPTIONS_AOFL		0x04
+#define IPSEC_DEC_PDB_OPTIONS_OUTFMT	0x08
 
 #define IPSEC_ARS_MASK	0x00c0   /* anti-replay window option mask */
 #define IPSEC_ESN_MASK 0x10 /* Extended sequence number option mask */
