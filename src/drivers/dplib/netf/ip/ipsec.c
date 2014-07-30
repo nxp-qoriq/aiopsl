@@ -370,8 +370,8 @@ void ipsec_generate_encap_sd(
 {
 	
 	uint8_t cipher_type = 0;
-	uint8_t nat_nuc_option = 0;
-	int i; // TMP for outer header copy
+	uint8_t pdb_options = 0;
+	int i; // TODO: TMP for outer header copy
 	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
@@ -458,35 +458,50 @@ void ipsec_generate_encap_sd(
 			pdb.innerpdb.cbc.iv[3] = 0;
 	}
 	
-	/* NAT and NUC Options for tunnel mode encapsulation */
-	/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
-	/* Bit 0 : NUC Enable NAT UDP Checksum */
+	/* Tunnel Mode Parameters */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		/* NAT and NUC Options for tunnel mode encapsulation */
+		/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
+		/* Bit 0 : NUC Enable NAT UDP Checksum */
 		if (params->flags & IPSEC_ENC_OPTS_NAT_EN)
-				nat_nuc_option = IPSEC_ENC_PDB_OPTIONS_NAT; 
+				pdb_options = IPSEC_ENC_PDB_OPTIONS_NAT; 
 		if (params->flags & IPSEC_ENC_OPTS_NUC_EN)
-				nat_nuc_option |= IPSEC_ENC_PDB_OPTIONS_NUC;
+				pdb_options |= IPSEC_ENC_PDB_OPTIONS_NUC;
+		
+		/* outer header from PDB */
+		pdb_options |= IPSEC_ENC_PDB_OPTIONS_OIHI_PDB;
+	} else {
+	/* Transport Mode Parameters */
+
 	}
 	
 	pdb.innerpdb.hmo = 
 		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
 	pdb.innerpdb.options = 
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
-		IPSEC_ENC_PDB_OPTIONS_OIHI_PDB | /* outer header from PDB */
-		nat_nuc_option
+		pdb_options
 		);
 
-	//union {
-	//	uint8_t ip_nh;	/* next header for legacy mode */
-	//	uint8_t rsvd;	/* reserved for new mode */
-	//};
+	/* Transport mode Next Header value share the same stack location with
+	 * Tunnel mode reserved bits at the RTA API.
+	 * Since NH comes from DPOVERD it can be init to 0 in both cases
+	 * 
+	 	union {
+			uint8_t ip_nh;	- next header for legacy mode 
+			uint8_t rsvd;	- reserved for new mode
+		};
+	 */  
 	pdb.innerpdb.rsvd = 0;
 				
-	//union {
-	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
-	//	uint8_t aoipho;		/* actual outer IP header offset for
-	//				 * new mode */
-	//};
+	/* Transport mode Next Header value share the same stack location with
+	 * Tunnel mode reserved bits at the RTA API.
+	 * Since NH comes from DPOVERD it can be init to 0 in both cases
+	 * 
+	 	 union {
+			uint8_t ip_nh_offset;	- next header offset for legacy mode
+			uint8_t aoipho; - actual outer IP header offset for new mode 
+		};
+	*/
 	pdb.innerpdb.aoipho = 0;
 
 	pdb.innerpdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
@@ -507,8 +522,8 @@ void ipsec_generate_encap_sd(
 	pdb.outer_hdr[3] = *(params->encparams.outer_hdr + 3);
 	pdb.outer_hdr[4] = *(params->encparams.outer_hdr + 4);
 	*/
-	for (i = 0; i < ((params->encparams.ip_hdr_len)/4); i++) {
-		pdb.outer_hdr[0] = *(params->encparams.outer_hdr + i);
+	for (i = 0; i < ((params->encparams.ip_hdr_len)>>2); i++) {
+		pdb.outer_hdr[i] = *(params->encparams.outer_hdr + i);
 	}
 	
 	/* Call RTA function to build an encap descriptor */
@@ -629,7 +644,6 @@ void ipsec_generate_decap_sd(
 			/*----------------------------------*/
 			/* 	ipsec_generate_decap_sd			*/
 			/*----------------------------------*/
-
 	
 	/* uint16_t ip_hdr_len : 
 	 * 		HMO (upper nibble)
@@ -643,13 +657,35 @@ void ipsec_generate_decap_sd(
 	
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
+	} else {
+		/* Transport mode */
+		/* If ESP pad checking is not required output frame is only the LDU */
+		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
+			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
+					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
+		}
 	}
+	/*
+	3 	OUT_FMT 	Output Frame format:
+		0 - All Input Frame fields copied to Output Frame
+		1 - Output Frame is just the decapsulated PDU
+	2 	AOFL 	Adjust Output Frame Length
+		0 - Don't adjust output frame length -- output frame length reflects output frame actually written to memory,
+			including the padding, Pad Length, and Next Header fields.
+		1 - Adjust output frame length -- subtract the length of the padding, the Pad Length, and the Next Header
+			byte from the output frame length reported to the frame consumer.
+		If outFMT==0, this bit is reserved and must be zero.
+	*/
 	
-	//union {
-	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
-	//	uint8_t aoipho;		/* actual outer IP header offset for
-	//				 * new mode */
-	//};
+	/* Transport mode Next Header value share the same stack location with
+	 * Tunnel mode reserved bits at the RTA API.
+	 * Since NH comes from DPOVERD it can be init to 0 in both cases
+	 * 
+	 	 union {
+			uint8_t ip_nh_offset;	- next header offset for legacy mode
+			uint8_t aoipho; - actual outer IP header offset for new mode 
+		};
+	*/
 	pdb.aoipho = 0; /* Will be set by DPOVRD */
 
 	pdb.seq_num_ext_hi = params->decparams.seq_num_ext_hi;

@@ -16,7 +16,7 @@ Build
 ===========================================
 Setup
 ===========================================
-1. Copy dpl.dtb from mc\tests\cmdif_gpp\dpl.dtb or aiopsl/tests/cmdif/dpl.dtb
+1. Copy dpl.dtb from aiopsl/misc/setup/dpl.dtb
 2. Modify this line in simulator ls2100_sys_test.cfg file as follows:
    type=10 vc=25 addr_h=0x0 addr_l=0x1f800000 mem_space=0x10 cmdif_integ_dbg.elf  #for elf loader
 3. Copy aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\cmdif_integ_dbg.elf
