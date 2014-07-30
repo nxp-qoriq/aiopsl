@@ -529,15 +529,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (union table_key_desc *)&rfdc.ipv4_key,
 				  IPV4_KEY_SIZE,
 				  NULL);
-
-		/* Increment no of reassembled IPv4 frames in instance
-		   data structure */
-		ste_inc_counter(instance_handle+
-				sizeof(struct ipr_instance)+
-				offsetof(struct ipr_instance_extension,
-				 ipv4_reass_frm_cntr),
-				 1,
-				 STE_MODE_32_BIT_CNTR_SIZE);
 	} else {
 		cdma_read(&ipv6_key,
 			  rfdc_ext_addr+RFDC_SIZE+
@@ -548,21 +539,10 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (union table_key_desc *)&ipv6_key,
 				  IPV6_KEY_SIZE,
 				  NULL);
-
-
-		/* Increment no of reassembled IPv6 frames in instance
-		   data structure */
-		ste_inc_counter(instance_handle+
-				sizeof(struct ipr_instance)+
-				offsetof(struct ipr_instance_extension,
-				ipv6_reass_frm_cntr),
-				1,
-				STE_MODE_32_BIT_CNTR_SIZE);
 	}
 
 	/* Open segment for reassembled frame */
-	/* todo Retrieve original seg length,seg addr and seg offset
-	 * from EPID table */
+	/* Retrieve original seg length,seg addr and seg offset from RFDC */
 	prc->seg_address = rfdc.seg_addr;
 	prc->seg_length  = rfdc.seg_length;
 	prc->seg_offset  = rfdc.seg_offset;
@@ -577,50 +557,62 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	else
 		status = ipv6_header_update_and_l4_validation(&rfdc);
 
-	if (status == SUCCESS) {
-		/* L4 checksum is valid */
-		/* Write and release updated 64 first bytes of RFDC */
-		/*CDMA write, unlock, dec ref_cnt and release if
-		 * ref_cnt=0 */
-		cdma_access_context_memory(
-			  rfdc_ext_addr,
-			  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-			  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
-			  NULL,
-			  &rfdc,
-			  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
-			  RFDC_SIZE,
-			  (uint32_t *)REF_COUNT_ADDR_DUMMY);
+	/* Write and release updated 64 first bytes of RFDC */
+	/* CDMA write, unlock, dec ref_cnt and release if
+	 * ref_cnt=0 */
+	cdma_access_context_memory(
+				  rfdc_ext_addr,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
+				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  NULL,
+				  &rfdc,
+				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
+				  RFDC_SIZE,
+				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 
-		move_to_correct_ordering_scope2(osm_status);
+	move_to_correct_ordering_scope2(osm_status);
 
-		if (frame_is_ipv4) {
-			/* Decrement no of IPv4 open frames in instance data
-			 * structure */
-			ste_dec_counter(instance_handle+
-					sizeof(struct ipr_instance)+
+	if (frame_is_ipv4) {
+		/* Decrement no of IPv4 open frames in instance data structure*/
+		ste_dec_counter(instance_handle + sizeof(struct ipr_instance)+
 					offsetof(struct ipr_instance_extension,
 					num_of_open_reass_frames_ipv4),
-					1,
-					STE_MODE_32_BIT_CNTR_SIZE);
-		} else {
-			/* Decrement no of IPv6 open frames in instance data
-			 * structure */
-			ste_dec_counter(instance_handle+
+				1,
+				STE_MODE_32_BIT_CNTR_SIZE);
+		if (status == SUCCESS) {
+			/* L4 checksum is valid */
+			/* Increment no of frames in instance data structure */
+			ste_inc_counter(instance_handle +
 					sizeof(struct ipr_instance)+
 					offsetof(struct ipr_instance_extension,
-					num_of_open_reass_frames_ipv6),
+					ipv4_reass_frm_cntr),
 					1,
 					STE_MODE_32_BIT_CNTR_SIZE);
+			return IPR_REASSEMBLY_SUCCESS;
 		}
+	} else { /* IPv6 */
+		/* Decrement no of IPv6 open frames in instance data structure*/
+		ste_dec_counter(instance_handle + sizeof(struct ipr_instance)+
+					offsetof(struct ipr_instance_extension,
+					num_of_open_reass_frames_ipv6),
+				1,
+				STE_MODE_32_BIT_CNTR_SIZE);
+		if (status == SUCCESS) {
+			ste_inc_counter(instance_handle +
+					sizeof(struct ipr_instance)+
+					offsetof(struct ipr_instance_extension,
+					ipv6_reass_frm_cntr),
+					1,
+					STE_MODE_32_BIT_CNTR_SIZE);
 
-		return IPR_REASSEMBLY_SUCCESS;
-	} else {
-		/* L4 checksum is not valid */
-		return IPR_ERROR;
+			return IPR_REASSEMBLY_SUCCESS;
+		}
 	}
 
+	/* L4 checksum is not valid */
+	return IPR_ERROR;
+	
 	} else {
 		/* Error fragment */
 		move_to_correct_ordering_scope1(osm_status);
