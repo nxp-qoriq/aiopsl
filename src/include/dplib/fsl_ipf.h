@@ -111,6 +111,17 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 @Return		Status. (\ref IPF_GENERATE_FRAG_STATUS or negative value on
 		error.)
 
+@Retval		ENOMEM - Received packet cannot be stored due to buffer pool
+		depletion. Recommendation is to discard the frame.
+@Retval		EBADFD - Received packet FD contain errors (FD.err != 0).
+		Recommendation is to either force discard of the frame (call
+		\ref fdma_force_discard_frame) or enqueue the frame.
+@Retval		EIO - Parsing Error
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of presentation length (max. 256 bytes) before completing all
+		parsing)
+
+
 @Cautions	1. In the output fragment, ASA & PTA are not presented.
 		2. No support in IPv6 jumbograms.
 		3. Since during fragmentation process of an IPv6 frame, fragment
