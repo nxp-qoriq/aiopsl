@@ -129,24 +129,15 @@ int tman_query_tmi(uint8_t tmi_id,
 {
 	/* command parameters and results */
 	uint32_t cmd_type = TMAN_CMDTYPE_TMI_QUERY, res1;
-#ifdef SL_DEBUG
-	uint32_t cnt = 0;
-#endif
 	/* Optimization: stdw is used to give the compiler chance to optimize
 	   when using an inline function */
 	__stdw(cmd_type, tmi_id, HWC_ACC_IN_ADDRESS, 0);
 	/* Fill command parameters */
 	__sthw_d(output_ptr, HWC_ACC_IN_ADDRESS + 0x8);
-	do {
-		/* call TMAN. */
-		__e_hwacceli(TMAN_ACCEL_ID);
-		/* Load command results */
-		res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-#ifdef SL_DEBUG
-		cnt++;
-		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
-#endif
-	} while (res1 & TMAN_TMI_QUERY_TMP_ERR_MASK); 
+	/* call TMAN. */
+	__e_hwacceli(TMAN_ACCEL_ID);
+	/* Load command results */
+	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
 	/* Optimization: remove one cycle compared to and statement */
 	/* Erase PL and BDI from output_ptr */
 	*(uint8_t *)(&output_ptr->max_num_of_timers) = 0;
@@ -211,7 +202,7 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 #endif
 	} while (res1 == TMAN_TMR_TMP_ERR1);
 	/*Todo need to see if to remove the loop and to treat this as a fatal
-	 * error */
+	 * error. This is due to setting the time to TMAN process lagging */
 
 	*timer_handle = res2;
 	if (!((res1) & TMAN_FAIL_BIT_MASK))
@@ -294,7 +285,7 @@ int tman_recharge_timer(uint32_t timer_handle)
 			return (int)(TMAN_REC_TMR_SUCCESS);
 	if (res1 == TMAN_REC_TMR_CURR_ELAPSE)
 		return (int)(-ETIMEDOUT);
-//	fatal - TMAN_REC_TMR_NOT_ACTIVE_ERR, TMAN_REC_TMR_BUSY and all TMI states
+//	fatal-TMAN_REC_TMR_NOT_ACTIVE_ERR, TMAN_REC_TMR_BUSY and all TMI states
 	return (int)(-ETIMEDOUT);
 }
 
@@ -365,7 +356,7 @@ void tman_exception_handler(char *filename, uint32_t line, int32_t status)
 				The duration must have a value larger than 10 \
 				ticks and smaller than 2^16-10 ticks.");
 		break;
-	case TMAN_TMI_NOT_ACTIVE:
+	case TMAN_TMR_TMI_NOT_ACTIVE:
 		exception_handler(filename, line,
 				"A non active TMI was provided as an input.");
 		break;

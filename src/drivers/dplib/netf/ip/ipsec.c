@@ -644,7 +644,6 @@ void ipsec_generate_decap_sd(
 			/*----------------------------------*/
 			/* 	ipsec_generate_decap_sd			*/
 			/*----------------------------------*/
-
 	
 	/* uint16_t ip_hdr_len : 
 	 * 		HMO (upper nibble)
@@ -658,13 +657,35 @@ void ipsec_generate_decap_sd(
 	
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
+	} else {
+		/* Transport mode */
+		/* If ESP pad checking is not required output frame is only the LDU */
+		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
+			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
+					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
+		}
 	}
+	/*
+	3 	OUT_FMT 	Output Frame format:
+		0 - All Input Frame fields copied to Output Frame
+		1 - Output Frame is just the decapsulated PDU
+	2 	AOFL 	Adjust Output Frame Length
+		0 - Don't adjust output frame length -- output frame length reflects output frame actually written to memory,
+			including the padding, Pad Length, and Next Header fields.
+		1 - Adjust output frame length -- subtract the length of the padding, the Pad Length, and the Next Header
+			byte from the output frame length reported to the frame consumer.
+		If outFMT==0, this bit is reserved and must be zero.
+	*/
 	
-	//union {
-	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
-	//	uint8_t aoipho;		/* actual outer IP header offset for
-	//				 * new mode */
-	//};
+	/* Transport mode Next Header value share the same stack location with
+	 * Tunnel mode reserved bits at the RTA API.
+	 * Since NH comes from DPOVERD it can be init to 0 in both cases
+	 * 
+	 	 union {
+			uint8_t ip_nh_offset;	- next header offset for legacy mode
+			uint8_t aoipho; - actual outer IP header offset for new mode 
+		};
+	*/
 	pdb.aoipho = 0; /* Will be set by DPOVRD */
 
 	pdb.seq_num_ext_hi = params->decparams.seq_num_ext_hi;
