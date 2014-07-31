@@ -227,23 +227,23 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 *//***************************************************************************/
 
 	/** If set, TCP header of the GRO aggregation has timestamp.	*/
-#define TCP_GRO_HAS_TIMESTAMP		0x00000001
+#define GRO_HAS_TIMESTAMP		0x00000001
 	/** If set, TCP GRO is in exclusive mode. Otherwise, TCP GRO is in
 	 * concurrent mode.	*/
-#define TCP_GRO_OSM_EXLUSIVE_MODE	0x00000002
+#define GRO_OSM_EXLUSIVE_MODE		0x00000002
 	/** If set, Flush aggregation immediately. */
-#define TCP_GRO_FLUSH_AGG_SET		0x00000004
+#define GRO_FLUSH_AGG_SET		0x00000004
 	/** If set, the segment was discarded. */
-#define TCP_GRO_DISCARD_SEG_SET		0x00000008
+#define GRO_DISCARD_SEG_SET		0x00000008
 	/** If set, there is a timer which already expired in process for the
 	 * current aggregation. A new segment which arrives in this status will
 	 * be returned as is since the gro context should be cleared by former
 	 * aggregation. */
-#define TCP_GRO_AGG_TIMER_IN_PROCESS	0x00000010
+#define GRO_AGG_TIMER_IN_PROCESS	0x00000010
 	/** IP header reserved1 ECN bit of the GRO aggregation.
-#define TCP_GRO_ECN1			0x00010000
+#define GRO_ECN1			0x00010000
 	* IP header reserved2 ECN bit of the GRO aggregation.
-#define TCP_GRO_ECN2			0x00020000
+#define GRO_ECN2			0x00020000
 */
 /** @} */ /* end of TCP_GRO_INTERNAL_FLAGS */
 
@@ -258,7 +258,7 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 /** ECN mask value of the IP header of the GRO aggregation.
  * The Mask should be used on the GRO internal flags \ref TCP_GRO_INTERNAL_FLAGS
  * in order to get the ECN value of the first segment. */
-#define TCP_GRO_ECN_MASK	0x00003000
+#define GRO_ECN_MASK			0x00003000
 
 /** @} */ /* end of TCP_GRO_INTERNAL_MASKS */
 
@@ -271,7 +271,7 @@ ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 *//***************************************************************************/
 
 /** GRO ECN offset value. */
-#define TCP_GRO_ECN_OFFSET	4
+#define GRO_ECN_OFFSET	4
 
 /** @} */ /* end of TCP_GRO_INTERNAL_OFFSETS */
 

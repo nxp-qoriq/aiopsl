@@ -82,7 +82,7 @@ int tcp_gro_aggregate_seg(
 	    (params->limits.seg_num_limit <= 1)	||
 	    (params->limits.packet_size_limit <= seg_size) ||
 	    (gro_ctx.internal_flags & (
-		TCP_GRO_AGG_TIMER_IN_PROCESS | TCP_GRO_FLUSH_AGG_SET))) {
+		GRO_AGG_TIMER_IN_PROCESS | GRO_FLUSH_AGG_SET))) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return TCP_GRO_SEG_AGG_DONE;
 	}
@@ -138,15 +138,15 @@ int tcp_gro_aggregate_seg(
 					((struct tcphdr_gro_opt *)tcp)->tsval;
 		else /* Timestamp option is not optimized */
 			gro_ctx.timestamp = ((struct tcphdr_gro *)tcp)->tsval;
-		gro_ctx.internal_flags |= TCP_GRO_HAS_TIMESTAMP;
+		gro_ctx.internal_flags |= GRO_HAS_TIMESTAMP;
 	}
 
 	/* set ECN flags */
 	ecn = *((uint32_t *)(PARSER_GET_OUTER_IP_POINTER_DEFAULT()));
 	if (PARSER_IS_OUTER_IPV6_DEFAULT())
 		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
-	ecn = ecn >> TCP_GRO_ECN_OFFSET;
-	ecn = ecn & TCP_GRO_ECN_MASK;
+	ecn = ecn >> GRO_ECN_OFFSET;
+	ecn = ecn & GRO_ECN_MASK;
 	gro_ctx.internal_flags |= ecn;
 
 	/* store aggregated frame */
@@ -221,8 +221,8 @@ int tcp_gro_add_seg_to_aggregation(
 	ecn = *((uint32_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
 	if (PARSER_IS_OUTER_IPV6_DEFAULT())
 		ecn >>= TCP_GRO_IPV6_ECN_OFFSET;
-	ecn >>= TCP_GRO_ECN_OFFSET;
-	ecn &= TCP_GRO_ECN_MASK;
+	ecn >>= GRO_ECN_OFFSET;
+	ecn &= GRO_ECN_MASK;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
 			(NET_HDR_FLD_TCP_DATA_OFFSET_OFFSET -
@@ -237,11 +237,11 @@ int tcp_gro_add_seg_to_aggregation(
 			timestamp = ((struct tcphdr_gro *)tcp)->tsval;
 	}
 
-	if (((gro_ctx->internal_flags & TCP_GRO_ECN_MASK) != ecn)	||
+	if (((gro_ctx->internal_flags & GRO_ECN_MASK) != ecn)	||
 		(gro_ctx->timestamp != timestamp)			||
 		(gro_ctx->last_seg_fields.acknowledgment_number >
 					tcp->acknowledgment_number)	||
-		(gro_ctx->internal_flags & TCP_GRO_FLUSH_AGG_SET))
+		(gro_ctx->internal_flags & GRO_FLUSH_AGG_SET))
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
 
@@ -521,7 +521,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 	if (timer_status != SUCCESS) {
 		fdma_store_default_frame_data();
 		gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
-		gro_ctx->internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
+		gro_ctx->internal_flags = GRO_AGG_TIMER_IN_PROCESS;
 		return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status;
 	} else {
 		return TCP_GRO_SEG_AGG_DONE | status;
@@ -558,7 +558,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 
 	/* initialize gro_context parameters */
 	old_agg_timestamp = (uint32_t)(gro_ctx->internal_flags) &
-			TCP_GRO_HAS_TIMESTAMP;
+			GRO_HAS_TIMESTAMP;
 	gro_ctx->internal_flags = 0;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
@@ -569,7 +569,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	if ((tcp->flags & NET_HDR_FLD_TCP_FLAGS_PSH) ||
 		(params->limits.seg_num_limit <= 1)  ||
 		(params->limits.packet_size_limit <= seg_size)) {
-		gro_ctx->internal_flags |= TCP_GRO_FLUSH_AGG_SET;
+		gro_ctx->internal_flags |= GRO_FLUSH_AGG_SET;
 	} else {
 		gro_ctx->last_seg_fields.acknowledgment_number =
 				tcp->acknowledgment_number;
@@ -586,7 +586,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 			else /* Timestamp option is not optimized */
 				gro_ctx->timestamp =
 					((struct tcphdr_gro *)tcp)->tsval;
-			gro_ctx->internal_flags |= TCP_GRO_HAS_TIMESTAMP;
+			gro_ctx->internal_flags |= GRO_HAS_TIMESTAMP;
 		} else {
 			gro_ctx->timestamp = 0;
 		}
@@ -597,15 +597,15 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 			ipv4 = (struct ipv4hdr *)
 					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 			gro_ctx->internal_flags |=
-				((*((uint32_t *)ipv4) >> TCP_GRO_ECN_OFFSET) &
-					TCP_GRO_ECN_MASK);
+				((*((uint32_t *)ipv4) >> GRO_ECN_OFFSET) &
+					GRO_ECN_MASK);
 		} else {
 			/* IPv6 */
 			ipv6 = (struct ipv6hdr *)
 					PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 			gro_ctx->internal_flags |= (((*((uint32_t *)ipv6)) >>
-			       (TCP_GRO_IPV6_ECN_OFFSET + TCP_GRO_ECN_OFFSET)) &
-					TCP_GRO_ECN_MASK);
+			       (TCP_GRO_IPV6_ECN_OFFSET + GRO_ECN_OFFSET)) &
+					GRO_ECN_MASK);
 		}
 	}
 
@@ -615,7 +615,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	 * Discard the frame and report the user. */
 	if (sr_status != SUCCESS) {
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		gro_ctx->internal_flags |= TCP_GRO_DISCARD_SEG_SET ;
+		gro_ctx->internal_flags |= GRO_DISCARD_SEG_SET ;
 	}
 
 	/* replace between default_FD and agg_FD (segment <--> agg frame) */
@@ -679,7 +679,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		tcp_gro_calc_tcp_header_cksum();
 
 	if (gro_ctx->internal_flags &
-			(TCP_GRO_FLUSH_AGG_SET | TCP_GRO_DISCARD_SEG_SET)) {
+			(GRO_FLUSH_AGG_SET | GRO_DISCARD_SEG_SET)) {
 		/* update statistics */
 		ste_inc_counter(gro_ctx->stats_addr +
 			GRO_STAT_AGG_NUM_CNTR_OFFSET,
@@ -688,7 +688,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		/* If the segment requires a flush but it was already discarded,
 		 * report the discard since a flush is not required anymore. */
 		/* Report to the user the segment was discarded. */
-		if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET) {
+		if (gro_ctx->internal_flags & GRO_DISCARD_SEG_SET) {
 			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
@@ -704,7 +704,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		sr_status = tman_delete_timer(gro_ctx->timer_handle,
 				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 		if (sr_status != SUCCESS) {
-			gro_ctx->internal_flags |= TCP_GRO_AGG_TIMER_IN_PROCESS;
+			gro_ctx->internal_flags |= GRO_AGG_TIMER_IN_PROCESS;
 			/* Only one frame - should be handled by timeout so we
 			 * return the FD to the GRO context.
 			 * In case the new segment was not discarded, we have 2
@@ -713,7 +713,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 			 * will start but not do anything since it also tries to
 			 * delete the timer and it will fail and leave it to the
 			 * timer. */
-			if (gro_ctx->internal_flags & TCP_GRO_DISCARD_SEG_SET) {
+			if (gro_ctx->internal_flags & GRO_DISCARD_SEG_SET) {
 				fdma_store_default_frame_data();
 				gro_ctx->agg_fd =
 					*((struct ldpaa_fd *)HWC_FD_ADDRESS);
@@ -836,7 +836,7 @@ int tcp_gro_flush_aggregation(
 		/* if the timer cannot be deleted, the timer will handle the
 		 * aggregation.  */
 		if (sr_status != SUCCESS) {
-			gro_ctx.internal_flags = TCP_GRO_AGG_TIMER_IN_PROCESS;
+			gro_ctx.internal_flags = GRO_AGG_TIMER_IN_PROCESS;
 			/* write gro context back to DDR + release mutex */
 			cdma_write_with_mutex(tcp_gro_context_addr,
 				CDMA_POSTDMA_MUTEX_RM_BIT,
@@ -861,7 +861,7 @@ int tcp_gro_flush_aggregation(
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 
-	if (gro_ctx.internal_flags & TCP_GRO_FLUSH_AGG_SET) {
+	if (gro_ctx.internal_flags & GRO_FLUSH_AGG_SET) {
 		/* reset gro context fields */
 		gro_ctx.metadata.seg_num = 0;
 		gro_ctx.internal_flags = 0;
