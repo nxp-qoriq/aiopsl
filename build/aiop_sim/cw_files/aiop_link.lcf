@@ -13,12 +13,12 @@ MEMORY
     shared_ram:             org = 0x01000000,   len = 0x00010000 /* Shared-RAM */
     shared_ram_heap:        org = 0x01010000,   len = 0x00030000 /* Shared-RAM heap place holder DON'T CHANGE!*/
     profile_sram:           org = 0x02030000,	len = 0x0000FFFC /* Profile SRAM */
-    dp_ddr:                 org = 0x58000000,   len = 0x10000000 /* DP-DDR  */
-    exception_handlers:     org = 0x58000000,   len = 0x00002000
-    pseudo_rom:             org = 0x58002000,   len = 0x0010e000
-    init:                   org = 0x58100000,   len = 0x00100000
-    internal_ram:     	    org = 0x58200000,   len = 0x00100000
-    heap  :                 org = 0x58300000,   len = 0x00800000
+    /*dp_ddr:               org = 0x58000000,   len = 0x10000000  DP-DDR  */
+    exception_handlers:     org = 0x58000000,   len = 0x00010000
+    pseudo_rom:             org = 0x58010000,   len = 0x00100000
+    init:                   org = 0x58110000,   len = 0x00100000
+    internal_ram:     	    org = 0x58210000,   len = 0x00100000
+    heap  :                 org = 0x58310000,   len = 0x00800000
 }
 
 
@@ -33,6 +33,8 @@ SECTIONS
     } > init
 
     GROUP : {
+      .exception_data   : {}
+      .exception_data_bss   : {}
       .interrupt_vector (VLECODE) ALIGN (2048) : {}
     } > exception_handlers
 
