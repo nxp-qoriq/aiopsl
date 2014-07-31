@@ -98,13 +98,13 @@ static int empty_open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(instance_id);
 	UNUSED(dev);
-	return -ENODEV;
+	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
 static int empty_close_cb(void *dev)
 {
 	UNUSED(dev);
-	return -ENODEV;
+	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
 static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
@@ -113,7 +113,7 @@ static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	UNUSED(dev);
 	UNUSED(size);
 	UNUSED(data);
-	return -ENODEV;
+	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
 static int module_id_alloc( struct cmdif_srv *srv, const char *m_name,
@@ -194,9 +194,9 @@ int cmdif_srv_unregister(void *srv, const char *m_name)
 
 	m_id = module_id_find((struct cmdif_srv *)srv, m_name);
 	if (m_id >= 0) {
-		((struct cmdif_srv *)srv)->ctrl_cb[m_id]   = NULL;
-		((struct cmdif_srv *)srv)->open_cb[m_id]   = NULL;
-		((struct cmdif_srv *)srv)->close_cb[m_id]  = NULL;
+		((struct cmdif_srv *)srv)->ctrl_cb[m_id]   = empty_ctrl_cb;
+		((struct cmdif_srv *)srv)->open_cb[m_id]   = empty_open_cb;
+		((struct cmdif_srv *)srv)->close_cb[m_id]  = empty_close_cb;
 		((struct cmdif_srv *)srv)->m_name[m_id][0] = FREE_MODULE;
 		return 0;
 	} else {
