@@ -125,12 +125,8 @@ int snic_ipf(struct snic_params *snic)
 	uint32_t total_length;
 	struct ipv4hdr *ipv4_hdr;
 	struct ipv6hdr *ipv6_hdr;
-	struct fdma_amq amq;
 	ipf_ctx_t ipf_context_addr
 		__attribute__((aligned(sizeof(struct ldpaa_fd))));
-	uint16_t icid;
-	uint32_t flags = 0;
-	uint8_t va_bdi;
 	int32_t ipf_status;
 	struct fdma_queueing_destination_params enqueue_params;
 
@@ -150,41 +146,20 @@ int snic_ipf(struct snic_params *snic)
 
 	if (total_length > snic->snic_ipf_mtu)
 	{
-		icid = LH_SWAP(HWC_ADC_ADDRESS +
-				ADC_PL_ICID_OFFSET, 0);
-		icid &= ADC_ICID_MASK;
-		va_bdi = *((uint8_t *)(HWC_ADC_ADDRESS +
-				ADC_FDSRC_VA_FCA_BDI_OFFSET));
-		if (va_bdi & ADC_BDI_MASK)
-			flags |= FDMA_ENF_BDI_BIT;
-		amq.flags = (uint16_t)(flags >> 16);
-		amq.icid = icid;
-
+		/* for the enqueue set hash from TLS, an flags equal 0 meaning \
+		 * that the qd_priority is taken from the TLS and that enqueue \
+		 * function always returns*/
+		enqueue_params.qdbin = 0;
+		enqueue_params.qd = snic->qdid;
+		enqueue_params.qd_priority = default_task_params.qd_priority;
 		ipf_context_init(0, snic->snic_ipf_mtu,
 				ipf_context_addr);
 
 		do {
-			ipf_status =
-			ipf_generate_frag(ipf_context_addr);
-			if (ipf_status)
-				fdma_store_frame_data(1, 0, &amq);
-			else
-				fdma_store_frame_data(0, 0, &amq);
-
-			/* for the enqueue set hash from TLS,
-			 * an flags equal 0 meaning that
-			 * the qd_priority is taken from the
-			 * TLS and that enqueue function
-			 * always returns*/
-			enqueue_params.qdbin = 0;
-			enqueue_params.qd = snic->qdid;
-			enqueue_params.qd_priority =
-				default_task_params.qd_priority;
+			ipf_status = ipf_generate_frag(ipf_context_addr);
 			/* todo error cases */
-
-			fdma_enqueue_default_fd_qd(icid,
-				flags, &enqueue_params);
-
+			fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
+					FDMA_ENWF_NO_FLAGS);
 		} while (ipf_status);
 
 		fdma_terminate_task();
