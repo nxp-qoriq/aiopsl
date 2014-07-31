@@ -1,3 +1,5 @@
+- dpni_drv.c/h:      Adding support for dpni_drv_get_spid to receive NI's storage profile ID
+
 - init.c             Modified fill_bpid() to take ICID + BPDI from CDMA CFG registers.
 - mc_init.c          Moved AIOP<->MC dpci creation from DPL to AIOP dpci init. It should not be exposed to users.
 - slab.c             Read AIOP ICID and BDI from CDMA CFG register.
