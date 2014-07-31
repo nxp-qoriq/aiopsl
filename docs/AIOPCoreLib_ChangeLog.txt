@@ -2,7 +2,7 @@ Table SRs: API - Added a note to table_create() parameters that max rules must n
 Table SRs: API - Added notes that some of the pointer must point to structures in the workspace (e.g. not SRAM).
 Table SRs: API - Aging and auto removal of rules because of aging were removed from the API due to inputs that these are unnecessary. 
 Table SRs: API - Removal of reference counter auto-decrement due to TKT216018 and due to that in some cases the decrement is better done outside of the function performance wise.(e.g. IPR)
-
+Table SRs: API - Added a comment regarding deletion of table that contains a miss result of type reference pointer.
 
 
 SL TAG v0.4.1.update_02

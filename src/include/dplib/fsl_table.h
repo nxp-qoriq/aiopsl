@@ -945,7 +945,10 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	If the table contains table_result of type \ref
 		TABLE_RESULT_TYPE_REFERENCE the table should be empty when this
-		function is called.
+		function is called. In a case which the deleted table miss
+		result is of type \ref TABLE_RESULT_TYPE_REFERENCE the user
+		should decrement the reference counter of the buffer pointed by
+		the miss result pointer after the table delete operation.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_delete(enum table_hw_accel_id acc_id,
