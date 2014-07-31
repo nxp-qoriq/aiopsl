@@ -1288,8 +1288,6 @@ int fdma_replace_default_segment_data(
 	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
 	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
 		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
-
-#ifdef REV2 /* Workaround for ticket TKT229796 */
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
@@ -1299,46 +1297,6 @@ int fdma_replace_default_segment_data(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
-#else
-	if (to_size < from_size) {
-		/* Implement the workaround - First delete, that insert. */
-		/* delete to_size bytes */
-		/* prepare command parameters */
-		arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles,
-				(flags & ~FDMA_REPLACE_SA_REPRESENT_BIT));
-		arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
-		arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
-		/* store command parameters */
-		__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
-		/* call FDMA Accelerator */
-		__e_hwacceli_(FODMA_ACCEL_ID);
-		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-
-		if ((int32_t)res1 < FDMA_SUCCESS)
-			fdma_handle_fatal_errors((int32_t)res1);
-
-		/* Insert from_size bytes*/
-		arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
-		arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, 0);
-		arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, from_size);
-		arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
-		/* store command parameters */
-		__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-		/* call FDMA Accelerator */
-		__e_hwacceli_(FODMA_ACCEL_ID);
-	} else {
-		/* prepare command parameters */
-		arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
-		arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
-		arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, from_size);
-		arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
-		/* store command parameters */
-		__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-		/* call FDMA Accelerator */
-		__e_hwacceli_(FODMA_ACCEL_ID);
-	}
-#endif /* REV2 */
-
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
@@ -1690,7 +1648,6 @@ int fdma_replace_default_asa_segment_data(
 	/*uint16_t size_diff;*/
 	int8_t res1;
 
-#ifdef REV2 /* Workaround for ticket TKT229796 */
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
 			FDMA_ASA_SEG_HANDLE, prc->handles, flags);
@@ -1701,49 +1658,6 @@ int fdma_replace_default_asa_segment_data(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
-#else
-	if (to_size < from_size) {
-		/* Implement the workaround - First delete, that insert. */
-		/* delete to_size bytes */
-		/* prepare command parameters */
-		arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
-				FDMA_ASA_SEG_HANDLE, prc->handles,
-				(flags & ~FDMA_REPLACE_SA_REPRESENT_BIT));
-		arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
-		arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
-		/* store command parameters */
-		__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
-		/* call FDMA Accelerator */
-		__e_hwacceli_(FODMA_ACCEL_ID);
-		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-
-		if ((int32_t)res1 < FDMA_SUCCESS)
-			fdma_handle_fatal_errors((int32_t)res1);
-
-		/* Insert from_size bytes*/
-		arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
-				FDMA_ASA_SEG_HANDLE, prc->handles, flags);
-		arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, 0);
-		arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, from_size);
-		arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
-		/* store command parameters */
-		__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-		/* call FDMA Accelerator */
-		__e_hwacceli_(FODMA_ACCEL_ID);
-	} else {
-		/* prepare command parameters */
-		arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
-				FDMA_ASA_SEG_HANDLE, prc->handles, flags);
-		arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
-		arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, from_size);
-		arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
-		/* store command parameters */
-		__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-		/* call FDMA Accelerator */
-		__e_hwacceli_(FODMA_ACCEL_ID);
-	}
-#endif /* REV2 */
-
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
