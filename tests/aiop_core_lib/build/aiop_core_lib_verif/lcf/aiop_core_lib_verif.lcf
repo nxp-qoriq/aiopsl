@@ -91,6 +91,11 @@ SECTIONS
        .psram_data   : {}
        .psram_bss   : {}
     } > profile_sram
+    
+    GROUP : {
+       .exception_data   : {}
+       .exception_data_bss   : {}
+    } > dp_ddr
 
 }
 
