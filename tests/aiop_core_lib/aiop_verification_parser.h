@@ -225,8 +225,8 @@ struct parser_macros_command {
 *//***************************************************************************/
 struct parser_set_prpid_hxs_command {
 	uint32_t             opcode;
-	uint8_t              prpid;
 	uint16_t             starting_hxs;
+	uint8_t              prpid;
 	uint8_t 			 pad;
 };
 
