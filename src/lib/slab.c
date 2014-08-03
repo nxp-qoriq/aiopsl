@@ -305,12 +305,37 @@ __HOT_CODE int slab_acquire(struct slab *slab, uint64_t *buff)
 }
 
 /*****************************************************************************/
+/* Must be used only in DEBUG
+ * Accessing DDR in runtime also fsl_os_phys_to_virt() is not optimized */
+static int slab_check_bpid(struct slab *slab, uint64_t buff)
+{
+	uint16_t bpid  = VP_BPID_GET(slab);
+	uint32_t meta_bpid = 0;
+	int      err = -EFAULT;
+	struct slab_module_info *slab_m = \
+		sys_get_unique_handle(FSL_OS_MOD_SLAB);
+
+	if (buff >= 8) {
+		fdma_dma_data(4,
+		              slab_m->icid,
+		              &meta_bpid,
+		              (buff - 4),
+		              (slab_m->fdma_dma_flags |
+		        	      FDMA_DMA_DA_SYS_TO_WS_BIT));
+		if (bpid == (meta_bpid & 0x00003FFF))
+			return 0;
+	}
+
+	return err;
+}
+
+/*****************************************************************************/
 __HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
 {
-
 	int error = 0;
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
+	SLAB_ASSERT_COND_RETURN(slab_check_bpid(slab, buff) == 0, -EFAULT);
 #endif
 	error = vpool_refcount_decrement_and_release(SLAB_VP_POOL_GET(slab),
 							buff,
@@ -524,10 +549,20 @@ int slab_module_init(void)
 	if (cdma_cfg & CDMA_BDI_BIT)
 		slab_m->fdma_flags |= FDMA_ACQUIRE_BDI_BIT;
 
+	slab_m->fdma_dma_flags = 0;
+	if (cdma_cfg & CDMA_BMT_BIT)
+		slab_m->fdma_dma_flags |= FDMA_DMA_BMT_BIT;
+	if (cdma_cfg & CDMA_PL_BIT)
+			slab_m->fdma_dma_flags |= FDMA_DMA_PL_BIT;
+	if (cdma_cfg & CDMA_VA_BIT)
+			slab_m->fdma_dma_flags |= FDMA_DMA_VA_BIT;
+
 	pr_debug("CDMA CFG register = 0x%x addr = 0x%x\n", cdma_cfg, \
 	         (uint32_t)&ccsr->cdma_regs.cfg);
 	pr_debug("ICID = 0x%x flags = 0x%x\n", slab_m->icid, \
 	         slab_m->fdma_flags);
+	pr_debug("ICID = 0x%x dma flags = 0x%x\n", slab_m->icid, \
+	         slab_m->fdma_dma_flags);
 
 	/* Add to all system handles */
 	err = sys_add_handle(slab_m, FSL_OS_MOD_SLAB, 1, 0);

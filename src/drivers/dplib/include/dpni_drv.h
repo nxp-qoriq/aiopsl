@@ -171,6 +171,18 @@ int dpni_drv_register_discard_rx_cb(
 		dpni_drv_app_arg_t	arg);
 
 /**************************************************************************//**
+@Function	dpni_drv_get_spid
+
+@Description	Function to receive storage profile ID for specified NI.
+
+@Param[in]	ni_id   The Network Interface ID
+@Param[out]	spid - storage profile (for now using 1 byte).
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
+
+/**************************************************************************//**
 @Function	dpni_get_num_of_ni
 
 @Description	Returns the number of NI_IDs in the system.  Called by the AIOP

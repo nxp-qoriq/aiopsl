@@ -160,6 +160,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff);
 @Return		0      - on success,
 		-EFAULT - failed to release buffer,
 		-EINVAL - not a valid slab handle
+		-EFAULT - bad address, trying to release to wrong slab
 *//***************************************************************************/
 int slab_release(struct slab *slab, uint64_t buff);
 
