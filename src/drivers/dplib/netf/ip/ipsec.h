@@ -53,9 +53,11 @@ enum ipsec_cipher_type {
 @{
 *//***************************************************************************/
 
-/* Inbound/Outbound Flag (most significant bit) */
-#define IPSEC_FLG_DIR_INBOUND  0x00000000 
+/* Internal Flags */
+/* flags[31] : 1 = outbound, 0 = inbound */
 #define IPSEC_FLG_DIR_OUTBOUND 0x80000000 
+/* flags[30] : 1 = IPv6, 0 = IPv4 (useed for transport mode) */
+#define IPSEC_FLG_IPV6 0x40000000 
 
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
@@ -216,6 +218,7 @@ Big Endian
 
 /* DPOVRD OVRD */
 #define IPSEC_DPOVRD_OVRD 0x80000000
+#define IPSEC_DPOVRD_OVRD_TRANSPORT 0x80
 
 // TMP, removed from the external API
 /** Frames do not include a L2 Header */
@@ -290,6 +293,11 @@ Big Endian
 /* TODO: should move to general or OSM include file */
 #define IPSEC_OSM_CONCURRENT			0
 #define IPSEC_OSM_EXCLUSIVE				1
+
+/* General Headers Parameters */
+#define IPSEC_IP_NEXT_HEADER_UDP 0x11 /* UDP = 17 */
+#define IPSEC_IP_NEXT_HEADER_ESP 0x32 /* ESP = 50 */ 
+
 
 // TMP, removed from the external API
 /**************************************************************************//**
@@ -434,16 +442,20 @@ struct sec_shared_descriptor {
 };
 
 /* DPOVRD for Tunnel Encap mode */
-struct dpovrd_tunnel_encap {
-	uint8_t reserved; /* 7-0 Reserved */
-	uint8_t aoipho; /* 13-8 AOIPHO */
-					/* 14 Reserved */
-					/* 15 OIMIF */
-	uint16_t outer_material_length; /* 27-16 Outer IP Header Material Length */
-									/* 30-28 Reserved */
-									/* 31 OVRD */
-};
+//struct dpovrd_tunnel_encap {
+//	uint8_t reserved; /* 7-0 Reserved */
+//	uint8_t aoipho; /* 13-8 AOIPHO */
+//					/* 14 Reserved */
+//					/* 15 OIMIF */
+//	uint16_t outer_material_length; /* 27-16 Outer IP Header Material Length */
+//									/* 30-28 Reserved */
+//									/* 31 OVRD */
+//};
 
+struct dpovrd_tunnel_encap {
+	uint32_t word;
+};
+	
 /* DPOVRD for Tunnel Decap mode */
 struct dpovrd_tunnel_decap {
 	uint32_t word;
@@ -453,9 +465,29 @@ struct dpovrd_tunnel_decap {
 	 * 11-0 Outer IP Header Material Length */
 };
 
+/* DPOVRD for Transport mode Encap  */
+struct dpovrd_transport_encap {
+	uint8_t ovrd;
+	uint8_t ip_hdr_len;
+	uint8_t nh_offset;
+	uint8_t next_hdr;
+};
+
+/* DPOVRD for Transport mode Decap  */
+struct dpovrd_transport_decap {
+	uint8_t ovrd;
+	uint8_t ip_hdr_len;
+	uint8_t nh_offset;
+	uint8_t reserved;
+};
+
+
 struct dpovrd_general {
 	union {
+		struct dpovrd_tunnel_encap tunnel_encap;
 		struct dpovrd_tunnel_decap tunnel_decap;
+		struct dpovrd_transport_encap transport_encap;
+		struct dpovrd_transport_decap transport_decap;
 	};
 };
 
