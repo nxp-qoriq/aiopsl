@@ -192,6 +192,16 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 			sizeof(struct parser_prp_id_pool_create_verif_command);
 		break;
 	}
+	case PARSER_SET_FRAME_LENGTH_STR:
+	{
+		struct parser_set_frame_length_command *str =
+		(struct parser_set_frame_length_command *) asa_seg_addr;
+		
+		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, str->frame_length);
+
+		str_size = sizeof(struct parser_set_frame_length_command);
+		break;
+	}
 	case PARSER_INIT_FOR_VERIF_STR:
 	{
 		struct parser_init_verif_command *str =

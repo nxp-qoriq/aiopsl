@@ -844,6 +844,12 @@ void ipsec_generate_sa_params(
 	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
 		sap.sap1.flags |= IPSEC_FLG_DIR_OUTBOUND;
 	}
+	
+	/* Add IPv6/IPv4 indication to the flags field */
+	if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+			IPSEC_OPTS_ESP_IPVSN) {
+		sap.sap1.flags |= IPSEC_FLG_IPV6;
+	}
 		
 	sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
 
@@ -1054,6 +1060,7 @@ int ipsec_frame_encrypt(
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
+	struct dpovrd_general dpovrd;
 
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
@@ -1126,6 +1133,46 @@ int ipsec_frame_encrypt(
 		/* ipsec_frame_encrypt */
 		/*---------------------*/
 	
+	if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
+		/* Tunnel Mode */
+		/* Clear FD[FRC], so DPOVRD takes no action */
+		dpovrd.tunnel_encap.word = 0; 
+	} else {
+		/* For Transport mode set DPOVRD */
+		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
+		 * 23-16 IP Header Length in bytes, 
+		* of the portion of the IP header that is not encrypted.
+		* 15-8 NH_OFFSET - location of the next header within the IP header.
+		* 7-0 Next Header */
+		dpovrd.transport_encap.ovrd = IPSEC_DPOVRD_OVRD_TRANSPORT;
+		
+		/* Header Length according to IPv6/IPv4 */
+		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
+			dpovrd.transport_encap.ip_hdr_len = 40; // TODO: need to calc extension headers
+		} else { /* IPv4 */
+			dpovrd.transport_encap.ip_hdr_len = (uint8_t)
+				((*((uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT())) & 
+											IPV4_HDR_IHL_MASK);
+		}
+		
+		/* If transport/IPv4 for any non-zero value of NH_OFFSET 
+		 * (typically set to 01h), the N byte comes from byte 9 of the IP header
+		 * If transport/IPv6 and NH_OFFSET = 01h, the N byte comes from byte 6 
+		 of the IP header */
+		dpovrd.transport_encap.nh_offset = 0x1;
+		
+		/* Set the Next Header to ESP or UDP (the same for IPv4 and IPv6) */
+		if (sap1.flags & IPSEC_ENC_OPTS_NAT_EN) {
+			dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_UDP;
+		} else {
+			dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_ESP;
+		}
+	}
+	
+	/*---------------------*/
+	/* ipsec_frame_encrypt */
+	/*---------------------*/
+	
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1169,15 +1216,18 @@ int ipsec_frame_encrypt(
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
 	
+	
+	
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	
+	/* Update FD[FRC] for DPOBERD */
+	//LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, 0);
+	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
+
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-	
-	/* Clear FD[FRC], so DPOVRD takes no action */
-	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, 0);
 	
 	/* 	7.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
@@ -1208,8 +1258,6 @@ int ipsec_frame_encrypt(
 	* 1 Indicates that the accelerator call is made during the 
 	* exclusive phase of an Ordering Scope.
 	*/
-	//TODO: OS_EX currently set to 0, assuming exclusive mode only
-	
 	
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
@@ -1295,7 +1343,6 @@ int ipsec_frame_encrypt(
 	 * _displ - a word aligned constant value between 0-1020.
 	 * _base - a variable containing the base address.
 	 * If 'base' is a literal 0, the base address is considered as 0. */
-	//#define LH_SWAP(_disp, _base) ((uint16_t)__lhbr((uint32_t)_disp, (void *)_base))
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
 
 	
