@@ -309,12 +309,10 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
-	uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
 
 	pr_debug("err = %d\n", err);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	pr_debug("sync_resp = 0x%x\n", resp);
-	pr_debug("icid = 0x%x\n", ICID_GET);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
@@ -327,12 +325,20 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
+		uint16_t pl_icid = PL_ICID_GET;
+		uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
+
+		pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
+
+		/* TODO it should be taken from DPCI attributes or maybe stored
+		 * per session
+		 * It's ok to take it from current ADC and FD because this
+		 * should not change between commands */
+		ADD_AMQ_FLAGS(flags, pl_icid);
 		/* Same as cdma_write(_sync_done, &resp, 4);
-		 * TODO BMT (from FD), VA (from FD), PL (from ADC)
-		 * copy it from somewhere
-		 * I think I should use this frame BMT because all FDs
-		 * including cmdif_open() FD are set the same */
-		fdma_dma_data(4, ICID_GET, &resp, _sync_done, flags);
+		 * but with ICID from ADC*/
+		pr_debug("fdma_dma_data flags = 0x%x\n", flags);
+		fdma_dma_data(4, ICID_GET(pl_icid), &resp, _sync_done, flags);
 	}
 
 	pr_debug("sync_done high = 0x%x low = 0x%x \n",
