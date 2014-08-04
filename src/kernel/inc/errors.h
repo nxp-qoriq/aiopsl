@@ -162,6 +162,12 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define PRINT_FORMAT        "[CPU %d, %s:%d %s]"
 #define PRINT_FMT_PARAMS    core_get_id(), __FILE__, __LINE__, __FUNCTION__
 
+/* 
+ * se_dnh - Debug Notify Halt 
+ * Acts as 'se_illegal' if EDBCR0[DNH_EN] is set
+ */
+#define DEBUG_HALT asm{se_dnh}
+
 #if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
 /* No debug/error/event messages at all */
 #define REPORT_ERROR(_level, _err, _vmsg)
@@ -215,7 +221,7 @@ char * err_type_strings (enum error_type err);
         if (!(_cond)) { \
             fsl_os_print("*** ASSERT_COND failed " PRINT_FORMAT "\r\n", \
                     PRINT_FMT_PARAMS); \
-            fsl_os_exit(1); \
+            DEBUG_HALT; \
         } \
     } while (0)
 #endif /* DISABLE_ASSERTIONS */
