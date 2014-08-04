@@ -53,12 +53,15 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 
 	fqid = sdev->attr->dpci_prio_attr[pr].tx_qid;
 
+	/* TODO BDI and ICID should be take from DPCI attributes
+	 * This task may be of DPNI and it may have different attributes
+	 * I want to send to specific SW context */
 	if (BDI_GET != 0)
 		flags |= FDMA_ENF_BDI_BIT;
 
 	pr_debug("Sending to fqid 0x%x fdma flags = 0x%x\n", fqid, flags);
 
-	err = fdma_enqueue_fd_fqid(&_fd, flags , fqid, ICID_GET);
+	err = fdma_enqueue_fd_fqid(&_fd, flags , fqid, ICID_GET(PL_ICID_GET));
 	if (err) {
 		pr_err("Failed to send response\n");
 		return -EIO;
@@ -221,19 +224,20 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 			((struct cmdif_dev *)cidesc->dev)->p_sync_done;
 
 		do {
+			uint16_t pl_icid = PL_ICID_GET;
+			uint32_t flags = FDMA_DMA_DA_SYS_TO_WS_BIT;
+
+			/* TODO this should be taken from DPCI
+			 * Anyway sync mode is not supported */
+			ADD_AMQ_FLAGS(flags, pl_icid);
 			/* Same as
 			cdma_read(&done,
 			          ((struct cmdif_dev *)cidesc->dev)->p_sync_done,
-			          4); */
-			/* Same as cdma_write(_sync_done, &resp, 4);
-			 * TODO BMT (from FD), VA (from FD), PL (from ADC)
-			 * copy it from somewhere
-			 * I think I should use this frame BMT because all FDs
-			 * including cmdif_open() FD are set the same
+			          4);
 			 * Anyway this is relevant only for sync mode
 			 * which is not supported by AIOP client */
-			fdma_dma_data(4, ICID_GET, &done,
-			              p_sync, FDMA_DMA_DA_SYS_TO_WS_BIT);
+			fdma_dma_data(4, ICID_GET(pl_icid), &done,
+			              p_sync, flags);
 
 			t++;
 		} while ((done.resp.done == 0) && (t < CMDIF_TIMEOUT));

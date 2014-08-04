@@ -14,12 +14,35 @@
 #define BDI_GET \
 ((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
 	& ADC_BDI_MASK)
+/** VA
+ * TODO is it really OR between VA in ADC and FD */
+#define VA_GET \
+(((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
+	& ADC_VA_MASK) || LDPAA_FD_GET_VA(HWC_FD_ADDRESS))
+
+/** BMT for memory accesses */
+#define BMT_GET \
+	LDPAA_FD_GET_CBMT(HWC_FD_ADDRESS)
+
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid)
+	LH_SWAP(0, &(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid))
+
 /** Get ICID to send response */
-#define ICID_GET \
-	(LH_SWAP(0, &PL_ICID_GET) & ADC_ICID_MASK)
+#define ICID_GET(PL_AND_ICID) ((PL_AND_ICID) & ADC_ICID_MASK)
+
+/** Get PL to send response */
+#define PL_GET(PL_AND_ICID) ((PL_AND_ICID)  & ADC_PL_MASK)
+
+#define ADD_AMQ_FLAGS(FL, PL_AND_ICID)		\
+	do {					\
+		if (PL_GET(PL_AND_ICID))	\
+			FL |= FDMA_DMA_PL_BIT;	\
+		if (VA_GET)			\
+			FL |= FDMA_DMA_VA_BIT;	\
+		if (BMT_GET)			\
+			FL |= FDMA_DMA_BMT_BIT;	\
+	}while(0)
 
 #define CMDIF_MN_SESSIONS	64 /**< Maximal number of sessions */
 #define CMDIF_NUM_PR  		2
