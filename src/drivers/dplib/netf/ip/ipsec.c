@@ -1149,17 +1149,22 @@ int ipsec_frame_encrypt(
 		/* Header Length according to IPv6/IPv4 */
 		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
 			dpovrd.transport_encap.ip_hdr_len = 40; // TODO: need to calc extension headers
+			/* If transport/IPv6 and NH_OFFSET = 01h, the N byte comes 
+			 * from byte 6 of the IP header (header without extensions)*/
+			dpovrd.transport_encap.nh_offset = 0x1; // TODO: need to calc extension headers
+			
 		} else { /* IPv4 */
-			dpovrd.transport_encap.ip_hdr_len = (uint8_t)
+			/* IPv4 Header Length in Bytes */
+			dpovrd.transport_encap.ip_hdr_len = ((uint8_t)
 				((*((uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT())) & 
-											IPV4_HDR_IHL_MASK);
+											IPV4_HDR_IHL_MASK)) << 2;
+			/* If transport/IPv4 for any non-zero value of NH_OFFSET 
+			 * (typically set to 01h), the N byte comes from byte 9 of 
+			 * the IP header */
+			dpovrd.transport_encap.nh_offset = 0x1;
 		}
 		
-		/* If transport/IPv4 for any non-zero value of NH_OFFSET 
-		 * (typically set to 01h), the N byte comes from byte 9 of the IP header
-		 * If transport/IPv6 and NH_OFFSET = 01h, the N byte comes from byte 6 
-		 of the IP header */
-		dpovrd.transport_encap.nh_offset = 0x1;
+
 		
 		/* Set the Next Header to ESP or UDP (the same for IPv4 and IPv6) */
 		if (sap1.flags & IPSEC_ENC_OPTS_NAT_EN) {
@@ -2034,6 +2039,95 @@ int ipsec_get_seq_num(
 	return IPSEC_SUCCESS;	
 
 } /* End of ipsec_get_seq_num */
+
+/**************************************************************************//**
+	ipsec_get_ipv6_nh_offset
+	
+	The Destination header creates 2 different options for IPv6 extensions order 
+
+	1.	IPv6 header – Destination – Routing – Fragment – Destination 
+	The first destination header is for intermediate destinations, 
+	and the second one is for the last destination.
+	This option can occur only when Routing header is present and 
+	the first destination placed before Routing. 
+	The second Destination header is optional 
+ 
+	2.	IPv6 header – Fragment - Destination 
+	The destination header is for the last destination.
+	Routing header is not present, or 
+	Destination is placed after Routing header.
+	
+*//****************************************************************************/
+uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr)
+{
+	uint32_t current_hdr_ptr;
+	uint16_t current_hdr_size;
+	uint8_t current_ver;
+	uint8_t next_hdr;
+	uint8_t dst_ext;
+	uint8_t nh_offset = 0; /* default value for no extensions */
+
+	/* Destination extension can appear only once on fragment request */
+	dst_ext = IPV6_EXT_DESTINATION;
+
+	/* Copy initial IPv6 header */
+	current_hdr_ptr = (uint32_t)ipv6_hdr;
+	current_hdr_size = IPV6_HDR_LENGTH;
+	next_hdr = ipv6_hdr->next_header;
+
+	/* Skip to next extension header until extension isn't ipv6 header
+	 * or until extension is the fragment position (depend on flag) */
+	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
+		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
+		(next_hdr == IPV6_EXT_FRAGMENT)) {
+
+		current_ver = next_hdr;
+		current_hdr_ptr += current_hdr_size;
+		next_hdr = *((uint8_t *)(current_hdr_ptr));
+		current_hdr_size = *((uint8_t *)(current_hdr_ptr + 1));
+
+		/* Calculate current extension size  */
+		switch (current_ver) {
+
+		case IPV6_EXT_DESTINATION:
+		{
+			/* If the next header is not Routing, this should be
+			 * the starting point for ESP encapsulation  */
+			if (next_hdr != IPV6_EXT_ROUTING) {
+				/* Don't add to NH_OFFSET and Exit from the while loop */
+				dst_ext = 0;
+			} else {
+				nh_offset += current_hdr_size; /* in 8 bytes multiples */
+				current_hdr_size = ((current_hdr_size + 1) << 3);
+			}
+
+			break;
+		}
+		case IPV6_EXT_FRAGMENT:
+		{
+			nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; /* 8 bytes multiples */
+			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
+			break;
+		}
+
+		/* Routing, Hop By Hop */
+		default:
+		{
+			nh_offset += current_hdr_size; /* in 8 bytes multiples */
+			current_hdr_size = ((current_hdr_size + 1) << 3);
+			break;
+		}
+		}
+	}
+
+	/* return last extension pointer and extension indicator */
+	if (nh_offset) {
+		/* NH_OFFSET in 8 bytes multiple for IP header + Extensions */
+		return (nh_offset + (IPV6_HDR_LENGTH>>3));
+	} else {
+		return 0x1; /* NH_OFFSET in case of no Extensions */
+	}
+} /* End of ipsec_get_ipv6_nh_offset */
 
 
 /**************************************************************************/
