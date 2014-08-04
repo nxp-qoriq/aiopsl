@@ -40,7 +40,8 @@ enum parser_verif_cmd_type {
 	PARSER_MACROS_VERIF_CMDTYPE,
 	PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE,
 	PARSER_INIT_GROSS_VERIF_CMDTYPE,
-	PARSER_SET_PRPID_HXS_VERIF_CMDTYPE
+	PARSER_SET_PRPID_HXS_VERIF_CMDTYPE,
+	PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((PARSE_MODULE << 16) | \
@@ -79,6 +80,9 @@ enum parser_verif_cmd_type {
 #define PARSER_SET_PRPID_HXS_STR ((PARSE_MODULE << 16) | \
 		PARSER_SET_PRPID_HXS_VERIF_CMDTYPE)
 
+#define PARSER_SET_FRAME_LENGTH_STR ((PARSE_MODULE << 16) | \
+		PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE)
+
 /**************************************************************************//**
 @Description	Parser verification init gross running sum Command structure.
 
@@ -88,6 +92,18 @@ enum parser_verif_cmd_type {
 struct parser_init_gross_verif_command {
 	uint32_t	opcode;
 	uint8_t 	pad[4];
+};
+
+/**************************************************************************//**
+@Description	Parser verification set frame length Command structure.
+
+		This command set frame length in FD field. This command needs to be
+		called once before creating frame truncation.
+*//***************************************************************************/
+struct parser_set_frame_length_command {
+	uint32_t	opcode;
+	uint16_t	frame_length;
+	uint8_t 	pad[2];
 };
 
 /**************************************************************************//**

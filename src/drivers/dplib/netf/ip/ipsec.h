@@ -10,7 +10,7 @@
 #define __AIOP_IPSEC_H
 
 #include "common/types.h"
-
+#include "net/fsl_net.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)
@@ -621,6 +621,14 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle
 	);
+
+/**************************************************************************//**
+*	ipsec_get_ipv6_nh_offset
+*	
+*	@Description	calculate the nh_offset for IPv6 transport mode 
+*//****************************************************************************/
+uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr);
+
 
 /**************************************************************************//**
 ******************************************************************************/
