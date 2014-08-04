@@ -313,7 +313,6 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	pr_debug("err = %d\n", err);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	pr_debug("sync_resp = 0x%x\n", resp);
-	pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
@@ -329,6 +328,8 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		uint16_t pl_icid = PL_ICID_GET;
 		uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
 
+		pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
+
 		/* TODO it should be taken from DPCI attributes or maybe stored
 		 * per session
 		 * It's ok to take it from current ADC and FD because this
@@ -336,6 +337,7 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		ADD_AMQ_FLAGS(flags, pl_icid);
 		/* Same as cdma_write(_sync_done, &resp, 4);
 		 * but with ICID from ADC*/
+		pr_debug("fdma_dma_data flags = 0x%x\n", flags);
 		fdma_dma_data(4, ICID_GET(pl_icid), &resp, _sync_done, flags);
 	}
 
