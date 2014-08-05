@@ -7,7 +7,7 @@
 #define __FSL_GSO_H
 
 #include "common/types.h"
-
+#include "dplib/fsl_ldpaa.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)
@@ -44,7 +44,8 @@
 #define TCP_GSO_CONTEXT_SIZE	64
 	/** TCP GSO context definition.
 	 * Must be aligned to 32 bytes. */
-typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
+typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
+		__attribute__((aligned(sizeof(struct ldpaa_fd))));
 
 
 /** @} */ /* end of TCP_GSO_GENERAL_DEFINITIONS */
@@ -167,8 +168,8 @@ int tcp_gso_discard_frame_remainder(
 @Param[in]	flags - Please refer to \ref TCP_GSO_FLAGS.
 @Param[in]	mss - Maximum Segment Size.
 @Param[out]	tcp_gso_context_addr - Address to the TCP GSO internal context
-		structure located in the workspace by the user.
-		Internally used by TCP GSO functions. Must be aligned to 32 bytes.
+		structure located in the workspace by the user. Internally used
+		by TCP GSO functions.
 
 @Return		None.
 

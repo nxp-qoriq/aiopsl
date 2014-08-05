@@ -49,8 +49,9 @@ int create_frame(
 		/* Update segment length in the presentation
 		 * context and represent the segment in the presentation area */
 		if (size > DEFAULT_SEGMENT_SIZE)
-			size = DEFAULT_SEGMENT_SIZE;
-		PRC_SET_SEGMENT_LENGTH(size);
+			PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+		else
+			PRC_SET_SEGMENT_LENGTH(size);
 		fdma_insert_default_segment_data(0, data, size,
 				FDMA_REPLACE_SA_REPRESENT_BIT);
 		/* Re-run parser */

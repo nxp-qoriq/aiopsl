@@ -108,6 +108,9 @@ struct slab_hw_pool_info {
 struct slab_module_info {
 	uint32_t fdma_flags;
 	/**< Flags to be used for FDMA release/acquire */
+	uint32_t fdma_dma_flags;
+	/**< Flags to be used for FDMA dma data,
+	 * not including fdma_dma_data_access_options */
 	struct  slab_hw_pool_info *hw_pools;
 	/**< List of BMAN pools */
 	void    *virtual_pool_struct;

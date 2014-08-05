@@ -120,9 +120,9 @@ typedef void (ipsec_lifetime_callback_t) (
 
 		Use for ipsec_encap/decap_params.options
 *//***************************************************************************/
-#define IPSEC_OPTS_ESP_ESN	0x10   /**< extended sequence included */
+#define IPSEC_OPTS_ESP_ESN		0x0010   /**< extended sequence included */
 
-#define IPSEC_OPTS_ESP_IPVSN	0x02   /**< process an IPv6 header
+#define IPSEC_OPTS_ESP_IPVSN	0x0002   /**< process an IPv6 header
  	 	 	 	 	 Valid for transport mode only */
 
 /**************************************************************************//**

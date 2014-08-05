@@ -16,7 +16,7 @@ Setup
 ===========================================
 1. Install Code Warrior (see Release Note for the compatible CW version).
 2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
-3. 3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
+3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
    from the source tree at: aiopsl/build/aiop_sim/sim_files. 
    into the simulator folder at: dtsim_release/linux64/
    comment the lines marked with "#for elf loader".
@@ -45,14 +45,14 @@ Execution flow
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
              -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"
 4. Launch mc_app using AFM connection.
-	Init file: mc\build\mc_t4ls_sim\mc_app\CFG\LS2085A-AFM_MC_RAM.tcl.
-	Mem file: mc\build\mc_t4ls_sim\mc_app\CFG\LS2085A-AFM_MC.mem
+	Init file:mc\build\mc_t4ls_sim\cw_files\LS2085A-AFM_MC_RAM.tcl
+	Mem file: mc\build\mc_t4ls_sim\cw_files\LS2085A-AFM_MC.mem
    Don't forget to update simulator server IP and port in debug configuration.
 5. After MC reaches main(), turn tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart1_0
 6. Run mc_app.
 7. Launch ipr_demo using AFM connection.
-	Init file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM
+	Init file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl
 	Mem file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP.mem
    Don't forget to update simulator server IP and port in debug configuration. 
 8. Run aiop (multi-core resume).

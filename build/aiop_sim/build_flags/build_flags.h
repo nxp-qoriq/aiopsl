@@ -6,7 +6,9 @@
 #define DEBUG_LEVEL         0
 #endif /* DEBUG_LEVEL */
 
+#ifndef DEBUG_ERRORS
 #define DEBUG_ERRORS        1
+#endif
 
 #define DEBUG_GLOBAL_LEVEL  (REPORT_LEVEL_WARNING + DEBUG_LEVEL)
 #define ERROR_GLOBAL_LEVEL  (REPORT_LEVEL_MAJOR + DEBUG_LEVEL)

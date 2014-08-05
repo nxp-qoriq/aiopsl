@@ -145,7 +145,7 @@ void sys_print(char *str)
 #else
 				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 #endif
-				fsl_os_exit(1);
+				DEBUG_HALT;
 			}
 
 			memset(sys.p_pre_console_buf, 0, PRE_CONSOLE_BUF_SIZE);
