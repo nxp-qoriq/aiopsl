@@ -627,7 +627,7 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 *	
 *	@Description	calculate the nh_offset for IPv6 transport mode 
 *//****************************************************************************/
-uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr);
+uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length);
 
 
 /**************************************************************************//**
