@@ -178,7 +178,8 @@ struct parser_input_message_params {
 @Retval		0 – Success
 @Retval		EIO - Parsing Error
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of 256 bytes before completing all parsing)
+		of presentation length (max. 256 bytes) before completing all
+		parsing)
 
 @Cautions	In this function the task yields.
 		This function expects gross running sum field to be valid.

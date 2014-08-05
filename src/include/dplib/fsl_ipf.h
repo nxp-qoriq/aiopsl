@@ -36,7 +36,8 @@
 	/** IPF context size definition. */
 #define IPF_CONTEXT_SIZE	64
 	/** IPF context definition. Must be aligned to 32 Bytes.*/
-typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
+typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
+			__attribute__((aligned(sizeof(struct ldpaa_fd))));
 
 
 /** @} */ /* end of TCP_IPF_GENERAL_DEFINITIONS */
@@ -154,7 +155,6 @@ int ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr);
 @Param[out]	ipf_context_addr - Address to the IPF internal context
 		structure located in the workspace by the user.
 		Internally used by IP Fragmentation functions.
-		Must be aligned to 32 bytes.
 
 @Return		None.
 

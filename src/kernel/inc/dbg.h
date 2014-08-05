@@ -213,13 +213,13 @@
 
 #if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
 /* No debug/error/event messages at all */
-#define DBG(_level, _vmsg)
+#define DBG(_level, ...)
 
 #else /* DEBUG_ERRORS > 0 */
 
 #if ((defined(DEBUG_USING_STATIC_LEVEL)) && (DEBUG_DYNAMIC_LEVEL < REPORT_LEVEL_WARNING))
 /* No need for DBG macro - debug level is higher anyway */
-#define DBG(_level, _vmsg)
+#define DBG(_level, ...)
 #else
 #define DBG(_level, ...) \
 do { \

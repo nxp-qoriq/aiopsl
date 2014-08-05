@@ -1566,7 +1566,8 @@ void parser_profile_query(uint8_t prpid,
 @Retval		EIO - L3 Checksum Validation Error
 @Retval		EIO - L4 Checksum Validation Error
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of 256 bytes before completing all parsing)
+		of presentation length (max. 256 bytes) before completing all
+		parsing)
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
@@ -1605,7 +1606,8 @@ int parse_result_generate_default(uint8_t flags);
 @Retval		EIO - L3 Checksum Validation Error
 @Retval		EIO - L4 Checksum Validation Error
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of 256 bytes before completing all parsing)
+		of presentation length (max. 256 bytes) before completing all
+		parsing)
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
