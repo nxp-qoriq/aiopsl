@@ -1166,9 +1166,6 @@ int ipsec_frame_encrypt(
 		
 		/* Set the Next Header to ESP (the same for IPv4 and IPv6) */
 		dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_ESP;
-		
-		
-
 	}
 	
 	/*---------------------*/
@@ -1612,7 +1609,6 @@ int ipsec_frame_decrypt(
 	
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-
 	
 	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
 	/* For transport mode: IP header length, Next header offset */
@@ -1640,14 +1636,39 @@ int ipsec_frame_decrypt(
 				IPSEC_DPOVRD_OVRD |
 				(eth_length<<12) | /* AOIPHO */
 				outer_material_length; /* Outer IP Header Material Length */
-		// TODO:  outer_material_length in case of UDP??
-				
-		LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
 
 	} else { /* Transport Mode */
-		// TODO
+		// TODO - need to move this part before L2 header removal
+		// to get correct parser results
+		
+		/* For Transport mode set DPOVRD */
+		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
+		 * 23-16 IP Header Length in bytes, 
+		* of the portion of the IP header that is not encrypted.
+		* 15-8 NH_OFFSET - location of the next header within the IP header.
+		* 7-0 Reserved */
+		dpovrd.transport_decap.ovrd = IPSEC_DPOVRD_OVRD_TRANSPORT;
+		
+		/* Header Length up to ESP */
+		dpovrd.transport_decap.ip_hdr_len = (uint8_t)
+			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
+				(uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT())); 
+
+		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
+			/* Get the NH_OFFSET for the last header before ESP */
+			dpovrd.transport_decap.nh_offset = 0x1; // TODO with extensions
+		} else { /* IPv4 */
+			/* If transport/IPv4 for any non-zero value of NH_OFFSET 
+			 * (typically set to 01h), the N byte comes from byte 9 of 
+			 * the IP header */
+			dpovrd.transport_encap.nh_offset = 0x1;
+		}
+		
+		dpovrd.transport_decap.reserved = 0;
 	}
 	
+	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
+
 	/* 	8.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
