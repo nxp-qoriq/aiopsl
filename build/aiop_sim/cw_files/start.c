@@ -63,8 +63,12 @@ extern void exit(int status)
 asm void _ExitProcess(void)
 {
 	nofralloc
-
-    se_illegal
+	
+	/* 
+	 * Debug Notify Halt 
+	 * Acts as 'se_illegal' if EDBCR0[DNH_EN] is set
+	 */
+	se_dnh
 }
 
 

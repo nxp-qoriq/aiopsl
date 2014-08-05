@@ -7,7 +7,6 @@
 #define __GSO_H
 
 #include "dplib/fsl_gso.h"
-#include "dplib/fsl_ldpaa.h"
 #include "inc/fsl_gen.h"
 
 
