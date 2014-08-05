@@ -39,7 +39,9 @@ enum parser_verif_cmd_type {
 	PARSER_INIT_FOR_VERIF_CMDTYPE,
 	PARSER_MACROS_VERIF_CMDTYPE,
 	PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE,
-	PARSER_INIT_GROSS_VERIF_CMDTYPE
+	PARSER_INIT_GROSS_VERIF_CMDTYPE,
+	PARSER_SET_PRPID_HXS_VERIF_CMDTYPE,
+	PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((PARSE_MODULE << 16) | \
@@ -75,6 +77,12 @@ enum parser_verif_cmd_type {
 #define PARSER_GEN_INIT_GROSS_STR ((PARSE_MODULE << 16) | \
 				PARSER_INIT_GROSS_VERIF_CMDTYPE)
 
+#define PARSER_SET_PRPID_HXS_STR ((PARSE_MODULE << 16) | \
+		PARSER_SET_PRPID_HXS_VERIF_CMDTYPE)
+
+#define PARSER_SET_FRAME_LENGTH_STR ((PARSE_MODULE << 16) | \
+		PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE)
+
 /**************************************************************************//**
 @Description	Parser verification init gross running sum Command structure.
 
@@ -84,6 +92,18 @@ enum parser_verif_cmd_type {
 struct parser_init_gross_verif_command {
 	uint32_t	opcode;
 	uint8_t 	pad[4];
+};
+
+/**************************************************************************//**
+@Description	Parser verification set frame length Command structure.
+
+		This command set frame length in FD field. This command needs to be
+		called once before creating frame truncation.
+*//***************************************************************************/
+struct parser_set_frame_length_command {
+	uint32_t	opcode;
+	uint16_t	frame_length;
+	uint8_t 	pad[2];
 };
 
 /**************************************************************************//**
@@ -162,9 +182,9 @@ struct parser_gen_parser_res_checksum_verif_command {
 	int32_t           status;
 	uint16_t		  hxs;
 	uint16_t		  l3_checksum;
-	/*uint16_t		  l4_checksum;*/
+	uint16_t		  l4_checksum;
 	uint8_t           offset;
-	uint8_t           pad[3];
+	uint8_t           pad;
 };
 
 /**************************************************************************//**
@@ -212,6 +232,18 @@ struct parser_prp_id_pool_create_verif_command {
 struct parser_macros_command {
 	uint32_t             opcode;
 	uint32_t             macros_struct;
+};
+
+/**************************************************************************//**
+@Description	Parser Set prpid & hxs Command structure.
+
+		Includes information needed for Parser Commands verification.
+*//***************************************************************************/
+struct parser_set_prpid_hxs_command {
+	uint32_t             opcode;
+	uint16_t             starting_hxs;
+	uint8_t              prpid;
+	uint8_t 			 pad;
 };
 
 void aiop_init_parser(uint8_t *prpid);

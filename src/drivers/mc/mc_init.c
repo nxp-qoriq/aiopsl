@@ -15,6 +15,8 @@ int mc_obj_init();
 void mc_obj_free();
 
 #define DPCI_LOW_PR  1
+#define MC_DPCI_NUM 1
+#define MC_DPCI_ID  0
 
 static int aiop_container_init()
 {
@@ -158,6 +160,64 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	return 0;
 }
 
+static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind)
+{
+	struct dpci_cfg dpci_cfg;
+	struct dpci *dpci;
+	struct dpci_dest_cfg dest_cfg;
+	struct dprc_endpoint endpoint1 ;
+	struct dprc_endpoint endpoint2;
+	uint8_t p = 0;
+	int     err = 0;
+	int     link_up = 0;
+
+	dpci_cfg.num_of_priorities = 2;
+
+	dpci = &dpci_tbl->dpci[ind];
+	/* Create DPCI on container 0 with portal 0*/
+	dpci->regs = dprc->regs;
+
+	err |= dpci_create(dpci, &dpci_cfg);
+	/* Set priorities 0 and 1
+	 * 0 is high priority
+	 * 1 is low priority
+	 * Making sure that low priority is at index 0*/
+	dest_cfg.type = DPCI_DEST_NONE;
+	for (p = 0; p <= DPCI_LOW_PR; p++) {
+		dest_cfg.priority = DPCI_LOW_PR - p;
+		err |= dpci_set_rx_queue(dpci,
+		                         p,
+		                         &dest_cfg,
+		                         (ind << 1) | p);
+	}
+
+	/* Get attributes just for dpci id,
+	 * fqids are not there yet */
+	err |= dpci_get_attributes(dpci,
+	                           &dpci_tbl->attr[ind]);
+
+	/* Connect to dpci 0 that belongs to MC */
+	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
+        memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
+        endpoint1.id = MC_DPCI_ID;
+        endpoint1.interface_id = 0;
+        strcpy(endpoint1.type, "dpci");
+
+        endpoint2.id = dpci_tbl->attr[ind].id;
+        endpoint2.interface_id = 0;
+        strcpy(endpoint2.type, "dpci");
+
+	err |= dpci_enable(dpci);
+        err |= dprc_connect(dprc, &endpoint1, &endpoint2);
+	err |= dpci_get_attributes(dpci, &dpci_tbl->attr[ind]);
+	err |= dpci_get_link_state(dpci, &link_up);
+	if (!link_up) {
+		pr_err("MC<->AIOP DPCI link is down !\n");
+	}
+
+	return err;
+}
+
 static int dpci_tbl_fill(struct dpci_obj *dpci_tbl, struct dprc *dprc,
                          int dpci_count, int dev_count)
 {
@@ -185,8 +245,14 @@ static int dpci_tbl_fill(struct dpci_obj *dpci_tbl, struct dprc *dprc,
 		i++;
 	}
 
-	dpci_tbl->count = ind;
-	return 0;
+	err = dpci_for_mc_add(dpci_tbl, dprc, ind);
+	if (err) {
+		pr_err("Failed to create and link AIOP<->MC DPCI \n");
+		dpci_tbl->count = ind;
+	} else {
+		dpci_tbl->count = ind + MC_DPCI_NUM;
+	}
+	return err;
 }
 
 static int dpci_discovery()
@@ -219,7 +285,7 @@ static int dpci_discovery()
 	}
 
 	if (dpci_count > 0) {
-		err = dpci_tbl_create(&dpci_tbl, dpci_count);
+		err = dpci_tbl_create(&dpci_tbl, dpci_count + MC_DPCI_NUM);
 		if (err != 0) {
 			pr_err("Failed dpci_tbl_create() \n");
 			return err;

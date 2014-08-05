@@ -1,4 +1,12 @@
-- arena_test.c:      updated to show which task/core was active during the test. (multi task should be supported in next simulator - 118)  
+- fsl_slab.h         Updated slab_release() API documentation with new error for fix of ENGR00307395.
+- slab.c             Fixed ENGR00307395 slab_release error, better protection from user errors.
+- dpni_drv.c/h:      Adding support for dpni_drv_get_spid to receive NI's storage profile ID
+
+- init.c             Modified fill_bpid() to take ICID + BPDI from CDMA CFG registers.
+- mc_init.c          Moved AIOP<->MC dpci creation from DPL to AIOP dpci init. It should not be exposed to users.
+- slab.c             Read AIOP ICID and BDI from CDMA CFG register.
+- fsl_cmdif_client.h Added Cautions - automatic expansion of the buffer is not available
+- arena_test.c:      updated to show which task/core was active during the test. (multi task should be supported in next simulator - 118)
 - fsl_io_ccsr.h:     #ifdef CCSR_BE removed to use big endian convention to access ccsr in AIOP.
 
 - fsl_cmdif_flib_s.h API chnage at cmdif_srv_cmd() to support virtual aadresses when SMMU is disabled.

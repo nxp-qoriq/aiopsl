@@ -1917,15 +1917,20 @@ void fdma_release_buffer(
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
+
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+
 void fdma_handle_fatal_errors(int32_t status)
 {
 	/*TODO Fatal error*/
 	switch (status) {
 	case FDMA_UNABLE_TO_TRIM_ERR:
-		handle_fatal_error((char *)FDMA_UNABLE_TO_TRIM_ERR);
+		handle_fatal_error("FDMA_UNABLE_TO_TRIM_ERR");
 		break;
 	case FDMA_FRAME_STORE_ERR:
-		handle_fatal_error((char *)FDMA_FRAME_STORE_ERR);
+		handle_fatal_error("FDMA_FRAME_STORE_ERR");
 		break;
 	case FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR:
 		handle_fatal_error(
@@ -2010,3 +2015,4 @@ void fdma_handle_fatal_errors(int32_t status)
 	}
 }
 
+#pragma pop

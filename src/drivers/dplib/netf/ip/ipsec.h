@@ -10,7 +10,7 @@
 #define __AIOP_IPSEC_H
 
 #include "common/types.h"
-
+#include "net/fsl_net.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)
@@ -53,6 +53,12 @@ enum ipsec_cipher_type {
 @{
 *//***************************************************************************/
 
+/* Internal Flags */
+/* flags[31] : 1 = outbound, 0 = inbound */
+#define IPSEC_FLG_DIR_OUTBOUND 0x80000000 
+/* flags[30] : 1 = IPv6, 0 = IPv4 (useed for transport mode) */
+#define IPSEC_FLG_IPV6 0x40000000 
+
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
 
@@ -83,12 +89,33 @@ enum ipsec_cipher_type {
 */
 #define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x0C
 
+/* NAT and NUC Options for tunnel mode encapsulation */
+/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
+/* Bit 0 : NUC Enable NAT UDP Checksum */
+#define IPSEC_ENC_PDB_OPTIONS_NAT 0x02
+#define IPSEC_ENC_PDB_OPTIONS_NUC 0x01
+
 /* 28 (HMO 4 out of 7:0) Sequence Number Rollover control. 
  * 0 : Sequence Number Rollover causes an error
  * 1 : Sequence Number Rollover permitted
 */
 #define IPSEC_ENC_PDB_HMO_SNR 0x10
 
+/*
+3 	OUT_FMT 	Output Frame format:
+	0 - All Input Frame fields copied to Output Frame
+	1 - Output Frame is just the decapsulated PDU
+2 	AOFL 	Adjust Output Frame Length
+	0 - Don't adjust output frame length 
+	-- output frame length reflects output frame actually written to memory,
+		including the padding, Pad Length, and Next Header fields.
+	1 - Adjust output frame length -- subtract the length of the padding, 
+		the Pad Length, and the Next Header
+		byte from the output frame length reported to the frame consumer.
+	If outFMT==0, this bit is reserved and must be zero.
+*/
+#define IPSEC_DEC_PDB_OPTIONS_AOFL		0x04
+#define IPSEC_DEC_PDB_OPTIONS_OUTFMT	0x08
 
 #define IPSEC_ARS_MASK	0x00c0   /* anti-replay window option mask */
 #define IPSEC_ESN_MASK 0x10 /* Extended sequence number option mask */
@@ -191,6 +218,7 @@ Big Endian
 
 /* DPOVRD OVRD */
 #define IPSEC_DPOVRD_OVRD 0x80000000
+#define IPSEC_DPOVRD_OVRD_TRANSPORT 0x80
 
 // TMP, removed from the external API
 /** Frames do not include a L2 Header */
@@ -265,6 +293,11 @@ Big Endian
 /* TODO: should move to general or OSM include file */
 #define IPSEC_OSM_CONCURRENT			0
 #define IPSEC_OSM_EXCLUSIVE				1
+
+/* General Headers Parameters */
+#define IPSEC_IP_NEXT_HEADER_UDP 0x11 /* UDP = 17 */
+#define IPSEC_IP_NEXT_HEADER_ESP 0x32 /* ESP = 50 */ 
+
 
 // TMP, removed from the external API
 /**************************************************************************//**
@@ -409,16 +442,20 @@ struct sec_shared_descriptor {
 };
 
 /* DPOVRD for Tunnel Encap mode */
-struct dpovrd_tunnel_encap {
-	uint8_t reserved; /* 7-0 Reserved */
-	uint8_t aoipho; /* 13-8 AOIPHO */
-					/* 14 Reserved */
-					/* 15 OIMIF */
-	uint16_t outer_material_length; /* 27-16 Outer IP Header Material Length */
-									/* 30-28 Reserved */
-									/* 31 OVRD */
-};
+//struct dpovrd_tunnel_encap {
+//	uint8_t reserved; /* 7-0 Reserved */
+//	uint8_t aoipho; /* 13-8 AOIPHO */
+//					/* 14 Reserved */
+//					/* 15 OIMIF */
+//	uint16_t outer_material_length; /* 27-16 Outer IP Header Material Length */
+//									/* 30-28 Reserved */
+//									/* 31 OVRD */
+//};
 
+struct dpovrd_tunnel_encap {
+	uint32_t word;
+};
+	
 /* DPOVRD for Tunnel Decap mode */
 struct dpovrd_tunnel_decap {
 	uint32_t word;
@@ -428,9 +465,29 @@ struct dpovrd_tunnel_decap {
 	 * 11-0 Outer IP Header Material Length */
 };
 
+/* DPOVRD for Transport mode Encap  */
+struct dpovrd_transport_encap {
+	uint8_t ovrd;
+	uint8_t ip_hdr_len;
+	uint8_t nh_offset;
+	uint8_t next_hdr;
+};
+
+/* DPOVRD for Transport mode Decap  */
+struct dpovrd_transport_decap {
+	uint8_t ovrd;
+	uint8_t ip_hdr_len;
+	uint8_t nh_offset;
+	uint8_t reserved;
+};
+
+
 struct dpovrd_general {
 	union {
+		struct dpovrd_tunnel_encap tunnel_encap;
 		struct dpovrd_tunnel_decap tunnel_decap;
+		struct dpovrd_transport_encap transport_encap;
+		struct dpovrd_transport_decap transport_decap;
 	};
 };
 
@@ -564,6 +621,14 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle
 	);
+
+/**************************************************************************//**
+*	ipsec_get_ipv6_nh_offset
+*	
+*	@Description	calculate the nh_offset for IPv6 transport mode 
+*//****************************************************************************/
+uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr);
+
 
 /**************************************************************************//**
 ******************************************************************************/

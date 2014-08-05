@@ -462,7 +462,6 @@ asm_prefix(l1icache_line_unlock):
 .global asm_prefix(booke_tlb_read5)
 .global asm_prefix(booke_tlb1_invalidate)
 
-#ifndef SYS_64BIT_ARCH
 /* TLB entry configuration */
 /* Used by C routine MMU_TlbEntryWrite, mmu.c.
    User must pass 3 (MAS0), 4 (MAS1), 5 (MAS2), and 6 (MAS3) values. */
@@ -495,10 +494,8 @@ asm_prefix(booke_tlb_write5):
     tlbwe
     isync
     blr
-#endif
 
 /* TLB entry read */
-#ifndef SYS_64BIT_ARCH
 /* Used by C routine MMU_TlbEntryWrite, mmu.c.
    User must pass 3 (by address) 4 (MAS0) and 5 (MAS2).
    Routine uses 3 to return an array of the required TLB entry
@@ -525,36 +522,7 @@ asm_prefix(booke_tlb_read):
     stw         4, 12(3)
     isync
     blr
-#endif
 
-#ifdef SYS_64BIT_ARCH
-asm_prefix(booke_tlb_read5):
-    /* set MAS0 and MAS2 to define the specified TLB entry */
-    mtspr       MAS0, 4
-    isync
-    mtspr       MAS2, 5
-    isync
-    tlbre
-    /* store in the address speified by 3 the TLB parameters */
-    mfspr       4, MAS0
-    isync
-    std         4, 0(3)
-    mfspr       4, MAS1
-    isync
-    std         4, 8(3)
-    mfspr       4, MAS2
-    isync
-    std         4, 16(3)
-    mfspr       4, MAS3
-    isync
-    std         4, 24(3)
-    mfspr       4, MAS7
-    isync
-    std         4, 32(3)
-    isync
-    blr
-
-#else
 asm_prefix(booke_tlb_read5):
     /* set MAS0 and MAS2 to define the specified TLB entry */
     mtspr       MAS0, 4
@@ -580,7 +548,6 @@ asm_prefix(booke_tlb_read5):
     stw         4, 16(3)
     isync
     blr
-#endif
 
 /* TLB1 Invalidate */
 /* Invalidates all entries in TLB1 table. */

@@ -12,6 +12,10 @@
 
 #include "dplib/fsl_general.h"
 
+
+#pragma section RW ".exception_data" ".exception_data_bss"
+
+
 /**************************************************************************//**
  @Group		AIOP_GENERAL AIOP General
 

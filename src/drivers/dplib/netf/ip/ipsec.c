@@ -370,11 +370,14 @@ void ipsec_generate_encap_sd(
 {
 	
 	uint8_t cipher_type = 0;
+	uint8_t pdb_options = 0;
+	int i; // TODO: TMP for outer header copy
 	
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
 		//uint32_t *outer_hdr; 
-		uint32_t outer_hdr[5]; 
+		//uint32_t outer_hdr[5]; 
+		uint32_t outer_hdr[34]; // TMP: 40+96=134 bytes for IPv6 header & ext. 
 	} pdb;	
 	
 	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
@@ -455,26 +458,50 @@ void ipsec_generate_encap_sd(
 			pdb.innerpdb.cbc.iv[3] = 0;
 	}
 	
+	/* Tunnel Mode Parameters */
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		/* NAT and NUC Options for tunnel mode encapsulation */
+		/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
+		/* Bit 0 : NUC Enable NAT UDP Checksum */
+		if (params->flags & IPSEC_ENC_OPTS_NAT_EN)
+				pdb_options = IPSEC_ENC_PDB_OPTIONS_NAT; 
+		if (params->flags & IPSEC_ENC_OPTS_NUC_EN)
+				pdb_options |= IPSEC_ENC_PDB_OPTIONS_NUC;
+		
+		/* outer header from PDB */
+		pdb_options |= IPSEC_ENC_PDB_OPTIONS_OIHI_PDB;
+	} else {
+	/* Transport Mode Parameters */
+
+	}
+	
 	pdb.innerpdb.hmo = 
 		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
 	pdb.innerpdb.options = 
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
-		IPSEC_ENC_PDB_OPTIONS_OIHI_PDB /* outer header from PDB */ 
+		pdb_options
 		);
 
-	// TODO: Program options[outFMT] for decapsulation
-	
-	//union {
-	//	uint8_t ip_nh;	/* next header for legacy mode */
-	//	uint8_t rsvd;	/* reserved for new mode */
-	//};
+	/* Transport mode Next Header value share the same stack location with
+	 * Tunnel mode reserved bits at the RTA API.
+	 * Since NH comes from DPOVERD it can be init to 0 in both cases
+	 * 
+	 	union {
+			uint8_t ip_nh;	- next header for legacy mode 
+			uint8_t rsvd;	- reserved for new mode
+		};
+	 */  
 	pdb.innerpdb.rsvd = 0;
 				
-	//union {
-	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
-	//	uint8_t aoipho;		/* actual outer IP header offset for
-	//				 * new mode */
-	//};
+	/* Transport mode Next Header value share the same stack location with
+	 * Tunnel mode reserved bits at the RTA API.
+	 * Since NH comes from DPOVERD it can be init to 0 in both cases
+	 * 
+	 	 union {
+			uint8_t ip_nh_offset;	- next header offset for legacy mode
+			uint8_t aoipho; - actual outer IP header offset for new mode 
+		};
+	*/
 	pdb.innerpdb.aoipho = 0;
 
 	pdb.innerpdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
@@ -488,12 +515,17 @@ void ipsec_generate_encap_sd(
 	//pdb.outer_hdr = params->encparams.outer_hdr;
 
 	// TODO: TMP workaround due to variable size array in the RTA PDB
+	/*
 	pdb.outer_hdr[0] = *(params->encparams.outer_hdr + 0);
 	pdb.outer_hdr[1] = *(params->encparams.outer_hdr + 1);
 	pdb.outer_hdr[2] = *(params->encparams.outer_hdr + 2);
 	pdb.outer_hdr[3] = *(params->encparams.outer_hdr + 3);
 	pdb.outer_hdr[4] = *(params->encparams.outer_hdr + 4);
-
+	*/
+	for (i = 0; i < ((params->encparams.ip_hdr_len)>>2); i++) {
+		pdb.outer_hdr[i] = *(params->encparams.outer_hdr + i);
+	}
+	
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -612,7 +644,6 @@ void ipsec_generate_decap_sd(
 			/*----------------------------------*/
 			/* 	ipsec_generate_decap_sd			*/
 			/*----------------------------------*/
-
 	
 	/* uint16_t ip_hdr_len : 
 	 * 		HMO (upper nibble)
@@ -626,13 +657,35 @@ void ipsec_generate_decap_sd(
 	
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
+	} else {
+		/* Transport mode */
+		/* If ESP pad checking is not required output frame is only the LDU */
+		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
+			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
+					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
+		}
 	}
+	/*
+	3 	OUT_FMT 	Output Frame format:
+		0 - All Input Frame fields copied to Output Frame
+		1 - Output Frame is just the decapsulated PDU
+	2 	AOFL 	Adjust Output Frame Length
+		0 - Don't adjust output frame length -- output frame length reflects output frame actually written to memory,
+			including the padding, Pad Length, and Next Header fields.
+		1 - Adjust output frame length -- subtract the length of the padding, the Pad Length, and the Next Header
+			byte from the output frame length reported to the frame consumer.
+		If outFMT==0, this bit is reserved and must be zero.
+	*/
 	
-	//union {
-	//	uint8_t ip_nh_offset;	/* next header offset for legacy mode */
-	//	uint8_t aoipho;		/* actual outer IP header offset for
-	//				 * new mode */
-	//};
+	/* Transport mode Next Header value share the same stack location with
+	 * Tunnel mode reserved bits at the RTA API.
+	 * Since NH comes from DPOVERD it can be init to 0 in both cases
+	 * 
+	 	 union {
+			uint8_t ip_nh_offset;	- next header offset for legacy mode
+			uint8_t aoipho; - actual outer IP header offset for new mode 
+		};
+	*/
 	pdb.aoipho = 0; /* Will be set by DPOVRD */
 
 	pdb.seq_num_ext_hi = params->decparams.seq_num_ext_hi;
@@ -785,6 +838,19 @@ void ipsec_generate_sa_params(
 	sap.sap1.flags = params->flags; // TMP 
 		/* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
+	
+	/* Add inbound/outbound indication to the flags field */
+	/* Inbound indication is 0, so no action */
+	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
+		sap.sap1.flags |= IPSEC_FLG_DIR_OUTBOUND;
+	}
+	
+	/* Add IPv6/IPv4 indication to the flags field */
+	if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+			IPSEC_OPTS_ESP_IPVSN) {
+		sap.sap1.flags |= IPSEC_FLG_IPV6;
+	}
+		
 	sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
 
 	/* UDP Encap for transport mode */
@@ -994,6 +1060,7 @@ int ipsec_frame_encrypt(
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
+	struct dpovrd_general dpovrd;
 
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
@@ -1066,6 +1133,51 @@ int ipsec_frame_encrypt(
 		/* ipsec_frame_encrypt */
 		/*---------------------*/
 	
+	if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
+		/* Tunnel Mode */
+		/* Clear FD[FRC], so DPOVRD takes no action */
+		dpovrd.tunnel_encap.word = 0; 
+	} else {
+		/* For Transport mode set DPOVRD */
+		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
+		 * 23-16 IP Header Length in bytes, 
+		* of the portion of the IP header that is not encrypted.
+		* 15-8 NH_OFFSET - location of the next header within the IP header.
+		* 7-0 Next Header */
+		dpovrd.transport_encap.ovrd = IPSEC_DPOVRD_OVRD_TRANSPORT;
+		
+		/* Header Length according to IPv6/IPv4 */
+		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
+			dpovrd.transport_encap.ip_hdr_len = 40; // TODO: need to calc extension headers
+			/* If transport/IPv6 and NH_OFFSET = 01h, the N byte comes 
+			 * from byte 6 of the IP header (header without extensions)*/
+			dpovrd.transport_encap.nh_offset = 0x1; // TODO: need to calc extension headers
+			
+		} else { /* IPv4 */
+			/* IPv4 Header Length in Bytes */
+			dpovrd.transport_encap.ip_hdr_len = ((uint8_t)
+				((*((uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT())) & 
+											IPV4_HDR_IHL_MASK)) << 2;
+			/* If transport/IPv4 for any non-zero value of NH_OFFSET 
+			 * (typically set to 01h), the N byte comes from byte 9 of 
+			 * the IP header */
+			dpovrd.transport_encap.nh_offset = 0x1;
+		}
+		
+
+		
+		/* Set the Next Header to ESP or UDP (the same for IPv4 and IPv6) */
+		if (sap1.flags & IPSEC_ENC_OPTS_NAT_EN) {
+			dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_UDP;
+		} else {
+			dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_ESP;
+		}
+	}
+	
+	/*---------------------*/
+	/* ipsec_frame_encrypt */
+	/*---------------------*/
+	
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1109,15 +1221,18 @@ int ipsec_frame_encrypt(
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
 	
+	
+	
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	
+	/* Update FD[FRC] for DPOBERD */
+	//LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, 0);
+	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
+
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-	
-	/* Clear FD[FRC], so DPOVRD takes no action */
-	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, 0);
 	
 	/* 	7.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
@@ -1148,8 +1263,6 @@ int ipsec_frame_encrypt(
 	* 1 Indicates that the accelerator call is made during the 
 	* exclusive phase of an Ordering Scope.
 	*/
-	//TODO: OS_EX currently set to 0, assuming exclusive mode only
-	
 	
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
@@ -1235,7 +1348,6 @@ int ipsec_frame_encrypt(
 	 * _displ - a word aligned constant value between 0-1020.
 	 * _base - a variable containing the base address.
 	 * If 'base' is a literal 0, the base address is considered as 0. */
-	//#define LH_SWAP(_disp, _base) ((uint16_t)__lhbr((uint32_t)_disp, (void *)_base))
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
 
 	
@@ -1828,58 +1940,98 @@ int ipsec_get_seq_num(
 {
 	
 	int return_val;
-	struct ipsec_decap_pdb decap_pdb;
 	ipsec_handle_t desc_addr;
+	uint32_t params_flags;
 
+	union {
+		struct ipsec_encap_pdb encap_pdb;
+		struct ipsec_decap_pdb decap_pdb;
+	} pdb;
+	
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
-	/* 	Read the PDB from the descriptor with CDMA. */
+	/* Read he descriptor flags to identify the direction */
 	cdma_read(
-			&decap_pdb, /* void *ws_dst */
-			//IPSEC_PDB_ADDR, /* uint64_t ext_address */
-			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
-			sizeof(decap_pdb) /* uint16_t size */
+			&params_flags, /* void *ws_dst */
+			IPSEC_FLAGS_ADDR(desc_addr), /* uint64_t ext_address */
+			sizeof(params_flags) /* uint16_t size */
 	);
 	
-	/* Return swapped values (little to big endian conversion) */
-	*extended_sequence_number = LW_SWAP(0,&decap_pdb.seq_num_ext_hi);
-	*sequence_number = LW_SWAP(0,&decap_pdb.seq_num);
-
-	switch (decap_pdb.options & IPSEC_DECAP_PDB_ARS_MASK) {
-		case IPSEC_DEC_OPTS_ARSNONE:
-			anti_replay_bitmap[0] = 0x0;
-			anti_replay_bitmap[1] = 0x0;
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;
-			break;
-		case IPSEC_DEC_OPTS_ARS32:
-			anti_replay_bitmap[0] = LW_SWAP(0,&decap_pdb.anti_replay[0]);
-			anti_replay_bitmap[1] = 0x0;
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;
-			break;
-		case IPSEC_DEC_OPTS_ARS64:
-			anti_replay_bitmap[0] = LW_SWAP(0,&decap_pdb.anti_replay[0]);
-			anti_replay_bitmap[1] = LW_SWAP(0,&decap_pdb.anti_replay[1]);
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;
-			break;		
-		case IPSEC_DEC_OPTS_ARS128:	
-			anti_replay_bitmap[0] = LW_SWAP(0,&decap_pdb.anti_replay[0]);
-			anti_replay_bitmap[1] = LW_SWAP(0,&decap_pdb.anti_replay[1]);
-			anti_replay_bitmap[2] = LW_SWAP(0,&decap_pdb.anti_replay[2]);
-			anti_replay_bitmap[3] = LW_SWAP(0,&decap_pdb.anti_replay[3]);
-			break;
-		default:
-			anti_replay_bitmap[0] = 0x0;
-			anti_replay_bitmap[1] = 0x0;
-			anti_replay_bitmap[2] = 0x0;
-			anti_replay_bitmap[3] = 0x0;	
-	}
+	/* Outbound (encapsulation) PDB format */
+	if (params_flags & IPSEC_FLG_DIR_OUTBOUND) {
+		/* 	Read the PDB from the descriptor with CDMA. */
+		cdma_read(
+			&pdb.encap_pdb, /* void *ws_dst */
+			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
+			sizeof(pdb.encap_pdb) /* uint16_t size */
+		);
 		
+		/* Return swapped values (little to big endian conversion) */
+		*extended_sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num_ext_hi));
+		*sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num));
+		
+		/* No anti-replay bitmap for encap, so just return zero */
+		anti_replay_bitmap[0] = 0x0;
+		anti_replay_bitmap[1] = 0x0;
+		anti_replay_bitmap[2] = 0x0;
+		anti_replay_bitmap[3] = 0x0;
+	} else {
+	/* Inbound (decapsulation) PDB format */
+				
+		/* 	Read the PDB from the descriptor with CDMA. */
+		cdma_read(
+			&(pdb.decap_pdb), /* void *ws_dst */
+			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
+			sizeof(pdb.decap_pdb) /* uint16_t size */
+		);
+	
+		/* Return swapped values (little to big endian conversion) */
+		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
+		*sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num));
+
+		switch (pdb.decap_pdb.options & IPSEC_DECAP_PDB_ARS_MASK) {
+			case IPSEC_DEC_OPTS_ARSNONE:
+				anti_replay_bitmap[0] = 0x0;
+				anti_replay_bitmap[1] = 0x0;
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;
+				break;
+			case IPSEC_DEC_OPTS_ARS32:
+				anti_replay_bitmap[0] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[0]));
+				anti_replay_bitmap[1] = 0x0;
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;
+				break;
+			case IPSEC_DEC_OPTS_ARS64:
+				anti_replay_bitmap[0] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[0]));
+				anti_replay_bitmap[1] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[1]));
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;
+				break;		
+			case IPSEC_DEC_OPTS_ARS128:	
+				anti_replay_bitmap[0] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[0]));
+				anti_replay_bitmap[1] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[1]));
+				anti_replay_bitmap[2] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[2]));
+				anti_replay_bitmap[3] = LW_SWAP(
+						0,&(pdb.decap_pdb.anti_replay[3]));
+				break;
+			default:
+				anti_replay_bitmap[0] = 0x0;
+				anti_replay_bitmap[1] = 0x0;
+				anti_replay_bitmap[2] = 0x0;
+				anti_replay_bitmap[3] = 0x0;	
+		}
+	}
+	
 	/* Derement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
@@ -1887,6 +2039,95 @@ int ipsec_get_seq_num(
 	return IPSEC_SUCCESS;	
 
 } /* End of ipsec_get_seq_num */
+
+/**************************************************************************//**
+	ipsec_get_ipv6_nh_offset
+	
+	The Destination header creates 2 different options for IPv6 extensions order 
+
+	1.	IPv6 header – Destination – Routing – Fragment – Destination 
+	The first destination header is for intermediate destinations, 
+	and the second one is for the last destination.
+	This option can occur only when Routing header is present and 
+	the first destination placed before Routing. 
+	The second Destination header is optional 
+ 
+	2.	IPv6 header – Fragment - Destination 
+	The destination header is for the last destination.
+	Routing header is not present, or 
+	Destination is placed after Routing header.
+	
+*//****************************************************************************/
+uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr)
+{
+	uint32_t current_hdr_ptr;
+	uint16_t current_hdr_size;
+	uint8_t current_ver;
+	uint8_t next_hdr;
+	uint8_t dst_ext;
+	uint8_t nh_offset = 0; /* default value for no extensions */
+
+	/* Destination extension can appear only once on fragment request */
+	dst_ext = IPV6_EXT_DESTINATION;
+
+	/* Copy initial IPv6 header */
+	current_hdr_ptr = (uint32_t)ipv6_hdr;
+	current_hdr_size = IPV6_HDR_LENGTH;
+	next_hdr = ipv6_hdr->next_header;
+
+	/* Skip to next extension header until extension isn't ipv6 header
+	 * or until extension is the fragment position (depend on flag) */
+	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
+		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
+		(next_hdr == IPV6_EXT_FRAGMENT)) {
+
+		current_ver = next_hdr;
+		current_hdr_ptr += current_hdr_size;
+		next_hdr = *((uint8_t *)(current_hdr_ptr));
+		current_hdr_size = *((uint8_t *)(current_hdr_ptr + 1));
+
+		/* Calculate current extension size  */
+		switch (current_ver) {
+
+		case IPV6_EXT_DESTINATION:
+		{
+			/* If the next header is not Routing, this should be
+			 * the starting point for ESP encapsulation  */
+			if (next_hdr != IPV6_EXT_ROUTING) {
+				/* Don't add to NH_OFFSET and Exit from the while loop */
+				dst_ext = 0;
+			} else {
+				nh_offset += current_hdr_size; /* in 8 bytes multiples */
+				current_hdr_size = ((current_hdr_size + 1) << 3);
+			}
+
+			break;
+		}
+		case IPV6_EXT_FRAGMENT:
+		{
+			nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; /* 8 bytes multiples */
+			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
+			break;
+		}
+
+		/* Routing, Hop By Hop */
+		default:
+		{
+			nh_offset += current_hdr_size; /* in 8 bytes multiples */
+			current_hdr_size = ((current_hdr_size + 1) << 3);
+			break;
+		}
+		}
+	}
+
+	/* return last extension pointer and extension indicator */
+	if (nh_offset) {
+		/* NH_OFFSET in 8 bytes multiple for IP header + Extensions */
+		return (nh_offset + (IPV6_HDR_LENGTH>>3));
+	} else {
+		return 0x1; /* NH_OFFSET in case of no Extensions */
+	}
+} /* End of ipsec_get_ipv6_nh_offset */
 
 
 /**************************************************************************/

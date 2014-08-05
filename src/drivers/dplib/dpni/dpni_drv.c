@@ -226,6 +226,16 @@ int dpni_drv_probe(struct dprc	*dprc,
 }
 
 
+int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid)
+{
+	struct dpni_drv *dpni_drv;
+
+	dpni_drv = nis + ni_id;
+	*spid = dpni_drv->spid;
+
+	return 0;
+}
+
 int dpni_get_num_of_ni (void)
 {
 	return num_of_nis;

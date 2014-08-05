@@ -120,9 +120,9 @@ typedef void (ipsec_lifetime_callback_t) (
 
 		Use for ipsec_encap/decap_params.options
 *//***************************************************************************/
-#define IPSEC_OPTS_ESP_ESN	0x10   /**< extended sequence included */
+#define IPSEC_OPTS_ESP_ESN		0x0010   /**< extended sequence included */
 
-#define IPSEC_OPTS_ESP_IPVSN	0x02   /**< process an IPv6 header
+#define IPSEC_OPTS_ESP_IPVSN	0x0002   /**< process an IPv6 header
  	 	 	 	 	 Valid for transport mode only */
 
 /**************************************************************************//**
@@ -326,7 +326,8 @@ struct ipsec_encap_params {
 	uint32_t seq_num_ext_hi; /**< Extended sequence number */
 	uint32_t seq_num;	/**< Initial sequence number */
 	uint32_t spi; 	/**< Security Parameter Index */
-	uint16_t ip_hdr_len; /**< IP header length */
+	uint16_t ip_hdr_len; /**< IP header length in bytes.
+		Should include additional 8 bytes if UDP encapsulation is enabled */
 	uint32_t *outer_hdr; /**< optional IP and UDP Header content */
 	union {
 		struct ipsec_encap_cbc_params cbc;
@@ -567,6 +568,9 @@ int ipsec_decr_lifetime_counters(
 		* For 32-entry only the first 32 bit word is valid.
 		* For 64-entry only the first two 32 bit words are valid.
 		* For 128-entry all four words are valid.
+
+@Cautions	anti_replay_bitmap is relevant for inbound (decapsulation) only,
+			and should be ignored for outbound (encapsulation).
 
 @Return		Status
 

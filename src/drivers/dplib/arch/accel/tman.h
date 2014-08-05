@@ -58,6 +58,8 @@ enum tman_timer_create_status {
 	/** The TMI timer list head is waiting for confirmation. In this case 
 	 * the timer handle will contain the list head. */
 	TMAN_TMR_CONF_WAIT_ERR = 0x81800040,
+	/** A non active TMI was provided as an input */
+	TMAN_TMR_TMI_NOT_ACTIVE = 0x81C00010,
 	/** No more available timers in the TMI */
 	TMAN_TMR_DEPLETION_ERR = 0x81C00020
 };

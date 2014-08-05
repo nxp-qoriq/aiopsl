@@ -106,6 +106,11 @@ struct slab_hw_pool_info {
 @Description   Information to be kept about SLAB module
 *//***************************************************************************/
 struct slab_module_info {
+	uint32_t fdma_flags;
+	/**< Flags to be used for FDMA release/acquire */
+	uint32_t fdma_dma_flags;
+	/**< Flags to be used for FDMA dma data,
+	 * not including fdma_dma_data_access_options */
 	struct  slab_hw_pool_info *hw_pools;
 	/**< List of BMAN pools */
 	void    *virtual_pool_struct;
@@ -114,6 +119,8 @@ struct slab_module_info {
 	void    *callback_func_struct;
 	/**< VP internal structure size of
 	 * (struct callback_s) * MAX_VIRTUAL_POOLS_NUM */
+	uint16_t icid;
+	/**< CDMA ICID to be used for FDMA release/acquire*/
 	/* TODO uint8_t spinlock; */
 	/**< Spinlock placed at SHRAM */
 	uint8_t num_hw_pools;

@@ -234,7 +234,7 @@ struct extended_stats_cntrs {
 /** If set, extended statistics is enabled */
 #define IPR_MODE_EXTENDED_STATS_EN		0x80000000
 
-/** Tables are located in dedicated RAM */
+/** Tables are located in dedicated RAM. Not available for Rev1. */
 #define IPR_MODE_TABLE_LOCATION_INT		0x00000000
 /** Tables are located in Packet Express Buffer table */
 #define IPR_MODE_TABLE_LOCATION_PEB		0x08000000
@@ -417,6 +417,11 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
+
+		Implicitly updated values in task defaults: segment length,
+							    segment address,
+							    segment offset
+
 
 @Param[in]	ipr_instance - The IPR instance handle.
 

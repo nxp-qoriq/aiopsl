@@ -263,6 +263,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct table_lookup_result lookup_result;
 	/* todo rule should be aligned to 16 bytes */
 	struct table_rule rule;
+	struct	presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -395,7 +397,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					      *(uint64_t *)rule.key_desc.em.key;
 				rfdc.ipv4_key[1] =
 					  *(uint64_t *)(rule.key_desc.em.key+8);
-	
+
 				/* Increment no of IPv4 open frames in instance
 					data structure */
 				ste_inc_counter(
@@ -527,15 +529,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (union table_key_desc *)&rfdc.ipv4_key,
 				  IPV4_KEY_SIZE,
 				  NULL);
-
-		/* Increment no of reassembled IPv4 frames in instance
-		   data structure */
-		ste_inc_counter(instance_handle+
-				sizeof(struct ipr_instance)+
-				offsetof(struct ipr_instance_extension,
-				 ipv4_reass_frm_cntr),
-				 1,
-				 STE_MODE_32_BIT_CNTR_SIZE);
 	} else {
 		cdma_read(&ipv6_key,
 			  rfdc_ext_addr+RFDC_SIZE+
@@ -546,19 +539,13 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (union table_key_desc *)&ipv6_key,
 				  IPV6_KEY_SIZE,
 				  NULL);
-
-
-		/* Increment no of reassembled IPv6 frames in instance
-		   data structure */
-		ste_inc_counter(instance_handle+
-				sizeof(struct ipr_instance)+
-				offsetof(struct ipr_instance_extension,
-				ipv6_reass_frm_cntr),
-				1,
-				STE_MODE_32_BIT_CNTR_SIZE);
 	}
 
 	/* Open segment for reassembled frame */
+	/* Retrieve original seg length,seg addr and seg offset from RFDC */
+	prc->seg_address = rfdc.seg_addr;
+	prc->seg_length  = rfdc.seg_length;
+	prc->seg_offset  = rfdc.seg_offset;
 	fdma_present_default_frame_default_segment();
 	/* FD length is still not updated */
 
@@ -570,50 +557,62 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	else
 		status = ipv6_header_update_and_l4_validation(&rfdc);
 
-	if (status == SUCCESS) {
-		/* L4 checksum is valid */
-		/* Write and release updated 64 first bytes of RFDC */
-		/*CDMA write, unlock, dec ref_cnt and release if
-		 * ref_cnt=0 */
-		cdma_access_context_memory(
-			  rfdc_ext_addr,
-			  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-			  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
-			  NULL,
-			  &rfdc,
-			  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
-			  RFDC_SIZE,
-			  (uint32_t *)REF_COUNT_ADDR_DUMMY);
+	/* Write and release updated 64 first bytes of RFDC */
+	/* CDMA write, unlock, dec ref_cnt and release if
+	 * ref_cnt=0 */
+	cdma_access_context_memory(
+				  rfdc_ext_addr,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
+				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  NULL,
+				  &rfdc,
+				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
+				  RFDC_SIZE,
+				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 
-		move_to_correct_ordering_scope2(osm_status);
+	move_to_correct_ordering_scope2(osm_status);
 
-		if (frame_is_ipv4) {
-			/* Decrement no of IPv4 open frames in instance data
-			 * structure */
-			ste_dec_counter(instance_handle+
-					sizeof(struct ipr_instance)+
+	if (frame_is_ipv4) {
+		/* Decrement no of IPv4 open frames in instance data structure*/
+		ste_dec_counter(instance_handle + sizeof(struct ipr_instance)+
 					offsetof(struct ipr_instance_extension,
 					num_of_open_reass_frames_ipv4),
-					1,
-					STE_MODE_32_BIT_CNTR_SIZE);
-		} else {
-			/* Decrement no of IPv6 open frames in instance data
-			 * structure */
-			ste_dec_counter(instance_handle+
+				1,
+				STE_MODE_32_BIT_CNTR_SIZE);
+		if (status == SUCCESS) {
+			/* L4 checksum is valid */
+			/* Increment no of frames in instance data structure */
+			ste_inc_counter(instance_handle +
 					sizeof(struct ipr_instance)+
 					offsetof(struct ipr_instance_extension,
-					num_of_open_reass_frames_ipv6),
+					ipv4_reass_frm_cntr),
 					1,
 					STE_MODE_32_BIT_CNTR_SIZE);
+			return IPR_REASSEMBLY_SUCCESS;
 		}
+	} else { /* IPv6 */
+		/* Decrement no of IPv6 open frames in instance data structure*/
+		ste_dec_counter(instance_handle + sizeof(struct ipr_instance)+
+					offsetof(struct ipr_instance_extension,
+					num_of_open_reass_frames_ipv6),
+				1,
+				STE_MODE_32_BIT_CNTR_SIZE);
+		if (status == SUCCESS) {
+			ste_inc_counter(instance_handle +
+					sizeof(struct ipr_instance)+
+					offsetof(struct ipr_instance_extension,
+					ipv6_reass_frm_cntr),
+					1,
+					STE_MODE_32_BIT_CNTR_SIZE);
 
-		return IPR_REASSEMBLY_SUCCESS;
-	} else {
-		/* L4 checksum is not valid */
-		return IPR_ERROR;
+			return IPR_REASSEMBLY_SUCCESS;
+		}
 	}
 
+	/* L4 checksum is not valid */
+	return IPR_ERROR;
+	
 	} else {
 		/* Error fragment */
 		move_to_correct_ordering_scope1(osm_status);
@@ -643,6 +642,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	struct ipv6fraghdr		*ipv6fraghdr_ptr;
 	struct	parse_result	*pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct	presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	if (frame_is_ipv4) {
 		ipv4hdr_ptr = (struct ipv4hdr *) iphdr_ptr;
@@ -694,6 +695,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	} else {
 		/* First fragment (frag_offset == 0) */
 		rfdc_ptr->status |= FIRST_ARRIVED;
+		/* Save PRC params for presentation of the reassembled frame */
+		rfdc_ptr->seg_addr   = prc->seg_address;
+		rfdc_ptr->seg_length = prc->seg_length;
+		rfdc_ptr->seg_offset = prc->seg_offset;
+
 		if (pr->gross_running_sum == 0)
 			fdma_calculate_default_frame_checksum(
 							0,
@@ -706,7 +712,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		/* Get IP offset */
 		rfdc_ptr->iphdr_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		if (!frame_is_ipv4)
-			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;		
+			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;
 	}
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {
@@ -1639,7 +1645,7 @@ void ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 			  sizeof(*reass_frm_cntr));
 	else
 		cdma_read(reass_frm_cntr,
-			  ipr_instance+sizeof(ipr_instance)+
+			  ipr_instance+sizeof(struct ipr_instance)+
 			  offsetof(struct ipr_instance_extension,
 				   ipv6_reass_frm_cntr),
 			  sizeof(*reass_frm_cntr));

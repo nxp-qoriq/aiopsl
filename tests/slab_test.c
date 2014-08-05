@@ -138,12 +138,12 @@ int app_test_slab(struct slab *slab, int num_times)
 int slab_test()
 {
 	int err = 0;
-	err = app_test_slab(slab_peb, 4);
+	err |= app_test_slab(slab_peb, 4);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
 	}
 
-	err = app_test_slab(slab_ddr, 4);
+	err |= app_test_slab(slab_ddr, 4);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_ddr, 4)\n", err);
 	}
