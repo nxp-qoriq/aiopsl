@@ -58,6 +58,14 @@ enum ipsec_cipher_type {
 #define IPSEC_FLG_DIR_OUTBOUND 0x80000000 
 /* flags[30] : 1 = IPv6, 0 = IPv4 (useed for transport mode) */
 #define IPSEC_FLG_IPV6 0x40000000 
+/* flags[29] : 1 = IPv6, 0 = IPv4 (useed for tunnel mode) */
+#define IPSEC_FLG_OUTER_HEADER_IPV6 0x20000000 
+
+#define IPSEC_IP_VERSION_MASK 0xF0000000 
+#define IPSEC_IP_VERSION_IPV6 0x60000000 
+#define IPSEC_ETHERTYPE_IPV6 0x86DD 
+#define IPSEC_ETHERTYPE_IPV4 0x0800 
+
 
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 

@@ -659,7 +659,7 @@ void ipsec_generate_decap_sd(
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
 	} else {
 		/* Transport mode */
-		/* If ESP pad checking is not required output frame is only the LDU */
+		/* If ESP pad checking is not required output frame is only the PDU */
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
 					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
@@ -850,7 +850,14 @@ void ipsec_generate_sa_params(
 			IPSEC_OPTS_ESP_IPVSN) {
 		sap.sap1.flags |= IPSEC_FLG_IPV6;
 	}
-		
+	
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
+				IPSEC_IP_VERSION_IPV6) {
+			sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+		}
+	}
+	
 	sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
 
 	/* UDP Encap for transport mode */
@@ -1046,7 +1053,6 @@ int ipsec_frame_encrypt(
 		)
 {
 	int return_val;
-	uint8_t *last_etype_pointer;
 	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc;
@@ -1179,13 +1185,17 @@ int ipsec_frame_encrypt(
 		/* For tunnel mode, update the Ethertype field according to the 
 		 * outer header (IPv4/Ipv6), since after SEC encryption
 		 * the parser results are not valid any more */
-		
-		/* Get the pointer to last EtherType */
-		last_etype_pointer = PARSER_GET_LAST_ETYPE_POINTER_DEFAULT();
-		
-		/* Update the Ethertype according to the outher IP header */
-		// TODO. Currently this is always IPv4
-		
+		if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
+			/* Update the Ethertype according to the outher IP header */
+			if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) {
+				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
+						IPSEC_ETHERTYPE_IPV6;
+			} else {
+				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
+						IPSEC_ETHERTYPE_IPV4;
+			}
+		}
+
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 		
@@ -1214,8 +1224,6 @@ int ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-	
-	
 	
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -1431,7 +1439,6 @@ int ipsec_frame_encrypt(
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}
 	
-
 	return_val = IPSEC_SUCCESS;	
 
 encrypt_end:
@@ -1457,7 +1464,6 @@ int ipsec_frame_decrypt(
 		)
 {
 	int return_val;
-	uint8_t *last_etype_pointer;
 	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc; /* Original FLC */
@@ -1551,66 +1557,8 @@ int ipsec_frame_decrypt(
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
-	
-	/* 	4.	Identify if L2 header exist in the frame, 
-	 * and if yes get the L2 header length. */
-	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
-		
-		/* For tunnel mode, update the Ethertype field according to the 
-		 * outer header (IPv4/Ipv6), since after SEC encryption
-		 * the parser results are not valid any more */
-		
-		/* Get the pointer to last EtherType */
-		last_etype_pointer = PARSER_GET_LAST_ETYPE_POINTER_DEFAULT();
-		
-		/* Update the Ethertype according to the outher IP header */
-		// TODO. Currently this is always IPv4
-		
-		/* Ethernet header length and indicator */ 
-		eth_length = (uint8_t)
-				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
-								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
-					
-		/* Transport Mode */
-		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
-	
-		/* Save Ethernet header. Note: no swap */
-		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
-			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-		
-			for (i = 0 ; i < eth_length; i++) {
-				eth_header[i] = *(eth_pointer_default + i);
-			}
-				
-			
-			/* Ethernet header length and indicator */ 
-					
-			
-			/* Remove L2 Header */	
-			/* Note: The gross running sum of the frame becomes invalid 
-			 * after calling this function. */ 
-			 
-			 l2_header_remove();
-			
-			// TODO: 
-			/* For decryption in transport mode it is required to update 
-			  * the running sum. */
-			 			
-		}
-	}
 
-			/*---------------------*/
-			/* ipsec_frame_decrypt */
-			/*---------------------*/
-
-	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
-	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	
-	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-	
-	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
+	/* Prepare DPOVRD Parameters */
 	/* For transport mode: IP header length, Next header offset */
 	/* For tunnel mode: 
 	 * IP header length, Actual Outer IP Header Offset (AOIPHO), including L2 */
@@ -1666,7 +1614,57 @@ int ipsec_frame_decrypt(
 		
 		dpovrd.transport_decap.reserved = 0;
 	}
+
+	/*---------------------*/
+	/* ipsec_frame_decrypt */
+	/*---------------------*/
 	
+	/* 	4.	Identify if L2 header exist in the frame, 
+	 * and if yes get the L2 header length. */
+	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
+		/* Note: For tunnel mode decryption there is no need to update 
+		 * the Ethertype field, since SEC HW is doing it */
+		
+		/* Ethernet header length and indicator */ 
+		eth_length = (uint8_t)
+				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
+								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
+					
+		/* Transport Mode */
+		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
+	
+		/* Save Ethernet header. Note: no swap */
+		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
+			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+		
+			for (i = 0 ; i < eth_length; i++) {
+				eth_header[i] = *(eth_pointer_default + i);
+			}
+	
+			/* Remove L2 Header */	
+			/* Note: The gross running sum of the frame becomes invalid 
+			 * after calling this function. */ 
+			 
+			 l2_header_remove();
+			
+			// TODO: 
+			/* For decryption in transport mode it is required to update 
+			  * the running sum. */
+		}
+	}
+
+			/*---------------------*/
+			/* ipsec_frame_decrypt */
+			/*---------------------*/
+
+	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
+	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	
+	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
+	
+	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
 
 	/* 	8.	FDMA store default frame command 
