@@ -3,6 +3,7 @@ Table SRs: API - Added notes that some of the pointer must point to structures i
 Table SRs: API - Aging and auto removal of rules because of aging were removed from the API due to inputs that these are unnecessary. 
 Table SRs: API - Removal of reference counter auto-decrement due to TKT216018 and due to that in some cases the decrement is better done outside of the function performance wise.(e.g. IPR)
 Table SRs: API - Added a comment regarding deletion of table that contains a miss result of type reference pointer.
+Table SRs: API - Added documentation regarding the key id parmaeter for both table_lookup_by_keyid() and table_lookup_be_keyid_default_frame() functions.
 
 
 SL TAG v0.4.1.update_02

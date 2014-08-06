@@ -1234,8 +1234,13 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	keyid - A Key Composition Rule ID for the table lookups (Key
-		Composition Rule specifies how to build a key).
+@Param[in]	keyid - A Key Composition Rule (KCR) ID for the table lookups
+		(Key Composition Rule specifies how to build a key). The key
+		built by this KCR should fit \ref table_lookup_key_desc union
+		and it's size should be:
+		 - TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
+		 - TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
+		 - key size + priority field size (4 Bytes) for MFLU.
 @Param[out]	lookup_result - Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
@@ -1284,8 +1289,13 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id - Table ID.
-@Param[in]	keyid - A Key Composition Rule ID for the table lookups (Key
-		Composition Rule specifies how to build a key)
+@Param[in]	keyid - A Key Composition Rule (KCR) ID for the table lookups
+		(Key Composition Rule specifies how to build a key). The key
+		built by this KCR should fit \ref table_lookup_key_desc union
+		and it's size should be:
+		 - TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
+		 - TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
+		 - key size + priority field size (4 Bytes) for MFLU.
 @Param[in]	flags - Specifies options to this function, please refer to
 		\ref FSL_TABLE_LOOKUP_FLAG_DEFINES.
 @Param[in]	ndf_params - Non defaults inputs to the key creation process.
