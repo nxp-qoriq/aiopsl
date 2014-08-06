@@ -120,9 +120,6 @@ Layout is built from 3 different sections: containers, objects, links.
 					obj_name = "dpci@3";
 				};
 				obj@15{
-					obj_name = "dpci@4";
-				};
-				obj@16{
 					obj_name = "dpci@1";
 				};
 			};
@@ -211,10 +208,6 @@ Layout is built from 3 different sections: containers, objects, links.
 			compatible = "fsl,dpci";
 			num_of_priorities = <2>;
 		};
-		dpci@4{
-			compatible = "fsl,dpci";
-			num_of_priorities = <2>;
-		};
 		dpci@5{
 			compatible = "fsl,dpci";
 			num_of_priorities = <2>;
@@ -232,10 +225,6 @@ Layout is built from 3 different sections: containers, objects, links.
 		link@3 {
 			obj = "dpci@2";
 			peer = "dpci@3";
-		};
-		link@4 {
-			obj = "dpci@4";
-			peer = "dpci@0";
 		};
 		link@5 {
 			obj = "dpci@1";
