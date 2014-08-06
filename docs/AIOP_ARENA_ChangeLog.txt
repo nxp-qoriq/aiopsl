@@ -1,3 +1,4 @@
+- dpl.dts/dtb:         Added DPRC_CFG_OPT_IOMMU_BYPASS to AIOP container. AIOP is trusted entity therefore PL and BMT should be set.
 - platform.c, init.c:  Change to use uart2_0 for AIOP 
 - fsl_slab.h         Updated slab_release() API documentation with new error for fix of ENGR00307395.
 - slab.c             Fixed ENGR00307395 slab_release error, better protection from user errors.
