@@ -1007,7 +1007,6 @@ int ipsec_del_sa_descriptor(
 	ipsec_instance_handle_t instance_handle;
 	ipsec_handle_t desc_addr;
 
-	// TODO: Read descriptor with CDMA.
 	// TODO Delete the timers; take care of callbacks in the middle of operation.
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
@@ -1492,8 +1491,6 @@ int ipsec_frame_decrypt(
 	
 	/* 	Inbound frame decryption and decapsulation */
 	
-	/* 	TODO: Currently supporting only Tunnel mode simplified flow */
-
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
@@ -1586,9 +1583,6 @@ int ipsec_frame_decrypt(
 				outer_material_length; /* Outer IP Header Material Length */
 
 	} else { /* Transport Mode */
-		// TODO - need to move this part before L2 header removal
-		// to get correct parser results
-		
 		/* For Transport mode set DPOVRD */
 		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
 		 * 23-16 IP Header Length in bytes, 
@@ -1596,23 +1590,19 @@ int ipsec_frame_decrypt(
 		* 15-8 NH_OFFSET - location of the next header within the IP header.
 		* 7-0 Reserved */
 		dpovrd.transport_decap.ovrd = IPSEC_DPOVRD_OVRD_TRANSPORT;
-		
 
 		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
 			/* Get the NH_OFFSET for the last header before ESP */
-			dpovrd.transport_decap.nh_offset = 0x1; // TODO with extensions
-			
 			dpovrd.transport_decap.nh_offset = 
 				ipsec_get_ipv6_nh_offset(
 					(struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT(),
 					&(dpovrd.transport_decap.ip_hdr_len));
 			
-			
 		} else { /* IPv4 */
 			/* If transport/IPv4 for any non-zero value of NH_OFFSET 
 			 * (typically set to 01h), the N byte comes from byte 9 of 
 			 * the IP header */
-			dpovrd.transport_encap.nh_offset = 0x1;
+			dpovrd.transport_decap.nh_offset = 0x1;
 			
 			/* Header Length up to ESP */
 			dpovrd.transport_decap.ip_hdr_len = (uint8_t)
@@ -1768,8 +1758,6 @@ int ipsec_frame_decrypt(
 	 * beginning of the FLC.
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] }
 	*/
-	// TODO (still not implemented in the simulator)
-	//return_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 	
@@ -1856,9 +1844,8 @@ decrypt_end:
 	/* 	21.	END */
 	/* 	21.1. Update the encryption status (enc_status) and return status. */
 	/* 	21.2. If started as Concurrent ordering scope, 
-	 *  move from Exclusive to Concurrent 
-	 *  (if AAP does that, only register through OSM functions). */
-	// TODO
+	 *  move from Exclusive to Concurrent  
+	 *  (AAP does that, only register through OSM functions). */
 	
 	/* Check if started in concurrent mode */
 	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
