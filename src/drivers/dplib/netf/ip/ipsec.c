@@ -1597,19 +1597,28 @@ int ipsec_frame_decrypt(
 		* 7-0 Reserved */
 		dpovrd.transport_decap.ovrd = IPSEC_DPOVRD_OVRD_TRANSPORT;
 		
-		/* Header Length up to ESP */
-		dpovrd.transport_decap.ip_hdr_len = (uint8_t)
-			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
-				(uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT())); 
 
 		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
 			/* Get the NH_OFFSET for the last header before ESP */
 			dpovrd.transport_decap.nh_offset = 0x1; // TODO with extensions
+			
+			dpovrd.transport_decap.nh_offset = 
+				ipsec_get_ipv6_nh_offset(
+					(struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT(),
+					&(dpovrd.transport_decap.ip_hdr_len));
+			
+			
 		} else { /* IPv4 */
 			/* If transport/IPv4 for any non-zero value of NH_OFFSET 
 			 * (typically set to 01h), the N byte comes from byte 9 of 
 			 * the IP header */
 			dpovrd.transport_encap.nh_offset = 0x1;
+			
+			/* Header Length up to ESP */
+			dpovrd.transport_decap.ip_hdr_len = (uint8_t)
+				((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
+					(uint32_t)
+						((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT())); 
 		}
 		
 		dpovrd.transport_decap.reserved = 0;
@@ -1771,6 +1780,26 @@ int ipsec_frame_decrypt(
 	pr->gross_running_sum = checksum;
 			
 	// TODO: handle in transport mode
+	
+	/* In Transport mode, if L2 header existed in the original frame, 
+	 * add it back */
+	if ((!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) && eth_length) {
+		/* Note: The Ethertype was already updated before removing the 
+		 * L2 header */
+		return_val = fdma_insert_default_segment_data(
+				0, /* uint16_t to_offset */
+				eth_header, /* void	 *from_ws_src */
+				eth_length, /* uint16_t insert_size */
+				FDMA_REPLACE_SA_REPRESENT_BIT 
+					/* uint32_t flags */
+				);
+		
+		/* TODO: Re-run parser ??? */
+		//		parse_result_generate_default(0);
+		
+		/* TODO: Update running sum ??? */
+		//		pr->gross_running_sum = 0;
+	}
 	
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
@@ -2135,7 +2164,6 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		}
 		case IPV6_EXT_FRAGMENT:
 		{
-		
 			/* Increment NH_OFFSET only if next header is extension */
 			if ((next_hdr == IPV6_EXT_ROUTING) ||
 				(next_hdr == IPV6_EXT_HOP_BY_HOP)) {
