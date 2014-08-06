@@ -1,3 +1,4 @@
+- platform.c, init.c:  Change to use uart2_0 for AIOP 
 - fsl_slab.h         Updated slab_release() API documentation with new error for fix of ENGR00307395.
 - slab.c             Fixed ENGR00307395 slab_release error, better protection from user errors.
 - dpni_drv.c/h:      Adding support for dpni_drv_get_spid to receive NI's storage profile ID
