@@ -8,6 +8,7 @@
 #include "virtual_pools.h"
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_cdma.h"
+#include "fsl_dbg.h"
 #include "cdma.h"
 
 __SHRAM struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
@@ -276,7 +277,7 @@ int32_t vpool_add_total_bman_bufs(
 {
 
 	int i;
-	uint16_t bman_array_index = 0;
+	int16_t bman_array_index = -1;
 
 	#ifdef SL_DEBUG
 		/* Check the arguments correctness */
@@ -287,11 +288,16 @@ int32_t vpool_add_total_bman_bufs(
 	/* Check which BMAN pool ID array element matches the ID */
 	for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
 		if (virtual_bman_pools[i].bman_pool_id == bman_pool_id) {
-			bman_array_index = (uint16_t)i;
+			bman_array_index = (int16_t)i;
 			break;
 		}
 	}
 
+#ifdef SL_DEBUG
+	/* Check the arguments correctness */
+	if (bman_array_index < 0)
+		return VIRTUAL_POOLS_BUF_ALLOC_FAIL;
+#endif
 	/* Increment the total available BMAN pool buffers */
 	atomic_incr32(&virtual_bman_pools[bman_array_index].remaining,
 			additional_bufs);
@@ -324,12 +330,26 @@ int32_t vpool_decr_total_bman_bufs(
 		}
 	}
 
-	/* Increment the total available BMAN pool buffers */
-	atomic_decr32(&virtual_bman_pools[bman_array_index].remaining,
-			less_bufs);
+	lock_spinlock(
+		(uint8_t *)&virtual_bman_pools[bman_array_index].spinlock);
+
+	/* Check if there are enough buffers to reserve */
+	if (virtual_bman_pools[bman_array_index].remaining >= less_bufs) {
+		/* decrement the BMAN pool buffers */
+		virtual_bman_pools[bman_array_index].remaining -=
+			less_bufs;
+
+		unlock_spinlock((uint8_t *)
+		                &virtual_bman_pools[bman_array_index].spinlock);
+
+	} else {
+		unlock_spinlock((uint8_t *)
+		                &virtual_bman_pools[bman_array_index].spinlock);
+		return VIRTUAL_POOLS_INSUFFICIENT_BUFFERS;
+	}
 
 	return VIRTUAL_POOLS_SUCCESS;
-} /* End of vpool_decr_total_bman_bufs */
+} /* End of vpool_decr_bman_bufs */
 
 /***************************************************************************
  * vpool_allocate_buf

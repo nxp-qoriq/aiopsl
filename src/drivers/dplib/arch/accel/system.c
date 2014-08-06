@@ -57,7 +57,7 @@ int sys_prpid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
+	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
 			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
@@ -77,7 +77,7 @@ int sys_keyid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
+	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
 			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
@@ -98,11 +98,11 @@ int aiop_sl_init(void)
 	uint32_t val;
 	uint32_t *addr;
 #endif
-	
+
 	/* Initialize IPsec instance global parameters */
 	ipsec_global_instance_params.instance_count = 0;
 	ipsec_global_instance_params.spinlock = 0;
-	
+
 	/* initialize profile sram */
 
 #ifdef AIOP_VERIF
@@ -131,7 +131,7 @@ int aiop_sl_init(void)
 	storage_profile.bpid3 = 0x0000;
 	storage_profile.pbs4 = 0x0000;
 	storage_profile.bpid4 = 0x0000;
-	
+
 #endif
 
 
@@ -157,7 +157,7 @@ int aiop_sl_init(void)
 	/* End of TMAN EPID Init */
 #endif
 
-	
+
 	sys_prpid_pool_create();
 
 #ifdef AIOP_VERIF

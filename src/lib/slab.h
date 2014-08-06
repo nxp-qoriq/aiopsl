@@ -76,6 +76,9 @@
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP         1000
+#define SLAB_NUM_OF_BUFS_DPDDR  750
+#define SLAB_NUM_OF_BUFS_PEB    20
+
 
 /**************************************************************************//**
 @Description   Information for every bpid
@@ -151,7 +154,7 @@ int slab_module_init(void);
 void slab_module_free(void);
 
 /**************************************************************************//**
-@Function      slab_find_and_fill_bpid
+@Function      slab_find_and_reserve_bpid
 
 @Description   Finds and fills buffer pool with new buffers
 
@@ -171,7 +174,7 @@ void slab_module_free(void);
 	       -ENAVAIL - could not release into bpid
 	       -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
-int slab_find_and_fill_bpid(uint32_t num_buffs,
+int slab_find_and_reserve_bpid(int num_buffs,
 			uint16_t buff_size,
 			uint16_t alignment,
 			uint8_t  mem_partition_id,
