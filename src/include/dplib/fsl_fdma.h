@@ -2398,6 +2398,8 @@ void fdma_calculate_default_frame_checksum(
 
 @Return		None.
 
+@remark		SRAM to SRAM copy of size 0xffc0 is not supported for REV1.
+
 @Cautions	If source and destination regions overlap then this is a
 		destructive copy.
 @Cautions	This function may result in a fatal error.

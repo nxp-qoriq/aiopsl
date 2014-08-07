@@ -545,7 +545,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
 	int sr_status, status;
-	uint32_t old_agg_timestamp;
+	uint32_t old_agg_timestamp, ack_number;
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
@@ -571,8 +571,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		(params->limits.packet_size_limit <= seg_size)) {
 		gro_ctx->internal_flags |= GRO_FLUSH_AGG_SET;
 	} else {
-		gro_ctx->last_seg_fields.acknowledgment_number =
-				tcp->acknowledgment_number;
+		ack_number = tcp->acknowledgment_number;
 		gro_ctx->next_seq = tcp->sequence_number +
 				(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				headers_size;
@@ -642,6 +641,9 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		*((struct tcp_gro_last_seg_header_fields *)
 				(&(tcp->acknowledgment_number))) =
 						gro_ctx->last_seg_fields;
+
+	/* update new aggregation acknowledgment number */
+	gro_ctx->last_seg_fields.acknowledgment_number = ack_number;
 
 	/* write metadata to external memory */
 	cdma_write((gro_ctx->metadata_addr + METADATA_MEMBER1_SIZE),

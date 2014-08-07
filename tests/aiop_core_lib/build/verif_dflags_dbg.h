@@ -4,7 +4,7 @@
 #define DEBUG_LEVEL         2
 #define AIOP_VERIF
 
-#include "dflags_dbg.h"
+#include "build_flags.h"
 
 
 #endif /* __VERIF_DFLAGS_DBG_H */

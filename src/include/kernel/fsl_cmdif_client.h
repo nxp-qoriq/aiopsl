@@ -38,7 +38,7 @@
 #define CMDIF_NORESP_CMD	0x1000
 /**< Bit to be used for commands that don't need response */
 
-/* @} end of group CMDIF_SEND_ATTRIBUTES */
+/** @} end of group CMDIF_SEND_ATTRIBUTES */
 
 
 /**************************************************************************//**

@@ -12,7 +12,7 @@
 
 
 /**************************************************************************//**
-@Group         fsl_os_g  FSL OS Interface (System call hooks)
+@Group		fsl_os_g FSL OS Interface (System call hooks)
 
 @Description   Prototypes, externals and typedefs for system-supplied
                 (external) routines
