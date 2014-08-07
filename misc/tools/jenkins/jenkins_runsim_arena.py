@@ -41,7 +41,7 @@ while True:
 		else: # got line
 			i = 0
 			print line
-			if 'AIOP boot finished; ready for tasks...' in line:
+			if 'arena_test_40.pcap' in line:
 				print 'injecting packets'
 				Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","arena_test_40.pcap"])
 			elif 'ARENA Test Finished SUCCESSFULLY' in line:
