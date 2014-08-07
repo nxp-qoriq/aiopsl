@@ -1555,6 +1555,18 @@ int ipsec_frame_decrypt(
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
 
+	/* 	4.	Identify if L2 header exist in the frame, 
+	 * and if yes get the L2 header length. */
+	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
+		/* Note: For tunnel mode decryption there is no need to update 
+		 * the Ethertype field, since SEC HW is doing it */
+		
+		/* Ethernet header length and indicator */ 
+		eth_length = (uint8_t)
+				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
+								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
+	}
+	
 	/* Prepare DPOVRD Parameters */
 	/* For transport mode: IP header length, Next header offset */
 	/* For tunnel mode: 
@@ -1581,6 +1593,10 @@ int ipsec_frame_decrypt(
 				IPSEC_DPOVRD_OVRD |
 				(eth_length<<12) | /* AOIPHO */
 				outer_material_length; /* Outer IP Header Material Length */
+
+		/*---------------------*/
+		/* ipsec_frame_decrypt */
+		/*---------------------*/
 
 	} else { /* Transport Mode */
 		/* For Transport mode set DPOVRD */
@@ -1612,26 +1628,9 @@ int ipsec_frame_decrypt(
 		}
 		
 		dpovrd.transport_decap.reserved = 0;
-	}
 
-	/*---------------------*/
-	/* ipsec_frame_decrypt */
-	/*---------------------*/
-	
-	/* 	4.	Identify if L2 header exist in the frame, 
-	 * and if yes get the L2 header length. */
-	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
-		/* Note: For tunnel mode decryption there is no need to update 
-		 * the Ethertype field, since SEC HW is doing it */
-		
-		/* Ethernet header length and indicator */ 
-		eth_length = (uint8_t)
-				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
-								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
-					
-		/* Transport Mode */
-		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
-	
+		/* 	If L2 header exist in the frame, save it and remove from frame */
+		if (eth_length) {
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
@@ -1643,7 +1642,6 @@ int ipsec_frame_decrypt(
 			/* Remove L2 Header */	
 			/* Note: The gross running sum of the frame becomes invalid 
 			 * after calling this function. */ 
-			 
 			 l2_header_remove();
 			
 			// TODO: 
@@ -1652,10 +1650,10 @@ int ipsec_frame_decrypt(
 		}
 	}
 
-			/*---------------------*/
-			/* ipsec_frame_decrypt */
-			/*---------------------*/
-
+	/*---------------------*/
+	/* ipsec_frame_decrypt */
+	/*---------------------*/
+	
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
