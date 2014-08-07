@@ -64,13 +64,17 @@ Layout is built from 3 different sections: containers, objects, links.
 				obj@4{
 					obj_name = "dpci@2";
 				};
+				obj@5{
+					obj_name = "dpci@5";
+				};
+
 			};
 		};
 		dprc@2 {
 			compatible = "fsl,dprc";
 			parent = "dprc@1";
 			icid = <0>;
-			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJECT_CREATE_ALLOWED";
+			options = "DPRC_CFG_OPT_IOMMU_BYPASS" , "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJECT_CREATE_ALLOWED";
 			portal_id = <1>;
 			objects {
 				obj@1{
@@ -114,6 +118,9 @@ Layout is built from 3 different sections: containers, objects, links.
 				};
 				obj@14{
 					obj_name = "dpci@3";
+				};
+				obj@15{
+					obj_name = "dpci@1";
 				};
 			};
 		};
@@ -189,11 +196,19 @@ Layout is built from 3 different sections: containers, objects, links.
 			max_qos_key_size = <0>;
 			max_dist_key_size = <0>;
 		};
+		dpci@1{
+			compatible = "fsl,dpci";
+			num_of_priorities = <2>;
+		};
 		dpci@2{
 			compatible = "fsl,dpci";
 			num_of_priorities = <2>;
 		};
 		dpci@3{
+			compatible = "fsl,dpci";
+			num_of_priorities = <2>;
+		};
+		dpci@5{
 			compatible = "fsl,dpci";
 			num_of_priorities = <2>;
 		};
@@ -210,6 +225,10 @@ Layout is built from 3 different sections: containers, objects, links.
 		link@3 {
 			obj = "dpci@2";
 			peer = "dpci@3";
+		};
+		link@5 {
+			obj = "dpci@1";
+			peer = "dpci@5";
 		};
 	};
 };
