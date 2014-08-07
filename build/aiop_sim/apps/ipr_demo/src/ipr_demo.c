@@ -172,7 +172,7 @@ int app_init(void)
 	ipr_demo_params.ipv6_timeout_cb = 0;
 	ipr_demo_params.cb_timeout_ipv4_arg = 0;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
-	ipr_demo_params.flags = 0;
+	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
 	ipr_demo_params.tmi_id = 0;
 	
 	fsl_os_print("ipr_demo: Creating IPR instance\n");
