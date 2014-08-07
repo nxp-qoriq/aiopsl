@@ -109,13 +109,13 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		return err;
 
 	ipr_instance.bpid = bpid;
+	ipr_instance.flags = ipr_params_ptr->flags;
 
 	/* For IPv4 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv4;
 	/* Initialize instance parameters */
 	ipr_instance.table_id_ipv4 = 0;
 	ipr_instance.table_id_ipv6 = 0;
-	ipr_instance.flags = 0;
 	if (max_open_frames) {
 		ipr_instance.flags |= IPV4_VALID;
 		ipr_instance_ext.max_open_frames_ipv4 = max_open_frames;
@@ -178,7 +178,6 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	}
 
 	/* Initialize instance parameters */
-	ipr_instance.flags = 0;
 	ipr_instance.extended_stats_addr = ipr_params_ptr->extended_stats_addr;
 	ipr_instance.max_reass_frm_size = ipr_params_ptr->max_reass_frm_size;
 	ipr_instance.min_frag_size_ipv4 = ipr_params_ptr->min_frag_size_ipv4;
@@ -189,7 +188,6 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	ipr_instance.ipv6_timeout_cb = ipr_params_ptr->ipv6_timeout_cb;
 	ipr_instance.cb_timeout_ipv4_arg = ipr_params_ptr->cb_timeout_ipv4_arg;
 	ipr_instance.cb_timeout_ipv6_arg = ipr_params_ptr->cb_timeout_ipv6_arg;
-	ipr_instance.flags = ipr_params_ptr->flags;
 	ipr_instance.tmi_id = ipr_params_ptr->tmi_id;
 	
 	/* Write ipr instance data structure */

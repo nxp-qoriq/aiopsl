@@ -659,7 +659,7 @@ void ipsec_generate_decap_sd(
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
 	} else {
 		/* Transport mode */
-		/* If ESP pad checking is not required output frame is only the LDU */
+		/* If ESP pad checking is not required output frame is only the PDU */
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
 					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
@@ -850,7 +850,14 @@ void ipsec_generate_sa_params(
 			IPSEC_OPTS_ESP_IPVSN) {
 		sap.sap1.flags |= IPSEC_FLG_IPV6;
 	}
-		
+	
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
+				IPSEC_IP_VERSION_IPV6) {
+			sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+		}
+	}
+	
 	sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
 
 	/* UDP Encap for transport mode */
@@ -1000,7 +1007,6 @@ int ipsec_del_sa_descriptor(
 	ipsec_instance_handle_t instance_handle;
 	ipsec_handle_t desc_addr;
 
-	// TODO: Read descriptor with CDMA.
 	// TODO Delete the timers; take care of callbacks in the middle of operation.
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
@@ -1046,7 +1052,6 @@ int ipsec_frame_encrypt(
 		)
 {
 	int return_val;
-	uint8_t *last_etype_pointer;
 	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc;
@@ -1148,11 +1153,11 @@ int ipsec_frame_encrypt(
 		
 		/* Header Length according to IPv6/IPv4 */
 		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
-			dpovrd.transport_encap.ip_hdr_len = 40; // TODO: need to calc extension headers
-			/* If transport/IPv6 and NH_OFFSET = 01h, the N byte comes 
-			 * from byte 6 of the IP header (header without extensions)*/
-			dpovrd.transport_encap.nh_offset = 0x1; // TODO: need to calc extension headers
-			
+			/* Get the NH_OFFSET for the last header to encapsulate*/
+			dpovrd.transport_encap.nh_offset = 
+				ipsec_get_ipv6_nh_offset(
+					(struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT(),
+					&(dpovrd.transport_encap.ip_hdr_len));
 		} else { /* IPv4 */
 			/* IPv4 Header Length in Bytes */
 			dpovrd.transport_encap.ip_hdr_len = ((uint8_t)
@@ -1164,14 +1169,8 @@ int ipsec_frame_encrypt(
 			dpovrd.transport_encap.nh_offset = 0x1;
 		}
 		
-
-		
-		/* Set the Next Header to ESP or UDP (the same for IPv4 and IPv6) */
-		if (sap1.flags & IPSEC_ENC_OPTS_NAT_EN) {
-			dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_UDP;
-		} else {
-			dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_ESP;
-		}
+		/* Set the Next Header to ESP (the same for IPv4 and IPv6) */
+		dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_ESP;
 	}
 	
 	/*---------------------*/
@@ -1185,13 +1184,17 @@ int ipsec_frame_encrypt(
 		/* For tunnel mode, update the Ethertype field according to the 
 		 * outer header (IPv4/Ipv6), since after SEC encryption
 		 * the parser results are not valid any more */
-		
-		/* Get the pointer to last EtherType */
-		last_etype_pointer = PARSER_GET_LAST_ETYPE_POINTER_DEFAULT();
-		
-		/* Update the Ethertype according to the outher IP header */
-		// TODO. Currently this is always IPv4
-		
+		if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
+			/* Update the Ethertype according to the outher IP header */
+			if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) {
+				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
+						IPSEC_ETHERTYPE_IPV6;
+			} else {
+				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
+						IPSEC_ETHERTYPE_IPV4;
+			}
+		}
+
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 		
@@ -1220,8 +1223,6 @@ int ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-	
-	
 	
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -1389,6 +1390,12 @@ int ipsec_frame_encrypt(
 		/* TODO: Update running sum ??? */
 		//		pr->gross_running_sum = 0;
 	}
+	
+	/* In transport mode, optionally add UDP encapsulation */
+	if ((!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) &&
+			(sap1.flags & IPSEC_ENC_OPTS_NAT_EN)) {
+		// TODO, including checksum updates
+	} 
 
 		/*---------------------*/
 		/* ipsec_frame_encrypt */
@@ -1404,6 +1411,7 @@ int ipsec_frame_encrypt(
 		/* 	18.2.	Add byte-count from SEC and one packet count. */
 		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
 		 * (STE increment + accumulate). */
+	
 	
 	if (sap1.flags & 
 			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
@@ -1455,7 +1463,6 @@ int ipsec_frame_decrypt(
 		)
 {
 	int return_val;
-	uint8_t *last_etype_pointer;
 	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc; /* Original FLC */
@@ -1484,8 +1491,6 @@ int ipsec_frame_decrypt(
 	
 	/* 	Inbound frame decryption and decapsulation */
 	
-	/* 	TODO: Currently supporting only Tunnel mode simplified flow */
-
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
@@ -1549,67 +1554,8 @@ int ipsec_frame_decrypt(
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
-	
-	/* 	4.	Identify if L2 header exist in the frame, 
-	 * and if yes get the L2 header length. */
-	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
-		
-		/* For tunnel mode, update the Ethertype field according to the 
-		 * outer header (IPv4/Ipv6), since after SEC encryption
-		 * the parser results are not valid any more */
-		
-		/* Get the pointer to last EtherType */
-		last_etype_pointer = PARSER_GET_LAST_ETYPE_POINTER_DEFAULT();
-		
-		/* Update the Ethertype according to the outher IP header */
-		// TODO. Currently this is always IPv4
-		
-		/* Ethernet header length and indicator */ 
-		eth_length = (uint8_t)
-				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
-								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
-					
-		/* Transport Mode */
-		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
-	
-		/* Save Ethernet header. Note: no swap */
-		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
-			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-		
-			for (i = 0 ; i < eth_length; i++) {
-				eth_header[i] = *(eth_pointer_default + i);
-			}
-				
-			
-			/* Ethernet header length and indicator */ 
-					
-			
-			/* Remove L2 Header */	
-			/* Note: The gross running sum of the frame becomes invalid 
-			 * after calling this function. */ 
-			 
-			 l2_header_remove();
-			
-			// TODO: 
-			/* For decryption in transport mode it is required to update 
-			  * the running sum. */
-			 			
-		}
-	}
 
-			/*---------------------*/
-			/* ipsec_frame_decrypt */
-			/*---------------------*/
-
-	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
-	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	
-	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-
-	
-	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
+	/* Prepare DPOVRD Parameters */
 	/* For transport mode: IP header length, Next header offset */
 	/* For tunnel mode: 
 	 * IP header length, Actual Outer IP Header Offset (AOIPHO), including L2 */
@@ -1635,14 +1581,91 @@ int ipsec_frame_decrypt(
 				IPSEC_DPOVRD_OVRD |
 				(eth_length<<12) | /* AOIPHO */
 				outer_material_length; /* Outer IP Header Material Length */
-		// TODO:  outer_material_length in case of UDP??
-				
-		LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
 
 	} else { /* Transport Mode */
-		// TODO
+		/* For Transport mode set DPOVRD */
+		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
+		 * 23-16 IP Header Length in bytes, 
+		* of the portion of the IP header that is not encrypted.
+		* 15-8 NH_OFFSET - location of the next header within the IP header.
+		* 7-0 Reserved */
+		dpovrd.transport_decap.ovrd = IPSEC_DPOVRD_OVRD_TRANSPORT;
+
+		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
+			/* Get the NH_OFFSET for the last header before ESP */
+			dpovrd.transport_decap.nh_offset = 
+				ipsec_get_ipv6_nh_offset(
+					(struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT(),
+					&(dpovrd.transport_decap.ip_hdr_len));
+			
+		} else { /* IPv4 */
+			/* If transport/IPv4 for any non-zero value of NH_OFFSET 
+			 * (typically set to 01h), the N byte comes from byte 9 of 
+			 * the IP header */
+			dpovrd.transport_decap.nh_offset = 0x1;
+			
+			/* Header Length up to ESP */
+			dpovrd.transport_decap.ip_hdr_len = (uint8_t)
+				((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
+					(uint32_t)
+						((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT())); 
+		}
+		
+		dpovrd.transport_decap.reserved = 0;
 	}
+
+	/*---------------------*/
+	/* ipsec_frame_decrypt */
+	/*---------------------*/
 	
+	/* 	4.	Identify if L2 header exist in the frame, 
+	 * and if yes get the L2 header length. */
+	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
+		/* Note: For tunnel mode decryption there is no need to update 
+		 * the Ethertype field, since SEC HW is doing it */
+		
+		/* Ethernet header length and indicator */ 
+		eth_length = (uint8_t)
+				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
+								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
+					
+		/* Transport Mode */
+		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
+	
+		/* Save Ethernet header. Note: no swap */
+		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
+			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+		
+			for (i = 0 ; i < eth_length; i++) {
+				eth_header[i] = *(eth_pointer_default + i);
+			}
+	
+			/* Remove L2 Header */	
+			/* Note: The gross running sum of the frame becomes invalid 
+			 * after calling this function. */ 
+			 
+			 l2_header_remove();
+			
+			// TODO: 
+			/* For decryption in transport mode it is required to update 
+			  * the running sum. */
+		}
+	}
+
+			/*---------------------*/
+			/* ipsec_frame_decrypt */
+			/*---------------------*/
+
+	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
+	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	
+	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
+	
+	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
+	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
+
 	/* 	8.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
@@ -1735,8 +1758,6 @@ int ipsec_frame_decrypt(
 	 * beginning of the FLC.
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] }
 	*/
-	// TODO (still not implemented in the simulator)
-	//return_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 	
@@ -1747,6 +1768,26 @@ int ipsec_frame_decrypt(
 	pr->gross_running_sum = checksum;
 			
 	// TODO: handle in transport mode
+	
+	/* In Transport mode, if L2 header existed in the original frame, 
+	 * add it back */
+	if ((!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) && eth_length) {
+		/* Note: The Ethertype was already updated before removing the 
+		 * L2 header */
+		return_val = fdma_insert_default_segment_data(
+				0, /* uint16_t to_offset */
+				eth_header, /* void	 *from_ws_src */
+				eth_length, /* uint16_t insert_size */
+				FDMA_REPLACE_SA_REPRESENT_BIT 
+					/* uint32_t flags */
+				);
+		
+		/* TODO: Re-run parser ??? */
+		//		parse_result_generate_default(0);
+		
+		/* TODO: Update running sum ??? */
+		//		pr->gross_running_sum = 0;
+	}
 	
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
@@ -1803,9 +1844,8 @@ decrypt_end:
 	/* 	21.	END */
 	/* 	21.1. Update the encryption status (enc_status) and return status. */
 	/* 	21.2. If started as Concurrent ordering scope, 
-	 *  move from Exclusive to Concurrent 
-	 *  (if AAP does that, only register through OSM functions). */
-	// TODO
+	 *  move from Exclusive to Concurrent  
+	 *  (AAP does that, only register through OSM functions). */
 	
 	/* Check if started in concurrent mode */
 	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
@@ -2058,7 +2098,7 @@ int ipsec_get_seq_num(
 	Destination is placed after Routing header.
 	
 *//****************************************************************************/
-uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr)
+uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 {
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;
@@ -2066,7 +2106,8 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr)
 	uint8_t next_hdr;
 	uint8_t dst_ext;
 	uint8_t nh_offset = 0; /* default value for no extensions */
-
+	uint8_t header_after_dest;
+	
 	/* Destination extension can appear only once on fragment request */
 	dst_ext = IPV6_EXT_DESTINATION;
 
@@ -2074,7 +2115,11 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr)
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
 	current_hdr_size = IPV6_HDR_LENGTH;
 	next_hdr = ipv6_hdr->next_header;
-
+	
+	/* IP Header Length for SEC encapsulation, including IP header and
+	 * extensions before ESP */
+	*length = IPV6_HDR_LENGTH;
+	
 	/* Skip to next extension header until extension isn't ipv6 header
 	 * or until extension is the fragment position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
@@ -2094,35 +2139,70 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr)
 			/* If the next header is not Routing, this should be
 			 * the starting point for ESP encapsulation  */
 			if (next_hdr != IPV6_EXT_ROUTING) {
-				/* Don't add to NH_OFFSET and Exit from the while loop */
+				/* Don't add to NH_OFFSET/length and Exit from the while loop */
 				dst_ext = 0;
 			} else {
+				/* Next header is Routing */
 				nh_offset += current_hdr_size; /* in 8 bytes multiples */
 				current_hdr_size = ((current_hdr_size + 1) << 3);
+				*length += current_hdr_size;
 			}
-
 			break;
 		}
 		case IPV6_EXT_FRAGMENT:
 		{
-			nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; /* 8 bytes multiples */
+			/* Increment NH_OFFSET only if next header is extension */
+			if ((next_hdr == IPV6_EXT_ROUTING) ||
+				(next_hdr == IPV6_EXT_HOP_BY_HOP)) {
+				/* in 8 bytes multiples */
+				nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
+			} else if (next_hdr == IPV6_EXT_DESTINATION) {
+				/* Get the header after the following destination */
+				header_after_dest = 
+					*((uint8_t *)(current_hdr_ptr + 
+							IPV6_FRAGMENT_HEADER_LENGTH));
+				/* Increment NH_OFFSET only if this is not the last ext. header
+				 * before Destination */
+				if (header_after_dest == IPV6_EXT_ROUTING) {
+					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
+				}
+			}
+
 			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
+			*length += current_hdr_size;
 			break;
 		}
 
 		/* Routing, Hop By Hop */
 		default:
 		{
-			nh_offset += current_hdr_size; /* in 8 bytes multiples */
+			/* Increment NH_OFFSET only if next header is extension */
+			if ((next_hdr == IPV6_EXT_ROUTING) ||
+				(next_hdr == IPV6_EXT_HOP_BY_HOP) ||	
+				(next_hdr == IPV6_EXT_FRAGMENT)) {
+				/* in 8 bytes multiples */
+				nh_offset += current_hdr_size; 
+			} else if (next_hdr == IPV6_EXT_DESTINATION) {
+				header_after_dest = 
+					*((uint8_t *)(current_hdr_ptr + 
+							((current_hdr_size + 1)<<3)));
+				/* Increment NH_OFFSET only if this is not the last ext. header
+				 * before Destination */
+				if (header_after_dest == IPV6_EXT_ROUTING) {
+					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
+				}
+			}
+			
 			current_hdr_size = ((current_hdr_size + 1) << 3);
+			*length += current_hdr_size;
 			break;
 		}
 		}
 	}
 
-	/* return last extension pointer and extension indicator */
+	/* Return NH_OFFSET as expected by the SEC */
 	if (nh_offset) {
-		/* NH_OFFSET in 8 bytes multiple for IP header + Extensions */
+		/* NH_OFFSET in 8 bytes multiples for IP header + Extensions */
 		return (nh_offset + (IPV6_HDR_LENGTH>>3));
 	} else {
 		return 0x1; /* NH_OFFSET in case of no Extensions */

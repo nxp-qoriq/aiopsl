@@ -755,8 +755,8 @@ int platform_enable_console(fsl_handle_t h_platform)
     SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), E_NOT_SUPPORTED);
 
     /* Fill DUART configuration parameters */
-    /*TODO: the base address is hard coded to uart 0, should be modified*/
-    duart_uart_param.base_address       = SOC_PERIPH_OFF_DUART1;
+    /*TODO: the base address is hard coded to uart 2_0, should be modified*/
+    duart_uart_param.base_address       = SOC_PERIPH_OFF_DUART3;
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
     duart_uart_param.parity             = E_DUART_PARITY_NONE;
