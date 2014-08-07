@@ -279,11 +279,11 @@ int32_t vpool_add_total_bman_bufs(
 	int i;
 	int16_t bman_array_index = -1;
 
-	#ifdef SL_DEBUG
-		/* Check the arguments correctness */
-		if (bman_pool_id >= MAX_VIRTUAL_BMAN_POOLS_NUM)
-				return VIRTUAL_POOLS_ILLEGAL_ARGS;
-	#endif
+#ifdef SL_DEBUG
+	/* Check the arguments correctness */
+	if (bman_pool_id >= MAX_VIRTUAL_BMAN_POOLS_NUM)
+		return VIRTUAL_POOLS_ILLEGAL_ARGS;
+#endif
 
 	/* Check which BMAN pool ID array element matches the ID */
 	for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
@@ -439,7 +439,7 @@ void vpool_release_buf(uint32_t virtual_pool_id,
 	cdma_release_context_memory(context_address);
 
 	__vpool_internal_release_buf(virtual_pool_id);
-	
+
 } /* End of vpool_release_buf */
 
 /***************************************************************************
@@ -516,8 +516,8 @@ int32_t vpool_refcount_decrement_and_release(
 		if (callback->callback_func != NULL) {
 			no_callback = FALSE;
 			/* Decrement ref counter without release */
-			/* Note: if the reference count was already at zero 
-			 * (so CDMA returned with decrement error) the CDMA 
+			/* Note: if the reference count was already at zero
+			 * (so CDMA returned with decrement error) the CDMA
 			 * function will not return */
 			cdma_status = cdma_refcount_decrement(context_address);
 
@@ -547,7 +547,7 @@ int32_t vpool_refcount_decrement_and_release(
 		 * (so CDMA returned with decrement error). */
 		if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
 			release = TRUE;
-		} 
+		}
 	}
 
 	/* TODO: the return value is inconsistent with

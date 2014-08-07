@@ -89,26 +89,33 @@ static inline int find_bpid(uint16_t buff_size,
 
 	/* Verify that we really found a legal bpid */
 	if (found) {
-		*bpid            = hw_pools[temp].pool_id;
+		*bpid = hw_pools[temp].pool_id;
 		return 0;
 	}
 
 	return -ENAVAIL;
 }
 
-/**
- * TODO
- * int slab_find_and_free_bpid(int num_buffs,
-                               uint16_t *bpid)
- * USE increment "vpool_incr_bman_bufs"
- */
+/*****************************************************************************/
+int slab_find_and_free_bpid(uint32_t num_buffs,
+                            uint16_t *bpid)
+{
+	int error = 0;
+	error = vpool_add_total_bman_bufs(*bpid,(int)num_buffs);
+
+	if(error){
+		return -EINVAL;
+	}
+
+	return 0;
+}
 
 /*****************************************************************************/
 int slab_find_and_reserve_bpid(uint32_t num_buffs,
                                uint16_t buff_size,
                                uint16_t alignment,
                                uint8_t  mem_pid,
-                               int      *num_filled_buffs,
+                               int      *num_reserved_buffs,
                                uint16_t *bpid)
 {
 	int        error = 0, i = 0;
@@ -134,7 +141,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 	if(error){
 		return -ENOMEM;
 	}
-	*num_filled_buffs = (int)num_buffs;
+	*num_reserved_buffs = (int)num_buffs;
 
 
 	return 0;
