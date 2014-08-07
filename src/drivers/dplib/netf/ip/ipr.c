@@ -90,7 +90,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				ipr_params_ptr->max_open_frames_ipv6 + 1;
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
-	status = slab_find_and_reserve_bpid((int)aggregate_open_frames,
+	status = slab_find_and_reserve_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
 					MEM_PART_DP_DDR,

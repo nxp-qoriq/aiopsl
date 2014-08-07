@@ -104,7 +104,7 @@ int ipsec_create_instance (
 	instance.tmi_id = tmi_id;
 
 	/* Descriptor and Instance Buffers */
-	return_val = slab_find_and_reserve_bpid((int)
+	return_val = slab_find_and_reserve_bpid(
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			1, /* uint16_t alignment = 1, i.e. no alignment requirements */

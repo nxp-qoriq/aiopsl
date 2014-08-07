@@ -104,7 +104,7 @@ static inline int find_bpid(uint16_t buff_size,
  */
 
 /*****************************************************************************/
-int slab_find_and_reserve_bpid(int num_buffs,
+int slab_find_and_reserve_bpid(uint32_t num_buffs,
                                uint16_t buff_size,
                                uint16_t alignment,
                                uint8_t  mem_pid,
@@ -129,7 +129,7 @@ int slab_find_and_reserve_bpid(int num_buffs,
 	                  bpid);
 	SLAB_ASSERT_COND_RETURN(error == 0, error);
 
-	error = vpool_decr_total_bman_bufs(*bpid,num_buffs);
+	error = vpool_decr_total_bman_bufs(*bpid,(int)num_buffs);
 
 	if(error){
 		return -ENOMEM;
@@ -498,6 +498,8 @@ static int slab_alocate_memory(int num_bpids, struct slab_module_info *slab_m, s
 			return -EINVAL;
 		}
 
+		slab_m->hw_pools[i].total_num_buffs = num_of_buffs;
+
 	}
 	return err;
 }
@@ -602,14 +604,22 @@ int slab_module_init(void)
 /*****************************************************************************/
 void slab_module_free(void)
 {
-	/*TODO free reserved bpids before freeing the module using free_buffs_from_bman_pool*/
+	int i;
 	struct slab_module_info *slab_m = \
 		sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
 	sys_remove_handle(FSL_OS_MOD_SLAB, 0);
 
-	if (slab_m != NULL)
+	if (slab_m != NULL){
+		for(i = 0; i < slab_m->num_hw_pools; i++)
+			free_buffs_from_bman_pool(
+				slab_m->hw_pools[i].pool_id,
+			        slab_m->hw_pools[i].total_num_buffs,
+			        slab_m->icid,
+			        slab_m->fdma_flags);
 		free_slab_module_memory(slab_m);
+
+	}
 }
 
 /*****************************************************************************/

@@ -103,6 +103,8 @@ struct slab_hw_pool_info {
 	/**< Buffer alignment */
 	uint16_t mem_pid;
 	/**< Memory partition for buffers allocation */
+	int total_num_buffs;
+	/**< Number of allocated buffers per pool */
 };
 
 /**************************************************************************//**
@@ -174,7 +176,7 @@ void slab_module_free(void);
 	       -ENAVAIL - could not release into bpid
 	       -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
-int slab_find_and_reserve_bpid(int num_buffs,
+int slab_find_and_reserve_bpid(uint32_t num_buffs,
 			uint16_t buff_size,
 			uint16_t alignment,
 			uint8_t  mem_partition_id,
