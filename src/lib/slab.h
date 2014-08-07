@@ -76,6 +76,9 @@
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP         1000
+#define SLAB_NUM_OF_BUFS_DPDDR  750
+#define SLAB_NUM_OF_BUFS_PEB    20
+
 
 /**************************************************************************//**
 @Description   Information for every bpid
@@ -100,6 +103,8 @@ struct slab_hw_pool_info {
 	/**< Buffer alignment */
 	uint16_t mem_pid;
 	/**< Memory partition for buffers allocation */
+	int total_num_buffs;
+	/**< Number of allocated buffers per pool */
 };
 
 /**************************************************************************//**
@@ -151,9 +156,9 @@ int slab_module_init(void);
 void slab_module_free(void);
 
 /**************************************************************************//**
-@Function      slab_find_and_fill_bpid
+@Function      slab_find_and_reserve_bpid
 
-@Description   Finds and fills buffer pool with new buffers
+@Description   Finds and reserve buffers from buffer pool.
 
 		This function is part of SLAB module therefore it should be
 		called only after it has been initialized by slab_module_init()
@@ -162,20 +167,37 @@ void slab_module_free(void);
 @Param[in]     buff_size         Size of buffers in pool.
 @Param[in]     alignment         Requested alignment for data field (in bytes).
 				 AIOP: HW pool supports up to 8 bytes alignment.
-@Param[in]     mem_partition_id  Memory partition ID for allocation.
+@Param[in]     mem_partition_id  Memory partition ID for buffer type.
 				 AIOP: HW pool supports only PEB and DPAA DDR.
-@Param[out]    num_filled_buffs  Number of buffers that we succeeded to fill.
-@Param[out]    bpid              Id of pool that was filled with new buffers.
+@Param[out]    num_reserved_buffs  Number of buffers that we succeeded to reserve.
+@Param[out]    bpid              Id of pool that supply the requested buffers.
 
 @Return        0       - on success,
 	       -ENAVAIL - could not release into bpid
 	       -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
-int slab_find_and_fill_bpid(uint32_t num_buffs,
+int slab_find_and_reserve_bpid(uint32_t num_buffs,
 			uint16_t buff_size,
 			uint16_t alignment,
 			uint8_t  mem_partition_id,
-			int      *num_filled_buffs,
+			int      *num_reserved_buffs,
 			uint16_t *bpid);
+
+/**************************************************************************//**
+@Function      slab_find_and_free_bpid
+
+@Description   Finds and free buffer pool with new buffers
+
+		This function is part of SLAB module therefore it should be
+		called only after it has been initialized by slab_module_init()
+
+@Param[in]    num_buffs        Number of buffers in new pool.
+@Param[in]    bpid              Id of pool that was filled with new buffers.
+
+@Return        0       - on success,
+	       -ENAVAIL - bman pool not found
+ *//***************************************************************************/
+int slab_find_and_free_bpid(uint32_t num_buffs,
+                            uint16_t *bpid);
 
 #endif /* __SLAB_H */

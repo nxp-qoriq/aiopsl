@@ -111,18 +111,25 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 
 int app_test_slab(struct slab *slab, int num_times)
 {
-	uint64_t buff[3] = {0, 0, 0};
+	uint64_t buff[4] = {0, 0, 0, 0};
 	int      err = 0;
 	int      i = 0;
+	struct slab *my_slab;
+
+	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 0,
+	                  NULL, &my_slab);
 
 	for (i = 0; i < num_times; i++) {
 
 		err = slab_acquire(slab, &buff[0]);
-		if (err || (buff == NULL)) return -ENOMEM;
+		if (err || (buff[0] == NULL)) return -ENOMEM;
 		err = slab_acquire(slab, &buff[1]);
-		if (err || (buff == NULL)) return -ENOMEM;
+		if (err || (buff[1] == NULL)) return -ENOMEM;
 		err = slab_acquire(slab, &buff[2]);
-		if (err || (buff == NULL)) return -ENOMEM;
+		if (err || (buff[2] == NULL)) return -ENOMEM;
+
+		err = slab_acquire(my_slab, &buff[3]);
+		if (err || (buff[3] == NULL)) return -ENOMEM;
 
 		err = app_write_buff_and_release(slab, buff[1]);
 		if (err) return err;
@@ -130,7 +137,15 @@ int app_test_slab(struct slab *slab, int num_times)
 		if (err) return err;
 		err = app_write_buff_and_release(slab, buff[0]);
 		if (err) return err;
+		err = app_write_buff_and_release(my_slab, buff[3]);
+		if (err) return err;
 	}
+
+	err = slab_free(&my_slab);
+	if (err) return err;
+
+	err = slab_acquire(my_slab, &buff[3]);
+	if(err == 0) return -EINVAL;
 
 	return 0;
 }

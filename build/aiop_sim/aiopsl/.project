@@ -115,16 +115,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>cw_files/libc_E200z446_VLE.a</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/cw_files/libc_E200z446_VLE.a</locationURI>
-		</link>
-		<link>
-			<name>cw_files/librt_E200z446_VLE.a</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/cw_files/librt_E200z446_VLE.a</locationURI>
-		</link>
-		<link>
 			<name>cw_files/start.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/cw_files/start.c</locationURI>

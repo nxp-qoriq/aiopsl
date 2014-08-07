@@ -143,7 +143,7 @@ struct ipr_rfdc{
 	uint16_t	status;
 	uint16_t	total_in_order_payload;
 	/* 4 next bytes can move to extension */
-	struct 		fdma_amq isolation_bits; 
+	struct 		fdma_amq isolation_bits;
 	uint64_t	ipv4_key[2];
 	uint16_t	iphdr_offset;
 	uint16_t	ipv6_fraghdr_offset;
@@ -199,7 +199,7 @@ Implicit:	max_buffers - maximum number of buffers to be used as
 		flags - \link IPRInitFlags IPR init flags \endlink
 
 
-@Return		reflect the return value from slab_find_and_fill_bpid().
+@Return		reflect the return value from slab_find_and_reserve_bpid().
 		0       - on success,
                -ENAVAIL - could not release into bpid
                -ENOMEM  - not enough memory for mem_partition_id.
@@ -224,7 +224,7 @@ int ipr_init(void);
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr, 
+				 uint64_t rfdc_ext_addr,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4);
 

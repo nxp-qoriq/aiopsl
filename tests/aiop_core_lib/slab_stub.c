@@ -7,7 +7,7 @@
 #include "slab_stub.h"
 #include "system.h"
 
-int slab_find_and_fill_bpid(uint32_t num_buffs,
+int slab_find_and_reserve_bpid(uint32_t num_buffs,
                             uint16_t buff_size,
                             uint16_t alignment,
                             uint8_t  mem_partition_id,

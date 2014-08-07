@@ -16,9 +16,9 @@
 #define MEM_PART_1ST_DDR_NON_CACHEABLE 1
 
 /**************************************************************************//**
- @Function      slab_find_and_fill_bpid
+ @Function      slab_find_and_reserve_bpid
 
- @Description   Finds and fills buffer pool with new buffers
+ @Description   Finds and reserve buffer pool with new buffers
 
                 This function is part of SLAB module therefore it should be called only after
                 it has been initialized by slab_module_init()
@@ -37,7 +37,7 @@
                -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
 
-int slab_find_and_fill_bpid(
+int slab_find_and_reserve_bpid(
 			uint32_t num_buffs,
 			uint16_t buff_size,
 			uint16_t alignment,
