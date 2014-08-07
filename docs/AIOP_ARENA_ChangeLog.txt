@@ -1,3 +1,9 @@
+- build/aiop_sim/aiopsl/.cproject                     Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/apps/app_process_packet/.cproject    Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/tests/arena_test/.cproject           Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/tests/cmdif_test/.cproject           Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/tests/inet_test/.cproject            Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+
 - slab.c/h:          slab_module_init(): was modified to allocate memory for all buffers to avoid using malloc in runtime.
                      slab_find_and_fill(): renamed to slab_find_and_reserve() and now it just tryies to reserve buffers for
                                            the service layer (no allocation in runtime)
