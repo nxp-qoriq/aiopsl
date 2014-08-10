@@ -1,8 +1,34 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**************************************************************************//**
 @File		ipsec.c
 
 @Description	This file contains the AIOP IPSec implementation.
-		
+
 *//***************************************************************************/
 
 #include "common/types.h"
@@ -41,14 +67,14 @@
 #define use_dummy_pr_debug
 void dummy_pr_debug (...);
 void dummy_pr_debug (...) {}
-#define pr_debug dummy_pr_debug 
+#define pr_debug dummy_pr_debug
 #endif
 
 #ifndef pr_err
 #define use_dummy_pr_err
 void dummy_pr_err (...);
 void dummy_pr_err (...) {}
-#define pr_err dummy_pr_err 
+#define pr_err dummy_pr_err
 #endif
 
 #include "rta.h"
@@ -87,15 +113,15 @@ int ipsec_create_instance (
 		ipsec_instance_handle_t *instance_handle)
 {
 	int32_t return_val;
-	
-	// committed_sa_num for desc BPID size 512, alignment 64 B 
+
+	// committed_sa_num for desc BPID size 512, alignment 64 B
 	// committed_sa_num for keys BPID
 	// committed_sa_num for IPv6 outer header (TBD)
-	// max num of tasks for ASA 
-	
+	// max num of tasks for ASA
+
 	int num_filled_buffs;
-	
-	struct ipsec_instance_params instance; 
+
+	struct ipsec_instance_params instance;
 
 	instance.sa_count = 0;
 	instance.committed_sa_num = committed_sa_num;
@@ -104,39 +130,39 @@ int ipsec_create_instance (
 	instance.tmi_id = tmi_id;
 
 	/* Descriptor and Instance Buffers */
-	return_val = slab_find_and_fill_bpid(
+	return_val = slab_find_and_reserve_bpid(
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
-			1, /* uint16_t alignment = 1, i.e. no alignment requirements */ 
+			1, /* uint16_t alignment = 1, i.e. no alignment requirements */
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             &num_filled_buffs, /* int *num_filled_buffs */
             &(instance.desc_bpid)); /* uint16_t *bpid */
-	
+
 	if (return_val) {
 		// TODO: call future slab release function per BPID
 		// for all previously requested buffers
 		return -ENOMEM;
 	}
-	
+
 	/* TODO: ASA buffers should be shared for all instances */
 	/* ASA Buffers */
-	
+
 	/* Check if instances counter is zero */
 	/* If yes allocate ASA buffers */
 	lock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-		
+
 	if (ipsec_global_instance_params.instance_count == 0) {
 		ipsec_global_instance_params.instance_count++;
 		unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-		
-		return_val = slab_find_and_fill_bpid(
+
+		return_val = slab_find_and_reserve_bpid(
 				IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
 				IPSEC_MAX_ASA_SIZE, /* uint16_t buff_size */
 				IPSEC_MAX_ASA_BUF_ALIGN, /* uint16_t alignment */
 				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
 	            &num_filled_buffs, /* int *num_filled_buffs */
 	            &(instance.asa_bpid)); /* uint16_t *bpid */
-		
+
 		if (return_val) {
 			// TODO: call future slab release function per BPID
 			// for all previously requested buffers
@@ -147,24 +173,24 @@ int ipsec_create_instance (
 		ipsec_global_instance_params.instance_count++;
 		unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 	}
-	
+
 	/* Allocate a buffer for the instance */
 	return_val = (int32_t)cdma_acquire_context_memory(
 		instance.desc_bpid,
-		instance_handle); /* context_memory */ 
-	
+		instance_handle); /* context_memory */
+
 	if (return_val) {
-		// TODO: return with correct error code 
+		// TODO: return with correct error code
 		return IPSEC_ERROR;
 	}
-		
+
 	/* Write the Instance to external memory */
 	cdma_write(
 			*instance_handle, /* ext_address */
 			&instance, /* ws_src */
 			(uint16_t)(sizeof(instance))); /* size */
 
-	return IPSEC_SUCCESS; 
+	return IPSEC_SUCCESS;
 }
 
 
@@ -181,42 +207,42 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 			instance_handle, /* uint64_t ext_address */
 			sizeof(sa_count) /* uint16_t size */
 			);
-	
+
 	/* Check if all SAs were deleted */
 	if (sa_count == 0) {
-		
-		/* Release the instance buffer */ 
+
+		/* Release the instance buffer */
 		return_val = cdma_refcount_decrement_and_release(instance_handle);
 		/* TODO: check for CDMA errors. Mind reference count zero status */
-		
+
 		/* TODO: return "committed + 1" buffers back to the slab */
-		
+
 		/* Check if instances counter is zero */
 		/* If yes return ASA buffers to the slab */
 		lock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-		
+
 		/* Error if instance counter is already zero */
 		if (ipsec_global_instance_params.instance_count == 0) {
 			/* EPERM = 1, Operation not permitted */
 			return -EPERM; /* TODO: what is the correct error code? */
 		}
-				
+
 		ipsec_global_instance_params.instance_count--;
-		
+
 		/* Check if this is the last instance */
 		if (ipsec_global_instance_params.instance_count == 0) {
 			unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-			
+
 			/* TODO: return IPSEC_MAX_NUM_OF_TASKS buffers back to the slab */
-		
+
 		} else {
 			unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 		}
-		
+
 		return IPSEC_SUCCESS;
 	} else {
 		/* TODO: handle a case of instance delete before SAs full delete */
-		
+
 		/* EPERM = 1, Operation not permitted */
 		return -EPERM; /* TODO: what is the correct error code? */
 	}
@@ -229,14 +255,14 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle)
 {
 	int return_val;
-	struct ipsec_instance_params instance; 
+	struct ipsec_instance_params instance;
 	int num_filled_buffs;
 
 	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
 			&instance, /* void *ws_dst */
-			sizeof(instance) /* uint16_t size */	
+			sizeof(instance) /* uint16_t size */
 	);
 
 	if (instance.sa_count < instance.committed_sa_num) {
@@ -246,16 +272,16 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 				instance_handle, /* uint64_t ext_address */
 				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 				&instance.sa_count, /* void *ws_dst */
-				sizeof(instance.sa_count) /* uint16_t size */	
+				sizeof(instance.sa_count) /* uint16_t size */
 		);
-		
+
 		return_val = (int)cdma_acquire_context_memory(
 				instance.desc_bpid,
 				ipsec_handle); /* context_memory */
 
 		/* Check if CDMA allocation failed */
 		if (return_val) goto get_buffer_alloc_err;
-		
+
 	} else if (instance.sa_count < instance.max_sa_num) {
 		instance.sa_count++;
 		/* Write and release lock */
@@ -263,10 +289,10 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 				instance_handle, /* uint64_t ext_address */
 				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 				&instance.sa_count, /* void *ws_dst */
-				sizeof(instance.sa_count) /* uint16_t size */	
+				sizeof(instance.sa_count) /* uint16_t size */
 		);
 		/* Descriptor and Instance Buffers */
-		return_val = slab_find_and_fill_bpid(
+		return_val = slab_find_and_reserve_bpid(
 				1, /* uint32_t num_buffs */
 				IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 				IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
@@ -280,7 +306,7 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		return_val = (int)cdma_acquire_context_memory(
 				instance.desc_bpid,
 				ipsec_handle); /* context_memory */
-		
+
 		/* Check if CDMA allocation failed */
 		if (return_val) goto get_buffer_alloc_err;
 
@@ -289,26 +315,26 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		cdma_mutex_lock_release(instance_handle);
 		return -ENOMEM;
 	}
-	
-	return IPSEC_SUCCESS; 
+
+	return IPSEC_SUCCESS;
 
 get_buffer_alloc_err:
 	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
 			&instance.sa_count, /* void *ws_dst */
-			sizeof(instance.sa_count) /* uint16_t size */	
+			sizeof(instance.sa_count) /* uint16_t size */
 	);
-	
+
 	instance.sa_count--;
-	
+
 	cdma_write_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 			&instance.sa_count, /* void *ws_dst */
-			sizeof(instance.sa_count) /* uint16_t size */	
+			sizeof(instance.sa_count) /* uint16_t size */
 	);
-	
+
 	return -ENOMEM;
 } /* End of ipsec_get_buffer */
 
@@ -319,34 +345,34 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle)
 {
 	int32_t return_val;
-	struct ipsec_instance_params instance; 
+	struct ipsec_instance_params instance;
 
 	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
 			&instance, /* void *ws_dst */
-			sizeof(instance) /* uint16_t size */	
+			sizeof(instance) /* uint16_t size */
 	);
 
 	if (instance.sa_count > 0) {
-		/* Release the buffer */ 
-		return_val = cdma_refcount_decrement_and_release(ipsec_handle); 
+		/* Release the buffer */
+		return_val = cdma_refcount_decrement_and_release(ipsec_handle);
 		/* TODO: check for CDMA errors. Mind reference count zero status */
-				
+
 		/* If buffer taken from 'max' quanta, need to return to slab */
 		if (instance.sa_count > instance.committed_sa_num) {
-		
+
 			/* TODO: return one buffer back to the slab */
 		}
-		
+
 		instance.sa_count--;
-		
+
 		/* Write (just the counter ) and release lock */
 		cdma_write_with_mutex(
 				instance_handle, /* uint64_t ext_address */
 				CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
 				&instance.sa_count, /* void *ws_dst */
-				sizeof(instance.sa_count) /* uint16_t size */	
+				sizeof(instance.sa_count) /* uint16_t size */
 		);
 		return return_val;
 	} else {
@@ -355,11 +381,11 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		/* EPERM = 1, Operation not permitted */
 		return -EPERM; /* TODO: what is the correct error code? */
 	}
-} /* End of ipsec_release_buffer */	
-		
+} /* End of ipsec_release_buffer */
+
 
 /**************************************************************************//**
-@Function		ipsec_generate_encap_sd 
+@Function		ipsec_generate_encap_sd
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
@@ -368,22 +394,22 @@ void ipsec_generate_encap_sd(
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size) /* Shared descriptor Length */
 {
-	
+
 	uint8_t cipher_type = 0;
 	uint8_t pdb_options = 0;
 	int i; // TODO: TMP for outer header copy
-	
+
 	struct encap_pdb {
 		struct ipsec_encap_pdb innerpdb;
-		//uint32_t *outer_hdr; 
-		//uint32_t outer_hdr[5]; 
-		uint32_t outer_hdr[34]; // TMP: 40+96=134 bytes for IPv6 header & ext. 
-	} pdb;	
-	
+		//uint32_t *outer_hdr;
+		//uint32_t outer_hdr[5];
+		uint32_t outer_hdr[34]; // TMP: 40+96=134 bytes for IPv6 header & ext.
+	} pdb;
+
 	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
-	
+
 	/* Build PDB fields for the RTA */
-	
+
 	/* Check which method is it according to the key */
 	switch (params->cipherdata.algtype) {
 		case IPSEC_CIPHER_AES_CBC:
@@ -411,7 +437,7 @@ void ipsec_generate_encap_sd(
 		default:
 			cipher_type = CIPHER_TYPE_CBC; // TODO: check if this is correct
 	}
-	
+
 	switch (cipher_type) {
 		case CIPHER_TYPE_CBC:
 			/* uint32_t iv[4] */
@@ -457,27 +483,27 @@ void ipsec_generate_encap_sd(
 			pdb.innerpdb.cbc.iv[2] = 0;
 			pdb.innerpdb.cbc.iv[3] = 0;
 	}
-	
+
 	/* Tunnel Mode Parameters */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* NAT and NUC Options for tunnel mode encapsulation */
 		/* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
 		/* Bit 0 : NUC Enable NAT UDP Checksum */
 		if (params->flags & IPSEC_ENC_OPTS_NAT_EN)
-				pdb_options = IPSEC_ENC_PDB_OPTIONS_NAT; 
+				pdb_options = IPSEC_ENC_PDB_OPTIONS_NAT;
 		if (params->flags & IPSEC_ENC_OPTS_NUC_EN)
 				pdb_options |= IPSEC_ENC_PDB_OPTIONS_NUC;
-		
+
 		/* outer header from PDB */
 		pdb_options |= IPSEC_ENC_PDB_OPTIONS_OIHI_PDB;
 	} else {
 	/* Transport Mode Parameters */
 
 	}
-	
-	pdb.innerpdb.hmo = 
+
+	pdb.innerpdb.hmo =
 		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
-	pdb.innerpdb.options = 
+	pdb.innerpdb.options =
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
 		pdb_options
 		);
@@ -485,30 +511,30 @@ void ipsec_generate_encap_sd(
 	/* Transport mode Next Header value share the same stack location with
 	 * Tunnel mode reserved bits at the RTA API.
 	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
+	 *
 	 	union {
-			uint8_t ip_nh;	- next header for legacy mode 
+			uint8_t ip_nh;	- next header for legacy mode
 			uint8_t rsvd;	- reserved for new mode
 		};
-	 */  
+	 */
 	pdb.innerpdb.rsvd = 0;
-				
+
 	/* Transport mode Next Header value share the same stack location with
 	 * Tunnel mode reserved bits at the RTA API.
 	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
+	 *
 	 	 union {
 			uint8_t ip_nh_offset;	- next header offset for legacy mode
-			uint8_t aoipho; - actual outer IP header offset for new mode 
+			uint8_t aoipho; - actual outer IP header offset for new mode
 		};
 	*/
 	pdb.innerpdb.aoipho = 0;
 
 	pdb.innerpdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
 	pdb.innerpdb.seq_num = params->encparams.seq_num;
-	
+
 	pdb.innerpdb.spi = params->encparams.spi;
-		
+
 	pdb.innerpdb.rsvd2 = 0;
 
 	pdb.innerpdb.ip_hdr_len = params->encparams.ip_hdr_len;
@@ -525,17 +551,17 @@ void ipsec_generate_encap_sd(
 	for (i = 0; i < ((params->encparams.ip_hdr_len)>>2); i++) {
 		pdb.outer_hdr[i] = *(params->encparams.outer_hdr + i);
 	}
-	
+
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
-		/* Tunnel mode, SEC "new thread" */	
+		/* Tunnel mode, SEC "new thread" */
 		cnstr_shdsc_ipsec_new_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			(unsigned *)sd_size, /* unsigned *bufsize */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			((struct ipsec_encap_pdb *)(&pdb)), /* PDB */
 			(struct alginfo *)(&(params->cipherdata)),
-			(struct alginfo *)(&(params->authdata)) 
+			(struct alginfo *)(&(params->authdata))
 		);
 	} else {
 		/* Transport mode, SEC legacy new thread */
@@ -545,20 +571,20 @@ void ipsec_generate_encap_sd(
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			((struct ipsec_encap_pdb *)(&pdb)), /* PDB */
 			(struct alginfo *)(&(params->cipherdata)),
-			(struct alginfo *)(&(params->authdata)) 
+			(struct alginfo *)(&(params->authdata))
 		);
-	}	
-	
+	}
+
 	/* Write the descriptor to external memory */
 	cdma_write(
 			sd_addr, /* ext_address */
 			ws_shared_desc, /* ws_src */
 			(uint16_t)((*sd_size)<<2)); /* sd_size is in 32-bit words */
-	
+
 } /* End of ipsec_generate_encap_sd */
 
 /**************************************************************************//**
-@Function		ipsec_generate_decap_sd 
+@Function		ipsec_generate_decap_sd
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
@@ -567,15 +593,15 @@ void ipsec_generate_decap_sd(
 		struct ipsec_descriptor_params *params,
 		uint32_t *sd_size) /* Shared descriptor Length */
 {
-	
+
 	uint8_t cipher_type = 0;
-	
+
 	struct ipsec_decap_pdb pdb;
 
 	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
 
 	/* Build PDB fields for the RTA */
-	
+
 	/* Check which method is it according to the key */
 	switch (params->cipherdata.algtype) {
 		case IPSEC_CIPHER_AES_CBC:
@@ -606,7 +632,7 @@ void ipsec_generate_decap_sd(
 		/*----------------------------------*/
 		/* 	ipsec_generate_decap_sd			*/
 		/*----------------------------------*/
-	
+
 	switch (cipher_type) {
 		case CIPHER_TYPE_CBC:
 			/* uint32_t rsvd[2]; */
@@ -617,7 +643,7 @@ void ipsec_generate_decap_sd(
 			/* uint32_t salt; */
 			/* uint32_t ctr_initial; */
 			//pdb.ctr.salt = params->decparams.ctr.salt;
-			pdb.ctr.salt = params->decparams.ctr.ctr_nonce; // TODO: need to fix RTA to "nonce" instead of "salt" 
+			pdb.ctr.salt = params->decparams.ctr.ctr_nonce; // TODO: need to fix RTA to "nonce" instead of "salt"
 			pdb.ctr.ctr_initial = 1;
 			break;
 		case CIPHER_TYPE_CCM:
@@ -640,28 +666,28 @@ void ipsec_generate_decap_sd(
 			pdb.cbc.rsvd[0] = 0;
 			pdb.cbc.rsvd[1] = 0;
 	}
-	
+
 			/*----------------------------------*/
 			/* 	ipsec_generate_decap_sd			*/
 			/*----------------------------------*/
-	
-	/* uint16_t ip_hdr_len : 
+
+	/* uint16_t ip_hdr_len :
 	 * 		HMO (upper nibble)
 	 * 		IP header length (lower 3 nibbles) is not relevant for tunnel
 	 * 		and will be set by DPOVRD for transport */
-	pdb.ip_hdr_len = 
+	pdb.ip_hdr_len =
 			((params->decparams.options) & IPSEC_DEC_PDB_HMO_MASK);
 
-	pdb.options = 
+	pdb.options =
 		(uint8_t)(((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK));
-	
+
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
 	} else {
 		/* Transport mode */
 		/* If ESP pad checking is not required output frame is only the PDU */
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
-			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
+			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL |
 					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
 		}
 	}
@@ -676,38 +702,38 @@ void ipsec_generate_decap_sd(
 			byte from the output frame length reported to the frame consumer.
 		If outFMT==0, this bit is reserved and must be zero.
 	*/
-	
+
 	/* Transport mode Next Header value share the same stack location with
 	 * Tunnel mode reserved bits at the RTA API.
 	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
+	 *
 	 	 union {
 			uint8_t ip_nh_offset;	- next header offset for legacy mode
-			uint8_t aoipho; - actual outer IP header offset for new mode 
+			uint8_t aoipho; - actual outer IP header offset for new mode
 		};
 	*/
 	pdb.aoipho = 0; /* Will be set by DPOVRD */
 
 	pdb.seq_num_ext_hi = params->decparams.seq_num_ext_hi;
 	pdb.seq_num = params->decparams.seq_num;
-	
+
 	/* uint32_t anti_replay[4]; */
 	pdb.anti_replay[0] = 0;
 	pdb.anti_replay[1] = 0;
 	pdb.anti_replay[2] = 0;
 	pdb.anti_replay[3] = 0;
 
-	
+
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
-		/* Tunnel mode, SEC "new thread" */	
+		/* Tunnel mode, SEC "new thread" */
 		cnstr_shdsc_ipsec_new_decap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			(unsigned *)sd_size, /* unsigned *bufsize */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&(params->cipherdata)),
-			(struct alginfo *)(&(params->authdata)) 
+			(struct alginfo *)(&(params->authdata))
 		);
 	} else {
 		/* Transport mode, SEC legacy new thread */
@@ -717,20 +743,20 @@ void ipsec_generate_decap_sd(
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&(params->cipherdata)),
-			(struct alginfo *)(&(params->authdata)) 
+			(struct alginfo *)(&(params->authdata))
 		);
-	}	
-	
+	}
+
 	/* Write the descriptor to external memory */
 	cdma_write(
 			sd_addr, /* ext_address */
 			ws_shared_desc, /* ws_src */
 			(uint16_t)((*sd_size)<<2)); /* sd_size is in 32-bit words */
-	
+
 } /* End of ipsec_generate_decap_sd */
 
 /**************************************************************************//**
-@Function		ipsec_generate_flc 
+@Function		ipsec_generate_flc
 
 @Description	Generate SEC Flow Context Descriptor
 *//***************************************************************************/
@@ -739,7 +765,7 @@ void ipsec_generate_flc(
 		uint16_t spid, /* Storage Profile ID of the SEC output frame */
 		uint32_t sd_size) /* Shared descriptor Length  in words*/
 {
-	
+
 	struct ipsec_flow_context flow_context;
 
 	/* TODO: temporary storage profiles implementation */
@@ -747,28 +773,28 @@ void ipsec_generate_flc(
 	extern struct storage_profile storage_profile;
 	//uint64_t *sp_addr =  (uint64_t *)(&storage_profiles[spid]);
 	int i;
-	
+
 	struct storage_profile *sp_addr = &storage_profile;
 	uint8_t *sp_byte;
-	
+
 	sp_addr += spid;
 	sp_byte = (uint8_t *)sp_addr;
-	
+
 	/* Word 0 */
-	flow_context.word0_sdid = 0; //TODO: how to get this value? 
-	flow_context.word0_res = 0; 
+	flow_context.word0_sdid = 0; //TODO: how to get this value?
+	flow_context.word0_res = 0;
 
 	/* Word 1 */
 	/* 5-0 SDL = Shared Descriptor length, 7-6 reserved */
-	/* SDL is encoded in terms of 32-bit descriptor command words */ 
+	/* SDL is encoded in terms of 32-bit descriptor command words */
 	flow_context.word1_sdl = (uint8_t)(sd_size & 0x000000FF);
-	
+
 	flow_context.word1_bits_15_8 = 0; /* 11-8 CRID, 14-12 reserved, 15 CRJD */
 	flow_context.word1_bits23_16 = 0; /* 16	EWS,17 DAC,18-20?, 23-21 reserved */
-	flow_context.word1_bits31_24 = 0; /* 24 RSC (not used for AIOP), 
+	flow_context.word1_bits31_24 = 0; /* 24 RSC (not used for AIOP),
 		25 RBMT (not used for AIOP), 31-26 reserved */
 	// TODO: check regarding EWS in buffer reuse mode
-	
+
 	/* word 2  RFLC[31-0] */
 	flow_context.word2_rflc_31_0 = 0; /* Not used for AIOP */
 
@@ -778,8 +804,8 @@ void ipsec_generate_flc(
 	/* word 4 */ /* Not used, should be NULL */
 	flow_context.word4_iicid = 0; /* 15-0  IICID */
 	flow_context.word4_oicid = 0; /* 31-16 OICID */
-	
-	/* word 5 */ 	
+
+	/* word 5 */
 	flow_context.word5_7_0 = 0; /* 23-0 OFQID, not used for AIOP */
 	flow_context.word5_15_8 = 0;
 	flow_context.word5_23_16 = 0;
@@ -791,66 +817,66 @@ void ipsec_generate_flc(
 						/* 31-30 ICR */
 	/* word 6 */
 	flow_context.word6_oflc_31_0 = 0; /* Not used for AIOP */
-	
+
 	/* word 7 */
 	flow_context.word7_oflc_63_32 = 0; /* Not used for AIOP */
-	
+
 	/* Storage profile format:
-	* 0x00 IP-Specific Storage Profile Information 
-	* 0x08 Frame Format and Data Placement Controls 
-	* 0x10 Buffer Pool 2, Buffer Pool 1 Attributes and Controls 
+	* 0x00 IP-Specific Storage Profile Information
+	* 0x08 Frame Format and Data Placement Controls
+	* 0x10 Buffer Pool 2, Buffer Pool 1 Attributes and Controls
 	* 0x18 Buffer Pool 4, Buffer Pool 3 Attributes and Controls
-	* 
-	* Only The data from offset 0x08 and 0x10 is copied to SEC flow context 
+	*
+	* Only The data from offset 0x08 and 0x10 is copied to SEC flow context
 	*/
 	/* Copy the standard Storage Profile to Flow Context words 8-15 */
 	/* No need to for the first 8 bytes, so start from 8 */
 	for (i = 8; i < 32; i++) {
-		*((uint8_t *)((uint8_t *)flow_context.storage_profile + i - 8)) = 
-				*(sp_byte + i); 
+		*((uint8_t *)((uint8_t *)flow_context.storage_profile + i - 8)) =
+				*(sp_byte + i);
 	}
-	
+
 	/* Write the Flow Context to external memory with CDMA */
 	cdma_write(
 			flc_address, /* ext_address */
 			&flow_context, /* ws_src */
 			IPSEC_FLOW_CONTEXT_SIZE); /* uint16_t size */
-	
+
 } /* End of ipsec_generate_flc */
 
 
 /**************************************************************************//**
-@Function		ipsec_generate_sa_params 
+@Function		ipsec_generate_sa_params
 
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
 void ipsec_generate_sa_params(
-		struct ipsec_descriptor_params *params, 
+		struct ipsec_descriptor_params *params,
 		ipsec_handle_t desc_addr, /* Parameters area */
 		ipsec_instance_handle_t instance_handle)
 {
-	
+
 	struct ipsec_sa_params sap;
-	
-	sap.sap1.instance_handle = instance_handle; 
-	
+
+	sap.sap1.instance_handle = instance_handle;
+
 	/* Descriptor Part #1 */
-	sap.sap1.flags = params->flags; // TMP 
-		/* 	transport mode, UDP encap, pad check, counters enable, 
+	sap.sap1.flags = params->flags; // TMP
+		/* 	transport mode, UDP encap, pad check, counters enable,
 					outer IP version, etc. 4B */
-	
+
 	/* Add inbound/outbound indication to the flags field */
 	/* Inbound indication is 0, so no action */
 	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
 		sap.sap1.flags |= IPSEC_FLG_DIR_OUTBOUND;
 	}
-	
+
 	/* Add IPv6/IPv4 indication to the flags field */
-	if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+	if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK &
 			IPSEC_OPTS_ESP_IPVSN) {
 		sap.sap1.flags |= IPSEC_FLG_IPV6;
 	}
-	
+
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
 				IPSEC_IP_VERSION_IPV6) {
@@ -865,49 +891,49 @@ void ipsec_generate_sa_params(
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
 
 	/* Extended sequence number enable */
-	sap.sap1.esn = (uint8_t)(((params->encparams.options) & 
+	sap.sap1.esn = (uint8_t)(((params->encparams.options) &
 					IPSEC_PDB_OPTIONS_MASK & IPSEC_ESN_MASK));
 
-	sap.sap1.anti_replay_size = /* none/32/64/128 */ 
-			(uint8_t)(((params->encparams.options) & 
+	sap.sap1.anti_replay_size = /* none/32/64/128 */
+			(uint8_t)(((params->encparams.options) &
 					IPSEC_PDB_OPTIONS_MASK & IPSEC_ARS_MASK));
-		
+
 		/* new/reuse (for ASA copy). TMP */
-	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
+	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE;
 
 	sap.sap1.output_spid = (uint8_t)(params->spid);
 
-	sap.sap1.soft_byte_limit = params->soft_kilobytes_limit; 
-	sap.sap1.soft_packet_limit = params->soft_packet_limit; 
-	sap.sap1.hard_byte_limit = params->hard_kilobytes_limit; 
-	sap.sap1.hard_packet_limit = params->hard_packet_limit; 
-		
+	sap.sap1.soft_byte_limit = params->soft_kilobytes_limit;
+	sap.sap1.soft_packet_limit = params->soft_packet_limit;
+	sap.sap1.hard_byte_limit = params->hard_kilobytes_limit;
+	sap.sap1.hard_packet_limit = params->hard_packet_limit;
+
 	sap.sap1.byte_counter = 0; /* Encrypted/decrypted bytes counter */
 	sap.sap1.packet_counter = 0; /*	Packets counter */
 
 	/* Set valid flag */
 	sap.sap1.valid = 1; /* descriptor valid. */
-	
+
 	/* Descriptor Part #2 */
 	sap.sap2.sec_callback_func = (uint32_t)params->lifetime_callback;
 	sap.sap2.sec_callback_arg = params->callback_arg;
-		
+
 	// TODO: init one-shot timers according to:
-	// soft_seconds_limit; 
-	// hard_seconds_limit; 
+	// soft_seconds_limit;
+	// hard_seconds_limit;
 	sap.sap2.soft_tmr_handle = NULL; /* Soft seconds timer handle, TMP */
 	sap.sap2.hard_tmr_handle = NULL; /* Hard seconds timer handle, TMP */
 
 	/* Get timestamp from TMAN */
 	tman_get_timestamp(&(sap.sap1.timestamp));
-	
+
 	/* Store to external memory with CDMA */
 	cdma_write(
 			desc_addr, /* uint64_t ext_address */
 			&sap, /* void *ws_src */
 			(uint16_t)(sizeof(sap)) /* uint16_t size */
 			);
-	
+
 } /* End of ipsec_generate_sa_params */
 
 /**************************************************************************//**
@@ -924,13 +950,13 @@ void ipsec_generate_sa_params(
  * ------------------------------------------------------
  * | Replacement Job Descriptor (TBD) |                 |
  * ------------------------------------------------------
- * 
+ *
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
- * 			Should be 64-byte aligned for optimal performance.	
+ * 			Should be 64-byte aligned for optimal performance.
  * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
- * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation 
- * (Outer IP change)	TBD 
+ * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation
+ * (Outer IP change)	TBD
 */
 
 int ipsec_add_sa_descriptor(
@@ -943,41 +969,41 @@ int ipsec_add_sa_descriptor(
 	//uint64_t sd_addr;
 	uint32_t sd_size; /* shared descriptor size, set by the RTA */
 	ipsec_handle_t desc_addr;
-	
+
 	/* Create a shared descriptor */
-	
+
 
 	return_val = ipsec_get_buffer(instance_handle,
 			ipsec_handle);
-	
+
 	/* Check for allocation error */
 	if (return_val) {
 		// TODO: decrement SA counter
 		return return_val;
 	}
-		
+
 	// TODO: Optionally allocate a buffer for the key, if not inline.
-	
+
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
-	
-	
+
+
 	/* Build a shared descriptor with the RTA library */
-	/* The RTA creates the descriptor and stores it in the memory 
+	/* The RTA creates the descriptor and stores it in the memory
 		with CDMA commands. */
 	if (params->direction == IPSEC_DIRECTION_INBOUND) {
 		ipsec_generate_decap_sd(IPSEC_SD_ADDR(desc_addr),params, &sd_size);
 	} else {
 		ipsec_generate_encap_sd(IPSEC_SD_ADDR(desc_addr),params, &sd_size);
 	}
-	
-	
+
+
 	/* Generate the SEC Flow Context descriptor and write to memory with CDMA */
 	ipsec_generate_flc(
-			IPSEC_FLC_ADDR(desc_addr), 
+			IPSEC_FLC_ADDR(desc_addr),
 				/* Flow Context Address in external memory */
 			params->spid, /* Storage Profile ID of the SEC output frame */
 			sd_size); /* Shared descriptor size in words */
-	
+
 	/*	Prepare descriptor parameters:
 	 * Kilobytes and packets lifetime limits.
 	 * Modes indicators and other flags */
@@ -986,14 +1012,14 @@ int ipsec_add_sa_descriptor(
 			params,
 			desc_addr, /* Parameters area (start of buffer) */
 			instance_handle);
-	
-	/* Create one-shot TMAN timers for the soft and hard seconds lifetime 
-	 * limits, with callback to internal function 
+
+	/* Create one-shot TMAN timers for the soft and hard seconds lifetime
+	 * limits, with callback to internal function
 	 * (including the descriptor handle and soft/hard indication arguments). */
-	
+
 	/* Success, handle returned. */
 	return IPSEC_SUCCESS;
-	
+
 } /* End of ipsec_add_sa_descriptor */
 
 /**************************************************************************//**
@@ -1008,10 +1034,10 @@ int ipsec_del_sa_descriptor(
 	ipsec_handle_t desc_addr;
 
 	// TODO Delete the timers; take care of callbacks in the middle of operation.
-	
+
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
-	/* Flush all the counter updates that are pending in the 
+	/* Flush all the counter updates that are pending in the
 	 * statistics engine request queue. */
 	ste_barrier();
 
@@ -1021,26 +1047,26 @@ int ipsec_del_sa_descriptor(
 			//(ipsec_handle + (offsetof(struct ipsec_sa_params_part1,
 			//(desc_addr + (offsetof(struct ipsec_sa_params_part1,
 			//		 instance_handle))), /* uint64_t ext_address */
-			IPSEC_INSTANCE_HANDLE_ADDR(desc_addr),		 
+			IPSEC_INSTANCE_HANDLE_ADDR(desc_addr),
 			sizeof(instance_handle) /* uint16_t size */
 			);
-	
-	/* Release the buffer */ 
+
+	/* Release the buffer */
 	return_val = ipsec_release_buffer(instance_handle, ipsec_handle);
-	
-	// TODO: 
+
+	// TODO:
 	// 1. Check that all frames are closed (reference count)
 	// 2. Add timer delay for tasks that are in an interim state
 	// (called by the application but did npt enter the SL yet)
 	// If there were open frames do another ste_barrier();
-	
+
 	if (return_val != CDMA_REFCOUNT_DECREMENT_TO_ZERO) { /* error */
 		return IPSEC_ERROR; /* Trying to delete before all frames done */
 	} else { /* success */
 		//atomic_incr32((int32_t *)(&(global_params.sa_count)), 1);
-		return IPSEC_SUCCESS; 
+		return IPSEC_SUCCESS;
 	}
-	
+
 } /* End of ipsec_del_sa_descriptor */
 
 /**************************************************************************//**
@@ -1052,8 +1078,8 @@ int ipsec_frame_encrypt(
 		)
 {
 	int return_val;
-	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
-	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
+	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */
+	uint8_t eth_length = 0; /* Ethernet header length and indicator */
 	uint64_t orig_flc;
 	uint32_t orig_frc;
 	uint8_t *eth_pointer_default;
@@ -1069,12 +1095,12 @@ int ipsec_frame_encrypt(
 
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
-	
+
 	*enc_status = 0; /* Initialize */
-	
-	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
+
+	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt)
 	 * – Simplified Flow */
-	
+
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
@@ -1088,13 +1114,13 @@ int ipsec_frame_encrypt(
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
 	/*---------------------*/
-	
-	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits have 
+
+	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits have
 	 * not expired. If expired, return with error and go to END */
-	/* The seconds lifetime status is checked in the params[status] 
+	/* The seconds lifetime status is checked in the params[status]
 	 * and the kilobyte/packet status is checked from the params[counters].
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
-	
+
 	/* Seconds Lifetime */
 	if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
 		if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
@@ -1105,7 +1131,7 @@ int ipsec_frame_encrypt(
 			dont_encrypt = 1;
 		}
 	}
-	
+
 	/* KB lifetime counters */
 	if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
 		if (sap1.byte_counter >= sap1.soft_byte_limit) {
@@ -1116,7 +1142,7 @@ int ipsec_frame_encrypt(
 			dont_encrypt = 1;
 		}
 	}
-	
+
 	/* Packets lifetime counters*/
 	if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
 
@@ -1128,29 +1154,29 @@ int ipsec_frame_encrypt(
 			dont_encrypt = 1;
 		}
 	}
-	
+
 	if (dont_encrypt) {
 		return_val = IPSEC_ERROR; // TODO: TMP
 		goto encrypt_end;
 	}
-	
+
 		/*---------------------*/
 		/* ipsec_frame_encrypt */
 		/*---------------------*/
-	
+
 	if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel Mode */
 		/* Clear FD[FRC], so DPOVRD takes no action */
-		dpovrd.tunnel_encap.word = 0; 
+		dpovrd.tunnel_encap.word = 0;
 	} else {
 		/* For Transport mode set DPOVRD */
 		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
-		 * 23-16 IP Header Length in bytes, 
+		 * 23-16 IP Header Length in bytes,
 		* of the portion of the IP header that is not encrypted.
 		* 15-8 NH_OFFSET - location of the next header within the IP header.
 		* 7-0 Next Header */
 		dpovrd.transport_encap.ovrd = IPSEC_DPOVRD_OVRD_TRANSPORT;
-		
+
 		/* Header Length according to IPv6/IPv4 */
 		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
 			/* Get the NH_OFFSET for the last header to encapsulate*/
@@ -1161,31 +1187,31 @@ int ipsec_frame_encrypt(
 		} else { /* IPv4 */
 			/* IPv4 Header Length in Bytes */
 			dpovrd.transport_encap.ip_hdr_len = ((uint8_t)
-				((*((uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT())) & 
+				((*((uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT())) &
 											IPV4_HDR_IHL_MASK)) << 2;
-			/* If transport/IPv4 for any non-zero value of NH_OFFSET 
-			 * (typically set to 01h), the N byte comes from byte 9 of 
+			/* If transport/IPv4 for any non-zero value of NH_OFFSET
+			 * (typically set to 01h), the N byte comes from byte 9 of
 			 * the IP header */
 			dpovrd.transport_encap.nh_offset = 0x1;
 		}
-		
+
 		/* Set the Next Header to ESP (the same for IPv4 and IPv6) */
-		dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_ESP;
-	}
-	
+			dpovrd.transport_encap.next_hdr = IPSEC_IP_NEXT_HEADER_ESP;
+		}
+
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
 	/*---------------------*/
-	
+
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
-		
-		/* For tunnel mode, update the Ethertype field according to the 
+
+		/* For tunnel mode, update the Ethertype field according to the
 		 * outer header (IPv4/Ipv6), since after SEC encryption
 		 * the parser results are not valid any more */
 		if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
-			/* Update the Ethertype according to the outher IP header */
+		/* Update the Ethertype according to the outher IP header */
 			if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) {
 				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
 						IPSEC_ETHERTYPE_IPV6;
@@ -1197,25 +1223,25 @@ int ipsec_frame_encrypt(
 
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
-		
-		/* Ethernet header length and indicator */ 
+
+		/* Ethernet header length and indicator */
 		eth_length = (uint8_t)(
-						(uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
-								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
+						(uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() -
+								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
 
 		eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-	
+
 		for (i = 0 ; i < eth_length; i++) {
 			eth_header[i] = *(eth_pointer_default + i);
 		}
-			
-		/* Remove L2 Header */	
-		/* Note: The gross running sum of the frame becomes invalid 
+
+		/* Remove L2 Header */
+		/* Note: The gross running sum of the frame becomes invalid
 		 * after calling this function.
-		 * 
+		 *
 		 * TODO: is it important to update it for encryption???
-		 * 
-		 * For decryption in transport mode it is required to update 
+		 *
+		 * For decryption in transport mode it is required to update
 		 * the running sum.
 		 */
 		l2_header_remove();
@@ -1223,27 +1249,27 @@ int ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-	
+
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	
+
 	/* Update FD[FRC] for DPOBERD */
 	//LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, 0);
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
 
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-	
-	/* 	7.	FDMA store default frame command 
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));
+
+	/* 	7.	FDMA store default frame command
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
 	// TODO: check FDMA return status
 
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
-	
-	
+
+
 	/* 0 SW_FD Software Frame Descriptor = 0
 	* FD should be read from the default workspace offset (0x00).
 	*
@@ -1252,44 +1278,44 @@ int ipsec_frame_encrypt(
 	*
 	* 2 SW_CMP Software Completion Frame Descriptor = 0
 	* The Completion FD is written to the default workspace offset (0x00).
-	* 
-	* 3 USE_FLC_SP Use Flow Context Storage Profile = 1 
-	* The Storage Profile (SP) is embedded as part of the 
-	* flow context pointed to by the Flow Context field in the Frame Descriptor 
+	*
+	* 3 USE_FLC_SP Use Flow Context Storage Profile = 1
+	* The Storage Profile (SP) is embedded as part of the
+	* flow context pointed to by the Flow Context field in the Frame Descriptor
 	* (FD) for this acceleration operation.
-	* 
+	*
 	* 8 OS_EX Ordering Scope Exclusive Phase.
-	* 0 Indicates that the accelerator call is not made during the 
+	* 0 Indicates that the accelerator call is not made during the
 	* exclusive phase of an Ordering Scope.
-	* 1 Indicates that the accelerator call is made during the 
+	* 1 Indicates that the accelerator call is made during the
 	* exclusive phase of an Ordering Scope.
 	*/
-	
+
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
 
-	/* If in Concurrent ordering scope, move to Exclusive 
-	 * (increment scope ID). */ 
+	/* If in Concurrent ordering scope, move to Exclusive
+	 * (increment scope ID). */
 	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
 	    /* Move to exclusive */
 	    osm_scope_transition_to_exclusive_with_increment_scope_id();
 		/* Set OS_EX so AAP will do relinquish */
-		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
+		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) =
 				(IPSEC_AAP_USE_FLC_SP | IPSEC_AAP_OS_EX);
 	} else {
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
 	}
-	
+
 	/* 	9.	Call the AAP */
 	__e_hwacceli(AAP_SEC_ACCEL_ID);
-	
+
 	/* 	10.	SEC Doing Encryption */
 
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-	
+
 	/* Check if started in concurrent mode */
 	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
 		/* The AAP already did OSM relinquished, so just register that */
@@ -1298,15 +1324,15 @@ int ipsec_frame_encrypt(
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
-	
-	/* Update the default segment length for the new frame  in 
+
+	/* Update the default segment length for the new frame  in
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	
+
 	/* 	11.	FDMA present default frame command (open frame) */
 	return_val = fdma_present_default_frame();
 	// TODO: check for FDMA error
-	
+
 	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	//*enc_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	// TODO: which errors can happen in encryption?
@@ -1326,24 +1352,24 @@ int ipsec_frame_encrypt(
 			return_val = -1;
 			break;
 		case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-			*enc_status |= IPSEC_ICV_COMPARE_FAIL;	
+			*enc_status |= IPSEC_ICV_COMPARE_FAIL;
 			return_val = -1;
 			break;
 		default:
-			*enc_status |= IPSEC_GEN_ENCR_ERR;	
+			*enc_status |= IPSEC_GEN_ENCR_ERR;
 			return_val = -1;
 	}
-	
+
 	/* 	13.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
-		
-	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame) 
+
+	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame)
 	 * from the FD[FLC] */
-	/* The least significant 6 bytes of the 8-byte FLC in the enqueued FD 
+	/* The least significant 6 bytes of the 8-byte FLC in the enqueued FD
 	 * contain a 2-byte checksum and 4-byte encrypted/decrypted byte count.
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } */
 	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
-	
+
 	/** Load 2 bytes with endian swap.
 	 * The address loaded from memory is calculated as: _displ + _base.
 	 * _displ - a word aligned constant value between 0-1020.
@@ -1351,13 +1377,13 @@ int ipsec_frame_encrypt(
 	 * If 'base' is a literal 0, the base address is considered as 0. */
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
 
-	
+
 	//byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 
 	/* 	15.	Update the gross running checksum in the Workspace parser results.*/
 	// TODO: is it needed for encryption?
-	
+
 	/* 	16.	If L2 header existed in the original frame, add it back: */
 	if (eth_length) {
 		//TODO: debug info
@@ -1373,24 +1399,24 @@ int ipsec_frame_encrypt(
 			}
 		}
 #endif
-		
-		/* Note: The Ethertype was already updated before removing the 
+
+		/* Note: The Ethertype was already updated before removing the
 		 * L2 header */
 		return_val = fdma_insert_default_segment_data(
 				0, /* uint16_t to_offset */
 				eth_header, /* void	 *from_ws_src */
 				eth_length, /* uint16_t insert_size */
-				FDMA_REPLACE_SA_REPRESENT_BIT 
+				FDMA_REPLACE_SA_REPRESENT_BIT
 					/* uint32_t flags */
 				);
-		
+
 		/* TODO: Re-run parser ??? */
 		//		parse_result_generate_default(0);
-		
+
 		/* TODO: Update running sum ??? */
 		//		pr->gross_running_sum = 0;
 	}
-	
+
 	/* In transport mode, optionally add UDP encapsulation */
 	if ((!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) &&
 			(sap1.flags & IPSEC_ENC_OPTS_NAT_EN)) {
@@ -1401,26 +1427,26 @@ int ipsec_frame_encrypt(
 		/* ipsec_frame_encrypt */
 		/*---------------------*/
 
-	/* 	17.	Restore the original FD[FLC], FD[FRC] (from stack). 
+	/* 	17.	Restore the original FD[FLC], FD[FRC] (from stack).
 	 * No need for additional FDMA command. */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, orig_flc);	
-	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, orig_frc)	
-	
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, orig_flc);
+	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, orig_frc)
+
 	/* 	18.	Handle lifetime counters */
 		/* 	18.1.	Read lifetime counters (CDMA) */
 		/* 	18.2.	Add byte-count from SEC and one packet count. */
-		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
+		/* 	18.4.	Update the kilobytes and/or packets lifetime counters
 		 * (STE increment + accumulate). */
+
 	
-	
-	if (sap1.flags & 
+	if (sap1.flags &
 			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
 		ste_inc_and_acc_counters(
 			//IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
 			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
-			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
+			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |
 			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
 			STE_MODE_COMPOUND_CNTR_SATURATE |
 			STE_MODE_COMPOUND_ACC_SATURATE));
@@ -1437,19 +1463,19 @@ int ipsec_frame_encrypt(
 				1,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}
-	
-	return_val = IPSEC_SUCCESS;	
+
+	return_val = IPSEC_SUCCESS;
 
 encrypt_end:
-	
+
 	/* 	19.	END */
-		
+
 	/* 	19.1. Update the encryption status (enc_status) and return status. */
 
 	/* Decrement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
-	
+
 	/* 	19.3.	Return */
 	return return_val;
 } /* End of ipsec_frame_encrypt */
@@ -1463,8 +1489,8 @@ int ipsec_frame_decrypt(
 		)
 {
 	int return_val;
-	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
-	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
+	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */
+	uint8_t eth_length = 0; /* Ethernet header length and indicator */
 	uint64_t orig_flc; /* Original FLC */
 	//uint64_t return_flc; /* SEC returned FLC */
 	uint32_t orig_frc;
@@ -1483,14 +1509,14 @@ int ipsec_frame_decrypt(
 	struct dpovrd_general dpovrd;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	
+
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
-	
+
 	*dec_status = 0; /* Initialize */
-	
+
 	/* 	Inbound frame decryption and decapsulation */
-	
+
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
@@ -1504,11 +1530,11 @@ int ipsec_frame_decrypt(
 	/*---------------------*/
 	/* ipsec_frame_decrypt */
 	/*---------------------*/
-	
-	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits 
+
+	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits
 	 * have expired. If expired, return with error. go to END */
 	// TODO
-	/* The seconds lifetime status is checked in the params[status] 
+	/* The seconds lifetime status is checked in the params[status]
 	 * and the kilobyte/packet status is checked from the params[counters].
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
 	/* Seconds Lifetime */
@@ -1521,7 +1547,7 @@ int ipsec_frame_decrypt(
 			dont_decrypt = 1;
 		}
 	}
-	
+
 	/* KB lifetime counters */
 	if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
 		if (sap1.byte_counter >= sap1.soft_byte_limit) {
@@ -1532,7 +1558,7 @@ int ipsec_frame_decrypt(
 			dont_decrypt = 1;
 		}
 	}
-	
+
 	/* Packets lifetime counters*/
 	if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
 
@@ -1544,29 +1570,29 @@ int ipsec_frame_decrypt(
 			dont_decrypt = 1;
 		}
 	}
-	
-	
+
+
 	if (dont_decrypt) {
 		return_val = IPSEC_ERROR; // TODO: TMP
 		goto decrypt_end;
 	}
-	
+
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
 
-	/* 	4.	Identify if L2 header exist in the frame, 
+	/* 	4.	Identify if L2 header exist in the frame,
 	 * and if yes get the L2 header length. */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
 		/* Note: For tunnel mode decryption there is no need to update 
 		 * the Ethertype field, since SEC HW is doing it */
-		
-		/* Ethernet header length and indicator */ 
+
+		/* Ethernet header length and indicator */
 		eth_length = (uint8_t)
-				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
-								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
+				((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() -
+								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
 	}
-	
+
 	/* Prepare DPOVRD Parameters */
 	/* For transport mode: IP header length, Next header offset */
 	/* For tunnel mode: 
@@ -1588,7 +1614,7 @@ int ipsec_frame_decrypt(
 			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
 				(uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT()) +
 				eth_length); 
-				
+
 		dpovrd.tunnel_decap.word = 
 				IPSEC_DPOVRD_OVRD |
 				(eth_length<<12) | /* AOIPHO */
@@ -1634,69 +1660,69 @@ int ipsec_frame_decrypt(
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-		
+
 			for (i = 0 ; i < eth_length; i++) {
 				eth_header[i] = *(eth_pointer_default + i);
 			}
-	
-			/* Remove L2 Header */	
-			/* Note: The gross running sum of the frame becomes invalid 
-			 * after calling this function. */ 
+
+			/* Remove L2 Header */
+			/* Note: The gross running sum of the frame becomes invalid
+			 * after calling this function. */
 			 l2_header_remove();
-			
-			// TODO: 
-			/* For decryption in transport mode it is required to update 
+
+			// TODO:
+			/* For decryption in transport mode it is required to update
 			  * the running sum. */
 		}
 	}
 
-	/*---------------------*/
-	/* ipsec_frame_decrypt */
-	/*---------------------*/
-	
+			/*---------------------*/
+			/* ipsec_frame_decrypt */
+			/*---------------------*/
+
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	
-	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-	
-	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
-	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
 
-	/* 	8.	FDMA store default frame command 
+	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));
+
+	/* 7.	Update the FD[FRC] with SEC DPOVRD parameters */
+		LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, *((uint32_t *)(&dpovrd)));
+
+	/* 	8.	FDMA store default frame command
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
-	
+
 	/* 	9.	Prepare AAP parameters in the Workspace memory. */
-	
+
 	/* 0 SW_FD Software Frame Descriptor = 0 */
 	/* 1 SW_FQDC Software Frame Queue Descriptor Context (FQDC) = 0 */
 	/* 2 SW_CMP Software Completion Frame Descriptor = 0 */
-	/* 3 USE_FLC_SP Use Flow Context Storage Profile = 1 */ 
+	/* 3 USE_FLC_SP Use Flow Context Storage Profile = 1 */
 	/* 8 OS_EX Ordering Scope Exclusive Phase.
-	* 0 Indicates that the accelerator call is not made during the 
+	* 0 Indicates that the accelerator call is not made during the
 	* exclusive phase of an Ordering Scope.
-	* 1 Indicates that the accelerator call is made during the 
+	* 1 Indicates that the accelerator call is made during the
 	* exclusive phase of an Ordering Scope.
 	*/
-	
+
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
 
-	/* If in Concurrent ordering scope, move to Exclusive 
-	 * (increment scope ID). */ 
+	/* If in Concurrent ordering scope, move to Exclusive
+	 * (increment scope ID). */
 	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
 	    /* Move to exclusive */
 	    osm_scope_transition_to_exclusive_with_increment_scope_id();
 		/* Set OS_EX so AAP will do relinquish */
-		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
+		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) =
 				(IPSEC_AAP_USE_FLC_SP | IPSEC_AAP_OS_EX);
 	} else {
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
 	}
-		
+
 	/* 	10.	Call the AAP */
 	__e_hwacceli(AAP_SEC_ACCEL_ID);
 
@@ -1710,12 +1736,12 @@ int ipsec_frame_decrypt(
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
-	
-	/* Update the default segment length for the new frame  in 
+
+	/* Update the default segment length for the new frame  in
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	
-	/* 	12.	FDMA present default frame command */ 
+
+	/* 	12.	FDMA present default frame command */
 	return_val = fdma_present_default_frame();
 
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
@@ -1736,37 +1762,37 @@ int ipsec_frame_decrypt(
 			return_val = -1;
 			break;
 		case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-			*dec_status |= IPSEC_ICV_COMPARE_FAIL;	
+			*dec_status |= IPSEC_ICV_COMPARE_FAIL;
 			return_val = -1;
 			break;
 		default:
-			*dec_status |= IPSEC_GEN_ENCR_ERR;	
+			*dec_status |= IPSEC_GEN_ENCR_ERR;
 			return_val = -1;
 	}
 
 	/* 	14.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
-		
-	/* 	15.	Get new running sum and byte count (encrypted/encapsulated frame) 
+
+	/* 	15.	Get new running sum and byte count (encrypted/encapsulated frame)
 	 * from the FD[FLC] */
-	
-	/* From Martin Dorr 27-Mar-2014: 
+
+	/* From Martin Dorr 27-Mar-2014:
 	 * A 32-bit byte count is stored in the LS portion of the FLC in LE format.
-	 * A 2-byte checksum is stored starting at offset 4 relative to the 
+	 * A 2-byte checksum is stored starting at offset 4 relative to the
 	 * beginning of the FLC.
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] }
 	*/
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
-	
+
 	/* 	16.	Update the gross running checksum in the Workspace parser results.*/
-	//pr->gross_running_sum = 
+	//pr->gross_running_sum =
 	//		(uint16_t)((return_flc & IPSEC_RETURN_FLC_CHECKSUM_BE_MASK)
 	//				>>IPSEC_RETURN_FLC_CHECKSUM_BE_SHIFT);
 	pr->gross_running_sum = checksum;
-			
+
 	// TODO: handle in transport mode
-	
+
 	/* In Transport mode, if L2 header existed in the original frame, 
 	 * add it back */
 	if ((!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) && eth_length) {
@@ -1795,29 +1821,29 @@ int ipsec_frame_decrypt(
 	return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 	// TODO: mask out some parser error bits, in case there is no L4 etc.
 	// TODO: special handling in case of fragments
-	
+
 	/* 	18.	If validity check failed, go to END, return with error. */
 	// TODO
-	
+
 	/* 	19.	Restore the original FD[FLC], FD[FRC] (from stack) */
-	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, orig_flc);	
-	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, orig_frc)	
+	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, orig_flc);
+	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, orig_frc)
 
 	/* 	20.	Handle lifetime counters */
 	/* 	20.1.	Read lifetime counters (CDMA) */
 	/* 	20.2.	Add byte-count from SEC and one packet count. */
-	/* 	20.3.	Calculate locally if lifetime counters crossed the limits. 
+	/* 	20.3.	Calculate locally if lifetime counters crossed the limits.
 	 * If yes set flag in the descriptor statistics (CDMA write). */
-	/* 	20.4.	Update the kilobytes and/or packets lifetime counters 
+	/* 	20.4.	Update the kilobytes and/or packets lifetime counters
 	 * (STE increment + accumulate). */
-	if (sap1.flags & 
+	if (sap1.flags &
 			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
 		ste_inc_and_acc_counters(
 			//IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
 			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
-			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |  
+			(STE_MODE_COMPOUND_64_BIT_CNTR_SIZE |
 			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
 			STE_MODE_COMPOUND_CNTR_SATURATE |
 			STE_MODE_COMPOUND_ACC_SATURATE));
@@ -1834,17 +1860,17 @@ int ipsec_frame_decrypt(
 				1,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}
-	
-	return_val = IPSEC_SUCCESS;	
+
+	return_val = IPSEC_SUCCESS;
 
 decrypt_end:
-	
+
 	/* 	21.	END */
 	/* 	21.1. Update the encryption status (enc_status) and return status. */
-	/* 	21.2. If started as Concurrent ordering scope, 
-	 *  move from Exclusive to Concurrent  
+	/* 	21.2. If started as Concurrent ordering scope,
+	 *  move from Exclusive to Concurrent
 	 *  (AAP does that, only register through OSM functions). */
-	
+
 	/* Check if started in concurrent mode */
 	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
 		/* Move to Concurrent */
@@ -1854,7 +1880,7 @@ decrypt_end:
 	/* Decrement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
-	
+
 	/* Return */
 	return return_val;
 } /* End of ipsec_frame_decrypt */
@@ -1869,7 +1895,7 @@ int ipsec_get_lifetime_stats(
 		uint64_t *packets,
 		uint32_t *sec)
 {
-	
+
 	int return_val;
 	uint64_t current_timestamp;
 	ipsec_handle_t desc_addr;
@@ -1880,14 +1906,14 @@ int ipsec_get_lifetime_stats(
 		uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
 		uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
 	} ctrs;
-	
+
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
 	// TODO: check CDMA return status
 
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
-	/* Flush all the counter updates that are pending in the 
+	/* Flush all the counter updates that are pending in the
 	 * statistics engine request queue. */
 	ste_barrier();
 
@@ -1897,10 +1923,10 @@ int ipsec_get_lifetime_stats(
 			desc_addr, /* uint64_t ext_address */
 			sizeof(ctrs) /* uint16_t size */
 			);
-	
+
 	*packets = ctrs.packet_counter;
 	*kilobytes =  ctrs.byte_counter;
-	
+
 	/* Get current timestamp from TMAN (in micro-seconds)*/
 	tman_get_timestamp(&current_timestamp);
 
@@ -1910,16 +1936,16 @@ int ipsec_get_lifetime_stats(
 		*sec = (uint32_t)((current_timestamp - ctrs.timestamp)>>20);
 	} else { /* Roll-over */
 		*sec = (uint32_t)(
-				(current_timestamp + 
+				(current_timestamp +
 						(IPSEC_MAX_TIMESTAMP - ctrs.timestamp) + 1)>>20);
 	}
 
 	/* Decrement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
-	
+
 	return IPSEC_SUCCESS;
-	
+
 } /* End of ipsec_get_lifetime_stats */
 
 /**************************************************************************//**
@@ -1938,13 +1964,13 @@ int ipsec_decr_lifetime_counters(
 
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
-	
+
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
-	/* Flush all the counter updates that are pending in the 
+	/* Flush all the counter updates that are pending in the
 	 * statistics engine request queue. */
 	ste_barrier();
-	
+
 	if (kilobytes_decr_val) {
 		ste_dec_counter(
 				//IPSEC_KB_COUNTER_ADDR,
@@ -1952,19 +1978,19 @@ int ipsec_decr_lifetime_counters(
 				kilobytes_decr_val,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}
-	
+
 	if (packets_decr_val) {
 		ste_dec_counter(
 				IPSEC_PACKET_COUNTER_ADDR(desc_addr),
 				packets_decr_val,
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
-	}	
-	
+	}
+
 	/* Decrement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
-	
-	return IPSEC_SUCCESS;	
+
+	return IPSEC_SUCCESS;
 } /* End of ipsec_decr_lifetime_counters */
 
 /**************************************************************************//**
@@ -1976,7 +2002,7 @@ int ipsec_get_seq_num(
 		uint32_t *extended_sequence_number,
 		uint32_t anti_replay_bitmap[4])
 {
-	
+
 	int return_val;
 	ipsec_handle_t desc_addr;
 	uint32_t params_flags;
@@ -1985,10 +2011,10 @@ int ipsec_get_seq_num(
 		struct ipsec_encap_pdb encap_pdb;
 		struct ipsec_decap_pdb decap_pdb;
 	} pdb;
-	
+
 	/* Increment the reference counter */
 	cdma_refcount_increment(ipsec_handle);
-	
+
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* Read he descriptor flags to identify the direction */
@@ -1997,7 +2023,7 @@ int ipsec_get_seq_num(
 			IPSEC_FLAGS_ADDR(desc_addr), /* uint64_t ext_address */
 			sizeof(params_flags) /* uint16_t size */
 	);
-	
+
 	/* Outbound (encapsulation) PDB format */
 	if (params_flags & IPSEC_FLG_DIR_OUTBOUND) {
 		/* 	Read the PDB from the descriptor with CDMA. */
@@ -2006,11 +2032,11 @@ int ipsec_get_seq_num(
 			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
 			sizeof(pdb.encap_pdb) /* uint16_t size */
 		);
-		
+
 		/* Return swapped values (little to big endian conversion) */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num));
-		
+
 		/* No anti-replay bitmap for encap, so just return zero */
 		anti_replay_bitmap[0] = 0x0;
 		anti_replay_bitmap[1] = 0x0;
@@ -2018,14 +2044,14 @@ int ipsec_get_seq_num(
 		anti_replay_bitmap[3] = 0x0;
 	} else {
 	/* Inbound (decapsulation) PDB format */
-				
+
 		/* 	Read the PDB from the descriptor with CDMA. */
 		cdma_read(
 			&(pdb.decap_pdb), /* void *ws_dst */
 			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
 			sizeof(pdb.decap_pdb) /* uint16_t size */
 		);
-	
+
 		/* Return swapped values (little to big endian conversion) */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num));
@@ -2051,8 +2077,8 @@ int ipsec_get_seq_num(
 						0,&(pdb.decap_pdb.anti_replay[1]));
 				anti_replay_bitmap[2] = 0x0;
 				anti_replay_bitmap[3] = 0x0;
-				break;		
-			case IPSEC_DEC_OPTS_ARS128:	
+				break;
+			case IPSEC_DEC_OPTS_ARS128:
 				anti_replay_bitmap[0] = LW_SWAP(
 						0,&(pdb.decap_pdb.anti_replay[0]));
 				anti_replay_bitmap[1] = LW_SWAP(
@@ -2066,35 +2092,35 @@ int ipsec_get_seq_num(
 				anti_replay_bitmap[0] = 0x0;
 				anti_replay_bitmap[1] = 0x0;
 				anti_replay_bitmap[2] = 0x0;
-				anti_replay_bitmap[3] = 0x0;	
+				anti_replay_bitmap[3] = 0x0;
 		}
 	}
-	
+
 	/* Derement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
-	
-	return IPSEC_SUCCESS;	
+
+	return IPSEC_SUCCESS;
 
 } /* End of ipsec_get_seq_num */
 
 /**************************************************************************//**
 	ipsec_get_ipv6_nh_offset
-	
-	The Destination header creates 2 different options for IPv6 extensions order 
 
-	1.	IPv6 header – Destination – Routing – Fragment – Destination 
-	The first destination header is for intermediate destinations, 
+	The Destination header creates 2 different options for IPv6 extensions order
+
+	1.	IPv6 header – Destination – Routing – Fragment – Destination
+	The first destination header is for intermediate destinations,
 	and the second one is for the last destination.
-	This option can occur only when Routing header is present and 
-	the first destination placed before Routing. 
-	The second Destination header is optional 
- 
-	2.	IPv6 header – Fragment - Destination 
+	This option can occur only when Routing header is present and
+	the first destination placed before Routing.
+	The second Destination header is optional
+
+	2.	IPv6 header – Fragment - Destination
 	The destination header is for the last destination.
-	Routing header is not present, or 
+	Routing header is not present, or
 	Destination is placed after Routing header.
-	
+
 *//****************************************************************************/
 uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 {
@@ -2105,7 +2131,7 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	uint8_t dst_ext;
 	uint8_t nh_offset = 0; /* default value for no extensions */
 	uint8_t header_after_dest;
-	
+
 	/* Destination extension can appear only once on fragment request */
 	dst_ext = IPV6_EXT_DESTINATION;
 
@@ -2113,7 +2139,7 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
 	current_hdr_size = IPV6_HDR_LENGTH;
 	next_hdr = ipv6_hdr->next_header;
-	
+
 	/* IP Header Length for SEC encapsulation, including IP header and
 	 * extensions before ESP */
 	*length = IPV6_HDR_LENGTH;
@@ -2210,7 +2236,7 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 
 /**************************************************************************/
 
-#pragma pop 
+#pragma pop
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 

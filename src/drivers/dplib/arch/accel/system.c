@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**************************************************************************//**
 @File		system.c
 
@@ -57,7 +83,7 @@ int sys_prpid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
+	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_PRPIDS+2), 2,
 			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
@@ -77,7 +103,7 @@ int sys_keyid_pool_create(void)
 	int num_filled_buffs;
 
 
-	status = slab_find_and_fill_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
+	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_KEYIDS+2), 2,
 			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
@@ -98,11 +124,11 @@ int aiop_sl_init(void)
 	uint32_t val;
 	uint32_t *addr;
 #endif
-	
+
 	/* Initialize IPsec instance global parameters */
 	ipsec_global_instance_params.instance_count = 0;
 	ipsec_global_instance_params.spinlock = 0;
-	
+
 	/* initialize profile sram */
 
 #ifdef AIOP_VERIF
@@ -131,7 +157,7 @@ int aiop_sl_init(void)
 	storage_profile.bpid3 = 0x0000;
 	storage_profile.pbs4 = 0x0000;
 	storage_profile.bpid4 = 0x0000;
-	
+
 #endif
 
 
@@ -157,7 +183,7 @@ int aiop_sl_init(void)
 	/* End of TMAN EPID Init */
 #endif
 
-	
+
 	sys_prpid_pool_create();
 
 #ifdef AIOP_VERIF
