@@ -44,7 +44,7 @@ while True:
 			if 'arena_test_40.pcap' in line:
 				print 'injecting packets'
 				Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","arena_test_40.pcap"])
-			elif 'ARENA Test Finished SUCCESSFULLY' in line:
+			elif 'Test Finished SUCCESSFULLY' in line:
 				exit_script(p,0)
 			elif 'ERROR found during ARENA test' in line:
 				exit_script(p,1)
