@@ -195,7 +195,8 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
  * @param[in]	fd - Pointer to received frame descriptor
  * @param[in]	v_addr - Virtual address to be used for async cb.
  * 		This is workaround for SMMU disable mode, set it to NULL if
- * 		fd->u_addr.d_addr can be used as is.
+ * 		fd->u_addr.d_addr can be passed as #cmdif_cb_t data.
+ * 		Otherwise set v_addr as virtual address of fd->u_addr.d_addr.
  *
  * @returns	'0' on Success; Error code otherwise.
  *

@@ -114,6 +114,8 @@ that had been sent through cidesc.
 @Param[in]	data        Data of the command.
 		On the AIOP side it is the pointer to segment presentation
 		address; use fdma_modify_default_segment_data() if needed.
+		On GPP side it should be virtual address that belongs
+		to current SW context.
 @Return		OK on success; error code, otherwise.
 @Cautions	Please make sure to modify only #size bytes of the data.
 		Automatic expansion of the buffer is not available.
@@ -122,7 +124,7 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 			int err,
 			uint16_t cmd_id,
 			uint32_t size,
-			uint64_t data);
+			void *data);
 
 /**************************************************************************//**
 @Function	cmdif_open
@@ -137,12 +139,10 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		asynchronous command.
 @Param[in]	async_ctx	Context to be received with asynchronous
 		command response inside async_cb().
-@Param[in]	v_data		Virtual address of the buffer to be used
-		by command interface.
+@Param[in]	data		Buffer to be used by command interface.
 		This address should be accessible by Server and Client.
 		For MC->AIOP use buffer from DP-DDR.
 		This buffer can be freed only after cmdif_close().
-@Param[in]	p_data		Physical address of the v_data buffer.
 @Param[in]	size		Size of the v_data buffer. If the size if not
 				enough cmdif_open() will return -ENOMEM.
 
@@ -153,8 +153,7 @@ int cmdif_open(struct cmdif_desc *cidesc,
 		uint8_t instance_id,
 		cmdif_cb_t async_cb,
 		void *async_ctx,
-		uint8_t *v_data,
-		uint64_t p_data,
+		void *data,
 		uint32_t size);
 
 /**************************************************************************//**
@@ -190,7 +189,7 @@ int cmdif_close(struct cmdif_desc *cidesc);
 @Param[in]	data       Data of the command or buffer allocated by user which
 		will be used inside command.
 		This address should be accessible by Server and Client.
-		This should be physical address in case of GPP -> AIOP commands.
+		It should be virtual address that belongs to current SW context.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/

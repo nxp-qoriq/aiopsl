@@ -201,15 +201,14 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		uint8_t ins_id,
 		cmdif_cb_t async_cb,
 		void *async_ctx,
-		uint8_t *v_data,
-		uint64_t p_data,
+		void *data,
 		uint32_t size)
 {
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
 
-	if ((v_data != NULL) || (p_data != NULL) || (size > 0))
-		return -EINVAL; /* Buffer are allocated by GPP */
+	if ((data != NULL) || (size > 0))
+		return -EINVAL; /* Buffers are allocated by GPP */
 
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
 	if (err != 0) {

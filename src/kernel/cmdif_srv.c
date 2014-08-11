@@ -160,9 +160,9 @@ __HOT_CODE static uint32_t cmd_size_get()
 	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
-__HOT_CODE static uint64_t cmd_data_get()
+__HOT_CODE static void *cmd_data_get()
 {
-	return (uint64_t)PRC_GET_SEGMENT_ADDRESS();
+	return (void *)PRC_GET_SEGMENT_ADDRESS();
 }
 
 static void cmd_m_name_get(char *name)
