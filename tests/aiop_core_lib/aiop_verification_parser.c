@@ -51,8 +51,8 @@ void aiop_init_parser(uint8_t *prpid)
 	verif_parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
 	verif_parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
 	verif_parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
-	/* No MTU checking */
-	verif_parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
+	/* Enable MTU checking */
+	verif_parse_profile1.parse_profile.pppoe_ppp_hxs_config = PARSER_PRP_PPP_HXS_CONFIG_EMC;
 	verif_parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
 	verif_parse_profile1.parse_profile.mpls_hxs_config.lie_dnp =
