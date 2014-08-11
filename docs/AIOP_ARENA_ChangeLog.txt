@@ -1,3 +1,7 @@
+- cmdif_srv.c       Read AMQ bits and ICID from ADC and FD
+- cmdif_client.c    Keep AMQ bits and ICID per dpci
+- cmdif_srv_flib.c  Updated cmdif_srv_open().
+
 - build/aiop_sim/aiopsl/.cproject                     Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
 - build/aiop_sim/apps/app_process_packet/.cproject    Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
 - build/aiop_sim/tests/arena_test/.cproject           Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
@@ -13,7 +17,7 @@
 - virtual_pool.c:    vpool_decr_total_bman_bufs(): added spin-lock and condition to check if number of remaining
                                                    buffers is big enough to give buffers for the service layer.
 - dpl.dts/dtb:         Added DPRC_CFG_OPT_IOMMU_BYPASS to AIOP container. AIOP is trusted entity therefore PL and BMT should be set.
-- platform.c, init.c:  Change to use uart2_0 for AIOP 
+- platform.c, init.c:  Change to use uart2_0 for AIOP
 - fsl_slab.h         Updated slab_release() API documentation with new error for fix of ENGR00307395.
 - slab.c             Fixed ENGR00307395 slab_release error, better protection from user errors.
 - dpni_drv.c/h:      Adding support for dpni_drv_get_spid to receive NI's storage profile ID
