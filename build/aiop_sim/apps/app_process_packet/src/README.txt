@@ -18,7 +18,7 @@ Setup
 1. Install Code Warrior (see Release Note for the compatible CW version).
 2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
 3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
-   from the source tree at: aiopsl/build/aiop_sim/sim_files. 
+   from the source tree at: aiopsl/build/aiop_sim/sim_files.
    into the simulator folder at: dtsim_release/linux64/
 4. Update the “LD_LIBRARY_PATH” variable to point to the simulator folder.
    setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_<version>/dtsim_release/linux64
@@ -32,7 +32,7 @@ Execution flow
    mc/build/mc_t4ls_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/app_process_packet/.project
 2. Build both projects in CW.
-3. Copy the resulting ELF file from the build project folder(aiop_app.elf) 
+3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
    to the simulator folder (same location as cfg files).
 4. Run the simulator:
    ./ccssim2 -port 42333
@@ -42,7 +42,7 @@ Execution flow
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 6. Attach app_process_packet (make sure to un-mark initialization files).
 7. After MC reaches main(), run tio console:
-   ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart1_0
+   ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
 8. Run mc_app.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 9. Run “tio capture”:
