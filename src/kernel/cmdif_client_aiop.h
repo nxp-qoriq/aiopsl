@@ -74,9 +74,11 @@
 #define CMDIF_NUM_PR  		2
 
 struct cmdif_reg {
-	struct dpci *dpci_dev;
-	/**< Open AIOP dpci device */
-	struct dpci_attr *attr;
+	struct dpci *dpci_dev;  /**< Open AIOP dpci device */
+	struct dpci_attr *attr; /**< DPCI attributes */
+	uint32_t dma_flags;	/**< FDMA dma data flags */
+	uint32_t enq_flags;	/**< FDMA enqueue flags */
+	uint16_t icid;		/**< ICID per DPCI */
 };
 
 /* To be allocated on DDR */
