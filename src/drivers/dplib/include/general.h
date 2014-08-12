@@ -230,6 +230,23 @@ void handle_fatal_error(char *message);
 /* TEMP function (TODO Remove!) */
 void exception_handler(char *filename, uint32_t line, char *message);
 
+#ifdef AIOP_VERIF
+/**************************************************************************//**
+@Function	trim_path_prefix
+
+@Description	Trims the prefix of a given file path.
+		It removes all the path but the file name (i.e. all the path up
+		to the last '/'). If the pointer to the file path string is
+		NULL or points to an empty string the returned string will be
+		identical to the given string.
+
+@Param[in]	filepath - The file path to be trimmed.
+
+@Return		The trimmed file name.
+*//***************************************************************************/
+char * trim_path_prefix(char *filepath);
+#endif /*AIOP_VERIF*/
+
 /** @} */ /* end of General_Functions */
 /** @} */ /* end of AIOP_GENERAL */
 

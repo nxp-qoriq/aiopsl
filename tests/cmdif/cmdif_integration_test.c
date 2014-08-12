@@ -70,14 +70,12 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 }
 
 static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
-             uint32_t size, uint64_t data)
+             uint32_t size, void *data)
 {
 	UNUSED(cmd_id);
 	UNUSED(async_ctx);
 	fsl_os_print("PASSED ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
-	fsl_os_print("ASYNC CB data high = 0x%x low = 0x%x size = 0x%x\n",
-	         (uint32_t)((data & 0xFF00000000) >> 32),
-	         (uint32_t)(data & 0xFFFFFFFF), size);
+	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
 	if (err != 0) {
 		fsl_os_print("ERROR inside async_cb\n");
 	}
@@ -99,17 +97,16 @@ static int close_cb(void *dev)
 }
 
 __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
-                              uint64_t data)
+                              void *data)
 {
 	int err = 0;
 	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
 
 	UNUSED(dev);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
+	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
 	             cmd,
 	             size,
-	             (uint32_t)((data & 0xFF00000000) >> 32),
-	             (uint32_t)(data & 0xFFFFFFFF));
+	             (uint32_t)data);
 	/*
 	 * TODO add more test scenarios for AIOP server
 	 * 1. async response with error
@@ -122,47 +119,49 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 }
 
 __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
-                              uint64_t data)
+                              void *data)
 {
 	int err = 0;
 	int i   = 0;
 	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
 
 	UNUSED(dev);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
+	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
 	             cmd,
 	             size,
-	             (uint32_t)((data & 0xFF00000000) >> 32),
-	             (uint32_t)(data & 0xFFFFFFFF));
+	             (uint32_t)data);
 
 	switch (cmd) {
 	case OPEN_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
-		                 NULL, NULL, 0);
+		                 NULL, 0);
 		break;
 	case OPEN_N_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		err |= cmdif_open(&cidesc, "IRA0", 0, async_cb, cidesc.regs,
-		                 NULL, NULL, 0);
+		                  NULL, 0);
 		err |= cmdif_open(&cidesc, "IRA3", 0, async_cb, cidesc.regs,
-		                 NULL, NULL, 0);
+		                  NULL, 0);
 		err |= cmdif_open(&cidesc, "IRA2", 0, async_cb, cidesc.regs,
-		                 NULL, NULL, 0);
+		                  NULL, 0);
 		if (err) {
 			fsl_os_print("failed to cmdif_open()\n");
 			return err;
 		}
 		break;
 	case NORESP_CMD:
+		*((uint8_t *)&send_data[0]) = (uint8_t)NORESP_CMD;
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64,
 		                 CMDIF_PRI_LOW, p_data);
 		break;
 	case ASYNC_CMD:
+		*((uint8_t *)&send_data[0]) = (uint8_t)ASYNC_CMD;
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64,
 		                 CMDIF_PRI_LOW, p_data);
 		break;
 	case ASYNC_N_CMD:
+		*((uint8_t *)&send_data[0]) = (uint8_t)ASYNC_N_CMD;
 		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, 64,
 		                  CMDIF_PRI_LOW, p_data);
 		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, 64,
@@ -173,6 +172,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		                  CMDIF_PRI_HIGH, p_data);
 		break;
 	case SYNC_CMD:
+		*((uint8_t *)&send_data[0]) = (uint8_t)SYNC_CMD;
 		err = cmdif_send(&cidesc, 0xa, 64, CMDIF_PRI_LOW, p_data);
 		break;
 	default:
