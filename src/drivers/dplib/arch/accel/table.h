@@ -710,13 +710,15 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 @Description	Handler for the status returned from the Table API functions.
 
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
 @Param[in]	status - Status to be handled be this function.
 
 @Return		None.
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
-void table_exception_handler(char *filename, uint32_t line, int32_t status);
+void table_exception_handler(char *file_path, uint32_t line, int32_t status);
 
 
 /**************************************************************************//**
