@@ -331,7 +331,7 @@ int app_init(void)
 		fsl_os_print("random_test passed in init phase()\n");
 	}
 
-	fsl_os_print("To start ARENA test inject: \"arena_test_40.pcap\"\n");
+	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");
 	return 0;
 }
 

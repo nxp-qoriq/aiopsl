@@ -48,6 +48,7 @@ void app_free(void);
 __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
+	int local_test_error = 0;
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
@@ -68,6 +69,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	err = ip_set_nw_src(src_addr);
 	if (err) {
 		fsl_os_print("ERROR = %d: ip_set_nw_src(src_addr)\n", err);
+		local_test_error |= err;
 	}
 	if (!err && PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -81,7 +83,16 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("\n");
 	}
 
-	dpni_drv_send(APP_NI_GET(arg));
+	err = dpni_drv_send(APP_NI_GET(arg));
+	if (err){
+		fsl_os_print("ERROR = %d: dpni_drv_send(APP_NI_GET(arg)\n", err);
+		local_test_error |= err;
+	}
+
+	if(!local_test_error) /*No error found during injection of packets*/
+		fsl_os_print("Test Finished SUCCESSFULLY\n");
+	else
+		fsl_os_print("ERROR found during ARENA test\n");
 }
 
 #ifdef AIOP_STANDALONE
@@ -136,7 +147,7 @@ static struct cmdif_module_ops ops = {
 
 int app_init(void)
 {
-	int        err  = 0;
+	int        err  = 0, init_err = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
 
@@ -159,8 +170,13 @@ int app_init(void)
 	}
 
 	err = cmdif_register_module("TEST0", &ops);
-	if (err)
+	if (err){
 		fsl_os_print("FAILED cmdif_register_module\n!");
+		init_err |= err;
+	}
+
+	if(!init_err)
+		fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 
 	return 0;
 }

@@ -92,7 +92,7 @@ int get_id(uint64_t ext_id_pool_address, uint8_t *id)
 				2);
 
 	/* check if index < last_id */
-	if (last_id_and_index[1] < (last_id_and_index[0])) {
+	if (last_id_and_index[1] <= (last_id_and_index[0])) {
 		/* Pull id from the pool */
 		cdma_read(id, 
 			(uint64_t)(ext_id_pool_address+last_id_and_index[1]+2),

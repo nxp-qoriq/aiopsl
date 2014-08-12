@@ -31,9 +31,12 @@
 
 
 struct dpci_obj {
-	struct dpci_attr *attr;
-	struct dpci      *dpci;
-	int    count;
+	struct dpci_attr	*attr;
+	struct dpci		*dpci;
+	uint16_t		*icid;		/**< ICID per DPCI */
+	uint32_t		*dma_flags;	/**< FDMA dma data flags */
+	uint32_t		*enq_flags;	/**< FDMA enqueue flags */
+	int    			count;
 };
 
 #endif /*__FSL_MC_INIT_H */

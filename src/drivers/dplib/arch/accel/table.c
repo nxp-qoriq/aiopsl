@@ -766,32 +766,44 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 	__e_hwaccel(acc_id);
 }
 
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+/* This wrapper eases the process of relocation functions if needed (they can
+ * call another wrapper instead (i.e. wrapper is per file but the exception
+ * handling function of table API is located in one place and should not be
+ * changed over time. */
+/* TODO Doxygen */
+void table_exception_handler_wrp(uint32_t line, int32_t status) {
+	table_exception_handler(__FILE__, line, status);
+}
 
-void table_exception_handler(char *filename, uint32_t line, int32_t status){
+void table_exception_handler(char *file_path, uint32_t line, int32_t status){
 
 	switch (status) {
 	case (TABLE_HW_STATUS_MNLE):
-		exception_handler(filename, line,
+		exception_handler(file_path, line,
 				  "Maximum number of chained lookups reached"
 				  ".\n");
 		break;
 	case (TABLE_HW_STATUS_KSE):
-		exception_handler(filename, line, "Key size error.\n");
+		exception_handler(file_path, line, "Key size error.\n");
 		break;
 	case (MFLU_HW_STATUS_TIDE):
-		exception_handler(filename, line, "Invalid MFLU table ID.\n");
+		exception_handler(file_path, line, "Invalid MFLU table ID.\n");
 		break;
 	case (CTLU_HW_STATUS_TIDE):
-		exception_handler(filename, line, "Invalid CTLU table ID.\n");
+		exception_handler(file_path, line, "Invalid CTLU table ID.\n");
 		break;
 	default:
-		exception_handler(filename, line, "Unknown or Invalid status."
+		exception_handler(file_path, line, "Unknown or Invalid status."
 						  "\n");
 		break;
 	}
 
 	return;
 }
+#pragma pop
 
 int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 	/* Initialized to one for the EM simple case where key_size <= 24 */

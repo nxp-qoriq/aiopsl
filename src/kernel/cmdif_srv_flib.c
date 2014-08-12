@@ -312,6 +312,8 @@ int cmdif_srv_open(void *_srv,
 
 	/* Sending */
 	if (data != NULL) {
+		data->done    = 0;
+		data->err     = 0;
 		data->dev_id  = CPU_TO_SRV32(dpci_id);
 		data->auth_id = *auth_id;
 		data->inst_id = inst_id;
