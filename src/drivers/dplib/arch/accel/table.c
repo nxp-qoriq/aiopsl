@@ -769,11 +769,6 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
-/* This wrapper eases the process of relocation functions if needed (they can
- * call another wrapper instead (i.e. wrapper is per file but the exception
- * handling function of table API is located in one place and should not be
- * changed over time. */
-/* TODO Doxygen */
 void table_exception_handler_wrp(uint32_t line, int32_t status) {
 	table_exception_handler(__FILE__, line, status);
 }
