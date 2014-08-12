@@ -53,12 +53,12 @@ void handle_fatal_error(char *message)
 }
 
 #ifdef AIOP_VERIF
-char * trim_path(char *filepath){
+char * trim_path_prefix(char *filepath){
 	char *slash_ptr = filepath;
 	char *char_ptr = filepath;
-	if (char_ptr && *char_ptr != '\0'){
-		while (*char_ptr != '\0'){
-			if (*char_ptr == '/'){
+	if (char_ptr && *char_ptr != '\0') {
+		while (*char_ptr != '\0') {
+			if (*char_ptr == '/') {
 				slash_ptr = char_ptr;
 			}
 			char_ptr++;
@@ -67,7 +67,6 @@ char * trim_path(char *filepath){
 	} else {
 		return char_ptr;
 	}
-	
 }
 #endif /*AIOP_VERIF*/
 
@@ -76,7 +75,7 @@ void exception_handler(char *filename, uint32_t line, char *message)
        uint32_t status;
        status = -1 + (uint32_t)message + (uint32_t)filename + line;
 #ifdef AIOP_VERIF
-       filename = trim_path(filename);
+       filename = trim_path_prefix(filename);
        //TODO replace and update verification command
        fdma_store_and_enqueue_default_frame_fqid(
 		       fatal_fqid, FDMA_EN_TC_TERM_BITS);

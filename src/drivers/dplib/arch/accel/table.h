@@ -730,11 +730,35 @@ int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 *//***************************************************************************/
 void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
+/**************************************************************************//**
+@Function	table_exception_handler_wrp
+
+@Description	Wrapper for the handler of the error status returned from the
+		Table API functions.
+		This wrapper adds the file path in which the error occurred. It
+		should be implemented inside a special compiler pragma which
+		tells the compiler to store data (e.g. strings) in a dedicated
+		location, so there will be good memory usage.
+		This wrapper eases the process of relocation functions if
+		needed (they can call another wrapper instead (i.e. wrapper is
+		per file but the exception handling function of table API is
+		located in one place and should not be changed over time.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+@Param[in]	status - Status to be handled be this function.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void table_exception_handler_wrp(uint32_t line, int32_t status);
 
 /**************************************************************************//**
-@Function	table_fatal_status_handler
+@Function	table_exception_handler
 
-@Description	Handler for the status returned from the Table API functions.
+@Description	Handler for the error status returned from the Table API
+		functions.
 
 @Param[in]	file_path - The path of the file in which the error occurred.
 @Param[in]	line - The line in which the error occurred.
