@@ -89,14 +89,15 @@ User provides this function. Driver invokes it for all runtime commands
 @Param[in]	size - Size of the data.
 		On the AIOP side use PRC_GET_SEGMENT_LENGTH() to determine the
 		size of presented data.
-@Param[in]	data - Data of the command - physical address.
+@Param[in]	data - Data of the command.
 		AIOP server will pass here address to the start of presentation
 		segment - physical address is the same as virtual.
 		On AIOP use fdma_modify_default_segment_data() if needed.
-
+		On GPP, it should be virtual address that belongs
+		to current SW context.
 @Return		OK on success; error code, otherwise.
  *//***************************************************************************/
-typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, uint64_t data);
+typedef int (ctrl_cb_t)(void *dev, uint16_t cmd, uint32_t size, void *data);
 
 /**************************************************************************//**
 @Description	Function pointers to be supplied during module registration
@@ -153,7 +154,6 @@ int cmdif_unregister_module(const char *module_name);
 @Param[in]	size     - Size of v_data buffer
 @Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
-@Param[in]	p_data   - Physical address of v_data.
 @Param[in]	send_dev - Transport device to be used for server (nadk device).
 		Device used for send and receive of frame descriptor.
 @Param[out]	auth_id  - Session id as returned by server.
@@ -165,7 +165,6 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 		uint8_t inst_id,
 		uint32_t size,
 		void *v_data,
-		uint64_t p_data,
 		void *send_dev,
 		uint16_t *auth_id);
 
@@ -179,7 +178,6 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 @Param[in]	auth_id  - Session id as returned by server.
 @Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
-@Param[in]	p_data   - Physical address of v_data.
 @Param[in]	send_dev - Transport device used for server (nadk device).
 		Device used for send and receive of frame descriptor.
 
@@ -189,7 +187,6 @@ int cmdif_session_close(struct cmdif_desc *cidesc,
 			uint16_t auth_id,
 			uint32_t size,
 			void *v_data,
-			uint64_t p_data,
 			void *send_dev);
 
 /**************************************************************************//**

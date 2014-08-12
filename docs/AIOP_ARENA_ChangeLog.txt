@@ -1,3 +1,7 @@
+- fsl_cmdif_client.h    Removed physical addresses from external API, when SMMU is enabled virt to phys is not required.
+                        cmdif_send() data pointer is still of uint64_t type, this is because GPP virtual addresses are 39 bit
+						and AIOP and GPP are going to use the same virtual address space.
+- fsl_cmdif_server.h    Removed physical addresses from external API, when SMMU is enabled virt to phys is not required.
 - cmdif_srv.c       Read AMQ bits and ICID from ADC and FD
 - cmdif_client.c    Keep AMQ bits and ICID per dpci
 - cmdif_srv_flib.c  Updated cmdif_srv_open().

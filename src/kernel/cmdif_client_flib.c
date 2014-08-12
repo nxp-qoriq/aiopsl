@@ -240,7 +240,7 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
 				fd->u_flc.cmd.err,
 				CPU_TO_SRV16(fd->u_flc.cmd.cmid),
 				fd->d_size,
-				(uint64_t)((v_addr != NULL) ? v_addr : fd->u_addr.d_addr));
+				(void *)((v_addr != NULL) ? v_addr : fd->u_addr.d_addr));
 	else
 		return -EINVAL;
 }

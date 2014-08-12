@@ -133,7 +133,7 @@ static int empty_close_cb(void *dev)
 	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
-static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
+static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	UNUSED(cmd);
 	UNUSED(dev);
@@ -373,7 +373,7 @@ int cmdif_srv_cmd(void *_srv,
 	err = CTRL_CB(in_cfd.u_flc.cmd.auth_id, \
 	              in_cfd.u_flc.cmd.cmid, \
 	              cfd->d_size, \
-	              (uint64_t)((v_addr != NULL) ? v_addr : cfd->u_addr.d_addr));
+	              (void *)((v_addr != NULL) ? v_addr : cfd->u_addr.d_addr));
 
 	if (SYNC_CMD(in_cfd.u_flc.cmd.cmid)) {
 		if (srv->sync_done[in_cfd.u_flc.cmd.auth_id]) {
