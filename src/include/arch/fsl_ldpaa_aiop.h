@@ -355,6 +355,7 @@
 	LLSTDW_SWAP(_val, 0, (uint32_t)(((char *)_fd) + FD_ADDR_OFFSET));\
 	})
 	/** Macro to set FD LENGTH field.
+	 * SL bit in the frame descriptor must be valid when calling this macro.
 	 * _fd - the FD address in workspace.
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_LENGTH(_fd, _val)					\

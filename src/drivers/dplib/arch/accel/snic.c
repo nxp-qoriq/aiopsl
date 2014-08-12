@@ -186,7 +186,7 @@ int snic_ipf(struct snic_params *snic)
 			/* todo error cases */
 			fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
 					FDMA_ENWF_NO_FLAGS);
-		} while (ipf_status);
+		} while (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS);
 
 		fdma_terminate_task();
 		return 0;
