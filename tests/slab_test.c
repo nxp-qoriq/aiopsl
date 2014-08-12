@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
@@ -111,18 +137,25 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 
 int app_test_slab(struct slab *slab, int num_times)
 {
-	uint64_t buff[3] = {0, 0, 0};
+	uint64_t buff[4] = {0, 0, 0, 0};
 	int      err = 0;
 	int      i = 0;
+	struct slab *my_slab;
+
+	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 0,
+	                  NULL, &my_slab);
 
 	for (i = 0; i < num_times; i++) {
 
 		err = slab_acquire(slab, &buff[0]);
-		if (err || (buff == NULL)) return -ENOMEM;
+		if (err || (buff[0] == NULL)) return -ENOMEM;
 		err = slab_acquire(slab, &buff[1]);
-		if (err || (buff == NULL)) return -ENOMEM;
+		if (err || (buff[1] == NULL)) return -ENOMEM;
 		err = slab_acquire(slab, &buff[2]);
-		if (err || (buff == NULL)) return -ENOMEM;
+		if (err || (buff[2] == NULL)) return -ENOMEM;
+
+		err = slab_acquire(my_slab, &buff[3]);
+		if (err || (buff[3] == NULL)) return -ENOMEM;
 
 		err = app_write_buff_and_release(slab, buff[1]);
 		if (err) return err;
@@ -130,7 +163,15 @@ int app_test_slab(struct slab *slab, int num_times)
 		if (err) return err;
 		err = app_write_buff_and_release(slab, buff[0]);
 		if (err) return err;
+		err = app_write_buff_and_release(my_slab, buff[3]);
+		if (err) return err;
 	}
+
+	err = slab_free(&my_slab);
+	if (err) return err;
+
+	err = slab_acquire(my_slab, &buff[3]);
+	if(err == 0) return -EINVAL;
 
 	return 0;
 }

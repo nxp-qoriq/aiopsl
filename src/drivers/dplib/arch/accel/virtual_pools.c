@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**************************************************************************//**
 @File		aiop_virtual_pools.c
 
@@ -8,6 +34,7 @@
 #include "virtual_pools.h"
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_cdma.h"
+#include "fsl_dbg.h"
 #include "cdma.h"
 
 __SHRAM struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
@@ -276,22 +303,27 @@ int32_t vpool_add_total_bman_bufs(
 {
 
 	int i;
-	uint16_t bman_array_index = 0;
+	int16_t bman_array_index = -1;
 
-	#ifdef SL_DEBUG
-		/* Check the arguments correctness */
-		if (bman_pool_id >= MAX_VIRTUAL_BMAN_POOLS_NUM)
-				return VIRTUAL_POOLS_ILLEGAL_ARGS;
-	#endif
+#ifdef SL_DEBUG
+	/* Check the arguments correctness */
+	if (bman_pool_id >= MAX_VIRTUAL_BMAN_POOLS_NUM)
+		return VIRTUAL_POOLS_ILLEGAL_ARGS;
+#endif
 
 	/* Check which BMAN pool ID array element matches the ID */
 	for (i=0; i< MAX_VIRTUAL_BMAN_POOLS_NUM; i++) {
 		if (virtual_bman_pools[i].bman_pool_id == bman_pool_id) {
-			bman_array_index = (uint16_t)i;
+			bman_array_index = (int16_t)i;
 			break;
 		}
 	}
 
+#ifdef SL_DEBUG
+	/* Check the arguments correctness */
+	if (bman_array_index < 0)
+		return VIRTUAL_POOLS_BUF_ALLOC_FAIL;
+#endif
 	/* Increment the total available BMAN pool buffers */
 	atomic_incr32(&virtual_bman_pools[bman_array_index].remaining,
 			additional_bufs);
@@ -324,12 +356,26 @@ int32_t vpool_decr_total_bman_bufs(
 		}
 	}
 
-	/* Increment the total available BMAN pool buffers */
-	atomic_decr32(&virtual_bman_pools[bman_array_index].remaining,
-			less_bufs);
+	lock_spinlock(
+		(uint8_t *)&virtual_bman_pools[bman_array_index].spinlock);
+
+	/* Check if there are enough buffers to reserve */
+	if (virtual_bman_pools[bman_array_index].remaining >= less_bufs) {
+		/* decrement the BMAN pool buffers */
+		virtual_bman_pools[bman_array_index].remaining -=
+			less_bufs;
+
+		unlock_spinlock((uint8_t *)
+		                &virtual_bman_pools[bman_array_index].spinlock);
+
+	} else {
+		unlock_spinlock((uint8_t *)
+		                &virtual_bman_pools[bman_array_index].spinlock);
+		return VIRTUAL_POOLS_INSUFFICIENT_BUFFERS;
+	}
 
 	return VIRTUAL_POOLS_SUCCESS;
-} /* End of vpool_decr_total_bman_bufs */
+} /* End of vpool_decr_bman_bufs */
 
 /***************************************************************************
  * vpool_allocate_buf
@@ -419,7 +465,7 @@ void vpool_release_buf(uint32_t virtual_pool_id,
 	cdma_release_context_memory(context_address);
 
 	__vpool_internal_release_buf(virtual_pool_id);
-	
+
 } /* End of vpool_release_buf */
 
 /***************************************************************************
@@ -496,8 +542,8 @@ int32_t vpool_refcount_decrement_and_release(
 		if (callback->callback_func != NULL) {
 			no_callback = FALSE;
 			/* Decrement ref counter without release */
-			/* Note: if the reference count was already at zero 
-			 * (so CDMA returned with decrement error) the CDMA 
+			/* Note: if the reference count was already at zero
+			 * (so CDMA returned with decrement error) the CDMA
 			 * function will not return */
 			cdma_status = cdma_refcount_decrement(context_address);
 
@@ -527,7 +573,7 @@ int32_t vpool_refcount_decrement_and_release(
 		 * (so CDMA returned with decrement error). */
 		if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
 			release = TRUE;
-		} 
+		}
 	}
 
 	/* TODO: the return value is inconsistent with

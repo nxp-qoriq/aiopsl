@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "common/types.h"
 #include "inc/fsl_gen.h"
 #include "fsl_errors.h"
@@ -36,13 +62,13 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	int    err = 0;
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
 	uint32_t fqid = 0;
-	uint32_t flags = FDMA_EN_TC_RET_BITS;
 
+#ifdef DEBUG
 	if ((sdev == NULL) 				||
 		(sdev->attr->num_of_priorities <= pr)	||
 		(fd == NULL))
 		return -EINVAL;
-
+#endif
 	/* Copy fields from FD  */
 	_fd.addr   = CPU_TO_LE64(fd->u_addr.d_addr);
 	_fd.flc    = CPU_TO_LE64(fd->u_flc.flc);
@@ -51,17 +77,19 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	_fd.control = 0;
 	_fd.offset  = 0;
 
+	if (sdev->dma_flags & FDMA_DMA_BMT_BIT)
+		_fd.control |= (((uint32_t)FD_CBMT_MASK) << 8);
+	/* TODO check about VA, eVA bit */
+	if (sdev->dma_flags & FDMA_DMA_VA_BIT)
+		_fd.control |= (((uint32_t)FD_VA_MASK) << 8);
+	_fd.control = CPU_TO_LE32(_fd.control);
+
 	fqid = sdev->attr->dpci_prio_attr[pr].tx_qid;
 
-	/* TODO BDI and ICID should be take from DPCI attributes
-	 * This task may be of DPNI and it may have different attributes
-	 * I want to send to specific SW context */
-	if (BDI_GET != 0)
-		flags |= FDMA_ENF_BDI_BIT;
+	pr_debug("Sending to fqid 0x%x fdma enq flags = 0x%x icid = 0x%x\n", \
+	         fqid, sdev->enq_flags, sdev->icid);
 
-	pr_debug("Sending to fqid 0x%x fdma flags = 0x%x\n", fqid, flags);
-
-	err = fdma_enqueue_fd_fqid(&_fd, flags , fqid, ICID_GET(PL_ICID_GET));
+	err = fdma_enqueue_fd_fqid(&_fd, sdev->enq_flags , fqid, sdev->icid);
 	if (err) {
 		pr_err("Failed to send response\n");
 		return -EIO;
@@ -78,11 +106,11 @@ __HOT_CODE static int session_get(const char *m_name,
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
-	/* TODO place it under debug ? */
+#ifdef DEBUG
 	if (cl == NULL) {
 		return -ENODEV;
 	}
-
+#endif
 	/* TODO if sync mode is supported
 	 * Sharing the same auth_id will require management of opened or not
 	 * there won't be 2 cidesc with same auth_id because
@@ -222,23 +250,13 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 
 		uint64_t p_sync = \
 			((struct cmdif_dev *)cidesc->dev)->p_sync_done;
+		struct cmdif_reg *sdev = (struct cmdif_reg *)cidesc->regs;
 
 		do {
-			uint16_t pl_icid = PL_ICID_GET;
-			uint32_t flags = FDMA_DMA_DA_SYS_TO_WS_BIT;
-
-			/* TODO this should be taken from DPCI
-			 * Anyway sync mode is not supported */
-			ADD_AMQ_FLAGS(flags, pl_icid);
-			/* Same as
-			cdma_read(&done,
-			          ((struct cmdif_dev *)cidesc->dev)->p_sync_done,
-			          4);
-			 * Anyway this is relevant only for sync mode
+			 /* This is relevant only for sync mode
 			 * which is not supported by AIOP client */
-			fdma_dma_data(4, ICID_GET(pl_icid), &done,
-			              p_sync, flags);
-
+			fdma_dma_data(4, sdev->icid, &done,
+			              p_sync, sdev->dma_flags);
 			t++;
 		} while ((done.resp.done == 0) && (t < CMDIF_TIMEOUT));
 

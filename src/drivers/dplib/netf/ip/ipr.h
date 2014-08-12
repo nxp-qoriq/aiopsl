@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**************************************************************************//**
 @File          ipr.h
 
@@ -143,7 +169,7 @@ struct ipr_rfdc{
 	uint16_t	status;
 	uint16_t	total_in_order_payload;
 	/* 4 next bytes can move to extension */
-	struct 		fdma_amq isolation_bits; 
+	struct 		fdma_amq isolation_bits;
 	uint64_t	ipv4_key[2];
 	uint16_t	iphdr_offset;
 	uint16_t	ipv6_fraghdr_offset;
@@ -199,7 +225,7 @@ Implicit:	max_buffers - maximum number of buffers to be used as
 		flags - \link IPRInitFlags IPR init flags \endlink
 
 
-@Return		reflect the return value from slab_find_and_fill_bpid().
+@Return		reflect the return value from slab_find_and_reserve_bpid().
 		0       - on success,
                -ENAVAIL - could not release into bpid
                -ENOMEM  - not enough memory for mem_partition_id.
@@ -224,7 +250,7 @@ int ipr_init(void);
 *//***************************************************************************/
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr, 
+				 uint64_t rfdc_ext_addr,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4);
 

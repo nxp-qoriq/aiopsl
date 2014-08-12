@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
@@ -78,18 +104,18 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in runtime phase \n", err);
+		local_test_error |= err;
 	} else {
 		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
-		local_test_error |= err;
 	}
 
 	err = memory_test();
 
 	if (err) {
 		fsl_os_print("ERROR = %d: memory_test failed in runtime phase \n", err);
+		local_test_error |= err;
 	} else {
 		fsl_os_print("Memory  test passed for packet number %d, on core %d\n", local_packet_number, core_id);
-		local_test_error |= err;
 	}
 
 	/*Random Test*/
@@ -234,11 +260,9 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			}
 
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
-			fsl_os_exit(0);
 		}
 		else {
 			fsl_os_print("ERROR found during ARENA test\n");
-			fsl_os_exit(-1);
 		}
 	}
 }
@@ -279,6 +303,7 @@ int app_init(void)
 	err = slab_init();
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_init failed  in init phase()\n", err);
+		test_error |= err;
 	}
 	else
 		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
@@ -286,6 +311,7 @@ int app_init(void)
 
 	if (err) {
 		fsl_os_print("ERROR = %d: memory_test failed in init phase()\n", err);
+		test_error |= err;
 	}
 	else
 		fsl_os_print("memory_test succeeded  in init phase()\n", err);
@@ -293,17 +319,19 @@ int app_init(void)
 	err = malloc_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
+		test_error |= err;
 	}
 	else
 		fsl_os_print("malloc_test succeeded  in init phase()\n", err);
 	err = random_init();
 	if (err) {
 		fsl_os_print("ERROR = %d: random_test failed in init phase()\n", err);
+		test_error |= err;
 	} else {
 		fsl_os_print("random_test passed in init phase()\n");
 	}
 
-	fsl_os_print("To start ARENA test inject: \"arena_test_40.pcap\"\n");
+	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");
 	return 0;
 }
 

@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**************************************************************************//**
 @File		ipr.c
 
@@ -66,7 +92,7 @@ int ipr_init(void)
 			  kb.kcr,
 			  &ipr_key_id);
 	ipr_global_parameters1.ipr_key_id_ipv6 = ipr_key_id;
-	
+
 	if (status < 0) {
 		/* todo  Fatal */
 	}
@@ -90,7 +116,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				ipr_params_ptr->max_open_frames_ipv6 + 1;
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
-	status = slab_find_and_fill_bpid(aggregate_open_frames,
+	status = slab_find_and_reserve_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
 					MEM_PART_DP_DDR,
@@ -99,7 +125,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 
 	if (status < 0)
 		return status;
-	
+
 	if(num_filled_buffs != aggregate_open_frames)
 		return IPR_MAX_BUFFERS_REACHED;
 
@@ -109,13 +135,13 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		return err;
 
 	ipr_instance.bpid = bpid;
+	ipr_instance.flags = ipr_params_ptr->flags;
 
 	/* For IPv4 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv4;
 	/* Initialize instance parameters */
 	ipr_instance.table_id_ipv4 = 0;
 	ipr_instance.table_id_ipv6 = 0;
-	ipr_instance.flags = 0;
 	if (max_open_frames) {
 		ipr_instance.flags |= IPV4_VALID;
 		ipr_instance_ext.max_open_frames_ipv4 = max_open_frames;
@@ -178,7 +204,6 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	}
 
 	/* Initialize instance parameters */
-	ipr_instance.flags = 0;
 	ipr_instance.extended_stats_addr = ipr_params_ptr->extended_stats_addr;
 	ipr_instance.max_reass_frm_size = ipr_params_ptr->max_reass_frm_size;
 	ipr_instance.min_frag_size_ipv4 = ipr_params_ptr->min_frag_size_ipv4;
@@ -189,12 +214,11 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	ipr_instance.ipv6_timeout_cb = ipr_params_ptr->ipv6_timeout_cb;
 	ipr_instance.cb_timeout_ipv4_arg = ipr_params_ptr->cb_timeout_ipv4_arg;
 	ipr_instance.cb_timeout_ipv6_arg = ipr_params_ptr->cb_timeout_ipv6_arg;
-	ipr_instance.flags = ipr_params_ptr->flags;
 	ipr_instance.tmi_id = ipr_params_ptr->tmi_id;
-	
+
 	/* Write ipr instance data structure */
 	cdma_write(*ipr_instance_ptr, &ipr_instance, IPR_INSTANCE_SIZE);
-	
+
 	/* Initialization of ipr instance extension parameters */
 	ipr_instance_ext.confirm_delete_cb = 0;
 	ipr_instance_ext.delete_arg	   = 0;
@@ -202,7 +226,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	ipr_instance_ext.num_of_open_reass_frames_ipv6 = 0;
 	ipr_instance_ext.ipv4_reass_frm_cntr = 0;
 	ipr_instance_ext.ipv6_reass_frm_cntr = 0;
-	
+
 	/* Write ipr instance extension data structure */
 	cdma_write((*ipr_instance_ptr)+sizeof(struct ipr_instance),
 		   &ipr_instance_ext,
@@ -224,15 +248,15 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	ste_barrier();
 
 	cdma_read(&ipr_instance, ipr_instance_ptr, IPR_INSTANCE_SIZE);
-	
-	/* todo 
+
+	/* todo
 	ipr_instance_extension_ptr = ((uint64_t)ipr_instance_ptr) +
 				     sizeof(struct ipr_instance);
 	cdma_read(&ipr_instance_ext,
 		  ipr_instance_extension_ptr,
 		  IPR_INSTANCE_SIZE);
 	*/
-	
+
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
 	/* error case */
@@ -438,7 +462,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					 num_of_open_reass_frames_ipv6),
 					 1,
 					 STE_MODE_32_BIT_CNTR_SIZE);
-			     
+
 				rfdc.status = RFDC_VALID | IPV6_FRAME;
 
 		    }
@@ -465,7 +489,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    timeout_value = instance_params.timeout_value_ipv4;
 		    else
 			    timeout_value = instance_params.timeout_value_ipv6;
-			
+
 /*		    tman_create_timer(instance_params.tmi_id,
 				      IPR_TIMEOUT_FLAGS,
 				      timeout_value,
@@ -499,7 +523,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		} else if (instance_params.flags & IPR_MODE_IPV6_TO_TYPE) {
 			/* recharge timer in case of time out
 			 * between fragments */
-//				tman_recharge_timer(rfdc.timer_handle);	
+//				tman_recharge_timer(rfdc.timer_handle);
 		}
 		/* Write and release updated 64 first bytes
 		 * of RFDC */
@@ -612,7 +636,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 	/* L4 checksum is not valid */
 	return IPR_ERROR;
-	
+
 	} else {
 		/* Error fragment */
 		move_to_correct_ordering_scope1(osm_status);
@@ -948,7 +972,7 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	fdma_modify_default_segment_data(ipv4hdr_offset+2, 10);
 
 	/* Updated FD[length] */
-	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset+ 
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset+
 					   prc->seg_offset);
 
 	/* Update Gross running sum of the reassembled frame */
@@ -984,13 +1008,13 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 				(ipv6hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
 	ipv6fraghdr_offset = rfdc_ptr->ipv6_fraghdr_offset;
-	
+
 	ipv6fraghdr_ptr = (struct ipv6fraghdr *) (PRC_GET_SEGMENT_ADDRESS() +
 						ipv6fraghdr_offset);
-			
+
 	ipv6_frag_extension_size = (uint16_t)((uint32_t)ipv6fraghdr_ptr -
 				(uint32_t)ipv6hdr_ptr) - IPV6_FIXED_HEADER_SIZE;
-	
+
 	fdma_calculate_default_frame_checksum(
 				ipv6hdr_offset,
 				ipv6fraghdr_offset-ipv6hdr_offset+8,
@@ -1278,14 +1302,14 @@ void check_remove_padding()
 		present_params_ptr->offset 	 = delta;
 		present_params_ptr->ws_dst 	 = &tail_frame_ptr;
 		present_params_ptr->present_size = delta;
-		fdma_present_frame_segment(present_params_ptr);		
+		fdma_present_frame_segment(present_params_ptr);
 
 		params.seg_handle	  = present_params_ptr->seg_handle;
 		params.delete_target_size = delta;
 		params.flags 		  = FDMA_REPLACE_SA_CLOSE_BIT,
 		params.frame_handle	  = (uint8_t) PRC_GET_FRAME_HANDLE(),
 		params.to_offset	  = 0;
-		
+
 		fdma_delete_segment_data(&params);
 	}
 	return;

@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "common/types.h"
 #include "inc/fsl_gen.h"
 #include "fsl_errors.h"
@@ -32,8 +58,8 @@
 #define SYNC_CMD(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
 
-#define OPEN_CB(M_ID, INST, DEV_ID) \
-	(srv->open_cb[M_ID](INST, &srv->inst_dev[DEV_ID]))
+#define OPEN_CB(M_ID, INST, DEV) \
+	(srv->open_cb[M_ID](INST, &DEV))
 
 #define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
 	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
@@ -240,7 +266,6 @@ int cmdif_srv_init(void)
 
 	err = sys_add_handle(srv_aiop, FSL_OS_MOD_CMDIF_SRV, 1, 0);
 
-#ifndef OLD_DPCI
 	if (srv_aiop->dpci_tbl == NULL)
 	{
 		pr_err("No DPCI table on AIOP, CMDIF is not functional \n");
@@ -248,7 +273,6 @@ int cmdif_srv_init(void)
 		pr_info("All AIOP DPCIs should have peer before AIOP boot\n");
 		return -ENODEV;
 	}
-#endif
 
 	return err;
 }
@@ -268,17 +292,14 @@ __HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	uint32_t fqid = RESP_QID_GET;
-#ifndef OLD_DPCI
 	uint8_t  ind = 0;
 	uint8_t  pr  = 0;
-#endif
-	/** ERROR is not overridden by FDMA store */
+
 	flc &= ~ERROR_MASK;
 	flc |= ((uint64_t)cb_err) << ERROR_OFF;
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
 
-#ifndef OLD_DPCI
 	ind = (uint8_t)(fqid >> 1);
 	pr  = (uint8_t)(fqid & 1);
 	fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
@@ -288,7 +309,6 @@ __HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 		                          &aiop_srv->dpci_tbl->attr[ind]);
 		fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
 	}
-#endif
 
 	pr_debug("Response ID = 0x%x\n", fqid);
 	pr_debug("CB error = %d\n", cb_err);
@@ -328,15 +348,11 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		uint16_t pl_icid = PL_ICID_GET;
 		uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
 
-		pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
-
-		/* TODO it should be taken from DPCI attributes or maybe stored
-		 * per session
+		/*
 		 * It's ok to take it from current ADC and FD because this
-		 * should not change between commands */
+		 * should not change between commands on the same session */
 		ADD_AMQ_FLAGS(flags, pl_icid);
-		/* Same as cdma_write(_sync_done, &resp, 4);
-		 * but with ICID from ADC*/
+		pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
 		pr_debug("fdma_dma_data flags = 0x%x\n", flags);
 		fdma_dma_data(4, ICID_GET(pl_icid), &resp, _sync_done, flags);
 	}
@@ -382,6 +398,7 @@ static int notify_open()
 	int link_up = 1;
 	struct dpci_obj *dpci_tbl = NULL;
 	int err = 0;
+	uint16_t pl_icid = PL_ICID_GET;
 
 	pr_debug("Got notify open for AIOP client \n");
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
@@ -395,34 +412,14 @@ static int notify_open()
 		return -ENAVAIL;
 	}
 
-	pr_debug("Found dpci peer id at index %d \n", ind);
+	pr_debug("Found dpci %d peer id at index %d \n", \
+	         dpci_tbl->attr[ind].id, ind);
 
-	/* TODO place it under debug ? */
+#ifdef DEBUG
 	if (cl == NULL) {
 		pr_err("No client handle\n");
 		return -ENODEV;
 	}
-
-	lock_spinlock(&cl->lock);
-	count = cl->count;
-	if (count >= CMDIF_MN_SESSIONS) {
-		pr_err("Too many sessions\n");
-		unlock_spinlock(&cl->lock);
-		return -ENOSPC;
-	}
-	cl->gpp[count].ins_id           = data->inst_id;
-	cl->gpp[count].dev->auth_id     = data->auth_id;
-	cl->gpp[count].dev->p_sync_done = sync_done_get();
-	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
-	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
-	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
-	cl->gpp[count].regs->dpci_dev = &dpci_tbl->dpci[ind];
-	cl->gpp[count].regs->attr     = &dpci_tbl->attr[ind];
-	cl->count++;
-	unlock_spinlock(&cl->lock);
-
-	/* TODO check with Ehud about  dpci_get_attributes() */
-#if 0 //#ifdef DEBUG //TODO debug why it fails on MC when MC is server
 	 /* DEBUG in order not to call MC inside task */
 	 err = dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up);
 	 if (err) {
@@ -430,7 +427,7 @@ static int notify_open()
 	 }
 #endif
 	 /* Do it only if queues are not there */
-	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == 0xFFFFFFFF) {
+	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == DPCI_VFQID_NOT_VALID) {
 		 err = dpci_get_attributes(&dpci_tbl->dpci[ind],
 		                           &dpci_tbl->attr[ind]);
 	 }
@@ -439,6 +436,41 @@ static int notify_open()
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
+
+	/* Create descriptor for client session */
+	lock_spinlock(&cl->lock);
+	count = cl->count;
+	if (count >= CMDIF_MN_SESSIONS) {
+		pr_err("Too many sessions\n");
+		unlock_spinlock(&cl->lock);
+		return -ENOSPC;
+	}
+
+	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
+	dpci_tbl->enq_flags[ind]      = FDMA_EN_TC_RET_BITS;
+	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
+	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
+	if (BDI_GET != 0)
+		dpci_tbl->enq_flags[ind] |= FDMA_ENF_BDI_BIT;
+	cl->gpp[count].ins_id           = data->inst_id;
+	cl->gpp[count].dev->auth_id     = data->auth_id;
+	cl->gpp[count].dev->p_sync_done = sync_done_get();
+	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
+	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
+	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
+	cl->gpp[count].regs->dpci_dev   = &dpci_tbl->dpci[ind];
+	cl->gpp[count].regs->attr       = &dpci_tbl->attr[ind];
+	cl->gpp[count].regs->icid       = dpci_tbl->icid[ind];
+	cl->gpp[count].regs->dma_flags  = dpci_tbl->dma_flags[ind];
+	cl->gpp[count].regs->enq_flags  = dpci_tbl->enq_flags[ind];
+
+	cl->count++;
+	unlock_spinlock(&cl->lock);
+
+	pr_debug("icid = 0x%x\n", dpci_tbl->icid[ind]);
+	pr_debug("enq_flags = 0x%x\n", dpci_tbl->enq_flags[ind]);
+	pr_debug("dma_flags = 0x%x\n", dpci_tbl->dma_flags[ind]);
+
 	return 0;
 }
 
@@ -521,10 +553,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 		uint8_t  inst_id   = 0;
 		int      new_inst  = 0;
 		uint64_t sync_done = sync_done_get();
-
-		pr_debug("sync_done high = 0x%x low = 0x%x \n",
-			 (uint32_t)((sync_done & 0xFF00000000) >> 32),
-			 (uint32_t)(sync_done & 0xFFFFFFFF));
+		void     *dev;
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
@@ -545,26 +574,24 @@ __HOT_CODE void cmdif_srv_isr(void)
 		}
 
 		inst_id  = cmd_inst_id_get();
-		new_inst = inst_alloc(aiop_srv, (uint8_t)m_id);
-		if (new_inst >= 0) {
+		pr_debug("inst_id = %d\n", inst_id);
 
-			pr_debug("inst_id = %d\n", inst_id);
-			pr_debug("new_inst = %d\n", new_inst);
-
-			sync_done_set((uint16_t)new_inst, srv);
-			err = OPEN_CB(m_id, inst_id, new_inst);
-			sync_cmd_done(sync_done, err,
-					(uint16_t)new_inst, srv, FALSE);
-			if (err) {
-				pr_err("Open callback failed\n");
-				inst_dealloc(new_inst, aiop_srv);
+		err = OPEN_CB(m_id, inst_id, dev);
+		if (!err) {
+			new_inst = inst_alloc(aiop_srv, (uint8_t)m_id);
+			if (new_inst >= 0) {
+				pr_debug("new auth_id = %d\n", new_inst);
+				sync_done_set((uint16_t)new_inst, srv);
+				sync_cmd_done(sync_done, 0,
+						(uint16_t)new_inst, srv, TRUE);
+			} else {
+				/* couldn't find free place for new device */
+				sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
+				PR_ERR_TERMINATE("No free entry for new device\n");
 			}
-			pr_debug("PASSED open command\n");
-			fdma_terminate_task();
 		} else {
-			/* couldn't find free place for new device */
-			sync_cmd_done(sync_done, -ENODEV, auth_id, srv, FALSE);
-			PR_ERR_TERMINATE("No free entry for new device\n");
+			sync_cmd_done(sync_done, err, auth_id, srv, FALSE);
+			PR_ERR_TERMINATE("Open callback failed\n");
 		}
 	} else if (cmd_id == CMD_ID_CLOSE) {
 

@@ -1,3 +1,29 @@
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of Freescale Semiconductor nor the
+ *     names of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**************************************************************************//*
 @File          slab.h
 
@@ -76,6 +102,9 @@
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP         1000
+#define SLAB_NUM_OF_BUFS_DPDDR  750
+#define SLAB_NUM_OF_BUFS_PEB    20
+
 
 /**************************************************************************//**
 @Description   Information for every bpid
@@ -100,6 +129,8 @@ struct slab_hw_pool_info {
 	/**< Buffer alignment */
 	uint16_t mem_pid;
 	/**< Memory partition for buffers allocation */
+	int total_num_buffs;
+	/**< Number of allocated buffers per pool */
 };
 
 /**************************************************************************//**
@@ -151,9 +182,9 @@ int slab_module_init(void);
 void slab_module_free(void);
 
 /**************************************************************************//**
-@Function      slab_find_and_fill_bpid
+@Function      slab_find_and_reserve_bpid
 
-@Description   Finds and fills buffer pool with new buffers
+@Description   Finds and reserve buffers from buffer pool.
 
 		This function is part of SLAB module therefore it should be
 		called only after it has been initialized by slab_module_init()
@@ -162,20 +193,37 @@ void slab_module_free(void);
 @Param[in]     buff_size         Size of buffers in pool.
 @Param[in]     alignment         Requested alignment for data field (in bytes).
 				 AIOP: HW pool supports up to 8 bytes alignment.
-@Param[in]     mem_partition_id  Memory partition ID for allocation.
+@Param[in]     mem_partition_id  Memory partition ID for buffer type.
 				 AIOP: HW pool supports only PEB and DPAA DDR.
-@Param[out]    num_filled_buffs  Number of buffers that we succeeded to fill.
-@Param[out]    bpid              Id of pool that was filled with new buffers.
+@Param[out]    num_reserved_buffs  Number of buffers that we succeeded to reserve.
+@Param[out]    bpid              Id of pool that supply the requested buffers.
 
 @Return        0       - on success,
 	       -ENAVAIL - could not release into bpid
 	       -ENOMEM  - not enough memory for mem_partition_id
  *//***************************************************************************/
-int slab_find_and_fill_bpid(uint32_t num_buffs,
+int slab_find_and_reserve_bpid(uint32_t num_buffs,
 			uint16_t buff_size,
 			uint16_t alignment,
 			uint8_t  mem_partition_id,
-			int      *num_filled_buffs,
+			int      *num_reserved_buffs,
 			uint16_t *bpid);
+
+/**************************************************************************//**
+@Function      slab_find_and_free_bpid
+
+@Description   Finds and free buffer pool with new buffers
+
+		This function is part of SLAB module therefore it should be
+		called only after it has been initialized by slab_module_init()
+
+@Param[in]    num_buffs        Number of buffers in new pool.
+@Param[in]    bpid              Id of pool that was filled with new buffers.
+
+@Return        0       - on success,
+	       -ENAVAIL - bman pool not found
+ *//***************************************************************************/
+int slab_find_and_free_bpid(uint32_t num_buffs,
+                            uint16_t *bpid);
 
 #endif /* __SLAB_H */
