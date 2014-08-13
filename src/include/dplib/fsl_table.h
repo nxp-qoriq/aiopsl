@@ -285,6 +285,9 @@
 	instead of the default metadata which is zeroes. */
 #define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x10000000
 
+	/** No Lookup Flags */
+#define TABLE_LOOKUP_FLAG_NONE				0x00000000
+
 /** @} */ /* end of FSL_TABLE_LOOKUP_FLAG_DEFINES */
 
 

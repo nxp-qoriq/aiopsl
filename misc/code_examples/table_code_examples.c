@@ -24,78 +24,120 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fsl_ctlu.h"
+#include "fsl_table.h"
+#include "fsl_keygen.h"
 
-#define eight_byte_user_data 0xDEADC0DEDEADC0DE
+#define EIGHT_BYTE_USER_DATA_1 0xDEADC0DEDEADC0DE
+#define EIGHT_BYTE_USER_DATA_2 0xDEADC0DEDEADC0DE
+#define EIGHT_BYTE_USER_DATA_3 0xDEADC0DEDEADC0DE
+#define EIGHT_BYTE_USER_DATA_4 0xDEADC0DEDEADC0DE
 
-int ctlu_exact_match_example();
-int ctlu_longest_prefix_match_example();
+#define ONE_BYTE_USER_DATA_1 0xDE
+#define ONE_BYTE_USER_DATA_2 0xDE
 
-int ctlu_exact_match_example()
+#define SOME_CONSTANT 0x00
+#define TABLE_EXAMPLE_EM_KEY_SIZE 124
+
+int table_exact_match_example();
+int table_longest_prefix_match_example();
+
+int table_exact_match_example()
 {
-	uint16_t table_id;
-	struct ctlu_table_create_params table_params;
-	struct ctlu_table_rule rule1;
-	uint8_t  keysize;
-	uint8_t  keyid;
-	struct ctlu_lookup_result lookup_res;
+	uint16_t                    table_id;
+	uint8_t                     keysize = TABLE_EXAMPLE_EM_KEY_SIZE;
+	struct table_create_params  table_params;
+	struct table_rule           rule1;
+	union table_lookup_key_desc lkup_key_desc;
+	uint8_t                     em_key[TABLE_EXAMPLE_EM_KEY_SIZE];
+	struct table_lookup_result  lookup_res;
+	uint8_t                     keyid;
+	uint8_t                     *kcr;
+	struct kcr_builder          kc_builder;
 
-	/* Key Profile creation, refer to Key Composition Rule section */
-	/* create_key_profile(..., &keyid, &keysize); TODO REMOVE COMMENT AND
-	 * CHANGE COLOR! */
+	/* KCR building, Please refer to Keygen section*/
+	keygen_kcr_builder_init(&kc_builder);
+	if (keygen_kcr_builder_add_constant_fec(SOME_CONSTANT,
+						TABLE_EXAMPLE_EM_KEY_SIZE,
+						&kc_builder)) {
+		/* Error Handling */
+		return -1;
+	}
+	kcr = kc_builder.kcr;
+
+	/* KCR creation, refer to Keygen section */
+	if (keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU, kcr, &keyid)) {
+		/*Error handling */
+	}
 
 	/* Table Parameter Initialization 
 	 * External (located in DDR) Exact Match Table, with a miss result, a
 	 * guaranteed number of 1000 rules and a maximum number of 2000 rules.
 	 * */
-	table_params.attributes =	CTLU_TBL_ATTRIBUTE_TYPE_EM |
-					CTLU_TABLE_ATTRIBUTE_LOCATION_EXT |
-					CTLU_TBL_ATTRIBUTE_MR_MISS;
+	table_params.attributes =	TABLE_ATTRIBUTE_TYPE_EM |
+					TABLE_ATTRIBUTE_LOCATION_EXT1 |
+					TABLE_ATTRIBUTE_MR_MISS;
 	table_params.committed_rules = 1000;
 	table_params.max_rules = 2000;
 	table_params.key_size = keysize;
 
 	/* Table Miss Result initialization - Type Opaque */
-	table_params.miss_result.type = CTLU_RULE_RESULT_TYPE_OPAQUES;
-	/* TODO REMOVE COMMENT AND CHANGE COLOR */ 
-	table_params.miss_result.op_rptr_clp.opaque0 = /*<8-byte user data >*/ 0;
-	table_params.miss_result.opaque1 = /*<8-byte user data >*/ 0;
-	table_params.miss_result.opaque2 = /*<1-byte user data >*/ 0;
+	table_params.miss_result.type = TABLE_RESULT_TYPE_OPAQUES;
+	table_params.miss_result.op0_rptr_clp.opaque0 = EIGHT_BYTE_USER_DATA_1;
+	table_params.miss_result.opaque1 = EIGHT_BYTE_USER_DATA_2;
+	table_params.miss_result.opaque2 = ONE_BYTE_USER_DATA_1;
 
 	/* Table Creation */
-	if(ctlu_table_create(&table_params,&table_id)) {
+	if(table_create(TABLE_ACCEL_ID_CTLU, &table_params,&table_id)) {
 		/* Error handling */
 		return -1;
 	}
 
 	/* Initialize a new table rule - Type Opaque */
-	/* Rule's key generation */
-	if(ctlu_gen_key(keyid, &rule1.key, &keysize)) {
+	/* Rule's key generation. Please refer to Keygen section.*/
+	if(keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
+			  keyid,
+			  0,
+			  &(rule1.key_desc.em.key),
+			  &keysize)) {
 		/* Error handling */
 		return -1;
 	}
-	rule1.result.type = CTLU_RULE_RESULT_TYPE_OPAQUES;
-	/* TODO REMOVE COMMENT AND CHANGE COLOR */
-	rule1.result.op_rptr_clp.opaque0 = /*<8-byte user data >*/ 0;
-	rule1.result.opaque1 = /*<8-byte user data >*/ 0;
-	rule1.result.opaque2 = /*<1-byte user data >*/ 0;
-	rule1.options = CTLU_RULE_TIMESTAMP_NONE;
+
+	/* Rule Result Initialization */
+	rule1.result.type = TABLE_RESULT_TYPE_OPAQUES;
+	rule1.result.op0_rptr_clp.opaque0 = EIGHT_BYTE_USER_DATA_3;
+	rule1.result.opaque1 = EIGHT_BYTE_USER_DATA_4;
+	rule1.result.opaque2 = ONE_BYTE_USER_DATA_2;
+	rule1.options = TABLE_RULE_TIMESTAMP_NONE;
 
 	/* Add the rule to the table */
-	if(ctlu_table_rule_create(table_id, &rule1, keysize)) {
+	if(table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule1, keysize)) {
 		/* Error handling */
 		return -1;
 	}
+	/* Initialize a Lookup Key Descriptor*/
+	if(keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
+			  keyid,
+			  0,
+			  em_key,
+			  &keysize)) {
+		/* Error handling */
+		return -1;
+	}
+	lkup_key_desc.em_key = em_key;
 
 	/* Perform a lookup */
-	if(ctlu_table_lookup_by_key(table_id, &rule1.key, keysize,
-				    &lookup_res)) {
+	if(table_lookup_by_key(TABLE_ACCEL_ID_CTLU,
+			       table_id,
+			       lkup_key_desc,
+			       keysize,
+			       &lookup_res)) {
 		/* Error handling */
 		return -1;
 	}
 
 	/* It is expected that after the lookup: 
-	 * lookup_res.opaque0_or_reference == rule1.result.op_rptr_clp.opaque0
+	 * lookup_res.opaque0_or_reference == rule1.result.op0_rptr_clp.opaque0
 	 * lookup_res.opaque1 == rule1.result.opaque1
 	 * lookup_res.opaque2 == rule1.result.opaque2
 	 * */
@@ -103,61 +145,106 @@ int ctlu_exact_match_example()
 	return 0;
 }
 
-int ctlu_longest_prefix_match_example()
+int table_longest_prefix_match_example()
 {
-	uint16_t table_id;
-	struct ctlu_table_create_params table_params;
-	struct ctlu_table_rule rule1;
-	uint8_t  keysize;
-	uint8_t  keyid;
-	struct ctlu_lookup_result lookup_res;
+	uint16_t                   table_id;
+	struct table_create_params table_params;
+	struct table_rule          rule1;
+	uint8_t                    keyid;
+	struct table_lookup_result lookup_res;
+	uint8_t                    *kcr;
+	struct kcr_builder         kc_builder;
 
-	/* Key Profile creation, refer to Key Composition Rule section */
-	/* create_key_profile(..., &keyid, &keysize); REMOVE COMMENT*/
+	/* KCR building, Please refer to Keygen section*/
+	keygen_kcr_builder_init(&kc_builder);
+	if (/* Fills the LPM exact match field with zeros */
+	    keygen_kcr_builder_add_constant_fec(0x00,
+						4,
+						&kc_builder)
+	    /* Extract the first IP header source address */
+	    || keygen_kcr_builder_add_protocol_specific_field(
+			KEYGEN_KCR_IPSRC_1_FECID,
+			NULL,
+			&kc_builder)
+	    /* Fills the maximum prefix so a lookup on all prefixes will be
+	     * performed */
+	    || keygen_kcr_builder_add_constant_fec(0xFF,
+				1,
+				&kc_builder)) {
 
-	/* Table Parameter Initialization */
-	table_params.attributes =	CTLU_TBL_ATTRIBUTE_TYPE_LPM |
-					CTLU_TABLE_ATTRIBUTE_LOCATION_EXT |
-					CTLU_TBL_ATTRIBUTE_MR_NO_MISS;
-	table_params.committed_rules = 10000;
-	table_params.max_rules = 10000;
-	table_params.key_size = CTLU_KEY_LPM_IPV6_SIZE;
+		/* Error Handling */
+		return -1;
+	}
+	kcr = kc_builder.kcr;
+
+	/* KCR creation, refer to Keygen section */
+	if (keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU, kcr, &keyid)) {
+		/*Error handling */
+	}
+
+	/* Table Parameter Initialization 
+	 * PEB (Packet Express Buffer Memory) LPM Table, without a miss result,
+	 * with a guaranteed number of 1000 rules and a maximum number of 2000
+	 * rules.
+	 * */
+	table_params.attributes = TABLE_ATTRIBUTE_TYPE_LPM |
+				  TABLE_ATTRIBUTE_LOCATION_PEB |
+				  TABLE_ATTRIBUTE_MR_NO_MISS;
+	table_params.committed_rules = 1000;
+	table_params.max_rules = 2000;
+	table_params.key_size = TABLE_KEY_LPM_IPV6_SIZE;
 
 	/* Table Creation */
-	if(ctlu_table_create(&table_params,&table_id)) {
+	if(table_create(TABLE_ACCEL_ID_CTLU, &table_params,&table_id)) {
 		/* Error handling */
 		return -1;
 	}
 
 	/* Initialize a new table rule with 2620:0000:0861:0001::/64 */
-	rule1.key.key_lpm_ipv6.prefix_length = 64;
-	rule1.key.key_lpm_ipv6.addr0 = 0x2620000008610001;
-	rule1.key.key_lpm_ipv6.addr1 = 0x0000000000000000;
-	rule1.key.key_lpm_ipv6.exact_match = 0x0;
+	rule1.key_desc.lpm_ipv6.exact_match = 0x0;
+	rule1.key_desc.lpm_ipv6.prefix_length = 64;
+	rule1.key_desc.lpm_ipv6.addr0 = 0x2620000008610001;
+	rule1.key_desc.lpm_ipv6.addr1 = 0x0000000000000000;
 
-	rule1.result.type = CTLU_RULE_RESULT_TYPE_OPAQUES;
+	rule1.result.type = TABLE_RESULT_TYPE_OPAQUES;
 	/* REMOVE COMMENT AND CHANGE COLOR */
-	rule1.result.op_rptr_clp.opaque0 = /*<8-byte user data >*/ 0;
-	rule1.result.opaque1 = /*<8-byte user data >*/ 0;
-	rule1.result.opaque2 = /*<1-byte user data >*/ 0;
-	rule1.options = CTLU_RULE_TIMESTAMP_NONE;
+	rule1.result.op0_rptr_clp.opaque0 = EIGHT_BYTE_USER_DATA_1;
+	rule1.result.opaque1 = EIGHT_BYTE_USER_DATA_2;
+	rule1.result.opaque2 = ONE_BYTE_USER_DATA_1;
+	rule1.options = TABLE_RULE_TIMESTAMP_ENABLE;
 
 	/* Add a rule to the table */
-	if(ctlu_table_rule_create(table_id, &rule1, keysize)) {
+	if(table_rule_create(TABLE_ACCEL_ID_CTLU,
+			     table_id,
+			     &rule1,
+			     TABLE_KEY_LPM_IPV6_SIZE)) {
+		/* Error handling */
+		return -1;
+	}
+
+	/* Check if packet is IPv6 */
+	if (!PARSER_IS_OUTER_IPV6_DEFAULT()) {
 		/* Error handling */
 		return -1;
 	}
 
 	/* Perform a lookup */
-	if(ctlu_table_lookup_by_keyid(table_id, keyid, &lookup_res)) {
+	if(table_lookup_by_keyid(TABLE_ACCEL_ID_CTLU,
+				 table_id,
+				 keyid,
+				 TABLE_LOOKUP_FLAG_NONE,
+				 NULL,
+				 &lookup_res)) {
 		/* Error handling */
 		return -1;
 	}
 
-	/* It is expected that after the lookup: 
-	 * lookup_res.opaque0_or_reference == rule1.result.op_rptr_clp.opaque0
+	/* It is expected that after the lookup, if the frame suits
+	 * 2620:0000:0861:0001::/64, the following will be true: 
+	 * lookup_res.opaque0_or_reference == rule1.result.op0_rptr_clp.opaque0
 	 * lookup_res.opaque1 == rule1.result.opaque1
 	 * lookup_res.opaque2 == rule1.result.opaque2
+	 * lookup_res.timestamp is filled with the timestamp
 	 * */
 
 	return 0;
