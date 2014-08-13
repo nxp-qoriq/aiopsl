@@ -126,16 +126,15 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	UNUSED(dev);
 	UNUSED(size);
 	UNUSED(data);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
+	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
 	             cmd,
 	             size,
-	             (uint32_t)((data & 0xFF00000000) >> 32),
-	             (uint32_t)(data & 0xFFFFFFFF));
+	             (uint32_t)data);
 	return 0;
 }
 

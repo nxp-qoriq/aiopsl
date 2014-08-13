@@ -100,7 +100,7 @@ static int sys_init_platform(void)
 		err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
 		if (err != 0) return err;
 	}
-	
+
 	if (sys.platform_ops.f_init_timer) {
 		err = sys.platform_ops.f_init_timer(
 			sys.platform_ops.h_platform);
@@ -140,7 +140,7 @@ static int sys_init_platform(void)
 				sys.platform_ops.h_platform);
 			if (err != 0) return err;
 		}
-		
+
 		if (!sys.console) {
 			/* If no platform console, register debugger console */
 			sys_register_debugger_console();
@@ -188,7 +188,7 @@ static int sys_free_platform(void)
 		if (sys.platform_ops.f_free_ipc)
 			err = sys.platform_ops.f_free_ipc(
 				sys.platform_ops.h_platform);
-		
+
 	}
 
 	sys_barrier();
@@ -228,12 +228,12 @@ static int sys_free_platform(void)
 
 static uint32_t count_cores(uint64_t cores_mask)
 {
-    uint32_t count;   
+    uint32_t count;
     for(count = 0; cores_mask > 0; cores_mask >>= 1) {
 	if(cores_mask & 1 == 1)
 	    count ++;
     }
-    
+
     return count;
 }
 
@@ -243,9 +243,9 @@ static void fill_system_parameters()
 		+ SOC_PERIPH_OFF_AIOP_CMGW \
 		+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
 	uint32_t abrr_val = ioread32_ccsr(UINT_TO_PTR(reg_base + 0x90));
-	
+
 	sys.active_cores_mask  = abrr_val;
-	
+
 	sys.num_of_active_cores = count_cores(sys.active_cores_mask);
 }
 
@@ -257,37 +257,37 @@ static int global_sys_init(void)
 	ASSERT_COND(sys_is_master_core());
 
 	sys.runtime_flag = 0;
-	
+
 	fill_system_parameters();
-	
+
 	fill_platform_parameters(&platform_param);
-	
+
 	platform_early_init(&platform_param);
 
 	/* Initialize memory management */
 	err = sys_init_memory_management();
 	if (err != 0) return err;
-	
+
 	/* Initialize Multi-Processing services as needed */
 	err = sys_init_multi_processing();
 	if (err != 0) return err;
-	
+
 	/* Platform init */
 	err = platform_init(&(platform_param), &(sys.platform_ops));
 	if (err != 0) return err;
-	
+
 	err = sys_add_handle(sys.platform_ops.h_platform,
 		FSL_OS_MOD_SOC, 1, 0);
 	if (err != 0) return err;
-	
+
 	aiop_base_addr = sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
-	
-	err = sys_add_handle( (fsl_handle_t)aiop_base_addr, 
+
+	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
 	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
-	
+
 	return 0;
 }
 
@@ -296,6 +296,10 @@ int sys_init(void)
 {
 	int err = 0, is_master_core;
 	uint32_t core_id = core_get_id();
+	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
+
+	memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
+	sys.p_pre_console_buf = &pre_console_buf[0];
 
 	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
 						& (1ULL << core_id)) ? 1 : 0;
