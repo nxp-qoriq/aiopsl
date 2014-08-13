@@ -475,6 +475,8 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		In case the function returns with status:
 		IPR_REASSEMBLY_NOT_COMPLETED,
 		it is forbidden to modify the frame.
+		This function requires 2 CDMA mutexes
+		(out of 4 available per task).
 		In this function, the task yields.
 
 *//***************************************************************************/
