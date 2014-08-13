@@ -747,7 +747,7 @@ struct table_create_params {
 	uint32_t max_rules;
 
 	/** Miss Result
-	A default rule that is chosen when no match is found. Available only
+	A default result that is chosen when no match is found. Available only
 	for CTLU tables, This field should not be filled otherwise.*/
 	struct table_result miss_result;
 
