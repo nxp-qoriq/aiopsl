@@ -37,6 +37,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "inc/fsl_sys.h"
 
+#define PRE_CONSOLE_BUF_SIZE    (4 * 1024)
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
 
@@ -75,7 +76,7 @@ typedef struct t_system {
 	/* boot synchronization variables */
 	volatile uint32_t           boot_sync_flag;
 	volatile uint32_t           runtime_flag;
-	
+
 	/* Platform operations */
 	t_platform_ops              platform_ops;
 } t_system;
