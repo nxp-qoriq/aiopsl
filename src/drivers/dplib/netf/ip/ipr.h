@@ -54,9 +54,9 @@
 #define LAST_FRAG_IN_ORDER		1
 #define LAST_FRAG_OUT_OF_ORDER		2
 #define FRAG_ERROR			3
-#define NO_BYPASS_OSM			0x00000000
-#define	BYPASS_OSM			0x00000001
-#define START_CONCURRENT		0x00000002
+#define NO_BYPASS_OSM			0x00000000 /* in osm_status */
+#define	BYPASS_OSM			0x00000001 /* in osm_status */
+#define START_CONCURRENT		0x00000002 /* in osm_status */
 #define	RESET_MF_BIT			0xDFFF
 #define NO_ERROR			0
 #define IPR_CONTEXT_SIZE		2688
