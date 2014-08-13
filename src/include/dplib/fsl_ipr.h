@@ -313,6 +313,8 @@ struct extended_stats_cntrs {
 /**************************************************************************//**
 @Group		FSL_IPRCreateReturnStatus IPR create instance return status
 
+@Description	IPR Create Instance return values.
+
 @{
 *//***************************************************************************/
 
@@ -327,6 +329,8 @@ struct extended_stats_cntrs {
 
 /**************************************************************************//**
 @Group		FSL_IPRReassReturnStatus IPR functions return status
+
+@Description	IPR reassemble return values.
 
 @{
 *//***************************************************************************/
@@ -353,6 +357,8 @@ struct extended_stats_cntrs {
 
 /**************************************************************************//**
 @Group		FSL_IPRTOCallbackFlags IPR Time Out Callback flags
+
+@Description	IPR Time Out Callback flags.
 
 @{
 *//***************************************************************************/
