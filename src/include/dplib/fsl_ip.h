@@ -97,7 +97,7 @@
 	/** If set, the original IP Dst address will be replaced */
 #define IPV4_MODIFY_MODE_IPDST 0x20
 
-/* @} end of group HMIPv4ModeBits */
+/** @} */ /* end of group HMIPv4ModeBits */
 
 /**************************************************************************//**
 @Group		HMIPv4MangleBits IPv4 header modification mode bits
@@ -110,7 +110,7 @@
 	/** If set, set Time to Live field */
 #define IPV4_MANGLE_TTL 0x02
 
-/* @} end of group HMIPv4MangleBits */
+/** @} */ /* end of group HMIPv4MangleBits */
 
 /**************************************************************************//**
 @Group		HMIPv6MangleBits IPv6 header modification mode bits
@@ -125,7 +125,7 @@
 	/** If set, set hop limit field */
 #define IPV6_MANGLE_FLOW_LABEL 0x04
 
-/* @} end of group HMIPv6MangleBits */
+/** @} */ /* end of group HMIPv6MangleBits */
 
 
 /**************************************************************************//**
@@ -149,7 +149,7 @@
 	/** If set, the original IP Dst address will be replaced */
 #define IPV6_MODIFY_MODE_IPDST 0x20
 
-/* @} end of group HMIPv6ModeBits */
+/** @} */ /* end of group HMIPv6ModeBits */
 
 
 /**************************************************************************//**
@@ -169,7 +169,7 @@
 	/** If set, the DF bit is copied from the inner IP header. */
 #define IPV4_ENCAP_MODE_DF 0x08
 
-/* @} end of group HMIPv4EncapModeBits */
+/** @} */ /* end of group HMIPv4EncapModeBits */
 
 
 /**************************************************************************//**
@@ -187,7 +187,7 @@
 		inner IP header. */
 #define IPV6_ENCAP_MODE_TC_ECN 0x04
 
-/* @} end of group HMIPv6EncapModeBits */
+/** @} */ /* end of group HMIPv6EncapModeBits */
 
 
 /**************************************************************************//**
@@ -206,7 +206,7 @@
 		IP header.*/
 #define IP_DECAP_MODE_TOS_TC_ECN 0x04
 
-/* @} end of group HMIPDecapModeBits */
+/** @} */ /* end of group HMIPDecapModeBits */
 
 /**************************************************************************//**
 @Group		HMIPCksumCalcModeBits IP header checksum calculation mode bits
@@ -222,7 +222,7 @@
  * the FDMA engine with the frame header changes. */
 #define IP_CKSUM_CALC_MODE_DONT_UPDATE_FDMA	0x01
 
-/* @} end of group HMIPCksumCalcModeBits */
+/** @} */ /* end of group HMIPCksumCalcModeBits */
 
 
 /**************************************************************************//**
@@ -232,35 +232,9 @@
 *//***************************************************************************/
 
 #define IP_TS_OPT_INC_OVERFLOW  0x01
-/* @} end of group IPv4TimestampOptions */
+/** @} */ /* end of group IPv4TimestampOptions */
 
-/* @} end of group HM_IP_Modes */
-
-/**************************************************************************//**
- @Group		IPv4_TS_OPT_Getters_Setters
-
- @Description	IPv4 time-stamp option Getters/Setters
-
- @{
-*//***************************************************************************/
-
-#define TS_OPT_GET_FIRST_WORD() *((uint32_t *)ip_opt_ptr)
-#define TS_OPT_GET_LENGTH() *(ip_opt_ptr + 1)
-#define TS_OPT_GET_PTR() *(ip_opt_ptr + 2)
-#define TS_OPT_GET_OVRFLOW_FLAG() *(ip_opt_ptr + 3)
-#define TS_OPT_SET_PTR(var) \
-do { \
-	ptr_next_ts += var; \
-	*(ip_opt_ptr + 2) = ptr_next_ts; \
-} while (0)
-#define TS_OPT_SET_OVRFLOW_FLAG() *(ip_opt_ptr + 3) = overflow_flag
-
-#define TS_OPT_GET_FLAG() overflow_flag & 0xf
-#define AIOP_IPOPT_TS_TSONLY    0  /* timestamps only */
-#define AIOP_IPOPT_TS_TSANDADDR 1  /* timestamps and addresses */
-#define AIOP_IPOPT_TS_PRESPEC   3  /* specified modules only */
-
-/* @} end of group IPv4_TS_OPT_Getters_Setters */
+/** @} */ /* end of group HM_IP_Modes */
 
 /**************************************************************************//**
 @Group		FSL_HM_IP_Functions HM IP related functions
@@ -658,10 +632,10 @@ int ip_set_nw_dst(uint32_t dst_addr);
 *//***************************************************************************/
 int ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
 
-/* @} end of group FSL_HM_IP_Functions */
-/* @} end of group AIOP_IP_HM */
-/* @} end of group AIOP_IP */
-/* @} end of group NETF */
+/** @} */ /* end of group FSL_HM_IP_Functions */
+/** @} */ /* end of group AIOP_IP_HM */
+/** @} */ /* end of group AIOP_IP */
+/** @} */ /* end of group NETF */
 
 
 #endif /* __FSL_IP_H */
