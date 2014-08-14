@@ -438,8 +438,12 @@ int tman_query_timer(uint32_t timer_handle,
 @Description	This function acknowledges that the task which was created
 		upon expiration was consumed.
 		This function should be invoked by any timer task.
+		When a TMI is deleted this function should also be invoked in
+		the tmi delete callback function.
 
-@Param[in]	timer_handle - The handle of the timer.
+@Param[in]	timer_handle - The handle of the timer. The handle can be
+		obtained using the TMAN_GET_TIMER_HANDLE macro (this is true
+		also for confirming a TMI deletion).
 
 @Return		None.
 
