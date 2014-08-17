@@ -33,7 +33,7 @@
 
 #include "common/types.h"
 #include "aiop_common.h"
-#include "fsl_io.h"
+#include "fsl_io_ccsr.h"
 #include "cmgw.h"
 
 static struct aiop_cmgw_regs * cmgw_regs;
@@ -51,7 +51,7 @@ void cmgw_publish_boot_failure()
 {   
     ASSERT_COND(cmgw_regs);
 
-	iowrite32(0x1, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]));
+	iowrite32_ccsr(0x1, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]));
 }
 
 
