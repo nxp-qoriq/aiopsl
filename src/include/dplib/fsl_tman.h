@@ -122,9 +122,9 @@ struct tman_tmi_params {
 /** @} end of group TMANDataStructures */
 
 /**************************************************************************//**
-@Group		TMAN_Modes TMAN Modes
+@Group		TMAN_Flags TMAN Flags
 
-@Description	AIOP TMAN Modes
+@Description	AIOP TMAN Flags
 
 @{
 *//***************************************************************************/
@@ -235,7 +235,7 @@ enum e_tman_query_timer {
 	TMAN_TIMER_BEING_DELETED_WAIT_CONF
 };
 
-/** @} end of group TMAN_Modes */
+/** @} end of group TMAN_Flags */
 
 
 /**************************************************************************//**
