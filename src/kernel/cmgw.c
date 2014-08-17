@@ -31,7 +31,7 @@
 @Description   Command Gateway
  *//***************************************************************************/
 
-#inclure "aiop_common.h"
+#include "aiop_common.h"
 #include "fsl_io.h"
 #include "cmgw.h"
 
@@ -46,15 +46,10 @@ void cmgw_init(void * cmgw_regs_base)
 }
 
 void cmgw_publish_boot_failure()
-{
-    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
-	                      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-    
+{   
     ASSERT_COND(cmgw_regs);
 
-    if(aiop_regs) {
-    	iowrite32(0x1, &(cmgw_regs->acgpr[0]));
-    }
+	iowrite32(0x1, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]));
 }
 
 
