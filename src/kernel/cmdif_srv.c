@@ -42,7 +42,7 @@
 #include "cmdif_srv_aiop.h"
 #include "fsl_cmdif_flib_s.h"
 #include "cmdif_client_aiop.h"
-#include "fsl_io_ccsr.h"
+#include "cmdif_rev.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
@@ -314,7 +314,7 @@ __HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
-		fqid, FDMA_EN_TC_RET_BITS);
+		fqid, CMDIF_FDMA_ENQ_TC);
 	if (err)
 		pr_err("Failed to send response\n");
 
@@ -447,7 +447,7 @@ static int notify_open()
 	}
 
 	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
-	dpci_tbl->enq_flags[ind]      = FDMA_EN_TC_RET_BITS;
+	dpci_tbl->enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
 	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
 	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
 	if (BDI_GET != 0)
