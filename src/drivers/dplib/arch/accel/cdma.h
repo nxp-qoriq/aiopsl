@@ -188,7 +188,7 @@ enum cdma_errors {
 	CDMA_INTERNAL_ERR = 0xA7
 };
 
-/* @} end of enum cdma_errors */
+/** @} end of enum cdma_errors */
 
 /**************************************************************************//**
  @Group		CDMA_Internal_Commands_Flags CDMA Internal Commands Flags
@@ -260,7 +260,7 @@ enum cdma_errors {
 		- 1: Release mutex lock */
 #define CDMA_ACCESS_CONTEXT_MEM_RM_BIT		0x00000100
 
-/* @} end of group CDMA_AccessCM_ModeBits */
+/** @} end of group CDMA_AccessCM_ModeBits */
 
 
 /**************************************************************************//**
@@ -288,8 +288,8 @@ enum cdma_errors {
 		Read/Write data access size, in bytes. */
 #define CDMA_ACCESS_CONTEXT_MEM_DMA_SIZE	0x3fff
 
-/* @} end of group CDMA_AccessCM_DMA */
-/* @} end of group CDMA_Internal_Commands_Flags */
+/** @} end of group CDMA_AccessCM_DMA */
+/** @} end of group CDMA_Internal_Commands_Flags */
 
 /**************************************************************************//**
 @Group		CDMA_Internal_Functions	CDMA Internal Functions
