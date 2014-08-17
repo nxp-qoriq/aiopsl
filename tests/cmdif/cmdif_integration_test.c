@@ -37,6 +37,7 @@
 #include "fsl_cmdif_client.h"
 #include "dplib/fsl_cdma.h"
 #include "cmdif.h"
+#include "cmdif_client_aiop.h"
 #include "fsl_fdma.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
@@ -64,8 +65,9 @@ uint8_t send_data[64];
 
 __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
-	int      err = 0;
-	fsl_os_print("Core %d received packet\n", core_get_id());
+	int      err;
+	fsl_os_print("Core %d received packet icid = 0x%x\n", core_get_id(), \
+	             ICID_GET(PL_ICID_GET));
 	err = dpni_drv_send(APP_NI_GET(arg));
 }
 
