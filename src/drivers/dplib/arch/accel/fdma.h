@@ -103,7 +103,7 @@
 	/* TODO - remove / move to errors.h*/
 #define EBADFD	77
 
-/* @} end of group FDMA_Commands_Definitions */
+/** @} end of group FDMA_Commands_Definitions */
 
 /**************************************************************************//**
 @Group		FDMA_Int_Init_ModeBits
@@ -122,7 +122,7 @@
 		- 1: do not present ASA. */
 #define FDMA_INIT_NAS_BIT		0x00000400
 
-/* @} end of group FDMA_Int_Init_ModeBits */
+/** @} end of group FDMA_Int_Init_ModeBits */
 
 
 /**************************************************************************//**
@@ -170,7 +170,7 @@
 	/** FDMA Release buffer command code */
 #define FDMA_RELEASE_BUFFER_CMD		0x00000073
 
-/* @} end of group FDMA_Commands_IDs */
+/** @} end of group FDMA_Commands_IDs */
 
 
 /**************************************************************************//**
@@ -443,7 +443,7 @@
 #define FDMA_RELEASE_CMD_ARG1(_icid, _flags)				\
 	(uint32_t)((((uint32_t)_icid) << 16) | _flags | FDMA_RELEASE_BUFFER_CMD)
 
-/* @} end of group FDMA_Commands_Args */
+/** @} end of group FDMA_Commands_Args */
 
 	/** Getter for AMQ (ICID, PL, VA, BDI) default attributes */
 /* Todo - enable inline when inline works correctly+move definition to .h file*/

@@ -313,9 +313,9 @@ void l2_arp_response();
  *//***************************************************************************/
 void l2_set_hw_src_dst(uint8_t *target_hw_addr);
 
-/* @} end of group FSL_HM_L2_Functions */
-/* @} end of group AIOP_L2_HM */
-/* @} end of group AIOP_L2 */
-/* @} end of group NETF */
+/** @} end of group FSL_HM_L2_Functions */
+/** @} end of group AIOP_L2_HM */
+/** @} end of group AIOP_L2 */
+/** @} end of group NETF */
 
 #endif /* __FSL_L2_H */
