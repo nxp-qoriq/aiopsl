@@ -103,7 +103,7 @@ struct scope_status_params {
 		1 = Exclusive mode.*/
 };
 
-/* @} end of group OSM_Structures */
+/** @} end of group OSM_Structures */
 
 
 /**************************************************************************//**
@@ -143,9 +143,9 @@ struct scope_status_params {
 		Another task may then enter the current ordering scope XX
 		stage.*/
 
-/* @} end of group OSMScopeEnterModeBits */
+/** @} end of group OSMScopeEnterModeBits */
 
-/* @} end of group OSM_Commands_Flags */
+/** @} end of group OSM_Commands_Flags */
 
 
 /**************************************************************************//**
