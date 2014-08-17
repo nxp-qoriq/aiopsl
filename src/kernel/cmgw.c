@@ -31,6 +31,7 @@
 @Description   Command Gateway
  *//***************************************************************************/
 
+#include "common/types.h"
 #include "aiop_common.h"
 #include "fsl_io.h"
 #include "cmgw.h"
@@ -45,6 +46,7 @@ void cmgw_init(void * cmgw_regs_base)
     cmgw_regs = cmgw_regs_base;
 }
 
+/******************************************************************************/
 void cmgw_publish_boot_failure()
 {   
     ASSERT_COND(cmgw_regs);
