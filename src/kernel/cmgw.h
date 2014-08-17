@@ -38,7 +38,7 @@
 #define CMGW_ACGPR_BOOT_FAIL 0
 
 void cmgw_init(void * cmgw_regs_base);
-void cmgw_publish_boot_failure();
+void cmgw_report_boot_failure();
 
 /** @} */ /* end of group */
 #endif /* __CMGW_H */

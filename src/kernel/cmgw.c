@@ -47,7 +47,7 @@ void cmgw_init(void * cmgw_regs_base)
 }
 
 /******************************************************************************/
-void cmgw_publish_boot_failure()
+void cmgw_report_boot_failure()
 {   
     ASSERT_COND(cmgw_regs);
 
