@@ -67,6 +67,32 @@
 /** @} */ /* end of IPV6_LAST_HEADER_Definitions */
 
 /**************************************************************************//**
+ @Group		IPv4_TS_OPT_Getters_Setters
+
+ @Description	IPv4 time-stamp option Getters/Setters
+
+ @{
+*//***************************************************************************/
+
+#define TS_OPT_GET_FIRST_WORD() *((uint32_t *)ip_opt_ptr)
+#define TS_OPT_GET_LENGTH() *(ip_opt_ptr + 1)
+#define TS_OPT_GET_PTR() *(ip_opt_ptr + 2)
+#define TS_OPT_GET_OVRFLOW_FLAG() *(ip_opt_ptr + 3)
+#define TS_OPT_SET_PTR(var) \
+do { \
+	ptr_next_ts += var; \
+	*(ip_opt_ptr + 2) = ptr_next_ts; \
+} while (0)
+#define TS_OPT_SET_OVRFLOW_FLAG() *(ip_opt_ptr + 3) = overflow_flag
+
+#define TS_OPT_GET_FLAG() overflow_flag & 0xf
+#define AIOP_IPOPT_TS_TSONLY    0  /* timestamps only */
+#define AIOP_IPOPT_TS_TSANDADDR 1  /* timestamps and addresses */
+#define AIOP_IPOPT_TS_PRESPEC   3  /* specified modules only */
+
+/** @} */ /* end of group IPv4_TS_OPT_Getters_Setters */
+
+/**************************************************************************//**
 @Group		IP_INTERNAL_Functions IP Internal Functions
 
 @Description	IP Internal Functions

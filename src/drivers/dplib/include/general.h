@@ -130,7 +130,8 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 @{
 *//***************************************************************************/
 #define IPV4_HDR_LENGTH		      20   /**< IPv4 header length */
-#define IPV4_HDR_ADD_LENGTH	      8    /**< IPv4 header address length */
+#define IPV4_ADDR_LENGTH	      4    /**< IPv4 address length */
+#define IPV4_HDR_ADD_LENGTH	      8    /**< IPv4 header addresses length */
 
 #define IPV4_EOOL_OPTION_TYPE	      0	   /*!< End of Option List */
 #define IPV4_NOP_OPTION_TYPE	      1	   /*!< No Operation */

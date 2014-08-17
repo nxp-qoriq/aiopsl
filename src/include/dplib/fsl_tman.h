@@ -95,7 +95,7 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 	uint32_t frc = (LW_SWAP(((char *)_fd) + FD_FRC_OFFSET, 0));	\
 	__rR = (uint32_t *) frc; })
 
-/* @} end of group TMANReturnStatus */
+/** @} end of group TMANReturnStatus */
 
 
 /**************************************************************************//**
@@ -119,7 +119,7 @@ struct tman_tmi_params {
 	uint64_t	tmi_mem_base_addr;
 };
 
-/* @} end of group TMANDataStructures */
+/** @} end of group TMANDataStructures */
 
 /**************************************************************************//**
 @Group		TMAN_Modes TMAN Modes
@@ -146,7 +146,7 @@ struct tman_tmi_params {
 	     queue although their expiration time was not reached yet. */
 #define TMAN_INS_DELETE_MODE_FORCE_EXP 0x1012
 
-/* @} end of group TMANInsDeleteModeBits */
+/** @} end of group TMANInsDeleteModeBits */
 
 /**************************************************************************//**
 @Group		TMANTimerDeleteModeBits TMAN timer delete flags
@@ -167,7 +167,7 @@ struct tman_tmi_params {
 	     completion confirmation. */
 #define TMAN_TIMER_DELETE_MODE_WAIT_EXP 0x2003
 
-/* @} end of group TMANTimerDeleteModeBits */
+/** @} end of group TMANTimerDeleteModeBits */
 
 
 /**************************************************************************//**
@@ -216,7 +216,7 @@ struct tman_tmi_params {
 	/** High priority AIOP task*/
 #define TMAN_CREATE_TIMER_MODE_HIGH_PRIORITY_TASK	0x02000000
 
-/* @} end of group TMANTimerCreateModeBits */
+/** @} end of group TMANTimerCreateModeBits */
 
 /*! \enum e_tman_query_timer Defines the TMAN query timer state.*/
 enum e_tman_query_timer {
@@ -235,7 +235,7 @@ enum e_tman_query_timer {
 	TMAN_TIMER_BEING_DELETED_WAIT_CONF
 };
 
-/* @} end of group TMAN_Modes */
+/** @} end of group TMAN_Modes */
 
 
 /**************************************************************************//**
@@ -438,8 +438,12 @@ int tman_query_timer(uint32_t timer_handle,
 @Description	This function acknowledges that the task which was created
 		upon expiration was consumed.
 		This function should be invoked by any timer task.
+		When a TMI is deleted this function should also be invoked in
+		the tmi delete callback function.
 
-@Param[in]	timer_handle - The handle of the timer.
+@Param[in]	timer_handle - The handle of the timer. The handle can be
+		obtained using the TMAN_GET_TIMER_HANDLE macro (this is true
+		also for confirming a TMI deletion).
 
 @Return		None.
 
@@ -466,8 +470,8 @@ void tman_timer_completion_confirmation(uint32_t timer_handle);
 *//***************************************************************************/
 void tman_get_timestamp(uint64_t *timestamp);
 
-/* @} end of group TMAN_Functions */
-/* @} end of group TMAN */
+/** @} end of group TMAN_Functions */
+/** @} end of group TMAN */
 /** @} */ /* end of ACCEL */
 
 
