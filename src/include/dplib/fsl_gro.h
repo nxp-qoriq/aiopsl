@@ -399,7 +399,8 @@ struct tcp_gro_context_params {
 		internal context.
 		The user should allocate \ref tcp_gro_ctx_t in
 		this address.
-@Param[in]	params - Pointer to the TCP GRO aggregation parameters.
+@Param[in]	params - Pointer to the TCP GRO aggregation parameters \ref
+		tcp_gro_context_params.
 @Param[in]	flags - Please refer to \ref TCP_GRO_AGG_FLAGS.
 
 @Return		GRO Status, or negative value on error.

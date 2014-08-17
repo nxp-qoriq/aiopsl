@@ -175,8 +175,7 @@ enum fdma_enqueue_tc_options {
  @Description	AIOP FDMA Replace Segment Action options.
 
 		When this command is invoked on annotation segments (PTA or ASA)
-		they always remain open (i.e. setting
-		\ref FDMA_REPLACE_SA_CLOSE_BIT has no effect).
+		they always remain open.
  @{
 *//***************************************************************************/
 enum fdma_replace_sa_options {
@@ -578,7 +577,7 @@ enum fdma_pta_size_type {
 /**************************************************************************//**
 @Group		FDMA_ISOLATION_ATTRIBUTES_Flags
 
-@Description	ICID context flags
+@Description	Isolation context flags
 
 @{
 *//***************************************************************************/
@@ -791,9 +790,9 @@ struct fdma_split_frame_params {
 	uint16_t present_size;
 		/** SM bit = 0: Split size, number of bytes to split from the
 		 * head of the input frame and move to the output frame.
-		 * SM bit = FDMA_SPLIT_SM_BIT: Backward offset from the SGE
-		 * marked with the SF bit, used by the FDMA to modify the start
-		 * offset in the structure to recover frame data that is
+		 * SM bit = \ref FDMA_SPLIT_SM_BIT : Backward offset from the
+		 * SGE marked with the SF bit, used by the FDMA to modify the
+		 * start offset in the structure to recover frame data that is
 		 * currently in the structure but not part of the frame.
 		 * A value of 0 will have no effect on start offset. */
 	uint16_t split_size_sf;
@@ -961,7 +960,7 @@ int fdma_present_default_frame(void);
 		according to command parameters.
 
 @Param[in,out]	params - A pointer to the Initial frame presentation command
-		parameters.
+		parameters \ref fdma_present_frame_params.
 
 @Return		0 on Success, or negative value on error.
 
@@ -1029,7 +1028,7 @@ int fdma_present_default_frame_segment(
 		segment data into the specified location in the workspace.
 
 @Param[in]	params - A pointer to the Present frame segment command
-		parameters.
+		parameters \ref fdma_present_segment_params.
 
 @Return		0 on Success, or negative value on error.
 
@@ -1138,7 +1137,7 @@ int fdma_read_default_frame_pta(void *ws_dst);
 		in no operation.)
 @Param[in]	ws_dst - A pointer to the location within the workspace
 		to present the additional frame segment data.
-@Param[in]	flags - \link FDMA_EXT_Flags extend segment mode
+@Param[in]	flags - \link FDMA_EXT_Flags Extend segment mode
 		bits. \endlink
 
 @Return		0 on Success, or negative value on error.
@@ -1218,7 +1217,7 @@ int fdma_store_default_frame_data(void);
 @Param[in]	frame_handle - Handle to the frame to be closed.
 @Param[in]	spid - storage profile ID used to store frame data if additional
 		buffers are required.
-@Param[out]	amq - AMQ attributes.
+@Param[out]	amq - AMQ attributes \ref fdma_amq.
 
 @Return		0 on Success, or negative value on error.
 
@@ -1358,7 +1357,8 @@ int fdma_store_and_enqueue_frame_fqid(
 		Implicit input parameters in Task Defaults: frame handle, spid
 		(storage profile ID).
 
-@Param[in]	qdp - Pointer to the queueing destination parameters.
+@Param[in]	qdp - Pointer to the queueing destination parameters \ref
+		fdma_queueing_destination_params.
 @Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
 		bits. \endlink
 
@@ -1408,7 +1408,8 @@ int fdma_store_and_enqueue_default_frame_qd(
 @Param[in]	frame_handle - working frame handle to enqueue.
 @Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
 		bits. \endlink
-@Param[in]	qdp - Pointer to the queueing destination parameters.
+@Param[in]	qdp - Pointer to the queueing destination parameters \ref
+		fdma_queueing_destination_params.
 @Param[in]	spid - Storage Profile ID used to store frame data.
 
 @Return		0 on Success, or negative value on error.
@@ -1471,7 +1472,7 @@ int fdma_enqueue_default_fd_fqid(
 		terminate the task or return.
 
 @Param[in]	fd - Pointer to the location in workspace of the Frame
-		Descriptor to be enqueued.
+		Descriptor to be enqueued \ref ldpaa_fd.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	fqid - frame queue ID for the enqueue.
@@ -1506,7 +1507,8 @@ int fdma_enqueue_fd_fqid(
 @Param[in]	icid - ICID of the FD to enqueue.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
-@Param[in]	enqueue_params - Pointer to the queueing destination parameters.
+@Param[in]	enqueue_params - Pointer to the queueing destination parameters
+ 	 	 \ref fdma_queueing_destination_params.
 
 @Return		0 on Success, or negative value on error.
 
@@ -1532,10 +1534,11 @@ int fdma_enqueue_default_fd_qd(
 		terminate the task or return.
 
 @Param[in]	fd - Pointer to the location in workspace of the Frame
-		Descriptor to be enqueued.
+		Descriptor to be enqueued \ref ldpaa_fd.
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
-@Param[in]	enqueue_params - Pointer to the queueing destination parameters.
+@Param[in]	enqueue_params - Pointer to the queueing destination parameters
+		\ref fdma_queueing_destination_params.
 @Param[in]	icid - ICID of the FD to enqueue.
 
 @Return		0 on Success, or negative value on error.
@@ -1600,7 +1603,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
 
 @Param[in]	fd - A pointer to the location in the workspace of the FD to be
-		discarded.
+		discarded \ref ldpaa_fd.
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
 
@@ -1627,7 +1630,7 @@ int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 		Implicitly updated values: FD.err is zeroed.
 
 @Param[in]	fd - A pointer to the location in the workspace of the FD to be
-		discarded.
+		discarded \ref ldpaa_fd.
 
 @Return		None.
 
@@ -1708,7 +1711,8 @@ int fdma_replicate_frame_fqid(
 		destination frame if enqueue is selected, also
 		used to determine ICID and memory attributes of the replicated
 		frame.
-@Param[in]	enqueue_params - Pointer to the queueing destination parameters.
+@Param[in]	enqueue_params - Pointer to the queueing destination parameters
+		\ref fdma_queueing_destination_params.
 @Param[in]	fd_dst - A pointer to the location within the workspace of the
 		destination FD.
 @Param[in]	flags - \link FDMA_Replicate_Flags replicate working frame
@@ -1749,7 +1753,8 @@ int fdma_replicate_frame_qd(
 
 		The frames must be in the same ICID.
 
-@Param[in,out]	params - A pointer to the Concatenate frames command parameters.
+@Param[in,out]	params - A pointer to the Concatenate frames command parameters
+		\ref fdma_concatenate_frames_params.
 
 @Return		0 on Success, or negative value on error.
 
@@ -1789,7 +1794,8 @@ int fdma_concatenate_frames(
 		In case \ref FDMA_SPLIT_SM_BIT flag is not set, the service
 		routine updates the split frame fd.length field.
 
-@Param[in,out]	params - A pointer to the Split frame command parameters
+@Param[in,out]	params - A pointer to the Split frame command parameters \ref
+		fdma_split_frame_params.
 
 @Return		0 on Success, or negative value on error.
 
@@ -2100,7 +2106,7 @@ int fdma_insert_default_segment_data(
 		Task Workspace and the FDMA.
 
 @Param[in]	params - A pointer to the insert segment data command
-		parameters.
+		parameters \ref fdma_insert_segment_data_params.
 
 @Return		0 on Success, or negative value on error.
 
@@ -2205,7 +2211,7 @@ int fdma_delete_default_segment_data(
 		Task Workspace and the FDMA.
 
 @Param[in]	params - A pointer to the delete segment data command
-		parameters.
+		parameters \ref fdma_delete_segment_data_params.
 
 @Return		0 on Success, or negative value on error.
 

@@ -286,9 +286,6 @@ int l2_pop_vlan(void);
  *//***************************************************************************/
 void l2_arp_response();
 
-/* Update ETH fields (MAC source, MAC destination, Ethertype).
- * Assuming a default segment is presented with parse results updated.
- * TODO - add documentation*/
 /*************************************************************************//**
  @Function	l2_set_hw_src_dst
 
