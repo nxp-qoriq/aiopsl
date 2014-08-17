@@ -189,13 +189,13 @@ static void free_slab_module_memory(struct slab_module_info *slab_m)
 }
 
 /*****************************************************************************/
-static inline int sanity_check_slab_create(uint32_t    num_buffs,
+static inline int sanity_check_slab_create(uint32_t    committed_buffs,
                                            uint16_t    buff_size,
                                            uint16_t    alignment,
                                            uint8_t     mem_pid,
                                            uint32_t    flags)
 {
-	SLAB_ASSERT_COND_RETURN(num_buffs > 0,   -EINVAL);
+	SLAB_ASSERT_COND_RETURN(committed_buffs > 0,   -EINVAL);
 	SLAB_ASSERT_COND_RETURN(buff_size > 0,   -EINVAL);
 	SLAB_ASSERT_COND_RETURN(alignment > 0,   -EINVAL);
 	/* TODO need to support more then 8, align all to 64 bytes */
@@ -209,7 +209,7 @@ static inline int sanity_check_slab_create(uint32_t    num_buffs,
 }
 
 /*****************************************************************************/
-int slab_create(uint32_t    num_buffs,
+int slab_create(uint32_t    committed_buffs,
                 uint32_t    max_buffs,
                 uint16_t    buff_size,
                 uint16_t    prefix_size,
@@ -233,7 +233,7 @@ int slab_create(uint32_t    num_buffs,
 
 #ifdef DEBUG
 	/* Sanity checks */
-	error = sanity_check_slab_create(num_buffs,
+	error = sanity_check_slab_create(committed_buffs,
 	                                 buff_size,
 	                                 alignment,
 	                                 mem_pid,
@@ -241,7 +241,7 @@ int slab_create(uint32_t    num_buffs,
 	if (error)
 		return -ENAVAIL;
 	/* TODO remove it when max_buffs are supported */
-	if (max_buffs > num_buffs)
+	if (max_buffs > committed_buffs)
 		return -ENAVAIL;
 #endif
 
@@ -263,8 +263,8 @@ int slab_create(uint32_t    num_buffs,
 	data  = 0;
 	/* TODO add max_buffs to vpool_create_pool when it will be supported */
 	error = vpool_create_pool(bpid,
-	                          (int32_t)num_buffs,
-	                          (int32_t)num_buffs,
+	                          (int32_t)committed_buffs,
+	                          (int32_t)committed_buffs,
 	                          0,
 	                          release_cb,
 	                          &data);
@@ -281,14 +281,17 @@ int slab_create(uint32_t    num_buffs,
 }
 
 /*****************************************************************************/
-int slab_free(struct slab **slab)
+int slab_free(struct slab **slab, uint16_t  *bpid, int *committed_buffs)
 {
-	/* TODO Use VP API for BPID and remaining buffers */
-	int      remaining_buffs = VP_REMAINING_BUFFS(*slab);
-	uint16_t bpid = VP_BPID_GET(*slab);
+	int      buffs = VP_REMAINING_BUFFS(*slab);
+	*bpid = VP_BPID_GET(*slab);
+
 	if (SLAB_IS_HW_POOL(*slab)) {
 		if (vpool_release_pool(SLAB_VP_POOL_GET(*slab)) != 0)
 			return -EBUSY;
+		else{
+			*committed_buffs = buffs;
+		}
 	} else {
 		return -EINVAL;
 	}
@@ -672,7 +675,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 		                    &temp) == 0) {
 			/* Modify num_buffs to have the number of available
 			 * buffers not allocated */
-			slab_info->num_buffs = (uint32_t)(m_buffs - num_buffs);
+			slab_info->committed_buffs = (uint32_t)(m_buffs - num_buffs);
 			slab_info->max_buffs = (uint32_t)m_buffs;
 
 			temp = slab_m->num_hw_pools;
