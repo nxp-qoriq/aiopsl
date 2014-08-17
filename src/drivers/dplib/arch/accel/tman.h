@@ -65,7 +65,7 @@ enum tman_tmi_create_status {
 	TMAN_TMI_CREATE_BUS_ERR = 0x81400FFF
 };
 
-/* @} end of enum tman_tmi_create_status */
+/** @} end of enum tman_tmi_create_status */
 
 /**************************************************************************//**
  @enum tman_timer_create_status
@@ -88,7 +88,7 @@ enum tman_timer_create_status {
 	TMAN_TMR_DEPLETION_ERR = 0x81C00020
 };
 
-/* @} end of enum tman_timer_create_status */
+/** @} end of enum tman_timer_create_status */
 
 /**************************************************************************//**
  @enum tman_tmi_state_error
@@ -112,7 +112,7 @@ enum tman_tmi_state_ststus {
 	TMAN_TMI_BUS_ERR
 };
 
-/* @} end of enum tman_tmi_state_error */
+/** @} end of enum tman_tmi_state_error */
 
 
 /**************************************************************************//**
@@ -145,7 +145,7 @@ enum tman_timer_delete_status {
 	TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR = 0x81800057,
 };
 
-/* @} end of enum tman_timer_delete_status */
+/** @} end of enum tman_timer_delete_status */
 
 /**************************************************************************//**
  @enum tman_timer_mod_status
@@ -179,7 +179,7 @@ enum tman_timer_mod_status {
 	TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR = 0x81400067,
 };
 
-/* @} end of enum tman_timer_mod_status */
+/** @} end of enum tman_timer_mod_status */
 
 /**************************************************************************//**
  @enum tman_timer_recharge_status
@@ -217,10 +217,10 @@ enum tman_timer_recharge_status {
 	TMAN_REC_TMR_BUSY = 0x81800030
 };
 
-/* @} end of enum tman_timer_recharge_status */
+/** @} end of enum tman_timer_recharge_status */
 
 
-/* @} end of group TMANReturnStatus */
+/** @} end of group TMANReturnStatus */
 
 
 /*! \enum e_tman_cmd_type Defines the TMAN CMDTYPE field.*/

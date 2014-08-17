@@ -73,7 +73,7 @@
 	/** Default Segment size. */
 #define DEFAULT_SEGMENT_SIZE		256
 
-/* @} end of group FDMA_General_Definitions */
+/** @} end of group FDMA_General_Definitions */
 
 
 /**************************************************************************//**
@@ -237,7 +237,7 @@ enum fdma_pta_size_type {
 
 /* @} end of enum fdma_pta_size_type */
 
-/* @} end of group FDMA_Enumerations */
+/** @} end of group FDMA_Enumerations */
 
 
 /**************************************************************************//**
@@ -280,7 +280,7 @@ enum fdma_pta_size_type {
 	 * Used only in case \ref FDMA_INIT_AS_BIT is set. */
 #define FDMA_INIT_BDI_BIT	0x80000000
 
-/* @} end of group FDMA_Present_Frame_Flags */
+/** @} end of group FDMA_Present_Frame_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_PRES_Flags
@@ -297,7 +297,7 @@ enum fdma_pta_size_type {
 	 * If set - end of the frame. Otherwise - start of the frame. */
 #define FDMA_PRES_SR_BIT	0x100
 
-/* @} end of group FDMA_PRES_Flags */
+/** @} end of group FDMA_PRES_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_EXT_Flags
@@ -313,7 +313,7 @@ enum fdma_pta_size_type {
 	 * \ref fdma_st_options. */
 #define FDMA_EXT_ST_BIT	fdma_st_options
 
-/* @} end of group FDMA_EXT_Flags */
+/** @} end of group FDMA_EXT_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_ENWF_Flags
@@ -335,7 +335,7 @@ enum fdma_pta_size_type {
 	 * Command. */
 #define FDMA_ENWF_PS_BIT	0x00001000
 
-/* @} end of group FDMA_ENWF_Flags */
+/** @} end of group FDMA_ENWF_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_ENF_Flags
@@ -363,7 +363,7 @@ enum fdma_pta_size_type {
 	 * specified ICID). */
 #define FDMA_ENF_BDI_BIT	0x80000000
 
-/* @} end of group FDMA_ENF_Flags */
+/** @} end of group FDMA_ENF_Flags */
 
 
 /**************************************************************************//**
@@ -389,7 +389,7 @@ enum fdma_pta_size_type {
 #endif /* REV2 */
 
 
-/* @} end of group FDMA_Discard_WF_Flags */
+/** @} end of group FDMA_Discard_WF_Flags */
 
 
 /**************************************************************************//**
@@ -422,7 +422,7 @@ enum fdma_pta_size_type {
 	 * choose from \ref fdma_cfa_options. */
 #define FDMA_REPLICATE_CFA	fdma_cfa_options
 
-/* @} end of group FDMA_Replicate_Flags */
+/** @} end of group FDMA_Replicate_Flags */
 
 
 /**************************************************************************//**
@@ -445,7 +445,7 @@ enum fdma_pta_size_type {
 	 * Otherwise - keep resulting working frame 1 open. */
 #define FDMA_CONCAT_PCA_BIT	0x00000800
 
-/* @} end of group FDMA_Concatenate_Flags */
+/** @} end of group FDMA_Concatenate_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_Split_Flags
@@ -472,7 +472,7 @@ enum fdma_pta_size_type {
 	 * If set - end of the frame. Otherwise - start of the frame. */
 #define FDMA_SPLIT_SR_BIT	0x00000100
 
-/* @} end of group FDMA_Split_Flags */
+/** @} end of group FDMA_Split_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_Replace_Flags
@@ -488,7 +488,7 @@ enum fdma_pta_size_type {
 	 * choose from \ref fdma_replace_sa_options. */
 #define FDMA_REPLACE_SA		fdma_replace_sa_options
 
-/* @} end of group FDMA_Replace_Flags */
+/** @} end of group FDMA_Replace_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_Copy_Flags
@@ -511,7 +511,7 @@ enum fdma_pta_size_type {
 	 * Otherwise - Copy destination memory address is in the workspace. */
 #define FDMA_COPY_DM_BIT	0x00000200
 
-/* @} end of group FDMA_Copy_Flags */
+/** @} end of group FDMA_Copy_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_DMA_Flags
@@ -535,7 +535,7 @@ enum fdma_pta_size_type {
 	 * The DMA uses this memory attribute to make the access. */
 #define FDMA_DMA_PL_BIT		0x00008000
 
-/* @} end of group FDMA_DMA_Flags */
+/** @} end of group FDMA_DMA_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_ACQUIRE_BUFFER_Flags
@@ -554,7 +554,7 @@ enum fdma_pta_size_type {
 	 * specified is a real (not virtual) pool ID. */
 #define FDMA_ACQUIRE_BDI_BIT	0x80000000
 
-/* @} end of group FDMA_ACQUIRE_BUFFER_Flags */
+/** @} end of group FDMA_ACQUIRE_BUFFER_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_RELEASE_BUFFER_Flags
@@ -573,7 +573,7 @@ enum fdma_pta_size_type {
 	 * specified is a real (not virtual) pool ID. */
 #define FDMA_RELEASE_BDI_BIT	0x80000000
 
-/* @} end of group FDMA_RELEASE_BUFFER_Flags */
+/** @} end of group FDMA_RELEASE_BUFFER_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_ISOLATION_ATTRIBUTES_Flags
@@ -590,10 +590,10 @@ enum fdma_pta_size_type {
 	/** BDI of the Stored frame flag. */
 #define FDMA_ICID_CONTEXT_BDI	0x8000
 
-/* @} end of group FDMA_ISOLATION_ATTRIBUTES_Flags */
+/** @} end of group FDMA_ISOLATION_ATTRIBUTES_Flags */
 
 
-/* @} end of group FDMA_Commands_Flags */
+/** @} end of group FDMA_Commands_Flags */
 
 
 /**************************************************************************//**
@@ -888,7 +888,7 @@ struct fdma_delete_segment_data_params {
 	uint8_t  seg_handle;
 };
 
-/* @} end of group FDMA_Structures */
+/** @} end of group FDMA_Structures */
 
 
 /**************************************************************************//**
@@ -1507,7 +1507,6 @@ int fdma_enqueue_fd_fqid(
 @Param[in]	flags - \link FDMA_ENF_Flags enqueue frame flags.
 		\endlink
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters.
-
 
 @Return		0 on Success, or negative value on error.
 

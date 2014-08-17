@@ -274,7 +274,7 @@ int create_arp_request(
 		uint8_t *target_eth,
 		uint8_t *frame_handle);
 
-/* @} end of group FRAME_OPERSTIONS_Functions */
+/** @} end of group FRAME_OPERSTIONS_Functions */
 
 /** @} */ /* end of FSL_AIOP_FRAME_OPERATIONS */
 
