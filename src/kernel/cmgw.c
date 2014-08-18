@@ -34,9 +34,13 @@
 #include "common/types.h"
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
+#include "fsl_spinlock.h"
+#include "fsl_core.h"
 #include "cmgw.h"
 
 static struct aiop_cmgw_regs * cmgw_regs;
+
+__SHRAM uint8_t abcr_lock = 0;
 
 /******************************************************************************/
 void cmgw_init(void * cmgw_regs_base) 
@@ -44,6 +48,7 @@ void cmgw_init(void * cmgw_regs_base)
     ASSERT_COND(cmgw_regs_base);
 	
     cmgw_regs = cmgw_regs_base;
+    abcr_lock = 0;
 }
 
 /******************************************************************************/
@@ -54,4 +59,23 @@ void cmgw_report_boot_failure()
 	iowrite32_ccsr(0x1, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]));
 }
 
+/******************************************************************************/
+void cmgw_update_core_boot_completion()
+{
+    uint32_t abcr_val;
+
+    uint32_t* abcr = &(cmgw_regs->abcr);
+    
+    /* Write AIOP boot status (ABCR) */
+    lock_spinlock(&abcr_lock);
+    abcr_val = ioread32_ccsr(abcr);
+    abcr_val |= (uint32_t)(1 << core_get_id());
+    iowrite32_ccsr(abcr_val, abcr);
+    unlock_spinlock(&abcr_lock);
+}
+
+uint32_t cmgw_get_ntasks()
+{
+	return (ioread32_ccsr(&cmgw_regs->wscr) & CMGW_WSCR_NTASKS_MASK);
+}
 
