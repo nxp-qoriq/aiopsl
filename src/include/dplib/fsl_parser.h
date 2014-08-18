@@ -27,7 +27,7 @@
 /**************************************************************************//**
 @File          fsl_parser.h
 
-@Description   This file contains the AIOP SW Parser API
+@Description   This file contains the AIOP SW PARSER API
 
 *//***************************************************************************/
 
@@ -49,15 +49,15 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /**************************************************************************//**
 @Group		FSL_PARSER PARSER
 
-@Description	Freescale AIOP Parser API
+@Description	Freescale AIOP PARSER API
 
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_PARSER_MACROS Parser Macros
+@Group	FSL_PARSER_MACROS PARSER Macros
 
-@Description	Freescale AIOP Parser Macros
+@Description	Freescale AIOP PARSER Macros
 
 @{
 *//***************************************************************************/
@@ -320,7 +320,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_PART_3_MASKS */
 
 /**************************************************************************//**
-@Group		FSL_PARSER_ERROR_CODES Parser Error Codes
+@Group		FSL_PARSER_ERROR_CODES PARSER Error Codes
 
 @Description	When parsing error is indicated in the Frame Attribute Flags,
 		an error code is returned in the "Parse Error Code" field in
@@ -1085,7 +1085,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /** @} */ /* end of FSL_PARSER_POINTER_IN_FRMAE_GETTERS */
 
 /**************************************************************************//**
-@Group	FSL_PARSER_SETTERS Parser Setters
+@Group	FSL_PARSER_SETTERS PARSER Setters
 
 @Description	These macros set parser parameters in the default task params.
 
@@ -1117,7 +1117,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 
 /**************************************************************************//**
-@Group	FSL_PARSER_HXS_CONFIG Parser HXS configuration in parse profile defines
+@Group	FSL_PARSER_HXS_CONFIG PARSER HXS configuration in parse profile defines
 
 @Description	For configuring each HXS (Header Examination Sequence) in the
 		Parse Profile Record, user should use the flags relevant to
@@ -1158,7 +1158,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 
 
 /**************************************************************************//**
- @Group		PARSER_Enumerations Parser Enumerations
+ @Group		PARSER_Enumerations PARSER Enumerations
 
  @Description	PARSER Enumerations
 
@@ -1168,7 +1168,7 @@ Returns a non-zero value in case at least one of TCP control bits 3-5 is set */
 /**************************************************************************//**
 @enum	parser_starting_hxs_code
 
-@Description Parser Starting HXS code
+@Description PARSER Starting HXS code
 
 @{
 *//***************************************************************************/
@@ -1217,21 +1217,21 @@ enum parser_starting_hxs_code {
 
 /** @} */ /* end of parser_starting_hxs_code */
 
-/* @} end of group CTLU_Enumerations */
+/** @} */ /* end of group PARSER_Enumerations */
 
 
 
 /**************************************************************************//**
-@Group		FSL_PARSER_STRUCTS Parser Structures
+@Group		FSL_PARSER_STRUCTS PARSER Structures
 
-@Description	Freescale AIOP Parser Structures
+@Description	Freescale AIOP PARSER Structures
 
 @{
 *//***************************************************************************/
 
 
 /**************************************************************************//**
-@Description	Parser Result structure
+@Description	Parse Result structure
 
 		Please refer to the parser specification for more details.
 *//***************************************************************************/
@@ -1486,9 +1486,9 @@ struct parse_profile_input {
 
 
 /**************************************************************************//**
-@Group		FSL_PARSER_Functions Parser Functions
+@Group		FSL_PARSER_Functions PARSER Functions
 
-@Description	Freescale AIOP Parser Functions
+@Description	Freescale AIOP PARSER Functions
 
 @{
 *//***************************************************************************/
@@ -1592,8 +1592,7 @@ void parser_profile_query(uint8_t prpid,
 @Retval		EIO - L3 Checksum Validation Error
 @Retval		EIO - L4 Checksum Validation Error
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of presentation length (max. 256 bytes) before completing all
-		parsing)
+		of 256 bytes before completing all parsing)
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
@@ -1632,8 +1631,7 @@ int parse_result_generate_default(uint8_t flags);
 @Retval		EIO - L3 Checksum Validation Error
 @Retval		EIO - L4 Checksum Validation Error
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of presentation length (max. 256 bytes) before completing all
-		parsing)
+		of 256 bytes before completing all parsing)
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
