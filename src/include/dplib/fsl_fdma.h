@@ -1190,7 +1190,13 @@ int fdma_extend_default_segment_presentation(
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@remark		FD is updated.
+@remark
+		- FD is updated.
+		- If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+		- Release frame handle is implicit in this function.
+command.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
@@ -1224,7 +1230,12 @@ int fdma_store_default_frame_data(void);
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@remark		FD is updated.
+@remark
+		- FD is updated.
+		- If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+		- Release frame handle is implicit in this function.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
@@ -1272,6 +1283,12 @@ int fdma_store_frame_data(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@ remark
+		- If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+		- Release frame handle is implicit in this function.
+
 @Cautions
 		- Function may not return.
 		- All modified segments (which are to be stored) must be
@@ -1317,6 +1334,12 @@ int fdma_store_and_enqueue_default_frame_fqid(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@ remark
+		- If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+		- Release frame handle is implicit in this function.
 
 @Cautions
 		- Function may not return.
@@ -1368,6 +1391,12 @@ int fdma_store_and_enqueue_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@ remark
+		- If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+		- Release frame handle is implicit in this function.
+
 @Cautions
 		- Function may not return.
 		- All modified segments (which are to be stored) must be
@@ -1417,6 +1446,12 @@ int fdma_store_and_enqueue_default_frame_qd(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@ remark
+		- If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+		- Release frame handle is implicit in this function.
 
 @Cautions
 		- Function may not return.
@@ -1569,6 +1604,9 @@ int fdma_enqueue_fd_qd(
 
 @Return		None.
 
+@remark		Release frame handle and release segment handle(s) are implicit
+		in this function.
+
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1583,6 +1621,9 @@ void fdma_discard_default_frame(uint32_t flags);
 		frame flags. \endlink
 
 @Return		None.
+
+@remark		Release frame handle and release segment handle(s) are implicit
+		in this function.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1646,6 +1687,9 @@ void fdma_force_discard_fd(struct ldpaa_fd *fd);
 		Scope Manager of the task termination.
 
 @Return		None.
+
+@remark		Release frame handle(s) and release segment handle(s) are
+		implicit in this function.
 
 @Cautions
 		- Application software must store (in software managed context)
@@ -1744,8 +1788,8 @@ int fdma_replicate_frame_qd(
 @Description	Join two frames {frame1 , frame2} and return a new concatenated
 		frame.
 
-		Pre-condition: The two frames may be modified but all
-		the segments must be closed.
+		The two frames may be modified but all the segments must be
+		closed.
 
 		The command also support the option to trim a number of
 		bytes from the beginning of the 2nd frame before it is
@@ -1762,8 +1806,10 @@ int fdma_replicate_frame_qd(
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
 		\ref FDMA_CONCAT_PCA_BIT flag is set).
 
-@remark		Frame annotation of the first frame becomes the frame annotation
+@remark
+		- Frame annotation of the first frame becomes the frame annotation
 		of the concatenated frame
+		- Release of frame handle 2 is implicit in this function.
 
 @Cautions
 		- In case frame1 handle parameter is the default frame handle,
