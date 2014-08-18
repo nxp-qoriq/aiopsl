@@ -117,7 +117,7 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 /**************************************************************************//**
 @Function	ipf_generate_frag
 
-@Description	This function generates a single IP fragment and locates in
+@Description	This function generates a single IP fragment and locates it in
 		the default frame location in the workspace.
 
 		Pre-condition - In the first iteration this function is called
