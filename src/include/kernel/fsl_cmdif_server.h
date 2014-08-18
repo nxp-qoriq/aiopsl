@@ -54,12 +54,10 @@ struct cmdif_desc;
 @Description	Open callback
 
 User provides this function.
-Driver invokes it when it gets establish instance command.
+Server invokes it when it gets open instance command.
 
 @Param[in]	instance_id - Instance id to be specified by client
 		on cmdif_open().
-@Param[in]	size        - Size of the data.
-@Param[in]	data        - Data allocated by user.
 @Param[out]	dev         - device handle.
 
 @Return		Handle to instance object, or NULL for Failure.
@@ -69,8 +67,8 @@ typedef int (open_cb_t)(uint8_t instance_id, void **dev);
 /**************************************************************************//**
 @Description	De-init callback
 
-User provides this function. Driver invokes it when it gets
-terminate instance command.
+User provides this function.
+Driver invokes it when it gets close instance command.
 
 @Param[in]	dev - A handle of the device.
 
@@ -145,9 +143,12 @@ int cmdif_unregister_module(const char *module_name);
 /**************************************************************************//**
 @Function	cmdif_session_open
 
-@Description	Open session on server and notify client about it
+@Description	Open session on server and notify client about it.
 
-@Param[in]	cidesc   - Already open connection descriptor towards second side
+This functionality is relevant only for GPP.
+
+@Param[in]	cidesc   - Already open connection descriptor towards the
+		second side
 @Param[in]	m_name   - Name of the module as registered
 		by cmdif_register_module()
 @Param[in]	inst_id  - Instance id which will be passed to #open_cb_t
@@ -171,7 +172,9 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 /**************************************************************************//**
 @Function	cmdif_session_close
 
-@Description	Close session on server and notify client about it
+@Description	Close session on server and notify client about it.
+
+This functionality is relevant only for GPP.
 
 @Param[in]	cidesc   - Already open connection descriptor towards second side
 @Param[in]	size     - Size of v_data buffer
