@@ -71,6 +71,23 @@ enum ipsec_cipher_type {
 
 /* @} end of IPSEC_ENUM */
 
+
+/**************************************************************************//**
+ * @Description   Indicates how is the data provided and how to include it in
+ *                the descriptor.
+*//***************************************************************************/
+enum rta_param_type {
+	RTA_PARAM_PTR = 1,  /**< Data is in memory and accessed by reference;
+				 data address is a physical (bus) address */
+	RTA_PARAM_IMM, /**< Data is inlined in descriptor and accessed as
+			    immediate data; data address is a virtual address */
+	RTA_PARAM_IMM_DMA /**< (AIOP only) Data is inlined in descriptor and
+			       accessed as immediate data; data address is a
+			       physical (bus) address in external memory and
+			       CDMA is programmed to transfer the data into
+			       descriptor buffer being built in WS Area */
+};
+
 /**************************************************************************//**
 @Group	FSL_IPSEC_MACROS IPsec Macros
 
@@ -601,7 +618,7 @@ struct ipsec_flow_context {
 void ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
 		uint16_t spid, /* Storage Profile ID of the SEC output frame */
-		uint32_t sd_size /* Shared descriptor Length */
+		int sd_size /* Shared descriptor Length */
 );
 
 /**************************************************************************//**
@@ -609,10 +626,10 @@ void ipsec_generate_flc(
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
-void ipsec_generate_encap_sd(
+int ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
-		uint32_t *sd_size /* Shared descriptor Length */
+		int *sd_size /* Shared descriptor Length */
 );
 
 /**************************************************************************//**
@@ -620,10 +637,10 @@ void ipsec_generate_encap_sd(
 
 @Description	Generate SEC Shared Descriptor for Decapsulation
 *//***************************************************************************/
-void ipsec_generate_decap_sd(
+int ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Flow Context Address in external memory */
 		struct ipsec_descriptor_params *params,
-		uint32_t *sd_size /* Shared descriptor Length */
+		int *sd_size /* Shared descriptor Length */
 );
 
 /**************************************************************************//**

@@ -28,10 +28,16 @@
  * SEC descriptor composition header.
  * Definitions to support SEC descriptor instruction generation
  *
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
  */
 
 #ifndef __RTA_DESC_H__
 #define __RTA_DESC_H__
+
+/* flib/compat.h is not delivered in kernel */
+#ifndef __KERNEL__
+#include "flib/compat.h"
+#endif
 
 /* Max size of any SEC descriptor in 32-bit words, inclusive of header */
 #define MAX_CAAM_DESCSIZE	64
@@ -49,7 +55,7 @@
  * inside a descriptor command word.
  */
 #define CMD_SHIFT		27
-#define CMD_MASK		0xf8000000
+#define CMD_MASK		(0x1f << CMD_SHIFT)
 
 #define CMD_KEY			(0x00 << CMD_SHIFT)
 #define CMD_SEQ_KEY		(0x01 << CMD_SHIFT)
@@ -71,6 +77,7 @@
 #define CMD_MATH		((uint32_t)(0x15 << CMD_SHIFT))
 #define CMD_DESC_HDR		((uint32_t)(0x16 << CMD_SHIFT))
 #define CMD_SHARED_DESC_HDR	((uint32_t)(0x17 << CMD_SHIFT))
+#define CMD_MATHI               ((uint32_t)(0x1d << CMD_SHIFT))
 #define CMD_SEQ_IN_PTR		((uint32_t)(0x1e << CMD_SHIFT))
 #define CMD_SEQ_OUT_PTR		((uint32_t)(0x1f << CMD_SHIFT))
 
@@ -100,30 +107,30 @@
 /*
  * Extended Job Descriptor Header
  */
-#define HDR_EXT			0x01000000
+#define HDR_EXT			BIT(24)
 
 /*
  * Read input frame as soon as possible (SHR HDR)
  */
-#define HDR_RIF			0x02000000
+#define HDR_RIF			BIT(25)
 
 /*
  * Require SEQ LIODN to be the Same  (JOB HDR)
  */
-#define HDR_RSLS		0x02000000
+#define HDR_RSLS		BIT(25)
 
 /*
  * Do Not Run - marks a descriptor not executable if there was
  * a preceding error somewhere
  */
-#define HDR_DNR			0x01000000
+#define HDR_DNR			BIT(24)
 
 /*
  * ONE - should always be set. Combination of ONE (always
  * set) and ZRO (always clear) forms an endianness sanity check
  */
-#define HDR_ONE			0x00800000
-#define HDR_ZRO			0x00008000
+#define HDR_ONE			BIT(23)
+#define HDR_ZRO			BIT(15)
 
 /* Start Index or SharedDesc Length */
 #define HDR_START_IDX_SHIFT	16
@@ -136,40 +143,40 @@
 #define HDR_DESCLEN_MASK	0x7f
 
 /* This is a TrustedDesc (if not SharedDesc) */
-#define HDR_TRUSTED		0x00004000
+#define HDR_TRUSTED		BIT(14)
 
 /* Make into TrustedDesc (if not SharedDesc) */
-#define HDR_MAKE_TRUSTED	0x00002000
+#define HDR_MAKE_TRUSTED	BIT(13)
 
 /* Clear Input FiFO (if SharedDesc) */
-#define HDR_CLEAR_IFIFO		0x00002000
+#define HDR_CLEAR_IFIFO		BIT(13)
 
 /* Save context if self-shared (if SharedDesc) */
-#define HDR_SAVECTX		0x00001000
+#define HDR_SAVECTX		BIT(12)
 
 /* Next item points to SharedDesc */
-#define HDR_SHARED		0x00001000
+#define HDR_SHARED		BIT(12)
 
 /*
  * Reverse Execution Order - execute JobDesc first, then
  * execute SharedDesc (normally SharedDesc goes first).
  */
-#define HDR_REVERSE		0x00000800
+#define HDR_REVERSE		BIT(11)
 
 /* Propagate DNR property to SharedDesc */
-#define HDR_PROP_DNR		0x00000800
+#define HDR_PROP_DNR		BIT(11)
 
 /* DECO Select Valid */
-#define HDR_EXT_DSEL_VALID	0x00000080
+#define HDR_EXT_DSEL_VALID	BIT(7)
 
 /* Fake trusted descriptor */
-#define HDR_EXT_FTD		0x00000100
+#define HDR_EXT_FTD		BIT(8)
 
 /* JobDesc/SharedDesc share property */
-#define HDR_SD_SHARE_MASK	0x03
 #define HDR_SD_SHARE_SHIFT	8
-#define HDR_JD_SHARE_MASK	0x07
+#define HDR_SD_SHARE_MASK	(0x03 << HDR_SD_SHARE_SHIFT)
 #define HDR_JD_SHARE_SHIFT	8
+#define HDR_JD_SHARE_MASK	(0x07 << HDR_JD_SHARE_SHIFT)
 
 #define HDR_SHARE_NEVER		(0x00 << HDR_SD_SHARE_SHIFT)
 #define HDR_SHARE_WAIT		(0x01 << HDR_SD_SHARE_SHIFT)
@@ -192,43 +199,43 @@
 #define KEY_DEST_CLASS2		(2 << KEY_DEST_CLASS_SHIFT)
 
 /* Scatter-Gather Table/Variable Length Field */
-#define KEY_SGF			0x01000000
-#define KEY_VLF			0x01000000
+#define KEY_SGF			BIT(24)
+#define KEY_VLF			BIT(24)
 
 /* Immediate - Key follows command in the descriptor */
-#define KEY_IMM			0x00800000
+#define KEY_IMM			BIT(23)
 
 /*
  * Already in Input Data FIFO - the Input Data Sequence is not read, since it is
  * already in the Input Data FIFO.
  */
-#define KEY_AIDF		0x00800000
+#define KEY_AIDF		BIT(23)
 
 /*
  * Encrypted - Key is encrypted either with the KEK, or
  * with the TDKEK if this descriptor is trusted
  */
-#define KEY_ENC			0x00400000
+#define KEY_ENC			BIT(22)
 
 /*
  * No Write Back - Do not allow key to be FIFO STOREd
  */
-#define KEY_NWB			0x00200000
+#define KEY_NWB			BIT(21)
 
 /*
  * Enhanced Encryption of Key
  */
-#define KEY_EKT			0x00100000
+#define KEY_EKT			BIT(20)
 
 /*
  * Encrypted with Trusted Key
  */
-#define KEY_TK			0x00008000
+#define KEY_TK			BIT(15)
 
 /*
  * Plaintext Store
  */
-#define KEY_PTS			0x00004000
+#define KEY_PTS			BIT(14)
 
 /*
  * KDEST - Key Destination: 0 - class key register,
@@ -263,13 +270,13 @@
 #define LDST_CLASS_DECO		(0x03 << LDST_CLASS_SHIFT)
 
 /* Scatter-Gather Table/Variable Length Field */
-#define LDST_SGF		0x01000000
-#define LDST_VLF		LDST_SGF
+#define LDST_SGF		BIT(24)
+#define LDST_VLF		BIT(24)
 
 /* Immediate - Key follows this command in descriptor */
 #define LDST_IMM_MASK		1
 #define LDST_IMM_SHIFT		23
-#define LDST_IMM		(LDST_IMM_MASK << LDST_IMM_SHIFT)
+#define LDST_IMM		BIT(23)
 
 /* SRC/DST - Destination for LOAD, Source for STORE */
 #define LDST_SRCDST_SHIFT	16
@@ -336,8 +343,8 @@
 #define LDOFF_CHG_SHARE_OK_PROP		(0x2 << LDOFF_CHG_SHARE_SHIFT)
 #define LDOFF_CHG_SHARE_OK_NO_PROP	(0x3 << LDOFF_CHG_SHARE_SHIFT)
 
-#define LDOFF_ENABLE_AUTO_NFIFO		(1 << 2)
-#define LDOFF_DISABLE_AUTO_NFIFO	(1 << 3)
+#define LDOFF_ENABLE_AUTO_NFIFO		BIT(2)
+#define LDOFF_DISABLE_AUTO_NFIFO	BIT(3)
 
 #define LDOFF_CHG_NONSEQLIODN_SHIFT	4
 #define LDOFF_CHG_NONSEQLIODN_MASK	(0x3 << LDOFF_CHG_NONSEQLIODN_SHIFT)
@@ -356,88 +363,88 @@
 #define LDST_LEN_MASK		(0xff << LDST_LEN_SHIFT)
 
 /* Special Length definitions when dst=deco-ctrl */
-#define LDLEN_ENABLE_OSL_COUNT		(1 << 7)
-#define LDLEN_RST_CHA_OFIFO_PTR		(1 << 6)
-#define LDLEN_RST_OFIFO			(1 << 5)
-#define LDLEN_SET_OFIFO_OFF_VALID	(1 << 4)
-#define LDLEN_SET_OFIFO_OFF_RSVD	(1 << 3)
+#define LDLEN_ENABLE_OSL_COUNT		BIT(7)
+#define LDLEN_RST_CHA_OFIFO_PTR		BIT(6)
+#define LDLEN_RST_OFIFO			BIT(5)
+#define LDLEN_SET_OFIFO_OFF_VALID	BIT(4)
+#define LDLEN_SET_OFIFO_OFF_RSVD	BIT(3)
 #define LDLEN_SET_OFIFO_OFFSET_SHIFT	0
 #define LDLEN_SET_OFIFO_OFFSET_MASK	(3 << LDLEN_SET_OFIFO_OFFSET_SHIFT)
 
 /* CCB Clear Written Register bits */
-#define CLRW_CLR_C1MODE              0x1
-#define CLRW_CLR_C1DATAS             0x4
-#define CLRW_CLR_C1ICV               0x8
-#define CLRW_CLR_C1CTX               0x20
-#define CLRW_CLR_C1KEY               0x40
-#define CLRW_CLR_PK_A                0x1000
-#define CLRW_CLR_PK_B                0x2000
-#define CLRW_CLR_PK_N                0x4000
-#define CLRW_CLR_PK_E                0x8000
-#define CLRW_CLR_C2MODE              0x10000
-#define CLRW_CLR_C2KEYS              0x20000
-#define CLRW_CLR_C2DATAS             0x40000
-#define CLRW_CLR_C2CTX               0x200000
-#define CLRW_CLR_C2KEY               0x400000
-#define CLRW_RESET_CLS2_DONE         0x04000000u /* era 4 */
-#define CLRW_RESET_CLS1_DONE         0x08000000u /* era 4 */
-#define CLRW_RESET_CLS2_CHA          0x10000000u /* era 4 */
-#define CLRW_RESET_CLS1_CHA          0x20000000u /* era 4 */
-#define CLRW_RESET_OFIFO             0x40000000u /* era 3 */
-#define CLRW_RESET_IFIFO_DFIFO       0x80000000u /* era 3 */
+#define CLRW_CLR_C1MODE              BIT(0)
+#define CLRW_CLR_C1DATAS             BIT(2)
+#define CLRW_CLR_C1ICV               BIT(3)
+#define CLRW_CLR_C1CTX               BIT(5)
+#define CLRW_CLR_C1KEY               BIT(6)
+#define CLRW_CLR_PK_A                BIT(12)
+#define CLRW_CLR_PK_B                BIT(13)
+#define CLRW_CLR_PK_N                BIT(14)
+#define CLRW_CLR_PK_E                BIT(15)
+#define CLRW_CLR_C2MODE              BIT(16)
+#define CLRW_CLR_C2KEYS              BIT(17)
+#define CLRW_CLR_C2DATAS             BIT(18)
+#define CLRW_CLR_C2CTX               BIT(21)
+#define CLRW_CLR_C2KEY               BIT(22)
+#define CLRW_RESET_CLS2_DONE         BIT(26) /* era 4 */
+#define CLRW_RESET_CLS1_DONE         BIT(27) /* era 4 */
+#define CLRW_RESET_CLS2_CHA          BIT(28) /* era 4 */
+#define CLRW_RESET_CLS1_CHA          BIT(29) /* era 4 */
+#define CLRW_RESET_OFIFO             BIT(30) /* era 3 */
+#define CLRW_RESET_IFIFO_DFIFO       BIT(31) /* era 3 */
 
 /* CHA Control Register bits */
-#define CCTRL_RESET_CHA_ALL          0x1
-#define CCTRL_RESET_CHA_AESA         0x2
-#define CCTRL_RESET_CHA_DESA         0x4
-#define CCTRL_RESET_CHA_AFHA         0x8
-#define CCTRL_RESET_CHA_KFHA         0x10
-#define CCTRL_RESET_CHA_SF8A         0x20
-#define CCTRL_RESET_CHA_PKHA         0x40
-#define CCTRL_RESET_CHA_MDHA         0x80
-#define CCTRL_RESET_CHA_CRCA         0x100
-#define CCTRL_RESET_CHA_RNG          0x200
-#define CCTRL_RESET_CHA_SF9A         0x400
-#define CCTRL_RESET_CHA_ZUCE         0x800
-#define CCTRL_RESET_CHA_ZUCA         0x1000
-#define CCTRL_UNLOAD_PK_A0           0x10000
-#define CCTRL_UNLOAD_PK_A1           0x20000
-#define CCTRL_UNLOAD_PK_A2           0x40000
-#define CCTRL_UNLOAD_PK_A3           0x80000
-#define CCTRL_UNLOAD_PK_B0           0x100000
-#define CCTRL_UNLOAD_PK_B1           0x200000
-#define CCTRL_UNLOAD_PK_B2           0x400000
-#define CCTRL_UNLOAD_PK_B3           0x800000
-#define CCTRL_UNLOAD_PK_N            0x1000000
-#define CCTRL_UNLOAD_PK_A            0x4000000
-#define CCTRL_UNLOAD_PK_B            0x8000000
-#define CCTRL_UNLOAD_SBOX            0x10000000
+#define CCTRL_RESET_CHA_ALL          BIT(0)
+#define CCTRL_RESET_CHA_AESA         BIT(1)
+#define CCTRL_RESET_CHA_DESA         BIT(2)
+#define CCTRL_RESET_CHA_AFHA         BIT(3)
+#define CCTRL_RESET_CHA_KFHA         BIT(4)
+#define CCTRL_RESET_CHA_SF8A         BIT(5)
+#define CCTRL_RESET_CHA_PKHA         BIT(6)
+#define CCTRL_RESET_CHA_MDHA         BIT(7)
+#define CCTRL_RESET_CHA_CRCA         BIT(8)
+#define CCTRL_RESET_CHA_RNG          BIT(9)
+#define CCTRL_RESET_CHA_SF9A         BIT(10)
+#define CCTRL_RESET_CHA_ZUCE         BIT(11)
+#define CCTRL_RESET_CHA_ZUCA         BIT(12)
+#define CCTRL_UNLOAD_PK_A0           BIT(16)
+#define CCTRL_UNLOAD_PK_A1           BIT(17)
+#define CCTRL_UNLOAD_PK_A2           BIT(18)
+#define CCTRL_UNLOAD_PK_A3           BIT(19)
+#define CCTRL_UNLOAD_PK_B0           BIT(20)
+#define CCTRL_UNLOAD_PK_B1           BIT(21)
+#define CCTRL_UNLOAD_PK_B2           BIT(22)
+#define CCTRL_UNLOAD_PK_B3           BIT(23)
+#define CCTRL_UNLOAD_PK_N            BIT(24)
+#define CCTRL_UNLOAD_PK_A            BIT(26)
+#define CCTRL_UNLOAD_PK_B            BIT(27)
+#define CCTRL_UNLOAD_SBOX            BIT(28)
 
 /* IRQ Control Register (CxCIRQ) bits */
-#define CIRQ_ADI	(0x1 << 1)
-#define CIRQ_DDI	(0x1 << 2)
-#define CIRQ_RCDI	(0x1 << 3)
-#define CIRQ_KDI	(0x1 << 4)
-#define CIRQ_S8DI	(0x1 << 5)
-#define CIRQ_PDI	(0x1 << 6)
-#define CIRQ_MDI	(0x1 << 7)
-#define CIRQ_CDI	(0x1 << 8)
-#define CIRQ_RNDI	(0x1 << 9)
-#define CIRQ_S9DI	(0x1 << 10)
-#define CIRQ_ZEDI	(0x1 << 11) /* valid for Era 5 or higher */
-#define CIRQ_ZADI	(0x1 << 12) /* valid for Era 5 or higher */
-#define CIRQ_AEI	(0x1 << 17)
-#define CIRQ_DEI	(0x1 << 18)
-#define CIRQ_RCEI	(0x1 << 19)
-#define CIRQ_KEI	(0x1 << 20)
-#define CIRQ_S8EI	(0x1 << 21)
-#define CIRQ_PEI	(0x1 << 22)
-#define CIRQ_MEI	(0x1 << 23)
-#define CIRQ_CEI	(0x1 << 24)
-#define CIRQ_RNEI	(0x1 << 25)
-#define CIRQ_S9EI	(0x1 << 26)
-#define CIRQ_ZEEI	(0x1 << 27) /* valid for Era 5 or higher */
-#define CIRQ_ZAEI	(0x1 << 28) /* valid for Era 5 or higher */
+#define CIRQ_ADI	BIT(1)
+#define CIRQ_DDI	BIT(2)
+#define CIRQ_RCDI	BIT(3)
+#define CIRQ_KDI	BIT(4)
+#define CIRQ_S8DI	BIT(5)
+#define CIRQ_PDI	BIT(6)
+#define CIRQ_MDI	BIT(7)
+#define CIRQ_CDI	BIT(8)
+#define CIRQ_RNDI	BIT(9)
+#define CIRQ_S9DI	BIT(10)
+#define CIRQ_ZEDI	BIT(11) /* valid for Era 5 or higher */
+#define CIRQ_ZADI	BIT(12) /* valid for Era 5 or higher */
+#define CIRQ_AEI	BIT(17)
+#define CIRQ_DEI	BIT(18)
+#define CIRQ_RCEI	BIT(19)
+#define CIRQ_KEI	BIT(20)
+#define CIRQ_S8EI	BIT(21)
+#define CIRQ_PEI	BIT(22)
+#define CIRQ_MEI	BIT(23)
+#define CIRQ_CEI	BIT(24)
+#define CIRQ_RNEI	BIT(25)
+#define CIRQ_S9EI	BIT(26)
+#define CIRQ_ZEEI	BIT(27) /* valid for Era 5 or higher */
+#define CIRQ_ZAEI	BIT(28) /* valid for Era 5 or higher */
 
 /*
  * FIFO_LOAD/FIFO_STORE/SEQ_FIFO_LOAD/SEQ_FIFO_STORE
@@ -471,8 +478,8 @@
 #define FIFOLDST_SGF_SHIFT	24
 #define FIFOLDST_SGF_MASK	(1 << FIFOLDST_SGF_SHIFT)
 #define FIFOLDST_VLF_MASK	(1 << FIFOLDST_SGF_SHIFT)
-#define FIFOLDST_SGF		(1 << FIFOLDST_SGF_SHIFT)
-#define FIFOLDST_VLF		(1 << FIFOLDST_SGF_SHIFT)
+#define FIFOLDST_SGF		BIT(24)
+#define FIFOLDST_VLF		BIT(24)
 
 /*
  * Immediate - Data follows command in descriptor
@@ -481,17 +488,17 @@
 #define FIFOLD_IMM_SHIFT	23
 #define FIFOLD_IMM_MASK		(1 << FIFOLD_IMM_SHIFT)
 #define FIFOLD_AIDF_MASK	(1 << FIFOLD_IMM_SHIFT)
-#define FIFOLD_IMM		(1 << FIFOLD_IMM_SHIFT)
-#define FIFOLD_AIDF		(1 << FIFOLD_IMM_SHIFT)
+#define FIFOLD_IMM		BIT(23)
+#define FIFOLD_AIDF		BIT(23)
 
 #define FIFOST_IMM_SHIFT	23
 #define FIFOST_IMM_MASK		(1 << FIFOST_IMM_SHIFT)
-#define FIFOST_IMM		(1 << FIFOST_IMM_SHIFT)
+#define FIFOST_IMM		BIT(23)
 
 /* Continue - Not the last FIFO store to come */
 #define FIFOST_CONT_SHIFT	23
 #define FIFOST_CONT_MASK	(1 << FIFOST_CONT_SHIFT)
-#define FIFOST_CONT		(1 << FIFOST_CONT_SHIFT)
+#define FIFOST_CONT		BIT(23)
 
 /*
  * Extended Length - use 32-bit extended length that
@@ -499,7 +506,7 @@
  */
 #define FIFOLDST_EXT_SHIFT	22
 #define FIFOLDST_EXT_MASK	(1 << FIFOLDST_EXT_SHIFT)
-#define FIFOLDST_EXT		(1 << FIFOLDST_EXT_SHIFT)
+#define FIFOLDST_EXT		BIT(22)
 
 /* Input data type.*/
 #define FIFOLD_TYPE_SHIFT	16
@@ -594,7 +601,7 @@
 
 /* ProtocolID selectors - PROTID */
 #define OP_PCLID_SHIFT		16
-#define OP_PCLID_MASK		(0xff << 16)
+#define OP_PCLID_MASK		(0xff << OP_PCLID_SHIFT)
 
 /* Assuming OP_TYPE = OP_TYPE_UNI_PROTOCOL */
 #define OP_PCLID_IKEV1_PRF	(0x01 << OP_PCLID_SHIFT)
@@ -1341,42 +1348,50 @@
 #define OP_PCL_LTE_ZUC				 0x0003
 
 /* LTE mixed protinfos */
-#define OP_PCL_LTE_MIXED_AUTH_SHIFT		 0
-#define OP_PCL_LTE_MIXED_AUTH_MASK		 (3 << OP_PCL_LTE_MIXED_AUTH_SHIFT)
-#define OP_PCL_LTE_MIXED_ENC_SHIFT		 8
-#define OP_PCL_LTE_MIXED_ENC_MASK		 (3 << OP_PCL_LTE_MIXED_ENC_SHIFT)
-#define OP_PCL_LTE_MIXED_AUTH_NULL		 (OP_PCL_LTE_NULL << OP_PCL_LTE_MIXED_AUTH_SHIFT)
-#define OP_PCL_LTE_MIXED_AUTH_SNOW		 (OP_PCL_LTE_SNOW << OP_PCL_LTE_MIXED_AUTH_SHIFT)
-#define OP_PCL_LTE_MIXED_AUTH_AES		 (OP_PCL_LTE_AES << OP_PCL_LTE_MIXED_AUTH_SHIFT)
-#define OP_PCL_LTE_MIXED_AUTH_ZUC		 (OP_PCL_LTE_ZUC << OP_PCL_LTE_MIXED_AUTH_SHIFT)
-#define OP_PCL_LTE_MIXED_ENC_NULL		 (OP_PCL_LTE_NULL << OP_PCL_LTE_MIXED_ENC_SHIFT)
-#define OP_PCL_LTE_MIXED_ENC_SNOW		 (OP_PCL_LTE_SNOW << OP_PCL_LTE_MIXED_ENC_SHIFT)
-#define OP_PCL_LTE_MIXED_ENC_AES		 (OP_PCL_LTE_AES << OP_PCL_LTE_MIXED_ENC_SHIFT)
-#define OP_PCL_LTE_MIXED_ENC_ZUC		 (OP_PCL_LTE_ZUC << OP_PCL_LTE_MIXED_ENC_SHIFT)
+#define OP_PCL_LTE_MIXED_AUTH_SHIFT	0
+#define OP_PCL_LTE_MIXED_AUTH_MASK	(3 << OP_PCL_LTE_MIXED_AUTH_SHIFT)
+#define OP_PCL_LTE_MIXED_ENC_SHIFT	8
+#define OP_PCL_LTE_MIXED_ENC_MASK	(3 < OP_PCL_LTE_MIXED_ENC_SHIFT)
+#define OP_PCL_LTE_MIXED_AUTH_NULL	(OP_PCL_LTE_NULL << \
+					 OP_PCL_LTE_MIXED_AUTH_SHIFT)
+#define OP_PCL_LTE_MIXED_AUTH_SNOW	(OP_PCL_LTE_SNOW << \
+					 OP_PCL_LTE_MIXED_AUTH_SHIFT)
+#define OP_PCL_LTE_MIXED_AUTH_AES	(OP_PCL_LTE_AES << \
+					 OP_PCL_LTE_MIXED_AUTH_SHIFT)
+#define OP_PCL_LTE_MIXED_AUTH_ZUC	(OP_PCL_LTE_ZUC << \
+					 OP_PCL_LTE_MIXED_AUTH_SHIFT)
+#define OP_PCL_LTE_MIXED_ENC_NULL	(OP_PCL_LTE_NULL << \
+					 OP_PCL_LTE_MIXED_ENC_SHIFT)
+#define OP_PCL_LTE_MIXED_ENC_SNOW	(OP_PCL_LTE_SNOW << \
+					 OP_PCL_LTE_MIXED_ENC_SHIFT)
+#define OP_PCL_LTE_MIXED_ENC_AES	(OP_PCL_LTE_AES << \
+					 OP_PCL_LTE_MIXED_ENC_SHIFT)
+#define OP_PCL_LTE_MIXED_ENC_ZUC	(OP_PCL_LTE_ZUC << \
+					 OP_PCL_LTE_MIXED_ENC_SHIFT)
 
 /* PKI unidirectional protocol protinfo bits */
-#define OP_PCL_PKPROT_DSA_MSG			 0x400
-#define OP_PCL_PKPROT_HASH_SHIFT		 7
-#define OP_PCL_PKPROT_HASH_MASK			 (7 << OP_PCL_PKPROT_HASH_SHIFT)
-#define OP_PCL_PKPROT_HASH_MD5			 (0 << OP_PCL_PKPROT_HASH_SHIFT)
-#define OP_PCL_PKPROT_HASH_SHA1			 (1 << OP_PCL_PKPROT_HASH_SHIFT)
-#define OP_PCL_PKPROT_HASH_SHA224		 (2 << OP_PCL_PKPROT_HASH_SHIFT)
-#define OP_PCL_PKPROT_HASH_SHA256		 (3 << OP_PCL_PKPROT_HASH_SHIFT)
-#define OP_PCL_PKPROT_HASH_SHA384		 (4 << OP_PCL_PKPROT_HASH_SHIFT)
-#define OP_PCL_PKPROT_HASH_SHA512		 (5 << OP_PCL_PKPROT_HASH_SHIFT)
-#define OP_PCL_PKPROT_EKT_Z			 0x0040
-#define OP_PCL_PKPROT_DECRYPT_Z			 0x0020
-#define OP_PCL_PKPROT_EKT_PRI			 0x0010
-#define OP_PCL_PKPROT_TEST			 0x0008
-#define OP_PCL_PKPROT_DECRYPT_PRI		 0x0004
-#define OP_PCL_PKPROT_ECC			 0x0002
-#define OP_PCL_PKPROT_F2M			 0x0001
+#define OP_PCL_PKPROT_DSA_MSG		BIT(10)
+#define OP_PCL_PKPROT_HASH_SHIFT	7
+#define OP_PCL_PKPROT_HASH_MASK		(7 << OP_PCL_PKPROT_HASH_SHIFT)
+#define OP_PCL_PKPROT_HASH_MD5		(0 << OP_PCL_PKPROT_HASH_SHIFT)
+#define OP_PCL_PKPROT_HASH_SHA1		(1 << OP_PCL_PKPROT_HASH_SHIFT)
+#define OP_PCL_PKPROT_HASH_SHA224	(2 << OP_PCL_PKPROT_HASH_SHIFT)
+#define OP_PCL_PKPROT_HASH_SHA256	(3 << OP_PCL_PKPROT_HASH_SHIFT)
+#define OP_PCL_PKPROT_HASH_SHA384	(4 << OP_PCL_PKPROT_HASH_SHIFT)
+#define OP_PCL_PKPROT_HASH_SHA512	(5 << OP_PCL_PKPROT_HASH_SHIFT)
+#define OP_PCL_PKPROT_EKT_Z		BIT(6)
+#define OP_PCL_PKPROT_DECRYPT_Z		BIT(5)
+#define OP_PCL_PKPROT_EKT_PRI		BIT(4)
+#define OP_PCL_PKPROT_TEST		BIT(3)
+#define OP_PCL_PKPROT_DECRYPT_PRI	BIT(2)
+#define OP_PCL_PKPROT_ECC		BIT(1)
+#define OP_PCL_PKPROT_F2M		BIT(0)
 
 /* Blob protinfos */
 #define OP_PCL_BLOB_TKEK_SHIFT		9
-#define OP_PCL_BLOB_TKEK		(1 << OP_PCL_BLOB_TKEK_SHIFT)
+#define OP_PCL_BLOB_TKEK		BIT(9)
 #define OP_PCL_BLOB_EKT_SHIFT		8
-#define OP_PCL_BLOB_EKT			(1 << OP_PCL_BLOB_EKT_SHIFT)
+#define OP_PCL_BLOB_EKT			BIT(8)
 #define OP_PCL_BLOB_REG_SHIFT		4
 #define OP_PCL_BLOB_REG_MASK		(0xF << OP_PCL_BLOB_REG_SHIFT)
 #define OP_PCL_BLOB_REG_MEMORY		(0x0 << OP_PCL_BLOB_REG_SHIFT)
@@ -1386,8 +1401,8 @@
 #define OP_PCL_BLOB_REG_SPLIT		(0x7 << OP_PCL_BLOB_REG_SHIFT)
 #define OP_PCL_BLOB_REG_PKE		(0x9 << OP_PCL_BLOB_REG_SHIFT)
 #define OP_PCL_BLOB_SEC_MEM_SHIFT	3
-#define OP_PCL_BLOB_SEC_MEM		(1 << OP_PCL_BLOB_SEC_MEM_SHIFT)
-#define OP_PCL_BLOB_BLACK		0x4
+#define OP_PCL_BLOB_SEC_MEM		BIT(3)
+#define OP_PCL_BLOB_BLACK		BIT(2)
 #define OP_PCL_BLOB_FORMAT_SHIFT	0
 #define OP_PCL_BLOB_FORMAT_MASK		0x3
 #define OP_PCL_BLOB_FORMAT_NORMAL	0
@@ -1395,48 +1410,48 @@
 #define OP_PCL_BLOB_FORMAT_TEST		3
 
 /* IKE / IKEv2 protinfos */
-#define OP_PCL_IKE_HMAC_MD5			 0x0100
-#define OP_PCL_IKE_HMAC_SHA1			 0x0200
-#define OP_PCL_IKE_HMAC_AES128_CBC		 0x0400
-#define OP_PCL_IKE_HMAC_SHA256			 0x0500
-#define OP_PCL_IKE_HMAC_SHA384			 0x0600
-#define OP_PCL_IKE_HMAC_SHA512			 0x0700
-#define OP_PCL_IKE_HMAC_AES128_CMAC		 0x0800
+#define OP_PCL_IKE_HMAC_MD5		0x0100
+#define OP_PCL_IKE_HMAC_SHA1		0x0200
+#define OP_PCL_IKE_HMAC_AES128_CBC	0x0400
+#define OP_PCL_IKE_HMAC_SHA256		0x0500
+#define OP_PCL_IKE_HMAC_SHA384		0x0600
+#define OP_PCL_IKE_HMAC_SHA512		0x0700
+#define OP_PCL_IKE_HMAC_AES128_CMAC	0x0800
 
 /* PKI unidirectional protocol protinfo bits */
-#define OP_PCL_PKPROT_TEST			 0x0008
-#define OP_PCL_PKPROT_DECRYPT			 0x0004
-#define OP_PCL_PKPROT_ECC			 0x0002
-#define OP_PCL_PKPROT_F2M			 0x0001
+#define OP_PCL_PKPROT_TEST		BIT(3)
+#define OP_PCL_PKPROT_DECRYPT		BIT(2)
+#define OP_PCL_PKPROT_ECC		BIT(1)
+#define OP_PCL_PKPROT_F2M		BIT(0)
 
 /* RSA Protinfo */
-#define OP_PCL_RSAPROT_OP_MASK			 3
-#define OP_PCL_RSAPROT_OP_ENC_F_IN		 0
-#define OP_PCL_RSAPROT_OP_ENC_F_OUT		 1
-#define OP_PCL_RSAPROT_OP_DEC_ND		 0
-#define OP_PCL_RSAPROT_OP_DEC_PQD		 1
-#define OP_PCL_RSAPROT_OP_DEC_PQDPDQC		 2
-#define OP_PCL_RSAPROT_FFF_SHIFT		 4
-#define OP_PCL_RSAPROT_FFF_MASK			 (7 << OP_PCL_RSAPROT_FFF_SHIFT)
-#define OP_PCL_RSAPROT_FFF_RED			 (0 << OP_PCL_RSAPROT_FFF_SHIFT)
-#define OP_PCL_RSAPROT_FFF_ENC			 (1 << OP_PCL_RSAPROT_FFF_SHIFT)
-#define OP_PCL_RSAPROT_FFF_TK_ENC		 (5 << OP_PCL_RSAPROT_FFF_SHIFT)
-#define OP_PCL_RSAPROT_FFF_EKT			 (3 << OP_PCL_RSAPROT_FFF_SHIFT)
-#define OP_PCL_RSAPROT_FFF_TK_EKT		 (7 << OP_PCL_RSAPROT_FFF_SHIFT)
-#define OP_PCL_RSAPROT_PPP_SHIFT		 8
-#define OP_PCL_RSAPROT_PPP_MASK			 (7 << OP_PCL_RSAPROT_PPP_SHIFT)
-#define OP_PCL_RSAPROT_PPP_RED			 (0 << OP_PCL_RSAPROT_PPP_SHIFT)
-#define OP_PCL_RSAPROT_PPP_ENC			 (1 << OP_PCL_RSAPROT_PPP_SHIFT)
-#define OP_PCL_RSAPROT_PPP_TK_ENC		 (5 << OP_PCL_RSAPROT_PPP_SHIFT)
-#define OP_PCL_RSAPROT_PPP_EKT			 (3 << OP_PCL_RSAPROT_PPP_SHIFT)
-#define OP_PCL_RSAPROT_PPP_TK_EKT		 (7 << OP_PCL_RSAPROT_PPP_SHIFT)
-#define OP_PCL_RSAPROT_FMT_PKCSV15		 0x1000
+#define OP_PCL_RSAPROT_OP_MASK		3
+#define OP_PCL_RSAPROT_OP_ENC_F_IN	0
+#define OP_PCL_RSAPROT_OP_ENC_F_OUT	1
+#define OP_PCL_RSAPROT_OP_DEC_ND	0
+#define OP_PCL_RSAPROT_OP_DEC_PQD	1
+#define OP_PCL_RSAPROT_OP_DEC_PQDPDQC	2
+#define OP_PCL_RSAPROT_FFF_SHIFT	4
+#define OP_PCL_RSAPROT_FFF_MASK		(7 << OP_PCL_RSAPROT_FFF_SHIFT)
+#define OP_PCL_RSAPROT_FFF_RED		(0 << OP_PCL_RSAPROT_FFF_SHIFT)
+#define OP_PCL_RSAPROT_FFF_ENC		(1 << OP_PCL_RSAPROT_FFF_SHIFT)
+#define OP_PCL_RSAPROT_FFF_TK_ENC	(5 << OP_PCL_RSAPROT_FFF_SHIFT)
+#define OP_PCL_RSAPROT_FFF_EKT		(3 << OP_PCL_RSAPROT_FFF_SHIFT)
+#define OP_PCL_RSAPROT_FFF_TK_EKT	(7 << OP_PCL_RSAPROT_FFF_SHIFT)
+#define OP_PCL_RSAPROT_PPP_SHIFT	8
+#define OP_PCL_RSAPROT_PPP_MASK		(7 << OP_PCL_RSAPROT_PPP_SHIFT)
+#define OP_PCL_RSAPROT_PPP_RED		(0 << OP_PCL_RSAPROT_PPP_SHIFT)
+#define OP_PCL_RSAPROT_PPP_ENC		(1 << OP_PCL_RSAPROT_PPP_SHIFT)
+#define OP_PCL_RSAPROT_PPP_TK_ENC	(5 << OP_PCL_RSAPROT_PPP_SHIFT)
+#define OP_PCL_RSAPROT_PPP_EKT		(3 << OP_PCL_RSAPROT_PPP_SHIFT)
+#define OP_PCL_RSAPROT_PPP_TK_EKT	(7 << OP_PCL_RSAPROT_PPP_SHIFT)
+#define OP_PCL_RSAPROT_FMT_PKCSV15	BIT(12)
 
 /* For non-protocol/alg-only op commands */
 #define OP_ALG_TYPE_SHIFT	24
 #define OP_ALG_TYPE_MASK	(0x7 << OP_ALG_TYPE_SHIFT)
-#define OP_ALG_TYPE_CLASS1	2
-#define OP_ALG_TYPE_CLASS2	4
+#define OP_ALG_TYPE_CLASS1	(0x2 << OP_ALG_TYPE_SHIFT)
+#define OP_ALG_TYPE_CLASS2	(0x4 << OP_ALG_TYPE_SHIFT)
 
 #define OP_ALG_ALGSEL_SHIFT	16
 #define OP_ALG_ALGSEL_MASK	(0xff << OP_ALG_ALGSEL_SHIFT)
@@ -1545,24 +1560,24 @@
 
 #define OP_ALG_ICV_SHIFT	1
 #define OP_ALG_ICV_MASK		(1 << OP_ALG_ICV_SHIFT)
-#define OP_ALG_ICV_OFF		(0 << OP_ALG_ICV_SHIFT)
-#define OP_ALG_ICV_ON		(1 << OP_ALG_ICV_SHIFT)
+#define OP_ALG_ICV_OFF		0
+#define OP_ALG_ICV_ON		BIT(1)
 
 #define OP_ALG_DIR_SHIFT	0
 #define OP_ALG_DIR_MASK		1
 #define OP_ALG_DECRYPT		0
-#define OP_ALG_ENCRYPT		1
+#define OP_ALG_ENCRYPT		BIT(0)
 
 /* PKHA algorithm type set */
 #define OP_ALG_PK			0x00800000
 #define OP_ALG_PK_FUN_MASK		0x3f /* clrmem, modmath, or cpymem */
 
 /* PKHA mode clear memory functions */
-#define OP_ALG_PKMODE_A_RAM		0x80000
-#define OP_ALG_PKMODE_B_RAM		0x40000
-#define OP_ALG_PKMODE_E_RAM		0x20000
-#define OP_ALG_PKMODE_N_RAM		0x10000
-#define OP_ALG_PKMODE_CLEARMEM		0x00001
+#define OP_ALG_PKMODE_A_RAM		BIT(19)
+#define OP_ALG_PKMODE_B_RAM		BIT(18)
+#define OP_ALG_PKMODE_E_RAM		BIT(17)
+#define OP_ALG_PKMODE_N_RAM		BIT(16)
+#define OP_ALG_PKMODE_CLEARMEM		BIT(0)
 
 /* PKHA mode clear memory functions */
 #define OP_ALG_PKMODE_CLEARMEM_ALL	(OP_ALG_PKMODE_CLEARMEM | \
@@ -1614,12 +1629,12 @@
 					 OP_ALG_PKMODE_N_RAM)
 
 /* PKHA mode modular-arithmetic functions */
-#define OP_ALG_PKMODE_MOD_IN_MONTY   0x80000
-#define OP_ALG_PKMODE_MOD_OUT_MONTY  0x40000
-#define OP_ALG_PKMODE_MOD_F2M	     0x20000
-#define OP_ALG_PKMODE_MOD_R2_IN	     0x10000
-#define OP_ALG_PKMODE_PRJECTV	     0x00800
-#define OP_ALG_PKMODE_TIME_EQ	     0x400
+#define OP_ALG_PKMODE_MOD_IN_MONTY   BIT(19)
+#define OP_ALG_PKMODE_MOD_OUT_MONTY  BIT(18)
+#define OP_ALG_PKMODE_MOD_F2M	     BIT(17)
+#define OP_ALG_PKMODE_MOD_R2_IN	     BIT(16)
+#define OP_ALG_PKMODE_PRJECTV	     BIT(11)
+#define OP_ALG_PKMODE_TIME_EQ	     BIT(10)
 
 #define OP_ALG_PKMODE_OUT_B	     0x000
 #define OP_ALG_PKMODE_OUT_A	     0x100
@@ -2131,28 +2146,28 @@
  */
 
 /* Release Buffers */
-#define SQIN_RBS	0x04000000
+#define SQIN_RBS	BIT(26)
 
 /* Sequence pointer is really a descriptor */
-#define SQIN_INL	0x02000000
+#define SQIN_INL	BIT(25)
 
 /* Sequence pointer is a scatter-gather table */
-#define SQIN_SGF	0x01000000
+#define SQIN_SGF	BIT(24)
 
 /* Appends to a previous pointer */
-#define SQIN_PRE	0x00800000
+#define SQIN_PRE	BIT(23)
 
 /* Use extended length following pointer */
-#define SQIN_EXT	0x00400000
+#define SQIN_EXT	BIT(22)
 
 /* Restore sequence with pointer/length */
-#define SQIN_RTO	0x00200000
+#define SQIN_RTO	BIT(21)
 
 /* Replace job descriptor */
-#define SQIN_RJD	0x00100000
+#define SQIN_RJD	BIT(20)
 
 /* Sequence Out Pointer - start a new input sequence using output sequence */
-#define SQIN_SOP	0x00080000
+#define SQIN_SOP	BIT(19)
 
 #define SQIN_LEN_SHIFT	0
 #define SQIN_LEN_MASK	(0xffff << SQIN_LEN_SHIFT)
@@ -2162,26 +2177,26 @@
  */
 
 /* Sequence pointer is a scatter-gather table */
-#define SQOUT_SGF	0x01000000
+#define SQOUT_SGF	BIT(24)
 
 /* Appends to a previous pointer */
-#define SQOUT_PRE	0x00800000
+#define SQOUT_PRE	BIT(23)
 
 /* Restore sequence with pointer/length */
-#define SQOUT_RTO	0x00200000
+#define SQOUT_RTO	BIT(21)
 
 /*
  * Ignore length field, add current output frame length back to SOL register.
  * Reset tracking length of bytes written to output frame.
  * Must be used together with SQOUT_RTO.
  */
-#define SQOUT_RST	0x00100000
+#define SQOUT_RST	BIT(20)
 
 /* Allow "write safe" transactions for this Output Sequence */
-#define SQOUT_EWS	0x00080000
+#define SQOUT_EWS	BIT(19)
 
 /* Use extended length following pointer */
-#define SQOUT_EXT	0x00400000
+#define SQOUT_EXT	BIT(22)
 
 #define SQOUT_LEN_SHIFT	0
 #define SQOUT_LEN_MASK	(0xffff << SQOUT_LEN_SHIFT)
@@ -2213,7 +2228,7 @@
 
 #define MOVE_WAITCOMP_SHIFT	24
 #define MOVE_WAITCOMP_MASK	(1 << MOVE_WAITCOMP_SHIFT)
-#define MOVE_WAITCOMP		(1 << MOVE_WAITCOMP_SHIFT)
+#define MOVE_WAITCOMP		BIT(24)
 
 #define MOVE_SRC_SHIFT		20
 #define MOVE_SRC_MASK		(0x0f << MOVE_SRC_SHIFT)
@@ -2272,19 +2287,24 @@
 
 #define MATH_IFB_SHIFT		26
 #define MATH_IFB_MASK		(1 << MATH_IFB_SHIFT)
-#define MATH_IFB		(1 << MATH_IFB_SHIFT)
+#define MATH_IFB		BIT(26)
 
 #define MATH_NFU_SHIFT		25
 #define MATH_NFU_MASK		(1 << MATH_NFU_SHIFT)
-#define MATH_NFU		(1 << MATH_NFU_SHIFT)
+#define MATH_NFU		BIT(25)
 
+/* STL for MATH, SSEL for MATHI */
 #define MATH_STL_SHIFT		24
 #define MATH_STL_MASK		(1 << MATH_STL_SHIFT)
-#define MATH_STL		(1 << MATH_STL_SHIFT)
+#define MATH_STL		BIT(24)
+
+#define MATH_SSEL_SHIFT		24
+#define MATH_SSEL_MASK		(1 << MATH_SSEL_SHIFT)
+#define MATH_SSEL		BIT(24)
 
 #define MATH_SWP_SHIFT		0
 #define MATH_SWP_MASK		(1 << MATH_SWP_SHIFT)
-#define MATH_SWP		(1 << MATH_SWP_SHIFT)
+#define MATH_SWP		BIT(0)
 
 /* Function selectors */
 #define MATH_FUN_SHIFT		20
@@ -2299,7 +2319,9 @@
 #define MATH_FUN_LSHIFT		(0x07 << MATH_FUN_SHIFT)
 #define MATH_FUN_RSHIFT		(0x08 << MATH_FUN_SHIFT)
 #define MATH_FUN_SHLD		(0x09 << MATH_FUN_SHIFT)
-#define MATH_FUN_ZBYT		(0x0a << MATH_FUN_SHIFT)
+#define MATH_FUN_ZBYT		(0x0a << MATH_FUN_SHIFT) /* ZBYT is for MATH */
+#define MATH_FUN_FBYT		(0x0a << MATH_FUN_SHIFT) /* FBYT is for MATHI */
+#define MATH_FUN_BSWAP		(0x0b << MATH_FUN_SHIFT)
 
 /* Source 0 selectors */
 #define MATH_SRC0_SHIFT		16
@@ -2319,6 +2341,7 @@
 
 /* Source 1 selectors */
 #define MATH_SRC1_SHIFT		12
+#define MATHI_SRC1_SHIFT	16
 #define MATH_SRC1_MASK		(0x0f << MATH_SRC1_SHIFT)
 #define MATH_SRC1_REG0		(0x00 << MATH_SRC1_SHIFT)
 #define MATH_SRC1_REG1		(0x01 << MATH_SRC1_SHIFT)
@@ -2336,6 +2359,7 @@
 
 /* Destination selectors */
 #define MATH_DEST_SHIFT		8
+#define MATHI_DEST_SHIFT	12
 #define MATH_DEST_MASK		(0x0f << MATH_DEST_SHIFT)
 #define MATH_DEST_REG0		(0x00 << MATH_DEST_SHIFT)
 #define MATH_DEST_REG1		(0x01 << MATH_DEST_SHIFT)
@@ -2347,6 +2371,10 @@
 #define MATH_DEST_VARSEQINLEN	(0x0a << MATH_DEST_SHIFT)
 #define MATH_DEST_VARSEQOUTLEN	(0x0b << MATH_DEST_SHIFT)
 #define MATH_DEST_NONE		(0x0f << MATH_DEST_SHIFT)
+
+/* MATHI Immediate value */
+#define MATHI_IMM_SHIFT		4
+#define MATHI_IMM_MASK		(0xff << MATHI_IMM_SHIFT)
 
 /* Length selectors */
 #define MATH_LEN_SHIFT		0
@@ -2369,7 +2397,7 @@
 
 #define JUMP_JSL_SHIFT		24
 #define JUMP_JSL_MASK		(1 << JUMP_JSL_SHIFT)
-#define JUMP_JSL		(1 << JUMP_JSL_SHIFT)
+#define JUMP_JSL		BIT(24)
 
 #define JUMP_TYPE_SHIFT		20
 #define JUMP_TYPE_MASK		(0x0f << JUMP_TYPE_SHIFT)
@@ -2391,23 +2419,23 @@
 
 /* Condition codes. JSL bit is factored in */
 #define JUMP_COND_SHIFT		8
-#define JUMP_COND_MASK		(0x100ff << JUMP_COND_SHIFT)
-#define JUMP_COND_PK_0		(0x80 << JUMP_COND_SHIFT)
-#define JUMP_COND_PK_GCD_1	(0x40 << JUMP_COND_SHIFT)
-#define JUMP_COND_PK_PRIME	(0x20 << JUMP_COND_SHIFT)
-#define JUMP_COND_MATH_N	(0x08 << JUMP_COND_SHIFT)
-#define JUMP_COND_MATH_Z	(0x04 << JUMP_COND_SHIFT)
-#define JUMP_COND_MATH_C	(0x02 << JUMP_COND_SHIFT)
-#define JUMP_COND_MATH_NV	(0x01 << JUMP_COND_SHIFT)
+#define JUMP_COND_MASK		((0xff << JUMP_COND_SHIFT) | JUMP_JSL)
+#define JUMP_COND_PK_0		BIT(15)
+#define JUMP_COND_PK_GCD_1	BIT(14)
+#define JUMP_COND_PK_PRIME	BIT(13)
+#define JUMP_COND_MATH_N	BIT(11)
+#define JUMP_COND_MATH_Z	BIT(10)
+#define JUMP_COND_MATH_C	BIT(9)
+#define JUMP_COND_MATH_NV	BIT(8)
 
-#define JUMP_COND_JQP		((0x80 << JUMP_COND_SHIFT) | JUMP_JSL)
-#define JUMP_COND_SHRD		((0x40 << JUMP_COND_SHIFT) | JUMP_JSL)
-#define JUMP_COND_SELF		((0x20 << JUMP_COND_SHIFT) | JUMP_JSL)
-#define JUMP_COND_CALM		((0x10 << JUMP_COND_SHIFT) | JUMP_JSL)
-#define JUMP_COND_NIP		((0x08 << JUMP_COND_SHIFT) | JUMP_JSL)
-#define JUMP_COND_NIFP		((0x04 << JUMP_COND_SHIFT) | JUMP_JSL)
-#define JUMP_COND_NOP		((0x02 << JUMP_COND_SHIFT) | JUMP_JSL)
-#define JUMP_COND_NCP		((0x01 << JUMP_COND_SHIFT) | JUMP_JSL)
+#define JUMP_COND_JQP		(BIT(15) | JUMP_JSL)
+#define JUMP_COND_SHRD		(BIT(14) | JUMP_JSL)
+#define JUMP_COND_SELF		(BIT(13) | JUMP_JSL)
+#define JUMP_COND_CALM		(BIT(12) | JUMP_JSL)
+#define JUMP_COND_NIP		(BIT(11) | JUMP_JSL)
+#define JUMP_COND_NIFP		(BIT(10) | JUMP_JSL)
+#define JUMP_COND_NOP		(BIT(9) | JUMP_JSL)
+#define JUMP_COND_NCP		(BIT(8) | JUMP_JSL)
 
 /* Source / destination selectors */
 #define JUMP_SRC_DST_SHIFT		12
@@ -2439,19 +2467,19 @@
 
 #define NFIFOENTRY_LC2_SHIFT	29
 #define NFIFOENTRY_LC2_MASK	(1 << NFIFOENTRY_LC2_SHIFT)
-#define NFIFOENTRY_LC2		(1 << NFIFOENTRY_LC2_SHIFT)
+#define NFIFOENTRY_LC2		BIT(29)
 
 #define NFIFOENTRY_LC1_SHIFT	28
 #define NFIFOENTRY_LC1_MASK	(1 << NFIFOENTRY_LC1_SHIFT)
-#define NFIFOENTRY_LC1		(1 << NFIFOENTRY_LC1_SHIFT)
+#define NFIFOENTRY_LC1		BIT(28)
 
 #define NFIFOENTRY_FC2_SHIFT	27
 #define NFIFOENTRY_FC2_MASK	(1 << NFIFOENTRY_FC2_SHIFT)
-#define NFIFOENTRY_FC2		(1 << NFIFOENTRY_FC2_SHIFT)
+#define NFIFOENTRY_FC2		BIT(27)
 
 #define NFIFOENTRY_FC1_SHIFT	26
 #define NFIFOENTRY_FC1_MASK	(1 << NFIFOENTRY_FC1_SHIFT)
-#define NFIFOENTRY_FC1		(1 << NFIFOENTRY_FC1_SHIFT)
+#define NFIFOENTRY_FC1		BIT(26)
 
 #define NFIFOENTRY_STYPE_SHIFT	24
 #define NFIFOENTRY_STYPE_MASK	(3 << NFIFOENTRY_STYPE_SHIFT)
@@ -2492,7 +2520,7 @@
 
 #define NFIFOENTRY_BND_SHIFT	19
 #define NFIFOENTRY_BND_MASK	(1 << NFIFOENTRY_BND_SHIFT)
-#define NFIFOENTRY_BND		(1 << NFIFOENTRY_BND_SHIFT)
+#define NFIFOENTRY_BND		BIT(19)
 
 #define NFIFOENTRY_PTYPE_SHIFT	16
 #define NFIFOENTRY_PTYPE_MASK	(0x7 << NFIFOENTRY_PTYPE_SHIFT)
@@ -2508,23 +2536,23 @@
 
 #define NFIFOENTRY_OC_SHIFT	15
 #define NFIFOENTRY_OC_MASK	(1 << NFIFOENTRY_OC_SHIFT)
-#define NFIFOENTRY_OC		(1 << NFIFOENTRY_OC_SHIFT)
+#define NFIFOENTRY_OC		BIT(15)
 
 #define NFIFOENTRY_PR_SHIFT	15
 #define NFIFOENTRY_PR_MASK	(1 << NFIFOENTRY_PR_SHIFT)
-#define NFIFOENTRY_PR		(1 << NFIFOENTRY_PR_SHIFT)
+#define NFIFOENTRY_PR		BIT(15)
 
 #define NFIFOENTRY_AST_SHIFT	14
 #define NFIFOENTRY_AST_MASK	(1 << NFIFOENTRY_AST_SHIFT)
-#define NFIFOENTRY_AST		(1 << NFIFOENTRY_AST_SHIFT)
+#define NFIFOENTRY_AST		BIT(14)
 
 #define NFIFOENTRY_BM_SHIFT	11
 #define NFIFOENTRY_BM_MASK	(1 << NFIFOENTRY_BM_SHIFT)
-#define NFIFOENTRY_BM		(1 << NFIFOENTRY_BM_SHIFT)
+#define NFIFOENTRY_BM		BIT(11)
 
 #define NFIFOENTRY_PS_SHIFT	10
 #define NFIFOENTRY_PS_MASK	(1 << NFIFOENTRY_PS_SHIFT)
-#define NFIFOENTRY_PS		(1 << NFIFOENTRY_PS_SHIFT)
+#define NFIFOENTRY_PS		BIT(10)
 
 #define NFIFOENTRY_DLEN_SHIFT	0
 #define NFIFOENTRY_DLEN_MASK	(0xFFF << NFIFOENTRY_DLEN_SHIFT)
@@ -2533,12 +2561,12 @@
 #define NFIFOENTRY_PLEN_MASK	(0xFF << NFIFOENTRY_PLEN_SHIFT)
 
 /* Append Load Immediate Command */
-#define FD_CMD_APPEND_LOAD_IMMEDIATE			0x80000000
+#define FD_CMD_APPEND_LOAD_IMMEDIATE			BIT(31)
 
 /* Set SEQ LIODN equal to the Non-SEQ LIODN for the job */
-#define FD_CMD_SET_SEQ_LIODN_EQUAL_NONSEQ_LIODN		0x40000000
+#define FD_CMD_SET_SEQ_LIODN_EQUAL_NONSEQ_LIODN		BIT(30)
 
 /* Frame Descriptor Command for Replacement Job Descriptor */
-#define FD_CMD_REPLACE_JOB_DESC				0x20000000
+#define FD_CMD_REPLACE_JOB_DESC				BIT(29)
 
 #endif /* __RTA_DESC_H__ */
