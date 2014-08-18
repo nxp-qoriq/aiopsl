@@ -38,6 +38,21 @@
 #include "fsl_errors.h"
 #include "dplib/fsl_ldpaa.h"
 
+/**************************************************************************//**
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+ @Group		AIOP_NETF_GENERAL GENERAL
+
+ @Description	AIOP NETF general API
+
+ @{
+ *//***************************************************************************/
 
 /**************************************************************************//**
  @Group		FSL_AIOP_FRAME_OPERATIONS AIOP Frame Operations
@@ -277,6 +292,10 @@ int create_arp_request(
 /** @} end of group FRAME_OPERSTIONS_Functions */
 
 /** @} */ /* end of FSL_AIOP_FRAME_OPERATIONS */
+
+/** @} */ /* end of AIOP_NETF_GENERAL */
+
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_FRAME_OPERATIONS_H */

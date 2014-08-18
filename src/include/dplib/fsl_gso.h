@@ -42,6 +42,15 @@
 
  @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+ @Group		AIOP_L4 L4
+
+ @Description	AIOP L4 related API
+
+ @{
+ *//***************************************************************************/
+
 /**************************************************************************//**
 @Group		FSL_AIOP_GSO GSO
 
@@ -149,7 +158,7 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
 
 @Retval		EBADFD - Received packet FD contain errors (FD.err != 0).
 		Recommendation is to either force discard of the frame (call
-		\ref fdma_force_discard_frame) or enqueue the frame.
+		\ref fdma_force_discard_fd) or enqueue the frame.
 		The packet was not segmented.
 @Retval		ENOMEM - Received packet cannot be stored due to buffer pool
 		depletion. Recommendation is to discard the frame.
@@ -208,6 +217,7 @@ void tcp_gso_context_init(
 
 /** @} */ /* end of GSO_Functions */
 /** @} */ /* end of FSL_AIOP_GSO */
+/** @} */ /* end of group AIOP_L4 */
 /** @} */ /* end of NETF */
 
 
