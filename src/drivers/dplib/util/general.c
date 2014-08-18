@@ -42,6 +42,7 @@ __TASK struct aiop_default_task_params default_task_params;
 #include "aiop_verification.h"
 #include <string.h>
 extern __VERIF_TLS uint32_t fatal_fqid;
+extern __VERIF_TLS uint32_t sr_fm_flags;
 #endif /*AIOP_VERIF*/
 
 /* TODO - once the ARENA implementation is ready move this (verification)
@@ -79,13 +80,14 @@ void exception_handler(char *filename,
 {
 	uint32_t status;
 #ifdef AIOP_VERIF
+
 	struct fatal_error_command *fatal_cmd;
-	//todo
-	if(1){
+	if(sr_fm_flags == FSL_VERIF_FATAL_FLAG_ASA_TEST){
 		fatal_cmd =  (struct fatal_error_command *)
 				PRC_GET_ASA_ADDRESS();
-	} else { //FM CASE
-		fatal_cmd =  (struct fatal_error_command *)
+	} else { /* == FSL_VERIF_FATAL_FLAG_BUFF_CTX_TEST */
+		//todo
+		fatal_cmd = (struct fatal_error_command *)
 						PRC_GET_ASA_ADDRESS();
 	}
 
@@ -95,9 +97,7 @@ void exception_handler(char *filename,
 	strcpy(fatal_cmd->function_name, function_name);
 	strcpy(fatal_cmd->err_msg, message);
 
-	//TODO update verification command
-	//todo sr/fm if
-	if (1){
+	if (sr_fm_flags == FSL_VERIF_FATAL_FLAG_ASA_TEST){
 		fdma_replace_default_asa_segment_data(
 			0,
 			sizeof(struct fatal_error_command),
@@ -106,7 +106,8 @@ void exception_handler(char *filename,
 			0,
 			0,
 			FDMA_REPLACE_NO_FLAGS);
-	} else { //fm case
+	} else { // == FSL_VERIF_FATAL_FLAG_BUFF_CTX_TEST
+		//todo
 		fdma_replace_default_asa_segment_data(
 				0,
 				sizeof(struct fatal_error_command),

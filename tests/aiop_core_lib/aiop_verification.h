@@ -119,6 +119,17 @@
 #define SET_CTSCSR0(_val)                       \
        __setctscsr0(_val);
 
+/**************************************************************************//**
+@Group	FSL_VERIF_FATAL_FLAGS_DEFINES Verification Fatal CMD Defines
+@{
+*//***************************************************************************/
+	/* This flag should be set for ASA test environments */
+#define FSL_VERIF_FATAL_FLAG_ASA_TEST				0x00000000
+
+	/* This flag should be set for buffer context test environments */
+#define FSL_VERIF_FATAL_FLAG_BUFF_CTX_TEST			0x00000001
+
+/** @} */ /* end of FSL_VERIF_FATAL_FLAGS_DEFINES */
 
 /**************************************************************************//**
  @Group		AIOP_Verification
@@ -377,7 +388,8 @@ struct fatal_error_command {
 	uint32_t fqid;
 
 	/**
-	 * Flags for this structure.
+	 * Flags - Specify options to this function, please refer to 
+	 * \ref FSL_VERIF_FATAL_FLAGS_DEFINES.
 	 */
 	uint32_t flags;
 

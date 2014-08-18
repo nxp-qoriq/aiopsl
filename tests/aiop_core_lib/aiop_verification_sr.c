@@ -36,6 +36,7 @@
 #include "aiop_verification.h"
 
 extern __VERIF_TLS uint32_t fatal_fqid;
+extern __VERIF_TLS uint32_t sr_fm_flags;
 
 void aiop_verification_sr()
 {
@@ -197,6 +198,7 @@ void aiop_verification_parse()
 			    (struct fatal_error_command *)
 						asa_seg_addr;
 			fatal_fqid = str->fqid;
+			sr_fm_flags = str->flags;
 			str_size = (uint16_t)
 			    sizeof
 			     (struct fatal_error_command);
