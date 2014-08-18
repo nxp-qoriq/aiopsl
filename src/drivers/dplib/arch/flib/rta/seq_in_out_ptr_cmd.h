@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_SEQ_IN_OUT_PTR_CMD_H__
 #define __RTA_SEQ_IN_OUT_PTR_CMD_H__
@@ -54,11 +55,12 @@ static const uint32_t seq_out_ptr_flags[] = {
 	SGF | PRE | EXT | RTO | RST | EWS
 };
 
-static inline unsigned rta_seq_in_ptr(struct program *program, uint64_t src,
-				      uint32_t length, uint32_t flags)
+static inline int rta_seq_in_ptr(struct program *program, uint64_t src,
+				 uint32_t length, uint32_t flags)
 {
 	uint32_t opcode = CMD_SEQ_IN_PTR;
 	unsigned start_pc = program->current_pc;
+	int ret = -EINVAL;
 
 	/* Parameters checking */
 	if ((flags & RTO) && (flags & PRE)) {
@@ -120,19 +122,20 @@ static inline unsigned rta_seq_in_ptr(struct program *program, uint64_t src,
 	if (opcode & SQIN_EXT)
 		__rta_out32(program, length);
 
-	return start_pc;
+	return (int)start_pc;
 
  err:
 	program->first_error_pc = start_pc;
 	program->current_instruction++;
-	return start_pc;
+	return ret;
 }
 
-static inline unsigned rta_seq_out_ptr(struct program *program, uint64_t dst,
-				       uint32_t length, uint32_t flags)
+static inline int rta_seq_out_ptr(struct program *program, uint64_t dst,
+				  uint32_t length, uint32_t flags)
 {
 	uint32_t opcode = CMD_SEQ_OUT_PTR;
 	unsigned start_pc = program->current_pc;
+	int ret = -EINVAL;
 
 	/* Parameters checking */
 	if (flags & ~seq_out_ptr_flags[rta_sec_era]) {
@@ -180,12 +183,12 @@ static inline unsigned rta_seq_out_ptr(struct program *program, uint64_t dst,
 	if (opcode & SQOUT_EXT)
 		__rta_out32(program, length);
 
-	return start_pc;
+	return (int)start_pc;
 
  err:
 	program->first_error_pc = start_pc;
 	program->current_instruction++;
-	return start_pc;
+	return ret;
 }
 
 #endif /* __RTA_SEQ_IN_OUT_PTR_CMD_H__ */

@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_MOVE_CMD_H__
 #define __RTA_MOVE_CMD_H__
@@ -39,23 +40,28 @@
 
 #define MASK_16b  0xFF
 
+/* MOVE command type */
+#define __MOVE		1
+#define __MOVEB		2
+#define __MOVEDW	3
+
 extern enum rta_sec_era rta_sec_era;
 
 static const uint32_t move_src_table[][2] = {
-/*1*/	{ _CONTEXT1, MOVE_SRC_CLASS1CTX },
-	{ _CONTEXT2, MOVE_SRC_CLASS2CTX },
-	{ _OFIFO,    MOVE_SRC_OUTFIFO },
-	{ _DESCBUF,  MOVE_SRC_DESCBUF },
-	{ _MATH0,    MOVE_SRC_MATH0 },
-	{ _MATH1,    MOVE_SRC_MATH1 },
-	{ _MATH2,    MOVE_SRC_MATH2 },
-	{ _MATH3,    MOVE_SRC_MATH3 },
-/*9*/	{ _IFIFOABD, MOVE_SRC_INFIFO },
-	{ _IFIFOAB1, MOVE_SRC_INFIFO_CL | MOVE_AUX_LS },
-	{ _IFIFOAB2, MOVE_SRC_INFIFO_CL },
-/*12*/	{ _ABD,      MOVE_SRC_INFIFO_NO_NFIFO },
-	{ _AB1,      MOVE_SRC_INFIFO_NO_NFIFO | MOVE_AUX_LS },
-	{ _AB2,      MOVE_SRC_INFIFO_NO_NFIFO | MOVE_AUX_MS }
+/*1*/	{ CONTEXT1, MOVE_SRC_CLASS1CTX },
+	{ CONTEXT2, MOVE_SRC_CLASS2CTX },
+	{ OFIFO,    MOVE_SRC_OUTFIFO },
+	{ DESCBUF,  MOVE_SRC_DESCBUF },
+	{ MATH0,    MOVE_SRC_MATH0 },
+	{ MATH1,    MOVE_SRC_MATH1 },
+	{ MATH2,    MOVE_SRC_MATH2 },
+	{ MATH3,    MOVE_SRC_MATH3 },
+/*9*/	{ IFIFOABD, MOVE_SRC_INFIFO },
+	{ IFIFOAB1, MOVE_SRC_INFIFO_CL | MOVE_AUX_LS },
+	{ IFIFOAB2, MOVE_SRC_INFIFO_CL },
+/*12*/	{ ABD,      MOVE_SRC_INFIFO_NO_NFIFO },
+	{ AB1,      MOVE_SRC_INFIFO_NO_NFIFO | MOVE_AUX_LS },
+	{ AB2,      MOVE_SRC_INFIFO_NO_NFIFO | MOVE_AUX_MS }
 };
 
 /* Allowed MOVE / MOVE_LEN sources for each SEC Era.
@@ -65,21 +71,21 @@ static const uint32_t move_src_table[][2] = {
 static const unsigned move_src_table_sz[] = {9, 11, 14, 14, 14, 14, 14, 14};
 
 static const uint32_t move_dst_table[][2] = {
-/*1*/	{ _CONTEXT1,  MOVE_DEST_CLASS1CTX },
-	{ _CONTEXT2,  MOVE_DEST_CLASS2CTX },
-	{ _OFIFO,     MOVE_DEST_OUTFIFO },
-	{ _DESCBUF,   MOVE_DEST_DESCBUF },
-	{ _MATH0,     MOVE_DEST_MATH0 },
-	{ _MATH1,     MOVE_DEST_MATH1 },
-	{ _MATH2,     MOVE_DEST_MATH2 },
-	{ _MATH3,     MOVE_DEST_MATH3 },
-	{ _IFIFOAB1,  MOVE_DEST_CLASS1INFIFO },
-	{ _IFIFOAB2,  MOVE_DEST_CLASS2INFIFO },
-	{ _PKA,       MOVE_DEST_PK_A },
-	{ _KEY1,      MOVE_DEST_CLASS1KEY },
-	{ _KEY2,      MOVE_DEST_CLASS2KEY },
-/*14*/	{ _IFIFO,     MOVE_DEST_INFIFO },
-/*15*/	{_ALTSOURCE,  MOVE_DEST_ALTSOURCE}
+/*1*/	{ CONTEXT1,  MOVE_DEST_CLASS1CTX },
+	{ CONTEXT2,  MOVE_DEST_CLASS2CTX },
+	{ OFIFO,     MOVE_DEST_OUTFIFO },
+	{ DESCBUF,   MOVE_DEST_DESCBUF },
+	{ MATH0,     MOVE_DEST_MATH0 },
+	{ MATH1,     MOVE_DEST_MATH1 },
+	{ MATH2,     MOVE_DEST_MATH2 },
+	{ MATH3,     MOVE_DEST_MATH3 },
+	{ IFIFOAB1,  MOVE_DEST_CLASS1INFIFO },
+	{ IFIFOAB2,  MOVE_DEST_CLASS2INFIFO },
+	{ PKA,       MOVE_DEST_PK_A },
+	{ KEY1,      MOVE_DEST_CLASS1KEY },
+	{ KEY2,      MOVE_DEST_CLASS2KEY },
+/*14*/	{ IFIFO,     MOVE_DEST_INFIFO },
+/*15*/	{ ALTSOURCE,  MOVE_DEST_ALTSOURCE}
 };
 
 /* Allowed MOVE / MOVE_LEN destinations for each SEC Era.
@@ -95,23 +101,16 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 
 static inline int math_offset(uint16_t offset);
 
-static inline unsigned rta_move(struct program *program, int cmd_type,
-				uint64_t src, int type_src, uint16_t src_offset,
-				uint64_t dst, int type_dst, uint16_t dst_offset,
-				uint32_t length, int type_length,
-				uint32_t flags)
+static inline int rta_move(struct program *program, int cmd_type, uint64_t src,
+			   uint16_t src_offset, uint64_t dst,
+			   uint16_t dst_offset, uint32_t length, uint32_t flags)
 {
 	uint32_t opcode = 0;
 	uint16_t offset = 0, opt = 0;
 	uint32_t val = 0;
-	int ret, is_move_len_cmd = 0;
+	int ret = -EINVAL;
+	bool is_move_len_cmd = false;
 	unsigned start_pc = program->current_pc;
-
-	if ((type_src != REG_TYPE) || (type_dst != REG_TYPE)) {
-		pr_err("MOVE: Incorrect src / dst type. SEC PC: %d; Instr: %d\n",
-		       program->current_pc, program->current_instruction);
-		goto err;
-	}
 
 	if ((rta_sec_era < RTA_SEC_ERA_7) && (cmd_type != __MOVE)) {
 		pr_err("MOVE: MOVEB / MOVEDW not supported by SEC Era %d. SEC PC: %d; Instr: %d\n",
@@ -125,7 +124,7 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 		opcode = CMD_MOVEB;
 	} else if (cmd_type == __MOVEDW) {
 		opcode = CMD_MOVEDW;
-	} else if (type_length == REG_TYPE) {
+	} else if (!(flags & IMMED)) {
 		if (rta_sec_era < RTA_SEC_ERA_3) {
 			pr_err("MOVE: MOVE_LEN not supported by SEC Era %d. SEC PC: %d; Instr: %d\n",
 			       USER_SEC_ERA(rta_sec_era), program->current_pc,
@@ -133,8 +132,8 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 			goto err;
 		}
 
-		if ((length != _MATH0) && (length != _MATH1) &&
-		    (length != _MATH2) && (length != _MATH3)) {
+		if ((length != MATH0) && (length != MATH1) &&
+		    (length != MATH2) && (length != MATH3)) {
 			pr_err("MOVE: MOVE_LEN length must be MATH[0-3]. SEC PC: %d; Instr: %d\n",
 			       program->current_pc,
 			       program->current_instruction);
@@ -142,7 +141,7 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 		}
 
 		opcode = CMD_MOVE_LEN;
-		is_move_len_cmd = 1;
+		is_move_len_cmd = true;
 	} else {
 		opcode = CMD_MOVE;
 	}
@@ -153,19 +152,19 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 	 */
 	ret = set_move_offset(program, src, src_offset, dst, dst_offset,
 			      &offset, &opt);
-	if (ret)
+	if (ret < 0)
 		goto err;
 
 	opcode |= (offset << MOVE_OFFSET_SHIFT) & MOVE_OFFSET_MASK;
 
 	/* set AUX field if required */
-	if (opt == MOVE_SET_AUX_SRC)
+	if (opt == MOVE_SET_AUX_SRC) {
 		opcode |= ((src_offset / 16) << MOVE_AUX_SHIFT) & MOVE_AUX_MASK;
-	else if (opt == MOVE_SET_AUX_DST)
+	} else if (opt == MOVE_SET_AUX_DST) {
 		opcode |= ((dst_offset / 16) << MOVE_AUX_SHIFT) & MOVE_AUX_MASK;
-	else if (opt == MOVE_SET_AUX_LS)
+	} else if (opt == MOVE_SET_AUX_LS) {
 		opcode |= MOVE_AUX_LS;
-	else if (opt & MOVE_SET_AUX_MATH) {
+	} else if (opt & MOVE_SET_AUX_MATH) {
 		if (opt & MOVE_SET_AUX_SRC)
 			offset = src_offset;
 		else
@@ -180,7 +179,7 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 			/* nothing to do for offset = 0 */
 		} else {
 			ret = math_offset(offset);
-			if (ret == -1) {
+			if (ret < 0) {
 				pr_err("MOVE: Invalid offset in MATH register. SEC PC: %d; Instr: %d\n",
 				       program->current_pc,
 				       program->current_instruction);
@@ -194,7 +193,7 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 	/* write source field */
 	ret = __rta_map_opcode((uint32_t)src, move_src_table,
 			       move_src_table_sz[rta_sec_era], &val);
-	if (ret == -1) {
+	if (ret < 0) {
 		pr_err("MOVE: Invalid SRC. SEC PC: %d; Instr: %d\n",
 		       program->current_pc, program->current_instruction);
 		goto err;
@@ -204,7 +203,7 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 	/* write destination field */
 	ret = __rta_map_opcode((uint32_t)dst, move_dst_table,
 			       move_dst_table_sz[rta_sec_era], &val);
-	if (ret == -1) {
+	if (ret < 0) {
 		pr_err("MOVE: Invalid DST. SEC PC: %d; Instr: %d\n",
 		       program->current_pc, program->current_instruction);
 		goto err;
@@ -228,19 +227,19 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 	} else {
 		/* write mrsel */
 		switch (length) {
-		case (_MATH0):
+		case (MATH0):
 			/*
 			 * opcode |= MOVELEN_MRSEL_MATH0;
 			 * MOVELEN_MRSEL_MATH0 is 0
 			 */
 			break;
-		case (_MATH1):
+		case (MATH1):
 			opcode |= MOVELEN_MRSEL_MATH1;
 			break;
-		case (_MATH2):
+		case (MATH2):
 			opcode |= MOVELEN_MRSEL_MATH2;
 			break;
-		case (_MATH3):
+		case (MATH3):
 			opcode |= MOVELEN_MRSEL_MATH3;
 			break;
 		}
@@ -259,12 +258,12 @@ static inline unsigned rta_move(struct program *program, int cmd_type,
 	__rta_out32(program, opcode);
 	program->current_instruction++;
 
-	return start_pc;
+	return (int)start_pc;
 
  err:
 	program->first_error_pc = start_pc;
 	program->current_instruction++;
-	return start_pc;
+	return ret;
 }
 
 static inline int set_move_offset(struct program *program, uint64_t src,
@@ -273,16 +272,17 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 				  uint16_t *opt)
 {
 	switch (src) {
-	case (_CONTEXT1):
-	case (_CONTEXT2):
-		if (dst == _DESCBUF) {
+	case (CONTEXT1):
+	case (CONTEXT2):
+		if (dst == DESCBUF) {
 			*opt = MOVE_SET_AUX_SRC;
 			*offset = dst_offset;
-		} else if ((dst == _KEY1) || (dst == _KEY2)) {
+		} else if ((dst == KEY1) || (dst == KEY2)) {
 			if ((src_offset) && (dst_offset)) {
 				pr_err("MOVE: Bad offset. SEC PC: %d; Instr: %d\n",
 				       program->current_pc,
 				       program->current_instruction);
+				if(program->current_pc) {} /* Yariv: added to eliminate warning when DEBUG_ERRORS=0 */
 				goto err;
 			}
 			if (dst_offset) {
@@ -292,10 +292,10 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 				*offset = src_offset;
 			}
 		} else {
-			if ((dst == _MATH0) || (dst == _MATH1) ||
-			    (dst == _MATH2) || (dst == _MATH3)) {
+			if ((dst == MATH0) || (dst == MATH1) ||
+			    (dst == MATH2) || (dst == MATH3)) {
 				*opt = MOVE_SET_AUX_MATH_DST;
-			} else if (((dst == _OFIFO) || (dst == _ALTSOURCE)) &&
+			} else if (((dst == OFIFO) || (dst == ALTSOURCE)) &&
 			    (src_offset % 4)) {
 				pr_err("MOVE: Bad offset alignment. SEC PC: %d; Instr: %d\n",
 				       program->current_pc,
@@ -307,15 +307,15 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 		}
 		break;
 
-	case (_OFIFO):
-		if (dst == _OFIFO) {
+	case (OFIFO):
+		if (dst == OFIFO) {
 			pr_err("MOVE: Invalid DST. SEC PC: %d; Instr: %d\n",
 			       program->current_pc,
 			       program->current_instruction);
 			goto err;
 		}
-		if (((dst == _IFIFOAB1) || (dst == _IFIFOAB2) ||
-		     (dst == _IFIFO) || (dst == _PKA)) &&
+		if (((dst == IFIFOAB1) || (dst == IFIFOAB2) ||
+		     (dst == IFIFO) || (dst == PKA)) &&
 		    (src_offset || dst_offset)) {
 			pr_err("MOVE: Offset should be zero. SEC PC: %d; Instr: %d\n",
 			       program->current_pc,
@@ -325,18 +325,18 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 		*offset = dst_offset;
 		break;
 
-	case (_DESCBUF):
-		if ((dst == _CONTEXT1) || (dst == _CONTEXT2)) {
+	case (DESCBUF):
+		if ((dst == CONTEXT1) || (dst == CONTEXT2)) {
 			*opt = MOVE_SET_AUX_DST;
-		} else if ((dst == _MATH0) || (dst == _MATH1) ||
-			   (dst == _MATH2) || (dst == _MATH3)) {
+		} else if ((dst == MATH0) || (dst == MATH1) ||
+			   (dst == MATH2) || (dst == MATH3)) {
 			*opt = MOVE_SET_AUX_MATH_DST;
-		} else if (dst == _DESCBUF) {
+		} else if (dst == DESCBUF) {
 			pr_err("MOVE: Invalid DST. SEC PC: %d; Instr: %d\n",
 			       program->current_pc,
 			       program->current_instruction);
 			goto err;
-		} else if (((dst == _OFIFO) || (dst == _ALTSOURCE)) &&
+		} else if (((dst == OFIFO) || (dst == ALTSOURCE)) &&
 		    (src_offset % 4)) {
 			pr_err("MOVE: Invalid offset alignment. SEC PC: %d; Instr %d\n",
 			       program->current_pc,
@@ -347,11 +347,11 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 		*offset = src_offset;
 		break;
 
-	case (_MATH0):
-	case (_MATH1):
-	case (_MATH2):
-	case (_MATH3):
-		if ((dst == _OFIFO) || (dst == _ALTSOURCE)) {
+	case (MATH0):
+	case (MATH1):
+	case (MATH2):
+	case (MATH3):
+		if ((dst == OFIFO) || (dst == ALTSOURCE)) {
 			if (src_offset % 4) {
 				pr_err("MOVE: Bad offset alignment. SEC PC: %d; Instr: %d\n",
 				       program->current_pc,
@@ -359,35 +359,35 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 				goto err;
 			}
 			*offset = src_offset;
-		} else if ((dst == _IFIFOAB1) || (dst == _IFIFOAB2) ||
-			   (dst == _IFIFO) || (dst == _PKA)) {
+		} else if ((dst == IFIFOAB1) || (dst == IFIFOAB2) ||
+			   (dst == IFIFO) || (dst == PKA)) {
 			*offset = src_offset;
 		} else {
 			*offset = dst_offset;
 
 			/*
 			 * This condition is basically the negation of:
-			 * dst in { _CONTEXT[1-2], _MATH[0-3] }
+			 * dst in { CONTEXT[1-2], MATH[0-3] }
 			 */
-			if ((dst != _KEY1) && (dst != _KEY2))
+			if ((dst != KEY1) && (dst != KEY2))
 				*opt = MOVE_SET_AUX_MATH_SRC;
 		}
 		break;
 
-	case (_IFIFOABD):
-	case (_IFIFOAB1):
-	case (_IFIFOAB2):
-	case (_ABD):
-	case (_AB1):
-	case (_AB2):
-		if ((dst == _IFIFOAB1) || (dst == _IFIFOAB2) ||
-		    (dst == _IFIFO) || (dst == _PKA) || (dst == _ALTSOURCE)) {
+	case (IFIFOABD):
+	case (IFIFOAB1):
+	case (IFIFOAB2):
+	case (ABD):
+	case (AB1):
+	case (AB2):
+		if ((dst == IFIFOAB1) || (dst == IFIFOAB2) ||
+		    (dst == IFIFO) || (dst == PKA) || (dst == ALTSOURCE)) {
 			pr_err("MOVE: Bad DST. SEC PC: %d; Instr: %d\n",
 			       program->current_pc,
 			       program->current_instruction);
 			goto err;
 		} else {
-			if (dst == _OFIFO) {
+			if (dst == OFIFO) {
 				*opt = MOVE_SET_LEN_16b;
 			} else {
 				if (dst_offset % 4) {
@@ -406,7 +406,7 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 
 	return 0;
  err:
-	return -1;
+	return -EINVAL;
 }
 
 static inline int math_offset(uint16_t offset)
@@ -422,7 +422,7 @@ static inline int math_offset(uint16_t offset)
 		return MOVE_AUX_LS | MOVE_AUX_MS;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 #endif /* __RTA_MOVE_CMD_H__ */

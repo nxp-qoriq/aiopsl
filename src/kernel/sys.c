@@ -33,6 +33,7 @@
 #include "platform.h"
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
+#include "cmgw.h"
 
 #include "sys.h"
 #include "fsl_dbg.h"
@@ -284,6 +285,8 @@ static int global_sys_init(void)
 	                                      0,
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
+	cmgw_init((void *)aiop_base_addr);
+	
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
 	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;

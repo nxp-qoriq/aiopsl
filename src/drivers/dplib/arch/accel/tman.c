@@ -142,7 +142,8 @@ int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 #endif
 		/* check each loop instance to verify if in the time of the
 		 * command another task did'nt deleted the same TMI */
-		if ((res1 & TMAN_TMI_STATE_MASK) != TMAN_TMI_ACTIVE)
+		if (((res1 & TMAN_FAIL_BIT_MASK) != 0) && 
+				((res1 & TMAN_TMI_DEL_TMP_ERR_MASK) == 0))
 			tman_exception_handler(__FILE__, __LINE__, (int)res1);
 	} while (res1 & TMAN_TMI_DEL_TMP_ERR_MASK);
 	

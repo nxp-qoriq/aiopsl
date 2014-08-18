@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __DESC_SRTP_H__
 #define __DESC_SRTP_H__
@@ -32,9 +33,9 @@
 #include "common.h"
 
 /**
- * @file                 srtp.h
- * @brief                SEC Descriptor Construction Library Protocol-level
- *                       SRTP Shared Descriptor Constructors
+ * DOC: SRTP Shared Descriptor Constructors
+ *
+ * Shared descriptors for SRTP protocol.
  */
 
 /*
@@ -76,35 +77,25 @@ struct srtp_decap_pdb {
 };
 
 /**
- * @defgroup sharedesc_group Shared Descriptor Example Routines
- * @ingroup descriptor_lib_group
- * @{
- */
-/** @} end of sharedesc_group */
-
-/**
- * @details                  Function for creating a SRTP encapsulation
- *			     descriptor.
- * @ingroup                  sharedesc_group
+ * cnstr_shdsc_srtp_encap - Function for creating a SRTP encapsulation
+ *                          descriptor.
+ * @descbuf: pointer to buffer used for descriptor construction
+ * @authdata: pointer to authentication transform definitions
+ * @cipherdata: pointer to block cipher transform definitions
+ * @n_tag: value of ICV length
+ * @roc: Rollover Counter
+ * @cipher_salt: salt value
  *
- * @param[in,out] descbuf    Pointer to buffer used for descriptor construction
- * @param[in,out] bufsize    Pointer to descriptor size to be written back upon
- *                           completion
- * @param[in] authdata       Pointer to authentication transform definitions.
- * @param[in] cipherdata     Pointer to block cipher transform definitions.
- * @param[in] n_tag          n_tag - value of ICV length
- * @param[in] roc            Rollover Counter
- * @param[in] cipher_salt    Salt value
- **/
-static inline void cnstr_shdsc_srtp_encap(uint32_t *descbuf,
-					  unsigned *bufsize,
-					  struct alginfo *authdata,
-					  struct alginfo *cipherdata,
-					  uint8_t n_tag, uint32_t roc,
-					  uint8_t *cipher_salt)
+ * Return: size of descriptor written in words
+ */
+static inline int cnstr_shdsc_srtp_encap(uint32_t *descbuf,
+					 struct alginfo *authdata,
+					 struct alginfo *cipherdata,
+					 uint8_t n_tag, uint32_t roc,
+					 uint8_t *cipher_salt)
 {
 	struct program prg;
-	struct program *program = &prg;
+	struct program *p = &prg;
 	uint32_t startidx;
 	struct srtp_encap_pdb pdb;
 
@@ -118,47 +109,44 @@ static inline void cnstr_shdsc_srtp_encap(uint32_t *descbuf,
 
 	startidx = sizeof(struct srtp_encap_pdb) >> 2;
 
-	PROGRAM_CNTXT_INIT(descbuf, 0);
-	SHR_HDR(SHR_SERIAL, ++startidx, 0);
-	COPY_DATA((uint8_t *)&pdb, sizeof(struct srtp_encap_pdb));
-	pkeyjmp = JUMP(IMM(keyjmp), LOCAL_JUMP, ALL_TRUE, BOTH|SHRD);
-	KEY(MDHA_SPLIT_KEY, authdata->key_enc_flags, PTR(authdata->key),
-	    authdata->keylen, IMMED);
-	KEY(KEY1, cipherdata->key_enc_flags, PTR(cipherdata->key),
-	    cipherdata->keylen, IMMED);
-	SET_LABEL(keyjmp);
-	PROTOCOL(OP_TYPE_ENCAP_PROTOCOL,
+	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	SHR_HDR(p, SHR_SERIAL, ++startidx, 0);
+	COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct srtp_encap_pdb));
+	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, BOTH|SHRD);
+	KEY(p, MDHA_SPLIT_KEY, authdata->key_enc_flags, authdata->key,
+	    authdata->keylen, INLINE_KEY(authdata));
+	KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
+	    cipherdata->keylen, INLINE_KEY(cipherdata));
+	SET_LABEL(p, keyjmp);
+	PROTOCOL(p, OP_TYPE_ENCAP_PROTOCOL,
 		 OP_PCLID_SRTP,
 		 OP_PCL_SRTP_AES_CTR | OP_PCL_SRTP_HMAC_SHA1_160);
-	PATCH_JUMP(pkeyjmp, keyjmp);
-	*bufsize = PROGRAM_FINALIZE();
+	PATCH_JUMP(p, pkeyjmp, keyjmp);
+	return PROGRAM_FINALIZE(p);
 }
 
 /**
- * @details                  Function for creating a SRTP decapsulation
- *			     descriptor.
- * @ingroup                  sharedesc_group
+ * cnstr_shdsc_srtp_decap - Function for creating a SRTP decapsulation
+ *                          descriptor.
+ * @descbuf: pointer to buffer used for descriptor construction
+ * @authdata: pointer to authentication transform definitions
+ * @cipherdata: pointer to block cipher transform definitions
+ * @n_tag: value of ICV length
+ * @roc: Rollover Counter
+ * @seq_num: sequence number
+ * @cipher_salt: salt value
  *
- * @param[in,out] descbuf    Pointer to buffer used for descriptor construction
- * @param[in,out] bufsize    Pointer to descriptor size to be written back upon
- *                           completion
- * @param[in] authdata       Pointer to authentication transform definitions.
- * @param[in] cipherdata     Pointer to block cipher transform definitions.
- * @param[in] n_tag          n_tag - value of ICV length
- * @param[in] roc            Rollover Counter
- * @param[in] seq_num        Sequence Number
- * @param[in] cipher_salt    Salt value
- **/
-static inline void cnstr_shdsc_srtp_decap(uint32_t *descbuf,
-					  unsigned *bufsize,
-					  struct alginfo *authdata,
-					  struct alginfo *cipherdata,
-					  uint8_t n_tag, uint32_t roc,
-					  uint16_t seq_num,
-					  uint8_t *cipher_salt)
+ * Return: size of descriptor written in words
+ */
+static inline int cnstr_shdsc_srtp_decap(uint32_t *descbuf,
+					 struct alginfo *authdata,
+					 struct alginfo *cipherdata,
+					 uint8_t n_tag, uint32_t roc,
+					 uint16_t seq_num,
+					 uint8_t *cipher_salt)
 {
 	struct program prg;
-	struct program *program = &prg;
+	struct program *p = &prg;
 	struct srtp_decap_pdb pdb;
 	uint32_t startidx;
 
@@ -173,22 +161,22 @@ static inline void cnstr_shdsc_srtp_decap(uint32_t *descbuf,
 
 	startidx = sizeof(struct srtp_decap_pdb) >> 2;
 
-	PROGRAM_CNTXT_INIT(descbuf, 0);
-	SHR_HDR(SHR_SERIAL, ++startidx, 0);
+	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	SHR_HDR(p, SHR_SERIAL, ++startidx, 0);
 	{
-		COPY_DATA((uint8_t *)&pdb, sizeof(struct srtp_decap_pdb));
-		pkeyjmp = JUMP(IMM(keyjmp), LOCAL_JUMP, ALL_TRUE, BOTH|SHRD);
-		KEY(MDHA_SPLIT_KEY, authdata->key_enc_flags, PTR(authdata->key),
-		    authdata->keylen, IMMED);
-		KEY(KEY1, cipherdata->key_enc_flags, PTR(cipherdata->key),
-		    cipherdata->keylen, IMMED);
-		SET_LABEL(keyjmp);
-		PROTOCOL(OP_TYPE_DECAP_PROTOCOL,
+		COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct srtp_decap_pdb));
+		pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, BOTH|SHRD);
+		KEY(p, MDHA_SPLIT_KEY, authdata->key_enc_flags, authdata->key,
+		    authdata->keylen, INLINE_KEY(authdata));
+		KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
+		    cipherdata->keylen, INLINE_KEY(cipherdata));
+		SET_LABEL(p, keyjmp);
+		PROTOCOL(p, OP_TYPE_DECAP_PROTOCOL,
 			 OP_PCLID_SRTP,
 			 OP_PCL_SRTP_AES_CTR | OP_PCL_SRTP_HMAC_SHA1_160);
 	}
-	PATCH_JUMP(pkeyjmp, keyjmp);
-	*bufsize = PROGRAM_FINALIZE();
+	PATCH_JUMP(p, pkeyjmp, keyjmp);
+	return PROGRAM_FINALIZE(p);
 }
 
 #endif /* __DESC_SRTP_H__ */

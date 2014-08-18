@@ -1,3 +1,5 @@
+- fsl_cmdif_client.h           Improved documentation
+- fsl_cmdif_server.h           Improved documentation
 - ls2085a_sim_init_params.cfg  Added sim.enable_smmu=true
 
 - fsl_cmdif_client.h    Removed physical addresses from external API, when SMMU is enabled virt to phys is not required.

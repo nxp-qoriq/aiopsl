@@ -27,6 +27,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "fsl_smp.h"
+#include "cmgw.h"
 
 extern int sys_init(void);
 extern void sys_free(void);
@@ -82,40 +83,52 @@ UNUSED(argc);UNUSED(argv);
     
     /* Initialize system */
     err = sys_init();
-    if (err)
+    if (err) {
+    	cmgw_report_boot_failure();
         return err;
+    }
     
     /* Only execute if core is a cluster master */
     if(sys_is_cluster_master())
     {
     	err = cluster_init();
-    	if(err)
+    	if(err) {
+    		cmgw_report_boot_failure();
     		return err;
+    	}
     }
 
     is_master_core = sys_is_master_core();
     if(is_master_core)
     {
     	err = tile_init();
-    	if(err)
+    	if(err) {
+    		cmgw_report_boot_failure();
     		return err;
+    	}
 
     	err = global_init();
-    	if(err)
+    	if(err) {
+    		cmgw_report_boot_failure();
     		return err;
+    	}
     }
 
     if(is_master_core)
     {
     	err = global_post_init();
-    	if(err)
+    	if(err) {
+    		cmgw_report_boot_failure();
     		return err;
+    	}
 
     	fsl_os_print("Running applications\n");
 
     	err = run_apps();
-    	if (err)
+    	if (err) {
+    		cmgw_report_boot_failure();
     	    return err;
+    	}
     }
     
     core_ready_for_tasks();
@@ -129,5 +142,7 @@ UNUSED(argc);UNUSED(argv);
     /* Free system */
     sys_free();
 
+    //TODO should never get here !!
+    cmgw_report_boot_failure();
     return err;
 }
