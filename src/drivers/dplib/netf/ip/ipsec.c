@@ -61,39 +61,13 @@
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"
 
-/* TODO: temporary fix to pr_debug due to RTA issue */
-/* Define dummy print functions to override RTA compilation errors */
-/*
-#ifndef pr_debug
-#define use_dummy_pr_debug
-void dummy_pr_debug (...);
-void dummy_pr_debug (...) {}
-#define pr_debug dummy_pr_debug 
-#endif
-
-#ifndef pr_err
-#define use_dummy_pr_err
-void dummy_pr_err (...);
-void dummy_pr_err (...) {}
-#define pr_err dummy_pr_err 
-#endif
-*/
 #include "rta.h"
 #include "desc/ipsec.h"
-/*
-#ifdef use_dummy_pr_debug
-#undef pr_debug
-#endif
 
-#ifdef use_dummy_pr_err
-#undef pr_err
-#endif
-*/
 /* SEC Era version for RTA */
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /* Global parameters */
-//__SHRAM struct ipsec_global_params global_params;
 __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
 
 #ifdef AIOP_VERIF
@@ -101,7 +75,6 @@ __SHRAM uint64_t ipsec_debug_buf_addr; /* Global in Shared RAM */
 __SHRAM uint32_t ipsec_debug_buf_size; /* Global in Shared RAM */
 __SHRAM uint32_t ipsec_debug_buf_offset; /* Global in Shared RAM */
 #endif
-
 
 /**************************************************************************//**
 *	ipsec_create_instance
@@ -131,7 +104,7 @@ int ipsec_create_instance (
 	instance.tmi_id = tmi_id;
 
 	/* Descriptor and Instance Buffers */
-	return_val = slab_find_and_fill_bpid(
+	return_val = slab_find_and_reserve_bpid(
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			1, /* uint16_t alignment = 1, i.e. no alignment requirements */ 
@@ -156,7 +129,7 @@ int ipsec_create_instance (
 		ipsec_global_instance_params.instance_count++;
 		unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 		
-		return_val = slab_find_and_fill_bpid(
+		return_val = slab_find_and_reserve_bpid(
 				IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
 				IPSEC_MAX_ASA_SIZE, /* uint16_t buff_size */
 				IPSEC_MAX_ASA_BUF_ALIGN, /* uint16_t alignment */
@@ -293,7 +266,7 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 				sizeof(instance.sa_count) /* uint16_t size */	
 		);
 		/* Descriptor and Instance Buffers */
-		return_val = slab_find_and_fill_bpid(
+		return_val = slab_find_and_reserve_bpid(
 				1, /* uint32_t num_buffs */
 				IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 				IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */

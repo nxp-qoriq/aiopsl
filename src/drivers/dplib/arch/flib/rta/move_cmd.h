@@ -282,6 +282,7 @@ static inline int set_move_offset(struct program *program, uint64_t src,
 				pr_err("MOVE: Bad offset. SEC PC: %d; Instr: %d\n",
 				       program->current_pc,
 				       program->current_instruction);
+				if(program->current_pc) {} /* Yariv: added to eliminate warning when DEBUG_ERRORS=0 */
 				goto err;
 			}
 			if (dst_offset) {
