@@ -39,10 +39,12 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "lib/fsl_slab.h"
 #include "system.h" // TMP
+#include <stdio.h>
+#include <stdlib.h>
 
 int app_init(void);
 void app_free(void);
-int ipsec_app_init(void);
+int ipsec_app_init(uint16_t ni_id);
 void ipsec_print_frame(void);
 void ipsec_print_stats (ipsec_handle_t desc_handle);
 
@@ -119,9 +121,6 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("ERROR: SEC Encryption Failed (enc_status = 0x%x)\n", 
 				enc_status);
 
-	/* Run parser on new (encrypted) frame */ 
-	parse_result_generate_default (PARSER_NO_FLAGS);
-	
 	fsl_os_print("IPSEC: frame header after encryption\n");
 	/* Print header */
 	ipsec_print_frame();
@@ -219,7 +218,7 @@ static int close_cb(void *dev)
 	fsl_os_print("close_cb\n");
 	return 0;
 }
-
+/*
 static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 {
 	UNUSED(dev);
@@ -230,6 +229,18 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	             size,
 	             (uint32_t)((data & 0xFF00000000) >> 32),
 	             (uint32_t)(data & 0xFFFFFFFF));
+	return 0;
+}
+*/
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
+{
+	UNUSED(dev);
+	UNUSED(size);
+	UNUSED(data);
+	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
+	             cmd,
+	             size,
+	             (uint32_t)data);
 	return 0;
 }
 
@@ -269,10 +280,9 @@ int app_init(void)
 		fsl_os_print("FAILED cmdif_register_module\n!");
 
 	/* IPsec Initialization */
-	err = ipsec_app_init();
+	err = ipsec_app_init(0); /* Call with NI ID = 0 */
 	if (err) {
 		fsl_os_print("ERROR: IPsec initialization failed\n");
-		//return err;
 	}
 	
 	return 0;
@@ -284,11 +294,11 @@ void app_free(void)
 }
 
 /* IPsec Initialization */
-int ipsec_app_init(void)
+int ipsec_app_init(uint16_t ni_id)
 {
 	int err  = 0;
 	struct ipsec_descriptor_params params;
-	uint32_t outer_ip_header[5];
+	uint32_t outer_ip_header[10];
 	struct slab *slab_handle = NULL;
 	uint32_t handle_high, handle_low;
 	int i;
@@ -302,9 +312,16 @@ int ipsec_app_init(void)
 	uint32_t auth_alg;
 	uint32_t auth_keylen; 
 	uint32_t algs;
+	uint32_t outer_header_ip_version;
+	uint16_t ni_spid;
 	
 	/* Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
-	
+	//FILE* config_file;
+
+
+//#define IPSEC_SET_SP
+#ifdef IPSEC_SET_SP
+
 	// Temporary initialize the Storage Profile #0 */
 	
 	extern struct storage_profile storage_profile; //TMP
@@ -313,8 +330,6 @@ int ipsec_app_init(void)
 	
 	struct storage_profile *sp_addr = &storage_profile;
 
-#define IPSEC_SET_SP
-#ifdef IPSEC_SET_SP
 	/* Set Storage Profile */
 	storage_profiles[SP_DEFAULT].ip_secific_sp_info = 0;
 	storage_profiles[SP_DEFAULT].dl = 0;
@@ -359,11 +374,52 @@ int ipsec_app_init(void)
 	fsl_os_print("*** Debug: storage_profile (5): 0x%x\n", *((uint32_t *)sp_addr + 5));
 	fsl_os_print("*** Debug: storage_profile (6): 0x%x\n", *((uint32_t *)sp_addr + 6));
 	fsl_os_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));
+
+	ni_spid = 0;
 	
+#else	
+	extern struct storage_profile storage_profile; /* TMP for printing the SP */
+	struct storage_profile *sp_addr = &storage_profile; /* TMP for printing the SP */
+
+	 dpni_drv_get_spid(
+			ni_id, /* uint16_t ni_id */ 
+			&ni_spid /* uint16_t *spid */
+			);
+		fsl_os_print("*** Debug: SPID = %d\n", ni_spid);
+
+		sp_addr += ni_spid; /* TMP for printing the SP */
+
+#define ENGR326586_WA
+#ifdef ENGR326586_WA
+		/* BPID0 is invalid and BPID1 is valid, copy BPID1 to BPID0 in the SP 
+		 * and then clear BPID1*/
+		if ((*((uint32_t *)sp_addr + 4) == 0) && (*((uint32_t *)sp_addr + 5) != 0)) { 
+			fsl_os_print("*** Debug: Overwriting storage profile BPID0 \n");
+			*((uint32_t *)sp_addr + 4) = *((uint32_t *)sp_addr + 5);
+		
+			fsl_os_print("*** Debug: Clearing storage profile BPID1 \n");
+			*((uint32_t *)sp_addr + 5) = 0;
+		}
+		
+#endif /* ENGR326586_WA */	
+		
+		//fsl_os_print("*** Debug: storage_profile (0): 0x%x\n", *(((uint32_t *)((uint32_t *)sp_addr + 0))));
+		fsl_os_print("*** Debug: storage_profile (0): 0x%x\n", *((uint32_t *)sp_addr + 0));
+		fsl_os_print("*** Debug: storage_profile (1): 0x%x\n", *((uint32_t *)sp_addr + 1));
+		fsl_os_print("*** Debug: storage_profile (2): 0x%x\n", *((uint32_t *)sp_addr + 2));
+		fsl_os_print("*** Debug: storage_profile (3): 0x%x\n", *((uint32_t *)sp_addr + 3));
+		fsl_os_print("*** Debug: storage_profile (4): 0x%x\n", *((uint32_t *)sp_addr + 4));
+		fsl_os_print("*** Debug: storage_profile (5): 0x%x\n", *((uint32_t *)sp_addr + 5));
+		fsl_os_print("*** Debug: storage_profile (6): 0x%x\n", *((uint32_t *)sp_addr + 6));
+		fsl_os_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));	
+		
 #endif /* IPSEC_SET_SP */
 	
 	/* End Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
 	
+	//config_file = fopen("ipsec_config.txt", "r");
+
+		
 	enum key_types {
 		NULL_ENCRYPTION = 0,
 		 AES128_SHA256
@@ -482,13 +538,33 @@ int ipsec_app_init(void)
 	}
 	
 	/* Encryption Descriptor Parameters */
+	outer_header_ip_version = 4; /* 4 or 6 */
 	
 	/* Outer IP header */
-	outer_ip_header[0] = 0x45db0014;
-	outer_ip_header[1] = 0x12340000;
-	outer_ip_header[2] = 0xff32386f;
-	outer_ip_header[3] = 0x45a4e14c;
-	outer_ip_header[4] = 0xed035c45;
+	if (outer_header_ip_version == 4) {
+		outer_ip_header[0] = 0x45db0014;
+		outer_ip_header[1] = 0x12340000;
+		outer_ip_header[2] = 0xff32386f;
+		outer_ip_header[3] = 0x45a4e14c;
+		outer_ip_header[4] = 0xed035c45;
+
+		params.encparams.ip_hdr_len = 0x14; /* outer header length is 20 bytes */
+	}
+	else if (outer_header_ip_version == 6) {
+
+		outer_ip_header[0] = 0x60000000;
+		outer_ip_header[1] = 0x002032ff;
+		outer_ip_header[2] = 0xfe800000;
+		outer_ip_header[3] = 0x00000000;
+		outer_ip_header[4] = 0x021125ff;
+		outer_ip_header[5] = 0xfe8295b5;
+		outer_ip_header[6] = 0xff020000;
+		outer_ip_header[7] = 0x00000000;
+		outer_ip_header[8] = 0x00000001;
+		outer_ip_header[9] = 0xff8295b5;
+		
+		params.encparams.ip_hdr_len = 0x28; /* outer header length is 40 bytes */
+	}
 	
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
@@ -502,7 +578,6 @@ int ipsec_app_init(void)
 	params.encparams.seq_num_ext_hi = 0x0;
 	params.encparams.seq_num = 0x0;
 	params.encparams.spi = 0x0;
-	params.encparams.ip_hdr_len = 0x14; /* outer header length is 20 bytes */
 	params.encparams.outer_hdr = (uint32_t *)&outer_ip_header;
 	params.encparams.cbc.iv[0] = 0;
 	params.encparams.cbc.iv[1] = 0;
@@ -529,7 +604,7 @@ int ipsec_app_init(void)
 	params.lifetime_callback = NULL;
 	params.callback_arg = NULL;
 	
-	params.spid = 0x0; 
+	params.spid = ni_spid;
 	
 	/* Create Outbound (encryption) Descriptor */
 	err = ipsec_add_sa_descriptor(
@@ -583,7 +658,7 @@ int ipsec_app_init(void)
 	params.lifetime_callback = NULL;
 	params.callback_arg = NULL;
 	
-	params.spid = 0x0; 
+	params.spid = ni_spid;
 	
 	/* Create Inbound (decryption) Descriptor */
 	err = ipsec_add_sa_descriptor(

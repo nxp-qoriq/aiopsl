@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_OPERATION_CMD_H__
 #define __RTA_OPERATION_CMD_H__
@@ -39,7 +40,7 @@ static inline int __rta_alg_aai_aes(uint16_t aai)
 			return -1;
 		if ((aes_mode != OP_ALG_AAI_CCM) &&
 		    (aes_mode != OP_ALG_AAI_GCM))
-			return -1;
+			return -EINVAL;
 	}
 
 	switch (aes_mode) {
@@ -47,7 +48,7 @@ static inline int __rta_alg_aai_aes(uint16_t aai)
 	case OP_ALG_AAI_CTR_CMAC_LTE:
 	case OP_ALG_AAI_CTR_CMAC:
 		if (rta_sec_era < RTA_SEC_ERA_2)
-			return -1;
+			return -EINVAL;
 		/* no break */
 	case OP_ALG_AAI_CTR:
 	case OP_ALG_AAI_CBC:
@@ -64,7 +65,7 @@ static inline int __rta_alg_aai_aes(uint16_t aai)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_des(uint16_t aai)
@@ -79,7 +80,7 @@ static inline int __rta_alg_aai_des(uint16_t aai)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_md5(uint16_t aai)
@@ -87,7 +88,7 @@ static inline int __rta_alg_aai_md5(uint16_t aai)
 	switch (aai) {
 	case OP_ALG_AAI_HMAC:
 		if (rta_sec_era < RTA_SEC_ERA_2)
-			return -1;
+			return -EINVAL;
 		/* no break */
 	case OP_ALG_AAI_SMAC:
 	case OP_ALG_AAI_HASH:
@@ -95,7 +96,7 @@ static inline int __rta_alg_aai_md5(uint16_t aai)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_sha(uint16_t aai)
@@ -103,14 +104,14 @@ static inline int __rta_alg_aai_sha(uint16_t aai)
 	switch (aai) {
 	case OP_ALG_AAI_HMAC:
 		if (rta_sec_era < RTA_SEC_ERA_2)
-			return -1;
+			return -EINVAL;
 		/* no break */
 	case OP_ALG_AAI_HASH:
 	case OP_ALG_AAI_HMAC_PRECOMP:
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_rng(uint16_t aai)
@@ -124,17 +125,17 @@ static inline int __rta_alg_aai_rng(uint16_t aai)
 	case OP_ALG_AAI_RNG_OBP:
 		break;
 	default:
-		return -1;
+		return -EINVAL;
 	}
 
 	/* State Handle bits are valid only for SEC Era >= 5 */
 	if ((rta_sec_era < RTA_SEC_ERA_5) && rng_sh)
-		return -1;
+		return -EINVAL;
 
 	/* PS, AI, SK bits are also valid only for SEC Era >= 5 */
 	if ((rta_sec_era < RTA_SEC_ERA_5) && (aai &
 	     (OP_ALG_AAI_RNG4_PS | OP_ALG_AAI_RNG4_AI | OP_ALG_AAI_RNG4_SK)))
-		return -1;
+		return -EINVAL;
 
 	switch (rng_sh) {
 	case OP_ALG_AAI_RNG4_SH_0:
@@ -142,7 +143,7 @@ static inline int __rta_alg_aai_rng(uint16_t aai)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_crc(uint16_t aai)
@@ -156,7 +157,7 @@ static inline int __rta_alg_aai_crc(uint16_t aai)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_kasumi(uint16_t aai)
@@ -169,7 +170,7 @@ static inline int __rta_alg_aai_kasumi(uint16_t aai)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_snow_f9(uint16_t aai)
@@ -177,7 +178,7 @@ static inline int __rta_alg_aai_snow_f9(uint16_t aai)
 	if (aai == OP_ALG_AAI_F9)
 		return 0;
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_snow_f8(uint16_t aai)
@@ -185,7 +186,7 @@ static inline int __rta_alg_aai_snow_f8(uint16_t aai)
 	if (aai == OP_ALG_AAI_F8)
 		return 0;
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_zuce(uint16_t aai)
@@ -193,7 +194,7 @@ static inline int __rta_alg_aai_zuce(uint16_t aai)
 	if (aai == OP_ALG_AAI_F8)
 		return 0;
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_alg_aai_zuca(uint16_t aai)
@@ -201,7 +202,7 @@ static inline int __rta_alg_aai_zuca(uint16_t aai)
 	if (aai == OP_ALG_AAI_F9)
 		return 0;
 
-	return -1;
+	return -EINVAL;
 }
 
 struct alg_aai_map {
@@ -236,14 +237,14 @@ static const struct alg_aai_map alg_table[] = {
  */
 static const unsigned alg_table_sz[] = {14, 15, 15, 15, 17, 17, 11, 17};
 
-static inline unsigned rta_operation(struct program *program,
-				     uint32_t cipher_algo, uint16_t aai,
-				     uint8_t algo_state, int icv_checking,
-				     int enc)
+static inline int rta_operation(struct program *program, uint32_t cipher_algo,
+				uint16_t aai, uint8_t algo_state,
+				int icv_checking, int enc)
 {
 	uint32_t opcode = CMD_OPERATION;
 	unsigned i, found = 0;
 	unsigned start_pc = program->current_pc;
+	int ret;
 
 	for (i = 0; i < alg_table_sz[rta_sec_era]; i++) {
 		if (alg_table[i].chipher_algo == cipher_algo) {
@@ -256,7 +257,8 @@ static inline unsigned rta_operation(struct program *program,
 
 			aai &= OP_ALG_AAI_MASK;
 
-			if (-1 ==  (*alg_table[i].aai_func)(aai)) {
+			ret = (*alg_table[i].aai_func)(aai);
+			if (ret < 0) {
 				pr_err("OPERATION: Bad AAI Type. SEC Program Line: %d\n",
 				       program->current_pc);
 				goto err;
@@ -269,6 +271,7 @@ static inline unsigned rta_operation(struct program *program,
 	if (!found) {
 		pr_err("OPERATION: Invalid Command. SEC Program Line: %d\n",
 		       program->current_pc);
+		ret = -EINVAL;
 		goto err;
 	}
 
@@ -281,6 +284,7 @@ static inline unsigned rta_operation(struct program *program,
 		break;
 	default:
 		pr_err("Invalid Operation Command\n");
+		ret = -EINVAL;
 		goto err;
 	}
 
@@ -296,6 +300,7 @@ static inline unsigned rta_operation(struct program *program,
 		break;
 	default:
 		pr_err("Invalid Operation Command\n");
+		ret = -EINVAL;
 		goto err;
 	}
 
@@ -311,16 +316,17 @@ static inline unsigned rta_operation(struct program *program,
 		break;
 	default:
 		pr_err("Invalid Operation Command\n");
+		ret = -EINVAL;
 		goto err;
 	}
 
 	__rta_out32(program, opcode);
 	program->current_instruction++;
-	return start_pc;
+	return (int)start_pc;
 
  err:
 	program->first_error_pc = start_pc;
-	return start_pc;
+	return ret;
 }
 
 /*
@@ -347,7 +353,7 @@ static inline int __rta_pkha_clearmem(uint32_t pkha_op)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_pkha_mod_arithmetic(uint32_t pkha_op)
@@ -406,7 +412,7 @@ static inline int __rta_pkha_mod_arithmetic(uint32_t pkha_op)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
 static inline int __rta_pkha_copymem(uint32_t pkha_op)
@@ -493,21 +499,22 @@ static inline int __rta_pkha_copymem(uint32_t pkha_op)
 		return 0;
 	}
 
-	return -1;
+	return -EINVAL;
 }
 
-static inline unsigned rta_pkha_operation(struct program *program,
-					  uint32_t op_pkha)
+static inline int rta_pkha_operation(struct program *program, uint32_t op_pkha)
 {
 	uint32_t opcode = CMD_OPERATION | OP_TYPE_PK | OP_ALG_PK;
 	uint32_t pkha_func;
 	unsigned start_pc = program->current_pc;
+	int ret = -EINVAL;
 
 	pkha_func = op_pkha & OP_ALG_PK_FUN_MASK;
 
 	switch (pkha_func) {
 	case (OP_ALG_PKMODE_CLEARMEM):
-		if (-1 == __rta_pkha_clearmem(op_pkha)) {
+		ret = __rta_pkha_clearmem(op_pkha);
+		if (ret < 0) {
 			pr_err("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
 			       program->current_pc);
 			goto err;
@@ -528,7 +535,8 @@ static inline unsigned rta_pkha_operation(struct program *program,
 	case (OP_ALG_PKMODE_ECC_MOD_ADD):
 	case (OP_ALG_PKMODE_ECC_MOD_DBL):
 	case (OP_ALG_PKMODE_ECC_MOD_MUL):
-		if (-1 == __rta_pkha_mod_arithmetic(op_pkha)) {
+		ret = __rta_pkha_mod_arithmetic(op_pkha);
+		if (ret < 0) {
 			pr_err("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
 			       program->current_pc);
 			goto err;
@@ -536,7 +544,8 @@ static inline unsigned rta_pkha_operation(struct program *program,
 		break;
 	case (OP_ALG_PKMODE_COPY_NSZ):
 	case (OP_ALG_PKMODE_COPY_SSZ):
-		if (-1 == __rta_pkha_copymem(op_pkha)) {
+		ret = __rta_pkha_copymem(op_pkha);
+		if (ret < 0) {
 			pr_err("OPERATION PKHA: Type not supported. SEC Program Line: %d\n",
 			       program->current_pc);
 			goto err;
@@ -551,12 +560,12 @@ static inline unsigned rta_pkha_operation(struct program *program,
 
 	__rta_out32(program, opcode);
 	program->current_instruction++;
-	return start_pc;
+	return (int)start_pc;
 
  err:
 	program->first_error_pc = start_pc;
 	program->current_instruction++;
-	return start_pc;
+	return ret;
 }
 
 #endif /* __RTA_OPERATION_CMD_H__ */

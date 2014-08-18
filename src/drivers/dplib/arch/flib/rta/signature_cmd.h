@@ -24,12 +24,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_SIGNATURE_CMD_H__
 #define __RTA_SIGNATURE_CMD_H__
 
-static inline unsigned rta_signature(struct program *program,
-				     uint32_t sign_type)
+static inline int rta_signature(struct program *program, uint32_t sign_type)
 {
 	uint32_t opcode = CMD_SIGNATURE;
 	unsigned start_pc = program->current_pc;
@@ -51,12 +51,12 @@ static inline unsigned rta_signature(struct program *program,
 	__rta_out32(program, opcode);
 	program->current_instruction++;
 
-	return start_pc;
+	return (int)start_pc;
 
  err:
 	program->first_error_pc = start_pc;
 	program->current_instruction++;
-	return start_pc;
+	return -EINVAL;
 }
 
 #endif /* __RTA_SIGNATURE_CMD_H__ */

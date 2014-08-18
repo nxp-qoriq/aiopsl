@@ -405,9 +405,10 @@ struct ipsec_decap_params {
 *//***************************************************************************/
 struct alg_info {
 	uint32_t algtype;  /**< Algorithm selector. */
+	uint32_t keylen;   /**< Length of the provided key, in bytes */
 	uint64_t key;      /**< Address where algorithm key resides
 	 	 	 No alignment requirements */
-	uint32_t keylen;   /**< Length of the provided key, in bytes */
+//	uint32_t keylen;   /**< Length of the provided key, in bytes */
 	uint32_t key_enc_flags; /**< Key encryption flags
 				ENC, EKT, TK, NWB */
 };

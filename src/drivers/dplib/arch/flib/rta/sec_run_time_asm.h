@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_SEC_RUN_TIME_ASM_H__
 #define __RTA_SEC_RUN_TIME_ASM_H__
@@ -35,17 +36,17 @@
 #include "flib/compat.h"
 #endif
 
-#ifndef high_32b
-#define high_32b(x) ((uint32_t)((x) >> 32))
-#endif
-
-#ifndef low_32b
-#define low_32b(x) ((uint32_t)(x))
-#endif
-
 /**
- * @enum rta_sec_era
- * @details SEC HW block revisions supported by the RTA library.
+ * enum rta_sec_era - SEC HW block revisions supported by the RTA library
+ * @RTA_SEC_ERA_1: SEC Era 1
+ * @RTA_SEC_ERA_2: SEC Era 2
+ * @RTA_SEC_ERA_3: SEC Era 3
+ * @RTA_SEC_ERA_4: SEC Era 4
+ * @RTA_SEC_ERA_5: SEC Era 5
+ * @RTA_SEC_ERA_6: SEC Era 6
+ * @RTA_SEC_ERA_7: SEC Era 7
+ * @RTA_SEC_ERA_8: SEC Era 8
+ * @MAX_SEC_ERA: maximum SEC HW block revision supported by RTA library
  */
 enum rta_sec_era {
 	RTA_SEC_ERA_1,
@@ -56,506 +57,338 @@ enum rta_sec_era {
 	RTA_SEC_ERA_6,
 	RTA_SEC_ERA_7,
 	RTA_SEC_ERA_8,
-	MAX_SEC_ERA = RTA_SEC_ERA_8 /**< Maximum SEC HW block revision
-					 supported by RTA library */
+	MAX_SEC_ERA = RTA_SEC_ERA_8
 };
 
 /**
- * @def DEFAULT_SEC_ERA
- * @details The default value for the SEC era in case the user provides an
- * unsupported value.
+ * DEFAULT_SEC_ERA - the default value for the SEC era in case the user provides
+ * an unsupported value.
  */
 #define DEFAULT_SEC_ERA	MAX_SEC_ERA
 
 /**
- * @def USER_SEC_ERA(sec_era)
- * @details Translates the SEC Era from internal to user representation.
+ * USER_SEC_ERA - translates the SEC Era from internal to user representation.
+ * @sec_era: SEC Era in internal (library) representation
  */
 #define USER_SEC_ERA(sec_era)	(sec_era + 1)
 
 /**
- * @def INTL_SEC_ERA(sec_era)
- * @details Translates the SEC Era from user representation to internal.
+ * INTL_SEC_ERA - translates the SEC Era from user representation to internal.
+ * @sec_era: SEC Era in user representation
  */
 #define INTL_SEC_ERA(sec_era)	(sec_era - 1)
 
-/* Convenience macros */
-#define WITH(x) (x)
-#define SIZE(x) (x)
-#define NO_OPT 0
-#define IMM_DATA 1
-#define PTR_DATA 2
-#define REG_TYPE 3
+/**
+ * enum rta_jump_type - Types of action taken by JUMP command
+ * @LOCAL_JUMP: conditional jump to an offset within the descriptor buffer
+ * @FAR_JUMP: conditional jump to a location outside the descriptor buffer,
+ *            indicated by the POINTER field after the JUMP command.
+ * @HALT: conditional halt - stop the execution of the current descriptor and
+ *        writes PKHA / Math condition bits as status / error code.
+ * @HALT_STATUS: conditional halt with user-specified status - stop the
+ *               execution of the current descriptor and writes the value of
+ *               "LOCAL OFFSET" JUMP field as status / error code.
+ * @GOSUB: conditional subroutine call - similar to @LOCAL_JUMP, but also saves
+ *         return address in the Return Address register; subroutine calls
+ *         cannot be nested.
+ * @RETURN: conditional subroutine return - similar to @LOCAL_JUMP, but the
+ *          offset is taken from the Return Address register.
+ * @LOCAL_JUMP_INC: similar to @LOCAL_JUMP, but increment the register specified
+ *                  in "SRC_DST" JUMP field before evaluating the jump
+ *                  condition.
+ * @LOCAL_JUMP_DEC: similar to @LOCAL_JUMP, but decrement the register specified
+ *                  in "SRC_DST" JUMP field before evaluating the jump
+ *                  condition.
+ */
+enum rta_jump_type {
+	LOCAL_JUMP,
+	FAR_JUMP,
+	HALT,
+	HALT_STATUS,
+	GOSUB,
+	RETURN,
+	LOCAL_JUMP_INC,
+	LOCAL_JUMP_DEC
+};
 
-#define BYTES_2 2
-#define BYTES_4 4
-#define BYTES_8 8
-#define BYTES_16 16
+/**
+ * enum rta_jump_cond - How test conditions are evaluated by JUMP command
+ * @ALL_TRUE: perform action if ALL selected conditions are true
+ * @ALL_FALSE: perform action if ALL selected conditions are false
+ * @ANY_TRUE: perform action if ANY of the selected conditions is true
+ * @ANY_FALSE: perform action if ANY of the selected conditions is false
+ */
+enum rta_jump_cond {
+	ALL_TRUE,
+	ALL_FALSE,
+	ANY_TRUE,
+	ANY_FALSE
+};
 
-#define IMM(VAL)    VAL, IMM_DATA
-#define PTR(VAL)    VAL, PTR_DATA
+/**
+ * enum rta_share_type - Types of sharing for JOB_HDR and SHR_HDR commands
+ * @SHR_NEVER: nothing is shared; descriptors can execute in parallel (i.e. no
+ *             dependencies are allowed between them).
+ * @SHR_WAIT: shared descriptor and keys are shared once the descriptor sets
+ *            "OK to share" in DECO Control Register (DCTRL).
+ * @SHR_SERIAL: shared descriptor and keys are shared once the descriptor has
+ *              completed.
+ * @SHR_ALWAYS: shared descriptor is shared anytime after the descriptor is
+ *              loaded.
+ * @SHR_DEFER: valid only for JOB_HDR; sharing type is the one specified
+ *             in the shared descriptor associated with the job descriptor.
+ */
+enum rta_share_type {
+	SHR_NEVER,
+	SHR_WAIT,
+	SHR_SERIAL,
+	SHR_ALWAYS,
+	SHR_DEFER
+};
 
-#define REGISTER    0x01000000
-#define QUALIFIER   0x02000000
-#define MATH_OP     0x03000000
-#define MOVE_DST_SRC    0x04000000
-#define FIFO        0x05000000
-#define CONDITION   0x06000000
-#define KEYS        0x07000000
-#define TEST_TYPE   0x08000000
-#define SHARE_TYPE  0x09000000
-#define JUMP_TYPE   0x0A000000
+/* Registers definitions */
+enum rta_regs {
+	/* CCB Registers */
+	CONTEXT1 = 1,
+	CONTEXT2,
+	KEY1,
+	KEY2,
+	KEY1SZ,
+	KEY2SZ,
+	ICV1SZ,
+	ICV2SZ,
+	DATA1SZ,
+	DATA2SZ,
+	ALTDS1,
+	IV1SZ,
+	AAD1SZ,
+	MODE1,
+	MODE2,
+	CCTRL,
+	DCTRL,
+	ICTRL,
+	CLRW,
+	CSTAT,
+	IFIFO,
+	NFIFO,
+	OFIFO,
+	PKASZ,
+	PKBSZ,
+	PKNSZ,
+	PKESZ,
+	/* DECO Registers */
+	MATH0,
+	MATH1,
+	MATH2,
+	MATH3,
+	DESCBUF,
+	JOBDESCBUF,
+	SHAREDESCBUF,
+	DPOVRD,
+	DJQDA,
+	DSTAT,
+	DPID,
+	DJQCTRL,
+	ALTSOURCE,
+	SEQINSZ,
+	SEQOUTSZ,
+	VSEQINSZ,
+	VSEQOUTSZ,
+	/* PKHA Registers */
+	PKA,
+	PKN,
+	PKA0,
+	PKA1,
+	PKA2,
+	PKA3,
+	PKB,
+	PKB0,
+	PKB1,
+	PKB2,
+	PKB3,
+	PKE,
+	/* Pseudo registers */
+	AB1,
+	AB2,
+	ABD,
+	IFIFOABD,
+	IFIFOAB1,
+	IFIFOAB2,
+	AFHA_SBOX,
+	MDHA_SPLIT_KEY,
+	JOBSRC,
+	ZERO,
+	ONE,
+	AAD1,
+	IV1,
+	IV2,
+	MSG1,
+	MSG2,
+	MSG,
+	MSGOUTSNOOP,
+	MSGINSNOOP,
+	ICV1,
+	ICV2,
+	SKIP,
+	NONE,
+	RNGOFIFO,
+	RNG,
+	IDFNS,
+	ODFNS,
+	NFIFOSZ,
+	SZ,
+	PAD,
+	SAD1,
+	AAD2,
+	BIT_DATA,
+	NFIFO_SZL,
+	NFIFO_SZM,
+	NFIFO_L,
+	NFIFO_M,
+	SZL,
+	SZM,
+	JOBDESCBUF_EFF,
+	SHAREDESCBUF_EFF,
+	METADATA,
+	GTR,
+	STR,
+	OFIFO_SYNC,
+	MSGOUTSNOOP_ALT
+};
 
+/* Command flags */
+#define FLUSH1          BIT(0)
+#define LAST1           BIT(1)
+#define LAST2           BIT(2)
+#define IMMED           BIT(3)
+#define SGF             BIT(4)
+#define VLF             BIT(5)
+#define EXT             BIT(6)
+#define CONT            BIT(7)
+#define SEQ             BIT(8)
+#define AIDF		BIT(9)
+#define FLUSH2          BIT(10)
+#define CLASS1          BIT(11)
+#define CLASS2          BIT(12)
+#define BOTH            BIT(13)
+
+/**
+ * DCOPY - (AIOP only) command param is pointer to external memory
+ *
+ * CDMA must be used to transfer the key via DMA into Workspace Area.
+ * Valid only in combination with IMMED flag.
+ */
+#define DCOPY		BIT(30)
+
+#define COPY		BIT(31) /*command param is pointer (not immediate)
+				  valid only in combination when IMMED */
+
+#define __COPY_MASK	(COPY | DCOPY)
+
+/* SEQ IN/OUT PTR Command specific flags */
+#define RBS             BIT(16)
+#define INL             BIT(17)
+#define PRE             BIT(18)
+#define RTO             BIT(19)
+#define RJD             BIT(20)
+#define SOP		BIT(21)
+#define RST		BIT(22)
+#define EWS		BIT(23)
+
+#define ENC             BIT(14)	/* Encrypted Key */
+#define EKT             BIT(15)	/* AES CCM Encryption (default is
+				 * AES ECB Encryption) */
+#define TK              BIT(16)	/* Trusted Descriptor Key (default is
+				 * Job Descriptor Key) */
+#define NWB             BIT(17)	/* No Write Back Key */
+#define PTS             BIT(18)	/* Plaintext Store */
+
+/* HEADER Command specific flags */
+#define RIF             BIT(16)
+#define DNR             BIT(17)
+#define CIF             BIT(18)
+#define PD              BIT(19)
+#define RSMS            BIT(20)
+#define TD              BIT(21)
+#define MTD             BIT(22)
+#define REO             BIT(23)
+#define SHR             BIT(24)
+#define SC		BIT(25)
+/* Extended HEADER specific flags */
+#define DSV		BIT(7)
+#define DSEL_MASK	0x00000007	/* DECO Select */
+#define FTD		BIT(8)
+
+/* JUMP Command specific flags */
+#define NIFP            BIT(20)
+#define NIP             BIT(21)
+#define NOP             BIT(22)
+#define NCP             BIT(23)
+#define CALM            BIT(24)
+
+#define MATH_Z          BIT(25)
+#define MATH_N          BIT(26)
+#define MATH_NV         BIT(27)
+#define MATH_C          BIT(28)
+#define PK_0            BIT(29)
+#define PK_GCD_1        BIT(30)
+#define PK_PRIME        BIT(31)
+#define SELF            BIT(0)
+#define SHRD            BIT(1)
+#define JQP             BIT(2)
+
+/* NFIFOADD specific flags */
+#define PAD_ZERO        BIT(16)
+#define PAD_NONZERO     BIT(17)
+#define PAD_INCREMENT   BIT(18)
+#define PAD_RANDOM      BIT(19)
+#define PAD_ZERO_N1     BIT(20)
+#define PAD_NONZERO_0   BIT(21)
+#define PAD_N1          BIT(23)
+#define PAD_NONZERO_N   BIT(24)
+#define OC              BIT(25)
+#define BM              BIT(26)
+#define PR              BIT(27)
+#define PS              BIT(28)
+#define BP              BIT(29)
+
+/* MOVE Command specific flags */
+#define WAITCOMP        BIT(16)
+#define SIZE_WORD	BIT(17)
+#define SIZE_BYTE	BIT(18)
+#define SIZE_DWORD	BIT(19)
+
+/* MATH command specific flags */
 #define IFB         MATH_IFB
 #define NFU         MATH_NFU
 #define STL         MATH_STL
+#define SSEL        MATH_SSEL
 #define SWP         MATH_SWP
-
-#define LOCAL_JUMP	(0x00 | JUMP_TYPE)
-#define FAR_JUMP	(0x01 | JUMP_TYPE)
-#define HALT		(0x02 | JUMP_TYPE)
-#define HALT_STATUS	(0x03 | JUMP_TYPE)
-#define GOSUB		(0x04 | JUMP_TYPE)
-#define RETURN		(0x05 | JUMP_TYPE)
-#define LOCAL_JUMP_INC	(0x06 | JUMP_TYPE)
-#define LOCAL_JUMP_DEC	(0x07 | JUMP_TYPE)
-
-#define SHR_NEVER   (0x00 | SHARE_TYPE)
-#define SHR_WAIT    (0x01 | SHARE_TYPE)
-#define SHR_SERIAL  (0x02 | SHARE_TYPE)
-#define SHR_ALWAYS  (0x03 | SHARE_TYPE)
-#define SHR_DEFER   (0x04 | SHARE_TYPE)
-
-#define ALL_TRUE    (0x00 | TEST_TYPE)
-#define ALL_FALSE   (0x01 | TEST_TYPE)
-#define ANY_TRUE    (0x02 | TEST_TYPE)
-#define ANY_FALSE   (0x03 | TEST_TYPE)
-
-/* Registers definitions */
-
-/* CCB Registers */
-#define _CONTEXT1       (0x01 | REGISTER)
-#define CONTEXT1        _CONTEXT1, REG_TYPE
-
-#define _CONTEXT2       (0x02 | REGISTER)
-#define CONTEXT2        _CONTEXT2, REG_TYPE
-
-#define _KEY1           (0x03 | REGISTER)
-#define KEY1            _KEY1, REG_TYPE
-
-#define _KEY2           (0x04 | REGISTER)
-#define KEY2            _KEY2, REG_TYPE
-
-#define _KEY1SZ         (0x05 | REGISTER)
-#define KEY1SZ          _KEY1SZ, REG_TYPE
-
-#define _KEY2SZ         (0x06 | REGISTER)
-#define KEY2SZ          _KEY2SZ, REG_TYPE
-
-#define _ICV1SZ         (0x07 | REGISTER)
-#define ICV1SZ          _ICV1SZ, REG_TYPE
-
-#define _ICV2SZ         (0x08 | REGISTER)
-#define ICV2SZ          _ICV2SZ, REG_TYPE
-
-#define _DATA1SZ        (0x09 | REGISTER)
-#define DATA1SZ         _DATA1SZ, REG_TYPE
-
-#define _DATA2SZ        (0x0a | REGISTER)
-#define DATA2SZ         _DATA2SZ, REG_TYPE
-
-#define _ALTDS1         (0x0b | REGISTER)
-#define ALTDS1          _ALTDS1, REG_TYPE
-
-#define _IV1SZ          (0x0c | REGISTER)
-#define IV1SZ           _IV1SZ, REG_TYPE
-
-#define _AAD1SZ         (0x0d | REGISTER)
-#define AAD1SZ          _AAD1SZ, REG_TYPE
-
-#define _MODE1          (0x0e | REGISTER)
-#define MODE1           _MODE1, REG_TYPE
-
-#define _MODE2          (0x0f | REGISTER)
-#define MODE2           _MODE2, REG_TYPE
-
-#define _CCTRL          (0x10 | REGISTER)
-#define CCTRL           _CCTRL, REG_TYPE
-
-#define _DCTRL          (0x11 | REGISTER)
-#define DCTRL           _DCTRL, REG_TYPE
-
-#define _ICTRL          (0x12 | REGISTER)
-#define ICTRL           _ICTRL, REG_TYPE
-
-#define _CLRW           (0x13 | REGISTER)
-#define CLRW            _CLRW, REG_TYPE
-
-#define _CSTAT          (0x14 | REGISTER)
-#define CSTAT           _CSTAT, REG_TYPE
-
-#define _IFIFO          (0x16 | FIFO)
-#define IFIFO           _IFIFO, REG_TYPE
-
-#define _NFIFO          (0x17 | FIFO)
-#define NFIFO           _NFIFO, REG_TYPE
-
-#define _OFIFO          (0x18 | FIFO)
-#define OFIFO           _OFIFO, REG_TYPE
-
-#define _PKASZ          (0x19 | REGISTER)
-#define PKASZ           _PKASZ, REG_TYPE
-
-#define _PKBSZ          (0x1a | REGISTER)
-#define PKBSZ           _PKBSZ, REG_TYPE
-
-#define _PKNSZ          (0x1b | REGISTER)
-#define PKNSZ           _PKNSZ, REG_TYPE
-
-#define _PKESZ          (0x1c | REGISTER)
-#define PKESZ           _PKESZ, REG_TYPE
-
-/* DECO Registers */
-#define _MATH0          (0x1d | REGISTER)
-#define MATH0           _MATH0, REG_TYPE
-
-#define _MATH1          (0x1e | REGISTER)
-#define MATH1           _MATH1, REG_TYPE
-
-#define _MATH2          (0x1f | REGISTER)
-#define MATH2           _MATH2, REG_TYPE
-
-#define _MATH3          (0x20 | REGISTER)
-#define MATH3           _MATH3, REG_TYPE
-
-#define _DESCBUF        (0x21 | REGISTER)
-#define DESCBUF         _DESCBUF, REG_TYPE
-
-#define _JOBDESCBUF     (0x22 | REGISTER)
-#define JOBDESCBUF      _JOBDESCBUF, REG_TYPE
-
-#define _SHAREDESCBUF   (0x23 | REGISTER)
-#define SHAREDESCBUF    _SHAREDESCBUF, REG_TYPE
-
-#define _DPOVRD         (0x24 | REGISTER)
-#define DPOVRD          _DPOVRD, REG_TYPE
-
-#define _DJQDA          (0x25 | REGISTER)
-#define DJQDA           _DJQDA, REG_TYPE
-
-#define _DSTAT          (0x26 | REGISTER)
-#define DSTAT           _DSTAT, REG_TYPE
-
-#define _DPID           (0x27 | REGISTER)
-#define DPID            _DPID, REG_TYPE
-
-#define _DJQCTRL        (0x28 | REGISTER)
-#define DJQCTRL         _DJQCTRL, REG_TYPE
-
-#define _ALTSOURCE      (0x29 | REGISTER)
-#define ALTSOURCE       _ALTSOURCE, REG_TYPE
-
-#define _SEQINSZ        (0x2a | REGISTER)
-#define SEQINSZ         _SEQINSZ, REG_TYPE
-
-#define _SEQOUTSZ       (0x2b | REGISTER)
-#define SEQOUTSZ        _SEQOUTSZ, REG_TYPE
-
-#define _VSEQINSZ       (0x2c | REGISTER)
-#define VSEQINSZ        _VSEQINSZ, REG_TYPE
-
-#define _VSEQOUTSZ      (0x2e | REGISTER)
-#define VSEQOUTSZ        _VSEQOUTSZ, REG_TYPE
-
-/* PKHA Registers */
-#define _PKA            (0x2f | REGISTER)
-#define PKA             _PKA, REG_TYPE
-
-#define _PKN            (0x30 | REGISTER)
-#define PKN             _PKN, REG_TYPE
-
-#define _PKA0           (0x31 | REGISTER)
-#define PKA0            _PKA0, REG_TYPE
-
-#define _PKA1           (0x32 | REGISTER)
-#define PKA1            _PKA1, REG_TYPE
-
-#define _PKA2           (0x33 | REGISTER)
-#define PKA2            _PKA2, REG_TYPE
-
-#define _PKA3           (0x34 | REGISTER)
-#define PKA3            _PKA3, REG_TYPE
-
-#define _PKB            (0x35 | REGISTER)
-#define PKB             _PKB, REG_TYPE
-
-#define _PKB0           (0x36 | REGISTER)
-#define PKB0            _PKB0, REG_TYPE
-
-#define _PKB1           (0x37 | REGISTER)
-#define PKB1            _PKB1, REG_TYPE
-
-#define _PKB2           (0x38 | REGISTER)
-#define PKB2            _PKB2, REG_TYPE
-
-#define _PKB3           (0x39 | REGISTER)
-#define PKB3            _PKB3, REG_TYPE
-
-#define _PKE            (0x3a | REGISTER)
-#define PKE             _PKE, REG_TYPE
-
-/* Pseudo registers */
-#define _AB1            (0x3b | FIFO)
-#define AB1             _AB1, REG_TYPE
-
-#define _AB2            (0x3c | FIFO)
-#define AB2             _AB2, REG_TYPE
-
-#define _ABD            (0x3d | FIFO)
-#define ABD             _ABD, REG_TYPE
-
-#define _IFIFOABD       (0x3e | FIFO)
-#define IFIFOABD        _IFIFOABD, REG_TYPE
-
-#define _IFIFOAB1       (0x3f | FIFO)
-#define IFIFOAB1        _IFIFOAB1, REG_TYPE
-
-#define _IFIFOAB2       (0x40 | FIFO)
-#define IFIFOAB2        _IFIFOAB2, REG_TYPE
-
-#define _AFHA_SBOX      (0x41 | REGISTER)
-#define AFHA_SBOX       _AFHA_SBOX, REG_TYPE
-
-#define _MDHA_SPLIT_KEY (0x42 | REGISTER)
-#define MDHA_SPLIT_KEY  _MDHA_SPLIT_KEY, REG_TYPE
-
-#define _JOBSRC         (0x43 | REGISTER)
-#define JOBSRC          _JOBSRC, REG_TYPE
-
-#define _ZERO           (0x44 | REGISTER)
-#define ZERO            _ZERO, REG_TYPE
-
-#define _ONE            (0x45 | REGISTER)
-#define ONE             _ONE, REG_TYPE
-
-#define _AAD1           (0x46 | REGISTER)
-#define AAD1            _AAD1, REG_TYPE
-
-#define _IV1            (0x47 | REGISTER)
-#define IV1             _IV1, REG_TYPE
-
-#define _IV2            (0x48 | REGISTER)
-#define IV2             _IV2, REG_TYPE
-
-#define _MSG1           (0x49 | REGISTER)
-#define MSG1            _MSG1, REG_TYPE
-
-#define _MSG2           (0x4a | REGISTER)
-#define MSG2            _MSG2, REG_TYPE
-
-#define _MSG            (0x4b | REGISTER)
-#define MSG             _MSG, REG_TYPE
-
-#define _MSGOUTSNOOP    (0x4c | REGISTER)
-#define MSGOUTSNOOP     _MSGOUTSNOOP, REG_TYPE
-
-#define _MSGINSNOOP     (0x4d | REGISTER)
-#define MSGINSNOOP      _MSGINSNOOP, REG_TYPE
-
-#define _ICV1           (0x4e | REGISTER)
-#define ICV1            _ICV1, REG_TYPE
-
-#define _ICV2           (0x4f | REGISTER)
-#define ICV2            _ICV2, REG_TYPE
-
-#define _SKIP           (0x50 | REGISTER)
-#define SKIP            _SKIP, REG_TYPE
-
-#define _NONE           (0x51 | REGISTER)
-#define NONE            _NONE, REG_TYPE
-
-#define _RNGOFIFO       (0x52 | REGISTER)
-#define RNGOFIFO        _RNGOFIFO, REG_TYPE
-
-#define _RNG            (0x53 | REGISTER)
-#define RNG             _RNG, REG_TYPE
-
-#define _IDFNS          (0x54 | REGISTER)
-#define IDFNS           _IDFNS, REG_TYPE
-
-#define _ODFNS          (0x55 | REGISTER)
-#define ODFNS           _ODFNS, REG_TYPE
-
-#define _NFIFOSZ        (0x56 | REGISTER)
-#define NFIFOSZ         _NFIFOSZ, REG_TYPE
-
-#define _SZ             (0x57 | REGISTER)
-#define SZ              _SZ, REG_TYPE
-
-#define _PAD            (0x58 | REGISTER)
-#define PAD             _PAD, REG_TYPE
-
-#define _SAD1           (0x59 | REGISTER)
-#define SAD1            _SAD1, REG_TYPE
-
-#define _AAD2           (0x5a | REGISTER)
-#define AAD2            _AAD2, REG_TYPE
-
-#define _BIT_DATA       (0x5b | REGISTER)
-#define BIT_DATA        _BIT_DATA, REG_TYPE
-
-#define _NFIFO_SZL	(0x5c | REGISTER)
-#define NFIFO_SZL	_NFIFO_SZL, REG_TYPE
-
-#define _NFIFO_SZM	(0x5d | REGISTER)
-#define NFIFO_SZM	_NFIFO_SZM, REG_TYPE
-
-#define _NFIFO_L	(0x5e | REGISTER)
-#define NFIFO_L		_NFIFO_L, REG_TYPE
-
-#define _NFIFO_M	(0x5f | REGISTER)
-#define NFIFO_M		_NFIFO_M, REG_TYPE
-
-#define _SZL		(0x60 | REGISTER)
-#define SZL		_SZL, REG_TYPE
-
-#define _SZM		(0x61 | REGISTER)
-#define SZM		_SZM, REG_TYPE
-
-#define _JOBDESCBUF_EFF	(0x62 | REGISTER)
-#define JOBDESCBUF_EFF	_JOBDESCBUF_EFF, REG_TYPE
-
-#define _SHAREDESCBUF_EFF	(0x63 | REGISTER)
-#define SHAREDESCBUF_EFF	_SHAREDESCBUF_EFF, REG_TYPE
-
-#define _METADATA	(0x64 | REGISTER)
-#define METADATA	_METADATA, REG_TYPE
-
-#define _GTR		(0x65 | REGISTER)
-#define GTR		_GTR, REG_TYPE
-
-#define _STR		(0x66 | REGISTER)
-#define STR		_STR, REG_TYPE
-
-#define _OFIFO_SYNC     (0x67 | FIFO)
-#define OFIFO_SYNC      _OFIFO_SYNC, REG_TYPE
-
-#define _MSGOUTSNOOP_ALT (0x68 | REGISTER)
-#define MSGOUTSNOOP_ALT  _MSGOUTSNOOP_ALT, REG_TYPE
-
-/* Command flags */
-#define FLUSH1          0x00000001
-#define LAST1           0x00000002
-#define LAST2           0x00000004
-#define IMMED           0x00000008
-#define SGF             0x00000010
-#define VLF             0x00000020
-#define EXT             0x00000040
-#define CONT            0x00000080
-#define SEQ             0x00000100
-#define AIDF		0x00000200
-#define FLUSH2          0x00000400
-
-#define CLASS1          0x00000800
-#define CLASS2          0x00001000
-#define BOTH            0x00002000
-
-/* SEQ IN/OUT PTR Command specific flags */
-#define RBS             0x00010000
-#define INL             0x00020000
-#define PRE             0x00040000
-#define RTO             0x00080000
-#define RJD             0x00100000
-#define SOP		0x00200000
-#define RST		0x00400000
-#define EWS		0x00800000
-
-#define ENC             0x00004000	/* Encrypted Key */
-#define EKT             0x00008000	/* AES CCM Encryption */
-#define TK              0x00010000	/* Trusted Descriptor Key */
-#define NWB             0x00020000	/* No Write Back Key */
-#define NRM             0x00040000	/* AES ECB Encryption */
-#define JDK             0x00080000	/* Job Descriptor Key */
-#define PTS             0x00100000	/* Plaintext Store */
-
-/* HEADER Command specific flags */
-#define RIF             0x00010000
-#define DNR             0x00020000
-#define CIF             0x00040000
-#define PD              0x00080000
-#define RSMS            0x00100000
-#define TD              0x00200000
-#define MTD             0x00400000
-#define REO             0x00800000
-#define SHR             0x01000000
-#define SC		0x02000000
-/* Extended HEADER specific flags */
-#define DSV		0x00000080
-#define DSEL_MASK	0x00000007	/* DECO Select */
-#define FTD		0x00000100
-
-/* JUMP Command specific flags */
-#define NIFP            0x00100000
-#define NIP             0x00200000
-#define NOP             0x00400000
-#define NCP             0x00800000
-#define CALM            0x01000000
-
-#define MATH_Z          0x02000000
-#define MATH_N          0x04000000
-#define MATH_NV         0x08000000
-#define MATH_C          0x10000000
-#define PK_0            0x20000000
-#define PK_GCD_1        0x40000000
-#define PK_PRIME        0x80000000
-#define SELF            0x00000001
-#define SHRD            0x00000002
-#define JQP             0x00000004
-
-/* NFIFOADD specific flags */
-#define PAD_ZERO        0x00010000
-#define PAD_NONZERO     0x00020000
-#define PAD_INCREMENT   0x00040000
-#define PAD_RANDOM      0x00080000
-#define PAD_ZERO_N1     0x00100000
-#define PAD_NONZERO_0   0x00200000
-#define PAD_N1          0x00800000
-#define PAD_NONZERO_N   0x01000000
-#define OC              0x02000000
-#define BM              0x04000000
-#define PR              0x08000000
-#define PS              0x10000000
-#define BP              0x20000000
-
-/* MOVE Command specific flags */
-#define WAITCOMP        0x00010000
-#define SIZE_WORD	0x00020000
-#define SIZE_BYTE	0x00040000
-#define SIZE_DWORD	0x00080000
-
-/* MOVE command type */
-#define __MOVE		1
-#define __MOVEB		2
-#define __MOVEDW	3
+#define IMMED2      BIT(31)
 
 /**
- * @struct    program sec_run_time_asm.h
- * @details   Descriptor buffer management structure
+ * struct program - descriptor buffer management structure
+ * @current_pc:	current offset in descriptor
+ * @current_instruction: current instruction in descriptor
+ * @first_error_pc: offset of the first error in descriptor
+ * @start_pc: start offset in descriptor buffer
+ * @buffer: buffer carrying descriptor
+ * @shrhdr: shared descriptor header
+ * @jobhdr: job descriptor header
+ * @ps: pointer fields size; if ps is true, pointers will be 36bits in
+ *      length; if ps is false, pointers will be 32bits in length
+ * @bswap: if true, perform byte swap on a 4-byte boundary
  */
 struct program {
-	unsigned current_pc;	 /**< Current offset in descriptor */
-	unsigned current_instruction;/**< Current instruction in descriptor */
-	unsigned first_error_pc; /**< Offset of the first error in descriptor */
-	unsigned start_pc;	 /**< Start offset in descriptor buffer */
-	uint32_t *buffer;	 /**< Buffer carrying descriptor */
-	uint32_t *shrhdr;	 /**< Shared Descriptor Header */
-	uint32_t *jobhdr;	 /**< Job Descriptor Header */
-	unsigned short ps;	 /**< Pointer fields size; if ps is set to 1,
-				    pointers will be 36bits in length; if ps
-				    is set to 0, pointers will be 32bits in
-				    length. */
-	unsigned short bswap;	 /**< If set, perform byte swap on a 4-byte
-				      boundary.*/
+	unsigned current_pc;
+	unsigned current_instruction;
+	unsigned first_error_pc;
+	unsigned start_pc;
+	uint32_t *buffer;
+	uint32_t *shrhdr;
+	uint32_t *jobhdr;
+	bool ps;
+	bool bswap;
 };
 
 static inline void rta_program_cntxt_init(struct program *program,
@@ -568,8 +401,8 @@ static inline void rta_program_cntxt_init(struct program *program,
 	program->buffer = buffer;
 	program->shrhdr = NULL;
 	program->jobhdr = NULL;
-	program->ps = 0;
-	program->bswap = 0;
+	program->ps = false;
+	program->bswap = false;
 }
 
 static inline void __rta__desc_bswap(uint32_t *buff, unsigned buff_len)
@@ -577,8 +410,7 @@ static inline void __rta__desc_bswap(uint32_t *buff, unsigned buff_len)
 	unsigned i;
 
 	for (i = 0; i < buff_len; i++)
-		//buff[i] = swab32(buff[i]);
-		buff[i] = swab32(&(buff[i])); // Yariv
+		buff[i] = swab32(buff[i]);
 }
 
 static inline unsigned rta_program_finalize(struct program *program)
@@ -607,13 +439,13 @@ static inline unsigned rta_program_finalize(struct program *program)
 
 static inline unsigned rta_program_set_36bit_addr(struct program *program)
 {
-	program->ps = 1;
+	program->ps = true;
 	return program->current_pc;
 }
 
 static inline unsigned rta_program_set_bswap(struct program *program)
 {
-	program->bswap = 1;
+	program->bswap = true;
 	return program->current_pc;
 }
 
@@ -623,12 +455,13 @@ static inline void __rta_out32(struct program *program, uint32_t val)
 	program->current_pc++;
 }
 
-static inline void __rta_out64(struct program *program, int ext, uint64_t val)
+static inline void __rta_out64(struct program *program, bool is_ext,
+			       uint64_t val)
 {
-	if (ext)
-		__rta_out32(program, high_32b(val));
+	if (is_ext)
+		__rta_out32(program, upper_32_bits(val));
 
-	__rta_out32(program, low_32b(val));
+	__rta_out32(program, lower_32_bits(val));
 }
 
 static inline unsigned rta_word(struct program *program, uint32_t val)
@@ -644,7 +477,7 @@ static inline unsigned rta_dword(struct program *program, uint64_t val)
 {
 	unsigned start_pc = program->current_pc;
 
-	__rta_out64(program, 1, val);
+	__rta_out64(program, true, val);
 
 	return start_pc;
 }
@@ -663,29 +496,49 @@ static inline unsigned rta_copy_data(struct program *program, uint8_t *data,
 	return start_pc;
 }
 
-static inline void __rta_inline_data(struct program *program, uint64_t data,
-				     int data_type, uint32_t length)
+#if defined(__EWL__) && defined(AIOP)
+static inline void __rta_dma_data(void *ws_dst, uint64_t ext_address,
+				  uint16_t size)
+{ cdma_read(ws_dst, ext_address, size); }
+#else
+static inline void __rta_dma_data(void *ws_dst, uint64_t ext_address,
+				  uint16_t size)
 {
-	if (data_type == IMM_DATA) {
-		__rta_out64(program, length > BYTES_4, data);
-	} else {
+	pr_warn("RTA: DCOPY not supported, DMA will be skipped\n");
+	return;
+}
+#endif /* defined(__EWL__) && defined(AIOP) */
+
+static inline void __rta_inline_data(struct program *program, uint64_t data,
+				     uint32_t copy_data, uint32_t length)
+{
+	if (!copy_data) {
+		__rta_out64(program, length > 4, data);
+	} else if (copy_data & COPY) {
 		uint8_t *tmp = (uint8_t *)&program->buffer[program->current_pc];
 		uint32_t i;
 
 		for (i = 0; i < length; i++)
 			*tmp++ = ((uint8_t *)(uintptr_t)data)[i];
 		program->current_pc += ((length + 3) / 4);
+	} else if (copy_data & DCOPY) {
+		__rta_dma_data(&program->buffer[program->current_pc], data,
+			       (uint16_t)length);
+		program->current_pc += ((length + 3) / 4);
 	}
 }
 
-static inline unsigned rta_desc_len(uint32_t *buffer, uint32_t mask)
+static inline unsigned rta_desc_len(uint32_t *buffer)
 {
-	 return *buffer & mask;
+	if ((*buffer & CMD_MASK) == CMD_DESC_HDR)
+		return *buffer & HDR_DESCLEN_MASK;
+	else
+		return *buffer & HDR_DESCLEN_SHR_MASK;
 }
 
-static inline unsigned rta_desc_bytes(uint32_t *buffer, uint32_t mask)
+static inline unsigned rta_desc_bytes(uint32_t *buffer)
 {
-	 return (unsigned)(rta_desc_len(buffer, mask) * CAAM_CMD_SZ);
+	return (unsigned)(rta_desc_len(buffer) * CAAM_CMD_SZ);
 }
 
 static inline unsigned rta_set_label(struct program *program)
@@ -693,78 +546,69 @@ static inline unsigned rta_set_label(struct program *program)
 	return program->current_pc + program->start_pc;
 }
 
-/* Operators */
-#define ADD      (0x00 << MATH_FUN_SHIFT)
-#define ADDC     (0x01 << MATH_FUN_SHIFT)
-#define SUB      (0x02 << MATH_FUN_SHIFT)
-#define SUBB     (0x03 << MATH_FUN_SHIFT)
-#define OR       (0x04 << MATH_FUN_SHIFT)
-#define AND      (0x05 << MATH_FUN_SHIFT)
-#define XOR      (0x06 << MATH_FUN_SHIFT)
-#define LSHIFT   (0x07 << MATH_FUN_SHIFT)
-#define RSHIFT   (0x08 << MATH_FUN_SHIFT)
-#define SHLD     (0x09 << MATH_FUN_SHIFT)
-#define ZBYTE    (0x0A << MATH_FUN_SHIFT)
-#define BSWAP    (0x0B << MATH_FUN_SHIFT)
-
-
-static inline void rta_patch_move(struct program *program, unsigned line,
-				  unsigned new_ref, unsigned check_swap)
+static inline int rta_patch_move(struct program *program, int line,
+				 unsigned new_ref, bool check_swap)
 {
 	uint32_t opcode;
-	unsigned bswap = check_swap && program->bswap;
+	bool bswap = check_swap && program->bswap;
 
-	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
-	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
-	
+	if (line < 0)
+		return -EINVAL;
+
+	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+
 	opcode &= (uint32_t)~MOVE_OFFSET_MASK;
 	opcode |= (new_ref << (MOVE_OFFSET_SHIFT + 2)) & MOVE_OFFSET_MASK;
-	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
-	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
+	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+
+	return 0;
 }
 
-static inline void rta_patch_jmp(struct program *program, unsigned line,
-				 unsigned new_ref, unsigned check_swap)
+static inline int rta_patch_jmp(struct program *program, int line,
+				unsigned new_ref, bool check_swap)
 {
 	uint32_t opcode;
-	uint32_t temp;
+	bool bswap = check_swap && program->bswap;
 
-	unsigned bswap = check_swap && program->bswap;
+	if (line < 0)
+		return -EINVAL;
 
-	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
-	//opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
-	
-	// Yariv : workaround for compiler optimization level 4 issue
-	temp = program->buffer[line];
-	opcode = bswap ? swab32(&temp) : program->buffer[line]; 
-	
+	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
+
 	opcode &= (uint32_t)~JUMP_OFFSET_MASK;
 	opcode |= (new_ref - (line + program->start_pc)) & JUMP_OFFSET_MASK;
-	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
-	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
+	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+
+	return 0;
 }
 
-static inline void rta_patch_header(struct program *program, unsigned line,
-				    unsigned new_ref, unsigned check_swap)
+static inline int rta_patch_header(struct program *program, int line,
+				   unsigned new_ref, bool check_swap)
 {
 	uint32_t opcode;
-	unsigned bswap = check_swap && program->bswap;
+	bool bswap = check_swap && program->bswap;
 
-	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
-	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
+	if (line < 0)
+		return -EINVAL;
+
+	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
 
 	opcode &= (uint32_t)~HDR_START_IDX_MASK;
 	opcode |= (new_ref << HDR_START_IDX_SHIFT) & HDR_START_IDX_MASK;
-	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
-	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
+	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+
+	return 0;
 }
 
-static inline void rta_patch_load(struct program *program, unsigned line,
-				  unsigned new_ref)
+static inline int rta_patch_load(struct program *program, int line,
+				 unsigned new_ref)
 {
-	uint32_t opcode = program->buffer[line];
+	uint32_t opcode;
 
-	opcode &= (uint32_t)~LDST_OFFSET_MASK;
+	if (line < 0)
+		return -EINVAL;
+
+	opcode = program->buffer[line] & (uint32_t)~LDST_OFFSET_MASK;
 
 	if (opcode & (LDST_SRCDST_WORD_DESCBUF | LDST_CLASS_DECO))
 		opcode |= (new_ref << LDST_OFFSET_SHIFT) & LDST_OFFSET_MASK;
@@ -773,16 +617,20 @@ static inline void rta_patch_load(struct program *program, unsigned line,
 			  LDST_OFFSET_MASK;
 
 	program->buffer[line] = opcode;
+
+	return 0;
 }
 
-static inline void rta_patch_store(struct program *program, unsigned line,
-				   unsigned new_ref, unsigned check_swap)
+static inline int rta_patch_store(struct program *program, int line,
+				  unsigned new_ref, bool check_swap)
 {
 	uint32_t opcode;
-	unsigned bswap = check_swap && program->bswap;
+	bool bswap = check_swap && program->bswap;
 
-	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
-	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
+	if (line < 0)
+		return -EINVAL;
+
+	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
 
 	opcode &= (uint32_t)~LDST_OFFSET_MASK;
 
@@ -799,24 +647,28 @@ static inline void rta_patch_store(struct program *program, unsigned line,
 			  LDST_OFFSET_MASK;
 	}
 
-	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
-	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
+	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+
+	return 0;
 }
 
-static inline void rta_patch_raw(struct program *program, unsigned line,
-				 unsigned mask, unsigned new_val,
-				 unsigned check_swap)
+static inline int rta_patch_raw(struct program *program, int line,
+				unsigned mask, unsigned new_val,
+				bool check_swap)
 {
 	uint32_t opcode;
-	unsigned bswap = check_swap && program->bswap;
+	bool bswap = check_swap && program->bswap;
 
-	//opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
-	opcode = bswap ? swab32(&(program->buffer[line])) : program->buffer[line]; // Yariv
+	if (line < 0)
+		return -EINVAL;
+
+	opcode = bswap ? swab32(program->buffer[line]) : program->buffer[line];
 
 	opcode &= (uint32_t)~mask;
 	opcode |= new_val & mask;
-	//program->buffer[line] = bswap ? swab32(opcode) : opcode;
-	program->buffer[line] = bswap ? swab32(&opcode) : opcode; // Yariv
+	program->buffer[line] = bswap ? swab32(opcode) : opcode;
+
+	return 0;
 }
 
 static inline int __rta_map_opcode(uint32_t name,
@@ -830,7 +682,8 @@ static inline int __rta_map_opcode(uint32_t name,
 			*val = map_table[i][1];
 			return 0;
 		}
-	return -1;
+
+	return -EINVAL;
 }
 
 static inline void __rta_map_flags(uint32_t flags,

@@ -28,6 +28,8 @@
 #define __VERIF_DFLAGS_DBG_H
 
 #define DEBUG_LEVEL         2
+#define DEBUG_ERRORS        0
+
 #define AIOP_VERIF
 
 #include "build_flags.h"
