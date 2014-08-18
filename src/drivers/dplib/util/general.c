@@ -39,6 +39,8 @@ __TASK struct aiop_default_task_params default_task_params;
 /* TODO - cleanup once the error handling below is moved to verification code.*/
 #ifdef AIOP_VERIF
 #include "aiop_verification_data.h"
+#include "aiop_verification.h"
+#include <string.h>
 extern __VERIF_TLS uint32_t fatal_fqid;
 #endif /*AIOP_VERIF*/
 
@@ -70,15 +72,55 @@ char * trim_path_prefix(char *filepath){
 }
 #endif /*AIOP_VERIF*/
 
-void exception_handler(char *filename, uint32_t line, char *message)
+void exception_handler(char *filename,
+		       char *function_name,
+		       uint32_t line,
+		       char *message)
 {
-       uint32_t status;
-       status = -1 + (uint32_t)message + (uint32_t)filename + line;
+	uint32_t status;
 #ifdef AIOP_VERIF
-       filename = trim_path_prefix(filename);
-       //TODO replace and update verification command
-       fdma_store_and_enqueue_default_frame_fqid(
-		       fatal_fqid, FDMA_EN_TC_TERM_BITS);
+	struct fatal_error_command *fatal_cmd;
+	//todo
+	if(1){
+		fatal_cmd =  (struct fatal_error_command *)
+				PRC_GET_ASA_ADDRESS();
+	} else { //FM CASE
+		fatal_cmd =  (struct fatal_error_command *)
+						PRC_GET_ASA_ADDRESS();
+	}
+
+	filename = trim_path_prefix(filename);
+
+	strcpy(fatal_cmd->file_name, filename);
+	strcpy(fatal_cmd->function_name, function_name);
+	strcpy(fatal_cmd->err_msg, message);
+
+	//TODO update verification command
+	//todo sr/fm if
+	if (1){
+		fdma_replace_default_asa_segment_data(
+			0,
+			sizeof(struct fatal_error_command),
+			(void *)PRC_GET_ASA_ADDRESS(),
+			sizeof(struct fatal_error_command),
+			0,
+			0,
+			FDMA_REPLACE_NO_FLAGS);
+	} else { //fm case
+		fdma_replace_default_asa_segment_data(
+				0,
+				sizeof(struct fatal_error_command),
+				(void *)PRC_GET_ASA_ADDRESS(),
+				sizeof(struct fatal_error_command),
+				0,
+				0,
+				FDMA_REPLACE_NO_FLAGS);
+	}
+
+	fdma_store_and_enqueue_default_frame_fqid(fatal_fqid,
+						  FDMA_EN_TC_TERM_BITS);
 #endif /*AIOP_VERIF*/
-       fdma_terminate_task();
+	status = -1 + (uint32_t)message + (uint32_t)filename + line +
+			(uint32_t)function_name;
+	fdma_terminate_task();
 }

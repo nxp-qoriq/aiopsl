@@ -361,18 +361,42 @@ struct write_data_to_workspace_command {
 };
 
 /**************************************************************************//**
-@Description	Write fatal FQID to workspace TLS Command structure.
+@Description	Fatal Error Command structure.
 
-		Includes information needed for writing fqid to workspace TLS
-		(as a preceding step for a replace command).
-
+		Includes information needed for fatal handling.
 *//***************************************************************************/
-struct write_fatal_fqid_to_workspace_tls_command {
-		/** Write Data to workspace command structure identifier. */
+struct fatal_error_command {
+	/** 
+	 * Fatal Error command structure identifier. 
+	 * */
 	uint32_t opcode;
-		/**
-		 * FQID to save in TLS. */
+
+	/**
+	 * FQID to save in TLS. (for the fatal enqueue)
+	 * */
 	uint32_t fqid;
+
+	/**
+	 * Flags for this structure.
+	 */
+	uint32_t flags;
+
+	/**
+	 * File name in which the error occurred.
+	 */
+	char  file_name[32];
+
+	/**
+	 * Function name in which the error occurred.
+	 */
+	char  function_name[48];
+
+	/**
+	 * The error mesaage.
+	 */
+	char  err_msg[128];
+
+	uint8_t pad[36];
 };
 
 void aiop_verification_parse();
