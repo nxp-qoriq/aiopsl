@@ -423,15 +423,13 @@ struct tcp_gro_context_params {
 		Recommendation is to discard the frame.
 		The frame was not aggregated.
 
-
-@Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
-		a new session begins.
-
 @remark		When returning from this function, in case the aggregation is
 		not done, no frame will be in the default frame area.
 		Only when an aggregation is done, the aggregated frame will be
 		in the default frame area.
 
+@Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
+		a new session begins.
 *//***************************************************************************/
 int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,

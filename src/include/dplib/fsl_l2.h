@@ -278,10 +278,9 @@ int l2_pop_vlan(void);
 
 @Return		None.
 
-@Cautions
-		- The parse results must be updated before calling this
+@Cautions	The parse results must be updated before calling this
 		operation.
-		- This function assumes the presence of the ETH header and ARP
+@Cautions	This function assumes the presence of the ETH header and ARP
 		Request header.
  *//***************************************************************************/
 void l2_arp_response();
@@ -303,10 +302,9 @@ void l2_arp_response();
 
 @Return		None.
 
-@Cautions
-		- The parse results must be updated before calling this
+@Cautions	The parse results must be updated before calling this
 		operation.
-		- This function assumes the presence of the ETH header.
+@Cautions	This function assumes the presence of the ETH header.
  *//***************************************************************************/
 void l2_set_hw_src_dst(uint8_t *target_hw_addr);
 
