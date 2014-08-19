@@ -142,7 +142,8 @@ int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 #endif
 		/* check each loop instance to verify if in the time of the
 		 * command another task did'nt deleted the same TMI */
-		if ((res1 & TMAN_TMI_STATE_MASK) != TMAN_TMI_ACTIVE)
+		if (((res1 & TMAN_FAIL_BIT_MASK) != 0) && 
+				((res1 & TMAN_TMI_DEL_TMP_ERR_MASK) == 0))
 			tman_exception_handler(__FILE__, __LINE__, (int)res1);
 	} while (res1 & TMAN_TMI_DEL_TMP_ERR_MASK);
 	
@@ -368,55 +369,58 @@ void tman_timer_callback(void)
 void tman_exception_handler(char *filename, uint32_t line, int32_t status)
 {
 
+	/*TODO selector for function name */
+	char *func_name = "TODO_Funcky_name:)";
+	
 	/*TODO Fatal error*/
 	switch(status) {
 	case TMAN_TMIID_DEPLETION_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"All TMIs are used. A TMI must be deleted \
 				before a new one can be created.");
 		break;
 	case TMAN_ILLEGAL_DURATION_VAL_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"Illegal Timer duration.\
 				The duration must have a value larger than 10 \
 				ticks and smaller than 2^16-10 ticks.");
 		break;
 	case TMAN_TMR_TMI_NOT_ACTIVE:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"A non active TMI was provided as an input.");
 		break;
 	case TMAN_TMR_DEPLETION_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"No more available timers in the TMI.");
 		break;
 
 	case TMAN_DEL_TMR_NOT_ACTIVE_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"A non active timer was provided as an input.");
 		break;
 	case TMAN_DEL_CCP_WAIT_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"The one shot timer has expired but it is \
 				pending a completion confirmation (done by \
 				calling the tman_timer_completion_confirmation \
 				function).");
 		break;
 	case TMAN_DEL_PERIODIC_CCP_WAIT_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"The periodic timer has expired but it is \
 				pending a completion confirmation (done by \
 				calling the tman_timer_completion_confirmation \
 				function).");
 		break;
 	case TMAN_DEL_TMR_DEL_ISSUED_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"A delete command was already issued for this \
 				timer and the TMAN is in the process of \
 				deleting the timer. The timer will elapse in \
 				the future.");
 		break;
 	case TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"A delete command was already issued. The \
 				timer has already elapsed for the last time \
 				and it is pending a completion confirmation \
@@ -425,32 +429,32 @@ void tman_exception_handler(char *filename, uint32_t line, int32_t status)
 		break;
 
 	case TMAN_MOD_TMR_NOT_ACTIVE_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"A non active timer was provided as an input.");
 		break;
 	case TMAN_MOD_CCP_WAIT_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"The one shot timer has expired but it is \
 				pending a completion confirmation (done by \
 				calling the tman_timer_completion_confirmation \
 				function).");
 		break;
 	case TMAN_MOD_PERIODIC_CCP_WAIT_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"The periodic timer has expired but it is \
 				pending a completion confirmation (done by \
 				calling the tman_timer_completion_confirmation \
 				function).");
 		break;
 	case TMAN_MOD_TMR_DEL_ISSUED_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"A delete command was already issued for this \
 				timer and the TMAN is in the process of \
 				deleting the timer. The timer will elapse in \
 				the future.");
 		break;
 	case TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"A delete command was already issued. The \
 				timer has already elapsed for the last time \
 				and it is pending a completion confirmation \
@@ -460,7 +464,7 @@ void tman_exception_handler(char *filename, uint32_t line, int32_t status)
 
 
 	default:
-		exception_handler(filename, line,
+		exception_handler(filename, func_name, line,
 				"UNKNOWN error occurred");
        }
 }

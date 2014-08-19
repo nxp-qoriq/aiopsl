@@ -309,6 +309,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	    if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
 		/* Fragment */
 		    if (scope_status.scope_level <= 2) {
+			    osm_status = NO_BYPASS_OSM;
 			/* create nested exclusive for the fragments of
 			 * the same flow*/
 			 osm_scope_enter_to_exclusive_with_increment_scope_id();

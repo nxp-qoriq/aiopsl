@@ -89,7 +89,7 @@
 		- 1: Release mutex lock. */
 #define CDMA_POSTDMA_MUTEX_RM_BIT	0x00000100
 
-/* @} end of group CDMA_DMA_MUTEX_ModeBits */
+/** @} end of group CDMA_DMA_MUTEX_ModeBits */
 
 
 /**************************************************************************//**
@@ -106,9 +106,9 @@
 		/* Mutex write lock is requested. */
 #define CDMA_MUTEX_WRITE_LOCK	0x00001000
 
-/* @} end of group CDMA_MUTEX_ModeBits */
+/** @} end of group CDMA_MUTEX_ModeBits */
 
-/* @} end of group CDMA_Commands_Flags */
+/** @} end of group CDMA_Commands_Flags */
 
 
 /**************************************************************************//**
@@ -356,6 +356,9 @@ void cdma_ws_memory_init(
 @Return		None.
 
 @remark		This function is for verification only.
+@remark		This function can be used only if the context memory was read
+		and the reference count was incremented by this task before
+		calling this function.
 
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.

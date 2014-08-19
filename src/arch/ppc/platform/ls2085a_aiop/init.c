@@ -35,8 +35,7 @@
 #include "sys.h"
 #include "fsl_io_ccsr.h"
 #include "slab.h"
-
-__SHRAM uint8_t abcr_lock = 0;
+#include "cmgw.h"
 
 extern t_system sys;
 
@@ -168,10 +167,9 @@ int global_post_init(void)
 }
 
 #if (STACK_OVERFLOW_DETECTION == 1)
-static inline void config_runtime_stack_overflow_detection(
-		                                    struct aiop_tile_regs * aiop_regs)
+static inline void config_runtime_stack_overflow_detection()
 {
-    switch(ioread32_ccsr(&aiop_regs->cmgw_regs.wscr))
+    switch(cmgw_get_ntasks())
     {
     case 0: /* 1 Task */
     	booke_set_spr_DAC2(0x8000);
@@ -197,12 +195,6 @@ static inline void config_runtime_stack_overflow_detection(
 
 void core_ready_for_tasks(void)
 {
-    uint32_t abcr_val;
-    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
-	                              sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-
-    uint32_t* abcr = &aiop_regs->cmgw_regs.abcr;
-
     /*  finished boot sequence; now wait for event .... */
     pr_info("AIOP core %d completed boot sequence\n", core_get_id());
 
@@ -216,12 +208,7 @@ void core_ready_for_tasks(void)
 
     sys.runtime_flag = 1;
 
-    /* Write AIOP boot status (ABCR) */
-    lock_spinlock(&abcr_lock);
-    abcr_val = ioread32_ccsr(abcr);
-    abcr_val |= (uint32_t)(1 << core_get_id());
-    iowrite32_ccsr(abcr_val, abcr);
-    unlock_spinlock(&abcr_lock);
+    cmgw_update_core_boot_completion();
 
 #if (STACK_OVERFLOW_DETECTION == 1)
     /*
@@ -229,7 +216,7 @@ void core_ready_for_tasks(void)
      *  Any access to the stack (read/write) following this line will cause
      *  a stack-overflow violation and an exception will occur.
      */
-    config_runtime_stack_overflow_detection(aiop_regs);
+    config_runtime_stack_overflow_detection();
 #endif
 
     /* CTSEN = 1, finished boot, Core Task Scheduler Enable */

@@ -61,7 +61,7 @@ enum e_ste_cmd_type {
 };
 
 
-/* @} end of group STE_functions */
-/* @} end of group STATS */
+/** @} end of group STE_functions */
+/** @} end of group STATS */
 
 #endif /* __AIOP_LIB_STATISTICS_H */

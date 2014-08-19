@@ -24,13 +24,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_LOAD_CMD_H__
 #define __RTA_LOAD_CMD_H__
 
 extern enum rta_sec_era rta_sec_era;
 
-/* Allowed length and offset masks for each SEC Era in case DST = _DCTRL */
+/* Allowed length and offset masks for each SEC Era in case DST = DCTRL */
 static const uint32_t load_len_mask_allowed[] = {
 	0x000000ee,
 	0x000000fe,
@@ -82,75 +83,75 @@ struct load_map {
 };
 
 static const struct load_map load_dst[] = {
-/*1*/	{ _KEY1SZ,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_KEYSZ_REG,
-		    LENOF_4,   IMM_MUST },
-	{ _KEY2SZ,  LDST_CLASS_2_CCB | LDST_SRCDST_WORD_KEYSZ_REG,
-		    LENOF_4,   IMM_MUST },
-	{ _DATA1SZ, LDST_CLASS_1_CCB | LDST_SRCDST_WORD_DATASZ_REG,
-		    LENOF_448, IMM_MUST },
-	{ _DATA2SZ, LDST_CLASS_2_CCB | LDST_SRCDST_WORD_DATASZ_REG,
-		    LENOF_448, IMM_MUST },
-	{ _ICV1SZ,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_ICVSZ_REG,
-		    LENOF_4,   IMM_MUST },
-	{ _ICV2SZ,  LDST_CLASS_2_CCB | LDST_SRCDST_WORD_ICVSZ_REG,
-		    LENOF_4,   IMM_MUST },
-	{ _CCTRL,   LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_CHACTRL,
-		    LENOF_4,   IMM_MUST },
-	{ _DCTRL,   LDST_CLASS_DECO | LDST_IMM | LDST_SRCDST_WORD_DECOCTRL,
-		    DSNM,      IMM_DSNM },
-	{ _ICTRL,   LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_IRQCTRL,
-		    LENOF_4,   IMM_MUST },
-	{ _DPOVRD,  LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_PCLOVRD,
-		    LENOF_4,   IMM_MUST },
-	{ _CLRW,    LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_CLRW,
-		    LENOF_4,   IMM_MUST },
-	{ _AAD1SZ,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_DECO_AAD_SZ,
-		    LENOF_4,   IMM_MUST },
-	{ _IV1SZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_CLASS1_IV_SZ,
-		    LENOF_4,   IMM_MUST },
-	{ _ALTDS1,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_ALTDS_CLASS1,
-		    LENOF_448, IMM_MUST },
-	{ _PKASZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_A_SZ,
-		    LENOF_4,   IMM_MUST, },
-	{ _PKBSZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_B_SZ,
-		    LENOF_4,   IMM_MUST },
-	{ _PKNSZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_N_SZ,
-		    LENOF_4,   IMM_MUST },
-	{ _PKESZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_E_SZ,
-		    LENOF_4,   IMM_MUST },
-	{ _NFIFO,   LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_INFO_FIFO,
-		    LENOF_48,  IMM_MUST },
-	{ _IFIFO,   LDST_SRCDST_BYTE_INFIFO,  LENOF_18, IMM_MUST },
-	{ _OFIFO,   LDST_SRCDST_BYTE_OUTFIFO, LENOF_18, IMM_MUST },
-	{ _MATH0,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH0,
-		    LENOF_32,  IMM_CAN },
-	{ _MATH1,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH1,
-		    LENOF_24,  IMM_CAN },
-	{ _MATH2,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH2,
-		    LENOF_16,  IMM_CAN },
-	{ _MATH3,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH3,
-		    LENOF_8,   IMM_CAN },
-	{ _CONTEXT1, LDST_CLASS_1_CCB | LDST_SRCDST_BYTE_CONTEXT,
-		    LENOF_128, IMM_CAN },
-	{ _CONTEXT2, LDST_CLASS_2_CCB | LDST_SRCDST_BYTE_CONTEXT,
-		    LENOF_128, IMM_CAN },
-	{ _KEY1,    LDST_CLASS_1_CCB | LDST_SRCDST_BYTE_KEY,
-		    LENOF_32,  IMM_CAN },
-	{ _KEY2,    LDST_CLASS_2_CCB | LDST_SRCDST_BYTE_KEY,
-		    LENOF_32,  IMM_CAN },
-	{ _DESCBUF, LDST_CLASS_DECO | LDST_SRCDST_WORD_DESCBUF,
-		    LENOF_256,  IMM_NO },
-	{ _DPID,    LDST_CLASS_DECO | LDST_SRCDST_WORD_PID,
-		    LENOF_448, IMM_MUST },
-/*32*/	{ _IDFNS,   LDST_SRCDST_WORD_IFNSR, LENOF_18,  IMM_MUST },
-	{ _ODFNS,   LDST_SRCDST_WORD_OFNSR, LENOF_18,  IMM_MUST },
-	{ _ALTSOURCE, LDST_SRCDST_BYTE_ALTSOURCE, LENOF_18,  IMM_MUST },
-/*35*/	{ _NFIFO_SZL, LDST_SRCDST_WORD_INFO_FIFO_SZL, LENOF_48, IMM_MUST },
-	{ _NFIFO_SZM, LDST_SRCDST_WORD_INFO_FIFO_SZM, LENOF_03, IMM_MUST },
-	{ _NFIFO_L, LDST_SRCDST_WORD_INFO_FIFO_L, LENOF_48, IMM_MUST },
-	{ _NFIFO_M, LDST_SRCDST_WORD_INFO_FIFO_M, LENOF_03, IMM_MUST },
-	{ _SZL,     LDST_SRCDST_WORD_SZL, LENOF_48, IMM_MUST },
-/*40*/	{ _SZM,     LDST_SRCDST_WORD_SZM, LENOF_03, IMM_MUST }
+/*1*/	{ KEY1SZ,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_KEYSZ_REG,
+		   LENOF_4,   IMM_MUST },
+	{ KEY2SZ,  LDST_CLASS_2_CCB | LDST_SRCDST_WORD_KEYSZ_REG,
+		   LENOF_4,   IMM_MUST },
+	{ DATA1SZ, LDST_CLASS_1_CCB | LDST_SRCDST_WORD_DATASZ_REG,
+		   LENOF_448, IMM_MUST },
+	{ DATA2SZ, LDST_CLASS_2_CCB | LDST_SRCDST_WORD_DATASZ_REG,
+		   LENOF_448, IMM_MUST },
+	{ ICV1SZ,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_ICVSZ_REG,
+		   LENOF_4,   IMM_MUST },
+	{ ICV2SZ,  LDST_CLASS_2_CCB | LDST_SRCDST_WORD_ICVSZ_REG,
+		   LENOF_4,   IMM_MUST },
+	{ CCTRL,   LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_CHACTRL,
+		   LENOF_4,   IMM_MUST },
+	{ DCTRL,   LDST_CLASS_DECO | LDST_IMM | LDST_SRCDST_WORD_DECOCTRL,
+		   DSNM,      IMM_DSNM },
+	{ ICTRL,   LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_IRQCTRL,
+		   LENOF_4,   IMM_MUST },
+	{ DPOVRD,  LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_PCLOVRD,
+		   LENOF_4,   IMM_MUST },
+	{ CLRW,    LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_CLRW,
+		   LENOF_4,   IMM_MUST },
+	{ AAD1SZ,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_DECO_AAD_SZ,
+		   LENOF_4,   IMM_MUST },
+	{ IV1SZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_CLASS1_IV_SZ,
+		   LENOF_4,   IMM_MUST },
+	{ ALTDS1,  LDST_CLASS_1_CCB | LDST_SRCDST_WORD_ALTDS_CLASS1,
+		   LENOF_448, IMM_MUST },
+	{ PKASZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_A_SZ,
+		   LENOF_4,   IMM_MUST, },
+	{ PKBSZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_B_SZ,
+		   LENOF_4,   IMM_MUST },
+	{ PKNSZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_N_SZ,
+		   LENOF_4,   IMM_MUST },
+	{ PKESZ,   LDST_CLASS_1_CCB | LDST_SRCDST_WORD_PKHA_E_SZ,
+		   LENOF_4,   IMM_MUST },
+	{ NFIFO,   LDST_CLASS_IND_CCB | LDST_SRCDST_WORD_INFO_FIFO,
+		   LENOF_48,  IMM_MUST },
+	{ IFIFO,   LDST_SRCDST_BYTE_INFIFO,  LENOF_18, IMM_MUST },
+	{ OFIFO,   LDST_SRCDST_BYTE_OUTFIFO, LENOF_18, IMM_MUST },
+	{ MATH0,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH0,
+		   LENOF_32,  IMM_CAN },
+	{ MATH1,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH1,
+		   LENOF_24,  IMM_CAN },
+	{ MATH2,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH2,
+		   LENOF_16,  IMM_CAN },
+	{ MATH3,   LDST_CLASS_DECO | LDST_SRCDST_WORD_DECO_MATH3,
+		   LENOF_8,   IMM_CAN },
+	{ CONTEXT1, LDST_CLASS_1_CCB | LDST_SRCDST_BYTE_CONTEXT,
+		   LENOF_128, IMM_CAN },
+	{ CONTEXT2, LDST_CLASS_2_CCB | LDST_SRCDST_BYTE_CONTEXT,
+		   LENOF_128, IMM_CAN },
+	{ KEY1,    LDST_CLASS_1_CCB | LDST_SRCDST_BYTE_KEY,
+		   LENOF_32,  IMM_CAN },
+	{ KEY2,    LDST_CLASS_2_CCB | LDST_SRCDST_BYTE_KEY,
+		   LENOF_32,  IMM_CAN },
+	{ DESCBUF, LDST_CLASS_DECO | LDST_SRCDST_WORD_DESCBUF,
+		   LENOF_256,  IMM_NO },
+	{ DPID,    LDST_CLASS_DECO | LDST_SRCDST_WORD_PID,
+		   LENOF_448, IMM_MUST },
+/*32*/	{ IDFNS,   LDST_SRCDST_WORD_IFNSR, LENOF_18,  IMM_MUST },
+	{ ODFNS,   LDST_SRCDST_WORD_OFNSR, LENOF_18,  IMM_MUST },
+	{ ALTSOURCE, LDST_SRCDST_BYTE_ALTSOURCE, LENOF_18,  IMM_MUST },
+/*35*/	{ NFIFO_SZL, LDST_SRCDST_WORD_INFO_FIFO_SZL, LENOF_48, IMM_MUST },
+	{ NFIFO_SZM, LDST_SRCDST_WORD_INFO_FIFO_SZM, LENOF_03, IMM_MUST },
+	{ NFIFO_L, LDST_SRCDST_WORD_INFO_FIFO_L, LENOF_48, IMM_MUST },
+	{ NFIFO_M, LDST_SRCDST_WORD_INFO_FIFO_M, LENOF_03, IMM_MUST },
+	{ SZL,     LDST_SRCDST_WORD_SZL, LENOF_48, IMM_MUST },
+/*40*/	{ SZM,     LDST_SRCDST_WORD_SZM, LENOF_03, IMM_MUST }
 };
 
 /*
@@ -162,7 +163,7 @@ static const unsigned load_dst_sz[] = { 31, 34, 34, 40, 40, 40, 40, 40 };
 static inline int load_check_len_offset(int pos, uint32_t length,
 					uint32_t offset)
 {
-	if ((load_dst[pos].dst == _DCTRL) &&
+	if ((load_dst[pos].dst == DCTRL) &&
 	    ((length & ~load_len_mask_allowed[rta_sec_era]) ||
 	     (offset & ~load_off_mask_allowed[rta_sec_era])))
 		goto err;
@@ -225,31 +226,20 @@ static inline int load_check_len_offset(int pos, uint32_t length,
 
 	return 0;
 err:
-	return -1;
+	return -EINVAL;
 }
 
-static inline unsigned rta_load(struct program *program, uint64_t src,
-				int src_type, uint64_t dst, int dst_type,
-				uint32_t offset, uint32_t length,
-				uint32_t flags)
+static inline int rta_load(struct program *program, uint64_t src, uint64_t dst,
+			   uint32_t offset, uint32_t length, uint32_t flags)
 {
 	uint32_t opcode = 0;
-	int pos = -1;
+	int pos = -1, ret = -EINVAL;
 	unsigned start_pc = program->current_pc, i;
-
-	if (dst_type != REG_TYPE) {
-		pr_err("LOAD: Invalid dst type. SEC Program Line: %d\n",
-		       program->current_pc);
-		goto err;
-	}
 
 	if (flags & SEQ)
 		opcode = CMD_SEQ_LOAD;
 	else
 		opcode = CMD_LOAD;
-
-	if (src_type == IMM_DATA)
-		flags |= IMMED;
 
 	if ((length & 0xffffff00) || (offset & 0xffffff00)) {
 		pr_err("LOAD: Bad length/offset passed. Should be 8 bits\n");
@@ -286,7 +276,8 @@ static inline unsigned rta_load(struct program *program, uint64_t src,
 		goto err;
 	}
 
-	if (-1 == load_check_len_offset(pos, length, offset)) {
+	ret = load_check_len_offset(pos, length, offset);
+	if (ret < 0) {
 		pr_err("LOAD: Invalid length/offset. SEC Program Line: %d\n",
 		       program->current_pc);
 		goto err;
@@ -295,7 +286,7 @@ static inline unsigned rta_load(struct program *program, uint64_t src,
 	opcode |= load_dst[pos].dst_opcode;
 
 	/* DESC BUFFER: length / offset values are specified in 4-byte words */
-	if (dst == _DESCBUF) {
+	if (dst == DESCBUF) {
 		opcode |= (length >> 2);
 		opcode |= ((offset >> 2) << LDST_OFFSET_SHIFT);
 	} else {
@@ -306,28 +297,27 @@ static inline unsigned rta_load(struct program *program, uint64_t src,
 	__rta_out32(program, opcode);
 	program->current_instruction++;
 
-	/* DECO COTROL: skip writing pointer of imm data */
-	if (dst == _DCTRL)
-		return start_pc;
+	/* DECO CONTROL: skip writing pointer of imm data */
+	if (dst == DCTRL)
+		return (int)start_pc;
 
 	/*
 	 * For data copy, 3 possible ways to specify how to copy data:
-	 *  - src_type is IMM: copy data directly from src( max 8 bytes)
-	 *  - src_type is PTR, but data should be immed: copy the data imm
-	 *    from the location specified by user
-	 *  - src_type is PTR and is not SEQ cmd: copy the address
+	 *  - IMMED & !COPY: copy data directly from src( max 8 bytes)
+	 *  - IMMED & COPY: copy data imm from the location specified by user
+	 *  - !IMMED and is not SEQ cmd: copy the address
 	 */
 	if (flags & IMMED)
-		__rta_inline_data(program, src, src_type, length);
+		__rta_inline_data(program, src, flags & __COPY_MASK, length);
 	else if (!(flags & SEQ))
 		__rta_out64(program, program->ps, src);
 
-	return start_pc;
+	return (int)start_pc;
 
  err:
 	program->first_error_pc = start_pc;
 	program->current_instruction++;
-	return start_pc;
+	return ret;
 }
 
 #endif /* __RTA_LOAD_CMD_H__*/

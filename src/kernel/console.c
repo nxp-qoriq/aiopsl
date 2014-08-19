@@ -33,9 +33,6 @@
 #include "inc/console.h"
 #include "sys.h"
 
-#define PRE_CONSOLE_BUF_SIZE    (4 * 1024)
-
-
 /* Global System Object */
 extern t_system sys;
 
@@ -121,9 +118,8 @@ int sys_register_console(fsl_handle_t h_console_dev,
 #endif
 
 	/* Flush pre-console printouts as necessary */
-	if (h_console_dev && sys.p_pre_console_buf) {
+	if (h_console_dev) {
 		sys_print(sys.p_pre_console_buf);
-		fsl_os_free(sys.p_pre_console_buf);
 		sys.p_pre_console_buf = NULL;
 		sys.pre_console_buf_pos = 0;
 	}
@@ -161,21 +157,16 @@ void sys_print(char *str)
 		sys.f_console_print(sys.console, (uint8_t *)str, count);
 	else {
 		if (!sys.p_pre_console_buf) {
-			sys.p_pre_console_buf = (char *)fsl_os_malloc(
-			        PRE_CONSOLE_BUF_SIZE);
-
-			if (!sys.p_pre_console_buf) {
-				/* Cannot print error message - will lead to recursion */
+				/* Cannot print error message - print called before entering to sys_init */
 #ifdef AIOP
 				unlock_spinlock(&(sys.console_lock));
 #else
 				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 #endif
 				DEBUG_HALT;
-			}
-
-			memset(sys.p_pre_console_buf, 0, PRE_CONSOLE_BUF_SIZE);
 		}
+
+
 
 		if (count >= (PRE_CONSOLE_BUF_SIZE - sys.pre_console_buf_pos)) {
 			/* Reached buffer end - overwrite from buffer start */
@@ -187,6 +178,7 @@ void sys_print(char *str)
 		memcpy(&(sys.p_pre_console_buf[sys.pre_console_buf_pos]),
 		       str/*sys.print_buf*/, count);
 		sys.pre_console_buf_pos += count;
+
 	}
 
 #ifdef AIOP

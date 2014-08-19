@@ -601,12 +601,6 @@ int slab_module_init(void)
 	}
 
 
-
-	err = slab_alocate_memory(num_bpids, slab_m, bpids_arr);
-	if(err){
-		return err;
-	}
-
 	/* CDMA CFG register bits are needed for filling BPID */
 	cdma_cfg           = ioread32_ccsr(&ccsr->cdma_regs.cfg);
 	slab_m->icid       = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
@@ -628,6 +622,11 @@ int slab_module_init(void)
 	         slab_m->fdma_flags);
 	pr_debug("ICID = 0x%x dma flags = 0x%x\n", slab_m->icid, \
 	         slab_m->fdma_dma_flags);
+
+	err = slab_alocate_memory(num_bpids, slab_m, bpids_arr);
+	if(err){
+		return err;
+	}
 
 	/* Add to all system handles */
 	err = sys_add_handle(slab_m, FSL_OS_MOD_SLAB, 1, 0);

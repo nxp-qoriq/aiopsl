@@ -24,39 +24,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/**************************************************************************//**
+@File          cmgw.h
 
-#ifndef __RTA_SIGNATURE_CMD_H__
-#define __RTA_SIGNATURE_CMD_H__
+@Description   Command Gateway
+*//***************************************************************************/
+#ifndef __CMGW_H
+#define __CMGW_H
 
-static inline int rta_signature(struct program *program, uint32_t sign_type)
-{
-	uint32_t opcode = CMD_SIGNATURE;
-	unsigned start_pc = program->current_pc;
+#include "common/types.h"
+#include "fsl_errors.h"
 
-	switch (sign_type) {
-	case (SIGN_TYPE_FINAL):
-	case (SIGN_TYPE_FINAL_RESTORE):
-	case (SIGN_TYPE_FINAL_NONZERO):
-	case (SIGN_TYPE_IMM_2):
-	case (SIGN_TYPE_IMM_3):
-	case (SIGN_TYPE_IMM_4):
-		opcode |= sign_type;
-		break;
-	default:
-		pr_err("SIGNATURE Command: Invalid type selection\n");
-		goto err;
-	}
+#define CMGW_ACGPR_BOOT_FAIL 0
 
-	__rta_out32(program, opcode);
-	program->current_instruction++;
+#define CMGW_WSCR_NTASKS_MASK 0x0000000F
 
-	return (int)start_pc;
+void cmgw_init(void * cmgw_regs_base);
+void cmgw_report_boot_failure();
+void cmgw_update_core_boot_completion();
+uint32_t cmgw_get_ntasks();
 
- err:
-	program->first_error_pc = start_pc;
-	program->current_instruction++;
-	return -EINVAL;
-}
+/** @} */ /* end of group */
+#endif /* __CMGW_H */
 
-#endif /* __RTA_SIGNATURE_CMD_H__ */

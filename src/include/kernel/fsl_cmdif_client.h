@@ -73,8 +73,9 @@
 struct cmdif_desc {
 	void *regs;
 	/*!<
-	 * Pointer to command interface registers (virtual address);
-	 * Or pointer to transport layer device for sending commands;
+	 * Pointer to transport layer device for sending commands;
+	 * On GPP the user should pass NADK device
+	 * On AIOP the user should pass dpci_id as known by GPP SW context
 	 * Must be set by the user
 	 */
 	void *dev;
@@ -86,6 +87,9 @@ struct cmdif_desc {
 	/*!<
 	 * Optional lock object to be used with the lock/unlock callbacks;
 	 * user must zero it if not needed.
+	 * Lock is needed for session sharing but only for sending synchronous
+	 * commands.
+	 * Asynchronous commands don't require lock in case of session sharing
 	 */
 	void (*lock_cb)(void *lock);
 	/*!<
@@ -141,9 +145,9 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		command response inside async_cb().
 @Param[in]	data		Buffer to be used by command interface.
 		This address should be accessible by Server and Client.
-		For MC->AIOP use buffer from DP-DDR.
 		This buffer can be freed only after cmdif_close().
-@Param[in]	size		Size of the v_data buffer. If the size if not
+		On AIOP, set data as NULL.
+@Param[in]	size		Size of the data buffer. If the size if not
 				enough cmdif_open() will return -ENOMEM.
 
 @Return		0 on success; error code, otherwise.
@@ -184,7 +188,7 @@ int cmdif_close(struct cmdif_desc *cidesc);
 		registered on Server; Application may use bits 11-0.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	size       Size of the data.
-@Param[in]	priority   High or low priority queue to be checked.
+@Param[in]	priority   High or low priority queue.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	data       Data of the command or buffer allocated by user which
 		will be used inside command.

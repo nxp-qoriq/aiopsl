@@ -24,39 +24,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/***************************************************************************//**
 
-#ifndef __RTA_SIGNATURE_CMD_H__
-#define __RTA_SIGNATURE_CMD_H__
+@File          cmgw.c
 
-static inline int rta_signature(struct program *program, uint32_t sign_type)
+@Description   Command Gateway
+ *//***************************************************************************/
+
+#include "common/types.h"
+#include "aiop_common.h"
+#include "fsl_io_ccsr.h"
+#include "fsl_spinlock.h"
+#include "fsl_core.h"
+#include "cmgw.h"
+
+static struct aiop_cmgw_regs * cmgw_regs;
+
+__SHRAM uint8_t abcr_lock = 0;
+
+/******************************************************************************/
+void cmgw_init(void * cmgw_regs_base) 
 {
-	uint32_t opcode = CMD_SIGNATURE;
-	unsigned start_pc = program->current_pc;
-
-	switch (sign_type) {
-	case (SIGN_TYPE_FINAL):
-	case (SIGN_TYPE_FINAL_RESTORE):
-	case (SIGN_TYPE_FINAL_NONZERO):
-	case (SIGN_TYPE_IMM_2):
-	case (SIGN_TYPE_IMM_3):
-	case (SIGN_TYPE_IMM_4):
-		opcode |= sign_type;
-		break;
-	default:
-		pr_err("SIGNATURE Command: Invalid type selection\n");
-		goto err;
-	}
-
-	__rta_out32(program, opcode);
-	program->current_instruction++;
-
-	return (int)start_pc;
-
- err:
-	program->first_error_pc = start_pc;
-	program->current_instruction++;
-	return -EINVAL;
+    ASSERT_COND(cmgw_regs_base);
+	
+    cmgw_regs = cmgw_regs_base;
+    abcr_lock = 0;
 }
 
-#endif /* __RTA_SIGNATURE_CMD_H__ */
+/******************************************************************************/
+void cmgw_report_boot_failure()
+{   
+    ASSERT_COND(cmgw_regs);
+
+	iowrite32_ccsr(0x1, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]));
+}
+
+/******************************************************************************/
+void cmgw_update_core_boot_completion()
+{
+    uint32_t abcr_val;
+
+    uint32_t* abcr = &(cmgw_regs->abcr);
+    
+    /* Write AIOP boot status (ABCR) */
+    lock_spinlock(&abcr_lock);
+    abcr_val = ioread32_ccsr(abcr);
+    abcr_val |= (uint32_t)(1 << core_get_id());
+    iowrite32_ccsr(abcr_val, abcr);
+    unlock_spinlock(&abcr_lock);
+}
+
+uint32_t cmgw_get_ntasks()
+{
+	return (ioread32_ccsr(&cmgw_regs->wscr) & CMGW_WSCR_NTASKS_MASK);
+}
+

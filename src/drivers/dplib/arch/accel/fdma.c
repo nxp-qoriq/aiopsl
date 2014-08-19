@@ -1655,10 +1655,12 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		PRC_SET_NDS_BIT();
-	else
+	if (res1 == FDMA_SUCCESS) {
+		if (seg_handle == PRC_GET_SEGMENT_HANDLE())
+				PRC_SET_NDS_BIT();
+	} else {
 		fdma_handle_fatal_errors((int32_t)res1);
+	}
 }
 
 int fdma_replace_default_asa_segment_data(

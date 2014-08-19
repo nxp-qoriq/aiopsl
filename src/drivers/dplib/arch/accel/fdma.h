@@ -103,7 +103,7 @@
 	/* TODO - remove / move to errors.h*/
 #define EBADFD	77
 
-/* @} end of group FDMA_Commands_Definitions */
+/** @} end of group FDMA_Commands_Definitions */
 
 /**************************************************************************//**
 @Group		FDMA_Int_Init_ModeBits
@@ -122,7 +122,7 @@
 		- 1: do not present ASA. */
 #define FDMA_INIT_NAS_BIT		0x00000400
 
-/* @} end of group FDMA_Int_Init_ModeBits */
+/** @} end of group FDMA_Int_Init_ModeBits */
 
 
 /**************************************************************************//**
@@ -170,7 +170,7 @@
 	/** FDMA Release buffer command code */
 #define FDMA_RELEASE_BUFFER_CMD		0x00000073
 
-/* @} end of group FDMA_Commands_IDs */
+/** @} end of group FDMA_Commands_IDs */
 
 
 /**************************************************************************//**
@@ -443,7 +443,7 @@
 #define FDMA_RELEASE_CMD_ARG1(_icid, _flags)				\
 	(uint32_t)((((uint32_t)_icid) << 16) | _flags | FDMA_RELEASE_BUFFER_CMD)
 
-/* @} end of group FDMA_Commands_Args */
+/** @} end of group FDMA_Commands_Args */
 
 	/** Getter for AMQ (ICID, PL, VA, BDI) default attributes */
 /* Todo - enable inline when inline works correctly+move definition to .h file*/
@@ -809,6 +809,35 @@ int fdma_present_frame_without_segments(
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
 int fdma_present_default_frame_default_segment();
+
+/**************************************************************************//**
+@Function	fdma_dma_data
+
+@Description	Provide direct access to any system memory data. Transfer system
+		memory data to/from the task workspace/AIOP shared memory.
+
+@Param[in]	copy_size - Number of bytes to copy (limited to 12 bits).
+@Param[in]	icid - Memory Access ICID. The DMA uses the provided Isolation
+		Context to make the access.
+@Param[in]	loc_addr - A pointer to the source/target location in Workspace
+		or AIOP Shared Memory for DMA data. Workspace address is
+		limited to 16 bits. AIOP Shared Memory address is limited to 20
+		bits.
+@Param[in]	sys_addr - System memory source/target address for DMA data.
+@Param[in]	flags - Please refer to \link FDMA_DMA_Flags DMA command flags
+		\endlink.
+
+@Return		None.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+void fdma_dma_data(
+		uint16_t copy_size,
+		uint16_t icid,
+		void *loc_addr,
+		uint64_t sys_addr,
+		uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_acquire_buffer

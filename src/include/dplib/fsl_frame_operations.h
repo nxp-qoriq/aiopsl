@@ -38,6 +38,21 @@
 #include "fsl_errors.h"
 #include "dplib/fsl_ldpaa.h"
 
+/**************************************************************************//**
+ @Group		NETF NETF (Network Libraries)
+
+ @Description	AIOP Accelerator APIs
+
+ @{
+*//***************************************************************************/
+
+/**************************************************************************//**
+ @Group		AIOP_NETF_GENERAL GENERAL
+
+ @Description	AIOP NETF general API
+
+ @{
+ *//***************************************************************************/
 
 /**************************************************************************//**
  @Group		FSL_AIOP_FRAME_OPERATIONS AIOP Frame Operations
@@ -81,7 +96,7 @@
 		data segment of the frame).
 
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
-		of the created frame.
+		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
@@ -99,10 +114,9 @@
 		this is the default frame).
 		Recommendation is to discard the frame.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_frame(
@@ -140,7 +154,7 @@ int create_frame(
 		optionally present a segment).
 
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
-		of the created frame.
+		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
@@ -154,10 +168,9 @@ int create_frame(
 
 @remark		FD is updated.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_fd(
@@ -189,7 +202,7 @@ int create_fd(
 		data segment of the frame).
 
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
-		of the created frame.
+		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
@@ -206,10 +219,9 @@ int create_fd(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_arp_request_broadcast(
@@ -243,7 +255,7 @@ int create_arp_request_broadcast(
 		data segment of the frame).
 
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
-		of the created frame.
+		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
@@ -261,10 +273,9 @@ int create_arp_request_broadcast(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_arp_request(
@@ -274,9 +285,13 @@ int create_arp_request(
 		uint8_t *target_eth,
 		uint8_t *frame_handle);
 
-/* @} end of group FRAME_OPERSTIONS_Functions */
+/** @} end of group FRAME_OPERSTIONS_Functions */
 
 /** @} */ /* end of FSL_AIOP_FRAME_OPERATIONS */
+
+/** @} */ /* end of AIOP_NETF_GENERAL */
+
+/** @} */ /* end of NETF */
 
 
 #endif /* __FSL_FRAME_OPERATIONS_H */

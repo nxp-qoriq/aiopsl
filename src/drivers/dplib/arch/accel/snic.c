@@ -243,19 +243,18 @@ static int snic_close_cb(void *dev)
 	return 0;
 }
 
-static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
+static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
 	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid, spid;
 	int i;
-	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)PRC_GET_SEGMENT_ADDRESS();
+	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)data;
 	struct ipr_params ipr_params = {0};
 	struct ipr_params *cfg = &ipr_params;
 	uint32_t snic_ep_pc;
 
 	UNUSED(dev);
-	UNUSED(data);
 
 	ipr_params.flags |= IPR_MODE_TABLE_LOCATION_PEB;
 
