@@ -299,9 +299,76 @@ A general bit that is set in some errors conditions */
  * allocation (availability is not guaranteed). */
 #define MFLU_HW_STATUS_TEMPNOR	(0x00000010 | MFLU_HW_STATUS_NORSC)
 
+/**
+ * Miss result creation failed in table creation
+ */
+#define TABLE_SW_STATUS_MISS_RES_CRT_FAIL	0xFF000001
+
+/**
+ * Miss result replacement failed due to non existence of miss result in the
+ * table.
+ */
+#define TABLE_SW_STATUS_MISS_RES_RPL_FAIL	0xFF000002
+
+/**
+ * Miss result get failed due to non existence of miss result in the table.
+ */
+#define TABLE_SW_STATUS_MISS_RES_GET_FAIL	0xFF000003
+
+/**
+ * Rule query failed due to unrecognized entry type returned from HW.
+ */
+#define TABLE_SW_STATUS_QUERY_INVAL_ENTYPE	0xFF000004
+
+/**
+ * Unknown table type.
+ */
+#define TABLE_SW_STATUS_UNKNOWN_TBL_TYPE	0xFF000005
+
 /** @} */ /* end of TABLE_STATUS */
 
 /** @} */ /* end of TABLE_MACROS */
+
+/**************************************************************************//**
+@Group		TABLE_Enumerations Table Enumerations
+
+@Description	AIOP Table Enumerations
+
+@{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@enum	table_function_identifier
+
+@Description	IDs of table functions
+
+@{
+*//***************************************************************************/
+enum table_function_identifier {
+	TABLE_CREATE_FUNC_ID,
+	TABLE_REPLACE_MISS_RESULT_FUNC_ID,
+	TABLE_GET_PARAMS_FUNC_ID,
+	TABLE_GET_MISS_RESULT_FUNC_ID,
+	TABLE_DELETE_FUNC_ID,
+	TABLE_RULE_CREATE_FUNC_ID,
+	TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+	TABLE_RULE_REPLACE_FUNC_ID,
+	TABLE_RULE_QUERY_FUNC_ID,
+	TABLE_RULE_DELETE_FUNC_ID,
+	TABLE_LOOKUP_BY_KEY_FUNC_ID,
+	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
+	TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+	TABLE_QUERY_DEBUG_FUNC_ID,
+	TABLE_HW_ACCEL_ACQUIRE_LOCK_FUNC_ID,
+	TABLE_HW_ACCEL_RELEASE_LOCK_FUNC_ID,
+	TABLE_EXCEPTION_HANDLER_WRP_FUNC_ID,
+	TABLE_EXCEPTION_HANDLER_FUNC_ID,
+	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID
+};
+
+/** @} */ /* end of table_function_identifier */
+
+/** @} */ /* end of TABLE_Enumerations */
 
 
 /**************************************************************************//**
@@ -744,7 +811,7 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 		per file but the exception handling function of table API is
 		located in one place and should not be changed over time.
 
-@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
 @Param[in]	line - The line in which the error occurred.
 @Param[in]	status - Status to be handled be this function.
 
@@ -752,7 +819,9 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
-void table_exception_handler_wrp(uint32_t line, int32_t status);
+void table_exception_handler_wrp(enum table_function_identifier func_id,
+				 uint32_t line,
+				 int32_t status);
 
 /**************************************************************************//**
 @Function	table_exception_handler
@@ -761,6 +830,7 @@ void table_exception_handler_wrp(uint32_t line, int32_t status);
 		functions.
 
 @Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
 @Param[in]	line - The line in which the error occurred.
 @Param[in]	status - Status to be handled be this function.
 
@@ -768,8 +838,10 @@ void table_exception_handler_wrp(uint32_t line, int32_t status);
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
-void table_exception_handler(char *file_path, uint32_t line, int32_t status);
-
+void table_exception_handler(char *file_path,
+			     enum table_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status);
 
 /**************************************************************************//**
 @Function	table_calc_num_entries_per_rule

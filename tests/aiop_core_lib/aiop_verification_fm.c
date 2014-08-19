@@ -239,13 +239,13 @@ void aiop_verification_fm()
 		}
 		case EXCEPTION_MODULE:
 		{
-			struct write_fatal_fqid_to_workspace_tls_command *str =
-			   (struct write_fatal_fqid_to_workspace_tls_command *)
+			struct fatal_error_command *str =
+			   (struct fatal_error_command *)
 						((uint32_t)data_addr);
 			fatal_fqid = str->fqid;
 			str_size = (uint16_t)
 			  sizeof(
-			     struct write_fatal_fqid_to_workspace_tls_command);
+			     struct fatal_error_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:
