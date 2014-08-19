@@ -49,7 +49,7 @@ Execution flow
 	Mem file: mc\build\mc_t4ls_sim\cw_files\LS2085A-AFM_MC.mem
    Don't forget to update simulator server IP and port in debug configuration.
 5. After MC reaches main(), turn tio console:
-   ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart1_0
+   ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
 6. Run mc_app.
 7. Launch ipr_demo using AFM connection.
 	Init file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl
