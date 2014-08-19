@@ -1110,7 +1110,6 @@ int fdma_read_default_frame_asa(
 		frame).
 
 @remark		The PTA segment handle value is fixed \ref FDMA_PTA_SEG_HANDLE.
-
 @remark		The length of the read PTA can be read directly from the FD.
 
 @Cautions	The HW must have previously opened the frame with an
@@ -1191,6 +1190,9 @@ int fdma_extend_default_segment_presentation(
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @remark		FD is updated.
+@remark		If some segments of the Working Frame are not closed, they will
+		be closed and the segment handles will be implicitly released.
+@remark		Release frame handle is implicit in this function.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
@@ -1225,6 +1227,10 @@ int fdma_store_default_frame_data(void);
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @remark		FD is updated.
+@remark		If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+@remark		Release frame handle is implicit in this function.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
@@ -1272,9 +1278,13 @@ int fdma_store_frame_data(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@remark		If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+@remark		Release frame handle is implicit in this function.
+
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1318,9 +1328,13 @@ int fdma_store_and_enqueue_default_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@remark		If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+@remark		Release frame handle is implicit in this function.
+
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1368,9 +1382,13 @@ int fdma_store_and_enqueue_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@remark		If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+@remark		Release frame handle is implicit in this function.
+
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1418,9 +1436,13 @@ int fdma_store_and_enqueue_default_frame_qd(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@remark		If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+@remark		Release frame handle is implicit in this function.
+
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1569,6 +1591,9 @@ int fdma_enqueue_fd_qd(
 
 @Return		None.
 
+@remark		Release frame handle and release segment handle(s) are implicit
+		in this function.
+
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1583,6 +1608,9 @@ void fdma_discard_default_frame(uint32_t flags);
 		frame flags. \endlink
 
 @Return		None.
+
+@remark		Release frame handle and release segment handle(s) are implicit
+		in this function.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1647,11 +1675,13 @@ void fdma_force_discard_fd(struct ldpaa_fd *fd);
 
 @Return		None.
 
-@Cautions
-		- Application software must store (in software managed context)
+@remark		Release frame handle(s) and release segment handle(s) are
+		implicit in this function.
+
+@Cautions	Application software must store (in software managed context)
 		or discard the input frame before calling Terminate task
 		command to avoid buffer leak.
-		- Function does not return
+@Cautions	Function does not return.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1744,8 +1774,8 @@ int fdma_replicate_frame_qd(
 @Description	Join two frames {frame1 , frame2} and return a new concatenated
 		frame.
 
-		Pre-condition: The two frames may be modified but all
-		the segments must be closed.
+		The two frames may be modified but all the segments must be
+		closed.
 
 		The command also support the option to trim a number of
 		bytes from the beginning of the 2nd frame before it is
@@ -1763,13 +1793,13 @@ int fdma_replicate_frame_qd(
 		\ref FDMA_CONCAT_PCA_BIT flag is set).
 
 @remark		Frame annotation of the first frame becomes the frame annotation
-		of the concatenated frame
+		of the concatenated frame.
+@remark		Release of frame handle 2 is implicit in this function.
 
-@Cautions
-		- In case frame1 handle parameter is the default frame handle,
+@Cautions	In case frame1 handle parameter is the default frame handle,
 		the default frame length variable in the Task defaults will not
 		be valid after the service routine.
-		- In case frame2 handle parameter is the default frame handle,
+@Cautions	In case frame2 handle parameter is the default frame handle,
 		all Task default variables will not be valid after the service
 		routine.
 @Cautions	This function may result in a fatal error.
@@ -1808,13 +1838,11 @@ int fdma_concatenate_frames(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- The first fd is updated to reflect the remainder of the
+@remark		The first fd is updated to reflect the remainder of the
 		input fd (the second part of the split frame).
-		- The second fd represent the split portion of the frame (the
+@remark		The second fd represent the split portion of the frame (the
 		first part of the split frame).
-		- Frame annotation of the first frame is preserved.
-
+@remark		Frame annotation of the first frame is preserved.
 @remark		If split size is >= frame size then an error will be returned.
 
 @Cautions	This function may result in a fatal error.
@@ -2049,10 +2077,9 @@ int fdma_replace_default_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
-		- Example: Insert 2 bytes - The default Data
+@remark		Example: Insert 2 bytes - The default Data
 		segment represents a 100 bytes at offset 0 in the frame (0-99),
 		and the user want to insert 2 bytes after the 24th byte in the
 		segment.
@@ -2116,10 +2143,9 @@ int fdma_insert_default_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
-		- Example: Insert 2 bytes - The default Data
+@remark		Example: Insert 2 bytes - The default Data
 		segment represents a 100 bytes at offset 0 in the frame (0-99),
 		and the user want to insert 2 bytes after the 24th byte in the
 		segment.
@@ -2167,12 +2193,11 @@ int fdma_insert_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = delete_target_size, ws_address = irrelevant (0),
 		size = 0 (replacing 'delete_target_size' bytes with 0 bytes =
 		deletion).
-		- Example: Delete 10 bytes. The default Data segment represents
+@remark		Example: Delete 10 bytes. The default Data segment represents
 		a 100 bytes at offset 0 in the frame (0-99), and the user want
 		to delete 10 bytes after the 24th byte.
 		Parameters:
@@ -2221,12 +2246,11 @@ int fdma_delete_default_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = delete_target_size, ws_address = irrelevant (0),
 		size = 0 (replacing 'delete_target_size' bytes with 0 bytes =
 		deletion).
-		- Example: Delete 10 bytes. The default Data segment represents
+@remark		Example: Delete 10 bytes. The default Data segment represents
 		a 100 bytes at offset 0 in the frame (0-99), and the user want
 		to delete 10 bytes after the 24th byte.
 		Parameters:
@@ -2441,35 +2465,6 @@ void fdma_copy_data(
 		uint32_t flags,
 		void *src,
 		void *dst);
-
-/**************************************************************************//**
-@Function	fdma_dma_data
-
-@Description	Provide direct access to any system memory data. Transfer system
-		memory data to/from the task workspace/AIOP shared memory.
-
-@Param[in]	copy_size - Number of bytes to copy (limited to 12 bits).
-@Param[in]	icid - Memory Access ICID. The DMA uses the provided Isolation
-		Context to make the access.
-@Param[in]	loc_addr - A pointer to the source/target location in Workspace
-		or AIOP Shared Memory for DMA data. Workspace address is
-		limited to 16 bits. AIOP Shared Memory address is limited to 20
-		bits.
-@Param[in]	sys_addr - System memory source/target address for DMA data.
-@Param[in]	flags - Please refer to \link FDMA_DMA_Flags DMA command flags
-		\endlink.
-
-@Return		None.
-
-@Cautions	This function may result in a fatal error.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-void fdma_dma_data(
-		uint16_t copy_size,
-		uint16_t icid,
-		void *loc_addr,
-		uint64_t sys_addr,
-		uint32_t flags);
 
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */

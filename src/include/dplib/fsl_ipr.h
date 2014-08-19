@@ -97,7 +97,7 @@ typedef void /*__noreturn*/ (ipr_del_cb_t) (ipr_del_arg_t arg);
 typedef void /*__noreturn*/ (ipr_timeout_cb_t) (ipr_timeout_arg_t arg,
 						uint32_t flags);
 
-/* @} end of group IPR_MACROS */
+/** @} */ /* end of group IPR_MACROS */
 
 /**************************************************************************//**
 @Group		IPR_STRUCTS IPR Data Structures
@@ -222,10 +222,9 @@ struct extended_stats_cntrs {
 		     couldn't start due to lack of allocated buffers in the
 		     ipr_config::bman_pool_id.*/
 	uint32_t	no_free_buffer_cntr;
-
-
-
 };
+
+/** @} */ /* end of group IPR_STRUCTS */
 
 /**************************************************************************//**
 @Group		FSL_IPR_Modes_And_Flags IPR Modes And Flags
@@ -270,7 +269,7 @@ struct extended_stats_cntrs {
 #define IPR_MODE_TABLE_LOCATION_EXT2	0x0C000000
 
 
-/* @} end of group FSL_IPRInsModeBits */
+/** @} */ /* end of group FSL_IPRInsModeBits */
 
 
 /**************************************************************************//**
@@ -286,7 +285,7 @@ struct extended_stats_cntrs {
   is the IPv6 number of reassembled frames */
 #define IPR_STATS_IP_VERSION 0x01
 
-/* @} end of group FSL_IPRStatsFlags */
+/** @} */ /* end of group FSL_IPRStatsFlags */
 
 /**************************************************************************//**
 @Group		FSL_IPRUpdateFlags IPR Update flags
@@ -308,7 +307,7 @@ struct extended_stats_cntrs {
  *   IPR_MODE_IPV6_TO_TYPE)  is changed the other type.*/
 #define IPR_UPDATE_TO_MODE 0x10
 
-/* @} end of group FSL_IPRUpdateFlags */
+/** @} */ /* end of group FSL_IPRUpdateFlags */
 
 /**************************************************************************//**
 @Group		FSL_IPRCreateReturnStatus IPR create instance return status
@@ -318,13 +317,13 @@ struct extended_stats_cntrs {
 @{
 *//***************************************************************************/
 
-/* Instance was successfully created */
+/** Instance was successfully created */
 #define IPR_CREATE_INSTANCE_SUCCESS	SUCCESS
-/* Instance creation failed due to lack of allocated buffers */
+/** Instance creation failed due to lack of allocated buffers */
 #define IPR_MAX_BUFFERS_REACHED		(IPR_MODULE_STATUS_ID + 0x0100)
 
 
-/* @} end of group FSL_IPRCreateReturnStatus */
+/** @} */ /* end of group FSL_IPRCreateReturnStatus */
 
 
 /**************************************************************************//**
@@ -335,25 +334,25 @@ struct extended_stats_cntrs {
 @{
 *//***************************************************************************/
 
-/* Frame was a regular frame*/
+/** Frame was a regular frame*/
 #define IPR_REASSEMBLY_REGULAR		0
-/* Frame was correctly reassembled */
+/** Frame was correctly reassembled */
 #define IPR_REASSEMBLY_SUCCESS		(IPR_MODULE_STATUS_ID + 0x1000)
-/* Reassembly isn't completed yet but fragment was successfully added to the
+/** Reassembly isn't completed yet but fragment was successfully added to the
    partially reassembled frame*/
 #define IPR_REASSEMBLY_NOT_COMPLETED	(IPR_MODULE_STATUS_ID + 0x0200)
-/* There were not enough hierarchy scope levels (IPR requires 2 hierarchy scope
+/** There were not enough hierarchy scope levels (IPR requires 2 hierarchy scope
    levels) so the reassembly was done serially (leading to a depressed
    performance)*/
 #define IPR_MAX_NESTED_REACHED		(IPR_MODULE_STATUS_ID + 0x0300)
-/* Fragment has been recognized as malformed, and wasn't added
+/** Fragment has been recognized as malformed, and wasn't added
     to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
-/* An error occurred during reassembly, like instance not valid,
+/** An error occurred during reassembly, like instance not valid,
  * early time out */
 #define IPR_ERROR			(IPR_MODULE_STATUS_ID + 0x0500)
 
-/* @} end of group FSL_IPRReassReturnStatus */
+/** @} */ /* end of group FSL_IPRReassReturnStatus */
 
 /**************************************************************************//**
 @Group		FSL_IPRTOCallbackFlags IPR Time Out Callback flags
@@ -363,14 +362,11 @@ struct extended_stats_cntrs {
 @{
 *//***************************************************************************/
 
-/* If set, it indicates that the first fragment (frag offset=0) was received*/
+/** If set, it indicates that the first fragment (frag offset=0) was received*/
 #define IPR_TO_CB_FIRST_FRAG		0x01
 
-/* @} end of group FSL_IPRTOCallbackFlags */
-/* @} end of group FSL_IPR_Modes_And_Flags */
-
-/* @} end of group IPR_STRUCTS */
-
+/** @} */ /* end of group FSL_IPRTOCallbackFlags */
+/** @} */ /* end of group FSL_IPR_Modes_And_Flags */
 
 /**************************************************************************//**
 @Group		FSL_IPR_Functions IPR functions
@@ -445,7 +441,6 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		inserted to the partially reassembled frame.\n
 		When called for a closing fragment, reassembly is done.\n
 		The reassembled frame is returned to the caller.
-		If exists, L4 checksum is checked.
 
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
@@ -581,8 +576,8 @@ void ipr_modify_timeout_value_ipv6(ipr_instance_handle_t ipr_instance,
 void ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 				uint32_t flags, uint32_t *reass_frm_cntr);
 
-/* @} end of group FSL_IPR_Functions */
-/* @} end of group FSL_IPR */
-/* @} end of group NETF */
+/** @} */ /* end of group FSL_IPR_Functions */
+/** @} */ /* end of group FSL_IPR */
+/** @} */ /* end of group NETF */
 
 #endif /* __FSL_IPR_H */

@@ -114,10 +114,9 @@
 		this is the default frame).
 		Recommendation is to discard the frame.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_frame(
@@ -169,10 +168,9 @@ int create_frame(
 
 @remark		FD is updated.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_fd(
@@ -221,10 +219,9 @@ int create_fd(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_arp_request_broadcast(
@@ -276,10 +273,9 @@ int create_arp_request_broadcast(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
-@Cautions
-		- In this Service Routine the task yields.
-		- The FD address in workspace must be aligned to 32 bytes.
-		- The frame FD is overwritten in this function.
+@Cautions	In this Service Routine the task yields.
+@Cautions	The FD address in workspace must be aligned to 32 bytes.
+@Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int create_arp_request(
