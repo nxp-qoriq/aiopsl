@@ -1110,7 +1110,6 @@ int fdma_read_default_frame_asa(
 		frame).
 
 @remark		The PTA segment handle value is fixed \ref FDMA_PTA_SEG_HANDLE.
-
 @remark		The length of the read PTA can be read directly from the FD.
 
 @Cautions	The HW must have previously opened the frame with an
@@ -1190,13 +1189,10 @@ int fdma_extend_default_segment_presentation(
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@remark
-		- FD is updated.
-		- If some segments of the Working Frame are not closed, they
-		will be closed and the segment handles will be implicitly
-		released.
-		- Release frame handle is implicit in this function.
-command.
+@remark		FD is updated.
+@remark		If some segments of the Working Frame are not closed, they will
+		be closed and the segment handles will be implicitly released.
+@remark		Release frame handle is implicit in this function.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
@@ -1230,12 +1226,11 @@ int fdma_store_default_frame_data(void);
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@remark
-		- FD is updated.
-		- If some segments of the Working Frame are not closed, they
+@remark		FD is updated.
+@remark		If some segments of the Working Frame are not closed, they
 		will be closed and the segment handles will be implicitly
 		released.
-		- Release frame handle is implicit in this function.
+@remark		Release frame handle is implicit in this function.
 
 @Cautions	All modified segments (which are to be stored) must be replaced
 		(by a replace command) before storing a frame.
@@ -1283,15 +1278,13 @@ int fdma_store_frame_data(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@ remark
-		- If some segments of the Working Frame are not closed, they
+@remark		If some segments of the Working Frame are not closed, they
 		will be closed and the segment handles will be implicitly
 		released.
-		- Release frame handle is implicit in this function.
+@remark		Release frame handle is implicit in this function.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1335,15 +1328,13 @@ int fdma_store_and_enqueue_default_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@ remark
-		- If some segments of the Working Frame are not closed, they
+@remark		If some segments of the Working Frame are not closed, they
 		will be closed and the segment handles will be implicitly
 		released.
-		- Release frame handle is implicit in this function.
+@remark		Release frame handle is implicit in this function.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1391,15 +1382,13 @@ int fdma_store_and_enqueue_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@ remark
-		- If some segments of the Working Frame are not closed, they
+@remark		If some segments of the Working Frame are not closed, they
 		will be closed and the segment handles will be implicitly
 		released.
-		- Release frame handle is implicit in this function.
+@remark		Release frame handle is implicit in this function.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1447,15 +1436,13 @@ int fdma_store_and_enqueue_default_frame_qd(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@ remark
-		- If some segments of the Working Frame are not closed, they
+@remark		If some segments of the Working Frame are not closed, they
 		will be closed and the segment handles will be implicitly
 		released.
-		- Release frame handle is implicit in this function.
+@remark		Release frame handle is implicit in this function.
 
-@Cautions
-		- Function may not return.
-		- All modified segments (which are to be stored) must be
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
 		replaced (by a replace command) before storing a frame.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1691,11 +1678,10 @@ void fdma_force_discard_fd(struct ldpaa_fd *fd);
 @remark		Release frame handle(s) and release segment handle(s) are
 		implicit in this function.
 
-@Cautions
-		- Application software must store (in software managed context)
+@Cautions	Application software must store (in software managed context)
 		or discard the input frame before calling Terminate task
 		command to avoid buffer leak.
-		- Function does not return
+@Cautions	Function does not return.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1806,16 +1792,14 @@ int fdma_replicate_frame_qd(
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
 		\ref FDMA_CONCAT_PCA_BIT flag is set).
 
-@remark
-		- Frame annotation of the first frame becomes the frame annotation
-		of the concatenated frame
-		- Release of frame handle 2 is implicit in this function.
+@remark		Frame annotation of the first frame becomes the frame annotation
+		of the concatenated frame.
+@remark		Release of frame handle 2 is implicit in this function.
 
-@Cautions
-		- In case frame1 handle parameter is the default frame handle,
+@Cautions	In case frame1 handle parameter is the default frame handle,
 		the default frame length variable in the Task defaults will not
 		be valid after the service routine.
-		- In case frame2 handle parameter is the default frame handle,
+@Cautions	In case frame2 handle parameter is the default frame handle,
 		all Task default variables will not be valid after the service
 		routine.
 @Cautions	This function may result in a fatal error.
@@ -1854,13 +1838,11 @@ int fdma_concatenate_frames(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- The first fd is updated to reflect the remainder of the
+@remark		The first fd is updated to reflect the remainder of the
 		input fd (the second part of the split frame).
-		- The second fd represent the split portion of the frame (the
+@remark		The second fd represent the split portion of the frame (the
 		first part of the split frame).
-		- Frame annotation of the first frame is preserved.
-
+@remark		Frame annotation of the first frame is preserved.
 @remark		If split size is >= frame size then an error will be returned.
 
 @Cautions	This function may result in a fatal error.
@@ -2095,10 +2077,9 @@ int fdma_replace_default_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
-		- Example: Insert 2 bytes - The default Data
+@remark		Example: Insert 2 bytes - The default Data
 		segment represents a 100 bytes at offset 0 in the frame (0-99),
 		and the user want to insert 2 bytes after the 24th byte in the
 		segment.
@@ -2162,10 +2143,9 @@ int fdma_insert_default_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
-		- Example: Insert 2 bytes - The default Data
+@remark		Example: Insert 2 bytes - The default Data
 		segment represents a 100 bytes at offset 0 in the frame (0-99),
 		and the user want to insert 2 bytes after the 24th byte in the
 		segment.
@@ -2213,12 +2193,11 @@ int fdma_insert_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = delete_target_size, ws_address = irrelevant (0),
 		size = 0 (replacing 'delete_target_size' bytes with 0 bytes =
 		deletion).
-		- Example: Delete 10 bytes. The default Data segment represents
+@remark		Example: Delete 10 bytes. The default Data segment represents
 		a 100 bytes at offset 0 in the frame (0-99), and the user want
 		to delete 10 bytes after the 24th byte.
 		Parameters:
@@ -2267,12 +2246,11 @@ int fdma_delete_default_segment_data(
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
-@remark
-		- This is basically a replace command with
+@remark		This is basically a replace command with
 		to_size = delete_target_size, ws_address = irrelevant (0),
 		size = 0 (replacing 'delete_target_size' bytes with 0 bytes =
 		deletion).
-		- Example: Delete 10 bytes. The default Data segment represents
+@remark		Example: Delete 10 bytes. The default Data segment represents
 		a 100 bytes at offset 0 in the frame (0-99), and the user want
 		to delete 10 bytes after the 24th byte.
 		Parameters:
