@@ -84,7 +84,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	} while (res1 == TMAN_TMI_CREATE_BUSY);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
-	if (res1 == TMAN_TMR_DEPLETION_ERR)
+	if (res1 == TMAN_TMIID_DEPLETION_ERR)
 		return (int)(-ENOSPC);
 	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_TMSTATE_ADDRESS
 			+ ((*tmi_id)<<5));
