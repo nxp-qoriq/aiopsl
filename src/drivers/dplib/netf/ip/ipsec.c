@@ -1920,12 +1920,6 @@ decrypt_end:
 	 *  move from Exclusive to Concurrent  
 	 *  (AAP does that, only register through OSM functions). */
 	
-	/* Check if started in concurrent mode */
-	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
-		/* Move to Concurrent */
-		osm_scope_relinquish_exclusivity();
-	}
-
 	/* Decrement the reference counter */
 	return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
