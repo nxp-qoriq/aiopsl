@@ -132,9 +132,7 @@ int cmdif_register_module(const char *module_name,
 @Description	Cancel the registration of a module on the server
 		and free the module id acquired during registration
 
-Each module needs to unregister from the command interface
-
-@Param[in]	module_name - Module name
+@Param[in]	module_name - Module name, up to 8 characters.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -152,7 +150,8 @@ This functionality is relevant only for GPP.
 @Param[in]	m_name   - Name of the module as registered
 		by cmdif_register_module()
 @Param[in]	inst_id  - Instance id which will be passed to #open_cb_t
-@Param[in]	size     - Size of v_data buffer
+@Param[in]	size     - Size of v_data buffer.
+		By default, set it to 64 bytes.
 @Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
 @Param[in]	send_dev - Transport device to be used for server (nadk device).
@@ -174,7 +173,8 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 
 @Description	Close session on server and notify client about it.
 
-This functionality is relevant only for GPP.
+This functionality is relevant only for GPP but it's not yet supported
+by the GPP server.
 
 @Param[in]	cidesc   - Already open connection descriptor towards second side
 @Param[in]	size     - Size of v_data buffer
@@ -196,6 +196,8 @@ int cmdif_session_close(struct cmdif_desc *cidesc,
 @Function	cmdif_srv_cb
 
 @Description	Server callback to be called on every frame command
+
+This functionality is relevant only for GPP.
 
 @Param[in]	pr       - Priority
 @Param[in]	send_dev - Device used for send and receive of frame descriptor

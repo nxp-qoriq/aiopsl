@@ -137,6 +137,7 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 
 @Param[in]	cidesc		Command interface descriptor, cmdif device will
 		be returned inside this descriptor.
+		Only cidesc.regs must be set by user see \ref struct cmdif_desc.
 @Param[in]	module_name	Module name, up to 8 characters.
 @Param[in]	instance_id	Instance id which will be passed to #open_cb_t
 @Param[in]	async_cb	Callback to be called on response of
@@ -147,8 +148,9 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		This address should be accessible by Server and Client.
 		This buffer can be freed only after cmdif_close().
 		On AIOP, set data as NULL.
-@Param[in]	size		Size of the data buffer. If the size if not
+@Param[in]	size		Size of the data buffer. If the size is not
 				enough cmdif_open() will return -ENOMEM.
+				By default, set it to 64 bytes.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -166,6 +168,8 @@ int cmdif_open(struct cmdif_desc *cidesc,
 @Description	Close this command interface device and free this instance entry
 		on the Server.
 
+It's not yet supported by the AIOP client.
+
 @Param[in]	cidesc   Command interface descriptor which was setup by
 		cmdif_open().
 
@@ -181,6 +185,8 @@ int cmdif_close(struct cmdif_desc *cidesc);
 
 		This function may be activated in synchronous and asynchronous
 		mode, see \ref CMDIF_SEND_ATTRIBUTES.
+		Note, AIOP client supports only asynchronous commands see
+		\ref CMDIF_ASYNC_CMD.
 
 @Param[in]	cidesc     Command interface descriptor which was setup by
 		cmdif_open().
@@ -209,7 +215,8 @@ int cmdif_send(struct cmdif_desc *cidesc,
 @Description	Check the response queue for new responses,
 		de-queue and activate the callback function for each response
 
-This function is not blocking; if nothing was found it will return error code
+This function is not blocking; if nothing was found it will return error code.
+Note, this functionality is not relevant for AIOP client.
 
 @Param[in]	cidesc   Command interface descriptor which was setup by
 		cmdif_open().
