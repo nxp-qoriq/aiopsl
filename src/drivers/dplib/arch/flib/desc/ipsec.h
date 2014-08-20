@@ -485,6 +485,7 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps,
 	REFERENCE(phdr);
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	PROGRAM_SET_BSWAP(p); /* TMP patch */
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
@@ -536,6 +537,7 @@ static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps,
 	REFERENCE(phdr);
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	PROGRAM_SET_BSWAP(p); /* TMP patch */
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);

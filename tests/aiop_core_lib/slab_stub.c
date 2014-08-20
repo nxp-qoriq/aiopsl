@@ -44,7 +44,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 	UNUSED(alignment);
 	UNUSED(mem_partition_id);
 
-	if ((buff_size == (SYS_NUM_OF_PRPIDS+2)) || (buff_size == 2688))
+	if ((buff_size == (SYS_NUM_OF_PRPIDS+3)) || (buff_size == 2688))
 		*bpid = 1;
 	else
 		*bpid = 2;
