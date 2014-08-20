@@ -46,7 +46,11 @@
 /**************************************************************************//**
 @Group         cmdif_flib_g  Command Interface - FLIB API
 
-@Description   API to be used for FD based command interface implementation
+@Description   API to be used for FD based command interface implementation.
+
+This is external API that is used to implement the final API as defined at
+fsl_cmdif_client.h and fsl_cmdif_server.h. For client and server external use
+only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
 
 @{
  *//***************************************************************************/
@@ -60,6 +64,7 @@ struct cmdif_fd {
 	 * by cmdif client side when sending commands to AIOP server */
 	union {
 		uint64_t flc;
+		/*!< Full FLC field */
 		struct {
 			uint8_t dev_h;     /*!< 7 high bits of cmdif_desc.dev */
 			uint8_t err;       /*!< Reserved for error on response*/
@@ -67,6 +72,7 @@ struct cmdif_fd {
 			uint16_t cmid;     /*!< Command id */
 			uint16_t epid;     /*!< Reserved fog EPID */
 		} cmd;
+		/*!< FLC field for command after the session is open */
 		struct {
 			uint8_t inst_id;    /*!< Module instance id*/
 			uint8_t reserved0;
@@ -74,14 +80,14 @@ struct cmdif_fd {
 			uint16_t cmid;      /*!< Command id */
 			uint16_t epid;      /*!< Reserved fog EPID */
 		} open;
-		/*!< Open command is always synchronous */
+		/*!< FLC field for open command */
 		struct {
 			uint8_t reserved[2];
 			uint16_t auth_id;   /*!< Authentication id */
 			uint16_t cmid;      /*!< Command id */
 			uint16_t epid;      /*!< Reserved fog EPID */
 		} close;
-		/*!< Close command is always synchronous*/
+		/*!< FLC field for close command */
 		uint32_t word[2];
 	} u_flc;
 
@@ -89,12 +95,17 @@ struct cmdif_fd {
 	 * by cmdif client side when sending commands to AIOP server */
 	union  {
 		uint32_t frc;
+		/*!< Full FRC field */
 		struct {
 			uint32_t dev_l;   /*!< 32 low bit of cmdif_desc.dev */
 		} cmd;
+		/*!< FRC field for command after the session is open */
 	} u_frc;
 
 	uint32_t d_size; /*!< Data length */
+
+	/*! FD[ADDR] Frame descriptor relevant field as should be set
+	 * by cmdif client side when sending commands to AIOP server */
 	union {
 		uint64_t d_addr; /*!< Data address */
 		uint32_t word[2];

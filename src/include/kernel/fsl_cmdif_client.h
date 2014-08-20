@@ -168,6 +168,8 @@ int cmdif_open(struct cmdif_desc *cidesc,
 @Description	Close this command interface device and free this instance entry
 		on the Server.
 
+It's not yet supported by the AIOP client.
+
 @Param[in]	cidesc   Command interface descriptor which was setup by
 		cmdif_open().
 

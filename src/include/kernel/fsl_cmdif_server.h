@@ -172,7 +172,8 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 
 @Description	Close session on server and notify client about it.
 
-This functionality is relevant only for GPP.
+This functionality is relevant only for GPP but it's not yet supported
+by the GPP server.
 
 @Param[in]	cidesc   - Already open connection descriptor towards second side
 @Param[in]	size     - Size of v_data buffer
