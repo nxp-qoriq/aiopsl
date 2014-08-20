@@ -118,6 +118,8 @@ struct cmdif_module_ops {
 
 @Description	Registration of a module to the server.
 
+For AIOP, use this API during AIOP boot.
+
 Each module needs to register to the command interface by
 supplying the following:
 
@@ -135,6 +137,8 @@ int cmdif_register_module(const char *module_name,
 
 @Description	Cancel the registration of a module on the server
 		and free the module id acquired during registration
+
+For AIOP, use this API during AIOP boot.
 
 @Param[in]	module_name - Module name, up to 8 characters.
 
