@@ -1,3 +1,8 @@
+- cmdif_client_aiop.h   Verify CMDIF_OPEN_SIZE in preprocessor time.
+- cmdif_server_aiop.h   Verify CMDIF_SESSION_OPEN_SIZE in preprocess time.
+- fsl_cmdif_client.h    Added CMDIF_OPEN_SIZE, see cmdif_open().
+- fsl_cmdif_server.h    Added CMDIF_SESSION_OPEN_SIZE, see cmdif_session_open().
+
 - fsl_cmdif_client.h           Improved documentation
 - fsl_cmdif_server.h           Improved documentation
 - ls2085a_sim_init_params.cfg  Added sim.enable_smmu=true
