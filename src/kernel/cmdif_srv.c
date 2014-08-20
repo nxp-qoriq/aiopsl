@@ -482,9 +482,6 @@ static int notify_close()
 	return -ENOTSUP;
 }
 
-#pragma push
-#pragma force_active on
-
 __HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
@@ -647,5 +644,3 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	fdma_terminate_task();
 }
-
-#pragma pop
