@@ -1693,8 +1693,11 @@ void fdma_terminate_task(void);
 @Description	Make a copy of the working frame and optionally enqueue the
 		replicated frame (the copy) according to a frame queue id.
 
-		The source Working Frame may be modified but all the segments
-		must be closed.
+		The source Working Frame may be modified (FDMA internal memory
+		is updated).
+
+		The source frame is replicated based on its last known state by
+		the FDMA.
 
 @Param[in]	frame_handle1 - Handle of the source frame.
 @Param[in]	spid - Storage Profile used to store frame data of the
@@ -1733,8 +1736,11 @@ int fdma_replicate_frame_fqid(
 @Description	Make a copy of the working frame and optionally enqueue the
 		replicated frame (the copy) according to a queueing destination.
 
-		The source Working Frame may be modified but all the segments
-		must be closed.
+		The source Working Frame may be modified (FDMA internal memory
+		is updated).
+
+		The source frame is replicated based on its last known state by
+		the FDMA.
 
 @Param[in]	frame_handle1 - Handle of the source frame.
 @Param[in]	spid - Storage Profile used to store frame data of the
@@ -1814,8 +1820,11 @@ int fdma_concatenate_frames(
 @Description	Split a Working Frame into two frames and return an updated
 		Working Frame along with a split frame.
 
-		The source Working Frame may be modified but all the segments
-		must be Closed.
+		The source Working Frame may be modified (FDMA internal memory
+		is updated) but all the segments must be Closed.
+
+		All the frame open segments will be implicitly closed, and
+		their segment handles will be released.
 
 		In case the fd destination parameter points to the default FD
 		address, the service routine will update the Task
