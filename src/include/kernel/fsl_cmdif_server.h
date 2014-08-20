@@ -48,6 +48,10 @@
 
 @{
  *//***************************************************************************/
+
+#define CMDIF_SESSION_OPEN_SIZE		64
+/**< cmdif_session_open() default size */
+
 struct cmdif_desc;
 
 /**************************************************************************//**
@@ -151,7 +155,7 @@ This functionality is relevant only for GPP.
 		by cmdif_register_module()
 @Param[in]	inst_id  - Instance id which will be passed to #open_cb_t
 @Param[in]	size     - Size of v_data buffer.
-		By default, set it to 64 bytes.
+		By default, set it to #CMDIF_SESSION_OPEN_SIZE bytes.
 @Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
 @Param[in]	send_dev - Transport device to be used for server (nadk device).

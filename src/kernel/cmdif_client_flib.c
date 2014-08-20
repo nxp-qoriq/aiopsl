@@ -29,7 +29,7 @@
 #include <cmdif_client.h>
 
 #define IS_VLD_OPEN_SIZE(SIZE) \
-	((SIZE) >= (sizeof(struct cmdif_dev) + sizeof(union cmdif_data)))
+	((SIZE) >= CMDIF_OPEN_SIZEOF)
 
 /** Server special command indication */
 #define SPECIAL_CMD	0xC000

@@ -40,6 +40,7 @@
 #define CMD_ID_CLOSE       0x4000
 #define OPEN_AUTH_ID       0xFFFF
 #define M_NAME_CHARS       8     /*!< Not including \0 */
+#define CMDIF_OPEN_SIZEOF (sizeof(struct cmdif_dev) + sizeof(union cmdif_data))
 
 struct cmdif_dev {
 	uint64_t   p_sync_done;

@@ -32,6 +32,10 @@
 #include "fsl_mc_init.h"
 #include "cmdif_srv.h"
 
+#pragma warning_errors on
+ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
+#pragma warning_errors off
+
 
 struct cmdif_srv_aiop {
 	struct cmdif_srv *srv;

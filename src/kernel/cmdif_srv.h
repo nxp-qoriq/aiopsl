@@ -50,6 +50,7 @@
 
 #define OPEN_AUTH_ID          0xFFFF
 /**< auth_id that will be sent as hash value for open commands */
+#define CMDIF_SESSION_OPEN_SIZEOF (sizeof(struct cmdif_session_data))
 
 struct cmdif_srv {
 	char         (*m_name)[M_NAME_CHARS + 1];
