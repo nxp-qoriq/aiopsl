@@ -39,7 +39,7 @@
 /**************************************************************************//**
  @Group         ldpaa_g  LDPAA API
 
- @Description   TODO
+ @Description   LDPAA General API
 
  @{
  *//***************************************************************************/
@@ -54,7 +54,9 @@
 #define FD_FRC_DPNI_MTU_ERROR_CODE 0x00010000
 
 /**************************************************************************//**
- @Collection    LDPAA FD GETTER/SETTER MACROs
+ @Group    LDPAA_FD_GETTERS_SETTERS LDPAA FD GETTER/SETTER MACROs
+
+ @Description	LDPAA FD GETTER/SETTER MACROs
 
  @{
 *//***************************************************************************/
@@ -161,7 +163,7 @@
 
 
 
-/** FD Getters macros. */
+/* FD Getters macros. */
 
 
 	/** Macro to get FD ADDRESS field.
@@ -344,10 +346,10 @@
 	__rR = (uint64_t ) addr; })
 
 
-/** FD Setters macros. */
+/* FD Setters macros. */
 
 	/** Macro to set FD ADDRESS field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 	/* Todo - 64/49 bit address. Phys to Virt? */
 #define LDPAA_FD_SET_ADDR(_fd, _val)					\
@@ -355,8 +357,9 @@
 	LLSTDW_SWAP(_val, 0, (uint32_t)(((char *)_fd) + FD_ADDR_OFFSET));\
 	})
 	/** Macro to set FD LENGTH field.
-	 * SL bit in the frame descriptor must be valid when calling this macro.
-	 * _fd - the FD address in workspace.
+	 * SL bit in the frame descriptor must be valid when calling this
+	 * macro.\n
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_LENGTH(_fd, _val)					\
 	({uint32_t length;						\
@@ -372,7 +375,7 @@
 			(uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));\
 	})
 	/** Macro to set FD MEM field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_MEM(_fd, _val)
 	/** Macro to set FD BPID field.
@@ -380,93 +383,97 @@
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_BPID(_fd, _val)
 	/** Macro to set FD IVP field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_IVP(_fd, _val)
 	/** Macro to set FD BMT field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_BMT(_fd, _val)
 	/** Macro to set FD OFFSET field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_OFFSET(_fd, _val)
 	/** Macro to set FD FMT field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_FMT(_fd, _val)
 	/** Macro to set FD SL field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_SL(_fd, _val)
 	/** Macro to set FD FRC field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_FRC(_fd, _val)					\
 	STW_SWAP(_val, 0, (uint32_t)(((char *)_fd) + FD_FRC_OFFSET));
 	/** Macro to set FD ERR field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_ERR(_fd, _val)                                     \
 	*((uint8_t *) (((char *)_fd) + FD_ERR_OFFSET)) = (uint8_t)_val
 	/** Macro to set FD VA field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_VA(_fd, _val)
 	/** Macro to set FD ASAL field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_ASAL(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
 		~FD_ASAL_MASK) | (_val & FD_ASAL_MASK)))
 	/** Macro to set FD CBMT field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_CBMT(_fd, _val)
 	/** Macro to set FD PTV2 field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_PTV2(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
 			~FD_PTV2_MASK) | (_val & FD_PTV2_MASK)))
-	/** Macro to set FD PTV1 field */
+	/** Macro to set FD PTV1 field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_PTV1(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
 			~FD_PTV1_MASK) | (_val & FD_PTV1_MASK)))
-	/** Macro to set FD PTA field */
+	/** Macro to set FD PTA field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
 #define LDPAA_FD_SET_PTA(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
 			~FD_PTA_MASK) | (_val & FD_PTA_MASK)))
 	/** Macro to set FD DROPP field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_DROPP(_fd, _val)
 	/** Macro to set FD SC field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_SC(_fd, _val)
 	/** Macro to set FD DD field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_DD(_fd, _val)
 	/** Macro to set FD CS field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_CS(_fd, _val)
 	/** Macro to set FD AS field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_AS(_fd, _val)
 	/** Macro to set FD DS field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_DS(_fd, _val)
 	/** Macro to set FD FLC field.
-	 * _fd - the FD address in workspace.
+	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_FLC(_fd, _val)					\
 	({								\
@@ -490,7 +497,7 @@
 		length -= (_to_size - _from_size);			\
 	STW_SWAP(length, 0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));})
 
-/* @} *//* end of LDPAA FD MACROs */
+/** @} */ /* end of LDPAA_FD_GETTERS_SETTERS */
 
 /** @} *//* end of ldpaa_g group */
 

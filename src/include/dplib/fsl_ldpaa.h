@@ -45,13 +45,15 @@
 /**************************************************************************//**
  @Group         ldpaa_g  LDPAA API
 
- @Description   TODO
+ @Description   LDPAA General API
 
  @{
  *//***************************************************************************/
 
 /**************************************************************************//**
- @Collection    LDPAA FD fields
+ @Group    LDPAA_FD_DEFINITIONS LDPAA FD Definitions
+
+ @Description	LDPAA FD Definitions
 
  @{
 *//***************************************************************************/
@@ -159,7 +161,7 @@
 	/** FD DS shift */
 #define FD_DS_SHIFT		(8-4)
 
-/* @} *//* end of LDPAA FD fields */
+/** @} */ /* end of LDPAA_FD_DEFINITIONS */
 
 
 /**************************************************************************//**
@@ -180,112 +182,193 @@ struct ldpaa_fd {
 
 
 /**************************************************************************//**
- @Collection    LDPAA FD GETTER/SETTER MACROs
+ @Group    LDPAA_FD_GETTERS_SETTERS LDPAA FD GETTER/SETTER MACROs
+
+ @Description	LDPAA FD GETTER/SETTER MACROs
 
  @{
 *//***************************************************************************/
 
-/* FD fields Getters and Setters */
-#define LDPAA_FD_GET_ADDR(_fd)
-/**< Macro to get FD ADDRESS field.*/
-/* Todo - 64/49 bit address. Phys to Virt? */
-#define LDPAA_FD_SET_ADDR(_fd,_val)
-/**< Macro to set FD ADDRESS field */
-/* Todo - 64/49 bit address. Phys to Virt? */
-#define LDPAA_FD_GET_LENGTH(_fd)
-/**< Macro to get FD LENGTH field */
-#define LDPAA_FD_SET_LENGTH(_fd,_val)
-/**< Macro to set FD LENGTH field */
-#define LDPAA_FD_GET_MEM(_fd)
-/**< Macro to get FD MEM field */
-#define LDPAA_FD_SET_MEM(_fd,_val)
-/**< Macro to set FD MEM field */
-#define LDPAA_FD_GET_BPID(_fd)
-/**< Macro to get FD BPID field */
-#define LDPAA_FD_SET_BPID(_fd,_val)
-/**< Macro to set FD BPID field */
-#define LDPAA_FD_GET_IVP(_fd)
-/**< Macro to get FD IVP field */
-#define LDPAA_FD_SET_IVP(_fd,_val)
-/**< Macro to set FD IVP field */
-#define LDPAA_FD_GET_BMT(_fd)
-/**< Macro to get FD BMT field */
-#define LDPAA_FD_SET_BMT(_fd,_val)
-/**< Macro to set FD BMT field */
-#define LDPAA_FD_GET_OFFSET(_fd)
-/**< Macro to get FD OFFSET field */
-#define LDPAA_FD_SET_OFFSET(_fd,_val)
-/**< Macro to set FD OFFSET field */
-#define LDPAA_FD_GET_FMT(_fd)
-/**< Macro to get FD FMT field */
-#define LDPAA_FD_SET_FMT(_fd,_val)
-/**< Macro to set FD FMT field */
-#define LDPAA_FD_GET_SL(_fd)
-/**< Macro to get FD SL field */
-#define LDPAA_FD_SET_SL(_fd,_val)
-/**< Macro to set FD SL field */
-#define LDPAA_FD_GET_FRC(_fd)
-/**< Macro to get FD FRC field */
-#define LDPAA_FD_SET_FRC(_fd,_val)
-/**< Macro to set FD FRC field */
-#define LDPAA_FD_GET_ERR(_fd)
-/**< Macro to get FD ERR field */
-#define LDPAA_FD_SET_ERR(_fd,_val)
-/**< Macro to set FD ERR field */
-#define LDPAA_FD_GET_VA(_fd)
-/**< Macro to get FD VA field */
-#define LDPAA_FD_SET_VA(_fd,_val)
-/**< Macro to set FD VA field */
-#define LDPAA_FD_GET_CBMT(_fd)
-/**< Macro to get FD CBMT field */
-#define LDPAA_FD_SET_CBMT(_fd,_val)
-/**< Macro to set FD CBMT field */
-#define LDPAA_FD_GET_ASAL(_fd)
-/**< Macro to get FD ASAL field */
-#define LDPAA_FD_SET_ASAL(_fd,_val)
-/**< Macro to set FD ASAL field */
-#define LDPAA_FD_GET_PTV2(_fd)
-/**< Macro to get FD PTV2 field */
-#define LDPAA_FD_SET_PTV2(_fd,_val)
-/**< Macro to set FD PTV2 field */
-#define LDPAA_FD_GET_PTV1(_fd)
-/**< Macro to get FD PTV1 field */
-#define LDPAA_FD_SET_PTV1(_fd,_val)
-/**< Macro to set FD PTV1 field */
-#define LDPAA_FD_GET_PTA(_fd)
-/**< Macro to get FD PTA field */
-#define LDPAA_FD_SET_PTA(_fd,_val)
-/**< Macro to set FD PTA field */
-#define LDPAA_FD_GET_DROPP(_fd)
-/**< Macro to get FD DROPP field */
-#define LDPAA_FD_SET_DROPP(_fd,_val)
-/**< Macro to set FD DROPP field */
-#define LDPAA_FD_GET_SC(_fd)
-/**< Macro to get FD SC field */
-#define LDPAA_FD_SET_SC(_fd,_val)
-/**< Macro to set FD SC field */
-#define LDPAA_FD_GET_DD(_fd)
-/**< Macro to get FD DD field */
-#define LDPAA_FD_SET_DD(_fd,_val)
-/**< Macro to set FD DD field */
-#define LDPAA_FD_GET_CS(_fd)
-/**< Macro to get FD CS field */
-#define LDPAA_FD_SET_CS(_fd,_val)
-/**< Macro to set FD CS field */
-#define LDPAA_FD_GET_AS(_fd)
-/**< Macro to get FD AS field */
-#define LDPAA_FD_SET_AS(_fd,_val)
-/**< Macro to set FD AS field */
-#define LDPAA_FD_GET_DS(_fd)
-/**< Macro to get FD DS field */
-#define LDPAA_FD_SET_DS(_fd,_val)
-/**< Macro to set FD DS field */
-#define LDPAA_FD_GET_FLC(_fd)
-/**< Macro to get FD FLC field */
-#define LDPAA_FD_SET_FLC(_fd,_val)
-/**< Macro to set FD FLC field */
+/* FD Getters macros. */
 
-/* @} *//* end of LDPAA FD MACROs */
+	/** Macro to get FD ADDRESS field.
+	 * _fd - the FD address in workspace. */
+	/* Todo - 64/49 bit address. Phys to Virt? */
+#define LDPAA_FD_GET_ADDR(_fd)
+	/** Macro to get FD LENGTH field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_LENGTH(_fd)
+	/** Macro to get FD MEM field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_MEM(_fd)
+	/** Macro to get FD BPID field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_BPID(_fd)
+	/** Macro to get FD IVP field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_IVP(_fd)
+	/** Macro to get FD BMT field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_BMT(_fd)
+	/** Macro to get FD OFFSET field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_OFFSET(_fd)
+	/** Macro to get FD FMT field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_FMT(_fd)
+	/** Macro to get FD SL field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_SL(_fd)
+	/** Macro to get FD FRC field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_FRC(_fd)
+	/** Macro to get FD ERR field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_ERR(_fd)
+	/** Macro to get FD VA field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_VA(_fd)
+	/** Macro to get FD CBMT field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_CBMT(_fd)
+	/** Macro to get FD ASAL field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_ASAL(_fd)
+	/** Macro to get FD PTV2 field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_PTV2(_fd)
+	/** Macro to get FD PTV1 field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_PTV1(_fd)
+	/** Macro to get FD PTA field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_PTA(_fd)
+	/** Macro to get FD DROPP field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_DROPP(_fd)
+	/** Macro to get FD SC field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_SC(_fd)
+	/** Macro to get FD DD field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_DD(_fd)
+	/** Macro to get FD CS field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_CS(_fd)
+	/** Macro to get FD AS field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_AS(_fd)
+	/** Macro to get FD DS field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_DS(_fd)
+	/** Macro to get FD FLC field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_FLC(_fd)
+
+
+/* FD Setters macros. */
+
+	/** Macro to set FD ADDRESS field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+	/* Todo - 64/49 bit address. Phys to Virt? */
+#define LDPAA_FD_SET_ADDR(_fd, _val)
+	/** Macro to set FD LENGTH field.
+	 * SL bit in the frame descriptor must be valid when calling this
+	 * macro.\n
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_LENGTH(_fd, _val)
+	/** Macro to set FD MEM field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_MEM(_fd, _val)
+	/** Macro to set FD BPID field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_BPID(_fd, _val)
+	/** Macro to set FD IVP field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_IVP(_fd, _val)
+	/** Macro to set FD BMT field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_BMT(_fd, _val)
+	/** Macro to set FD OFFSET field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_OFFSET(_fd, _val)
+	/** Macro to set FD FMT field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_FMT(_fd, _val)
+	/** Macro to set FD SL field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_SL(_fd, _val)
+	/** Macro to set FD FRC field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_FRC(_fd, _val)
+	/** Macro to set FD ERR field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_ERR(_fd, _val)
+	/** Macro to set FD VA field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_VA(_fd, _val)
+	/** Macro to set FD ASAL field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_ASAL(_fd, _val)
+	/** Macro to set FD CBMT field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_CBMT(_fd, _val)
+	/** Macro to set FD PTV2 field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_PTV2(_fd, _val)
+	/** Macro to set FD PTV1 field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_PTV1(_fd, _val)
+	/** Macro to set FD PTA field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_PTA(_fd, _val)
+	/** Macro to set FD DROPP field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_DROPP(_fd, _val)
+	/** Macro to set FD SC field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_SC(_fd, _val)
+	/** Macro to set FD DD field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_DD(_fd, _val)
+	/** Macro to set FD CS field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_CS(_fd, _val)
+	/** Macro to set FD AS field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_AS(_fd, _val)
+	/** Macro to set FD DS field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_DS(_fd, _val)
+	/** Macro to set FD FLC field.
+	 * _fd - the FD address in workspace.\n
+	 * _val - value to be set. */
+#define LDPAA_FD_SET_FLC(_fd, _val)
+
+/** @} */ /* end of LDPAA_FD_GETTERS_SETTERS */
 
 /** @} *//* end of ldpaa_g group */
 

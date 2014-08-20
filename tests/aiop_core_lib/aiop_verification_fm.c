@@ -48,13 +48,13 @@ __TASK int32_t status_ipf;
 */
 
 extern __VERIF_GLOBAL uint8_t verif_prpid;
+extern __VERIF_TLS uint64_t initial_ext_address;
 
 void aiop_verification_fm()
 {
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	struct fdma_present_segment_params present_params;
 	uint64_t ext_address;	/* External Data Address */
-	uint64_t initial_ext_address;	/* Initial External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
 
@@ -239,13 +239,13 @@ void aiop_verification_fm()
 		}
 		case EXCEPTION_MODULE:
 		{
-			struct write_fatal_fqid_to_workspace_tls_command *str =
-			   (struct write_fatal_fqid_to_workspace_tls_command *)
+			struct fatal_error_command *str =
+			   (struct fatal_error_command *)
 						((uint32_t)data_addr);
 			fatal_fqid = str->fqid;
 			str_size = (uint16_t)
 			  sizeof(
-			     struct write_fatal_fqid_to_workspace_tls_command);
+			     struct fatal_error_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:

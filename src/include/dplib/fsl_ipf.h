@@ -117,7 +117,7 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 /**************************************************************************//**
 @Function	ipf_generate_frag
 
-@Description	This function generates a single IP fragment and locates in
+@Description	This function generates a single IP fragment and locates it in
 		the default frame location in the workspace.
 
 		Pre-condition - In the first iteration this function is called
@@ -138,9 +138,9 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 @Return		Status. (\ref IPF_GENERATE_FRAG_STATUS or negative value on
 		error.)
 
-@Cautions	1. In the output fragment, ASA & PTA are not presented.
-		2. No support in IPv6 jumbograms.
-		3. Since during fragmentation process of an IPv6 frame, fragment
+@Cautions	In the output fragment, ASA & PTA are not presented.\n
+		No support in IPv6 jumbograms.\n
+		Since during fragmentation process of an IPv6 frame, fragment
 		extension (8 bytes) is added to the header, user must ensure
 		that either 8 bytes are available in the headroom, or that
 		Presented segment size is large enough to include these 8 bytes

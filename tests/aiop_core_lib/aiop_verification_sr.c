@@ -36,6 +36,7 @@
 #include "aiop_verification.h"
 
 extern __VERIF_TLS uint32_t fatal_fqid;
+extern __VERIF_TLS uint32_t sr_fm_flags;
 
 void aiop_verification_sr()
 {
@@ -193,13 +194,14 @@ void aiop_verification_parse()
 		}
 		case EXCEPTION_MODULE:
 		{
-			struct write_fatal_fqid_to_workspace_tls_command *str =
-			    (struct write_fatal_fqid_to_workspace_tls_command *)
+			struct fatal_error_command *str =
+			    (struct fatal_error_command *)
 						asa_seg_addr;
 			fatal_fqid = str->fqid;
+			sr_fm_flags = str->flags;
 			str_size = (uint16_t)
 			    sizeof
-			     (struct write_fatal_fqid_to_workspace_tls_command);
+			     (struct fatal_error_command);
 			break;
 		}
 		case UPDATE_ASA_VARIABLE:

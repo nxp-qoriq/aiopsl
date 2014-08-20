@@ -51,6 +51,9 @@ __VERIF_GLOBAL uint8_t verif_prpid;
 __VERIF_GLOBAL uint8_t tmi_id;
 
 __VERIF_TLS uint32_t fatal_fqid;
+__VERIF_TLS uint32_t sr_fm_flags;
+__VERIF_TLS uint64_t initial_ext_address; /* Initial External Data Address */
+
 __VERIF_TLS ipf_ctx_t ipf_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS ipf_ctx_t ipf_context_addr2

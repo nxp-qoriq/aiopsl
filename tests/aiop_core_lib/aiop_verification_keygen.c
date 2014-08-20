@@ -170,6 +170,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			break;
 		}
 
+#ifdef REV2
 		/* Key Composition Rule Add Lookup Result Field Extract FEC 
 		 * Command Verification */
 		case KEYGEN_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC_CMD_STR:
@@ -193,6 +194,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			sizeof (struct keygen_kcr_builder_add_lookup_result_field_fec_command);
 			break;
 		}
+#endif /*REV2*/
 
 		/* Key Composition Rule Add Valid Field FEC Command 
 		 * Verification */

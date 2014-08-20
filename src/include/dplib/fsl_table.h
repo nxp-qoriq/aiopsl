@@ -331,7 +331,7 @@ enum table_hw_accel_id {
 
 /** @} */ /* end of table_hw_accel_id */
 
-/** @} */ /* end of FSL_CTLU_Enumerations */
+/** @} */ /* end of FSL_TABLE_Enumerations */
 
 /**************************************************************************//**
 @Group		FSL_TABLE_STRUCTS Table Structures

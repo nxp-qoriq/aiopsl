@@ -39,8 +39,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "lib/fsl_slab.h"
 #include "system.h" // TMP
-#include <stdio.h>
-#include <stdlib.h>
+
 
 int app_init(void);
 void app_free(void);
@@ -417,9 +416,6 @@ int ipsec_app_init(uint16_t ni_id)
 	
 	/* End Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
 	
-	//config_file = fopen("ipsec_config.txt", "r");
-
-		
 	enum key_types {
 		NULL_ENCRYPTION = 0,
 		 AES128_SHA256

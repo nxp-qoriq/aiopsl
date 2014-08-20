@@ -317,6 +317,7 @@ struct keygen_kcr_builder_add_generic_extract_fec_command{
 	uint8_t	pad2[4];
 };
 
+#ifdef REV2
 /**************************************************************************//**
 @Description	Add Lookup Result Field FEC to KCR Command structure.
 
@@ -346,6 +347,7 @@ struct keygen_kcr_builder_add_lookup_result_field_fec_command{
 	/** Command returned status */
 	int32_t  status;
 };
+#endif /*REV2*/
 
 /**************************************************************************//**
 @Description	Add Lookup Valid Field FEC to KCR Command structure.

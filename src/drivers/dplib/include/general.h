@@ -229,7 +229,10 @@ void update_random_64bit(void);
 /* TEMP function (TODO Remove!) */
 void handle_fatal_error(char *message);
 /* TEMP function (TODO Remove!) */
-void exception_handler(char *filename, uint32_t line, char *message);
+void exception_handler(char *filename,
+		       char *function_name,
+		       uint32_t line,
+		       char *message);
 
 #ifdef AIOP_VERIF
 /**************************************************************************//**
