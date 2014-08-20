@@ -59,9 +59,9 @@ if __name__ == "__main__":
 						Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
 				elif 'Got a packet' in line:
 					capture -= 1 
-				elif 'Test Finished SUCCESSFULLY' in line:
+				elif 'Finished SUCCESSFULLY' in line:
 					if capture == 0:
 						exit_script(runsim,0)
-				elif 'ERROR found during ARENA test' in line:
+				elif 'Finished with ERRORS' in line:
 					exit_script(runsim,1)
 	
