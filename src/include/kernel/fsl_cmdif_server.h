@@ -132,9 +132,7 @@ int cmdif_register_module(const char *module_name,
 @Description	Cancel the registration of a module on the server
 		and free the module id acquired during registration
 
-Each module needs to unregister from the command interface
-
-@Param[in]	module_name - Module name
+@Param[in]	module_name - Module name, up to 8 characters.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -196,6 +194,8 @@ int cmdif_session_close(struct cmdif_desc *cidesc,
 @Function	cmdif_srv_cb
 
 @Description	Server callback to be called on every frame command
+
+This functionality is relevant only for GPP.
 
 @Param[in]	pr       - Priority
 @Param[in]	send_dev - Device used for send and receive of frame descriptor
