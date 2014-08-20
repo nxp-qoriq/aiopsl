@@ -150,7 +150,8 @@ This functionality is relevant only for GPP.
 @Param[in]	m_name   - Name of the module as registered
 		by cmdif_register_module()
 @Param[in]	inst_id  - Instance id which will be passed to #open_cb_t
-@Param[in]	size     - Size of v_data buffer
+@Param[in]	size     - Size of v_data buffer.
+		By default, set it to 64 bytes.
 @Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
 @Param[in]	send_dev - Transport device to be used for server (nadk device).
