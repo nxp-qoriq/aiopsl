@@ -41,7 +41,7 @@
 #include "aiop_common.h"
 
 __SHRAM struct slab_bman_pool_desc g_slab_bman_pools[MAX_SLAB_BMAN_POOLS_NUM];
-__SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pool;
+__SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 
 #define SLAB_ASSERT_COND_RETURN(COND, ERR)  \
 	do { if (!(COND)) return (ERR); } while (0)
@@ -51,10 +51,10 @@ __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pool;
 
 /*  TODO use API from VPs when it will be added */
 #define VP_DESC_ARR \
-	((struct slab_v_pool *)g_slab_virtual_pool.virtual_pool_struct)
+	((struct slab_v_pool *)g_slab_virtual_pools.virtual_pool_struct)
 
 #define VP_REMAINING_BUFFS(SLAB) \
-	(int)((VP_DESC_ARR + SLAB_VP_POOL_GET((SLAB)))->committed_bufs)
+	(uint32_t)((VP_DESC_ARR + SLAB_VP_POOL_GET((SLAB)))->committed_bufs)
 
 #define VP_BPID_GET(SLAB) \
 	(uint16_t)g_slab_bman_pools[(VP_DESC_ARR + \
@@ -83,20 +83,20 @@ static int slab_create_virtual_pool(
 {
 
 	uint32_t slab_vpool_id;
-	uint32_t num_of_virtual_pools = g_slab_virtual_pool.num_of_virtual_pools;
+	uint32_t num_of_virtual_pools = g_slab_virtual_pools.num_of_virtual_pools;
 	uint16_t bman_array_index = 0;
 	int i;
 
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
-		g_slab_virtual_pool.virtual_pool_struct;
+		g_slab_virtual_pools.virtual_pool_struct;
 	struct slab_callback_s *callback =
 		(struct slab_callback_s *)
-		g_slab_virtual_pool.callback_func_struct;
+		g_slab_virtual_pools.callback_func_struct;
 
 #ifdef SL_DEBUG
 	/* Check the arguments correctness */
-	if (bman_pool_id >= MAX_VIRTUAL_BMAN_POOLS_NUM)
+	if (bman_pool_id >= MAX_SLAB_BMAN_POOLS_NUM)
 		return VIRTUAL_POOLS_ILLEGAL_ARGS;
 
 	/* max_bufs must be equal or greater than committed_bufs */
@@ -136,7 +136,7 @@ static int slab_create_virtual_pool(
 		return VIRTUAL_POOLS_INSUFFICIENT_BUFFERS;
 	}
 
-	lock_spinlock((uint8_t *)&g_slab_virtual_pool.global_spinlock);
+	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 
 	/* Allocate a virtual pool ID */
 	/* Return with error if it was not possible to
@@ -150,7 +150,7 @@ static int slab_create_virtual_pool(
 		slab_virtual_pool++; /* increment the pointer for slab virtual pull */
 	}
 
-	unlock_spinlock((uint8_t *)&g_slab_virtual_pool.global_spinlock);
+	unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 
 	*slab_virtual_pool_id = slab_vpool_id; /* Return the ID */
 
@@ -165,7 +165,7 @@ static int slab_create_virtual_pool(
 
 
 	/* Check if a callback structure exists and initialize the entry */
-	if (g_slab_virtual_pool.callback_func_struct != NULL) {
+	if (g_slab_virtual_pools.callback_func_struct != NULL) {
 		callback += slab_vpool_id;
 		callback->callback_func = callback_func;
 	}
@@ -181,21 +181,21 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
-		g_slab_virtual_pool.virtual_pool_struct;
+		g_slab_virtual_pools.virtual_pool_struct;
 	slab_virtual_pool += slab_virtual_pool_id;
 
-	lock_spinlock((uint8_t *)&g_slab_virtual_pool.global_spinlock);
+	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 
 
 	if (slab_virtual_pool->allocated_bufs != 0) {
-		unlock_spinlock((uint8_t *)&g_slab_virtual_pool.global_spinlock);
+		unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 		return VIRTUAL_POOLS_RELEASE_POOL_FAILED;
 	}
 
 	/* max_bufs = 0 indicates a free pool */
 	slab_virtual_pool->max_bufs = 0;
 
-	unlock_spinlock((uint8_t *)&g_slab_virtual_pool.global_spinlock);
+	unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 
 	/* Increment the total available BMAN pool buffers */
 	atomic_incr32(
@@ -216,7 +216,7 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 
 	// TODO: remove this if moving to handle
 	struct slab_v_pool *slab_virtual_pool = (struct slab_v_pool *)
-				g_slab_virtual_pool.virtual_pool_struct;
+				g_slab_virtual_pools.virtual_pool_struct;
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
@@ -290,7 +290,7 @@ __HOT_CODE static void __slab_vpool_internal_release_buf(uint32_t slab_virtual_p
 	// TODO: remove this if moving to handle
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
-			g_slab_virtual_pool.virtual_pool_struct;
+			g_slab_virtual_pools.virtual_pool_struct;
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
@@ -338,10 +338,10 @@ __HOT_CODE static int slab_decrement_virtual_pool_refcount(
 		*callback_status = 0;
 
 	/* Check if a callback structure and function exist */
-	if (g_slab_virtual_pool.callback_func_struct != NULL) {
+	if (g_slab_virtual_pools.callback_func_struct != NULL) {
 		callback =
 			(struct slab_callback_s *)
-			g_slab_virtual_pool.callback_func_struct;
+			g_slab_virtual_pools.callback_func_struct;
 		callback += slab_virtual_pool_id;
 		if (callback->callback_func != NULL) {
 			no_callback = FALSE;
@@ -409,7 +409,7 @@ static int slab_read_virtual_pool(uint32_t slab_virtual_pool_id,
 	// TODO: remove this if moving to handle
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
-		g_slab_virtual_pool.virtual_pool_struct;
+		g_slab_virtual_pools.virtual_pool_struct;
 
 	slab_virtual_pool += slab_virtual_pool_id;
 
@@ -422,9 +422,9 @@ static int slab_read_virtual_pool(uint32_t slab_virtual_pool_id,
 	*flags = (uint8_t)slab_virtual_pool->flags;
 
 	/* Check if callback exists and return its address (can be null) */
-	if (g_slab_virtual_pool.callback_func_struct != NULL) {
+	if (g_slab_virtual_pools.callback_func_struct != NULL) {
 		callback = (struct slab_callback_s *)
-           					g_slab_virtual_pool.callback_func_struct;
+           					g_slab_virtual_pools.callback_func_struct;
 		callback += slab_virtual_pool_id;
 		*callback_func = (int32_t)callback->callback_func;
 	} else {
@@ -453,10 +453,10 @@ static int slab_pool_init(
 	slab_virtual_pool =
 		(struct slab_v_pool *)(virtual_pool_struct & 0xFFFFFFFF);
 
-	g_slab_virtual_pool.virtual_pool_struct = virtual_pool_struct;
-	g_slab_virtual_pool.callback_func_struct = callback_func_struct;
-	g_slab_virtual_pool.num_of_virtual_pools = num_of_virtual_pools;
-	g_slab_virtual_pool.flags = flags;
+	g_slab_virtual_pools.virtual_pool_struct = virtual_pool_struct;
+	g_slab_virtual_pools.callback_func_struct = callback_func_struct;
+	g_slab_virtual_pools.num_of_virtual_pools = num_of_virtual_pools;
+	g_slab_virtual_pools.flags = flags;
 
 	/* Init 'max' to zero, since it's an indicator to
 	 * pool ID availability */
@@ -772,7 +772,7 @@ int slab_create(uint32_t    committed_buffs,
 }
 
 /*****************************************************************************/
-int slab_free(struct slab **slab, uint16_t  *bpid, int *remaining_buffs)
+int slab_free(struct slab **slab, uint16_t  *bpid, uint32_t *committed_buffs)
 {
 	int err;
 
@@ -782,8 +782,8 @@ int slab_free(struct slab **slab, uint16_t  *bpid, int *remaining_buffs)
 
 		if(bpid != NULL)
 			*bpid = VP_BPID_GET(slab);
-		if(remaining_buffs != NULL)
-			*remaining_buffs = VP_REMAINING_BUFFS(slab);
+		if(committed_buffs != NULL)
+			*committed_buffs = VP_REMAINING_BUFFS(slab);
 
 		if(err)
 			return -EINVAL;

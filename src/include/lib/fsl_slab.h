@@ -153,13 +153,13 @@ int slab_create_by_address(uint32_t committed_buffs,
 
 @Param[in]	slab - Handle to memory pool.
 @Param[out]	bpid - Buffer manager id of the slab.
-@Param[out]	committed_buffs - Number of buffers in the pool
+@Param[out]	committed_buffs - Number of buffers left in virtual pool
 
 @Return		0      - on success,
 		-EBUSY  - this slab can't be freed
 		-EINVAL - not a valid slab handle
  *//***************************************************************************/
-int slab_free(struct slab **slab, uint16_t  *bpid, int *committed_buffs);
+int slab_free(struct slab **slab, uint16_t  *bpid, uint32_t *committed_buffs);
 
 /**************************************************************************//**
 @Function	slab_acquire
