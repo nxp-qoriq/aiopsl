@@ -39,6 +39,10 @@
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 
+
+
+
+
 #define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 
 /**************************************************************************//**
@@ -66,7 +70,7 @@
 #define SLAB_HW_ACCEL_MASK     0xFF000000
 #define SLAB_VP_POOL_GET(SLAB) \
 	((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1))
-/**< Returns VP id to be used with virtual pools API */
+/**< Returns slab's virtual pool id*/
 
 #define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
 #define SLAB_SIZE_GET(SIZE)     ((SIZE) - SLAB_HW_META_OFFSET)
@@ -77,7 +81,7 @@
 #define SLAB_HW_POOL_CREATE(VP) \
 ((((VP) & (SLAB_VP_POOL_MASK >> SLAB_VP_POOL_SHIFT)) << SLAB_VP_POOL_SHIFT) \
 	| SLAB_HW_POOL_SET)
-
+/**< set slab's virtual pool id shifted to have space for slab hardware pool bit 0*/
 /**************************************************************************//**
 @Description   SLAB module defaults macros
 *//***************************************************************************/
@@ -104,6 +108,7 @@
 #define SLAB_MAX_NUM_VP         1000
 #define SLAB_NUM_OF_BUFS_DPDDR  750
 #define SLAB_NUM_OF_BUFS_PEB    20
+
 
 
 /**************************************************************************//**
@@ -156,6 +161,46 @@ struct slab_module_info {
 	/**< Spinlock placed at SHRAM */
 	uint8_t num_hw_pools;
 	/**< Number of BMAN pools */
+};
+
+/* Maximum number of BMAN pools used by the slab virtual pools */
+#ifndef MAX_SLAB_BMAN_POOLS_NUM
+	#define MAX_SLAB_BMAN_POOLS_NUM 64
+#endif
+
+typedef int (slab_vpool_callback_t) (uint64_t context_address);
+
+/* Virtual Pool structure */
+struct slab_v_pool {
+	int32_t max_bufs;
+	int32_t committed_bufs;
+	int32_t allocated_bufs;
+	uint8_t spinlock;
+	uint8_t flags;
+	uint16_t bman_array_index;
+};
+
+/* Callback functions struct */
+struct slab_callback_s {
+	slab_vpool_callback_t *callback_func;
+};
+
+/* BMAN Pool structure */
+struct slab_bman_pool_desc {
+	int32_t remaining;
+	uint8_t spinlock;
+	uint8_t flags;
+	uint16_t bman_pool_id;
+};
+
+// TMP
+struct slab_virtual_pools_main_desc {
+	uint64_t virtual_pool_struct;
+	uint64_t callback_func_struct;
+	uint32_t num_of_virtual_pools;
+	uint32_t flags;
+	uint32_t global_spinlock;
+	uint32_t reserved;
 };
 
 /**************************************************************************//**
@@ -216,6 +261,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 
 		This function is part of SLAB module therefore it should be
 		called only after it has been initialized by slab_module_init()
+		the function is for service layer to return buffers to bman pool.
 
 @Param[in]    num_buffs        Number of buffers in new pool.
 @Param[in]    bpid              Id of pool that was filled with new buffers.

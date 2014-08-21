@@ -35,6 +35,7 @@
 #ifndef __AIOP_LIB_VIRTUAL_POOLS_H
 #define __AIOP_LIB_VIRTUAL_POOLS_H
 
+#if 0
 #include "general.h"
 
 /**************************************************************************//**
@@ -107,7 +108,7 @@ struct virtual_pools_root_desc {
 
  @{
 *//***************************************************************************/
-
+#endif
 
 /**************************************************************************//**
  @enum VIRTUAL_POOLS_STATUS
@@ -144,6 +145,7 @@ enum VIRTUAL_POOLS_STATUS {
 	/**< Insufficient buffers to create a virtual pool */
 };
 
+#if 0
 /* @} end of enum VIRTUAL_POOLS_STATUS */
 
 /* @} end of group VIRTUAL_POOLS_Enumerations */
@@ -430,7 +432,7 @@ int32_t vpool_add_total_bman_bufs(
 @Return		Status - Success or Failure. (\ref VIRTUAL_POOLS_STATUS).
 
 *//***************************************************************************/
-int32_t vpool_decr_total_bman_bufs( 
+int32_t vpool_decr_total_bman_bufs(
 		uint16_t bman_pool_id,
 		int32_t less_bufs);
 
@@ -440,7 +442,7 @@ int32_t vpool_decr_total_bman_bufs(
 /** @} end of group VIRTUAL_POOLS_Functions */
 
 /** @} */ /* end of AIOP_VIRTUAL_POOLS */
-
+#endif
 #endif /* _AIOP_LIB_VIRTUAL_POOLS_H */
 
 
