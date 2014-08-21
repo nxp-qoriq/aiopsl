@@ -3,13 +3,13 @@
 Introduction
 ===========================================
 This file contains instructions for running the app_process_packet demo.
-This demo shows an "autonomous" packet flow through the AIOP and illstrates the following:
+This demo shows an "autonomous" packet flow through the AIOP and illustrates the following:
 1. MC initialization
 2. MC DP object creation from a layout file
 3. AIOP initialization
 4. AIOP object discovery
 5. Packet injection (from a PCAP file)
-6. Packet modification within the AIOP
+6. Packet modification within the AIOP - reflection (Flip the MAC and IP source and destination addresses)
 7. Packet transmission from the AIOP (to a PCAP file)
 
 ===========================================

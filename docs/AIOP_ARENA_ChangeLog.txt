@@ -1,3 +1,4 @@
+- app_process_packet.c:        The demo was updated and now makes a reflection for received packets. (Flip the MAC and IP source and destination addresses)
 - cmdif_client_aiop.h   Verify CMDIF_OPEN_SIZE in preprocessor time.
 - cmdif_server_aiop.h   Verify CMDIF_SESSION_OPEN_SIZE in preprocess time.
 - fsl_cmdif_client.h    Added CMDIF_OPEN_SIZE, see cmdif_open().

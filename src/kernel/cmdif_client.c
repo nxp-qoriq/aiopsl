@@ -272,8 +272,6 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-#pragma push
-#pragma force_active on
 __HOT_CODE void cmdif_cl_isr(void)
 {
 	int err = 0;
@@ -296,5 +294,4 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fdma_store_default_frame_data();
 	fdma_terminate_task();
 }
-#pragma pop
 

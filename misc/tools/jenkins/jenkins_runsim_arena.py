@@ -12,6 +12,7 @@ except ImportError:
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
+
 def enqueue_output(out, queue):
 	for line in iter(out.readline, 'b'):
 		queue.put(line)
@@ -19,8 +20,26 @@ def enqueue_output(out, queue):
 def exit_script(runsim,exit_status):
 	runsim.terminate() #close simulator
 	exit(exit_status)
+
+def inject_packets(pcap):
+	global g_capture
+	if 'arena_test_40.pcap' in pcap:
+		print 'injecting 40 packets'
+		g_capture = 39
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","arena_test_40.pcap"])
+	elif 'eth_ipv4_udp.pcap' in pcap:
+		g_capture = 3
+		print 'injecting 3 packets'
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
+	else:
+		print 'name of recognized pcap not found'
+
 if __name__ == "__main__":
-	capture = 0
+	global g_capture 
+	g_capture = 0
+	pcap = 'NULL'
 	runsim = Popen(["./runsim","-t","-d","ls2085aiss","-nc","0","-pnc","00000000_00000000_00000000__10__00000000_00000000","-imodel","ls_sim_init_file=jenkins_ls2085a_sim_init_params.cfg", "-smodel","ls_sim_config_file=jenkins_ls2085a_sys_test.cfg","-noprog"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 	q = Queue()
 	t = Thread(target=enqueue_output, args=(runsim.stdout, q))
@@ -42,26 +61,19 @@ if __name__ == "__main__":
 			else: # got line
 				i = 0
 				print line
+				if 'AIOP boot finished' in line:
+					if pcap != 'NULL':
+						inject_packets(pcap)
 				if 'inject packets:' in line:
 					tio_capture = Popen(["./fm_tio_capture","-hub","localhost:42975","-ser","w0_m1","-verbose_level","2"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 					c = Thread(target=enqueue_output, args=(tio_capture.stdout, q))
 					c.daemon = True # thread dies with the program
 					c.start()
-					if 'arena_test_40.pcap' in line:
-						print 'injecting 40 packets'
-						capture = 39
-						Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","arena_test_40.pcap"])
-					elif 'eth_ipv4_udp.pcap' in line:
-						capture = 3
-						print 'injecting 3 packets'
-						Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
-						Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
-						Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
+					pcap = line
 				elif 'Got a packet' in line:
-					capture -= 1 
-				elif 'Test Finished SUCCESSFULLY' in line:
-					if capture == 0:
+					g_capture -= 1 
+				elif 'Finished SUCCESSFULLY' in line:
+					if g_capture == 0:
 						exit_script(runsim,0)
-				elif 'ERROR found during ARENA test' in line:
+				elif 'Finished with ERRORS' in line:
 					exit_script(runsim,1)
-	

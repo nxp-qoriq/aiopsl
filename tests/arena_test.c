@@ -263,7 +263,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
 		}
 		else {
-			fsl_os_print("ERROR found during ARENA test\n");
+			fsl_os_print("ARENA Test Finished with ERRORS\n");
 		}
 	}
 }
