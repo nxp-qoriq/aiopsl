@@ -46,9 +46,12 @@
  @{
 *//***************************************************************************/
 
-/* OSM Register - ORTAR */
+/* OSM Register  */
 #define	OSM_REG_ORTAR 	0x0209c020
+#define	OSM_REG_OERR 	0x0209ce00
+#define ENABLE_ERR_REG 	0x8000001f
 
+/* Read task registers */
 #define OSM_REG_ORTDR0()\
 	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr0)
 #define OSM_REG_ORTDR1()\
@@ -65,6 +68,30 @@
 	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr6)
 #define OSM_REG_ORTDR7()\
 	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr7)
+
+/* Error report registers */
+#define OSM_REG_OEDR()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oedr)
+#define OSM_REG_OEDDR()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oeddr)
+#define OSM_REG_OECR0()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr0)
+#define OSM_REG_OECR1()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr1)
+#define OSM_REG_OECR2()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr2)
+#define OSM_REG_OECR3()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr3)
+#define OSM_REG_OECR4()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr4)
+#define OSM_REG_OECR5()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr5)
+#define OSM_REG_OECR6()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr6)
+#define OSM_REG_OECR7()\
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr7)
+
+
 
 /**************************************************************************//**
  @Group		AIOP_OSM_SRs_Verification
@@ -145,6 +172,20 @@ struct osm_registers {
 	uint32_t 	ortdr7;
 };
 
+struct osm_error_reg {
+	uint32_t	oerr;
+	uint32_t 	oedr;
+	uint32_t 	oeddr;
+	uint32_t 	reserved;
+	uint32_t 	oecr0;
+	uint32_t 	oecr1;
+	uint32_t 	oecr2;
+	uint32_t 	oecr3;
+	uint32_t 	oecr4;
+	uint32_t 	oecr5;
+	uint32_t 	oecr6;
+	uint32_t 	oecr7;
+};
 
 /**************************************************************************//**
 @Description	OSM Scope Transition to Exclusive Command structure.
@@ -268,6 +309,8 @@ struct osm_scope_exit_verif_command {
 struct osm_get_scope_verif_command {
 	uint32_t	opcode;
 	uint32_t 	scope_status;
+	uint32_t 	err_scope_status;
+	uint8_t 	pad[4];
 };
 
 /** @} */ /* end of AIOP_OSM_SRs_Verification */
