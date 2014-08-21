@@ -20,20 +20,22 @@ This demo is doing the following operations when a packet is injected:
 ===========================================
 Setup
 ===========================================
-1. Install CW_APP_v10.0.8
-2. Download linux version of LS_SIM_m0116
+1. Install CW_APP_v10.0.10 (* requires a workaround)
+2. Download linux version of LS_SIM_f0117_140801 
 3. Copy into simulator folder ls2085a_sim_init_params.cfg , ls2085a_sys_test.cfg
    from aiopsl\build\aiop_sim\sim_files.
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
-   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_m0116/dtsim_release/linux64
+   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_f0117_140801/dtsim_release/linux64
 5. Copy the dpl.dtb file from aiopsl\misc\setup to simulator folder.
 6. Copy “eth_ipv4_udp.pcap” from aiopsl\misc\setup into to simulator folder
+
+* Workaround for CW_APP_v10.0.10: un-check e_ldw/e_stdw in the AIOP projects properties.
 
 ===========================================
 Execution flow
 ===========================================
-1. Build mc_app using CW_APP_v10.0.8.
-2. Build ipsec_fm_demofrom aiopsl using CW_APP_v10.0.8.
+1. Build mc_app using CW_APP_v10.0.10.
+2. Build ipsec_fm_demo from aiopsl using CW_APP_v10.0.10.
 3. Copy resulting ELF file from the build project folder(aiop_app.elf) to simulator folder (same location as cfg files).
 4. Run simulator:
    ./ccssim2 -port 42333
@@ -43,7 +45,8 @@ Execution flow
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 6. Attach ipsec_fm_demo(make sure to un-mark initialization files).
 7. After MC reaches main(), turn tio console:
-   ./bin/tio_console -hub localhost:42975 -ser duart1_1 duart1_0
+   ./bin/tio_console -hub <host name>:42975 -ser duart2_1 duart2_0 duart1_1 duart1_0 -retry_connection
+   
 8. Run mc_app.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 9. Run “tio capture”:

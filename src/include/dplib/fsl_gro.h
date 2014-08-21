@@ -42,6 +42,15 @@
 
  @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+ @Group		AIOP_L4 L4
+
+ @Description	AIOP L4 related API
+
+ @{
+ *//***************************************************************************/
+
 /**************************************************************************//**
 @Group		FSL_AIOP_GRO GRO
 
@@ -399,7 +408,8 @@ struct tcp_gro_context_params {
 		internal context.
 		The user should allocate \ref tcp_gro_ctx_t in
 		this address.
-@Param[in]	params - Pointer to the TCP GRO aggregation parameters.
+@Param[in]	params - Pointer to the TCP GRO aggregation parameters \ref
+		tcp_gro_context_params.
 @Param[in]	flags - Please refer to \ref TCP_GRO_AGG_FLAGS.
 
 @Return		GRO Status, or negative value on error.
@@ -413,15 +423,13 @@ struct tcp_gro_context_params {
 		Recommendation is to discard the frame.
 		The frame was not aggregated.
 
-
-@Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
-		a new session begins.
-
 @remark		When returning from this function, in case the aggregation is
 		not done, no frame will be in the default frame area.
 		Only when an aggregation is done, the aggregated frame will be
 		in the default frame area.
 
+@Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
+		a new session begins.
 *//***************************************************************************/
 int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
@@ -455,6 +463,7 @@ int tcp_gro_flush_aggregation(
 
 /** @} */ /* end of GRO_Functions */
 /** @} */ /* end of FSL_AIOP_GRO */
+/** @} */ /* end of group AIOP_L4 */
 /** @} */ /* end of NETF */
 
 

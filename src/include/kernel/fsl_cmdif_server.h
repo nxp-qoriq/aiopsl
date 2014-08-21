@@ -48,18 +48,20 @@
 
 @{
  *//***************************************************************************/
+
+#define CMDIF_SESSION_OPEN_SIZE		64
+/**< cmdif_session_open() default size */
+
 struct cmdif_desc;
 
 /**************************************************************************//**
 @Description	Open callback
 
 User provides this function.
-Driver invokes it when it gets establish instance command.
+Server invokes it when it gets open instance command.
 
 @Param[in]	instance_id - Instance id to be specified by client
 		on cmdif_open().
-@Param[in]	size        - Size of the data.
-@Param[in]	data        - Data allocated by user.
 @Param[out]	dev         - device handle.
 
 @Return		Handle to instance object, or NULL for Failure.
@@ -69,8 +71,8 @@ typedef int (open_cb_t)(uint8_t instance_id, void **dev);
 /**************************************************************************//**
 @Description	De-init callback
 
-User provides this function. Driver invokes it when it gets
-terminate instance command.
+User provides this function.
+Driver invokes it when it gets close instance command.
 
 @Param[in]	dev - A handle of the device.
 
@@ -116,6 +118,8 @@ struct cmdif_module_ops {
 
 @Description	Registration of a module to the server.
 
+For AIOP, use this API during AIOP boot.
+
 Each module needs to register to the command interface by
 supplying the following:
 
@@ -134,9 +138,9 @@ int cmdif_register_module(const char *module_name,
 @Description	Cancel the registration of a module on the server
 		and free the module id acquired during registration
 
-Each module needs to unregister from the command interface
+For AIOP, use this API during AIOP boot.
 
-@Param[in]	module_name - Module name
+@Param[in]	module_name - Module name, up to 8 characters.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -145,13 +149,17 @@ int cmdif_unregister_module(const char *module_name);
 /**************************************************************************//**
 @Function	cmdif_session_open
 
-@Description	Open session on server and notify client about it
+@Description	Open session on server and notify client about it.
 
-@Param[in]	cidesc   - Already open connection descriptor towards second side
+This functionality is relevant only for GPP.
+
+@Param[in]	cidesc   - Already open connection descriptor towards the
+		second side
 @Param[in]	m_name   - Name of the module as registered
 		by cmdif_register_module()
 @Param[in]	inst_id  - Instance id which will be passed to #open_cb_t
-@Param[in]	size     - Size of v_data buffer
+@Param[in]	size     - Size of v_data buffer.
+		By default, set it to #CMDIF_SESSION_OPEN_SIZE bytes.
 @Param[in]	v_data   - Buffer allocated by user. If not NULL this buffer
 		will carry all the information of this session.
 @Param[in]	send_dev - Transport device to be used for server (nadk device).
@@ -171,7 +179,10 @@ int cmdif_session_open(struct cmdif_desc *cidesc,
 /**************************************************************************//**
 @Function	cmdif_session_close
 
-@Description	Close session on server and notify client about it
+@Description	Close session on server and notify client about it.
+
+This functionality is relevant only for GPP but it's not yet supported
+by the GPP server.
 
 @Param[in]	cidesc   - Already open connection descriptor towards second side
 @Param[in]	size     - Size of v_data buffer
@@ -193,6 +204,8 @@ int cmdif_session_close(struct cmdif_desc *cidesc,
 @Function	cmdif_srv_cb
 
 @Description	Server callback to be called on every frame command
+
+This functionality is relevant only for GPP.
 
 @Param[in]	pr       - Priority
 @Param[in]	send_dev - Device used for send and receive of frame descriptor

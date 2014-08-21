@@ -67,14 +67,17 @@
 /** @} end of group CMDIF_SEND_ATTRIBUTES */
 
 
+#define CMDIF_OPEN_SIZE		64  /**< cmdif_open() default size */
+
 /**************************************************************************//**
 @Description   Command interface descriptor.
 *//***************************************************************************/
 struct cmdif_desc {
 	void *regs;
 	/*!<
-	 * Pointer to command interface registers (virtual address);
-	 * Or pointer to transport layer device for sending commands;
+	 * Pointer to transport layer device for sending commands;
+	 * On GPP the user should pass NADK device
+	 * On AIOP the user should pass dpci_id as known by GPP SW context
 	 * Must be set by the user
 	 */
 	void *dev;
@@ -86,6 +89,9 @@ struct cmdif_desc {
 	/*!<
 	 * Optional lock object to be used with the lock/unlock callbacks;
 	 * user must zero it if not needed.
+	 * Lock is needed for session sharing but only for sending synchronous
+	 * commands.
+	 * Asynchronous commands don't require lock in case of session sharing
 	 */
 	void (*lock_cb)(void *lock);
 	/*!<
@@ -133,6 +139,7 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 
 @Param[in]	cidesc		Command interface descriptor, cmdif device will
 		be returned inside this descriptor.
+		Only cidesc.regs must be set by user see \ref struct cmdif_desc.
 @Param[in]	module_name	Module name, up to 8 characters.
 @Param[in]	instance_id	Instance id which will be passed to #open_cb_t
 @Param[in]	async_cb	Callback to be called on response of
@@ -141,10 +148,11 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		command response inside async_cb().
 @Param[in]	data		Buffer to be used by command interface.
 		This address should be accessible by Server and Client.
-		For MC->AIOP use buffer from DP-DDR.
 		This buffer can be freed only after cmdif_close().
-@Param[in]	size		Size of the v_data buffer. If the size if not
+		On AIOP, set data as NULL.
+@Param[in]	size		Size of the data buffer. If the size is not
 				enough cmdif_open() will return -ENOMEM.
+				By default, set it to #CMDIF_OPEN_SIZE bytes.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -162,6 +170,8 @@ int cmdif_open(struct cmdif_desc *cidesc,
 @Description	Close this command interface device and free this instance entry
 		on the Server.
 
+It's not yet supported by the AIOP client.
+
 @Param[in]	cidesc   Command interface descriptor which was setup by
 		cmdif_open().
 
@@ -177,6 +187,8 @@ int cmdif_close(struct cmdif_desc *cidesc);
 
 		This function may be activated in synchronous and asynchronous
 		mode, see \ref CMDIF_SEND_ATTRIBUTES.
+		Note, AIOP client supports only asynchronous commands see
+		\ref CMDIF_ASYNC_CMD.
 
 @Param[in]	cidesc     Command interface descriptor which was setup by
 		cmdif_open().
@@ -184,7 +196,7 @@ int cmdif_close(struct cmdif_desc *cidesc);
 		registered on Server; Application may use bits 11-0.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	size       Size of the data.
-@Param[in]	priority   High or low priority queue to be checked.
+@Param[in]	priority   High or low priority queue.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	data       Data of the command or buffer allocated by user which
 		will be used inside command.
@@ -205,7 +217,8 @@ int cmdif_send(struct cmdif_desc *cidesc,
 @Description	Check the response queue for new responses,
 		de-queue and activate the callback function for each response
 
-This function is not blocking; if nothing was found it will return error code
+This function is not blocking; if nothing was found it will return error code.
+Note, this functionality is not relevant for AIOP client.
 
 @Param[in]	cidesc   Command interface descriptor which was setup by
 		cmdif_open().

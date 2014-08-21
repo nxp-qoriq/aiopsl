@@ -57,18 +57,19 @@ int id_pool_init(uint16_t num_of_ids,
 	/* store the address in the global parameter */
 	*ext_id_pool_address = int_id_pool_address;
 
-	/* pool_length_to_fill = num_of_ids + index + last_id_in_pool */
-	pool_length_to_fill = (num_of_ids + 2);
+	/* pool_length_to_fill = num_of_ids+index(2B)+last_id_in_pool(1B) */
+	pool_length_to_fill = (num_of_ids + 3);
 
 	while (pool_length_to_fill) {
 		/* Initialize pool in local memory */
 		fill_ids = (pool_length_to_fill < 64) ?
 						pool_length_to_fill : 64;
 		for (i = 0; i < fill_ids; i++)
-			pool[i] = (uint8_t)((num_of_writes<<6) + i - 2);
+			pool[i] = (uint8_t)((num_of_writes<<6) + i - 3);
 		if (num_of_writes == 0) {
-			pool[0] = last_id_in_pool;
-			pool[1] = 0; /* index */
+			pool[0] = 0; /* index (MSB) */
+			pool[1] = 0; /* index (LSB) */
+			pool[2] = last_id_in_pool;
 		}
 		pool_length_to_fill = pool_length_to_fill - fill_ids;
 		/* Write pool to external memory */
@@ -83,25 +84,30 @@ int id_pool_init(uint16_t num_of_ids,
 int get_id(uint64_t ext_id_pool_address, uint8_t *id)
 {
 	
-	uint8_t last_id_and_index[2];
+	uint8_t index_and_last_id[3];
+	uint16_t index;
+	uint8_t last_id;
 
 	/* Read and lock id pool num_of_IDs + index */
 	cdma_read_with_mutex(ext_id_pool_address,
 				CDMA_PREDMA_MUTEX_WRITE_LOCK,
-				last_id_and_index,
-				2);
-
+				index_and_last_id,
+				3);
+	
+	index = *((uint16_t *)index_and_last_id);
+	last_id = index_and_last_id[2];
+	
 	/* check if index < last_id */
-	if (last_id_and_index[1] <= (last_id_and_index[0])) {
+	if (index <= last_id) {
 		/* Pull id from the pool */
 		cdma_read(id, 
-			(uint64_t)(ext_id_pool_address+last_id_and_index[1]+2),
+			(uint64_t)(ext_id_pool_address+index+3),
 			1);
-			/* Update index, write it back and release mutex */
-		last_id_and_index[1]++;
+		/* Update index, write it back and release mutex */
+		index++;
 		cdma_write_with_mutex(ext_id_pool_address,
 				CDMA_POSTDMA_MUTEX_RM_BIT,
-				last_id_and_index, 2);
+				&index, 2);
 		return 0;
 	} else { /* Pool out of range */
 		/* Release mutex */
@@ -114,27 +120,28 @@ int get_id(uint64_t ext_id_pool_address, uint8_t *id)
 int release_id(uint8_t id, uint64_t ext_id_pool_address)
 {
 
-	uint8_t last_id_and_index[2];
+	uint16_t index;
 
 	/* Read and lock id pool index */
 	cdma_read_with_mutex(ext_id_pool_address,
 				CDMA_PREDMA_MUTEX_WRITE_LOCK,
-				last_id_and_index,
+				&index,
 				2);
-
-	if (last_id_and_index[1] == 0) { /* Pool out of range */
+	
+	if (index == 0) { /* Pool out of range */
 		cdma_mutex_lock_release(ext_id_pool_address);
 		return -ENAVAIL;
 	} else {
-		last_id_and_index[1]--;
+		/* Update index */
+		index--;
 		/* Return id to the pool */
-		cdma_write((ext_id_pool_address+last_id_and_index[1]+2),
+		cdma_write((ext_id_pool_address+index+3),
 				&id,
 				1);
-		/* Update index, write it back and release mutex */
+		/* Write index back and release mutex */
 		cdma_write_with_mutex(ext_id_pool_address,
 					CDMA_POSTDMA_MUTEX_RM_BIT,
-					last_id_and_index, 2);
+					&index, 2);
 		return 0;
 	}
 }

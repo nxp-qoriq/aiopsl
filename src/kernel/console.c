@@ -118,9 +118,8 @@ int sys_register_console(fsl_handle_t h_console_dev,
 #endif
 
 	/* Flush pre-console printouts as necessary */
-	if (h_console_dev && sys.p_pre_console_buf) {
+	if (h_console_dev) {
 		sys_print(sys.p_pre_console_buf);
-		fsl_os_free(sys.p_pre_console_buf);
 		sys.p_pre_console_buf = NULL;
 		sys.pre_console_buf_pos = 0;
 	}

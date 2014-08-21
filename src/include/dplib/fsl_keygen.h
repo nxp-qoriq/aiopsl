@@ -47,7 +47,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_KEYGEN Keygen
+@Group	FSL_KEYGEN KEYGEN
 
 @Description	Freescale AIOP Table API
 
@@ -55,9 +55,9 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_KEYGEN_MACROS Keygen Macros
+@Group	FSL_KEYGEN_MACROS KEYGEN Macros
 
-@Description	Freescale AIOP Keygen Macros
+@Description	Freescale AIOP KEYGEN Macros
 
 @{
 *//***************************************************************************/
@@ -74,9 +74,9 @@
 /** @} */ /* end of FSL_KEYGEN_MACROS */
 
 /**************************************************************************//**
-@Group		FSL_KEYGEN_Enumerations Keygen Enumerations
+@Group		FSL_KEYGEN_Enumerations KEYGEN Enumerations
 
-@Description	Keygen Enumerations
+@Description	KEYGEN Enumerations
 
 @{
 *//***************************************************************************/
@@ -97,6 +97,7 @@ enum kcr_builder_gec_source {
 
 /** @} */ /* end of kcr_builder_gec_source */
 
+#ifdef REV2
 /**************************************************************************//**
 @enum	kcr_builder_ext_lookup_res_field
 
@@ -117,6 +118,7 @@ enum kcr_builder_ext_lookup_res_field {
 	KEYGEN_KCR_EXT_TIMESTAMP = 0x04
 };
 /** @} */ /* end of kcr_builder_ext_lookup_res_field */
+#endif /*REV2*/
 
 
 /**************************************************************************//**
@@ -322,9 +324,9 @@ enum keygen_hw_accel_id {
 /** @} */ /* end of FSL_KEYGEN_Enumerations */
 
 /**************************************************************************//**
-@Group		FSL_KEYGEN_STRUCTS Keygen Structures
+@Group		FSL_KEYGEN_STRUCTS KEYGEN Structures
 
-@Description	Freescale AIOP Keygen Structures
+@Description	Freescale AIOP KEYGEN Structures
 
 @{
 *//***************************************************************************/
@@ -338,7 +340,7 @@ struct	kcr_builder {
 	uint8_t  kcr[KEYGEN_KCR_LENGTH];
 
 	/** KCR length
-	Number of bytes the NFEC and FECs occupy */
+	Number of bytes the FECs occupy */
 	uint8_t  kcr_length;
 };
 
@@ -381,9 +383,9 @@ struct	kcr_builder_fec_mask {
 
 
 /**************************************************************************//**
-@Group		FSL_KEYGEN_Functions Keygen Functions
+@Group		FSL_KEYGEN_Functions KEYGEN Functions
 
-@Description	Freescale AIOP Keygen Functions
+@Description	Freescale AIOP KEYGEN Functions
 
 @{
 *//***************************************************************************/
@@ -396,7 +398,8 @@ struct	kcr_builder_fec_mask {
 /**************************************************************************//**
 @Function	keygen_kcr_builder_init
 
-@Description	Initializes key composition rule (kcr).
+@Description	Initializes key composition rule 
+		(kcr).
 
 		This function should be called before any call to other
 		functions from keygen_kcr_builder() function family.
@@ -433,7 +436,7 @@ int keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 @Function	keygen_kcr_builder_add_input_value_fec
 
 @Description	Adds Field Extract Command (FEC) to key composition rule (kcr)
-		for extraction of an input value supplied in
+		for extraction of an input value (user_metadata) supplied in
 		\ref keygen_gen_key.
 
 @Param[in]	offset - Offset in input value given in keygen_gen_key.
@@ -468,7 +471,7 @@ int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 		this parameter should be NULL.
 @Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
-		Note that extraction will take place only if there is no
+@remark		Note that extraction will take place only if there is no
 		parsing error related to this fecid.
 		In case parsing error exists, the fec is considered invalid.
 		The key composition places the value of "000..." in the field
@@ -503,14 +506,14 @@ int keygen_kcr_builder_add_protocol_specific_field
 		this parameter should be NULL.
 @Param[in,out]	kb - kcr builder pointer (located in the workspace).
 
-		Note that extraction (using \ref keygen_gen_key) will take place
+@remark		Note that extraction (using \ref keygen_gen_key) will take place
 		only if all following conditions are met:
-		- The corresponding parse result offset is not 0xFF
-		- The corresponding "Present condition in parser frame
-		attribute flags" is met
-		- The corresponding "Error condition in parser frame
-		attribute flags" is NOT met (i.e. no errors)
-
+			- The corresponding parse result offset is not 0xFF.
+			- The corresponding "Present condition in parser frame
+			attribute flags" is met.
+			- The corresponding "Error condition in parser frame
+			attribute flags" is NOT met (i.e. no errors).
+		
 		If any condition is not met, the fec is considered invalid.
 		The key composition places the value of "000..." in the field
 		(the number of 0s corresponds to the size of the field which
@@ -560,6 +563,7 @@ int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
 
 
+#ifdef REV2
 /**************************************************************************//**
 @Function	keygen_kcr_builder_add_lookup_result_field_fec
 
@@ -591,6 +595,7 @@ int keygen_kcr_builder_add_lookup_result_field_fec(
 	enum kcr_builder_ext_lookup_res_field extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
+#endif /*REV2*/
 
 
 /**************************************************************************//**
@@ -710,6 +715,8 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - The key ID to be used for the key extraction.
 @Param[in]	user_metadata - user_metadata field for key composition.
+		(will be taken only if the KCR includes
+		keygen_kcr_builder_add_input_value_fec).
 @Param[out]	key - The key. This structure should be located in the workspace
  	 	and must be aligned to 16B boundary.
 @Param[out]	key_size - Key size in bytes.

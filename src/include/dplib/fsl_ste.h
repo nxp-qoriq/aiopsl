@@ -71,7 +71,7 @@
 	/** Size - If set, the counter is 8 bytes long */
 #define STE_MODE_64_BIT_CNTR_SIZE	0x30000000
 
-/* @} end of group StatsFlags */
+/** @} end of group StatsFlags */
 
 /**************************************************************************//**
 @Group		StatsCompoundFlags Statistics Compound commands flags
@@ -98,7 +98,7 @@
 		perform a wrap and saturates to its maximum/minimum value. */
 #define STE_MODE_COMPOUND_ACC_SATURATE		0x08000000
 
-/* @} end of group StatsCompoundFlags */
+/** @} end of group StatsCompoundFlags */
 
 /**************************************************************************//**
 @Group		STE_functions Statistics functions
@@ -310,8 +310,8 @@ void ste_dec_and_sub_counters(uint64_t counter_addr,
 void ste_barrier();
 
 
-/* @} end of group STE_functions */
-/* @} end of group STATS */
+/** @} end of group STE_functions */
+/** @} end of group STATS */
 /** @} */ /* end of ACCEL */
 
 #endif /* __FSL_STE_H */

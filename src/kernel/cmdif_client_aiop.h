@@ -35,6 +35,11 @@
 
 #include "cmdif_client.h"
 #include "dplib/fsl_dpci.h"
+#include "fsl_gen.h"
+
+#pragma warning_errors on
+ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
+#pragma warning_errors off
 
 /** BDI */
 #define BDI_GET \

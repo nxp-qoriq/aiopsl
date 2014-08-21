@@ -240,6 +240,16 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/cmgw.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmgw.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/cmgw.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmgw.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/console.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/console.c</locationURI>

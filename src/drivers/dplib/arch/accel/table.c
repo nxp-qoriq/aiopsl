@@ -118,7 +118,9 @@ int table_create(enum table_hw_accel_id acc_id,
 		crt_status = -ENOMEM;
 		break;
 	default:
-		table_exception_handler(__FILE__, __LINE__, crt_status);
+		table_exception_handler_wrp(TABLE_CREATE_FUNC_ID,
+					    __LINE__,
+					    crt_status);
 		break;
 	}
 
@@ -153,9 +155,10 @@ int table_create(enum table_hw_accel_id acc_id,
 						0);
 
 		if (miss_status)
-			exception_handler(__FILE__,
-					  __LINE__,
-					  "Table miss rule creation failed. ");
+			table_exception_handler_wrp(
+					TABLE_CREATE_FUNC_ID,
+					__LINE__,
+					TABLE_SW_STATUS_MISS_RES_CRT_FAIL);
 	}
 	return crt_status;
 }
@@ -186,11 +189,9 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 	status = table_rule_replace(acc_id, table_id, &new_miss_rule, 0,
 				       old_miss_result);
 	if (status)
-		exception_handler(__FILE__,
-				  __LINE__,
-				  "Table replace miss result failed due to non"
-				  "-existance of a miss result in the table. ");
-
+		table_exception_handler_wrp(TABLE_REPLACE_MISS_RESULT_FUNC_ID,
+					    __LINE__,
+					    TABLE_SW_STATUS_MISS_RES_RPL_FAIL);
 	return;
 }
 
@@ -220,7 +221,9 @@ void table_get_params(enum table_hw_accel_id acc_id,
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status)
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(TABLE_GET_PARAMS_FUNC_ID,
+					    __LINE__,
+					    status);
 
 	return;
 }
@@ -236,12 +239,9 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 				  &invalid_timestamp);
 
 	if (status)
-		exception_handler(__FILE__,
-				  __LINE__,
-				  "Table get miss result failed due to non"
-				  "-existance of a miss result in the table.\n"
-				 );
-
+		table_exception_handler_wrp(TABLE_GET_MISS_RESULT_FUNC_ID,
+					    __LINE__,
+					    TABLE_SW_STATUS_MISS_RES_GET_FAIL);
 	return;
 }
 
@@ -260,7 +260,9 @@ void table_delete(enum table_hw_accel_id acc_id,
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status)
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(TABLE_DELETE_FUNC_ID,
+					    __LINE__,
+					    status);
 
 	return;
 }
@@ -341,7 +343,9 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(TABLE_RULE_CREATE_FUNC_ID,
+					    __LINE__,
+					    status);
 		break;
 	}
 	return status;
@@ -410,7 +414,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(
+				TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+				__LINE__,
+				status);
 		break;
 	} /* Switch */
 
@@ -467,7 +474,9 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(TABLE_RULE_REPLACE_FUNC_ID,
+					    __LINE__,
+					    status);
 		break;
 	} /* Switch */
 
@@ -526,9 +535,10 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 			break;
 		default:
 			/* Call fatal error handler */
-			exception_handler(__FILE__,
-					  __LINE__,
-					  "Unknown result entry type. ");
+			table_exception_handler_wrp(
+					TABLE_RULE_QUERY_FUNC_ID,
+					__LINE__,
+					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE);
 			break;
 		} /* Switch */
 	} else {
@@ -560,7 +570,10 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 
 		default:
 			/* Call fatal error handler */
-			table_exception_handler(__FILE__, __LINE__, status);
+			table_exception_handler_wrp(
+					TABLE_RULE_QUERY_FUNC_ID,
+					__LINE__,
+					status);
 			break;
 		} /* Switch */
 	}
@@ -603,7 +616,10 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(
+				TABLE_RULE_DELETE_FUNC_ID,
+				__LINE__,
+				status);
 		break;
 	} /* Switch */
 
@@ -638,7 +654,10 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 	case (TABLE_HW_STATUS_MISS):
 		break;
 	default:
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(
+				TABLE_LOOKUP_BY_KEY_FUNC_ID,
+				__LINE__,
+				status);
 		break;
 	} /* Switch */
 	return status;
@@ -673,7 +692,10 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(
+			TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
+			__LINE__,
+			status);
 		break;
 	} /* Switch */
 
@@ -719,7 +741,9 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 		break;
 	default:
 		/* Call fatal error handler */
-		table_exception_handler(__FILE__, __LINE__, status);
+		table_exception_handler_wrp(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+					    __LINE__,
+					    status);
 		break;
 	} /* Switch */
 
@@ -769,30 +793,154 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
-void table_exception_handler_wrp(uint32_t line, int32_t status) {
-	table_exception_handler(__FILE__, line, status);
+void table_exception_handler_wrp(enum table_function_identifier func_id,
+				 uint32_t line,
+				 int32_t status) {
+	table_exception_handler(__FILE__, func_id, line, status);
 }
 
-void table_exception_handler(char *file_path, uint32_t line, int32_t status){
+void table_exception_handler(char *file_path,
+			     enum table_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status) {
+	char *func_name;
 
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case TABLE_CREATE_FUNC_ID:
+		func_name = "table_create";
+		break;
+	case TABLE_REPLACE_MISS_RESULT_FUNC_ID:
+		func_name = "table_replace_miss_result";
+		break;
+	case TABLE_GET_PARAMS_FUNC_ID:
+		func_name = "table_get_params";
+		break;
+	case TABLE_GET_MISS_RESULT_FUNC_ID:
+		func_name = "table_get_miss_result";
+		break;
+	case TABLE_DELETE_FUNC_ID:
+		func_name = "table_delete";
+		break;
+	case TABLE_RULE_CREATE_FUNC_ID:
+		func_name = "table_rule_create";
+		break;
+	case TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID:
+		func_name = "table_rule_create_or_replace";
+		break;
+	case TABLE_RULE_REPLACE_FUNC_ID:
+		func_name = "table_rule_replace";
+		break;
+	case TABLE_RULE_QUERY_FUNC_ID:
+		func_name = "table_rule_query";
+		break;
+	case TABLE_RULE_DELETE_FUNC_ID:
+		func_name = "table_rule_delete";
+		break;
+	case TABLE_LOOKUP_BY_KEY_FUNC_ID:
+		func_name = "table_rule_lookup_by_key";
+		break;
+	case TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID:
+		func_name = "table_rule_lookup_by_keyid_default_frame";
+		break;
+	case TABLE_LOOKUP_BY_KEYID_FUNC_ID:
+		func_name = "table_rule_lookup_by_keyid";
+		break;
+	case TABLE_QUERY_DEBUG_FUNC_ID:
+		func_name = "table_query_debug";
+		break;
+	case TABLE_HW_ACCEL_ACQUIRE_LOCK_FUNC_ID:
+		func_name = "table_hw_accel_acquire_lock";
+		break;
+	case TABLE_HW_ACCEL_RELEASE_LOCK_FUNC_ID:
+		func_name = "table_hw_accel_release_lock";
+		break;
+	case TABLE_EXCEPTION_HANDLER_WRP_FUNC_ID:
+		func_name = "table_exception_handler_wrp";
+		break;
+	/* this function should not be recursive and can go to the exception
+	 * handler directly */
+	/* case TABLE_EXCEPTION_HANDLER_FUNC_ID:
+		func_name = "table_exception_handler";
+		break; */
+	case TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID:
+		func_name = "table_calc_num_entries_per_rule";
+		break;
+	default:
+		/* create own exception */
+		exception_handler(__FILE__,
+				  "table_exception_handler",
+				  __LINE__,
+				  "table_exception_handler got unknown"
+				  "function identifier.\n");
+	}
+
+	/* Call general exception handler */
 	switch (status) {
 	case (TABLE_HW_STATUS_MNLE):
-		exception_handler(file_path, line,
+		exception_handler(file_path,
+				  func_name,
+				  line,
 				  "Maximum number of chained lookups reached"
 				  ".\n");
 		break;
 	case (TABLE_HW_STATUS_KSE):
-		exception_handler(file_path, line, "Key size error.\n");
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Key size error.\n");
 		break;
 	case (MFLU_HW_STATUS_TIDE):
-		exception_handler(file_path, line, "Invalid MFLU table ID.\n");
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Invalid MFLU table ID.\n");
 		break;
 	case (CTLU_HW_STATUS_TIDE):
-		exception_handler(file_path, line, "Invalid CTLU table ID.\n");
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Invalid CTLU table ID.\n");
 		break;
+	case(TABLE_SW_STATUS_MISS_RES_CRT_FAIL):
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Table miss rule creation failed.\n");
+		break;
+	case(TABLE_SW_STATUS_MISS_RES_RPL_FAIL):
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Table replace miss result failed due to "
+				  "non-existance of a miss result in the "
+				  "table.\n");
+		break;
+	case(TABLE_SW_STATUS_MISS_RES_GET_FAIL):
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Table get miss result failed due to "
+				  "non-existance of a miss result in the "
+				  "table.\n");
+		break;
+	case(TABLE_SW_STATUS_QUERY_INVAL_ENTYPE):
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Rule query failed due to unrecognized entry "
+				  "type returned from HW.\n");
+		break;
+	case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Unknown table type.\n");
 	default:
-		exception_handler(file_path, line, "Unknown or Invalid status."
-						  "\n");
+		exception_handler(file_path,
+				  func_name,
+				  line,
+				  "Unknown or Invalid status.\n");
 		break;
 	}
 
@@ -848,9 +996,10 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 		break;
 
 	default:
-		exception_handler(__FILE__,
-				  __LINE__,
-				  "Unknown table type.");
+		table_exception_handler_wrp(
+				TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
+				__LINE__,
+				TABLE_SW_STATUS_UNKNOWN_TBL_TYPE);
 		break;
 	}
 

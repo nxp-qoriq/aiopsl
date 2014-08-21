@@ -287,7 +287,7 @@ int cmdif_srv_open(void *_srv,
 	struct cmdif_session_data *data = v_data;
 	void   *dev = NULL;
 
-	if ((v_data != NULL) && (size < sizeof(struct cmdif_session_data)))
+	if ((v_data != NULL) && (size < CMDIF_SESSION_OPEN_SIZEOF))
 		return -EINVAL;
 
 	if (auth_id == NULL)

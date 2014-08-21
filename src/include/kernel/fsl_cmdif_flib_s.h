@@ -41,6 +41,10 @@
 
 @Description   AIOP and GPP command interface API
 
+This is external API that is used to implement the final API as defined at
+fsl_cmdif_client.h and fsl_cmdif_server.h. For client and server external use
+only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
+
 @{
  *//***************************************************************************/
 

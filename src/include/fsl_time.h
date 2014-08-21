@@ -111,6 +111,7 @@ int fsl_get_time_ms(uint32_t *time);
 *//***************************************************************************/
 int fsl_get_time_since_epoch_ms(uint64_t *time);
 
+#ifdef UNDER_CONSTRUCTION
 /**************************************************************************//**
  @Deprecated - Will be removed in future release
  @Function   fsl_os_current_time
@@ -120,6 +121,7 @@ int fsl_get_time_since_epoch_ms(uint64_t *time);
  @Return   0, not implemented
 
 *//***************************************************************************/
+#endif //UNDER_CONSTRUCTION
 uint32_t fsl_os_current_time(void);
 /** @} */ /* end of time_g Time Queries group */
 

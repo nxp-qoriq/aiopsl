@@ -26,7 +26,7 @@
 
 /*!
  *  @file    fsl_cmdif_flib_c.h
- *  @brief   Cmdif AIOP<->GPP FLIB header file fro client
+ *  @brief   Cmdif AIOP<->GPP FLIB header file for client
  */
 
 #ifndef __FSL_CMDIF_FLIB_C_H
@@ -41,13 +41,18 @@
 
 @Description   AIOP and GPP command interface API
 
+This is external API that is used to implement the final API as defined at
+fsl_cmdif_client.h and fsl_cmdif_server.h. For client and server external use
+only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
+
 @{
  *//***************************************************************************/
 
 /**************************************************************************//**
 @Group         cmdif_flib_g  Command Interface - FLIB API
 
-@Description   API to be used for FD based command interface implementation
+@Description	API to be used for FD based command interface implementation.
+		For client server
 
 @{
  *//***************************************************************************/
@@ -87,9 +92,9 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 		struct cmdif_fd *fd);
 /**
  *
- * @brief	Synchronious/Blocking mode done indication.
+ * @brief	Synchronous/Blocking mode done indication.
  *
- * Should be used for implementation of cmdif_send() in synchronious mode.
+ * Should be used for implementation of cmdif_send() in synchronous mode.
  *
  * @param[in]	cidesc      - Command interface descriptor
  *

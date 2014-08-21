@@ -101,7 +101,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		{
 			l2_push_and_set_vlan(vlan_tag2);
 			fsl_os_print
-				("ipr_demo: Core %d inserted vlan 0x%x to fragment\n",
+				("ipf_demo: Core %d inserted vlan 0x%x to fragment\n",
 				core_get_id(), vlan_tag2);
 		}
 		
