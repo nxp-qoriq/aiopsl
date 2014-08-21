@@ -432,8 +432,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		if (PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT())
 			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT();
 
-		/* Offsets */
-		
+		/* Offsets */		
 		((struct parse_result *)str->macros_struct)->shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->shim_offset_2 = PARSER_GET_SHIM2_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->ip_pid_offset = PARSER_GET_IP_PID_OFFSET_DEFAULT();
@@ -458,7 +457,106 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		((struct parse_result *)str->macros_struct)->ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
 		((struct parse_result *)str->macros_struct)->gross_running_sum = PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT();
 		((struct parse_result *)str->macros_struct)->running_sum = PARSER_GET_RUNNING_SUM_DEFAULT();
-		((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
+
+		/* FSL_PARSER_ERROR_CODES */
+		switch (PARSER_GET_PARSE_ERROR_CODE_DEFAULT()){	
+		case PARSER_EXCEED_BLOCK_LIMIT: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_EXCEED_BLOCK_LIMIT;
+			break;
+		case PARSER_FRAME_TRUNCATION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_FRAME_TRUNCATION;
+			break;
+		case PARSER_ETH_802_3_TRUNCATION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_ETH_802_3_TRUNCATION;
+			break;
+		case PARSER_PPPOE_TRUNCATION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_TRUNCATION;
+			break;
+		case PARSER_PPPOE_MTU_VIOLATED: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_MTU_VIOLATED;
+			break;
+		case PARSER_PPPOE_VERSION_INVALID: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_VERSION_INVALID;
+			break;
+		case PARSER_PPPOE_TYPE_INVALID: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_TYPE_INVALID;
+			break;
+		case PARSER_PPPOE_CODE_INVALID: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_CODE_INVALID;
+			break;
+		case PARSER_PPPOE_SESSION_ID_INVALID: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_SESSION_ID_INVALID;
+			break;
+		case PARSER_IPV4_PACKET_TRUNCATION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_PACKET_TRUNCATION;
+			break;
+		case PARSER_IPV4_CHECKSUM_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_CHECKSUM_ERROR;
+			break;
+		case PARSER_IPV4_VERSION_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_VERSION_ERROR;
+			break;
+		case PARSER_IPV4_MIN_FRAG_SIZE_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_MIN_FRAG_SIZE_ERROR;
+			break;
+		case PARSER_IPV4_HEADER_LENGTH_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_HEADER_LENGTH_ERROR;
+			break;
+		case PARSER_IPV6_PACKET_TRUNCATION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_PACKET_TRUNCATION;
+			break;
+		case PARSER_IPV6_EXTENSION_HEADER_VIOLATION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_EXTENSION_HEADER_VIOLATION;
+			break;
+		case PARSER_IPV6_VERSION_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_VERSION_ERROR;
+			break;
+		case PARSER_IPV6_ROUTING_HEADER_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_ROUTING_HEADER_ERROR;
+			break;
+		case PARSER_GRE_VERSION_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GRE_VERSION_ERROR;
+			break;
+		case PARSER_MINENC_CHECKSUM_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_MINENC_CHECKSUM_ERROR;
+			break;
+		case PARSER_TCP_INVALID_OFFSET: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_INVALID_OFFSET;
+			break;
+		case PARSER_TCP_PACKET_TRUNCATION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_PACKET_TRUNCATION;
+			break;
+		case PARSER_TCP_CHECKSUM_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_CHECKSUM_ERROR;
+			break;
+		case PARSER_TCP_BAD_FLAGS: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_BAD_FLAGS;
+			break;
+		case PARSER_UDP_LENGTH_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_UDP_LENGTH_ERROR;
+			break;
+		case PARSER_UDP_CHECKSUM_ZERO: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_UDP_CHECKSUM_ZERO;
+			break;
+		case PARSER_UDP_CHECKSUM_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_UDP_CHECKSUM_ERROR;
+			break;
+		case PARSER_SCTP_PORT_0_DETECTED: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_SCTP_PORT_0_DETECTED;
+			break;
+		case PARSER_GTP_UNSUPPORTED_VERSION: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GTP_UNSUPPORTED_VERSION;
+			break;
+		case PARSER_GTP_INVALID_PROTOCOL_TYPE: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GTP_INVALID_PROTOCOL_TYPE;
+			break;
+		case PARSER_GTP_INVALID_L_BIT_ERROR: 
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GTP_INVALID_L_BIT_ERROR;
+			break;
+		default:
+			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
+			break;
+		}
 
 		str_size = sizeof(struct parser_macros_command);
 		break;
