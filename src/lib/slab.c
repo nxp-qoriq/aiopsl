@@ -33,7 +33,6 @@
 #include "dplib/fsl_dpbp.h"
 #include "fsl_dbg.h"
 #include "slab.h"
-#include "virtual_pools.h"
 #include "fdma.h"
 #include "fsl_io.h"
 #include "cdma.h"
@@ -97,15 +96,15 @@ static int slab_create_virtual_pool(
 #ifdef SL_DEBUG
 	/* Check the arguments correctness */
 	if (bman_pool_id >= MAX_SLAB_BMAN_POOLS_NUM)
-		return VIRTUAL_POOLS_ILLEGAL_ARGS;
+		return -EINVAL;
 
 	/* max_bufs must be equal or greater than committed_bufs */
 	if (committed_bufs > max_bufs)
-		return VIRTUAL_POOLS_ILLEGAL_ARGS;
+		return -EINVAL;
 
 	/* committed_bufs and max_bufs must not be 0 */
 	if ((!committed_bufs) || (!max_bufs))
-		return VIRTUAL_POOLS_ILLEGAL_ARGS;
+		return -EINVAL;
 #endif
 
 	/* Check which BMAN pool ID array element matches the ID */
@@ -133,7 +132,7 @@ static int slab_create_virtual_pool(
 	} else {
 		unlock_spinlock((uint8_t *)
 		                &g_slab_bman_pools[bman_array_index].spinlock);
-		return VIRTUAL_POOLS_INSUFFICIENT_BUFFERS;
+		return -ENOSPC;
 	}
 
 	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
@@ -156,7 +155,7 @@ static int slab_create_virtual_pool(
 
 	/* Return with error if no pool is available */
 	if (slab_vpool_id == num_of_virtual_pools)
-			return VIRTUAL_POOLS_ID_ALLOC_FAIL;
+			return -ENAVAIL;
 
 	slab_virtual_pool->committed_bufs = committed_bufs;
 	slab_virtual_pool->allocated_bufs = 0;
@@ -170,7 +169,7 @@ static int slab_create_virtual_pool(
 		callback->callback_func = callback_func;
 	}
 
-	return VIRTUAL_POOLS_SUCCESS;
+	return 0;
 } /* End of vpool_create_pool */
 
 /***************************************************************************
@@ -189,7 +188,7 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 
 	if (slab_virtual_pool->allocated_bufs != 0) {
 		unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
-		return VIRTUAL_POOLS_RELEASE_POOL_FAILED;
+		return -EACCES;
 	}
 
 	/* max_bufs = 0 indicates a free pool */
@@ -202,7 +201,7 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 		&g_slab_bman_pools[slab_virtual_pool->bman_array_index].remaining,
 		slab_virtual_pool->committed_bufs);
 
-	return VIRTUAL_POOLS_SUCCESS;
+	return 0;
 } /* End of vpool_release_pool */
 
 /***************************************************************************
@@ -269,14 +268,14 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 					the remaining area */
 				atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
 				                               bman_array_index].remaining, 1);
-			return (VIRTUAL_POOLS_CDMA_ERR | return_val);
+			return (return_val);
 		}
 
-		return VIRTUAL_POOLS_SUCCESS;
+		return 0;
 
 	} else {
 		unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
-		return VIRTUAL_POOLS_BUF_ALLOC_FAIL;
+		return -ENAVAIL;
 	}
 
 } /* End of slab_pool_allocate_buff */
@@ -385,10 +384,10 @@ __HOT_CODE static int slab_decrement_virtual_pool_refcount(
 
 	if (release) {
 		__slab_vpool_internal_release_buf(slab_virtual_pool_id);
-		return VIRTUAL_POOLS_SUCCESS;
+		return 0;
 	} else {
 		/* Return special status for the slab */
-		return VIRTUAL_POOLS_BUF_NOT_RELEASED;
+		return -ENAVAIL;
 	}
 } /* End of vpool_refcount_decrement_and_release */
 
@@ -431,7 +430,7 @@ static int slab_read_virtual_pool(uint32_t slab_virtual_pool_id,
 		*callback_func = 0;
 	}
 
-	return VIRTUAL_POOLS_SUCCESS;
+	return 0;
 } /* slab_read_virtual_pool */
 
 /***************************************************************************
@@ -473,7 +472,7 @@ static int slab_pool_init(
 		g_slab_bman_pools[i].spinlock = 0;
 	}
 
-	return VIRTUAL_POOLS_SUCCESS;
+	return 0;
 } /* End of vpool_init */
 
 /*****************************************************************************/
@@ -488,7 +487,7 @@ static int slab_add_bman_buffs_to_pool(
 #ifdef SL_DEBUG
 	/* Check the arguments correctness */
 	if (bman_pool_id >= MAX_SLAB_BMAN_POOLS_NUM)
-		return VIRTUAL_POOLS_ILLEGAL_ARGS;
+		return -EINVAL;
 #endif
 
 	/* Check which BMAN pool ID array element matches the ID */
@@ -502,13 +501,13 @@ static int slab_add_bman_buffs_to_pool(
 #ifdef SL_DEBUG
 	/* Check the arguments correctness */
 	if (bman_array_index < 0)
-		return VIRTUAL_POOLS_BUF_ALLOC_FAIL;
+		return -EINVAL;
 #endif
 	/* Increment the total available BMAN pool buffers */
 	atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
 	              additional_bufs);
 
-	return VIRTUAL_POOLS_SUCCESS;
+	return 0;
 } /* End of vpool_add_total_bman_bufs */
 
 /*****************************************************************************/
@@ -524,7 +523,7 @@ static int slab_decr_bman_buffs_from_pool(
 #ifdef SL_DEBUG
 	/* Check the arguments correctness */
 	if (bman_pool_id >= MAX_SLAB_BMAN_POOLS_NUM)
-		return VIRTUAL_POOLS_ILLEGAL_ARGS;
+		return -EINVAL;
 #endif
 
 	/* Check which BMAN pool ID array element matches the ID */
@@ -550,10 +549,10 @@ static int slab_decr_bman_buffs_from_pool(
 	} else {
 		unlock_spinlock((uint8_t *)
 		                &g_slab_bman_pools[bman_array_index].spinlock);
-		return VIRTUAL_POOLS_INSUFFICIENT_BUFFERS;
+		return -ENOMEM;
 	}
 
-	return VIRTUAL_POOLS_SUCCESS;
+	return 0;
 } /* End of vpool_decr_bman_bufs */
 
 
@@ -619,9 +618,9 @@ int slab_find_and_free_bpid(uint32_t num_buffs,
 	int error = 0;
 	error = slab_add_bman_buffs_to_pool(*bpid,(int)num_buffs);
 
-	if(error){
-		return -EINVAL;
-	}
+	if(error)
+		return error;
+
 
 	return 0;
 }
@@ -654,9 +653,9 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 
 	error = slab_decr_bman_buffs_from_pool(*bpid,(int)num_buffs);
 
-	if(error){
-		return -ENOMEM;
-	}
+	if(error)
+		return error;
+
 	*num_reserved_buffs = (int)num_buffs;
 
 
@@ -781,7 +780,7 @@ int slab_free(struct slab **slab)
 		err = slab_release_pool(SLAB_VP_POOL_GET(*slab));
 
 		if(err)
-			return -EINVAL;
+			return err;
 
 	} else {
 		return -EINVAL;
@@ -843,7 +842,7 @@ __HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
 	                                             NULL);
 	/* It's OK for buffer not to be released as long as
 	 * there is no cdma_error */
-	if ((error == VIRTUAL_POOLS_BUF_NOT_RELEASED) || (error == 0))
+	if ((error == -ENAVAIL) || (error == 0))
 		return 0;
 	else
 		return -EFAULT;
@@ -949,7 +948,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 
 	if(num_bpids != 1) { /*Check if first dpbp was found*/
 		pr_err("DP-BP not found in the container.\n");
-		return -EAGAIN;
+		return -ENODEV;
 	}
 
 	num_bpids = 0; /*for now we save the first dpbp for later use.*/
@@ -969,7 +968,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 
 	if (num_bpids == 0) {
 		pr_err("DP-BP not found in the container.\n");
-		return -EAGAIN;
+		return -ENODEV;
 	}
 
 	*n_bpids = num_bpids;
