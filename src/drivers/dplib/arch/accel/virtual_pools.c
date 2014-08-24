@@ -33,7 +33,7 @@
 
 #include "virtual_pools.h"
 
-#if 0
+
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_cdma.h"
 #include "fsl_dbg.h"
@@ -591,7 +591,7 @@ int32_t vpool_refcount_decrement_and_release(
 } /* End of vpool_refcount_decrement_and_release */
 
 
-#endif
+
 
 
 
