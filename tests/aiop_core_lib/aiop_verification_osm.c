@@ -45,6 +45,7 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
+	*(uint32_t *)OSM_REG_OERR  = ENABLE_ERR_REG;
 
 	opcode  = *((uint32_t *) asa_seg_addr);
 
@@ -174,9 +175,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 			(struct osm_get_scope_verif_command *) asa_seg_addr;
 		
 		/* initialize TASK_ID (=0) in ORTAR to enable OSM registers */
-		uint32_t *osm_reg =(uint32_t *)OSM_REG_ORTAR;
-		*osm_reg = 0;
-		
+		*(uint32_t *)OSM_REG_ORTAR = 0;
+
 		osm_get_scope((struct scope_status_params *)str->scope_status);
 
 		((struct osm_registers *)str->scope_status)->ortdr0 = OSM_REG_ORTDR0();
@@ -187,6 +187,16 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		((struct osm_registers *)str->scope_status)->ortdr5 = OSM_REG_ORTDR5();
 		((struct osm_registers *)str->scope_status)->ortdr6 = OSM_REG_ORTDR6();
 		((struct osm_registers *)str->scope_status)->ortdr7 = OSM_REG_ORTDR7();
+
+		((struct osm_error_reg *)str->err_scope_status)->oedr = OSM_REG_OEDR();
+		((struct osm_error_reg *)str->err_scope_status)->oecr0 = OSM_REG_OECR0();
+		((struct osm_error_reg *)str->err_scope_status)->oecr1 = OSM_REG_OECR1();
+		((struct osm_error_reg *)str->err_scope_status)->oecr2 = OSM_REG_OECR2();
+		((struct osm_error_reg *)str->err_scope_status)->oecr3 = OSM_REG_OECR3();
+		((struct osm_error_reg *)str->err_scope_status)->oecr4 = OSM_REG_OECR4();
+		((struct osm_error_reg *)str->err_scope_status)->oecr5 = OSM_REG_OECR5();
+		((struct osm_error_reg *)str->err_scope_status)->oecr6 = OSM_REG_OECR6();
+		((struct osm_error_reg *)str->err_scope_status)->oecr7 = OSM_REG_OECR7();
 
 		str_size = (uint16_t)sizeof(struct osm_get_scope_verif_command);
 		break;

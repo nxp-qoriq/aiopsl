@@ -66,15 +66,12 @@
 
 @Description	Table Attributes
 
-	The table attributes are composed of the following sub fields:
-	- Type field (Exact Match, Longest Prefix Match, etc..)
-	- Location (External/PEB/Internal) field
-	- Miss result options field
+The table attributes are composed of the following sub fields:
+- Type field (Exact Match, Longest Prefix Match, etc..)
+- Location (External/PEB/Internal) field
+- Miss result options field
+- Aging Threshold field
 
-	For more details of each one of the sub fields, please refer to:
-	- \ref FSL_TABLE_ATTRIBUTE_TYPE
-	- \ref FSL_TABLE_ATTRIBUTE_LOCATION
-	- \ref FSL_TABLE_ATTRIBUTE_MR
 @{
 *//***************************************************************************/
 
@@ -83,9 +80,9 @@
 
 @Description	Table Type
 
-		These macros specifies the table type sub field offset and
-		mask and the available table types. \n User should select one
-		of the following defines (excluding mask and offset defines):
+These macros specifies the table type sub field offset and mask and the
+available table types. \n User should select one of the following defines
+(excluding mask and offset defines):
 @{
 *//***************************************************************************/
 	/** Exact Match table,
@@ -118,10 +115,9 @@
 
 @Description	Table Location
 
-		These macros specifies the table location sub field offset and
-		mask and the available table locations. \n User should select
-		one of the following defines (excluding mask and offset
-		defines):
+These macros specifies the table location sub field offset and mask and the
+available table locations. \n User should select one of the following defines
+(excluding mask and offset defines):
 @{
 *//***************************************************************************/
 	/** Internal table (located in dedicated RAM), Not available for
@@ -154,9 +150,9 @@
 
 @Description	Table Miss Result Options
 
-	These macros specifies options of the table miss result and mask and
-	and offset of the sub filed.\n User should select one of the following
-	defines (excluding mask and offset defines):
+These macros specifies options of the table miss result plus mask and offset of
+the sub filed.\n User should select one of the following defines (excluding
+mask and offset defines):
 @{
 *//***************************************************************************/
 	/** Table without miss result */
@@ -181,7 +177,8 @@
 
 @Description	Table Results Types
 
-		User should select one of the following defines:
+User should select one of the following defines:
+
 @{
 *//***************************************************************************/
 /** Result is used for chaining of lookups, Contains 9B Opaque fields
@@ -208,7 +205,7 @@
 
 @Description	Table Rule Timestamp Options
 
-		User should select one of the following:
+User should select one of the following:
 
 @{
 *//***************************************************************************/
@@ -263,26 +260,24 @@
 @Group	FSL_TABLE_LOOKUP_FLAG_DEFINES Table Lookup Flags
 @{
 *//***************************************************************************/
-	/** Segment Address and Size Non Default
-	If set, the Segment given in the lookup function parameters is used
-	instead of the default segment. Not available for Rev1  */
+	/** Segment Address and Size Non Default - If set, the Segment given in
+	the lookup function parameters is used instead of the default segment.
+	Not available for Rev1  */
 #define TABLE_LOOKUP_FLAG_SEG_NON_DEFAULT		0x80000000
 
-	/** Parse Result Address Non Default
-	If set, the Parse Result Address given in the lookup function
-	parameters is used instead of the default address. Not available for
-	Rev1 */
+	/** Parse Result Address Non Default - If set, the Parse Result Address
+	given in the lookup function parameters is used instead of the default
+	address. Not available for Rev1 */
 #define TABLE_LOOKUP_FLAG_PRA_NON_DEFAULT		0x40000000
 
-	/** Frame Descriptor Address Non Default
-	If set, the Frame Descriptor Address given in the lookup function
-	parameters is used instead of the default address. Not available for
-	Rev1 */
+	/** Frame Descriptor Address Non Default - If set, the Frame Descriptor
+	Address given in the lookup function parameters is used instead of the
+	default address. Not available for Rev1 */
 #define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x20000000
 
-	/** Metadata Non Default
-	If set, the metadata given in the lookup function parameters is used
-	instead of the default metadata which is zeroes. */
+	/** Metadata Non Default - If set, the metadata given in the lookup
+	function parameters is used instead of the default metadata which is
+	zeroes. */
 #define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x10000000
 
 	/** No Lookup Flags */
@@ -346,8 +341,7 @@ enum table_hw_accel_id {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_result_chain_parameters {
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint32_t reserved0;
 
@@ -357,8 +351,7 @@ struct table_result_chain_parameters {
 	/** Key ID */
 	uint8_t  keyid;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint8_t  reserved1;
 };
@@ -368,23 +361,19 @@ struct table_result_chain_parameters {
 /**************************************************************************//**
 @Description	\ref table_result structure ctlu_op0_refptr_clp field.
 
-		This field can be used either:
-		- As an opaque field of 8 bytes \ref table_result
-		type field should be set to
-		\ref TABLE_RESULT_TYPE_OPAQUES.\n Returned as part of
-		lookup result.
-		- As a pointer to Slab/CDMA acquired buffer (which has
-		reference counter). \ref table_result type field
-		should be set to \ref TABLE_RESULT_TYPE_REFERENCE.\n
-		Returned as part of lookup result.
-		- As a structure containing table ID and Key ID parameters for
-		a chained lookup. \ref table_result type field
-		should be set to \ref TABLE_RESULT_TYPE_CHAINING.
+This field can be used either:
+- As an opaque field of 8 bytes. \ref table_result type field should be set to
+#TABLE_RESULT_TYPE_OPAQUES.\n Returned as part of lookup result.
+- As a pointer to Slab/CDMA acquired buffer (which has reference counter).
+\ref table_result type field should be set to #TABLE_RESULT_TYPE_REFERENCE.\n
+Returned as part of lookup result.
+- As a structure containing table ID and Key ID parameters for a chained
+lookup. \ref table_result type field should be set to
+#TABLE_RESULT_TYPE_CHAINING.
 *//***************************************************************************/
 #pragma pack(push, 1)
 union table_result_op0_refptr_clp {
-	/** Opaque0
-	Returned as part of lookup result */
+	/** Opaque Data - Returned as part of lookup result */
 	uint64_t opaque0;
 
 	/** Reference Pointer
@@ -395,9 +384,8 @@ union table_result_op0_refptr_clp {
 	Returned as part of lookup result. */
 	uint64_t reference_pointer;
 
-	/** Chaining Parameters
-	A structure that contains table ID and key composition ID parameters
-	for the chained lookups. Not available for Rev1 */
+	/** A structure that contains table ID and key composition ID
+	parameters for the chained lookups. Not available for Rev1 */
 	struct table_result_chain_parameters chain_parameters;
 };
 #pragma pack(pop)
@@ -406,25 +394,21 @@ union table_result_op0_refptr_clp {
 /**************************************************************************//**
 @Description	Table Result
 
-		This structure represents the table result. Some of the fields
-		defined here are returned after lookup, see fields
-		specification for more details.
+This structure represents the table result. Some of the fields defined here are
+returned after lookup, see fields specification for more details.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_result {
-	/** Result Type
-	Should be set to one of the types specified in
-	\link FSL_TABLE_RESULT_TYPES Result Types \endlink macros. */
+	/** Result Type - Should be set to one of the types specified in
+	\ref FSL_TABLE_RESULT_TYPES macros. */
 	uint8_t  type;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint16_t reserved;
 
-	/** Opaque2
-	Returned as part of lookup result. Not valid when type is set to
-	\ref TABLE_RESULT_TYPE_CHAINING */
+	/** Opaque data - Returned as part of lookup result.
+	Not valid when type is set to #TABLE_RESULT_TYPE_CHAINING */
 	uint8_t  opaque2;
 
 	/** Opaque0 or Reference Pointer or Chained Lookup Parameters.
@@ -433,9 +417,8 @@ struct table_result {
 	structure documentation\endlink. */
 	union table_result_op0_refptr_clp op0_rptr_clp;
 
-	/** Opaque1
-	Returned as part of lookup result. Not valid when type is set to
-	\ref TABLE_RESULT_TYPE_CHAINING */
+	/** Opaque data - Returned as part of lookup result.
+	Not valid when type is set to #TABLE_RESULT_TYPE_CHAINING */
 	uint64_t opaque1;
 };
 #pragma pack(pop)
@@ -449,8 +432,7 @@ struct table_key_desc_em {
 	/** Exact Match key */
 	uint8_t  key[TABLE_KEY_EXACT_MATCH_SIZE];
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_EXACT_MATCH_RESERVED_SIZE];
 };
@@ -460,8 +442,8 @@ struct table_key_desc_em {
 /**************************************************************************//**
 @Description	LPM IPv4 Key Descriptor Structure
 
-		The CTLU searches for the LPM of the concatenation of
-		{exact_match, full_ipv4_address}.
+The CTLU searches for the LPM of the concatenation of
+{exact_match, full_ipv4_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_key_desc_lpm_ipv4 {
@@ -475,8 +457,7 @@ struct table_key_desc_lpm_ipv4 {
 	 * Must be > 0. */
 	uint8_t  prefix_length;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_LPM_IPV4_RESERVED_SIZE];
 };
@@ -486,8 +467,8 @@ struct table_key_desc_lpm_ipv4 {
 /**************************************************************************//**
 @Description	LPM IPv6 Key Descriptor Structure
 
-		The CTLU searches for the LPM of the concatenation of
-		{exact_match, full_ipv6_address}.
+The CTLU searches for the LPM of the concatenation of
+{exact_match, full_ipv6_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_key_desc_lpm_ipv6 {
@@ -504,8 +485,7 @@ struct table_key_desc_lpm_ipv6 {
 	 * Must be > 0. */
 	uint8_t  prefix_length;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint8_t  reserved[TABLE_KEY_LPM_IPV6_RESERVED_SIZE];
 };
@@ -517,23 +497,20 @@ struct table_key_desc_lpm_ipv6 {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_key_desc_mflu {
-	/** MFLU Lookup Key & Priority
-	This should point on a memory location containing concatenation of the
-	following fields (by the same order):
+	/** MFLU Lookup Key & Priority - This should point on a memory location
+	containing concatenation of the	following fields (by the same order):
 	 - Lookup Key - Size of this field must be within 1-56 byte.
 	 - Priority - Priority determines the selection between two rule that
 	match in the MFLU lookup. 0x00000000 is the highest priority. This
 	field size is 4 bytes. */
 	uint8_t  key[TABLE_KEY_MFLU_SIZE + TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE];
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint32_t reserved0;
 
-	/** Key mask
-	Each byte in the mask must have contiguous 1's in the MSbits.
-	Therefore there are 9 valid values for each byte in the mask:
+	/** Key mask -Each byte in the mask must have contiguous 1's in the
+	MSbits. Therefore there are 9 valid values for each byte in the mask:
 	 - 0x00: The entire byte is masked.
 	 - 0x80: The MSbit in this byte is not masked.
 	 - 0xC0: The 2 MSbits in this byte are not masked.
@@ -542,8 +519,7 @@ struct table_key_desc_mflu {
 	 - 0xFF: The entire byte is not masked. */
 	uint8_t  mask[TABLE_KEY_MFLU_MASK_SIZE];
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint8_t  reserved1[TABLE_KEY_MFLU_RESERVED1_SIZE];
 };
@@ -554,19 +530,19 @@ struct table_key_desc_mflu {
 @Description	Table Key Descriptor
 *//***************************************************************************/
 union table_key_desc {
-	/** Exact Match Key Descriptor
+	/** Exact Match Key Descriptor,
 	Should only be used with CTLU Hardware Table Accelerator */
 	struct table_key_desc_em          em;
 
-	/** LPM IPv4 Key Descriptor
+	/** LPM IPv4 Key Descriptor,
 	Should only be used with CTLU Hardware Table Accelerator */
 	struct table_key_desc_lpm_ipv4    lpm_ipv4;
 
-	/** LPM IPv6 Key Descriptor
+	/** LPM IPv6 Key Descriptor,
 	Should only be used with CTLU Hardware Table Accelerator */
 	struct table_key_desc_lpm_ipv6    lpm_ipv6;
 
-	/** MFLU Key Descriptor
+	/** MFLU Key Descriptor,
 	Should only be used with MFLU Hardware Table Accelerator */
 	struct table_key_desc_mflu        mflu;
 };
@@ -580,18 +556,15 @@ struct table_rule {
 	/** Rule's key descriptor */
 	union table_key_desc key_desc;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint64_t reserved0;
 
-	/** Table Rule Options
-	Please refer to \link FSL_TABLE_RULE_OPTIONS table rule options
-	\endlink for more details.*/
+	/** Table Rule Options - Please refer to \link FSL_TABLE_RULE_OPTIONS
+	table rule options \endlink for more details.*/
 	uint8_t  options;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint8_t  reserved1[3];
 
@@ -604,42 +577,36 @@ struct table_rule {
 /**************************************************************************//**
 @Description	Table Lookup Result
 
-		This structure returned from the table accelerator upon a
-		successful lookup.
+This structure returned from the table accelerator upon a successful lookup.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_lookup_result {
-	/** Opaque0 or Reference Pointer
-	This field can be either:
+	/** Opaque0 or Reference Pointer - This field can be either:
 	- 8 bytes of opaque data.
 	- A pointer to Slab/CDMA acquired buffer (which has a reference counter)
 
 	Depends on the matching rule result type. */
 	uint64_t opaque0_or_reference;
 
-	/** Opaque1 */
+	/** Opaque data */
 	uint64_t opaque1;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint16_t reserved0;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint8_t  reserved1;
 
-	/** Opaque2 */
+	/** Opaque data */
 	uint8_t  opaque2;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint64_t reserved2;
 
-	/** Timestamp
-	Timestamp of the rule that was matched in the lookup process.
+	/** Timestamp of the rule that was matched in the lookup process.
 	For this timestamp to be valid, suitable option should be set in
 	\ref table_rule option field. */
 	uint32_t timestamp;
@@ -650,8 +617,8 @@ struct table_lookup_result {
 /**************************************************************************//**
 @Description	LPM IPv4 Lookup Key Descriptor Structure
 
-		The CTLU searches for the LPM of the concatenation of
-		{exact_match, full_ipv4_address}.
+The CTLU searches for the LPM of the concatenation of
+{exact_match, full_ipv4_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_lookup_key_desc_lpm_ipv4 {
@@ -661,11 +628,10 @@ struct table_lookup_key_desc_lpm_ipv4 {
 	/** IPv4 Address */
 	uint32_t addr;
 
-	/** Maximum Prefix
-	Defines the maximum IP address prefix length for this search.
-	The CTLU does not search for a prefix length larger than max_prefix.
-	For lookup on all prefixes prefix_length = 0xFF. This field must
-	be > 1 */
+	/** Maximum Prefix - Defines the maximum IP address prefix length for
+	this search. The CTLU does not search for a prefix length larger than
+	max_prefix. For lookup on all prefixes prefix_length = 0xFF. This field
+	must be > 1 */
 	uint8_t	 max_prefix;
 };
 #pragma pack(pop)
@@ -674,8 +640,8 @@ struct table_lookup_key_desc_lpm_ipv4 {
 /**************************************************************************//**
 @Description	LPM IPv6 Key Descriptor Structure
 
-		The CTLU searches for the LPM of the concatenation of
-		{exact_match, full_ipv6_address}.
+The CTLU searches for the LPM of the concatenation of
+{exact_match, full_ipv6_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_lookup_key_desc_lpm_ipv6 {
@@ -688,11 +654,10 @@ struct table_lookup_key_desc_lpm_ipv6 {
 	/** IPv6 Address (8 LSB) */
 	uint64_t addr1;
 
-	/** Maximum Prefix
-	Defines the maximum IP address prefix length for this search.
-	The CTLU does not search for a prefix length larger than max_prefix.
-	For lookup on all prefixes prefix_length = 0xFF. This field must
-	be > 1 */
+	/** Maximum Prefix - Defines the maximum IP address prefix length for
+	this search. The CTLU does not search for a prefix length larger than
+	max_prefix. For lookup on all prefixes prefix_length = 0xFF. This field
+	must be > 1 */
 	uint8_t  max_prefix;
 };
 #pragma pack(pop)
@@ -702,33 +667,31 @@ struct table_lookup_key_desc_lpm_ipv6 {
 @Description	Table Lookup Key Descriptor
 *//***************************************************************************/
 union table_lookup_key_desc {
-	/** Exact Match Key
-	Should only be used with CTLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_EM */
+	/** Exact Match Key - Should only be used with CTLU Hardware Table
+	Accelerator and tables of type #TABLE_ATTRIBUTE_TYPE_EM */
 	void                                  *em_key;
 
-	/** LPM IPv4 Key Descriptor
-	Should only be used with CTLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with
-	\ref TABLE_KEY_LPM_IPV4_SIZE key size. */
+	/** LPM IPv4 Key Descriptor - Should only be used with CTLU Hardware
+	Table Accelerator and tables of type #TABLE_ATTRIBUTE_TYPE_LPM that
+	were defined with \ref TABLE_KEY_LPM_IPV4_SIZE key size. */
 	struct table_lookup_key_desc_lpm_ipv4 *lpm_ipv4;
 
-	/** LPM IPv6 Key Descriptor
-	Should only be used with CTLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_LPM that were defined with
-	\ref TABLE_KEY_LPM_IPV6_SIZE key size. */
+	/** LPM IPv6 Key Descriptor - Should only be used with CTLU Hardware
+	Table Accelerator and tables of type \ref TABLE_ATTRIBUTE_TYPE_LPM that
+	were defined with \ref TABLE_KEY_LPM_IPV6_SIZE key size. */
 	struct table_lookup_key_desc_lpm_ipv6 *lpm_ipv6;
 
-	/** MFLU Lookup Key & Match Maximum Priority
-	This should point on a memory location containing concatenation of the
-	following fields (by the same order):
+	/** MFLU Lookup Key & Match Maximum Priority - This should point on a
+	memory location containing concatenation of the following fields
+	(by the same order):
 	 - Lookup Key - Size of this field must be within 1-56 byte.
 	 - Maximum Priority - defines the maximum priority to be matched in the
 	lookup operation. Rules with lower priority will not be matched. 0 is
 	the lowest priority, 0xFFFFFFFF is the highest priority. For lookup of
 	all priorities assign 0 to this field. This field size is 4 bytes.
+
 	Should only be used with MFLU Hardware Table Accelerator and tables
-	of type \ref TABLE_ATTRIBUTE_TYPE_MFLU. */
+	of type #TABLE_ATTRIBUTE_TYPE_MFLU. */
 	void                                  *mflu_key;
 };
 
@@ -737,32 +700,27 @@ union table_lookup_key_desc {
 @Description	Create Table Parameters
 *//***************************************************************************/
 struct table_create_params {
-	/** Committed Number Of Rules
-	The table committed number of rules, at any point in time the table can
-	contain at least this number of rules.*/
+	/** The table committed number of rules, at any point in time the table
+	can contain at least this number of rules.*/
 	uint32_t committed_rules;
 
-	/** Max Number Of Rules
-	The max number of rules this table can contain. This number is not
+	/** The max number of rules this table can contain. This number is not
 	guaranteed in contrast to committed_rules. Meaning, trying to add a
 	rule to a table that already contains committed_rules might fail.
 	NOTE: This field must not be 0. */
 	uint32_t max_rules;
 
-	/** Miss Result
-	A default result that is chosen when no match is found. Available only
-	for CTLU tables, This field should not be filled otherwise.*/
+	/** A default rule that is chosen when no match is found. Available
+	only for CTLU tables, This field should not be filled otherwise.*/
 	struct table_result miss_result;
 
-	/** Table Attributes
-	Please refer to \link FSL_TABLE_ATTRIBUTES Table Attributes macros
-	\endlink for more details. */
+	/** Table Attributes - Please refer to \link FSL_TABLE_ATTRIBUTES Table
+	Attributes macros \endlink for more details. */
 	uint16_t attributes;
 
-	/** Table Key Size in bytes
-	In a case of LPM table:
-	 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-	 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+	/** Table Key Size in bytes - In a case of LPM table:
+	 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+	 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 	In a case of MFLU table, size should not include the priority field.
 
 	Please note that this value is not returned through
@@ -778,20 +736,17 @@ struct table_get_params_output {
 	/** Table's current number of rules */
 	uint32_t current_rules;
 
-	/** Committed Number Of Rules
-	The table committed number of rules, at any point in time the table can
-	contain at least this number of rules.*/
+	/** The table committed number of rules, at any point in time the table
+	can contain at least this number of rules.*/
 	uint32_t committed_rules;
 
-	/** Max Number Of Rules
-	The max number of rules this table can contain. This number is not
+	/** The max number of rules this table can contain. This number is not
 	guaranteed in contrast to committed_rules. Meaning, trying to add a
 	rule to a table that already contains committed_rules might fail. */
 	uint32_t max_rules;
 
-	/** Table Attributes
-	Please refer to \link FSL_TABLE_ATTRIBUTES Table Attributes macros
-	\endlink for more details. */
+	/** Table Attributes - Please refer to \link FSL_TABLE_ATTRIBUTES Table
+	Attributes macros \endlink for more details. */
 	uint16_t attributes;
 };
 
@@ -811,26 +766,23 @@ struct table_lookup_non_default_params {
 	/** Parse Result Address */
 	uint16_t parse_result_addr;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint16_t reserved0;
 
 	/** Frame Descriptor Address */
 	uint16_t fd_addr;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint32_t reserved1;
 
-	/** Reserved
-	Reserved for compliance with HW format.
+	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint16_t reserved2;
 
-	/** User Metadata
-	This can contain metadata for the key creation process */
+	/** User Metadata - This can contain metadata for the key creation
+	process */
 	uint64_t metadata;
 };
 #pragma pack(pop)
@@ -855,17 +807,17 @@ struct table_lookup_non_default_params {
 
 @Description	Creates a new table.
 
-@Param[in]	acc_id - The ID of the Hardware Table Accelerator in which the
+@Param[in]	acc_id The ID of the Hardware Table Accelerator in which the
 		the table will be created.
-@Param[in]	tbl_params - The table parameters.
-@Param[out]	table_id - Table ID. A unique (per Hardware Table Accelerator)
+@Param[in]	tbl_params The table parameters.
+@Param[out]	table_id Table ID. A unique (per Hardware Table Accelerator)
 		table identification number to be used for future table
 		references.
 
 @Return		0 on success, or negative value on error.
 
-@Retval		0 - Success.
-@Retval		ENOMEM - Error, Not enough memory is available.
+@Retval		0 Success.
+@Retval		ENOMEM Error, Not enough memory is available.
 
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
@@ -880,12 +832,12 @@ int table_create(enum table_hw_accel_id acc_id,
 
 @Description	Replaces specific table miss result.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	new_miss_result - A default result that is chosen when no match
+@Param[in]	table_id Table ID.
+@Param[in]	new_miss_result A default result that is chosen when no match
 		is found.
-@Param[in, out]	old_miss_result - The replaced miss result. If null the old
+@Param[in, out]	old_miss_result The replaced miss result. If null the old
 		miss result will not be returned. If not null, structure should
 		be allocated by the caller to this function.
 
@@ -893,7 +845,7 @@ int table_create(enum table_hw_accel_id acc_id,
 
 @Cautions	Not available for MFLU table accelerator.
 @Cautions	This function should only be called if the table was defined
-		with a miss result (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
+		with a miss result (i.e. #TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
@@ -910,10 +862,10 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Description	A getter for the table parameters.
 		\n \n This function does not return the table miss result.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
-@Param[in]	table_id - Table ID.
-@Param[out]	tbl_params - Table parameters. Structure should be allocated by
+@Param[in]	table_id Table ID.
+@Param[out]	tbl_params Table parameters. Structure should be allocated by
 		the caller to this function.
 
 @Return		None.
@@ -931,10 +883,10 @@ void table_get_params(enum table_hw_accel_id acc_id,
 
 @Description	A getter for the table miss result.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
-@Param[in]	table_id - Table ID.
-@Param[out]	miss_result - A default rule data that is chosen when no match
+@Param[in]	table_id Table ID.
+@Param[out]	miss_result A default rule data that is chosen when no match
 		is found. Structure should be allocated by the caller to this
 		function.
 
@@ -942,7 +894,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 
 @Cautions	Not available for MFLU table accelerator.
 @Cautions	This function should only be called if the table was defined
-		with a miss result (i.e. TABLE_ATTRIBUTE_MR_MISS was set in
+		with a miss result (i.e. #TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
 @Cautions	NOTE: If the result is of type that contains pointer to
 		Slab/CDMA buffer (refer to struct table_rule_result
@@ -965,9 +917,9 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 		the table is released when the function returns, as the process
 		of releasing the memory may take some time.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
+@Param[in]	table_id Table ID.
 
 @Return		None.
 
@@ -994,23 +946,23 @@ void table_delete(enum table_hw_accel_id acc_id,
 		\n \n If the rule key already exists, the rule will not be
 		added and a status will be returned.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added. The structure pointed by this
+@Param[in]	table_id Table ID.
+@Param[in]	rule The rule to be added. The structure pointed by this
 		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
-@Param[in]	key_size - Key size in bytes.
-		In a case of LPM table:
-		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. \n
 		In a case of MFLU table, size should include the priority field.
+		\n In a case of LPM table:
+		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 
 @Return		0 on success, or negative value on error.
 
-@Retval		0 - Success.
-@Retval		ENOMEM - Error, Not enough memory is available.
-@Retval		EIO - Error, A valid rule with the same key descriptor is found
+@Retval		0 Success.
+@Retval		ENOMEM Error, Not enough memory is available.
+@Retval		EIO Error, A valid rule with the same key descriptor is found
 		in the table. No change was made to the table.
 
 @Cautions	In this function the task yields.
@@ -1030,29 +982,29 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 		by the one specified in the function's parameters. Else, a new
 		rule will be created in the table.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	rule - The rule to be added. The structure pointed by this
+@Param[in]	table_id Table ID.
+@Param[in]	rule The rule to be added. The structure pointed by this
 		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
-@Param[in]	key_size - Key size in bytes.
-		In a case of LPM table:
-		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. \n
 		In a case of MFLU table, size should include the priority field.
-@Param[in, out]	old_res - The result of the replaced rule. Valid only if
+		\n In a case of LPM table:
+		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in, out]	old_res The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned. If not null, structure should be
 		allocated by the caller to this function.
 
 @Return		0 or positive value on success. Negative value on error.
 
-@Retval		0 - Success.  A rule with the same key descriptor was found in
+@Retval		0 Success.  A rule with the same key descriptor was found in
 		the table. The rule was replaced.
-@Retval		TABLE_STATUS_MISS - Success, A rule with the same key descriptor
+@Retval		#TABLE_STATUS_MISS Success, A rule with the same key descriptor
 		was not found in the table. A new rule is created.
-@Retval		ENOMEM - Error, Not enough memory is available.
+@Retval		ENOMEM Error, Not enough memory is available.
 
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
@@ -1071,27 +1023,27 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		\n \n The rule's key is not modifiable. Caller to this function
 		supplies the key of the rule to be replaced.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	rule - Table rule, contains the rule's key descriptor, with
+@Param[in]	table_id Table ID.
+@Param[in]	rule Table rule, contains the rule's key descriptor, with
 		which the rule to be replaced will be found and contain the
 		rule result to be replaced. The structure pointed by this
 		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
-@Param[in]	key_size - Key size in bytes.
-		In a case of LPM table:
-		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. \n
 		In a case of MFLU table, size should include the priority field.
-@Param[in, out]	old_res - The result of the replaced rule. If null the replaced
+		\n In a case of LPM table:
+		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in, out]	old_res The result of the replaced rule. If null the replaced
 		rule's result will not be returned. If not null, structure
 		should be allocated by the caller to this function.
 
 @Return		0 on success or negative value on error.
 
-@Retval		0 - Success.
-@Retval		EIO - Error, a rule with the same key descriptor is not found
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same key descriptor is not found
 		in the table.
 
 @Cautions	The key descriptor must be the exact same key descriptor that
@@ -1114,28 +1066,28 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 		\n \n This function does not update the matched result
 		timestamp.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Key Descriptor of the rule to be queried. The
+@Param[in]	table_id Table ID.
+@Param[in]	key_desc Key Descriptor of the rule to be queried. The
 		structure pointed by this pointer must be in the task's
 		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size - Key size in bytes.
-		In a case of LPM table:
-		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. \n
 		In a case of MFLU table, size should include the priority field.
-@Param[out]	result - The result of the query. Structure should be allocated
+		\n In a case of LPM table:
+		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[out]	result The result of the query. Structure should be allocated
 		by the caller to this function.
-@Param[out]	timestamp - Timestamp of the result. Timestamp is not valid
+@Param[out]	timestamp Timestamp of the result. Timestamp is not valid
 		unless the rule queried for was created with suitable options
-		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
+		(Please refer to #FSL_TABLE_RULE_OPTIONS for more
 		details). Must be allocated by the caller to this function.
 
-@Return		0 on success, TABLE_STATUS_MISS on miss.
+@Return		0 on success, #TABLE_STATUS_MISS on miss.
 
-@Retval		0 - Success.
-@Retval		TABLE_STATUS_MISS - A rule with the same key descriptor is not
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A rule with the same key descriptor is not
 		found in the table.
 
 @Cautions	NOTE: If the result is of type that contains pointer to
@@ -1158,25 +1110,25 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 
 @Description	Deletes a specified rule in the table.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Key Descriptor of the rule to be queried. The
+@Param[in]	table_id Table ID.
+@Param[in]	key_desc Key Descriptor of the rule to be queried. The
 		structure pointed by this pointer must be in the task's
 		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size - Key size in bytes.
-		In a case of LPM table:
-		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. \n
 		In a case of MFLU table, size should include the priority field.
-@Param[in, out]	result - The result of the deleted rule. If null the deleted
+		\n In a case of LPM table:
+		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in, out]	result The result of the deleted rule. If null the deleted
 		rule's result will not be returned. If not null, structure
 		should be allocated by the caller to this function.
 
 @Return		0 on success or negative value on error.
 
-@Retval		0 - Success.
-@Retval		EIO - Error, a rule with the same key descriptor is not found
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same key descriptor is not found
 		in the table.
 
 @Cautions	The key descriptor must be the exact same key descriptor that
@@ -1207,26 +1159,26 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 
 		This function updates the matched result timestamp.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	key_desc - Lookup Key Descriptor of the rule to be queried. The
+@Param[in]	table_id Table ID.
+@Param[in]	key_desc Lookup Key Descriptor of the rule to be queried. The
 		structure pointed by this pointer must be in the task's
 		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size - Key size in bytes.
-		In a case of LPM table:
-		 - Should be set to \ref TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to \ref TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes.
 		In a case of MFLU table, size should include the priority field.
-@Param[out]	lookup_result - Points to a user preallocated memory to which
+		In a case of LPM table:
+		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
+		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
 		aligned to 16B boundary.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss.
 
-@Retval		0 - Success.
-@Retval		TABLE_STATUS_MISS - A match was not found during the lookup
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A match was not found during the lookup
 		operation.
 
 @Cautions	In this function the task yields.
@@ -1260,17 +1212,17 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 		Implicit input parameters in Task Defaults: Segment Address,
 		Segment Size, Frame Descriptor Address and Parse Results.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	keyid - A Key Composition Rule (KCR) ID for the table lookups
+@Param[in]	table_id Table ID.
+@Param[in]	keyid A Key Composition Rule (KCR) ID for the table lookups
 		(Key Composition Rule specifies how to build a key). The key
 		built by this KCR should fit \ref table_lookup_key_desc union
 		and it's size should be:
-		 - TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
-		 - TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
+		 - #TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
+		 - #TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
 		 - key size + priority field size (4 Bytes) for MFLU.
-@Param[out]	lookup_result - Points to a user preallocated memory to which
+@Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
 		aligned to 16B boundary.
@@ -1278,10 +1230,10 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
 		error occurred.
 
-@Retval		0 - Success.
-@Retval		TABLE_STATUS_MISS - A match was not found during the lookup
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A match was not found during the lookup
 		operation.
-@Retval		EIO - Error, Key composition attempted to extract a field which
+@Retval		EIO Error, Key composition attempted to extract a field which
 		is not in the frame header either because it is placed beyond
 		the first 256 bytes of the frame, or because the frame is
 		shorter than the index evaluated for the extraction.
@@ -1312,28 +1264,28 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 
 		If the lookup result contains a pointer to Slab/CDMA buffer
 		(which has a reference counter) and the lookup result type
-		\ref TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
+		#TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
 		will be incremented during this operation.
 
-@Param[in]	acc_id - ID of the Hardware Table Accelerator that contains
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
-@Param[in]	table_id - Table ID.
-@Param[in]	keyid - A Key Composition Rule (KCR) ID for the table lookups
+@Param[in]	table_id Table ID.
+@Param[in]	keyid A Key Composition Rule (KCR) ID for the table lookups
 		(Key Composition Rule specifies how to build a key). The key
 		built by this KCR should fit \ref table_lookup_key_desc union
 		and it's size should be:
-		 - TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
-		 - TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
+		 - #TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
+		 - #TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
 		 - key size + priority field size (4 Bytes) for MFLU.
-@Param[in]	flags - Specifies options to this function, please refer to
+@Param[in]	flags Specifies options to this function, please refer to
 		\ref FSL_TABLE_LOOKUP_FLAG_DEFINES.
-@Param[in]	ndf_params - Non defaults inputs to the key creation process.
+@Param[in]	ndf_params Non defaults inputs to the key creation process.
 		See structure documentation for more details. Some of the
 		fields in this structures are only valid if appropriate flags
 		were set to this function. The structure pointed by this
 		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
-@Param[out]	lookup_result - Points to a user preallocated memory to which
+@Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
 		aligned to 16B boundary.
@@ -1341,10 +1293,10 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 @Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
 		error occurred.
 
-@Retval		0 - Success.
-@Retval		TABLE_STATUS_MISS - A match was not found during the lookup
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A match was not found during the lookup
 		operation.
-@Retval		EIO - Error, Key composition attempted to extract a field which
+@Retval		EIO Error, Key composition attempted to extract a field which
 		is not in the frame header either because it is placed beyond
 		the first 256 bytes of the frame, or because the frame is
 		shorter than the index evaluated for the extraction.
