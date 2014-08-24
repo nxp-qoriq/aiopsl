@@ -68,6 +68,12 @@ __VERIF_TLS int32_t status_ipf2;
 __VERIF_TLS int32_t status_ipr;
 __VERIF_TLS int32_t status_ipsec_encr;
 __VERIF_TLS int32_t status_ipsec_decr;
+/*__VERIF_TLS int32_t status_table;
+__VERIF_TLS int32_t status_fdma;
+__VERIF_TLS int32_t status_osm;
+__VERIF_TLS int32_t status_keygen;
+__VERIF_TLS int32_t status_parser;
+__VERIF_TLS int32_t status_tman;*/
 
 extern __TASK struct aiop_default_task_params default_task_params;
 extern __TASK uint32_t seed_32bit;
@@ -122,6 +128,12 @@ void init_verif()
 	status_ipsec_decr = 0;
 	tcp_gso_context_addr1[0] = 0;
 	ipf_context_addr1[0] = 0;
+	/*status_table = 0;
+	status_fdma = 0;
+	status_osm = 0;
+	status_keygen = 0;
+	status_parser = 0;
+	status_tman = 0;*/
 }
 
 //__VERIF_PROFILE_SRAM struct  profile_sram profile_sram1;
