@@ -772,18 +772,13 @@ int slab_create(uint32_t    committed_buffs,
 }
 
 /*****************************************************************************/
-int slab_free(struct slab **slab, uint16_t  *bpid, uint32_t *committed_buffs)
+int slab_free(struct slab **slab)
 {
 	int err;
 
 	if (SLAB_IS_HW_POOL(*slab)) {
 
 		err = slab_release_pool(SLAB_VP_POOL_GET(*slab));
-
-		if(bpid != NULL)
-			*bpid = VP_BPID_GET(slab);
-		if(committed_buffs != NULL)
-			*committed_buffs = VP_REMAINING_BUFFS(slab);
 
 		if(err)
 			return -EINVAL;

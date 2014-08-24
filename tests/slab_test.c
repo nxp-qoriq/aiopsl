@@ -87,8 +87,6 @@ int app_test_slab_init()
 	int        err = 0;
 	dma_addr_t buff = 0;
 	struct slab *my_slab;
-	uint16_t bpid;
-	int remaining_buffs;
 
 	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
 	                  NULL, &my_slab);
@@ -99,7 +97,7 @@ int app_test_slab_init()
 	err = slab_release(my_slab, buff);
 	if (err) return err;
 
-	err = slab_free(&my_slab, &bpid, &remaining_buffs);
+	err = slab_free(&my_slab);
 	if (err) return err;
 
 	/* Must fail because my_slab was freed  */
@@ -111,7 +109,7 @@ int app_test_slab_init()
 	                  NULL, &my_slab);
 	if (err) return err;
 
-	err = slab_free(&my_slab, &bpid, &remaining_buffs);
+	err = slab_free(&my_slab);
 	if (err) return err;
 
 	return 0;
@@ -143,8 +141,6 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      err = 0;
 	int      i = 0;
 	struct slab *my_slab;
-	uint16_t bpid;
-	int remaining_buffs;
 
 	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 0,
 	                  NULL, &my_slab);
@@ -171,10 +167,8 @@ int app_test_slab(struct slab *slab, int num_times)
 		if (err) return err;
 	}
 
-	err = slab_free(&my_slab, &bpid, &remaining_buffs);
+	err = slab_free(&my_slab);
 	if (err) return err;
-	else
-		fsl_os_print("Slab_free passed: bpid %d, remaining buffers %d\n", bpid, remaining_buffs);
 
 	err = slab_acquire(my_slab, &buff[3]);
 	if(err == 0) return -EINVAL;

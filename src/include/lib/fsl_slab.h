@@ -159,7 +159,7 @@ int slab_create_by_address(uint32_t committed_buffs,
 		-EBUSY  - this slab can't be freed
 		-EINVAL - not a valid slab handle
  *//***************************************************************************/
-int slab_free(struct slab **slab, uint16_t  *bpid, uint32_t *committed_buffs);
+int slab_free(struct slab **slab);
 
 /**************************************************************************//**
 @Function	slab_acquire
@@ -168,7 +168,6 @@ int slab_free(struct slab **slab, uint16_t  *bpid, uint32_t *committed_buffs);
 		AIOP HW pool buffer reference counter will be set to 1.
 
 @Param[in]	slab - Handle to memory pool.
-@Param[out]	buff - The buffer to return.
 
 @Return		0      - on success,
 		-ENOMEM - no buffer available,

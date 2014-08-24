@@ -340,8 +340,7 @@ void app_free(void)
 {
 	int err = 0;
 	/* TODO - complete!*/
-	uint16_t bpid;
-	int remaining_buffs;
-	err = slab_free(&slab_ddr, &bpid, &remaining_buffs);
-	err = slab_free(&slab_peb, &bpid, &remaining_buffs);
+
+	err = slab_free(&slab_ddr);
+	err = slab_free(&slab_peb);
 }
