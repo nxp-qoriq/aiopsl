@@ -65,8 +65,8 @@ int slab_init()
 	if (err) {
 		return err;
 	} else {
-		if ((slab_info.num_buffs != slab_info.max_buffs) ||
-		    (slab_info.num_buffs == 0))
+		if ((slab_info.committed_buffs != slab_info.max_buffs) ||
+		    (slab_info.committed_buffs == 0))
 			return -ENODEV;
 	}
 
@@ -76,8 +76,8 @@ int slab_init()
 
 	err = slab_debug_info_get(slab_peb, &slab_info);
 	if(!err)
-		if ((slab_info.num_buffs != slab_info.max_buffs) ||
-			(slab_info.num_buffs == 0))
+		if ((slab_info.committed_buffs != slab_info.max_buffs) ||
+			(slab_info.committed_buffs == 0))
 				return -ENODEV;
 	return err;
 }

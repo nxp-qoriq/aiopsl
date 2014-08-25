@@ -77,7 +77,6 @@
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/ste.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/system.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/tman.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/virtual_pools.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni_drv_rxtx.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dprc/dprc.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/ip/ip.c"/>
