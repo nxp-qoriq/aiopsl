@@ -2266,7 +2266,7 @@ int fdma_delete_default_segment_data(
 			- to_offset - 25 (relative to the presented segment)
 			- delete_target_size - 10
 
-@Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This command may be invoked only on Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/

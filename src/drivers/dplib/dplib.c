@@ -26,6 +26,10 @@
 
 #include <fsl_dplib_sys.h>
 #include <fsl_cmdif_mc.h>
+#include <common/types.h>
+#include <kernel/fsl_spinlock.h>
+
+__SHRAM uint8_t g_portal_lock;
 
 static int dplib_status_to_error(enum mc_cmd_status status)
 {
@@ -74,6 +78,7 @@ int dplib_send(void *regs,
 		return -EACCES;
 
 	/* --- Call lock function here in case portal is shared --- */
+	lock_spinlock(&g_portal_lock);
 
 	mc_cmd_write(portal, cmd_id, (uint16_t)(*auth),
 		     (uint8_t)size, pri, (struct mc_cmd_data *)cmd_data);
@@ -100,6 +105,7 @@ int dplib_send(void *regs,
 		*auth = (int)mc_cmd_read_auth_id(portal);
 
 	/* --- Call unlock function here in case portal is shared --- */
+	unlock_spinlock(&g_portal_lock);
 
 	return dplib_status_to_error(status);
 }
