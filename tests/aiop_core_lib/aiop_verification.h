@@ -375,39 +375,41 @@ struct write_data_to_workspace_command {
 @Description	Fatal Error Command structure.
 
 		Includes information needed for fatal handling.
+		
+		This structure should be zeroed before usage. 
 *//***************************************************************************/
 struct fatal_error_command {
-	/** 
-	 * Fatal Error command structure identifier. 
-	 * */
+		/** 
+		 * Fatal Error command structure identifier. 
+		 * */
 	uint32_t opcode;
-
-	/**
-	 * FQID to save in TLS. (for the fatal enqueue)
-	 * */
+		/**
+		 * FQID to save in TLS. (for the fatal enqueue)
+		 * */
 	uint32_t fqid;
-
-	/**
-	 * Flags - Specify options to this function, please refer to 
-	 * \ref FSL_VERIF_FATAL_FLAGS_DEFINES.
-	 */
+		/**
+		 * Flags - Specify options to this function, please refer to 
+		 * \ref FSL_VERIF_FATAL_FLAGS_DEFINES.
+		 */
 	uint32_t flags;
-
-	/**
-	 * File name in which the error occurred.
-	 */
+		/** 
+		 * Returned Value:
+		 * File name in which the error occurred.
+		 */
 	char  file_name[32];
-
-	/**
-	 * Function name in which the error occurred.
-	 */
+		/**
+		 * Returned Value:
+		 * Function name in which the error occurred.
+		 */
 	char  function_name[48];
-
-	/**
-	 * The error mesaage.
-	 */
+		/**
+		 * Returned Value:
+		 * The error message.
+		 */
 	char  err_msg[128];
-
+		/** 
+		 * 256-byte alignment. 
+		 * */
 	uint8_t pad[36];
 };
 
