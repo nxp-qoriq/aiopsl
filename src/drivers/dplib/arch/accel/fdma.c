@@ -2110,7 +2110,6 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		func_name = "Unknown Function";
 	}
 	
-	/*TODO Fatal error*/
 	/* Translate error ID to error name string */
 	switch (status) {
 	case FDMA_UNABLE_TO_TRIM_ERR:
@@ -2130,7 +2129,8 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 				"FD. No ASA presentation possible.\n";
 		break;
 	case FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR:
-		err_msg = "Unable to fulfill specified ASA presentation size.\n";
+		err_msg = "Unable to fulfill specified ASA presentation "
+				"size.\n";
 		break;
 	case FDMA_UNABLE_TO_PRESENT_PTA_ERR:
 		err_msg = "Unable to present the PTA segment because no PTA "
