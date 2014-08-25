@@ -717,12 +717,68 @@ enum fdma_hw_errors {
 *//***************************************************************************/
 enum fdma_sw_errors {
 		/** The segment handle does not represent a Data segment. */
-	FDMA_NO_DATA_SEGMENT_HANDLE = 0x80000070,
+	/*FDMA_NO_DATA_SEGMENT_HANDLE = 0x80000070,*/
 		/** Invalid PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS). */
 	FDMA_INVALID_PTA_ADDRESS = 0x80000071
 };
 
 /* @} end of enum fdma_sw_errors */
+
+/**************************************************************************//**
+ @enum fdma_functions
+
+ @Description	AIOP FDMA Functions enumertion.
+
+ @{
+*//***************************************************************************/
+enum fdma_function_identifier {
+	FDMA_PRESENT_DEFAULT_FRAME = 0,
+	FDMA_PRESENT_FRAME,
+	FDMA_PRESENT_DEFAULT_FRAME_WITHOUT_SEGMENTS,
+	FDMA_PRESENT_FRAME_WITHOUT_SEGMENTS,
+	FDMA_PRESENT_DEFAULT_FRAME_SEGMENT,
+	FDMA_PRESENT_DEFAULT_FRAME_DEFAULT_SEGMENT,
+	FDMA_PRESENT_FRAME_SEGMENT,
+	FDMA_READ_DEFAULT_FRAME_ASA,
+	FDMA_READ_DEFAULT_FRAME_PTA,
+	FDMA_EXTEND_DEFAULT_SEGMENT_PRESENTATION,
+	FDMA_STORE_DEFAULT_FRAME_DATA,
+	FDMA_STORE_FRAME_DATA,
+	FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_FQID,
+	FDMA_STORE_AND_ENQUEUE_FRAME_FQID,
+	FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_QD,
+	FDMA_STORE_AND_ENQUEUE_FRAME_QD,
+	FDMA_ENQUEUE_DEFAULT_FD_FQID,
+	FDMA_ENQUEUE_FD_FQID,
+	FDMA_ENQUEUE_DEFAULT_FD_QD,
+	FDMA_ENQUEUE_FD_QD,
+	FDMA_DISCARD_DEFAULT_FRAME,
+	FDMA_DISCARD_FRAME,
+	FDMA_DISCARD_FD,
+	FDMA_FORCE_DISCARD_FD,
+	FDMA_TERMINATE_TASK,
+	FDMA_REPLICATE_FRAME_FQID,
+	FDMA_REPLICATE_FRAME_QD,
+	FDMA_CONCATENATE_FRAMES,
+	FDMA_SPLIT_FRAME,
+	FDMA_TRIM_DEFAULT_SEGMENT_PRESENTATION,
+	FDMA_MODIFY_DEFAULT_SEGMENT_DATA,
+	FDMA_MODIFY_SEGMENT_DATA,
+	FDMA_REPLACE_DEFAULT_SEGMENT_DATA,
+	FDMA_INSERT_DEFAULT_SEGMENT_DATA,
+	FDMA_INSERT_SEGMENT_DATA,
+	FDMA_DELETE_DEFAULT_SEGMENT_DATA,
+	FDMA_DELETE_SEGMENT_DATA,
+	FDMA_CLOSE_DEFAULT_SEGMENT,
+	FDMA_CLOSE_SEGMENT,
+	FDMA_REPLACE_DEFAULT_ASA_SEGMENT_DATA,
+	FDMA_REPLACE_DEFAULT_PTA_SEGMENT_DATA,
+	FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM,
+	FDMA_COPY_DATA,
+	FDMA_DMA_DATA,
+	FDMA_ACQUIRE_BUFFER,
+	FDMA_RELEASE_BUFFER
+};
 
 /** @}*/ /* end of group FDMA_Enumerations */
 
@@ -898,17 +954,23 @@ void fdma_release_buffer(
 		uint64_t addr);
 
 /**************************************************************************//**
-@Function	fdma_handle_fatal_errors
+@Function	fdma_exception_handler
 
-@Description	Handle FDMA fatal errors..
+@Description	Handler for the error status returned from the FDMA API
+		functions.
 
-@Param[in]	status - FDMA fatal status.
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+@Param[in]	status - Status to be handled be this function.
 
 @Return		None.
 
-@Cautions	In this Service Routine the task yields.
+@Cautions	This is a non return function.
 *//***************************************************************************/
-void fdma_handle_fatal_errors(int32_t status);
+void fdma_exception_handler(enum fdma_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status);
 
 
 #endif /* __FDMA_H_ */
