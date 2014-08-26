@@ -48,6 +48,38 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Group ID_POOL_STATUSES_DEFINES ID_POOL Statuses Defines
+@{
+*//***************************************************************************/
+/** ID POOL initialization failed due to buffer depletion failure */
+#define SYSTEM_INIT_BUFFER_DEPLETION_FAILURE	0x55
+
+/** @} */ /* end of ID_POOL_STATUSES_DEFINES */
+
+ /**************************************************************************//**
+  @Group	ID_POOL_Enumerations ID_POOL Enumerations
+
+  @Description	ID_POOL Enumerations
+
+  @{
+ *//***************************************************************************/
+
+/**************************************************************************//**
+  @enum id_pool_functions
+
+  @Description	AIOP ID_POOL Functions enumeration.
+
+  @{
+ *//***************************************************************************/
+ enum id_pool_function_identifier {
+	 ID_POOL_INIT = 0,
+	 GET_ID,
+	 RELEASE_ID
+ };
+
+ /** @} */ /* end of group ID_POOL_Enumerations */
+
+/**************************************************************************//**
 @Group		ID_POOL_Functions
 
 @Description	AIOP ID Pool Functions.
@@ -67,12 +99,12 @@
 
 @Param[out]	ext_id_pool_address - External id pool address.
 
-@Return		0 on Success.
+@Return		None.
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int id_pool_init(uint16_t num_of_ids,
+void id_pool_init(uint16_t num_of_ids,
 			 uint16_t buffer_pool_id,
 			 uint64_t *ext_id_pool_address);
 
@@ -112,6 +144,26 @@ int get_id(uint64_t ext_id_pool_address, uint8_t *id);
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 int release_id(uint8_t id, uint64_t ext_id_pool_address);
+
+/**************************************************************************//**
+@Function	id_pool_exception_handler
+
+@Description	Handler for the error status returned from the id_pool API
+		functions.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+@Param[in]	status - Status to be handled be this function.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void id_pool_exception_handler(enum id_pool_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status);
+
 
 /** @} */ /* end of ID_POOL_Functions */
 
