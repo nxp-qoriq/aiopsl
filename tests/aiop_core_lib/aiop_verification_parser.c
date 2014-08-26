@@ -213,7 +213,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_id_pool_create_verif_command *pipc =
 			(struct parser_prp_id_pool_create_verif_command*)
 			asa_seg_addr;
-		pipc->status = sys_prpid_pool_create();
+		sys_prpid_pool_create();
 		str_size =
 			sizeof(struct parser_prp_id_pool_create_verif_command);
 		break;

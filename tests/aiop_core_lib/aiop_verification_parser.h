@@ -247,7 +247,7 @@ struct parser_gen_parser_res_exp_verif_command {
 *//***************************************************************************/
 struct parser_prp_id_pool_create_verif_command {
 	uint32_t opcode;
-	int32_t  status;
+	uint8_t  pad[4];
 };
 
 /**************************************************************************//**
