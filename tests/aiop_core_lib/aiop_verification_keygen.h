@@ -175,6 +175,10 @@ struct keygen_kcr_builder_add_constant_fec_command{
 	/** Command returned status */
 	int32_t status;
 
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+
 	/** 1 bytes of user defined constant */
 	uint8_t constant;
 
@@ -182,7 +186,7 @@ struct keygen_kcr_builder_add_constant_fec_command{
 	uint8_t num;
 
 	/** 64-bit alignment */
-	uint8_t	pad[2];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
@@ -213,6 +217,13 @@ struct keygen_kcr_builder_add_input_value_fec_command{
 
 	/** Command returned status */
 	int32_t  status;
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+
+	/** 64-bit alignment */
+	uint8_t	pad2[4];
 };
 
 
@@ -243,6 +254,13 @@ struct keygen_kcr_builder_add_protocol_specific_field_fec_command{
 
 	/** Command returned status */
 	int32_t status;
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+	
+	/** 64-bit alignment */
+	uint8_t	pad2[4];
 };
 
 /**************************************************************************//**
@@ -275,6 +293,14 @@ struct keygen_kcr_builder_add_protocol_based_generic_extract_fec_command{
 
 	/** Command returned status */
 	int32_t status;
+
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+
+	/** 64-bit alignment */
+	uint8_t	pad2[4];
+	
 };
 
 
@@ -313,8 +339,9 @@ struct keygen_kcr_builder_add_generic_extract_fec_command{
 	/** Command returned status */
 	int32_t  status;
 	
-	/** 64-bit alignment */
-	uint8_t	pad2[4];
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
 };
 
 #ifdef REV2
@@ -346,6 +373,13 @@ struct keygen_kcr_builder_add_lookup_result_field_fec_command{
 
 	/** Command returned status */
 	int32_t  status;
+
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+	
+	/** 64-bit alignment */
+	uint8_t	pad2[4];
 };
 #endif /*REV2*/
 
@@ -366,11 +400,15 @@ struct keygen_kcr_builder_add_valid_field_fec_command{
 	/** Command returned status */
 	int32_t  status;
 
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+	
 	/** bitwise mask */
 	uint8_t mask;
 
 	/** 64-bit alignment */
-	uint8_t	pad[3];
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -392,11 +430,15 @@ struct keygen_kcr_create_or_replace_command{
 	/** Command returned status */
 	int32_t  status;
 
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+	
 	/** Key ID */
 	uint8_t  key_id;
 
 	/** 64-bit alignment */
-	uint8_t	pad[7];
+	uint8_t	pad[3];
 };
 
 
@@ -413,6 +455,10 @@ struct keygen_kcr_delete_command{
 	/** Command returned status */
 	int32_t  status;
 
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+	
 	/** Table Accelerator ID */
 	enum keygen_hw_accel_id acc_id;
 
@@ -420,7 +466,7 @@ struct keygen_kcr_delete_command{
 	uint8_t key_id;
 	
 	/** 64-bit alignment */
-	uint8_t	pad[3];
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -465,6 +511,10 @@ struct keygen_gen_key_command{
 	/** Command returned status */
 	int32_t  status;
 
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+	
 	/** Table Accelerator ID */
 	enum keygen_hw_accel_id acc_id;
 
@@ -475,7 +525,7 @@ struct keygen_gen_key_command{
 	uint8_t key_size;
 
 	/** 64-bit alignment */
-	uint8_t	pad[6];
+	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
@@ -497,11 +547,15 @@ struct keygen_gen_hash_command{
 	/** Command returned status */
 	int32_t  status;
 
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t keygen_status_addr;
+	
 	/** Input key size*/
 	uint8_t key_size;
 
 	/** Padding */
-	uint8_t	pad[7];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**

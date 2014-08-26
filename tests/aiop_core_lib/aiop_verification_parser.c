@@ -120,6 +120,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 			parser_profile_create(
 			(struct parse_profile_input *)pc->parse_profile,
 			&pc->prpid);
+		*((int32_t *)(pc->parser_status_addr)) = pc->status;
 		str_size = sizeof(struct parser_prp_create_verif_command);
 		break;
 	}
@@ -129,6 +130,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 				(struct parser_prp_delete_verif_command *)
 				asa_seg_addr;
 		pd->status = parser_profile_delete(pd->prpid);
+		*((int32_t *)(pd->parser_status_addr)) = pd->status;
 		str_size = sizeof(struct parser_prp_delete_verif_command);
 		break;
 	}
@@ -138,8 +140,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 				(struct parser_prp_query_verif_command *)
 				asa_seg_addr;
 
-/*		pq->status = */
-		   parser_profile_query(pq->prpid,
+		parser_profile_query(pq->prpid,
 			(struct parse_profile_record *)pq->parse_profile);
 
 		str_size = sizeof(struct parser_prp_query_verif_command);
@@ -168,6 +169,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 							gpr->offset,
 							&gpr->l3_checksum,
 							&gpr->l4_checksum);
+		*((int32_t *)(gpr->parser_status_addr)) = gpr->status;
 		str_size = sizeof(struct parser_gen_parser_res_checksum_verif_command);
 		break;
 	}
@@ -192,6 +194,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 			asa_seg_addr;
 		default_task_params.parser_profile_id = gpr->prpid;
 		gpr->status = parse_result_generate_default(gpr->flags);
+		*((int32_t *)(gpr->parser_status_addr)) = gpr->status;
 		str_size = sizeof(struct parser_gen_parser_res_verif_command);
 		break;
 	}
@@ -204,6 +207,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 				(enum parser_starting_hxs_code)gpre->hxs,
 							 gpre->offset,
 							 gpre->flags);
+		*((int32_t *)(gpre->parser_status_addr)) = gpre->status;
 		str_size =
 			sizeof(struct parser_gen_parser_res_exp_verif_command);
 		break;
