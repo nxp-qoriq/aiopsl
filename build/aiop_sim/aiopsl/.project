@@ -890,11 +890,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/inline_asm.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/include/virtual_pools.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/netf/general</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -1098,11 +1093,6 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/tman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/tman.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/arch/accel/virtual_pools.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/virtual_pools.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/flib/compat.h</name>

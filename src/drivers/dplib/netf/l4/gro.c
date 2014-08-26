@@ -61,7 +61,7 @@ int tcp_gro_aggregate_seg(
 	/* If segment FD contain errors (FD[err] != 0) return the frame to
 	 * the user. */
 	if (LDPAA_FD_GET_ERR(HWC_FD_ADDRESS))
-		return -EBADFD;
+		return -EIO;
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 

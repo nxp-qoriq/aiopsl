@@ -107,13 +107,14 @@ int fdma_present_default_frame(void)
 			return SUCCESS;
 		else /* FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR or
 			FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
-			return -EIO;
+			return (int32_t)res1;
 	}
 
 	if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
+		return -EIO;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_PRESENT_DEFAULT_FRAME, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -226,15 +227,16 @@ int fdma_present_frame(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 		else /*FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_ASA_SEG;
 	}
 
 	if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
+		return -EIO;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_PRESENT_FRAME, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -271,9 +273,11 @@ int fdma_present_default_frame_without_segments(void)
 	}
 
 	if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
+		return -EIO;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(
+				FDMA_PRESENT_DEFAULT_FRAME_WITHOUT_SEGMENTS, 
+				__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -322,9 +326,10 @@ int fdma_present_frame_without_segments(
 	}
 
 	if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
+		return -EIO;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_PRESENT_FRAME_WITHOUT_SEGMENTS, 
+					__LINE__, (int32_t)res1);
 
 	return (int32_t)res1;
 }
@@ -339,10 +344,6 @@ int fdma_present_default_frame_segment(
 	uint32_t arg1, arg2, arg3;
 	int8_t  res1;
 
-	/* This command may be invoked only on Data segment */
-	/*if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
-	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		return FDMA_NO_DATA_SEGMENT_HANDLE;*/
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			(flags | FDMA_ST_DATA_SEGMENT_BIT));
@@ -372,10 +373,11 @@ int fdma_present_default_frame_segment(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_PRESENT_DEFAULT_FRAME_SEGMENT, 
+				__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -408,10 +410,11 @@ int fdma_present_default_frame_default_segment()
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_PRESENT_DEFAULT_FRAME_DEFAULT_SEGMENT, 
+			__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -443,9 +446,10 @@ int fdma_present_frame_segment(
 	if (res1 == FDMA_SUCCESS)
 		return SUCCESS;
 	else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
-		return -EIO;
+		return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_PRESENT_FRAME_SEGMENT, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -489,10 +493,11 @@ int fdma_read_default_frame_asa(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_ASA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_READ_DEFAULT_FRAME_ASA, __LINE__, 
+			(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -505,7 +510,8 @@ int fdma_read_default_frame_pta(
 	int8_t  res1;
 
 	if (((uint16_t)((uint32_t)ws_dst)) == PRC_PTA_NOT_LOADED_ADDRESS)
-		fdma_handle_fatal_errors(FDMA_INVALID_PTA_ADDRESS);
+		fdma_exception_handler(FDMA_READ_DEFAULT_FRAME_PTA, 
+				__LINE__, (int32_t)FDMA_INVALID_PTA_ADDRESS);
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			FDMA_ST_PTA_SEGMENT_BIT);
@@ -528,7 +534,8 @@ int fdma_read_default_frame_pta(
 	if (res1 == FDMA_UNABLE_TO_PRESENT_PTA_ERR)
 		return -EIO;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_READ_DEFAULT_FRAME_PTA, 
+				__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -565,12 +572,13 @@ int fdma_extend_default_segment_presentation(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 		else	/* FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_ASA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_EXTEND_DEFAULT_SEGMENT_PRESENTATION, 
+			__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -596,7 +604,8 @@ int fdma_store_default_frame_data(void)
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_STORE_DEFAULT_FRAME_DATA, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -632,7 +641,8 @@ int fdma_store_frame_data(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_STORE_FRAME_DATA, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -664,7 +674,9 @@ int fdma_store_and_enqueue_default_frame_fqid(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(
+				FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_FQID, 
+				__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -696,7 +708,8 @@ int fdma_store_and_enqueue_frame_fqid(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_STORE_AND_ENQUEUE_FRAME_FQID, 
+						__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -733,7 +746,8 @@ int fdma_store_and_enqueue_default_frame_qd(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_QD, 
+					__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -770,7 +784,8 @@ int fdma_store_and_enqueue_frame_qd(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_STORE_AND_ENQUEUE_FRAME_QD, 
+				__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -801,7 +816,8 @@ int fdma_enqueue_default_fd_fqid(
 	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
 		return -EBUSY;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_ENQUEUE_DEFAULT_FD_FQID, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -833,7 +849,8 @@ int fdma_enqueue_fd_fqid(
 	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
 		return -EBUSY;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_ENQUEUE_FD_FQID, __LINE__, 
+						(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -867,7 +884,8 @@ int fdma_enqueue_default_fd_qd(
 	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
 		return -EBUSY;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_ENQUEUE_DEFAULT_FD_QD, __LINE__, 
+					(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -902,7 +920,8 @@ int fdma_enqueue_fd_qd(
 	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
 		return -EBUSY;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_ENQUEUE_FD_QD, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -924,7 +943,8 @@ void fdma_discard_default_frame(uint32_t flags)
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_DISCARD_DEFAULT_FRAME, __LINE__, 
+					(int32_t)res1);
 }
 
 void fdma_discard_frame(uint16_t frame, uint32_t flags)
@@ -947,7 +967,8 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags)
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_DISCARD_FRAME, __LINE__, 
+				(int32_t)res1);
 }
 
 int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
@@ -1014,7 +1035,8 @@ int fdma_replicate_frame_fqid(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_REPLICATE_FRAME_FQID, __LINE__, 
+						(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1054,7 +1076,8 @@ int fdma_replicate_frame_qd(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_REPLICATE_FRAME_QD, __LINE__, 
+					(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1097,9 +1120,10 @@ int fdma_concatenate_frames(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else if (res1 == FDMA_FD_ERR)
-		return -EBADFD;
+		return -EIO;
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_CONCATENATE_FRAMES, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1198,7 +1222,7 @@ int fdma_split_frame(
 		if ((res1 == FDMA_SUCCESS))
 			return SUCCESS;
 		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 		else	/* FDMA_BUFFER_POOL_DEPLETION_ERR */
 			return -ENOMEM;
 	}
@@ -1206,7 +1230,8 @@ int fdma_split_frame(
 	if (res1 == FDMA_UNABLE_TO_SPLIT_ERR)
 		return -EINVAL;
 	else
-		fdma_handle_fatal_errors(res1);
+		fdma_exception_handler(FDMA_SPLIT_FRAME, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1231,7 +1256,8 @@ void fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
 		PRC_SET_SEGMENT_OFFSET(offset);
 		PRC_SET_SEGMENT_LENGTH(size);
 	} else {
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_TRIM_DEFAULT_SEGMENT_PRESENTATION, 
+						__LINE__, (int32_t)res1);
 	}
 }
 
@@ -1243,10 +1269,6 @@ void fdma_modify_default_segment_data(
 	uint32_t arg1, arg2, arg3;
 	int8_t res1;
 
-	/* This command may be invoked only on Data segment */
-	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
-	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(
 			PRC_GET_HANDLES(), FDMA_REPLACE_NO_FLAGS);
@@ -1261,7 +1283,8 @@ void fdma_modify_default_segment_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_MODIFY_DEFAULT_SEGMENT_DATA, 
+				__LINE__, (int32_t)res1);
 }
 
 #ifdef REV2
@@ -1276,10 +1299,6 @@ void fdma_modify_segment_data(
 	uint32_t arg1, arg2, arg3;
 	int8_t res1;
 
-	/* This command may be invoked only on Data segment */
-	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
-	    (seg_handle == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_MODIFY_CMD_ARG1(
 			frame_handle, seg_handle, FDMA_REPLACE_NO_FLAGS);
@@ -1294,7 +1313,8 @@ void fdma_modify_segment_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_MODIFY_SEGMENT_DATA, __LINE__, 
+							(int32_t)res1);
 }
 #endif /* REV2*/
 
@@ -1313,11 +1333,7 @@ int fdma_replace_default_segment_data(
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3, arg4;
 	int8_t res1;
-
-	/* This command may be invoked only on Data segment */
-	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
-	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
+	
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
@@ -1347,10 +1363,11 @@ int fdma_replace_default_segment_data(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_REPLACE_DEFAULT_SEGMENT_DATA, __LINE__, 
+					(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1369,10 +1386,6 @@ int fdma_insert_default_segment_data(
 	void	 *ws_address_rs;
 	int8_t res1;
 
-	/* This command may be invoked only on Data segment */
-	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
-	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, 0);
@@ -1410,10 +1423,11 @@ int fdma_insert_default_segment_data(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_INSERT_DEFAULT_SEGMENT_DATA, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1428,10 +1442,6 @@ int fdma_insert_segment_data(
 	uint32_t arg1, arg2, arg3, arg4;
 	int8_t res1;
 
-	/* This command may be invoked only on Data segment */
-	if ((params->seg_handle == FDMA_ASA_SEG_HANDLE) ||
-	    (params->seg_handle == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_EXP_CMD_ARG1(params->seg_handle,
 			params->frame_handle, params->flags);
@@ -1472,10 +1482,11 @@ int fdma_insert_segment_data(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_INSERT_SEGMENT_DATA, __LINE__, 
+			(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1494,10 +1505,6 @@ int fdma_delete_default_segment_data(
 	uint16_t size_rs;
 	int8_t res1;
 
-	/* This command may be invoked only on Data segment */
-	if ((PRC_GET_SEGMENT_HANDLE() == FDMA_ASA_SEG_HANDLE) ||
-	    (PRC_GET_SEGMENT_HANDLE() == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, delete_target_size);
@@ -1532,10 +1539,11 @@ int fdma_delete_default_segment_data(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_DELETE_DEFAULT_SEGMENT_DATA, __LINE__, 
+				(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1550,10 +1558,6 @@ int fdma_delete_segment_data(
 	uint32_t arg1, arg2, arg3, arg4;
 	int8_t res1;
 
-	/* This command may be invoked only on Data segment */
-	if ((params->seg_handle == FDMA_ASA_SEG_HANDLE) ||
-	    (params->seg_handle == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_DELETE_CMD_ARG1(params->seg_handle, params->frame_handle,
 			params->flags);
@@ -1598,10 +1602,11 @@ int fdma_delete_segment_data(
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
-			return -EIO;
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_DELETE_SEGMENT_DATA, __LINE__, 
+			(int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1614,11 +1619,8 @@ void fdma_close_default_segment(void)
 	int8_t res1;
 	uint8_t seg_handle;
 
-	/* This command may be invoked only on Data segment */
 	seg_handle = PRC_GET_SEGMENT_HANDLE();
-	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
-	    (seg_handle == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
+
 	/* prepare command parameters */
 	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(PRC_GET_FRAME_HANDLE(), seg_handle);
 	/* store command parameters */
@@ -1632,7 +1634,8 @@ void fdma_close_default_segment(void)
 	if (res1 == FDMA_SUCCESS)
 		PRC_SET_NDS_BIT();
 	else
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_CLOSE_DEFAULT_SEGMENT, __LINE__, 
+				(int32_t)res1);
 }
 
 void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
@@ -1641,10 +1644,6 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 	uint32_t arg1;
 	int8_t res1;
 
-	/* This command may be invoked only on Data segment */
-	if ((seg_handle == FDMA_ASA_SEG_HANDLE) ||
-	    (seg_handle == FDMA_PTA_SEG_HANDLE))
-		fdma_handle_fatal_errors(FDMA_NO_DATA_SEGMENT_HANDLE);
 	/* prepare command parameters */
 	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(frame_handle, seg_handle);
 	/* store command parameters */
@@ -1659,7 +1658,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 		if (seg_handle == PRC_GET_SEGMENT_HANDLE())
 				PRC_SET_NDS_BIT();
 	} else {
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_CLOSE_SEGMENT, 
+						__LINE__, (int32_t)res1);
 	}
 }
 
@@ -1714,9 +1714,10 @@ int fdma_replace_default_asa_segment_data(
 	if (res1 == FDMA_SUCCESS)
 		return SUCCESS;
 	else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)
-		return -EIO;
+		return FDMA_STATUS_UNABLE_PRES_ASA_SEG;
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_REPLACE_DEFAULT_ASA_SEGMENT_DATA, 
+						__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1735,7 +1736,8 @@ int fdma_replace_default_pta_segment_data(
 	if ((flags & FDMA_REPLACE_SA_REPRESENT_BIT) &&
 		(((uint16_t)((uint32_t)ws_dst_rs)) ==
 				PRC_PTA_NOT_LOADED_ADDRESS))
-		fdma_handle_fatal_errors(FDMA_INVALID_PTA_ADDRESS);
+		fdma_exception_handler(FDMA_REPLACE_DEFAULT_PTA_SEGMENT_DATA, 
+				__LINE__, (int32_t)FDMA_INVALID_PTA_ADDRESS);
 
 	arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
 			FDMA_PTA_SEG_HANDLE, PRC_GET_HANDLES(), flags);
@@ -1775,7 +1777,8 @@ int fdma_replace_default_pta_segment_data(
 			return -EIO;
 	}
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_REPLACE_DEFAULT_PTA_SEGMENT_DATA, 
+					__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1801,7 +1804,8 @@ void fdma_calculate_default_frame_checksum(
 	*checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+FDMA_CHECKSUM_OFFSET));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM, 
+				__LINE__, (int32_t)res1);
 }
 
 void fdma_copy_data(
@@ -1825,7 +1829,7 @@ void fdma_copy_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_COPY_DATA, __LINE__, (int32_t)res1);
 }
 
 void fdma_dma_data(
@@ -1851,9 +1855,8 @@ void fdma_dma_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_DMA_DATA, __LINE__, (int32_t)res1);
 }
-
 
 int fdma_acquire_buffer(
 		uint16_t icid,
@@ -1881,7 +1884,7 @@ int fdma_acquire_buffer(
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 
-	fdma_handle_fatal_errors((int32_t)res1);
+	fdma_exception_handler(FDMA_ACQUIRE_BUFFER, __LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }
@@ -1908,7 +1911,8 @@ void fdma_release_buffer(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 	if (res1 != FDMA_SUCCESS)
-		fdma_handle_fatal_errors((int32_t)res1);
+		fdma_exception_handler(FDMA_RELEASE_BUFFER, __LINE__, 
+				(int32_t)res1);
 }
 
 /* Todo - enable inline when inline works correctly+move definition to .h file*/
@@ -1954,97 +1958,252 @@ void fdma_release_buffer(
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
 
-void fdma_handle_fatal_errors(int32_t status)
+void fdma_exception_handler(enum fdma_function_identifier func_id,
+		     uint32_t line,
+		     int32_t status)
 {
-	/*TODO Fatal error*/
-	switch (status) {
-	case FDMA_UNABLE_TO_TRIM_ERR:
-		handle_fatal_error("FDMA_UNABLE_TO_TRIM_ERR");
+	char *func_name;
+	char *err_msg;
+	
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case FDMA_PRESENT_DEFAULT_FRAME:
+		func_name = "fdma_present_default_frame";
 		break;
-	case FDMA_FRAME_STORE_ERR:
-		handle_fatal_error("FDMA_FRAME_STORE_ERR");
+	case FDMA_PRESENT_FRAME:
+		func_name = "fdma_present_frame";
 		break;
-	case FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR:
-		handle_fatal_error(
-			(char *)FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR);
+	case FDMA_PRESENT_DEFAULT_FRAME_WITHOUT_SEGMENTS:
+		func_name = "fdma_present_default_frame_without_segments";
 		break;
-	case FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR:
-		handle_fatal_error(
-			(char *)FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR);
+	case FDMA_PRESENT_FRAME_WITHOUT_SEGMENTS:
+		func_name = "fdma_present_frame_without_segments";
 		break;
-	case FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR:
-		handle_fatal_error((char *)FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR);
+	case FDMA_PRESENT_DEFAULT_FRAME_SEGMENT:
+		func_name = "fdma_present_default_frame_segment";
 		break;
-	case FDMA_UNABLE_TO_PRESENT_PTA_ERR:
-		handle_fatal_error((char *)FDMA_UNABLE_TO_PRESENT_PTA_ERR);
+	case FDMA_PRESENT_DEFAULT_FRAME_DEFAULT_SEGMENT:
+		func_name = "fdma_present_default_frame_default_segment";
 		break;
-	case FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR:
-		handle_fatal_error(
-			(char *)FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR);
+	case FDMA_PRESENT_FRAME_SEGMENT:
+		func_name = "fdma_present_frame_segment";
 		break;
-	case FDMA_FD_ERR:
-		handle_fatal_error((char *)FDMA_FD_ERR);
+	case FDMA_READ_DEFAULT_FRAME_ASA:
+		func_name = "fdma_read_default_frame_asa";
 		break;
-	case FDMA_FRAME_HANDLE_DEPLETION_ERR:
-		handle_fatal_error((char *)FDMA_FRAME_HANDLE_DEPLETION_ERR);
+	case FDMA_READ_DEFAULT_FRAME_PTA:
+		func_name = "fdma_read_default_frame_pta";
 		break;
-	case FDMA_INVALID_FRAME_HANDLE_ERR:
-		handle_fatal_error((char *)FDMA_INVALID_FRAME_HANDLE_ERR);
+	case FDMA_EXTEND_DEFAULT_SEGMENT_PRESENTATION:
+		func_name = "fdma_extend_default_segment_presentation";
 		break;
-	case FDMA_SEGMENT_HANDLE_DEPLETION_ERR:
-		handle_fatal_error((char *)FDMA_SEGMENT_HANDLE_DEPLETION_ERR);
+	case FDMA_STORE_DEFAULT_FRAME_DATA:
+		func_name = "fdma_store_default_frame_data";
 		break;
-	case FDMA_INVALID_SEGMENT_HANDLE_ERR:
-		handle_fatal_error((char *)FDMA_INVALID_SEGMENT_HANDLE_ERR);
+	case FDMA_STORE_FRAME_DATA:
+		func_name = "fdma_store_frame_data";
 		break;
-	case FDMA_INVALID_DMA_COMMAND_ARGS_ERR:
-		handle_fatal_error((char *)FDMA_INVALID_DMA_COMMAND_ARGS_ERR);
+	case FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_FQID:
+		func_name = "fdma_store_and_enqueue_default_frame_fqid";
 		break;
-	case FDMA_INVALID_DMA_COMMAND_ERR:
-		handle_fatal_error((char *)FDMA_INVALID_DMA_COMMAND_ERR);
+	case FDMA_STORE_AND_ENQUEUE_FRAME_FQID:
+		func_name = "fdma_store_and_enqueue_frame_fqid";
 		break;
-	case FDMA_INTERNAL_MEMORY_ECC_ERR:
-		handle_fatal_error((char *)FDMA_INTERNAL_MEMORY_ECC_ERR);
+	case FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_QD:
+		func_name = "fdma_store_and_enqueue_default_frame_qd";
 		break;
-	case FDMA_WORKSPACE_MEMORY_READ_ERR:
-		handle_fatal_error((char *)FDMA_WORKSPACE_MEMORY_READ_ERR);
+	case FDMA_STORE_AND_ENQUEUE_FRAME_QD:
+		func_name = "fdma_store_and_enqueue_frame_qd";
 		break;
-	case FDMA_WORKSPACE_MEMORY_WRITE_ERR:
-		handle_fatal_error((char *)FDMA_WORKSPACE_MEMORY_WRITE_ERR);
+	case FDMA_ENQUEUE_DEFAULT_FD_FQID:
+		func_name = "fdma_enqueue_default_fd_fqid";
 		break;
-	case FDMA_SYSTEM_MEMORY_READ_ERR:
-		handle_fatal_error((char *)FDMA_SYSTEM_MEMORY_READ_ERR);
+	case FDMA_ENQUEUE_FD_FQID:
+		func_name = "fdma_enqueue_fd_fqid";
 		break;
-	case FDMA_SYSTEM_MEMORY_WRITE_ERR:
-		handle_fatal_error((char *)FDMA_SYSTEM_MEMORY_WRITE_ERR);
+	case FDMA_ENQUEUE_DEFAULT_FD_QD:
+		func_name = "fdma_enqueue_default_fd_qd";
 		break;
-	case FDMA_QMAN_ENQUEUE_ERR:
-		handle_fatal_error((char *)FDMA_QMAN_ENQUEUE_ERR);
+	case FDMA_ENQUEUE_FD_QD:
+		func_name = "fdma_enqueue_fd_qd";
 		break;
-	case FDMA_FRAME_STRUCTURAL_ERR:
-		handle_fatal_error((char *)FDMA_FRAME_STRUCTURAL_ERR);
+	case FDMA_DISCARD_DEFAULT_FRAME:
+		func_name = "fdma_discard_default_frame";
 		break;
-	case FDMA_INTERNAL_ERR:
-		handle_fatal_error((char *)FDMA_INTERNAL_ERR);
+	case FDMA_DISCARD_FRAME:
+		func_name = "fdma_discard_frame";
 		break;
-	case FDMA_SPID_ICID_ERR:
-		handle_fatal_error((char *)FDMA_SPID_ICID_ERR);
+	case FDMA_DISCARD_FD:
+		func_name = "fdma_discard_fd";
 		break;
-	case FDMA_SRAM_MEMORY_READ_ERR:
-		handle_fatal_error((char *)FDMA_SRAM_MEMORY_READ_ERR);
+	case FDMA_FORCE_DISCARD_FD:
+		func_name = "fdma_force_discard_fd";
 		break;
-	case FDMA_PROFILE_SRAM_MEMORY_READ_ERR:
-		handle_fatal_error((char *)FDMA_PROFILE_SRAM_MEMORY_READ_ERR);
+	case FDMA_TERMINATE_TASK:
+		func_name = "fdma_terminate_task";
 		break;
-	case FDMA_NO_DATA_SEGMENT_HANDLE:
-		handle_fatal_error((char *)FDMA_NO_DATA_SEGMENT_HANDLE);
+	case FDMA_REPLICATE_FRAME_FQID:
+		func_name = "fdma_replicate_frame_fqid";
 		break;
-	case FDMA_INVALID_PTA_ADDRESS:
-		handle_fatal_error((char *)FDMA_INVALID_PTA_ADDRESS);
+	case FDMA_REPLICATE_FRAME_QD:
+		func_name = "fdma_replicate_frame_qd";
+		break;
+	case FDMA_CONCATENATE_FRAMES:
+		func_name = "fdma_concatenate_frames";
+		break;
+	case FDMA_SPLIT_FRAME:
+		func_name = "fdma_split_frame";
+		break;
+	case FDMA_TRIM_DEFAULT_SEGMENT_PRESENTATION:
+		func_name = "fdma_trim_default_segment_presentation";
+		break;
+	case FDMA_MODIFY_DEFAULT_SEGMENT_DATA:
+		func_name = "fdma_modify_default_segment_data";
+		break;
+	case FDMA_MODIFY_SEGMENT_DATA:
+		func_name = "fdma_modify_segment_data";
+		break;
+	case FDMA_REPLACE_DEFAULT_SEGMENT_DATA:
+		func_name = "fdma_replace_default_segment_data";
+		break;
+	case FDMA_INSERT_DEFAULT_SEGMENT_DATA:
+		func_name = "fdma_insert_default_segment_data";
+		break;
+	case FDMA_INSERT_SEGMENT_DATA:
+		func_name = "fdma_insert_segment_data";
+		break;
+	case FDMA_DELETE_DEFAULT_SEGMENT_DATA:
+		func_name = "fdma_delete_default_segment_data";
+		break;
+	case FDMA_DELETE_SEGMENT_DATA:
+		func_name = "fdma_delete_segment_data";
+		break;
+	case FDMA_CLOSE_DEFAULT_SEGMENT:
+		func_name = "fdma_close_default_segment";
+		break;
+	case FDMA_CLOSE_SEGMENT:
+		func_name = "fdma_close_segment";
+		break;
+	case FDMA_REPLACE_DEFAULT_ASA_SEGMENT_DATA:
+		func_name = "fdma_replace_default_asa_segment_data";
+		break;
+	case FDMA_REPLACE_DEFAULT_PTA_SEGMENT_DATA:
+		func_name = "fdma_replace_default_pta_segment_data";
+		break;
+	case FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM:
+		func_name = "fdma_calculate_default_frame_checksum";
+		break;
+	case FDMA_COPY_DATA:
+		func_name = "fdma_copy_data";
+		break;
+	case FDMA_DMA_DATA:
+		func_name = "fdma_dma_data";
+		break;
+	case FDMA_ACQUIRE_BUFFER:
+		func_name = "fdma_acquire_buffer";
+		break;
+	case FDMA_RELEASE_BUFFER:
+		func_name = "fdma_release_buffer";
 		break;
 	default:
-		handle_fatal_error((char *)0);
+		/* create own exception */
+		func_name = "Unknown Function";
 	}
+	
+	/* Translate error ID to error name string */
+	switch (status) {
+	case FDMA_UNABLE_TO_TRIM_ERR:
+		err_msg = "Unable to trim frame to concatenate. Trim size is "
+				"larger than frame size.\n";
+		break;
+	case FDMA_FRAME_STORE_ERR:
+		err_msg = "Frame Store failed, single buffer frame full and "
+				"Storage Profile FF is set to 10.\n";
+		break;
+	case FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR:
+		err_msg = "Unable to fulfill specified segment presentation "
+				"size.\n";
+		break;
+	case FDMA_ASA_OFFSET_BEYOND_ASA_LENGTH_ERR:
+		err_msg = "ASA offset value is beyond ASA Length in received "
+				"FD. No ASA presentation possible.\n";
+		break;
+	case FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR:
+		err_msg = "Unable to fulfill specified ASA presentation "
+				"size.\n";
+		break;
+	case FDMA_UNABLE_TO_PRESENT_PTA_ERR:
+		err_msg = "Unable to present the PTA segment because no PTA "
+				"segment is present in the working frame.\n";
+		break;
+	case FDMA_UNABLE_TO_EXECUTE_DUE_TO_RESERVED_FMT_ERR:
+		err_msg = "Unable to perform required processing due to "
+				"received FD[FMT]=0x3 (reserved value).\n";
+		break;
+	case FDMA_FD_ERR:
+		err_msg = "Received FD with non-zero FD[ERR] field.\n";
+		break;
+	case FDMA_FRAME_HANDLE_DEPLETION_ERR:
+		err_msg = "Frame Handle depletion (max of 6).\n";
+		break;
+	case FDMA_INVALID_FRAME_HANDLE_ERR:
+		err_msg = "Invalid Frame Handle.\n";
+		break;
+	case FDMA_SEGMENT_HANDLE_DEPLETION_ERR:
+		err_msg = "Segment Handle depletion (max of 8).\n";
+		break;
+	case FDMA_INVALID_SEGMENT_HANDLE_ERR:
+		err_msg = "Invalid Segment Handle.\n";
+		break;
+	case FDMA_INVALID_DMA_COMMAND_ARGS_ERR:
+		err_msg = "Invalid DMA command arguments.\n";
+		break;
+	case FDMA_INVALID_DMA_COMMAND_ERR:
+		err_msg = "Invalid DMA command.\n";
+		break;
+	case FDMA_INTERNAL_MEMORY_ECC_ERR:
+		err_msg = "Internal memory ECC uncorrected ECC error.\n";
+		break;
+	case FDMA_WORKSPACE_MEMORY_READ_ERR:
+		err_msg = "Workspace memory read Error.\n";
+		break;
+	case FDMA_WORKSPACE_MEMORY_WRITE_ERR:
+		err_msg = "Workspace memory write Error.\n";
+		break;
+	case FDMA_SYSTEM_MEMORY_READ_ERR:
+		err_msg = "System memory read error (permission or ECC).\n";
+		break;
+	case FDMA_SYSTEM_MEMORY_WRITE_ERR:
+		err_msg = "System memory write error (permission or ECC).\n";
+		break;
+	case FDMA_QMAN_ENQUEUE_ERR:
+		err_msg = "QMan enqueue error (access violation).\n";
+		break;
+	case FDMA_FRAME_STRUCTURAL_ERR:
+		err_msg = "Frame structural error (invalid S/G bits settings, "
+				"hop limit).\n";
+		break;
+	case FDMA_INTERNAL_ERR:
+		err_msg = "FDMA Internal error, SRU depletion.\n";
+		break;
+	case FDMA_SPID_ICID_ERR:
+		err_msg = "Storage Profile ICID does not match frame ICID and "
+				"Storage Profile BS=1 error.\n";
+		break;
+	case FDMA_SRAM_MEMORY_READ_ERR:
+		err_msg = "Shared SRAM memory read Error.\n";
+		break;
+	case FDMA_PROFILE_SRAM_MEMORY_READ_ERR:
+		err_msg = "Profile SRAM memory read Error.\n";
+		break;
+	case FDMA_INVALID_PTA_ADDRESS:
+		err_msg = "Invalid PTA address.\n";
+		break;
+	default:
+		err_msg = "Unknown or Invalid status.\n";
+	}
+	
+	exception_handler(__FILE__, func_name, line, err_msg);
 }
 
 #pragma pop

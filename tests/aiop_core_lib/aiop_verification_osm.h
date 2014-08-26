@@ -176,7 +176,7 @@ struct osm_error_reg {
 	uint32_t	oerr;
 	uint32_t 	oedr;
 	uint32_t 	oeddr;
-	uint32_t 	reserved;
+	uint32_t 	reserved[5];
 	uint32_t 	oecr0;
 	uint32_t 	oecr1;
 	uint32_t 	oecr2;

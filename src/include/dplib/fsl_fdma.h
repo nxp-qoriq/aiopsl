@@ -889,6 +889,27 @@ struct fdma_delete_segment_data_params {
 
 /** @} end of group FDMA_Structures */
 
+/**************************************************************************//**
+ @Group		FDMA_STATUS Status FDMA Statuses
+
+ @Description	FDMA Statuses.
+
+ @{
+*//***************************************************************************/
+
+	/** Unable to fulfill specified Data segment presentation size.
+	 * This is an indication that the requested data segment presentation 
+	 * size could not be fulfill since the frame size (starting from the 
+	 * segment offset) is smaller than the requested presentation size. */
+	#define FDMA_STATUS_UNABLE_PRES_DATA_SEG	0x00000008
+	/** Unable to fulfill specified ASA segment presentation size.
+	 * This is an indication that the requested ASA segment presentation 
+	 * size could not be fulfill since the ASA size (starting from the 
+	 * ASA segment offset) is smaller than the requested presentation 
+	 * size. */
+	#define FDMA_STATUS_UNABLE_PRES_ASA_SEG		0x0000000A
+
+/** @} end of group FDMA_STATUS */
 
 /**************************************************************************//**
  @Group		FDMA_Functions FDMA Functions
@@ -923,19 +944,21 @@ struct fdma_delete_segment_data_params {
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(not relevant if the NDS bit in the presentation context is set,
-		or if the Data size in the presentation context is 0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (not relevant if the 
+		NDS bit in the presentation context is set, or if the Data size
+		in the presentation context is 0).
 		This error is caused since the requested presentation exceeded
 		frame data end.
-@Retval		EIO - Unable to fulfill specified ASA segment presentation size
-		(not relevant if the ASA size in the presentation context is 0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
+		specified ASA segment presentation size (not relevant if the ASA
+		size in the presentation context is 0).
 		This error is caused since the requested presentation exceeded
 		frame ASA end.
-@Retval		EBADFD - Received frame with non-zero FD[err] field.
+@Retval		EIO - Received frame with non-zero FD[err] field.
 
 
 @Cautions	This function may result in a fatal error.
@@ -962,19 +985,21 @@ int fdma_present_default_frame(void);
 @Param[in,out]	params - A pointer to the Initial frame presentation command
 		parameters \ref fdma_present_frame_params.
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(not relevant if the NDS bit flag in the function parameters is
-		set, or if the Data size in the function parameters is 0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (not relevant if the 
+		NDS bit flag in the function parameters is set, or if the Data 
+		size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
 		frame data end.
-@Retval		EIO - Unable to fulfill specified ASA segment presentation size
-		(not relevant if the ASA size in the function parameters is 0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
+		specified ASA segment presentation size (not relevant if the ASA
+		size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
 		frame ASA end.
-@Retval		EBADFD - Received frame with non-zero FD[err] field.
+@Retval		EIO - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1002,12 +1027,12 @@ int fdma_present_frame(
 @Param[in]	present_size - Number of frame bytes to present (any value
 		including 0).
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(not relevant if the present_size in the function parameters is
-		0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (not relevant if the 
+		present_size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
@@ -1030,12 +1055,12 @@ int fdma_present_default_frame_segment(
 @Param[in]	params - A pointer to the Present frame segment command
 		parameters \ref fdma_present_segment_params.
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(not relevant if the present_size in the function parameters is
-		0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (not relevant if the 
+		present_size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
@@ -1068,12 +1093,12 @@ int fdma_present_frame_segment(
 		than 0). Contains the number of 64B quantities to present
 		because the Frame ASAL field is specified in 64B units.
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified ASA segment presentation size
-		(not relevant if the present_size in the function parameters is
-		0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
+		specified ASA segment presentation size (not relevant if the 
+		present_size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
 		frame ASA end.
 
@@ -1106,8 +1131,8 @@ int fdma_read_default_frame_asa(
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to present PTA segment (no PTA segment in working
-		frame).
+@Retval		EIO - Unable to present PTA segment (no PTA segment in the 
+		working frame).
 
 @remark		The PTA segment handle value is fixed \ref FDMA_PTA_SEG_HANDLE.
 @remark		The length of the read PTA can be read directly from the FD.
@@ -1139,13 +1164,15 @@ int fdma_read_default_frame_pta(void *ws_dst);
 @Param[in]	flags - \link FDMA_EXT_Flags Extend segment mode
 		bits. \endlink
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment extend size.
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment extend size.
 		This error is caused since the requested presentation exceeded
 		frame data end.
-@Retval		EIO - Unable to fulfill specified ASA segment extend size.
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
+		specified ASA segment extend size.
 		This error is caused since the requested presentation exceeded
 		frame ASA end.
 
@@ -1638,7 +1665,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
-@Retval		EBADFD - Received frame with non-zero FD[err] field.
+@Retval		EIO - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1836,13 +1863,14 @@ int fdma_concatenate_frames(
 @Param[in,out]	params - A pointer to the Split frame command parameters \ref
 		fdma_split_frame_params.
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
 		closing split frame).
 @Retval		EINVAL - Last split is not possible.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size
 		(relevant if \ref FDMA_SPLIT_PSA_PRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
 		frame data end.
@@ -2022,11 +2050,12 @@ void fdma_modify_segment_data(
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (relevant if
+		 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
@@ -2078,11 +2107,12 @@ int fdma_replace_default_segment_data(
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (relevant if
+		 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
@@ -2144,11 +2174,12 @@ int fdma_insert_default_segment_data(
 @Param[in]	params - A pointer to the insert segment data command
 		parameters \ref fdma_insert_segment_data_params.
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (relevant if 
+		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
@@ -2194,11 +2225,12 @@ int fdma_insert_segment_data(
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (relevant if 
+		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
@@ -2247,11 +2279,12 @@ int fdma_delete_default_segment_data(
 @Param[in]	params - A pointer to the delete segment data command
 		parameters \ref fdma_delete_segment_data_params.
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (relevant if 
+		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
@@ -2266,7 +2299,7 @@ int fdma_delete_default_segment_data(
 			- to_offset - 25 (relative to the presented segment)
 			- delete_target_size - 10
 
-@Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This command may be invoked only on Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -2348,11 +2381,12 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
 
-@Return		0 on Success, or negative value on error.
+@Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified ASA segment presentation size
-		(relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
+		specified ASA segment presentation size (relevant if 
+		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This error is caused since the requested presentation exceeded
 		frame ASA end.
 
