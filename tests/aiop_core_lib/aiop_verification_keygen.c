@@ -66,6 +66,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			str->status = keygen_kcr_builder_add_constant_fec
 				(str->constant, str->num,
 				 (struct kcr_builder *)str->kb_ptr);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 
 			str_size =
 			sizeof(struct keygen_kcr_builder_add_constant_fec_command);
@@ -88,6 +89,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			str->status = keygen_kcr_builder_add_input_value_fec
 				(str->offset, str->extract_size, mask_ptr,
 				 (struct kcr_builder *)str->kb_ptr);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 
 			str_size =
 			sizeof(struct keygen_kcr_builder_add_input_value_fec_command);
@@ -114,6 +116,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 				((enum kcr_builder_protocol_fecid)str->fecid, 
 				mask_ptr, 
 				(struct kcr_builder *)str->kb_ptr);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 
 			str_size =
 			sizeof (struct keygen_kcr_builder_add_protocol_specific_field_fec_command);
@@ -141,6 +144,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 				 str->parse_result_offset, str->extract_offset,
 				 str->extract_size, mask_ptr,
 				 (struct kcr_builder *)str->kb_ptr);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 
 			str_size =
 			sizeof (struct keygen_kcr_builder_add_protocol_based_generic_extract_fec_command);
@@ -164,6 +168,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			str->status = 
 			keygen_kcr_builder_add_generic_extract_fec(str->offset,
 			str->extract_size, str->gec_source, mask_ptr, (struct kcr_builder *)str->kb_ptr);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 
 			str_size =
 			sizeof (struct keygen_kcr_builder_add_generic_extract_fec_command);
@@ -189,6 +194,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 				keygen_kcr_builder_add_lookup_result_field_fec(
 				str->extract_field, str->offset_in_opaque, 
 				str->extract_size_in_opaque, mask_ptr, (struct kcr_builder *)str->kb_ptr);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 
 			str_size =
 			sizeof (struct keygen_kcr_builder_add_lookup_result_field_fec_command);
@@ -208,6 +214,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			str->status = 
 					keygen_kcr_builder_add_valid_field_fec(str->mask,
 							     (struct kcr_builder *)str->kb_ptr);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 
 			str_size =
 			sizeof (struct keygen_kcr_builder_add_valid_field_fec_command);
@@ -226,6 +233,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			str->status = keygen_kcr_create(str->acc_id,
 						      (uint8_t *)str->kcr_ptr,
 						      &str->key_id);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =
 			sizeof (struct keygen_kcr_create_or_replace_command);
 			break;
@@ -254,6 +262,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 
 			str->status = 
 					keygen_kcr_delete(str->acc_id, str->key_id);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =
 			sizeof (struct keygen_kcr_delete_command);
 			break;
@@ -285,6 +294,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 						   str->key_id, 
 						   str->opaquein,
 						   (union table_key_desc *)str->key_ptr,						   &str->key_size);
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =
 				sizeof(struct keygen_gen_key_command);
 			break;
@@ -298,6 +308,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			str->status = keygen_gen_hash((union table_key_desc *)str->key_ptr, str->key_size,
 						    &(str->hash));
 			
+			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =
 				sizeof(struct keygen_gen_hash_command);
 			break;
@@ -308,7 +319,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			struct keygen_key_id_pool_create_verif_command *str =
 			(struct keygen_key_id_pool_create_verif_command *) 
 			asa_seg_addr;
-			str->status = sys_keyid_pool_create();
+			sys_keyid_pool_create();
 			str_size = sizeof(struct keygen_key_id_pool_create_verif_command);
 			break;
 		}

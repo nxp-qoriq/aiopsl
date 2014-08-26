@@ -113,6 +113,29 @@
 
 /** @} */ /* end of PARSER_MACROS */
 
+/** \addtogroup PARSER_Enumerations
+ *  @{
+ */
+
+/**************************************************************************//**
+ @enum parser_functions
+
+ @Description	AIOP Parser Functions enumeration.
+
+ @{
+*//***************************************************************************/
+enum parser_function_identifier {
+	PARSER_PROFILE_CREATE = 0,
+	PARSER_PROFILE_REPLACE,
+	PARSER_PROFILE_DELETE,
+	PARSER_PROFILE_QUERY,
+	PARSE_RESULT_GENERATE_DEFAULT,
+	PARSE_RESULT_GENERATE,
+	PARSE_RESULT_GENERATE_CHECKSUM
+};
+
+/** @}*/ /* end of group PARSER_Enumerations */
+
 /**************************************************************************//**
 @Group		PARSER_STRUCTS Parser Structures
 
@@ -216,6 +239,26 @@ int parse_result_generate_checksum(
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum
 );
+
+/**************************************************************************//**
+@Function	parser_exception_handler
+
+@Description	Handler for the error status returned from the PARSER API
+		functions.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+@Param[in]	status - Status to be handled be this function.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void parser_exception_handler(enum parser_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status);
+
 
 /** @} */ /* end of PARSER */
 

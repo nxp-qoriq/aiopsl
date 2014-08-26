@@ -208,8 +208,8 @@
 
 	/** Command status success */
 #define KEYGEN_HW_STATUS_SUCCESS		0x00000000
-	/** Command failed general status bit.
-	A general bit that is set in some errors conditions. */
+	/** Key composition error: indicates of either Invalid key composition
+	 * ID (KeyID) or KeyID with 0 FECs or Key size error (key>124 bytes) */
 #define KEYGEN_HW_STATUS_KSE			0x00000400
 	/** Extract Out Of Frame Header Error for Key Generation.
 	 This bit is set if key composition attempts to extract a field which
@@ -219,6 +219,38 @@
 /** @} */ /* end of FSL_KEYGEN_HW_STATUS_GENERAL */
 
 /** @} */ /* end of KEYGEN_MACROS */
+
+/** \addtogroup KEYGEN_Enumerations
+ *  @{
+ */
+
+/**************************************************************************//**
+ @enum keygen_functions
+
+ @Description	AIOP KEYGEN Functions enumeration.
+
+ @{
+*//***************************************************************************/
+enum keygen_function_identifier {
+	KEYGEN_KCR_BUILDER_INIT = 0,
+	KEYGEN_KCR_BUILDER_ADD_CONSTANT_FEC,
+	KEYGEN_KCR_BUILDER_ADD_INPUT_VALUE_FEC,
+	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_SPECIFIC_FIELD,
+	KEYGEN_KCR_BUILDER_ADD_PROTOCOL_BASED_GENERIC_FEC,
+	KEYGEN_KCR_BUILDER_ADD_GENERIC_EXTRACT_FEC,
+#ifdef REV2
+	KEYGEN_KCR_BUILDER_ADD_LOOKUP_RESULT_FIELD_FEC,
+#endif
+	KEYGEN_KCR_BUILDER_ADD_VALID_FIELD_FEC,
+	KEYGEN_KCR_CREATE,
+	KEYGEN_KCR_REPLACE,
+	KEYGEN_KCR_DELETE,
+	KEYGEN_KCR_QUERY,
+	KEYGEN_GEN_KEY,
+	KEYGEN_GEN_HASH
+};
+
+/** @}*/ /* end of group KEYGEN_Enumerations */
 
 
 /**************************************************************************//**
@@ -290,6 +322,24 @@ struct	keygen_hw_fec_mask {
 #pragma pack(pop)
 
 /** @} */ /* end of KEYGEN_STRUCTS */
+/**************************************************************************//**
+@Function	keygen_exception_handler
+
+@Description	Handler for the error status returned from the KEYGEN API
+		functions.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+@Param[in]	status - Status to be handled be this function.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void keygen_exception_handler(enum keygen_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status);
 
 /** @} */ /* end of KEYGEN */
 

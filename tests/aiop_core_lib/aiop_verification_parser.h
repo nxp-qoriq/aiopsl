@@ -154,9 +154,12 @@ struct parser_init_verif_command {
 struct parser_prp_create_verif_command {
 	uint32_t opcode;
 	int32_t  status;
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t parser_status_addr;
 	uint32_t parse_profile;
 	uint8_t  prpid;
-	uint8_t  pad[3];
+	uint8_t  pad[7];
 };
 
 /**************************************************************************//**
@@ -167,8 +170,11 @@ struct parser_prp_create_verif_command {
 struct parser_prp_delete_verif_command {
 	uint32_t opcode;
 	int32_t  status;
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t parser_status_addr;
 	uint8_t  prpid;
-	uint8_t  pad[7];
+	uint8_t  pad[3];
 };
 
 
@@ -179,10 +185,8 @@ struct parser_prp_delete_verif_command {
 *//***************************************************************************/
 struct parser_prp_query_verif_command {
 	uint32_t opcode;
-/*	int32_t  status;*/
 	uint32_t parse_profile;
 	uint8_t  prpid;
-	/*	uint8_t  pad[3];*/
 	uint8_t  pad[7];
 };
 
@@ -204,13 +208,16 @@ struct parser_prp_replace_verif_command {
 		Includes information needed for Parser Commands verification.
 *//***************************************************************************/
 struct parser_gen_parser_res_checksum_verif_command {
-	uint32_t          opcode;
-	int32_t           status;
-	uint16_t		  hxs;
-	uint16_t		  l3_checksum;
-	uint16_t		  l4_checksum;
-	uint8_t           offset;
-	uint8_t           pad;
+	uint32_t	opcode;
+	int32_t		status;
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t 	parser_status_addr;
+	uint16_t	hxs;
+	uint16_t	l3_checksum;
+	uint16_t	l4_checksum;
+	uint8_t		offset;
+	uint8_t		pad[5];
 };
 
 /**************************************************************************//**
@@ -221,9 +228,12 @@ struct parser_gen_parser_res_checksum_verif_command {
 struct parser_gen_parser_res_verif_command {
 	uint32_t opcode;
 	int32_t  status;
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t parser_status_addr;
 	uint8_t prpid;
 	uint8_t  flags;
-	uint8_t  pad[6];
+	uint8_t  pad[2];
 };
 
 /**************************************************************************//**
@@ -232,12 +242,14 @@ struct parser_gen_parser_res_verif_command {
 		Includes information needed for Parser Commands verification.
 *//***************************************************************************/
 struct parser_gen_parser_res_exp_verif_command {
-	uint32_t                      opcode;
-	int32_t                       status;
-	uint16_t		      		  hxs;
-	uint8_t                       flags;
-	uint8_t                       offset;
-	uint8_t                       pad[4];
+	uint32_t	opcode;
+	int32_t		status;
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t 	parser_status_addr;
+	uint16_t	hxs;
+	uint8_t		flags;
+	uint8_t		offset;
 };
 
 /**************************************************************************//**
@@ -247,7 +259,7 @@ struct parser_gen_parser_res_exp_verif_command {
 *//***************************************************************************/
 struct parser_prp_id_pool_create_verif_command {
 	uint32_t opcode;
-	int32_t  status;
+	uint8_t  pad[4];
 };
 
 /**************************************************************************//**
@@ -266,10 +278,10 @@ struct parser_macros_command {
 		Includes information needed for Parser Commands verification.
 *//***************************************************************************/
 struct parser_set_prpid_hxs_command {
-	uint32_t             opcode;
-	uint16_t             starting_hxs;
-	uint8_t              prpid;
-	uint8_t 			 pad;
+	uint32_t	opcode;
+	uint16_t	starting_hxs;
+	uint8_t		prpid;
+	uint8_t 	pad;
 };
 
 void aiop_init_parser(uint8_t *prpid);

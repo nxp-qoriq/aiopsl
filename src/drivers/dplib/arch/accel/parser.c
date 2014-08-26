@@ -175,6 +175,8 @@ int parse_result_generate_default(uint8_t flags)
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
+	/* implementation of errors is priority based (if-else) since multiple
+	 * error indications may appear at the same time */
 	if (status == PARSER_HW_STATUS_SUCCESS) {
 		return 0;
 	} else if ((status ==
@@ -185,12 +187,15 @@ int parse_result_generate_default(uint8_t flags)
 			PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED)) {
 		return 0;
 	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
-		handle_fatal_error((char *)
-			PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
+		parser_exception_handler(PARSE_RESULT_GENERATE_DEFAULT,
+			__LINE__, 
+			(status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED));
 		return (-1);
 	} else if (status & PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION) {
-		handle_fatal_error((char *)
-			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
+		parser_exception_handler(PARSE_RESULT_GENERATE_DEFAULT,
+			__LINE__, 
+			(status & 
+			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION));
 		return (-1);
 	} else if (status & PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED) {
 		return -ENOSPC;
@@ -257,12 +262,15 @@ int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 			PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED)) {
 		return 0;
 	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
-		handle_fatal_error((char *)
-			PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
+		parser_exception_handler(PARSE_RESULT_GENERATE,
+			__LINE__, 
+			(status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED));
 		return (-1);
 	} else if (status & PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION) {
-		handle_fatal_error((char *)
-			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
+		parser_exception_handler(PARSE_RESULT_GENERATE,
+			__LINE__, 
+			(status & 
+			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION));
 		return (-1);
 	} else if (status & PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED) {
 		return -ENOSPC;
@@ -305,12 +313,15 @@ int parse_result_generate_checksum(
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
 		return 0;
 	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
-		handle_fatal_error((char *)
-			PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED); /*TODO Fatal error */
+		parser_exception_handler(PARSE_RESULT_GENERATE_CHECKSUM,
+			__LINE__, 
+			(status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED));
 		return (-1);
 	} else if (status & PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION) {
-		handle_fatal_error((char *)
-			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION); /*TODO Fatal error */
+		parser_exception_handler(PARSE_RESULT_GENERATE_CHECKSUM,
+			__LINE__, 
+			(status & 
+			PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION));
 		return (-1);
 	} else if (status & PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED) {
 		return -ENOSPC;
@@ -318,5 +329,47 @@ int parse_result_generate_checksum(
 		return -EIO;
 	}
 }
+
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+
+void parser_exception_handler(enum parser_function_identifier func_id,
+		     uint32_t line,
+		     int32_t status)
+{
+	char *func_name;
+	char *err_msg;
+	
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case PARSE_RESULT_GENERATE_DEFAULT:
+		func_name = "parse_result_generate_default";
+		break;
+	case PARSE_RESULT_GENERATE:
+		func_name = "parse_result_generate";
+		break;
+	case PARSE_RESULT_GENERATE_CHECKSUM:
+		func_name = "parse_result_generate_checksum";
+		break;
+	default:
+		/* create own exception */
+		func_name = "Unknown Function";
+	}
+	
+	/* Translate error ID to error name string */
+	if (status == PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
+		err_msg = "Parser SR failed due to Cycle limit exceeded.\n";
+	} else if (status == PARSER_HW_STATUS_INVALID_SOFT_PARSE_INSTRUCTION) {
+		err_msg = "Parser SR failed due to invalid soft parse"
+				"instruction.\n";
+	} else {
+		err_msg = "Unknown or Invalid status.\n";
+	}
+	
+	exception_handler(__FILE__, func_name, line, err_msg);
+}
+
+#pragma pop
 
 

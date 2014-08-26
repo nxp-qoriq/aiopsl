@@ -33,7 +33,7 @@
 
 #include "id_pool.h"
 
-int id_pool_init(uint16_t num_of_ids,
+void id_pool_init(uint16_t num_of_ids,
 			 uint16_t buffer_pool_id,
 			 uint64_t *ext_id_pool_address)
 {
@@ -52,7 +52,9 @@ int id_pool_init(uint16_t num_of_ids,
 	status = cdma_acquire_context_memory
 			(buffer_pool_id, &int_id_pool_address);
 	if (status < 0)
-		handle_fatal_error((char *)status); /*TODO Fatal error*/
+		id_pool_exception_handler(ID_POOL_INIT,
+			__LINE__, 
+			SYSTEM_INIT_BUFFER_DEPLETION_FAILURE);
 
 	/* store the address in the global parameter */
 	*ext_id_pool_address = int_id_pool_address;
@@ -77,7 +79,6 @@ int id_pool_init(uint16_t num_of_ids,
 								fill_ids);
 		num_of_writes++;
 	}
-	return 0;
 }
 
 
@@ -145,3 +146,38 @@ int release_id(uint8_t id, uint64_t ext_id_pool_address)
 		return 0;
 	}
 }
+
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+
+void id_pool_exception_handler(enum id_pool_function_identifier func_id,
+		     uint32_t line,
+		     int32_t status)
+{
+	char *func_name;
+	char *err_msg;
+	
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case ID_POOL_INIT:
+		func_name = "id_pool_init";
+		break;
+	default:
+		/* create own exception */
+		func_name = "Unknown Function";
+	}
+	
+	/* Translate error ID to error name string */
+	if (status == SYSTEM_INIT_BUFFER_DEPLETION_FAILURE) {
+		err_msg = "Pool Creation failed due to due to buffer depletion"
+				"failure.\n";
+	} else {
+		err_msg = "Unknown or Invalid status.\n";
+	}
+	
+	exception_handler(__FILE__, func_name, line, err_msg);
+}
+
+#pragma pop
+
