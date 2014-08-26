@@ -93,7 +93,7 @@
 /** @} */ /* end of SYS_STORAGE_PROFILE_DEFINES */
 
 /**************************************************************************//**
-@Group SYS_ID_POOL_LENGTH System ID Pools Length
+@Group SYS_ID_POOL_LENGTH_DEFINES System ID Pools Length Defines
 @{
 *//***************************************************************************/
 /** Parser Profile ID pool length */
@@ -102,14 +102,19 @@
 /** Key ID pool length */
 #define SYS_NUM_OF_KEYIDS	256
 
-/** @} */ /* end of SYS_ID_POOL_LENGTH */
+/** @} */ /* end of SYS_ID_POOL_LENGTH_DEFINES */
+
+/**************************************************************************//**
+@Group SYSTEM_STATUSES_DEFINES System Statuses Defines
+@{
+*//***************************************************************************/
+/** System initialization failed due to slab failure */
+#define SYSTEM_INIT_SLAB_FAILURE	0xAA
+
+/** @} */ /* end of SYSTEM_STATUSES_DEFINES */
 
 /** @} */ /* end of SYSTEM_MACROS */
 
-/**************************************************************************//**
-@Group		SYSTEM_STRUCTS System Structures
-@{
-*//***************************************************************************/
 
 /* Temporary storage profiles definition */
 #define NUM_OF_SP 2
@@ -118,6 +123,35 @@ enum sp_types {
 	SP_DEFAULT = 0, /* Default storage profile */
 	SP_IPSEC /* IPsec storage profile */
 };
+
+ /**************************************************************************//**
+  @Group	SYSTEM_Enumerations PARSER Enumerations
+
+  @Description	SYSTEM Enumerations
+
+  @{
+ *//***************************************************************************/
+/**************************************************************************//**
+  @enum system_functions
+
+  @Description	AIOP SYSTEM Functions enumeration.
+
+  @{
+ *//***************************************************************************/
+ enum system_function_identifier {
+	 SYS_PRPID_POOL_CREATE = 0,
+	 SYS_KEYID_POOL_CREATE,
+	 AIOP_SL_INIT,
+	 AIOP_SL_FREE
+ };
+
+ /** @} */ /* end of group SYSTEM_Enumerations */
+
+
+ /**************************************************************************//**
+ @Group		SYSTEM_STRUCTS System Structures
+ @{
+ *//***************************************************************************/
 
 /**************************************************************************//**
 @Description	Storage Profile Struct
@@ -160,13 +194,13 @@ struct storage_profile {
 		Implicitly updated values in AIOP System global parameters:
 		ext_prpid_pool_address
 
-@Return		0 on Success, or negative value on error.
+@Return		None.
 
 @Cautions	Should be called only once per CTLU.
 		In this function the task yields.
 		This function may result in a fatal error.
 *//***************************************************************************/
-int sys_prpid_pool_create(void);
+void sys_prpid_pool_create(void);
 
 /*************************************************************************//**
 @Function	sys_keyid_pool_create
@@ -176,13 +210,13 @@ int sys_prpid_pool_create(void);
 		Implicitly updated values in AIOP System global parameters:
 		ext_keyid_pool_address
 
-@Return		0 on Success, or negative value on error.
+@Return		None.
 
 @Cautions	Should be called only once per CTLU.
 		In this function the task yields.
 		This function may result in a fatal error.
 *//***************************************************************************/
-int sys_keyid_pool_create(void);
+void sys_keyid_pool_create(void);
 
 /*************************************************************************//**
 @Function	aiop_sl_init
@@ -209,6 +243,26 @@ int aiop_sl_init(void);
 		In this function the task yields.
 *//***************************************************************************/
 void aiop_sl_free(void);
+
+/**************************************************************************//**
+@Function	system_init_exception_handler
+
+@Description	Handler for the error status returned from the system API
+		functions.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+@Param[in]	status - Status to be handled be this function.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void system_init_exception_handler(enum system_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status);
+
 
 
 /** @} */ /* end of SYSTEM_Functions */
