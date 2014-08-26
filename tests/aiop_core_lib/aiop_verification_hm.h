@@ -576,7 +576,6 @@ struct hm_set_l2_src_dst_command {
 *//***************************************************************************/
 struct hm_ip_cksum_calculation_command {
 	uint32_t opcode;
-	int32_t  status;
 	uint32_t ipv4header;
 	uint8_t  flags;
 };

@@ -623,13 +623,13 @@ int ip_set_nw_dst(uint32_t dst_addr);
 @Param[in]	flags - \link HMIPCksumCalcModeBits IP Checksum calculation mode
 		bits \endlink
 
-@Return		Success or FDMA Failure.
+@Return		None.
 
 @Cautions	In this function the task yields. \n
 		This function invalidates the Parser Result Gross Running Sum
 		field.
 *//***************************************************************************/
-int ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
+void ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags);
 
 /** @} */ /* end of group FSL_HM_IP_Functions */
 /** @} */ /* end of group AIOP_IP_HM */
