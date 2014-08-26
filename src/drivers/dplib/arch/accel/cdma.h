@@ -191,6 +191,34 @@ enum cdma_errors {
 /** @} end of enum cdma_errors */
 
 /**************************************************************************//**
+ @enum cdma_functions
+
+ @Description	AIOP CDMA Functions enumertion.
+
+ @{
+*//***************************************************************************/
+enum cdma_function_identifier {
+	CDMA_READ = 0,
+	CDMA_WRITE,
+	CDMA_MUTEX_LOCK_TAKE,
+	CDMA_MUTEX_LOCK_RELEASE,
+	CDMA_READ_WITH_MUTEX,
+	CDMA_WRITE_WITH_MUTEX,
+	CDMA_WS_MEMORY_INIT,
+	CDMA_REFCOUNT_GET,
+	CDMA_ACQUIRE_CONTEXT_MEMORY,
+	CDMA_RELEASE_CONTEXT_MEMORY,
+	CDMA_REFCOUNT_DECREMENT_AND_RELEASE,
+	CDMA_REFCOUNT_INCREMENT,
+	CDMA_REFCOUNT_DECREMENT,
+	CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT,
+	CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT,
+	CDMA_ACCESS_CONTEXT_MEMORY
+};
+
+/** @}*/ /* end of group CDMA_Enumerations */
+
+/**************************************************************************//**
  @Group		CDMA_Internal_Commands_Flags CDMA Internal Commands Flags
 
  @Description	CDMA Internal Commands Flags
@@ -569,6 +597,26 @@ int cdma_access_context_memory(
 *//***************************************************************************/
 void cdma_handle_fatal_errors(
 		uint8_t status);
+
+/**************************************************************************//**
+@Function	cdma_exception_handler
+
+@Description	Handler for the error status returned from the CDMA API
+		functions.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+@Param[in]	status - Status to be handled be this function.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void cdma_exception_handler(enum cdma_function_identifier func_id,
+			     uint32_t line,
+			     int32_t status);
+
 
 /** @} end of group CDMA_Internal_Functions */
 
