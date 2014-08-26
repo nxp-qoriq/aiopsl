@@ -854,9 +854,9 @@ int fdma_present_frame_without_segments(
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
-@Retval		EIO - Unable to fulfill specified data segment presentation size
-		(not relevant if the present_size in the function parameters is
-		0).
+@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (not relevant if the 
+		present_size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
