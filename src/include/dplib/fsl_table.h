@@ -70,7 +70,6 @@ The table attributes are composed of the following sub fields:
 - Type field (Exact Match, Longest Prefix Match, etc..)
 - Location (External/PEB/Internal) field
 - Miss result options field
-- Aging Threshold field
 
 @{
 *//***************************************************************************/
