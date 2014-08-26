@@ -447,8 +447,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			struct hm_ip_cksum_calculation_command *cmd =
 				(struct hm_ip_cksum_calculation_command *)
 				asa_seg_addr;
-			cmd->status = ip_cksum_calculate(
-					(struct ipv4hdr *)cmd->ipv4header,
+			ip_cksum_calculate((struct ipv4hdr *)cmd->ipv4header,
 					cmd->flags);
 			str_size =
 			   sizeof(struct hm_ip_cksum_calculation_command);

@@ -1222,7 +1222,7 @@ int ip_set_nw_dst(uint32_t dst_addr)
 }
 
 
-int ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
+void ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 {
 	uint16_t running_sum;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -1258,7 +1258,7 @@ int ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 				sizeof((struct ipv4hdr *)0)->hdr_cksum);
 	}
 
-	return SUCCESS;
+	return;
 }
 
 uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)

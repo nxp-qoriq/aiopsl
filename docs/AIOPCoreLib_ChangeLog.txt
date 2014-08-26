@@ -5,6 +5,7 @@ Table SRs: API - Removal of reference counter auto-decrement due to TKT216018 an
 Table SRs: API - Added a comment regarding deletion of table that contains a miss result of type reference pointer.
 Table SRs: API - Added documentation regarding the key id parmaeter for both table_lookup_by_keyid() and table_lookup_be_keyid_default_frame() functions.
 
+HM: API - changed ip_cksum_calculate return type to void.
 
 SL TAG v0.4.1.update_02
 ===============================
