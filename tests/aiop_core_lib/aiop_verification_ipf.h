@@ -109,9 +109,6 @@ struct ipf_generate_frag_command {
 		/** Returned Value:
 		 * Iteration return status. */
 	int32_t status;
-		/** Workspace address of the last returned status.
-		 * Should be defined in the TLS area. */
-	uint32_t status_addr;
 		/** Workspace address of the IPF last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t ipf_status_addr;
@@ -125,7 +122,7 @@ struct ipf_generate_frag_command {
 		 * task defaults. */
 	struct aiop_default_task_params default_task_params;
 		/** Padding. */
-/*	int8_t  pad[4];*/
+	int8_t  pad[4];
 
 };
 
@@ -145,9 +142,9 @@ struct ipf_discard_remainder_frame_command {
 		/** Returned Value:
 		 * Command return status. */
 	int32_t status;
-		/** Workspace address of the last returned status.
+		/** Workspace address of the last IPF returned status.
 		 * Should be defined in the TLS area. */
-	uint32_t status_addr;
+	uint32_t ipf_status_addr;
 };
 
 

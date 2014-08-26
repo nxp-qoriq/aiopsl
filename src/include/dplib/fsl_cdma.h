@@ -75,15 +75,15 @@
 @{
 *//***************************************************************************/
 
-/* Pre DMA Mutex Lock */
-		/* No mutex lock is requested. */
+/** Pre DMA Mutex Lock */
+		/** No mutex lock is requested. */
 #define CDMA_DMA_NO_MUTEX_LOCK		0x00000000
-		/* Mutex read lock is requested. */
+		/** Mutex read lock is requested. */
 #define CDMA_PREDMA_MUTEX_READ_LOCK	0x00000800
-		/* Mutex write lock is requested. */
+		/** Mutex write lock is requested. */
 #define CDMA_PREDMA_MUTEX_WRITE_LOCK	0x00001000
 
-/* Post DMA Rel-Mutex */
+/** Post DMA Rel-Mutex */
 		/** Post DMA Release Mutex Lock.
 		- 0: No mutex lock to release.
 		- 1: Release mutex lock. */
@@ -100,10 +100,10 @@
 @{
 *//***************************************************************************/
 
-/* Mutex Lock */
-		/* Mutex read lock is requested. */
+/** Mutex Lock */
+		/** Mutex read lock is requested. */
 #define CDMA_MUTEX_READ_LOCK	0x00000800
-		/* Mutex write lock is requested. */
+		/** Mutex write lock is requested. */
 #define CDMA_MUTEX_WRITE_LOCK	0x00001000
 
 /** @} end of group CDMA_MUTEX_ModeBits */
