@@ -512,7 +512,7 @@ struct keygen_gen_hash_command{
 *//***************************************************************************/
 struct keygen_key_id_pool_create_verif_command {
 	uint32_t opcode;
-	int32_t  status;
+	uint8_t  pad[4];
 };
 
 /** @} */ /* end of AIOP_Keygen_SRs_Verification */

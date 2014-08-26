@@ -308,7 +308,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			struct keygen_key_id_pool_create_verif_command *str =
 			(struct keygen_key_id_pool_create_verif_command *) 
 			asa_seg_addr;
-			str->status = sys_keyid_pool_create();
+			sys_keyid_pool_create();
 			str_size = sizeof(struct keygen_key_id_pool_create_verif_command);
 			break;
 		}
