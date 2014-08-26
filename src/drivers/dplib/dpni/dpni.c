@@ -161,13 +161,13 @@ int dpni_open(struct dpni *dpni, int dpni_id)
 
 int dpni_close(struct dpni *dpni)
 {
-	return dplib_send(dpni->regs, &(dpni->auth), MC_CMDID_CLOSE,
+	return dplib_send(dpni->regs, &(dpni->auth), MC_DPNI_CMDID_CLOSE,
 				MC_CMD_CLOSE_SIZE, MC_CMD_PRI_HIGH, NULL);
 }
 
 int dpni_destroy(struct dpni *dpni)
 {
-	return dplib_send(dpni->regs, &(dpni->auth), DPNI_CMDID_DESTROY,
+	return dplib_send(dpni->regs, &(dpni->auth), MC_DPNI_CMDID_DESTROY,
 				DPNI_CMDSZ_DESTROY, MC_CMD_PRI_LOW, NULL);
 }
 

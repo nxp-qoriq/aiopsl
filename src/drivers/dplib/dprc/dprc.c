@@ -71,7 +71,7 @@ int dprc_open(struct dprc *dprc, int container_id)
 
 int dprc_close(struct dprc *dprc)
 {
-	return dplib_send(dprc->regs, &(dprc->auth), MC_CMDID_CLOSE,
+	return dplib_send(dprc->regs, &(dprc->auth), MC_DPRC_CMDID_CLOSE,
 				MC_CMD_CLOSE_SIZE, MC_CMD_PRI_HIGH, NULL);
 }
 
