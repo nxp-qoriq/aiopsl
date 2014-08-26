@@ -111,9 +111,6 @@ struct tcp_gso_generate_seg_command {
 		/** Returned Value:
 		 * Iteration return status. */
 	int32_t status;
-		/** Workspace address of the last returned status.
-		 * Should be defined in the TLS area. */
-	uint32_t status_addr;
 		/** Workspace address of the GSO last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t gso_status_addr;
@@ -127,7 +124,7 @@ struct tcp_gso_generate_seg_command {
 		 * task defaults. */
 	struct aiop_default_task_params default_task_params;
 		/** Padding. */
-	int8_t  pad[4];
+	int8_t  pad[8];
 };
 
 /**************************************************************************//**
@@ -146,9 +143,9 @@ struct tcp_gso_discard_remainder_frame_command {
 		/** Returned Value:
 		 * Iteration return status. */
 	int32_t  status;
-		/** Workspace address of the last returned status.
+		/** Workspace address of the last GSO returned status.
 		 * Should be defined in the TLS area. */
-	uint32_t status_addr;
+	uint32_t gso_status_addr;
 };
 
 

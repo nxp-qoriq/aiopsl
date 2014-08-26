@@ -60,7 +60,6 @@ __VERIF_TLS ipf_ctx_t ipf_context_addr2
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS tcp_gso_ctx_t tcp_gso_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
-__VERIF_TLS int32_t status;
 __VERIF_TLS int32_t status_gro;
 __VERIF_TLS int32_t status_gso;
 __VERIF_TLS int32_t status_ipf1;
@@ -118,7 +117,6 @@ void init_verif()
 	default_task_params.parser_profile_id = verif_prpid;
 	parse_result_generate_default(0);
 
-	status = 0;
 	status_gro = 0;
 	status_gso = 0;
 	status_ipf1 = 0;
