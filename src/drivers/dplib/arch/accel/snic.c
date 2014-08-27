@@ -47,6 +47,7 @@
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_fdma.h"
+#include "dplib/fsl_mc_sys.h"
 #include "dplib/fsl_snic_cmd.h"
 
 #include "general.h"
