@@ -319,7 +319,7 @@ do { \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, value)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_LINK_STATE(cmd, _up) \
+#define DPNI_RSP_GET_LINK_STATE(cmd, up) \
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    up)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -665,5 +665,5 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_VLAN_REMOVAL(cmd, en) \
 	MC_CMD_OP(cmd, 0, 0,  1,  int,	    en)
- 
+
 #endif /* _FSL_DPNI_CMD_H */

@@ -377,7 +377,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_IRQ_ENABLE(cmd, _enable_state) \
+#define DPRC_RSP_GET_IRQ_ENABLE(cmd, enable_state) \
 	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  enable_state)
 
 /*                cmd, param, offset, width, type, arg_name */
