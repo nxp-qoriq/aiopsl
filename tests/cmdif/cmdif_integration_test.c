@@ -26,7 +26,7 @@
 
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "dpni/drv.h"
+#include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
 #include "platform.h"
 #include "fsl_io.h"
