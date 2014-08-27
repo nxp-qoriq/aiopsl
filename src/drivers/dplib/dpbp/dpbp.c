@@ -70,13 +70,13 @@ int dpbp_open(struct dpbp *dpbp, int dpbp_id)
 
 int dpbp_close(struct dpbp *dpbp)
 {
-	return dplib_send(dpbp->regs, &(dpbp->auth), MC_CMDID_CLOSE,
+	return dplib_send(dpbp->regs, &(dpbp->auth), MC_DPBP_CMDID_CLOSE,
 				MC_CMD_CLOSE_SIZE, MC_CMD_PRI_HIGH, NULL);
 }
 
 int dpbp_destroy(struct dpbp *dpbp)
 {
-	return dplib_send(dpbp->regs, &(dpbp->auth), DPBP_CMDID_DESTROY,
+	return dplib_send(dpbp->regs, &(dpbp->auth), MC_DPBP_CMDID_DESTROY,
 				DPBP_CMDSZ_DESTROY, MC_CMD_PRI_LOW, NULL);
 }
 

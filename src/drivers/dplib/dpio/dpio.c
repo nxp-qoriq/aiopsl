@@ -70,13 +70,13 @@ int dpio_open(struct dpio *dpio, int dpio_id)
 
 int dpio_close(struct dpio *dpio)
 {
-	return dplib_send(dpio->regs, &(dpio->auth), MC_CMDID_CLOSE,
+	return dplib_send(dpio->regs, &(dpio->auth), MC_DPIO_CMDID_CLOSE,
 				MC_CMD_CLOSE_SIZE, MC_CMD_PRI_HIGH, NULL);
 }
 
 int dpio_destroy(struct dpio *dpio)
 {
-	return dplib_send(dpio->regs, &(dpio->auth), DPIO_CMDID_DESTROY,
+	return dplib_send(dpio->regs, &(dpio->auth), MC_DPIO_CMDID_DESTROY,
 				DPIO_CMDSZ_DESTROY, MC_CMD_PRI_LOW, NULL);
 }
 

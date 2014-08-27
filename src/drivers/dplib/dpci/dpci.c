@@ -70,13 +70,13 @@ int dpci_open(struct dpci *dpci, int dpci_id)
 
 int dpci_close(struct dpci *dpci)
 {
-	return dplib_send(dpci->regs, &(dpci->auth), MC_CMDID_CLOSE,
+	return dplib_send(dpci->regs, &(dpci->auth), MC_DPCI_CMDID_CLOSE,
 				MC_CMD_CLOSE_SIZE, MC_CMD_PRI_HIGH, NULL);
 }
 
 int dpci_destroy(struct dpci *dpci)
 {
-	return dplib_send(dpci->regs, &(dpci->auth), DPCI_CMDID_DESTROY,
+	return dplib_send(dpci->regs, &(dpci->auth), MC_DPCI_CMDID_DESTROY,
 				DPCI_CMDSZ_DESTROY, MC_CMD_PRI_LOW, NULL);
 }
 

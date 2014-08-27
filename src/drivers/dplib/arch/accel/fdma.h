@@ -100,8 +100,6 @@
 #define FDMA_STORE_CMD_OUT_FLAGS_MASK		0x0000FF00
 	/** FDMA Store command output flags offset. */
 #define FDMA_STORE_CMD_OUT_ICID_OFFSET		2
-	/* TODO - remove / move to errors.h*/
-#define EBADFD	77
 
 /** @} end of group FDMA_Commands_Definitions */
 
@@ -797,7 +795,7 @@ enum fdma_function_identifier {
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
-@Retval		EBADFD - Received frame with non-zero FD[err] field.
+@Retval		EIO - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -828,7 +826,7 @@ int fdma_present_default_frame_without_segments(void);
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
-@Retval		EBADFD - Received frame with non-zero FD[err] field.
+@Retval		EIO - Received frame with non-zero FD[err] field.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
