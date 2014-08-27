@@ -425,11 +425,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/dplib.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dplib.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpni</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -443,6 +438,11 @@
 			<name>aiop_sl/drivers/dplib/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/mc_sys.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/mc_sys.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf</name>
@@ -480,14 +480,14 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/arch/fsl_cmdif_mc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_cmdif_mc.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/arch/fsl_ldpaa_aiop.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/arch/fsl_mc_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_mc_cmd.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/arch/ls2085_aiop</name>
@@ -548,11 +548,6 @@
 			<name>aiop_sl/include/dplib/fsl_dpkg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpkg.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dplib_sys.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dplib_sys.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_dpni.h</name>
@@ -643,6 +638,11 @@
 			<name>aiop_sl/include/dplib/fsl_ldpaa.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_ldpaa.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/dplib/fsl_mc_sys.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_mc_sys.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_nat.h</name>
