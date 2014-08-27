@@ -38,6 +38,7 @@
 #include "cdma.h"
 #include "fsl_io_ccsr.h"
 #include "aiop_common.h"
+#include "fsl_mc_init.h"
 
 __SHRAM struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
@@ -881,9 +882,9 @@ static int dpbp_add(struct dprc_obj_desc *dev_desc, int ind,
                     struct slab_bpid_info *bpids_arr, uint32_t bpids_arr_size,
                     struct dprc *dprc)
 {
-	int    dpbp_id   = dev_desc->id;
-	int    err       = 0;
-	struct dpbp dpbp = { 0 };
+	int      dpbp_id  = dev_desc->id;
+	int      err      = 0;
+	uint16_t dpbp     = 0;
 	struct dpbp_attr attr;
 
 	if(ind >= bpids_arr_size) {
@@ -891,19 +892,17 @@ static int dpbp_add(struct dprc_obj_desc *dev_desc, int ind,
 		return -EINVAL;
 	}
 
-	dpbp.regs = dprc->regs;
-
-	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
+	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
 		return err;
 	}
 
-	if ((err = dpbp_enable(&dpbp)) != 0) {
+	if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
 		pr_err("Failed to enable DP-BP%d.\n", dpbp_id);
 		return err;
 	}
 
-	if ((err = dpbp_get_attributes(&dpbp, &attr)) != 0) {
+	if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
 		pr_err("Failed to get attributes from DP-BP%d.\n", dpbp_id);
 		return err;
 	}
@@ -935,15 +934,15 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	}
 
 
-	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+	if ((err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count)) != 0) {
 		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
-		       dprc->auth);
+		       dprc->token);
 		return err;
 	}
 
 
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(dprc, i, &dev_desc);
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			/* TODO: print conditionally based on log level */
 			pr_info("Found First DPBP ID: %d, Skipping, will be used for frame buffers\n", dev_desc.id);
@@ -960,7 +959,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	num_bpids = 0; /*for now we save the first dpbp for later use.*/
 	/*Continue to search for dpbp's*/
 	for (i = i+1; i < dev_count; i++) {
-		dprc_get_obj(dprc, i, &dev_desc);
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			err = dpbp_add(&dev_desc, num_bpids, bpids_arr,
 			               bpids_arr_size, dprc);

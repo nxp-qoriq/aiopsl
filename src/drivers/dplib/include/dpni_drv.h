@@ -154,21 +154,6 @@ int dpni_drv_get_stats(uint16_t	ni_id, struct dpni_stats *stats);
 int dpni_drv_reset_stats(uint16_t ni_id);
 
 /**************************************************************************//**
-@Function	dpni_drv_set_rx_tc
-
-@Description	Set RX TC settings
-
-@Param[in]	dpni - Network Interface ID
-@Param[in]	tc_id - Traffic class id
-@Param[out]	cfg - DPNI RX Traffic class parameters
-
-@Return	'0' on Success; error code otherwise.
-*//***************************************************************************/
-int dpni_set_rx_tc(struct dpni *dpni,
-		   uint8_t tc_id,
-		   const struct dpni_rx_tc_cfg *cfg);
-
-/**************************************************************************//**
 @Function	dpni_drv_register_discard_rx_cb
 
 @Description	register a default receive callback functions.

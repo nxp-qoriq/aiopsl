@@ -62,8 +62,8 @@
 #else /* __linux__ */
 
 #include "common/types.h"
-#include "common/errors.h"
-#include "common/io.h"
+#include "fsl_errors.h"
+#include "fsl_io.h"
 #define __iomem
 
 static inline uint64_t virt_to_phys(void *vaddr)
