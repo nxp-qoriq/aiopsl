@@ -66,14 +66,14 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		struct tman_tmi_delete_command *str =
 			(struct tman_tmi_delete_command *) asa_seg_addr;
 		if(str->cb_with_confirmation)
-			str->status = tman_delete_tmi(
+			tman_delete_tmi(
 				&verif_tman_callback,
 				str->mode_bits,
 				str->tmi_id,
 				str->conf_opaque_data1,
 				str->conf_opaque_data2);
 		else
-			str->status = tman_delete_tmi(
+			tman_delete_tmi(
 				&verif_tman_callback_no_conf,
 				str->mode_bits,
 				str->tmi_id,
@@ -158,9 +158,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 	{
 		struct tman_timer_query_command *str =
 		(struct tman_timer_query_command *) asa_seg_addr;
-		str->status = tman_query_timer(
-				str->timer_handle,
-				&(str->state));
+		tman_query_timer(str->timer_handle, &(str->state));
 		str_size = sizeof(struct tman_timer_query_command);
 		break;
 	}
