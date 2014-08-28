@@ -126,7 +126,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  enable_state)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPIO_CMD_SET_IRQ_MASK(cmd, _irq_index, mask) \
+#define DPIO_CMD_SET_IRQ_MASK(cmd, irq_index, mask) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, mask); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
