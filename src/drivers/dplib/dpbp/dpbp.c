@@ -297,7 +297,7 @@ int dpbp_clear_irq_status(struct fsl_mc_io *mc_io,
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPBP_CMDID_CLEAR_IRQ_STATUS,
 	                                  MC_CMD_PRI_LOW, token);
-	DPBP_CMD_CLEAR_IRQ_STATUS(cmd, irq_index, irq_index);
+	DPBP_CMD_CLEAR_IRQ_STATUS(cmd, irq_index, status);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
