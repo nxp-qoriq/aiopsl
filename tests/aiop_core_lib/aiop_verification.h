@@ -61,7 +61,6 @@
 #include "dplib/fsl_osm.h"
 #include "dplib/fsl_dpni_drv.h"
 #include "dplib/fsl_dpni.h"
-#include "dplib/fsl_dplib_sys.h"
 #include "dplib/fsl_dpni_cmd.h"
 
 
@@ -375,12 +374,12 @@ struct write_data_to_workspace_command {
 @Description	Fatal Error Command structure.
 
 		Includes information needed for fatal handling.
-		
-		This structure should be zeroed before usage. 
+
+		This structure should be zeroed before usage.
 *//***************************************************************************/
 struct fatal_error_command {
-		/** 
-		 * Fatal Error command structure identifier. 
+		/**
+		 * Fatal Error command structure identifier.
 		 * */
 	uint32_t opcode;
 		/**
@@ -388,11 +387,11 @@ struct fatal_error_command {
 		 * */
 	uint32_t fqid;
 		/**
-		 * Flags - Specify options to this function, please refer to 
+		 * Flags - Specify options to this function, please refer to
 		 * \ref FSL_VERIF_FATAL_FLAGS_DEFINES.
 		 */
 	uint32_t flags;
-		/** 
+		/**
 		 * Returned Value:
 		 * File name in which the error occurred.
 		 */
@@ -407,8 +406,8 @@ struct fatal_error_command {
 		 * The error message.
 		 */
 	char  err_msg[128];
-		/** 
-		 * 256-byte alignment. 
+		/**
+		 * 256-byte alignment.
 		 * */
 	uint8_t pad[36];
 };
