@@ -795,15 +795,15 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 #pragma section data_type ".exception_data"
 void table_exception_handler_wrp(enum table_function_identifier func_id,
 				 uint32_t line,
-				 int32_t status) {
+				 int32_t status)  __attribute__ ((noreturn)) {
 	table_exception_handler(__FILE__, func_id, line, status);
 }
 
 void table_exception_handler(char *file_path,
 			     enum table_function_identifier func_id,
 			     uint32_t line,
-			     int32_t status) {
-	char *func_name;
+			     int32_t status_id) __attribute__ ((noreturn)) {
+	char *func_name, *status;
 
 	/* Translate function ID to function name string */
 	switch(func_id) {
@@ -876,101 +876,66 @@ void table_exception_handler(char *file_path,
 	}
 
 	/* Call general exception handler */
-	switch (status) {
+	switch (status_id) {
 	case (TABLE_HW_STATUS_MNLE):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Maximum number of chained lookups reached"
-				  ".\n");
+		status = "Maximum number of chained lookups reached.\n";
 		break;
 	case (TABLE_HW_STATUS_KSE):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Key size error.\n");
+		status = "Key size error.\n";
 		break;
 	case (MFLU_HW_STATUS_TIDE):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Invalid MFLU table ID.\n");
+		status = "Invalid MFLU table ID.\n";
 		break;
 	case (CTLU_HW_STATUS_TIDE):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Invalid CTLU table ID.\n");
+		status = "Invalid CTLU table ID.\n";
 		break;
 	case(TABLE_SW_STATUS_MISS_RES_CRT_FAIL):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Table miss rule creation failed.\n");
+		status = "Table miss rule creation failed.\n";
 		break;
 	case(TABLE_SW_STATUS_MISS_RES_RPL_FAIL):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Table replace miss result failed due to "
-				  "non-existance of a miss result in the "
-				  "table.\n");
+		status = "Table replace miss result failed due to non-existence"
+			 " of a miss result in the table.\n";
 		break;
 	case(TABLE_SW_STATUS_MISS_RES_GET_FAIL):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Table get miss result failed due to "
-				  "non-existance of a miss result in the "
-				  "table.\n");
+		status = "Table get miss result failed due to non-existence of"
+			  " a miss result in the table.\n";
 		break;
 	case(TABLE_SW_STATUS_QUERY_INVAL_ENTYPE):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Rule query failed due to unrecognized entry "
-				  "type returned from HW.\n");
+		status = "Rule query failed due to unrecognized entry type"
+			 " returned from HW.\n";
 		break;
 	case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Unknown table type.\n");
+		status = "Unknown table type.\n";
+		break;
 	default:
-		exception_handler(file_path,
-				  func_name,
-				  line,
-				  "Unknown or Invalid status.\n");
+		status = "Unknown or Invalid status.\n";
 		break;
 	}
-
-	return;
+	exception_handler(file_path, func_name, line, status);
 }
 #pragma pop
 
 int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
-	/* Initialized to one for the EM simple case where key_size <= 24 */
-	int num_entries_per_rule = 1;
+	int num_entries_per_rule;
 
 	switch (type) {
 
 	case TABLE_ATTRIBUTE_TYPE_EM:
-		if (key_size > TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE) {
-			num_entries_per_rule += ((((key_size -
-			TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE) - 1)
-			/ TABLE_ENTRY_EME36_LOOKUP_KEY_SIZE
-			) + 1);
-		}
-		/* First, we remove the last entry key size which is already
-		 * included in initialization. Then, we divide by the key
-		 * size of a non-last entry (minus one) to get number of
-		 * entries which are non last. and finally add one since we
-		 * have reminder */
-
-		/* CONSIDER other methods if devision too costly.
-		 * Devision operation on e200 is 4-34 cycles.	*/
-
-		/* else, already initialized to one */
+		if (key_size <= TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE)
+			num_entries_per_rule =
+			    TABLE_EM_KEYSIZE_1_TO_24_BYTES_ENTRIES_PER_RULE;
+		else if (key_size <= (TABLE_ENTRY_EME44_LOOKUP_KEY_SIZE +
+				      TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE))
+			num_entries_per_rule =
+			    TABLE_EM_KEYSIZE_25_TO_60_BYTES_ENTRIES_PER_RULE;
+		else if (key_size <= (TABLE_ENTRY_EME44_LOOKUP_KEY_SIZE +
+				      TABLE_ENTRY_EME36_LOOKUP_KEY_SIZE +
+				      TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE))
+			num_entries_per_rule =
+			    TABLE_EM_KEYSIZE_61_TO_96_BYTES_ENTRIES_PER_RULE;
+		else
+			num_entries_per_rule =
+			    TABLE_EM_KEYSIZE_97_TO_124_BYTES_ENTRIES_PER_RULE;
 		break;
 
 	case TABLE_ATTRIBUTE_TYPE_LPM:
