@@ -741,16 +741,16 @@ int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 
 	/* Return status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == KEYGEN_HW_STATUS_SUCCESS)
+	if (status == KEYGEN_HW_STATUS_SUCCESS) {
 		return 0;
-	else if (status == KEYGEN_HW_STATUS_EOFH)
+	} else if (status == KEYGEN_HW_STATUS_EOFH) {
 		return -EIO;
-	else if (status == KEYGEN_HW_STATUS_KSE)
-		handle_fatal_error((char *)KEYGEN_HW_STATUS_KSE); /*TODO Fatal error*/
-	else 
-		handle_fatal_error((char *)status); /*TODO Fatal error*/ 
-	
-	return (-1);	
+	} else {
+		keygen_exception_handler(KEYGEN_GEN_KEY,
+			__LINE__, 
+			status);
+		return (-1);	
+	}
 }
 
 
@@ -770,13 +770,53 @@ int keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 
 	/* Return status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == KEYGEN_HW_STATUS_SUCCESS)
+	if (status == KEYGEN_HW_STATUS_SUCCESS) {
 		return 0;
-	else if (status == KEYGEN_HW_STATUS_KSE)
-		handle_fatal_error((char *)KEYGEN_HW_STATUS_KSE); /*TODO Fatal error*/
-	else
-		handle_fatal_error((char *)status); /*TODO Fatal error*/ 
-
-	return (-1);
+	} else {
+		keygen_exception_handler(KEYGEN_GEN_HASH,
+			__LINE__, 
+			status);
+		return (-1);
+	}
 }
+
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+
+void keygen_exception_handler(enum keygen_function_identifier func_id,
+		     uint32_t line,
+		     int32_t status)
+{
+	char *func_name;
+	char *err_msg;
+	
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case KEYGEN_GEN_KEY:
+		func_name = "keygen_gen_key";
+		break;
+	case KEYGEN_GEN_HASH:
+		func_name = "keygen_gen_hash";
+		break;
+	default:
+		/* create own exception */
+		func_name = "Unknown Function";
+	}
+	
+	/* Translate error ID to error name string */
+	if (status == KEYGEN_HW_STATUS_KSE) {
+		err_msg = "Key composition error: Invalid KeyID or KeyID with"
+				"0 FECs or Key size error (key>124 bytes).\n";
+	} else {
+		err_msg = "Unknown or Invalid status.\n";
+	}
+	
+	exception_handler(__FILE__, func_name, line, err_msg);
+}
+
+#pragma pop
+
+
+
 

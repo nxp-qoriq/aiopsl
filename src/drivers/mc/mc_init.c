@@ -67,12 +67,12 @@ static int aiop_container_init()
 					 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
 
 	/* Open root container in order to create and query for devices */
-	dprc->regs = p_vaddr;
-	if ((err = dprc_get_container_id(dprc, &container_id)) != 0) {
+	dprc->io.regs = p_vaddr;
+	if ((err = dprc_get_container_id(&dprc->io, &container_id)) != 0) {
 		pr_err("Failed to get AIOP root container ID.\n");
 		return err;
 	}
-	if ((err = dprc_open(dprc, container_id)) != 0) {
+	if ((err = dprc_open(&dprc->io, container_id, &dprc->token)) != 0) {
 		pr_err("Failed to open AIOP root container DP-RC%d.\n",
 		container_id);
 		return err;
@@ -115,13 +115,13 @@ static int dpci_tbl_create(struct dpci_obj **_dpci_tbl, int dpci_count)
 	}
 	memset(dpci_tbl->attr, 0, size);
 
-	size = sizeof(struct dpci) * dpci_count;
-	dpci_tbl->dpci = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
-	if (dpci_tbl->dpci == NULL) {
+	size = sizeof(uint16_t) * dpci_count;
+	dpci_tbl->token = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	if (dpci_tbl->token == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->dpci, 0, size);
+	memset(dpci_tbl->token, 0, size);
 
 	size = sizeof(uint16_t) * dpci_count;
 	dpci_tbl->icid = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
@@ -162,10 +162,10 @@ static int dpci_tbl_create(struct dpci_obj **_dpci_tbl, int dpci_count)
 static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 			struct dpci_obj *dpci_tbl, struct dprc *dprc)
 {
-	struct  dpci *dpci;
-	struct  dpci_dest_cfg dest_cfg;
-	int     err = 0;
-	uint8_t p   = 0;
+	uint16_t dpci = 0;
+	struct   dpci_dest_cfg dest_cfg;
+	int      err = 0;
+	uint8_t  p   = 0;
 
 	if (dev_desc == NULL)
 		return -EINVAL;
@@ -183,9 +183,7 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 
 	memset(&dest_cfg, 0, sizeof(struct dpci_dest_cfg));
 
-	dpci = &dpci_tbl->dpci[ind];
-	dpci->regs = dprc->regs;
-	err |= dpci_open(dpci, dev_desc->id);
+	err |= dpci_open(&dprc->io, dev_desc->id, &dpci);
 	/* Set priorities 0 and 1
 	 * 0 is high priority
 	 * 1 is low priority
@@ -193,27 +191,25 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	dest_cfg.type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
 		dest_cfg.priority = DPCI_LOW_PR - p;
-		err |= dpci_set_rx_queue(dpci,
+		err |= dpci_set_rx_queue(&dprc->io,
+		                         dpci,
 					 p,
 					 &dest_cfg,
 					 (ind << 1) | p);
 	}
-	err |= dpci_enable(dpci);
-	err |= dpci_get_attributes(dpci,
+	err |= dpci_enable(&dprc->io, dpci);
+	err |= dpci_get_attributes(&dprc->io,
+	                           dpci,
 				   &dpci_tbl->attr[ind]);
-	if (err) {
-		pr_err("Failed dpci initialization \n");
-		dpci_tbl->count = ind;
-		return -ENODEV;
-	}
 
+	dpci_tbl->token[ind] = dpci;
 	return 0;
 }
 
 static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind)
 {
 	struct dpci_cfg dpci_cfg;
-	struct dpci *dpci;
+	uint16_t dpci;
 	struct dpci_dest_cfg dest_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
@@ -223,11 +219,7 @@ static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind
 
 	dpci_cfg.num_of_priorities = 2;
 
-	dpci = &dpci_tbl->dpci[ind];
-	/* Create DPCI on container 0 with portal 0*/
-	dpci->regs = dprc->regs;
-
-	err |= dpci_create(dpci, &dpci_cfg);
+	err |= dpci_create(&dprc->io, &dpci_cfg, &dpci);
 	/* Set priorities 0 and 1
 	 * 0 is high priority
 	 * 1 is low priority
@@ -235,7 +227,8 @@ static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind
 	dest_cfg.type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
 		dest_cfg.priority = DPCI_LOW_PR - p;
-		err |= dpci_set_rx_queue(dpci,
+		err |= dpci_set_rx_queue(&dprc->io,
+		                         dpci,
 					 p,
 					 &dest_cfg,
 					 (ind << 1) | p);
@@ -243,7 +236,8 @@ static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind
 
 	/* Get attributes just for dpci id,
 	 * fqids are not there yet */
-	err |= dpci_get_attributes(dpci,
+	err |= dpci_get_attributes(&dprc->io,
+	                           dpci,
 				   &dpci_tbl->attr[ind]);
 
 	/* Connect to dpci 0 that belongs to MC */
@@ -257,14 +251,15 @@ static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind
 	endpoint2.interface_id = 0;
 	strcpy(endpoint2.type, "dpci");
 
-	err |= dpci_enable(dpci);
-	err |= dprc_connect(dprc, &endpoint1, &endpoint2);
-	err |= dpci_get_attributes(dpci, &dpci_tbl->attr[ind]);
-	err |= dpci_get_link_state(dpci, &link_up);
+	err |= dpci_enable(&dprc->io, dpci);
+	err |= dprc_connect(&dprc->io, dprc->token, &endpoint1, &endpoint2);
+	err |= dpci_get_attributes(&dprc->io, dpci, &dpci_tbl->attr[ind]);
+	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
 		pr_err("MC<->AIOP DPCI link is down !\n");
 	}
 
+	dpci_tbl->token[ind] = dpci;
 	return err;
 }
 
@@ -282,7 +277,7 @@ static int dpci_tbl_fill(struct dpci_obj *dpci_tbl, struct dprc *dprc,
 	}
 
 	while ((i < dev_count) && (ind < dpci_count)) {
-		dprc_get_obj(dprc, i, &dev_desc);
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpci") == 0) {
 			err = dpci_tbl_add(&dev_desc, ind, dpci_tbl, dprc);
 			if (err) {
@@ -320,15 +315,15 @@ static int dpci_discovery()
 		return -ENODEV;
 	}
 
-	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+	if ((err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count)) != 0) {
 	pr_err("Failed to get device count for RC auth_d = %d\n",
-		   dprc->auth);
+		   dprc->token);
 	return err;
 	}
 
 	/* First count how many DPCI objects we have */
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(dprc, i, &dev_desc);
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpci") == 0) {
 			dpci_count++;
 		}

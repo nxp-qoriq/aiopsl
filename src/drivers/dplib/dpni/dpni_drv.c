@@ -41,6 +41,7 @@
 #include "drv.h"
 #include "aiop_common.h"
 #include "system.h"
+#include "fsl_mc_init.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
@@ -102,11 +103,12 @@ int dpni_drv_enable (uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
 	int		err;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 
-	if ((err = dpni_enable(&dpni_drv->dpni)) != 0)
+	if ((err = dpni_enable(&dprc->io, dpni_drv->dpni)) != 0)
 		return err;
 	return 0;
 }
@@ -114,10 +116,11 @@ int dpni_drv_enable (uint16_t ni_id)
 int dpni_drv_disable (uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_disable(&dpni_drv->dpni);
+	return dpni_disable(&dprc->io, dpni_drv->dpni);
 }
 
 
@@ -130,8 +133,8 @@ int dpni_drv_probe(struct dprc	*dprc,
 	int i;
 	uint32_t j;
 	int err = 0, tmp = 0;
-	struct dpbp dpbp = { 0 };
-	struct dpni dpni = { 0 };
+	uint16_t dpbp = 0;
+	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
 	uint16_t spid;
@@ -164,9 +167,8 @@ int dpni_drv_probe(struct dprc	*dprc,
 			nis[aiop_niid].mc_niid = mc_niid;
 #endif
 
-			dpni.regs = dprc->regs;
 
-			if ((err = dpni_open(&dpni, mc_niid)) != 0) {
+			if ((err = dpni_open(&dprc->io, mc_niid, &dpni)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);
 				return err;
 			}
@@ -175,20 +177,20 @@ int dpni_drv_probe(struct dprc	*dprc,
 			nis[aiop_niid].dpni = dpni;
 
 			/* Register MAC address in internal AIOP NI table */
-			if ((err = dpni_get_primary_mac_addr(&dpni, mac_addr)) != 0) {
+			if ((err = dpni_get_primary_mac_addr(&dprc->io, dpni, mac_addr)) != 0) {
 				pr_err("Failed to get MAC address for DP-NI%d\n", mc_niid);
 				return err;
 			}
 			memcpy(nis[aiop_niid].mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
 
 			/* Register Broadcast MAC address*/
-			if ((err = dpni_add_mac_addr(&dpni, ETH_BROADCAST_ADDR)) != 0) {
+			if ((err = dpni_add_mac_addr(&dprc->io, dpni, ETH_BROADCAST_ADDR)) != 0) {
 				pr_err("Failed to add MAC address for DP-NI%d\n", mc_niid);
 				return err;
 			}
 
 
-			if ((err = dpni_get_attributes(&dpni, &attributes)) != 0) {
+			if ((err = dpni_get_attributes(&dprc->io, dpni, &attributes)) != 0) {
 				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
 				return err;
 			}
@@ -196,12 +198,12 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
 			memset (&attach_params, 0, sizeof(attach_params));
-			if ((err = dpni_attach(&dpni, &attach_params)) != 0) {
+			if ((err = dpni_attach(&dprc->io, dpni, &attach_params)) != 0) {
 				pr_err("Failed to attach parameters to DP-NI%d.\n", mc_niid);
 				return err;
 			}
 
-			if ((err = dpni_set_pools(&dpni, pools_params)) != 0) {
+			if ((err = dpni_set_pools(&dprc->io, dpni, pools_params)) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;
 			}
@@ -209,7 +211,7 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* Enable DPNI before updating the entry point function (EP_PC)
 			 * in order to allow DPNI's attributes to be initialized.
 			 * Frames arriving before the entry point function is updated will be dropped. */
-			if ((err = dpni_enable(&dpni)) != 0) {
+			if ((err = dpni_enable(&dprc->io, dpni)) != 0) {
 				pr_err("Failed to enable DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
@@ -217,14 +219,14 @@ int dpni_drv_probe(struct dprc	*dprc,
 			/* Now a Storage Profile exists and is associated with the NI */
 
 			/* Register QDID in internal AIOP NI table */
-			if ((err = dpni_get_qdid(&dpni, &qdid)) != 0) {
+			if ((err = dpni_get_qdid(&dprc->io, dpni, &qdid)) != 0) {
 				pr_err("Failed to get QDID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
 			nis[aiop_niid].qdid = qdid;
 
 			/* Register SPID in internal AIOP NI table */
-			if ((err = dpni_get_spid(&dpni, &spid)) != 0) {
+			if ((err = dpni_get_spid(&dprc->io, dpni, &spid)) != 0) {
 				pr_err("Failed to get SPID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
@@ -279,40 +281,44 @@ int dpni_drv_add_mac_addr(uint16_t ni_id,
                           const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
 	struct dpni_drv *dpni_drv;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_add_mac_addr(&(dpni_drv->dpni), mac_addr);
+	return dpni_add_mac_addr(&dprc->io, dpni_drv->dpni, mac_addr);
 }
 
 int dpni_drv_remove_mac_addr(uint16_t ni_id,
                              const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
 	struct dpni_drv *dpni_drv;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_remove_mac_addr(&(dpni_drv->dpni), mac_addr);
+	return dpni_remove_mac_addr(&dprc->io, dpni_drv->dpni, mac_addr);
 }
 
 int dpni_drv_set_mfl(uint16_t ni_id,
                           const uint16_t mfl)
 {
 	struct dpni_drv *dpni_drv;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_set_mfl(&(dpni_drv->dpni), mfl);
+	return dpni_set_mfl(&dprc->io, dpni_drv->dpni, mfl);
 }
 
 int dpni_drv_get_mfl(uint16_t ni_id,
                           uint16_t *mfl)
 {
 	struct dpni_drv *dpni_drv;
+	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_mfl(&(dpni_drv->dpni), mfl);
+	return dpni_get_mfl(&dprc->io, dpni_drv->dpni, mfl);
 }
 
 

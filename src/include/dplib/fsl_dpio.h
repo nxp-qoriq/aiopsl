@@ -1,16 +1,21 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
+/* Copyright 2014 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
  *
  * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -23,7 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*!
  *  @file    fsl_dpio.h
  *  @brief   Data Path I/O Portal API
@@ -38,18 +42,7 @@
  * @{
  */
 
-#ifdef MC
-struct dpio;
-#else
-struct dpio {
-	void *regs;
-	/*!<
-	 * Pointer to command interface registers (virtual address);
-	 * Must be set by the user
-	 */
-	int auth; /*!< authentication ID */
-};
-#endif
+struct fsl_mc_io;
 
 /**
  * @brief	DPIO notification channel mode
@@ -100,88 +93,97 @@ struct dpio_attr {
  * @brief	Open object handle, allocate resources and preliminary
  *		initialization - required before any operation on the object
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	cfg - Configuration structure
+ * @param[out]   token		Token of DPIO object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Required before any operation on the object
  */
-int dpio_create(struct dpio *dpio, const struct dpio_cfg *cfg);
+int dpio_create(struct fsl_mc_io *mc_io, const struct dpio_cfg *cfg, uint16_t *token);
 
 /**
  * @brief	Open object handle
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	dpio_id - DPIO unique ID
+ * @param[out]   token		Token of DPIO object
  *
  * @returns     '0' on Success; Error code otherwise
  *
  */
-int dpio_open(struct dpio *dpio, int dpio_id);
+int dpio_open(struct fsl_mc_io *mc_io, int dpio_id, uint16_t *token);
 
 /**
  * @brief	Closes the object handle, no further operations on the object
  *		are allowed
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  *
  * @returns	'0' on Success; Error code otherwise
  */
-int dpio_close(struct dpio *dpio);
+int dpio_close(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Frees all allocated resources
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  *
  * @returns	'0' on Success; Error code otherwise
  */
-int dpio_destroy(struct dpio *dpio);
+int dpio_destroy(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Enable the IO, will allow sending and receiving frames.
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  *
  * @returns	'0' on Success; Error code otherwise
  */
-int dpio_enable(struct dpio *dpio);
+int dpio_enable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Disable the IO, will disallow sending and receiving frames.
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  *
  * @returns	'0' on Success; Error code otherwise
  */
-int dpio_disable(struct dpio *dpio);
+int dpio_disable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Reset the IO, will return to initial state.
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_reset(struct dpio *dpio);
+int dpio_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Retrieve the object's attributes
  *
- * @param[in]	dpio - Pointer to dpio object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[out]	attr - Object's attributes
  *
  * @returns	'0' on Success; Error code otherwise
  *
  * @warning	Allowed only following dpio_enable().
  */
-int dpio_get_attributes(struct dpio *dpio, struct dpio_attr *attr);
+int dpio_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpio_attr *attr);
 
 /**
  * @brief	Sets IRQ information for the DPIO to trigger an interrupt.
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]	irq_index	Identifies the interrupt index to configure.
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  *				signal a message-based interrupt
@@ -190,7 +192,7 @@ int dpio_get_attributes(struct dpio *dpio, struct dpio_attr *attr);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq(struct dpio *dpio,
+int dpio_set_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
 	uint64_t irq_paddr,
 	uint32_t irq_val,
@@ -199,7 +201,8 @@ int dpio_set_irq(struct dpio *dpio,
 /**
  * @brief	Gets IRQ information from the DPIO.
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]  type		Interrupt type: 0 represents message interrupt
  *				type (both irq_paddr and irq_val are valid);
@@ -211,7 +214,7 @@ int dpio_set_irq(struct dpio *dpio,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq(struct dpio *dpio,
+int dpio_get_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
 	int *type,
 	uint64_t *irq_paddr,
@@ -226,26 +229,28 @@ int dpio_get_irq(struct dpio *dpio,
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[in]	enable_state	interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq_enable(struct dpio *dpio,
+int dpio_set_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
 	uint8_t enable_state);
 
 /**
  * @brief	Gets overall interrupt state
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	enable_state	interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_enable(struct dpio *dpio,
+int dpio_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
 	uint8_t *enable_state);
 
@@ -255,7 +260,8 @@ int dpio_get_irq_enable(struct dpio *dpio,
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[in]	mask		event mask to trigger interrupt.
  *				each bit:
@@ -264,7 +270,7 @@ int dpio_get_irq_enable(struct dpio *dpio,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t mask);
+int dpio_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -272,18 +278,20 @@ int dpio_set_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t mask);
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	mask		event mask to trigger interrupt
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t *mask);
+int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	status		interrupts status - one bit per cause
  *					0 = no interrupt pending
@@ -291,12 +299,13 @@ int dpio_get_irq_mask(struct dpio *dpio, uint8_t irq_index, uint32_t *mask);
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpio_get_irq_status(struct dpio *dpio, uint8_t irq_index, uint32_t *status);
+int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
  *
- * @param[in]	dpio		DPIO descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	status		bits to clear (W1C) - one bit per cause
  *					0 = don't change
@@ -304,7 +313,7 @@ int dpio_get_irq_status(struct dpio *dpio, uint8_t irq_index, uint32_t *status);
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpio_clear_irq_status(struct dpio *dpio,
+int dpio_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
 	uint32_t status);
 

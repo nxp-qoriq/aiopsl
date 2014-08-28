@@ -28,11 +28,16 @@
 #define __FSL_MC_INIT_H
 
 #include "dplib/fsl_dpci.h"
+#include "dplib/fsl_mc_sys.h"
 
+struct dprc {
+	uint16_t		token;
+	struct fsl_mc_io	io;
+};
 
 struct dpci_obj {
 	struct dpci_attr	*attr;
-	struct dpci		*dpci;
+	uint16_t		*token;
 	uint16_t		*icid;		/**< ICID per DPCI */
 	uint32_t		*dma_flags;	/**< FDMA dma data flags */
 	uint32_t		*enq_flags;	/**< FDMA enqueue flags */

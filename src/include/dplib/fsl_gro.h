@@ -415,7 +415,7 @@ struct tcp_gro_context_params {
 @Return		GRO Status, or negative value on error.
 
 @Retval		GRO Status - please refer to \ref TCP_GRO_AGGREGATE_STATUS.
-@Retval		EBADFD - Received segment FD contain errors (FD.err != 0).
+@Retval		EIO - Received segment FD contain errors (FD.err != 0).
 		Recommendation is to discard the frame or enqueue the frame.
 		The frame was not aggregated.
 @Retval		ENOMEM - Received segment cannot be stored/aggregated due to

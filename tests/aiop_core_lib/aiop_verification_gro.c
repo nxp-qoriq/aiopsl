@@ -59,7 +59,6 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		/* If the aggregated packet was flushed it is now the
 		* default frame of the task */
 		*((int32_t *)(str->gro_status_addr)) = str->status;
-		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str_size = (uint16_t)sizeof(struct tcp_gro_agg_seg_command);
 
@@ -75,7 +74,6 @@ uint16_t  aiop_verification_gro(uint32_t data_addr)
 		/* If the aggregated packet was flushed it is now the
 		* default frame of the task */
 		*((int32_t *)(str->gro_status_addr)) = str->status;
-		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
 		str_size = (uint16_t)sizeof(struct tcp_gro_flush_agg_command);

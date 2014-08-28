@@ -62,7 +62,8 @@ int cdma_acquire_context_memory(
 		return 0;
 	if (((int32_t)res1) == CDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOSPC;
-	cdma_handle_fatal_errors(res1);
+	cdma_exception_handler(CDMA_ACQUIRE_CONTEXT_MEMORY, __LINE__,
+					(int32_t)res1);
 	return -1;
 }
 
@@ -88,7 +89,8 @@ void cdma_release_context_memory(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_RELEASE_CONTEXT_MEMORY, __LINE__,
+						(int32_t)res1);
 }
 
 void cdma_read(
@@ -116,7 +118,7 @@ void cdma_read(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_READ, __LINE__,(int32_t)res1);
 }
 
 void cdma_write(
@@ -144,7 +146,7 @@ void cdma_write(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_WRITE, __LINE__,(int32_t)res1);
 }
 
 void cdma_mutex_lock_take(
@@ -171,7 +173,8 @@ void cdma_mutex_lock_take(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_MUTEX_LOCK_TAKE, __LINE__,
+				(int32_t)res1);
 }
 
 void cdma_mutex_lock_release(
@@ -197,7 +200,8 @@ void cdma_mutex_lock_release(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_MUTEX_LOCK_RELEASE, __LINE__,
+				(int32_t)res1);
 }
 
 void cdma_read_with_mutex(
@@ -226,7 +230,8 @@ void cdma_read_with_mutex(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_READ_WITH_MUTEX, __LINE__,
+				(int32_t)res1);
 }
 
 void cdma_write_with_mutex(
@@ -255,7 +260,8 @@ void cdma_write_with_mutex(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_WRITE_WITH_MUTEX, __LINE__,
+				(int32_t)res1);
 }
 
 void cdma_refcount_increment(
@@ -281,7 +287,8 @@ void cdma_refcount_increment(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);;
+		cdma_exception_handler(CDMA_REFCOUNT_INCREMENT, __LINE__,
+				(int32_t)res1);
 }
 
 int cdma_refcount_decrement(
@@ -311,7 +318,8 @@ int cdma_refcount_decrement(
 		return 0;
 	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
 		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
+	cdma_exception_handler(CDMA_REFCOUNT_DECREMENT, __LINE__,
+			(int32_t)res1);
 	return -1;
 }
 
@@ -341,7 +349,8 @@ int cdma_refcount_decrement_and_release(
 		return 0;
 	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
 		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
+	cdma_exception_handler(CDMA_REFCOUNT_DECREMENT_AND_RELEASE, __LINE__,
+			(int32_t)res1);
 	return -1;
 }
 
@@ -371,7 +380,8 @@ void cdma_write_lock_dma_read_and_increment(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT,
+				__LINE__,(int32_t)res1);
 }
 
 int cdma_write_release_lock_and_decrement(
@@ -403,7 +413,8 @@ int cdma_write_release_lock_and_decrement(
 		return 0;
 	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
 		return (int32_t)(res1);
-	cdma_handle_fatal_errors(res1);
+	cdma_exception_handler(CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT,__LINE__,
+			(int32_t)res1);
 	return -1;
 }
 
@@ -431,7 +442,8 @@ void cdma_ws_memory_init(
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_handle_fatal_errors(res1);
+		cdma_exception_handler(CDMA_WS_MEMORY_INIT,__LINE__,
+				(int32_t)res1);
 }
 
 int cdma_access_context_memory(
@@ -471,7 +483,8 @@ int cdma_access_context_memory(
 		return (int32_t)(res1);
 	if (((int32_t)res1) == (CDMA_MUTEX_LOCK_FAILED))
 		return -EBUSY;
-	cdma_handle_fatal_errors(res1);
+	cdma_exception_handler(CDMA_ACCESS_CONTEXT_MEMORY,__LINE__,
+			(int32_t)res1);
 	return -1;
 }
 
@@ -490,57 +503,138 @@ void cdma_refcount_get(
 					CDMA_REF_CNT_OFFSET));
 }
 
-void cdma_handle_fatal_errors(
-		uint8_t status) {
-       switch(status) {
-       case CDMA_MUTEX_DEPLETION_ERR:
-	       handle_fatal_error((char *)CDMA_MUTEX_DEPLETION_ERR); /*TODO Fatal error*/
-	       break; 
-       case CDMA_INVALID_DMA_COMMAND_ARGS_ERR:
-	       handle_fatal_error((char *)CDMA_INVALID_DMA_COMMAND_ARGS_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_INVALID_DMA_COMMAND_ERR:
-	       handle_fatal_error((char *)CDMA_INVALID_DMA_COMMAND_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_REFCOUNT_INCREMENT_ERR:
-       	       handle_fatal_error((char *)CDMA_REFCOUNT_INCREMENT_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_REFCOUNT_DECREMENT_ERR:
-       	       handle_fatal_error((char *)CDMA_REFCOUNT_DECREMENT_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_REFCOUNT_INVALID_OPERATION_ERR:
-       	       handle_fatal_error((char *)CDMA_REFCOUNT_INVALID_OPERATION_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_INVALID_MUTEX_LOCK_REQ_ERR:
-       	       handle_fatal_error((char *)CDMA_INVALID_MUTEX_LOCK_REQ_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_INVALID_MUTEX_RELEASE_ERR:
-       	       handle_fatal_error((char *)CDMA_INVALID_MUTEX_RELEASE_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_INTERNAL_MEMORY_ECC_ERR:
-       	       handle_fatal_error((char *)CDMA_INTERNAL_MEMORY_ECC_ERR); /*TODO Fatal error*/
-       	       break;
-       case CDMA_WORKSPACE_MEMORY_READ_ERR:
-               handle_fatal_error((char *)CDMA_WORKSPACE_MEMORY_READ_ERR); /*TODO Fatal error*/
-               break;
-       case CDMA_WORKSPACE_MEMORY_WRITE_ERR:
-	       handle_fatal_error((char *)CDMA_WORKSPACE_MEMORY_WRITE_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_SYSTEM_MEMORY_READ_ERR:
-	       handle_fatal_error((char *)CDMA_SYSTEM_MEMORY_READ_ERR); /*TODO Fatal error*/
-	       break;
-       case CDMA_SYSTEM_MEMORY_WRITE_ERR:
-               handle_fatal_error((char *)CDMA_SYSTEM_MEMORY_WRITE_ERR); /*TODO Fatal error*/
-               break;
-       case CDMA_INTERNAL_ERR:
-               handle_fatal_error((char *)CDMA_INTERNAL_ERR); /*TODO Fatal error*/
-               break;
-       default:
-	       handle_fatal_error((char *)status); /*TODO Fatal error*/
-	       break;
-       }
+
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+
+void cdma_exception_handler(enum cdma_function_identifier func_id,
+		     uint32_t line,
+		     int32_t status)
+{
+	char *func_name;
+	char *err_msg;
+	
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case CDMA_READ:
+		func_name = "cdma_read";
+		break;
+	case CDMA_WRITE:
+		func_name = "cdma_write";
+		break;
+	case CDMA_MUTEX_LOCK_TAKE:
+		func_name = "cdma_mutex_lock_take";
+		break;
+	case CDMA_MUTEX_LOCK_RELEASE:
+		func_name = "cdma_mutex_lock_release";
+		break;
+	case CDMA_READ_WITH_MUTEX:
+		func_name = "cdma_read_with_mutex";
+		break;
+	case CDMA_WRITE_WITH_MUTEX:
+		func_name = "cdma_write_with_mutex";
+		break;
+	case CDMA_WS_MEMORY_INIT:
+		func_name = "cdma_ws_memory_init";
+		break;
+	case CDMA_REFCOUNT_GET:
+		func_name = "cdma_refcount_get";
+		break;
+	case CDMA_ACQUIRE_CONTEXT_MEMORY:
+		func_name = "cdma_acquire_context_memory";
+		break;
+	case CDMA_RELEASE_CONTEXT_MEMORY:
+		func_name = "cdma_release_context_memory";
+		break;
+	case CDMA_REFCOUNT_DECREMENT_AND_RELEASE:
+		func_name = "cdma_refcount_decrement_and_release";
+		break;
+	case CDMA_REFCOUNT_INCREMENT:
+		func_name = "cdma_refcount_increment";
+		break;
+	case CDMA_REFCOUNT_DECREMENT:
+		func_name = "cdma_refcount_decrement";
+		break;
+	case CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT:
+		func_name = "cdma_write_lock_dma_read_and_increment";
+		break;
+	case CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT:
+		func_name = "cdma_write_release_lock_and_decrement";
+		break;
+	case CDMA_ACCESS_CONTEXT_MEMORY:
+		func_name = "cdma_access_context_memory";
+		break;
+	default:
+		/* create own exception */
+		func_name = "Unknown Function";
+	}
+	
+	/* Translate error ID to error name string */
+	switch (status) {
+	case CDMA_BUFFER_POOL_DEPLETION_ERR:
+		err_msg = "Failed due to buffer pool depletion.\n";
+		break;
+	case CDMA_REFCOUNT_DECREMENT_TO_ZERO:
+		err_msg = "Decrement reference count caused the reference "
+				"count to go to zero. (not an error).\n";
+		break;
+	case CDMA_MUTEX_LOCK_FAILED:
+		err_msg = "Mutex lock failed on a Try Lock request.\n";
+		break;
+	case CDMA_MUTEX_DEPLETION_ERR:
+		err_msg = "Mutex lock depletion (max of 4 reached for the "
+				"task).\n";
+		break;
+	case CDMA_INVALID_DMA_COMMAND_ARGS_ERR:
+		err_msg = "Invalid DMA command arguments.\n";
+		break;
+	case CDMA_INVALID_DMA_COMMAND_ERR:
+		err_msg = "Invalid DMA command.\n";
+		break;
+	case CDMA_REFCOUNT_INCREMENT_ERR:
+		err_msg = "Increment reference count failed, count is at max "
+				"value.\n";
+		break;
+	case CDMA_REFCOUNT_DECREMENT_ERR:
+		err_msg = "Decrement reference count failed, count is at "
+				"zero.\n";
+		break;
+	case CDMA_REFCOUNT_INVALID_OPERATION_ERR:
+		err_msg = "Invalid reference count operation, address is not "
+				"base address.\n";
+		break;
+	case CDMA_INVALID_MUTEX_LOCK_REQ_ERR:
+		err_msg = "Invalid mutex lock request, the task already has a "
+				"mutex on this address\n";
+		break;
+	case CDMA_INVALID_MUTEX_RELEASE_ERR:
+		err_msg = "Invalid mutex lock release, address not found in "
+				"active mutex lock list.\n";
+		break;
+	case CDMA_INTERNAL_MEMORY_ECC_ERR:
+		err_msg = "Internal memory ECC uncorrectable ECC error.\n";
+		break;
+	case CDMA_WORKSPACE_MEMORY_READ_ERR:
+		err_msg = "Workspace memory read Error.\n";
+		break;
+	case CDMA_WORKSPACE_MEMORY_WRITE_ERR:
+		err_msg = "Workspace memory write Error.\n";
+		break;
+	case CDMA_SYSTEM_MEMORY_READ_ERR:
+		err_msg = "System memory read error (permission or ECC).\n";
+		break;
+	case CDMA_SYSTEM_MEMORY_WRITE_ERR:
+		err_msg = "System memory write error (permission or ECC).\n";
+		break;
+	case CDMA_INTERNAL_ERR:
+		err_msg = "Internal error (SRU depletion).\n";
+		break;
+	default:
+		err_msg = "Unknown or Invalid status.\n";
+	}
+	
+	exception_handler(__FILE__, func_name, line, err_msg);
 }
 
-
-
-
+#pragma pop

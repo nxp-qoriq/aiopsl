@@ -95,14 +95,13 @@ struct tcp_gro_agg_seg_command {
 		/** Returned Value:
 		 * Iteration return status. */
 	int status;
-		/** Workspace address of the last returned status.
-		 * Should be defined in the TLS area. */
-	uint32_t status_addr;
 		/** Workspace address of the GRO last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t gro_status_addr;
 		/** Shared RAM address of the tmi_id. */
 	uint32_t tmi_id_addr;
+		/** Padding. */
+	int8_t  pad[4];
 };
 
 /**************************************************************************//**
@@ -128,12 +127,11 @@ struct tcp_gro_flush_agg_command {
 		/** Returned Value:
 		 * parse results. */
 	struct parse_result pr;
-		/** Workspace address of the last returned status.
-		 * Should be defined in the TLS area. */
-	uint32_t status_addr;
 		/** Workspace address of the GSO last returned status.
 		 * Should be defined in the TLS area. */
 	uint32_t gro_status_addr;
+		/** Padding. */
+	int8_t  pad[4];
 };
 
 

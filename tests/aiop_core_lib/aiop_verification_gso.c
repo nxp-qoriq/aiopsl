@@ -66,7 +66,6 @@ uint16_t  aiop_verification_gso(
 		/* The segment that was generated is now the default frame of 
 		 * the task */
 		*((int32_t *)(str->gso_status_addr)) = str->status;
-		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
 		str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
 		str->default_task_params = default_task_params;
@@ -84,7 +83,7 @@ uint16_t  aiop_verification_gso(
 		str->status = tcp_gso_discard_frame_remainder(
 				(uint8_t *)(str->gso_ctx_addr));
 		
-		*((int32_t *)(str->status_addr)) = str->status;
+		*((int32_t *)(str->gso_status_addr)) = str->status;
 		str_size = (uint16_t)sizeof(
 			struct tcp_gso_discard_remainder_frame_command);
 		break;

@@ -1,16 +1,21 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
+/* Copyright 2014 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
  *
  * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -23,7 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*!
  *  @file    fsl_dprc.h
  *  @brief   Data Path Resource Container API
@@ -32,24 +36,14 @@
 #ifndef _FSL_DPRC_H
 #define _FSL_DPRC_H
 
-#ifdef MC
-struct dprc;
-#else
-struct dprc {
-	void *regs;
-	/*!<
-	 * Pointer to command interface registers (virtual address);
-	 * Must be set by the user
-	 */
-	int auth; /*!< authentication ID */
-};
-#endif
 /*!
  * @Group grp_dprc	Data Path Resource Container API
  *
  * @brief	Contains DPRC API for managing and querying LDPAA resources
  * @{
  */
+
+struct fsl_mc_io;
 
 /*!
  * Set this value as the icid value in dprc_cfg structure when creating a
@@ -288,24 +282,25 @@ struct dprc_endpoint {
 /**
  * @brief	Obtains the container id associated with a given portal.
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[out]	container_id	Requested container ID
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_container_id(struct dprc *dprc, int *container_id);
+int dprc_get_container_id(struct fsl_mc_io *mc_io, int *container_id);
 
 /**
  * @brief	Opens a DPRC object for use
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	container_id	Container ID to open
+ * @param[out]  token		Token of DPRC object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Required before any operation on the object.
  */
-int dprc_open(struct dprc *dprc, int container_id);
+int dprc_open(struct fsl_mc_io *mc_io, int container_id, uint16_t *token);
 
 /**
  * @brief	Closes the DPRC object handle
@@ -313,24 +308,27 @@ int dprc_open(struct dprc *dprc, int container_id);
  * No further operations on the object are allowed after this call without
  * re-opening the object.
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
+ *
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_close(struct dprc *dprc);
+int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Creates a child container
  *
- * @param[in]	dprc			DPRC descriptor object
- * @param[in]	cfg				Child container configuration
+ * @param[in]	mc_io			Pointer to opaque I/O object
+ * @param[in]   token			Token of DPRC object
+ * @param[in]	cfg			Child container configuration
  * @param[out]	child_container_id	Child container ID
  * @param[out]	child_portal_paddr	Base physical address of the
  *				child portal
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_create_container(struct dprc *dprc,
+int dprc_create_container(struct fsl_mc_io *mc_io, uint16_t token,
 			  struct dprc_cfg *cfg,
 	int *child_container_id,
 	uint64_t *child_portal_paddr);
@@ -347,7 +345,8 @@ int dprc_create_container(struct dprc *dprc,
  * - This function destroy all the child containers of the specified
  *   container prior to destroying the container itself.
  *
- * @param[in]	dprc			DPRC descriptor object
+ * @param[in]	mc_io			Pointer to opaque I/O object
+ * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the container to destroy
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -355,7 +354,7 @@ int dprc_create_container(struct dprc *dprc,
  * @warning	Only the parent container is allowed to destroy a child policy
  *		Container 0 can't be destroyed
  */
-int dprc_destroy_container(struct dprc *dprc, int child_container_id);
+int dprc_destroy_container(struct fsl_mc_io *mc_io, uint16_t token, int child_container_id);
 
 /**
  * @brief	Sets allocation policy for a specific resource/object type in a
@@ -369,7 +368,8 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  * The default policy for all resource types matches the container's 'global'
  * allocation policy.
  *
- * @param[in]	dprc			DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the child container
  * @param[in]	type		    resource/object type
  * @param[in]	quota			Sets the maximum number of resources of
@@ -383,7 +383,7 @@ int dprc_destroy_container(struct dprc *dprc, int child_container_id);
  *
  * @warning	Only the parent container is allowed to change a child policy.
  */
-int dprc_set_res_quota(struct dprc *dprc,
+int dprc_set_res_quota(struct fsl_mc_io *mc_io, uint16_t token,
 		       int child_container_id,
 	char *type,
 	uint16_t quota);
@@ -392,7 +392,8 @@ int dprc_set_res_quota(struct dprc *dprc,
  * @brief	Gets the allocation policy of a specific resource/object type
  *		in a child container
  *
- * @param[in]	dprc			DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the child container
  * @param[in]	type			resource/object type
  * @param[out]	quota			Holds the maximum number of resources of
@@ -404,7 +405,7 @@ int dprc_set_res_quota(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_quota(struct dprc *dprc,
+int dprc_get_res_quota(struct fsl_mc_io *mc_io, uint16_t token,
 		       int child_container_id,
 	char *type,
 	uint16_t *quota);
@@ -425,12 +426,13 @@ int dprc_get_res_quota(struct dprc *dprc,
  * has not crashed, but the resulting object cleanup operations will not be
  * aware of that.
  *
- * @param[in]	dprc			DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the container to reset
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_reset_container(struct dprc *dprc, int child_container_id);
+int dprc_reset_container(struct fsl_mc_io *mc_io, uint16_t token, int child_container_id);
 
 /**
  * @brief	Assigns objects or resource to a child container.
@@ -456,14 +458,15 @@ int dprc_reset_container(struct dprc *dprc, int child_container_id);
  * If IRQ information has been set in the child DPRC, it will signal an
  * interrupt following every change in its object assignment.
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]	container_id	ID of the child container
  * @param[in]	res_req		Describes the type and amount of resources to
  *				assign to the given container.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_assign(struct dprc *dprc,
+int dprc_assign(struct fsl_mc_io *mc_io, uint16_t token,
 		int container_id,
 	struct dprc_res_req *res_req);
 
@@ -474,7 +477,8 @@ int dprc_assign(struct dprc *dprc,
  * Un-assignment of objects can succeed only if the object is not in the
  * plugged or opened state.
  *
- * @param[in]	dprc			DPRC descriptor object
+ * @param[in]	mc_io			Pointer to opaque I/O object
+ * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the child container
  * @param[in]	res_req			Describes the type and amount of
  *					resources to un-assign from the child
@@ -482,19 +486,20 @@ int dprc_assign(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_unassign(struct dprc *dprc,
+int dprc_unassign(struct fsl_mc_io *mc_io, uint16_t token,
 		  int child_container_id,
 	struct dprc_res_req *res_req);
 
 /**
  * @brief	Get the number of dprc's pools
  *
- * @param[in]	 dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[out]   pool_count	Number of resource pools in the dprc.
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_get_pool_count(struct dprc *dprc, int *pool_count);
+int dprc_get_pool_count(struct fsl_mc_io *mc_io, uint16_t token, int *pool_count);
 
 /**
  * @brief	Get the type (string) of a certain dprc's pool
@@ -504,23 +509,25 @@ int dprc_get_pool_count(struct dprc *dprc, int *pool_count);
  * from dprc_get_pool_count(). dprc_get_pool_count() must
  * be called prior to dprc_get_pool().
  *
- * @param[in]	 dprc		DPRC descriptor object
- * @param[in]    pool_index	Index of the pool to be queried (< pool_count)
- * @param[out]   type		The type of the pool.
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
+ * @param[in]   pool_index	Index of the pool to be queried (< pool_count)
+ * @param[out]  type		The type of the pool.
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_get_pool(struct dprc *dprc, int pool_index, char *type);
+int dprc_get_pool(struct fsl_mc_io *mc_io, uint16_t token, int pool_index, char *type);
 
 /**
  * @brief	Obtains the number of objects in the DPRC
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[out]	obj_count	Number of objects assigned to the DPRC
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_obj_count(struct dprc *dprc, int *obj_count);
+int dprc_get_obj_count(struct fsl_mc_io *mc_io, uint16_t token, int *obj_count);
 
 /**
  * @brief	Obtains general information on an object
@@ -530,13 +537,14 @@ int dprc_get_obj_count(struct dprc *dprc, int *obj_count);
  * from dprc_get_obj_count(). dprc_get_obj_count() must
  * be called prior to dprc_get_obj().
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]	obj_index	Index of the object to be queried (< obj_count)
  * @param[out]	obj_desc	Returns the requested object descriptor
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_obj(struct dprc *dprc,
+int dprc_get_obj(struct fsl_mc_io *mc_io, uint16_t token,
 		 int obj_index,
 	struct dprc_obj_desc *obj_desc);
 
@@ -544,55 +552,60 @@ int dprc_get_obj(struct dprc *dprc,
  * @brief	Obtains the number of free resources that are assigned
  *		to this container, by pool type
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]	type		pool type
  * @param[out]	res_count	Number of free resources of the given
  *				resource type that are assigned to this DPRC
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_count(struct dprc *dprc, char *type, int *res_count);
+int dprc_get_res_count(struct fsl_mc_io *mc_io, uint16_t token, char *type, int *res_count);
 
 /**
  * @brief	Obtains IDs of free resources in the container
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]	type		pool type
  * @param[in,out] range_desc	range descriptor
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_ids(struct dprc *dprc,
+int dprc_get_res_ids(struct fsl_mc_io *mc_io, uint16_t token,
 		     char *type,
 	struct dprc_res_ids_range_desc *range_desc);
 
 /**
  * @brief	Obtains the physical address of MC portals
  *
- * @param[in]	dprc			DPRC descriptor object
- * @param[in]	portal_id		MC portal id
- * @param[out]  portal_addr		The physical address of the MC portal id
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
+ * @param[in]	portal_id	MC portal id
+ * @param[out]  portal_addr	The physical address of the MC portal id
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_portal_paddr(struct dprc *dprc,
+int dprc_get_portal_paddr(struct fsl_mc_io *mc_io, uint16_t token,
 			  int portal_id,
 	uint64_t *portal_addr);
 
 /**
  * @brief	Obtains container attributes
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[out]	attributes	Container attributes
  *
  * @returns     '0' on Success; Error code otherwise.
  */
-int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes);
+int dprc_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_attributes *attributes);
 
 /**
  * @brief	Returns region information for a specified object.
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]	obj_type	Object type as returned in dprc_get_obj()
  * @param[in]	obj_id		Unique object instance as returned in
  *				dprc_get_obj()
@@ -601,7 +614,7 @@ int dprc_get_attributes(struct dprc *dprc, struct dprc_attributes *attributes);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_obj_region(struct dprc *dprc,
+int dprc_get_obj_region(struct fsl_mc_io *mc_io, uint16_t token,
 			char *obj_type,
 	int obj_id,
 	uint8_t region_index,
@@ -610,7 +623,8 @@ int dprc_get_obj_region(struct dprc *dprc,
 /**
  * @brief	Sets IRQ information for the DPRC to trigger an interrupt.
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]	irq_index	Identifies the interrupt index to configure
  *				DPRC supports only irq_index 0 - this interrupt
  *				will be signaled on every change to
@@ -622,7 +636,7 @@ int dprc_get_obj_region(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_set_irq(struct dprc *dprc,
+int dprc_set_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
 	uint64_t irq_paddr,
 	uint32_t irq_val,
@@ -631,7 +645,8 @@ int dprc_set_irq(struct dprc *dprc,
 /**
  * @brief	Gets IRQ information from the DPRC.
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]   irq_index	The interrupt index to configure;
  *				DPRC supports only irq_index 0 - this interrupt
  *				will be signaled on every change to
@@ -646,7 +661,7 @@ int dprc_set_irq(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_irq(struct dprc *dprc,
+int dprc_get_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
 	int *type,
 	uint64_t *irq_paddr,
@@ -661,26 +676,28 @@ int dprc_get_irq(struct dprc *dprc,
  * overall interrupt state. if the interrupt is disabled no causes will cause an
  * interrupt.
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]   irq_index	The interrupt index to configure
  * @param[in]	enable_state	Interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_set_irq_enable(struct dprc *dprc,
+int dprc_set_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
 	uint8_t enable_state);
 
 /**
  * @brief	Gets overall interrupt state
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]   irq_index	The interrupt index to configure
  * @param[out]	enable_state	Interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_irq_enable(struct dprc *dprc,
+int dprc_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
 	uint8_t *enable_state);
 
@@ -690,7 +707,8 @@ int dprc_get_irq_enable(struct dprc *dprc,
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]   irq_index	The interrupt index to configure
  * @param[in]	mask		Event mask to trigger interrupt.
  *				each bit:
@@ -699,7 +717,7 @@ int dprc_get_irq_enable(struct dprc *dprc,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_set_irq_mask(struct dprc *dprc, uint8_t irq_index, uint32_t mask);
+int dprc_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -707,64 +725,69 @@ int dprc_set_irq_mask(struct dprc *dprc, uint8_t irq_index, uint32_t mask);
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]   irq_index	The interrupt index to configure
  * @param[out]	mask		Event mask to trigger interrupt
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_irq_mask(struct dprc *dprc, uint8_t irq_index, uint32_t *mask);
+int dprc_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
  *
- * @param[in]	 dprc		DPRC descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
  * @param[in]   irq_index	The interrupt index to configure
- * @param[out]	 status		Interrupts status - one bit per cause
+ * @param[out]	status		Interrupts status - one bit per cause
  *					0 = no interrupt pending
  *					1 = interrupt pending
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_get_irq_status(struct dprc *dprc, uint8_t irq_index, uint32_t *status);
+int dprc_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
  *
- * @param[in]	 dprc		DPRC descriptor object
- * @param[in]    irq_index	The interrupt index to configure
- * @param[out]	 status		Bits to clear (W1C) - one bit per cause
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
+ * @param[in]   irq_index	The interrupt index to configure
+ * @param[out]	status		Bits to clear (W1C) - one bit per cause
  *					0 = don't change
  *					1 = clear status bit
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_clear_irq_status(struct dprc *dprc,
+int dprc_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
 	uint32_t status);
 
 /**
  * @brief	Connects two endpoints to create a network link between them
  *
- * @param[in]	 dprc		DPRC descriptor object
- * @param[in]    endpoint1	Endpoint 1 configuration parameters.
- * @param[in]	 endpoint2	Endpoint 2 configuration parameters.
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
+ * @param[in]   endpoint1	Endpoint 1 configuration parameters.
+ * @param[in]	endpoint2	Endpoint 2 configuration parameters.
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_connect(struct dprc *dprc,
+int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
 		 struct dprc_endpoint *endpoint1,
 	struct dprc_endpoint *endpoint2);
 
 /**
  * @brief	Disconnects one endpoint to remove its network link
  *
- * @param[in]	 dprc		DPRC descriptor object
- * @param[in]    endpoint	Endpoint configuration parameters.
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPRC object
+ * @param[in]   endpoint	Endpoint configuration parameters.
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_disconnect(struct dprc *dprc, struct dprc_endpoint *endpoint);
+int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_endpoint *endpoint);
 
 /*! @} */
 

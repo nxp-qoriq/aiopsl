@@ -1,16 +1,21 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
+/* Copyright 2014 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
  *
  * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -23,7 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*!
  *  @file    fsl_dpni.h
  *  @brief   Data Path Network Interface API
@@ -42,18 +46,7 @@
  * @{
  */
 
-#ifdef MC
-struct dpni;
-#else
-struct dpni {
-	void *regs;
-	/*!<
-	 * Pointer to command interface registers (virtual address);
-	 * Must be set by the user
-	 */
-	int auth; /*!< authentication ID */
-};
-#endif
+struct fsl_mc_io;
 
 /*!
  * @name General DPNI macros
@@ -107,24 +100,26 @@ struct dpni_flc_cfg {
  *
  * @brief	Open object handle
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	dpni_id - DPNI unique ID
+ * @param[out]   token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_open(struct dpni *dpni, int dpni_id);
+int dpni_open(struct fsl_mc_io *mc_io, int dpni_id, uint16_t *token);
 
 /**
  *
  * @brief	Closes the object handle, no further operations on the object
  *		are allowed
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_close(struct dpni *dpni);
+int dpni_close(struct fsl_mc_io *mc_io, uint16_t token);
 
 /*!
  * @name DPNI configuration options
@@ -176,6 +171,14 @@ enum dpni_type {
 /*!< DPNI of type NIC */
 };
 
+struct dpni_ipr_cfg {
+	uint16_t max_reass_frm_size;
+	uint16_t min_frag_size_ipv4;
+	uint16_t min_frag_size_ipv6;
+	uint32_t max_open_frames_ipv4;
+	uint32_t max_open_frames_ipv6;
+};
+
 /**
  * @brief	Structure representing DPNI configuration
  */
@@ -215,32 +218,35 @@ struct dpni_cfg {
 		/*!< maximum key size for the QoS look-up; '0' will be treated
 		 * as '24' which enough for IPv4 5-tuple */
 		uint8_t max_dist_key_size;
-	/*!< maximum key size for the distribution; '0' will be treated as
-	 '24' which enough for IPv4 5-tuple */
+		/*!< maximum key size for the distribution; '0' will be treated as
+		 '24' which enough for IPv4 5-tuple */
+		struct dpni_ipr_cfg ipr_cfg;
 	} adv; /*!< use this structure to change default settings */
 };
 /**
  * @brief	Open object handle, allocate resources and preliminary initialization -
  *		required before any operation on the object
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	cfg - Configuration structure
+ * @param[out]  token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Required before any operation on the object
  */
-int dpni_create(struct dpni *dpni, const struct dpni_cfg *cfg);
+int dpni_create(struct fsl_mc_io *mc_io, const struct dpni_cfg *cfg, uint16_t *token);
 
 /**
  *
  * @brief	Free the DPNI object and all its resources.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  *
  * @returns	'0' on Success; error code otherwise.
  */
-int dpni_destroy(struct dpni *dpni);
+int dpni_destroy(struct fsl_mc_io *mc_io, uint16_t token);
 
 /*!
  * @name DPNI IRQ Index and Events
@@ -254,7 +260,8 @@ int dpni_destroy(struct dpni *dpni);
 /**
  * @brief	Sets IRQ information for the DPNI to trigger an interrupt.
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	irq_index	Identifies the interrupt index to configure.
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  *				signal a message-based interrupt
@@ -263,8 +270,8 @@ int dpni_destroy(struct dpni *dpni);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_irq(struct dpni *dpni,
-		 uint8_t irq_index,
+int dpni_set_irq(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t irq_index,
 	uint64_t irq_paddr,
 	uint32_t irq_val,
 	int user_irq_id);
@@ -272,7 +279,8 @@ int dpni_set_irq(struct dpni *dpni,
 /**
  * @brief	Gets IRQ information from the DPNI.
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]  type		Interrupt type: 0 represents message interrupt
  *				type (both irq_paddr and irq_val are valid);
@@ -284,8 +292,8 @@ int dpni_set_irq(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_irq(struct dpni *dpni,
-		 uint8_t irq_index,
+int dpni_get_irq(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t irq_index,
 	int *type,
 	uint64_t *irq_paddr,
 	uint32_t *irq_val,
@@ -299,27 +307,29 @@ int dpni_get_irq(struct dpni *dpni,
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[in]	enable_state	interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_irq_enable(struct dpni *dpni,
-			uint8_t irq_index,
+int dpni_set_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t irq_index,
 	uint8_t enable_state);
 
 /**
  * @brief	Gets overall interrupt state
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	enable_state	interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_irq_enable(struct dpni *dpni,
-			uint8_t irq_index,
+int dpni_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t irq_index,
 	uint8_t *enable_state);
 
 /**
@@ -328,7 +338,8 @@ int dpni_get_irq_enable(struct dpni *dpni,
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[in]	mask		event mask to trigger interrupt.
  *				each bit:
@@ -337,7 +348,7 @@ int dpni_get_irq_enable(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t mask);
+int dpni_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -345,18 +356,20 @@ int dpni_set_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t mask);
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	mask		event mask to trigger interrupt
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t *mask);
+int dpni_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	status		interrupts status - one bit per cause
  *					0 = no interrupt pending
@@ -364,12 +377,13 @@ int dpni_get_irq_mask(struct dpni *dpni, uint8_t irq_index, uint32_t *mask);
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpni_get_irq_status(struct dpni *dpni, uint8_t irq_index, uint32_t *status);
+int dpni_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
  *
- * @param[in]	dpni		DPNI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	status		bits to clear (W1C) - one bit per cause
  *					0 = don't change
@@ -377,8 +391,8 @@ int dpni_get_irq_status(struct dpni *dpni, uint8_t irq_index, uint32_t *status);
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpni_clear_irq_status(struct dpni *dpni,
-			  uint8_t irq_index,
+int dpni_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t irq_index,
 	uint32_t status);
 
 /**
@@ -386,7 +400,8 @@ int dpni_clear_irq_status(struct dpni *dpni,
  * @brief	Enable/Disable transmission of Pause-Frames.
  *		Will only affect the underlying MAC if exist.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   priority -  the PFC class of service; use '0xff'
  *		to indicate legacy pause support (i.e. no PFC).
  * @param[in]   pause_time - Pause quanta value used with transmitted
@@ -402,8 +417,8 @@ int dpni_clear_irq_status(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_tx_pause_frames(struct dpni *dpni,
-			     uint8_t priority,
+int dpni_set_tx_pause_frames(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t priority,
 	uint16_t pause_time,
 	uint16_t thresh_time);
 
@@ -412,12 +427,13 @@ int dpni_set_tx_pause_frames(struct dpni *dpni,
  * @brief	Enable/Disable ignoring of Pause-Frames.
  *		Will only affect the underlying MAC if exist.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]   enable - indicates whether to ignore the incoming pause
  *		frames or not.
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_rx_ignore_pause_frames(struct dpni *dpni, int enable);
+int dpni_set_rx_ignore_pause_frames(struct fsl_mc_io *mc_io, uint16_t token, int enable);
 
 /**
  * @brief	Structure representing DPNI pools parameters
@@ -434,7 +450,8 @@ struct dpni_pools_cfg {
  *
  * @brief	Set the pools
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	cfg - pools configuration
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -442,7 +459,7 @@ struct dpni_pools_cfg {
  * @warning	Allowed only when DPNI is disabled
  *
  */
-int dpni_set_pools(struct dpni *dpni, const struct dpni_pools_cfg *cfg);
+int dpni_set_pools(struct fsl_mc_io *mc_io, uint16_t token, const struct dpni_pools_cfg *cfg);
 
 /**
  * @brief   DPNI destination types
@@ -499,7 +516,8 @@ struct dpni_attach_cfg {
  *
  * @brief	Attach the NI to application
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	cfg - Attach configuration
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -507,50 +525,53 @@ struct dpni_attach_cfg {
  * @warning	Allowed only when DPNI is disabled
  *
  */
-int dpni_attach(struct dpni *dpni, const struct dpni_attach_cfg *cfg);
+int dpni_attach(struct fsl_mc_io *mc_io, uint16_t token, const struct dpni_attach_cfg *cfg);
 
 /**
  *
  * @brief	Detach the NI from application
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Allowed only when DPNI is disabled
  *
  */
-int dpni_detach(struct dpni *dpni);
+int dpni_detach(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  *
  * @brief	Enable the NI, will allow sending and receiving frames.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_enable(struct dpni *dpni);
+int dpni_enable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  *
  * @brief	Disable the NI, will disallow sending and receiving frames.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_disable(struct dpni *dpni);
+int dpni_disable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  *
  * @brief	Reset the NI, will return to initial state.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_reset(struct dpni *dpni);
+int dpni_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Structure representing attributes parameters
@@ -591,12 +612,13 @@ struct dpni_attr {
  *
  * @brief	Retrieve the object's attributes.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	attr - Object's attributes
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_attributes(struct dpni *dpni, struct dpni_attr *attr);
+int dpni_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpni_attr *attr);
 
 /*!
  * @name DPNI buffer layout modification options
@@ -642,160 +664,173 @@ struct dpni_buffer_layout {
  *
  * @brief	Retrieve the RX buffer layout settings.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	layout - buffer's layout
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_rx_buffer_layout(struct dpni *dpni,
-			      struct dpni_buffer_layout *layout);
+int dpni_get_rx_buffer_layout(struct fsl_mc_io *mc_io, uint16_t token,
+	struct dpni_buffer_layout *layout);
 
 /**
  *
  * @brief	Set the RX buffer layout settings.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	layout - buffer's layout
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Allowed only when DPNI is disabled
  */
-int dpni_set_rx_buffer_layout(struct dpni *dpni,
-			      struct dpni_buffer_layout *layout);
+int dpni_set_rx_buffer_layout(struct fsl_mc_io *mc_io, uint16_t token,
+	const struct dpni_buffer_layout *layout);
 
 /**
  *
  * @brief	Retrieve the TX buffer layout settings.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	layout - buffer's layout
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_tx_buffer_layout(struct dpni *dpni,
-			      struct dpni_buffer_layout *layout);
+int dpni_get_tx_buffer_layout(struct fsl_mc_io *mc_io, uint16_t token,
+	struct dpni_buffer_layout *layout);
 
 /**
  *
  * @brief	Set the TX buffer layout settings.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	layout - buffer's layout
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Allowed only when DPNI is disabled
  */
-int dpni_set_tx_buffer_layout(struct dpni *dpni,
-			      struct dpni_buffer_layout *layout);
+int dpni_set_tx_buffer_layout(struct fsl_mc_io *mc_io, uint16_t token,
+	const struct dpni_buffer_layout *layout);
 
 /**
  *
  * @brief	Retrieve the TX-Conf buffer layout settings.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	layout - buffer's layout
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_tx_conf_buffer_layout(struct dpni *dpni,
-				   struct dpni_buffer_layout *layout);
+int dpni_get_tx_conf_buffer_layout(struct fsl_mc_io *mc_io, uint16_t token,
+	struct dpni_buffer_layout *layout);
 
 /**
  *
  * @brief	Set the TX-Conf buffer layout settings.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	layout - buffer's layout
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Allowed only when DPNI is disabled
  */
-int dpni_set_tx_conf_buffer_layout(struct dpni *dpni,
-				   struct dpni_buffer_layout *layout);
+int dpni_set_tx_conf_buffer_layout(struct fsl_mc_io *mc_io, uint16_t token,
+	const struct dpni_buffer_layout *layout);
 
 /**
  *
  * @brief	Enable/disable L3 checksum validation
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	en - enable/disable checksum validation
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_l3_chksum_validation(struct dpni *dpni, int en);
+int dpni_set_l3_chksum_validation(struct fsl_mc_io *mc_io, uint16_t token, int en);
 
 /**
  *
  * @brief	Get L3 checksum validation mode
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	en - enable/disable checksum validation
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_l3_chksum_validation(struct dpni *dpni, int *en);
+int dpni_get_l3_chksum_validation(struct fsl_mc_io *mc_io, uint16_t token, int *en);
 
 /**
  *
  * @brief	Enable/disable L4 checksum validation
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	en - enable/disable checksum validation
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_l4_chksum_validation(struct dpni *dpni, int en);
+int dpni_set_l4_chksum_validation(struct fsl_mc_io *mc_io, uint16_t token, int en);
 
 /**
  *
  * @brief	Get L4 checksum validation mode
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	en - enable/disable checksum validation
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_l4_chksum_validation(struct dpni *dpni, int *en);
+int dpni_get_l4_chksum_validation(struct fsl_mc_io *mc_io, uint16_t token, int *en);
 
 /**
  *
  * @brief	Get the QDID used for enqueue
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	qdid - Qdid used for qneueue
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Allowed only following dpni_enable().
  */
-int dpni_get_qdid(struct dpni *dpni, uint16_t *qdid);
+int dpni_get_qdid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *qdid);
 
 /**
  *
  * @brief	Get the AIOP's SPID that represent this NI
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	spid - aiop's storage-profile
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Only relevant for AIOP.
  */
-int dpni_get_spid(struct dpni *dpni, uint16_t *spid);
+int dpni_get_spid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spid);
 
 /**
  *
  * @brief	Get the tx data offset
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	data_offset - TX data offset
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_tx_data_offset(struct dpni *dpni, uint16_t *data_offset);
+int dpni_get_tx_data_offset(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *data_offset);
 
 /**
  * @brief	DPNI Counter types
@@ -831,211 +866,229 @@ enum dpni_counter {
  *
  * @brief   Read one of the DPNI counters
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	counter - the requested counter
  * @param[out]	value - counter's current value
  *
  * @returns        '0' on Success; Error code otherwise.
  */
-int dpni_get_counter(struct dpni *dpni,
-		     enum dpni_counter counter,
+int dpni_get_counter(struct fsl_mc_io *mc_io, uint16_t token,
+	enum dpni_counter counter,
 	uint64_t *value);
 
 /**
  *
  * @brief   Write to one of the DPNI counters
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	counter - the requested counter
  * @param[in]   value - New counter value.
  *		typically '0' for resetting the counter.
  *
  * @returns        '0' on Success; Error code otherwise.
  */
-int dpni_set_counter(struct dpni *dpni,
-		     enum dpni_counter counter,
+int dpni_set_counter(struct fsl_mc_io *mc_io, uint16_t token,
+	enum dpni_counter counter,
 	uint64_t value);
 
 /**
  *
  * @brief	Return the link state, either up or down
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	up - return '0' for down, '1' for up
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_link_state(struct dpni *dpni, int *up);
+int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
 
 /**
  *
  * @brief	Set the maximum received frame length.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	mfl - MFL length
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_mfl(struct dpni *dpni, uint16_t mfl);
+int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t mfl);
 
 /**
  *
  * @brief	Get the maximum received frame length.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	mfl - MFL length
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_mfl(struct dpni *dpni, uint16_t *mfl);
+int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *mfl);
 
 /**
  *
  * @brief	Set the MTU for this interface. Will have affect on IPF and
  *		conditionally on GSO.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	mtu - MTU length
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_mtu(struct dpni *dpni, uint16_t mtu);
+int dpni_set_mtu(struct fsl_mc_io *mc_io, uint16_t token, uint16_t mtu);
 
 /**
  *
  * @brief	Get the MTU.
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	mtu - MTU length
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_mtu(struct dpni *dpni, uint16_t *mtu);
+int dpni_get_mtu(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *mtu);
 
 /**
  *
  * @brief	Enable/Disable multicast promiscuous mode
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	en - '1' for enabling/'0' for disabling
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_multicast_promisc(struct dpni *dpni, int en);
+int dpni_set_multicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int en);
 
 /**
  *
  * @brief	Get multicast promiscuous mode
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[out]	en - '1' for enabling/'0' for disabling
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_multicast_promisc(struct dpni *dpni, int *en);
+int dpni_get_multicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int *en);
 
 /**
  *
  * @brief	Set the primary mac address
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	addr - MAC address
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_primary_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
+int dpni_set_primary_mac_addr(struct fsl_mc_io *mc_io, uint16_t token, const uint8_t addr[6]);
 
 /**
  *
  * @brief	Get the primary mac address
  *
- * @param[in]	dpni - Pointer to dpni object
- * @param[in]	addr - MAC address
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
+ * @param[out]	addr - MAC address
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_primary_mac_addr(struct dpni *dpni, uint8_t addr[6]);
+int dpni_get_primary_mac_addr(struct fsl_mc_io *mc_io, uint16_t token, uint8_t addr[6]);
 
 /**
  *
  * @brief	Add unicast/multicast filter address
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	addr - MAC address
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_add_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
+int dpni_add_mac_addr(struct fsl_mc_io *mc_io, uint16_t token, const uint8_t addr[6]);
 
 /**
  *
  * @brief	Remove unicast/multicast filter address
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	addr - MAC address
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_remove_mac_addr(struct dpni *dpni, const uint8_t addr[6]);
+int dpni_remove_mac_addr(struct fsl_mc_io *mc_io, uint16_t token, const uint8_t addr[6]);
 
 /**
  *
  * @brief	Clear the mac filter table
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_clear_mac_table(struct dpni *dpni);
+int dpni_clear_mac_table(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  *
  * @brief	Enable/Disable VLAN filtering mode
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	en - '1' for enabling/'0' for disabling
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_vlan_filters(struct dpni *dpni, int en);
+int dpni_set_vlan_filters(struct fsl_mc_io *mc_io, uint16_t token, int en);
 
 /**
  *
  * @brief	Add VLAN-id filter
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	vlan_id - VLAN ID
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_add_vlan_id(struct dpni *dpni, uint16_t vlan_id);
+int dpni_add_vlan_id(struct fsl_mc_io *mc_io, uint16_t token, uint16_t vlan_id);
 
 /**
  *
  * @brief	Remove VLAN-id filter
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  * @param[in]	vlan_id - VLAN ID
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_remove_vlan_id(struct dpni *dpni, uint16_t vlan_id);
+int dpni_remove_vlan_id(struct fsl_mc_io *mc_io, uint16_t token, uint16_t vlan_id);
 
 /**
  *
  * @brief	Clear the VLAN filter table
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_clear_vlan_table(struct dpni *dpni);
+int dpni_clear_vlan_table(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Structure representing DPNI TX TC parameters
@@ -1051,14 +1104,14 @@ struct dpni_tx_tc_cfg {
  *
  * @brief	Set TX TC settings
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	cfg - TC parameters
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_tx_tc(struct dpni *dpni,
-		   uint8_t tc_id,
+int dpni_set_tx_tc(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t tc_id,
 	const struct dpni_tx_tc_cfg *cfg);
 
 /**
@@ -1087,7 +1140,7 @@ struct dpni_rx_tc_cfg {
  *
  * @brief	Set RX TC settings
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	cfg - TC parameters
  *
@@ -1096,8 +1149,8 @@ struct dpni_rx_tc_cfg {
  * @warning	Allowed only when DPNI is disabled
  *
  */
-int dpni_set_rx_tc(struct dpni *dpni,
-		   uint8_t tc_id,
+int dpni_set_rx_tc(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t tc_id,
 	const struct dpni_rx_tc_cfg *cfg);
 
 /*!
@@ -1153,7 +1206,7 @@ struct dpni_tx_flow_cfg {
  *
  * @brief	Set TX flow configuration
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in,out] flow_id - this id is the sender index; should be used as the
  *		third argument of the enqueue command (QDBIN);
  *		for each new sender (flow) use 'DPNI_NEW_FLOW_ID'.
@@ -1163,15 +1216,15 @@ struct dpni_tx_flow_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_tx_flow(struct dpni *dpni,
-		     uint16_t *flow_id,
+int dpni_set_tx_flow(struct fsl_mc_io *mc_io, uint16_t token,
+	uint16_t *flow_id,
 	const struct dpni_tx_flow_cfg *cfg);
 
 /**
  *
  * @brief	Get TX flow configuration and fqid
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	flow_id - this id is the sender index
  * @param[out]	cfg - flow configuration
  * @param[out]	fqid - virtual fqid to be used for dequeue operations;
@@ -1180,8 +1233,8 @@ int dpni_set_tx_flow(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_tx_flow(struct dpni *dpni,
-		     uint16_t flow_id,
+int dpni_get_tx_flow(struct fsl_mc_io *mc_io, uint16_t token,
+	uint16_t flow_id,
 	struct dpni_tx_flow_cfg *cfg,
 	uint32_t *fqid);
 
@@ -1218,7 +1271,7 @@ struct dpni_rx_flow_cfg {
  *
  * @brief	Set RX flow configuration
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id; use 'DPNI_ALL_TCS' for all TCs
  *		and flows
  * @param[in]	flow_id - flow id within the traffic class;
@@ -1227,8 +1280,8 @@ struct dpni_rx_flow_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_rx_flow(struct dpni *dpni,
-		     uint8_t tc_id,
+int dpni_set_rx_flow(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t tc_id,
 	uint16_t flow_id,
 	const struct dpni_rx_flow_cfg *cfg);
 
@@ -1236,7 +1289,7 @@ int dpni_set_rx_flow(struct dpni *dpni,
  *
  * @brief	Get TX flow configuration and fqid
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	flow_id - flow id within the traffic class;
  * @param[out]	cfg - flow configuration
@@ -1246,8 +1299,8 @@ int dpni_set_rx_flow(struct dpni *dpni,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_rx_flow(struct dpni *dpni,
-		     uint8_t tc_id,
+int dpni_get_rx_flow(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t tc_id,
 	uint16_t flow_id,
 	struct dpni_rx_flow_cfg *cfg,
 	uint32_t *fqid);
@@ -1269,24 +1322,24 @@ struct dpni_qos_tbl_cfg {
  *
  * @brief	Set QoS mapping table
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	cfg - QoS table configuration
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_set_qos_table(struct dpni *dpni, const struct dpni_qos_tbl_cfg *cfg);
+int dpni_set_qos_table(struct fsl_mc_io *mc_io, uint16_t token, const struct dpni_qos_tbl_cfg *cfg);
 
 /**
  *
  * @brief	Delete QoS mapping table
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_delete_qos_table(struct dpni *dpni);
+int dpni_delete_qos_table(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Structure representing DPNI key parameters
@@ -1301,39 +1354,39 @@ struct dpni_key_cfg {
  *
  * @brief	Add QoS mapping entry
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	cfg - QoS key parameters
  * @param[in]	tc_id - Traffic class id
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_add_qos_entry(struct dpni *dpni,
-		       const struct dpni_key_cfg *cfg,
+int dpni_add_qos_entry(struct fsl_mc_io *mc_io, uint16_t token,
+	const struct dpni_key_cfg *cfg,
 	uint8_t tc_id);
 
 /**
  *
  * @brief	Remove QoS mapping entry
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	cfg - QoS key parameters
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_remove_qos_entry(struct dpni *dpni, const struct dpni_key_cfg *cfg);
+int dpni_remove_qos_entry(struct fsl_mc_io *mc_io, uint16_t token, const struct dpni_key_cfg *cfg);
 
 /**
  *
  * @brief	Clear all QoS mapping entries
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_clear_qos_table(struct dpni *dpni);
+int dpni_clear_qos_table(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief   DPNI Flow-Steering miss action
@@ -1361,34 +1414,34 @@ struct dpni_fs_tbl_cfg {
  *
  * @brief	Set FS mapping table for a specific traffic class
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	cfg - FS table configuration
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_set_fs_table(struct dpni *dpni,
-		      uint8_t tc_id,
+int dpni_set_fs_table(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t tc_id,
 	const struct dpni_fs_tbl_cfg *cfg);
 
 /**
  *
  * @brief	Delete FS mapping table
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id);
+int dpni_delete_fs_table(struct fsl_mc_io *mc_io, uint16_t token, uint8_t tc_id);
 
 /**
  *
  * @brief	Add FS entry for a specific traffic-class
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	cfg - Key parameters
  * @param[in]	flow_id - Flow id
@@ -1396,8 +1449,8 @@ int dpni_delete_fs_table(struct dpni *dpni, uint8_t tc_id);
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_add_fs_entry(struct dpni *dpni,
-		      uint8_t tc_id,
+int dpni_add_fs_entry(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t tc_id,
 	const struct dpni_key_cfg *cfg,
 	uint16_t flow_id);
 
@@ -1405,28 +1458,33 @@ int dpni_add_fs_entry(struct dpni *dpni,
  *
  * @brief	Remove FS entry from a specific traffic-class
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	cfg - Key parameters
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_remove_fs_entry(struct dpni *dpni,
-			 uint8_t tc_id,
+int dpni_remove_fs_entry(struct fsl_mc_io *mc_io, uint16_t token,
+	uint8_t tc_id,
 	const struct dpni_key_cfg *cfg);
 
 /**
  *
  * @brief	Clear all FS entries
  *
- * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	tc_id - Traffic class id
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int dpni_clear_fs_table(struct dpni *dpni, uint8_t tc_id);
+int dpni_clear_fs_table(struct fsl_mc_io *mc_io, uint16_t token, uint8_t tc_id);
+
+int dpni_set_vlan_insertion(struct fsl_mc_io *mc_io, uint16_t token, int enable);
+int dpni_set_vlan_removal(struct fsl_mc_io *mc_io, uint16_t token, int enable);
+int dpni_set_ipr(struct fsl_mc_io *mc_io, uint16_t token, int enable);
+int dpni_set_ipf(struct fsl_mc_io *mc_io, uint16_t token, int enable);
 
 /** @} */
 

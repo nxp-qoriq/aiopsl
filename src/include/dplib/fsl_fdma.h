@@ -1867,7 +1867,7 @@ int fdma_concatenate_frames(
 
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
-		closing split frame).
+		closing split frame) (relevant for Rev 2).
 @Retval		EINVAL - Last split is not possible.
 @Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
 		specified data segment presentation size

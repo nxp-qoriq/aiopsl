@@ -76,7 +76,7 @@ extern __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
 //__PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 __PROFILE_SRAM struct storage_profile storage_profile;
 
-int sys_prpid_pool_create(void)
+void sys_prpid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
@@ -87,16 +87,16 @@ int sys_prpid_pool_create(void)
 			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
-		handle_fatal_error((char *)status); /*TODO Fatal error*/
+		system_init_exception_handler(SYS_PRPID_POOL_CREATE,
+			__LINE__, 
+			SYSTEM_INIT_SLAB_FAILURE);
 
 	id_pool_init(SYS_NUM_OF_PRPIDS, buffer_pool_id,
 					&ext_prpid_pool_address);
-
-	return 0;
 }
 
 
-int sys_keyid_pool_create(void)
+void sys_keyid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
@@ -107,11 +107,12 @@ int sys_keyid_pool_create(void)
 			MEM_PART_DP_DDR,
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
-		handle_fatal_error((char *)status); /*TODO Fatal error*/
+		system_init_exception_handler(SYS_KEYID_POOL_CREATE,
+			__LINE__, 
+			SYSTEM_INIT_SLAB_FAILURE);
 
 	id_pool_init(SYS_NUM_OF_KEYIDS, buffer_pool_id,
 					&ext_keyid_pool_address);
-	return 0;
 }
 
 int aiop_sl_init(void)
@@ -211,4 +212,40 @@ void aiop_sl_free(void)
 	/* TODO status ? */
 }
 
+
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+
+void system_init_exception_handler(enum system_function_identifier func_id,
+		     uint32_t line,
+		     int32_t status)
+{
+	char *func_name;
+	char *err_msg;
+	
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case SYS_PRPID_POOL_CREATE:
+		func_name = "sys_prpid_pool_create";
+		break;
+	case SYS_KEYID_POOL_CREATE:
+		func_name = "sys_keyid_pool_create";
+		break;
+	default:
+		/* create own exception */
+		func_name = "Unknown Function";
+	}
+	
+	/* Translate error ID to error name string */
+	if (status == SYSTEM_INIT_SLAB_FAILURE) {
+		err_msg = "Pool Creation failed due to slab failure.\n";
+	} else {
+		err_msg = "Unknown or Invalid status.\n";
+	}
+	
+	exception_handler(__FILE__, func_name, line, err_msg);
+}
+
+#pragma pop
 
