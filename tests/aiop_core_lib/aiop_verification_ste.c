@@ -144,6 +144,27 @@ uint16_t aiop_verification_ste(uint32_t asa_seg_addr)
 		break;
 	}
 
+	
+	/* STE Read Errors Command Verification */
+	case STE_READ_ERRORS_CMD_STR:
+	{
+		struct ste_read_error_command *str =
+				(struct ste_read_error_command *) asa_seg_addr;
+		str->status_reg = STE_GET_STATUS_REGISTER();
+		str->capture_attributes = STE_GET_ERR_CAP_ATTRIBUTES();
+		str->acc_value = STE_GET_ERR_ACC_VALUE();
+		str->counter_msb = STE_GET_ERR_MSB_COUNTER_ADDRESS();
+		str->counter_lsb = STE_GET_ERR_LSB_COUNTER_ADDRESS();
+		break;
+	}
+
+	/* STE clear Errors Command Verification */
+	case STE_CLEAR_ERRORS_CMD_STR:
+	{
+		STE_CLEAR_CAPTURED_ERROR();
+		break;
+	}
+
 	default:
 	{
 		return STR_SIZE_ERR;
