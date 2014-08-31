@@ -717,7 +717,9 @@ struct table_create_params {
 	Attributes macros \endlink for more details. */
 	uint16_t attributes;
 
-	/** Table Key Size in bytes - In a case of LPM table:
+	/** Table Key Size in bytes (fixed per table).
+	In a case of EM table key size is limited to 1-124 Bytes
+	In a case of LPM table:
 	 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 	 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
 	In a case of MFLU table, size should not include the priority field.
@@ -951,11 +953,10 @@ void table_delete(enum table_hw_accel_id acc_id,
 @Param[in]	rule The rule to be added. The structure pointed by this
 		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
-@Param[in]	key_size Key size in bytes. \n
-		In a case of MFLU table, size should include the priority field.
-		\n In a case of LPM table:
-		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 
 @Return		0 on success, or negative value on error.
 
@@ -987,11 +988,10 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 @Param[in]	rule The rule to be added. The structure pointed by this
 		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
-@Param[in]	key_size Key size in bytes. \n
-		In a case of MFLU table, size should include the priority field.
-		\n In a case of LPM table:
-		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes.Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 @Param[in, out]	old_res The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned. If not null, structure should be
@@ -1030,11 +1030,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		rule result to be replaced. The structure pointed by this
 		pointer must be in the task's workspace and must be aligned to
 		16B boundary.
-@Param[in]	key_size Key size in bytes. \n
-		In a case of MFLU table, size should include the priority field.
-		\n In a case of LPM table:
-		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 @Param[in, out]	old_res The result of the replaced rule. If null the replaced
 		rule's result will not be returned. If not null, structure
 		should be allocated by the caller to this function.
@@ -1071,11 +1070,10 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 @Param[in]	key_desc Key Descriptor of the rule to be queried. The
 		structure pointed by this pointer must be in the task's
 		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size Key size in bytes. \n
-		In a case of MFLU table, size should include the priority field.
-		\n In a case of LPM table:
-		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 @Param[out]	result The result of the query. Structure should be allocated
 		by the caller to this function.
 @Param[out]	timestamp Timestamp of the result. Timestamp is not valid
@@ -1115,11 +1113,10 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 @Param[in]	key_desc Key Descriptor of the rule to be queried. The
 		structure pointed by this pointer must be in the task's
 		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size Key size in bytes. \n
-		In a case of MFLU table, size should include the priority field.
-		\n In a case of LPM table:
-		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 @Param[in, out]	result The result of the deleted rule. If null the deleted
 		rule's result will not be returned. If not null, structure
 		should be allocated by the caller to this function.
@@ -1164,11 +1161,10 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 @Param[in]	key_desc Lookup Key Descriptor of the rule to be queried. The
 		structure pointed by this pointer must be in the task's
 		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size Key size in bytes.
-		In a case of MFLU table, size should include the priority field.
-		In a case of LPM table:
-		 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
-		 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 @Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
@@ -1217,10 +1213,10 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Param[in]	keyid A Key Composition Rule (KCR) ID for the table lookups
 		(Key Composition Rule specifies how to build a key). The key
 		built by this KCR should fit \ref table_lookup_key_desc union
-		and it's size should be:
-		 - #TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
-		 - #TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
-		 - key size + priority field size (4 Bytes) for MFLU.
+		and it's size should be equal to the key size the table was
+		created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 @Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
@@ -1272,10 +1268,10 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 @Param[in]	keyid A Key Composition Rule (KCR) ID for the table lookups
 		(Key Composition Rule specifies how to build a key). The key
 		built by this KCR should fit \ref table_lookup_key_desc union
-		and it's size should be:
-		 - #TABLE_KEY_LPM_IPV4_SIZE for LPM IPv4.
-		 - #TABLE_KEY_LPM_IPV6_SIZE for LPM IPv6.
-		 - key size + priority field size (4 Bytes) for MFLU.
+		and it's size should be equal to the key size the table was
+		created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
 @Param[in]	flags Specifies options to this function, please refer to
 		\ref FSL_TABLE_LOOKUP_FLAG_DEFINES.
 @Param[in]	ndf_params Non defaults inputs to the key creation process.
