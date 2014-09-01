@@ -36,6 +36,7 @@
 #include "fsl_io_ccsr.h"
 #include "slab.h"
 #include "cmgw.h"
+#include "fsl_mc_init.h"
 
 extern t_system sys;
 
@@ -284,7 +285,7 @@ int run_apps(void)
 #ifndef AIOP_STANDALONE
 	int dev_count;
 	/* TODO: replace with memset */
-	struct dpbp dpbp = { 0 };
+	uint16_t dpbp = 0;
 	struct dprc_obj_desc dev_desc;
 	int dpbp_id = -1;
 	struct dpbp_attr attr;
@@ -313,14 +314,15 @@ int run_apps(void)
 	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
 
 
-	if ((err = dprc_get_obj_count(dprc, &dev_count)) != 0) {
+	if ((err = dprc_get_obj_count(&dprc->io, dprc->token,
+	                              &dev_count)) != 0) {
 		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
-		       dprc->auth);
+		       dprc->token);
 		return err;
 	}
 
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(dprc, i, &dev_desc);
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			/* TODO: print conditionally based on log level */
 			pr_info("Found First DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
@@ -334,19 +336,17 @@ int run_apps(void)
 		return -ENAVAIL;
 	}
 
-	dpbp.regs = dprc->regs;
-
-	if ((err = dpbp_open(&dpbp, dpbp_id)) != 0) {
+	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
 		pr_err("Failed to open DPBP-%d.\n", dpbp_id);
 		return err;
 	}
 
-	if ((err = dpbp_enable(&dpbp)) != 0) {
+	if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
 		pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
 		return err;
 	}
 
-	if ((err = dpbp_get_attributes(&dpbp, &attr)) != 0) {
+	if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
 		pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
 		return err;
 	}
@@ -366,7 +366,7 @@ int run_apps(void)
 
 	/* Enable all DPNI devices */
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(dprc, i, &dev_desc);
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			/* TODO: print conditionally based on log level */
 			print_dev_desc(&dev_desc);

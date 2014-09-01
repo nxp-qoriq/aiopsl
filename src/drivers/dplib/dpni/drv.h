@@ -37,6 +37,7 @@
 #include "dplib/fsl_dpni_drv.h"
 #include "net/fsl_net.h"
 #include "dplib/fsl_dprc.h"
+#include "fsl_mc_init.h"
 
 int dpni_drv_probe(struct dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
 		struct dpni_pools_cfg *pools_params);
@@ -80,7 +81,7 @@ struct dpni_drv {
 	/** call back application argument */
 	dpni_drv_app_arg_t  args[DPNI_DRV_MAX_NUM_FLOWS];
 	/** connection for the command interface */
-	struct dpni 		dpni;
+	uint16_t            dpni;
 };
 
 void receive_cb(void);

@@ -305,8 +305,10 @@ __HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 	pr  = (uint8_t)(fqid & 1);
 	fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
 	 /* Do it only if queue is not there yet */
-	if (fqid == 0xFFFFFFFF) {
-		err = dpci_get_attributes(&aiop_srv->dpci_tbl->dpci[ind],
+	if (fqid == DPCI_VFQID_NOT_VALID) {
+		struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+		err = dpci_get_attributes(&dprc->io,
+		                          aiop_srv->dpci_tbl->token[ind],
 		                          &aiop_srv->dpci_tbl->attr[ind]);
 		fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
 	}
@@ -400,6 +402,7 @@ static int notify_open()
 	struct dpci_obj *dpci_tbl = NULL;
 	int err = 0;
 	uint16_t pl_icid = PL_ICID_GET;
+	struct dprc *dprc = NULL;
 
 	pr_debug("Got notify open for AIOP client \n");
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
@@ -422,14 +425,16 @@ static int notify_open()
 		return -ENODEV;
 	}
 	 /* DEBUG in order not to call MC inside task */
-	 err = dpci_get_link_state(&dpci_tbl->dpci[ind], &link_up);
+	 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	 err = dpci_get_link_state(&dprc->io, dpci_tbl->token[ind], &link_up);
 	 if (err) {
 		 pr_err("Failed to get dpci_get_link_state\n");
 	 }
 #endif
 	 /* Do it only if queues are not there */
 	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == DPCI_VFQID_NOT_VALID) {
-		 err = dpci_get_attributes(&dpci_tbl->dpci[ind],
+		 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+		 err = dpci_get_attributes(&dprc->io, dpci_tbl->token[ind],
 		                           &dpci_tbl->attr[ind]);
 	 }
 
@@ -459,7 +464,7 @@ static int notify_open()
 	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
 	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
-	cl->gpp[count].regs->dpci_dev   = &dpci_tbl->dpci[ind];
+	cl->gpp[count].regs->dpci_token = dpci_tbl->token[ind];
 	cl->gpp[count].regs->attr       = &dpci_tbl->attr[ind];
 	cl->gpp[count].regs->icid       = dpci_tbl->icid[ind];
 	cl->gpp[count].regs->dma_flags  = dpci_tbl->dma_flags[ind];

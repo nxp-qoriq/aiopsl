@@ -39,6 +39,7 @@
 #include "system.h"
 
 extern __VERIF_TLS uint32_t fatal_fqid;
+extern __VERIF_TLS uint32_t sr_fm_flags;
 
 /*
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
@@ -243,6 +244,7 @@ void aiop_verification_fm()
 			   (struct fatal_error_command *)
 						((uint32_t)data_addr);
 			fatal_fqid = str->fqid;
+			sr_fm_flags = str->flags;
 			str_size = (uint16_t)
 			  sizeof(
 			     struct fatal_error_command);

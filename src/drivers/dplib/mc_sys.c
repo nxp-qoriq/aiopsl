@@ -1,16 +1,21 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
+/* Copyright 2014 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
  *
  * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -23,15 +28,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <fsl_dplib_sys.h>
-#include <fsl_cmdif_mc.h>
-#include <common/types.h>
+#include <fsl_mc_sys.h>
+#include <fsl_mc_cmd.h>
 #include <kernel/fsl_spinlock.h>
 
 __SHRAM uint8_t g_portal_lock;
 
-static int dplib_status_to_error(enum mc_cmd_status status)
+static int mc_status_to_error(enum mc_cmd_status status)
 {
 	switch (status) {
 	case MC_CMD_STATUS_OK:
@@ -64,28 +67,22 @@ static int dplib_status_to_error(enum mc_cmd_status status)
 	return -EINVAL;
 }
 
-int dplib_send(void *regs,
-	       int *auth,
-	       uint16_t cmd_id,
-	       uint16_t size,
-	       int pri,
-	       void *cmd_data)
+int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 {
-	struct mc_portal *portal = (struct mc_portal *)regs;
+	//struct mc_io *mc_portal = (struct mc_portal *)mc_io;
 	enum mc_cmd_status status;
 
-	if (!regs || !auth)
+	if (!mc_io)
 		return -EACCES;
 
 	/* --- Call lock function here in case portal is shared --- */
 	lock_spinlock(&g_portal_lock);
-
-	mc_cmd_write(portal, cmd_id, (uint16_t)(*auth),
-		     (uint8_t)size, pri, (struct mc_cmd_data *)cmd_data);
+	
+	mc_write_command(mc_io->regs, cmd);
 
 	/* Spin until status changes */
 	do {
-		status = mc_cmd_read_status(portal);
+		status = MC_CMD_HDR_READ_STATUS(ioread64(mc_io->regs));
 
 		/*
 		 * --- Call wait function here to prevent blocking ---
@@ -94,19 +91,18 @@ int dplib_send(void *regs,
 	} while (status == MC_CMD_STATUS_READY);
 
 	/* Read the response back into the command buffer */
-	if (cmd_data)
-		mc_cmd_read_response(portal, (struct mc_cmd_data *)cmd_data);
-
+	mc_read_response(mc_io->regs, cmd);
+#if 0
 	/*
 	 * The authentication id is read in create() or open() commands,
 	 * to setup the control session.
-	 */
-	if (0 == (*auth))
-		*auth = (int)mc_cmd_read_auth_id(portal);
-
+	 */ 
+	if (0 == mc_portal->auth)
+		mc_portal->auth = (int)mc_cmd_read_auth_id(mc_portal->regs);
+#endif
 	/* --- Call unlock function here in case portal is shared --- */
 	unlock_spinlock(&g_portal_lock);
 
-	return dplib_status_to_error(status);
+	return mc_status_to_error(status);
 }
 

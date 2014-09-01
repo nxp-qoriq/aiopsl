@@ -78,7 +78,7 @@ char * trim_path_prefix(char *filepath){
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
-		       char *message)
+		       char *message) __attribute__ ((noreturn))
 {
 	uint32_t status;
 #ifdef AIOP_VERIF
@@ -122,4 +122,6 @@ void exception_handler(char *filename,
 	status = -1 + (uint32_t)message + (uint32_t)filename + line +
 			(uint32_t)function_name;
 	fdma_terminate_task();
+	exit(-1); /* TODO This code is never reached and should be removed once
+	fdma_terminate_task() is declared as noreturn*/
 }

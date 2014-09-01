@@ -27,7 +27,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "dpni/drv.h"
+#include "fsl_dpni_drv.h"
 #include "fsl_fdma.h"
 #include "general.h"
 #include "fsl_time.h"

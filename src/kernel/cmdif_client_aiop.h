@@ -79,7 +79,7 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 #define CMDIF_NUM_PR  		2
 
 struct cmdif_reg {
-	struct dpci *dpci_dev;  /**< Open AIOP dpci device */
+	uint16_t dpci_token;	/**< Open AIOP dpci device */
 	struct dpci_attr *attr; /**< DPCI attributes */
 	uint32_t dma_flags;	/**< FDMA dma data flags */
 	uint32_t enq_flags;	/**< FDMA enqueue flags */

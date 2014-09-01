@@ -4,6 +4,8 @@ Table SRs: API - Aging and auto removal of rules because of aging were removed f
 Table SRs: API - Removal of reference counter auto-decrement due to TKT216018 and due to that in some cases the decrement is better done outside of the function performance wise.(e.g. IPR)
 Table SRs: API - Added a comment regarding deletion of table that contains a miss result of type reference pointer.
 Table SRs: API - Added documentation regarding the key id parmaeter for both table_lookup_by_keyid() and table_lookup_be_keyid_default_frame() functions.
+Table SRs: fix of ENGR00329133
+Table SRs: API - Added a remark that key size must be fixed per table.
 
 HM: API - changed ip_cksum_calculate return type to void.
 

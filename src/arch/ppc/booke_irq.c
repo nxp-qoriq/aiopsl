@@ -139,7 +139,7 @@ asm static void branch_table(void) {
     /* Machine Check Interrupt (Offset 0x10) */
     .align 0x10
     li  r3, 0x10
-    b  exception_irq
+    b  machine_irq
     
     /* Data Storage Interrupt (Offset 0x20) */
     .align 0x10
@@ -232,6 +232,13 @@ exception_irq:
     mtlr     r4
     blrl
     se_illegal
+    
+    /***************************************************/
+    /*** machine check *********************************/
+    /***************************************************/
+    .align 0x100
+machine_irq:
+    se_dnh
 }
 
 asm void booke_init_interrupt_vector(void)

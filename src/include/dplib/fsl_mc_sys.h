@@ -1,5 +1,4 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
+/* Copyright 2014 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -12,6 +11,12 @@
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
+ *
  * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,7 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #ifndef _FSL_DPLIB_SYS_H
 #define _FSL_DPLIB_SYS_H
 
@@ -60,11 +64,20 @@
 #include "common/types.h"
 #include "fsl_errors.h"
 #include "fsl_io.h"
+#define __iomem
 
 static inline uint64_t virt_to_phys(void *vaddr)
 {
-	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
+//	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
+	return (uint64_t)vaddr;
 }
+
+static inline uint64_t phys_to_virt(void *paddr)
+{
+//	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
+	return (uint64_t)paddr;
+}
+
 
 #define cpu_to_le64 CPU_TO_LE64
 
@@ -83,11 +96,8 @@ static inline uint64_t u64_dec(uint64_t val, int lsoffset, int width)
 	return (uint64_t)((val >> lsoffset) & MAKE_UMASK64(width));
 }
 
-int dplib_send(void *regs,
-	       int *auth,
-	uint16_t cmd_id,
-	uint16_t size,
-	int pri,
-	void *cmd_data);
+struct fsl_mc_io {
+	void *regs;
+};
 
 #endif /* _FSL_DPLIB_SYS_H */

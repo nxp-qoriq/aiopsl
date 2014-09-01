@@ -1,16 +1,21 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
+/* Copyright 2014 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
  *
  * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -23,8 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
 /*!
  *  @file    fsl_dpci.h
  *  @brief   Data Path Command Interface API
@@ -41,18 +44,7 @@
  * @{
  */
 
-#ifdef MC
-struct dpci;
-#else
-struct dpci {
-	void *regs;
-	/*!<
-	 * Pointer to command interface registers (virtual address);
-	 * Must be set by the user
-	 */
-	int auth; /*!< authentication ID */
-};
-#endif
+struct fsl_mc_io;
 
 #define DPCI_PRIO_NUM		2
 #define DPCI_VFQID_NOT_VALID	(uint32_t)(-1)
@@ -61,25 +53,27 @@ struct dpci {
  *
  * @brief	Open object handle - Required after close operation
  *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	dpci_id - DPCI unique ID
+ * @param[out]   token			Token of DPCI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	Required before any operation on the object
  */
-int dpci_open(struct dpci *dpci, int dpci_id);
+int dpci_open(struct fsl_mc_io *mc_io, int dpci_id, uint16_t *token);
 
 /**
  *
  * @brief	Closes the object handle, no further operations on the object
  *		are allowed before open
  *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_close(struct dpci *dpci);
+int dpci_close(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief	Structure representing DPCI configuration
@@ -93,25 +87,27 @@ struct dpci_cfg {
  * @brief	Creates object handle - Required before any operation on the
  *		object; Will allocate resources and preliminary initialization
  *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	cfg - configuration parameters
+ * @param[out]  token			Token of DPCI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  * @warning	This function should be called only once during
  *		lifetime of the object
  */
-int dpci_create(struct dpci *dpci, const struct dpci_cfg *cfg);
+int dpci_create(struct fsl_mc_io *mc_io, const struct dpci_cfg *cfg, uint16_t *token);
 
 /**
  *
  * @brief	Free the DPCI object and all its resources.
  *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  *
  * @returns	'0' on Success; error code otherwise.
  */
-int dpci_destroy(struct dpci *dpci);
+int dpci_destroy(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * @brief   DPCI destination types
@@ -143,7 +139,6 @@ struct dpci_dest_cfg {
 /*!<
  * 0-1 or 0-7 (depends on the channel type) to select the priority
  * (work-queue) within the channel (not relevant for the 'NONE' case)
- * in AIOP only this field will be used to choose the WQ inside the channel
  */
 };
 
@@ -151,72 +146,78 @@ struct dpci_dest_cfg {
  *
  * @brief	Attach the DPCI to the application
  *
- * @param[in]	dpci - Pointer to dpci object
- * @param[in]	priority - relative number to the DPCI priorities 0-num_of priorities configured in the dpci_create() call ; use 0xFF to configure all priorities
- *		identically.
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
+ * @param[in]	priority - relative number to the DPCI priorities 0-num_of
+ *		priorities configured in the dpci_create() call; use 0xFF to
+ *		configure all priorities identically.
  * @param[in]	dest_cfg - entry point configuration
  * @param[in]	rx_user_ctx - User context; will be received with the
  *		FD in Rx.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_set_rx_queue(struct dpci *dpci,
+int dpci_set_rx_queue(struct fsl_mc_io *mc_io, uint16_t token,
 		      uint8_t priority,
 	const struct dpci_dest_cfg *dest_cfg,
 	uint64_t rx_user_ctx);
 
 /**
  *
- * @brief	Enable the DCPI, will allow sending and receiving frames.
+ * @brief	Enable the DPCI, allows sending and receiving frames.
  *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  *
  * @returns	'0' on Success; Error code otherwise.
- * @warning	This function must be called before trying to send any data on the DPCI queues
+ * @warning	This function must be called before trying to send any data on
+ *		the DPCI queues
  *
  */
-int dpci_enable(struct dpci *dpci);
+int dpci_enable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  *
- * @brief	Disable the DCPI, will disallow sending and receiving frames.
+ * @brief	Disable the DPCI, disallows sending and receiving frames.
  *
- * @param[in]	dpci - Pointer to dpci object
- *
- * @returns	'0' on Success; Error code otherwise.
- */
-int dpci_disable(struct dpci *dpci);
-
-/**
- *
- * @brief	Reset the DCPI, will return to initial state.
- *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_reset(struct dpci *dpci);
+int dpci_disable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * @brief	Structure representing priority attributes parameters
+ *
+ * @brief	Reset the DPCI, will return to initial state.
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpci_reset(struct fsl_mc_io *mc_io, uint16_t token);
+
+/**
+ * @brief	Structure representing attributes of indicated priority queues
  */
 struct dpci_prio_attr {
 	uint32_t tx_qid;
-	/*!< QID to be used for sending frames towards the AIOP */
+	/*!< QID to be used for sending frames towards the peer DPCI */
 	uint32_t rx_qid;
-	/*!< QID to be used for reciving frames from the AIOP */
+	/*!< QID to be used for receiving frames from the peer DPCI */
 	uint64_t rx_user_ctx;
 	/*!< User context to be received with the frames FD on the RX queue */
 };
 
 /**
- * @brief	Structure representing attributes parameters
+ * @brief	Structure representing DPCI attributes
  */
 struct dpci_attr {
 	int id;
 	/*!< DPCI id */
 	uint8_t peer_attached;
-	/*!< DPCI is attached to a peer DPCI*/
+	/*!< DPCI is attached to a peer DPCI */
 	uint8_t peer_id;
 	/*!< DPCI peer id */
 	uint8_t num_of_priorities;
@@ -232,31 +233,33 @@ struct dpci_attr {
 
 /**
  *
- * @brief	Retrieve a single priority attributes.
+ * @brief	Retrieve the DPCI attributes.
  *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[out]	attr - Object's attributes
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_get_attributes(struct dpci *dpci, struct dpci_attr *attr);
+int dpci_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpci_attr *attr);
 
 /**
  *
- * @brief	Retrieve the DPCI state of the link to other DPCI .
+ * @brief	Retrieve the DPCI link state.
  *
- *			Each DPCI can be connected to a different DPCI, together they create a 'link',
- * 			each one is defining an entry point for a different entity, in order to use the
- * 			DPCI tx and rx queues the link state need to be up
+ *		DPCI can be connected to another DPCI, together they
+ *		create a 'link'. In order to use the DPCI Tx and Rx queues,
+ *		both objects must be enabled.
  *
- * @param[in]	dpci - Pointer to dpci object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[out]	up - link status
  *
  * @returns	'0' on Success; Error code otherwise.
  *
  *
  */
-int dpci_get_link_state(struct dpci *dpci, int *up);
+int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
 
 /*!
  * @name DPNI IRQ Index and Events
@@ -270,7 +273,8 @@ int dpci_get_link_state(struct dpci *dpci, int *up);
 /**
  * @brief	Sets IRQ information for the DPCI to trigger an interrupt.
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]	irq_index	Identifies the interrupt index to configure.
  * @param[in]	irq_paddr	Physical IRQ address that must be written to
  *				signal a message-based interrupt
@@ -279,7 +283,7 @@ int dpci_get_link_state(struct dpci *dpci, int *up);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_set_irq(struct dpci *dpci,
+int dpci_set_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
 	uint64_t irq_paddr,
 	uint32_t irq_val,
@@ -288,7 +292,8 @@ int dpci_set_irq(struct dpci *dpci,
 /**
  * @brief	Gets IRQ information from the DPCI.
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]  type		Interrupt type: 0 represents message interrupt
  *				type (both irq_paddr and irq_val are valid);
@@ -300,7 +305,7 @@ int dpci_set_irq(struct dpci *dpci,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_get_irq(struct dpci *dpci,
+int dpci_get_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
 	int *type,
 	uint64_t *irq_paddr,
@@ -315,26 +320,28 @@ int dpci_get_irq(struct dpci *dpci,
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[in]	enable_state	interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_set_irq_enable(struct dpci *dpci,
+int dpci_set_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
 	uint8_t enable_state);
 
 /**
  * @brief	Gets overall interrupt state
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	enable_state	interrupt state - enable = 1, disable = 0.
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_get_irq_enable(struct dpci *dpci,
+int dpci_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
 	uint8_t *enable_state);
 
@@ -344,7 +351,8 @@ int dpci_get_irq_enable(struct dpci *dpci,
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[in]	mask		event mask to trigger interrupt.
  *				each bit:
@@ -353,7 +361,7 @@ int dpci_get_irq_enable(struct dpci *dpci,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_set_irq_mask(struct dpci *dpci, uint8_t irq_index, uint32_t mask);
+int dpci_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -361,18 +369,20 @@ int dpci_set_irq_mask(struct dpci *dpci, uint8_t irq_index, uint32_t mask);
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	mask		event mask to trigger interrupt
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_get_irq_mask(struct dpci *dpci, uint8_t irq_index, uint32_t *mask);
+int dpci_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	status		interrupts status - one bit per cause
  *					0 = no interrupt pending
@@ -380,12 +390,13 @@ int dpci_get_irq_mask(struct dpci *dpci, uint8_t irq_index, uint32_t *mask);
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpci_get_irq_status(struct dpci *dpci, uint8_t irq_index, uint32_t *status);
+int dpci_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
  *
- * @param[in]	dpci		DPCI descriptor object
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token			Token of DPCI object
  * @param[in]   irq_index	The interrupt index to configure;
  * @param[out]	status		bits to clear (W1C) - one bit per cause
  *					0 = don't change
@@ -393,7 +404,7 @@ int dpci_get_irq_status(struct dpci *dpci, uint8_t irq_index, uint32_t *status);
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpci_clear_irq_status(struct dpci *dpci,
+int dpci_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
 	uint32_t status);
 
