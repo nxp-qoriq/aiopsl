@@ -44,10 +44,10 @@
 #define DPIO_VER_MINOR				0
 
 /* cmd IDs */
-#define MC_DPIO_CMDID_CLOSE				0x800
-#define MC_DPIO_CMDID_OPEN				0x803
-#define MC_DPIO_CMDID_CREATE				0x903
-#define MC_DPIO_CMDID_DESTROY				0x900
+#define DPIO_CMDID_CLOSE				0x800
+#define DPIO_CMDID_OPEN					0x803
+#define DPIO_CMDID_CREATE				0x903
+#define DPIO_CMDID_DESTROY				0x900
 
 #define DPIO_CMDID_RESET				0x112
 #define DPIO_CMDID_ENABLE				0x114

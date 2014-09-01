@@ -45,10 +45,10 @@
 #define DPBP_VER_MINOR				0
 
 /* cmd IDs */
-#define MC_DPBP_CMDID_CLOSE				0x800
-#define MC_DPBP_CMDID_OPEN				0x804
-#define MC_DPBP_CMDID_CREATE				0x904
-#define MC_DPBP_CMDID_DESTROY				0x900
+#define DPBP_CMDID_CLOSE				0x800
+#define DPBP_CMDID_OPEN					0x804
+#define DPBP_CMDID_CREATE				0x904
+#define DPBP_CMDID_DESTROY				0x900
 
 #define DPBP_CMDID_RESET				0x103
 #define DPBP_CMDID_ENABLE				0x105

@@ -44,10 +44,10 @@
 #define DPCI_VER_MINOR				0
 
 /* cmd IDs */
-#define MC_DPCI_CMDID_CLOSE				0x800
-#define MC_DPCI_CMDID_OPEN				0x807
-#define MC_DPCI_CMDID_CREATE				0x907
-#define MC_DPCI_CMDID_DESTROY				0x900
+#define DPCI_CMDID_CLOSE				0x800
+#define DPCI_CMDID_OPEN					0x807
+#define DPCI_CMDID_CREATE				0x907
+#define DPCI_CMDID_DESTROY				0x900
 
 #define DPCI_CMDID_SET_RX_QUEUE				0x184
 #define DPCI_CMDID_ENABLE				0x186
