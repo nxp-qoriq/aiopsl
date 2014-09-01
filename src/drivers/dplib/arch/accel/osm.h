@@ -35,6 +35,7 @@
 #define __OSM_H_
 
 #include "general.h"
+#include "fsl_errors.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -127,5 +128,22 @@ inline void osm_task_init(void)
 	default_task_params.scope_mode_level_arr[3] = 0x00;
 }
 
+/**************************************************************************//**
+ @enum osm_errors
+
+ @Description	AIOP OSM Error codes.
+
+ @{
+*//***************************************************************************/
+enum osm_errors {
+		/** Success. */
+	OSM_SUCCESS = E_OK,
+		/** Transition from no scope (null scope_id). */
+	OSM_TRANSITION_FROM_NO_SCOPE_ERR = 0x1,
+		/** Duplicate scope identifier detected. (DID error) */
+	OSM_DUPLICATE_SCOPE_ERR = 0x2,
+};
+
+/* @} end of enum osm_errors */
 
 #endif /* __OSM_H_ */
