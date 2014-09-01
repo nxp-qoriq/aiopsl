@@ -224,10 +224,11 @@ struct parser_input_message_params {
 		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
 		\ref FSL_PARSER_ERROR_CODES.
 
-@Retval		0 – Success
+@Retval		0 - Success
 @Retval		EIO - Parsing Error
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of 256 bytes before completing all parsing)
+		of the minimum between presentation_length and 256 bytes before
+		completing all parsing)
 
 @Cautions	In this function the task yields.
 		This function expects gross running sum field to be valid.
