@@ -37,20 +37,19 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 
 
-int osm_scope_transition_to_exclusive_with_increment_scope_id(void)
+void osm_scope_transition_to_exclusive_with_increment_scope_id(void)
 {
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_OP,
 			OSM_SCOPE_ID_STAGE_INCREMENT_MASK)) {
-		return 1;
+		handle_fatal_error((char *)OSM_TRANSITION_FROM_NO_SCOPE_ERR); /*TODO Fatal error*/
 	} else {
 		/** 1 = Exclusive mode. */
 		REGISTER_OSM_EXCLUSIVE;
-		return 0;
 	}
 }
 
-int osm_scope_transition_to_exclusive_with_new_scope_id(
+void osm_scope_transition_to_exclusive_with_new_scope_id(
 		uint32_t scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
@@ -83,29 +82,27 @@ int osm_scope_transition_to_exclusive_with_new_scope_id(
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_WITH_NEW_SCOPEID_OP,
 			scope_id)) {
-		return 1;
+		handle_fatal_error((char *)OSM_TRANSITION_FROM_NO_SCOPE_ERR); /*TODO Fatal error*/
 	} else {
 		/** 1 = Exclusive mode. */
 		REGISTER_OSM_EXCLUSIVE;
-		return 0;
 		}
 }
 
-int osm_scope_transition_to_concurrent_with_increment_scope_id(void)
+void osm_scope_transition_to_concurrent_with_increment_scope_id(void)
 {
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_CONCUR_OP,
 		OSM_SCOPE_ID_STAGE_INCREMENT_MASK)) {
-		return 1;
+		handle_fatal_error((char *)OSM_TRANSITION_FROM_NO_SCOPE_ERR); /*TODO Fatal error*/
 	} else {
 		/** 0 = Concurrent mode. */
 		REGISTER_OSM_CONCURRENT;
-		return 0;
 		}
 }
 
-int osm_scope_transition_to_concurrent_with_new_scope_id(
+void osm_scope_transition_to_concurrent_with_new_scope_id(
 		uint32_t scope_id) {
 
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
@@ -138,11 +135,10 @@ int osm_scope_transition_to_concurrent_with_new_scope_id(
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_CONCUR_WITH_NEW_SCOPEID_OP,
 			scope_id)) {
-		return 1;
+		handle_fatal_error((char *)OSM_TRANSITION_FROM_NO_SCOPE_ERR); /*TODO Fatal error*/
 	} else {
 		/** 0 = Concurrent mode. */
 		REGISTER_OSM_CONCURRENT;
-		return 0;
 		}
 }
 
@@ -155,13 +151,16 @@ void osm_scope_relinquish_exclusivity(void)
 	REGISTER_OSM_CONCURRENT;
 }
 
-int osm_scope_enter_to_exclusive_with_increment_scope_id(void)
+void osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 {
 
+	if (default_task_params.current_scope_level == LEVEL4)
+		return;
+	
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
 			, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-		return 1;
+		handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 	} else {
 		default_task_params.current_scope_level++;
 		if (default_task_params.current_scope_level > 1)
@@ -171,13 +170,16 @@ int osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 					CONCURRENT;
 		/** 1 = Child: Exclusive mode. */
 		REGISTER_OSM_EXCLUSIVE;
-		return 0;
+		return;
 	}
 }
 
-int osm_scope_enter_to_exclusive_with_new_scope_id(
+void osm_scope_enter_to_exclusive_with_new_scope_id(
 		uint32_t child_scope_id) {
 
+	if (default_task_params.current_scope_level == LEVEL4)
+		return;
+	
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
 	switch (default_task_params.current_scope_level) {
 	case (LEVEL0):
@@ -214,7 +216,7 @@ int osm_scope_enter_to_exclusive_with_new_scope_id(
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP, child_scope_id)) {
-		return 1;
+		handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 	} else {
 		default_task_params.current_scope_level++;
 		if (default_task_params.current_scope_level > 1)
@@ -224,16 +226,18 @@ int osm_scope_enter_to_exclusive_with_new_scope_id(
 					CONCURRENT;
 		/** 1 = Child: Exclusive mode. */
 		REGISTER_OSM_EXCLUSIVE;
-		return 0;
+		return;
 	}
 }
 
-int osm_scope_enter(
+void osm_scope_enter(
 		uint32_t scope_enter_flags,
 		uint32_t child_scope_id) {
 
+	if (default_task_params.current_scope_level == LEVEL4)
+		return;
+	
 	switch (scope_enter_flags) {
-
 	case (OSM_SCOPE_ENTER_CHILD_TO_CONCURENT):
 	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
@@ -273,12 +277,12 @@ int osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_OP,
 			child_scope_id)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			/** 0 = Child: Concurrent mode. */
 			REGISTER_OSM_CONCURRENT;
-			return 0;
+			return;
 		}
 		break;
 	}
@@ -288,12 +292,12 @@ int osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_SCOPE_INC_OP,
 				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			/** 0 = Child: Concurrent mode. */
 			REGISTER_OSM_CONCURRENT;
-			return 0;
+			return;
 		}
 		break;
 	}
@@ -337,7 +341,7 @@ int osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_REL_PARENT_OP,
 			child_scope_id)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
@@ -347,7 +351,7 @@ int osm_scope_enter(
 						CONCURRENT;
 			/** 0 = Child: Concurrent mode. */
 			REGISTER_OSM_CONCURRENT;
-			return 0;
+			return;
 		}
 		break;
 	}
@@ -358,7 +362,7 @@ int osm_scope_enter(
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_CONC_SCOPE_INC_REL_PARENT_OP
 				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
@@ -368,7 +372,7 @@ int osm_scope_enter(
 						CONCURRENT;
 			/** 0 = Child: Concurrent mode. */
 			REGISTER_OSM_CONCURRENT;
-			return 0;
+			return;
 		}
 		break;
 	}
@@ -411,12 +415,12 @@ int osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_EXCL_OP, child_scope_id)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			/** 1 = Child: Exclusive mode. */
 			REGISTER_OSM_EXCLUSIVE;
-			return 0;
+			return;
 		}
 		break;
 	}
@@ -426,12 +430,12 @@ int osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_OP,
 				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			/** 1 = Child: Exclusive mode. */
 			REGISTER_OSM_EXCLUSIVE;
-			return 0;
+			return;
 		}
 		break;
 	}
@@ -475,7 +479,7 @@ int osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP,
 				child_scope_id)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
@@ -485,7 +489,7 @@ int osm_scope_enter(
 						CONCURRENT;
 			/** 1 = Child: Exclusive mode. */
 			REGISTER_OSM_EXCLUSIVE;
-			return 0;
+			return;
 		}
 		break;
 	}
@@ -497,7 +501,7 @@ int osm_scope_enter(
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
 				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			return 1;
+			handle_fatal_error((char *)OSM_DUPLICATE_SCOPE_ERR); /*TODO Fatal error*/
 		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
@@ -507,12 +511,12 @@ int osm_scope_enter(
 						CONCURRENT;
 			/** 1 = Child: Exclusive mode. */
 			REGISTER_OSM_EXCLUSIVE;
-			return 0;
+			return;
 		}
 		break;
 	}
 	default:
-		return 1;
+		return;
 		break;
 	}
 }
