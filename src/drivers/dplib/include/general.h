@@ -232,7 +232,7 @@ void handle_fatal_error(char *message);
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
-		       char *message);
+		       char *message) __attribute__ ((noreturn));
 
 #ifdef AIOP_VERIF
 /**************************************************************************//**

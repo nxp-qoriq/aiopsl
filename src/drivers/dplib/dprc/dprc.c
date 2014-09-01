@@ -55,7 +55,7 @@ int dprc_open(struct fsl_mc_io *mc_io, int container_id, uint16_t *token)
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(MC_DPRC_CMDID_OPEN, MC_CMD_PRI_LOW,
+	cmd.header = mc_encode_cmd_header(DPRC_CMDID_OPEN, MC_CMD_PRI_LOW,
 	                                  0);
 	DPRC_CMD_OPEN(cmd, container_id);
 
@@ -72,7 +72,7 @@ int dprc_close(struct fsl_mc_io *mc_io, uint16_t token)
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(MC_DPRC_CMDID_CLOSE, MC_CMD_PRI_HIGH,
+	cmd.header = mc_encode_cmd_header(DPRC_CMDID_CLOSE, MC_CMD_PRI_HIGH,
 	                                  token);
 	
 	/* send command to mc*/

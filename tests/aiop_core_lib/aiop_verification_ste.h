@@ -64,45 +64,53 @@ enum e_ste_verif_cmd_type {
 	STE_CMDTYPE_INC_SUB,
 	STE_CMDTYPE_DEC_ADD,
 	STE_CMDTYPE_DEC_SUB,
-	STE_CMDTYPE_BARRIER
+	STE_CMDTYPE_BARRIER,
+	STE_CMDTYPE_READ_ERRORS,
+	STE_CMDTYPE_CLEAR_ERRORS
 };
 
 /* STE Commands Structure identifiers */
-#define STE_SET_4B_CMD_STR	((STE_MODULE << 16) | \
+#define STE_SET_4B_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_SET_4B)
 
-#define STE_SET_8B_CMD_STR	((STE_MODULE << 16) | \
+#define STE_SET_8B_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_SET_8B)
 
-#define STE_ADD_CMD_STR		((STE_MODULE << 16) | \
+#define STE_ADD_CMD_STR			((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_ADD)
 
-#define STE_SUB_CMD_STR		((STE_MODULE << 16) | \
+#define STE_SUB_CMD_STR			((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_SUB)
 
-#define STE_ADD_CMD_STR	((STE_MODULE << 16) | \
+#define STE_ADD_CMD_STR			((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_ADD)
 
-#define STE_DEC_CMD_STR	((STE_MODULE << 16) | \
+#define STE_DEC_CMD_STR			((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC)
 
-#define STE_DEC_8B_CMD_STR	((STE_MODULE << 16) | \
+#define STE_DEC_8B_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC_8B)
 
-#define STE_INC_ACC_CMD_STR	((STE_MODULE << 16) | \
+#define STE_INC_ACC_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_INC_ADD)
 
-#define STE_INC_SUB_CMD_STR	((STE_MODULE << 16) | \
+#define STE_INC_SUB_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_INC_SUB)
 
-#define STE_DEC_ACC_CMD_STR	((STE_MODULE << 16) | \
+#define STE_DEC_ACC_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC_ADD)
 
-#define STE_DEC_SUB_CMD_STR	((STE_MODULE << 16) | \
+#define STE_DEC_SUB_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC_SUB)
 
-#define STE_BARRIER_CMD_STR	((STE_MODULE << 16) | \
+#define STE_BARRIER_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_BARRIER)
+
+#define STE_READ_ERRORS_CMD_STR		((STE_MODULE << 16) | \
+		(uint32_t)STE_CMDTYPE_READ_ERRORS)
+
+#define STE_CLEAR_ERRORS_CMD_STR	((STE_MODULE << 16) | \
+		(uint32_t)STE_CMDTYPE_CLEAR_ERRORS)
 
 /**************************************************************************//**
 @Description	STE set 4 byte counter Command structure.
@@ -168,6 +176,31 @@ struct ste_compound_command {
 		Includes information needed for STE Command verification.
 *//***************************************************************************/
 struct ste_barrier_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+};
+
+/**************************************************************************//**
+@Description	STE Get error params Commands structure.
+
+		Includes information needed for STE Command verification.
+*//***************************************************************************/
+struct ste_read_error_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint32_t	status_reg;
+	uint32_t	capture_attributes;
+	uint32_t	acc_value;
+	uint32_t	counter_msb;
+	uint32_t	counter_lsb;
+};
+
+/**************************************************************************//**
+@Description	STE clear errors Commands structure.
+
+		Includes information needed for STE Command verification.
+*//***************************************************************************/
+struct ste_clear_error_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 };

@@ -117,6 +117,18 @@
 /** MFLU small key (lead node takes 2 entries) max size */
 #define TABLE_MFLU_SMALL_KEY_MAX_SIZE				42
 
+/** Number of entries needed for a tiny small key */
+#define TABLE_EM_KEYSIZE_1_TO_24_BYTES_ENTRIES_PER_RULE		1
+
+/** Number of entries needed for a medium EM key */
+#define TABLE_EM_KEYSIZE_25_TO_60_BYTES_ENTRIES_PER_RULE	2
+
+/** Number of entries needed for a big EM key */
+#define TABLE_EM_KEYSIZE_61_TO_96_BYTES_ENTRIES_PER_RULE	3
+
+/** Number of entries needed for a huge EM key */
+#define TABLE_EM_KEYSIZE_97_TO_124_BYTES_ENTRIES_PER_RULE	4
+
 /** Number of entries needed for IPv4 LPM rule in worst case */
 #define TABLE_LPM_IPV4_WC_ENTRIES_PER_RULE			5
 
@@ -813,7 +825,7 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 @Param[in]	func_id - The function in which the error occurred.
 @Param[in]	line - The line in which the error occurred.
-@Param[in]	status - Status to be handled be this function.
+@Param[in]	status - Status to be handled in this function.
 
 @Return		None.
 
@@ -821,7 +833,7 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 *//***************************************************************************/
 void table_exception_handler_wrp(enum table_function_identifier func_id,
 				 uint32_t line,
-				 int32_t status);
+				 int32_t status) __attribute__ ((noreturn));
 
 /**************************************************************************//**
 @Function	table_exception_handler
@@ -832,7 +844,7 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 @Param[in]	file_path - The path of the file in which the error occurred.
 @Param[in]	func_id - The function in which the error occurred.
 @Param[in]	line - The line in which the error occurred.
-@Param[in]	status - Status to be handled be this function.
+@Param[in]	status_id - Status ID to be handled in this function.
 
 @Return		None.
 
@@ -841,7 +853,7 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 void table_exception_handler(char *file_path,
 			     enum table_function_identifier func_id,
 			     uint32_t line,
-			     int32_t status);
+			     int32_t status_id) __attribute__ ((noreturn));
 
 /**************************************************************************//**
 @Function	table_calc_num_entries_per_rule
