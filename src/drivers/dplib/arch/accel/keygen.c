@@ -764,7 +764,7 @@ int keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 	       ((uint32_t)key_size) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call CTLU accelerator */
-	__e_hwacceli(KEYGEN_ACCEL_ID_CTLU); /*TODO*/
+	__e_hwacceli(KEYGEN_ACCEL_ID_CTLU);
 
 	*hash = *((uint32_t *)HWC_ACC_OUT_ADDRESS2);
 

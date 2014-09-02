@@ -265,7 +265,9 @@ enum e_tman_query_timer {
 		number of timers needed in this TMI.
 @Param[out]	tmi_id - TMAN instance ID (TMI ID).
 
-@Return		Success or Failure (There is no available TMI ID).
+@Return		0 on success, or negative value on error.
+@Retval		ENOSPC - All TMIs are used. A TMI must be deleted before a new
+		one can be created.
 
 @Cautions	This function performs a task switch.
 		Please note that the total number of instances that are
@@ -301,11 +303,11 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		task.
 
 
-@Return		Success or Failure(in case instance_id is not valid)
+@Return		None.
 
 @Cautions	This function performs a task switch.
 *//***************************************************************************/
-int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
+void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
 			tman_arg_2B_t conf_opaque_data2);
 
@@ -322,7 +324,9 @@ int tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 		The pointer must be a 16 Bytes aligned pointer to the workspace
 		memory.
 
-@Return		Success or Failure(in case instance_id is not valid)
+@Return		0 on success, or negative value on error.
+@Retval		ENAVAIL - The TMI that was provided is a non active one.
+@Retval		EACCES - The provided TMI is currently being deletes or created.
 
 @Cautions	This function performs a task switch.
 
@@ -348,8 +352,12 @@ int tman_query_tmi(uint8_t tmi_id,
 @Param[out]	timer_handle - the handle of the timer for future reference.
 		The handle includes the tmi ID and timer ID values.
 
-@Return		Success or Failure(instance_id is not valid or no available
-		timer)
+@Return		0 on success, or negative value on error.
+@Retval		ENOSPC - All timers are used. A timer must be deleted or elapse
+		and confirmed before a new one can be created. This error can
+		occur when the SW has missed a confirmation for a timer. 
+@Retval		EBUSY - The timer was not created due to high TMAN and AIOP
+		load.
 
 @Cautions	This function performs a task switch.
 
@@ -369,7 +377,10 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 @Param[in]	flags - \link TMANTimerDeleteModeBits TMAN timer
 		delete flags \endlink.
 
-@Return		Success or Failure(in case the one-shot timer already expired).
+@Return		0 on success, or negative value on error.
+@Retval		ETIMEDOUT - The timer cannot be deleted. The timer aimed to be
+		deleted expiration date is currently being processed by the
+		TMAN. The timer will elapse shortly.
 
 @Cautions	This function performs a task switch.
 
@@ -404,11 +415,13 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 /**************************************************************************//**
 @Function	tman_recharge_timer
 
-@Description	Re-start TMAN timer to the initial value.
+@Description	Re-start TMAN one-shot timer to the initial value.
 
 @Param[in]	timer_handle - The handle of the timer to be re-started.
 
-@Return		Success or Failure(tmi/timer is not existing).
+@Return		0 on success, or negative value on error.
+@Retval		ETIMEDOUT - The timer has already elapsed or is going to elapse
+		in this timer tick therefore it cannot be recharged.
 
 @Cautions	This function performs a task switch.
 
@@ -424,12 +437,12 @@ int tman_recharge_timer(uint32_t timer_handle);
 @Param[out]	state - the state of the specified timer
 		\ref e_tman_query_timer.
 
-@Return		Success or Failure(tmi/timer is not existing).
+@Return		None.
 
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int tman_query_timer(uint32_t timer_handle,
+void tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state);
 
 /**************************************************************************//**

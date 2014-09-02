@@ -159,18 +159,15 @@ int dpni_close(struct fsl_mc_io *mc_io, uint16_t token);
 /*!< IPSec transport support */
 #define DPNI_OPT_VLAN_MANIPULATION		0x00010000
 /*!< vlan manipulation support */
+#define DPNI_OPT_QOS_MASK_SUPPORT		0x00020000
+/*!< QoS mask support */
+#define DPNI_OPT_FS_MASK_SUPPORT		0x00040000
+/*!< flow-steering mask support */
 /* @} */
 
 /**
- * @brief	DPNI types
- *
+ * @brief	Structure representing IPR configuration
  */
-enum dpni_type {
-	DPNI_TYPE_NI = 1, /*!< DPNI of type NI */
-	DPNI_TYPE_NIC
-/*!< DPNI of type NIC */
-};
-
 struct dpni_ipr_cfg {
 	uint16_t max_reass_frm_size;
 	uint16_t min_frag_size_ipv4;
@@ -183,24 +180,26 @@ struct dpni_ipr_cfg {
  * @brief	Structure representing DPNI configuration
  */
 struct dpni_cfg {
-	enum dpni_type type; /*!< DPNI Type */
 	uint8_t mac_addr[6]; /*!< Primary mac address */
-	enum net_prot start_hdr;
-	/*!< Valid only in the case 'type = DPNI_TYPE_NI';
-	 * In NIC case will be set to NET_PROT_ETH */
 	struct {
 		uint64_t options;
 		/*!< Mask of available options; use 'DPNI_OPT_XXX' */
+		enum net_prot start_hdr; /* If either 'NET_PROT_ETH' or
+		 'NET_PROT_NONE' than will be treated as NIC otherwise as NI */
 		uint8_t max_senders;
 		/*!< maximum number of different senders; will be used as the
-		 * number of dedicated tx flows; '0' will be treated as '1' */
+		 * number of dedicated tx flows; In case it isn't power-of-2 it
+		 * will be ceiling to the next power-of-2 as HW demand it;
+		 * '0' will be treated as '1' */
 		uint8_t max_tcs;
 		/*!< maximum number of traffic-classes;
 		 will affect both Tx & Rx; '0' will e treated as '1' */
 		uint16_t max_dist_per_tc[DPNI_MAX_TC];
 		/*!< maximum distribution's size per Rx traffic-class;
 		 represent the maximum DPIO objects that will be
-		 referenced by this TC; '0' will e treated as '1' */
+		 referenced by this TC; In case it isn't power-of-2 it will
+		 be ceiling to the next power-of-2 as HW demand it;
+		 '0' will e treated as '1' */
 		uint8_t max_unicast_filters;
 		/*!< maximum number of unicast filters; '0' will be treated
 		 as 'DPNI_MAX_UNICAST_FILTERS' */
@@ -465,7 +464,7 @@ int dpni_set_pools(struct fsl_mc_io *mc_io, uint16_t token, const struct dpni_po
  * @brief   DPNI destination types
  */
 enum dpni_dest {
-	DPNI_DEST_NONE = 0,
+	DPNI_DEST_NONE,
 	/*!< unassigned destination; i.e. queues will be set in parked mode  */
 	DPNI_DEST_DPIO,
 	/*!< queues will generate notification to the dpio's channel;
@@ -578,10 +577,8 @@ int dpni_reset(struct fsl_mc_io *mc_io, uint16_t token);
  */
 struct dpni_attr {
 	int id; /*!< DPNI ID */
-	enum dpni_type type; /*!< DPNI Type */
 	enum net_prot start_hdr;
-	/*!< Valid only in the case 'type = DPNI_TYPE_NI';
-	 * In NIC case will be set to NET_PROT_ETH */
+	/*!< 'NET_PROT_ETH' for NIC else for NI */
 	uint64_t options; /*!< reflect the value as was given in the
 	 initialization phase */
 	uint8_t max_senders; /*!< reflect the value as was given in the
@@ -837,7 +834,7 @@ int dpni_get_tx_data_offset(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *d
  *
  */
 enum dpni_counter {
-	DPNI_CNT_ING_FRAME = 1,
+	DPNI_CNT_ING_FRAME,
 	/*!< Ingress frame count */
 	DPNI_CNT_ING_BYTE,
 	/*!< Ingress byte count */
@@ -980,6 +977,28 @@ int dpni_get_multicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int *en)
 
 /**
  *
+ * @brief	Enable/Disable unicast promiscuous mode
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	en - '1' for enabling/'0' for disabling
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_unicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int en);
+
+/**
+ *
+ * @brief	Get unicast promiscuous mode
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[out]	en - '1' for enabling/'0' for disabling
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_unicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int *en);
+
+/**
+ *
  * @brief	Set the primary mac address
  *
  * @param[in]	mc_io		Pointer to opaque I/O object
@@ -1118,7 +1137,7 @@ int dpni_set_tx_tc(struct fsl_mc_io *mc_io, uint16_t token,
  * @brief	distribution mode
  */
 enum dpni_dist_mode {
-	DPNI_DIST_MODE_NONE = 0,/*!< no distribution */
+	DPNI_DIST_MODE_NONE,/*!< no distribution */
 	DPNI_DIST_MODE_HASH, /*!< hash-distribution */
 	DPNI_DIST_MODE_FS
 /*!< flow-steering distribution */
@@ -1128,7 +1147,9 @@ enum dpni_dist_mode {
  * @brief	Structure representing DPNI RX TC parameters
  */
 struct dpni_rx_tc_cfg {
-	uint16_t dist_size; /*!< set the distribution size */
+	uint16_t dist_size; /*!< set the distribution size;
+	 In case it isn't power-of-2 it will be ceiling to the next
+	 power-of-2 as HW demand it */
 	enum dpni_dist_mode dist_mode; /*!< distribution mode */
 	struct dpkg_profile_cfg *extract_cfg;
 /*!< define the extractions to be used for the distribution key */
@@ -1392,7 +1413,7 @@ int dpni_clear_qos_table(struct fsl_mc_io *mc_io, uint16_t token);
  * @brief   DPNI Flow-Steering miss action
  */
 enum dpni_fs_miss_action {
-	DPNI_FS_MISS_DROP = 0,
+	DPNI_FS_MISS_DROP,
 	/*!< in case of no-match drop the frame  */
 	DPNI_FS_MISS_EXPLICIT_FLOWID,
 	/*!< in case of no-match go to explicit flow-id */

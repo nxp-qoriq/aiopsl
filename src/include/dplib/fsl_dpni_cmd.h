@@ -49,24 +49,10 @@ struct extract_data {
 #define DPNI_VER_MINOR				1
 
 /* cmd IDs */
-#define MC_DPNI_CMDID_CLOSE			0x800
-#define MC_DPNI_CMDID_OPEN			0x801
-#define MC_DPNI_CMDID_CREATE			0x901
-#define MC_DPNI_CMDID_DESTROY			0x900
-
-#define DPNI_CMDID_ENABLE			0x002
-#define DPNI_CMDID_DISABLE			0x003
-#define DPNI_CMDID_GET_ATTR			0x004
-#define DPNI_CMDID_RESET			0x005
-
-#define DPNI_CMDID_SET_IRQ			0x010
-#define DPNI_CMDID_GET_IRQ			0x011
-#define DPNI_CMDID_SET_IRQ_ENABLE		0x012
-#define DPNI_CMDID_GET_IRQ_ENABLE		0x013
-#define DPNI_CMDID_SET_IRQ_MASK			0x014
-#define DPNI_CMDID_GET_IRQ_MASK			0x015
-#define DPNI_CMDID_GET_IRQ_STATUS		0x016
-#define DPNI_CMDID_CLEAR_IRQ_STATUS		0x017
+#define DPNI_CMDID_CLOSE			0x800
+#define DPNI_CMDID_OPEN				0x801
+#define DPNI_CMDID_CREATE			0x901
+#define DPNI_CMDID_DESTROY			0x900
 
 #define DPNI_CMDID_GET_L3_CHKSUM_VALIDATION	0x120
 #define DPNI_CMDID_SET_L3_CHKSUM_VALIDATION	0x121
@@ -75,11 +61,16 @@ struct extract_data {
 #define DPNI_CMDID_ATTACH			0x125
 #define DPNI_CMDID_DETACH			0x126
 #define DPNI_CMDID_SET_POOLS			0x127
+
 #define DPNI_CMDID_SET_TX_TC			0x129
 #define DPNI_CMDID_SET_RX_TC			0x12A
 #define DPNI_CMDID_SET_TX_FLOW			0x12B
 #define DPNI_CMDID_GET_TX_FLOW			0x12C
+#define DPNI_CMDID_RESET			0x12D
+#define DPNI_CMDID_GET_ATTR			0x12E
 #define DPNI_CMDID_GET_QDID			0x12F
+#define DPNI_CMDID_ENABLE			0x130
+#define DPNI_CMDID_DISABLE			0x131
 #define DPNI_CMDID_GET_COUNTER			0x132
 #define DPNI_CMDID_SET_COUNTER			0x133
 #define DPNI_CMDID_GET_LINK_STATE		0x134
@@ -87,6 +78,8 @@ struct extract_data {
 #define DPNI_CMDID_SET_MTU			0x136
 #define DPNI_CMDID_SET_MCAST_PROMISC		0x137
 #define DPNI_CMDID_GET_MCAST_PROMISC		0x138
+#define DPNI_CMDID_SET_UNICAST_PROMISC		0x167
+#define DPNI_CMDID_GET_UNICAST_PROMISC		0x168
 #define DPNI_CMDID_SET_PRIM_MAC			0x139
 #define DPNI_CMDID_ADD_MAC_ADDR			0x13A
 #define DPNI_CMDID_REMOVE_MAC_ADDR		0x13B
@@ -104,6 +97,7 @@ struct extract_data {
 #define DPNI_CMDID_ADD_FS_ENT			0x148
 #define DPNI_CMDID_REMOVE_FS_ENT		0x149
 #define DPNI_CMDID_CLR_FS_TBL			0x14A
+#define DPNI_CMDID_SET_IRQ			0x14B
 #define DPNI_CMDID_SET_TX_PAUSE_FRAMES		0x14C
 #define DPNI_CMDID_SET_RX_IGNORE_PAUSE_FRAMES	0x14D
 #define DPNI_CMDID_SET_VLAN_FILTERS		0x14E
@@ -115,7 +109,13 @@ struct extract_data {
 #define DPNI_CMDID_GET_MTU			0x153
 #define DPNI_CMDID_GET_RX_BUFFER_LAYOUT		0x154
 #define DPNI_CMDID_SET_RX_BUFFER_LAYOUT		0x155
-
+#define DPNI_CMDID_GET_IRQ			0x156
+#define DPNI_CMDID_SET_IRQ_ENABLE		0x157
+#define DPNI_CMDID_GET_IRQ_ENABLE		0x158
+#define DPNI_CMDID_SET_IRQ_MASK			0x159
+#define DPNI_CMDID_GET_IRQ_MASK			0x15A
+#define DPNI_CMDID_GET_IRQ_STATUS		0x15B
+#define DPNI_CMDID_CLEAR_IRQ_STATUS		0x15C
 #define DPNI_CMDID_GET_TX_BUFFER_LAYOUT		0x15D
 #define DPNI_CMDID_SET_TX_BUFFER_LAYOUT		0x15E
 #define DPNI_CMDID_GET_TX_CONF_BUFFER_LAYOUT	0x15F
@@ -150,6 +150,7 @@ do { \
 	MC_CMD_OP(cmd, 2, 16,	8,  uint8_t,  cfg->adv.max_vlan_filters); \
 	MC_CMD_OP(cmd, 2, 24,	8,  uint8_t,  cfg->adv.max_qos_key_size); \
 	MC_CMD_OP(cmd, 2, 48,	8,  uint8_t,  cfg->adv.max_dist_key_size); \
+	MC_CMD_OP(cmd, 2, 56,	8,  enum net_prot, cfg->adv.start_hdr); \
 	MC_CMD_OP(cmd, 4, 0,	16, uint16_t, cfg->adv.max_dist_per_tc[0]); \
 	MC_CMD_OP(cmd, 4, 16,	16, uint16_t, cfg->adv.max_dist_per_tc[1]); \
 	MC_CMD_OP(cmd, 4, 32,	16, uint16_t, cfg->adv.max_dist_per_tc[2]); \
@@ -164,7 +165,6 @@ do { \
 	          	  	    cfg->adv.ipr_cfg.min_frag_size_ipv4); \
 	MC_CMD_OP(cmd, 6, 32,	16, uint16_t, \
 	          	  	    cfg->adv.ipr_cfg.min_frag_size_ipv6); \
-	/*MC_CMD_OP(cmd, 6, 48, 4,  enum dpni_type, cfg->type);*/\
 	MC_CMD_OP(cmd, 3, 0,	32, uint32_t, \
 	          	  	  cfg->adv.ipr_cfg.max_open_frames_ipv4); \
 	MC_CMD_OP(cmd, 3, 32,	32, uint32_t, \
@@ -212,7 +212,6 @@ do { \
 	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->max_tcs); \
 	MC_RSP_OP(cmd, 0, 40, 8,  uint8_t,  attr->max_senders); \
 	MC_RSP_OP(cmd, 0, 48, 8,  enum net_prot, attr->start_hdr); \
-	/*MC_RSP_OP(cmd, 0, 56,	2,  enum dpni_type, attr->type); */\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->options); \
 	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, attr->max_dist_per_tc[0]); \
 	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, attr->max_dist_per_tc[1]); \
@@ -351,6 +350,14 @@ do { \
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_MULTICAST_PROMISC(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_UNICAST_PROMISC(cmd, en) \
+	MC_CMD_OP(cmd, 0, 0,  1,  int,      en)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_RSP_GET_UNICAST_PROMISC(cmd, en) \
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
 
 /*                cmd, param, offset, width, type, arg_name */

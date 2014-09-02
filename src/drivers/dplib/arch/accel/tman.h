@@ -83,7 +83,7 @@ enum tman_timer_create_status {
 	 * the timer handle will contain the list head. */
 	TMAN_TMR_CONF_WAIT_ERR = 0x81800040,
 	/** A non active TMI was provided as an input */
-	TMAN_TMR_TMI_NOT_ACTIVE = 0x81C00010,
+	TMAN_TMR_TMI_STATE_ERR = 0x81C00010,
 	/** No more available timers in the TMI */
 	TMAN_TMR_DEPLETION_ERR = 0x81C00020
 };
@@ -125,6 +125,9 @@ enum tman_tmi_state_ststus {
 enum tman_timer_delete_status {
 	/** Success. */
 	TMAN_DEL_TMR_DELETE_SUCCESS = 0,
+	/** The timer aimed to be deleted expiration date is currently being
+	 *  processed */
+	TMAN_DEL_TMR_TMP_ERR = 0x81800030,
 	/** A non active timer was provided as an input */
 	TMAN_DEL_TMR_NOT_ACTIVE_ERR = 0x81800050,
 	/** The one shot timer has expired but it is pending a completion
@@ -238,6 +241,18 @@ enum e_tman_cmd_type {
 	TMAN_CMDTYPE_TIMER_QUERY
 };
 
+/*! \enum tman_function_identifier Defines the provided TMAN functions.*/
+enum tman_function_identifier {
+	TMAN_TMI_CREATE_FUNC_ID,
+	TMAN_TMI_DELETE_FUNC_ID,
+	TMAN_TMI_TMI_QUERY_FUNC_ID,
+	TMAN_TMI_TIMER_CREATE_FUNC_ID,
+	TMAN_TMI_TIMER_DELETE_FUNC_ID,
+	TMAN_TMI_TIMER_MODIFY_FUNC_ID,
+	TMAN_TMI_TIMER_RECHARGE_FUNC_ID,
+	TMAN_TIMER_QUERY_FUNC_ID
+};
+
 #define TMAN_QUERY_MAX_NT_MASK	0x00FFFFFF
 #define TMAN_STATUS_MASK	0xF8000000
 /** TMAN Peripheral base address */
@@ -246,6 +261,13 @@ enum e_tman_cmd_type {
 #define TMAN_TMCBCC_ADDRESS	(TMAN_BASE_ADDRESS+0x014)
 /** TMTSTMP- TMan TMAN Timestamp register address */
 #define TMAN_TMTSTMP_ADDRESS	(TMAN_BASE_ADDRESS+0x020)
+/** TMEV- TMan Error Event register base address */
+#define TMAN_TMEV_ADDRESS	(TMAN_BASE_ADDRESS+0x38)
+/** TMSTATNAT- TMan TMAN Stats Num of Active Timers register base address */
+#define TMAN_TMSTATNAT_ADDRESS	(TMAN_BASE_ADDRESS+0x2008)
+/** TMSTATNCCP- TMan TMAN Stats Number of Callback Confirmation Pending 
+ * register base address */
+#define TMAN_TMSTATNCCP_ADDRESS	(TMAN_BASE_ADDRESS+0x200C)
 /** TMSTATE- TMan TMAN State register base address */
 #define TMAN_TMSTATE_ADDRESS	(TMAN_BASE_ADDRESS+0x2018)
 /** TMan Dedicated EPID */
@@ -255,13 +277,13 @@ enum e_tman_cmd_type {
 /** Offset to HASH in FD */
 #define FD_HASH_OFFSET		0x1C
 /** Number of command retries - for debug purposes */
-#define TMAN_MAX_RETRIES	1000
+#define TMAN_MAX_RETRIES	100000
+/** The TMI creation logic is currently busy with another TMI create */
+#define TMAN_TMI_CREATE_TMP_ERR_MASK	0x00000040
 /** The TMI deletion logic is currently busy with another TMI delete */
 #define TMAN_TMI_DEL_TMP_ERR_MASK	0x00000020
 /** The TMI deletion logic is currently busy with another TMI delete */
 #define TMAN_TMI_CMD_ERR	0x81400000
-/** If the delete was successful */
-#define TMAN_TMI_DEL_SUCCESS		0x00000000
 /** A mask that defines the query TMI command temporary error type */
 #define TMAN_TMI_QUERY_TMP_ERR_MASK	0x00000020
 /** If the TMI query was successful */
@@ -276,12 +298,14 @@ enum e_tman_cmd_type {
 #define TMAN_TMR_TMP_ERR2	0x81800030
 /** Timer commands temporary error 3 */
 #define TMAN_TMR_TMP_ERR3	0x81800040
+/** Timer recharge command TMI state errors bit mask */
+#define TMAN_TMR_REC_STATE_MASK	0x00400000
 /** Timer query command state bits mask */
 #define TMAN_TMR_QUERY_STATE_MASK	0x7
-/** Timer query command success return status */
-#define TMAN_TMR_QUERY_SUCCESS	0
 /** Alignment that the TMAN requires for the input/output extension params */
 #define TMAN_EXT_PARAM_ALIGNMENT	16
+/** Mask to filter the System Bus error event in the TMEV register */
+#define TMAN_TMEV_BUS_ERR_MASK	0x80000000
 
 /**************************************************************************//**
 @Description	TMI input extension params
@@ -328,6 +352,9 @@ void tman_timer_callback(void);
 @Cautions	This is a none return function.
 
 *//***************************************************************************/
-void tman_exception_handler(char *filename, uint32_t line, int32_t status);
+void tman_exception_handler(char *filename,
+		enum tman_function_identifier func_id,
+		uint32_t line,
+		int32_t status);
 
 #endif /* __AIOP_TMAN_H */
