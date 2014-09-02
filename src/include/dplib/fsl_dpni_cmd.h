@@ -78,6 +78,8 @@ struct extract_data {
 #define DPNI_CMDID_SET_MTU			0x136
 #define DPNI_CMDID_SET_MCAST_PROMISC		0x137
 #define DPNI_CMDID_GET_MCAST_PROMISC		0x138
+#define DPNI_CMDID_SET_UNICAST_PROMISC		0x167
+#define DPNI_CMDID_GET_UNICAST_PROMISC		0x168
 #define DPNI_CMDID_SET_PRIM_MAC			0x139
 #define DPNI_CMDID_ADD_MAC_ADDR			0x13A
 #define DPNI_CMDID_REMOVE_MAC_ADDR		0x13B
@@ -148,6 +150,7 @@ do { \
 	MC_CMD_OP(cmd, 2, 16,	8,  uint8_t,  cfg->adv.max_vlan_filters); \
 	MC_CMD_OP(cmd, 2, 24,	8,  uint8_t,  cfg->adv.max_qos_key_size); \
 	MC_CMD_OP(cmd, 2, 48,	8,  uint8_t,  cfg->adv.max_dist_key_size); \
+	MC_CMD_OP(cmd, 2, 56,	8,  enum net_prot, cfg->adv.start_hdr); \
 	MC_CMD_OP(cmd, 4, 0,	16, uint16_t, cfg->adv.max_dist_per_tc[0]); \
 	MC_CMD_OP(cmd, 4, 16,	16, uint16_t, cfg->adv.max_dist_per_tc[1]); \
 	MC_CMD_OP(cmd, 4, 32,	16, uint16_t, cfg->adv.max_dist_per_tc[2]); \
@@ -162,7 +165,6 @@ do { \
 	          	  	    cfg->adv.ipr_cfg.min_frag_size_ipv4); \
 	MC_CMD_OP(cmd, 6, 32,	16, uint16_t, \
 	          	  	    cfg->adv.ipr_cfg.min_frag_size_ipv6); \
-	/*MC_CMD_OP(cmd, 6, 48, 4,  enum dpni_type, cfg->type);*/\
 	MC_CMD_OP(cmd, 3, 0,	32, uint32_t, \
 	          	  	  cfg->adv.ipr_cfg.max_open_frames_ipv4); \
 	MC_CMD_OP(cmd, 3, 32,	32, uint32_t, \
@@ -210,7 +212,6 @@ do { \
 	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->max_tcs); \
 	MC_RSP_OP(cmd, 0, 40, 8,  uint8_t,  attr->max_senders); \
 	MC_RSP_OP(cmd, 0, 48, 8,  enum net_prot, attr->start_hdr); \
-	/*MC_RSP_OP(cmd, 0, 56,	2,  enum dpni_type, attr->type); */\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->options); \
 	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, attr->max_dist_per_tc[0]); \
 	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, attr->max_dist_per_tc[1]); \
@@ -349,6 +350,14 @@ do { \
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_MULTICAST_PROMISC(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_UNICAST_PROMISC(cmd, en) \
+	MC_CMD_OP(cmd, 0, 0,  1,  int,      en)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_RSP_GET_UNICAST_PROMISC(cmd, en) \
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
 
 /*                cmd, param, offset, width, type, arg_name */

@@ -169,13 +169,14 @@ struct scope_status_params {
 		Code following this command is executed in exclusive mode
 		according to the new incremental ordering scope.
 
-@Return		Status - "0" to Success or "1" to Failure. Failure can occur if
-		no order scope_id was specified for this task (null scope_id)
-		before calling this function.
+@Return		None.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error. Fatal error occurs if
+		no order scope_id was specified for this task (null scope_id) before
+		calling this function.
 *//***************************************************************************/
-int osm_scope_transition_to_exclusive_with_increment_scope_id(void);
+void osm_scope_transition_to_exclusive_with_increment_scope_id(void);
 
 
 /*************************************************************************//**
@@ -191,17 +192,18 @@ int osm_scope_transition_to_exclusive_with_increment_scope_id(void);
 
 @Param[in]	scope_id
 
-@Return		Status - "0" to Success or "1" to Failure. Failure can occur if
-		no order scope_id was specified for this task (null scope_id)
-		before calling this function.
+@Return		None.
 
 @remark		The OSM_STAGE_ID is automatically updated in the new scope_id
 		according to the
 		\ref OSM_SCOPE_ID_LEVEL_INCREMENT_MASK definitions.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error. Fatal error occurs if
+		no order scope_id was specified for this task (null scope_id) before
+		calling this function.
 *//***************************************************************************/
-int osm_scope_transition_to_exclusive_with_new_scope_id(
+void osm_scope_transition_to_exclusive_with_new_scope_id(
 		uint32_t scope_id);
 
 
@@ -219,13 +221,14 @@ int osm_scope_transition_to_exclusive_with_new_scope_id(
 		this command. Tasks in the same ordering scope to run in
 		parallel.
 
-@Return		Status - "0" to Success or "1" to Failure. Failure can occur if
-		no order scope_id was specified for this task (null scope_id)
-		before calling this function.
+@Return		None.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error. Fatal error occurs if
+		no order scope_id was specified for this task (null scope_id) before
+		calling this function.
 *//***************************************************************************/
-int osm_scope_transition_to_concurrent_with_increment_scope_id(void);
+void osm_scope_transition_to_concurrent_with_increment_scope_id(void);
 
 
 /*************************************************************************//**
@@ -242,17 +245,18 @@ int osm_scope_transition_to_concurrent_with_increment_scope_id(void);
 
 @Param[in]	scope_id
 
-@Return		Status - "0" to Success or "1" to Failure. Failure can occur if
-		no order scope_id was specified for this task (null scope_id)
-		before calling this function.
+@Return		None.
 
 @remark		The OSM_LEVEL_ID field is automatically updated in the new
 		scope_id according to the
 		\ref OSM_SCOPE_ID_LEVEL_INCREMENT_MASK definitions.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error. Fatal error occurs if
+		no order scope_id was specified for this task (null scope_id) before
+		calling this function.
 *//***************************************************************************/
-int osm_scope_transition_to_concurrent_with_new_scope_id(
+void osm_scope_transition_to_concurrent_with_new_scope_id(
 		uint32_t scope_id);
 
 
@@ -290,15 +294,16 @@ void osm_scope_relinquish_exclusivity(void);
 		according to the \ref OSM_SCOPE_ID_LEVEL_INCREMENT_MASK
 		definition).
 
-@Return		Status - "0" to Success or "1" to Failure. Failure can occur if
-		it is an attempt to enter a new scope when the maximum depth of
-		hierarchy level was reached.
+@Return		None.
 
 @remark		This function is a subset of the osm_scope_enter() function.
+@remark		This function will be ignored if it is an attempt to enter a new
+		scope when the maximum depth of hierarchy level was reached.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int osm_scope_enter_to_exclusive_with_increment_scope_id(void);
+void osm_scope_enter_to_exclusive_with_increment_scope_id(void);
 
 
 /*************************************************************************//**
@@ -315,15 +320,16 @@ int osm_scope_enter_to_exclusive_with_increment_scope_id(void);
 
 @Param[in]	child_scope_id - "child" ordering scope_id.
 
-@Return		Status - "0" to Success or "1" to Failure. Failure can occur if
-		it is an attempt to enter a new scope when the maximum depth of
-		hierarchy level was reached.
+@Return		None.
 
 @remark		This function is a subset of the osm_scope_enter() function.
+@remark		This function will be ignored if it is an attempt to enter a new
+		scope when the maximum depth of hierarchy level was reached.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int osm_scope_enter_to_exclusive_with_new_scope_id(
+void osm_scope_enter_to_exclusive_with_new_scope_id(
 		uint32_t child_scope_id);
 
 
@@ -381,13 +387,15 @@ int osm_scope_enter_to_exclusive_with_new_scope_id(
 		relevant only if \ref OSM_SCOPE_ENTER_CHILD_SCOPE_INCREMENT is
 		not set.
 
-@Return		Status - "0" to Success or "1" to Failure. Failure can occur if
-		it is an attempt to enter a new scope when the maximum depth of
-		hierarchy level was reached.
+@Return		None.
+
+@remark		This function will be ignored if it is an attempt to enter a new
+		scope when the maximum depth of hierarchy level was reached.
 
 @Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int osm_scope_enter(
+void osm_scope_enter(
 		uint32_t scope_enter_flags,
 		uint32_t child_scope_id);
 

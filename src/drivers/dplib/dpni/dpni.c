@@ -711,6 +711,36 @@ int dpni_get_multicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int *en)
 	return err;
 }
 
+int dpni_set_unicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int en)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_UNICAST_PROMISC,
+	                                  MC_CMD_PRI_LOW, token);
+	DPNI_CMD_SET_UNICAST_PROMISC(cmd, en);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
+int dpni_get_unicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int *en)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_UNICAST_PROMISC,
+	                                  MC_CMD_PRI_LOW, token);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (!err)
+		DPNI_RSP_GET_UNICAST_PROMISC(cmd, *en);
+
+	return err;
+}
+
 int dpni_set_primary_mac_addr(struct fsl_mc_io *mc_io,
                               uint16_t token,
                               const uint8_t addr[6])
