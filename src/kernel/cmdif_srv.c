@@ -86,6 +86,8 @@
 	((srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
 	(srv->m_id != NULL) && (srv->m_id[(ID)] < M_NUM_OF_MODULES))
 
+ __SHRAM static struct cmdif_srv_aiop g_aiop_srv;
+
 static int module_id_find(const char *m_name, struct cmdif_srv *srv)
 {
 	int i = 0;
@@ -200,34 +202,16 @@ __HOT_CODE static uint16_t cmd_auth_id_get()
 
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 {
-	struct cmdif_srv_aiop *srv_aiop = \
-		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-	struct cmdif_srv *srv = NULL;
-
-	if (srv_aiop == NULL) {
-		return -ENODEV;
-	}
-	srv = srv_aiop->srv;
-
 	/* Place here lock if required */
 
-	return cmdif_srv_register(srv, m_name, ops);
+	return cmdif_srv_register(g_aiop_srv.srv, m_name, ops);
 }
 
 int cmdif_unregister_module(const char *m_name)
 {
-	struct cmdif_srv_aiop *srv_aiop = \
-		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-	struct cmdif_srv *srv = NULL;
-
-	if (srv_aiop == NULL) {
-		return -ENODEV;
-	}
-	srv = srv_aiop->srv;
-
 	/* Place here lock if required */
 
-	return cmdif_srv_unregister(srv, m_name);
+	return cmdif_srv_unregister(g_aiop_srv.srv, m_name);
 }
 
 static void *fast_malloc(int size)
@@ -250,24 +234,17 @@ int cmdif_srv_init(void)
 {
 	int  err = 0;
 	void *srv = NULL;
-	struct cmdif_srv_aiop *srv_aiop = NULL;
 
-	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV))
-		return -ENODEV;
-
-	srv_aiop = fast_malloc(sizeof(struct cmdif_srv_aiop));
 	srv = cmdif_srv_allocate(fast_malloc, slow_malloc);
 
-	if ((srv == NULL) || (srv_aiop == NULL)) {
+	if (srv == NULL) {
 		pr_err("Not enough memory for server allocation \n");
 		return -ENOMEM;
 	}
-	srv_aiop->srv =srv;
-	srv_aiop->dpci_tbl = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	g_aiop_srv.srv =srv;
+	g_aiop_srv.dpci_tbl = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
-	err = sys_add_handle(srv_aiop, FSL_OS_MOD_CMDIF_SRV, 1, 0);
-
-	if (srv_aiop->dpci_tbl == NULL)
+	if (g_aiop_srv.dpci_tbl == NULL)
 	{
 		pr_err("No DPCI table on AIOP, CMDIF is not functional \n");
 		pr_info("All AIOP DPCIs should be defined in DPL\n");
@@ -280,15 +257,12 @@ int cmdif_srv_init(void)
 
 void cmdif_srv_free(void)
 {
-	void *srv = sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-
-	sys_remove_handle(FSL_OS_MOD_CMDIF_SRV, 0);
-
-	cmdif_srv_deallocate(srv, srv_free);
+	cmdif_srv_deallocate(g_aiop_srv.srv, srv_free);
+	srv_free(g_aiop_srv.dpci_tbl);
 }
 
 
-__HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
+__HOT_CODE static int cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -303,14 +277,14 @@ __HOT_CODE static int cmdif_fd_send(int cb_err, struct cmdif_srv_aiop *aiop_srv)
 
 	ind = (uint8_t)(fqid >> 1);
 	pr  = (uint8_t)(fqid & 1);
-	fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+	fqid = g_aiop_srv.dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
 	 /* Do it only if queue is not there yet */
 	if (fqid == DPCI_VFQID_NOT_VALID) {
 		struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 		err = dpci_get_attributes(&dprc->io,
-		                          aiop_srv->dpci_tbl->token[ind],
-		                          &aiop_srv->dpci_tbl->attr[ind]);
-		fqid = aiop_srv->dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+		                          g_aiop_srv.dpci_tbl->token[ind],
+		                          &g_aiop_srv.dpci_tbl->attr[ind]);
+		fqid = g_aiop_srv.dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
 	}
 
 	pr_debug("Response ID = 0x%x\n", fqid);
@@ -490,16 +464,12 @@ static int notify_close()
 __HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
-	struct cmdif_srv_aiop *aiop_srv = \
-		sys_get_unique_handle(FSL_OS_MOD_CMDIF_SRV);
-	struct cmdif_srv *srv = NULL;
+	struct cmdif_srv *srv = g_aiop_srv.srv;
 	int err = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
-	if ((aiop_srv == NULL) || (aiop_srv->srv == NULL))
+	if (srv == NULL)
 		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
-
-	srv = aiop_srv->srv;
 
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
@@ -581,7 +551,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 		err = OPEN_CB(m_id, inst_id, dev);
 		if (!err) {
-			new_inst = inst_alloc(aiop_srv, (uint8_t)m_id);
+			new_inst = inst_alloc(&g_aiop_srv, (uint8_t)m_id);
 			if (new_inst >= 0) {
 				pr_debug("new auth_id = %d\n", new_inst);
 				sync_done_set((uint16_t)new_inst, srv);
@@ -606,7 +576,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
 				 * close the device */
-				inst_dealloc(auth_id, aiop_srv);
+				inst_dealloc(auth_id, &g_aiop_srv);
 			}
 			pr_debug("PASSED close command\n");
 			fdma_terminate_task();
@@ -640,7 +610,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	if (SEND_RESP(cmd_id)) {
 		pr_debug("PASSED Asynchronous Command\n");
-		err = cmdif_fd_send(err, aiop_srv);
+		err = cmdif_fd_send(err);
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");
