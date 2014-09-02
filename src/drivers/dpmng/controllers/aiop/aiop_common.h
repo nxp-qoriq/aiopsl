@@ -35,12 +35,12 @@
 /**************************************************************************//**
  @Description   EPID table
 *//***************************************************************************/
-enum epid_table {
-	CMDIF_EPID_SERVER    = 0,     /**< EPID for command interface server*/
-	EPID_TIMER_EVENT_IDX = 1,     /**< EPID for T-MAN block */
-	CMDIF_EPID_CLIENT    = 2,     /**< EPID for command interface client */
-	DPNI_EPID_START      = 3,     /**< DPNI's first EPID */
-	EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
+enum aiop_epid_table {
+	AIOP_CMDIF_EPID_SERVER    = 0,     /**< EPID for command interface server*/
+	AIOP_EPID_TIMER_EVENT_IDX = 1,     /**< EPID for T-MAN block */
+	AIOP_CMDIF_EPID_CLIENT    = 2,     /**< EPID for command interface client */
+	AIOP_DPNI_EPID_START      = 3,     /**< DPNI's first EPID */
+	AIOP_EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
 };
 
 /**************************************************************************//**
