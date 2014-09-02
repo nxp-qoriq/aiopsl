@@ -56,8 +56,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		struct osm_scope_tran_to_ex_inc_scope_id_verif_command *str =
 			(struct osm_scope_tran_to_ex_inc_scope_id_verif_command *) 
 																asa_seg_addr;
-		str->status = 
-				osm_scope_transition_to_exclusive_with_increment_scope_id();
+		osm_scope_transition_to_exclusive_with_increment_scope_id();
+		str->status = OSM_SUCCESS;
 	
 		str_size = (uint16_t)
 			sizeof(struct osm_scope_tran_to_ex_inc_scope_id_verif_command);
@@ -70,8 +70,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 			(struct osm_scope_tran_to_ex_new_scope_id_verif_command *) 
 																asa_seg_addr;
 	
-		str->status = 
-			osm_scope_transition_to_exclusive_with_new_scope_id(str->scope_id);
+		osm_scope_transition_to_exclusive_with_new_scope_id(str->scope_id);
+		str->status = OSM_SUCCESS;
 		
 		str_size = (uint16_t)
 			sizeof(struct osm_scope_tran_to_ex_new_scope_id_verif_command);	
@@ -84,8 +84,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 			(struct osm_scope_tran_to_con_inc_scope_id_verif_command *) 
 																asa_seg_addr;
 
-		str->status =
-				osm_scope_transition_to_concurrent_with_increment_scope_id();
+		osm_scope_transition_to_concurrent_with_increment_scope_id();
+		str->status = OSM_SUCCESS;
 		
 		str_size = (uint16_t)
 			sizeof(struct osm_scope_tran_to_con_inc_scope_id_verif_command);
@@ -98,8 +98,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 			(struct osm_scope_tran_to_con_new_scope_id_verif_command *) 
 																asa_seg_addr;
 
-		str->status = 
 		osm_scope_transition_to_concurrent_with_new_scope_id(str->scope_id);
+		str->status = OSM_SUCCESS;
 		
 		str_size = (uint16_t)
 			sizeof(struct osm_scope_tran_to_con_new_scope_id_verif_command);
@@ -124,7 +124,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 			(struct osm_scope_enter_to_ex_inc_scope_id_verif_command *)
 															asa_seg_addr;
 
-		str->status = osm_scope_enter_to_exclusive_with_increment_scope_id();
+		osm_scope_enter_to_exclusive_with_increment_scope_id();
+		str->status = OSM_SUCCESS;
 		
 		str_size = (uint16_t)
 			sizeof(struct osm_scope_enter_to_ex_inc_scope_id_verif_command);
@@ -137,8 +138,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 			(struct osm_scope_enter_to_ex_new_scope_id_verif_command *) 
 															asa_seg_addr;
 
-		str->status = 
 		osm_scope_enter_to_exclusive_with_new_scope_id(str->child_scope_id);
+		str->status = OSM_SUCCESS;
 		
 		str_size = (uint16_t)
 			sizeof(struct osm_scope_enter_to_ex_new_scope_id_verif_command);
@@ -150,9 +151,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		struct osm_scope_enter_verif_command *str =
 			(struct osm_scope_enter_verif_command *) asa_seg_addr;
 
-		str->status = osm_scope_enter(
-								str->scope_enter_flags,
-								str->child_scope_id);
+		osm_scope_enter(str->scope_enter_flags,str->child_scope_id);
+		str->status = OSM_SUCCESS;
 		
 		str_size = (uint16_t)sizeof(struct osm_scope_enter_verif_command);
 		break;

@@ -125,12 +125,10 @@ struct tman_tmi_delete_command {
 		/**< Command structure identifier. */
 	uint32_t	mode_bits;
 	tman_arg_8B_t	conf_opaque_data1;
-	int32_t		status;
 	tman_cb_t	tman_confirm_cb;
 	tman_arg_2B_t	conf_opaque_data2;
 	uint8_t		tmi_id;
 	uint8_t		cb_with_confirmation;
-	uint8_t		pad[4];
 };
 
 /**************************************************************************//**
@@ -218,7 +216,6 @@ struct tman_timer_recharge_command {
 struct tman_timer_query_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
-	int32_t		status;
 	uint32_t	timer_handle;
 	enum e_tman_query_timer state;
 	uint8_t		pad[3];
