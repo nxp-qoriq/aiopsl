@@ -57,24 +57,6 @@ void handle_fatal_error(char *message)
        fdma_terminate_task();
 }
 
-#ifdef AIOP_VERIF
-char * trim_path_prefix(char *filepath){
-	char *slash_ptr = filepath;
-	char *char_ptr = filepath;
-	if (char_ptr && *char_ptr != '\0') {
-		while (*char_ptr != '\0') {
-			if (*char_ptr == '/') {
-				slash_ptr = char_ptr;
-			}
-			char_ptr++;
-		}
-		return slash_ptr + 1;
-	} else {
-		return char_ptr;
-	}
-}
-#endif /*AIOP_VERIF*/
-
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
@@ -95,7 +77,8 @@ void exception_handler(char *filename,
 				sizeof(struct fatal_error_command));
 	}
 
-	filename = trim_path_prefix(filename);
+	filename = strrchr(filename, '/') ?
+			strrchr(filename, '/') + 1 : filename;
 
 	strcpy(fatal_cmd->file_name, filename);
 	strcpy(fatal_cmd->function_name, function_name);
