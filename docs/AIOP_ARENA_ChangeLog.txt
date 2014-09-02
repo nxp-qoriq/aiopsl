@@ -1,4 +1,5 @@
-- dpni/drv.h                   Added fsl_mc_init.h which may lead to missing path compilation errors. 
+- aiop_link.lcf                LCF cleanups, removed unused memory regions.
+- dpni/drv.h                   Added fsl_mc_init.h which may lead to missing path compilation errors.
                                ARENA users should not include drv.h file but only fsl_dpni*.h.
 - app_process_packet.c:        The demo was updated and now makes a reflection for received packets. (Flip the MAC and IP source and destination addresses)
 - cmdif_client_aiop.h   Verify CMDIF_OPEN_SIZE in preprocessor time.
