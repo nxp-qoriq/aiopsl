@@ -35,13 +35,13 @@
 /**************************************************************************//**
  @Description   EPID table
 *//***************************************************************************/
-typedef enum epid_table {
+enum epid_table {
 	CMDIF_EPID_SERVER    = 0,     /**< EPID for command interface server*/
 	EPID_TIMER_EVENT_IDX = 1,     /**< EPID for T-MAN block */
 	CMDIF_EPID_CLIENT    = 2,     /**< EPID for command interface client */
 	DPNI_EPID_START      = 3,     /**< DPNI's first EPID */
 	EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
-}e_epid_table;
+};
 
 /**************************************************************************//**
  @Description   AIOP tile and AIOP blocks registers
