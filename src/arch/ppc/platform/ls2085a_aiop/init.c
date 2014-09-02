@@ -447,7 +447,7 @@ int epid_drv_init(void)
 		                                   + SOC_PERIPH_OFF_AIOP_WRKS);
 
 	/* CMDIF server epid initialization here*/
-	err |= cmdif_epid_setup(wrks_addr, AIOP_CMDIF_EPID_SERVER, cmdif_srv_isr);
+	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);
 
 	/* TMAN epid initialization */
 	iowrite32_ccsr(AIOP_EPID_TIMER_EVENT_IDX, &wrks_addr->epas); /* EPID = 1 */
@@ -464,10 +464,10 @@ int epid_drv_init(void)
 
 
 	/* CMDIF interface client epid initialization here*/
-	err |= cmdif_epid_setup(wrks_addr, AIOP_CMDIF_EPID_CLIENT, cmdif_cl_isr);
+	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_CLIENT, cmdif_cl_isr);
 
 	/* Initialize EPID-table with discard_rx_cb for all NI's entries (EP_PC field) */
-	for (i = AIOP_DPNI_EPID_START; i < AIOP_EPID_TABLE_SIZE; i++) {
+	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_TABLE_SIZE; i++) {
 		/* Prepare to write to entry i in EPID table - EPAS reg */
 		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
 
