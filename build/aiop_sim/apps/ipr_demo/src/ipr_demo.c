@@ -26,7 +26,7 @@
 
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "dpni/drv.h"
+#include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
 #include "platform.h"
 #include "fsl_io.h"
@@ -58,13 +58,13 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
-	
+
 	uint8_t ipr_demo_flags = IPR_DEMO_WITH_HM;
-	
+
 	uint32_t ip_dst_addr = 0x73bcdc90; // new ipv4 dst_addr
 	uint16_t udp_dst_port = 0xd720; //new udp dest port
 	int reassemble_status, hm_status;
-	
+
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
 		fsl_os_print
@@ -90,9 +90,9 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			("ipr_demo: Core %d modified fragment's IP dest to 0x%x\n",
 				core_get_id(), ip_dst_addr);
 	}
-	
+
 	reassemble_status = ipr_reassemble(ipr_instance_val);
-		
+
 	if (reassemble_status == IPR_REASSEMBLY_SUCCESS)
 	{
 		if (ipr_demo_flags == IPR_DEMO_WITH_HM)
@@ -111,17 +111,17 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print
 		("ipr_demo: Core %d will send a reassembled frame with ipv4 header:\n"
 					, core_get_id());
-			
-	
+
+
 		for( int i = 0; i < ipv4hdr_length ;i ++)
 		{
 			fsl_os_print(" %x",p_ipv4hdr[i]);
 		}
 		fsl_os_print("\n");
 
-		dpni_drv_send(APP_NI_GET(arg));		
+		dpni_drv_send(APP_NI_GET(arg));
 	}
-	
+
 	fdma_terminate_task();
 }
 
@@ -180,7 +180,7 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
-	
+
 	struct ipr_params ipr_demo_params;
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
@@ -200,7 +200,7 @@ int app_init(void)
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
 	ipr_demo_params.tmi_id = 0;
-	
+
 	fsl_os_print("ipr_demo: Creating IPR instance\n");
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
 	if (err)
