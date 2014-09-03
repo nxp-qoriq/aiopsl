@@ -491,15 +491,17 @@ __HOT_CODE void cmdif_srv_isr(void)
 		while (len > 15)
 		{
 			fsl_os_print("0x%x: %x %x %x %x\r\n",
-				     p, *(uint32_t *)p, *(uint32_t *)(p + 4),
-				     *(uint32_t *)(p + 8), *(uint32_t *)(p + 12));
+				     p,
+				     *(uint32_t *)p,
+				     *(uint32_t *)(p + 4),
+				     *(uint32_t *)(p + 8),
+				     *(uint32_t *)(p + 12));
 			len -= 16;
 			p += 16;
 		}
 		while (len > 3)
 		{
-			fsl_os_print("0x%x: %x\r\n",
-				     p, *(uint32_t *)p);
+			fsl_os_print("0x%x: %x\r\n", p, *(uint32_t *)p);
 			len -= 4;
 			p += 4;
 		}
