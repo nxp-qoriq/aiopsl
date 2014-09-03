@@ -140,6 +140,24 @@ enum rta_param_type {
 */
 #define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x0C
 
+//TODO: this was in fsl_ipsec.h, but probably not necessary, check if to remove
+/** Add Output IP header to the frame
+* Relevant for tunnel mode only */
+#define IPSEC_ENC_OPTS_ADD_IPHDR	0x000c /* Add IP header */
+
+//TODO: this was in fsl_ipsec.h, but probably not necessary, check if to remove
+/** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
+ * IP header to inner IP header. Not valid for tunnel mode */
+#define IPSEC_ENC_OPTS_DIFFSERV		0x0040
+
+/** Perform computations to update header checksum for IPv4 header.
+ * Not valid for tunnel mode */
+#define IPSEC_ENC_OPTS_UPDATE_CSUM	0x0080
+
+/** Perform checksum verification to IPv4 header in Transport mode.
+ * Transport mode only. Not valid for tunnel mode */
+#define IPSEC_DEC_OPTS_VERIFY_CSUM 	0x0020 /** validate IP header checksum */
+
 /* NAT and NUC Options for tunnel mode encapsulation */
 /* Bit 1 : NAT Enable RFC 3948 UDP-encapsulated-ESP */
 /* Bit 0 : NUC Enable NAT UDP Checksum */

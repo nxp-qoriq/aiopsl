@@ -156,34 +156,22 @@ typedef void (ipsec_lifetime_callback_t) (
 
 		Use for ipsec_encap_params.options
 *//***************************************************************************/
-/** Perform computations to update header checksum for IPv4 header.
- * Not valid for tunnel mode */
-#define IPSEC_ENC_OPTS_UPDATE_CSUM	0x0080
-
-/** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
- * IP header to inner IP header. Not valid for tunnel mode */
-#define IPSEC_ENC_OPTS_DIFFSERV		0x0040
 
 /** Generate random initial vector before starting encapsulation
  * If set, the IV comes from an internal random generator */
 #define IPSEC_ENC_OPTS_IVSRC		0x0020
 
-/** Add Output IP header to the frame
-* Relevant for tunnel mode only */
-#define IPSEC_ENC_OPTS_ADD_IPHDR	0x000c /* Add IP header */
-
 /** Copy the DF bit from the inner IP header to the outer IP header. */
-#define IPSEC_ENC_OPTS_DFC 		0x0400
+#define IPSEC_ENC_OPTS_DFC 		0x4000
 
 /** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
  * IP header */
-#define IPSEC_ENC_OPTS_DTTL 		0x0200
+#define IPSEC_ENC_OPTS_DTTL 		0x2000
 
 /* Sequence Number Rollover control.
  * This control permits a Sequence Number Rollover
  * If not set, a Sequence Number Rollover causes an error */
-#define IPSEC_ENC_OPTS_SNR_EN  	0x0100	
-
+#define IPSEC_ENC_OPTS_SNR_EN  	0x1000	
 
 /**************************************************************************//**
 @Description	IPSec ESP Decapsulation options
@@ -197,22 +185,18 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_DEC_OPTS_ARS128	0x0080   /**< 128-entry anti-replay window */
 #define IPSEC_DEC_OPTS_ARS64	0x00c0   /**< 64-entry anti-replay window */
 
-/** Perform checksum verification to IPv4 header in Transport mode.
- * Transport mode only. Not valid for tunnel mode */
-#define IPSEC_DEC_OPTS_VERIFY_CSUM 	0x0020 /** validate IP header checksum */
-
 /** Enable Tunnel ECN according to RFC 6040
  * Valid for Tunnel mode only. Not valid for transport mode */
 #define IPSEC_DEC_OPTS_TECN		0x0020
 
 /** Decrement TTL field (IPv4) or Hop-Limit field (IPv6) within inner
  * IP header */
-#define IPSEC_DEC_OPTS_DTTL	0x0200
+#define IPSEC_DEC_OPTS_DTTL	0x2000
 
 /** DiffServ Copy
  * Copy the IPv4 TOS or IPv6 Traffic Class byte from the outer IP header
  * to the inner IP header. */
-#define IPSEC_DEC_OPTS_DSC	0x0100
+#define IPSEC_DEC_OPTS_DSC	0x1000
 
 /**************************************************************************//**
 @Description	IPSec Cipher Algorithms
