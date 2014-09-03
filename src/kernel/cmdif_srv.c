@@ -60,14 +60,15 @@
 	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
 
 #define OPEN_CB(M_ID, INST, DEV) \
-	(srv->open_cb[M_ID](INST, &DEV))
+	(cmdif_aiop_srv.srv->open_cb[M_ID](INST, &DEV))
 
 #define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
-	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
-	CMD_ID, SIZE, DATA))
+	(cmdif_aiop_srv.srv->ctrl_cb[cmdif_aiop_srv.srv->m_id[AUTH_ID]] \
+		(cmdif_aiop_srv.srv->inst_dev[AUTH_ID], CMD_ID, SIZE, DATA))
 
 #define CLOSE_CB(AUTH_ID) \
-	(srv->close_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID]))
+	(cmdif_aiop_srv.srv->close_cb[cmdif_aiop_srv.srv->m_id[AUTH_ID]] \
+		(cmdif_aiop_srv.srv->inst_dev[AUTH_ID]))
 
 #define FREE_MODULE    '\0'
 #define FREE_INSTANCE  (M_NUM_OF_MODULES)
@@ -358,7 +359,7 @@ __HOT_CODE static inline void sync_done_set(uint16_t auth_id)
 static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl)
 {
 	int i = 0;
-	struct dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
 	*dpci_tbl = dt;
 
 	if (dt == NULL)
@@ -470,7 +471,6 @@ static int notify_close()
 __HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
-	struct cmdif_srv *srv = cmdif_aiop_srv.srv;
 	int err = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
@@ -561,7 +561,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 			if (new_inst >= 0) {
 				pr_debug("new auth_id = %d\n", new_inst);
 				sync_done_set((uint16_t)new_inst);
-				srv->inst_dev[new_inst] = dev;
+				cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
 				sync_cmd_done(sync_done, 0,
 						(uint16_t)new_inst, TRUE);
 			} else {
