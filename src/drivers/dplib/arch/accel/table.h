@@ -72,23 +72,50 @@
 @Group	TABLE_ENTRY_MACROS Table Entry Macros
 @{
 *//***************************************************************************/
+/** Entry type STDY field mask */
+#define TABLE_ENTRY_STDY_FIELD_MASK			0xC0
+
+/** Entry type Valid bit */
+#define TABLE_ENTRY_VALID_BIT				0x20
+
+/** Entry type Valid bit */
+#define TABLE_ENTRY_PREVV_BIT				0x10
+
 /** Entry type Entype field mask */
 #define TABLE_ENTRY_ENTYPE_FIELD_MASK			0x0F
+
+/** Entry type Entype EME44 */
+#define TABLE_ENTRY_ENTYPE_EME44			0x00
 
 /** Entry type Entype EME24 */
 #define TABLE_ENTRY_ENTYPE_EME24			0x01
 
+/** Entry type Entype EME36 */
+#define TABLE_ENTRY_ENTYPE_EME36			0x02
+
 /** Entry type Entype EME16 */
 #define TABLE_ENTRY_ENTYPE_EME16			0x03
+
+/** Entry type Entype LPM Marker*/
+#define TABLE_ENTRY_ENTYPE_LPM_MARKER			0x04
 
 /** Entry type Entype LPM Result*/
 #define TABLE_ENTRY_ENTYPE_LPM_RES			0x05
 
+/** Entry type Entype MFLU Rule*/
+#define TABLE_ENTRY_ENTYPE_MFLU_RULE			0x08
+
 /** Entry type Entype MFLU Result*/
 #define TABLE_ENTRY_ENTYPE_MFLU_RES			0x09
 
+/** Entry type Entype MFLU Branch*/
+#define TABLE_ENTRY_ENTYPE_MFLU_BRANCH			0x0A
+
 /** EME16 Lookup Key field size. */
 #define TABLE_ENTRY_EME44_LOOKUP_KEY_SIZE		44
+
+/** EME24 Lookup Key field size. */
+#define TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE		24
 
 /** EME16 Lookup Key field size. */
 #define TABLE_ENTRY_EME36_LOOKUP_KEY_SIZE		36
@@ -96,8 +123,8 @@
 /** EME16 Lookup Key field size. */
 #define TABLE_ENTRY_EME16_LOOKUP_KEY_SIZE		16
 
-/** EME24 Lookup Key field size. */
-#define TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE		24
+/** LPM Marker Entry Internal Entry Structure size. */
+#define TABLE_ENTRY_LPM_MRKR_INT_STRUCT_SIZE		32
 
 /** LPM Result Entry Lookup Key field size. */
 #define TABLE_ENTRY_LPM_RES_LOOKUP_KEY_SIZE		24
@@ -479,18 +506,64 @@ struct table_params_query_output_message {
 
 
 /**************************************************************************//**
+@Description	Table Entry Body EME44
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_entry_body_eme44 {
+
+	/** Number of Sons */
+	uint32_t number_of_sons;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[TABLE_ENTRY_EME44_LOOKUP_KEY_SIZE];
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body EME24
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_entry_body_eme24 {
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE];
+
+	/** Table result */
+	struct table_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Entry Body EME36
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_entry_body_eme36 {
+
+	/** Number of Sons */
+	uint32_t number_of_sons;
+
+	/* PrevUniqueID*/
+	uint32_t prev_unique_ID;
+
+	/* PrevHash*/
+	uint32_t prev_hash;
+
+	/** Part of lookup key */
+	uint8_t  lookup_key_part[TABLE_ENTRY_EME36_LOOKUP_KEY_SIZE];
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
 @Description	Table Entry Body EME16
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_entry_body_eme16 {
-	/** Reserved */
-	uint8_t  reserved[3];
-
-	/**  Table internal usage */
-	uint64_t internal_usage0;
-
-	/** Unique ID */
-	uint32_t unique_id;
 
 	/** Timestamp */
 	uint32_t timestamp;
@@ -508,44 +581,34 @@ struct table_entry_body_eme16 {
 
 
 /**************************************************************************//**
-@Description	Table Entry Body EME24
+@Description	Table Entry Body LPM Marker
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_entry_body_eme24 {
-	/** Reserved */
-	uint8_t  reserved[3];
+struct table_entry_body_lpm_marker {
 
-	/** Table HW internal usage */
-	uint64_t internal_usage;
+	/** LPM things */ /* Todo split this field*/
+	uint32_t fallback_length_and_subsequent_merker_and_reserved;
 
-	/** Unique ID */
-	uint32_t unique_id;
+	/** Lookup Key or PrevUnique ID */
+	uint32_t lookup_key_prev_unique_ID;
 
-	/** Timestamp */
-	uint32_t timestamp;
+	/** Lookup Key or PrevHash */
+	uint32_t lookup_key_prev_hash;
 
-	/** Part of lookup key */
-	uint8_t  lookup_key_part[TABLE_ENTRY_EME24_LOOKUP_KEY_SIZE];
+	/** Lookup key */
+	uint32_t  lookup_key;
 
 	/** Table result */
-	struct table_result result;
+	uint8_t internal_entry_structure[TABLE_ENTRY_LPM_MRKR_INT_STRUCT_SIZE];
 };
 #pragma pack(pop)
 
 
 /**************************************************************************//**
-@Description	Table Entry Body LPM
+@Description	Table Entry Body LPM Result
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_entry_body_lpm_res {
-	/** Reserved */
-	uint8_t  reserved[3];
-
-	/** Table HW internal usage */
-	uint64_t internal_usage0;
-
-	/** Unique ID */
-	uint32_t unique_id;
 
 	/** Timestamp */
 	uint32_t timestamp;
@@ -560,56 +623,10 @@ struct table_entry_body_lpm_res {
 
 
 /**************************************************************************//**
-@Description	Table Entry Body MFLU Branch
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct table_entry_body_mflu_branch {
-	/** Reserved */
-	uint8_t  reserved0[3];
-
-	/** Table HW internal usage */
-	uint64_t internal_usage0;
-
-	/** Unique ID */
-	uint32_t unique_id;
-
-	/** Index of the byte to be compared in the key */
-	uint8_t  keyByteNum;
-
-	/** Reserved */
-	uint8_t  reserved1[3]; /* TODO magic */
-
-	/* TODO */
-	uint32_t prevUniqueID;
-
-	/* TODO */
-	uint32_t prevHashValue;
-
-	/* TODO */
-	uint16_t what;
-
-	/** Exact match children enable bits */
-	uint16_t em_children_enable;
-
-	/** Child with wild cards exists flags */
-	uint8_t  child_with_wildcards[32]; /* TODO */
-};
-#pragma pack(pop)
-
-
-/**************************************************************************//**
-@Description	Table Entry Body MFLU Branch
+@Description	Table Entry Body MFLU Rule
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_entry_body_mflu_rule {
-	/** Reserved */
-	uint8_t  reserved0[3];
-
-	/** Table HW internal usage */
-	uint64_t internal_usage0;
-
-	/** Unique ID */
-	uint32_t unique_id;
 
 	/** Priority */
 	uint32_t priority;
@@ -637,14 +654,6 @@ struct table_entry_body_mflu_rule {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_entry_body_mflu_res {
-	/** Reserved */
-	uint8_t  reserved[3];
-
-	/** Table HW internal usage */
-	uint64_t internal_usage0;
-
-	/** Unique ID */
-	uint32_t unique_id;
 
 	/** Timestamp */
 	uint32_t timestamp;
@@ -665,27 +674,66 @@ struct table_entry_body_mflu_res {
 
 
 /**************************************************************************//**
+@Description	Table Entry Body MFLU Branch
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_entry_body_mflu_branch {
+
+	/** Index of the byte to be compared in the key */
+	uint8_t  keyByteNum;
+
+	/** Reserved */
+	uint8_t  reserved1[3]; /* TODO magic */
+
+	/* TODO */
+	uint32_t prevUniqueID;
+
+	/* TODO */
+	uint32_t prevHashValue;
+
+	/* TODO */
+	uint16_t what;
+
+	/** Exact match children enable bits */
+	uint16_t em_children_enable;
+
+	/** Child with wild cards exists flags */
+	uint8_t  child_with_wildcards[32]; /* TODO */
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
 @Description	Table Entry Body Union
 *//***************************************************************************/
 #pragma pack(push, 1)
 union table_entry_body {
-	/** EME16 Entry - see CTLU specification for more details */
-	struct table_entry_body_eme16 eme16;
+	/** EME44 Entry - see CTLU specification for more details */
+	struct table_entry_body_eme44 eme44;
 
 	/** EME24 Entry - see CTLU specification for more details */
 	struct table_entry_body_eme24 eme24;
 
+	/** EME36 Entry - see CTLU specification for more details */
+	struct table_entry_body_eme36 eme36;
+
+	/** EME16 Entry - see CTLU specification for more details */
+	struct table_entry_body_eme16 eme16;
+
+	/** LPM Marker Entry - see CTLU specification for more details */
+	struct table_entry_body_lpm_marker lpm_marker;
+
 	/** LPM Result Entry - see CTLU specification for more details */
 	struct table_entry_body_lpm_res lpm_res;
-
-	/** MFLU Branch Entry - see MFLU specification for more details */
-	struct table_entry_body_mflu_branch mflu_branch;
 
 	/** MFLU Rule Entry - see MFLU specification for more details */
 	struct table_entry_body_mflu_rule mflu_rule;
 
 	/** MFLU Result Entry - see MFLU specification for more details */
 	struct table_entry_body_mflu_res mflu_result;
+
+	/** MFLU Branch Entry - see MFLU specification for more details */
+	struct table_entry_body_mflu_branch mflu_branch;
 };
 #pragma pack(pop)
 
@@ -695,9 +743,24 @@ union table_entry_body {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_entry {
-	/* Entry type (and some more things)
+	/** Entry type (and some more things)
 	 * Macros are available at: \ref TABLE_ENTRY_MACROS */
 	uint8_t type;
+
+	/** Entry key size */
+	uint8_t entry_key_size;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** HW Internal use */
+	uint32_t next_index;
+
+	/** HW Internal use */
+	uint32_t prev_index;
+
+	/** Unique ID */
+	uint32_t unique_id;
 
 	/** The body of the entry (varies per type) */
 	union table_entry_body body;
