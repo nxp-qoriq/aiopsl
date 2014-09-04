@@ -26,7 +26,7 @@
 
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "dpni/drv.h"
+#include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
 #include "platform.h"
 #include "fsl_io.h"
@@ -58,13 +58,13 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
-	
+
 	uint8_t ipf_demo_flags = IPF_DEMO_WITH_HM;
-	uint32_t vlan_tag1 = 0x81008a6b;	
-	uint32_t vlan_tag2 = 0x8100c78d;	
+	uint32_t vlan_tag1 = 0x81008a6b;
+	uint32_t vlan_tag2 = 0x8100c78d;
 	uint16_t mtu;
 	int ipf_status;
-	
+
 /*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
 
 	mtu = 1500;
@@ -82,7 +82,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 		fsl_os_print("\n");
 	}
-	
+
 	if (ipf_demo_flags == IPF_DEMO_WITH_HM)
 	{
 		l2_push_and_set_vlan(vlan_tag1);
@@ -90,10 +90,10 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			("ipr_demo: Core %d inserted vlan 0x%x to frame\n",
 				core_get_id(), vlan_tag1);
 	}
-	
+
 	ipf_context_init(0, mtu, ipf_context_addr);
 	fsl_os_print("ipf_demo: ipf_context_init done, MTU = %d\n", mtu);
-	
+
 	do {
 		ipf_status = ipf_generate_frag(ipf_context_addr);
 
@@ -104,7 +104,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				("ipf_demo: Core %d inserted vlan 0x%x to fragment\n",
 				core_get_id(), vlan_tag2);
 		}
-		
+
 		if (ipf_status > 0){
 			fsl_os_print
 			("ipf_demo: Core %d will send a fragment with ipv4 header:\n"
@@ -113,9 +113,9 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			{
 				fsl_os_print(" %x",p_ipv4hdr[i]);
 			}
-			fsl_os_print("\n");	
+			fsl_os_print("\n");
 		}
-		
+
 		dpni_drv_send(APP_NI_GET(arg));
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
 
@@ -126,7 +126,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	{
 		fsl_os_print(" %x",p_ipv4hdr[i]);
 	}
-		fsl_os_print("\n");	
+		fsl_os_print("\n");
 }
 
 
@@ -185,7 +185,7 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
-	
+
 	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
 
 	fsl_os_print("Running app_init()\n");
@@ -204,7 +204,7 @@ int app_init(void)
 		                              app_process_packet_flow0, /* callback for flow_id*/
 		                              (ni | (flow_id << 16)) /*arg, nic number*/);
 		if (err) return err;
-	
+
 		err = dpni_drv_set_mfl((uint16_t)ni/*ni_id*/,
 		                        mfl /* Max frame length*/);
 		if (err) return err;
