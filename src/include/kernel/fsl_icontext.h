@@ -27,6 +27,9 @@
 #ifndef __FSL_ICONTEXT_H
 #define __FSL_ICONTEXT_H
 
-int ic_get(uint16_t icid, void **icontext);
+int icontext_get(uint16_t icid, void **icontext);
+int icontext_add();
+int icontext_rm(uint16_t icid);
+
 
 #endif

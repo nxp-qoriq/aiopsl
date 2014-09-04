@@ -29,7 +29,7 @@
 
 struct ic_table ic = {0};
 
-int ic_add()
+int icontext_add()
 {
 	uint16_t pl_icid = PL_ICID_GET;
 
@@ -41,24 +41,26 @@ int ic_add()
 	if (IC_BDI_GET != 0)
 		ic.enq_flags[ind] |= FDMA_ENF_BDI_BIT;
 
+	/* TODO locks */
+
 }
 
-int ic_rm(uint16_t icid)
+int icontext_rm(uint16_t icid)
+{
+	/* TODO locks */
+}
+
+int icontext_get(uint16_t icid, void **icontext)
 {
 
 }
 
-int ic_get(uint16_t icid, void **icontext)
-{
-
-}
-
-int ic_table_init()
+int icontext_table_init()
 {
 	memset(&ic, 0, sizeof(struct ic_table));
 }
 
-int ic_table_free()
+int icontext_table_free()
 {
 	memset(&ic, 0, sizeof(struct ic_table));
 }
