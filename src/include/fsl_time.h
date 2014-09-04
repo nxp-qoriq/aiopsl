@@ -46,39 +46,6 @@
  @{
 *//***************************************************************************/
 
-typedef uint64_t time_t; /**< type of time used in fsl_os_gettimeofday(),
-                              will be removed in future release. */
-
-/* type suseconds_t for microseconds [0,1000000]*/
-typedef uint32_t suseconds_t; /**< type of microseconds, will be removed in future release */
-
-
-typedef struct timeval{
-    time_t      tv_sec;     /* seconds */
-    suseconds_t tv_usec;    /* microseconds */
-}timeval;
-
-typedef struct timezone {
-    int tz_minuteswest;     /* minutes west of Greenwich */
-    int tz_dsttime;         /* type of DST correction */
-}timezone;
-
-/**************************************************************************//**
-@Deprecated - Will be removed in future release
-@Function   fsl_os_gettimeofday
-
-@Description  Gets time of day returns the time as the number of seconds and
-	microseconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
-
- @Param[out]  tv - if not null, tv struct is filled with seconds since epoch
- @Param[out]  tz - obsolete, should be null (not supported)
-
-
-@Return   standard POSIX error code
-
-*//***************************************************************************/
-int fsl_os_gettimeofday(timeval *tv, timezone *tz);
-
 /**************************************************************************//**
 @Function   fsl_get_time_ms
 

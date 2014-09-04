@@ -40,7 +40,6 @@
 #include "lib/fsl_slab.h"
 #include "system.h" // TMP
 
-
 int app_init(void);
 void app_free(void);
 int ipsec_app_init(uint16_t ni_id);
@@ -380,7 +379,7 @@ int ipsec_app_init(uint16_t ni_id)
 	extern struct storage_profile storage_profile; /* TMP for printing the SP */
 	struct storage_profile *sp_addr = &storage_profile; /* TMP for printing the SP */
 
-	 dpni_drv_get_spid(
+		dpni_drv_get_spid(
 			ni_id, /* uint16_t ni_id */ 
 			&ni_spid /* uint16_t *spid */
 			);
@@ -534,7 +533,7 @@ int ipsec_app_init(uint16_t ni_id)
 	}
 	
 	/* Encryption Descriptor Parameters */
-	outer_header_ip_version = 4; /* 4 or 6 */
+	outer_header_ip_version = 6; /* 4 or 6 */
 	
 	/* Outer IP header */
 	if (outer_header_ip_version == 4) {
@@ -631,6 +630,8 @@ int ipsec_app_init(uint16_t ni_id)
 			/**< Miscellaneous control flags */
 	
 	params.decparams.options = 0x0;
+	//params.decparams.options = IPSEC_DEC_OPTS_ARS32; /* Anti Replay 32 bit enabled */
+	
 	params.decparams.seq_num_ext_hi = 0x0;
 	params.decparams.seq_num = 0x0;
 
