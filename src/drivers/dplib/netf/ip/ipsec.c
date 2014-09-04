@@ -472,7 +472,7 @@ int ipsec_generate_encap_sd(
 		pdb_options |= IPSEC_ENC_PDB_OPTIONS_OIHI_PDB;
 	} else {
 	/* Transport Mode Parameters */
-
+		pdb_options |= IPSEC_ENC_OPTS_UPDATE_CSUM;
 	}
 	
 	pdb.hmo = 
@@ -717,7 +717,8 @@ int ipsec_generate_decap_sd(
 		/* If ESP pad checking is not required output frame is only the PDU */
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
-					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
+					IPSEC_DEC_PDB_OPTIONS_OUTFMT |
+					IPSEC_DEC_OPTS_VERIFY_CSUM);
 		}
 	}
 	/*
