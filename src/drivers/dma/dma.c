@@ -6,7 +6,6 @@
 #include "fsl_fdma.h"
 #include "dma.h"
 #include "sys.h"
-#include "fsl_malloc.h"
 #include "fsl_dbg.h"
 
 int dma_get_icontext(uint16_t icid, void **icontext)

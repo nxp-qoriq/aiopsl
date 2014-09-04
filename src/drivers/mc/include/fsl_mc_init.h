@@ -30,12 +30,12 @@
 #include "dplib/fsl_dpci.h"
 #include "dplib/fsl_mc_sys.h"
 
-struct dprc {
+struct mc_dprc {
 	uint16_t		token;
 	struct fsl_mc_io	io;
 };
 
-struct dpci_obj {
+struct mc_dpci_obj {
 	struct dpci_attr	*attr;
 	uint16_t		*token;
 	uint16_t		*icid;		/**< ICID per DPCI */

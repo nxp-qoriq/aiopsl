@@ -880,7 +880,7 @@ static int bpid_init(struct slab_hw_pool_info *hw_pools,
 
 static int dpbp_add(struct dprc_obj_desc *dev_desc, int ind,
                     struct slab_bpid_info *bpids_arr, uint32_t bpids_arr_size,
-                    struct dprc *dprc)
+                    struct mc_dprc *dprc)
 {
 	int      dpbp_id  = dev_desc->id;
 	int      err      = 0;
@@ -923,7 +923,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	int num_bpids = 0;
 	int err = 0;
 	int i = 0;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 
 	/*Calling MC to get bpid's*/
