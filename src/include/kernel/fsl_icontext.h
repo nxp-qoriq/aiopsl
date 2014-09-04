@@ -24,11 +24,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_DMA_H
-#define __FSL_DMA_H
+#ifndef __FSL_ICONTEXT_H
+#define __FSL_ICONTEXT_H
 
-int dma_get_icontext(uint16_t icid, void **icontext);
-int dma_read(void *icontext, uint16_t size, uint64_t src, void *dest);
-int dma_write(void *icontext, uint16_t size, void *src, uint64_t dest);
+int ic_get(uint16_t icid, void **icontext);
 
-#endif /* __FSL_DMA_H */
+#endif

@@ -24,11 +24,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_DMA_H
-#define __FSL_DMA_H
+#include "fsl_fdma.h"
+#include "icontext.h"
 
-int dma_get_icontext(uint16_t icid, void **icontext);
-int dma_read(void *icontext, uint16_t size, uint64_t src, void *dest);
-int dma_write(void *icontext, uint16_t size, void *src, uint64_t dest);
+struct ic_table ic = {0};
 
-#endif /* __FSL_DMA_H */
+int ic_add()
+{
+	uint16_t pl_icid = PL_ICID_GET;
+
+	/* TODO find the ind where to add it */
+	ic.icid[ind]           = IC_ICID_GET(pl_icid);
+	ic.enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
+	ic.dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
+	IC_ADD_AMQ_FLAGS(ic.dma_flags[ind], pl_icid);
+	if (IC_BDI_GET != 0)
+		ic.enq_flags[ind] |= FDMA_ENF_BDI_BIT;
+
+}
+
+int ic_rm(uint16_t icid)
+{
+
+}
+
+int ic_get(uint16_t icid, void **icontext)
+{
+
+}
+
+int ic_table_init()
+{
+	memset(&ic, 0, sizeof(struct ic_table));
+}
+
+int ic_table_free()
+{
+	memset(&ic, 0, sizeof(struct ic_table));
+}
