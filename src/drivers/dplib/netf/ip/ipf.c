@@ -48,7 +48,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
-
+	struct fdma_amq amq;
+	
 	status = fdma_store_default_frame_data();
 	if (status < 0)
 		return status; /* Received packet cannot be stored due to
@@ -61,10 +62,16 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	status = fdma_present_frame_without_segments(&(ipf_ctx->rem_fd),
 						FDMA_PRES_NO_FLAGS, 0,
 						&(ipf_ctx->rem_frame_handle));
-	if (status < 0)
-		return status; /* Received packet FD contain errors
+	if (status < 0){
+		if (fdma_store_frame_data(ipf_ctx->rem_frame_handle,
+				*((uint8_t *) HWC_SPID_ADDRESS),
+				&amq) < 0)
+			return -ENOMEM;
+		 else
+			return status; /* Received packet FD contain errors
 				(FD.err != 0). (status = (-EIO)).*/
-
+	}
+	
 	return SUCCESS;
 }
 

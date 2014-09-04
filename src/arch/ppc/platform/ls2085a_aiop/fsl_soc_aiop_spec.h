@@ -57,7 +57,7 @@
 enum fsl_os_module {
 	FSL_OS_MOD_SOC = 0,
 
-	FSL_OS_MOD_CMDIF_SRV, /**< AIOP server handle */
+	/* FSL_OS_MOD_CMDIF_SRV, */ /**< AIOP server handle */
 	FSL_OS_MOD_CMDIF_CL,  /**< AIOP client handle */
 	FSL_OS_MOD_SLAB,
 	FSL_OS_MOD_UART,

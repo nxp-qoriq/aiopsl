@@ -45,8 +45,7 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 #define BDI_GET \
 ((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
 	& ADC_BDI_MASK)
-/** VA
- * TODO is it really OR between VA in ADC and FD */
+/** eVA is OR between FD[VA]  ADC[VA config] */
 #define VA_GET \
 (((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
 	& ADC_VA_MASK) || LDPAA_FD_GET_VA(HWC_FD_ADDRESS))

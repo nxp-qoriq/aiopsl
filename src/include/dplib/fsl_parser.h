@@ -1613,6 +1613,36 @@ int parse_result_generate_default(uint8_t flags);
 int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);
 
+/**************************************************************************//**
+@Function	parse_result_generate_basic
+
+@Description	Runs parser and generates parse result, with the following
+		arguments: PRPID = 0, starting_hxs = 0 (Ethernet),
+		starting_offset = 0, no checksum validation.
+
+		Implicit input parameters:
+		Segment address, Segment size.
+
+		Implicitly updated values in Task Defaults in the HWC:
+		Parser Result.
+
+@Return		0 on Success, or negative value on error.
+		The exact error code can be discovered by using
+		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
+		\ref FSL_PARSER_ERROR_CODES.
+
+@Retval		0 - Success
+@Retval		EIO - Parsing Error
+@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
+		of the minimum between presentation_length and 256 bytes before
+		completing all parsing)
+
+@Cautions	In this function the task yields.
+ 	 	This function may result in a fatal error.
+*//***************************************************************************/
+int parse_result_generate_basic(void);
+
+
 /** @} */ /* end of FSL_PARSER_Functions */
 /** @} */ /* end of FSL_PARSER */
 /** @} */ /* end of ACCEL */
