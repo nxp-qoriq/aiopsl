@@ -41,6 +41,29 @@
 
 extern t_system sys;
 
+/*********************************************************************/
+/*
+ * This addition if for dynamic aiop load
+ */
+/* Place MC <-> AIOP structures at fixed address.
+ * Don't create new macro for section because no one else should use it */
+#pragma push
+#pragma force_active on
+#pragma section  RW ".aiop_init_data" ".aiop_init_data_bss"
+__declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
+#pragma pop
+
+/* TODO set good default values */
+struct aiop_init_data g_init_data = {
+{0,0,0,0,0,0,0,0,0,0,0,{0}},
+{0,0,0,0,0,0,0,{0}}
+};
+
+/* Address of end of TLS section */
+extern const uint8_t AIOP_INIT_DATA[];
+
+/*********************************************************************/
+
 extern int mc_obj_init();           extern void mc_obj_free();
 extern int cmdif_client_init();     extern void cmdif_client_free();
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
@@ -140,6 +163,13 @@ int global_init(void)
 {
     struct sys_module_desc modules[] = GLOBAL_MODULES;
     int                    i;
+
+    /* Verifying that MC saw the data at the beginning of special section
+     * and at fixed address
+     * TODO is it the right place to verify it ? Can't place it at sys_init()
+     * because it's too generic. */
+    ASSERT_COND((((uint8_t *)(&g_init_data.sl_data)) == AIOP_INIT_DATA) &&
+                (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
 
     for (i=0; i<ARRAY_SIZE(modules) ; i++)
         if (modules[i].init)
