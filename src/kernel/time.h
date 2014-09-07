@@ -40,6 +40,9 @@
 #include "fsl_errors.h"
 #include "fsl_time.h"
 
+#define udiv1000(numerator) ((numerator * 0x83126e98ULL) >> 41);
+/** Macro to divide unsigned long numerator by 1000 */
+
 /**************************************************************************//**
 @Function      _gettime
 
@@ -56,45 +59,40 @@
 *//***************************************************************************/
 int _gettime(uint64_t *time);
 
+/**************************************************************************//**
+@Function      ulldiv1000
 
-__HOT_CODE static inline uint64_t divu3(uint64_t n) {
-	uint64_t q, r;
-	q = (n >> 2) + (n >> 4); // q = n*0.0101 (approx).
-	q = q + (q >> 4); // q = n*0.01010101.
-	q = q + (q >> 8);
-	q = q + (q >> 16);
-	r = n - q*3; // 0 <= r <= 15.
-	return q + (11*r >> 5); // Returning q + r/3.
+@Description   routine to receive time in microseconds from CM-GW TS registers
+               (1588).
 
+
+@Param[in]     numerator - unsigned long long numerator to be divided by
+				1000
+@Return        quotient - (result of dividing by 1000)
+*//***************************************************************************/
+__HOT_CODE static inline uint64_t ulldiv1000(uint64_t numerator) {
+	uint32_t msw , lsw, w;
+	uint64_t quotient;
+
+	lsw = (uint32_t) (numerator);
+	msw = (uint32_t) (numerator >> 32);
+	w = udiv1000(msw);
+	msw = msw-(1000*w); // remainder
+
+	quotient = w;
+	quotient <<= 32;
+
+	msw = (msw << 16) | (lsw >> 16);
+
+	w = udiv1000(msw);
+	msw = msw - (1000 * w); // remainder
+
+	quotient |= ((uint64_t) w) << 16;
+
+	msw = (msw << 16) | (lsw & 0xffff);
+	quotient |= udiv1000(msw);
+
+	return quotient;
 }
-
-__HOT_CODE static inline uint64_t divu5(uint64_t n) {
-	uint64_t q, r;
-	q = (n >> 3) + (n >> 4);
-	q = q + (q >> 4);
-	q = q + (q >> 8);
-	q = q + (q >> 16);
-	r = n - q*5;
-	return q + (13*r >> 6);
-}
-
-__HOT_CODE static inline uint64_t divu9(uint64_t n) {
-	uint64_t q, r;
-	q = n - (n >> 3);
-	q = q + (q >> 6);
-	q = q + (q>>12) + (q>>24);
-	q = q >> 3;
-	r = n - q*9;
-	return q + ((r + 7) >> 4);
-}
-__HOT_CODE static inline uint64_t divu1000(uint64_t n) {
-	uint64_t q, r, t;
-	t = (n >> 7) + (n >> 8) + (n >> 12);
-	q = (n >> 1) + t + (n >> 15) + (t >> 11) + (t >> 14);
-	q = q >> 9;
-	r = n - q*1000;
-	return q + ((r + 24) >> 10);
-}
-
 
 #endif /* _TIME_H */

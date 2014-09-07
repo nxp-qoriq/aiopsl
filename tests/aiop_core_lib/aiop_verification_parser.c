@@ -31,8 +31,7 @@
 
 *//***************************************************************************/
 
-//#include "dplib/fsl_parser.h"
-#include "parser.h"
+#include "dplib/fsl_parser.h"
 #include "system.h"
 
 #include "aiop_verification.h"
@@ -210,6 +209,17 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		*((int32_t *)(gpre->parser_status_addr)) = gpre->status;
 		str_size =
 			sizeof(struct parser_gen_parser_res_exp_verif_command);
+		break;
+	}
+	case PARSER_GEN_PARSE_RES_BASIC_STR:
+	{
+		struct parser_gen_parser_res_basic_verif_command *gpr =
+			(struct parser_gen_parser_res_basic_verif_command *)
+			asa_seg_addr;
+		gpr->status = parse_result_generate_basic();
+		*((int32_t *)(gpr->parser_status_addr)) = gpr->status;
+		str_size = 
+			sizeof(struct parser_gen_parser_res_basic_verif_command);
 		break;
 	}
 	case PARSER_PRP_ID_POOL_CREATE_STR:

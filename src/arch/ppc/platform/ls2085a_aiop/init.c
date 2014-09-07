@@ -37,8 +37,32 @@
 #include "slab.h"
 #include "cmgw.h"
 #include "fsl_mc_init.h"
+#include "../drivers/dplib/dpni/drv.h"
 
 extern t_system sys;
+
+/*********************************************************************/
+/*
+ * This addition if for dynamic aiop load
+ */
+/* Place MC <-> AIOP structures at fixed address.
+ * Don't create new macro for section because no one else should use it */
+#pragma push
+#pragma force_active on
+#pragma section  RW ".aiop_init_data" ".aiop_init_data_bss"
+__declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
+#pragma pop
+
+/* TODO set good default values */
+struct aiop_init_data g_init_data = {
+{0,0,0,0,0,0,0,0,0,0,0,{0}},
+{0,0,0,0,0,0,0,{0}}
+};
+
+/* Address of end of TLS section */
+extern const uint8_t AIOP_INIT_DATA[];
+
+/*********************************************************************/
 
 extern int mc_obj_init();           extern void mc_obj_free();
 extern int cmdif_client_init();     extern void cmdif_client_free();
@@ -52,11 +76,6 @@ extern void tman_timer_callback(void);
 extern void cmdif_cl_isr(void);
 extern void cmdif_srv_isr(void);
 
-/* TODO: move to hdr file */
-extern int dpni_drv_probe(struct dprc	*dprc,
-			  uint16_t	mc_ni_id,
-			  uint16_t	aiop_ni_id,
-                          struct dpni_pools_cfg *pools_params);
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
@@ -144,6 +163,13 @@ int global_init(void)
 {
     struct sys_module_desc modules[] = GLOBAL_MODULES;
     int                    i;
+
+    /* Verifying that MC saw the data at the beginning of special section
+     * and at fixed address
+     * TODO is it the right place to verify it ? Can't place it at sys_init()
+     * because it's too generic. */
+    ASSERT_COND((((uint8_t *)(&g_init_data.sl_data)) == AIOP_INIT_DATA) &&
+                (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
 
     for (i=0; i<ARRAY_SIZE(modules) ; i++)
         if (modules[i].init)
@@ -292,7 +318,7 @@ int run_apps(void)
 	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
 	uint16_t buffer_size = 2048;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 #endif
 
 

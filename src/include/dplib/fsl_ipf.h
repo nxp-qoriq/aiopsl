@@ -142,10 +142,10 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 		depletion. Recommendation is to discard the frame.
 		The packet was not fragmented.
 @Retval		EIO - Received packet FD contain errors (FD.err != 0).
-		Recommendation is to either force discard of the frame (call
-		\ref fdma_force_discard_fd) or enqueue the frame.
+		Recommendation is to either force discard of the default frame
+		(by calling \ref fdma_force_discard_fd) or enqueue the default
+		frame.
 		The packet was not fragmented.
-		
 
 @Cautions	In the output fragment, ASA & PTA are not presented.\n
 		No support in IPv6 jumbograms.\n

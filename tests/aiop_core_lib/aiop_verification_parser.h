@@ -67,7 +67,8 @@ enum parser_verif_cmd_type {
 	PARSER_GEN_PARSE_RES_VERIF_CHECKSUM_CMDTYPE,
 	PARSER_INIT_GROSS_VERIF_CMDTYPE,
 	PARSER_SET_PRPID_HXS_VERIF_CMDTYPE,
-	PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE
+	PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE,
+	PARSER_GEN_PARSE_RES_BASIC_VERIF_CMDTYPE
 };
 
 #define PARSER_PRP_CREATE_STR  ((PARSE_MODULE << 16) | \
@@ -109,6 +110,8 @@ enum parser_verif_cmd_type {
 #define PARSER_SET_FRAME_LENGTH_STR ((PARSE_MODULE << 16) | \
 		PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE)
 
+#define  PARSER_GEN_PARSE_RES_BASIC_STR ((PARSE_MODULE << 16) | \
+		PARSER_GEN_PARSE_RES_BASIC_VERIF_CMDTYPE)
 /**************************************************************************//**
 @Description	Parser verification init gross running sum Command structure.
 
@@ -283,6 +286,21 @@ struct parser_set_prpid_hxs_command {
 	uint8_t		prpid;
 	uint8_t 	pad;
 };
+
+/**************************************************************************//**
+@Description	Parser Generate Parser Results Basic Command structure.
+
+		Includes information needed for Parser Commands verification.
+*//***************************************************************************/
+struct parser_gen_parser_res_basic_verif_command {
+	uint32_t	opcode;
+	int32_t		status;
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t 	parser_status_addr;
+	uint8_t		pad[4];
+};
+
 
 void aiop_init_parser(uint8_t *prpid);
 
