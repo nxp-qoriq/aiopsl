@@ -1572,6 +1572,8 @@ void parser_profile_query(uint8_t prpid,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
+ 	 	In case the gross running sum is not correct, the user must
+ 	 	clear it before calling parser.
 *//***************************************************************************/
 inline int parse_result_generate_default(uint8_t flags);
 
@@ -1612,6 +1614,8 @@ inline int parse_result_generate_default(uint8_t flags);
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
+ 	 	In case the gross running sum is not correct, the user must
+ 	 	clear it before calling parser.
 *//***************************************************************************/
 inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);

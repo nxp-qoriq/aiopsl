@@ -29,8 +29,9 @@
 
 
 #define AIOP_ATU_NUM_OF_WINDOWS         8
-
 #define AIOP_EP_TABLE_NUM_OF_ENTRIES	1024
+#define AIOP_INIT_DATA_FIXED_ADDR	(uint8_t *)0x01010000
+
 
 /**************************************************************************//**
  @Description   EPID table
@@ -42,6 +43,47 @@ enum aiop_epid_table {
        AIOP_EPID_DPNI_START      = 3,     /**< DPNI's first EPID */
        AIOP_EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
 };
+
+#pragma push
+#pragma pack()
+/* Internal data exchanged between AIOP and MC
+ * TODO check it */
+struct aiop_app_init_info
+{
+ 	uint64_t dp_ddr_size;      /* initialized by AIOP APP at compile time, default provided */
+	uint64_t peb_size;         /* initialized by AIOP APP at compile time, default provided */
+ 	uint64_t sys_ddr1_size;    /* initialized by AIOP APP at compile time, default provided */
+ 	uint64_t sys_ddr1_ctlu_size;        /* initialized by AIOP APP at compile time, default provided */
+ 	uint64_t sys_ddr2_ctlu_size;        /* initialized by AIOP APP at compile time, default provided */
+ 	uint64_t dp_ddr_ctlu_size;        /* initialized by AIOP APP at compile time, default provided */
+ 	uint64_t peb_ctlu_size;        /* initialized by AIOP APP at compile time, default provided */
+	uint64_t reserved[25];           /* reserved for future use */
+};
+
+/* Internal data exchanged between AIOP and MC
+ * TODO check it */
+struct aiop_sl_init_info
+{
+    uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
+    uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
+    uint64_t ddr_phys_addr;
+    uint64_t peb_phys_addr;
+    uint64_t sys_ddr1_phys_addr;
+    uint64_t ddr_virt_addr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
+    uint64_t peb_virt_addr; /* virtual base address, initialized by MC FW before AIOP elf is loaded */
+    uint64_t sys_ddr1_virt_addr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
+    uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
+    uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
+    uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
+    uint32_t reserved[188];           /* reserved for future use */
+};
+
+struct aiop_init_data
+{
+	struct aiop_sl_init_info  sl_data;
+	struct aiop_app_init_info app_data;
+};
+#pragma pop
 
 /**************************************************************************//**
  @Description   AIOP tile and AIOP blocks registers

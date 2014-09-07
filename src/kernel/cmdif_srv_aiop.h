@@ -40,7 +40,7 @@ ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
 struct cmdif_srv_aiop {
 	struct cmdif_srv *srv;
 	/**< Common Server fields */
-	struct dpci_obj *dpci_tbl;
+	struct mc_dpci_obj *dpci_tbl;
 	/**< DPCI table according to indexes in dequeue context */
 	uint8_t lock;
 	/**< cmdif spinlock used for module id allocation */

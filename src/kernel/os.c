@@ -28,7 +28,6 @@
 #include "common/fsl_stdarg.h"
 #include "kernel/fsl_spinlock.h"
 #include "aiop_common.h"
-#include "time.h"
 #include "fsl_io.h"
 #include "fsl_smp.h"
 #include "inc/console.h"
@@ -232,88 +231,6 @@ __HOT_CODE  uint32_t fsl_os_rand(void)
 			0xFBE16801);
 
 	return seed_32bit;
-}
-
-
-/*****************************************************************************/
-__HOT_CODE int fsl_os_gettimeofday(timeval *tv, timezone *tz)
-{
-	time_t usec; /* time in microseconds since epoch*/
-	time_t sec;  /* time in seconds*/
-	int err;
-	UNUSED(tz);
-
-#ifdef DEBUG
-	if(tv == NULL)
-		return -EACCES;
-#endif
-	err = _gettime(&usec);
-
-	if(err < 0)
-		return err;
-
-	sec = (usec / 1000000);
-	tv->tv_usec = (suseconds_t)(usec - (sec * 1000000));
-	tv->tv_sec = sec;
-
-	return 0;
-}
-
-
-__HOT_CODE int fsl_get_time_ms(uint32_t *time)
-{
-	uint64_t time_us, temp;
-	int err;
-
-#ifdef DEBUG
-	if(time == NULL)
-		return -EACCES;
-#endif
-	err = _gettime(&time_us);
-
-	if(err < 0)
-		return err;
-
-
-	temp = (time_us/1000) % 86400000;
-
-	*time =  (uint32_t) temp;
-#if 0
-
-	/*24 H = 86400000 milliseconds (24x60x60x1000) = (2^10)x(3^3)x(5^5) */
-	temp = time_us >> 10; /* time / (2 ^ 10)*/
-	temp = divu5(divu5(divu5(divu5(divu5(divu3(divu9(temp)))))));
-	temp -= (temp * 86400000);
-	*time = (uint32_t) temp;
-#endif
-	return 0;
-}
-
-
-int fsl_get_time_since_epoch_ms(uint64_t *time)
-{
-	uint64_t time_us;
-	int err;
-
-#ifdef DEBUG
-	if(time == NULL)
-		return -EACCES;
-#endif
-	 err = _gettime(&time_us);
-
-	if(err < 0)
-		return err;
-
-	*time = time_us/1000;
-
-	return 0;
-}
-
-
-
-__HOT_CODE uint32_t fsl_os_current_time(void)
-{
-	return 0;
 }
 
 /*****************************************************************************/
