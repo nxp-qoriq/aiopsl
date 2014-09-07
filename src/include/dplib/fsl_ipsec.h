@@ -36,11 +36,11 @@
 #include "common/types.h"
 
 /**************************************************************************//**
- @Group		NETF NETF (Network Libraries)
+@Group		NETF NETF (Network Libraries)
 
- @Description	AIOP Accelerator APIs
+@Description	AIOP Accelerator APIs
 
- @{
+@{
 *//***************************************************************************/
 /**************************************************************************//**
 @Group	FSL_IPSEC IPSEC
@@ -51,11 +51,11 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Group		IPSEC_ENUM IPsec Enumerations
+@Group		IPSEC_ENUM IPsec Enumerations
 
- @Description	IPsec Enumerations
+@Description	IPsec Enumerations
 
- @{
+@{
 *//***************************************************************************/
 
 /**************************************************************************//**
@@ -70,7 +70,7 @@ enum ipsec_direction {
 };
 
 /**************************************************************************//**
- @enum ipsec_error_codes
+ @enum ipsec_status_codes
 
  @Description	AIOP IPsec Functional Module return status codes.
 
@@ -82,10 +82,9 @@ enum ipsec_status_codes {
 	IPSEC_ERROR = -1
 };
 
-/* @} end of enum ipsec_status_codes */
+/** @} */ /* End of enum ipsec_status_codes */
 
-
-/* @} end of IPSEC_ENUM */
+/** @} */ /* End of IPSEC_ENUM */
 
 /**************************************************************************//**
 @Group	FSL_IPSEC_MACROS IPsec Macros
@@ -96,7 +95,7 @@ enum ipsec_status_codes {
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Description	IPSec handle Type definition
+@Description	IPSec handles Type definition
 
 *//***************************************************************************/
 typedef uint64_t ipsec_handle_t;
@@ -111,9 +110,8 @@ typedef void (ipsec_lifetime_callback_t) (
 		uint8_t expiry_type /* Hard or Soft */
 		);
 
-
 /**************************************************************************//**
-@Description	ipsec general flags
+@Description	IPsec general flags
 
 		Use for ipsec_descriptor_params.flags
 *//***************************************************************************/
@@ -128,7 +126,10 @@ typedef void (ipsec_lifetime_callback_t) (
 
 /** NAT UDP Encapsulation enable. (IPv4 only) */
 #define IPSEC_ENC_OPTS_NAT_EN		0x00000010
-/** NAT UDP checksum enable. (IPv4 only) */
+
+/** NAT UDP checksum enable. (IPv4 only) 
+ * When set, the outer header UDP checksum is calculated.
+ * If not set, the the outer header UDP checksum is zero. */
 #define IPSEC_ENC_OPTS_NUC_EN		0x00000020
 
 /** Lifetime KiloByte Counter Enable */
@@ -137,9 +138,6 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_FLG_LIFETIME_PKT_CNTR_EN	0x00000200
 /** Lifetime Seconds counter Enable */
 #define IPSEC_FLG_LIFETIME_SEC_CNTR_EN	0x00000400
-
-/** Preserve the ASA (Accelerator Specific Annotation) */
-#define IPSEC_FLG_PRESERVE_ASA		0x00020000
 
 /**************************************************************************//**
 @Description	General IPSec ESP encap/decap options
@@ -168,7 +166,7 @@ typedef void (ipsec_lifetime_callback_t) (
  * IP header */
 #define IPSEC_ENC_OPTS_DTTL 		0x2000
 
-/* Sequence Number Rollover control.
+/** Sequence Number Rollover control.
  * This control permits a Sequence Number Rollover
  * If not set, a Sequence Number Rollover causes an error */
 #define IPSEC_ENC_OPTS_SNR_EN  	0x1000	
@@ -205,9 +203,9 @@ typedef void (ipsec_lifetime_callback_t) (
 
 *//***************************************************************************/
 #define IPSEC_CIPHER_DES_IV64			0x0100
-#define IPSEC_CIPHER_DES			0x0200
-#define IPSEC_CIPHER_3DES			0x0300
-#define IPSEC_CIPHER_NULL			0x0B00
+#define IPSEC_CIPHER_DES				0x0200
+#define IPSEC_CIPHER_3DES				0x0300
+#define IPSEC_CIPHER_NULL				0x0B00
 #define IPSEC_CIPHER_AES_CBC			0x0c00
 #define IPSEC_CIPHER_AES_CTR			0x0d00
 #define IPSEC_CIPHER_AES_XTS			0x1600
@@ -217,7 +215,7 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_CIPHER_AES_GCM8			0x1200
 #define IPSEC_CIPHER_AES_GCM12			0x1300
 #define IPSEC_CIPHER_AES_GCM16			0x1400
-#define IPSEC_CIPHER_AES_NULL_WITH_GMAC		0x1500
+#define IPSEC_CIPHER_AES_NULL_WITH_GMAC	0x1500
 
 /**************************************************************************//**
 @Description	IPSec Authentication Algorithms
@@ -232,9 +230,9 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_AUTH_HMAC_MD5_128			0x0006
 #define IPSEC_AUTH_HMAC_SHA1_160		0x0007
 #define IPSEC_AUTH_AES_CMAC_96			0x0008
-#define IPSEC_AUTH_HMAC_SHA2_256_128		0x000c
-#define IPSEC_AUTH_HMAC_SHA2_384_192		0x000d
-#define IPSEC_AUTH_HMAC_SHA2_512_256		0x000e
+#define IPSEC_AUTH_HMAC_SHA2_256_128	0x000c
+#define IPSEC_AUTH_HMAC_SHA2_384_192	0x000d
+#define IPSEC_AUTH_HMAC_SHA2_512_256	0x000e
 
 /**************************************************************************//**
 @Description	IPSec Key Encryption Flags
@@ -257,7 +255,6 @@ typedef void (ipsec_lifetime_callback_t) (
  @Description	AIOP IPsec Encryption/Decryption return codes. Returned by 
  	 ipsec_frame_encrypt (*enc_status) or ipsec_frame_decrypt (*dec_status)
  	 Multiple bits can be set simultaneously.
- @{
 *//***************************************************************************/
 /** Reached Soft Lifetime Kilobyte Limit */
 #define IPSEC_STATUS_SOFT_KB_EXPIRED		0x00000001
@@ -351,8 +348,6 @@ struct ipsec_encap_params {
  * @Description   Salt and counter fields for IPsec CTR decapsulation
 *//***************************************************************************/
 struct ipsec_decap_ctr_params {
-	//uint32_t salt;
-	//uint32_t ctr_initial;
 	uint32_t ctr_nonce;
 };
 
@@ -401,7 +396,6 @@ struct alg_info {
 *//***************************************************************************/
 struct ipsec_descriptor_params {
 	
-	//enum ipsec_direction direction; 	/**< Descriptor direction */
 	int32_t direction; 	/**< Descriptor direction */
 
 	uint32_t flags; /**< Miscellaneous control flags */
@@ -496,6 +490,8 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
 		Implicit Input: BPID in the SRAM (internal usage).
 		
 @Param[in]	params - pointer to descriptor parameters
+@Param[in]	instance_handle - IPsec instance handle
+							achieved with ipsec_create_instance()
 
 @Param[out]	ipsec_handle - IPsec handle to the descriptor database
 		
@@ -506,7 +502,6 @@ int ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
 		ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle);
-
 
 /**************************************************************************//**
 @Function	ipsec_del_sa_descriptor
@@ -527,6 +522,13 @@ int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
 
 @Description	This function returns the SA lifetime counters:
 		kilobyte, packets and seconds.
+		
+		The relevant counters enable flag should be set in order to get
+		a valid kilobyte and packet count.
+		(IPSEC_FLG_LIFETIME_KB_CNTR_EN, IPSEC_FLG_LIFETIME_PKT_CNTR_EN)
+		
+		A lifetime count is always valid regardless of 
+		the counter enable flag (IPSEC_FLG_LIFETIME_SEC_CNTR_EN)
 
 @Param[in]	ipsec_handle - IPsec handle.
 @Param[out]	kilobytes - number of bytes processed by this SA.
@@ -582,6 +584,9 @@ int ipsec_decr_lifetime_counters(
 @Cautions	anti_replay_bitmap is relevant for inbound (decapsulation) only,
 			and should be ignored for outbound (encapsulation).
 
+			For decapsulation, the sequence_number is valid only if
+			an anti-replay window is enabled.
+			
 @Return		Status
 
 *//****************************************************************************/
