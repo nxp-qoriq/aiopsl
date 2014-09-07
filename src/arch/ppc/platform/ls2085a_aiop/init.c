@@ -308,7 +308,6 @@ int run_apps(void)
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0, tmp = 0;
-#ifndef AIOP_STANDALONE
 	int dev_count;
 	/* TODO: replace with memset */
 	uint16_t dpbp = 0;
@@ -319,7 +318,6 @@ int run_apps(void)
 	struct dpni_pools_cfg pools_params;
 	uint16_t buffer_size = 2048;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-#endif
 
 
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
@@ -331,7 +329,6 @@ int run_apps(void)
 	/* TODO - iterate through the device-list:
 	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
-#ifndef AIOP_STANDALONE
 	if (dprc == NULL)
 	{
 		pr_err("Don't find AIOP root container \n");
@@ -403,7 +400,7 @@ int run_apps(void)
 			}
 		}
 	}
-#endif
+
 
 	/* At this stage, all the NIC of AIOP are up and running */
 
