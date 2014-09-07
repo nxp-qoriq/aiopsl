@@ -1,3 +1,5 @@
+- fsl_dma.h                    New API for ICID aware memory accesses.
+- time.c/h fsl_time.h:         Optimization was made for time queries (fsl_get_time_ms() and fsl_get_time_since_epoch())
 - fsl_soc.aiop_spec.h          Deleted FSL_OS_MOD_CMDIF_SRV.
 - cmdif_srv.c                  Removed sys_get_handle(FSL_OS_MOD_CMDIF_SRV) as part of optimization.
 - aiop_link.lcf                LCF cleanups, removed unused memory regions.

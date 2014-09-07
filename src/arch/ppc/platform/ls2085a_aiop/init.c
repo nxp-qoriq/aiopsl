@@ -37,6 +37,7 @@
 #include "slab.h"
 #include "cmgw.h"
 #include "fsl_mc_init.h"
+#include "../drivers/dplib/dpni/drv.h"
 
 extern t_system sys;
 
@@ -52,11 +53,6 @@ extern void tman_timer_callback(void);
 extern void cmdif_cl_isr(void);
 extern void cmdif_srv_isr(void);
 
-/* TODO: move to hdr file */
-extern int dpni_drv_probe(struct dprc	*dprc,
-			  uint16_t	mc_ni_id,
-			  uint16_t	aiop_ni_id,
-                          struct dpni_pools_cfg *pools_params);
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
@@ -292,7 +288,7 @@ int run_apps(void)
 	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
 	uint16_t buffer_size = 2048;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 #endif
 
 

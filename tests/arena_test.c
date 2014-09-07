@@ -71,7 +71,7 @@ __SHRAM uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destina
 __SHRAM uint8_t packet_number;
 __SHRAM uint8_t packet_lock;
 __SHRAM uint8_t time_lock;
-__SHRAM time_t global_time;
+__SHRAM uint64_t global_time;
 
 __SHRAM int test_error;
 __SHRAM uint8_t test_error_lock;
@@ -83,7 +83,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	char *eth_ptr;
 	uint64_t time_ms_since_epoch = 0;
 	uint32_t time_ms = 0;
-	time_t local_time;
+	uint64_t local_time;
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 
