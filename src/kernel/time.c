@@ -28,11 +28,13 @@
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_sys.h"
+#include "fsl_spinlock.h"
 
 
-
-__SHRAM uint64_t time_epoch_to_midnight = 0; /*microseconds since epoch till midnight*/
-
+__SHRAM uint64_t time_epoch_to_midnight __attribute__((aligned(8))) = 0; /*microseconds since epoch till midnight
+* This global variable should be double word aligned to support load as atomic command.
+*/
+__SHRAM uint8_t time_to_midnight_lock = 0;
 __HOT_CODE int _gettime(uint64_t *time)
 {
 	uint32_t TEMP, TSCRU, TSCRL;
@@ -89,7 +91,9 @@ __HOT_CODE int fsl_get_time_ms(uint32_t *time)
 		time_us += local_epoch_to_midnight;
 		local_epoch_to_midnight = time_us - (time_us % 86400000000);
 		*time = (uint32_t) (ulldiv1000(time_us - local_epoch_to_midnight));
+		lock_spinlock(&time_to_midnight_lock);
 		LLSTDW(local_epoch_to_midnight,0 , &time_epoch_to_midnight);
+		unlock_spinlock(&time_to_midnight_lock);
 		return 0;
 	}
 }
