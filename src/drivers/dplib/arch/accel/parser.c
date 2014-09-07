@@ -359,8 +359,9 @@ int parse_result_generate_checksum(
 int parse_result_generate_basic(void)
 {
        int32_t status;
-
-       __stqw(PARSER_GEN_PARSE_RES_MTYPE,
+       /*GRSV bit is set so parser will keep the gross running sum in the parse
+        * result and will not clear it */
+       __stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
              (uint32_t)HWC_PARSE_RES_ADDRESS, 0, 0,
              HWC_ACC_IN_ADDRESS, 0);
 
