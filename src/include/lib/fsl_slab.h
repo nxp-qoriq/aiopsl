@@ -59,6 +59,10 @@
 *//***************************************************************************/
 struct slab;
 
+#define SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO 0x3
+/** Decrement reference count caused the reference count to
+	go to zero. (not an error) */
+
 /**************************************************************************//**
 @Description   Available debug information about every slab
 *//***************************************************************************/
@@ -184,7 +188,6 @@ int slab_acquire(struct slab *slab, uint64_t *buff);
 @Param[in]	buff - The buffer to return.
 
 @Return		0      - on success,
-		-EFAULT - failed to release buffer,
 		-EINVAL - not a valid slab handle
 		-EFAULT - bad address, trying to release to wrong slab
 *//***************************************************************************/
@@ -193,31 +196,26 @@ int slab_release(struct slab *slab, uint64_t buff);
 /**************************************************************************//**
 @Function	slab_refcount_incr
 
-@Description	Increment buffer referece counter
+@Description	Increment buffer reference counter
 
-@Param[in]	slab - Handle to memory pool.
 @Param[in]	buff - The buffer for which to increment reference counter.
 
-@Return		0       - on success,
-		-EFAULT - failed to increment buffer,
-		-EINVAL - not a valid slab handle
 *//***************************************************************************/
-int slab_refcount_incr(struct slab *slab, uint64_t buff);
+void slab_refcount_incr(uint64_t buff);
 
 /**************************************************************************//**
 @Function	slab_refcount_decr
 
-@Description	Decrement buffer referece counter and release the buffer
+@Description	Decrement buffer reference counter and release the buffer
 		if it reaches 0;
 
 @Param[in]	slab - Handle to memory pool.
 @Param[in]	buff - The buffer for which to decrement reference counter.
 
 @Return		0       - on success,
-		-EFAULT - failed to release buffer,
-		-EINVAL - not a valid slab handle
+		0x3	- On success and refernce counter is 0.
 *//***************************************************************************/
-int slab_refcount_decr(struct slab *slab, uint64_t buff);
+int slab_refcount_decr(uint64_t buff);
 
 /**************************************************************************//**
 @Function	slab_debug_info_get
