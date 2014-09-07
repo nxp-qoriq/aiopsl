@@ -1537,6 +1537,9 @@ int parser_profile_delete(uint8_t prpid);
 void parser_profile_query(uint8_t prpid,
 			struct parse_profile_record *parse_profile);
 
+
+#include "parser_inline.h"
+
 /**************************************************************************//**
 @Function	parse_result_generate_default
 
@@ -1570,7 +1573,7 @@ void parser_profile_query(uint8_t prpid,
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int parse_result_generate_default(uint8_t flags);
+inline int parse_result_generate_default(uint8_t flags);
 
 /**************************************************************************//**
 @Function	parse_result_generate
@@ -1610,7 +1613,7 @@ int parse_result_generate_default(uint8_t flags);
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
+inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);
 
 /**************************************************************************//**
@@ -1640,7 +1643,7 @@ int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-int parse_result_generate_basic(void);
+inline int parse_result_generate_basic(void);
 
 
 /** @} */ /* end of FSL_PARSER_Functions */
