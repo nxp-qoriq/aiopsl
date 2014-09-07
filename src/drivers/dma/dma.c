@@ -1,3 +1,5 @@
+#include "common/types.h"
+#include "inc/fsl_gen.h"
 /*
  * Copyright 2014 Freescale Semiconductor, Inc.
  *
@@ -24,24 +26,48 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_MC_INIT_H
-#define __FSL_MC_INIT_H
+#include "fsl_errors.h"
+#include "general.h"
+#include "fsl_ldpaa_aiop.h"
+#include "fsl_fdma.h"
+#include "dma.h"
+#include "sys.h"
+#include "fsl_dbg.h"
+#include "fsl_dma.h"
 
-#include "dplib/fsl_dpci.h"
-#include "dplib/fsl_mc_sys.h"
+int dma_get_icontext(uint16_t icid, void **icontext)
+{
+	ASSERT_COND(icontext != NULL);
 
-struct mc_dprc {
-	uint16_t		token;
-	struct fsl_mc_io	io;
-};
+	/* find in icid table */
+	/* copy pointer from icid table */
+	*icontext = NULL;
+	return 0;
+}
 
-struct mc_dpci_obj {
-	struct dpci_attr	*attr;
-	uint16_t		*token;
-	uint16_t		*icid;		/**< ICID per DPCI */
-	uint32_t		*dma_flags;	/**< FDMA dma data flags */
-	uint32_t		*enq_flags;	/**< FDMA enqueue flags */
-	int    			count;
-};
+int dma_read(void *icontext, uint16_t size, uint64_t src, void *dest)
+{
+	ASSERT_COND(dest != NULL);
+	ASSERT_COND(src != NULL);
 
-#endif /*__FSL_MC_INIT_H */
+	fdma_dma_data(size,
+	              ((struct dma_icontext *)icontext)->icid,
+	              dest,
+	              src,
+	              ((struct dma_icontext *)icontext)->read_flags);
+
+	return 0;
+}
+
+int dma_write(void *icontext, uint16_t size, void *src, uint64_t dest)
+{
+	ASSERT_COND(src != NULL);
+	ASSERT_COND(dest != NULL);
+
+	fdma_dma_data(size,
+	              ((struct dma_icontext *)icontext)->icid,
+	              src,
+	              dest,
+	              ((struct dma_icontext *)icontext)->write_flags);
+	return 0;
+}

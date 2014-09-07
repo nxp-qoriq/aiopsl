@@ -287,7 +287,7 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	fqid = cmdif_aiop_srv.dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
 	 /* Do it only if queue is not there yet */
 	if (fqid == DPCI_VFQID_NOT_VALID) {
-		struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+		struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 		err = dpci_get_attributes(&dprc->io,
 		                          cmdif_aiop_srv.dpci_tbl->token[ind],
 		                          &cmdif_aiop_srv.dpci_tbl->attr[ind]);
@@ -356,10 +356,10 @@ __HOT_CODE static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-static int find_dpci(uint8_t dpci_id, struct dpci_obj **dpci_tbl)
+static int find_dpci(uint8_t dpci_id, struct mc_dpci_obj **dpci_tbl)
 {
 	int i = 0;
-	struct dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
+	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
 	*dpci_tbl = dt;
 
 	if (dt == NULL)
@@ -380,10 +380,10 @@ static int notify_open()
 	int ind = 0;
 	int count = 0;
 	int link_up = 1;
-	struct dpci_obj *dpci_tbl = NULL;
+	struct mc_dpci_obj *dpci_tbl = NULL;
 	int err = 0;
 	uint16_t pl_icid = PL_ICID_GET;
-	struct dprc *dprc = NULL;
+	struct mc_dprc *dprc = NULL;
 
 	pr_debug("Got notify open for AIOP client \n");
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {

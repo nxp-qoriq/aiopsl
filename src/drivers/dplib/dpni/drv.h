@@ -39,7 +39,7 @@
 #include "dplib/fsl_dprc.h"
 #include "fsl_mc_init.h"
 
-int dpni_drv_probe(struct dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
+int dpni_drv_probe(struct mc_dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
 		struct dpni_pools_cfg *pools_params);
 
 #define DPNI_DRV_FLG_PARSE		0x80

@@ -103,7 +103,7 @@ int dpni_drv_enable (uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
 	int		err;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
@@ -116,7 +116,7 @@ int dpni_drv_enable (uint16_t ni_id)
 int dpni_drv_disable (uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
@@ -124,9 +124,9 @@ int dpni_drv_disable (uint16_t ni_id)
 }
 
 
-int dpni_drv_probe(struct dprc	*dprc,
-		   uint16_t	mc_niid,
-		   uint16_t	aiop_niid,
+int dpni_drv_probe(struct mc_dprc *dprc,
+		   uint16_t mc_niid,
+		   uint16_t aiop_niid,
                    struct dpni_pools_cfg *pools_params)
 {
 	uintptr_t wrks_addr;
@@ -281,7 +281,7 @@ int dpni_drv_add_mac_addr(uint16_t ni_id,
                           const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
 	struct dpni_drv *dpni_drv;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
@@ -292,7 +292,7 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
                              const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
 	struct dpni_drv *dpni_drv;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
@@ -303,7 +303,7 @@ int dpni_drv_set_mfl(uint16_t ni_id,
                           const uint16_t mfl)
 {
 	struct dpni_drv *dpni_drv;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
@@ -314,7 +314,7 @@ int dpni_drv_get_mfl(uint16_t ni_id,
                           uint16_t *mfl)
 {
 	struct dpni_drv *dpni_drv;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
