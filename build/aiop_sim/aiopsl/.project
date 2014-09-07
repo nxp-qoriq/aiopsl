@@ -1045,6 +1045,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/parser_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/snic.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/snic.c</locationURI>
