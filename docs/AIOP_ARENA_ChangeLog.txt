@@ -1,3 +1,4 @@
+- init.c aio_link.lcf          Change AIOP virtual addresses according to new ATU windows settings that are done in aiop_drv.c. 
 - platform.c, init.c, fsl_soc_spec_ls2085a.h: UART port/offset configured by MC.
 
 - fsl_slab.      New API for slab increment/decrement reference count: int slab_refcount_decr(uint64_t buff), void slab_refcount_incr(uint64_t buff). 
@@ -9,6 +10,7 @@
 
 - fsl_dma.h                    New API for ICID aware memory accesses.
 - time.c/h fsl_time.h:         Optimization was made for time queries (fsl_get_time_ms() and fsl_get_time_since_epoch())
+>>>>>>> c2bc676554b4087e1e583ea82f0cd4f587e86924
 - fsl_soc.aiop_spec.h          Deleted FSL_OS_MOD_CMDIF_SRV.
 - cmdif_srv.c                  Removed sys_get_handle(FSL_OS_MOD_CMDIF_SRV) as part of optimization.
 - aiop_link.lcf                LCF cleanups, removed unused memory regions.
