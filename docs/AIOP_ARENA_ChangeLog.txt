@@ -1,3 +1,12 @@
+- platform.c, init.c, fsl_soc_spec_ls2085a.h: UART port/offset configured by MC.
+
+- fsl_slab.      New API for slab increment/decrement reference count: int slab_refcount_decr(uint64_t buff), void slab_refcount_incr(uint64_t buff). 
+- slab.c:        New implementation for slab release, refcount_incr, refcount_decr using approach 1 (The user is responsible to call slab release if reference count is 0 (return 0x3)).
+
+- mc_init.c          Use g_init_data.sl_data.mc_portal_id instead of hard coded 1.
+- init.c             Added g_init_data structure for AIOP<->MC comunication.
+- aiop_link.lcf      Added MC<->AIOP shared structure inside memory_data, at AIOP_INIT_DATA.
+
 - fsl_dma.h                    New API for ICID aware memory accesses.
 - time.c/h fsl_time.h:         Optimization was made for time queries (fsl_get_time_ms() and fsl_get_time_since_epoch())
 - fsl_soc.aiop_spec.h          Deleted FSL_OS_MOD_CMDIF_SRV.

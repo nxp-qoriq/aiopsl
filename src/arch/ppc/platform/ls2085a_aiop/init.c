@@ -53,13 +53,41 @@ extern t_system sys;
 __declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
 #pragma pop
 
-/* TODO set good default values */
-struct aiop_init_data g_init_data = {
-{0,0,0,0,0,0,0,0,0,0,0,{0}},
-{0,0,0,0,0,0,0,{0}}
+/* TODO set good default values
+ * TODO Update and review structure */
+struct aiop_init_data g_init_data =
+{
+ /* aiop_sl_init_info */
+ {
+  4,	/* aiop_rev_major     AIOP  */
+  2,	/* aiop_rev_minor     AIOP  */
+  0,	/* ddr_phys_addr      */
+  0,	/* peb_phys_addr      */
+  0,	/* sys_ddr1_phys_add  */
+  0,	/* ddr_virt_addr      */
+  0,	/* peb_virt_addr      */
+  0,	/* sys_ddr1_virt_addr */
+  2,	/* uart_port_id       MC */
+  1,	/* mc_portal_id       MC */
+  0,	/* mc_dpci_id         MC */
+  1000,	/* clock_period       MC */
+  {0}	/* reserved           */
+ },
+ /* aiop_app_init_info */
+ {
+  0,	/* dp_ddr_size */
+  0,	/* peb_size */
+  0,	/* sys_ddr1_size */
+  0,	/* sys_ddr1_ctlu_size */
+  0,	/* sys_ddr2_ctlu_size */
+  0,	/* dp_ddr_ctlu_size */
+  0,	/* peb_ctlu_size */
+  {0}	/* reserved */
+ }
 };
 
-/* Address of end of TLS section */
+
+/* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
 
 /*********************************************************************/
@@ -86,7 +114,7 @@ extern void build_apps_early_init_array(int (*early_init[])(void));
     {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (16 * MEGABYTE)   },\
-    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010400,    0x01010400, (191 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,                0x6018000000,    0x58000000, (128 * MEGABYTE) },\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x4c00200000,    0x80200000, (2 * MEGABYTE)   },\
 }
@@ -131,7 +159,7 @@ void fill_platform_parameters(struct platform_param *platform_param)
     platform_param->clock_in_freq_hz = 100000000; //TODO check value
     platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
     platform_param->console_type = PLTFRM_CONSOLE_DUART;
-    platform_param->console_id = 2;
+    platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
     memcpy(platform_param->mem_info,
            mem_info,
            sizeof(struct platform_memory_info)*ARRAY_SIZE(mem_info));
@@ -326,7 +354,6 @@ int run_apps(void)
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0, tmp = 0;
-#ifndef AIOP_STANDALONE
 	int dev_count;
 	/* TODO: replace with memset */
 	uint16_t dpbp = 0;
@@ -337,7 +364,6 @@ int run_apps(void)
 	struct dpni_pools_cfg pools_params;
 	uint16_t buffer_size = 2048;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-#endif
 
 
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
@@ -349,7 +375,6 @@ int run_apps(void)
 	/* TODO - iterate through the device-list:
 	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
-#ifndef AIOP_STANDALONE
 	if (dprc == NULL)
 	{
 		pr_err("Don't find AIOP root container \n");
@@ -421,7 +446,7 @@ int run_apps(void)
 			}
 		}
 	}
-#endif
+
 
 	/* At this stage, all the NIC of AIOP are up and running */
 

@@ -39,7 +39,7 @@
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
-
+extern struct aiop_init_data g_init_data;
 
 typedef struct t_platform_mem_region_info {
     uint64_t    start_addr;
@@ -725,10 +725,10 @@ uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
     {
         /* module                     id   mappedMemType                  offset
            ------                     --   -------------                  ------                      */
-        { FSL_OS_MOD_UART,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART1       },
-        { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
-        { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
-        { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART4       },
+        { FSL_OS_MOD_UART,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART0       },
+        { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART1       },
+        { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
+        { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
         { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_TILE+SOC_PERIPH_OFF_AIOP_CMGW},
     };
 
@@ -772,6 +772,7 @@ int platform_enable_console(fsl_handle_t h_platform)
     t_duart_uart_param  duart_uart_param;
     fsl_handle_t        uart;
     int           err = E_OK;
+    const uint32_t uart_port_offset[] = SOC_PERIPH_OFF_DUART;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
 
@@ -782,7 +783,7 @@ int platform_enable_console(fsl_handle_t h_platform)
 
     /* Fill DUART configuration parameters */
     /*TODO: the base address is hard coded to uart 2_0, should be modified*/
-    duart_uart_param.base_address       = SOC_PERIPH_OFF_DUART3;
+    duart_uart_param.base_address       = uart_port_offset[g_init_data.sl_data.uart_port_id];
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
     duart_uart_param.parity             = E_DUART_PARITY_NONE;
