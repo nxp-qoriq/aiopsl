@@ -772,7 +772,7 @@ int platform_enable_console(fsl_handle_t h_platform)
     t_duart_uart_param  duart_uart_param;
     fsl_handle_t        uart;
     int           err = E_OK;
-    uint32_t uart_port_offset[] = SOC_PERIPH_OFF_DUART;
+    const uint32_t uart_port_offset[] = SOC_PERIPH_OFF_DUART;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
 
