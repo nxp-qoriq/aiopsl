@@ -70,7 +70,7 @@ struct aiop_init_data g_init_data =
   2,	/* uart_port_id       MC */
   1,	/* mc_portal_id       MC */
   0,	/* mc_dpci_id         MC */
-  128,	/* clock_period       MC */
+  1000,	/* clock_period       MC */
   {0}	/* reserved           */
  },
  /* aiop_app_init_info */
