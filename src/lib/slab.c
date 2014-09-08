@@ -191,9 +191,17 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
 		g_slab_virtual_pools.virtual_pool_struct;
+	
+	slab_release_cb_t **callback = (slab_release_cb_t **)
+							g_slab_virtual_pools.callback_func;
+	
+	callback += slab_virtual_pool_id;	
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+	
+	if (*callback != NULL)
+		*callback = NULL;
 
 
 	if (slab_virtual_pool->allocated_bufs != 0) {

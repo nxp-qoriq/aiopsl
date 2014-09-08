@@ -91,7 +91,7 @@ struct aiop_init_data g_init_data =
 extern const uint8_t AIOP_INIT_DATA[];
 
 /*********************************************************************/
-
+extern int time_init();             extern void time_free();
 extern int mc_obj_init();           extern void mc_obj_free();
 extern int cmdif_client_init();     extern void cmdif_client_free();
 extern int cmdif_srv_init(void);    extern void cmdif_srv_free(void);
@@ -120,6 +120,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                     \
 {                                          \
+    {time_init,         time_free},        \
     {epid_drv_init,     epid_drv_free},    \
     {mc_obj_init,       mc_obj_free},      \
     {slab_module_init,  slab_module_free}, \

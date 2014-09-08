@@ -213,7 +213,6 @@ int app_test_slab(struct slab *slab, int num_times)
 			err = slab_release(slab, buff[2]);
 			if (err) return err;
 		}
-		fsl_os_print("start %d, end %d\n",start,end);
 	}
 
 	err = slab_free(&my_slab);
