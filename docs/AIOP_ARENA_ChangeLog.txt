@@ -1,3 +1,7 @@
+- mc_init.c          Use g_init_data.sl_data.mc_portal_id instead of hard coded 1.
+- init.c             Added g_init_data structure for AIOP<->MC comunication.
+- aiop_link.lcf      Added MC<->AIOP shared structure inside memory_data, at AIOP_INIT_DATA.
+
 - fsl_dma.h                    New API for ICID aware memory accesses.
 - time.c/h fsl_time.h:         Optimization was made for time queries (fsl_get_time_ms() and fsl_get_time_since_epoch())
 - fsl_soc.aiop_spec.h          Deleted FSL_OS_MOD_CMDIF_SRV.
