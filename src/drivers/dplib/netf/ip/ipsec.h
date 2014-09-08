@@ -104,11 +104,14 @@ enum rta_param_type {
 /* flags[29] : 1 = IPv6, 0 = IPv4 (useed for tunnel mode) */
 #define IPSEC_FLG_OUTER_HEADER_IPV6 0x20000000 
 
+/** Preserve the ASA (Accelerator Specific Annotation) */
+/* Not supported in Rev 1 */
+#define IPSEC_FLG_PRESERVE_ASA		0x00020000
+
 #define IPSEC_IP_VERSION_MASK 0xF0000000 
 #define IPSEC_IP_VERSION_IPV6 0x60000000 
 #define IPSEC_ETHERTYPE_IPV6 0x86DD 
 #define IPSEC_ETHERTYPE_IPV4 0x0800 
-
 
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
