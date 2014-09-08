@@ -1,3 +1,4 @@
+- init.c aio_link.lcf          Change AIOP virtual addresses according to MC ATU settings. 
 - fsl_soc.aiop_spec.h          Deleted FSL_OS_MOD_CMDIF_SRV.
 - cmdif_srv.c                  Removed sys_get_handle(FSL_OS_MOD_CMDIF_SRV) as part of optimization.
 - aiop_link.lcf                LCF cleanups, removed unused memory regions.

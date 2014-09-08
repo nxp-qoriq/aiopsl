@@ -63,12 +63,12 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MEMORY_INFO                                                                                           \
 {   /* Region ID                Memory partition ID             Phys. Addr.    Virt. Addr.  Size            */\
-    {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x0C000000 , (64  * MEGABYTE) },\
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (16 * MEGABYTE)   },\
+    {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x10000000 , (16 * MEGABYTE)   },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
-    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,                0x6018000000,    0x58000000, (128 * MEGABYTE) },\
-    {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x4c00200000,    0x80200000, (2 * MEGABYTE)   },\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,                0x6018000000,    0x40000000, (128 * MEGABYTE) },\
+    {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x4c00200000,    0x80000000  , (2 * MEGABYTE)   },\
 }
 
 #define GLOBAL_MODULES                     \
