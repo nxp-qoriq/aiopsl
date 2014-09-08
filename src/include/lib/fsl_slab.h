@@ -182,7 +182,8 @@ int slab_acquire(struct slab *slab, uint64_t *buff);
 @Function	slab_release
 
 @Description	Return the buffer back to a pool;
-		AIOP HW pool buffer reference counter will be decremented.
+		AIOP HW pool buffer reference counter must be 0, it
+		is NOT decremented.
 
 @Param[in]	slab - Handle to memory pool.
 @Param[in]	buff - The buffer to return.
@@ -206,14 +207,14 @@ void slab_refcount_incr(uint64_t buff);
 /**************************************************************************//**
 @Function	slab_refcount_decr
 
-@Description	Decrement buffer reference counter and release the buffer
-		if it reaches 0;
+@Description	Decrement buffer reference counter;
+		The buffer is not released if reference counter is drops to 0.
+		Use slab_release() to release the buffer.
 
 @Param[in]	slab - Handle to memory pool.
-@Param[in]	buff - The buffer for which to decrement reference counter.
 
 @Return		0       - on success,
-		0x3	- On success and refernce counter is 0.
+		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and reference counter is 0.
 *//***************************************************************************/
 int slab_refcount_decr(uint64_t buff);
 
