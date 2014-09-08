@@ -1,3 +1,6 @@
+- time.c:           Added time_init/free in global modules to support time period received from MC. If time period is 1000 then pointer function set up to use fast implementation,
+                    otherwise an error will appear. (to support slow implementation we must use division in AIOP).
+
 - init.c aio_link.lcf          Change AIOP virtual addresses according to new ATU windows settings that are done in aiop_drv.c. 
 - platform.c, init.c, fsl_soc_spec_ls2085a.h: UART port/offset configured by MC.
 
