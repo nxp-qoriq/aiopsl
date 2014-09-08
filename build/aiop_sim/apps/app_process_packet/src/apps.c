@@ -27,6 +27,7 @@
 #include "common/fsl_string.h"
 #include "inc/fsl_sys.h"
 
+extern int app_early_init(void);
 extern int app_init(void); extern void app_free(void);
 
 
@@ -38,6 +39,7 @@ extern int app_init(void); extern void app_free(void);
 
 #define APPS_EARLY_INIT                    	\
 {                                       	\
+	app_early_init,                         \
 	NULL /* never remove! */                \
 }
 
