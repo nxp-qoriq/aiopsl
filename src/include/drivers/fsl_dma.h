@@ -24,24 +24,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_MC_INIT_H
-#define __FSL_MC_INIT_H
+#ifndef __FSL_DMA_H
+#define __FSL_DMA_H
 
-#include "dplib/fsl_dpci.h"
-#include "dplib/fsl_mc_sys.h"
+int dma_get_icontext(uint16_t icid, void **icontext);
+int dma_read(void *icontext, uint16_t size, uint64_t src, void *dest);
+int dma_write(void *icontext, uint16_t size, void *src, uint64_t dest);
 
-struct mc_dprc {
-	uint16_t		token;
-	struct fsl_mc_io	io;
-};
-
-struct mc_dpci_obj {
-	struct dpci_attr	*attr;
-	uint16_t		*token;
-	uint16_t		*icid;		/**< ICID per DPCI */
-	uint32_t		*dma_flags;	/**< FDMA dma data flags */
-	uint32_t		*enq_flags;	/**< FDMA enqueue flags */
-	int    			count;
-};
-
-#endif /*__FSL_MC_INIT_H */
+#endif /* __FSL_DMA_H */

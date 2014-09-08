@@ -24,24 +24,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_MC_INIT_H
-#define __FSL_MC_INIT_H
+#include "fsl_fdma.h"
+#include "icontext.h"
 
-#include "dplib/fsl_dpci.h"
-#include "dplib/fsl_mc_sys.h"
+struct ic_table ic = {0};
 
-struct mc_dprc {
-	uint16_t		token;
-	struct fsl_mc_io	io;
-};
+int icontext_add()
+{
+	uint16_t pl_icid = PL_ICID_GET;
 
-struct mc_dpci_obj {
-	struct dpci_attr	*attr;
-	uint16_t		*token;
-	uint16_t		*icid;		/**< ICID per DPCI */
-	uint32_t		*dma_flags;	/**< FDMA dma data flags */
-	uint32_t		*enq_flags;	/**< FDMA enqueue flags */
-	int    			count;
-};
+	/* TODO find the ind where to add it */
+	ic.icid[ind]           = IC_ICID_GET(pl_icid);
+	ic.enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
+	ic.dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
+	IC_ADD_AMQ_FLAGS(ic.dma_flags[ind], pl_icid);
+	if (IC_BDI_GET != 0)
+		ic.enq_flags[ind] |= FDMA_ENF_BDI_BIT;
 
-#endif /*__FSL_MC_INIT_H */
+	/* TODO locks */
+
+}
+
+int icontext_rm(uint16_t icid)
+{
+	/* TODO locks */
+}
+
+int icontext_get(uint16_t icid, void **icontext)
+{
+
+}
+
+int icontext_table_init()
+{
+	memset(&ic, 0, sizeof(struct ic_table));
+}
+
+int icontext_table_free()
+{
+	memset(&ic, 0, sizeof(struct ic_table));
+}

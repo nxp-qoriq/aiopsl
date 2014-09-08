@@ -37,26 +37,27 @@
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 
-int mc_obj_init();
-void mc_obj_free();
+extern struct aiop_init_data g_init_data;
 
 #define DPCI_LOW_PR  1
 #define MC_DPCI_NUM 1
-#define MC_DPCI_ID  0
+
+int mc_obj_init();
+void mc_obj_free();
 
 static int aiop_container_init()
 {
 	void *p_vaddr;
 	int err = 0;
 	int container_id;
-	struct dprc *dprc = fsl_os_xmalloc(sizeof(struct dprc),
+	struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
 					   MEM_PART_SH_RAM,
 					   1);
 	if (dprc == NULL) {
 		pr_err("No memory for AIOP Root Container \n");
 		return -ENOMEM;
 	}
-	memset(dprc, 0, sizeof(struct dprc));
+	memset(dprc, 0, sizeof(struct mc_dprc));
 
 	/* TODO: replace hard-coded portal address 1 with configured value */
 	/* TODO : layout file must contain portal ID 1 in order to work. */
@@ -64,7 +65,9 @@ static int aiop_container_init()
 	/* Get virtual address of MC portal */
 	p_vaddr = \
 	UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-					 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
+					 g_init_data.sl_data.mc_portal_id, E_MAPPED_MEM_TYPE_MC_PORTAL));
+
+	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_data.mc_portal_id, (uint32_t)p_vaddr);
 
 	/* Open root container in order to create and query for devices */
 	dprc->io.regs = p_vaddr;
@@ -92,13 +95,13 @@ static void aiop_container_free()
 		fsl_os_xfree(dprc);
 }
 
-static int dpci_tbl_create(struct dpci_obj **_dpci_tbl, int dpci_count)
+static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
 {
 	uint32_t size = 0;
-	struct   dpci_obj *dpci_tbl = NULL;
+	struct   mc_dpci_obj *dpci_tbl = NULL;
 	int      err = 0;
 
-	size = sizeof(struct dpci_obj);
+	size = sizeof(struct mc_dpci_obj);
 	dpci_tbl = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
 	*_dpci_tbl = dpci_tbl;
 	if (dpci_tbl == NULL) {
@@ -160,7 +163,7 @@ static int dpci_tbl_create(struct dpci_obj **_dpci_tbl, int dpci_count)
 }
 
 static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
-			struct dpci_obj *dpci_tbl, struct dprc *dprc)
+			struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc)
 {
 	uint16_t dpci = 0;
 	struct   dpci_dest_cfg dest_cfg;
@@ -206,7 +209,7 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	return 0;
 }
 
-static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind)
+static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, int ind)
 {
 	struct dpci_cfg dpci_cfg;
 	uint16_t dpci;
@@ -243,7 +246,7 @@ static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind
 	/* Connect to dpci 0 that belongs to MC */
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
-	endpoint1.id = MC_DPCI_ID;
+	endpoint1.id = (int)g_init_data.sl_data.mc_dpci_id;
 	endpoint1.interface_id = 0;
 	strcpy(endpoint1.type, "dpci");
 
@@ -263,7 +266,7 @@ static int dpci_for_mc_add(struct dpci_obj *dpci_tbl, struct dprc *dprc, int ind
 	return err;
 }
 
-static int dpci_tbl_fill(struct dpci_obj *dpci_tbl, struct dprc *dprc,
+static int dpci_tbl_fill(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc,
 			 int dpci_count, int dev_count)
 {
 	int ind = 0;
@@ -303,8 +306,8 @@ static int dpci_tbl_fill(struct dpci_obj *dpci_tbl, struct dprc *dprc,
 static int dpci_discovery()
 {
 	struct dprc_obj_desc dev_desc;
-	struct dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct dpci_obj *dpci_tbl = NULL;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dpci_obj *dpci_tbl = NULL;
 	int dev_count  = 0;
 	int dpci_count = 0;
 	int err        = 0;
