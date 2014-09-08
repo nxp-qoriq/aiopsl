@@ -157,7 +157,7 @@ void fill_platform_parameters(struct platform_param *platform_param)
     platform_param->clock_in_freq_hz = 100000000; //TODO check value
     platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
     platform_param->console_type = PLTFRM_CONSOLE_DUART;
-    platform_param->console_id = 2;
+    platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
     memcpy(platform_param->mem_info,
            mem_info,
            sizeof(struct platform_memory_info)*ARRAY_SIZE(mem_info));
