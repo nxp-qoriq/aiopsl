@@ -763,39 +763,39 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* Done handling aggregated packet.
 	 * Finalize new aggregation. */
 
-	/* recharge timer for the new aggregation */
-	sr_status = tman_recharge_timer(gro_ctx->timer_handle);
+	/* delete the timer for the old aggregation */
+	tman_delete_timer(gro_ctx->timer_handle, 
+			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
-	if (sr_status != SUCCESS) {
-		sr_status = tman_create_timer(
-				params->timeout_params.tmi_id,
-				(uint32_t)((params->timeout_params.granularity
-						<< GRO_GRAN_OFFSET) |
-						TMAN_CREATE_TIMER_ONE_SHOT),
-				params->limits.timeout_limit,
-				tcp_gro_context_addr,
-				0,
-				&tcp_gro_timeout_callback,
-				&(gro_ctx->timer_handle));
+	sr_status = tman_create_timer(
+			params->timeout_params.tmi_id,
+			(uint32_t)((params->timeout_params.granularity
+					<< GRO_GRAN_OFFSET) |
+					TMAN_CREATE_TIMER_ONE_SHOT),
+			params->limits.timeout_limit,
+			tcp_gro_context_addr,
+			0,
+			&tcp_gro_timeout_callback,
+			&(gro_ctx->timer_handle));
 
-		/* No more timers available.
-		 * Report the user this segment should be flushed due to
-		 * timer unavailability. */
-		if (sr_status == -ENOSPC) {
+	/* No more timers available.
+	 * Report the user this segment should be flushed due to
+	 * timer unavailability. */
+	if (sr_status == -ENOSPC) {
 
-			/* update statistics */
-			ste_inc_counter(gro_ctx->stats_addr +
-				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+		/* update statistics */
+		ste_inc_counter(gro_ctx->stats_addr +
+			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
+			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
-			gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
-			gro_ctx->metadata.seg_num = 1;
-			/* Clear gross running sum in parse results */
-			pr->gross_running_sum = 0;
-			return TCP_GRO_SEG_AGG_DONE | TCP_GRO_FLUSH_REQUIRED |
-					TCP_GRO_TIMER_UNAVAIL;
-		}
+		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+		gro_ctx->metadata.seg_num = 1;
+		/* Clear gross running sum in parse results */
+		pr->gross_running_sum = 0;
+		return TCP_GRO_SEG_AGG_DONE | TCP_GRO_FLUSH_REQUIRED |
+				TCP_GRO_TIMER_UNAVAIL;
 	}
+	
 	/* update statistics */
 	ste_inc_and_acc_counters(params->stats_addr +
 			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
@@ -999,15 +999,15 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
 
+	/* confirm timer expiration */
+	tman_timer_completion_confirmation(gro_ctx.timer_handle);
+
 	timer_handle = TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS);
 	if (gro_ctx.timer_handle !=
 		(timer_handle & TIMER_HANDLE_MASK)) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return;
 	}
-
-	/* confirm timer expiration */
-	tman_timer_completion_confirmation(gro_ctx.timer_handle);
 
 	/* no aggregation */
 	if (gro_ctx.metadata.seg_num == 0) {

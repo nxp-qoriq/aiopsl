@@ -41,7 +41,6 @@ extern struct aiop_init_data g_init_data;
 
 #define DPCI_LOW_PR  1
 #define MC_DPCI_NUM 1
-#define MC_DPCI_ID  0
 
 int mc_obj_init();
 void mc_obj_free();
@@ -247,7 +246,7 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	/* Connect to dpci 0 that belongs to MC */
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
-	endpoint1.id = MC_DPCI_ID;
+	endpoint1.id = (int)g_init_data.sl_data.mc_dpci_id;
 	endpoint1.interface_id = 0;
 	strcpy(endpoint1.type, "dpci");
 
