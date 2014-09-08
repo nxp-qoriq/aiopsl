@@ -53,13 +53,41 @@ extern t_system sys;
 __declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
 #pragma pop
 
-/* TODO set good default values */
-struct aiop_init_data g_init_data = {
-{0,0,0,0,0,0,0,0,0,0,0,{0}},
-{0,0,0,0,0,0,0,{0}}
+/* TODO set good default values
+ * TODO Update and review structure */
+struct aiop_init_data g_init_data =
+{
+ /* aiop_sl_init_info */
+ {
+  4,	/* aiop_rev_major     AIOP  */
+  2,	/* aiop_rev_minor     AIOP  */
+  0,	/* ddr_phys_addr      */
+  0,	/* peb_phys_addr      */
+  0,	/* sys_ddr1_phys_add  */
+  0,	/* ddr_virt_addr      */
+  0,	/* peb_virt_addr      */
+  0,	/* sys_ddr1_virt_addr */
+  2,	/* uart_port_id       MC */
+  1,	/* mc_portal_id       MC */
+  0,	/* mc_dpci_id         MC */
+  128,	/* clock_period       MC */
+  {0}	/* reserved           */
+ },
+ /* aiop_app_init_info */
+ {
+  0,	/* dp_ddr_size */
+  0,	/* peb_size */
+  0,	/* sys_ddr1_size */
+  0,	/* sys_ddr1_ctlu_size */
+  0,	/* sys_ddr2_ctlu_size */
+  0,	/* dp_ddr_ctlu_size */
+  0,	/* peb_ctlu_size */
+  {0}	/* reserved */
+ }
 };
 
-/* Address of end of TLS section */
+
+/* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
 
 /*********************************************************************/
@@ -85,7 +113,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
     {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,               0x80c000000LL, 0x08000000, (64  * MEGABYTE) },\
     {PLTFRM_MEM_RGN_AIOP,       MEM_PART_INVALID,               0x02000000,    0x02000000, (384 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,               0x08000000,    0x0c000000, (16 * MEGABYTE)   },\
-    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010000,    0x01010000, (192 * KILOBYTE) },\
+    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,                0x01010400,    0x01010400, (191 * KILOBYTE) },\
     {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,                0x6018000000,    0x58000000, (128 * MEGABYTE) },\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,                   0x4c00200000,    0x80200000, (2 * MEGABYTE)   },\
 }
