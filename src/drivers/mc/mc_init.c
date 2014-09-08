@@ -244,6 +244,8 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 				   &dpci_tbl->attr[ind]);
 
 	/* Connect to dpci 0 that belongs to MC */
+	pr_debug("MC dpci ID[%d] \n", g_init_data.sl_data.mc_dpci_id);
+
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
 	endpoint1.id = (int)g_init_data.sl_data.mc_dpci_id;
