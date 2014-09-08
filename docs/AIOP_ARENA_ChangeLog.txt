@@ -1,3 +1,5 @@
+- platform.c, init.c, fsl_soc_spec_ls2085a.h: UART port/offset configured by MC.
+
 - fsl_slab.      New API for slab increment/decrement reference count: int slab_refcount_decr(uint64_t buff), void slab_refcount_incr(uint64_t buff). 
 - slab.c:        New implementation for slab release, refcount_incr, refcount_decr using approach 1 (The user is responsible to call slab release if reference count is 0 (return 0x3)).
 
