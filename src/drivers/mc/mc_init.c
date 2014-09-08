@@ -37,12 +37,14 @@
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 
-int mc_obj_init();
-void mc_obj_free();
+extern struct aiop_init_data g_init_data;
 
 #define DPCI_LOW_PR  1
 #define MC_DPCI_NUM 1
 #define MC_DPCI_ID  0
+
+int mc_obj_init();
+void mc_obj_free();
 
 static int aiop_container_init()
 {
@@ -64,7 +66,9 @@ static int aiop_container_init()
 	/* Get virtual address of MC portal */
 	p_vaddr = \
 	UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-					 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
+					 g_init_data.sl_data.mc_portal_id, E_MAPPED_MEM_TYPE_MC_PORTAL));
+
+	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_data.mc_portal_id, (uint32_t)p_vaddr);
 
 	/* Open root container in order to create and query for devices */
 	dprc->io.regs = p_vaddr;
