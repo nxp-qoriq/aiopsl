@@ -36,10 +36,23 @@ extern int app_init(void); extern void app_free(void);
 	{NULL, NULL} /* never remove! */    	\
 }
 
+#define APPS_EARLY_INIT                    	\
+{                                       	\
+	NULL /* never remove! */                \
+}
+
 void build_apps_array(struct sys_module_desc *apps);
+void build_apps_early_init_array(int (*early_init[])(void));
 
 void build_apps_array(struct sys_module_desc *apps)
 {
 	struct sys_module_desc apps_tmp[] = APPS;
 	memcpy(apps, apps_tmp, sizeof(apps_tmp));
 }
+
+void build_apps_early_init_array(int (*early_init[])(void))
+{
+	int (*early_init_temp[])(void) = APPS_EARLY_INIT;
+	memcpy(early_init, early_init_temp, sizeof(early_init_temp));
+}
+

@@ -78,6 +78,7 @@ extern void cmdif_srv_isr(void);
 
 
 extern void build_apps_array(struct sys_module_desc *apps);
+extern void build_apps_early_init_array(int (*early_init[])(void));
 
 
 #define MEMORY_INFO                                                                                           \
@@ -107,6 +108,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
 void global_free(void);
+int global_early_init(void);
 int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
@@ -186,6 +188,22 @@ void global_free(void)
 	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
 		if (modules[i].free)
 			modules[i].free();
+}
+
+int global_early_init(void)
+{
+	int i;
+	int (*early_apps_init[MAX_NUM_OF_APPS])(void);
+	
+	memset(early_apps_init, 0, sizeof(early_apps_init)*MAX_NUM_OF_APPS);
+	build_apps_early_init_array(early_apps_init);
+	
+	for (i=0; i<MAX_NUM_OF_APPS; i++) {
+		if (early_apps_init[i])
+			early_apps_init[i]();
+	}
+	
+	return 0;
 }
 
 int global_post_init(void)

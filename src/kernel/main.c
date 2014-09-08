@@ -31,6 +31,7 @@
 
 extern int sys_init(void);
 extern void sys_free(void);
+extern int global_early_init(void);
 extern int global_init(void);
 extern int tile_init(void);
 extern int cluster_init(void);
@@ -107,6 +108,12 @@ UNUSED(argc);UNUSED(argv);
     		return err;
     	}
 
+    	err = global_early_init();
+    	if(err) {
+    	    cmgw_report_boot_failure();
+    	    return err;
+    	}
+    	
     	err = global_init();
     	if(err) {
     		cmgw_report_boot_failure();
