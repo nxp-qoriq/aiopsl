@@ -41,7 +41,7 @@
 #include "general.h"
 #include "fdma.h"
 #include "checksum.h"
-#include "cdma.h"
+/*#include "cdma.h"*/
 
 
 /* New Aggregation */
