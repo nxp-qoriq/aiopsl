@@ -405,8 +405,6 @@ int tcp_gro_add_seg_and_close_aggregation(
 	timer_status = tman_delete_timer(gro_ctx->timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
-	gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
-
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
@@ -531,11 +529,6 @@ int tcp_gro_add_seg_and_close_aggregation(
 			STE_MODE_COMPOUND_CNTR_SATURATE |
 			STE_MODE_COMPOUND_ACC_SATURATE);
 
-	/* zero gro context fields */
-	gro_ctx->metadata.seg_num = 0;
-	gro_ctx->internal_flags = 0;
-	gro_ctx->timestamp = 0;
-
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
 
@@ -550,6 +543,11 @@ int tcp_gro_add_seg_and_close_aggregation(
 		gro_ctx->internal_flags = GRO_AGG_TIMER_IN_PROCESS;
 		return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status;
 	} else {
+		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+		/* zero gro context fields */
+		gro_ctx->metadata.seg_num = 0;
+		gro_ctx->internal_flags = 0;
+		gro_ctx->timestamp = 0;
 		return TCP_GRO_SEG_AGG_DONE | status;
 	}
 }
