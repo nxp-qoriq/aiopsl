@@ -40,6 +40,7 @@
 #include "common/types.h"
 #include "dplib/fsl_ipf.h"
 #include "dplib/fsl_ipr.h"
+#include "fsl_net.h"
 
 
 /**************************************************************************//**
