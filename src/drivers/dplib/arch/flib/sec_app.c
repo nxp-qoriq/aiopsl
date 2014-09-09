@@ -37,7 +37,7 @@
 #ifndef IPSEC_DONT_USE_SEC_APP
 
 #include "dplib/fsl_cdma.h"
-#include "cdma.h"
+/*#include "cdma.h"*/
 
 #include "sec_app.h"
 
