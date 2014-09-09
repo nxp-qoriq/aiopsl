@@ -42,7 +42,7 @@
 #include "dplib/fsl_osm.h"
 #include "header_modification.h"
 
-#include "cdma.h"
+/*#include "cdma.h"*/
 #include "osm.h"
 #include "system.h"
 #include "fsl_platform.h"
