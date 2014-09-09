@@ -35,7 +35,7 @@
 #include "slab.h"
 #include "fdma.h"
 #include "fsl_io.h"
-#include "cdma.h"
+#include "fsl_cdma.h"
 #include "fsl_io_ccsr.h"
 #include "aiop_common.h"
 #include "fsl_mc_init.h"
@@ -191,15 +191,15 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
 		g_slab_virtual_pools.virtual_pool_struct;
-	
+
 	slab_release_cb_t **callback = (slab_release_cb_t **)
 							g_slab_virtual_pools.callback_func;
-	
-	callback += slab_virtual_pool_id;	
+
+	callback += slab_virtual_pool_id;
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
-	
+
 	if (*callback != NULL)
 		*callback = NULL;
 
@@ -1106,14 +1106,4 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 	}
 
 	return -EINVAL;
-}
-
-/*****************************************************************************/
-__HOT_CODE int slab_refcount_decr(uint64_t buff){
-	return cdma_refcount_decrement(buff);
-}
-
-/*****************************************************************************/
-__HOT_CODE void slab_refcount_incr(uint64_t buff){
-	cdma_refcount_increment(buff);
 }

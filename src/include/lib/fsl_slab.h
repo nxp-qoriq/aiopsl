@@ -34,6 +34,7 @@
 #define __FSL_SLAB_H
 
 #include "common/types.h"
+#include "fsl_cdma.h"
 
 /**************************************************************************//**
 @Group         slab_g   SLAB
@@ -202,7 +203,9 @@ int slab_release(struct slab *slab, uint64_t buff);
 @Param[in]	buff - The buffer for which to increment reference counter.
 
 *//***************************************************************************/
-void slab_refcount_incr(uint64_t buff);
+inline void slab_refcount_incr(uint64_t buff){
+	cdma_refcount_increment(buff);
+}
 
 /**************************************************************************//**
 @Function	slab_refcount_decr
@@ -216,7 +219,9 @@ void slab_refcount_incr(uint64_t buff);
 @Return		0       - on success,
 		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and reference counter is 0.
 *//***************************************************************************/
-int slab_refcount_decr(uint64_t buff);
+inline int slab_refcount_decr(uint64_t buff){
+	return cdma_refcount_decrement(buff);
+}
 
 /**************************************************************************//**
 @Function	slab_debug_info_get
