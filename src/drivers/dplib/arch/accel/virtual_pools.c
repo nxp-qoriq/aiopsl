@@ -35,7 +35,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_cdma.h"
 #include "fsl_dbg.h"
-#include "cdma.h"
+/*#include "cdma.h"*/
 
 __SHRAM struct bman_pool_desc virtual_bman_pools[MAX_VIRTUAL_BMAN_POOLS_NUM];
 
