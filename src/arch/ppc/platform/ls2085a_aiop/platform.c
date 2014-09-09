@@ -476,7 +476,6 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
     int                     err;
     uintptr_t               virt_base_addr;
     uint64_t                size;
-    uint32_t                attributes;
     int                     i, register_partition, index = 0;
     char                    name[32];
 
@@ -489,14 +488,11 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-        attributes = 0;
-        register_partition = 0;
         memset(name, 0, sizeof(name));
 
         switch (p_mem_info->mem_partition_id) {
         case MEM_PART_DP_DDR:
-            sprintf(name, "%s", "DP_DDR");
-            register_partition = 1;
+            sprintf(name, "%s", "DP_DDR");          
             break;
             /*
         case MEM_PART_2ND_DDR_NON_CACHEABLE:
@@ -506,11 +502,9 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
             */
         case MEM_PART_SH_RAM:
             sprintf(name, "%s", "Shared-SRAM");
-            register_partition = 1;
             break;
         case MEM_PART_PEB:
-            sprintf(name, "%s", "PEB");
-            register_partition = 1;
+            sprintf(name, "%s", "PEB");         
             break;
         default:
             break;
@@ -522,11 +516,11 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         if (err != E_OK)
             RETURN_ERROR(MAJOR, err, NO_MSG);
 
-        if (register_partition) {
+        if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
             err = sys_register_mem_partition(p_mem_info->mem_partition_id,
                                              virt_base_addr,
                                              size,
-                                             attributes,
+                                             p_mem_info->mem_attribute,
                                              name,
                                              NULL,
                                              NULL,
