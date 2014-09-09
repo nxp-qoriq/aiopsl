@@ -292,11 +292,26 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+	/* The order of the error check is according to its frequency */
 	if (!((res1) & TMAN_FAIL_BIT_MASK))
 			return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
-	if (res1 == TMAN_DEL_TMR_TMP_ERR)
+	
+	/* To check if its a TMAN state related error */
+	/* To check if A=0 && CCP=1 */
+	/* One shot - TO occurred. 
+	 * Periodic - Timer was deleted */
+	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_DEL_CCP_WAIT_ERR)
+		return (int)(-ENAVAIL);
+	/* To check if its a TMAN state related error */
+	/* A=1 && CCP=1 */
+	/* Periodic- cannot be deleted as it deals with TO */
+	if(res1 == TMAN_DEL_PERIODIC_CCP_WAIT_ERR)
 		return (int)(-ETIMEDOUT);
-	/* In case TMI State errors */
+	/* To check if its a TMAN temporary error */
+	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
+		return (int)(-ETIMEDOUT);
+	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
+	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(__FILE__,
 			TMAN_TMI_TIMER_CREATE_FUNC_ID,
 			__LINE__, (int)res1);

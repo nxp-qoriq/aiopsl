@@ -298,8 +298,18 @@ enum tman_function_identifier {
 #define TMAN_TMR_TMP_ERR2	0x81800030
 /** Timer commands temporary error 3 */
 #define TMAN_TMR_TMP_ERR3	0x81800040
+/** Timer delete command state error type mask */
+#define TMAN_TMR_DEL_STATE_TYPE_MASK	0x00000040
+/** Timer delete command temporary error type mask */
+#define TMAN_TMR_DEL_TMP_TYPE_MASK	0x00000020
+/** Timer delete command state errors bit mask */
+#define TMAN_TMR_DEL_STATE_MASK		0x00000007
+/** Timer delete command state CCP bit mask */
+#define TMAN_TMR_DEL_STATE_CCP_MASK	0x00000001
+/** Timer delete command state Deleted bit mask */
+#define TMAN_TMR_DEL_STATE_D_MASK	0xFFFFFFFD
 /** Timer recharge command TMI state errors bit mask */
-#define TMAN_TMR_REC_STATE_MASK	0x00400000
+#define TMAN_TMR_REC_STATE_MASK		0x00400000
 /** Timer query command state bits mask */
 #define TMAN_TMR_QUERY_STATE_MASK	0x7
 /** Alignment that the TMAN requires for the input/output extension params */
