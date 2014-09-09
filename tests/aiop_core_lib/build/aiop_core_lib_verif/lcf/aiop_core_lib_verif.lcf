@@ -17,7 +17,7 @@ MEMORY
     private_shared_ram:     org = 0x01000000,   len = 0x00008000 /* Application global vars  */
     verif_shared_ram:       org = 0x01008000,   len = 0x00001000 /* Verification Env global vars  */
     heap  :                 org = 0x01009000,   len = 0x00037000 /* currently sit in shared SRAM */
-    dp_ddr:                 org = 0x50000000,   len = 0x10000000 /* DP-DDR  */
+    dp_ddr:                 org = 0x40000000,   len = 0x10000000 /* DP-DDR  */
     spintbl :               org = 0x50008000,   len = 0x00001000 /* DDR - heap */
     pebm  :                 org = 0x80000000,   len = 0x00600000 /* PEBM */
 }
