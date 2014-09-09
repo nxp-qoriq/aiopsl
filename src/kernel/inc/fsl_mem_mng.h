@@ -55,8 +55,13 @@
                 or'ed together to create a mask of all memory attributes.
  @{
 *//***************************************************************************/
-#define MEMORY_ATTR_CACHEABLE           0x00000001
-                                        /**< Memory is cacheable */
+
+/**< No memory attribute */
+#define MEMORY_ATTR_NONE          0x00000000
+/**< Memory is cacheable */
+#define MEMORY_ATTR_CACHEABLE           0x00000001 
+/**< It is possible to make dynamic memory allocation */
+#define MEMORY_ATTR_MALLOCABLE          0x00000002
 /* @} */
 
 

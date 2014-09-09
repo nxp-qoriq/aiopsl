@@ -147,6 +147,7 @@ typedef struct platform_memory_info {
     dma_addr_t      phys_base_addr;
     uintptr_t       virt_base_addr;
     uint64_t        size;
+    uint32_t        mem_attribute; /* malloc-able, cacheable */
 } t_platform_memory_info;
 
 typedef struct t_platform_ops {

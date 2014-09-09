@@ -81,6 +81,8 @@ enum fsl_os_module {
 
 /** @} */ /* end of ls2085a_g group */
 
+/* AIOP Peripherals Offset in AIOP memory map */
+#define AIOP_PERIPHERALS_OFF            0X2000000
 
 /* Offsets relative to CCSR base */
 #define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000

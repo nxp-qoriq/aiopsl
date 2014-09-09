@@ -657,9 +657,7 @@ int platform_init(struct platform_param    *pltfrm_param,
     pltfrm->ccsr_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
 
     /* Store AIOP-peripherals base (for convenience) */
-    mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_AIOP);
-    ASSERT_COND(mem_index != -1);
-    pltfrm->aiop_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
+    pltfrm->aiop_base = AIOP_PERIPHERALS_OFF;
 
     /* Store MC-Portals bases (for convenience) */
     mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_MC_PORTALS);
