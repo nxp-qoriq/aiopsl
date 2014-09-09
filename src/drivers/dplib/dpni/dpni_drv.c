@@ -38,7 +38,7 @@
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "drv.h"
+#include "dplib/fsl_dpni_drv.h"
 #include "aiop_common.h"
 #include "system.h"
 #include "fsl_mc_init.h"

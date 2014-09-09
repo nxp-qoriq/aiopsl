@@ -37,7 +37,7 @@
 #include "slab.h"
 #include "cmgw.h"
 #include "fsl_mc_init.h"
-#include "../drivers/dplib/dpni/drv.h"
+#include "fsl_dpni_drv.h"
 #include "fsl_mem_mng.h"
 
 extern t_system sys;

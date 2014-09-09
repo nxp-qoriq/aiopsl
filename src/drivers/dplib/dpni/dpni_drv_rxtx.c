@@ -25,13 +25,13 @@
  */
 
 #include "general.h"
-#include "common/types.h"
-#include "dplib/fsl_dpni.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
+#include "types.h"
+#include "fsl_dpni.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
 #include "osm.h"
 
-#include "drv.h"
+#include "fsl_dpni_drv.h"
 
 
 #define __ERR_MODULE__  MODULE_DPNI
@@ -87,31 +87,6 @@ __HOT_CODE void receive_cb(void)
 	fdma_terminate_task();
 }
 #pragma pop
-
-__HOT_CODE int dpni_drv_send(uint16_t ni_id)
-{
-	struct dpni_drv *dpni_drv;
-	struct fdma_queueing_destination_params    enqueue_params;
-	int err;
-
-	dpni_drv = nis + ni_id; /* calculate pointer
-					* to the send NI structure   */
-
-	/* take SPID from TX NIC*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
-	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
-		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu))
-			return DPNI_DRV_MTU_ERR;
-	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
-	 * the qd_priority is taken from the TLS and that enqueue function \
-	 * always returns*/
-	enqueue_params.qdbin = 0;
-	enqueue_params.qd = dpni_drv->qdid;
-	enqueue_params.qd_priority = default_task_params.qd_priority;
-	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
-			FDMA_ENWF_NO_FLAGS);
-	return err;
-}
 
 __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 {

@@ -31,8 +31,8 @@
 
 *//***************************************************************************/
 #include "general.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
+#include "fsl_fdma.h"
+#include "fsl_cdma.h"
 
 /** Global task params */
 __TASK struct aiop_default_task_params default_task_params;

@@ -478,6 +478,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx.c</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/dpni/drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/drv.h</locationURI>
