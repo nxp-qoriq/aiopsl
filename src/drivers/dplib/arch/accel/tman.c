@@ -346,7 +346,6 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2));
 	return (int)(res1);
 }
-#endif
 
 int tman_recharge_timer(uint32_t timer_handle)
 {
@@ -369,6 +368,7 @@ int tman_recharge_timer(uint32_t timer_handle)
 			__LINE__, (int)res1);
 	return (int)(-ETIMEDOUT);
 }
+#endif
 
 void tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state)
