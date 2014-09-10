@@ -35,10 +35,11 @@
 #include "cmdif.h"
 #include "cmdif_client_aiop.h"
 #include "fsl_fdma.h"
+#include "fsl_ldpaa_aiop.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
-#warning "If test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
+#warning "If you test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
 
 int app_init(void);
@@ -57,8 +58,6 @@ void app_free(void);
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
 
 __SHRAM struct cmdif_desc cidesc;
-uint8_t send_data[64];
-
 
 static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
@@ -91,7 +90,6 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
 	int err = 0;
-	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
 
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
@@ -114,7 +112,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 {
 	int err = 0;
 	int i   = 0;
-	uint64_t p_data = fsl_os_virt_to_phys(&send_data[0]);
+	uint64_t p_data = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
@@ -125,11 +123,22 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	switch (cmd) {
 	case OPEN_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
+		/* GPP will send DPCI id at the first byte of the data */
+		if (size > 0) {
+			cidesc.regs = (void *)(((uint8_t *)data)[0]);
+		}
+		fsl_os_print("Testing AIOP client against GPP DPCI%d\n",
+		             (uint32_t)cidesc.regs);
 		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
 		                 NULL, 0);
 		break;
 	case OPEN_N_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
+		if (size > 0) {
+			cidesc.regs = (void *)(((uint8_t *)data)[0]);
+		}
+		fsl_os_print("Testing AIOP client against GPP DPCI%d\n",
+		             (uint32_t)cidesc.regs);
 		err |= cmdif_open(&cidesc, "IRA0", 0, async_cb, cidesc.regs,
 		                  NULL, 0);
 		err |= cmdif_open(&cidesc, "IRA3", 0, async_cb, cidesc.regs,
@@ -142,29 +151,25 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		}
 		break;
 	case NORESP_CMD:
-		*((uint8_t *)&send_data[0]) = (uint8_t)NORESP_CMD;
-		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, 64,
+		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, size,
 		                 CMDIF_PRI_LOW, p_data);
 		break;
 	case ASYNC_CMD:
-		*((uint8_t *)&send_data[0]) = (uint8_t)ASYNC_CMD;
-		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, 64,
+		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, size,
 		                 CMDIF_PRI_LOW, p_data);
 		break;
 	case ASYNC_N_CMD:
-		*((uint8_t *)&send_data[0]) = (uint8_t)ASYNC_N_CMD;
-		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, 64,
+		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, size,
 		                  CMDIF_PRI_LOW, p_data);
-		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, 64,
+		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, size,
 		                  CMDIF_PRI_HIGH, p_data);
-		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, 64,
+		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, size,
 		                  CMDIF_PRI_LOW, p_data);
-		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, 64,
+		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, size,
 		                  CMDIF_PRI_HIGH, p_data);
 		break;
 	case SYNC_CMD:
-		*((uint8_t *)&send_data[0]) = (uint8_t)SYNC_CMD;
-		err = cmdif_send(&cidesc, 0xa, 64, CMDIF_PRI_LOW, p_data);
+		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data);
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {
