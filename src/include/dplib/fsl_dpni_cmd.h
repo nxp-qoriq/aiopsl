@@ -58,8 +58,6 @@ struct extract_data {
 #define DPNI_CMDID_SET_L3_CHKSUM_VALIDATION	0x121
 #define DPNI_CMDID_GET_L4_CHKSUM_VALIDATION	0x122
 #define DPNI_CMDID_SET_L4_CHKSUM_VALIDATION	0x123
-#define DPNI_CMDID_ATTACH			0x125
-#define DPNI_CMDID_DETACH			0x126
 #define DPNI_CMDID_SET_POOLS			0x127
 
 #define DPNI_CMDID_SET_TX_TC			0x129
@@ -92,14 +90,11 @@ struct extract_data {
 #define DPNI_CMDID_ADD_QOS_ENT			0x142
 #define DPNI_CMDID_REMOVE_QOS_ENT		0x143
 #define DPNI_CMDID_CLR_QOS_TBL			0x144
-#define DPNI_CMDID_SET_FS_TBL			0x146
-#define DPNI_CMDID_DELETE_FS_TBL		0x147
 #define DPNI_CMDID_ADD_FS_ENT			0x148
 #define DPNI_CMDID_REMOVE_FS_ENT		0x149
-#define DPNI_CMDID_CLR_FS_TBL			0x14A
+#define DPNI_CMDID_CLR_FS_ENT			0x14A
 #define DPNI_CMDID_SET_IRQ			0x14B
-#define DPNI_CMDID_SET_TX_PAUSE_FRAMES		0x14C
-#define DPNI_CMDID_SET_RX_IGNORE_PAUSE_FRAMES	0x14D
+
 #define DPNI_CMDID_SET_VLAN_FILTERS		0x14E
 #define DPNI_CMDID_SET_TX_CONF_BUFFER_LAYOUT	0x14F
 
@@ -128,6 +123,10 @@ struct extract_data {
 #define DPNI_CMDID_SET_IPF          	 	0x164
 #define DPNI_CMDID_SET_VLAN_INSERTION      	0x165
 #define DPNI_CMDID_SET_VLAN_REMOVAL         0x166
+#define DPNI_CMDID_SET_RX_ERR_QUEUE 		0x167
+#define DPNI_CMDID_GET_RX_ERR_QUEUE 		0x168
+#define DPNI_CMDID_SET_TX_CONF_ERR_QUEUE 		0x169
+#define DPNI_CMDID_GET_TX_CONF_ERR_QUEUE 		0x16a
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_OPEN(cmd, dpni_id) \
@@ -148,7 +147,8 @@ do { \
 	MC_CMD_OP(cmd, 2, 0,	8,  uint8_t,  cfg->adv.max_unicast_filters); \
 	MC_CMD_OP(cmd, 2, 8,	8,  uint8_t,  cfg->adv.max_multicast_filters); \
 	MC_CMD_OP(cmd, 2, 16,	8,  uint8_t,  cfg->adv.max_vlan_filters); \
-	MC_CMD_OP(cmd, 2, 24,	8,  uint8_t,  cfg->adv.max_qos_key_size); \
+	MC_CMD_OP(cmd, 2, 24,	8,  uint8_t,  cfg->adv.max_qos_entries); \
+	MC_CMD_OP(cmd, 2, 32,	8,  uint8_t,  cfg->adv.max_qos_key_size); \
 	MC_CMD_OP(cmd, 2, 48,	8,  uint8_t,  cfg->adv.max_dist_key_size); \
 	MC_CMD_OP(cmd, 2, 56,	8,  enum net_prot, cfg->adv.start_hdr); \
 	MC_CMD_OP(cmd, 4, 0,	16, uint16_t, cfg->adv.max_dist_per_tc[0]); \
@@ -178,31 +178,6 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 32, uint32_t, irq_val); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_paddr); \
 	MC_CMD_OP(cmd, 2, 0,  32, int,	     user_irq_id); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_TX_PAUSE_FRAMES(cmd, priority, pause_time, thresh_time) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  priority); \
-	MC_CMD_OP(cmd, 0, 16, 16, uint16_t, pause_time); \
-	MC_CMD_OP(cmd, 0, 32, 16, uint16_t, thresh_time); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_RX_IGNORE_PAUSE_FRAMES(cmd, enable) \
-	MC_CMD_OP(cmd, 0, 0,  1,  int,	    enable)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_ATTACH(cmd, cfg) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->dest_cfg.id); \
-	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  cfg->dest_cfg.priority); \
-	MC_CMD_OP(cmd, 0, 56, 1,  int,	    cfg->dest_apply_all); \
-	MC_CMD_OP(cmd, 0, 57, 2,  enum dpni_dest, cfg->dest_cfg.type);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->rx_user_ctx); \
-	MC_CMD_OP(cmd, 2, 0,  64, uint64_t, cfg->rx_err_user_ctx); \
-	MC_CMD_OP(cmd, 3, 0,  64, uint64_t, cfg->tx_err_user_ctx);\
-	MC_CMD_OP(cmd, 4, 0,  64, uint64_t, cfg->tx_conf_user_ctx); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -447,6 +422,9 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->dist_size); \
 	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id); \
 	MC_CMD_OP(cmd, 0, 24, 4,  enum dpni_dist_mode, cfg->dist_mode); \
+	MC_CMD_OP(cmd, 0, 24, 4,  enum dpni_dist_mode, cfg->dist_mode); \
+	MC_CMD_OP(cmd, 0, 28, 4,  enum dpni_fs_miss_action, cfg->fs_cfg.miss_action); \
+	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, cfg->fs_cfg.default_flow_id); \
 	MC_CMD_OP(cmd, 6, 0,  64, uint64_t, ext_paddr); \
 } while (0)
 
@@ -544,18 +522,6 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_FS_TABLE(cmd, tc_id, cfg) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  4,  enum dpni_fs_miss_action, cfg->miss_action); \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id); \
-	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, cfg->default_flow_id);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_DELETE_FS_TABLE(cmd, tc_id) \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id)
-
-/*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_ADD_FS_ENTRY(cmd, tc_id, cfg, flow_id, key_paddr, \
                               	      	      	      	      mask_paddr) \
 do { \
@@ -576,7 +542,7 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_CLEAR_FS_TABLE(cmd, tc_id) \
+#define DPNI_CMD_CLEAR_FS_ENTRIES(cmd, tc_id) \
 	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -672,5 +638,47 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_VLAN_REMOVAL(cmd, en) \
 	MC_CMD_OP(cmd, 0, 0,  1,  int,	    en)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_RX_ERR_QUEUE(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->dest_cfg.id); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  cfg->dest_cfg.priority);\
+	MC_CMD_OP(cmd, 0, 32, 2,  enum dpni_dest, cfg->dest_cfg.type);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
+	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_RSP_GET_RX_ERR_QUEUE(cmd, cfg, fqid) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->dest_cfg.id); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  cfg->dest_cfg.priority);\
+	MC_CMD_OP(cmd, 0, 32, 2,  enum dpni_dest, cfg->dest_cfg.type);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
+	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, fqid); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_TX_CONF_ERR_QUEUE(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->dest_cfg.id); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  cfg->dest_cfg.priority);\
+	MC_CMD_OP(cmd, 0, 32, 2,  enum dpni_dest, cfg->dest_cfg.type);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
+	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_RSP_GET_TX_CONF_ERR_QUEUE(cmd, cfg, fqid) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->dest_cfg.id); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  cfg->dest_cfg.priority);\
+	MC_CMD_OP(cmd, 0, 32, 2,  enum dpni_dest, cfg->dest_cfg.type);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
+	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, fqid); \
+} while (0)
 
 #endif /* _FSL_DPNI_CMD_H */

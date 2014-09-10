@@ -85,10 +85,10 @@ enum e_tman_cmd_type {
 #ifdef REV2
 #define TMAN_TIMER_INC_DURATION_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_INC_DURATION)
-#endif
 
 #define TMAN_TIMER_RECHARGE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_RECHARGE)
+#endif
 
 #define TMAN_TIMER_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_QUERY)
@@ -194,7 +194,6 @@ struct tman_timer_increase_duration_command {
 	uint16_t	duration;
 	uint8_t		pad[2];
 };
-#endif
 
 /**************************************************************************//**
 @Description	TMAN timer recharge Command structure.
@@ -207,6 +206,7 @@ struct tman_timer_recharge_command {
 	int32_t		status;
 	uint32_t	timer_handle;
 };
+#endif
 
 /**************************************************************************//**
 @Description	TMAN timer query Command structure.

@@ -2,14 +2,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
  *
  *
  * ALTERNATIVELY, this software may be distributed under the terms of the
@@ -28,7 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #ifndef __FSL_DPKG_H_
 #define __FSL_DPKG_H_
 
@@ -45,12 +44,10 @@
 /*!
  * @name Key Generator properties
  */
-/* TODO - remove, take from soc_db */
 #define DPKG_NUM_OF_MASKS					4
-/*!< Number of profiles per CTLU Keygen */
-/* TODO - remove, define and take from soc_db */
+/*!< Number of masks per key extraction */
 #define DPKG_MAX_NUM_OF_EXTRACTS				8
-/*!< Number of extraction per Key */
+/*!< Number of extractions per key profile */
 
 /* @} */
 
@@ -65,25 +62,11 @@ enum dpkg_extract_from_hdr_type {
 };
 
 /**
- * @brief	Enumeration type for selecting extraction source
- *              (when it is not DPKG_EXTRACT_FROM_CONTEXT )
- */
-enum dpkg_extract_from_context_type {
-	DPKG_FROM_PARSE_RESULT, /*!< Extract from the Key generator result */
-	DPKG_FROM_FCV, /*!< TODO: Extract from the Key generator result */
-	DPKG_FROM_IFP
-/*!< TODO: Extract from enqueue FQID */
-/* add logic context's */
-};
-
-/**
  * @brief	Enumeration type for selecting extraction type
  */
 enum dpkg_extract_type {
 	DPKG_EXTRACT_FROM_HDR, /*!< Extract according to header */
 	DPKG_EXTRACT_FROM_DATA, /*!< Extract from data that is not the header */
-	DPKG_EXTRACT_FROM_CONTEXT, /*!< Extract from data that is not the header
-	 */
 	DPKG_EXTRACT_CONSTANT
 /*!< Extract private info as specified by user */
 };
@@ -108,8 +91,6 @@ struct dpkg_extract {
 	 DPKG_EXTRACT_FROM_HDR: select "from_hdr";
 	 DPKG_EXTRACT_FROM_DATA: select
 	 "from_data";
-	 DPKG_EXTRACT_FROM_CONTEXT: select
-	 "from_context";
 	 DPKG_EXTRACT_CONSTANT: select constant. */
 	union {
 		struct {
@@ -147,13 +128,6 @@ struct dpkg_extract {
 			uint8_t size; /*!< Size in byte */
 			uint8_t offset; /*!< Byte offset */
 		} from_data; /*!< used when type = DPKG_EXTRACT_FROM_DATA */
-		struct {
-			enum dpkg_extract_from_context_type src;
-			/*!< Non-header extraction source */
-			uint8_t size; /*!< Size in byte */
-			uint8_t offset; /*!< Byte offset */
-		} from_context;
-		/*!< used when type = DPKG_EXTRACT_FROM_CONTEXT */
 		struct {
 			uint8_t constant; /*!< a constant value */
 			uint8_t num_of_repeats;
