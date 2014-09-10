@@ -739,6 +739,10 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	case (TABLE_HW_STATUS_EOFH):
 		status = -EIO;
 		break;
+	/*TODO EOFH with LOOKUP hit/miss */
+	case (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS):
+		status = -EIO;
+		break;
 	default:
 		/* Call fatal error handler */
 		table_exception_handler_wrp(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
