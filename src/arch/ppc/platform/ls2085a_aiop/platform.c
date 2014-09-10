@@ -39,7 +39,7 @@
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
-
+extern struct aiop_init_data g_init_data;
 
 typedef struct t_platform_mem_region_info {
     uint64_t    start_addr;
@@ -476,7 +476,6 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
     int                     err;
     uintptr_t               virt_base_addr;
     uint64_t                size;
-    uint32_t                attributes;
     int                     i, register_partition, index = 0;
     char                    name[32];
 
@@ -489,14 +488,11 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-        attributes = 0;
-        register_partition = 0;
         memset(name, 0, sizeof(name));
 
         switch (p_mem_info->mem_partition_id) {
         case MEM_PART_DP_DDR:
-            sprintf(name, "%s", "DP_DDR");
-            register_partition = 1;
+            sprintf(name, "%s", "DP_DDR");          
             break;
             /*
         case MEM_PART_2ND_DDR_NON_CACHEABLE:
@@ -506,11 +502,9 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
             */
         case MEM_PART_SH_RAM:
             sprintf(name, "%s", "Shared-SRAM");
-            register_partition = 1;
             break;
         case MEM_PART_PEB:
-            sprintf(name, "%s", "PEB");
-            register_partition = 1;
+            sprintf(name, "%s", "PEB");         
             break;
         default:
             break;
@@ -522,11 +516,11 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         if (err != E_OK)
             RETURN_ERROR(MAJOR, err, NO_MSG);
 
-        if (register_partition) {
+        if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
             err = sys_register_mem_partition(p_mem_info->mem_partition_id,
                                              virt_base_addr,
                                              size,
-                                             attributes,
+                                             p_mem_info->mem_attribute,
                                              name,
                                              NULL,
                                              NULL,
@@ -657,9 +651,7 @@ int platform_init(struct platform_param    *pltfrm_param,
     pltfrm->ccsr_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
 
     /* Store AIOP-peripherals base (for convenience) */
-    mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_AIOP);
-    ASSERT_COND(mem_index != -1);
-    pltfrm->aiop_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
+    pltfrm->aiop_base = AIOP_PERIPHERALS_OFF;
 
     /* Store MC-Portals bases (for convenience) */
     mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_MC_PORTALS);
@@ -725,10 +717,10 @@ uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
     {
         /* module                     id   mappedMemType                  offset
            ------                     --   -------------                  ------                      */
-        { FSL_OS_MOD_UART,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART1       },
-        { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
-        { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
-        { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART4       },
+        { FSL_OS_MOD_UART,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART0       },
+        { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART1       },
+        { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
+        { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
         { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_TILE+SOC_PERIPH_OFF_AIOP_CMGW},
     };
 
@@ -772,6 +764,7 @@ int platform_enable_console(fsl_handle_t h_platform)
     t_duart_uart_param  duart_uart_param;
     fsl_handle_t        uart;
     int           err = E_OK;
+    const uint32_t uart_port_offset[] = SOC_PERIPH_OFF_DUART;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
 
@@ -782,7 +775,7 @@ int platform_enable_console(fsl_handle_t h_platform)
 
     /* Fill DUART configuration parameters */
     /*TODO: the base address is hard coded to uart 2_0, should be modified*/
-    duart_uart_param.base_address       = SOC_PERIPH_OFF_DUART3;
+    duart_uart_param.base_address       = uart_port_offset[g_init_data.sl_data.uart_port_id];
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
     duart_uart_param.parity             = E_DUART_PARITY_NONE;

@@ -32,10 +32,11 @@
 #ifndef __FSL_DPNI_DRV_H
 #define __FSL_DPNI_DRV_H
 
-#include "common/types.h"
-#include "dplib/fsl_dpni.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_dpni.h"
+#include "fsl_ldpaa.h"
 #include "dpni_drv.h"
+#include "dpni_drv_rxtx_inline.h"
 
 
 /**************************************************************************//**
@@ -219,7 +220,7 @@ int dpni_drv_get_mfl(uint16_t ni_id,
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_send(uint16_t ni_id);
+inline int dpni_drv_send(uint16_t ni_id);
 
 /**************************************************************************//**
 @Function	dpni_drv_explicit_send

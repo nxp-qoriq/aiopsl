@@ -26,16 +26,12 @@
 
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "fsl_dpni_drv.h"
-#include "fsl_ip.h"
 #include "platform.h"
 #include "fsl_io.h"
-#include "fsl_parser.h"
 #include "general.h"
 #include "fsl_dbg.h"
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
-#include "dplib/fsl_cdma.h"
 #include "cmdif.h"
 #include "cmdif_client_aiop.h"
 #include "fsl_fdma.h"
@@ -63,13 +59,6 @@ void app_free(void);
 __SHRAM struct cmdif_desc cidesc;
 uint8_t send_data[64];
 
-__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
-{
-	int      err;
-	fsl_os_print("Core %d received packet icid = 0x%x\n", core_get_id(), \
-	             ICID_GET(PL_ICID_GET));
-	err = dpni_drv_send(APP_NI_GET(arg));
-}
 
 static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
@@ -200,18 +189,6 @@ int app_init(void)
 	struct cmdif_module_ops ops;
 
 	fsl_os_print("Running app_init()\n");
-
-	for (ni = 0; ni < 6; ni++)
-	{
-		/* Every ni will have 1 flow */
-		uint32_t flow_id = 0;
-		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		                              (uint16_t)flow_id/*flow_id*/,
-		                              app_process_packet_flow0, /* callback for flow_id*/
-		                              (ni | (flow_id << 16)) /*arg, nic number*/);
-		if (err) return err;
-	}
-
 
 	for (i = 0; i < 20; i++) {
 		ops.close_cb = close_cb;

@@ -31,7 +31,7 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_cdma.h"
-#include "cdma.h"
+/*#include "cdma.h"*/
 
 #include "aiop_verification.h"
 #include "aiop_verification_cdma.h"

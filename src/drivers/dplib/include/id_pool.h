@@ -36,7 +36,7 @@
 
 #include "general.h"
 #include "dplib/fsl_cdma.h"
-#include "cdma.h"
+/*#include "cdma.h"*/
 
 
 /**************************************************************************//**

@@ -10,14 +10,14 @@ MEMORY
     verif_tls:              org = 0x00000100,   len = 0x00000100 /* TLS - For Verification Env. */
     presentation:           org = 0x00000200,   len = 0x00000280 /* Frame presentation area  */
     stack :                 org = 0x00000480,   len = 0x00000380 /* Start location for Stack */
-    exception_handlers:     org = 0x00800000,   len = 0x00002000 /* IRAM   */
-    init:                   org = 0x00802000,   len = 0x00001000
-    pseudo_rom:             org = 0x00803000,   len = 0x00020000
+    exception_handlers:     org = 0x00FE0000,   len = 0x00002000 /* IRAM   */
+    init:                   org = 0x00FE2000,   len = 0x00001000
+    pseudo_rom:             org = 0x00FE3000,   len = 0x00020000
     profile_sram:           org = 0x02030000,	len = 0x0000FFFC /* Profile SRAM */
     private_shared_ram:     org = 0x01000000,   len = 0x00008000 /* Application global vars  */
     verif_shared_ram:       org = 0x01008000,   len = 0x00001000 /* Verification Env global vars  */
     heap  :                 org = 0x01009000,   len = 0x00037000 /* currently sit in shared SRAM */
-    dp_ddr:                 org = 0x50000000,   len = 0x10000000 /* DP-DDR  */
+    dp_ddr:                 org = 0x40000000,   len = 0x10000000 /* DP-DDR  */
     spintbl :               org = 0x50008000,   len = 0x00001000 /* DDR - heap */
     pebm  :                 org = 0x80000000,   len = 0x00600000 /* PEBM */
 }

@@ -35,7 +35,7 @@
 #include "slab.h"
 #include "fdma.h"
 #include "fsl_io.h"
-#include "cdma.h"
+#include "fsl_cdma.h"
 #include "fsl_io_ccsr.h"
 #include "aiop_common.h"
 #include "fsl_mc_init.h"
@@ -71,9 +71,9 @@ __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 	}
 
 /***************************************************************************
- * slab_create_virtual_pool used by: slab_create
+ * slab_create_pool used by: slab_create
  ***************************************************************************/
-static int slab_create_virtual_pool(
+static int slab_create_pool(
 	uint16_t bman_pool_id,
 	int32_t max_bufs,
 	int32_t committed_bufs,
@@ -170,11 +170,13 @@ static int slab_create_virtual_pool(
 	slab_virtual_pool->bman_array_index = bman_array_index;
 	slab_virtual_pool->flags = flags;
 
-
-	/* Check if a callback structure exists and initialize the entry */
-	if (g_slab_virtual_pools.callback_func != NULL) {
-		callback += slab_vpool_id;
-		*callback = callback_func;
+	/* Check if a callback_func exists*/
+	if(callback_func != NULL){
+		/* Check if a callback structure exists and initialize the entry */
+		if (g_slab_virtual_pools.callback_func != NULL) {
+			callback += slab_vpool_id;
+			*callback = callback_func;
+		}
 	}
 
 	return 0;
@@ -189,9 +191,17 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
 		g_slab_virtual_pools.virtual_pool_struct;
+
+	slab_release_cb_t **callback = (slab_release_cb_t **)
+							g_slab_virtual_pools.callback_func;
+
+	callback += slab_virtual_pool_id;
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+
+	if (*callback != NULL)
+		*callback = NULL;
 
 
 	if (slab_virtual_pool->allocated_bufs != 0) {
@@ -216,14 +226,14 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
  * slab_pool_allocate_buff used by: slab_acquire
  ***************************************************************************/
 __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
-                                   uint64_t *context_address)
+                                              uint64_t *context_address)
 {
 	int return_val;
 	int allocate = 0;
 
 	// TODO: remove this if moving to handle
 	struct slab_v_pool *slab_virtual_pool = (struct slab_v_pool *)
-				g_slab_virtual_pools.virtual_pool_struct;
+						g_slab_virtual_pools.virtual_pool_struct;
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
@@ -241,7 +251,7 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 
 		/* spinlock this BMAN pool counter */
 		lock_spinlock((uint8_t *)&g_slab_bman_pools[slab_virtual_pool->
-		                                          bman_array_index].spinlock);
+		                                            bman_array_index].spinlock);
 
 		if ((g_slab_bman_pools[
 		                       slab_virtual_pool->bman_array_index].remaining) > 0)
@@ -252,7 +262,7 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 		}
 
 		unlock_spinlock((uint8_t *)&g_slab_bman_pools[slab_virtual_pool->
-		                                            bman_array_index].spinlock);
+		                                              bman_array_index].spinlock);
 	}
 
 	/* Request CDMA to allocate a buffer*/
@@ -275,7 +285,7 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 			if (allocate == 2) /* only if it was allocated from
 					the remaining area */
 				atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
-				                               bman_array_index].remaining, 1);
+				                                 bman_array_index].remaining, 1);
 			return (return_val);
 		}
 
@@ -288,125 +298,11 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 
 } /* End of slab_pool_allocate_buff */
 
-/***************************************************************************
- * __slab_vpool_internal_release_buf used by: slab_decrement_virtual_pool_refcount
- ***************************************************************************/
-__HOT_CODE static inline void __slab_vpool_internal_release_buf(uint32_t slab_virtual_pool_id)
-{
-
-	// TODO: remove this if moving to handle
-	struct slab_v_pool *slab_virtual_pool =
-		(struct slab_v_pool *)
-			g_slab_virtual_pools.virtual_pool_struct;
-	slab_virtual_pool += slab_virtual_pool_id;
-
-	lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
-
-	/* First check if buffers were allocated from the common pool */
-	if(slab_virtual_pool->allocated_bufs >
-		slab_virtual_pool->committed_bufs) 	{
-		/* One buffer returns to the common pool */
-		atomic_incr32(&g_slab_bman_pools
-			[slab_virtual_pool->bman_array_index].remaining, 1);
-	}
-
-	slab_virtual_pool->allocated_bufs--;
-
-	unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
-
-} /* End of __slab_vpool_internal_release_buf */
 
 /***************************************************************************
- * slab_decrement_virtual_pool_refcount used by: slab_release
+ * slab_read_pool used by: slab_debug_info_get
  ***************************************************************************/
-__HOT_CODE static int slab_decrement_virtual_pool_refcount(
-		uint32_t slab_virtual_pool_id,
-		uint64_t context_address,
-		int32_t *callback_status)
-{
-	int32_t cdma_status;
-	int8_t release = FALSE;
-	int8_t no_callback = TRUE;
-	UNUSED(callback_status);
-#if 0
-	slab_release_cb_t *callback;
-
-	/* cdma_refcount_decrement_and_release:
-	 *	This routine decrements reference count of Context memory
-	 *	object. If resulting reference count is zero, the following
-	 *	CDMA_REFCOUNT_DECREMENT_TO_ZERO status code is reported
-	 *	and the Context memory block is automatically released to the
-	 *	BMan pool it was acquired from.
-	*/
-
-	/* TODO: need to take care of callback if moving to handle
-	* It can probably not be in a separate structure, since only
-	 vpool_id is given.*/
-
-	if (callback_status != NULL)
-		*callback_status = 0;
-
-	/* Check if a callback structure and function exist */
-	/*TODO: Add this functionality when callback is supported*/
-
-	if (g_slab_virtual_pools.callback_func != NULL) {
-		callback =
-			(slab_release_cb_t *)
-			g_slab_virtual_pools.callback_func;
-		callback += slab_virtual_pool_id;
-		if (callback->callback_func != NULL) {
-			no_callback = FALSE;
-			/* Decrement ref counter without release */
-			/* Note: if the reference count was already at zero
-			 * (so CDMA returned with decrement error) the CDMA
-			 * function will not return */
-			cdma_status = cdma_refcount_decrement(context_address);
-
-			/* Check if the reference count got to zero. */
-			if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
-				/* Call the callback function */
-				if (callback_status != NULL)
-					*callback_status =
-						callback->
-						callback_func(context_address);
-				else
-					callback->
-						callback_func(context_address);
-				/* Release the buffer */
-				cdma_release_context_memory	(context_address);
-				release = TRUE;
-			}
-		}
-	}
-#endif
-	if (no_callback) {
-		/* decrement and release without a callback */
-		cdma_status =
-			cdma_refcount_decrement_and_release(context_address);
-		/* It is considered OK both if the reference count
-		 * got to zero or was already at zero
-		 * (so CDMA returned with decrement error). */
-		if (cdma_status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
-			release = TRUE;
-		}
-	}
-
-	/* TODO: the return value is inconsistent with
-	cdma_refcount_decrement_and_release */
-
-	if (release) {
-		__slab_vpool_internal_release_buf(slab_virtual_pool_id);
-		return 0;
-	} else {
-		/* Return special status for the slab */
-		return -ENAVAIL;
-	}
-} /* End of vpool_refcount_decrement_and_release */
-
-/***************************************************************************
- * slab_read_virtual_pool used by: slab_debug_info_get
- ***************************************************************************/
-static int slab_read_virtual_pool(uint32_t slab_virtual_pool_id,
+static int slab_read_pool(uint32_t slab_virtual_pool_id,
                                   uint16_t *bman_pool_id,
                                   int32_t *max_bufs,
                                   int32_t *committed_bufs,
@@ -435,7 +331,7 @@ static int slab_read_virtual_pool(uint32_t slab_virtual_pool_id,
 	/* Check if callback exists and return its address (can be null) */
 	if (g_slab_virtual_pools.callback_func != NULL) {
 		callback = (slab_release_cb_t **)
-           					g_slab_virtual_pools.callback_func;
+           							g_slab_virtual_pools.callback_func;
 		callback += slab_virtual_pool_id;
 		*callback_func = *callback;
 	} else {
@@ -682,7 +578,7 @@ static void free_slab_module_memory(struct slab_module_info *slab_m)
 	if (g_slab_virtual_pools.virtual_pool_struct)
 		fsl_os_xfree(g_slab_virtual_pools.virtual_pool_struct);
 	if (g_slab_virtual_pools.callback_func)
-			fsl_os_xfree(g_slab_virtual_pools.callback_func);
+		fsl_os_xfree(g_slab_virtual_pools.callback_func);
 	if (slab_m->hw_pools)
 		fsl_os_xfree(slab_m->hw_pools);
 	fsl_os_xfree(slab_m);
@@ -760,13 +656,13 @@ int slab_create(uint32_t    committed_buffs,
 	                  &bpid);
 	SLAB_ASSERT_COND_RETURN(error == 0, error);
 
-	/* TODO add max_buffs to slab_create_virtual_pool when it will be supported */
-	error = slab_create_virtual_pool(bpid,
-	                         (int32_t)committed_buffs,
-	                         (int32_t)committed_buffs,
-	                         0,
-	                         release_cb,
-	                         &slab_virtual_pool_id);
+	/* TODO add max_buffs to slab_create_pool when it will be supported */
+	error = slab_create_pool(bpid,
+	                                 (int32_t)committed_buffs,
+	                                 (int32_t)committed_buffs,
+	                                 0,
+	                                 release_cb,
+	                                 &slab_virtual_pool_id);
 
 
 
@@ -839,20 +735,37 @@ static int slab_check_bpid(struct slab *slab, uint64_t buff)
 /*****************************************************************************/
 __HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
 {
-	int error = 0;
+	uint32_t slab_virtual_pool_id = SLAB_VP_POOL_GET(slab);
+	slab_release_cb_t **callback = (slab_release_cb_t **)
+						g_slab_virtual_pools.callback_func;
+	struct slab_v_pool *slab_virtual_pool = (struct slab_v_pool *)
+						g_slab_virtual_pools.virtual_pool_struct;
+
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 	SLAB_ASSERT_COND_RETURN(slab_check_bpid(slab, buff) == 0, -EFAULT);
 #endif
-	error = slab_decrement_virtual_pool_refcount(SLAB_VP_POOL_GET(slab),
-	                                             buff,
-	                                             NULL);
-	/* It's OK for buffer not to be released as long as
-	 * there is no cdma_error */
-	if ((error == -ENAVAIL) || (error == 0))
-		return 0;
-	else
-		return -EFAULT;
+
+	callback += slab_virtual_pool_id;
+	if (*callback != NULL)
+		(*callback)(buff);
+
+	cdma_release_context_memory(buff);
+
+	slab_virtual_pool += slab_virtual_pool_id;
+
+	lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
+
+	/* First check if buffers were allocated from the common pool */
+	if(slab_virtual_pool->allocated_bufs >
+		slab_virtual_pool->committed_bufs) 	{
+		/* One buffer returns to the common pool */
+		atomic_incr32(&g_slab_bman_pools
+		              [slab_virtual_pool->bman_array_index].remaining, 1);
+	}
+	slab_virtual_pool->allocated_bufs--;
+	unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
+	return 0;
 }
 /*****************************************************************************/
 static int bpid_init(struct slab_hw_pool_info *hw_pools,
@@ -1059,13 +972,13 @@ int slab_module_init(void)
 		sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0,
 		                                  E_MAPPED_MEM_TYPE_GEN_REGS);
 
-#ifndef AIOP_STANDALONE
+
 	err = dpbp_discovery(&bpids_arr[0], ARRAY_SIZE(bpids_arr), &num_bpids);
 	if (err) {
 		pr_err("Failed DPBP discovery\n");
 		return -ENODEV;
 	}
-#endif
+
 
 	slab_m = fsl_os_xmalloc(sizeof(struct slab_module_info),
 	                        SLAB_FAST_MEMORY,
@@ -1081,14 +994,14 @@ int slab_module_init(void)
 		               1);
 
 	virtual_pool_struct  = (struct slab_v_pool *)
-		fsl_os_xmalloc((sizeof(struct slab_v_pool) *
-			SLAB_MAX_NUM_VP),
-			SLAB_FAST_MEMORY,
-			1);
+				fsl_os_xmalloc((sizeof(struct slab_v_pool) *
+					SLAB_MAX_NUM_VP),
+					SLAB_FAST_MEMORY,
+					1);
 	callback_func =	(slab_release_cb_t **) fsl_os_xmalloc((
-				sizeof(slab_release_cb_t *) * SLAB_MAX_NUM_VP),
-				SLAB_FAST_MEMORY,
-		               1);
+		sizeof(slab_release_cb_t *) * SLAB_MAX_NUM_VP),
+		SLAB_FAST_MEMORY,
+		1);
 
 	if ((slab_m->hw_pools == NULL) ||
 		(virtual_pool_struct == NULL) ||
@@ -1174,13 +1087,13 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 		sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
 	if ((slab_info != NULL) && (slab_m != NULL) && SLAB_IS_HW_POOL(slab)) {
-		if (slab_read_virtual_pool(SLAB_VP_POOL_GET(slab),
-		                    &slab_info->pool_id,
-		                    &temp,
-		                    &m_buffs,
-		                    &num_buffs,
-		                    &flags,
-		                    &release_cb) == 0) {
+		if (slab_read_pool(SLAB_VP_POOL_GET(slab),
+		                           &slab_info->pool_id,
+		                           &temp,
+		                           &m_buffs,
+		                           &num_buffs,
+		                           &flags,
+		                           &release_cb) == 0) {
 			/* Modify num_buffs to have the number of available
 			 * buffers not allocated */
 			slab_info->committed_buffs = (uint32_t)(m_buffs - num_buffs);
@@ -1193,21 +1106,4 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 	}
 
 	return -EINVAL;
-}
-
-/*****************************************************************************/
-__HOT_CODE int slab_refcount_incr(struct slab *slab, uint64_t buff)
-{
-#ifdef DEBUG
-	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
-#endif
-	cdma_refcount_increment(buff);
-
-	return 0;
-}
-
-/*****************************************************************************/
-__HOT_CODE int slab_refcount_decr(struct slab *slab, uint64_t buff)
-{
-	return slab_release(slab, buff);
 }

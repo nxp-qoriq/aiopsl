@@ -845,6 +845,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpni/drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/drv.h</locationURI>
@@ -1043,6 +1048,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/parser.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/parser_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/snic.c</name>

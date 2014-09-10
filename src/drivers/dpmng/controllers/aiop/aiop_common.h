@@ -57,7 +57,7 @@ struct aiop_app_init_info
  	uint64_t sys_ddr2_ctlu_size;        /* initialized by AIOP APP at compile time, default provided */
  	uint64_t dp_ddr_ctlu_size;        /* initialized by AIOP APP at compile time, default provided */
  	uint64_t peb_ctlu_size;        /* initialized by AIOP APP at compile time, default provided */
-	uint64_t reserved[25];           /* reserved for future use */
+	uint64_t reserved[20];           /* reserved for future use */
 };
 
 /* Internal data exchanged between AIOP and MC
@@ -75,7 +75,8 @@ struct aiop_sl_init_info
     uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
     uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
     uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
-    uint32_t reserved[188];           /* reserved for future use */
+    uint32_t clock_period; /* In nanosec */
+    uint32_t reserved[180];           /* reserved for future use */
 };
 
 struct aiop_init_data

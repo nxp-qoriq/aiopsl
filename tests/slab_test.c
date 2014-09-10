@@ -44,6 +44,14 @@ int slab_init();
 int slab_test();
 int app_test_slab(struct slab *slab, int num_times);
 
+
+static int slab_callback_test(uint64_t context_address){
+
+	fsl_os_print("slab_release: callback function\n");
+	fsl_os_print("release context address - 0x%x%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
+	return 0;
+}
+
 int slab_init()
 {
 	int err = 0;
@@ -88,13 +96,18 @@ int app_test_slab_init()
 	struct slab *my_slab;
 
 	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
-	                  NULL, &my_slab);
+	                  &slab_callback_test, &my_slab);
 	if (err) return err;
 
 	err = slab_acquire(my_slab, &buff);
 	if (err) return err;
-	err = slab_release(my_slab, buff);
-	if (err) return err;
+
+	if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
 
 	err = slab_free(&my_slab);
 	if (err) return err;
@@ -102,6 +115,7 @@ int app_test_slab_init()
 	/* Must fail because my_slab was freed  */
 	err = slab_acquire(my_slab, &buff);
 	if (!err) return -EEXIST;
+
 
 	/* Reuse slab handle test  */
 	err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
@@ -123,13 +137,19 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 	cdma_write(buff, &data1, 8);
 	cdma_read(&data2, buff, 8);
 
+
 	if (data1 != data2) {
-		slab_release(slab, buff);
+		if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(slab, buff);
+			if (err) return err;
+		}
 		return -EPERM;
 	}
 
-	err = slab_release(slab, buff);
-	if (err) return err;
+	if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(slab, buff);
+		if (err) return err;
+	}
 
 	return 0;
 }
@@ -137,7 +157,7 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 int app_test_slab(struct slab *slab, int num_times)
 {
 	uint64_t buff[4] = {0, 0, 0, 0};
-	int      err = 0;
+	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
 
@@ -153,6 +173,17 @@ int app_test_slab(struct slab *slab, int num_times)
 		err = slab_acquire(slab, &buff[2]);
 		if (err || (buff[2] == NULL)) return -ENOMEM;
 
+		slab_refcount_incr(buff[2]);
+		if (buff[2] == NULL) return -ENOMEM;
+		slab_refcount_incr(buff[2]);
+		if (buff[2] == NULL) return -ENOMEM;
+		slab_refcount_incr(buff[2]);
+		if (buff[2] == NULL) return -ENOMEM;
+		slab_refcount_incr(buff[2]);
+		if (buff[2] == NULL) return -ENOMEM;
+
+
+
 		err = slab_acquire(my_slab, &buff[3]);
 		if (err || (buff[3] == NULL)) return -ENOMEM;
 
@@ -164,12 +195,32 @@ int app_test_slab(struct slab *slab, int num_times)
 		if (err) return err;
 		err = app_write_buff_and_release(my_slab, buff[3]);
 		if (err) return err;
+
+		if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(slab, buff[2]);
+			if (err) return err;
+		}
+
+		if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(slab, buff[2]);
+			if (err) return err;
+		}
+		if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(slab, buff[2]);
+			if (err) return err;
+		}
+		if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(slab, buff[2]);
+			if (err) return err;
+		}
 	}
 
 	err = slab_free(&my_slab);
 	if (err) return err;
 
 	err = slab_acquire(my_slab, &buff[3]);
+	if(err == 0) return -EINVAL;
+	err = slab_acquire(my_slab, &buff[2]);
 	if(err == 0) return -EINVAL;
 
 	return 0;

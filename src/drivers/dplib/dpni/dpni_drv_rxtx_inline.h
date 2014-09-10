@@ -24,37 +24,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- @File          fsl_platform.h
- 
- @Description   This file contains typedefs for dynamic memory allocation.
- 
-*//***************************************************************************/
-#ifndef __FSL_PLATFORM_AIOP_H
-#define __FSL_PLATFORM_AIOP_H
-
 /**************************************************************************//**
- @Group         mem_mng_g_id Memory Management
- @Description   Prototypes, externals and typedefs for system  memory management.
+@File		dpni_drv_rxtx_inline.h
 
- @{
+@Description	Data Path Network Interface Inline API
 *//***************************************************************************/
+#ifndef __DPNI_DRV_RXTX_INLINE_H
+#define __DPNI_DRV_RXTX_INLINE_H
 
-/**************************************************************************//**
- @Description   Memory Partition Identifiers.
-                Used as a parameter for fsl_os_xmalloc() and fsl_os_malloc(). 
-                Note that not all memory partitions are supported by all
-                platforms. Every platform may select which memory partitions
-                to support.
-*//***************************************************************************/
-typedef enum memory_partition_id {
-    MEM_PART_DP_DDR = 1,/**< Primary DDR non-cacheable memory partition */
-    MEM_PART_SYSTEM_DDR,    /**< Secondary DDR non-cacheable memory partition */
-    MEM_PART_SH_RAM,                   /**< Shared-SRAM memory */
-    MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
-    MEM_PART_INVALID                   /**< Invalid memory partition */
-} e_memory_partition_id;
+#include "drv.h"
+#include "general.h"
+#include "types.h"
+#include "fsl_fdma.h"
 
-/** @} */ /* end of sytem_mem_management_id  group */
-#endif /* __FSL_PLATFORM_AIOP_H */
+extern __TASK struct aiop_default_task_params default_task_params;
+extern __SHRAM struct dpni_drv *nis;
 
+__HOT_CODE inline int dpni_drv_send(uint16_t ni_id)
+{
+	struct dpni_drv *dpni_drv;
+	struct fdma_queueing_destination_params    enqueue_params;
+	int err;
+
+	dpni_drv = nis + ni_id; /* calculate pointer
+					* to the send NI structure   */
+
+	/* take SPID from TX NIC*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
+	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu))
+			return DPNI_DRV_MTU_ERR;
+	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
+	 * the qd_priority is taken from the TLS and that enqueue function \
+	 * always returns*/
+	enqueue_params.qdbin = 0;
+	enqueue_params.qd = dpni_drv->qdid;
+	enqueue_params.qd_priority = default_task_params.qd_priority;
+	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
+			FDMA_ENWF_NO_FLAGS);
+	return err;
+}
+
+
+#endif /* __DPNI_DRV_RXTX_INLINE_H */

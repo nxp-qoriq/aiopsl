@@ -26,7 +26,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/RAM</value>
+					<value>${ProjDirPath}/Debug</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.contents</key>
@@ -476,6 +476,11 @@
 			<name>sources/drivers/dplib/dpni/dpni_drv_rxtx.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/dpni/drv.h</name>

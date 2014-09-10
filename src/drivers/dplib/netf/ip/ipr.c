@@ -45,7 +45,7 @@
 #include "fdma.h"
 #include "checksum.h"
 #include "ipr.h"
-#include "cdma.h"
+#include "dplib/fsl_cdma.h"
 #include "ip.h"
 #include "fsl_platform.h"
 

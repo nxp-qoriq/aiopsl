@@ -319,6 +319,8 @@ enum cdma_function_identifier {
 /** @} end of group CDMA_AccessCM_DMA */
 /** @} end of group CDMA_Internal_Commands_Flags */
 
+#include "cdma_inline.h"
+
 /**************************************************************************//**
 @Group		CDMA_Internal_Functions	CDMA Internal Functions
 
@@ -427,7 +429,7 @@ int cdma_refcount_decrement_and_release(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_refcount_increment(
+inline void cdma_refcount_increment(
 		uint64_t context_address);
 
 
@@ -453,7 +455,7 @@ void cdma_refcount_increment(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int cdma_refcount_decrement(
+inline int cdma_refcount_decrement(
 		uint64_t context_address);
 
 

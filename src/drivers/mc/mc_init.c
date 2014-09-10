@@ -37,12 +37,13 @@
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 
-int mc_obj_init();
-void mc_obj_free();
+extern struct aiop_init_data g_init_data;
 
 #define DPCI_LOW_PR  1
 #define MC_DPCI_NUM 1
-#define MC_DPCI_ID  0
+
+int mc_obj_init();
+void mc_obj_free();
 
 static int aiop_container_init()
 {
@@ -64,7 +65,9 @@ static int aiop_container_init()
 	/* Get virtual address of MC portal */
 	p_vaddr = \
 	UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-					 (uint32_t)1, E_MAPPED_MEM_TYPE_MC_PORTAL));
+					 g_init_data.sl_data.mc_portal_id, E_MAPPED_MEM_TYPE_MC_PORTAL));
+
+	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_data.mc_portal_id, (uint32_t)p_vaddr);
 
 	/* Open root container in order to create and query for devices */
 	dprc->io.regs = p_vaddr;
@@ -201,8 +204,13 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	err |= dpci_get_attributes(&dprc->io,
 	                           dpci,
 				   &dpci_tbl->attr[ind]);
-
 	dpci_tbl->token[ind] = dpci;
+
+	if (!dpci_tbl->attr[ind].peer_attached) {
+		pr_err("DPCI %d has no peer ! ", dpci_tbl->attr[ind].id);
+		/* Don't return error maybe peer will be attached in the future */
+	}
+
 	return 0;
 }
 
@@ -241,9 +249,11 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 				   &dpci_tbl->attr[ind]);
 
 	/* Connect to dpci 0 that belongs to MC */
+	pr_debug("MC dpci ID[%d] \n", g_init_data.sl_data.mc_dpci_id);
+
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
-	endpoint1.id = MC_DPCI_ID;
+	endpoint1.id = (int)g_init_data.sl_data.mc_dpci_id;
 	endpoint1.interface_id = 0;
 	strcpy(endpoint1.type, "dpci");
 
@@ -257,6 +267,7 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
 		pr_err("MC<->AIOP DPCI link is down !\n");
+		/* Don't return error maybe it will be linked in the future */
 	}
 
 	dpci_tbl->token[ind] = dpci;
