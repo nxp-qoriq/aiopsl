@@ -792,11 +792,6 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	 * timer unavailability. */
 	if (sr_status == -ENOSPC) {
 
-		/* update statistics */
-		ste_inc_counter(gro_ctx->stats_addr +
-			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-
 		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 		gro_ctx->metadata.seg_num = 1;
 		/* Clear gross running sum in parse results */
