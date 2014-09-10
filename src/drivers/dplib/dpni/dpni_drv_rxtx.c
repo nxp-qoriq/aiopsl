@@ -44,9 +44,12 @@ extern __SHRAM struct dpni_drv *nis;
 
 #pragma push
 #pragma force_active on
+
 __HOT_CODE void receive_cb(void)
-{
+{	
 	struct dpni_drv *dpni_drv;
+	struct dpni_drv_params dpni_drv_params_local
+				__attribute__((aligned(8)));
 	uint8_t *fd_flc_appidx;
 	uint8_t appidx;
 	struct parse_result *pr;
@@ -61,20 +64,24 @@ __HOT_CODE void receive_cb(void)
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
 
 	osm_task_init();
+
+	/* Load from SHRAM to local stack */
+	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
 	/* This SPID assignment may be redundent since before store we take 
 	 * the TX SPID*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
-	default_task_params.parser_profile_id = dpni_drv->prpid;
+	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv_params_local.spid;
+	default_task_params.parser_profile_id = dpni_drv_params_local.prpid;
 	default_task_params.parser_starting_hxs \
-			= dpni_drv->starting_hxs;
+			= dpni_drv_params_local.starting_hxs;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
-	if (dpni_drv->flags & DPNI_DRV_FLG_PARSE) {
+	if (dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE) {
 		parse_status = parse_result_generate_default \
 				(PARSER_NO_FLAGS);
 		if (parse_status) {
-			if (dpni_drv->flags & DPNI_DRV_FLG_PARSER_DIS) {
+			if (dpni_drv_params_local.flags &
+					DPNI_DRV_FLG_PARSER_DIS) {
 				/* Discard frame and terminate task */
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				fdma_terminate_task();
@@ -86,27 +93,38 @@ __HOT_CODE void receive_cb(void)
 	dpni_drv->rx_cbs[appidx](dpni_drv->args[appidx]);
 	fdma_terminate_task();
 }
+
+
 #pragma pop
 
 __HOT_CODE int dpni_drv_send(uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
+	struct dpni_drv_params dpni_drv_params_local
+				__attribute__((aligned(8)));
+	struct dpni_drv_tx_params dpni_drv_tx_params_local
+				__attribute__((aligned(8)));
 	int err;
 
 	dpni_drv = nis + ni_id; /* calculate pointer
 					* to the send NI structure   */
 
+	/* Load from SHRAM to local stack */
+	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
+	dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;
+
 	/* take SPID from TX NIC*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->spid;
-	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
-		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu))
+	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv_params_local.spid;
+	if ((dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE) &&
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) >
+					dpni_drv_tx_params_local.mtu))
 			return DPNI_DRV_MTU_ERR;
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
 	enqueue_params.qdbin = 0;
-	enqueue_params.qd = dpni_drv->qdid;
+	enqueue_params.qd = dpni_drv_tx_params_local.qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
@@ -117,6 +135,10 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
+	struct dpni_drv_params dpni_drv_params_local
+				__attribute__((aligned(8)));
+	struct dpni_drv_tx_params dpni_drv_tx_params_local
+				__attribute__((aligned(8)));
 	int err;
 	uint32_t flags = 0;
 	uint16_t icid;
@@ -125,14 +147,19 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	dpni_drv = nis + ni_id; /* calculate pointer
 					* to the send NI structure   */
 
-	if ((dpni_drv->flags & DPNI_DRV_FLG_MTU_ENABLE) &&
-		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > dpni_drv->mtu))
+	/* Load from SHRAM to local stack */
+	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
+	dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;
+
+	if ((dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE) &&
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) >
+						dpni_drv_tx_params_local.mtu))
 			return DPNI_DRV_MTU_ERR;
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
 	enqueue_params.qdbin = 0;
-	enqueue_params.qd = dpni_drv->qdid;
+	enqueue_params.qd = dpni_drv_tx_params_local.qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	/* Assuming user already called fdma_create_frame() and saved fd in the
 	 *  TLS */
