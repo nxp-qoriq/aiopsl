@@ -521,14 +521,6 @@ int tcp_gro_add_seg_and_close_aggregation(
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
 
-	/* update statistics */
-	ste_inc_and_acc_counters(gro_ctx->stats_addr +
-			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-			STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
-			STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
-			STE_MODE_COMPOUND_CNTR_SATURATE |
-			STE_MODE_COMPOUND_ACC_SATURATE);
-
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
 
@@ -541,6 +533,12 @@ int tcp_gro_add_seg_and_close_aggregation(
 		fdma_store_default_frame_data();
 		gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 		gro_ctx->internal_flags = GRO_AGG_TIMER_IN_PROCESS;
+		/* update statistics */
+		if (status != TCP_GRO_SEG_DISCARDED)
+			ste_inc_counter(gro_ctx->stats_addr + 
+				GRO_STAT_SEG_NUM_CNTR_OFFSET, 
+				1, 
+				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status;
 	} else {
 		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
@@ -548,6 +546,19 @@ int tcp_gro_add_seg_and_close_aggregation(
 		gro_ctx->metadata.seg_num = 0;
 		gro_ctx->internal_flags = 0;
 		gro_ctx->timestamp = 0;
+		/* update statistics */
+		if (status == TCP_GRO_SEG_DISCARDED)
+			ste_inc_counter(gro_ctx->stats_addr + 
+				GRO_STAT_AGG_NUM_CNTR_OFFSET, 
+				1, 
+				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+		else
+			ste_inc_and_acc_counters(gro_ctx->stats_addr +
+				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
+				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
+				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
+				STE_MODE_COMPOUND_CNTR_SATURATE |
+				STE_MODE_COMPOUND_ACC_SATURATE);
 		return TCP_GRO_SEG_AGG_DONE | status;
 	}
 }
