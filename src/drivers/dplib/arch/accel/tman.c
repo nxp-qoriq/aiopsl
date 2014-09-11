@@ -135,7 +135,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 				__LINE__,
 				(int)TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_PURGED);
 	}
-	for (i = 0; i < tmi_params.max_num_of_timers; i++)
+	for (i = 1; i <= tmi_params.max_num_of_timers; i++)
 	{
 		timer_handle = (i << 8) | tmi_id;
 		/* As in Rev1 only force expiration is supported */
