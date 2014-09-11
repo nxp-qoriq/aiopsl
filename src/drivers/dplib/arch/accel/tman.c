@@ -301,7 +301,7 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* One shot - TO occurred. 
 	 * Periodic - Timer was deleted */
 	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_DEL_CCP_WAIT_ERR)
-		return (int)(-ENAVAIL);
+		return (int)(-EACCES);
 	/* To check if its a TMAN state related error */
 	/* A=1 && CCP=1 */
 	/* Periodic- cannot be deleted as it deals with TO */
@@ -310,6 +310,12 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* To check if its a TMAN temporary error */
 	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
 		return (int)(-ETIMEDOUT);
+
+	/* The next code is due to Errata ERR008205 */
+	if(res1 == TMAN_DEL_TMR_NOT_ACTIVE_ERR)
+		return (int)(-ENAVAIL);
+	/* End of Errata ERR008205 related code */	
+
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(__FILE__,
