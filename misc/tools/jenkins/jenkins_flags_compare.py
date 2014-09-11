@@ -2,6 +2,7 @@
 
 import os
 import fnmatch
+import re
 
 DEBUG = False
 
@@ -12,8 +13,10 @@ def check_if_flags_different(app_process_packet, cproject_file):
 	temp_file = []
 	ins = open( cproject_file, "r" )
 	for line in ins:
-		if "option id" in line:
-			temp_file.append( line )
+		if "superClass=" in line:
+			l = re.compile("superClass=").split(line)
+			if len(l) == 2:
+				temp_file.append( l[1] )
 	ins.close()
 
 	different_flag = False 
@@ -38,6 +41,8 @@ def check_if_flags_different(app_process_packet, cproject_file):
 
 	if different_flag:
 		print "Project flags are different (app process packet, " + cproject_file + ")"
+	else:
+		print "Project flags are identical for app process packet and " + cproject_file + "."
 	return different_flag
 
 
@@ -61,14 +66,19 @@ if __name__ == "__main__":
 	ins = open( "build/aiop_sim/apps/app_process_packet/.cproject", "r" )
 	app_process_packet = []
 	for line in ins:
-		if "option id" in line:
-			app_process_packet.append( line )
+		if "superClass=" in line:
+			l = re.compile("superClass=").split(line)
+			if len(l) == 2:
+				app_process_packet.append( l[1] )
 	ins.close()
 
 
 	print "Number of flags found in app process packet -\".cproject\": " + str(len(app_process_packet))
 
 	matches = []
+
+	total_cprojects_checked = 0
+	differen_cprojects_found = 0
 
 	for root, dirnames, filenames in os.walk('build/aiop_sim'):
 		for filename in fnmatch.filter(filenames, '*.cproject'):
@@ -77,16 +87,20 @@ if __name__ == "__main__":
 
 	for line in matches:
 		if "aiopsl" not in line and "app_process_packet" not in line:
+			total_cprojects_checked += 1
 			print "==============================================================================================="
 			print "=*********************************************************************************************="
 			print "==============================================================================================="
 			if check_if_flags_different(app_process_packet, line):
 				different_flags_in_some_projects = True
+				differen_cprojects_found += 1
 
+	print "Total cprojects checked " + str(total_cprojects_checked)			
 	if different_flags_in_some_projects:
-		print "Different flags found during the test."
+		print str(differen_cprojects_found) + " different cprojects found during the test."
 		exit(1)
 	else:
+
 		exit(0)
 
 
