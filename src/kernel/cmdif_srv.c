@@ -485,9 +485,14 @@ __HOT_CODE void cmdif_srv_isr(void)
 		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 				   PRC_GET_SEGMENT_LENGTH());
 		uint8_t  *p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
+		uint64_t addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
 			 p, len);
+		pr_debug("GPP virtual addr high = 0x%x low = 0x%x \n",
+			 (uint32_t)((addr & 0xFF00000000) >> 32),
+			 (uint32_t)(addr & 0xFFFFFFFF));
+
 		while (len > 15)
 		{
 			fsl_os_print("0x%x: %x %x %x %x\r\n",

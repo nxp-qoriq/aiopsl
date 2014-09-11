@@ -62,7 +62,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	status = fdma_present_frame_without_segments(&(ipf_ctx->rem_fd),
 						FDMA_PRES_NO_FLAGS, 0,
 						&(ipf_ctx->rem_frame_handle));
-	if (status < 0){
+	
+	/* Try to store the frame*/
+	if (status == (-EIO)){
 		if (fdma_store_frame_data(ipf_ctx->rem_frame_handle,
 				*((uint8_t *) HWC_SPID_ADDRESS),
 				&amq) < 0)
@@ -70,6 +72,8 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		 else
 			return status; /* Received packet FD contain errors
 				(FD.err != 0). (status = (-EIO)).*/
+	} else {
+		return status;
 	}
 	
 	return SUCCESS;

@@ -204,8 +204,13 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	err |= dpci_get_attributes(&dprc->io,
 	                           dpci,
 				   &dpci_tbl->attr[ind]);
-
 	dpci_tbl->token[ind] = dpci;
+
+	if (!dpci_tbl->attr[ind].peer_attached) {
+		pr_err("DPCI %d has no peer ! ", dpci_tbl->attr[ind].id);
+		/* Don't return error maybe peer will be attached in the future */
+	}
+
 	return 0;
 }
 
@@ -262,6 +267,7 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
 		pr_err("MC<->AIOP DPCI link is down !\n");
+		/* Don't return error maybe it will be linked in the future */
 	}
 
 	dpci_tbl->token[ind] = dpci;

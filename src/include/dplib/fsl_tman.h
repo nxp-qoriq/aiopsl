@@ -421,7 +421,6 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 *//***************************************************************************/
 int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
-#endif
 
 /**************************************************************************//**
 @Function	tman_recharge_timer
@@ -438,6 +437,7 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 
 *//***************************************************************************/
 int tman_recharge_timer(uint32_t timer_handle);
+#endif
 
 /**************************************************************************//**
 @Function	tman_query_timer

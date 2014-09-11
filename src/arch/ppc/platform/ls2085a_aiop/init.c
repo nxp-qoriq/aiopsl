@@ -62,11 +62,11 @@ struct aiop_init_data g_init_data =
  {
   4,	/* aiop_rev_major     AIOP  */
   2,	/* aiop_rev_minor     AIOP  */
-  0,	/* ddr_phys_addr      */
-  0,	/* peb_phys_addr      */
-  0,	/* sys_ddr1_phys_add  */
-  0,	/* ddr_virt_addr      */
-  0,	/* peb_virt_addr      */
+  0x6018000000,	/* dp_ddr_phys_addr      */
+  0x4c00200000,	/* peb_phys_addr      */
+  0,		/* sys_ddr1_phys_add  */
+  0x40000000,	/* dp_ddr_virt_addr      */
+  0x80000000,	/* peb_virt_addr      */
   0,	/* sys_ddr1_virt_addr */
   2,	/* uart_port_id       MC */
   1,	/* mc_portal_id       MC */
@@ -76,13 +76,13 @@ struct aiop_init_data g_init_data =
  },
  /* aiop_app_init_info */
  {
-  0,	/* dp_ddr_size */
-  0,	/* peb_size */
-  0,	/* sys_ddr1_size */
-  0,	/* sys_ddr1_ctlu_size */
-  0,	/* sys_ddr2_ctlu_size */
-  0,	/* dp_ddr_ctlu_size */
-  0,	/* peb_ctlu_size */
+  (128 * MEGABYTE),	/* dp_ddr_size */
+  (2 * MEGABYTE),	/* peb_size */
+  0,			/* sys_ddr1_size */
+  0,			/* sys_ddr1_ctlu_size */
+  0,			/* sys_ddr2_ctlu_size */
+  (16 * MEGABYTE),	/* dp_ddr_ctlu_size */
+  (1 * MEGABYTE),	/* peb_ctlu_size */
   {0}	/* reserved */
  }
 };
@@ -149,7 +149,8 @@ void core_ready_for_tasks(void);
 void global_free(void);
 int epid_drv_init(void);
 void epid_drv_free(void);
-static build_mem_partitions_table(struct platform_memory_info *mem_info);
+static build_mem_partitions_table(struct platform_memory_info *mem_info,
+                                  uint32_t size);
 
 #include "general.h"
 /** Global task params */
@@ -157,23 +158,35 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 void fill_platform_parameters(struct platform_param *platform_param)
 {
-    
 
-    memset(platform_param, 0, sizeof(platform_param));
+	int err = 0;
+	uint32_t mem_info_size = PLATFORM_MAX_MEM_INFO_ENTRIES *
+		sizeof(struct platform_memory_info);
 
-    platform_param->clock_in_freq_hz = 100000000; //TODO check value
-    platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
-    platform_param->console_type = PLTFRM_CONSOLE_DUART;
-    platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
-    build_mem_partitions_table(platform_param->mem_info);
-    
+	memset(platform_param, 0, sizeof(platform_param));
+
+	platform_param->clock_in_freq_hz = 100000000; //TODO check value
+	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
+	platform_param->console_type = PLTFRM_CONSOLE_DUART;
+	platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
+	err = build_mem_partitions_table(platform_param->mem_info,
+	                                 mem_info_size);
+	ASSERT_COND(err == 0);
+
 }
 
-int build_mem_partitions_table(struct platform_memory_info *mem_info)
+int build_mem_partitions_table(struct platform_memory_info *mem_info,
+                               uint32_t size)
 {
 	struct platform_memory_info partitions_info[] = MEMORY_INFO;
-	memcpy(mem_info,partitions_info,
-	       sizeof(struct platform_memory_info)*ARRAY_SIZE(partitions_info));
+	uint32_t cp_size = sizeof(struct platform_memory_info) *
+		ARRAY_SIZE(partitions_info);
+
+	if (size < cp_size)
+		return -EINVAL;
+
+	/* TODO add calculation for memory partitions */
+	memcpy(mem_info,partitions_info, cp_size);
 	return E_OK;
 }
 
