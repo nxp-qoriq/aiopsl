@@ -87,6 +87,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 				(struct ipr_reassemble_command *) asa_seg_addr;
 			str->status = 
 		ipr_reassemble(verif_ipr_instance_handle[str->instance_index]);
+			str->pr = *((struct parse_result *) HWC_PARSE_RES_ADDRESS);
 			str_size = sizeof(struct ipr_reassemble_command);
 			/* Get OSM status (ordering scope mode and levels) */
 			osm_get_scope(&scope_status);

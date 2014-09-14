@@ -181,6 +181,9 @@ struct ipr_reassemble_command {
 		/**< Command structure identifier. */
 	int32_t		status;
 	uint32_t	instance_index;
+		/** Returned Value: parse results. */
+	struct parse_result pr;
+
 #ifdef CLOSE_MODEL
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
