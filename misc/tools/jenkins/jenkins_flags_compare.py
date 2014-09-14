@@ -5,7 +5,7 @@ import fnmatch
 import re
 
 DEBUG = False
-DIFFERENT_FLAGS_FILE = "diferent_flags_found.properties"
+DIFFERENT_FLAGS_FILE = "different_flags_found.properties"
 TOTAL_CPROJETCTS_FILE = "cprojects_found.properties"
 
 def check_if_file_exists(filename):
@@ -80,7 +80,7 @@ if __name__ == "__main__":
 	matches = []
 
 	total_cprojects_checked = 0
-	differen_cprojects_found = 0
+	different_cprojects_found = 0
 
 	for root, dirnames, filenames in os.walk('build/aiop_sim'):
 		for filename in fnmatch.filter(filenames, '*.cproject'):
@@ -95,18 +95,17 @@ if __name__ == "__main__":
 			print "==============================================================================================="
 			if check_if_flags_different(app_process_packet, line):
 				different_flags_in_some_projects = True
-				differen_cprojects_found += 1
+				different_cprojects_found += 1
 
 	print "Total cprojects checked " + str(total_cprojects_checked)
 	f = open(TOTAL_CPROJETCTS_FILE,'w')
 	f.write('YVALUE=' + str(total_cprojects_checked) + '\n')
 	f.close()
-	exit(1)
 
 	if different_flags_in_some_projects:
-		print str(differen_cprojects_found) + " different cprojects found during the test."
+		print str(different_cprojects_found) + " different cprojects found during the test."
 		f = open(DIFFERENT_FLAGS_FILE,'w')
-		f.write('YVALUE=' + str(differen_cprojects_found) + '\n')
+		f.write('YVALUE=' + str(different_cprojects_found) + '\n')
 		f.close()
 		exit(1)
 	else:
