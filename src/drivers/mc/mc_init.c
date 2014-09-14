@@ -262,7 +262,15 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	strcpy(endpoint2.type, "dpci");
 
 	err |= dpci_enable(&dprc->io, dpci);
+	if (err) {
+		pr_err("dpci_enable failed\n");
+	}
+
 	err |= dprc_connect(&dprc->io, dprc->token, &endpoint1, &endpoint2);
+	if (err) {
+		pr_err("dprc_connect failed\n");
+	}
+
 	err |= dpci_get_attributes(&dprc->io, dpci, &dpci_tbl->attr[ind]);
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
