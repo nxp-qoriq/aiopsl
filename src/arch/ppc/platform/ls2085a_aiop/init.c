@@ -78,11 +78,16 @@ struct aiop_init_data g_init_data =
  {
   (128 * MEGABYTE),	/* dp_ddr_size */
   (2 * MEGABYTE),	/* peb_size */
-  0,			/* sys_ddr1_size */
-  0,			/* sys_ddr1_ctlu_size */
-  0,			/* sys_ddr2_ctlu_size */
-  (16 * MEGABYTE),	/* dp_ddr_ctlu_size */
-  (1 * MEGABYTE),	/* peb_ctlu_size */
+  0,	/* ddr1_size */
+  2048,			/* ctlu_sys_ddr_num_entries */
+  2048,			/* ctlu_dp_ddr_num_entries */
+  2048,			/* ctlu_peb_num_entries */
+  2048,			/* mflu_sys_ddr_num_entries */
+  2048,			/* mflu_dp_ddr_num_entries */
+  2048,			/* mflu_peb_num_entries */
+  0x100000,	/* sru_size */
+  1000000,	/* tman_freq */
+  4,	/* tasks_per_core */
   {0}	/* reserved */
  }
 };
