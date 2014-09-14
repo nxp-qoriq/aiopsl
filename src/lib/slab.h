@@ -56,17 +56,27 @@
 /*
  *  HW SLAB structure
  *
- * 31----------23--------------1--------0
- * | HW accel   |VP ID         |HW flg  |
- * -------------------------------------
+ * 31----------23--------15------1--------0
+ * | HW accel   |cluster | VP ID |HW flg  |
+ * ----------------------------------------
  */
-#define SLAB_VP_POOL_MASK      0x00FFFFFE
+#define SLAB_VP_POOL_MASK      0x01FFFFFE       /*Cluster and VP ID - 23 bits */
+#define SLAB_POOL_ID_MASK      0x00007FFF       /*VP ID - 15 bits */
+#define SLAB_CLUSTER_ID_MASK   0x000000FF       /*Cluster ID is length of 8 bits*/
 #define SLAB_VP_POOL_MAX       (SLAB_VP_POOL_MASK >> 1)
 /**< Maximal number to be used as VP id */
 #define SLAB_VP_POOL_SHIFT     1
 #define SLAB_HW_ACCEL_MASK     0xFF000000
 #define SLAB_VP_POOL_GET(SLAB) \
 	((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1))
+
+
+/*Those macros should be use over SLAB_VP_POOL_GET/SET*/
+#define SLAB_POOL_ID_GET(POOL_ID) ((uint32_t)(POOL_ID & SLAB_POOL_ID_MASK))
+#define SLAB_CLUSTER_ID_GET(CLUSTER) ((uint32_t)((CLUSTER >> 15) & SLAB_CLUSTER_ID_MASK))
+#define SLAB_CLUSTER_ID_SET(CLUSTER) ((uint32_t)(CLUSTER << 15))
+
+
 /**< Returns slab's virtual pool id*/
 
 #define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
@@ -102,9 +112,12 @@
 #define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_DEFAULT_ALIGN      8
-#define SLAB_MAX_NUM_VP         1000
+#define SLAB_MAX_NUM_VP_SHRAM   1000
+#define SLAB_MAX_NUM_VP_DDR     100
 #define SLAB_NUM_OF_BUFS_DPDDR  750
 #define SLAB_NUM_OF_BUFS_PEB    20
+
+#define SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS   100
 
 /* Maximum number of BMAN pools used by the slab virtual pools */
 #ifndef SLAB_MAX_BMAN_POOLS_NUM
@@ -190,9 +203,11 @@ struct slab_bman_pool_desc {
 
 /* virtual root pool struct - holds all virtual pools data */
 struct slab_virtual_pools_main_desc {
-	struct slab_v_pool *virtual_pool_struct;
+	struct slab_v_pool *virtual_pool_struct[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS];
 	/**< Pointer to virtual pools array*/
-	slab_release_cb_t **callback_func;
+	uint16_t clusters_count[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS];
+	/**< Counter for virtual pools in cluster*/
+	slab_release_cb_t **callback_func[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS];
 	/**< Callback function to release virtual pool  */
 	uint16_t num_of_virtual_pools;
 	/**< Number of virtual pools pointed by this pool  */

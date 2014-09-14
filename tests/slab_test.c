@@ -31,7 +31,7 @@
 #include "general.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
-#include "fsl_slab.h"
+#include "slab.h"
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_io.h"
@@ -39,7 +39,9 @@
 __SHRAM struct slab *slab_peb = 0;
 __SHRAM struct slab *slab_ddr = 0;
 
+extern __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 int app_test_slab_init();
+int app_test_slab_overload_test();
 int slab_init();
 int slab_test();
 int app_test_slab(struct slab *slab, int num_times);
@@ -60,6 +62,12 @@ int slab_init()
 	err = app_test_slab_init();
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab_init()\n", err);
+		return err;
+	}
+
+	err = app_test_slab_overload_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: app_test_slab_overload_test()\n", err);
 		return err;
 	}
 
@@ -88,6 +96,58 @@ int slab_init()
 				return -ENODEV;
 	return err;
 }
+
+int app_test_slab_overload_test()
+{
+	int        err = 0;
+	int 	i;
+	dma_addr_t buff = 0;
+	struct slab *my_slab[2000];
+
+	for (i = 0; i < 2000 ; i++)
+	{
+		err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+				  &slab_callback_test, &(my_slab[i]));
+		if (err) return err;
+
+		else
+			fsl_os_print("Slab cluster and pool id are: cluster %d, pool ID %d\n",
+			             SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(my_slab[i])),
+			             SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(my_slab[i])));
+	}
+
+
+	for(i = 0; i < 100; i++ ){
+		if(g_slab_virtual_pools.clusters_count[i] > 0)
+			fsl_os_print("Number of pools in cluster %d: %d\n", i, g_slab_virtual_pools.clusters_count[i]);
+	}
+	for (i = 1999; i >= 0 ; i--)
+	{
+		err = slab_acquire(my_slab[i], &buff);
+		if (err) return err;
+
+		if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab[i], buff);
+			if (err) return err;
+		}
+		else
+			return -ENODEV;
+
+		err = slab_free(&(my_slab[i]));
+		if (err) return err;
+
+		/* Must fail because my_slab was freed  */
+		err = slab_acquire(my_slab[i], &buff);
+		if (!err) return -EEXIST;
+	}
+
+	for(i = 0; i < 100; i++ ){
+			if(g_slab_virtual_pools.clusters_count[i] > 0)
+				fsl_os_print("Number of pools in cluster %d: %d\n", i, g_slab_virtual_pools.clusters_count[i]);
+	}
+	return 0;
+}
+
 
 int app_test_slab_init()
 {
@@ -160,7 +220,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
-
+#pragma fn_ptr_candidates(slab_create)
 	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 0,
 	                  NULL, &my_slab);
 

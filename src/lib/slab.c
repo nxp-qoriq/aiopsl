@@ -50,15 +50,15 @@ __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 	hw_pools[(A)].buff_size > hw_pools[(B)].buff_size
 
 /*  TODO use API from VPs when it will be added */
-#define VP_DESC_ARR \
-	((struct slab_v_pool *)g_slab_virtual_pools.virtual_pool_struct)
+#define VP_DESC_ARR(SLAB) \
+	((struct slab_v_pool *)g_slab_virtual_pools.virtual_pool_struct[SLAB_CLUSTER_ID_GET(SLAB)])
 
 #define VP_REMAINING_BUFFS(SLAB) \
 	(uint32_t)((VP_DESC_ARR + SLAB_VP_POOL_GET((SLAB)))->committed_bufs)
 
 #define VP_BPID_GET(SLAB) \
-	(uint16_t)g_slab_bman_pools[(VP_DESC_ARR + \
-		SLAB_VP_POOL_GET((SLAB)))->bman_array_index].bman_pool_id
+	(uint16_t)g_slab_bman_pools[(VP_DESC_ARR(SLAB_VP_POOL_GET(SLAB)) + \
+		SLAB_POOL_ID_GET(SLAB_VP_POOL_GET((SLAB))))->bman_array_index].bman_pool_id
 
 #define CP_POOL_DATA(MOD, INFO, I) \
 	{                                                              \
@@ -70,11 +70,16 @@ __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 		}                                                      \
 	}
 
+static void slab_pool_init(
+	struct slab_v_pool *virtual_pool_struct,
+	slab_release_cb_t **callback_func,
+	uint16_t num_of_virtual_pools,
+	uint8_t flags,
+	uint16_t cluster);
 /***************************************************************************
  * slab_create_pool used by: slab_create
  ***************************************************************************/
 static int slab_create_pool(
-	uint16_t bman_pool_id,
 	int32_t max_bufs,
 	int32_t committed_bufs,
 	uint8_t flags,
@@ -82,22 +87,15 @@ static int slab_create_pool(
 	uint32_t *slab_virtual_pool_id)
 {
 
-	uint32_t slab_vpool_id;
+	uint32_t slab_vpool_id, cluster;
 	uint32_t num_of_virtual_pools = g_slab_virtual_pools.num_of_virtual_pools;
 	uint16_t bman_array_index = SLAB_MAX_BMAN_POOLS_NUM;
-	int i;
+	int free_pool_found = FALSE;
 
-	struct slab_v_pool *slab_virtual_pool =
-		(struct slab_v_pool *)
-		g_slab_virtual_pools.virtual_pool_struct;
-	slab_release_cb_t **callback =
-		(slab_release_cb_t **)
-		g_slab_virtual_pools.callback_func;
+	struct slab_v_pool *slab_virtual_pool;
+	slab_release_cb_t **callback;
 
 #ifdef DEBUG
-	/* Check the arguments correctness */
-	if (bman_pool_id >= SLAB_MAX_BMAN_POOLS_NUM)
-		return -EINVAL;
 
 	/* max_bufs must be equal or greater than committed_bufs */
 	if (committed_bufs > max_bufs)
@@ -108,18 +106,6 @@ static int slab_create_pool(
 		return -EINVAL;
 #endif
 
-	/* Check which BMAN pool ID array element matches the ID */
-	for (i=0; i< SLAB_MAX_BMAN_POOLS_NUM; i++) {
-		if (g_slab_bman_pools[i].bman_pool_id == bman_pool_id) {
-			bman_array_index = (uint16_t)i;
-			break;
-		}
-	}
-
-#ifdef DEBUG
-	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM)
-		return -ENAVAIL;
-#endif
 	/* Spinlock this BMAN pool counter */
 	lock_spinlock(
 		(uint8_t *)&g_slab_bman_pools[bman_array_index].spinlock);
@@ -144,26 +130,89 @@ static int slab_create_pool(
 	/* Allocate a virtual pool ID */
 	/* Return with error if it was not possible to
 	 * allocate a virtual pool */
-	for(slab_vpool_id = 0; slab_vpool_id < num_of_virtual_pools; slab_vpool_id++) {
-		if(slab_virtual_pool->max_bufs == 0) {
-			/* use max_bufs as indicator */
-			slab_virtual_pool->max_bufs = max_bufs;
-			break;
-		}
-		slab_virtual_pool++; /* increment the pointer for slab virtual pull */
-	}
+	for(cluster = 0; cluster < SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS; cluster++)
+	{
+		slab_virtual_pool =(struct slab_v_pool *)
+				g_slab_virtual_pools.virtual_pool_struct[cluster];
 
+		for(slab_vpool_id = 0; slab_vpool_id < num_of_virtual_pools; slab_vpool_id++) {
+			if(slab_virtual_pool->max_bufs == 0) {
+				/* use max_bufs as indicator */
+				slab_virtual_pool->max_bufs = max_bufs;
+				callback = (slab_release_cb_t **)g_slab_virtual_pools.callback_func[cluster];
+				g_slab_virtual_pools.clusters_count[cluster] ++;
+				free_pool_found = TRUE;
+				break;
+			}
+			slab_virtual_pool++; /* increment the pointer for slab virtual pull */
+		}
+		if(free_pool_found)/*if we found empty virtual pool to use, break*/
+			break;
+		else
+		{
+			if(cluster + 1 < SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS)
+			{
+				/*try to allocate in ddr*/
+				if(g_slab_virtual_pools.virtual_pool_struct[cluster + 1] == NULL){
+					/*Try to allocate space for new cluster in ddr*/
+					slab_virtual_pool =
+						(struct slab_v_pool *)
+						fsl_os_xmalloc((sizeof(struct slab_v_pool)* SLAB_MAX_NUM_VP_DDR),
+						               SLAB_DDR_MEMORY,
+						               1);
+					callback = (slab_release_cb_t **) fsl_os_xmalloc((
+							sizeof(slab_release_cb_t *) * SLAB_MAX_NUM_VP_DDR),
+							SLAB_DDR_MEMORY,
+							1);
+					if(slab_virtual_pool == NULL ||
+						callback == NULL )
+					{
+						if(slab_virtual_pool)
+							fsl_os_xfree(slab_virtual_pool);
+						if(callback)
+							fsl_os_xfree(callback);
+
+						atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
+						              committed_bufs);
+						unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+						return -ENOMEM;
+
+					}
+					else
+					{
+						slab_pool_init(slab_virtual_pool,
+						               callback,
+						               SLAB_MAX_NUM_VP_DDR,
+						               0,
+						               (uint16_t)cluster + 1);
+						slab_vpool_id = 0; /*pool ID, NOT CLUSTER!!!*/
+						/*Use the first pool in the cluster*/
+						slab_virtual_pool->max_bufs = max_bufs;
+						g_slab_virtual_pools.clusters_count[cluster + 1] ++;
+						/*initialize cluster pools*/
+						cluster ++;
+						break;
+					}
+
+
+				}
+
+			}
+			else
+			{       /*all the pools in all the clusters are full */
+				atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
+				              committed_bufs);
+				unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+				return -ENOMEM;
+			}
+
+		}
+
+	}
 	unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 
-	*slab_virtual_pool_id = slab_vpool_id; /* Return the ID */
+	*slab_virtual_pool_id = SLAB_CLUSTER_ID_SET(cluster) | slab_vpool_id; /* Return the ID (cluster and pool_id) */
 
-	/* Return with error if no pool is available */
-	/*TODO: fix return remainng buffers if vitual pool not found*/
-	if (slab_vpool_id == num_of_virtual_pools){
-		atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
-		              committed_bufs);
-		return -ENAVAIL;
-	}
 
 	slab_virtual_pool->committed_bufs = committed_bufs;
 	slab_virtual_pool->allocated_bufs = 0;
@@ -173,7 +222,7 @@ static int slab_create_pool(
 	/* Check if a callback_func exists*/
 	if(callback_func != NULL){
 		/* Check if a callback structure exists and initialize the entry */
-		if (g_slab_virtual_pools.callback_func != NULL) {
+		if (g_slab_virtual_pools.callback_func[cluster] != NULL) {
 			callback += slab_vpool_id;
 			*callback = callback_func;
 		}
@@ -188,20 +237,20 @@ static int slab_create_pool(
 static int slab_release_pool(uint32_t slab_virtual_pool_id)
 {
 
+	uint32_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
-		g_slab_virtual_pools.virtual_pool_struct;
+		g_slab_virtual_pools.virtual_pool_struct[cluster];
 
 	slab_release_cb_t **callback = (slab_release_cb_t **)
-							g_slab_virtual_pools.callback_func;
+							g_slab_virtual_pools.callback_func[cluster];
 
+	slab_virtual_pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id);
 	callback += slab_virtual_pool_id;
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 
-	if (*callback != NULL)
-		*callback = NULL;
 
 
 	if (slab_virtual_pool->allocated_bufs != 0) {
@@ -209,8 +258,27 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 		return -EACCES;
 	}
 
-	/* max_bufs = 0 indicates a free pool */
 	slab_virtual_pool->max_bufs = 0;
+
+	g_slab_virtual_pools.clusters_count[cluster] --;
+	fsl_os_print("pool #%d free\n",slab_virtual_pool_id);
+
+	if(g_slab_virtual_pools.clusters_count[cluster] == 0 && cluster > 0) /*release pool cluster (counter of used pools is 0*/
+	{
+		if (g_slab_virtual_pools.virtual_pool_struct[cluster]){
+			fsl_os_print("cluster #%d free\n",cluster);
+			fsl_os_xfree(g_slab_virtual_pools.virtual_pool_struct[cluster]);
+		}
+		if (g_slab_virtual_pools.callback_func[cluster])
+			fsl_os_xfree(g_slab_virtual_pools.callback_func[cluster]);
+
+	}
+	else if (*callback != NULL){ /*just erase the callback, No cluster release needed*/
+		*callback = NULL;
+	}
+
+	/* max_bufs = 0 indicates a free pool */
+
 
 	unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 
@@ -230,10 +298,14 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 {
 	int return_val;
 	int allocate = 0;
+	uint32_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id); /* fetch cluster ID*/
+
 
 	// TODO: remove this if moving to handle
 	struct slab_v_pool *slab_virtual_pool = (struct slab_v_pool *)
-						g_slab_virtual_pools.virtual_pool_struct;
+						g_slab_virtual_pools.virtual_pool_struct[cluster];
+
+	slab_virtual_pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id); /*fetch pool id*/
 	slab_virtual_pool += slab_virtual_pool_id;
 
 	lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
@@ -241,7 +313,7 @@ __HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
 	/* First check if there are still available buffers
 	 * in the VP committed area */
 	if(slab_virtual_pool->allocated_bufs <
-		slab_virtual_pool->committed_bufs) 	{
+		slab_virtual_pool->committed_bufs) {
 		allocate = 1; /* allocated from committed area */
 		/* Else, check if there are still available buffers
 		 * in the VP max-committed area */
@@ -312,11 +384,12 @@ static int slab_read_pool(uint32_t slab_virtual_pool_id,
 {
 
 	slab_release_cb_t **callback;
-
+	uint32_t cluster =SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);;
 	// TODO: remove this if moving to handle
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
-		g_slab_virtual_pools.virtual_pool_struct;
+		g_slab_virtual_pools.virtual_pool_struct[cluster];
+	slab_virtual_pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id);
 
 	slab_virtual_pool += slab_virtual_pool_id;
 
@@ -329,9 +402,9 @@ static int slab_read_pool(uint32_t slab_virtual_pool_id,
 	*flags = (uint8_t)slab_virtual_pool->flags;
 
 	/* Check if callback exists and return its address (can be null) */
-	if (g_slab_virtual_pools.callback_func != NULL) {
+	if (g_slab_virtual_pools.callback_func[cluster] != NULL) {
 		callback = (slab_release_cb_t **)
-           							g_slab_virtual_pools.callback_func;
+			g_slab_virtual_pools.callback_func[cluster];
 		callback += slab_virtual_pool_id;
 		*callback_func = *callback;
 	} else {
@@ -344,11 +417,12 @@ static int slab_read_pool(uint32_t slab_virtual_pool_id,
 /***************************************************************************
  * slab_pool_init used by: slab_module_init
  ***************************************************************************/
-static int slab_pool_init(
+static void slab_pool_init(
 	struct slab_v_pool *virtual_pool_struct,
 	slab_release_cb_t **callback_func,
 	uint16_t num_of_virtual_pools,
-	uint8_t flags)
+	uint8_t flags,
+	uint16_t cluster)
 {
 	int32_t i;
 
@@ -360,9 +434,10 @@ static int slab_pool_init(
 	slab_virtual_pool =
 		(struct slab_v_pool *)virtual_pool_struct ;
 
-	g_slab_virtual_pools.virtual_pool_struct = virtual_pool_struct;
-	g_slab_virtual_pools.callback_func = callback_func;
+	g_slab_virtual_pools.virtual_pool_struct[cluster] = virtual_pool_struct;
+	g_slab_virtual_pools.callback_func[cluster] = callback_func;
 	g_slab_virtual_pools.num_of_virtual_pools = num_of_virtual_pools;
+	g_slab_virtual_pools.clusters_count[cluster] = 0;
 	g_slab_virtual_pools.flags = flags;
 
 	/* Init 'max' to zero, since it's an indicator to
@@ -374,13 +449,14 @@ static int slab_pool_init(
 	}
 
 	/* Init 'remaining' to -1, since it's an indicator an empty index */
-	for (i=0; i< SLAB_MAX_BMAN_POOLS_NUM; i++) {
-		g_slab_bman_pools[i].remaining = -1;
-		/* clear spinlock indicator */
-		g_slab_bman_pools[i].spinlock = 0;
+	if(cluster == 0) /*Only for main cluster which is in SHRAM*/
+	{
+		for (i=0; i< SLAB_MAX_BMAN_POOLS_NUM; i++) {
+			g_slab_bman_pools[i].remaining = -1;
+			/* clear spinlock indicator */
+			g_slab_bman_pools[i].spinlock = 0;
+		}
 	}
-
-	return 0;
 } /* End of vpool_init */
 
 /*****************************************************************************/
@@ -575,10 +651,14 @@ static void free_slab_module_memory(struct slab_module_info *slab_m)
 	/* TODO there still some static allocations in VP init
 	 * need to add them to slab_module_init() and then free them here
 	 */
-	if (g_slab_virtual_pools.virtual_pool_struct)
-		fsl_os_xfree(g_slab_virtual_pools.virtual_pool_struct);
-	if (g_slab_virtual_pools.callback_func)
-		fsl_os_xfree(g_slab_virtual_pools.callback_func);
+	int i;
+	/* TODO - cluster free support needed*/
+	for(i = SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS -1; i >= 0; i-- ){
+	if (g_slab_virtual_pools.virtual_pool_struct[i])
+		fsl_os_xfree(g_slab_virtual_pools.virtual_pool_struct[i]);
+	if (g_slab_virtual_pools.callback_func[i])
+		fsl_os_xfree(g_slab_virtual_pools.callback_func[i]);
+	}
 	if (slab_m->hw_pools)
 		fsl_os_xfree(slab_m->hw_pools);
 	fsl_os_xfree(slab_m);
@@ -617,16 +697,19 @@ int slab_create(uint32_t    committed_buffs,
                 struct slab **slab)
 {
 	int        error = 0;
-	dma_addr_t addr  = 0;
-	uint32_t   slab_virtual_pool_id = 0;
-	uint16_t   bpid  = 0;
-
-	struct slab_module_info *slab_m = \
-		sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	uint32_t   slab_virtual_pool_id = 0, cluster, slab_vpool_id;
+	uint32_t num_of_virtual_pools = g_slab_virtual_pools.num_of_virtual_pools;
+	uint16_t bman_array_index = SLAB_MAX_BMAN_POOLS_NUM;
+	int i, found = FALSE;
+	struct slab_v_pool *slab_virtual_pool;
+	slab_release_cb_t **callback;
+	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	int     num_bpids = slab_m->num_hw_pools;
+	struct  slab_hw_pool_info *hw_pools = slab_m->hw_pools;
 
 	UNUSED(prefix_size);
 	UNUSED(postfix_size);
-
+	max_buffs = committed_buffs;
 #ifdef DEBUG
 	/* Sanity checks */
 	error = sanity_check_slab_create(committed_buffs,
@@ -639,30 +722,166 @@ int slab_create(uint32_t    committed_buffs,
 	/* TODO remove it when max_buffs are supported */
 	if (max_buffs > committed_buffs)
 		return -ENAVAIL;
+
+	/* committed_bufs and max_bufs must not be 0  when max buffs will be supported*/
+	/*if ((!committed_buffs) || (!max_buffs))
+		return -EINVAL;*/
 #endif
 
 	*((uint32_t *)slab) = 0;
-	/*
-	 * Only HW SLAB is supported
-	 */
-
-	if (slab_m == NULL)
-		return -EINVAL;
-
-	error = find_bpid(buff_size,
-	                  alignment,
-	                  mem_pid,
-	                  slab_m,
-	                  &bpid);
-	SLAB_ASSERT_COND_RETURN(error == 0, error);
+	/* Only HW SLAB is supported */
 
 	/* TODO add max_buffs to slab_create_pool when it will be supported */
-	error = slab_create_pool(bpid,
-	                                 (int32_t)committed_buffs,
-	                                 (int32_t)committed_buffs,
-	                                 0,
-	                                 release_cb,
-	                                 &slab_virtual_pool_id);
+
+	/*Find hardware pool with enough space*/
+	for (i = 0; i < num_bpids; i++)
+	{
+		if ((hw_pools[i].mem_pid == mem_pid)         &&
+			(hw_pools[i].alignment >= alignment) &&
+			(SLAB_SIZE_GET(hw_pools[i].buff_size) >= buff_size))
+		{
+			/*First find the first relevant
+			 * Lock
+			 * check if there is enough buffers
+			 * acquire
+			 * unlock
+			 * if lower found, lock acquire return*/
+
+
+			lock_spinlock((uint8_t *)&g_slab_bman_pools[i].spinlock);
+			if (g_slab_bman_pools[i].remaining >= committed_buffs)
+			{
+				if(!found) { /*found  = FALSE in the first time */
+					/* decrement the total available BMAN pool buffers */
+					g_slab_bman_pools[i].remaining -= committed_buffs;
+					found = TRUE;
+					bman_array_index = (uint16_t)i;
+					unlock_spinlock((uint8_t *) &g_slab_bman_pools[i].spinlock);
+				}
+				else if(FOUND_SMALLER_SIZE(bman_array_index, i))
+				{
+					g_slab_bman_pools[i].remaining -= committed_buffs;
+					g_slab_bman_pools[bman_array_index].remaining += committed_buffs;
+					unlock_spinlock((uint8_t *) &g_slab_bman_pools[i].spinlock);
+					bman_array_index = (uint16_t)i;
+
+				}
+
+			}
+			else
+				unlock_spinlock((uint8_t *)
+				                &g_slab_bman_pools[i].spinlock);
+
+		}
+	} /*for (i = 0; i < num_bpids; i++)*/
+
+	if(!found)
+		return -ENOSPC;
+
+	found = FALSE;
+
+/***************************************************************************************/
+	lock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+	/* Allocate a virtual pool ID */
+	/* Return with error if it was not possible to
+	 * allocate a virtual pool */
+	for(cluster = 0; cluster < SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS; cluster++)
+	{
+		slab_virtual_pool =(struct slab_v_pool *)
+						g_slab_virtual_pools.virtual_pool_struct[cluster];
+
+		for(slab_vpool_id = 0; slab_vpool_id < num_of_virtual_pools; slab_vpool_id++) {
+			if(slab_virtual_pool->max_bufs == 0) {
+				/* use max_bufs as indicator */
+				slab_virtual_pool->max_bufs = (int32_t)max_buffs;
+				callback = (slab_release_cb_t **)g_slab_virtual_pools.callback_func[cluster];
+				g_slab_virtual_pools.clusters_count[cluster] ++;
+				found = TRUE;
+				break;
+			}
+			slab_virtual_pool++; /* increment the pointer for slab virtual pull */
+		}
+		if(found)/*if we found empty virtual pool to use, break*/
+			break;
+		else
+		{
+			if(cluster + 1 < SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS)
+			{
+				/*try to allocate in ddr*/
+				if(g_slab_virtual_pools.virtual_pool_struct[cluster + 1] == NULL){
+					/*Try to allocate space for new cluster in ddr*/
+					slab_virtual_pool =
+						(struct slab_v_pool *)
+						fsl_os_xmalloc((sizeof(struct slab_v_pool)* SLAB_MAX_NUM_VP_DDR),
+						               SLAB_DDR_MEMORY,
+						               1);
+					callback = (slab_release_cb_t **) fsl_os_xmalloc((
+						sizeof(slab_release_cb_t *) * SLAB_MAX_NUM_VP_DDR),
+						SLAB_DDR_MEMORY,
+						1);
+					if(slab_virtual_pool == NULL ||
+						callback == NULL )
+					{
+						if(slab_virtual_pool)
+							fsl_os_xfree(slab_virtual_pool);
+						if(callback)
+							fsl_os_xfree(callback);
+
+						atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
+						              (int32_t)committed_buffs);
+						unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+						return -ENOMEM;
+
+					}
+					else
+					{
+						slab_pool_init(slab_virtual_pool,
+						               callback,
+						               SLAB_MAX_NUM_VP_DDR,
+						               0,
+						               (uint16_t)cluster + 1);
+						slab_vpool_id = 0; /*pool ID, NOT CLUSTER!!!*/
+						/*Use the first pool in the cluster*/
+						slab_virtual_pool->max_bufs = (int32_t)max_buffs;
+						g_slab_virtual_pools.clusters_count[cluster + 1] ++;
+						/*initialize cluster pools*/
+						cluster ++;
+						break;
+					}
+
+
+				}
+
+			}
+			else
+			{       /*all the pools in all the clusters are full */
+				atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
+				              (int32_t)committed_buffs);
+				unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+				return -ENOMEM;
+			}
+
+		}
+
+	}
+	unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
+
+	slab_virtual_pool_id = SLAB_CLUSTER_ID_SET(cluster) | slab_vpool_id; /* Return the ID (cluster and pool_id) */
+
+
+	slab_virtual_pool->committed_bufs = (int32_t)committed_buffs;
+	slab_virtual_pool->allocated_bufs = 0;
+	slab_virtual_pool->bman_array_index = bman_array_index;
+	slab_virtual_pool->flags = (uint8_t)flags;
+
+	/* Check if a callback_func exists*/
+	if(release_cb != NULL){
+		/* Check if a callback structure exists and initialize the entry */
+		if (g_slab_virtual_pools.callback_func[cluster] != NULL) {
+			callback += slab_vpool_id;
+			*callback = release_cb;
+		}
+	}
 
 
 
@@ -736,15 +955,18 @@ static int slab_check_bpid(struct slab *slab, uint64_t buff)
 __HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
 {
 	uint32_t slab_virtual_pool_id = SLAB_VP_POOL_GET(slab);
+	uint32_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
 	slab_release_cb_t **callback = (slab_release_cb_t **)
-						g_slab_virtual_pools.callback_func;
+						g_slab_virtual_pools.callback_func[cluster];
 	struct slab_v_pool *slab_virtual_pool = (struct slab_v_pool *)
-						g_slab_virtual_pools.virtual_pool_struct;
+						g_slab_virtual_pools.virtual_pool_struct[cluster];
 
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 	SLAB_ASSERT_COND_RETURN(slab_check_bpid(slab, buff) == 0, -EFAULT);
 #endif
+
+	slab_virtual_pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id); /*Fetch pool ID*/
 
 	callback += slab_virtual_pool_id;
 	if (*callback != NULL)
@@ -995,11 +1217,11 @@ int slab_module_init(void)
 
 	virtual_pool_struct  = (struct slab_v_pool *)
 				fsl_os_xmalloc((sizeof(struct slab_v_pool) *
-					SLAB_MAX_NUM_VP),
+					SLAB_MAX_NUM_VP_SHRAM),
 					SLAB_FAST_MEMORY,
 					1);
 	callback_func =	(slab_release_cb_t **) fsl_os_xmalloc((
-		sizeof(slab_release_cb_t *) * SLAB_MAX_NUM_VP),
+		sizeof(slab_release_cb_t *) * SLAB_MAX_NUM_VP_SHRAM),
 		SLAB_FAST_MEMORY,
 		1);
 
@@ -1013,14 +1235,11 @@ int slab_module_init(void)
 
 	/* TODO vpool_init() API will change to get more allocated
 	 * by malloc() memories */
-	err = slab_pool_init(virtual_pool_struct,
-	                     callback_func,
-	                     SLAB_MAX_NUM_VP,
-	                     0);
-	if (err) {
-		free_slab_module_memory(slab_m);
-		return -ENAVAIL;
-	}
+	slab_pool_init(virtual_pool_struct,
+	               callback_func,
+	               SLAB_MAX_NUM_VP_SHRAM,
+	               0,
+	               0);
 
 
 	/* CDMA CFG register bits are needed for filling BPID */
