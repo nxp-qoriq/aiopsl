@@ -5,6 +5,7 @@ import fnmatch
 import re
 
 DEBUG = False
+DIFFERENT_FLAGS_FILE = "diferent_flags_found.properties"
 
 def check_if_file_exists(filename):
 	return os.path.isfile(filename)
@@ -98,6 +99,9 @@ if __name__ == "__main__":
 	print "Total cprojects checked " + str(total_cprojects_checked)			
 	if different_flags_in_some_projects:
 		print str(differen_cprojects_found) + " different cprojects found during the test."
+		f = open(DIFFERENT_FLAGS_FILE,'w')
+		f.write('YVALUE=' + str(differen_cprojects_found) + '\n')
+		f.close()
 		exit(1)
 	else:
 
