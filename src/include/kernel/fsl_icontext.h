@@ -27,9 +27,19 @@
 #ifndef __FSL_ICONTEXT_H
 #define __FSL_ICONTEXT_H
 
-int icontext_get(uint16_t icid, void **icontext);
-int icontext_add();
-int icontext_rm(uint16_t icid);
+/* TODO
+ * make the types smaller */
+struct icontext {
+	uint16_t icid;
+	uint32_t dma_flags;
+	uint32_t acquire_flags;
+	uint32_t release_flags;
+};
 
+int icontext_get(uint16_t dpci_id, struct icontext *ic);
+int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *dest);
+int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t dest);
+int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr);
+int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr);
 
 #endif
