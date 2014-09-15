@@ -177,26 +177,26 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		/* initialize TASK_ID (=0) in ORTAR to enable OSM registers */
 		*(uint32_t *)OSM_REG_ORTAR = 0;
 
-		osm_get_scope((struct scope_status_params *)str->scope_status);
+		osm_get_scope(&(str->scope_status));
 
-		((struct osm_registers *)str->scope_status)->ortdr0 = OSM_REG_ORTDR0();
-		((struct osm_registers *)str->scope_status)->ortdr1 = OSM_REG_ORTDR1();
-		((struct osm_registers *)str->scope_status)->ortdr2 = OSM_REG_ORTDR2();
-		((struct osm_registers *)str->scope_status)->ortdr3 = OSM_REG_ORTDR3();
-		((struct osm_registers *)str->scope_status)->ortdr4 = OSM_REG_ORTDR4();
-		((struct osm_registers *)str->scope_status)->ortdr5 = OSM_REG_ORTDR5();
-		((struct osm_registers *)str->scope_status)->ortdr6 = OSM_REG_ORTDR6();
-		((struct osm_registers *)str->scope_status)->ortdr7 = OSM_REG_ORTDR7();
+		str->osm_reg.ortdr[0] = OSM_REG_ORTDR0();
+		str->osm_reg.ortdr[1] = OSM_REG_ORTDR1();
+		str->osm_reg.ortdr[2] = OSM_REG_ORTDR2();
+		str->osm_reg.ortdr[3] = OSM_REG_ORTDR3();
+		str->osm_reg.ortdr[4] = OSM_REG_ORTDR4();
+		str->osm_reg.ortdr[5] = OSM_REG_ORTDR5();
+		str->osm_reg.ortdr[6] = OSM_REG_ORTDR6();
+		str->osm_reg.ortdr[7] = OSM_REG_ORTDR7();
 
-		((struct osm_error_reg *)str->err_scope_status)->oedr = OSM_REG_OEDR();
-		((struct osm_error_reg *)str->err_scope_status)->oecr0 = OSM_REG_OECR0();
-		((struct osm_error_reg *)str->err_scope_status)->oecr1 = OSM_REG_OECR1();
-		((struct osm_error_reg *)str->err_scope_status)->oecr2 = OSM_REG_OECR2();
-		((struct osm_error_reg *)str->err_scope_status)->oecr3 = OSM_REG_OECR3();
-		((struct osm_error_reg *)str->err_scope_status)->oecr4 = OSM_REG_OECR4();
-		((struct osm_error_reg *)str->err_scope_status)->oecr5 = OSM_REG_OECR5();
-		((struct osm_error_reg *)str->err_scope_status)->oecr6 = OSM_REG_OECR6();
-		((struct osm_error_reg *)str->err_scope_status)->oecr7 = OSM_REG_OECR7();
+		str->osm_err_reg.oedr = OSM_REG_OEDR();
+		str->osm_err_reg.oecr[0] = OSM_REG_OECR0();
+		str->osm_err_reg.oecr[1] = OSM_REG_OECR1();
+		str->osm_err_reg.oecr[2] = OSM_REG_OECR2();
+		str->osm_err_reg.oecr[3] = OSM_REG_OECR3();
+		str->osm_err_reg.oecr[4] = OSM_REG_OECR4();
+		str->osm_err_reg.oecr[5] = OSM_REG_OECR5();
+		str->osm_err_reg.oecr[6] = OSM_REG_OECR6();
+		str->osm_err_reg.oecr[7] = OSM_REG_OECR7();
 
 		str_size = (uint16_t)sizeof(struct osm_get_scope_verif_command);
 		break;
