@@ -36,6 +36,7 @@
 #include "cmdif_client_aiop.h"
 #include "fsl_fdma.h"
 #include "fsl_ldpaa_aiop.h"
+#include "fsl_icontext.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -55,6 +56,7 @@ void app_free(void);
 #define SYNC_CMD 	(0x103 | CMDIF_NORESP_CMD)
 #define ASYNC_N_CMD	0x104
 #define OPEN_N_CMD	0x105
+#define IC_TEST		0x106
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
 
 __SHRAM struct cmdif_desc cidesc;
@@ -113,6 +115,9 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	int err = 0;
 	int i   = 0;
 	uint64_t p_data = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	struct icontext ic;
+	uint16_t dpci_id = 0;
+	uint16_t bpid = 3;
 
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
@@ -170,6 +175,34 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case SYNC_CMD:
 		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data);
+		break;
+	case IC_TEST:
+		ASSERT_COND(size >= sizeof(struct icontext));
+		dpci_id = (((uint8_t *)data)[0]);
+		bpid =  (uint16_t)(((uint8_t *)data)[1]);
+
+		err = icontext_get(dpci_id, &ic);
+		fsl_os_print("Isolation context test dpci %d:\n", dpci_id);
+		fsl_os_print("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
+		             ic.icid,
+		             ic.dma_flags,
+		             ic.bdi_flags);
+		icontext_dma_write(&ic, sizeof(struct icontext), &ic, p_data);
+		icontext_dma_read(&ic, sizeof(struct icontext), p_data, data);
+		ASSERT_COND(ic.icid == ((struct icontext *)data)->icid);
+		ASSERT_COND(ic.dma_flags == ((struct icontext *)data)->dma_flags);
+		ASSERT_COND(ic.bdi_flags == ((struct icontext *)data)->bdi_flags);
+
+		/* Note: MC and AIOP have the same AMQ and BDI settings */
+		p_data = NULL;
+		err = icontext_acquire(&ic, bpid, &p_data);
+		ASSERT_COND(err == 0);
+		ASSERT_COND(p_data != 0);
+		err = icontext_release(&ic, bpid, p_data);
+		ASSERT_COND(err == 0);
+		fsl_os_print("Addr high = 0x%x low = 0x%x \n",
+			 (uint32_t)((p_data & 0xFF00000000) >> 32),
+			 (uint32_t)(p_data & 0xFFFFFFFF));
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {

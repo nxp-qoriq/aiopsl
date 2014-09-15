@@ -496,7 +496,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
 			 p, len);
-		pr_debug("GPP virtual addr high = 0x%x low = 0x%x \n",
+		pr_debug("Virtual addr high = 0x%x low = 0x%x \n",
 			 (uint32_t)((addr & 0xFF00000000) >> 32),
 			 (uint32_t)(addr & 0xFFFFFFFF));
 
