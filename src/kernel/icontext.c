@@ -34,10 +34,12 @@
 #include "sys.h"
 #include "fsl_dbg.h"
 #include "fsl_icontext.h"
+#include "fsl_mc_init.h"
 
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
-	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
+	int i = 0;
+	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND((ic != NULL) && (dt != NULL));
 
@@ -81,3 +83,14 @@ int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t d
 	              ic->dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
 	return 0;
 }
+
+int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr)
+{
+
+}
+
+int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr)
+{
+
+}
+
