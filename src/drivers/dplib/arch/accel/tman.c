@@ -135,7 +135,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 				__LINE__,
 				(int)TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_PURGED);
 	}
-	for (i = 0; i < tmi_params.max_num_of_timers; i++)
+	for (i = 1; i <= tmi_params.max_num_of_timers; i++)
 	{
 		timer_handle = (i << 8) | tmi_id;
 		/* As in Rev1 only force expiration is supported */
@@ -301,7 +301,7 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* One shot - TO occurred. 
 	 * Periodic - Timer was deleted */
 	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_DEL_CCP_WAIT_ERR)
-		return (int)(-ENAVAIL);
+		return (int)(-EACCES);
 	/* To check if its a TMAN state related error */
 	/* A=1 && CCP=1 */
 	/* Periodic- cannot be deleted as it deals with TO */
@@ -310,6 +310,12 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* To check if its a TMAN temporary error */
 	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
 		return (int)(-ETIMEDOUT);
+
+	/* The next code is due to Errata ERR008205 */
+	if(res1 == TMAN_DEL_TMR_NOT_ACTIVE_ERR)
+		return (int)(-ENAVAIL);
+	/* End of Errata ERR008205 related code */	
+
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(__FILE__,
@@ -346,7 +352,6 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2));
 	return (int)(res1);
 }
-#endif
 
 int tman_recharge_timer(uint32_t timer_handle)
 {
@@ -369,6 +374,7 @@ int tman_recharge_timer(uint32_t timer_handle)
 			__LINE__, (int)res1);
 	return (int)(-ETIMEDOUT);
 }
+#endif
 
 void tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state)

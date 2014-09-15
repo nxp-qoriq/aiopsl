@@ -141,7 +141,6 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	uint16_t qdid;
 	uint16_t spid;
 	struct dpni_attr attributes;
-	struct dpni_attach_cfg attach_params;
 
 	/* TODO: replace wrks_addr with global struct */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
@@ -199,12 +198,6 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
-			memset (&attach_params, 0, sizeof(attach_params));
-			if ((err = dpni_attach(&dprc->io, dpni, &attach_params)) != 0) {
-				pr_err("Failed to attach parameters to DP-NI%d.\n", mc_niid);
-				return err;
-			}
-
 			if ((err = dpni_set_pools(&dprc->io, dpni, pools_params)) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;

@@ -142,7 +142,6 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_timer_increase_duration_command);
 		break;
 	}
-#endif
 	/* TMAN timer recharge Command Verification */
 	case TMAN_TIMER_RECHARGE_CMD_STR:
 	{
@@ -153,6 +152,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_timer_recharge_command);
 		break;
 	}
+#endif
 	/* TMAN timer query Command Verification */
 	case TMAN_TIMER_QUERY_CMD_STR:
 	{

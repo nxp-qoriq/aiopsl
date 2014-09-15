@@ -386,12 +386,16 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		error do happen for a periodic timer than it is consider as
 		a fatal error (the timer period is too short to handle the
 		timer expiration callback function).
-@Retval		ENAVAIL - The timer cannot be deleted.
+@Retval		EACCES - The timer cannot be deleted.
 		For one shot timer this error should be treated as an ETIMEDOUT
 		error.
 		For a periodic timer this error should be treated as a fatal
 		error (a delete command was already issued for this periodic
 		timer). 
+@Retval		ENAVAIL - The timer cannot be deleted. The timer is not an
+		active one. This should be treated as a fatal error.
+		When Errata ERR008205 will be fixed this error will
+		automatically generate a fatal error. 
 
 @Cautions	This function performs a task switch.
 
@@ -421,7 +425,6 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 *//***************************************************************************/
 int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
-#endif
 
 /**************************************************************************//**
 @Function	tman_recharge_timer
@@ -438,6 +441,7 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 
 *//***************************************************************************/
 int tman_recharge_timer(uint32_t timer_handle);
+#endif
 
 /**************************************************************************//**
 @Function	tman_query_timer
