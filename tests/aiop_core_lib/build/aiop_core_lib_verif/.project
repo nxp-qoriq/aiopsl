@@ -593,6 +593,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/accel/cdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/arch/accel/fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.c</locationURI>
