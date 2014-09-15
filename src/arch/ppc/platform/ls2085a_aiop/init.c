@@ -114,18 +114,18 @@ extern void cmdif_srv_isr(void);
 extern void build_apps_array(struct sys_module_desc *apps);
 
 
-#define MEMORY_INFO                                                                                           \
+#define MEMORY_PARTITIONS                                                                                         \
 {   /* Region ID                Memory partition ID  Phys. Addr.  Virt. Addr.  Size , Attributes */\
     {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,   0x80c000000LL, 0x0C000000,\
-	(64  * MEGABYTE),MEMORY_ATTR_NONE},\
+	(64  * MEGABYTE),MEMORY_ATTR_NONE,"MC Portals"},\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,   0x08000000,    0x10000000, \
-	(16 * MEGABYTE),MEMORY_ATTR_NONE },\
+	(16 * MEGABYTE),MEMORY_ATTR_NONE,"SoC CCSR"  },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,    0x01010400,    0x01010400, \
-	(191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE},\
-    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0x6018000000,  0x40000000, \
-	(128 * MEGABYTE),MEMORY_ATTR_MALLOCABLE },\
-    {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,       0x4c00200000,  0x80000000, \
-	(2 * MEGABYTE),MEMORY_ATTR_MALLOCABLE},\
+	(191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0xFFFFFFFF,  0xFFFFFFFF, \
+	0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
+    {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,       0xFFFFFFFF,  0xFFFFFFFF, \
+	0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"PEB"},\
 }
 
 #define GLOBAL_MODULES                     \
@@ -174,27 +174,15 @@ void fill_platform_parameters(struct platform_param *platform_param)
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
 	platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
-	err = build_mem_partitions_table(platform_param->mem_info,
-	                                 mem_info_size);
+	
+	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
+	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >  
+	            ARRAY_SIZE(mem_info));
+	memcpy(platform_param->mem_info, mem_info,
+				sizeof(struct platform_memory_info) * ARRAY_SIZE(mem_info));
 	ASSERT_COND(err == 0);
 
 }
-
-int build_mem_partitions_table(struct platform_memory_info *mem_info,
-                               uint32_t size)
-{
-	struct platform_memory_info partitions_info[] = MEMORY_INFO;
-	uint32_t cp_size = sizeof(struct platform_memory_info) *
-		ARRAY_SIZE(partitions_info);
-
-	if (size < cp_size)
-		return -EINVAL;
-
-	/* TODO add calculation for memory partitions */
-	memcpy(mem_info,partitions_info, cp_size);
-	return E_OK;
-}
-
 int tile_init(void)
 {
     struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
