@@ -43,13 +43,16 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 
 	ASSERT_COND((ic != NULL) && (dt != NULL));
 
-	/* find dpci_id  */
+	/* search by GPP peer id - most likely case
+	 * or by AIOP dpci id  - to support both cases
+	 * All DPCIs in the world have different IDs */
 	for (i = 0; i < dt->count; i++) {
-		if (dt->attr[i].id == dpci_id) {
+		if ((dt->attr[i].peer_attached == dpci_id) ||
+			(dt->attr[i].id == dpci_id)) {
 			/* Fill icontext */
 			ic->icid = dt->icid[i];
 			ic->dma_flags = dt->dma_flags[i];
-			/* TODO add other flags */
+			ic->bdi_flags = dt->bdi_flags[i];
 			return 0;
 		}
 	}
@@ -86,11 +89,23 @@ int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t d
 
 int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr)
 {
+	int err = 0;
 
+	ASSERT_COND(ic != NULL);
+
+	err = fdma_acquire_buffer(ic->icid, ic->bdi_flags, bpid, &addr);
+
+	return err;
 }
 
 int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr)
 {
+	int err = 0;
 
+	ASSERT_COND(ic != NULL);
+
+	fdma_release_buffer(ic->icid, ic->bdi_flags, bpid, addr);
+
+	return err;
 }
 

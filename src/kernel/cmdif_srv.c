@@ -375,11 +375,11 @@ __HOT_CODE static void amq_bits_update(int ind)
 
 
 	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
-	dpci_tbl->enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
+	dpci_tbl->bdi_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
 	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
 	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
 	if (BDI_GET != 0)
-		dpci_tbl->enq_flags[ind] |= FDMA_ENF_BDI_BIT;
+		dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
 }
 
 __HOT_CODE static int notify_open()
@@ -456,13 +456,13 @@ __HOT_CODE static int notify_open()
 	cl->gpp[count].regs->attr       = &dpci_tbl->attr[ind];
 	cl->gpp[count].regs->icid       = dpci_tbl->icid[ind];
 	cl->gpp[count].regs->dma_flags  = dpci_tbl->dma_flags[ind];
-	cl->gpp[count].regs->enq_flags  = dpci_tbl->enq_flags[ind];
+	cl->gpp[count].regs->enq_flags  = dpci_tbl->bdi_flags[ind];
 
 	cl->count++;
 	unlock_spinlock(&cl->lock);
 
 	pr_debug("icid = 0x%x\n", dpci_tbl->icid[ind]);
-	pr_debug("enq_flags = 0x%x\n", dpci_tbl->enq_flags[ind]);
+	pr_debug("enq_flags = 0x%x\n", dpci_tbl->bdi_flags[ind]);
 	pr_debug("dma_flags = 0x%x\n", dpci_tbl->dma_flags[ind]);
 
 	return 0;
