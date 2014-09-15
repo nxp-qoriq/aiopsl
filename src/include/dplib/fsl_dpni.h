@@ -395,46 +395,6 @@ int dpni_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 	uint32_t status);
 
 /**
- *
- * @brief	Enable/Disable transmission of Pause-Frames.
- *		Will only affect the underlying MAC if exist.
- *
- * @param[in]	mc_io		Pointer to opaque I/O object
- * @param[in]   token		Token of DPNI object
- * @param[in]   priority -  the PFC class of service; use '0xff'
- *		to indicate legacy pause support (i.e. no PFC).
- * @param[in]   pause_time - Pause quanta value used with transmitted
- *		pause frames. Each quanta represents a 512 bit-times;
- *		Note that '0' as an input here will be used
- *		as disabling the transmission of the pause-frames.
- * @param[in]   thresh_time - Pause Threshold quanta value used by the MAC to
- *		retransmit pause frame. if the situation causing
- *		a pause frame to be sent didn't finish when
- *		the timer reached the threshold quanta, the MAC
- *		will retransmit the pause frame.
- *		Each quanta represents a 512 bit-times.
- *
- * @returns	'0' on Success; Error code otherwise.
- */
-int dpni_set_tx_pause_frames(struct fsl_mc_io *mc_io, uint16_t token,
-	uint8_t priority,
-	uint16_t pause_time,
-	uint16_t thresh_time);
-
-/**
- *
- * @brief	Enable/Disable ignoring of Pause-Frames.
- *		Will only affect the underlying MAC if exist.
- *
- * @param[in]	mc_io		Pointer to opaque I/O object
- * @param[in]   token		Token of DPNI object
- * @param[in]   enable - indicates whether to ignore the incoming pause
- *		frames or not.
- * @returns	'0' on Success; Error code otherwise.
- */
-int dpni_set_rx_ignore_pause_frames(struct fsl_mc_io *mc_io, uint16_t token, int enable);
-
-/**
  * @brief	Structure representing DPNI pools parameters
  */
 struct dpni_pools_cfg {
@@ -485,60 +445,6 @@ struct dpni_dest_cfg {
 /*!< 0-1 or 0-7 (depends on the channel type) to select the priority(work-queue)
  within the channel (not relevant for the 'NONE' case) */
 };
-
-/**
- * @brief	Structure representing DPNI attach parameters
- */
-struct dpni_attach_cfg {
-	/* TODO - add struct ldpaa_flow_ctx	*flc; */
-	uint64_t rx_user_ctx;
-	/*!< User context; will be received with the FD in case of Rx
-	 frame; can be override by calling 'dpni_set_rx_flow' */
-	int dest_apply_all; /*!< in case 'dest_apply_all'=1, 'dest_cfg' will
-	 affect on all receive queues, otherwise it will affect only
-	 on rx-err/tx-err queues. */
-	struct dpni_dest_cfg dest_cfg; /*!< destination settings; will be
-	 applied according to the 'dest_apply_all' */
-	uint64_t rx_err_user_ctx;
-	/*!< User context; will be received with the FD in case of Rx
-	 error frame */
-	uint64_t tx_err_user_ctx;
-	/*!< User context; will be received with the FD in case of Tx
-	 error frame and 'DPNI_OPT_TX_CONF_DISABLED' is set.
-	 if not set, tx-error frames will received with 'tx_conf_user_ctx' */
-	uint64_t tx_conf_user_ctx;
-/*!< User context; will be received with the FD in case of Tx
- confirmation frame; can be override by calling 'dpni_set_tx_flow' */
-};
-
-/**
- *
- * @brief	Attach the NI to application
- *
- * @param[in]	mc_io		Pointer to opaque I/O object
- * @param[in]   token		Token of DPNI object
- * @param[in]	cfg - Attach configuration
- *
- * @returns	'0' on Success; Error code otherwise.
- *
- * @warning	Allowed only when DPNI is disabled
- *
- */
-int dpni_attach(struct fsl_mc_io *mc_io, uint16_t token, const struct dpni_attach_cfg *cfg);
-
-/**
- *
- * @brief	Detach the NI from application
- *
- * @param[in]	mc_io		Pointer to opaque I/O object
- * @param[in]   token		Token of DPNI object
- *
- * @returns	'0' on Success; Error code otherwise.
- *
- * @warning	Allowed only when DPNI is disabled
- *
- */
-int dpni_detach(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  *
@@ -1144,6 +1050,28 @@ enum dpni_dist_mode {
 };
 
 /**
+ * @brief   DPNI Flow-Steering miss action
+ */
+enum dpni_fs_miss_action {
+	DPNI_FS_MISS_DROP,
+	/*!< in case of no-match drop the frame  */
+	DPNI_FS_MISS_EXPLICIT_FLOWID,
+	/*!< in case of no-match go to explicit flow-id */
+	DPNI_FS_MISS_HASH
+/*!< in case of no-match do a hashing to select a flow */
+};
+
+/**
+ * @brief	Structure representing FS table parameters
+ */
+struct dpni_fs_tbl_cfg {
+	enum dpni_fs_miss_action miss_action; /*!< miss action mode */
+	uint16_t default_flow_id;
+/*!< will be used in case 'DPNI_FS_MISS_EXPLICIT_FLOWID' */
+/* TODO - add mask to select a subset of the hash result */
+};
+
+/**
  * @brief	Structure representing DPNI RX TC parameters
  */
 struct dpni_rx_tc_cfg {
@@ -1153,6 +1081,9 @@ struct dpni_rx_tc_cfg {
 	enum dpni_dist_mode dist_mode; /*!< distribution mode */
 	struct dpkg_profile_cfg *extract_cfg;
 /*!< define the extractions to be used for the distribution key */
+	struct dpni_fs_tbl_cfg fs_cfg;
+	/*!< FS table configuration; only relevant for 'DPNI_DIST_MODE_FS'; */
+
 /*	struct policing_cfg *params;*/
 /*TODO - add struct ldpaa_flow_ctx	*flc;*/
 };
@@ -1327,6 +1258,75 @@ int dpni_get_rx_flow(struct fsl_mc_io *mc_io, uint16_t token,
 	uint32_t *fqid);
 
 /**
+ *
+ * @brief	Set RX error queue's configuration
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPNI object
+ * @param[in]	cfg - queue configuration
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_rx_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
+	const struct dpni_rx_flow_cfg *cfg);
+
+/**
+ *
+ * @brief	Get RX error queue's configuration and id
+ *
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
+ * @param[out]	cfg - queue configuration
+ * @param[out]	fqid - virtual fqid to be used for dequeue operations;
+ *		if equal to 'DPNI_VFQID_NOT_VALID' means you need to
+ *		call this function after you enable the NI.
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_rx_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
+	struct dpni_rx_flow_cfg *cfg,
+	uint32_t *fqid);
+
+/**
+ *
+ * @brief	Set TX conf/error queue's configuration
+ *
+ * If 'DPNI_OPT_TX_CONF_DISABLED' is set, this fqid will be treated as tx-err
+ * and received only errors (confirmation is disabled).
+ * Otherwise this fqid will be used for both errors and confirmation
+ * (except when a private fqid is used)
+ *
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
+ * @param[in]	cfg - queue configuration
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_tx_conf_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
+	const struct dpni_rx_flow_cfg *cfg);
+
+/**
+ *
+ * @brief	Get TX conf/error queue's configuration and id
+ *
+ * If 'DPNI_OPT_TX_CONF_DISABLED' is set, this fqid will be treated as tx-err
+ * and received only errors (confirmation is disabled).
+ * Otherwise this fqid will be used for both errors and confirmation
+ * (except when a private fqid is used)
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[out]	cfg - queue configuration
+ * @param[out]	fqid - virtual fqid to be used for dequeue operations;
+ *		if equal to 'DPNI_VFQID_NOT_VALID' means you need to
+ *		call this function after you enable the NI.
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_get_tx_conf_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
+	struct dpni_rx_flow_cfg *cfg,
+	uint32_t *fqid);
+
+/**
  * @brief	Structure representing QOS table parameters
  */
 struct dpni_qos_tbl_cfg {
@@ -1343,7 +1343,8 @@ struct dpni_qos_tbl_cfg {
  *
  * @brief	Set QoS mapping table
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
+  * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
  * @param[in]	cfg - QoS table configuration
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -1355,7 +1356,8 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io, uint16_t token, const struct dpn
  *
  * @brief	Delete QoS mapping table
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
  *
  * @returns	'0' on Success; Error code otherwise.
  *
@@ -1375,7 +1377,8 @@ struct dpni_key_cfg {
  *
  * @brief	Add QoS mapping entry
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
  * @param[in]	cfg - QoS key parameters
  * @param[in]	tc_id - Traffic class id
  *
@@ -1390,7 +1393,8 @@ int dpni_add_qos_entry(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @brief	Remove QoS mapping entry
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
  * @param[in]	cfg - QoS key parameters
  *
  * @returns	'0' on Success; Error code otherwise.
@@ -1402,67 +1406,20 @@ int dpni_remove_qos_entry(struct fsl_mc_io *mc_io, uint16_t token, const struct 
  *
  * @brief	Clear all QoS mapping entries
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
- *
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
+ * 
  * @returns	'0' on Success; Error code otherwise.
  *
  */
 int dpni_clear_qos_table(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * @brief   DPNI Flow-Steering miss action
- */
-enum dpni_fs_miss_action {
-	DPNI_FS_MISS_DROP,
-	/*!< in case of no-match drop the frame  */
-	DPNI_FS_MISS_EXPLICIT_FLOWID,
-	/*!< in case of no-match go to explicit flow-id */
-	DPNI_FS_MISS_HASH
-/*!< in case of no-match do a hashing to select a flow */
-};
-
-/**
- * @brief	Structure representing FS table parameters
- */
-struct dpni_fs_tbl_cfg {
-	enum dpni_fs_miss_action miss_action; /*!< miss action mode */
-	uint16_t default_flow_id;
-/*!< will be used in case 'DPNI_FS_MISS_EXPLICIT_FLOWID' */
-/* TODO - add mask to select a subset of the hash result */
-};
-
-/**
- *
- * @brief	Set FS mapping table for a specific traffic class
- *
- * @param[in]	mc_io		Pointer to opaque I/O object
- * @param[in]	tc_id - Traffic class id
- * @param[in]	cfg - FS table configuration
- *
- * @returns	'0' on Success; Error code otherwise.
- *
- */
-int dpni_set_fs_table(struct fsl_mc_io *mc_io, uint16_t token,
-	uint8_t tc_id,
-	const struct dpni_fs_tbl_cfg *cfg);
-
-/**
- *
- * @brief	Delete FS mapping table
- *
- * @param[in]	mc_io		Pointer to opaque I/O object
- * @param[in]	tc_id - Traffic class id
- *
- * @returns	'0' on Success; Error code otherwise.
- *
- */
-int dpni_delete_fs_table(struct fsl_mc_io *mc_io, uint16_t token, uint8_t tc_id);
-
-/**
  *
  * @brief	Add FS entry for a specific traffic-class
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
+  * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	cfg - Key parameters
  * @param[in]	flow_id - Flow id
@@ -1479,7 +1436,8 @@ int dpni_add_fs_entry(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @brief	Remove FS entry from a specific traffic-class
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
  * @param[in]	tc_id - Traffic class id
  * @param[in]	cfg - Key parameters
  *
@@ -1494,7 +1452,8 @@ int dpni_remove_fs_entry(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @brief	Clear all FS entries
  *
- * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]	mc_io - Pointer to opaque I/O object
+ * @param[in]   token - Token of DPNI object
  * @param[in]	tc_id - Traffic class id
  *
  * @returns	'0' on Success; Error code otherwise.

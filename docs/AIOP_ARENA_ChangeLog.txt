@@ -1,3 +1,4 @@
+- dpl.dts           Added DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED to AIOP container.
 - .cproject (all)   Added paths to "${ProjDirPath}/../../../../src/drivers/dplib" and "${ProjDirPath}/../../../../src/mc/include"
 - time.c:           Added time_init/free in global modules to support time period received from MC. If time period is 1000 then pointer function set up to use fast implementation,
                     otherwise an error will appear. (to support slow implementation we must use division in AIOP).
