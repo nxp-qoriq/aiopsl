@@ -26,41 +26,71 @@
 
 #include "fsl_fdma.h"
 #include "icontext.h"
+#include "fsl_errors.h"
+#include "general.h"
+#include "fsl_ldpaa_aiop.h"
+#include "fsl_fdma.h"
+#include "fdma.h"
+#include "sys.h"
+#include "fsl_dbg.h"
+#include "fsl_icontext.h"
+#include "fsl_mc_init.h"
 
-struct ic_table ic = {0};
-
-int icontext_add()
+int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
-	uint16_t pl_icid = PL_ICID_GET;
+	int i = 0;
+	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
-	/* TODO find the ind where to add it */
-	ic.icid[ind]           = IC_ICID_GET(pl_icid);
-	ic.enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
-	ic.dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
-	IC_ADD_AMQ_FLAGS(ic.dma_flags[ind], pl_icid);
-	if (IC_BDI_GET != 0)
-		ic.enq_flags[ind] |= FDMA_ENF_BDI_BIT;
+	ASSERT_COND((ic != NULL) && (dt != NULL));
 
-	/* TODO locks */
+	/* find dpci_id  */
+	for (i = 0; i < dt->count; i++) {
+		if (dt->attr[i].id == dpci_id) {
+			/* Fill icontext */
+			ic->icid = dt->icid[i];
+			ic->dma_flags = dt->dma_flags[i];
+			/* TODO add other flags */
+			return 0;
+		}
+	}
+
+	/* copy pointer from icid table */
+	return -ENOENT;
+}
+
+int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *dest)
+{
+	ASSERT_COND(dest != NULL);
+	ASSERT_COND(src != NULL);
+
+	fdma_dma_data(size,
+	              ic->icid,
+	              dest,
+	              src,
+	              ic->dma_flags);
+	return 0;
+}
+
+int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t dest)
+{
+	ASSERT_COND(src != NULL);
+	ASSERT_COND(dest != NULL);
+
+	fdma_dma_data(size,
+	              ic->icid,
+	              src,
+	              dest,
+	              ic->dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
+	return 0;
+}
+
+int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr)
+{
 
 }
 
-int icontext_rm(uint16_t icid)
-{
-	/* TODO locks */
-}
-
-int icontext_get(uint16_t icid, void **icontext)
+int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr)
 {
 
 }
 
-int icontext_table_init()
-{
-	memset(&ic, 0, sizeof(struct ic_table));
-}
-
-int icontext_table_free()
-{
-	memset(&ic, 0, sizeof(struct ic_table));
-}
