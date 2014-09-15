@@ -31,10 +31,10 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_gso.h"
-#include "dplib/fsl_ipf.h"
+#include "fsl_fdma.h"
+#include "fsl_cdma.h"
+#include "fsl_gso.h"
+#include "fsl_ipf.h"
 #include "aiop_verification.h"
 #include "system.h"
 

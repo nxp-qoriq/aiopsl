@@ -32,7 +32,7 @@
 #ifndef __FSL_GRO_H
 #define __FSL_GRO_H
 
-#include "common/types.h"
+#include "types.h"
 
 
 /**************************************************************************//**
