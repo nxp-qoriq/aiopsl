@@ -84,8 +84,6 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 		HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
-
-	return;
 }
 
 int parser_profile_delete(uint8_t prpid)
@@ -110,7 +108,7 @@ int parser_profile_delete(uint8_t prpid)
 }
 
 void parser_profile_query(uint8_t prpid,
-			struct parse_profile_record *parse_profile)
+			struct parse_profile_input *parse_profile)
 {
 	struct parse_profile_delete_query_params parse_profile_query_params
 						__attribute__((aligned(16)));
@@ -124,8 +122,12 @@ void parser_profile_query(uint8_t prpid,
 		(uint32_t)parse_profile) , 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
+	
+	/* clear 8 first bytes (which include MTYPE and PRPID which are
+	 * irrelevant for the user) */ 
+	parse_profile->parse_profile.reserved1 = 0;
+	parse_profile->parse_profile.reserved2 = 0;
 
-	return;
 }
 
 int parse_result_generate_checksum(

@@ -36,7 +36,7 @@
 #define __GENERAL_H_
 
 
-#include "dplib/fsl_general.h"
+#include "fsl_general.h"
 
 
 #pragma section RW ".exception_data" ".exception_data_bss"

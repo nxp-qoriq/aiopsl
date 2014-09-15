@@ -31,12 +31,12 @@
 
 *//***************************************************************************/
 
-#include "net/fsl_net.h"
-#include "dplib/fsl_ldpaa.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_ste.h"
-#include "dplib/fsl_tman.h"
+#include "fsl_net.h"
+#include "fsl_ldpaa.h"
+#include "fsl_cdma.h"
+#include "fsl_parser.h"
+#include "fsl_ste.h"
+#include "fsl_tman.h"
 #include "gro.h"
 #include "general.h"
 #include "fdma.h"

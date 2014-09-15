@@ -31,10 +31,10 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_gso.h"
-#include "dplib/fsl_ipf.h"
+#include "fsl_fdma.h"
+#include "fsl_cdma.h"
+#include "fsl_gso.h"
+#include "fsl_ipf.h"
 #include "aiop_verification.h"
 #include "system.h"
 
@@ -169,6 +169,12 @@ void aiop_verification_fm()
 		case IPSEC_MODULE:
 		{
 			str_size = aiop_verification_ipsec(
+					(uint32_t)data_addr);
+			break;
+		}
+		case OSM_MODULE:
+		{
+			str_size = aiop_verification_osm(
 					(uint32_t)data_addr);
 			break;
 		}

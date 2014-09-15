@@ -37,7 +37,7 @@
 
 #include "aiop_verification_data.h"
 #include "general.h"
-#include "dplib/fsl_ipsec.h"
+#include "fsl_ipsec.h"
 #include "aiop_verification_fdma.h"
 #include "aiop_verification_tman.h"
 #include "aiop_verification_ste.h"
@@ -53,15 +53,15 @@
 #include "aiop_verification_ipf.h"
 #include "aiop_verification_ipr.h"
 #include "aiop_verification_ipsec.h"
-#include "dplib/fsl_ip.h"
-#include "dplib/fsl_ipsec.h"
-#include "dplib/fsl_l2.h"
-#include "dplib/fsl_l4.h"
-#include "dplib/fsl_nat.h"
-#include "dplib/fsl_osm.h"
-#include "dplib/fsl_dpni_drv.h"
-#include "dplib/fsl_dpni.h"
-#include "dplib/fsl_dpni_cmd.h"
+#include "fsl_ip.h"
+#include "fsl_ipsec.h"
+#include "fsl_l2.h"
+#include "fsl_l4.h"
+#include "fsl_nat.h"
+#include "fsl_osm.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_dpni.h"
+#include "fsl_dpni_cmd.h"
 
 
 	/**< ACCEL_ID cmd mask */

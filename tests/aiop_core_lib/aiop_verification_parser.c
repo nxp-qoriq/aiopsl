@@ -140,7 +140,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 				asa_seg_addr;
 
 		parser_profile_query(pq->prpid,
-			(struct parse_profile_record *)pq->parse_profile);
+			(struct parse_profile_input *)pq->parse_profile);
 
 		str_size = sizeof(struct parser_prp_query_verif_command);
 		break;
