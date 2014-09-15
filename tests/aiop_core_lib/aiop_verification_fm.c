@@ -172,6 +172,12 @@ void aiop_verification_fm()
 					(uint32_t)data_addr);
 			break;
 		}
+		case OSM_MODULE:
+		{
+			str_size = aiop_verification_osm(
+					(uint32_t)data_addr);
+			break;
+		}
 		case WRITE_DATA_TO_WS_MODULE:
 		{
 
