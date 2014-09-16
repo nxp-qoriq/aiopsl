@@ -34,8 +34,8 @@
 #ifndef __FSL_PARSER_H
 #define __FSL_PARSER_H
 
-#include "common/types.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_ldpaa.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
