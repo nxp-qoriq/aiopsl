@@ -91,7 +91,7 @@ struct aiop_sl_init_info
     uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
     uint32_t clock_period; /* In nanosec */
     
-    uint32_t reserved[188];           /* reserved for future use */
+    uint8_t reserved[188];           /* reserved for future use */
 };
 
 struct aiop_init_data
