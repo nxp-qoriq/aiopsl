@@ -30,10 +30,9 @@
 /* TODO
  * make the types smaller */
 struct icontext {
-	uint16_t icid;
 	uint32_t dma_flags;
-	uint32_t acquire_flags;
-	uint32_t release_flags;
+	uint32_t bdi_flags;
+	uint16_t icid;
 };
 
 int icontext_get(uint16_t dpci_id, struct icontext *ic);

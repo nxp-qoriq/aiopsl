@@ -143,12 +143,12 @@ static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
 	memset(dpci_tbl->dma_flags, 0, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	dpci_tbl->enq_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
-	if (dpci_tbl->enq_flags == NULL) {
+	dpci_tbl->bdi_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	if (dpci_tbl->bdi_flags == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->enq_flags, 0, size);
+	memset(dpci_tbl->bdi_flags, 0, size);
 
 	err = sys_add_handle(dpci_tbl,
 			     FSL_OS_MOD_DPCI_TBL,
