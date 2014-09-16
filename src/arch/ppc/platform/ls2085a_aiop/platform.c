@@ -37,10 +37,11 @@
 
 #include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
+//#include "fsl_stdio.h" for fsl_os_print
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 extern struct aiop_init_data g_init_data;
-extern uint8_t AIOP_DDR_START[],AIOP_DDR_END[],AIOP_DDR_SIZE[];
+extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
 
 typedef struct t_platform_mem_region_info {
     uint64_t    start_addr;
@@ -528,27 +529,50 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 {
 	 t_platform_memory_info  *p_mem_info;
 	 int                     i;
+	 uint32_t                aiop_lcf_ddr_size;
+	 aiop_lcf_ddr_size =  (uint32_t)(AIOP_DDR_END) - (uint32_t)(AIOP_DDR_START); 
 	 for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 	        p_mem_info = &pltfrm->param.mem_info[i];
 	        ASSERT_COND(p_mem_info);
 	        switch (p_mem_info->mem_partition_id) {
-	        case MEM_PART_DEFAULT_HEAP_PARTITION:
-	        	p_mem_info->virt_base_addr = (*(uint32_t*)AIOP_DDR_START);
+	        case MEM_PART_DEFAULT_HEAP_PARTITION:	        	
+	        	p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
 	        	p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr;
-	        	p_mem_info->size = (*(uint32_t*)AIOP_DDR_SIZE);
+	        	p_mem_info->size = aiop_lcf_ddr_size;
+#if 0   	
+	        	fsl_os_print("Default Heap parition: virt_add= 0x%x, phys_add = 0x%x%x,size = 0x%x\n",
+	        			                p_mem_info->virt_base_addr,
+	        			                (uint32_t)(p_mem_info->phys_base_addr>>32),
+	        			                (uint32_t)(p_mem_info->phys_base_addr),
+	        			                (uint32_t)p_mem_info->size);
+#endif	        	
 	        	break;
 	        case MEM_PART_DP_DDR:
 	        	p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.ddr_vaddr +
-	        	(*(uint32_t*)AIOP_DDR_SIZE);
+	        	        aiop_lcf_ddr_size;
 	        	p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr + 
-	        	(*(uint32_t*)AIOP_DDR_SIZE);
+	        			aiop_lcf_ddr_size;
 	        	p_mem_info->size = g_init_data.app_data.dp_ddr_size - 
-	        	(*(uint32_t*)AIOP_DDR_SIZE);
+	        			aiop_lcf_ddr_size;
+#if 0	        	
+	        	fsl_os_print("\nMEM_PART_DP_DDR: virt_add= 0x%x, phys_add = 0x%x%x,size = 0x%x\n",
+	        			        p_mem_info->virt_base_addr,
+	                            (uint32_t)(p_mem_info->phys_base_addr >> 32),
+	        		            (uint32_t)(p_mem_info->phys_base_addr),
+	        		        	(uint32_t)p_mem_info->size);
+#endif	        	
 	        	break;
 	        case MEM_PART_PEB:
 	        	p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.peb_vaddr;
 	            p_mem_info->phys_base_addr = g_init_data.sl_data.peb_paddr;
 	            p_mem_info->size = g_init_data.app_data.peb_size;
+#if 0	            
+	            fsl_os_print("\nMEM_PART_PEB: virt_add= 0x%x, phys_add = 0x%x%x,size = 0x%x\n",
+	            		    p_mem_info->virt_base_addr,
+	            	        (uint32_t)(p_mem_info->phys_base_addr >> 32),
+	            	        (uint32_t)(p_mem_info->phys_base_addr),
+	            	        (uint32_t)p_mem_info->size);
+#endif	            
 	            break;
 	        case  MEM_PART_SYSTEM_DDR:
 	        	break;	        	
