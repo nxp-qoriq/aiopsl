@@ -32,7 +32,7 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_fdma.h"
+#include "fsl_fdma.h"
 #include "fdma.h"
 
 int fdma_present_default_frame(void)

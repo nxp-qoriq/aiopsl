@@ -356,14 +356,10 @@ __HOT_CODE static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-static int find_dpci(uint8_t dpci_id, struct mc_dpci_obj **dpci_tbl)
+__HOT_CODE static int find_dpci(uint8_t dpci_id)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
-	*dpci_tbl = dt;
-
-	if (dt == NULL)
-		return -1;
 
 	for (i = 0; i < dt->count; i++) {
 		if (dt->attr[i].peer_id == dpci_id)
@@ -372,7 +368,21 @@ static int find_dpci(uint8_t dpci_id, struct mc_dpci_obj **dpci_tbl)
 	return -1;
 }
 
-static int notify_open()
+__HOT_CODE static void amq_bits_update(int ind)
+{
+	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
+	uint16_t pl_icid = PL_ICID_GET;
+
+
+	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
+	dpci_tbl->bdi_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
+	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
+	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
+	if (BDI_GET != 0)
+		dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
+}
+
+__HOT_CODE static int notify_open()
 {
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
@@ -380,18 +390,20 @@ static int notify_open()
 	int ind = 0;
 	int count = 0;
 	int link_up = 1;
-	struct mc_dpci_obj *dpci_tbl = NULL;
+	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
 	int err = 0;
 	uint16_t pl_icid = PL_ICID_GET;
 	struct mc_dprc *dprc = NULL;
 
 	pr_debug("Got notify open for AIOP client \n");
+	ASSERT_COND(dpci_tbl != NULL);
+
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
 		pr_err("Segment length is too small\n");
 		return -EINVAL;
 	}
 
-	ind = find_dpci((uint8_t)data->dev_id, &dpci_tbl);
+	ind = find_dpci((uint8_t)data->dev_id);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
 		return -ENAVAIL;
@@ -433,12 +445,7 @@ static int notify_open()
 		return -ENOSPC;
 	}
 
-	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
-	dpci_tbl->enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
-	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
-	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
-	if (BDI_GET != 0)
-		dpci_tbl->enq_flags[ind] |= FDMA_ENF_BDI_BIT;
+	amq_bits_update(ind);
 	cl->gpp[count].ins_id           = data->inst_id;
 	cl->gpp[count].dev->auth_id     = data->auth_id;
 	cl->gpp[count].dev->p_sync_done = sync_done_get();
@@ -449,13 +456,13 @@ static int notify_open()
 	cl->gpp[count].regs->attr       = &dpci_tbl->attr[ind];
 	cl->gpp[count].regs->icid       = dpci_tbl->icid[ind];
 	cl->gpp[count].regs->dma_flags  = dpci_tbl->dma_flags[ind];
-	cl->gpp[count].regs->enq_flags  = dpci_tbl->enq_flags[ind];
+	cl->gpp[count].regs->enq_flags  = dpci_tbl->bdi_flags[ind];
 
 	cl->count++;
 	unlock_spinlock(&cl->lock);
 
 	pr_debug("icid = 0x%x\n", dpci_tbl->icid[ind]);
-	pr_debug("enq_flags = 0x%x\n", dpci_tbl->enq_flags[ind]);
+	pr_debug("enq_flags = 0x%x\n", dpci_tbl->bdi_flags[ind]);
 	pr_debug("dma_flags = 0x%x\n", dpci_tbl->dma_flags[ind]);
 
 	return 0;
@@ -485,9 +492,14 @@ __HOT_CODE void cmdif_srv_isr(void)
 		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 				   PRC_GET_SEGMENT_LENGTH());
 		uint8_t  *p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
+		uint64_t addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
 			 p, len);
+		pr_debug("Virtual addr high = 0x%x low = 0x%x \n",
+			 (uint32_t)((addr & 0xFF00000000) >> 32),
+			 (uint32_t)(addr & 0xFFFFFFFF));
+
 		while (len > 15)
 		{
 			fsl_os_print("0x%x: %x %x %x %x\r\n",

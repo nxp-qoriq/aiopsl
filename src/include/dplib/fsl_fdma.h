@@ -34,9 +34,9 @@
 #ifndef __FSL_FDMA_H
 #define __FSL_FDMA_H
 
-#include "common/types.h"
+#include "types.h"
 #include "fsl_errors.h"
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 
 
 /* extern uint8_t HWC_PRC_ADDR[]; */

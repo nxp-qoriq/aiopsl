@@ -25,24 +25,54 @@
  */
 
 /**************************************************************************//**
-@File		ste.c
+@File		dpni_drv_rxtx_inline.h
 
-@Description	This file contains the AIOP SW Statistics API implementation.
-
+@Description	Data Path Network Interface Inline API
 *//***************************************************************************/
+#ifndef __DPNI_DRV_RXTX_INLINE_H
+#define __DPNI_DRV_RXTX_INLINE_H
 
+#include "drv.h"
 #include "general.h"
-#include "fsl_ste.h"
+#include "types.h"
+#include "fsl_fdma.h"
 
-void ste_barrier()
+extern __TASK struct aiop_default_task_params default_task_params;
+extern __SHRAM struct dpni_drv *nis;
+
+__HOT_CODE inline int dpni_drv_send(uint16_t ni_id)
 {
-	uint32_t cmd_type = (uint32_t)STE_CMDTYPE_SYNC;
-	uint32_t mem_ptr = (uint32_t)STE_CTR_CMD_MEM_ADDR;
+	struct dpni_drv *dpni_drv;
+	struct fdma_queueing_destination_params    enqueue_params;
+	struct dpni_drv_params dpni_drv_params_local
+				__attribute__((aligned(8)));
+	struct dpni_drv_tx_params dpni_drv_tx_params_local
+				__attribute__((aligned(8)));
+	int err;
 
-	/* A command to the TST to set the scheduling inhibit for the task */
-	__e_osmcmd(STE_OSM_REQ_TYPE, 0);
-	/* call STE sync command. */
-	__stqw(cmd_type, 0, 0, 0, 0, (uint32_t *)mem_ptr);
-	/* YIELD. */
-	__e_hwacceli(YIELD_ACCEL_ID);
+	dpni_drv = nis + ni_id; /* calculate pointer
+					* to the send NI structure   */
+
+	/* Load from SHRAM to local stack */
+	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
+	dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;
+
+	/* take SPID from TX NIC*/
+	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv_params_local.spid;
+	if ((dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE) &&
+		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) >
+					dpni_drv_tx_params_local.mtu))
+			return DPNI_DRV_MTU_ERR;
+	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
+	 * the qd_priority is taken from the TLS and that enqueue function \
+	 * always returns*/
+	enqueue_params.qdbin = 0;
+	enqueue_params.qd = dpni_drv_tx_params_local.qdid;
+	enqueue_params.qd_priority = default_task_params.qd_priority;
+	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
+			FDMA_ENWF_NO_FLAGS);
+	return err;
 }
+
+
+#endif /* __DPNI_DRV_RXTX_INLINE_H */

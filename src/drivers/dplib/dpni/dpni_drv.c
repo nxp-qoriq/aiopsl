@@ -38,7 +38,7 @@
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "drv.h"
+#include "dplib/fsl_dpni_drv.h"
 #include "aiop_common.h"
 #include "system.h"
 #include "fsl_mc_init.h"
@@ -49,7 +49,8 @@ int dpni_drv_init(void);
 void dpni_drv_free(void);
 
 /* TODO - get rid */
-__SHRAM struct dpni_drv *nis;
+__SHRAM struct dpni_drv nis_first __attribute__((aligned(8)));
+__SHRAM struct dpni_drv *nis = &nis_first;
 __SHRAM int num_of_nis;
 
 void discard_rx_cb()
@@ -108,7 +109,8 @@ int dpni_drv_enable (uint16_t ni_id)
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 
-	if ((err = dpni_enable(&dprc->io, dpni_drv->dpni)) != 0)
+	if ((err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni))
+									!= 0)
 		return err;
 	return 0;
 }
@@ -120,7 +122,7 @@ int dpni_drv_disable (uint16_t ni_id)
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_disable(&dprc->io, dpni_drv->dpni);
+	return dpni_disable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
 }
 
 
@@ -139,7 +141,6 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	uint16_t qdid;
 	uint16_t spid;
 	struct dpni_attr attributes;
-	struct dpni_attach_cfg attach_params;
 
 	/* TODO: replace wrks_addr with global struct */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
@@ -174,7 +175,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			}
 
 			/* Save dpni regs and authentication ID in internal AIOP NI table */
-			nis[aiop_niid].dpni = dpni;
+			nis[aiop_niid].dpni_drv_params_var.dpni = dpni;
 
 			/* Register MAC address in internal AIOP NI table */
 			if ((err = dpni_get_primary_mac_addr(&dprc->io, dpni, mac_addr)) != 0) {
@@ -197,12 +198,6 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
-			memset (&attach_params, 0, sizeof(attach_params));
-			if ((err = dpni_attach(&dprc->io, dpni, &attach_params)) != 0) {
-				pr_err("Failed to attach parameters to DP-NI%d.\n", mc_niid);
-				return err;
-			}
-
 			if ((err = dpni_set_pools(&dprc->io, dpni, pools_params)) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;
@@ -223,14 +218,14 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				pr_err("Failed to get QDID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
-			nis[aiop_niid].qdid = qdid;
+			nis[aiop_niid].dpni_drv_tx_params_var.qdid = qdid;
 
 			/* Register SPID in internal AIOP NI table */
 			if ((err = dpni_get_spid(&dprc->io, dpni, &spid)) != 0) {
 				pr_err("Failed to get SPID for DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
-			nis[aiop_niid].spid = (uint8_t)spid; /*TODO: change to uint16_t in nis table for the next release*/
+			nis[aiop_niid].dpni_drv_params_var.spid = (uint8_t)spid; /*TODO: change to uint16_t in nis table for the next release*/
 
 
 #if 0
@@ -259,7 +254,7 @@ int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid)
 	struct dpni_drv *dpni_drv;
 
 	dpni_drv = nis + ni_id;
-	*spid = dpni_drv->spid;
+	*spid = dpni_drv->dpni_drv_params_var.spid;
 
 	return 0;
 }
@@ -285,7 +280,8 @@ int dpni_drv_add_mac_addr(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_add_mac_addr(&dprc->io, dpni_drv->dpni, mac_addr);
+	return dpni_add_mac_addr(&dprc->io, dpni_drv->dpni_drv_params_var.dpni,
+								mac_addr);
 }
 
 int dpni_drv_remove_mac_addr(uint16_t ni_id,
@@ -296,7 +292,8 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_remove_mac_addr(&dprc->io, dpni_drv->dpni, mac_addr);
+	return dpni_remove_mac_addr(&dprc->io,
+			dpni_drv->dpni_drv_params_var.dpni, mac_addr);
 }
 
 int dpni_drv_set_mfl(uint16_t ni_id,
@@ -307,7 +304,7 @@ int dpni_drv_set_mfl(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_set_mfl(&dprc->io, dpni_drv->dpni, mfl);
+	return dpni_set_mfl(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
 int dpni_drv_get_mfl(uint16_t ni_id,
@@ -318,7 +315,7 @@ int dpni_drv_get_mfl(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_mfl(&dprc->io, dpni_drv->dpni, mfl);
+	return dpni_get_mfl(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
 
@@ -392,17 +389,17 @@ int dpni_drv_init(void)
 		struct dpni_drv * dpni_drv = nis + i;
 		int	   j;
 
-		dpni_drv->aiop_niid    = (uint16_t)i;
+		dpni_drv->dpni_drv_tx_params_var.aiop_niid    = (uint16_t)i;
 #if 0
 		/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
 		dpni_drv->mc_niid      = 0;
 #endif
-		dpni_drv->spid         = 0;
-		dpni_drv->prpid        = prpid; /*parser profile id from parser_profile_init()*/
-		dpni_drv->starting_hxs = 0; //ETH HXS
-		dpni_drv->qdid         = 0;
-		dpni_drv->flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | DPNI_DRV_FLG_MTU_ENABLE;
-		dpni_drv->mtu          = 0xffff;
+		dpni_drv->dpni_drv_params_var.spid         = 0;
+		dpni_drv->dpni_drv_params_var.prpid        = prpid; /*parser profile id from parser_profile_init()*/
+		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
+		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
+		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | DPNI_DRV_FLG_MTU_ENABLE;
+		dpni_drv->dpni_drv_tx_params_var.mtu          = 0xffff;
 
 		/* put a default RX callback - dropping the frame */
 		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)

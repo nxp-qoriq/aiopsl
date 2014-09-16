@@ -32,9 +32,9 @@
 #ifndef __DPNI_DRV_H
 #define __DPNI_DRV_H
 
-#include "common/types.h"
-#include "dplib/fsl_dpni.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_dpni.h"
+#include "fsl_ldpaa.h"
 
 /**************************************************************************//**
 @Group		grp_dplib_aiop	DPLIB

@@ -143,12 +143,12 @@ static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
 	memset(dpci_tbl->dma_flags, 0, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	dpci_tbl->enq_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
-	if (dpci_tbl->enq_flags == NULL) {
+	dpci_tbl->bdi_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	if (dpci_tbl->bdi_flags == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->enq_flags, 0, size);
+	memset(dpci_tbl->bdi_flags, 0, size);
 
 	err = sys_add_handle(dpci_tbl,
 			     FSL_OS_MOD_DPCI_TBL,
@@ -204,8 +204,13 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	err |= dpci_get_attributes(&dprc->io,
 	                           dpci,
 				   &dpci_tbl->attr[ind]);
-
 	dpci_tbl->token[ind] = dpci;
+
+	if (!dpci_tbl->attr[ind].peer_attached) {
+		pr_err("DPCI %d has no peer ! ", dpci_tbl->attr[ind].id);
+		/* Don't return error maybe peer will be attached in the future */
+	}
+
 	return 0;
 }
 
@@ -257,11 +262,20 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	strcpy(endpoint2.type, "dpci");
 
 	err |= dpci_enable(&dprc->io, dpci);
+	if (err) {
+		pr_err("dpci_enable failed\n");
+	}
+
 	err |= dprc_connect(&dprc->io, dprc->token, &endpoint1, &endpoint2);
+	if (err) {
+		pr_err("dprc_connect failed\n");
+	}
+
 	err |= dpci_get_attributes(&dprc->io, dpci, &dpci_tbl->attr[ind]);
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
 		pr_err("MC<->AIOP DPCI link is down !\n");
+		/* Don't return error maybe it will be linked in the future */
 	}
 
 	dpci_tbl->token[ind] = dpci;

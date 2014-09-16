@@ -27,6 +27,8 @@
 #ifndef __ICONTEXT_H
 #define __ICONTEXT_H
 
+#if 0
+
 #define IC_MAX_NUM_SWC	64 /**< Maximal number of SW contextes */
 
 /** BDI */
@@ -74,5 +76,6 @@ struct ic_table {
 	uint8_t	 lock;
 	int    	 count;
 };
+#endif
 
 #endif
