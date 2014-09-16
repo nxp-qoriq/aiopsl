@@ -68,6 +68,8 @@ struct aiop_init_data g_init_data =
   0x40000000,	/* dp_ddr_virt_addr      */
   0x80000000,	/* peb_virt_addr      */
   0,	/* sys_ddr1_virt_addr */
+  0,	/* ccsr_vaddr */
+  0,	/* mc_portals_vaddr */
   2,	/* uart_port_id       MC */
   1,	/* mc_portal_id       MC */
   0,	/* mc_dpci_id         MC */
