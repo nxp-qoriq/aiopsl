@@ -31,9 +31,9 @@
 
 *//***************************************************************************/
 #include "general.h"
-#include "common/types.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
+#include "types.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
 
 #include "parser.h"
 #include "system.h"
