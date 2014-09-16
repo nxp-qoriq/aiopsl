@@ -227,7 +227,7 @@ inline int parse_result_generate_basic(void)
        __e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	/* Restore gross running sum */
-	tmp_running_sum = pr->gross_running_sum;
+	 pr->gross_running_sum = tmp_running_sum;
 
        status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
        if (status == PARSER_HW_STATUS_SUCCESS) {
