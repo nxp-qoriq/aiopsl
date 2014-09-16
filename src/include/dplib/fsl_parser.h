@@ -1535,7 +1535,7 @@ int parser_profile_delete(uint8_t prpid);
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 void parser_profile_query(uint8_t prpid,
-			struct parse_profile_record *parse_profile);
+			struct parse_profile_input *parse_profile);
 
 
 #include "parser_inline.h"

@@ -35,7 +35,7 @@
 #ifndef __AIOP_VERIFICATION_FDMA_H_
 #define __AIOP_VERIFICATION_FDMA_H_
 
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 #include "general.h"
 #include "fdma.h"
 

@@ -63,7 +63,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/* Add BDI bit */
 	/* Optimization: remove 1 cycle of or using rlwimi */
 	/* equal to arg1 = (va_bdi << 31) | arg1; */
-	__e_rlwimi(arg1, va_bdi, 31, 0, 0);
+	arg1 = __e_rlwimi(arg1, va_bdi, 31, 0, 0);
 	/* Move PL bit to the right offset */
 	icid_pl = (icid_pl << 11) & 0x04000000;
 	/* Add PL and VA to max_num_of_timers */
@@ -135,7 +135,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 				__LINE__,
 				(int)TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_PURGED);
 	}
-	for (i = 0; i < tmi_params.max_num_of_timers; i++)
+	for (i = 1; i <= tmi_params.max_num_of_timers; i++)
 	{
 		timer_handle = (i << 8) | tmi_id;
 		/* As in Rev1 only force expiration is supported */
@@ -166,7 +166,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 		(uint32_t)(conf_opaque_data2 << 16) | confirmation_epid;
 	Optimization: remove 2 cycles clear and shift */
-	__e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
+	epid = __e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 	/* Store first two command parameters */
 	__stdw(flags, tmi_id, HWC_ACC_IN_ADDRESS, 0);
@@ -249,7 +249,7 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 			(uint32_t)(opaque_data2 << 16) | epid;
 	Optimization: remove 2 cycles clear and shift */
-	__e_rlwimi(epid, opaque_data2, 16, 0, 15);
+	epid = __e_rlwimi(epid, opaque_data2, 16, 0, 15);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);
@@ -301,7 +301,7 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* One shot - TO occurred. 
 	 * Periodic - Timer was deleted */
 	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_DEL_CCP_WAIT_ERR)
-		return (int)(-ENAVAIL);
+		return (int)(-EACCES);
 	/* To check if its a TMAN state related error */
 	/* A=1 && CCP=1 */
 	/* Periodic- cannot be deleted as it deals with TO */
@@ -310,6 +310,12 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* To check if its a TMAN temporary error */
 	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
 		return (int)(-ETIMEDOUT);
+
+	/* The next code is due to Errata ERR008205 */
+	if(res1 == TMAN_DEL_TMR_NOT_ACTIVE_ERR)
+		return (int)(-ENAVAIL);
+	/* End of Errata ERR008205 related code */	
+
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(__FILE__,
