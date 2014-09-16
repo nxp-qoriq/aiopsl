@@ -113,7 +113,7 @@
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP_SHRAM   1000
-#define SLAB_MAX_NUM_VP_DDR     100
+#define SLAB_MAX_NUM_VP_DDR     64
 #define SLAB_NUM_OF_BUFS_DPDDR  750
 #define SLAB_NUM_OF_BUFS_PEB    20
 
@@ -187,6 +187,8 @@ struct slab_v_pool {
 	/**< Flags to use when using the pool - unused  */
 	uint16_t bman_array_index;
 	/**< Index of bman pool that the buffers were taken from*/
+	slab_release_cb_t *callback_func;
+	/**< Callback function to release virtual pool  */
 };
 
 /* BMAN Pool structure */
@@ -203,14 +205,14 @@ struct slab_bman_pool_desc {
 
 /* virtual root pool struct - holds all virtual pools data */
 struct slab_virtual_pools_main_desc {
-	struct slab_v_pool *virtual_pool_struct[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS];
+	struct slab_v_pool *virtual_pool_struct; /*cluster 0*/
 	/**< Pointer to virtual pools array*/
+	uint64_t slab_context_address[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS]; /*0 is not used*/
+	/**< memory to buffer for virtual pools array*/
 	uint16_t clusters_count[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS];
 	/**< Counter for virtual pools in cluster*/
-	slab_release_cb_t **callback_func[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS];
-	/**< Callback function to release virtual pool  */
-	uint16_t num_of_virtual_pools;
-	/**< Number of virtual pools pointed by this pool  */
+	uint64_t cluster_used_pools_bitmap[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS]; /*0 is not used*/
+	/**< Bitmap for virtual pools in cluster*/
 	uint8_t flags;
 	/**< Flags to use when using the pools - unused  */
 	uint8_t global_spinlock;
@@ -271,7 +273,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 /**************************************************************************//**
 @Function      slab_find_and_free_bpid
 
-@Description   Finds and free buffer pool with new buffers
+@Description   Finds and free buffer pool with new buffers.
 
 		This function is part of SLAB module therefore it should be
 		called only after it has been initialized by slab_module_init()
