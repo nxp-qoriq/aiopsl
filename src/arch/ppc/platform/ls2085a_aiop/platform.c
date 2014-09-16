@@ -105,6 +105,9 @@ const char *module_strings[] = {
 };
 extern __TASK uint32_t seed_32bit;
 
+static int build_mem_partitions_table(t_platform  *pltfrm);
+
+
 /*****************************************************************************/
 static void print_platform_info(t_platform *pltfrm)
 {
@@ -476,40 +479,19 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
     int                     err;
     uintptr_t               virt_base_addr;
     uint64_t                size;
-    int                     i, register_partition, index = 0;
+    int                     i, index = 0;
     char                    name[32];
 
     ASSERT_COND(pltfrm);
 
 //    if (pltfrm->param.user_init_hooks.f_init_memory_partitions)
 //        return pltfrm->param.user_init_hooks.f_init_memory_partitions(pltfrm);
-
+    build_mem_partitions_table(pltfrm);
+    
     for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-        memset(name, 0, sizeof(name));
-
-        switch (p_mem_info->mem_partition_id) {
-        case MEM_PART_DP_DDR:
-            sprintf(name, "%s", "DP_DDR");          
-            break;
-            /*
-        case MEM_PART_2ND_DDR_NON_CACHEABLE:
-            sprintf(name, "%s", "DDR #2 (AIOP) non cacheable");
-            register_partition = 1;
-            break;
-            */
-        case MEM_PART_SH_RAM:
-            sprintf(name, "%s", "Shared-SRAM");
-            break;
-        case MEM_PART_PEB:
-            sprintf(name, "%s", "PEB");         
-            break;
-        default:
-            break;
-        }
-
         err = sys_register_virt_mem_mapping(p_mem_info->virt_base_addr,
                                             p_mem_info->phys_base_addr,
                                             p_mem_info->size);
@@ -537,6 +519,31 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         }
     }
 
+    return E_OK;
+}
+
+/*****************************************************************************/
+static int build_mem_partitions_table(t_platform  *pltfrm)
+{
+	 t_platform_memory_info  *p_mem_info;
+	 int                     i;
+	 for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
+	        p_mem_info = &pltfrm->param.mem_info[i];
+	        switch (p_mem_info->mem_partition_id) {
+	        case MEM_PART_DP_DDR:
+	        	p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.ddr_vaddr;
+	        	p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr;
+	        	p_mem_info->size = g_init_data.app_data.dp_ddr_size;
+	        	break;
+	        case MEM_PART_PEB:
+	        	p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.peb_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.peb_paddr;
+	            p_mem_info->size = g_init_data.app_data.peb_size;
+	            break;
+	        case  MEM_PART_SYSTEM_DDR:
+	        	break;	        	
+	        }
+	 }
     return E_OK;
 }
 

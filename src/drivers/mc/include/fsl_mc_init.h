@@ -40,7 +40,7 @@ struct mc_dpci_obj {
 	uint16_t		*token;
 	uint16_t		*icid;		/**< ICID per DPCI */
 	uint32_t		*dma_flags;	/**< FDMA dma data flags */
-	uint32_t		*enq_flags;	/**< FDMA enqueue flags */
+	uint32_t		*bdi_flags;	/**< FDMA enqueue flags */
 	int    			count;
 };
 
