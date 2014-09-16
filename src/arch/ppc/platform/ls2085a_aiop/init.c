@@ -116,14 +116,16 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define MEMORY_PARTITIONS                                                                                         \
 {   /* Region ID                Memory partition ID  Phys. Addr.  Virt. Addr.  Size , Attributes */\
+	{PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF, \
+	0xFFFFFFFF,MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
+	{PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0xFFFFFFFF,  0xFFFFFFFF, \
+	0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
     {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,   0x80c000000LL, 0x0C000000,\
 	(64  * MEGABYTE),MEMORY_ATTR_NONE,"MC Portals"},\
     {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,   0x08000000,    0x10000000, \
 	(16 * MEGABYTE),MEMORY_ATTR_NONE,"SoC CCSR"  },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,    0x01010400,    0x01010400, \
 	(191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
-    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0xFFFFFFFF,  0xFFFFFFFF, \
-	0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,       0xFFFFFFFF,  0xFFFFFFFF, \
 	0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"PEB"},\
 }
