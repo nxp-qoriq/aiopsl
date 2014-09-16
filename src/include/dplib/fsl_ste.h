@@ -38,7 +38,7 @@
 #ifndef __FSL_STE_H
 #define __FSL_STE_H
 
-#include "common/types.h"
+#include "types.h"
 
 /**************************************************************************//**
  @Group		ACCEL ACCEL (Accelerator APIs)
@@ -292,6 +292,7 @@ enum e_ste_err_ec {
 
 /** @} end of group StatsErrors */
 
+#include "ste_inline.h"
 
 /**************************************************************************//**
 @Group		STE_functions Statistics functions
@@ -319,7 +320,7 @@ enum e_ste_err_ec {
 		the this function returns.
 
 *//****************************************************************************/
-void ste_set_32bit_counter(uint64_t counter_addr, uint32_t value);
+inline void ste_set_32bit_counter(uint64_t counter_addr, uint32_t value);
 
 /**************************************************************************//**
 @Function	ste_set_64bit_counter
@@ -338,7 +339,7 @@ void ste_set_32bit_counter(uint64_t counter_addr, uint32_t value);
 		the this function returns.
 
 *//****************************************************************************/
-void ste_set_64bit_counter(uint64_t counter_addr, uint64_t value);
+inline void ste_set_64bit_counter(uint64_t counter_addr, uint64_t value);
 
 /**************************************************************************//**
 @Function	ste_inc_counter
@@ -359,7 +360,7 @@ void ste_set_64bit_counter(uint64_t counter_addr, uint64_t value);
 		the this function returns.
 
 *//****************************************************************************/
-void ste_inc_counter(uint64_t counter_addr,
+inline void ste_inc_counter(uint64_t counter_addr,
 				      uint32_t inc_value, uint32_t flags);
 
 /**************************************************************************//**
@@ -382,7 +383,7 @@ void ste_inc_counter(uint64_t counter_addr,
 		the this function returns.
 
 *//****************************************************************************/
-void ste_dec_counter(uint64_t counter_addr,
+inline void ste_dec_counter(uint64_t counter_addr,
 				      uint32_t dec_value, uint32_t flags);
 
 /**************************************************************************//**
@@ -408,7 +409,7 @@ void ste_dec_counter(uint64_t counter_addr,
 		the this function returns.
 
 *//****************************************************************************/
-void ste_inc_and_acc_counters(uint64_t counter_addr,
+inline void ste_inc_and_acc_counters(uint64_t counter_addr,
 				  uint32_t acc_value, uint32_t flags);
 
 /**************************************************************************//**
@@ -434,7 +435,7 @@ void ste_inc_and_acc_counters(uint64_t counter_addr,
 		the this function returns.
 
 *//****************************************************************************/
-void ste_inc_and_sub_counters(uint64_t counter_addr,
+inline void ste_inc_and_sub_counters(uint64_t counter_addr,
 				  uint32_t acc_value, uint32_t flags);
 
 /**************************************************************************//**
@@ -460,7 +461,7 @@ void ste_inc_and_sub_counters(uint64_t counter_addr,
 		the this function returns.
 
 *//****************************************************************************/
-void ste_dec_and_acc_counters(uint64_t counter_addr,
+inline void ste_dec_and_acc_counters(uint64_t counter_addr,
 				  uint32_t acc_value, uint32_t flags);
 
 /**************************************************************************//**
@@ -486,7 +487,7 @@ void ste_dec_and_acc_counters(uint64_t counter_addr,
 		the this function returns.
 
 *//****************************************************************************/
-void ste_dec_and_sub_counters(uint64_t counter_addr,
+inline void ste_dec_and_sub_counters(uint64_t counter_addr,
 				  uint32_t acc_value, uint32_t flags);
 
 /**************************************************************************//**
