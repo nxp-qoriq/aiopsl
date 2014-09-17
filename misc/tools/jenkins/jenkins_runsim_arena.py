@@ -40,7 +40,7 @@ if __name__ == "__main__":
 	global g_capture 
 	g_capture = 0
 	pcap = 'NULL'
-	runsim = Popen(["./runsim","-t","-d","ls2085aiss","-nc","0","-pnc","00000000_00000000_00000000__10__00000000_00000000","-imodel","ls_sim_init_file=jenkins_ls2085a_sim_init_params.cfg", "-smodel","ls_sim_config_file=jenkins_ls2085a_sys_test.cfg","-noprog"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+	runsim = Popen(["./runsim","-t","-d","ls2085aiss","-nc","0","-pnc","00000000_00000000_00000000__11__00000000_00000000","-imodel","ls_sim_init_file=jenkins_ls2085a_sim_init_params.cfg", "-smodel","ls_sim_config_file=jenkins_ls2085a_sys_test.cfg","-noprog"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 	q = Queue()
 	t = Thread(target=enqueue_output, args=(runsim.stdout, q))
 	t.daemon = True # thread dies with the program
