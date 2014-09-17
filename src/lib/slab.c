@@ -49,17 +49,6 @@ __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 #define FOUND_SMALLER_SIZE(A, B) \
 	hw_pools[(A)].buff_size > hw_pools[(B)].buff_size
 
-/*  TODO use API from VPs when it will be added */
-//#define VP_DESC_ARR(SLAB) \
-	((struct slab_v_pool *)g_slab_virtual_pools.virtual_pool_struct[SLAB_CLUSTER_ID_GET(SLAB)])
-
-//#define VP_REMAINING_BUFFS(SLAB) \
-	(uint32_t)((VP_DESC_ARR + SLAB_VP_POOL_GET((SLAB)))->committed_bufs)
-
-//#define VP_BPID_GET(SLAB) \
-	(uint16_t)g_slab_bman_pools[(VP_DESC_ARR(SLAB_VP_POOL_GET(SLAB)) + \
-		SLAB_POOL_ID_GET(SLAB_VP_POOL_GET((SLAB))))->bman_array_index].bman_pool_id
-
 #define CP_POOL_DATA(MOD, INFO, I) \
 	{                                                              \
 		if (MOD->hw_pools[I].pool_id == INFO->pool_id) {       \
@@ -77,7 +66,7 @@ __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 static int slab_release_pool(register uint32_t slab_virtual_pool_id)
 {
 
-	uint32_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
+	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
 	struct slab_v_pool *slab_virtual_pool;
 	struct slab_v_pool slab_virtual_pool_ddr;
 	uint64_t pool_data_address;
@@ -162,7 +151,7 @@ __HOT_CODE static int slab_pool_allocate_buff(register uint32_t slab_virtual_poo
 {
 	int return_val;
 	int allocate = 0;
-	uint32_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id); /* fetch cluster ID*/
+	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id); /* fetch cluster ID*/
 	uint64_t pool_data_address;
 
 	struct slab_v_pool *slab_virtual_pool;
@@ -277,7 +266,7 @@ static int slab_read_pool(uint32_t slab_virtual_pool_id,
                                   slab_release_cb_t **callback_func)
 {
 
-	uint32_t cluster =SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
+	uint16_t cluster =SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
 	struct slab_v_pool *slab_virtual_pool;
 	struct slab_v_pool slab_virtual_pool_ddr;
 	slab_virtual_pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id); /*fetch pool id*/
@@ -592,7 +581,8 @@ int slab_create(uint32_t    committed_buffs,
                 struct slab **slab)
 {
 	int        error = 0;
-	uint32_t   cluster, slab_vpool_id;
+	uint16_t cluster;
+	uint32_t slab_vpool_id;
 	uint16_t bman_array_index = SLAB_MAX_BMAN_POOLS_NUM, bpid;
 	int i, found = FALSE;
 	struct slab_v_pool *slab_virtual_pool;
@@ -896,15 +886,34 @@ __HOT_CODE int slab_acquire(struct slab *slab, uint64_t *buff)
 /*****************************************************************************/
 /* Must be used only in DEBUG
  * Accessing DDR in runtime also fsl_os_phys_to_virt() is not optimized */
-#if 0
+
 static int slab_check_bpid(struct slab *slab, uint64_t buff)
 {
-	uint16_t bpid  = VP_BPID_GET(slab);
+	uint16_t bpid;
+	uint16_t cluster;
 	uint32_t meta_bpid = 0;
 	int      err = -EFAULT;
 	struct slab_module_info *slab_m = \
 		sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	meta_bpid = SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(slab));
+	struct slab_v_pool slab_virtual_pool_ddr;
+	cluster = SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(slab));
+	
+	if(cluster == 0){
+		bpid = g_slab_bman_pools[(g_slab_virtual_pools.virtual_pool_struct + meta_bpid)->bman_array_index].bman_pool_id;
+	}
+	else
+	{
+		cdma_read(&slab_virtual_pool_ddr,
+		          g_slab_virtual_pools.slab_context_address[cluster] +
+		          sizeof(slab_virtual_pool_ddr) * meta_bpid,
+		          (uint16_t)  sizeof(slab_virtual_pool_ddr));
+		bpid =g_slab_bman_pools[slab_virtual_pool_ddr.bman_array_index].bman_pool_id;
 
+	}
+
+	
+	
 	if (buff >= 8) {
 		fdma_dma_data(4,
 		              slab_m->icid,
@@ -918,19 +927,19 @@ static int slab_check_bpid(struct slab *slab, uint64_t buff)
 
 	return err;
 }
-#endif
+
 /*****************************************************************************/
 __HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
 {
 	register uint32_t slab_virtual_pool_id = SLAB_VP_POOL_GET(slab);
-	uint32_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
+	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
 	uint64_t pool_data_address;
 	struct slab_v_pool *slab_virtual_pool;
 	struct slab_v_pool slab_virtual_pool_ddr;
 
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
-	/*SLAB_ASSERT_COND_RETURN(slab_check_bpid(slab, buff) == 0, -EFAULT);*/
+	SLAB_ASSERT_COND_RETURN(slab_check_bpid(slab, buff) == 0, -EFAULT);
 #endif
 	slab_virtual_pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id); /*Fetch pool ID*/
 	if(cluster == 0) {

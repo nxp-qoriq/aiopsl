@@ -73,8 +73,8 @@
 
 /*Those macros should be use over SLAB_VP_POOL_GET/SET*/
 #define SLAB_POOL_ID_GET(POOL_ID) ((uint32_t)(POOL_ID & SLAB_POOL_ID_MASK))
-#define SLAB_CLUSTER_ID_GET(CLUSTER) ((uint32_t)((CLUSTER >> 15) & SLAB_CLUSTER_ID_MASK))
-#define SLAB_CLUSTER_ID_SET(CLUSTER) ((uint32_t)(CLUSTER << 15))
+#define SLAB_CLUSTER_ID_GET(CLUSTER) ((uint16_t)((CLUSTER >> 15) & SLAB_CLUSTER_ID_MASK))
+#define SLAB_CLUSTER_ID_SET(CLUSTER) ((uint32_t)((uint32_t)CLUSTER << 15))
 
 
 /**< Returns slab's virtual pool id*/
