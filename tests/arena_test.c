@@ -133,20 +133,20 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 	/*DPNI test*/
-	if(dpni_ctr == 5) /*disable mac after 3 injected packets, one of first 3 packets is broadcast*/
+	if(dpni_ctr == 38) /*disable mac after 38 injected packets, one of first 3 packets is broadcast*/
 	{
 		lock_spinlock(&dpni_lock);
-		if(dpni_ctr == 5)
+		if(dpni_ctr == 38)
 		{
 			for(ni = 0; ni < dpni_get_num_of_ni(); ni ++)
 			{
-				err = dpni_drv_remove_mac_addr((uint16_t)ni,((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff}));
+				err = dpni_drv_remove_mac_addr((uint16_t)ni,((uint8_t []){0x02,0x00,0xC0,0xA8,0x0B,0xFE}));
 				if(err != 0) {
-					fsl_os_print("dpni_drv_remove_mac_addr error FF:FF:FF:FF:FF:FF for ni %d\n",ni);
+					fsl_os_print("dpni_drv_remove_mac_addr error 02:00:C0:A8:0B:FE for ni %d\n",ni);
 					local_test_error |= err;
 				}
 				else {
-					fsl_os_print("dpni_drv_remove_mac_addr FF:FF:FF:FF:FF:FF for ni %d succeeded\n",ni);
+					fsl_os_print("dpni_drv_remove_mac_addr 02:00:C0:A8:0B:FE for ni %d succeeded\n",ni);
 				}
 			}
 			dpni_ctr ++; /*increase counter so the function will be called only once*/
