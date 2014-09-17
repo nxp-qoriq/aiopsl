@@ -51,8 +51,8 @@ if __name__ == "__main__":
 	# read line without blocking
 		time.sleep(1)
 		i += 1
-		if i == 300:
-			print 'Simulator is not responding 5 minutes'
+		if i == 420:
+			print 'Simulator is not responding 7 minutes'
 			exit_script(runsim,1)
 		while True:
 			try:  line = q.get_nowait()
