@@ -172,8 +172,8 @@ struct dpni_ipr_cfg {
 	uint16_t max_reass_frm_size;
 	uint16_t min_frag_size_ipv4;
 	uint16_t min_frag_size_ipv6;
-	uint32_t max_open_frames_ipv4;
-	uint32_t max_open_frames_ipv6;
+	uint16_t max_open_frames_ipv4;
+	uint16_t max_open_frames_ipv6;
 };
 
 /**
@@ -194,7 +194,7 @@ struct dpni_cfg {
 		uint8_t max_tcs;
 		/*!< maximum number of traffic-classes;
 		 will affect both Tx & Rx; '0' will e treated as '1' */
-		uint16_t max_dist_per_tc[DPNI_MAX_TC];
+		uint8_t max_dist_per_tc[DPNI_MAX_TC];
 		/*!< maximum distribution's size per Rx traffic-class;
 		 represent the maximum DPIO objects that will be
 		 referenced by this TC; In case it isn't power-of-2 it will
@@ -491,7 +491,7 @@ struct dpni_attr {
 	 initialization phase */
 	uint8_t max_tcs; /*!< reflect the value as was given in the
 	 initialization phase */
-	uint16_t max_dist_per_tc[DPNI_MAX_TC]; /*!< reflect the value
+	uint8_t max_dist_per_tc[DPNI_MAX_TC]; /*!< reflect the value
 	 as was given in the initialization phase */
 	uint8_t max_unicast_filters;
 	/*!< maximum number of unicast filters */

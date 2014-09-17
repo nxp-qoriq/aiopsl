@@ -792,7 +792,7 @@ static int bpid_init(struct slab_hw_pool_info *hw_pools,
 }
 
 static int dpbp_add(struct dprc_obj_desc *dev_desc, int ind,
-                    struct slab_bpid_info *bpids_arr, uint32_t bpids_arr_size,
+                    struct slab_bpid_info *bpids_arr,
                     struct mc_dprc *dprc)
 {
 	int      dpbp_id  = dev_desc->id;
@@ -800,11 +800,7 @@ static int dpbp_add(struct dprc_obj_desc *dev_desc, int ind,
 	uint16_t dpbp     = 0;
 	struct dpbp_attr attr;
 
-	if(ind >= bpids_arr_size) {
-		pr_err("Too many BPID's in the container num = %d\n", ind + 1);
-		return -EINVAL;
-	}
-
+	
 	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
 		return err;
@@ -874,13 +870,20 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	for (i = i+1; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
-			err = dpbp_add(&dev_desc, num_bpids, bpids_arr,
-			               bpids_arr_size, dprc);
-			if (err) {
-				*n_bpids = num_bpids;
-				return err;
+			
+			if(num_bpids >= bpids_arr_size) {
+				pr_err("Too many BPID's in the container num = %d\n", num_bpids + 1);
 			}
-			num_bpids++;
+			else
+			{
+				err = dpbp_add(&dev_desc, num_bpids, bpids_arr,
+						dprc);
+				if (err) {
+					*n_bpids = num_bpids;
+					return err;
+				}
+				num_bpids++;
+			}
 		}
 	}
 

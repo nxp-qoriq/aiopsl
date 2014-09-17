@@ -137,12 +137,12 @@ struct extract_data {
 do { \
 	MC_CMD_OP(cmd, 0, 0,	8,  uint8_t,  cfg->adv.max_tcs); \
 	MC_CMD_OP(cmd, 0, 8,	8,  uint8_t,  cfg->adv.max_senders); \
-	MC_CMD_OP(cmd, 0, 16,	8,  uint8_t,  cfg->mac_addr[0]); \
-	MC_CMD_OP(cmd, 0, 24,	8,  uint8_t,  cfg->mac_addr[1]); \
-	MC_CMD_OP(cmd, 0, 32,	8,  uint8_t,  cfg->mac_addr[2]); \
-	MC_CMD_OP(cmd, 0, 40,	8,  uint8_t,  cfg->mac_addr[3]); \
-	MC_CMD_OP(cmd, 0, 48,	8,  uint8_t,  cfg->mac_addr[4]); \
-	MC_CMD_OP(cmd, 0, 56,	8,  uint8_t,  cfg->mac_addr[5]); \
+	MC_CMD_OP(cmd, 0, 16,	8,  uint8_t,  cfg->mac_addr[5]); \
+	MC_CMD_OP(cmd, 0, 24,	8,  uint8_t,  cfg->mac_addr[4]); \
+	MC_CMD_OP(cmd, 0, 32,	8,  uint8_t,  cfg->mac_addr[3]); \
+	MC_CMD_OP(cmd, 0, 40,	8,  uint8_t,  cfg->mac_addr[2]); \
+	MC_CMD_OP(cmd, 0, 48,	8,  uint8_t,  cfg->mac_addr[1]); \
+	MC_CMD_OP(cmd, 0, 56,	8,  uint8_t,  cfg->mac_addr[0]); \
 	MC_CMD_OP(cmd, 1, 0,	64, uint64_t, cfg->adv.options); \
 	MC_CMD_OP(cmd, 2, 0,	8,  uint8_t,  cfg->adv.max_unicast_filters); \
 	MC_CMD_OP(cmd, 2, 8,	8,  uint8_t,  cfg->adv.max_multicast_filters); \
@@ -151,23 +151,23 @@ do { \
 	MC_CMD_OP(cmd, 2, 32,	8,  uint8_t,  cfg->adv.max_qos_key_size); \
 	MC_CMD_OP(cmd, 2, 48,	8,  uint8_t,  cfg->adv.max_dist_key_size); \
 	MC_CMD_OP(cmd, 2, 56,	8,  enum net_prot, cfg->adv.start_hdr); \
-	MC_CMD_OP(cmd, 4, 0,	16, uint16_t, cfg->adv.max_dist_per_tc[0]); \
-	MC_CMD_OP(cmd, 4, 16,	16, uint16_t, cfg->adv.max_dist_per_tc[1]); \
-	MC_CMD_OP(cmd, 4, 32,	16, uint16_t, cfg->adv.max_dist_per_tc[2]); \
-	MC_CMD_OP(cmd, 4, 48,	16, uint16_t, cfg->adv.max_dist_per_tc[3]); \
-	MC_CMD_OP(cmd, 5, 0,	16, uint16_t, cfg->adv.max_dist_per_tc[4]); \
-	MC_CMD_OP(cmd, 5, 16,	16, uint16_t, cfg->adv.max_dist_per_tc[5]); \
-	MC_CMD_OP(cmd, 5, 32,	16, uint16_t, cfg->adv.max_dist_per_tc[6]); \
-	MC_CMD_OP(cmd, 5, 48,	16, uint16_t, cfg->adv.max_dist_per_tc[7]); \
-	MC_CMD_OP(cmd, 6, 0,	16, uint16_t, \
+	MC_CMD_OP(cmd, 3, 0,	8,  uint8_t,  cfg->adv.max_dist_per_tc[0]); \
+	MC_CMD_OP(cmd, 3, 8,	8,  uint8_t,  cfg->adv.max_dist_per_tc[1]); \
+	MC_CMD_OP(cmd, 3, 16,	8,  uint8_t,  cfg->adv.max_dist_per_tc[2]); \
+	MC_CMD_OP(cmd, 3, 24,	8,  uint8_t,  cfg->adv.max_dist_per_tc[3]); \
+	MC_CMD_OP(cmd, 3, 32,	8,  uint8_t,  cfg->adv.max_dist_per_tc[4]); \
+	MC_CMD_OP(cmd, 3, 40,	8,  uint8_t,  cfg->adv.max_dist_per_tc[5]); \
+	MC_CMD_OP(cmd, 3, 48,	8,  uint8_t,  cfg->adv.max_dist_per_tc[6]); \
+	MC_CMD_OP(cmd, 3, 56,	8,  uint8_t,  cfg->adv.max_dist_per_tc[7]); \
+	MC_CMD_OP(cmd, 4, 0,	16, uint16_t, \
 	          	  	    cfg->adv.ipr_cfg.max_reass_frm_size); \
-	MC_CMD_OP(cmd, 6, 16,	16, uint16_t, \
+	MC_CMD_OP(cmd, 4, 16,	16, uint16_t, \
 	          	  	    cfg->adv.ipr_cfg.min_frag_size_ipv4); \
-	MC_CMD_OP(cmd, 6, 32,	16, uint16_t, \
+	MC_CMD_OP(cmd, 4, 32,	16, uint16_t, \
 	          	  	    cfg->adv.ipr_cfg.min_frag_size_ipv6); \
-	MC_CMD_OP(cmd, 3, 0,	32, uint32_t, \
+	MC_CMD_OP(cmd, 5, 0,	16, uint16_t, \
 	          	  	  cfg->adv.ipr_cfg.max_open_frames_ipv4); \
-	MC_CMD_OP(cmd, 3, 32,	32, uint32_t, \
+	MC_CMD_OP(cmd, 5, 16,	16, uint16_t, \
 	          	  	  cfg->adv.ipr_cfg.max_open_frames_ipv6); \
 } while (0)
 
@@ -188,20 +188,20 @@ do { \
 	MC_RSP_OP(cmd, 0, 40, 8,  uint8_t,  attr->max_senders); \
 	MC_RSP_OP(cmd, 0, 48, 8,  enum net_prot, attr->start_hdr); \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->options); \
-	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, attr->max_dist_per_tc[0]); \
-	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, attr->max_dist_per_tc[1]); \
-	MC_RSP_OP(cmd, 2, 32, 16, uint16_t, attr->max_dist_per_tc[2]); \
-	MC_RSP_OP(cmd, 2, 48, 16, uint16_t, attr->max_dist_per_tc[3]); \
-	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, attr->max_dist_per_tc[4]); \
-	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, attr->max_dist_per_tc[5]); \
-	MC_RSP_OP(cmd, 2, 32, 16, uint16_t, attr->max_dist_per_tc[6]); \
-	MC_RSP_OP(cmd, 2, 48, 16, uint16_t, attr->max_dist_per_tc[7]); \
-	MC_RSP_OP(cmd, 3, 0,  8,  uint8_t,  attr->max_unicast_filters); \
-	MC_RSP_OP(cmd, 3, 8,  8,  uint8_t,  attr->max_multicast_filters);\
-	MC_RSP_OP(cmd, 3, 16, 8,  uint8_t,  attr->max_vlan_filters); \
-	MC_RSP_OP(cmd, 3, 24, 8,  uint8_t,  attr->max_qos_entries); \
-	MC_RSP_OP(cmd, 3, 32, 8,  uint8_t,  attr->max_qos_key_size); \
-	MC_RSP_OP(cmd, 3, 40, 8,  uint8_t,  attr->max_dist_key_size); \
+	MC_RSP_OP(cmd, 2, 0,  8,  uint8_t,  attr->max_unicast_filters); \
+	MC_RSP_OP(cmd, 2, 8,  8,  uint8_t,  attr->max_multicast_filters);\
+	MC_RSP_OP(cmd, 2, 16, 8,  uint8_t,  attr->max_vlan_filters); \
+	MC_RSP_OP(cmd, 2, 24, 8,  uint8_t,  attr->max_qos_entries); \
+	MC_RSP_OP(cmd, 2, 32, 8,  uint8_t,  attr->max_qos_key_size); \
+	MC_RSP_OP(cmd, 2, 40, 8,  uint8_t,  attr->max_dist_key_size); \
+	MC_RSP_OP(cmd, 3, 0,  8,  uint8_t,  attr->max_dist_per_tc[0]); \
+	MC_RSP_OP(cmd, 3, 8,  8,  uint8_t,  attr->max_dist_per_tc[1]); \
+	MC_RSP_OP(cmd, 3, 16, 8,  uint8_t,  attr->max_dist_per_tc[2]); \
+	MC_RSP_OP(cmd, 3, 24, 8,  uint8_t,  attr->max_dist_per_tc[3]); \
+	MC_RSP_OP(cmd, 3, 32, 8,  uint8_t,  attr->max_dist_per_tc[4]); \
+	MC_RSP_OP(cmd, 3, 40, 8,  uint8_t,  attr->max_dist_per_tc[5]); \
+	MC_RSP_OP(cmd, 3, 48, 8,  uint8_t,  attr->max_dist_per_tc[6]); \
+	MC_RSP_OP(cmd, 3, 56, 8,  uint8_t,  attr->max_dist_per_tc[7]); \
 	MC_RSP_OP(cmd, 4, 0,  32, uint32_t, attr->version.major);\
 	MC_RSP_OP(cmd, 4, 32, 32, uint32_t, attr->version.minor);\
 } while (0)
@@ -338,45 +338,45 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_PRIMARY_MAC_ADDR(cmd, addr) \
 do { \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_PRIMARY_MAC_ADDR(cmd, addr) \
 do { \
-	MC_RSP_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_RSP_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_RSP_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_RSP_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_RSP_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_RSP_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_RSP_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_RSP_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_ADD_MAC_ADDR(cmd, addr) \
 do { \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_REMOVE_MAC_ADDR(cmd, addr) \
 do { \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */

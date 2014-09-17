@@ -1178,9 +1178,9 @@ int fdma_read_default_frame_pta(void *ws_dst);
 
 @remark		The extended data to be presented does not have to be
 		sequential relative to the current presented segment.
-@remark		If this command is executed on the default data segment then
-		after this command the default segment values in the
-		presentation context will not be valid.
+@remark		After this command the extended default segment (Data/ASA) 
+		values in the presentation context relevant to this segment 
+		will not be valid.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
