@@ -472,7 +472,7 @@ int ipsec_generate_encap_sd(
 		pdb_options |= IPSEC_ENC_PDB_OPTIONS_OIHI_PDB;
 	} else {
 	/* Transport Mode Parameters */
-		pdb_options |= IPSEC_ENC_OPTS_UPDATE_CSUM;
+		pdb_options |= (IPSEC_ENC_OPTS_UPDATE_CSUM | IPSEC_ENC_OPTS_INC_IPHDR);
 	}
 	
 	pdb.hmo = 
