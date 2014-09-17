@@ -148,6 +148,10 @@ enum rta_param_type {
 * Relevant for tunnel mode only */
 #define IPSEC_ENC_OPTS_ADD_IPHDR	0x000c /* Add IP header */
 
+/* Inc IPHdr - Include Optional IP Header, Prepend IP Header to output frame
+ * Required for transport mode. Must be together with IPHdrSrc = 0 */
+#define IPSEC_ENC_OPTS_INC_IPHDR	0x0004 /* Add IP header */
+
 //TODO: this was in fsl_ipsec.h, but probably not necessary, check if to remove
 /** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
  * IP header to inner IP header. Not valid for tunnel mode */
