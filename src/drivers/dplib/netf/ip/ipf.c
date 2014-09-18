@@ -31,16 +31,16 @@
 
 *//***************************************************************************/
 #include "general.h"
-#include "net/fsl_net.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_net.h"
+#include "fsl_parser.h"
+#include "fsl_fdma.h"
+#include "fsl_cdma.h"
+#include "fsl_ldpaa.h"
 #include "checksum.h"
 #include "ipf.h"
 #include "fdma.h"
 #include "ip.h"
-#include "common/fsl_stdlib.h"
+#include "fsl_stdlib.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
