@@ -335,13 +335,6 @@ int l4_udp_tcp_cksum_calc(uint8_t flags)
 	struct udphdr	*udph;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
-
-	/* Check if Gross Running Sum calculation is needed */
-	if (!pr->gross_running_sum) {
-		fdma_calculate_default_frame_checksum(0, 0xFFFF,
-						      &pr->gross_running_sum);
-	}
-
 	/* Call parser */
 	hw_status = parse_result_generate_checksum(
 			(enum parser_starting_hxs_code)

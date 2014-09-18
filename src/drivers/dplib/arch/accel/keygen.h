@@ -35,7 +35,7 @@
 #define __KEYGEN_H
 
 #include "general.h"
-#include "dplib/fsl_keygen.h"
+#include "fsl_keygen.h"
 
 /**************************************************************************//**
 @Group	KEYGEN AIOP KEYGEN Internal
