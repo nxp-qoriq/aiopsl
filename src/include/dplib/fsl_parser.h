@@ -34,8 +34,8 @@
 #ifndef __FSL_PARSER_H
 #define __FSL_PARSER_H
 
-#include "common/types.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_ldpaa.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -412,7 +412,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @Description	These macros return a non-zero value in case an error in
 		the relevant frame's attribute was found.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 
@@ -530,7 +530,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @Description	These macros return a non-zero value in case the relevant
 		attribute was found in the frame.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 /** Returns a non-zero value in case Ethernet MAC is found */
@@ -847,7 +847,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 		in the frame. Offset 0xFF indicates that the corresponding
 		protocol was not found in the frame.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 
@@ -941,7 +941,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @Description	These macros return the pointer to the relevant protocol
 		in the frame.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 
@@ -1258,7 +1258,7 @@ struct parse_result {
 	uint8_t  nxt_hdr_offset;
 	/** IPv6 fragmentable part offset */
 	uint8_t  ipv6_frag_offset;
-	/** Frame's untouched running sum */
+	/** Frame's untouched running sum, input to parser */
 	uint16_t gross_running_sum;
 	/** Running Sum */
 	uint16_t running_sum;
@@ -1543,14 +1543,16 @@ void parser_profile_query(uint8_t prpid,
 /**************************************************************************//**
 @Function	parse_result_generate_default
 
-@Description	Runs parser with default parameters and generates parse result.
+@Description	Runs parser with default task parameters and generates
+		parse result.
 		This function provides, on a per Parse Profile basis,
 		examination of a frame at the start of the frame (offset 0)
 		with presumption of the first header type as configured in the
 		default starting HXS.
 
 		Implicit input parameters:
-		Segment address, Segment size, Parser Profile ID, Starting HXS.
+		FD, Segment address, Segment size, Parser Profile ID,
+		Starting HXS.
 
 		Implicitly updated values in Task Defaults in the HWC:
 		Parser Result.
@@ -1572,8 +1574,10 @@ void parser_profile_query(uint8_t prpid,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
- 	 	In case the gross running sum is not correct, the user must
- 	 	clear it before calling parser.
+		In case gross running sum is clear, and L4 validation is not
+		required, running sum field in the parse result is not valid.
+ 	 	In case L4 validation is required but the gross running sum is
+ 	 	not correct, the user must clear it before calling parser.
 *//***************************************************************************/
 inline int parse_result_generate_default(uint8_t flags);
 
@@ -1587,7 +1591,7 @@ inline int parse_result_generate_default(uint8_t flags);
 		first header type.
 
 		Implicit input parameters:
-		Segment address, Segment size, Parser Profile ID.
+		FD, Segment address, Segment size, Parser Profile ID.
 
 		Implicitly updated values in Task Defaults in the HWC:
 		Parser Result.
@@ -1614,8 +1618,10 @@ inline int parse_result_generate_default(uint8_t flags);
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
- 	 	In case the gross running sum is not correct, the user must
- 	 	clear it before calling parser.
+		In case gross running sum is clear, and L4 validation is not
+		required, running sum field in the parse result is not valid.
+ 	 	In case L4 validation is required but the gross running sum is
+ 	 	not correct, the user must clear it before calling parser.
 *//***************************************************************************/
 inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);
@@ -1628,7 +1634,7 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		starting_offset = 0, no checksum validation.
 
 		Implicit input parameters:
-		Segment address, Segment size.
+		FD, Segment address, Segment size.
 
 		Implicitly updated values in Task Defaults in the HWC:
 		Parser Result.
@@ -1646,6 +1652,8 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
+ 	 	If input gross running sum is not correct, both "gross running
+ 	 	sum" and "running sum" fields in the parse result are not valid.
 *//***************************************************************************/
 inline int parse_result_generate_basic(void);
 

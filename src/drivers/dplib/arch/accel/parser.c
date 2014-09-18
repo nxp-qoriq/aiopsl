@@ -31,9 +31,9 @@
 
 *//***************************************************************************/
 #include "general.h"
-#include "common/types.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
+#include "types.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
 
 #include "parser.h"
 #include "system.h"
@@ -135,20 +135,20 @@ int parse_result_generate_checksum(
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum)
 {
-	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct parser_input_message_params input_struct
 					__attribute__((aligned(16)));
 
-	arg3=0;
-	arg4=0;
-	       
-	__stdw(arg3, arg4, 0, &input_struct);
-	__stdw(arg3, arg4, 8, &input_struct);
-	__stdw(arg3, arg4, 16, &input_struct);
-
-	input_struct.gross_running_sum = pr->gross_running_sum;
+	
+	/* Check if Gross Running Sum calculation is needed */
+	if (!pr->gross_running_sum) {
+		fdma_calculate_default_frame_checksum(0, 0xFFFF,
+					      &input_struct.gross_running_sum);
+	} else {
+		input_struct.gross_running_sum = pr->gross_running_sum;
+	}
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
 	__e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
