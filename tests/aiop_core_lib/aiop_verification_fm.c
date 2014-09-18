@@ -60,7 +60,7 @@ void aiop_verification_fm()
 	uint32_t opcode;
 
 	init_verif();
-
+	
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
 			/* PTA was already loaded */
@@ -192,6 +192,35 @@ void aiop_verification_fm()
 			str->status = 0;
 			str_size = (uint16_t)
 				sizeof(struct write_data_to_workspace_command);
+			break;
+		}
+		case UPDATE_EXT_VARIABLE:
+		{
+
+			struct update_ext_cmd_var_command *str =
+				(struct update_ext_cmd_var_command *)
+					data_addr;
+			uint32_t value;
+			cdma_read_with_mutex(initial_ext_address + str->offset,
+						CDMA_PREDMA_MUTEX_WRITE_LOCK,
+						&value,
+						4);
+			switch (str->operation)
+			{
+			case INCREMENT_OPER: value = value + str->value; break;
+			case DECREMENT_OPER: value = value - str->value; break;
+			case SET_OPER: 	value = str->value; break;	
+			default:
+				value = str->value;
+			}
+			
+			cdma_write_with_mutex(initial_ext_address + str->offset,
+						CDMA_POSTDMA_MUTEX_RM_BIT,
+						&value,
+						4);
+			
+			str_size = (uint16_t)
+				sizeof(struct update_ext_cmd_var_command);
 			break;
 		}
 		case IF_MODULE:

@@ -1,4 +1,11 @@
-- dpl.dts           Added DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED to AIOP container.
+- config.h        Create a new file where  the user is supposed to define aiop_init_data structure.
+- fsl_platform.h  Added MEM_PART_MC_PORTALS and MEM_PART_CCSR memory partitions.
+- slab.c	If given more when supported number of bpids in layot file, the dpbp_add will ignore them without error return.
+            The slab will only notify about the error.
+- aiop_link.lcf  Added variables AIOP_DDR_START and AIOP_DDR_END that mark start and end of AIOP image that is put into DP_DDR.
+                 These  variables must appear in linker for proper AIOP memory partition creation.
+- platform.c     AIOP memory paritions are built dynamically based on aiop_app_init_info structure that is filled on MC side.			 
+
 - .cproject (all)   Added paths to "${ProjDirPath}/../../../../src/drivers/dplib" and "${ProjDirPath}/../../../../src/mc/include"
 - time.c:           Added time_init/free in global modules to support time period received from MC. If time period is 1000 then pointer function set up to use fast implementation,
                     otherwise an error will appear. (to support slow implementation we must use division in AIOP).
@@ -7,6 +14,7 @@
 - platform.c, init.c, fsl_soc_spec_ls2085a.h: UART port/offset configured by MC.
 
 - fsl_slab.      New API for slab increment/decrement reference count: int slab_refcount_decr(uint64_t buff), void slab_refcount_incr(uint64_t buff).
+ 
 - slab.c:        New implementation for slab release, refcount_incr, refcount_decr using approach 1 (The user is responsible to call slab release if reference count is 0 (return 0x3)).
 
 - mc_init.c          Use g_init_data.sl_data.mc_portal_id instead of hard coded 1.
@@ -15,7 +23,7 @@
 
 - fsl_dma.h                    New API for ICID aware memory accesses.
 - time.c/h fsl_time.h:         Optimization was made for time queries (fsl_get_time_ms() and fsl_get_time_since_epoch())
->>>>>>> c2bc676554b4087e1e583ea82f0cd4f587e86924
+
 - fsl_soc.aiop_spec.h          Deleted FSL_OS_MOD_CMDIF_SRV.
 - cmdif_srv.c                  Removed sys_get_handle(FSL_OS_MOD_CMDIF_SRV) as part of optimization.
 - aiop_link.lcf                LCF cleanups, removed unused memory regions.

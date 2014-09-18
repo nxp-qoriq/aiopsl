@@ -32,10 +32,10 @@
 *//***************************************************************************/
 #include "system.h"
 #include "id_pool.h"
-#include "dplib/fsl_cdma.h"
+#include "fsl_cdma.h"
 #include "fsl_platform.h"
 
-#include "dplib/fsl_ipsec.h"
+#include "fsl_ipsec.h"
 #include "ipsec.h"
 
 #ifdef AIOP_VERIF
