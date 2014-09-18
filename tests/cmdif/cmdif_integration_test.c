@@ -39,7 +39,7 @@
 #include "fsl_icontext.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
-#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
+#warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If you test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
 

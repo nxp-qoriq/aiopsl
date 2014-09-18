@@ -184,13 +184,6 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			}
 			memcpy(nis[aiop_niid].mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
 
-			/* Register Broadcast MAC address*/
-			if ((err = dpni_add_mac_addr(&dprc->io, dpni, ETH_BROADCAST_ADDR)) != 0) {
-				pr_err("Failed to add MAC address for DP-NI%d\n", mc_niid);
-				return err;
-			}
-
-
 			if ((err = dpni_get_attributes(&dprc->io, dpni, &attributes)) != 0) {
 				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
 				return err;
