@@ -182,7 +182,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		bpid =  (uint16_t)(((uint8_t *)data)[1]);
 
 		err = icontext_get(dpci_id, &ic);
-		fsl_os_print("Isolation context test dpci %d:\n", dpci_id);
+		fsl_os_print("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
 		fsl_os_print("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
 		             ic.icid,
 		             ic.dma_flags,
