@@ -176,7 +176,7 @@ struct additional_dequeue_context {
 		 *	- 4 BPSCN Message\n
 		 *	- 5-7 Reserved.
 		 *	.
-		 * - bits<5>  : Virtual Address.
+		 * - bits<5>  : Virtual Address (configured in Frame Queue).
 		 * - bits<6>  : FQD_CTX_FMT or Dequeue Response FQD Context
 		 * Format. Indicates the format of the received FQD_CTX field.
 		 * - bits<7>  : Bypass DPAA Resource Isolation
