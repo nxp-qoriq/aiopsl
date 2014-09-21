@@ -35,14 +35,18 @@
 #include "fsl_dbg.h"
 #include "fsl_icontext.h"
 #include "fsl_mc_init.h"
+#include "fsl_spinlock.h"
+#include "cmdif_client_aiop.h" /* TODO remove it !!! */
 
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
-	ASSERT_COND((ic != NULL) && (dt != NULL));
+	ASSERT_COND((ic != NULL) && (dt != NULL) && (cl != NULL));
 
+	lock_spinlock(&cl->lock); /* TODO make it lock per dpci table not client ! */
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
@@ -57,6 +61,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 			return 0;
 		}
 	}
+	unlock_spinlock(&cl->lock);
 
 	/* copy pointer from icid table */
 	return -ENOENT;
