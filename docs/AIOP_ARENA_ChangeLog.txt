@@ -1,3 +1,4 @@
+- dpl.dts/dtb:    Added DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED to AIOP container.
 - fsl_icontext.h  New API for isolation context aware memory accesses and for BMAN pool.
 - config.c        Fill real default addresses values in aiop_sl_init_info. Those addresses correspond to the ones that MC fills.
 - config.c        Create a new file where  the user is supposed to define aiop_init_data structure.
