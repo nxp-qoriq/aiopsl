@@ -69,7 +69,7 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 		if (PL_GET(PL_AND_ICID))	\
 			FL |= FDMA_DMA_PL_BIT;	\
 		if (VA_GET)			\
-			FL |= FDMA_DMA_VA_BIT;	\
+			FL |= FDMA_DMA_eVA_BIT;	\
 		if (BMT_GET)			\
 			FL |= FDMA_DMA_BMT_BIT;	\
 	}while(0)
