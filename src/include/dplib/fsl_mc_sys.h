@@ -64,7 +64,15 @@
 #include "common/types.h"
 #include "fsl_errors.h"
 #include "fsl_io.h"
+#include "fsl_malloc.h"
+
 #define __iomem
+
+static inline uint64_t iova_alloc(size_t size)
+{
+	return PTR_TO_UINT(fsl_os_malloc(size));
+}
+
 
 static inline uint64_t virt_to_phys(void *vaddr)
 {

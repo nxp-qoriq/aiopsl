@@ -54,8 +54,6 @@
 /* TODO - move to soc files */
 #define SOC_MAX_NUM_OF_DPNI		128
 
-#define DPNI_DRV_MAX_NUM_FLOWS		8
-
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
 @{
