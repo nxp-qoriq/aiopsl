@@ -42,62 +42,9 @@
 
 extern t_system sys;
 
-/*********************************************************************/
-/*
- * This addition if for dynamic aiop load
- */
-/* Place MC <-> AIOP structures at fixed address.
- * Don't create new macro for section because no one else should use it */
-#pragma push
-#pragma force_active on
-#pragma section  RW ".aiop_init_data" ".aiop_init_data_bss"
-__declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
-#pragma pop
-
-/* TODO set good default values
- * TODO Update and review structure */
-struct aiop_init_data g_init_data =
-{
- /* aiop_sl_init_info */
- {
-  4,	/* aiop_rev_major     AIOP  */
-  2,	/* aiop_rev_minor     AIOP  */
-  0x6018000000,	/* dp_ddr_phys_addr      */
-  0x4c00200000,	/* peb_phys_addr      */
-  0,		/* sys_ddr1_phys_add  */
-  0x40000000,	/* dp_ddr_virt_addr      */
-  0x80000000,	/* peb_virt_addr      */
-  0,	/* sys_ddr1_virt_addr */
-  0,	/* ccsr_vaddr */
-  0,	/* mc_portals_vaddr */
-  2,	/* uart_port_id       MC */
-  1,	/* mc_portal_id       MC */
-  0,	/* mc_dpci_id         MC */
-  1000,	/* clock_period       MC */
-  {0}	/* reserved           */
- },
- /* aiop_app_init_info */
- {
-  (128 * MEGABYTE),	/* dp_ddr_size */
-  (2 * MEGABYTE),	/* peb_size */
-  0,	/* ddr1_size */
-  2048,			/* ctlu_sys_ddr_num_entries */
-  2048,			/* ctlu_dp_ddr_num_entries */
-  2048,			/* ctlu_peb_num_entries */
-  2048,			/* mflu_sys_ddr_num_entries */
-  2048,			/* mflu_dp_ddr_num_entries */
-  2048,			/* mflu_peb_num_entries */
-  0x100000,	/* sru_size */
-  1000000,	/* tman_freq */
-  4,	/* tasks_per_core */
-  {0}	/* reserved */
- }
-};
-
-
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
-
+extern struct aiop_init_data g_init_data;
 /*********************************************************************/
 extern int time_init();             extern void time_free();
 extern int mc_obj_init();           extern void mc_obj_free();
@@ -115,21 +62,21 @@ extern void cmdif_srv_isr(void);
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
-
+// TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
 #define MEMORY_PARTITIONS                                                                                         \
 {   /* Region ID                Memory partition ID  Phys. Addr.  Virt. Addr.  Size , Attributes */\
-	{PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF, \
-	0xFFFFFFFF,MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
-	{PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0xFFFFFFFF,  0xFFFFFFFF, \
-	0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
-    {PLTFRM_MEM_RGN_MC_PORTALS, MEM_PART_INVALID,   0x80c000000LL, 0x0C000000,\
-	(64  * MEGABYTE),MEMORY_ATTR_NONE,"MC Portals"},\
-    {PLTFRM_MEM_RGN_CCSR,       MEM_PART_INVALID,   0x08000000,    0x10000000, \
-	(16 * MEGABYTE),MEMORY_ATTR_NONE,"SoC CCSR"  },\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF, \
+    0xFFFFFFFF,MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
+    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0xFFFFFFFF,  0xFFFFFFFF, \
+    0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
+    {MEM_PART_SYSTEM_DDR, MEM_PART_MC_PORTALS,   0x80c000000LL, 0xFFFFFFFF,\
+    (64  * MEGABYTE),MEMORY_ATTR_NONE,"MC Portals"},\
+    {MEM_PART_SYSTEM_DDR,       MEM_PART_CCSR,   0x08000000,    0xFFFFFFFF, \
+    (16 * MEGABYTE),MEMORY_ATTR_NONE,"SoC CCSR"  },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,    0x01010400,    0x01010400, \
-	(191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
+    (191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,       0xFFFFFFFF,  0xFFFFFFFF, \
-	0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"PEB"},\
+    0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"PEB"},\
 }
 
 #define GLOBAL_MODULES                     \

@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "fsl_dbg.h"
 #include "common/types.h"
 #include "fsl_malloc.h"
 #include "common/fsl_string.h"
@@ -34,10 +35,8 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
-
 #include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
-//#include "fsl_stdio.h" for fsl_os_print
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 extern struct aiop_init_data g_init_data;
@@ -213,6 +212,27 @@ static void print_platform_info(t_platform *pltfrm)
 
     count += sprintf((char *)&buf[count], "\n");
     fsl_os_print(buf);
+}
+
+/*****************************************************************************/
+static int find_mem_partition_index(t_platform_memory_info  *mem_info,
+                                    int32_t   mem_partition)
+{
+    int i;
+
+    ASSERT_COND(mem_info);
+
+    for (i = 0; i < PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
+        if (mem_info[i].size == 0)
+            break;
+
+        if ((mem_info[i].mem_partition_id == mem_partition))
+            /* Found requested memory region */
+            return i;
+    }
+
+    /* Not found */
+    return -1;
 }
 
 /*****************************************************************************/
@@ -536,46 +556,65 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        ASSERT_COND(p_mem_info);
 	        switch (p_mem_info->mem_partition_id) {
 	        case MEM_PART_DEFAULT_HEAP_PARTITION:	        	
-	        	p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	        	p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr;
-	        	p_mem_info->size = aiop_lcf_ddr_size;
-#if 0   	
-	        	fsl_os_print("Default Heap parition: virt_add= 0x%x, phys_add = 0x%x%x,size = 0x%x\n",
-	        			                p_mem_info->virt_base_addr,
-	        			                (uint32_t)(p_mem_info->phys_base_addr>>32),
-	        			                (uint32_t)(p_mem_info->phys_base_addr),
-	        			                (uint32_t)p_mem_info->size);
-#endif	        	
+	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr;
+	            p_mem_info->size = aiop_lcf_ddr_size;   	
+	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
+	                     p_mem_info->virt_base_addr,
+	        	     (uint32_t)(p_mem_info->phys_base_addr>>32),
+	        	     (uint32_t)(p_mem_info->phys_base_addr),
+	                     (uint32_t)(p_mem_info->size));
+	        	
 	        	break;
 	        case MEM_PART_DP_DDR:
-	        	p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.ddr_vaddr +
+	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.ddr_vaddr +
 	        	        aiop_lcf_ddr_size;
-	        	p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr + 
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr + 
 	        			aiop_lcf_ddr_size;
-	        	p_mem_info->size = g_init_data.app_data.dp_ddr_size - 
-	        			aiop_lcf_ddr_size;
-#if 0	        	
-	        	fsl_os_print("\nMEM_PART_DP_DDR: virt_add= 0x%x, phys_add = 0x%x%x,size = 0x%x\n",
-	        			        p_mem_info->virt_base_addr,
-	                            (uint32_t)(p_mem_info->phys_base_addr >> 32),
-	        		            (uint32_t)(p_mem_info->phys_base_addr),
-	        		        	(uint32_t)p_mem_info->size);
-#endif	        	
-	        	break;
+	            p_mem_info->size = g_init_data.app_data.dp_ddr_size - 
+	        			aiop_lcf_ddr_size;        	
+	            pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+	        	      p_mem_info->virt_base_addr,
+	                      (uint32_t)(p_mem_info->phys_base_addr >> 32),
+	        	      (uint32_t)(p_mem_info->phys_base_addr),
+	        	      (uint32_t)(p_mem_info->size));
+	            break;
 	        case MEM_PART_PEB:
-	        	p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.peb_vaddr;
+	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.peb_vaddr;
 	            p_mem_info->phys_base_addr = g_init_data.sl_data.peb_paddr;
-	            p_mem_info->size = g_init_data.app_data.peb_size;
-#if 0	            
-	            fsl_os_print("\nMEM_PART_PEB: virt_add= 0x%x, phys_add = 0x%x%x,size = 0x%x\n",
-	            		    p_mem_info->virt_base_addr,
-	            	        (uint32_t)(p_mem_info->phys_base_addr >> 32),
-	            	        (uint32_t)(p_mem_info->phys_base_addr),
-	            	        (uint32_t)p_mem_info->size);
-#endif	            
+	            p_mem_info->size = g_init_data.app_data.peb_size;            
+	            pr_debug("MEM_PART_PEB:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+	            	     p_mem_info->virt_base_addr,
+	            	     (uint32_t)(p_mem_info->phys_base_addr >> 32),
+	            	     (uint32_t)(p_mem_info->phys_base_addr),
+	            	     (uint32_t)(p_mem_info->size));
 	            break;
 	        case  MEM_PART_SYSTEM_DDR:
-	        	break;	        	
+	            break;	        	
+	        case MEM_PART_MC_PORTALS:
+	            p_mem_info->virt_base_addr = 
+	        	       (uint32_t)g_init_data.sl_data.mc_portals_vaddr;
+	            // TODO fill all the rest fields from g_init_data.sl_data
+	            /* Store MC-Portals bases (for convenience) */
+	            pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;
+	            pr_debug("MEM_PART_MC_PORTALS:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+	          	      p_mem_info->virt_base_addr,
+	          	      (uint32_t)(p_mem_info->phys_base_addr >> 32),
+                              (uint32_t)(p_mem_info->phys_base_addr),
+	          	      (uint32_t)(p_mem_info->size));
+	            break;
+	        case MEM_PART_CCSR:
+	            p_mem_info->virt_base_addr = 
+	                            (uint32_t)g_init_data.sl_data.ccsr_vaddr;
+	            // TODO fill all the rest fields from g_init_data.sl_data
+	            /* Store CCSR base (for convenience) */
+	            pltfrm->ccsr_base =  p_mem_info->virt_base_addr;
+	            pr_debug("MEM_PART_CCSR:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
+	            	     p_mem_info->virt_base_addr,
+	            	     (uint32_t)(p_mem_info->phys_base_addr >> 32),
+	                     (uint32_t)(p_mem_info->phys_base_addr),
+	            	     (uint32_t)(p_mem_info->size));
+	            break;
 	        }
 	 }
     return E_OK;
@@ -653,7 +692,7 @@ int platform_init(struct platform_param    *pltfrm_param,
                   t_platform_ops           *pltfrm_ops)
 {
     t_platform      *pltfrm;
-    int             i, mem_index;
+    int             i;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
     SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
@@ -686,19 +725,8 @@ int platform_init(struct platform_param    *pltfrm_param,
                                   &(pltfrm->prog_runs_from));
     ASSERT_COND(err == E_OK);
 #endif
-    /* Store CCSR base (for convenience) */
-    mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_CCSR);
-    ASSERT_COND(mem_index != -1);
-    pltfrm->ccsr_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
-
     /* Store AIOP-peripherals base (for convenience) */
     pltfrm->aiop_base = AIOP_PERIPHERALS_OFF;
-
-    /* Store MC-Portals bases (for convenience) */
-    mem_index = find_mem_region_index(pltfrm->param.mem_info, PLTFRM_MEM_RGN_MC_PORTALS);
-    if (mem_index != -1)
-    	pltfrm->mc_portals_base = pltfrm->param.mem_info[mem_index].virt_base_addr;
-
     /* Initialize platform operations structure */
     pltfrm_ops->h_platform              = pltfrm;
     pltfrm_ops->f_init_core             = pltfrm_init_core_cb;

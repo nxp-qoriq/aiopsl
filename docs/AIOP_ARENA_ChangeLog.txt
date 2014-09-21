@@ -1,4 +1,7 @@
-
+- config.h        Create a new file where  the user is supposed to define aiop_init_data structure.
+- fsl_platform.h  Added MEM_PART_MC_PORTALS and MEM_PART_CCSR memory partitions.
+- slab.c	If given more when supported number of bpids in layot file, the dpbp_add will ignore them without error return.
+            The slab will only notify about the error.
 - aiop_link.lcf  Added variables AIOP_DDR_START and AIOP_DDR_END that mark start and end of AIOP image that is put into DP_DDR.
                  These  variables must appear in linker for proper AIOP memory partition creation.
 - platform.c     AIOP memory paritions are built dynamically based on aiop_app_init_info structure that is filled on MC side.			 
