@@ -185,7 +185,6 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 	err = dpni_drv_register_rx_cb(1,
-				      0,
 				      app_process_packet_flow0,
 				      1);
 	
