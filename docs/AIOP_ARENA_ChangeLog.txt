@@ -1,4 +1,5 @@
 - fsl_icontext.h  New API for isolation context aware memory accesses and for BMAN pool.
+- config.c        Fill real default addresses values in aiop_sl_init_info. Those addresses correspond to the ones that MC fills.
 - config.c        Create a new file where  the user is supposed to define aiop_init_data structure.
 - fsl_platform.h  Added MEM_PART_MC_PORTALS and MEM_PART_CCSR memory partitions.
 - slab.c          If given more when supported number of bpids in layot file, the dpbp_add will ignore them without error return.

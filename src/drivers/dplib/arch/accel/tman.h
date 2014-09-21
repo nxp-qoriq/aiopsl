@@ -278,8 +278,6 @@ enum tman_function_identifier {
 #define FD_HASH_OFFSET		0x1C
 /** Number of command retries - for debug purposes */
 #define TMAN_MAX_RETRIES	100000
-/** The TMI creation logic is currently busy with another TMI create */
-#define TMAN_TMI_CREATE_TMP_ERR_MASK	0x00000040
 /** The TMI deletion logic is currently busy with another TMI delete */
 #define TMAN_TMI_DEL_TMP_ERR_MASK	0x00000020
 /** The TMI deletion logic is currently busy with another TMI delete */
