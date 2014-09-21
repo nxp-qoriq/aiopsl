@@ -55,8 +55,6 @@
 	The callback function will be called when the NI_ID receives a frame.
 
 @Param[in]	ni_id  - The Network Interface ID
-@Param[in]	flow_id - Flow ID, should be between 0 and
-		#DPNI_DRV_MAX_NUM_FLOWS
 @Param[in]	cb - Callback function for Network Interface specified flow_id
 @Param[in]	arg - Argument that will be passed to callback function
 
@@ -65,7 +63,6 @@
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
-			uint16_t        flow_id,
 			rx_cb_t		    *cb,
 			dpni_drv_app_arg_t arg);
 
@@ -78,15 +75,12 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 		receives a frame
 
 @Param[in]	ni_id - The Network Interface ID
-@Param[in]	flow_id - Flow ID, should be between 0 and
-		#DPNI_DRV_MAX_NUM_FLOWS
 
 @Return	OK on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_unregister_rx_cb(uint16_t		ni_id,
-                              uint16_t		flow_id);
+int dpni_drv_unregister_rx_cb(uint16_t		ni_id);
 
 /**************************************************************************//**
 @Function	dpni_get_receive_niid

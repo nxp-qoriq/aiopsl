@@ -550,7 +550,7 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 	return err;
 }
 
-int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t mfl)
+int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 
@@ -558,13 +558,13 @@ int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t mfl)
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_MFL,
 	                                  MC_CMD_PRI_LOW,
 	                                  token);
-	DPNI_CMD_SET_MFL(cmd, mfl);
+	DPNI_CMD_SET_MFL(cmd, max_frame_length);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *mfl)
+int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -577,7 +577,7 @@ int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *mfl)
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
 	if (!err)
-		DPNI_RSP_GET_MFL(cmd, *mfl);
+		DPNI_RSP_GET_MFL(cmd, *max_frame_length);
 
 	return err;
 }
@@ -737,14 +737,15 @@ int dpni_remove_mac_addr(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_clear_mac_table(struct fsl_mc_io *mc_io, uint16_t token)
+int dpni_clear_mac_filters(struct fsl_mc_io *mc_io, uint16_t token, int unicast, int multicast)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_CLR_MAC_TBL,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_CLR_MAC_FILTERS,
 	                                  MC_CMD_PRI_LOW, token);
-
+	DPNI_CMD_CLEAR_MAC_FILTERS(cmd, unicast, multicast);
+	
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
@@ -777,12 +778,12 @@ int dpni_remove_vlan_id(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_clear_vlan_table(struct fsl_mc_io *mc_io, uint16_t token)
+int dpni_clear_vlan_filters(struct fsl_mc_io *mc_io, uint16_t token)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_CLR_VLAN_TBL,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_CLR_VLAN_FILTERS,
 	                                  MC_CMD_PRI_LOW, token);
 
 	/* send command to mc*/
@@ -806,24 +807,24 @@ int dpni_set_tx_tc(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_set_rx_tc(struct fsl_mc_io *mc_io,
+int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
                    uint16_t token,
                    uint8_t tc_id,
                    const struct dpni_rx_tc_dist_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 	struct extract_data ext_data = { { 0 } };
-	uint64_t ext_paddr = virt_to_phys(&ext_data);
+	uint64_t ext_paddr = iova_alloc(sizeof(struct extract_data));
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC_DIST,
 	                                  MC_CMD_PRI_LOW,
 	                                  token);
 	err = build_extract_cfg_extention(cfg->dist_key_cfg, &ext_data);
 	if (err)
 		return err;
-	DPNI_CMD_SET_RX_TC(cmd, tc_id, cfg, ext_paddr);
+	DPNI_CMD_SET_RX_TC_DIST(cmd, tc_id, cfg, ext_paddr);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -917,7 +918,7 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 {
 	struct mc_command cmd = { 0 };
 	struct extract_data ext_data = { { 0 } };
-	uint64_t ext_paddr = virt_to_phys(&ext_data);
+	uint64_t ext_paddr = iova_alloc(sizeof(struct extract_data));
 	int err;
 
 	/* prepare command */
@@ -932,34 +933,22 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_delete_qos_table(struct fsl_mc_io *mc_io, uint16_t token)
-{
-	struct mc_command cmd = { 0 };
-
-	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_DELETE_QOS_TBL,
-	                                  MC_CMD_PRI_LOW, token);
-
-	/* send command to mc*/
-	return mc_send_command(mc_io, &cmd);
-}
-
 int dpni_add_qos_entry(struct fsl_mc_io *mc_io,
                        uint16_t token,
                        const struct dpni_rule_cfg *cfg,
                        uint8_t tc_id)
 {
 	struct mc_command cmd = { 0 };
-	uint64_t key_paddr, mask_paddr = 0;
+	uint64_t key_addr, mask_addr = 0;
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_ADD_QOS_ENT,
 	                                  MC_CMD_PRI_LOW, token);
-	key_paddr = virt_to_phys(cfg->key);
+	key_addr = iova_alloc(sizeof(uint64_t));
 	if (cfg->mask)
-		mask_paddr = virt_to_phys(cfg->mask);
+		mask_addr = iova_alloc(sizeof(uint64_t));
 
-	DPNI_CMD_ADD_QOS_ENTRY(cmd, cfg, tc_id, key_paddr, mask_paddr);
+	DPNI_CMD_ADD_QOS_ENTRY(cmd, cfg, tc_id, key_addr, mask_addr);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -975,9 +964,9 @@ int dpni_remove_qos_entry(struct fsl_mc_io *mc_io,
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_REMOVE_QOS_ENT,
 	                                  MC_CMD_PRI_LOW, token);
-	key_paddr = virt_to_phys(cfg->key);
+	key_paddr = iova_alloc(sizeof(uint64_t));
 	if (cfg->mask)
-		mask_paddr = virt_to_phys(cfg->mask);
+		mask_paddr = iova_alloc(sizeof(uint64_t));
 	DPNI_CMD_REMOVE_QOS_ENTRY(cmd, cfg, key_paddr, mask_paddr);
 
 	/* send command to mc*/
@@ -1009,9 +998,9 @@ int dpni_add_fs_entry(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_ADD_FS_ENT,
 	                                  MC_CMD_PRI_LOW,
 	                                  token);
-	key_paddr = virt_to_phys(cfg->key);
+	key_paddr = iova_alloc(sizeof(uint64_t));
 	if (cfg->mask)
-		mask_paddr = virt_to_phys(cfg->mask);
+		mask_paddr = iova_alloc(sizeof(uint64_t));
 	DPNI_CMD_ADD_FS_ENTRY(cmd, tc_id, cfg, flow_id, key_paddr, mask_paddr);
 
 	/* send command to mc*/
@@ -1029,9 +1018,9 @@ int dpni_remove_fs_entry(struct fsl_mc_io *mc_io,
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_REMOVE_FS_ENT,
 	                                  MC_CMD_PRI_LOW, token);
-	key_paddr = virt_to_phys(cfg->key);
+	key_paddr = iova_alloc(sizeof(uint64_t));
 	if (cfg->mask)
-		mask_paddr = virt_to_phys(cfg->mask);
+		mask_paddr = iova_alloc(sizeof(uint64_t));
 	DPNI_CMD_REMOVE_FS_ENTRY(cmd, tc_id, cfg, key_paddr, mask_paddr);
 
 	/* send command to mc*/

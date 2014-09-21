@@ -73,6 +73,11 @@ struct dpio_cfg {
 struct dpio_attr {
 	int id;
 	/*!< DPIO id */
+	struct {
+		uint32_t major; /*!< DPIO major version*/
+		uint32_t minor; /*!< DPIO minor version*/
+	} version;
+	/*!< DPIO version */
 	uint64_t qbman_portal_ce_paddr;
 	/*!< physical address of the sw-portal cache-enabled area */
 	uint64_t qbman_portal_ci_paddr;
@@ -82,11 +87,6 @@ struct dpio_attr {
 	enum dpio_channel_mode channel_mode; /*!< channel mode */
 	uint8_t num_priorities;
 	/*!< 1-8; relevant only for 'DPIO_LOCAL_CHANNEL' */
-	struct {
-		uint32_t major; /*!< DPIO major version*/
-		uint32_t minor; /*!< DPIO minor version*/
-	} version;
-	/*!< DPIO version */
 };
 
 /**
