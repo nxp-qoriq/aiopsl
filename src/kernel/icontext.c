@@ -36,9 +36,9 @@
 #include "fsl_icontext.h"
 #include "fsl_mc_init.h"
 #include "fsl_spinlock.h"
-#include "cmdif_client_aiop.h" /* TODO remove it !!! */
+#include "cmdif_client_aiop.h" /* TODO remove it once you have lock per dpci table !!! */
 
-int icontext_get(uint16_t dpci_id, struct icontext *ic)
+__HOT_CODE int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
@@ -68,7 +68,8 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	return -ENOENT;
 }
 
-int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *dest)
+__HOT_CODE int icontext_dma_read(struct icontext *ic, uint16_t size, 
+                                 uint64_t src, void *dest)
 {
 	ASSERT_COND(dest != NULL);
 	ASSERT_COND(src != NULL);
@@ -81,7 +82,8 @@ int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *de
 	return 0;
 }
 
-int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t dest)
+__HOT_CODE int icontext_dma_write(struct icontext *ic, uint16_t size, 
+                                  void *src, uint64_t dest)
 {
 	ASSERT_COND(src != NULL);
 	ASSERT_COND(dest != NULL);
@@ -94,7 +96,8 @@ int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t d
 	return 0;
 }
 
-int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr)
+__HOT_CODE int icontext_acquire(struct icontext *ic, uint16_t bpid, 
+                                uint64_t *addr)
 {
 	int err = 0;
 
@@ -105,7 +108,8 @@ int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr)
 	return err;
 }
 
-int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr)
+__HOT_CODE int icontext_release(struct icontext *ic, uint16_t bpid, 
+                                uint64_t addr)
 {
 	int err = 0;
 
