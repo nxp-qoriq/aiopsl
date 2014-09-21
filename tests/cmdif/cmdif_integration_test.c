@@ -57,7 +57,12 @@ void app_free(void);
 #define ASYNC_N_CMD	0x104
 #define OPEN_N_CMD	0x105
 #define IC_TEST		0x106
+
+#ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
+#else
+#define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
+#endif
 
 __SHRAM struct cmdif_desc cidesc;
 
