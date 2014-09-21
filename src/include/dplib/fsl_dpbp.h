@@ -65,13 +65,13 @@ struct dpbp_cfg {
  */
 struct dpbp_attr {
 	int id; /*!< DPBP id*/
+	uint16_t bpid; /*!< buffer pool id;
+	 in case equal to DPBP_BPID_NOT_VALID the bpid isn't valid
+	 and must not be used; Only after 'enable' bpid will be valid; */
 	struct {
 		uint32_t major; /*!< DPBP major version*/
 		uint32_t minor; /*!< DPBP minor version*/
 	} version; /*!< DPBP version */
-	uint16_t bpid; /*!< buffer pool id;
-	 in case equal to DPBP_BPID_NOT_VALID the bpid isn't valid
-	 and must not be used; Only after 'enable' bpid will be valid; */
 };
 
 /**
