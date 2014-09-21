@@ -172,12 +172,12 @@ struct dprc_res_req {
  * @brief	Object descriptor, returned from dprc_get_obj()
  */
 struct dprc_obj_desc {
-	uint16_t vendor;
-	/*!< Object vendor identifier */
 	char type[16];
 	/*!< Type of object: NULL terminated string */
 	int id;
 	/*!< ID of logical object resource */
+	uint16_t vendor;
+	/*!< Object vendor identifier */
 	uint32_t ver_major;
 	/*!< Major version number */
 	uint32_t ver_minor;
@@ -788,6 +788,23 @@ int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_endpoint *endpoint);
+
+/**
+* @brief       Obtaining connected endpoint and link status if connection exist
+*
+* @param[in]	mc_io		Pointer to opaque I/O object
+* @param[in]    token		Token of DPRC object
+* @param[in]    endpoint1   Endpoint 1 configuration parameters.
+* @param[out]   endpoint2   Endpoint 2 configuration parameters.
+* @param[out]   state       Link state: 1 - link up, 0 - link down
+*
+* @returns     '0' on Success; -ENAVAIL otherwise when connection doesn't exist.
+* */
+int dprc_get_connection(struct fsl_mc_io *mc_io,
+						uint16_t token,
+                        struct dprc_endpoint *endpoint1,
+                        struct dprc_endpoint *endpoint2,
+                        int *state);
 
 /*! @} */
 
