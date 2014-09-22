@@ -166,6 +166,16 @@ enum osm_errors {
 	OSM_DUPLICATE_SCOPE_ERR = 0x2,
 };
 
+/* @} end of enum osm_errors */
+
+/**************************************************************************//**
+@Group		OSM_Internal_Functions	OSM Internal Functions
+
+@Description	AIOP OSM operations internal functions.
+
+@{
+*//***************************************************************************/
+
 /**************************************************************************//**
 @Function	osm_exception_handler
 
@@ -183,6 +193,6 @@ enum osm_errors {
 void osm_exception_handler(enum osm_function_identifier func_id,
 			     uint32_t line);
 
-/* @} end of enum osm_errors */
+/** @} end of group OSM_Internal_Functions */
 
 #endif /* __OSM_H_ */
