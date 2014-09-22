@@ -137,12 +137,12 @@ struct extract_data {
 do { \
 	MC_CMD_OP(cmd, 0, 0,	8,  uint8_t,  cfg->adv.max_tcs); \
 	MC_CMD_OP(cmd, 0, 8,	8,  uint8_t,  cfg->adv.max_senders); \
-	MC_CMD_OP(cmd, 0, 16,	8,  uint8_t,  cfg->mac_addr[0]); \
-	MC_CMD_OP(cmd, 0, 24,	8,  uint8_t,  cfg->mac_addr[1]); \
-	MC_CMD_OP(cmd, 0, 32,	8,  uint8_t,  cfg->mac_addr[2]); \
-	MC_CMD_OP(cmd, 0, 40,	8,  uint8_t,  cfg->mac_addr[3]); \
-	MC_CMD_OP(cmd, 0, 48,	8,  uint8_t,  cfg->mac_addr[4]); \
-	MC_CMD_OP(cmd, 0, 56,	8,  uint8_t,  cfg->mac_addr[5]); \
+	MC_CMD_OP(cmd, 0, 16,	8,  uint8_t,  cfg->mac_addr[5]); \
+	MC_CMD_OP(cmd, 0, 24,	8,  uint8_t,  cfg->mac_addr[4]); \
+	MC_CMD_OP(cmd, 0, 32,	8,  uint8_t,  cfg->mac_addr[3]); \
+	MC_CMD_OP(cmd, 0, 40,	8,  uint8_t,  cfg->mac_addr[2]); \
+	MC_CMD_OP(cmd, 0, 48,	8,  uint8_t,  cfg->mac_addr[1]); \
+	MC_CMD_OP(cmd, 0, 56,	8,  uint8_t,  cfg->mac_addr[0]); \
 	MC_CMD_OP(cmd, 1, 0,	64, uint64_t, cfg->adv.options); \
 	MC_CMD_OP(cmd, 2, 0,	8,  uint8_t,  cfg->adv.max_unicast_filters); \
 	MC_CMD_OP(cmd, 2, 8,	8,  uint8_t,  cfg->adv.max_multicast_filters); \
@@ -338,45 +338,45 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_PRIMARY_MAC_ADDR(cmd, addr) \
 do { \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_PRIMARY_MAC_ADDR(cmd, addr) \
 do { \
-	MC_RSP_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_RSP_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_RSP_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_RSP_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_RSP_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_RSP_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_RSP_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_RSP_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_ADD_MAC_ADDR(cmd, addr) \
 do { \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_REMOVE_MAC_ADDR(cmd, addr) \
 do { \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[0]); \
-	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[1]); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[2]); \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[3]); \
-	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[4]); \
-	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  addr[5]); \
+	MC_CMD_OP(cmd, 0, 24, 8,  uint8_t,  addr[4]); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  addr[3]); \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  addr[2]); \
+	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  addr[1]); \
+	MC_CMD_OP(cmd, 0, 56, 8,  uint8_t,  addr[0]); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
