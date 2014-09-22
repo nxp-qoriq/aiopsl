@@ -48,9 +48,11 @@ extern __SHRAM struct dpni_drv *nis;
 __HOT_CODE void receive_cb(void)
 {	
 	struct dpni_drv *dpni_drv;
+#ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
 	struct dpni_drv_params dpni_drv_params_local
 				__attribute__((aligned(8)));
+#endif
 #endif
 	struct parse_result *pr;
 	int32_t parse_status;
@@ -65,6 +67,7 @@ __HOT_CODE void receive_cb(void)
 	osm_task_init();
 
 	/* Load from SHRAM to local stack */
+#ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS	
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
 
@@ -73,6 +76,7 @@ __HOT_CODE void receive_cb(void)
 	ASSERT_COND(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE);
 	ASSERT_COND(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSER_DIS);
 	ASSERT_COND(dpni_drv_params_local.spid == 0);
+#endif
 #endif
 
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
@@ -98,9 +102,11 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
+#ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
 	struct dpni_drv_params dpni_drv_params_local
 				__attribute__((aligned(8)));
+#endif
 #endif
 	struct dpni_drv_tx_params dpni_drv_tx_params_local
 				__attribute__((aligned(8)));
@@ -113,9 +119,11 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 					* to the send NI structure   */
 
 	/* Load from SHRAM to local stack */
+#ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
 	ASSERT_COND(!(dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE));
+#endif
 #endif
 	dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;
 
