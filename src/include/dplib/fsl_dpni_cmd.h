@@ -194,14 +194,14 @@ do { \
 	MC_RSP_OP(cmd, 2, 24, 8,  uint8_t,  attr->max_qos_entries); \
 	MC_RSP_OP(cmd, 2, 32, 8,  uint8_t,  attr->max_qos_key_size); \
 	MC_RSP_OP(cmd, 2, 40, 8,  uint8_t,  attr->max_dist_key_size); \
-	MC_RSP_OP(cmd, 3, 0,  8,  uint8_t,  attr->max_dist_per_tc[0]); \
-	MC_RSP_OP(cmd, 3, 8,  8,  uint8_t,  attr->max_dist_per_tc[1]); \
-	MC_RSP_OP(cmd, 3, 16, 8,  uint8_t,  attr->max_dist_per_tc[2]); \
-	MC_RSP_OP(cmd, 3, 24, 8,  uint8_t,  attr->max_dist_per_tc[3]); \
-	MC_RSP_OP(cmd, 3, 32, 8,  uint8_t,  attr->max_dist_per_tc[4]); \
-	MC_RSP_OP(cmd, 3, 40, 8,  uint8_t,  attr->max_dist_per_tc[5]); \
-	MC_RSP_OP(cmd, 3, 48, 8,  uint8_t,  attr->max_dist_per_tc[6]); \
-	MC_RSP_OP(cmd, 3, 56, 8,  uint8_t,  attr->max_dist_per_tc[7]); \
+	MC_CMD_OP(cmd, 3, 0,  8,  uint8_t,  cfg->adv.max_dist_per_tc[0]); \
+	MC_CMD_OP(cmd, 3, 8,  8,  uint8_t,  cfg->adv.max_dist_per_tc[1]); \
+	MC_CMD_OP(cmd, 3, 16, 8,  uint8_t,  cfg->adv.max_dist_per_tc[2]); \
+	MC_CMD_OP(cmd, 3, 24, 8,  uint8_t,  cfg->adv.max_dist_per_tc[3]); \
+	MC_CMD_OP(cmd, 3, 32, 8,  uint8_t,  cfg->adv.max_dist_per_tc[4]); \
+	MC_CMD_OP(cmd, 3, 40, 8,  uint8_t,  cfg->adv.max_dist_per_tc[5]); \
+	MC_CMD_OP(cmd, 3, 48, 8,  uint8_t,  cfg->adv.max_dist_per_tc[6]); \
+	MC_CMD_OP(cmd, 3, 56, 8,  uint8_t,  cfg->adv.max_dist_per_tc[7]); \
 	MC_RSP_OP(cmd, 4, 0,  32, uint32_t, attr->version.major);\
 	MC_RSP_OP(cmd, 4, 32, 32, uint32_t, attr->version.minor);\
 } while (0)
