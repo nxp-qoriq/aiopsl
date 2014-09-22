@@ -59,8 +59,6 @@ static int aiop_container_init()
 	}
 	memset(dprc, 0, sizeof(struct mc_dprc));
 
-	/* TODO: replace hard-coded portal address 1 with configured value */
-	/* TODO : layout file must contain portal ID 1 in order to work. */
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
 	p_vaddr = \

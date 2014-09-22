@@ -577,26 +577,3 @@ int dprc_disconnect(struct fsl_mc_io *mc_io,
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
-
-int dprc_get_connection(struct fsl_mc_io *mc_io,
-        				uint16_t token,
-                        struct dprc_endpoint *endpoint1,
-                        struct dprc_endpoint *endpoint2,
-                        int *state)
-{
-	struct mc_command cmd = { 0 };
-	int err;
-	
-	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPRC_CMDID_GET_CONNECTION,
-	                                  MC_CMD_PRI_LOW,
-	                                  token);
-	DPRC_CMD_GET_CONNECTION(cmd, endpoint1);
-
-	/* send command to mc*/
-	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_CONNECTION(cmd, endpoint2, *state);
-	
-	return err;
-}

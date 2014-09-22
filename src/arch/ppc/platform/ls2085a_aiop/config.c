@@ -34,14 +34,14 @@ struct aiop_init_data g_init_data =
  {
   4,	        /* aiop_rev_major     AIOP  */
   2,	        /* aiop_rev_minor     AIOP  */
-  0x6018000000,	/* dp_ddr_phys_addr      */
-  0x4c00200000,	/* peb_phys_addr      */
+  0x6000000000,	/* dp_ddr_phys_addr      */
+  0x4c00000000,	/* peb_phys_addr      */
   0,		/* sys_ddr1_phys_add  */
   0x40000000,	/* dp_ddr_virt_addr      */
   0x80000000,	/* peb_virt_addr      */
   0,	        /* sys_ddr1_virt_addr */
-  0x0c000000,	/* ccsr_vaddr */
-  0x08000000,	/* mc_portals_vaddr */
+  0x10000000,	/* ccsr_vaddr */
+  0x0c000000,	/* mc_portals_vaddr */
   2,	        /* uart_port_id       MC */
   1,	        /* mc_portal_id       MC */
   0,	        /* mc_dpci_id         MC */
@@ -57,8 +57,9 @@ struct aiop_init_data g_init_data =
   AIOP_DP_DDR_SIZE + APPLICATION_DP_DDR_SIZE,	
   /* peb_size.
    * Should be aligned to a power of 2 */
-  (2 * MEGABYTE),	
-  0,	/* ddr1_size */
+  (2 * MEGABYTE),
+  /* sys_ddr1_size = 0. Currently no dynamic allocation from system ddr */
+  0,	
   2048,			/* ctlu_sys_ddr_num_entries */
   2048,			/* ctlu_dp_ddr_num_entries */
   2048,			/* ctlu_peb_num_entries */

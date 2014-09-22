@@ -216,11 +216,6 @@ struct dpci_prio_attr {
 struct dpci_attr {
 	int id;
 	/*!< DPCI id */
-	struct {
-		uint32_t major; /*!< DPCI major version*/
-		uint32_t minor; /*!< DPCI minor version*/
-	} version;
-	/*!< DPCI version */
 	uint8_t peer_attached;
 	/*!< DPCI is attached to a peer DPCI */
 	uint8_t peer_id;
@@ -229,6 +224,11 @@ struct dpci_attr {
 	/*!< number of priorities */
 	struct dpci_prio_attr dpci_prio_attr[DPCI_PRIO_NUM];
 	/*!< priority attributes parameters */
+	struct {
+		uint32_t major; /*!< DPCI major version*/
+		uint32_t minor; /*!< DPCI minor version*/
+	} version;
+	/*!< DPCI version */
 };
 
 /**
