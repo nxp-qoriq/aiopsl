@@ -272,7 +272,7 @@ struct parser_prp_id_pool_create_verif_command {
 *//***************************************************************************/
 struct parser_macros_command {
 	uint32_t             opcode;
-	uint32_t             macros_struct;
+	struct parse_result  macros_struct;
 };
 
 /**************************************************************************//**
