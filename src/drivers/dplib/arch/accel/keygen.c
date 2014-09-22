@@ -31,8 +31,8 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_keygen.h"
-#include "dplib/fsl_cdma.h"
+#include "fsl_keygen.h"
+#include "fsl_cdma.h"
 
 #include "keygen.h"
 #include "system.h"

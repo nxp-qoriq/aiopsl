@@ -32,7 +32,7 @@
 #ifndef __FSL_IPF_H
 #define __FSL_IPF_H
 
-#include "common/types.h"
+#include "types.h"
 
 
 /**************************************************************************//**

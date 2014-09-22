@@ -64,6 +64,8 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint32_t ip_dst_addr = 0x73bcdc90; // new ipv4 dst_addr
 	uint16_t udp_dst_port = 0xd720; //new udp dest port
 	int reassemble_status, hm_status;
+	
+	parse_result_generate_basic();
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -142,38 +144,7 @@ static void epid_setup()
 }
 #endif /* AIOP_STANDALONE */
 
-/*static int open_cb(uint8_t instance_id, void **dev)
-{
-	UNUSED(dev);
-	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
-	return 0;
-}
 
-static int close_cb(void *dev)
-{
-	UNUSED(dev);
-	fsl_os_print("close_cb\n");
-	return 0;
-}
-
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
-{
-	UNUSED(dev);
-	UNUSED(size);
-	UNUSED(data);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
-	             cmd,
-	             size,
-	             (uint32_t)((data & 0xFF00000000) >> 32),
-	             (uint32_t)(data & 0xFFFFFFFF));
-	return 0;
-}
-
-static struct cmdif_module_ops ops = {
-                               .open_cb = open_cb,
-                               .close_cb = close_cb,
-                               .ctrl_cb = ctrl_cb
-};*/
 
 int app_init(void)
 {
@@ -213,22 +184,12 @@ int app_init(void)
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-	for (ni = 0; ni < 6; ni++)
-	{
-		/* Every ni will have 1 flow */
-		uint32_t flow_id = 0;
-		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		                              (uint16_t)flow_id/*flow_id*/,
-		                              app_process_packet_flow0, /* callback for flow_id*/
-		                              (ni | (flow_id << 16)) /*arg, nic number*/);
-		if (err) return err;
-	}
-
-/*
-	err = cmdif_register_module("TEST0", &ops);
+	err = dpni_drv_register_rx_cb(1,
+				      app_process_packet_flow0,
+				      1);
+	
 	if (err)
-		fsl_os_print("FAILED cmdif_register_module\n!");
-*/
+		return err;
 
 	return 0;
 }

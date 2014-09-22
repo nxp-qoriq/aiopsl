@@ -39,7 +39,7 @@
 #include "fsl_icontext.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
-#error "Define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
+#warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If you test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
 
@@ -57,7 +57,12 @@ void app_free(void);
 #define ASYNC_N_CMD	0x104
 #define OPEN_N_CMD	0x105
 #define IC_TEST		0x106
+
+#ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
+#else
+#define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
+#endif
 
 __SHRAM struct cmdif_desc cidesc;
 
@@ -182,7 +187,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		bpid =  (uint16_t)(((uint8_t *)data)[1]);
 
 		err = icontext_get(dpci_id, &ic);
-		fsl_os_print("Isolation context test dpci %d:\n", dpci_id);
+		fsl_os_print("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
 		fsl_os_print("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
 		             ic.icid,
 		             ic.dma_flags,

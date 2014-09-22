@@ -622,6 +622,36 @@
 
 /** @}*/ /* end of group AIOP_PRC_Definitions */
 
+/** \addtogroup FDMA_Commands_Flags
+ *  @{
+ */
+
+/**************************************************************************//**
+@Group		FDMA_DMA_Flags
+
+@Description	FDMA DMA data flags
+
+@{
+*//***************************************************************************/
+
+	/** Default command configuration. */
+#define FDMA_DMA_NO_FLAGS	0x00000000
+	/** DMA Data Access options. */
+#define FDMA_DMA_DA		fdma_dma_data_access_options
+	/** Effective Virtual Address. Frame AMQ attribute.
+	 * The DMA uses this memory attribute to make the access. */
+#define FDMA_DMA_eVA_BIT		0x00002000
+	/** Bypass the Memory Translation. Frame AMQ attribute.
+	 * The DMA uses this memory attribute to make the access. */
+#define FDMA_DMA_BMT_BIT	0x00004000
+	/** Privilege Level. Frame AMQ attribute.
+	 * The DMA uses this memory attribute to make the access. */
+#define FDMA_DMA_PL_BIT		0x00008000
+
+/** @} end of group FDMA_DMA_Flags */
+
+/** @} end of group FDMA_Commands_Flags */
+
 /** \addtogroup FDMA_Enumerations
  *  @{
  */
@@ -700,7 +730,9 @@ enum fdma_hw_errors {
 		/** Shared SRAM memory read Error. */
 	FDMA_SRAM_MEMORY_READ_ERR = 0xA9,
 		/** Profile SRAM memory read Error. */
-	FDMA_PROFILE_SRAM_MEMORY_READ_ERR = 0xAA
+	FDMA_PROFILE_SRAM_MEMORY_READ_ERR = 0xAA,
+		/** Frames to concatenate ICIDs does not match error. */
+	FDMA_CONCATENATE_ICID_NOT_MATCH_ERR = 0xAB
 
 };
 

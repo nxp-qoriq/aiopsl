@@ -195,7 +195,8 @@ enum verif_modules_ids {
 	WRITE_DATA_TO_WS_MODULE,
 	UPDATE_ASA_VARIABLE,
 	OSM_MODULE,
-	EXCEPTION_MODULE
+	EXCEPTION_MODULE,
+	UPDATE_EXT_VARIABLE
 };
 
 /**************************************************************************//**
@@ -250,6 +251,21 @@ enum compared_variable_size {
 	COMPARE_8BYTE
 };
 
+/**************************************************************************//**
+ @enum arith_operation
+
+ @Description	AIOP verification enumeration of the arithmentical operation.
+
+ @{
+*//***************************************************************************/
+enum arith_operation {
+		/** Increment operation. */
+	INCREMENT_OPER = 0,
+		/** Decrement operation. */
+	DECREMENT_OPER,
+		/** Set operation. */
+	SET_OPER
+};
 
 /**************************************************************************//**
 @Description	AIOP IF Verification Command structure.
@@ -410,6 +426,25 @@ struct fatal_error_command {
 		 * 256-byte alignment.
 		 * */
 	uint8_t pad[36];
+};
+
+/**************************************************************************//**
+@Description	Update external command variable Command structure.
+
+		Includes information needed for updating a value in an external 
+		verification command.
+*//***************************************************************************/
+struct update_ext_cmd_var_command {
+		/** Update external command variable command structure 
+		 * identifier. */
+	uint32_t opcode;
+		/** Operation kind. */
+	enum arith_operation operation;
+		/** Updating value. */
+	uint32_t value;
+		/** Offset of the variable to be updated relative to the 
+		 * external commands start address. */
+	uint32_t offset;	
 };
 
 void aiop_verification_parse();
