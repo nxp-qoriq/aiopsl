@@ -128,6 +128,27 @@ inline void osm_task_init(void)
 			((osm_val & PRC_OEP_MASK) ? 1 : 0);
 }
 
+/**************************************************************************//**
+ @enum osm_functions
+
+ @Description	AIOP OSM Functions enumertion.
+
+ @{
+*//***************************************************************************/
+enum osm_function_identifier {
+	OSM_SCOPE_TRANSITION_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID = 0,
+	OSM_SCOPE_TRANSITION_TO_EXCLUSIVE_WITH_NEW_SCOPE_ID,
+	OSM_SCOPE_TRANSITION_TO_CONCURRENT_WITH_INCREMENT_SCOPE_ID,
+	OSM_SCOPE_TRANSITION_TO_CONCURRENT_WITH_NEW_SCOPE_ID,
+	OSM_SCOPE_RELINQUISH_EXCLUSIVITY,
+	OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID,
+	OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_NEW_SCOPE_ID,
+	OSM_SCOPE_ENTER,
+	OSM_SCOPE_EXIT,
+	OSM_GET_SCOPE
+};
+
+/** @}*/ /* end of group OSM_Enumerations */
 
 /**************************************************************************//**
  @enum osm_errors
@@ -144,6 +165,23 @@ enum osm_errors {
 		/** Duplicate scope identifier detected. (DID error) */
 	OSM_DUPLICATE_SCOPE_ERR = 0x2,
 };
+
+/**************************************************************************//**
+@Function	osm_exception_handler
+
+@Description	Handler for the error status returned from the OSM API
+		functions.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void osm_exception_handler(enum osm_function_identifier func_id,
+			     uint32_t line);
 
 /* @} end of enum osm_errors */
 
