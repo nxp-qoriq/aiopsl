@@ -675,14 +675,14 @@ int dpni_get_unicast_promisc(struct fsl_mc_io *mc_io, uint16_t token, int *en)
 
 int dpni_set_primary_mac_addr(struct fsl_mc_io *mc_io,
                               uint16_t token,
-                              const uint8_t mac_addr[6])
+                              const uint8_t addr[6])
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_PRIM_MAC,
 	                                  MC_CMD_PRI_LOW, token);
-	DPNI_CMD_SET_PRIMARY_MAC_ADDR(cmd, mac_addr);
+	DPNI_CMD_SET_PRIMARY_MAC_ADDR(cmd, addr);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -690,7 +690,7 @@ int dpni_set_primary_mac_addr(struct fsl_mc_io *mc_io,
 
 int dpni_get_primary_mac_addr(struct fsl_mc_io *mc_io,
                               uint16_t token,
-                              uint8_t mac_addr[6])
+                              uint8_t addr[6])
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -702,21 +702,21 @@ int dpni_get_primary_mac_addr(struct fsl_mc_io *mc_io,
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
 	if (!err)
-		DPNI_RSP_GET_PRIMARY_MAC_ADDR(cmd, mac_addr);
+		DPNI_RSP_GET_PRIMARY_MAC_ADDR(cmd, addr);
 
 	return err;
 }
 
 int dpni_add_mac_addr(struct fsl_mc_io *mc_io,
                       uint16_t token,
-                      const uint8_t mac_addr[6])
+                      const uint8_t addr[6])
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_ADD_MAC_ADDR,
 	                                  MC_CMD_PRI_LOW, token);
-	DPNI_CMD_ADD_MAC_ADDR(cmd, mac_addr);
+	DPNI_CMD_ADD_MAC_ADDR(cmd, addr);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -724,14 +724,14 @@ int dpni_add_mac_addr(struct fsl_mc_io *mc_io,
 
 int dpni_remove_mac_addr(struct fsl_mc_io *mc_io,
                          uint16_t token,
-                         const uint8_t mac_addr[6])
+                         const uint8_t addr[6])
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_REMOVE_MAC_ADDR,
 	                                  MC_CMD_PRI_LOW, token);
-	DPNI_CMD_REMOVE_MAC_ADDR(cmd, mac_addr);
+	DPNI_CMD_REMOVE_MAC_ADDR(cmd, addr);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -809,7 +809,7 @@ int dpni_set_tx_tc(struct fsl_mc_io *mc_io,
 int dpni_set_rx_tc(struct fsl_mc_io *mc_io,
                    uint16_t token,
                    uint8_t tc_id,
-                   const struct dpni_rx_tc_dist_cfg *cfg)
+                   const struct dpni_rx_tc_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 	struct extract_data ext_data = { { 0 } };
@@ -820,7 +820,7 @@ int dpni_set_rx_tc(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC,
 	                                  MC_CMD_PRI_LOW,
 	                                  token);
-	err = build_extract_cfg_extention(cfg->dist_key_cfg, &ext_data);
+	err = build_extract_cfg_extention(cfg->extract_cfg, &ext_data);
 	if (err)
 		return err;
 	DPNI_CMD_SET_RX_TC(cmd, tc_id, cfg, ext_paddr);
@@ -923,7 +923,7 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_QOS_TBL,
 	                                  MC_CMD_PRI_LOW, token);
-	err = build_extract_cfg_extention(cfg->qos_key_cfg, &ext_data);
+	err = build_extract_cfg_extention(cfg->extract_cfg, &ext_data);
 	if (err)
 		return err;
 	DPNI_CMD_SET_QOS_TABLE(cmd, cfg, ext_paddr);
@@ -946,7 +946,7 @@ int dpni_delete_qos_table(struct fsl_mc_io *mc_io, uint16_t token)
 
 int dpni_add_qos_entry(struct fsl_mc_io *mc_io,
                        uint16_t token,
-                       const struct dpni_rule_cfg *cfg,
+                       const struct dpni_key_cfg *cfg,
                        uint8_t tc_id)
 {
 	struct mc_command cmd = { 0 };
@@ -967,7 +967,7 @@ int dpni_add_qos_entry(struct fsl_mc_io *mc_io,
 
 int dpni_remove_qos_entry(struct fsl_mc_io *mc_io,
                           uint16_t token,
-                          const struct dpni_rule_cfg *cfg)
+                          const struct dpni_key_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 	uint64_t key_paddr, mask_paddr = 0;
@@ -999,7 +999,7 @@ int dpni_clear_qos_table(struct fsl_mc_io *mc_io, uint16_t token)
 int dpni_add_fs_entry(struct fsl_mc_io *mc_io,
                       uint16_t token,
                       uint8_t tc_id,
-                      const struct dpni_rule_cfg *cfg,
+                      const struct dpni_key_cfg *cfg,
                       uint16_t flow_id)
 {
 	struct mc_command cmd = { 0 };
@@ -1021,7 +1021,7 @@ int dpni_add_fs_entry(struct fsl_mc_io *mc_io,
 int dpni_remove_fs_entry(struct fsl_mc_io *mc_io,
                          uint16_t token,
                          uint8_t tc_id,
-                         const struct dpni_rule_cfg *cfg)
+                         const struct dpni_key_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 	uint64_t key_paddr, mask_paddr = 0;

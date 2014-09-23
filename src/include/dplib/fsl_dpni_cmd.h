@@ -499,7 +499,7 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_QOS_TABLE(cmd, cfg, ext_paddr) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,	    cfg->discard_on_miss); \
+	MC_CMD_OP(cmd, 0, 0,  32, int,	    cfg->drop_frame); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->default_tc); \
 	MC_CMD_OP(cmd, 6, 0,  64, uint64_t, ext_paddr); \
 } while (0)

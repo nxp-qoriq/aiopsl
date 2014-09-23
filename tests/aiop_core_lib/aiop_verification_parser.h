@@ -188,7 +188,7 @@ struct parser_prp_delete_verif_command {
 *//***************************************************************************/
 struct parser_prp_query_verif_command {
 	uint32_t opcode;
-	uint32_t parse_profile;
+	struct parse_profile_input parse_profile;
 	uint8_t  prpid;
 	uint8_t  pad[7];
 };
@@ -272,7 +272,7 @@ struct parser_prp_id_pool_create_verif_command {
 *//***************************************************************************/
 struct parser_macros_command {
 	uint32_t             opcode;
-	uint32_t             macros_struct;
+	struct parse_result  macros_struct;
 };
 
 /**************************************************************************//**

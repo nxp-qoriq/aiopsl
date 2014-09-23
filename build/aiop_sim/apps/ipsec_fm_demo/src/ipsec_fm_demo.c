@@ -264,12 +264,9 @@ int app_init(void)
 	
 	for (ni = 0; ni < 6; ni++)
 	{
-		/* Every ni will have 1 flow */
-		uint32_t flow_id = 0;
-		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		         (uint16_t)flow_id/*flow_id*/,
-		         app_process_packet_flow0, /* callback for flow_id*/
-		         (ni | (flow_id << 16)) /*arg, nic number*/);
+		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
+		         app_process_packet_flow0, /* callback */
+		         ni /*arg, nic number*/);
 		if (err) return err;
 	}
 
