@@ -48,10 +48,13 @@ int dpci_create(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
 
-	return err;
+	return 0;
 }
 
 int dpci_open(struct fsl_mc_io *mc_io, int dpci_id, uint16_t *token)
@@ -66,10 +69,13 @@ int dpci_open(struct fsl_mc_io *mc_io, int dpci_id, uint16_t *token)
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
 
-	return err;
+	return 0;
 }
 
 int dpci_close(struct fsl_mc_io *mc_io, uint16_t token)
@@ -122,6 +128,25 @@ int dpci_disable(struct fsl_mc_io *mc_io, uint16_t token)
 	return mc_send_command(mc_io, &cmd);
 }
 
+int dpci_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPCI_CMDID_IS_ENABLED, MC_CMD_PRI_LOW,
+	                                  token);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_IS_ENABLED(cmd, *en);
+	
+	return 0;
+}
+
 int dpci_reset(struct fsl_mc_io *mc_io, uint16_t token)
 {
 	struct mc_command cmd = { 0 };
@@ -148,9 +173,13 @@ int dpci_get_attributes(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPCI_RSP_GET_ATTR(cmd, attr);
-	return err;
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_ATTR(cmd, attr);
+	
+	return 0;
 }
 
 int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
@@ -164,28 +193,98 @@ int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPCI_RSP_GET_LINK_STATE(cmd, *up);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_LINK_STATE(cmd, *up);
 
-	return err;
+	return 0;
 }
 
 int dpci_set_rx_queue(struct fsl_mc_io *mc_io,
                       uint16_t token,
                       uint8_t priority,
                       const struct dpci_dest_cfg *dest_cfg,
-                      uint64_t rx_user_ctx)
+                      uint64_t user_ctx)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_RX_QUEUE,
 	                                  MC_CMD_PRI_LOW, token);
-	DPCI_CMD_SET_RX_QUEUE(cmd, priority, dest_cfg, rx_user_ctx);
+	DPCI_CMD_SET_RX_QUEUE(cmd, priority, dest_cfg, user_ctx);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 
+}
+
+int dpci_get_peer_attributes(struct fsl_mc_io *mc_io, 
+                             uint16_t token, 
+                             struct dpci_peer_attr *attr)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_PEER_ATTR,
+	                                  MC_CMD_PRI_LOW,
+	                                  token);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_PEER_ATTR(cmd, attr);
+	
+	return 0;	
+}
+
+int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_rx_queue_attr *attr)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_RX_QUEUE,
+	                                  MC_CMD_PRI_LOW,
+	                                  token);
+	DPCI_CMD_GET_RX_QUEUE(cmd, priority);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_RX_QUEUE(cmd, attr);
+	
+	return 0;	
+}
+
+int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_tx_queue_attr *attr)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_TX_QUEUE,
+	                                  MC_CMD_PRI_LOW,
+	                                  token);
+	DPCI_CMD_GET_TX_QUEUE(cmd, priority);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_TX_QUEUE(cmd, attr);
+	
+	return 0;	
 }
 
 int dpci_get_irq(struct fsl_mc_io *mc_io,
@@ -207,10 +306,13 @@ int dpci_get_irq(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPCI_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
 
-	return err;
+	return 0;
 }
 
 int dpci_set_irq(struct fsl_mc_io *mc_io,
@@ -247,10 +349,13 @@ int dpci_get_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPCI_RSP_GET_IRQ_ENABLE(cmd, *enable_state);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_IRQ_ENABLE(cmd, *enable_state);
 
-	return err;
+	return 0;
 }
 
 int dpci_set_irq_enable(struct fsl_mc_io *mc_io,
@@ -284,10 +389,13 @@ int dpci_get_irq_mask(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPCI_RSP_GET_IRQ_MASK(cmd, *mask);
+	if (err)
+		return err;
 
-	return err;
+	/* retrieve response parameters */
+	DPCI_RSP_GET_IRQ_MASK(cmd, *mask);
+
+	return 0;
 }
 
 int dpci_set_irq_mask(struct fsl_mc_io *mc_io,
@@ -321,10 +429,13 @@ int dpci_get_irq_status(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPCI_RSP_GET_IRQ_STATUS(cmd, *status);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPCI_RSP_GET_IRQ_STATUS(cmd, *status);
 
-	return err;
+	return 0;
 }
 
 int dpci_clear_irq_status(struct fsl_mc_io *mc_io,

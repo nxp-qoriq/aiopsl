@@ -85,7 +85,7 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 		_fd.control |= (((uint32_t)FD_VA_MASK) << 8);
 	_fd.control = CPU_TO_LE32(_fd.control);
 
-	fqid = sdev->attr->dpci_prio_attr[pr].tx_qid;
+	fqid = sdev->tx_queue_attr[pr]->fqid;
 
 	pr_debug("Sending to fqid 0x%x fdma enq flags = 0x%x icid = 0x%x\n", \
 	         fqid, sdev->enq_flags, sdev->icid);
@@ -121,7 +121,7 @@ __HOT_CODE static int session_get(const char *m_name,
 	lock_spinlock(&cl->lock);
 	for (i = 0; i < cl->count; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&
-			(cl->gpp[i].regs->attr->peer_id == dpci_id) &&
+			(cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
 			         m_name,
 			         M_NAME_CHARS) == 0)) {

@@ -80,6 +80,8 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 struct cmdif_reg {
 	uint16_t dpci_token;	/**< Open AIOP dpci device */
 	struct dpci_attr *attr; /**< DPCI attributes */
+	struct dpci_peer_attr *peer_attr; /**< DPCI peer attributes */
+	struct dpci_tx_queue_attr *tx_queue_attr[DPCI_PRIO_NUM]; /**< DPCI TX attributes */
 	uint32_t dma_flags;	/**< FDMA dma data flags */
 	uint32_t enq_flags;	/**< FDMA enqueue flags */
 	uint16_t icid;		/**< ICID per DPCI */

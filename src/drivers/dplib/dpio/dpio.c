@@ -47,10 +47,13 @@ int dpio_create(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
 
-	return err;
+	return 0;
 }
 
 int dpio_open(struct fsl_mc_io *mc_io, int dpio_id, uint16_t *token)
@@ -65,10 +68,13 @@ int dpio_open(struct fsl_mc_io *mc_io, int dpio_id, uint16_t *token)
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
 
-	return err;
+	return 0;
 }
 
 int dpio_close(struct fsl_mc_io *mc_io, uint16_t token)
@@ -133,6 +139,25 @@ int dpio_disable(struct fsl_mc_io *mc_io, uint16_t token)
 	return mc_send_command(mc_io, &cmd);
 }
 
+int dpio_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPIO_CMDID_IS_ENABLED, MC_CMD_PRI_LOW,
+	                                  token);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPIO_RSP_IS_ENABLED(cmd, *en);
+	
+	return 0;
+}
+
 int dpio_get_attributes(struct fsl_mc_io *mc_io,
                         uint16_t token,
                         struct dpio_attr *attr)
@@ -147,10 +172,13 @@ int dpio_get_attributes(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPIO_RSP_GET_ATTR(cmd, attr);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPIO_RSP_GET_ATTR(cmd, attr);
 
-	return err;
+	return 0;
 }
 
 int dpio_get_irq(struct fsl_mc_io *mc_io,
@@ -172,10 +200,13 @@ int dpio_get_irq(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPIO_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPIO_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
 
-	return err;
+	return 0;
 }
 
 int dpio_set_irq(struct fsl_mc_io *mc_io,
@@ -212,10 +243,13 @@ int dpio_get_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPIO_RSP_GET_IRQ_ENABLE(cmd, *enable_state);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPIO_RSP_GET_IRQ_ENABLE(cmd, *enable_state);
 
-	return err;
+	return 0;
 }
 
 int dpio_set_irq_enable(struct fsl_mc_io *mc_io,
@@ -249,10 +283,13 @@ int dpio_get_irq_mask(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPIO_RSP_GET_IRQ_MASK(cmd, *mask);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPIO_RSP_GET_IRQ_MASK(cmd, *mask);
 
-	return err;
+	return 0;
 }
 
 int dpio_set_irq_mask(struct fsl_mc_io *mc_io,
@@ -286,10 +323,13 @@ int dpio_get_irq_status(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPIO_RSP_GET_IRQ_STATUS(cmd, *status);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPIO_RSP_GET_IRQ_STATUS(cmd, *status);
 
-	return err;
+	return 0;
 }
 
 int dpio_clear_irq_status(struct fsl_mc_io *mc_io,
