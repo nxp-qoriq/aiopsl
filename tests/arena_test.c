@@ -279,9 +279,6 @@ int app_init(void)
 
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
-		/* Every ni will have 1 flow */
-		uint32_t flow_id = 0;
-
 		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 		if (err){
@@ -293,9 +290,8 @@ int app_init(void)
 
 		}
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		                              (uint16_t)flow_id/*flow_id*/,
-		                              app_process_packet_flow0, /* callback for flow_id*/
-		                              (ni | (flow_id << 16)) /*arg, nic number*/);
+		                              app_process_packet_flow0, /* callback */
+		                              ni /*arg, nic number*/);
 
 		if (err)
 			return err;

@@ -48,16 +48,17 @@ extern __SHRAM struct dpni_drv *nis;
 __HOT_CODE void receive_cb(void)
 {	
 	struct dpni_drv *dpni_drv;
+#ifndef AIOP_VERIF
+#ifndef DISABLE_ASSERTIONS
 	struct dpni_drv_params dpni_drv_params_local
 				__attribute__((aligned(8)));
-	uint8_t *fd_flc_appidx;
-	uint8_t appidx;
+#endif
+#endif
 	struct parse_result *pr;
 	int32_t parse_status;
 
 	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
 						* to the send NI structure   */
-	fd_flc_appidx = (uint8_t *)(HWC_FD_ADDRESS + FD_FLC_APPIDX_OFFSET);
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
 	/* Need to save running-sum in parse-results LE-> BE */
@@ -66,31 +67,31 @@ __HOT_CODE void receive_cb(void)
 	osm_task_init();
 
 	/* Load from SHRAM to local stack */
+#ifndef AIOP_VERIF
+#ifndef DISABLE_ASSERTIONS	
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
-	/* This SPID assignment may be redundent since before store we take 
-	 * the TX SPID*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv_params_local.spid;
-	default_task_params.parser_profile_id = dpni_drv_params_local.prpid;
-	default_task_params.parser_starting_hxs \
-			= dpni_drv_params_local.starting_hxs;
+
+	ASSERT_COND(dpni_drv_params_local.starting_hxs == 0);
+	ASSERT_COND(dpni_drv_params_local.prpid == 0);
+	ASSERT_COND(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE);
+	ASSERT_COND(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSER_DIS);
+	ASSERT_COND(dpni_drv_params_local.spid == 0);
+#endif
+#endif
+
+	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+	default_task_params.parser_profile_id = 0;
+	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
-
-	if (dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE) {
-		parse_status = parse_result_generate_default \
-				(PARSER_NO_FLAGS);
-		if (parse_status) {
-			if (dpni_drv_params_local.flags &
-					DPNI_DRV_FLG_PARSER_DIS) {
-				/* Discard frame and terminate task */
-				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-				fdma_terminate_task();
-			}
-		}
+	
+	parse_status = parse_result_generate_basic();
+	if (parse_status) {
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
 	}
 
-	appidx = (*fd_flc_appidx >> 2);
-	dpni_drv->rx_cbs[appidx](dpni_drv->args[appidx]);
+	dpni_drv->rx_cbs(dpni_drv->arg);
 	fdma_terminate_task();
 }
 
@@ -101,8 +102,12 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
+#ifndef AIOP_VERIF
+#ifndef DISABLE_ASSERTIONS
 	struct dpni_drv_params dpni_drv_params_local
 				__attribute__((aligned(8)));
+#endif
+#endif
 	struct dpni_drv_tx_params dpni_drv_tx_params_local
 				__attribute__((aligned(8)));
 	int err;
@@ -114,13 +119,14 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 					* to the send NI structure   */
 
 	/* Load from SHRAM to local stack */
+#ifndef AIOP_VERIF
+#ifndef DISABLE_ASSERTIONS
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
+	ASSERT_COND(!(dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE));
+#endif
+#endif
 	dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;
 
-	if ((dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE) &&
-		(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) >
-						dpni_drv_tx_params_local.mtu))
-			return DPNI_DRV_MTU_ERR;
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/

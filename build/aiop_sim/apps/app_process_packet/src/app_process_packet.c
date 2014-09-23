@@ -118,7 +118,6 @@ int app_init(void)
 	fsl_os_print("Running app_init()\n");
 
 	err = dpni_drv_register_rx_cb(1,
-				      0,
 				      app_process_packet_flow0,
 				      1);
 	if (err)

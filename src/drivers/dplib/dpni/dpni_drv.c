@@ -72,7 +72,6 @@ static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 }
 
 int dpni_drv_register_rx_cb (uint16_t		ni_id,
-                             uint16_t		flow_id,
                              rx_cb_t      	*cb,
                              dpni_drv_app_arg_t arg)
 {
@@ -81,21 +80,20 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
-	dpni_drv->args[flow_id] = arg;
-	dpni_drv->rx_cbs[flow_id] = cb;
+	dpni_drv->arg = arg;
+	dpni_drv->rx_cbs = cb;
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
-int dpni_drv_unregister_rx_cb (uint16_t		ni_id,
-                             uint16_t		flow_id)
+int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 {
 	struct dpni_drv *dpni_drv;
 
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
-	dpni_drv->rx_cbs[flow_id] = &discard_rx_app_cb;
+	dpni_drv->rx_cbs = &discard_rx_app_cb;
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
@@ -183,6 +181,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				return err;
 			}
 			memcpy(nis[aiop_niid].mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+
 
 			if ((err = dpni_get_attributes(&dprc->io, dpni, &attributes)) != 0) {
 				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
@@ -380,7 +379,6 @@ int dpni_drv_init(void)
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-		int	   j;
 
 		dpni_drv->dpni_drv_tx_params_var.aiop_niid    = (uint16_t)i;
 #if 0
@@ -391,12 +389,11 @@ int dpni_drv_init(void)
 		dpni_drv->dpni_drv_params_var.prpid        = prpid; /*parser profile id from parser_profile_init()*/
 		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
 		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
-		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS | DPNI_DRV_FLG_MTU_ENABLE;
+		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
 		dpni_drv->dpni_drv_tx_params_var.mtu          = 0xffff;
 
 		/* put a default RX callback - dropping the frame */
-		for (j = 0; j < DPNI_DRV_MAX_NUM_FLOWS; j++)
-			dpni_drv->rx_cbs[j] = discard_rx_app_cb;
+		dpni_drv->rx_cbs = discard_rx_app_cb;
 	}
 	return error;
 }

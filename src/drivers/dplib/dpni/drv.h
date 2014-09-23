@@ -92,11 +92,12 @@ struct dpni_drv {
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/* lock for multi-core support */
 	uint8_t             dpni_lock;
-	uint8_t             reserved;
+	uint8_t             res1;
 	/** call back application function */
-	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
+	rx_cb_t             *rx_cbs;
+	uint32_t            res2;
 	/** call back application argument */
-	dpni_drv_app_arg_t  args[DPNI_DRV_MAX_NUM_FLOWS];
+	dpni_drv_app_arg_t  arg;
 };
 #pragma pack(pop)
 
