@@ -40,7 +40,7 @@
 #define _FSL_DPIO_CMD_H
 
 /* DPIO Version */
-#define DPIO_VER_MAJOR				1
+#define DPIO_VER_MAJOR				2
 #define DPIO_VER_MINOR				0
 
 /* cmd IDs */
@@ -49,18 +49,21 @@
 #define DPIO_CMDID_CREATE				0x903
 #define DPIO_CMDID_DESTROY				0x900
 
-#define DPIO_CMDID_RESET				0x112
-#define DPIO_CMDID_ENABLE				0x114
-#define DPIO_CMDID_DISABLE				0x115
-#define DPIO_CMDID_GET_ATTR				0x116
-#define DPIO_CMDID_SET_IRQ				0x117
-#define DPIO_CMDID_GET_IRQ				0x118
-#define DPIO_CMDID_SET_IRQ_ENABLE			0x119
-#define DPIO_CMDID_GET_IRQ_ENABLE			0x11A
-#define DPIO_CMDID_SET_IRQ_MASK				0x11B
-#define DPIO_CMDID_GET_IRQ_MASK				0x11C
-#define DPIO_CMDID_GET_IRQ_STATUS			0x11D
-#define DPIO_CMDID_CLEAR_IRQ_STATUS			0x11E
+#define DPIO_CMDID_ENABLE				0x002
+#define DPIO_CMDID_DISABLE				0x003
+#define DPIO_CMDID_GET_ATTR				0x004
+#define DPIO_CMDID_RESET				0x005
+#define DPIO_CMDID_IS_ENABLED				0x006
+
+#define DPIO_CMDID_SET_IRQ				0x010
+#define DPIO_CMDID_GET_IRQ				0x011
+#define DPIO_CMDID_SET_IRQ_ENABLE			0x012
+#define DPIO_CMDID_GET_IRQ_ENABLE			0x013
+#define DPIO_CMDID_SET_IRQ_MASK				0x014
+#define DPIO_CMDID_GET_IRQ_MASK				0x015
+#define DPIO_CMDID_GET_IRQ_STATUS			0x016
+#define DPIO_CMDID_CLEAR_IRQ_STATUS			0x017
+ 
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPIO_CMD_OPEN(cmd, dpio_id) \
@@ -83,9 +86,13 @@ do { \
 	MC_RSP_OP(cmd, 0, 56, 4,  enum dpio_channel_mode, attr->channel_mode);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->qbman_portal_ce_paddr);\
 	MC_RSP_OP(cmd, 2, 0,  64, uint64_t, attr->qbman_portal_ci_paddr);\
-	MC_RSP_OP(cmd, 3, 0,  32, uint32_t, attr->version.major);\
-	MC_RSP_OP(cmd, 3, 32, 32, uint32_t, attr->version.minor);\
+	MC_RSP_OP(cmd, 3, 0,  16, uint16_t, attr->version.major);\
+	MC_RSP_OP(cmd, 3, 16, 16, uint16_t, attr->version.minor);\
 } while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPIO_RSP_IS_ENABLED(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPIO_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \

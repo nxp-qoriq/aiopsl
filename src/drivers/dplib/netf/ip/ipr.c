@@ -594,7 +594,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
 				  RFDC_SIZE,
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
-
+	
+	/* Decrement ref count of acquire */
+	cdma_refcount_decrement_and_release(rfdc_ext_addr);
 
 	move_to_correct_ordering_scope2(osm_status);
 
