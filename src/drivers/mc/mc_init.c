@@ -195,7 +195,7 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	struct   dpci_dest_cfg dest_cfg;
 	int      err = 0;
 	uint8_t  p   = 0;
-	int 	 i;
+	uint8_t  i;
 	
 	if (dev_desc == NULL)
 		return -EINVAL;
@@ -260,7 +260,7 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	uint8_t p = 0;
 	int     err = 0;
 	int     link_up = 0;
-	int 	 i;
+	uint8_t i;
 
 	dpci_cfg.num_of_priorities = 2;
 
@@ -308,13 +308,16 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 		pr_err("dprc_connect failed\n");
 	}
 
-	err |= dpci_get_peer_attributes(&dprc->io, dpci, &dpci_tbl->peer_attr[ind]);
+	err |= dpci_get_peer_attributes(&dprc->io, dpci, 
+	                                &dpci_tbl->peer_attr[ind]);
 	
 	for (i = 0; i < dpci_tbl->attr->num_of_priorities; i++)
-		err |= dpci_get_rx_queue(&dprc->io, dpci, i, &dpci_tbl->rx_queue_attr[i][ind]);
+		err |= dpci_get_rx_queue(&dprc->io, dpci, i, 
+		                         &dpci_tbl->rx_queue_attr[i][ind]);
 	
 	for (i = 0; i < dpci_tbl->peer_attr->num_of_priorities; i++)
-		err |= dpci_get_tx_queue(&dprc->io, dpci, i, &dpci_tbl->tx_queue_attr[i][ind]);
+		err |= dpci_get_tx_queue(&dprc->io, dpci, i, 
+		                         &dpci_tbl->tx_queue_attr[i][ind]);
 	
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {

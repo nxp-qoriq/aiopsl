@@ -288,9 +288,9 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	 /* Do it only if queue is not there yet */
 	if (fqid == DPCI_FQID_NOT_VALID) {
 		struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		err = dpci_get_attributes(&dprc->io,
-		                          cmdif_aiop_srv.dpci_tbl->token[ind],
-		                          &cmdif_aiop_srv.dpci_tbl->attr[ind]);
+		err = dpci_get_tx_queue(&dprc->io, 
+		                        cmdif_aiop_srv.dpci_tbl->token[ind], pr, 
+		                        &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind]);
 		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	}
 
