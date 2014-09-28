@@ -433,7 +433,7 @@ __HOT_CODE static int notify_open()
 						   &dpci_tbl->tx_queue_attr[i][ind]);
 	 }
 
-	if ((dpci_tbl->peer_attr[ind].peer_id != (-1)) || !link_up) {
+	if ((dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
