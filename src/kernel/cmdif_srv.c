@@ -294,7 +294,7 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	}
 
-	pr_debug("Response FQID = 0x%x\n", fqid);
+	pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
