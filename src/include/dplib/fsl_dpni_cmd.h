@@ -463,7 +463,7 @@ do { \
 #define DPNI_RSP_GET_TX_FLOW(cmd, attr) \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->conf_err_cfg.dest_cfg.dest_id);\
-	MC_RSP_OP(cmd, 0, 31, 8,  uint8_t,  attr->conf_err_cfg.dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->conf_err_cfg.dest_cfg.priority);\
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->conf_err_cfg.dest_cfg.dest_type);\
 	MC_RSP_OP(cmd, 0, 42, 1,  int,	    attr->conf_err_cfg.errors_only);\
 	MC_RSP_OP(cmd, 0, 43, 1,  int,	    attr->l3_chksum_gen);\
