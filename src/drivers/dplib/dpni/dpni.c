@@ -889,6 +889,9 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 	uint64_t ext_iova;
 	int err;
 
+	if (!ext_params)
+		return -ENOMEM;
+	
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC_DIST,
 	                                  MC_CMD_PRI_LOW,
@@ -1001,6 +1004,9 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	uint64_t ext_iova;
 	int err;
 
+	if (!ext_params)
+		return -ENOMEM;
+	
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_QOS_TBL,
 	                                  MC_CMD_PRI_LOW, token);
