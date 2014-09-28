@@ -342,7 +342,7 @@ int dpio_clear_irq_status(struct fsl_mc_io *mc_io,
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPIO_CMDID_CLEAR_IRQ_STATUS,
 	                                  MC_CMD_PRI_LOW, token);
-	DPIO_CMD_CLEAR_IRQ_STATUS(cmd, status, irq_index);
+	DPIO_CMD_CLEAR_IRQ_STATUS(cmd, irq_index, status);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
