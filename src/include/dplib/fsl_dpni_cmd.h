@@ -460,18 +460,17 @@ do { \
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_TX_FLOW(cmd, cfg, fqid) \
+#define DPNI_RSP_GET_TX_FLOW(cmd, attr) \
 do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,      cfg->conf_err_cfg.dest_cfg.dest_id);\
-	MC_RSP_OP(cmd, 0, 31, 8,  uint8_t,  cfg->conf_err_cfg.dest_cfg.priority);\
-	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, cfg->conf_err_cfg.dest_cfg.dest_type);\
-	MC_RSP_OP(cmd, 0, 42, 1,  int,	    cfg->conf_err_cfg.errors_only);\
-	MC_RSP_OP(cmd, 0, 43, 1,  int,	    cfg->l3_chksum_gen);\
-	MC_RSP_OP(cmd, 0, 44, 1,  int,	    cfg->l4_chksum_gen);\
-	MC_RSP_OP(cmd, 0, 45, 1,  int,	    cfg->conf_err_cfg.use_default_queue);\
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, cfg->conf_err_cfg.user_ctx);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, cfg->options);\
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, fqid);\
+	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->conf_err_cfg.dest_cfg.dest_id);\
+	MC_RSP_OP(cmd, 0, 31, 8,  uint8_t,  attr->conf_err_cfg.dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->conf_err_cfg.dest_cfg.dest_type);\
+	MC_RSP_OP(cmd, 0, 42, 1,  int,	    attr->conf_err_cfg.errors_only);\
+	MC_RSP_OP(cmd, 0, 43, 1,  int,	    attr->l3_chksum_gen);\
+	MC_RSP_OP(cmd, 0, 44, 1,  int,	    attr->l4_chksum_gen);\
+	MC_RSP_OP(cmd, 0, 45, 1,  int,	    attr->conf_err_cfg.use_default_queue);\
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->conf_err_cfg.user_ctx);\
+	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */

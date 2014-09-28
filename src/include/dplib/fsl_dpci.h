@@ -137,6 +137,12 @@ struct dpci_dest_cfg {
  */
 };
 
+struct dpci_rx_queue_cfg {
+                uint32_t options;
+                uint64_t user_ctx;
+                struct dpci_dest_cfg dest_cfg;
+};
+
 /**
  *
  * @brief	Attach the DPCI to the application
@@ -154,8 +160,7 @@ struct dpci_dest_cfg {
  */
 int dpci_set_rx_queue(struct fsl_mc_io *mc_io, uint16_t token,
 		      uint8_t priority,
-	const struct dpci_dest_cfg *dest_cfg,
-	uint64_t user_ctx);
+	const struct dpci_rx_queue_cfg *cfg);
 
 /**
  *

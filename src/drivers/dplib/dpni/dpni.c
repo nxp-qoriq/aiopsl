@@ -930,8 +930,7 @@ int dpni_set_tx_flow(struct fsl_mc_io *mc_io,
 int dpni_get_tx_flow(struct fsl_mc_io *mc_io,
                      uint16_t token,
                      uint16_t flow_id,
-                     struct dpni_tx_flow_cfg *cfg,
-                     uint32_t *fqid)
+                     struct dpni_tx_flow_attr *attr)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -947,7 +946,7 @@ int dpni_get_tx_flow(struct fsl_mc_io *mc_io,
 		return err;
 	
 	/* retrieve response parameters */
-	DPNI_RSP_GET_TX_FLOW(cmd, cfg, *fqid);
+	DPNI_RSP_GET_TX_FLOW(cmd, attr);
 
 	return 0;
 }

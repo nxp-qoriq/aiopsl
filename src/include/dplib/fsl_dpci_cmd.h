@@ -79,13 +79,13 @@
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  cfg->num_of_priorities)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPCI_CMD_SET_RX_QUEUE(cmd, priority, dest_cfg, user_ctx) \
+#define DPCI_CMD_SET_RX_QUEUE(cmd, priority, cfg) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,      dest_cfg->dest_id);\
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  dest_cfg->priority);\
+	MC_CMD_OP(cmd, 0, 0,  32, int,      cfg->dest_cfg.dest_id);\
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->dest_cfg.priority);\
 	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
-	MC_CMD_OP(cmd, 0, 48, 4,  enum dpci_dest, dest_cfg->dest_type);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, user_ctx);\
+	MC_CMD_OP(cmd, 0, 48, 4,  enum dpci_dest, cfg->dest_cfg.dest_type);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */

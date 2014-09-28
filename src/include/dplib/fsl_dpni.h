@@ -1212,23 +1212,52 @@ int dpni_set_tx_flow(struct fsl_mc_io *mc_io,
 	const struct dpni_tx_flow_cfg *cfg);
 
 /**
+ * @brief	Structure representing DPNI TX flow attributes
+ */
+struct dpni_tx_flow_attr {
+	 struct {
+		int use_default_queue;
+		/*!< This option maybe used when 'options' set
+		 with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERR; Prefer this flow to
+		 have its private tx confirmation/error settings */
+		int errors_only; /*!< This option maybe used when 'options' set
+		 with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERR and 'tx_conf_err' = 1;
+		 if 'only_error_frames' = 1,  will send back only errors frames.
+		 else send both confirmation and error frames */
+		struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
+		 when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; */
+		uint64_t user_ctx;
+		/*!< This option maybe used when 'options' set
+		 with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
+		 of 'tx_conf_err'= 1 or enqueue-rejection condition ("lossless") */
+	} conf_err_cfg;
+	int l3_chksum_gen;
+	/*!< This option maybe used when 'options' set
+	 with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
+	 generation */
+	int l4_chksum_gen;
+/*!< This option maybe used when 'options' set
+ with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
+ generation */
+	uint32_t fqid; /*!< Virtual fqid to be used for dequeue operations;
+	if equal to 'DPNI_FQID_NOT_VALID' means you need to 
+	call this function after you enable the NI. */
+};
+
+/**
  *
  * @brief	Get TX flow configuration and fqid
  *
  * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	flow_id - this id is the sender index
- * @param[out]	cfg - flow configuration
- * @param[out]	fqid - virtual fqid to be used for dequeue operations;
- *		if equal to 'DPNI_FQID_NOT_VALID' means you need to
- *		call this function after you enable the NI.
+ * @param[out]	attr - flow attributes
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_get_tx_flow(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint16_t flow_id,
-	struct dpni_tx_flow_cfg *cfg,
-	uint32_t *fqid);
+	struct dpni_tx_flow_attr *attr);
 
 /*!
  * @name DPNI Rx flow modification options

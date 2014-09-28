@@ -775,8 +775,8 @@ int dprc_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
-		 struct dprc_endpoint *endpoint1,
-	struct dprc_endpoint *endpoint2);
+                 const struct dprc_endpoint *endpoint1,
+                 const struct dprc_endpoint *endpoint2);
 
 /**
  * @brief	Disconnects one endpoint to remove its network link
@@ -787,7 +787,8 @@ int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_endpoint *endpoint);
+int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, 
+                    const struct dprc_endpoint *endpoint);
 
 /**
 * @brief       Obtaining connected endpoint and link status if connection exist
@@ -802,7 +803,7 @@ int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_endpoin
 * */
 int dprc_get_connection(struct fsl_mc_io *mc_io,
 						uint16_t token,
-                        struct dprc_endpoint *endpoint1,
+			const struct dprc_endpoint *endpoint1,
                         struct dprc_endpoint *endpoint2,
                         int *state);
 

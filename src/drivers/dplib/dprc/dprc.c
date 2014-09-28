@@ -603,8 +603,8 @@ int dprc_get_portal_paddr(struct fsl_mc_io *mc_io,
 
 int dprc_connect(struct fsl_mc_io *mc_io,
                  uint16_t token,
-                 struct dprc_endpoint *endpoint1,
-                 struct dprc_endpoint *endpoint2)
+                 const struct dprc_endpoint *endpoint1,
+                 const struct dprc_endpoint *endpoint2)
 {
 	struct mc_command cmd = { 0 };
 
@@ -620,7 +620,7 @@ int dprc_connect(struct fsl_mc_io *mc_io,
 
 int dprc_disconnect(struct fsl_mc_io *mc_io,
                     uint16_t token,
-                    struct dprc_endpoint *endpoint)
+                    const struct dprc_endpoint *endpoint)
 {
 	struct mc_command cmd = { 0 };
 
@@ -636,7 +636,7 @@ int dprc_disconnect(struct fsl_mc_io *mc_io,
 
 int dprc_get_connection(struct fsl_mc_io *mc_io,
         				uint16_t token,
-                        struct dprc_endpoint *endpoint1,
+        				const struct dprc_endpoint *endpoint1,
                         struct dprc_endpoint *endpoint2,
                         int *state)
 {
