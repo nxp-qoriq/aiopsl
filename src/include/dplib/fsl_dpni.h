@@ -99,8 +99,8 @@ int dpni_close(struct fsl_mc_io *mc_io, uint16_t token);
 /*!< Allow different distribution-key per TC */
 #define DPNI_OPT_TX_CONF_DISABLED		0x00000002
 /*!< No Tx-confirmation at all */
-#define DPNI_OPT_PRIVATE_TX_CONF_ERR_DISABLED	0x00000004
-/*!< Private Tx-confirmation/err disable */
+#define DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED	0x00000004
+/*!< Private Tx-confirmation/error disable */
 #define DPNI_OPT_DIST_HASH			0x00000010
 /*!< Hash based distribution support */
 #define DPNI_OPT_DIST_FS			0x00000020
@@ -1200,9 +1200,9 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
  * @name DPNI Tx flow modification options
  *
  */
-#define DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERR	0x00000001
+#define DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERROR	0x00000001
 /*!< Modify the flow's settings for dedicate tx confirmation/error */
-#define DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERR	0x00000002
+#define DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR	0x00000002
 /*!< Modify the tx confirmation/error behavior*/
 #define DPNI_TX_FLOW_MOD_OPT_DEST		0x00000004
 /*!< Modify the tx-confirmation/error queue destination parameters*/
@@ -1224,11 +1224,12 @@ struct dpni_tx_flow_cfg {
 	 struct {
 		int use_default_queue;
 		/*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERR; Prefer this flow to
+		 with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERROR;
+		 if 'use_default_queue' = 0 set this flow to
 		 have its private tx confirmation/error settings */
 		int errors_only; /*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERR and 'tx_conf_err' = 1;
-		 if 'only_error_frames' = 1,  will send back only errors frames.
+		 with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR and 'use_default_queue' = 0;
+		 if 'errors_only' = 1,  will send back only errors frames.
 		 else send both confirmation and error frames */
 		struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
 		 when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; */
@@ -1442,7 +1443,7 @@ int dpni_set_tx_conf_err_queue(struct fsl_mc_io *mc_io,
  *
  * @brief	Get TX conf/error queue's configuration and id
  *
- * If 'DPNI_OPT_TX_CONF_DISABLED' is set, this fqid will be treated as tx-err
+ * If 'DPNI_OPT_TX_CONF_DISABLED' is set, this fqid will be treated as tx-error
  * and received only errors (confirmation is disabled).
  * Otherwise this fqid will be used for both errors and confirmation
  * (except when a private fqid is used)
