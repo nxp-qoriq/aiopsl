@@ -496,7 +496,7 @@ do { \
 #define DPNI_RSP_GET_RX_FLOW(cmd, attr) \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
-	MC_RSP_OP(cmd, 0, 32, 16, uint8_t,  attr->dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_id); \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
