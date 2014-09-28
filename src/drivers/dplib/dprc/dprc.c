@@ -38,15 +38,19 @@ int dprc_get_container_id(struct fsl_mc_io *mc_io, int *container_id)
 	struct mc_command cmd = { 0 };
 	int err;
 
-//	dprc->auth = 0;
-
+	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPRC_CMDID_GET_CONT_ID,
 	                                  MC_CMD_PRI_LOW, 0);
+	
+	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_CONTAINER_ID(cmd, *container_id);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_CONTAINER_ID(cmd, *container_id);
 
-	return err;
+	return 0;
 }
 
 int dprc_open(struct fsl_mc_io *mc_io, int container_id, uint16_t *token)
@@ -61,10 +65,13 @@ int dprc_open(struct fsl_mc_io *mc_io, int container_id, uint16_t *token)
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
 
-	return err;
+	return 0;
 }
 
 int dprc_close(struct fsl_mc_io *mc_io, uint16_t token)
@@ -93,12 +100,17 @@ int dprc_create_container(struct fsl_mc_io *mc_io,
 
 	cmd.header = mc_encode_cmd_header(DPRC_CMDID_CREATE_CONT,
 	                                  MC_CMD_PRI_LOW, token);
+	
+	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_CREATE_CONTAINER(cmd, *child_container_id,
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_CREATE_CONTAINER(cmd, *child_container_id,
 		                          *child_portal_paddr);
 
-	return err;
+	return 0;
 }
 
 int dprc_destroy_container(struct fsl_mc_io *mc_io,
@@ -112,6 +124,7 @@ int dprc_destroy_container(struct fsl_mc_io *mc_io,
 	                                  MC_CMD_PRI_LOW, token);
 	DPRC_CMD_DESTROY_CONTAINER(cmd, child_container_id);
 
+	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
@@ -126,6 +139,7 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 	                                  MC_CMD_PRI_LOW, token);
 	DPRC_CMD_RESET_CONTAINER(cmd, child_container_id);
 
+	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 
 }
@@ -163,10 +177,13 @@ int dprc_get_res_quota(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_RES_QUOTA(cmd, *quota);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_RES_QUOTA(cmd, *quota);
 
-	return err;
+	return 0;
 }
 
 int dprc_assign(struct fsl_mc_io *mc_io,
@@ -213,10 +230,13 @@ int dprc_get_obj_count(struct fsl_mc_io *mc_io, uint16_t token, int *obj_count)
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_OBJ_COUNT(cmd, *obj_count);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_OBJ_COUNT(cmd, *obj_count);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_obj(struct fsl_mc_io *mc_io,
@@ -235,10 +255,13 @@ int dprc_get_obj(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_OBJECT(cmd, obj_desc);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_OBJECT(cmd, obj_desc);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_res_count(struct fsl_mc_io *mc_io,
@@ -258,10 +281,13 @@ int dprc_get_res_count(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_RES_COUNT(cmd, *res_count);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_RES_COUNT(cmd, *res_count);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_res_ids(struct fsl_mc_io *mc_io,
@@ -279,10 +305,13 @@ int dprc_get_res_ids(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_RES_IDS(cmd, range_desc);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_RES_IDS(cmd, range_desc);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_attributes(struct fsl_mc_io *mc_io,
@@ -299,10 +328,13 @@ int dprc_get_attributes(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_ATTRIBUTES(cmd, attr);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_ATTRIBUTES(cmd, attr);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_obj_region(struct fsl_mc_io *mc_io,
@@ -322,10 +354,13 @@ int dprc_get_obj_region(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_OBJ_REGION(cmd, region_desc);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_OBJ_REGION(cmd, region_desc);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_irq(struct fsl_mc_io *mc_io,
@@ -347,10 +382,13 @@ int dprc_get_irq(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
 
-	return err;
+	return 0;
 }
 
 int dprc_set_irq(struct fsl_mc_io *mc_io,
@@ -387,10 +425,13 @@ int dprc_get_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_IRQ_ENABLE(cmd, *enable_state);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_IRQ_ENABLE(cmd, *enable_state);
 
-	return err;
+	return 0;
 }
 
 int dprc_set_irq_enable(struct fsl_mc_io *mc_io,
@@ -424,10 +465,13 @@ int dprc_get_irq_mask(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_IRQ_MASK(cmd, *mask);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_IRQ_MASK(cmd, *mask);
 
-	return err;
+	return 0;
 }
 
 int dprc_set_irq_mask(struct fsl_mc_io *mc_io,
@@ -461,10 +505,13 @@ int dprc_get_irq_status(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_IRQ_STATUS(cmd, *status);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_IRQ_STATUS(cmd, *status);
 
-	return err;
+	return 0;
 }
 
 int dprc_clear_irq_status(struct fsl_mc_io *mc_io,
@@ -496,10 +543,13 @@ int dprc_get_pool_count(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_POOL_COUNT(cmd, *pool_count);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_POOL_COUNT(cmd, *pool_count);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_pool(struct fsl_mc_io *mc_io,
@@ -518,10 +568,13 @@ int dprc_get_pool(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_POOL(cmd, type);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_POOL(cmd, type);
 
-	return err;
+	return 0;
 }
 
 int dprc_get_portal_paddr(struct fsl_mc_io *mc_io,
@@ -539,10 +592,13 @@ int dprc_get_portal_paddr(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
-		DPRC_RSP_GET_PORTAL_PADDR(cmd, *portal_addr);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_PORTAL_PADDR(cmd, *portal_addr);
 
-	return err;
+	return 0;
 }
 
 int dprc_connect(struct fsl_mc_io *mc_io,
@@ -576,4 +632,30 @@ int dprc_disconnect(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
+}
+
+int dprc_get_connection(struct fsl_mc_io *mc_io,
+        				uint16_t token,
+                        struct dprc_endpoint *endpoint1,
+                        struct dprc_endpoint *endpoint2,
+                        int *state)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+	
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPRC_CMDID_GET_CONNECTION,
+	                                  MC_CMD_PRI_LOW,
+	                                  token);
+	DPRC_CMD_GET_CONNECTION(cmd, endpoint1);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPRC_RSP_GET_CONNECTION(cmd, endpoint2, *state);
+	
+	return 0;
 }

@@ -47,10 +47,13 @@ int dpbp_create(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */	
 		*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
 
-	return err;
+	return 0;
 }
 
 int dpbp_open(struct fsl_mc_io *mc_io, int dpbp_id, uint16_t *token)
@@ -65,7 +68,10 @@ int dpbp_open(struct fsl_mc_io *mc_io, int dpbp_id, uint16_t *token)
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
 		*token = MC_CMD_HDR_READ_AUTHID(cmd.header);
 
 	return err;
@@ -131,6 +137,25 @@ int dpbp_disable(struct fsl_mc_io *mc_io, uint16_t token)
 	return mc_send_command(mc_io, &cmd);
 }
 
+int dpbp_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPBP_CMDID_IS_ENABLED, MC_CMD_PRI_LOW,
+	                                  token);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
+	DPBP_RSP_IS_ENABLED(cmd, *en);
+	
+	return 0;
+}
+
 int dpbp_get_attributes(struct fsl_mc_io *mc_io,
                         uint16_t token,
                         struct dpbp_attr *attr)
@@ -144,10 +169,13 @@ int dpbp_get_attributes(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
 		DPBP_RSP_GET_ATTRIBUTES(cmd, attr);
 
-	return err;
+	return 0;
 }
 
 int dpbp_get_irq(struct fsl_mc_io *mc_io,
@@ -168,10 +196,13 @@ int dpbp_get_irq(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
 		DPBP_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
 
-	return err;
+	return 0;
 }
 
 int dpbp_set_irq(struct fsl_mc_io *mc_io,
@@ -207,10 +238,13 @@ int dpbp_get_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
 		DPBP_RSP_GET_IRQ_ENABLE(cmd, *enable_state);
 
-	return err;
+	return 0;
 }
 
 int dpbp_set_irq_enable(struct fsl_mc_io *mc_io,
@@ -244,10 +278,13 @@ int dpbp_get_irq_mask(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
 		DPBP_RSP_GET_IRQ_MASK(cmd, *mask);
 
-	return err;
+	return 0;
 }
 
 int dpbp_set_irq_mask(struct fsl_mc_io *mc_io,
@@ -281,10 +318,13 @@ int dpbp_get_irq_status(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
-	if (!err)
+	if (err)
+		return err;
+	
+	/* retrieve response parameters */
 		DPBP_RSP_GET_IRQ_STATUS(cmd, *status);
 
-	return err;
+	return 0;
 }
 
 int dpbp_clear_irq_status(struct fsl_mc_io *mc_io,

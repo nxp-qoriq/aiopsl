@@ -284,14 +284,14 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 
 	ind = (uint8_t)(fqid >> 1);
 	pr  = (uint8_t)(fqid & 1);
-	fqid = cmdif_aiop_srv.dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+	fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	 /* Do it only if queue is not there yet */
-	if (fqid == DPCI_VFQID_NOT_VALID) {
+	if (fqid == DPCI_FQID_NOT_VALID) {
 		struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		err = dpci_get_attributes(&dprc->io,
-		                          cmdif_aiop_srv.dpci_tbl->token[ind],
-		                          &cmdif_aiop_srv.dpci_tbl->attr[ind]);
-		fqid = cmdif_aiop_srv.dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+		err = dpci_get_tx_queue(&dprc->io, 
+		                        cmdif_aiop_srv.dpci_tbl->token[ind], pr, 
+		                        &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind]);
+		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	}
 
 	pr_debug("Response ID = 0x%x\n", fqid);
@@ -362,7 +362,7 @@ __HOT_CODE static int find_dpci(uint8_t dpci_id)
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
 
 	for (i = 0; i < dt->count; i++) {
-		if (dt->attr[i].peer_id == dpci_id)
+		if (dt->peer_attr[i].peer_id == dpci_id)
 			return i;
 	}
 	return -1;
@@ -394,7 +394,8 @@ __HOT_CODE static int notify_open()
 	int err = 0;
 	uint16_t pl_icid = PL_ICID_GET;
 	struct mc_dprc *dprc = NULL;
-
+	int i;
+	
 	pr_debug("Got notify open for AIOP client \n");
 	ASSERT_COND(dpci_tbl != NULL);
 
@@ -425,13 +426,14 @@ __HOT_CODE static int notify_open()
 	 }
 #endif
 	 /* Do it only if queues are not there */
-	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == DPCI_VFQID_NOT_VALID) {
+	 if (dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) {
 		 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		 err = dpci_get_attributes(&dprc->io, dpci_tbl->token[ind],
-		                           &dpci_tbl->attr[ind]);
+		 for (i < 0; i < DPCI_PRIO_NUM; i++)
+			 err |= dpci_get_tx_queue(&dprc->io, dpci_tbl->token[ind], i,
+						   &dpci_tbl->tx_queue_attr[i][ind]);
 	 }
 
-	if (!dpci_tbl->attr[ind].peer_attached || !link_up) {
+	if ((dpci_tbl->peer_attr[ind].peer_id != (-1)) || !link_up) {
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
@@ -454,6 +456,9 @@ __HOT_CODE static int notify_open()
 	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
 	cl->gpp[count].regs->dpci_token = dpci_tbl->token[ind];
 	cl->gpp[count].regs->attr       = &dpci_tbl->attr[ind];
+	cl->gpp[count].regs->peer_attr  = &dpci_tbl->peer_attr[ind];
+	cl->gpp[count].regs->tx_queue_attr[0] = &dpci_tbl->tx_queue_attr[0][ind];
+	cl->gpp[count].regs->tx_queue_attr[1] = &dpci_tbl->tx_queue_attr[1][ind];
 	cl->gpp[count].regs->icid       = dpci_tbl->icid[ind];
 	cl->gpp[count].regs->dma_flags  = dpci_tbl->dma_flags[ind];
 	cl->gpp[count].regs->enq_flags  = dpci_tbl->bdi_flags[ind];

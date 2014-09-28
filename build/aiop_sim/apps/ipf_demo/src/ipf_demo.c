@@ -58,12 +58,16 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
 	uint8_t *p_ipv4hdr = 0;
+	struct ipv4hdr *ipv4_hdr;
 
 	uint8_t ipf_demo_flags = IPF_DEMO_WITH_HM;
 	uint32_t vlan_tag1 = 0x81008a6b;
 	uint32_t vlan_tag2 = 0x8100c78d;
 	uint16_t mtu;
 	int ipf_status;
+	int local_test_error = 0;
+	uint32_t fd_length;
+	uint16_t offset;
 
 /*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
 
@@ -114,8 +118,31 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				fsl_os_print(" %x",p_ipv4hdr[i]);
 			}
 			fsl_os_print("\n");
+			fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+			if (fd_length != 1522)
+			{
+				fsl_os_print("fragment length error!\n");
+				local_test_error |= 1;
+			}
+			ipv4_hdr = (struct ipv4hdr *)p_ipv4hdr;
+			if (ipv4_hdr->id != 1)
+			{
+				fsl_os_print("fragment ID error!\n");
+				local_test_error |= 1;
+			}
+			if (!(ipv4_hdr->flags_and_offset & 0x2000))
+			{
+				fsl_os_print("fragment flags error!\n");
+				local_test_error |= 1;
+			}
+			offset = (ipv4_hdr->flags_and_offset) & ~0x2000;
+			offset *= 8;
+			if ((offset % 1480) != 0)
+			{
+				fsl_os_print("fragment offset error!\n");
+				local_test_error |= 1;
+			}
 		}
-
 		dpni_drv_send(APP_NI_GET(arg));
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
 
@@ -127,6 +154,37 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print(" %x",p_ipv4hdr[i]);
 	}
 		fsl_os_print("\n");
+
+	fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	if (fd_length != 73)
+	{
+		fsl_os_print("last fragment length error!\n");
+		local_test_error |= 1;
+	}
+	ipv4_hdr = (struct ipv4hdr *)p_ipv4hdr;
+	if (ipv4_hdr->id != 1)
+	{
+		fsl_os_print("fragment ID error!\n");
+		local_test_error |= 1;
+	}
+	if (ipv4_hdr->flags_and_offset & 0x2000)
+	{
+		fsl_os_print("last fragment flags error!\n");
+		local_test_error |= 1;
+	}
+	offset = (ipv4_hdr->flags_and_offset) & ~0x2000;
+	offset *= 8;
+	if ((offset % 1480) != 0)
+	{
+		fsl_os_print("last fragment offset error!\n");
+		local_test_error |= 1;
+	}
+	
+	if(!local_test_error) /*No error found during injection of packets*/
+		fsl_os_print("Finished SUCCESSFULLY\n");
+	else
+		fsl_os_print("Finished with ERRORS\n");
+
 }
 
 
@@ -213,7 +271,7 @@ int app_init(void)
 	if (err)
 		fsl_os_print("FAILED cmdif_register_module\n!");
 */
-
+	fsl_os_print("To start test inject packets: \"reassembled_frame.pcap\"\n");
 	return 0;
 }
 

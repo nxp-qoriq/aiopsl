@@ -1,0 +1,2 @@
+mc/src/include/fsl_endian.h:aiop/src/include/fsl_endian.h
+mc/src/include/fsl_io.h:aiop/src/include/fsl_io.h
