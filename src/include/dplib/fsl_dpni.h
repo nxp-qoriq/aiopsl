@@ -521,6 +521,61 @@ int dpni_get_attributes(struct fsl_mc_io *mc_io,
 	struct dpni_attr *attr);
 
 /*!
+ * @name DPNI errors
+ *
+ */
+#define DPNI_ERROR_EOFHE	0x00020000
+/*!< Extract out of frame header error */
+#define DPNI_ERROR_FLE		0x00002000
+/*!< Frame length error */
+#define DPNI_ERROR_FPE		0x00001000
+/*!< Frame physical error */
+#define DPNI_ERROR_PHE		0x00000020
+/*!< Parsing header error */
+#define DPNI_ERROR_L3CE		0x00000004
+/*!< Parser L3 checksum error */
+#define DPNI_ERROR_L4CE		0x00000001
+/*!< Parser L3 checksum error */
+
+/*!
+ * @brief   DPNI defining behaviour for errors
+ *
+ */
+enum dpni_error_action {
+	DPNI_ERROR_ACTION_DISCARD, /*!< Discard the frame */
+	DPNI_ERROR_ACTION_CONTINUE, /*!< Continue with the flow */
+	DPNI_ERROR_ACTION_SEND_TO_ERROR_QUEUE
+/*!< Enqueue to error queue */
+};
+
+/**
+ * @brief	Structure representing DPNI errors treatment
+ */
+struct dpni_error_cfg {
+	uint32_t errors;
+	/*!< Errors mask; use 'DPNI_ERROR_xxx' */
+	enum dpni_error_action error_action;
+	/*!< The desired action for the errors mask */
+	int set_frame_annotation;
+/*!< relevant only for the non-discard action;
+ * if '1' those errors will be set in the FAS */
+};
+
+/**
+ *
+ * @brief	Set errors behaviour
+ *
+ * Can be called numerous times with different error masks
+ *
+ * @param[in]	dpni - Pointer to dpni object
+ * @param[in]	cfg - errors configuration
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpni_set_errors_behaviour(struct fsl_mc_io *mc_io,
+	uint16_t token, struct dpni_error_cfg *cfg);
+
+/*!
  * @name DPNI buffer layout modification options
  *
  */

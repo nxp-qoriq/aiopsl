@@ -77,6 +77,7 @@
 #define DPNI_CMDID_GET_L3_CHKSUM_VALIDATION	0x208
 #define DPNI_CMDID_SET_L4_CHKSUM_VALIDATION	0x209
 #define DPNI_CMDID_GET_L4_CHKSUM_VALIDATION	0x20A
+#define DPNI_CMDID_SET_ERRORS_BEHAVIOUR		0x20B
 
 #define DPNI_CMDID_GET_QDID			0x210
 #define DPNI_CMDID_GET_SPID			0x211
@@ -202,6 +203,14 @@ do { \
 	MC_RSP_OP(cmd, 3, 56, 8,  uint8_t,  attr->max_dist_per_tc[7]); \
 	MC_RSP_OP(cmd, 4, 0,  16, uint16_t, attr->version.major);\
 	MC_RSP_OP(cmd, 4, 16, 16, uint16_t, attr->version.minor);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_ERRORS_BEHAVIOUR(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, cfg->errors); \
+	MC_CMD_OP(cmd, 0, 32, 4,  enum dpni_error_action, cfg->error_action); \
+	MC_CMD_OP(cmd, 0, 36, 1,  int,      cfg->set_frame_annotation); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
