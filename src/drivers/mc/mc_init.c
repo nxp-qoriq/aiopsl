@@ -141,7 +141,7 @@ static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
 			pr_err("No memory for %d DPCIs\n", dpci_count);
 			return -ENOMEM;
 		}
-		memset(&(dpci_tbl->tx_queue_attr[i]), 0, size);
+		memset(dpci_tbl->tx_queue_attr[i], 0, size);
 	}
 	
 	size = sizeof(uint16_t) * dpci_count;

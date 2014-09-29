@@ -296,16 +296,16 @@ int dpni_get_attributes(struct fsl_mc_io *mc_io,
 	return 0;
 }
 
-int dpni_set_errors_behaviour(struct fsl_mc_io *mc_io,
+int dpni_set_errors_behavior(struct fsl_mc_io *mc_io,
                               uint16_t token, 
                               struct dpni_error_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_ERRORS_BEHAVIOUR,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_ERRORS_BEHAVIOR,
 	                                  MC_CMD_PRI_LOW, token);
-	DPNI_CMD_SET_ERRORS_BEHAVIOUR(cmd, cfg);
+	DPNI_CMD_SET_ERRORS_BEHAVIOR(cmd, cfg);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);	

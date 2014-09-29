@@ -374,7 +374,7 @@ int dpni_clear_irq_status(struct fsl_mc_io *mc_io,
 struct dpni_pools_cfg {
 	uint8_t num_dpbp; /*!< number of DPBPs */
 	struct {
-		uint16_t dpbp_id; /*!< DPBPs object id */
+		int dpbp_id; /*!< DPBPs object id */
 		uint16_t buffer_size; /*!< buffer size */
 	} pools[DPNI_MAX_DPBP];
 };
@@ -563,7 +563,7 @@ struct dpni_error_cfg {
 
 /**
  *
- * @brief	Set errors behaviour
+ * @brief	Set errors behavior
  *
  * Can be called numerous times with different error masks
  *
@@ -572,7 +572,7 @@ struct dpni_error_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_errors_behaviour(struct fsl_mc_io *mc_io,
+int dpni_set_errors_behavior(struct fsl_mc_io *mc_io,
 	uint16_t token, struct dpni_error_cfg *cfg);
 
 /*!

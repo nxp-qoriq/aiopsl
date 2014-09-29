@@ -77,7 +77,7 @@
 #define DPNI_CMDID_GET_L3_CHKSUM_VALIDATION	0x208
 #define DPNI_CMDID_SET_L4_CHKSUM_VALIDATION	0x209
 #define DPNI_CMDID_GET_L4_CHKSUM_VALIDATION	0x20A
-#define DPNI_CMDID_SET_ERRORS_BEHAVIOUR		0x20B
+#define DPNI_CMDID_SET_ERRORS_BEHAVIOR		0x20B
 
 #define DPNI_CMDID_GET_QDID			0x210
 #define DPNI_CMDID_GET_SPID			0x211
@@ -206,7 +206,7 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_ERRORS_BEHAVIOUR(cmd, cfg) \
+#define DPNI_CMD_SET_ERRORS_BEHAVIOR(cmd, cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, cfg->errors); \
 	MC_CMD_OP(cmd, 0, 32, 4,  enum dpni_error_action, cfg->error_action); \
@@ -409,22 +409,22 @@ do { \
 #define DPNI_CMD_SET_POOLS(cmd, cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  cfg->num_dpbp); \
-	MC_CMD_OP(cmd, 0, 16, 16, uint16_t, cfg->pools[0].dpbp_id); \
-	MC_CMD_OP(cmd, 0, 32, 16, uint16_t, cfg->pools[0].buffer_size);\
-	MC_CMD_OP(cmd, 1, 0,  16, uint16_t, cfg->pools[1].dpbp_id); \
-	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, cfg->pools[1].buffer_size);\
-	MC_CMD_OP(cmd, 1, 32, 16, uint16_t, cfg->pools[2].dpbp_id); \
-	MC_CMD_OP(cmd, 1, 48, 16, uint16_t, cfg->pools[2].buffer_size);\
-	MC_CMD_OP(cmd, 2, 0,  16, uint16_t, cfg->pools[3].dpbp_id); \
-	MC_CMD_OP(cmd, 2, 16, 16, uint16_t, cfg->pools[3].buffer_size);\
-	MC_CMD_OP(cmd, 2, 32, 16, uint16_t, cfg->pools[4].dpbp_id); \
-	MC_CMD_OP(cmd, 2, 48, 16, uint16_t, cfg->pools[4].buffer_size);\
-	MC_CMD_OP(cmd, 3, 0,  16, uint16_t, cfg->pools[5].dpbp_id); \
-	MC_CMD_OP(cmd, 3, 16, 16, uint16_t, cfg->pools[5].buffer_size);\
-	MC_CMD_OP(cmd, 3, 32, 16, uint16_t, cfg->pools[6].dpbp_id); \
-	MC_CMD_OP(cmd, 3, 48, 16, uint16_t, cfg->pools[6].buffer_size);\
-	MC_CMD_OP(cmd, 4, 0,  16, uint16_t, cfg->pools[7].dpbp_id); \
-	MC_CMD_OP(cmd, 4, 16, 16, uint16_t, cfg->pools[7].buffer_size);\
+	MC_CMD_OP(cmd, 0, 32, 32, int,      cfg->pools[0].dpbp_id); \
+	MC_CMD_OP(cmd, 4, 32, 16, uint16_t, cfg->pools[0].buffer_size);\
+	MC_CMD_OP(cmd, 1, 0,  32, int,      cfg->pools[1].dpbp_id); \
+	MC_CMD_OP(cmd, 4, 48, 16, uint16_t, cfg->pools[1].buffer_size);\
+	MC_CMD_OP(cmd, 1, 32, 32, int,      cfg->pools[2].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 0,  16, uint16_t, cfg->pools[2].buffer_size);\
+	MC_CMD_OP(cmd, 2, 0,  32, int,      cfg->pools[3].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 16, 16, uint16_t, cfg->pools[3].buffer_size);\
+	MC_CMD_OP(cmd, 2, 32, 32, int,      cfg->pools[4].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 32, 16, uint16_t, cfg->pools[4].buffer_size);\
+	MC_CMD_OP(cmd, 3, 0,  32, int,      cfg->pools[5].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 48, 16, uint16_t, cfg->pools[5].buffer_size);\
+	MC_CMD_OP(cmd, 3, 32, 32, int,      cfg->pools[6].dpbp_id); \
+	MC_CMD_OP(cmd, 6, 0,  16, uint16_t, cfg->pools[6].buffer_size);\
+	MC_CMD_OP(cmd, 4, 0,  32, int,      cfg->pools[7].dpbp_id); \
+	MC_CMD_OP(cmd, 6, 16, 16, uint16_t, cfg->pools[7].buffer_size);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
