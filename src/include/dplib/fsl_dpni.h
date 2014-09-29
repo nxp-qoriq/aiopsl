@@ -563,7 +563,7 @@ struct dpni_error_cfg {
 
 /**
  *
- * @brief	Set errors behaviour
+ * @brief	Set errors behavior
  *
  * Can be called numerous times with different error masks
  *
@@ -572,7 +572,7 @@ struct dpni_error_cfg {
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_errors_behaviour(struct fsl_mc_io *mc_io,
+int dpni_set_errors_behavior(struct fsl_mc_io *mc_io,
 	uint16_t token, struct dpni_error_cfg *cfg);
 
 /*!
