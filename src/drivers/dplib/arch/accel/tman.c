@@ -319,7 +319,7 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(__FILE__,
-			TMAN_TMI_TIMER_CREATE_FUNC_ID,
+			TMAN_TMI_TIMER_DELETE_FUNC_ID,
 			__LINE__, (int)res1);
 }
 

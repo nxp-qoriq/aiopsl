@@ -28,6 +28,7 @@ __declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
 
 /* TODO set good default values
  * TODO Update and review structure */
+
 struct aiop_init_data g_init_data =
 {
  /* aiop_sl_init_info */
@@ -35,12 +36,14 @@ struct aiop_init_data g_init_data =
   4,	        /* aiop_rev_major     AIOP  */
   2,	        /* aiop_rev_minor     AIOP  */
   0x6000000000,	/* dp_ddr_phys_addr      */
-  0x4c00000000,	/* peb_phys_addr      */
-  0,		/* sys_ddr1_phys_add  */
   0x40000000,	/* dp_ddr_virt_addr      */
+  0x4c00000000,	/* peb_phys_addr      */
   0x80000000,	/* peb_virt_addr      */
+  0,		/* sys_ddr1_phys_add  */
   0,	        /* sys_ddr1_virt_addr */
+  0x08000000,	/* ccsr_paddr */
   0x10000000,	/* ccsr_vaddr */
+  0x80c000000,	/* mc_portals_paddr */
   0x0c000000,	/* mc_portals_vaddr */
   2,	        /* uart_port_id       MC */
   1,	        /* mc_portal_id       MC */

@@ -172,15 +172,15 @@ struct dprc_res_req {
  * @brief	Object descriptor, returned from dprc_get_obj()
  */
 struct dprc_obj_desc {
-	uint16_t vendor;
-	/*!< Object vendor identifier */
 	char type[16];
 	/*!< Type of object: NULL terminated string */
 	int id;
 	/*!< ID of logical object resource */
-	uint32_t ver_major;
+	uint16_t vendor;
+	/*!< Object vendor identifier */
+	uint16_t ver_major;
 	/*!< Major version number */
-	uint32_t ver_minor;
+	uint16_t ver_minor;
 	/*!< Minor version number */
 	uint8_t irq_count;
 	/*!< Number of interrupts supported by the object */
@@ -244,8 +244,8 @@ struct dprc_attributes {
 	uint64_t options;
 	/*!< Container's options as set at container's creation */
 	struct {
-		uint32_t major; /*!< DPRC major version*/
-		uint32_t minor; /*!< DPRC minor version*/
+		uint16_t major; /*!< DPRC major version*/
+		uint16_t minor; /*!< DPRC minor version*/
 	} version;
 	/*!< DPRC version */
 };
@@ -775,8 +775,8 @@ int dprc_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
  * @returns	'0' on Success; Error code otherwise.
  * */
 int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
-		 struct dprc_endpoint *endpoint1,
-	struct dprc_endpoint *endpoint2);
+                 const struct dprc_endpoint *endpoint1,
+                 const struct dprc_endpoint *endpoint2);
 
 /**
  * @brief	Disconnects one endpoint to remove its network link
@@ -787,7 +787,25 @@ int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_endpoint *endpoint);
+int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, 
+                    const struct dprc_endpoint *endpoint);
+
+/**
+* @brief       Obtaining connected endpoint and link status if connection exist
+*
+* @param[in]	mc_io		Pointer to opaque I/O object
+* @param[in]    token		Token of DPRC object
+* @param[in]    endpoint1   Endpoint 1 configuration parameters.
+* @param[out]   endpoint2   Endpoint 2 configuration parameters.
+* @param[out]   state       Link state: 1 - link up, 0 - link down
+*
+* @returns     '0' on Success; -ENAVAIL otherwise when connection doesn't exist.
+* */
+int dprc_get_connection(struct fsl_mc_io *mc_io,
+						uint16_t token,
+			const struct dprc_endpoint *endpoint1,
+                        struct dprc_endpoint *endpoint2,
+                        int *state);
 
 /*! @} */
 
