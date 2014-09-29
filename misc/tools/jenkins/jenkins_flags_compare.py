@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
 
 	for line in matches:
-		if "aiopsl" not in line and "app_process_packet" not in line:
+		if "app_process_packet" not in line:
 			total_cprojects_checked += 1
 			print "==============================================================================================="
 			print "=*********************************************************************************************="
