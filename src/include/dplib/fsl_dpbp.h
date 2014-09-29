@@ -65,13 +65,13 @@ struct dpbp_cfg {
  */
 struct dpbp_attr {
 	int id; /*!< DPBP id*/
+	struct {
+		uint16_t major; /*!< DPBP major version*/
+		uint16_t minor; /*!< DPBP minor version*/
+	} version; /*!< DPBP version */
 	uint16_t bpid; /*!< buffer pool id;
 	 in case equal to DPBP_BPID_NOT_VALID the bpid isn't valid
 	 and must not be used; Only after 'enable' bpid will be valid; */
-	struct {
-		uint32_t major; /*!< DPBP major version*/
-		uint32_t minor; /*!< DPBP minor version*/
-	} version; /*!< DPBP version */
 };
 
 /**
@@ -141,6 +141,17 @@ int dpbp_enable(struct fsl_mc_io *mc_io, uint16_t token);
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_disable(struct fsl_mc_io *mc_io, uint16_t token);
+
+/**
+ * @brief	Is DPBP enabled
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPBP object
+ * @param[out]  en		'1' for object enabled/'0' otherwise
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpbp_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
 
 /**
  * @brief	Reset the dpbp, will return to initial state.

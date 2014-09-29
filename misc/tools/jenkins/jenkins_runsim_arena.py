@@ -33,6 +33,10 @@ def inject_packets(pcap):
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
+	elif 'reassembled_frame.pcap' in pcap:
+		g_capture = 4
+		print 'injecting 1 packet'
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","reassembled_frame.pcap"])
 	else:
 		print 'name of recognized pcap not found'
 

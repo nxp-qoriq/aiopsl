@@ -51,8 +51,7 @@ __HOT_CODE int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
 	for (i = 0; i < dt->count; i++) {
-		if ((dt->attr[i].peer_attached && 
-			(dt->attr[i].peer_id == dpci_id)) ||
+		if ((dt->peer_attr[i].peer_id == dpci_id) ||
 			(dt->attr[i].id == dpci_id)) {
 			/* Fill icontext */
 			ic->icid = dt->icid[i];

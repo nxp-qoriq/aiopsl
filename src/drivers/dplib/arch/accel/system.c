@@ -37,6 +37,9 @@
 
 #include "fsl_ipsec.h"
 #include "ipsec.h"
+#include "fsl_sys.h"
+#include "time.h"
+#include "aiop_common.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -72,6 +75,9 @@ __SHRAM uint64_t ext_keyid_pool_address;
 /* IPsec Instance global parameters */
 extern __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
 
+/* Time module globals */
+extern __SHRAM struct aiop_cmgw_regs *time_cmgw_regs;
+extern __SHRAM _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
 //__PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 __PROFILE_SRAM struct storage_profile storage_profile;
@@ -88,7 +94,7 @@ void sys_prpid_pool_create(void)
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_PRPID_POOL_CREATE,
-			__LINE__, 
+			__LINE__,
 			SYSTEM_INIT_SLAB_FAILURE);
 
 	id_pool_init(SYS_NUM_OF_PRPIDS, buffer_pool_id,
@@ -108,7 +114,7 @@ void sys_keyid_pool_create(void)
 			&num_filled_buffs, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_KEYID_POOL_CREATE,
-			__LINE__, 
+			__LINE__,
 			SYSTEM_INIT_SLAB_FAILURE);
 
 	id_pool_init(SYS_NUM_OF_KEYIDS, buffer_pool_id,
@@ -124,7 +130,11 @@ int aiop_sl_init(void)
 	/* TMAN EPID Init params*/
 	uint32_t val;
 	uint32_t *addr;
+	struct aiop_tile_regs *aiop_regs =
+			(struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 #endif
+
 
 	/* Initialize IPsec instance global parameters */
 	ipsec_global_instance_params.instance_count = 0;
@@ -158,6 +168,10 @@ int aiop_sl_init(void)
 	storage_profile.bpid3 = 0x0000;
 	storage_profile.pbs4 = 0x0000;
 	storage_profile.bpid4 = 0x0000;
+
+	time_cmgw_regs = (struct aiop_cmgw_regs*) &(aiop_regs->cmgw_regs);
+	time_get_func_ptr = _get_time_fast;
+
 
 #endif
 
@@ -223,7 +237,7 @@ void system_init_exception_handler(enum system_function_identifier func_id,
 {
 	char *func_name;
 	char *err_msg;
-	
+
 	/* Translate function ID to function name string */
 	switch(func_id) {
 	case SYS_PRPID_POOL_CREATE:
@@ -236,14 +250,14 @@ void system_init_exception_handler(enum system_function_identifier func_id,
 		/* create own exception */
 		func_name = "Unknown Function";
 	}
-	
+
 	/* Translate error ID to error name string */
 	if (status == SYSTEM_INIT_SLAB_FAILURE) {
 		err_msg = "Pool Creation failed due to slab failure.\n";
 	} else {
 		err_msg = "Unknown or Invalid status.\n";
 	}
-	
+
 	exception_handler(__FILE__, func_name, line, err_msg);
 }
 

@@ -41,7 +41,7 @@ Layout is built from 3 different sections: containers, objects, links.
 			compatible = "fsl,dprc";
 			parent = "none";
 			icid = <0>;
-			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED";
+			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_IOMMU_BYPASS" , "DPRC_CFG_OPT_ALLOC_ALLOWED";
 			portal_id = <0>;
 			resources {
 				res@1 {

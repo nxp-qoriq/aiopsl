@@ -47,7 +47,7 @@
 struct fsl_mc_io;
 
 #define DPCI_PRIO_NUM		2
-#define DPCI_VFQID_NOT_VALID	(uint32_t)(-1)
+#define DPCI_FQID_NOT_VALID	(uint32_t)(-1)
 
 /**
  *
@@ -127,19 +127,20 @@ enum dpci_dest {
  * @brief	Structure representing DPCI destination parameters
  */
 struct dpci_dest_cfg {
-	enum dpci_dest type; /*!< destination type */
-	uint16_t dpio_id;
-	/*!<
-	 * DPIO object id; must have a notification channel (either local or
-	 * remote)
-	 */
-	uint16_t dpcon_id;
-	/*!< DPCON object id */
+	enum dpci_dest dest_type; /*!< destination type */
+	int dest_id;
+	/*!< Destination object id */
 	uint8_t priority;
 /*!<
  * 0-1 or 0-7 (depends on the channel type) to select the priority
  * (work-queue) within the channel (not relevant for the 'NONE' case)
  */
+};
+
+struct dpci_rx_queue_cfg {
+                uint32_t options;
+                uint64_t user_ctx;
+                struct dpci_dest_cfg dest_cfg;
 };
 
 /**
@@ -159,8 +160,7 @@ struct dpci_dest_cfg {
  */
 int dpci_set_rx_queue(struct fsl_mc_io *mc_io, uint16_t token,
 		      uint8_t priority,
-	const struct dpci_dest_cfg *dest_cfg,
-	uint64_t rx_user_ctx);
+	const struct dpci_rx_queue_cfg *cfg);
 
 /**
  *
@@ -188,6 +188,17 @@ int dpci_enable(struct fsl_mc_io *mc_io, uint16_t token);
 int dpci_disable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
+ * @brief	Is DPCI enabled
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPCI object
+ * @param[out]  en		'1' for object enabled/'0' otherwise
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpci_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
+
+/**
  *
  * @brief	Reset the DPCI, will return to initial state.
  *
@@ -199,36 +210,18 @@ int dpci_disable(struct fsl_mc_io *mc_io, uint16_t token);
 int dpci_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * @brief	Structure representing attributes of indicated priority queues
- */
-struct dpci_prio_attr {
-	uint32_t tx_qid;
-	/*!< QID to be used for sending frames towards the peer DPCI */
-	uint32_t rx_qid;
-	/*!< QID to be used for receiving frames from the peer DPCI */
-	uint64_t rx_user_ctx;
-	/*!< User context to be received with the frames FD on the RX queue */
-};
-
-/**
  * @brief	Structure representing DPCI attributes
  */
 struct dpci_attr {
 	int id;
 	/*!< DPCI id */
-	uint8_t peer_attached;
-	/*!< DPCI is attached to a peer DPCI */
-	uint8_t peer_id;
-	/*!< DPCI peer id */
-	uint8_t num_of_priorities;
-	/*!< number of priorities */
-	struct dpci_prio_attr dpci_prio_attr[DPCI_PRIO_NUM];
-	/*!< priority attributes parameters */
 	struct {
-		uint32_t major; /*!< DPCI major version*/
-		uint32_t minor; /*!< DPCI minor version*/
+		uint16_t major; /*!< DPCI major version*/
+		uint16_t minor; /*!< DPCI minor version*/
 	} version;
 	/*!< DPCI version */
+	uint8_t num_of_priorities;
+	/*!< number of priorities */
 };
 
 /**
@@ -242,6 +235,28 @@ struct dpci_attr {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpci_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpci_attr *attr);
+
+/**
+ * @brief	Structure representing DPCI attributes
+ */
+struct dpci_peer_attr {
+	int peer_id;
+	/*!< DPCI peer id. if no peer is connected returns (-1) */
+	uint8_t num_of_priorities;
+	/*!< number of priorities */
+};
+
+/**
+ *
+ * @brief	Retrieve the peer attributes.
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPCI object
+ * @param[out]	attr  		Peer attributes
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpci_get_peer_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpci_peer_attr *attr);
 
 /**
  *
@@ -260,6 +275,54 @@ int dpci_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpci_att
  *
  */
 int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
+
+/**
+ * @brief	Structure representing attributes of RX queues
+ */
+struct dpci_rx_queue_attr {
+	uint32_t fqid;
+	/*!< FQID to be used for receiving frames from the peer DPCI */
+	uint64_t user_ctx;
+	/*!< User context to be received with the frames FD on the RX queue */
+	struct dpci_dest_cfg dest_cfg;
+};
+
+/**
+ *
+ * @brief	Retrieve RX queue attributes.
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPCI object
+ * @param[in]   priority	priority of wanted rx queue
+ * @param[out]	attr 		Rx queue attributes
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ *
+ *
+ */
+int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_rx_queue_attr *attr);
+
+/**
+ * @brief	Structure representing attributes of TX queues
+ */
+struct dpci_tx_queue_attr {
+	uint32_t fqid;
+	/*!< FQID to be used for sending frames towards the peer DPCI */
+};
+
+/**
+ *
+ * @brief	Retrieve TX queue attributes.
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPCI object
+ * @param[out]	attr 		Tx queue attributes
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ *
+ *
+ */
+int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_tx_queue_attr *attr);
 
 /*!
  * @name DPNI IRQ Index and Events
