@@ -519,8 +519,13 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		params.spid = str->spid;
 		str->status = (int8_t)fdma_split_frame(&params);
 		str->split_frame_handle	= params.split_frame_handle;
-		str->seg_handle		= params.seg_handle;
-		str->seg_length		= params.seg_length;
+		if (str->PSA == 1) {
+			str->seg_handle		= params.seg_handle;
+			str->seg_length		= params.seg_length;
+		} else {
+			str->seg_handle		= 0;
+			str->seg_length		= 0;
+		}
 		str_size = (uint16_t)
 				sizeof(struct fdma_split_frame_command);
 		break;
