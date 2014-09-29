@@ -58,6 +58,8 @@ extern int slab_test();
 extern int random_init();
 extern int random_test();
 extern int memory_test();
+extern int pton_test(void);
+extern int ntop_test(void);
 
 extern __SHRAM struct slab *slab_peb;
 extern __SHRAM struct slab *slab_ddr;
@@ -327,7 +329,23 @@ int app_init(void)
 	} else {
 		fsl_os_print("random_test passed in init phase()\n");
 	}
-
+	
+	err = pton_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: pton_test failed in init phase()\n", err);
+		test_error |= err;
+	} else {
+		fsl_os_print("pton_test passed in init phase()\n");
+	}
+	
+	err = ntop_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: ntop_test failed in init phase()\n", err);
+		test_error |= err;
+	} else {
+		fsl_os_print("ntop_test passed in init phase()\n");
+	}
+	
 	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");
 	return 0;
 }
