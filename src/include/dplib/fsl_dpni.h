@@ -374,7 +374,7 @@ int dpni_clear_irq_status(struct fsl_mc_io *mc_io,
 struct dpni_pools_cfg {
 	uint8_t num_dpbp; /*!< number of DPBPs */
 	struct {
-		uint16_t dpbp_id; /*!< DPBPs object id */
+		int dpbp_id; /*!< DPBPs object id */
 		uint16_t buffer_size; /*!< buffer size */
 	} pools[DPNI_MAX_DPBP];
 };
