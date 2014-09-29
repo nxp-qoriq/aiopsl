@@ -77,7 +77,7 @@
 #define DPNI_CMDID_GET_L3_CHKSUM_VALIDATION	0x208
 #define DPNI_CMDID_SET_L4_CHKSUM_VALIDATION	0x209
 #define DPNI_CMDID_GET_L4_CHKSUM_VALIDATION	0x20A
-#define DPNI_CMDID_SET_ERRORS_BEHAVIOUR		0x20B
+#define DPNI_CMDID_SET_ERRORS_BEHAVIOR		0x20B
 
 #define DPNI_CMDID_GET_QDID			0x210
 #define DPNI_CMDID_GET_SPID			0x211
@@ -206,7 +206,7 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_ERRORS_BEHAVIOUR(cmd, cfg) \
+#define DPNI_CMD_SET_ERRORS_BEHAVIOR(cmd, cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, cfg->errors); \
 	MC_CMD_OP(cmd, 0, 32, 4,  enum dpni_error_action, cfg->error_action); \
