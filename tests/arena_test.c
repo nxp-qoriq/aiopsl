@@ -94,6 +94,23 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	packet_number++;
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
+	
+	err = pton_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: pton_test failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("pton_test passed in runtime phase()\n");
+	}
+	
+	err = ntop_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: ntop_test failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("ntop_test passed in runtime phase()\n");
+	}
+
 	err = slab_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
