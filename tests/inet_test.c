@@ -42,8 +42,14 @@ int ntop_test(void);
 
 /*************************************************************************/
 #define PRINT_TEST_RESULT(PASS, MODULE, TEST) \
-	if (PASS) fsl_os_print("%s test %s PASSED\n",MODULE, TEST); \
-	else fsl_os_print("%s test %s ************* FAILED **************\n",MODULE, TEST)
+	do { \
+		if (PASS) { \
+			fsl_os_print("%s test %s PASSED\n",MODULE, TEST); \
+		} else { \
+			fsl_os_print("%s test %s ************* FAILED **************\n",MODULE, TEST); \
+			return TEST_FAILED; \
+		} \
+	} while (0)
 
 /*************************************************************************/
 static int test_ntopton4(uint32_t ip_addr, const char *expected_str, size_t s)
