@@ -52,7 +52,7 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 
 /** BMT for memory accesses */
 #define BMT_GET \
-	LDPAA_FD_GET_CBMT(HWC_FD_ADDRESS)
+	LDPAA_FD_GET_BMT(HWC_FD_ADDRESS)
 
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
