@@ -174,15 +174,15 @@ struct dpni_cfg {
 		/*!< maximum key size for the QoS look-up; '0' will be treated
 		 * as '24' which enough for IPv4 5-tuple */
 		uint8_t max_dist_key_size;
-		/*!< maximum key size for the distribution; '0' will be treated as
-		 '24' which enough for IPv4 5-tuple */
+		/*!< maximum key size for the distribution; '0' will be treated
+		 as '24' which enough for IPv4 5-tuple */
 		struct dpni_ipr_cfg ipr_cfg; /*!< IP reassembly configuration */
 	} adv; /*!< use this structure to change default settings */
 };
 
 /**
- * @brief	Open object handle, allocate resources and preliminary initialization -
- *		required before any operation on the object
+ * @brief	Open object handle, allocate resources and preliminary 
+ * 		initialization - required before any operation on the object
  *
  * @param[in]	mc_io	Pointer to opaque I/O object
  * @param[in]	cfg	Configuration structure
@@ -1228,7 +1228,8 @@ struct dpni_tx_flow_cfg {
 		 if 'use_default_queue' = 0 set this flow to
 		 have its private tx confirmation/error settings */
 		int errors_only; /*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR and 'use_default_queue' = 0;
+		 with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR 
+		 and 'use_default_queue' = 0;
 		 if 'errors_only' = 1,  will send back only errors frames.
 		 else send both confirmation and error frames */
 		struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
@@ -1236,7 +1237,8 @@ struct dpni_tx_flow_cfg {
 		uint64_t user_ctx;
 		/*!< This option maybe used when 'options' set
 		 with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
-		 of 'tx_conf_err'= 1 or enqueue-rejection condition ("lossless") */
+		 of 'tx_conf_err'= 1 or 
+		 enqueue-rejection condition ("lossless") */
 	} conf_err_cfg;
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
@@ -1285,7 +1287,8 @@ struct dpni_tx_flow_attr {
 		uint64_t user_ctx;
 		/*!< This option maybe used when 'options' set
 		 with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
-		 of 'tx_conf_err'= 1 or enqueue-rejection condition ("lossless") */
+		 of 'tx_conf_err'= 1 
+		 or enqueue-rejection condition ("lossless") */
 	} conf_err_cfg;
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
