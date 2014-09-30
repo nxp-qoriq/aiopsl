@@ -29,11 +29,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**************************************************************************//*
- @File          fsl_dpni_cmd.h
-
- @Description   defines dpni portal commands
-
- @Cautions      None.
+ * @File          fsl_dpni_cmd.h
+ *
+ * @Description   defines dpni portal commands
+ *
+ * @Cautions      None.
  *//***************************************************************************/
 
 #ifndef _FSL_DPNI_CMD_H

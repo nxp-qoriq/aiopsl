@@ -64,16 +64,19 @@ struct fsl_mc_io;
 #define DPRC_RES_REQ_OPT_EXPLICIT		0x00000001
 /*!< Explicit resource id request - The requested objects/resources
  * are explicit and sequential (in case of resources).
- * The base ID is given at res_req at base_align field */
+ * The base ID is given at res_req at base_align field 
+ */
 #define DPRC_RES_REQ_OPT_ALIGNED		0x00000002
 /*!< Aligned resources request - Relevant only for resources
  * request (and not objects). Indicates that resources base id should be
- * sequential and aligned to the value given at dprc_res_req base_align field*/
+ * sequential and aligned to the value given at dprc_res_req base_align field
+ */
 #define DPRC_RES_REQ_OPT_PLUGGED		0x00000004
 /*!< Plugged Flag - Relevant only for object assignment request.
  * Indicates that after all objects assigned. An interrupt will be invoked at
  * the relevant GPP. The assigned object will be marked as plugged.
- * plugged objects can't be assigned from their container */
+ * plugged objects can't be assigned from their container 
+ */
 /* @} */
 
 /*!
@@ -84,23 +87,28 @@ struct fsl_mc_io;
  */
 #define DPRC_CFG_OPT_SPAWN_ALLOWED		0x00000001
 /*!< Spawn Policy Option allowed - Indicates that the new container is allowed
- * to spawn and have its own child containers. */
+ * to spawn and have its own child containers. 
+ */
 #define DPRC_CFG_OPT_ALLOC_ALLOWED		0x00000002
 /*!< General Container allocation policy - Indicates that the new container is
  * allowed to allocate requested resources from its parent container; if not
  * set, the container is only allowed to use resources in its own pools; Note
  * that this is a container's global policy, but the parent container may
- * override it and set specific quota per resource type. */
+ * override it and set specific quota per resource type. 
+ */
 #define DPRC_CFG_OPT_OBJ_CREATE_ALLOWED	0x00000004
 /*!< Object initialization allowed - software context associated with this
- * container is allowed to invoke object initialization operations. */
+ * container is allowed to invoke object initialization operations. 
+ */
 #define DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED	0x00000008
 /*!< Topology change allowed - software context associated with this
  * container is allowed to invoke topology operations, such as attach/detach
- * of network objects. */
+ * of network objects. 
+ */
 #define DPRC_CFG_OPT_IOMMU_BYPASS		0x00000010
 /*!<IOMMU bypass - indicates whether objects of this container are permitted
- * to bypass the IOMMU.  */
+ * to bypass the IOMMU.  
+ */
 #define DPRC_CFG_OPT_AIOP			0x00000020
 /*!<AIOP -Indicates that container belongs to aiop.  */
 /* @} */
@@ -134,10 +142,12 @@ struct fsl_mc_io;
 /*!< Irq event - Indicates that resources unassigned from the container */
 #define DPRC_IRQ_EVENT_CONTAINER_DESTROYED	0x00000010
 /*!< Irq event - Indicates that one of the descendant containers that opened by
- * this container is destroyed */
+ * this container is destroyed
+ */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000011
 /*!< Irq event - Indicates that on one of the container's opened object is
- destroyed */
+ * destroyed 
+ */
 /* @} */
 
 /**
@@ -256,10 +266,12 @@ struct dprc_attributes {
 struct dprc_cfg {
 	uint16_t icid;
 	/*!< Container's ICID; if set to DPRC_GET_ICID_FROM_POOL, a free ICID
-	 * will be allocated by the DPRC */
+	 * will be allocated by the DPRC 
+	 */
 	int portal_id;
 	/*!< portal id; if set to DPRC_GET_PORTAL_ID_FROM_POOL, a free portal id
-	 * will be allocated by the DPRC */
+	 * will be allocated by the DPRC 
+	 */
 	uint64_t options;
 	/*!< Combination of DPRC_CFG_OPT_ options */
 };
@@ -500,7 +512,7 @@ int dprc_unassign(struct fsl_mc_io *mc_io, uint16_t token,
  * @param[out]   pool_count	Number of resource pools in the dprc.
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dprc_get_pool_count(struct fsl_mc_io *mc_io, uint16_t token, 
                         int *pool_count);
 
@@ -518,7 +530,7 @@ int dprc_get_pool_count(struct fsl_mc_io *mc_io, uint16_t token,
  * @param[out]  type		The type of the pool.
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dprc_get_pool(struct fsl_mc_io *mc_io, uint16_t token, int pool_index, 
                   char *type);
 
@@ -753,7 +765,7 @@ int dprc_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token,
  *					1 = interrupt pending
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dprc_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
                         uint8_t irq_index, uint32_t *status);
 
@@ -768,7 +780,7 @@ int dprc_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
  *					1 = clear status bit
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dprc_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
 			  uint32_t status);
@@ -782,7 +794,7 @@ int dprc_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
  * @param[in]	endpoint2	Endpoint 2 configuration parameters.
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
                  const struct dprc_endpoint *endpoint1,
                  const struct dprc_endpoint *endpoint2);
@@ -795,7 +807,7 @@ int dprc_connect(struct fsl_mc_io *mc_io, uint16_t token,
  * @param[in]   endpoint	Endpoint configuration parameters.
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token, 
                     const struct dprc_endpoint *endpoint);
 
@@ -809,7 +821,7 @@ int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token,
 * @param[out]   state       Link state: 1 - link up, 0 - link down
 *
 * @returns     '0' on Success; -ENAVAIL otherwise when connection doesn't exist.
-* */
+*/
 int dprc_get_connection(struct fsl_mc_io *mc_io,
 			uint16_t token,
 			const struct dprc_endpoint *endpoint1,

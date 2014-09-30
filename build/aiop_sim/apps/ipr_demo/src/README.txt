@@ -1,3 +1,4 @@
+
 ===========================================
 Introduction
 ===========================================
@@ -7,7 +8,7 @@ This demo shows packet reassembly done by the AIOP and illustrates the following
 2. MC DP object creation from a layout file
 3. AIOP initialization
 4. AIOP object discovery
-5. Fragments injection (from a PCAP file)
+5. Fragments injection (from PCAP files)
 6. Packet reassembly (and modification) within the AIOP
 7. Packet transmission from the AIOP (to a PCAP file)
 
@@ -19,7 +20,6 @@ Setup
 3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
    from the source tree at: aiopsl/build/aiop_sim/sim_files. 
    into the simulator folder at: dtsim_release/linux64/
-   comment the lines marked with "#for elf loader".
    (you may need to change "localhost" to your Linux machine name).
 4. Update the “LD_LIBRARY_PATH” variable to point to simulator folder.
   setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_<version>/dtsim_release/linux64
@@ -37,20 +37,22 @@ Setup
 Execution flow
 ===========================================
 1. Import the MC and AIOP projects into CodeWarrior:
-   mc/build/mc_t4ls_sim/mc_app/.project
+   mc/build/mc_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/ipr_demo/.project
 2. Build both projects in CW.
-3. Run simulator:
+3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
+   to the simulator folder (same location as cfg files).
+4. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
              -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"
-4. Launch mc_app using AFM connection.
-	Init file:mc\build\mc_t4ls_sim\cw_files\LS2085A-AFM_MC_RAM.tcl
-	Mem file: mc\build\mc_t4ls_sim\cw_files\LS2085A-AFM_MC.mem
-   Don't forget to update simulator server IP and port in debug configuration.
-5. After MC reaches main(), turn tio console:
+5. Launch mc_app using AFM connection.
+   Don't forget to update simulator server IP and port in debug configuration - 42333.
+6. Attach ipr_demo (make sure to un-mark initialization files).
+7. After MC reaches main(), turn tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
-6. Run mc_app.
+8. Run mc_app.
+   Don't forget to update simulator server IP and port in debug configuration - 42333.
 7. Launch ipr_demo using AFM connection.
 	Init file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl
 	Mem file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP.mem

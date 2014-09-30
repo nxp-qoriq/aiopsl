@@ -295,10 +295,12 @@ enum kcr_builder_protocol_fecid {
 	KEYGEN_KCR_IPSECNH_FECID = 0x23,
 	/** FECID of GPRS Tunnel endpoint Identification */
 	KEYGEN_KCR_GTP_TEID_FECID = 0x24,
+#ifdef REV2
 	/** FECID of ICMP type */
 	KEYGEN_KCR_ICMP_TYPE_FECID = 0x25,
 	/** FECID of ICMP code */
 	KEYGEN_KCR_ICMP_CODE_FECID = 0x26,
+#endif /*REV2*/
 	/** FECID of Next Header */
 	KEYGEN_KCR_NXT_HDR_FECID = 0x27
 	/* TODO check spec  for updates */
