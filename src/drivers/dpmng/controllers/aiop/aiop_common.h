@@ -77,8 +77,9 @@ struct aiop_app_init_info {
  * TODO check it */
 struct aiop_sl_init_info
 {
-    uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
+    uint32_t aiop_rev_major; /* initialized by AIOP SL at compile time */
     uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
+    uint32_t aiop_revision;  /* initialized by AIOP SL at compile time */
     
     uint64_t ddr_paddr;
     uint64_t ddr_vaddr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
@@ -100,7 +101,7 @@ struct aiop_sl_init_info
     uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
     uint32_t clock_period; /* In nanosec */
     
-    uint8_t reserved[152];           /* reserved for future use */
+    uint8_t reserved[148];           /* reserved for future use */
 };
 
 struct aiop_init_data
