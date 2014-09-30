@@ -296,6 +296,21 @@ int dpni_get_attributes(struct fsl_mc_io *mc_io,
 	return 0;
 }
 
+int dpni_set_errors_behavior(struct fsl_mc_io *mc_io,
+                              uint16_t token, 
+                              struct dpni_error_cfg *cfg)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_ERRORS_BEHAVIOR,
+	                                  MC_CMD_PRI_LOW, token);
+	DPNI_CMD_SET_ERRORS_BEHAVIOR(cmd, cfg);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);	
+}
+
 int dpni_get_rx_buffer_layout(struct fsl_mc_io *mc_io,
                               uint16_t token,
                               struct dpni_buffer_layout *layout)
@@ -606,7 +621,8 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 	return 0;
 }
 
-int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t max_frame_length)
+int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, 
+                 uint16_t max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 
@@ -620,7 +636,8 @@ int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t max_frame_len
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *max_frame_length)
+int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, 
+                 uint16_t *max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -809,7 +826,8 @@ int dpni_remove_mac_addr(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_clear_mac_filters(struct fsl_mc_io *mc_io, uint16_t token, int unicast, int multicast)
+int dpni_clear_mac_filters(struct fsl_mc_io *mc_io, uint16_t token, int unicast,
+                           int multicast)
 {
 	struct mc_command cmd = { 0 };
 
@@ -885,10 +903,14 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
                    const struct dpni_rx_tc_dist_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
-	uint64_t *ext_params = iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
+	uint64_t *ext_params = 
+		iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
 	uint64_t ext_iova;
 	int err;
 
+	if (!ext_params)
+		return -ENOMEM;
+	
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC_DIST,
 	                                  MC_CMD_PRI_LOW,
@@ -930,8 +952,7 @@ int dpni_set_tx_flow(struct fsl_mc_io *mc_io,
 int dpni_get_tx_flow(struct fsl_mc_io *mc_io,
                      uint16_t token,
                      uint16_t flow_id,
-                     struct dpni_tx_flow_cfg *cfg,
-                     uint32_t *fqid)
+                     struct dpni_tx_flow_attr *attr)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -947,7 +968,7 @@ int dpni_get_tx_flow(struct fsl_mc_io *mc_io,
 		return err;
 	
 	/* retrieve response parameters */
-	DPNI_RSP_GET_TX_FLOW(cmd, cfg, *fqid);
+	DPNI_RSP_GET_TX_FLOW(cmd, attr);
 
 	return 0;
 }
@@ -998,10 +1019,14 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
                        const struct dpni_qos_tbl_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
-	uint64_t *ext_params = iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
+	uint64_t *ext_params = 
+		iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
 	uint64_t ext_iova;
 	int err;
 
+	if (!ext_params)
+		return -ENOMEM;
+	
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_QOS_TBL,
 	                                  MC_CMD_PRI_LOW, token);
@@ -1093,7 +1118,8 @@ int dpni_remove_fs_entry(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_clear_fs_entries(struct fsl_mc_io *mc_io, uint16_t token, uint8_t tc_id)
+int dpni_clear_fs_entries(struct fsl_mc_io *mc_io, uint16_t token, 
+                          uint8_t tc_id)
 {
 	struct mc_command cmd = { 0 };
 

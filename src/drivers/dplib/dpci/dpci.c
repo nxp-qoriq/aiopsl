@@ -205,15 +205,14 @@ int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 int dpci_set_rx_queue(struct fsl_mc_io *mc_io,
                       uint16_t token,
                       uint8_t priority,
-                      const struct dpci_dest_cfg *dest_cfg,
-                      uint64_t user_ctx)
+                      const struct dpci_rx_queue_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_RX_QUEUE,
 	                                  MC_CMD_PRI_LOW, token);
-	DPCI_CMD_SET_RX_QUEUE(cmd, priority, dest_cfg, user_ctx);
+	DPCI_CMD_SET_RX_QUEUE(cmd, priority, cfg);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -243,7 +242,8 @@ int dpci_get_peer_attributes(struct fsl_mc_io *mc_io,
 	return 0;	
 }
 
-int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_rx_queue_attr *attr)
+int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
+                      struct dpci_rx_queue_attr *attr)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -265,7 +265,8 @@ int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
 	return 0;	
 }
 
-int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_tx_queue_attr *attr)
+int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
+                      struct dpci_tx_queue_attr *attr)
 {
 	struct mc_command cmd = { 0 };
 	int err;

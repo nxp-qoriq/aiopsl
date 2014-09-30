@@ -77,6 +77,7 @@
 #define DPNI_CMDID_GET_L3_CHKSUM_VALIDATION	0x208
 #define DPNI_CMDID_SET_L4_CHKSUM_VALIDATION	0x209
 #define DPNI_CMDID_GET_L4_CHKSUM_VALIDATION	0x20A
+#define DPNI_CMDID_SET_ERRORS_BEHAVIOR		0x20B
 
 #define DPNI_CMDID_GET_QDID			0x210
 #define DPNI_CMDID_GET_SPID			0x211
@@ -202,6 +203,14 @@ do { \
 	MC_RSP_OP(cmd, 3, 56, 8,  uint8_t,  attr->max_dist_per_tc[7]); \
 	MC_RSP_OP(cmd, 4, 0,  16, uint16_t, attr->version.major);\
 	MC_RSP_OP(cmd, 4, 16, 16, uint16_t, attr->version.minor);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_ERRORS_BEHAVIOR(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, cfg->errors); \
+	MC_CMD_OP(cmd, 0, 32, 4,  enum dpni_error_action, cfg->error_action); \
+	MC_CMD_OP(cmd, 0, 36, 1,  int,      cfg->set_frame_annotation); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -400,22 +409,22 @@ do { \
 #define DPNI_CMD_SET_POOLS(cmd, cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  cfg->num_dpbp); \
-	MC_CMD_OP(cmd, 0, 16, 16, uint16_t, cfg->pools[0].dpbp_id); \
-	MC_CMD_OP(cmd, 0, 32, 16, uint16_t, cfg->pools[0].buffer_size);\
-	MC_CMD_OP(cmd, 1, 0,  16, uint16_t, cfg->pools[1].dpbp_id); \
-	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, cfg->pools[1].buffer_size);\
-	MC_CMD_OP(cmd, 1, 32, 16, uint16_t, cfg->pools[2].dpbp_id); \
-	MC_CMD_OP(cmd, 1, 48, 16, uint16_t, cfg->pools[2].buffer_size);\
-	MC_CMD_OP(cmd, 2, 0,  16, uint16_t, cfg->pools[3].dpbp_id); \
-	MC_CMD_OP(cmd, 2, 16, 16, uint16_t, cfg->pools[3].buffer_size);\
-	MC_CMD_OP(cmd, 2, 32, 16, uint16_t, cfg->pools[4].dpbp_id); \
-	MC_CMD_OP(cmd, 2, 48, 16, uint16_t, cfg->pools[4].buffer_size);\
-	MC_CMD_OP(cmd, 3, 0,  16, uint16_t, cfg->pools[5].dpbp_id); \
-	MC_CMD_OP(cmd, 3, 16, 16, uint16_t, cfg->pools[5].buffer_size);\
-	MC_CMD_OP(cmd, 3, 32, 16, uint16_t, cfg->pools[6].dpbp_id); \
-	MC_CMD_OP(cmd, 3, 48, 16, uint16_t, cfg->pools[6].buffer_size);\
-	MC_CMD_OP(cmd, 4, 0,  16, uint16_t, cfg->pools[7].dpbp_id); \
-	MC_CMD_OP(cmd, 4, 16, 16, uint16_t, cfg->pools[7].buffer_size);\
+	MC_CMD_OP(cmd, 0, 32, 32, int,      cfg->pools[0].dpbp_id); \
+	MC_CMD_OP(cmd, 4, 32, 16, uint16_t, cfg->pools[0].buffer_size);\
+	MC_CMD_OP(cmd, 1, 0,  32, int,      cfg->pools[1].dpbp_id); \
+	MC_CMD_OP(cmd, 4, 48, 16, uint16_t, cfg->pools[1].buffer_size);\
+	MC_CMD_OP(cmd, 1, 32, 32, int,      cfg->pools[2].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 0,  16, uint16_t, cfg->pools[2].buffer_size);\
+	MC_CMD_OP(cmd, 2, 0,  32, int,      cfg->pools[3].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 16, 16, uint16_t, cfg->pools[3].buffer_size);\
+	MC_CMD_OP(cmd, 2, 32, 32, int,      cfg->pools[4].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 32, 16, uint16_t, cfg->pools[4].buffer_size);\
+	MC_CMD_OP(cmd, 3, 0,  32, int,      cfg->pools[5].dpbp_id); \
+	MC_CMD_OP(cmd, 5, 48, 16, uint16_t, cfg->pools[5].buffer_size);\
+	MC_CMD_OP(cmd, 3, 32, 32, int,      cfg->pools[6].dpbp_id); \
+	MC_CMD_OP(cmd, 6, 0,  16, uint16_t, cfg->pools[6].buffer_size);\
+	MC_CMD_OP(cmd, 4, 0,  32, int,      cfg->pools[7].dpbp_id); \
+	MC_CMD_OP(cmd, 6, 16, 16, uint16_t, cfg->pools[7].buffer_size);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -431,7 +440,8 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  cfg->dist_size); \
 	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id); \
 	MC_CMD_OP(cmd, 0, 24, 4,  enum dpni_dist_mode, cfg->dist_mode); \
-	MC_CMD_OP(cmd, 0, 28, 4,  enum dpni_fs_miss_action, cfg->fs_cfg.miss_action); \
+	MC_CMD_OP(cmd, 0, 28, 4,  enum dpni_fs_miss_action,\
+	          	  	  	  	  cfg->fs_cfg.miss_action); \
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, cfg->fs_cfg.default_flow_id); \
 	MC_CMD_OP(cmd, 6, 0,  64, uint64_t, ext_iova); \
 } while (0)
@@ -439,13 +449,17 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_TX_FLOW(cmd, flow_id, cfg) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,      cfg->conf_err_cfg.dest_cfg.dest_id);\
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->conf_err_cfg.dest_cfg.priority);\
-	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, cfg->conf_err_cfg.dest_cfg.dest_type);\
+	MC_CMD_OP(cmd, 0, 0,  32, int,     \
+	          	  	  	 cfg->conf_err_cfg.dest_cfg.dest_id);\
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t, \
+	          	  	  	 cfg->conf_err_cfg.dest_cfg.priority);\
+	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, \
+	          	  	  	 cfg->conf_err_cfg.dest_cfg.dest_type);\
 	MC_CMD_OP(cmd, 0, 42, 1,  int,	    cfg->conf_err_cfg.errors_only);\
 	MC_CMD_OP(cmd, 0, 43, 1,  int,	    cfg->l3_chksum_gen);\
 	MC_CMD_OP(cmd, 0, 44, 1,  int,	    cfg->l4_chksum_gen);\
-	MC_CMD_OP(cmd, 0, 45, 1,  int,	    cfg->conf_err_cfg.use_default_queue);\
+	MC_CMD_OP(cmd, 0, 45, 1,  int,	    \
+	          	  	  	 cfg->conf_err_cfg.use_default_queue);\
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id);\
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->conf_err_cfg.user_ctx);\
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options);\
@@ -460,18 +474,21 @@ do { \
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_TX_FLOW(cmd, cfg, fqid) \
+#define DPNI_RSP_GET_TX_FLOW(cmd, attr) \
 do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,      cfg->conf_err_cfg.dest_cfg.dest_id);\
-	MC_RSP_OP(cmd, 0, 31, 8,  uint8_t,  cfg->conf_err_cfg.dest_cfg.priority);\
-	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, cfg->conf_err_cfg.dest_cfg.dest_type);\
-	MC_RSP_OP(cmd, 0, 42, 1,  int,	    cfg->conf_err_cfg.errors_only);\
-	MC_RSP_OP(cmd, 0, 43, 1,  int,	    cfg->l3_chksum_gen);\
-	MC_RSP_OP(cmd, 0, 44, 1,  int,	    cfg->l4_chksum_gen);\
-	MC_RSP_OP(cmd, 0, 45, 1,  int,	    cfg->conf_err_cfg.use_default_queue);\
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, cfg->conf_err_cfg.user_ctx);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, cfg->options);\
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, fqid);\
+	MC_RSP_OP(cmd, 0, 0,  32, int,      \
+					attr->conf_err_cfg.dest_cfg.dest_id);\
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  \
+	          	  	  	attr->conf_err_cfg.dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, \
+	          	  	  	attr->conf_err_cfg.dest_cfg.dest_type);\
+	MC_RSP_OP(cmd, 0, 42, 1,  int,	    attr->conf_err_cfg.errors_only);\
+	MC_RSP_OP(cmd, 0, 43, 1,  int,	    attr->l3_chksum_gen);\
+	MC_RSP_OP(cmd, 0, 44, 1,  int,	    attr->l4_chksum_gen);\
+	MC_RSP_OP(cmd, 0, 45, 1,  int,	    \
+	          	  	  	attr->conf_err_cfg.use_default_queue);\
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->conf_err_cfg.user_ctx);\
+	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -483,7 +500,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
 	MC_CMD_OP(cmd, 2, 16, 8,  uint8_t,  tc_id); \
-	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, cfg->options); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -497,7 +514,7 @@ do { \
 #define DPNI_RSP_GET_RX_FLOW(cmd, attr) \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
-	MC_RSP_OP(cmd, 0, 32, 16, uint8_t,  attr->dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_id); \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
@@ -658,11 +675,11 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_RX_ERR_QUEUE(cmd, attr) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
-	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
-	MC_CMD_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
+	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
+	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -678,11 +695,11 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_TX_CONF_ERR_QUEUE(cmd, attr) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
-	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
-	MC_CMD_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
+	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
+	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 } while (0)
 
 #endif /* _FSL_DPNI_CMD_H */

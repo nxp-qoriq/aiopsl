@@ -96,7 +96,8 @@ struct dpci_cfg {
  * @warning	This function should be called only once during
  *		lifetime of the object
  */
-int dpci_create(struct fsl_mc_io *mc_io, const struct dpci_cfg *cfg, uint16_t *token);
+int dpci_create(struct fsl_mc_io *mc_io, const struct dpci_cfg *cfg, 
+                uint16_t *token);
 
 /**
  *
@@ -137,6 +138,12 @@ struct dpci_dest_cfg {
  */
 };
 
+struct dpci_rx_queue_cfg {
+                uint32_t options;
+                uint64_t user_ctx;
+                struct dpci_dest_cfg dest_cfg;
+};
+
 /**
  *
  * @brief	Attach the DPCI to the application
@@ -154,8 +161,7 @@ struct dpci_dest_cfg {
  */
 int dpci_set_rx_queue(struct fsl_mc_io *mc_io, uint16_t token,
 		      uint8_t priority,
-	const struct dpci_dest_cfg *dest_cfg,
-	uint64_t user_ctx);
+	const struct dpci_rx_queue_cfg *cfg);
 
 /**
  *
@@ -229,7 +235,8 @@ struct dpci_attr {
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpci_attr *attr);
+int dpci_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, 
+                        struct dpci_attr *attr);
 
 /**
  * @brief	Structure representing DPCI attributes
@@ -251,7 +258,8 @@ struct dpci_peer_attr {
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_get_peer_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpci_peer_attr *attr);
+int dpci_get_peer_attributes(struct fsl_mc_io *mc_io, uint16_t token, 
+                             struct dpci_peer_attr *attr);
 
 /**
  *
@@ -295,7 +303,8 @@ struct dpci_rx_queue_attr {
  *
  *
  */
-int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_rx_queue_attr *attr);
+int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
+                      struct dpci_rx_queue_attr *attr);
 
 /**
  * @brief	Structure representing attributes of TX queues
@@ -317,7 +326,8 @@ struct dpci_tx_queue_attr {
  *
  *
  */
-int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority, struct dpci_tx_queue_attr *attr);
+int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
+                      struct dpci_tx_queue_attr *attr);
 
 /*!
  * @name DPNI IRQ Index and Events
@@ -419,7 +429,8 @@ int dpci_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
+int dpci_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -434,7 +445,8 @@ int dpci_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpci_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
+int dpci_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
@@ -448,7 +460,8 @@ int dpci_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpci_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
+int dpci_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, 
+                        uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
@@ -464,7 +477,7 @@ int dpci_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_ind
  * */
 int dpci_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
-	uint32_t status);
+			  uint32_t status);
 
 /** @} */
 

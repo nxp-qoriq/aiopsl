@@ -294,7 +294,7 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	}
 
-	pr_debug("Response ID = 0x%x\n", fqid);
+	pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
@@ -394,7 +394,7 @@ __HOT_CODE static int notify_open()
 	int err = 0;
 	uint16_t pl_icid = PL_ICID_GET;
 	struct mc_dprc *dprc = NULL;
-	int i;
+	uint8_t i;
 	
 	pr_debug("Got notify open for AIOP client \n");
 	ASSERT_COND(dpci_tbl != NULL);
@@ -426,14 +426,19 @@ __HOT_CODE static int notify_open()
 	 }
 #endif
 	 /* Do it only if queues are not there */
-	 if (dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) {
+	 if ((dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) || 
+		 (dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
+		 
 		 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		 for (i < 0; i < DPCI_PRIO_NUM; i++)
+		 for (i = 0; i < DPCI_PRIO_NUM; i++) {
 			 err |= dpci_get_tx_queue(&dprc->io, dpci_tbl->token[ind], i,
 						   &dpci_tbl->tx_queue_attr[i][ind]);
+			 err |= dpci_get_rx_queue(&dprc->io, dpci_tbl->token[ind], i,
+						   &dpci_tbl->rx_queue_attr[i][ind]);
+		 }
 	 }
 
-	if ((dpci_tbl->peer_attr[ind].peer_id != (-1)) || !link_up) {
+	if ((dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}

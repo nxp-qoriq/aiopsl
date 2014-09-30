@@ -155,7 +155,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, status)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPIO_CMD_CLEAR_IRQ_STATUS(cmd, status, irq_index) \
+#define DPIO_CMD_CLEAR_IRQ_STATUS(cmd, irq_index, status) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\

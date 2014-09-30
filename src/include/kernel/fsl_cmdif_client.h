@@ -151,8 +151,8 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		This buffer can be freed only after cmdif_close().
 		On AIOP, set data as NULL.
 @Param[in]	size		Size of the data buffer. If the size is not
-				enough cmdif_open() will return -ENOMEM.
-				By default, set it to #CMDIF_OPEN_SIZE bytes.
+		enough cmdif_open() will return -ENOMEM. On AIOP, set it to 0.
+		By default, set it to #CMDIF_OPEN_SIZE bytes.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/

@@ -75,8 +75,8 @@ struct dpbp_attr {
 };
 
 /**
- * @brief	Open object handle, allocate resources and preliminary initialization -
- *		required before any operation on the object
+ * @brief	Open object handle, allocate resources and preliminary 
+ * 		initialization - required before any operation on the object
  *
  * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	cfg - Configuration structure
@@ -86,7 +86,8 @@ struct dpbp_attr {
  *
  * @warning	Required before any operation on the object
  */
-int dpbp_create(struct fsl_mc_io *mc_io, const struct dpbp_cfg *cfg, uint16_t *token);
+int dpbp_create(struct fsl_mc_io *mc_io, const struct dpbp_cfg *cfg, 
+                uint16_t *token);
 
 /**
  * @brief	Open object handle
@@ -174,7 +175,8 @@ int dpbp_reset(struct fsl_mc_io *mc_io, uint16_t token);
  *
  * @warning	Allowed only following dpbp_enable().
  */
-int dpbp_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpbp_attr *attr);
+int dpbp_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, 
+                        struct dpbp_attr *attr);
 
 /**
  * @brief	Sets IRQ information for the DPBP to trigger an interrupt.

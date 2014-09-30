@@ -141,7 +141,7 @@ static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
 			pr_err("No memory for %d DPCIs\n", dpci_count);
 			return -ENOMEM;
 		}
-		memset(&(dpci_tbl->tx_queue_attr[i]), 0, size);
+		memset(dpci_tbl->tx_queue_attr[i], 0, size);
 	}
 	
 	size = sizeof(uint16_t) * dpci_count;
@@ -192,7 +192,7 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 			struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc)
 {
 	uint16_t dpci = 0;
-	struct   dpci_dest_cfg dest_cfg;
+	struct   dpci_rx_queue_cfg queue_cfg;
 	int      err = 0;
 	uint8_t  p   = 0;
 	uint8_t  i;
@@ -211,21 +211,21 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
 	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 
-	memset(&dest_cfg, 0, sizeof(struct dpci_dest_cfg));
+	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
 
 	err |= dpci_open(&dprc->io, dev_desc->id, &dpci);
 	/* Set priorities 0 and 1
 	 * 0 is high priority
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
-	dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
-		dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.user_ctx = (ind << 1) | p;
 		err |= dpci_set_rx_queue(&dprc->io,
 		                         dpci,
 					 p,
-					 &dest_cfg,
-					 (ind << 1) | p);
+					 &queue_cfg);
 	}
 	err |= dpci_enable(&dprc->io, dpci);
 	err |= dpci_get_attributes(&dprc->io,
@@ -254,7 +254,7 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 {
 	struct dpci_cfg dpci_cfg;
 	uint16_t dpci;
-	struct dpci_dest_cfg dest_cfg;
+	struct dpci_rx_queue_cfg queue_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
 	uint8_t p = 0;
@@ -269,14 +269,14 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	 * 0 is high priority
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
-	dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
-		dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.user_ctx = (ind << 1) | p;
 		err |= dpci_set_rx_queue(&dprc->io,
 		                         dpci,
 					 p,
-					 &dest_cfg,
-					 (ind << 1) | p);
+					 &queue_cfg);
 	}
 
 	/* Get attributes just for dpci id,
