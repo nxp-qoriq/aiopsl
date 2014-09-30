@@ -216,7 +216,6 @@ int dpci_set_rx_queue(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
-
 }
 
 int dpci_get_peer_attributes(struct fsl_mc_io *mc_io, 

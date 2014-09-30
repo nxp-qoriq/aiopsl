@@ -55,9 +55,7 @@ struct fsl_mc_io;
  * @brief	structure representing DPBP configuration
  */
 struct dpbp_cfg {
-	int tmp; /* place holder!!!! */
-	/* TODO - need to add depletion parameters
- * (either here or in separate routine) */
+	uint32_t options; /* place holder */
 };
 
 /**
@@ -69,13 +67,15 @@ struct dpbp_attr {
 		uint16_t major; /*!< DPBP major version*/
 		uint16_t minor; /*!< DPBP minor version*/
 	} version; /*!< DPBP version */
-	uint16_t bpid; /*!< buffer pool id;
-	 in case equal to DPBP_BPID_NOT_VALID the bpid isn't valid
-	 and must not be used; Only after 'enable' bpid will be valid; */
+	uint16_t bpid;
+	/*!< buffer pool id;
+	 * if equals DPBP_BPID_NOT_VALID the bpid is not valid and
+	 * must not be used; Only after 'enable' bpid will be valid;
+	 */
 };
 
 /**
- * @brief	Open object handle, allocate resources and preliminary 
+ * @brief	Open object handle, allocate resources and preliminary
  * 		initialization - required before any operation on the object
  *
  * @param[in]	mc_io		Pointer to opaque I/O object
@@ -86,7 +86,7 @@ struct dpbp_attr {
  *
  * @warning	Required before any operation on the object
  */
-int dpbp_create(struct fsl_mc_io *mc_io, const struct dpbp_cfg *cfg, 
+int dpbp_create(struct fsl_mc_io *mc_io, const struct dpbp_cfg *cfg,
                 uint16_t *token);
 
 /**
@@ -95,7 +95,7 @@ int dpbp_create(struct fsl_mc_io *mc_io, const struct dpbp_cfg *cfg,
  * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]	dpbp_id - DPBP unique ID
  * @param[out]   token			Token of DPBP object
- * 
+ *
  *
  * @returns	'0' on Success; Error code otherwise.
  *
@@ -108,7 +108,7 @@ int dpbp_open(struct fsl_mc_io *mc_io, int dpbp_id, uint16_t *token);
  *
  * @param[in]	mc_io		Pointer to opaque I/O object
  * @param[in]   token			Token of DPBP object
- * 
+ *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpbp_close(struct fsl_mc_io *mc_io, uint16_t token);
@@ -175,7 +175,7 @@ int dpbp_reset(struct fsl_mc_io *mc_io, uint16_t token);
  *
  * @warning	Allowed only following dpbp_enable().
  */
-int dpbp_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, 
+int dpbp_get_attributes(struct fsl_mc_io *mc_io, uint16_t token,
                         struct dpbp_attr *attr);
 
 /**
@@ -301,7 +301,7 @@ int dpbp_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token,
  *					1 = interrupt pending
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dpbp_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
 	uint32_t *status);
@@ -317,7 +317,7 @@ int dpbp_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
  *					1 = clear status bit
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dpbp_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
 	uint32_t status);

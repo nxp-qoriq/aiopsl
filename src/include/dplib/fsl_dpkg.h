@@ -85,13 +85,14 @@ struct dpkg_mask {
 struct dpkg_extract {
 	enum dpkg_extract_type type;
 	/*!< Type may be one of the members of
-	 enum: dpkg_extract_type;
-	 type determines how the union
-	 below will be interpretted:
-	 DPKG_EXTRACT_FROM_HDR: select "from_hdr";
-	 DPKG_EXTRACT_FROM_DATA: select
-	 "from_data";
-	 DPKG_EXTRACT_CONSTANT: select constant. */
+	 * enum: dpkg_extract_type;
+	 * type determines how the union
+	 * below will be interpretted:
+	 * DPKG_EXTRACT_FROM_HDR: select "from_hdr";
+	 * DPKG_EXTRACT_FROM_DATA: select
+	 * "from_data";
+	 * DPKG_EXTRACT_CONSTANT: select constant. 
+	 */
 	union {
 		struct {
 			enum net_prot prot;
@@ -99,11 +100,11 @@ struct dpkg_extract {
 
 			enum dpkg_extract_from_hdr_type type;
 			/*!< Defines the type of header extraction:
-			 DPKG_FROM_HDR: use size & offset
-			 below;
-			 DPKG_FROM_FIELD: use field, size
-			 & offset below;
-			 DPKG_FULL_FIELD: use field below
+			 * DPKG_FROM_HDR: use size & offset
+			 * below;
+			 * DPKG_FROM_FIELD: use field, size
+			 * & offset below;
+			 * DPKG_FULL_FIELD: use field below
 			 */
 
 			uint32_t field;
@@ -113,15 +114,15 @@ struct dpkg_extract {
 
 			uint8_t hdr_index;
 			/*!< Clear for cases not listed below;
-			 Used for protocols that may have more
-			 than a single header, 0 indicates
-			 outer header;
-			 Supported protocols (possible values):
-			 NET_PROT_VLAN (0, HDR_INDEX_LAST);
-			 NET_PROT_MPLS (0, 1, HDR_INDEX_LAST);
-			 NET_PROT_IP(0, HDR_INDEX_LAST);
-			 NET_PROT_IPv4(0, HDR_INDEX_LAST);
-			 NET_PROT_IPv6(0, HDR_INDEX_LAST);
+			 * Used for protocols that may have more
+			 * than a single header, 0 indicates
+			 * outer header;
+			 * Supported protocols (possible values):
+			 * NET_PROT_VLAN (0, HDR_INDEX_LAST);
+			 * NET_PROT_MPLS (0, 1, HDR_INDEX_LAST);
+			 * NET_PROT_IP(0, HDR_INDEX_LAST);
+			 * NET_PROT_IPv4(0, HDR_INDEX_LAST);
+			 * NET_PROT_IPv6(0, HDR_INDEX_LAST);
 			 */
 		} from_hdr; /*!< used when type = DPKG_EXTRACT_FROM_HDR */
 		struct {
@@ -132,14 +133,16 @@ struct dpkg_extract {
 			uint8_t constant; /*!< a constant value */
 			uint8_t num_of_repeats;
 		/*!< The number of times
-		 the constant is to be
-		 entered to the key */
+		 * the constant is to be
+		 * entered to the key 
+		 */
 		} constant; /*!< used when type = DPKG_EXTRACT_CONSTANT */
 	} extract; /*!< Selects extraction method */
 	uint8_t num_of_byte_masks;
 	/*!< Defines the valid number of entries in the
-	 array below; This is also number of bytes
-	 to be used as masks */
+	 * array below; This is also number of bytes
+	 * to be used as masks 
+	 */
 	struct dpkg_mask masks[DPKG_NUM_OF_MASKS]; /*!< Mask parameters */
 };
 
@@ -148,7 +151,8 @@ struct dpkg_extract {
  */
 struct dpkg_profile_cfg {
 	uint8_t num_extracts; /*!< defines the valid number of
-	 entries in the array below */
+	 	 	       * entries in the array below 
+	 	 	       */
 	struct dpkg_extract extracts[DPKG_MAX_NUM_OF_EXTRACTS];
 /*!< An array of extractions definition. */
 };

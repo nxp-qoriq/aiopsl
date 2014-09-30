@@ -1199,7 +1199,6 @@ int dpni_set_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
-
 }
 
 int dpni_get_irq_mask(struct fsl_mc_io *mc_io,

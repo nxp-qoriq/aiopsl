@@ -29,11 +29,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**************************************************************************//*
- @File          fsl_dpci_cmd.h
-
- @Description   defines dprc portal commandsF
-
- @Cautions      None.
+ * @File          fsl_dpci_cmd.h
+ *
+ * @Description   defines dprc portal commandsF
+ *
+ * @Cautions      None.
  *//***************************************************************************/
 
 #ifndef _FSL_DPCI_CMD_H
@@ -128,13 +128,11 @@ do { \
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_GET_TX_QUEUE(cmd, priority) \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);
 	
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_RSP_GET_TX_QUEUE(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 32, 32, uint32_t,  attr->fqid);\
-} while (0)
+	MC_RSP_OP(cmd, 0, 32, 32, uint32_t,  attr->fqid);
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \

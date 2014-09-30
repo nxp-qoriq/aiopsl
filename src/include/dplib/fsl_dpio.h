@@ -313,7 +313,7 @@ int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token,
  *					1 = interrupt pending
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, 
                         uint8_t irq_index, uint32_t *status);
 
@@ -328,7 +328,7 @@ int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
  *					1 = clear status bit
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dpio_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
 			  uint32_t status);
