@@ -621,7 +621,8 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 	return 0;
 }
 
-int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t max_frame_length)
+int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, 
+                 uint16_t max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 
@@ -635,7 +636,8 @@ int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t max_frame_len
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *max_frame_length)
+int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, 
+                 uint16_t *max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -824,7 +826,8 @@ int dpni_remove_mac_addr(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_clear_mac_filters(struct fsl_mc_io *mc_io, uint16_t token, int unicast, int multicast)
+int dpni_clear_mac_filters(struct fsl_mc_io *mc_io, uint16_t token, int unicast,
+                           int multicast)
 {
 	struct mc_command cmd = { 0 };
 
@@ -900,7 +903,8 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
                    const struct dpni_rx_tc_dist_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
-	uint64_t *ext_params = iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
+	uint64_t *ext_params = 
+		iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
 	uint64_t ext_iova;
 	int err;
 
@@ -1015,7 +1019,8 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
                        const struct dpni_qos_tbl_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
-	uint64_t *ext_params = iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
+	uint64_t *ext_params = 
+		iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
 	uint64_t ext_iova;
 	int err;
 
@@ -1113,7 +1118,8 @@ int dpni_remove_fs_entry(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_clear_fs_entries(struct fsl_mc_io *mc_io, uint16_t token, uint8_t tc_id)
+int dpni_clear_fs_entries(struct fsl_mc_io *mc_io, uint16_t token, 
+                          uint8_t tc_id)
 {
 	struct mc_command cmd = { 0 };
 
