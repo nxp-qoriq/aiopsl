@@ -101,7 +101,8 @@ struct dpio_attr {
  *
  * @warning	Required before any operation on the object
  */
-int dpio_create(struct fsl_mc_io *mc_io, const struct dpio_cfg *cfg, uint16_t *token);
+int dpio_create(struct fsl_mc_io *mc_io, const struct dpio_cfg *cfg, 
+                uint16_t *token);
 
 /**
  * @brief	Open object handle
@@ -188,7 +189,8 @@ int dpio_reset(struct fsl_mc_io *mc_io, uint16_t token);
  *
  * @warning	Allowed only following dpio_enable().
  */
-int dpio_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpio_attr *attr);
+int dpio_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, 
+                        struct dpio_attr *attr);
 
 /**
  * @brief	Sets IRQ information for the DPIO to trigger an interrupt.
@@ -281,7 +283,8 @@ int dpio_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
+int dpio_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -296,7 +299,8 @@ int dpio_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
+int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
@@ -310,7 +314,8 @@ int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
+int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, 
+                        uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
@@ -326,7 +331,7 @@ int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_ind
  * */
 int dpio_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
-	uint32_t status);
+			  uint32_t status);
 
 /** @} */
 

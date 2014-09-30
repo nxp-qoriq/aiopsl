@@ -354,7 +354,8 @@ int dprc_create_container(struct fsl_mc_io *mc_io, uint16_t token,
  * @warning	Only the parent container is allowed to destroy a child policy
  *		Container 0 can't be destroyed
  */
-int dprc_destroy_container(struct fsl_mc_io *mc_io, uint16_t token, int child_container_id);
+int dprc_destroy_container(struct fsl_mc_io *mc_io, uint16_t token, 
+                           int child_container_id);
 
 /**
  * @brief	Sets allocation policy for a specific resource/object type in a
@@ -432,7 +433,8 @@ int dprc_get_res_quota(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_reset_container(struct fsl_mc_io *mc_io, uint16_t token, int child_container_id);
+int dprc_reset_container(struct fsl_mc_io *mc_io, uint16_t token, 
+                         int child_container_id);
 
 /**
  * @brief	Assigns objects or resource to a child container.
@@ -499,7 +501,8 @@ int dprc_unassign(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_get_pool_count(struct fsl_mc_io *mc_io, uint16_t token, int *pool_count);
+int dprc_get_pool_count(struct fsl_mc_io *mc_io, uint16_t token, 
+                        int *pool_count);
 
 /**
  * @brief	Get the type (string) of a certain dprc's pool
@@ -516,7 +519,8 @@ int dprc_get_pool_count(struct fsl_mc_io *mc_io, uint16_t token, int *pool_count
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_get_pool(struct fsl_mc_io *mc_io, uint16_t token, int pool_index, char *type);
+int dprc_get_pool(struct fsl_mc_io *mc_io, uint16_t token, int pool_index, 
+                  char *type);
 
 /**
  * @brief	Obtains the number of objects in the DPRC
@@ -560,7 +564,8 @@ int dprc_get_obj(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_count(struct fsl_mc_io *mc_io, uint16_t token, char *type, int *res_count);
+int dprc_get_res_count(struct fsl_mc_io *mc_io, uint16_t token, 
+                       char *type, int *res_count);
 
 /**
  * @brief	Obtains IDs of free resources in the container
@@ -574,7 +579,7 @@ int dprc_get_res_count(struct fsl_mc_io *mc_io, uint16_t token, char *type, int 
  */
 int dprc_get_res_ids(struct fsl_mc_io *mc_io, uint16_t token,
 		     char *type,
-	struct dprc_res_ids_range_desc *range_desc);
+		     struct dprc_res_ids_range_desc *range_desc);
 
 /**
  * @brief	Obtains the physical address of MC portals
@@ -588,7 +593,7 @@ int dprc_get_res_ids(struct fsl_mc_io *mc_io, uint16_t token,
  */
 int dprc_get_portal_paddr(struct fsl_mc_io *mc_io, uint16_t token,
 			  int portal_id,
-	uint64_t *portal_addr);
+			  uint64_t *portal_addr);
 
 /**
  * @brief	Obtains container attributes
@@ -599,7 +604,8 @@ int dprc_get_portal_paddr(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns     '0' on Success; Error code otherwise.
  */
-int dprc_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_attributes *attributes);
+int dprc_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, 
+                        struct dprc_attributes *attributes);
 
 /**
  * @brief	Returns region information for a specified object.
@@ -616,9 +622,9 @@ int dprc_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dprc_att
  */
 int dprc_get_obj_region(struct fsl_mc_io *mc_io, uint16_t token,
 			char *obj_type,
-	int obj_id,
-	uint8_t region_index,
-	struct dprc_region_desc *region_desc);
+			int obj_id,
+			uint8_t region_index,
+			struct dprc_region_desc *region_desc);
 
 /**
  * @brief	Sets IRQ information for the DPRC to trigger an interrupt.
@@ -638,9 +644,9 @@ int dprc_get_obj_region(struct fsl_mc_io *mc_io, uint16_t token,
  */
 int dprc_set_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
-	uint64_t irq_paddr,
-	uint32_t irq_val,
-	int user_irq_id);
+		 uint64_t irq_paddr,
+		 uint32_t irq_val,
+		 int user_irq_id);
 
 /**
  * @brief	Gets IRQ information from the DPRC.
@@ -663,10 +669,10 @@ int dprc_set_irq(struct fsl_mc_io *mc_io, uint16_t token,
  */
 int dprc_get_irq(struct fsl_mc_io *mc_io, uint16_t token,
 		 uint8_t irq_index,
-	int *type,
-	uint64_t *irq_paddr,
-	uint32_t *irq_val,
-	int *user_irq_id);
+		 int *type,
+		 uint64_t *irq_paddr,
+		 uint32_t *irq_val,
+		 int *user_irq_id);
 
 /**
  * @brief	Sets overall interrupt state.
@@ -685,7 +691,7 @@ int dprc_get_irq(struct fsl_mc_io *mc_io, uint16_t token,
  */
 int dprc_set_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
-	uint8_t enable_state);
+			uint8_t enable_state);
 
 /**
  * @brief	Gets overall interrupt state
@@ -699,7 +705,7 @@ int dprc_set_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
  */
 int dprc_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
 			uint8_t irq_index,
-	uint8_t *enable_state);
+			uint8_t *enable_state);
 
 /**
  * @brief	Sets interrupt mask.
@@ -717,7 +723,8 @@ int dprc_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
+int dprc_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -732,7 +739,8 @@ int dprc_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dprc_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
+int dprc_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
@@ -746,7 +754,8 @@ int dprc_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *
  * @returns	'0' on Success; Error code otherwise.
  * */
-int dprc_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
+int dprc_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
+                        uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
@@ -762,7 +771,7 @@ int dprc_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_ind
  * */
 int dprc_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
-	uint32_t status);
+			  uint32_t status);
 
 /**
  * @brief	Connects two endpoints to create a network link between them
@@ -802,7 +811,7 @@ int dprc_disconnect(struct fsl_mc_io *mc_io, uint16_t token,
 * @returns     '0' on Success; -ENAVAIL otherwise when connection doesn't exist.
 * */
 int dprc_get_connection(struct fsl_mc_io *mc_io,
-						uint16_t token,
+			uint16_t token,
 			const struct dprc_endpoint *endpoint1,
                         struct dprc_endpoint *endpoint2,
                         int *state);

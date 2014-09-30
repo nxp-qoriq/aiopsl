@@ -1,3 +1,21 @@
+LDPAA AIOP SERVICE LAYER ALPHA V0.4.4 Change Log
+===================================================
+CDMA: Added cdma_inline.h file for supporting cdma inline commands. 
+CDMA: The following are inline functions:
+	cdma_refcount_increment()
+	cdma_refcount_decrement()
+CDMA: CDMA errors are suported.
+OSM: API - changed osm_scope_transition_to_exclusive_with_increment_scope_id return type to void.
+OSM: API - changed osm_scope_transition_to_exclusive_with_new_scope_id return type to void.
+OSM: API - changed osm_scope_transition_to_concurrent_with_increment_scope_id return type to void.
+OSM: API - changed osm_scope_transition_to_concurrent_with_new_scope_id return type to void.
+OSM: API - changed osm_scope_enter_to_exclusive_with_increment_scope_id return type to void.
+OSM: API - changed osm_scope_enter_to_exclusive_with_new_scope_id return type to void.
+OSM: API - changed osm_scope_enter return type to void.
+
+There is no support for flow-id parameter when calling dpni_drv_register_rx_cb() or dpni_drv_unregister_rx_cb().
+Added some optimizations to the dpni_drv_send() and receive_cb() functions.
+
 Table SRs: API - Added a note to table_create() parameters that max rules must not be 0.
 Table SRs: API - Added notes that some of the pointer must point to structures in the workspace (e.g. not SRAM).
 Table SRs: API - Aging and auto removal of rules because of aging were removed from the API due to inputs that these are unnecessary. 
