@@ -1,3 +1,8 @@
+- dpni_drv.c, fsl_dpni_drv.h: added suport for promisc to multicast and unicast. The functions are: int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en),
+                              int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en), int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en),
+                              int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en)
+							  Arena test updated acordingly.
+							  
 - dpni.c:       API change in dpni functions from: (struct dpni *dpni) to:  (struct fsl_mc_io *mc_io, uint16_t token)
 
 - dpl.dts/dtb:    Added DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED to AIOP container.
