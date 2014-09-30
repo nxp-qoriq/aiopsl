@@ -37,6 +37,13 @@ def inject_packets(pcap):
 		g_capture = 4
 		print 'injecting 1 packet'
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","reassembled_frame.pcap"])
+	elif 'frag.pcap' in pcap:
+		g_capture = 1
+		print 'injecting 1 packet'
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","frag1.pcap"])
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","frag2.pcap"])
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","frag3.pcap"])
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","frag4.pcap"])
 	else:
 		print 'name of recognized pcap not found'
 
@@ -79,5 +86,9 @@ if __name__ == "__main__":
 				elif 'Finished SUCCESSFULLY' in line:
 					if g_capture == 0:
 						exit_script(runsim,0)
+					else:
+						print "TEST ERROR"
+						print str(g_capture) + " packets are missing"
+						exit_script(runsim,1)
 				elif 'Finished with ERRORS' in line:
 					exit_script(runsim,1)
