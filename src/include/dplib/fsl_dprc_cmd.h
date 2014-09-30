@@ -312,8 +312,8 @@ do { \
 	MC_RSP_OP(cmd, 0, 32, 16, uint16_t, attr->icid); \
 	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, attr->options);\
 	MC_RSP_OP(cmd, 1, 32, 32, int,      attr->portal_id); \
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->version.major);\
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->version.minor);\
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, attr->version.major);\
+	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, attr->version.minor);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
