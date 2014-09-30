@@ -131,7 +131,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("\n");
 
 		ipv4_hdr = (struct ipv4hdr *)p_ipv4hdr;
-		if (ipv4_hdr->total_length != 0x117b)
+		if (ipv4_hdr->total_length != 0x118b)
 		{
 			fsl_os_print("ERROR = %x: reassembled frame total length is incorrect\n", ipv4_hdr->total_length);
 			local_test_error |= 1;
@@ -162,7 +162,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			local_test_error |= 1;
 		}
 		fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		if (fd_length != 4489)
+		if (fd_length != 4505)
 		{
 			fsl_os_print("ERROR = %x: reassembled frame length error!\n", fd_length);
 			local_test_error |= 1;
