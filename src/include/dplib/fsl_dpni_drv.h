@@ -252,7 +252,7 @@ int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en);
 @brief		Get multicast promiscuous mode
 
 @param[in]	ni_id - The Network Interface ID
-@param[out]	en - '1' for enabling/'0' for disabling
+@param[out]	en - '1' for enabled/'0' for disabled
 
 @returns	'0' on Success; Error code otherwise.
 *//***************************************************************************/
@@ -276,7 +276,7 @@ int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en);
 @brief		Get unicast promiscuous mode
 
 @param[in]	ni_id - The Network Interface ID
-@param[out]	en - '1' for enabling/'0' for disabling
+@param[out]	en - '1' for enabled/'0' for disabled
 
 @returns	'0' on Success; Error code otherwise.
 *//***************************************************************************/
