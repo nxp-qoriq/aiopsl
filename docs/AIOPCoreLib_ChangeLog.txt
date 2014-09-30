@@ -1,5 +1,15 @@
 LDPAA AIOP SERVICE LAYER ALPHA V0.4.4 Change Log
 ===================================================
+PARSER: Add parser_inline.h file for supporting parser inline commands.
+PARSER: The following are inline functions:
+	parse_result_generate()
+	parse_result_generate_default()
+	parse_result_generate_basic()
+PARSER: non-fatal errors are supported.	
+PARSER: changed parser_profile_query input parameter from parse_profile_record to parse_profile_input (to adjust CTLU spec 0.7.4)
+KEYGEN: removed KEYGEN_KCR_ICMP_TYPE_FECID and KEYGEN_KCR_ICMP_CODE_FECID (not supported by HW).
+KEYGEN: non-fatal errors are supported.	
+
 TMAN: TMAN errors are supported in code but not fully verified. 
 TMAN: Removed recharge function due to HW scope reduction.
 TMAN: Changed timer delete function and TMI delete function to support HW Errata ERR008205
