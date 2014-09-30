@@ -1,5 +1,12 @@
 LDPAA AIOP SERVICE LAYER ALPHA V0.4.4 Change Log
 ===================================================
+TMAN: TMAN errors are supported in code but not fully verified. 
+TMAN: Removed recharge function due to HW scope reduction.
+TMAN: Changed timer delete function and TMI delete function to support HW Errata ERR008205
+TMAN: Changed TMI create function to support HW Errata ERR008234
+STE: Added macros and definitions for STE errors (the simulator still doesnt support STE errors)
+STE: All STE functions except the barrier command were changed to be inline functions.
+
 CDMA: Added cdma_inline.h file for supporting cdma inline commands. 
 CDMA: The following are inline functions:
 	cdma_refcount_increment()
