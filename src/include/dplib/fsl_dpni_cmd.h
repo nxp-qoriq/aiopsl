@@ -500,7 +500,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
 	MC_CMD_OP(cmd, 2, 16, 8,  uint8_t,  tc_id); \
-	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, cfg->options); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
