@@ -83,7 +83,7 @@ static int slab_release_pool(register uint32_t slab_virtual_pool_id)
 			(sizeof(slab_virtual_pool_ddr) *
 				slab_virtual_pool_id);
 		cdma_read_with_mutex(pool_data_address,
-		                     CDMA_PREDMA_MUTEX_READ_LOCK,
+		                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
 		                     &slab_virtual_pool_ddr,
 		                     sizeof(slab_virtual_pool_ddr));
 		slab_virtual_pool = &slab_virtual_pool_ddr;
@@ -175,7 +175,7 @@ __HOT_CODE static int slab_pool_allocate_buff(register uint32_t slab_virtual_poo
 			(sizeof(slab_virtual_pool_ddr) *
 				slab_virtual_pool_id);
 		cdma_read_with_mutex(pool_data_address,
-		                     CDMA_PREDMA_MUTEX_READ_LOCK,
+		                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
 		                     &slab_virtual_pool_ddr,
 		                     sizeof(slab_virtual_pool_ddr));
 		slab_virtual_pool = &slab_virtual_pool_ddr;
@@ -898,7 +898,7 @@ static int slab_check_bpid(struct slab *slab, uint64_t buff)
 	meta_bpid = SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(slab));
 	struct slab_v_pool slab_virtual_pool_ddr;
 	cluster = SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(slab));
-	
+
 	if(cluster == 0){
 		bpid = g_slab_bman_pools[(g_slab_virtual_pools.virtual_pool_struct + meta_bpid)->bman_array_index].bman_pool_id;
 	}
@@ -912,8 +912,8 @@ static int slab_check_bpid(struct slab *slab, uint64_t buff)
 
 	}
 
-	
-	
+
+
 	if (buff >= 8) {
 		fdma_dma_data(4,
 		              slab_m->icid,
@@ -1019,7 +1019,7 @@ static int dpbp_add(struct dprc_obj_desc *dev_desc, int ind,
 	uint16_t dpbp     = 0;
 	struct dpbp_attr attr;
 
-	
+
 	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
 		return err;
@@ -1089,7 +1089,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	for (i = i+1; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
-			
+
 			if(num_bpids >= bpids_arr_size) {
 				pr_err("Too many BPID's in the container num = %d\n", num_bpids + 1);
 			}
