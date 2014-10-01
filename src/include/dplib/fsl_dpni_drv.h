@@ -171,7 +171,7 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
           		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /**************************************************************************//**
-@Function	dpni_drv_set_mfl
+@Function	dpni_drv_set_max_frame_length
 
 @Description	Set the maximum received frame length.
 
@@ -183,11 +183,11 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_set_mfl(uint16_t ni_id,
+int dpni_drv_set_max_frame_length(uint16_t ni_id,
                           const uint16_t mfl);
 
 /**************************************************************************//**
-@Function	dpni_drv_get_mfl
+@Function	dpni_drv_get_max_frame_length
 
 @Description	Get the maximum received frame length.
 
@@ -199,7 +199,7 @@ int dpni_drv_set_mfl(uint16_t ni_id,
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_get_mfl(uint16_t ni_id,
+int dpni_drv_get_max_frame_length(uint16_t ni_id,
                           uint16_t *mfl);
 
 /**************************************************************************//**

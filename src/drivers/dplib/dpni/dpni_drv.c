@@ -288,7 +288,7 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 			dpni_drv->dpni_drv_params_var.dpni, mac_addr);
 }
 
-int dpni_drv_set_mfl(uint16_t ni_id,
+int dpni_drv_set_max_frame_length(uint16_t ni_id,
                           const uint16_t mfl)
 {
 	struct dpni_drv *dpni_drv;
@@ -299,7 +299,7 @@ int dpni_drv_set_mfl(uint16_t ni_id,
 	return dpni_set_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
-int dpni_drv_get_mfl(uint16_t ni_id,
+int dpni_drv_get_max_frame_length(uint16_t ni_id,
                           uint16_t *mfl)
 {
 	struct dpni_drv *dpni_drv;

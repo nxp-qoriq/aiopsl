@@ -1,3 +1,5 @@
+- dpni_drv.c, fsl_dpni_drv.h: API change for mfl functions from: dpni_drv_get/set_mfl(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl) 
+                              to: dpni_drv_get/set_max_frame_length(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl)
 - dpni_drv.c, fsl_dpni_drv.h: added suport for promisc to multicast and unicast. The functions are: int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en),
                               int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en), int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en),
                               int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en)
