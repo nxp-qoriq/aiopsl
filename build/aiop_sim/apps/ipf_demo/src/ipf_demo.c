@@ -260,7 +260,7 @@ int app_init(void)
 		                              ni /*arg, nic number*/);
 		if (err) return err;
 
-		err = dpni_drv_set_mfl((uint16_t)ni/*ni_id*/,
+		err = dpni_drv_set_max_frame_length((uint16_t)ni/*ni_id*/,
 		                        mfl /* Max frame length*/);
 		if (err) return err;
 

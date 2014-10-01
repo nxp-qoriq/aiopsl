@@ -67,9 +67,11 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint8_t *eth_pointer_byte = 0;
 	uint32_t handle_high, handle_low;
 	int local_test_error = 0;
+	uint32_t original_frame_len;
 
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	original_frame_len = frame_len;
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
 	
 	ipsec_handle_t ws_desc_handle_outbound = ipsec_sa_desc_outbound;
@@ -162,7 +164,7 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	
-	if (frame_len != 124) {
+	if (frame_len != original_frame_len) {
 		fsl_os_print("ERROR: incorrect frame length (FD[length] = %d)\n", 
 				frame_len);
 		err = 1;
