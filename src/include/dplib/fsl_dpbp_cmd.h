@@ -69,10 +69,6 @@
 #define DPBP_CMD_OPEN(cmd, dpbp_id) \
 	MC_CMD_OP(cmd, 0, 0,  32, int,	    dpbp_id)
 
-/*                cmd, param, offset, width, type, arg_name */
-#define DPBP_CMD_CREATE(cmd, cfg) \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, cfg->options)
-
 /*                cmd, param, offset, width, type,	arg_name */
 #define DPBP_RSP_GET_ATTRIBUTES(cmd, attr) \
 do { \
