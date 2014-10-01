@@ -27,6 +27,10 @@
 #ifndef __AIOP_COMMON_H
 #define __AIOP_COMMON_H
 
+#define AIOP_CCSR_VADDR		0x10000000;
+#define AIOP_MC_PORTALS_VADDR	0x0c000000;
+#define AIOP_SYS_DDR_VADDR	0x20000000;
+
 
 #define AIOP_ATU_NUM_OF_WINDOWS         8
 #define AIOP_EP_TABLE_NUM_OF_ENTRIES	1024
@@ -73,25 +77,31 @@ struct aiop_app_init_info {
  * TODO check it */
 struct aiop_sl_init_info
 {
-    uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
-    uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
-    
-    uint64_t ddr_paddr;
-    uint64_t peb_paddr;
-    uint64_t sys_ddr1_paddr;
-    
-    uintptr_t ddr_vaddr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
-    uintptr_t peb_vaddr; /* virtual base address, initialized by MC FW before AIOP elf is loaded */
-    uintptr_t sys_ddr1_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
-    uintptr_t ccsr_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
-    uintptr_t mc_portals_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
-    
-    uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
-    uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
-    uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
-    uint32_t clock_period; /* In nanosec */
-    
-    uint8_t reserved[188];           /* reserved for future use */
+	    uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
+	    uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
+	    uint32_t aiop_revision;  /* initialized by AIOP SL at compile time */
+
+	    uint64_t dp_ddr_paddr;
+	    uint64_t dp_ddr_vaddr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
+
+	    uint64_t peb_paddr;
+	    uint64_t peb_vaddr; /* virtual base address, initialized by MC FW before AIOP elf is loaded */
+
+	    uint64_t sys_ddr1_paddr;    
+	    uint64_t sys_ddr1_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
+	    
+	    uint64_t ccsr_paddr;
+	    uint64_t ccsr_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
+	    
+	    uint64_t mc_portals_paddr;
+	    uint64_t mc_portals_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
+	    
+	    uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
+	    uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
+	    uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
+	    uint32_t clock_period; /* In nanosec */
+	    
+	    uint8_t reserved[148];           /* reserved for future use */
 };
 
 struct aiop_init_data

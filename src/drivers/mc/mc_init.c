@@ -59,8 +59,6 @@ static int aiop_container_init()
 	}
 	memset(dprc, 0, sizeof(struct mc_dprc));
 
-	/* TODO: replace hard-coded portal address 1 with configured value */
-	/* TODO : layout file must contain portal ID 1 in order to work. */
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
 	p_vaddr = \
@@ -100,7 +98,8 @@ static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
 	uint32_t size = 0;
 	struct   mc_dpci_obj *dpci_tbl = NULL;
 	int      err = 0;
-
+	int 	 i;
+	
 	size = sizeof(struct mc_dpci_obj);
 	dpci_tbl = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
 	*_dpci_tbl = dpci_tbl;
@@ -118,6 +117,33 @@ static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
 	}
 	memset(dpci_tbl->attr, 0, size);
 
+	size = sizeof(struct dpci_peer_attr) * dpci_count;
+	dpci_tbl->peer_attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	if (dpci_tbl->peer_attr == NULL) {
+		pr_err("No memory for %d DPCIs\n", dpci_count);
+		return -ENOMEM;
+	}
+	memset(dpci_tbl->peer_attr, 0, size);
+	
+	for (i = 0; i < DPCI_PRIO_NUM ; i++)
+	{
+		size = sizeof(struct dpci_rx_queue_attr) * dpci_count;
+		dpci_tbl->rx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+		if (dpci_tbl->rx_queue_attr[i] == NULL) {
+			pr_err("No memory for %d DPCIs\n", dpci_count);
+			return -ENOMEM;
+		}
+		memset(dpci_tbl->rx_queue_attr[i], 0, size);
+		
+		size = sizeof(struct dpci_tx_queue_attr) * dpci_count;
+		dpci_tbl->tx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+		if (dpci_tbl->tx_queue_attr[i] == NULL) {
+			pr_err("No memory for %d DPCIs\n", dpci_count);
+			return -ENOMEM;
+		}
+		memset(dpci_tbl->tx_queue_attr[i], 0, size);
+	}
+	
 	size = sizeof(uint16_t) * dpci_count;
 	dpci_tbl->token = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
 	if (dpci_tbl->token == NULL) {
@@ -166,10 +192,11 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 			struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc)
 {
 	uint16_t dpci = 0;
-	struct   dpci_dest_cfg dest_cfg;
+	struct   dpci_rx_queue_cfg queue_cfg;
 	int      err = 0;
 	uint8_t  p   = 0;
-
+	uint8_t  i;
+	
 	if (dev_desc == NULL)
 		return -EINVAL;
 
@@ -184,29 +211,38 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
 	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 
-	memset(&dest_cfg, 0, sizeof(struct dpci_dest_cfg));
+	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
 
 	err |= dpci_open(&dprc->io, dev_desc->id, &dpci);
 	/* Set priorities 0 and 1
 	 * 0 is high priority
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
-	dest_cfg.type = DPCI_DEST_NONE;
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
-		dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.user_ctx = (ind << 1) | p;
 		err |= dpci_set_rx_queue(&dprc->io,
 		                         dpci,
 					 p,
-					 &dest_cfg,
-					 (ind << 1) | p);
+					 &queue_cfg);
 	}
 	err |= dpci_enable(&dprc->io, dpci);
 	err |= dpci_get_attributes(&dprc->io,
 	                           dpci,
 				   &dpci_tbl->attr[ind]);
+	
+	err |= dpci_get_peer_attributes(&dprc->io, dpci, &dpci_tbl->peer_attr[ind]);
+	
+	for (i = 0; i < dpci_tbl->attr->num_of_priorities; i++)
+		err |= dpci_get_rx_queue(&dprc->io, dpci, i, &dpci_tbl->rx_queue_attr[i][ind]);
+	
+	for (i = 0; i < dpci_tbl->peer_attr->num_of_priorities; i++)
+		err |= dpci_get_tx_queue(&dprc->io, dpci, i, &dpci_tbl->tx_queue_attr[i][ind]);
+	
 	dpci_tbl->token[ind] = dpci;
 
-	if (!dpci_tbl->attr[ind].peer_attached) {
+	if (dpci_tbl->peer_attr[ind].peer_id == (-1)) {
 		pr_err("DPCI %d has no peer ! ", dpci_tbl->attr[ind].id);
 		/* Don't return error maybe peer will be attached in the future */
 	}
@@ -218,12 +254,13 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 {
 	struct dpci_cfg dpci_cfg;
 	uint16_t dpci;
-	struct dpci_dest_cfg dest_cfg;
+	struct dpci_rx_queue_cfg queue_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
 	uint8_t p = 0;
 	int     err = 0;
 	int     link_up = 0;
+	uint8_t i;
 
 	dpci_cfg.num_of_priorities = 2;
 
@@ -232,14 +269,14 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	 * 0 is high priority
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
-	dest_cfg.type = DPCI_DEST_NONE;
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
-		dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
+		queue_cfg.user_ctx = (ind << 1) | p;
 		err |= dpci_set_rx_queue(&dprc->io,
 		                         dpci,
 					 p,
-					 &dest_cfg,
-					 (ind << 1) | p);
+					 &queue_cfg);
 	}
 
 	/* Get attributes just for dpci id,
@@ -271,7 +308,17 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 		pr_err("dprc_connect failed\n");
 	}
 
-	err |= dpci_get_attributes(&dprc->io, dpci, &dpci_tbl->attr[ind]);
+	err |= dpci_get_peer_attributes(&dprc->io, dpci, 
+	                                &dpci_tbl->peer_attr[ind]);
+	
+	for (i = 0; i < dpci_tbl->attr->num_of_priorities; i++)
+		err |= dpci_get_rx_queue(&dprc->io, dpci, i, 
+		                         &dpci_tbl->rx_queue_attr[i][ind]);
+	
+	for (i = 0; i < dpci_tbl->peer_attr->num_of_priorities; i++)
+		err |= dpci_get_tx_queue(&dprc->io, dpci, i, 
+		                         &dpci_tbl->tx_queue_attr[i][ind]);
+	
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
 		pr_err("MC<->AIOP DPCI link is down !\n");

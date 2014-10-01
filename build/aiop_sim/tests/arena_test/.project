@@ -112,6 +112,16 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test.c</locationURI>
 		</link>
 		<link>
+			<name>src/dpni_drv_test.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/dpni_drv_test.c</locationURI>
+		</link>
+		<link>
+			<name>src/inet_test.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/inet_test.c</locationURI>
+		</link>
+		<link>
 			<name>src/malloc_test.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/malloc_test.c</locationURI>

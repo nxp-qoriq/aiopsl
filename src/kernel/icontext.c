@@ -35,34 +35,40 @@
 #include "fsl_dbg.h"
 #include "fsl_icontext.h"
 #include "fsl_mc_init.h"
+#include "fsl_spinlock.h"
+#include "cmdif_client_aiop.h" /* TODO remove it once you have lock per dpci table !!! */
 
-int icontext_get(uint16_t dpci_id, struct icontext *ic)
+__HOT_CODE int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
-	ASSERT_COND((ic != NULL) && (dt != NULL));
+	ASSERT_COND((ic != NULL) && (dt != NULL) && (cl != NULL));
 
+	lock_spinlock(&cl->lock); /* TODO make it lock per dpci table not client ! */
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
 	for (i = 0; i < dt->count; i++) {
-		if ((dt->attr[i].peer_attached && 
-			(dt->attr[i].peer_id == dpci_id)) ||
+		if ((dt->peer_attr[i].peer_id == dpci_id) ||
 			(dt->attr[i].id == dpci_id)) {
 			/* Fill icontext */
 			ic->icid = dt->icid[i];
 			ic->dma_flags = dt->dma_flags[i];
 			ic->bdi_flags = dt->bdi_flags[i];
+			unlock_spinlock(&cl->lock);
 			return 0;
 		}
 	}
 
+	unlock_spinlock(&cl->lock);
 	/* copy pointer from icid table */
 	return -ENOENT;
 }
 
-int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *dest)
+__HOT_CODE int icontext_dma_read(struct icontext *ic, uint16_t size, 
+                                 uint64_t src, void *dest)
 {
 	ASSERT_COND(dest != NULL);
 	ASSERT_COND(src != NULL);
@@ -75,7 +81,8 @@ int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *de
 	return 0;
 }
 
-int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t dest)
+__HOT_CODE int icontext_dma_write(struct icontext *ic, uint16_t size, 
+                                  void *src, uint64_t dest)
 {
 	ASSERT_COND(src != NULL);
 	ASSERT_COND(dest != NULL);
@@ -88,18 +95,20 @@ int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t d
 	return 0;
 }
 
-int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr)
+__HOT_CODE int icontext_acquire(struct icontext *ic, uint16_t bpid, 
+                                uint64_t *addr)
 {
 	int err = 0;
 
 	ASSERT_COND(ic != NULL);
 
-	err = fdma_acquire_buffer(ic->icid, ic->bdi_flags, bpid, &addr);
+	err = fdma_acquire_buffer(ic->icid, ic->bdi_flags, bpid, (void *)addr);
 
 	return err;
 }
 
-int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr)
+__HOT_CODE int icontext_release(struct icontext *ic, uint16_t bpid, 
+                                uint64_t addr)
 {
 	int err = 0;
 

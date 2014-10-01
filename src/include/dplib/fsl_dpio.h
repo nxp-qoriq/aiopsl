@@ -73,6 +73,11 @@ struct dpio_cfg {
 struct dpio_attr {
 	int id;
 	/*!< DPIO id */
+	struct {
+		uint16_t major; /*!< DPIO major version*/
+		uint16_t minor; /*!< DPIO minor version*/
+	} version;
+	/*!< DPIO version */
 	uint64_t qbman_portal_ce_paddr;
 	/*!< physical address of the sw-portal cache-enabled area */
 	uint64_t qbman_portal_ci_paddr;
@@ -82,11 +87,6 @@ struct dpio_attr {
 	enum dpio_channel_mode channel_mode; /*!< channel mode */
 	uint8_t num_priorities;
 	/*!< 1-8; relevant only for 'DPIO_LOCAL_CHANNEL' */
-	struct {
-		uint32_t major; /*!< DPIO major version*/
-		uint32_t minor; /*!< DPIO minor version*/
-	} version;
-	/*!< DPIO version */
 };
 
 /**
@@ -101,7 +101,8 @@ struct dpio_attr {
  *
  * @warning	Required before any operation on the object
  */
-int dpio_create(struct fsl_mc_io *mc_io, const struct dpio_cfg *cfg, uint16_t *token);
+int dpio_create(struct fsl_mc_io *mc_io, const struct dpio_cfg *cfg, 
+                uint16_t *token);
 
 /**
  * @brief	Open object handle
@@ -157,6 +158,17 @@ int dpio_enable(struct fsl_mc_io *mc_io, uint16_t token);
 int dpio_disable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
+ * @brief	Is DPIO enabled
+ *
+ * @param[in]	mc_io		Pointer to opaque I/O object
+ * @param[in]   token		Token of DPIO object
+ * @param[out]  en		'1' for object enabled/'0' otherwise
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpio_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
+
+/**
  * @brief	Reset the IO, will return to initial state.
  *
  * @param[in]	mc_io		Pointer to opaque I/O object
@@ -177,7 +189,8 @@ int dpio_reset(struct fsl_mc_io *mc_io, uint16_t token);
  *
  * @warning	Allowed only following dpio_enable().
  */
-int dpio_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, struct dpio_attr *attr);
+int dpio_get_attributes(struct fsl_mc_io *mc_io, uint16_t token, 
+                        struct dpio_attr *attr);
 
 /**
  * @brief	Sets IRQ information for the DPIO to trigger an interrupt.
@@ -270,7 +283,8 @@ int dpio_get_irq_enable(struct fsl_mc_io *mc_io, uint16_t token,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t mask);
+int dpio_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t mask);
 
 /**
  * @brief	Gets interrupt mask.
@@ -285,7 +299,8 @@ int dpio_set_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *mask);
+int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, 
+                      uint8_t irq_index, uint32_t *mask);
 
 /**
  * @brief	Gets the current status of any pending interrupts.
@@ -298,8 +313,9 @@ int dpio_get_irq_mask(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index
  *					1 = interrupt pending
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
-int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_index, uint32_t *status);
+ */
+int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, 
+                        uint8_t irq_index, uint32_t *status);
 
 /**
  * @brief	Clears a pending interrupt's status
@@ -312,10 +328,10 @@ int dpio_get_irq_status(struct fsl_mc_io *mc_io, uint16_t token, uint8_t irq_ind
  *					1 = clear status bit
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dpio_clear_irq_status(struct fsl_mc_io *mc_io, uint16_t token,
 			  uint8_t irq_index,
-	uint32_t status);
+			  uint32_t status);
 
 /** @} */
 

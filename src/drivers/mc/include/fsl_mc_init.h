@@ -37,6 +37,9 @@ struct mc_dprc {
 
 struct mc_dpci_obj {
 	struct dpci_attr	*attr;
+	struct dpci_peer_attr	*peer_attr;
+	struct dpci_rx_queue_attr *rx_queue_attr[DPCI_PRIO_NUM];
+	struct dpci_tx_queue_attr *tx_queue_attr[DPCI_PRIO_NUM];
 	uint16_t		*token;
 	uint16_t		*icid;		/**< ICID per DPCI */
 	uint32_t		*dma_flags;	/**< FDMA dma data flags */

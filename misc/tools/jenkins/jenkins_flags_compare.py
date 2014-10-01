@@ -8,10 +8,14 @@ DEBUG = False
 DIFFERENT_FLAGS_FILE = "different_flags_found.properties"
 TOTAL_CPROJETCTS_FILE = "cprojects_found.properties"
 
+
 def check_if_file_exists(filename):
 	return os.path.isfile(filename)
 
 def check_if_flags_different(app_process_packet, cproject_file):
+	global ignore_flags
+	ignore_flags_exist = False
+
 	temp_file = []
 	ins = open( cproject_file, "r" )
 	for line in ins:
@@ -21,11 +25,14 @@ def check_if_flags_different(app_process_packet, cproject_file):
 				temp_file.append( "<" + l[1] )
 	ins.close()
 
-	different_flag = False 
+	different_flag = False
+
+	if 'Null' not in ignore_flags and 'aiopsl' in cproject_file:
+		ignore_flags_exist = True
 
 	print "Checking project: " + cproject_file + " for identical flags with app process packet."
 
-	if str(len(app_process_packet)) != str(len(temp_file)):
+	if str(len(app_process_packet)) != str(len(temp_file)) and ignore_flags_exist == False:
 		print "app process packet and project:" + cproject_file + " have different number of flags"
 		different_flag = True
 
@@ -37,6 +44,12 @@ def check_if_flags_different(app_process_packet, cproject_file):
 		for line2 in temp_file:
 			if line == line2:
 				same_flag = True
+
+		if ignore_flags_exist:
+			if l[1] in ignore_flags:
+				print "[INFO]: Flag ignored (exist in app_process_packet):" + line
+				continue
+
 
 		if same_flag == False:			
 			for line3 in temp_file:
@@ -51,13 +64,18 @@ def check_if_flags_different(app_process_packet, cproject_file):
 			different_flag = True
 			found_wrong_flag = False
 
-	#search for dlags that are not in app process packet		
+	#search for flags that are not in app process packet		
 	for line in temp_file:
 		same_flag = False
 		l = re.compile("\"").split(line)
 		for line2 in app_process_packet:
 			if "\"" + l[1] +"\"" in line2:
 				same_flag = True
+
+		if ignore_flags_exist:
+			if l[1] in ignore_flags:
+				print "[INFO]: Flag ignored (exist in aiopsl):" + line
+				continue
 
 		if same_flag == False:
 			print "[ERROR]: Wrong flag found (missing in app_process_packet): " + line
@@ -80,15 +98,35 @@ def check_if_flags_different(app_process_packet, cproject_file):
 
 
 if __name__ == "__main__":
-
+	global ignore_flags
+	ignore_flags = []
 	different_flags_in_some_projects = False
 	print "Start script to compare all .cproject files for applications and tests in AIOP"
 
 	if check_if_file_exists("build/aiop_sim/apps/app_process_packet/.cproject") == False:
 		exit(1)
 
+	#Check if there flags to ignore for compare with aiopsl
+	if check_if_file_exists("misc/tools/jenkins/ignore_cproject_flags.txt") == True:
+		if os.stat("misc/tools/jenkins/ignore_cproject_flags.txt")[6] == 0:
+			ignore_flags = 'Null'
+		else:			
+			ins = open( "misc/tools/jenkins/ignore_cproject_flags.txt", "r" )
+			for line in ins:
+				l = re.compile("\"").split(line)
+				if len(l) > 1:
+					ignore_flags.append(l[1])
+				else:
+					ignore_flags.append(line)
+			ins.close()
+			print "Ignore flags for aiopsl:"
+			print ignore_flags
+	else:
+		ignore_flags = 'Null'
 
 	ins = open( "build/aiop_sim/apps/app_process_packet/.cproject", "r" )
+
+
 	app_process_packet = []
 	for line in ins:
 		if "superClass=" in line:
@@ -114,7 +152,7 @@ if __name__ == "__main__":
 
 
 	for line in matches:
-		if "aiopsl" not in line and "app_process_packet" not in line:
+		if "app_process_packet" not in line:
 			total_cprojects_checked += 1
 			print "==============================================================================================="
 			print "=*********************************************************************************************="
@@ -127,6 +165,12 @@ if __name__ == "__main__":
 	f = open(TOTAL_CPROJETCTS_FILE,'w')
 	f.write('YVALUE=' + str(total_cprojects_checked) + '\n')
 	f.close()
+	
+	if DEBUG:
+		for line in matches:
+			print line
+		for line in app_process_packet:
+			print line
 
 	if different_flags_in_some_projects:
 		print "[INFO]: " + str(different_cprojects_found) + " different cprojects found during the test."
@@ -135,14 +179,7 @@ if __name__ == "__main__":
 		f.close()
 		exit(1)
 	else:
-
+		print "Finished SUCCESSFULLY"
 		exit(0)
 
-
-
-	if DEBUG:
-		for line in matches:
-			print line
-		for line in app_process_packet:
-			print line
 

@@ -1,0 +1,7 @@
+mc/src/include/fsl_endian.h:aiop/src/include/fsl_endian.h
+mc/src/include/fsl_io.h:aiop/src/include/fsl_io.h
+mc/src/drivers/dpmng/controllers/aiop/aiop_common.h:aiop/src/drivers/dpmng/controllers/aiop/aiop_common.h
+mc/src/include/kernel/fsl_cmdif_server.h:aiop/src/include/kernel/fsl_cmdif_server.h
+mc/src/include/kernel/fsl_cmdif_client.h:aiop/src/include/kernel/fsl_cmdif_client.h
+mc/src/include/kernel/fsl_cmdif_fd.h:aiop/src/include/kernel/fsl_cmdif_fd.h
+mc/src/include/kernel/fsl_cmdif_flib_c.h:aiop/src/include/kernel/fsl_cmdif_flib_c.h

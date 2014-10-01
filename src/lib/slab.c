@@ -1249,7 +1249,7 @@ int slab_module_init(void)
 	if (cdma_cfg & CDMA_PL_BIT)
 		slab_m->fdma_dma_flags |= FDMA_DMA_PL_BIT;
 	if (cdma_cfg & CDMA_VA_BIT)
-		slab_m->fdma_dma_flags |= FDMA_DMA_VA_BIT;
+		slab_m->fdma_dma_flags |= FDMA_DMA_eVA_BIT;
 
 	pr_debug("CDMA CFG register = 0x%x addr = 0x%x\n", cdma_cfg, \
 	         (uint32_t)&ccsr->cdma_regs.cfg);

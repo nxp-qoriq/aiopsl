@@ -29,18 +29,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**************************************************************************//*
- @File          fsl_dprc_cmd.h
-
- @Description   defines dprc portal commands
-
- @Cautions      None.
+ * @File          fsl_dprc_cmd.h
+ * 
+ * @Description   defines dprc portal commands
+ * 
+ * @Cautions      None.
  *//***************************************************************************/
 
 #ifndef _FSL_DPRC_CMD_H
 #define _FSL_DPRC_CMD_H
 
 /* DPRC Version */
-#define DPRC_VER_MAJOR				1
+#define DPRC_VER_MAJOR				2
 #define DPRC_VER_MINOR				0
 
 /* Command IDs */
@@ -48,10 +48,21 @@
 #define DPRC_CMDID_OPEN				0x805
 #define DPRC_CMDID_CREATE			0x905
 
+#define DPRC_CMDID_GET_ATTR			0x004
+#define DPRC_CMDID_RESET_CONT			0x005
+
+#define DPRC_CMDID_SET_IRQ			0x010
+#define DPRC_CMDID_GET_IRQ			0x011
+#define DPRC_CMDID_SET_IRQ_ENABLE		0x012
+#define DPRC_CMDID_GET_IRQ_ENABLE		0x013
+#define DPRC_CMDID_SET_IRQ_MASK			0x014
+#define DPRC_CMDID_GET_IRQ_MASK			0x015
+#define DPRC_CMDID_GET_IRQ_STATUS		0x016
+#define DPRC_CMDID_CLEAR_IRQ_STATUS		0x017
+
 #define DPRC_CMDID_CREATE_CONT			0x151
 #define DPRC_CMDID_DESTROY_CONT			0x152
 #define DPRC_CMDID_GET_CONT_ID			0x830
-#define DPRC_CMDID_RESET_CONT			0x154
 #define DPRC_CMDID_SET_RES_QUOTA		0x155
 #define DPRC_CMDID_GET_RES_QUOTA		0x156
 #define DPRC_CMDID_ASSIGN			0x157
@@ -60,21 +71,15 @@
 #define DPRC_CMDID_GET_OBJECT			0x15A
 #define DPRC_CMDID_GET_RES_COUNT		0x15B
 #define DPRC_CMDID_GET_RES_IDS			0x15C
-#define DPRC_CMDID_GET_ATTR			0x15D
 #define DPRC_CMDID_GET_OBJ_REG			0x15E
-#define DPRC_CMDID_SET_IRQ			0x15F
-#define DPRC_CMDID_GET_IRQ			0x160
-#define DPRC_CMDID_SET_IRQ_ENABLE		0x161
-#define DPRC_CMDID_GET_IRQ_ENABLE		0x162
-#define DPRC_CMDID_SET_IRQ_MASK			0x163
-#define DPRC_CMDID_GET_IRQ_MASK			0x164
-#define DPRC_CMDID_GET_IRQ_STATUS		0x165
-#define DPRC_CMDID_CLEAR_IRQ_STATUS		0x166
+
 #define DPRC_CMDID_CONNECT			0x167
 #define DPRC_CMDID_DISCONNECT			0x168
 #define DPRC_CMDID_GET_POOL			0x169
 #define DPRC_CMDID_GET_POOL_COUNT		0x16A
 #define DPRC_CMDID_GET_PORTAL_PADDR		0x16B
+
+#define DPRC_CMDID_GET_CONNECTION		0x16C
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_OPEN(cmd, container_id) \
@@ -221,8 +226,8 @@ do { \
 	MC_RSP_OP(cmd, 1, 16, 8,  uint8_t,  obj_desc->irq_count); \
 	MC_RSP_OP(cmd, 1, 24, 8,  uint8_t,  obj_desc->region_count); \
 	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, obj_desc->state);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, obj_desc->ver_minor); \
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, obj_desc->ver_major); \
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, obj_desc->ver_major);\
+	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, obj_desc->ver_minor);\
 	MC_RSP_OP(cmd, 3, 0,  8,  char,	    obj_desc->type[0]);\
 	MC_RSP_OP(cmd, 3, 8,  8,  char,	    obj_desc->type[1]);\
 	MC_RSP_OP(cmd, 3, 16, 8,  char,	    obj_desc->type[2]);\
@@ -305,10 +310,10 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, int,	    attr->container_id); \
 	MC_RSP_OP(cmd, 0, 32, 16, uint16_t, attr->icid); \
-	MC_RSP_OP(cmd, 0, 48, 16, uint16_t, attr->portal_id); \
 	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, attr->options);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->version.major);\
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->version.minor);\
+	MC_RSP_OP(cmd, 1, 32, 32, int,      attr->portal_id); \
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, attr->version.major);\
+	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, attr->version.minor);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -470,6 +475,54 @@ do { \
 	MC_CMD_OP(cmd, 2, 40, 8,  char,	    endpoint->type[13]); \
 	MC_CMD_OP(cmd, 2, 48, 8,  char,	    endpoint->type[14]); \
 	MC_CMD_OP(cmd, 2, 56, 8,  char,	    endpoint->type[15]); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_GET_CONNECTION(cmd, endpoint1) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, int,      endpoint1->id); \
+	MC_CMD_OP(cmd, 0, 32, 32, int,	    endpoint1->interface_id); \
+	MC_CMD_OP(cmd, 1, 0,  8,  char,     endpoint1->type[0]); \
+	MC_CMD_OP(cmd, 1, 8,  8,  char,	    endpoint1->type[1]); \
+	MC_CMD_OP(cmd, 1, 16, 8,  char,	    endpoint1->type[2]); \
+	MC_CMD_OP(cmd, 1, 24, 8,  char,	    endpoint1->type[3]); \
+	MC_CMD_OP(cmd, 1, 32, 8,  char,	    endpoint1->type[4]); \
+	MC_CMD_OP(cmd, 1, 40, 8,  char,	    endpoint1->type[5]); \
+	MC_CMD_OP(cmd, 1, 48, 8,  char,	    endpoint1->type[6]); \
+	MC_CMD_OP(cmd, 1, 56, 8,  char,	    endpoint1->type[7]); \
+	MC_CMD_OP(cmd, 2, 0,  8,  char,	    endpoint1->type[8]); \
+	MC_CMD_OP(cmd, 2, 8,  8,  char,	    endpoint1->type[9]); \
+	MC_CMD_OP(cmd, 2, 16, 8,  char,	    endpoint1->type[10]); \
+	MC_CMD_OP(cmd, 2, 24, 8,  char,	    endpoint1->type[11]); \
+	MC_CMD_OP(cmd, 2, 32, 8,  char,     endpoint1->type[12]); \
+	MC_CMD_OP(cmd, 2, 40, 8,  char,	    endpoint1->type[13]); \
+	MC_CMD_OP(cmd, 2, 48, 8,  char,	    endpoint1->type[14]); \
+	MC_CMD_OP(cmd, 2, 56, 8,  char,	    endpoint1->type[15]); \
+} while (0)
+
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_CONNECTION(cmd, endpoint2, state) \
+do { \
+	MC_RSP_OP(cmd, 3, 0,  32, int,	    endpoint2->id); \
+	MC_RSP_OP(cmd, 3, 32, 32, int,	    endpoint2->interface_id); \
+	MC_RSP_OP(cmd, 4, 0,  8,  char,	    endpoint2->type[0]); \
+	MC_RSP_OP(cmd, 4, 8,  8,  char,	    endpoint2->type[1]); \
+	MC_RSP_OP(cmd, 4, 16, 8,  char,	    endpoint2->type[2]); \
+	MC_RSP_OP(cmd, 4, 24, 8,  char,	    endpoint2->type[3]); \
+	MC_RSP_OP(cmd, 4, 32, 8,  char,	    endpoint2->type[4]); \
+	MC_RSP_OP(cmd, 4, 40, 8,  char,	    endpoint2->type[5]); \
+	MC_RSP_OP(cmd, 4, 48, 8,  char,	    endpoint2->type[6]); \
+	MC_RSP_OP(cmd, 4, 56, 8,  char,	    endpoint2->type[7]); \
+	MC_RSP_OP(cmd, 5, 0,  8,  char,	    endpoint2->type[8]); \
+	MC_RSP_OP(cmd, 5, 8,  8,  char,	    endpoint2->type[9]); \
+	MC_RSP_OP(cmd, 5, 16, 8,  char,	    endpoint2->type[10]); \
+	MC_RSP_OP(cmd, 5, 24, 8,  char,	    endpoint2->type[11]); \
+	MC_RSP_OP(cmd, 5, 32, 8,  char,	    endpoint2->type[12]); \
+	MC_RSP_OP(cmd, 5, 40, 8,  char,	    endpoint2->type[13]); \
+	MC_RSP_OP(cmd, 5, 48, 8,  char,	    endpoint2->type[14]); \
+	MC_RSP_OP(cmd, 5, 56, 8,  char,	    endpoint2->type[15]); \
+	MC_RSP_OP(cmd, 6, 0,  32, int,	    state); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */

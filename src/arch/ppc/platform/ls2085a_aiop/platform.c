@@ -557,7 +557,7 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        switch (p_mem_info->mem_partition_id) {
 	        case MEM_PART_DEFAULT_HEAP_PARTITION:	        	
 	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.dp_ddr_paddr;
 	            p_mem_info->size = aiop_lcf_ddr_size;   	
 	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	                     p_mem_info->virt_base_addr,
@@ -567,9 +567,9 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        	
 	        	break;
 	        case MEM_PART_DP_DDR:
-	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.ddr_vaddr +
+	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.dp_ddr_vaddr +
 	        	        aiop_lcf_ddr_size;
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr + 
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.dp_ddr_paddr + 
 	        			aiop_lcf_ddr_size;
 	            p_mem_info->size = g_init_data.app_data.dp_ddr_size - 
 	        			aiop_lcf_ddr_size;        	
@@ -594,9 +594,10 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        case MEM_PART_MC_PORTALS:
 	            p_mem_info->virt_base_addr = 
 	        	       (uint32_t)g_init_data.sl_data.mc_portals_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.mc_portals_paddr;
 	            // TODO fill all the rest fields from g_init_data.sl_data
 	            /* Store MC-Portals bases (for convenience) */
-	            pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;
+	            pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;	            
 	            pr_debug("MEM_PART_MC_PORTALS:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	          	      p_mem_info->virt_base_addr,
 	          	      (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -606,9 +607,10 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        case MEM_PART_CCSR:
 	            p_mem_info->virt_base_addr = 
 	                            (uint32_t)g_init_data.sl_data.ccsr_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.ccsr_paddr;
 	            // TODO fill all the rest fields from g_init_data.sl_data
 	            /* Store CCSR base (for convenience) */
-	            pltfrm->ccsr_base =  p_mem_info->virt_base_addr;
+	            pltfrm->ccsr_base =  p_mem_info->virt_base_addr;	            
 	            pr_debug("MEM_PART_CCSR:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	            	     p_mem_info->virt_base_addr,
 	            	     (uint32_t)(p_mem_info->phys_base_addr >> 32),

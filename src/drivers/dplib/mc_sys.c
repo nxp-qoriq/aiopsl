@@ -84,8 +84,7 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 	do {
 		status = MC_CMD_HDR_READ_STATUS(ioread64(mc_io->regs));
 
-		/*
-		 * --- Call wait function here to prevent blocking ---
+		/* --- Call wait function here to prevent blocking ---
 		 * Change the loop condition accordingly to exit on timeout.
 		 */
 	} while (status == MC_CMD_STATUS_READY);
@@ -93,8 +92,7 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 	/* Read the response back into the command buffer */
 	mc_read_response(mc_io->regs, cmd);
 #if 0
-	/*
-	 * The authentication id is read in create() or open() commands,
+	/* The authentication id is read in create() or open() commands,
 	 * to setup the control session.
 	 */ 
 	if (0 == mc_portal->auth)

@@ -52,7 +52,7 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 
 /** BMT for memory accesses */
 #define BMT_GET \
-	LDPAA_FD_GET_CBMT(HWC_FD_ADDRESS)
+	LDPAA_FD_GET_BMT(HWC_FD_ADDRESS)
 
 /** PL_ICID from Additional Dequeue Context */
 #define PL_ICID_GET \
@@ -69,7 +69,7 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 		if (PL_GET(PL_AND_ICID))	\
 			FL |= FDMA_DMA_PL_BIT;	\
 		if (VA_GET)			\
-			FL |= FDMA_DMA_VA_BIT;	\
+			FL |= FDMA_DMA_eVA_BIT;	\
 		if (BMT_GET)			\
 			FL |= FDMA_DMA_BMT_BIT;	\
 	}while(0)
@@ -80,6 +80,8 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 struct cmdif_reg {
 	uint16_t dpci_token;	/**< Open AIOP dpci device */
 	struct dpci_attr *attr; /**< DPCI attributes */
+	struct dpci_peer_attr *peer_attr; /**< DPCI peer attributes */
+	struct dpci_tx_queue_attr *tx_queue_attr[DPCI_PRIO_NUM]; /**< DPCI TX attributes */
 	uint32_t dma_flags;	/**< FDMA dma data flags */
 	uint32_t enq_flags;	/**< FDMA enqueue flags */
 	uint16_t icid;		/**< ICID per DPCI */
