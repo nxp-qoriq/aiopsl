@@ -21,7 +21,7 @@ CDMA: Added cdma_inline.h file for supporting cdma inline commands.
 CDMA: The following are inline functions:
 	cdma_refcount_increment()
 	cdma_refcount_decrement()
-CDMA: CDMA errors are suported.
+CDMA: CDMA non-fatal errors are suported.
 OSM: API - changed osm_scope_transition_to_exclusive_with_increment_scope_id return type to void.
 OSM: API - changed osm_scope_transition_to_exclusive_with_new_scope_id return type to void.
 OSM: API - changed osm_scope_transition_to_concurrent_with_increment_scope_id return type to void.

@@ -85,8 +85,8 @@
 #define DPNI_CMDID_GET_COUNTER			0x213
 #define DPNI_CMDID_SET_COUNTER			0x214
 #define DPNI_CMDID_GET_LINK_STATE		0x215
-#define DPNI_CMDID_SET_MFL			0x216
-#define DPNI_CMDID_GET_MFL			0x217
+#define DPNI_CMDID_SET_MAX_FRAME_LENGTH		0x216
+#define DPNI_CMDID_GET_MAX_FRAME_LENGTH		0x217
 #define DPNI_CMDID_SET_MTU			0x218
 #define DPNI_CMDID_GET_MTU			0x219
 
@@ -315,11 +315,11 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_MFL(cmd, max_frame_length) \
+#define DPNI_CMD_SET_MAX_FRAME_LENGTH(cmd, max_frame_length) \
 	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, max_frame_length)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_MFL(cmd, max_frame_length) \
+#define DPNI_RSP_GET_MAX_FRAME_LENGTH(cmd, max_frame_length) \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, max_frame_length)
 
 /*                cmd, param, offset, width, type, arg_name */

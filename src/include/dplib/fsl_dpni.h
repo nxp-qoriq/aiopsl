@@ -914,7 +914,7 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_mfl(struct fsl_mc_io *mc_io,
+int dpni_set_max_frame_length(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint16_t max_frame_length);
 
@@ -928,7 +928,7 @@ int dpni_set_mfl(struct fsl_mc_io *mc_io,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_mfl(struct fsl_mc_io *mc_io,
+int dpni_get_max_frame_length(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint16_t *max_frame_length);
 

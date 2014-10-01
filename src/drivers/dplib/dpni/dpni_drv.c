@@ -296,7 +296,7 @@ int dpni_drv_set_mfl(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_set_mfl(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
+	return dpni_set_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
 int dpni_drv_get_mfl(uint16_t ni_id,
@@ -307,7 +307,7 @@ int dpni_drv_get_mfl(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_mfl(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
+	return dpni_get_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
 

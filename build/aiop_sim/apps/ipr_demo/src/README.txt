@@ -37,7 +37,7 @@ Setup
 Execution flow
 ===========================================
 1. Import the MC and AIOP projects into CodeWarrior:
-   mc/build/mc_sim/mc_app/.project
+   mc/build/mc_t4ls_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/ipr_demo/.project
 2. Build both projects in CW.
 3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
@@ -53,20 +53,13 @@ Execution flow
    ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
 8. Run mc_app.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
-7. Launch ipr_demo using AFM connection.
-	Init file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl
-	Mem file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP.mem
-   Don't forget to update simulator server IP and port in debug configuration. 
-8. Run aiop (multi-core resume).
 9. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
-10. Run “tio inject” to inject each of the 4 input fragments
-	(frag1.pcap, frag2.pcap, frag3.pcap, frag4.pcap):
-   ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file frag<>.pcap -verbose_level 2
-   This will send packets to AIOP.
+10. Run “tio inject” to inject the input frame (reassembled_frame.pcap):
+   ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file reassembled_frame.pcap -verbose_level 2
+   This will send a packet to AIOP.
 11. Set break point inside app_process_packet_flow0() and push "Multi core Resume" button to run and see that
-    it's activated on each packet.
 12. The reassembled frame will also be captured by the tio_capture.
 13. In the simulator directory you will get a pcap output file: w0_m1.pcap.
 	This file should include the reassembled frame, which must be identical to:
