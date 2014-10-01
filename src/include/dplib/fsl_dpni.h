@@ -1222,23 +1222,68 @@ struct dpni_rx_tc_dist_cfg {
 int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint8_t tc_id,
-	const struct dpni_rx_tc_dist_cfg *cfg);
+	const struct dpni_rx_tc_dist_cfg *cfg,
+        uint64_t params_iova);
+
+/*!
+ * @name DPNI queue modification options
+ *
+ */
+#define DPNI_QUEUE_OPT_USER_CTX		0x00000001
+/*!< Modify the user's context parameters */
+#define DPNI_QUEUE_OPT_DEST		0x00000002
+/*!< Modify the destination parameters */
+/* @} */
+
+/**
+ * @brief	Structure representing DPNI queue parameters
+ */
+struct dpni_queue_cfg {
+	uint32_t options;
+	/*!< the flags that represent the modification that are required to be
+	 * done for the rx-flow; use 'DPNI_QUEUE_OPT_xxx'
+	 */
+	uint64_t user_ctx;
+	/*!< This option maybe used when 'options' set
+	 * with DPNI_QUEUE_OPT_USER_CTX; will be provided
+	 * with each rx frame 
+	 */
+	struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
+	 * when 'options' set with DPNI_QUEUE_OPT_DEST; 
+	 */
+};
+
+/**
+ * @brief	Structure representing DPNI RX flow parameters
+ */
+struct dpni_queue_attr {
+	uint64_t user_ctx;
+	/*!< This option maybe used when 'options' set
+	 * with DPNI_QUEUE_OPT_USER_CTX; will be provided
+	 * with each rx frame 
+	 */
+	struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
+	 * when 'options' set with DPNI_QUEUE_OPT_DEST; 
+	 */
+	uint32_t fqid; /*!< Virtual fqid to be used for dequeue operations;
+	 * if equal to 'DPNI_FQID_NOT_VALID' means you need to
+	 * call this function after you enable the NI. 
+	 */
+};
 
 /*!
  * @name DPNI Tx flow modification options
  *
  */
-#define DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERROR	0x00000001
+#define DPNI_TX_FLOW_OPT_TX_CONF_ERROR	0x00000001
 /*!< Modify the flow's settings for dedicate tx confirmation/error */
-#define DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR	0x00000002
+#define DPNI_TX_FLOW_OPT_ONLY_TX_ERROR	0x00000002
 /*!< Modify the tx confirmation/error behavior*/
-#define DPNI_TX_FLOW_MOD_OPT_DEST		0x00000004
-/*!< Modify the tx-confirmation/error queue destination parameters*/
-#define DPNI_TX_FLOW_MOD_OPT_USER_CTX		0x00000008
-/*!< Modify the tx-confirmation/error user-context*/
-#define DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN	0x00000010
+#define DPNI_TX_FLOW_OPT_QUEUE		0x00000004
+/*!< Modify the queue parameters*/
+#define DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN	0x00000010
 /*!< Modify the flow's l3 checksum generation */
-#define DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN	0x00000020
+#define DPNI_TX_FLOW_OPT_L4_CHKSUM_GEN	0x00000020
 /*!< Modify the flow's l4 checksum generation */
 /* @} */
 
@@ -1248,39 +1293,39 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 struct dpni_tx_flow_cfg {
 	uint32_t options;
 	/*!< the flags that represent the modification that are required to be
-	 * done for this tx-flow; use 'DPNI_TX_FLOW_MOD_OPT_xxx' 
+	 * done for this tx-flow; use 'DPNI_TX_FLOW_OPT_xxx' 
 	 */
 	struct {
 		int use_default_queue;
 		/*!< This option maybe used when 'options' set
-		 * with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERROR;
+		 * with DPNI_TX_FLOW_OPT_TX_CONF_ERROR;
 		 * if 'use_default_queue' = 0 set this flow to
 		 * have its private tx confirmation/error settings 
 		 */
 		int errors_only; /*!< This option maybe used when 'options' set
-		 * with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR
+		 * with DPNI_TX_FLOW_OPT_ONLY_TX_ERROR
 		 * and 'use_default_queue' = 0;
 		 * if 'errors_only' = 1,  will send back only errors frames.
 		 * else send both confirmation and error frames 
 		 */
-		struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-		 * when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; 
+		struct dpni_queue_cfg queue_cfg; /*!< This option maybe used
+		 * when 'options' set with DPNI_TX_FLOW_OPT_DEST; 
 		 */
-		uint64_t user_ctx;
+		//uint64_t user_ctx;
 	/*!< This option maybe used when 'options' set
-	 * with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
+	 * with DPNI_TX_FLOW_OPT_USER_CTX; will be provided in case
 	 * of 'tx_conf_err'= 1 or
 	 * enqueue-rejection condition ("lossless") 
 	 */
 	} conf_err_cfg;
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
-	 * with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
+	 * with DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
 	 * generation 
 	 */
 	int l4_chksum_gen;
 /*!< This option maybe used when 'options' set
- * with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
+ * with DPNI_TX_FLOW_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
  * generation 
  */
 };
@@ -1310,38 +1355,30 @@ int dpni_set_tx_flow(struct fsl_mc_io *mc_io,
 struct dpni_tx_flow_attr {
 	struct {
 		int use_default_queue;
-		/*!< This option maybe used when 'options' set
-		 * with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERR; Prefer this flow to
+		/*!< Prefer this flow to
 		 * have its private tx confirmation/error settings 
 		 */
-		int errors_only; /*!< This option maybe used when 'options' set
-		 * with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERR and 'tx_conf_err' = 1;
-		 * if 'only_error_frames' = 1,  will send back only errors frames.
-		 * else send both confirmation and error frames 
+		int errors_only; /*!< if 'only_error_frames' = 1,  will send 
+		 * back only errors frames; else send both confirmation and 
+		 * error frames 
 		 */
-		struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-		 * when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; 
-		 */
-		uint64_t user_ctx;
+		struct dpni_queue_attr queue_attr; /*!< Queue attributes */ 
+		//uint64_t user_ctx;
 	/*!< This option maybe used when 'options' set
-	 * with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
+	 * with DPNI_TX_FLOW_OPT_USER_CTX; will be provided in case
 	 * of 'tx_conf_err'= 1
 	 * or enqueue-rejection condition ("lossless") 
 	 */
-	} conf_err_cfg;
+	} conf_err_attr;
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
-	 * with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
+	 * with DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
 	 * generation 
 	 */
 	int l4_chksum_gen;
 	/*!< This option maybe used when 'options' set
-	 * with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
+	 * with DPNI_TX_FLOW_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
 	 * generation 
-	 */
-	uint32_t fqid; /*!< Virtual fqid to be used for dequeue operations;
-	 * if equal to 'DPNI_FQID_NOT_VALID' means you need to
-	 * call this function after you enable the NI. 
 	 */
 };
 
@@ -1359,52 +1396,6 @@ int dpni_get_tx_flow(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint16_t flow_id,
 	struct dpni_tx_flow_attr *attr);
-
-/*!
- * @name DPNI Rx flow modification options
- *
- */
-#define DPNI_RX_FLOW_MOD_OPT_USER_CTX		0x00000001
-/*!< Modify the user's context parameters */
-#define DPNI_RX_FLOW_MOD_OPT_DEST		0x00000002
-/*!< Modify the destination parameters */
-/* @} */
-
-/**
- * @brief	Structure representing DPNI RX flow parameters
- */
-struct dpni_rx_flow_cfg {
-	uint32_t options;
-	/*!< the flags that represent the modification that are required to be
-	 * done for the rx-flow; use 'DPNI_RX_FLOW_MOD_OPT_xxx'
-	 */
-	uint64_t user_ctx;
-	/*!< This option maybe used when 'options' set
-	 * with DPNI_RX_FLOW_MOD_OPT_USER_CTX; will be provided
-	 * with each rx frame 
-	 */
-	struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-	 * when 'options' set with DPNI_RX_FLOW_MOD_OPT_DEST; 
-	 */
-};
-
-/**
- * @brief	Structure representing DPNI RX flow parameters
- */
-struct dpni_rx_flow_attr {
-	uint64_t user_ctx;
-	/*!< This option maybe used when 'options' set
-	 * with DPNI_RX_FLOW_MOD_OPT_USER_CTX; will be provided
-	 * with each rx frame 
-	 */
-	struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-	 * when 'options' set with DPNI_RX_FLOW_MOD_OPT_DEST; 
-	 */
-	uint32_t fqid; /*!< Virtual fqid to be used for dequeue operations;
-	 * if equal to 'DPNI_FQID_NOT_VALID' means you need to
-	 * call this function after you enable the NI. 
-	 */
-};
 
 /**
  *
@@ -1424,7 +1415,7 @@ int dpni_set_rx_flow(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint8_t tc_id,
 	uint16_t flow_id,
-	const struct dpni_rx_flow_cfg *cfg);
+	const struct dpni_queue_cfg *cfg);
 
 /**
  *
@@ -1441,7 +1432,7 @@ int dpni_get_rx_flow(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint8_t tc_id,
 	uint16_t flow_id,
-	struct dpni_rx_flow_attr *attr);
+	struct dpni_queue_attr *attr);
 
 /**
  *
@@ -1455,7 +1446,7 @@ int dpni_get_rx_flow(struct fsl_mc_io *mc_io,
  */
 int dpni_set_rx_err_queue(struct fsl_mc_io *mc_io,
 	uint16_t token,
-	const struct dpni_rx_flow_cfg *cfg);
+	const struct dpni_queue_cfg *cfg);
 
 /**
  *
@@ -1469,7 +1460,7 @@ int dpni_set_rx_err_queue(struct fsl_mc_io *mc_io,
  */
 int dpni_get_rx_err_queue(struct fsl_mc_io *mc_io,
 	uint16_t token,
-	struct dpni_rx_flow_attr *attr);
+	struct dpni_queue_attr *attr);
 
 /**
  *
@@ -1488,7 +1479,7 @@ int dpni_get_rx_err_queue(struct fsl_mc_io *mc_io,
  */
 int dpni_set_tx_conf_err_queue(struct fsl_mc_io *mc_io,
 	uint16_t token,
-	const struct dpni_rx_flow_cfg *cfg);
+	const struct dpni_queue_cfg *cfg);
 
 /**
  *
@@ -1506,7 +1497,7 @@ int dpni_set_tx_conf_err_queue(struct fsl_mc_io *mc_io,
  */
 int dpni_get_tx_conf_err_queue(struct fsl_mc_io *mc_io,
 	uint16_t token,
-	struct dpni_rx_flow_attr *attr);
+	struct dpni_queue_attr *attr);
 
 /**
  * @brief	Structure representing QOS table parameters
@@ -1535,7 +1526,8 @@ struct dpni_qos_tbl_cfg {
  */
 int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	uint16_t token,
-	const struct dpni_qos_tbl_cfg *cfg);
+	const struct dpni_qos_tbl_cfg *cfg,
+        uint64_t params_iova);
 
 /**
  * @brief	Structure representing DPNI key parameters

@@ -72,7 +72,7 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
 			u_cfg[i].constant =
 			        cfg->extracts[i].extract.constant.constant;
 			u_cfg[i].num_of_repeats =
-			        cfg->extracts[i].extract.constant.num_of_repeats;
+			       cfg->extracts[i].extract.constant.num_of_repeats;
 			break;
 		default:
 			return -EINVAL;
@@ -900,12 +900,11 @@ int dpni_set_tx_tc(struct fsl_mc_io *mc_io,
 int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
                    uint16_t token,
                    uint8_t tc_id,
-                   const struct dpni_rx_tc_dist_cfg *cfg)
+                   const struct dpni_rx_tc_dist_cfg *cfg,
+                   uint64_t params_iova)
 {
 	struct mc_command cmd = { 0 };
-	uint64_t *ext_params = 
-		iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
-	uint64_t ext_iova;
+	uint64_t *ext_params = (uint64_t *)params_iova;
 	int err;
 
 	if (!ext_params)
@@ -918,8 +917,7 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 	err = build_extract_cfg_extention(cfg->dist_key_cfg, ext_params);
 	if (err)
 		return err;
-	ext_iova = (uint64_t)ext_params;
-	DPNI_CMD_SET_RX_TC_DIST(cmd, tc_id, cfg, ext_iova);
+	DPNI_CMD_SET_RX_TC_DIST(cmd, tc_id, cfg, params_iova);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -977,7 +975,7 @@ int dpni_set_rx_flow(struct fsl_mc_io *mc_io,
                      uint16_t token,
                      uint8_t tc_id,
                      uint16_t flow_id,
-                     const struct dpni_rx_flow_cfg *cfg)
+                     const struct dpni_queue_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 
@@ -994,7 +992,7 @@ int dpni_get_rx_flow(struct fsl_mc_io *mc_io,
                      uint16_t token,
                      uint8_t tc_id,
                      uint16_t flow_id,
-                     struct dpni_rx_flow_attr *attr)
+                     struct dpni_queue_attr *attr)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -1016,12 +1014,11 @@ int dpni_get_rx_flow(struct fsl_mc_io *mc_io,
 
 int dpni_set_qos_table(struct fsl_mc_io *mc_io,
                        uint16_t token,
-                       const struct dpni_qos_tbl_cfg *cfg)
+                       const struct dpni_qos_tbl_cfg *cfg,
+                       uint64_t params_iova)
 {
 	struct mc_command cmd = { 0 };
-	uint64_t *ext_params = 
-		iova_alloc(DPNI_CMD_EXTRACT_EXT_PARAMS * sizeof(uint64_t));
-	uint64_t ext_iova;
+	uint64_t *ext_params = (uint64_t *)params_iova;
 	int err;
 
 	if (!ext_params)
@@ -1033,8 +1030,7 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	err = build_extract_cfg_extention(cfg->qos_key_cfg, ext_params);
 	if (err)
 		return err;
-	ext_iova = (uint64_t)ext_params;
-	DPNI_CMD_SET_QOS_TABLE(cmd, cfg, ext_iova);
+	DPNI_CMD_SET_QOS_TABLE(cmd, cfg, params_iova);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -1349,7 +1345,7 @@ int dpni_set_vlan_removal(struct fsl_mc_io *mc_io, uint16_t token, int en)
 }
 
 int dpni_set_rx_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
-	const struct dpni_rx_flow_cfg *cfg)
+	const struct dpni_queue_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 
@@ -1363,7 +1359,7 @@ int dpni_set_rx_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
 }
 
 int dpni_get_rx_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
-	struct dpni_rx_flow_attr *attr)
+	struct dpni_queue_attr *attr)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -1385,7 +1381,7 @@ int dpni_get_rx_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
 }
 
 int dpni_set_tx_conf_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
-	const struct dpni_rx_flow_cfg *cfg)
+	const struct dpni_queue_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 
@@ -1399,7 +1395,7 @@ int dpni_set_tx_conf_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
 }
 
 int dpni_get_tx_conf_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
-	struct dpni_rx_flow_attr *attr)
+	struct dpni_queue_attr *attr)
 {
 	struct mc_command cmd = { 0 };
 	int err;
