@@ -40,25 +40,22 @@ Setup
 Execution flow
 ===========================================
 1. Import the MC and AIOP projects into CodeWarrior:
-   mc/build/mc_t4ls_sim/mc_app/.project
+   mc/build/mc_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/ipf_demo/.project
 2. Build both projects in CW.
-3. Run simulator:
+3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
+   to the simulator folder (same location as cfg files).
+4. Run simulator:
    ./ccssim2 -port 42333
              -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
              -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"
-4. Launch mc_app using AFM connection.
-	Init file: mc\build\mc_t4ls_sim\cw_files\LS2085A-AFM_MC_RAM.tcl
-	Mem file: mc\build\mc_t4ls_sim\cw_files\LS2085A-AFM_MC.mem
-   Don't forget to update simulator server IP and port in debug configuration.
-5. After MC reaches main(), turn tio console:
+5. Launch mc_app using AFM connection.
+   Don't forget to update simulator server IP and port in debug configuration - 42333.
+6. Attach ipf_demo (make sure to un-mark initialization files).
+7. After MC reaches main(), turn tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
-6. Run mc_app.
-7. Launch ipf_demo using AFM connection.
-	Init file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl
-	Mem file: aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP.mem
-   Don't forget to update simulator server IP and port in debug configuration. 
-8. Run aiop (multi-core resume).
+8. Run mc_app.
+   Don't forget to update simulator server IP and port in debug configuration - 42333.
 9. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
@@ -72,8 +69,7 @@ Execution flow
 	This file should include the 4 output fragments, which must be identical to:
 	frag1.pcap, frag2.pcap, frag3.pcap, frag4.pcap in case you run with IPF_DEMO_WITHOUT_HM
 	or to
-	frag1_hm.pcap, frag2_hm.pcap, frag3_hm.pcap, frag4_hm.pcap in case you run with IPF_DEMO_WITH_HM.
-	
+	frag1_hm.pcap, frag2_hm.pcap, frag3_hm.pcap, frag4_hm.pcap in case you run with IPF_DEMO_WITH_HM.	
 
 ===========================================
 Possible modifications:
