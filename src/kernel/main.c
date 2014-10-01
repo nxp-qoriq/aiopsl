@@ -93,7 +93,7 @@ UNUSED(argc);UNUSED(argv);
     
     if(is_master_core) {       
         if(cmgw_get_ntasks() > 2 /*4-tasks*/) {
-        	pr_warn("Number of AIOP tasks/core exceed 1 cluster.\n");
+        	pr_warn("More then 4 AIOP tasks/core.\n");
         }
     }
     
