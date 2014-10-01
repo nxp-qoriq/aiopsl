@@ -29,11 +29,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**************************************************************************//*
- @File          fsl_dpio_cmd.h
-
- @Description   defines dprc portal commandsF
-
- @Cautions      None.
+ * @File          fsl_dpio_cmd.h
+ *
+ * @Description   defines dprc portal commandsF
+ *
+ * @Cautions      None.
  *//***************************************************************************/
 
 #ifndef _FSL_DPIO_CMD_H

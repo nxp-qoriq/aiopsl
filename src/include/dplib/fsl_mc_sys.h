@@ -34,7 +34,7 @@
 #ifdef __linux__
 #ifdef __uboot__
 
-#define dmb()           __asm__ __volatile__ ("" : : : "memory")
+#define dmb()           (__asm__ __volatile__ ("" : : : "memory"))
 #define __iormb()       dmb()
 #define __iowmb()       dmb()
 #define __arch_getq(a)                  (*(volatile unsigned long *)(a))

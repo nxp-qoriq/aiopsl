@@ -30,12 +30,12 @@
  */
 
 /**************************************************************************//*
- @File          fsl_dprc_cmd.h
-
- @Description   defines dprc portal commands
-
- @Cautions      None.
- *//***************************************************************************/
+* @File          fsl_dprc_cmd.h
+*
+* @Description   defines dprc portal commands
+*
+* @Cautions      None.
+*//***************************************************************************/
 
 #ifndef _FSL_DPBP_CMD_H
 #define _FSL_DPBP_CMD_H
@@ -71,7 +71,7 @@
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPBP_CMD_CREATE(cmd, cfg) \
-	MC_CMD_OP(cmd, 0, 0,  32, int,	    cfg->tmp)
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, cfg->options)
 
 /*                cmd, param, offset, width, type,	arg_name */
 #define DPBP_RSP_GET_ATTRIBUTES(cmd, attr) \

@@ -143,45 +143,54 @@ struct dpni_cfg {
 		uint64_t options;
 		/*!< Mask of available options; use 'DPNI_OPT_XXX' */
 		enum net_prot start_hdr; /* If either 'NET_PROT_ETH' or
-		 'NET_PROT_NONE' than will be treated as NIC otherwise as NI */
+		 * 'NET_PROT_NONE' than will be treated as NIC otherwise as NI 
+		 */
 		uint8_t max_senders;
 		/*!< maximum number of different senders; will be used as the
 		 * number of dedicated tx flows; In case it isn't power-of-2 it
 		 * will be ceiling to the next power-of-2 as HW demand it;
-		 * '0' will be treated as '1' */
+		 * '0' will be treated as '1' 
+		 */
 		uint8_t max_tcs;
 		/*!< maximum number of traffic-classes;
-		 will affect both Tx & Rx; '0' will e treated as '1' */
+		 * will affect both Tx & Rx; '0' will e treated as '1' 
+		 */
 		uint8_t max_dist_per_tc[DPNI_MAX_TC];
 		/*!< maximum distribution's size per Rx traffic-class;
 		 * set it to the required value minus 1;
 		 * i.e. 0->1, 1->2, ... ,255->256;
 		 * In case it isn't power-of-2 it will
-		 * be rounded up to the next power-of-2 as HW demand it */
+		 * be rounded up to the next power-of-2 as HW demand it 
+		 */
 		uint8_t max_unicast_filters;
 		/*!< maximum number of unicast filters; '0' will be treated
-		 as '16' */
+		 * as '16' 
+		 */
 		uint8_t max_multicast_filters;
 		/*!< maximum number of multicast filters; '0' will be treated
-		 as '64' */
+		 * as '64' 
+		 */
 		uint8_t max_vlan_filters;
 		/*!< maximum number of vlan filters; '0' will be treated
 		 as '16' */
 		uint8_t max_qos_entries;
 		/*!< if 'max_tcs>1', declare the maximum entries for the
-		 QoS table; '0' will be treated as '64' */
+		 * QoS table; '0' will be treated as '64' 
+		 */
 		uint8_t max_qos_key_size;
 		/*!< maximum key size for the QoS look-up; '0' will be treated
-		 * as '24' which enough for IPv4 5-tuple */
+		 * as '24' which enough for IPv4 5-tuple 
+		 */
 		uint8_t max_dist_key_size;
 		/*!< maximum key size for the distribution; '0' will be treated
-		 as '24' which enough for IPv4 5-tuple */
+		 * as '24' which enough for IPv4 5-tuple 
+		 */
 		struct dpni_ipr_cfg ipr_cfg; /*!< IP reassembly configuration */
 	} adv; /*!< use this structure to change default settings */
 };
 
 /**
- * @brief	Open object handle, allocate resources and preliminary 
+ * @brief	Open object handle, allocate resources and preliminary
  * 		initialization - required before any operation on the object
  *
  * @param[in]	mc_io	Pointer to opaque I/O object
@@ -345,7 +354,7 @@ int dpni_get_irq_mask(struct fsl_mc_io *mc_io,
  *					1 = interrupt pending
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dpni_get_irq_status(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint8_t irq_index,
@@ -362,7 +371,7 @@ int dpni_get_irq_status(struct fsl_mc_io *mc_io,
  *					1 = clear status bit
  *
  * @returns	'0' on Success; Error code otherwise.
- * */
+ */
 int dpni_clear_irq_status(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint8_t irq_index,
@@ -402,14 +411,17 @@ int dpni_set_pools(struct fsl_mc_io *mc_io,
 enum dpni_dest {
 	DPNI_DEST_NONE,
 	/*!< unassigned destination; i.e. queues will be set in parked mode;
-	 * user should explict dequeue from this FQ */
+	 * user should explict dequeue from this FQ 
+	 */
 	DPNI_DEST_DPIO,
 	/*!< queues will generate notification to the dpio's channel;
-	 i.e. will be set in schedule mode and FQDAN enable */
+	 * i.e. will be set in schedule mode and FQDAN enable
+	 */
 	DPNI_DEST_DPCON
 /*!< queues won't generate notification, but will be connected to this
- channel object; i.e. will be set in schedule mode and FQDAN disable;
- user should explict dequeue from this channel */
+ * channel object; i.e. will be set in schedule mode and FQDAN disable;
+ * user should explict dequeue from this channel 
+ */
 };
 
 /**
@@ -421,7 +433,8 @@ struct dpni_dest_cfg {
 	/*!< either DPIO id or DPCON id depends on the channel type */
 	uint8_t priority;
 /*!< 0-1 or 0-7 (depends on the channel type) to select the priority(work-queue)
- within the channel (not relevant for the 'NONE' case) */
+ * within the channel (not relevant for the 'NONE' case)
+ */
 };
 
 /**
@@ -480,17 +493,21 @@ struct dpni_attr {
 	/*!< 'NET_PROT_ETH' for NIC else for NI */
 	uint64_t options;
 	/*!< Mask of available options; reflect the value as was given in the
-	 initialization phase */
+	 * initialization phase 
+	 */
 	uint8_t max_senders;
 	/*!< maximum number of different senders; will be used as the
-	 * number of dedicated tx flows; */
+	 * number of dedicated tx flows; 
+	 */
 	uint8_t max_tcs;
 	/*!< maximum number of traffic-classes;
-	 will affect both Tx & Rx; */
+	 * will affect both Tx & Rx; 
+	 */
 	uint8_t max_dist_per_tc[DPNI_MAX_TC];
 	/*!< maximum distribution's size per Rx traffic-class;
 	 * add 1 to get the real value;
-	 * i.e. 0->1, 1->2, ... ,255->256; */
+	 * i.e. 0->1, 1->2, ... ,255->256; 
+	 */
 	uint8_t max_unicast_filters;
 	/*!< maximum number of unicast filters */
 	uint8_t max_multicast_filters;
@@ -538,7 +555,7 @@ int dpni_get_attributes(struct fsl_mc_io *mc_io,
 /*!< Parser L3 checksum error */
 
 /*!
- * @brief   DPNI defining behaviour for errors
+ * @brief   DPNI defining behavior for errors
  *
  */
 enum dpni_error_action {
@@ -558,7 +575,8 @@ struct dpni_error_cfg {
 	/*!< The desired action for the errors mask */
 	int set_frame_annotation;
 /*!< relevant only for the non-discard action;
- * if '1' those errors will be set in the FAS */
+ * if '1' those errors will be set in the FAS 
+ */
 };
 
 /**
@@ -573,7 +591,8 @@ struct dpni_error_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dpni_set_errors_behavior(struct fsl_mc_io *mc_io,
-	uint16_t token, struct dpni_error_cfg *cfg);
+	uint16_t token,
+	struct dpni_error_cfg *cfg);
 
 /*!
  * @name DPNI buffer layout modification options
@@ -597,22 +616,28 @@ int dpni_set_errors_behavior(struct fsl_mc_io *mc_io,
 struct dpni_buffer_layout {
 	uint32_t options;
 	/*!< the flags that represent the modification that are required to be
-	 done for the buffer layout; use 'DPNI_BUF_LAYOUT_OPT_xxx' */
+	 * done for the buffer layout; use 'DPNI_BUF_LAYOUT_OPT_xxx' 
+	 */
 	int pass_timestamp;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_BUF_LAYOUT_OPT_TIMESTAMP */
+	 * with DPNI_BUF_LAYOUT_OPT_TIMESTAMP 
+	 */
 	int pass_parser_result;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_BUF_LAYOUT_OPT_PARSER_RESULT */
+	 * with DPNI_BUF_LAYOUT_OPT_PARSER_RESULT 
+	 */
 	int pass_frame_status;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_BUF_LAYOUT_OPT_FRAME_STATUS */
+	 * with DPNI_BUF_LAYOUT_OPT_FRAME_STATUS 
+	 */
 	uint16_t private_data_size;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE */
+	 * with DPNI_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE 
+	 */
 	uint16_t data_align;
 /*!< This option maybe used when 'options' set
- with DPNI_BUF_LAYOUT_OPT_DATA_ALIGN */
+ * with DPNI_BUF_LAYOUT_OPT_DATA_ALIGN 
+ */
 };
 
 /**
@@ -814,7 +839,8 @@ enum dpni_counter {
 	/*!< Ingress byte count */
 	DPNI_CNT_ING_FRAME_DROP,
 	/*!< Ingress frame dropped counter due to
-	 explicit 'drop' setting */
+	 * explicit 'drop' setting 
+	 */
 	DPNI_CNT_ING_FRAME_DISCARD,
 	/*!< Ingress frame discarded counter due to errors */
 	DPNI_CNT_ING_MCAST_FRAME,
@@ -888,7 +914,7 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_set_mfl(struct fsl_mc_io *mc_io,
+int dpni_set_max_frame_length(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint16_t max_frame_length);
 
@@ -902,7 +928,7 @@ int dpni_set_mfl(struct fsl_mc_io *mc_io,
  *
  * @returns	'0' on Success; Error code otherwise.
  */
-int dpni_get_mfl(struct fsl_mc_io *mc_io,
+int dpni_get_max_frame_length(struct fsl_mc_io *mc_io,
 	uint16_t token,
 	uint16_t *max_frame_length);
 
@@ -1112,7 +1138,8 @@ int dpni_clear_vlan_filters(struct fsl_mc_io *mc_io, uint16_t token);
 struct dpni_tx_tc_cfg {
 	uint16_t depth_limit;
 /*!<  if >0 than limit the depth of this queue which may result with
- * rejected frames */
+ * rejected frames 
+ */
 };
 
 /**
@@ -1170,7 +1197,8 @@ struct dpni_rx_tc_dist_cfg {
 	 * set it to the required value minus 1;
 	 * i.e. 0->1, 1->2, ... ,255->256;
 	 * In case it isn't power-of-2 it will
-	 * be rounded up to the next power-of-2 as HW demand it */
+	 * be rounded up to the next power-of-2 as HW demand it
+	 */
 	enum dpni_dist_mode dist_mode; /*!< distribution mode */
 	struct dpkg_profile_cfg *dist_key_cfg;
 	/*!< define the extractions to be used for the distribution key */
@@ -1220,34 +1248,41 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 struct dpni_tx_flow_cfg {
 	uint32_t options;
 	/*!< the flags that represent the modification that are required to be
-	 done for this tx-flow; use 'DPNI_TX_FLOW_MOD_OPT_xxx' */
-	 struct {
+	 * done for this tx-flow; use 'DPNI_TX_FLOW_MOD_OPT_xxx' 
+	 */
+	struct {
 		int use_default_queue;
 		/*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERROR;
-		 if 'use_default_queue' = 0 set this flow to
-		 have its private tx confirmation/error settings */
+		 * with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERROR;
+		 * if 'use_default_queue' = 0 set this flow to
+		 * have its private tx confirmation/error settings 
+		 */
 		int errors_only; /*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR 
-		 and 'use_default_queue' = 0;
-		 if 'errors_only' = 1,  will send back only errors frames.
-		 else send both confirmation and error frames */
+		 * with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERROR
+		 * and 'use_default_queue' = 0;
+		 * if 'errors_only' = 1,  will send back only errors frames.
+		 * else send both confirmation and error frames 
+		 */
 		struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-		 when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; */
+		 * when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; 
+		 */
 		uint64_t user_ctx;
-		/*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
-		 of 'tx_conf_err'= 1 or 
-		 enqueue-rejection condition ("lossless") */
+	/*!< This option maybe used when 'options' set
+	 * with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
+	 * of 'tx_conf_err'= 1 or
+	 * enqueue-rejection condition ("lossless") 
+	 */
 	} conf_err_cfg;
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
-	 generation */
+	 * with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
+	 * generation 
+	 */
 	int l4_chksum_gen;
 /*!< This option maybe used when 'options' set
- with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
- generation */
+ * with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
+ * generation 
+ */
 };
 
 /**
@@ -1273,34 +1308,41 @@ int dpni_set_tx_flow(struct fsl_mc_io *mc_io,
  * @brief	Structure representing DPNI TX flow attributes
  */
 struct dpni_tx_flow_attr {
-	 struct {
+	struct {
 		int use_default_queue;
 		/*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERR; Prefer this flow to
-		 have its private tx confirmation/error settings */
+		 * with DPNI_TX_FLOW_MOD_OPT_TX_CONF_ERR; Prefer this flow to
+		 * have its private tx confirmation/error settings 
+		 */
 		int errors_only; /*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERR and 'tx_conf_err' = 1;
-		 if 'only_error_frames' = 1,  will send back only errors frames.
-		 else send both confirmation and error frames */
+		 * with DPNI_TX_FLOW_MOD_OPT_ONLY_TX_ERR and 'tx_conf_err' = 1;
+		 * if 'only_error_frames' = 1,  will send back only errors frames.
+		 * else send both confirmation and error frames 
+		 */
 		struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-		 when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; */
+		 * when 'options' set with DPNI_TX_FLOW_MOD_OPT_DEST; 
+		 */
 		uint64_t user_ctx;
-		/*!< This option maybe used when 'options' set
-		 with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
-		 of 'tx_conf_err'= 1 
-		 or enqueue-rejection condition ("lossless") */
+	/*!< This option maybe used when 'options' set
+	 * with DPNI_TX_FLOW_MOD_OPT_USER_CTX; will be provided in case
+	 * of 'tx_conf_err'= 1
+	 * or enqueue-rejection condition ("lossless") 
+	 */
 	} conf_err_cfg;
 	int l3_chksum_gen;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
-	 generation */
+	 * with DPNI_TX_FLOW_MOD_OPT_L3_CHKSUM_GEN; enable/disable checksum l3
+	 * generation 
+	 */
 	int l4_chksum_gen;
-/*!< This option maybe used when 'options' set
- with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
- generation */
+	/*!< This option maybe used when 'options' set
+	 * with DPNI_TX_FLOW_MOD_OPT_L4_CHKSUM_GEN; enable/disable checksum l4
+	 * generation 
+	 */
 	uint32_t fqid; /*!< Virtual fqid to be used for dequeue operations;
-	if equal to 'DPNI_FQID_NOT_VALID' means you need to 
-	call this function after you enable the NI. */
+	 * if equal to 'DPNI_FQID_NOT_VALID' means you need to
+	 * call this function after you enable the NI. 
+	 */
 };
 
 /**
@@ -1334,13 +1376,16 @@ int dpni_get_tx_flow(struct fsl_mc_io *mc_io,
 struct dpni_rx_flow_cfg {
 	uint32_t options;
 	/*!< the flags that represent the modification that are required to be
-	 done for the rx-flow; use 'DPNI_RX_FLOW_MOD_OPT_xxx' */
+	 * done for the rx-flow; use 'DPNI_RX_FLOW_MOD_OPT_xxx'
+	 */
 	uint64_t user_ctx;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_RX_FLOW_MOD_OPT_USER_CTX; will be provided
-	 with each rx frame */
+	 * with DPNI_RX_FLOW_MOD_OPT_USER_CTX; will be provided
+	 * with each rx frame 
+	 */
 	struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-	 when 'options' set with DPNI_RX_FLOW_MOD_OPT_DEST; */
+	 * when 'options' set with DPNI_RX_FLOW_MOD_OPT_DEST; 
+	 */
 };
 
 /**
@@ -1349,13 +1394,16 @@ struct dpni_rx_flow_cfg {
 struct dpni_rx_flow_attr {
 	uint64_t user_ctx;
 	/*!< This option maybe used when 'options' set
-	 with DPNI_RX_FLOW_MOD_OPT_USER_CTX; will be provided
-	 with each rx frame */
+	 * with DPNI_RX_FLOW_MOD_OPT_USER_CTX; will be provided
+	 * with each rx frame 
+	 */
 	struct dpni_dest_cfg dest_cfg; /*!< This option maybe used
-	 when 'options' set with DPNI_RX_FLOW_MOD_OPT_DEST; */
+	 * when 'options' set with DPNI_RX_FLOW_MOD_OPT_DEST; 
+	 */
 	uint32_t fqid; /*!< Virtual fqid to be used for dequeue operations;
- *		if equal to 'DPNI_FQID_NOT_VALID' means you need to
- *		call this function after you enable the NI. */
+	 * if equal to 'DPNI_FQID_NOT_VALID' means you need to
+	 * call this function after you enable the NI. 
+	 */
 };
 
 /**
@@ -1427,7 +1475,7 @@ int dpni_get_rx_err_queue(struct fsl_mc_io *mc_io,
  *
  * @brief	Set TX conf/error queue's configuration
  *
- * If 'DPNI_OPT_TX_CONF_DISABLED' is set, this fqid will be treated as tx-err
+ * If 'DPNI_OPT_TX_CONF_DISABLED' is set, this fqid will be treated as tx-error
  * and received only errors (confirmation is disabled).
  * Otherwise this fqid will be used for both errors and confirmation
  * (except when a private fqid is used)
@@ -1468,7 +1516,8 @@ struct dpni_qos_tbl_cfg {
 	/*!< define the extractions to be used as the QoS criteria */
 	int discard_on_miss;
 	/*!< '1' for discard the frame in case of no match (miss);
-	 '0' for using the 'default_tc' */
+	 * '0' for using the 'default_tc' 
+	 */
 	uint8_t default_tc;
 /*!< will be used in case of no-match and 'discard_on_miss'= 0 */
 };

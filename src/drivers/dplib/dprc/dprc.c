@@ -141,7 +141,6 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
-
 }
 
 int dprc_set_res_quota(struct fsl_mc_io *mc_io,

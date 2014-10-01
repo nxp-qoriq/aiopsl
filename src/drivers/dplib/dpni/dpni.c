@@ -621,29 +621,29 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 	return 0;
 }
 
-int dpni_set_mfl(struct fsl_mc_io *mc_io, uint16_t token, 
+int dpni_set_max_frame_length(struct fsl_mc_io *mc_io, uint16_t token, 
                  uint16_t max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_MFL,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_MAX_FRAME_LENGTH,
 	                                  MC_CMD_PRI_LOW,
 	                                  token);
-	DPNI_CMD_SET_MFL(cmd, max_frame_length);
+	DPNI_CMD_SET_MAX_FRAME_LENGTH(cmd, max_frame_length);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token, 
+int dpni_get_max_frame_length(struct fsl_mc_io *mc_io, uint16_t token, 
                  uint16_t *max_frame_length)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_MFL,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_MAX_FRAME_LENGTH,
 	                                  MC_CMD_PRI_LOW,
 	                                  token);
 
@@ -653,7 +653,7 @@ int dpni_get_mfl(struct fsl_mc_io *mc_io, uint16_t token,
 		return err;
 	
 	/* retrieve response parameters */
-	DPNI_RSP_GET_MFL(cmd, *max_frame_length);
+	DPNI_RSP_GET_MAX_FRAME_LENGTH(cmd, *max_frame_length);
 
 	return 0;
 }
@@ -1199,7 +1199,6 @@ int dpni_set_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
-
 }
 
 int dpni_get_irq_mask(struct fsl_mc_io *mc_io,
