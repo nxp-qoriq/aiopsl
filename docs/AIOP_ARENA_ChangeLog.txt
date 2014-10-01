@@ -1,3 +1,6 @@
+- dpl.dts:                     Added DPRC_CFG_OPT_IOMMU_BYPASS to root container due to changes in MC firmware
+- ls2085a_sim_init_params.cfg  Removed  aiop.isolation_enable=false, added qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug)
+
 - dpni_drv.c, fsl_dpni_drv.h: API change for mfl functions from: dpni_drv_get/set_mfl(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl) 
                               to: dpni_drv_get/set_max_frame_length(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl)
 - dpni_drv.c, fsl_dpni_drv.h: added suport for promisc to multicast and unicast. The functions are: int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en),
