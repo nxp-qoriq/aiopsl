@@ -86,9 +86,5 @@ if __name__ == "__main__":
 				elif 'Finished SUCCESSFULLY' in line:
 					if g_capture == 0:
 						exit_script(runsim,0)
-					else:
-						print "TEST ERROR"
-						print str(g_capture) + " packets are missing"
-						exit_script(runsim,1)
 				elif 'Finished with ERRORS' in line:
 					exit_script(runsim,1)
