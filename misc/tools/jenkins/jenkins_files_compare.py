@@ -50,6 +50,7 @@ def  compare_files(file1, file2):
 		print "files not equal: \n\t" + file1 + ",\n\t" + file2
 		return False
 	else:
+		print "files equal: \n\t" + file1 + ",\n\t" + file2
 		return True 
 
 
