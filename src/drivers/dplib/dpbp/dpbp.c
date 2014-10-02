@@ -43,7 +43,7 @@ int dpbp_create(struct fsl_mc_io *mc_io,
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPBP_CMDID_CREATE,
 	                                  MC_CMD_PRI_LOW, 0);
-
+	UNUSED(cfg);
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
 	if (err)
