@@ -34,7 +34,7 @@ def main(argv):
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'jenkins_files_compare.py -i <inputfile>'
+			print 'jenkins_files_compare_<mc/arena>_aiop.py -i <inputfile>'
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			g_inputfile = arg
