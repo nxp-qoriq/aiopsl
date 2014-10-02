@@ -47,7 +47,10 @@
 /**************************************************************************//**
  @Function      fsl_os_malloc
 
- @Description   allocates contiguous block of memory.
+ @Description   Allocates contiguous block of memory from default heap.
+                aiop_link.lcf linker file contains information where default 
+                heap is mapped to. Currently the heap is located within DP_DDR
+                memory partition.
 
  @Param[in]     size    Number of bytes to allocate.
 

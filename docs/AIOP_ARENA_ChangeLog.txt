@@ -1,3 +1,5 @@
+- ls2085a_sim_init_params.cfg  Removed  qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug is fixed on sim_m122)
+- dpl.dts:                     Changed AIOP portal id, icid, and dpci id.
 - dpl.dts:                     Added DPRC_CFG_OPT_IOMMU_BYPASS to root container due to changes in MC firmware
 - ls2085a_sim_init_params.cfg  Removed  aiop.isolation_enable=false, added qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug)
 
