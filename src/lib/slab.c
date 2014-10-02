@@ -84,8 +84,7 @@ static int slab_create_pool(
 
 	uint32_t slab_vpool_id;
 	uint32_t num_of_virtual_pools = g_slab_virtual_pools.num_of_virtual_pools;
-	uint16_t bman_array_index = SLAB_MAX_BMAN_POOLS_NUM;
-	int i;
+	uint16_t bman_array_index = 0;
 
 	struct slab_v_pool *slab_virtual_pool =
 		(struct slab_v_pool *)
@@ -109,17 +108,16 @@ static int slab_create_pool(
 #endif
 
 	/* Check which BMAN pool ID array element matches the ID */
-	for (i=0; i< SLAB_MAX_BMAN_POOLS_NUM; i++) {
-		if (g_slab_bman_pools[i].bman_pool_id == bman_pool_id) {
-			bman_array_index = (uint16_t)i;
+	for (bman_array_index = 0; bman_array_index < SLAB_MAX_BMAN_POOLS_NUM; bman_array_index++) {
+		if (g_slab_bman_pools[bman_array_index].bman_pool_id == bman_pool_id) {
 			break;
 		}
 	}
 
-#ifdef DEBUG
+
 	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM)
 		return -ENAVAIL;
-#endif
+
 	/* Spinlock this BMAN pool counter */
 	lock_spinlock(
 		(uint8_t *)&g_slab_bman_pools[bman_array_index].spinlock);
@@ -389,8 +387,7 @@ static int slab_add_bman_buffs_to_pool(
 	uint16_t bman_pool_id,
 	int32_t additional_bufs)
 {
-	int i;
-	int16_t bman_array_index = -1;
+	uint16_t  bman_array_index = 0;
 
 #ifdef DEBUG
 	/* Check the arguments correctness */
@@ -399,18 +396,17 @@ static int slab_add_bman_buffs_to_pool(
 #endif
 
 	/* Check which BMAN pool ID array element matches the ID */
-	for (i=0; i< SLAB_MAX_BMAN_POOLS_NUM; i++) {
-		if (g_slab_bman_pools[i].bman_pool_id == bman_pool_id) {
-			bman_array_index = (int16_t)i;
+	for (bman_array_index = 0; bman_array_index < SLAB_MAX_BMAN_POOLS_NUM; bman_array_index++) {
+		if (g_slab_bman_pools[bman_array_index].bman_pool_id == bman_pool_id) {
 			break;
 		}
 	}
 
-#ifdef DEBUG
+
 	/* Check the arguments correctness */
-	if (bman_array_index < 0)
+	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM)
 		return -EINVAL;
-#endif
+
 	/* Increment the total available BMAN pool buffers */
 	atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
 	              additional_bufs);
@@ -541,10 +537,8 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
                                int *num_reserved_buffs,
                                uint16_t *bpid)
 {
-	int        error = 0, i = 0;
+	int        error = 0;
 	dma_addr_t addr  = 0;
-	uint16_t   new_buff_size = 0;
-	uint16_t   new_alignment = 0;
 
 	struct slab_module_info *slab_m = \
 		sys_get_unique_handle(FSL_OS_MOD_SLAB);
@@ -715,8 +709,10 @@ static int slab_check_bpid(struct slab *slab, uint64_t buff)
 	uint16_t bpid  = VP_BPID_GET(slab);
 	uint32_t meta_bpid = 0;
 	int      err = -EFAULT;
-	struct slab_module_info *slab_m = \
-		sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	struct slab_module_info *slab_m=sys_get_unique_handle(FSL_OS_MOD_SLAB);
+
+	if(slab_m == NULL)
+		return err;
 
 	if (buff >= 8) {
 		fdma_dma_data(4,
@@ -800,7 +796,7 @@ static int dpbp_add(struct dprc_obj_desc *dev_desc, int ind,
 	uint16_t dpbp     = 0;
 	struct dpbp_attr attr;
 
-	
+
 	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
 		pr_err("Failed to open DP-BP%d.\n", dpbp_id);
 		return err;
@@ -827,7 +823,6 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
                           uint32_t bpids_arr_size, int *n_bpids)
 {
 	struct dprc_obj_desc dev_desc;
-	int dpbp_id = -1;
 	int dev_count;
 	int num_bpids = 0;
 	int err = 0;
@@ -870,7 +865,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	for (i = i+1; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
-			
+
 			if(num_bpids >= bpids_arr_size) {
 				pr_err("Too many BPID's in the container num = %d\n", num_bpids + 1);
 			}
