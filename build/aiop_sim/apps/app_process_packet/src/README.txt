@@ -44,7 +44,6 @@ Execution flow
 7. After MC reaches main(), run tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
 8. Run mc_app.
-   Don't forget to update simulator server IP and port in debug configuration - 42333.
 9. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
@@ -62,25 +61,14 @@ Possible modifications:
 2. The user may add packet processing code inside app_process_packet()
 3. The user may use different tio port and update it inside ls2085a_sys_test.cfg
 4. The user may use different simulator port
-5. The demo runs in MC integrated mode. In order to get back to AIOP standalone
-   mode as it was supported in previous releases, it is required to recompile
-   aiopsl and app_process_packet project with AIOP_STANDALONE defined.
-   Please note that the standalone mode is being phased out and has is no longer verified.
-6. The user may run without elf loader. In order to do that go to simulator folder and
-   comment the lines marked with "#for elf loader" in cfg files:
-   "ls2085a_sys_test" and "ls2085a_sim_init_params"
-
-=================
-Important NOTEs:
-=================
-ARENA SW sets CTSCSR0[CTSEN] and CTSCSR0[NTASKS] by the end of boot,
-do not set it inside simulator cfg files
+5. The demo runs in MC integrated mode. MC loads AIOP and kicks the AIOP cores.
+   Please note that the standalone mode is being phased out and is no longer verified.
 
 ===========================================
 ARENA sets the following default values for every NI:
 ===========================================
-  Parser Profile_id = 0 - only parser profile id 0 is supported
-  MTU = maximal value
+MTU = maximal value
+Same parser profile id for all NIs
 
 
 
