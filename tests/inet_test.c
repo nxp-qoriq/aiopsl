@@ -129,6 +129,7 @@ static int test_pton6(const char *src,  uint16_t * expected_value)
 	res = inet_pton(AF_INET6, src, &ip6_addr[0]);
 	if (res > 0) {
 		for (i = 0; i < 8; i++) {
+			ASSERT_COND(expected_value != NULL);
 			if (ip6_addr[i] != expected_value[i]) return TEST_FAILED;
 		}
 		return TEST_PASSED;
@@ -164,6 +165,7 @@ static int test_ptontop6(const char *src,  uint16_t * expected_value)
 	res = inet_pton(AF_INET6, src, &ip6_addr[0]);
 	if (res > 0) {
 		for (i = 0; i < 8; i++) {
+			ASSERT_COND(expected_value != NULL);
 			if (ip6_addr[i] != expected_value[i]) return TEST_FAILED;
 		}
 		if (inet_ntop(AF_INET6, ip6_addr, dst, MAX_IPV6_STR_LEN) != NULL) {

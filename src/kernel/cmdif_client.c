@@ -109,17 +109,13 @@ __HOT_CODE static int session_get(const char *m_name,
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
-#ifdef DEBUG
-	if (cl == NULL) {
-		return -ENODEV;
-	}
-#endif
 	/* TODO if sync mode is supported
 	 * Sharing the same auth_id will require management of opened or not
 	 * there won't be 2 cidesc with same auth_id because
 	 * the same sync buffer is going to be used for 2 cidesc
 	 * but as for today we don't support sync on AIOP client
 	 * that's why it is working */
+	ASSERT_COND(cl != NULL);
 	lock_spinlock(&cl->lock);
 	for (i = 0; i < cl->count; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&
