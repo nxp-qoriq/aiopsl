@@ -42,14 +42,15 @@ __TASK uint32_t seed_32bit;
 
 #define SIGN	2
 
-#define BUF_SIZE    80
+#define BUF_SIZE           1024  /*used for print in boot mode*/
+#define RUNTIME_BUF_SIZE   80    /*used for print in runtime mode*/
 
 static const char* digits="0123456789abcdef";
 
 extern t_system sys;
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
 static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size);
-
+static void fsl_os_print_boot(const char *format, va_list args);
 /*****************************************************************************/
 void fsl_os_exit(int status)
 {
@@ -59,21 +60,27 @@ void fsl_os_exit(int status)
 /*****************************************************************************/
 void fsl_os_print(char *format, ...)
 {
-#ifndef EMULATOR_FINAL
 	va_list args;
-	char    tmp_buf[BUF_SIZE];
+	char    tmp_buf[RUNTIME_BUF_SIZE];
 
 	va_start(args, format);
 
-	if(sys.runtime_flag)
-		vsnprintf_lite(tmp_buf, BUF_SIZE, format, args);
+	if(sys.runtime_flag){
+		vsnprintf_lite(tmp_buf, RUNTIME_BUF_SIZE, format, args);
+		va_end(args);
+		sys_print(tmp_buf);
+	}
 	else
-		vsnprintf(tmp_buf, BUF_SIZE, format, args);
+		fsl_os_print_boot(format, args);
+}
 
+static void fsl_os_print_boot(const char *format, va_list args){
+	char    tmp_buf[BUF_SIZE];
+	vsnprintf(tmp_buf, BUF_SIZE, format, args);
 	va_end(args);
 	sys_print(tmp_buf);
-#endif /* EMULATOR */
 }
+
 
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 {
