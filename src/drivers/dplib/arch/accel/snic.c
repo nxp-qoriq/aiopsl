@@ -304,7 +304,10 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 		}
 		SNIC_REGISTER_CMD(SNIC_RSP_PREP);
 		fdma_modify_default_segment_data(0, (uint16_t)size);
-		return 0;
+		if (i == MAX_SNIC_NO)
+			return -ENAVAIL;
+		else
+			return 0;
 	case SNIC_UNREGISTER:
 		SNIC_UNREGISTER_CMD(SNIC_CMD_READ);
 		memset(&snic_params[snic_id], 0, sizeof(struct snic_params));
