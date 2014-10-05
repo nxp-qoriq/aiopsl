@@ -52,15 +52,15 @@ void app_free(void);
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
 
-extern int slab_init();
+extern int slab_init(void);
 extern int malloc_test();
-extern int slab_test();
-extern int random_init();
-extern int random_test();
+extern int slab_test(void);
+extern int random_init(void);
+extern int random_test(void);
 extern int memory_test();
 extern int pton_test(void);
 extern int ntop_test(void);
-extern int dpni_drv_test();
+extern int dpni_drv_test(void);
 
 extern __SHRAM struct slab *slab_peb;
 extern __SHRAM struct slab *slab_ddr;
