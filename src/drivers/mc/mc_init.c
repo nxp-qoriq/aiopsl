@@ -262,6 +262,8 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	int     link_up = 0;
 	uint8_t i;
 
+	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
+
 	dpci_cfg.num_of_priorities = 2;
 
 	err |= dpci_create(&dprc->io, &dpci_cfg, &dpci);
