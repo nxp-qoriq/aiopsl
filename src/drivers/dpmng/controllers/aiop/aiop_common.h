@@ -37,12 +37,6 @@
 
 #define AIOP_ATU_NUM_OF_WINDOWS         8
 
-struct vrt2phy_mem_rgn_entry {
-	phys_addr_t phy_base_addr; /**< Physical base address of AIOP memory region */
-	dma_addr_t vrt_base_addr; /**< Virtual base address of AIOP memory region */
-	uint64_t mem_size;        /**< size (in bytes) of AIOP memory region */
-};
-
 /**************************************************************************//**
  @Description   EPID table
 *//***************************************************************************/
