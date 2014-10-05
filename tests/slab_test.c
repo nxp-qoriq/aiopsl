@@ -39,9 +39,9 @@
 __SHRAM struct slab *slab_peb = 0;
 __SHRAM struct slab *slab_ddr = 0;
 
-int app_test_slab_init();
-int slab_init();
-int slab_test();
+int app_test_slab_init(void);
+int slab_init(void);
+int slab_test(void);
 int app_test_slab(struct slab *slab, int num_times);
 
 
@@ -52,7 +52,7 @@ static int slab_callback_test(uint64_t context_address){
 	return 0;
 }
 
-int slab_init()
+int slab_init(void)
 {
 	int err = 0;
 	struct slab_debug_info slab_info;
@@ -89,7 +89,7 @@ int slab_init()
 	return err;
 }
 
-int app_test_slab_init()
+int app_test_slab_init(void)
 {
 	int        err = 0;
 	dma_addr_t buff = 0;
@@ -226,7 +226,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	return 0;
 }
 
-int slab_test()
+int slab_test(void)
 {
 	int err = 0;
 	err |= app_test_slab(slab_peb, 4);
