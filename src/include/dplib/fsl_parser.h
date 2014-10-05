@@ -334,6 +334,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	/** Frame Truncation: Frame Parsing reached end of frame while parsing
 	 * a header that expects more data */
 #define PARSER_FRAME_TRUNCATION                         0x02
+	/** Attempting to access an undefined or reserved HXS TODO*/
+/*#define PARSER_INVALID_HXS				0x03*/
 	/** Ethernet 802.3 length is larger than the frame received */
 #define PARSER_ETH_802_3_TRUNCATION                     0x10
 	/** PPPoE length is larger than the frame received */
@@ -720,19 +722,23 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_INNER_IP_INIT_FRAGMENT_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_IP_N_IS_INIT_FRAGMENT_MASK)
-/** Returns a non-zero value in case ICMP is found */
+/** Returns a non-zero value in case ICMP is found
+ * (Note that ICMP is not indicated for non initial fragment) */
 #define PARSER_IS_ICMP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_ICMP_MASK)
-/** Returns a non-zero value in case IGMP is found */
+/** Returns a non-zero value in case IGMP is found
+ * (Note that IGMP is not indicated for non initial fragment) */
 #define PARSER_IS_IGMP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_IGMP_MASK)
-/** Returns a non-zero value in case ICMPv6 is found */
+/** Returns a non-zero value in case ICMPv6 is found
+ * (Note that ICMPv6 is indicated for non initial fragment) */
 #define PARSER_IS_ICMPV6_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_ICMPV6_MASK)
-/** Returns a non-zero value in case UDP Lite is found */
+/** Returns a non-zero value in case UDP Lite is found
+ * (Note that UDP Lite is indicated for non initial fragment) */
 #define PARSER_IS_UDP_LITE_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_UDP_LITE_MASK)
@@ -860,7 +866,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Get Shim2 offset*/
 #define PARSER_GET_SHIM2_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->shim_offset_2)
-/** Get the last IP Protocol Identifier offset*/
+/** Get the IP Protocol Identifier offset of the first IP */
 #define PARSER_GET_IP_PID_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip_pid_offset)
 /** Get the ETHERNET header offset */
@@ -917,7 +923,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->routing_hdr_offset2)
 /** Get Next header offset
- * (offset to the last header that has not been parsed) */
+ * (offset to the last result of the parsed header of the next header type) */
 #define PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->nxt_hdr_offset)
 /** Get IPv6 fragment header offset */
@@ -955,7 +961,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_SHIM2_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_SHIM2_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-/** Get the pointer to last IP Protocol Identifier
+/** Get the pointer to IP Protocol Identifier offset of the first IP
  in the default frame presented in the workspace */
 #define PARSER_GET_IP_PID_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_IP_PID_OFFSET_DEFAULT() \
@@ -1043,8 +1049,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_2ND_IPV6_ROUTING_HDR_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
 			+ PRC_GET_SEGMENT_ADDRESS())
-/** Get the pointer to Next header (last header that has not been parsed)
- in the default frame presented in the workspace */
+/** Get the pointer to Next header (last result of the parsed header of the
+ * next header type) in the default frame presented in the workspace */
 #define PARSER_GET_NEXT_HEADER_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
@@ -1222,7 +1228,7 @@ struct parse_result {
 	uint8_t  shim_offset_1;
 	/** Shim Offset 2 */
 	uint8_t  shim_offset_2;
-	/** IP NH/protocol field offset */
+	/** IP protocol field offset */
 	uint8_t  ip_pid_offset;
 	/** Ethernet offset */
 	uint8_t  eth_offset;

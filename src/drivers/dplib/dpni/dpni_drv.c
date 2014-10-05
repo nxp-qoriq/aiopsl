@@ -132,8 +132,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	uintptr_t wrks_addr;
 	int i;
 	uint32_t j;
-	int err = 0, tmp = 0;
-	uint16_t dpbp = 0;
+	int err = 0;
 	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
