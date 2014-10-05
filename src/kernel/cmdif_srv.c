@@ -398,7 +398,7 @@ __HOT_CODE static int notify_open()
 	
 	pr_debug("Got notify open for AIOP client \n");
 	ASSERT_COND(dpci_tbl != NULL);
-
+	
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
 		pr_err("Segment length is too small\n");
 		return -EINVAL;
@@ -414,12 +414,9 @@ __HOT_CODE static int notify_open()
 	         dpci_tbl->attr[ind].id, ind);
 
 #ifdef DEBUG
-	if (cl == NULL) {
-		pr_err("No client handle\n");
-		return -ENODEV;
-	}
 	 /* DEBUG in order not to call MC inside task */
 	 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	 ASSERT_COND(dprc != NULL);
 	 err = dpci_get_link_state(&dprc->io, dpci_tbl->token[ind], &link_up);
 	 if (err) {
 		 pr_err("Failed to get dpci_get_link_state\n");
@@ -430,6 +427,7 @@ __HOT_CODE static int notify_open()
 		 (dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
 		 
 		 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+		 ASSERT_COND(dprc != NULL);
 		 for (i = 0; i < DPCI_PRIO_NUM; i++) {
 			 err |= dpci_get_tx_queue(&dprc->io, dpci_tbl->token[ind], i,
 						   &dpci_tbl->tx_queue_attr[i][ind]);
@@ -444,6 +442,7 @@ __HOT_CODE static int notify_open()
 	}
 
 	/* Create descriptor for client session */
+	ASSERT_COND(cl != NULL);
 	lock_spinlock(&cl->lock);
 	count = cl->count;
 	if (count >= CMDIF_MN_SESSIONS) {

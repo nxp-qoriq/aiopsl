@@ -66,11 +66,13 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 
 #define ADD_AMQ_FLAGS(FL, PL_AND_ICID)		\
 	do {					\
+		uint8_t va_get = VA_GET;	\
+		uint8_t bmt_get = BMT_GET;	\
 		if (PL_GET(PL_AND_ICID))	\
 			FL |= FDMA_DMA_PL_BIT;	\
-		if (VA_GET)			\
+		if (va_get)			\
 			FL |= FDMA_DMA_eVA_BIT;	\
-		if (BMT_GET)			\
+		if (bmt_get)			\
 			FL |= FDMA_DMA_BMT_BIT;	\
 	}while(0)
 
