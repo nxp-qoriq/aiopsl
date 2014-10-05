@@ -32,10 +32,16 @@
 #define AIOP_SYS_DDR_VADDR	0x20000000;
 
 
-#define AIOP_ATU_NUM_OF_WINDOWS         8
 #define AIOP_EP_TABLE_NUM_OF_ENTRIES	1024
 #define AIOP_INIT_DATA_FIXED_ADDR	(uint8_t *)0x01010000
 
+#define AIOP_ATU_NUM_OF_WINDOWS         8
+
+struct vrt2phy_mem_rgn_entry {
+	phys_addr_t phy_base_addr; /**< Physical base address of AIOP memory region */
+	dma_addr_t vrt_base_addr; /**< Virtual base address of AIOP memory region */
+	uint64_t mem_size;        /**< size (in bytes) of AIOP memory region */
+};
 
 /**************************************************************************//**
  @Description   EPID table
@@ -77,31 +83,31 @@ struct aiop_app_init_info {
  * TODO check it */
 struct aiop_sl_init_info
 {
-	    uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
-	    uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
-	    uint32_t aiop_revision;  /* initialized by AIOP SL at compile time */
+	uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
+	uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
+	uint32_t aiop_revision;  /* initialized by AIOP SL at compile time */
 
-	    uint64_t dp_ddr_paddr;
-	    uint64_t dp_ddr_vaddr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
+	uint64_t dp_ddr_paddr;
+	uint64_t dp_ddr_vaddr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
 
-	    uint64_t peb_paddr;
-	    uint64_t peb_vaddr; /* virtual base address, initialized by MC FW before AIOP elf is loaded */
+	uint64_t peb_paddr;
+	uint64_t peb_vaddr; /* virtual base address, initialized by MC FW before AIOP elf is loaded */
 
-	    uint64_t sys_ddr1_paddr;    
-	    uint64_t sys_ddr1_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
-	    
-	    uint64_t ccsr_paddr;
-	    uint64_t ccsr_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
-	    
-	    uint64_t mc_portals_paddr;
-	    uint64_t mc_portals_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
-	    
-	    uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
-	    uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
-	    uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
-	    uint32_t clock_period; /* In nanosec */
-	    
-	    uint8_t reserved[148];           /* reserved for future use */
+	uint64_t sys_ddr1_paddr;    
+	uint64_t sys_ddr1_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
+
+	uint64_t ccsr_paddr;
+	uint64_t ccsr_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
+
+	uint64_t mc_portals_paddr;
+	uint64_t mc_portals_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
+
+	uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
+	uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
+	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
+	uint32_t clock_period; /* In nanosec */
+
+	uint8_t reserved[148];           /* reserved for future use */
 };
 
 struct aiop_init_data
@@ -124,7 +130,8 @@ struct aiop_cmgw_regs {
 
 	/* Tile Global Control and Status Registers */
 	uint32_t wscr; /* Workspace control register */
-	uint8_t reserved2[0xC];
+	uint32_t rgcr; /* Region guarded control register */
+	uint8_t reserved2[0x8];
 	uint32_t tscru; /* 1588 time stamp capture register (upper portion) */
 	uint32_t tscrl; /* 1588 time stamp capture register (lower portion) */
 	uint32_t tsrr; /* 1588 time stamp resolution register */
