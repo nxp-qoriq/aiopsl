@@ -394,7 +394,7 @@ static int init_random_seed(uint32_t num_of_tasks)
 static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
-    int     err = 0, i = 0;
+    int     err = 0;
     uint32_t CTSCSR_value = 0;
     uint32_t WSCR_tasks_bit = 0;
     struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
