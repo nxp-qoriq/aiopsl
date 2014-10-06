@@ -1,4 +1,5 @@
-
+- config.c                   The default value of PEB size in aiop_app_init_info has been descreased to 512 KB. 
+                             Application should not require more than this number.
 ** AIOP SL v0.4.4 **
 
 - ls2085a_sim_init_params.cfg  Removed  qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug is fixed on sim_m122)
