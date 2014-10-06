@@ -28,14 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/**************************************************************************//*
- * @File          fsl_dpio_cmd.h
- *
- * @Description   defines dprc portal commandsF
- *
- * @Cautions      None.
- *//***************************************************************************/
-
 #ifndef _FSL_DPIO_CMD_H
 #define _FSL_DPIO_CMD_H
 
@@ -43,7 +35,7 @@
 #define DPIO_VER_MAJOR				2
 #define DPIO_VER_MINOR				0
 
-/* cmd IDs */
+/* Command IDs */
 #define DPIO_CMDID_CLOSE				0x800
 #define DPIO_CMDID_OPEN					0x803
 #define DPIO_CMDID_CREATE				0x903
@@ -63,7 +55,7 @@
 #define DPIO_CMDID_GET_IRQ_MASK				0x015
 #define DPIO_CMDID_GET_IRQ_STATUS			0x016
 #define DPIO_CMDID_CLEAR_IRQ_STATUS			0x017
- 
+
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPIO_CMD_OPEN(cmd, dpio_id) \
@@ -75,19 +67,6 @@ do { \
 	MC_CMD_OP(cmd, 0, 16, 2,  enum dpio_channel_mode,	\
 					   cfg->channel_mode);\
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t, cfg->num_priorities);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPIO_RSP_GET_ATTR(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,	    attr->id);\
-	MC_RSP_OP(cmd, 0, 32, 16, uint16_t, attr->qbman_portal_id);\
-	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  attr->num_priorities);\
-	MC_RSP_OP(cmd, 0, 56, 4,  enum dpio_channel_mode, attr->channel_mode);\
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->qbman_portal_ce_paddr);\
-	MC_RSP_OP(cmd, 2, 0,  64, uint64_t, attr->qbman_portal_ci_paddr);\
-	MC_RSP_OP(cmd, 3, 0,  16, uint16_t, attr->version.major);\
-	MC_RSP_OP(cmd, 3, 16, 16, uint16_t, attr->version.minor);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -117,9 +96,9 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPIO_CMD_SET_IRQ_ENABLE(cmd, irq_index, enable_state) \
+#define DPIO_CMD_SET_IRQ_ENABLE(cmd, irq_index, en) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t, enable_state); \
+	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t, en); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t, irq_index);\
 } while (0)
 
@@ -128,8 +107,8 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPIO_RSP_GET_IRQ_ENABLE(cmd, enable_state) \
-	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  enable_state)
+#define DPIO_RSP_GET_IRQ_ENABLE(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  en)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPIO_CMD_SET_IRQ_MASK(cmd, irq_index, mask) \
@@ -161,4 +140,16 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
 
+/*                cmd, param, offset, width, type, arg_name */
+#define DPIO_RSP_GET_ATTR(cmd, attr) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  32, int,	    attr->id);\
+	MC_RSP_OP(cmd, 0, 32, 16, uint16_t, attr->qbman_portal_id);\
+	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  attr->num_priorities);\
+	MC_RSP_OP(cmd, 0, 56, 4,  enum dpio_channel_mode, attr->channel_mode);\
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->qbman_portal_ce_paddr);\
+	MC_RSP_OP(cmd, 2, 0,  64, uint64_t, attr->qbman_portal_ci_paddr);\
+	MC_RSP_OP(cmd, 3, 0,  16, uint16_t, attr->version.major);\
+	MC_RSP_OP(cmd, 3, 16, 16, uint16_t, attr->version.minor);\
+} while (0)
 #endif /* _FSL_DPIO_CMD_H */
