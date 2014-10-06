@@ -902,6 +902,10 @@ void ipsec_generate_flc(
 				*(sp_byte + i); 
 	}
 	
+	/* Storage Profile DL = 256 bytes = 0x0100 --> 0x00010000 (little endian) */
+	/* TODO: calculate the actual DL */
+	*((uint32_t *)((uint32_t *)flow_context.storage_profile)) = 0x00010000;
+
 	/* Write the Flow Context to external memory with CDMA */
 	cdma_write(
 			flc_address, /* ext_address */

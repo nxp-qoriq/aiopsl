@@ -34,7 +34,7 @@ def main(argv):
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'jenkins_files_compare.py -i <inputfile>'
+			print 'jenkins_files_compare_<mc/arena>_aiop.py -i <inputfile>'
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			g_inputfile = arg
@@ -44,12 +44,78 @@ def main(argv):
 		sys.exit(2)
 
 def  compare_files(file1, file2):
+	copyright_exist = False
+	copy_index = 0
+	
+	f = open(file1,"r")
+	lines = f.readlines()
+	f.close()
+	for i in range(0, len(lines)):
+		line = lines[i]
+		if 'copyright' in line.lower() and not copyright_exist:
+			copyright_exist = True
+			print 'copyrights exist (not used for compare) in file: ' + file1
+		if copyright_exist and '*/' in line:
+			#save index
+			copy_index = i + 1
+			line = lines[copy_index]
+			#move to first not empty line after copyrights
+			while line == '\n' and copy_index < len(lines):
+				copy_index = copy_index + 1
+				line = lines[copy_index]
+			break
+
+
+	if copyright_exist:
+		file1 = file1 + '.temp'
+		fw = open(file1,"wb")
+		for i in range(copy_index, len(lines)):
+			line = lines[i]
+			fw.write(line)
+		fw.close()
+		copyright_exist = False
+		copy_index = 0
+
+
+	f = open(file2,"r")
+	lines = f.readlines()
+	f.close()
+	for i in range(0, len(lines)):
+		line = lines[i]
+		if 'copyright' in line.lower() and not copyright_exist:
+			copyright_exist = True
+			print 'copyrights exist (not used for compare) in file: ' + file2
+		if copyright_exist and '*/' in line:
+			#save index
+			copy_index = i + 1
+			line = lines[copy_index]
+			#move to first not empty line after copyrights
+			while line == '\n' and copy_index < len(lines):
+				copy_index = copy_index + 1
+				line = lines[copy_index]
+			break
+
+
+	if copyright_exist:
+		file2 = file2 + '.temp'
+		fw = open(file2,"wb")
+		for i in range(copy_index, len(lines)):
+			line = lines[i]
+			fw.write(line)
+		fw.close()
+		copyright_exist = False
+		copy_index = 0
+
+
+
+
 	file1_md5 = md5(file1)
 	file2_md5 = md5(file2)
 	if file1_md5 != file2_md5:
 		print "files not equal: \n\t" + file1 + ",\n\t" + file2
 		return False
 	else:
+		print "files equal: \n\t" + file1 + ",\n\t" + file2
 		return True 
 
 
@@ -95,53 +161,3 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-	
-	
-	
-	
-	

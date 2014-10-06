@@ -116,8 +116,8 @@ void fill_platform_parameters(struct platform_param *platform_param)
 {
 
 	int err = 0;
-	uint32_t mem_info_size = PLATFORM_MAX_MEM_INFO_ENTRIES *
-		sizeof(struct platform_memory_info);
+	/*uint32_t mem_info_size = PLATFORM_MAX_MEM_INFO_ENTRIES *
+		sizeof(struct platform_memory_info);*/
 
 	memset(platform_param, 0, sizeof(platform_param));
 
@@ -125,9 +125,9 @@ void fill_platform_parameters(struct platform_param *platform_param)
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
 	platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
-	
+
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
-	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >  
+	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >
 	            ARRAY_SIZE(mem_info));
 	memcpy(platform_param->mem_info, mem_info,
 				sizeof(struct platform_memory_info) * ARRAY_SIZE(mem_info));
@@ -306,14 +306,13 @@ int run_apps(void)
 {
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
-	int err = 0, tmp = 0;
+	int err = 0;
 	int dev_count;
 	/* TODO: replace with memset */
 	uint16_t dpbp = 0;
 	struct dprc_obj_desc dev_desc;
 	int dpbp_id = -1;
 	struct dpbp_attr attr;
-	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
 	uint16_t buffer_size = 2048;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);

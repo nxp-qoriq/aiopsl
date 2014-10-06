@@ -247,7 +247,7 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 		/* Don't return error maybe peer will be attached in the future */
 	}
 
-	return 0;
+	return err;
 }
 
 static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, int ind)
@@ -261,6 +261,8 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	int     err = 0;
 	int     link_up = 0;
 	uint8_t i;
+
+	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
 
 	dpci_cfg.num_of_priorities = 2;
 
@@ -321,7 +323,9 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
-		pr_err("MC<->AIOP DPCI link is down !\n");
+		pr_err("MC DPCI[%d]<->AIOP DPCI[%d] link is down ! \n", 
+		       endpoint1.id,
+		       endpoint2.id);
 		/* Don't return error maybe it will be linked in the future */
 	}
 
