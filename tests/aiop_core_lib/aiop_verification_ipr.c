@@ -71,6 +71,10 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 		/*	str->status = ipr_create_instance(
 					&(str->ipr_params),
 					&verif_ipr_instance_handle);*/
+			/* Initialize Time out callback function */
+			str->ipr_params.ipv4_timeout_cb = &ipr_timeout_cb_verif;
+			str->ipr_params.ipv6_timeout_cb = &ipr_timeout_cb_verif;
+
 			str->status = ipr_create_instance(
 					&(str->ipr_params),
 					&ipr_instance_handle);
