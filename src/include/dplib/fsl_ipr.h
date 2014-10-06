@@ -85,6 +85,7 @@ typedef void /*__noreturn*/ (ipr_del_cb_t) (ipr_del_arg_t arg);
 		In case the first fragment (frag offset=0) was received, the
 		first fragment will be set as the default frame.
 		Otherwise, another fragment will be set as the default frame.
+		Default frame will be returned with no open segment.
 
 @Param[in]	arg - Argument of the callback function.
 @Param[in]	flags - \link FSL_IPRTOCallbackFlags IPR Time Out Callback flags
