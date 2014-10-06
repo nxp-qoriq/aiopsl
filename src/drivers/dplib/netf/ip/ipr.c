@@ -702,7 +702,9 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	uint16_t		expected_frag_offset;
 	uint16_t		ip_header_size;
 	uint16_t		ipv6fraghdr_offset;
+	uint16_t		current_running_sum;
 	uint32_t		last_fragment;
+	uint32_t		return_status;
 	uint64_t		ext_addr;
 	/* todo reuse ext_addr for current_element_ext_addr */
 	uint64_t		current_element_ext_addr;
@@ -749,40 +751,29 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			    (uint32_t) (PARSER_GET_OUTER_IP_OFFSET_DEFAULT() +
 					    ip_header_size);
 
-		/* Add current frag's running sum for
-		 * L4 checksum check */
+		/* Add current frag's running sum for L4 checksum check */
 		if (pr->gross_running_sum == 0) {
 			fdma_calculate_default_frame_checksum(
 							0,
 							0xffff,
 						        &pr->gross_running_sum);
+			/* Run parser in order to get valid running sum */
 			parse_result_generate_default(0);
 		}
 
-		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
+		current_running_sum = cksum_ones_complement_sum16(
 						  rfdc_ptr->current_running_sum,
 						  pr->running_sum);
 	} else {
-		/* First fragment (frag_offset == 0) */
-		rfdc_ptr->status |= FIRST_ARRIVED;
-		/* Save PRC params for presentation of the reassembled frame */
-		rfdc_ptr->seg_addr   = prc->seg_address;
-		rfdc_ptr->seg_length = prc->seg_length;
-		rfdc_ptr->seg_offset = prc->seg_offset;
-
 		if (pr->gross_running_sum == 0)
 			fdma_calculate_default_frame_checksum(
 							0,
 							0xffff,
 							&pr->gross_running_sum);
 		/* Set 1rst frag's running sum for L4 checksum check */
-		rfdc_ptr->current_running_sum = cksum_ones_complement_sum16(
+		current_running_sum = cksum_ones_complement_sum16(
 				  	          rfdc_ptr->current_running_sum,
 				  	          pr->gross_running_sum);
-		/* Get IP offset */
-		rfdc_ptr->iphdr_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		if (!frame_is_ipv4)
-			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;
 	}
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {
@@ -806,11 +797,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				   FD_SIZE);
 
 			if (last_fragment) {
-				return LAST_FRAG_IN_ORDER;
+				return_status = LAST_FRAG_IN_ORDER;
 			} else {
 				/* Non closing fragment */
 				rfdc_ptr->next_index++;
-				return FRAG_OK_REASS_NOT_COMPL;
+				return_status =  FRAG_OK_REASS_NOT_COMPL;
 				}
 		} else if (frag_offset_shifted < expected_frag_offset) {
 				/* Malformed Error */
@@ -863,16 +854,34 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			       (void *)HWC_FD_ADDRESS,
 			       FD_SIZE);
 
-		return FRAG_OK_REASS_NOT_COMPL;
+		return_status = FRAG_OK_REASS_NOT_COMPL;
 	    }
 		} else {
 			/* Out of order handling */
-			return out_of_order(rfdc_ptr, rfdc_ext_addr,
+			return_status = out_of_order(rfdc_ptr, rfdc_ext_addr,
 					last_fragment, current_frag_size,
 					frag_offset_shifted);
+			if(return_status == IPR_MALFORMED_FRAG)
+				return IPR_MALFORMED_FRAG;
 	}
-	/* to be removed */
-	return SUCCESS;
+	/* Only valid fragment runs here */
+	if (frag_offset_shifted == 0) {
+		/* First fragment (frag_offset == 0) */
+		rfdc_ptr->status |= FIRST_ARRIVED;
+		/* Save PRC params for presentation of the reassembled frame */
+		rfdc_ptr->seg_addr   = prc->seg_address;
+		rfdc_ptr->seg_length = prc->seg_length;
+		rfdc_ptr->seg_offset = prc->seg_offset;
+
+		/* Get IP offset */
+		rfdc_ptr->iphdr_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		if (!frame_is_ipv4)
+			rfdc_ptr->ipv6_fraghdr_offset = ipv6fraghdr_offset;
+
+	}
+	rfdc_ptr->current_running_sum = current_running_sum;
+
+	return return_status;
 }
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
@@ -1526,7 +1535,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 			  LINK_LIST_ELEMENT_SIZE);
 		if (LAST_FRAG_ARRIVED()) {
 			/* Error */
-			/* return IPR_ERROR; */
+			return IPR_MALFORMED_FRAG;
 		}
 		if(last_fragment)
 			rfdc_ptr->expected_total_length = frag_offset_shifted +
@@ -1566,7 +1575,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		if ((frag_offset_shifted + current_frag_size) >
 					temp_element_ptr->frag_offset) {
 			/* Overlap */
-			return 1;
+			return IPR_MALFORMED_FRAG;
 		}
 		do {
 			if (temp_frag_index == first_frag_index) {
@@ -1748,6 +1757,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 			   }
 		} else {
 			/* Error */
+			return IPR_MALFORMED_FRAG;
 		}
 	}
 
