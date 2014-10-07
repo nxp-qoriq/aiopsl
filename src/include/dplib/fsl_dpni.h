@@ -207,7 +207,10 @@ struct dpni_cfg {
 		 */
 		struct dpni_ipr_cfg ipr_cfg;
 		/*!< IP reassembly configuration */
-	} adv; /*!< Use this structure to change default settings */
+	} adv;
+	/*!< Advanced parameters; default is all zeros;
+	 * use this structure to change default settings
+	 */
 };
 
 /**

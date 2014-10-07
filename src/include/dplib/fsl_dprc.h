@@ -129,19 +129,19 @@ int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
 /* @} */
 
 /**
- * @brief	Container configuration options, used in dprc_create_container()
+ * @brief	Container configuration options
  */
 struct dprc_cfg {
 	uint16_t icid;
-	/*!< Container's ICID; if set to DPRC_GET_ICID_FROM_POOL, a free ICID
-	 * will be allocated by the DPRC
+	/*!< Container's ICID; if set to 'DPRC_GET_ICID_FROM_POOL', a free
+	 * ICID value is allocated by the DPRC
 	 */
 	int portal_id;
-	/*!< portal ID; if set to DPRC_GET_PORTAL_ID_FROM_POOL, a free portal ID
-	 * will be allocated by the DPRC
+	/*!< Portal ID; if set to 'DPRC_GET_PORTAL_ID_FROM_POOL', a free
+	 * portal ID is allocated by the DPRC
 	 */
 	uint64_t options;
-	/*!< Combination of DPRC_CFG_OPT_ options */
+	/*!< Combination of 'DPRC_CFG_OPT_<X>' options */
 };
 
 /**
@@ -157,7 +157,7 @@ struct dprc_cfg {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_create_container(struct fsl_mc_io	*mc_io,
-                          uint16_t		token,
+			  uint16_t		token,
 			  struct dprc_cfg	*cfg,
 			  int			*child_container_id,
 			  uint64_t		*child_portal_paddr);
@@ -184,8 +184,8 @@ int dprc_create_container(struct fsl_mc_io	*mc_io,
  *		Container 0 can't be destroyed
  */
 int dprc_destroy_container(struct fsl_mc_io	*mc_io,
-                           uint16_t		token,
-                           int			child_container_id);
+			   uint16_t		token,
+			   int			child_container_id);
 
 /**
  * @brief	Reset child container.
@@ -203,18 +203,18 @@ int dprc_destroy_container(struct fsl_mc_io	*mc_io,
  * has not crashed, but the resulting object cleanup operations will not be
  * aware of that.
  *
- * @param[in]	mc_io		Pointer to MC portal's I/O object
+ * @param[in]	mc_io			Pointer to MC portal's I/O object
  * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the container to reset
  *
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_reset_container(struct fsl_mc_io *mc_io,
-                         uint16_t token,
-                         int child_container_id);
+			 uint16_t token,
+			 int child_container_id);
 
 /*!
- * @name Irq
+ * @name IRQ
  */
 #define DPRC_NUM_OF_IRQS		1
 /*!< Number of dprc's IRQs */
@@ -223,20 +223,20 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 /*!
  * @name Object irq events
  */
-#define DPRC_IRQ_EVENT_OBJ_ASSIGNED			0x00000001
-/*!< Irq event - Indicates that a new object assigned to the container */
+#define DPRC_IRQ_EVENT_OBJ_ASSIGNED		0x00000001
+/*!< IRQ event - Indicates that a new object assigned to the container */
 #define DPRC_IRQ_EVENT_OBJ_UNASSIGNED		0x00000002
-/*!< Irq event - Indicates that an object was unassigned from the container */
-#define DPRC_IRQ_EVENT_RES_ASSIGNED			0x00000004
-/*!< Irq event - Indicates that resources assigned to the container */
+/*!< IRQ event - Indicates that an object was unassigned from the container */
+#define DPRC_IRQ_EVENT_RES_ASSIGNED		0x00000004
+/*!< IRQ event - Indicates that resources assigned to the container */
 #define DPRC_IRQ_EVENT_RES_UNASSIGNED		0x00000008
-/*!< Irq event - Indicates that resources unassigned from the container */
+/*!< IRQ event - Indicates that resources unassigned from the container */
 #define DPRC_IRQ_EVENT_CONTAINER_DESTROYED	0x00000010
-/*!< Irq event - Indicates that one of the descendant containers that opened by
+/*!< IRQ event - Indicates that one of the descendant containers that opened by
  * this container is destroyed
  */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000011
-/*!< Irq event - Indicates that on one of the container's opened object is
+/*!< IRQ event - Indicates that on one of the container's opened object is
  * destroyed
  */
 /* @} */
@@ -406,9 +406,9 @@ struct dprc_attributes {
 	/*!< Container's options as set at container's creation */
 	struct {
 		uint16_t major;
-		/*!< DPRC major version*/
+		/*!< DPRC major version */
 		uint16_t minor;
-		/*!< DPRC minor version*/
+		/*!< DPRC minor version */
 	} version;
 	/*!< DPRC version */
 };
@@ -423,12 +423,12 @@ struct dprc_attributes {
  * @returns     '0' on Success; Error code otherwise.
  */
 int dprc_get_attributes(struct fsl_mc_io	*mc_io,
-                        uint16_t		token,
-                        struct dprc_attributes	*attributes);
+			uint16_t		token,
+			struct dprc_attributes	*attributes);
 
 /**
  * @brief	Set allocation policy for a specific resource/object type in a
- * 		child container
+ *		child container
  *
  * Allocation policy determines whether or not a container may allocate
  * resources from its parent. Each container has a 'global' allocation policy
@@ -438,10 +438,10 @@ int dprc_get_attributes(struct fsl_mc_io	*mc_io,
  * The default policy for all resource types matches the container's 'global'
  * allocation policy.
  *
- * @param[in]	mc_io		Pointer to MC portal's I/O object
+ * @param[in]	mc_io			Pointer to MC portal's I/O object
  * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the child container
- * @param[in]	type		    resource/object type
+ * @param[in]	type			Resource/object type
  * @param[in]	quota			Sets the maximum number of resources of
  *					the selected type that the child
  *					container is allowed to allocate
@@ -454,7 +454,7 @@ int dprc_get_attributes(struct fsl_mc_io	*mc_io,
  * @warning	Only the parent container is allowed to change a child policy.
  */
 int dprc_set_res_quota(struct fsl_mc_io	*mc_io,
-                       uint16_t		token,
+		       uint16_t		token,
 		       int		child_container_id,
 		       char		*type,
 		       uint16_t		quota);
@@ -463,7 +463,7 @@ int dprc_set_res_quota(struct fsl_mc_io	*mc_io,
  * @brief	Gets the allocation policy of a specific resource/object type
  *		in a child container
  *
- * @param[in]	mc_io		Pointer to MC portal's I/O object
+ * @param[in]	mc_io			Pointer to MC portal's I/O object
  * @param[in]   token			Token of DPRC object
  * @param[in]	child_container_id	ID of the child container
  * @param[in]	type			resource/object type
@@ -477,7 +477,7 @@ int dprc_set_res_quota(struct fsl_mc_io	*mc_io,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_quota(struct fsl_mc_io	*mc_io,
-                       uint16_t		token,
+		       uint16_t		token,
 		       int		child_container_id,
 		       char		*type,
 		       uint16_t		*quota);
@@ -513,7 +513,7 @@ struct dprc_res_req {
 	 * Resource/object type: Represent as a NULL terminated string.
 	 * This string may received by using dprc_get_pool() to get resource
 	 * type and dprc_get_obj() to get object type;
-	 * Note: it is not possible to assign/unassign DP_OBJ_DPRC objects
+	 * Note: it is not possible to assign/un-assign DPRC objects
 	 */
 	uint32_t num;
 	/*!< Number of resources */
@@ -564,7 +564,7 @@ struct dprc_res_req {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_assign(struct fsl_mc_io	*mc_io,
-                uint16_t		token,
+		uint16_t		token,
 		int			container_id,
 		struct dprc_res_req	*res_req);
 
@@ -585,7 +585,7 @@ int dprc_assign(struct fsl_mc_io	*mc_io,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_unassign(struct fsl_mc_io	*mc_io,
-                  uint16_t		token,
+		  uint16_t		token,
 		  int			child_container_id,
 		  struct dprc_res_req	*res_req);
 
@@ -599,8 +599,8 @@ int dprc_unassign(struct fsl_mc_io	*mc_io,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_pool_count(struct fsl_mc_io	*mc_io,
-                        uint16_t		token,
-                        int			*pool_count);
+			uint16_t		token,
+			int			*pool_count);
 
 /**
  * @brief	Get the type (string) of a certain dprc's pool
@@ -618,9 +618,9 @@ int dprc_get_pool_count(struct fsl_mc_io	*mc_io,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_pool(struct fsl_mc_io	*mc_io,
-                  uint16_t		token,
-                  int			pool_index,
-                  char			*type);
+		  uint16_t		token,
+		  int			pool_index,
+		  char			*type);
 
 /**
  * @brief	Obtains the number of objects in the DPRC
@@ -680,7 +680,7 @@ struct dprc_obj_desc {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_obj(struct fsl_mc_io	*mc_io,
-                 uint16_t		token,
+		 uint16_t		token,
 		 int			obj_index,
 		 struct dprc_obj_desc	*obj_desc);
 
@@ -697,9 +697,9 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_count(struct fsl_mc_io	*mc_io,
-                       uint16_t		token,
-                       char		*type,
-                       int		*res_count);
+		       uint16_t		token,
+		       char		*type,
+		       int		*res_count);
 
 /**
  * @brief	Iteration status, for use with dprc_get_res_ids() function
@@ -743,7 +743,7 @@ struct dprc_res_ids_range_desc {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
-                     uint16_t				token,
+		     uint16_t				token,
 		     char				*type,
 		     struct dprc_res_ids_range_desc	*range_desc);
 
@@ -758,7 +758,7 @@ int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_portal_paddr(struct fsl_mc_io	*mc_io,
-                          uint16_t		token,
+			  uint16_t		token,
 			  int			portal_id,
 			  uint64_t		*portal_addr);
 
@@ -786,7 +786,7 @@ struct dprc_region_desc {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_get_obj_region(struct fsl_mc_io	*mc_io,
-                        uint16_t		token,
+			uint16_t		token,
 			char			*obj_type,
 			int			obj_id,
 			uint8_t			region_index,
@@ -801,9 +801,8 @@ struct dprc_endpoint {
 	int id;
 	/*!< Endpoint object ID */
 	int interface_id;
-	/*!<
-	 * Interface ID; should be set for endpoints with multiple interfaces
-	 * (DP_OBJ_DPSW, DP_OBJ_DPDMUX); for others, always set to 0
+	/*!< Interface ID; should be set for endpoints with multiple interfaces
+	 * ("dpsw", "dpdmux"); for others, always set to 0
 	 */
 };
 
@@ -818,12 +817,12 @@ struct dprc_endpoint {
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_connect(struct fsl_mc_io		*mc_io,
-                 uint16_t			token,
-                 const struct dprc_endpoint	*endpoint1,
-                 const struct dprc_endpoint	*endpoint2);
+		 uint16_t			token,
+		 const struct dprc_endpoint	*endpoint1,
+		 const struct dprc_endpoint	*endpoint2);
 
 /**
- * @brief	Disconnect one endpoint to remove its network link
+ * @brief	Disconnect one endpoint to remove its network connection
  *
  * @param[in]	mc_io		Pointer to MC portal's I/O object
  * @param[in]   token		Token of DPRC object
@@ -832,25 +831,25 @@ int dprc_connect(struct fsl_mc_io		*mc_io,
  * @returns	'0' on Success; Error code otherwise.
  */
 int dprc_disconnect(struct fsl_mc_io		*mc_io,
-                    uint16_t			token,
-                    const struct dprc_endpoint	*endpoint);
+		    uint16_t			token,
+		    const struct dprc_endpoint	*endpoint);
 
 /**
-* @brief       Get connected endpoint and link status if connection exist
+* @brief       Get connected endpoint and link status if connection exists
 *
 * @param[in]	mc_io		Pointer to MC portal's I/O object
 * @param[in]    token		Token of DPRC object
-* @param[in]    endpoint1  	Endpoint 1 configuration parameters.
-* @param[out]   endpoint2 	Endpoint 2 configuration parameters.
-* @param[out]   state		Link state: 1 - link up, 0 - link down
+* @param[in]    endpoint1	Endpoint 1 configuration parameters
+* @param[out]   endpoint2	Endpoint 2 configuration parameters
+* @param[out]   state		Link state: 1 - link is up, 0 - link is down
 *
-* @returns     '0' on Success; -ENAVAIL otherwise when connection doesn't exist.
+* @returns     '0' on Success; -ENAVAIL if connection does not exist.
 */
 int dprc_get_connection(struct fsl_mc_io		*mc_io,
 			uint16_t			token,
 			const struct dprc_endpoint	*endpoint1,
-                        struct dprc_endpoint		*endpoint2,
-                        int				*state);
+			struct dprc_endpoint		*endpoint2,
+			int				*state);
 
 /*! @} */
 

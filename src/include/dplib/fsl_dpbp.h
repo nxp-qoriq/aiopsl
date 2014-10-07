@@ -159,38 +159,6 @@ int dpbp_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
 int dpbp_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * @brief	Structure representing DPBP attributes
- */
-struct dpbp_attr {
-	int id;
-	/*!< DPBP object id */
-	struct {
-		uint16_t major;
-		/*!< DPBP major version */
-		uint16_t minor;
-		/*!< DPBP minor version */
-	} version;
-	/*!< DPBP version */
-	uint16_t bpid;
-	/*!< Hardware buffer pool ID; should be used as an argument in
-	 * acquire/release operations on buffers
-	 */
-};
-
-/**
- * @brief	Retrieve DPBP attributes.
- *
- * @param[in]	mc_io	Pointer to MC portal's I/O object
- * @param[in]   token	Token of DPBP object
- * @param[out]	attr	Object's attributes
- *
- * @returns	'0' on Success; Error code otherwise.
- */
-int dpbp_get_attributes(struct fsl_mc_io	*mc_io,
-			uint16_t		token,
-			struct dpbp_attr	*attr);
-
-/**
  * @brief	Set IRQ information for the DPBP to trigger an interrupt.
  *
  * @param[in]	mc_io		Pointer to MC portal's I/O object
@@ -340,6 +308,38 @@ int dpbp_clear_irq_status(struct fsl_mc_io	*mc_io,
 			  uint16_t		token,
 			  uint8_t		irq_index,
 			  uint32_t		status);
+
+/**
+ * @brief	Structure representing DPBP attributes
+ */
+struct dpbp_attr {
+	int id;
+	/*!< DPBP object id */
+	struct {
+		uint16_t major;
+		/*!< DPBP major version */
+		uint16_t minor;
+		/*!< DPBP minor version */
+	} version;
+	/*!< DPBP version */
+	uint16_t bpid;
+	/*!< Hardware buffer pool ID; should be used as an argument in
+	 * acquire/release operations on buffers
+	 */
+};
+
+/**
+ * @brief	Retrieve DPBP attributes.
+ *
+ * @param[in]	mc_io	Pointer to MC portal's I/O object
+ * @param[in]   token	Token of DPBP object
+ * @param[out]	attr	Object's attributes
+ *
+ * @returns	'0' on Success; Error code otherwise.
+ */
+int dpbp_get_attributes(struct fsl_mc_io	*mc_io,
+			uint16_t		token,
+			struct dpbp_attr	*attr);
 
 /** @} */
 
