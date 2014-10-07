@@ -329,12 +329,13 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		  instance_handle,
 		  IPR_INSTANCE_SIZE);
 
-	if (check_for_frag_error() == NO_ERROR) {
+	if (PARSER_IS_OUTER_IPV4_DEFAULT())
+		frame_is_ipv4 = 1;
+	else
+		frame_is_ipv4 = 0;
+
+	if (check_for_frag_error(instance_params,frame_is_ipv4) == NO_ERROR) {
 		/* Good fragment */
-		if (PARSER_IS_OUTER_IPV4_DEFAULT())
-			frame_is_ipv4 = 1;
-		else
-			frame_is_ipv4 = 0;
 		if (frame_is_ipv4) {
 			sr_status = table_lookup_by_keyid_default_frame(
 				TABLE_ACCEL_ID_CTLU,
@@ -510,6 +511,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
+						      instance_params,
 						      iphdr_ptr, frame_is_ipv4);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
@@ -562,8 +564,17 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	case LAST_FRAG_OUT_OF_ORDER:
 		closing_with_reordering(&rfdc, rfdc_ext_addr);
 		break;
-	case FRAG_ERROR:
+	case IPR_MALFORMED_FRAG:
 		/* duplicate or overlap fragment */
+		/* Release updated 64 first bytes of RFDC */
+		cdma_access_context_memory(
+				  rfdc_ext_addr,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
+				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  NULL,
+				  &rfdc,
+				  CDMA_ACCESS_CONTEXT_NO_MEM_DMA,
+				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 		return IPR_MALFORMED_FRAG;
 		break;
 	}
@@ -692,6 +703,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
+				 struct ipr_instance instance_params,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4)
 {
@@ -797,7 +809,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				   FD_SIZE);
 
 			if (last_fragment) {
-				return_status = LAST_FRAG_IN_ORDER;
+				if(rfdc_ptr->current_total_length <=
+				   instance_params.max_reass_frm_size)
+					return_status = LAST_FRAG_IN_ORDER;
+				else
+					return_status = IPR_MALFORMED_FRAG;
 			} else {
 				/* Non closing fragment */
 				rfdc_ptr->next_index++;
@@ -805,7 +821,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				}
 		} else if (frag_offset_shifted < expected_frag_offset) {
 				/* Malformed Error */
-				return FRAG_ERROR;
+				return IPR_MALFORMED_FRAG;
 		} else {
 			/* New out of order */
 			current_index = rfdc_ptr->next_index;
@@ -860,7 +876,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			/* Out of order handling */
 			return_status = out_of_order(rfdc_ptr, rfdc_ext_addr,
 					last_fragment, current_frag_size,
-					frag_offset_shifted);
+					frag_offset_shifted, instance_params);
 			if(return_status == IPR_MALFORMED_FRAG)
 				return IPR_MALFORMED_FRAG;
 	}
@@ -1307,8 +1323,19 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	return SUCCESS;
 }
 
-uint32_t check_for_frag_error()
+uint32_t check_for_frag_error (struct ipr_instance instance_params,
+				uint32_t frame_is_ipv4)
 {
+	uint16_t length;
+	
+	length = (uint16_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	if (frame_is_ipv4) {
+		if (length < instance_params.min_frag_size_ipv4)
+			return IPR_MALFORMED_FRAG;
+	} else {
+		if (length < instance_params.min_frag_size_ipv6)
+			return IPR_MALFORMED_FRAG;
+	}
 	return SUCCESS;
 }
 
@@ -1397,7 +1424,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	else
 		 flags = 0;
 	/* Present the fragment to be returned to the user */
-	/* todo check is spid should be stored in rfdc and restored here */
+	/* todo check if spid should be stored in rfdc and restored here */
 	fdma_present_default_frame_without_segments();
 
 	if (rfdc_status & IPV4_FRAME) {
@@ -1495,7 +1522,8 @@ void check_remove_padding()
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		  uint32_t last_fragment, uint16_t current_frag_size,
-		  uint16_t frag_offset_shifted)
+		  uint16_t frag_offset_shifted,
+		  struct ipr_instance instance_params)
 {
 	uint8_t				current_index;
 	uint8_t				temp_frag_index;
@@ -1644,7 +1672,12 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 
 				if (rfdc_ptr->current_total_length ==
 					rfdc_ptr->expected_total_length) {
-					return LAST_FRAG_OUT_OF_ORDER;
+					/* Check max reassembly size */
+					if(rfdc_ptr->current_total_length <=
+					   instance_params.max_reass_frm_size)
+						return LAST_FRAG_OUT_OF_ORDER;
+					else
+						return IPR_MALFORMED_FRAG;
 				} else {
 				       rfdc_ptr->next_index = current_index + 1;
 				       return FRAG_OK_REASS_NOT_COMPL;
@@ -1777,7 +1810,11 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	rfdc_ptr->num_of_frags++;
 
 	if (rfdc_ptr->current_total_length == rfdc_ptr->expected_total_length) {
-		return LAST_FRAG_OUT_OF_ORDER;
+		if(rfdc_ptr->current_total_length <=
+		   instance_params.max_reass_frm_size)
+			return LAST_FRAG_OUT_OF_ORDER;
+		else
+			return IPR_MALFORMED_FRAG;
 	} else {
 		rfdc_ptr->next_index++;
 		return FRAG_OK_REASS_NOT_COMPL;
