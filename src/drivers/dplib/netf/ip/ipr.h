@@ -251,6 +251,7 @@ int ipr_init(void);
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
+				 struct ipr_instance instance_params,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4);
 
@@ -286,7 +287,8 @@ inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
-uint32_t check_for_frag_error();
+uint32_t check_for_frag_error(struct ipr_instance instance_params,
+			      uint32_t frame_is_ipv4);
 
 void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t dummy);
 
@@ -294,7 +296,8 @@ void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		      uint32_t last_fragment,uint16_t current_frag_size,
-		      uint16_t frag_offset_shifted);
+		      uint16_t frag_offset_shifted,
+		      struct ipr_instance instance_params);
 
 /**************************************************************************//**
 @Description	IPR Global parameters
