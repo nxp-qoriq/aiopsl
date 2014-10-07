@@ -25,23 +25,31 @@ def check_if_file_exists(filename):
 
 def main(argv):
 	global g_inputfile
+	global g_outputfile
 	g_inputfile = ''
+	g_outputfile = ''
 
 	try:
-		opts, args = getopt.getopt(argv,"hi:",["ifile="])
+		opts, args = getopt.getopt(argv,"hi:o:",["ifile=,ofile="])
 	except getopt.GetoptError:
-		print 'test.py -i <inputfile>'
+		print 'jenkins_files_compare.py -i <inputfile> -o <outputfile>'
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'jenkins_files_compare_<mc/arena>_aiop.py -i <inputfile>'
+			print 'jenkins_files_compare_<mc/arena>_aiop.py -i <inputfile> -o <outputfile>'
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			g_inputfile = arg
+		elif opt in ("-o", "--ofile"):
+			g_outputfile = arg
 
 	if g_inputfile == '':
 		print 'input file missing, run -h for help'
 		sys.exit(2)
+
+	if g_outputfile == '':
+		print 'output file missing, use default: email.txt'
+		g_outputfile = 'email.txt'
 
 def  compare_files(file1, file2):
 	copyright_exist = False
@@ -123,20 +131,24 @@ def  compare_files(file1, file2):
 if __name__ == "__main__":
 	global g_inputfile
 	files_equal = True
+	first_enter = True
 
 	main(sys.argv[1:])
 	print 'Input file is "' + g_inputfile + '"'
 
 	if check_if_file_exists(g_inputfile) == False:
 		exit(1)
+	Email_recipients = 'Email = '
 
-	ins = open( g_inputfile, "r" )
-	for line in ins:
+	input_read = open(g_inputfile, "r" )
+	
+
+	for line in input_read:
 		print '****************************************************************************************************'
 		if ':' in line:
 			line = line.rstrip('\n')
 			l = re.compile(':').split(line)
-			if len(l) == 2:
+			if len(l) == 3:
 				if check_if_file_exists(l[0]) == False:
 					print l[0] + ' file is missing'
 				elif check_if_file_exists(l[1]) == False:
@@ -144,12 +156,25 @@ if __name__ == "__main__":
 				else:
 					if compare_files(l[0], l[1]) == False:
 						files_equal = False
+						if first_enter:
+							Email_recipients = Email_recipients + l[2]
+							first_enter = False	
+						else:
+							if l[2] not in Email_recipients:
+								Email_recipients = Email_recipients + ',' + l[2]
+
+
 
 			else:
 				files_equal = False
-				print 'wrong format'
+				print 'wrong format of input file'
 		print '\n'
-	ins.close()
+	input_read.close()
+	print 'Emails will be sent to the following recipients'
+	print Email_recipients
+	output_write = open(g_outputfile, "w")
+	output_write.write(Email_recipients)
+	output_write.close
 
 	if files_equal == False:
 		print "Non equal files found in the list"
@@ -158,6 +183,4 @@ if __name__ == "__main__":
 
 	else:
 		sys.exit(0)
-
-
 
