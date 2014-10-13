@@ -372,7 +372,9 @@ int ipsec_generate_encap_sd(
 	uint8_t cipher_type = 0;
 	uint8_t pdb_options = 0;
 	
-	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
+	/* Temporary Workspace Shared Descriptor */
+	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS]; 
+
 	uint32_t inl_mask = 0;
 	unsigned data_len[3];
 	int err;
@@ -528,15 +530,16 @@ int ipsec_generate_encap_sd(
 	 * Note: For now we assume that inl_mask[0] = 1, i.e. that the
 	 * Outer IP Header can be inlined. Demo should be modified to
 	        * accommodate for the reference case.
-	 * Job descriptor maximum length is hard-coded to 5 * CAAM_CMD_SZ +
+	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
 	 * 3 * CAAM_PTR_SZ, and pointer size considered extended.
 	*/
 	data_len[0] = pdb.ip_hdr_len; /* Outer IP header length */
 	data_len[1] = params->authdata.keylen;
 	data_len[2] = params->cipherdata.keylen;
 	
-	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 5 * 4 + 3 * 8,
-				       data_len, &inl_mask, 3);
+	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
+			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 3);
+	
 	if (err < 0)
 		return err;
 	
@@ -618,8 +621,9 @@ int ipsec_generate_decap_sd(
 	
 	uint8_t cipher_type = 0;
 	
-
-	uint32_t ws_shared_desc[64]; /* Temporary Workspace Shared Descriptor */
+	/* Temporary Workspace Shared Descriptor */
+	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS]; 
+	
 	uint32_t inl_mask = 0;
 	unsigned data_len[2];
 	int err;
@@ -767,14 +771,15 @@ int ipsec_generate_decap_sd(
 	
 	/*
 	 * Lengths of items to be inlined in descriptor; order is important.
-	 * Job descriptor maximum length is hard-coded to 5 * CAAM_CMD_SZ +
+	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
 	 * 3 * CAAM_PTR_SZ, and pointer size considered extended.
 	*/
 	data_len[0] = params->authdata.keylen;
 	data_len[1] = params->cipherdata.keylen;
 	
-	err = rta_inline_query(IPSEC_NEW_DEC_BASE_DESC_LEN, 5 * 4 + 3 * 8,
-			       data_len, &inl_mask, 2);
+	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
+			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 3);
+	
 	if (err < 0)
 		return err;
 	
