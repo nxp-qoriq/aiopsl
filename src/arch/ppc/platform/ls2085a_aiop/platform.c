@@ -590,6 +590,14 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	            	     (uint32_t)(p_mem_info->size));
 	            break;
 	        case  MEM_PART_SYSTEM_DDR:
+	                p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.sys_ddr1_vaddr;
+	                p_mem_info->phys_base_addr = g_init_data.sl_data.sys_ddr1_paddr;
+	                p_mem_info->size = g_init_data.app_data.sys_ddr1_size;
+	                pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+	                         p_mem_info->virt_base_addr,
+                                 (uint32_t)(p_mem_info->phys_base_addr >> 32),
+	                         (uint32_t)(p_mem_info->phys_base_addr),
+	                         (uint32_t)(p_mem_info->size));
 	            break;
 	        case MEM_PART_MC_PORTALS:
 	            p_mem_info->virt_base_addr =
