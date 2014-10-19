@@ -778,7 +778,7 @@ int ipsec_generate_decap_sd(
 	data_len[1] = params->cipherdata.keylen;
 	
 	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
-			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 3);
+			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 2);
 	
 	if (err < 0)
 		return err;
@@ -1430,19 +1430,27 @@ int ipsec_frame_encrypt(
 	 * from the FD[FLC] */
 	/* The least significant 6 bytes of the 8-byte FLC in the enqueued FD 
 	 * contain a 2-byte checksum and 4-byte encrypted/decrypted byte count.
-	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } */
-	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2);
+	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } 
+	 * SEC HW is naturally in little endian and does not swap anything in the FD
+	 * For AIOP, the fields are transparent and is just a 8 byte entry,
+	 * regardless of what field values are embedded within the 8 byte entry. 
+	 * FLC[63:0] indicates that LSB will be at the right most side,
+	 * and correspondingly the first entry in memory.
+	 * For example: if FLC = 0x0000_C1C2_B1B2_B3B4, then in the memory:
+	 * Offset: 0x0  0x1  0x2  0x3  0x4  0x5  0x6  0x7
+	 * Value:  0xB4 0xB3 0xB2 0xB1 0xC2 0xC1 0x00 0x00.
+	 */
 	
 	/** Load 2 bytes with endian swap.
 	 * The address loaded from memory is calculated as: _displ + _base.
 	 * _displ - a word aligned constant value between 0-1020.
 	 * _base - a variable containing the base address.
 	 * If 'base' is a literal 0, the base address is considered as 0. */
-	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
-
+	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
+	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 	
-	//byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4);
-	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+	//byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 0, 0);
 
 	/* 	15.	Update the gross running checksum in the Workspace parser results.*/
 	// TODO: is it needed for encryption?
@@ -1844,10 +1852,19 @@ int ipsec_frame_decrypt(
 	 * A 2-byte checksum is stored starting at offset 4 relative to the 
 	 * beginning of the FLC.
 	 * FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] }
+	 * SEC HW is naturally in little endian and does not swap anything in the FD
+	 * For AIOP, the fields are transparent and is just a 8 byte entry,
+	 * regardless of what field values are embedded within the 8 byte entry. 
+	 * FLC[63:0] indicates that LSB will be at the right most side,
+	 * and correspondingly the first entry in memory.
+	 * For example: if FLC = 0x0000_C1C2_B1B2_B3B4, then in the memory:
+	 * Offset: 0x0  0x1  0x2  0x3  0x4  0x5  0x6  0x7
+	 * Value:  0xB4 0xB3 0xB2 0xB1 0xC2 0xC1 0x00 0x00.
 	*/
-	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
-	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
-	
+	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 2, 0);
+	//byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 0, 0);	
 	/* 	16.	Update the gross running checksum in the Workspace parser results.*/
 	pr->gross_running_sum = 0;
 	// TODO: currently setting to 0 (invalid), so parser will call
