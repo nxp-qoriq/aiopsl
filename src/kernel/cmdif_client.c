@@ -76,7 +76,7 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	_fd.frc    = CPU_TO_LE32(fd->u_frc.frc);
 	_fd.length = CPU_TO_LE32(fd->d_size);
 	_fd.control = 0;
-	_fd.offset  = 0;
+	_fd.offset  = (((uint32_t)FD_IVP_MASK) << 8); /* IVP */
 
 	if (sdev->dma_flags & FDMA_DMA_BMT_BIT)
 		_fd.offset |= (((uint32_t)FD_BMT_MASK) << 8);
