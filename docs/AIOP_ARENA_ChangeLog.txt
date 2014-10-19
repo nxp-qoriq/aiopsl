@@ -1,3 +1,4 @@
+- platform.c             Add support for memory allocation from MEM_PART_SYSTEM_DDR.
 - cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
 
 ** AIOP SL v0.4.4 **
