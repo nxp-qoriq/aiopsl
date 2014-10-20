@@ -1,6 +1,5 @@
 *******************************************************************************
 README for cmdif_integ_dbg target
-this is the latest demo
 *******************************************************************************
 
 ===========================================
@@ -10,7 +9,8 @@ Build
    Make sure that cmdif_client_init() is part of MC init.
    {{cmdif_client_init, cmdif_client_free}, MC_CMDIF_INIT_ERR},
 1. Build mc\build\mc_t4ls_sim\tests\cmdif_aiop target gpp_srv_dbg
-2. Open aiopsl\src\arch\ppc\platform\ls2100a_aiop\cmdif.h and uncomment #define CMDIF_TEST_WITH_MC_SRV
+2. Open aiopsl\src\arch\ppc\platform\ls2100a_aiop\cmdif.h and uncomment #define CMDIF_TEST_WITH_MC_SRV.
+   This is required in order to test AIOP <-> MC.
 3. Build aiopsl\build\aiop_sim\tests\cmdif_test target cmdif_integ_dbg
 
 ===========================================
@@ -26,14 +26,6 @@ Setup
 Execution flow
 ===========================================
 1. Run mc\build\mc_t4ls_sim\tests\cmdif_aiop gpp_srv_dbg.launch
-2. Wait untill you'll see "MC is in busy waiting..."
-3. Pause move to line right after while(1){} and push Run.
-4. You'll see a lot of debug prints.
-5. At the end you should see "Massive TEST PASSED!!!!" + "MC is in busy waiting..."
-   and MC is again in the while(1) {} loop.
+2. You'll see a lot of debug prints.
+3. At the end you should see "Massive TEST PASSED!!!!" + "MC is in busy waiting..." and MC is again in the while(1) {} loop.
 
-=================
-Important NOTEs:
-=================
-ARENA SW sets CTSCSR0[CTSEN] and CTSCSR0[NTASKS] by the end of boot,
-do not set it inside simulator CFG files!

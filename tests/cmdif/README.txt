@@ -1,5 +1,5 @@
 =================================
-CMDIF files to copy from aiop_phase_03_candidate_for_mc_SHA_3d00544:
+CMDIF files to copy from <ldpaa-aiop-sl-tag>:
 =================================
 cmdif.h              	aiopsl\src\arch\ppc\platform\ls2085a_gpp   	  
 fsl_cmdif_client.h   	aiopsl\src\include\kernel                  
@@ -13,12 +13,11 @@ cmdif_client_flib.c     aiopsl\src\kernel
 cmdif_srv_flib.c        aiopsl\src\kernel                              	  
 
 =================================
-Files inside this zip:
+Test Files:
 =================================
-cmdif_srv_test.c        Example for GPP server test (based MC)
-aiop_cmdif_integ.c      Source code of aiop_cmdif_integ.elf
-aiop_cmdif_integ.elf    AIOP elf to be used for tests
-mc.itb                  MC firmware to be used for testing cmdif
+mc\tests\cmdif_gpp\srv\cmdif_srv_test.c      Example for GPP server test (based MC)
+aiopsl\tests\cmdif\cmdif_integration_test.c  Source code of cmdif_integ_dbg.elf
+cmdif_integ_dbg.elf                          AIOP elf to be used for tests
 
 What's new:
 ------------
@@ -34,7 +33,7 @@ GPP client side:
 
 How to test:
 ------------
-Run aiop_cmdif_integ.elf. This elf includes AIOP server & client.
+Run cmdif_integ_dbg.elf. This elf includes AIOP server & client.
 Use mc.itb for MC firmaware.
 Use module name "TEST0", like in the example below:
 err = cmdif_open(cidesc, "TEST0", 0, async_cb, (void *)ind, command_buffer, command_buffer_phys_addr, size);
@@ -50,12 +49,13 @@ GPP server side:
 
 How to test:
 ------------
-Run aiop_cmdif_integ.elf. This elf includes AIOP server & client.
-Use AIOP server to trigger AIOP client as shown at cmdif_srv_test.c and aiop_cmdif_integ.c.
+Run cmdif_integ_dbg.elf. This elf includes AIOP server & client.
+Use AIOP server to trigger AIOP client as shown at cmdif_srv_test.c and cmdif_integration_test.c.
 "TEST0" control callback will trigger AIOP client according to command id that is sent to it.
-These are the commands that can be sent to AIOP module "TEST0". Look at cmdif_srv_test.c in order to understand the right sequence.
+These are the commands that can be sent to AIOP module "TEST0".
 #define OPEN_CMD	0x100  
-/*!< Will trigger cmdif_open("IRA") on AIOP */
+/*!< Will trigger cmdif_open("IRA") on AIOP, first byte of the data should be GPP DPCI id. 
+     If there is no data DPCI id 4 will be used as default. */
 #define NORESP_CMD	0x101  
 /*!< Will trigger cmdif_send() on AIOP  which should reach registered module "IRA" on GPP server */
 #define ASYNC_CMD	0x102  
@@ -69,6 +69,6 @@ Server side test should have this code prior to sending commands to module TEST0
 	err |= cmdif_session_open(&cidesc[0], "IRA", 0, 30,
 	                          buff, &auth_id);
 
-I also share the code for aiop_cmdif_integ.elf, look at aiop_cmdif_integ.c on ctrl_cb().
+I also share the code for cmdif_integ_dbg.elf, look at cmdif_integration_test.c on ctrl_cb0().
 Here you'll see the activation of AIOP client.
 
