@@ -151,8 +151,8 @@ int parse_result_generate_checksum(
 	}
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
-	__e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
-	__e_rlwimi(arg1, (uint32_t)starting_offset, 24, 0, 7);
+	arg1 = __e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
+	arg1 = __e_rlwimi(arg1, (uint32_t)starting_offset, 24, 0, 7);
 
 	arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;

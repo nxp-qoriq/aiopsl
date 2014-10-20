@@ -55,9 +55,9 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 				__attribute__((aligned(16)));
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
-	__e_rlwimi(arg1, (uint32_t)flags, 8, 16, 23);
-	__e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
-	__e_rlwimi(arg1, (uint32_t)starting_offset, 24, 0, 7);
+	arg1 = __e_rlwimi(arg1, (uint32_t)flags, 8, 16, 23);
+	arg1 = __e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
+	arg1 = __e_rlwimi(arg1, (uint32_t)starting_offset, 24, 0, 7);
 
 	/* If Gross Running Sum != 0 then it is valid */
 	if (pr->gross_running_sum) {
@@ -127,8 +127,8 @@ inline int parse_result_generate_default(uint8_t flags)
 					__attribute__((aligned(16)));
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
-	__e_rlwimi(arg1, (uint32_t)flags, 8, 16, 23);
-	__e_rlwimi(arg1, (uint32_t)default_task_params.parser_starting_hxs, 13,
+	arg1 = __e_rlwimi(arg1, (uint32_t)flags, 8, 16, 23);
+	arg1 = __e_rlwimi(arg1, (uint32_t)default_task_params.parser_starting_hxs, 13,
 			8, 18);
 
 	/* If Gross Running Sum != 0 then it is valid */
