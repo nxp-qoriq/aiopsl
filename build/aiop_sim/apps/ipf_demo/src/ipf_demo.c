@@ -253,14 +253,14 @@ int app_init(void)
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-	for (ni = 0; ni < 6; ni++)
+	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
 		                              app_process_packet_flow0, /* callback */
 		                              ni /*arg, nic number*/);
 		if (err) return err;
 
-		err = dpni_drv_set_mfl((uint16_t)ni/*ni_id*/,
+		err = dpni_drv_set_max_frame_length((uint16_t)ni/*ni_id*/,
 		                        mfl /* Max frame length*/);
 		if (err) return err;
 

@@ -131,7 +131,7 @@ struct ipr_instance {
 	uint16_t  	timeout_value_ipv6;
 	/* TMAN Instance ID */
 	uint8_t		tmi_id;
-	uint8_t		res[9];
+	uint8_t		res[11];
 };
 #pragma pack(pop)
 

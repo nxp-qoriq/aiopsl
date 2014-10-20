@@ -394,7 +394,7 @@ static int init_random_seed(uint32_t num_of_tasks)
 static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
-    int     err = 0, i = 0;
+    int     err = 0;
     uint32_t CTSCSR_value = 0;
     uint32_t WSCR_tasks_bit = 0;
     struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
@@ -509,7 +509,7 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 //    if (pltfrm->param.user_init_hooks.f_init_memory_partitions)
 //        return pltfrm->param.user_init_hooks.f_init_memory_partitions(pltfrm);
     build_mem_partitions_table(pltfrm);
-    
+
     for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
@@ -550,29 +550,29 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	 t_platform_memory_info  *p_mem_info;
 	 int                     i;
 	 uint32_t                aiop_lcf_ddr_size;
-	 aiop_lcf_ddr_size =  (uint32_t)(AIOP_DDR_END) - (uint32_t)(AIOP_DDR_START); 
+	 aiop_lcf_ddr_size =  (uint32_t)(AIOP_DDR_END) - (uint32_t)(AIOP_DDR_START);
 	 for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 	        p_mem_info = &pltfrm->param.mem_info[i];
 	        ASSERT_COND(p_mem_info);
 	        switch (p_mem_info->mem_partition_id) {
-	        case MEM_PART_DEFAULT_HEAP_PARTITION:	        	
+	        case MEM_PART_DEFAULT_HEAP_PARTITION:
 	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr;
-	            p_mem_info->size = aiop_lcf_ddr_size;   	
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.dp_ddr_paddr;
+	            p_mem_info->size = aiop_lcf_ddr_size;
 	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	                     p_mem_info->virt_base_addr,
 	        	     (uint32_t)(p_mem_info->phys_base_addr>>32),
 	        	     (uint32_t)(p_mem_info->phys_base_addr),
 	                     (uint32_t)(p_mem_info->size));
-	        	
+
 	        	break;
 	        case MEM_PART_DP_DDR:
-	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.ddr_vaddr +
+	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.dp_ddr_vaddr +
 	        	        aiop_lcf_ddr_size;
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.ddr_paddr + 
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.dp_ddr_paddr +
 	        			aiop_lcf_ddr_size;
-	            p_mem_info->size = g_init_data.app_data.dp_ddr_size - 
-	        			aiop_lcf_ddr_size;        	
+	            p_mem_info->size = g_init_data.app_data.dp_ddr_size -
+	        			aiop_lcf_ddr_size;
 	            pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	        	      p_mem_info->virt_base_addr,
 	                      (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -582,7 +582,7 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        case MEM_PART_PEB:
 	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.peb_vaddr;
 	            p_mem_info->phys_base_addr = g_init_data.sl_data.peb_paddr;
-	            p_mem_info->size = g_init_data.app_data.peb_size;            
+	            p_mem_info->size = g_init_data.app_data.peb_size;
 	            pr_debug("MEM_PART_PEB:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	            	     p_mem_info->virt_base_addr,
 	            	     (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -590,10 +590,19 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	            	     (uint32_t)(p_mem_info->size));
 	            break;
 	        case  MEM_PART_SYSTEM_DDR:
-	            break;	        	
+	                p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.sys_ddr1_vaddr;
+	                p_mem_info->phys_base_addr = g_init_data.sl_data.sys_ddr1_paddr;
+	                p_mem_info->size = g_init_data.app_data.sys_ddr1_size;
+	                pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+	                         p_mem_info->virt_base_addr,
+                                 (uint32_t)(p_mem_info->phys_base_addr >> 32),
+	                         (uint32_t)(p_mem_info->phys_base_addr),
+	                         (uint32_t)(p_mem_info->size));
+	            break;
 	        case MEM_PART_MC_PORTALS:
-	            p_mem_info->virt_base_addr = 
+	            p_mem_info->virt_base_addr =
 	        	       (uint32_t)g_init_data.sl_data.mc_portals_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.mc_portals_paddr;
 	            // TODO fill all the rest fields from g_init_data.sl_data
 	            /* Store MC-Portals bases (for convenience) */
 	            pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;
@@ -604,8 +613,9 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	          	      (uint32_t)(p_mem_info->size));
 	            break;
 	        case MEM_PART_CCSR:
-	            p_mem_info->virt_base_addr = 
+	            p_mem_info->virt_base_addr =
 	                            (uint32_t)g_init_data.sl_data.ccsr_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_data.ccsr_paddr;
 	            // TODO fill all the rest fields from g_init_data.sl_data
 	            /* Store CCSR base (for convenience) */
 	            pltfrm->ccsr_base =  p_mem_info->virt_base_addr;
@@ -833,8 +843,12 @@ int platform_enable_console(fsl_handle_t h_platform)
     t_duart_uart_param  duart_uart_param;
     fsl_handle_t        uart;
     int           err = E_OK;
-    const uint32_t uart_port_offset[] = SOC_PERIPH_OFF_DUART;
-
+    uint32_t uart_port_offset[] = {
+                                   SOC_PERIPH_OFF_DUART0,
+                                   SOC_PERIPH_OFF_DUART1,
+                                   SOC_PERIPH_OFF_DUART2,
+                                   SOC_PERIPH_OFF_DUART3
+    	    	    	    	   };
     SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
 
     if (pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)
@@ -842,9 +856,12 @@ int platform_enable_console(fsl_handle_t h_platform)
 
     SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), E_NOT_SUPPORTED);
 
+    if( g_init_data.sl_data.uart_port_id > 3 )
+        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("DUART"));
+
     /* Fill DUART configuration parameters */
     /*TODO: the base address is hard coded to uart 2_0, should be modified*/
-    duart_uart_param.base_address       = uart_port_offset[g_init_data.sl_data.uart_port_id];
+    duart_uart_param.base_address       = uart_port_offset[ g_init_data.sl_data.uart_port_id];
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
     duart_uart_param.parity             = E_DUART_PARITY_NONE;

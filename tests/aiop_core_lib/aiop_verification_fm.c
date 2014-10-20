@@ -59,8 +59,6 @@ void aiop_verification_fm()
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
 
-	init_verif();
-	
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
 			/* PTA was already loaded */
@@ -88,6 +86,16 @@ void aiop_verification_fm()
 				* the ni function will be run.
 				* (According to Ilan request) */
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+
+	/* FATAL PARMATER INIT IS DONE BEFORE VERIFICATION INIT SO THAT
+	 * VERIFICATION INIT CAN USE THE FATAL PATH */
+	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
+	fatal_fqid = ((struct fatal_error_command *)
+			((uint32_t)data_addr))->fqid;
+	/* This should be removed since ASA verification is obsolete */
+	sr_fm_flags = ((struct fatal_error_command *)
+			((uint32_t)data_addr))->flags;
+	init_verif();
 
 	/* The Terminate command will finish the verification */
 	do {

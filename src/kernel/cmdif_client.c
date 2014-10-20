@@ -76,15 +76,17 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	_fd.frc    = CPU_TO_LE32(fd->u_frc.frc);
 	_fd.length = CPU_TO_LE32(fd->d_size);
 	_fd.control = 0;
-	_fd.offset  = 0;
+	_fd.offset  = (((uint32_t)FD_IVP_MASK) << 8); /* IVP */
 
 	if (sdev->dma_flags & FDMA_DMA_BMT_BIT)
-		_fd.control |= (((uint32_t)FD_CBMT_MASK) << 8);
+		_fd.offset |= (((uint32_t)FD_BMT_MASK) << 8);
 	/* TODO check about VA, eVA bit */
 	if (sdev->dma_flags & FDMA_DMA_eVA_BIT)
 		_fd.control |= (((uint32_t)FD_VA_MASK) << 8);
+	
 	_fd.control = CPU_TO_LE32(_fd.control);
-
+	_fd.offset  = CPU_TO_LE32(_fd.offset);
+	
 	fqid = sdev->tx_queue_attr[pr]->fqid;
 
 	pr_debug("Sending to fqid 0x%x fdma enq flags = 0x%x icid = 0x%x\n", \
@@ -107,17 +109,13 @@ __HOT_CODE static int session_get(const char *m_name,
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
 
-#ifdef DEBUG
-	if (cl == NULL) {
-		return -ENODEV;
-	}
-#endif
 	/* TODO if sync mode is supported
 	 * Sharing the same auth_id will require management of opened or not
 	 * there won't be 2 cidesc with same auth_id because
 	 * the same sync buffer is going to be used for 2 cidesc
 	 * but as for today we don't support sync on AIOP client
 	 * that's why it is working */
+	ASSERT_COND(cl != NULL);
 	lock_spinlock(&cl->lock);
 	for (i = 0; i < cl->count; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&

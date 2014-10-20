@@ -132,8 +132,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	uintptr_t wrks_addr;
 	int i;
 	uint32_t j;
-	int err = 0, tmp = 0;
-	uint16_t dpbp = 0;
+	int err = 0;
 	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
@@ -288,7 +287,7 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 			dpni_drv->dpni_drv_params_var.dpni, mac_addr);
 }
 
-int dpni_drv_set_mfl(uint16_t ni_id,
+int dpni_drv_set_max_frame_length(uint16_t ni_id,
                           const uint16_t mfl)
 {
 	struct dpni_drv *dpni_drv;
@@ -296,10 +295,10 @@ int dpni_drv_set_mfl(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_set_mfl(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
+	return dpni_set_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
-int dpni_drv_get_mfl(uint16_t ni_id,
+int dpni_drv_get_max_frame_length(uint16_t ni_id,
                           uint16_t *mfl)
 {
 	struct dpni_drv *dpni_drv;
@@ -307,7 +306,7 @@ int dpni_drv_get_mfl(uint16_t ni_id,
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_mfl(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
+	return dpni_get_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
 
@@ -404,3 +403,58 @@ void dpni_drv_free(void)
 		fsl_os_xfree(nis);
 	nis = NULL;
 }
+
+
+
+int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+
+	return dpni_set_multicast_promisc(&dprc->io,
+	                                  dpni_drv->dpni_drv_params_var.dpni,
+	                                  en);
+}
+
+
+int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+
+	return dpni_get_multicast_promisc(&dprc->io,
+	                                  dpni_drv->dpni_drv_params_var.dpni,
+	                                  en);
+}
+
+
+int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+
+	return dpni_set_unicast_promisc(&dprc->io,
+	                                dpni_drv->dpni_drv_params_var.dpni,
+	                                en);
+}
+
+
+int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+
+	return dpni_get_unicast_promisc(&dprc->io,
+	                                dpni_drv->dpni_drv_params_var.dpni,
+	                                en);
+}
+
+

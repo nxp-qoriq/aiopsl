@@ -28,6 +28,15 @@
 #define __FSL_ICONTEXT_H
 
 /**************************************************************************//**
+@Group         ic_g  Isolation Context API
+
+@Description	API to be used for memory and BMAN pool accesses 
+		using the specific isolation context attributes.
+
+@{
+ *//***************************************************************************/
+
+/**************************************************************************//**
 @Description	Isolation context structure.
 
 		Do not modify the content of this structure, it must be set by
@@ -116,5 +125,7 @@ int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr);
 @Return		0	- on success, POSIX error otherwise.
 *//***************************************************************************/
 int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr);
+
+/** @} *//* end of ic_g group */
 
 #endif

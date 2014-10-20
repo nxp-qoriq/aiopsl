@@ -28,14 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/**************************************************************************//*
- @File          fsl_dpci_cmd.h
-
- @Description   defines dprc portal commandsF
-
- @Cautions      None.
- *//***************************************************************************/
-
 #ifndef _FSL_DPCI_CMD_H
 #define _FSL_DPCI_CMD_H
 
@@ -43,7 +35,7 @@
 #define DPCI_VER_MAJOR				2
 #define DPCI_VER_MINOR				0
 
-/* cmd IDs */
+/* Command IDs */
 #define DPCI_CMDID_CLOSE				0x800
 #define DPCI_CMDID_OPEN					0x807
 #define DPCI_CMDID_CREATE				0x907
@@ -72,69 +64,15 @@
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_OPEN(cmd, dpci_id) \
-	MC_CMD_OP(cmd, 0, 0, 32, int, 	    dpci_id)
+	MC_CMD_OP(cmd, 0, 0, 32, int,	    dpci_id)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_CREATE(cmd, cfg) \
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  cfg->num_of_priorities)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPCI_CMD_SET_RX_QUEUE(cmd, priority, cfg) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,      cfg->dest_cfg.dest_id);\
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->dest_cfg.priority);\
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
-	MC_CMD_OP(cmd, 0, 48, 4,  enum dpci_dest, cfg->dest_cfg.dest_type);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPCI_RSP_GET_LINK_STATE(cmd, up) \
-	MC_RSP_OP(cmd, 0, 0,  1,  int,	    up)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPCI_RSP_GET_ATTR(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,	    attr->id);\
-	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  attr->num_of_priorities);\
-	MC_RSP_OP(cmd, 1, 0,  16, uint16_t, attr->version.major);\
-	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, attr->version.minor);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
 #define DPCI_RSP_IS_ENABLED(cmd, en) \
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPCI_RSP_GET_PEER_ATTR(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->peer_id);\
-	MC_RSP_OP(cmd, 1, 0,  8,  uint8_t,  attr->num_of_priorities);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPCI_CMD_GET_RX_QUEUE(cmd, priority) \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPCI_RSP_GET_RX_QUEUE(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id);\
-	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
-	MC_RSP_OP(cmd, 0, 48, 4,  enum dpci_dest, attr->dest_cfg.dest_type);\
-	MC_RSP_OP(cmd, 1, 0,  8,  uint64_t,  attr->user_ctx);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t,  attr->fqid);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPCI_CMD_GET_TX_QUEUE(cmd, priority) \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
-	
-/*                cmd, param, offset, width, type, arg_name */
-#define DPCI_RSP_GET_TX_QUEUE(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 32, 32, uint32_t,  attr->fqid);\
-} while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \
@@ -159,9 +97,9 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPCI_CMD_SET_IRQ_ENABLE(cmd, irq_index, enable_state) \
+#define DPCI_CMD_SET_IRQ_ENABLE(cmd, irq_index, en) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  enable_state); \
+	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  en); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
 
@@ -170,8 +108,8 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPCI_RSP_GET_IRQ_ENABLE(cmd, enable_state) \
-	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  enable_state)
+#define DPCI_RSP_GET_IRQ_ENABLE(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  en)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_SET_IRQ_MASK(cmd, irq_index, mask) \
@@ -202,5 +140,60 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_RSP_GET_ATTR(cmd, attr) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  32, int,	    attr->id);\
+	MC_RSP_OP(cmd, 0, 48, 8,  uint8_t,  attr->num_of_priorities);\
+	MC_RSP_OP(cmd, 1, 0,  16, uint16_t, attr->version.major);\
+	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, attr->version.minor);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_RSP_GET_PEER_ATTR(cmd, attr) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->peer_id);\
+	MC_RSP_OP(cmd, 1, 0,  8,  uint8_t,  attr->num_of_priorities);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_RSP_GET_LINK_STATE(cmd, up) \
+	MC_RSP_OP(cmd, 0, 0,  1,  int,	    up)
+
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_CMD_SET_RX_QUEUE(cmd, priority, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, int,      cfg->dest_cfg.dest_id);\
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->dest_cfg.priority);\
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
+	MC_CMD_OP(cmd, 0, 48, 4,  enum dpci_dest, cfg->dest_cfg.dest_type);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx);\
+	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_CMD_GET_RX_QUEUE(cmd, priority) \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_RSP_GET_RX_QUEUE(cmd, attr) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id);\
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
+	MC_RSP_OP(cmd, 0, 48, 4,  enum dpci_dest, attr->dest_cfg.dest_type);\
+	MC_RSP_OP(cmd, 1, 0,  8,  uint64_t,  attr->user_ctx);\
+	MC_RSP_OP(cmd, 2, 0,  32, uint32_t,  attr->fqid);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_CMD_GET_TX_QUEUE(cmd, priority) \
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPCI_RSP_GET_TX_QUEUE(cmd, attr) \
+	MC_RSP_OP(cmd, 0, 32, 32, uint32_t,  attr->fqid);
+
 
 #endif /* _FSL_DPCI_CMD_H */

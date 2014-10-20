@@ -69,14 +69,16 @@ extern void build_apps_array(struct sys_module_desc *apps);
     0xFFFFFFFF,MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
     {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0xFFFFFFFF,  0xFFFFFFFF, \
     0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
-    {MEM_PART_SYSTEM_DDR, MEM_PART_MC_PORTALS,   0x80c000000LL, 0xFFFFFFFF,\
+    {PLTFRM_MEM_RGN_SYSTEM_DDR, MEM_PART_MC_PORTALS,   0xFFFFFFFF, 0xFFFFFFFF,\
     (64  * MEGABYTE),MEMORY_ATTR_NONE,"MC Portals"},\
-    {MEM_PART_SYSTEM_DDR,       MEM_PART_CCSR,   0x08000000,    0xFFFFFFFF, \
+    {PLTFRM_MEM_RGN_SYSTEM_DDR,       MEM_PART_CCSR,   0xFFFFFFFF,    0xFFFFFFFF, \
     (16 * MEGABYTE),MEMORY_ATTR_NONE,"SoC CCSR"  },\
     {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,    0x01010400,    0x01010400, \
     (191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,       0xFFFFFFFF,  0xFFFFFFFF, \
     0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"PEB"},\
+    {PLTFRM_MEM_RGN_SYSTEM_DDR, MEM_PART_SYSTEM_DDR, 0xFFFFFFFF,  0xFFFFFFFF, \
+     0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
 }
 
 #define GLOBAL_MODULES                     \
@@ -116,8 +118,8 @@ void fill_platform_parameters(struct platform_param *platform_param)
 {
 
 	int err = 0;
-	uint32_t mem_info_size = PLATFORM_MAX_MEM_INFO_ENTRIES *
-		sizeof(struct platform_memory_info);
+	/*uint32_t mem_info_size = PLATFORM_MAX_MEM_INFO_ENTRIES *
+		sizeof(struct platform_memory_info);*/
 
 	memset(platform_param, 0, sizeof(platform_param));
 
@@ -125,9 +127,9 @@ void fill_platform_parameters(struct platform_param *platform_param)
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
 	platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
-	
+
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
-	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >  
+	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >
 	            ARRAY_SIZE(mem_info));
 	memcpy(platform_param->mem_info, mem_info,
 				sizeof(struct platform_memory_info) * ARRAY_SIZE(mem_info));
@@ -306,14 +308,13 @@ int run_apps(void)
 {
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
-	int err = 0, tmp = 0;
+	int err = 0;
 	int dev_count;
 	/* TODO: replace with memset */
 	uint16_t dpbp = 0;
 	struct dprc_obj_desc dev_desc;
 	int dpbp_id = -1;
 	struct dpbp_attr attr;
-	uint8_t region_index = 0;
 	struct dpni_pools_cfg pools_params;
 	uint16_t buffer_size = 2048;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
