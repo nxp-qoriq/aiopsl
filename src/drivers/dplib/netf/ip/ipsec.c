@@ -777,7 +777,7 @@ int ipsec_generate_decap_sd(
 	data_len[0] = params->authdata.keylen;
 	data_len[1] = params->cipherdata.keylen;
 	
-	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
+	err = rta_inline_query(IPSEC_NEW_DEC_BASE_DESC_LEN, 
 			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 2);
 	
 	if (err < 0)
