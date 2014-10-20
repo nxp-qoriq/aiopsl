@@ -63,7 +63,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/* Add BDI bit */
 	/* Optimization: remove 1 cycle of or using rlwimi */
 	/* equal to arg1 = (va_bdi << 31) | arg1; */
-	__e_rlwimi(arg1, va_bdi, 31, 0, 0);
+	arg1 = __e_rlwimi(arg1, va_bdi, 31, 0, 0);
 	/* Move PL bit to the right offset */
 	icid_pl = (icid_pl << 11) & 0x04000000;
 	/* Add PL and VA to max_num_of_timers */
@@ -166,7 +166,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 		(uint32_t)(conf_opaque_data2 << 16) | confirmation_epid;
 	Optimization: remove 2 cycles clear and shift */
-	__e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
+	epid = __e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 	/* Store first two command parameters */
 	__stdw(flags, tmi_id, HWC_ACC_IN_ADDRESS, 0);
@@ -249,7 +249,7 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 			(uint32_t)(opaque_data2 << 16) | epid;
 	Optimization: remove 2 cycles clear and shift */
-	__e_rlwimi(epid, opaque_data2, 16, 0, 15);
+	epid = __e_rlwimi(epid, opaque_data2, 16, 0, 15);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);
