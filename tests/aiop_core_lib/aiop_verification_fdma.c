@@ -356,14 +356,14 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 
 		if (str->EIS) {
 			str->status = (int8_t)
-				fdma_enqueue_fd_fqid(&(str->fd), flags,
+				fdma_enqueue_fd_fqid(str->fd, flags,
 					str->qd_fqid, str->icid);
 		} else{
 			qdp.qd = (uint16_t)(str->qd_fqid);
 			qdp.qdbin = str->qdbin;
 			qdp.qd_priority = str->qd_priority;
 			str->status = (int8_t)
-				fdma_enqueue_fd_qd(&(str->fd), flags,
+				fdma_enqueue_fd_qd(str->fd, flags,
 						&qdp, str->icid);
 		}
 

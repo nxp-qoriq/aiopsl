@@ -77,6 +77,8 @@ extern void build_apps_array(struct sys_module_desc *apps);
     (191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
     {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,       0xFFFFFFFF,  0xFFFFFFFF, \
     0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"PEB"},\
+    {PLTFRM_MEM_RGN_SYSTEM_DDR, MEM_PART_SYSTEM_DDR, 0xFFFFFFFF,  0xFFFFFFFF, \
+     0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
 }
 
 #define GLOBAL_MODULES                     \
