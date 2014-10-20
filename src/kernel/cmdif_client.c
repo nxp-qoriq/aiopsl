@@ -176,6 +176,8 @@ int cmdif_client_init()
 		}
 		memset(cl->gpp[i].regs, 0, sizeof(struct cmdif_reg));
 		memset(cl->gpp[i].dev, 0, sizeof(struct cmdif_dev));
+		
+		cl->gpp[i].dev->auth_id = CMDIF_FREE_SESSION;
 	}
 
 
