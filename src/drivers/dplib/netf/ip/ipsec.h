@@ -374,6 +374,13 @@ Big Endian
 #define IPSEC_IP_NEXT_HEADER_UDP 0x11 /* UDP = 17 */
 #define IPSEC_IP_NEXT_HEADER_ESP 0x32 /* ESP = 50 */ 
 
+/* Max job descriptor size in bytes (13 words) */
+#define IPSEC_MAX_AI_JOB_DESC_SIZE ((7 * CAAM_CMD_SZ) + (3 * CAAM_PTR_SZ))
+
+/* The max shared descriptor size in 32 bit words when using the AI is 
+ * 64 words - 13 words reserved for the Job descriptor */
+#define IPSEC_MAX_SD_SIZE_WORDS (64-13) 
+
 
 // TMP, removed from the external API
 /**************************************************************************//**

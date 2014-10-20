@@ -239,6 +239,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                     else
                         p_MM->free_blocks[i] = p_curr_b->p_next;
                     fsl_os_free(p_curr_b);
+                    p_curr_b = NULL;
                 }
                 break;
             }

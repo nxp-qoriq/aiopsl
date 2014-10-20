@@ -1,3 +1,10 @@
+- slob.c                 Fix a bug  when after fsl_os_free a pointer was not set to NULL.
+- platform.c             Add support for memory allocation from MEM_PART_SYSTEM_DDR.
+- cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
+
+** AIOP SL v0.4.4 **
+- config.c                   The default value of PEB size in aiop_app_init_info has been descreased to 512 KB. 
+                             Application should not require more than this number.
 - ls2085a_sim_init_params.cfg  Removed  qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug is fixed on sim_m122)
 - dpl.dts:                     Changed AIOP portal id, icid, and dpci id.
 - dpl.dts:                     Added DPRC_CFG_OPT_IOMMU_BYPASS to root container due to changes in MC firmware

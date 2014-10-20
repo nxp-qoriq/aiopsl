@@ -149,6 +149,11 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
 		until the returned status indicates segmentation is completed
 		(\ref TCP_GSO_GEN_SEG_STATUS_DONE).
 
+		Ordering:
+		To keep order between frames, user should move to exclusive mode
+		before enqueuing the first segment, thus the whole segmentation
+		process will be done exclusively.
+
 @Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
 		Must be initialized by gso_context_init() prior to the first
 		call. Must be aligned to Frame Descriptor size.

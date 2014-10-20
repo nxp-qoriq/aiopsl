@@ -218,6 +218,7 @@ static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	 * 0 is high priority
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
+	queue_cfg.options |= DPCI_QUEUE_OPT_USER_CTX;
 	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
@@ -262,6 +263,8 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	int     link_up = 0;
 	uint8_t i;
 
+	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
+
 	dpci_cfg.num_of_priorities = 2;
 
 	err |= dpci_create(&dprc->io, &dpci_cfg, &dpci);
@@ -269,6 +272,7 @@ static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, i
 	 * 0 is high priority
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
+	queue_cfg.options |= DPCI_QUEUE_OPT_USER_CTX;
 	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;

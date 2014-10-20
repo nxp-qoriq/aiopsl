@@ -59,9 +59,11 @@ struct aiop_init_data g_init_data =
    * application required DP_DDR memory.
    * The value should be aligned to a power of 2 */
   AIOP_DP_DDR_SIZE + APPLICATION_DP_DDR_SIZE,	
+  
   /* peb_size.
-   * Should be aligned to a power of 2 */
-  (2 * MEGABYTE),
+   * Should be a power of 2.
+   * Applications cannot require more that this maximum size */
+  (512 * KILOBYTE),
   /* sys_ddr1_size = 0. Currently no dynamic allocation from system ddr */
   0,	
   2048,			/* ctlu_sys_ddr_num_entries */

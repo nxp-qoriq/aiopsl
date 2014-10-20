@@ -789,8 +789,8 @@ struct fdma_enqueue_frame_exp_command {
 		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
 		 * (enqueue_id_sel = 1,24bit).*/
 	uint32_t qd_fqid;
-		/** Frame Descriptor to enqueue. */
-	struct ldpaa_fd fd;
+		/** Address in workspace of the Frame Descriptor to enqueue. */
+	struct ldpaa_fd *fd;
 		/** ICID of the FD to enqueue. */
 	uint16_t icid;
 		/** Distribution hash value passed to QMan for distribution
@@ -827,7 +827,7 @@ struct fdma_enqueue_frame_exp_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[6];
+	uint8_t	pad[2];
 };
 
 /**************************************************************************//**
