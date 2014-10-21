@@ -239,34 +239,63 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 			    ipr_del_cb_t *confirm_delete_cb,
 			    ipr_del_arg_t delete_arg)
 {
-	struct ipr_instance	  ipr_instance;
-
-	/* todo callback function */
-	UNUSED(confirm_delete_cb);
-	UNUSED(delete_arg);
-
-	ste_barrier();
+	struct ipr_instance	ipr_instance;
+	uint16_t		timeout_value;
+	uint64_t		ipr_instance_extension_ptr;
+	struct ipr_instance_ext_delete delete_args;
 
 	cdma_read(&ipr_instance, ipr_instance_ptr, IPR_INSTANCE_SIZE);
 
-	/* todo
+	if (ipr_instance.timeout_value_ipv4 > ipr_instance.timeout_value_ipv6)
+		timeout_value = ipr_instance.timeout_value_ipv4;
+	else
+		timeout_value = ipr_instance.timeout_value_ipv6;
+
 	ipr_instance_extension_ptr = ((uint64_t)ipr_instance_ptr) +
 				     sizeof(struct ipr_instance);
-	cdma_read(&ipr_instance_ext,
-		  ipr_instance_extension_ptr,
-		  IPR_INSTANCE_SIZE);
-	*/
+
+	delete_args.confirm_delete_cb = confirm_delete_cb;
+	delete_args.delete_arg        = delete_arg;
+	
+	cdma_write(ipr_instance_extension_ptr,
+		   &delete_args,
+		   sizeof( struct ipr_instance_ext_delete));
+
+	tman_create_timer(ipr_instance.tmi_id,
+			IPR_TIMEOUT_FLAGS,
+			timeout_value,
+			(tman_arg_8B_t) ipr_instance_ptr,
+			(tman_arg_2B_t) NULL,
+			(tman_cb_t) ipr_delete_instance_after_time_out,
+			&ipr_instance.flags);
+
+	return SUCCESS;
+}
+
+void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
+{
+	struct ipr_instance_and_extension	ipr_instance_and_extension;
+
+	ste_barrier();
+
+	cdma_read(&ipr_instance_and_extension,
+		  ipr_instance_ptr,
+		  IPR_INSTANCE_SIZE + sizeof(struct ipr_instance_extension));
 
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
 	/* error case */
-	if (ipr_instance.flags & IPV4_VALID)
-		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv4);
-	if (ipr_instance.flags & IPV6_VALID)
-		table_delete(TABLE_ACCEL_ID_CTLU, ipr_instance.table_id_ipv6);
+	if (ipr_instance_and_extension.ipr_instance.flags & IPV4_VALID)
+		table_delete(TABLE_ACCEL_ID_CTLU,
+			 ipr_instance_and_extension.ipr_instance.table_id_ipv4);
+	if (ipr_instance_and_extension.ipr_instance.flags & IPV6_VALID)
+		table_delete(TABLE_ACCEL_ID_CTLU,
+			ipr_instance_and_extension.ipr_instance.table_id_ipv6);
 
-	return SUCCESS;
+	ipr_instance_and_extension.ipr_instance_extension.confirm_delete_cb(
+		ipr_instance_and_extension.ipr_instance_extension.delete_arg);
 }
+
 
 int ipr_reassemble(ipr_instance_handle_t instance_handle)
 {
@@ -1368,13 +1397,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 
 	rfdc_status = rfdc.status;
 	
-	if (rfdc_status & IPV4_FRAME) {
-		table_rule_delete(TABLE_ACCEL_ID_CTLU,
-				  instance_params.table_id_ipv4,
-				  (union table_key_desc *)&rfdc.ipv4_key,
-				  IPV4_KEY_SIZE,
-				  NULL);
-	} else {
+	if (rfdc_status & IPV6_FRAME) {
 		cdma_read(&ipv6_key,
 			  rfdc_ext_addr+RFDC_SIZE+
 				  offsetof(struct extended_ipr_rfdc,ipv6_key),
@@ -1384,6 +1407,13 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				  (union table_key_desc *)&ipv6_key,
 				  IPV6_KEY_SIZE,
 				  NULL);
+	} else {
+		/* IPV4 */
+		table_rule_delete(TABLE_ACCEL_ID_CTLU,
+				  instance_params.table_id_ipv4,
+				  (union table_key_desc *)&rfdc.ipv4_key,
+				  IPV4_KEY_SIZE,
+				  NULL);
 	}
 	/* Reset valid indication in RFDC */
 	rfdc.status = rfdc_status & ~RFDC_VALID;
@@ -1392,7 +1422,10 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 
 	/* Discard all the fragments except the first one or one of them */
 	num_of_frags = rfdc.num_of_frags;
-	first_frag_index = rfdc.first_frag_index;
+	if ((rfdc_status & OUT_OF_ORDER) && !(rfdc_status & ORDER_AND_OOO))
+		first_frag_index = rfdc.first_frag_index;
+	else
+		first_frag_index = 0;
 	while (num_of_frags != 0) {
 
 		if(index != first_frag_index) {
