@@ -146,6 +146,9 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 //			else 
 //				ipr_instance = str->ipr_instance;
 
+			str->confirm_delete_cb = (ipr_del_cb_t *)
+						 &timeout_cb_verif;
+
 			str->status = ipr_delete_instance(
 				verif_ipr_instance_handle[str->instance_index],
 				str->confirm_delete_cb,
@@ -264,21 +267,4 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 
 
 	return str_size;
-}
-
-void ipr_verif_update_frame(uint16_t iteration)
-{
-	struct ipv4hdr *iphdr;
-	
-	iphdr = ((struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT());
-	if(iteration == 3) {
-		fdma_present_default_frame();
-		iphdr->flags_and_offset = (iphdr->flags_and_offset & 0x0000)
-									 | 0xC;
-	}
-	else if (iteration == 4) {
-		fdma_present_default_frame();
-		iphdr->flags_and_offset = (iphdr->flags_and_offset & 0xC000)
-									 | 0x18;		
-	}
 }
