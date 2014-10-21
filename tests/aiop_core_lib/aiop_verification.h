@@ -421,9 +421,9 @@ struct fatal_error_command {
 		 * Returned Value:
 		 * The error message.
 		 */
-	char  err_msg[128];
+	char  err_msg[256];
 		/**
-		 * 256-byte alignment.
+		 * 128-byte alignment.
 		 * */
 	uint8_t pad[36];
 };
