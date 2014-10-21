@@ -53,10 +53,6 @@ __VERIF_GLOBAL uint64_t verif_instance_handle[32]; /* Global in Shared RAM */
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-extern __SHRAM uint64_t ipsec_debug_buf_addr; /* Global in Shared RAM */
-extern __SHRAM uint32_t ipsec_debug_buf_size; /* Global in Shared RAM */
-extern __SHRAM uint32_t ipsec_debug_buf_offset; /* Global in Shared RAM */
-
 uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
@@ -84,10 +80,6 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	{
 		struct ipsec_create_instance_command *str =
 			(struct ipsec_create_instance_command *)data_addr;
-		
-		ipsec_debug_buf_addr = NULL;
-		ipsec_debug_buf_size = 0;
-		ipsec_debug_buf_offset = 0;
 		
 		str->status = ipsec_create_instance(
 				str->committed_sa_num,
@@ -328,9 +320,6 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 	{
 		struct ipsec_create_debug_buffer_command *str =
 			(struct ipsec_create_debug_buffer_command *)data_addr;
-		
-		ipsec_debug_buf_addr = str->buffer_addr;
-		ipsec_debug_buf_size = str->buffer_size;
 		
 		str->status = 0;
 		*((int32_t *)(str->status_addr)) = str->status;

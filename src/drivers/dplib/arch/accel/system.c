@@ -72,14 +72,11 @@ extern int aiop_snic_init(void);
 __SHRAM uint64_t ext_prpid_pool_address;
 __SHRAM uint64_t ext_keyid_pool_address;
 
-/* IPsec Instance global parameters */
-extern __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
 
 /* Time module globals */
 extern __SHRAM struct aiop_cmgw_regs *time_cmgw_regs;
 extern __SHRAM _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
-//__PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 __PROFILE_SRAM struct storage_profile storage_profile;
 
 void sys_prpid_pool_create(void)
@@ -124,7 +121,6 @@ void sys_keyid_pool_create(void)
 int aiop_sl_init(void)
 {
 	int32_t status = 0;
-	//extern struct ipsec_global_instance_params ipsec_global_instance_params;
 
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init params*/
@@ -135,10 +131,6 @@ int aiop_sl_init(void)
 			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 #endif
 
-
-	/* Initialize IPsec instance global parameters */
-	ipsec_global_instance_params.instance_count = 0;
-	ipsec_global_instance_params.spinlock = 0;
 
 	/* initialize profile sram */
 
