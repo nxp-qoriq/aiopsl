@@ -101,10 +101,12 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	return err;
 }
 
-__HOT_CODE static int session_get(const char *m_name,
-                       uint8_t ins_id,
-                       uint32_t dpci_id,
-                       struct cmdif_desc *cidesc)
+__HOT_CODE static inline int session_get(const char *m_name,
+                                  uint8_t ins_id,
+                                  uint32_t dpci_id,
+                                  cmdif_cb_t async_cb,
+                                  void *async_ctx,
+                                  struct cmdif_desc *cidesc)
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
@@ -123,8 +125,15 @@ __HOT_CODE static int session_get(const char *m_name,
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
 			         m_name,
 			         M_NAME_CHARS) == 0)) {
+			struct cmdif_dev *dev = \
+				(struct cmdif_dev *)cl->gpp[i].dev;
 			cidesc->regs = (void *)cl->gpp[i].regs;
 			cidesc->dev  = (void *)cl->gpp[i].dev;
+			if (dev->async_cb == NULL) {
+				/* Set it only for the first time */
+				dev->async_cb  = async_cb;
+				dev->async_ctx = async_ctx;
+			}
 			unlock_spinlock(&cl->lock);
 			return 0;
 		}
@@ -167,6 +176,8 @@ int cmdif_client_init()
 		}
 		memset(cl->gpp[i].regs, 0, sizeof(struct cmdif_reg));
 		memset(cl->gpp[i].dev, 0, sizeof(struct cmdif_dev));
+		
+		cl->gpp[i].dev->auth_id = CMDIF_FREE_SESSION;
 	}
 
 
@@ -203,23 +214,25 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		void *data,
 		uint32_t size)
 {
-	struct cmdif_dev *dev = NULL;
 	int    err = 0;
 
 	if ((data != NULL) || (size > 0))
 		return -EINVAL; /* Buffers are allocated by GPP */
 
-	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
+	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, async_cb, async_ctx, cidesc);
 	if (err != 0) {
 		pr_err("Session not found\n");
-		return err;
 	}
 
-	dev = (struct cmdif_dev *)cidesc->dev;
-	dev->async_cb  = async_cb;
-	dev->async_ctx = async_ctx;
-
 	return err;
+}
+
+__HOT_CODE int cmdif_close(struct cmdif_desc *cidesc)
+{
+	cidesc->regs = 0;
+	cidesc->dev  = 0;
+	
+	return 0;
 }
 
 __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,

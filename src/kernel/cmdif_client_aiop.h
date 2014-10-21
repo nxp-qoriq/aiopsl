@@ -34,6 +34,7 @@
 #define __CMDIF_CLIENT_AIOP_H
 
 #include "cmdif_client.h"
+#include "cmdif_srv.h"
 #include "dplib/fsl_dpci.h"
 #include "fsl_gen.h"
 
@@ -77,7 +78,8 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 	}while(0)
 
 #define CMDIF_MN_SESSIONS	64 /**< Maximal number of sessions */
-#define CMDIF_NUM_PR  		2
+#define CMDIF_NUM_PR		2
+#define CMDIF_FREE_SESSION	(M_NUM_OF_INSTANCES)
 
 struct cmdif_reg {
 	uint16_t dpci_token;	/**< Open AIOP dpci device */

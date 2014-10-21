@@ -88,10 +88,10 @@
 
  __HOT_CODE static inline int is_valid_auth_id(uint16_t id)
  {
-	return ((cmdif_aiop_srv.srv->inst_dev != NULL) &&
-		(id < M_NUM_OF_INSTANCES) &&
-		(cmdif_aiop_srv.srv->m_id != NULL) &&
-		(cmdif_aiop_srv.srv->m_id[id] < M_NUM_OF_MODULES));
+	 return ((cmdif_aiop_srv.srv->inst_dev != NULL) &&
+		 (id < M_NUM_OF_INSTANCES) &&
+		 (cmdif_aiop_srv.srv->m_id != NULL) &&
+		 (cmdif_aiop_srv.srv->m_id[id] < M_NUM_OF_MODULES));
  }
 
  __HOT_CODE static int module_id_find(const char *m_name)
@@ -382,13 +382,29 @@ __HOT_CODE static void amq_bits_update(int ind)
 		dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
 }
 
+static inline int find_session()
+{
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	int i;
+	
+	if (cl->count >= CMDIF_MN_SESSIONS)
+		return -ENOMEM;
+	
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if (cl->gpp[i].dev->auth_id == CMDIF_FREE_SESSION) 
+			return i;		
+	}
+	
+	return -ENOENT;
+}
+
 __HOT_CODE static int notify_open()
 {
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int ind = 0;
-	int count = 0;
+	int free_ind = 0;
 	int link_up = 1;
 	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
 	int err = 0;
@@ -444,28 +460,28 @@ __HOT_CODE static int notify_open()
 	/* Create descriptor for client session */
 	ASSERT_COND(cl != NULL);
 	lock_spinlock(&cl->lock);
-	count = cl->count;
-	if (count >= CMDIF_MN_SESSIONS) {
+	free_ind = find_session();
+	if (free_ind < 0) {
 		pr_err("Too many sessions\n");
 		unlock_spinlock(&cl->lock);
 		return -ENOSPC;
 	}
-
+	
 	amq_bits_update(ind);
-	cl->gpp[count].ins_id           = data->inst_id;
-	cl->gpp[count].dev->auth_id     = data->auth_id;
-	cl->gpp[count].dev->p_sync_done = sync_done_get();
-	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
-	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
-	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
-	cl->gpp[count].regs->dpci_token = dpci_tbl->token[ind];
-	cl->gpp[count].regs->attr       = &dpci_tbl->attr[ind];
-	cl->gpp[count].regs->peer_attr  = &dpci_tbl->peer_attr[ind];
-	cl->gpp[count].regs->tx_queue_attr[0] = &dpci_tbl->tx_queue_attr[0][ind];
-	cl->gpp[count].regs->tx_queue_attr[1] = &dpci_tbl->tx_queue_attr[1][ind];
-	cl->gpp[count].regs->icid       = dpci_tbl->icid[ind];
-	cl->gpp[count].regs->dma_flags  = dpci_tbl->dma_flags[ind];
-	cl->gpp[count].regs->enq_flags  = dpci_tbl->bdi_flags[ind];
+	cl->gpp[free_ind].ins_id           = data->inst_id;
+	cl->gpp[free_ind].dev->auth_id     = data->auth_id;
+	cl->gpp[free_ind].dev->p_sync_done = sync_done_get();
+	cl->gpp[free_ind].dev->sync_done   = NULL; /* Not used in AIOP */
+	strncpy(&cl->gpp[free_ind].m_name[0], &data->m_name[0], M_NAME_CHARS);
+	cl->gpp[free_ind].m_name[M_NAME_CHARS] = '\0';
+	cl->gpp[free_ind].regs->dpci_token = dpci_tbl->token[ind];
+	cl->gpp[free_ind].regs->attr       = &dpci_tbl->attr[ind];
+	cl->gpp[free_ind].regs->peer_attr  = &dpci_tbl->peer_attr[ind];
+	cl->gpp[free_ind].regs->tx_queue_attr[0] = &dpci_tbl->tx_queue_attr[0][ind];
+	cl->gpp[free_ind].regs->tx_queue_attr[1] = &dpci_tbl->tx_queue_attr[1][ind];
+	cl->gpp[free_ind].regs->icid       = dpci_tbl->icid[ind];
+	cl->gpp[free_ind].regs->dma_flags  = dpci_tbl->dma_flags[ind];
+	cl->gpp[free_ind].regs->enq_flags  = dpci_tbl->bdi_flags[ind];
 
 	cl->count++;
 	unlock_spinlock(&cl->lock);
@@ -481,6 +497,8 @@ static int notify_close()
 {
 	/* Support for AIOP -> GPP */
 
+	/* TODO find auth_id + dpci in cl->gpp[free_ind].dev */
+	/* TODO set it to FREE_SESSION */
 	return -ENOTSUP;
 }
 

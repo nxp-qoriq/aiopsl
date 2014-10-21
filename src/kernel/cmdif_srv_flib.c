@@ -43,16 +43,24 @@
 		((CMD) != CMD_ID_NOTIFY_OPEN) && ((CMD) & CMDIF_ASYNC_CMD))
 
 #define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
-	(srv->ctrl_cb[srv->m_id[AUTH_ID]](srv->inst_dev[AUTH_ID], \
+	(((struct cmdif_srv *)srv)->ctrl_cb[srv->m_id[AUTH_ID]]\
+		(((struct cmdif_srv *)srv)->inst_dev[AUTH_ID], \
 	CMD_ID, SIZE, DATA))
+
+#define CLOSE_CB(AUTH_ID) \
+	(((struct cmdif_srv *)srv)->close_cb\
+		[((struct cmdif_srv *)srv)->m_id[AUTH_ID]] \
+		(((struct cmdif_srv *)srv)->inst_dev[AUTH_ID]))
 
 /** Blocking commands don't need response FD */
 #define SYNC_CMD(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
 
 #define IS_VALID_AUTH_ID(ID) \
-	((srv->inst_dev != NULL) && ((ID) < M_NUM_OF_INSTANCES) && \
-	(srv->m_id != NULL) && (srv->m_id[(ID)] < M_NUM_OF_MODULES))
+	((((struct cmdif_srv *)srv)->inst_dev != NULL) && \
+		((ID) < M_NUM_OF_INSTANCES) && \
+	(((struct cmdif_srv *)srv)->m_id != NULL) && \
+	(((struct cmdif_srv *)srv)->m_id[(ID)] < M_NUM_OF_MODULES))
 
 void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 			void *(*slow_malloc)(int size))
@@ -333,17 +341,21 @@ int cmdif_srv_close(void *srv,
 	int    err = 0;
 	struct cmdif_session_data *data = v_data;
 
-	if (size < sizeof(struct cmdif_session_data))
-		return -ENOMEM;
+	if ((v_data != NULL) && (size < CMDIF_SESSION_OPEN_SIZEOF))
+		return -EINVAL;
 
-	/* TODO to be completed
-	 * Error checking ! */
+	if (!IS_VALID_AUTH_ID(auth_id))
+		return -EINVAL;
+	
+	CLOSE_CB(auth_id);
+	
 	inst_dealloc(auth_id, srv);
 	if (data != NULL) {
 		data->auth_id = auth_id;
-		data->dev_id  = dpci_id; /* 1 DPCI = 1 Server */
+		data->dev_id  = CPU_TO_SRV32(dpci_id); /* 1 DPCI = 1 Server */
 	}
-	return -ENODEV;
+	
+	return 0;
 }
 
 int cmdif_srv_cmd(void *_srv,
