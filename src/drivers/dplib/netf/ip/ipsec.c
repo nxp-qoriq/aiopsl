@@ -68,13 +68,6 @@
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /* Global parameters */
-__SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
-
-#ifdef AIOP_VERIF
-__SHRAM uint64_t ipsec_debug_buf_addr; /* Global in Shared RAM */
-__SHRAM uint32_t ipsec_debug_buf_size; /* Global in Shared RAM */
-__SHRAM uint32_t ipsec_debug_buf_offset; /* Global in Shared RAM */
-#endif
 
 /**************************************************************************//**
 *	ipsec_create_instance
@@ -88,10 +81,9 @@ int ipsec_create_instance (
 {
 	int32_t return_val;
 	
-	// committed_sa_num for desc BPID size 512, alignment 64 B 
-	// committed_sa_num for keys BPID
-	// committed_sa_num for IPv6 outer header (TBD)
-	// max num of tasks for ASA 
+	/* committed_sa_num for desc BPID size 512
+	 * 1 buffer for the instance data (counters) 
+	 * committed_sa_num for IPv6 outer header (TBD) */
 	
 	int num_filled_buffs;
 	
@@ -116,36 +108,6 @@ int ipsec_create_instance (
 		// TODO: call future slab release function per BPID
 		// for all previously requested buffers
 		return -ENOMEM;
-	}
-	
-	/* TODO: ASA buffers should be shared for all instances */
-	/* ASA Buffers */
-	
-	/* Check if instances counter is zero */
-	/* If yes allocate ASA buffers */
-	lock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-		
-	if (ipsec_global_instance_params.instance_count == 0) {
-		ipsec_global_instance_params.instance_count++;
-		unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-		
-		return_val = slab_find_and_reserve_bpid(
-				IPSEC_MAX_NUM_OF_TASKS, /* uint32_t num_buffs */
-				IPSEC_MAX_ASA_SIZE, /* uint16_t buff_size */
-				IPSEC_MAX_ASA_BUF_ALIGN, /* uint16_t alignment */
-				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
-	            &num_filled_buffs, /* int *num_filled_buffs */
-	            &(instance.asa_bpid)); /* uint16_t *bpid */
-		
-		if (return_val) {
-			// TODO: call future slab release function per BPID
-			// for all previously requested buffers
-			return -ENOMEM;
-		}
-
-	} else {
-		ipsec_global_instance_params.instance_count++;
-		unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
 	}
 	
 	/* Allocate a buffer for the instance */
@@ -190,28 +152,6 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 		/* TODO: check for CDMA errors. Mind reference count zero status */
 		
 		/* TODO: return "committed + 1" buffers back to the slab */
-		
-		/* Check if instances counter is zero */
-		/* If yes return ASA buffers to the slab */
-		lock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-		
-		/* Error if instance counter is already zero */
-		if (ipsec_global_instance_params.instance_count == 0) {
-			/* EPERM = 1, Operation not permitted */
-			return -EPERM; /* TODO: what is the correct error code? */
-		}
-				
-		ipsec_global_instance_params.instance_count--;
-		
-		/* Check if this is the last instance */
-		if (ipsec_global_instance_params.instance_count == 0) {
-			unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-			
-			/* TODO: return IPSEC_MAX_NUM_OF_TASKS buffers back to the slab */
-		
-		} else {
-			unlock_spinlock((uint8_t *)&ipsec_global_instance_params.spinlock);
-		}
 		
 		return IPSEC_SUCCESS;
 	} else {
@@ -543,17 +483,6 @@ int ipsec_generate_encap_sd(
 	if (err < 0)
 		return err;
 	
-	/* ^^^^^^^^^^^^^^  debug ^^^^^^^^^^^^^^^^^*/
-	//if (inl_mask & (1 << 1))
-	//	pr_warn("ipsec.c: encryption auth descriptor use RTA_PARAM_IMM_DMA\n");
-	//else
-	//	pr_warn("ipsec.c: encryption auth descriptor use RTA_PARAM_PTR\n");
-	//if (inl_mask & (1 << 2))
-	//	pr_warn("ipsec.c: encryption cipher descriptor use RTA_PARAM_IMM_DMA\n");
-	//else
-	//	pr_warn("ipsec.c: encryption cipher descriptor use RTA_PARAM_PTR\n");
-	/* ^^^^^^^^^^^^^^^^^  End debug ^^^^^^^^^^^^^^^^^^^*/
-	
 	if (inl_mask & (1 << 1))
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 
@@ -573,8 +502,6 @@ int ipsec_generate_encap_sd(
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* PDB */
 			(uint8_t *)params->encparams.outer_hdr, /* uint8_t *opt_ip_hdr */
-			//(struct alginfo *)(&(params->cipherdata)),
-			//(struct alginfo *)(&(params->authdata)) 
 			(struct alginfo *)(&rta_cipher_alginfo),
 			(struct alginfo *)(&rta_auth_alginfo)
 		);
@@ -584,19 +511,10 @@ int ipsec_generate_encap_sd(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* PDB */
-			//(struct alginfo *)(&(params->cipherdata)),
-			//(struct alginfo *)(&(params->authdata)) 
 			(struct alginfo *)(&rta_cipher_alginfo),
 			(struct alginfo *)(&rta_auth_alginfo)
 		);
 	}	
-	
-	/* ^^^^^^^^^^^^^^  debug ^^^^^^^^^^^^^^^^^*/
-	//pr_warn("ipsec.c: encryption shared descriptor:\n");
-	//for (inl_mask = 0; inl_mask < (*sd_size); inl_mask ++) {
-	//	pr_warn("Desc %d : 0x%x\n", inl_mask, ws_shared_desc[inl_mask]);
-	//}
-	/* ^^^^^^^^^^^^^^^^^  End debug ^^^^^^^^^^^^^^^^^^^*/
 	
 	/* Write the descriptor to external memory */
 	cdma_write(
@@ -777,7 +695,7 @@ int ipsec_generate_decap_sd(
 	data_len[0] = params->authdata.keylen;
 	data_len[1] = params->cipherdata.keylen;
 	
-	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
+	err = rta_inline_query(IPSEC_NEW_DEC_BASE_DESC_LEN, 
 			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 2);
 	
 	if (err < 0)
@@ -802,8 +720,6 @@ int ipsec_generate_decap_sd(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
-			//(struct alginfo *)(&(params->cipherdata)),
-			//(struct alginfo *)(&(params->authdata)) 
 			(struct alginfo *)(&rta_cipher_alginfo),
 			(struct alginfo *)(&rta_auth_alginfo)
 		);
@@ -813,8 +729,6 @@ int ipsec_generate_decap_sd(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
-			//(struct alginfo *)(&(params->cipherdata)),
-			//(struct alginfo *)(&(params->authdata))
 			(struct alginfo *)(&rta_cipher_alginfo),
 			(struct alginfo *)(&rta_auth_alginfo)
 		);
@@ -973,7 +887,7 @@ void ipsec_generate_sa_params(
 			(uint8_t)(((params->encparams.options) & 
 					IPSEC_PDB_OPTIONS_MASK & IPSEC_ARS_MASK));
 		
-		/* new/reuse (for ASA copy). TMP */
+	/* new/reuse mode (TBD) */
 	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
 	sap.sap1.output_spid = (uint8_t)(params->spid);
@@ -1457,20 +1371,6 @@ int ipsec_frame_encrypt(
 	
 	/* 	16.	If L2 header existed in the original frame, add it back: */
 	if (eth_length) {
-		//TODO: debug info
-#ifdef AIOP_VERIF
-		if (ipsec_debug_buf_addr != NULL) {
-			/* Write the debug info to external memory */
-			cdma_write(
-				(ipsec_debug_buf_addr + ipsec_debug_buf_offset), /* ext_address */
-				&eth_header, /* ws_src */
-				40); /* size */
-			if (ipsec_debug_buf_offset <= (ipsec_debug_buf_size-64)) {
-				ipsec_debug_buf_offset += 64;
-			}
-		}
-#endif
-		
 		/* Note: The Ethertype was already updated before removing the 
 		 * L2 header */
 		return_val = fdma_insert_default_segment_data(
