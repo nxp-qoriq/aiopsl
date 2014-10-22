@@ -54,6 +54,8 @@ def main(argv):
 def  compare_files(file1, file2):
 	copyright_exist = False
 	copy_index = 0
+	orig_file1 = file1
+	orig_file2 = file2
 	
 	f = open(file1,"r")
 	lines = f.readlines()
@@ -120,10 +122,10 @@ def  compare_files(file1, file2):
 	file1_md5 = md5(file1)
 	file2_md5 = md5(file2)
 	if file1_md5 != file2_md5:
-		print "files not equal: \n\t" + file1 + ",\n\t" + file2
+		print "files not equal: \n\t" + orig_file1 + ",\n\t" + orig_file2
 		return False
 	else:
-		print "files equal: \n\t" + file1 + ",\n\t" + file2
+		print "files equal: \n\t" + orig_file1 + ",\n\t" + orig_file2
 		return True 
 
 

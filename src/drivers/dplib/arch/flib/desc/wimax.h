@@ -1,29 +1,3 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 /* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __DESC_WIMAX_H__
@@ -120,7 +94,7 @@ struct wimax_decap_pdb {
  * @cipherdata: pointer to block cipher transform definitions
  * @protinfo: protocol information: OP_PCL_WIMAX_OFDM/OFDMA
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  *
  * This descriptor addreses the prefetch problem when modifying the header of
  * the input frame by invalidating the prefetch mechanism.
@@ -258,7 +232,7 @@ static inline int cnstr_shdsc_wimax_encap_era5(uint32_t *descbuf,
 	KEY(p, KEY2, 0, CRC_8_ATM_POLY, 2, IMMED);
 	ALG_OPERATION(p, OP_ALG_ALGSEL_CRC,
 		      OP_ALG_AAI_CUST_POLY | OP_ALG_AAI_DIS, OP_ALG_AS_UPDATE,
-		      ICV_CHECK_DISABLE, OP_ALG_ENCRYPT);
+		      ICV_CHECK_DISABLE, DIR_ENC);
 	MOVE(p, MATH0, 4, IFIFOAB2, 0, 5, LAST1 | IMMED);
 	MOVE(p, CONTEXT2, 0, MATH2, 0, 4, WAITCOMP | IMMED);
 	MOVE(p, MATH2, 0, MATH1, 1, 1, WAITCOMP | IMMED);
@@ -317,7 +291,7 @@ static inline int cnstr_shdsc_wimax_encap_era5(uint32_t *descbuf,
  * On platforms with SEC ERA 5 or above, cnstr_shdsc_wimax_encap_era5 is
  * automatically called.
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
 					  uint32_t pn, uint16_t protinfo,
@@ -423,8 +397,7 @@ static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
 		KEY(p, KEY2, 0, CRC_8_ATM_POLY, 2, IMMED);
 		ALG_OPERATION(p, OP_ALG_ALGSEL_CRC,
 			      OP_ALG_AAI_CUST_POLY | OP_ALG_AAI_DIS,
-			      OP_ALG_AS_UPDATE, ICV_CHECK_DISABLE,
-			      OP_ALG_ENCRYPT);
+			      OP_ALG_AS_UPDATE, ICV_CHECK_DISABLE, DIR_ENC);
 		MOVE(p, MATH0, 0, IFIFOAB2, 0, 5, LAST1 | IMMED);
 		MOVE(p, CONTEXT2, 0, MATH1, 0, 4, WAITCOMP | IMMED);
 		MOVE(p, MATH1, 0, MATH0, 5, 1, WAITCOMP | IMMED);
@@ -486,7 +459,7 @@ static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
  * @ar_len: anti-replay window length
  * @protinfo: protocol information: OP_PCL_WIMAX_OFDM/OFDMA
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  *
  * Note: Descriptor valid on platforms with support for SEC ERA 4.
  */
@@ -575,8 +548,7 @@ static inline int cnstr_shdsc_wimax_decap(uint32_t *descbuf, uint8_t pdb_opts,
 		KEY(p, KEY2, 0, CRC_8_ATM_POLY, 2, IMMED);
 		ALG_OPERATION(p, OP_ALG_ALGSEL_CRC,
 			      OP_ALG_AAI_CUST_POLY | OP_ALG_AAI_DIS,
-			      OP_ALG_AS_UPDATE, ICV_CHECK_DISABLE,
-			      OP_ALG_ENCRYPT);
+			      OP_ALG_AS_UPDATE, ICV_CHECK_DISABLE, DIR_ENC);
 		MOVE(p, MATH0, 0, IFIFOAB2, 0, 5, LAST1 | IMMED);
 		MOVE(p, CONTEXT2, 0, MATH1, 0, 4, WAITCOMP | IMMED);
 		MOVE(p, MATH1, 0, MATH0, 5, 1, WAITCOMP | IMMED);

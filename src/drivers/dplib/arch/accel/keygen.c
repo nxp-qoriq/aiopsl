@@ -719,8 +719,10 @@ int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 	uint32_t arg1;
 
 	if (user_metadata) {
+/*
 		__stdw(0, 0, 0, &input_struct);
 		__stdw(0, 0, 8, &input_struct);
+*/
 		input_struct.opaquein = user_metadata;
 
 		/* Prepare HW context for TLU accelerator call */
