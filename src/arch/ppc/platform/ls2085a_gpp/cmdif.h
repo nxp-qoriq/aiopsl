@@ -45,5 +45,10 @@
 
 #define CMDIF_EPID         0     /*!< EPID to be used for setting by client */
 
+#ifdef NADK_DEBUG
+#ifndef DEBUG
+#define DEBUG
+#endif
+#endif /* NADK_DEBUG */
 
 #endif /* __CMDIF_H */
