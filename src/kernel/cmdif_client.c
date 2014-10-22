@@ -48,12 +48,6 @@
 
 #define CMDIF_TIMEOUT     0x10000000
 
-/* TODO get rid of it !
- * Should move to stack */
-__TASK static struct ldpaa_fd _fd \
-__attribute__((aligned(sizeof(struct ldpaa_fd))));
-
-
 void cmdif_client_free();
 int cmdif_client_init();
 void cmdif_cl_isr();
@@ -63,6 +57,7 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	int    err = 0;
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
 	uint32_t fqid = 0;
+	struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 
 #ifdef DEBUG
 	if ((sdev == NULL) 				||
