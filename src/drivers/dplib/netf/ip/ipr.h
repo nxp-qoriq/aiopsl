@@ -53,7 +53,7 @@
 #define	FRAG_OK_REASS_NOT_COMPL	0
 #define LAST_FRAG_IN_ORDER	1
 #define LAST_FRAG_OUT_OF_ORDER	2
-#define FRAG_ERROR		3
+#define MALFORMED_FRAG		3
 #define NO_BYPASS_OSM		0x00000000 /* in osm_status */
 #define	BYPASS_OSM		0x00000001 /* in osm_status */
 #define START_CONCURRENT	0x00000002 /* in osm_status */
@@ -301,6 +301,9 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		      struct ipr_instance instance_params);
 
 void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr);
+
+void ipr_stats_update(struct ipr_instance instance_params,
+		      uint32_t counter_offset);
 
 
 /**************************************************************************//**
