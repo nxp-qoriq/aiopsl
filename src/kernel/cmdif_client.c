@@ -119,25 +119,21 @@ __HOT_CODE static inline int session_get(const char *m_name,
 	 * that's why it is working */
 	ASSERT_COND(cl != NULL);
 	lock_spinlock(&cl->lock);
-	for (i = 0; i < cl->count; i++) {
-		if ((cl->gpp[i].ins_id == ins_id) &&
-			(cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
-			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
-			         m_name,
-			         M_NAME_CHARS) == 0)) {
-			struct cmdif_dev *dev = \
-				(struct cmdif_dev *)cl->gpp[i].dev;
-			cidesc->regs = (void *)cl->gpp[i].regs;
-			cidesc->dev  = (void *)cl->gpp[i].dev;
-			if (dev->async_cb == NULL) {
-				/* Set it only for the first time */
-				dev->async_cb  = async_cb;
-				dev->async_ctx = async_ctx;
-			}
-			unlock_spinlock(&cl->lock);
-			return 0;
+
+	i = cmdif_cl_session_get(cl, m_name, ins_id, dpci_id);
+	if (i >= 0) {
+		struct cmdif_dev *dev = (struct cmdif_dev *)cl->gpp[i].dev;
+		cidesc->regs = (void *)cl->gpp[i].regs;
+		cidesc->dev  = (void *)cl->gpp[i].dev;
+		if (dev->async_cb == NULL) {
+			/* Set it only for the first time */
+			dev->async_cb  = async_cb;
+			dev->async_ctx = async_ctx;
 		}
+		unlock_spinlock(&cl->lock);
+		return 0;
 	}
+
 	unlock_spinlock(&cl->lock);
 	return -ENAVAIL;
 }
@@ -176,8 +172,8 @@ int cmdif_client_init()
 		}
 		memset(cl->gpp[i].regs, 0, sizeof(struct cmdif_reg));
 		memset(cl->gpp[i].dev, 0, sizeof(struct cmdif_dev));
-		
-		cl->gpp[i].dev->auth_id = CMDIF_FREE_SESSION;
+		memset(cl->gpp[i].m_name, CMDIF_FREE_SESSION, 
+		       sizeof(cl->gpp[i].m_name));
 	}
 
 
