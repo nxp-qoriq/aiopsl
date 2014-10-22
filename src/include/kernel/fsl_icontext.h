@@ -60,8 +60,8 @@ struct icontext {
 @Param[out]	ic	- Isolation context structure to be used 
 			- with icontext dependent API.
 			
-@Return		0	- on success, 
-		-ENOENT - DPCI id was not found.
+@Return		0	 - on success, 
+		-ENAVAIL - DPCI id was not found.
 
 @Cautions	This API must be called after cmdif_session_open() was triggered 
 		by GPP otherwise it will result in empty icontext structure.   

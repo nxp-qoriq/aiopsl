@@ -64,7 +64,7 @@ __HOT_CODE int icontext_get(uint16_t dpci_id, struct icontext *ic)
 
 	unlock_spinlock(&cl->lock);
 	/* copy pointer from icid table */
-	return -ENOENT;
+	return -ENAVAIL;
 }
 
 __HOT_CODE int icontext_dma_read(struct icontext *ic, uint16_t size, 
