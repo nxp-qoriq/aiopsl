@@ -80,7 +80,7 @@
 #define STR_SIZE_BIG			0xFFFE
 	/**< Buffer Data chunk size in bytes.
 	 *   Must be > 64 bytes*/
-#define DATA_SIZE	320
+#define DATA_SIZE	448
 	/**< Buffer Data chunk address in workspace. */
 #define WS_DATA_ADDR	0x100
 	/**< IPF Fragment's fragmentation commands mask */
@@ -421,9 +421,9 @@ struct fatal_error_command {
 		 * Returned Value:
 		 * The error message.
 		 */
-	char  err_msg[128];
+	char  err_msg[256];
 		/**
-		 * 256-byte alignment.
+		 * 128-byte alignment.
 		 * */
 	uint8_t pad[36];
 };
