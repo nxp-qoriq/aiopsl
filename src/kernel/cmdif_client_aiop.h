@@ -78,7 +78,8 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 			FL |= FDMA_DMA_BMT_BIT;	\
 	}while(0)
 
-#define CMDIF_MN_SESSIONS	64 /**< Maximal number of sessions */
+#define CMDIF_MN_SESSIONS	(64 << 1) 
+/**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */
 #define CMDIF_NUM_PR		2
 #define CMDIF_FREE_SESSION	'\0'
 
