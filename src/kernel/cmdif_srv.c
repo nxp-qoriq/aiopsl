@@ -445,6 +445,18 @@ __HOT_CODE static int notify_open()
 	/* Create descriptor for client session */
 	ASSERT_COND(cl != NULL);
 	lock_spinlock(&cl->lock);
+	
+#ifdef DEBUG
+	/* Don't allow to open the same session twice */
+	free_ind = cmdif_cl_session_get(cl, data->m_name, 
+	                                data->inst_id, data->dev_id);
+	if (free_ind >= 0) {
+		pr_err("The session already exists\n");
+		unlock_spinlock(&cl->lock);
+		return -EEXIST;
+	}
+#endif
+
 	free_ind = cmdif_cl_free_session_get(cl);
 	if (free_ind < 0) {
 		pr_err("Too many sessions\n");
