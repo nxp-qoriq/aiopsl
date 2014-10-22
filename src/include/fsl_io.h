@@ -175,6 +175,24 @@ static inline void iowrite8(uint8_t val, volatile uint8_t *addr)
 }
 
 /**************************************************************************//**
+ @Function      iowrite8_wt
+
+ @Description   Function to write the supplied value to address pointer.
+                Store with Writethrough.
+
+ @Param[in]     val  - value to write.
+ @Param[in]     addr - address pointer write to.
+
+ *//***************************************************************************/
+static inline void iowrite8_wt(uint8_t val, volatile uint8_t *addr)
+{
+	register uint8_t rval = val;
+	register volatile uint8_t *raddr = addr;
+	asm {stbwtx rval, 0, raddr}	
+	core_memory_barrier();
+}
+
+/**************************************************************************//**
  @Function      iowrite16
 
  @Description   Function to write the supplied value to address pointer with endianess treatment
@@ -187,6 +205,23 @@ static inline void iowrite8(uint8_t val, volatile uint8_t *addr)
 static inline void iowrite16(uint16_t val, volatile uint16_t *addr)
 {
 	STORE_CPU_TO_LE16(val, addr);
+	core_memory_barrier();
+}
+
+/**************************************************************************//**
+ @Function      iowrite16_wt
+
+ @Description   Function to write the supplied value to address pointer with endianess treatment
+ 	            using little endian.
+ 	            Store with Writethrough.
+
+ @Param[in]     val  - value to write.
+ @Param[in]     addr - address pointer write to.
+
+ *//***************************************************************************/
+static inline void iowrite16_wt(uint16_t val, volatile uint16_t *addr)
+{
+	STORE_CPU_TO_LE16_WT(val, addr);
 	core_memory_barrier();
 }
 
@@ -207,6 +242,23 @@ static inline void iowrite16be(uint16_t val, volatile uint16_t *addr)
 }
 
 /**************************************************************************//**
+ @Function      iowrite16be_wt
+
+ @Description   Function to write the supplied value to address pointer with endianess treatment
+ 	 	 using big endian.
+ 	 	 Store with Writethrough.
+
+ @Param[in]     val  - value to write.
+ @Param[in]     addr - address pointer write to.
+
+ *//***************************************************************************/
+static inline void iowrite16be_wt(uint16_t val, volatile uint16_t *addr)
+{
+	STORE_CPU_TO_BE16_WT(val, addr);
+	core_memory_barrier();
+}
+
+/**************************************************************************//**
  @Function      iowrite32
 
  @Description   Function to write the supplied value to address pointer with endianess treatment
@@ -219,6 +271,23 @@ static inline void iowrite16be(uint16_t val, volatile uint16_t *addr)
 static inline void iowrite32(uint32_t val, volatile uint32_t *addr)
 {
 	STORE_CPU_TO_LE32(val, addr);
+	core_memory_barrier();
+}
+
+/**************************************************************************//**
+ @Function      iowrite32_wt
+
+ @Description   Function to write the supplied value to address pointer with endianess treatment
+ 	 	 using little endian.
+ 	 	 Store with Writethrough.
+
+ @Param[in]     val  - value to write.
+ @Param[in]     addr - address pointer write to.
+
+ *//***************************************************************************/
+static inline void iowrite32_wt(uint32_t val, volatile uint32_t *addr)
+{
+	STORE_CPU_TO_LE32_WT(val, addr);
 	core_memory_barrier();
 }
 
@@ -237,6 +306,24 @@ static inline void iowrite32be(uint32_t val, volatile uint32_t *addr)
 	STORE_CPU_TO_BE32(val, addr);
 	core_memory_barrier();
 }
+
+/**************************************************************************//**
+ @Function      iowrite32be_wt
+
+ @Description   Function to write the supplied value to address pointer with endianess treatment
+ 	 	 using big endian.
+ 	 	 Store with Writethrough.
+
+ @Param[in]     val  - value to write.
+ @Param[in]     addr - address pointer write to.
+
+ *//***************************************************************************/
+static inline void iowrite32be_wt(uint32_t val, volatile uint32_t *addr)
+{
+	STORE_CPU_TO_BE32_WT(val, addr);
+	core_memory_barrier();
+}
+
 /*
  * TODO: remove "__attribute__((never_inline))" when CQ ENGR00319764 solved
  */
@@ -257,6 +344,23 @@ static inline void iowrite64(uint64_t val, volatile uint64_t *addr) __attribute_
 }
 
 /**************************************************************************//**
+ @Function      iowrite64
+
+ @Description   Function to write the supplied value to address pointer with endianess treatment
+ 	 	 using little endian.
+ 	 	 Store with Writethrough.
+
+ @Param[in]     val  - value to write.
+ @Param[in]     addr - address pointer write to.
+
+ *//***************************************************************************/
+static inline void iowrite64_wt(uint64_t val, volatile uint64_t *addr) __attribute__((never_inline))
+{
+	STORE_CPU_TO_LE64_WT(val, addr);
+	core_memory_barrier();
+}
+
+/**************************************************************************//**
  @Function      iowrite64be
 
  @Description   Function to write the supplied value to address pointer with endianess treatment
@@ -269,6 +373,23 @@ static inline void iowrite64(uint64_t val, volatile uint64_t *addr) __attribute_
 static inline void iowrite64be(uint64_t val, volatile uint64_t *addr)
 {
 	STORE_CPU_TO_BE64(val, addr);
+	core_memory_barrier();
+}
+
+/**************************************************************************//**
+ @Function      iowrite64be_wt
+
+ @Description   Function to write the supplied value to address pointer with endianess treatment
+ 	 	 using big endian.
+ 	 	 Store with Writethrough.
+
+ @Param[in]     val  - value to write.
+ @Param[in]     addr - address pointer write to.
+
+ *//***************************************************************************/
+static inline void iowrite64be_wt(uint64_t val, volatile uint64_t *addr)
+{
+	STORE_CPU_TO_BE64_WT(val, addr);
 	core_memory_barrier();
 }
 
