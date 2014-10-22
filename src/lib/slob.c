@@ -1,29 +1,3 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 #include "common/types.h"
 #include "fsl_errors.h"
 #include "inc/fsl_gen.h"
@@ -568,8 +542,10 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, uint64_t size, uint64_t a
         return (uint64_t)(ILLEGAL_BASE);
 
     /* calls Update routine to update a lists of free blocks */
-    if ( cut_free ( p_MM, hold_base, hold_end ) != E_OK )
-        return (uint64_t)(ILLEGAL_BASE);
+    if ( cut_free ( p_MM, hold_base, hold_end ) != E_OK ) {
+	    fsl_os_free(p_new_busy_b);
+	    return (uint64_t)(ILLEGAL_BASE);
+    }
 
     /* insert the new busy block into the list of busy blocks */
     add_busy ( p_MM, p_new_busy_b );
@@ -614,16 +590,18 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 #ifdef AIOP
     *(p_MM->lock) = 0;
 #endif
-    
+
     /* Initializes counter of free memory to total size */
     p_MM->free_mem_size = size;
 
-    /* Initializes a new memory block */
-    if ((p_MM->mem_blocks = create_new_block(base, size)) == NULL)
-        RETURN_ERROR(MAJOR, E_NO_MEMORY, NO_MSG);
-
     /* A busy list is empty */
     p_MM->busy_blocks = 0;
+
+    /* Initializes a new memory block */
+    if ((p_MM->mem_blocks = create_new_block(base, size)) == NULL) {
+	    slob_free(p_MM);
+	    RETURN_ERROR(MAJOR, E_NO_MEMORY, NO_MSG);
+    }
 
     /* Initializes a new free block for each free list*/
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
@@ -631,8 +609,10 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
         new_base = MAKE_ALIGNED( base, (0x1 << i) );
         new_size = size - (new_base - base);
 
-        if ((p_MM->free_blocks[i] = create_free_block(new_base, new_size)) == NULL)
-            RETURN_ERROR(MAJOR, E_NO_MEMORY, NO_MSG);
+        if ((p_MM->free_blocks[i] = create_free_block(new_base, new_size)) == NULL) {
+        	slob_free(p_MM);
+        	RETURN_ERROR(MAJOR, E_NO_MEMORY, NO_MSG);
+        }
     }
 
     *slob = p_MM;
@@ -704,7 +684,13 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
 #ifndef AIOP
     uint32_t    int_flags;
 #endif
-
+    
+    ASSERT_COND(p_MM);
+   
+    if (size == 0)
+    {
+        REPORT_ERROR(MAJOR, E_INVALID_VALUE, ("allocation size must be positive"));
+    }
     /* checks that alignment value is greater then zero */
     if (alignment == 0)
     {
@@ -748,7 +734,7 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     {
 #ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else 
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
         return (uint64_t)(ILLEGAL_BASE);
@@ -762,7 +748,7 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     {
 #ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else 
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
         return (uint64_t)(ILLEGAL_BASE);
@@ -773,9 +759,10 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     {
 #ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else 
+#else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
+        fsl_os_free(p_new_busy_b);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -786,7 +773,7 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     add_busy ( p_MM, p_new_busy_b );
 #ifdef AIOP
     unlock_spinlock(p_MM->lock);
-#else 
+#else
     spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
 
@@ -805,6 +792,11 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
     int         block_is_free = 0;
 
     ASSERT_COND(p_MM);
+    
+    if (size == 0)
+    {
+        REPORT_ERROR(MAJOR, E_INVALID_VALUE, ("allocation size must be positive"));
+    }
 
 #ifdef AIOP
     lock_spinlock(p_MM->lock);
@@ -854,6 +846,7 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
 #else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
+        fsl_os_free(p_new_busy_b);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -883,6 +876,11 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
 #endif
 
     ASSERT_COND(p_MM);
+    
+    if (size == 0)
+    {
+        REPORT_ERROR(MAJOR, E_INVALID_VALUE, ("allocation size must be positive"));
+    }
 
     /* checks if alignment is a power of two, if it correct and if the
        required size is multiple of the given alignment. */
@@ -968,6 +966,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
 #else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
+        fsl_os_free(p_new_busy_b);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -1235,7 +1234,9 @@ void slob_dump(fsl_handle_t slob)
     t_free_block *p_free_b;
     t_busy_block *p_busy_b;
     int          i;
-
+    
+    ASSERT_COND(p_MM);
+    
     p_busy_b = p_MM->busy_blocks;
     pr_debug("list of busy blocks:\n");
     while (p_busy_b)
