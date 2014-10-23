@@ -207,9 +207,11 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 {
 	int    err = 0;
 
+#ifdef DEBUG
 	if ((data != NULL) || (size > 0))
 		return -EINVAL; /* Buffers are allocated by GPP */
-
+#endif
+	
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, async_cb, async_ctx, cidesc);
 	if (err != 0) {
 		pr_err("Session not found\n");
@@ -248,6 +250,7 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	if (err)
 		return -EINVAL;
 
+#ifdef ARENA_LEGACY_CODE
 	if (cmdif_is_sync_cmd(cmd_id)) {
 
 		uint64_t p_sync = \
@@ -269,7 +272,8 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		else
 			return done.resp.err;
 	}
-
+#endif
+	
 	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);
 	return 0;
 }

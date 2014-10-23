@@ -59,16 +59,18 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	union  cmdif_data *v_addr = NULL;
 	struct cmdif_dev  *dev = NULL;
 
+#ifdef DEBUG
 	/* if cidesc->dev != NULL it's ok,
-	 * it's usefull to keep it in order to let user to free this buffer */
+	 * it's useful to keep it in order to let user to free this buffer */
 	if ((m_name == NULL)
 		|| (cidesc == NULL)
 		|| (v_data == NULL)
 		|| (p_data == NULL))
 		return -EINVAL;
-
+	
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
+#endif
 
 	memset(v_data, 0, size);
 
@@ -109,14 +111,14 @@ __HOT_CODE int cmdif_sync_ready(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
-	if ((cidesc == NULL) || (cidesc->dev == NULL))
+#ifdef DEBUG
+	if ((cidesc == NULL) || (cidesc->dev == NULL) || 
+		(((struct cmdif_dev *)cidesc->dev)->sync_done == NULL))
 		return 0; /* Don't use POSIX on purpose */
-
+#endif
+	
 	dev = (struct cmdif_dev *)cidesc->dev;
-
-	if (dev->sync_done == NULL)
-		return 0; /* Don't use POSIX on purpose */
-
+	
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
 
@@ -125,17 +127,15 @@ __HOT_CODE int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
 
-	if ((cidesc == NULL) || (cidesc->dev == NULL))
+#ifdef DEBUG
+	if ((cidesc == NULL) || (cidesc->dev == NULL) || 
+		(((struct cmdif_dev *)cidesc->dev)->sync_done == NULL))
 		return -EINVAL;
+#endif
 
 	dev = (struct cmdif_dev *)cidesc->dev;
-
-	if (dev->sync_done == NULL)
-		return -EINVAL;
-
 	err = ((union  cmdif_data *)(dev->sync_done))->resp.err;
 	((union  cmdif_data *)(dev->sync_done))->resp.done = 0;
-
 
 	return err;
 }
@@ -144,14 +144,13 @@ int cmdif_open_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
-	if ((cidesc == NULL) || (cidesc->dev == NULL))
+#ifdef DEBUG
+	if ((cidesc == NULL) || (cidesc->dev == NULL) || 
+		(((struct cmdif_dev *)cidesc->dev)->sync_done == NULL))
 		return -EINVAL;
+#endif
 
 	dev = (struct cmdif_dev *)cidesc->dev;
-
-	if (dev->sync_done == NULL)
-		return -EINVAL;
-
 	dev->auth_id = ((union  cmdif_data *)(dev->sync_done))->resp.auth_id;
 
 	return cmdif_sync_cmd_done(cidesc);
@@ -161,9 +160,11 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 {
 	struct cmdif_dev *dev = NULL;
 
+#ifdef DEBUG
 	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
-
+#endif
+	
 	dev = (struct cmdif_dev *)cidesc->dev;
 
 	fd->u_addr.d_addr       = NULL;
@@ -193,9 +194,11 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 {
 	struct cmdif_dev *dev = NULL;
 
+#ifdef DEBUG
 	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
-
+#endif
+	
 	dev = (struct cmdif_dev *)cidesc->dev;
 
 	fd->u_addr.d_addr     = data;
@@ -221,9 +224,10 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
 	struct   cmdif_dev *dev = NULL;
 	uint64_t fd_dev         = 0;
 
+#ifdef DEBUG
 	if (fd == NULL)
 		return -EINVAL;
-
+#endif
 
 	/* This is required because flc is a struct but HW treats it as
 	 * 8 byte LE.
