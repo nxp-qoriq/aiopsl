@@ -237,8 +237,10 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	struct   cmdif_fd fd;
 	int      err = 0;
 	int      t   = 0;
+#ifdef ARENA_LEGACY_CODE
 	union cmdif_data done;
-
+#endif
+	
 	if (cmdif_is_sync_cmd(cmd_id))
 		return -ENOTSUP;
 
