@@ -189,7 +189,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 	uint16_t cmd_id,
 	uint32_t size,
 	uint64_t data,
-	cmdif_cb_t async_cb,
+	cmdif_cb_t *async_cb,
 	void *async_ctx,
 	struct cmdif_fd *fd);
 

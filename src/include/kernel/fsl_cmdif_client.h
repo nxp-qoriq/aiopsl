@@ -208,7 +208,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		uint32_t size,
 		int priority,
 		uint64_t data,
-		cmdif_cb_t async_cb,
+		cmdif_cb_t *async_cb,
 		void *async_ctx);
 
 /**************************************************************************//**
