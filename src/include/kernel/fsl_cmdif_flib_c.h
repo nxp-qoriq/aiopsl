@@ -66,10 +66,6 @@ only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
  * @param[in]	cidesc      - Command interface descriptor
  * @param[in]	m_name      - Module name, up to 8 characters
  * @param[in]	instance_id - Instance id which will be passed to open_cb_t
- * @param[in]	async_cb    - Callback to be called on response of
- *		asynchronous command.
- * @param[in]	async_ctx   - Context to be received with asynchronous
- * 		command response inside async_cb().
  * @param[in]	v_data	    - Virtual address of the buffer to be used
  * 		by command interface.
  * 		This address should be accessible by Server and Client.
@@ -84,8 +80,6 @@ only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
 int cmdif_open_cmd(struct cmdif_desc *cidesc,
 		const char *m_name,
 		uint8_t instance_id,
-		cmdif_cb_t async_cb,
-		void *async_ctx,
 		uint8_t *v_data,
 		uint64_t p_data,
 		uint32_t size,
@@ -181,6 +175,10 @@ int cmdif_is_sync_cmd(uint16_t cmd_id);
  * @param[in]	cmd_id - Command id that was sent
  * @param[in]	size   - Size of data
  * @param[in]	data   - Physical address to data
+ * @param[in]	async_cb    - Callback to be called on response of
+ *		asynchronous command.
+ * @param[in]	async_ctx   - Context to be received with asynchronous
+ * 		command response inside async_cb().
  * @param[out]	fd     - Frame descriptor relevant fields for cmdif
  *
  * @returns	'0' if command is asynchronous;
@@ -191,6 +189,8 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 	uint16_t cmd_id,
 	uint32_t size,
 	uint64_t data,
+	cmdif_cb_t async_cb,
+	void *async_ctx,
 	struct cmdif_fd *fd);
 
 /**

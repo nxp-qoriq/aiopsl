@@ -140,8 +140,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		}
 		fsl_os_print("Testing AIOP client against GPP DPCI%d\n",
 		             (uint32_t)cidesc.regs);
-		err = cmdif_open(&cidesc, "IRA", 0, async_cb, cidesc.regs,
-		                 NULL, 0);
+		err = cmdif_open(&cidesc, "IRA", 0, NULL, 0);
 		break;
 	case CLOSE_CMD:
 		err = cmdif_close(&cidesc);
@@ -153,12 +152,9 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		}
 		fsl_os_print("Testing AIOP client against GPP DPCI%d\n",
 		             (uint32_t)cidesc.regs);
-		err |= cmdif_open(&cidesc, "IRA0", 0, async_cb, cidesc.regs,
-		                  NULL, 0);
-		err |= cmdif_open(&cidesc, "IRA3", 0, async_cb, cidesc.regs,
-		                  NULL, 0);
-		err |= cmdif_open(&cidesc, "IRA2", 0, async_cb, cidesc.regs,
-		                  NULL, 0);
+		err |= cmdif_open(&cidesc, "IRA0", 0, NULL, 0);
+		err |= cmdif_open(&cidesc, "IRA3", 0, NULL, 0);
+		err |= cmdif_open(&cidesc, "IRA2", 0, NULL, 0);
 		if (err) {
 			fsl_os_print("failed to cmdif_open()\n");
 			return err;
@@ -166,24 +162,25 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case NORESP_CMD:
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, size,
-		                 CMDIF_PRI_LOW, p_data);
+		                 CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
 		break;
 	case ASYNC_CMD:
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, size,
-		                 CMDIF_PRI_LOW, p_data);
+		                 CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
 		break;
 	case ASYNC_N_CMD:
 		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_LOW, p_data);
+		                  CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
 		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_HIGH, p_data);
+		                  CMDIF_PRI_HIGH, p_data, async_cb, cidesc.regs);
 		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_LOW, p_data);
+		                  CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
 		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_HIGH, p_data);
+		                  CMDIF_PRI_HIGH, p_data, async_cb, cidesc.regs);
 		break;
 	case SYNC_CMD:
-		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data);
+		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data, 
+		                 async_cb, cidesc.regs);
 		break;
 	case IC_TEST:
 		ASSERT_COND(size >= sizeof(struct icontext));

@@ -47,8 +47,6 @@ __HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
 int cmdif_open_cmd(struct cmdif_desc *cidesc,
 			const char *m_name,
 			uint8_t instance_id,
-			cmdif_cb_t async_cb,
-			void *async_ctx,
 			uint8_t *v_data,
 			uint64_t p_data,
 			uint32_t size,
@@ -87,8 +85,6 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	fd->d_size             = sizeof(union cmdif_data);
 
 	dev = (struct cmdif_dev *)v_data;
-	dev->async_cb  = async_cb;
-	dev->async_ctx = async_ctx;
 	dev->sync_done = v_addr;
 	cidesc->dev    = (void *)dev;
 
@@ -190,6 +186,8 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		uint64_t data,
+		cmdif_cb_t async_cb,
+		void *async_ctx,
 		struct cmdif_fd *fd)
 {
 	struct cmdif_dev *dev = NULL;

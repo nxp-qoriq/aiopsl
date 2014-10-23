@@ -99,8 +99,6 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 __HOT_CODE static inline int session_get(const char *m_name,
                                   uint8_t ins_id,
                                   uint32_t dpci_id,
-                                  cmdif_cb_t async_cb,
-                                  void *async_ctx,
                                   struct cmdif_desc *cidesc)
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
@@ -120,11 +118,7 @@ __HOT_CODE static inline int session_get(const char *m_name,
 		struct cmdif_dev *dev = (struct cmdif_dev *)cl->gpp[i].dev;
 		cidesc->regs = (void *)cl->gpp[i].regs;
 		cidesc->dev  = (void *)cl->gpp[i].dev;
-		if (dev->async_cb == NULL) {
-			/* Set it only for the first time */
-			dev->async_cb  = async_cb;
-			dev->async_ctx = async_ctx;
-		}
+		
 		unlock_spinlock(&cl->lock);
 		return 0;
 	}
@@ -200,8 +194,6 @@ void cmdif_client_free()
 __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t ins_id,
-		cmdif_cb_t async_cb,
-		void *async_ctx,
 		void *data,
 		uint32_t size)
 {
@@ -212,7 +204,8 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		return -EINVAL; /* Buffers are allocated by GPP */
 #endif
 	
-	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, async_cb, async_ctx, cidesc);
+	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
+	
 	if (err != 0) {
 		pr_err("Session not found\n");
 	}
@@ -232,7 +225,9 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		int pr,
-		uint64_t data)
+		uint64_t data,
+		cmdif_cb_t async_cb,
+		void *async_ctx)
 {
 	struct   cmdif_fd fd;
 	int      err = 0;
@@ -244,7 +239,9 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	if (cmdif_is_sync_cmd(cmd_id))
 		return -ENOTSUP;
 
-	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
+	ASSERT_COND(async_cb != NULL);
+	
+	err = cmdif_cmd(cidesc, cmd_id, size, data, async_cb, async_ctx, &fd);
 	if (err)
 		return -EINVAL;
 
