@@ -871,6 +871,14 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
 		last_fragment = !(ipv4hdr_ptr->flags_and_offset &
 				IPV4_HDR_M_FLAG_MASK);
+		/* Check IP size is multiple of 8 for First or middle fragment*/
+		if (!last_fragment && (ipv4hdr_ptr->total_length % 8 != 0))
+			return MALFORMED_FRAG;
+		/* todo check if WRIOP checks this */
+		if ((ipv4hdr_ptr->total_length + frag_offset_shifted) > 
+								  MAX_IP_SIZE)
+			return MALFORMED_FRAG;
+
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		ipv6fraghdr_offset =
@@ -886,6 +894,12 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				ip_header_size + IPV6_FIXED_HEADER_SIZE;
 		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
 				IPV6_HDR_M_FLAG_MASK);
+		if (!last_fragment && (ipv6hdr_ptr->payload_length % 8 != 0))
+			return MALFORMED_FRAG;
+		/* todo check if WRIOP checks this */
+		if ((ipv6hdr_ptr->payload_length + frag_offset_shifted) > 
+								  MAX_IP_SIZE)
+			return MALFORMED_FRAG;
 	}
 
 	if (frag_offset_shifted != 0) {
@@ -1459,7 +1473,7 @@ uint32_t check_for_frag_error (struct ipr_instance instance_params,
 				uint32_t frame_is_ipv4)
 {
 	uint16_t length;
-	
+
 	length = (uint16_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 	if (frame_is_ipv4) {
 		if (length < instance_params.min_frag_size_ipv4)

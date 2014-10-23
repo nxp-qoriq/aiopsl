@@ -92,6 +92,7 @@
 				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK
 #define IPV4_VALID		0x00000001	/* In IPR instance */
 #define IPV6_VALID		0x00000002	/* In IPR instance */
+#define MAX_IP_SIZE		65536 /* 64K */
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT		0
