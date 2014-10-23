@@ -293,9 +293,8 @@ struct ipr_get_reass_frm_cntr_command {
 #pragma pack(pop)
 
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr);
-
-void ipr_verif_update_frame(uint16_t iteration);
-
+void ipr_delete_instance_cb_verif(uint64_t arg);
+void ipr_timeout_cb_verif(uint64_t arg, uint32_t flags);
 
 /** @} */ /* end of AIOP_IPR_FM_Verification */
 

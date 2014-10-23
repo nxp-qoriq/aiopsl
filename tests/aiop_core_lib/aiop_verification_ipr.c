@@ -147,7 +147,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 //				ipr_instance = str->ipr_instance;
 
 			str->confirm_delete_cb = (ipr_del_cb_t *)
-						 &timeout_cb_verif;
+						 &ipr_delete_instance_cb_verif;
 
 			str->status = ipr_delete_instance(
 				verif_ipr_instance_handle[str->instance_index],
@@ -268,3 +268,76 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 
 	return str_size;
 }
+
+void ipr_delete_instance_cb_verif(uint64_t arg)
+{
+	struct fdma_enqueue_wf_command str;
+	struct fdma_queueing_destination_params qdp;
+	//int32_t status;
+	uint32_t flags = 0;
+
+	if (arg == 0)
+		return;
+	cdma_read((void *)&str, arg,
+			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
+
+	
+	/* Set FD[length] to be different than 0 */
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 1);
+
+	
+	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
+	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
+
+	if (str.EIS) {
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_fqid(
+				str.qd_fqid, flags);
+	} else{
+		qdp.qd = (uint16_t)(str.qd_fqid);
+		qdp.qdbin = str.qdbin;
+		qdp.qd_priority = str.qd_priority;
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_qd(
+					&qdp, flags);
+	}
+	fdma_terminate_task();
+}
+
+void ipr_timeout_cb_verif(uint64_t arg, uint32_t flags)
+{
+	struct fdma_enqueue_wf_command str;
+	struct fdma_queueing_destination_params qdp;
+	uint64_t addr;
+	uint32_t fdma_flags = 0;
+
+	if (arg == 0)
+		return;
+	cdma_read((void *)&str, arg,
+			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
+
+	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
+	fdma_flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+	fdma_flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
+
+	if(flags == IPR_TO_CB_FIRST_FRAG) {
+		addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+		addr |= 1;
+		LDPAA_FD_SET_ADDR(HWC_FD_ADDRESS, addr);
+	}
+	if (str.EIS) {
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_fqid(
+				str.qd_fqid, fdma_flags);
+	} else{
+		qdp.qd = (uint16_t)(str.qd_fqid);
+		qdp.qdbin = str.qdbin;
+		qdp.qd_priority = str.qd_priority;
+		str.status = (int8_t)
+			fdma_store_and_enqueue_default_frame_qd(
+					&qdp, fdma_flags);
+	}
+	fdma_terminate_task();
+}
+
