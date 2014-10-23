@@ -871,14 +871,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
 		last_fragment = !(ipv4hdr_ptr->flags_and_offset &
 				IPV4_HDR_M_FLAG_MASK);
-		/* Check IP size is multiple of 8 for First or middle fragment*/
-		if (!last_fragment && (ipv4hdr_ptr->total_length % 8 != 0))
-			return MALFORMED_FRAG;
-		/* Check 64K limit */
-		/* todo check if WRIOP checks this */
-		if ((ipv4hdr_ptr->total_length + frag_offset_shifted) > 
-								  MAX_IP_SIZE)
-			return MALFORMED_FRAG;
 		/* Check ECN compliance */
 		if ((ipv4hdr_ptr->tos & IPV4_ECN) == NOT_ECT) {
 			if (rfdc_ptr->status & RFDC_STATUS_CE)
@@ -905,14 +897,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				ip_header_size + IPV6_FIXED_HEADER_SIZE;
 		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
 				IPV6_HDR_M_FLAG_MASK);
-		/* Check IP size is multiple of 8 for First or middle fragment*/
-		if (!last_fragment && (ipv6hdr_ptr->payload_length % 8 != 0))
-			return MALFORMED_FRAG;
-		/* Check 64K limit */
-		/* todo check if WRIOP checks this */
-		if ((ipv6hdr_ptr->payload_length + frag_offset_shifted) > 
-								  MAX_IP_SIZE)
-			return MALFORMED_FRAG;
 		/* Check ECN compliance */
 		if ((ipv6hdr_ptr->vsn_traffic_flow & IPV6_ECN)
 				== NOT_ECT) {
@@ -927,6 +911,14 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
 	}
+	/* Check IP size is multiple of 8 for First or middle fragment*/
+	if (!last_fragment && (current_frag_size % 8 != 0))
+		return MALFORMED_FRAG;
+	/* Check 64K limit */
+	/* todo check if WRIOP checks this */
+	if ((current_frag_size + frag_offset_shifted) > MAX_IP_SIZE)
+		return MALFORMED_FRAG;
+
 	if (frag_offset_shifted != 0) {
 		/* Not first frag */
 		/* Save header to be removed in FD[FRC] */
