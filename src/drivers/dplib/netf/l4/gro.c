@@ -580,7 +580,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
 	int sr_status, status;
-	uint32_t old_agg_timestamp, ack_number;
+	uint32_t /*old_agg_timestamp,*/ ack_number;
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
@@ -592,8 +592,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	prc_segment_length = PRC_GET_SEGMENT_LENGTH();
 
 	/* initialize gro_context parameters */
-	old_agg_timestamp = (uint32_t)(gro_ctx->internal_flags) &
-			GRO_HAS_TIMESTAMP;
+	/*old_agg_timestamp = (uint32_t)(gro_ctx->internal_flags) &
+			GRO_HAS_TIMESTAMP;*/
 	gro_ctx->internal_flags = 0;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
