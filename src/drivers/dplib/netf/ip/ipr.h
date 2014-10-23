@@ -70,6 +70,8 @@
 #define IPV4_FRAME		0x0000 /* in RFDC status */
 #define IPV6_FRAME		0x4000 /* in RFDC status */
 #define FIRST_ARRIVED		0x2000 /* in RFDC status */
+#define RFDC_STATUS_NOT_ECT	0x0004 /* in RFDC status */
+#define RFDC_STATUS_CE		0x0008 /* in RFDC status */
 /*following define includes both cases: pure OOO and OOO_and_IN_ORDER */
 #define OUT_OF_ORDER		0x0001 /* in RFDC status */
 #define ORDER_AND_OOO		0x0002 /* in RFDC status */
@@ -93,6 +95,10 @@
 #define IPV4_VALID		0x00000001	/* In IPR instance */
 #define IPV6_VALID		0x00000002	/* In IPR instance */
 #define MAX_IP_SIZE		65536 /* 64K */
+#define NOT_ECT			0
+#define CE			0x3
+#define IPV4_ECN		0x3
+#define IPV6_ECN		0x00300000
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT		0
