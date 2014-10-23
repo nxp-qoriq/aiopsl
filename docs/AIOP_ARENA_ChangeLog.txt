@@ -1,4 +1,8 @@
-
+- ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
+- cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
+- cmdif_srv_flib.c       Placed user error checks under #ifdef DEBUG
+- cmdif_client.c         Added support for cmdif_close()
+- cmdif_srv_flib.c       Added support for cmdif_session_close()
 - slob.c                 Fix some memory leaks and other issues.
 - platform.c             Add support for memory allocation from MEM_PART_SYSTEM_DDR.
 - cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
