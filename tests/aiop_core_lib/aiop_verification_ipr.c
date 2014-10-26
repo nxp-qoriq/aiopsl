@@ -271,7 +271,7 @@ uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 
 void ipr_delete_instance_cb_verif(uint64_t arg)
 {
-	struct fdma_enqueue_wf_command str;
+	struct ipr_fdma_enqueue_wf_command str;
 	struct fdma_queueing_destination_params qdp;
 	//int32_t status;
 	uint32_t flags = 0;
@@ -281,26 +281,33 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
 	cdma_read((void *)&str, arg,
 			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
 
-	
-	/* Set FD[length] to be different than 0 */
-	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 1);
+	/* Change length to be 1 */
+	fdma_store_default_frame_data();
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 1);	
 
-	
 	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
 	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
+	flags |= ((str.BDI == 1) ? (FDMA_ENF_BDI_BIT) : 0x0);
+
 
 	if (str.EIS) {
 		str.status = (int8_t)
-			fdma_store_and_enqueue_default_frame_fqid(
-				str.qd_fqid, flags);
+				fdma_enqueue_default_fd_fqid(
+					str.icid,
+					flags,
+					str.qd_fqid);
+
 	} else{
 		qdp.qd = (uint16_t)(str.qd_fqid);
 		qdp.qdbin = str.qdbin;
 		qdp.qd_priority = str.qd_priority;
 		str.status = (int8_t)
-			fdma_store_and_enqueue_default_frame_qd(
-					&qdp, flags);
+					fdma_enqueue_default_fd_qd(
+						str.icid,
+						flags,
+						&qdp);
+
 	}
 	fdma_terminate_task();
 }
