@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
+#include "general.h"
 #include "common/types.h"
 #include "common/fsl_string.h"
 #include "common/fsl_stdarg.h"
@@ -292,6 +292,14 @@ static int global_sys_init(void)
 	if (err != 0) return err;
 
 	return 0;
+}
+
+void sys_yeild(void)
+{
+	if(!sys.runtime_flag)
+	{
+		__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
+	}
 }
 
 /*****************************************************************************/
