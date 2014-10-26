@@ -1,3 +1,7 @@
+- fsl_soc_spec_ls2085a.h:  Update UART offset ( + 0x4000 ). The following flags must be removed from simulator initialization cfg file:
+                           duart1.use_ls2_reg_definition=false
+                           duart2.use_ls2_reg_definition=false
+
 - ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
 - cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
 - cmdif_srv_flib.c       Placed user error checks under #ifdef DEBUG
