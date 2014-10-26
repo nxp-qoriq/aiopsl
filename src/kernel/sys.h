@@ -92,6 +92,6 @@ void    sys_free_multi_processing(void);
 
 void    sys_register_debugger_console(void);
 
-void	sys_yeild(void);
+void	sys_yield(void);
 
 #endif /* __SYS_H */

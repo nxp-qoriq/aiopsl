@@ -294,7 +294,7 @@ static int global_sys_init(void)
 	return 0;
 }
 
-void sys_yeild(void)
+void sys_yield(void)
 {
 	if(!sys.runtime_flag)
 	{
