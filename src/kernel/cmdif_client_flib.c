@@ -217,6 +217,8 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 #ifdef DEBUG
 	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
+	if ((cmd_id & CMDIF_ASYNC_CMD) && (size < sizeof(struct cmdif_async)))
+		return -EINVAL;
 #endif
 	
 	dev = (struct cmdif_dev *)cidesc->dev;
