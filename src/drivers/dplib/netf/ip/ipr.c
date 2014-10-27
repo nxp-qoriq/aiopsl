@@ -903,7 +903,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->status |= RFDC_STATUS_NOT_ECT;
 		}
 		else if ((ipv6hdr_ptr->vsn_traffic_flow & IPV6_ECN)
-				== CE) {
+				== IPV6_ECN) {
+			/* CE code */
 			if (rfdc_ptr->status & RFDC_STATUS_NOT_ECT)
 				return MALFORMED_FRAG;
 			rfdc_ptr->status |= RFDC_STATUS_CE;
@@ -1165,6 +1166,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 
 uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 {
+	uint8_t		new_tos;
 	uint16_t	ipv4hdr_offset;
 	uint16_t	new_total_length;
 	uint16_t	ip_hdr_cksum;
@@ -1191,6 +1193,17 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 					 new_total_length);
 	ipv4hdr_ptr->total_length = new_total_length;
 
+	/* Set CE code in ECN field if required */
+	if ((rfdc_ptr->status & RFDC_STATUS_CE) &&
+			((ipv4hdr_ptr->tos & IPV4_ECN) != CE)) {
+		new_tos = ipv4hdr_ptr->tos | CE;
+		ip_hdr_cksum = cksum_accumulative_update_uint32(
+					 ip_hdr_cksum,
+					 ipv4hdr_ptr->tos,
+					 new_tos);
+		ipv4hdr_ptr->tos = new_tos;
+	}		
+	
 	new_flags_and_offset = ipv4hdr_ptr->flags_and_offset & RESET_MF_BIT;
 	ip_hdr_cksum = cksum_accumulative_update_uint32(
 				 ip_hdr_cksum,
@@ -1255,6 +1268,10 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	ipv6_payload_length = rfdc_ptr->current_total_length +
 				ipv6_frag_extension_size;
 	ipv6hdr_ptr->payload_length = ipv6_payload_length;
+	/* Set CE code in ECN field if required, even if it was already CE */
+	if (rfdc_ptr->status & RFDC_STATUS_CE)
+		ipv6hdr_ptr->vsn_traffic_flow |= IPV6_ECN;
+
 	/* Move next header of fragment header to previous extension header */
 	*(uint8_t *)(ipv6_last_header(ipv6hdr_ptr, LAST_HEADER_BEFORE_FRAG) &
 			0x7FFFFFFF) = ipv6fraghdr_ptr->next_header;
