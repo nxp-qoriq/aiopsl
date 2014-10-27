@@ -147,7 +147,7 @@
 *//***************************************************************************/
 enum cdma_errors {
 		/** Success. */
-	CDMA_SUCCESS = E_OK,
+	CDMA_SUCCESS = 0,
 		/** Failed due to buffer pool depletion. */
 	CDMA_BUFFER_POOL_DEPLETION_ERR = 0x2,
 		/** Decrement reference count caused the reference count to

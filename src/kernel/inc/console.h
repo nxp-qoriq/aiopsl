@@ -56,7 +56,7 @@
  @Param[in]     f_ConsolePrint  - Console routine for printing characters.
  @Param[in]     f_ConsoleGet    - Console routine for reading characters.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 
  @Cautions      Only a single console is supported. The existing console must
                 be unregistered before a new one is registered.
@@ -70,7 +70,7 @@ int sys_register_console(fsl_handle_t    h_console_dev,
 
  @Description   Unregister the existing system console.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int sys_unregister_console(void);
 

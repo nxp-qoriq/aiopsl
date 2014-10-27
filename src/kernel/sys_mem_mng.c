@@ -82,7 +82,7 @@ int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64
 #endif /* AIOP */
     p_virt_mem_map = (t_sys_virt_mem_map *)fsl_os_malloc(sizeof(t_sys_virt_mem_map));
     if (!p_virt_mem_map)
-        RETURN_ERROR(MAJOR, E_NO_MEMORY, ("virtual memory mapping entry"));
+        RETURN_ERROR(MAJOR, ENOMEM, ("virtual memory mapping entry"));
 
     p_virt_mem_map->virt_addr = virt_addr;
     p_virt_mem_map->phys_addr = phys_addr;
@@ -102,7 +102,7 @@ int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64
     spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
 #endif /* AIOP */
     
-    return E_OK;
+    return 0;
 }
 
 
@@ -115,7 +115,7 @@ int sys_unregister_virt_mem_mapping(uint64_t virt_addr)
     t_sys_virt_mem_map *p_virt_mem_map = sys_find_virt_addr_mapping(virt_addr);
 
     if (!p_virt_mem_map)
-        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("virtual address"));
+        RETURN_ERROR(MAJOR, EAGAIN, ("virtual address"));
 #ifdef AIOP
     lock_spinlock(&(sys.virt_mem_lock));
 #else /* not AIOP */
@@ -129,7 +129,7 @@ int sys_unregister_virt_mem_mapping(uint64_t virt_addr)
     spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
 #endif /* AIOP */
     
-    return E_OK;
+    return 0;
 }
 
 
@@ -310,7 +310,7 @@ int sys_register_mem_partition(int        partition_id,
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        RETURN_ERROR(MAJOR, E_INVALID_VALUE,
+        RETURN_ERROR(MAJOR, EDOM,
                      ("partition ID %d is reserved for default heap",
                       SYS_DEFAULT_HEAP_PARTITION));
     }
@@ -321,7 +321,7 @@ int sys_register_mem_partition(int        partition_id,
         is_heap_partition = 1;
 
         if (f_user_malloc || f_user_free)
-            RETURN_ERROR(MAJOR, E_INVALID_OPERATION,
+            RETURN_ERROR(MAJOR, ENOSYS,
                          ("cannot override malloc/free routines of default heap"));
 
         f_user_malloc = sys_aligned_malloc;
@@ -337,7 +337,7 @@ int sys_register_mem_partition(int        partition_id,
                                         f_user_malloc,
                                         f_user_free,
                                         enable_debug);
-    if (err_code != E_OK)
+    if (err_code != 0)
     {
         RETURN_ERROR(MAJOR, err_code, NO_MSG);
     }
@@ -348,7 +348,7 @@ int sys_register_mem_partition(int        partition_id,
         sys.heap_partition_id = partition_id;
     }
 
-    return E_OK;
+    return 0;
 }
 
 
@@ -376,7 +376,7 @@ int sys_unregister_mem_partition(int partition_id)
 
     err_code = mem_mng_unregister_partition(sys.mem_mng, partition_id);
 
-    if (err_code != E_OK)
+    if (err_code != 0)
     {
         RETURN_ERROR(MAJOR, err_code, NO_MSG);
     }
@@ -387,7 +387,7 @@ int sys_unregister_mem_partition(int partition_id)
         sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
     }
 
-    return E_OK;
+    return 0;
 }
 
 
@@ -406,7 +406,7 @@ uint64_t sys_get_mem_partition_base(int partition_id)
 
     err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
 
-    if (err_code != E_OK)
+    if (err_code != 0)
     {
         REPORT_ERROR(MAJOR, err_code, NO_MSG);
         return (uint32_t)ILLEGAL_BASE;
@@ -431,7 +431,7 @@ uint32_t sys_get_mem_partition_attributes(int partition_id)
 
     err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
 
-    if (err_code != E_OK)
+    if (err_code != 0)
     {
         REPORT_ERROR(MAJOR, err_code, NO_MSG);
         return (uint32_t)0;
@@ -510,7 +510,7 @@ int sys_init_memory_management(void)
     sys.mem_mng = mem_mng_init(&mem_mng_param);
     if (!sys.mem_mng)
     {
-        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("memory management object"));
+        RETURN_ERROR(MAJOR, EAGAIN, ("memory management object"));
     }
 
     /* Temporary allocation for identifying the default heap region */
@@ -519,7 +519,7 @@ int sys_init_memory_management(void)
 
     sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
 
-    return E_OK;
+    return 0;
 }
 
 
@@ -545,7 +545,7 @@ int sys_free_memory_management(void)
         sys.mem_mng = NULL;
     }
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -613,7 +613,7 @@ static void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
     alloc_addr = (uintptr_t)sys_default_malloc(size + alignment);
     if (alloc_addr == 0)
     {
-        REPORT_ERROR(MINOR, E_NO_MEMORY, ("default heap"));
+        REPORT_ERROR(MINOR, ENOMEM, ("default heap"));
         return NULL;
     }
 

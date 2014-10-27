@@ -76,7 +76,7 @@
  @Param[in]     base    - Base address of the MM.
  @Param[in]     size    - Size of the MM.
 
- @Return        E_OK is returned on success. E_NOMEMORY is returned if the new MM object or a new free block can not be initialized.
+ @Return        0 is returned on success. E_NOMEMORY is returned if the new MM object or a new free block can not be initialized.
 *//***************************************************************************/
 int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size);
 
@@ -113,7 +113,7 @@ uint64_t slob_get_base(fsl_handle_t slob);
  @Param[in]     base    - Base address of the memory block.
  @Param[in]     size    - Size of the memory block.
 
- @Return        E_OK on success, otherwise returns an error code.
+ @Return        0 on success, otherwise returns an error code.
 *//***************************************************************************/
 int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size);
 

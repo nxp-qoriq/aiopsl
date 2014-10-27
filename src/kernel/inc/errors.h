@@ -43,7 +43,15 @@
 
 
 //TODO: obsolete - do not use in new code !!!
-
+#define E_INVALID_STATE       111    /* TODO: obsolete - do not use in new code*/
+#define E_INVALID_SELECTION   112    /* TODO: obsolete - do not use in new code*/
+#define E_CONFLICT            113    /* TODO: obsolete - do not use in new code*/
+#define E_NOT_FOUND           114    /* TODO: obsolete - do not use in new code*/
+#define E_FULL                115    /* TODO: obsolete - do not use in new code*/
+#define E_EMPTY               116    /* TODO: obsolete - do not use in new code*/
+#define E_ALREADY_FREE        117    /* TODO: obsolete - do not use in new code*/
+#define E_READ_FAILED         118    /* TODO: obsolete - do not use in new code*/
+#define E_INVALID_FRAME       119    /* TODO: obsolete - do not use in new code*/
 
 /**************************************************************************//**
 @Function      fsl_os_exit
@@ -53,7 +61,6 @@
 @Param[in]     status - exit status
 *//***************************************************************************/
 void    fsl_os_exit(int status);
-
 /**************************************************************************//**
  @Collection    Debug Levels for Errors and Events
 
@@ -145,7 +152,7 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 extern const char *dbg_level_strings[];
 extern const char *module_strings[];
 
-char * err_type_strings (enum error_type err);
+char * err_type_strings (int err);
 
 #define ERROR_CODE(_err)    (_err)
 #define GET_ERROR_TYPE(_err)    (_err)
@@ -157,7 +164,7 @@ char * err_type_strings (enum error_type err);
                      dbg_level_strings[REPORT_LEVEL_##_level - 1], \
                      module_strings[__ERR_MODULE__ >> 16], \
                      PRINT_FMT_PARAMS, \
-                     err_type_strings((enum error_type)GET_ERROR_TYPE(_err))); \
+                     err_type_strings((int)GET_ERROR_TYPE(_err))); \
             fsl_os_print _vmsg; \
             fsl_os_print("\r\n"); \
         } \
@@ -221,7 +228,7 @@ char * err_type_strings (enum error_type err);
 #define CHECK_INIT_PARAMETERS(handle, cfg, params, f_check) \
     do { \
         int err = f_check(handle, cfg, params); \
-        if (err != E_OK) { \
+        if (err != 0) { \
             RETURN_ERROR(MAJOR, err, NO_MSG); \
         } \
     } while (0)
@@ -229,7 +236,7 @@ char * err_type_strings (enum error_type err);
 #define CHECK_INIT_PARAMETERS_RETURN_VALUE(handle, cfg, params, f_check, retval) \
     do { \
         int err = f_check(handle, cfg, params); \
-        if (err != E_OK) { \
+        if (err != 0) { \
             REPORT_ERROR(MAJOR, err, NO_MSG); \
             return (retval); \
         } \

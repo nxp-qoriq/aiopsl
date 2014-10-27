@@ -186,7 +186,7 @@ int sys_register_mem_partition(int        partition_id,
 
  @Param[in]     partitionId     - Memory partition ID
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int sys_unregister_mem_partition(int partition_id);
 
