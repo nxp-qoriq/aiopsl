@@ -310,7 +310,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr);
 
 void ipr_stats_update(struct ipr_instance instance_params,
-		      uint32_t counter_offset);
+		      uint32_t counter_offset, uint32_t frame_is_ipv4);
 
 
 /**************************************************************************//**

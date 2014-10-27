@@ -452,7 +452,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					ipr_stats_update(
 					   instance_params,
 					   offsetof(struct extended_stats_cntrs,
-					   open_reass_frms_exceed_ipv4_cntr)
+					   open_reass_frms_exceed_ipv4_cntr),
+					   frame_is_ipv4
 					   );
 				    /* Release acquired buffer */
 				    cdma_release_context_memory(rfdc_ext_addr);
@@ -495,8 +496,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				    ipr_stats_update(
 					   instance_params,
 					   offsetof(struct extended_stats_cntrs,
-					   open_reass_frms_exceed_ipv6_cntr)
-					   );
+					   open_reass_frms_exceed_ipv4_cntr),
+					   frame_is_ipv4);
 			    /* Release acquired buffer */
 			    cdma_release_context_memory(rfdc_ext_addr);
 			    /* Handle ordering scope */
@@ -568,22 +569,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
-		if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN) {
-			if(frame_is_ipv4)
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
-						more_than_64_frags_ipv4_cntr),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-			else
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
-						more_than_64_frags_ipv6_cntr),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-		}
 		/* Release RFDC, unlock, dec ref_cnt, release if 0 */
 		cdma_access_context_memory(
 				  rfdc_ext_addr,
@@ -596,6 +581,12 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 		/* Handle ordering scope */
 		move_to_correct_ordering_scope1(osm_status);
+
+		ipr_stats_update(instance_params,
+				 offsetof(struct extended_stats_cntrs,
+					  more_than_64_frags_ipv4_cntr),
+				 frame_is_ipv4);
+
 		return IPR_MALFORMED_FRAG;
 	}
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
@@ -645,24 +636,13 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				       rfdc_ext_addr,
 				       &rfdc,
 				       RFDC_SIZE);
-		if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN) {
-			/* Increment no of valid fragments in extended
-			 * statistics data structure*/
-			if (frame_is_ipv4)
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
+		/* Increment no of valid fragments in extended
+		 * statistics data structure*/
+		ipr_stats_update(instance_params,
+				 offsetof(struct extended_stats_cntrs,
 					  valid_frags_cntr_ipv4),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-			else
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
-					  valid_frags_cntr_ipv6),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-		}
+					  frame_is_ipv4);
+
 		return IPR_REASSEMBLY_NOT_COMPLETED;
 	case LAST_FRAG_IN_ORDER:
 		closing_in_order(rfdc_ext_addr, rfdc.num_of_frags);
@@ -679,24 +659,13 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				       &rfdc,
 				       RFDC_SIZE);
 
-		if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN) {
-			/* Increment no of malformed frames in extended
-			 * statistics data structure*/
-			if (frame_is_ipv4)
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
+		/* Increment no of malformed frames in extended
+		 * statistics data structure*/
+		ipr_stats_update(instance_params,
+				 offsetof(struct extended_stats_cntrs,
 					  malformed_frags_cntr_ipv4),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-			else
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
-					  malformed_frags_cntr_ipv6),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-		}
+				 frame_is_ipv4);
+
 
 		return IPR_MALFORMED_FRAG;
 		break;
@@ -705,24 +674,12 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* default frame is now the full reassembled frame */
 
-	if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN) {
-		/* Increment no of valid fragments in extended statistics
-		 * data structure*/
-		if (frame_is_ipv4)
-			ste_inc_counter(
-				  instance_params.extended_stats_addr +
-				  offsetof(struct extended_stats_cntrs,
+	/* Increment no of valid fragments in extended statistics
+	 * data structure*/
+	ipr_stats_update(instance_params,
+			 offsetof(struct extended_stats_cntrs,
 				  valid_frags_cntr_ipv4),
-				  1,
-				  STE_MODE_32_BIT_CNTR_SIZE);
-		else
-			ste_inc_counter(
-				  instance_params.extended_stats_addr +
-				  offsetof(struct extended_stats_cntrs,
-				  valid_frags_cntr_ipv6),
-				  1,
-				  STE_MODE_32_BIT_CNTR_SIZE);
-	}
+			 frame_is_ipv4);
 
 	/* Delete timer */
 	timer_status = tman_delete_timer(rfdc.timer_handle,
@@ -839,24 +796,12 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	} else {
 		/* Error fragment */
 		move_to_correct_ordering_scope1(osm_status);
-		if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN) {
-			/* Increment no of malformed frames in extended
-			 * statistics data structure*/
-			if (frame_is_ipv4)
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
+		/* Increment no of malformed frames in extended
+		 * statistics data structure*/
+		ipr_stats_update(instance_params,
+				 offsetof(struct extended_stats_cntrs,
 					  malformed_frags_cntr_ipv4),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-			else
-				ste_inc_counter(
-					  instance_params.extended_stats_addr +
-					  offsetof(struct extended_stats_cntrs,
-					  malformed_frags_cntr_ipv6),
-					  1,
-					  STE_MODE_32_BIT_CNTR_SIZE);
-		}
+				 frame_is_ipv4);
 
 		return IPR_MALFORMED_FRAG;
 	}
@@ -1604,13 +1549,11 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				num_of_open_reass_frames_ipv6),
 				1,
 				STE_MODE_32_BIT_CNTR_SIZE);
-		/* Increment no of frames in TO stats */
-		if(instance_params.flags & IPR_MODE_EXTENDED_STATS_EN)
-			ste_inc_counter(instance_params.extended_stats_addr +
-					offsetof(struct extended_stats_cntrs,
-						 time_out_ipv6_cntr),
-					1,
-					STE_MODE_32_BIT_CNTR_SIZE);
+		/* Increment no of frames in IPv6 TO stats */
+		ipr_stats_update(instance_params,
+				 offsetof(struct extended_stats_cntrs,
+						 time_out_ipv4_cntr),
+				 0);
 	} else { /* IPv4 */
 		/* Decrement no of IPv4 open frames in instance data structure*/
 		ste_dec_counter(rfdc.instance_handle + \
@@ -1620,12 +1563,10 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				1,
 				STE_MODE_32_BIT_CNTR_SIZE);
 		/* Increment no of frames in TO stats */
-		if(instance_params.flags & IPR_MODE_EXTENDED_STATS_EN)
-			ste_inc_counter(instance_params.extended_stats_addr +
-					offsetof(struct extended_stats_cntrs,
+		ipr_stats_update(instance_params,
+				 offsetof(struct extended_stats_cntrs,
 						 time_out_ipv4_cntr),
-					1,
-					STE_MODE_32_BIT_CNTR_SIZE);
+				 1);
 	}
 
 	/* Reset valid indication in RFDC */
@@ -2051,14 +1992,22 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 }
 
 void ipr_stats_update(struct ipr_instance instance_params,
-		      uint32_t counter_offset)
+		      uint32_t counter_offset, uint32_t frame_is_ipv4)
 {
-	if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN)
-		ste_inc_counter(instance_params.extended_stats_addr +
-				counter_offset,
-				1,
-				STE_MODE_32_BIT_CNTR_SIZE);
+	if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN) {
+		if (frame_is_ipv4)
+			ste_inc_counter(instance_params.extended_stats_addr +
+					counter_offset,
+					1,
+					STE_MODE_32_BIT_CNTR_SIZE);
+		else
+			ste_inc_counter(instance_params.extended_stats_addr +
+					counter_offset+4,
+					1,
+					STE_MODE_32_BIT_CNTR_SIZE);
+
 	return;
+	}
 }
 
 
