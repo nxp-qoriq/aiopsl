@@ -219,7 +219,7 @@ typedef int (t_rx_conf_ipc_port_function)(fsl_handle_t h_ipc_port,
 
  @Param[in]     p_platform_params - Pointer to platform early configuration parameters.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_early_init(struct platform_param *p_platform_params);
 
@@ -233,7 +233,7 @@ int platform_early_init(struct platform_param *p_platform_params);
  @Param[out]    p_platform_ops   - Pointer to platform operations structure,
                                   that should be filled by this routine.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_init(struct platform_param    *p_platform_param,
                         t_platform_ops             *p_platform_ops);
@@ -245,7 +245,7 @@ int platform_init(struct platform_param    *p_platform_param,
 
  @Param[in]     h_platform - Platform object handle.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_free(fsl_handle_t h_platform);
 
@@ -257,7 +257,7 @@ int platform_free(fsl_handle_t h_platform);
  @Param[in]     h_platform      - Platform object handle.
  @Param[out]    p_chip_rev_info   - Returns the revision information structure.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_get_chip_rev_info(fsl_handle_t h_platform, t_chip_rev_info *p_chip_rev_info);
 
@@ -382,7 +382,7 @@ char * platform_get_transaction_source_name(fsl_handle_t h_platform, e_trans_src
  @Param[out]    p_base_addr  - Returns the physical base address of the local access window
  @Param[out]    p_size      - Returns the size of the local access window
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_get_local_access_window_info(fsl_handle_t      h_platform,
                                           enum fsl_os_module   module,
@@ -399,7 +399,7 @@ int platform_get_local_access_window_info(fsl_handle_t      h_platform,
  @Param[in]     led         - LED color selection
  @Param[in]     led_on       - '1' to turn the LED on; '0' to turn it off.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_set_led(fsl_handle_t h_platform, e_led_color led, int led_on);
 #endif /* 0 */
@@ -411,7 +411,7 @@ int platform_set_led(fsl_handle_t h_platform, e_led_color led, int led_on);
 
  @Param[in]     h_platform  - Platform object handle.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_init_mac_for_mii_access(fsl_handle_t h_platform);
 
@@ -423,7 +423,7 @@ int platform_init_mac_for_mii_access(fsl_handle_t h_platform);
 
  @Param[in]     h_platform  - Platform object handle.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_free_mac_for_mii_access(fsl_handle_t h_platform);
 
@@ -443,7 +443,7 @@ int platform_free_mac_for_mii_access(fsl_handle_t h_platform);
 @Param[in]      ext_req_num       - External request number.
 
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_connect_external_request(fsl_handle_t            h_platform,
                                         enum fsl_os_module         module,
@@ -459,7 +459,7 @@ int platform_connect_external_request(fsl_handle_t            h_platform,
 
  @Param[in]     h_platform - Platform object handle.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_enable_console(fsl_handle_t h_platform);
 
@@ -470,7 +470,7 @@ int platform_enable_console(fsl_handle_t h_platform);
 
  @Param[in]     h_platform - Platform object handle.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_disable_console(fsl_handle_t h_platform);
 
@@ -483,7 +483,7 @@ int platform_disable_console(fsl_handle_t h_platform);
  @Param[in]     module     - Controller object type (usually a sub-module type)
  @Param[in]     id         - Controller object identifier
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_set_serdes_loopback (fsl_handle_t    h_platform,
                                     enum fsl_os_module module,
@@ -498,7 +498,7 @@ int platform_set_serdes_loopback (fsl_handle_t    h_platform,
  @Param[in]     module     - Controller object type (usually a sub-module type)
  @Param[in]     id         - Controller object identifier
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
                                      enum fsl_os_module module,
@@ -612,7 +612,7 @@ static __inline__ uint32_t sys_get_system_bus_clk(void)
 
  @Param[out]    p_chip_rev_info - Returns the revision information structure.
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 static __inline__ fsl_err_t sys_get_chip_rev_info(t_chip_rev_info *p_chip_rev_info)
 {

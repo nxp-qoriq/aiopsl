@@ -665,7 +665,7 @@
 *//***************************************************************************/
 enum fdma_hw_errors {
 		/** Success. */
-	FDMA_SUCCESS = E_OK,
+	FDMA_SUCCESS = 0,
 		/** Enqueue failed due to QMan enqueue rejection. */
 	FDMA_ENQUEUE_FAILED_ERR = 0x1,
 		/** Failed due to buffer pool depletion. */
