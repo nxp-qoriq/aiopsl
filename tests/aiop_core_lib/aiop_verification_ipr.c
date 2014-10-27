@@ -279,7 +279,7 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
 	if (arg == 0)
 		return;
 	cdma_read((void *)&str, arg,
-			(uint16_t)sizeof(struct fdma_enqueue_wf_command));
+			(uint16_t)sizeof(struct ipr_fdma_enqueue_wf_command));
 
 	/* Change length to be 1 */
 	fdma_store_default_frame_data();
