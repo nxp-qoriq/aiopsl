@@ -231,7 +231,7 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
+__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 {
 	struct     cmdif_dev *dev = NULL;
 	uint64_t   fd_dev         = 0;
@@ -265,6 +265,5 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
 	                fd->u_flc.cmd.err,
 	                cmd_id,
 	                fd->d_size,
-	                (void *)((v_addr != NULL) ? \
-	                	v_addr : fd->u_addr.d_addr));	
+	                (void *)fd->u_addr.d_addr);	
 }
