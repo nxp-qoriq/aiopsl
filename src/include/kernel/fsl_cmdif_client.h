@@ -196,6 +196,8 @@ int cmdif_close(struct cmdif_desc *cidesc);
 		will be used inside command.
 		This address should be accessible by Server and Client.
 		It should be virtual address that belongs to current SW context.
+		In case of asynchronous command last 16 bytes must be reserved 
+		for cmdif usage.
 @Param[in]	async_cb	Callback to be called on response of
 		asynchronous command.
 @Param[in]	async_ctx	Context to be received with asynchronous
