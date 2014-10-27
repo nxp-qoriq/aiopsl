@@ -92,7 +92,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			(*tmi_state_ptr != TMAN_TMI_ACTIVE))
 	{
 		/* YIELD. May not be optimized due to CTS behavior*/
-		__e_hwacceli(YIELD_ACCEL_ID);
+		sys_yield();
 	}
 	/* Reading TMEV register value is due to Errata ERR008234 */
 	if ((*tmi_state_ptr == TMAN_TMI_BUS_ERR) ||
@@ -149,7 +149,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	while ((*tmi_statsntc_ptr != 0) && (*tmi_statsnccp_ptr != 0))
 	{
 		/* YIELD. May not be optimized due to CTS behavior*/
-		__e_hwacceli(YIELD_ACCEL_ID);
+		sys_yield();
 #ifdef SL_DEBUG
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
