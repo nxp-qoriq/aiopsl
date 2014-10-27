@@ -157,6 +157,8 @@ struct ipr_params {
 struct extended_stats_cntrs {
 		/** Counts the number of valid IPv4 fragments handled */
 	uint32_t	valid_frags_cntr_ipv4;
+		/** Counts the number of valid IPv6 fragments handled */
+	uint32_t	valid_frags_cntr_ipv6;
 		/** Counts the number of malformed IPv4 fragments handled
 		     malformed fragments are:\n
 		     -duplicate,\n
@@ -177,18 +179,6 @@ struct extended_stats_cntrs {
 		      fragment of this IP packet to be reassembled has the
 		      Not-ECT codepoint */
 	uint32_t	malformed_frags_cntr_ipv4;
-		/** Counts the number of times the re-assembly process can't
-		     start since the number of open IPv4 reassembled frames
-		     has exceeded the ipr_config::maximum_open_frames_ipv4. */
-	uint32_t	open_reass_frms_exceed_ipv4_cntr;
-		/** Counts the number of times the re-assembly process came up
-		     against more than 64 fragments per IPv4 frame.*/
-	uint32_t	more_than_64_frags_ipv4_cntr;
-		/** Counts the number of times the re-assembly process of
-		     an IPv4 frame stopped due to Time Out occurrence.*/
-	uint32_t	time_out_ipv4_cntr;
-		/** Counts the number of valid IPv6 fragments handled */
-	uint32_t	valid_frags_cntr_ipv6;
 		/** Counts the number of malformed IPv6 fragments handled
 		     malformed fragments are:
 		     -duplicate,\n
@@ -210,19 +200,25 @@ struct extended_stats_cntrs {
 		      Not-ECT codepoint */
 	uint32_t	malformed_frags_cntr_ipv6;
 		/** Counts the number of times the re-assembly process can't
+		     start since the number of open IPv4 reassembled frames
+		     has exceeded the ipr_config::maximum_open_frames_ipv4. */
+	uint32_t	open_reass_frms_exceed_ipv4_cntr;
+		/** Counts the number of times the re-assembly process can't
 		     start since the number of open IPv6 reassembled frames
 		     has exceeded the ipr_config::maximum_open_frames_ipv6. */
 	uint32_t	open_reass_frms_exceed_ipv6_cntr;
 		/** Counts the number of times the re-assembly process came up
+		     against more than 64 fragments per IPv4 frame.*/
+	uint32_t	more_than_64_frags_ipv4_cntr;
+		/** Counts the number of times the re-assembly process came up
 		     against more than 64 fragments per IPv6 frame.*/
 	uint32_t	more_than_64_frags_ipv6_cntr;
 		/** Counts the number of times the re-assembly process of
+		     an IPv4 frame stopped due to Time Out occurrence.*/
+	uint32_t	time_out_ipv4_cntr;
+		/** Counts the number of times the re-assembly process of
 		     an IPv6 frame stopped due to time out occurrence.*/
 	uint32_t	time_out_ipv6_cntr;
-		/** Counts the number of times the re-assembly process
-		     couldn't start due to lack of allocated buffers in the
-		     ipr_config::bman_pool_id.*/
-	uint32_t	no_free_buffer_cntr;
 };
 
 /** @} */ /* end of group IPR_STRUCTS */
