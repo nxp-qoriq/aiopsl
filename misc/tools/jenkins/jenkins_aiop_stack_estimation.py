@@ -12,17 +12,17 @@ def check_if_file_exists(filename):
 
 if __name__ == "__main__":
 	
-	print "Start script to check stack estimation in AIPO"
+	print "Start script to check stack estimation in AIOP"
 
-	if check_if_file_exists("build/aiop_sim/test/aiopsl_stack_estimation/out/aiop_app.MAP") == False:
+	if check_if_file_exists("build/aiop_sim/tests/aiopsl_stack_estimation/out/aiop_app.MAP") == False:
 		exit(1)
 
 
-	ins = open( "build/aiop_sim/test/aiopsl_stack_estimation/out/aiop_app.MAP", "r" )
+	ins = open( "build/aiop_sim/tests/aiopsl_stack_estimation/out/aiop_app.MAP", "r" )
 
 	append_line = False
 	counter = 0
-	aiposl_stack_estimation = []
+	aiopsl_stack_estimation = []
 	for line in ins:
 		if "ESTIMATED STACK USAGE" in line:
 			append_line = True
@@ -30,13 +30,13 @@ if __name__ == "__main__":
 		if append_line:
 			if "---------------------" in line:
 				counter = counter + 1
-			aiposl_stack_estimation.append( line )
+			aiopsl_stack_estimation.append( line )
 		if counter == 2:
 			break
 	ins.close()
 
 	print "[INFO]: Stack estimation data:"
-	for line in aiposl_stack_estimation:
+	for line in aiopsl_stack_estimation:
 		print "[INFO]:" + line
 
 
