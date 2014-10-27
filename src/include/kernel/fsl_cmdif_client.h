@@ -142,10 +142,6 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 		Only cidesc.regs must be set by user see \ref struct cmdif_desc.
 @Param[in]	module_name	Module name, up to 8 characters.
 @Param[in]	instance_id	Instance id which will be passed to #open_cb_t
-@Param[in]	async_cb	Callback to be called on response of
-		asynchronous command.
-@Param[in]	async_ctx	Context to be received with asynchronous
-		command response inside async_cb().
 @Param[in]	data		Buffer to be used by command interface.
 		This address should be accessible by Server and Client.
 		This buffer can be freed only after cmdif_close().
@@ -159,8 +155,6 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t instance_id,
-		cmdif_cb_t async_cb,
-		void *async_ctx,
 		void *data,
 		uint32_t size);
 
@@ -202,6 +196,10 @@ int cmdif_close(struct cmdif_desc *cidesc);
 		will be used inside command.
 		This address should be accessible by Server and Client.
 		It should be virtual address that belongs to current SW context.
+@Param[in]	async_cb	Callback to be called on response of
+		asynchronous command.
+@Param[in]	async_ctx	Context to be received with asynchronous
+		command response inside async_cb().
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -209,7 +207,9 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		int priority,
-		uint64_t data);
+		uint64_t data,
+		cmdif_cb_t *async_cb,
+		void *async_ctx);
 
 /**************************************************************************//**
 @Function	cmdif_resp_read

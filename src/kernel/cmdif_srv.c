@@ -382,22 +382,7 @@ __HOT_CODE static void amq_bits_update(int ind)
 		dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
 }
 
-static inline int find_session()
-{
-	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
-	int i;
-	
-	if (cl->count >= CMDIF_MN_SESSIONS)
-		return -ENOMEM;
-	
-	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if (cl->gpp[i].dev->auth_id == CMDIF_FREE_SESSION) 
-			return i;		
-	}
-	
-	return -ENOENT;
-}
-
+/* Support for AIOP -> GPP */
 __HOT_CODE static int notify_open()
 {
 	struct cmdif_session_data *data = \
@@ -460,7 +445,19 @@ __HOT_CODE static int notify_open()
 	/* Create descriptor for client session */
 	ASSERT_COND(cl != NULL);
 	lock_spinlock(&cl->lock);
-	free_ind = find_session();
+	
+#ifdef DEBUG
+	/* Don't allow to open the same session twice */
+	free_ind = cmdif_cl_session_get(cl, data->m_name, 
+	                                data->inst_id, data->dev_id);
+	if (free_ind >= 0) {
+		pr_err("The session already exists\n");
+		unlock_spinlock(&cl->lock);
+		return -EEXIST;
+	}
+#endif
+
+	free_ind = cmdif_cl_free_session_get(cl);
 	if (free_ind < 0) {
 		pr_err("Too many sessions\n");
 		unlock_spinlock(&cl->lock);
@@ -493,13 +490,29 @@ __HOT_CODE static int notify_open()
 	return 0;
 }
 
+/* Support for AIOP -> GPP */
 static int notify_close()
-{
-	/* Support for AIOP -> GPP */
+{	
+	struct cmdif_session_data *data = \
+		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	int i = 0; 
 
-	/* TODO find auth_id + dpci in cl->gpp[free_ind].dev */
-	/* TODO set it to FREE_SESSION */
-	return -ENOTSUP;
+	ASSERT_COND(cl != NULL);
+	lock_spinlock(&cl->lock);
+	
+	i = cmdif_cl_auth_id_find(cl, data->auth_id, data->dev_id);
+	
+	/* Set this session entry as free */
+	if (i >= 0) {
+		cl->gpp[i].m_name[0] = CMDIF_FREE_SESSION;
+		
+		unlock_spinlock(&cl->lock);
+		return 0;
+	}
+	
+	unlock_spinlock(&cl->lock);	
+	return -ENAVAIL;
 }
 
 __HOT_CODE void cmdif_srv_isr(void)

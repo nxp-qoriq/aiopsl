@@ -37,6 +37,7 @@
 #include "cmdif_srv.h"
 #include "dplib/fsl_dpci.h"
 #include "fsl_gen.h"
+#include "fsl_string.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
@@ -77,9 +78,10 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 			FL |= FDMA_DMA_BMT_BIT;	\
 	}while(0)
 
-#define CMDIF_MN_SESSIONS	64 /**< Maximal number of sessions */
+#define CMDIF_MN_SESSIONS	(64 << 1) 
+/**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */
 #define CMDIF_NUM_PR		2
-#define CMDIF_FREE_SESSION	(M_NUM_OF_INSTANCES)
+#define CMDIF_FREE_SESSION	'\0'
 
 struct cmdif_reg {
 	uint16_t dpci_token;	/**< Open AIOP dpci device */
@@ -110,5 +112,55 @@ struct cmdif_cl {
 	/**< Lock for adding & removing new entries */
 };
 
+
+static inline int cmdif_cl_free_session_get(struct cmdif_cl *cl)
+{
+	int i;
+	
+	if (cl->count >= CMDIF_MN_SESSIONS)
+		return -ENOSPC;
+	
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if (cl->gpp[i].m_name[0] == CMDIF_FREE_SESSION) 
+			return i;		
+	}
+	
+	return -ENOSPC;
+}
+
+static inline int cmdif_cl_session_get(struct cmdif_cl *cl,
+                                       const char *m_name,
+                                       uint8_t ins_id,
+                                       uint32_t dpci_id)
+{
+	int i; 
+	
+	/* TODO stop searching if passed all open sessions cl->count */
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if ((cl->gpp[i].ins_id == ins_id) &&
+			(cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
+			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
+			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
+			         m_name,
+			         M_NAME_CHARS) == 0))	
+			return i;
+	}
+	return -ENAVAIL;	
+}
+
+static inline int cmdif_cl_auth_id_find(struct cmdif_cl *cl,
+                                       uint16_t auth_id,
+                                       uint32_t dpci_id)
+{
+	int i;
+	
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if ((cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
+			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
+			(cl->gpp[i].dev->auth_id == auth_id))	
+			return i;
+	}
+	return -ENAVAIL;	
+}
 
 #endif /* __CMDIF_CLIENT_H */
