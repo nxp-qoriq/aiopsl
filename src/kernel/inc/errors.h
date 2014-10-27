@@ -55,66 +55,6 @@
 void    fsl_os_exit(int status);
 
 /**************************************************************************//**
- @Description    Error Type Enumeration
-*//***************************************************************************/
-enum error_type    /*   Comments / Associated Message Strings                      */
-{                           /* ------------------------------------------------------------ */
-    E_OK = 0                /*   Never use "RETURN_ERROR" with E_OK; Use "return E_OK;"     */
-    ,E_WRITE_FAILED = EIO   /**< Write access failed on memory/device.                      */
-                            /*   String: none, or device name.                              */
-    ,E_NO_DEVICE = ENODEV   /**< The associated device is not initialized.                  */
-                            /*   String: none.                                              */
-    ,E_NOT_AVAILABLE = EAGAIN
-                            /**< Resource is unavailable.                                   */
-                            /*   String: none, unless the operation is not the main goal
-                                 of the function (in this case add resource description).   */
-    ,E_NO_MEMORY = ENOMEM   /**< External memory allocation failed.                         */
-                            /*   String: description of item for which allocation failed.   */
-    ,E_INVALID_ADDRESS = EFAULT
-                            /**< Invalid address.                                           */
-                            /*   String: description of the specific violation.             */
-    ,E_BUSY = EBUSY         /**< Resource or module is busy.                                */
-                            /*   String: none, unless the operation is not the main goal
-                                 of the function (in this case add resource description).   */
-    ,E_ALREADY_EXISTS = EEXIST
-                            /**< Requested resource or item already exists.                 */
-                            /*   Use when resource duplication or sharing are not allowed.
-                                 String: none, unless the operation is not the main goal
-                                 of the function (in this case add item description).       */
-    ,E_INVALID_OPERATION = ENOSYS
-                            /**< The operation/command is invalid (unrecognized).           */
-                            /*   String: none.                                              */
-    ,E_INVALID_VALUE = EDOM /**< Invalid value.                                             */
-                            /*   Use for non-enumeration parameters, and
-                                 only when other error types are not suitable.
-                                 String: parameter description + "(should be <attribute>)",
-                                 e.g: "Maximum Rx buffer length (should be divisible by 8)",
-                                      "Channel number (should be even)".                    */
-    ,E_NOT_IN_RANGE = ERANGE/**< Parameter value is out of range.                           */
-                            /*   Don't use this error for enumeration parameters.
-                                 String: parameter description + "(should be %d-%d)",
-                                 e.g: "Number of pad characters (should be 0-15)".          */
-    ,E_NOT_SUPPORTED = 100/*ENOTSUP*/
-                            /**< The function is not supported or not implemented.          */
-                            /*   String: none.                                              */
-    ,E_TIMEOUT/* = ETIMEDOUT*/  /**< The operation timed out.                                   */
-                            /*   String: none.                                              */
-
-    ,E_INVALID_STATE           /* TODO: obsolete - do not use in new code*/
-    ,E_INVALID_SELECTION       /* TODO: obsolete - do not use in new code*/
-    ,E_CONFLICT       /* TODO: obsolete - do not use in new code*/
-    ,E_NOT_FOUND       /* TODO: obsolete - do not use in new code*/
-    ,E_FULL       /* TODO: obsolete - do not use in new code*/
-    ,E_EMPTY       /* TODO: obsolete - do not use in new code*/
-    ,E_ALREADY_FREE       /* TODO: obsolete - do not use in new code*/
-    ,E_READ_FAILED       /* TODO: obsolete - do not use in new code*/
-    ,E_INVALID_FRAME       /* TODO: obsolete - do not use in new code*/
-
-    ,E_DUMMY_LAST           /* NEVER USED */
-};
-
-
-/**************************************************************************//**
  @Collection    Debug Levels for Errors and Events
 
                 The level description refers to errors only.
