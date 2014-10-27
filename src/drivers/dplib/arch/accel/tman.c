@@ -288,13 +288,14 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* Optimization: remove 1 cycle using EABI */
 	__stdw(flags, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call TMAN. */
-	__e_hwacceli(TMAN_ACCEL_ID);
+	/* call TMAN. and check if passed. 
+	 * Optimization using compiler pattern*/
+	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
+		return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
+
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
 	/* The order of the error check is according to its frequency */
-	if (!((res1) & TMAN_FAIL_BIT_MASK))
-			return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
 	
 	/* To check if its a TMAN state related error */
 	/* To check if A=0 && CCP=1 */
@@ -360,12 +361,14 @@ int tman_recharge_timer(uint32_t timer_handle)
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call TMAN. */
-	__e_hwacceli(TMAN_ACCEL_ID);
+	/* call TMAN. and check if passed. 
+	 * Optimization using compiler pattern*/
+	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
+		return (int)(TMAN_REC_TMR_SUCCESS);
+
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-	if (!((res1) & TMAN_FAIL_BIT_MASK))
-			return (int)(TMAN_REC_TMR_SUCCESS);
+
 	/* optimization: all the errors except TMI state errors starts with
 	 *  0x08_00XX */
 	if (res1 & TMAN_TMR_REC_STATE_MASK)
