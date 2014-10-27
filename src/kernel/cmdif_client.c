@@ -45,6 +45,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_spinlock.h"
 #include "fsl_io_ccsr.h"
+#include "fsl_icontext.h"
 
 #define CMDIF_TIMEOUT     0x10000000
 
@@ -99,8 +100,6 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 __HOT_CODE static inline int session_get(const char *m_name,
                                   uint8_t ins_id,
                                   uint32_t dpci_id,
-                                  cmdif_cb_t async_cb,
-                                  void *async_ctx,
                                   struct cmdif_desc *cidesc)
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
@@ -120,12 +119,11 @@ __HOT_CODE static inline int session_get(const char *m_name,
 		struct cmdif_dev *dev = (struct cmdif_dev *)cl->gpp[i].dev;
 		cidesc->regs = (void *)cl->gpp[i].regs;
 		cidesc->dev  = (void *)cl->gpp[i].dev;
-		if (dev->async_cb == NULL) {
-			/* Set it only for the first time */
-			dev->async_cb  = async_cb;
-			dev->async_ctx = async_ctx;
-		}
 		unlock_spinlock(&cl->lock);
+		/* Must be here to prevent deadlocks because 
+		 * the same lock is used */
+		icontext_get((uint16_t)dpci_id, \
+		             (struct icontext *)(&cl->gpp[i].dev->reserved[0]));
 		return 0;
 	}
 
@@ -200,8 +198,6 @@ void cmdif_client_free()
 __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t ins_id,
-		cmdif_cb_t async_cb,
-		void *async_ctx,
 		void *data,
 		uint32_t size)
 {
@@ -212,7 +208,8 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 		return -EINVAL; /* Buffers are allocated by GPP */
 #endif
 	
-	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, async_cb, async_ctx, cidesc);
+	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
+	
 	if (err != 0) {
 		pr_err("Session not found\n");
 	}
@@ -232,21 +229,43 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		int pr,
-		uint64_t data)
+		uint64_t data,
+		cmdif_cb_t *async_cb,
+		void *async_ctx)
 {
 	struct   cmdif_fd fd;
 	int      err = 0;
 	int      t   = 0;
+	struct cmdif_async async_data;
+	uint64_t async_p_data = (uint64_t)CMDIF_ASYNC_ADDR_GET(data, size);
+	struct cmdif_dev *dev = NULL;
+	
 #ifdef ARENA_LEGACY_CODE
 	union cmdif_data done;
 #endif
 	
+#ifdef DEBUG
+	if ((cidesc == NULL) || (cidesc->dev == NULL))
+		return -EINVAL;
+#endif	
+
 	if (cmdif_is_sync_cmd(cmd_id))
 		return -ENOTSUP;
-
-	err = cmdif_cmd(cidesc, cmd_id, size, data, &fd);
-	if (err)
-		return -EINVAL;
+	
+	/* 
+	 * AIOP client can't set async callback inside cmdif_cmd() flib because 
+	 * it is not FDMA */
+	dev = (struct cmdif_dev *)cidesc->dev;	
+	CMDIF_CMD_FD_SET(&fd, dev, data, size, cmd_id);
+	
+	/* Write async cb using FDMA */
+	async_data.async_cb  = (uint64_t)async_cb;
+	async_data.async_ctx = (uint64_t)async_ctx;
+	ASSERT_COND(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
+	icontext_dma_write((struct icontext *)(&dev->reserved[0]), 
+	                   sizeof(struct cmdif_async), 
+	                   &async_data, 
+	                   async_p_data);
 
 	err = send_fd(&fd, pr, cidesc->regs);
 	if (err)
@@ -284,16 +303,34 @@ __HOT_CODE void cmdif_cl_isr(void)
 {
 	int err = 0;
 	struct cmdif_fd fd;
+	struct cmdif_async async_data;
+	uint64_t async_p_data = NULL;
+	struct cmdif_dev *dev = NULL;
 
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
-	err = cmdif_async_cb(&fd, (void *)PRC_GET_SEGMENT_ADDRESS());
+	/* Read async cb using FDMA */
+	/* err = cmdif_async_cb(&fd, (void *)PRC_GET_SEGMENT_ADDRESS()); */	
+	async_p_data = (uint64_t)CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, \
+	                                              fd.d_size);
+	dev = (struct cmdif_dev *)CMDIF_DEV_GET(&fd);
+	icontext_dma_read((struct icontext *)(&dev->reserved[0]), 
+	                   sizeof(struct cmdif_async),
+	                   async_p_data,
+	                   &async_data);
+	
+	((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
+                fd.u_flc.cmd.err,
+                CPU_TO_SRV16(fd.u_flc.cmd.cmid),
+                fd.d_size,
+                (void *)PRC_GET_SEGMENT_ADDRESS());
+
 	if (err) {
 		pr_debug("Async callback cmd 0x%x returned error %d", \
-		         fd.u_flc.cmd.cmid, err);
+		         CPU_TO_SRV16(fd.u_flc.cmd.cmid), err);
 	}
 
 	pr_debug("PASSED got async response for cmd 0x%x\n", \

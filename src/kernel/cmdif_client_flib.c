@@ -47,8 +47,6 @@ __HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
 int cmdif_open_cmd(struct cmdif_desc *cidesc,
 			const char *m_name,
 			uint8_t instance_id,
-			cmdif_cb_t async_cb,
-			void *async_ctx,
 			uint8_t *v_data,
 			uint64_t p_data,
 			uint32_t size,
@@ -85,10 +83,8 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	fd->u_frc.frc          = 0;
 	fd->u_addr.d_addr      = p_addr;
 	fd->d_size             = sizeof(union cmdif_data);
-
+	
 	dev = (struct cmdif_dev *)v_data;
-	dev->async_cb  = async_cb;
-	dev->async_ctx = async_ctx;
 	dev->sync_done = v_addr;
 	cidesc->dev    = (void *)dev;
 
@@ -186,10 +182,34 @@ int cmdif_close_done(struct cmdif_desc *cidesc)
 	return cmdif_sync_cmd_done(cidesc);
 }
 
+static inline void async_cb_get(struct cmdif_fd *fd, cmdif_cb_t **async_cb, 
+                         void **async_ctx)
+{
+	struct cmdif_async * async_data = \
+		(struct cmdif_async *)CMDIF_ASYNC_ADDR_GET(fd->u_addr.d_addr, \
+		                                           fd->d_size);
+		
+	*async_cb  = (cmdif_cb_t *)async_data->async_cb;
+	*async_ctx = (void *)async_data->async_ctx;
+}
+
+static inline void async_cb_set(struct cmdif_fd *fd, 
+                         cmdif_cb_t *async_cb, void *async_ctx) 
+{
+	struct cmdif_async * async_data = \
+		(struct cmdif_async *)CMDIF_ASYNC_ADDR_GET(fd->u_addr.d_addr, \
+		                                           fd->d_size);
+	
+	async_data->async_cb  = (uint64_t)async_cb;
+	async_data->async_ctx = (uint64_t)async_ctx;
+}
+
 __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		uint64_t data,
+		cmdif_cb_t *async_cb,
+		void *async_ctx,
 		struct cmdif_fd *fd)
 {
 	struct cmdif_dev *dev = NULL;
@@ -197,33 +217,28 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 #ifdef DEBUG
 	if ((cidesc == NULL) || (cidesc->dev == NULL))
 		return -EINVAL;
+	if ((cmd_id & CMDIF_ASYNC_CMD) && (size < sizeof(struct cmdif_async)))
+		return -EINVAL;
 #endif
 	
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->u_addr.d_addr     = data;
-	fd->d_size            = size;
-	fd->u_flc.flc         = 0;
-	fd->u_flc.cmd.auth_id = dev->auth_id;
-	fd->u_flc.cmd.cmid    = CPU_TO_SRV16(cmd_id);
-	fd->u_flc.cmd.epid    = CPU_TO_BE16(CMDIF_EPID); /* Used by HW */
-	fd->u_flc.cmd.dev_h = (uint8_t)((((uint64_t)dev) & 0xFF00000000) >> 32);
-	fd->u_frc.cmd.dev_l = ((uint32_t)dev);
-
-	/* This is required because flc is a struct but HW treats it as
-	 * 8 byte LE.
-	 * Therefore if CPU is LE which means that swap is not done
-	 * by QMAN driver, we need to do it here */
-	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
-
+	CMDIF_CMD_FD_SET(fd, dev, data, size, cmd_id);
+	
+	if (cmd_id & CMDIF_ASYNC_CMD)
+		async_cb_set(fd, async_cb, async_ctx);
+	
 	return 0;
 }
 
 __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
 {
-	struct   cmdif_dev *dev = NULL;
-	uint64_t fd_dev         = 0;
-
+	struct     cmdif_dev *dev = NULL;
+	uint64_t   fd_dev         = 0;
+	cmdif_cb_t *async_cb      = NULL;
+	void       *async_ctx     = NULL;
+	uint16_t   cmd_id         = 0;
+	
 #ifdef DEBUG
 	if (fd == NULL)
 		return -EINVAL;
@@ -234,17 +249,22 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr)
 	 * Therefore if CPU is LE which means that swap is not done
 	 * by QMAN driver, we need to do it here */
 	fd->u_flc.flc = CPU_TO_BE64(fd->u_flc.flc);
-
-	fd_dev = (uint64_t)(fd->u_frc.cmd.dev_l);
-	fd_dev |= (((uint64_t)(fd->u_flc.cmd.dev_h)) << 32);
-	dev    = (struct cmdif_dev *)fd_dev;
-
-	if (dev->async_cb != NULL)
-		return dev->async_cb(dev->async_ctx,
-				fd->u_flc.cmd.err,
-				CPU_TO_SRV16(fd->u_flc.cmd.cmid),
-				fd->d_size,
-				(void *)((v_addr != NULL) ? v_addr : fd->u_addr.d_addr));
-	else
+	cmd_id = CPU_TO_SRV16(fd->u_flc.cmd.cmid);
+	
+#ifdef DEBUG
+	if (!(cmd_id & CMDIF_ASYNC_CMD))
 		return -EINVAL;
+#endif
+	
+	async_cb_get(fd, &async_cb, &async_ctx);
+	
+	if (async_cb == NULL)
+		return -EINVAL;
+	
+	return async_cb(async_ctx, 
+	                fd->u_flc.cmd.err,
+	                cmd_id,
+	                fd->d_size,
+	                (void *)((v_addr != NULL) ? \
+	                	v_addr : fd->u_addr.d_addr));	
 }
