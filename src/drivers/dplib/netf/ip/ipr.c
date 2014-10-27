@@ -1213,8 +1213,8 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	ipv4hdr_ptr->hdr_cksum = ip_hdr_cksum;
 
-	/* update FDMA with total length and IP header checksum*/
-	fdma_modify_default_segment_data(ipv4hdr_offset+2, 10);
+	/* update FDMA with tos, total length and IP header checksum*/
+	fdma_modify_default_segment_data(ipv4hdr_offset, 12);
 
 	/* Updated FD[length] */
 	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset+
