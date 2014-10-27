@@ -219,6 +219,8 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 		return -EINVAL;
 	if ((cmd_id & CMDIF_ASYNC_CMD) && (size < sizeof(struct cmdif_async)))
 		return -EINVAL;
+	if ((data == NULL) && (size > 0))
+		return -EINVAL;
 #endif
 	
 	dev = (struct cmdif_dev *)cidesc->dev;
@@ -252,8 +254,9 @@ __HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 	cmd_id = CPU_TO_SRV16(fd->u_flc.cmd.cmid);
 	
 #ifdef DEBUG
-	if (!(cmd_id & CMDIF_ASYNC_CMD))
-		return -EINVAL;
+	if (!(cmd_id & CMDIF_ASYNC_CMD) || (fd->u_addr.d_addr == NULL) || 
+		(fd->d_size < sizeof(struct cmdif_async)))
+		return -EINVAL;	
 #endif
 	
 	async_cb_get(fd, &async_cb, &async_ctx);
