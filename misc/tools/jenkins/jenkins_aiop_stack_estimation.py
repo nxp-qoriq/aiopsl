@@ -9,6 +9,27 @@ import re
 def check_if_file_exists(filename):
 	return os.path.isfile(filename)
 
+def check_stack(aiopsl_stack_estimation):
+	enable = False
+	func_stack_sizes = []
+	func_name = []
+
+
+	for line in aiopsl_stack_estimation:
+		if "aiopsl_stack_estimation" in aiopsl_stack_estimation:
+			enable = True
+		if enable:
+			l = re.compile("<").split(line)
+				if len(l) > 1:
+					
+					s = re.compile(">").split(l[1])
+					func_stack_sizes.append(s[0])
+					func_name.append(l[0] + " - " + s[0])
+	
+	for line in func_name:
+		print line
+
+
 
 if __name__ == "__main__":
 	
@@ -44,6 +65,7 @@ if __name__ == "__main__":
 		print "Stack estimation was unsuccessful"
 		exit(1)
 	else:
+		check_stack(aiopsl_stack_estimation)
 		print "Finished SUCCESSFULLY"
 		exit(0)
 
