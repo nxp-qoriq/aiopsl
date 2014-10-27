@@ -12,20 +12,22 @@ def check_if_file_exists(filename):
 def check_stack(aiopsl_stack_estimation):
 	enable = False
 	func_stack_sizes = []
-	func_name = []
+	func_list = []
 
 
 	for line in aiopsl_stack_estimation:
-		if "aiopsl_stack_estimation" in aiopsl_stack_estimation:
+		if "Initial Stack Size" in aiopsl_stack_estimation:
 			enable = True
 		if enable:
 			l = re.compile("<").split(line)
 			if len(l) > 1:
 				s = re.compile(">").split(l[1])
 				func_stack_sizes.append(s[0])
-				func_name.append(l[0] + " - " + s[0])
+				func_list.append(l[0] + " - " + s[0])
+				if int(s[0]) > 300:
+					print "Error: stack is bigger then 300 for function: " + l[0] + "(Stack size: " + s[0] + ")"
 
-	for line in func_name:
+	for line in func_list:
 		print line
 
 
