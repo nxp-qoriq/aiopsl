@@ -41,17 +41,17 @@ void stack_estimation(void);
 
 __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
-	
+	UNUSED(arg);
 	stack_estimation();
 }
 
 void stack_estimation(void)
 {
 #pragma fn_ptr_candidates(stack_estimation)
-	struct slab **my_slab;
+	struct slab **my_slab = 0;
 	uint32_t time;
 	uint64_t time_since_epoch;
-	uint64_t *buff;
+	uint64_t *buff = 0;
 	slab_create(5, 0, 256, 0, 0, 4, 0, 1,
 		                  NULL, my_slab);
 	slab_acquire(*my_slab, buff);
