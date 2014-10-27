@@ -567,6 +567,37 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		return IPR_ERROR;
 	}
 
+	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
+		if (instance_params.flags & IPR_MODE_EXTENDED_STATS_EN) {
+			if(frame_is_ipv4)
+				ste_inc_counter(
+					  instance_params.extended_stats_addr +
+					  offsetof(struct extended_stats_cntrs,
+						more_than_64_frags_ipv4_cntr),
+					  1,
+					  STE_MODE_32_BIT_CNTR_SIZE);
+			else
+				ste_inc_counter(
+					  instance_params.extended_stats_addr +
+					  offsetof(struct extended_stats_cntrs,
+						more_than_64_frags_ipv6_cntr),
+					  1,
+					  STE_MODE_32_BIT_CNTR_SIZE);
+		}
+		/* Release RFDC, unlock, dec ref_cnt, release if 0 */
+		cdma_access_context_memory(
+				  rfdc_ext_addr,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
+				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  NULL,
+				  &rfdc,
+				  CDMA_ACCESS_CONTEXT_NO_MEM_DMA |
+				  RFDC_SIZE,
+				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
+		/* Handle ordering scope */
+		move_to_correct_ordering_scope1(osm_status);
+		return IPR_MALFORMED_FRAG;
+	}
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
 						      instance_params,
 						      iphdr_ptr, frame_is_ipv4);
