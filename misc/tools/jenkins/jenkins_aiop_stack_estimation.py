@@ -20,12 +20,11 @@ def check_stack(aiopsl_stack_estimation):
 			enable = True
 		if enable:
 			l = re.compile("<").split(line)
-				if len(l) > 1:
-					
-					s = re.compile(">").split(l[1])
-					func_stack_sizes.append(s[0])
-					func_name.append(l[0] + " - " + s[0])
-	
+			if len(l) > 1:
+				s = re.compile(">").split(l[1])
+				func_stack_sizes.append(s[0])
+				func_name.append(l[0] + " - " + s[0])
+
 	for line in func_name:
 		print line
 
