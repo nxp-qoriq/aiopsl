@@ -78,13 +78,13 @@ static int allocate_check_mem(int  memory_partition,
 		{
 			allocated_pointers[i] = fsl_os_malloc(size);
 			if(NULL == allocated_pointers[i])
-				return -E_NO_MEMORY;
+				return -ENOMEM;
 			iowrite32(value,allocated_pointers[i]);
 			value = ioread32(allocated_pointers[i]);
 			if(value != expected_value) {
 				fsl_os_print("malloc from the heap has failed, address %x\n",
 						PTR_TO_UINT(allocated_pointers[i]));
-				return -E_NO_MEMORY;
+				return -ENOMEM;
 			}
 		}
 		for(i = 0 ; i < num_iter; i++)
@@ -99,13 +99,13 @@ static int allocate_check_mem(int  memory_partition,
 		{
 			allocated_pointers[i] = fsl_os_xmalloc(size,memory_partition,4);
 			if(NULL == allocated_pointers[i])
-				return -E_NO_MEMORY;
+				return -ENOMEM;
 			iowrite32(value,allocated_pointers[i]);
 			value = ioread32(allocated_pointers[i]);
 			if(value != expected_value) {
 				fsl_os_print("malloc from mem part %d has failed, address %x\n",
 						memory_partition,PTR_TO_UINT(allocated_pointers[i]));
-				return -E_NO_MEMORY;
+				return -ENOMEM;
 			}
 		}
 		for(i = 0 ; i < num_iter; i++)
@@ -113,5 +113,5 @@ static int allocate_check_mem(int  memory_partition,
 			fsl_os_xfree(allocated_pointers[i]);
 		}
 	}
-	return E_OK;
+	return 0;
 }

@@ -159,7 +159,7 @@ enum osm_function_identifier {
 *//***************************************************************************/
 enum osm_errors {
 		/** Success. */
-	OSM_SUCCESS = E_OK,
+	OSM_SUCCESS = 0,
 		/** Transition from no scope (null scope_id). */
 	OSM_TRANSITION_FROM_NO_SCOPE_ERR = 0x1,
 		/** Duplicate scope identifier detected. (DID error) */

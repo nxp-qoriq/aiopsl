@@ -201,15 +201,11 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
  * @brief	Call asynchronous callback of the received frame descriptor
  *
  * @param[in]	fd - Pointer to received frame descriptor
- * @param[in]	v_addr - Virtual address to be used as parameter to async cb.
- * 		Set it to NULL in order to pass fd->u_addr.d_addr as is to 
- * 		#cmdif_cb_t data.
- * 		Otherwise set v_addr as virtual address of fd->u_addr.d_addr.
- *
+ * 
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr);
+int cmdif_async_cb(struct cmdif_fd *fd);
 
 /** @} *//* end of cmdif_flib_g group */
 /** @} *//* end of cmdif_g group */

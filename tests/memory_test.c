@@ -77,7 +77,7 @@ int cdma_peb_test()
 	cdma_write(phys_addr + 4, &variable_on_stack, sizeof(value));
 	if(ioread32(addr_offs_4) != value)
 		return EIO;	
-	return E_OK;
+	return 0;
 }
 
 int cdma_dpddr_test()
@@ -94,10 +94,10 @@ int cdma_dpddr_test()
 	cdma_write(phys_addr + 4, &variable_on_stack, sizeof(value));
 	if(ioread32(addr_offs_4) != value)
 		return EIO;	
-	return E_OK;
+	return 0;
 }
 
 int cdma_systemddr_test()
 {
-	return E_OK;
+	return 0;
 }

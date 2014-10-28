@@ -122,9 +122,8 @@ __HOT_CODE static inline int session_get(const char *m_name,
 		unlock_spinlock(&cl->lock);
 		/* Must be here to prevent deadlocks because 
 		 * the same lock is used */
-		icontext_get((uint16_t)dpci_id, \
+		return icontext_get((uint16_t)dpci_id, \
 		             (struct icontext *)(&cl->gpp[i].dev->reserved[0]));
-		return 0;
 	}
 
 	unlock_spinlock(&cl->lock);
@@ -258,14 +257,16 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	dev = (struct cmdif_dev *)cidesc->dev;	
 	CMDIF_CMD_FD_SET(&fd, dev, data, size, cmd_id);
 	
-	/* Write async cb using FDMA */
-	async_data.async_cb  = (uint64_t)async_cb;
-	async_data.async_ctx = (uint64_t)async_ctx;
-	ASSERT_COND(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
-	icontext_dma_write((struct icontext *)(&dev->reserved[0]), 
-	                   sizeof(struct cmdif_async), 
-	                   &async_data, 
-	                   async_p_data);
+	if (cmd_id & CMDIF_ASYNC_CMD) {
+		/* Write async cb using FDMA */
+		async_data.async_cb  = (uint64_t)async_cb;
+		async_data.async_ctx = (uint64_t)async_ctx;
+		ASSERT_COND(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
+		icontext_dma_write((struct icontext *)(&dev->reserved[0]), 
+		                   sizeof(struct cmdif_async), 
+		                   &async_data, 
+		                   async_p_data);
+	}
 
 	err = send_fd(&fd, pr, cidesc->regs);
 	if (err)
@@ -313,7 +314,7 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
 	/* Read async cb using FDMA */
-	/* err = cmdif_async_cb(&fd, (void *)PRC_GET_SEGMENT_ADDRESS()); */	
+	ASSERT_COND((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
 	async_p_data = (uint64_t)CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, \
 	                                              fd.d_size);
 	dev = (struct cmdif_dev *)CMDIF_DEV_GET(&fd);
