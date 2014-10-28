@@ -279,9 +279,13 @@ int tcp_gro_add_seg_to_aggregation(
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
 	/* 6. check aggregated packet size limit */
-	if (aggregated_size > gro_ctx->packet_size_limit)
+	if (aggregated_size > gro_ctx->packet_size_limit) {
+		ste_inc_counter(gro_ctx->stats_addr +
+			GRO_STAT_AGG_MAX_PACKET_SIZE_CNTR_OFFSET, 1,
+			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
+	}
 	else if (aggregated_size == gro_ctx->packet_size_limit) {
 		/* update statistics */
 		if (gro_ctx->flags & TCP_GRO_EXTENDED_STATS_EN)
