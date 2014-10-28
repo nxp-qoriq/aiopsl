@@ -120,38 +120,6 @@ int slab_create(uint32_t    committed_buffs,
 		struct slab **slab);
 
 /**************************************************************************//**
-@Function	slab_create_by_address
-
-@Description	Create a new buffers pool starting from address base.
-		AIOP: Not supported by AIOP HW pools.
-
-@Param[in]	committed_buffs     Number of buffers in new pool.
-@Param[in]	max_buffs           Maximal number of buffers that can be
-		allocated by this new pool; max_buffs >= committed_buffs
-@Param[in]	buff_size           Size of buffers in pool.
-@Param[in]	prefix_size         How many bytes to allocate before the data.
-@Param[in]	postfix_size        How many bytes to allocate after the data.
-@Param[in]	alignment           Requested alignment for data field in bytes.
-@Param[in]	address             Start address base to be use for allocations
-@Param[in]	flags               Set it 0 for default slab creation.
-@Param[in]	release_cb          Function to be called on release of buffer
-@Param[out]	slab                Handle to new pool is returned through here.
-
-@Return		0       - on success,
-		-ENAVAIL - resource not available or not found.
- *//***************************************************************************/
-int slab_create_by_address(uint32_t committed_buffs,
-			uint32_t max_buffs,
-			uint16_t buff_size,
-			uint16_t prefix_size,
-			uint16_t postfix_size,
-			uint16_t alignment,
-			uint8_t  *address,
-			uint32_t flags,
-			slab_release_cb_t release_cb,
-			struct slab **slab);
-
-/**************************************************************************//**
 @Function	slab_free
 
 @Description	Free a specific pool and all it's buffers.
@@ -171,7 +139,7 @@ int slab_free(struct slab **slab);
 		AIOP HW pool buffer reference counter will be set to 1.
 
 @Param[in]	slab - Handle to memory pool.
-@Param[out]	buff - The buffer to return.
+@Param[out]	buff - The acquired buffer from HW pool.
 
 @Return		0      - on success,
 		-ENOMEM - no buffer available,
@@ -214,10 +182,10 @@ inline void slab_refcount_incr(uint64_t buff){
 		The buffer is not released if reference counter is drops to 0.
 		Use slab_release() to release the buffer.
 
-@Param[in]	slab - Handle to memory pool.
+@Param[in]	buff - The buffer for which to decrement reference counter.
 
 @Return		0       - on success,
-		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and reference counter is 0.
+		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and the reference counter is 0.
 *//***************************************************************************/
 inline int slab_refcount_decr(uint64_t buff){
 	return cdma_refcount_decrement(buff);

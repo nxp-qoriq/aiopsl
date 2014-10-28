@@ -43,7 +43,15 @@
 
 
 //TODO: obsolete - do not use in new code !!!
-
+#define E_INVALID_STATE       111    /* TODO: obsolete - do not use in new code*/
+#define E_INVALID_SELECTION   112    /* TODO: obsolete - do not use in new code*/
+#define E_CONFLICT            113    /* TODO: obsolete - do not use in new code*/
+#define E_NOT_FOUND           114    /* TODO: obsolete - do not use in new code*/
+#define E_FULL                115    /* TODO: obsolete - do not use in new code*/
+#define E_EMPTY               116    /* TODO: obsolete - do not use in new code*/
+#define E_ALREADY_FREE        117    /* TODO: obsolete - do not use in new code*/
+#define E_READ_FAILED         118    /* TODO: obsolete - do not use in new code*/
+#define E_INVALID_FRAME       119    /* TODO: obsolete - do not use in new code*/
 
 /**************************************************************************//**
 @Function      fsl_os_exit
@@ -53,67 +61,6 @@
 @Param[in]     status - exit status
 *//***************************************************************************/
 void    fsl_os_exit(int status);
-
-/**************************************************************************//**
- @Description    Error Type Enumeration
-*//***************************************************************************/
-enum error_type    /*   Comments / Associated Message Strings                      */
-{                           /* ------------------------------------------------------------ */
-    E_OK = 0                /*   Never use "RETURN_ERROR" with E_OK; Use "return E_OK;"     */
-    ,E_WRITE_FAILED = EIO   /**< Write access failed on memory/device.                      */
-                            /*   String: none, or device name.                              */
-    ,E_NO_DEVICE = ENODEV   /**< The associated device is not initialized.                  */
-                            /*   String: none.                                              */
-    ,E_NOT_AVAILABLE = EAGAIN
-                            /**< Resource is unavailable.                                   */
-                            /*   String: none, unless the operation is not the main goal
-                                 of the function (in this case add resource description).   */
-    ,E_NO_MEMORY = ENOMEM   /**< External memory allocation failed.                         */
-                            /*   String: description of item for which allocation failed.   */
-    ,E_INVALID_ADDRESS = EFAULT
-                            /**< Invalid address.                                           */
-                            /*   String: description of the specific violation.             */
-    ,E_BUSY = EBUSY         /**< Resource or module is busy.                                */
-                            /*   String: none, unless the operation is not the main goal
-                                 of the function (in this case add resource description).   */
-    ,E_ALREADY_EXISTS = EEXIST
-                            /**< Requested resource or item already exists.                 */
-                            /*   Use when resource duplication or sharing are not allowed.
-                                 String: none, unless the operation is not the main goal
-                                 of the function (in this case add item description).       */
-    ,E_INVALID_OPERATION = ENOSYS
-                            /**< The operation/command is invalid (unrecognized).           */
-                            /*   String: none.                                              */
-    ,E_INVALID_VALUE = EDOM /**< Invalid value.                                             */
-                            /*   Use for non-enumeration parameters, and
-                                 only when other error types are not suitable.
-                                 String: parameter description + "(should be <attribute>)",
-                                 e.g: "Maximum Rx buffer length (should be divisible by 8)",
-                                      "Channel number (should be even)".                    */
-    ,E_NOT_IN_RANGE = ERANGE/**< Parameter value is out of range.                           */
-                            /*   Don't use this error for enumeration parameters.
-                                 String: parameter description + "(should be %d-%d)",
-                                 e.g: "Number of pad characters (should be 0-15)".          */
-    ,E_NOT_SUPPORTED = 100/*ENOTSUP*/
-                            /**< The function is not supported or not implemented.          */
-                            /*   String: none.                                              */
-    ,E_TIMEOUT/* = ETIMEDOUT*/  /**< The operation timed out.                                   */
-                            /*   String: none.                                              */
-
-    ,E_INVALID_STATE           /* TODO: obsolete - do not use in new code*/
-    ,E_INVALID_SELECTION       /* TODO: obsolete - do not use in new code*/
-    ,E_CONFLICT       /* TODO: obsolete - do not use in new code*/
-    ,E_NOT_FOUND       /* TODO: obsolete - do not use in new code*/
-    ,E_FULL       /* TODO: obsolete - do not use in new code*/
-    ,E_EMPTY       /* TODO: obsolete - do not use in new code*/
-    ,E_ALREADY_FREE       /* TODO: obsolete - do not use in new code*/
-    ,E_READ_FAILED       /* TODO: obsolete - do not use in new code*/
-    ,E_INVALID_FRAME       /* TODO: obsolete - do not use in new code*/
-
-    ,E_DUMMY_LAST           /* NEVER USED */
-};
-
-
 /**************************************************************************//**
  @Collection    Debug Levels for Errors and Events
 
@@ -205,7 +152,7 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 extern const char *dbg_level_strings[];
 extern const char *module_strings[];
 
-char * err_type_strings (enum error_type err);
+char * err_type_strings (int err);
 
 #define ERROR_CODE(_err)    (_err)
 #define GET_ERROR_TYPE(_err)    (_err)
@@ -217,7 +164,7 @@ char * err_type_strings (enum error_type err);
                      dbg_level_strings[REPORT_LEVEL_##_level - 1], \
                      module_strings[__ERR_MODULE__ >> 16], \
                      PRINT_FMT_PARAMS, \
-                     err_type_strings((enum error_type)GET_ERROR_TYPE(_err))); \
+                     err_type_strings((int)GET_ERROR_TYPE(_err))); \
             fsl_os_print _vmsg; \
             fsl_os_print("\r\n"); \
         } \
@@ -281,7 +228,7 @@ char * err_type_strings (enum error_type err);
 #define CHECK_INIT_PARAMETERS(handle, cfg, params, f_check) \
     do { \
         int err = f_check(handle, cfg, params); \
-        if (err != E_OK) { \
+        if (err != 0) { \
             RETURN_ERROR(MAJOR, err, NO_MSG); \
         } \
     } while (0)
@@ -289,7 +236,7 @@ char * err_type_strings (enum error_type err);
 #define CHECK_INIT_PARAMETERS_RETURN_VALUE(handle, cfg, params, f_check, retval) \
     do { \
         int err = f_check(handle, cfg, params); \
-        if (err != E_OK) { \
+        if (err != 0) { \
             REPORT_ERROR(MAJOR, err, NO_MSG); \
             return (retval); \
         } \
