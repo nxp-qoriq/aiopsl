@@ -587,7 +587,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					  more_than_64_frags_ipv4_cntr),
 				 frame_is_ipv4);
 
-		return IPR_MALFORMED_FRAG;
+		return IPR_ERROR;
 	}
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
 						      instance_params,
