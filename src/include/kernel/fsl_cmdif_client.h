@@ -123,7 +123,7 @@ that had been sent through cidesc.
 		On GPP side it should be virtual address that belongs
 		to current SW context.
 @Return		OK on success; error code, otherwise.
-@Cautions	Please make sure to modify only #size bytes of the data.
+@Cautions	Please make sure to modify only size bytes of the data.
 		Automatic expansion of the buffer is not available.
  *//***************************************************************************/
 typedef int (cmdif_cb_t)(void *async_ctx,
@@ -139,7 +139,7 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 
 @Param[in]	cidesc		Command interface descriptor, cmdif device will
 		be returned inside this descriptor.
-		Only cidesc.regs must be set by user see \ref struct cmdif_desc.
+		Only cidesc.regs must be set by user see struct cmdif_desc.
 @Param[in]	module_name	Module name, up to 8 characters.
 @Param[in]	instance_id	Instance id which will be passed to #open_cb_t
 @Param[in]	data		Buffer to be used by command interface.
