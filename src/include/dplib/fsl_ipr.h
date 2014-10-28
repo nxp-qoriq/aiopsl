@@ -346,8 +346,8 @@ struct extended_stats_cntrs {
     to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
 /** An error occurred during reassembly, like instance not valid,
- * early time out, number of open reassembly has reached the maximum configured
- * */
+ * early time out, number of open reassembly has reached the maximum configured,
+ * number of fragments per reassembled frame reached the maximum */
 #define IPR_ERROR			(IPR_MODULE_STATUS_ID + 0x0500)
 
 /** @} */ /* end of group FSL_IPRReassReturnStatus */
