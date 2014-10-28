@@ -214,10 +214,10 @@ inline void slab_refcount_incr(uint64_t buff){
 		The buffer is not released if reference counter is drops to 0.
 		Use slab_release() to release the buffer.
 
-@Param[in]	slab - Handle to memory pool.
+@Param[in]	buff - The buffer for which to decrement reference counter.
 
 @Return		0       - on success,
-		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and reference counter is 0.
+		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and the reference counter is 0.
 *//***************************************************************************/
 inline int slab_refcount_decr(uint64_t buff){
 	return cdma_refcount_decrement(buff);
