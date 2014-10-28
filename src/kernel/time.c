@@ -39,7 +39,7 @@ __SHRAM uint8_t time_to_midnight_lock = 0;
 __SHRAM _time_get_t *time_get_func_ptr;   /*initialized in time_init*/
 __SHRAM struct aiop_cmgw_regs *time_cmgw_regs;
 
-extern struct aiop_init_data g_init_data;
+extern struct aiop_init_info g_init_data;
 
 int time_init(void);
 void time_free(void);
@@ -122,7 +122,7 @@ __HOT_CODE uint32_t fsl_os_current_time(void)
 /*****************************************************************************/
 int time_init(void)
 {
-	if(g_init_data.sl_data.clock_period == 1000)
+	if(g_init_data.sl_info.clock_period == 1000)
 	{
 		struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
 				       		       sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
@@ -134,7 +134,7 @@ int time_init(void)
 	else
 	{
 		time_get_func_ptr = NULL;
-		pr_err("Only fast path supported for time period 1000, time period: %d\n",g_init_data.sl_data.clock_period);
+		pr_err("Only fast path supported for time period 1000, time period: %d\n",g_init_data.sl_info.clock_period);
 		return -ENOTSUP;
 	}
 }

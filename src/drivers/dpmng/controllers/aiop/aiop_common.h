@@ -97,10 +97,10 @@ struct aiop_sl_init_info
 	uint8_t reserved[37];           /* reserved for future use */
 };
 
-struct aiop_init_data
+struct aiop_init_info
 {
-	struct aiop_sl_init_info  sl_data;
-	struct aiop_app_init_info app_data;
+	struct aiop_sl_init_info  sl_info;
+	struct aiop_app_init_info app_info;
 };
 
 /**************************************************************************//**
