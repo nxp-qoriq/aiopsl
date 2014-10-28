@@ -85,6 +85,7 @@ typedef void /*__noreturn*/ (ipr_del_cb_t) (ipr_del_arg_t arg);
 		In case the first fragment (frag offset=0) was received, the
 		first fragment will be set as the default frame.
 		Otherwise, another fragment will be set as the default frame.
+		Default frame will be returned with no open segment.
 
 @Param[in]	arg - Argument of the callback function.
 @Param[in]	flags - \link FSL_IPRTOCallbackFlags IPR Time Out Callback flags
@@ -156,6 +157,8 @@ struct ipr_params {
 struct extended_stats_cntrs {
 		/** Counts the number of valid IPv4 fragments handled */
 	uint32_t	valid_frags_cntr_ipv4;
+		/** Counts the number of valid IPv6 fragments handled */
+	uint32_t	valid_frags_cntr_ipv6;
 		/** Counts the number of malformed IPv4 fragments handled
 		     malformed fragments are:\n
 		     -duplicate,\n
@@ -176,18 +179,6 @@ struct extended_stats_cntrs {
 		      fragment of this IP packet to be reassembled has the
 		      Not-ECT codepoint */
 	uint32_t	malformed_frags_cntr_ipv4;
-		/** Counts the number of times the re-assembly process can't
-		     start since the number of open IPv4 reassembled frames
-		     has exceeded the ipr_config::maximum_open_frames_ipv4. */
-	uint32_t	open_reass_frms_exceed_ipv4_cntr;
-		/** Counts the number of times the re-assembly process came up
-		     against more than 64 fragments per IPv4 frame.*/
-	uint32_t	more_than_64_frags_ipv4_cntr;
-		/** Counts the number of times the re-assembly process of
-		     an IPv4 frame stopped due to Time Out occurrence.*/
-	uint32_t	time_out_ipv4_cntr;
-		/** Counts the number of valid IPv6 fragments handled */
-	uint32_t	valid_frags_cntr_ipv6;
 		/** Counts the number of malformed IPv6 fragments handled
 		     malformed fragments are:
 		     -duplicate,\n
@@ -209,19 +200,25 @@ struct extended_stats_cntrs {
 		      Not-ECT codepoint */
 	uint32_t	malformed_frags_cntr_ipv6;
 		/** Counts the number of times the re-assembly process can't
+		     start since the number of open IPv4 reassembled frames
+		     has exceeded the ipr_config::maximum_open_frames_ipv4. */
+	uint32_t	open_reass_frms_exceed_ipv4_cntr;
+		/** Counts the number of times the re-assembly process can't
 		     start since the number of open IPv6 reassembled frames
 		     has exceeded the ipr_config::maximum_open_frames_ipv6. */
 	uint32_t	open_reass_frms_exceed_ipv6_cntr;
 		/** Counts the number of times the re-assembly process came up
+		     against more than 64 fragments per IPv4 frame.*/
+	uint32_t	more_than_64_frags_ipv4_cntr;
+		/** Counts the number of times the re-assembly process came up
 		     against more than 64 fragments per IPv6 frame.*/
 	uint32_t	more_than_64_frags_ipv6_cntr;
 		/** Counts the number of times the re-assembly process of
+		     an IPv4 frame stopped due to Time Out occurrence.*/
+	uint32_t	time_out_ipv4_cntr;
+		/** Counts the number of times the re-assembly process of
 		     an IPv6 frame stopped due to time out occurrence.*/
 	uint32_t	time_out_ipv6_cntr;
-		/** Counts the number of times the re-assembly process
-		     couldn't start due to lack of allocated buffers in the
-		     ipr_config::bman_pool_id.*/
-	uint32_t	no_free_buffer_cntr;
 };
 
 /** @} */ /* end of group IPR_STRUCTS */
@@ -349,7 +346,8 @@ struct extended_stats_cntrs {
     to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
 /** An error occurred during reassembly, like instance not valid,
- * early time out */
+ * early time out, number of open reassembly has reached the maximum configured,
+ * number of fragments per reassembled frame reached the maximum */
 #define IPR_ERROR			(IPR_MODULE_STATUS_ID + 0x0500)
 
 /** @} */ /* end of group FSL_IPRReassReturnStatus */

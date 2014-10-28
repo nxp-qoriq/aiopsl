@@ -458,6 +458,7 @@ uint32_t if_statement_result(
 		int64_t compared_value,
 		uint8_t cond);
 void timeout_cb_verif(uint64_t arg);
+void ipr_timeout_cb_verif(uint64_t arg, uint32_t flags);
 
 
 /** @} */ /* end of AIOP_Verification */
