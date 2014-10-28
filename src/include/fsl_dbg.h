@@ -38,7 +38,7 @@
 #include "fsl_smp.h"
 
 /**************************************************************************//**
- @Group			FSL_DEBUG_GROUP debug functions
+ @Group			FSL_DEBUG_GROUP Debug Utilities
 
  @Description	FSL AIOP debug macros
 
@@ -53,7 +53,7 @@
                 to the print. used to print debug info.
                 Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String as VA ARGS to print.
+ @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define pr_debug(...) 	DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
 
@@ -64,7 +64,7 @@
                 to the print. used to print info messages.
                 Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String as VA ARGS to print.
+ @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define pr_info(...) 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__)
 
@@ -75,7 +75,7 @@
                 to the print. used to print warnings info.
                 Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String as VA ARGS to print.
+ @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define pr_warn(...) 	DBG(REPORT_LEVEL_WARNING, __VA_ARGS__)
 
@@ -86,7 +86,7 @@
                 to the print. used to print errors info.
                 Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String as VA ARGS to print.
+ @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define pr_err(...) 	DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
 
@@ -97,7 +97,7 @@
                 to the print. used to print critical debug info.
                 Debug Levels for Errors and Events are attached to the print.
 
- @Param[in]     String as VA ARGS to print.
+ @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define pr_crit(...)	DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__)
 
@@ -128,6 +128,6 @@
 *//***************************************************************************/
 #define dbg_get_max_num_of_cores()    sys_get_max_num_of_cores()
 
-/** @} */ /* end of debug functions */
+/** @} */ /* end of Debug Utilities */
 
 #endif /* __FSL_DBG_H */
