@@ -171,7 +171,7 @@ int slab_free(struct slab **slab);
 		AIOP HW pool buffer reference counter will be set to 1.
 
 @Param[in]	slab - Handle to memory pool.
-@Param[out]	buff - The buffer to return.
+@Param[out]	buff - The acquired buffer from HW pool.
 
 @Return		0      - on success,
 		-ENOMEM - no buffer available,
