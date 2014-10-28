@@ -27,7 +27,6 @@
 #ifndef __AIOP_COMMON_H
 #define __AIOP_COMMON_H
 
-
 #define AIOP_EP_TABLE_NUM_OF_ENTRIES	1024
 #define AIOP_INIT_DATA_FIXED_ADDR	(uint8_t *)0x01010000
 
@@ -44,8 +43,6 @@ enum aiop_epid_table {
        AIOP_EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
 };
 
-#pragma push
-#pragma pack()
 /* Internal data exchanged between AIOP and MC
  * TODO check it */
 struct aiop_app_init_info {
@@ -64,9 +61,9 @@ struct aiop_app_init_info {
 
 	uint32_t sru_size;
 	uint32_t tman_freq;
-	uint8_t tasks_per_core;
+	uint32_t tasks_per_core;
 
-	uint8_t reserved[199]; /* reserved for future use */
+	uint32_t reserved[49]; /* reserved for future use */
 };
 
 /* Internal data exchanged between AIOP and MC
@@ -97,7 +94,7 @@ struct aiop_sl_init_info
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t clock_period; /* In nanosec */
 
-	uint8_t reserved[148];           /* reserved for future use */
+	uint8_t reserved[37];           /* reserved for future use */
 };
 
 struct aiop_init_data
@@ -105,7 +102,6 @@ struct aiop_init_data
 	struct aiop_sl_init_info  sl_data;
 	struct aiop_app_init_info app_data;
 };
-#pragma pop
 
 /**************************************************************************//**
  @Description   AIOP tile and AIOP blocks registers
