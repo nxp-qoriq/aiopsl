@@ -161,8 +161,8 @@ __HOT_CODE static void inst_dealloc(int inst)
 
 __HOT_CODE static inline uint16_t cmd_id_get()
 {
-	uint64_t data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint16_t)((data & CMD_ID_MASK) >> CMD_ID_OFF);
+	return (uint16_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & CMD_ID_MASK) \
+		>> CMD_ID_OFF);
 }
 
 __HOT_CODE static inline uint32_t cmd_size_get()
@@ -180,7 +180,7 @@ __HOT_CODE static void cmd_m_name_get(char *name)
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
 
-	pr_debug("Read module name from 0x%x \n", addr);
+/*	pr_debug("Read module name from 0x%x \n", addr);*/
 
 	/* I expect that name will end by \0 if it has less than 8 chars */
 	if (name != NULL) {
@@ -195,16 +195,14 @@ __HOT_CODE static void cmd_m_name_get(char *name)
 
 __HOT_CODE static inline uint8_t cmd_inst_id_get()
 {
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint8_t)((data & INST_ID_MASK) >> INST_ID_OFF);
+	return (uint8_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & INST_ID_MASK) \
+		>> INST_ID_OFF);
 }
 
-__HOT_CODE static uint16_t cmd_auth_id_get()
+__HOT_CODE static inline uint16_t cmd_auth_id_get()
 {
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint16_t)((data & AUTH_ID_MASK) >> AUTH_ID_OFF);
+	return (uint16_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & AUTH_ID_MASK) \
+		>> AUTH_ID_OFF);
 }
 
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
@@ -393,12 +391,11 @@ __HOT_CODE static int notify_open()
 	int link_up = 1;
 	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
 	int err = 0;
-	uint16_t pl_icid = PL_ICID_GET;
 	struct mc_dprc *dprc = NULL;
 	uint8_t i;
 	
 	pr_debug("Got notify open for AIOP client \n");
-	ASSERT_COND(dpci_tbl != NULL);
+	ASSERT_COND_LIGHT(dpci_tbl != NULL);
 	
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
 		pr_err("Segment length is too small\n");
@@ -417,7 +414,7 @@ __HOT_CODE static int notify_open()
 #ifdef DEBUG
 	 /* DEBUG in order not to call MC inside task */
 	 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	 ASSERT_COND(dprc != NULL);
+	 ASSERT_COND_LIGHT(dprc != NULL);
 	 err = dpci_get_link_state(&dprc->io, dpci_tbl->token[ind], &link_up);
 	 if (err) {
 		 pr_err("Failed to get dpci_get_link_state\n");
@@ -428,7 +425,7 @@ __HOT_CODE static int notify_open()
 		 (dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
 		 
 		 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		 ASSERT_COND(dprc != NULL);
+		 ASSERT_COND_LIGHT(dprc != NULL);
 		 for (i = 0; i < DPCI_PRIO_NUM; i++) {
 			 err |= dpci_get_tx_queue(&dprc->io, dpci_tbl->token[ind], i,
 						   &dpci_tbl->tx_queue_attr[i][ind]);
@@ -443,7 +440,7 @@ __HOT_CODE static int notify_open()
 	}
 
 	/* Create descriptor for client session */
-	ASSERT_COND(cl != NULL);
+	ASSERT_COND_LIGHT(cl != NULL);
 	lock_spinlock(&cl->lock);
 	
 #ifdef DEBUG
@@ -498,7 +495,7 @@ static int notify_close()
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0; 
 
-	ASSERT_COND(cl != NULL);
+	ASSERT_COND_LIGHT(cl != NULL);
 	lock_spinlock(&cl->lock);
 	
 	i = cmdif_cl_auth_id_find(cl, data->auth_id, data->dev_id);
@@ -521,24 +518,23 @@ __HOT_CODE void cmdif_srv_isr(void)
 	int err = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
-	if (cmdif_aiop_srv.srv == NULL)
-		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
-
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
+	
+	if (cmdif_aiop_srv.srv == NULL)
+		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
 
 #ifdef DEBUG
 	{
 		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 				   PRC_GET_SEGMENT_LENGTH());
 		uint8_t  *p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
-		uint64_t addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
 			 p, len);
 		pr_debug("Virtual addr high = 0x%x low = 0x%x \n",
-			 (uint32_t)((addr & 0xFF00000000) >> 32),
-			 (uint32_t)(addr & 0xFFFFFFFF));
+			 (uint32_t)((LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) & 0xFF00000000) >> 32),
+			 (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) & 0xFFFFFFFF));
 
 		while (len > 15)
 		{
@@ -560,7 +556,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	}
 #endif
-
+	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
