@@ -162,7 +162,6 @@ int create_fd(
 
 		fdma_insert_segment_data(&insert_params);
 
-		spid = *((uint8_t *)HWC_SPID_ADDRESS);
 		return fdma_store_frame_data(present_frame_params.frame_handle,
 				spid, &amq);
 	}
