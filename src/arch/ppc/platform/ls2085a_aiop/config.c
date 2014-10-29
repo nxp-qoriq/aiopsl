@@ -73,7 +73,7 @@ struct aiop_init_info g_init_data =
   2048,			/* mflu_dp_ddr_num_entries */
   2048,			/* mflu_peb_num_entries */
   0x100000,	/* sru_size */
-  1000000,	/* tman_freq */
+  800,	/* tman_freq */
   4,	/* tasks_per_core */
   {0}	/* reserved */
  }

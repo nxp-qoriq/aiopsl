@@ -1724,8 +1724,9 @@ struct fdma_create_fd_command {
 	uint16_t size;
 		/** Command returned status. */
 	int8_t  status;
-		/** 64-bit alignment. */
-	uint8_t	pad[1];
+		/** Storage profile ID to be used in case this is not the 
+		 * default frame. */
+	uint8_t	spid;
 		/** Command returned Frame Descriptor for the created frame.
 		 * The command updates the FD in workspace, and when the ASA is
 		 * written back to the frame, the updated FD will be written to
