@@ -115,12 +115,12 @@ int create_frame(
 int create_fd(
 		struct ldpaa_fd *fd,
 		void *data,
-		uint16_t size)
+		uint16_t size,
+		uint8_t spid)
 {
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
 	struct fdma_amq amq;
-	uint8_t spid;
 
 	/* *fd = {0};*/
 	fd->addr = 0;
