@@ -65,7 +65,6 @@ __HOT_CODE int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	}
 
 	unlock_spinlock(&cl->lock);
-	pr_err("No isolation context for DPCI#%d\n", dpci_id);
 	return -ENAVAIL;
 }
 
