@@ -389,14 +389,7 @@ struct extended_stats_cntrs {
 @Return		Success or Failure.\n
 		Failure can be one of the following:\n
 		\link FSL_IPRCreateReturnStatus IPR create instance return
-		status \endlink \n
-		\ref FSL_TABLE_STATUS \n
-		\ref CDMA_WRITE_STATUS \n
-		\ref cdma_errors (CDMA_WORKSPACE_MEMORY_READ_ERR,
-		 CDMA_BUFFER_POOL_DEPLETION_ERR,
-		 CDMA_WORKSPACE_MEMORY_WRITE_ERR,
-		 CDMA_EXTERNAL_MEMORY_WRITE_ERR)
-		  
+		status \endlink \n		  
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
@@ -418,11 +411,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		deleted.
 @Param[in]	delete_arg - Argument of the confirm callback function.
 
-@Return		Success or Failure.\n
-		Failure can be one of the following:\n
-		\ref cdma_errors (CDMA_INTERNAL_MEMORY_ECC_ERR,
-		CDMA_WORKSPACE_MEMORY_READ_ERR,
-		CDMA_EXTERNAL_MEMORY_READ_ERR)
+@Return		Success
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
@@ -453,11 +442,6 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 @Return		Status -\n
 		\link FSL_IPRReassReturnStatus IP Reassembly Return status
 		\endlink \n
-		\ref FSL_TABLE_STATUS \n
-		\ref cdma_errors \n
-		\ref FDMA_CONCATENATE_FRAMES_ERRORS \n
-		\ref TMANReturnStatus \n
-
 
 @Cautions	It is forbidden to call this function when the task
 		isn't found in any ordering scope (null scope_id).
