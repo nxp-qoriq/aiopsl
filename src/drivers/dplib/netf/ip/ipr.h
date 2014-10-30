@@ -165,7 +165,7 @@ struct ipr_rfdc{
 	uint32_t	timer_handle;
 	uint16_t	expected_total_length;
 	uint16_t	current_total_length;
-	uint16_t	res;
+	uint16_t	first_frag_hdr_length;
 	uint16_t	biggest_payload;
 	uint16_t	current_running_sum;
 	uint8_t		first_frag_index;
