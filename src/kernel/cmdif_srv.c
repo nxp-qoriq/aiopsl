@@ -122,12 +122,14 @@ __HOT_CODE static int inst_alloc(uint8_t m_id)
 	if (srv == NULL)
 		return -EINVAL;
 
+	ASSERT_COND_LIGHT(is_power_of_2(M_NUM_OF_INSTANCES));
+	
 	lock_spinlock(&cmdif_aiop_srv.lock);
 
 	/* randomly pick instance/authentication id*/
-	r = fsl_os_rand() % M_NUM_OF_INSTANCES;
+	r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
 	while ((srv->m_id[r] != FREE_INSTANCE) && (count < M_NUM_OF_INSTANCES)) {
-		r = fsl_os_rand() % M_NUM_OF_INSTANCES;
+		r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
 		count++;
 	}
 	/* didn't find empty space yet */
@@ -135,7 +137,7 @@ __HOT_CODE static int inst_alloc(uint8_t m_id)
 		count = 0;
 		while ((srv->m_id[r] != FREE_INSTANCE) &&
 			(count < M_NUM_OF_INSTANCES)) {
-			r = r++ % M_NUM_OF_INSTANCES;
+			r = MODULU_POWER_OF_TWO(r++, M_NUM_OF_INSTANCES);
 			count++;
 		}
 	}
