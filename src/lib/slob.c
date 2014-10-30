@@ -229,7 +229,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
          */
         if ( !p_curr_b && ((((uint64_t)(end-base)) & ((uint64_t)(alignment-1))) == 0) )
         {
-            if ((p_new_b = create_free_block(align_base, end-base)) == NULL)
+            if ((p_new_b = create_free_block(align_base, end-align_base)) == NULL)
                 RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
 
             if (p_prev_b)
@@ -248,7 +248,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
         }
     }
 
-    return 0;
+    return (0);
 }
 
 /****************************************************************
@@ -343,7 +343,7 @@ static int cut_free(t_MM *p_MM, uint64_t hold_base, uint64_t hold_end)
         }
     }
 
-    return 0;
+    return (0);
 }
 
 /****************************************************************
@@ -473,7 +473,7 @@ static int cut_busy(t_MM *p_MM, uint64_t base, uint64_t end)
         }
     }
 
-    return 0;
+    return (0);
 }
 
 /****************************************************************
@@ -617,7 +617,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 
     *slob = p_MM;
 
-    return 0;
+    return (0);
 }
 
 /*****************************************************************************/
@@ -1186,7 +1186,7 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
 
-    return 0;
+    return (0);
 }
 
 /*****************************************************************************/

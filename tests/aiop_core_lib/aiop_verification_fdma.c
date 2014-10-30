@@ -821,7 +821,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			(struct fdma_create_fd_command *) asa_seg_addr;
 		str->status = (int8_t)create_fd(
 				(struct ldpaa_fd *)(str->fd_src),
-				(void *)(str->data), str->size);
+				(void *)(str->data), str->size, str->spid);
 		str->fd = *((struct ldpaa_fd *)(str->fd_src));
 		str_size = (uint16_t)sizeof(struct fdma_create_fd_command);
 		break;

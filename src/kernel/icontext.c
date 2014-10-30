@@ -44,8 +44,10 @@ __HOT_CODE int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
-	ASSERT_COND((ic != NULL) && (dt != NULL) && (cl != NULL));
-
+#ifdef DEBUG
+	if ((ic == NULL) || (dt == NULL) || (cl == NULL))
+		return -EINVAL;
+#endif
 	lock_spinlock(&cl->lock); /* TODO make it lock per dpci table not client ! */
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
@@ -63,16 +65,18 @@ __HOT_CODE int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	}
 
 	unlock_spinlock(&cl->lock);
-	pr_err("No isolation context for DPCI#%d\n", dpci_id);
 	return -ENAVAIL;
 }
 
 __HOT_CODE int icontext_dma_read(struct icontext *ic, uint16_t size, 
                                  uint64_t src, void *dest)
 {
-	ASSERT_COND(dest != NULL);
-	ASSERT_COND(src != NULL);
 
+#ifdef DEBUG
+	if ((dest == NULL) || (src == NULL))
+		return -EINVAL;
+#endif
+	
 	fdma_dma_data(size,
 	              ic->icid,
 	              dest,
@@ -84,8 +88,11 @@ __HOT_CODE int icontext_dma_read(struct icontext *ic, uint16_t size,
 __HOT_CODE int icontext_dma_write(struct icontext *ic, uint16_t size, 
                                   void *src, uint64_t dest)
 {
-	ASSERT_COND(src != NULL);
-	ASSERT_COND(dest != NULL);
+	
+#ifdef DEBUG
+	if ((dest == NULL) || (src == NULL))
+		return -EINVAL;
+#endif
 
 	fdma_dma_data(size,
 	              ic->icid,
@@ -99,8 +106,11 @@ __HOT_CODE int icontext_acquire(struct icontext *ic, uint16_t bpid,
                                 uint64_t *addr)
 {
 	int err = 0;
-
-	ASSERT_COND(ic != NULL);
+	
+#ifdef DEBUG
+	if (ic == NULL)
+		return -EINVAL;
+#endif
 
 	err = fdma_acquire_buffer(ic->icid, ic->bdi_flags, bpid, (void *)addr);
 
@@ -112,8 +122,11 @@ __HOT_CODE int icontext_release(struct icontext *ic, uint16_t bpid,
 {
 	int err = 0;
 
-	ASSERT_COND(ic != NULL);
-
+#ifdef DEBUG
+	if (ic == NULL)
+		return -EINVAL;
+#endif
+	
 	fdma_release_buffer(ic->icid, ic->bdi_flags, bpid, addr);
 
 	return err;

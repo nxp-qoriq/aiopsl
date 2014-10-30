@@ -50,7 +50,7 @@
 	} while(0)
 
 #define CMDIF_DEV_GET(FD) \
-	((struct cmdif_async *)((uint64_t)((FD)->u_frc.cmd.dev_l) \
+	((struct cmdif_dev *)((uint64_t)((FD)->u_frc.cmd.dev_l) \
 		| (((uint64_t)((FD)->u_flc.cmd.dev_h)) << 32)))
 
 #define CMDIF_ASYNC_ADDR_GET(DATA, SIZE) \

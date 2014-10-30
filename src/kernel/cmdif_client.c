@@ -53,24 +53,18 @@ void cmdif_client_free();
 int cmdif_client_init();
 void cmdif_cl_isr();
 
-__HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
+__TASK static struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
+
+__HOT_CODE static inline int send_fd(int pr, void *_sdev)
 {
-	int    err = 0;
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
-	uint32_t fqid = 0;
-	struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 
 #ifdef DEBUG
 	if ((sdev == NULL) 				||
-		(sdev->attr->num_of_priorities <= pr)	||
-		(fd == NULL))
+		(sdev->attr->num_of_priorities <= pr))
 		return -EINVAL;
 #endif
 	/* Copy fields from FD  */
-	_fd.addr   = CPU_TO_LE64(fd->u_addr.d_addr);
-	_fd.flc    = CPU_TO_LE64(fd->u_flc.flc);
-	_fd.frc    = CPU_TO_LE32(fd->u_frc.frc);
-	_fd.length = CPU_TO_LE32(fd->d_size);
 	_fd.control = 0;
 	_fd.offset  = (((uint32_t)FD_IVP_MASK) << 8); /* IVP */
 
@@ -83,21 +77,22 @@ __HOT_CODE static int send_fd(struct cmdif_fd *fd, int pr, void *_sdev)
 	_fd.control = CPU_TO_LE32(_fd.control);
 	_fd.offset  = CPU_TO_LE32(_fd.offset);
 	
-	fqid = sdev->tx_queue_attr[pr]->fqid;
-
+/*
 	pr_debug("Sending to fqid 0x%x fdma enq flags = 0x%x icid = 0x%x\n", \
-	         fqid, sdev->enq_flags, sdev->icid);
+	         sdev->tx_queue_attr[pr]->fqid, sdev->enq_flags, sdev->icid);
+*/
 
-	err = fdma_enqueue_fd_fqid(&_fd, sdev->enq_flags , fqid, sdev->icid);
-	if (err) {
-		pr_err("Failed to send response\n");
+	if (fdma_enqueue_fd_fqid(&_fd, 
+	                         sdev->enq_flags , 
+	                         sdev->tx_queue_attr[pr]->fqid, 
+	                         sdev->icid)) {	
 		return -EIO;
 	}
 
-	return err;
+	return 0;
 }
 
-__HOT_CODE static inline int session_get(const char *m_name,
+__HOT_CODE static int session_get(const char *m_name,
                                   uint8_t ins_id,
                                   uint32_t dpci_id,
                                   struct cmdif_desc *cidesc)
@@ -111,7 +106,7 @@ __HOT_CODE static inline int session_get(const char *m_name,
 	 * the same sync buffer is going to be used for 2 cidesc
 	 * but as for today we don't support sync on AIOP client
 	 * that's why it is working */
-	ASSERT_COND(cl != NULL);
+	ASSERT_COND_LIGHT(cl != NULL);
 	lock_spinlock(&cl->lock);
 
 	i = cmdif_cl_session_get(cl, m_name, ins_id, dpci_id);
@@ -209,10 +204,11 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 	
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
 	
+/*
 	if (err != 0) {
 		pr_err("Session not found\n");
 	}
-
+*/
 	return err;
 }
 
@@ -232,14 +228,12 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		cmdif_cb_t *async_cb,
 		void *async_ctx)
 {
-	struct   cmdif_fd fd;
-	int      err = 0;
-	int      t   = 0;
+	struct cmdif_fd fd;
 	struct cmdif_async async_data;
-	uint64_t async_p_data = (uint64_t)CMDIF_ASYNC_ADDR_GET(data, size);
 	struct cmdif_dev *dev = NULL;
 	
 #ifdef ARENA_LEGACY_CODE
+	int      t   = 0;
 	union cmdif_data done;
 #endif
 	
@@ -261,16 +255,22 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 		/* Write async cb using FDMA */
 		async_data.async_cb  = (uint64_t)async_cb;
 		async_data.async_ctx = (uint64_t)async_ctx;
-		ASSERT_COND(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
+		ASSERT_COND_LIGHT(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
 		icontext_dma_write((struct icontext *)(&dev->reserved[0]), 
 		                   sizeof(struct cmdif_async), 
 		                   &async_data, 
-		                   async_p_data);
+		                   CMDIF_ASYNC_ADDR_GET(data, size));
 	}
-
-	err = send_fd(&fd, pr, cidesc->regs);
-	if (err)
+	
+	/* Copy FD outside send_fd() to save stack and cycles */
+	_fd.addr   = CPU_TO_LE64(fd.u_addr.d_addr);
+	_fd.flc    = CPU_TO_LE64(fd.u_flc.flc);
+	_fd.frc    = CPU_TO_LE32(fd.u_frc.frc);
+	_fd.length = CPU_TO_LE32(fd.d_size);
+	
+	if (send_fd(pr, cidesc->regs)) {
 		return -EINVAL;
+	}
 
 #ifdef ARENA_LEGACY_CODE
 	if (cmdif_is_sync_cmd(cmd_id)) {
@@ -296,17 +296,14 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	}
 #endif
 	
-	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);
+/*	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);*/
 	return 0;
 }
 
 __HOT_CODE void cmdif_cl_isr(void)
 {
-	int err = 0;
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
-	uint64_t async_p_data = NULL;
-	struct cmdif_dev *dev = NULL;
 
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
@@ -314,25 +311,22 @@ __HOT_CODE void cmdif_cl_isr(void)
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
 	/* Read async cb using FDMA */
-	ASSERT_COND((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
-	async_p_data = (uint64_t)CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, \
-	                                              fd.d_size);
-	dev = (struct cmdif_dev *)CMDIF_DEV_GET(&fd);
-	icontext_dma_read((struct icontext *)(&dev->reserved[0]), 
+	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
+	icontext_dma_read((struct icontext *)(&CMDIF_DEV_GET(&fd)->reserved[0]), 
 	                   sizeof(struct cmdif_async),
-	                   async_p_data,
+	                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
 	                   &async_data);
 	
-	((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
-                fd.u_flc.cmd.err,
-                CPU_TO_SRV16(fd.u_flc.cmd.cmid),
-                fd.d_size,
-                (void *)PRC_GET_SEGMENT_ADDRESS());
-
-	if (err) {
-		pr_debug("Async callback cmd 0x%x returned error %d", \
-		         CPU_TO_SRV16(fd.u_flc.cmd.cmid), err);
+	if (((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
+		fd.u_flc.cmd.err,
+		CPU_TO_SRV16(fd.u_flc.cmd.cmid),
+		fd.d_size,
+		(void *)PRC_GET_SEGMENT_ADDRESS())) {
+		
+		pr_debug("Async callback cmd 0x%x returned error \n", \
+		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	}
+	
 
 	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));

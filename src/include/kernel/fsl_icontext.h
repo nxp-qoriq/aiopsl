@@ -75,7 +75,8 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic);
 
 @Param[in]	ic	- Isolation context structure to be used 
 			with icontext dependent API.
-@Param[in]	src	- System memory source for DMA data. 		
+@Param[in]	src	- System memory source for DMA data. 
+@Param[in]	size	- The number of bytes to be copied into dest buffer. 				
 @Param[out]	dest	- Pointer to workspace location to where data should 
 			be copied.		
 
@@ -92,6 +93,7 @@ int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *de
 			with icontext dependent API.
 @Param[in]	src	- Pointer to workspace location from where data should
  			be copied.
+@Param[in]	size	- The number of bytes to be copied into dest buffer. 
 @Param[out]	dest	- System memory target address for DMA data.	
 
 @Return		0	- on success, POSIX error otherwise.
