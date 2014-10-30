@@ -141,7 +141,7 @@
 #endif /* ALIGN_DOWN */
 
 #ifndef MODULU_POWER_OF_TWO
-#define MODULU_POWER_OF_TWO(NUM, MOD)
+#define MODULU_POWER_OF_TWO(NUM, MOD) \
 	((uint32_t)(NUM) & ((uint32_t)(MOD) - 1))
 #endif
 
