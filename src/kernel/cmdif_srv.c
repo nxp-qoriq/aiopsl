@@ -628,7 +628,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 		cmd_m_name_get(&m_name[0]);
 		
 		err = srv_module_open(m_name);
-		if (err) {
+		if (err < 0) {
 			pr_err("Failed to open %s\n", m_name);
 			sync_cmd_done(sync_done_get(), err, auth_id, TRUE);
 		} else {
