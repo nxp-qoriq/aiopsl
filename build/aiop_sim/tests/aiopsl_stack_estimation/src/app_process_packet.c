@@ -43,6 +43,7 @@ void app_free(void);
 void stack_estimation(void);
 extern void cmdif_srv_isr(void);
 extern void cmdif_cl_isr(void);
+extern void receive_cb(void);
 
 __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
@@ -69,7 +70,7 @@ void stack_estimation(void)
 	fsl_get_time_since_epoch_ms(&time_since_epoch);
 	fsl_get_time_ms(&time);
 	
-	/* CMDIF runtime API */
+	/* CMDIF runtime functions */
 	cmdif_srv_isr();
 	cmdif_cl_isr();
 	cmdif_send(&cidesc, 0, 0, CMDIF_PRI_HIGH, NULL, NULL, NULL);
@@ -82,6 +83,9 @@ void stack_estimation(void)
 	icontext_release(&ic, 7, buff);
 	icontext_dma_read(&ic, 4, buff, &time);
 	icontext_dma_write(&ic, 4, &time, buff);
+	
+	/* DPNI runtime functions */
+	receive_cb();
 }
 
 int app_init(void)
