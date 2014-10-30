@@ -915,6 +915,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  rfdc_ptr->current_running_sum,
 						  pr->running_sum);
 	} else {
+		rfdc_ptr->first_frag_hdr_length = ip_header_size;
 		if (pr->gross_running_sum == 0)
 			fdma_calculate_default_frame_checksum(
 							0,
@@ -947,7 +948,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				   FD_SIZE);
 
 			if (last_fragment) {
-				if(rfdc_ptr->current_total_length <=
+				if((rfdc_ptr->current_total_length +
+				   rfdc_ptr->first_frag_hdr_length) <=
 				   instance_params.max_reass_frm_size)
 					return_status = LAST_FRAG_IN_ORDER;
 				else
@@ -1843,7 +1845,8 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 				if (rfdc_ptr->current_total_length ==
 					rfdc_ptr->expected_total_length) {
 					/* Check max reassembly size */
-					if(rfdc_ptr->current_total_length <=
+					if((rfdc_ptr->current_total_length +
+					    rfdc_ptr->first_frag_hdr_length) <=
 					   instance_params.max_reass_frm_size)
 						return LAST_FRAG_OUT_OF_ORDER;
 					else
@@ -1980,8 +1983,9 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 	rfdc_ptr->num_of_frags++;
 
 	if (rfdc_ptr->current_total_length == rfdc_ptr->expected_total_length) {
-		if(rfdc_ptr->current_total_length <=
-		   instance_params.max_reass_frm_size)
+		if((rfdc_ptr->current_total_length +
+		    rfdc_ptr->first_frag_hdr_length) <=
+		    instance_params.max_reass_frm_size)
 			return LAST_FRAG_OUT_OF_ORDER;
 		else
 			return MALFORMED_FRAG;
