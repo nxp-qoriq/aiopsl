@@ -73,8 +73,8 @@
 #define FREE_MODULE    '\0'
 #define FREE_INSTANCE  (M_NUM_OF_MODULES)
 
-#define SYNC_CMD_RESP_MAKE(ERR, ID)  ((uint32_t)(0x80000000 | \
-	(((ERR) << 16) & 0x00FF0000) | (ID)))
+#define SYNC_CMD_RESP_MAKE(ERR, ID)  (0x80000000 | \
+	(((ERR) << 16) & 0x00FF0000) | (ID))
 
 #define PR_ERR_TERMINATE(...) \
 	do {                  \
@@ -83,9 +83,6 @@
 		return;               \
 	} while (0)
 
-/* Use it to see debug prints */
-//#define CMDIF_DBG_PRINT(...) pr_debug(__VA_ARGS__) 
-#define CMDIF_DBG_PRINT(...) do { } while(0)
 
  __SHRAM static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 
@@ -154,11 +151,13 @@ __HOT_CODE static int inst_alloc(uint8_t m_id)
 	}
 }
 
-__HOT_CODE static inline void inst_dealloc(int inst)
+__HOT_CODE static void inst_dealloc(int inst)
 {
+	struct cmdif_srv *srv = cmdif_aiop_srv.srv;
+
 	lock_spinlock(&cmdif_aiop_srv.lock);
-	cmdif_aiop_srv.srv->m_id[inst] = FREE_INSTANCE;
-	cmdif_aiop_srv.srv->inst_count--;
+	srv->m_id[inst] = FREE_INSTANCE;
+	srv->inst_count--;
 	unlock_spinlock(&cmdif_aiop_srv.lock);
 }
 
@@ -178,7 +177,7 @@ __HOT_CODE static inline void *cmd_data_get()
 	return (void *)PRC_GET_SEGMENT_ADDRESS();
 }
 
-__HOT_CODE static inline void cmd_m_name_get(char *name)
+__HOT_CODE static void cmd_m_name_get(char *name)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
@@ -270,11 +269,11 @@ void cmdif_srv_free(void)
 }
 
 
-__HOT_CODE static inline int cmdif_fd_send(int cb_err)
+__HOT_CODE static int cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	uint32_t fqid = 0;
+	uint32_t fqid = RESP_QID_GET;
 	uint8_t  ind = 0;
 	uint8_t  pr  = 0;
 
@@ -295,12 +294,13 @@ __HOT_CODE static inline int cmdif_fd_send(int cb_err)
 		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	}
 
-	CMDIF_DBG_PRINT("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
-	CMDIF_DBG_PRINT("CB error = %d\n", cb_err);
+	pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
+	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
 		fqid, CMDIF_FDMA_ENQ_TC);
-	CMDIF_DBG_PRINT("Store and enqueue returned status %d \n", err);
+	if (err)
+		pr_err("Failed to send response\n");
 
 	return err;
 }
@@ -310,38 +310,37 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 				uint16_t auth_id,
 				char terminate)
 {
+	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
 
-	CMDIF_DBG_PRINT("err = %d\n", err);
-	CMDIF_DBG_PRINT("auth_id = 0x%x\n", auth_id);
+	pr_debug("err = %d\n", err);
+	pr_debug("auth_id = 0x%x\n", auth_id);
+	pr_debug("sync_resp = 0x%x\n", resp);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
-	
 	if ((sync_done != NULL) || (auth_id == OPEN_AUTH_ID))
 		_sync_done = sync_done;
 	else
 		_sync_done = cmdif_aiop_srv.srv->sync_done[auth_id];
 
 	if (_sync_done == NULL) {
-		CMDIF_DBG_PRINT("Can't finish sync command, no valid address\n");
+		pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
-		uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
-		uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 		uint16_t pl_icid = PL_ICID_GET;
+		uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
 
 		/*
 		 * It's ok to take it from current ADC and FD because this
 		 * should not change between commands on the same session */
 		ADD_AMQ_FLAGS(flags, pl_icid);
-		CMDIF_DBG_PRINT("icid = 0x%x\n", ICID_GET(pl_icid));
-		CMDIF_DBG_PRINT("fdma_dma_data flags = 0x%x\n", flags);
-		CMDIF_DBG_PRINT("sync_resp = 0x%x\n", resp);
+		pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
+		pr_debug("fdma_dma_data flags = 0x%x\n", flags);
 		fdma_dma_data(4, ICID_GET(pl_icid), &resp, _sync_done, flags);
 	}
 
-	CMDIF_DBG_PRINT("sync_done high = 0x%x low = 0x%x \n",
+	pr_debug("sync_done high = 0x%x low = 0x%x \n",
 		 (uint32_t)((_sync_done & 0xFF00000000) >> 32),
 		 (uint32_t)(_sync_done & 0xFFFFFFFF));
 
@@ -357,27 +356,30 @@ __HOT_CODE static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-__HOT_CODE static inline int find_dpci(uint8_t dpci_id)
+__HOT_CODE static int find_dpci(uint8_t dpci_id)
 {
 	int i = 0;
+	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
 
-	for (i = 0; i < cmdif_aiop_srv.dpci_tbl->count; i++) {
-		if (cmdif_aiop_srv.dpci_tbl->peer_attr[i].peer_id == dpci_id)
+	for (i = 0; i < dt->count; i++) {
+		if (dt->peer_attr[i].peer_id == dpci_id)
 			return i;
 	}
 	return -1;
 }
 
-__HOT_CODE static inline void amq_bits_update(int ind)
+__HOT_CODE static void amq_bits_update(int ind)
 {
+	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
 	uint16_t pl_icid = PL_ICID_GET;
 
-	cmdif_aiop_srv.dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
-	cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
-	cmdif_aiop_srv.dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
-	ADD_AMQ_FLAGS(cmdif_aiop_srv.dpci_tbl->dma_flags[ind], pl_icid);
+
+	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
+	dpci_tbl->bdi_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
+	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
+	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
 	if (BDI_GET != 0)
-		cmdif_aiop_srv.dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
+		dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
 }
 
 /* Support for AIOP -> GPP */
@@ -394,22 +396,22 @@ __HOT_CODE static int notify_open()
 	struct mc_dprc *dprc = NULL;
 	uint8_t i;
 	
+	pr_debug("Got notify open for AIOP client \n");
 	ASSERT_COND_LIGHT(dpci_tbl != NULL);
 	
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
+		pr_err("Segment length is too small\n");
 		return -EINVAL;
 	}
 
 	ind = find_dpci((uint8_t)data->dev_id);
 	if (ind < 0) {
-		CMDIF_DBG_PRINT("Not found DPCI peer %d\n", data->dev_id);
+		pr_err("Not found DPCI peer %d\n", data->dev_id);
 		return -ENAVAIL;
 	}
 
-
-	CMDIF_DBG_PRINT("Found dpci %d peer id at index %d \n", \
+	pr_debug("Found dpci %d peer id at index %d \n", \
 	         dpci_tbl->attr[ind].id, ind);
-
 
 #ifdef DEBUG
 	 /* DEBUG in order not to call MC inside task */
@@ -417,7 +419,7 @@ __HOT_CODE static int notify_open()
 	 ASSERT_COND_LIGHT(dprc != NULL);
 	 err = dpci_get_link_state(&dprc->io, dpci_tbl->token[ind], &link_up);
 	 if (err) {
-		 CMDIF_DBG_PRINT("Failed to get dpci_get_link_state\n");
+		 pr_err("Failed to get dpci_get_link_state\n");
 	 }
 #endif
 	 /* Do it only if queues are not there */
@@ -435,7 +437,7 @@ __HOT_CODE static int notify_open()
 	 }
 
 	if ((dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
-		CMDIF_DBG_PRINT("DPCI is not attached or there is no link \n");
+		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
 
@@ -448,7 +450,7 @@ __HOT_CODE static int notify_open()
 	free_ind = cmdif_cl_session_get(cl, data->m_name, 
 	                                data->inst_id, data->dev_id);
 	if (free_ind >= 0) {
-		CMDIF_DBG_PRINT("The session already exists\n");
+		pr_err("The session already exists\n");
 		unlock_spinlock(&cl->lock);
 		return -EEXIST;
 	}
@@ -456,7 +458,7 @@ __HOT_CODE static int notify_open()
 
 	free_ind = cmdif_cl_free_session_get(cl);
 	if (free_ind < 0) {
-		CMDIF_DBG_PRINT("Too many sessions\n");
+		pr_err("Too many sessions\n");
 		unlock_spinlock(&cl->lock);
 		return -ENOSPC;
 	}
@@ -480,15 +482,15 @@ __HOT_CODE static int notify_open()
 	cl->count++;
 	unlock_spinlock(&cl->lock);
 
-	CMDIF_DBG_PRINT("icid = 0x%x\n", dpci_tbl->icid[ind]);
-	CMDIF_DBG_PRINT("enq_flags = 0x%x\n", dpci_tbl->bdi_flags[ind]);
-	CMDIF_DBG_PRINT("dma_flags = 0x%x\n", dpci_tbl->dma_flags[ind]);
+	pr_debug("icid = 0x%x\n", dpci_tbl->icid[ind]);
+	pr_debug("enq_flags = 0x%x\n", dpci_tbl->bdi_flags[ind]);
+	pr_debug("dma_flags = 0x%x\n", dpci_tbl->dma_flags[ind]);
 
 	return 0;
 }
 
 /* Support for AIOP -> GPP */
-__HOT_CODE static int notify_close()
+static int notify_close()
 {	
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
@@ -512,47 +514,6 @@ __HOT_CODE static int notify_close()
 	return -ENAVAIL;
 }
 
-static int srv_module_open(const char *m_name)
-{
-	int      m_id      = 0;
-	uint8_t  inst_id   = 0;
-	void     *dev;
-	uint16_t cmd_id = cmd_id_get();
-	int      err = 0;
-
-	/* OPEN will arrive with hash value 0xffff */
-	if (cmd_auth_id_get() != OPEN_AUTH_ID)
-		return -EPERM;
-
-	m_id = module_id_find(m_name);
-	CMDIF_DBG_PRINT("m_id = %d\n", m_id);
-
-	if (m_id < 0) {
-		/* Did not find module with such name */
-		CMDIF_DBG_PRINT("No such module %s\n", m_name);
-		return -ENODEV;
-	}
-
-	inst_id  = cmd_inst_id_get();
-	CMDIF_DBG_PRINT("inst_id = %d\n", inst_id);
-
-	err = OPEN_CB(m_id, inst_id, dev);
-	if (!err) {
-		int new_inst = inst_alloc((uint8_t)m_id);
-		if (new_inst >= 0) {
-			CMDIF_DBG_PRINT("new auth_id = %d\n", new_inst);
-			sync_done_set((uint16_t)new_inst);
-			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
-			return new_inst;
-		} else {
-			/* couldn't find free place for new device */
-			return -ENODEV;
-		}
-	} else {
-		return err;
-	}
-}
-
 __HOT_CODE void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
@@ -565,7 +526,6 @@ __HOT_CODE void cmdif_srv_isr(void)
 	if (cmdif_aiop_srv.srv == NULL)
 		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
 
-	
 #ifdef DEBUG
 	{
 		uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
@@ -598,13 +558,11 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	}
 #endif
+	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
-			pr_debug("Got notify open for AIOP client \n");
 			err = notify_open();
-			if (err)
-				pr_err("notify_open() failed %d\n", err);
 			sync_cmd_done(NULL, err, auth_id, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
@@ -613,39 +571,25 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
 		if (is_valid_auth_id(auth_id)) {
-			pr_debug("Got notify close for AIOP client \n");
 			err = notify_close();
-			if (err)
-				pr_err("notify_close() failed %d\n", err);
 			sync_cmd_done(NULL, err, auth_id, TRUE);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
-	} else if (cmd_id == CMD_ID_OPEN) {
-		
-		char m_name[M_NAME_CHARS + 1];
-		cmd_m_name_get(&m_name[0]);
-		
-		err = srv_module_open(m_name);
-		if (err < 0) {
-			pr_err("Failed to open %s\n", m_name);
-			sync_cmd_done(sync_done_get(), err, auth_id, TRUE);
-		} else {
-			pr_debug("Passed open %s\n", m_name);
-			sync_cmd_done(sync_done_get(), 0, (uint16_t)err, TRUE);
-		}
-			
-#ifdef  ARENA_LEGACY_CODE		
+
+	} else if (cmd_id == CMD_ID_OPEN) {			
 		char     m_name[M_NAME_CHARS + 1];
 		int      m_id      = 0;
 		uint8_t  inst_id   = 0;
+		int      new_inst  = 0;
+		uint64_t sync_done = sync_done_get();
 		void     *dev;
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			pr_err("No permission to open device 0x%x\n", auth_id);
-			sync_cmd_done(sync_done_get(), -EPERM, auth_id, TRUE);
+			sync_cmd_done(sync_done, -EPERM, auth_id, TRUE);
 		}
 
 		cmd_m_name_get(&m_name[0]);
@@ -657,31 +601,30 @@ __HOT_CODE void cmdif_srv_isr(void)
 		if (m_id < 0) {
 			/* Did not find module with such name */
 			pr_err("No such module %s\n", m_name);
-			sync_cmd_done(sync_done_get(), -ENODEV, auth_id, TRUE);
+			sync_cmd_done(sync_done, -ENODEV, auth_id, TRUE);
 		}
 
 		inst_id  = cmd_inst_id_get();
-		CMDIF_DBG_PRINT("inst_id = %d\n", inst_id);
+		pr_debug("inst_id = %d\n", inst_id);
 
 		err = OPEN_CB(m_id, inst_id, dev);
 		if (!err) {
-			int new_inst = inst_alloc((uint8_t)m_id);
+			new_inst = inst_alloc((uint8_t)m_id);
 			if (new_inst >= 0) {
 				pr_debug("new auth_id = %d\n", new_inst);
 				sync_done_set((uint16_t)new_inst);
 				cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
-				sync_cmd_done(sync_done_get(), 0,
+				sync_cmd_done(sync_done, 0,
 						(uint16_t)new_inst, TRUE);
 			} else {
 				/* couldn't find free place for new device */
-				sync_cmd_done(sync_done_get(), -ENODEV, auth_id, FALSE);
+				sync_cmd_done(sync_done, -ENODEV, auth_id, FALSE);
 				PR_ERR_TERMINATE("No free entry for new device\n");
 			}
 		} else {
-			sync_cmd_done(sync_done_get(), err, auth_id, FALSE);
+			sync_cmd_done(sync_done, err, auth_id, FALSE);
 			PR_ERR_TERMINATE("Open callback failed\n");
 		}
-#endif		
 	} else if (cmd_id == CMD_ID_CLOSE) {
 
 		if (is_valid_auth_id(auth_id)) {
