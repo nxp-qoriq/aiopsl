@@ -76,7 +76,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 __SHRAM struct snic_params snic_params[MAX_SNIC_NO];
 
-__HOT_CODE void snic_process_packet(void)
+void snic_process_packet(void)
 {
 
 	struct parse_result *pr;

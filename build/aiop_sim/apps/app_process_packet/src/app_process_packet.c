@@ -36,7 +36,7 @@
 int app_init(void);
 void app_free(void);
 
-__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
 	int local_test_error = 0;
