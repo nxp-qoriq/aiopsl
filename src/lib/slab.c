@@ -347,7 +347,7 @@ static void free_slab_module_memory(struct slab_module_info *slab_m)
 static inline int sanity_check_slab_create(uint32_t    committed_buffs,
                                            uint16_t    buff_size,
                                            uint16_t    alignment,
-                                           uint8_t     mem_pid,
+                                           enum memory_partition_id  mem_pid,
                                            uint32_t    flags)
 {
 	SLAB_ASSERT_COND_RETURN(committed_buffs > 0,   -EINVAL);
@@ -389,7 +389,7 @@ int slab_create(uint32_t    committed_buffs,
 
 	UNUSED(prefix_size);
 	UNUSED(postfix_size);
-	max_buffs = committed_buffs;
+
 #ifdef DEBUG
 	/* Sanity checks */
 	error = sanity_check_slab_create(committed_buffs,
@@ -399,9 +399,9 @@ int slab_create(uint32_t    committed_buffs,
 	                                 flags);
 	if (error)
 		return -ENAVAIL;
-	/* TODO remove it when max_buffs are supported */
-	if (max_buffs > committed_buffs)
-		return -ENAVAIL;
+
+	if (max_buffs < committed_buffs)
+		return -EINVAL;
 
 	/* committed_bufs and max_bufs must not be 0  when max buffs will be supported*/
 	if ((!committed_buffs) || (!max_buffs))
@@ -410,8 +410,6 @@ int slab_create(uint32_t    committed_buffs,
 
 	*((uint32_t *)slab) = 0;
 	/* Only HW SLAB is supported */
-
-	/* TODO add max_buffs to slab_create_pool when it will be supported */
 
 	/*Find hardware pool with enough space*/
 	error = slab_find_and_reserve_bpid(committed_buffs, buff_size, alignment,
