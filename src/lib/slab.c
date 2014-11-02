@@ -65,7 +65,7 @@ __SHRAM uint64_t g_slab_last_pool_pointer_ddr;
 /***************************************************************************
  * slab_read_pool used by: slab_debug_info_get
  ***************************************************************************/
-static int slab_read_pool(uint32_t slab_virtual_pool_id,
+static int slab_read_pool(uint32_t slab_pool_id,
                                   uint16_t *bman_pool_id,
                                   int32_t *max_bufs,
                                   int32_t *committed_bufs,
@@ -74,10 +74,10 @@ static int slab_read_pool(uint32_t slab_virtual_pool_id,
                                   slab_release_cb_t **callback_func)
 {
 
-	uint16_t cluster =SLAB_CLUSTER_ID_GET(slab_virtual_pool_id);
+	uint16_t cluster =SLAB_CLUSTER_ID_GET(slab_pool_id);
 	struct slab_v_pool *slab_virtual_pool;
 	struct slab_v_pool slab_virtual_pool_ddr;
-	uint32_t pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id); /*fetch pool id*/
+	uint32_t pool_id = SLAB_POOL_ID_GET(slab_pool_id); /*fetch pool id*/
 	uint64_t pool_data_address;
 
 	pr_info("pool ID %d, Cluster %d\n", pool_id, cluster);
@@ -85,7 +85,7 @@ static int slab_read_pool(uint32_t slab_virtual_pool_id,
 		slab_virtual_pool = (struct slab_v_pool *)
 					g_slab_virtual_pools.virtual_pool_struct;
 
-		slab_virtual_pool += slab_virtual_pool_id;
+		slab_virtual_pool += pool_id;
 	}
 
 	else {
