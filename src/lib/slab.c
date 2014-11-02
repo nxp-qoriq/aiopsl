@@ -153,7 +153,9 @@ static int slab_pool_allocate_buff(register uint32_t slab_virtual_pool_id,
 		/* If allocation failed,
 		 * undo the counters increment/decrement */
 		if (return_val) {
-			atomic_decr32(&slab_virtual_pool->allocated_bufs, 1);
+			if(cluster == 0)
+				atomic_decr32(&slab_virtual_pool->allocated_bufs, 1); /* slab_virtual_pool points to SHRAM */
+
 			if (allocate == 2) /* only if it was allocated from
 					the remaining area */
 				atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
