@@ -1647,8 +1647,9 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 		 * the ipr_reassemble function */
 		osm_scope_exit();
 		osm_scope_exit();
+		osm_scope_relinquish_exclusivity();
 	} else if (osm_status & START_CONCURRENT) {
-		osm_scope_transition_to_concurrent_with_increment_scope_id();
+		osm_scope_relinquish_exclusivity();
 	}
 }
 
@@ -1717,7 +1718,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 
 	if (frag_offset_shifted < rfdc_ptr->total_in_order_payload) {
 		/* overlap or duplicate */
-		/* return IPR_ERROR; */
+		return MALFORMED_FRAG;
 	}
 	current_index = rfdc_ptr->next_index;
 	current_element_ext_addr =  rfdc_ext_addr + START_OF_LINK_LIST +
@@ -1761,7 +1762,8 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		/* Smaller than last */
 		if(last_fragment) {
 			/* Current fragment is smaller than last but is marked
-			 * as last : Error */
+			 * as last */
+			return MALFORMED_FRAG;
 		}
 		/* Bring 8 elements of the Link List */
 		octet_index = temp_frag_index >> 3;
