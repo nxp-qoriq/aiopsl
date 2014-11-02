@@ -40,15 +40,15 @@ SECTIONS
     } > exception_handlers
 
     GROUP : {
-        .text (TEXT) ALIGN(0x1000) : {}
-        .text_vle (VLECODE) ALIGN(0x1000): {
-             *(.text)
-             *(.text_vle)
-         }
         .rodata (CONST) : {
             *(.rdata)
             *(.rodata)
         }
+        .dtext (TEXT) ALIGN(0x1000): {}
+        .dtext_vle (VLECODE) ALIGN(0x1000): {
+         *(.dtext)
+         *(.dtext_vle)
+         }
         .ctors : {}
         .dtors : {}
         extab : {}
@@ -66,10 +66,10 @@ SECTIONS
     } > internal_ram
 
     GROUP : {
-        .itext (TEXT) ALIGN(0x1000): {}
-        .itext_vle (VLECODE) ALIGN(0x1000): {
-         *(.itext)
-         *(.itext_vle)
+        .text (TEXT) ALIGN(0x1000) : {}
+        .text_vle (VLECODE) ALIGN(0x1000): {
+             *(.text)
+             *(.text_vle)
          }
     } > i_ram
 

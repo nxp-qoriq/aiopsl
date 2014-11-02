@@ -223,7 +223,7 @@ static int slab_release_pool(uint32_t slab_virtual_pool_id)
 /***************************************************************************
  * slab_pool_allocate_buff used by: slab_acquire
  ***************************************************************************/
-__HOT_CODE static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
+static int slab_pool_allocate_buff(uint32_t slab_virtual_pool_id,
                                               uint64_t *context_address)
 {
 	int return_val;
@@ -688,7 +688,7 @@ int slab_free(struct slab **slab)
 }
 
 /*****************************************************************************/
-__HOT_CODE int slab_acquire(struct slab *slab, uint64_t *buff)
+int slab_acquire(struct slab *slab, uint64_t *buff)
 {
 
 #ifdef DEBUG
@@ -729,7 +729,7 @@ static int slab_check_bpid(struct slab *slab, uint64_t buff)
 }
 
 /*****************************************************************************/
-__HOT_CODE int slab_release(struct slab *slab, uint64_t buff)
+int slab_release(struct slab *slab, uint64_t buff)
 {
 	uint32_t slab_virtual_pool_id = SLAB_VP_POOL_GET(slab);
 	slab_release_cb_t **callback = (slab_release_cb_t **)

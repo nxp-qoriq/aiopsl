@@ -45,7 +45,7 @@ extern __SHRAM struct dpni_drv *nis;
 #pragma push
 #pragma force_active on
 
-__HOT_CODE void receive_cb(void)
+void receive_cb(void)
 {	
 	struct dpni_drv *dpni_drv;
 	struct dpni_drv_params dpni_drv_params_local
@@ -92,7 +92,7 @@ __HOT_CODE void receive_cb(void)
 
 #pragma pop
 
-__HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
+int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
@@ -147,14 +147,14 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 }
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int dpni_get_receive_niid(void)
+int dpni_get_receive_niid(void)
 {
 	return (int)PRC_GET_PARAMETER();
 }
 
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int dpni_set_send_niid(uint16_t niid)
+int dpni_set_send_niid(uint16_t niid)
 {
 	default_task_params.send_niid = niid;
 	return 0;
@@ -162,7 +162,7 @@ __HOT_CODE int dpni_set_send_niid(uint16_t niid)
 
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int dpni_get_send_niid(void)
+int dpni_get_send_niid(void)
 {
 	return (int)default_task_params.send_niid;
 }
