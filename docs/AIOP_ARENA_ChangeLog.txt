@@ -1,3 +1,4 @@
+- Remove Simulator flag: set_iram_instruction_fetch_view.
 - mem_mng.c,slob.c         Change spinlock pointer  location from DP_DDR->SHARED RAM.( A fix for emulator)
 - cmdif_integ_dbg.elf      Placed compiled AIOP<->GPP CMDIF test at aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\. 
 - tests/cmdif/README.txt   Added information about CMDIF testing with GPP.

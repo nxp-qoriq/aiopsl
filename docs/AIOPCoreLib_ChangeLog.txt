@@ -1,3 +1,7 @@
+LDPAA AIOP SERVICE LAYER ALPHA V0.4.6 Change Log
+===================================================
+* Allow send/receive to/from two NI's - SPID assertion failure (ENGR00338045).
+
 LDPAA AIOP SERVICE LAYER ALPHA V0.4.4 Change Log
 ===================================================
 PARSER: Add parser_inline.h file for supporting parser inline commands.
