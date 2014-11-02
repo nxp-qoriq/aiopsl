@@ -79,7 +79,7 @@ if __name__ == "__main__":
 					if pcap != 'NULL':
 						inject_packets(pcap)
 				if 'inject packets:' in line:
-					tio_capture = Popen(["./fm_tio_capture","-hub","localhost:42975","-ser","w0_m1 w0_m3","-verbose_level","2"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+					tio_capture = Popen(["./fm_tio_capture","-hub","localhost:42975","-ser","w0_m1","w0_m3","-verbose_level","2"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 					c = Thread(target=enqueue_output, args=(tio_capture.stdout, q))
 					c.daemon = True # thread dies with the program
 					c.start()

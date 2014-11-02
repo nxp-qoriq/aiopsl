@@ -5,7 +5,6 @@
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
-#include "fsl_platform.h"
 
 #include "slob.h"
 
@@ -578,7 +577,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
         RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
     }
 #ifdef AIOP
-    p_MM->lock = (uint8_t *)fsl_os_xmalloc(sizeof(uint8_t),MEM_PART_SH_RAM,1);
+    p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
 #else
     p_MM->lock = spin_lock_create();
 #endif

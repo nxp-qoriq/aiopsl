@@ -275,8 +275,9 @@ inline void move_to_correct_ordering_scope1(uint32_t osm_status)
 			/* return to original ordering scope that entered
 			 * the ipr_reassemble function */
 			osm_scope_exit();
+			osm_scope_relinquish_exclusivity();
 		} else if(osm_status & START_CONCURRENT) {
-		   osm_scope_transition_to_concurrent_with_increment_scope_id();
+			osm_scope_relinquish_exclusivity();
 		}
 }
 void move_to_correct_ordering_scope2(uint32_t osm_status);
@@ -288,8 +289,9 @@ inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 			 * the ipr_reassemble function */
 	/*		osm_scope_exit();
 			osm_scope_exit();
+			osm_scope_relinquish_exclusivity();
 		} else if(osm_status & START_CONCURRENT) {
-		  osm_scope_transition_to_concurrent_with_increment_scope_id();
+			osm_scope_relinquish_exclusivity();
 		}
 }*/
 uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
