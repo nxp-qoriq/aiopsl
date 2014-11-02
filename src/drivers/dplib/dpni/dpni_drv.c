@@ -49,9 +49,9 @@ int dpni_drv_init(void);
 void dpni_drv_free(void);
 
 /* TODO - get rid */
-__SHRAM struct dpni_drv nis_first __attribute__((aligned(8)));
-__SHRAM struct dpni_drv *nis = &nis_first;
-__SHRAM int num_of_nis;
+struct dpni_drv nis_first __attribute__((aligned(8)));
+struct dpni_drv *nis = &nis_first;
+int num_of_nis;
 
 void discard_rx_cb()
 {

@@ -32,7 +32,7 @@
 #include <fsl_mc_cmd.h>
 #include <kernel/fsl_spinlock.h>
 
-__SHRAM uint8_t g_portal_lock;
+uint8_t g_portal_lock;
 
 static int mc_status_to_error(enum mc_cmd_status status)
 {

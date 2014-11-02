@@ -40,7 +40,7 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 
 /* TODO - get rid */
-extern __SHRAM struct dpni_drv *nis;
+extern struct dpni_drv *nis;
 
 #pragma push
 #pragma force_active on

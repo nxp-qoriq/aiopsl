@@ -36,8 +36,8 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_io.h"
 
-__SHRAM struct slab *slab_peb = 0;
-__SHRAM struct slab *slab_ddr = 0;
+struct slab *slab_peb = 0;
+struct slab *slab_ddr = 0;
 
 int app_test_slab_init(void);
 int slab_init(void);

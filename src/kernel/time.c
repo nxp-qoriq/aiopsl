@@ -32,12 +32,12 @@
 #include "fsl_spinlock.h"
 
 
-__SHRAM uint64_t time_epoch_to_midnight_ms __attribute__((aligned(8))) = 0; /*microseconds since epoch till midnight
+uint64_t time_epoch_to_midnight_ms __attribute__((aligned(8))) = 0; /*microseconds since epoch till midnight
 * This global variable should be double word aligned to support load as atomic command.
 */
-__SHRAM uint8_t time_to_midnight_lock = 0;
-__SHRAM _time_get_t *time_get_func_ptr;   /*initialized in time_init*/
-__SHRAM struct aiop_cmgw_regs *time_cmgw_regs;
+uint8_t time_to_midnight_lock = 0;
+_time_get_t *time_get_func_ptr;   /*initialized in time_init*/
+struct aiop_cmgw_regs *time_cmgw_regs;
 
 extern struct aiop_init_info g_init_data;
 

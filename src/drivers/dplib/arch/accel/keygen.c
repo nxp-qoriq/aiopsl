@@ -38,7 +38,7 @@
 #include "system.h"
 #include "id_pool.h"
 
-extern __SHRAM uint64_t ext_keyid_pool_address;
+extern uint64_t ext_keyid_pool_address;
 
 void keygen_kcr_builder_init(struct kcr_builder *kb)
 {

@@ -55,7 +55,7 @@
 #include "slab.h"
 #endif
 
-__SHRAM struct  ipr_global_parameters ipr_global_parameters1;
+struct  ipr_global_parameters ipr_global_parameters1;
 
 int ipr_init(void)
 {

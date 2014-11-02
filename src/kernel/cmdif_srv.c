@@ -84,7 +84,7 @@
 	} while (0)
 
 
- __SHRAM static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
+ static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 
  static inline int is_valid_auth_id(uint16_t id)
  {

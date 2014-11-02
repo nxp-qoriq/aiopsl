@@ -40,8 +40,8 @@
 #include "aiop_common.h"
 #include "fsl_mc_init.h"
 
-__SHRAM struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
-__SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
+struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
+struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 
 #define SLAB_ASSERT_COND_RETURN(COND, ERR)  \
 	do { if (!(COND)) return (ERR); } while (0)

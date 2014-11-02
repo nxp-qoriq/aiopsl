@@ -40,7 +40,7 @@
 #include "id_pool.h"
 
 
-extern __SHRAM uint64_t ext_prpid_pool_address;
+extern uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
