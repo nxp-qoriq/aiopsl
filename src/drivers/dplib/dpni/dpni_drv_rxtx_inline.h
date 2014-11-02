@@ -40,7 +40,7 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 extern __SHRAM struct dpni_drv *nis;
 
-__HOT_CODE inline int dpni_drv_send(uint16_t ni_id)
+inline int dpni_drv_send(uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
@@ -61,7 +61,7 @@ __HOT_CODE inline int dpni_drv_send(uint16_t ni_id)
 #ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
-	ASSERT_COND(!(dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE));
+	ASSERT_COND_LIGHT(!(dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE));
 #endif
 #endif
 	/*dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;*/

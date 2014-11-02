@@ -44,7 +44,7 @@ extern t_system sys;
 
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
-extern struct aiop_init_data g_init_data;
+extern struct aiop_init_info g_init_data;
 /*********************************************************************/
 extern int time_init();             extern void time_free();
 extern int mc_obj_init();           extern void mc_obj_free();
@@ -126,7 +126,7 @@ void fill_platform_parameters(struct platform_param *platform_param)
 	platform_param->clock_in_freq_hz = 100000000; //TODO check value
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
-	platform_param->console_id = (uint8_t)g_init_data.sl_data.uart_port_id;
+	platform_param->console_id = (uint8_t)g_init_data.sl_info.uart_port_id;
 
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
 	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >
@@ -169,7 +169,7 @@ int global_init(void)
      * and at fixed address
      * TODO is it the right place to verify it ? Can't place it at sys_init()
      * because it's too generic. */
-    ASSERT_COND((((uint8_t *)(&g_init_data.sl_data)) == AIOP_INIT_DATA) &&
+    ASSERT_COND((((uint8_t *)(&g_init_data.sl_info)) == AIOP_INIT_DATA) &&
                 (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
 
     for (i=0; i<ARRAY_SIZE(modules) ; i++)

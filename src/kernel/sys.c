@@ -294,14 +294,6 @@ static int global_sys_init(void)
 	return 0;
 }
 
-void sys_yield(void)
-{
-	if(!sys.runtime_flag)
-	{
-		__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
-	}
-}
-
 /*****************************************************************************/
 int sys_init(void)
 {

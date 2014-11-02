@@ -53,7 +53,7 @@
 #define	FRAG_OK_REASS_NOT_COMPL	0
 #define LAST_FRAG_IN_ORDER	1
 #define LAST_FRAG_OUT_OF_ORDER	2
-#define FRAG_ERROR		3
+#define MALFORMED_FRAG		3
 #define NO_BYPASS_OSM		0x00000000 /* in osm_status */
 #define	BYPASS_OSM		0x00000001 /* in osm_status */
 #define START_CONCURRENT	0x00000002 /* in osm_status */
@@ -70,6 +70,9 @@
 #define IPV4_FRAME		0x0000 /* in RFDC status */
 #define IPV6_FRAME		0x4000 /* in RFDC status */
 #define FIRST_ARRIVED		0x2000 /* in RFDC status */
+#define RFDC_STATUS_NOT_ECT	0x0004 /* in RFDC status */
+#define RFDC_STATUS_CE		0x0008 /* in RFDC status */
+/*following define includes both cases: pure OOO and OOO_and_IN_ORDER */
 #define OUT_OF_ORDER		0x0001 /* in RFDC status */
 #define ORDER_AND_OOO		0x0002 /* in RFDC status */
 #define FRAG_OFFSET_IPV4_MASK	0x1FFF
@@ -91,6 +94,11 @@
 				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK
 #define IPV4_VALID		0x00000001	/* In IPR instance */
 #define IPV6_VALID		0x00000002	/* In IPR instance */
+#define MAX_IP_SIZE		65536 /* 64K */
+#define NOT_ECT			0
+#define CE			0x3
+#define IPV4_ECN		0x3
+#define IPV6_ECN		0x00300000
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT		0
@@ -157,7 +165,7 @@ struct ipr_rfdc{
 	uint32_t	timer_handle;
 	uint16_t	expected_total_length;
 	uint16_t	current_total_length;
-	uint16_t	res;
+	uint16_t	first_frag_hdr_length;
 	uint16_t	biggest_payload;
 	uint16_t	current_running_sum;
 	uint8_t		first_frag_index;
@@ -176,7 +184,7 @@ struct ipr_rfdc{
 	uint16_t	seg_addr;
 	uint16_t	seg_length;
 	uint16_t	seg_offset;
-	uint8_t		res2;
+	uint8_t		res2[2];
 };
 #pragma pack(pop)
 
@@ -251,6 +259,7 @@ int ipr_init(void);
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
+				 struct ipr_instance instance_params,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4);
 
@@ -286,7 +295,8 @@ inline void move_to_correct_ordering_scope2(uint32_t osm_status)
 uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
-uint32_t check_for_frag_error();
+uint32_t check_for_frag_error(struct ipr_instance instance_params,
+			      uint32_t frame_is_ipv4);
 
 void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t dummy);
 
@@ -294,7 +304,14 @@ void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		      uint32_t last_fragment,uint16_t current_frag_size,
-		      uint16_t frag_offset_shifted);
+		      uint16_t frag_offset_shifted,
+		      struct ipr_instance instance_params);
+
+void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr);
+
+void ipr_stats_update(struct ipr_instance instance_params,
+		      uint32_t counter_offset, uint32_t frame_is_ipv4);
+
 
 /**************************************************************************//**
 @Description	IPR Global parameters
@@ -304,6 +321,18 @@ struct ipr_global_parameters {
 uint8_t  ipr_key_id_ipv4;
 uint8_t  ipr_key_id_ipv6;
 };
+
+struct ipr_instance_ext_delete{
+	uint64_t	delete_arg;
+	ipr_del_cb_t 	*confirm_delete_cb;
+};
+
+#pragma pack(push,1)
+struct ipr_instance_and_extension{
+	struct ipr_instance		ipr_instance;
+	struct ipr_instance_extension	ipr_instance_extension;
+};
+#pragma pack(pop)
 
 /* @} end of group FSL_IPR */
 

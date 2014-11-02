@@ -38,6 +38,8 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_ip.h"
 #include "dplib/fsl_l4.h"
+#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_tman.h"
 
 int app_init(void);
 void app_free(void);
@@ -202,6 +204,7 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
+	uint64_t tmi_mem_base_addr; 
 
 	struct ipr_params ipr_demo_params;
 	ipr_instance_handle_t ipr_instance = 0;
@@ -221,7 +224,9 @@ int app_init(void)
 	ipr_demo_params.cb_timeout_ipv4_arg = 0;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
-	ipr_demo_params.tmi_id = 0;
+	tmi_mem_base_addr = fsl_os_virt_to_phys(fsl_os_xmalloc( 0x20*64, MEM_PART_DP_DDR, 64));
+	
+	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
 	fsl_os_print("ipr_demo: Creating IPR instance\n");
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);

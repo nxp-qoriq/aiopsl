@@ -12,7 +12,7 @@
 #pragma push
 #pragma force_active on
 #pragma section  RW ".aiop_init_data" ".aiop_init_data_bss"
-__declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
+__declspec(section ".aiop_init_data")   struct aiop_init_info  g_init_data;
 #pragma pop
 
 /* This value should match AIOP_DDR_END - AIOP_DDR_START from aiop_link.lcf 
@@ -29,7 +29,7 @@ __declspec(section ".aiop_init_data")   struct aiop_init_data  g_init_data;
 /* TODO set good default values
  * TODO Update and review structure */
 
-struct aiop_init_data g_init_data =
+struct aiop_init_info g_init_data =
 {
  /* aiop_sl_init_info */
  {
@@ -73,7 +73,7 @@ struct aiop_init_data g_init_data =
   2048,			/* mflu_dp_ddr_num_entries */
   2048,			/* mflu_peb_num_entries */
   0x100000,	/* sru_size */
-  1000000,	/* tman_freq */
+  800,	/* tman_freq */
   4,	/* tasks_per_core */
   {0}	/* reserved */
  }

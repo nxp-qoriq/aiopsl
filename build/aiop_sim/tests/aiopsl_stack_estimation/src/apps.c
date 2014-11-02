@@ -24,48 +24,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- /**************************************************************************//**
- @File          types_mw.h
+#include "common/fsl_string.h"
+#include "inc/fsl_sys.h"
 
- @Description   TODO
-*//***************************************************************************/
-#ifndef __TYPES_MW_H
-#define __TYPES_MW_H
+extern int app_init(void); extern void app_free(void);
 
 
-#include <stdint.h>
-#include <stddef.h>
+#define APPS                            	\
+{                                       	\
+	{app_init, app_free},	\
+	{NULL, NULL} /* never remove! */    	\
+}
 
-//#define __inline__      inline
-#define _prepacked
-#define _packed
+void build_apps_array(struct sys_module_desc *apps);
 
-/* temporary, due to include issues */
-typedef uint32_t uintptr_t;
-typedef int32_t intptr_t;
-
-typedef uint64_t            dma_addr_t;
-
-
-#ifndef NULL
-#define NULL ((0L))
-#endif /* NULL */
-
-
-/** Task global variables area */
-#define __TASK __declspec(section ".tdata")
-
-/** Shared-SRAM code location */
-#pragma section RX ".stext_vle"
-#define __WARM_CODE __declspec(section ".stext_vle")
-
-/** Shared-SRAM global variables */
-#pragma section RW ".shdata" ".shbss"
-#define __SHRAM __declspec(section ".shdata")
-
-/** DDR code location */
-#pragma section RX ".dtext_vle"
-#define __COLD_CODE __declspec(section ".dtext_vle")
-
-
-#endif /* __TYPES_MW_H */
+void build_apps_array(struct sys_module_desc *apps)
+{
+	struct sys_module_desc apps_tmp[] = APPS;
+	memcpy(apps, apps_tmp, sizeof(apps_tmp));
+}

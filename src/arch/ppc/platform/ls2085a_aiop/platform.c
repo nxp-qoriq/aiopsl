@@ -39,7 +39,7 @@
 #include "inc/fsl_sys.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
-extern struct aiop_init_data g_init_data;
+extern struct aiop_init_info g_init_data;
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
 
 typedef struct t_platform_mem_region_info {
@@ -268,9 +268,9 @@ static int init_l1_cache(t_platform *pltfrm)
     }
 
     if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY)
-        RETURN_ERROR(MAJOR, E_NOT_SUPPORTED, NO_MSG);
+        RETURN_ERROR(MAJOR, ENOTSUP, NO_MSG);
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -280,9 +280,9 @@ static int disable_l1_cache(t_platform *pltfrm)
         booke_icache_disable();
 
     if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY)
-        RETURN_ERROR(MAJOR, E_NOT_SUPPORTED, NO_MSG);
+        RETURN_ERROR(MAJOR, ENOTSUP, NO_MSG);
 
-    return E_OK;
+    return 0;
 }
 
 
@@ -292,7 +292,7 @@ static int console_print_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_
     int err;
 
     err = duart_tx(h_console_dev, p_data, size);
-    if (err != E_OK)
+    if (err != 0)
         return 0;
 
     return (int)size;
@@ -431,16 +431,16 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* Initialize L1 Cache                                  */
     /*------------------------------------------------------*/
     err = init_l1_cache(pltfrm);
-    if (err != E_OK)
+    if (err != 0)
 	    RETURN_ERROR(MAJOR, err, NO_MSG);
 
     /*initialize random seeds*/
     err = init_random_seed(WSCR_tasks_bit);
 
-    if (err != E_OK)
+    if (err != 0)
     	    RETURN_ERROR(MAJOR, err, NO_MSG);
 
-    return E_OK;
+    return 0;
 }
 /*****************************************************************************/
 static int pltfrm_free_core_cb(fsl_handle_t h_platform)
@@ -452,7 +452,7 @@ static int pltfrm_free_core_cb(fsl_handle_t h_platform)
     /* Disable L1 cache */
     disable_l1_cache(pltfrm);
 
-    return E_OK;
+    return 0;
 }
 
 
@@ -467,15 +467,15 @@ static int pltfrm_init_console_cb(fsl_handle_t h_platform)
     if (sys_is_master_core()) {
         /* Master partition - register DUART console */
         err = platform_enable_console(pltfrm);
-        if (err != E_OK)
+        if (err != 0)
             RETURN_ERROR(MAJOR, err, NO_MSG);
 
         err = sys_register_console(pltfrm->uart, console_print_cb, console_get_line_cb);
-        if (err != E_OK)
+        if (err != 0)
             RETURN_ERROR(MAJOR, err, NO_MSG);
     }
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -490,7 +490,7 @@ static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 
     sys_unregister_console();
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -517,7 +517,7 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         err = sys_register_virt_mem_mapping(p_mem_info->virt_base_addr,
                                             p_mem_info->phys_base_addr,
                                             p_mem_info->size);
-        if (err != E_OK)
+        if (err != 0)
             RETURN_ERROR(MAJOR, err, NO_MSG);
 
         if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
@@ -534,14 +534,14 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
                                              0
 #endif /* DEBUG */
                                              );
-            if (err != E_OK)
+            if (err != 0)
                 RETURN_ERROR(MAJOR, err, NO_MSG);
 
             pltfrm->registered_partitions[index++] = p_mem_info->mem_partition_id;
         }
     }
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -557,7 +557,7 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        switch (p_mem_info->mem_partition_id) {
 	        case MEM_PART_DEFAULT_HEAP_PARTITION:
 	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.dp_ddr_paddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr;
 	            p_mem_info->size = aiop_lcf_ddr_size;
 	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	                     p_mem_info->virt_base_addr,
@@ -567,11 +567,11 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 
 	        	break;
 	        case MEM_PART_DP_DDR:
-	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.dp_ddr_vaddr +
+	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
 	        	        aiop_lcf_ddr_size;
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.dp_ddr_paddr +
+	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr +
 	        			aiop_lcf_ddr_size;
-	            p_mem_info->size = g_init_data.app_data.dp_ddr_size -
+	            p_mem_info->size = g_init_data.app_info.dp_ddr_size -
 	        			aiop_lcf_ddr_size;
 	            pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	        	      p_mem_info->virt_base_addr,
@@ -580,9 +580,9 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	        	      (uint32_t)(p_mem_info->size));
 	            break;
 	        case MEM_PART_PEB:
-	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.peb_vaddr;
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.peb_paddr;
-	            p_mem_info->size = g_init_data.app_data.peb_size;
+	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.peb_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_info.peb_paddr;
+	            p_mem_info->size = g_init_data.app_info.peb_size;
 	            pr_debug("MEM_PART_PEB:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	            	     p_mem_info->virt_base_addr,
 	            	     (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -590,9 +590,9 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	            	     (uint32_t)(p_mem_info->size));
 	            break;
 	        case  MEM_PART_SYSTEM_DDR:
-	                p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_data.sys_ddr1_vaddr;
-	                p_mem_info->phys_base_addr = g_init_data.sl_data.sys_ddr1_paddr;
-	                p_mem_info->size = g_init_data.app_data.sys_ddr1_size;
+	                p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr;
+	                p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr;
+	                p_mem_info->size = g_init_data.app_info.sys_ddr1_size;
 	                pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	                         p_mem_info->virt_base_addr,
                                  (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -601,9 +601,9 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	            break;
 	        case MEM_PART_MC_PORTALS:
 	            p_mem_info->virt_base_addr =
-	        	       (uint32_t)g_init_data.sl_data.mc_portals_vaddr;
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.mc_portals_paddr;
-	            // TODO fill all the rest fields from g_init_data.sl_data
+	        	       (uint32_t)g_init_data.sl_info.mc_portals_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_info.mc_portals_paddr;
+	            // TODO fill all the rest fields from g_init_data.sl_info
 	            /* Store MC-Portals bases (for convenience) */
 	            pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;
 	            pr_debug("MEM_PART_MC_PORTALS:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
@@ -614,9 +614,9 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	            break;
 	        case MEM_PART_CCSR:
 	            p_mem_info->virt_base_addr =
-	                            (uint32_t)g_init_data.sl_data.ccsr_vaddr;
-	            p_mem_info->phys_base_addr = g_init_data.sl_data.ccsr_paddr;
-	            // TODO fill all the rest fields from g_init_data.sl_data
+	                            (uint32_t)g_init_data.sl_info.ccsr_vaddr;
+	            p_mem_info->phys_base_addr = g_init_data.sl_info.ccsr_paddr;
+	            // TODO fill all the rest fields from g_init_data.sl_info
 	            /* Store CCSR base (for convenience) */
 	            pltfrm->ccsr_base =  p_mem_info->virt_base_addr;
 	            pr_debug("MEM_PART_CCSR:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
@@ -627,7 +627,7 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 	            break;
 	        }
 	 }
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -647,7 +647,7 @@ static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
             sys_unregister_mem_partition(pltfrm->registered_partitions[index]);
     }
 
-    return E_OK;
+    return 0;
 }
 
 #ifdef ARENA_LEGACY_CODE
@@ -669,7 +669,7 @@ static int pltfrm_init_private_cb(fsl_handle_t h_platform)
     /* Print platform information */
     print_platform_info(pltfrm);
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -687,7 +687,7 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 #endif /* 0 */
     }
 
-    return E_OK;
+    return 0;
 }
 #endif
 
@@ -695,7 +695,7 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 int platform_early_init(struct platform_param *pltfrm_params)
 {
     UNUSED(pltfrm_params);
-    return E_OK;
+    return 0;
 }
 
 int platform_init(struct platform_param    *pltfrm_param,
@@ -710,7 +710,7 @@ int platform_init(struct platform_param    *pltfrm_param,
     /* Allocate the platform's control structure */
     pltfrm = fsl_os_malloc(sizeof(t_platform));
     if (!pltfrm)
-        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("platform object"));
+        RETURN_ERROR(MAJOR, EAGAIN, ("platform object"));
     memset(pltfrm, 0, sizeof(t_platform));
 
     /* Store configuration parameters */
@@ -733,7 +733,7 @@ int platform_init(struct platform_param    *pltfrm_param,
     /* Identify the program memory */
     err = identify_program_memory(pltfrm->param.mem_info,
                                   &(pltfrm->prog_runs_from));
-    ASSERT_COND(err == E_OK);
+    ASSERT_COND(err == 0);
 #endif
     /* Store AIOP-peripherals base (for convenience) */
     pltfrm->aiop_base = AIOP_PERIPHERALS_OFF;
@@ -780,7 +780,7 @@ int platform_free(fsl_handle_t h_platform)
     if (h_platform)
         fsl_os_free(h_platform);
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -842,7 +842,7 @@ int platform_enable_console(fsl_handle_t h_platform)
     t_platform          *pltfrm = (t_platform *)h_platform;
     t_duart_uart_param  duart_uart_param;
     fsl_handle_t        uart;
-    int           err = E_OK;
+    int           err = 0;
     uint32_t uart_port_offset[] = {
                                    SOC_PERIPH_OFF_DUART0,
                                    SOC_PERIPH_OFF_DUART1,
@@ -852,16 +852,16 @@ int platform_enable_console(fsl_handle_t h_platform)
     SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
 
     if (pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)
-        return E_OK;
+        return 0;
 
-    SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), E_NOT_SUPPORTED);
+    SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), ENOTSUP);
 
-    if( g_init_data.sl_data.uart_port_id > 3 )
-        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("DUART"));
+    if( g_init_data.sl_info.uart_port_id > 3 )
+        RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
 
     /* Fill DUART configuration parameters */
     /*TODO: the base address is hard coded to uart 2_0, should be modified*/
-    duart_uart_param.base_address       = uart_port_offset[ g_init_data.sl_data.uart_port_id];
+    duart_uart_param.base_address       = uart_port_offset[ g_init_data.sl_info.uart_port_id];
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
     duart_uart_param.parity             = E_DUART_PARITY_NONE;
@@ -876,38 +876,38 @@ int platform_enable_console(fsl_handle_t h_platform)
     /* Configure and initialize DUART driver */
     uart = duart_config(&duart_uart_param);
     if (!uart)
-        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("DUART"));
+        RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
 
     /* Configure polling mode */
     err = duart_config_poll_mode(uart, 1);
-    if (err != E_OK)
+    if (err != 0)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     /* Convert end-of-line indicators */
     err = duart_config_poll_lf2crlf(uart, 1);
-    if (err != E_OK)
+    if (err != 0)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     /* Prevent blocking */
     err = duart_config_rx_timeout(uart, 0);
-    if (err != E_OK)
+    if (err != 0)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     err = duart_init(uart);
-    if (err != E_OK)
+    if (err != 0)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     /* Lock DUART handle in system */
     /*TODO: sys_get_handle in aiop does not support num_of_id > 0
      * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
     err = sys_add_handle(uart, FSL_OS_MOD_UART, 1, pltfrm->param.console_id);
-    if (err != E_OK)
+    if (err != 0)
         RETURN_ERROR(MAJOR, err, NO_MSG);
 
     pltfrm->uart = uart;
     pltfrm->duart_id = pltfrm->param.console_id;
 
-    return E_OK;
+    return 0;
 }
 
 /*****************************************************************************/
@@ -919,7 +919,7 @@ int platform_disable_console(fsl_handle_t h_platform)
 
     /* Unregister platform console */
    /* errCode = SYS_UnregisterConsole();
-    if (errCode != E_OK)
+    if (errCode != 0)
         RETURN_ERROR(MAJOR, errCode, NO_MSG);*/
 
     if (pltfrm->uart)
@@ -934,6 +934,6 @@ int platform_disable_console(fsl_handle_t h_platform)
         pltfrm->uart = NULL;
     }
 
-    return E_OK;
+    return 0;
 }
 

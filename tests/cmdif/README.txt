@@ -15,9 +15,11 @@ cmdif_srv_flib.c        aiopsl\src\kernel
 =================================
 Test Files:
 =================================
-mc\tests\cmdif_gpp\srv\cmdif_srv_test.c      Example for GPP server test (based MC)
-aiopsl\tests\cmdif\cmdif_integration_test.c  Source code of cmdif_integ_dbg.elf
-cmdif_integ_dbg.elf                          AIOP elf to be used for tests
+mc\tests\cmdif_gpp\srv\cmdif_srv_test.c           - Example for Server test (based MC).
+nadk_develop\apps\cmdif_demo\cmdif_server_demo.c  - Example for GPP Server test. To be tested with cmdif_integ_dbg.elf AIOP test.
+nadk_develop\apps\cmdif_demo\cmdif_client_demo.c  - Example for GPP Client test. To be tested with cmdif_integ_dbg.elf AIOP test. 
+aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\cmdif_integ_dbg.elf - This is AIOP elf to be used for CMDIF tests.
+aiopsl\tests\cmdif\cmdif_integration_test.c                          - Source code of cmdif_integ_dbg.elf.
 
 What's new:
 ------------

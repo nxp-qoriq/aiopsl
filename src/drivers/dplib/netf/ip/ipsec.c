@@ -55,8 +55,6 @@
 #endif /* AIOP_VERIF */
 
 #pragma push
-	/* make all following functions go into .itext_vle */
-#pragma section code_type ".itext_vle"
 
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"
