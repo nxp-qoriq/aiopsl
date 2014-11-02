@@ -94,7 +94,7 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-__HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
 	int err = 0;
@@ -115,7 +115,7 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	return 0;
 }
 
-__HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
+static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
 	int err = 0;
