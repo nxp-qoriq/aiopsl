@@ -1,3 +1,4 @@
+- mem_mng.c,slob.c         Change spinlock pointer  location from DP_DDR->SHARED RAM.( A fix for emulator)
 - cmdif_integ_dbg.elf      Placed compiled AIOP<->GPP CMDIF test at aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\. 
 - tests/cmdif/README.txt   Added information about CMDIF testing with GPP.
 - fsl_soc_spec_ls2085a.h:  Update UART offset ( + 0x4000 ). The following flags must be removed from simulator initialization cfg file:
