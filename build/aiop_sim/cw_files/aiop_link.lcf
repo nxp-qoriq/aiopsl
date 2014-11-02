@@ -18,10 +18,8 @@ MEMORY
     exception_handlers:     org = 0x40000000,   len = 0x00010000
     pseudo_rom:             org = 0x40010000,   len = 0x00100000
     init:                   org = 0x40110000,   len = 0x00100000
-    internal_ram:     	    org = 0x40210000,   len = 0x00100000
-    heap  :                 org = 0x40310000,   len = 0x00800000
+    heap  :                 org = 0x40210000,   len = 0x00800000
 }
-
 
 SECTIONS
 {
@@ -56,16 +54,6 @@ SECTIONS
     } > pseudo_rom
 
     GROUP : {
-       .__uninitialized_intc_handlertable ALIGN(0x10) : {}
-       .data   : {}
-       .sdata  : {}
-       .sbss   : {}
-       .sdata2 : {}
-       .sbss2  : {}
-       .bss    : {}
-    } > internal_ram
-
-    GROUP : {
         .text (TEXT) ALIGN(0x1000) : {}
         .text_vle (VLECODE) ALIGN(0x1000): {
              *(.text)
@@ -84,8 +72,14 @@ SECTIONS
          *(.stext)
          *(.stext_vle)
          }
-        .shdata (DATA) : {}
-        .shbss (BSS) NO_INIT_BSS : {}
+         
+       .__uninitialized_intc_handlertable ALIGN(0x10) : {}
+       .data   : {}
+       .sdata  : {}
+       .sbss   : {}
+       .sdata2 : {}
+       .sbss2  : {}
+       .bss    : {}
    } > shared_ram
 
    GROUP : {
