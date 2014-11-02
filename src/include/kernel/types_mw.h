@@ -63,9 +63,9 @@ typedef uint64_t            dma_addr_t;
 #pragma section RW ".shdata" ".shbss"
 #define __SHRAM __declspec(section ".shdata")
 
-/** i-RAM code location */
-#pragma section RX ".itext_vle"
-#define __HOT_CODE __declspec(section ".itext_vle")
+/** DDR code location */
+#pragma section RX ".dtext_vle"
+#define __COLD_CODE __declspec(section ".dtext_vle")
 
 
 #endif /* __TYPES_MW_H */
