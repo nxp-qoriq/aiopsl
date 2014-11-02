@@ -216,7 +216,6 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
-#pragma fn_ptr_candidates(slab_create)
 	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 1,
 	                  NULL, &my_slab);
 
