@@ -62,132 +62,6 @@ __SHRAM uint64_t g_slab_last_pool_pointer_ddr;
 		}                                                      \
 	}
 
-
-/***************************************************************************
- * slab_pool_allocate_buff used by: slab_acquire
- ***************************************************************************/
-static int slab_pool_allocate_buff(register uint32_t slab_virtual_pool_id,
-                                              uint64_t *context_address)
-{
-	int return_val;
-	int allocate = 0;
-	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_virtual_pool_id); /* fetch cluster ID*/
-	uint64_t pool_data_address;
-
-	struct slab_v_pool *slab_virtual_pool;
-	struct slab_v_pool slab_virtual_pool_ddr;
-
-	slab_virtual_pool_id = SLAB_POOL_ID_GET(slab_virtual_pool_id); /*fetch pool id*/
-
-	if(cluster == 0){
-		slab_virtual_pool = (struct slab_v_pool *)
-				g_slab_virtual_pools.virtual_pool_struct;
-
-
-
-		slab_virtual_pool += slab_virtual_pool_id;
-
-		lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
-	}
-
-	else {
-		pool_data_address = g_slab_virtual_pools.slab_context_address[cluster] +
-			(sizeof(slab_virtual_pool_ddr) *
-				slab_virtual_pool_id);
-		cdma_read_with_mutex(pool_data_address,
-		                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
-		                     &slab_virtual_pool_ddr,
-		                     sizeof(slab_virtual_pool_ddr));
-		slab_virtual_pool = &slab_virtual_pool_ddr;
-	}
-
-	/* First check if there are still available buffers
-	 * in the VP committed area */
-	if(slab_virtual_pool->allocated_bufs <
-		slab_virtual_pool->committed_bufs) {
-		allocate = 1; /* allocated from committed area */
-		/* Else, check if there are still available buffers
-		 * in the VP max-committed area */
-	} else if (slab_virtual_pool->allocated_bufs < slab_virtual_pool->max_bufs) {
-		/* There is still an extra space in the virtual pool,
-		 * check BMAN pool */
-
-		/* spinlock this BMAN pool counter */
-		lock_spinlock((uint8_t *)&g_slab_bman_pools[slab_virtual_pool->
-		                                            bman_array_index].spinlock);
-
-		if ((g_slab_bman_pools[
-		                       slab_virtual_pool->bman_array_index].remaining) > 0)
-		{
-			allocate = 2; /* allocated from remaining area */
-			g_slab_bman_pools
-			[slab_virtual_pool->bman_array_index].remaining--;
-		}
-
-		unlock_spinlock((uint8_t *)&g_slab_bman_pools[slab_virtual_pool->
-		                                              bman_array_index].spinlock);
-	}
-
-	/* Request CDMA to allocate a buffer*/
-	if (allocate) {
-
-		slab_virtual_pool->allocated_bufs++;
-
-		if(cluster == 0){
-
-			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
-		}
-		else{
-			cdma_write_with_mutex(pool_data_address,
-			                      CDMA_POSTDMA_MUTEX_RM_BIT,
-			                      &slab_virtual_pool_ddr,
-			                      sizeof(slab_virtual_pool_ddr));
-
-		}
-		/* allocate a buffer with the CDMA */
-		return_val = cdma_acquire_context_memory(
-			(uint16_t)g_slab_bman_pools
-			[slab_virtual_pool->bman_array_index].bman_pool_id,
-			(uint64_t *)context_address); /* context_memory */
-
-		/* If allocation failed,
-		 * undo the counters increment/decrement */
-		if (return_val) {
-			if(cluster == 0)
-				atomic_decr32(&slab_virtual_pool->allocated_bufs, 1); /* slab_virtual_pool points to SHRAM */
-
-			if (allocate == 2) /* only if it was allocated from
-					the remaining area */
-				atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
-				                                 bman_array_index].remaining, 1);
-			if(cluster) /*If managed in DDR, the structure should be updated*/
-			{
-				cdma_read_with_mutex(pool_data_address,
-				                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
-				                     &slab_virtual_pool_ddr,
-				                     sizeof(slab_virtual_pool_ddr));
-				slab_virtual_pool_ddr.allocated_bufs --;
-				cdma_write_with_mutex(pool_data_address,
-				                      CDMA_POSTDMA_MUTEX_RM_BIT,
-				                      &slab_virtual_pool_ddr,
-				                      sizeof(slab_virtual_pool_ddr));	
-			}
-			return (return_val);
-		}
-
-		return 0;
-
-	} else {
-		if(cluster == 0)
-			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
-		else
-			cdma_mutex_lock_release(pool_data_address);
-		return -ENAVAIL;
-	}
-
-} /* End of slab_pool_allocate_buff */
-
-
 /***************************************************************************
  * slab_read_pool used by: slab_debug_info_get
  ***************************************************************************/
@@ -469,7 +343,7 @@ static void free_slab_module_memory(struct slab_module_info *slab_m)
 	fsl_os_xfree(slab_m);
 }
 /*****************************************************************************/
-
+#ifdef DEBUG
 static inline int sanity_check_slab_create(uint32_t    committed_buffs,
                                            uint16_t    buff_size,
                                            uint16_t    alignment,
@@ -488,7 +362,7 @@ static inline int sanity_check_slab_create(uint32_t    committed_buffs,
 		(mem_pid == MEM_PART_PEB)), -EINVAL);
 	return 0;
 }
-
+#endif
 /*****************************************************************************/
 int slab_create(uint32_t    committed_buffs,
                 uint32_t    max_buffs,
@@ -578,9 +452,6 @@ int slab_create(uint32_t    committed_buffs,
 			*((uint32_t *)slab) = SLAB_HW_POOL_CREATE(pool_id); /*the cluster is 0, no need to write it in slab id*/
 			return 0;
 		}
-
-
-
 	}
 
 	unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
@@ -617,8 +488,6 @@ int slab_create(uint32_t    committed_buffs,
 	              (slab_m->fdma_dma_flags |
 	        	      FDMA_DMA_DA_SYS_TO_WS_BIT));
 
-
-
 	pool_id = SLAB_VP_POOL_GET(pool_id);
 	cluster = SLAB_CLUSTER_ID_GET(pool_id);
 	pool_id = SLAB_POOL_ID_GET(pool_id);
@@ -643,13 +512,11 @@ int slab_create(uint32_t    committed_buffs,
 			slab_find_and_unreserve_bpid(SLAB_BUFFER_TO_MANAGE_IN_DDR,bpid);
 			goto error_recovery_return;
 		}
-
 		g_slab_virtual_pools.slab_context_address[cluster] = context_address;
 	}
 	else
 		context_address = g_slab_virtual_pools.slab_context_address[cluster];
 
-	
 	slab_virtual_pool_ddr.max_bufs = (int32_t)max_buffs;
 	slab_virtual_pool_ddr.committed_bufs = (int32_t)committed_buffs;
 	slab_virtual_pool_ddr.allocated_bufs = 0;
@@ -683,9 +550,7 @@ error_recovery_return:
 	atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
 	              (int32_t)committed_buffs); /*return hardware pools*/
 	
-	
 	g_slab_pool_pointer_ddr -= sizeof(pool_id);
-		
 	cdma_mutex_lock_release((uint64_t)&g_slab_last_pool_pointer_ddr);
 	return -ENOMEM;
 
@@ -779,15 +644,120 @@ int slab_free(struct slab **slab)
 /*****************************************************************************/
 int slab_acquire(struct slab *slab, uint64_t *buff)
 {
+	int return_val;
+	int allocate = 0;
+	uint64_t pool_data_address;
+	uint32_t slab_pool_id = SLAB_VP_POOL_GET(slab);
+	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_pool_id); /* fetch cluster ID*/
+
+	struct slab_v_pool *slab_virtual_pool;
+	struct slab_v_pool slab_virtual_pool_ddr;
+
 
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);
 #endif
 
-	if (slab_pool_allocate_buff(SLAB_VP_POOL_GET(slab), buff))
-		return -ENOMEM;
+	slab_pool_id = SLAB_POOL_ID_GET(slab_pool_id); /*fetch pool id*/
 
-	return 0;
+	if(cluster == 0){
+		slab_virtual_pool = (struct slab_v_pool *)
+				g_slab_virtual_pools.virtual_pool_struct;
+
+
+
+		slab_virtual_pool += slab_pool_id;
+
+		lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
+	}
+
+	else {
+		pool_data_address = g_slab_virtual_pools.slab_context_address[cluster] +
+			(sizeof(slab_virtual_pool_ddr) *
+				slab_pool_id);
+		cdma_read_with_mutex(pool_data_address,
+		                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
+		                     &slab_virtual_pool_ddr,
+		                     sizeof(slab_virtual_pool_ddr));
+		slab_virtual_pool = &slab_virtual_pool_ddr;
+	}
+
+	/* First check if there are still available buffers
+	 * in the VP committed area */
+	if(slab_virtual_pool->allocated_bufs <
+		slab_virtual_pool->committed_bufs) {
+		allocate = 1; /* allocated from committed area */
+		/* Else, check if there are still available buffers
+		 * in the VP max-committed area */
+	} else if (slab_virtual_pool->allocated_bufs < slab_virtual_pool->max_bufs) {
+		/* There is still an extra space in the virtual pool,
+		 * check BMAN pool */
+
+		/* spinlock this BMAN pool counter */
+		lock_spinlock((uint8_t *)&g_slab_bman_pools[slab_virtual_pool->
+		                                            bman_array_index].spinlock);
+
+		if ((g_slab_bman_pools[
+		                       slab_virtual_pool->bman_array_index].remaining) > 0)
+		{
+			allocate = 2; /* allocated from remaining area */
+			g_slab_bman_pools
+			[slab_virtual_pool->bman_array_index].remaining--;
+		}
+
+		unlock_spinlock((uint8_t *)&g_slab_bman_pools[slab_virtual_pool->
+		                                              bman_array_index].spinlock);
+	}
+
+	/* Request CDMA to allocate a buffer*/
+	if (allocate) {
+		slab_virtual_pool->allocated_bufs++;
+		if(cluster == 0)
+			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
+		else
+			cdma_write_with_mutex(pool_data_address,
+			                      CDMA_POSTDMA_MUTEX_RM_BIT,
+			                      &slab_virtual_pool_ddr,
+			                      sizeof(slab_virtual_pool_ddr));
+
+		/* allocate a buffer with the CDMA */
+		return_val = cdma_acquire_context_memory(
+			(uint16_t)g_slab_bman_pools
+			[slab_virtual_pool->bman_array_index].bman_pool_id,
+			(uint64_t *)buff); /* context_memory */
+
+		/* If allocation failed,
+		 * undo the counters increment/decrement */
+		if (return_val) {
+			if(cluster == 0)
+				atomic_decr32(&slab_virtual_pool->allocated_bufs, 1); /* slab_virtual_pool points to SHRAM */
+
+			if (allocate == 2) /* only if it was allocated from
+					the remaining area */
+				atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
+				                                 bman_array_index].remaining, 1);
+			if(cluster) /*If managed in DDR, the structure should be updated*/
+			{
+				cdma_read_with_mutex(pool_data_address,
+				                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
+				                     &slab_virtual_pool_ddr,
+				                     sizeof(slab_virtual_pool_ddr));
+				slab_virtual_pool_ddr.allocated_bufs --;
+				cdma_write_with_mutex(pool_data_address,
+				                      CDMA_POSTDMA_MUTEX_RM_BIT,
+				                      &slab_virtual_pool_ddr,
+				                      sizeof(slab_virtual_pool_ddr));	
+			}
+			return (return_val);
+		}
+		return 0;
+	} else {
+		if(cluster == 0)
+			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
+		else
+			cdma_mutex_lock_release(pool_data_address);
+		return -ENOMEM;
+	}
 }
 
 /*****************************************************************************/
