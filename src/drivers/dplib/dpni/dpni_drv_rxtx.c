@@ -48,12 +48,8 @@ extern __SHRAM struct dpni_drv *nis;
 void receive_cb(void)
 {	
 	struct dpni_drv *dpni_drv;
-#ifndef AIOP_VERIF
-#ifndef DISABLE_ASSERTIONS
 	struct dpni_drv_params dpni_drv_params_local
 				__attribute__((aligned(8)));
-#endif
-#endif
 	struct parse_result *pr;
 	int32_t parse_status;
 
@@ -67,19 +63,17 @@ void receive_cb(void)
 	osm_task_init();
 
 	/* Load from SHRAM to local stack */
-#ifndef AIOP_VERIF
-#ifndef DISABLE_ASSERTIONS	
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
-
+#ifndef AIOP_VERIF
+#ifndef DISABLE_ASSERTIONS
 	ASSERT_COND_LIGHT(dpni_drv_params_local.starting_hxs == 0);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.prpid == 0);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSER_DIS);
-	ASSERT_COND_LIGHT(dpni_drv_params_local.spid == 0);
 #endif
 #endif
 
-	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv_params_local.spid;
 	default_task_params.parser_profile_id = 0;
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
