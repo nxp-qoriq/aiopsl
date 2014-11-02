@@ -37,7 +37,6 @@
 
 #include "fsl_slab.h"
 #include "platform.h"
-#include "ls2085_aiop/fsl_platform.h"
 
 
 #define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
@@ -70,12 +69,10 @@
 #define SLAB_VP_POOL_GET(SLAB) \
 	((uint32_t)((SLAB_HW_HANDLE(SLAB) & SLAB_VP_POOL_MASK) >> 1))
 
-
 /*Those macros should be use over SLAB_VP_POOL_GET/SET*/
 #define SLAB_POOL_ID_GET(POOL_ID) ((uint32_t)(POOL_ID & SLAB_POOL_ID_MASK))
 #define SLAB_CLUSTER_ID_GET(CLUSTER) ((uint16_t)((CLUSTER >> 15) & SLAB_CLUSTER_ID_MASK))
 #define SLAB_CLUSTER_ID_SET(CLUSTER) ((uint32_t)((uint32_t)CLUSTER << 15))
-
 
 /**< Returns slab's virtual pool id*/
 
@@ -116,13 +113,13 @@
 #define SLAB_MAX_NUM_VP_DDR     64
 #define SLAB_NUM_OF_BUFS_DPDDR  750
 #define SLAB_NUM_OF_BUFS_PEB    20
+#define SLAB_BUFFER_TO_MANAGE_IN_DDR  1 
+
 
 #define SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS   100
 
 /* Maximum number of BMAN pools used by the slab virtual pools */
-#ifndef SLAB_MAX_BMAN_POOLS_NUM
-	#define SLAB_MAX_BMAN_POOLS_NUM 64
-#endif
+#define SLAB_MAX_BMAN_POOLS_NUM 16
 
 /**************************************************************************//**
 @Description   Information for every bpid
@@ -207,11 +204,10 @@ struct slab_bman_pool_desc {
 struct slab_virtual_pools_main_desc {
 	struct slab_v_pool *virtual_pool_struct; /*cluster 0*/
 	/**< Pointer to virtual pools array*/
-	uint64_t slab_context_address[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS]; /*0 is not used*/
+	uint64_t slab_context_address[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS + 1]; /*0 is not used*/
 	/**< memory to buffer for virtual pools array*/
-	uint16_t clusters_count[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS];
-	/**< Counter for virtual pools in cluster*/
-	uint64_t cluster_used_pools_bitmap[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS]; /*0 is not used*/
+	uint16_t shram_count;
+	/**< Counter for pools in shram*/
 	/**< Bitmap for virtual pools in cluster*/
 	uint8_t flags;
 	/**< Flags to use when using the pools - unused  */
@@ -256,7 +252,8 @@ void slab_module_free(void);
 				 AIOP: HW pool supports up to 8 bytes alignment.
 @Param[in]     mem_partition_id  Memory partition ID for buffer type.
 				 AIOP: HW pool supports only PEB and DPAA DDR.
-@Param[out]    num_reserved_buffs  Number of buffers that we succeeded to reserve.
+@Param[out]    bpid_array_index  Index for bman pool array which reserved the 
+				 buffers.
 @Param[out]    bpid              Id of pool that supply the requested buffers.
 
 @Return        0       - on success,
@@ -266,14 +263,14 @@ void slab_module_free(void);
 int slab_find_and_reserve_bpid(uint32_t num_buffs,
 			uint16_t buff_size,
 			uint16_t alignment,
-			uint8_t  mem_partition_id,
-			int *num_reserved_buffs,
+			enum memory_partition_id  mem_partition_id,
+			uint16_t *bpid_array_index,
 			uint16_t *bpid);
 
 /**************************************************************************//**
-@Function      slab_find_and_free_bpid
+@Function      slab_find_and_unreserve_bpid
 
-@Description   Finds and free buffer pool with new buffers.
+@Description   Finds and unreserved buffers in buffer pool.
 
 		This function is part of SLAB module therefore it should be
 		called only after it has been initialized by slab_module_init()
@@ -285,7 +282,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 @Return        0       - on success,
 	       -ENAVAIL - bman pool not found
  *//***************************************************************************/
-int slab_find_and_free_bpid(uint32_t num_buffs,
-                            uint16_t *bpid);
+int slab_find_and_unreserve_bpid(int32_t num_buffs,
+                            uint16_t bpid);
 
 #endif /* __SLAB_H */

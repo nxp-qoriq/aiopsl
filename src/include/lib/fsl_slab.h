@@ -35,6 +35,7 @@
 
 #include "common/types.h"
 #include "fsl_cdma.h"
+#include "fsl_platform.h"
 
 /**************************************************************************//**
 @Group         slab_g   SLAB
@@ -59,7 +60,8 @@
 @Description   Slab handle type
 *//***************************************************************************/
 struct slab;
-
+#define SLAB_DDR_MANAGEMENT_FLAG    0x01 
+/**Flag to use for requesting slab managed in DDR (lower performance)*/
 #define SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO 0x3
 /** Decrement reference count caused the reference count to
 	go to zero. (not an error) */
@@ -114,7 +116,7 @@ int slab_create(uint32_t    committed_buffs,
 		uint16_t    prefix_size,
 		uint16_t    postfix_size,
 		uint16_t    alignment,
-		uint8_t     mem_partition_id,
+		enum memory_partition_id  mem_partition_id,
 		uint32_t    flags,
 		slab_release_cb_t *release_cb,
 		struct slab **slab);
@@ -171,7 +173,7 @@ int slab_free(struct slab **slab);
 		AIOP HW pool buffer reference counter will be set to 1.
 
 @Param[in]	slab - Handle to memory pool.
-@Param[out]	buff - The buffer to return.
+@Param[out]	buff - The acquired buffer from HW pool.
 
 @Return		0      - on success,
 		-ENOMEM - no buffer available,
@@ -214,10 +216,10 @@ inline void slab_refcount_incr(uint64_t buff){
 		The buffer is not released if reference counter is drops to 0.
 		Use slab_release() to release the buffer.
 
-@Param[in]	slab - Handle to memory pool.
+@Param[in]	buff - The buffer for which to decrement reference counter.
 
 @Return		0       - on success,
-		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and reference counter is 0.
+		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and the reference counter is 0.
 *//***************************************************************************/
 inline int slab_refcount_decr(uint64_t buff){
 	return cdma_refcount_decrement(buff);
