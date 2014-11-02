@@ -55,7 +55,7 @@ void app_free(void);
 /* Global IPR var in Shared RAM */
 __SHRAM ipr_instance_handle_t ipr_instance_val;
 
-__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
