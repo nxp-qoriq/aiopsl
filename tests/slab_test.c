@@ -65,12 +65,12 @@ int slab_init(void)
 		return err;
 	}
 
-	err = app_test_slab_overload_test();
+/*	err = app_test_slab_overload_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab_overload_test()\n", err);
 		return err;
 	}
-
+*/
 	/* DDR SLAB creation */
 	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
 			          NULL, &slab_ddr);
@@ -106,7 +106,7 @@ int app_test_slab_overload_test()
 
 	for (i = 0; i < 2000 ; i++)
 	{
-		err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+		err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 1,
 				  &slab_callback_test, &(my_slab[i]));
 		if (err) return err;
 
@@ -114,13 +114,13 @@ int app_test_slab_overload_test()
 			fsl_os_print("Slab cluster and pool id are: cluster %d, pool ID %d\n",
 			             SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(my_slab[i])),
 			             SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(my_slab[i])));
+
 	}
 
 
-	for(i = 0; i < 100; i++ ){
-		if(g_slab_virtual_pools.clusters_count[i] > 0)
-			fsl_os_print("Number of pools in cluster %d: %d\n", i, g_slab_virtual_pools.clusters_count[i]);
-	}
+/*	for(i = 0; i < 101; i++ ){
+		fsl_os_print("Context address of cluster %d: 0x%lx\n", i, g_slab_virtual_pools.slab_context_address[i]);
+	}*/
 	for (i = 1999; i >= 0 ; i--)
 	{
 		err = slab_acquire(my_slab[i], &buff);
@@ -141,10 +141,6 @@ int app_test_slab_overload_test()
 		if (!err) return -EEXIST;
 	}
 
-	for(i = 0; i < 100; i++ ){
-			if(g_slab_virtual_pools.clusters_count[i] > 0)
-				fsl_os_print("Number of pools in cluster %d: %d\n", i, g_slab_virtual_pools.clusters_count[i]);
-	}
 	return 0;
 }
 
@@ -221,7 +217,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      i = 0;
 	struct slab *my_slab;
 #pragma fn_ptr_candidates(slab_create)
-	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 0,
+	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 1,
 	                  NULL, &my_slab);
 
 	for (i = 0; i < num_times; i++) {
