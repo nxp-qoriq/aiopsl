@@ -53,7 +53,7 @@ void app_free(void);
 #define IPR_DEMO_WITHOUT_HM	0x00
 
 /* Global IPR var in Shared RAM */
-__SHRAM ipr_instance_handle_t ipr_instance_val;
+ipr_instance_handle_t ipr_instance_val;
 
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {

@@ -1,3 +1,5 @@
+- fsl_slab.h:               prototype of the slab release callback function modified from int to void.
+- slab.c, fsl_slab.h:       slab_create: API change - prefix_size, postfix_size were removed.
 - slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
                             API for slab_fimd_and_reserve_bpid was updated: added int *bpid_array_index - Index for bman
                             pool array which reserved the buffers instead of "number of reserved buffers".

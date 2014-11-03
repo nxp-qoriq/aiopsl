@@ -36,22 +36,21 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_io.h"
 
-__SHRAM struct slab *slab_peb = 0;
-__SHRAM struct slab *slab_ddr = 0;
+struct slab *slab_peb = 0;
+struct slab *slab_ddr = 0;
 
 int app_test_slab_init(void);
 int slab_init(void);
 int slab_test(void);
-extern __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
+extern struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 int app_test_slab_overload_test();
 int app_test_slab(struct slab *slab, int num_times);
 
 
-static int slab_callback_test(uint64_t context_address){
+static void slab_callback_test(uint64_t context_address){
 
 	fsl_os_print("slab_release: callback function\n");
 	fsl_os_print("release context address - 0x%x%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
-	return 0;
 }
 
 int slab_init(void)
@@ -72,7 +71,7 @@ int slab_init(void)
 	}
 */
 	/* DDR SLAB creation */
-	err = slab_create(10, 10, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(10, 10, 256, 4, MEM_PART_DP_DDR, 0,
 			          NULL, &slab_ddr);
 	if (err) return err;
 
@@ -86,7 +85,7 @@ int slab_init(void)
 	}
 
 	/* PEB SLAB creation */
-	err = slab_create(5, 5, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
+	err = slab_create(5, 5, 100, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
 	if (err) return err;
 
 	err = slab_debug_info_get(slab_peb, &slab_info);
@@ -106,7 +105,7 @@ int app_test_slab_overload_test()
 
 	for (i = 0; i < 2000 ; i++)
 	{
-		err = slab_create(1, 1, 256, 0, 0, 4, MEM_PART_DP_DDR, 1,
+		err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
 				  &slab_callback_test, &(my_slab[i]));
 		if (err) return err;
 
@@ -151,7 +150,7 @@ int app_test_slab_init(void)
 	dma_addr_t buff = 0;
 	struct slab *my_slab;
 
-	err = slab_create(5, 5, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(5, 5, 256, 4, MEM_PART_DP_DDR, 0,
 	                  &slab_callback_test, &my_slab);
 	if (err) return err;
 
@@ -174,7 +173,7 @@ int app_test_slab_init(void)
 
 
 	/* Reuse slab handle test  */
-	err = slab_create(1, 1, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, 0,
 	                  NULL, &my_slab);
 	if (err) return err;
 
@@ -216,7 +215,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
-	err = slab_create(5, 5, 256, 0, 0, 4, MEM_PART_PEB, 1,
+	err = slab_create(5, 5, 256, 4, MEM_PART_PEB, SLAB_DDR_MANAGEMENT_FLAG,
 	                  NULL, &my_slab);
 
 	for (i = 0; i < num_times; i++) {
