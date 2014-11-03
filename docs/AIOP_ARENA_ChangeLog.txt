@@ -1,9 +1,10 @@
+- slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
+                            API for slab_fimd_and_reserve_bpid was updated: added int *bpid_array_index - Index for bman
+                            pool array which reserved the buffers instead of "number of reserved buffers".
+                            API change for slab_create: use mem_pid from enum.
+                            added int slab_find_and_unreserve_bpid(int32_t num_buffs,uint16_t bpid);
+
 - mem_mng.c,slob.c         Change spinlock pointer  location from DP_DDR->SHARED RAM.( A fix for emulator)
-- cmdif_integ_dbg.elf      Placed compiled AIOP<->GPP CMDIF test at aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\. 
-- tests/cmdif/README.txt   Added information about CMDIF testing with GPP.
-- fsl_soc_spec_ls2085a.h:  Update UART offset ( + 0x4000 ). The following flags must be removed from simulator initialization cfg file:
-                           duart1.use_ls2_reg_definition=false
-                           duart2.use_ls2_reg_definition=false
 
 - ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
 - cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
@@ -14,6 +15,15 @@
 - platform.c             Add support for memory allocation from MEM_PART_SYSTEM_DDR.
 - cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
 
+** AIOP SL v0.4.6 **
+- Remove Simulator flag: set_iram_instruction_fetch_view.
+
+** AIOP SL v0.4.5 **
+- cmdif_integ_dbg.elf      Placed compiled AIOP<->GPP CMDIF test at aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\. 
+- tests/cmdif/README.txt   Added information about CMDIF testing with GPP.
+- fsl_soc_spec_ls2085a.h:  Update UART offset ( + 0x4000 ). The following flags must be removed from simulator initialization cfg file:
+                           duart1.use_ls2_reg_definition=false
+                           duart2.use_ls2_reg_definition=false
 ** AIOP SL v0.4.4 **
 - config.c                   The default value of PEB size in aiop_app_init_info has been descreased to 512 KB. 
                              Application should not require more than this number.

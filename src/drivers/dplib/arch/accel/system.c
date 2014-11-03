@@ -83,12 +83,11 @@ void sys_prpid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
-	int num_filled_buffs;
 
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_PRPIDS+3), 2,
 			MEM_PART_DP_DDR,
-			&num_filled_buffs, &buffer_pool_id);
+			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_PRPID_POOL_CREATE,
 			__LINE__,
@@ -103,12 +102,11 @@ void sys_keyid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
-	int num_filled_buffs;
 
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_KEYIDS+3), 2,
 			MEM_PART_DP_DDR,
-			&num_filled_buffs, &buffer_pool_id);
+			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_KEYID_POOL_CREATE,
 			__LINE__,

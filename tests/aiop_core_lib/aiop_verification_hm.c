@@ -131,6 +131,16 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			break;
 		}
 
+		/* HM MPLS header remove Command Verification */
+		case HM_MPLS_HEADER_REMOVE_CMD_STR:
+		{
+			struct hm_mpls_remove_command *str =
+			(struct hm_mpls_remove_command *) asa_seg_addr;
+			l2_mpls_header_remove();
+			str_size = sizeof(struct hm_mpls_remove_command);
+			break;
+		}
+
 		/* HM IPv4 Header Modification Command Verification */
 		case HM_IPV4_MODIFICATION_CMD_STR:
 		{
@@ -422,7 +432,28 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			str_size = sizeof(struct hm_pop_vlan_command);
 			break;
 		}
-		/* HM pop VLAN Command Verification */
+		
+		/* HM push and set MPLS Command Verification */
+		case HM_PUSH_AND_SET_MPLS_CMD_STR:
+		{
+			struct hm_push_and_set_mpls_command *str =
+			(struct hm_push_and_set_mpls_command *) asa_seg_addr;
+			l2_push_and_set_mpls(str->mpls_header,str->ethertype);
+			str_size = sizeof(struct hm_push_and_set_mpls_command);
+			break;
+		}
+
+		/* HM pop MPLS Command Verification */
+		case HM_POP_MPLS_CMD_STR:
+		{
+			struct hm_pop_mpls_command *str =
+			(struct hm_pop_mpls_command *) asa_seg_addr;
+			l2_pop_mpls();
+			str_size = sizeof(struct hm_pop_mpls_command);
+			break;
+		}
+
+		/* HM ARP Response Command Verification */
 		case HM_ARP_RESPONSE_CMD_STR:
 		{
 			struct hm_arp_response_command *str =
@@ -432,7 +463,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			str_size = sizeof(struct hm_arp_response_command);
 			break;
 		}
-		/* HM pop VLAN Command Verification */
+		/* HM set L2 HW address Command Verification */
 		case HM_SET_L2_SRC_DST_CMD_STR:
 		{
 			struct hm_set_l2_src_dst_command *str =

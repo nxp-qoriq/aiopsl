@@ -110,7 +110,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	uint16_t table_location_attr;
 	uint16_t bpid;
 	int table_ipv4_valid = 0;
-	int num_filled_buffs, status;
+	int status;
 
 	aggregate_open_frames = ipr_params_ptr->max_open_frames_ipv4 +
 				ipr_params_ptr->max_open_frames_ipv6 + 1;
@@ -120,14 +120,14 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 					IPR_CONTEXT_SIZE,
 					8,
 					MEM_PART_DP_DDR,
-					&num_filled_buffs,
+					NULL,
 					&bpid);
 
 	if (status < 0)
 		return status;
 
-	if(num_filled_buffs != aggregate_open_frames)
-		return IPR_MAX_BUFFERS_REACHED;
+/*	if(num_filled_buffs != aggregate_open_frames)
+		return IPR_MAX_BUFFERS_REACHED;*/
 
 	err = cdma_acquire_context_memory(bpid,
 					  ipr_instance_ptr);

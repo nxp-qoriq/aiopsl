@@ -36,7 +36,6 @@
 #include "fsl_slob.h"
 #ifdef AIOP
 #include "fsl_malloc.h"
-#include "fsl_platform.h"
 #endif /* AIOP */
 
 #include "mem_mng.h"
@@ -257,8 +256,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     }
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
 #ifdef AIOP
-    p_new_partition->lock = (uint8_t *)fsl_os_xmalloc(sizeof(uint8_t),
-                                                      MEM_PART_SH_RAM,1);
+    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
 #else
     p_new_partition->lock = spin_lock_create();
 #endif
