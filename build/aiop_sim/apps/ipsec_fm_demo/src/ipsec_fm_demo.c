@@ -57,7 +57,7 @@ __SHRAM ipsec_handle_t ipsec_sa_desc_outbound;
 __SHRAM ipsec_handle_t ipsec_sa_desc_inbound; 
 __SHRAM uint32_t frame_number; 
 
-__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
 	uint32_t enc_status = 0;

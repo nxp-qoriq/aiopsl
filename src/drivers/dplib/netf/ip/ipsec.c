@@ -55,8 +55,6 @@
 #endif /* AIOP_VERIF */
 
 #pragma push
-	/* make all following functions go into .itext_vle */
-#pragma section code_type ".itext_vle"
 
 #include "dplib/fsl_ipsec.h"
 #include "ipsec.h"
@@ -85,7 +83,6 @@ int ipsec_create_instance (
 	 * 1 buffer for the instance data (counters) 
 	 * committed_sa_num for IPv6 outer header (TBD) */
 	
-	int num_filled_buffs;
 	
 	struct ipsec_instance_params instance; 
 
@@ -101,7 +98,7 @@ int ipsec_create_instance (
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			1, /* uint16_t alignment = 1, i.e. no alignment requirements */ 
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
-            &num_filled_buffs, /* int *num_filled_buffs */
+            NULL, /*NULL*/
             &(instance.desc_bpid)); /* uint16_t *bpid */
 	
 	if (return_val) {
@@ -170,7 +167,6 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 {
 	int return_val;
 	struct ipsec_instance_params instance; 
-	int num_filled_buffs;
 
 	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
@@ -211,7 +207,7 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 				IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 				IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
 				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
-	            &num_filled_buffs, /* int *num_filled_buffs */
+	            NULL, /* NULL */
 	            &(instance.desc_bpid)); /* uint16_t *bpid */
 
 		/* Check if Slab has no buffers */

@@ -232,7 +232,7 @@ static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t 
 }
 
 /*****************************************************************************/
-__HOT_CODE  uint32_t fsl_os_rand(void)
+uint32_t fsl_os_rand(void)
 {
 	seed_32bit = (seed_32bit>>1) ^ (-(seed_32bit & 1LL) &
 			0xFBE16801);

@@ -72,7 +72,7 @@ int _get_time_fast(uint64_t *time);
 				1000
 @Return        quotient - (result of dividing by 1000)
 *//***************************************************************************/
-__HOT_CODE static inline uint64_t ulldiv1000(uint64_t numerator) {
+static inline uint64_t ulldiv1000(uint64_t numerator) {
 	uint32_t msw , lsw, w;
 	uint64_t quotient;
 

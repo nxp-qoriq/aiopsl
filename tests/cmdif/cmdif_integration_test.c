@@ -46,10 +46,7 @@
 int app_init(void);
 void app_free(void);
 
-#define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
-/**< Get NI from callback argument, it's demo specific macro */
-#define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
-/**< Get flow id from callback argument, it's demo specific macro */
+
 #define OPEN_CMD	0x100
 #define NORESP_CMD	0x101
 #define ASYNC_CMD	0x102
@@ -58,6 +55,8 @@ void app_free(void);
 #define OPEN_N_CMD	0x105
 #define IC_TEST		0x106
 #define CLOSE_CMD	0x107
+
+#define AIOP_ASYNC_CB_DONE	5
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
@@ -77,6 +76,8 @@ static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	if (err != 0) {
 		fsl_os_print("ERROR inside async_cb\n");
 	}
+	((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
+	fdma_modify_default_segment_data(0, (uint16_t)size);
 	return err;
 }
 
@@ -94,7 +95,7 @@ static int close_cb(void *dev)
 	return 0;
 }
 
-__HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
+static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
 	int err = 0;
@@ -115,7 +116,7 @@ __HOT_CODE static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	return 0;
 }
 
-__HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
+static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
 	int err = 0;

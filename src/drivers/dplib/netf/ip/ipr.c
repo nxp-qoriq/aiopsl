@@ -110,7 +110,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	uint16_t table_location_attr;
 	uint16_t bpid;
 	int table_ipv4_valid = 0;
-	int num_filled_buffs, status;
+	int status;
 
 	aggregate_open_frames = ipr_params_ptr->max_open_frames_ipv4 +
 				ipr_params_ptr->max_open_frames_ipv6 + 1;
@@ -120,14 +120,14 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 					IPR_CONTEXT_SIZE,
 					8,
 					MEM_PART_DP_DDR,
-					&num_filled_buffs,
+					NULL,
 					&bpid);
 
 	if (status < 0)
 		return status;
 
-	if(num_filled_buffs != aggregate_open_frames)
-		return IPR_MAX_BUFFERS_REACHED;
+/*	if(num_filled_buffs != aggregate_open_frames)
+		return IPR_MAX_BUFFERS_REACHED;*/
 
 	err = cdma_acquire_context_memory(bpid,
 					  ipr_instance_ptr);
@@ -363,7 +363,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	else
 		frame_is_ipv4 = 0;
 
-	if (check_for_frag_error(instance_params,frame_is_ipv4) == NO_ERROR) {
+	if (check_for_frag_error(instance_params,frame_is_ipv4, iphdr_ptr) ==
+								NO_ERROR) {
 		/* Good fragment */
 		if (frame_is_ipv4) {
 			sr_status = table_lookup_by_keyid_default_frame(
@@ -886,13 +887,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
 	}
-	/* Check IP size is multiple of 8 for First or middle fragment*/
-	if (!last_fragment && (current_frag_size % 8 != 0))
-		return MALFORMED_FRAG;
-	/* Check 64K limit */
-	/* todo check if WRIOP checks this */
-	if ((current_frag_size + frag_offset_shifted) > MAX_IP_SIZE)
-		return MALFORMED_FRAG;
 
 	if (frag_offset_shifted != 0) {
 		/* Not first frag */
@@ -1480,18 +1474,54 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 }
 
 uint32_t check_for_frag_error (struct ipr_instance instance_params,
-				uint32_t frame_is_ipv4)
+				uint32_t frame_is_ipv4, void *iphdr_ptr)
 {
-	uint16_t length;
+	uint16_t length, ip_header_size, current_frag_size, ipv6fraghdr_offset;
+	uint16_t frag_offset_shifted;
+	uint32_t last_fragment;
+	struct ipv4hdr *ipv4hdr_ptr;
+	struct ipv6hdr *ipv6hdr_ptr;
+	struct ipv6fraghdr *ipv6fraghdr_ptr;
+
 
 	length = (uint16_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 	if (frame_is_ipv4) {
 		if (length < instance_params.min_frag_size_ipv4)
 			return MALFORMED_FRAG;
+		ipv4hdr_ptr = (struct ipv4hdr *) iphdr_ptr;
+		frag_offset_shifted =
+		    (ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_IPV4_MASK)<<3;
+		ip_header_size = (uint16_t)
+			  ((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
+		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
+		last_fragment = !(ipv4hdr_ptr->flags_and_offset &
+				IPV4_HDR_M_FLAG_MASK);
 	} else {
 		if (length < instance_params.min_frag_size_ipv6)
 			return MALFORMED_FRAG;
+		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
+		ipv6fraghdr_offset =
+				PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
+			       (PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
+		frag_offset_shifted = ipv6fraghdr_ptr->offset_and_flags &
+							  FRAG_OFFSET_IPV6_MASK;
+		ip_header_size = ((uint16_t)((uint32_t)ipv6fraghdr_ptr -
+						(uint32_t)ipv6hdr_ptr)) + 8;
+		current_frag_size = ipv6hdr_ptr->payload_length -
+				ip_header_size + IPV6_FIXED_HEADER_SIZE;
+		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
+				IPV6_HDR_M_FLAG_MASK);
+
 	}
+	/* Check IP size is multiple of 8 for First or middle fragment*/
+	if (!last_fragment && (current_frag_size % 8 != 0))
+		return MALFORMED_FRAG;
+	/* Check 64K limit */
+	/* todo check if WRIOP checks this */
+	if ((current_frag_size + frag_offset_shifted) > MAX_IP_SIZE)
+		return MALFORMED_FRAG;
+
 	return NO_ERROR;
 }
 
@@ -1647,8 +1677,9 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 		 * the ipr_reassemble function */
 		osm_scope_exit();
 		osm_scope_exit();
+		osm_scope_relinquish_exclusivity();
 	} else if (osm_status & START_CONCURRENT) {
-		osm_scope_transition_to_concurrent_with_increment_scope_id();
+		osm_scope_relinquish_exclusivity();
 	}
 }
 
@@ -1717,7 +1748,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 
 	if (frag_offset_shifted < rfdc_ptr->total_in_order_payload) {
 		/* overlap or duplicate */
-		/* return IPR_ERROR; */
+		return MALFORMED_FRAG;
 	}
 	current_index = rfdc_ptr->next_index;
 	current_element_ext_addr =  rfdc_ext_addr + START_OF_LINK_LIST +
@@ -1761,7 +1792,8 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		/* Smaller than last */
 		if(last_fragment) {
 			/* Current fragment is smaller than last but is marked
-			 * as last : Error */
+			 * as last */
+			return MALFORMED_FRAG;
 		}
 		/* Bring 8 elements of the Link List */
 		octet_index = temp_frag_index >> 3;

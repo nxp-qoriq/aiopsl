@@ -55,7 +55,7 @@ void cmdif_cl_isr();
 
 __TASK static struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 
-__HOT_CODE static inline int send_fd(int pr, void *_sdev)
+static inline int send_fd(int pr, void *_sdev)
 {
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
 
@@ -92,7 +92,7 @@ __HOT_CODE static inline int send_fd(int pr, void *_sdev)
 	return 0;
 }
 
-__HOT_CODE static int session_get(const char *m_name,
+static int session_get(const char *m_name,
                                   uint8_t ins_id,
                                   uint32_t dpci_id,
                                   struct cmdif_desc *cidesc)
@@ -189,7 +189,7 @@ void cmdif_client_free()
 
 }
 
-__HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
+int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t ins_id,
 		void *data,
@@ -212,7 +212,7 @@ __HOT_CODE int cmdif_open(struct cmdif_desc *cidesc,
 	return err;
 }
 
-__HOT_CODE int cmdif_close(struct cmdif_desc *cidesc)
+int cmdif_close(struct cmdif_desc *cidesc)
 {
 	cidesc->regs = 0;
 	cidesc->dev  = 0;
@@ -220,7 +220,7 @@ __HOT_CODE int cmdif_close(struct cmdif_desc *cidesc)
 	return 0;
 }
 
-__HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
+int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		int pr,
@@ -300,7 +300,7 @@ __HOT_CODE int cmdif_send(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-__HOT_CODE void cmdif_cl_isr(void)
+void cmdif_cl_isr(void)
 {
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;

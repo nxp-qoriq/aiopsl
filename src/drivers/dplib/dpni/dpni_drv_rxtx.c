@@ -45,7 +45,7 @@ extern __SHRAM struct dpni_drv *nis;
 #pragma push
 #pragma force_active on
 
-__HOT_CODE void receive_cb(void)
+void receive_cb(void)
 {	
 	struct dpni_drv *dpni_drv;
 #ifndef AIOP_VERIF
@@ -68,18 +68,17 @@ __HOT_CODE void receive_cb(void)
 
 	/* Load from SHRAM to local stack */
 #ifndef AIOP_VERIF
-#ifndef DISABLE_ASSERTIONS	
+#ifndef DISABLE_ASSERTIONS
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
 
 	ASSERT_COND_LIGHT(dpni_drv_params_local.starting_hxs == 0);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.prpid == 0);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSER_DIS);
-	ASSERT_COND_LIGHT(dpni_drv_params_local.spid == 0);
 #endif
 #endif
 
-	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->dpni_drv_params_var.spid;
 	default_task_params.parser_profile_id = 0;
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
@@ -98,7 +97,7 @@ __HOT_CODE void receive_cb(void)
 
 #pragma pop
 
-__HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
+int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
@@ -108,8 +107,8 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 				__attribute__((aligned(8)));
 #endif
 #endif
-	struct dpni_drv_tx_params dpni_drv_tx_params_local
-				__attribute__((aligned(8)));
+	/*struct dpni_drv_tx_params dpni_drv_tx_params_local
+				__attribute__((aligned(8)));*/
 	int err;
 	uint32_t flags = 0;
 	uint16_t icid;
@@ -125,13 +124,13 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	ASSERT_COND_LIGHT(!(dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE));
 #endif
 #endif
-	dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;
+	/*dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;*/
 
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
 	 * the qd_priority is taken from the TLS and that enqueue function \
 	 * always returns*/
 	enqueue_params.qdbin = 0;
-	enqueue_params.qd = dpni_drv_tx_params_local.qdid;
+	enqueue_params.qd = dpni_drv->dpni_drv_tx_params_var.qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
 	/* Assuming user already called fdma_create_frame() and saved fd in the
 	 *  TLS */
@@ -153,14 +152,14 @@ __HOT_CODE int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 }
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int dpni_get_receive_niid(void)
+int dpni_get_receive_niid(void)
 {
 	return (int)PRC_GET_PARAMETER();
 }
 
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int dpni_set_send_niid(uint16_t niid)
+int dpni_set_send_niid(uint16_t niid)
 {
 	default_task_params.send_niid = niid;
 	return 0;
@@ -168,7 +167,7 @@ __HOT_CODE int dpni_set_send_niid(uint16_t niid)
 
 
 /* TODO : replace by macros/inline funcs */
-__HOT_CODE int dpni_get_send_niid(void)
+int dpni_get_send_niid(void)
 {
 	return (int)default_task_params.send_niid;
 }

@@ -44,7 +44,7 @@ extern struct aiop_init_info g_init_data;
 int time_init(void);
 void time_free(void);
 
-__HOT_CODE int _get_time_fast(uint64_t *time)
+int _get_time_fast(uint64_t *time)
 {
 	uint32_t TEMP, TSCRU, TSCRL;
 	uint64_t temp_val;
@@ -80,7 +80,7 @@ __HOT_CODE int _get_time_fast(uint64_t *time)
 }
 
 /*****************************************************************************/
-__HOT_CODE int fsl_get_time_ms(uint32_t *time)
+int fsl_get_time_ms(uint32_t *time)
 {
 	uint64_t time_ms;
 	uint64_t local_epoch_to_midnight;
@@ -114,7 +114,7 @@ int fsl_get_time_since_epoch_ms(uint64_t *time)
 }
 
 /*****************************************************************************/
-__HOT_CODE uint32_t fsl_os_current_time(void)
+uint32_t fsl_os_current_time(void)
 {
 	return 0;
 }

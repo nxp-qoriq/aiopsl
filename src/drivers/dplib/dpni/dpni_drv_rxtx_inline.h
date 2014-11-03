@@ -40,7 +40,7 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 extern __SHRAM struct dpni_drv *nis;
 
-__HOT_CODE inline int dpni_drv_send(uint16_t ni_id)
+inline int dpni_drv_send(uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;

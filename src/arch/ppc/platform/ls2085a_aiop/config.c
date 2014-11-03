@@ -35,7 +35,7 @@ struct aiop_init_info g_init_data =
  {
   0,		/* aiop_rev_major     AIOP  */
   4,		/* aiop_rev_minor     AIOP  */
-  4,		/* revision           AIOP */
+  6,		/* revision           AIOP */
   0x6000000000,	/* dp_ddr_phys_addr      */
   0x40000000,	/* dp_ddr_virt_addr      */
   0x4c00000000,	/* peb_phys_addr      */

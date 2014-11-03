@@ -29,10 +29,10 @@ def inject_packets(pcap):
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","arena_test_40.pcap"])
 	elif 'eth_ipv4_udp.pcap' in pcap:
 		g_capture = 3
-		print 'injecting 3 packets'
+		print 'injecting 3 packets (one broadcast packet to second NI)'
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
-		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m3","-file","broadcast.pcap"])
 	elif 'reassembled_frame.pcap' in pcap:
 		g_capture = 4
 		print 'injecting 1 packet'
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 					if pcap != 'NULL':
 						inject_packets(pcap)
 				if 'inject packets:' in line:
-					tio_capture = Popen(["./fm_tio_capture","-hub","localhost:42975","-ser","w0_m1","-verbose_level","2"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+					tio_capture = Popen(["./fm_tio_capture","-hub","localhost:42975","-ser","w0_m1","w0_m3","-verbose_level","2"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 					c = Thread(target=enqueue_output, args=(tio_capture.stdout, q))
 					c.daemon = True # thread dies with the program
 					c.start()

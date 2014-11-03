@@ -86,7 +86,7 @@
 
  __SHRAM static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 
- __HOT_CODE static inline int is_valid_auth_id(uint16_t id)
+ static inline int is_valid_auth_id(uint16_t id)
  {
 	 return ((cmdif_aiop_srv.srv->inst_dev != NULL) &&
 		 (id < M_NUM_OF_INSTANCES) &&
@@ -94,7 +94,7 @@
 		 (cmdif_aiop_srv.srv->m_id[id] < M_NUM_OF_MODULES));
  }
 
- __HOT_CODE static int module_id_find(const char *m_name)
+ static int module_id_find(const char *m_name)
 {
 	int i = 0;
 	struct cmdif_srv *srv = cmdif_aiop_srv.srv;
@@ -110,7 +110,7 @@
 	return -ENAVAIL;
 }
 
-__HOT_CODE static int inst_alloc(uint8_t m_id)
+static int inst_alloc(uint8_t m_id)
 {
 	uint32_t r = 0;
 	int count = 0;
@@ -151,7 +151,7 @@ __HOT_CODE static int inst_alloc(uint8_t m_id)
 	}
 }
 
-__HOT_CODE static void inst_dealloc(int inst)
+static void inst_dealloc(int inst)
 {
 	struct cmdif_srv *srv = cmdif_aiop_srv.srv;
 
@@ -161,23 +161,23 @@ __HOT_CODE static void inst_dealloc(int inst)
 	unlock_spinlock(&cmdif_aiop_srv.lock);
 }
 
-__HOT_CODE static inline uint16_t cmd_id_get()
+static inline uint16_t cmd_id_get()
 {
 	return (uint16_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & CMD_ID_MASK) \
 		>> CMD_ID_OFF);
 }
 
-__HOT_CODE static inline uint32_t cmd_size_get()
+static inline uint32_t cmd_size_get()
 {
 	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
-__HOT_CODE static inline void *cmd_data_get()
+static inline void *cmd_data_get()
 {
 	return (void *)PRC_GET_SEGMENT_ADDRESS();
 }
 
-__HOT_CODE static void cmd_m_name_get(char *name)
+static void cmd_m_name_get(char *name)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
@@ -195,13 +195,13 @@ __HOT_CODE static void cmd_m_name_get(char *name)
 	}
 }
 
-__HOT_CODE static inline uint8_t cmd_inst_id_get()
+static inline uint8_t cmd_inst_id_get()
 {
 	return (uint8_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & INST_ID_MASK) \
 		>> INST_ID_OFF);
 }
 
-__HOT_CODE static inline uint16_t cmd_auth_id_get()
+static inline uint16_t cmd_auth_id_get()
 {
 	return (uint16_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & AUTH_ID_MASK) \
 		>> AUTH_ID_OFF);
@@ -269,7 +269,7 @@ void cmdif_srv_free(void)
 }
 
 
-__HOT_CODE static int cmdif_fd_send(int cb_err)
+static int cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -305,7 +305,7 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	return err;
 }
 
-__HOT_CODE static void sync_cmd_done(uint64_t sync_done,
+static void sync_cmd_done(uint64_t sync_done,
 				int err,
 				uint16_t auth_id,
 				char terminate)
@@ -350,13 +350,13 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 
 /** Save the address for polling on synchronous commands */
 #define sync_done_get() LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)
-__HOT_CODE static inline void sync_done_set(uint16_t auth_id)
+static inline void sync_done_set(uint16_t auth_id)
 {
 	cmdif_aiop_srv.srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 
 /** Find dpci index and get dpci table */
-__HOT_CODE static int find_dpci(uint8_t dpci_id)
+static int find_dpci(uint8_t dpci_id)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
@@ -368,7 +368,7 @@ __HOT_CODE static int find_dpci(uint8_t dpci_id)
 	return -1;
 }
 
-__HOT_CODE static void amq_bits_update(int ind)
+static void amq_bits_update(int ind)
 {
 	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
 	uint16_t pl_icid = PL_ICID_GET;
@@ -383,7 +383,7 @@ __HOT_CODE static void amq_bits_update(int ind)
 }
 
 /* Support for AIOP -> GPP */
-__HOT_CODE static int notify_open()
+static int notify_open()
 {
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
@@ -514,7 +514,7 @@ static int notify_close()
 	return -ENAVAIL;
 }
 
-__HOT_CODE void cmdif_srv_isr(void)
+void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
 	int err = 0;
