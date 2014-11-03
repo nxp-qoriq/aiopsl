@@ -45,7 +45,7 @@ extern void cmdif_srv_isr(void);
 extern void cmdif_cl_isr(void);
 extern void receive_cb(void);
 
-__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	UNUSED(arg);
 	stack_estimation();
