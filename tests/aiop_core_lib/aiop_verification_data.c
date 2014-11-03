@@ -50,7 +50,9 @@ __VERIF_GLOBAL uint8_t verif_spin_lock;
 __VERIF_GLOBAL uint8_t verif_prpid;
 __VERIF_GLOBAL uint8_t tmi_id;
 
-__VERIF_TLS uint8_t  slab_error;
+__VERIF_TLS uint8_t  slab_parser_error;
+__VERIF_TLS uint8_t  slab_keygen_error;
+__VERIF_TLS uint8_t  slab_general_error;
 __VERIF_TLS uint32_t fatal_fqid;
 __VERIF_TLS uint32_t sr_fm_flags;
 __VERIF_TLS uint64_t initial_ext_address; /* Initial External Data Address */
