@@ -74,7 +74,7 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-__SHRAM struct snic_params snic_params[MAX_SNIC_NO];
+struct snic_params snic_params[MAX_SNIC_NO];
 
 void snic_process_packet(void)
 {

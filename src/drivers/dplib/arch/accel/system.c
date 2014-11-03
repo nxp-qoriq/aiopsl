@@ -69,13 +69,13 @@ extern int aiop_snic_init(void);
 #endif /* AIOP_VERIF */
 
 /* Global parameters*/
-__SHRAM uint64_t ext_prpid_pool_address;
-__SHRAM uint64_t ext_keyid_pool_address;
+uint64_t ext_prpid_pool_address;
+uint64_t ext_keyid_pool_address;
 
 
 /* Time module globals */
-extern __SHRAM struct aiop_cmgw_regs *time_cmgw_regs;
-extern __SHRAM _time_get_t *time_get_func_ptr;
+extern struct aiop_cmgw_regs *time_cmgw_regs;
+extern _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
 __PROFILE_SRAM struct storage_profile storage_profile;
 
@@ -83,12 +83,11 @@ void sys_prpid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
-	int num_filled_buffs;
 
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_PRPIDS+3), 2,
 			MEM_PART_DP_DDR,
-			&num_filled_buffs, &buffer_pool_id);
+			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_PRPID_POOL_CREATE,
 			__LINE__,
@@ -103,12 +102,11 @@ void sys_keyid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
-	int num_filled_buffs;
 
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_KEYIDS+3), 2,
 			MEM_PART_DP_DDR,
-			&num_filled_buffs, &buffer_pool_id);
+			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_KEYID_POOL_CREATE,
 			__LINE__,

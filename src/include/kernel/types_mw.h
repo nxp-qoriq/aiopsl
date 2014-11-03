@@ -59,10 +59,6 @@ typedef uint64_t            dma_addr_t;
 #pragma section RX ".stext_vle"
 #define __WARM_CODE __declspec(section ".stext_vle")
 
-/** Shared-SRAM global variables */
-#pragma section RW ".shdata" ".shbss"
-#define __SHRAM __declspec(section ".shdata")
-
 /** DDR code location */
 #pragma section RX ".dtext_vle"
 #define __COLD_CODE __declspec(section ".dtext_vle")

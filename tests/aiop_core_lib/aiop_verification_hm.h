@@ -102,7 +102,10 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_ARP_RESPONSE,
 	HM_CMDTYPE_SET_L2_SRC_DST,
 	HM_CMDTYPE_IP_CKSUM_CALCULATE,
-	HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC
+	HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC,
+	HM_CMDTYPE_MPLS_HEADER_REMOVE,
+	HM_CMDTYPE_PUSH_AND_SET_MPLS,
+	HM_CMDTYPE_POP_MPLS
 };
 
 /* HM Commands Structure identifiers */
@@ -115,6 +118,9 @@ enum e_hm_verif_cmd_type {
 
 #define HM_VLAN_HEADER_REMOVE_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_VLAN_HEADER_REMOVE)
+
+#define HM_MPLS_HEADER_REMOVE_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_MPLS_HEADER_REMOVE)
 
 #define HM_IPV4_MODIFICATION_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_IPV4_MODIFICATION)
@@ -197,6 +203,12 @@ enum e_hm_verif_cmd_type {
 #define HM_POP_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
 
+#define HM_PUSH_AND_SET_MPLS_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_PUSH_AND_SET_MPLS)
+
+#define HM_POP_MPLS_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_POP_MPLS)
+
 #define HM_ARP_RESPONSE_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_ARP_RESPONSE)
 
@@ -244,6 +256,17 @@ struct hm_vlan_remove_command {
 	/**< Command structure identifier. */
 	int32_t		status;
 };
+
+/**************************************************************************//**
+@Description	HM MPLS header remove Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_mpls_remove_command {
+	uint32_t	opcode;
+	/**< Command structure identifier. */
+};
+
 
 /**************************************************************************//**
 @Description	HM IPv4 Header Modification Command structure.
@@ -543,6 +566,29 @@ struct hm_pop_vlan_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	int32_t		status;
+};
+
+/**************************************************************************//**
+@Description	HM push and set MPLS Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_push_and_set_mpls_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint32_t	mpls_header;
+	uint16_t 	ethertype;
+	uint8_t 	pad[2];
+};
+
+/**************************************************************************//**
+@Description	HM pop MPLS Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_pop_mpls_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
 };
 
 /**************************************************************************//**
