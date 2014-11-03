@@ -317,7 +317,6 @@ void cmdif_cl_isr(void)
 {
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
-	cmdif_cb_t *async_cb = NULL;
 	
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
@@ -325,7 +324,7 @@ void cmdif_cl_isr(void)
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
 	/* Read async cb using FDMA */
-	pr_debug("Got async response for cmd 0x%x\n", \
+	CMDIF_DBG_PRINT("Got async response for cmd 0x%x\n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	
 	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
@@ -333,25 +332,20 @@ void cmdif_cl_isr(void)
 	                   sizeof(struct cmdif_async),
 	                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
 	                   &async_data);
-	pr_debug("async_cb = 0x%x async_ctx = 0x%x\n", 
-	         (uint32_t)async_data.async_cb, (uint32_t)async_data.async_ctx);
 
-	async_cb = (cmdif_cb_t *)async_data.async_cb;
-	pr_debug("async_cb = 0x%x async_ctx = 0x%x\n", 
-	         async_cb, (uint32_t)async_data.async_ctx);
 
 	ASSERT_COND_LIGHT(async_data.async_cb);
-	if (async_cb((void *)async_data.async_ctx,
+	if (((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
 		fd.u_flc.cmd.err,
 		CPU_TO_SRV16(fd.u_flc.cmd.cmid),
 		fd.d_size,
 		(void *)PRC_GET_SEGMENT_ADDRESS())) {
 		
-		pr_debug("Async callback cmd 0x%x returned error \n", \
+		CMDIF_DBG_PRINT("Async callback cmd 0x%x returned error \n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	}
 
-	pr_debug("PASSED got async response for cmd 0x%x\n", \
+	CMDIF_DBG_PRINT("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 
 	fdma_store_default_frame_data();
