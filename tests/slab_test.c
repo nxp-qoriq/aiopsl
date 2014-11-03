@@ -105,7 +105,7 @@ int app_test_slab_overload_test()
 
 	for (i = 0; i < 2000 ; i++)
 	{
-		err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, 1,
+		err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
 				  &slab_callback_test, &(my_slab[i]));
 		if (err) return err;
 
@@ -215,7 +215,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
-	err = slab_create(5, 5, 256, 4, MEM_PART_PEB, 1,
+	err = slab_create(5, 5, 256, 4, MEM_PART_PEB, SLAB_DDR_MANAGEMENT_FLAG,
 	                  NULL, &my_slab);
 
 	for (i = 0; i < num_times; i++) {

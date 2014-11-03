@@ -61,7 +61,7 @@ void stack_estimation(void)
 	struct cmdif_desc cidesc = {0};
 	struct icontext ic = {0};
 	
-	slab_create(5, 0, 256, 0, 0, 4, 0, 1, NULL, my_slab);
+	slab_create(5, 5, 256, 8, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG, NULL, my_slab);
 	slab_acquire(*my_slab, &buff);
 	slab_release(*my_slab, buff);
 	slab_free(my_slab);
