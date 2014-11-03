@@ -1,3 +1,4 @@
+- fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
 - cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
                             See aiopsl\tests\cmdif\README.txt.
 - fsl_cmdif_flib_c.h        API change: moved async callback from cmdif_cmd() to cmdif_open_cmd().
