@@ -52,10 +52,10 @@ void ipsec_print_stats (ipsec_handle_t desc_handle);
 /**< Get flow id from callback argument, it's demo specific macro */
 
 /* Global IPsec vars in Shared RAM */
-__SHRAM ipsec_instance_handle_t ipsec_instance_handle;
-__SHRAM ipsec_handle_t ipsec_sa_desc_outbound;
-__SHRAM ipsec_handle_t ipsec_sa_desc_inbound; 
-__SHRAM uint32_t frame_number; 
+ipsec_instance_handle_t ipsec_instance_handle;
+ipsec_handle_t ipsec_sa_desc_outbound;
+ipsec_handle_t ipsec_sa_desc_inbound; 
+uint32_t frame_number; 
 
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {

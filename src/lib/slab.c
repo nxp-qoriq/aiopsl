@@ -43,8 +43,8 @@
 struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 
-__SHRAM uint64_t g_slab_pool_pointer_ddr;
-__SHRAM uint64_t g_slab_last_pool_pointer_ddr;
+uint64_t g_slab_pool_pointer_ddr;
+uint64_t g_slab_last_pool_pointer_ddr;
 
 #define SLAB_ASSERT_COND_RETURN(COND, ERR)  \
 	do { if (!(COND)) return (ERR); } while (0)
