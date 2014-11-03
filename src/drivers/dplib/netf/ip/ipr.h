@@ -298,7 +298,7 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error(struct ipr_instance instance_params,
-			      uint32_t frame_is_ipv4);
+			      uint32_t frame_is_ipv4, void *iphdr_ptr);
 
 void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t dummy);
 
