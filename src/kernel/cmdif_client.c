@@ -269,7 +269,6 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		                   sizeof(struct cmdif_async),
 		                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
 		                   &async_data);
-		pr_debug("async_cb = 0x%x == 0x%x\n", async_cb, (uint32_t)async_data.async_cb);
 		ASSERT_COND_LIGHT(async_data.async_cb == (uint64_t)async_cb);		
 #endif
 	} else {
