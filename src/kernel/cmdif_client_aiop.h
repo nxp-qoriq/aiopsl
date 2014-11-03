@@ -43,6 +43,10 @@
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 #pragma warning_errors off
 
+/* Use it to see debug prints */
+//#define CMDIF_DBG_PRINT(...) pr_debug(__VA_ARGS__) 
+#define CMDIF_DBG_PRINT(...) do { } while(0)
+
 /** BDI */
 #define BDI_GET \
 ((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \

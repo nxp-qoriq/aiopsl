@@ -62,7 +62,18 @@ These are the commands that can be sent to AIOP module "TEST0".
 /*!< Will trigger cmdif_send() on AIOP  which should reach registered module "IRA" on GPP server */
 #define ASYNC_CMD	0x102  
 /*!< Will trigger cmdif_send() on AIOP  which should reach registered module "IRA" on GPP server 
-     which will send response to AIOP and call asyncronous cb on AIOP */
+     which will send response to AIOP and call asyncronous cb on AIOP. 
+     The activation of this command is a bit tricky as AIOP client needs a buffer for sending async commands. 
+     cmdif_send(&cidesc, ASYNC_CMD, size, CMDIF_PRI_LOW, (uint64_t)async_buff, 
+                      NULL, NULL);
+     It is important that async_buff should be of size (size + AIOP_SYNC_BUFF_SIZE).
+     AIOP will use (async_buff + size) as a buffer and AIOP_SYNC_BUFF_SIZE as a size for async command.
+          
+              async_buff
+     ------------------------------------
+    |    size      | AIOP_SYNC_BUFF_SIZE |
+     ------------------------------------     		                 
+		                 */
 #define IC_TEST		0x106
 /*!< Will trigger fsl_icontext.h test on AIOP, call it after cmdif_session_open() */
 

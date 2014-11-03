@@ -1,3 +1,7 @@
+- cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
+                            See aiopsl\tests\cmdif\README.txt.
+- fsl_cmdif_flib_c.h        API change: moved async callback from cmdif_cmd() to cmdif_open_cmd().
+- fsl_cmdif_client.h        API change: moved async callback from cmdif_open() to cmdif_send().
 - fsl_slab.h:               prototype of the slab release callback function modified from int to void.
 - slab.c, fsl_slab.h:       slab_create: API change - prefix_size, postfix_size were removed.
 - slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
