@@ -47,11 +47,10 @@ int app_test_slab_overload_test();
 int app_test_slab(struct slab *slab, int num_times);
 
 
-static int slab_callback_test(uint64_t context_address){
+static void slab_callback_test(uint64_t context_address){
 
 	fsl_os_print("slab_release: callback function\n");
 	fsl_os_print("release context address - 0x%x%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
-	return 0;
 }
 
 int slab_init(void)

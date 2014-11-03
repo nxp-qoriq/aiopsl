@@ -82,7 +82,7 @@ struct slab_debug_info {
 @Description	Type of the function callback to be called on release of buffer
 		into pool
 *//***************************************************************************/
-typedef int (slab_release_cb_t)(uint64_t);
+typedef void (slab_release_cb_t)(uint64_t);
 
 /**************************************************************************//**
 @Function	slab_create
