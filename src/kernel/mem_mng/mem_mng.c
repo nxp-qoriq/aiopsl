@@ -36,6 +36,8 @@
 #include "fsl_slob.h"
 #ifdef AIOP
 #include "fsl_malloc.h"
+#include "platform.h"
+#include "platform_aiop_spec.h"
 #endif /* AIOP */
 
 #include "mem_mng.h"
@@ -64,6 +66,9 @@
 
 #endif /* UNDER_CONSTRUCTION */
 
+/* Array of spinlocks should reside in shared ram memory.
+ * They are initialized to 0 (unlocked) */
+static uint8_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};  
 
 static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
                                 void        *p_memory,
@@ -256,7 +261,10 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     }
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
 #ifdef AIOP
-    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    //p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    /* Fix for bug ENGR00337904. Memory address that is used for spinlock 
+     * should reside in shared ram */
+    p_new_partition->lock = &g_mem_part_spinlock[partition_id];
 #else
     p_new_partition->lock = spin_lock_create();
 #endif
