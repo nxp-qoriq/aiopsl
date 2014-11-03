@@ -64,7 +64,7 @@ void app_free(void);
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
 
-__SHRAM struct cmdif_desc cidesc;
+struct cmdif_desc cidesc;
 
 static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)

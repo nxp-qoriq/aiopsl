@@ -42,7 +42,7 @@ struct slab *slab_ddr = 0;
 int app_test_slab_init(void);
 int slab_init(void);
 int slab_test(void);
-extern __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
+extern struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 int app_test_slab_overload_test();
 int app_test_slab(struct slab *slab, int num_times);
 
