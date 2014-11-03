@@ -70,7 +70,7 @@ static int slab_read_pool(uint32_t slab_pool_id,
                                   int32_t *max_bufs,
                                   int32_t *committed_bufs,
                                   int32_t *allocated_bufs,
-                                  uint32_t *flags,
+                                  uint8_t *flags,
                                   slab_release_cb_t **callback_func)
 {
 
@@ -106,8 +106,8 @@ static int slab_read_pool(uint32_t slab_pool_id,
 	*bman_pool_id =
 		g_slab_bman_pools[slab_virtual_pool->bman_array_index].bman_pool_id;
 
-	pr_info("max buffs %d, committed %d\n", *max_bufs, *committed_bufs);
-	*flags = (uint8_t)slab_virtual_pool->flags;
+	pr_info("max buffs %d, committed %d, allocated %d\n", *max_bufs, *committed_bufs, *allocated_bufs);
+	*flags = slab_virtual_pool->flags;
 
 	*callback_func = slab_virtual_pool->callback_func;
 	return 0;
@@ -1214,8 +1214,8 @@ void slab_module_free(void)
 /*****************************************************************************/
 int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 {
-	int32_t temp = 0, m_buffs = 0, num_buffs = 0;
-	uint32_t flags =0;
+	int32_t max = 0, committed = 0, allocated = 0, temp;
+	uint8_t flags =0;
 	int     i;
 	slab_release_cb_t *release_cb = NULL;
 	struct slab_module_info *slab_m = \
@@ -1224,15 +1224,15 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 	if ((slab_info != NULL) && (slab_m != NULL) && SLAB_IS_HW_POOL(slab)) {
 		if (slab_read_pool(SLAB_VP_POOL_GET(slab),
 		                           &slab_info->pool_id,
-		                           &temp,
-		                           &m_buffs,
-		                           &num_buffs,
+		                           &max,
+		                           &committed,
+		                           &allocated,
 		                           &flags,
 		                           &release_cb) == 0) {
 			/* Modify num_buffs to have the number of available
 			 * buffers not allocated */
-			slab_info->committed_buffs = (uint32_t)(m_buffs - num_buffs);
-			slab_info->max_buffs = (uint32_t)m_buffs;
+			slab_info->committed_buffs = (uint32_t)(committed);
+			slab_info->max_buffs = (uint32_t)max;
 
 			temp = slab_m->num_hw_pools;
 			for (i = 0; i < temp; i++)
