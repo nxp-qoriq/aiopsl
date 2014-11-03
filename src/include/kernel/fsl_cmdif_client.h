@@ -189,7 +189,8 @@ int cmdif_close(struct cmdif_desc *cidesc);
 @Param[in]	cmd_id     Id which represent command on the module that was
 		registered on Server; Application may use bits 11-0.
 		See \ref CMDIF_SEND_ATTRIBUTES.
-@Param[in]	size       Size of the data.
+@Param[in]	size       Size of the data including extra 16 bytes for 
+		\ref cmdif_cb_t in case of \ref CMDIF_ASYNC_CMD.
 @Param[in]	priority   High or low priority queue.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	data       Data of the command or buffer allocated by user which

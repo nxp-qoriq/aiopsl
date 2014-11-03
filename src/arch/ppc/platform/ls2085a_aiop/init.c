@@ -375,7 +375,7 @@ int run_apps(void)
 	}
 
 	/* TODO: number and size of buffers should not be hard-coded */
-	if ((err = fill_bpid(100, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
+	if ((err = fill_bpid(50, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
 		pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
 				dpbp_id, attr.bpid, buffer_size);
 		return err;
