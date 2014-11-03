@@ -56,7 +56,8 @@ void app_free(void);
 #define IC_TEST		0x106
 #define CLOSE_CMD	0x107
 
-#define AIOP_ASYNC_CB_DONE	5
+#define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
+#define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
@@ -66,15 +67,15 @@ void app_free(void);
 
 __SHRAM struct cmdif_desc cidesc;
 
-static int async_cb(void *async_ctx, int err, uint16_t cmd_id,
+static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
 {
 	UNUSED(cmd_id);
 	UNUSED(async_ctx);
-	fsl_os_print("PASSED ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
+	fsl_os_print("PASSED AIOP ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
 	if (err != 0) {
-		fsl_os_print("ERROR inside async_cb\n");
+		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
 	((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
 	fdma_modify_default_segment_data(0, (uint16_t)size);
@@ -163,25 +164,27 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case NORESP_CMD:
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, size,
-		                 CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
+		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
 	case ASYNC_CMD:
-		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, size,
-		                 CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
+		p_data += size; 
+		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
+		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
 	case ASYNC_N_CMD:
-		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
-		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_HIGH, p_data, async_cb, cidesc.regs);
-		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_LOW, p_data, async_cb, cidesc.regs);
-		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, size,
-		                  CMDIF_PRI_HIGH, p_data, async_cb, cidesc.regs);
+		p_data += size; 
+		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
+		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
+		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
+		                  CMDIF_PRI_HIGH, p_data, aiop_async_cb, cidesc.regs);
+		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
+		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
+		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
+		                  CMDIF_PRI_HIGH, p_data, aiop_async_cb, cidesc.regs);
 		break;
 	case SYNC_CMD:
 		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data, 
-		                 async_cb, cidesc.regs);
+		                 aiop_async_cb, cidesc.regs);
 		break;
 	case IC_TEST:
 		ASSERT_COND(size >= sizeof(struct icontext));

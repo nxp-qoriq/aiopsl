@@ -50,18 +50,18 @@
 	} while(0)
 
 #define CMDIF_DEV_GET(FD) \
-	((struct cmdif_dev *)((uint64_t)((FD)->u_frc.cmd.dev_l) \
-		| (((uint64_t)((FD)->u_flc.cmd.dev_h)) << 32)))
+	((struct cmdif_dev *)((uint64_t)(((uint64_t)((FD)->u_frc.cmd.dev_l)) \
+		| (((uint64_t)((FD)->u_flc.cmd.dev_h)) << 32))))
 
 #define CMDIF_ASYNC_ADDR_GET(DATA, SIZE) \
-		((uint64_t)(DATA) + (SIZE) - sizeof(struct cmdif_async))
+		((uint64_t)(DATA) + (SIZE))
 
 #define CMDIF_DEV_RESERVED_BYTES 12
 
 #define CMDIF_CMD_FD_SET(FD, DEV, DATA, SIZE, CMD) \
 	do { \
 		(FD)->u_addr.d_addr     = DATA; \
-		(FD)->d_size            = SIZE; \
+		(FD)->d_size            = (SIZE); \
 		(FD)->u_flc.flc         = 0; \
 		(FD)->u_flc.cmd.auth_id = (DEV)->auth_id; \
 		(FD)->u_flc.cmd.cmid    = CPU_TO_SRV16(CMD); \
