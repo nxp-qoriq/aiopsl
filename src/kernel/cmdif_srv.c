@@ -78,7 +78,7 @@
 
 #define PR_ERR_TERMINATE(...) \
 	do {                  \
-		pr_err(__VA_ARGS__);  \
+		CMDIF_DBG_PRINT(__VA_ARGS__);  \
 		fdma_terminate_task();\
 		return;               \
 	} while (0)
@@ -523,8 +523,7 @@ void cmdif_srv_isr(void)
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	
-	if (cmdif_aiop_srv.srv == NULL)
-		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
+	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
 #ifdef DEBUG
 	{
@@ -582,21 +581,20 @@ void cmdif_srv_isr(void)
 		char     m_name[M_NAME_CHARS + 1];
 		int      m_id      = 0;
 		uint8_t  inst_id   = 0;
-		int      new_inst  = 0;
 		uint64_t sync_done = sync_done_get();
 		void     *dev;
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			pr_err("No permission to open device 0x%x\n", auth_id);
+			CMDIF_DBG_PRINT("No permission to open device 0x%x\n", auth_id);
 			sync_cmd_done(sync_done, -EPERM, auth_id, TRUE);
 		}
 
 		cmd_m_name_get(&m_name[0]);
-		pr_debug("m_name = %s\n", m_name);
+		CMDIF_DBG_PRINT("m_name = %s\n", m_name);
 
 		m_id = module_id_find(m_name);
-		pr_debug("m_id = %d\n", m_id);
+		CMDIF_DBG_PRINT("m_id = %d\n", m_id);
 
 		if (m_id < 0) {
 			/* Did not find module with such name */
@@ -605,13 +603,13 @@ void cmdif_srv_isr(void)
 		}
 
 		inst_id  = cmd_inst_id_get();
-		pr_debug("inst_id = %d\n", inst_id);
+		CMDIF_DBG_PRINT("inst_id = %d\n", inst_id);
 
 		err = OPEN_CB(m_id, inst_id, dev);
 		if (!err) {
-			new_inst = inst_alloc((uint8_t)m_id);
+			int  new_inst = inst_alloc((uint8_t)m_id);
 			if (new_inst >= 0) {
-				pr_debug("new auth_id = %d\n", new_inst);
+				pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
 				sync_done_set((uint16_t)new_inst);
 				cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
 				sync_cmd_done(sync_done, 0,
