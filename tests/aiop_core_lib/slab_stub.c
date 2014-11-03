@@ -32,6 +32,10 @@
 *//***************************************************************************/
 #include "slab_stub.h"
 #include "system.h"
+#include "aiop_verification_data.h"
+
+
+extern __VERIF_TLS uint8_t slab_error;
 
 int slab_find_and_reserve_bpid(uint32_t num_buffs,
                             uint16_t buff_size,

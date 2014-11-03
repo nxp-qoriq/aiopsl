@@ -35,6 +35,7 @@
 
 #include "common/types.h"
 #include "fsl_cdma.h"
+#include "fsl_platform.h"
 
 /**************************************************************************//**
 @Group         slab_g   SLAB
@@ -59,7 +60,8 @@
 @Description   Slab handle type
 *//***************************************************************************/
 struct slab;
-
+#define SLAB_DDR_MANAGEMENT_FLAG    0x01 
+/**Flag to use for requesting slab managed in DDR (lower performance)*/
 #define SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO 0x3
 /** Decrement reference count caused the reference count to
 	go to zero. (not an error) */
@@ -80,7 +82,7 @@ struct slab_debug_info {
 @Description	Type of the function callback to be called on release of buffer
 		into pool
 *//***************************************************************************/
-typedef int (slab_release_cb_t)(uint64_t);
+typedef void (slab_release_cb_t)(uint64_t);
 
 /**************************************************************************//**
 @Function	slab_create
@@ -92,10 +94,6 @@ typedef int (slab_release_cb_t)(uint64_t);
 		can be allocated by this new pool; max_buffs >= committed_buffs;
 		Not yet supported.
 @Param[in]	buff_size           Size of buffers in pool.
-@Param[in]	prefix_size         How many bytes to allocate before the data.
-		AIOP: Not supported by AIOP HW pools.
-@Param[in]	postfix_size        How many bytes to allocate after the data.
-		AIOP: Not supported by AIOP HW pools.
 @Param[in]	alignment           Requested alignment for data in bytes.
 		AIOP: HW pool supports up to 8 bytes alignment.
 @Param[in]	mem_partition_id    Memory partition ID for allocation.
@@ -111,10 +109,8 @@ typedef int (slab_release_cb_t)(uint64_t);
 int slab_create(uint32_t    committed_buffs,
 		uint32_t    max_buffs,
 		uint16_t    buff_size,
-		uint16_t    prefix_size,
-		uint16_t    postfix_size,
 		uint16_t    alignment,
-		uint8_t     mem_partition_id,
+		enum memory_partition_id  mem_partition_id,
 		uint32_t    flags,
 		slab_release_cb_t *release_cb,
 		struct slab **slab);
