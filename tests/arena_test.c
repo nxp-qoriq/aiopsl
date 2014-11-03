@@ -62,22 +62,22 @@ extern int pton_test(void);
 extern int ntop_test(void);
 extern int dpni_drv_test(void);
 
-extern __SHRAM struct slab *slab_peb;
-extern __SHRAM struct slab *slab_ddr;
-extern __SHRAM int num_of_cores;
-extern __SHRAM int num_of_tasks;
-extern __SHRAM uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
+extern struct slab *slab_peb;
+extern struct slab *slab_ddr;
+extern int num_of_cores;
+extern int num_of_tasks;
+extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
 extern __TASK uint32_t	seed_32bit;
-__SHRAM uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
-__SHRAM uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
-__SHRAM uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
-__SHRAM uint8_t packet_number;
-__SHRAM uint8_t packet_lock;
-__SHRAM uint8_t time_lock;
-__SHRAM uint64_t global_time;
+uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
+uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
+uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
+uint8_t packet_number;
+uint8_t packet_lock;
+uint8_t time_lock;
+uint64_t global_time;
 
-__SHRAM int test_error;
-__SHRAM uint8_t test_error_lock;
+int test_error;
+uint8_t test_error_lock;
 
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {

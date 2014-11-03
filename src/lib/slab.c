@@ -40,8 +40,8 @@
 #include "aiop_common.h"
 #include "fsl_mc_init.h"
 
-__SHRAM struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
-__SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
+struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
+struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 
 __SHRAM uint64_t g_slab_pool_pointer_ddr;
 __SHRAM uint64_t g_slab_last_pool_pointer_ddr;

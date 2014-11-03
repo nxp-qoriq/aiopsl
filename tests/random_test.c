@@ -40,12 +40,12 @@ int random_init(void);
 
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
-__SHRAM uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
-__SHRAM uint8_t rnd_lock;
-__SHRAM int num_of_cores;
-__SHRAM int num_of_tasks;
+uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
+uint8_t rnd_lock;
+int num_of_cores;
+int num_of_tasks;
 
-extern __SHRAM t_system sys;
+extern t_system sys;
 extern __TASK uint32_t	seed_32bit;
 
 
