@@ -118,7 +118,7 @@ static int session_get(const char *m_name,
 		/* Must be here to prevent deadlocks because 
 		 * the same lock is used */
 		return icontext_get((uint16_t)dpci_id, \
-		             (struct icontext *)(&cl->gpp[i].dev->reserved[0]));
+		             (struct icontext *)(&(cl->gpp[i].dev->reserved[0])));
 	}
 
 	unlock_spinlock(&cl->lock);
@@ -249,17 +249,30 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	 * AIOP client can't set async callback inside cmdif_cmd() flib because 
 	 * it is not FDMA */
 	dev = (struct cmdif_dev *)cidesc->dev;	
-	CMDIF_CMD_FD_SET(&fd, dev, data, size, cmd_id);
 	
 	if (cmd_id & CMDIF_ASYNC_CMD) {
+		CMDIF_CMD_FD_SET(&fd, dev, data, \
+		                 (size - sizeof(struct cmdif_async)), cmd_id);
+
 		/* Write async cb using FDMA */
 		async_data.async_cb  = (uint64_t)async_cb;
 		async_data.async_ctx = (uint64_t)async_ctx;
 		ASSERT_COND_LIGHT(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
-		icontext_dma_write((struct icontext *)(&dev->reserved[0]), 
+		icontext_dma_write((struct icontext *)(&(dev->reserved[0])), 
 		                   sizeof(struct cmdif_async), 
 		                   &async_data, 
-		                   CMDIF_ASYNC_ADDR_GET(data, size));
+		                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size));
+#ifdef DEBUG
+		async_data.async_cb  = 0;
+		async_data.async_ctx = 0;
+		icontext_dma_read((struct icontext *)(&(dev->reserved[0])), 
+		                   sizeof(struct cmdif_async),
+		                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
+		                   &async_data);
+		ASSERT_COND_LIGHT(async_data.async_cb == (uint64_t)async_cb);		
+#endif
+	} else {
+		CMDIF_CMD_FD_SET(&fd, dev, data, size, cmd_id);
 	}
 	
 	/* Copy FD outside send_fd() to save stack and cycles */
@@ -304,20 +317,31 @@ void cmdif_cl_isr(void)
 {
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
-
+	cmdif_cb_t *async_cb = NULL;
+	
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
 	/* Read async cb using FDMA */
+	pr_debug("Got async response for cmd 0x%x\n", \
+		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
+	
 	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
-	icontext_dma_read((struct icontext *)(&CMDIF_DEV_GET(&fd)->reserved[0]), 
+	icontext_dma_read((struct icontext *)(&(CMDIF_DEV_GET(&fd)->reserved[0])), 
 	                   sizeof(struct cmdif_async),
 	                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
 	                   &async_data);
-	
-	if (((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
+	pr_debug("async_cb = 0x%x async_ctx = 0x%x\n", 
+	         (uint32_t)async_data.async_cb, (uint32_t)async_data.async_ctx);
+
+	async_cb = (cmdif_cb_t *)async_data.async_cb;
+	pr_debug("async_cb = 0x%x async_ctx = 0x%x\n", 
+	         async_cb, (uint32_t)async_data.async_ctx);
+
+	ASSERT_COND_LIGHT(async_data.async_cb);
+	if (async_cb((void *)async_data.async_ctx,
 		fd.u_flc.cmd.err,
 		CPU_TO_SRV16(fd.u_flc.cmd.cmid),
 		fd.d_size,
@@ -326,7 +350,6 @@ void cmdif_cl_isr(void)
 		pr_debug("Async callback cmd 0x%x returned error \n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	}
-	
 
 	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
