@@ -5,9 +5,17 @@
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
-
+#ifdef AIOP
+#include "fsl_platform.h"
+#include "platform.h"
+#include "platform_aiop_spec.h"
+#endif
 #include "slob.h"
 
+/* Array of spinlocks should reside in shared ram memory.
+ * They are initialized to 0 (unlocked)  */
+static uint8_t g_slob_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0}; 
+static uint32_t g_spinlock_index = 0;
 
 /**********************************************************************
  *                     MM internal routines set                       *
@@ -577,7 +585,11 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
         RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
     }
 #ifdef AIOP
-    p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    /*p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t)); */
+    /* Fix for bug ENGR00337904. An address for spinlock should reside 
+     * in shared ram, not in  DP_DDR */
+    ASSERT_COND(g_spinlock_index < PLATFORM_MAX_MEM_INFO_ENTRIES-1);
+    p_MM->lock = &g_slob_spinlock[g_spinlock_index++];
 #else
     p_MM->lock = spin_lock_create();
 #endif
