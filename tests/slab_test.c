@@ -147,28 +147,72 @@ int app_test_slab_overload_test()
 int app_test_slab_init(void)
 {
 	int        err = 0;
-	dma_addr_t buff = 0;
+	dma_addr_t buff[] = {0,0,0,0,0};
 	struct slab *my_slab;
+	struct slab_debug_info slab_info;
 
-	err = slab_create(5, 5, 256, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(2, 4, 256, 4, MEM_PART_DP_DDR, 0,
 	                  &slab_callback_test, &my_slab);
 	if (err) return err;
 
-	err = slab_acquire(my_slab, &buff);
+	err = slab_acquire(my_slab, &buff[0]);
 	if (err) return err;
 
-	if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-		err = slab_release(my_slab, buff);
+	err = slab_acquire(my_slab, &buff[1]);
+	if (err) return err;
+
+	err = slab_acquire(my_slab, &buff[2]);
+	if (err) return err;
+	
+	err = slab_acquire(my_slab, &buff[3]);
+	if (err) return err;
+	
+	err = slab_acquire(my_slab, &buff[4]);
+	if (!err) return err;
+	else
+		fsl_os_print("Acquire more buffers than MAX failed\n");
+		
+	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[0]);
 		if (err) return err;
 	}
 	else
 		return -ENODEV;
 
+	if (slab_refcount_decr(buff[1]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[1]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[2]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	if (slab_refcount_decr(buff[3]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[3]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+
+	
+	err = slab_debug_info_get(my_slab, &slab_info);
+	if (err) {
+		return err;
+	} else {
+		if ((slab_info.committed_buffs >= slab_info.max_buffs) ||
+			(slab_info.committed_buffs == 0))
+			return -ENODEV;
+	}
+	
 	err = slab_free(&my_slab);
 	if (err) return err;
 
 	/* Must fail because my_slab was freed  */
-	err = slab_acquire(my_slab, &buff);
+	err = slab_acquire(my_slab, &buff[0]);
 	if (!err) return -EEXIST;
 
 
