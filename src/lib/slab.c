@@ -367,8 +367,6 @@ static inline int sanity_check_slab_create(uint32_t    committed_buffs,
 int slab_create(uint32_t    committed_buffs,
                 uint32_t    max_buffs,
                 uint16_t    buff_size,
-                uint16_t    prefix_size,
-                uint16_t    postfix_size,
                 uint16_t    alignment,
                 enum memory_partition_id  mem_pid,
                 uint32_t    flags,
@@ -386,9 +384,6 @@ int slab_create(uint32_t    committed_buffs,
 	struct slab_module_info *slab_m;
 	struct slab_v_pool slab_virtual_pool_ddr;
 	uint64_t context_address;
-
-	UNUSED(prefix_size);
-	UNUSED(postfix_size);
 
 #ifdef DEBUG
 	/* Sanity checks */
