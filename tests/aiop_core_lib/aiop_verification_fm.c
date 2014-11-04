@@ -31,10 +31,10 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_gso.h"
-#include "dplib/fsl_ipf.h"
+#include "fsl_fdma.h"
+#include "fsl_cdma.h"
+#include "fsl_gso.h"
+#include "fsl_ipf.h"
 #include "aiop_verification.h"
 #include "system.h"
 
@@ -50,6 +50,10 @@ __TASK int32_t status_ipf;
 
 extern __VERIF_GLOBAL uint8_t verif_prpid;
 extern __VERIF_TLS uint64_t initial_ext_address;
+extern __VERIF_TLS uint8_t slab_parser_error;
+extern __VERIF_TLS uint8_t slab_keygen_error;
+extern __VERIF_TLS uint8_t slab_general_error;
+
 
 void aiop_verification_fm()
 {
@@ -59,35 +63,53 @@ void aiop_verification_fm()
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
 
-	init_verif();
-
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
 			/* PTA was already loaded */
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
 			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
+			slab_parser_error = 
+				*((uint8_t *)PRC_GET_PTA_ADDRESS() + 8);
+			slab_keygen_error = 
+				*((uint8_t *)PRC_GET_PTA_ADDRESS() + 9);
 		} else { /* PTA was not loaded */
 			if (fdma_read_default_frame_pta((void *)data_addr) !=
 					FDMA_SUCCESS)
 				return;
 			ext_address = *((uint64_t *)data_addr);
+			slab_parser_error = *((uint8_t *)data_addr + 8);
+			slab_keygen_error = *((uint8_t *)data_addr + 9);
 			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		}
 	} else{
 		present_params.flags = FDMA_PRES_SR_BIT;
 		present_params.frame_handle = PRC_GET_FRAME_HANDLE();
-		present_params.offset = 8;
-		present_params.present_size = 8;
-		present_params.ws_dst = (void *)&ext_address;
+		present_params.offset = 11;
+		present_params.present_size = 11;
+		present_params.ws_dst = (void *)data_addr;
 		if (fdma_present_frame_segment(&present_params) != FDMA_SUCCESS)
 			return;
+		slab_keygen_error = data_addr[0];
+		slab_parser_error = data_addr[1];
+		ext_address = *((uint64_t *)(&(data_addr[2])));
 	}
 	initial_ext_address = ext_address;
-
+	slab_general_error = 0;
+	
 	/* spid=0. This is a temporary spid setter and has to be removed when
 				* the ni function will be run.
 				* (According to Ilan request) */
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+
+	/* FATAL PARMATER INIT IS DONE BEFORE VERIFICATION INIT SO THAT
+	 * VERIFICATION INIT CAN USE THE FATAL PATH */
+	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
+	fatal_fqid = ((struct fatal_error_command *)
+			((uint32_t)data_addr))->fqid;
+	/* This should be removed since ASA verification is obsolete */
+	sr_fm_flags = ((struct fatal_error_command *)
+			((uint32_t)data_addr))->flags;
+	init_verif();
 
 	/* The Terminate command will finish the verification */
 	do {
@@ -172,6 +194,12 @@ void aiop_verification_fm()
 					(uint32_t)data_addr);
 			break;
 		}
+		case OSM_MODULE:
+		{
+			str_size = aiop_verification_osm(
+					(uint32_t)data_addr);
+			break;
+		}
 		case WRITE_DATA_TO_WS_MODULE:
 		{
 
@@ -186,6 +214,35 @@ void aiop_verification_fm()
 			str->status = 0;
 			str_size = (uint16_t)
 				sizeof(struct write_data_to_workspace_command);
+			break;
+		}
+		case UPDATE_EXT_VARIABLE:
+		{
+
+			struct update_ext_cmd_var_command *str =
+				(struct update_ext_cmd_var_command *)
+					data_addr;
+			uint32_t value;
+			cdma_read_with_mutex(initial_ext_address + str->offset,
+						CDMA_PREDMA_MUTEX_WRITE_LOCK,
+						&value,
+						4);
+			switch (str->operation)
+			{
+			case INCREMENT_OPER: value = value + str->value; break;
+			case DECREMENT_OPER: value = value - str->value; break;
+			case SET_OPER: 	value = str->value; break;	
+			default:
+				value = str->value;
+			}
+			
+			cdma_write_with_mutex(initial_ext_address + str->offset,
+						CDMA_POSTDMA_MUTEX_RM_BIT,
+						&value,
+						4);
+			
+			str_size = (uint16_t)
+				sizeof(struct update_ext_cmd_var_command);
 			break;
 		}
 		case IF_MODULE:
@@ -415,5 +472,3 @@ void timeout_cb_verif(uint64_t arg)
 	}
 	fdma_terminate_task();
 }
-
-

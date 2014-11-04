@@ -110,23 +110,45 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	 * scope_id=INCR, request_exclusivity=true */
 #define OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP	0x17
 
+
 inline void osm_task_init(void)
 {
+	uint8_t osm_val = ((struct presentation_context *)HWC_PRC_ADDRESS)
+			->osrc_oep_osel_osrm;
+
 	/**<	0 = No order scope specified.\n
 		1 = Scope was specified for level 1 of hierarchy */
 	default_task_params.current_scope_level =
-			((uint8_t)PRC_GET_OSM_SOURCE_VALUE());
+			((osm_val & PRC_OSRC_MASK) ? 1 : 0);
+	
+	*(uint32_t *)default_task_params.scope_mode_level_arr = 0 ;
 	/**<	0 = Concurrent mode.\n
 		1 = Exclusive mode. */
 	default_task_params.scope_mode_level_arr[0] =
-			((uint8_t)PRC_GET_OSM_EXECUTION_PHASE_VALUE());
-	/**<	Concurrent (default) Mode in level 2 of hierarchy */
-	default_task_params.scope_mode_level_arr[1] = 0x00;
-	/**<	Concurrent (default) Mode in level 3 of hierarchy */
-	default_task_params.scope_mode_level_arr[2] = 0x00;
-	/**<	Concurrent (default) Mode in level 4 of hierarchy */
-	default_task_params.scope_mode_level_arr[3] = 0x00;
+			((osm_val & PRC_OEP_MASK) ? 1 : 0);
 }
+
+/**************************************************************************//**
+ @enum osm_functions
+
+ @Description	AIOP OSM Functions enumertion.
+
+ @{
+*//***************************************************************************/
+enum osm_function_identifier {
+	OSM_SCOPE_TRANSITION_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID = 0,
+	OSM_SCOPE_TRANSITION_TO_EXCLUSIVE_WITH_NEW_SCOPE_ID,
+	OSM_SCOPE_TRANSITION_TO_CONCURRENT_WITH_INCREMENT_SCOPE_ID,
+	OSM_SCOPE_TRANSITION_TO_CONCURRENT_WITH_NEW_SCOPE_ID,
+	OSM_SCOPE_RELINQUISH_EXCLUSIVITY,
+	OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID,
+	OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_NEW_SCOPE_ID,
+	OSM_SCOPE_ENTER,
+	OSM_SCOPE_EXIT,
+	OSM_GET_SCOPE
+};
+
+/** @}*/ /* end of group OSM_Enumerations */
 
 /**************************************************************************//**
  @enum osm_errors
@@ -137,7 +159,7 @@ inline void osm_task_init(void)
 *//***************************************************************************/
 enum osm_errors {
 		/** Success. */
-	OSM_SUCCESS = E_OK,
+	OSM_SUCCESS = 0,
 		/** Transition from no scope (null scope_id). */
 	OSM_TRANSITION_FROM_NO_SCOPE_ERR = 0x1,
 		/** Duplicate scope identifier detected. (DID error) */
@@ -145,5 +167,32 @@ enum osm_errors {
 };
 
 /* @} end of enum osm_errors */
+
+/**************************************************************************//**
+@Group		OSM_Internal_Functions	OSM Internal Functions
+
+@Description	AIOP OSM operations internal functions.
+
+@{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@Function	osm_exception_handler
+
+@Description	Handler for the error status returned from the OSM API
+		functions.
+
+@Param[in]	file_path - The path of the file in which the error occurred.
+@Param[in]	func_id - The function in which the error occurred.
+@Param[in]	line - The line in which the error occurred.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+void osm_exception_handler(enum osm_function_identifier func_id,
+			     uint32_t line);
+
+/** @} end of group OSM_Internal_Functions */
 
 #endif /* __OSM_H_ */

@@ -27,6 +27,7 @@
 #ifndef __SYS_H
 #define __SYS_H
 
+#include "general.h"
 #include "aiop_common.h"
 #include "common/types.h"
 #include "fsl_errors.h"
@@ -92,5 +93,13 @@ void    sys_free_multi_processing(void);
 
 void    sys_register_debugger_console(void);
 
+inline void	sys_yield(void)
+{
+	extern t_system sys;
+	
+	if(!sys.runtime_flag) {
+		__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
+	}
+}
 
 #endif /* __SYS_H */

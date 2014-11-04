@@ -32,7 +32,7 @@
 #ifndef __FSL_LDPAA_H
 #define __FSL_LDPAA_H
 
-#include "common/types.h"
+#include "types.h"
 
 
 /**************************************************************************//**

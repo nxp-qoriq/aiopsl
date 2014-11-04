@@ -33,9 +33,6 @@
 #include <fsl_stdlib.h>
 #include <fsl_endian.h>
 
-#ifndef __HOT_CODE
-#define __HOT_CODE
-#endif
 
 #ifndef CORE_IS_BIG_ENDIAN
 #error "MC core must be big endian\n!"

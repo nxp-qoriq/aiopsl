@@ -26,41 +26,109 @@
 
 #include "fsl_fdma.h"
 #include "icontext.h"
+#include "fsl_errors.h"
+#include "general.h"
+#include "fsl_ldpaa_aiop.h"
+#include "fsl_fdma.h"
+#include "fdma.h"
+#include "sys.h"
+#include "fsl_dbg.h"
+#include "fsl_icontext.h"
+#include "fsl_mc_init.h"
+#include "fsl_spinlock.h"
+#include "cmdif_client_aiop.h" /* TODO remove it once you have lock per dpci table !!! */
 
-struct ic_table ic = {0};
-
-int icontext_add()
+int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
-	uint16_t pl_icid = PL_ICID_GET;
+	int i = 0;
+	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
-	/* TODO find the ind where to add it */
-	ic.icid[ind]           = IC_ICID_GET(pl_icid);
-	ic.enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
-	ic.dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
-	IC_ADD_AMQ_FLAGS(ic.dma_flags[ind], pl_icid);
-	if (IC_BDI_GET != 0)
-		ic.enq_flags[ind] |= FDMA_ENF_BDI_BIT;
+#ifdef DEBUG
+	if ((ic == NULL) || (dt == NULL) || (cl == NULL))
+		return -EINVAL;
+#endif
+	lock_spinlock(&cl->lock); /* TODO make it lock per dpci table not client ! */
+	/* search by GPP peer id - most likely case
+	 * or by AIOP dpci id  - to support both cases
+	 * All DPCIs in the world have different IDs */
+	for (i = 0; i < dt->count; i++) {
+		if ((dt->peer_attr[i].peer_id == dpci_id) ||
+			(dt->attr[i].id == dpci_id)) {
+			/* Fill icontext */
+			ic->icid = dt->icid[i];
+			ic->dma_flags = dt->dma_flags[i];
+			ic->bdi_flags = dt->bdi_flags[i];
+			unlock_spinlock(&cl->lock);
+			return 0;
+		}
+	}
 
-	/* TODO locks */
-
+	unlock_spinlock(&cl->lock);
+	return -ENAVAIL;
 }
 
-int icontext_rm(uint16_t icid)
-{
-	/* TODO locks */
-}
-
-int icontext_get(uint16_t icid, void **icontext)
+int icontext_dma_read(struct icontext *ic, uint16_t size, 
+                                 uint64_t src, void *dest)
 {
 
+#ifdef DEBUG
+	if ((dest == NULL) || (src == NULL))
+		return -EINVAL;
+#endif
+	
+	fdma_dma_data(size,
+	              ic->icid,
+	              dest,
+	              src,
+	              ic->dma_flags);
+	return 0;
 }
 
-int icontext_table_init()
+int icontext_dma_write(struct icontext *ic, uint16_t size, 
+                                  void *src, uint64_t dest)
 {
-	memset(&ic, 0, sizeof(struct ic_table));
+	
+#ifdef DEBUG
+	if ((dest == NULL) || (src == NULL))
+		return -EINVAL;
+#endif
+
+	fdma_dma_data(size,
+	              ic->icid,
+	              src,
+	              dest,
+	              ic->dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
+	return 0;
 }
 
-int icontext_table_free()
+int icontext_acquire(struct icontext *ic, uint16_t bpid, 
+                                uint64_t *addr)
 {
-	memset(&ic, 0, sizeof(struct ic_table));
+	int err = 0;
+	
+#ifdef DEBUG
+	if (ic == NULL)
+		return -EINVAL;
+#endif
+
+	err = fdma_acquire_buffer(ic->icid, ic->bdi_flags, bpid, (void *)addr);
+
+	return err;
 }
+
+int icontext_release(struct icontext *ic, uint16_t bpid, 
+                                uint64_t addr)
+{
+	int err = 0;
+
+#ifdef DEBUG
+	if (ic == NULL)
+		return -EINVAL;
+#endif
+	
+	fdma_release_buffer(ic->icid, ic->bdi_flags, bpid, addr);
+
+	return err;
+}
+

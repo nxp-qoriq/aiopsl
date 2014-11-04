@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_fdma.h"
+#include "fsl_fdma.h"
 
 #include "aiop_verification.h"
 

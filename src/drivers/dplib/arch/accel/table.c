@@ -86,7 +86,7 @@ int table_create(enum table_hw_accel_id acc_id,
 			    0);
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)&tbl_crt_in_msg, 16, 0, 15);
 	__stqw(TABLE_CREATE_MTYPE, arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
@@ -294,8 +294,8 @@ int table_rule_create(enum table_hw_accel_id acc_id,
 	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
-	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
 	/* Not using RPTR DEC because aging is disabled */
 	__stqw(TABLE_RULE_CREATE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
@@ -380,8 +380,8 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
-	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
 	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
 	       HWC_ACC_IN_ADDRESS, 0);
 
@@ -453,8 +453,8 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
-	__e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
-	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
 	__stqw(TABLE_RULE_REPLACE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
@@ -496,8 +496,8 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
-	__e_rlwimi(arg3, key_size, 16, 0, 15);
-	__e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
 	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
@@ -594,8 +594,8 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
-	__e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
-	__e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
 	__stqw(TABLE_RULE_DELETE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
@@ -636,7 +636,7 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 	int32_t status;
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;
-	__e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE, arg2,
@@ -690,6 +690,10 @@ int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 	case (TABLE_HW_STATUS_EOFH):
 		status = -EIO;
 		break;
+	/*TODO EOFH with LOOKUP hit/miss */
+	case (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS):
+		status = -EIO;
+		break;
 	default:
 		/* Call fatal error handler */
 		table_exception_handler_wrp(
@@ -715,7 +719,7 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;
-	__e_rlwimi(arg2, ((uint32_t)ndf_params), 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, ((uint32_t)ndf_params), 16, 0, 15);
 
 	/* Clearing reserved fields */
 	ndf_params->reserved0 = 0;
@@ -737,6 +741,10 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	case (TABLE_HW_STATUS_MISS):
 		break;
 	case (TABLE_HW_STATUS_EOFH):
+		status = -EIO;
+		break;
+	/*TODO EOFH with LOOKUP hit/miss */
+	case (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS):
 		status = -EIO;
 		break;
 	default:

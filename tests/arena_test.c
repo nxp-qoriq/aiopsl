@@ -52,35 +52,38 @@ void app_free(void);
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
 
-extern int slab_init();
+extern int slab_init(void);
 extern int malloc_test();
-extern int slab_test();
-extern int random_init();
-extern int random_test();
+extern int slab_test(void);
+extern int random_init(void);
+extern int random_test(void);
 extern int memory_test();
+extern int pton_test(void);
+extern int ntop_test(void);
+extern int dpni_drv_test(void);
 
-extern __SHRAM struct slab *slab_peb;
-extern __SHRAM struct slab *slab_ddr;
-extern __SHRAM int num_of_cores;
-extern __SHRAM int num_of_tasks;
-extern __SHRAM uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
+extern struct slab *slab_peb;
+extern struct slab *slab_ddr;
+extern int num_of_cores;
+extern int num_of_tasks;
+extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
 extern __TASK uint32_t	seed_32bit;
-__SHRAM uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
-__SHRAM uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
-__SHRAM uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
-__SHRAM uint8_t packet_number;
-__SHRAM uint8_t packet_lock;
-__SHRAM uint8_t time_lock;
-__SHRAM uint64_t global_time;
+uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
+uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
+uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
+uint8_t packet_number;
+uint8_t packet_lock;
+uint8_t time_lock;
+uint64_t global_time;
 
-__SHRAM int test_error;
-__SHRAM uint8_t test_error_lock;
+int test_error;
+uint8_t test_error_lock;
 
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
-	int      err = 0, ni, i, j;
+	int      err = 0, i, j;
 	int core_id;
-	char *eth_ptr;
+
 	uint64_t time_ms_since_epoch = 0;
 	uint32_t time_ms = 0;
 	uint64_t local_time;
@@ -92,6 +95,23 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	packet_number++;
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
+
+	err = pton_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: pton_test failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("pton_test passed in runtime phase()\n");
+	}
+
+	err = ntop_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: ntop_test failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("ntop_test passed in runtime phase()\n");
+	}
+
 	err = slab_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
@@ -131,52 +151,15 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
 
-
-	/*DPNI test*/
-	if(dpni_ctr == 5) /*disable mac after 3 injected packets, one of first 3 packets is broadcast*/
-	{
-		lock_spinlock(&dpni_lock);
-		if(dpni_ctr == 5)
-		{
-			for(ni = 0; ni < dpni_get_num_of_ni(); ni ++)
-			{
-				err = dpni_drv_remove_mac_addr((uint16_t)ni,((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff}));
-				if(err != 0) {
-					fsl_os_print("dpni_drv_remove_mac_addr error FF:FF:FF:FF:FF:FF for ni %d\n",ni);
-					local_test_error |= err;
-				}
-				else {
-					fsl_os_print("dpni_drv_remove_mac_addr FF:FF:FF:FF:FF:FF for ni %d succeeded\n",ni);
-				}
-			}
-			dpni_ctr ++; /*increase counter so the function will be called only once*/
-		}
-		unlock_spinlock(&dpni_lock);
-	}
-	else{
-		dpni_ctr ++;
+	err = dpni_drv_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("dpni_drv_test passed in runtime phase()\n");
 	}
 
-	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
 
-	for(i = 0; i < NET_HDR_FLD_ETH_ADDR_SIZE; i++) /*check if destination mac is broadcast*/
-		if(*eth_ptr++ != 0xff)
-			break;
-	if(i == NET_HDR_FLD_ETH_ADDR_SIZE) /*check if all the destination MAC was broadcast FF:FF:FF:FF:FF:FF*/
-	{
-		lock_spinlock(&dpni_lock);
-		dpni_broadcast_flag = 1;
-		unlock_spinlock(&dpni_lock);
-	}
-
-	if(dpni_ctr == 10)
-		if(dpni_broadcast_flag == 0) {
-			fsl_os_print("dpni error - broadcast packets didn't received\n");
-			local_test_error |= 0x01;
-		}
-		else {
-			fsl_os_print("dpni success - broadcast packets received during the test\n");
-		}
 
 
 
@@ -279,9 +262,6 @@ int app_init(void)
 
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
-		/* Every ni will have 1 flow */
-		uint32_t flow_id = 0;
-
 		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 		if (err){
@@ -293,9 +273,8 @@ int app_init(void)
 
 		}
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		                              (uint16_t)flow_id/*flow_id*/,
-		                              app_process_packet_flow0, /* callback for flow_id*/
-		                              (ni | (flow_id << 16)) /*arg, nic number*/);
+		                              app_process_packet_flow0, /* callback */
+		                              ni /*arg, nic number*/);
 
 		if (err)
 			return err;
@@ -330,6 +309,22 @@ int app_init(void)
 		test_error |= err;
 	} else {
 		fsl_os_print("random_test passed in init phase()\n");
+	}
+
+	err = pton_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: pton_test failed in init phase()\n", err);
+		test_error |= err;
+	} else {
+		fsl_os_print("pton_test passed in init phase()\n");
+	}
+
+	err = ntop_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: ntop_test failed in init phase()\n", err);
+		test_error |= err;
+	} else {
+		fsl_os_print("ntop_test passed in init phase()\n");
 	}
 
 	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");

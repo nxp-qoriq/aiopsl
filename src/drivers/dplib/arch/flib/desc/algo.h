@@ -1,29 +1,3 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 /* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __DESC_ALGO_H__
@@ -43,12 +17,12 @@
  * @descbuf: pointer to descriptor-under-construction buffer
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @cipherdata: pointer to block cipher transform definitions
- * @dir: Cipher direction (DIR_ENCRYPT/DIR_DECRYPT)
+ * @dir: Cipher direction (DIR_ENC/DIR_DEC)
  * @count: UEA2 count value (32 bits)
  * @bearer: UEA2 bearer ID (5 bits)
  * @direction: UEA2 direction (1 bit)
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_snow_f8(uint32_t *descbuf, bool ps,
 			 struct alginfo *cipherdata, uint8_t dir,
@@ -84,13 +58,13 @@ static inline int cnstr_shdsc_snow_f8(uint32_t *descbuf, bool ps,
  * @descbuf: pointer to descriptor-under-construction buffer
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @authdata: pointer to authentication transform definitions
- * @dir: cipher direction (DIR_ENCRYPT/DIR_DECRYPT)
+ * @dir: cipher direction (DIR_ENC/DIR_DEC)
  * @count: UEA2 count value (32 bits)
  * @fresh: UEA2 fresh value ID (32 bits)
  * @direction: UEA2 direction (1 bit)
  * @datalen: size of data
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_snow_f9(uint32_t *descbuf, bool ps,
 			 struct alginfo *authdata, uint8_t dir, uint32_t count,
@@ -131,9 +105,9 @@ static inline int cnstr_shdsc_snow_f9(uint32_t *descbuf, bool ps,
  * @cipherdata: pointer to block cipher transform definitions
  * @iv: IV data; if NULL, "ivlen" bytes from the input frame will be read as IV
  * @ivlen: IV length
- * @dir: DIR_ENCRYPT/DIR_DECRYPT
+ * @dir: DIR_ENC/DIR_DEC
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_cbc_blkcipher(uint32_t *descbuf, bool ps,
 			       struct alginfo *cipherdata, uint8_t *iv,
@@ -211,7 +185,7 @@ static inline int cnstr_shdsc_cbc_blkcipher(uint32_t *descbuf, bool ps,
  * Note: There's no support for keys longer than the corresponding digest size,
  * according to the selected algorithm.
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_hmac(uint32_t *descbuf, bool ps,
 				   struct alginfo *authdata, uint8_t do_icv,
@@ -246,7 +220,7 @@ static inline int cnstr_shdsc_hmac(uint32_t *descbuf, bool ps,
 		storelen = 64;
 		break;
 	default:
-		return 0;
+		return -EINVAL;
 	}
 
 	trunc_len = trunc_len && (trunc_len < storelen) ? trunc_len : storelen;
@@ -301,12 +275,12 @@ static inline int cnstr_shdsc_hmac(uint32_t *descbuf, bool ps,
  * @descbuf: pointer to descriptor-under-construction buffer
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @cipherdata: pointer to block cipher transform definitions
- * @dir: cipher direction (DIR_ENCRYPT/DIR_DECRYPT)
+ * @dir: cipher direction (DIR_ENC/DIR_DEC)
  * @count: count value (32 bits)
  * @bearer: bearer ID (5 bits)
  * @direction: direction (1 bit)
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_kasumi_f8(uint32_t *descbuf, bool ps,
 			   struct alginfo *cipherdata, uint8_t dir,
@@ -343,13 +317,13 @@ static inline int cnstr_shdsc_kasumi_f8(uint32_t *descbuf, bool ps,
  * @descbuf: pointer to descriptor-under-construction buffer
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @authdata: pointer to authentication transform definitions
- * @dir: cipher direction (DIR_ENCRYPT/DIR_DECRYPT)
+ * @dir: cipher direction (DIR_ENC/DIR_DEC)
  * @count: count value (32 bits)
  * @fresh: fresh value ID (32 bits)
  * @direction: direction (1 bit)
  * @datalen: size of data
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_kasumi_f9(uint32_t *descbuf, bool ps,
 			   struct alginfo *authdata, uint8_t dir,
@@ -389,7 +363,7 @@ static inline int cnstr_shdsc_kasumi_f9(uint32_t *descbuf, bool ps,
  * cnstr_shdsc_crc - CRC32 Accelerator (IEEE 802 CRC32 protocol mode)
  * @descbuf: pointer to descriptor-under-construction buffer
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_crc(uint32_t *descbuf)
 {

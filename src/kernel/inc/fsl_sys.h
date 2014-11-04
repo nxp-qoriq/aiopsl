@@ -122,7 +122,7 @@ void sys_free(void);
 				argument;
 @Param[in]     ...         - Unique object IDs sequence;
 
-@Return        E_OK on success; Error code otherwise.
+@Return        0 on success; Error code otherwise.
 
 @Cautions      This routine must not be used in normal flow - it serves only
 		rare and special cases in platform initialization.
@@ -143,7 +143,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
 							the variadic-argument.
 @Param[in]     ...         - Unique object IDs sequence;
 
-@Return        E_OK on success; Error code otherwise.
+@Return        0 on success; Error code otherwise.
 
 @Cautions      This routine must not be used in normal flow - it serves only
 		rare and special cases in platform initialization.

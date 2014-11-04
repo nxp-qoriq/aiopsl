@@ -1,0 +1,14 @@
+mc/src/include/fsl_endian.h:aiop/src/include/fsl_endian.h:B49560
+mc/src/include/fsl_io.h:aiop/src/include/fsl_io.h:B49560
+mc/src/drivers/dpmng/controllers/aiop/aiop_common.h:aiop/src/drivers/dpmng/controllers/aiop/aiop_common.h:B17975
+mc/src/include/kernel/fsl_cmdif_client.h:aiop/src/include/kernel/fsl_cmdif_client.h:B17975
+mc/src/include/kernel/fsl_cmdif_fd.h:aiop/src/include/kernel/fsl_cmdif_fd.h:B17975
+mc/src/include/kernel/fsl_cmdif_flib_c.h:aiop/src/include/kernel/fsl_cmdif_flib_c.h:B17975
+mc/src/kernel/cmdif_client_flib.c:aiop/src/kernel/cmdif_client_flib.c:B17975
+mc/src/kernel/cmdif_client.h:aiop/src/kernel/cmdif_client.h:B17975
+mc/tests/cmdif_gpp/srv/fsl_cmdif_server.h:aiop/src/include/kernel/fsl_cmdif_server.h:B17975
+mc/tests/cmdif_gpp/srv/fsl_cmdif_flib_s.h:aiop/src/include/kernel/fsl_cmdif_flib_s.h:B17975
+mc/tests/cmdif_gpp/srv/cmdif_srv.h:aiop/src/kernel/cmdif_srv.h:B17975
+mc/src/lib/slob.c:aiopsl/src/lib/slob.c:B09752
+mc/src/lib/fsl_slob.h:aiopsl/src/lib/fsl_slob.h:B09752
+mc/src/lib/slob.h:aiopsl/src/lib/slob.h:B09752

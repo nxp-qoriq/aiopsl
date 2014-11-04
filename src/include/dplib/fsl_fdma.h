@@ -34,9 +34,9 @@
 #ifndef __FSL_FDMA_H
 #define __FSL_FDMA_H
 
-#include "common/types.h"
+#include "types.h"
 #include "fsl_errors.h"
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 
 
 /* extern uint8_t HWC_PRC_ADDR[]; */
@@ -434,7 +434,7 @@ enum fdma_pta_size_type {
 
 	/** Default command configuration. */
 #define FDMA_CONCAT_NO_FLAGS	0x00000000
-	/** Set SF bit on SGE of the original frames. Note, this will force the
+	/** Set SF bit on SGE of frame 2. Note, this will force the
 	 * usage of SG format on the concatenated frame.
 	 * If set - Set SF bit. Otherwise - Do not set SF bit. */
 #define FDMA_CONCAT_SF_BIT	0x00000100
@@ -513,30 +513,6 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_Copy_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_DMA_Flags
-
-@Description	FDMA DMA data flags
-
-@{
-*//***************************************************************************/
-
-	/** Default command configuration. */
-#define FDMA_DMA_NO_FLAGS	0x00000000
-	/** DMA Data Access options. */
-#define FDMA_DMA_DA		fdma_dma_data_access_options
-	/** Virtual Address. Frame AMQ attribute.
-	 * The DMA uses this memory attribute to make the access. */
-#define FDMA_DMA_VA_BIT		0x00002000
-	/** Bypass the Memory Translation. Frame AMQ attribute.
-	 * The DMA uses this memory attribute to make the access. */
-#define FDMA_DMA_BMT_BIT	0x00004000
-	/** Privilege Level. Frame AMQ attribute.
-	 * The DMA uses this memory attribute to make the access. */
-#define FDMA_DMA_PL_BIT		0x00008000
-
-/** @} end of group FDMA_DMA_Flags */
-
-/**************************************************************************//**
 @Group		FDMA_ACQUIRE_BUFFER_Flags
 
 @Description	FDMA Acquire buffer flags
@@ -584,6 +560,8 @@ enum fdma_pta_size_type {
 
 	/** Virtual Address of the Stored frame flag. */
 #define FDMA_ICID_CONTEXT_VA	0x0001
+	/** Effective Virtual Address of the Stored frame flag. */
+#define FDMA_ICID_CONTEXT_eVA	0x0001
 	/** Privilege Level of the Stored frame flag. */
 #define FDMA_ICID_CONTEXT_PL	0x0004
 	/** BDI of the Stored frame flag. */
@@ -754,7 +732,7 @@ struct fdma_concatenate_frames_params {
 		 * flags \endlink */
 	uint32_t  flags;
 		/** Returned parameter:
-		 * AMQ attributes */
+		 * AMQ attributes (the VA is the effective VA) */
 	struct fdma_amq amq;
 		/** The handle of working frame 1. */
 	uint16_t frame1;
@@ -790,11 +768,7 @@ struct fdma_split_frame_params {
 	uint16_t present_size;
 		/** SM bit = 0: Split size, number of bytes to split from the
 		 * head of the input frame and move to the output frame.
-		 * SM bit = \ref FDMA_SPLIT_SM_BIT : Backward offset from the
-		 * SGE marked with the SF bit, used by the FDMA to modify the
-		 * start offset in the structure to recover frame data that is
-		 * currently in the structure but not part of the frame.
-		 * A value of 0 will have no effect on start offset. */
+		 * SM bit = 1: not used. */
 	uint16_t split_size_sf;
 		/** Returned parameter:
 		 * The number of bytes actually presented from the split frame
@@ -1154,11 +1128,12 @@ int fdma_read_default_frame_pta(void *ws_dst);
 		specific annotation data (ASA).
 
 		Implicitly updated values in Task Defaults: segment (Data or
-		ASA) length. For ASA segment, specifies the number of additional
-		64B quantities to present from the ASA.
+		ASA) length. For ASA segment, specifies the the count (in 64B 
+		units) of the deepest presented unit of ASA.
 
 @Param[in]	extend_size - Number of additional bytes to present (0 results
-		in no operation.)
+		in no operation). For ASA segment, specifies the number of 
+		additional 64B quantities to present from the ASA.
 @Param[in]	ws_dst - A pointer to the location within the workspace
 		to present the additional frame segment data.
 @Param[in]	flags - \link FDMA_EXT_Flags Extend segment mode
@@ -1178,9 +1153,9 @@ int fdma_read_default_frame_pta(void *ws_dst);
 
 @remark		The extended data to be presented does not have to be
 		sequential relative to the current presented segment.
-@remark		If this command is executed on the default data segment then
-		after this command the default segment values in the
-		presentation context will not be valid.
+@remark		After this command the extended default segment (Data/ASA) 
+		values in the presentation context relevant to this segment 
+		will not be valid.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1725,12 +1700,17 @@ void fdma_terminate_task(void);
 
 		The source frame is replicated based on its last known state by
 		the FDMA.
+		
+		The replicated working frame DD, DROPP and eVA are inherited 
+		from the source frame, its ICID, BDI, PL and SL are taken from 
+		the Storage Profile.
 
 @Param[in]	frame_handle1 - Handle of the source frame.
 @Param[in]	spid - Storage Profile used to store frame data of the
 		destination frame if enqueue is selected, also
-		used to determine ICID and memory attributes of the replicated
-		frame.
+		used to determine ICID and memory attributes (BDI/PL/ICID) of 
+		the replicated frame. The eVA of the replicated frame is taken 
+		from the source working frame.
 @Param[in]	fqid - frame queue ID for the enqueue.
 @Param[in]	fd_dst - A pointer to the location within the workspace of the
 		destination FD.
@@ -1768,12 +1748,17 @@ int fdma_replicate_frame_fqid(
 
 		The source frame is replicated based on its last known state by
 		the FDMA.
+		
+		The replicated working frame DD, DROPP and eVA are inherited 
+		from the source frame, its ICID, BDI, PL and SL are taken from 
+		the Storage Profile.
 
 @Param[in]	frame_handle1 - Handle of the source frame.
 @Param[in]	spid - Storage Profile used to store frame data of the
 		destination frame if enqueue is selected, also
-		used to determine ICID and memory attributes of the replicated
-		frame.
+		used to determine ICID and memory attributes (BDI/PL/ICID) of 
+		the replicated frame. The eVA of the replicated frame is taken 
+		from the source working frame.
 @Param[in]	enqueue_params - Pointer to the queueing destination parameters
 		\ref fdma_queueing_destination_params.
 @Param[in]	fd_dst - A pointer to the location within the workspace of the
@@ -1878,7 +1863,10 @@ int fdma_concatenate_frames(
 @remark		The first fd is updated to reflect the remainder of the
 		input fd (the second part of the split frame).
 @remark		The second fd represent the split portion of the frame (the
-		first part of the split frame).
+		first part of the split frame). This FD is updated (in place). 
+		Most of the FD is cloned from the FD1. The ADDR, LENGTH, BPID, 
+		OFFSET, FMT are not updated. The split working frame DD, DROPP, 
+		eVA, ICID, BDI, PL and SL are inherited from the source frame.
 @remark		Frame annotation of the first frame is preserved.
 @remark		If split size is >= frame size then an error will be returned.
 
@@ -1908,7 +1896,7 @@ int fdma_split_frame(
 
 @Param[in]	offset - Offset from the previously presented segment
 		representing the new start of the segment (head trim).
-@Param[in]	size - New segment size in bytes.
+@Param[in]	size - New Data segment size in bytes.
 
 @Return		None.
 

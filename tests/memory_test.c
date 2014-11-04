@@ -34,8 +34,8 @@ int cdma_dpddr_test();
 int cdma_systemddr_test();
 
 /*PEB_AIOP_OFFSET should be compatible with #define MEMORY_INFO that is defined in init.c */
-#define PEB_AIOP_OFFSET 0x80200000 
-#define DP_DDR_AIOP_OFFSET 0x58000000
+#define PEB_AIOP_OFFSET 0x80000100 
+#define DP_DDR_AIOP_OFFSET 0x40000100
 
 static const uint32_t value = 0xdeadbeef;
 
@@ -77,7 +77,7 @@ int cdma_peb_test()
 	cdma_write(phys_addr + 4, &variable_on_stack, sizeof(value));
 	if(ioread32(addr_offs_4) != value)
 		return EIO;	
-	return E_OK;
+	return 0;
 }
 
 int cdma_dpddr_test()
@@ -94,10 +94,10 @@ int cdma_dpddr_test()
 	cdma_write(phys_addr + 4, &variable_on_stack, sizeof(value));
 	if(ioread32(addr_offs_4) != value)
 		return EIO;	
-	return E_OK;
+	return 0;
 }
 
 int cdma_systemddr_test()
 {
-	return E_OK;
+	return 0;
 }

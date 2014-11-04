@@ -34,10 +34,6 @@
 #include <nadk_types.h>
 #include <nadk_byteorder.h>
 
-#ifndef __HOT_CODE
-#define __HOT_CODE
-#endif
-
 #define CPU_TO_SRV16(val) rte_bswap16(val)
 #define CPU_TO_SRV32(val) rte_bswap32(val)
 #define CPU_TO_BE64(val)  rte_bswap64(val)
@@ -45,5 +41,10 @@
 
 #define CMDIF_EPID         0     /*!< EPID to be used for setting by client */
 
+#ifdef NADK_DEBUG
+#ifndef DEBUG
+#define DEBUG
+#endif
+#endif /* NADK_DEBUG */
 
 #endif /* __CMDIF_H */

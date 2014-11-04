@@ -34,7 +34,7 @@
 #ifndef __AIOP_VERIFICATION_STE_H_
 #define __AIOP_VERIFICATION_STE_H_
 
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 
 
 /**************************************************************************//**
@@ -58,12 +58,12 @@
 enum e_ste_verif_cmd_type {
 	STE_CMDTYPE_SET_4B = 0,
 	STE_CMDTYPE_SET_8B,
-	STE_CMDTYPE_ADD,
-	STE_CMDTYPE_DEC,
-	STE_CMDTYPE_INC_ADD,
-	STE_CMDTYPE_INC_SUB,
-	STE_CMDTYPE_DEC_ADD,
-	STE_CMDTYPE_DEC_SUB,
+	STE_CMDTYPE_ADD_CNT,
+	STE_CMDTYPE_DEC_CNT,
+	STE_CMDTYPE_INC_ADD_CNT,
+	STE_CMDTYPE_INC_SUB_CNT,
+	STE_CMDTYPE_DEC_ADD_CNT,
+	STE_CMDTYPE_DEC_SUB_CNT,
 	STE_CMDTYPE_BARRIER,
 	STE_CMDTYPE_READ_ERRORS,
 	STE_CMDTYPE_CLEAR_ERRORS
@@ -77,31 +77,31 @@ enum e_ste_verif_cmd_type {
 		(uint32_t)STE_CMDTYPE_SET_8B)
 
 #define STE_ADD_CMD_STR			((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_ADD)
+		(uint32_t)STE_CMDTYPE_ADD_CNT)
 
 #define STE_SUB_CMD_STR			((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_SUB)
+		(uint32_t)STE_CMDTYPE_SUB_CNT)
 
 #define STE_ADD_CMD_STR			((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_ADD)
+		(uint32_t)STE_CMDTYPE_ADD_CNT)
 
 #define STE_DEC_CMD_STR			((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_DEC)
+		(uint32_t)STE_CMDTYPE_DEC_CNT)
 
 #define STE_DEC_8B_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_DEC_8B)
 
 #define STE_INC_ACC_CMD_STR		((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_INC_ADD)
+		(uint32_t)STE_CMDTYPE_INC_ADD_CNT)
 
 #define STE_INC_SUB_CMD_STR		((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_INC_SUB)
+		(uint32_t)STE_CMDTYPE_INC_SUB_CNT)
 
 #define STE_DEC_ACC_CMD_STR		((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_DEC_ADD)
+		(uint32_t)STE_CMDTYPE_DEC_ADD_CNT)
 
 #define STE_DEC_SUB_CMD_STR		((STE_MODULE << 16) | \
-		(uint32_t)STE_CMDTYPE_DEC_SUB)
+		(uint32_t)STE_CMDTYPE_DEC_SUB_CNT)
 
 #define STE_BARRIER_CMD_STR		((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_BARRIER)

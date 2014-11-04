@@ -32,7 +32,7 @@
 #ifndef __FSL_IPF_H
 #define __FSL_IPF_H
 
-#include "common/types.h"
+#include "types.h"
 
 
 /**************************************************************************//**
@@ -131,6 +131,18 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 		This function should be called repeatedly
 		until the returned status indicates fragmentation is complete
 		(\ref IPF_GEN_FRAG_STATUS_DONE).
+		
+		Ordering:
+		For best performance it is recommended to work concurrently,
+		and move to exclusive mode before enqueuing the last fragment.
+		This way fragments of different frames will be interleaved
+		but ordering will be kept between the last fragments.
+		However, user can also move to exclusive mode before enqueuing
+		the first fragment - this way the whole fragmentation process
+		will be done exclusively and there will be no interleaving 
+		between fragments. 
+		However, in case there is IPSec later in the flow, the ordering
+		scope must be Exclusive before first fragment enters IPSec.
 
 @Param[in]	ipf_context_addr - Address to the IPF internal context. Must
 		be initialized by ipf_context_init() prior to the first call.

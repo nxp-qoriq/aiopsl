@@ -74,9 +74,9 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-__SHRAM struct snic_params snic_params[MAX_SNIC_NO];
+struct snic_params snic_params[MAX_SNIC_NO];
 
-__HOT_CODE void snic_process_packet(void)
+void snic_process_packet(void)
 {
 
 	struct parse_result *pr;
@@ -254,6 +254,7 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	struct ipr_params ipr_params = {0};
 	struct ipr_params *cfg = &ipr_params;
 	uint32_t snic_ep_pc;
+	int err;
 
 	UNUSED(dev);
 
@@ -264,16 +265,16 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	case SNIC_IPR_CREATE_INSTANCE:
 		SNIC_IPR_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
 
-		ipr_create_instance(&ipr_params,
+		err = ipr_create_instance(&ipr_params,
 				ipr_instance_ptr);
 		snic_params[snic_id].ipr_instance_val = ipr_instance;
-		return 0;
+		return err;
 	case SNIC_IPR_DELETE_INSTANCE:
 		/* todo: parameters to ipr_delete_instance */
 		SNIC_IPR_DELETE_INSTANCE_CMD(SNIC_CMD_READ);
-		ipr_delete_instance(snic_params[snic_id].ipr_instance_val,
+		err = ipr_delete_instance(snic_params[snic_id].ipr_instance_val,
 				NULL, NULL);
-		return 0;
+		return err;
 	case SNIC_SET_MTU:
 		SNIC_CMD_MTU(SNIC_CMD_READ);
 		snic_params[snic_id].snic_ipf_mtu = ipf_mtu;
@@ -303,7 +304,10 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 		}
 		SNIC_REGISTER_CMD(SNIC_RSP_PREP);
 		fdma_modify_default_segment_data(0, (uint16_t)size);
-		return 0;
+		if (i == MAX_SNIC_NO)
+			return -ENAVAIL;
+		else
+			return 0;
 	case SNIC_UNREGISTER:
 		SNIC_UNREGISTER_CMD(SNIC_CMD_READ);
 		memset(&snic_params[snic_id], 0, sizeof(struct snic_params));

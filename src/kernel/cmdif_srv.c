@@ -78,23 +78,23 @@
 
 #define PR_ERR_TERMINATE(...) \
 	do {                  \
-		pr_err(__VA_ARGS__);  \
+		CMDIF_DBG_PRINT(__VA_ARGS__);  \
 		fdma_terminate_task();\
 		return;               \
 	} while (0)
 
 
- __SHRAM static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
+ static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 
- __HOT_CODE static inline int is_valid_auth_id(uint16_t id)
+ static inline int is_valid_auth_id(uint16_t id)
  {
-	return ((cmdif_aiop_srv.srv->inst_dev != NULL) &&
-		(id < M_NUM_OF_INSTANCES) &&
-		(cmdif_aiop_srv.srv->m_id != NULL) &&
-		(cmdif_aiop_srv.srv->m_id[id] < M_NUM_OF_MODULES));
+	 return ((cmdif_aiop_srv.srv->inst_dev != NULL) &&
+		 (id < M_NUM_OF_INSTANCES) &&
+		 (cmdif_aiop_srv.srv->m_id != NULL) &&
+		 (cmdif_aiop_srv.srv->m_id[id] < M_NUM_OF_MODULES));
  }
 
- __HOT_CODE static int module_id_find(const char *m_name)
+ static int module_id_find(const char *m_name)
 {
 	int i = 0;
 	struct cmdif_srv *srv = cmdif_aiop_srv.srv;
@@ -110,7 +110,7 @@
 	return -ENAVAIL;
 }
 
-__HOT_CODE static int inst_alloc(uint8_t m_id)
+static int inst_alloc(uint8_t m_id)
 {
 	uint32_t r = 0;
 	int count = 0;
@@ -119,12 +119,14 @@ __HOT_CODE static int inst_alloc(uint8_t m_id)
 	if (srv == NULL)
 		return -EINVAL;
 
+	ASSERT_COND_LIGHT(is_power_of_2(M_NUM_OF_INSTANCES));
+	
 	lock_spinlock(&cmdif_aiop_srv.lock);
 
 	/* randomly pick instance/authentication id*/
-	r = fsl_os_rand() % M_NUM_OF_INSTANCES;
+	r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
 	while ((srv->m_id[r] != FREE_INSTANCE) && (count < M_NUM_OF_INSTANCES)) {
-		r = fsl_os_rand() % M_NUM_OF_INSTANCES;
+		r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
 		count++;
 	}
 	/* didn't find empty space yet */
@@ -132,7 +134,7 @@ __HOT_CODE static int inst_alloc(uint8_t m_id)
 		count = 0;
 		while ((srv->m_id[r] != FREE_INSTANCE) &&
 			(count < M_NUM_OF_INSTANCES)) {
-			r = r++ % M_NUM_OF_INSTANCES;
+			r = MODULU_POWER_OF_TWO(r++, M_NUM_OF_INSTANCES);
 			count++;
 		}
 	}
@@ -149,7 +151,7 @@ __HOT_CODE static int inst_alloc(uint8_t m_id)
 	}
 }
 
-__HOT_CODE static void inst_dealloc(int inst)
+static void inst_dealloc(int inst)
 {
 	struct cmdif_srv *srv = cmdif_aiop_srv.srv;
 
@@ -159,28 +161,28 @@ __HOT_CODE static void inst_dealloc(int inst)
 	unlock_spinlock(&cmdif_aiop_srv.lock);
 }
 
-__HOT_CODE static inline uint16_t cmd_id_get()
+static inline uint16_t cmd_id_get()
 {
-	uint64_t data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint16_t)((data & CMD_ID_MASK) >> CMD_ID_OFF);
+	return (uint16_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & CMD_ID_MASK) \
+		>> CMD_ID_OFF);
 }
 
-__HOT_CODE static inline uint32_t cmd_size_get()
+static inline uint32_t cmd_size_get()
 {
 	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
-__HOT_CODE static inline void *cmd_data_get()
+static inline void *cmd_data_get()
 {
 	return (void *)PRC_GET_SEGMENT_ADDRESS();
 }
 
-__HOT_CODE static void cmd_m_name_get(char *name)
+static void cmd_m_name_get(char *name)
 {
 	uint8_t * addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	addr += PRC_GET_SEGMENT_OFFSET() + SYNC_BUFF_RESERVED;
 
-	pr_debug("Read module name from 0x%x \n", addr);
+/*	pr_debug("Read module name from 0x%x \n", addr);*/
 
 	/* I expect that name will end by \0 if it has less than 8 chars */
 	if (name != NULL) {
@@ -193,18 +195,16 @@ __HOT_CODE static void cmd_m_name_get(char *name)
 	}
 }
 
-__HOT_CODE static inline uint8_t cmd_inst_id_get()
+static inline uint8_t cmd_inst_id_get()
 {
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint8_t)((data & INST_ID_MASK) >> INST_ID_OFF);
+	return (uint8_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & INST_ID_MASK) \
+		>> INST_ID_OFF);
 }
 
-__HOT_CODE static uint16_t cmd_auth_id_get()
+static inline uint16_t cmd_auth_id_get()
 {
-	uint64_t data = 0;
-	data = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	return (uint16_t)((data & AUTH_ID_MASK) >> AUTH_ID_OFF);
+	return (uint16_t)((LDPAA_FD_GET_FLC(HWC_FD_ADDRESS) & AUTH_ID_MASK) \
+		>> AUTH_ID_OFF);
 }
 
 int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
@@ -269,7 +269,7 @@ void cmdif_srv_free(void)
 }
 
 
-__HOT_CODE static int cmdif_fd_send(int cb_err)
+static int cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -284,17 +284,17 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 
 	ind = (uint8_t)(fqid >> 1);
 	pr  = (uint8_t)(fqid & 1);
-	fqid = cmdif_aiop_srv.dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+	fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	 /* Do it only if queue is not there yet */
-	if (fqid == DPCI_VFQID_NOT_VALID) {
+	if (fqid == DPCI_FQID_NOT_VALID) {
 		struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		err = dpci_get_attributes(&dprc->io,
-		                          cmdif_aiop_srv.dpci_tbl->token[ind],
-		                          &cmdif_aiop_srv.dpci_tbl->attr[ind]);
-		fqid = cmdif_aiop_srv.dpci_tbl->attr[ind].dpci_prio_attr[pr].tx_qid;
+		err = dpci_get_tx_queue(&dprc->io, 
+		                        cmdif_aiop_srv.dpci_tbl->token[ind], pr, 
+		                        &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind]);
+		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 	}
 
-	pr_debug("Response ID = 0x%x\n", fqid);
+	pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
 	pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
@@ -305,7 +305,7 @@ __HOT_CODE static int cmdif_fd_send(int cb_err)
 	return err;
 }
 
-__HOT_CODE static void sync_cmd_done(uint64_t sync_done,
+static void sync_cmd_done(uint64_t sync_done,
 				int err,
 				uint16_t auth_id,
 				char terminate)
@@ -313,9 +313,9 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
 
-	pr_debug("err = %d\n", err);
-	pr_debug("auth_id = 0x%x\n", auth_id);
-	pr_debug("sync_resp = 0x%x\n", resp);
+	CMDIF_DBG_PRINT("err = %d\n", err);
+	CMDIF_DBG_PRINT("auth_id = 0x%x\n", auth_id);
+	CMDIF_DBG_PRINT("sync_resp = 0x%x\n", resp);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
@@ -325,7 +325,7 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		_sync_done = cmdif_aiop_srv.srv->sync_done[auth_id];
 
 	if (_sync_done == NULL) {
-		pr_err("Can't finish sync command, no valid address\n");
+		CMDIF_DBG_PRINT("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
 		uint16_t pl_icid = PL_ICID_GET;
@@ -335,12 +335,12 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 		 * It's ok to take it from current ADC and FD because this
 		 * should not change between commands on the same session */
 		ADD_AMQ_FLAGS(flags, pl_icid);
-		pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
-		pr_debug("fdma_dma_data flags = 0x%x\n", flags);
+		CMDIF_DBG_PRINT("icid = 0x%x\n", ICID_GET(pl_icid));
+		CMDIF_DBG_PRINT("fdma_dma_data flags = 0x%x\n", flags);
 		fdma_dma_data(4, ICID_GET(pl_icid), &resp, _sync_done, flags);
 	}
 
-	pr_debug("sync_done high = 0x%x low = 0x%x \n",
+	CMDIF_DBG_PRINT("sync_done high = 0x%x low = 0x%x \n",
 		 (uint32_t)((_sync_done & 0xFF00000000) >> 32),
 		 (uint32_t)(_sync_done & 0xFFFFFFFF));
 
@@ -350,48 +350,61 @@ __HOT_CODE static void sync_cmd_done(uint64_t sync_done,
 
 /** Save the address for polling on synchronous commands */
 #define sync_done_get() LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)
-__HOT_CODE static inline void sync_done_set(uint16_t auth_id)
+static inline void sync_done_set(uint16_t auth_id)
 {
 	cmdif_aiop_srv.srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 
 /** Find dpci index and get dpci table */
-static int find_dpci(uint8_t dpci_id, struct mc_dpci_obj **dpci_tbl)
+static int find_dpci(uint8_t dpci_id)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
-	*dpci_tbl = dt;
-
-	if (dt == NULL)
-		return -1;
 
 	for (i = 0; i < dt->count; i++) {
-		if (dt->attr[i].peer_id == dpci_id)
+		if (dt->peer_attr[i].peer_id == dpci_id)
 			return i;
 	}
 	return -1;
 }
 
+static void amq_bits_update(int ind)
+{
+	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
+	uint16_t pl_icid = PL_ICID_GET;
+
+
+	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
+	dpci_tbl->bdi_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
+	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
+	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
+	if (BDI_GET != 0)
+		dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
+}
+
+/* Support for AIOP -> GPP */
 static int notify_open()
 {
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int ind = 0;
-	int count = 0;
+	int free_ind = 0;
 	int link_up = 1;
-	struct mc_dpci_obj *dpci_tbl = NULL;
+	struct mc_dpci_obj *dpci_tbl = cmdif_aiop_srv.dpci_tbl;
 	int err = 0;
-	uint16_t pl_icid = PL_ICID_GET;
 	struct mc_dprc *dprc = NULL;
-
+	uint8_t i;
+	
 	pr_debug("Got notify open for AIOP client \n");
+	ASSERT_COND_LIGHT(dpci_tbl != NULL);
+	
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
 		pr_err("Segment length is too small\n");
 		return -EINVAL;
 	}
 
-	ind = find_dpci((uint8_t)data->dev_id, &dpci_tbl);
+	ind = find_dpci((uint8_t)data->dev_id);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
 		return -ENAVAIL;
@@ -401,84 +414,116 @@ static int notify_open()
 	         dpci_tbl->attr[ind].id, ind);
 
 #ifdef DEBUG
-	if (cl == NULL) {
-		pr_err("No client handle\n");
-		return -ENODEV;
-	}
 	 /* DEBUG in order not to call MC inside task */
 	 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	 ASSERT_COND_LIGHT(dprc != NULL);
 	 err = dpci_get_link_state(&dprc->io, dpci_tbl->token[ind], &link_up);
 	 if (err) {
 		 pr_err("Failed to get dpci_get_link_state\n");
 	 }
 #endif
 	 /* Do it only if queues are not there */
-	 if (dpci_tbl->attr[ind].dpci_prio_attr[0].tx_qid == DPCI_VFQID_NOT_VALID) {
+	 if ((dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) || 
+		 (dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
+		 
 		 dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		 err = dpci_get_attributes(&dprc->io, dpci_tbl->token[ind],
-		                           &dpci_tbl->attr[ind]);
+		 ASSERT_COND_LIGHT(dprc != NULL);
+		 for (i = 0; i < DPCI_PRIO_NUM; i++) {
+			 err |= dpci_get_tx_queue(&dprc->io, dpci_tbl->token[ind], i,
+						   &dpci_tbl->tx_queue_attr[i][ind]);
+			 err |= dpci_get_rx_queue(&dprc->io, dpci_tbl->token[ind], i,
+						   &dpci_tbl->rx_queue_attr[i][ind]);
+		 }
 	 }
 
-	if (!dpci_tbl->attr[ind].peer_attached || !link_up) {
+	if ((dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
 		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
 
 	/* Create descriptor for client session */
+	ASSERT_COND_LIGHT(cl != NULL);
 	lock_spinlock(&cl->lock);
-	count = cl->count;
-	if (count >= CMDIF_MN_SESSIONS) {
+	
+#ifdef DEBUG
+	/* Don't allow to open the same session twice */
+	free_ind = cmdif_cl_session_get(cl, data->m_name, 
+	                                data->inst_id, data->dev_id);
+	if (free_ind >= 0) {
+		pr_err("The session already exists\n");
+		unlock_spinlock(&cl->lock);
+		return -EEXIST;
+	}
+#endif
+
+	free_ind = cmdif_cl_free_session_get(cl);
+	if (free_ind < 0) {
 		pr_err("Too many sessions\n");
 		unlock_spinlock(&cl->lock);
 		return -ENOSPC;
 	}
-
-	dpci_tbl->icid[ind]           = ICID_GET(pl_icid);
-	dpci_tbl->enq_flags[ind]      = FDMA_EN_TC_RET_BITS; /* don't change */
-	dpci_tbl->dma_flags[ind]      = FDMA_DMA_DA_SYS_TO_WS_BIT;
-	ADD_AMQ_FLAGS(dpci_tbl->dma_flags[ind], pl_icid);
-	if (BDI_GET != 0)
-		dpci_tbl->enq_flags[ind] |= FDMA_ENF_BDI_BIT;
-	cl->gpp[count].ins_id           = data->inst_id;
-	cl->gpp[count].dev->auth_id     = data->auth_id;
-	cl->gpp[count].dev->p_sync_done = sync_done_get();
-	cl->gpp[count].dev->sync_done   = NULL; /* Not used in AIOP */
-	strncpy(&cl->gpp[count].m_name[0], &data->m_name[0], M_NAME_CHARS);
-	cl->gpp[count].m_name[M_NAME_CHARS] = '\0';
-	cl->gpp[count].regs->dpci_token = dpci_tbl->token[ind];
-	cl->gpp[count].regs->attr       = &dpci_tbl->attr[ind];
-	cl->gpp[count].regs->icid       = dpci_tbl->icid[ind];
-	cl->gpp[count].regs->dma_flags  = dpci_tbl->dma_flags[ind];
-	cl->gpp[count].regs->enq_flags  = dpci_tbl->enq_flags[ind];
+	
+	amq_bits_update(ind);
+	cl->gpp[free_ind].ins_id           = data->inst_id;
+	cl->gpp[free_ind].dev->auth_id     = data->auth_id;
+	cl->gpp[free_ind].dev->p_sync_done = sync_done_get();
+	cl->gpp[free_ind].dev->sync_done   = NULL; /* Not used in AIOP */
+	strncpy(&cl->gpp[free_ind].m_name[0], &data->m_name[0], M_NAME_CHARS);
+	cl->gpp[free_ind].m_name[M_NAME_CHARS] = '\0';
+	cl->gpp[free_ind].regs->dpci_token = dpci_tbl->token[ind];
+	cl->gpp[free_ind].regs->attr       = &dpci_tbl->attr[ind];
+	cl->gpp[free_ind].regs->peer_attr  = &dpci_tbl->peer_attr[ind];
+	cl->gpp[free_ind].regs->tx_queue_attr[0] = &dpci_tbl->tx_queue_attr[0][ind];
+	cl->gpp[free_ind].regs->tx_queue_attr[1] = &dpci_tbl->tx_queue_attr[1][ind];
+	cl->gpp[free_ind].regs->icid       = dpci_tbl->icid[ind];
+	cl->gpp[free_ind].regs->dma_flags  = dpci_tbl->dma_flags[ind];
+	cl->gpp[free_ind].regs->enq_flags  = dpci_tbl->bdi_flags[ind];
 
 	cl->count++;
 	unlock_spinlock(&cl->lock);
 
 	pr_debug("icid = 0x%x\n", dpci_tbl->icid[ind]);
-	pr_debug("enq_flags = 0x%x\n", dpci_tbl->enq_flags[ind]);
+	pr_debug("enq_flags = 0x%x\n", dpci_tbl->bdi_flags[ind]);
 	pr_debug("dma_flags = 0x%x\n", dpci_tbl->dma_flags[ind]);
 
 	return 0;
 }
 
+/* Support for AIOP -> GPP */
 static int notify_close()
-{
-	/* Support for AIOP -> GPP */
+{	
+	struct cmdif_session_data *data = \
+		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	int i = 0; 
 
-	return -ENOTSUP;
+	ASSERT_COND_LIGHT(cl != NULL);
+	lock_spinlock(&cl->lock);
+	
+	i = cmdif_cl_auth_id_find(cl, data->auth_id, data->dev_id);
+	
+	/* Set this session entry as free */
+	if (i >= 0) {
+		cl->gpp[i].m_name[0] = CMDIF_FREE_SESSION;
+		
+		unlock_spinlock(&cl->lock);
+		return 0;
+	}
+	
+	unlock_spinlock(&cl->lock);	
+	return -ENAVAIL;
 }
 
-__HOT_CODE void cmdif_srv_isr(void)
+void cmdif_srv_isr(void)
 {
 	uint16_t cmd_id = cmd_id_get();
 	int err = 0;
 	uint16_t auth_id = cmd_auth_id_get();
 
-	if (cmdif_aiop_srv.srv == NULL)
-		PR_ERR_TERMINATE("Could not find CMDIF Server handle\n");
-
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
+	
+	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
 #ifdef DEBUG
 	{
@@ -488,6 +533,10 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 		pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
 			 p, len);
+		pr_debug("Virtual addr high = 0x%x low = 0x%x \n",
+			 (uint32_t)((LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) & 0xFF00000000) >> 32),
+			 (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) & 0xFFFFFFFF));
+
 		while (len > 15)
 		{
 			fsl_os_print("0x%x: %x %x %x %x\r\n",
@@ -508,7 +557,7 @@ __HOT_CODE void cmdif_srv_isr(void)
 
 	}
 #endif
-
+	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
@@ -528,25 +577,24 @@ __HOT_CODE void cmdif_srv_isr(void)
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 
-	} else if (cmd_id == CMD_ID_OPEN) {
+	} else if (cmd_id == CMD_ID_OPEN) {			
 		char     m_name[M_NAME_CHARS + 1];
 		int      m_id      = 0;
 		uint8_t  inst_id   = 0;
-		int      new_inst  = 0;
 		uint64_t sync_done = sync_done_get();
 		void     *dev;
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			pr_err("No permission to open device 0x%x\n", auth_id);
+			CMDIF_DBG_PRINT("No permission to open device 0x%x\n", auth_id);
 			sync_cmd_done(sync_done, -EPERM, auth_id, TRUE);
 		}
 
 		cmd_m_name_get(&m_name[0]);
-		pr_debug("m_name = %s\n", m_name);
+		CMDIF_DBG_PRINT("m_name = %s\n", m_name);
 
 		m_id = module_id_find(m_name);
-		pr_debug("m_id = %d\n", m_id);
+		CMDIF_DBG_PRINT("m_id = %d\n", m_id);
 
 		if (m_id < 0) {
 			/* Did not find module with such name */
@@ -555,13 +603,13 @@ __HOT_CODE void cmdif_srv_isr(void)
 		}
 
 		inst_id  = cmd_inst_id_get();
-		pr_debug("inst_id = %d\n", inst_id);
+		CMDIF_DBG_PRINT("inst_id = %d\n", inst_id);
 
 		err = OPEN_CB(m_id, inst_id, dev);
 		if (!err) {
-			new_inst = inst_alloc((uint8_t)m_id);
+			int  new_inst = inst_alloc((uint8_t)m_id);
 			if (new_inst >= 0) {
-				pr_debug("new auth_id = %d\n", new_inst);
+				pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
 				sync_done_set((uint16_t)new_inst);
 				cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
 				sync_cmd_done(sync_done, 0,

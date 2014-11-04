@@ -160,6 +160,8 @@ int create_frame(
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size.
+@Param[in]	spid - Storage profile ID to be used in case this is not the 
+		default frame.
 
 @Return		0 on Success, or negative value on error.
 
@@ -176,7 +178,8 @@ int create_frame(
 int create_fd(
 		struct ldpaa_fd *fd,
 		void *data,
-		uint16_t size);
+		uint16_t size,
+		uint8_t spid);
 
 /**************************************************************************//**
 @Function	create_arp_request_broadcast

@@ -35,11 +35,11 @@
 #ifndef __AIOP_VERIFICATION_GRO_H_
 #define __AIOP_VERIFICATION_GRO_H_
 
-#include "dplib/fsl_ldpaa.h"
-#include "inc/fsl_gen.h"
+#include "fsl_ldpaa.h"
+#include "fsl_gen.h"
 #include "general.h"
 #include "gro.h"
-#include "dplib/fsl_parser.h"
+#include "fsl_parser.h"
 
 
 /* TCP_GRO Command IDs */

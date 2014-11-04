@@ -26,7 +26,7 @@
 
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "dpni/drv.h"
+#include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
 #include "platform.h"
 #include "fsl_io.h"
@@ -52,12 +52,12 @@ void ipsec_print_stats (ipsec_handle_t desc_handle);
 /**< Get flow id from callback argument, it's demo specific macro */
 
 /* Global IPsec vars in Shared RAM */
-__SHRAM ipsec_instance_handle_t ipsec_instance_handle;
-__SHRAM ipsec_handle_t ipsec_sa_desc_outbound;
-__SHRAM ipsec_handle_t ipsec_sa_desc_inbound; 
-__SHRAM uint32_t frame_number; 
+ipsec_instance_handle_t ipsec_instance_handle;
+ipsec_handle_t ipsec_sa_desc_outbound;
+ipsec_handle_t ipsec_sa_desc_inbound; 
+uint32_t frame_number; 
 
-__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
 	uint32_t enc_status = 0;
@@ -66,9 +66,12 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint8_t frame_before_encr[256] = {0};
 	uint8_t *eth_pointer_byte = 0;
 	uint32_t handle_high, handle_low;
+	int local_test_error = 0;
+	uint32_t original_frame_len;
 
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	original_frame_len = frame_len;
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
 	
 	ipsec_handle_t ws_desc_handle_outbound = ipsec_sa_desc_outbound;
@@ -111,13 +114,19 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			);
 
 	if (err)
+	{
 		fsl_os_print("ERROR: ipsec_frame_encrypt() failed\n");
+		local_test_error |= err;
+	}
 	else
 		fsl_os_print("ipsec_frame_encrypt() completed successfully\n");
 	
 	if (enc_status)
+	{
 		fsl_os_print("ERROR: SEC Encryption Failed (enc_status = 0x%x)\n", 
 				enc_status);
+		local_test_error |= enc_status;
+	}
 
 	fsl_os_print("IPSEC: frame header after encryption\n");
 	/* Print header */
@@ -131,13 +140,19 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			);
 
 	if (err)
+	{
 		fsl_os_print("ERROR: ipsec_frame_decrypt() failed\n");
+		local_test_error |= err;
+	}
 	else
 		fsl_os_print("ipsec_frame_decrypt() completed successfully\n");
 	
 	if (dec_status)
+	{
 		fsl_os_print("ERROR: SEC Decryption Failed (dec_status = 0x%x)\n", 
 				dec_status);
+		local_test_error |=dec_status;
+	}
 
 	fsl_os_print("IPSEC: frame header after decryption\n");
 	/* Print header */
@@ -149,10 +164,11 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	
-	if (frame_len < 20) {
+	if (frame_len != original_frame_len) {
 		fsl_os_print("ERROR: incorrect frame length (FD[length] = %d)\n", 
 				frame_len);
 		err = 1;
+		local_test_error |= err;
 	} else {
 		for(i = 0; ((i<frame_len) && (i<seg_len));i ++)
 		{
@@ -160,16 +176,21 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				fsl_os_print(
 						"ERROR: frame after decryption differ from origin\n");
 				err = 1;
+				local_test_error |= err;
 				break;
 			}
 			eth_pointer_byte++;
 		}
 	}
 	
-	if (!err)
-		fsl_os_print("\nSUCCESS: frame after decryption the same as origin\n\n");
-	
-	
+	if(!local_test_error) /*No error found during injection of packets*/
+	{
+		fsl_os_print("Finished SUCCESSFULLY\n");
+		fsl_os_print("\nFrame after decryption the same as origin\n\n");
+	}
+	else
+		fsl_os_print("Finished with ERRORS\n");
+		
 	/* Read statistics */
 	fsl_os_print("IPsec Demo: Encryption Statistics:\n");
 	ipsec_print_stats(ws_desc_handle_outbound);
@@ -262,27 +283,29 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 	
-	for (ni = 0; ni < 6; ni++)
+	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
-		/* Every ni will have 1 flow */
-		uint32_t flow_id = 0;
-		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		         (uint16_t)flow_id/*flow_id*/,
-		         app_process_packet_flow0, /* callback for flow_id*/
-		         (ni | (flow_id << 16)) /*arg, nic number*/);
+		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
+		         app_process_packet_flow0, /* callback */
+		         ni /*arg, nic number*/);
 		if (err) return err;
 	}
 
 	err = cmdif_register_module("TEST0", &ops);
 	if (err)
+	{
 		fsl_os_print("FAILED cmdif_register_module\n!");
+		return err;
+	}
 
 	/* IPsec Initialization */
 	err = ipsec_app_init(0); /* Call with NI ID = 0 */
 	if (err) {
 		fsl_os_print("ERROR: IPsec initialization failed\n");
+		return err;
 	}
 	
+	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 	return 0;
 }
 
@@ -457,8 +480,6 @@ int ipsec_app_init(uint16_t ni_id)
 			10, /* uint32_t    num_buffs */
 			10, /* uint32_t    max_buffs */
 			512, /* uint16_t    buff_size */
-			0, /* uint16_t    prefix_size */
-			0, /* uint16_t    postfix_size */
 			8, /*uint16_t    alignment */
 			MEM_PART_DP_DDR, /* uint8_t     mem_partition_id */
 			0, /* uint32_t    flags */

@@ -1,43 +1,98 @@
+- fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
+- cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
+                            See aiopsl\tests\cmdif\README.txt.
+- fsl_cmdif_flib_c.h        API change: moved async callback from cmdif_cmd() to cmdif_open_cmd().
+- fsl_cmdif_client.h        API change: moved async callback from cmdif_open() to cmdif_send().
+- fsl_slab.h:               prototype of the slab release callback function modified from int to void.
+- slab.c, fsl_slab.h:       slab_create: API change - prefix_size, postfix_size were removed.
+- slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
+                            API for slab_fimd_and_reserve_bpid was updated: added int *bpid_array_index - Index for bman
+                            pool array which reserved the buffers instead of "number of reserved buffers".
+                            API change for slab_create: use mem_pid from enum.
+                            added int slab_find_and_unreserve_bpid(int32_t num_buffs,uint16_t bpid);
+
+- mem_mng.c,slob.c         Change spinlock pointer  location from DP_DDR->SHARED RAM.( A fix for emulator)
+
+- ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
+- cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
+- cmdif_srv_flib.c       Placed user error checks under #ifdef DEBUG
+- cmdif_client.c         Added support for cmdif_close()
+- cmdif_srv_flib.c       Added support for cmdif_session_close()
+- slob.c                 Fix some memory leaks and other issues.
+- platform.c             Add support for memory allocation from MEM_PART_SYSTEM_DDR.
+- cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
+
+** AIOP SL v0.4.6 **
+- Remove Simulator flag: set_iram_instruction_fetch_view.
+
+** AIOP SL v0.4.5 **
+- cmdif_integ_dbg.elf      Placed compiled AIOP<->GPP CMDIF test at aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\. 
+- tests/cmdif/README.txt   Added information about CMDIF testing with GPP.
+- fsl_soc_spec_ls2085a.h:  Update UART offset ( + 0x4000 ). The following flags must be removed from simulator initialization cfg file:
+                           duart1.use_ls2_reg_definition=false
+                           duart2.use_ls2_reg_definition=false
+** AIOP SL v0.4.4 **
+- config.c                   The default value of PEB size in aiop_app_init_info has been descreased to 512 KB. 
+                             Application should not require more than this number.
+- ls2085a_sim_init_params.cfg  Removed  qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug is fixed on sim_m122)
+- dpl.dts:                     Changed AIOP portal id, icid, and dpci id.
+- dpl.dts:                     Added DPRC_CFG_OPT_IOMMU_BYPASS to root container due to changes in MC firmware
+- ls2085a_sim_init_params.cfg  Removed  aiop.isolation_enable=false, added qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug)
+
+- dpni_drv.c, fsl_dpni_drv.h: API change for mfl functions from: dpni_drv_get/set_mfl(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl) 
+                              to: dpni_drv_get/set_max_frame_length(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl)
+- dpni_drv.c, fsl_dpni_drv.h: added suport for promisc to multicast and unicast. The functions are: int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en),
+                              int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en), int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en),
+                              int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en)
+							  Arena test updated acordingly.
+							  
+- dpni.c:       API change in dpni functions from: (struct dpni *dpni) to:  (struct fsl_mc_io *mc_io, uint16_t token)
+
+- dpl.dts/dtb:    Added DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED to AIOP container.
+- fsl_icontext.h  New API for isolation context aware memory accesses and for BMAN pool.
+- config.c        Fill real default addresses values in aiop_sl_init_info. Those addresses correspond to the ones that MC fills.
+- config.c        Create a new file where  the user is supposed to define aiop_init_data structure.
+- fsl_platform.h  Added MEM_PART_MC_PORTALS and MEM_PART_CCSR memory partitions.
+- slab.c          If given more when supported number of bpids in layot file, the dpbp_add will ignore them without error return.
+                  The slab will only notify about the error.
+- aiop_link.lcf  Added variables AIOP_DDR_START and AIOP_DDR_END that mark start and end of AIOP image that is put into DP_DDR.
+                 These  variables must appear in linker for proper AIOP memory partition creation.
+- platform.c     AIOP memory paritions are built dynamically based on aiop_app_init_info structure that is filled on MC side.			 
+
+- .cproject (all)   Added paths to "${ProjDirPath}/../../../../src/drivers/dplib" and "${ProjDirPath}/../../../../src/mc/include"
+- time.c:           Added time_init/free in global modules to support time period received from MC. If time period is 1000 then pointer function set up to use fast implementation,
+                    otherwise an error will appear. (to support slow implementation we must use division in AIOP).
+
+- init.c aio_link.lcf          Change AIOP virtual addresses according to new ATU windows settings that are done in aiop_drv.c.
 - platform.c, init.c, fsl_soc_spec_ls2085a.h: UART port/offset configured by MC.
 
-- fsl_slab.      New API for slab increment/decrement reference count: int slab_refcount_decr(uint64_t buff), void slab_refcount_incr(uint64_t buff). 
+- fsl_slab.      New API for slab increment/decrement reference count: int slab_refcount_decr(uint64_t buff), void slab_refcount_incr(uint64_t buff).
+ 
 - slab.c:        New implementation for slab release, refcount_incr, refcount_decr using approach 1 (The user is responsible to call slab release if reference count is 0 (return 0x3)).
 
 - mc_init.c          Use g_init_data.sl_data.mc_portal_id instead of hard coded 1.
 - init.c             Added g_init_data structure for AIOP<->MC comunication.
 - aiop_link.lcf      Added MC<->AIOP shared structure inside memory_data, at AIOP_INIT_DATA.
 
-- fsl_dma.h                    New API for ICID aware memory accesses.
 - time.c/h fsl_time.h:         Optimization was made for time queries (fsl_get_time_ms() and fsl_get_time_since_epoch())
+
 - fsl_soc.aiop_spec.h          Deleted FSL_OS_MOD_CMDIF_SRV.
 - cmdif_srv.c                  Removed sys_get_handle(FSL_OS_MOD_CMDIF_SRV) as part of optimization.
 - aiop_link.lcf                LCF cleanups, removed unused memory regions.
 - dpni/drv.h                   Added fsl_mc_init.h which may lead to missing path compilation errors.
                                ARENA users should not include drv.h file but only fsl_dpni*.h.
-- app_process_packet.c:        The demo was updated and now makes a reflection for received packets. (Flip the MAC and IP source and destination addresses)
 - cmdif_client_aiop.h   Verify CMDIF_OPEN_SIZE in preprocessor time.
 - cmdif_server_aiop.h   Verify CMDIF_SESSION_OPEN_SIZE in preprocess time.
 - fsl_cmdif_client.h    Added CMDIF_OPEN_SIZE, see cmdif_open().
 - fsl_cmdif_server.h    Added CMDIF_SESSION_OPEN_SIZE, see cmdif_session_open().
-
-- fsl_cmdif_client.h           Improved documentation
-- fsl_cmdif_server.h           Improved documentation
 - ls2085a_sim_init_params.cfg  Added sim.enable_smmu=true
-
 - fsl_cmdif_client.h    Removed physical addresses from external API, when SMMU is enabled virt to phys is not required.
                         cmdif_send() data pointer is still of uint64_t type, this is because GPP virtual addresses are 39 bit
-						and AIOP and GPP are going to use the same virtual address space.
+                        and AIOP and GPP are going to use the same virtual address space.
 - fsl_cmdif_server.h    Removed physical addresses from external API, when SMMU is enabled virt to phys is not required.
-- cmdif_srv.c       Read AMQ bits and ICID from ADC and FD
-- cmdif_client.c    Keep AMQ bits and ICID per dpci
-- cmdif_srv_flib.c  Updated cmdif_srv_open().
-
-- build/aiop_sim/aiopsl/.cproject                     Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
-- build/aiop_sim/apps/app_process_packet/.cproject    Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
-- build/aiop_sim/tests/arena_test/.cproject           Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
-- build/aiop_sim/tests/cmdif_test/.cproject           Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
-- build/aiop_sim/tests/inet_test/.cproject            Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
-
+- cmdif_srv.c        Read AMQ bits and ICID from ADC and FD
+- cmdif_client.c     Keep AMQ bits and ICID per dpci
+- cmdif_srv_flib.c   Updated cmdif_srv_open().
 - slab.c/h:          slab_module_init(): was modified to allocate memory for all buffers to avoid using malloc in runtime.
                      slab_find_and_fill(): renamed to slab_find_and_reserve() and now it just tryies to reserve buffers for
                                            the service layer (no allocation in runtime)
@@ -46,39 +101,50 @@
                                                     uint16_t *alloc_alignment removed.
 - virtual_pool.c:    vpool_decr_total_bman_bufs(): added spin-lock and condition to check if number of remaining
                                                    buffers is big enough to give buffers for the service layer.
-- dpl.dts/dtb:         Added DPRC_CFG_OPT_IOMMU_BYPASS to AIOP container. AIOP is trusted entity therefore PL and BMT should be set.
-- platform.c, init.c:  Change to use uart2_0 for AIOP
-- fsl_slab.h         Updated slab_release() API documentation with new error for fix of ENGR00307395.
-- slab.c             Fixed ENGR00307395 slab_release error, better protection from user errors.
-- dpni_drv.c/h:      Adding support for dpni_drv_get_spid to receive NI's storage profile ID
-
-- init.c             Modified fill_bpid() to take ICID + BPDI from CDMA CFG registers.
-- mc_init.c          Moved AIOP<->MC dpci creation from DPL to AIOP dpci init. It should not be exposed to users. DPCI#0 belongs to MC.
-- slab.c             Read AIOP ICID and BDI from CDMA CFG register.
-
-- fsl_cmdif_client.h Added Cautions - automatic expansion of the buffer is not available
-- arena_test.c:      updated to show which task/core was active during the test. (multi task should be supported in next simulator - 118)
-- fsl_io_ccsr.h:     #ifdef CCSR_BE removed to use big endian convention to access ccsr in AIOP.
-
+- dpl.dts/dtb:       Added DPRC_CFG_OPT_IOMMU_BYPASS to AIOP container. AIOP is trusted entity therefore PL and BMT should be set.
 - fsl_cmdif_flib_s.h API chnage at cmdif_srv_cmd() to support virtual aadresses when SMMU is disabled.
 - fsl_cmdif_flib_c.h API chnage at cmdif_async_cb() to support virtual aadresses when SMMU is disabled.
 - cmdif.h            Move CMDIF_EPID define from cmdif_clien.h to cmdif.h architecture dependent file.
 - init.c:            Adding epid_drv_init module to initialize epid table for tman, cmd-intr, nis.
-- cmdif_client.c:    Pass PRC_GET_SEGMENT_ADDRESS to cmdif_cb_t, same as for AIOP server.
 - aiop_common.h:     enum for epid table was added.
-
-
-- cmdif_client.c:    Replaced cdma_read/write by fdma_dma_data for SMMU support.
-- cmdif_srv.c:       Replaced cdma_read/write by fdma_dma_data for SMMU support.
-- slab.c:            Fixed ENGR00312975 slab_debug_info_get() command should estimate the slab whether is valid
+- fsl_io_ccsr.h:     #ifdef CCSR_BE removed to use big endian convention to access ccsr in AIOP.
 - cmdif_client.c:    read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
 - cmdif_srv.c:       read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
 - dpni_drv.c:        read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
 - time.c:            read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
 - platform.c:        read/write calls from ccsr were changed to use iowrite32_ccsr/ioread32_ccsr defines.
 - kernel\fsl_io_ccsr.h: added to make an envelop to ioread/write's from ccsr using iowrite32_ccsr/ioread32_ccsr defines.
-
+- fsl_slab.h         Updated slab_release() API documentation with new error for fix of ENGR00307395.
+- slab.c             Fixed ENGR00307395 slab_release error, better protection from user errors.
+- dpni_drv.c/h:      Adding support for dpni_drv_get_spid to receive NI's storage profile ID
+- init.c             Modified fill_bpid() to take ICID + BPDI from CDMA CFG registers.
+- mc_init.c          Moved AIOP<->MC dpci creation from DPL to AIOP dpci init. It should not be exposed to users. DPCI#0 belongs to MC.
+- slab.c:            Fixed ENGR00312975 slab_debug_info_get() command should estimate the slab whether is valid
+- slab.c             Read AIOP ICID and BDI from CDMA CFG register.
 - aiopsl\misc\tools\instruction_trace:  added tool (script and readme) to save instruction trace in to a file.
+
+** AIOP SL v0.4.3 **
+
+- fsl_cmdif_client.h           Improved documentation
+- fsl_cmdif_server.h           Improved documentation
+- app_process_packet.c:        The demo was updated and now makes a reflection for received packets. (Flip the MAC and IP source and destination addresses)
+
+- build/aiop_sim/aiopsl/.cproject                     Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/apps/app_process_packet/.cproject    Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/tests/arena_test/.cproject           Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/tests/cmdif_test/.cproject           Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+- build/aiop_sim/tests/inet_test/.cproject            Disable AIOP e_ldw/e_stdw code generation WA for CW 10.0.10 bug
+
+- platform.c, init.c:  Change to use uart2_0 for AIOP
+
+** AIOP SL v0.4.2 **
+
+- fsl_cmdif_client.h Added Cautions - automatic expansion of the buffer is not available
+- arena_test.c:      updated to show which task/core was active during the test. (multi task should be supported in next simulator - 118)
+
+- cmdif_client.c:    Pass PRC_GET_SEGMENT_ADDRESS to cmdif_cb_t, same as for AIOP server.
+- cmdif_client.c:    Replaced cdma_read/write by fdma_dma_data for SMMU support.
+- cmdif_srv.c:       Replaced cdma_read/write by fdma_dma_data for SMMU support.
 
 - fsl_cmdif_server.h  API changes at cmdif_session_open() cmdif_session_close()
 - fsl_spinlock.h      Doxygen update

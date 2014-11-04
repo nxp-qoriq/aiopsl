@@ -1,29 +1,3 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 /* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __DESC_IPSEC_H__
@@ -459,6 +433,7 @@ struct ipsec_new_decap_deco_dpovrd {
  *                           descriptor. Requires an MDHA split key.
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: if true, perform descriptor byte swapping on a 4-byte boundary
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -469,9 +444,9 @@ struct ipsec_new_decap_deco_dpovrd {
  *            split key is to be used, the size of the split key itself is
  *            specified. Valid algorithm values - one of OP_PCL_IPSEC_*
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
-static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps,
+static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps, bool swap,
 					  struct ipsec_encap_pdb *pdb,
 					  struct alginfo *cipherdata,
 					  struct alginfo *authdata)
@@ -485,7 +460,8 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps,
 	REFERENCE(phdr);
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	PROGRAM_SET_BSWAP(p); /* TMP patch */
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
@@ -503,7 +479,7 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps,
 		 (uint16_t)(cipherdata->algtype | authdata->algtype));
 	PATCH_JUMP(p, pkeyjmp, keyjmp);
 	PATCH_HDR(p, phdr, hdr);
-	return (int)PROGRAM_FINALIZE(p);
+	return PROGRAM_FINALIZE(p);
 }
 
 /**
@@ -511,6 +487,7 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps,
  *                           Requires an MDHA split key.
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: if true, perform descriptor byte swapping on a 4-byte boundary
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -521,9 +498,9 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps,
  *            split key is to be used, the size of the split key itself is
  *            specified. Valid algorithm values - one of OP_PCL_IPSEC_*
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
-static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps,
+static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps, bool swap,
 					  struct ipsec_decap_pdb *pdb,
 					  struct alginfo *cipherdata,
 					  struct alginfo *authdata)
@@ -537,7 +514,8 @@ static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps,
 	REFERENCE(phdr);
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	PROGRAM_SET_BSWAP(p); /* TMP patch */
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
@@ -554,7 +532,7 @@ static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps,
 		 (uint16_t)(cipherdata->algtype | authdata->algtype));
 	PATCH_JUMP(p, pkeyjmp, keyjmp);
 	PATCH_HDR(p, phdr, hdr);
-	return (int)PROGRAM_FINALIZE(p);
+	return PROGRAM_FINALIZE(p);
 }
 
 /**
@@ -585,7 +563,7 @@ static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps,
  * (in order to use it also with HMAC-MD5-96),even when using a shorter key
  * for the AES-XCBC-MAC-96.
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_encap_des_aes_xcbc(uint32_t *descbuf,
 		struct ipsec_encap_pdb *pdb, struct alginfo *cipherdata,
@@ -660,7 +638,7 @@ static inline int cnstr_shdsc_ipsec_encap_des_aes_xcbc(uint32_t *descbuf,
 	KEY(p, KEY1, authdata->key_enc_flags, authdata->key, authdata->keylen,
 	    0);
 	ALG_OPERATION(p, OP_ALG_ALGSEL_AES, OP_ALG_AAI_XCBC_MAC,
-		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, OP_ALG_ENCRYPT);
+		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, DIR_ENC);
 	SEQFIFOLOAD(p, SKIP, pdb->ip_hdr_len, 0);
 	SEQFIFOLOAD(p, MSG1, 0, VLF | FLUSH1 | LAST1);
 	SEQFIFOSTORE(p, SKIP, 0, 0, VLF);
@@ -688,7 +666,7 @@ static inline int cnstr_shdsc_ipsec_encap_des_aes_xcbc(uint32_t *descbuf,
 	PATCH_MOVE(p, move_outlen, outptr);
 	PATCH_MOVE(p, move_seqout_ptr, shd_ptr);
 	PATCH_MOVE(p, write_swapped_seqin_ptr, swapped_seqin_fields);
-	return (int)PROGRAM_FINALIZE(p);
+	return PROGRAM_FINALIZE(p);
 }
 
 /**
@@ -720,7 +698,7 @@ static inline int cnstr_shdsc_ipsec_encap_des_aes_xcbc(uint32_t *descbuf,
  * (in order to use it also with HMAC-MD5-96),even when using a shorter key
  * for the AES-XCBC-MAC-96.
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 		struct ipsec_decap_pdb *pdb, struct alginfo *cipherdata,
@@ -774,9 +752,9 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 	      MATH0, 4, IMMED2);
 	MATHB(p, MATH0, SUB, ZERO, VSEQINSZ, 4, 0);
 	ALG_OPERATION(p, OP_ALG_ALGSEL_MD5, OP_ALG_AAI_HMAC_PRECOMP,
-		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, OP_ALG_ENCRYPT);
+		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, DIR_ENC);
 	ALG_OPERATION(p, OP_ALG_ALGSEL_AES, OP_ALG_AAI_XCBC_MAC,
-		      OP_ALG_AS_INITFINAL, ICV_CHECK_ENABLE, OP_ALG_DECRYPT);
+		      OP_ALG_AS_INITFINAL, ICV_CHECK_ENABLE, DIR_DEC);
 	SEQFIFOLOAD(p, SKIP, pdb->ip_hdr_len, 0);
 	SEQFIFOLOAD(p, MSG1, 0, VLF | FLUSH1);
 	SEQFIFOLOAD(p, ICV1, IPSEC_ICV_MD5_TRUNC_SIZE, FLUSH1 | LAST1);
@@ -853,7 +831,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 	PATCH_MOVE(p, move_jump_back, seqin_ptr);
 	PATCH_MOVE(p, move_seqin_ptr, outlen);
 	PATCH_MOVE(p, write_swapped_seqout_ptr, swapped_seqout_fields);
-	return (int)PROGRAM_FINALIZE(p);
+	return PROGRAM_FINALIZE(p);
 }
 
 /**
@@ -865,6 +843,18 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  */
 #define IPSEC_NEW_ENC_BASE_DESC_LEN	(5 * CAAM_CMD_SZ + \
 					 sizeof(struct ipsec_encap_pdb))
+
+/**
+ * IPSEC_NEW_NULL_ENC_BASE_DESC_LEN - IPsec new mode encap shared descriptor
+ *                                    length for the case of
+ *                                    NULL encryption / authentication
+ *
+ * Accounts only for the "base" commands and is intended to be used by upper
+ * layers to determine whether Outer IP Header and/or key can be inlined or
+ * not. To be used as first parameter of rta_inline_query().
+ */
+#define IPSEC_NEW_NULL_ENC_BASE_DESC_LEN	(4 * CAAM_CMD_SZ + \
+						 sizeof(struct ipsec_encap_pdb))
 
 /**
  * cnstr_shdsc_ipsec_new_encap -  IPSec new mode ESP encapsulation
@@ -889,7 +879,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  *            split key is to be used, the size of the split key itself is
  *            specified. Valid algorithm values - one of OP_PCL_IPSEC_*
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 					      struct ipsec_encap_pdb *pdb,
@@ -908,7 +898,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 	if (rta_sec_era < RTA_SEC_ERA_8) {
 		pr_err("IPsec new mode encap: available only for Era %d or above\n",
 		       USER_SEC_ERA(RTA_SEC_ERA_8));
-		return 0;
+		return -ENOTSUP;
 	}
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
@@ -947,7 +937,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 		 (uint16_t)(cipherdata->algtype | authdata->algtype));
 	PATCH_JUMP(p, pkeyjmp, keyjmp);
 	PATCH_HDR(p, phdr, hdr);
-	return (int)PROGRAM_FINALIZE(p);
+	return PROGRAM_FINALIZE(p);
 }
 
 /**
@@ -959,6 +949,18 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  */
 #define IPSEC_NEW_DEC_BASE_DESC_LEN	(5 * CAAM_CMD_SZ + \
 					 sizeof(struct ipsec_decap_pdb))
+
+/**
+ * IPSEC_NEW_NULL_DEC_BASE_DESC_LEN - IPsec new mode decap shared descriptor
+ *                                    length for the case of
+ *                                    NULL decryption / authentication
+ *
+ * Accounts only for the "base" commands and is intended to be used by upper
+ * layers to determine whether key can be inlined or not. To be used as first
+ * parameter of rta_inline_query().
+ */
+#define IPSEC_NEW_NULL_DEC_BASE_DESC_LEN	(4 * CAAM_CMD_SZ + \
+						 sizeof(struct ipsec_decap_pdb))
 
 /**
  * cnstr_shdsc_ipsec_new_decap - IPSec new mode ESP decapsulation protocol-level
@@ -976,7 +978,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  *            split key is to be used, the size of the split key itself is
  *            specified. Valid algorithm values - one of OP_PCL_IPSEC_*
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 					      struct ipsec_decap_pdb *pdb,
@@ -994,7 +996,7 @@ static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 	if (rta_sec_era < RTA_SEC_ERA_8) {
 		pr_err("IPsec new mode decap: available only for Era %d or above\n",
 		       USER_SEC_ERA(RTA_SEC_ERA_8));
-		return 0;
+		return -ENOTSUP;
 	}
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
@@ -1017,7 +1019,7 @@ static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 		 (uint16_t)(cipherdata->algtype | authdata->algtype));
 	PATCH_JUMP(p, pkeyjmp, keyjmp);
 	PATCH_HDR(p, phdr, hdr);
-	return (int)PROGRAM_FINALIZE(p);
+	return PROGRAM_FINALIZE(p);
 }
 
 #endif /* __DESC_IPSEC_H__ */

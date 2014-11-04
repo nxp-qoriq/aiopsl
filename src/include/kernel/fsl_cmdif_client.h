@@ -85,24 +85,6 @@ struct cmdif_desc {
 	 * Opaque handle for the use of the command interface;
 	 * user should not modify it.
 	 */
-	void *lock;
-	/*!<
-	 * Optional lock object to be used with the lock/unlock callbacks;
-	 * user must zero it if not needed.
-	 * Lock is needed for session sharing but only for sending synchronous
-	 * commands.
-	 * Asynchronous commands don't require lock in case of session sharing
-	 */
-	void (*lock_cb)(void *lock);
-	/*!<
-	 * Callback for locking the command interface multiple users scenario;
-	 * user must zero it if not needed.
-	 */
-	void (*unlock_cb)(void *lock);
-	/*!<
-	 * Callback for unlocking the command interface multiple users scenario;
-	 * user must zero it if not needed.
-	 */
 };
 
 /**************************************************************************//**
@@ -123,7 +105,7 @@ that had been sent through cidesc.
 		On GPP side it should be virtual address that belongs
 		to current SW context.
 @Return		OK on success; error code, otherwise.
-@Cautions	Please make sure to modify only #size bytes of the data.
+@Cautions	Please make sure to modify only size bytes of the data.
 		Automatic expansion of the buffer is not available.
  *//***************************************************************************/
 typedef int (cmdif_cb_t)(void *async_ctx,
@@ -139,28 +121,25 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 
 @Param[in]	cidesc		Command interface descriptor, cmdif device will
 		be returned inside this descriptor.
-		Only cidesc.regs must be set by user see \ref struct cmdif_desc.
+		Sharing of the same cidesc by multiple threads requires locks 
+		outside CMDIF API, as an alternative each thread can open it's 
+		own session by calling cmdif_open(). 
+		Only cidesc.regs must be set by user see struct cmdif_desc.
 @Param[in]	module_name	Module name, up to 8 characters.
 @Param[in]	instance_id	Instance id which will be passed to #open_cb_t
-@Param[in]	async_cb	Callback to be called on response of
-		asynchronous command.
-@Param[in]	async_ctx	Context to be received with asynchronous
-		command response inside async_cb().
 @Param[in]	data		Buffer to be used by command interface.
 		This address should be accessible by Server and Client.
 		This buffer can be freed only after cmdif_close().
 		On AIOP, set data as NULL.
 @Param[in]	size		Size of the data buffer. If the size is not
-				enough cmdif_open() will return -ENOMEM.
-				By default, set it to #CMDIF_OPEN_SIZE bytes.
+		enough cmdif_open() will return -ENOMEM. On AIOP, set it to 0.
+		By default, set it to #CMDIF_OPEN_SIZE bytes.
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
 int cmdif_open(struct cmdif_desc *cidesc,
 		const char *module_name,
 		uint8_t instance_id,
-		cmdif_cb_t async_cb,
-		void *async_ctx,
 		void *data,
 		uint32_t size);
 
@@ -195,13 +174,20 @@ int cmdif_close(struct cmdif_desc *cidesc);
 @Param[in]	cmd_id     Id which represent command on the module that was
 		registered on Server; Application may use bits 11-0.
 		See \ref CMDIF_SEND_ATTRIBUTES.
-@Param[in]	size       Size of the data.
+@Param[in]	size       Size of the data including extra 16 bytes for 
+		\ref cmdif_cb_t in case of \ref CMDIF_ASYNC_CMD.
 @Param[in]	priority   High or low priority queue.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	data       Data of the command or buffer allocated by user which
 		will be used inside command.
 		This address should be accessible by Server and Client.
 		It should be virtual address that belongs to current SW context.
+		In case of asynchronous command last 16 bytes must be reserved 
+		for cmdif usage.
+@Param[in]	async_cb	Callback to be called on response of
+		asynchronous command.
+@Param[in]	async_ctx	Context to be received with asynchronous
+		command response inside async_cb().
 
 @Return		0 on success; error code, otherwise.
  *//***************************************************************************/
@@ -209,7 +195,9 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		int priority,
-		uint64_t data);
+		uint64_t data,
+		cmdif_cb_t *async_cb,
+		void *async_ctx);
 
 /**************************************************************************//**
 @Function	cmdif_resp_read

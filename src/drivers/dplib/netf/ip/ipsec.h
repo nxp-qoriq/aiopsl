@@ -105,8 +105,8 @@ enum rta_param_type {
 #define IPSEC_FLG_OUTER_HEADER_IPV6 0x20000000 
 
 /** Preserve the ASA (Accelerator Specific Annotation) */
-/* Not supported in Rev 1 */
-#define IPSEC_FLG_PRESERVE_ASA		0x00020000
+/* Obsolete, Not supported */
+/* #define IPSEC_FLG_PRESERVE_ASA		0x00020000 */
 
 #define IPSEC_IP_VERSION_MASK 0xF0000000 
 #define IPSEC_IP_VERSION_IPV6 0x60000000 
@@ -147,6 +147,10 @@ enum rta_param_type {
 /** Add Output IP header to the frame
 * Relevant for tunnel mode only */
 #define IPSEC_ENC_OPTS_ADD_IPHDR	0x000c /* Add IP header */
+
+/* Inc IPHdr - Include Optional IP Header, Prepend IP Header to output frame
+ * Required for transport mode. Must be together with IPHdrSrc = 0 */
+#define IPSEC_ENC_OPTS_INC_IPHDR	0x0004 /* Add IP header */
 
 //TODO: this was in fsl_ipsec.h, but probably not necessary, check if to remove
 /** Copy TOS field (IPv4) or Traffic-Class field (IPv6) from outer
@@ -200,8 +204,10 @@ enum rta_param_type {
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 #define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
-#define IPSEC_MAX_ASA_SIZE 960 /* Maximum ASA size (960 bytes) */
-#define IPSEC_MAX_ASA_BUF_ALIGN 8 /* ASA buffer alignment */
+
+/* Obsolete, ASA preservation not supported */
+/* #define IPSEC_MAX_ASA_SIZE 960 */ /* Maximum ASA size (960 bytes) */
+/* #define IPSEC_MAX_ASA_BUF_ALIGN 8 */ /* ASA buffer alignment */
 
 /**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
 #define IPSEC_ALIGN_64(ADDRESS, ALIGNMENT)           \
@@ -370,6 +376,13 @@ Big Endian
 #define IPSEC_IP_NEXT_HEADER_UDP 0x11 /* UDP = 17 */
 #define IPSEC_IP_NEXT_HEADER_ESP 0x32 /* ESP = 50 */ 
 
+/* Max job descriptor size in bytes (13 words) */
+#define IPSEC_MAX_AI_JOB_DESC_SIZE ((7 * CAAM_CMD_SZ) + (3 * CAAM_PTR_SZ))
+
+/* The max shared descriptor size in 32 bit words when using the AI is 
+ * 64 words - 13 words reserved for the Job descriptor */
+#define IPSEC_MAX_SD_SIZE_WORDS (64-13) 
+
 
 // TMP, removed from the external API
 /**************************************************************************//**
@@ -384,30 +397,15 @@ struct ipsec_storage_params {
 	uint8_t crid; /** Critical resource ID */
 };
 
-/* Global Parameters structure */
-struct ipsec_global_params {
-	uint32_t sa_count; /* SA (descriptors) counter. Initialized to max number */
-	uint16_t asa_bpid; /* Buffer pool ID for ASA copy */
-	uint16_t desc_bpid; /* Buffer pool ID for the SA descriptor */
-	uint8_t tmi; /* Timer Instance ID  */
-	uint8_t spinlock; /* Spinlock indicator, for SA counter  */
-};
-
 /* Instance Parameters structure */
 struct ipsec_instance_params {
 	uint32_t sa_count; /* SA (descriptors) counter. Initialized to max number */
 	uint32_t committed_sa_num; /* Committed SAs (descriptors) */
 	uint32_t max_sa_num; /* Maximum SAs (descriptors) */
 	uint32_t instance_flags; /* Flags place holder */
-	uint16_t asa_bpid; /* Buffer pool ID for ASA copy */
+	uint16_t outer_ip_bpid; /* Buffer pool ID outer IP header (TBD) */
 	uint16_t desc_bpid; /* Buffer pool ID for the SA descriptor */
 	uint8_t tmi_id; /* TMAN Instance ID  */
-};
-
-/* Instance Parameters structure */
-struct ipsec_global_instance_params {
-	uint32_t instance_count; /* instances counter */
-	uint32_t spinlock; /* spinlock */
 };
 
 /* Note: For ste_inc_and_acc_counters function, the accumulator memory address 
@@ -469,7 +467,7 @@ struct ipsec_sa_params_part1 {
 	uint8_t esn; /* Extended sequence number enabled. 1B */
 	
 	uint8_t anti_replay_size; /* none/32/64/128	1B */
-	uint8_t sec_buffer_mode; /* new/reuse (for ASA copy). 1B */
+	uint8_t sec_buffer_mode; /* new/reuse. 1B */
 
 	uint8_t output_spid; /* SEC output buffer SPID */
 	

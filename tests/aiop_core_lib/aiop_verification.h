@@ -37,7 +37,7 @@
 
 #include "aiop_verification_data.h"
 #include "general.h"
-#include "dplib/fsl_ipsec.h"
+#include "fsl_ipsec.h"
 #include "aiop_verification_fdma.h"
 #include "aiop_verification_tman.h"
 #include "aiop_verification_ste.h"
@@ -53,15 +53,15 @@
 #include "aiop_verification_ipf.h"
 #include "aiop_verification_ipr.h"
 #include "aiop_verification_ipsec.h"
-#include "dplib/fsl_ip.h"
-#include "dplib/fsl_ipsec.h"
-#include "dplib/fsl_l2.h"
-#include "dplib/fsl_l4.h"
-#include "dplib/fsl_nat.h"
-#include "dplib/fsl_osm.h"
-#include "dplib/fsl_dpni_drv.h"
-#include "dplib/fsl_dpni.h"
-#include "dplib/fsl_dpni_cmd.h"
+#include "fsl_ip.h"
+#include "fsl_ipsec.h"
+#include "fsl_l2.h"
+#include "fsl_l4.h"
+#include "fsl_nat.h"
+#include "fsl_osm.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_dpni.h"
+#include "fsl_dpni_cmd.h"
 
 
 	/**< ACCEL_ID cmd mask */
@@ -80,7 +80,7 @@
 #define STR_SIZE_BIG			0xFFFE
 	/**< Buffer Data chunk size in bytes.
 	 *   Must be > 64 bytes*/
-#define DATA_SIZE	320
+#define DATA_SIZE	448
 	/**< Buffer Data chunk address in workspace. */
 #define WS_DATA_ADDR	0x100
 	/**< IPF Fragment's fragmentation commands mask */
@@ -195,7 +195,8 @@ enum verif_modules_ids {
 	WRITE_DATA_TO_WS_MODULE,
 	UPDATE_ASA_VARIABLE,
 	OSM_MODULE,
-	EXCEPTION_MODULE
+	EXCEPTION_MODULE,
+	UPDATE_EXT_VARIABLE
 };
 
 /**************************************************************************//**
@@ -250,6 +251,21 @@ enum compared_variable_size {
 	COMPARE_8BYTE
 };
 
+/**************************************************************************//**
+ @enum arith_operation
+
+ @Description	AIOP verification enumeration of the arithmentical operation.
+
+ @{
+*//***************************************************************************/
+enum arith_operation {
+		/** Increment operation. */
+	INCREMENT_OPER = 0,
+		/** Decrement operation. */
+	DECREMENT_OPER,
+		/** Set operation. */
+	SET_OPER
+};
 
 /**************************************************************************//**
 @Description	AIOP IF Verification Command structure.
@@ -405,11 +421,30 @@ struct fatal_error_command {
 		 * Returned Value:
 		 * The error message.
 		 */
-	char  err_msg[128];
+	char  err_msg[256];
 		/**
-		 * 256-byte alignment.
+		 * 128-byte alignment.
 		 * */
 	uint8_t pad[36];
+};
+
+/**************************************************************************//**
+@Description	Update external command variable Command structure.
+
+		Includes information needed for updating a value in an external 
+		verification command.
+*//***************************************************************************/
+struct update_ext_cmd_var_command {
+		/** Update external command variable command structure 
+		 * identifier. */
+	uint32_t opcode;
+		/** Operation kind. */
+	enum arith_operation operation;
+		/** Updating value. */
+	uint32_t value;
+		/** Offset of the variable to be updated relative to the 
+		 * external commands start address. */
+	uint32_t offset;	
 };
 
 void aiop_verification_parse();
@@ -423,6 +458,7 @@ uint32_t if_statement_result(
 		int64_t compared_value,
 		uint8_t cond);
 void timeout_cb_verif(uint64_t arg);
+void ipr_timeout_cb_verif(uint64_t arg, uint32_t flags);
 
 
 /** @} */ /* end of AIOP_Verification */

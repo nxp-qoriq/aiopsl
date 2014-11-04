@@ -33,7 +33,7 @@
 #include "general.h"
 #include "common/types.h"
 
-#include "cdma.h"
+#include "dplib/fsl_cdma.h"
 
 
 int cdma_acquire_context_memory(
@@ -264,53 +264,53 @@ void cdma_write_with_mutex(
 				(int32_t)res1);
 }
 
-void cdma_refcount_increment(
+/*void cdma_refcount_increment(
 		uint64_t context_address) {
 
-	/* command parameters and results */
+	 command parameters and results 
 	uint32_t arg1, arg2, arg3, arg4;
 	uint8_t res1;
 
-	/* prepare command parameters */
+	 prepare command parameters 
 	arg1 = CDMA_REFCNT_INC_CMD_ARG1();
 	arg2 = 0;
 	arg3 = (uint32_t)(context_address>>32);
 	arg4 = (uint32_t)(context_address);
 
-	/* store command parameters */
+	 store command parameters 
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call CDMA */
+	 call CDMA 
 	__e_hwacceli_(CDMA_ACCEL_ID);
 
-	/* load command results */
+	 load command results 
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 	if (((int32_t)res1) != CDMA_SUCCESS)
 		cdma_exception_handler(CDMA_REFCOUNT_INCREMENT, __LINE__,
 				(int32_t)res1);
-}
+}*/
 
-int cdma_refcount_decrement(
+/*int cdma_refcount_decrement(
 		uint64_t context_address) {
 
-	/* command parameters and results */
+	 command parameters and results 
 	uint32_t arg1, arg2, arg3, arg4;
 	uint8_t res1;
 
-	/* prepare command parameters */
+	 prepare command parameters 
 	arg1 = CDMA_REFCNT_DEC_CMD_ARG1();
 	arg2 = 0;
 	arg3 = (uint32_t)(context_address>>32);
 	arg4 = (uint32_t)(context_address);
 
-	/* store command parameters */
+	 store command parameters 
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call CDMA */
+	 call CDMA 
 	__e_hwacceli_(CDMA_ACCEL_ID);
 
-	/* load command results */
+	 load command results 
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
 
@@ -321,7 +321,7 @@ int cdma_refcount_decrement(
 	cdma_exception_handler(CDMA_REFCOUNT_DECREMENT, __LINE__,
 			(int32_t)res1);
 	return -1;
-}
+}*/
 
 int cdma_refcount_decrement_and_release(
 		uint64_t context_address) {

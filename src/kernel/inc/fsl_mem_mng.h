@@ -55,8 +55,13 @@
                 or'ed together to create a mask of all memory attributes.
  @{
 *//***************************************************************************/
-#define MEMORY_ATTR_CACHEABLE           0x00000001
-                                        /**< Memory is cacheable */
+
+/**< No memory attribute */
+#define MEMORY_ATTR_NONE          0x00000000
+/**< Memory is cacheable */
+#define MEMORY_ATTR_CACHEABLE           0x00000001 
+/**< It is possible to make dynamic memory allocation */
+#define MEMORY_ATTR_MALLOCABLE          0x00000002
 /* @} */
 
 
@@ -88,6 +93,7 @@ void * sys_phys_to_virt(dma_addr_t addr);
 
 
 #define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
+#define MEM_PART_DEFAULT_HEAP_PARTITION  1  /**< Partition ID for default heap */
 
 
 /**************************************************************************//**
@@ -180,7 +186,7 @@ int sys_register_mem_partition(int        partition_id,
 
  @Param[in]     partitionId     - Memory partition ID
 
- @Return        E_OK on success; Error code otherwise.
+ @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int sys_unregister_mem_partition(int partition_id);
 

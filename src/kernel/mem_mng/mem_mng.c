@@ -36,6 +36,8 @@
 #include "fsl_slob.h"
 #ifdef AIOP
 #include "fsl_malloc.h"
+#include "platform.h"
+#include "platform_aiop_spec.h"
 #endif /* AIOP */
 
 #include "mem_mng.h"
@@ -64,6 +66,9 @@
 
 #endif /* UNDER_CONSTRUCTION */
 
+/* Array of spinlocks should reside in shared ram memory.
+ * They are initialized to 0 (unlocked) */
+static uint8_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};  
 
 static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
                                 void        *p_memory,
@@ -109,7 +114,7 @@ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
     p_mem_mng = p_mem_mng_param->f_malloc(sizeof(t_mem_mng));
     if (!p_mem_mng)
     {
-        REPORT_ERROR(MAJOR, E_NO_MEMORY, ("memory manager structure"));
+        REPORT_ERROR(MAJOR, ENOMEM, ("memory manager structure"));
         return NULL;
     }
     memset(p_mem_mng, 0, sizeof(t_mem_mng));
@@ -215,7 +220,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 
     if ((f_user_malloc || f_user_free) && !(f_user_malloc && f_user_free))
     {
-        RETURN_ERROR(MAJOR, E_INVALID_VALUE,
+        RETURN_ERROR(MAJOR, EDOM,
                      ("f_user_malloc and f_user_free must be both NULL or not NULL"));
     }
 
@@ -236,7 +241,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            RETURN_ERROR(MAJOR, E_ALREADY_EXISTS, ("partition ID %d", partition_id));
+            RETURN_ERROR(MAJOR, EEXIST, ("partition ID %d", partition_id));
         }
         else if (p_partition->id > partition_id)
         {
@@ -252,18 +257,21 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     p_new_partition = (t_mem_mng_partition *)p_mem_mng->f_malloc(sizeof(t_mem_mng_partition));
     if (!p_new_partition)
     {
-        RETURN_ERROR(MAJOR, E_NO_MEMORY, ("memory manager partition"));
+        RETURN_ERROR(MAJOR, ENOMEM, ("memory manager partition"));
     }
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
 #ifdef AIOP
-    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    //p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    /* Fix for bug ENGR00337904. Memory address that is used for spinlock 
+     * should reside in shared ram */
+    p_new_partition->lock = &g_mem_part_spinlock[partition_id];
 #else
     p_new_partition->lock = spin_lock_create();
 #endif
     if (!p_new_partition->lock)
     {
         p_mem_mng->f_free(p_new_partition);
-        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("spinlock object for partition: %s", name));
+        RETURN_ERROR(MAJOR, EAGAIN, ("spinlock object for partition: %s", name));
     }
     
 #ifdef AIOP
@@ -280,10 +288,10 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
         }
 
         /* Initialize the memory manager handle for the new partition */
-        if (E_OK != slob_init(&(p_new_partition->h_mem_manager), base_address, size))
+        if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size))
         {
             p_mem_mng->f_free(p_new_partition);
-            RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("MM object for partition: %s", name));
+            RETURN_ERROR(MAJOR, EAGAIN, ("MM object for partition: %s", name));
         }
     }
 
@@ -326,7 +334,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif /* AIOP */
 
-    return E_OK;
+    return 0;
 }
 
 
@@ -360,7 +368,7 @@ int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif /* AIOP */
             mem_mng_free_partition(p_mem_mng, p_partition_iterator);
-            return E_OK;
+            return 0;
         }
     }
 #ifdef AIOP
@@ -369,7 +377,7 @@ int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    RETURN_ERROR(MAJOR, E_NOT_SUPPORTED, ("partition ID %d", partition_id));
+    RETURN_ERROR(MAJOR, ENOTSUP, ("partition ID %d", partition_id));
 }
 
 
@@ -402,7 +410,7 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
 #else
     	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            return E_OK;
+            return 0;
         }
     }
 #ifdef AIOP
@@ -411,7 +419,7 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("partition ID %d", partition_id));
+    RETURN_ERROR(MAJOR, EAGAIN, ("partition ID %d", partition_id));
 }
 
 
@@ -428,10 +436,10 @@ int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
 
     if (!found)
     {
-        RETURN_ERROR(MAJOR, E_NOT_AVAILABLE, ("partition ID"));
+        RETURN_ERROR(MAJOR, EAGAIN, ("partition ID"));
     }
 
-    return E_OK;
+    return 0;
 }
 
 
@@ -559,7 +567,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
     if (size == 0)
     {
-        REPORT_ERROR(MAJOR, E_INVALID_VALUE, ("allocation size must be positive"));
+        REPORT_ERROR(MAJOR, EDOM, ("allocation size must be positive"));
     }
 
     /* Check if this is an early allocation */
@@ -569,7 +577,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
         p_memory = p_mem_mng->f_early_malloc(size, alignment);
         if (!p_memory)
         {
-            REPORT_ERROR(MINOR, E_NO_MEMORY, ("early allocation"));
+            REPORT_ERROR(MINOR, ENOMEM, ("early allocation"));
             return NULL;
         }
 
@@ -835,7 +843,7 @@ static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
     }
     else
     {
-        REPORT_ERROR(MAJOR, E_NO_MEMORY, ("memory manager debug entry"));
+        REPORT_ERROR(MAJOR, ENOMEM, ("memory manager debug entry"));
     }
 }
 
@@ -928,7 +936,7 @@ static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
     }
     else
     {
-        REPORT_ERROR(MAJOR, E_NO_MEMORY, ("memory manager debug entry"));
+        REPORT_ERROR(MAJOR, ENOMEM, ("memory manager debug entry"));
     }
 }
 

@@ -181,6 +181,9 @@ struct ipr_reassemble_command {
 		/**< Command structure identifier. */
 	int32_t		status;
 	uint32_t	instance_index;
+		/** Returned Value: parse results. */
+	struct parse_result pr;
+
 #ifdef CLOSE_MODEL
 	ipr_instance_handle_t	ipr_instance;
 	uint8_t			ipr_instance_ref;
@@ -289,10 +292,55 @@ struct ipr_get_reass_frm_cntr_command {
 
 #pragma pack(pop)
 
+/**************************************************************************//**
+@Description	IPR FDMA Enqueue Working Frame Command structure.
+
+		Includes information needed for FDMA Enqueue Working Frame
+		command verification.
+
+*//***************************************************************************/
+struct ipr_fdma_enqueue_wf_command {
+		/** FDMA Enqueue working frame command structure
+		* identifier. */
+	uint32_t opcode;
+		/** Queueing destination for the enqueue
+		 * (enqueue_id_sel = 0,16bit) or Frame Queue ID for the enqueue
+		 * (enqueue_id_sel = 1,24bit).*/
+	uint32_t qd_fqid;
+		/** Distribution hash value passed to QMan for distribution
+		 * purpose on the enqueue. */
+	uint16_t qdbin;
+		/** Queueing Destination Priority. */
+	uint16_t icid;
+	uint8_t	qd_priority;
+		/** Storage profile used to store frame data if additional
+		* buffers are required*/
+	uint8_t	 spid;
+		/** Enqueue Priority source
+		* - 0: use QD_PRI provided with DMA Command
+		* - 1: use QD_PRI from h/w context. This is the value
+		* found in the WQID field from ADC. */
+	uint8_t	PS;
+		/** Terminate Control:
+		* - 0: Return after enqueue.
+		* - 1: Terminate: this command will trigger the Terminate task
+		* command right after the enqueue. If the enqueue failed, the
+		* frame will be discarded.
+		* - 3: reserved */
+	uint8_t	TC;
+		/** Enqueue ID selection:
+		* - 0 = queueing destination(16bit)
+		* - 1 = fqid (24bit). */
+	uint8_t	EIS;
+	uint8_t	BDI;
+		/** Command returned status. */
+	int8_t  status;
+	uint8_t res[5];
+};
+
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr);
-
-void ipr_verif_update_frame(uint16_t iteration);
-
+void ipr_delete_instance_cb_verif(uint64_t arg);
+void ipr_timeout_cb_verif(uint64_t arg, uint32_t flags);
 
 /** @} */ /* end of AIOP_IPR_FM_Verification */
 

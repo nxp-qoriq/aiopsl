@@ -160,7 +160,7 @@ struct ipsec_add_sa_descriptor_command {
 	uint32_t instance_id;
 
 	uint64_t descriptor_addr; /* descriptor address */
-    uint8_t outer_ip_header[80]; /* outer IP header */
+    uint8_t outer_ip_header[136]; /* outer IP header */
     
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;

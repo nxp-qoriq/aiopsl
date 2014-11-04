@@ -71,6 +71,10 @@
 	
 	@Group cmdif_g Command Interface API
 	@{ @}
+	
+	@Group ic_g Isolation Context API
+	@{ @}
+	
  @}
  */  /* end of kernel_g group */
  

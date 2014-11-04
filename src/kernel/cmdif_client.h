@@ -42,17 +42,47 @@
 #define M_NAME_CHARS       8     /*!< Not including \0 */
 #define CMDIF_OPEN_SIZEOF (sizeof(struct cmdif_dev) + sizeof(union cmdif_data))
 
+#define CMDIF_DEV_SET(FD, PTR) \
+	do { \
+		(FD)->u_flc.cmd.dev_h = \
+		(uint8_t)((((uint64_t)(PTR)) & 0xFF00000000) >> 32); \
+		(FD)->u_frc.cmd.dev_l = ((uint32_t)(PTR)); \
+	} while(0)
+
+#define CMDIF_DEV_GET(FD) \
+	((struct cmdif_dev *)((uint64_t)(((uint64_t)((FD)->u_frc.cmd.dev_l)) \
+		| (((uint64_t)((FD)->u_flc.cmd.dev_h)) << 32))))
+
+#define CMDIF_ASYNC_ADDR_GET(DATA, SIZE) \
+		((uint64_t)(DATA) + (SIZE))
+
+#define CMDIF_DEV_RESERVED_BYTES 12
+
+#define CMDIF_CMD_FD_SET(FD, DEV, DATA, SIZE, CMD) \
+	do { \
+		(FD)->u_addr.d_addr     = DATA; \
+		(FD)->d_size            = (SIZE); \
+		(FD)->u_flc.flc         = 0; \
+		(FD)->u_flc.cmd.auth_id = (DEV)->auth_id; \
+		(FD)->u_flc.cmd.cmid    = CPU_TO_SRV16(CMD); \
+		(FD)->u_flc.cmd.epid    = CPU_TO_BE16(CMDIF_EPID); \
+		CMDIF_DEV_SET((FD), (DEV)); \
+		(FD)->u_flc.flc = CPU_TO_BE64((FD)->u_flc.flc); \
+	} while (0)
+
+struct cmdif_async {
+	uint64_t async_cb; /*!< Pointer to asynchronous callback */
+	uint64_t async_ctx;/*!< Pointer to asynchronous context */
+};
+
 struct cmdif_dev {
 	uint64_t   p_sync_done;
 	/*!< Physical address of sync_done */
-	cmdif_cb_t *async_cb;
-	/*!<  Asynchronous commands callback */
-	void       *async_ctx;
-	/*!< Asynchronous commands context */
 	void       *sync_done;
 	/*!< 4 bytes to be used for synchronous commands */
 	uint16_t   auth_id;
 	/*!< Authentication ID to be used for session with server*/
+	uint8_t    reserved[CMDIF_DEV_RESERVED_BYTES];
 };
 
 /*! FD[ADDR] content of the buffer to be sent with open command

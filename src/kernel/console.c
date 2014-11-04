@@ -100,7 +100,7 @@ int sys_register_console(fsl_handle_t h_console_dev,
                                                    uint32_t size))
 {
 	if (sys.console)
-		RETURN_ERROR(MINOR, E_ALREADY_EXISTS, ("system console"));
+		RETURN_ERROR(MINOR, EEXIST, ("system console"));
 
 	/* Must have Print routine (Get routine is not mandatory) */
 	ASSERT_COND(f_console_print);
@@ -124,18 +124,18 @@ int sys_register_console(fsl_handle_t h_console_dev,
 		sys.pre_console_buf_pos = 0;
 	}
 
-	return E_OK;
+	return 0;
 }
 
 /*****************************************************************************/
 int sys_unregister_console(void)
 {
 	if (!sys.console)
-		RETURN_ERROR(MINOR, E_NOT_AVAILABLE, ("console"));
+		RETURN_ERROR(MINOR, EAGAIN, ("console"));
 
 	sys.console = NULL;
 
-	return E_OK;
+	return 0;
 }
 
 /*****************************************************************************/
@@ -214,12 +214,12 @@ char sys_get_char(void)
 /*****************************************************************************/
 void sys_register_debugger_console(void)
 {
-	int err_code = E_OK;
+	int err_code = 0;
 
 	UNUSED(err_code);
 
 	/* Register system console */
 	err_code = sys_register_console(&sys, sys_debugger_print, NULL);
-	ASSERT_COND(err_code == E_OK);
+	ASSERT_COND(err_code == 0);
 }
 

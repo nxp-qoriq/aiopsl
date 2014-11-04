@@ -32,9 +32,9 @@
 #ifndef __DPNI_DRV_H
 #define __DPNI_DRV_H
 
-#include "common/types.h"
-#include "dplib/fsl_dpni.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_dpni.h"
+#include "fsl_ldpaa.h"
 
 /**************************************************************************//**
 @Group		grp_dplib_aiop	DPLIB
@@ -53,8 +53,6 @@
 
 /* TODO - move to soc files */
 #define SOC_MAX_NUM_OF_DPNI		128
-
-#define DPNI_DRV_MAX_NUM_FLOWS		8
 
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS

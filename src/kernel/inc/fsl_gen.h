@@ -140,6 +140,11 @@
         /**< Align a given address to a lower aligned address - equivalent to floor(ADDRESS,ALIGNMENT) */
 #endif /* ALIGN_DOWN */
 
+#ifndef MODULU_POWER_OF_TWO
+#define MODULU_POWER_OF_TWO(NUM, MOD) \
+	((uint32_t)(NUM) & ((uint32_t)(MOD) - 1))
+#endif
+
 #define ILLEGAL_BASE    (~0)	//TODO - remove
 
 /* @} */

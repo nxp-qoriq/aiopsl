@@ -31,16 +31,16 @@
 
 *//***************************************************************************/
 #include "general.h"
-#include "common/types.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
+#include "types.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
 
 #include "parser.h"
 #include "system.h"
 #include "id_pool.h"
 
 
-extern __SHRAM uint64_t ext_prpid_pool_address;
+extern uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -84,8 +84,6 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 		HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
-
-	return;
 }
 
 int parser_profile_delete(uint8_t prpid)
@@ -110,7 +108,7 @@ int parser_profile_delete(uint8_t prpid)
 }
 
 void parser_profile_query(uint8_t prpid,
-			struct parse_profile_record *parse_profile)
+			struct parse_profile_input *parse_profile)
 {
 	struct parse_profile_delete_query_params parse_profile_query_params
 						__attribute__((aligned(16)));
@@ -124,8 +122,12 @@ void parser_profile_query(uint8_t prpid,
 		(uint32_t)parse_profile) , 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
+	
+	/* clear 8 first bytes (which include MTYPE and PRPID which are
+	 * irrelevant for the user) */ 
+	parse_profile->parse_profile.reserved1 = 0;
+	parse_profile->parse_profile.reserved2 = 0;
 
-	return;
 }
 
 int parse_result_generate_checksum(
@@ -133,24 +135,24 @@ int parse_result_generate_checksum(
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum)
 {
-	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct parser_input_message_params input_struct
 					__attribute__((aligned(16)));
 
-	arg3=0;
-	arg4=0;
-	       
-	__stdw(arg3, arg4, 0, &input_struct);
-	__stdw(arg3, arg4, 8, &input_struct);
-	__stdw(arg3, arg4, 16, &input_struct);
-
-	input_struct.gross_running_sum = pr->gross_running_sum;
+	
+	/* Check if Gross Running Sum calculation is needed */
+	if (!pr->gross_running_sum) {
+		fdma_calculate_default_frame_checksum(0, 0xFFFF,
+					      &input_struct.gross_running_sum);
+	} else {
+		input_struct.gross_running_sum = pr->gross_running_sum;
+	}
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
-	__e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
-	__e_rlwimi(arg1, (uint32_t)starting_offset, 24, 0, 7);
+	arg1 = __e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
+	arg1 = __e_rlwimi(arg1, (uint32_t)starting_offset, 24, 0, 7);
 
 	arg2 = ((uint32_t)(&input_struct) << 16) |
 				(uint32_t)HWC_PARSE_RES_ADDRESS;

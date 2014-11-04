@@ -28,57 +28,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**************************************************************************//*
- @File          fsl_dprc_cmd.h
-
- @Description   defines dprc portal commands
-
- @Cautions      None.
- *//***************************************************************************/
-
 #ifndef _FSL_DPBP_CMD_H
 #define _FSL_DPBP_CMD_H
 
 /* DPBP Version */
-#define DPBP_VER_MAJOR				1
+#define DPBP_VER_MAJOR				2
 #define DPBP_VER_MINOR				0
 
-/* cmd IDs */
+/* Command IDs */
 #define DPBP_CMDID_CLOSE				0x800
 #define DPBP_CMDID_OPEN					0x804
 #define DPBP_CMDID_CREATE				0x904
 #define DPBP_CMDID_DESTROY				0x900
 
-#define DPBP_CMDID_RESET				0x103
-#define DPBP_CMDID_ENABLE				0x105
-#define DPBP_CMDID_DISABLE				0x106
-#define DPBP_CMDID_GET_ATTR				0x107
-#define DPBP_CMDID_SET_IRQ				0x108
-#define DPBP_CMDID_GET_IRQ				0x109
-#define DPBP_CMDID_SET_IRQ_ENABLE			0x10A
-#define DPBP_CMDID_GET_IRQ_ENABLE			0x10B
-#define DPBP_CMDID_SET_IRQ_MASK				0x10C
-#define DPBP_CMDID_GET_IRQ_MASK				0x10D
-#define DPBP_CMDID_GET_IRQ_STATUS			0x10E
-#define DPBP_CMDID_CLEAR_IRQ_STATUS			0x10F
+#define DPBP_CMDID_ENABLE				0x002
+#define DPBP_CMDID_DISABLE				0x003
+#define DPBP_CMDID_GET_ATTR				0x004
+#define DPBP_CMDID_RESET				0x005
+#define DPBP_CMDID_IS_ENABLED				0x006
+
+#define DPBP_CMDID_SET_IRQ				0x010
+#define DPBP_CMDID_GET_IRQ				0x011
+#define DPBP_CMDID_SET_IRQ_ENABLE			0x012
+#define DPBP_CMDID_GET_IRQ_ENABLE			0x013
+#define DPBP_CMDID_SET_IRQ_MASK				0x014
+#define DPBP_CMDID_GET_IRQ_MASK				0x015
+#define DPBP_CMDID_GET_IRQ_STATUS			0x016
+#define DPBP_CMDID_CLEAR_IRQ_STATUS			0x017
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPBP_CMD_OPEN(cmd, dpbp_id) \
 	MC_CMD_OP(cmd, 0, 0,  32, int,	    dpbp_id)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPBP_CMD_CREATE(cmd, cfg) \
-	MC_CMD_OP(cmd, 0, 0,  32, int,	    cfg->tmp)
-
-/*                cmd, param, offset, width, type,	arg_name */
-#define DPBP_RSP_GET_ATTRIBUTES(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, attr->bpid); \
-	MC_RSP_OP(cmd, 0, 32, 32, int,	    attr->id);\
-	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, attr->version.major);\
-	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, attr->version.minor);\
-} while (0)
+#define DPBP_RSP_IS_ENABLED(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPBP_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \
@@ -103,9 +87,9 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPBP_CMD_SET_IRQ_ENABLE(cmd, irq_index, enable_state) \
+#define DPBP_CMD_SET_IRQ_ENABLE(cmd, irq_index, en) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  enable_state); \
+	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  en); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
 
@@ -114,8 +98,8 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPBP_RSP_GET_IRQ_ENABLE(cmd, enable_state) \
-	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  enable_state)
+#define DPBP_RSP_GET_IRQ_ENABLE(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  en)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPBP_CMD_SET_IRQ_MASK(cmd, irq_index, mask) \
@@ -147,4 +131,12 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
 
+/*                cmd, param, offset, width, type,	arg_name */
+#define DPBP_RSP_GET_ATTRIBUTES(cmd, attr) \
+do { \
+	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, attr->bpid); \
+	MC_RSP_OP(cmd, 0, 32, 32, int,	    attr->id);\
+	MC_RSP_OP(cmd, 1, 0,  16, uint16_t, attr->version.major);\
+	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, attr->version.minor);\
+} while (0)
 #endif /* _FSL_DPBP_CMD_H */

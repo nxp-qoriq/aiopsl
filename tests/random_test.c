@@ -35,23 +35,23 @@
 #include "ls2085a_aiop/platform_aiop_spec.h"
 #endif
 
-int random_test();
-int random_init();
+int random_test(void);
+int random_init(void);
 
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
-__SHRAM uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
-__SHRAM uint8_t rnd_lock;
-__SHRAM int num_of_cores;
-__SHRAM int num_of_tasks;
+uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
+uint8_t rnd_lock;
+int num_of_cores;
+int num_of_tasks;
 
-extern __SHRAM t_system sys;
+extern t_system sys;
 extern __TASK uint32_t	seed_32bit;
 
 
 
 
-int random_test()
+int random_test(void)
 {
 	int i, j;
 	int core,task;
@@ -63,6 +63,8 @@ int random_test()
 	task = (int)(seed_32bit & 0x00ff) - 1;
 
 	if(core !=  core_get_id())
+		return -EINVAL;
+	if(core > 15 || task > 15 || core < 0 || task < 0)
 		return -EINVAL;
 
 	if(rnd_seed[core][task] != 0)
@@ -88,7 +90,7 @@ int random_test()
 	return 0;
 }
 
-int random_init()
+int random_init(void)
 {
 	int i, l_num_of_cores = 0;
 

@@ -650,10 +650,13 @@ int ipsec_frame_decrypt(
 @Cautions	User should note the following:
 		 - In this function the task yields.
 		 - This function preserves the Order Scope mode of the task. If
-		the Order Scope is of mode concurrent, the Order Scope ID is
-		incremented by 1.
+			the Order Scope is of mode concurrent, the Order Scope ID is
+			incremented by 1.
+		- In a flow doing IP fragmentation (IPF) before encrypting 
+			the fragments with IPsec, the ordering scope must be Exclusive 
+			before the first fragment enters IPSec.
 		 - This function does not support encrypted frames which are
-		IPv6 jumbograms.
+			IPv6 jumbograms.
 *//****************************************************************************/
 int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,

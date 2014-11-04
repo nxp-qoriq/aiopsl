@@ -221,7 +221,7 @@ User should select one of the following:
 
 /** @} *//* end of FSL_TABLE_RULE_OPTIONS_TIMESTAMP */
 
-/** @} *//* end of FSL_CTLU_TABLE_RULE_OPTIONS */
+/** @} *//* end of FSL_TABLE_RULE_OPTIONS */
 
 
 /**************************************************************************//**
@@ -1078,7 +1078,7 @@ int table_rule_replace(enum table_hw_accel_id acc_id,
 		by the caller to this function.
 @Param[out]	timestamp Timestamp of the result. Timestamp is not valid
 		unless the rule queried for was created with suitable options
-		(Please refer to #FSL_TABLE_RULE_OPTIONS for more
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
 		details). Must be allocated by the caller to this function.
 
 @Return		0 on success, #TABLE_STATUS_MISS on miss.

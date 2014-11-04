@@ -66,14 +66,12 @@ only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
  * @param[in]	cidesc      - Command interface descriptor
  * @param[in]	m_name      - Module name, up to 8 characters
  * @param[in]	instance_id - Instance id which will be passed to open_cb_t
- * @param[in]	async_cb    - Callback to be called on response of
- *		asynchronous command.
- * @param[in]	async_ctx   - Context to be received with asynchronous
- * 		command response inside async_cb().
- * @param[in]	v_data	    - Virtual address of the buffer to be used
- * 		by command interface.
+ * @param[in]	v_data	    - Core virtual address of the buffer to be used
+ * 		by command interface. 
+ * 		The core is going to access the buffer through this address.
  * 		This address should be accessible by Server and Client.
- * @param[in]	p_data	    - Physical address of the v_data buffer.
+ * @param[in]	p_data	    - Physical address or SMMU virtual address of the 
+ * 		v_data buffer to be set inside the fd of command.
  * @param[in]	size        - Size of the v_data buffer. If the size if not
 		enough cmdif_open() will return -ENOMEM.
  * @param[out]	fd          - Frame descriptor relevant fields for cmdif
@@ -84,8 +82,6 @@ only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
 int cmdif_open_cmd(struct cmdif_desc *cidesc,
 		const char *m_name,
 		uint8_t instance_id,
-		cmdif_cb_t async_cb,
-		void *async_ctx,
 		uint8_t *v_data,
 		uint64_t p_data,
 		uint32_t size,
@@ -180,7 +176,12 @@ int cmdif_is_sync_cmd(uint16_t cmd_id);
  * @param[in]	cidesc - Command interface descriptor
  * @param[in]	cmd_id - Command id that was sent
  * @param[in]	size   - Size of data
- * @param[in]	data   - Physical address to data
+ * @param[in]	data   - Physical address or SMMU virtual address of the 
+ * 		command buffer to be set inside the fd of the command.
+ * @param[in]	async_cb    - Callback to be called on response of
+ *		asynchronous command.
+ * @param[in]	async_ctx   - Context to be received with asynchronous
+ * 		command response inside async_cb().
  * @param[out]	fd     - Frame descriptor relevant fields for cmdif
  *
  * @returns	'0' if command is asynchronous;
@@ -191,6 +192,8 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 	uint16_t cmd_id,
 	uint32_t size,
 	uint64_t data,
+	cmdif_cb_t *async_cb,
+	void *async_ctx,
 	struct cmdif_fd *fd);
 
 /**
@@ -198,15 +201,11 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
  * @brief	Call asynchronous callback of the received frame descriptor
  *
  * @param[in]	fd - Pointer to received frame descriptor
- * @param[in]	v_addr - Virtual address to be used for async cb.
- * 		This is workaround for SMMU disable mode, set it to NULL if
- * 		fd->u_addr.d_addr can be passed as #cmdif_cb_t data.
- * 		Otherwise set v_addr as virtual address of fd->u_addr.d_addr.
- *
+ * 
  * @returns	'0' on Success; Error code otherwise.
  *
  */
-int cmdif_async_cb(struct cmdif_fd *fd, void *v_addr);
+int cmdif_async_cb(struct cmdif_fd *fd);
 
 /** @} *//* end of cmdif_flib_g group */
 /** @} *//* end of cmdif_g group */

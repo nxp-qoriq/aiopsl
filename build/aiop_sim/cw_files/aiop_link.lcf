@@ -8,20 +8,18 @@ MEMORY
     /* hw_context:             org = 0x00000000,   len = 0x000000C0 --> Reserved for Hardware Context */
     /* presentation:           org = 0x00000140,   len = 0x000002C0 --> Reserved for Frame presentation area  */
     /* shared_ram_heap:        org = 0x01010400,   len = 0x0002fc00 --> Reserved for Shared-RAM heap */
-    /* dp_ddr:                 org = 0x58000000,   len = 0x10000000 --> Reserved for DP-DDR  heap */
+    /* dp_ddr:                 org = 0x40000000,   len = 0x00B10000 --> Reserved for DP-DDR  heap */
     tls:                    org = 0x000000C0,   len = 0x00000080 /* TLS - Task Local Storage */
     stack :                 org = 0x00000400,   len = 0x00007C00 /* Start location for Stack, Big stack for init task */
     i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */
     shared_ram:             org = 0x01000000,   len = 0x00010000 /* Shared-RAM */
     memory_data:            org = 0x01010000,   len = 0x400      /* Structure for memory ralated data exchage, reused afer boot  */
     profile_sram:           org = 0x02030000,   len = 0x0000FFFC /* Profile SRAM */
-    exception_handlers:     org = 0x58000000,   len = 0x00010000
-    pseudo_rom:             org = 0x58010000,   len = 0x00100000
-    init:                   org = 0x58110000,   len = 0x00100000
-    internal_ram:     	    org = 0x58210000,   len = 0x00100000
-    heap  :                 org = 0x58310000,   len = 0x00800000
+    exception_handlers:     org = 0x40000000,   len = 0x00010000
+    pseudo_rom:             org = 0x40010000,   len = 0x00100000
+    init:                   org = 0x40110000,   len = 0x00100000
+    heap  :                 org = 0x40210000,   len = 0x00800000
 }
-
 
 SECTIONS
 {
@@ -40,15 +38,15 @@ SECTIONS
     } > exception_handlers
 
     GROUP : {
-        .text (TEXT) ALIGN(0x1000) : {}
-        .text_vle (VLECODE) ALIGN(0x1000): {
-             *(.text)
-             *(.text_vle)
-         }
         .rodata (CONST) : {
             *(.rdata)
             *(.rodata)
         }
+        .dtext (TEXT) ALIGN(0x1000): {}
+        .dtext_vle (VLECODE) ALIGN(0x1000): {
+         *(.dtext)
+         *(.dtext_vle)
+         }
         .ctors : {}
         .dtors : {}
         extab : {}
@@ -56,20 +54,10 @@ SECTIONS
     } > pseudo_rom
 
     GROUP : {
-       .__uninitialized_intc_handlertable ALIGN(0x10) : {}
-       .data   : {}
-       .sdata  : {}
-       .sbss   : {}
-       .sdata2 : {}
-       .sbss2  : {}
-       .bss    : {}
-    } > internal_ram
-
-    GROUP : {
-        .itext (TEXT) ALIGN(0x1000): {}
-        .itext_vle (VLECODE) ALIGN(0x1000): {
-         *(.itext)
-         *(.itext_vle)
+        .text (TEXT) ALIGN(0x1000) : {}
+        .text_vle (VLECODE) ALIGN(0x1000): {
+             *(.text)
+             *(.text_vle)
          }
     } > i_ram
 
@@ -84,8 +72,14 @@ SECTIONS
          *(.stext)
          *(.stext_vle)
          }
-        .shdata (DATA) : {}
-        .shbss (BSS) NO_INIT_BSS : {}
+         
+       .__uninitialized_intc_handlertable ALIGN(0x10) : {}
+       .data   : {}
+       .sdata  : {}
+       .sbss   : {}
+       .sdata2 : {}
+       .sbss2  : {}
+       .bss    : {}
    } > shared_ram
 
    GROUP : {
@@ -100,7 +94,6 @@ SECTIONS
 
 }
 
-
 _stack_addr  = ADDR(stack)+SIZEOF(stack);
 _stack_end   = ADDR(stack);
 _heap_addr   = ADDR(heap);
@@ -113,3 +106,8 @@ _ssram_end   = ADDR(shared_ram)+SIZEOF(shared_ram);
 AIOP_INIT_DATA       = ADDR(memory_data);
 EXCEPTION_HANDLERS   = ADDR(exception_handlers);
 TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
+
+/* Definitions for required space of AIOP image in DDR */
+/* Used for initialization of aiop_app_init_info dp_ddr size */
+AIOP_DDR_START       = ADDR(exception_handlers);
+AIOP_DDR_END         = _heap_end;

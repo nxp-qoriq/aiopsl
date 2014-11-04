@@ -27,13 +27,12 @@
 #include "common/fsl_string.h"
 #include "inc/fsl_sys.h"
 
-extern int aiop_pton_init(void); extern void aiop_pton_free(void);
-extern int aiop_ntop_init(void); extern void aiop_ntop_free(void);
+extern int app_init(void); extern void app_free(void);
+
 
 #define APPS                            	\
 {                                       	\
-	{NULL, aiop_ntop_init, aiop_ntop_free},       \
-    {NULL, aiop_pton_init, aiop_pton_free},       \
+	{NULL, app_init, app_free},	\
 	{NULL, NULL, NULL} /* never remove! */    	\
 }
 

@@ -33,10 +33,10 @@
 #ifndef __DRV_H
 #define __DRV_H
 
-#include "common/types.h"
-#include "dplib/fsl_dpni_drv.h"
-#include "net/fsl_net.h"
-#include "dplib/fsl_dprc.h"
+#include "types.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_net.h"
+#include "fsl_dprc.h"
 #include "fsl_mc_init.h"
 
 int dpni_drv_probe(struct mc_dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
@@ -47,10 +47,39 @@ int dpni_drv_probe(struct mc_dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
 #define DPNI_DRV_FLG_MTU_ENABLE		0x20
 
 
-struct dpni_drv {
+#pragma pack(push, 1)
+struct dpni_drv_params {
+	/** starting HXS */
+	uint16_t            starting_hxs;
+	/** Parse Profile ID */
+	uint8_t             prpid;
+	/** \ref DPNI_DRV_DEFINES */
+	uint8_t             flags;
+	/** Storage profile ID */
+	uint8_t             spid;
+	uint8_t             res[1];
+	/** connection for the command interface */
+	uint16_t            dpni;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct dpni_drv_tx_params {
+	/** MTU value needed for the \ref dpni_drv_send() function */
+	uint32_t            mtu;
+	/** Queueing destination for the enqueue. */
+	uint16_t            qdid;
 	/** network interface ID which is equal to this entry's index in the NI
 	 *  table - internal to AIOP */
 	uint16_t            aiop_niid;
+};
+#pragma pack(pop)
+
+
+#pragma pack(push, 1)
+struct dpni_drv {
+	struct dpni_drv_params dpni_drv_params_var;
+	struct dpni_drv_tx_params dpni_drv_tx_params_var;
 
 #if 0
 	/** TODO: the mc_niid field will be necessary if we decide to close the
@@ -61,28 +90,17 @@ struct dpni_drv {
 
 	/** MAC address of this NI */
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
-	/** Storage profile ID */
-	uint8_t             spid;
-	uint8_t             res[1];
-	/** Queueing destination for the enqueue. */
-	uint16_t            qdid;
-	/** starting HXS */
-	uint16_t            starting_hxs;
-	/** MTU value needed for the \ref dpni_drv_send() function */
-	uint32_t            mtu;
-	/** Parse Profile ID */
-	uint8_t             prpid;
-	/** \ref DPNI_DRV_DEFINES */
-	uint8_t             flags;
 	/* lock for multi-core support */
 	uint8_t             dpni_lock;
+	uint8_t             res1;
 	/** call back application function */
-	rx_cb_t             *rx_cbs[DPNI_DRV_MAX_NUM_FLOWS];
+	rx_cb_t             *rx_cbs;
+	uint32_t            res2;
 	/** call back application argument */
-	dpni_drv_app_arg_t  args[DPNI_DRV_MAX_NUM_FLOWS];
-	/** connection for the command interface */
-	uint16_t            dpni;
+	dpni_drv_app_arg_t  arg;
 };
+#pragma pack(pop)
+
 
 void receive_cb(void);
 

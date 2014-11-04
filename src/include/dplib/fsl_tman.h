@@ -380,7 +380,22 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 @Return		0 on success, or negative value on error.
 @Retval		ETIMEDOUT - The timer cannot be deleted. The timer aimed to be
 		deleted expiration date is currently being processed by the
-		TMAN. The timer will elapse shortly.
+		TMAN. The timer will elapse shortly. 
+		In case of periodic timer the tman_delete_timer should be
+		called at the expiration routine to avoid this error. If this
+		error do happen for a periodic timer than it is consider as
+		a fatal error (the timer period is too short to handle the
+		timer expiration callback function).
+@Retval		EACCES - The timer cannot be deleted.
+		For one shot timer this error should be treated as an ETIMEDOUT
+		error.
+		For a periodic timer this error should be treated as a fatal
+		error (a delete command was already issued for this periodic
+		timer). 
+@Retval		ENAVAIL - The timer cannot be deleted. The timer is not an
+		active one. This should be treated as a fatal error.
+		When Errata ERR008205 will be fixed this error will
+		automatically generate a fatal error. 
 
 @Cautions	This function performs a task switch.
 
@@ -410,7 +425,6 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 *//***************************************************************************/
 int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
-#endif
 
 /**************************************************************************//**
 @Function	tman_recharge_timer
@@ -427,6 +441,7 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 
 *//***************************************************************************/
 int tman_recharge_timer(uint32_t timer_handle);
+#endif
 
 /**************************************************************************//**
 @Function	tman_query_timer

@@ -34,8 +34,8 @@
 #ifndef __FSL_PARSER_H
 #define __FSL_PARSER_H
 
-#include "common/types.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_ldpaa.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -334,6 +334,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	/** Frame Truncation: Frame Parsing reached end of frame while parsing
 	 * a header that expects more data */
 #define PARSER_FRAME_TRUNCATION                         0x02
+	/** Attempting to access an undefined or reserved HXS TODO*/
+/*#define PARSER_INVALID_HXS				0x03*/
 	/** Ethernet 802.3 length is larger than the frame received */
 #define PARSER_ETH_802_3_TRUNCATION                     0x10
 	/** PPPoE length is larger than the frame received */
@@ -412,7 +414,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @Description	These macros return a non-zero value in case an error in
 		the relevant frame's attribute was found.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 
@@ -530,7 +532,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @Description	These macros return a non-zero value in case the relevant
 		attribute was found in the frame.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 /** Returns a non-zero value in case Ethernet MAC is found */
@@ -720,19 +722,23 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_INNER_IP_INIT_FRAGMENT_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_IP_N_IS_INIT_FRAGMENT_MASK)
-/** Returns a non-zero value in case ICMP is found */
+/** Returns a non-zero value in case ICMP is found
+ * (Note that ICMP is not indicated for non initial fragment) */
 #define PARSER_IS_ICMP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_ICMP_MASK)
-/** Returns a non-zero value in case IGMP is found */
+/** Returns a non-zero value in case IGMP is found
+ * (Note that IGMP is not indicated for non initial fragment) */
 #define PARSER_IS_IGMP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_IGMP_MASK)
-/** Returns a non-zero value in case ICMPv6 is found */
+/** Returns a non-zero value in case ICMPv6 is found
+ * (Note that ICMPv6 is indicated for non initial fragment) */
 #define PARSER_IS_ICMPV6_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_ICMPV6_MASK)
-/** Returns a non-zero value in case UDP Lite is found */
+/** Returns a non-zero value in case UDP Lite is found
+ * (Note that UDP Lite is indicated for non initial fragment) */
 #define PARSER_IS_UDP_LITE_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_2 & PARSER_ATT_UDP_LITE_MASK)
@@ -847,7 +853,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 		in the frame. Offset 0xFF indicates that the corresponding
 		protocol was not found in the frame.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 
@@ -860,7 +866,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Get Shim2 offset*/
 #define PARSER_GET_SHIM2_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->shim_offset_2)
-/** Get the last IP Protocol Identifier offset*/
+/** Get the IP Protocol Identifier offset of the first IP */
 #define PARSER_GET_IP_PID_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip_pid_offset)
 /** Get the ETHERNET header offset */
@@ -917,7 +923,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->routing_hdr_offset2)
 /** Get Next header offset
- * (offset to the last header that has not been parsed) */
+ * (offset to the last result of the parsed header of the next header type) */
 #define PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->nxt_hdr_offset)
 /** Get IPv6 fragment header offset */
@@ -941,7 +947,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @Description	These macros return the pointer to the relevant protocol
 		in the frame.
 		These macros are working on the default working frame's
-		parse results.
+		parse result.
 @{
 *//***************************************************************************/
 
@@ -955,7 +961,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_SHIM2_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_SHIM2_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-/** Get the pointer to last IP Protocol Identifier
+/** Get the pointer to IP Protocol Identifier offset of the first IP
  in the default frame presented in the workspace */
 #define PARSER_GET_IP_PID_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_IP_PID_OFFSET_DEFAULT() \
@@ -1043,8 +1049,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_2ND_IPV6_ROUTING_HDR_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
 			+ PRC_GET_SEGMENT_ADDRESS())
-/** Get the pointer to Next header (last header that has not been parsed)
- in the default frame presented in the workspace */
+/** Get the pointer to Next header (last result of the parsed header of the
+ * next header type) in the default frame presented in the workspace */
 #define PARSER_GET_NEXT_HEADER_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
@@ -1222,7 +1228,7 @@ struct parse_result {
 	uint8_t  shim_offset_1;
 	/** Shim Offset 2 */
 	uint8_t  shim_offset_2;
-	/** IP NH/protocol field offset */
+	/** IP protocol field offset */
 	uint8_t  ip_pid_offset;
 	/** Ethernet offset */
 	uint8_t  eth_offset;
@@ -1258,7 +1264,7 @@ struct parse_result {
 	uint8_t  nxt_hdr_offset;
 	/** IPv6 fragmentable part offset */
 	uint8_t  ipv6_frag_offset;
-	/** Frame's untouched running sum */
+	/** Frame's untouched running sum, input to parser */
 	uint16_t gross_running_sum;
 	/** Running Sum */
 	uint16_t running_sum;
@@ -1535,7 +1541,7 @@ int parser_profile_delete(uint8_t prpid);
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 void parser_profile_query(uint8_t prpid,
-			struct parse_profile_record *parse_profile);
+			struct parse_profile_input *parse_profile);
 
 
 #include "parser_inline.h"
@@ -1543,14 +1549,16 @@ void parser_profile_query(uint8_t prpid,
 /**************************************************************************//**
 @Function	parse_result_generate_default
 
-@Description	Runs parser with default parameters and generates parse result.
+@Description	Runs parser with default task parameters and generates
+		parse result.
 		This function provides, on a per Parse Profile basis,
 		examination of a frame at the start of the frame (offset 0)
 		with presumption of the first header type as configured in the
 		default starting HXS.
 
 		Implicit input parameters:
-		Segment address, Segment size, Parser Profile ID, Starting HXS.
+		FD, Segment address, Segment size, Parser Profile ID,
+		Starting HXS.
 
 		Implicitly updated values in Task Defaults in the HWC:
 		Parser Result.
@@ -1572,8 +1580,10 @@ void parser_profile_query(uint8_t prpid,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
- 	 	In case the gross running sum is not correct, the user must
- 	 	clear it before calling parser.
+		In case gross running sum is clear, and L4 validation is not
+		required, running sum field in the parse result is not valid.
+ 	 	In case L4 validation is required but the gross running sum is
+ 	 	not correct, the user must clear it before calling parser.
 *//***************************************************************************/
 inline int parse_result_generate_default(uint8_t flags);
 
@@ -1587,7 +1597,7 @@ inline int parse_result_generate_default(uint8_t flags);
 		first header type.
 
 		Implicit input parameters:
-		Segment address, Segment size, Parser Profile ID.
+		FD, Segment address, Segment size, Parser Profile ID.
 
 		Implicitly updated values in Task Defaults in the HWC:
 		Parser Result.
@@ -1614,8 +1624,10 @@ inline int parse_result_generate_default(uint8_t flags);
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
- 	 	In case the gross running sum is not correct, the user must
- 	 	clear it before calling parser.
+		In case gross running sum is clear, and L4 validation is not
+		required, running sum field in the parse result is not valid.
+ 	 	In case L4 validation is required but the gross running sum is
+ 	 	not correct, the user must clear it before calling parser.
 *//***************************************************************************/
 inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);
@@ -1628,7 +1640,7 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		starting_offset = 0, no checksum validation.
 
 		Implicit input parameters:
-		Segment address, Segment size.
+		FD, Segment address, Segment size.
 
 		Implicitly updated values in Task Defaults in the HWC:
 		Parser Result.
@@ -1646,6 +1658,8 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
+ 	 	If input gross running sum is not correct, both "gross running
+ 	 	sum" and "running sum" fields in the parse result are not valid.
 *//***************************************************************************/
 inline int parse_result_generate_basic(void);
 

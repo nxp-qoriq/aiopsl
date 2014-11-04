@@ -42,21 +42,21 @@ const char *dbg_level_strings[] = {
     ,"TRACE"
 };
 
-char * err_type_strings (enum error_type err) {
+char * err_type_strings (int err) {
     switch (err) {
-        case (E_OK):                    return "OK";
-        case (E_WRITE_FAILED):          return "write access failed";
-        case (E_NO_DEVICE):             return "no device";
-        case (E_NOT_AVAILABLE):         return "resource is unavailable";
-        case (E_NO_MEMORY):             return "memory allocation failed";
-        case (E_INVALID_ADDRESS):       return "invalid address";
-        case (E_BUSY):                  return "resource is busy";
-        case (E_ALREADY_EXISTS):        return "resource already exists";
-        case (E_INVALID_OPERATION):     return "invalid operation";
-        case (E_INVALID_VALUE):         return "invalid value";
-        case (E_NOT_IN_RANGE):          return "value out of range";
-        case (E_NOT_SUPPORTED):         return "unsupported operation";
-        case (E_TIMEOUT):               return "operation timed out";
+        case (0):                       return "OK";
+        case (EIO):                     return "write access failed";
+        case (ENODEV):                  return "no device";
+        case (EAGAIN):                  return "resource is unavailable";
+        case (ENOMEM):                  return "memory allocation failed";
+        case (EFAULT):                  return "invalid address";
+        case (EBUSY):                   return "resource is busy";
+        case (EEXIST):                  return "resource already exists";
+        case (ENOSYS):                  return "invalid operation";
+        case (EDOM):                    return "invalid value";
+        case (ERANGE):                  return "value out of range";
+        case (ENOTSUP):                 return "unsupported operation";
+        case (ETIMEDOUT):               return "operation timed out";
         case (E_INVALID_STATE):         return "invalid state";
         case (E_INVALID_SELECTION):     return "invalid selection";
         case (E_CONFLICT):              return "conflict in settings";

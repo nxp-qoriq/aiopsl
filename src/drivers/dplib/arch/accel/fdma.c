@@ -32,7 +32,7 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_fdma.h"
+#include "fsl_fdma.h"
 #include "fdma.h"
 
 int fdma_present_default_frame(void)
@@ -633,7 +633,7 @@ int fdma_store_frame_data(
 	amq->icid = bdi_icid & ~(FDMA_ICID_CONTEXT_BDI);
 	amq->flags =
 		(((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) &
-			(FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_VA)) |
+			(FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_eVA)) |
 		(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
 
 	if (res1 == FDMA_SUCCESS)
@@ -1111,7 +1111,7 @@ int fdma_concatenate_frames(
 		params->amq.icid = bdi_icid & ~(FDMA_ICID_CONTEXT_BDI);
 		params->amq.flags =
 			(((*((uint16_t *)HWC_ACC_OUT_ADDRESS2)) &
-			(FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_VA)) |
+			(FDMA_ICID_CONTEXT_PL | FDMA_ICID_CONTEXT_eVA)) |
 			(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
 	}
 
@@ -2187,8 +2187,8 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		err_msg = "FDMA Internal error, SRU depletion.\n";
 		break;
 	case FDMA_SPID_ICID_ERR:
-		err_msg = "Storage Profile ICID does not match frame ICID and "
-				"Storage Profile BS=1 error.\n";
+		err_msg = "Storage Profile ICID does not match frame ICID "
+				"Error.\n";
 		break;
 	case FDMA_SRAM_MEMORY_READ_ERR:
 		err_msg = "Shared SRAM memory read Error.\n";
@@ -2196,11 +2196,14 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 	case FDMA_PROFILE_SRAM_MEMORY_READ_ERR:
 		err_msg = "Profile SRAM memory read Error.\n";
 		break;
+	case FDMA_CONCATENATE_ICID_NOT_MATCH_ERR:
+		err_msg = "Frames to concatenate ICIDs does not match Error.\n";
+		break;	
 	case FDMA_INVALID_PTA_ADDRESS:
-		err_msg = "Invalid PTA address.\n";
+		err_msg = "Invalid PTA address Error.\n";
 		break;
 	default:
-		err_msg = "Unknown or Invalid status.\n";
+		err_msg = "Unknown or Invalid status Error.\n";
 	}
 	
 	exception_handler(__FILE__, func_name, line, err_msg);

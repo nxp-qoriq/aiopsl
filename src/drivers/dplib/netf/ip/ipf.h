@@ -32,7 +32,7 @@
 #ifndef __IPF_H
 #define __IPF_H
 
-#include "dplib/fsl_ipf.h"
+#include "fsl_ipf.h"
 
 /**************************************************************************//**
 @Group		AIOP_IPF_INTERNAL  AIOP IPF Internal

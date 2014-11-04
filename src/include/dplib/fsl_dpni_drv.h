@@ -32,10 +32,11 @@
 #ifndef __FSL_DPNI_DRV_H
 #define __FSL_DPNI_DRV_H
 
-#include "common/types.h"
-#include "dplib/fsl_dpni.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_dpni.h"
+#include "fsl_ldpaa.h"
 #include "dpni_drv.h"
+#include "dpni_drv_rxtx_inline.h"
 
 
 /**************************************************************************//**
@@ -54,8 +55,6 @@
 	The callback function will be called when the NI_ID receives a frame.
 
 @Param[in]	ni_id  - The Network Interface ID
-@Param[in]	flow_id - Flow ID, should be between 0 and
-		#DPNI_DRV_MAX_NUM_FLOWS
 @Param[in]	cb - Callback function for Network Interface specified flow_id
 @Param[in]	arg - Argument that will be passed to callback function
 
@@ -64,7 +63,6 @@
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
-			uint16_t        flow_id,
 			rx_cb_t		    *cb,
 			dpni_drv_app_arg_t arg);
 
@@ -77,15 +75,12 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 		receives a frame
 
 @Param[in]	ni_id - The Network Interface ID
-@Param[in]	flow_id - Flow ID, should be between 0 and
-		#DPNI_DRV_MAX_NUM_FLOWS
 
 @Return	OK on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_unregister_rx_cb(uint16_t		ni_id,
-                              uint16_t		flow_id);
+int dpni_drv_unregister_rx_cb(uint16_t		ni_id);
 
 /**************************************************************************//**
 @Function	dpni_get_receive_niid
@@ -176,7 +171,7 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
           		const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /**************************************************************************//**
-@Function	dpni_drv_set_mfl
+@Function	dpni_drv_set_max_frame_length
 
 @Description	Set the maximum received frame length.
 
@@ -188,11 +183,11 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_set_mfl(uint16_t ni_id,
+int dpni_drv_set_max_frame_length(uint16_t ni_id,
                           const uint16_t mfl);
 
 /**************************************************************************//**
-@Function	dpni_drv_get_mfl
+@Function	dpni_drv_get_max_frame_length
 
 @Description	Get the maximum received frame length.
 
@@ -204,7 +199,7 @@ int dpni_drv_set_mfl(uint16_t ni_id,
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_get_mfl(uint16_t ni_id,
+int dpni_drv_get_max_frame_length(uint16_t ni_id,
                           uint16_t *mfl);
 
 /**************************************************************************//**
@@ -219,7 +214,7 @@ int dpni_drv_get_mfl(uint16_t ni_id,
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_send(uint16_t ni_id);
+inline int dpni_drv_send(uint16_t ni_id);
 
 /**************************************************************************//**
 @Function	dpni_drv_explicit_send
@@ -238,6 +233,83 @@ int dpni_drv_send(uint16_t ni_id);
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_multicast_promisc
+
+@brief		Enable/Disable multicast promiscuous mode
+
+@param[in]	ni_id - The Network Interface ID
+@param[in]	en - '1' for enabling/'0' for disabling
+
+@returns	'0' on Success; Error code otherwise.
+*//***************************************************************************/
+int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_multicast_promisc
+
+@brief		Get multicast promiscuous mode
+
+@param[in]	ni_id - The Network Interface ID
+@param[out]	en - '1' for enabled/'0' for disabled
+
+@returns	'0' on Success; Error code otherwise.
+*//***************************************************************************/
+int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_unicast_promisc
+
+@brief		Enable/Disable unicast promiscuous mode
+
+@param[in]	ni_id - The Network Interface ID
+@param[in]	en - '1' for enabling/'0' for disabling
+
+@returns	'0' on Success; Error code otherwise.
+*//***************************************************************************/
+int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_unicast_promisc
+
+@brief		Get unicast promiscuous mode
+
+@param[in]	ni_id - The Network Interface ID
+@param[out]	en - '1' for enabled/'0' for disabled
+
+@returns	'0' on Success; Error code otherwise.
+*//***************************************************************************/
+int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

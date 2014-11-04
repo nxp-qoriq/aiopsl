@@ -26,7 +26,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/RAM</value>
+					<value>${ProjDirPath}/Release</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.contents</key>
@@ -478,6 +478,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx.c</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/dpni/drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dpni/drv.h</locationURI>
@@ -588,6 +593,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/accel/cdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/arch/accel/fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.c</locationURI>
@@ -641,6 +651,11 @@
 			<name>sources/drivers/dplib/arch/accel/ste.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/ste.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/accel/ste_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/ste_inline.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/system.c</name>

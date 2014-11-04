@@ -28,19 +28,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/**************************************************************************//*
- @File          fsl_dprc_cmd.h
-
- @Description   defines dprc portal commands
-
- @Cautions      None.
- *//***************************************************************************/
-
 #ifndef _FSL_DPRC_CMD_H
 #define _FSL_DPRC_CMD_H
 
 /* DPRC Version */
-#define DPRC_VER_MAJOR				1
+#define DPRC_VER_MAJOR				2
 #define DPRC_VER_MINOR				0
 
 /* Command IDs */
@@ -48,41 +40,46 @@
 #define DPRC_CMDID_OPEN				0x805
 #define DPRC_CMDID_CREATE			0x905
 
+#define DPRC_CMDID_GET_ATTR			0x004
+#define DPRC_CMDID_RESET_CONT			0x005
+
+#define DPRC_CMDID_SET_IRQ			0x010
+#define DPRC_CMDID_GET_IRQ			0x011
+#define DPRC_CMDID_SET_IRQ_ENABLE		0x012
+#define DPRC_CMDID_GET_IRQ_ENABLE		0x013
+#define DPRC_CMDID_SET_IRQ_MASK			0x014
+#define DPRC_CMDID_GET_IRQ_MASK			0x015
+#define DPRC_CMDID_GET_IRQ_STATUS		0x016
+#define DPRC_CMDID_CLEAR_IRQ_STATUS		0x017
+
 #define DPRC_CMDID_CREATE_CONT			0x151
 #define DPRC_CMDID_DESTROY_CONT			0x152
 #define DPRC_CMDID_GET_CONT_ID			0x830
-#define DPRC_CMDID_RESET_CONT			0x154
 #define DPRC_CMDID_SET_RES_QUOTA		0x155
 #define DPRC_CMDID_GET_RES_QUOTA		0x156
 #define DPRC_CMDID_ASSIGN			0x157
 #define DPRC_CMDID_UNASSIGN			0x158
 #define DPRC_CMDID_GET_OBJ_COUNT		0x159
-#define DPRC_CMDID_GET_OBJECT			0x15A
+#define DPRC_CMDID_GET_OBJ			0x15A
 #define DPRC_CMDID_GET_RES_COUNT		0x15B
 #define DPRC_CMDID_GET_RES_IDS			0x15C
-#define DPRC_CMDID_GET_ATTR			0x15D
 #define DPRC_CMDID_GET_OBJ_REG			0x15E
-#define DPRC_CMDID_SET_IRQ			0x15F
-#define DPRC_CMDID_GET_IRQ			0x160
-#define DPRC_CMDID_SET_IRQ_ENABLE		0x161
-#define DPRC_CMDID_GET_IRQ_ENABLE		0x162
-#define DPRC_CMDID_SET_IRQ_MASK			0x163
-#define DPRC_CMDID_GET_IRQ_MASK			0x164
-#define DPRC_CMDID_GET_IRQ_STATUS		0x165
-#define DPRC_CMDID_CLEAR_IRQ_STATUS		0x166
+
 #define DPRC_CMDID_CONNECT			0x167
 #define DPRC_CMDID_DISCONNECT			0x168
 #define DPRC_CMDID_GET_POOL			0x169
 #define DPRC_CMDID_GET_POOL_COUNT		0x16A
 #define DPRC_CMDID_GET_PORTAL_PADDR		0x16B
 
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_OPEN(cmd, container_id) \
-	MC_CMD_OP(cmd, 0, 0,  32, int,	    container_id)
+#define DPRC_CMDID_GET_CONNECTION		0x16C
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_RSP_GET_CONTAINER_ID(cmd, container_id) \
 	MC_RSP_OP(cmd, 0, 0,  32,  int,	    container_id)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_OPEN(cmd, container_id) \
+	MC_CMD_OP(cmd, 0, 0,  32, int,	    container_id)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_CREATE_CONTAINER(cmd, cfg) \
@@ -106,6 +103,86 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_RESET_CONTAINER(cmd, child_container_id) \
 	MC_CMD_OP(cmd, 0, 0,  32, int,	    child_container_id)
+
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \
+do { \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_paddr);\
+	MC_CMD_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_GET_IRQ(cmd, irq_index) \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_IRQ(cmd, type, irq_paddr, irq_val, user_irq_id) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_paddr);\
+	MC_RSP_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
+	MC_RSP_OP(cmd, 2, 32, 32, int,      type); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_SET_IRQ_ENABLE(cmd, irq_index, en) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  8, uint8_t, en); \
+	MC_CMD_OP(cmd, 0, 32, 8, uint8_t, irq_index);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_GET_IRQ_ENABLE(cmd, irq_index) \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_IRQ_ENABLE(cmd, en) \
+	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  en)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_SET_IRQ_MASK(cmd, irq_index, mask) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, mask); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_GET_IRQ_MASK(cmd, irq_index) \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_IRQ_MASK(cmd, mask) \
+	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, mask)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_GET_IRQ_STATUS(cmd, irq_index) \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_IRQ_STATUS(cmd, status) \
+	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, status)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_CLEAR_IRQ_STATUS(cmd, irq_index, status) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
+} while (0)
+
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_ATTRIBUTES(cmd, attr) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  32, int,	    attr->container_id); \
+	MC_RSP_OP(cmd, 0, 32, 16, uint16_t, attr->icid); \
+	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, attr->options);\
+	MC_RSP_OP(cmd, 1, 32, 32, int,      attr->portal_id); \
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, attr->version.major);\
+	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, attr->version.minor);\
+} while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_SET_RES_QUOTA(cmd, child_container_id, type, quota) \
@@ -153,7 +230,7 @@ do { \
 } while (0)
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_RSP_GET_RES_QUOTA(cmd, quota) \
-	MC_RSP_OP(cmd, 	  0,	32,	16,	uint16_t, quota)
+	MC_RSP_OP(cmd,	  0,	32,	16,	uint16_t, quota)
 
 /*	param, offset, width,	type,		arg_name */
 #define DPRC_CMD_ASSIGN(cmd, container_id, res_req) \
@@ -206,23 +283,52 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_POOL_COUNT(cmd, pool_count) \
+	MC_RSP_OP(cmd, 0, 0,  32, int,	    pool_count)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_CMD_GET_POOL(cmd, pool_index) \
+	MC_CMD_OP(cmd,	  0,	0,	32,	int,	pool_index)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_POOL(cmd, type) \
+do { \
+	MC_RSP_OP(cmd, 1, 0,  8,  char,     type[0]);\
+	MC_RSP_OP(cmd, 1, 8,  8,  char,	    type[1]);\
+	MC_RSP_OP(cmd, 1, 16, 8,  char,	    type[2]);\
+	MC_RSP_OP(cmd, 1, 24, 8,  char,	    type[3]);\
+	MC_RSP_OP(cmd, 1, 32, 8,  char,	    type[4]);\
+	MC_RSP_OP(cmd, 1, 40, 8,  char,	    type[5]);\
+	MC_RSP_OP(cmd, 1, 48, 8,  char,	    type[6]);\
+	MC_RSP_OP(cmd, 1, 56, 8,  char,	    type[7]);\
+	MC_RSP_OP(cmd, 2, 0,  8,  char,	    type[8]);\
+	MC_RSP_OP(cmd, 2, 8,  8,  char,	    type[9]);\
+	MC_RSP_OP(cmd, 2, 16, 8,  char,	    type[10]);\
+	MC_RSP_OP(cmd, 2, 24, 8,  char,	    type[11]);\
+	MC_RSP_OP(cmd, 2, 32, 8,  char,	    type[12]);\
+	MC_RSP_OP(cmd, 2, 40, 8,  char,	    type[13]);\
+	MC_RSP_OP(cmd, 2, 48, 8,  char,     type[14]);\
+	MC_RSP_OP(cmd, 2, 56, 8,  char,	    type[15]);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
 #define DPRC_RSP_GET_OBJ_COUNT(cmd, obj_count) \
 	MC_RSP_OP(cmd, 0, 32, 32, int,      obj_count)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_GET_OBJECT(cmd, obj_index) \
+#define DPRC_CMD_GET_OBJ(cmd, obj_index) \
 	MC_CMD_OP(cmd, 0, 0,  32, int,	    obj_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_OBJECT(cmd, obj_desc) \
+#define DPRC_RSP_GET_OBJ(cmd, obj_desc) \
 do { \
 	MC_RSP_OP(cmd, 0, 32, 32, int,	    obj_desc->id); \
 	MC_RSP_OP(cmd, 1, 0,  16, uint16_t, obj_desc->vendor); \
 	MC_RSP_OP(cmd, 1, 16, 8,  uint8_t,  obj_desc->irq_count); \
 	MC_RSP_OP(cmd, 1, 24, 8,  uint8_t,  obj_desc->region_count); \
 	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, obj_desc->state);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, obj_desc->ver_minor); \
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, obj_desc->ver_major); \
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, obj_desc->ver_major);\
+	MC_RSP_OP(cmd, 2, 16, 16, uint16_t, obj_desc->ver_minor);\
 	MC_RSP_OP(cmd, 3, 0,  8,  char,	    obj_desc->type[0]);\
 	MC_RSP_OP(cmd, 3, 8,  8,  char,	    obj_desc->type[1]);\
 	MC_RSP_OP(cmd, 3, 16, 8,  char,	    obj_desc->type[2]);\
@@ -264,13 +370,13 @@ do { \
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_RSP_GET_RES_COUNT(cmd, res_count) \
-	MC_RSP_OP(cmd, 0, 0,  32, int, 	    res_count)
+	MC_RSP_OP(cmd, 0, 0,  32, int,	    res_count)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_GET_RES_IDS(cmd, range_desc, type) \
 do { \
 	MC_CMD_OP(cmd, 0, 42, 7,  enum dprc_iter_status, \
-	          	  	  	    range_desc->iter_status); \
+					    range_desc->iter_status); \
 	MC_CMD_OP(cmd, 1, 0,  32, int,	    range_desc->base_id); \
 	MC_CMD_OP(cmd, 1, 32, 32, int,	    range_desc->last_id);\
 	MC_CMD_OP(cmd, 2, 0,  8,  char,	    type[0]);\
@@ -295,21 +401,18 @@ do { \
 #define DPRC_RSP_GET_RES_IDS(cmd, range_desc) \
 do { \
 	MC_RSP_OP(cmd, 0, 42, 7,  enum dprc_iter_status, \
-	          	  	  	    range_desc->iter_status);\
+					    range_desc->iter_status);\
 	MC_RSP_OP(cmd, 1, 0,  32, int,	    range_desc->base_id); \
 	MC_RSP_OP(cmd, 1, 32, 32, int,	    range_desc->last_id);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_ATTRIBUTES(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,	    attr->container_id); \
-	MC_RSP_OP(cmd, 0, 32, 16, uint16_t, attr->icid); \
-	MC_RSP_OP(cmd, 0, 48, 16, uint16_t, attr->portal_id); \
-	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, attr->options);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->version.major);\
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->version.minor);\
-} while (0)
+#define DPRC_CMD_GET_PORTAL_PADDR(cmd, portal_id) \
+	MC_CMD_OP(cmd, 0, 0,  32, int,      portal_id)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPRC_RSP_GET_PORTAL_PADDR(cmd, portal_addr) \
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, portal_addr)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_GET_OBJ_REGION(cmd, obj_type, obj_id, region_index) \
@@ -339,73 +442,6 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, region_desc->base_paddr);\
 	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, region_desc->size); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \
-do { \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_paddr);\
-	MC_CMD_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_GET_IRQ(cmd, irq_index) \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_IRQ(cmd, type, irq_paddr, irq_val, user_irq_id) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_paddr);\
-	MC_RSP_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
-	MC_RSP_OP(cmd, 2, 32, 32, int,      type); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_SET_IRQ_ENABLE(cmd, irq_index, enable_state) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  8, uint8_t, enable_state); \
-	MC_CMD_OP(cmd, 0, 32, 8, uint8_t, irq_index);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_GET_IRQ_ENABLE(cmd, irq_index) \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_IRQ_ENABLE(cmd, enable_state) \
-	MC_RSP_OP(cmd, 0, 0,  8,  uint8_t,  enable_state)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_SET_IRQ_MASK(cmd, irq_index, mask) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, mask); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_GET_IRQ_MASK(cmd, irq_index) \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_IRQ_MASK(cmd, mask) \
-	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, mask)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_GET_IRQ_STATUS(cmd, irq_index) \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_IRQ_STATUS(cmd, status) \
-	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, status)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_CLEAR_IRQ_STATUS(cmd, irq_index, status) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -473,39 +509,51 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_GET_POOL(cmd, pool_index) \
-	MC_CMD_OP(cmd, 	  0,	0,	32,	int,	pool_index)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_POOL(cmd, type) \
+#define DPRC_CMD_GET_CONNECTION(cmd, endpoint1) \
 do { \
-	MC_RSP_OP(cmd, 1, 0,  8,  char,     type[0]);\
-	MC_RSP_OP(cmd, 1, 8,  8,  char,	    type[1]);\
-	MC_RSP_OP(cmd, 1, 16, 8,  char,	    type[2]);\
-	MC_RSP_OP(cmd, 1, 24, 8,  char,	    type[3]);\
-	MC_RSP_OP(cmd, 1, 32, 8,  char,	    type[4]);\
-	MC_RSP_OP(cmd, 1, 40, 8,  char,	    type[5]);\
-	MC_RSP_OP(cmd, 1, 48, 8,  char,	    type[6]);\
-	MC_RSP_OP(cmd, 1, 56, 8,  char,	    type[7]);\
-	MC_RSP_OP(cmd, 2, 0,  8,  char,	    type[8]);\
-	MC_RSP_OP(cmd, 2, 8,  8,  char,	    type[9]);\
-	MC_RSP_OP(cmd, 2, 16, 8,  char,	    type[10]);\
-	MC_RSP_OP(cmd, 2, 24, 8,  char,	    type[11]);\
-	MC_RSP_OP(cmd, 2, 32, 8,  char,	    type[12]);\
-	MC_RSP_OP(cmd, 2, 40, 8,  char,	    type[13]);\
-	MC_RSP_OP(cmd, 2, 48, 8,  char,     type[14]);\
-	MC_RSP_OP(cmd, 2, 56, 8,  char,	    type[15]);\
+	MC_CMD_OP(cmd, 0, 0,  32, int,      endpoint1->id); \
+	MC_CMD_OP(cmd, 0, 32, 32, int,	    endpoint1->interface_id); \
+	MC_CMD_OP(cmd, 1, 0,  8,  char,     endpoint1->type[0]); \
+	MC_CMD_OP(cmd, 1, 8,  8,  char,	    endpoint1->type[1]); \
+	MC_CMD_OP(cmd, 1, 16, 8,  char,	    endpoint1->type[2]); \
+	MC_CMD_OP(cmd, 1, 24, 8,  char,	    endpoint1->type[3]); \
+	MC_CMD_OP(cmd, 1, 32, 8,  char,	    endpoint1->type[4]); \
+	MC_CMD_OP(cmd, 1, 40, 8,  char,	    endpoint1->type[5]); \
+	MC_CMD_OP(cmd, 1, 48, 8,  char,	    endpoint1->type[6]); \
+	MC_CMD_OP(cmd, 1, 56, 8,  char,	    endpoint1->type[7]); \
+	MC_CMD_OP(cmd, 2, 0,  8,  char,	    endpoint1->type[8]); \
+	MC_CMD_OP(cmd, 2, 8,  8,  char,	    endpoint1->type[9]); \
+	MC_CMD_OP(cmd, 2, 16, 8,  char,	    endpoint1->type[10]); \
+	MC_CMD_OP(cmd, 2, 24, 8,  char,	    endpoint1->type[11]); \
+	MC_CMD_OP(cmd, 2, 32, 8,  char,     endpoint1->type[12]); \
+	MC_CMD_OP(cmd, 2, 40, 8,  char,	    endpoint1->type[13]); \
+	MC_CMD_OP(cmd, 2, 48, 8,  char,	    endpoint1->type[14]); \
+	MC_CMD_OP(cmd, 2, 56, 8,  char,	    endpoint1->type[15]); \
 } while (0)
 
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_POOL_COUNT(cmd, pool_count) \
-	MC_RSP_OP(cmd, 0, 0,  32, int,	    pool_count)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_GET_PORTAL_PADDR(cmd, portal_id) \
-	MC_CMD_OP(cmd, 0, 0,  32, int,      portal_id)
+#define DPRC_RSP_GET_CONNECTION(cmd, endpoint2, state) \
+do { \
+	MC_RSP_OP(cmd, 3, 0,  32, int,	    endpoint2->id); \
+	MC_RSP_OP(cmd, 3, 32, 32, int,	    endpoint2->interface_id); \
+	MC_RSP_OP(cmd, 4, 0,  8,  char,	    endpoint2->type[0]); \
+	MC_RSP_OP(cmd, 4, 8,  8,  char,	    endpoint2->type[1]); \
+	MC_RSP_OP(cmd, 4, 16, 8,  char,	    endpoint2->type[2]); \
+	MC_RSP_OP(cmd, 4, 24, 8,  char,	    endpoint2->type[3]); \
+	MC_RSP_OP(cmd, 4, 32, 8,  char,	    endpoint2->type[4]); \
+	MC_RSP_OP(cmd, 4, 40, 8,  char,	    endpoint2->type[5]); \
+	MC_RSP_OP(cmd, 4, 48, 8,  char,	    endpoint2->type[6]); \
+	MC_RSP_OP(cmd, 4, 56, 8,  char,	    endpoint2->type[7]); \
+	MC_RSP_OP(cmd, 5, 0,  8,  char,	    endpoint2->type[8]); \
+	MC_RSP_OP(cmd, 5, 8,  8,  char,	    endpoint2->type[9]); \
+	MC_RSP_OP(cmd, 5, 16, 8,  char,	    endpoint2->type[10]); \
+	MC_RSP_OP(cmd, 5, 24, 8,  char,	    endpoint2->type[11]); \
+	MC_RSP_OP(cmd, 5, 32, 8,  char,	    endpoint2->type[12]); \
+	MC_RSP_OP(cmd, 5, 40, 8,  char,	    endpoint2->type[13]); \
+	MC_RSP_OP(cmd, 5, 48, 8,  char,	    endpoint2->type[14]); \
+	MC_RSP_OP(cmd, 5, 56, 8,  char,	    endpoint2->type[15]); \
+	MC_RSP_OP(cmd, 6, 0,  32, int,	    state); \
+} while (0)
 
-/*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_PORTAL_PADDR(cmd, portal_addr) \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, portal_addr)
 #endif /* _FSL_DPRC_CMD_H */

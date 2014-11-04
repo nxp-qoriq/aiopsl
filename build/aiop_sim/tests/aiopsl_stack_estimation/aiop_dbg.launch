@@ -2,7 +2,7 @@
 <launchConfiguration type="com.freescale.cdt.launch.cw.download">
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSExeName" value=""/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbdc54"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="42333"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="42828"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSTimeOut" value="60"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.JTAGConfigFile" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.chainSpeedTCK" value="12500"/>
@@ -41,7 +41,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smpTarget" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.systemType" value="com.freescale.cw.system.LS.LS2085AFM"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLine" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddr" value="-1879047936"/>
@@ -156,9 +156,9 @@
 <listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.netMask" value="255.255.255.255"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="None"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.rtospluginname" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.targetos" value="None"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="com.freescale.os.task.aware"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.rtospluginname" value="Task Aware RTOS"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.osawareness.targetos" value="AIOP"/>
 <listAttribute key="com.freescale.cdt.debug.cw.perCoreResetList"/>
 <listAttribute key="com.freescale.cdt.debug.cw.perProcessorResetList"/>
 <listAttribute key="com.freescale.cdt.debug.cw.runOutOfResetList">
@@ -180,7 +180,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.useGateway" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useHSSTIO" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useInitPathList">
-<listEntry value="true"/>
+<listEntry value="false"/>
 </listAttribute>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useMacAddress" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useMemConfigPathList">
@@ -339,6 +339,7 @@
 <listEntry value="Other Executables"/>
 <listEntry value="Symbolics"/>
 <listEntry value="osawareness"/>
+<listEntry value="TA Initialization"/>
 </listAttribute>
 <booleanAttribute key="com.freescale.sa.dpaa.launch.ENABLE_ANALYSIS" value="false"/>
 <intAttribute key="com.freescale.sa.dpaa.launch.ui.SA_COMMUNICATION_PORT_NUMBER" value="43969"/>
@@ -352,16 +353,16 @@
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_REGISTER_BOOKKEEPING" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_RESTORE_WATCHPOINTS" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_VARIABLE_BOOKKEEPING" value="false"/>
-<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;auth_id-cmdif_srv_isr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;cmd_id-cmdif_srv_isr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;sync_addr-sync_done_read-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;done-resp-*resp-resp-sync_done_read-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;p_addr-cmdif_open_cmd-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[0]-m_name-cmdif_srv_isr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ext_address-cdma_write-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;m_id-cmdif_srv_register-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[838]-sync_done-*srv-srv-sync_cmd_done-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;sync_done-*srv-srv-sync_cmd_done-(cast_to_array)&quot; val=&quot;0:1000&quot;/&gt;&lt;content id=&quot;cmd_id-client_open_cmd-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;m_id-*srv-srv-cmdif_srv_init-(cast_to_array)&quot; val=&quot;0:64&quot;/&gt;&lt;content id=&quot;m_name-*srv-srv-cmdif_srv_init-(cast_to_array)&quot; val=&quot;0:64&quot;/&gt;&lt;content id=&quot;error-slab_release-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-fill_system_parameters-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-global_post_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;start_addr-mem_region_info-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;size-mem_region_info-platform_init-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;start_addr-info-[0]-mem_regions-get_mem_region_info-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base-*[0]-[0]-free_blocks-*p_MM-p_MM-slob_get-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;virt_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;phys_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;buff-app_write_buff_and_release-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;context_address-vpool_refcount_decrement_and_release-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;m_name-*srv-srv-cmdif_register_module-(cast_to_array)&quot; val=&quot;0:64&quot;/&gt;&lt;content id=&quot;open_cb-*srv-srv-cmdif_register_module-(cast_to_array)&quot; val=&quot;0:16&quot;/&gt;&lt;content id=&quot;close_cb-*srv-srv-cmdif_register_module-(cast_to_array)&quot; val=&quot;0:16&quot;/&gt;&lt;content id=&quot;ctrl_cb-*srv-srv-cmdif_register_module-(cast_to_array)&quot; val=&quot;0:16&quot;/&gt;&lt;content id=&quot;m_name-*srv-srv-cmdif_unregister_module-(cast_to_array)&quot; val=&quot;0:64&quot;/&gt;&lt;content id=&quot;open_cb-*srv-srv-cmdif_unregister_module-(cast_to_array)&quot; val=&quot;0:16&quot;/&gt;&lt;content id=&quot;data-epid_setup-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;m_name-*srv-srv-module_id_alloc-(cast_to_array)&quot; val=&quot;0:64&quot;/&gt;&lt;content id=&quot;m_id-*srv-srv-cmdif_srv_allocate-(cast_to_array)&quot; val=&quot;0:512&quot;/&gt;&lt;content id=&quot;[0]-m_id-*srv-srv-cmdif_srv_allocate-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[1]-m_id-*srv-srv-cmdif_srv_allocate-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[2]-m_id-*srv-srv-cmdif_srv_allocate-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;[3]-m_id-*srv-srv-cmdif_srv_allocate-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;arg1-cdma_read-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;arg2-cdma_read-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;arg3-cdma_read-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;arg4-cdma_read-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;res1-cdma_read-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;resp-sync_cmd_done-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;data-ctrl_cb-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;d_size-fd-client_open_cmd-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;flc-u_flc-fd-client_open_cmd-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;d_addr-u_addr-fd-client_open_cmd-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
+<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;phys_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;virt_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base-*[0]-[0]-free_blocks-*p_MM-p_MM-slob_get-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;start_addr-info-[0]-mem_regions-get_mem_region_info-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;size-mem_region_info-platform_init-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;start_addr-mem_region_info-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-global_post_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-fill_system_parameters-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
 <stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList/&gt;&#13;&#10;"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="out/cmdif_dbg.elf"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="cmdif_test"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="out/aiop_app.elf"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="aiopsl_stack_estimation"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="com.freescale.ppc.debug.toolchain.configuration.508235731"/>
 <intAttribute key="org.eclipse.cdt.launch.SET_REGULAR_BREAKPOINT_TYPE_AS" value="0"/>
 <booleanAttribute key="org.eclipse.cdt.launch.USE_SET_REGULAR_BREAKPOINT_TYPE_AS" value="false"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/cmdif_test"/>
+<listEntry value="/aiopsl_stack_estimation"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="4"/>

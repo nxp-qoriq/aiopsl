@@ -53,21 +53,21 @@
 
 /* Read task registers */
 #define OSM_REG_ORTDR0()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr0)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[0])
 #define OSM_REG_ORTDR1()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr1)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[1])
 #define OSM_REG_ORTDR2()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr2)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[2])
 #define OSM_REG_ORTDR3()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr3)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[3])
 #define OSM_REG_ORTDR4()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr4)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[4])
 #define OSM_REG_ORTDR5()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr5)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[5])
 #define OSM_REG_ORTDR6()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr6)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[6])
 #define OSM_REG_ORTDR7()\
-	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr7)
+	(((struct osm_registers *)OSM_REG_ORTAR)->ortdr[7])
 
 /* Error report registers */
 #define OSM_REG_OEDR()\
@@ -75,21 +75,21 @@
 #define OSM_REG_OEDDR()\
 	(((struct osm_error_reg *)OSM_REG_OERR)->oeddr)
 #define OSM_REG_OECR0()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr0)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[0])
 #define OSM_REG_OECR1()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr1)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[1])
 #define OSM_REG_OECR2()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr2)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[2])
 #define OSM_REG_OECR3()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr3)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[3])
 #define OSM_REG_OECR4()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr4)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[4])
 #define OSM_REG_OECR5()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr5)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[5])
 #define OSM_REG_OECR6()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr6)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[6])
 #define OSM_REG_OECR7()\
-	(((struct osm_error_reg *)OSM_REG_OERR)->oecr7)
+	(((struct osm_error_reg *)OSM_REG_OERR)->oecr[7])
 
 
 
@@ -160,16 +160,8 @@ enum osm_verif_cmd_type {
 *//***************************************************************************/
 
 struct osm_registers {
-	uint32_t	scope_status;
-	uint32_t 	reserved;
-	uint32_t 	ortdr0;
-	uint32_t 	ortdr1;
-	uint32_t 	ortdr2;
-	uint32_t 	ortdr3;
-	uint32_t 	ortdr4;
-	uint32_t 	ortdr5;
-	uint32_t 	ortdr6;
-	uint32_t 	ortdr7;
+	uint32_t 	reserved[2];
+	uint32_t 	ortdr[8];
 };
 
 struct osm_error_reg {
@@ -177,14 +169,7 @@ struct osm_error_reg {
 	uint32_t 	oedr;
 	uint32_t 	oeddr;
 	uint32_t 	reserved[5];
-	uint32_t 	oecr0;
-	uint32_t 	oecr1;
-	uint32_t 	oecr2;
-	uint32_t 	oecr3;
-	uint32_t 	oecr4;
-	uint32_t 	oecr5;
-	uint32_t 	oecr6;
-	uint32_t 	oecr7;
+	uint32_t 	oecr[8];
 };
 
 /**************************************************************************//**
@@ -307,10 +292,11 @@ struct osm_scope_exit_verif_command {
 		
 *//***************************************************************************/
 struct osm_get_scope_verif_command {
-	uint32_t	opcode;
-	uint32_t 	scope_status;
-	uint32_t 	err_scope_status;
-	uint8_t 	pad[4];
+	uint32_t			 		opcode;
+	struct scope_status_params  scope_status;
+	struct osm_registers 		osm_reg;
+	struct osm_error_reg 		osm_err_reg;
+	uint8_t 					pad[2];
 };
 
 /** @} */ /* end of AIOP_OSM_SRs_Verification */

@@ -1,29 +1,3 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 /* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __DESC_MBMS_H__
@@ -179,7 +153,7 @@ struct mbms_type_1_3_pdb {
 	uint32_t crc_payload_fail;
 };
 
-static inline void cnstr_shdsc_mbms_type0(uint32_t *descbuf, unsigned *bufsize,
+static inline void cnstr_shdsc_mbms_type0(uint32_t *descbuf, int *bufsize,
 					  bool ps)
 {
 	struct program prg;
@@ -239,8 +213,7 @@ static inline void cnstr_shdsc_mbms_type0(uint32_t *descbuf, unsigned *bufsize,
 	ALG_OPERATION(p, OP_ALG_ALGSEL_CRC,
 		      OP_ALG_AAI_CUST_POLY |
 		      OP_ALG_AAI_DIS | OP_ALG_AAI_DOS | OP_ALG_AAI_DOC,
-		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE,
-		      OP_ALG_ENCRYPT);
+		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, DIR_ENC);
 
 	/* Put UDP offset in least significant byte of M1 */
 	load_start_of_buf = LOAD(p, DUMMY_BUF_BASE | BUF_L4_OFFSET, MATH1, 7,
@@ -371,8 +344,8 @@ static inline void cnstr_shdsc_mbms_type0(uint32_t *descbuf, unsigned *bufsize,
 	*bufsize = PROGRAM_FINALIZE(p);
 }
 
-static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
-						unsigned *bufsize, bool ps,
+static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf, int *bufsize,
+						bool ps,
 						enum mbms_pdu_type pdu_type)
 {
 	struct program part1_prg, part2_prg;
@@ -461,8 +434,7 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	ALG_OPERATION(p, OP_ALG_ALGSEL_CRC,
 		      OP_ALG_AAI_CUST_POLY |
 		      OP_ALG_AAI_DIS | OP_ALG_AAI_DOS | OP_ALG_AAI_DOC,
-		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE,
-		      OP_ALG_ENCRYPT);
+		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, DIR_ENC);
 
 	/* Put UDP offset in least significant byte of M1 */
 	load_start_of_buf = LOAD(p, DUMMY_BUF_BASE | BUF_L4_OFFSET, MATH1, 7,
@@ -679,8 +651,7 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
 	ALG_OPERATION(p, OP_ALG_ALGSEL_CRC,
 		      OP_ALG_AAI_CUST_POLY |
 		      OP_ALG_AAI_DIS | OP_ALG_AAI_DOS | OP_ALG_AAI_DOC,
-		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE,
-		      OP_ALG_ENCRYPT);
+		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, DIR_ENC);
 
 	/* Get the payload CRC, saved previously */
 	MOVE(p, CONTEXT1, 24, MATH2, 0, 8, IMMED);
@@ -808,7 +779,7 @@ static inline unsigned cnstr_shdsc_mbms_type1_3(uint32_t *descbuf,
  *                 to bufsize.
  * @pdu_type: type of the MBMS PDU required to be processed by this descriptor
  *
- * Return: size of descriptor written in words
+ * Return: size of descriptor written in words or negative number on error
  *
  * Note: This function can be called only for SEC ERA >= 5.
  */
@@ -816,35 +787,35 @@ static inline int cnstr_shdsc_mbms(uint32_t *descbuf, bool ps,
 				   unsigned *preheader_len,
 				   enum mbms_pdu_type pdu_type)
 {
-	unsigned *bufsize;
+	int bufsize;
 
 	if (rta_sec_era < RTA_SEC_ERA_5) {
 		pr_err("MBMS protocol processing is available only for SEC ERA >= 5\n");
-		return 0;
+		return -ENOTSUP;
 	}
 
 	switch (pdu_type) {
 	case MBMS_PDU_TYPE0:
-		cnstr_shdsc_mbms_type0(descbuf, bufsize, ps);
-		*preheader_len = *bufsize;
+		cnstr_shdsc_mbms_type0(descbuf, &bufsize, ps);
+		*preheader_len = (unsigned) bufsize;
 		break;
 
 	case MBMS_PDU_TYPE1:
-		*preheader_len = cnstr_shdsc_mbms_type1_3(descbuf, bufsize, ps,
+		*preheader_len = cnstr_shdsc_mbms_type1_3(descbuf, &bufsize, ps,
 							  MBMS_PDU_TYPE1);
 		break;
 
 	case MBMS_PDU_TYPE3:
-		*preheader_len = cnstr_shdsc_mbms_type1_3(descbuf, bufsize, ps,
+		*preheader_len = cnstr_shdsc_mbms_type1_3(descbuf, &bufsize, ps,
 							  MBMS_PDU_TYPE3);
 		break;
 
 	default:
 		pr_err("Invalid MBMS PDU Type selected %d\n", pdu_type);
-		return 0;
+		return -EINVAL;
 	}
 
-	return *bufsize;
+	return bufsize;
 }
 
 /**

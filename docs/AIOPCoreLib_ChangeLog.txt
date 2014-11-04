@@ -1,3 +1,42 @@
+LDPAA AIOP SERVICE LAYER ALPHA V0.4.6 Change Log
+===================================================
+* Allow send/receive to/from two NI's - SPID assertion failure (ENGR00338045).
+
+LDPAA AIOP SERVICE LAYER ALPHA V0.4.4 Change Log
+===================================================
+PARSER: Add parser_inline.h file for supporting parser inline commands.
+PARSER: The following are inline functions:
+	parse_result_generate()
+	parse_result_generate_default()
+	parse_result_generate_basic()
+PARSER: non-fatal errors are supported.	
+PARSER: changed parser_profile_query input parameter from parse_profile_record to parse_profile_input (to adjust CTLU spec 0.7.4)
+KEYGEN: removed KEYGEN_KCR_ICMP_TYPE_FECID and KEYGEN_KCR_ICMP_CODE_FECID (not supported by HW).
+KEYGEN: non-fatal errors are supported.	
+
+TMAN: TMAN errors are supported in code but not fully verified. 
+TMAN: Removed recharge function due to HW scope reduction.
+TMAN: Changed timer delete function and TMI delete function to support HW Errata ERR008205
+TMAN: Changed TMI create function to support HW Errata ERR008234
+STE: Added macros and definitions for STE errors (the simulator still doesnt support STE errors)
+STE: All STE functions except the barrier command were changed to be inline functions.
+
+CDMA: Added cdma_inline.h file for supporting cdma inline commands. 
+CDMA: The following are inline functions:
+	cdma_refcount_increment()
+	cdma_refcount_decrement()
+CDMA: CDMA non-fatal errors are suported.
+OSM: API - changed osm_scope_transition_to_exclusive_with_increment_scope_id return type to void.
+OSM: API - changed osm_scope_transition_to_exclusive_with_new_scope_id return type to void.
+OSM: API - changed osm_scope_transition_to_concurrent_with_increment_scope_id return type to void.
+OSM: API - changed osm_scope_transition_to_concurrent_with_new_scope_id return type to void.
+OSM: API - changed osm_scope_enter_to_exclusive_with_increment_scope_id return type to void.
+OSM: API - changed osm_scope_enter_to_exclusive_with_new_scope_id return type to void.
+OSM: API - changed osm_scope_enter return type to void.
+
+There is no support for flow-id parameter when calling dpni_drv_register_rx_cb() or dpni_drv_unregister_rx_cb().
+Added some optimizations to the dpni_drv_send() and receive_cb() functions.
+
 Table SRs: API - Added a note to table_create() parameters that max rules must not be 0.
 Table SRs: API - Added notes that some of the pointer must point to structures in the workspace (e.g. not SRAM).
 Table SRs: API - Aging and auto removal of rules because of aging were removed from the API due to inputs that these are unnecessary. 
@@ -5,9 +44,38 @@ Table SRs: API - Removal of reference counter auto-decrement due to TKT216018 an
 Table SRs: API - Added a comment regarding deletion of table that contains a miss result of type reference pointer.
 Table SRs: API - Added documentation regarding the key id parmaeter for both table_lookup_by_keyid() and table_lookup_be_keyid_default_frame() functions.
 Table SRs: fix of ENGR00329133
+Table SRs: fix of ENGR00330924
 Table SRs: API - Added a remark that key size must be fixed per table.
 
 HM: API - changed ip_cksum_calculate return type to void.
+
+Doc & Tool compatibility for Release 0.4.4:
+  Tool/Doc                      Version
+ ----------                    ---------
+AIOP_Archdef ................... 0.8.0
+FD_section ..................... 0.62.3
+CTLU_AIOP_bg ................... 0.7.4
+TMan ........................... 0.7.81
+Parser_Block_Guide ............. 3.09
+AIOP_Instruction_Additions ..... 1.00
+Compiler Build ................. 281
+CW for DPAA .................... 10.0.11
+Simulator ...................... LS_SIM_M0122
+MC Firmware .................... 0.5.0
+PowerISA ....................... 2.06
+AIOP_z490_CPU_Specification .... Rev1.2
+
+
+LDPAA AIOP SERVICE LAYER ALPHA V0.4.3 Change Log
+===================================================
+The following are changes from version v0.4.2:
+* AIOP UART port change (changed from 1_0 to 2_0, to avoid sharing the port with Linux).
+
+The following bugs have been fixed since version 0.4.2:
+* IPR fix for short last fragment. CQ ENGR324372.
+* IPR fix: deletion of created tables upon create instance is done. CQ ENGR00326971
+* IPR fix: missing initialization in concurrent mode. CQ ENGR326943
+* IPF: add alignment attribute to typedef ipf_ctx_t and remove requirement for 32B alignment from API.
 
 SL TAG v0.4.1.update_02
 ===============================

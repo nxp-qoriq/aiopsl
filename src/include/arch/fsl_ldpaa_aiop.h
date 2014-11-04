@@ -367,8 +367,7 @@
 		length = (uint32_t)(LW_SWAP(0,				\
 			(uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET)));\
 		length &= FD_MEM_MASK;					\
-		/* TODO - add assignment when CQ ENGR326798 is solved */\
-		/*length =*/__e_rlwimi(length, (uint32_t)_val, 0, 14, 31);\
+		length = __e_rlwimi(length, (uint32_t)_val, 0, 14, 31);\
 		STW_SWAP(length, 0,					\
 			(uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET)); \
 	} else								\

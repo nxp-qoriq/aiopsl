@@ -32,11 +32,14 @@
 *//***************************************************************************/
 #include "system.h"
 #include "id_pool.h"
-#include "dplib/fsl_cdma.h"
+#include "fsl_cdma.h"
 #include "fsl_platform.h"
 
-#include "dplib/fsl_ipsec.h"
+#include "fsl_ipsec.h"
 #include "ipsec.h"
+#include "fsl_sys.h"
+#include "time.h"
+#include "aiop_common.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -66,29 +69,28 @@ extern int aiop_snic_init(void);
 #endif /* AIOP_VERIF */
 
 /* Global parameters*/
-__SHRAM uint64_t ext_prpid_pool_address;
-__SHRAM uint64_t ext_keyid_pool_address;
+uint64_t ext_prpid_pool_address;
+uint64_t ext_keyid_pool_address;
 
-/* IPsec Instance global parameters */
-extern __SHRAM struct ipsec_global_instance_params ipsec_global_instance_params;
 
+/* Time module globals */
+extern struct aiop_cmgw_regs *time_cmgw_regs;
+extern _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
-//__PROFILE_SRAM struct  storage_profile storage_profiles[NUM_OF_SP];
 __PROFILE_SRAM struct storage_profile storage_profile;
 
 void sys_prpid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
-	int num_filled_buffs;
 
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_PRPIDS+3), 2,
 			MEM_PART_DP_DDR,
-			&num_filled_buffs, &buffer_pool_id);
+			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_PRPID_POOL_CREATE,
-			__LINE__, 
+			__LINE__,
 			SYSTEM_INIT_SLAB_FAILURE);
 
 	id_pool_init(SYS_NUM_OF_PRPIDS, buffer_pool_id,
@@ -100,15 +102,14 @@ void sys_keyid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
-	int num_filled_buffs;
 
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_KEYIDS+3), 2,
 			MEM_PART_DP_DDR,
-			&num_filled_buffs, &buffer_pool_id);
+			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_KEYID_POOL_CREATE,
-			__LINE__, 
+			__LINE__,
 			SYSTEM_INIT_SLAB_FAILURE);
 
 	id_pool_init(SYS_NUM_OF_KEYIDS, buffer_pool_id,
@@ -118,17 +119,16 @@ void sys_keyid_pool_create(void)
 int aiop_sl_init(void)
 {
 	int32_t status = 0;
-	//extern struct ipsec_global_instance_params ipsec_global_instance_params;
 
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init params*/
 	uint32_t val;
 	uint32_t *addr;
+	struct aiop_tile_regs *aiop_regs =
+			(struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 #endif
 
-	/* Initialize IPsec instance global parameters */
-	ipsec_global_instance_params.instance_count = 0;
-	ipsec_global_instance_params.spinlock = 0;
 
 	/* initialize profile sram */
 
@@ -158,6 +158,10 @@ int aiop_sl_init(void)
 	storage_profile.bpid3 = 0x0000;
 	storage_profile.pbs4 = 0x0000;
 	storage_profile.bpid4 = 0x0000;
+
+	time_cmgw_regs = (struct aiop_cmgw_regs*) &(aiop_regs->cmgw_regs);
+	time_get_func_ptr = _get_time_fast;
+
 
 #endif
 
@@ -223,7 +227,7 @@ void system_init_exception_handler(enum system_function_identifier func_id,
 {
 	char *func_name;
 	char *err_msg;
-	
+
 	/* Translate function ID to function name string */
 	switch(func_id) {
 	case SYS_PRPID_POOL_CREATE:
@@ -236,14 +240,14 @@ void system_init_exception_handler(enum system_function_identifier func_id,
 		/* create own exception */
 		func_name = "Unknown Function";
 	}
-	
+
 	/* Translate error ID to error name string */
 	if (status == SYSTEM_INIT_SLAB_FAILURE) {
 		err_msg = "Pool Creation failed due to slab failure.\n";
 	} else {
 		err_msg = "Unknown or Invalid status.\n";
 	}
-	
+
 	exception_handler(__FILE__, func_name, line, err_msg);
 }
 

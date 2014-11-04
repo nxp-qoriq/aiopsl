@@ -261,6 +261,87 @@ void l2_push_and_set_vlan(uint32_t vlan_tag);
 int l2_pop_vlan(void);
 
 /*************************************************************************//**
+ @Function	l2_push_and_set_mpls
+
+ @Description	Push and set a new outer MPLS.\n
+
+ This function assumes the presence of an Ethernet header.
+
+ The parse results are updated automatically at the end of
+ this operation.
+
+ The gross running sum of the frame becomes invalid after calling
+ this function.
+
+ Implicit input parameters in Task Defaults: frame handle,
+ segment handle, segment address.
+ Implicit output parameters in Task Defaults: parser_starting_hxs
+
+
+ @Param[in]	mpls_hdr - indicates the mpls header value.
+ @Param[in] etype - needed in case there is no MPLS header in frame, indicates
+		  the EtherType of MPLS (0x8847 or 0x8848). otherwise can be NULL.
+
+ @Return	None.
+ 
+ @Cautions  In case there is no MPLS header in the frame, the user should set
+ the S bit to 1. In addition the user should insert label according to the IP
+ version (IPv4 - 0,IPv6 - 2). incorrect user inputs will cause parse error.
+ 
+ @Cautions	The parse results must be updated before calling this operation.
+ If an ethernet header is present, it is assumed to be located at
+ the beginning of the segment (offset 0 from segment address).
+ If there is no ethernet header, the mpls is inserted at the
+ beginning of the segment.
+ *//***************************************************************************/
+void l2_push_and_set_mpls(uint32_t mpls_hdr, uint16_t etype);
+
+/*************************************************************************//**
+ @Function	l2_pop_mpls
+
+ @Description	Pop the outer MPLS.
+  
+ This function assumes Ethernet , MPLS  and IP headers are presents.
+  
+ The parse results are updated automatically at the end of
+ this operation.
+
+ The gross running sum of the frame becomes invalid after calling
+ this function.
+
+ Implicit input parameters in Task Defaults: frame handle,
+ segment handle, segment address.
+
+ @Cautions	The parse results must be updated before calling this operation.
+
+ *//***************************************************************************/
+void l2_pop_mpls(void);
+
+/*************************************************************************//**
+ @Function	l2_mpls_header_remove
+
+ @Description	MPLS Header removal. Remove the stacked MPLS if exists.
+ (Unlimited stacked MPLS).
+
+ This function assumes Ethernet , MPLS  and IP headers are presents.
+
+ The parse results are updated automatically at the end of this
+ operation.
+
+ The gross running sum of the frame becomes invalid after calling
+ this function.
+
+ Implicit input parameters in task defaults: frame handle,
+ segment handle, parser_profile_id, parser_starting_hxs.
+ Implicitly updated values in task defaults: segment length,
+ segment address,parser_starting_hxs.
+
+ @Cautions	The parse results must be updated before calling this operation.
+
+ *//***************************************************************************/
+void l2_mpls_header_remove(void);
+
+/*************************************************************************//**
  @Function	l2_arp_response
 
  @Description	Creates an ARP Response frame from an ARP Request frame. This

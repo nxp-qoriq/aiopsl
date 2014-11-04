@@ -139,8 +139,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 				(struct parser_prp_query_verif_command *)
 				asa_seg_addr;
 
-		parser_profile_query(pq->prpid,
-			(struct parse_profile_record *)pq->parse_profile);
+		parser_profile_query(pq->prpid, &pq->parse_profile);
 
 		str_size = sizeof(struct parser_prp_query_verif_command);
 		break;
@@ -258,317 +257,317 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		(struct parser_macros_command *) asa_seg_addr;
 		
 		/* Next header offset */
-		((struct parse_result *)str->macros_struct)->nxt_hdr = PARSER_GET_NEXT_HEADER_DEFAULT();
+		str->macros_struct.nxt_hdr = PARSER_GET_NEXT_HEADER_DEFAULT();
 
 		/* Frame Attribute Flags Extension */
 		if (PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_extension = PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT();
+			str->macros_struct.frame_attribute_flags_extension = PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT();
 
 		/* Frame Attribute Flags 1 */
 		if (PARSER_IS_SHIM_SOFT_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_SHIM_SOFT_PARSING_ERROR_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_SHIM_SOFT_PARSING_ERROR_DEFAULT();
 		if (PARSER_IS_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_PARSING_ERROR_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_PARSING_ERROR_DEFAULT();
 		if (PARSER_IS_ETH_MAC_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_DEFAULT();
 		if (PARSER_IS_ETH_MAC_UNICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_UNICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_UNICAST_DEFAULT() ;
 		if (PARSER_IS_ETH_MAC_MULTICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_MULTICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_MULTICAST_DEFAULT() ;
 		if (PARSER_IS_ETH_MAC_BROADCAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_BROADCAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ETH_MAC_BROADCAST_DEFAULT() ;
 		if (PARSER_IS_BPDU_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_BPDU_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_BPDU_DEFAULT();
 		if (PARSER_IS_FCOE_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_FCOE_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_FCOE_DEFAULT() ;
 		if (PARSER_IS_FCOE_INIT_PROTOCOL_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_FCOE_INIT_PROTOCOL_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_FCOE_INIT_PROTOCOL_DEFAULT() ;
 		if (PARSER_IS_ETH_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ETH_PARSING_ERROR_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ETH_PARSING_ERROR_DEFAULT();
 		if (PARSER_IS_LLC_SNAP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_LLC_SNAP_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_LLC_SNAP_DEFAULT();
 		if (PARSER_IS_UNKNOWN_LLC_OUI_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_UNKNOWN_LLC_OUI_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_UNKNOWN_LLC_OUI_DEFAULT() ;
 		if (PARSER_IS_LLC_SNAP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_LLC_SNAP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_LLC_SNAP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ONE_VLAN_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ONE_VLAN_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ONE_VLAN_DEFAULT() ;
 		if (PARSER_IS_MORE_THAN_ONE_VLAN_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_MORE_THAN_ONE_VLAN_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_MORE_THAN_ONE_VLAN_DEFAULT() ;
 		if (PARSER_IS_CFI_IN_VLAN_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_CFI_IN_VLAN_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_CFI_IN_VLAN_DEFAULT() ;
 		if (PARSER_IS_VLAN_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_VLAN_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_VLAN_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_PPPOE_PPP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_PPPOE_PPP_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_PPPOE_PPP_DEFAULT();
 		if (PARSER_IS_PPPOE_PPP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_PPPOE_PPP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_PPPOE_PPP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ONE_MPLS_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ONE_MPLS_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ONE_MPLS_DEFAULT() ;
 		if (PARSER_IS_MORE_THAN_ONE_MPLS_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_MORE_THAN_ONE_MPLS_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_MORE_THAN_ONE_MPLS_DEFAULT() ;
 		if (PARSER_IS_MPLS_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_MPLS_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_MPLS_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ARP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ARP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ARP_DEFAULT() ;
 		if (PARSER_IS_ARP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_1 |= PARSER_IS_ARP_PARSING_ERROR_DEFAULT();
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ARP_PARSING_ERROR_DEFAULT();
 
 		/* Frame Attribute Flags 2 */
 		if (PARSER_IS_L2_UNKNOWN_PROTOCOL_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_L2_UNKNOWN_PROTOCOL_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_L2_UNKNOWN_PROTOCOL_DEFAULT() ;
 		if (PARSER_IS_L2_SOFT_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_L2_SOFT_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_L2_SOFT_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_OUTER_IPV4_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_DEFAULT() ;
 		if (PARSER_IS_OUTER_IPV4_UNICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_UNICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_UNICAST_DEFAULT() ;
 		if (PARSER_IS_OUTER_IPV4_MULTICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_MULTICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_MULTICAST_DEFAULT() ;
 		if (PARSER_IS_OUTER_IPV4_BROADCAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_BROADCAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV4_BROADCAST_DEFAULT() ;
 		if (PARSER_IS_INNER_IPV4_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_DEFAULT() ;
 		if (PARSER_IS_INNER_IPV4_UNICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_UNICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_UNICAST_DEFAULT() ;
 		if (PARSER_IS_INNER_IPV4_MULTICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_MULTICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_MULTICAST_DEFAULT() ;
 		if (PARSER_IS_INNER_IPV4_BROADCAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_BROADCAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IPV4_BROADCAST_DEFAULT() ;
 		if (PARSER_IS_OUTER_IPV6_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV6_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV6_DEFAULT() ;
 		if (PARSER_IS_OUTER_IPV6_UNICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV6_UNICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV6_UNICAST_DEFAULT() ;
 		if (PARSER_IS_OUTER_IPV6_MULTICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV6_MULTICAST_DEFAULT();
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IPV6_MULTICAST_DEFAULT();
 		if (PARSER_IS_INNER_IPV6_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IPV6_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IPV6_DEFAULT() ;
 		if (PARSER_IS_INNER_IPV6_UNICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IPV6_UNICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IPV6_UNICAST_DEFAULT() ;
 		if (PARSER_IS_INNER_IPV6_MULTICAST_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IPV6_MULTICAST_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IPV6_MULTICAST_DEFAULT() ;
 		if (PARSER_IS_OUTER_IP_OPTIONS_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_OPTIONS_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_OPTIONS_DEFAULT() ;
 		if (PARSER_IS_OUTER_IP_UNKNOWN_PROTOCOL_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_UNKNOWN_PROTOCOL_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_UNKNOWN_PROTOCOL_DEFAULT() ;
 		if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT() ;
 		if (PARSER_IS_OUTER_IP_INIT_FRAGMENT_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_INIT_FRAGMENT_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_INIT_FRAGMENT_DEFAULT() ;
 		if (PARSER_IS_OUTER_IP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_OUTER_IP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_INNER_IP_OPTIONS_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IP_OPTIONS_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IP_OPTIONS_DEFAULT() ;
 		if (PARSER_IS_INNER_IP_UNKNOWN_PROTOCOL_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IP_UNKNOWN_PROTOCOL_DEFAULT();
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IP_UNKNOWN_PROTOCOL_DEFAULT();
 		if (PARSER_IS_INNER_IP_FRAGMENT_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IP_FRAGMENT_DEFAULT();
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IP_FRAGMENT_DEFAULT();
 		if (PARSER_IS_INNER_IP_INIT_FRAGMENT_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IP_INIT_FRAGMENT_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IP_INIT_FRAGMENT_DEFAULT() ;
 		if (PARSER_IS_ICMP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_ICMP_DEFAULT();
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_ICMP_DEFAULT();
 		if (PARSER_IS_IGMP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_IGMP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_IGMP_DEFAULT() ;
 		if (PARSER_IS_ICMPV6_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_ICMPV6_DEFAULT();
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_ICMPV6_DEFAULT();
 		if (PARSER_IS_UDP_LITE_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_UDP_LITE_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_UDP_LITE_DEFAULT() ;
 		if (PARSER_IS_INNER_IP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_INNER_IP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_INNER_IP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_MIN_ENCAP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_DEFAULT();
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_DEFAULT();
 		if (PARSER_IS_MIN_ENCAP_S_FLAG_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_S_FLAG_DEFAULT();
+			str->macros_struct.frame_attribute_flags_2 |= PARSER_IS_MIN_ENCAP_S_FLAG_DEFAULT();
 
 		/* Frame Attribute Flags 3 */
 		if (PARSER_IS_MIN_ENCAP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_MIN_ENCAP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_MIN_ENCAP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_GRE_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_GRE_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GRE_DEFAULT() ;
 		if (PARSER_IS_GRE_R_BIT_SET_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_GRE_R_BIT_SET_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GRE_R_BIT_SET_DEFAULT() ;
 		if (PARSER_IS_GRE_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_GRE_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GRE_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_L3_UNKOWN_PROTOCOL_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_L3_UNKOWN_PROTOCOL_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_L3_UNKOWN_PROTOCOL_DEFAULT() ;
 		if (PARSER_IS_L3_SOFT_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_L3_SOFT_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_L3_SOFT_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_UDP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_UDP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_UDP_DEFAULT() ;
 		if (PARSER_IS_UDP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_UDP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_UDP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_TCP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_TCP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_TCP_DEFAULT() ;
 		if (PARSER_IS_TCP_OPTIONS_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_TCP_OPTIONS_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_TCP_OPTIONS_DEFAULT() ;
 		if (PARSER_IS_TCP_CONTROLS_6_11_SET_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_TCP_CONTROLS_6_11_SET_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_TCP_CONTROLS_6_11_SET_DEFAULT() ;
 		if (PARSER_IS_TCP_CONTROLS_3_5_SET_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_TCP_CONTROLS_3_5_SET_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_TCP_CONTROLS_3_5_SET_DEFAULT() ;
 		if (PARSER_IS_TCP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_TCP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_TCP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_IPSEC_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_IPSEC_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_IPSEC_DEFAULT() ;
 		if (PARSER_IS_IPSEC_ESP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_IPSEC_ESP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_IPSEC_ESP_DEFAULT() ;
 		if (PARSER_IS_IPSEC_AH_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_IPSEC_AH_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_IPSEC_AH_DEFAULT() ;
 		if (PARSER_IS_IPSEC_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_IPSEC_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_IPSEC_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_SCTP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_SCTP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_SCTP_DEFAULT() ;
 		if (PARSER_IS_SCTP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_SCTP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_SCTP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_DCCP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_DCCP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_DCCP_DEFAULT() ;
 		if (PARSER_IS_DCCP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_DCCP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_DCCP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_L4_UNKOWN_PROTOCOL_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_L4_UNKOWN_PROTOCOL_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_L4_UNKOWN_PROTOCOL_DEFAULT() ;
 		if (PARSER_IS_L4_SOFT_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_L4_SOFT_PARSING_ERROR_DEFAULT();
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_L4_SOFT_PARSING_ERROR_DEFAULT();
 		if (PARSER_IS_GTP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_GTP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_DEFAULT() ;
 		if (PARSER_IS_GTP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_GTP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ESP_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_ESP_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_DEFAULT() ;
 		if (PARSER_IS_ESP_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_ESP_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ISCSI_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_ISCSI_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ISCSI_DEFAULT() ;
 		if (PARSER_IS_CAPWAP_CONTROL_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_CAPWAP_CONTROL_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_CAPWAP_CONTROL_DEFAULT() ;
 		if (PARSER_IS_CAPWAP_DATA_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_CAPWAP_DATA_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_CAPWAP_DATA_DEFAULT() ;
 		if (PARSER_IS_L5_SOFT_PARSING_ERROR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_L5_SOFT_PARSING_ERROR_DEFAULT() ;
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_L5_SOFT_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT())
-			((struct parse_result *)str->macros_struct)->frame_attribute_flags_3 |= PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT();
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT();
 
 		/* Offsets */		
-		((struct parse_result *)str->macros_struct)->shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->shim_offset_2 = PARSER_GET_SHIM2_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->ip_pid_offset = PARSER_GET_IP_PID_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->eth_offset = PARSER_GET_ETH_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->llc_snap_offset = PARSER_GET_LLC_SNAP_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->vlan_tci1_offset = PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->vlan_tcin_offset = PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->last_etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->pppoe_offset = PARSER_GET_PPPOE_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->mpls_offset_1 = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->mpls_offset_n = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->ip1_or_arp_offset = PARSER_GET_ARP_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_INNER_IP_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->ipn_or_minencapO_offset = PARSER_GET_MINENCAP_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->gre_offset = PARSER_GET_GRE_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->gtp_esp_ipsec_offset = PARSER_GET_L5_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->routing_hdr_offset1 = PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->nxt_hdr_offset = PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-		((struct parse_result *)str->macros_struct)->gross_running_sum = PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT();
-		((struct parse_result *)str->macros_struct)->running_sum = PARSER_GET_RUNNING_SUM_DEFAULT();
+		str->macros_struct.shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT();
+		str->macros_struct.shim_offset_2 = PARSER_GET_SHIM2_OFFSET_DEFAULT();
+		str->macros_struct.ip_pid_offset = PARSER_GET_IP_PID_OFFSET_DEFAULT();
+		str->macros_struct.eth_offset = PARSER_GET_ETH_OFFSET_DEFAULT();
+		str->macros_struct.llc_snap_offset = PARSER_GET_LLC_SNAP_OFFSET_DEFAULT();
+		str->macros_struct.vlan_tci1_offset = PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT();
+		str->macros_struct.vlan_tcin_offset = PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT();
+		str->macros_struct.last_etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
+		str->macros_struct.pppoe_offset = PARSER_GET_PPPOE_OFFSET_DEFAULT();
+		str->macros_struct.mpls_offset_1 = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
+		str->macros_struct.mpls_offset_n = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT();
+		str->macros_struct.ip1_or_arp_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		str->macros_struct.ip1_or_arp_offset = PARSER_GET_ARP_OFFSET_DEFAULT();
+		str->macros_struct.ipn_or_minencapO_offset = PARSER_GET_INNER_IP_OFFSET_DEFAULT();
+		str->macros_struct.ipn_or_minencapO_offset = PARSER_GET_MINENCAP_OFFSET_DEFAULT();
+		str->macros_struct.gre_offset = PARSER_GET_GRE_OFFSET_DEFAULT();
+		str->macros_struct.l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
+		str->macros_struct.gtp_esp_ipsec_offset = PARSER_GET_L5_OFFSET_DEFAULT();
+		str->macros_struct.routing_hdr_offset1 = PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
+		str->macros_struct.routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
+		str->macros_struct.nxt_hdr_offset = PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
+		str->macros_struct.ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		str->macros_struct.gross_running_sum = PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT();
+		str->macros_struct.running_sum = PARSER_GET_RUNNING_SUM_DEFAULT();
 
 		/* FSL_PARSER_ERROR_CODES */
 		switch (PARSER_GET_PARSE_ERROR_CODE_DEFAULT()){	
 		case PARSER_EXCEED_BLOCK_LIMIT: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_EXCEED_BLOCK_LIMIT;
+			str->macros_struct.parse_error_code = PARSER_EXCEED_BLOCK_LIMIT;
 			break;
 		case PARSER_FRAME_TRUNCATION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_FRAME_TRUNCATION;
+			str->macros_struct.parse_error_code = PARSER_FRAME_TRUNCATION;
 			break;
 		case PARSER_ETH_802_3_TRUNCATION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_ETH_802_3_TRUNCATION;
+			str->macros_struct.parse_error_code = PARSER_ETH_802_3_TRUNCATION;
 			break;
 		case PARSER_PPPOE_TRUNCATION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_TRUNCATION;
+			str->macros_struct.parse_error_code = PARSER_PPPOE_TRUNCATION;
 			break;
 		case PARSER_PPPOE_MTU_VIOLATED: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_MTU_VIOLATED;
+			str->macros_struct.parse_error_code = PARSER_PPPOE_MTU_VIOLATED;
 			break;
 		case PARSER_PPPOE_VERSION_INVALID: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_VERSION_INVALID;
+			str->macros_struct.parse_error_code = PARSER_PPPOE_VERSION_INVALID;
 			break;
 		case PARSER_PPPOE_TYPE_INVALID: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_TYPE_INVALID;
+			str->macros_struct.parse_error_code = PARSER_PPPOE_TYPE_INVALID;
 			break;
 		case PARSER_PPPOE_CODE_INVALID: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_CODE_INVALID;
+			str->macros_struct.parse_error_code = PARSER_PPPOE_CODE_INVALID;
 			break;
 		case PARSER_PPPOE_SESSION_ID_INVALID: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_PPPOE_SESSION_ID_INVALID;
+			str->macros_struct.parse_error_code = PARSER_PPPOE_SESSION_ID_INVALID;
 			break;
 		case PARSER_IPV4_PACKET_TRUNCATION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_PACKET_TRUNCATION;
+			str->macros_struct.parse_error_code = PARSER_IPV4_PACKET_TRUNCATION;
 			break;
 		case PARSER_IPV4_CHECKSUM_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_CHECKSUM_ERROR;
+			str->macros_struct.parse_error_code = PARSER_IPV4_CHECKSUM_ERROR;
 			break;
 		case PARSER_IPV4_VERSION_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_VERSION_ERROR;
+			str->macros_struct.parse_error_code = PARSER_IPV4_VERSION_ERROR;
 			break;
 		case PARSER_IPV4_MIN_FRAG_SIZE_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_MIN_FRAG_SIZE_ERROR;
+			str->macros_struct.parse_error_code = PARSER_IPV4_MIN_FRAG_SIZE_ERROR;
 			break;
 		case PARSER_IPV4_HEADER_LENGTH_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV4_HEADER_LENGTH_ERROR;
+			str->macros_struct.parse_error_code = PARSER_IPV4_HEADER_LENGTH_ERROR;
 			break;
 		case PARSER_IPV6_PACKET_TRUNCATION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_PACKET_TRUNCATION;
+			str->macros_struct.parse_error_code = PARSER_IPV6_PACKET_TRUNCATION;
 			break;
 		case PARSER_IPV6_EXTENSION_HEADER_VIOLATION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_EXTENSION_HEADER_VIOLATION;
+			str->macros_struct.parse_error_code = PARSER_IPV6_EXTENSION_HEADER_VIOLATION;
 			break;
 		case PARSER_IPV6_VERSION_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_VERSION_ERROR;
+			str->macros_struct.parse_error_code = PARSER_IPV6_VERSION_ERROR;
 			break;
 		case PARSER_IPV6_ROUTING_HEADER_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_IPV6_ROUTING_HEADER_ERROR;
+			str->macros_struct.parse_error_code = PARSER_IPV6_ROUTING_HEADER_ERROR;
 			break;
 		case PARSER_GRE_VERSION_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GRE_VERSION_ERROR;
+			str->macros_struct.parse_error_code = PARSER_GRE_VERSION_ERROR;
 			break;
 		case PARSER_MINENC_CHECKSUM_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_MINENC_CHECKSUM_ERROR;
+			str->macros_struct.parse_error_code = PARSER_MINENC_CHECKSUM_ERROR;
 			break;
 		case PARSER_TCP_INVALID_OFFSET: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_INVALID_OFFSET;
+			str->macros_struct.parse_error_code = PARSER_TCP_INVALID_OFFSET;
 			break;
 		case PARSER_TCP_PACKET_TRUNCATION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_PACKET_TRUNCATION;
+			str->macros_struct.parse_error_code = PARSER_TCP_PACKET_TRUNCATION;
 			break;
 		case PARSER_TCP_CHECKSUM_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_CHECKSUM_ERROR;
+			str->macros_struct.parse_error_code = PARSER_TCP_CHECKSUM_ERROR;
 			break;
 		case PARSER_TCP_BAD_FLAGS: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_TCP_BAD_FLAGS;
+			str->macros_struct.parse_error_code = PARSER_TCP_BAD_FLAGS;
 			break;
 		case PARSER_UDP_LENGTH_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_UDP_LENGTH_ERROR;
+			str->macros_struct.parse_error_code = PARSER_UDP_LENGTH_ERROR;
 			break;
 		case PARSER_UDP_CHECKSUM_ZERO: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_UDP_CHECKSUM_ZERO;
+			str->macros_struct.parse_error_code = PARSER_UDP_CHECKSUM_ZERO;
 			break;
 		case PARSER_UDP_CHECKSUM_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_UDP_CHECKSUM_ERROR;
+			str->macros_struct.parse_error_code = PARSER_UDP_CHECKSUM_ERROR;
 			break;
 		case PARSER_SCTP_PORT_0_DETECTED: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_SCTP_PORT_0_DETECTED;
+			str->macros_struct.parse_error_code = PARSER_SCTP_PORT_0_DETECTED;
 			break;
 		case PARSER_GTP_UNSUPPORTED_VERSION: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GTP_UNSUPPORTED_VERSION;
+			str->macros_struct.parse_error_code = PARSER_GTP_UNSUPPORTED_VERSION;
 			break;
 		case PARSER_GTP_INVALID_PROTOCOL_TYPE: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GTP_INVALID_PROTOCOL_TYPE;
+			str->macros_struct.parse_error_code = PARSER_GTP_INVALID_PROTOCOL_TYPE;
 			break;
 		case PARSER_GTP_INVALID_L_BIT_ERROR: 
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GTP_INVALID_L_BIT_ERROR;
+			str->macros_struct.parse_error_code = PARSER_GTP_INVALID_L_BIT_ERROR;
 			break;
 		default:
-			((struct parse_result *)str->macros_struct)->parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
+			str->macros_struct.parse_error_code = PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
 			break;
 		}
 

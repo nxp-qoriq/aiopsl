@@ -36,7 +36,7 @@
 #define __FSL_GENERAL_H_
 
 #include "fsl_endian.h"
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 #include "null.h"
 /*#include "dplib/fsl_aiop_parser.h"*/
 
@@ -176,7 +176,7 @@ struct additional_dequeue_context {
 		 *	- 4 BPSCN Message\n
 		 *	- 5-7 Reserved.
 		 *	.
-		 * - bits<5>  : Virtual Address.
+		 * - bits<5>  : Virtual Address (configured in Frame Queue).
 		 * - bits<6>  : FQD_CTX_FMT or Dequeue Response FQD Context
 		 * Format. Indicates the format of the received FQD_CTX field.
 		 * - bits<7>  : Bypass DPAA Resource Isolation
@@ -330,6 +330,9 @@ struct presentation_context {
 #define PRC_SR_BIT_OFFSET	0x5
 	/** No Data Segment bit offset */
 #define PRC_NDS_BIT_OFFSET	0x4
+	/** No Data Segment byte offset */
+#define PRC_NDS_ADDR		0xB
+
 #if NAS_NPS_ENABLE
 	/** No PTA Segment bit offset */
 #define PRC_NPS_BIT_OFFSET	0x5

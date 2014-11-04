@@ -48,11 +48,12 @@
                 to support.
 *//***************************************************************************/
 typedef enum memory_partition_id {
-    MEM_PART_DP_DDR = 1,/**< Primary DDR non-cacheable memory partition */
+    MEM_PART_DP_DDR = 2,/**< Primary DDR non-cacheable memory partition */
     MEM_PART_SYSTEM_DDR,    /**< Secondary DDR non-cacheable memory partition */
-    MEM_PART_CPC_SRAM,                 /**< CPC SRAM cacheable memory partition */
     MEM_PART_SH_RAM,                   /**< Shared-SRAM memory */
     MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
+    MEM_PART_MC_PORTALS,               /**< MC portals for cmdif memory partition */
+    MEM_PART_CCSR,
     MEM_PART_INVALID                   /**< Invalid memory partition */
 } e_memory_partition_id;
 

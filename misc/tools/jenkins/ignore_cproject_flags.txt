@@ -1,0 +1,9 @@
+<"com.freescale.ppc.toolchain.sharedoption.tuneReloc" value="true" valueType="boolean"/>
+<"com.freescale.ppc.toolchain.linker.base.input.lfile"/>
+<"com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
+<"com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="" valueType="string"/>
+<"com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="${ProjDirPath}/../../cw_files/aiop_link.lcf" valueType="string"/>
+<"com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption" value="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption.library" valueType="enumerated"/>
+<"com.freescale.ppc.toolchain.compiler.base.preprocessor.macroUndefined"/>
+<"com.freescale.ppc.toolchain.linker.base.output.listStackUsage" value="true" valueType="boolean"/>
+<"com.freescale.ppc.toolchain.linker.base.output.rootFunction" value="stack_estimation" valueType="string"/>

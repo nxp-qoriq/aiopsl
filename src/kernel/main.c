@@ -27,6 +27,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "fsl_smp.h"
+#include "fsl_dbg.h"
 #include "cmgw.h"
 
 extern int sys_init(void);
@@ -90,6 +91,14 @@ UNUSED(argc);UNUSED(argv);
         return err;
     }
     
+    is_master_core = sys_is_master_core();
+    
+    if(is_master_core) {       
+        if(cmgw_get_ntasks() > 2 /*4-tasks*/) {
+        	pr_warn("More then 4 AIOP tasks/core.\n");
+        }
+    }
+    
     /* Only execute if core is a cluster master */
     if(sys_is_cluster_master())
     {
@@ -100,7 +109,6 @@ UNUSED(argc);UNUSED(argv);
     	}
     }
 
-    is_master_core = sys_is_master_core();
     if(is_master_core)
     {
     	err = tile_init();

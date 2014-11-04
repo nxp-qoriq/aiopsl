@@ -31,16 +31,16 @@
 
 *//***************************************************************************/
 #include "general.h"
-#include "net/fsl_net.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_net.h"
+#include "fsl_parser.h"
+#include "fsl_fdma.h"
+#include "fsl_cdma.h"
+#include "fsl_ldpaa.h"
 #include "checksum.h"
 #include "ipf.h"
 #include "fdma.h"
 #include "ip.h"
-#include "common/fsl_stdlib.h"
+#include "fsl_stdlib.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
@@ -62,7 +62,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	status = fdma_present_frame_without_segments(&(ipf_ctx->rem_fd),
 						FDMA_PRES_NO_FLAGS, 0,
 						&(ipf_ctx->rem_frame_handle));
-	if (status < 0){
+	
+	/* Try to store the frame*/
+	if (status == (-EIO)){
 		if (fdma_store_frame_data(ipf_ctx->rem_frame_handle,
 				*((uint8_t *) HWC_SPID_ADDRESS),
 				&amq) < 0)
@@ -70,6 +72,8 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		 else
 			return status; /* Received packet FD contain errors
 				(FD.err != 0). (status = (-EIO)).*/
+	} else {
+		return status;
 	}
 	
 	return SUCCESS;

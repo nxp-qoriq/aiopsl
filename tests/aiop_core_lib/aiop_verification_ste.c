@@ -30,7 +30,7 @@
 @Description   This file contains the AIOP STE SRs SW Verification
 *//***************************************************************************/
 
-#include "dplib/fsl_ste.h"
+#include "fsl_ste.h"
 
 #include "aiop_verification.h"
 #include "aiop_verification_ste.h"
@@ -155,6 +155,7 @@ uint16_t aiop_verification_ste(uint32_t asa_seg_addr)
 		str->acc_value = STE_GET_ERR_ACC_VALUE();
 		str->counter_msb = STE_GET_ERR_MSB_COUNTER_ADDRESS();
 		str->counter_lsb = STE_GET_ERR_LSB_COUNTER_ADDRESS();
+		str_size = sizeof(struct ste_read_error_command);
 		break;
 	}
 
@@ -162,6 +163,7 @@ uint16_t aiop_verification_ste(uint32_t asa_seg_addr)
 	case STE_CLEAR_ERRORS_CMD_STR:
 	{
 		STE_CLEAR_CAPTURED_ERROR();
+		str_size = sizeof(struct ste_clear_error_command);
 		break;
 	}
 

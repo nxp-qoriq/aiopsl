@@ -1,29 +1,3 @@
-/*
- * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Freescale Semiconductor nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 /* Copyright 2008-2013 Freescale Semiconductor, Inc. */
 
 #ifndef __RTA_SEC_RUN_TIME_ASM_H__
@@ -413,15 +387,17 @@ static inline void __rta__desc_bswap(uint32_t *buff, unsigned buff_len)
 		buff[i] = swab32(buff[i]);
 }
 
-static inline unsigned rta_program_finalize(struct program *program)
+static inline int rta_program_finalize(struct program *program)
 {
-	/* Descriptor is not allowed to go beyond 64 words size */
+	/* Descriptor is usually not allowed to go beyond 64 words size */
 	if (program->current_pc > MAX_CAAM_DESCSIZE)
-		pr_err("Descriptor Size exceeded max limit of 64 words\n");
+		pr_warn("Descriptor Size exceeded max limit of 64 words\n");
 
 	/* Descriptor is erroneous */
-	if (program->first_error_pc)
+	if (program->first_error_pc) {
 		pr_err("Descriptor creation error\n");
+		return -EINVAL;
+	}
 
 	/* Update descriptor length in shared and job descriptor headers */
 	if (program->shrhdr != NULL) {
@@ -432,9 +408,11 @@ static inline unsigned rta_program_finalize(struct program *program)
 		*program->jobhdr |= program->current_pc;
 		if (program->bswap)
 			__rta__desc_bswap(program->jobhdr, program->current_pc);
+	} else {
+		return -EINVAL;
 	}
 
-	return program->current_pc;
+	return (int)program->current_pc;
 }
 
 static inline unsigned rta_program_set_36bit_addr(struct program *program)
@@ -503,10 +481,7 @@ static inline void __rta_dma_data(void *ws_dst, uint64_t ext_address,
 #else
 static inline void __rta_dma_data(void *ws_dst, uint64_t ext_address,
 				  uint16_t size)
-{
-	pr_warn("RTA: DCOPY not supported, DMA will be skipped\n");
-	return;
-}
+{ pr_warn("RTA: DCOPY not supported, DMA will be skipped\n"); }
 #endif /* defined(__EWL__) && defined(AIOP) */
 
 static inline void __rta_inline_data(struct program *program, uint64_t data,

@@ -27,9 +27,107 @@
 #ifndef __FSL_ICONTEXT_H
 #define __FSL_ICONTEXT_H
 
-int icontext_get(uint16_t icid, void **icontext);
-int icontext_add();
-int icontext_rm(uint16_t icid);
+/**************************************************************************//**
+@Group         ic_g  Isolation Context API
 
+@Description	API to be used for memory and BMAN pool accesses 
+		using the specific isolation context attributes.
+
+@{
+ *//***************************************************************************/
+
+/**************************************************************************//**
+@Description	Isolation context structure.
+
+		Do not modify the content of this structure, it must be set by
+		icontext_get().  
+*//***************************************************************************/
+struct icontext {
+	uint32_t dma_flags;
+	/**< Flags that will be used for DMA */
+	uint32_t bdi_flags;
+	/**< Flags that will be used for BMAN pool */
+	uint16_t icid;
+	/**< Isolation context id that will be used for DMA and BMAN pool */
+};
+
+/**************************************************************************//**
+@Function	icontext_get
+
+@Description	Copy isolation context parameters for DPCI id.
+
+@Param[in]	dpci_id	- ID of DPCI device.
+@Param[out]	ic	- Isolation context structure to be used 
+			- with icontext dependent API.
+			
+@Return		0	 - on success, 
+		-ENAVAIL - DPCI id was not found.
+
+@Cautions	This API must be called after cmdif_session_open() was triggered 
+		by GPP otherwise it will result in empty icontext structure.   
+*//***************************************************************************/
+int icontext_get(uint16_t dpci_id, struct icontext *ic);
+
+/**************************************************************************//**
+@Function	icontext_dma_read
+
+@Description	DMA read into workspace location.
+
+@Param[in]	ic	- Isolation context structure to be used 
+			with icontext dependent API.
+@Param[in]	src	- System memory source for DMA data. 
+@Param[in]	size	- The number of bytes to be copied into dest buffer. 				
+@Param[out]	dest	- Pointer to workspace location to where data should 
+			be copied.		
+
+@Return		0	- on success, POSIX error otherwise.
+*//***************************************************************************/
+int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *dest);
+
+/**************************************************************************//**
+@Function	icontext_dma_write
+
+@Description	DMA write from workspace location. 
+
+@Param[in]	ic	- Isolation context structure to be used 
+			with icontext dependent API.
+@Param[in]	src	- Pointer to workspace location from where data should
+ 			be copied.
+@Param[in]	size	- The number of bytes to be copied into dest buffer. 
+@Param[out]	dest	- System memory target address for DMA data.	
+
+@Return		0	- on success, POSIX error otherwise.
+*//***************************************************************************/
+int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t dest);
+
+/**************************************************************************//**
+@Function	icontext_acquire
+
+@Description	Acquire buffer from BMAN pool.
+
+@Param[in]	ic	- Isolation context structure to be used 
+			with icontext dependent API.
+@Param[in]	bpid	- BMAN pool id that matches ic->icid. 		
+@Param[out]	addr	- Buffer address as returned by BMAN pool.	
+
+@Return		0	- on success, POSIX error otherwise.
+*//***************************************************************************/
+int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr);
+
+/**************************************************************************//**
+@Function	icontext_release
+
+@Description	Release buffer into BMAN pool.
+
+@Param[in]	ic	- Isolation context structure to be used 
+			with icontext dependent API.
+@Param[in]	bpid	- BMAN pool id that matches ic->icid. 		
+@Param[in]	addr	- Address to be released into BMAN pool.	
+
+@Return		0	- on success, POSIX error otherwise.
+*//***************************************************************************/
+int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr);
+
+/** @} *//* end of ic_g group */
 
 #endif

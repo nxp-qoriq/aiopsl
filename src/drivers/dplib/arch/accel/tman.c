@@ -63,7 +63,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/* Add BDI bit */
 	/* Optimization: remove 1 cycle of or using rlwimi */
 	/* equal to arg1 = (va_bdi << 31) | arg1; */
-	__e_rlwimi(arg1, va_bdi, 31, 0, 0);
+	arg1 = __e_rlwimi(arg1, va_bdi, 31, 0, 0);
 	/* Move PL bit to the right offset */
 	icid_pl = (icid_pl << 11) & 0x04000000;
 	/* Add PL and VA to max_num_of_timers */
@@ -81,7 +81,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
 #endif
-	} while (res1 & TMAN_TMI_CREATE_TMP_ERR_MASK);
+	} while (res1 == TMAN_TMI_CREATE_BUSY);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
 	if (res1 == TMAN_TMIID_DEPLETION_ERR)
@@ -92,7 +92,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			(*tmi_state_ptr != TMAN_TMI_ACTIVE))
 	{
 		/* YIELD. May not be optimized due to CTS behavior*/
-		__e_hwacceli(YIELD_ACCEL_ID);
+		sys_yield();
 	}
 	/* Reading TMEV register value is due to Errata ERR008234 */
 	if ((*tmi_state_ptr == TMAN_TMI_BUS_ERR) ||
@@ -135,7 +135,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 				__LINE__,
 				(int)TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_PURGED);
 	}
-	for (i = 0; i < tmi_params.max_num_of_timers; i++)
+	for (i = 1; i <= tmi_params.max_num_of_timers; i++)
 	{
 		timer_handle = (i << 8) | tmi_id;
 		/* As in Rev1 only force expiration is supported */
@@ -149,7 +149,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	while ((*tmi_statsntc_ptr != 0) && (*tmi_statsnccp_ptr != 0))
 	{
 		/* YIELD. May not be optimized due to CTS behavior*/
-		__e_hwacceli(YIELD_ACCEL_ID);
+		sys_yield();
 #ifdef SL_DEBUG
 		cnt++;
 		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
@@ -166,7 +166,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 		(uint32_t)(conf_opaque_data2 << 16) | confirmation_epid;
 	Optimization: remove 2 cycles clear and shift */
-	__e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
+	epid = __e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 	/* Store first two command parameters */
 	__stdw(flags, tmi_id, HWC_ACC_IN_ADDRESS, 0);
@@ -249,7 +249,7 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 			(uint32_t)(opaque_data2 << 16) | epid;
 	Optimization: remove 2 cycles clear and shift */
-	__e_rlwimi(epid, opaque_data2, 16, 0, 15);
+	epid = __e_rlwimi(epid, opaque_data2, 16, 0, 15);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);
@@ -288,17 +288,39 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* Optimization: remove 1 cycle using EABI */
 	__stdw(flags, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call TMAN. */
-	__e_hwacceli(TMAN_ACCEL_ID);
+	/* call TMAN. and check if passed. 
+	 * Optimization using compiler pattern*/
+	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
+		return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
+
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-	if (!((res1) & TMAN_FAIL_BIT_MASK))
-			return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
-	if (res1 == TMAN_DEL_TMR_TMP_ERR)
+	/* The order of the error check is according to its frequency */
+	
+	/* To check if its a TMAN state related error */
+	/* To check if A=0 && CCP=1 */
+	/* One shot - TO occurred. 
+	 * Periodic - Timer was deleted */
+	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_DEL_CCP_WAIT_ERR)
+		return (int)(-EACCES);
+	/* To check if its a TMAN state related error */
+	/* A=1 && CCP=1 */
+	/* Periodic- cannot be deleted as it deals with TO */
+	if(res1 == TMAN_DEL_PERIODIC_CCP_WAIT_ERR)
 		return (int)(-ETIMEDOUT);
-	/* In case TMI State errors */
+	/* To check if its a TMAN temporary error */
+	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
+		return (int)(-ETIMEDOUT);
+
+	/* The next code is due to Errata ERR008205 */
+	if(res1 == TMAN_DEL_TMR_NOT_ACTIVE_ERR)
+		return (int)(-ENAVAIL);
+	/* End of Errata ERR008205 related code */	
+
+	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
+	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(__FILE__,
-			TMAN_TMI_TIMER_CREATE_FUNC_ID,
+			TMAN_TMI_TIMER_DELETE_FUNC_ID,
 			__LINE__, (int)res1);
 }
 
@@ -331,7 +353,6 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2));
 	return (int)(res1);
 }
-#endif
 
 int tman_recharge_timer(uint32_t timer_handle)
 {
@@ -340,12 +361,14 @@ int tman_recharge_timer(uint32_t timer_handle)
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call TMAN. */
-	__e_hwacceli(TMAN_ACCEL_ID);
+	/* call TMAN. and check if passed. 
+	 * Optimization using compiler pattern*/
+	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
+		return (int)(TMAN_REC_TMR_SUCCESS);
+
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-	if (!((res1) & TMAN_FAIL_BIT_MASK))
-			return (int)(TMAN_REC_TMR_SUCCESS);
+
 	/* optimization: all the errors except TMI state errors starts with
 	 *  0x08_00XX */
 	if (res1 & TMAN_TMR_REC_STATE_MASK)
@@ -354,6 +377,7 @@ int tman_recharge_timer(uint32_t timer_handle)
 			__LINE__, (int)res1);
 	return (int)(-ETIMEDOUT);
 }
+#endif
 
 void tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state)

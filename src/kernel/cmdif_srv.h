@@ -43,7 +43,7 @@
 
 #define CMD_ID_OPEN           0x8000
 #define CMD_ID_CLOSE          0x4000
-#define M_NUM_OF_INSTANCES    512
+#define M_NUM_OF_INSTANCES    512   /**< Must be power of 2 */
 #define M_NUM_OF_MODULES      64
 #define M_NAME_CHARS          8     /**< Not including \0 */
 #define SYNC_BUFF_RESERVED    1     /**< 1 Byte must be reserved for done bit */

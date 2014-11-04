@@ -29,8 +29,8 @@
  *  @brief   Cmdif AIOP<->GPP FLIB header file for server
  */
 
-#ifndef __FSL_CMDIF_FLIB_H
-#define __FSL_CMDIF_FLIB_H
+#ifndef __FSL_CMDIF_FLIB_S_H
+#define __FSL_CMDIF_FLIB_S_H
 
 #include <types.h>
 #include <fsl_cmdif_server.h>

@@ -161,9 +161,9 @@ void atomic_decr8(int8_t *var, int8_t value);
 /*************************************************************************//**
 @Function       atomic_decr16
 
-@Description	Atomic decrement macro for 16 bit variable.
+@Description    Atomic decrement macro for 16 bit variable.
 
-@Param[in,,out] var   - pointer to the variable to decrement.
+@Param[in,out]  var   - pointer to the variable to decrement.
 @Param[in]      value - decrement value.
 
 @Return         None.

@@ -31,28 +31,29 @@
 #include "general.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
-#include "fsl_slab.h"
+#include "slab.h"
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_io.h"
 
-__SHRAM struct slab *slab_peb = 0;
-__SHRAM struct slab *slab_ddr = 0;
+struct slab *slab_peb = 0;
+struct slab *slab_ddr = 0;
 
-int app_test_slab_init();
-int slab_init();
-int slab_test();
+int app_test_slab_init(void);
+int slab_init(void);
+int slab_test(void);
+extern struct slab_virtual_pools_main_desc g_slab_virtual_pools;
+int app_test_slab_overload_test();
 int app_test_slab(struct slab *slab, int num_times);
 
 
-static int slab_callback_test(uint64_t context_address){
+static void slab_callback_test(uint64_t context_address){
 
 	fsl_os_print("slab_release: callback function\n");
 	fsl_os_print("release context address - 0x%x%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
-	return 0;
 }
 
-int slab_init()
+int slab_init(void)
 {
 	int err = 0;
 	struct slab_debug_info slab_info;
@@ -63,8 +64,14 @@ int slab_init()
 		return err;
 	}
 
+/*	err = app_test_slab_overload_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: app_test_slab_overload_test()\n", err);
+		return err;
+	}
+*/
 	/* DDR SLAB creation */
-	err = slab_create(10, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(10, 10, 256, 4, MEM_PART_DP_DDR, 0,
 			          NULL, &slab_ddr);
 	if (err) return err;
 
@@ -78,7 +85,7 @@ int slab_init()
 	}
 
 	/* PEB SLAB creation */
-	err = slab_create(5, 0, 100, 0, 0, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
+	err = slab_create(5, 5, 100, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
 	if (err) return err;
 
 	err = slab_debug_info_get(slab_peb, &slab_info);
@@ -89,36 +96,128 @@ int slab_init()
 	return err;
 }
 
-int app_test_slab_init()
+int app_test_slab_overload_test()
 {
 	int        err = 0;
+	int 	i;
 	dma_addr_t buff = 0;
-	struct slab *my_slab;
+	struct slab *my_slab[2000];
 
-	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+	for (i = 0; i < 2000 ; i++)
+	{
+		err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
+				  &slab_callback_test, &(my_slab[i]));
+		if (err) return err;
+
+		else
+			fsl_os_print("Slab cluster and pool id are: cluster %d, pool ID %d\n",
+			             SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(my_slab[i])),
+			             SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(my_slab[i])));
+
+	}
+
+
+/*	for(i = 0; i < 101; i++ ){
+		fsl_os_print("Context address of cluster %d: 0x%lx\n", i, g_slab_virtual_pools.slab_context_address[i]);
+	}*/
+	for (i = 1999; i >= 0 ; i--)
+	{
+		err = slab_acquire(my_slab[i], &buff);
+		if (err) return err;
+
+		if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab[i], buff);
+			if (err) return err;
+		}
+		else
+			return -ENODEV;
+
+		err = slab_free(&(my_slab[i]));
+		if (err) return err;
+
+		/* Must fail because my_slab was freed  */
+		err = slab_acquire(my_slab[i], &buff);
+		if (!err) return -EEXIST;
+	}
+
+	return 0;
+}
+
+
+int app_test_slab_init(void)
+{
+	int        err = 0;
+	dma_addr_t buff[] = {0,0,0,0,0};
+	struct slab *my_slab;
+	struct slab_debug_info slab_info;
+
+	err = slab_create(2, 4, 256, 4, MEM_PART_DP_DDR, 0,
 	                  &slab_callback_test, &my_slab);
 	if (err) return err;
 
-	err = slab_acquire(my_slab, &buff);
+	err = slab_acquire(my_slab, &buff[0]);
 	if (err) return err;
 
-	if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-		err = slab_release(my_slab, buff);
+	err = slab_acquire(my_slab, &buff[1]);
+	if (err) return err;
+
+	err = slab_acquire(my_slab, &buff[2]);
+	if (err) return err;
+	
+	err = slab_acquire(my_slab, &buff[3]);
+	if (err) return err;
+	
+	err = slab_acquire(my_slab, &buff[4]);
+	if (!err) return err;
+	else
+		fsl_os_print("Acquire more buffers than MAX failed\n");
+		
+	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[0]);
 		if (err) return err;
 	}
 	else
 		return -ENODEV;
 
+	if (slab_refcount_decr(buff[1]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[1]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[2]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	if (slab_refcount_decr(buff[3]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[3]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+
+	
+	err = slab_debug_info_get(my_slab, &slab_info);
+	if (err) {
+		return err;
+	} else {
+		if ((slab_info.committed_buffs >= slab_info.max_buffs) ||
+			(slab_info.committed_buffs == 0))
+			return -ENODEV;
+	}
+	
 	err = slab_free(&my_slab);
 	if (err) return err;
 
 	/* Must fail because my_slab was freed  */
-	err = slab_acquire(my_slab, &buff);
+	err = slab_acquire(my_slab, &buff[0]);
 	if (!err) return -EEXIST;
 
 
 	/* Reuse slab handle test  */
-	err = slab_create(1, 0, 256, 0, 0, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, 0,
 	                  NULL, &my_slab);
 	if (err) return err;
 
@@ -160,8 +259,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
-
-	err = slab_create(5, 0, 256, 0, 0, 4, MEM_PART_PEB, 0,
+	err = slab_create(5, 5, 256, 4, MEM_PART_PEB, SLAB_DDR_MANAGEMENT_FLAG,
 	                  NULL, &my_slab);
 
 	for (i = 0; i < num_times; i++) {
@@ -213,7 +311,6 @@ int app_test_slab(struct slab *slab, int num_times)
 			err = slab_release(slab, buff[2]);
 			if (err) return err;
 		}
-		fsl_os_print("start %d, end %d\n",start,end);
 	}
 
 	err = slab_free(&my_slab);
@@ -227,7 +324,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	return 0;
 }
 
-int slab_test()
+int slab_test(void)
 {
 	int err = 0;
 	err |= app_test_slab(slab_peb, 4);

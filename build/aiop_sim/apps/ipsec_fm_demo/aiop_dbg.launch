@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.freescale.cdt.launch.cw.download">
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSExeName" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbdc93:5710"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbsc920"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="42333"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSTimeOut" value="60"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.JTAGConfigFile" value=""/>
@@ -41,7 +41,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smpTarget" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.systemType" value="com.freescale.cw.system.LS.LS2085AFM"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLine" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddr" value="-1879047936"/>
@@ -92,18 +92,18 @@
 <listEntry value="AIOP#2"/>
 </listAttribute>
 <listAttribute key="com.freescale.cdt.debug.cw.Debug"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.Embedded Download.ExecuteTasks" value="true"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.Embedded Download.StandardDownload" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.Embedded Download.ExecuteTasks" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.Embedded Download.StandardDownload" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.Embedded Download.TaskInitialLaunches"/>
 <listAttribute key="com.freescale.cdt.debug.cw.Embedded Download.TaskNames"/>
 <listAttribute key="com.freescale.cdt.debug.cw.Embedded Download.TaskSuccessiveRuns"/>
 <listAttribute key="com.freescale.cdt.debug.cw.Embedded Download.TaskTypes"/>
 <listAttribute key="com.freescale.cdt.debug.cw.ExecutablePath"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.InitializePC" value="true"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.InitializePCAtProgramEntryPoint" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.InitializePC" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.InitializePCAtProgramEntryPoint" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.InitializePCAtSymbol" value="main"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.InitializePCAtUserSpecified" value="false"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.LaunchMode" value="DOWNLOAD"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.LaunchMode" value="ATTACH"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.autoLoad" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.keepTargetSuspended" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.modulesNames"/>
@@ -111,12 +111,12 @@
 <listAttribute key="com.freescale.cdt.debug.cw.LinuxKernelModules.symbolicsPaths"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtExit" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtProgramEntryPoint" value="false"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtStartUp" value="true"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtUserSpecified" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtStartUp" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.PN_StopAtUserSpecified" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.RefreshPolicy.RefreshPeriod" value="2.0"/>
 <listAttribute key="com.freescale.cdt.debug.cw.RemoteDownload"/>
 <listAttribute key="com.freescale.cdt.debug.cw.RemotePath"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.ResumeProgram" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.ResumeProgram" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.SMPCores">
 <listEntry value="11"/>
 </listAttribute>
@@ -142,11 +142,11 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.debuggerAddress" value="127.0.0.1"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.disableIO" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.ethCtrl" value="Ethernet Controller 1"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.executeInitScripts" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.executeInitScripts" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executePerCoresReset" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executePerprocessorReset" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeReset" value="false"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.gateway" value="127.0.0.1"/>
 <listAttribute key="com.freescale.cdt.debug.cw.initPathList">
 <listEntry value="C:\Data\projects\ucode\GIT\aiopsl\build\aiop_sim\cw_files\LS2085A-AFM_AIOP_RAM.tcl"/>
@@ -175,12 +175,12 @@
 <listEntry value="false"/>
 <listEntry value="false"/>
 </listAttribute>
-<booleanAttribute key="com.freescale.cdt.debug.cw.skipSystemInitialization" value="false"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.skipSystemInitialization" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.targetAddress" value="127.0.0.1"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useGateway" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useHSSTIO" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useInitPathList">
-<listEntry value="true"/>
+<listEntry value="false"/>
 </listAttribute>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useMacAddress" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useMemConfigPathList">
@@ -363,10 +363,10 @@
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_ID" value="com.freescale.cdt.debug.cw.eppc.EPPCDebugger"/>
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_REGISTER_GROUPS" value=""/>
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_START_MODE" value="run"/>
-<booleanAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN" value="false"/>
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN_SYMBOL" value="main"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_REGISTER_BOOKKEEPING" value="false"/>
-<booleanAttribute key="org.eclipse.cdt.launch.ENABLE_RESTORE_WATCHPOINTS" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.launch.ENABLE_RESTORE_WATCHPOINTS" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_VARIABLE_BOOKKEEPING" value="false"/>
 <stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;phys_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;virt_addr-sys_register_virt_mem_mapping-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base-*[0]-[0]-free_blocks-*p_MM-p_MM-slob_get-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;start_addr-info-[0]-mem_regions-get_mem_region_info-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;size-mem_region_info-platform_init-(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;start_addr-mem_region_info-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-global_post_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;tmp_reg-fill_system_parameters-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;base_address-duart_uart_param-platform_enable_console-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;lpspr-handle_external_intr-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;status-duart_poll_tx-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;ccsr_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;mc_portals_base-*pltfrm-pltfrm-platform_init-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;word-tunnel_decap-dpovrd-ipsec_frame_decrypt-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
 <stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList/&gt;&#13;&#10;"/>

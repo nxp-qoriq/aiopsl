@@ -32,9 +32,9 @@
 #ifndef __GRO_H
 #define __GRO_H
 
-#include "dplib/fsl_ldpaa.h"
-#include "dplib/fsl_gro.h"
-#include "dplib/fsl_fdma.h"
+#include "fsl_ldpaa.h"
+#include "fsl_gro.h"
+#include "fsl_fdma.h"
 
 
 

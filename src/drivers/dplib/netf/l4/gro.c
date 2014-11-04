@@ -31,17 +31,17 @@
 
 *//***************************************************************************/
 
-#include "net/fsl_net.h"
-#include "dplib/fsl_ldpaa.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_ste.h"
-#include "dplib/fsl_tman.h"
+#include "fsl_net.h"
+#include "fsl_ldpaa.h"
+#include "fsl_cdma.h"
+#include "fsl_parser.h"
+#include "fsl_ste.h"
+#include "fsl_tman.h"
 #include "gro.h"
 #include "general.h"
 #include "fdma.h"
 #include "checksum.h"
-#include "cdma.h"
+/*#include "cdma.h"*/
 
 
 /* New Aggregation */
@@ -279,9 +279,13 @@ int tcp_gro_add_seg_to_aggregation(
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
 	/* 6. check aggregated packet size limit */
-	if (aggregated_size > gro_ctx->packet_size_limit)
+	if (aggregated_size > gro_ctx->packet_size_limit) {
+		ste_inc_counter(gro_ctx->stats_addr +
+			GRO_STAT_AGG_MAX_PACKET_SIZE_CNTR_OFFSET, 1,
+			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return tcp_gro_close_aggregation_and_open_new_aggregation(
 				tcp_gro_context_addr, params, gro_ctx);
+	}
 	else if (aggregated_size == gro_ctx->packet_size_limit) {
 		/* update statistics */
 		if (gro_ctx->flags & TCP_GRO_EXTENDED_STATS_EN)
@@ -405,8 +409,6 @@ int tcp_gro_add_seg_and_close_aggregation(
 	timer_status = tman_delete_timer(gro_ctx->timer_handle,
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
-	gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
-
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
@@ -523,19 +525,6 @@ int tcp_gro_add_seg_and_close_aggregation(
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
 
-	/* update statistics */
-	ste_inc_and_acc_counters(gro_ctx->stats_addr +
-			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-			STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
-			STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
-			STE_MODE_COMPOUND_CNTR_SATURATE |
-			STE_MODE_COMPOUND_ACC_SATURATE);
-
-	/* zero gro context fields */
-	gro_ctx->metadata.seg_num = 0;
-	gro_ctx->internal_flags = 0;
-	gro_ctx->timestamp = 0;
-
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
 
@@ -548,8 +537,32 @@ int tcp_gro_add_seg_and_close_aggregation(
 		fdma_store_default_frame_data();
 		gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 		gro_ctx->internal_flags = GRO_AGG_TIMER_IN_PROCESS;
+		/* update statistics */
+		if (status != TCP_GRO_SEG_DISCARDED)
+			ste_inc_counter(gro_ctx->stats_addr + 
+				GRO_STAT_SEG_NUM_CNTR_OFFSET, 
+				1, 
+				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		return TCP_GRO_SEG_AGG_TIMER_IN_PROCESS | status;
 	} else {
+		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
+		/* zero gro context fields */
+		gro_ctx->metadata.seg_num = 0;
+		gro_ctx->internal_flags = 0;
+		gro_ctx->timestamp = 0;
+		/* update statistics */
+		if (status == TCP_GRO_SEG_DISCARDED)
+			ste_inc_counter(gro_ctx->stats_addr + 
+				GRO_STAT_AGG_NUM_CNTR_OFFSET, 
+				1, 
+				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+		else
+			ste_inc_and_acc_counters(gro_ctx->stats_addr +
+				GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
+				STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
+				STE_MODE_COMPOUND_32_BIT_ACC_SIZE |
+				STE_MODE_COMPOUND_CNTR_SATURATE |
+				STE_MODE_COMPOUND_ACC_SATURATE);
 		return TCP_GRO_SEG_AGG_DONE | status;
 	}
 }
@@ -571,7 +584,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	struct ipv6hdr *ipv6;
 	struct ldpaa_fd tmp_fd;
 	int sr_status, status;
-	uint32_t old_agg_timestamp, ack_number;
+	uint32_t /*old_agg_timestamp,*/ ack_number;
 
 	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
@@ -583,8 +596,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	prc_segment_length = PRC_GET_SEGMENT_LENGTH();
 
 	/* initialize gro_context parameters */
-	old_agg_timestamp = (uint32_t)(gro_ctx->internal_flags) &
-			GRO_HAS_TIMESTAMP;
+	/*old_agg_timestamp = (uint32_t)(gro_ctx->internal_flags) &
+			GRO_HAS_TIMESTAMP;*/
 	gro_ctx->internal_flags = 0;
 	data_offset = (tcp->data_offset_reserved &
 			NET_HDR_FLD_TCP_DATA_OFFSET_MASK) >>
@@ -782,11 +795,6 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	 * Report the user this segment should be flushed due to
 	 * timer unavailability. */
 	if (sr_status == -ENOSPC) {
-
-		/* update statistics */
-		ste_inc_counter(gro_ctx->stats_addr +
-			GRO_STAT_AGG_NUM_CNTR_OFFSET, 1,
-			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 
 		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 		gro_ctx->metadata.seg_num = 1;
