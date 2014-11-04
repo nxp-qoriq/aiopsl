@@ -134,13 +134,16 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 		
 		Ordering:
 		For best performance it is recommended to work concurrently,
-		and move to exclusive mode before enqueuing the last fragment.
-		This way fragments of different frames will be interleaved
-		but ordering will be kept between the last fragments.
-		However, user can also move to exclusive mode before enqueuing
-		the first fragment - this way the whole fragmentation process
-		will be done exclusively and there will be no interleaving 
-		between fragments. 
+		and move to exclusive mode only before enqueuing the last
+		fragment. From this point transition to concurrent is not
+		allowed. This way fragments of different frames will be
+		interleaved but ordering will be kept between the last
+		fragments.
+		Alternately, user can move to exclusive mode before calling IPF
+		init or before enqueuing the first fragment. From this point
+		transition to concurrent is not allowed. This way the whole
+		fragmentation process will be done exclusively and there will be
+		no interleaving between fragments of different frames. 
 		However, in case there is IPSec later in the flow, the ordering
 		scope must be Exclusive before first fragment enters IPSec.
 
