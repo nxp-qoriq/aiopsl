@@ -30,16 +30,17 @@
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_slab.h"
-
-#if defined (LS2085A) && defined (AIOP)
 #include "ls2085a_aiop/platform_aiop_spec.h"
-#endif
+#include "aiop_common.h" /* for struct aiop_init_info */
+
+
 
 int malloc_test();
 
 static int allocate_check_mem(int memory_partition,
 		                      uint32_t num_iterations, uint32_t size,
 		                      void** allocated_pointers );
+extern struct aiop_init_info g_init_data;
 /* Number of malloc allocations for each partition */
 #define NUM_TEST_ITER 10
 
@@ -47,20 +48,29 @@ int malloc_test()
 {
 	uint32_t num_iter = NUM_TEST_ITER, size = 0x100;
 	void* allocated_pointers[NUM_TEST_ITER];
-	int err = 0;
-	err = allocate_check_mem(0,num_iter,size,allocated_pointers); // allocate from the heap
-	if(!err)
-		fsl_os_print("malloc_test from the heap succeeded\n"); 
-	err = allocate_check_mem(MEM_PART_DP_DDR,num_iter,size,
-			                 allocated_pointers);
-	if(!err)
-		fsl_os_print("malloc_test from DP-DDR succeeded\n"); 
-	err = allocate_check_mem(MEM_PART_SH_RAM,num_iter,size,allocated_pointers);
-	if(!err)
+	int err = 0, local_error = 0;
+	 // allocate from the heap
+	if(!(local_error = allocate_check_mem(0,num_iter,size,allocated_pointers)))
+	    fsl_os_print("malloc_test from the heap succeeded\n");
+	err |= local_error ;
+	if(!(local_error = allocate_check_mem(MEM_PART_DP_DDR,num_iter,size,
+			                 allocated_pointers)))
+	    fsl_os_print("malloc_test from DP-DDR succeeded\n");
+	err |= local_error ;
+	if(!(local_error = allocate_check_mem(MEM_PART_SH_RAM,num_iter,size,allocated_pointers)))
 		fsl_os_print("malloc_test from Shared RAM succeeded\n"); 
-	err = allocate_check_mem(MEM_PART_PEB,num_iter,size,allocated_pointers);
-	if(!err)
-		fsl_os_print("malloc_test from PEB succeeded\n");
+	err |= local_error ;
+	if(!(local_error = allocate_check_mem(MEM_PART_PEB,num_iter,size,allocated_pointers)))
+	    fsl_os_print("malloc_test from PEB succeeded\n");
+	err |= local_error ;
+	if(g_init_data.app_info.sys_ddr1_size)
+	{/* user has requested to allocate from system_ddr, 
+	  it should be available*/ 
+	    if(!(local_error = allocate_check_mem(MEM_PART_SYSTEM_DDR,num_iter,size,
+                                  allocated_pointers)))	
+                fsl_os_print("malloc_test from  System DDR succeeded\n");
+	    err |= local_error;
+	}		
 	return err;
 }
 
@@ -78,13 +88,13 @@ static int allocate_check_mem(int  memory_partition,
 		{
 			allocated_pointers[i] = fsl_os_malloc(size);
 			if(NULL == allocated_pointers[i])
-				return -ENOMEM;
+				return ENOMEM;
 			iowrite32(value,allocated_pointers[i]);
 			value = ioread32(allocated_pointers[i]);
 			if(value != expected_value) {
 				fsl_os_print("malloc from the heap has failed, address %x\n",
 						PTR_TO_UINT(allocated_pointers[i]));
-				return -ENOMEM;
+				return ENOMEM;
 			}
 		}
 		for(i = 0 ; i < num_iter; i++)
@@ -99,13 +109,13 @@ static int allocate_check_mem(int  memory_partition,
 		{
 			allocated_pointers[i] = fsl_os_xmalloc(size,memory_partition,4);
 			if(NULL == allocated_pointers[i])
-				return -ENOMEM;
+				return ENOMEM;
 			iowrite32(value,allocated_pointers[i]);
 			value = ioread32(allocated_pointers[i]);
 			if(value != expected_value) {
 				fsl_os_print("malloc from mem part %d has failed, address %x\n",
 						memory_partition,PTR_TO_UINT(allocated_pointers[i]));
-				return -ENOMEM;
+				return ENOMEM;
 			}
 		}
 		for(i = 0 ; i < num_iter; i++)

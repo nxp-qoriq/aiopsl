@@ -36,13 +36,13 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_io.h"
 
-__SHRAM struct slab *slab_peb = 0;
-__SHRAM struct slab *slab_ddr = 0;
+struct slab *slab_peb = 0;
+struct slab *slab_ddr = 0;
 
 int app_test_slab_init(void);
 int slab_init(void);
 int slab_test(void);
-extern __SHRAM struct slab_virtual_pools_main_desc g_slab_virtual_pools;
+extern struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 int app_test_slab_overload_test();
 int app_test_slab(struct slab *slab, int num_times);
 
@@ -105,7 +105,7 @@ int app_test_slab_overload_test()
 
 	for (i = 0; i < 2000 ; i++)
 	{
-		err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, 1,
+		err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
 				  &slab_callback_test, &(my_slab[i]));
 		if (err) return err;
 
@@ -147,28 +147,72 @@ int app_test_slab_overload_test()
 int app_test_slab_init(void)
 {
 	int        err = 0;
-	dma_addr_t buff = 0;
+	dma_addr_t buff[] = {0,0,0,0,0};
 	struct slab *my_slab;
+	struct slab_debug_info slab_info;
 
-	err = slab_create(5, 5, 256, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(2, 4, 256, 4, MEM_PART_DP_DDR, 0,
 	                  &slab_callback_test, &my_slab);
 	if (err) return err;
 
-	err = slab_acquire(my_slab, &buff);
+	err = slab_acquire(my_slab, &buff[0]);
 	if (err) return err;
 
-	if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-		err = slab_release(my_slab, buff);
+	err = slab_acquire(my_slab, &buff[1]);
+	if (err) return err;
+
+	err = slab_acquire(my_slab, &buff[2]);
+	if (err) return err;
+	
+	err = slab_acquire(my_slab, &buff[3]);
+	if (err) return err;
+	
+	err = slab_acquire(my_slab, &buff[4]);
+	if (!err) return err;
+	else
+		fsl_os_print("Acquire more buffers than MAX failed\n");
+		
+	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[0]);
 		if (err) return err;
 	}
 	else
 		return -ENODEV;
 
+	if (slab_refcount_decr(buff[1]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[1]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[2]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	if (slab_refcount_decr(buff[3]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[3]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+
+	
+	err = slab_debug_info_get(my_slab, &slab_info);
+	if (err) {
+		return err;
+	} else {
+		if ((slab_info.committed_buffs >= slab_info.max_buffs) ||
+			(slab_info.committed_buffs == 0))
+			return -ENODEV;
+	}
+	
 	err = slab_free(&my_slab);
 	if (err) return err;
 
 	/* Must fail because my_slab was freed  */
-	err = slab_acquire(my_slab, &buff);
+	err = slab_acquire(my_slab, &buff[0]);
 	if (!err) return -EEXIST;
 
 
@@ -215,7 +259,7 @@ int app_test_slab(struct slab *slab, int num_times)
 	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
-	err = slab_create(5, 5, 256, 4, MEM_PART_PEB, 1,
+	err = slab_create(5, 5, 256, 4, MEM_PART_PEB, SLAB_DDR_MANAGEMENT_FLAG,
 	                  NULL, &my_slab);
 
 	for (i = 0; i < num_times; i++) {
