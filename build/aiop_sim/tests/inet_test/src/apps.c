@@ -32,9 +32,9 @@ extern int aiop_ntop_init(void); extern void aiop_ntop_free(void);
 
 #define APPS                            	\
 {                                       	\
-	{aiop_ntop_init, aiop_ntop_free},       \
-    {aiop_pton_init, aiop_pton_free},       \
-	{NULL, NULL} /* never remove! */    	\
+	{NULL, aiop_ntop_init, aiop_ntop_free},       \
+    {NULL, aiop_pton_init, aiop_pton_free},       \
+	{NULL, NULL, NULL} /* never remove! */    	\
 }
 
 void build_apps_array(struct sys_module_desc *apps);
