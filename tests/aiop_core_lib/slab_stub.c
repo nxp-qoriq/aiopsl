@@ -35,7 +35,9 @@
 #include "aiop_verification_data.h"
 
 
-extern __VERIF_TLS uint8_t slab_error;
+extern __VERIF_TLS uint8_t slab_parser_error;
+extern __VERIF_TLS uint8_t slab_keygen_error;
+extern __VERIF_TLS uint8_t slab_general_error;
 
 int slab_find_and_reserve_bpid(uint32_t num_buffs,
                             uint16_t buff_size,
@@ -48,13 +50,33 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 	UNUSED(alignment);
 	UNUSED(mem_partition_id);
 
-	if ((buff_size == (SYS_NUM_OF_PRPIDS+3)) || (buff_size == 2688))
-		*bpid = 1;
-	else
-		*bpid = 2;
-
+	switch(buff_size) {
+	case (SYS_NUM_OF_PRPIDS+3):
+		if (slab_parser_error)
+			return (-1);
+		else
+			*bpid = 1;	
+		break;
+	case (SYS_NUM_OF_KEYIDS+3):
+		if (slab_keygen_error)
+			return (-1);
+		else
+			*bpid = 2;	
+		break;
+	case (2688):
+		if (slab_general_error)
+			return (-1);
+		else
+			*bpid = 1;	
+		break;
+	default:
+		if (slab_general_error)
+			return (-1);
+		else
+			*bpid = 2;	
+	}
+	
 	*num_filled_buffs = (int)num_buffs;
 
 	return 0;
 }
-

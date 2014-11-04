@@ -83,15 +83,15 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                     \
 {                                          \
-    {time_init,         time_free},        \
-    {epid_drv_init,     epid_drv_free},    \
-    {mc_obj_init,       mc_obj_free},      \
-    {slab_module_init,  slab_module_free}, \
-    {cmdif_client_init, cmdif_client_free}, /* must be before srv */\
-    {cmdif_srv_init,    cmdif_srv_free},   \
-    {aiop_sl_init,      aiop_sl_free},     \
-    {dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/   \
-    {NULL, NULL} /* never remove! */       \
+    {NULL, time_init,         time_free},        \
+    {NULL, epid_drv_init,     epid_drv_free},    \
+    {NULL, mc_obj_init,       mc_obj_free},      \
+    {NULL, slab_module_init,  slab_module_free}, \
+    {NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */\
+    {NULL, cmdif_srv_init,    cmdif_srv_free},   \
+    {NULL, aiop_sl_init,      aiop_sl_free},     \
+    {NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/   \
+    {NULL, NULL, NULL} /* never remove! */       \
 }
 
 #define MAX_NUM_OF_APPS		10
@@ -99,6 +99,8 @@ extern void build_apps_array(struct sys_module_desc *apps);
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
 void global_free(void);
+int global_early_init(void);
+int apps_early_init(void);
 int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
@@ -187,6 +189,34 @@ void global_free(void)
 	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
 		if (modules[i].free)
 			modules[i].free();
+}
+
+int global_early_init(void)
+{
+	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	int i;
+
+	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+		if (modules[i].early_init)
+			modules[i].early_init();
+	
+	return 0;
+}
+
+int apps_early_init(void)
+{
+	struct sys_module_desc apps[MAX_NUM_OF_APPS];
+	int i;
+
+	memset(apps, 0, sizeof(apps));
+	build_apps_array(apps);
+
+	for (i=0; i<MAX_NUM_OF_APPS; i++) {
+		if (apps[i].early_init)
+			apps[i].early_init();
+	}
+	
+	return 0;
 }
 
 int global_post_init(void)
@@ -375,7 +405,7 @@ int run_apps(void)
 	}
 
 	/* TODO: number and size of buffers should not be hard-coded */
-	if ((err = fill_bpid(100, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
+	if ((err = fill_bpid(50, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
 		pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
 				dpbp_id, attr.bpid, buffer_size);
 		return err;
