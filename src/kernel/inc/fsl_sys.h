@@ -75,6 +75,7 @@ struct platform_param;
  * sys_module_desc entry.
  */
 struct sys_module_desc {
+int     (*early_init) (void);
 int     (*init) (void);
 void    (*free) (void);
 };

@@ -40,7 +40,7 @@
 
 static struct aiop_cmgw_regs * cmgw_regs;
 
-__SHRAM uint8_t abcr_lock = 0;
+uint8_t abcr_lock = 0;
 
 /******************************************************************************/
 void cmgw_init(void * cmgw_regs_base) 

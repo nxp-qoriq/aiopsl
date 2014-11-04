@@ -85,24 +85,6 @@ struct cmdif_desc {
 	 * Opaque handle for the use of the command interface;
 	 * user should not modify it.
 	 */
-	void *lock;
-	/*!<
-	 * Optional lock object to be used with the lock/unlock callbacks;
-	 * user must zero it if not needed.
-	 * Lock is needed for session sharing but only for sending synchronous
-	 * commands.
-	 * Asynchronous commands don't require lock in case of session sharing
-	 */
-	void (*lock_cb)(void *lock);
-	/*!<
-	 * Callback for locking the command interface multiple users scenario;
-	 * user must zero it if not needed.
-	 */
-	void (*unlock_cb)(void *lock);
-	/*!<
-	 * Callback for unlocking the command interface multiple users scenario;
-	 * user must zero it if not needed.
-	 */
 };
 
 /**************************************************************************//**
@@ -139,6 +121,9 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 
 @Param[in]	cidesc		Command interface descriptor, cmdif device will
 		be returned inside this descriptor.
+		Sharing of the same cidesc by multiple threads requires locks 
+		outside CMDIF API, as an alternative each thread can open it's 
+		own session by calling cmdif_open(). 
 		Only cidesc.regs must be set by user see struct cmdif_desc.
 @Param[in]	module_name	Module name, up to 8 characters.
 @Param[in]	instance_id	Instance id which will be passed to #open_cb_t
@@ -189,7 +174,8 @@ int cmdif_close(struct cmdif_desc *cidesc);
 @Param[in]	cmd_id     Id which represent command on the module that was
 		registered on Server; Application may use bits 11-0.
 		See \ref CMDIF_SEND_ATTRIBUTES.
-@Param[in]	size       Size of the data.
+@Param[in]	size       Size of the data including extra 16 bytes for 
+		\ref cmdif_cb_t in case of \ref CMDIF_ASYNC_CMD.
 @Param[in]	priority   High or low priority queue.
 		See \ref CMDIF_SEND_ATTRIBUTES.
 @Param[in]	data       Data of the command or buffer allocated by user which

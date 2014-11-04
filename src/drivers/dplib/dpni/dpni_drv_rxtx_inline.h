@@ -38,7 +38,7 @@
 #include "fsl_fdma.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
-extern __SHRAM struct dpni_drv *nis;
+extern struct dpni_drv *nis;
 
 inline int dpni_drv_send(uint16_t ni_id)
 {

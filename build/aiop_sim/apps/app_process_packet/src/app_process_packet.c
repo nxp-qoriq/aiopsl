@@ -33,6 +33,7 @@
 #include "fsl_cdma.h"
 #include "fsl_l2.h"
 
+int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
@@ -132,6 +133,12 @@ int app_init(void)
 
 	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 
+	return 0;
+}
+
+int app_early_init(void)
+{
+	/* Early initialization */
 	return 0;
 }
 

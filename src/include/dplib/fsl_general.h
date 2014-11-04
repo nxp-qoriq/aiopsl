@@ -330,6 +330,9 @@ struct presentation_context {
 #define PRC_SR_BIT_OFFSET	0x5
 	/** No Data Segment bit offset */
 #define PRC_NDS_BIT_OFFSET	0x4
+	/** No Data Segment byte offset */
+#define PRC_NDS_ADDR		0xB
+
 #if NAS_NPS_ENABLE
 	/** No PTA Segment bit offset */
 #define PRC_NPS_BIT_OFFSET	0x5

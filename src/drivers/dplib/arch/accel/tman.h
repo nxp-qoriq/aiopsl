@@ -137,7 +137,7 @@ enum tman_timer_delete_status {
 	TMAN_DEL_CCP_WAIT_ERR = 0x81800051,
 	/** The periodic timer has expired but it is pending a completion
 	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
+	 * function). Deleting with force expiration is forbidden */
 	TMAN_DEL_PERIODIC_CCP_WAIT_ERR = 0x81800055,
 	/** A delete command was already issued for this timer and the TMAN is
 	 * in the process of deleting the timer. The timer will elapse in the
