@@ -1284,7 +1284,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	if(parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)) {
 			/* error in L4 checksum */
-//			return IPR_ERROR;
+			return IPR_ERROR;
 		}
 	return SUCCESS;
 }
