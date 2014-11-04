@@ -52,18 +52,6 @@ typedef enum platform_console_type {
     PLTFRM_CONSOLE_DUART        /**< Use DUART-x as console port */
 } e_platform_console_type;
 
-/**************************************************************************//**
- @Description   Platform Memory Regions
-*//***************************************************************************/
-typedef enum platform_mem_region {
-    PLTFRM_MEM_RGN_NONE = 0,
-    PLTFRM_MEM_RGN_DP_DDR,
-    PLTFRM_MEM_RGN_SYSTEM_DDR,
-    PLTFRM_MEM_RGN_SHRAM,
-    PLTFRM_MEM_RGN_CCSR,
-    PLTFRM_MEM_RGN_PEB,
-    PLTFRM_MEM_RGN_MC_PORTALS
-} e_platform_mem_region;
 
 
 /**************************************************************************//**

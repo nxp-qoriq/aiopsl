@@ -42,17 +42,6 @@
 extern struct aiop_init_info g_init_data;
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
 
-typedef struct t_platform_mem_region_info {
-    uint64_t    start_addr;
-    uint64_t    size;
-    uint8_t     mem_ctrl_id;
-} t_platform_mem_region_info;
-
-typedef struct t_platform_mem_region_desc {
-    e_platform_mem_region      mem_region;
-    t_platform_mem_region_info  info;
-} t_platform_mem_region_desc;
-
 typedef struct t_sys_to_part_offset_map {
     enum fsl_os_module  module;
     uint32_t            id;
@@ -234,29 +223,6 @@ static int find_mem_partition_index(t_platform_memory_info  *mem_info,
     /* Not found */
     return -1;
 }
-
-/*****************************************************************************/
-static int find_mem_region_index(t_platform_memory_info  *mem_info,
-                                 e_platform_mem_region   mem_region)
-{
-    int i;
-
-    ASSERT_COND(mem_info);
-
-    for (i = 0; i < PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-        if (mem_info[i].size == 0)
-            break;
-
-        if ((mem_info[i].mem_region_id == mem_region) &&
-            (mem_info[i].mem_partition_id == MEM_PART_INVALID))
-            /* Found requested memory region */
-            return i;
-    }
-
-    /* Not found */
-    return -1;
-}
-
 /*****************************************************************************/
 static int init_l1_cache(t_platform *pltfrm)
 {
@@ -720,7 +686,6 @@ int platform_init(struct platform_param    *pltfrm_param,
        user's partition definition is within actual physical
        addresses range. */
     for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-        /* t_platform_mem_region_info  mem_region_info; */
         t_platform_memory_info      *mem_info;
 
         mem_info = pltfrm->param.mem_info + i;
