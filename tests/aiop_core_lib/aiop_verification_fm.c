@@ -84,8 +84,8 @@ void aiop_verification_fm()
 	} else{
 		present_params.flags = FDMA_PRES_SR_BIT;
 		present_params.frame_handle = PRC_GET_FRAME_HANDLE();
-		present_params.offset = 11;
-		present_params.present_size = 11;
+		present_params.offset = 10;
+		present_params.present_size = 10;
 		present_params.ws_dst = (void *)data_addr;
 		if (fdma_present_frame_segment(&present_params) != FDMA_SUCCESS)
 			return;
