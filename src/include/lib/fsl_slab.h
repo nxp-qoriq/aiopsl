@@ -92,7 +92,6 @@ typedef void (slab_release_cb_t)(uint64_t);
 @Param[in]	committed_buffs     Number of buffers in new pool.
 @Param[in]	max_buffs           Maximal number of buffers that
 		can be allocated by this new pool; max_buffs >= committed_buffs;
-		Not yet supported.
 @Param[in]	buff_size           Size of buffers in pool.
 @Param[in]	alignment           Requested alignment for data in bytes.
 		AIOP: HW pool supports up to 8 bytes alignment.
@@ -201,6 +200,32 @@ inline int slab_refcount_decr(uint64_t buff){
 *//***************************************************************************/
 int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 
+
+/**************************************************************************//**
+@Function	slab_register_context_buffer_requirements
+
+@Description	register a request for buffers requirement.
+
+@Param[in]	committed_buffs     Number of buffers needed for the app.
+@Param[in]	max_buffs           Maximal number of buffers that
+		can be allocated by the app; max_buffs >= committed_buffs;
+@Param[in]	buff_size           Size of buffers in pool.
+@Param[in]	alignment           Requested alignment for data in bytes.
+		AIOP: HW pool supports up to 8 bytes alignment.
+@Param[in]	mem_partition_id    Memory partition ID for allocation.
+		AIOP: HW pool supports only PEB and DPAA DDR.
+@Param[in]	flags               Set it to 0 for default.
+
+@Return		0        - on success,
+		-ENAVAIL - resource not available or not found,
+		-ENOMEM  - not enough memory for mem_partition_id
+ *//***************************************************************************/
+int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
+                                              uint32_t    max_buffs,
+                                              uint16_t    buff_size,
+                                              uint16_t    alignment,
+                                              enum memory_partition_id  mem_pid,
+                                              uint32_t    flags);
 /** @} *//* end of slab_g group */
 
 #endif /* __FSL_SLAB_H */

@@ -108,13 +108,14 @@
 
 #define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
+#define SLAB_NUM_MEM_PARTITIONS MEM_PART_INVALID
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP_SHRAM   1000
 #define SLAB_MAX_NUM_VP_DDR     64
 #define SLAB_NUM_OF_BUFS_DPDDR  750
 #define SLAB_NUM_OF_BUFS_PEB    20
 #define SLAB_BUFFER_TO_MANAGE_IN_DDR  1 
-
+#define SLAB_MAX_ALIGNMENT_SUPORTED   64
 
 #define SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS   100
 
@@ -213,6 +214,40 @@ struct slab_virtual_pools_main_desc {
 	/**< Flags to use when using the pools - unused  */
 	uint8_t global_spinlock;
 	/**< Spinlock for locking the global virtual root pool */
+};
+
+#define SLAB_BUFF_SIZES_ARR	\
+	{ \
+	{248,   0, 0, 0}, \
+	{504,   0, 0, 0}, \
+	{1016,  0, 0, 0}, \
+	{2040,  0, 0, 0}, \
+	{4088,  0, 0, 0}, \
+	{8184,  0, 0, 0}, \
+	{16376, 0, 0, 0}, \
+	{32760, 0, 0, 0}, \
+	{65528, 0, 0, 0}  \
+	}
+
+
+struct request_table_info{
+	uint32_t buff_size;
+	/**< Available buffer sizes not including 8 bytes of CDMA metadata */
+	uint32_t extra;
+	/**< Number of extra requested buffers */
+	uint32_t committed_bufs;
+	/**< Number of requested committed buffers */
+	uint32_t alignment;
+	/**< Buffer alignment */
+};
+
+struct early_init_request_table{
+	struct request_table_info *table_info;
+};
+struct memory_types_table{	
+	struct early_init_request_table *mem_pid_buffer_request[SLAB_NUM_MEM_PARTITIONS];
+	/**< Tables to store early initialization request depends on memory
+	 * partition. */
 };
 
 /**************************************************************************//**
