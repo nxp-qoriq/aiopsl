@@ -32,10 +32,12 @@
 
 extern int sys_init(void);
 extern void sys_free(void);
+extern int global_early_init(void);
 extern int global_init(void);
 extern int tile_init(void);
 extern int cluster_init(void);
 extern int global_post_init(void);
+extern int apps_early_init(void);
 extern int run_apps(void);
 extern void core_ready_for_tasks(void);
 
@@ -115,6 +117,18 @@ UNUSED(argc);UNUSED(argv);
     		return err;
     	}
 
+    	err = global_early_init();
+    	if(err) {
+    	    cmgw_report_boot_failure();
+    	    return err;
+    	}
+    	
+    	err = apps_early_init();
+    	if(err) {
+    	    cmgw_report_boot_failure();
+    	    return err;
+    	}
+    	
     	err = global_init();
     	if(err) {
     		cmgw_report_boot_failure();

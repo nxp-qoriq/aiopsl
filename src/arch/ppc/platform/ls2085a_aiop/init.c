@@ -63,35 +63,35 @@ extern void cmdif_srv_isr(void);
 extern void build_apps_array(struct sys_module_desc *apps);
 
 // TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
-#define MEMORY_PARTITIONS                                                                                         \
-{   /* Region ID                Memory partition ID  Phys. Addr.  Virt. Addr.  Size , Attributes */\
-    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF, \
-    0xFFFFFFFF,MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
-    {PLTFRM_MEM_RGN_DP_DDR,     MEM_PART_DP_DDR,    0xFFFFFFFF,  0xFFFFFFFF, \
-    0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
-    {PLTFRM_MEM_RGN_SYSTEM_DDR, MEM_PART_MC_PORTALS,   0xFFFFFFFF, 0xFFFFFFFF,\
-    (64  * MEGABYTE),MEMORY_ATTR_NONE,"MC Portals"},\
-    {PLTFRM_MEM_RGN_SYSTEM_DDR,       MEM_PART_CCSR,   0xFFFFFFFF,    0xFFFFFFFF, \
-    (16 * MEGABYTE),MEMORY_ATTR_NONE,"SoC CCSR"  },\
-    {PLTFRM_MEM_RGN_SHRAM,      MEM_PART_SH_RAM,    0x01010400,    0x01010400, \
-    (191 * KILOBYTE),MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
-    {PLTFRM_MEM_RGN_PEB,        MEM_PART_PEB,       0xFFFFFFFF,  0xFFFFFFFF, \
-    0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"PEB"},\
-    {PLTFRM_MEM_RGN_SYSTEM_DDR, MEM_PART_SYSTEM_DDR, 0xFFFFFFFF,  0xFFFFFFFF, \
-     0xFFFFFFFF,MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
+#define MEMORY_PARTITIONS\
+{   /* Memory partition ID               Phys. Addr.  Virt. Addr.  Size , Attributes */\
+    {MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
+	MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
+    {MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
+	MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
+    {MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
+	MEMORY_ATTR_NONE,"MC Portals"},\
+    {MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (16 * MEGABYTE),\
+	MEMORY_ATTR_NONE,"SoC CCSR"  },\
+    {MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
+	MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
+    {MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
+	MEMORY_ATTR_MALLOCABLE,"PEB"},\
+    {MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
+	MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
 }
 
 #define GLOBAL_MODULES                     \
 {                                          \
-    {time_init,         time_free},        \
-    {epid_drv_init,     epid_drv_free},    \
-    {mc_obj_init,       mc_obj_free},      \
-    {slab_module_init,  slab_module_free}, \
-    {cmdif_client_init, cmdif_client_free}, /* must be before srv */\
-    {cmdif_srv_init,    cmdif_srv_free},   \
-    {aiop_sl_init,      aiop_sl_free},     \
-    {dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/   \
-    {NULL, NULL} /* never remove! */       \
+    {NULL, time_init,         time_free},        \
+    {NULL, epid_drv_init,     epid_drv_free},    \
+    {NULL, mc_obj_init,       mc_obj_free},      \
+    {NULL, slab_module_init,  slab_module_free}, \
+    {NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */\
+    {NULL, cmdif_srv_init,    cmdif_srv_free},   \
+    {NULL, aiop_sl_init,      aiop_sl_free},     \
+    {NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/   \
+    {NULL, NULL, NULL} /* never remove! */       \
 }
 
 #define MAX_NUM_OF_APPS		10
@@ -99,6 +99,8 @@ extern void build_apps_array(struct sys_module_desc *apps);
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
 void global_free(void);
+int global_early_init(void);
+int apps_early_init(void);
 int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
@@ -187,6 +189,34 @@ void global_free(void)
 	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
 		if (modules[i].free)
 			modules[i].free();
+}
+
+int global_early_init(void)
+{
+	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	int i;
+
+	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+		if (modules[i].early_init)
+			modules[i].early_init();
+	
+	return 0;
+}
+
+int apps_early_init(void)
+{
+	struct sys_module_desc apps[MAX_NUM_OF_APPS];
+	int i;
+
+	memset(apps, 0, sizeof(apps));
+	build_apps_array(apps);
+
+	for (i=0; i<MAX_NUM_OF_APPS; i++) {
+		if (apps[i].early_init)
+			apps[i].early_init();
+	}
+	
+	return 0;
 }
 
 int global_post_init(void)

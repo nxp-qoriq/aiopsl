@@ -43,6 +43,8 @@
 
 int app_init(void);
 void app_free(void);
+void ipr_timout_cb(ipr_timeout_arg_t arg,
+		uint32_t flags);
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
 /**< Get NI from callback argument, it's demo specific macro */
@@ -214,13 +216,13 @@ int app_init(void)
 
 	ipr_demo_params.max_open_frames_ipv4 = 0x10;
 	ipr_demo_params.max_open_frames_ipv6 = 0x10;
-	ipr_demo_params.max_reass_frm_size = 0x1000;
+	ipr_demo_params.max_reass_frm_size = 0xf000;
 	ipr_demo_params.min_frag_size_ipv4 = 0x40;
 	ipr_demo_params.min_frag_size_ipv6 = 0x40;
-	ipr_demo_params.timeout_value_ipv4 = 0x1000;
-	ipr_demo_params.timeout_value_ipv6 = 0x1000;
-	ipr_demo_params.ipv4_timeout_cb = 0;
-	ipr_demo_params.ipv6_timeout_cb = 0;
+	ipr_demo_params.timeout_value_ipv4 = 0xffe0;
+	ipr_demo_params.timeout_value_ipv6 = 0xffe0;
+	ipr_demo_params.ipv4_timeout_cb = ipr_timout_cb;
+	ipr_demo_params.ipv6_timeout_cb = ipr_timout_cb;
 	ipr_demo_params.cb_timeout_ipv4_arg = 0;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
@@ -258,4 +260,12 @@ int app_init(void)
 void app_free(void)
 {
 	/* TODO - complete!*/
+}
+
+void ipr_timout_cb(ipr_timeout_arg_t arg,
+		uint32_t flags)
+{
+	UNUSED(arg);
+	UNUSED(flags);
+	fdma_terminate_task();
 }
