@@ -78,7 +78,7 @@
 
 #define PR_ERR_TERMINATE(...) \
 	do {                  \
-		CMDIF_DBG_PRINT(__VA_ARGS__);  \
+		sl_pr_debug(__VA_ARGS__);  \
 		fdma_terminate_task();\
 		return;               \
 	} while (0)
@@ -313,9 +313,9 @@ static void sync_cmd_done(uint64_t sync_done,
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
 
-	CMDIF_DBG_PRINT("err = %d\n", err);
-	CMDIF_DBG_PRINT("auth_id = 0x%x\n", auth_id);
-	CMDIF_DBG_PRINT("sync_resp = 0x%x\n", resp);
+	sl_pr_debug("err = %d\n", err);
+	sl_pr_debug("auth_id = 0x%x\n", auth_id);
+	sl_pr_debug("sync_resp = 0x%x\n", resp);
 
 	/* Delete FDMA handle and store user modified data */
 	fdma_store_default_frame_data();
@@ -325,7 +325,7 @@ static void sync_cmd_done(uint64_t sync_done,
 		_sync_done = cmdif_aiop_srv.srv->sync_done[auth_id];
 
 	if (_sync_done == NULL) {
-		CMDIF_DBG_PRINT("Can't finish sync command, no valid address\n");
+		sl_pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
 		uint16_t pl_icid = PL_ICID_GET;
@@ -335,12 +335,12 @@ static void sync_cmd_done(uint64_t sync_done,
 		 * It's ok to take it from current ADC and FD because this
 		 * should not change between commands on the same session */
 		ADD_AMQ_FLAGS(flags, pl_icid);
-		CMDIF_DBG_PRINT("icid = 0x%x\n", ICID_GET(pl_icid));
-		CMDIF_DBG_PRINT("fdma_dma_data flags = 0x%x\n", flags);
+		sl_pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
+		sl_pr_debug("fdma_dma_data flags = 0x%x\n", flags);
 		fdma_dma_data(4, ICID_GET(pl_icid), &resp, _sync_done, flags);
 	}
 
-	CMDIF_DBG_PRINT("sync_done high = 0x%x low = 0x%x \n",
+	sl_pr_debug("sync_done high = 0x%x low = 0x%x \n",
 		 (uint32_t)((_sync_done & 0xFF00000000) >> 32),
 		 (uint32_t)(_sync_done & 0xFFFFFFFF));
 
@@ -586,15 +586,15 @@ void cmdif_srv_isr(void)
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			CMDIF_DBG_PRINT("No permission to open device 0x%x\n", auth_id);
+			sl_pr_err("No permission to open device 0x%x\n", auth_id);
 			sync_cmd_done(sync_done, -EPERM, auth_id, TRUE);
 		}
 
 		cmd_m_name_get(&m_name[0]);
-		CMDIF_DBG_PRINT("m_name = %s\n", m_name);
+		sl_pr_debug("m_name = %s\n", m_name);
 
 		m_id = module_id_find(m_name);
-		CMDIF_DBG_PRINT("m_id = %d\n", m_id);
+		sl_pr_debug("m_id = %d\n", m_id);
 
 		if (m_id < 0) {
 			/* Did not find module with such name */
@@ -603,7 +603,7 @@ void cmdif_srv_isr(void)
 		}
 
 		inst_id  = cmd_inst_id_get();
-		CMDIF_DBG_PRINT("inst_id = %d\n", inst_id);
+		sl_pr_debug("inst_id = %d\n", inst_id);
 
 		err = OPEN_CB(m_id, inst_id, dev);
 		if (!err) {

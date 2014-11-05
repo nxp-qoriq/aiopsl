@@ -324,7 +324,7 @@ void cmdif_cl_isr(void)
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
 	/* Read async cb using FDMA */
-	CMDIF_DBG_PRINT("Got async response for cmd 0x%x\n", \
+	sl_pr_debug("Got async response for cmd 0x%x\n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	
 	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
@@ -341,11 +341,11 @@ void cmdif_cl_isr(void)
 		fd.d_size,
 		(void *)PRC_GET_SEGMENT_ADDRESS())) {
 		
-		CMDIF_DBG_PRINT("Async callback cmd 0x%x returned error \n", \
+		sl_pr_debug("Async callback cmd 0x%x returned error \n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	}
 
-	CMDIF_DBG_PRINT("PASSED got async response for cmd 0x%x\n", \
+	sl_pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 
 	fdma_store_default_frame_data();
