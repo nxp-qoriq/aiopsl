@@ -113,7 +113,7 @@ static inline int module_id_find(const char *m_name)
 static inline int inst_alloc(uint8_t m_id)
 {
 	uint32_t r = 0;
-	int count = 0;	
+	int count = 0;
 
 #ifdef DEBUG
 	if (cmdif_aiop_srv.srv == NULL)

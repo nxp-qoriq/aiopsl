@@ -249,7 +249,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	 * it is not FDMA */
 	dev = (struct cmdif_dev *)cidesc->dev;	
 	
-	if (cmd_id & CMDIF_ASYNC_CMD) {		
+	if (cmd_id & CMDIF_ASYNC_CMD) {
 		struct cmdif_async async_data;
 
 		CMDIF_CMD_FD_SET(&fd, dev, data, \
