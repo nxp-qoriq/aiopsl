@@ -229,7 +229,6 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		void *async_ctx)
 {
 	struct cmdif_fd fd;
-	struct cmdif_async async_data;
 	struct cmdif_dev *dev = NULL;
 	
 #ifdef ARENA_LEGACY_CODE
@@ -250,7 +249,9 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	 * it is not FDMA */
 	dev = (struct cmdif_dev *)cidesc->dev;	
 	
-	if (cmd_id & CMDIF_ASYNC_CMD) {
+	if (cmd_id & CMDIF_ASYNC_CMD) {		
+		struct cmdif_async async_data;
+
 		CMDIF_CMD_FD_SET(&fd, dev, data, \
 		                 (size - sizeof(struct cmdif_async)), cmd_id);
 
@@ -309,7 +310,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	}
 #endif
 	
-/*	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);*/
+	sl_pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);
 	return 0;
 }
 
@@ -345,7 +346,7 @@ void cmdif_cl_isr(void)
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	}
 
-	sl_pr_debug("PASSED got async response for cmd 0x%x\n", \
+	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 
 	fdma_store_default_frame_data();
