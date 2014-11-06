@@ -59,6 +59,7 @@ extern void tman_timer_callback(void);
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
 extern int aiop_snic_init(void);
+extern void aiop_snic_free(void);
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
@@ -212,6 +213,8 @@ void aiop_sl_free(void)
 
 	cdma_release_context_memory(ext_prpid_pool_address);
 	cdma_release_context_memory(ext_keyid_pool_address);
+
+	aiop_snic_free();
 
 	/* TODO status ? */
 }
