@@ -1020,11 +1020,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/cmdif.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/config.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_soc_aiop_spec.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/fsl_soc_aiop_spec.h</locationURI>
