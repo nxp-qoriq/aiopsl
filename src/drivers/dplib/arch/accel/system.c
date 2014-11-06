@@ -213,8 +213,9 @@ void aiop_sl_free(void)
 
 	cdma_release_context_memory(ext_prpid_pool_address);
 	cdma_release_context_memory(ext_keyid_pool_address);
-
+#ifndef AIOP_VERIF
 	aiop_snic_free();
+#endif
 
 	/* TODO status ? */
 }
