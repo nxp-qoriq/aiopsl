@@ -62,7 +62,7 @@
 	(((struct cmdif_srv *)srv)->m_id != NULL) && \
 	(((struct cmdif_srv *)srv)->m_id[(ID)] < M_NUM_OF_MODULES))
 
-void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
+__COLD_CODE void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 			void *(*slow_malloc)(int size))
 {
 	struct cmdif_srv *srv = fast_malloc(sizeof(struct cmdif_srv));
@@ -104,7 +104,7 @@ void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 	return srv;
 }
 
-void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
+__COLD_CODE void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
 {
 	struct  cmdif_srv *srv = (struct  cmdif_srv *)_srv;
 
@@ -150,7 +150,7 @@ static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
-static int module_id_alloc( struct cmdif_srv *srv, const char *m_name,
+__COLD_CODE static int module_id_alloc( struct cmdif_srv *srv, const char *m_name,
 			struct cmdif_module_ops *ops)
 {
 	int i = 0;
@@ -201,8 +201,7 @@ static int module_id_find(struct cmdif_srv *srv, const char *m_name)
 	return -ENAVAIL;
 }
 
-int cmdif_srv_register(void *srv,
-		const char *m_name,
+__COLD_CODE int cmdif_srv_register(void *srv, const char *m_name,
 		struct cmdif_module_ops *ops)
 {
 
@@ -219,7 +218,7 @@ int cmdif_srv_register(void *srv,
 	return 0;
 }
 
-int cmdif_srv_unregister(void *srv, const char *m_name)
+__COLD_CODE int cmdif_srv_unregister(void *srv, const char *m_name)
 {
 	int    m_id = -1;
 

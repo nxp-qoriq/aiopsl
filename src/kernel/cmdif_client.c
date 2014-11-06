@@ -125,7 +125,7 @@ static int session_get(const char *m_name,
 	return -ENAVAIL;
 }
 
-int cmdif_client_init()
+__COLD_CODE int cmdif_client_init()
 {
 	int err = 0;
 	int i   = 0;
@@ -172,7 +172,7 @@ int cmdif_client_init()
 	return 0;
 }
 
-void cmdif_client_free()
+__COLD_CODE void cmdif_client_free()
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;

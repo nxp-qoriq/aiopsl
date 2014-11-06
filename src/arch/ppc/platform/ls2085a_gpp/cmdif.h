@@ -47,4 +47,8 @@
 #endif
 #endif /* NADK_DEBUG */
 
+#ifndef __COLD_CODE
+#define __COLD_CODE
+#endif /* COLD_CODE*/
+
 #endif /* __CMDIF_H */

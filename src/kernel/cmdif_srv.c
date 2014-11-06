@@ -207,14 +207,14 @@ static inline uint16_t cmd_auth_id_get()
 		>> AUTH_ID_OFF);
 }
 
-int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
+__COLD_CODE int cmdif_register_module(const char *m_name, struct cmdif_module_ops *ops)
 {
 	/* Place here lock if required */
 
 	return cmdif_srv_register(cmdif_aiop_srv.srv, m_name, ops);
 }
 
-int cmdif_unregister_module(const char *m_name)
+__COLD_CODE int cmdif_unregister_module(const char *m_name)
 {
 	/* Place here lock if required */
 
@@ -228,7 +228,7 @@ static void *fast_malloc(int size)
 
 static void *slow_malloc(int size)
 {
-	return fsl_os_xmalloc((size_t)size, MEM_PART_DP_DDR, 8);
+	return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);
 }
 
 static void srv_free(void *ptr)
@@ -237,7 +237,7 @@ static void srv_free(void *ptr)
 		fsl_os_xfree(ptr);
 }
 
-int cmdif_srv_init(void)
+__COLD_CODE int cmdif_srv_init(void)
 {
 	int  err = 0;
 	void *srv = NULL;
@@ -248,7 +248,7 @@ int cmdif_srv_init(void)
 		pr_err("Not enough memory for server allocation \n");
 		return -ENOMEM;
 	}
-	cmdif_aiop_srv.srv =srv;
+	cmdif_aiop_srv.srv = srv;
 	cmdif_aiop_srv.dpci_tbl = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	if (cmdif_aiop_srv.dpci_tbl == NULL)
@@ -262,7 +262,7 @@ int cmdif_srv_init(void)
 	return err;
 }
 
-void cmdif_srv_free(void)
+__COLD_CODE void cmdif_srv_free(void)
 {
 	cmdif_srv_deallocate(cmdif_aiop_srv.srv, srv_free);
 	srv_free(cmdif_aiop_srv.dpci_tbl);
