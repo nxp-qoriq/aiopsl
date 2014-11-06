@@ -56,6 +56,9 @@
 #include "dplib/fsl_ipf.h"
 #include "fsl_cmdif_server.h"
 
+#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_tman.h"
+
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
 	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);
 
@@ -75,6 +78,8 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 
 struct snic_params snic_params[MAX_SNIC_NO];
+uint8_t snic_tmi_id;
+uint64_t snic_tmi_mem_base_addr;
 
 void snic_process_packet(void)
 {
@@ -264,7 +269,9 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	{
 	case SNIC_IPR_CREATE_INSTANCE:
 		SNIC_IPR_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
-
+		ipr_params.tmi_id = snic_tmi_id;
+		ipr_params.ipv4_timeout_cb = snic_ipr_timout_cb;
+		ipr_params.ipv6_timeout_cb = snic_ipr_timout_cb;
 		err = ipr_create_instance(&ipr_params,
 				ipr_instance_ptr);
 		snic_params[snic_id].ipr_instance_val = ipr_instance;
@@ -273,7 +280,7 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 		/* todo: parameters to ipr_delete_instance */
 		SNIC_IPR_DELETE_INSTANCE_CMD(SNIC_CMD_READ);
 		err = ipr_delete_instance(snic_params[snic_id].ipr_instance_val,
-				NULL, NULL);
+				snic_ipr_confirm_delete_cb, NULL);
 		return err;
 	case SNIC_SET_MTU:
 		SNIC_CMD_MTU(SNIC_CMD_READ);
@@ -333,5 +340,30 @@ int aiop_snic_init(void)
 		return status;
 	}
 	memset(snic_params, 0, sizeof(snic_params));
+	snic_tmi_mem_base_addr = fsl_os_virt_to_phys
+	(fsl_os_xmalloc(SNIC_MAX_NO_OF_TIMERS*64, MEM_PART_DP_DDR, 64));
+	/* todo tmi delete in snic_free */
+	tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
+			&snic_tmi_id);
 	return 0;
+}
+
+void aiop_snic_free(void)
+{
+	/* todo call for tman_delete_tmi() and release tman memory */
+	/*fsl_os_xfree((void *)snic_tmi_mem_base_addr);*/
+}
+
+void snic_ipr_timout_cb(ipr_timeout_arg_t arg,
+		uint32_t flags)
+{
+	UNUSED(arg);
+	UNUSED(flags);
+	fdma_terminate_task();
+}
+
+void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg)
+{
+	UNUSED(arg);
+	fdma_terminate_task();
 }
