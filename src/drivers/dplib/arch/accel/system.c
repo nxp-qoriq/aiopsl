@@ -59,6 +59,7 @@ extern void tman_timer_callback(void);
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
 extern int aiop_snic_init(void);
+extern void aiop_snic_free(void);
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
@@ -69,13 +70,13 @@ extern int aiop_snic_init(void);
 #endif /* AIOP_VERIF */
 
 /* Global parameters*/
-__SHRAM uint64_t ext_prpid_pool_address;
-__SHRAM uint64_t ext_keyid_pool_address;
+uint64_t ext_prpid_pool_address;
+uint64_t ext_keyid_pool_address;
 
 
 /* Time module globals */
-extern __SHRAM struct aiop_cmgw_regs *time_cmgw_regs;
-extern __SHRAM _time_get_t *time_get_func_ptr;
+extern struct aiop_cmgw_regs *time_cmgw_regs;
+extern _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
 __PROFILE_SRAM struct storage_profile storage_profile;
 
@@ -212,6 +213,9 @@ void aiop_sl_free(void)
 
 	cdma_release_context_memory(ext_prpid_pool_address);
 	cdma_release_context_memory(ext_keyid_pool_address);
+#ifndef AIOP_VERIF
+	aiop_snic_free();
+#endif
 
 	/* TODO status ? */
 }

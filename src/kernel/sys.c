@@ -39,7 +39,7 @@
 #include "fsl_dbg.h"
 
 /* Global System Object */
-__SHRAM t_system sys = {0};
+t_system sys = {0};
 
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
@@ -48,7 +48,7 @@ typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
 } t_sys_forced_object_desc;
 
-__SHRAM t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
+t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
 
 
 /*****************************************************************************/

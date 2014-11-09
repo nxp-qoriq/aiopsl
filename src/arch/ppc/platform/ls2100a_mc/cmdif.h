@@ -33,9 +33,6 @@
 #include <fsl_stdlib.h>
 #include <fsl_endian.h>
 
-#ifndef __HOT_CODE
-#define __HOT_CODE
-#endif
 
 #ifndef CORE_IS_BIG_ENDIAN
 #error "MC core must be big endian\n!"
@@ -45,5 +42,9 @@
 #define CPU_TO_SRV32(val) CPU_TO_BE32(val)
 
 #define CMDIF_EPID         0     /*!< EPID to be used for setting by client */
+
+#ifndef __COLD_CODE
+#define __COLD_CODE
+#endif /* COLD_CODE*/
 
 #endif /* __CMDIF_H */

@@ -25,59 +25,47 @@
  */
 
 /**************************************************************************//**
-@File		dpni_drv_rxtx_inline.h
+ @file          fsl_sl_dbg.h
 
-@Description	Data Path Network Interface Inline API
+ @Description   Debug mode definitions for service layer developers
 *//***************************************************************************/
-#ifndef __DPNI_DRV_RXTX_INLINE_H
-#define __DPNI_DRV_RXTX_INLINE_H
 
-#include "drv.h"
-#include "general.h"
-#include "types.h"
-#include "fsl_fdma.h"
+#ifndef __FSL_SL_DBG_H
+#define __FSL_SL_DBG_H
 
-extern __TASK struct aiop_default_task_params default_task_params;
-extern struct dpni_drv *nis;
+#include "fsl_dbg.h"
 
-inline int dpni_drv_send(uint16_t ni_id)
-{
-	struct dpni_drv *dpni_drv;
-	struct fdma_queueing_destination_params    enqueue_params;
-#ifndef AIOP_VERIF
-#ifndef DISABLE_ASSERTIONS
-	struct dpni_drv_params dpni_drv_params_local
-				__attribute__((aligned(8)));
-#endif
-#endif
-	/*struct dpni_drv_tx_params dpni_drv_tx_params_local
-				__attribute__((aligned(8)));*/
-	int err;
+/**************************************************************************//**
+ @Group		FSL_DEBUG_GROUP Debug Utilities
 
-	dpni_drv = nis + ni_id; /* calculate pointer
-					* to the send NI structure   */
+ @Description	FSL AIOP debug macros
 
-	/* Load from SHRAM to local stack */
-#ifndef AIOP_VERIF
-#ifndef DISABLE_ASSERTIONS
-	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
-	ASSERT_COND_LIGHT(!(dpni_drv_params_local.flags & DPNI_DRV_FLG_MTU_ENABLE));
-#endif
-#endif
-	/*dpni_drv_tx_params_local = dpni_drv->dpni_drv_tx_params_var;*/
-
-	/* take SPID from TX NIC - not needed since same SPID as receive */
-	//*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv_params_local.spid;
-	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
-	 * the qd_priority is taken from the TLS and that enqueue function \
-	 * always returns*/
-	enqueue_params.qdbin = 0;
-	enqueue_params.qd = dpni_drv->dpni_drv_tx_params_var.qdid;
-	enqueue_params.qd_priority = default_task_params.qd_priority;
-	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
-			FDMA_ENWF_NO_FLAGS);
-	return err;
-}
+ @{
+*//***************************************************************************/
 
 
-#endif /* __DPNI_DRV_RXTX_INLINE_H */
+/**************************************************************************//**
+ @Function      sl_pr_debug(...)
+
+ @Description	Same as pr_debug() but only for service layer developers.
+ 	 	The users will not see those prints. In order to enable them 
+ 	 	recompile the service layer library with SL_DEBUG.
+
+ @Param[in]     ... string with arguments to print.
+*//***************************************************************************/
+#define sl_pr_debug(...) SL_DBG(REPORT_LEVEL_TRACE, __VA_ARGS__)
+
+/**************************************************************************//**
+ @Function      sl_pr_err(...)
+
+ @Description   Same as pr_err() but only for service layer developers
+  	 	The users will not see those prints. In order to enable them 
+ 	 	recompile the service layer library with SL_DEBUG.
+
+ @Param[in]     ... string with arguments to print.
+*//***************************************************************************/
+#define sl_pr_err(...) 	SL_DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
+
+/** @} */ /* end of Debug Utilities */
+
+#endif /* __FSL_SL_DBG_H */

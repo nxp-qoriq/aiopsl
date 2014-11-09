@@ -438,7 +438,7 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_push_and_set_mpls_command *str =
 			(struct hm_push_and_set_mpls_command *) asa_seg_addr;
-			l2_push_and_set_mpls(str->mpls_header,str->ethertype);
+			l2_push_and_set_mpls(str->mpls_header, str->ethertype);
 			str_size = sizeof(struct hm_push_and_set_mpls_command);
 			break;
 		}
@@ -453,6 +453,36 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			break;
 		}
 
+		/* HM push and set VXLAN Command Verification */
+		case HM_PUSH_AND_SET_VXLAN_CMD_STR:
+		{
+			struct hm_push_and_set_vxlan_command *str =
+			(struct hm_push_and_set_vxlan_command *) asa_seg_addr;
+			l2_push_and_set_vxlan(&(str->header_ptr), str->header_size);
+			str_size = sizeof(struct hm_push_and_set_vxlan_command);
+			break;
+		}
+
+		/* HM VXLAN VID Command Verification */
+		case HM_SET_VXLAN_VID_CMD_STR:
+		{
+			struct hm_vxlan_vid_command *str =
+			(struct hm_vxlan_vid_command *) asa_seg_addr;
+			l2_set_vxlan_vid(str->vxlan_vid);
+			str_size = sizeof(struct hm_vxlan_vid_command);
+			break;
+		}
+		
+		/* HM pop VXLAN Command Verification */
+		case HM_POP_VXLAN_CMD_STR:
+		{
+			struct hm_pop_vxlan_command *str =
+			(struct hm_pop_vxlan_command *) asa_seg_addr;
+			l2_pop_vxlan();
+			str_size = sizeof(struct hm_pop_vxlan_command);
+			break;
+		}
+		
 		/* HM ARP Response Command Verification */
 		case HM_ARP_RESPONSE_CMD_STR:
 		{

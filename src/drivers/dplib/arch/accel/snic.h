@@ -63,6 +63,9 @@
 #define VLAN_PCP_SHIFT	13
 
 #define MAX_SNIC_NO     16
+/* todo need to set SNIC_MAX_NO_OF_TIMERS bigger than max number of open 
+ * reassembly frames and IPsec SAs in all snics */
+#define SNIC_MAX_NO_OF_TIMERS   100
 
 /** @} */ /* end of SNIC_MACROS */
 
@@ -98,9 +101,12 @@ struct snic_params {
 
 void snic_process_packet(void);
 int aiop_snic_init(void);
+void aiop_snic_free(void);
 int snic_ipf(struct snic_params *snic);
 int snic_ipr(struct snic_params *snic);
 int snic_add_vlan(void);
+void snic_ipr_timout_cb(ipr_timeout_arg_t arg, uint32_t flags);
+void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg);
 /** @} */ /* end of SNIC */
 
 

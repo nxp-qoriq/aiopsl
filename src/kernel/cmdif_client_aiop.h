@@ -38,6 +38,7 @@
 #include "dplib/fsl_dpci.h"
 #include "fsl_gen.h"
 #include "fsl_string.h"
+#include "fsl_sl_dbg.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);

@@ -151,8 +151,9 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
 
 		Ordering:
 		To keep order between frames, user should move to exclusive mode
-		before enqueuing the first segment, thus the whole segmentation
-		process will be done exclusively.
+		before calling GSO init. From this point transition to
+		concurrent is not allowed, thus the whole segmentation process
+		will be done exclusively.
 
 @Param[in]	tcp_gso_context_addr - Address to the TCP GSO internal context.
 		Must be initialized by gso_context_init() prior to the first

@@ -55,7 +55,7 @@
 #include "slab.h"
 #endif
 
-__SHRAM struct  ipr_global_parameters ipr_global_parameters1;
+struct  ipr_global_parameters ipr_global_parameters1;
 
 int ipr_init(void)
 {
@@ -596,16 +596,19 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		move_to_correct_ordering_scope2(osm_status);
-		if(frame_is_ipv4) {
-			if (!(instance_params.flags & IPR_MODE_IPV4_TO_TYPE)) {
-			/* recharge timer in case of time out
-			 * between fragments */
-			/* Delete timer */
-				timer_status = tman_delete_timer(
+		if (rfdc.num_of_frags != 1) {
+			/* other fragments than the opening one */
+			if(frame_is_ipv4) {
+				if (!(instance_params.flags &
+						IPR_MODE_IPV4_TO_TYPE)) {
+				/* recharge timer in case of time out
+				 * between fragments */
+				/* Delete timer */
+					timer_status = tman_delete_timer(
 					  rfdc.timer_handle,
 					  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-				if(timer_status == SUCCESS)
-					tman_create_timer(
+					if(timer_status == SUCCESS)
+						tman_create_timer(
 					     instance_params.tmi_id,
 					     IPR_TIMEOUT_FLAGS,
 					     instance_params.timeout_value_ipv4,
@@ -613,16 +616,17 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (tman_arg_2B_t) NULL,
 					     (tman_cb_t) ipr_time_out,
 					     &rfdc.timer_handle);
-			}
-		} else if (!(instance_params.flags & IPR_MODE_IPV6_TO_TYPE)) {
-			/* recharge timer in case of time out
-			 * between fragments */
-			/* Delete timer */
-				timer_status = tman_delete_timer(
-						rfdc.timer_handle,
+				}
+			} else if (!(instance_params.flags &
+					IPR_MODE_IPV6_TO_TYPE)) {
+				/* recharge timer in case of time out
+				 * between fragments */
+				/* Delete timer */
+					timer_status = tman_delete_timer(
+							rfdc.timer_handle,
 					  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-				if(timer_status == SUCCESS)
-					tman_create_timer(
+					if(timer_status == SUCCESS)
+						tman_create_timer(
 					     instance_params.tmi_id,
 					     IPR_TIMEOUT_FLAGS,
 					     instance_params.timeout_value_ipv6,
@@ -630,9 +634,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (tman_arg_2B_t) NULL,
 					     (tman_cb_t) ipr_time_out,
 					     &rfdc.timer_handle);
+			}
 		}
-		/* Write and release updated 64 first bytes
-		 * of RFDC */
+		/* Write and release updated 64 first bytes of RFDC */
 		cdma_write_release_lock_and_decrement(
 				       rfdc_ext_addr,
 				       &rfdc,
@@ -1284,7 +1288,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	if(parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)) {
 			/* error in L4 checksum */
-//			return IPR_ERROR;
+			return IPR_ERROR;
 		}
 	return SUCCESS;
 }

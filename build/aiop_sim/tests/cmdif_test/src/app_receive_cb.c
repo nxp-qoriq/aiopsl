@@ -42,9 +42,9 @@ extern void client_async_cmd(struct cmdif_desc *client);
 extern void client_no_resp_cmd(struct cmdif_desc *client);
 extern void cmdif_srv_isr();
 
-__SHRAM int received_fd = 0;
+int received_fd = 0;
 /**< DDR, server accesses it with CDMA, 4 byte is enough */
-__SHRAM struct cmdif_desc client_desc;
+struct cmdif_desc client_desc;
 /**< Client descriptor that should be passed to open */
 struct {
 	struct cmdif_dev  client_dev;

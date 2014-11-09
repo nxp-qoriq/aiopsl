@@ -118,14 +118,14 @@ static int session_get(const char *m_name,
 		/* Must be here to prevent deadlocks because 
 		 * the same lock is used */
 		return icontext_get((uint16_t)dpci_id, \
-		             (struct icontext *)(&cl->gpp[i].dev->reserved[0]));
+		             (struct icontext *)(&(cl->gpp[i].dev->reserved[0])));
 	}
 
 	unlock_spinlock(&cl->lock);
 	return -ENAVAIL;
 }
 
-int cmdif_client_init()
+__COLD_CODE int cmdif_client_init()
 {
 	int err = 0;
 	int i   = 0;
@@ -172,7 +172,7 @@ int cmdif_client_init()
 	return 0;
 }
 
-void cmdif_client_free()
+__COLD_CODE void cmdif_client_free()
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
@@ -229,7 +229,6 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		void *async_ctx)
 {
 	struct cmdif_fd fd;
-	struct cmdif_async async_data;
 	struct cmdif_dev *dev = NULL;
 	
 #ifdef ARENA_LEGACY_CODE
@@ -249,17 +248,32 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	 * AIOP client can't set async callback inside cmdif_cmd() flib because 
 	 * it is not FDMA */
 	dev = (struct cmdif_dev *)cidesc->dev;	
-	CMDIF_CMD_FD_SET(&fd, dev, data, size, cmd_id);
 	
 	if (cmd_id & CMDIF_ASYNC_CMD) {
+		struct cmdif_async async_data;
+
+		CMDIF_CMD_FD_SET(&fd, dev, data, \
+		                 (size - sizeof(struct cmdif_async)), cmd_id);
+
 		/* Write async cb using FDMA */
 		async_data.async_cb  = (uint64_t)async_cb;
 		async_data.async_ctx = (uint64_t)async_ctx;
 		ASSERT_COND_LIGHT(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
-		icontext_dma_write((struct icontext *)(&dev->reserved[0]), 
+		icontext_dma_write((struct icontext *)(&(dev->reserved[0])), 
 		                   sizeof(struct cmdif_async), 
 		                   &async_data, 
-		                   CMDIF_ASYNC_ADDR_GET(data, size));
+		                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size));
+#ifdef DEBUG
+		async_data.async_cb  = 0;
+		async_data.async_ctx = 0;
+		icontext_dma_read((struct icontext *)(&(dev->reserved[0])), 
+		                   sizeof(struct cmdif_async),
+		                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
+		                   &async_data);
+		ASSERT_COND_LIGHT(async_data.async_cb == (uint64_t)async_cb);		
+#endif
+	} else {
+		CMDIF_CMD_FD_SET(&fd, dev, data, size, cmd_id);
 	}
 	
 	/* Copy FD outside send_fd() to save stack and cycles */
@@ -296,7 +310,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	}
 #endif
 	
-/*	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);*/
+	sl_pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);
 	return 0;
 }
 
@@ -304,29 +318,33 @@ void cmdif_cl_isr(void)
 {
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
-
+	
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
 	/* Read async cb using FDMA */
+	sl_pr_debug("Got async response for cmd 0x%x\n", \
+		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
+	
 	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
-	icontext_dma_read((struct icontext *)(&CMDIF_DEV_GET(&fd)->reserved[0]), 
+	icontext_dma_read((struct icontext *)(&(CMDIF_DEV_GET(&fd)->reserved[0])), 
 	                   sizeof(struct cmdif_async),
 	                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
 	                   &async_data);
-	
+
+
+	ASSERT_COND_LIGHT(async_data.async_cb);
 	if (((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
 		fd.u_flc.cmd.err,
 		CPU_TO_SRV16(fd.u_flc.cmd.cmid),
 		fd.d_size,
 		(void *)PRC_GET_SEGMENT_ADDRESS())) {
 		
-		pr_debug("Async callback cmd 0x%x returned error \n", \
+		sl_pr_debug("Async callback cmd 0x%x returned error \n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	}
-	
 
 	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));

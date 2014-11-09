@@ -71,8 +71,8 @@
 #include "aiop_verification.h"
 #include "verification_virtual_pools.h"
 
-__SHRAM struct virtual_pool_desc virtual_pools[MAX_VIRTUAL_POOLS_NUM];
-__SHRAM struct callback_s callback_functions[MAX_VIRTUAL_POOLS_NUM];
+struct virtual_pool_desc virtual_pools[MAX_VIRTUAL_POOLS_NUM];
+struct callback_s callback_functions[MAX_VIRTUAL_POOLS_NUM];
 
 int callback_counter = 0;
 

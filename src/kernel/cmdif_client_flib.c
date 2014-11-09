@@ -224,11 +224,14 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 #endif
 	
 	dev = (struct cmdif_dev *)cidesc->dev;
-
-	CMDIF_CMD_FD_SET(fd, dev, data, size, cmd_id);
 	
-	if (cmd_id & CMDIF_ASYNC_CMD)
-		async_cb_set(fd, async_cb, async_ctx);
+	if (cmd_id & CMDIF_ASYNC_CMD) {
+		CMDIF_CMD_FD_SET(fd, dev, data, \
+		                 (size - sizeof(struct cmdif_async)), cmd_id);
+		async_cb_set(fd, async_cb, async_ctx);		
+	} else {
+		CMDIF_CMD_FD_SET(fd, dev, data, size, cmd_id);
+	}
 	
 	return 0;
 }
@@ -254,8 +257,7 @@ int cmdif_async_cb(struct cmdif_fd *fd)
 	cmd_id = CPU_TO_SRV16(fd->u_flc.cmd.cmid);
 	
 #ifdef DEBUG
-	if (!(cmd_id & CMDIF_ASYNC_CMD) || (fd->u_addr.d_addr == NULL) || 
-		(fd->d_size < sizeof(struct cmdif_async)))
+	if (!(cmd_id & CMDIF_ASYNC_CMD) || (fd->u_addr.d_addr == NULL))
 		return -EINVAL;	
 #endif
 	
@@ -268,5 +270,5 @@ int cmdif_async_cb(struct cmdif_fd *fd)
 	                fd->u_flc.cmd.err,
 	                cmd_id,
 	                fd->d_size,
-	                (void *)fd->u_addr.d_addr);	
+	                (fd->d_size ? (void *)fd->u_addr.d_addr : NULL));	
 }

@@ -64,6 +64,9 @@
 /** No VLAN exists.*/
 #define NO_VLAN_ERROR				(HM_MODULE_STATUS_ID + 0x0400)
 
+/** Minimum Segment size. */
+#define MIN_SEGMENT_SIZE		128
+
 /**************************************************************************//**
  @Group		FSL_HM_L2_Functions HM L2 related functions
 
@@ -291,8 +294,6 @@ int l2_pop_vlan(void);
  @Cautions	The parse results must be updated before calling this operation.
  If an ethernet header is present, it is assumed to be located at
  the beginning of the segment (offset 0 from segment address).
- If there is no ethernet header, the mpls is inserted at the
- beginning of the segment.
  *//***************************************************************************/
 void l2_push_and_set_mpls(uint32_t mpls_hdr, uint16_t etype);
 
@@ -340,6 +341,77 @@ void l2_pop_mpls(void);
 
  *//***************************************************************************/
 void l2_mpls_header_remove(void);
+
+/*************************************************************************//**
+ @Function	l2_push_and_set_vxlan
+
+ @Description	Push and set a VxLAN headers.\n
+
+ This function assumes the presence of an Ethernet header.
+
+ The parse results are updated automatically at the end of
+ this operation.
+
+ The gross running sum of the frame becomes invalid after calling this function.
+
+ Implicit input parameters in Task Defaults: frame handle, segment handle, 
+ segment address.
+ Implicit output parameters in Task Defaults: parser_starting_hxs
+
+
+ @Param[in]	vxlan_hdr -  Pointer to VxLAN encapsulate headers: Ethernet, IP,
+ 	 	 	 UDP and VxLan.
+ @Param[in]	size -  Indicate the size of VxLAN encapsulate headers 
+ 	 	 	 (50 - 255 bytes).
+ 
+ @Return		None.
+
+ @Cautions	The parse results must be updated before calling this operation.
+
+ *//***************************************************************************/
+void l2_push_and_set_vxlan(uint32_t *vxlan_hdr, uint16_t size);
+
+/*************************************************************************//**
+ @Function	l2_pop_vxlan
+
+ @Description	Pop the VxLAN headers.
+ The parse results are updated automatically at the end of
+ this operation.
+
+ This function assumes Ethernet, IP, UDP and VxLAN headers are presents.
+
+ The gross running sum of the frame becomes invalid after calling this function.
+
+ Implicit input parameters in Task Defaults: frame handle, segment handle, 
+ segment address.
+
+ @Return		None.
+
+ @Cautions	The parse results must be updated before calling this operation.
+ 
+ *//***************************************************************************/
+void l2_pop_vxlan(void);
+
+/*************************************************************************//**
+ @Function	l2_set_vxlan_vid
+
+ @Description	Set the VxLAN id.
+
+ This function assumes VxLAN header is present.
+
+ The gross running sum of the frame becomes invalid after calling this function.
+
+ Implicit input parameters in Task Defaults: frame handle, segment handle,
+ segment address.
+
+ @Param[in]	vxlan_vid - VxLAN Network identifier (3 LSB bytes).
+
+ @Return		None.
+
+ @Cautions	The parse results must be updated before calling this operation.
+ 
+ *//***************************************************************************/
+void l2_set_vxlan_vid(uint32_t vxlan_vid);
 
 /*************************************************************************//**
  @Function	l2_arp_response

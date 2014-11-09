@@ -118,14 +118,18 @@ inline void osm_task_init(void)
 
 	/**<	0 = No order scope specified.\n
 		1 = Scope was specified for level 1 of hierarchy */
-	default_task_params.current_scope_level =
-			((osm_val & PRC_OSRC_MASK) ? 1 : 0);
-	
-	*(uint32_t *)default_task_params.scope_mode_level_arr = 0 ;
+	/*default_task_params.current_scope_level =
+			((osm_val & PRC_OSRC_MASK) ? 1 : 0);*/
+	default_task_params.current_scope_level = osm_val >>
+			PRC_OSRC_BIT_OFFSET;
+
+	/**(uint32_t *)default_task_params.scope_mode_level_arr = 0 ;*/
 	/**<	0 = Concurrent mode.\n
 		1 = Exclusive mode. */
-	default_task_params.scope_mode_level_arr[0] =
-			((osm_val & PRC_OEP_MASK) ? 1 : 0);
+	/*default_task_params.scope_mode_level_arr[0] =
+			((osm_val & PRC_OEP_MASK) ? 1 : 0);*/
+	default_task_params.scope_mode_level_arr[0] = (osm_val & PRC_OEP_MASK)
+			>> PRC_OEP_BIT_OFFSET;
 }
 
 /**************************************************************************//**

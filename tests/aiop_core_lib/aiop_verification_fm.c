@@ -50,7 +50,9 @@ __TASK int32_t status_ipf;
 
 extern __VERIF_GLOBAL uint8_t verif_prpid;
 extern __VERIF_TLS uint64_t initial_ext_address;
-extern __VERIF_TLS uint8_t slab_error;
+extern __VERIF_TLS uint8_t slab_parser_error;
+extern __VERIF_TLS uint8_t slab_keygen_error;
+extern __VERIF_TLS uint8_t slab_general_error;
 
 
 void aiop_verification_fm()
@@ -66,28 +68,34 @@ void aiop_verification_fm()
 			/* PTA was already loaded */
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
 			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
-			slab_error = *((uint8_t *)PRC_GET_PTA_ADDRESS() + 8);
+			slab_parser_error = 
+				*((uint8_t *)PRC_GET_PTA_ADDRESS() + 8);
+			slab_keygen_error = 
+				*((uint8_t *)PRC_GET_PTA_ADDRESS() + 9);
 		} else { /* PTA was not loaded */
 			if (fdma_read_default_frame_pta((void *)data_addr) !=
 					FDMA_SUCCESS)
 				return;
 			ext_address = *((uint64_t *)data_addr);
-			slab_error = *((uint8_t *)data_addr + 8);
+			slab_parser_error = *((uint8_t *)data_addr + 8);
+			slab_keygen_error = *((uint8_t *)data_addr + 9);
 			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		}
 	} else{
 		present_params.flags = FDMA_PRES_SR_BIT;
 		present_params.frame_handle = PRC_GET_FRAME_HANDLE();
-		present_params.offset = 9;
-		present_params.present_size = 9;
+		present_params.offset = 10;
+		present_params.present_size = 10;
 		present_params.ws_dst = (void *)data_addr;
 		if (fdma_present_frame_segment(&present_params) != FDMA_SUCCESS)
 			return;
-		slab_error = data_addr[0];
-		ext_address = *((uint64_t *)(&(data_addr[1])));
+		slab_keygen_error = data_addr[0];
+		slab_parser_error = data_addr[1];
+		ext_address = *((uint64_t *)(&(data_addr[2])));
 	}
 	initial_ext_address = ext_address;
-
+	slab_general_error = 0;
+	
 	/* spid=0. This is a temporary spid setter and has to be removed when
 				* the ni function will be run.
 				* (According to Ilan request) */
