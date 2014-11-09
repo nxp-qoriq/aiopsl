@@ -1027,9 +1027,12 @@ int fdma_replicate_frame_fqid(
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	*frame_handle2 = *((uint8_t *) (FDMA_REPLIC_FRAME_HANDLE_OFFSET));
-
-	if (res1 == FDMA_SUCCESS)
+	
+	if (res1 == FDMA_SUCCESS){
+		if ((uint32_t)fd_dst == HWC_FD_ADDRESS)
+			PRC_SET_FRAME_HANDLE(*frame_handle2);
 		return SUCCESS;
+	}
 	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
 		return -EBUSY;
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
@@ -1069,8 +1072,11 @@ int fdma_replicate_frame_qd(
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	*frame_handle2 = *((uint8_t *) (FDMA_REPLIC_FRAME_HANDLE_OFFSET));
 
-	if (res1 == FDMA_SUCCESS)
+	if (res1 == FDMA_SUCCESS){
+		if ((uint32_t)fd_dst == HWC_FD_ADDRESS)
+			PRC_SET_FRAME_HANDLE(*frame_handle2);
 		return SUCCESS;
+	}
 	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
 		return -EBUSY;
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
