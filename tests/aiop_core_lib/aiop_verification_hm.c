@@ -458,7 +458,8 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 		{
 			struct hm_push_and_set_vxlan_command *str =
 			(struct hm_push_and_set_vxlan_command *) asa_seg_addr;
-			l2_push_and_set_vxlan(&(str->header_ptr), str->header_size);
+			l2_push_and_set_vxlan((uint8_t *)str->header_ptr,
+						str->header_size);
 			str_size = sizeof(struct hm_push_and_set_vxlan_command);
 			break;
 		}

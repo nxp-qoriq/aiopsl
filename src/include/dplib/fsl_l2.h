@@ -356,7 +356,7 @@ void l2_mpls_header_remove(void);
  @Cautions	The parse results must be updated before calling this operation.
 
  *//***************************************************************************/
-void l2_push_and_set_vxlan(uint32_t *vxlan_hdr, uint16_t size);
+void l2_push_and_set_vxlan(uint8_t *vxlan_hdr, uint16_t size);
 
 /*************************************************************************//**
  @Function	l2_pop_vxlan
