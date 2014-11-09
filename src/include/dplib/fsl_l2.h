@@ -269,17 +269,12 @@ int l2_pop_vlan(void);
  @Description	Push and set a new outer MPLS.\n
 
  This function assumes the presence of an Ethernet header.
+ The parse results are updated automatically at the end of this operation.
+ The gross running sum of the frame becomes invalid after calling this function.
 
- The parse results are updated automatically at the end of
- this operation.
-
- The gross running sum of the frame becomes invalid after calling
- this function.
-
- Implicit input parameters in Task Defaults: frame handle,
- segment handle, segment address.
+ Implicit input parameters in Task Defaults: frame handle, segment handle, 
+ segment address.
  Implicit output parameters in Task Defaults: parser_starting_hxs
-
 
  @Param[in]	mpls_hdr - indicates the mpls header value.
  @Param[in] etype - needed in case there is no MPLS header in frame, indicates
@@ -303,15 +298,11 @@ void l2_push_and_set_mpls(uint32_t mpls_hdr, uint16_t etype);
  @Description	Pop the outer MPLS.
   
  This function assumes Ethernet , MPLS  and IP headers are presents.
-  
- The parse results are updated automatically at the end of
- this operation.
+ The parse results are updated automatically at the end of this operation.
+ The gross running sum of the frame becomes invalid after calling this function.
 
- The gross running sum of the frame becomes invalid after calling
- this function.
-
- Implicit input parameters in Task Defaults: frame handle,
- segment handle, segment address.
+ Implicit input parameters in Task Defaults: frame handle, segment handle, 
+ segment address.
 
  @Cautions	The parse results must be updated before calling this operation.
 
@@ -326,16 +317,14 @@ void l2_pop_mpls(void);
 
  This function assumes Ethernet , MPLS  and IP headers are presents.
 
- The parse results are updated automatically at the end of this
- operation.
+ The parse results are updated automatically at the end of this operation.
 
- The gross running sum of the frame becomes invalid after calling
- this function.
+ The gross running sum of the frame becomes invalid after calling this function.
 
- Implicit input parameters in task defaults: frame handle,
- segment handle, parser_profile_id, parser_starting_hxs.
- Implicitly updated values in task defaults: segment length,
- segment address,parser_starting_hxs.
+ Implicit input parameters in task defaults: frame handle, segment handle, 
+ parser_profile_id, parser_starting_hxs.
+ Implicitly updated values in task defaults: segment length, segment address,
+ parser_starting_hxs.
 
  @Cautions	The parse results must be updated before calling this operation.
 
@@ -349,8 +338,7 @@ void l2_mpls_header_remove(void);
 
  This function assumes the presence of an Ethernet header.
 
- The parse results are updated automatically at the end of
- this operation.
+ The parse results are updated automatically at the end of this operation.
 
  The gross running sum of the frame becomes invalid after calling this function.
 
@@ -361,8 +349,7 @@ void l2_mpls_header_remove(void);
 
  @Param[in]	vxlan_hdr -  Pointer to VxLAN encapsulate headers: Ethernet, IP,
  	 	 	 UDP and VxLan.
- @Param[in]	size -  Indicate the size of VxLAN encapsulate headers 
- 	 	 	 (50 - 255 bytes).
+ @Param[in]	size -  Indicate the size of VxLAN encapsulate headers.
  
  @Return		None.
 
