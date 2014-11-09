@@ -173,7 +173,6 @@ Layout is built from 3 different sections: containers, objects, connections.
 		};
 		dpni@1{
 			compatible = "fsl,dpni";
-			type = "DPNI_TYPE_NIC";
 			mac_addr = < 0x0 0x0 0x1 0x0 0x0 0x1 >; /*eth_ipv4_udp*/
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/	/*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
@@ -189,7 +188,6 @@ Layout is built from 3 different sections: containers, objects, connections.
 		};
 		dpni@2{
 			compatible = "fsl,dpni";
-			type = "DPNI_TYPE_NIC";
 			mac_addr = < 0x0 0x0 0x2 0x0 0x0 0x2 >; /*eth_ipv4_udp*/
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/ /*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
