@@ -230,12 +230,17 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 p_prev_b = p_curr_b;
                 p_curr_b = p_curr_b->p_next;
             }
-        }
+        } // while
 
         /* If no free block found to be updated, insert a new free block
          * to the end of the free list.
          */
-        if ( !p_curr_b && ((((uint64_t)(end-base)) & ((uint64_t)(alignment-1))) == 0) )
+        /* This is an old code line that assumes that size of an allocated memory is
+         * multiply of alignment. Replaced this by a condition that a new block
+         * is greater than the current alignment.
+         * if ( !p_curr_b && ((((uint64_t)(end-base)) & ((uint64_t)(alignment-1))) == 0) )
+         * */
+        if ( !p_curr_b &&  (end-align_base) >= alignment )
         {
             if ((p_new_b = create_free_block(align_base, end-align_base)) == NULL)
                 RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
@@ -254,7 +259,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
             if ( p_curr_b && end < p_curr_b->end )
                 end = p_curr_b->end;
         }
-    }
+    }// for
 
     return (0);
 }
