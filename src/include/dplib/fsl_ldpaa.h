@@ -36,7 +36,7 @@
 
 
 /**************************************************************************//**
- @Group		AIOP_General_Definitionsa AIOP SL General Definitions
+ @Group		AIOP_General_Definitions AIOP SL General Definitions
 
  @Description	AIOP General Definitions
 

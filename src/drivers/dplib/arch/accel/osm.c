@@ -43,10 +43,10 @@ void osm_scope_transition_to_exclusive_with_increment_scope_id(void)
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_OP,
 			OSM_SCOPE_ID_STAGE_INCREMENT_MASK)) {
 		/*OSM_TRANSITION_FROM_NO_SCOPE_ERR*/
-		/*osm_exception_handler(
+		osm_exception_handler(
 		OSM_SCOPE_TRANSITION_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID,
-		__LINE__);*/
-	} /*else*/ {
+		__LINE__);
+	} else {
 		/** 1 = Exclusive mode. */
 		REGISTER_OSM_EXCLUSIVE;
 	}
@@ -86,10 +86,10 @@ void osm_scope_transition_to_exclusive_with_new_scope_id(
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_WITH_NEW_SCOPEID_OP,
 			scope_id)) {
 		/*OSM_TRANSITION_FROM_NO_SCOPE_ERR*/
-		/*osm_exception_handler(
+		osm_exception_handler(
 		OSM_SCOPE_TRANSITION_TO_EXCLUSIVE_WITH_NEW_SCOPE_ID,
-		__LINE__);*/
-	} /*else*/ {
+		__LINE__);
+	} else {
 		/** 1 = Exclusive mode. */
 		REGISTER_OSM_EXCLUSIVE;
 		}
@@ -102,10 +102,10 @@ void osm_scope_transition_to_concurrent_with_increment_scope_id(void)
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_CONCUR_OP,
 		OSM_SCOPE_ID_STAGE_INCREMENT_MASK)) {
 		/*OSM_TRANSITION_FROM_NO_SCOPE_ERR*/
-		/*osm_exception_handler(
+		osm_exception_handler(
 		OSM_SCOPE_TRANSITION_TO_CONCURRENT_WITH_INCREMENT_SCOPE_ID,
-		__LINE__);*/
-	} /*else*/ {
+		__LINE__);
+	} else {
 		/** 0 = Concurrent mode. */
 		REGISTER_OSM_CONCURRENT;
 		}
@@ -145,10 +145,10 @@ void osm_scope_transition_to_concurrent_with_new_scope_id(
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_CONCUR_WITH_NEW_SCOPEID_OP,
 			scope_id)) {
 		/*OSM_TRANSITION_FROM_NO_SCOPE_ERR*/
-		/*osm_exception_handler(
+		osm_exception_handler(
 		OSM_SCOPE_TRANSITION_TO_CONCURRENT_WITH_NEW_SCOPE_ID,
-		__LINE__);*/
-	} /*else*/ {
+		__LINE__);
+	} else {
 		/** 0 = Concurrent mode. */
 		REGISTER_OSM_CONCURRENT;
 		}
@@ -172,10 +172,10 @@ void osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
 			, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-		/*osm_exception_handler(
+		osm_exception_handler(
 		OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID,
-		__LINE__);*/
-	} /*else*/ {
+		__LINE__);
+	} else {
 		default_task_params.current_scope_level++;
 		if (default_task_params.current_scope_level > 1)
 			/** 0 = Parent: Concurrent mode. */
@@ -230,10 +230,10 @@ void osm_scope_enter_to_exclusive_with_new_scope_id(
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP, child_scope_id)) {
-		/*osm_exception_handler(
+		osm_exception_handler(
 		OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_NEW_SCOPE_ID,
-		__LINE__);*/
-	} /*else*/ {
+		__LINE__);
+	} else {
 		default_task_params.current_scope_level++;
 		if (default_task_params.current_scope_level > 1)
 			/** 0 = Parent: Concurrent mode. */
@@ -293,8 +293,8 @@ void osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_OP,
 			child_scope_id)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER,__LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER,__LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			/** 0 = Child: Concurrent mode. */
 			REGISTER_OSM_CONCURRENT;
@@ -308,8 +308,8 @@ void osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_SCOPE_INC_OP,
 				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			/** 0 = Child: Concurrent mode. */
 			REGISTER_OSM_CONCURRENT;
@@ -357,8 +357,8 @@ void osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_REL_PARENT_OP,
 			child_scope_id)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
@@ -378,8 +378,8 @@ void osm_scope_enter(
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_CONC_SCOPE_INC_REL_PARENT_OP
 				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
@@ -431,8 +431,8 @@ void osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_EXCL_OP, child_scope_id)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			/** 1 = Child: Exclusive mode. */
 			REGISTER_OSM_EXCLUSIVE;
@@ -446,8 +446,8 @@ void osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_OP,
 				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			/** 1 = Child: Exclusive mode. */
 			REGISTER_OSM_EXCLUSIVE;
@@ -495,8 +495,8 @@ void osm_scope_enter(
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP,
 				child_scope_id)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */
@@ -517,8 +517,8 @@ void osm_scope_enter(
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
 				, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
-			/*osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);*/
-		} /*else*/ {
+			osm_exception_handler(OSM_SCOPE_ENTER, __LINE__);
+		} else {
 			default_task_params.current_scope_level++;
 			if (default_task_params.current_scope_level > 1)
 				/** 0 = Parent: Concurrent mode. */

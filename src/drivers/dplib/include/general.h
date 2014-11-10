@@ -205,6 +205,15 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 
 /** @} */ /* end of AIOP_General_Protocols_TCP_Definitions */
 
+/**************************************************************************//**
+@Group		AIOP_General_Protocols_UDP_Definitions
+@{
+*//***************************************************************************/
+#define UDP_HDR_LENGTH		      8   /**< UDP header length */
+#define UDP_PROTOCOL		      17   /**< UDP Protocol number */
+
+/** @} */ /* end of AIOP_General_Protocols_UDP_Definitions */
+
 /** @} */ /* end of FSL_General_Protocols_Macros */
 /** @} */ /* end of AIOP_General_Protocols */
 /** @} */ /* end of AIOP_General_Definitions */

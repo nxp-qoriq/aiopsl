@@ -39,7 +39,7 @@
 #include "dplib/fsl_ldpaa.h"
 #include "inline_asm.h"
 #ifdef SL_DEBUG
-	#include "common/errors.h"
+	#include "fsl_errors.h"
 #endif
 
 int tman_create_tmi(uint64_t tmi_mem_base_addr,
@@ -290,11 +290,22 @@ int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 
 	/* call TMAN. and check if passed. 
 	 * Optimization using compiler pattern*/
+#if 0
+/* todo - change when compiler ticket ENGR00338394 is fixed */
 	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
 		return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
-
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+#else
+	/* call TMAN. */
+	__e_hwacceli(TMAN_ACCEL_ID);
+	/* Load command results */
+	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+	/* The order of the error check is according to its frequency */
+	if (!((res1) & TMAN_FAIL_BIT_MASK))
+		return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
+#endif
+		
 	/* The order of the error check is according to its frequency */
 	
 	/* To check if its a TMAN state related error */

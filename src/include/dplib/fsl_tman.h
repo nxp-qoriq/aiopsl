@@ -286,7 +286,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		Upon completion of instance deletion, a new task is created
 		(confirmation task).
 		This latter starts running the function represented by the
-		confirmation_epid.
+		tman_confirm_cb.
 		All the timer expiration tasks that were already scheduled by
 		the TMAN before this function was called should be confirmed
 		using the function tman_timer_completion_confirmation.

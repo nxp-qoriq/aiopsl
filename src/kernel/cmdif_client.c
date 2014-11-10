@@ -125,7 +125,7 @@ static int session_get(const char *m_name,
 	return -ENAVAIL;
 }
 
-int cmdif_client_init()
+__COLD_CODE int cmdif_client_init()
 {
 	int err = 0;
 	int i   = 0;
@@ -172,7 +172,7 @@ int cmdif_client_init()
 	return 0;
 }
 
-void cmdif_client_free()
+__COLD_CODE void cmdif_client_free()
 {
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 	int i = 0;
@@ -229,7 +229,6 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		void *async_ctx)
 {
 	struct cmdif_fd fd;
-	struct cmdif_async async_data;
 	struct cmdif_dev *dev = NULL;
 	
 #ifdef ARENA_LEGACY_CODE
@@ -251,6 +250,8 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	dev = (struct cmdif_dev *)cidesc->dev;	
 	
 	if (cmd_id & CMDIF_ASYNC_CMD) {
+		struct cmdif_async async_data;
+
 		CMDIF_CMD_FD_SET(&fd, dev, data, \
 		                 (size - sizeof(struct cmdif_async)), cmd_id);
 
@@ -309,7 +310,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 	}
 #endif
 	
-/*	pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);*/
+	sl_pr_debug("PASSED sent async or no response cmd 0x%x \n", cmd_id);
 	return 0;
 }
 
@@ -324,7 +325,7 @@ void cmdif_cl_isr(void)
 	fd.u_frc.frc     = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 
 	/* Read async cb using FDMA */
-	CMDIF_DBG_PRINT("Got async response for cmd 0x%x\n", \
+	sl_pr_debug("Got async response for cmd 0x%x\n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	
 	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
@@ -341,11 +342,11 @@ void cmdif_cl_isr(void)
 		fd.d_size,
 		(void *)PRC_GET_SEGMENT_ADDRESS())) {
 		
-		CMDIF_DBG_PRINT("Async callback cmd 0x%x returned error \n", \
+		sl_pr_debug("Async callback cmd 0x%x returned error \n", \
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	}
 
-	CMDIF_DBG_PRINT("PASSED got async response for cmd 0x%x\n", \
+	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 
 	fdma_store_default_frame_data();
