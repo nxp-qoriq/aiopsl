@@ -77,9 +77,9 @@
 /**< Returns slab's virtual pool id*/
 
 #define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
-#define SLAB_SIZE_GET(SIZE)     ((SIZE) - SLAB_HW_META_OFFSET)
+#define SLAB_SIZE_GET(SIZE)     (uint32_t)((SIZE) - SLAB_HW_META_OFFSET)
 /**< Real buffer size used by user */
-#define SLAB_SIZE_SET(SIZE)     ((SIZE) + SLAB_HW_META_OFFSET)
+#define SLAB_SIZE_SET(SIZE)     (uint32_t)((SIZE) + SLAB_HW_META_OFFSET)
 /**< Buffer size that needs to be set for CDMA, including metadata */
 
 #define SLAB_HW_POOL_CREATE(VP) \
@@ -93,16 +93,16 @@
 
 #define SLAB_BPIDS_ARR	\
 	{ \
-	{1,	4096,    MEM_PART_DP_DDR}, \
-	{2,	2048,    MEM_PART_DP_DDR}, \
-	{3,	1024,   MEM_PART_DP_DDR},  \
-	{4,	512,   MEM_PART_DP_DDR},   \
-	{5,	256,   MEM_PART_DP_DDR},   \
-	{6,	4096,    MEM_PART_PEB},    \
-	{7,	2048,    MEM_PART_PEB},    \
-	{8,	1024,   MEM_PART_PEB},     \
-	{9,	512,   MEM_PART_PEB},      \
-	{10,	256,   MEM_PART_PEB}       \
+	{1,	4096,    MEM_PART_DP_DDR, 0}, \
+	{2,	2048,    MEM_PART_DP_DDR, 0}, \
+	{3,	1024,   MEM_PART_DP_DDR, 0},  \
+	{4,	512,   MEM_PART_DP_DDR, 0},   \
+	{5,	256,   MEM_PART_DP_DDR, 0},   \
+	{6,	4096,    MEM_PART_PEB, 0},    \
+	{7,	2048,    MEM_PART_PEB, 0},    \
+	{8,	1024,   MEM_PART_PEB, 0},     \
+	{9,	512,   MEM_PART_PEB, 0},      \
+	{10,	256,   MEM_PART_PEB, 0}       \
 	}
 
 
@@ -128,10 +128,14 @@
 struct slab_bpid_info {
 	uint16_t bpid;
 	/**< Bpid - slabs bman id */
-	uint16_t size;
+	uint32_t size;
 	/**< Size of memory the bman pool is taking  */
 	e_memory_partition_id mem_pid;
 	/**< Memory Partition Identifier */
+	uint16_t alignment;
+	/**< Buffer alignment */
+	uint32_t num_buffers;
+	/**< Number of MAX requested buffers per pool */
 };
 
 /**************************************************************************//**
@@ -140,7 +144,7 @@ struct slab_bpid_info {
 struct slab_hw_pool_info {
 	uint32_t flags;
 	/**< Control flags */
-	uint16_t buff_size;
+	uint32_t buff_size;
 	/**< Maximal buffer size including 8 bytes of CDMA metadata */
 	uint16_t pool_id;
 	/**< BMAN pool ID */
@@ -148,7 +152,7 @@ struct slab_hw_pool_info {
 	/**< Buffer alignment */
 	uint16_t mem_pid;
 	/**< Memory partition for buffers allocation */
-	int32_t total_num_buffs;
+	uint32_t total_num_buffs;
 	/**< Number of allocated buffers per pool */
 };
 
@@ -231,13 +235,15 @@ struct slab_virtual_pools_main_desc {
 
 
 struct request_table_info{
-	uint32_t buff_size;
+	uint16_t buff_size;
 	/**< Available buffer sizes not including 8 bytes of CDMA metadata */
 	uint32_t extra;
 	/**< Number of extra requested buffers */
+	uint32_t max;
+	/**< Number of max requested buffers */
 	uint32_t committed_bufs;
 	/**< Number of requested committed buffers */
-	uint32_t alignment;
+	uint16_t alignment;
 	/**< Buffer alignment */
 };
 

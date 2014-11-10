@@ -252,9 +252,9 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 }
 int app_early_init(void){
-	slab_register_context_buffer_requirements(50,55,590,16,MEM_PART_PEB,0);
-	slab_register_context_buffer_requirements(60,70,204,16,MEM_PART_PEB,0);
-	slab_register_context_buffer_requirements(90,105,900,16,MEM_PART_PEB,0);
+	slab_register_context_buffer_requirements(50,55,590,16,MEM_PART_DP_DDR,0);
+	slab_register_context_buffer_requirements(60,70,204,16,MEM_PART_DP_DDR,0);
+	slab_register_context_buffer_requirements(90,105,900,16,MEM_PART_DP_DDR,0);
 	return 0;
 }
 
