@@ -36,7 +36,10 @@
 
 #include "common/types.h"
 #include "dplib/fsl_ipr.h"
+#include "dplib/fsl_ipsec.h"
+#include "dplib/fsl_keygen.h"
 #include "dplib/fsl_snic_cmd.h"
+#include "fsl_tman.h"
 
 /**************************************************************************//**
 @Group		SNIC AIOP snic Internal
@@ -84,6 +87,8 @@
 struct snic_params {
 	/** IPR instance is per snic */
 	ipr_instance_handle_t ipr_instance_val;
+	/** IPsec instance is per snic */
+	ipsec_instance_handle_t ipsec_instance_val;
 	/** snic general enable flags */
 	uint32_t snic_enable_flags;
 	/** IPF MTU */
@@ -94,7 +99,11 @@ struct snic_params {
 	uint32_t valid;
 	/** Storage profile ID */
 	uint8_t spid;
-	uint8_t res[3];
+	uint8_t ipsec_key_size;
+	uint16_t enc_ipsec_table_id;
+	uint8_t enc_ipsec_key_id;
+	uint8_t dec_ipsec_key_id;
+	uint16_t dec_ipsec_table_id;	
 };
 
 /** @} */ /* end of SNIC_STRUCTS */
@@ -107,6 +116,12 @@ int snic_ipr(struct snic_params *snic);
 int snic_add_vlan(void);
 void snic_ipr_timout_cb(ipr_timeout_arg_t arg, uint32_t flags);
 void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg);
+int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8], 
+				uint8_t key_size, uint32_t table_location,
+				uint32_t committed_sa_num, uint32_t max_sa_num,
+				uint8_t *key_id,
+				uint16_t *table_id);
+void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2);
 /** @} */ /* end of SNIC */
 
 

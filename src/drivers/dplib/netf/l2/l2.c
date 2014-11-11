@@ -590,13 +590,13 @@ void l2_set_vxlan_vid(uint32_t vxlan_vid)
 	fdma_modify_default_segment_data(vxlan_vid_offset, 4);
 }
 
-void l2_push_and_set_vxlan(uint32_t *vxlan_hdr, uint16_t size)
+void l2_push_and_set_vxlan(uint8_t *vxlan_hdr, uint16_t size)
 {
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	
 	fdma_insert_default_segment_data(0,
-					vxlan_hdr,
+					(void *)vxlan_hdr,
 					size,
 					FDMA_REPLACE_SA_REPRESENT_BIT);
 

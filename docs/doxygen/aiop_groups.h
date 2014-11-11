@@ -401,7 +401,7 @@
 	
 	/** 
 		@defgroup NETF
-		@details NETF provides various frame handling functions including IP reassembly, IP fragmentation, IPsec and various header modification functions.
+		@details NETF provides various frame handling functions including IP reassembly, IP fragmentation and various header modification functions.
 		@ingroup AIOPSL
 		@{
       */
@@ -539,41 +539,6 @@
 				*/
 			/** @} */	
 
-			/** @defgroup FSL_AIOP_GRO GRO
-				@ingroup AIOP_L4
-				@{
-			*/					
-				/** @defgroup GRO_MACROS GRO Macros
-					@ingroup FSL_AIOP_GRO
-					@{
-				*/
-					/** @defgroup GRO_GENERAL_DEFINITIONS GRO General Definitions
-						@ingroup GRO_MACROS
-					*/
-					/** @defgroup GRO_FLAGS GRO Flags
-						@ingroup GRO_MACROS
-					*/
-					/** @defgroup TCP_GRO_AGG_FLAGS TCP GRO Aggregation Flags
-						@ingroup GRO_MACROS
-					*/
-					/** @defgroup TCP_GRO_TIMEOUT_GRANULARITY_FLAGS TCP GRO Timeout Granularity Flags
-						@ingroup GRO_MACROS
-					*/
-					/** @defgroup TCP_GRO_AGGREGATE_STATUS  TCP GRO Aggregation Statuses
-						@ingroup GRO_MACROS
-					*/
-					/** @defgroup TCP_GRO_FLUSH_STATUS  TCP GRO Flush Statuses
-						@ingroup GRO_MACROS
-					*/
-				/** @} */	
-				/** @defgroup GRO_STRUCTS GRO Structures
-					@ingroup FSL_AIOP_GRO
-				*/
-				/** @defgroup GRO_FUNCTIONS GRO Functions
-					@ingroup FSL_AIOP_GRO
-				*/
-			/** @} */	
-
 			
 		/** @} */	
 
@@ -668,25 +633,6 @@
 
 
 
-
-		/** @defgroup FSL_IPSEC IPSEC
-			@details IPsec provides data structures and functions for handling the IPsec protocol.
-			@ingroup NETF
-			@{
-		*/
-			/** @defgroup IPSEC_ENUM IPsec Enumerations
-				@ingroup FSL_IPSEC
-			*/
-			/** @defgroup FSL_IPSEC_MACROS IPsec Macros
-				@ingroup FSL_IPSEC
-			*/
-			/** @defgroup FSL_IPSEC_STRUCTS IPsec Structures
-				@ingroup FSL_IPSEC
-			*/			
-		/** @defgroup FSL_IPSEC_Functions IPsec Functions
-				@ingroup FSL_IPSEC
-			*/
-		/** @} */	
 
 
 /** @} */		 

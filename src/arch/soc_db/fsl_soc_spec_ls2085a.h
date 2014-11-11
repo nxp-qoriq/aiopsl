@@ -57,10 +57,10 @@
 
 /* Offsets relative to CCSR base */
 
-#define SOC_PERIPH_OFF_DUART0           0x021c4500
-#define SOC_PERIPH_OFF_DUART1           0x021c4600
-#define SOC_PERIPH_OFF_DUART2           0x021d4500
-#define SOC_PERIPH_OFF_DUART3           0x021d4600
+#define SOC_PERIPH_OFF_DUART0           0x021c0500
+#define SOC_PERIPH_OFF_DUART1           0x021c0600
+#define SOC_PERIPH_OFF_DUART2           0x021d0500
+#define SOC_PERIPH_OFF_DUART3           0x021d0600
 #define SOC_PERIPH_OFF_QBMAN            0x08180000
 #define SOC_PERIPH_OFF_EIOP             0x08b90000
 #define SOC_PERIPH_OFF_MC               0x08340000

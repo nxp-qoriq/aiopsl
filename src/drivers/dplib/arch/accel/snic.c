@@ -54,10 +54,10 @@
 #include "osm.h"
 
 #include "dplib/fsl_ipf.h"
+#include "dplib/fsl_table.h"
 #include "fsl_cmdif_server.h"
 
 #include "ls2085_aiop/fsl_platform.h"
-#include "fsl_tman.h"
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
 	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);
@@ -260,6 +260,13 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	struct ipr_params *cfg = &ipr_params;
 	uint32_t snic_ep_pc;
 	int err;
+	uint32_t committed_sa_num, max_sa_num;
+	uint32_t dec_committed_sa_num, dec_max_sa_num;
+	uint32_t enc_committed_sa_num, enc_max_sa_num;
+	ipsec_instance_handle_t ws_instance_handle = 0;
+	uint8_t fec_no, key_size;
+	uint8_t fec_array[8];
+	uint32_t table_location;
 
 	UNUSED(dev);
 
@@ -319,6 +326,27 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 		SNIC_UNREGISTER_CMD(SNIC_CMD_READ);
 		memset(&snic_params[snic_id], 0, sizeof(struct snic_params));
 		return 0;
+	case SNIC_IPSEC_CREATE_INSTANCE:
+		SNIC_IPSEC_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
+		committed_sa_num = dec_committed_sa_num + enc_committed_sa_num;
+		max_sa_num = dec_max_sa_num + enc_max_sa_num;
+		err =  ipsec_create_instance(committed_sa_num, max_sa_num,
+				0, snic_tmi_id, &ws_instance_handle);
+		if (err)
+			return err;
+		snic_params[snic_id].ipsec_instance_val = ws_instance_handle;
+		snic_params[snic_id].ipsec_key_size = key_size;
+		/* create keyid and tableid for encapsulation*/
+		err = snic_create_table_key_id(fec_no, fec_array, key_size,
+				table_location, dec_committed_sa_num, dec_max_sa_num,
+				&snic_params[snic_id].dec_ipsec_key_id,
+				&snic_params[snic_id].dec_ipsec_table_id);
+		/* create keyid and tableid for decapsulation*/
+		err = snic_create_table_key_id(0, fec_array, key_size,
+				table_location, enc_committed_sa_num, enc_max_sa_num,
+				&snic_params[snic_id].enc_ipsec_key_id,
+				&snic_params[snic_id].enc_ipsec_table_id);
+		return err;
 	default:
 		return -EINVAL;
 	}
@@ -350,10 +378,20 @@ int aiop_snic_init(void)
 
 void aiop_snic_free(void)
 {
-	/* todo call for tman_delete_tmi() and release tman memory */
-	/*fsl_os_xfree((void *)snic_tmi_mem_base_addr);*/
+	tman_delete_tmi(snic_tman_confirm_cb, TMAN_INS_DELETE_MODE_FORCE_EXP,
+			snic_tmi_id, NULL, NULL);
+	
 }
 
+void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
+{
+	UNUSED(arg1);
+	UNUSED(arg2);
+	tman_timer_completion_confirmation(
+			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
+	fsl_os_xfree((void *)snic_tmi_mem_base_addr);
+	fdma_terminate_task();
+}
 void snic_ipr_timout_cb(ipr_timeout_arg_t arg,
 		uint32_t flags)
 {
@@ -366,4 +404,58 @@ void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg)
 {
 	UNUSED(arg);
 	fdma_terminate_task();
+}
+
+int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8], 
+				uint8_t key_size, uint32_t table_location,
+				uint32_t committed_sa_num, uint32_t max_sa_num,
+				uint8_t *key_id,
+				uint16_t *table_id)
+{
+	struct kcr_builder kb;
+	int	err, i;
+	uint8_t  keyid;
+	struct table_create_params tbl_params;
+	uint16_t table_location_attr;
+
+	keygen_kcr_builder_init(&kb);
+	if (!fec_no)
+		keygen_kcr_builder_add_input_value_fec(6/*offset*/, 
+				2/*extract size*/, NULL , &kb );
+	else
+	{
+		for (i = 0; i < fec_no; i++)
+			keygen_kcr_builder_add_protocol_specific_field(
+				(enum kcr_builder_protocol_fecid)fec_array[i],
+				NULL , &kb);
+	}
+
+	err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+			  kb.kcr,
+			  &keyid);
+	*key_id = keyid;
+	if (err < 0)
+	{
+		return err;
+	}
+	/*todo these limits are also for egress and we need for ingress only*/
+	tbl_params.committed_rules = committed_sa_num;
+	tbl_params.max_rules = max_sa_num;
+	tbl_params.key_size = key_size;
+	if (table_location == IPR_MODE_TABLE_LOCATION_INT)
+		table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
+	else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
+		table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
+	else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
+		table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+	else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
+		table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT2;
+	tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
+			table_location_attr | \
+			TABLE_ATTRIBUTE_MR_NO_MISS;
+	err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
+			table_id);
+	if (err != TABLE_STATUS_SUCCESS)
+		return err;
+	return 0;
 }

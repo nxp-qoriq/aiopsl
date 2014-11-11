@@ -8,12 +8,10 @@ aiopsl/src/include/dplib/fsl_table.h
 aiopsl/src/include/dplib/fsl_keygen.h
 aiopsl/src/include/dplib/fsl_fdma.h
 aiopsl/src/include/dplib/fsl_gso.h
-aiopsl/src/include/dplib/fsl_gro.h
 aiopsl/src/include/fsl_errors.h
 aiopsl/src/include/dplib/fsl_ip.h
 aiopsl/src/include/dplib/fsl_ipf.h
 aiopsl/src/include/dplib/fsl_ipr.h
-aiopsl/src/include/dplib/fsl_ipsec.h
 aiopsl/src/include/dplib/fsl_l2.h
 aiopsl/src/include/dplib/fsl_l4.h
 aiopsl/src/include/dplib/fsl_ldpaa.h

@@ -1,3 +1,4 @@
+- dpl.dts/dtb               API changes due to changes i MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
 - fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
 - cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
                             See aiopsl\tests\cmdif\README.txt.
