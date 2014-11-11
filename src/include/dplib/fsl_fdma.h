@@ -932,7 +932,9 @@ struct fdma_delete_segment_data_params {
 		size in the presentation context is 0).
 		This error is caused since the requested presentation exceeded
 		frame ASA end.
-@Retval		EIO - Received frame with non-zero FD[err] field.
+@Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
+		the returned frame handle is valid, but no presentations 
+		occurred.
 
 
 @Cautions	This function may result in a fatal error.
@@ -973,7 +975,9 @@ int fdma_present_default_frame(void);
 		size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
 		frame ASA end.
-@Retval		EIO - Received frame with non-zero FD[err] field.
+@Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
+		the returned frame handle is valid, but no presentations 
+		occurred.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
