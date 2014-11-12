@@ -25,20 +25,24 @@
  */
 
 /**************************************************************************//**
- @file          fsl_sl_cmd.h
+ @file          shbp.h
 
- @Description   Service layer commands 
+ @brief         Shared buffer pool
+
+ @details       Contains AIOP SL shared buffer pool internal structures.
+
 *//***************************************************************************/
 
-#include <fsl_cmdif_client.h>
+#ifndef __SHBP_H
+#define __SHBP_H
 
-#ifndef __FSL_SL_CMD_H
-#define __FSL_SL_CMD_H
+#include <fsl_shbp.h>
 
-#define SL_CMD_MODULE		"ARENA"
+/**************************************************************************//**
+@Description	Buffer descriptor structure.
+*//***************************************************************************/
+struct shbp_bd {
+	uint64_t addr;
+};
 
-#define SL_CMD_NEW_BUFF		(0x1 | CMDIF_NORESP_CMD) 
-/**<  Command for new buffer */
-
-
-#endif /* __FSL_SL_CMDIF_H */
+#endif /* _SHBP_H */
