@@ -24,5 +24,5 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fsl_shbp.h>
+#include <shbp.h>
 

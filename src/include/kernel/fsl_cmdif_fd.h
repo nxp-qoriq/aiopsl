@@ -35,25 +35,26 @@
 
 #include <types.h>
 
-/**************************************************************************//**
-@Group         cmdif_g  Command Interface API
+/*!
+ * @Group	cmdif_g  Command Interface API
+ *
+ * @brief	AIOP and GPP command interface API
+ *
+ * @{
+ */
 
-@Description   AIOP and GPP command interface API
 
-@{
- *//***************************************************************************/
-
-/**************************************************************************//**
-@Group         cmdif_flib_g  Command Interface - FLIB API
-
-@Description   API to be used for FD based command interface implementation.
-
-This is external API that is used to implement the final API as defined at
-fsl_cmdif_client.h and fsl_cmdif_server.h. For client and server external use
-only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
-
-@{
- *//***************************************************************************/
+/*!
+ * @Group	cmdif_flib_g  Command Interface - FLIB API
+ *
+ * @brief	API to be used for FD based command interface implementation
+ *
+ * This is external API that is used to implement the final API as defined at
+ * fsl_cmdif_client.h and fsl_cmdif_server.h. For client and server external use
+ * only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
+ *
+ * @{
+ */
 
 /*!
  * The following are the FD fields that are used by CMDIF
