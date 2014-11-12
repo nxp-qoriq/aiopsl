@@ -315,6 +315,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/os.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/sl_cmd.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/sl_cmd.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/smp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/smp.c</locationURI>
@@ -788,6 +793,16 @@
 			<name>aiop_sl/kernel/inc/fsl_mem_mng.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_mem_mng.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_sl_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sl_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_sl_dbg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sl_dbg.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/inc/fsl_smp.h</name>

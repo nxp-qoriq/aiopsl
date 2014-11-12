@@ -35,7 +35,7 @@
 #ifndef _FSL_SNIC_CMD_H
 #define _FSL_SNIC_CMD_H
 
-#define SNIC_CMD_NUM_OF_PARAMS	8
+#define SNIC_CMD_NUM_OF_PARAMS	24
 
 struct snic_cmd_data {
 	uint64_t params[SNIC_CMD_NUM_OF_PARAMS];
@@ -48,16 +48,22 @@ struct snic_cmd_data {
 #define SNIC_VLAN_REMOVE_EN		0x0002
 #define SNIC_VLAN_ADD_EN		0x0004
 #define SNIC_IPF_EN			0x0008
+#define SNIC_SEC_DECRYPT		0x0010
+#define SNIC_SEC_ENCRYPT		0x0020
 
 /* snic_cmds */
-#define SNIC_SET_MTU             0
-#define SNIC_IPR_CREATE_INSTANCE 1
-#define SNIC_IPR_DELETE_INSTANCE 2
-#define SNIC_ENABLE_FLAGS        3
-#define SNIC_SET_QDID            4
-#define SNIC_SET_SPID            5
-#define SNIC_REGISTER            6
-#define SNIC_UNREGISTER          7
+#define SNIC_SET_MTU               0
+#define SNIC_IPR_CREATE_INSTANCE   1
+#define SNIC_IPR_DELETE_INSTANCE   2
+#define SNIC_ENABLE_FLAGS          3
+#define SNIC_SET_QDID              4
+#define SNIC_SET_SPID              5
+#define SNIC_REGISTER              6
+#define SNIC_UNREGISTER            7
+#define SNIC_IPSEC_CREATE_INSTANCE 8
+#define SNIC_IPSEC_DELETE_INSTANCE 9
+#define SNIC_IPSEC_ADD_SA          10
+#define SNIC_IPSEC_DEL_SA          11
 
 /* todo cmd sizes */
 #define SNIC_CMDSZ_SET_MTU             8
@@ -68,6 +74,8 @@ struct snic_cmd_data {
 #define SNIC_CMDSZ_SET_SPID            8
 #define SNIC_CMDSZ_REGISTER            8
 #define SNIC_CMDSZ_UNREGISTER          8
+#define SNIC_CMDSZ_IPSEC_CREATE_INSTANCE (4*8)
+#define SNIC_CMDSZ_IPSEC_ADD_SA       (21*8)
 
 /*	param, offset, width,	type,			arg_name */
 #define SNIC_CMD_MTU(_OP) \
@@ -119,5 +127,110 @@ do { \
 /*	param, offset, width,	type,			arg_name */
 #define SNIC_UNREGISTER_CMD(_OP) \
 	_OP(0,  0,	16,	uint16_t,		snic_id)
+
+/*	param, offset, width,	type,			arg_name */
+#define SNIC_IPSEC_CREATE_INSTANCE_CMD(_OP) \
+do { \
+	_OP(0, 0,	16,	uint16_t,	snic_id); \
+	_OP(0, 16,	8,	uint8_t,	fec_no); \
+	_OP(0, 24,	8,	uint8_t,	key_size); \
+	_OP(0, 32,	32,	uint32_t,	table_location); \
+	_OP(1, 0,	32,	uint32_t,	dec_committed_sa_num); \
+	_OP(1, 32,	32,	uint32_t, 	dec_max_sa_num); \
+	_OP(2, 0,	32,	uint32_t,	enc_committed_sa_num); \
+	_OP(2, 32,	32,	uint32_t, 	enc_max_sa_num); \
+	_OP(3, 0,	8,	uint8_t, 	fec_array[0]); \
+	_OP(3, 8,	8,	uint8_t, 	fec_array[1]); \
+	_OP(3, 16,	8,	uint8_t, 	fec_array[2]); \
+	_OP(3, 24,	8,	uint8_t, 	fec_array[3]); \
+	_OP(3, 32,	8,	uint8_t, 	fec_array[4]); \
+	_OP(3, 40,	8,	uint8_t, 	fec_array[5]); \
+	_OP(3, 48,	8,	uint8_t, 	fec_array[6]); \
+	_OP(3, 56,	8,	uint8_t, 	fec_array[7]); \
+} while (0)
+
+/*	param, offset, width,	type,			arg_name */
+#define SNIC_IPSEC_ADD_SA_CMD(_OP) \
+do { \
+	_OP(0, 0,	16,	uint16_t,	snic_id); \
+	_OP(0, 16,	16,	uint16_t,	sa_id); \
+	_OP(0, 32,	32,	int32_t,	ipsec_cfg->direction); \
+	_OP(1, 0,	8,	uint8_t,	ipsec_cfg->encparams.ip_nh); \
+	_OP(1, 16,	16,	uint16_t,	ipsec_cfg->encparams.options); \
+	_OP(1, 32,	32,	uint32_t,	ipsec_cfg->encparams.seq_num_ext_hi); \
+	_OP(2, 0,	32,	uint32_t,	ipsec_cfg->encparams.seq_num); \
+	_OP(2, 32,	32,	uint32_t,	ipsec_cfg->encparams.spi); \
+	_OP(3, 0,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[0]); \
+	_OP(3, 32,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[1]); \
+	_OP(4, 0,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[2]); \
+	_OP(4, 32,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[3]); \
+	_OP(5, 0,	32,	uint32_t,	ipsec_cfg->encparams.ctr.ctr_nonce); \
+	_OP(5, 32,	32,	uint32_t,	ipsec_cfg->encparams.ctr.iv[0]); \
+	_OP(6, 0,	32,	uint32_t,	ipsec_cfg->encparams.ctr.iv[1]); \
+	_OP(6, 32,	32,	uint32_t,	ipsec_cfg->encparams.ccm.salt); \
+	_OP(7, 0,	32,	uint32_t,	ipsec_cfg->encparams.ccm.iv[0]); \
+	_OP(7, 32,	32,	uint32_t,	ipsec_cfg->encparams.ccm.iv[1]); \
+	_OP(8, 0,	32,	uint32_t,	ipsec_cfg->encparams.gcm.salt); \
+	_OP(8, 32,	32,	uint32_t,	ipsec_cfg->encparams.gcm.iv[0]); \
+	_OP(9, 0,	32,	uint32_t,	ipsec_cfg->encparams.gcm.iv[1]); \
+	_OP(9, 32,	16,	uint16_t,	ipsec_cfg->decparams.options); \
+	_OP(10, 0,	32,	uint32_t,	ipsec_cfg->decparams.seq_num_ext_hi); \
+	_OP(10, 32,	32,	uint32_t,	ipsec_cfg->decparams.seq_num); \
+	_OP(11, 0,	32,	uint32_t,	ipsec_cfg->decparams.ctr.ctr_nonce); \
+	_OP(11, 32,	32,	uint32_t,	ipsec_cfg->decparams.ccm.salt); \
+	_OP(12, 0,	32,	uint32_t,	ipsec_cfg->decparams.gcm.salt); \
+	_OP(12, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.algtype); \
+	_OP(13, 0,	32,	uint32_t,	ipsec_cfg->cipherdata.keylen); \
+	_OP(13, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.key_enc_flags); \
+	_OP(14, 0,	64,	uint64_t,	ipsec_cfg->cipherdata.key); \
+	_OP(15, 0,	8,	uint8_t,	ipsec_dec_key[0]); \
+	_OP(15, 8,	8,	uint8_t,	ipsec_dec_key[1]); \
+	_OP(15, 16,	8,	uint8_t,	ipsec_dec_key[2]); \
+	_OP(15, 24,	8,	uint8_t,	ipsec_dec_key[3]); \
+	_OP(15, 32,	8,	uint8_t,	ipsec_dec_key[4]); \
+	_OP(15, 40,	8,	uint8_t,	ipsec_dec_key[5]); \
+	_OP(15, 48,	8,	uint8_t,	ipsec_dec_key[6]); \
+	_OP(15, 56,	8,	uint8_t,	ipsec_dec_key[7]); \
+	_OP(16, 0,	8,	uint8_t,	ipsec_dec_key[8]); \
+	_OP(16, 8,	8,	uint8_t,	ipsec_dec_key[9]); \
+	_OP(16, 16,	8,	uint8_t,	ipsec_dec_key[10]); \
+	_OP(16, 24,	8,	uint8_t,	ipsec_dec_key[11]); \
+	_OP(16, 32,	8,	uint8_t,	ipsec_dec_key[12]); \
+	_OP(16, 40,	8,	uint8_t,	ipsec_dec_key[13]); \
+	_OP(16, 48,	8,	uint8_t,	ipsec_dec_key[14]); \
+	_OP(16, 56,	8,	uint8_t,	ipsec_dec_key[15]); \
+	_OP(17, 0,	8,	uint8_t,	ipsec_dec_key[16]); \
+	_OP(17, 8,	8,	uint8_t,	ipsec_dec_key[17]); \
+	_OP(17, 16,	8,	uint8_t,	ipsec_dec_key[18]); \
+	_OP(17, 24,	8,	uint8_t,	ipsec_dec_key[19]); \
+	_OP(17, 32,	8,	uint8_t,	ipsec_dec_key[20]); \
+	_OP(17, 40,	8,	uint8_t,	ipsec_dec_key[21]); \
+	_OP(17, 48,	8,	uint8_t,	ipsec_dec_key[22]); \
+	_OP(17, 56,	8,	uint8_t,	ipsec_dec_key[23]); \
+	_OP(18, 0,	8,	uint8_t,	ipsec_dec_key[24]); \
+	_OP(18, 8,	8,	uint8_t,	ipsec_dec_key[25]); \
+	_OP(18, 16,	8,	uint8_t,	ipsec_dec_key[26]); \
+	_OP(18, 24,	8,	uint8_t,	ipsec_dec_key[27]); \
+	_OP(18, 32,	8,	uint8_t,	ipsec_dec_key[28]); \
+	_OP(18, 40,	8,	uint8_t,	ipsec_dec_key[29]); \
+	_OP(18, 48,	8,	uint8_t,	ipsec_dec_key[30]); \
+	_OP(18, 56,	8,	uint8_t,	ipsec_dec_key[31]); \
+	_OP(19, 0,	8,	uint8_t,	ipsec_dec_key[32]); \
+	_OP(19, 8,	8,	uint8_t,	ipsec_dec_key[33]); \
+	_OP(19, 16,	8,	uint8_t,	ipsec_dec_key[34]); \
+	_OP(19, 24,	8,	uint8_t,	ipsec_dec_key[35]); \
+	_OP(19, 32,	8,	uint8_t,	ipsec_dec_key[36]); \
+	_OP(19, 40,	8,	uint8_t,	ipsec_dec_key[37]); \
+	_OP(19, 48,	8,	uint8_t,	ipsec_dec_key[38]); \
+	_OP(19, 56,	8,	uint8_t,	ipsec_dec_key[39]); \
+	_OP(20, 0,	8,	uint8_t,	ipsec_dec_key[40]); \
+	_OP(20, 8,	8,	uint8_t,	ipsec_dec_key[41]); \
+	_OP(20, 16,	8,	uint8_t,	ipsec_dec_key[42]); \
+	_OP(20, 24,	8,	uint8_t,	ipsec_dec_key[43]); \
+	_OP(20, 32,	8,	uint8_t,	ipsec_dec_key[44]); \
+	_OP(20, 40,	8,	uint8_t,	ipsec_dec_key[45]); \
+	_OP(20, 48,	8,	uint8_t,	ipsec_dec_key[46]); \
+	_OP(20, 56,	8,	uint8_t,	ipsec_dec_key[47]); \
+} while (0)
 
 #endif /* _FSL_SNIC_CMD_H */

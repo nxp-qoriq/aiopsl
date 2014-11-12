@@ -39,7 +39,7 @@
 #include "dplib/fsl_ldpaa.h"
 #include "inline_asm.h"
 #ifdef SL_DEBUG
-	#include "common/errors.h"
+	#include "fsl_errors.h"
 #endif
 
 int tman_create_tmi(uint64_t tmi_mem_base_addr,

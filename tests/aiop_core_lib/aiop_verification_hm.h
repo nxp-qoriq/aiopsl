@@ -105,7 +105,10 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_L4_UDP_TCP_CKSUM_CALC,
 	HM_CMDTYPE_MPLS_HEADER_REMOVE,
 	HM_CMDTYPE_PUSH_AND_SET_MPLS,
-	HM_CMDTYPE_POP_MPLS
+	HM_CMDTYPE_POP_MPLS,
+	HM_CMDTYPE_PUSH_AND_SET_VXLAN,
+	HM_CMDTYPE_POP_VXLAN,
+	HM_CMDTYPE_SET_VXLAN_VID
 };
 
 /* HM Commands Structure identifiers */
@@ -202,6 +205,15 @@ enum e_hm_verif_cmd_type {
 
 #define HM_POP_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VLAN)
+
+#define HM_PUSH_AND_SET_VXLAN_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_PUSH_AND_SET_VXLAN)
+
+#define HM_SET_VXLAN_VID_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_SET_VXLAN_VID)
+
+#define HM_POP_VXLAN_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_POP_VXLAN)
 
 #define HM_PUSH_AND_SET_MPLS_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_PUSH_AND_SET_MPLS)
@@ -587,6 +599,40 @@ struct hm_push_and_set_mpls_command {
 		Includes information needed for HM Command verification.
 *//***************************************************************************/
 struct hm_pop_mpls_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+};
+
+/**************************************************************************//**
+@Description	HM set VXLAN VID Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_vxlan_vid_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint32_t	vxlan_vid;
+};
+
+/**************************************************************************//**
+@Description	HM push and set VXLAN Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_push_and_set_vxlan_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint32_t    header_ptr;
+	uint16_t 	header_size;
+	uint8_t 	pad[2];
+};
+
+/**************************************************************************//**
+@Description	HM pop VXLAN Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_pop_vxlan_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 };
