@@ -99,7 +99,7 @@ static int build_mem_partitions_table(t_platform  *pltfrm);
 
 
 /*****************************************************************************/
-static void print_platform_info(t_platform *pltfrm)
+__COLD_CODE static void print_platform_info(t_platform *pltfrm)
 {
     char        buf[256];
     int         count = 0;
@@ -204,7 +204,7 @@ static void print_platform_info(t_platform *pltfrm)
 }
 
 /*****************************************************************************/
-static int find_mem_partition_index(t_platform_memory_info  *mem_info,
+__COLD_CODE static int find_mem_partition_index(t_platform_memory_info  *mem_info,
                                     int32_t   mem_partition)
 {
     int i;
@@ -224,7 +224,7 @@ static int find_mem_partition_index(t_platform_memory_info  *mem_info,
     return -1;
 }
 /*****************************************************************************/
-static int init_l1_cache(t_platform *pltfrm)
+__COLD_CODE static int init_l1_cache(t_platform *pltfrm)
 {
     ASSERT_COND(pltfrm);
 
@@ -240,7 +240,7 @@ static int init_l1_cache(t_platform *pltfrm)
 }
 
 /*****************************************************************************/
-static int disable_l1_cache(t_platform *pltfrm)
+__COLD_CODE static int disable_l1_cache(t_platform *pltfrm)
 {
     if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_INST_ONLY)
         booke_icache_disable();
@@ -296,7 +296,7 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
 #endif
 
 /*****************************************************************************/
-static int init_random_seed(uint32_t num_of_tasks)
+__COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 {
 	uint32_t *seed_mem_ptr = NULL;
 	uint32_t core_and_task_id = 0;
@@ -357,7 +357,7 @@ static int init_random_seed(uint32_t num_of_tasks)
 
 }
 /*****************************************************************************/
-static int pltfrm_init_core_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
     int     err = 0;
@@ -409,7 +409,7 @@ static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     return 0;
 }
 /*****************************************************************************/
-static int pltfrm_free_core_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_free_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
 
@@ -423,7 +423,7 @@ static int pltfrm_free_core_cb(fsl_handle_t h_platform)
 
 
 /*****************************************************************************/
-static int pltfrm_init_console_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
     int     err;
@@ -445,7 +445,7 @@ static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-static int pltfrm_free_console_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
 
@@ -460,7 +460,7 @@ static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 {
     t_platform              *pltfrm = (t_platform *)h_platform;
     t_platform_memory_info  *p_mem_info;
@@ -511,7 +511,7 @@ static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-static int build_mem_partitions_table(t_platform  *pltfrm)
+__COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 {
 	 t_platform_memory_info  *p_mem_info;
 	 int                     i;
@@ -597,7 +597,7 @@ static int build_mem_partitions_table(t_platform  *pltfrm)
 }
 
 /*****************************************************************************/
-static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
     int         index;
@@ -658,13 +658,13 @@ static int pltfrm_free_private_cb(fsl_handle_t h_platform)
 #endif
 
 /*****************************************************************************/
-int platform_early_init(struct platform_param *pltfrm_params)
+__COLD_CODE int platform_early_init(struct platform_param *pltfrm_params)
 {
     UNUSED(pltfrm_params);
     return 0;
 }
 
-int platform_init(struct platform_param    *pltfrm_param,
+__COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
                   t_platform_ops           *pltfrm_ops)
 {
     t_platform      *pltfrm;
@@ -740,7 +740,7 @@ int platform_init(struct platform_param    *pltfrm_param,
 }
 
 /*****************************************************************************/
-int platform_free(fsl_handle_t h_platform)
+__COLD_CODE int platform_free(fsl_handle_t h_platform)
 {
     if (h_platform)
         fsl_os_free(h_platform);
@@ -749,7 +749,7 @@ int platform_free(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
+__COLD_CODE uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
                                              enum fsl_os_module     module,
                                              uint32_t               id,
                                              e_mapped_mem_type mapped_mem_type)
@@ -802,7 +802,7 @@ uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 
 
 /*****************************************************************************/
-int platform_enable_console(fsl_handle_t h_platform)
+__COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 {
     t_platform          *pltfrm = (t_platform *)h_platform;
     t_duart_uart_param  duart_uart_param;
@@ -876,7 +876,7 @@ int platform_enable_console(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-int platform_disable_console(fsl_handle_t h_platform)
+__COLD_CODE int platform_disable_console(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
 
