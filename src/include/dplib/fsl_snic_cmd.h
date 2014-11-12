@@ -76,6 +76,8 @@ struct snic_cmd_data {
 #define SNIC_CMDSZ_UNREGISTER          8
 #define SNIC_CMDSZ_IPSEC_CREATE_INSTANCE (4*8)
 #define SNIC_CMDSZ_IPSEC_ADD_SA       (21*8)
+#define SNIC_CMDSZ_IPSEC_DELETE_INSTANCE  8
+#define SNIC_CMDSZ_IPSEC_DEL_SA       (7*8)
 
 /*	param, offset, width,	type,			arg_name */
 #define SNIC_CMD_MTU(_OP) \
@@ -231,6 +233,66 @@ do { \
 	_OP(20, 40,	8,	uint8_t,	ipsec_dec_key[45]); \
 	_OP(20, 48,	8,	uint8_t,	ipsec_dec_key[46]); \
 	_OP(20, 56,	8,	uint8_t,	ipsec_dec_key[47]); \
+} while (0)
+
+/*	param, offset, width,	type,			arg_name */
+#define SNIC_IPSEC_DELETE_INSTANCE_CMD(_OP) \
+	_OP(0, 0,	16,	uint16_t,	snic_id)
+
+/*	param, offset, width,	type,			arg_name */
+#define SNIC_IPSEC_DEL_SA_CMD(_OP) \
+do { \
+	_OP(0, 0,	16,	uint16_t,	snic_id); \
+	_OP(0, 16,	16,	uint16_t,	sa_id); \
+	_OP(0, 32,	32,	int32_t,	direction); \
+	_OP(1, 0,	8,	uint8_t,	ipsec_dec_key[0]); \
+	_OP(1, 8,	8,	uint8_t,	ipsec_dec_key[1]); \
+	_OP(1, 16,	8,	uint8_t,	ipsec_dec_key[2]); \
+	_OP(1, 24,	8,	uint8_t,	ipsec_dec_key[3]); \
+	_OP(1, 32,	8,	uint8_t,	ipsec_dec_key[4]); \
+	_OP(1, 40,	8,	uint8_t,	ipsec_dec_key[5]); \
+	_OP(1, 48,	8,	uint8_t,	ipsec_dec_key[6]); \
+	_OP(1, 56,	8,	uint8_t,	ipsec_dec_key[7]); \
+	_OP(2, 0,	8,	uint8_t,	ipsec_dec_key[8]); \
+	_OP(2, 8,	8,	uint8_t,	ipsec_dec_key[9]); \
+	_OP(2, 16,	8,	uint8_t,	ipsec_dec_key[10]); \
+	_OP(2, 24,	8,	uint8_t,	ipsec_dec_key[11]); \
+	_OP(2, 32,	8,	uint8_t,	ipsec_dec_key[12]); \
+	_OP(2, 40,	8,	uint8_t,	ipsec_dec_key[13]); \
+	_OP(2, 48,	8,	uint8_t,	ipsec_dec_key[14]); \
+	_OP(2, 56,	8,	uint8_t,	ipsec_dec_key[15]); \
+	_OP(3, 0,	8,	uint8_t,	ipsec_dec_key[16]); \
+	_OP(3, 8,	8,	uint8_t,	ipsec_dec_key[17]); \
+	_OP(3, 16,	8,	uint8_t,	ipsec_dec_key[18]); \
+	_OP(3, 24,	8,	uint8_t,	ipsec_dec_key[19]); \
+	_OP(3, 32,	8,	uint8_t,	ipsec_dec_key[20]); \
+	_OP(3, 40,	8,	uint8_t,	ipsec_dec_key[21]); \
+	_OP(3, 48,	8,	uint8_t,	ipsec_dec_key[22]); \
+	_OP(3, 56,	8,	uint8_t,	ipsec_dec_key[23]); \
+	_OP(4, 0,	8,	uint8_t,	ipsec_dec_key[24]); \
+	_OP(4, 8,	8,	uint8_t,	ipsec_dec_key[25]); \
+	_OP(4, 16,	8,	uint8_t,	ipsec_dec_key[26]); \
+	_OP(4, 24,	8,	uint8_t,	ipsec_dec_key[27]); \
+	_OP(4, 32,	8,	uint8_t,	ipsec_dec_key[28]); \
+	_OP(4, 40,	8,	uint8_t,	ipsec_dec_key[29]); \
+	_OP(4, 48,	8,	uint8_t,	ipsec_dec_key[30]); \
+	_OP(4, 56,	8,	uint8_t,	ipsec_dec_key[31]); \
+	_OP(5, 0,	8,	uint8_t,	ipsec_dec_key[32]); \
+	_OP(5, 8,	8,	uint8_t,	ipsec_dec_key[33]); \
+	_OP(5, 16,	8,	uint8_t,	ipsec_dec_key[34]); \
+	_OP(5, 24,	8,	uint8_t,	ipsec_dec_key[35]); \
+	_OP(5, 32,	8,	uint8_t,	ipsec_dec_key[36]); \
+	_OP(5, 40,	8,	uint8_t,	ipsec_dec_key[37]); \
+	_OP(5, 48,	8,	uint8_t,	ipsec_dec_key[38]); \
+	_OP(5, 56,	8,	uint8_t,	ipsec_dec_key[39]); \
+	_OP(6, 0,	8,	uint8_t,	ipsec_dec_key[40]); \
+	_OP(6, 8,	8,	uint8_t,	ipsec_dec_key[41]); \
+	_OP(6, 16,	8,	uint8_t,	ipsec_dec_key[42]); \
+	_OP(6, 24,	8,	uint8_t,	ipsec_dec_key[43]); \
+	_OP(6, 32,	8,	uint8_t,	ipsec_dec_key[44]); \
+	_OP(6, 40,	8,	uint8_t,	ipsec_dec_key[45]); \
+	_OP(6, 48,	8,	uint8_t,	ipsec_dec_key[46]); \
+	_OP(6, 56,	8,	uint8_t,	ipsec_dec_key[47]); \
 } while (0)
 
 #endif /* _FSL_SNIC_CMD_H */
