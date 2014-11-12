@@ -1,3 +1,7 @@
+- fsl_soc_spec_ls2085a.h:  Revert UART offset ( - 0x4000 ). The following flags must be added to simulator initialization cfg file:
+                           duart1.use_ls2_reg_definition=false
+                           duart2.use_ls2_reg_definition=false
+
 - dpl.dts/dtb               API changes due to changes i MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
 - fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
 - cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
