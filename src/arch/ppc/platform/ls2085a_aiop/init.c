@@ -109,8 +109,6 @@ void core_ready_for_tasks(void);
 void global_free(void);
 int epid_drv_init(void);
 void epid_drv_free(void);
-static build_mem_partitions_table(struct platform_memory_info *mem_info,
-                                  uint32_t size);
 
 #include "general.h"
 /** Global task params */
