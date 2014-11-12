@@ -1,6 +1,7 @@
 #include "types.h"
 #include "aiop_common.h"
 #include "fsl_gen.h"
+#include "apps.h"
 
 
 /*********************************************************************/
@@ -35,7 +36,7 @@ struct aiop_init_info g_init_data =
  {
   0,		/* aiop_rev_major     AIOP  */
   4,		/* aiop_rev_minor     AIOP  */
-  6,		/* revision           AIOP */
+  7,		/* revision           AIOP */
   0x6000000000,	/* dp_ddr_phys_addr      */
   0x40000000,	/* dp_ddr_virt_addr      */
   0x4c00000000,	/* peb_phys_addr      */
@@ -53,31 +54,22 @@ struct aiop_init_info g_init_data =
   {0}	        /* reserved           */
  },
  /* aiop_app_init_info */
- {
-  /* dp_ddr_size.
-   * It is the  sum of AIOP image DDR size and 
-   * application required DP_DDR memory.
-   * The value should be aligned to a power of 2 */
-  AIOP_DP_DDR_SIZE + APPLICATION_DP_DDR_SIZE,	
-  
-  /* peb_size.
-   * Should be a power of 2.
-   * Applications cannot require more that this maximum size */
-  (512 * KILOBYTE),
-  /* sys_ddr1_size = 0. Currently no dynamic allocation from system ddr */
-  0,	
-  2048,			/* ctlu_sys_ddr_num_entries */
-  2048,			/* ctlu_dp_ddr_num_entries */
-  2048,			/* ctlu_peb_num_entries */
-  2048,			/* mflu_sys_ddr_num_entries */
-  2048,			/* mflu_dp_ddr_num_entries */
-  2048,			/* mflu_peb_num_entries */
-  0x100000,	/* sru_size */
-  800,	/* tman_freq */
-  4,	/* tasks_per_core */
-  {0}	/* reserved */
+ {															
+ 	AIOP_SL_AND_APP_SIZE,									
+ 	PEB_SIZE,												
+ 	SYS_DDR1_SIZE,											
+ 	CTLU_SYS_DDR_NUM_ENTRIES,								
+ 	CTLU_DP_DDR_NUM_ENTRIES,								
+ 	CTLU_PEB_NUM_ENTRIES,									
+ 	MFLU_SYS_DDR_NUM_ENTRIES,								
+ 	MFLU_DP_DDR_NUM_ENTRIES,								
+ 	MFLU_PEB_NUM_ENTRIES,									
+ 	SRU_SIZE,												
+ 	TMAN_FREQUENCY,											
+ 	AIOP_TASKS_PER_CORE,									
+ 	{0}	/* reserved */										
  }
+ 
 };
-
-
-
+ 
+ 

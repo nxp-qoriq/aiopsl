@@ -230,12 +230,17 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 p_prev_b = p_curr_b;
                 p_curr_b = p_curr_b->p_next;
             }
-        }
+        } // while
 
         /* If no free block found to be updated, insert a new free block
          * to the end of the free list.
          */
-        if ( !p_curr_b && ((((uint64_t)(end-base)) & ((uint64_t)(alignment-1))) == 0) )
+        /* This is an old code line that assumes that size of an allocated memory is
+         * multiply of alignment. Replaced this by a condition that a new block
+         * is greater than the current alignment.
+         * if ( !p_curr_b && ((((uint64_t)(end-base)) & ((uint64_t)(alignment-1))) == 0) )
+         * */
+        if ( !p_curr_b &&  (end-align_base) >= alignment )
         {
             if ((p_new_b = create_free_block(align_base, end-align_base)) == NULL)
                 RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
@@ -254,7 +259,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
             if ( p_curr_b && end < p_curr_b->end )
                 end = p_curr_b->end;
         }
-    }
+    }// for
 
     return (0);
 }
@@ -585,7 +590,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
         RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
     }
 #ifdef AIOP
-    /*p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t)); */
+    /*p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));*/
     /* Fix for bug ENGR00337904. An address for spinlock should reside 
      * in shared ram, not in  DP_DDR */
     ASSERT_COND(g_spinlock_index < PLATFORM_MAX_MEM_INFO_ENTRIES-1);
@@ -595,8 +600,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 #endif
     if (!p_MM->lock)
     {
-        fsl_os_free(p_MM);
-        RETURN_ERROR(MAJOR, ENOMEM, ("MM spinlock!"));
+        RETURN_ERROR(MAJOR, ENOMEM, ("slob spinlock!"));
     }
 
 #ifdef AIOP
@@ -676,7 +680,9 @@ void slob_free(fsl_handle_t slob)
 
     if (p_MM->lock) {
 #ifdef AIOP
-	fsl_os_free((void *) p_MM->lock);
+    /* As spinlock is no longer allocated in DDR, no need to free it */	
+	/*fsl_os_free((void *) p_MM->lock); */
+    	
 #else
         spin_lock_free(p_MM->lock);
 #endif

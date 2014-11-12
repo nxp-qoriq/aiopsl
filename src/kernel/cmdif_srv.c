@@ -44,6 +44,7 @@
 #include "fsl_cmdif_flib_s.h"
 #include "cmdif_client_aiop.h"
 #include "cmdif_rev.h"
+#include "fsl_sl_cmd.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
@@ -84,9 +85,13 @@
 	} while (0)
 
 
- static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
+static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 
- static inline int is_valid_auth_id(uint16_t id)
+extern int sl_cmd_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
+extern int sl_cmd_open_cb(uint8_t instance_id, void **dev);
+extern int sl_cmd_close_cb_t(void *dev);
+
+static inline int is_valid_auth_id(uint16_t id)
  {
 	 return ((cmdif_aiop_srv.srv->inst_dev != NULL) &&
 		 (id < M_NUM_OF_INSTANCES) &&
@@ -241,7 +246,10 @@ __COLD_CODE int cmdif_srv_init(void)
 {
 	int  err = 0;
 	void *srv = NULL;
-
+	struct cmdif_module_ops ops = {sl_cmd_open_cb, 
+	                               sl_cmd_close_cb_t, 
+	                               sl_cmd_ctrl_cb};
+	
 	srv = cmdif_srv_allocate(fast_malloc, slow_malloc);
 
 	if (srv == NULL) {
@@ -258,7 +266,14 @@ __COLD_CODE int cmdif_srv_init(void)
 		pr_info("All AIOP DPCIs should have peer before AIOP boot\n");
 		return -ENODEV;
 	}
-
+	
+	/* Register ARENA SL module */
+	err = cmdif_register_module(SL_CMD_MODULE, &ops);
+	if (err) {
+		pr_err("Failed registration of %s module\n", SL_CMD_MODULE);
+		return err;
+	}
+	
 	return err;
 }
 

@@ -100,8 +100,8 @@ struct snic_params {
 	/** Storage profile ID */
 	uint8_t spid;
 	uint8_t ipsec_key_size;
-	uint16_t enc_ipsec_table_id;
-	uint8_t enc_ipsec_key_id;
+	uint16_t ipsec_table_id;
+	uint8_t ipsec_key_id;
 	uint8_t dec_ipsec_key_id;
 	uint16_t dec_ipsec_table_id;	
 };

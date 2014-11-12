@@ -36,6 +36,7 @@
 #include "fsl_platform.h"
 
 #include "fsl_ipsec.h"
+#include "fsl_keygen.h"
 #include "ipsec.h"
 #include "fsl_sys.h"
 #include "time.h"
@@ -55,6 +56,7 @@ extern void tman_timer_callback(void);
 #include "fsl_dbg.h"
 #include "fsl_io.h"
 #include "aiop_common.h"
+#include "ipr.h"
 
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
@@ -72,7 +74,9 @@ extern void aiop_snic_free(void);
 /* Global parameters*/
 uint64_t ext_prpid_pool_address;
 uint64_t ext_keyid_pool_address;
-
+uint16_t bpid_prpid;
+uint16_t bpid_keyid;
+extern struct  ipr_global_parameters ipr_global_parameters1;
 
 /* Time module globals */
 extern struct aiop_cmgw_regs *time_cmgw_regs;
@@ -214,6 +218,15 @@ void aiop_sl_free(void)
 	cdma_release_context_memory(ext_prpid_pool_address);
 	cdma_release_context_memory(ext_keyid_pool_address);
 #ifndef AIOP_VERIF
+	/*need to un-reserve bpid for kegen-id and prpid */
+	slab_find_and_unreserve_bpid(1, bpid_prpid);
+	slab_find_and_unreserve_bpid(1, bpid_keyid);
+	/*need to undo to ipr_init */
+	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
+			ipr_global_parameters1.ipr_key_id_ipv4);
+	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
+			ipr_global_parameters1.ipr_key_id_ipv6);
+
 	aiop_snic_free();
 #endif
 

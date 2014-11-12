@@ -36,26 +36,28 @@
 #include <fsl_cmdif_client.h>
 #include <fsl_cmdif_fd.h>
 
-/**************************************************************************//**
-@Group         cmdif_g  Command Interface API
 
-@Description   AIOP and GPP command interface API
+/*!
+ * @Group	cmdif_g  Command Interface API
+ *
+ * @brief	AIOP and GPP command interface API
+ *
+ * @{
+ */
 
-This is external API that is used to implement the final API as defined at
-fsl_cmdif_client.h and fsl_cmdif_server.h. For client and server external use
-only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
 
-@{
- *//***************************************************************************/
+/*!
+ * @Group	cmdif_flib_g  Command Interface - FLIB API
+ *
+ * @brief	API to be used for FD based command interface implementation
+ *
+ * This is external API that is used to implement the final API as defined at
+ * fsl_cmdif_client.h and fsl_cmdif_server.h. For client and server external use
+ * only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
+ *
+ * @{
+ */
 
-/**************************************************************************//**
-@Group         cmdif_flib_g  Command Interface - FLIB API
-
-@Description	API to be used for FD based command interface implementation.
-		For client server
-
-@{
- *//***************************************************************************/
 
 /**
  *
@@ -67,10 +69,10 @@ only the API from fsl_cmdif_client.h and fsl_cmdif_server.h.
  * @param[in]	m_name      - Module name, up to 8 characters
  * @param[in]	instance_id - Instance id which will be passed to open_cb_t
  * @param[in]	v_data	    - Core virtual address of the buffer to be used
- * 		by command interface. 
+ * 		by command interface.
  * 		The core is going to access the buffer through this address.
  * 		This address should be accessible by Server and Client.
- * @param[in]	p_data	    - Physical address or SMMU virtual address of the 
+ * @param[in]	p_data	    - Physical address or SMMU virtual address of the
  * 		v_data buffer to be set inside the fd of command.
  * @param[in]	size        - Size of the v_data buffer. If the size if not
 		enough cmdif_open() will return -ENOMEM.
@@ -95,7 +97,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
  * @param[in]	cidesc      - Command interface descriptor
  *
  * @returns	'0' if the command is not finished yet;
- *               not '0' if it has finished.
+ * 		not '0' if it has finished.
  */
 int cmdif_sync_ready(struct cmdif_desc *cidesc);
 
@@ -162,7 +164,7 @@ int cmdif_close_done(struct cmdif_desc *cidesc);
  * @param[in]	cmd_id - Command id that was sent
  *
  * @returns	'0' if command is asynchronous;
- *               not '0' id command is synchronous.
+ * 		not '0' id command is synchronous.
  *
  */
 int cmdif_is_sync_cmd(uint16_t cmd_id);
@@ -176,16 +178,15 @@ int cmdif_is_sync_cmd(uint16_t cmd_id);
  * @param[in]	cidesc - Command interface descriptor
  * @param[in]	cmd_id - Command id that was sent
  * @param[in]	size   - Size of data
- * @param[in]	data   - Physical address or SMMU virtual address of the 
+ * @param[in]	data   - Physical address or SMMU virtual address of the
  * 		command buffer to be set inside the fd of the command.
  * @param[in]	async_cb    - Callback to be called on response of
  *		asynchronous command.
  * @param[in]	async_ctx   - Context to be received with asynchronous
- * 		command response inside async_cb().
+ * 		command response inside async_cb()
  * @param[out]	fd     - Frame descriptor relevant fields for cmdif
  *
- * @returns	'0' if command is asynchronous;
- *               not '0' if command is synchronous.
+ * @returns	'0' on Success; Error code otherwise.
  *
  */
 int cmdif_cmd(struct cmdif_desc *cidesc,
@@ -201,7 +202,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
  * @brief	Call asynchronous callback of the received frame descriptor
  *
  * @param[in]	fd - Pointer to received frame descriptor
- * 
+ *
  * @returns	'0' on Success; Error code otherwise.
  *
  */

@@ -112,6 +112,11 @@ aiop_sl		</project>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
 		</link>
 		<link>
+			<name>src/apps.h</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
+		</link>
+		<link>
 			<name>src/cmdif_client_stub.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/cmdif_client_stub.c</locationURI>
@@ -125,6 +130,11 @@ aiop_sl		</project>
 			<name>src/cmdif_test.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/cmdif_test.c</locationURI>
+		</link>
+		<link>
+			<name>src/config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

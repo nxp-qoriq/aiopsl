@@ -107,9 +107,19 @@ aiop_sl		</project>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
 		</link>
 		<link>
+			<name>src/apps.h</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
+		</link>
+		<link>
 			<name>src/arena_test.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test.c</locationURI>
+		</link>
+		<link>
+			<name>src/config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
 		</link>
 		<link>
 			<name>src/dpni_drv_test.c</name>

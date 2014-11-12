@@ -1,3 +1,15 @@
+** AIOP SL v0.4.7 **
+De-coupled user-configured parameters from the aiopsl library.  
+Changes include:
+- Added apps.h file which should be edited by application developers to suit application requirements.
+- Application developers must add the following search path to the application compilation: 
+        "${ProjDirPath}/../../../../src/drivers/dpmng/controllers/aiop"
+- Application developers must add the file src\arch\ppc\platform\ls2085a_aiop\config.c to the application build process.
+
+- fsl_soc_spec_ls2085a.h:  Revert UART offset ( - 0x4000 ). The following flags must be added to simulator initialization cfg file:
+                           duart1.use_ls2_reg_definition=false
+                           duart2.use_ls2_reg_definition=false
+
 - dpl.dts/dtb               API changes due to changes i MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
 - fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
 - cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
