@@ -249,17 +249,19 @@ static int snic_close_cb(void *dev)
 	return 0;
 }
 
-static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
+__COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
-	uint16_t snic_id=0xFFFF, ipf_mtu, snic_flags, qdid, spid;
+	uint16_t snic_id = 0xFFFF, ipf_mtu, snic_flags, qdid, spid;
 	int i;
 	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)data;
 	struct ipr_params ipr_params = {0};
 	struct ipr_params *cfg = &ipr_params;
+	struct ipsec_descriptor_params ipsec_params = {0};
+	struct ipsec_descriptor_params *ipsec_cfg = &ipsec_params;
 	uint32_t snic_ep_pc;
-	int err;
+	int err = 0;
 	uint32_t committed_sa_num, max_sa_num;
 	uint32_t dec_committed_sa_num, dec_max_sa_num;
 	uint32_t enc_committed_sa_num, enc_max_sa_num;
@@ -267,10 +269,17 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	uint8_t fec_no, key_size;
 	uint8_t fec_array[8];
 	uint32_t table_location;
+	uint16_t sa_id;
+	/* example: SPI, IP dest. and protocol */
+	uint8_t ipsec_dec_key[48];
+	ipsec_handle_t ipsec_handle = 0;
+	struct table_rule rule;
+	struct table_lookup_result lookup_result;
+	struct table_lookup_non_default_params ndf_params = {0};
+	union table_key_desc key_desc;
+	int32_t direction;
 
 	UNUSED(dev);
-
-	ipr_params.flags |= IPR_MODE_TABLE_LOCATION_PEB;
 
 	switch(cmd)
 	{
@@ -279,6 +288,9 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 		ipr_params.tmi_id = snic_tmi_id;
 		ipr_params.ipv4_timeout_cb = snic_ipr_timout_cb;
 		ipr_params.ipv6_timeout_cb = snic_ipr_timout_cb;
+		ipr_params.flags |= IPR_MODE_TABLE_LOCATION_PEB; /* timeout mode is between fragments */
+		ipr_params.timeout_value_ipv4 = 0xffe0; /* 10ms units */
+		ipr_params.timeout_value_ipv6 = 0xffe0; /* 10ms units */
 		err = ipr_create_instance(&ipr_params,
 				ipr_instance_ptr);
 		snic_params[snic_id].ipr_instance_val = ipr_instance;
@@ -336,17 +348,125 @@ static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 			return err;
 		snic_params[snic_id].ipsec_instance_val = ws_instance_handle;
 		snic_params[snic_id].ipsec_key_size = key_size;
-		/* create keyid and tableid for encapsulation*/
+		/* create keyid and tableid for decapsulation*/
 		err = snic_create_table_key_id(fec_no, fec_array, key_size,
 				table_location, dec_committed_sa_num, dec_max_sa_num,
 				&snic_params[snic_id].dec_ipsec_key_id,
 				&snic_params[snic_id].dec_ipsec_table_id);
-		/* create keyid and tableid for decapsulation*/
-		err = snic_create_table_key_id(0, fec_array, key_size,
-				table_location, enc_committed_sa_num, enc_max_sa_num,
-				&snic_params[snic_id].enc_ipsec_key_id,
-				&snic_params[snic_id].enc_ipsec_table_id);
+		/* create keyid and tableid for SA ID management*/
+		err = snic_create_table_key_id(0, NULL, key_size,
+				table_location, committed_sa_num, max_sa_num,
+				&snic_params[snic_id].ipsec_key_id,
+				&snic_params[snic_id].ipsec_table_id);
 		return err;
+		/* This command must be after setting SPID in the SNIC params*/
+	case SNIC_IPSEC_DELETE_INSTANCE:
+		SNIC_IPSEC_DELETE_INSTANCE_CMD(SNIC_CMD_READ);
+		err = ipsec_delete_instance(snic_params[snic_id].ipsec_instance_val);
+		if (err)
+			return err;
+		/* return 2 sets of keyid and table ids */
+		table_delete(TABLE_ACCEL_ID_CTLU,
+				snic_params[snic_id].ipsec_table_id);
+		table_delete(TABLE_ACCEL_ID_CTLU,
+				snic_params[snic_id].dec_ipsec_table_id);
+		err = keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
+				snic_params[snic_id].ipsec_key_id);
+		if (err)
+			return err;
+		err = keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
+				snic_params[snic_id].dec_ipsec_key_id);
+		if (err)
+			return err;
+		return 0;
+		
+	case SNIC_IPSEC_ADD_SA:
+		SNIC_IPSEC_ADD_SA_CMD(SNIC_CMD_READ);
+		/* transport mode. IPSEC_FLG_LIFETIME_SEC_CNTR_EN not supported yet */
+		ipsec_params.flags = IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+		ipsec_params.soft_kilobytes_limit = 0xffffffffffffffff; 
+		ipsec_params.hard_kilobytes_limit = 0xffffffffffffffff;
+		ipsec_params.soft_packet_limit = 0xffffffffffffffff;
+		ipsec_params.hard_packet_limit = 0xffffffffffffffff;
+		ipsec_params.soft_seconds_limit = 0x0;
+		ipsec_params.hard_seconds_limit = 0x0;
+
+		ipsec_params.lifetime_callback = NULL;
+		ipsec_params.callback_arg = NULL;
+		ipsec_params.spid = (uint8_t)snic_params[snic_id].spid; /* move to create SA */
+		err = ipsec_add_sa_descriptor(
+				ipsec_cfg,
+				snic_params[snic_id].ipsec_instance_val,
+				&ipsec_handle);
+		if (err)
+			return err;
+		/* create rule to bind between sa_id and ipsec_handle */
+		rule.options = 0;
+		rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
+		rule.result.op0_rptr_clp.reference_pointer = ipsec_handle;
+		rule.key_desc.em.key[0] = (uint8_t)(sa_id >> 8);
+		rule.key_desc.em.key[1] = (uint8_t)sa_id;
+		err = table_rule_create(TABLE_ACCEL_ID_CTLU,
+				snic_params[snic_id].ipsec_table_id, &rule, 2);
+		if (err)
+			return err;
+		/* create rule to bind between dec key and ipsec handle */
+		if (ipsec_params.direction == IPSEC_DIRECTION_INBOUND)
+		{
+			rule.result.op0_rptr_clp.reference_pointer = 
+					ipsec_handle;
+			for (i = 0; i < snic_params[snic_id].ipsec_key_size; i++ )
+				rule.key_desc.em.key[i] = ipsec_dec_key[i];
+			err = table_rule_create(TABLE_ACCEL_ID_CTLU,
+					snic_params[snic_id].dec_ipsec_table_id, 
+					&rule, snic_params[snic_id].ipsec_key_size);
+			if (err)
+				return err;
+		}
+		return 0;
+	case SNIC_IPSEC_DEL_SA:
+		SNIC_IPSEC_DEL_SA_CMD(SNIC_CMD_READ);
+		ndf_params.metadata = (uint64_t)sa_id;
+		err = table_lookup_by_keyid(
+				TABLE_ACCEL_ID_CTLU,
+				snic_params[snic_id].ipsec_table_id,
+				snic_params[snic_id].ipsec_key_id,
+				TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT,
+				&ndf_params,
+				&lookup_result);
+		if (err == TABLE_STATUS_SUCCESS) {
+			/* Hit */
+			ipsec_handle = lookup_result.opaque0_or_reference;
+			/* need to delete rules from the 2 tables (or one for enc.) */
+			key_desc.em.key[0] = (uint8_t)(sa_id >> 8);
+			key_desc.em.key[1] = (uint8_t)sa_id;
+			err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+					snic_params[snic_id].ipsec_table_id,
+					&key_desc,
+					2,
+					NULL);
+			if (err)
+				return err;
+			/* Need to check if decryption SA need to remove another rule*/
+			if (direction == IPSEC_DIRECTION_INBOUND)
+			{
+				for (i = 0; i < snic_params[snic_id].ipsec_key_size; i++ )
+					key_desc.em.key[i] = ipsec_dec_key[i];
+				err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+						snic_params[snic_id].dec_ipsec_table_id,
+						&key_desc,
+						snic_params[snic_id].ipsec_key_size,
+						NULL);
+				if (err)
+					return err;
+			}
+			err = ipsec_del_sa_descriptor(ipsec_handle);
+			if (err)
+				return err;
+			return 0;
+		}
+		else
+			return err;
 	default:
 		return -EINVAL;
 	}

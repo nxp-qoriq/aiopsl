@@ -163,11 +163,12 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
 		negative value on error.
 
 @Retval		EBADFD - Received packet FD contain errors (FD.err != 0).
-		Recommendation is to either force discard of the frame (call
-		\ref fdma_force_discard_fd) or enqueue the frame.
+		Recommendation is to discard of the frame (call
+		\ref tcp_gso_discard_frame_remainder).
 		The packet was not segmented.
 @Retval		ENOMEM - Received packet cannot be stored due to buffer pool
-		depletion. Recommendation is to discard the frame.
+		depletion. Recommendation is to discard the frame 
+		(call fdma_discard_default_frame).
 		The packet was not segmented.
 
 @Cautions	None.

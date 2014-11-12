@@ -474,6 +474,16 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			break;
 		}
 		
+		/* HM Set VXLAN flags Command Verification */
+		case HM_SET_VXLAN_FLAGS_CMD_STR:
+		{
+			struct hm_vxlan_flags_command *str =
+			(struct hm_vxlan_flags_command *) asa_seg_addr;
+			l2_set_vxlan_flags(str->flags);
+			str_size = sizeof(struct hm_vxlan_flags_command);
+			break;
+		}
+
 		/* HM pop VXLAN Command Verification */
 		case HM_POP_VXLAN_CMD_STR:
 		{

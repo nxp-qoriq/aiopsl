@@ -401,6 +401,27 @@ void l2_pop_vxlan(void);
 void l2_set_vxlan_vid(uint32_t vxlan_vid);
 
 /*************************************************************************//**
+ @Function	l2_set_vxlan_flags
+
+ @Description	Set the VxLAN flags.
+
+ This function assumes VxLAN header is present.
+
+ The gross running sum of the frame becomes invalid after calling this function.
+
+ Implicit input parameters in Task Defaults: frame handle, segment handle,
+ segment address.
+
+ @Param[in]	flags - VxLAN flags.
+
+ @Return		None.
+
+ @Cautions	The parse results must be updated before calling this operation.
+
+ *//***************************************************************************/
+void l2_set_vxlan_flags(uint8_t flags);
+
+/*************************************************************************//**
  @Function	l2_arp_response
 
  @Description	Creates an ARP Response frame from an ARP Request frame. This

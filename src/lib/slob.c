@@ -590,7 +590,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
         RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
     }
 #ifdef AIOP
-    /*p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t)); */
+    /*p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));*/
     /* Fix for bug ENGR00337904. An address for spinlock should reside 
      * in shared ram, not in  DP_DDR */
     ASSERT_COND(g_spinlock_index < PLATFORM_MAX_MEM_INFO_ENTRIES-1);
@@ -600,8 +600,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 #endif
     if (!p_MM->lock)
     {
-        fsl_os_free(p_MM);
-        RETURN_ERROR(MAJOR, ENOMEM, ("MM spinlock!"));
+        RETURN_ERROR(MAJOR, ENOMEM, ("slob spinlock!"));
     }
 
 #ifdef AIOP
@@ -681,7 +680,9 @@ void slob_free(fsl_handle_t slob)
 
     if (p_MM->lock) {
 #ifdef AIOP
-	fsl_os_free((void *) p_MM->lock);
+    /* As spinlock is no longer allocated in DDR, no need to free it */	
+	/*fsl_os_free((void *) p_MM->lock); */
+    	
 #else
         spin_lock_free(p_MM->lock);
 #endif
