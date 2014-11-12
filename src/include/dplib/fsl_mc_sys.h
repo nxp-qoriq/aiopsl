@@ -73,6 +73,9 @@ static inline uint64_t iova_alloc(size_t size)
 #include "fsl_malloc.h"
 #define __iomem
 
+/* Workaround for HW bug - MC portals region cannot be declared non-cacheable */
+#define iowrite32 iowrite32_wt
+
 static inline void * iova_alloc(size_t size)
 {
 	return fsl_os_malloc(size);
