@@ -363,10 +363,8 @@ void l2_push_and_set_mpls(uint32_t mpls_hdr, uint16_t etype)
 	ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
 	seg_size_rs = PRC_GET_SEGMENT_LENGTH();
 	
-	if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
-			MPLS_SIZE){
-		ws_address_rs = (void *)
-			((uint32_t)ws_address_rs - MPLS_SIZE);
+	if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >= MPLS_SIZE){
+		ws_address_rs = (void *)((uint32_t)ws_address_rs - MPLS_SIZE);
 		seg_size_rs = seg_size_rs + MPLS_SIZE;
 	}
 	
@@ -588,8 +586,33 @@ void l2_set_vxlan_vid(uint32_t vxlan_vid)
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum) = 0;
 
 	/* Modify the segment */
-	fdma_modify_default_segment_data(vxlan_vid_offset, 4);
+	fdma_modify_default_segment_data(vxlan_vid_offset, 3);
 }
+
+void l2_set_vxlan_flags(uint8_t flags)
+{
+	uint8_t *vxlan_ptr;
+	uint8_t vxlan_flags_offset;
+
+	/* Offset of flags field in vxlan header */
+	vxlan_flags_offset = (uint8_t)(PARSER_GET_L4_OFFSET_DEFAULT() +
+			UDP_HDR_LENGTH);
+
+	/* Optimization: whole vxlan to remove 2 add cycles */
+	vxlan_ptr = (uint8_t *)(vxlan_flags_offset + PRC_GET_SEGMENT_ADDRESS());
+
+	/* Optimization: using constructed_vxlan variable remove 1 cycle of
+	 * store to stack */
+	*vxlan_ptr = flags;
+
+	/* No need for parser offset update */
+	/* Reset parser running sum */
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gross_running_sum) = 0;
+
+	/* Modify the segment */
+	fdma_modify_default_segment_data(vxlan_flags_offset, 1);
+}
+
 
 void l2_push_and_set_vxlan(uint8_t *vxlan_hdr, uint16_t size)
 {

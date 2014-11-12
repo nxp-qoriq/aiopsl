@@ -108,7 +108,8 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_POP_MPLS,
 	HM_CMDTYPE_PUSH_AND_SET_VXLAN,
 	HM_CMDTYPE_POP_VXLAN,
-	HM_CMDTYPE_SET_VXLAN_VID
+	HM_CMDTYPE_SET_VXLAN_VID,
+	HM_CMDTYPE_SET_VXLAN_FLAGS
 };
 
 /* HM Commands Structure identifiers */
@@ -211,6 +212,9 @@ enum e_hm_verif_cmd_type {
 
 #define HM_SET_VXLAN_VID_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_VXLAN_VID)
+
+#define HM_SET_VXLAN_FLAGS_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_SET_VXLAN_FLAGS)
 
 #define HM_POP_VXLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_POP_VXLAN)
@@ -612,6 +616,18 @@ struct hm_vxlan_vid_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	uint32_t	vxlan_vid;
+};
+
+/**************************************************************************//**
+@Description	HM set VXLAN flags Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_vxlan_flags_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint8_t		flags;
+	uint8_t		pad[3];
 };
 
 /**************************************************************************//**
