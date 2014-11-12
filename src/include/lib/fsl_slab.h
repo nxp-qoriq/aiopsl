@@ -215,7 +215,11 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 @Param[in]	mem_partition_id    Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default.
-
+@Param[in]	num_ddr_pools       Number of pools needed in the future 
+		(managed in ddr - slow performance).
+@Cautions       Max buffer size supported - 32760 Byte (32760 + 8 Meta data = 
+		32768), Max alignment supported 32768 Byte.
+		Alignment <= Buffer size + Meta data.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory for mem_partition_id
@@ -225,7 +229,8 @@ int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
                                               uint16_t    buff_size,
                                               uint16_t    alignment,
                                               enum memory_partition_id  mem_pid,
-                                              uint32_t    flags);
+                                              uint32_t    flags,
+                                              uint32_t    num_ddr_pools);
 /** @} *//* end of slab_g group */
 
 #endif /* __FSL_SLAB_H */

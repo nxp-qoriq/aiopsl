@@ -33,7 +33,7 @@
 #include "fsl_time.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
-#include "fsl_slab.h"
+#include "slab.h"
 #include "platform.h"
 #include "fsl_io.h"
 #include "aiop_common.h"
@@ -64,11 +64,13 @@ extern int ntop_test(void);
 extern int dpni_drv_test(void);
 
 extern struct slab *slab_peb;
-extern struct slab *slab_ddr;
+extern struct slab *slab_dp_ddr;
+extern struct slab *slab_sys_ddr;
 extern int num_of_cores;
 extern int num_of_tasks;
 extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
 extern __TASK uint32_t	seed_32bit;
+extern struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
 uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
 uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
@@ -243,8 +245,25 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				fsl_os_print("\nWARNING: Not all the tasks were active during the test!\n");
 
 			}
+			
+			err = slab_free(&slab_dp_ddr);
+			err |= slab_free(&slab_peb);
+			err |= slab_free(&slab_sys_ddr);
+			
+			if(err)
+			{
+				fsl_os_print("Error while freeing slab's used for test\n");
+			}
 
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
+			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
+				
+				fsl_os_print("Slab bman pools status:\n");
+				fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
+				
+			}
+			
+			slab_module_free();
 		}
 		else {
 			fsl_os_print("ARENA Test Finished with ERRORS\n");
@@ -252,9 +271,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 }
 int app_early_init(void){
-	slab_register_context_buffer_requirements(50,55,590,16,MEM_PART_DP_DDR,0);
-	slab_register_context_buffer_requirements(60,70,204,16,MEM_PART_DP_DDR,0);
-	slab_register_context_buffer_requirements(90,105,900,16,MEM_PART_DP_DDR,0);
+	slab_register_context_buffer_requirements(90,100,900,16,MEM_PART_DP_DDR,0 ,0);
 	return 0;
 }
 
@@ -340,8 +357,5 @@ int app_init(void)
 
 void app_free(void)
 {
-	int err = 0;
-	/* TODO - complete!*/
-	err = slab_free(&slab_ddr);
-	err = slab_free(&slab_peb);
+
 }

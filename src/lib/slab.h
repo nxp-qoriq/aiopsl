@@ -112,12 +112,11 @@
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP_SHRAM   1000
 #define SLAB_MAX_NUM_VP_DDR     64
-#define SLAB_NUM_OF_BUFS_DPDDR  750
-#define SLAB_NUM_OF_BUFS_PEB    20
 #define SLAB_BUFFER_TO_MANAGE_IN_DDR  1 
-#define SLAB_MAX_ALIGNMENT_SUPORTED   64
+#define IS_POWER_VALID_ALLIGN(_val, _max_size) \
+    (((((uint32_t)_val) <= (_max_size)) && ((((uint32_t)_val) & (~((uint32_t)_val) + 1)) == ((uint32_t)_val))))
 
-#define SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS   100
+
 
 /* Maximum number of BMAN pools used by the slab virtual pools */
 #define SLAB_MAX_BMAN_POOLS_NUM 16
@@ -209,19 +208,24 @@ struct slab_bman_pool_desc {
 struct slab_virtual_pools_main_desc {
 	struct slab_v_pool *virtual_pool_struct; /*cluster 0*/
 	/**< Pointer to virtual pools array*/
-	uint64_t slab_context_address[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS + 1]; /*0 is not used*/
+	uint64_t *slab_context_address; /*0 is not used*/
 	/**< memory to buffer for virtual pools array*/
 	uint16_t shram_count;
 	/**< Counter for pools in shram*/
-	/**< Bitmap for virtual pools in cluster*/
+	uint32_t num_clusters;
+	/**< number of cluster for pools in DDR*/
 	uint8_t flags;
 	/**< Flags to use when using the pools - unused  */
 	uint8_t global_spinlock;
 	/**< Spinlock for locking the global virtual root pool */
 };
 
+/* defined array of available buffer sizes that can be requested*/
 #define SLAB_BUFF_SIZES_ARR	\
 	{ \
+	{24,   0, 0, 0},  \
+	{56,   0, 0, 0},  \
+	{120,   0, 0, 0}, \
 	{248,   0, 0, 0}, \
 	{504,   0, 0, 0}, \
 	{1016,  0, 0, 0}, \
@@ -229,8 +233,7 @@ struct slab_virtual_pools_main_desc {
 	{4088,  0, 0, 0}, \
 	{8184,  0, 0, 0}, \
 	{16376, 0, 0, 0}, \
-	{32760, 0, 0, 0}, \
-	{65528, 0, 0, 0}  \
+	{32760, 0, 0, 0}  \
 	}
 
 
@@ -249,11 +252,14 @@ struct request_table_info{
 
 struct early_init_request_table{
 	struct request_table_info *table_info;
+	/**< Tables to store early initialization request for buffers. */
 };
 struct memory_types_table{	
 	struct early_init_request_table *mem_pid_buffer_request[SLAB_NUM_MEM_PARTITIONS];
 	/**< Tables to store early initialization request depends on memory
 	 * partition. */
+	uint32_t num_ddr_pools;
+	/*counter for requested ddr management pools*/
 };
 
 /**************************************************************************//**

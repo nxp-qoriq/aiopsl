@@ -37,45 +37,68 @@
 #include "fsl_io.h"
 
 struct slab *slab_peb = 0;
-struct slab *slab_ddr = 0;
+struct slab *slab_dp_ddr = 0;
+struct slab *slab_sys_ddr = 0;
 
 int app_test_slab_init(void);
 int slab_init(void);
 int slab_test(void);
 extern struct slab_virtual_pools_main_desc g_slab_virtual_pools;
+extern struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 int app_test_slab_overload_test();
-int app_test_slab(struct slab *slab, int num_times);
+int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid);
 
 
 static void slab_callback_test(uint64_t context_address){
 
 	fsl_os_print("slab_release: callback function\n");
-	fsl_os_print("release context address - 0x%x%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
+	fsl_os_print("CB context address - 0x%x,%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
 }
 
 int slab_init(void)
 {
-	int err = 0;
+	int err = 0, i;
 	struct slab_debug_info slab_info;
 	/* Test for slab initialization, ignore it unless it fails */
+	
+	for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++)
+	{
+		fsl_os_print("Slab bman pools status:\n");
+		fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
+
+	}
 	err = app_test_slab_init();
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab_init()\n", err);
 		return err;
 	}
 
-/*	err = app_test_slab_overload_test();
+	/*err = app_test_slab_overload_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab_overload_test()\n", err);
 		return err;
 	}
 */
-	/* DDR SLAB creation */
+	/* PEB DDR SLAB creation */
 	err = slab_create(10, 10, 256, 4, MEM_PART_DP_DDR, 0,
-			          NULL, &slab_ddr);
+			          NULL, &slab_dp_ddr);
 	if (err) return err;
 
-	err = slab_debug_info_get(slab_ddr, &slab_info);
+	err = slab_debug_info_get(slab_dp_ddr, &slab_info);
+	if (err) {
+		return err;
+	} else {
+		if ((slab_info.committed_buffs != slab_info.max_buffs) ||
+		    (slab_info.committed_buffs == 0))
+			return -ENODEV;
+	}
+	
+	/* SYSTEM DDR SLAB creation */
+	err = slab_create(10, 10, 256, 4, MEM_PART_SYSTEM_DDR, 0,
+			          NULL, &slab_sys_ddr);
+	if (err) return err;
+
+	err = slab_debug_info_get(slab_sys_ddr, &slab_info);
 	if (err) {
 		return err;
 	} else {
@@ -98,14 +121,14 @@ int slab_init(void)
 
 int app_test_slab_overload_test()
 {
+	struct slab *my_slab[200];
 	int        err = 0;
 	int 	i;
 	dma_addr_t buff = 0;
-	struct slab *my_slab[2000];
 
-	for (i = 0; i < 2000 ; i++)
+	for (i = 0; i < 200 ; i++)
 	{
-		err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
+		err = slab_create(1, 1, 248, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
 				  &slab_callback_test, &(my_slab[i]));
 		if (err) return err;
 
@@ -116,11 +139,7 @@ int app_test_slab_overload_test()
 
 	}
 
-
-/*	for(i = 0; i < 101; i++ ){
-		fsl_os_print("Context address of cluster %d: 0x%lx\n", i, g_slab_virtual_pools.slab_context_address[i]);
-	}*/
-	for (i = 1999; i >= 0 ; i--)
+	for (i = 199; i >= 0 ; i--)
 	{
 		err = slab_acquire(my_slab[i], &buff);
 		if (err) return err;
@@ -170,7 +189,7 @@ int app_test_slab_init(void)
 	err = slab_acquire(my_slab, &buff[4]);
 	if (!err) return err;
 	else
-		fsl_os_print("Acquire more buffers than MAX failed\n");
+		fsl_os_print("PASSED - Acquire more buffers than MAX failed\n");
 		
 	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
 		err = slab_release(my_slab, buff[0]);
@@ -253,14 +272,18 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 	return 0;
 }
 
-int app_test_slab(struct slab *slab, int num_times)
+int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid)
 {
 	uint64_t buff[4] = {0, 0, 0, 0};
 	int      err = 0, start = 1, end = 1;
 	int      i = 0;
 	struct slab *my_slab;
-	err = slab_create(5, 5, 256, 4, MEM_PART_PEB, SLAB_DDR_MANAGEMENT_FLAG,
+	err = slab_create(5, 5, 256, 4, mem_pid, SLAB_DDR_MANAGEMENT_FLAG,
 	                  NULL, &my_slab);
+	if (err){
+		fsl_os_print("error in slab create \n");
+		return err;
+	}
 
 	for (i = 0; i < num_times; i++) {
 
@@ -327,14 +350,19 @@ int app_test_slab(struct slab *slab, int num_times)
 int slab_test(void)
 {
 	int err = 0;
-	err |= app_test_slab(slab_peb, 4);
+	err |= app_test_slab(slab_peb, 4, MEM_PART_PEB);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
 	}
 
-	err |= app_test_slab(slab_ddr, 4);
+	err |= app_test_slab(slab_dp_ddr, 4, MEM_PART_DP_DDR);
 	if (err) {
-		fsl_os_print("ERROR = %d: app_test_slab(slab_ddr, 4)\n", err);
+		fsl_os_print("ERROR = %d: app_test_slab(slab_dp_ddr, 4)\n", err);
+	}
+	
+	err |= app_test_slab(slab_sys_ddr, 4, MEM_PART_SYSTEM_DDR);
+	if (err) {
+		fsl_os_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
 	}
 	return err;
 }
