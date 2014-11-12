@@ -61,7 +61,7 @@ void booke_generic_exception_isr(uint32_t intr_entry);
 /*    None.                                                      */
 /*                                                               */
 /*****************************************************************/
-void booke_generic_irq_init(void)
+__COLD_CODE void booke_generic_irq_init(void)
 {
     booke_init_interrupt_vector();
 }
@@ -241,7 +241,7 @@ machine_irq:
     se_dnh
 }
 
-asm void booke_init_interrupt_vector(void)
+__COLD_CODE asm void booke_init_interrupt_vector(void)
 {
     lis     r3,branch_table@h
     ori     r3,r3,branch_table@l
