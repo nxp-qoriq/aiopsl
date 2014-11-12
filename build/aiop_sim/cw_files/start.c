@@ -28,6 +28,7 @@
 
 #include <__mem.h>
 #include <__ppc_eabi_linker.h>		/* linker-generated symbol declarations */
+#include "types.h"
 //#include <__ppc_eabi_init.h>		/* board- and user-level initialization */
 
 /***************************************************************************/
@@ -61,7 +62,7 @@ int  _master = 0xffffffff;
 
 
 /*****************************************************************************/
-static void __init_bss(void)
+__COLD_CODE static void __init_bss(void)
 {
     __bss_init_info *bii = _bss_init_info;
 
@@ -73,20 +74,20 @@ static void __init_bss(void)
 
 
 /*****************************************************************************/
-extern void abort(void)
+__COLD_CODE extern void abort(void)
 {
 	_ExitProcess();
 }
 
 /*****************************************************************************/
-extern void exit(int status)
+__COLD_CODE extern void exit(int status)
 {
 #pragma unused(status)
 	_ExitProcess();
 }
 
 /*****************************************************************************/
-asm void _ExitProcess(void)
+asm __COLD_CODE void _ExitProcess(void)
 {
 	nofralloc
 	
@@ -99,7 +100,7 @@ asm void _ExitProcess(void)
 
 
 /*****************************************************************************/
-asm void __sys_start(register int argc, register char **argv, register char **envp)
+asm __COLD_CODE void __sys_start(register int argc, register char **argv, register char **envp)
 {
 	nofralloc
 

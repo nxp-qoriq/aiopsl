@@ -42,7 +42,7 @@ extern int run_apps(void);
 extern void core_ready_for_tasks(void);
 
 #if (STACK_OVERFLOW_DETECTION == 1)
-static inline void configure_stack_overflow_detection(void)
+__COLD_CODE static inline void configure_stack_overflow_detection(void)
 {
     /* DBCR2 */
     booke_set_spr_DBCR2(booke_get_spr_DBCR2() | 0x00c00000);
