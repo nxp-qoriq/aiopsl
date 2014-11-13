@@ -77,9 +77,9 @@
 /**< Returns slab's virtual pool id*/
 
 #define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
-#define SLAB_SIZE_GET(SIZE)     ((SIZE) - SLAB_HW_META_OFFSET)
+#define SLAB_SIZE_GET(SIZE)     (uint32_t)((SIZE) - SLAB_HW_META_OFFSET)
 /**< Real buffer size used by user */
-#define SLAB_SIZE_SET(SIZE)     ((SIZE) + SLAB_HW_META_OFFSET)
+#define SLAB_SIZE_SET(SIZE)     (uint32_t)((SIZE) + SLAB_HW_META_OFFSET)
 /**< Buffer size that needs to be set for CDMA, including metadata */
 
 #define SLAB_HW_POOL_CREATE(VP) \
@@ -91,32 +91,17 @@
 *//***************************************************************************/
 /** bpid, user required size, partition */
 
-#define SLAB_BPIDS_ARR	\
-	{ \
-	{1,	4096,    MEM_PART_DP_DDR}, \
-	{2,	2048,    MEM_PART_DP_DDR}, \
-	{3,	1024,   MEM_PART_DP_DDR},  \
-	{4,	512,   MEM_PART_DP_DDR},   \
-	{5,	256,   MEM_PART_DP_DDR},   \
-	{6,	4096,    MEM_PART_PEB},    \
-	{7,	2048,    MEM_PART_PEB},    \
-	{8,	1024,   MEM_PART_PEB},     \
-	{9,	512,   MEM_PART_PEB},      \
-	{10,	256,   MEM_PART_PEB}       \
-	}
-
-
 #define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
+#define SLAB_NUM_MEM_PARTITIONS MEM_PART_INVALID
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP_SHRAM   1000
 #define SLAB_MAX_NUM_VP_DDR     64
-#define SLAB_NUM_OF_BUFS_DPDDR  750
-#define SLAB_NUM_OF_BUFS_PEB    20
 #define SLAB_BUFFER_TO_MANAGE_IN_DDR  1 
+#define IS_POWER_VALID_ALLIGN(_val, _max_size) \
+    (((((uint32_t)_val) <= (_max_size)) && ((((uint32_t)_val) & (~((uint32_t)_val) + 1)) == ((uint32_t)_val))))
 
 
-#define SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS   100
 
 /* Maximum number of BMAN pools used by the slab virtual pools */
 #define SLAB_MAX_BMAN_POOLS_NUM 16
@@ -127,10 +112,14 @@
 struct slab_bpid_info {
 	uint16_t bpid;
 	/**< Bpid - slabs bman id */
-	uint16_t size;
+	uint32_t size;
 	/**< Size of memory the bman pool is taking  */
 	e_memory_partition_id mem_pid;
 	/**< Memory Partition Identifier */
+	uint16_t alignment;
+	/**< Buffer alignment */
+	uint32_t num_buffers;
+	/**< Number of MAX requested buffers per pool */
 };
 
 /**************************************************************************//**
@@ -139,7 +128,7 @@ struct slab_bpid_info {
 struct slab_hw_pool_info {
 	uint32_t flags;
 	/**< Control flags */
-	uint16_t buff_size;
+	uint32_t buff_size;
 	/**< Maximal buffer size including 8 bytes of CDMA metadata */
 	uint16_t pool_id;
 	/**< BMAN pool ID */
@@ -147,7 +136,7 @@ struct slab_hw_pool_info {
 	/**< Buffer alignment */
 	uint16_t mem_pid;
 	/**< Memory partition for buffers allocation */
-	int32_t total_num_buffs;
+	uint32_t total_num_buffs;
 	/**< Number of allocated buffers per pool */
 };
 
@@ -204,15 +193,58 @@ struct slab_bman_pool_desc {
 struct slab_virtual_pools_main_desc {
 	struct slab_v_pool *virtual_pool_struct; /*cluster 0*/
 	/**< Pointer to virtual pools array*/
-	uint64_t slab_context_address[SLAB_MAX_NUM_OF_CLUSTERS_FOR_VPS + 1]; /*0 is not used*/
+	uint64_t *slab_context_address; /*0 is not used*/
 	/**< memory to buffer for virtual pools array*/
 	uint16_t shram_count;
 	/**< Counter for pools in shram*/
-	/**< Bitmap for virtual pools in cluster*/
+	uint32_t num_clusters;
+	/**< number of cluster for pools in DDR*/
 	uint8_t flags;
 	/**< Flags to use when using the pools - unused  */
 	uint8_t global_spinlock;
 	/**< Spinlock for locking the global virtual root pool */
+};
+
+/* defined array of available buffer sizes that can be requested*/
+#define SLAB_BUFF_SIZES_ARR	\
+	{ \
+	{24,   0, 0, 0},  \
+	{56,   0, 0, 0},  \
+	{120,   0, 0, 0}, \
+	{248,   0, 0, 0}, \
+	{504,   0, 0, 0}, \
+	{1016,  0, 0, 0}, \
+	{2040,  0, 0, 0}, \
+	{4088,  0, 0, 0}, \
+	{8184,  0, 0, 0}, \
+	{16376, 0, 0, 0}, \
+	{32760, 0, 0, 0}  \
+	}
+
+
+struct request_table_info{
+	uint16_t buff_size;
+	/**< Available buffer sizes not including 8 bytes of CDMA metadata */
+	uint32_t extra;
+	/**< Number of extra requested buffers */
+	uint32_t max;
+	/**< Number of max requested buffers */
+	uint32_t committed_bufs;
+	/**< Number of requested committed buffers */
+	uint16_t alignment;
+	/**< Buffer alignment */
+};
+
+struct early_init_request_table{
+	struct request_table_info *table_info;
+	/**< Tables to store early initialization request for buffers. */
+};
+struct memory_types_table{	
+	struct early_init_request_table *mem_pid_buffer_request[SLAB_NUM_MEM_PARTITIONS];
+	/**< Tables to store early initialization request depends on memory
+	 * partition. */
+	uint32_t num_ddr_pools;
+	/*counter for requested ddr management pools*/
 };
 
 /**************************************************************************//**
