@@ -45,6 +45,10 @@
 #pragma section RW ".verif_tdata" ".verif_tbss"
 //#pragma section RW ".verif_psram_data" ".verif_psram_bss"
 
+/** DDR code location */
+#pragma section RX ".dtext_vle"
+#define __COLD_CODE __declspec(section ".dtext_vle")
+
 
 /*
 struct profile_sram {

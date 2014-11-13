@@ -122,13 +122,18 @@ void snic_process_packet(void)
 		/*reach here if re-assembly success or regular or IPR disabled*/
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
-
+		/* Check if ipsec transport mode is required */
+		if (snic->snic_enable_flags & SNIC_SEC_DECRYPT)
+			snic_ipsec_decrypt(snic);
 	}
 	/* Egress*/
 	else {
 		default_task_params.qd_priority = ((*((uint8_t *)
 				(HWC_ADC_ADDRESS +
 				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
+		/* Check if ipsec transport mode is required */
+		if (snic->snic_enable_flags & SNIC_SEC_ENCRYPT)
+			snic_ipsec_encrypt(snic);
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
 			snic_add_vlan();
@@ -231,6 +236,67 @@ int snic_add_vlan(void)
 			asapa_asaps & PRC_ASAPA_MASK);
 	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, 0x50)));
 	l2_push_and_set_vlan(vlan);
+	return 0;
+}
+
+int snic_ipsec_decrypt(struct snic_params *snic)
+{
+	int sr_status;
+	struct table_lookup_result lookup_result;
+	ipsec_handle_t ipsec_handle;
+	uint32_t dec_status;
+	
+	/* check if ipsec and if not table miss then decrypt */
+	if (PARSER_IS_IPSEC_DEFAULT())
+	{
+		sr_status = table_lookup_by_keyid_default_frame(
+			TABLE_ACCEL_ID_CTLU,
+			snic->dec_ipsec_table_id,
+			snic->dec_ipsec_key_id,
+			&lookup_result);
+		if (sr_status == TABLE_STATUS_SUCCESS) 
+		{
+			/* Hit */
+			ipsec_handle = lookup_result.opaque0_or_reference;
+			ipsec_frame_decrypt(ipsec_handle,
+					&dec_status);
+			/*todo what happens in case decrypt is not successful*/
+		}
+	}
+	return 0;
+}
+
+int snic_ipsec_encrypt(struct snic_params *snic)
+{
+	uint16_t sa_id;
+	struct presentation_context *presentation_context;
+	uint32_t asa_seg_addr;	/* ASA Segment Address */
+	int sr_status;
+	struct table_lookup_result lookup_result;
+	ipsec_handle_t ipsec_handle;
+	uint32_t enc_status;
+
+	/* Get ASA pointer */
+	presentation_context =
+		(struct presentation_context *) HWC_PRC_ADDRESS;
+	asa_seg_addr = (uint32_t)(presentation_context->
+			asapa_asaps & PRC_ASAPA_MASK);
+	sa_id = *((uint16_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
+	
+	sr_status = table_lookup_by_keyid_default_frame(
+		TABLE_ACCEL_ID_CTLU,
+		snic->ipsec_table_id,
+		snic->ipsec_key_id,
+		&lookup_result);
+	if (sr_status == TABLE_STATUS_SUCCESS) 
+	{
+		/* Hit */
+		ipsec_handle = lookup_result.opaque0_or_reference;
+		ipsec_frame_encrypt(ipsec_handle,
+				&enc_status);
+		/*todo what happens in case encrypt is not successful*/
+	}
+	
 	return 0;
 }
 

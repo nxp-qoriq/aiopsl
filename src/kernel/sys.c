@@ -88,7 +88,7 @@ int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
 }
 
 /*****************************************************************************/
-static int sys_init_platform(void)
+__COLD_CODE static int sys_init_platform(void)
 {
 	int     err = 0;
 	int is_master_core = sys_is_master_core();
@@ -227,7 +227,7 @@ static int sys_free_platform(void)
 	return err;
 }
 
-static uint32_t count_cores(uint64_t cores_mask)
+__COLD_CODE static uint32_t count_cores(uint64_t cores_mask)
 {
     uint32_t count;
     for(count = 0; cores_mask > 0; cores_mask >>= 1) {
@@ -238,7 +238,7 @@ static uint32_t count_cores(uint64_t cores_mask)
     return count;
 }
 
-static void fill_system_parameters()
+__COLD_CODE static void fill_system_parameters()
 {
 	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
 		+ SOC_PERIPH_OFF_AIOP_CMGW \
@@ -250,7 +250,7 @@ static void fill_system_parameters()
 	sys.num_of_active_cores = count_cores(sys.active_cores_mask);
 }
 
-static int global_sys_init(void)
+__COLD_CODE static int global_sys_init(void)
 {
 	struct platform_param platform_param;
 	int err = 0;
@@ -295,7 +295,7 @@ static int global_sys_init(void)
 }
 
 /*****************************************************************************/
-int sys_init(void)
+__COLD_CODE int sys_init(void)
 {
 	int err = 0, is_master_core;
 	uint32_t core_id = core_get_id();
