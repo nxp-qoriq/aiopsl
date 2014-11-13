@@ -35,6 +35,7 @@
 #ifndef __FSL_SHBP_H
 #define __FSL_SHBP_H
 
+#include <shbp.h>
 #include <cmdif.h> /* TODO rename cmdif.h to arch.h */
 
 /*!
@@ -46,15 +47,49 @@
  */
 
 /**
- * @brief	Get buffer from shared buffer pool
+ * @brief	Get buffer from shared pool
  *
  * @param[in]	bp - Buffer pool handle
  *
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-uint64_t shbp_get(void *bp);
+uint64_t shbp_acquire(shbp_t bp);
 
+/**
+ * @brief	Return buffer into shared pool
+ *
+ * @param[in]	bp  - Buffer pool handle
+ * @param[in]	buf - Buffer address
+ *
+ * @returns	0 on Success; or error code otherwise
+ *
+ */
+int shbp_release(shbp_t bp, uint64_t buf);
+
+/**
+ * @brief	Create shared pool from a given buffer
+ *
+ * @param[in]	buf  - Buffer address
+ * @param[in]	size - buf size
+ * @param[in]	buf_size - Size of each buffer in pool
+ * @param[in]	flags - Flags to be used for pool creation
+
+ * @returns	Address on Success; or NULL otherwise
+ *
+ */
+shbp_t shbp_create(uint64_t buf, uint32_t size,
+			uint32_t buf_size, uint32_t flags);
+
+/**
+ * @brief	Move freed buffers into allocation queue
+ *
+ * @param[in]	bp  - Buffer pool handle
+ *
+ * @returns	Number of the buffers added to the allocation queue
+ *
+ */
+int shbp_fill(shbp_t bp);
 
 /** @} */ /* end of shbp_g group */
 
