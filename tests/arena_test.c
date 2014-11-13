@@ -272,7 +272,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 }
 int app_early_init(void){
-	slab_register_context_buffer_requirements(90,100,900,16,MEM_PART_DP_DDR,0 ,0);
+	slab_register_context_buffer_requirements(50,100,2000,64,MEM_PART_SYSTEM_DDR,0, 0);
 	return 0;
 }
 

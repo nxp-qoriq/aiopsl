@@ -396,9 +396,10 @@ int slab_create(uint32_t    committed_buffs,
 	if (error)
 		return -ENAVAIL;
 
-	if (max_buffs < committed_buffs)
+	if (max_buffs < committed_buffs){
+		/*pr_err("MAX Buffers: %d, Committed: %d\n",max_buffs,committed_buffs);*/
 		return -EINVAL;
-
+	}
 	/* committed_bufs and max_bufs must not be 0 */
 	if (!max_buffs)
 		return -EINVAL;
@@ -574,6 +575,8 @@ int slab_free(struct slab **slab)
 		slab_virtual_pool = (struct slab_v_pool *)
 						g_slab_virtual_pools.virtual_pool_struct;
 		slab_virtual_pool += pool_id;
+
+		lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 		if (slab_virtual_pool->allocated_bufs != 0) {
 			unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 			return -EACCES;	
@@ -585,6 +588,7 @@ int slab_free(struct slab **slab)
 		slab_virtual_pool->max_bufs = 0;
 		slab_virtual_pool->callback_func = NULL;
 		g_slab_virtual_pools.shram_count --;
+		unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 		unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 	}
 	else{
@@ -751,11 +755,21 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 		return 0;
 	} else {
 		if(cluster == 0)
+		{
+			return_val = slab_virtual_pool->max_bufs; /*return value reused to store max buffers*/
 			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
+		}
 		else
+		{	
+			return_val = slab_virtual_pool_ddr.max_bufs;/*return value reused to store max buffers*/
 			cdma_mutex_lock_release(pool_data_address);
-		
-		pr_err("No mem\n");
+		}
+		if(return_val == 0)
+		{
+			/*pr_err("Slab already freed\n");*/
+			return -EINVAL;
+		}
+		/*pr_err("No memory to acquire from\n");*/
 		return -ENOMEM;
 	}
 }
@@ -912,7 +926,7 @@ static int dpbp_add(struct dprc_obj_desc *dev_desc,
 
 /*****************************************************************************/
 static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
-                          int *n_bpids, int add_flag)
+                          int *n_bpids)
 {
 	struct dprc_obj_desc dev_desc;
 	int dev_count;
@@ -959,7 +973,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 
 			num_bpids++;
-			if(add_flag == TRUE)
+			if(bpids_arr != NULL)
 			{/*flag to run dpbp_add function*/
 				err = dpbp_add(&dev_desc, bpids_arr,
 				               dprc);
@@ -979,7 +993,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 		return -ENODEV;
 	}
 	
-	if(add_flag == TRUE)/*flag to run dpbp_add function*/
+	if(bpids_arr != NULL)/*to run dpbp_add function*/
 		bpids_arr -= num_bpids;
 	else
 		*n_bpids = num_bpids;
@@ -1057,7 +1071,7 @@ static int slab_alocate_memory(int num_bpids, struct slab_module_info *slab_m, s
 }
 
 int slab_module_early_init(void){
-	int i = 0, err;
+	int i = 0, err = 0;
 	pr_info("Initialize memory for App early requests from slab\n");
 	g_slab_early_init_data = (struct memory_types_table *)
 					fsl_os_xmalloc((sizeof(struct memory_types_table) ),
@@ -1067,30 +1081,19 @@ int slab_module_early_init(void){
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
 			g_slab_early_init_data->mem_pid_buffer_request[i] = NULL;
-	err = slab_register_context_buffer_requirements(50,50,2000,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(50,100,2000,64,MEM_PART_SYSTEM_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(50,100,2000,64,MEM_PART_DP_DDR,0, 0);
+	
+	err |= slab_register_context_buffer_requirements(750,750,4088,0,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(750,750,2040,0,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(750,750,1016,64,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(750,750,504,64,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(750,750,248,64,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,4088,64,MEM_PART_PEB,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,2040,64,MEM_PART_PEB,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,1016,64,MEM_PART_PEB,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,504,64,MEM_PART_PEB,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,248,64,MEM_PART_PEB,0, 0);
 
-	/*err |= slab_register_context_buffer_requirements(0,1,500,32,MEM_PART_SYSTEM_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(50,100,200,64,MEM_PART_DP_DDR,0, 10);
-	err |= slab_register_context_buffer_requirements(50,100,700,256,MEM_PART_DP_DDR,0, 10);
-	err |= slab_register_context_buffer_requirements(50,100,3000,16,MEM_PART_DP_DDR,0, 50);
-	err |= slab_register_context_buffer_requirements(50,100,5000,64,MEM_PART_DP_DDR,0, 40);
-	err |= slab_register_context_buffer_requirements(50,50,11000,64,MEM_PART_DP_DDR,0, 50);
-	err |= slab_register_context_buffer_requirements(1,1,10000,64,MEM_PART_DP_DDR,0, 50);
-	err |= slab_register_context_buffer_requirements(1,2,10000,16,MEM_PART_DP_DDR,0, 50);
-	err |= slab_register_context_buffer_requirements(50,100,100,64,MEM_PART_CCSR,0, 0);
-	err |= slab_register_context_buffer_requirements(50,100,200,64,MEM_PART_SYSTEM_DDR,0, 10);
-	err |= slab_register_context_buffer_requirements(5,10,32000,19000,MEM_PART_SYSTEM_DDR,0, 10);
-	err |= slab_register_context_buffer_requirements(0,1,32000,32768,MEM_PART_SYSTEM_DDR,0, 10);
-	err |= slab_register_context_buffer_requirements(0,1,12000,32768,MEM_PART_SYSTEM_DDR,0, 10);
-	err |= slab_register_context_buffer_requirements(50,100,3000,64,MEM_PART_SYSTEM_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(50,100,5000,64,MEM_PART_SH_RAM,0, 0);
-	err |= slab_register_context_buffer_requirements(50,100,2000,64,MEM_PART_SYSTEM_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(50,50,200,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(0,2,1000,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(50,100,100,64,MEM_PART_CCSR,0, 0);
-	err |= slab_register_context_buffer_requirements(0,0,100,64,MEM_PART_MC_PORTALS,0, 0);*/
+
 	if(err){
 		pr_err("Failed to register context buffers\n");
 		return err;
@@ -1099,81 +1102,61 @@ int slab_module_early_init(void){
 }
 
 /*Method used to split the memory to buffer sizes using number of available bpids*/
-static int slab_divide_memory_for_bpids(int available_bpids, 
-                                        int requested_bpids, 
+static int slab_divide_memory_for_bpids(int available_bpids,
                                         enum memory_partition_id  mem_pid,
                                         struct   slab_bpid_info **bpids_arr)
 {
 	int j, first_found_flag = FALSE;
 	struct request_table_info local_info[] = SLAB_BUFF_SIZES_ARR;
 	int buffer_types_array_size = ARRAY_SIZE(local_info);
-	uint32_t sum_all_requests = 0;
-	
-	UNUSED(requested_bpids);
-	for(j = buffer_types_array_size -1; j >= 0 ; j--) /*search which memory partitions filled for buffers and calculate 
-				the number of requests per partition and the total requests*/
-	{
-		/* in case someone requested only extra buffers from that type we will check max*/
-		if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max > 0)
-		{
-			sum_all_requests += g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
-		}
-	}
 	
 	
 	/* use greedy algorithm, for more then 3  available bpids,
 	 * greedy algorithm provides better results in this case */
 	
-//	if (available_bpids == requested_bpids || available_bpids > 3)
-//	{
-	
-		j = buffer_types_array_size -1;/*last array index*/
-		if(available_bpids > 1)
-		{
-			for(; j >= 0 ; j--) /*search which sizes of buffers requested */
-			{
-				/* in case someone requested only extra buffers from that type we will check max*/
-				if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max > 0)
-				{
-					(*bpids_arr)->alignment = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment;
-					(*bpids_arr)->mem_pid = mem_pid;
-					(*bpids_arr)->size = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].buff_size;
-					(*bpids_arr)->num_buffers = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
-					(*bpids_arr) ++;
-					available_bpids --;
-					if(available_bpids == 1){
-						j --;
-						break;
-					}
-				}
-			}	
-		}
+
+	j = buffer_types_array_size -1;/*last array index*/
+	if(available_bpids > 1)
+	{
 		for(; j >= 0 ; j--) /*search which sizes of buffers requested */
 		{
-			if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max > 0 &&
-				!first_found_flag)
+			/* in case someone requested only extra buffers from that type we will check max*/
+			if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max > 0)
 			{
 				(*bpids_arr)->alignment = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment;
 				(*bpids_arr)->mem_pid = mem_pid;
 				(*bpids_arr)->size = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].buff_size;
 				(*bpids_arr)->num_buffers = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
-				first_found_flag = TRUE;
-				continue;
+				(*bpids_arr) ++;
+				available_bpids --;
+				if(available_bpids == 1){
+					j --;
+					break;
+				}
 			}
-			if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max > 0 &&
-				first_found_flag)
-			{
-				(*bpids_arr)->num_buffers += g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
-				if((*bpids_arr)->alignment < g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment)
-					(*bpids_arr)->alignment = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment;
-			}
+		}	
+	}
+	for(; j >= 0 ; j--) /*search which sizes of buffers requested */
+	{
+		if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max > 0 &&
+			!first_found_flag)
+		{
+			(*bpids_arr)->alignment = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment;
+			(*bpids_arr)->mem_pid = mem_pid;
+			(*bpids_arr)->size = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].buff_size;
+			(*bpids_arr)->num_buffers = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
+			first_found_flag = TRUE;
+			continue;
 		}
-		(*bpids_arr) ++;
-//	}
-//	else /* use algorithm built on difference calculation between buffer sizes*/
-//	{
-//		
-//	}
+		if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max > 0 &&
+			first_found_flag)
+		{
+			(*bpids_arr)->num_buffers += g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
+			if((*bpids_arr)->alignment < g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment)
+				(*bpids_arr)->alignment = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment;
+		}
+	}
+	(*bpids_arr) ++;
 	
 	return 0;
 }
@@ -1187,10 +1170,11 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 	int requested_bpids_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*store number of requests for bpids to each partition */
 	int total_requested_bpids = 0, minimum_needed_bpids = 0;/*minimum needed bpids to supply at least one for each memory*/
 	int available_bpids_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*store calculated number of available bpids per partition*/
-	int reminder_bpids_calc_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*reminder left after suppling bpids*/
-	int maximum_requested_bpids = 0, maximum_requested_index = 0; /*maximum number of bpids requested for memory and the index of that memory*/
-	int minimum_requested_bpids = 0, minimum_requested_index = 0; /*minimum number of bpids requested for memory and the index of that memory*/
+	int remainder_bpids_calc_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*remainder left after suppling bpids*/
+	int minimum_requested_index = 0, maximum_requested_index = 0; /*minimum\maximum remainder's index*/
+	int maximum_remainder = 0, minimum_remainder = 0; /*store minimum\maximum remainder after subtraction*/
 	int available_bpids = *num_bpids; /*local number of available bpids for AIOP*/
+	int total_bpids = *num_bpids; /*local number of available bpids for AIOP*/
 	uint16_t bpid_id = 0;
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 	{
@@ -1224,12 +1208,8 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 				available_bpids --;
 
 			}
-			reminder_bpids_calc_per_partition[i] = temp;
-			if( available_bpids_per_partition[i] > maximum_requested_bpids )
-			{
-				maximum_requested_index = i;
-				maximum_requested_bpids = available_bpids_per_partition[i];
-			}
+			remainder_bpids_calc_per_partition[i] = temp;
+
 			if( available_bpids_per_partition[i] == 0 ) /*Need to take bpid from other partitions*/
 			{
 				available_bpids --;
@@ -1239,20 +1219,25 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 			
 		}
 	}
+	if(minimum_needed_bpids > *num_bpids){
+		pr_err("Requested bpids for %d partitions, available number of bpids: %d\n",minimum_needed_bpids,*num_bpids);
+		return -EINVAL;
+	}
+	
 	if(available_bpids > 0) /*check if there are spears of bpids and can be used by some of partitions*/
 	{
 		while( available_bpids > 0 )	
 		{
-			maximum_requested_bpids = 0;
+			maximum_remainder = 0;
 			for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++){
-				if(reminder_bpids_calc_per_partition[i] > maximum_requested_bpids &&
+				if(remainder_bpids_calc_per_partition[i] > maximum_remainder &&
 					requested_bpids_per_partition[i] > available_bpids_per_partition[i]){
 					maximum_requested_index = i;
-					maximum_requested_bpids = reminder_bpids_calc_per_partition[i];
+					maximum_remainder = remainder_bpids_calc_per_partition[i];
 				}
 			}
-			if(maximum_requested_bpids > 0){
-				reminder_bpids_calc_per_partition[maximum_requested_index] = 0;
+			if(maximum_remainder > 0){
+				remainder_bpids_calc_per_partition[maximum_requested_index] = 0;
 				available_bpids_per_partition[maximum_requested_index] ++;
 				available_bpids --;
 			}
@@ -1267,19 +1252,18 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 	{
 		while( available_bpids < 0 )	
 		{
-			minimum_requested_bpids = total_requested_bpids;
+			minimum_remainder = total_requested_bpids + 1;
 			for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++){
-				if( reminder_bpids_calc_per_partition[i] >= 0 &&
-					available_bpids_per_partition[i] > 1 &&
-					reminder_bpids_calc_per_partition[i] <= minimum_requested_bpids )
+				if( available_bpids_per_partition[i] > 1 &&
+					remainder_bpids_calc_per_partition[i] < minimum_remainder )
 				{
 					minimum_requested_index = i;
-					minimum_requested_bpids = reminder_bpids_calc_per_partition[i];
+					minimum_remainder = remainder_bpids_calc_per_partition[i];
 				}
 			}
-			if( minimum_requested_bpids < total_requested_bpids )
+			if( minimum_remainder < total_requested_bpids )
 			{
-				reminder_bpids_calc_per_partition[minimum_requested_index] = minimum_requested_bpids;
+				remainder_bpids_calc_per_partition[minimum_requested_index] = total_requested_bpids;
 				available_bpids_per_partition[minimum_requested_index] --;
 				available_bpids ++;
 			}
@@ -1294,6 +1278,11 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 	
 	pr_info("Total amount of available bpids: %d\n",*num_bpids);
 	pr_info("Minimum amount of needed bpids: %d\n",minimum_needed_bpids);
+	if(*num_bpids < total_bpids)
+	{
+		pr_debug("Not all bpids were used, available: %d, used %d \n",total_bpids,*num_bpids);
+		
+	}
 	available_bpids = *num_bpids;
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i ++){
 		
@@ -1302,8 +1291,7 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 			pr_info("Partition %d:\n", i);
 			pr_info("Requested %d\n", requested_bpids_per_partition[i]);
 			available_bpids -= available_bpids_per_partition[i];
-			if (available_bpids < 0)
-				available_bpids_per_partition[i] = 0;
+			ASSERT_COND((available_bpids >= 0));
 			pr_info("Available %d\n", available_bpids_per_partition[i]);
 
 		}
@@ -1316,8 +1304,6 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 		               1);
 	if(*bpids_arr == NULL)
 		return -ENOMEM;
-	
-//	pr_info("Allocated memory address for bpids array: %x\n",*bpids_arr);
 
 
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)/*j used as array index*/
@@ -1326,7 +1312,6 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 		{
 			err = slab_divide_memory_for_bpids(
 				available_bpids_per_partition[i],
-			        requested_bpids_per_partition[i],
 			        (enum memory_partition_id) i,
 			        bpids_arr);
 			if(err)
@@ -1370,7 +1355,7 @@ int slab_module_init(void)
 		                                  E_MAPPED_MEM_TYPE_GEN_REGS);
 
 
-	err = dpbp_discovery(NULL, &num_bpids, FALSE);/*used to find number of available bpids*/
+	err = dpbp_discovery(NULL, &num_bpids);/*NULL if is used to find number of available bpids*/
 	if (err) {
 		pr_err("Failed DPBP discovery\n");
 		return -ENODEV;
@@ -1429,7 +1414,7 @@ int slab_module_init(void)
 			1);
 
 
-	err = dpbp_discovery(bpids_arr_init, &num_bpids, TRUE);
+	err = dpbp_discovery(bpids_arr_init, &num_bpids);
 	if (err) {
 		pr_err("Failed DPBP add\n");
 		return -ENODEV;
@@ -1573,7 +1558,7 @@ int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
                                               uint16_t    alignment,
                                               enum memory_partition_id  mem_pid,
                                               uint32_t    flags,
-                                              uint32_t num_ddr_pools)
+                                              uint32_t    num_ddr_pools)
 {	
 	int i;
 	struct request_table_info local_info[] = SLAB_BUFF_SIZES_ARR;
@@ -1585,7 +1570,7 @@ int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
 	{
 	case MEM_PART_DP_DDR:
 	case MEM_PART_SYSTEM_DDR:
-	case MEM_PART_PEB: 
+	case MEM_PART_PEB:
 		break;
 	default:
 		pr_err("Partition type %d not supported\n", mem_pid);
@@ -1630,7 +1615,7 @@ int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
 			break;
 	}
 	if(i == array_size){
-		pr_err("Requested buffer size to big\n");
+		pr_err("Requested buffer size is to big\n");
 		return -EINVAL;
 	}
 	if(max_buffs < committed_buffs){
@@ -1644,7 +1629,7 @@ int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
 
 	if(!IS_POWER_VALID_ALLIGN(alignment, SLAB_SIZE_SET(local_info[i].buff_size)))
 	{
-		pr_err("Invalid alignment\n");
+		pr_err("Invalid alignment %d\n", alignment);
 		return -EINVAL;
 	}
 	g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].committed_bufs += committed_buffs;

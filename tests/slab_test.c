@@ -121,12 +121,12 @@ int slab_init(void)
 
 int app_test_slab_overload_test()
 {
-	struct slab *my_slab[200];
+	struct slab *my_slab[2000];
 	int        err = 0;
 	int 	i;
 	dma_addr_t buff = 0;
 
-	for (i = 0; i < 200 ; i++)
+	for (i = 0; i < 2000 ; i++)
 	{
 		err = slab_create(1, 1, 248, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
 				  &slab_callback_test, &(my_slab[i]));
@@ -139,7 +139,7 @@ int app_test_slab_overload_test()
 
 	}
 
-	for (i = 199; i >= 0 ; i--)
+	for (i = 1999; i >= 0 ; i--)
 	{
 		err = slab_acquire(my_slab[i], &buff);
 		if (err) return err;
