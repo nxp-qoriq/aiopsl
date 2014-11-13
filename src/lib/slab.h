@@ -91,21 +91,6 @@
 *//***************************************************************************/
 /** bpid, user required size, partition */
 
-#define SLAB_BPIDS_ARR	\
-	{ \
-	{1,	4096,    MEM_PART_DP_DDR, 0}, \
-	{2,	2048,    MEM_PART_DP_DDR, 0}, \
-	{3,	1024,   MEM_PART_DP_DDR, 0},  \
-	{4,	512,   MEM_PART_DP_DDR, 0},   \
-	{5,	256,   MEM_PART_DP_DDR, 0},   \
-	{6,	4096,    MEM_PART_PEB, 0},    \
-	{7,	2048,    MEM_PART_PEB, 0},    \
-	{8,	1024,   MEM_PART_PEB, 0},     \
-	{9,	512,   MEM_PART_PEB, 0},      \
-	{10,	256,   MEM_PART_PEB, 0}       \
-	}
-
-
 #define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_NUM_MEM_PARTITIONS MEM_PART_INVALID
