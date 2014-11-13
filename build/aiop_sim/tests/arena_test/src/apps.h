@@ -47,7 +47,7 @@
 #define PEB_SIZE  (512 * KILOBYTE)  
 
 /* sys-ddr1 size = 0. Currently no dynamic allocation from system ddr */
-#define SYS_DDR1_SIZE 0
+#define SYS_DDR1_SIZE (4 * MEGABYTE)
 
 /* ctlu sys-ddr number of entries */
 #define CTLU_SYS_DDR_NUM_ENTRIES         2048

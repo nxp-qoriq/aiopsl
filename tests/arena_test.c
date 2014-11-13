@@ -256,7 +256,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			}
 
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
-			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
+/*			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
 				
 				fsl_os_print("Slab bman pools status:\n");
 				fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
@@ -264,6 +264,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			}
 			
 			slab_module_free();
+*/
 		}
 		else {
 			fsl_os_print("ARENA Test Finished with ERRORS\n");
