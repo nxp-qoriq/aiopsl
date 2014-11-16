@@ -53,7 +53,7 @@ typedef enum memory_partition_id {
     MEM_PART_SH_RAM,                   /**< Shared-SRAM memory */
     MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
     MEM_PART_MC_PORTALS,               /**< MC portals for cmdif memory partition */
-    MEM_PART_CCSR,
+    MEM_PART_CCSR,                     /**< SoC CCSR memory partition */
     MEM_PART_INVALID                   /**< Invalid memory partition */
 } e_memory_partition_id;
 
