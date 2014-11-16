@@ -62,7 +62,7 @@ void * fsl_os_malloc(size_t size);
  @Function     fsl_os_xmalloc
 
  @Description   Allocates contiguous block of memory in a specified
-                alignment and from the specified segment.
+                alignment and from the specified  memory partition.
 
  @Param[in]     size                Number of bytes to allocate.
  @Param[in]     mem_partition_id    Memory partition ID; The value zero must
@@ -87,6 +87,7 @@ void fsl_os_xfree(void *mem);
  @Function      fsl_os_free
 
  @Description   frees the memory block pointed to by "mem".
+                Only for memory allocated by fsl_os_malloc().
 
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
