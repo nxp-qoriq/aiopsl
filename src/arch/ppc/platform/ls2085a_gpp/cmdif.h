@@ -51,4 +51,6 @@
 #define __COLD_CODE
 #endif /* COLD_CODE*/
 
+typedef struct shbp* shbp_t;
+
 #endif /* __CMDIF_H */

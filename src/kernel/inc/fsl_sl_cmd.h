@@ -27,7 +27,7 @@
 /**************************************************************************//**
  @file          fsl_sl_cmd.h
 
- @Description   Service layer commands 
+ @Description   Service layer commands
 *//***************************************************************************/
 
 #include <fsl_cmdif_client.h>
@@ -37,8 +37,8 @@
 
 #define SL_CMD_MODULE		"ARENA"
 
-#define SL_CMD_NEW_BUFF		(0x1 | CMDIF_NORESP_CMD) 
-/**<  Command for new buffer */
+#define SL_CMD_NEW_BUFF		(0x1 | CMDIF_NORESP_CMD)
+/*!<  Command for new buffer */
 
 
 #endif /* __FSL_SL_CMDIF_H */

@@ -115,7 +115,7 @@ void epid_drv_free(void);
 /** Global task params */
 extern __TASK struct aiop_default_task_params default_task_params;
 
-void fill_platform_parameters(struct platform_param *platform_param)
+__COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 {
 
 	int err = 0;

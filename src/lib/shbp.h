@@ -24,25 +24,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
- @file          shbp.h
-
- @brief         Shared buffer pool
-
- @details       Contains AIOP SL shared buffer pool internal structures.
-
-*//***************************************************************************/
+/*!
+ * @file    fsl_shbp.h
+ * @brief   Shared Buffer Pool API
+ *
+ * Internal header file shared by AIOP and GPP.
+ *
+ */
 
 #ifndef __SHBP_H
 #define __SHBP_H
 
 #include <fsl_shbp.h>
 
-/**************************************************************************//**
-@Description	Buffer descriptor structure.
-*//***************************************************************************/
+/**
+ * @brief	Structure representing buffer descriptor
+ */
 struct shbp_bd {
 	uint64_t addr;
 };
+
+/**
+ * @brief	Structure representing shared buffer pool
+ */
+struct shbp {
+	struct {
+		uint64_t base;	/*!< Base address of the pool */
+		uint32_t size;	/*!< Size of the pool */
+		uint32_t enq;	/*!< Number of enqueued buffers */
+		uint32_t deq;	/*!< Number of dequeued buffers */
+	}alloc;
+	struct {
+		uint64_t base;	/*!< Base address of the pool */
+		uint32_t size;	/*!< Size of the pool */
+		uint32_t enq;	/*!< Number of enqueued buffers */
+		uint32_t deq;	/*!< Number of dequeued buffers */
+	}free;
+	uint8_t master;
+};
+
+#define SHBP_IS_FULL(P)		(((P)->enq - (P)->deq) == (P)->size)
+#define SHBP_IS_EMPTY(P)	(((P)->enq - (P)->deq) == 0)
 
 #endif /* _SHBP_H */
