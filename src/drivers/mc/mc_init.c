@@ -224,22 +224,25 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
 		queue_cfg.user_ctx = (ind << 1) | p;
 		err |= dpci_set_rx_queue(&dprc->io,
-					 dpci,
+					dpci,
 					p,
 					&queue_cfg);
 	}
 	err |= dpci_enable(&dprc->io, dpci);
 	err |= dpci_get_attributes(&dprc->io,
-				   dpci,
+				dpci,
 				&dpci_tbl->attr[ind]);
 
-	err |= dpci_get_peer_attributes(&dprc->io, dpci, &dpci_tbl->peer_attr[ind]);
+	err |= dpci_get_peer_attributes(&dprc->io, dpci,
+					&dpci_tbl->peer_attr[ind]);
 
 	for (i = 0; i < dpci_tbl->attr->num_of_priorities; i++)
-		err |= dpci_get_rx_queue(&dprc->io, dpci, i, &dpci_tbl->rx_queue_attr[i][ind]);
+		err |= dpci_get_rx_queue(&dprc->io, dpci, i,
+					 &dpci_tbl->rx_queue_attr[i][ind]);
 
 	for (i = 0; i < dpci_tbl->peer_attr->num_of_priorities; i++)
-		err |= dpci_get_tx_queue(&dprc->io, dpci, i, &dpci_tbl->tx_queue_attr[i][ind]);
+		err |= dpci_get_tx_queue(&dprc->io, dpci, i,
+					 &dpci_tbl->tx_queue_attr[i][ind]);
 
 	dpci_tbl->token[ind] = dpci;
 
@@ -278,7 +281,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
 		queue_cfg.user_ctx = (ind << 1) | p;
 		err |= dpci_set_rx_queue(&dprc->io,
-					 dpci,
+					dpci,
 					p,
 					&queue_cfg);
 	}
@@ -286,7 +289,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 	/* Get attributes just for dpci id,
 	 * fqids are not there yet */
 	err |= dpci_get_attributes(&dprc->io,
-				   dpci,
+				dpci,
 				&dpci_tbl->attr[ind]);
 
 	/* Connect to dpci 0 that belongs to MC */
@@ -317,11 +320,11 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 
 	for (i = 0; i < dpci_tbl->attr->num_of_priorities; i++)
 		err |= dpci_get_rx_queue(&dprc->io, dpci, i,
-					 &dpci_tbl->rx_queue_attr[i][ind]);
+					&dpci_tbl->rx_queue_attr[i][ind]);
 
 	for (i = 0; i < dpci_tbl->peer_attr->num_of_priorities; i++)
 		err |= dpci_get_tx_queue(&dprc->io, dpci, i,
-					 &dpci_tbl->tx_queue_attr[i][ind]);
+					&dpci_tbl->tx_queue_attr[i][ind]);
 
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
@@ -336,8 +339,8 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 }
 
 __COLD_CODE static int dpci_tbl_fill(struct mc_dpci_obj *dpci_tbl,
-				     struct mc_dprc *dprc,
-				     int dpci_count, int dev_count)
+				struct mc_dprc *dprc,
+				int dpci_count, int dev_count)
 {
 	int ind = 0;
 	int i   = 0;
