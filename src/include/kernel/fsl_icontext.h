@@ -30,7 +30,7 @@
 /**************************************************************************//**
 @Group         ic_g  Isolation Context API
 
-@Description	API to be used for memory and BMAN pool accesses 
+@Description	API to be used for memory and BMAN pool accesses
 		using the specific isolation context attributes.
 
 @{
@@ -40,7 +40,7 @@
 @Description	Isolation context structure.
 
 		Do not modify the content of this structure, it must be set by
-		icontext_get().  
+		icontext_get().
 *//***************************************************************************/
 struct icontext {
 	uint32_t dma_flags;
@@ -52,19 +52,31 @@ struct icontext {
 };
 
 /**************************************************************************//**
+@Function	icontext_aiop_get
+
+@Description	Copy isolation context parameters for AIOP.
+
+@Param[out]	ic	- Isolation context structure to be used
+			with icontext dependent API.
+
+@Cautions	This API can be called after slab_module_init().
+*//***************************************************************************/
+void icontext_aiop_get(struct icontext *ic);
+
+/**************************************************************************//**
 @Function	icontext_get
 
 @Description	Copy isolation context parameters for DPCI id.
 
 @Param[in]	dpci_id	- ID of DPCI device.
-@Param[out]	ic	- Isolation context structure to be used 
-			- with icontext dependent API.
-			
-@Return		0	 - on success, 
+@Param[out]	ic	- Isolation context structure to be used
+			with icontext dependent API.
+
+@Return		0	 - on success,
 		-ENAVAIL - DPCI id was not found.
 
-@Cautions	This API must be called after cmdif_session_open() was triggered 
-		by GPP otherwise it will result in empty icontext structure.   
+@Cautions	This API must be called after cmdif_session_open() was triggered
+		by GPP otherwise it will result in empty icontext structure.
 *//***************************************************************************/
 int icontext_get(uint16_t dpci_id, struct icontext *ic);
 
@@ -73,12 +85,12 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic);
 
 @Description	DMA read into workspace location.
 
-@Param[in]	ic	- Isolation context structure to be used 
+@Param[in]	ic	- Isolation context structure to be used
 			with icontext dependent API.
-@Param[in]	src	- System memory source for DMA data. 
-@Param[in]	size	- The number of bytes to be copied into dest buffer. 				
-@Param[out]	dest	- Pointer to workspace location to where data should 
-			be copied.		
+@Param[in]	src	- System memory source for DMA data.
+@Param[in]	size	- The number of bytes to be copied into dest buffer.
+@Param[out]	dest	- Pointer to workspace location to where data should
+			be copied.
 
 @Return		0	- on success, POSIX error otherwise.
 *//***************************************************************************/
@@ -87,14 +99,14 @@ int icontext_dma_read(struct icontext *ic, uint16_t size, uint64_t src, void *de
 /**************************************************************************//**
 @Function	icontext_dma_write
 
-@Description	DMA write from workspace location. 
+@Description	DMA write from workspace location.
 
-@Param[in]	ic	- Isolation context structure to be used 
+@Param[in]	ic	- Isolation context structure to be used
 			with icontext dependent API.
 @Param[in]	src	- Pointer to workspace location from where data should
  			be copied.
-@Param[in]	size	- The number of bytes to be copied into dest buffer. 
-@Param[out]	dest	- System memory target address for DMA data.	
+@Param[in]	size	- The number of bytes to be copied into dest buffer.
+@Param[out]	dest	- System memory target address for DMA data.
 
 @Return		0	- on success, POSIX error otherwise.
 *//***************************************************************************/
@@ -105,10 +117,10 @@ int icontext_dma_write(struct icontext *ic, uint16_t size, void *src, uint64_t d
 
 @Description	Acquire buffer from BMAN pool.
 
-@Param[in]	ic	- Isolation context structure to be used 
+@Param[in]	ic	- Isolation context structure to be used
 			with icontext dependent API.
-@Param[in]	bpid	- BMAN pool id that matches ic->icid. 		
-@Param[out]	addr	- Buffer address as returned by BMAN pool.	
+@Param[in]	bpid	- BMAN pool id that matches ic->icid.
+@Param[out]	addr	- Buffer address as returned by BMAN pool.
 
 @Return		0	- on success, POSIX error otherwise.
 *//***************************************************************************/
@@ -119,10 +131,10 @@ int icontext_acquire(struct icontext *ic, uint16_t bpid, uint64_t *addr);
 
 @Description	Release buffer into BMAN pool.
 
-@Param[in]	ic	- Isolation context structure to be used 
+@Param[in]	ic	- Isolation context structure to be used
 			with icontext dependent API.
-@Param[in]	bpid	- BMAN pool id that matches ic->icid. 		
-@Param[in]	addr	- Address to be released into BMAN pool.	
+@Param[in]	bpid	- BMAN pool id that matches ic->icid.
+@Param[in]	addr	- Address to be released into BMAN pool.
 
 @Return		0	- on success, POSIX error otherwise.
 *//***************************************************************************/

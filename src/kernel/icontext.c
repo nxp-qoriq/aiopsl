@@ -38,6 +38,14 @@
 #include "fsl_spinlock.h"
 #include "cmdif_client_aiop.h" /* TODO remove it once you have lock per dpci table !!! */
 
+struct icontext icontext_aiop = {0};
+
+void icontext_aiop_get(struct icontext *ic)
+{
+	ASSERT_COND(ic != NULL);
+	*ic = icontext_aiop;
+}
+
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
 	int i = 0;

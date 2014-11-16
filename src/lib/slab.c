@@ -39,6 +39,7 @@
 #include "fsl_io_ccsr.h"
 #include "aiop_common.h"
 #include "fsl_mc_init.h"
+#include "fsl_icontext.h"
 
 struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 struct slab_virtual_pools_main_desc g_slab_virtual_pools;
@@ -1344,6 +1345,30 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 }
 
 /*****************************************************************************/
+extern struct icontext icontext_aiop;
+__COLD_CODE static void icontext_init(uint32_t cdma_cfg)
+{
+	icontext_aiop.icid = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
+
+	icontext_aiop.bdi_flags = 0;
+	if (cdma_cfg & CDMA_BDI_BIT)
+		icontext_aiop.bdi_flags |= FDMA_ENF_BDI_BIT;
+
+	icontext_aiop.dma_flags = 0;
+	if (cdma_cfg & CDMA_BMT_BIT)
+		icontext_aiop.dma_flags |= FDMA_DMA_BMT_BIT;
+	if (cdma_cfg & CDMA_PL_BIT)
+		icontext_aiop.dma_flags |= FDMA_DMA_PL_BIT;
+	if (cdma_cfg & CDMA_VA_BIT)
+		icontext_aiop.dma_flags |= FDMA_DMA_eVA_BIT;
+
+	pr_debug("ICID = 0x%x bdi flags = 0x%x\n", icontext_aiop.icid, \
+	         icontext_aiop.bdi_flags);
+	pr_debug("ICID = 0x%x dma flags = 0x%x\n", icontext_aiop.icid, \
+	         icontext_aiop.dma_flags);
+}
+
+/*****************************************************************************/
 __COLD_CODE int slab_module_init(void)
 {
 	struct   slab_bpid_info *bpids_arr_init = NULL;
@@ -1456,6 +1481,11 @@ __COLD_CODE int slab_module_init(void)
 
 	/* CDMA CFG register bits are needed for filling BPID */
 	cdma_cfg           = ioread32_ccsr(&ccsr->cdma_regs.cfg);
+
+	/* Set AIOP isolation context */
+	icontext_init(cdma_cfg);
+
+	/* Copy isolation context for slab */
 	slab_m->icid       = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
 	slab_m->fdma_flags = FDMA_ACQUIRE_NO_FLAGS;
 	if (cdma_cfg & CDMA_BDI_BIT)
