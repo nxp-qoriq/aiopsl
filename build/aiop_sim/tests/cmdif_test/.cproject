@@ -108,6 +108,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/soc_db&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2085_aiop/&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.debugging.c.1761431171" name="Compile Only, Do Not Link" superClass="com.freescale.ppc.toolchain.compiler.base.debugging.c" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extended.1986555542" name="Extended Error Checking" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extended" value="true" valueType="boolean"/>
