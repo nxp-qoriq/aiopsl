@@ -37,7 +37,7 @@
 #error "AIOP core must be big endian\n!"
 #endif
 
-#define CMDIF_TEST_WITH_MC_SRV
+//#define CMDIF_TEST_WITH_MC_SRV
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define CPU_TO_SRV16(val) CPU_TO_BE16(val)
