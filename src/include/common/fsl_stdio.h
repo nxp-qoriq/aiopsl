@@ -50,7 +50,8 @@
 @Function      fsl_os_print
 
 @Description   Print formated string with arguments received with it.
-               The print function is limited to 80 bytes of the formatted string length.
+               The print function is limited to 1024 bytes of the formatted string length
+               during the boot and 80 bytes during run time mode.
                This function has two modes of operation.  It automatically toggles
                between the two modes depending on whether the function is called
                during initialization or at run time.
