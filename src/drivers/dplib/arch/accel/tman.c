@@ -38,6 +38,7 @@
 #include "osm.h"
 #include "dplib/fsl_ldpaa.h"
 #include "inline_asm.h"
+#include "fsl_io_ccsr.h"
 #ifdef SL_DEBUG
 	#include "fsl_errors.h"
 #endif
@@ -46,28 +47,28 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2, icid_pl, va_bdi;
+	uint32_t arg1, arg2, cdma_cfg;
 	unsigned int res1, res2, *tmi_state_ptr;
 #ifdef SL_DEBUG
 	uint32_t cnt = 0;
 #endif
 
-	/* Load ICID and PL */
-	icid_pl = (uint32_t)
-			__lhbr(HWC_ADC_ADDRESS + ADC_PL_ICID_OFFSET, (void *)0);
-	/* Load VA and BDI */
-	__lbz_d(va_bdi, HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET);
 
+	/*Reading the ICID and AMQ from the CDMA to avoid configuring GPP ICID
+	 * when calling the create TMI from host command interface */
+	/* TODO - need to replace the below code to a similar to
+	 * slab_module_init function in slab.c when the verification env will
+	 * contain ARENA.
+	 * i.e. cdma_cfg = ioread32_ccsr(&ccsr->cdma_regs.cfg); */
+	cdma_cfg = ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS);
 	/* Isolate ICID */
-	arg1 = ((icid_pl << 16) & 0x7FFF0000) + TMAN_CMDTYPE_TMI_CREATE;
+	arg1 = ((cdma_cfg << 16) & 0x7FFF0000) + TMAN_CMDTYPE_TMI_CREATE;
 	/* Add BDI bit */
-	/* Optimization: remove 1 cycle of or using rlwimi */
-	/* equal to arg1 = (va_bdi << 31) | arg1; */
-	arg1 = __e_rlwimi(arg1, va_bdi, 31, 0, 0);
-	/* Move PL bit to the right offset */
-	icid_pl = (icid_pl << 11) & 0x04000000;
+	arg1 = arg1 | ((cdma_cfg & CDMA_BDI_MASK) << 12);
 	/* Add PL and VA to max_num_of_timers */
-	arg2 = icid_pl | ((va_bdi << 22) & 0x01000000) | max_num_of_timers;
+	arg2 = ((cdma_cfg & CDMA_PL_VA_MASK) << 8) | 
+			(max_num_of_timers & 0x00FFFFFF);
+
 	/* Store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	__st64dw_d(tmi_mem_base_addr, HWC_ACC_IN_ADDRESS + 8);
