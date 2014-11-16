@@ -1052,7 +1052,6 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 		}
 
 		addr = fsl_os_virt_to_phys((void *)virtual_address);
-//		pr_info("Malloc phys address is: 0x%x,%x\n", (uint32_t)(addr >> 32) , (uint32_t)(addr ));
 
 		/* Isolation is enabled */
 		for(j = 0; j < slab_m->hw_pools[i].total_num_buffs; j++){
