@@ -37,6 +37,9 @@
 #include "fsl_fdma.h"
 #include "fsl_ldpaa_aiop.h"
 #include "fsl_icontext.h"
+#include "fsl_tman.h"
+#include "fsl_malloc.h"
+#include "fsl_platform.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -55,6 +58,7 @@ void app_free(void);
 #define OPEN_N_CMD	0x105
 #define IC_TEST		0x106
 #define CLOSE_CMD	0x107
+#define TMAN_TEST	0x108
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
@@ -66,6 +70,7 @@ void app_free(void);
 #endif
 
 struct cmdif_desc cidesc;
+uint64_t tman_addr;
 
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
@@ -117,6 +122,13 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	return 0;
 }
 
+void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
+{
+	ASSERT_COND(opaque1 == 0x12345);
+	ASSERT_COND(opaque2 == 0x1616);
+	fsl_os_print("PASSED verif_tman_cb \n");
+}
+
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
@@ -126,6 +138,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	struct icontext ic;
 	uint16_t dpci_id = 0;
 	uint16_t bpid = 3;
+	uint8_t tmi_id = 0;
+	uint32_t timer_handle = 0;
 
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
@@ -134,6 +148,18 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	             (uint32_t)data);
 
 	switch (cmd) {
+	case TMAN_TEST:
+		err |= tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,
+		                       10 /* max_num_of_timers */,
+		                       &tmi_id/* tmi_id */);
+		err |= tman_create_timer(tmi_id/* tmi_id */,
+		                         TMAN_CREATE_TIMER_MODE_USEC_GRANULARITY | TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
+		                         12/* duration */,
+		                         0x12345 /* opaque_data1 */,
+		                         0x1616 /* opaque_data2 */,
+		                         verif_tman_cb /* tman_timer_cb */,
+		                         &timer_handle /* *timer_handle */);
+		break;
 	case OPEN_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		/* GPP will send DPCI id at the first byte of the data */
@@ -146,7 +172,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case CLOSE_CMD:
 		err = cmdif_close(&cidesc);
-		break;		
+		break;
 	case OPEN_N_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		if (size > 0) {
@@ -167,12 +193,12 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
 	case ASYNC_CMD:
-		p_data += size; 
+		p_data += size;
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
 	case ASYNC_N_CMD:
-		p_data += size; 
+		p_data += size;
 		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
@@ -183,7 +209,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		                  CMDIF_PRI_HIGH, p_data, aiop_async_cb, cidesc.regs);
 		break;
 	case SYNC_CMD:
-		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data, 
+		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data,
 		                 aiop_async_cb, cidesc.regs);
 		break;
 	case IC_TEST:
@@ -254,6 +280,11 @@ int app_init(void)
 			return err;
 		}
 	}
+
+	tman_addr = (uint64_t)fsl_os_xmalloc(1024, MEM_PART_DP_DDR, 64);
+	ASSERT_COND(tman_addr);
+	tman_addr = fsl_os_virt_to_phys((void *)tman_addr);
+	ASSERT_COND(tman_addr);
 
 	return 0;
 }

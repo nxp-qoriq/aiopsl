@@ -256,6 +256,12 @@ enum tman_function_identifier {
 
 #define TMAN_QUERY_MAX_NT_MASK	0x00FFFFFF
 #define TMAN_STATUS_MASK	0xF8000000
+/** CDMA Peripheral base address */
+#define CDMA_BASE_ADDRESS	0x0208d000
+/** CDMA BDI Bit Mask */
+#define CDMA_BDI_MASK	0x00080000
+/** CDMA PL and VA Bits Mask */
+#define CDMA_PL_VA_MASK	0x00050000
 /** TMAN Peripheral base address */
 #define TMAN_BASE_ADDRESS	0x02020000
 /** TMCBCC- TMan Callback Completion Confirmation */
