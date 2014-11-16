@@ -319,7 +319,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 	} /*for (i = 0; i < num_bpids; i++)*/
 
 	if(!found)
-		return -ENOSPC;
+		return -ENOMEM;
 
 	*bpid = slab_m->hw_pools[bman_array_index].pool_id;
 	if(bpid_array_index != NULL)

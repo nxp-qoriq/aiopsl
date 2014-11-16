@@ -289,8 +289,8 @@ void slab_module_free(void);
 @Param[out]    bpid              Id of pool that supply the requested buffers.
 
 @Return        0       - on success,
-	       -ENAVAIL - could not release into bpid
-	       -ENOMEM  - not enough memory for mem_partition_id
+	       -EINVAL - slab module handle is null
+	       -ENOMEM - not enough memory for mem_partition_id
  *//***************************************************************************/
 int slab_find_and_reserve_bpid(uint32_t num_buffs,
 			uint16_t buff_size,
