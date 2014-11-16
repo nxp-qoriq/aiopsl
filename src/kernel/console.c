@@ -91,7 +91,7 @@ static int sys_debugger_print(fsl_handle_t unused,
 }
 
 /*****************************************************************************/
-int sys_register_console(fsl_handle_t h_console_dev,
+__COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
                                int(*f_console_print)(fsl_handle_t h_console_dev,
                                                      uint8_t *p_data,
                                                      uint32_t size),
