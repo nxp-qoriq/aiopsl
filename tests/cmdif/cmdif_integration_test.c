@@ -122,7 +122,7 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	return 0;
 }
 
-void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
+static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 {
 	ASSERT_COND(opaque1 == 0x12345);
 	ASSERT_COND(opaque2 == 0x1616);

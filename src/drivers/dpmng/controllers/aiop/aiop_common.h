@@ -230,7 +230,9 @@ struct aiop_ws_regs {
 	uint32_t cfg; /* Configuration register */
 	uint8_t reserved0[0xC];
 	uint32_t idle; /* Activity status register */
-	uint8_t reserved1[0xC];
+	uint32_t cstop; /* Core stop register */
+	uint32_t cpend; /* Core pending status register */
+	uint32_t cidle; /* Core idle status register */
 	uint32_t ecclog; /* 2-bit ECC event log */
 	uint8_t reserved2[0x4C];
 	uint32_t fc_cgbcf; /* Flow control congestion group broadcast filter */
