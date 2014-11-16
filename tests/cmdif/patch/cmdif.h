@@ -50,4 +50,6 @@
 
 #define CMDIF_EPID         2    /*!< EPID to be used for setting by client */
 
+typedef uint64_t shbp_t;
+
 #endif /* __CMDIF_H */
