@@ -31,7 +31,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
-#include "fsl_dbg.h"
+#include "fsl_sl_dbg.h"
 #include "slab.h"
 #include "fdma.h"
 #include "fsl_io.h"
@@ -393,16 +393,20 @@ int slab_create(uint32_t    committed_buffs,
 	                                 alignment,
 	                                 mem_pid,
 	                                 flags);
-	if (error)
+	if (error){
+		sl_pr_err("Invalid parameters were entered\n");
 		return -ENAVAIL;
+	}
 
 	if (max_buffs < committed_buffs){
-		/*pr_err("MAX Buffers: %d, Committed: %d\n",max_buffs,committed_buffs);*/
+		sl_pr_err("MAX Buffers: %d, Committed: %d\n",max_buffs,committed_buffs);
 		return -EINVAL;
 	}
 	/* committed_bufs and max_bufs must not be 0 */
-	if (!max_buffs)
+	if (!max_buffs){
+		sl_pr_err("MAX Buffers can't be zero\n");
 		return -EINVAL;
+	}
 #endif
 
 	*((uint32_t *)slab) = 0;
@@ -471,6 +475,7 @@ int slab_create(uint32_t    committed_buffs,
 			atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
 			              (int32_t)committed_buffs);
 			cdma_mutex_lock_release(g_slab_last_pool_pointer_ddr);
+			sl_pr_err("Pool pointer in DDR reached the limit.\n");
 			return -ENOMEM;
 	}
 
@@ -549,6 +554,7 @@ error_recovery_return:
 	
 	g_slab_pool_pointer_ddr -= sizeof(pool_id);
 	cdma_mutex_lock_release((uint64_t)&g_slab_last_pool_pointer_ddr);
+	sl_pr_err("Not enough memory to create a slab.\n");
 	return -ENOMEM;
 
 }
@@ -579,8 +585,8 @@ int slab_free(struct slab **slab)
 		lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 		if (slab_virtual_pool->allocated_bufs != 0) {
 			unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
-			return -EACCES;	
-
+			sl_pr_err("Allocated number of buffers is not 0.\n");
+			return -EACCES;
 		}
 		/* Increment the total available BMAN pool buffers */
 		atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->bman_array_index].remaining,
@@ -605,6 +611,7 @@ int slab_free(struct slab **slab)
 
 		if (slab_virtual_pool_ddr.allocated_bufs != 0) {
 			cdma_mutex_lock_release(pool_data_address);
+			sl_pr_err("Allocated number of buffers is not 0.\n");
 			return -EACCES;
 		}
 
@@ -766,10 +773,10 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 		}
 		if(return_val == 0)
 		{
-			/*pr_err("Slab already freed\n");*/
+			sl_pr_err("Slab already freed\n");
 			return -EINVAL;
 		}
-		/*pr_err("No memory to acquire from\n");*/
+		sl_pr_err("No memory to acquire from\n");
 		return -ENOMEM;
 	}
 }
