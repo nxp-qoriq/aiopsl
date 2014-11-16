@@ -100,7 +100,7 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_ite
 
 
 /*****************************************************************************/
-fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
+__COLD_CODE fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
 {
     t_mem_mng    *p_mem_mng;
 
@@ -135,7 +135,7 @@ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
 
 
 /*****************************************************************************/
-void mem_mng_free(fsl_handle_t h_mem_mng)
+__COLD_CODE void mem_mng_free(fsl_handle_t h_mem_mng)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     list_t              *p_partition_iterator, *p_tmp_iterator;
@@ -201,7 +201,7 @@ int mem_mng_get_available_partition_id(fsl_handle_t h_mem_mng)
 
 
 /*****************************************************************************/
-int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
+__COLD_CODE int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
                                   int       partition_id,
                                   uintptr_t base_address,
                                   uint64_t  size,
@@ -339,7 +339,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 
 
 /*****************************************************************************/
-int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
+__COLD_CODE int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
@@ -444,7 +444,7 @@ int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
 
 
 /*****************************************************************************/
-uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
+__COLD_CODE uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
                             int                     partition_id,
                             t_mem_mng_leak_report_func  *f_report_leak)
 {
@@ -755,7 +755,7 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng          *p_mem_mng,
 
 
 /*****************************************************************************/
-static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator)
+__COLD_CODE static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator)
 {
     t_mem_mng_partition   *p_partition;
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;

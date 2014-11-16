@@ -74,7 +74,7 @@ extern t_system sys;
 
 
 /*****************************************************************************/
-int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64_t size)
+__COLD_CODE int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64_t size)
 {
     t_sys_virt_mem_map *p_virt_mem_map;
 #ifndef AIOP
@@ -107,7 +107,7 @@ int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64
 
 
 /*****************************************************************************/
-int sys_unregister_virt_mem_mapping(uint64_t virt_addr)
+__COLD_CODE int sys_unregister_virt_mem_mapping(uint64_t virt_addr)
 {
 #ifndef AIOP
     uint32_t        int_flags;
@@ -294,7 +294,7 @@ int sys_get_available_mem_partition(void)
 
 
 /*****************************************************************************/
-int sys_register_mem_partition(int        partition_id,
+__COLD_CODE int sys_register_mem_partition(int        partition_id,
                                  uintptr_t  base_address,
                                  uint64_t   size,
                                  uint32_t   attributes,
@@ -353,7 +353,7 @@ int sys_register_mem_partition(int        partition_id,
 
 
 /*****************************************************************************/
-int sys_unregister_mem_partition(int partition_id)
+__COLD_CODE int sys_unregister_mem_partition(int partition_id)
 {
     t_mem_mng_partition_info   partition_info;
     uint32_t                leaks_count;
@@ -485,7 +485,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 
 
 /*****************************************************************************/
-int sys_init_memory_management(void)
+__COLD_CODE int sys_init_memory_management(void)
 {
     t_mem_mng_param mem_mng_param;
 #ifdef AIOP
@@ -524,7 +524,7 @@ int sys_init_memory_management(void)
 
 
 /*****************************************************************************/
-int sys_free_memory_management(void)
+__COLD_CODE int sys_free_memory_management(void)
 {
     uint32_t leaks_count;
 
