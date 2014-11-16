@@ -31,7 +31,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_dprc.h"
 #include "dplib/fsl_dpbp.h"
-#include "fsl_dbg.h"
+#include "fsl_sl_dbg.h"
 #include "slab.h"
 #include "fdma.h"
 #include "fsl_io.h"
@@ -119,7 +119,7 @@ static int slab_read_pool(uint32_t slab_pool_id,
 /***************************************************************************
  * slab_pool_init used by: slab_module_init
  ***************************************************************************/
-static void slab_pool_init(
+__COLD_CODE static void slab_pool_init(
 	struct slab_v_pool *virtual_pool_struct,
 	uint16_t num_of_virtual_pools,
 	uint8_t flags)
@@ -328,7 +328,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 }
 
 /*****************************************************************************/
-static void free_slab_module_memory(struct slab_module_info *slab_m)
+__COLD_CODE static void free_slab_module_memory(struct slab_module_info *slab_m)
 {
 	/* TODO there still some static allocations in VP init
 	 * need to add them to slab_module_init() and then free them here
@@ -393,16 +393,20 @@ int slab_create(uint32_t    committed_buffs,
 	                                 alignment,
 	                                 mem_pid,
 	                                 flags);
-	if (error)
+	if (error){
+		sl_pr_err("Invalid parameters were entered\n");
 		return -ENAVAIL;
+	}
 
 	if (max_buffs < committed_buffs){
-		/*pr_err("MAX Buffers: %d, Committed: %d\n",max_buffs,committed_buffs);*/
+		sl_pr_err("MAX Buffers: %d, Committed: %d\n",max_buffs,committed_buffs);
 		return -EINVAL;
 	}
 	/* committed_bufs and max_bufs must not be 0 */
-	if (!max_buffs)
+	if (!max_buffs){
+		sl_pr_err("MAX Buffers can't be zero\n");
 		return -EINVAL;
+	}
 #endif
 
 	*((uint32_t *)slab) = 0;
@@ -471,6 +475,7 @@ int slab_create(uint32_t    committed_buffs,
 			atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
 			              (int32_t)committed_buffs);
 			cdma_mutex_lock_release(g_slab_last_pool_pointer_ddr);
+			sl_pr_err("Pool pointer in DDR reached the limit.\n");
 			return -ENOMEM;
 	}
 
@@ -549,6 +554,7 @@ error_recovery_return:
 	
 	g_slab_pool_pointer_ddr -= sizeof(pool_id);
 	cdma_mutex_lock_release((uint64_t)&g_slab_last_pool_pointer_ddr);
+	sl_pr_err("Not enough memory to create a slab.\n");
 	return -ENOMEM;
 
 }
@@ -579,8 +585,8 @@ int slab_free(struct slab **slab)
 		lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 		if (slab_virtual_pool->allocated_bufs != 0) {
 			unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
-			return -EACCES;	
-
+			sl_pr_err("Allocated number of buffers is not 0.\n");
+			return -EACCES;
 		}
 		/* Increment the total available BMAN pool buffers */
 		atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->bman_array_index].remaining,
@@ -605,6 +611,7 @@ int slab_free(struct slab **slab)
 
 		if (slab_virtual_pool_ddr.allocated_bufs != 0) {
 			cdma_mutex_lock_release(pool_data_address);
+			sl_pr_err("Allocated number of buffers is not 0.\n");
 			return -EACCES;
 		}
 
@@ -766,10 +773,10 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 		}
 		if(return_val == 0)
 		{
-			/*pr_err("Slab already freed\n");*/
+			sl_pr_err("Slab already freed\n");
 			return -EINVAL;
 		}
-		/*pr_err("No memory to acquire from\n");*/
+		sl_pr_err("No memory to acquire from\n");
 		return -ENOMEM;
 	}
 }
@@ -893,7 +900,7 @@ int slab_release(struct slab *slab, uint64_t buff)
 }
 
 /*****************************************************************************/
-static int dpbp_add(struct dprc_obj_desc *dev_desc,
+__COLD_CODE static int dpbp_add(struct dprc_obj_desc *dev_desc,
                     struct slab_bpid_info *bpids_arr,
                     struct mc_dprc *dprc)
 {
@@ -925,7 +932,7 @@ static int dpbp_add(struct dprc_obj_desc *dev_desc,
 }
 
 /*****************************************************************************/
-static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
+__COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
                           int *n_bpids)
 {
 	struct dprc_obj_desc dev_desc;
@@ -1001,7 +1008,7 @@ static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	return 0;
 }
 
-static int slab_alocate_memory(int num_bpids, struct slab_module_info *slab_m, struct slab_bpid_info **bpids_arr)
+__COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_info *slab_m, struct slab_bpid_info **bpids_arr)
 {
 	int i = 0, j = 0;
 	int err = 0;
@@ -1070,7 +1077,7 @@ static int slab_alocate_memory(int num_bpids, struct slab_module_info *slab_m, s
 	return err;
 }
 
-int slab_module_early_init(void){
+__COLD_CODE int slab_module_early_init(void){
 	int i = 0, err = 0;
 	pr_info("Initialize memory for App early requests from slab\n");
 	g_slab_early_init_data = (struct memory_types_table *)
@@ -1102,7 +1109,7 @@ int slab_module_early_init(void){
 }
 
 /*Method used to split the memory to buffer sizes using number of available bpids*/
-static int slab_divide_memory_for_bpids(int available_bpids,
+__COLD_CODE static int slab_divide_memory_for_bpids(int available_bpids,
                                         enum memory_partition_id  mem_pid,
                                         struct   slab_bpid_info **bpids_arr)
 {
@@ -1162,7 +1169,7 @@ static int slab_divide_memory_for_bpids(int available_bpids,
 }
 
 
-static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_info **bpids_arr)
+__COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_info **bpids_arr)
 {
 	int i, j, temp, err = 0;
 	struct request_table_info   local_info[] = SLAB_BUFF_SIZES_ARR; /*sample table with all the buffer sizes to each memory*/
@@ -1338,7 +1345,7 @@ static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_
 }
 
 /*****************************************************************************/
-int slab_module_init(void)
+__COLD_CODE int slab_module_init(void)
 {
 	struct   slab_bpid_info *bpids_arr_init = NULL;
 	int      num_bpids = 0;
@@ -1499,7 +1506,7 @@ int slab_module_init(void)
 }
 
 /*****************************************************************************/
-void slab_module_free(void)
+__COLD_CODE void slab_module_free(void)
 {
 	int i;
 	struct slab_module_info *slab_m = \
@@ -1552,7 +1559,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 }
 
 /*****************************************************************************/
-int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
+__COLD_CODE int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
                                               uint32_t    max_buffs,
                                               uint16_t    buff_size,
                                               uint16_t    alignment,
