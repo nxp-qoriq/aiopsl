@@ -1,3 +1,4 @@
+fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
 slab.c,h:       Added implementation used by app_early_init, added slab_early_init.
                 Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
                 uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
