@@ -1362,9 +1362,9 @@ __COLD_CODE static void icontext_init(uint32_t cdma_cfg)
 	if (cdma_cfg & CDMA_VA_BIT)
 		icontext_aiop.dma_flags |= FDMA_DMA_eVA_BIT;
 
-	pr_debug("ICID = 0x%x bdi flags = 0x%x\n", icontext_aiop.icid, \
+	pr_debug("AIOP ICID = 0x%x bdi flags = 0x%x\n", icontext_aiop.icid, \
 	         icontext_aiop.bdi_flags);
-	pr_debug("ICID = 0x%x dma flags = 0x%x\n", icontext_aiop.icid, \
+	pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", icontext_aiop.icid, \
 	         icontext_aiop.dma_flags);
 }
 

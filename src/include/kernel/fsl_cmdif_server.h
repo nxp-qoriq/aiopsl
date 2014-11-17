@@ -34,15 +34,7 @@
 #define __FSL_CMDIF_SERVER_H
 
 /**************************************************************************//**
-@Group         cmdif_g  Command Interface API
-
-@Description   AIOP and GPP command interface API
-
-@{
- *//***************************************************************************/
-
-/**************************************************************************//**
-@Group         cmdif_server_g  Command Interface - Server API
+@Group         cmdif_server_g  Command Interface - Server
 
 @Description   API to be used and implemented by Server side only
 
@@ -217,6 +209,5 @@ int cmdif_srv_cb(int pr, void *send_dev);
 
 
 /** @} *//* end of cmdif_server_g group */
-/** @} *//* end of cmdif_g group */
 
 #endif /* __FSL_CMDIF_SERVER_H */

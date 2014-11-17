@@ -690,25 +690,25 @@
 		*/		
 	/** @} */
 	
-	/** @defgroup cmdif_g  Command Interface API
+	/** @defgroup cmdif_g  Command Interface
 	@ingroup kernel_g
 	@{ */
-		/** @defgroup cmdif_client_g  Command Interface - Client API
+		/** @defgroup cmdif_client_g  Command Interface - Client
 		 	@ingroup cmdif_g
 			@{	
 		*/	
 			/** @defgroup CMDIF_SEND_ATTRIBUTES
 			*/
 		/** @} */
-	/** @defgroup cmdif_server_g  Command Interface - Server API
+	/** @defgroup cmdif_server_g  Command Interface - Server
 		 		@ingroup cmdif_g
 		*/	
-	/** @defgroup cmdif_flib_g  Command Interface - FLIB API
+	/** @defgroup cmdif_flib_g  Command Interface - FLIB
 		 		@ingroup cmdif_g
 		*/		
 	/** @} */	
 	
-	/** @defgroup ic_g Isolation Context API
+	/** @defgroup ic_g Isolation Context
 	@ingroup kernel_g
 	@{ @} */
 	

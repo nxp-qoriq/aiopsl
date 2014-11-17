@@ -37,16 +37,7 @@
 #include <fsl_cmdif_fd.h>
 
 /*!
- * @Group	cmdif_g  Command Interface API
- *
- * @brief	AIOP and GPP command interface API
- *
- * @{
- */
-
-
-/*!
- * @Group	cmdif_flib_g  Command Interface - FLIB API
+ * @Group	cmdif_flib_g  Command Interface - FLIB
  *
  * @brief	API to be used for FD based command interface implementation
  *
@@ -210,6 +201,5 @@ int cmdif_srv_cmd(void *srv,
 		uint8_t *send_resp);
 
 /** @} *//* end of cmdif_flib_g group */
-/** @} *//* end of cmdif_g group */
 
 #endif /* __FSL_CMDIF_FLIB_H */

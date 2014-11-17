@@ -38,16 +38,7 @@
 
 
 /*!
- * @Group	cmdif_g  Command Interface API
- *
- * @brief	AIOP and GPP command interface API
- *
- * @{
- */
-
-
-/*!
- * @Group	cmdif_flib_g  Command Interface - FLIB API
+ * @Group	cmdif_flib_g  Command Interface - FLIB
  *
  * @brief	API to be used for FD based command interface implementation
  *
@@ -209,6 +200,5 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 int cmdif_async_cb(struct cmdif_fd *fd);
 
 /** @} *//* end of cmdif_flib_g group */
-/** @} *//* end of cmdif_g group */
 
 #endif /* __FSL_CMDIF_FLIB_H */

@@ -34,15 +34,7 @@
 #define __FSL_CMDIF_CLIENT_H
 
 /**************************************************************************//**
-@Group         cmdif_g  Command Interface API
-
-@Description   AIOP and GPP command interface API
-
-@{
- *//***************************************************************************/
-
-/**************************************************************************//**
-@Group		cmdif_client_g  Command Interface - Client API
+@Group		cmdif_client_g  Command Interface - Client
 
 @Description	API to be used and implemented by Client side only
 
@@ -218,6 +210,5 @@ int cmdif_resp_read(struct cmdif_desc *cidesc, int priority);
 
 
 /** @} *//* end of cmdif_client_g group */
-/** @} *//* end of cmdif_g group */
 
 #endif /* __FSL_CMDIF_CLIENT_H */

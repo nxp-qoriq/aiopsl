@@ -28,7 +28,7 @@
 #define __FSL_ICONTEXT_H
 
 /**************************************************************************//**
-@Group         ic_g  Isolation Context API
+@Group         ic_g  Isolation Context
 
 @Description	API to be used for memory and BMAN pool accesses
 		using the specific isolation context attributes.
