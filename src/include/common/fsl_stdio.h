@@ -62,15 +62,16 @@
                Run time stage - in this stage the AIOP uses a lite print and
                supports only a subset of the formatting features as follows:
 
-               %c     Prints a char.
-               %d     Prints an integer in decimal form
-               %x     Prints an integer in hexadecimal form
-               %s     Prints a string
-               %l     Prints unsigned 32 bit value.
-               %ll    Prints unsigned 64 bit value.
-               %lx    Prints a 32 bit value in hexadecimal form
-               %llx   Prints a 64 bit value in hexadecimal form
-               *No support for special settings like %02x, etc at runtime.
+               - %%c      - Prints a char.
+               - %%d      - Prints an integer in decimal form
+               - %%x      - Prints an integer in hexadecimal form
+               - %%s      - Prints a string
+               - %%l      - Prints unsigned 32 bit value.
+               - %%ll     - Prints unsigned 64 bit value.
+               - %%lx     - Prints a 32 bit value in hexadecimal form
+               - %%llx    - Prints a 64 bit value in hexadecimal form
+            
+@note No support for special settings like %02x, etc at runtime.
 
 @Param[in]     str - string to print.
 
