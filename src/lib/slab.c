@@ -1345,30 +1345,6 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 }
 
 /*****************************************************************************/
-extern struct icontext icontext_aiop;
-__COLD_CODE static void icontext_init(uint32_t cdma_cfg)
-{
-	icontext_aiop.icid = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
-
-	icontext_aiop.bdi_flags = 0;
-	if (cdma_cfg & CDMA_BDI_BIT)
-		icontext_aiop.bdi_flags |= FDMA_ENF_BDI_BIT;
-
-	icontext_aiop.dma_flags = 0;
-	if (cdma_cfg & CDMA_BMT_BIT)
-		icontext_aiop.dma_flags |= FDMA_DMA_BMT_BIT;
-	if (cdma_cfg & CDMA_PL_BIT)
-		icontext_aiop.dma_flags |= FDMA_DMA_PL_BIT;
-	if (cdma_cfg & CDMA_VA_BIT)
-		icontext_aiop.dma_flags |= FDMA_DMA_eVA_BIT;
-
-	pr_debug("AIOP ICID = 0x%x bdi flags = 0x%x\n", icontext_aiop.icid, \
-	         icontext_aiop.bdi_flags);
-	pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", icontext_aiop.icid, \
-	         icontext_aiop.dma_flags);
-}
-
-/*****************************************************************************/
 __COLD_CODE int slab_module_init(void)
 {
 	struct   slab_bpid_info *bpids_arr_init = NULL;
@@ -1378,13 +1354,9 @@ __COLD_CODE int slab_module_init(void)
 	uint32_t *slab_ddr_pointer_stack;
 	dma_addr_t ddr_pool_addr;
 	uint32_t ddr_value_ptr[SLAB_MAX_NUM_VP_DDR];
-	uint32_t cdma_cfg = 0;
+	struct icontext ic;
 	uint32_t num_clusters_for_ddr_mamangement_pools = 0;
 	struct slab_v_pool *virtual_pool_struct = NULL;
-	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *)\
-		sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0,
-		                                  E_MAPPED_MEM_TYPE_GEN_REGS);
-
 
 	err = dpbp_discovery(NULL, &num_bpids);/*NULL if is used to find number of available bpids*/
 	if (err) {
@@ -1479,31 +1451,17 @@ __COLD_CODE int slab_module_init(void)
 	               0);
 
 
-	/* CDMA CFG register bits are needed for filling BPID */
-	cdma_cfg           = ioread32_ccsr(&ccsr->cdma_regs.cfg);
-
-	/* Set AIOP isolation context */
-	icontext_init(cdma_cfg);
+	/* AIOP ICID and AMQ bits are needed for filling BPID */
+	icontext_aiop_get(&ic);
 
 	/* Copy isolation context for slab */
-	slab_m->icid       = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
-	slab_m->fdma_flags = FDMA_ACQUIRE_NO_FLAGS;
-	if (cdma_cfg & CDMA_BDI_BIT)
-		slab_m->fdma_flags |= FDMA_ACQUIRE_BDI_BIT;
+	slab_m->icid           = ic.icid;
+	slab_m->fdma_flags     = ic.bdi_flags;
+	slab_m->fdma_dma_flags = ic.dma_flags;
 
-	slab_m->fdma_dma_flags = 0;
-	if (cdma_cfg & CDMA_BMT_BIT)
-		slab_m->fdma_dma_flags |= FDMA_DMA_BMT_BIT;
-	if (cdma_cfg & CDMA_PL_BIT)
-		slab_m->fdma_dma_flags |= FDMA_DMA_PL_BIT;
-	if (cdma_cfg & CDMA_VA_BIT)
-		slab_m->fdma_dma_flags |= FDMA_DMA_eVA_BIT;
-
-	pr_debug("CDMA CFG register = 0x%x addr = 0x%x\n", cdma_cfg, \
-	         (uint32_t)&ccsr->cdma_regs.cfg);
-	pr_debug("ICID = 0x%x flags = 0x%x\n", slab_m->icid, \
+	pr_debug("SLAB ICID = 0x%x flags = 0x%x\n", slab_m->icid, \
 	         slab_m->fdma_flags);
-	pr_debug("ICID = 0x%x dma flags = 0x%x\n", slab_m->icid, \
+	pr_debug("SLAB ICID = 0x%x dma flags = 0x%x\n", slab_m->icid, \
 	         slab_m->fdma_dma_flags);
 
 	err = slab_alocate_memory(num_bpids, slab_m, &bpids_arr_init);
