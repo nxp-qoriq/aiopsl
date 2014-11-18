@@ -120,7 +120,7 @@ uint32_t fsl_os_current_time(void)
 }
 
 /*****************************************************************************/
-int time_init(void)
+__COLD_CODE int time_init(void)
 {
 	if(g_init_data.sl_info.clock_period == 1000)
 	{

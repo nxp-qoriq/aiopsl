@@ -74,7 +74,7 @@ void fsl_os_print(char *format, ...)
 		fsl_os_print_boot(format, args);
 }
 
-static void fsl_os_print_boot(const char *format, va_list args){
+__COLD_CODE static void fsl_os_print_boot(const char *format, va_list args){
 	char    tmp_buf[BUF_SIZE];
 	vsnprintf(tmp_buf, BUF_SIZE, format, args);
 	va_end(args);
