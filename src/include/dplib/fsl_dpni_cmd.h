@@ -1,33 +1,34 @@
-/* Copyright 2014 Freescale Semiconductor Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Freescale Semiconductor nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- *
- * ALTERNATIVELY, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") as published by the Free Software
- * Foundation, either version 2 of that License or (at your option) any
- * later version.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/* Copyright 2013-2014 Freescale Semiconductor Inc.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+* * Redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer.
+* * Redistributions in binary form must reproduce the above copyright
+* notice, this list of conditions and the following disclaimer in the
+* documentation and/or other materials provided with the distribution.
+* * Neither the name of the above-listed copyright holders nor the
+* names of any contributors may be used to endorse or promote products
+* derived from this software without specific prior written permission.
+*
+*
+* ALTERNATIVELY, this software may be distributed under the terms of the
+* GNU General Public License ("GPL") as published by the Free Software
+* Foundation, either version 2 of that License or (at your option) any
+* later version.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*/
 #ifndef _FSL_DPNI_CMD_H
 #define _FSL_DPNI_CMD_H
 
@@ -278,15 +279,15 @@ do { \
 	MC_RSP_OP(cmd, 3, 48, 8,  uint8_t,  attr->max_dist_per_tc[6]); \
 	MC_RSP_OP(cmd, 3, 56, 8,  uint8_t,  attr->max_dist_per_tc[7]); \
 	MC_RSP_OP(cmd, 4, 0,	16, uint16_t, \
-	          	  	    attr->ipr_cfg.max_reass_frm_size); \
+				    attr->ipr_cfg.max_reass_frm_size); \
 	MC_RSP_OP(cmd, 4, 16,	16, uint16_t, \
-	          	  	    attr->ipr_cfg.min_frag_size_ipv4); \
+				    attr->ipr_cfg.min_frag_size_ipv4); \
 	MC_RSP_OP(cmd, 4, 32,	16, uint16_t, \
-	          	  	    attr->ipr_cfg.min_frag_size_ipv6); \
+				    attr->ipr_cfg.min_frag_size_ipv6); \
 	MC_RSP_OP(cmd, 5, 0,	16, uint16_t, \
-	          	  	  attr->ipr_cfg.max_open_frames_ipv4); \
+				  attr->ipr_cfg.max_open_frames_ipv4); \
 	MC_RSP_OP(cmd, 5, 16,	16, uint16_t, \
-	          	  	  attr->ipr_cfg.max_open_frames_ipv6); \
+				  attr->ipr_cfg.max_open_frames_ipv6); \
 	MC_RSP_OP(cmd, 5, 32, 16, uint16_t, attr->version.major);\
 	MC_RSP_OP(cmd, 5, 48, 16, uint16_t, attr->version.minor);\
 } while (0)
@@ -304,7 +305,6 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, layout->private_data_size); \
 	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, layout->data_align); \
-	MC_RSP_OP(cmd, 0, 32, 32, uint32_t, layout->options); \
 	MC_RSP_OP(cmd, 1, 0,  1,  int,	    layout->pass_timestamp); \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
@@ -326,7 +326,6 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, layout->private_data_size); \
 	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, layout->data_align); \
-	MC_RSP_OP(cmd, 0, 32, 32, uint32_t, layout->options); \
 	MC_RSP_OP(cmd, 1, 0,  1,  int,      layout->pass_timestamp); \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
@@ -348,7 +347,6 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, layout->private_data_size); \
 	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, layout->data_align); \
-	MC_RSP_OP(cmd, 0, 32, 32, uint32_t, layout->options); \
 	MC_RSP_OP(cmd, 1, 0,  1,  int,      layout->pass_timestamp); \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
@@ -544,6 +542,8 @@ do { \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, \
 			   cfg->conf_err_cfg.queue_cfg.user_ctx);\
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options);\
+	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, \
+	          	   cfg->conf_err_cfg.queue_cfg.options);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -598,7 +598,7 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
 	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
-	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_id); \
+	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type); \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 } while (0)

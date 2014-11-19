@@ -40,7 +40,15 @@
 */
 		/** @defgroup ldpaa_g
 			@ingroup AIOP_General_Definitions
+			@{
 	    */
+			/** @defgroup LDPAA_FD_DEFINITIONS LDPAA FD Definitions
+				@ingroup ldpaa_g
+			*/
+			/** @defgroup LDPAA_FD_GETTERS_SETTERS LDPAA FD GETTER/SETTER MACROs
+				@ingroup ldpaa_g
+			*/
+		/** @} */
 		/** @defgroup AIOP_Return_Status  
 			@ingroup AIOP_General_Definitions
 		*/
@@ -137,7 +145,10 @@
 						*/						
 						/** @defgroup FDMA_ISOLATION_ATTRIBUTES_Flags
 							@ingroup FDMA_Commands_Flags
-						*/									
+						*/	
+						/** @defgroup FDMA_STATUS FDMA Status
+							@ingroup FDMA_Commands_Flags
+						*/							
 					/**@} */			
 					/** @defgroup FDMA_Structures FDMA Structures
 						@ingroup FSL_AIOP_FDMA
@@ -341,9 +352,6 @@
 			/** @defgroup TMAN
 				@ingroup ACCEL
 				@{	*/
-					/** @defgroup TMANReturnStatus TMAN functions return status
-						@ingroup TMAN
-					*/	
 					/** @defgroup TMANMacroes TMAN MACROS
 						@ingroup TMAN
 					*/						
@@ -379,7 +387,22 @@
 					*/			 
 					/** @defgroup StatsCompoundFlags Statistics Compound commands flags
 						@ingroup STATS
+					*/
+					/** @defgroup StatsErrorRegAddr Statistics error registers addresses
+						@ingroup STATS
+					*/		
+					/** @defgroup StatsErrorStatusReg Statistics status register bits definitions
+						@ingroup STATS
 					*/	
+					/** @defgroup StatsErrorCtrlBits Statistics control register bits definitions
+						@ingroup STATS
+					*/	
+					/** @defgroup StatsErrCap1 Statistics capture attributes definitions
+						@ingroup STATS
+					*/	
+					/** @defgroup StatsErrMacroes Statistics error macros
+						@ingroup STATS
+					*/						
 					/** @defgroup STE_functions Statistics functions
 						@ingroup STATS
 					*/
@@ -690,25 +713,25 @@
 		*/		
 	/** @} */
 	
-	/** @defgroup cmdif_g  Command Interface
+	/** @defgroup cmdif_g  Command Interface API
 	@ingroup kernel_g
 	@{ */
-		/** @defgroup cmdif_client_g  Command Interface - Client
+		/** @defgroup cmdif_client_g  Command Interface - Client API
 		 	@ingroup cmdif_g
 			@{	
 		*/	
 			/** @defgroup CMDIF_SEND_ATTRIBUTES
 			*/
 		/** @} */
-	/** @defgroup cmdif_server_g  Command Interface - Server
+	/** @defgroup cmdif_server_g  Command Interface - Server API
 		 		@ingroup cmdif_g
 		*/	
-	/** @defgroup cmdif_flib_g  Command Interface - FLIB
+	/** @defgroup cmdif_flib_g  Command Interface - FLIB API
 		 		@ingroup cmdif_g
 		*/		
 	/** @} */	
 	
-	/** @defgroup ic_g Isolation Context
+	/** @defgroup ic_g Isolation Context API
 	@ingroup kernel_g
 	@{ @} */
 	

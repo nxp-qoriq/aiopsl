@@ -27,6 +27,6 @@
 #ifndef __ICONTEXT_H
 #define __ICONTEXT_H
 
-
+int icontext_init();
 
 #endif

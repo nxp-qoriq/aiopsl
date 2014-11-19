@@ -31,12 +31,14 @@
 #include "fsl_ldpaa_aiop.h"
 #include "fsl_fdma.h"
 #include "fdma.h"
+#include "fsl_cdma.h"
 #include "sys.h"
 #include "fsl_dbg.h"
 #include "fsl_icontext.h"
 #include "fsl_mc_init.h"
 #include "fsl_spinlock.h"
 #include "cmdif_client_aiop.h" /* TODO remove it once you have lock per dpci table !!! */
+#include "fsl_io_ccsr.h"
 
 struct icontext icontext_aiop = {0};
 
@@ -138,5 +140,43 @@ int icontext_release(struct icontext *ic, uint16_t bpid,
 	fdma_release_buffer(ic->icid, ic->bdi_flags, bpid, addr);
 
 	return err;
+}
+
+__COLD_CODE int icontext_init()
+{
+	uint32_t cdma_cfg;
+	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *)\
+		sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0,
+		                                  E_MAPPED_MEM_TYPE_GEN_REGS);
+
+	ASSERT_COND(ccsr);
+	
+	cdma_cfg = ioread32_ccsr(&ccsr->cdma_regs.cfg);
+	
+	icontext_aiop.icid = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
+
+	icontext_aiop.bdi_flags = 0;
+	if (cdma_cfg & CDMA_BDI_BIT)
+		icontext_aiop.bdi_flags |= FDMA_ENF_BDI_BIT;
+
+	icontext_aiop.dma_flags = 0;
+	if (cdma_cfg & CDMA_BMT_BIT)
+		icontext_aiop.dma_flags |= FDMA_DMA_BMT_BIT;
+	if (cdma_cfg & CDMA_PL_BIT)
+		icontext_aiop.dma_flags |= FDMA_DMA_PL_BIT;
+	if (cdma_cfg & CDMA_VA_BIT)
+		icontext_aiop.dma_flags |= FDMA_DMA_eVA_BIT;
+	
+	pr_debug("CDMA CFG register = 0x%x addr = 0x%x\n", cdma_cfg, \
+	         (uint32_t)&ccsr->cdma_regs.cfg);
+	pr_debug("AIOP ICID = 0x%x bdi flags = 0x%x\n", icontext_aiop.icid, \
+	         icontext_aiop.bdi_flags);
+	pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", icontext_aiop.icid, \
+	         icontext_aiop.dma_flags);
+	
+	ASSERT_COND(icontext_aiop.bdi_flags); /* BDI bit is set */
+	ASSERT_COND(icontext_aiop.dma_flags); /* PL bit is set */
+	
+	return 0;
 }
 

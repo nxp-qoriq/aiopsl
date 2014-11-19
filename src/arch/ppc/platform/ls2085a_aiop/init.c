@@ -51,9 +51,10 @@ extern int mc_obj_init();                 extern void mc_obj_free();
 extern int cmdif_client_init();           extern void cmdif_client_free();
 extern int cmdif_srv_init(void);          extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);           extern void dpni_drv_free(void);
-extern int slab_module_early_init(void);  extern int slab_module_init(void);  
+extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
+extern int icontext_init();
 
 extern void discard_rx_cb();
 extern void tman_timer_callback(void);
@@ -66,34 +67,35 @@ extern void build_apps_array(struct sys_module_desc *apps);
 // TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
 #define MEMORY_PARTITIONS\
 {   /* Memory partition ID               Phys. Addr.  Virt. Addr.  Size , Attributes */\
-    {MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
-	MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
-    {MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
-	MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
-    {MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
-	MEMORY_ATTR_NONE,"MC Portals"},\
-    {MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (16 * MEGABYTE),\
-	MEMORY_ATTR_NONE,"SoC CCSR"  },\
-    {MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
-	MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
-    {MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-	MEMORY_ATTR_MALLOCABLE,"PEB"},\
-    {MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-	MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
+	{MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
+		MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
+	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
+		MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
+	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
+		MEMORY_ATTR_NONE,"MC Portals"},\
+	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (16 * MEGABYTE),\
+		MEMORY_ATTR_NONE,"SoC CCSR"  },\
+	{MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
+		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
+	{MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
+		MEMORY_ATTR_MALLOCABLE,"PEB"},\
+	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
+		MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
 }
 
 #define GLOBAL_MODULES                                                       \
-{    /* slab must be before any module with buffer request*/                 \
-    {NULL, time_init,         time_free},                                    \
-    {NULL, epid_drv_init,     epid_drv_free},                                \
-    {NULL, mc_obj_init,       mc_obj_free},                                  \
-    {slab_module_early_init, slab_module_init,  slab_module_free},           \
-    {NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
-    {NULL, cmdif_srv_init,    cmdif_srv_free},                               \
-    {NULL, aiop_sl_init,      aiop_sl_free},                                 \
-    {NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
-    {NULL, NULL, NULL} /* never remove! */                                   \
-}
+	{    /* slab must be before any module with buffer request*/             \
+	{icontext_init, NULL, NULL},                                             \
+	{NULL, time_init,         time_free},                                    \
+	{NULL, epid_drv_init,     epid_drv_free},                                \
+	{NULL, mc_obj_init,       mc_obj_free},                                  \
+	{slab_module_early_init, slab_module_init,  slab_module_free},           \
+	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
+	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
+	{NULL, aiop_sl_init,      aiop_sl_free},                                 \
+	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
+	{NULL, NULL, NULL} /* never remove! */                                   \
+	}
 
 #define MAX_NUM_OF_APPS		10
 
@@ -131,29 +133,29 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
 	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >
-	            ARRAY_SIZE(mem_info));
+	ARRAY_SIZE(mem_info));
 	memcpy(platform_param->mem_info, mem_info,
-				sizeof(struct platform_memory_info) * ARRAY_SIZE(mem_info));
+	       sizeof(struct platform_memory_info) * ARRAY_SIZE(mem_info));
 	ASSERT_COND(err == 0);
 
 }
 int tile_init(void)
 {
-    struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
-	                      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-    uint32_t val;
+	struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
+				      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	uint32_t val;
 
-    if(aiop_regs) {
-        /* ws enable */
-        val = ioread32_ccsr(&aiop_regs->ws_regs.cfg);
-        val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
-        iowrite32_ccsr(val, &aiop_regs->ws_regs.cfg);
-    }
-    else {
-    	return -EFAULT;
-    }
+	if(aiop_regs) {
+		/* ws enable */
+		val = ioread32_ccsr(&aiop_regs->ws_regs.cfg);
+		val |= 0x3; /* AIOP_WS_ENABLE_ALL - Enable work scheduler to receive tasks from both QMan and TMan */
+		iowrite32_ccsr(val, &aiop_regs->ws_regs.cfg);
+	}
+	else {
+		return -EFAULT;
+	}
 
-    return 0;
+	return 0;
 }
 
 int cluster_init(void)
@@ -163,21 +165,21 @@ int cluster_init(void)
 
 int global_init(void)
 {
-    struct sys_module_desc modules[] = GLOBAL_MODULES;
-    int                    i;
+	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	int                    i;
 
-    /* Verifying that MC saw the data at the beginning of special section
-     * and at fixed address
-     * TODO is it the right place to verify it ? Can't place it at sys_init()
-     * because it's too generic. */
-    ASSERT_COND((((uint8_t *)(&g_init_data.sl_info)) == AIOP_INIT_DATA) &&
-                (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
+	/* Verifying that MC saw the data at the beginning of special section
+	 * and at fixed address
+	 * TODO is it the right place to verify it ? Can't place it at sys_init()
+	 * because it's too generic. */
+	ASSERT_COND((((uint8_t *)(&g_init_data.sl_info)) == AIOP_INIT_DATA) &&
+	            (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
 
-    for (i=0; i<ARRAY_SIZE(modules) ; i++)
-        if (modules[i].init)
-    	    modules[i].init();
+	for (i=0; i<ARRAY_SIZE(modules) ; i++)
+		if (modules[i].init)
+			modules[i].init();
 
-    return 0;
+	return 0;
 }
 
 void global_free(void)
@@ -198,7 +200,7 @@ int global_early_init(void)
 	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
 		if (modules[i].early_init)
 			modules[i].early_init();
-	
+
 	return 0;
 }
 
@@ -214,7 +216,7 @@ int apps_early_init(void)
 		if (apps[i].early_init)
 			apps[i].early_init();
 	}
-	
+
 	return 0;
 }
 
@@ -226,59 +228,59 @@ int global_post_init(void)
 #if (STACK_OVERFLOW_DETECTION == 1)
 static inline void config_runtime_stack_overflow_detection()
 {
-    switch(cmgw_get_ntasks())
-    {
-    case 0: /* 1 Task */
-    	booke_set_spr_DAC2(0x8000);
-    	break;
-    case 1: /* 2 Tasks */
-    	booke_set_spr_DAC2(0x4000);
-    	break;
-    case 2: /* 4 Tasks */
-    	booke_set_spr_DAC2(0x2000);
-    	break;
-    case 3: /* 8 Tasks */
-    	booke_set_spr_DAC2(0x1000);
-    	break;
-    case 4: /* 16 Tasks */
-    	booke_set_spr_DAC2(0x800);
-    	break;
-    default:
-    	//TODO complete
-    	break;
-    }
+	switch(cmgw_get_ntasks())
+	{
+	case 0: /* 1 Task */
+		booke_set_spr_DAC2(0x8000);
+		break;
+	case 1: /* 2 Tasks */
+		booke_set_spr_DAC2(0x4000);
+		break;
+	case 2: /* 4 Tasks */
+		booke_set_spr_DAC2(0x2000);
+		break;
+	case 3: /* 8 Tasks */
+		booke_set_spr_DAC2(0x1000);
+		break;
+	case 4: /* 16 Tasks */
+		booke_set_spr_DAC2(0x800);
+		break;
+	default:
+		//TODO complete
+		break;
+	}
 }
 #endif /* STACK_OVERFLOW_DETECTION */
 
 void core_ready_for_tasks(void)
 {
-    /*  finished boot sequence; now wait for event .... */
-    pr_info("AIOP core %d completed boot sequence\n", core_get_id());
+	/*  finished boot sequence; now wait for event .... */
+	pr_info("AIOP core %d completed boot sequence\n", core_get_id());
 
-    sys_barrier();
+	sys_barrier();
 
-    if(sys_is_master_core()) {
-        pr_info("AIOP boot finished; ready for tasks...\n");
-    }
+	if(sys_is_master_core()) {
+		pr_info("AIOP boot finished; ready for tasks...\n");
+	}
 
-    sys_barrier();
+	sys_barrier();
 
-    sys.runtime_flag = 1;
+	sys.runtime_flag = 1;
 
-    cmgw_update_core_boot_completion();
+	cmgw_update_core_boot_completion();
 
 #if (STACK_OVERFLOW_DETECTION == 1)
-    /*
-     *  NOTE:
-     *  Any access to the stack (read/write) following this line will cause
-     *  a stack-overflow violation and an exception will occur.
-     */
-    config_runtime_stack_overflow_detection();
+	/*
+	 *  NOTE:
+	 *  Any access to the stack (read/write) following this line will cause
+	 *  a stack-overflow violation and an exception will occur.
+	 */
+	config_runtime_stack_overflow_detection();
 #endif
 
-    /* CTSEN = 1, finished boot, Core Task Scheduler Enable */
-    booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
-    __e_hwacceli(YIELD_ACCEL_ID); /* Yield */
+	/* CTSEN = 1, finished boot, Core Task Scheduler Enable */
+	booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
+	__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
 
@@ -306,22 +308,22 @@ static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 /* TODO: Need to replace this temporary workaround with the actual function.
 /*****************************************************************************/
 static int fill_bpid(uint16_t num_buffs,
-                              uint16_t buff_size,
-                              uint16_t alignment,
-                              uint8_t  mem_partition_id,
-                              uint16_t bpid)
+                     uint16_t buff_size,
+                     uint16_t alignment,
+                     uint8_t  mem_partition_id,
+                     uint16_t bpid)
 {
-    int        i = 0;
-    dma_addr_t addr  = 0;
-    struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
-    uint16_t icid = 0;
-    uint32_t flags = FDMA_RELEASE_NO_FLAGS;
+	int        i = 0;
+	dma_addr_t addr  = 0;
+	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	uint16_t icid = 0;
+	uint32_t flags = FDMA_RELEASE_NO_FLAGS;
 
-    /* Use the same flags as for slab */
-    if (slab_m) {
-	    icid  = slab_m->icid;
-	    flags = slab_m->fdma_flags;
-    }
+	/* Use the same flags as for slab */
+	if (slab_m) {
+		icid  = slab_m->icid;
+		flags = slab_m->fdma_flags;
+	}
     addr = fsl_os_virt_to_phys(fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
                                               mem_partition_id,
                                               alignment));
@@ -351,13 +353,13 @@ int run_apps(void)
 
 
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
-	* This should be mapped to ALL cores of AIOP and to ALL the tasks */
+	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
-	* This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
-	* all should be placed in PEB. */
+	 * This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
+	 * all should be placed in PEB. */
 	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
 	/* TODO - iterate through the device-list:
-	* call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
+	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
 	if (dprc == NULL)
 	{
@@ -407,7 +409,7 @@ int run_apps(void)
 	/* TODO: number and size of buffers should not be hard-coded */
 	if ((err = fill_bpid(50, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
 		pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
-				dpbp_id, attr.bpid, buffer_size);
+		       dpbp_id, attr.bpid, buffer_size);
 		return err;
 	}
 
@@ -494,10 +496,10 @@ int epid_drv_init(void)
 	int err = 0;
 
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-		                                   0,
-		                                   E_MAPPED_MEM_TYPE_GEN_REGS)
-		                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+			(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+			                                   0,
+			                                   E_MAPPED_MEM_TYPE_GEN_REGS)
+			                                   + SOC_PERIPH_OFF_AIOP_WRKS);
 
 	/* CMDIF server epid initialization here*/
 	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);

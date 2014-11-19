@@ -81,36 +81,10 @@ static inline void * iova_alloc(size_t size)
 	return fsl_os_malloc(size);
 }
 
-
-static inline uint64_t virt_to_phys(void *vaddr)
-{
-//	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
-	return (uint64_t)vaddr;
-}
-
-static inline uint64_t phys_to_virt(void *paddr)
-{
-//	return (uint64_t)(0x080000000LL + (uint64_t)vaddr);
-	return (uint64_t)paddr;
-}
-
-
 #define cpu_to_le64 CPU_TO_LE64
 
 #endif /* __linux__ */
 
-
-#define MAKE_UMASK64(_width) \
-	((uint64_t)((_width) < 64 ? ((uint64_t)1 << (_width)) - 1 : -1))
-
-static inline uint64_t u64_enc(int lsoffset, int width, uint64_t val)
-{
-	return (uint64_t)(((uint64_t)val & MAKE_UMASK64(width)) << lsoffset);
-}
-static inline uint64_t u64_dec(uint64_t val, int lsoffset, int width)
-{
-	return (uint64_t)((val >> lsoffset) & MAKE_UMASK64(width));
-}
 
 struct fsl_mc_io {
 	void *regs;
