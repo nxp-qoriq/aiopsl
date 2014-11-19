@@ -660,6 +660,18 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     return NULL;
 }
 
+/*****************************************************************************/
+int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
+                        uint64_t size, uint64_t alignment,
+                        uint64_t *paddr)
+{
+	return 0;
+}
+/*****************************************************************************/
+void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t paddress)
+{
+
+}
 
 /*****************************************************************************/
 void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)

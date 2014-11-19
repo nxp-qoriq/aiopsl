@@ -650,4 +650,25 @@ static void sys_print_mem_leak(void        *p_memory,
     pr_info("memory leak: 0x%09p, file: %s (%d)\r\n", p_memory, filename, line);
 }
 
+/*****************************************************************************/
+int  sys_get_phys_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
+                 uint64_t* paddr)
+{
+
+	ASSERT_COND(sys.mem_mng);
+	ASSERT_COND(size > 0);
+	return  mem_mng_get_phys_mem(sys.mem_mng,
+                                mem_partition_id,
+                                size,
+	                        alignment,
+	                        paddr);
+}
+
+/*****************************************************************************/
+void  sys_put_phys_mem(uint64_t paddr)
+{
+	ASSERT_COND(sys.mem_mng);
+	mem_mng_put_phys_mem(sys.mem_mng,paddr);
+}
+
 

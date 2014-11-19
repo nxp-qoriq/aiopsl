@@ -74,7 +74,7 @@ typedef struct t_platform {
 const char *module_strings[] = {
      "???"                      /* MODULE_UNKNOWN */
     ,"MEM"                      /* MODULE_MEM */
-    ,"MM"                       /* MODULE_MM */
+    ,"SLOB"                       /* MODULE_MM */
     ,"CORE"                     /* MODULE_CORE */
     ,"SoC"                      /* MODULE_LS2085A */
     ,"SoC-platform"             /* MODULE_LS2085A_PLATFORM */

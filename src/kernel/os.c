@@ -489,7 +489,17 @@ void fsl_os_xfree(void *p_memory)
 {
     sys_mem_free(p_memory);
 }
-
+/*****************************************************************************/
+int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
+                   uint64_t* paddr)
+{
+	return sys_get_phys_mem(size, mem_partition_id, alignment,paddr);
+}
+/*****************************************************************************/
+void fsl_os_put_mem(uint64_t paddr)
+{
+    sys_put_phys_mem(paddr);
+}
 /*****************************************************************************/
 void * fsl_os_phys_to_virt(dma_addr_t addr)
 {
