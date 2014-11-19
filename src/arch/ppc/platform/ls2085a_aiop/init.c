@@ -327,6 +327,10 @@ static int fill_bpid(uint16_t num_buffs,
     addr = fsl_os_virt_to_phys(fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
                                               mem_partition_id,
                                               alignment));
+
+    if(addr == NULL)
+	    return -ENOMEM;
+
     for (i = 0; i < num_buffs; i++) {
 
         /* Here, we pass virtual BPID, therefore BDI = 0 */
