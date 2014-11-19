@@ -26,3 +26,19 @@
 
 #include <shbp.h>
 
+uint64_t shbp_acquire(shbp_t bp)
+{
+	struct shbp shbp;
+	
+	shbp.alloc.deq = 0;
+	ASSERT_COND(bp);
+	
+	return shbp.alloc.deq;
+}
+
+int shbp_release(uint64_t buf)
+{
+	ASSERT_COND(buf);
+	/* TODO read metadata */
+	
+}
