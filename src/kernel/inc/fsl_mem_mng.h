@@ -225,6 +225,34 @@ uint32_t sys_get_mem_partition_attributes(int partition_id);
 *//***************************************************************************/
 void sys_print_mem_partition_debug_info(int partition_id, int report_leaks);
 
+/**************************************************************************//**
+@Function      sys_get_phys_mem
+
+@Description   Allocates contiguous block of memory with the specified
+               alignment and from the specified  memory partition.
+@Param[in]     mem_partition_id    Memory partition ID; The value zero must
+                                    be mapped to the default heap partition.
+@Param[in]     alignment           Required memory alignment (in bytes).
+@Param[out]    paddr               A valid allocated physical address if success,
+                                   NULL if failure.
+@Return        0                   on success,
+               -ENOMEM (not enough memory to allocate)or
+               -EINVAL ( invalid memory partition ) on failure.
+*//***************************************************************************/
+int sys_get_phys_mem(uint64_t size, int mem_partition_id,  uint64_t alignment,
+                uint64_t* paddr);
+
+/**************************************************************************//**
+@Function     sys_put_phys_mem
+
+@Description   Frees the memory block pointed to by "paddr".
+               paddr should be allocated by fsl_os_get_mem()
+
+@Param[in]    paddr  An address to be freed.
+
+*//***************************************************************************/
+void  sys_put_phys_mem(uint64_t paddr);
+
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
 

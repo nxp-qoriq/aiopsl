@@ -102,6 +102,14 @@ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param);
 void mem_mng_free(fsl_handle_t h_mem_mng);
 
 
+int mem_mng_get_phys_mem(fsl_handle_t    h_mem_mng,
+                        int         partition_id,
+                        uint64_t    size,
+                        uint64_t    alignment,
+                        uint64_t*  paddr);
+
+void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t p_memory);
+
 void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
                         int         partition_id,
                         uint32_t    size,

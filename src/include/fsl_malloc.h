@@ -67,6 +67,8 @@ void * fsl_os_malloc(size_t size);
  @Param[in]     size                Number of bytes to allocate.
  @Param[in]     mem_partition_id    Memory partition ID; The value zero must
                                     be mapped to the default heap partition.
+                Valid values: MEM_PART_DP_DDR,MEM_PART_SH_RAM,MEM_PART_PEB,
+                              MEM_PART_SYSTEM_DDR
  @Param[in]     alignment           Required memory alignment (in bytes).
 
  @Return        The address of the newly allocated block on success, NULL on failure.
@@ -92,6 +94,34 @@ void fsl_os_xfree(void *mem);
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
 void fsl_os_free(void *mem);
+
+/**************************************************************************//**
+@Function      fsl_os_get_mem
+
+@Description   Allocates contiguous block of memory with the specified
+                alignment and from the specified  memory partition.
+@Param[in]     mem_partition_id    Memory partition ID;
+               Valid values: MEM_PART_DP_DDR,MEM_PART_PEB,MEM_PART_SYSTEM_DDR
+@Param[in]     alignment           Required memory alignment (in bytes).
+@Param[out]    paddr               A valid allocated physical address if success,
+                                   NULL if failure.
+@Return        0                   on success,
+               -ENOMEM (not enough memory to allocate)or
+               -EINVAL ( invalid memory partition ) on failure.
+*//***************************************************************************/
+int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
+                   uint64_t* paddr);
+
+/**************************************************************************//**
+@Function      fsl_os_put_mem
+
+@Description   Frees the memory block pointed to by "paddr".
+               paddr should be allocated by fsl_os_get_mem()
+
+@Param[in]    paddr  An address to be freed.
+
+*//***************************************************************************/
+void  fsl_os_put_mem(uint64_t paddr);
 
 /** @} */ /* end of sytem_mem_management_id  group */
 
