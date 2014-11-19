@@ -42,7 +42,10 @@ extern __VERIF_GLOBAL uint8_t verif_spin_lock;
 int verif_main()
 {
 	/* initialize stack pointer */
-	aiop_verification_sr(); /* Obsolete entry point */
+
+	/* TODO Duplication is because verification using old SR EPID - this
+	 * should be removed */
+	aiop_verification_fm();
 	aiop_verification_fm();
 	return 0;
 }
