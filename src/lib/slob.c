@@ -578,7 +578,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
     uint64_t    new_base, new_size;
     int         i;
 
-    if (!size)
+    if (0 == size)
     {
         RETURN_ERROR(MAJOR, EDOM, ("size (should be positive)"));
     }
@@ -618,7 +618,14 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 	    slob_free(p_MM);
 	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
     }
-
+    if(0 == size)
+    {// allow a slob of size 0, should return ILLEGAL_BASE on any slob_get
+        *slob = p_MM;
+        for (i=0; i <= MM_MAX_ALIGNMENT; i++){
+            p_MM->free_blocks[i] = 0;
+        }
+        return 0;
+    }
     /* Initializes a new free block for each free list*/
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
