@@ -322,13 +322,14 @@ static int fill_bpid(uint16_t num_buffs,
 	    icid  = slab_m->icid;
 	    flags = slab_m->fdma_flags;
     }
-
+    addr = fsl_os_virt_to_phys(fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
+                                              mem_partition_id,
+                                              alignment));
     for (i = 0; i < num_buffs; i++) {
-        addr = fsl_os_virt_to_phys(fsl_os_xmalloc(buff_size,
-                                                  mem_partition_id,
-                                                  alignment));
+
         /* Here, we pass virtual BPID, therefore BDI = 0 */
         fdma_release_buffer(icid, flags, bpid, addr);
+        addr += buff_size;
     }
     return 0;
 }
