@@ -234,7 +234,7 @@ int app_init(void)
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
 	if (err)
 	{
-		fsl_os_print("ERROR: ipr_create_instance() failed\n");
+		fsl_os_print("ERROR: ipr_create_instance() failed %d\n",err);
 		return err;
 	}
 
