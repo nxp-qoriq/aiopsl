@@ -45,6 +45,7 @@
 #include "cmdif_client_aiop.h"
 #include "cmdif_rev.h"
 #include "fsl_sl_cmd.h"
+#include "fsl_icontext.h"
 
 /** This is where rx qid should reside */
 #define FQD_CTX_GET \
@@ -60,16 +61,62 @@
 #define SYNC_CMD(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
 
+
+#define SAVE_GPP_ICID	\
+do {\
+	uint16_t pl_icid = PL_ICID_GET; 		\
+	gpp_ic.dma_flags = 0; 				\
+	ADD_AMQ_FLAGS(gpp_ic.dma_flags, pl_icid); 	\
+	gpp_ic.icid = ICID_GET(pl_icid); 		\
+	if (BDI_GET != 0) 				\
+		gpp_ic.bdi_flags = FDMA_ENF_BDI_BIT;	\
+\
+} while(0)
+	
+#define SET_AIOP_ICID	\
+	do { \
+		/* Set AIOP ICID and AMQ bits */			\
+		struct additional_dequeue_context *adc =		\
+				(struct additional_dequeue_context *)	\
+				HWC_ADC_ADDRESS; 			\
+		uint16_t pl_icid = icontext_aiop.icid;\
+		struct icontext ic = icontext_aiop; /* Copy SHRAM to WS */\
+		uint8_t flags = 0;					\
+		if (ic.bdi_flags & FDMA_ENF_BDI_BIT) {			\
+			flags |= ADC_BDI_MASK;				\
+		}							\
+		if (ic.dma_flags & FDMA_DMA_eVA_BIT) {			\
+			flags |= ADC_VA_MASK;				\
+		}							\
+		if (ic.dma_flags & FDMA_DMA_PL_BIT) {			\
+			pl_icid |= ADC_PL_MASK;				\
+		}							\
+		adc->fdsrc_va_fca_bdi = (adc->fdsrc_va_fca_bdi & 	\
+			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
+		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
+	} while (0)
+	
+
 #define OPEN_CB(M_ID, INST, DEV) \
-	(cmdif_aiop_srv.srv->open_cb[M_ID](INST, &DEV))
+	do {\
+		SET_AIOP_ICID;					\
+		err = cmdif_aiop_srv.srv->open_cb[M_ID](INST, &DEV);	\
+	} while (0)
 
 #define CTRL_CB(AUTH_ID, CMD_ID, SIZE, DATA) \
-	(cmdif_aiop_srv.srv->ctrl_cb[cmdif_aiop_srv.srv->m_id[AUTH_ID]] \
-		(cmdif_aiop_srv.srv->inst_dev[AUTH_ID], CMD_ID, SIZE, DATA))
+	do {\
+		SET_AIOP_ICID;\
+		err = cmdif_aiop_srv.srv->ctrl_cb[cmdif_aiop_srv.srv->m_id[AUTH_ID]] \
+		(cmdif_aiop_srv.srv->inst_dev[AUTH_ID], CMD_ID, SIZE, DATA);   \
+	} while(0)
 
 #define CLOSE_CB(AUTH_ID) \
-	(cmdif_aiop_srv.srv->close_cb[cmdif_aiop_srv.srv->m_id[AUTH_ID]] \
-		(cmdif_aiop_srv.srv->inst_dev[AUTH_ID]))
+	do {\
+		SET_AIOP_ICID;\
+		err = cmdif_aiop_srv.srv->close_cb[cmdif_aiop_srv.srv->m_id[AUTH_ID]]\
+		(cmdif_aiop_srv.srv->inst_dev[AUTH_ID]); \
+	} while(0);
+
 
 #define FREE_MODULE    '\0'
 #define FREE_INSTANCE  (M_NUM_OF_MODULES)
@@ -90,6 +137,8 @@ static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 extern int sl_cmd_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
 extern int sl_cmd_open_cb(uint8_t instance_id, void **dev);
 extern int sl_cmd_close_cb_t(void *dev);
+
+extern struct icontext icontext_aiop;
 
 static inline int is_valid_auth_id(uint16_t id)
  {
@@ -323,11 +372,13 @@ void cmdif_fd_send(int cb_err);
 void sync_cmd_done(uint64_t sync_done,
                           int err,
                           uint16_t auth_id,
-                          char terminate);
+                          char terminate,
+                          struct icontext *ic);
 /* static */ void sync_cmd_done(uint64_t sync_done,
                           int err,
                           uint16_t auth_id,
-                          char terminate)
+                          char terminate,
+                          struct icontext *ic)
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
@@ -347,16 +398,12 @@ void sync_cmd_done(uint64_t sync_done,
 		sl_pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
-		uint16_t pl_icid = PL_ICID_GET;
-		uint32_t flags = FDMA_DMA_DA_WS_TO_SYS_BIT;
-
 		/*
-		 * It's ok to take it from current ADC and FD because this
-		 * should not change between commands on the same session */
-		ADD_AMQ_FLAGS(flags, pl_icid);
-		sl_pr_debug("icid = 0x%x\n", ICID_GET(pl_icid));
-		sl_pr_debug("fdma_dma_data flags = 0x%x\n", flags);
-		fdma_dma_data(4, ICID_GET(pl_icid), &resp, _sync_done, flags);
+		 * Use previously saved AMQ bits and ICID */
+		sl_pr_debug("icid = 0x%x\n", ic->icid);
+		sl_pr_debug("fdma_dma_data flags = 0x%x\n", ic->dma_flags);
+		fdma_dma_data(4, ic->icid, &resp, _sync_done, 
+		              ic->dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
 	}
 
 	sl_pr_debug("sync_done high = 0x%x low = 0x%x \n",
@@ -537,7 +584,8 @@ void cmdif_srv_isr(void)
 	uint16_t cmd_id = cmd_id_get();
 	int err = 0;
 	uint16_t auth_id = cmd_auth_id_get();
-
+	struct icontext gpp_ic;
+	
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	
@@ -575,6 +623,8 @@ void cmdif_srv_isr(void)
 
 	}
 #endif
+
+	SAVE_GPP_ICID;
 	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
@@ -584,7 +634,7 @@ void cmdif_srv_isr(void)
 			if (err) {
 				pr_err("notify_open failed\n");
 			}
-			sync_cmd_done(NULL, err, auth_id, TRUE);
+			sync_cmd_done(NULL, err, auth_id, TRUE, &gpp_ic);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
@@ -597,7 +647,7 @@ void cmdif_srv_isr(void)
 			if (err) {
 				pr_err("notify_close failed\n");
 			}
-			sync_cmd_done(NULL, err, auth_id, TRUE);
+			sync_cmd_done(NULL, err, auth_id, TRUE, &gpp_ic);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
@@ -612,7 +662,8 @@ void cmdif_srv_isr(void)
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			sl_pr_err("No permission to open device 0x%x\n", auth_id);
-			sync_cmd_done(sync_done_get(), -EPERM, auth_id, TRUE);
+			sync_cmd_done(sync_done_get(), -EPERM, auth_id, 
+			              TRUE, &gpp_ic);
 		}
 
 		cmd_m_name_get(&m_name[0]);
@@ -624,13 +675,14 @@ void cmdif_srv_isr(void)
 		if (m_id < 0) {
 			/* Did not find module with such name */
 			pr_err("No such module %s\n", m_name);
-			sync_cmd_done(sync_done_get(), -ENODEV, auth_id, TRUE);
+			sync_cmd_done(sync_done_get(), -ENODEV, auth_id, 
+			              TRUE, &gpp_ic);
 		}
 
 		inst_id  = cmd_inst_id_get();
 		sl_pr_debug("inst_id = %d\n", inst_id);
 
-		err = OPEN_CB(m_id, inst_id, dev);
+		OPEN_CB(m_id, inst_id, dev);
 		if (!err) {
 			int  new_inst = inst_alloc((uint8_t)m_id);
 			if (new_inst >= 0) {
@@ -638,22 +690,25 @@ void cmdif_srv_isr(void)
 				sync_done_set((uint16_t)new_inst);
 				cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
 				sync_cmd_done(sync_done_get(), 0,
-						(uint16_t)new_inst, TRUE);
+						(uint16_t)new_inst, 
+						TRUE, &gpp_ic);
 			} else {
 				/* couldn't find free place for new device */
-				sync_cmd_done(sync_done_get(), -ENODEV, auth_id, FALSE);
+				sync_cmd_done(sync_done_get(), -ENODEV, auth_id,
+				              FALSE, &gpp_ic);
 				PR_ERR_TERMINATE("No free entry for new device\n");
 			}
 		} else {
-			sync_cmd_done(sync_done_get(), err, auth_id, FALSE);
+			sync_cmd_done(sync_done_get(), err, auth_id, 
+			              FALSE, &gpp_ic);
 			PR_ERR_TERMINATE("Open callback failed\n");
 		}
 	} else if (cmd_id == CMD_ID_CLOSE) {
 
 		if (is_valid_auth_id(auth_id)) {
 			/* Don't reorder this sequence !!*/
-			err = CLOSE_CB(auth_id);
-			sync_cmd_done(NULL, err, auth_id, FALSE);
+			CLOSE_CB(auth_id);
+			sync_cmd_done(NULL, err, auth_id, FALSE, &gpp_ic);
 			if (!err) {
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
@@ -674,11 +729,12 @@ void cmdif_srv_isr(void)
 	} else {
 		if (is_valid_auth_id(auth_id)) {
 			/* User can ignore data and use presentation context */
-			err = CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
+			CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
 			              cmd_data_get());
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
-				sync_cmd_done(NULL, err, auth_id, TRUE);
+				sync_cmd_done(NULL, err, auth_id, 
+				              TRUE, &gpp_ic);
 			}
 		} else {
 			/* don't bother to send response
