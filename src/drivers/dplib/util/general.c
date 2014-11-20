@@ -42,8 +42,6 @@ __TASK struct aiop_default_task_params default_task_params;
 #include "aiop_verification_data.h"
 #include "aiop_verification.h"
 #include <string.h>
-extern __VERIF_TLS uint32_t fatal_fqid;
-extern __VERIF_TLS uint32_t sr_fm_flags;
 extern __VERIF_TLS uint64_t initial_ext_address;
 #endif /*AIOP_VERIF*/
 
@@ -70,7 +68,7 @@ void exception_handler(char *filename,
 
 	/* Read command from external buffer in DDR */
 	fatal_cmd = &fatal_cmd_str;
-	cdma_read((void *)fatal_cmd, initial_ext_address, 
+	cdma_read((void *)fatal_cmd, initial_ext_address,
 			sizeof(struct fatal_error_command));
 
 	filename = strrchr(filename, '/') ?

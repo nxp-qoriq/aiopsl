@@ -61,9 +61,8 @@ void aiop_verification_fm()
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
 
-	init_verif();
-
-	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
+	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
+	 * This is the external buffer address */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
 			/* PTA was already loaded */
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
@@ -95,7 +94,9 @@ void aiop_verification_fm()
 	}
 	initial_ext_address = ext_address;
 	slab_general_error = 0;
-	
+
+	init_verif();
+
 	/* spid=0. This is a temporary spid setter and has to be removed when
 				* the ni function will be run.
 				* (According to Ilan request) */
