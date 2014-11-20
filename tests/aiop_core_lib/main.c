@@ -43,9 +43,6 @@ int verif_main()
 {
 	/* initialize stack pointer */
 
-	/* TODO Duplication is because verification using old SR EPID - this
-	 * should be removed */
-	aiop_verification_fm();
 	aiop_verification_fm();
 	return 0;
 }
