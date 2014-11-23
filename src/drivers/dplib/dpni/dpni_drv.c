@@ -48,6 +48,11 @@
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
+int spid_start = 64;
+int last_spid = 128;
+
+
+
 /* TODO - get rid */
 struct dpni_drv nis_first __attribute__((aligned(8)));
 struct dpni_drv *nis = &nis_first;
@@ -137,7 +142,10 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
 	uint16_t spid;
+	uint32_t sp_temp;
 	struct dpni_attr attributes;
+	struct aiop_psram_entry *sp_addr;
+	struct aiop_psram_entry ddr_storage_profile;
 
 	/* TODO: replace wrks_addr with global struct */
 	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
@@ -189,7 +197,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
-			if ((err = dpni_set_pools(&dprc->io, dpni, pools_params)) != 0) {
+			if ((err = dpni_set_pools(&dprc->io, dpni, &pools_params[DPNI_DRV_PEB_BPID_IDX])) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;
 			}
@@ -230,6 +238,39 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* Replace discard callback with receive callback */
 			iowrite32_ccsr(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
+			
+			
+			
+			if( pools_params[DPNI_DRV_DDR_BPID_IDX].num_dpbp == 1) /*bpid exist to use for ddr pool*/
+			{
+			/*Create ddr spid here*/
+				if(spid_start < last_spid)
+				{
+					sp_addr = (struct aiop_psram_entry *)
+						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+					sp_addr += spid;
+					ddr_storage_profile = *sp_addr;	
+
+					sp_temp = LOAD_LE32_TO_CPU(&ddr_storage_profile.bp1);
+					sp_temp &= SP_MASK_BMT_AND_RSV;
+					sp_temp |= ((pools_params[1].pools[0].dpbp_id & SP_MASK_BPID) << 16);		
+					STORE_CPU_TO_LE32(sp_temp,&ddr_storage_profile.bp1);
+
+					sp_addr = (struct aiop_psram_entry *)
+						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+					sp_addr += spid_start;
+					*sp_addr = ddr_storage_profile;
+
+					nis[aiop_niid].dpni_drv_params_var.spid_ddr = (uint8_t) spid_start;
+					spid_start ++;
+				}
+				else{
+					pr_err("No free spid available \n");
+				}
+			
+			}
+			else
+				nis[aiop_niid].dpni_drv_params_var.spid_ddr = 0;	
 			num_of_nis ++;
 			return 0;
 		}
@@ -246,6 +287,16 @@ int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid)
 
 	dpni_drv = nis + ni_id;
 	*spid = dpni_drv->dpni_drv_params_var.spid;
+
+	return 0;
+}
+
+int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr)
+{
+	struct dpni_drv *dpni_drv;
+
+	dpni_drv = nis + ni_id;
+	*spid_ddr = dpni_drv->dpni_drv_params_var.spid_ddr;
 
 	return 0;
 }
