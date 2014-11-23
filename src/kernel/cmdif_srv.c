@@ -495,7 +495,7 @@ int notify_open();
 
 	ind = find_dpci((uint8_t)data->dev_id);
 	if (ind < 0) {
-		sl_pr_err("Not found DPCI peer %d\n", data->dev_id);
+		pr_err("Not found DPCI peer %d\n", data->dev_id);
 		return -ENAVAIL;
 	}
 
@@ -517,7 +517,7 @@ int notify_open();
 	link_up = cmdif_cl_session_get(cl, data->m_name,
 					data->inst_id, data->dev_id);
 	if (link_up >= 0) {
-		sl_pr_err("The session already exists\n");
+		pr_err("The session already exists\n");
 		unlock_spinlock(&cl->lock);
 		return -EEXIST;
 	}
@@ -526,7 +526,7 @@ int notify_open();
 	/*  REUSING link_up as free_ind */
 	link_up = cmdif_cl_free_session_get(cl);
 	if (link_up < 0) {
-		sl_pr_err("Too many sessions\n");
+		pr_err("Too many sessions\n");
 		unlock_spinlock(&cl->lock);
 		return -ENOSPC;
 	}
@@ -550,9 +550,9 @@ int notify_open();
 	cl->count++;
 	unlock_spinlock(&cl->lock);
 
-	sl_pr_debug("icid = 0x%x\n", cmdif_aiop_srv.dpci_tbl->icid[ind]);
-	sl_pr_debug("enq_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]);
-	sl_pr_debug("dma_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->dma_flags[ind]);
+	pr_debug("icid = 0x%x\n", cmdif_aiop_srv.dpci_tbl->icid[ind]);
+	pr_debug("enq_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]);
+	pr_debug("dma_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->dma_flags[ind]);
 
 	return 0;
 }
