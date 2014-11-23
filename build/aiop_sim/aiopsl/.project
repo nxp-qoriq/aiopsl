@@ -150,6 +150,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/qbman</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/serial</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -513,6 +518,16 @@
 			<name>aiop_sl/drivers/mc/mc_init.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/mc_init.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/qbman/bman.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/qbman/bman.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/qbman/include</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/serial/duart</name>
@@ -1008,6 +1023,11 @@
 			<name>aiop_sl/drivers/mc/include/fsl_mc_init.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/include/fsl_mc_init.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/qbman/include/fsl_bman.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/qbman/include/fsl_bman.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/serial/duart/duart.c</name>

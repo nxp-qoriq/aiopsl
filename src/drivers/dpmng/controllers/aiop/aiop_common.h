@@ -63,7 +63,10 @@ struct aiop_app_init_info {
 	uint32_t tman_freq;
 	uint32_t tasks_per_core;
 
-	uint32_t reserved[49]; /* reserved for future use */
+	uint32_t dpni_num_buffs; /*number of buffers for dpni pool*/
+	uint32_t dpni_buff_size; /*size of buffers for dpni pool*/
+	uint32_t dpni_drv_alignment; /*dpni pool buffers alignment*/
+	uint32_t reserved[46]; /* reserved for future use */
 };
 
 /* Internal data exchanged between AIOP and MC

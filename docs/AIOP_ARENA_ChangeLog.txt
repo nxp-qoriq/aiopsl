@@ -1,3 +1,16 @@
+dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
+                           and int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid_ddr);
+
+dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
+
+apps.h:         added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
+                /* Number of frame buffers in pool */
+                #define DPNI_NUMBER_BUFFERS_IN_POOL      50
+                /* Size of buffers in pool */
+                #define DPNI_BUFFER_SIZE_IN_POOL         2048
+                /* alignment of buffers in pool */
+                #define DPNI_BUFFER_ALIGNMENT            64
+
 fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
 slab.c,h:       Added implementation used by app_early_init, added slab_early_init.
                 Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(

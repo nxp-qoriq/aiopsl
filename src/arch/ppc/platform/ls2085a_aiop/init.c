@@ -39,6 +39,7 @@
 #include "fsl_mc_init.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_mem_mng.h"
+#include "fsl_bman.h"
 
 extern t_system sys;
 
@@ -304,57 +305,24 @@ static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 
 }
 
-
-/* TODO: Need to replace this temporary workaround with the actual function.
-/*****************************************************************************/
-static int fill_bpid(uint16_t num_buffs,
-                     uint16_t buff_size,
-                     uint16_t alignment,
-                     uint8_t  mem_partition_id,
-                     uint16_t bpid)
-{
-	int        i = 0;
-	dma_addr_t addr  = 0;
-	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
-	uint16_t icid = 0;
-	uint32_t flags = FDMA_RELEASE_NO_FLAGS;
-
-	/* Use the same flags as for slab */
-	if (slab_m) {
-		icid  = slab_m->icid;
-		flags = slab_m->fdma_flags;
-	}
-    addr = fsl_os_virt_to_phys(fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
-                                              mem_partition_id,
-                                              alignment));
-
-    if(addr == NULL)
-	    return -ENOMEM;
-
-    for (i = 0; i < num_buffs; i++) {
-
-        /* Here, we pass virtual BPID, therefore BDI = 0 */
-        fdma_release_buffer(icid, flags, bpid, addr);
-        addr += buff_size;
-    }
-    return 0;
-}
-
-int run_apps(void)
+__COLD_CODE int run_apps(void)
 {
 	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0;
 	int dev_count;
+	int num_bpids = 0;
 	/* TODO: replace with memset */
 	uint16_t dpbp = 0;
 	struct dprc_obj_desc dev_desc;
-	int dpbp_id = -1;
+	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
 	struct dpbp_attr attr;
-	struct dpni_pools_cfg pools_params;
-	uint16_t buffer_size = 2048;
+	struct dpni_pools_cfg pools_params[DPNI_DRV_NUM_USED_BPIDS];
+	uint16_t buffer_size = (uint16_t)g_init_data.app_info.dpni_buff_size;
+	uint16_t num_buffs = (uint16_t)g_init_data.app_info.dpni_num_buffs;
+	uint16_t alignment;
+	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
 
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
@@ -364,7 +332,13 @@ int run_apps(void)
 	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
 	/* TODO - iterate through the device-list:
 	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
-
+	
+	
+	if(IS_POWER_VALID_ALLIGN(g_init_data.app_info.dpni_drv_alignment,buffer_size))
+		alignment = (uint16_t)g_init_data.app_info.dpni_drv_alignment;
+	else
+		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
+	
 	if (dprc == NULL)
 	{
 		pr_err("Don't find AIOP root container \n");
@@ -384,53 +358,63 @@ int run_apps(void)
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			/* TODO: print conditionally based on log level */
-			pr_info("Found First DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
-			dpbp_id	= dev_desc.id;
-			break;
+			pr_info("Found DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
+			dpbp_id[num_bpids]= dev_desc.id;
+			num_bpids ++;
+			
+			if(num_bpids == DPNI_DRV_NUM_USED_BPIDS)
+				break;
 		}
-	}
+	}	
+			
+	
 
-	if(dpbp_id < 0){
-		pr_err("DPBP not found in the container.\n");
+	if(num_bpids < DPNI_DRV_NUM_USED_BPIDS){
+		pr_err("Not enough DPBPs found in the container.\n");
 		return -ENAVAIL;
 	}
 
-	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
-		pr_err("Failed to open DPBP-%d.\n", dpbp_id);
-		return err;
+	for(i = 0; i < DPNI_DRV_NUM_USED_BPIDS; i++)
+	{
+		if ((err = dpbp_open(&dprc->io, dpbp_id[i], &dpbp)) != 0) {
+			pr_err("Failed to open DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
+			pr_err("Failed to enable DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
+			pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = bman_fill_bpid(num_buffs, 
+		                          buffer_size, 
+		                          alignment, 
+		                          (enum memory_partition_id) mem_pid[i], 
+		                          attr.bpid)) != 0) {
+			pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
+			       dpbp_id[i], attr.bpid, buffer_size);
+			return err;
+		}
+
+		/* Prepare parameters to attach to DPNI object */
+		pools_params[i].num_dpbp = 1; /* for AIOP, can be up to 2 */
+		pools_params[i].pools[0].dpbp_id = (uint16_t)dpbp_id[i]; /*!< DPBPs object id */
+		pools_params[i].pools[0].buffer_size = buffer_size;
+
+		/* Enable all DPNI devices */
 	}
-
-	if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
-		pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
-		return err;
-	}
-
-	if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
-		pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
-		return err;
-	}
-
-	/* TODO: number and size of buffers should not be hard-coded */
-	if ((err = fill_bpid(50, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
-		pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
-		       dpbp_id, attr.bpid, buffer_size);
-		return err;
-	}
-
-	/* Prepare parameters to attach to DPNI object */
-	pools_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
-	pools_params.pools[0].dpbp_id = (uint16_t)dpbp_id; /*!< DPBPs object id */
-	pools_params.pools[0].buffer_size = buffer_size;
-
-
-	/* Enable all DPNI devices */
 	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			/* TODO: print conditionally based on log level */
 			print_dev_desc(&dev_desc);
 
-			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, (uint16_t)i, &pools_params)) != 0) {
+			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, (uint16_t)i, pools_params)) != 0) {
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}

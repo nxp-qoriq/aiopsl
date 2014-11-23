@@ -40,10 +40,10 @@
 #include "aiop_common.h"
 #include "fsl_mc_init.h"
 #include "fsl_icontext.h"
+#include "fsl_bman.h"
 
 struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 struct slab_virtual_pools_main_desc g_slab_virtual_pools;
-
 uint64_t g_slab_pool_pointer_ddr;
 uint64_t g_slab_last_pool_pointer_ddr;
 
@@ -963,14 +963,15 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			/* TODO: print conditionally based on log level */
-			pr_info("Found First DPBP ID: %d, Skipping, will be used for frame buffers\n", dev_desc.id);
-			num_bpids = 1;
-			break;
+			pr_info("Found DPBP ID: %d, Skipping, will be used for frame buffers\n", dev_desc.id);
+			num_bpids ++;
+			if(num_bpids == SLAB_NUM_BPIDS_USED_FOR_DPNI)
+				break;
 		}
 	}
 
-	if(num_bpids != 1) { /*Check if first dpbp was found*/
-		pr_err("DP-BP not found in the container.\n");
+	if(num_bpids != SLAB_NUM_BPIDS_USED_FOR_DPNI) { /*Check if first dpbp was found*/
+		pr_err("Not enough DPBPs found in the container.\n");
 		return -ENODEV;
 	}
 
@@ -1014,8 +1015,7 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 	int i = 0, j = 0;
 	int err = 0;
 	dma_addr_t addr = 0;
-	uint32_t *virtual_address;
-	uint32_t buff_size;
+	uint16_t buff_size;
 	/* Set BPIDs */
 	for(i = 0; i < num_bpids; i++)
 	{		
@@ -1042,28 +1042,17 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 		(*bpids_arr) ++; /*move array pointer after saving the bpid*/
 		
 		/*Big malloc allocation for all buffers in bpid*/
-		virtual_address = (uint32_t *) fsl_os_xmalloc(
-			(size_t)(buff_size * slab_m->hw_pools[i].total_num_buffs),
-			slab_m->hw_pools[i].mem_pid,
-			slab_m->hw_pools[i].alignment);
 
-		if (virtual_address == NULL) {
-			pr_err("Error, unable to allocate space for pools\n");
-			return -ENOMEM;
+		err = bman_fill_bpid((size_t)slab_m->hw_pools[i].total_num_buffs, 
+		          buff_size,
+		          slab_m->hw_pools[i].alignment,
+		          (enum memory_partition_id)slab_m->hw_pools[i].mem_pid,
+		          slab_m->hw_pools[i].pool_id);
+		if(err){
+			pr_err("ERROR: Filling bpid with buffers failed - %d\n",err);
+			return err;
 		}
 
-		addr = fsl_os_virt_to_phys((void *)virtual_address);
-
-		/* Isolation is enabled */
-		for(j = 0; j < slab_m->hw_pools[i].total_num_buffs; j++){
-			fdma_release_buffer(slab_m->icid,
-			                    slab_m->fdma_flags,
-			                    slab_m->hw_pools[i].pool_id,
-			                    addr);
-
-			addr += buff_size;
-
-		}
 
 		err = slab_add_bman_buffs_to_pool(slab_m->hw_pools[i].pool_id,
 		                                  (int32_t) slab_m->hw_pools[i].total_num_buffs);
@@ -1089,8 +1078,8 @@ __COLD_CODE int slab_module_early_init(void){
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
 			g_slab_early_init_data->mem_pid_buffer_request[i] = NULL;
 	
-	err |= slab_register_context_buffer_requirements(750,750,4088,0,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,2040,0,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(750,750,4088,64,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(750,750,2040,64,MEM_PART_DP_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(750,750,1016,64,MEM_PART_DP_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(750,750,504,64,MEM_PART_DP_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(750,750,248,64,MEM_PART_DP_DDR,0, 0);
@@ -1482,9 +1471,9 @@ __COLD_CODE int slab_module_init(void)
 		              ddr_pool_addr,
 		              (slab_m->fdma_dma_flags |
 		        	      FDMA_DMA_DA_WS_TO_SYS_BIT));
-	
+
 		ddr_pool_addr += 4 * SLAB_MAX_NUM_VP_DDR ;
-		
+
 	}
 
 	/* Add to all system handles */
