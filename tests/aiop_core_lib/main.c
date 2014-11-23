@@ -42,7 +42,7 @@ extern __VERIF_GLOBAL uint8_t verif_spin_lock;
 int verif_main()
 {
 	/* initialize stack pointer */
-	aiop_verification_sr(); /* Obsolete entry point */
+
 	aiop_verification_fm();
 	return 0;
 }
